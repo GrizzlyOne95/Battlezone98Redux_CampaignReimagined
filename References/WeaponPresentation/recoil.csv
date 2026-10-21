@@ -1,0 +1,331 @@
+unit,name,model,model_status,slot,weapon,hardpoint,muzzle_nodes,parents,candidates,plan
+abtowe,Gun Tower,abtowe,read,1,gspstabn,GC1,agn11Gc1,agn11bgb,"[{""node"": ""agn11bgb"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.233}]",dedicated barrel slide candidate
+aspilo,Pilot,aspilo,read,1,aprifle,GC1,asp11GC1,asp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+aspilop,Patrol,aspilo,read,1,aprifle,GC1,asp11GC1,asp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+assold,Soldier,aspilo,read,1,asplsmg,GC1,asp11GC1,asp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+asuser,Player,aspilo,read,1,aprifle,GC1,asp11GC1,asp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+asuser,Player,aspilo,read,2,gsnipe,GC1,asp11GC1,asp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+asusera,Player,aspilo,read,1,aprifle,GC1,asp11GC1,asp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+asusera,Player,aspilo,read,2,gsnipe,GC1,asp11GC1,asp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+avarmp,Howitzer,avartl,read,1,ghartmp,GM1,aar11gm1,aar11bgd,"[{""node"": ""aar11bgd"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.688}]",dedicated barrel slide candidate
+avartl,Howitzer,avartl,read,1,ghartill,GM1,aar11gm1,aar11bgd,"[{""node"": ""aar11bgd"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.688}]",dedicated barrel slide candidate
+avartl,Howitzer,avartl,read,2,ghartill,GM2,aar11gm2,aar11bgc,"[{""node"": ""aar11bgc"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.737}]",dedicated barrel slide candidate
+avartl,Howitzer,avartl,read,3,ghartill,GM3,aar11gm3,aar11bgb,"[{""node"": ""aar11bgb"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.656}]",dedicated barrel slide candidate
+avartl,Howitzer,avartl,read,4,ghartill,GM4,aar11gm4,aar11bga,"[{""node"": ""aar11bga"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.719}]",dedicated barrel slide candidate
+avartla,Howitzer,avartl,read,1,gpopguna,GM1,aar11gm1,aar11bgd,"[{""node"": ""aar11bgd"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.688}]",dedicated barrel slide candidate
+avdemo,Tank,avtank,read,1,gatstab,GC1,AGR11GC1,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 2.412}]",dedicated barrel slide candidate
+avdemo,Tank,avtank,read,2,gminigun,GC2,AGR11Gc2,AGR11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+avdemo,Tank,avtank,read,3,gquake,GS1,AGR11GS1,AGR11TUR,[],author additive recoil parent/clip; preserve aiming and locomotion
+avdemo,Tank,avtank,read,4,gmdmgun,GM1,AGR11GM1,AGR11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+avfigh,Scout,avfigh,read,1,gminigun,GC1,ARA11Gc1,ARA11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+avfigh,Scout,avfigh,read,2,gminigun,GC2,ARA11Gc2,ARA11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+avfimp,Scout,avfigh,read,1,gminigun,GC1,ARA11Gc1,ARA11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+avfimp,Scout,avfigh,read,2,gminigun,GC2,ARA11Gc2,ARA11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+avhraz,Bomber,avhraz,read,2,grktbomb,GR1,Ahr11GR1,ahr11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+avhraz,Bomber,avhraz,read,3,grktbomb,GR2,Ahr11GR2,ahr11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+avhrmp,Bomber,avhraz,read,2,grktbomb,GR1,Ahr11GR1,ahr11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+avhrmp,Bomber,avhraz,read,3,grktbomb,GR2,Ahr11GR2,ahr11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+avlamp,Lander,avland,read,1,gtechno,GC1,lla11GC1,lla11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+avltmp,Light Tank,avltnk,read,1,gtminig,GC1,aln11gc1,aln11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+avltmp,Light Tank,avltnk,read,2,gtaggun,GR1,art11gr1,aln11bdc,[],author additive recoil parent/clip; preserve aiming and locomotion
+avltmp,Light Tank,avltnk,read,3,gmitsmin,GS1,aln11gs1,aln11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+avltnk,Light Tank,avltnk,read,1,gminigun,GC1,aln11gc1,aln11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+avltnk,Light Tank,avltnk,read,2,ghornet,GR1,art11gr1,aln11bdc,[],author additive recoil parent/clip; preserve aiming and locomotion
+avltnk,Light Tank,avltnk,read,3,gflare,GS1,aln11gs1,aln11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+avmine,Minelayer,avmine,read,1,gproxmin,GS1,AMI11GS1,AMI11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+avrckt,Rocket Tank,avrckt,read,1,gshadow,GR1,art11gr1,art11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+avrckt,Rocket Tank,avrckt,read,2,ghornet,GR2,art11gr2,art11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+avrckt,Rocket Tank,avrckt,read,4,gproxmin,GS1,art11gs1,art11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+avsav,Fury,avsav,read,1,gbolt,GC1,nsv11GC1,nvs11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+avsav,Fury,avsav,read,2,gwasp,GR1,nsv11GR1,nvs11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+avsav14,Fury,avsav,read,1,gbolt,GC1,nsv11GC1,nvs11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+avsl7,Armory,avslf,read,1,gobject,gs2,ASL11GS2,ASL11ARM,[],author additive recoil parent/clip; preserve aiming and locomotion
+avsl8,Armory,avslf,read,1,gobject,gs2,ASL11GS2,ASL11ARM,[],author additive recoil parent/clip; preserve aiming and locomotion
+avslf,Armory,avslf,read,1,gobject,gs2,ASL11GS2,ASL11ARM,[],author additive recoil parent/clip; preserve aiming and locomotion
+avslf5,Armory,avslf,read,1,gobject,gs2,ASL11GS2,ASL11ARM,[],author additive recoil parent/clip; preserve aiming and locomotion
+avslf6,Armory,avslf,read,1,gobject,gs2,ASL11GS2,ASL11ARM,[],author additive recoil parent/clip; preserve aiming and locomotion
+avtamp,Tank,avtank,read,1,gatstab,GC1,AGR11GC1,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 2.412}]",dedicated barrel slide candidate
+avtamp,Tank,avtank,read,2,gmaggun,GC2,AGR11Gc2,AGR11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+avtamp,Tank,avtank,read,3,gredfld,GS1,AGR11GS1,AGR11TUR,[],author additive recoil parent/clip; preserve aiming and locomotion
+avtank,Tank,avtank,read,1,gatstab,GC1,AGR11GC1,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 2.412}]",dedicated barrel slide candidate
+avtank,Tank,avtank,read,2,gminigun,GC2,AGR11Gc2,AGR11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+avtank,Tank,avtank,read,3,gquake,GS1,AGR11GS1,AGR11TUR,[],author additive recoil parent/clip; preserve aiming and locomotion
+avtank,Tank,avtank,read,4,gmdmgun,GM1,AGR11GM1,AGR11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+avtest,Drone,avtest,read,1,gdummy,GC1,aVT11gc1,aVT11bgA,"[{""node"": ""aVT11bgA"", ""translation_animated"": true, ""barrel_forward_tip_estimate"": 3.312}]",dedicated barrel slide candidate
+avtest,Drone,avtest,read,2,gdummy,GC2,aVT11gc2,aVT11bgb,"[{""node"": ""aVT11bgb"", ""translation_animated"": true, ""barrel_forward_tip_estimate"": 3.312}]",dedicated barrel slide candidate
+avtest,Drone,avtest,read,3,gdummy,GM1,aVT11gm1,aVT11bgA,"[{""node"": ""aVT11bgA"", ""translation_animated"": true, ""barrel_forward_tip_estimate"": 3.29}]",dedicated barrel slide candidate
+avtest,Drone,avtest,read,4,gdummy,GM2,aVT11gm2,aVT11bgb,"[{""node"": ""aVT11bgb"", ""translation_animated"": true, ""barrel_forward_tip_estimate"": 3.312}]",dedicated barrel slide candidate
+avtump,Turret,avturr,read,1,gtminig,GC1,aDE11gc1,aDE11blc,[],author additive recoil parent/clip; preserve aiming and locomotion
+avtump,Turret,avturr,read,2,gtminig,GC2,aDE11gc2,aDE11blf,[],author additive recoil parent/clip; preserve aiming and locomotion
+avturr,Turret,avturr,read,1,gtminig,GC1,aDE11gc1,aDE11blc,[],author additive recoil parent/clip; preserve aiming and locomotion
+avwalk,Walker,avwalk,read,1,gatstaba,GC1,AGe11GC1,age11tx2,[],author additive recoil parent/clip; preserve aiming and locomotion
+avwalk,Walker,avwalk,read,2,gatstaba,GC2,AGe11GC2,age11tx1,[],author additive recoil parent/clip; preserve aiming and locomotion
+avwalk,Walker,avwalk,read,3,gpopgun,GM1,AGe11GM1,age11ty1,[],author additive recoil parent/clip; preserve aiming and locomotion
+avwamp,Walker,avwalk,read,1,gmaggun,GC1,AGe11GC1,age11tx2,[],author additive recoil parent/clip; preserve aiming and locomotion
+avwamp,Walker,avwalk,read,2,gmaggun,GC2,AGe11GC2,age11tx1,[],author additive recoil parent/clip; preserve aiming and locomotion
+avwamp,Walker,avwalk,read,3,gsplint,GM1,AGe11GM1,age11ty1,[],author additive recoil parent/clip; preserve aiming and locomotion
+bbtowe,Gun Tower,bbtowe,read,1,gblastb,GC1,agn11Gc1,agn11bgb,"[{""node"": ""agn11bgb"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.233}]",dedicated barrel slide candidate
+bsheav,Heavy Infantry,bsheav,read,1,handgun,GC1,bsh11GC1,bsh11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+bsheav,Heavy Infantry,bsheav,read,2,gsnipe,GC1,bsh11GC1,bsh11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+bspilo,Pilot,bsheav,read,1,bprifle,GC1,bsh11GC1,bsh11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+bssold,Soldier,bspilo,read,1,bsplsmg,GC1,bsp11GC1,bsp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+bsuser,Player,bspilo,read,1,bprifle,GC1,bsp11GC1,bsp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+bsuser,Player,bspilo,read,2,gsnipe,GC1,bsp11GC1,bsp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+bv0001,Armory,bvslf,read,1,gobject,ARM,BSL11ARM,BSL11BAS,[],author additive recoil parent/clip; preserve aiming and locomotion
+bv0002,Bomber,bvhraz,read,2,grktbomb,GR1,bhr11GR1,bhr11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+bv0002,Bomber,bvhraz,read,3,grktbomb,GR2,bhr11GR2,bhr11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvartl,Howitzer,bvartl,read,1,ghartill,GM1,bar11gm1,bar11bgd,"[{""node"": ""bar11bgd"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.688}]",dedicated barrel slide candidate
+bvfigh,Scout,bvraz,read,1,gminigun,GC1,bRA11Gc1,bRA11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvfigh,Scout,bvraz,read,3,gshadow,GR1,bRA11Gr1,bRA11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvfigha,Scout,bvraz,read,1,gminigun,GC1,bRA11Gc1,bRA11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvfigha,Scout,bvraz,read,2,gminigun,GC2,bRA11Gc2,bRA11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvhraz,Bomber,bvhraz,read,1,gtaggun,GC1,bhr11Gc1,bhr11bga,"[{""node"": ""bhr11bga"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": -2.026}]",dedicated barrel slide candidate
+bvhraz,Bomber,bvhraz,read,2,gsandbag,GM1,bhr11GM1,bhr11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvhraz,Bomber,bvhraz,read,3,gcomet,GR1,bhr11GR1,bhr11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvhraza,Bomber,bvhraz,read,2,grktbomb,GR1,bhr11GR1,bhr11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvhraza,Bomber,bvhraz,read,3,grktbomb,GR2,bhr11GR2,bhr11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvltnk,Light Tank,bvltnk,read,1,gatstab,GC1,bln11gc1,bln11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvltnk,Light Tank,bvltnk,read,2,gsandbag,GR1,art11gr1,bln11bdc,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvltnk,Light Tank,bvltnk,read,3,gphantom,GS1,bln11gs1,bln11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvltnka,Light Tank,bvltnk,read,1,gatstab,GC1,bln11gc1,bln11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvmine,Minelayer,bvmine,read,1,gproxmin,GS1,bMI11GS1,bMI11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvmru,Mobile Repair Unit,bvmru,read,1,grepa,GS1,bng11GS1,bng11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvmru,Mobile Repair Unit,bvmru,read,2,gammo,GS1,bng11GS1,bng11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvra8,Scout,bvraz,read,1,gminigun,GC1,bRA11Gc1,bRA11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvra8,Scout,bvraz,read,2,gshadow,GR1,bRA11Gr1,bRA11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvraz,Scout,bvraz,read,1,gtminig,GC1,bRA11Gc1,bRA11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvraz,Scout,bvraz,read,3,gshadow,GR1,bRA11Gr1,bRA11rof,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvrckt,Rocket Tank,bvrckt,read,1,gtaggun,GR1,brt11gr1,brt11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvrckt,Rocket Tank,bvrckt,read,2,gtaggun,GR2,brt11gr2,brt11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvrckt,Rocket Tank,bvrckt,read,3,gredfld,GS1,brt11gs1,brt11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvrdev,Red Devil,bvrdev,read,1,gtminig,GC1,brd11GC1,brd11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvrdev,Red Devil,bvrdev,read,2,gtaggun,GR1,brd11Gr1,brd11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvrdev,Red Devil,bvrdev,read,3,gsitecam,GS1,brd11GS1,brd11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvrdeva,Red Devil,bvrdev,read,1,gspstab,GC1,brd11GC1,brd11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvrdeva,Red Devil,bvrdev,read,2,ghornet,GR1,brd11Gr1,brd11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvrmpa,Red Devil,bvrdev,read,1,grktbomb,GC1,brd11GC1,brd11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvrmpa,Red Devil,bvrdev,read,2,grktbomb,GR1,brd11Gr1,brd11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvrmpb,Red Devil,bvrdev,read,1,gspstab,GC1,brd11GC1,brd11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvrmpb,Red Devil,bvrdev,read,2,gspstab,GR1,brd11Gr1,brd11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvslf,Armory,bvslf,read,1,gobject,gs2,BSL11GS2,BSL11ARM,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvslfa,Armory,bvslf,read,1,gobject,ARM,BSL11ARM,BSL11BAS,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvslfb,Armory,bvslf,read,1,gobject,ARM,BSL11ARM,BSL11BAS,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvslfc,Armory,bvslf,read,1,gobject,ARM,BSL11ARM,BSL11BAS,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvslfd,Armory,bvslf,read,1,gobject,ARM,BSL11ARM,BSL11BAS,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvtank,Tank,bvtank,read,1,gspstab,GC1,bGR11GC1,bGR11BGA,"[{""node"": ""bGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 2.412}]",dedicated barrel slide candidate
+bvtank,Tank,bvtank,read,3,gmortar,GM1,bGR11GM1,bGR11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvtank,Tank,bvtank,read,4,gproxmin,GS1,bGR11GS1,bGR11TUR,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvtanka,Tank,bvtank,read,1,gspstab,GC1,bGR11GC1,bGR11BGA,"[{""node"": ""bGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 2.412}]",dedicated barrel slide candidate
+bvtanka,Tank,bvtank,read,3,gpopgun,GM1,bGR11GM1,bGR11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvtanka,Tank,bvtank,read,4,gproxmin,GS1,bGR11GS1,bGR11TUR,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvtump,Turret,bvturr,read,1,gatstab,GC1,bDE11gc1,bDE11blc,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvtump,Turret,bvturr,read,2,gatstab,GC2,bDE11gc2,bDE11blf,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvtur8,Turret,bvturr,read,1,gminigun,GC1,bDE11gc1,bDE11blc,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvturr,Turret,bvturr,read,1,gtminig,GC1,bDE11gc1,bDE11blc,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvwalk,Walker,bvwalk,read,1,gspstab,GC1,AGe11GC1,age11tx2,[],author additive recoil parent/clip; preserve aiming and locomotion
+bvwalk,Walker,bvwalk,read,2,gspstab,GC2,AGe11GC2,age11tx1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cblasr,Gun Tower,cblasr,read,1,gspstaba,GC1,clz11gc1,clz11bdd,[],author additive recoil parent/clip; preserve aiming and locomotion
+cbtowe,Gun Tower,cbtowe,read,1,gatstaba,GC1,cgt11gc1,cgt11tx1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cbtowea,Gun Tower,cblasr,read,1,gflashch,GC1,clz11gc1,clz11bdd,[],author additive recoil parent/clip; preserve aiming and locomotion
+cbtoweb,Gun Tower,cbtowe,read,1,gatstaba,GC1,cgt11gc1,cgt11tx1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cbtowec,Gun Tower,cblasr,read,1,gflashch,GC1,clz11gc1,clz11bdd,[],author additive recoil parent/clip; preserve aiming and locomotion
+cbtowed,Gun Tower,cbtowe,read,1,grktbomb,GC1,cgt11gc1,cgt11tx1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cbtowee,Gun Tower,cblasr,read,1,gflashch,GC1,clz11gc1,clz11bdd,[],author additive recoil parent/clip; preserve aiming and locomotion
+cbtowef,Gun Tower,cbtowe,read,1,gatstaba,GC1,cgt11gc1,cgt11tx1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cr16tow,Corrupted Gun Tower,cr16tow,read,1,cr16bolt,GC1,sgn11gc1,sgn11bgb,"[{""node"": ""sgn11bgb"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.142}]",dedicated barrel slide candidate
+cr16tow,Corrupted Gun Tower,cr16tow,read,2,cr16bolt,GC2,sgn11gc2,sgn11bga,"[{""node"": ""sgn11bga"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.148}]",dedicated barrel slide candidate
+crfraz,Fury Fighter,crfraz,read,1,crfpuls,GC1,cfr11GC1,cfr11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+crfraz,Fury Fighter,crfraz,read,2,crfarc,GC2,cfr11GC2,cfr11bdb,[],author additive recoil parent/clip; preserve aiming and locomotion
+cspilo,Pilot,cspilo,read,1,cprifle,GC1,csh11GC1,csh11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cspiloa,Player,cspilo,read,1,cprifle,GC1,csh11GC1,csh11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cspiloa,Player,cspilo,read,2,gsnipe,GC1,csh11GC1,csh11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cssold,Soldier,cspilo,read,1,csplsmg,GC1,csh11GC1,csh11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cssolda,Soldier,cspilo,read,1,gtminis,GC1,csh11GC1,csh11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+csuser,Player,cspilo,read,1,cprifle,GC1,csh11GC1,csh11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+csuser,Player,cspilo,read,2,gsnipe,GC1,csh11GC1,csh11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+csusera,Player,cspilo,read,1,cprifle,GC1,csh11GC1,csh11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+csusera,Player,cspilo,read,2,gsnipe,GC1,csh11GC1,csh11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+csuserb,Player,cspilo,read,2,gsnipe,GC1,csh11GC1,csh11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvartl,Howitzer,cvartl,read,1,ghartill,GM1,CAR11GM1,CAR11TX1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvartla,Howitzer,cvartl,read,1,cvwo003,GM1,CAR11GM1,CAR11TX1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfigh,Fighter,cvfigh,read,1,gminigrn,GC1,CFL11GC1,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfigh,Fighter,cvfigh,read,2,gminigrn,GC2,CFL11GC2,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfigha,Scout,cvfigh,read,1,gminigrn,GC1,CFL11GC1,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfigha,Scout,cvfigh,read,2,gminigrn,GC2,CFL11GC2,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfighb,Scout,cvfigh,read,1,gdummy,GC1,CFL11GC1,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfighb,Scout,cvfigh,read,2,gdummy,GC2,CFL11GC2,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfighc,Fighter,cvfigh,read,1,gminigrn,GC1,CFL11GC1,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfighc,Fighter,cvfigh,read,2,gminigrn,GC2,CFL11GC2,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfighd,Scout,cvfigh,read,1,gdummy,GC1,CFL11GC1,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfighe,Fighter,cvfigh,read,1,gminigrn,GC1,CFL11GC1,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfighe,Fighter,cvfigh,read,2,gminigrn,GC2,CFL11GC2,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfighf,Fighter,cvfigh,read,1,gminigrn,GC1,CFL11GC1,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfighf,Fighter,cvfigh,read,2,gminigrn,GC2,CFL11GC2,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfighg,Fighter,cvfigh,read,1,gminigrn,GC1,CFL11GC1,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfighg,Fighter,cvfigh,read,2,gminigrn,GC2,CFL11GC2,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfighh,Fighter,cvfigh,read,1,gminigrn,GC1,CFL11GC1,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfighh,Fighter,cvfigh,read,2,gminigrn,GC2,CFL11GC2,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfimp,Fighter,cvfigh,read,1,gminignc,GC1,CFL11GC1,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvfimp,Fighter,cvfigh,read,2,gminignc,GC2,CFL11GC2,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvhmpa,Tank,cvhtnk,read,1,gspstaba,GC1,CEM11GC1,CEM11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvhmpa,Tank,cvhtnk,read,2,gspstaba,GC2,CEM11GC2,CEM11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvhmpa,Tank,cvhtnk,read,4,gquake,GS1,CEM11GS1,CEM11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvhmpb,Tank,cvhtnk,read,1,gmaggun,GC1,CEM11GC1,CEM11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvhmpb,Tank,cvhtnk,read,2,gmaggun,GC2,CEM11GC2,CEM11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvhraz,Bomber,cvhraz,read,1,grktbomb,GR1,CPX11GR1,CPX11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvhraz,Bomber,cvhraz,read,2,grktbomb,GR2,CPX11GR2,CPX11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvhraza,Bomber,cvhraz,read,2,grktbomb,GR1,CPX11GR1,CPX11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvhraza,Bomber,cvhraz,read,3,grktbomb,GR2,CPX11GR2,CPX11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvhrazb,Bomber,cvhraz,read,2,grktbomb,GR1,CPX11GR1,CPX11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvhrazb,Bomber,cvhraz,read,3,grktbomb,GR2,CPX11GR2,CPX11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvhtnk,Heavy Tank,cvhtnk,read,1,gspstaba,GC1,CEM11GC1,CEM11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvhtnk,Heavy Tank,cvhtnk,read,2,gspstaba,GC2,CEM11GC2,CEM11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvhzmp,Bomber,cvhraz,read,1,grktbomb,GR1,CPX11GR1,CPX11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvhzmp,Bomber,cvhraz,read,2,grktbomb,GR2,CPX11GR2,CPX11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvltnk,Light Tank,cvltnk,read,1,gatstab,GC1,GNA11GC1,CNA11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvltnk,Light Tank,cvltnk,read,3,gsandbag,GR1,CNA11GR1,CNA11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvmine,Minelayer,cvmine,read,1,gctesla,GS1,CKH11GS1,CKH11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvminea,Minelayer,cvmine,read,1,gammoa,GS1,CKH11GS1,CKH11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvminea,Minelayer,cvmine,read,2,grepaa,GS2,CKH11GS2,CKH11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvraz,Fighter,cvfigh,read,1,gminigun,GC1,CFL11GC1,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvraz,Fighter,cvfigh,read,2,gminigun,GC2,CFL11GC2,CFL11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvrckt,Rocket Tank,cvrckt,read,1,gshadow,GR1,CDR11GR1,CDR11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvrckt,Rocket Tank,cvrckt,read,2,gshadow,GR2,CDR11GR2,CDR11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvrckt,Rocket Tank,cvrckt,read,3,gmdmgun,GM1,CDR11GM1,CDR11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvrckt,Rocket Tank,cvrckt,read,4,gctesla,GS1,CDR11GS1,CDR11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvslf,Armory,cvslf,read,1,gobject,ARM,CAM11ARM,CAM11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvslfa,Armory,cvslf,read,1,gobject,ARM,CAM11ARM,CAM11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvslfb,Armory,cvslf,read,1,gobject,ARM,CAM11ARM,CAM11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvtank,Tank,cvtnk,read,1,gspstabb,GC2,CYE11GC2,CYE11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvtmpa,Tank,cvtnk,read,1,gspstabb,GC2,CYE11GC2,CYE11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvtmpa,Tank,cvtnk,read,2,gmaggun,GC1,CYE11GC1,CYE11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvtmpa,Tank,cvtnk,read,3,gpopgun,GS1,CYE11GS1,CYE11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvtnk,Tank,cvtnk,read,1,gspstabb,GC2,CYE11GC2,CYE11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvtnk,Tank,cvtnk,read,3,gpopgun,GS1,CYE11GS1,CYE11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvtnka,Tank,cvtnk,read,1,gdummy,GC2,CYE11GC2,CYE11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvtnkb,Tank,cvtnk,read,1,gspstabb,GC2,CYE11GC2,CYE11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvtnkc,Tank,cvtnk,read,1,gspstabb,GC2,CYE11GC2,CYE11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvtnkc,Tank,cvtnk,read,2,gspstabb,GC1,CYE11GC1,CYE11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvtnkd,Tank,cvtnk,read,1,gspstabd,GC2,CYE11GC2,CYE11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvtnkd,Tank,cvtnk,read,2,gspstabd,GC1,CYE11GC1,CYE11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvturr,Turret,cvturr,read,1,gminigrn,GC1,CAD11GC1,CAD11TX1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvturr,Turret,cvturr,read,2,gminigrn,GC2,CAD11GC2,CAD11TX1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvturr,Turret,cvturr,read,3,gminigrn,GC3,CAD11GC3,CAD11TX2,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvturr,Turret,cvturr,read,4,gminigrn,GC4,CAD11GC4,CAD11TX2,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvturra,Turret,cvturr,read,1,gtminis,GC1,CAD11GC1,CAD11TX1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvturra,Turret,cvturr,read,2,gtminis,GC2,CAD11GC2,CAD11TX1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvturra,Turret,cvturr,read,3,gtminis,GC3,CAD11GC3,CAD11TX2,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvturra,Turret,cvturr,read,4,gsandbag,GC4,CAD11GC4,CAD11TX2,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvturrb,Turret,cvturr,read,1,gspstabb,GC1,CAD11GC1,CAD11TX1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvturrb,Turret,cvturr,read,3,gspstabb,GC3,CAD11GC3,CAD11TX2,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvturrc,Turret,cvturr,read,1,gspstabc,GC1,CAD11GC1,CAD11TX1,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvwalk,Walker,cvwalk,read,1,gblastg,GC1,agr11gc1,cvw11hed,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvwalk,Walker,cvwalk,read,2,gblastg,GC2,agr11gc2,cvw11hed,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvwalk,Walker,cvwalk,read,3,gpopgun,GM1,cvw11GM1,cvw11sup,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvwamp,Walker,cvwalk,read,1,gblast,GC1,agr11gc1,cvw11hed,[],author additive recoil parent/clip; preserve aiming and locomotion
+cvwamp,Walker,cvwalk,read,3,gmdmgun,GM1,cvw11GM1,cvw11sup,[],author additive recoil parent/clip; preserve aiming and locomotion
+hvsat,Fury,hvsat,read,1,gbolt,GC1,hat11GC1,hat11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+hvsat,Fury,hvsat,read,2,gwasp,GR1,hat11GR1,hat11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+hvsav,Fury,hvsav,read,1,gbolt,GC1,nsv11GC1,nvs11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+hvsav,Fury,hvsav,read,2,gwasp,GR1,nsv11GR1,nvs11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+player,Tank,avtank,read,1,gatstab,GC1,AGR11GC1,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 2.412}]",dedicated barrel slide candidate
+player,Tank,avtank,read,2,gminigun,GC2,AGR11Gc2,AGR11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+player,Tank,avtank,read,3,gquake,GS1,AGR11GS1,AGR11TUR,[],author additive recoil parent/clip; preserve aiming and locomotion
+player,Tank,avtank,read,4,gmdmgun,GM1,AGR11GM1,AGR11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+playrt,Rocket Tank,avrckt,read,1,gshadow,GR1,art11gr1,art11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+playrt,Rocket Tank,avrckt,read,2,ghornet,GR2,art11gr2,art11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+playrt,Rocket Tank,avrckt,read,3,gsandbag,GM1,art11gm1,art11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+playrt,Rocket Tank,avrckt,read,4,gmitsmin,GS1,art11gs1,art11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+playsv,Tank,svtank,read,1,gatstab,GC1,SCZ11GC1,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.419}]",dedicated barrel slide candidate
+playsv,Tank,svtank,read,2,gminisov,GC2,SCZ11GC2,scz11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+playsv,Tank,svtank,read,4,gquake,GS1,SCZ11GS1,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 1.786}]",dedicated barrel slide candidate
+savs8,Fury,svsav,read,1,gbolt,GC1,ssv11GC1,ssv11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+savs8,Fury,svsav,read,2,gwasp,GR1,ssv11GR1,ssv11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+savtnk,Fury,svsav,read,1,gbolt,GC1,ssv11GC1,ssv11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+savtnk,Fury,svsav,read,2,gbolt,GC1,ssv11GC1,ssv11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+savtnk,Fury,svsav,read,3,gbolt,GM1,ssv11GM1,ssv11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+sb0002,Gun Tower,sbtowe,read,1,gflashgn,GC1,sgn11gc1,sgn11bgb,"[{""node"": ""sgn11bgb"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.142}]",dedicated barrel slide candidate
+sb0002,Gun Tower,sbtowe,read,2,gflashgn,GC2,sgn11gc2,sgn11bga,"[{""node"": ""sgn11bga"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.148}]",dedicated barrel slide candidate
+sbtowe,Gun Tower,sbtowe,read,1,gblasth,GC1,sgn11gc1,sgn11bgb,"[{""node"": ""sgn11bgb"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.142}]",dedicated barrel slide candidate
+sbtowe,Gun Tower,sbtowe,read,2,gblasth,GC2,sgn11gc2,sgn11bga,"[{""node"": ""sgn11bga"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.148}]",dedicated barrel slide candidate
+sbtowea,Gun Tower,sbtowe,read,1,gtminis,GC1,sgn11gc1,sgn11bgb,"[{""node"": ""sgn11bgb"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.142}]",dedicated barrel slide candidate
+sbtowea,Gun Tower,sbtowe,read,2,gatstab,GC2,sgn11gc2,sgn11bga,"[{""node"": ""sgn11bga"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.148}]",dedicated barrel slide candidate
+sbtoweb,Gun Tower,sbtowe,read,1,gspstab,GC1,sgn11gc1,sgn11bgb,"[{""node"": ""sgn11bgb"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.142}]",dedicated barrel slide candidate
+sbtoweb,Gun Tower,sbtowe,read,2,gspstab,GC2,sgn11gc2,sgn11bga,"[{""node"": ""sgn11bga"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.148}]",dedicated barrel slide candidate
+sbtowec,Gun Tower,sbtowe,read,1,gbolt,GC1,sgn11gc1,sgn11bgb,"[{""node"": ""sgn11bgb"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.142}]",dedicated barrel slide candidate
+sbtowec,Gun Tower,sbtowe,read,2,gbolt,GC2,sgn11gc2,sgn11bga,"[{""node"": ""sgn11bga"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.148}]",dedicated barrel slide candidate
+sbtowed,Gun Tower,sbtowe,read,1,grktbomb,GC1,sgn11gc1,sgn11bgb,"[{""node"": ""sgn11bgb"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.142}]",dedicated barrel slide candidate
+sbtowed,Gun Tower,sbtowe,read,2,grktbomb,GC2,sgn11gc2,sgn11bga,"[{""node"": ""sgn11bga"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.148}]",dedicated barrel slide candidate
+sbtowee,Gun Tower,sbtowe,read,1,gflashgn,GC1,sgn11gc1,sgn11bgb,"[{""node"": ""sgn11bgb"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.142}]",dedicated barrel slide candidate
+sbtowee,Gun Tower,sbtowe,read,2,gflashgn,GC2,sgn11gc2,sgn11bga,"[{""node"": ""sgn11bga"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.148}]",dedicated barrel slide candidate
+sspilo,Pilot,sspilo,read,1,sprifle,GC1,ssp11GC1,ssp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+sssold,Soldier,sspilo,read,1,ssplsmg,GC1,ssp11GC1,ssp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+ssuser,Player,sspilo,read,1,sprifle,GC1,ssp11GC1,ssp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+ssuser,Player,sspilo,read,2,gsnipe,GC1,ssp11GC1,ssp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+ssusera,Player,sspilo,read,2,gsnipe,GC1,ssp11GC1,ssp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+ssuserb,Player,sspilo,read,1,sprifle,GC1,ssp11GC1,ssp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+ssuserb,Player,sspilo,read,2,gsnipe,GC1,ssp11GC1,ssp11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+ssuserc,Player,cspilo,read,1,cprifle,GC1,csh11GC1,csh11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+ssuserc,Player,cspilo,read,2,gsnipe,GC1,csh11GC1,csh11mg1,[],author additive recoil parent/clip; preserve aiming and locomotion
+svarmp,Howitzer,svartl,read,1,ghartmp,GM1,Sar11GM1,sar11bgb,"[{""node"": ""sar11bgb"", ""translation_animated"": true, ""barrel_forward_tip_estimate"": 0.17}]",dedicated barrel slide candidate
+svartl,Howitzer,svartl,read,1,ghartill,GM1,Sar11GM1,sar11bgb,"[{""node"": ""sar11bgb"", ""translation_animated"": true, ""barrel_forward_tip_estimate"": 0.17}]",dedicated barrel slide candidate
+svartla,Howitzer,svartl,read,1,ghartila,GM1,Sar11GM1,sar11bgb,"[{""node"": ""sar11bgb"", ""translation_animated"": true, ""barrel_forward_tip_estimate"": 0.17}]",dedicated barrel slide candidate
+svdemo,Fighter,svfigh,read,1,grktbomb,GC1,SFL11GC1,SFL11ROR,[],author additive recoil parent/clip; preserve aiming and locomotion
+svdemo,Fighter,svfigh,read,2,grktbomb,GR1,SFL11GR1,SFL11ROR,[],author additive recoil parent/clip; preserve aiming and locomotion
+svfi12,Fighter,svfigh,read,1,gminisov,GC1,SFL11GC1,SFL11ROR,[],author additive recoil parent/clip; preserve aiming and locomotion
+svfi12,Fighter,svfigh,read,2,gminisov,GR1,SFL11GR1,SFL11ROR,[],author additive recoil parent/clip; preserve aiming and locomotion
+svfi12,Fighter,svfigh,read,3,gsitecam,GS1,SFL11Gs1,SFL11ROR,[],author additive recoil parent/clip; preserve aiming and locomotion
+svfigh,Fighter,svfigh,read,1,gminisov,GC1,SFL11GC1,SFL11ROR,[],author additive recoil parent/clip; preserve aiming and locomotion
+svfigh,Fighter,svfigh,read,2,gminisov,GC2,SFL11Gc2,SFL11ROR,[],author additive recoil parent/clip; preserve aiming and locomotion
+svfigha,Fighter,svfigh,read,1,gminisov,GC1,SFL11GC1,SFL11ROR,[],author additive recoil parent/clip; preserve aiming and locomotion
+svfigha,Fighter,svfigh,read,2,gminisov,GC2,SFL11Gc2,SFL11ROR,[],author additive recoil parent/clip; preserve aiming and locomotion
+svfimp,Fighter,svfigh,read,1,gminisov,GC1,SFL11GC1,SFL11ROR,[],author additive recoil parent/clip; preserve aiming and locomotion
+svfimp,Fighter,svfigh,read,2,gminisov,GC2,SFL11Gc2,SFL11ROR,[],author additive recoil parent/clip; preserve aiming and locomotion
+svhr13,Bomber,svhraz,read,2,gsrkbomb,GR1,Shb11GR1,shb11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svhr13,Bomber,svhraz,read,3,gsrkbomb,GR2,Shb11GR2,shb11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svhraz,Bomber,svhraz,read,2,gsrkbomb,GR1,Shb11GR1,shb11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svhraz,Bomber,svhraz,read,3,gsrkbomb,GR2,Shb11GR2,shb11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svhrmp,Bomber,svhraz,read,1,gtaggun,GC1,Shb11GC1,shb11bdc,[],author additive recoil parent/clip; preserve aiming and locomotion
+svhrmp,Bomber,svhraz,read,2,gsrkbomb,GR1,Shb11GR1,shb11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svhrmp,Bomber,svhraz,read,3,gsrkbomb,GR2,Shb11GR2,shb11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svlt13,Light Tank,svltnk,read,1,gtaggun,GC1,Slt11GC1,slt11trt,[],author additive recoil parent/clip; preserve aiming and locomotion
+svlt13,Light Tank,svltnk,read,3,gsandbag,GR1,Slt11GR1,slt11trt,[],author additive recoil parent/clip; preserve aiming and locomotion
+svltnk,Light Tank,svltnk,read,1,gtaggun,GC1,Slt11GC1,slt11trt,[],author additive recoil parent/clip; preserve aiming and locomotion
+svltnk,Light Tank,svltnk,read,3,gsandbag,GR1,Slt11GR1,slt11trt,[],author additive recoil parent/clip; preserve aiming and locomotion
+svmine,Minelayer,svmine,read,1,gbetmin,GS1,SMI11Gs1,SMI11BDA,[],author additive recoil parent/clip; preserve aiming and locomotion
+svrckt,Rocket Tank,svrckt,read,1,gshadow,GR1,srt11GR1,srt11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svrckt,Rocket Tank,svrckt,read,2,gsandbag,GR2,srt11Gr2,srt11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svrckt,Rocket Tank,svrckt,read,3,gmdmgun,GM1,srt11Gm1,srt11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svrckt,Rocket Tank,svrckt,read,4,gbetmin,GS1,srt11GS1,srt11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svsav,Fury,svsav,read,1,gbolt,GC1,ssv11GC1,ssv11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svsav,Fury,svsav,read,2,gwasp,GR1,ssv11GR1,ssv11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svslf,Armory,svslf,read,1,gobject,gs2,slf11GS2,slf11arm,[],author additive recoil parent/clip; preserve aiming and locomotion
+svtank,Tank,svtank,read,1,gsatstab,GC1,SCZ11GC1,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.419}]",dedicated barrel slide candidate
+svtank,Tank,svtank,read,2,gminisov,GC2,SCZ11GC2,scz11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svtank,Tank,svtank,read,4,gquake,GS1,SCZ11GS1,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 1.786}]",dedicated barrel slide candidate
+svtanka,Tank,svtank,read,1,gsatstab,GC1,SCZ11GC1,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.419}]",dedicated barrel slide candidate
+svtanka,Tank,svtank,read,2,gminisov,GC2,SCZ11GC2,scz11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svtanka,Tank,svtank,read,4,gquake,GS1,SCZ11GS1,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 1.786}]",dedicated barrel slide candidate
+svtas8,Tank,svtank,read,1,gatstab,GC1,SCZ11GC1,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.419}]",dedicated barrel slide candidate
+svtas8,Tank,svtank,read,2,gflashgn,GC2,SCZ11GC2,scz11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svtas8,Tank,svtank,read,3,gquake,GS1,SCZ11GS1,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 1.786}]",dedicated barrel slide candidate
+svtas8,Tank,svtank,read,4,gnavdrop,GM1,SCZ11GM1,SCZ11MOR,[],author additive recoil parent/clip; preserve aiming and locomotion
+svtk13,Tank,svtank,read,1,gspstab,GC1,SCZ11GC1,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.419}]",dedicated barrel slide candidate
+svtk13,Tank,svtank,read,2,gflashgn,GC2,SCZ11GC2,scz11bda,[],author additive recoil parent/clip; preserve aiming and locomotion
+svtk13,Tank,svtank,read,3,gquake,GS1,SCZ11GS1,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 1.786}]",dedicated barrel slide candidate
+svtk13,Tank,svtank,read,4,gnavdrop,GM1,SCZ11GM1,SCZ11MOR,[],author additive recoil parent/clip; preserve aiming and locomotion
+svtnk7,Tank,svtank,read,1,ga7stab,GC1,SCZ11GC1,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.419}]",dedicated barrel slide candidate
+svtump,Turret,svturr,read,1,gtminis,GC1,STU11GC1,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",dedicated barrel slide candidate
+svtump,Turret,svturr,read,2,gtminis,GC2,STU11Gc2,STU11BGB,"[{""node"": ""STU11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",dedicated barrel slide candidate
+svturr,Turret,svturr,read,1,gtminis,GC1,STU11GC1,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",dedicated barrel slide candidate
+svturra,Turret,svturr,read,1,gspstab,GC1,STU11GC1,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",dedicated barrel slide candidate
+svturrb,Turret,svturr,read,1,gspstab,GC1,STU11GC1,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",dedicated barrel slide candidate
+svturrc,Turret,svturr,read,1,gminigna,GC1,STU11GC1,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",dedicated barrel slide candidate
+svwalk,Walker,svwalk,read,1,gblast,GC1,agr11gc1,svw11hed,[],author additive recoil parent/clip; preserve aiming and locomotion
+svwalk,Walker,svwalk,read,2,gblast,GC2,agr11gc2,svw11hed,[],author additive recoil parent/clip; preserve aiming and locomotion
+svwalk,Walker,svwalk,read,3,gpopgun,GM1,svw11GM1,svw11sup,[],author additive recoil parent/clip; preserve aiming and locomotion
+svwalka,Walker,svwalk,read,1,gblast,GC1,agr11gc1,svw11hed,[],author additive recoil parent/clip; preserve aiming and locomotion
+svwalka,Walker,svwalk,read,2,gblast,GC2,agr11gc2,svw11hed,[],author additive recoil parent/clip; preserve aiming and locomotion
+svwalka,Walker,svwalk,read,3,gpopgun,GM1,svw11GM1,svw11sup,[],author additive recoil parent/clip; preserve aiming and locomotion
+svwamp,Walker,svwalk,read,1,gblast,GC1,agr11gc1,svw11hed,[],author additive recoil parent/clip; preserve aiming and locomotion
+svwamp,Walker,svwalk,read,3,gpopgun,GM1,svw11GM1,svw11sup,[],author additive recoil parent/clip; preserve aiming and locomotion

@@ -313,6 +313,11 @@ Pick the unused retrospective line; for example misn13 uses `misn1305`, misn12 `
 
 ## 4. Weather and environment architecture
 
+Weapon presentation inventory and first art pass: `Docs/WEAPON_PRESENTATION_ROLLOUT.md`
+(2026-10-21). Weapon flashes belong on WeaponClass; recoil belongs on craft slots.
+Never apply avtank's barrel-tip offset to a shared weapon used by other models,
+or slide a hull/locomotion node merely because it owns a firing hardpoint.
+
 Full detail: `Docs/WEATHER_ENVIRONMENT_OWNERSHIP.md`; full mission/stack audit and the 2026-10-15 owner
 revision: `Docs/ATMOSPHERE_AUDIT_20261015.md`. Environment caps the final composed fog to TRN visibility,
 including base/Clear/local overrides. It is the only atmosphere writer while loaded.

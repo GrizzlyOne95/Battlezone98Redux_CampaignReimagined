@@ -1,0 +1,53 @@
+[WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored rocket: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_rocket.mesh"
+flashMaterial = "CR/Muzzle/rocket"
+flashDuration = 0.1
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+classLabel = "targeting"
+ordName = "swarmer"
+wpnName = "TAG Cannon"
+fireSound = "gtagg00.wav"
+wpnReticle = "gtaggun.0"
+wpnPriority = 1
+wpnCategory = "ROCK"
+
+[TargetingGunClass]
+leaderSound = "gtagg03.wav"
+shotDelay = 1.0
+firstDelay = 1.0
+salvoDelay = 0.2
+salvoCount = 10
+lockingReticle = "gtaggun.1"
+lockedReticle = "gtaggun.2"
+
+[OrdnanceClass]
+classLabel = "targeting"
+shotGeometry = "gtagg00.geo"
+xplGround = "xbulgnd"
+xplVehicle = "xbulcar"
+xplBuilding = "xbulbld"
+
+ammoCost = 0
+lifeSpan = 2.0
+shotSpeed = 100.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 1
+
+[RocketClass]
+flameLength = 0.2
+smokeRadius = 0.3
+smokeDelay = 0.005
+smokePause = 0.003
+smokeTexture = "bpuff.0"
+smokeFrames = 16
+
+[LeaderRoundClass]
+homingTime = 3.0

@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-21T07:48:17-05:00",
-  "count": 3676,
+  "count": 3750,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -12112,12 +12112,220 @@
       "runtime": "cr17_ice.program"
     },
     {
+      "source": "Shaders\\cr_muzzle.hlsl",
+      "runtime": "cr_muzzle.hlsl"
+    },
+    {
+      "source": "Shaders\\cr_muzzle.program",
+      "runtime": "cr_muzzle.program"
+    },
+    {
       "source": "Materials\\cr17_ice.material",
       "runtime": "cr17_ice.material"
     },
     {
       "source": "ODF\\xplnxpl.odf",
       "runtime": "xplnxpl.odf"
+    },
+    {
+      "source": "ODF\\ga7stab.odf",
+      "runtime": "ga7stab.odf"
+    },
+    {
+      "source": "ODF\\gatstab.odf",
+      "runtime": "gatstab.odf"
+    },
+    {
+      "source": "ODF\\gblast.odf",
+      "runtime": "gblast.odf"
+    },
+    {
+      "source": "ODF\\gblastb.odf",
+      "runtime": "gblastb.odf"
+    },
+    {
+      "source": "ODF\\gblastg.odf",
+      "runtime": "gblastg.odf"
+    },
+    {
+      "source": "ODF\\gbolt.odf",
+      "runtime": "gbolt.odf"
+    },
+    {
+      "source": "ODF\\gboltg.odf",
+      "runtime": "gboltg.odf"
+    },
+    {
+      "source": "ODF\\gboltr.odf",
+      "runtime": "gboltr.odf"
+    },
+    {
+      "source": "ODF\\gbspstab.odf",
+      "runtime": "gbspstab.odf"
+    },
+    {
+      "source": "ODF\\gcomet.odf",
+      "runtime": "gcomet.odf"
+    },
+    {
+      "source": "ODF\\gflashch.odf",
+      "runtime": "gflashch.odf"
+    },
+    {
+      "source": "ODF\\gflashgb.odf",
+      "runtime": "gflashgb.odf"
+    },
+    {
+      "source": "ODF\\gflashgg.odf",
+      "runtime": "gflashgg.odf"
+    },
+    {
+      "source": "ODF\\gflashgn.odf",
+      "runtime": "gflashgn.odf"
+    },
+    {
+      "source": "ODF\\ghartila.odf",
+      "runtime": "ghartila.odf"
+    },
+    {
+      "source": "ODF\\ghartill.odf",
+      "runtime": "ghartill.odf"
+    },
+    {
+      "source": "ODF\\ghartmp.odf",
+      "runtime": "ghartmp.odf"
+    },
+    {
+      "source": "ODF\\ghornet.odf",
+      "runtime": "ghornet.odf"
+    },
+    {
+      "source": "ODF\\ghrntai.odf",
+      "runtime": "ghrntai.odf"
+    },
+    {
+      "source": "ODF\\gmaggun.odf",
+      "runtime": "gmaggun.odf"
+    },
+    {
+      "source": "ODF\\gmbolt.odf",
+      "runtime": "gmbolt.odf"
+    },
+    {
+      "source": "ODF\\gmboltg.odf",
+      "runtime": "gmboltg.odf"
+    },
+    {
+      "source": "ODF\\gmboltr.odf",
+      "runtime": "gmboltr.odf"
+    },
+    {
+      "source": "ODF\\gmdmgun.odf",
+      "runtime": "gmdmgun.odf"
+    },
+    {
+      "source": "ODF\\gminigna.odf",
+      "runtime": "gminigna.odf"
+    },
+    {
+      "source": "ODF\\gminignb.odf",
+      "runtime": "gminignb.odf"
+    },
+    {
+      "source": "ODF\\gminignc.odf",
+      "runtime": "gminignc.odf"
+    },
+    {
+      "source": "ODF\\gminigrn.odf",
+      "runtime": "gminigrn.odf"
+    },
+    {
+      "source": "ODF\\gminigun.odf",
+      "runtime": "gminigun.odf"
+    },
+    {
+      "source": "ODF\\gminisov.odf",
+      "runtime": "gminisov.odf"
+    },
+    {
+      "source": "ODF\\gmortar.odf",
+      "runtime": "gmortar.odf"
+    },
+    {
+      "source": "ODF\\gpopgun.odf",
+      "runtime": "gpopgun.odf"
+    },
+    {
+      "source": "ODF\\grktbomb.odf",
+      "runtime": "grktbomb.odf"
+    },
+    {
+      "source": "ODF\\gshadow.odf",
+      "runtime": "gshadow.odf"
+    },
+    {
+      "source": "ODF\\gsnipe.odf",
+      "runtime": "gsnipe.odf"
+    },
+    {
+      "source": "ODF\\gsplint.odf",
+      "runtime": "gsplint.odf"
+    },
+    {
+      "source": "ODF\\gsplinta.odf",
+      "runtime": "gsplinta.odf"
+    },
+    {
+      "source": "ODF\\gsplintg.odf",
+      "runtime": "gsplintg.odf"
+    },
+    {
+      "source": "ODF\\gsplintr.odf",
+      "runtime": "gsplintr.odf"
+    },
+    {
+      "source": "ODF\\gspstab.odf",
+      "runtime": "gspstab.odf"
+    },
+    {
+      "source": "ODF\\gspstaba.odf",
+      "runtime": "gspstaba.odf"
+    },
+    {
+      "source": "ODF\\gspstabb.odf",
+      "runtime": "gspstabb.odf"
+    },
+    {
+      "source": "ODF\\gspstabc.odf",
+      "runtime": "gspstabc.odf"
+    },
+    {
+      "source": "ODF\\gspstabd.odf",
+      "runtime": "gspstabd.odf"
+    },
+    {
+      "source": "ODF\\gtaggun.odf",
+      "runtime": "gtaggun.odf"
+    },
+    {
+      "source": "ODF\\gtechno.odf",
+      "runtime": "gtechno.odf"
+    },
+    {
+      "source": "ODF\\gtminig.odf",
+      "runtime": "gtminig.odf"
+    },
+    {
+      "source": "ODF\\gtminis.odf",
+      "runtime": "gtminis.odf"
+    },
+    {
+      "source": "ODF\\gtminisa.odf",
+      "runtime": "gtminisa.odf"
+    },
+    {
+      "source": "ODF\\handgun.odf",
+      "runtime": "handgun.odf"
     },
     {
       "source": "Assets\\Textures\\smoke.dds",
@@ -12182,6 +12390,86 @@
     {
       "source": "Assets\\Models\\cr17_fl_twinflower.mesh",
       "runtime": "cr17_fl_twinflower.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_arcblue.mesh",
+      "runtime": "crmf_arcblue.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_arcgreen.mesh",
+      "runtime": "crmf_arcgreen.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_arcred.mesh",
+      "runtime": "crmf_arcred.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_atstab.mesh",
+      "runtime": "crmf_atstab.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_blast.mesh",
+      "runtime": "crmf_blast.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_blastblue.mesh",
+      "runtime": "crmf_blastblue.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_blastred.mesh",
+      "runtime": "crmf_blastred.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_chaingun.mesh",
+      "runtime": "crmf_chaingun.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_mag.mesh",
+      "runtime": "crmf_mag.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_minigun.mesh",
+      "runtime": "crmf_minigun.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_mortar.mesh",
+      "runtime": "crmf_mortar.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_plasmablue.mesh",
+      "runtime": "crmf_plasmablue.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_plasmagreen.mesh",
+      "runtime": "crmf_plasmagreen.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_plasmared.mesh",
+      "runtime": "crmf_plasmared.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_popper.mesh",
+      "runtime": "crmf_popper.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_pulse.mesh",
+      "runtime": "crmf_pulse.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_rocket.mesh",
+      "runtime": "crmf_rocket.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_sniper.mesh",
+      "runtime": "crmf_sniper.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_spstab.mesh",
+      "runtime": "crmf_spstab.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_sunarc.mesh",
+      "runtime": "crmf_sunarc.mesh"
     },
     {
       "source": "Assets\\Textures\\cr17_flowers.dds",
@@ -14672,12 +14960,20 @@
       "runtime": "crart_elysium.material"
     },
     {
+      "source": "Materials\\cr_muzzle.material",
+      "runtime": "cr_muzzle.material"
+    },
+    {
       "source": "Assets\\Textures\\crhd_moon_regolith_detail.dds",
       "runtime": "crhd_moon_regolith_detail.dds"
     },
     {
       "source": "Assets\\Textures\\crhd_moon_regolith_h.dds",
       "runtime": "crhd_moon_regolith_h.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crmf_flame.png",
+      "runtime": "crmf_flame.png"
     },
     {
       "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_menu_theme_center.png",
