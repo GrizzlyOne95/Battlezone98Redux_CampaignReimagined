@@ -48,6 +48,11 @@ fragment_program CR_Textured_fragmentHLSL4Enhanced hlsl
     {
         param_named surfaceState float4 0 0 0 0
         param_named surfaceMode float4 0 0 0 0
+        // Only consumer: the glow pass of CRSurfaceEffects' owned clones, swapped in
+        // by exu.SetSurfaceFragmentProgram. The swap resets pass parameters, so the
+        // glow pass's black fog override lives here. It must not sit in the unified
+        // block below, whose defaults land on the shared DX9/GL delegates.
+        param_named fogColour float3 0 0 0
     }
 }
 
@@ -133,7 +138,6 @@ fragment_program CR_TexturedEnhanced_fragment unified
     {
 		param_named_auto diffuseColor surface_diffuse_colour
 		param_named_auto materialEmissive surface_emissive_colour
-		param_named_auto fogColour fog_colour
 		param_named_auto fogParams fog_params
 		param_named alphaRejection float 0
     }
