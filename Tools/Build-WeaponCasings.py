@@ -31,8 +31,13 @@ def authored_odf(source, choice):
             at += 1
     kind = choice['casing_type']
     assert kind in ('none', 'small', 'medium', 'large')
+    mesh = choice.get('casing_mesh', '')
+    assert not mesh or (len(mesh) <= 120 and not mesh.startswith('/') and '..' not in mesh
+                        and re.fullmatch(r'[A-Za-z0-9_./-]+\.mesh', mesh)), 'invalid casing mesh resource'
+    mesh_line = f'casingMesh = "{mesh}"\n' if mesh else ''
+    notes = ''.join('// '+line+'\n' for line in choice.get('casing_notes', []))
     block = (f'{BEGIN}\n// {choice["casing_decision"]}\n'
-             f'casingType = "{kind}"\n{END}\n')
+             f'casingType = "{kind}"\n'+mesh_line+notes+f'{END}\n')
     return text[:at] + block + text[at:]
 
 

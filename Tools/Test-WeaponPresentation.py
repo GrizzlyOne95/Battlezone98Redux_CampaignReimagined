@@ -64,6 +64,13 @@ class WeaponContentTests(unittest.TestCase):
         self.assertEqual(config['weapons']['gminigun']['casing_type'],'small')
         self.assertEqual(config['weapons']['gatstab']['casing_type'],'medium')
         self.assertEqual(config['weapons']['gspstab']['casing_type'],'large')
+        example=(ROOT/'ODF/gminigun.odf').read_text()
+        self.assertIn('// casingMesh = "mymod_brass.mesh"',example)
+        self.assertIn('unit length 1 along local +Z',example)
+        selected=dict(config['weapons']['gminigun'],casing_mesh='MyMod/Brass.mesh')
+        generated=casings.authored_odf(example,selected)
+        self.assertEqual(inventory.parse(generated)['weaponclass']['casingmesh'],'MyMod/Brass.mesh')
+        self.assertEqual(casings.authored_odf(generated,selected),generated)
 
     def test_generated_assets_and_material_contract(self):
         builder.build(ROOT/'ODF',True)

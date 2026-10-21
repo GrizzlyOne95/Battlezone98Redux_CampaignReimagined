@@ -30,6 +30,20 @@ existing single-player guard, so this does not claim CR co-op flash support.
 Ejection uses each weapon's native mount matrix and estimated breech offset;
 per-craft ejection-port fitting and live testing remain pending.
 
+`ODF/gminigun.odf` documents the optional `casingMesh = "mymod_brass.mesh"`
+override as commented lines inside the generated casing block. The generator
+retains these notes from the manifest. A rigid unit-length Ogre mesh along local
++Z is uniformly scaled by casingType and uses its own material names. Ship the
+case-sensitive mesh resource and dependencies with the mod. Missing/empty keys
+retain the `<weapon>_casing.mesh` convention/default; an explicit missing or
+invalid mesh suppresses the casing. It requires the companion exact-GOG scope.
+The native generated brass finish now uses textured stock BZBase lighting,
+machined rims, an inset primer and a dark hollow mouth. Live appearance remains
+pending; an offline study is not a game screenshot.
+For generated CR content, set a weapon's `casing_mesh` in
+`References/WeaponPresentation/profiles.json` and run `Build-WeaponCasings.py`
+to retain an active selection across regeneration.
+
 The inventory covers all 73 weapon definitions in the installed GOG stock ODF
 archive, overlaid with CR's current ODFs: **100 effective weapon definitions**.
 The stock extracted directory was cross-checked against all 796 `bzone.zfs`
