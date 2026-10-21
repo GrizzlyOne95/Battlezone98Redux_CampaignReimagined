@@ -64,4 +64,3 @@ material lme_ember : CR_BZBase
  set $shininess "70"
  set $glow "0.75 0.75 0.75"
 }
-

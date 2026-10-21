@@ -102,6 +102,9 @@ def bind():
         text=re.sub(r': BZBase\b',': CR_BZBase',text)
         for old,new in aliases.items():
             text=re.sub(r'(?<![\w.])'+re.escape(old)+r'(?![\w.])',new,text)
+        # Imported scripts contain mixed indentation and trailing whitespace.
+        # Normalize formatting without changing shader/material semantics.
+        text='\n'.join(line.rstrip() for line in text.expandtabs(4).splitlines()).rstrip()+'\n'
         path.write_text(text,newline='\n')
     for name,bindings in SELECTORS.items():
         path=ROOT/'Materials'/(name+'.material');text=path.read_text()

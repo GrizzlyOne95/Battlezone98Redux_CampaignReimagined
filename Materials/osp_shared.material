@@ -64,4 +64,3 @@ material osp_signal : CR_BZBase
  set $shininess "70"
  set $glow "3.5 3.5 3.5"
 }
-

@@ -84,505 +84,505 @@ material ovheph_glass
  set_texture_alias NormalMap ohp_screen_n.dds
  set_texture_alias SpecularMap ohp_glass_s.dds
  set_texture_alias EmissiveMap ohp_canopy_e.dds
-	set $shininess "32"
+    set $shininess "32"
     set $ambient "1 1 1"
     set $diffuse "1 1 1"
-	set $specular "1 1 1"
-	set $bias "0"
-	set $glow "1 1 1"
-	
-	lod_values 250 300
-	
+    set $specular "1 1 1"
+    set $bias "0"
+    set $glow "1 1 1"
+
+    lod_values 250 300
+
     technique
     {
         scheme high-pssm
         lod_index 0
-		pass : BZPassSchemeHighPSSM
- 		{
+        pass : BZPassSchemeHighPSSM
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
-    }
-	
-	technique
-    {
-        scheme high-pssm
-        lod_index 1		
-		pass : BZPassSchemeMediumNoShadow
- 		{
- scene_blend alpha_blend
- depth_write off
- cull_hardware none
-
-		}
-    }
-	
-	technique
-    {
-        scheme high-pssm
-        lod_index 2		
-		pass : BZPassSchemeLowNoShadow
- 		{
- scene_blend alpha_blend
- depth_write off
- cull_hardware none
-
-		}
+        }
     }
 
     technique
     {
-        scheme high		 	
+        scheme high-pssm
+        lod_index 1
+        pass : BZPassSchemeMediumNoShadow
+        {
+ scene_blend alpha_blend
+ depth_write off
+ cull_hardware none
+
+        }
+    }
+
+    technique
+    {
+        scheme high-pssm
+        lod_index 2
+        pass : BZPassSchemeLowNoShadow
+        {
+ scene_blend alpha_blend
+ depth_write off
+ cull_hardware none
+
+        }
+    }
+
+    technique
+    {
+        scheme high
         lod_index 0
-		pass : BZPassSchemeHigh
- 		{
+        pass : BZPassSchemeHigh
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	
-	technique
+
+    technique
     {
-        scheme high		 	
-        lod_index 1		
-		pass : BZPassSchemeMediumNoShadow
- 		{
+        scheme high
+        lod_index 1
+        pass : BZPassSchemeMediumNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	
-	technique
+
+    technique
     {
-        scheme high	 	
-        lod_index 2		
-		pass : BZPassSchemeLowNoShadow
- 		{
+        scheme high
+        lod_index 2
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
     technique
     {
         scheme high-noshadow
         lod_index 0
-		pass : BZPassSchemeHighNoShadow
- 		{
+        pass : BZPassSchemeHighNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	
-	technique
+
+    technique
     {
         scheme high-noshadow
-        lod_index 1		
-		pass : BZPassSchemeMediumNoShadow
- 		{
+        lod_index 1
+        pass : BZPassSchemeMediumNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	
-	technique
+
+    technique
     {
         scheme high-noshadow
-        lod_index 2		
-		pass : BZPassSchemeLowNoShadow
- 		{
+        lod_index 2
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
      technique
      {
         scheme medium-pssm
-        lod_index 0	  
-		pass : BZPassSchemeMediumPSSM
- 		{
+        lod_index 0
+        pass : BZPassSchemeMediumPSSM
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
      }
-	 
-	technique
+
+    technique
     {
         scheme medium-pssm
-        lod_index 1	  
-		pass : BZPassSchemeLowNoShadow
- 		{
+        lod_index 1
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
-	technique
+    technique
     {
         scheme medium-pssm
         lod_index 2
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
      technique
      {
-        scheme medium	 	
-        lod_index 0	  
-		pass : BZPassSchemeMedium
- 		{
+        scheme medium
+        lod_index 0
+        pass : BZPassSchemeMedium
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
      }
-	 
-	technique
+
+    technique
     {
-        scheme medium		 	
-        lod_index 1	  
-		pass : BZPassSchemeLowNoShadow
- 		{
+        scheme medium
+        lod_index 1
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
-	technique
+    technique
     {
-        scheme medium		 	
+        scheme medium
         lod_index 2
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
      technique
      {
         scheme medium-noshadow
-        lod_index 0	  
-		pass : BZPassSchemeMediumNoShadow
- 		{
+        lod_index 0
+        pass : BZPassSchemeMediumNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
      }
-	 
-	technique
+
+    technique
     {
         scheme medium-noshadow
-        lod_index 1	  
-		pass : BZPassSchemeLowNoShadow
- 		{
+        lod_index 1
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
-	technique
+    technique
     {
         scheme medium-noshadow
         lod_index 2
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
     technique
     {
         scheme low-pssm
         lod_index 0
-		pass : BZPassSchemeLowPSSM
- 		{
+        pass : BZPassSchemeLowPSSM
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	 
+
     technique
     {
         scheme low-pssm
         lod_index 1
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
     technique
     {
         scheme low-pssm
         lod_index 2
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	  
+
     technique
     {
         scheme low
         lod_index 0
-		pass : BZPassSchemeLow
- 		{
+        pass : BZPassSchemeLow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	 
+
     technique
     {
-        scheme low		  
+        scheme low
         lod_index 1
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
     technique
     {
-        scheme low		  
+        scheme low
         lod_index 2
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	  
+
     technique
     {
         scheme low-noshadow
         lod_index 0
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	 
+
     technique
     {
         scheme low-noshadow
         lod_index 1
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
     technique
     {
         scheme low-noshadow
         lod_index 2
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
     technique
     {
         scheme lowest-pssm
         lod_index 0
-		pass : BZPassSchemeLowestPSSM
- 		{
+        pass : BZPassSchemeLowestPSSM
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	 
+
     technique
     {
         scheme lowest-pssm
         lod_index 1
-		pass : BZPassSchemeLowestNoShadow
- 		{
+        pass : BZPassSchemeLowestNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
     technique
     {
         scheme lowest-pssm
         lod_index 2
-		pass : BZPassSchemeLowestNoShadow
- 		{
+        pass : BZPassSchemeLowestNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	  
+
     technique
     {
         scheme lowest
         lod_index 0
-		pass : BZPassSchemeLowest
- 		{
+        pass : BZPassSchemeLowest
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	 
+
     technique
     {
-        scheme lowest		  
+        scheme lowest
         lod_index 1
-		pass : BZPassSchemeLowestNoShadow
- 		{
+        pass : BZPassSchemeLowestNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
     technique
     {
-        scheme lowest		  
+        scheme lowest
         lod_index 2
-		pass : BZPassSchemeLowestNoShadow
- 		{
+        pass : BZPassSchemeLowestNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	  
+
     technique
     {
         scheme lowest-noshadow
         lod_index 0
-		pass : BZPassSchemeLowestNoShadow
- 		{
+        pass : BZPassSchemeLowestNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	 
+
     technique
     {
         scheme lowest-noshadow
         lod_index 1
-		pass : BZPassSchemeLowestNoShadow
- 		{
+        pass : BZPassSchemeLowestNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
     technique
     {
         scheme lowest-noshadow
         lod_index 2
-		pass : BZPassSchemeLowestNoShadow
- 		{
+        pass : BZPassSchemeLowestNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
-	technique
-	{
-        scheme glow		  
-		pass
- 		{
-			ambient $glow 
-			diffuse $glow 
-			depth_bias $bias
+    technique
+    {
+        scheme glow
+        pass
+        {
+            ambient $glow
+            diffuse $glow
+            depth_bias $bias
 
-			vertex_program_ref Textured_vertex
-			{
-			}
-			fragment_program_ref Textured_fragment
-			{
-				param_named fogColour float3 0 0 0
-			} 
+            vertex_program_ref Textured_vertex
+            {
+            }
+            fragment_program_ref Textured_fragment
+            {
+                param_named fogColour float3 0 0 0
+            }
 
-			texture_unit emissiveMap
-			{
-				texture_alias EmissiveMap
-				texture black.png
-			}
-		}
-	}
+            texture_unit emissiveMap
+            {
+                texture_alias EmissiveMap
+                texture black.png
+            }
+        }
+    }
 }
 material ovheph_amber : CR_BZBase
 {
@@ -642,503 +642,503 @@ material ovheph_canopy
  set_texture_alias NormalMap ohp_screen_n.dds
  set_texture_alias SpecularMap ohp_glass_s.dds
  set_texture_alias EmissiveMap ohp_canopy_e.dds
-	set $shininess "32"
+    set $shininess "32"
     set $ambient "1 1 1"
     set $diffuse "1 1 1"
-	set $specular "1 1 1"
-	set $bias "0"
-	set $glow "1 1 1"
-	
-	lod_values 250 300
-	
+    set $specular "1 1 1"
+    set $bias "0"
+    set $glow "1 1 1"
+
+    lod_values 250 300
+
     technique
     {
         scheme high-pssm
         lod_index 0
-		pass : BZPassSchemeHighPSSM
- 		{
+        pass : BZPassSchemeHighPSSM
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
-    }
-	
-	technique
-    {
-        scheme high-pssm
-        lod_index 1		
-		pass : BZPassSchemeMediumNoShadow
- 		{
- scene_blend alpha_blend
- depth_write off
- cull_hardware none
-
-		}
-    }
-	
-	technique
-    {
-        scheme high-pssm
-        lod_index 2		
-		pass : BZPassSchemeLowNoShadow
- 		{
- scene_blend alpha_blend
- depth_write off
- cull_hardware none
-
-		}
+        }
     }
 
     technique
     {
-        scheme high		 	
+        scheme high-pssm
+        lod_index 1
+        pass : BZPassSchemeMediumNoShadow
+        {
+ scene_blend alpha_blend
+ depth_write off
+ cull_hardware none
+
+        }
+    }
+
+    technique
+    {
+        scheme high-pssm
+        lod_index 2
+        pass : BZPassSchemeLowNoShadow
+        {
+ scene_blend alpha_blend
+ depth_write off
+ cull_hardware none
+
+        }
+    }
+
+    technique
+    {
+        scheme high
         lod_index 0
-		pass : BZPassSchemeHigh
- 		{
+        pass : BZPassSchemeHigh
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	
-	technique
+
+    technique
     {
-        scheme high		 	
-        lod_index 1		
-		pass : BZPassSchemeMediumNoShadow
- 		{
+        scheme high
+        lod_index 1
+        pass : BZPassSchemeMediumNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	
-	technique
+
+    technique
     {
-        scheme high	 	
-        lod_index 2		
-		pass : BZPassSchemeLowNoShadow
- 		{
+        scheme high
+        lod_index 2
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
     technique
     {
         scheme high-noshadow
         lod_index 0
-		pass : BZPassSchemeHighNoShadow
- 		{
+        pass : BZPassSchemeHighNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	
-	technique
+
+    technique
     {
         scheme high-noshadow
-        lod_index 1		
-		pass : BZPassSchemeMediumNoShadow
- 		{
+        lod_index 1
+        pass : BZPassSchemeMediumNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	
-	technique
+
+    technique
     {
         scheme high-noshadow
-        lod_index 2		
-		pass : BZPassSchemeLowNoShadow
- 		{
+        lod_index 2
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
      technique
      {
         scheme medium-pssm
-        lod_index 0	  
-		pass : BZPassSchemeMediumPSSM
- 		{
+        lod_index 0
+        pass : BZPassSchemeMediumPSSM
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
      }
-	 
-	technique
+
+    technique
     {
         scheme medium-pssm
-        lod_index 1	  
-		pass : BZPassSchemeLowNoShadow
- 		{
+        lod_index 1
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
-	technique
+    technique
     {
         scheme medium-pssm
         lod_index 2
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
      technique
      {
-        scheme medium	 	
-        lod_index 0	  
-		pass : BZPassSchemeMedium
- 		{
+        scheme medium
+        lod_index 0
+        pass : BZPassSchemeMedium
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
      }
-	 
-	technique
+
+    technique
     {
-        scheme medium		 	
-        lod_index 1	  
-		pass : BZPassSchemeLowNoShadow
- 		{
+        scheme medium
+        lod_index 1
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
-	technique
+    technique
     {
-        scheme medium		 	
+        scheme medium
         lod_index 2
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
      technique
      {
         scheme medium-noshadow
-        lod_index 0	  
-		pass : BZPassSchemeMediumNoShadow
- 		{
+        lod_index 0
+        pass : BZPassSchemeMediumNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
      }
-	 
-	technique
+
+    technique
     {
         scheme medium-noshadow
-        lod_index 1	  
-		pass : BZPassSchemeLowNoShadow
- 		{
+        lod_index 1
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
-	technique
+    technique
     {
         scheme medium-noshadow
         lod_index 2
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
     technique
     {
         scheme low-pssm
         lod_index 0
-		pass : BZPassSchemeLowPSSM
- 		{
+        pass : BZPassSchemeLowPSSM
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	 
+
     technique
     {
         scheme low-pssm
         lod_index 1
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
     technique
     {
         scheme low-pssm
         lod_index 2
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	  
+
     technique
     {
         scheme low
         lod_index 0
-		pass : BZPassSchemeLow
- 		{
+        pass : BZPassSchemeLow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	 
+
     technique
     {
-        scheme low		  
+        scheme low
         lod_index 1
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
     technique
     {
-        scheme low		  
+        scheme low
         lod_index 2
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	  
+
     technique
     {
         scheme low-noshadow
         lod_index 0
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	 
+
     technique
     {
         scheme low-noshadow
         lod_index 1
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
     technique
     {
         scheme low-noshadow
         lod_index 2
-		pass : BZPassSchemeLowNoShadow
- 		{
+        pass : BZPassSchemeLowNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
     technique
     {
         scheme lowest-pssm
         lod_index 0
-		pass : BZPassSchemeLowestPSSM
- 		{
+        pass : BZPassSchemeLowestPSSM
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	 
+
     technique
     {
         scheme lowest-pssm
         lod_index 1
-		pass : BZPassSchemeLowestNoShadow
- 		{
+        pass : BZPassSchemeLowestNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
     technique
     {
         scheme lowest-pssm
         lod_index 2
-		pass : BZPassSchemeLowestNoShadow
- 		{
+        pass : BZPassSchemeLowestNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	  
+
     technique
     {
         scheme lowest
         lod_index 0
-		pass : BZPassSchemeLowest
- 		{
+        pass : BZPassSchemeLowest
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	 
+
     technique
     {
-        scheme lowest		  
+        scheme lowest
         lod_index 1
-		pass : BZPassSchemeLowestNoShadow
- 		{
+        pass : BZPassSchemeLowestNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
     technique
     {
-        scheme lowest		  
+        scheme lowest
         lod_index 2
-		pass : BZPassSchemeLowestNoShadow
- 		{
+        pass : BZPassSchemeLowestNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	  
+
     technique
     {
         scheme lowest-noshadow
         lod_index 0
-		pass : BZPassSchemeLowestNoShadow
- 		{
+        pass : BZPassSchemeLowestNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
-	 
+
     technique
     {
         scheme lowest-noshadow
         lod_index 1
-		pass : BZPassSchemeLowestNoShadow
- 		{
+        pass : BZPassSchemeLowestNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
     technique
     {
         scheme lowest-noshadow
         lod_index 2
-		pass : BZPassSchemeLowestNoShadow
- 		{
+        pass : BZPassSchemeLowestNoShadow
+        {
  scene_blend alpha_blend
  depth_write off
  cull_hardware none
 
-		}
+        }
     }
 
-	technique
-	{
-        scheme glow		  
-		pass
- 		{
-			ambient $glow 
-			diffuse $glow 
-			depth_bias $bias
+    technique
+    {
+        scheme glow
+        pass
+        {
+            ambient $glow
+            diffuse $glow
+            depth_bias $bias
 
-			vertex_program_ref Textured_vertex
-			{
-			}
-			fragment_program_ref Textured_fragment
-			{
-				param_named fogColour float3 0 0 0
-			} 
+            vertex_program_ref Textured_vertex
+            {
+            }
+            fragment_program_ref Textured_fragment
+            {
+                param_named fogColour float3 0 0 0
+            }
 
-			texture_unit emissiveMap
-			{
-				texture_alias EmissiveMap
-				texture black.png
-			}
-		}
-	}
+            texture_unit emissiveMap
+            {
+                texture_alias EmissiveMap
+                texture black.png
+            }
+        }
+    }
 }
