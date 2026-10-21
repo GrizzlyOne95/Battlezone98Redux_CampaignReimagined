@@ -1283,8 +1283,7 @@ foreach ($case in @($cases) + @($normalDiagnosticCases)) {
     Write-Host "Compiling $($case.Name)..."
     & $FxcPath @fxcArgs
 
-    if ($LASTEXITCODE -ne 0 -or
-        (Test-Path $assembly) -and ((Get-Content -Raw $assembly) -match '(?m)^dcl_constantbuffer\s+CB[1-9]')) {
+    if ($LASTEXITCODE -ne 0 -or ((Test-Path $assembly) -and ((Get-Content -Raw $assembly) -match '(?m)^dcl_constantbuffer\s+CB[1-9]'))) {
         # Retail Ogre cannot populate $Globals and $Params independently.
         $failed += $case.Name
     }
@@ -1309,8 +1308,7 @@ foreach ($case in $sweepCases) {
 
     Write-Host "Compiling $($case.Name)..."
     & $FxcPath @fxcArgs
-    if ($LASTEXITCODE -ne 0 -or
-        (Test-Path $assembly) -and ((Get-Content -Raw $assembly) -match '(?m)^dcl_constantbuffer\s+CB[1-9]')) {
+    if ($LASTEXITCODE -ne 0 -or ((Test-Path $assembly) -and ((Get-Content -Raw $assembly) -match '(?m)^dcl_constantbuffer\s+CB[1-9]'))) {
         # Retail Ogre cannot populate $Globals and $Params independently.
         $failed += $case.Name
         continue

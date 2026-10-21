@@ -71,8 +71,40 @@ objects[2].material="external_team_material"
 S.Shutdown()
 assert(objects[2].material=="external_team_material","restore only own binding")
 assert(not next(clones) and not E.chunks,"release all owned resources")
-assert(E.BulletHit~=S.hitWrapper,"restore callbacks")
+assert(E.BulletHit~=S.BulletHitWrapper and E.BulletInit==nil,"restore callbacks")
+-- Another module replacing the callbacks must be re-chained exactly once, and
+-- one that chains our previous wrapper must not make events double-count.
+E.chunks=nil;S.Register(1);ticks(2)
+local wrapped=E.BulletHit
+local replacedCalls=0
+local oldChain=E.BulletHit
+E.BulletHit=function(...) replacedCalls=replacedCalls+1 end -- drops our wrapper
+ticks(1)
+assert(E.BulletHit~=wrapped and E.BulletHit==S.BulletHitWrapper,"replaced BulletHit is re-wrapped")
+local wrappedAgain=E.BulletHit
+ticks(5);assert(E.BulletHit==wrappedAgain,"no re-wrap while our wrapper is current")
+S.hits={}
+E.BulletHit("bullet",3,1,p)
+assert(replacedCalls==1 and #S.hits==1,"replacement chained and notified once")
+local layered=E.BulletHit
+E.BulletHit=function(...) return layered(...) end -- layers over us, keeps our wrapper in chain
+ticks(1);S.hits={}
+E.BulletHit("bullet",3,1,p)
+assert(#S.hits==1,"layered chain does not double-notify")
+E.BulletInit=nil;ticks(1);assert(E.BulletInit==S.BulletInitWrapper,"nil BulletInit re-wrapped")
+-- Setting off: restore everything, stop work, and ignore callbacks; on resumes.
+objects[2].powered=false;ticks(40)
+assert(next(clones),"clones exist before disable")
+assert(S.SetEnabled(false)==true and S.SetEnabled(false)==false,"SetEnabled reports change")
+assert(not next(clones) and not string.find(objects[2].material,"_off",1,true) and not E.chunks,"disable restores owned materials")
+calls=0;S.Register(3);S.Update(0.2);S.Update(0.2)
+assert(calls==0 and not S.records[3] and not S.started,"disabled does no work")
+local queued=#S.hits;E.BulletHit("bullet",3,1,p);assert(#S.hits==queued,"disabled ignores callbacks")
+assert(S.SetEnabled(true)==true,"enable again")
+for h=1,3 do S.Register(h) end
+ticks(40);assert(S.started and E.chunks and #S.records[2].slots>0,"re-enabled resumes")
+S.Shutdown();S.records={};S.order={}
 -- Old runtimes: complete no-op, including registration and callbacks.
 E.CloneSurfaceMaterial=nil;S.Register(1);S.Update(.1)
 assert(not S.records[1] and not S.started,"unsupported runtime fails closed")
-print("SurfaceEffects: scheduling, damage, repair, heat, rain, power, ownership PASS")
+print("SurfaceEffects: scheduling, damage, repair, heat, rain, power, ownership, chaining, setting PASS")

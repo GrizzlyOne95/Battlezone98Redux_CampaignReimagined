@@ -9,6 +9,29 @@ anchors, smooth muzzle-local heat, wet/dry easing and actual gun-tower power.
 CRWeather rain layers explicitly expose `surfaceWetness`; effects neither guess
 from preset names nor change gameplay or send network messages.
 
+## Setting and callback ownership
+
+Options > Interface > Surface Effects (default On, `SurfaceEffects=` in the CR
+config file) calls `SetEnabled`. Turning it off runs `Shutdown`: owned clones
+are released, shared wetness reset, native hooks disabled and Update/Register
+become no-ops. Turning it on rebuilds visuals so live objects re-register.
+
+`exu.BulletHit`/`BulletInit` have no shared CR dispatcher, so each Update checks
+that the global is still our latest wrapper and, if another script replaced it,
+wraps the current function (chaining it) once. A wrapper nested in another of
+ours passes through, so a replacement that still chains an older wrapper never
+double-counts. Shutdown restores a global only if nothing layered over it;
+otherwise the stale wrapper stays in that chain as a pass-through.
+
+## Enhanced-only shader
+
+The power-off and cockpit warning response lives in `CR_textured-sm4.hlsl`
+behind `ENHANCED_MODE`, compiled only by `CR_Textured_fragmentHLSL4Enhanced` and
+the `CR_TexturedEnhanced_fragment` unified program that the two `CR_BZBase`
+glow passes use. `CR_Textured_fragmentHLSL4` and the DX9 shader are unchanged,
+so Default/Retro DXBC stays byte-identical (`Compare-DX11ShaderBinaries.ps1`).
+Zeroed uniforms leave the output unchanged.
+
 ## Budgets
 
 | Work | Limit |

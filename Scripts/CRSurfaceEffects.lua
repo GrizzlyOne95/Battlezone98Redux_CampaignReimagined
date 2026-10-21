@@ -6,7 +6,7 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     MaxRecords = 4096, MaxActive = 64, MaxHeated = 8, PollBudget = 4, MaterialBudget = 16,
     records = {}, order = {}, cursor = 1, materials = {}, materialOrder = {}, materialCursor = 1,
     hits = {}, shots = {}, active = {}, activeSet = {}, activeCursor = 1,
-    clones = {}, nextId = 0, timer = 0, bindCursor = 1, started = false }
+    clones = {}, nextId = 0, timer = 0, bindCursor = 1, started = false, gen = 0 }
 
 local function call(fn, ...)
     if type(fn) ~= "function" then return nil end
@@ -268,24 +268,41 @@ local function cockpit()
     end
 end
 
+-- exu.BulletHit/BulletInit are single globals and other modules replace or
+-- chain them. We wrap whatever is installed now, and Update re-wraps (chaining
+-- the current function) if the global stops being our latest wrapper. `busy`
+-- makes a wrapper nested inside another of ours pass through, so a callback
+-- that replaced the global but still chains an older wrapper notifies once.
+local function wrapCallback(field, notify, busy)
+    local prev, gen = exu[field], S.gen
+    local function wrapper(...)
+        if S.gen ~= gen or S[busy] then return call(prev, ...) end
+        S[busy] = true
+        local a, b = call(prev, ...)
+        S[busy] = false
+        if S.started and S.Enabled then notify(...) end
+        return a, b
+    end
+    S[field .. "Prev"], S[field .. "Wrapper"] = prev, wrapper
+    exu[field] = wrapper
+end
+
+local function wrapCallbacks()
+    if S.BulletHitWrapper == nil or exu.BulletHit ~= S.BulletHitWrapper then wrapCallback("BulletHit", S.NotifyHit, "hitBusy") end
+    if S.BulletInitWrapper == nil or exu.BulletInit ~= S.BulletInitWrapper then wrapCallback("BulletInit", S.NotifyShot, "shotBusy") end
+end
+
 function S.Start()
     if S.started or not ready() then return end
     S.started = true
-    local hit, shot = exu.BulletHit, exu.BulletInit
-    S.oldHit,S.oldShot = hit,shot
-    S.hitWrapper = function(...)
-        call(hit,...); S.NotifyHit(...)
-    end
-    S.shotWrapper = function(...)
-        call(shot,...); S.NotifyShot(...)
-    end
-    exu.BulletHit,exu.BulletInit = S.hitWrapper,S.shotWrapper
+    wrapCallbacks()
     call(exu.SetReactiveChunksEnabled,true)
 end
 
 function S.Update(dt)
     if not S.Enabled or not ready() then return end
     S.Start()
+    wrapCallbacks()
     dt = clamp(dt,0,0.25); if dt <= 0 then return end
     S.Clock = S.Clock+dt
     local weather = package.loaded.CRWeather
@@ -351,10 +368,25 @@ function S.ResetScene()
     S.cockpit=nil;S.cursor=1;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
 end
 
+-- Player setting. Off restores every owned material, releases clones, unhooks
+-- the callbacks and stops all work (Register/Update are no-ops while off).
+-- Returns true when the state changed.
+function S.SetEnabled(enabled)
+    enabled = enabled ~= false
+    if S.Enabled == enabled then return false end
+    S.Enabled = enabled
+    if not enabled then S.Shutdown() end
+    return true
+end
+
 function S.Shutdown()
     S.ResetScene()
-    if exu.BulletHit==S.hitWrapper then exu.BulletHit=S.oldHit end
-    if exu.BulletInit==S.shotWrapper then exu.BulletInit=S.oldShot end
+    -- Restore only if nothing was layered over us; otherwise our stale wrapper
+    -- stays in someone's chain and passes through (generation check).
+    if exu.BulletHit==S.BulletHitWrapper then exu.BulletHit=S.BulletHitPrev end
+    if exu.BulletInit==S.BulletInitWrapper then exu.BulletInit=S.BulletInitPrev end
+    S.BulletHitWrapper,S.BulletInitWrapper,S.BulletHitPrev,S.BulletInitPrev=nil,nil,nil,nil
+    S.gen=S.gen+1;S.hitBusy,S.shotBusy=false,false
     S.started=false
     call(exu.SetReactiveChunksEnabled,false)
 end
