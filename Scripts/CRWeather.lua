@@ -701,8 +701,10 @@ local function CreateSystem(spec, preset)
     -- the particles it has already produced do not.
     Call("SetParticleSystemKeepLocalSpace", spec.system, false)
 
-    -- An off-screen storm should not keep simulating.
-    Call("SetParticleSystemNonVisibleUpdateTimeout", spec.system, 2.0)
+    -- No non-visible timeout: the volume rides the camera, so culling saves
+    -- nothing, and a system created idle has null bounds. Once a timeout stops
+    -- its updates it stays culled with no particles and never rains again.
+    Call("SetParticleSystemNonVisibleUpdateTimeout", spec.system, 0)
 
     if HasExu("AttachParticleSystemToCamera") then
         Call("AttachParticleSystemToCamera", spec.system, Vec(spec.offset or { x = 0, y = 0, z = 0 }))

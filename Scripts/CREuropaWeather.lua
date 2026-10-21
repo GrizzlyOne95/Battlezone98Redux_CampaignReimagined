@@ -1194,6 +1194,8 @@ local function UpdateQuake()
             local name = Fx_Create("quakeice", "CR/Europa/QuakeIce", 0.0, 0.0, 0.0)
             if name ~= nil then
                 Call("AttachParticleSystemToCamera", name, Vec(0.0, 22.0, 0.0))
+                -- Idle until a quake; a timeout would leave it culled for good.
+                Call("SetParticleSystemNonVisibleUpdateTimeout", name, 0)
                 V.QuakeFx = { name = name, rate = -1.0, until_ = math.huge }
             end
         end
@@ -1348,6 +1350,7 @@ local function UpdateSurge()
             local name = Fx_Create("surge", "CR/Europa/SurgeMotes", 0.0, 0.0, 0.0)
             if name ~= nil then
                 Call("AttachParticleSystemToCamera", name, Vec(0.0, 40.0, 0.0))
+                Call("SetParticleSystemNonVisibleUpdateTimeout", name, 0)
                 V.SurgeFx = { name = name, rate = -1.0, until_ = math.huge }
             end
         end

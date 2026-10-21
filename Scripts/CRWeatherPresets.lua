@@ -1198,8 +1198,8 @@ CRWeatherPresets.Presets = {
                         ttl      = { 1.4, 2.2 },
                         angle    = 8.0,
                         color    = {
-                            start  = { r = 0.66, g = 0.78, b = 0.38, a = 0.55 },
-                            finish = { r = 0.52, g = 0.64, b = 0.28, a = 0.30 },
+                            start  = { r = 0.78, g = 0.90, b = 0.50, a = 0.85 },
+                            finish = { r = 0.62, g = 0.76, b = 0.38, a = 0.55 },
                         },
                     },
                 },
