@@ -51,4 +51,26 @@ promotion, not a Workshop upload or tagged native release.
 
 ## Integration receipt
 
-Pending final checks and PR merge.
+- Integration PR: CR #278, preserving every commit from #273–277; native
+  dependency: OpenShim #537, refreshed onto current main before validation.
+- All nine lossless pack rebuilds and all 606 accepted hashes pass, along with
+  the nine targeted Python suites, repository invariants (4,269 files), owned
+  program references and 232 CR DX11 shader compilations.
+- Lighting/sky ownership: 48 checks; atmosphere integration: 93; Mission 17:
+  272. Native Release Win32 build, all 136 Windows tests, all 111 Linux host
+  tests, 210 Enhanced HLSL compilations and load-chain/package checks pass.
+- Fresh canonical-DDS Moon rebuild, GOG/DX11 PID 41336:
+  `Local/TerrainHD/run-20261021-075321`. Inspected capture retains fine regolith
+  and varied bowls/rims. All 19,445 height scopes, 144 streams/bounds, 82 passes
+  and 184 staged files restore. Private RAM 367.8 MiB; peak 503.4 MiB.
+- Fresh canonical-DDS Elysium rebuild, GOG/DX11 PID 41976:
+  `Local/TerrainHD/run-20261021-075500`. Inspected capture retains gray ground,
+  original purple sky and a smooth fog horizon. All 222 staged files restore.
+  Private RAM 484.0 MiB; peak 663.0 MiB. Both trials retain a largest free
+  address-space block near 2,045 MiB; these are short observations, not a
+  long-session memory qualification.
+- Native bundle refreshed through the manager: OpenShim integration code
+  `1524f0a9a` (plus Roadmap-only acceptance commit), EXU main `aad6e2b` and bzfile
+  main `44f012e`. Matching binaries, symbols, configuration and manifest are
+  refreshed together. Shipping membership adds the two Moon resources and
+  seven current native UI/renderer payloads, with no removals.
