@@ -66,6 +66,8 @@ void textured_wind_vertex(
 // -------------------------------------------
 
 void textured_fragment(
+    uniform float4 surfaceState,
+    uniform float4 surfaceMode,
 	uniform Texture2D diffuseMap : register(t0),
 	uniform SamplerState diffuseSam : register(s0),
 
@@ -94,6 +96,10 @@ void textured_fragment(
 	float4 diffuseTex = diffuseMap.Sample(diffuseSam, vTexCoord);
 	oColor = diffuseTex * diffuseColor;
 	oColor.rgb *= materialEmissive.rgb;
+	// Match the lit cockpit warning pulse and tower power state.
+	float warning = saturate(surfaceState.y) * saturate(surfaceMode.y);
+	float pulse = 0.5 + 0.5 * sin(surfaceMode.z * 7.0);
+	oColor.rgb *= (1.0-saturate(surfaceState.w)) * (1.0-warning*(0.12+pulse*0.58));
 
 	// Before fog and before any depth write: a discarded pixel must not reach
 	// the depth buffer, or a nearer card's empty space masks the cards behind

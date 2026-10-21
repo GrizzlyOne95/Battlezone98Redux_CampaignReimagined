@@ -1,5 +1,6 @@
 ---@diagnostic disable: lowercase-global, undefined-global
 local exu = require("exu")
+local SurfaceEffects = require("CRSurfaceEffects")
 local bzfile = require("bzfile")
 local LogPaths = require("LogPaths")
 
@@ -567,6 +568,8 @@ local function RegisterHandle(h)
         return
     end
 
+    SurfaceEffects.Register(h)
+
     local profile = RuntimeEnhancements.TeamProfiles[GetTeamNum(h)]
     local supportsPilot = SupportsPilotVehicleVisuals(h)
     if not profile and not supportsPilot then
@@ -968,6 +971,7 @@ local function ResolveTeamColorProfile(teamNum)
 end
 
 function RuntimeEnhancements.ResetVisualState()
+    SurfaceEffects.ResetScene()
     for _, state in pairs(RuntimeEnhancements.ObjectStates or {}) do
         if state and state.handle and IsValid(state.handle) and type(state.materials) == "table" then
             for _, material in ipairs(state.materials) do
@@ -1155,12 +1159,14 @@ function RuntimeEnhancements.Update()
     if now == RuntimeEnhancements.LastUpdateAt then
         return
     end
+    local surfaceDt = now - (RuntimeEnhancements.LastUpdateAt or now)
     RuntimeEnhancements.LastUpdateAt = now
 
     if RuntimeEnhancements.SupportsDynamicMaterials then
         UpdateVisualStates(now)
         ApplyEmissivePulse(now, false)
     end
+    SurfaceEffects.Update(surfaceDt)
 
     if RuntimeEnhancements.StarTwinkleApplied ~= RuntimeEnhancements.StarTwinkleEnabled
         and now >= (RuntimeEnhancements.StarTwinkleRetryAt or 0.0) then

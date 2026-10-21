@@ -1184,6 +1184,7 @@ CRWeatherPresets.Presets = {
     -- -------------------------------------------------------------------------
     AcidRainVisual = {
         name = "AcidRainVisual",
+        surfaceWetness = 1,
         precipitation = {
             {
                 system   = "cr_wx_rain",

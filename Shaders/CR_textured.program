@@ -35,6 +35,11 @@ fragment_program CR_Textured_fragmentHLSL4 hlsl
     source CR_textured-sm4.hlsl
     target ps_4_0
     entry_point textured_fragment
+    default_params
+    {
+        param_named surfaceState float4 0 0 0 0
+        param_named surfaceMode float4 0 0 0 0
+    }
 }
 
 fragment_program CR_Textured_fragmentHLSL hlsl
@@ -42,6 +47,11 @@ fragment_program CR_Textured_fragmentHLSL hlsl
     source CR_textured.hlsl
     target ps_3_0
     entry_point textured_fragment
+    default_params
+    {
+        param_named surfaceState float4 0 0 0 0
+        param_named surfaceMode float4 0 0 0 0
+    }
 }
 
 fragment_program CR_Textured_fragmentGLSL glsl

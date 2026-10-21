@@ -7204,6 +7204,7 @@ function PersistentConfig.OnObjectDeleted(h)
     end
 
     InputState.processedCreationHandles[h] = nil
+    require("CRSurfaceEffects").Unregister(h)
     RemoveTrackedWorldHandle(h)
 
     if aiCore and type(aiCore.DeleteObject) == "function" then

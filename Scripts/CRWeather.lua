@@ -1321,6 +1321,17 @@ function CRWeather.GetIntensity()
     return CRWeather.Intensity
 end
 
+-- Liquid precipitation explicitly opts in; snow, ash and fog remain dry.
+-- Include retiring layers so a weather transition never snaps wetness.
+function CRWeather.GetSurfaceWetness()
+    if not CRWeather.Enabled then return 0 end
+    local wet = 0
+    for _, layer in ipairs(CRWeather.Layers or {}) do
+        wet = wet + Clamp01(layer.preset.surfaceWetness or 0) * Clamp01(layer.weight)
+    end
+    return Clamp01(wet * Clamp01(CRWeather.Intensity))
+end
+
 -- Development/diagnostic snapshot for terrain-pooled systems. The returned
 -- table is detached from live state so a tuning UI cannot mutate the renderer
 -- accidentally. Nil means the system is absent or is not terrain-pooled.
