@@ -1,5 +1,5 @@
 {
-  "vertices": 26272,
+  "vertices": 26246,
   "triangles": 24760,
   "bounds_min": [
     -15.018328666687012,
@@ -61,12 +61,12 @@
   "model_reference": "Coxxon / Total Command / sbconecox00.msh",
   "reference_sha256": "58e4336cedd89c2f8a8864cdcb6ea45706f1b5544b47a2ebc34013c36e482213",
   "sha256": {
-    "Assets/ModelFixes/cr06rok.mesh": "5ea9f5eafbe87d8113f3a1542dcb3bd06321448ec34d437360d79e1766094797",
-    "Assets/ModelFixes/cr06rok.geo": "a6feba993c6bf5ce4fa8adaa2db89e85dcf324e738d80eaaa1e717b2d3c87e16",
+    "Assets/ModelFixes/cr06rok.mesh": "2aae2dbae26d0c9abe84970742b0b5e95507c90479733a363743f9d6eee3810a",
+    "Assets/ModelFixes/cr06rok.geo": "02a51f6097f28106710fd9c05b03481f8d2dec35003ccd6f6a42d0673bb1d2cb",
     "Assets/ModelFixes/cr06rok.sdf": "7a6838c1fc3bcfdb9f37ed76a696ecfd5bd055784a67b6112aa339dfe1bbc7ac",
-    "Assets/Textures/cr06rok_d.dds": "6141e181a5722f4b8a3e68d63e3bb61abe28b3ab018d325bf9c9c323fc601be7",
+    "Assets/Textures/cr06rok_d.dds": "586b6121ca1d9fc5291374e4482c7aff03a5d277f26c21bd89dadb5eecf20d32",
     "Assets/Textures/cr06rok_n.dds": "10f8b112accaabfb79078fbfa3a0c2fde98d5b2d410def4e994cdde003bdc952",
-    "Assets/Textures/cr06rok_s.dds": "20107ae609b93d623243a6b5dd73cfb9440ecfe5b33f2e160e9961fd234523bd",
-    "Assets/Textures/cr06rok_e.dds": "08c02912b30f2d5a9e4829dbd7858671e324c3049fdca3b3852d8e606d181ff8"
+    "Assets/Textures/cr06rok_s.dds": "12f8bda7161883911377d3ba14888d6b7e6ff53ea967dd7632e1740094f0da64",
+    "Assets/Textures/cr06rok_e.dds": "e55904868aa50d774efe3ce373468e241ff23768e3ea816d7a2a526b9e1e015f"
   }
 }
