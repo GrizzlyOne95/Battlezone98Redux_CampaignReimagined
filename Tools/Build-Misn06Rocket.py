@@ -1,4 +1,4 @@
-"""Build the CR-authored CCA rocket and its RGBA8 game textures.
+"""Build the CR-authored CCA rocket and its BC1 game textures.
 
 python Tools/Build-Misn06Rocket.py --blender <blender.exe> --render
 Requires Blender 4.5+ and Pillow. --textures-only converts already baked sources.
@@ -11,6 +11,9 @@ from pathlib import Path
 import shutil
 import subprocess
 from PIL import Image
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from bcdds import save_bc
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -52,8 +55,10 @@ def build(blender, render=False, textures_only=False):
     for suffix in ('d','n','s','e'):
         source=ROOT/'References/Misn06Rocket/Textures'/('cr06rok_'+suffix+'.png')
         image=Image.open(source).convert('RGBA')
-        # Uncompressed RGBA8 avoids the native DX11 BC3 colour-path failure.
-        image.save(ROOT/'Assets/Textures'/('cr06rok_'+suffix+'.dds'))
+        dest=ROOT/'Assets/Textures'/('cr06rok_'+suffix+'.dds')
+        # BC1 with full offline mips; the 16x16 flat normal stays RGBA8.
+        if suffix=='n': image.save(dest)
+        else: save_bc(image,dest)
     geometry=json.loads((ROOT/'References/Misn06Rocket/geometry.json').read_text())
     build_fx_layout(geometry)
     paths=[ROOT/'Assets/ModelFixes'/('cr06rok.'+s) for s in ('mesh','geo','sdf')]

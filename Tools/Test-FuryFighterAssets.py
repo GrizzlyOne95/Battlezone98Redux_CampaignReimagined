@@ -4,6 +4,7 @@ from hashlib import sha256
 import io,json,re,struct,sys
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from bzmodellibs import bwd2_serializer,ogremesh_serializer
+from bcdds import bc_dds_problem
 ROOT=Path(__file__).resolve().parents[1]
 ORIGINAL=ROOT/'References/FuryFighter/original'
 ASSETS=ROOT/'Assets/ModelFixes'
@@ -54,7 +55,7 @@ check(abs(dps-210)<0.001,'combined sustained damage below stock 250 DPS Bolt Bud
 check(float(pulse['shotSpeed'.lower()])*float(pulse['lifespan'])==180,'pulse maximum range 180 m')
 check(float(arc['shotspeed'])*float(arc['lifespan'])==160,'arc maximum range 160 m')
 dds=(ROOT/'Assets/Textures/crfraz_d.dds').read_bytes()
-check(dds[:4]==b'DDS ' and struct.unpack_from('<II',dds,12)==(1024,1024) and struct.unpack_from('<I',dds,80)[0]==0x41 and struct.unpack_from('<I',dds,88)[0]==32,'shipped RGBA8 atlas with engine-generated mipmaps')
+check(bc_dds_problem(dds,1024) is None,'shipped BC1 atlas with full offline mips')
 lock=json.loads((ROOT/'Shipping/shipping.lock.json').read_text())
 members={x['source'].replace('\\','/'):x['runtime'] for x in lock['files']}
 shipped=[p for p in ASSETS.iterdir() if p.name.startswith(('crfraz.','cfr11'))]

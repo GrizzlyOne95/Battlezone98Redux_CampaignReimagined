@@ -29,7 +29,7 @@ The earlier straight-cylinder / dorsal-housing reconstruction is superseded.
 The model retains the old origin, 97 m height and -48.5 m nozzle plane. It has
 24,760 rendered triangles and 1,726 native fallback triangles (3,855 native
 vertices, below the 4,096 limit). The native SDF bounds cover the new conical
-skirts. The four new atlases use RGBA8 DDS; the
+skirts. The d/e/s atlases use BC1 DDS with offline mips (the normal map is a flat 16x16 RGBA8); the
 physical geometry carries the panel relief and the normal map is neutral.
 
 Eight bell exits generate `CR06RocketLayout.lua` and the Core/Plume emitters.

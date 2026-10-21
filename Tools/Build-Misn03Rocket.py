@@ -28,6 +28,8 @@ import sys
 
 import numpy as np
 from PIL import Image
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from bcdds import save_bc
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from bzmodellibs import geo, geo_serializer, ogremesh_serializer  # noqa: E402
@@ -121,8 +123,8 @@ def write_textures(source):
     for suffix, filename in TEXTURES.items():
         image = Image.open(source / filename).convert("RGBA")
         assert image.size == (1024, 1024)
-        # Uncompressed RGBA8 avoids the native DX11 BC3 colour-path failure.
-        image.save(ROOT / "Assets/Textures" / f"{NAME}_{suffix}.dds")
+        # BC1 with full offline mips; compressed DDS without mips render black.
+        save_bc(image, ROOT / "Assets/Textures" / f"{NAME}_{suffix}.dds")
 
 
 def write_text(path, text):
