@@ -109,17 +109,23 @@ def inventory(stock):
 
 def report(data, output):
     output.mkdir(parents=True, exist_ok=True)
+    choices=json.loads((ROOT/'References/WeaponPresentation/profiles.json').read_text())['weapons']
+    for weapon in data['weapons']:
+        choice=choices.get(weapon['odf'],{})
+        weapon['flash_profile']=choice.get('profile') or ''
+        weapon['flash_decision']=choice.get('decision','new definition; review required')
     (output / "inventory.json").write_text(json.dumps(data, indent=2) + "\n")
     with (output / "weapons.csv").open("w", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(data["weapons"][0]))
         writer.writeheader(); writer.writerows(data["weapons"])
     with (output / "recoil.csv").open("w", newline="", encoding="utf-8") as stream:
         writer = csv.writer(stream)
-        writer.writerow(["unit", "name", "model", "model_status", "slot", "weapon", "hardpoint", "muzzle_nodes", "parents", "candidates", "plan"])
+        writer.writerow(["unit", "name", "role", "model", "model_status", "slot", "weapon", "hardpoint", "muzzle_nodes", "cockpit_muzzle_nodes", "parents", "candidates", "ogre_clips", "plan"])
         for unit in data["units"]:
             for slot in unit["slots"]:
-                writer.writerow([unit["odf"], unit["name"], unit["model"], unit["model_status"], slot["slot"], slot["weapon"], slot["hardpoint"],
-                    ",".join(slot["muzzle_nodes"]), ",".join(slot["parents"]), json.dumps(slot["recoil_candidates"]), slot["plan"]])
+                writer.writerow([unit["odf"], unit["name"],unit['role'], unit["model"], unit["model_status"], slot["slot"], slot["weapon"], slot["hardpoint"],
+                    ",".join(slot["muzzle_nodes"]), ','.join(slot['cockpit_muzzle_nodes']), ",".join(slot["parents"]), json.dumps(slot["recoil_candidates"]),
+                    ','.join(a['name'] for a in unit['ogre_clips']), slot["plan"]])
     print("Inventory:", len(data["weapons"]), "weapons,", len(data["units"]), "armed ODFs; classes", dict(Counter(w["class"] for w in data["weapons"])))
 
 

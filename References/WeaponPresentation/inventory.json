@@ -9,7 +9,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "0.30",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "plasmablue",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "asplsmg",
@@ -20,7 +22,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "0.20",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "plasmablue",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "bprifle",
@@ -31,7 +35,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "0.60",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "plasmablue",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "bsplsmg",
@@ -42,7 +48,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "0.20",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "plasmablue",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "cprifle",
@@ -53,7 +61,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "0.84",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "plasmagreen",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "cr16bolt",
@@ -64,7 +74,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "0.6",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "arcblue",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "crfarc",
@@ -75,7 +87,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "0.8",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "arcblue",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "crfmarc",
@@ -86,7 +100,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "arcred",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "crfpuls",
@@ -97,7 +113,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "0.5",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "plasmablue",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "cromarc",
@@ -108,7 +126,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "sunarc",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "csplsmg",
@@ -119,7 +139,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "0.10",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "plasmagreen",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "cvwo003",
@@ -130,7 +152,9 @@
       "scope": "CR override",
       "category": "MORT",
       "delay": "2.5",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "mortar",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "ga7stab",
@@ -141,7 +165,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "6.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "atstab",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gammo",
@@ -152,7 +178,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "supply dispenser"
     },
     {
       "odf": "gammoa",
@@ -163,7 +191,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "supply dispenser"
     },
     {
       "odf": "gatstab",
@@ -174,7 +204,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.3",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "atstab",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gatstaba",
@@ -185,7 +217,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.7",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "atstab",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gatstabh",
@@ -196,7 +230,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "0.3",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "atstab",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gbetmin",
@@ -207,7 +243,9 @@
       "scope": "CR",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "mine deployment"
     },
     {
       "odf": "gbetpop",
@@ -218,7 +256,9 @@
       "scope": "CR",
       "category": "SPEC",
       "delay": "0.10",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "",
+      "flash_decision": "autonomous mine trigger, no craft muzzle"
     },
     {
       "odf": "gblast",
@@ -229,7 +269,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "1.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "blast",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gblastb",
@@ -240,7 +282,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "1.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "blastblue",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gblastg",
@@ -251,7 +295,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "1.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "blast",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gblasth",
@@ -262,7 +308,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "1.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "blastred",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gbolt",
@@ -273,7 +321,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.6",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "arcblue",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gboltg",
@@ -284,7 +334,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.6",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "arcgreen",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gboltmig",
@@ -295,7 +347,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "mine deployment"
     },
     {
       "odf": "gboltmin",
@@ -306,7 +360,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "mine deployment"
     },
     {
       "odf": "gboltmir",
@@ -317,7 +373,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "mine deployment"
     },
     {
       "odf": "gboltr",
@@ -328,7 +386,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.6",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "arcred",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gbspstab",
@@ -339,7 +399,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.6",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "spstab",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gcomet",
@@ -350,7 +412,9 @@
       "scope": "CR override",
       "category": "ROCK",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "rocket",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gctesla",
@@ -361,7 +425,9 @@
       "scope": "CR",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "field deployment"
     },
     {
       "odf": "gdummy",
@@ -372,7 +438,9 @@
       "scope": "stock",
       "category": "CANN",
       "delay": "0.20",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "",
+      "flash_decision": "paintball/debug effect"
     },
     {
       "odf": "gflare",
@@ -383,7 +451,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "countermeasure deployment"
     },
     {
       "odf": "gflashch",
@@ -394,7 +464,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "arcred",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gflashgb",
@@ -405,7 +477,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "arcblue",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gflashgg",
@@ -416,7 +490,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "arcgreen",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gflashgn",
@@ -427,7 +503,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "arcblue",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "ghartila",
@@ -438,7 +516,9 @@
       "scope": "CR override",
       "category": "MORT",
       "delay": "1.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "mortar",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "ghartill",
@@ -449,7 +529,9 @@
       "scope": "CR override",
       "category": "MORT",
       "delay": "5.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "mortar",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "ghartmp",
@@ -460,7 +542,9 @@
       "scope": "CR override",
       "category": "MORT",
       "delay": "2.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "mortar",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "ghornet",
@@ -471,7 +555,9 @@
       "scope": "CR override",
       "category": "ROCK",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "rocket",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "ghrntai",
@@ -482,7 +568,9 @@
       "scope": "CR override",
       "category": "ROCK",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "rocket",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "glgmsl",
@@ -493,7 +581,9 @@
       "scope": "CR",
       "category": "ROCK",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "rocket",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gmaggun",
@@ -504,7 +594,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "mag",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gmasgren",
@@ -515,7 +607,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "2.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "",
+      "flash_decision": "conversion projectile, keep existing effect"
     },
     {
       "odf": "gmbolt",
@@ -526,7 +620,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "arcblue",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gmboltg",
@@ -537,7 +633,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "arcgreen",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gmboltr",
@@ -548,7 +646,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "arcred",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gmcurmin",
@@ -559,7 +659,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "mine deployment"
     },
     {
       "odf": "gmdmgun",
@@ -570,7 +672,9 @@
       "scope": "CR override",
       "category": "MORT",
       "delay": "2.0",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "mortar",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gminigna",
@@ -581,7 +685,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.40",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "minigun",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gminignb",
@@ -592,7 +698,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.40",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "minigun",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gminignc",
@@ -603,7 +711,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.15",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "minigun",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gminigrn",
@@ -614,7 +724,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.1",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "minigun",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gminigun",
@@ -625,7 +737,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.20",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "minigun",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gminisov",
@@ -636,7 +750,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.30",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "chaingun",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gmitsmin",
@@ -647,7 +763,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "mine deployment"
     },
     {
       "odf": "gmortar",
@@ -658,7 +776,9 @@
       "scope": "CR override",
       "category": "MORT",
       "delay": "2.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "mortar",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gnavdrop",
@@ -669,7 +789,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "navigation beacon deployment"
     },
     {
       "odf": "gobject",
@@ -680,7 +802,9 @@
       "scope": "stock",
       "category": "MORT",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "internal object lobber"
     },
     {
       "odf": "gphantom",
@@ -691,7 +815,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "cloak device"
     },
     {
       "odf": "gpopgun",
@@ -702,7 +828,9 @@
       "scope": "CR override",
       "category": "MORT",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "popper",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gproxmin",
@@ -713,7 +841,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "mine deployment"
     },
     {
       "odf": "gquake",
@@ -724,7 +854,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "3",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "",
+      "flash_decision": "ground-contact seismic emitter"
     },
     {
       "odf": "gredfld",
@@ -735,7 +867,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "radar device"
     },
     {
       "odf": "grepa",
@@ -746,7 +880,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "repair dispenser"
     },
     {
       "odf": "grepaa",
@@ -757,7 +893,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "repair dispenser"
     },
     {
       "odf": "grktbomb",
@@ -768,7 +906,9 @@
       "scope": "CR override",
       "category": "ROCK",
       "delay": "3.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "rocket",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gsandbag",
@@ -779,7 +919,9 @@
       "scope": "stock",
       "category": "ROCK",
       "delay": "1.5",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "",
+      "flash_decision": "anchoring device"
     },
     {
       "odf": "gsatstab",
@@ -790,7 +932,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "0.30",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "pulse",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gshadow",
@@ -801,7 +945,9 @@
       "scope": "CR override",
       "category": "ROCK",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "rocket",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gshunt",
@@ -812,7 +958,9 @@
       "scope": "CR",
       "category": "ROCK",
       "delay": "1.50",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "rocket",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gsitecam",
@@ -823,7 +971,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "camera device"
     },
     {
       "odf": "gsmort",
@@ -834,7 +984,9 @@
       "scope": "CR",
       "category": "MORT",
       "delay": "2.60",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "mortar",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gsnipe",
@@ -845,7 +997,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "1.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "sniper",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gsplint",
@@ -856,7 +1010,9 @@
       "scope": "CR override",
       "category": "MORT",
       "delay": "3.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "mortar",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gsplinta",
@@ -867,7 +1023,9 @@
       "scope": "CR override",
       "category": "MORT",
       "delay": "2.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "mortar",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gsplintg",
@@ -878,7 +1036,9 @@
       "scope": "CR override",
       "category": "MORT",
       "delay": "3.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "mortar",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gsplintr",
@@ -889,7 +1049,9 @@
       "scope": "CR override",
       "category": "MORT",
       "delay": "3.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "mortar",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gspstab",
@@ -900,7 +1062,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.6",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "spstab",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gspstaba",
@@ -911,7 +1075,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "1.5",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "spstab",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gspstabb",
@@ -922,7 +1088,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.6",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "spstab",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gspstabc",
@@ -933,7 +1101,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.8",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "spstab",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gspstabd",
@@ -944,7 +1114,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.5",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "spstab",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gspstabn",
@@ -955,7 +1127,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "1.5",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "spstab",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gsrkbomb",
@@ -966,7 +1140,9 @@
       "scope": "CR",
       "category": "ROCK",
       "delay": "2.70",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "rocket",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gstlock",
@@ -977,7 +1153,9 @@
       "scope": "CR",
       "category": "SPEC",
       "delay": "1.50",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "",
+      "flash_decision": "control projectile, keep existing effect"
     },
     {
       "odf": "gtaggun",
@@ -988,7 +1166,9 @@
       "scope": "CR override",
       "category": "ROCK",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "rocket",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gtechno",
@@ -999,7 +1179,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.4",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "plasmablue",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gtminig",
@@ -1010,7 +1192,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.20",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "minigun",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gtminis",
@@ -1021,7 +1205,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.30",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "chaingun",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gtminis2",
@@ -1032,7 +1218,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "0.30",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "chaingun",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gtminisa",
@@ -1043,7 +1231,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.48",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "chaingun",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "gtsmoke",
@@ -1054,7 +1244,9 @@
       "scope": "CR",
       "category": "MORT",
       "delay": "4.0",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "",
+      "flash_decision": "smoke launch, keep smoke effect distinct"
     },
     {
       "odf": "gwasp",
@@ -1065,7 +1257,9 @@
       "scope": "stock",
       "category": "SPEC",
       "delay": "",
-      "producer": "other producer pending"
+      "producer": "other producer pending",
+      "flash_profile": "",
+      "flash_decision": "mine deployment"
     },
     {
       "odf": "handgun",
@@ -1076,7 +1270,9 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.3",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "plasmablue",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "sprifle",
@@ -1087,7 +1283,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "0.22",
-      "producer": "cannon factory"
+      "producer": "cannon factory",
+      "flash_profile": "plasmared",
+      "flash_decision": "authored flash"
     },
     {
       "odf": "ssplsmg",
@@ -1098,7 +1296,9 @@
       "scope": "CR",
       "category": "CANN",
       "delay": "0.30",
-      "producer": "machinegun factory (companion OpenShim change; live pending)"
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "plasmared",
+      "flash_decision": "authored flash"
     }
   ],
   "units": [
