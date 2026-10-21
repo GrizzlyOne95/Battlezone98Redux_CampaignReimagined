@@ -313,6 +313,14 @@ Pick the unused retrospective line; for example misn13 uses `misn1305`, misn12 `
 
 ## 4. Weather and environment architecture
 
+Mission 18's large glowing fissures are cosmetic and camera-local; see
+`Docs/MISN18_STORM.md`. EXU point lights have an eight-light cap and no beam
+direction: reserve at most two short-range lights for fissures and use upright
+particles for upward shafts. A large decal needs terrain-plane checks across
+its whole footprint; a valid centre alone can leave it bridging a ravine.
+Rectangular ground particle decals also need `billboard_rotation_type vertex`:
+Ogre defaults to UV rotation, which distorts the mouth and separates its shafts.
+
 Local grass/flower removal is client-only (owner, 2026-10-21): `Docs/LOCAL_FLORA_DAMAGE.md`.
 Use the shared bounded `CRFloraDamage` service and actual EXU explosion events; do not
 scan units every frame or synchronize cosmetic bare patches. Solid trees keep gameplay ownership.

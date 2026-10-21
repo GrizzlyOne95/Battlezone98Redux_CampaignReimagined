@@ -703,6 +703,7 @@ function Storm.Create(api)
             call = call, call2 = call2, vec = vec, sites = Sites, seed = state.seed, hash = hash,
             ready = ensureTemplates, clock = function() return clock end, height = terrain,
             material = function() return groundMaterial end, sound = sound,
+            quality = function() return Weather.Quality or 1 end,
         }
         ground = Ground.Create(gctx)
         trees = TreesFx.Create({exu=x})
@@ -884,6 +885,7 @@ function Storm.Create(api)
             error = lastError, templates = templatesReady or false, groundMaterial = groundMaterial,
             seed = state and state.seed or 0, foliage = Foliage.Describe and Foliage.Describe() or nil,
             groundError = g.lastError, water = water and water.Describe() or nil,
+            fissures = g.fissures,
             trees = trees and trees.Describe() or nil,
         }
     end

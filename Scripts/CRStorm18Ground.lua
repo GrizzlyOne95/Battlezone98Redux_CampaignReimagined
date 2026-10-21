@@ -16,6 +16,7 @@
 --             the camera, leader-timed (event), shaped locally
 local okDamage,Damage=pcall(require,"CRFloraDamage")
 if not okDamage then Damage=nil end
+local Fissures = require("CRStorm18Fissures")
 local Ground = {}
 
 -- Tunables -------------------------------------------------------------------
@@ -42,6 +43,7 @@ function Ground.Create(ctx)
                 sets = nil, anchor = nil, slideSets = nil, material = nil, ringDistance = 0 }
     local sites = ctx.sites or { layers = {} }
     local layers = sites.layers or {}
+    local fissures = Fissures.Create(ctx)
 
     -- Scrub -------------------------------------------------------------------
     local function tileName(i) return "CR18/Scrub/" .. i end
@@ -334,6 +336,7 @@ function Ground.Create(ctx)
         updateScrub(view)
         if Damage then Damage.Update() end
         updateCracks(view, tonumber(crack) or 0)
+        fissures.Update(view, crack)
         if G.sets then
             for _, set in pairs(G.sets) do settle(set) end
         end
@@ -341,6 +344,7 @@ function Ground.Create(ctx)
     end
 
     function G.Stop()
+        fissures.Stop()
         if Damage then for i in ipairs(layers) do Damage.Unregister(tileName(i)) end end
         for i in pairs(G.tiles) do ctx.call("DestroyStaticGeometry", tileName(i)) end
         G.tiles = {}
@@ -368,7 +372,7 @@ function Ground.Create(ctx)
         for _ in pairs(G.slides) do active = active + 1 end
         return { flora=Damage and Damage.Describe() or nil, tiles = n, totalTiles = #layers, built = G.built, destroyed = G.destroyed, errors = G.errors,
                  lastError = G.lastError, cracks = G.cracksLaid, slides = G.slidesStarted, slidesActive = active,
-                 material = G.material, particles = G.sets and true or false }
+                 material = G.material, particles = G.sets and true or false, fissures = fissures.Describe() }
     end
     return G
 end

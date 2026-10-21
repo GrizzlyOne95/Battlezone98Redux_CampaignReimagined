@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-21T07:48:17-05:00",
-  "count": 3679,
+  "count": 3681,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -11836,6 +11836,10 @@
       "runtime": "crcred2.odf"
     },
     {
+      "source": "Assets\\Textures\\c18rift.png",
+      "runtime": "c18rift.png"
+    },
+    {
       "source": "Assets\\Textures\\cr18_crack_a.png",
       "runtime": "cr18_crack_a.png"
     },
@@ -11862,6 +11866,10 @@
     {
       "source": "Scripts\\CRStorm18.lua",
       "runtime": "CRStorm18.lua"
+    },
+    {
+      "source": "Scripts\\CRStorm18Fissures.lua",
+      "runtime": "CRStorm18Fissures.lua"
     },
     {
       "source": "Scripts\\CRStorm18Ground.lua",
