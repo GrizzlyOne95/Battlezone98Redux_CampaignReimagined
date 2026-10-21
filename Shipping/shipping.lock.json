@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-20T19:35:10-05:00",
-  "count": 3671,
+  "generated": "2026-10-20T21:56:21-05:00",
+  "count": 3666,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -14666,26 +14666,6 @@
     {
       "source": "Scripts\\CRWorldArt.lua",
       "runtime": "CRWorldArt.lua"
-    },
-    {
-      "source": "Shaders\\CR_skyhorizon-fragment.glsl",
-      "runtime": "CR_skyhorizon-fragment.glsl"
-    },
-    {
-      "source": "Shaders\\CR_skyhorizon-sm4.hlsl",
-      "runtime": "CR_skyhorizon-sm4.hlsl"
-    },
-    {
-      "source": "Shaders\\CR_skyhorizon-vertex.glsl",
-      "runtime": "CR_skyhorizon-vertex.glsl"
-    },
-    {
-      "source": "Shaders\\CR_skyhorizon.hlsl",
-      "runtime": "CR_skyhorizon.hlsl"
-    },
-    {
-      "source": "Shaders\\CR_skyhorizon.program",
-      "runtime": "CR_skyhorizon.program"
     }
   ]
 }

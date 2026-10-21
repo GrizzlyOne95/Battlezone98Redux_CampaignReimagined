@@ -125,8 +125,18 @@ try {
  $missionDirectory=Join-Path $cr 'Missions'
  if($World -in @('ganymede','elysium')){
   $missionDirectory=Join-Path $out 'stock-map'
-  & python "$PSScriptRoot\Prepare-HdTerrainArchivePreview.py" --game $game --mission $mission --out $missionDirectory
+  $archiveMission=$mission
+  # Reuse a registered CR campaign slot: standalone CLI names do not activate
+  # its resource group. Every slot file below is backed up and restored.
+  $mission='misn04'
+  & python "$PSScriptRoot\Prepare-HdTerrainArchivePreview.py" --game $game --mission $archiveMission --preview-name $mission --out $missionDirectory
   if($LASTEXITCODE -ne 0){throw 'Stock map preview extraction failed'}
+  # Stock archive missions have no CR map registration, so their CLI launch
+  # otherwise never reloads Modable with the preview materials. Register only
+  # this temporary map, and restore the registration with the rest of the fixture.
+  $archivePreviewMod=Join-Path $game 'mods\3686673790'
+  Save-File "$archivePreviewMod\$mission.ini"
+  [IO.File]::WriteAllText("$archivePreviewMod\$mission.ini",("[DESCRIPTION]`r`nmissionName = `"World art preview`"`r`n[WORKSHOP]`r`nmapType = `"multiplayer`"`r`n"))
  }
  foreach($item in Get-ChildItem "$missionDirectory\$mission.*" -File){Save-File "$game\addon\$($item.Name)"; Copy-Item $item.FullName "$game\addon\$($item.Name)" -Force}
  if($isBundle){
@@ -135,6 +145,14 @@ try {
   elseif($GroundView){$groundType=if($SurfaceType -ge 0){$SurfaceType}else{0};$fixtureOptions+=@('--base-type',[string]$groundType)}
   & python "$PSScriptRoot\Build-HdTerrainPreview.py" @fixtureOptions
   if($LASTEXITCODE -ne 0){throw 'Terrain camera fixture generation failed'}
+ }
+ if($World -in @('ganymede','elysium')){
+  # Keep the uniquely named map beside its registration. Built-in evolve_*
+  # names retain stock resource selection even when an addon INI is present.
+  foreach($extension in @('bzn','trn','hg2','mat','lgt')){
+   Save-File "$archivePreviewMod\$mission.$extension"
+   Copy-Item -LiteralPath "$game\addon\$mission.$extension" -Destination "$archivePreviewMod\$mission.$extension" -Force
+  }
  }
  $previewScripts=@('Materials\CR_BZTerrainBase.material','Shaders\CR_static_ibl.program',"Tools\Examples\$exampleFolder\$example.material")
  if($isBundle){
@@ -233,6 +251,7 @@ function Start()
  if string.sub(string.lower(sky),1,5)=='crsky' then
   assert(package.loaded.exu.MaterialExists(string.upper(sky),'General'),'World sky material unavailable')
  end
+ print('[WORLD-ART] haze='..tostring(artEnvironment.ArtSkyOwned))
  __CLOUD_DECK__
  print('[WORLD-ART] '..tostring(artEnvironment.ArtWorld)..' native palette / lighting active')
 end
@@ -241,7 +260,7 @@ function Update(dt)
  if artEnvironment then artEnvironment.Update(dt) end
 end
 '@
-  $cloudCode=if($CloudDeck){"assert(package.loaded.exu.SetSkyPlane('CR17/StormCloud',{normal=SetVector(0,-1,0),d=1450},2400,2.2,true,0,8,8,'General')~=false);package.loaded.exu.SetSkyPlaneEnabled(true)"}else{''}
+  $cloudCode=if($CloudDeck){"assert(package.loaded.exu.SetSkyPlane('CR17/StormCloud',{normal=SetVector(0,-1,0),d=1450},2400,2.2,false,0,8,8,'General')~=false);package.loaded.exu.SetSkyPlaneEnabled(true)"}else{''}
   $artDriver.Replace('__EXU_DLL__',$ExuDll).Replace('__ART_SCRIPTS__',"$game/addon").Replace('__CLOUD_DECK__',$cloudCode) | Add-Content "$game\addon\$mission.lua" -Encoding ASCII
  }
  if($ProfileCycle){

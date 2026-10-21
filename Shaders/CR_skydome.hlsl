@@ -1,6 +1,8 @@
 // Shader model 3 twin of CR_skydome-sm4.hlsl.
 void skydome_vertex(
 	uniform float4x4 wvpMat,
+	uniform float4x4 inverseProjection,
+	uniform float4x4 inverseView,
 	uniform float4x4 texMat,
 	uniform float4 diffuseColor,
 	in float4 iPosition : POSITION,
@@ -11,10 +13,11 @@ void skydome_vertex(
 	out float4 oPosition : POSITION)
 {
 	oPosition = mul(wvpMat, iPosition);
+	float4 viewPosition = mul(inverseProjection, oPosition);
+	vView = mul((float3x3)inverseView, viewPosition.xyz / viewPosition.w);
 	vColor = diffuseColor;
 	vTexCoord = mul(texMat, float4(iTexCoord, 0, 1)).xy;
 	oPosition.z = oPosition.w * 0.9999;
-	vView = iPosition.xyz;
 }
 
 void skydome_fragment(

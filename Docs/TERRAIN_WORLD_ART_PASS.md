@@ -50,6 +50,18 @@ No generated DDS/source PNG is committed or installed into canonical shipping
 art by this command. Each portable world bundle retains its current CR runtime
 detail/depth values. Source files and stock-atlas fallback remain available.
 
+Generate the original/previous/candidate palette comparison with:
+
+```powershell
+python Tools/Build-WorldArtReview.py --source-build '<saved HD recipe/cache>' `
+  --candidate-root Local/WorldArt/Revision01
+```
+
+This reads original stock previews only for the comparison sheet; they do not
+enter the texture-authoring pipeline. It also produces a live capture sheet
+from completed entries in `live_review.json` when that evidence is available.
+The flat diffuse comparison cannot qualify lighting or the rendered horizon.
+
 ## Lighting and smooth horizons
 
 `Scripts/CRWorldArt.lua` contains each world's ambient, diffuse and specular
@@ -60,29 +72,29 @@ table only when it owns the standalone atmosphere path. There is still one
 atmosphere writer; fog limits, day/night timing and sensor/gameplay effects are
 unchanged. Unknown worlds retain their existing light.
 
-Atmospheric CR maps now select short unique `CRSKYMA/VE/TI/AC.MAP` sky aliases,
-preserving their original textures and native vertex palette. The new CR-owned
-sky programs blend the low sky continuously toward the renderer's actual fog
-colour, using a smooth elevation band. This avoids depending on conflicting
-stock-named material overrides. Fourteen TRNs change only `SkyTexture`.
-Airless-world skies retain their existing materials and sharp terrain silhouettes.
-The horizon treatment does not add a generic atmosphere to every world.
+`CRWorldArt.InitializeSky` supplies a dome using the original Mars, Venus,
+Titan or Achilles sky texture. TRNs remain unchanged. The dome smoothly blends
+its lower edge toward the current fog colour, retaining the texture above its
+editable elevation band. It renders late with depth testing and no depth writes,
+preserving nearer terrain. Missing EXU/materials or an existing authored Ogre
+sky leave native rendering alone. Moon, Io, Europa
+and Ganymede retain airless silhouettes; Elysium retains its fictional
+atmospheric sky during this trial.
 
-Mission 17's cloud deck now pins depth just inside the far plane and fades into
-fog near the horizon, using the pattern already present in Mission 18. Its alpha
-approaches opaque fog at the low edge so the original sky cannot show through
-as a contrasting stripe. Weather domes also use an angular horizon fade rather
-than applying depth fog to the entire distant dome; fog-disabled space domes
-retain their original appearance.
+Mission 17's cloud deck renders late, pins depth just inside the far plane and
+fades into fog near the horizon. Its alpha approaches opaque fog at the low
+edge. The director recognizes Environment's owned baseline sky, so it can add
+storm clouds while preserving unrelated authored sky ownership. Weather domes
+use an angular fade instead of depth-fogging the entire dome. Fog-disabled
+space domes retain their original appearance.
 
-`horizonBlend` in `CR_skyhorizon.program` and `CR_skydome.program` controls the
-lower/upper elevation sine and strength. Native skies start at 0.005 to 0.12
-(approximately 0.3 to 6.9 degrees); cloud/dome defaults use 0.015 to 0.14.
-Each `Materials/crart_<world>.material` overrides the upper limit separately:
-Mars 0.15, Venus 0.20, Titan 0.22 and Achilles 0.14. These broaden the matching
-band while retaining the original sky texture and colour above it.
-SM4, SM3 and GLSL versions share the same contract. No OpenShim renderer fork
-or extra sky texture is introduced.
+`horizonBlend` in each `Materials/crart_<world>.material` controls lower/upper
+elevation sine and strength (`w` is reserved). Cloud/dome defaults live in
+their `.program` files. The dome reconstructs the world view direction from its
+projected draw; generated face-local Y is not assumed to be world-up. Run
+`Tools/Update-WorldSkyProgramVersions.py` after shader edits: Ogre caches bytecode
+by program name, so source hashes version the delegates. SM4, SM3 and GLSL share
+the contract. No OpenShim renderer fork is introduced.
 
 ## Review and validation
 
@@ -107,14 +119,39 @@ byte-for-byte. No new texture dimensions/slots are added, and only the active
 world's arrays are resident. Memory measurements must still come from the
 32-bit game; summed pack sizes are not process RAM.
 Four focused surface checks cover bounded palette changes, Ganymede hue
-retention, unchanged E and normal-slope sign. The lighting table passes 38
+retention, unchanged E and normal-slope sign. Lighting and sky ownership pass 46
 checks. Existing atmosphere integration passes 93 checks and Mission 17 jungle
-logic passes 236. All 12 changed HLSL sky vertex/fragment variants compile in
+logic passes 272. All eight changed HLSL sky vertex/fragment variants compile in
 SM3/SM4; owned program references resolve. Live evidence and visual findings
 are recorded as the per-world review completes.
 
-The shipping lock adds only four sky materials, five sky program/source files
-and the lighting data module. Existing sibling-supplied payloads were restored
+The shipping lock adds only four sky materials and the lighting data module.
+Existing sibling-supplied payloads were restored
 to this worktree before blessing, retaining their manifest hashes and all
 previous shipping members. This pass does not update native binaries, publish
 Workshop content or claim Steam/Proton/Wine qualification.
+
+Native sky material existence and a changed TRN value do not prove draw
+selection: the native Mars scene reported no Ogre sky dome. A transparent
+late dome also did not retain the original clouds behind it. Use the original
+world texture on the owned dome and inspect a fresh capture. Earlier flat-fog
+captures and those retaining the straight sky cutoff are rejected for horizon
+qualification, even when their HD terrain/restoration checks pass.
+
+The nine successful HD terrain/lighting checkpoints below have been visually
+inspected. They use different maps and do not isolate this pass's RAM overhead.
+All retain a largest free address-space block of approximately 2045 MiB in the
+32-bit process. Four atmospheric sky entries remain rejected for final horizon
+review because these earlier captures flattened too much of the cloud art.
+
+| World | Local TerrainHD evidence folder | Private MiB | Peak private MiB |
+| --- | --- | ---: | ---: |
+| Moon | run-20261020-214856 | 372.3 | 511.5 |
+| Mars | run-20261020-215401 | 447.1 | 618.2 |
+| Venus | run-20261020-215914 | 481.6 | 623.0 |
+| Io | run-20261020-193107 | 483.6 | 614.5 |
+| Europa | run-20261020-193200 | 483.1 | 642.8 |
+| Titan | run-20261020-220007 | 508.2 | 656.6 |
+| Ganymede | run-20261020-214522 | 478.2 | 669.9 |
+| Achilles | run-20261020-215731 | 482.1 | 621.9 |
+| Elysium | run-20261020-214803 | 483.8 | 638.0 |

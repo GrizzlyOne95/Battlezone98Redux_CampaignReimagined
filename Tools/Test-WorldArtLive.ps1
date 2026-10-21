@@ -16,12 +16,20 @@ foreach($world in $Worlds){
  $arguments=@('-NoProfile','-ExecutionPolicy','Bypass','-File',"$PSScriptRoot\Test-MarsHdTerrainLive.ps1",'-OpenShimRepo',$OpenShimRepo,
               '-TileDirectory',$bundle,'-World',$world,'-Hd','-MicroRelief','-GroundView','-SettingsOnly','-MeasureMemory','-WorldArt','-SurfaceType',[string]$types[$world])
  if($world -eq 'achilles'){$arguments+='-CloudDeck'}
+ if($world -in @('mars','venus','titan','achilles')){$arguments+='-WideView'}
  if($world -eq 'moon'){$arguments+=@('-DetailTexture',(Join-Path $bundle 'resources\crhd_moon_regolith_detail.dds'))}
- $transcript=(& powershell.exe @arguments 2>&1 | Tee-Object -Variable childOutput | Out-String)
+ $previousErrorAction=$ErrorActionPreference
+ try {
+  # Preserve the child's restoration transcript when its validation fails.
+  $ErrorActionPreference='Continue'
+  $transcript=(& powershell.exe @arguments 2>&1 | Out-String)
+  $childExit=$LASTEXITCODE
+ } finally {$ErrorActionPreference=$previousErrorAction}
  Write-Output $transcript
- if($LASTEXITCODE -ne 0){throw "World art preview failed: $world"}
+ if($childExit -ne 0){throw "World art preview failed: $world"}
  $match=[regex]::Match($transcript,'RESTORED (\d+) files\. Evidence: (.+)')
  if(-not $match.Success){throw "No restoration evidence: $world"}
+ $evidence=if(Test-Path -LiteralPath $index){@(Get-Content -LiteralPath $index -Raw | ConvertFrom-Json)}else{@()}
  $evidence = @($evidence | Where-Object {$_.world -ne $world}) + [pscustomobject]@{world=$world;path=$match.Groups[2].Value.Trim();restoredFiles=[int]$match.Groups[1].Value}
  ConvertTo-Json -InputObject @($evidence) -Depth 5 | Set-Content -LiteralPath $index -Encoding UTF8
 }

@@ -24,7 +24,7 @@ MusicTrack=14
 SunTexture=sun.0
 SkyType=0
 SkyHeight = 110
-SkyTexture= crskyve.map
+SkyTexture= venus.map
 
 
 BackdropDistance= 400

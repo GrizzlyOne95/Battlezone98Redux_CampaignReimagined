@@ -24,7 +24,7 @@ MusicTrack=9
 SunTexture= sun.0
 SkyType= 0
 SkyHeight = 105
-SkyTexture= crskyti.map
+SkyTexture= titan.map
 
 
 BackdropDistance= 400

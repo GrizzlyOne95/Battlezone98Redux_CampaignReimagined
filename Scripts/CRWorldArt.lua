@@ -13,6 +13,27 @@ Art.Worlds = {
     elysium  = {ambient=1.04, diffuse=0.98, specular=0.90},
 }
 local stems={mn="moon",ma="mars",ve="venus",io="io",eu="europa",ti="titan",ga="ganymede",ac="achilles",el="elysium"}
+Art.Skies={mars="CRSKYMA.MAP",venus="CRSKYVE.MAP",titan="CRSKYTI.MAP",achilles="CRSKYAC.MAP"}
+function Art.InitializeSky(api,world,mapName)
+    -- The orbital film temporarily replaces the dome and restores its enabled
+    -- state. Keep its original no-dome baseline intact.
+    if tostring(mapName or ""):lower():match("misn06%.?[^/\\]*$") then return false end
+    local material=Art.Skies[world]
+    if not material or not api or type(api.SetSkyDome)~="function" or type(api.MaterialExists)~="function" then return false end
+    -- Respect map-owned cinematics and weather skies. This baseline reuses
+    -- the world's original sky art, with a continuous fog-coloured lower edge.
+    for _,name in ipairs({"GetSkyDomeEnabled","GetSkyPlaneEnabled","GetSkyBoxEnabled"}) do
+        if type(api[name])~="function" then return false end
+        local ok,enabled=pcall(api[name]);if not ok or enabled then return false end
+    end
+    local ok,exists=pcall(api.MaterialExists,material,"General")
+    if not ok or not exists then return false end
+    -- Late rendering with far-plane depth preserves nearer terrain. Redux
+    -- suppresses its native sky when an Ogre sky is enabled, so this material
+    -- must draw the original texture rather than a transparent haze alone.
+    local accepted,result=pcall(api.SetSkyDome,material,10,2,4000,false,32,16,-1,"General")
+    return accepted and result==true
+end
 function Art.Detect(trn)
     if trn and type(GetODFString)=="function" then
         local atlas=string.lower(GetODFString(trn,"Atlases","MaterialName","") or "")

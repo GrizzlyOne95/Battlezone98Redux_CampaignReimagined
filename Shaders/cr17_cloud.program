@@ -2,41 +2,41 @@
 // programs: Ogre binds unified default_params only against delegates already
 // parsed, and an unbound wvpMat draws nothing.
 
-vertex_program CR17_Cloud_vertexHLSL4 hlsl
+vertex_program CR17_Cloud_vertexHLSL4_art_cf130466d6 hlsl
 {
     source cr17_cloud-sm4.hlsl
     target vs_4_0
     entry_point cloud_vertex
 }
 
-vertex_program CR17_Cloud_vertexHLSL hlsl
+vertex_program CR17_Cloud_vertexHLSL_art_0e39924744 hlsl
 {
     source cr17_cloud.hlsl
     target vs_3_0
     entry_point cloud_vertex
 }
 
-vertex_program CR17_Cloud_vertexGLSL glsl
+vertex_program CR17_Cloud_vertexGLSL_art_c11682aa84 glsl
 {
     source cr17_cloud-vertex.glsl
     syntax glsl120
 }
 
-fragment_program CR17_Cloud_fragmentHLSL4 hlsl
+fragment_program CR17_Cloud_fragmentHLSL4_art_cf130466d6 hlsl
 {
     source cr17_cloud-sm4.hlsl
     target ps_4_0
     entry_point cloud_fragment
 }
 
-fragment_program CR17_Cloud_fragmentHLSL hlsl
+fragment_program CR17_Cloud_fragmentHLSL_art_0e39924744 hlsl
 {
     source cr17_cloud.hlsl
     target ps_3_0
     entry_point cloud_fragment
 }
 
-fragment_program CR17_Cloud_fragmentGLSL glsl
+fragment_program CR17_Cloud_fragmentGLSL_art_e816b4db2e glsl
 {
     source cr17_cloud-fragment.glsl
     syntax glsl120
@@ -48,9 +48,9 @@ fragment_program CR17_Cloud_fragmentGLSL glsl
 
 vertex_program CR17_Cloud_vertex unified
 {
-    delegate CR17_Cloud_vertexGLSL
-    delegate CR17_Cloud_vertexHLSL4
-    delegate CR17_Cloud_vertexHLSL
+    delegate CR17_Cloud_vertexGLSL_art_c11682aa84
+    delegate CR17_Cloud_vertexHLSL4_art_cf130466d6
+    delegate CR17_Cloud_vertexHLSL_art_0e39924744
     default_params
     {
         param_named_auto wvpMat worldviewproj_matrix
@@ -60,9 +60,9 @@ vertex_program CR17_Cloud_vertex unified
 
 fragment_program CR17_Cloud_fragment unified
 {
-    delegate CR17_Cloud_fragmentGLSL
-    delegate CR17_Cloud_fragmentHLSL4
-    delegate CR17_Cloud_fragmentHLSL
+    delegate CR17_Cloud_fragmentGLSL_art_e816b4db2e
+    delegate CR17_Cloud_fragmentHLSL4_art_cf130466d6
+    delegate CR17_Cloud_fragmentHLSL_art_0e39924744
     default_params
     {
         param_named_auto fogColour fog_colour

@@ -1273,6 +1273,7 @@ function Environment.Init(options)
     end
 
     Environment.ArtWorld = WorldArt.Detect(trn)
+    Environment.ArtSkyOwned = WorldArt.InitializeSky(exu,Environment.ArtWorld,trnFilename)
     Environment.WorldPreset, Environment.WorldPalette = DetectWorldPreset(trnFilename, trn)
     ApplyWorldPreset(Environment.WorldPreset, baseAmbient, baseDiffuse, baseSpecular, baseFog)
     if options.nativeBaseline then

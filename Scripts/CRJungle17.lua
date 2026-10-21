@@ -164,7 +164,7 @@ function Jungle.Create(api)
         if clouds~="on" then
             if safe("MaterialExists",CLOUD,"General")==false then clouds="missing";return end
             local mat=CLOUD
-            local r=safe("SetSkyPlane",mat,{normal=SetVector(0,-1,0),d=1450},2400,2.2,true,0,8,8,"General")
+            local r=safe("SetSkyPlane",mat,{normal=SetVector(0,-1,0),d=1450},2400,2.2,false,0,8,8,"General")
             if r==false then clouds="failed";return end
             safe("SetSkyPlaneEnabled",true)
             clouds="on";J.cloudMaterial=mat
@@ -257,7 +257,7 @@ function Jungle.Create(api)
         level,intensity,windSpeed,bearing=nil,0,0,210
         nextLayer=1;groups={};waters={};mist=false;error=nil;clouds="off"
         nextRain,nextFalls,nextSync=0,0,0
-        baseSky=safe("GetSkyPlaneEnabled")==true or safe("GetSkyDomeEnabled")==true or safe("GetSkyBoxEnabled")==true
+        baseSky=safe("GetSkyPlaneEnabled")==true or (safe("GetSkyDomeEnabled")==true and not E.ArtSkyOwned) or safe("GetSkyBoxEnabled")==true
         Weather.Init()
         -- Canopies, their shadow casters and the StaticGeometry ground cover sway
         -- with CRWeather's wind (meshes baked by Tools/Bake-FoliageSway.py); the

@@ -16,4 +16,25 @@ local f={ambient={r=.2,g=.3,b=.4}}
 check(Art.Apply(nil,f)==f and f.ambient.r==.2,"unknown worlds retain native lighting")
 GetODFString=function() return "GA_DETAIL_ATLAS" end
 check(Art.Detect({})=="ganymede","material identifies world independently of weather preset")
+local draws=0
+local api={MaterialExists=function() return true end,
+ GetSkyDomeEnabled=function() return false end,
+ GetSkyPlaneEnabled=function() return false end,
+ GetSkyBoxEnabled=function() return false end,
+ SetSkyDome=function(material,curvature,tiling,distance,drawFirst)
+  check(material=="CRSKYMA.MAP" and drawFirst==false,"haze draws after native sky with its owned material")
+  draws=draws+1;return true
+ end}
+check(not Art.InitializeSky(api,"moon") and draws==0,"airless world keeps stock sky")
+check(Art.InitializeSky(api,"mars") and draws==1,"atmospheric baseline installs")
+check(not Art.InitializeSky(api,"mars","misn06.trn") and draws==1,"orbital film retains its original no-dome baseline")
+api.GetSkyDomeEnabled=function() return true end
+check(not Art.InitializeSky(api,"mars") and draws==1,"existing cinematic or weather dome is preserved")
+api.GetSkyDomeEnabled=function() return false end
+api.MaterialExists=function() return false end
+check(not Art.InitializeSky(api,"mars") and draws==1,"missing material preserves native sky")
+check(not Art.InitializeSky({},"mars"),"missing optional renderer API preserves native sky")
+api.MaterialExists=function() return true end
+api.GetSkyPlaneEnabled=function() error("unavailable") end
+check(not Art.InitializeSky(api,"mars") and draws==1,"failed ownership query preserves native sky")
 print("World art lighting: "..count.." checks passed")
