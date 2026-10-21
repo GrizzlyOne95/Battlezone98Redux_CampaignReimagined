@@ -19,6 +19,9 @@ param(
  [switch]$WideView,
  [switch]$BaseView,
  [switch]$GroundView,
+ [switch]$WorldArt,
+ [switch]$CloudDeck,
+ [ValidateRange(-1,15)][int]$SurfaceType=-1,
  [switch]$MicroRelief,
  [switch]$SettingsOnly,
  [switch]$BindCapture,
@@ -46,6 +49,9 @@ if($BindCapture -and $isBundle){throw 'Toolbox packs use rectangle mapping; capt
 if($Hd -and -not (Test-Path -LiteralPath $manifestPath)){throw 'Prepare the source tile bundle before previewing.'}
 if($ProfileCycle -and (-not $Hd -or $RenderProfile -ne 'Enhanced')){throw 'ProfileCycle needs -Hd and an Enhanced starting profile'}
 if($SettingsOnly -and (-not $Hd -or -not $MicroRelief -or $ProfileCycle)){throw 'SettingsOnly requires -Hd -MicroRelief without profile cycling'}
+if($CloudDeck -and (-not $WorldArt -or $World -ne 'achilles')){throw 'CloudDeck requires WorldArt on Achilles'}
+if($SurfaceType -ge 0 -and -not $GroundView){throw 'SurfaceType requires GroundView'}
+if($WorldArt -and -not $ExuDll){$ExuDll=Join-Path $game 'mods\3686673790\exu.dll'}
 if($ProfileCycle){
  if(-not $ExuDll){$ExuDll=Join-Path $game 'mods\3686673790\exu.dll'}
  $ExuDll=(Resolve-Path -LiteralPath $ExuDll).Path.Replace('\','/')
@@ -126,7 +132,7 @@ try {
  if($isBundle){
   $fixtureOptions=@('--source',"$missionDirectory\$mission.bzn",'--out',"$game\addon\$mission.bzn")
   if($BaseView){$baseSettings=Get-Content "$PSScriptRoot\TerrainHD\base_emissives.json" -Raw | ConvertFrom-Json;$fixtureOptions+=@('--base-type',[string]$baseSettings.worlds.$World.type)}
-  elseif($GroundView){$fixtureOptions+=@('--base-type','0')}
+  elseif($GroundView){$groundType=if($SurfaceType -ge 0){$SurfaceType}else{0};$fixtureOptions+=@('--base-type',[string]$groundType)}
   & python "$PSScriptRoot\Build-HdTerrainPreview.py" @fixtureOptions
   if($LASTEXITCODE -ne 0){throw 'Terrain camera fixture generation failed'}
  }
@@ -135,11 +141,19 @@ try {
   $previewScripts=@('Materials\CR_BZTerrainBase.material','Shaders\CR_static_ibl.program',"Materials\$example.material")
   $previewScripts += 'Materials\CR_sky_events.material'
   $previewScripts += @(Get-ChildItem "$cr\Shaders" -Filter 'CR_sky*' -File | ForEach-Object {'Shaders\'+$_.Name})
+  if($WorldArt){
+   $previewScripts += @('Materials\crart_mars.material','Materials\crart_venus.material','Materials\crart_titan.material','Materials\crart_achilles.material')
+   $previewScripts += @('Materials\cr17_cloud.material','Shaders\cr17_cloud.program','Shaders\cr17_cloud-sm4.hlsl','Shaders\cr17_cloud.hlsl','Shaders\cr17_cloud-vertex.glsl','Shaders\cr17_cloud-fragment.glsl')
+  }
  }
  foreach($relative in $previewScripts){
   $name=Split-Path -Leaf $relative
   Save-File "$testResources\$name"
   Copy-Item -LiteralPath "$cr\$relative" -Destination "$testResources\$name" -Force
+  if($WorldArt -and (Test-Path -LiteralPath "$game\mods\3686673790\$name")){
+   Save-File "$game\mods\3686673790\$name"
+   Copy-Item -LiteralPath "$cr\$relative" -Destination "$game\mods\3686673790\$name" -Force
+  }
  }
  if($DetailTexture){
   $detail=(Resolve-Path -LiteralPath $DetailTexture).Path
@@ -191,6 +205,44 @@ function DeleteObject(h) end
  if($GroundView){
   $driver=[IO.File]::ReadAllText("$game\addon\$mission.lua").Replace('CameraObject(p,600,400,800,p)','CameraObject(p,1800,900,-1800,p)')
   [IO.File]::WriteAllText("$game\addon\$mission.lua",$driver)
+ }
+ if($WorldArt){
+  foreach($name in @('Environment.lua','RuntimeEnhancements.lua','CRWorldArt.lua')){
+   Save-File "$game\addon\$name"
+   Copy-Item -LiteralPath "$cr\Scripts\$name" -Destination "$game\addon\$name" -Force
+  }
+  $artDriver=@'
+local artStart=Start
+local artUpdate=Update
+local artEnvironment=nil
+function Start()
+ artStart()
+ local loader,message=package.loadlib([[__EXU_DLL__]],'luaopen_exu')
+ assert(loader,message)
+ local module=loader()
+ package.loaded.exu=type(module)=='table' and module or rawget(_G,'exu')
+ assert(package.loaded.exu,'EXU unavailable for art fixture')
+ package.path=[[__ART_SCRIPTS__/?.lua;]]..package.path
+ -- This player-only lighting fixture omits unrelated per-team vehicle tinting.
+ package.loaded.RuntimeEnhancements={Initialize=function() end,Update=function() end,OnObjectCreated=function() end}
+ artEnvironment=require('Environment')
+ artEnvironment.Init({nativeBaseline=true,lightingMode='subtle',nightGameplay=false})
+ local trn=OpenODF(GetMapTRNFilename())
+ local sky=GetODFString(trn,'Sky','SkyTexture','')
+ print('[WORLD-ART] sky='..tostring(sky))
+ if string.sub(string.lower(sky),1,5)=='crsky' then
+  assert(package.loaded.exu.MaterialExists(string.upper(sky),'General'),'World sky material unavailable')
+ end
+ __CLOUD_DECK__
+ print('[WORLD-ART] '..tostring(artEnvironment.ArtWorld)..' native palette / lighting active')
+end
+function Update(dt)
+ artUpdate(dt)
+ if artEnvironment then artEnvironment.Update(dt) end
+end
+'@
+  $cloudCode=if($CloudDeck){"assert(package.loaded.exu.SetSkyPlane('CR17/StormCloud',{normal=SetVector(0,-1,0),d=1450},2400,2.2,true,0,8,8,'General')~=false);package.loaded.exu.SetSkyPlaneEnabled(true)"}else{''}
+  $artDriver.Replace('__EXU_DLL__',$ExuDll).Replace('__ART_SCRIPTS__',"$game/addon").Replace('__CLOUD_DECK__',$cloudCode) | Add-Content "$game\addon\$mission.lua" -Encoding ASCII
  }
  if($ProfileCycle){
   # Optional integration probe uses the already installed EXU API. Ordinary
@@ -313,6 +365,10 @@ finally {
  Write-Host "RESTORED $($saved.Count) files. Evidence: $out"
 }
 if(-not (Test-Path -LiteralPath "$out\native.json")){throw "Native capture unavailable; inspect $out"}
+if($WorldArt){
+ if(-not (Select-String -LiteralPath "$out\BZLogger.txt" -SimpleMatch "[WORLD-ART] $World native palette / lighting active")){throw 'World art lighting fixture did not initialize'}
+ if(Select-String -LiteralPath "$out\BZOgreLogfile.log" -Pattern 'Compiler error:.*(?:CR_sky|CR_Horizon|cr17_cloud)'){throw 'Owned sky program failed to load'}
+}
 if(-not $Hd -and $BindCapture){
  & python "$cr\Tools\Build-MarsHdTileSources.py" --bind-existing --output $tiles --capture "$out\native.json" --atlas-csv "$tiles\native_layout.csv"
  if($LASTEXITCODE -ne 0){throw 'Native source-tile binding failed'}

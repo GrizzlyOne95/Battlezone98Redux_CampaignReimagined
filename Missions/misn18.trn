@@ -30,7 +30,7 @@ MusicTrack=7
 SunTexture= sun.0
 SkyType= 0
 SkyHeight = 3000
-SkyTexture= achilles.map
+SkyTexture= crskyac.map
 
 BackdropTexture =
 BackdropDistance= 400

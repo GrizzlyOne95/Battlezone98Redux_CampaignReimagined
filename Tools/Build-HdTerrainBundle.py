@@ -55,6 +55,7 @@ def main(world=None):
                         help="Toolbox checkout containing terrain hd-tiles (PR #36)")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--sources", type=Path)
+    parser.add_argument("--art-direction",type=Path)
     parser.add_argument("--install-source-assets", action="store_true", help="Copy reviewed runtime output into CR source; never deploys game files")
     args = parser.parse_args()
     world = world or args.world
@@ -67,11 +68,21 @@ def main(world=None):
     sources = (args.sources or ROOT / f"Local/TerrainHD/{title}HdSources1024").resolve()
     output = (args.output or ROOT / f"Local/TerrainHD/{title}Hd1024").resolve()
     if not sources.exists():
-        subprocess.run([sys.executable, str(ROOT / "Tools/Build-MarsHdTileSources.py"),
+        export = [sys.executable, str(ROOT / "Tools/Build-MarsHdTileSources.py"),
                         "--world", world, "--images-only", "--height-matched-normals", "--base-emissives",
                         "--source-build", str(args.source_build.resolve()), "--output", str(sources),
-                        "--tile-size", "1024"], env=environment, check=True)
+                        "--tile-size", "1024"]
+        if args.art_direction: export += ["--art-direction",str(args.art_direction.resolve())]
+        subprocess.run(export,env=environment,check=True)
     metadata = json.loads((sources / "source_tiles.json").read_text())
+    expected_art = json.loads(args.art_direction.read_text())["worlds"][world] if args.art_direction else None
+    if (metadata.get("worldSurfaceArt") or {}).get("settings") != expected_art:
+        raise ValueError("World surface art changed; choose fresh source/output folders")
+    if metadata.get("worldSurfaceArt"):
+        from world_surface_art import signature
+        for reference in metadata["worldSurfaceArt"]["references"].values():
+            if signature(ROOT/"Assets/Textures"/reference["file"]) != reference["sha256"]:
+                raise ValueError("Referenced source tile changed; choose fresh source/output folders")
     if metadata.get("surfaceBlend") != surface_signature(world):
         raise ValueError("Surface blend settings/images changed; select new --sources and --output folders")
     if (metadata.get("world") != world or metadata.get("normalPolarity") != "source-height-matched"

@@ -33,6 +33,7 @@
 
 local exu = require("exu")
 local CRWeatherPresets = require("CRWeatherPresets")
+local WorldArt = require("CRWorldArt")
 
 local CRWeather = {}
 
@@ -1037,10 +1038,12 @@ end
 
 local function CaptureBaseline()
     CRWeather.MapFogHorizon = nil
+    CRWeather.ArtWorld = nil
     if GetMapTRNFilename and OpenODF and GetODFFloat then
         local name = GetMapTRNFilename()
         local trn = name and name ~= "" and OpenODF(name)
         if trn then
+            CRWeather.ArtWorld = WorldArt.Detect(trn)
             local distance = GetODFFloat(trn, "NormalView", "VisibilityRange", 0)
             if distance and distance > 0 then CRWeather.MapFogHorizon = distance end
         end
@@ -1096,6 +1099,7 @@ local function WriteEnvironmentDirect()
     end
 
     Call("SetFog", frame.fog.r, frame.fog.g, frame.fog.b, frame.fog.fogStart, frame.fog.fogEnd)
+    WorldArt.Apply(CRWeather.ArtWorld,frame)
     if frame.ambient then
         if HasExu("SetAmbientLight") then
             Call("SetAmbientLight", frame.ambient.r, frame.ambient.g, frame.ambient.b)

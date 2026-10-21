@@ -1,0 +1,24 @@
+material CRSKYVE.MAP
+{
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CR_Horizon_vertex
+			{
+			}
+			fragment_program_ref CR_Horizon_fragment
+			{
+				param_named horizonBlend float4 .005 .20 1 0
+			} 
+
+			lighting off
+			depth_write off
+			texture_unit
+			{
+				texture venus.tga
+			}
+		}
+	}
+}
+

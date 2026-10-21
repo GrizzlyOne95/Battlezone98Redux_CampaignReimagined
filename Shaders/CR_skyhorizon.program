@@ -1,0 +1,69 @@
+vertex_program CR_Horizon_vertexHLSL4 hlsl
+{
+ source CR_skyhorizon-sm4.hlsl
+ target vs_4_0
+ entry_point horizon_vertex
+}
+
+vertex_program CR_Horizon_vertexHLSL hlsl
+{
+ source CR_skyhorizon.hlsl
+ target vs_3_0
+ entry_point horizon_vertex
+}
+
+vertex_program CR_Horizon_vertexGLSL glsl
+{
+ source CR_skyhorizon-vertex.glsl
+ syntax glsl120
+}
+
+fragment_program CR_Horizon_fragmentHLSL4 hlsl
+{
+ source CR_skyhorizon-sm4.hlsl
+ target ps_4_0
+ entry_point horizon_fragment
+}
+
+fragment_program CR_Horizon_fragmentHLSL hlsl
+{
+ source CR_skyhorizon.hlsl
+ target ps_3_0
+ entry_point horizon_fragment
+}
+
+fragment_program CR_Horizon_fragmentGLSL glsl
+{
+ source CR_skyhorizon-fragment.glsl
+ syntax glsl120
+ default_params
+ {
+  param_named diffuseMap int 0
+ }
+}
+
+vertex_program CR_Horizon_vertex unified
+{
+ delegate CR_Horizon_vertexGLSL
+ delegate CR_Horizon_vertexHLSL4
+ delegate CR_Horizon_vertexHLSL
+ default_params
+ {
+  param_named_auto wvpMat worldviewproj_matrix
+  param_named_auto worldMat world_matrix
+  param_named_auto cameraPosition camera_position_object_space
+ }
+}
+
+fragment_program CR_Horizon_fragment unified
+{
+ delegate CR_Horizon_fragmentGLSL
+ delegate CR_Horizon_fragmentHLSL4
+ delegate CR_Horizon_fragmentHLSL
+ default_params
+ {
+  param_named_auto fogColour fog_colour
+  param_named_auto fogParams fog_params
+  param_named horizonBlend float4 0.005 0.12 1 0
+ }
+}

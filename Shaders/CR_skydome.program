@@ -72,5 +72,6 @@ fragment_program CR_SkyDome_fragment unified
     {
         param_named_auto fogColour fog_colour
         param_named_auto fogParams fog_params
+        param_named horizonBlend float4 0.015 0.14 1 0
     }
 }

@@ -10,13 +10,14 @@ void skydome_vertex(
 	in float2 iTexCoord : TEXCOORD0,
 	out float4 vColor : COLOR0,
 	out float2 vTexCoord : TEXCOORD0,
-	out float vDepth : TEXCOORD1,
+	out float3 vView : TEXCOORD1,
 	out float4 oPosition : SV_POSITION)
 {
 	oPosition = mul(wvpMat, iPosition);
 	vColor = diffuseColor;
 	vTexCoord = mul(texMat, float4(iTexCoord, 0, 1)).xy;
-	vDepth = oPosition.z;
+	oPosition.z = oPosition.w * 0.9999;
+	vView = iPosition.xyz;
 }
 
 void skydome_fragment(
@@ -24,14 +25,16 @@ void skydome_fragment(
 	uniform SamplerState diffuseSam : register(s0),
 	uniform float3 fogColour,
 	uniform float4 fogParams,
+	uniform float4 horizonBlend,
 	in float4 vColor : COLOR0,
 	in float2 vTexCoord : TEXCOORD0,
-	in float vDepth : TEXCOORD1,
+	in float3 vView : TEXCOORD1,
 	out float4 oColor : SV_TARGET)
 {
 	oColor = diffuseMap.Sample(diffuseSam, vTexCoord) * vColor;
-	// Same depth fog as Effect: a dome past fogEnd takes the fog colour, which
-	// is what lets a weather sky meet the fogged horizon.
-	float fogValue = saturate((vDepth - fogParams.y) * fogParams.w);
+	// Match only the low sky to the composed fog. Depth fog on a distant
+	// dome erased the overhead cloud art and left a flat coloured lid.
+	float elevation = vView.y / max(length(vView), 1e-4);
+	float fogValue = (1-smoothstep(horizonBlend.x, horizonBlend.y, elevation)) * horizonBlend.z * step(1e-8, fogParams.w);
 	oColor.rgb = lerp(oColor.rgb, fogColour, fogValue);
 }

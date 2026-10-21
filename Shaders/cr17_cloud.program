@@ -67,5 +67,6 @@ fragment_program CR17_Cloud_fragment unified
     {
         param_named_auto fogColour fog_colour
         param_named tint float4 0.55 0.58 0.6 0.45
+        param_named horizonBlend float4 0.015 0.14 1 0
     }
 }

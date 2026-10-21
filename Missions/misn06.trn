@@ -22,7 +22,7 @@ MusicTrack=6
 [Sky]
 SunTexture=sun.0
 SkyHeight = 110
-SkyTexture= mars.map
+SkyTexture= crskyma.map
 
 BackdropTexture =
 BackdropDistance= 400
