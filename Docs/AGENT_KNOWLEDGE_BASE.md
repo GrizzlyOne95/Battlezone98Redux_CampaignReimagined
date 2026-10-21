@@ -1143,8 +1143,12 @@ unknown, so do not describe the asset copy as a proven crash fix.
 
 Verify mesh -> material -> texture in the live renderer, then inspect an actual
 frame. A loaded texture and a correct material readback did not prove the first
-BC3 conversions displayed: these mine atlases appeared gray until the same pixels
-were tested as PNG/RGBA8 DDS. The builders now use RGBA8 DDS. Native `draw_bolt`
+BC3 conversions displayed: these mine atlases appeared gray, most likely because
+they had no mips (hypothesis; the files did not survive). The engine cannot generate
+mips for compressed textures and samples uninitialised levels, so BCn DDS need a full
+offline chain (`Tools/bcdds.py`, texconv). BC1/BC3 with mips matched RGBA8 in native
+DX11 on 2026-10-21; BC1 without mips renders black. BC1 suits RGB normal maps (BC5
+has no Z reconstruction here). Native `draw_bolt`
 and `draw_twirl` texture names also need an Ogre sprite material; copying a new
 image alone is insufficient. Hidden camera pods retain collision: keep fixture
 anchors away from the mine-to-target firing line, and apply no craft AI setters
