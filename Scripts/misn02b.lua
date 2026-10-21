@@ -736,6 +736,7 @@ end
 -- CR Moon weather <<
 
 function Save()
+    if TerrainClutter.Save then M.terrainClutterState=TerrainClutter.Save() end
 -- CR Moon weather >>
     if moonStarted and ((not CRCoop.IsNetworkGame()) or CRCoop.IsAuthority()) then
         M.moonWeatherState = CRMoonWeather.Save()
@@ -751,6 +752,7 @@ function Load(missionData, aiData, pilotModeData)
     if Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
 -- CR Moon weather <<
     M = missionData or M
+    if TerrainClutter.Load then TerrainClutter.Load(M.terrainClutterState) end
     M.playerPilotModeState = pilotModeData or M.playerPilotModeState
     if aiData then
         aiCore.Load(aiData)

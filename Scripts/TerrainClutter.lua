@@ -12,6 +12,9 @@ if not okExu then
 end
 
 local active = {}
+local savedLayers = {}
+local okDamage, Damage = pcall(require, "CRFloraDamage")
+if not okDamage then Damage=nil end
 local MODULUS = 2147483647
 local MULTIPLIER = 48271
 
@@ -214,7 +217,20 @@ function TerrainClutter.BuildLayer(profile)
         return false, message
     end
 
-    local info, createError = exu.CreateStaticGeometry(
+    if Damage and profile.destructible~=false then
+        savedLayers[profile.name]=Damage.Register(profile.name,{mesh=profile.mesh,material=profile.material,
+            points=instances,options={regionDimensions=profile.regionDimensions or {x=128,y=256,z=128},
+                origin=profile.origin or validated.center,renderingDistance=profile.renderingDistance or 0,
+                castShadows=profile.castShadows==true,visible=profile.visible~=false},
+            onRemove=type(profile.wind)=="table" and type(profile.wind.litter)=="table" and function(p)
+                local f=package.loaded.CRFoliageWind
+                if f and f.RemoveLitterSource then f.RemoveLitterSource(p.position) end
+            end or nil},savedLayers[profile.name])
+        instances=Damage.Instances(profile.name) or instances
+    end
+    local info, createError
+    if #instances==0 then info={instanceCount=0,regionCount=0,buildMilliseconds=0}
+    else info,createError=exu.CreateStaticGeometry(
         profile.name,
         profile.mesh,
         profile.material,
@@ -226,7 +242,9 @@ function TerrainClutter.BuildLayer(profile)
             castShadows = profile.castShadows == true,
             visible = profile.visible ~= false,
         })
+    end
     if not info then
+        if Damage then Damage.Unregister(profile.name) end
         Log("build failed " .. profile.name .. ": " .. tostring(createError))
         return false, createError
     end
@@ -239,6 +257,7 @@ function TerrainClutter.BuildLayer(profile)
         math.floor((finishedAt - startedAt) * 1000.0 + 0.5) or
         (info.buildMilliseconds or 0)
     active[profile.name] = info
+    if Damage then Damage.Resident(profile.name,#instances>0) end
     if type(profile.wind) == "table" then
         RegisterWind(profile, instances)
     end
@@ -256,6 +275,7 @@ end
 
 function TerrainClutter.DestroyLayer(name)
     if type(name) ~= "string" then return false end
+    if Damage then Damage.Unregister(name) end
     local existed = active[name] ~= nil
     local destroyed = false
     if exu and type(exu.DestroyStaticGeometry) == "function" then
@@ -267,6 +287,7 @@ function TerrainClutter.DestroyLayer(name)
 end
 
 function TerrainClutter.Shutdown()
+    if Damage then for name in pairs(active) do Damage.Unregister(name) end end
     local count = 0
     if exu and type(exu.DestroyAllStaticGeometry) == "function" then
         count = exu.DestroyAllStaticGeometry() or 0
@@ -276,6 +297,11 @@ function TerrainClutter.Shutdown()
     return count
 end
 
+function TerrainClutter.Save() return savedLayers end
+function TerrainClutter.Load(saved)
+    if Damage then for name in pairs(active) do Damage.Unregister(name) end end
+    savedLayers=type(saved)=="table" and saved or {}
+end
 function TerrainClutter.GetLayerInfo(name)
     return active[name]
 end

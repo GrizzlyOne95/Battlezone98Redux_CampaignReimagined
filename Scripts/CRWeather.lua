@@ -1508,6 +1508,10 @@ local function Foliage()
 end
 
 function CRWeather.Update(dt)
+    -- Loaded only by registered clutter providers; timed service is a no-op
+    -- when there are no flora layers. No terrain/object scan occurs here.
+    local floraDamage=package.loaded["CRFloraDamage"]
+    if type(floraDamage)=="table" then floraDamage.Update() end
     if not CRWeather.Initialized then
         CRWeather.Init()
     end

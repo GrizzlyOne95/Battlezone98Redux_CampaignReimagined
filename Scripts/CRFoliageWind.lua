@@ -126,6 +126,14 @@ function CRFoliageWind.EnableLitter(points, options)
 end
 
 -- Foliage placements around a world position, 0 (bare) to 1 (dense).
+-- Incremental density correction after local flora removal; no grid rebuild.
+function CRFoliageWind.RemoveLitterSource(p)
+    local x,z=tonumber(p.x or p[1]),tonumber(p.z or p[3])
+    if CRFoliageWind.Sources and Finite(x) and Finite(z) then
+        local key=math.floor(x/CELL)..":"..math.floor(z/CELL)
+        CRFoliageWind.Sources[key]=math.max(0,(CRFoliageWind.Sources[key] or 0)-1)
+    end
+end
 function CRFoliageWind.LitterDensity(x, z)
     local grid = CRFoliageWind.Sources
     local spec = CRFoliageWind.LitterSpec

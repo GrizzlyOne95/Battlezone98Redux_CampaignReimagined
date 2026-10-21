@@ -14,6 +14,8 @@
 --             cracks: they appear progressively and every peer agrees
 --   slides    a dust cloud and a spray of rock sliding down a steep slope near
 --             the camera, leader-timed (event), shaped locally
+local okDamage,Damage=pcall(require,"CRFloraDamage")
+if not okDamage then Damage=nil end
 local Ground = {}
 
 -- Tunables -------------------------------------------------------------------
@@ -43,6 +45,20 @@ function Ground.Create(ctx)
 
     -- Scrub -------------------------------------------------------------------
     local function tileName(i) return "CR18/Scrub/" .. i end
+    local removed=ctx.flora or {}
+    if Damage then
+        for i,l in ipairs(layers) do
+            local name=tileName(i)
+            local o=sites.origin or {0,0,0}
+            removed[name]=Damage.Register(name,{mesh=l.mesh,points=l.instances,material=ctx.material(),
+                options={origin={x=o[1],y=o[2],z=o[3]},regionDimensions={x=192,y=256,z=192},
+                    renderingDistance=Ground.RENDER,castShadows=false,visible=true},
+                onRemove=ctx.removeLitter},removed[name])
+            if ctx.removeLitter then for pi,p in ipairs(l.instances) do
+                if Damage.IsRemoved(name,pi) then ctx.removeLitter(p) end
+            end end
+        end
+    end
 
     local function nearest(view)
         local best, bestD
@@ -59,10 +75,14 @@ function Ground.Create(ctx)
 
     local function buildTile(i)
         local l = layers[i]
-        local instances = {}
-        for k, p in ipairs(l.instances) do
-            instances[k] = { position = { x = p[1], y = p[2], z = p[3] }, yaw = p[4], scale = p[5] }
+        local instances=Damage and Damage.Instances(tileName(i)) or nil
+        if not instances then
+            instances={}
+            for k,p in ipairs(l.instances) do
+                instances[k]={position={x=p[1],y=p[2],z=p[3]},yaw=p[4],scale=p[5]}
+            end
         end
+        if #instances==0 then G.tiles[i]=true;return end
         local o = sites.origin or { 0, 0, 0 }
         local material = G.material or ctx.material()
         G.material = material
@@ -70,6 +90,7 @@ function Ground.Create(ctx)
             { origin = { x = o[1], y = o[2], z = o[3] }, regionDimensions = { x = 192, y = 256, z = 192 },
               renderingDistance = Ground.RENDER, castShadows = false, visible = true })
         if info then
+            if Damage then Damage.Resident(tileName(i),true) end
             G.tiles[i] = true
             G.built = G.built + 1
         else
@@ -88,6 +109,7 @@ function Ground.Create(ctx)
             local dx, dz = l.cx - view.x, l.cz - view.z
             if dx * dx + dz * dz > Ground.DROP * Ground.DROP and drops < 2 then
                 ctx.call("DestroyStaticGeometry", tileName(i))
+                if Damage then Damage.Resident(tileName(i),false) end
                 G.tiles[i] = nil
                 G.destroyed = G.destroyed + 1
                 drops = drops + 1
@@ -310,6 +332,7 @@ function Ground.Create(ctx)
     function G.Update(dt, view, crack)
         if not view then return end
         updateScrub(view)
+        if Damage then Damage.Update() end
         updateCracks(view, tonumber(crack) or 0)
         if G.sets then
             for _, set in pairs(G.sets) do settle(set) end
@@ -318,6 +341,7 @@ function Ground.Create(ctx)
     end
 
     function G.Stop()
+        if Damage then for i in ipairs(layers) do Damage.Unregister(tileName(i)) end end
         for i in pairs(G.tiles) do ctx.call("DestroyStaticGeometry", tileName(i)) end
         G.tiles = {}
         if G.sets then
@@ -342,7 +366,7 @@ function Ground.Create(ctx)
         for _ in pairs(G.tiles) do n = n + 1 end
         local active = 0
         for _ in pairs(G.slides) do active = active + 1 end
-        return { tiles = n, totalTiles = #layers, built = G.built, destroyed = G.destroyed, errors = G.errors,
+        return { flora=Damage and Damage.Describe() or nil, tiles = n, totalTiles = #layers, built = G.built, destroyed = G.destroyed, errors = G.errors,
                  lastError = G.lastError, cracks = G.cracksLaid, slides = G.slidesStarted, slidesActive = active,
                  material = G.material, particles = G.sets and true or false }
     end

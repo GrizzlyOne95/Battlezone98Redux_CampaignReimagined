@@ -313,6 +313,11 @@ Pick the unused retrospective line; for example misn13 uses `misn1305`, misn12 `
 
 ## 4. Weather and environment architecture
 
+Local grass/flower removal is client-only (owner, 2026-10-21): `Docs/LOCAL_FLORA_DAMAGE.md`.
+Use the shared bounded `CRFloraDamage` service and actual EXU explosion events; do not
+scan units every frame or synchronize cosmetic bare patches. Solid trees keep gameplay ownership.
+
+
 Full detail: `Docs/WEATHER_ENVIRONMENT_OWNERSHIP.md`; full mission/stack audit and the 2026-10-15 owner
 revision: `Docs/ATMOSPHERE_AUDIT_20261015.md`. Environment caps the final composed fog to TRN visibility,
 including base/Clear/local overrides. It is the only atmosphere writer while loaded.
