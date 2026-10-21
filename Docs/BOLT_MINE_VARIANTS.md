@@ -61,11 +61,14 @@ time, captures the hull/discharge, then checks replicated destruction. Unit AI
 setters are applied only to the known tank, never to either mine.
 
 The texture chain was verified by live material readback. The initial BC3 DDS
-conversion loaded without an Ogre exception but rendered gray in native DX11;
-the same artwork rendered correctly as PNG and as RGBA8 DDS. Both builders now
-emit RGBA8 DDS, including the fighter atlas and arc filament. This is evidence
-about these generated files on the tested native path, not a general claim that
-BC3 is unsupported. No shared shader change was needed.
+conversion loaded without an Ogre exception but rendered gray in native DX11,
+most likely because it had no mips (hypothesis; the files did not survive).
+Compressed textures need offline mips: the engine cannot generate them and samples
+uninitialised levels, so BC1 without mips renders black. BC1 (BC3 where alpha is
+real) with a full mip chain matched the RGBA8 originals in native DX11 on
+2026-10-21. The mine atlases and the fighter atlas are now BC1 with mips via
+`Tools/bcdds.py`; the small arc filament stays RGBA8. No shared shader change was
+needed.
 
 `mines-rgba-18` passed 9 steps / 25 checks on two native GOG clients: both mines
 loaded and inflicted damage, the Fury mine was materially stronger, and both
