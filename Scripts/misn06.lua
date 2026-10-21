@@ -992,6 +992,8 @@ local orbitFilmAPI = {
     network = function() return CRCoop.IsNetworkGame() end,
     audioDone = function() return M.vob4h == nil or AudioDone(M.vob4h) end,
     layout = require("CR06RocketLayout"),
+    -- Re-installs the world-art dome when the fallback starfield dome ends.
+    restoreSky = function() return Environment.RestoreArtSky() end,
     -- misn06.trn: SkyTexture, [Clouds] Texture0-2, SunTexture.
     skyTextures = {
         { "mars.map", "cr06star.dds" }, { "acloud2.map", "cr06void.dds" }, { "acloud.map", "cr06void.dds" }, { "sun.0", "cr06void.dds" },

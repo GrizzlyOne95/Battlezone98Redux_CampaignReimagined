@@ -28,10 +28,22 @@ function Art.UpdateSky(api,world)
         print("WorldArt: sky fog calibration -> "..profile:lower())
     end
 end
-function Art.InitializeSky(api,world,mapName)
-    -- The orbital film temporarily replaces the dome and restores its enabled
-    -- state. Keep its original no-dome baseline intact.
-    if tostring(mapName or ""):lower():match("misn06%.?[^/\\]*$") then return false end
+-- (Re)installs the world dome. The misn06 orbital film replaces the dome
+-- material on its fallback path and calls this (through
+-- Environment.RestoreArtSky) when it ends. Atmosphere updates pause while the
+-- film runs, and UpdateSky only writes material parameters (it never toggles
+-- dome enablement), so it cannot fight the film.
+function Art.InstallSky(api,world)
+    local material=Art.Skies[world]
+    if not material or not api or type(api.SetSkyDome)~="function" then return false end
+    -- Draw behind scene geometry/effects with far-plane depth. Redux
+    -- suppresses its native sky when an Ogre sky is enabled, so this material
+    -- must draw the original texture rather than a transparent haze alone.
+    local accepted,result=pcall(api.SetSkyDome,material,10,8,4000,true,32,16,-1,"General")
+    if accepted and result==true then Art.UpdateSky(api,world) end
+    return accepted and result==true
+end
+function Art.InitializeSky(api,world)
     local material=Art.Skies[world]
     if not material or not api or type(api.SetSkyDome)~="function" or type(api.MaterialExists)~="function" then return false end
     -- Respect map-owned cinematics and weather skies. This baseline reuses
@@ -42,12 +54,7 @@ function Art.InitializeSky(api,world,mapName)
     end
     local ok,exists=pcall(api.MaterialExists,material,"General")
     if not ok or not exists then return false end
-    -- Draw behind scene geometry/effects with far-plane depth. Redux
-    -- suppresses its native sky when an Ogre sky is enabled, so this material
-    -- must draw the original texture rather than a transparent haze alone.
-    local accepted,result=pcall(api.SetSkyDome,material,10,8,4000,true,32,16,-1,"General")
-    if accepted and result==true then Art.UpdateSky(api,world) end
-    return accepted and result==true
+    return Art.InstallSky(api,world)
 end
 function Art.Detect(trn)
     if trn and type(GetODFString)=="function" then
