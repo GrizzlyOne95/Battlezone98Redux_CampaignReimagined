@@ -41,6 +41,16 @@ def encode_normal(height, spacing, compensation=1):
     return np.uint8(np.clip(np.rint((vectors+1)*127.5), 0, 255))
 
 
+def load_material(directory, size):
+    images = {}
+    for channel in "DNSE":
+        with Image.open(Path(directory)/f"{channel}.png") as image:
+            if image.size != (size,size):
+                raise ValueError(f"Authored {channel} material must be {size}px square")
+            images[channel] = np.asarray(image.convert("RGB")).copy()
+    return images
+
+
 def surface(settings):
     size = settings["tileSize"]
     crater = module("moon_craters", ROOT/"Tools/Build-MoonCraterDisplacement.py")
@@ -66,6 +76,8 @@ def surface(settings):
         "S": np.full((size, size, 3), 18, np.uint8),
         "E": np.zeros((size, size, 3), np.uint8),
     }
+    if settings.get("dustMaterial"):
+        images = load_material(settings["dustMaterial"],size)
     return heights, images
 
 
@@ -138,7 +150,7 @@ def audit_detail(image):
             "detailNormalDegreesMax": float(angle.max())}
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-build", type=Path, required=True, help="Trusted saved independent material cache/recipe")
     parser.add_argument("--toolbox", type=Path, required=True)
@@ -147,7 +159,9 @@ def main():
     parser.add_argument("--settings", type=Path, help="Override Config surfaceBlend.recipe")
     parser.add_argument("--compare-detail", type=Path)
     parser.add_argument("--detail-source", type=Path, help="Preserve the authored HD detail DDS; defaults to the saved Moon HD detail")
-    args = parser.parse_args()
+    parser.add_argument("--ground-material", type=Path, help="Explicit alternate ground D/N/S/E PNG directory for an art trial")
+    parser.add_argument("--dust-material", type=Path, help="Explicit alternate floor-dust D/N/S/E PNG directory")
+    args = parser.parse_args(argv)
     output = args.output.resolve()
     if output.exists():
         raise ValueError("Choose a new output folder; existing artwork is preserved")
@@ -157,6 +171,8 @@ def main():
     runtime_tuning = validate_runtime(world_binding)
     settings["depthMeters"] = min(1., .25*runtime_tuning["microReliefScale"])
     settings["surfaceCoverage"] = surface_coverage(world_binding)
+    if args.dust_material:
+        settings["dustMaterial"] = str(args.dust_material.resolve())
     if (settings["schema"] != "cr-moon-regolith-v1" or settings["tileSize"] != 1024
             or settings["detailSize"] != 2048 or settings["heightAtlasSize"] != 1024):
         raise ValueError("This candidate retains the qualified tile/height/detail sizes")
@@ -181,18 +197,20 @@ def main():
     Image.fromarray(np.uint8(np.rint(coverage*255))).save(output/"dust_coverage.png")
     source_hashes = {}
     original_ground = {}
+    ground_material = load_material(args.ground_material,settings["tileSize"]) if args.ground_material else None
+    reference_prefix = "selected" if ground_material is not None else "original_hd"
     original = recipe.apply_art6
     def authored(world, channel, by_type, bases, report, rotate):
         original(world, channel, by_type, bases, report, rotate)
-        ground = bases[by_type[0]]
+        ground = ground_material[channel] if ground_material is not None else bases[by_type[0]]
         original_ground[channel] = ground.copy()
         # The source exporter normalizes RGB normals even for a zero-turn
         # solid. Retain that same baseline, not pre-export quantized vectors.
         reference = rotate(ground, 0, channel)
-        Image.fromarray(reference).save(output/f"original_hd_ground_{channel.lower()}.png")
+        Image.fromarray(reference).save(output/f"{reference_prefix}_ground_{channel.lower()}.png")
         source_hashes[channel] = hashlib.sha256(reference.tobytes()).hexdigest()
         bases[by_type[0]] = local_material(ground, images[channel], coverage, channel, height, settings)
-        report["groundOverride"] = "HD source retained outside local crater floors, raised rims and sparse dust patches"
+        report["groundOverride"] = "Selected source retained outside local crater floors, raised rims and sparse dust patches"
     recipe.apply_art6 = authored
     sources = output/"masters"
     sources.mkdir()
@@ -214,7 +232,7 @@ def main():
                     raise ValueError(f"HD pixels changed outside local crater masks: {alias} {channel}")
                 entry = preservation.setdefault(alias,{"untouchedFraction":float(untouched.mean()),"channels":[]})
                 entry["channels"].append(channel)
-                Image.fromarray(reference).save(output/f"original_hd_{alias.lower().replace('.map','')}_{channel.lower()}.png")
+                Image.fromarray(reference).save(output/f"{reference_prefix}_{alias.lower().replace('.map','')}_{channel.lower()}.png")
             Image.fromarray(pixels).save(sources/(alias.lower().replace('.map', '')+f"_{channel.lower()}.png"))
     exporter = module("moon_source_exporter", ROOT/"Tools/Build-MarsHdTileSources.py")
     build = exporter.source_function(recipe, sink, 1024, True, True)
@@ -258,6 +276,7 @@ def main():
               "heightSha256": hashlib.sha256(height_path.read_bytes()).hexdigest(),
               "sourceRecipeSha256": hashlib.sha256((source/"build_stock_atlases.py").read_bytes()).hexdigest(),
               "sourceGroundPixelSha256": source_hashes,
+              "groundSource": str(args.ground_material.resolve()) if args.ground_material else "original authored HD",
               "dustCoverage": {"unchangedFraction": float((coverage == 0).mean()),
                                "mean": float(coverage.mean()), "maximum": float(coverage.max())},
               "independentVariants": list(variant_surfaces),
@@ -265,8 +284,8 @@ def main():
               "detailSourceSha256": hashlib.sha256(detail_source.read_bytes()).hexdigest(),
               "detailOutputSha256": hashlib.sha256(detail_path.read_bytes()).hexdigest(),
               "bundle": bundle_audit,
-              "normalPolicy": "HD source RGB XYZ normals retained outside local floors/raised rims. DS supplies macro crater normal, not duplicated in pixel normal.",
-              "detailPolicy": "Original authored HD detail preserved byte-for-byte, including mips. Shader generates -dH/dU,-dH/dV normal at 8x/32x; no extra slot.",
+              "normalPolicy": "Selected source RGB XYZ normals retained outside local floors/raised rims. DS supplies macro crater normal, not duplicated in pixel normal.",
+              "detailPolicy": "Selected detail DDS preserved byte-for-byte, including mips. Shader generates -dH/dU,-dH/dV normal at 8x/32x; no extra slot.",
               "sizesUnchanged": True, "additionalTextureSlots": 0}
     if args.compare_detail:
         with Image.open(args.compare_detail) as image:
