@@ -90,6 +90,9 @@ jobs:
       - name: Validate unit animation slot fixes
         run: python Tools/Test-UnitAnimSlots.py
 
+      - name: Validate texture revamp and Olympian interior contracts
+        run: python Tools/Test-TextureRevamp.py
+
       - name: Audit looping model animations
         # bvwalk.vdf is an older walker fix whose cycles still seam (reported, not owned here).
         # svwalk/cvwalk keep the stock loop seams on purpose: the fix only smooths

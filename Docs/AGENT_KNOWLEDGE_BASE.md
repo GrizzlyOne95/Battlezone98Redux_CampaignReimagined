@@ -921,6 +921,26 @@ basis. `Test-Misn03Launch.lua` runs the real misn03 script on the harness text o
 
 ## 10. Keeping this document current
 
+### Texture masters and imported Olympian interiors (2026-10-21)
+
+See `Docs/TEXTURE_REVAMP.md` and `References/TextureRevamp` before changing these
+assets. The owner chose the local replacement relic models, but rejected the
+first Tartarus redraw: keep its original eye DDS, not a newly interpreted eye
+or the Styx diffuse. A detailed generated image is not automatically a faithful
+UV atlas. Preserve approved colour art where a normal/emission supplement is
+the actual need. Interior UV reprojection also needs a matching tangent basis;
+an atlas-wide range remap left large surfaces sampling tiny, stretched regions.
+Keep native geometry/rig hashes and explicit unverified runtime/art-acceptance
+status. The forest builder reapplies reviewed bark masters after regeneration.
+Large-building audits must resolve active diffuse aliases: the Black Dog silo
+uses 4096×2048 `bbsilo_d.dds`, not its inactive 256px `bbsilo00_d.dds`. Overall
+image dimensions also hide tiny door/stair allocations. The CCA pad pilot uses
+three disjoint material/UV crops, with an oriented triangle/attribute/skin
+contract and unchanged stock remainder. It adds three batches: qualify native
+load/launch states and performance before extending that tradeoff fleet-wide.
+Offline Blender is only an art check. Its multi-model reset crashed on cleanup;
+use fresh isolated processes and check each exit, never infer native success.
+
 ### Moon independent HD tiles and normal polarity (2026-10-20)
 
 All-planet expansion: `Tools/Build-AllHdTerrain.py` routes independent source

@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-21T07:48:17-05:00",
-  "count": 3640,
+  "count": 3804,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -976,16 +976,64 @@
       "runtime": "cr16cmd_d.dds"
     },
     {
+      "source": "Assets\\Textures\\cr16cmd_e.dds",
+      "runtime": "cr16cmd_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr16cmd_n.dds",
+      "runtime": "cr16cmd_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr16cmd_s.dds",
+      "runtime": "cr16cmd_s.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr16hng_d.dds",
       "runtime": "cr16hng_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr16hng_e.dds",
+      "runtime": "cr16hng_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr16hng_n.dds",
+      "runtime": "cr16hng_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr16hng_s.dds",
+      "runtime": "cr16hng_s.dds"
     },
     {
       "source": "Assets\\Textures\\cr16pwr_d.dds",
       "runtime": "cr16pwr_d.dds"
     },
     {
+      "source": "Assets\\Textures\\cr16pwr_e.dds",
+      "runtime": "cr16pwr_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr16pwr_n.dds",
+      "runtime": "cr16pwr_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr16pwr_s.dds",
+      "runtime": "cr16pwr_s.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr16tow_d.dds",
       "runtime": "cr16tow_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr16tow_e.dds",
+      "runtime": "cr16tow_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr16tow_n.dds",
+      "runtime": "cr16tow_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr16tow_s.dds",
+      "runtime": "cr16tow_s.dds"
     },
     {
       "source": "Assets\\Textures\\cr_arc.dds",
@@ -1096,6 +1144,106 @@
       "runtime": "cromine_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crvbdog_walkway_d.dds",
+      "runtime": "crvbdog_walkway_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcca_door_d.dds",
+      "runtime": "crvcca_door_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcca_door_e.dds",
+      "runtime": "crvcca_door_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcca_patch_s.dds",
+      "runtime": "crvcca_patch_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcca_plate_d.dds",
+      "runtime": "crvcca_plate_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcca_stairs_d.dds",
+      "runtime": "crvcca_stairs_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crviolfloor_d.dds",
+      "runtime": "crviolfloor_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crviolfloor_n.dds",
+      "runtime": "crviolfloor_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crviolfloor_s.dds",
+      "runtime": "crviolfloor_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crviolscreen_d.dds",
+      "runtime": "crviolscreen_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crviolscreen_e.dds",
+      "runtime": "crviolscreen_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvioltrim_d.dds",
+      "runtime": "crvioltrim_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvioltrim_n.dds",
+      "runtime": "crvioltrim_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvioltrim_s.dds",
+      "runtime": "crvioltrim_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crviolwall_d.dds",
+      "runtime": "crviolwall_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crviolwall_n.dds",
+      "runtime": "crviolwall_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crviolwall_s.dds",
+      "runtime": "crviolwall_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvobcycl00_n.dds",
+      "runtime": "crvobcycl00_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvobdata00_n.dds",
+      "runtime": "crvobdata00_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvoblemb00_n.dds",
+      "runtime": "crvoblemb00_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvobpowr00_n.dds",
+      "runtime": "crvobpowr00_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvpkup_d.dds",
+      "runtime": "crvpkup_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvpkup_n.dds",
+      "runtime": "crvpkup_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvsalv_d.dds",
+      "runtime": "crvsalv_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvstor_n.dds",
+      "runtime": "crvstor_n.dds"
+    },
+    {
       "source": "Assets\\Textures\\crwx_acidbeads.png",
       "runtime": "crwx_acidbeads.png"
     },
@@ -1192,6 +1340,22 @@
       "runtime": "lbolt4.dds"
     },
     {
+      "source": "Assets\\Textures\\lme_cast_d.dds",
+      "runtime": "lme_cast_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\lme_cast_e.dds",
+      "runtime": "lme_cast_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\lme_cast_s.dds",
+      "runtime": "lme_cast_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\lme_normal.dds",
+      "runtime": "lme_normal.dds"
+    },
+    {
       "source": "Assets\\Textures\\LoadingScreenBlank.png",
       "runtime": "LoadingScreenBlank.png"
     },
@@ -1254,6 +1418,10 @@
     {
       "source": "Assets\\Textures\\sxtint_red.png",
       "runtime": "sxtint_red.png"
+    },
+    {
+      "source": "Assets\\Textures\\trld_d.dds",
+      "runtime": "trld_d.dds"
     },
     {
       "source": "Assets\\Textures\\ubtart00.dds",
@@ -3244,6 +3412,10 @@
       "runtime": "CR_sky_events.material"
     },
     {
+      "source": "Materials\\CR_texture_revamp.material",
+      "runtime": "CR_texture_revamp.material"
+    },
+    {
       "source": "Materials\\cr_titan.particle.payload",
       "runtime": "cr_titan.particle.payload"
     },
@@ -3548,6 +3720,10 @@
       "runtime": "lbolt4.material"
     },
     {
+      "source": "Materials\\lme_shared.material",
+      "runtime": "lme_shared.material"
+    },
+    {
       "source": "Materials\\ma_detail_atlas.material",
       "runtime": "ma_detail_atlas.material"
     },
@@ -3670,6 +3846,18 @@
     {
       "source": "Materials\\ordnanceTextured.material",
       "runtime": "ordnanceTextured.material"
+    },
+    {
+      "source": "Materials\\osp_shared.material",
+      "runtime": "osp_shared.material"
+    },
+    {
+      "source": "Materials\\oth_shared.material",
+      "runtime": "oth_shared.material"
+    },
+    {
+      "source": "Materials\\ovheph.material",
+      "runtime": "ovheph.material"
     },
     {
       "source": "Materials\\proxmine.material",
@@ -3870,6 +4058,10 @@
     {
       "source": "Materials\\titan.material",
       "runtime": "titan.material"
+    },
+    {
+      "source": "Materials\\trld.material",
+      "runtime": "trld.material"
     },
     {
       "source": "Materials\\ubtart.material",
@@ -11168,6 +11360,10 @@
       "runtime": "misn18.bmp"
     },
     {
+      "source": "Assets\\Models\\bblpad.mesh",
+      "runtime": "bblpad.mesh"
+    },
+    {
       "source": "Assets\\Models\\c17proc.geo",
       "runtime": "c17proc.geo"
     },
@@ -11324,6 +11520,374 @@
       "runtime": "j1721lef.geo"
     },
     {
+      "source": "Assets\\Models\\lme11bda.geo",
+      "runtime": "lme11bda.geo"
+    },
+    {
+      "source": "Assets\\Models\\lme11dck.geo",
+      "runtime": "lme11dck.geo"
+    },
+    {
+      "source": "Assets\\Models\\lme11gal.geo",
+      "runtime": "lme11gal.geo"
+    },
+    {
+      "source": "Assets\\Models\\lme11ru1.geo",
+      "runtime": "lme11ru1.geo"
+    },
+    {
+      "source": "Assets\\Models\\obheph.mesh",
+      "runtime": "obheph.mesh"
+    },
+    {
+      "source": "Assets\\Models\\obheph.sdf",
+      "runtime": "obheph.sdf"
+    },
+    {
+      "source": "Assets\\Models\\obheph.skeleton",
+      "runtime": "obheph.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\obher100.mesh",
+      "runtime": "obher100.mesh"
+    },
+    {
+      "source": "Assets\\Models\\obher100.sdf",
+      "runtime": "obher100.sdf"
+    },
+    {
+      "source": "Assets\\Models\\obher100.skeleton",
+      "runtime": "obher100.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\obher200.mesh",
+      "runtime": "obher200.mesh"
+    },
+    {
+      "source": "Assets\\Models\\obher200.sdf",
+      "runtime": "obher200.sdf"
+    },
+    {
+      "source": "Assets\\Models\\obher200.skeleton",
+      "runtime": "obher200.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\obher300.mesh",
+      "runtime": "obher300.mesh"
+    },
+    {
+      "source": "Assets\\Models\\obher300.sdf",
+      "runtime": "obher300.sdf"
+    },
+    {
+      "source": "Assets\\Models\\obher300.skeleton",
+      "runtime": "obher300.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\oblema.mesh",
+      "runtime": "oblema.mesh"
+    },
+    {
+      "source": "Assets\\Models\\oblema.sdf",
+      "runtime": "oblema.sdf"
+    },
+    {
+      "source": "Assets\\Models\\oblema.skeleton",
+      "runtime": "oblema.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\obstp1.mesh",
+      "runtime": "obstp1.mesh"
+    },
+    {
+      "source": "Assets\\Models\\obstp1.sdf",
+      "runtime": "obstp1.sdf"
+    },
+    {
+      "source": "Assets\\Models\\obstp1.skeleton",
+      "runtime": "obstp1.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\obstp2.mesh",
+      "runtime": "obstp2.mesh"
+    },
+    {
+      "source": "Assets\\Models\\obstp2.sdf",
+      "runtime": "obstp2.sdf"
+    },
+    {
+      "source": "Assets\\Models\\obstp2.skeleton",
+      "runtime": "obstp2.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\obstp3.mesh",
+      "runtime": "obstp3.mesh"
+    },
+    {
+      "source": "Assets\\Models\\obstp3.sdf",
+      "runtime": "obstp3.sdf"
+    },
+    {
+      "source": "Assets\\Models\\obstp3.skeleton",
+      "runtime": "obstp3.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\ohp11bda.geo",
+      "runtime": "ohp11bda.geo"
+    },
+    {
+      "source": "Assets\\Models\\ohp11bdb.geo",
+      "runtime": "ohp11bdb.geo"
+    },
+    {
+      "source": "Assets\\Models\\ohp11bdc.geo",
+      "runtime": "ohp11bdc.geo"
+    },
+    {
+      "source": "Assets\\Models\\ohp11bdd.geo",
+      "runtime": "ohp11bdd.geo"
+    },
+    {
+      "source": "Assets\\Models\\ohp11bde.geo",
+      "runtime": "ohp11bde.geo"
+    },
+    {
+      "source": "Assets\\Models\\ohp11cl1.geo",
+      "runtime": "ohp11cl1.geo"
+    },
+    {
+      "source": "Assets\\Models\\ohp11cr1.geo",
+      "runtime": "ohp11cr1.geo"
+    },
+    {
+      "source": "Assets\\Models\\ohp11pr1.geo",
+      "runtime": "ohp11pr1.geo"
+    },
+    {
+      "source": "Assets\\Models\\ohp11rt1.geo",
+      "runtime": "ohp11rt1.geo"
+    },
+    {
+      "source": "Assets\\Models\\ohp11rt2.geo",
+      "runtime": "ohp11rt2.geo"
+    },
+    {
+      "source": "Assets\\Models\\ohp11rt3.geo",
+      "runtime": "ohp11rt3.geo"
+    },
+    {
+      "source": "Assets\\Models\\ohp21cab.geo",
+      "runtime": "ohp21cab.geo"
+    },
+    {
+      "source": "Assets\\Models\\op111bda.geo",
+      "runtime": "op111bda.geo"
+    },
+    {
+      "source": "Assets\\Models\\op111bgl.geo",
+      "runtime": "op111bgl.geo"
+    },
+    {
+      "source": "Assets\\Models\\op111bgr.geo",
+      "runtime": "op111bgr.geo"
+    },
+    {
+      "source": "Assets\\Models\\op111bgt.geo",
+      "runtime": "op111bgt.geo"
+    },
+    {
+      "source": "Assets\\Models\\op111dck.geo",
+      "runtime": "op111dck.geo"
+    },
+    {
+      "source": "Assets\\Models\\op111drl.geo",
+      "runtime": "op111drl.geo"
+    },
+    {
+      "source": "Assets\\Models\\op111drr.geo",
+      "runtime": "op111drr.geo"
+    },
+    {
+      "source": "Assets\\Models\\op111lg1.geo",
+      "runtime": "op111lg1.geo"
+    },
+    {
+      "source": "Assets\\Models\\op111lg2.geo",
+      "runtime": "op111lg2.geo"
+    },
+    {
+      "source": "Assets\\Models\\op111lg3.geo",
+      "runtime": "op111lg3.geo"
+    },
+    {
+      "source": "Assets\\Models\\op111rmp.geo",
+      "runtime": "op111rmp.geo"
+    },
+    {
+      "source": "Assets\\Models\\op111tx1.geo",
+      "runtime": "op111tx1.geo"
+    },
+    {
+      "source": "Assets\\Models\\op111ty1.geo",
+      "runtime": "op111ty1.geo"
+    },
+    {
+      "source": "Assets\\Models\\op121cab.geo",
+      "runtime": "op121cab.geo"
+    },
+    {
+      "source": "Assets\\Models\\op1bda01.geo",
+      "runtime": "op1bda01.geo"
+    },
+    {
+      "source": "Assets\\Models\\op1dck01.geo",
+      "runtime": "op1dck01.geo"
+    },
+    {
+      "source": "Assets\\Models\\op211bda.geo",
+      "runtime": "op211bda.geo"
+    },
+    {
+      "source": "Assets\\Models\\op211bgl.geo",
+      "runtime": "op211bgl.geo"
+    },
+    {
+      "source": "Assets\\Models\\op211bgr.geo",
+      "runtime": "op211bgr.geo"
+    },
+    {
+      "source": "Assets\\Models\\op211bgt.geo",
+      "runtime": "op211bgt.geo"
+    },
+    {
+      "source": "Assets\\Models\\op211dck.geo",
+      "runtime": "op211dck.geo"
+    },
+    {
+      "source": "Assets\\Models\\op211drl.geo",
+      "runtime": "op211drl.geo"
+    },
+    {
+      "source": "Assets\\Models\\op211drr.geo",
+      "runtime": "op211drr.geo"
+    },
+    {
+      "source": "Assets\\Models\\op211lg1.geo",
+      "runtime": "op211lg1.geo"
+    },
+    {
+      "source": "Assets\\Models\\op211lg2.geo",
+      "runtime": "op211lg2.geo"
+    },
+    {
+      "source": "Assets\\Models\\op211lg3.geo",
+      "runtime": "op211lg3.geo"
+    },
+    {
+      "source": "Assets\\Models\\op211rmp.geo",
+      "runtime": "op211rmp.geo"
+    },
+    {
+      "source": "Assets\\Models\\op211tx1.geo",
+      "runtime": "op211tx1.geo"
+    },
+    {
+      "source": "Assets\\Models\\op211ty1.geo",
+      "runtime": "op211ty1.geo"
+    },
+    {
+      "source": "Assets\\Models\\op221cab.geo",
+      "runtime": "op221cab.geo"
+    },
+    {
+      "source": "Assets\\Models\\op2bda01.geo",
+      "runtime": "op2bda01.geo"
+    },
+    {
+      "source": "Assets\\Models\\op2dck01.geo",
+      "runtime": "op2dck01.geo"
+    },
+    {
+      "source": "Assets\\Models\\op311bda.geo",
+      "runtime": "op311bda.geo"
+    },
+    {
+      "source": "Assets\\Models\\op311bgl.geo",
+      "runtime": "op311bgl.geo"
+    },
+    {
+      "source": "Assets\\Models\\op311bgr.geo",
+      "runtime": "op311bgr.geo"
+    },
+    {
+      "source": "Assets\\Models\\op311bgt.geo",
+      "runtime": "op311bgt.geo"
+    },
+    {
+      "source": "Assets\\Models\\op311dck.geo",
+      "runtime": "op311dck.geo"
+    },
+    {
+      "source": "Assets\\Models\\op311drl.geo",
+      "runtime": "op311drl.geo"
+    },
+    {
+      "source": "Assets\\Models\\op311drr.geo",
+      "runtime": "op311drr.geo"
+    },
+    {
+      "source": "Assets\\Models\\op311lg1.geo",
+      "runtime": "op311lg1.geo"
+    },
+    {
+      "source": "Assets\\Models\\op311lg2.geo",
+      "runtime": "op311lg2.geo"
+    },
+    {
+      "source": "Assets\\Models\\op311lg3.geo",
+      "runtime": "op311lg3.geo"
+    },
+    {
+      "source": "Assets\\Models\\op311rmp.geo",
+      "runtime": "op311rmp.geo"
+    },
+    {
+      "source": "Assets\\Models\\op311tx1.geo",
+      "runtime": "op311tx1.geo"
+    },
+    {
+      "source": "Assets\\Models\\op311ty1.geo",
+      "runtime": "op311ty1.geo"
+    },
+    {
+      "source": "Assets\\Models\\op321cab.geo",
+      "runtime": "op321cab.geo"
+    },
+    {
+      "source": "Assets\\Models\\op3bda01.geo",
+      "runtime": "op3bda01.geo"
+    },
+    {
+      "source": "Assets\\Models\\op3dck01.geo",
+      "runtime": "op3dck01.geo"
+    },
+    {
+      "source": "Assets\\Models\\sblpad.mesh",
+      "runtime": "sblpad.mesh"
+    },
+    {
+      "source": "Assets\\Models\\ubtart.mesh",
+      "runtime": "ubtart.mesh"
+    },
+    {
+      "source": "Assets\\Models\\ubtart.sdf",
+      "runtime": "ubtart.sdf"
+    },
+    {
+      "source": "Assets\\Models\\ubtart.skeleton",
+      "runtime": "ubtart.skeleton"
+    },
+    {
       "source": "Assets\\Sounds\\c17falls.wav",
       "runtime": "c17falls.wav"
     },
@@ -11390,6 +11954,90 @@
     {
       "source": "Assets\\Textures\\nsdfvtrim_S.dds",
       "runtime": "nsdfvtrim_S.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ohp_amber_e.dds",
+      "runtime": "ohp_amber_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ohp_amber_s.dds",
+      "runtime": "ohp_amber_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ohp_canopy_d.dds",
+      "runtime": "ohp_canopy_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ohp_canopy_e.dds",
+      "runtime": "ohp_canopy_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ohp_dark_e.dds",
+      "runtime": "ohp_dark_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ohp_dark_n.dds",
+      "runtime": "ohp_dark_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ohp_glass_d.dds",
+      "runtime": "ohp_glass_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ohp_glass_s.dds",
+      "runtime": "ohp_glass_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ohp_screen_e.dds",
+      "runtime": "ohp_screen_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ohp_screen_n.dds",
+      "runtime": "ohp_screen_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ohp_src_d.dds",
+      "runtime": "ohp_src_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ohp_src_e.dds",
+      "runtime": "ohp_src_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ohp_src_n.dds",
+      "runtime": "ohp_src_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ohp_src_s.dds",
+      "runtime": "ohp_src_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\osp_cast_d.dds",
+      "runtime": "osp_cast_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\osp_cast_e.dds",
+      "runtime": "osp_cast_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\osp_cast_s.dds",
+      "runtime": "osp_cast_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\osp_normal.dds",
+      "runtime": "osp_normal.dds"
+    },
+    {
+      "source": "Assets\\Textures\\oth_canopy_d.dds",
+      "runtime": "oth_canopy_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\oth_screen_e.dds",
+      "runtime": "oth_screen_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\oth_src_d.dds",
+      "runtime": "oth_src_d.dds"
     },
     {
       "source": "Config\\misn17.ini",
@@ -11710,6 +12358,14 @@
     {
       "source": "Materials\\cr18_water.material",
       "runtime": "cr18_water.material"
+    },
+    {
+      "source": "Materials\\CR_bdog_pad_patch.material",
+      "runtime": "CR_bdog_pad_patch.material"
+    },
+    {
+      "source": "Materials\\CR_building_patches.material",
+      "runtime": "CR_building_patches.material"
     },
     {
       "source": "Scripts\\CRStorm18.lua",

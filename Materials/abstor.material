@@ -3,7 +3,7 @@ import * from "CR_BZBase.material"
 material abstor : CR_BZBase
 {
 	set_texture_alias DiffuseMap abstor_D.dds
-	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias NormalMap crvstor_n.dds
 	set_texture_alias SpecularMap abstor_S.dds
 	set_texture_alias EmissiveMap abstor_E.dds
 	
