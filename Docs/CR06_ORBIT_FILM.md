@@ -60,4 +60,4 @@ step fails with "No visible window". Run with `BZR_NO_FOREGROUND_WATCHDOG=1` and
 ## Open items
 
 - Co-op guests do not see the shot.
-- The CR carrier competing design (`crncarr`, CR #237) is separate; this film uses `cr06lin` only.
+- The CR carrier competing design (`crncarr`, CR #237) is separate and was archived out of the repository on 2026-10-21; this film uses `cr06lin` only.
