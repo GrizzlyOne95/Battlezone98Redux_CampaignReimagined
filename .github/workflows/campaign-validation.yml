@@ -316,6 +316,8 @@ jobs:
             "$LUA" Tools/Test-CRFloraDamageStress.lua
           # Mission 18 storm: director, tornado, ground, replication, payload lint.
           "$LUA" Tools/Test-CRStorm18.lua
+          "$LUA" Tools/Test-CRStorm18Trees.lua
+          python Tools/Build-Misn18Trees.py --check
           python -I Tools/Build-Misn18Storm.py --check
           python -I Tools/Build-Misn18Water.py --check
           # The wind foliage material is generated from cr17_surface.material.

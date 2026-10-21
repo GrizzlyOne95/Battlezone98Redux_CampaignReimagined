@@ -31,14 +31,18 @@ return function(F)
         se.UpdateEarthQuake = function(m) record("NativeQuake", "update", m) end
         se.StopEarthquake = function() record("NativeQuake", "stop", 0) end
         se.MakeExplosion = function() end
-        se.IsBuilding = function() return false end
+        se.IsBuilding = function(h) return W.objects[h] and not W.objects[h].craft end
         se.IsLocal = function(h) return owner(W, peer, h) end
         se.GetVelocity = function(h) W.objects[h].vel = W.objects[h].vel or {x = 0, y = 0, z = 0}; return W.objects[h].vel end
         se.SetVelocity = function(h, v)
             W.objects[h].vel = {x = v.x, y = v.y, z = v.z}
             record("TornadoVelocity", h)
         end
-        se.Damage = function(h, amount) record("TornadoDamage", h, amount) end
+        se.Damage = function(h, amount)
+            if W.objects[h] and W.objects[h].odf:match("^c17frst") then
+                record("TreeDamage",h,amount);W.objects[h].alive=false
+            else record("TornadoDamage", h, amount) end
+        end
 
         -- A recording EXU: only the calls the storm and CRWeather make. Everything is permissive.
         local x = modules.exu
@@ -73,6 +77,7 @@ return function(F)
         def("UpdateParticleFollowers", function() return 0 end)
         def("GetParticleSystemEmitterCount", function() return 6 end)
         def("GetParticleSystemAffectorCount", function() return 6 end)
+        def("SetEntityRenderingDistance", function(h,d) record("TreeCull",h,d);return true end)
 
         local stubs = {
             exu = x,

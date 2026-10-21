@@ -317,6 +317,11 @@ Local grass/flower removal is client-only (owner, 2026-10-21): `Docs/LOCAL_FLORA
 Use the shared bounded `CRFloraDamage` service and actual EXU explosion events; do not
 scan units every frame or synchronize cosmetic bare patches. Solid trees keep gameplay ownership.
 
+Mission 18's firs reuse Mission 17 art but have their own bounded authority streamer:
+`Docs/MISN18_TREES.md`. Lightning ground points are shared world coordinates; only the
+authority destroys/uproots tree objects or marks unstreamed sites gone. Do not apply
+tree damage in every peer's cosmetic lightning handler or use craft AI on the plants.
+
 
 Full detail: `Docs/WEATHER_ENVIRONMENT_OWNERSHIP.md`; full mission/stack audit and the 2026-10-15 owner
 revision: `Docs/ATMOSPHERE_AUDIT_20261015.md`. Environment caps the final composed fog to TRN visibility,

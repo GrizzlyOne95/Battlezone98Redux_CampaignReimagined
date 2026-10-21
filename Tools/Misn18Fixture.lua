@@ -222,6 +222,7 @@ function F.makePeer(id, team, network, options)
     e.IsValid = function(h) return type(h) == "string" and W.objects[h] ~= nil and W.objects[h].alive end
     e.IsAlive = e.IsValid
     e.IsOdf = function(h, odf) return e.IsValid(h) and W.objects[h].odf == odf end
+    e.GetOdf = function(h) return W.objects[h] and W.objects[h].odf end
     e.GetTeamNum = function(h) return W.objects[h] and W.objects[h].team or 0 end
     e.SetTeamNum = function(h, t)
         assert(e.IsValid(h), "SetTeamNum on an invalid object")
@@ -236,6 +237,9 @@ function F.makePeer(id, team, network, options)
     e.SetPosition = function(h,pos) assert(e.IsValid(h)); W.objects[h].pos={x=pos.x,y=pos.y,z=pos.z};record("SetPosition",h,pos.y) end
     -- Extraction ending (CRDrop18): matrices are plain tables, SetTransform moves the mock object.
     e.BuildDirectionalMatrix = function(pos, dir) return {x = pos.x, y = pos.y, z = pos.z, dx = dir and dir.x or 0, dz = dir and dir.z or 1} end
+    e.BuildPositionRotationMatrix = function(pitch,yaw,roll,x,y,z)
+        return {x=x,y=y,z=z,pitch=pitch,yaw=yaw,roll=roll}
+    end
     e.SetTransform = function(h, m)
         assert(e.IsValid(h), "SetTransform on an invalid object")
         W.objects[h].pos = {x = m.x, y = m.y, z = m.z}
@@ -288,6 +292,14 @@ function F.makePeer(id, team, network, options)
         table.sort(list)
         local i = 0
         return function() i = i + 1; return list[i] end
+    end
+    e.AllObjects = function()
+        local list,seen={},{}
+        for h,o in pairs(W.objects) do
+            if o.alive and not seen[o] then list[#list+1]=h;seen[o]=true end
+        end
+        table.sort(list)
+        local i=0;return function() i=i+1;return list[i] end
     end
     e.BuildObject = function(odf, objectTeam, where)
         assert(type(where) == "table" or W.pathPos[where] or e.IsValid(where), "invalid spawn location")

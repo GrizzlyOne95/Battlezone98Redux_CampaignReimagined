@@ -14,8 +14,8 @@
 --
 -- Only the leader decides anything: its phase, bolt, quake, landslide and tornado
 -- events are the whole of the shared state. Every peer renders the storm itself,
--- from those events and the shared seed, around its own camera. The module
--- builds no game object. The one gameplay effect, the tornado's pull, runs on
+-- from those events and the shared seed. Ground bolts carry world coordinates;
+-- tree creation/destruction belongs to the leader. The tornado's craft pull runs on
 -- every peer against the replicated funnel and touches only the craft that peer
 -- owns (CRStorm18Tornado.EFFECT). While the storm runs it owns the native
 -- earthquake: the mission's own quake requests come in through Storm.Quake.
@@ -27,6 +27,7 @@ local Rng = require("CRStorm18Rng")
 local Tornado = require("CRStorm18Tornado")
 local Ground = require("CRStorm18Ground")
 local WaterFx = require("CRStorm18Water")
+local TreesFx = require("CRStorm18Trees")
 
 local Storm = {}
 
@@ -197,7 +198,7 @@ function Storm.Create(api)
     local zones = Sites.zones or {}
     local bounds = Sites.bounds or { 0, 97280, 2560, 102400 }
     local state, clock, lvl
-    local water, ground, tornadoFx, templatesReady, nextTemplates, errorCount, lastError
+    local water, ground, trees, tornadoFx, templatesReady, nextTemplates, errorCount, lastError
     local sky, skyRetry, skyWritten, nextSkyWrite, baseSkyPlane, domeHidden
     local applied, view, nextView, nextWind, nextQuake, nextSkyAnim, nextPush
     local quake, nativeQuake, nextNative, missionQuakes
@@ -271,7 +272,7 @@ function Storm.Create(api)
             local ok, got = pcall(api.players)
             if ok and type(got) == "table" then
                 for _, p in ipairs(got) do
-                    if type(p) == "table" and finite(p.x) and finite(p.z) then list[#list + 1] = { x = p.x, z = p.z } end
+                    if (type(p) == "table" or type(p) == "userdata") and finite(p.x) and finite(p.z) then list[#list + 1] = { x = p.x, z = p.z } end
                 end
             end
         end
@@ -414,16 +415,22 @@ function Storm.Create(api)
     end
 
     -- Strikes -----------------------------------------------------------------------
-    local function startBolt(n, power, groundStrike)
+    local function boltPoint(n, anchor, l)
+        local near, far = lerp(150, 50, l * l), lerp(300, 170, l)
+        local a = hash(seed(), n, 1, 21) * 6.2831853
+        local d = near + (far - near) * hash(seed(), n, 2, 22)
+        local sx = clamp(anchor.x + cos(a) * d, bounds[1]+20, bounds[3]-20)
+        local sz = clamp(anchor.z + sin(a) * d, bounds[2]+20, bounds[4]-20)
+        return sx, terrain(sx, sz), sz
+    end
+
+    local function startBolt(n, power, groundStrike, bx, by, bz)
         flashAt, flashPower = clock, 0.5 + 0.5 * clamp(power, 0, 1)
         local l = lvl or 0
-        if groundStrike and view then
-            local near = lerp(150, 50, l * l)
-            local far = lerp(300, 170, l)
-            local a = hash(seed(), n, 1, 21) * 6.2831853
-            local d = near + (far - near) * hash(seed(), n, 2, 22)
-            local sx, sz = view.x + cos(a) * d, view.z + sin(a) * d
-            local gh = terrain(sx, sz)
+        if groundStrike and (view or (finite(bx) and finite(by) and finite(bz))) then
+            local sx, gh, sz = bx, by, bz
+            if not (finite(sx) and finite(gh) and finite(sz)) then sx, gh, sz = boltPoint(n, view, l) end
+            local d = view and sqrt((sx-view.x)^2+(sz-view.z)^2) or 300
             if gh then
                 local c = { 1.0, 0.80, 0.52 }
                 local drawn = false
@@ -449,13 +456,14 @@ function Storm.Create(api)
         sounds[#sounds + 1] = { at = clock + 0.4 + 2.2 * hash(seed(), n, 5, 30), file = list[1 + floor(hash(seed(), n, 6, 31) * #list)] }
     end
 
-    local function runStrokes()
+    local function runStrokes(authority)
         local keep = {}
         for _, s in ipairs(strokes) do
             if clock >= s.at then
                 if s.channel and GroundFX then pcall(GroundFX.BoltStroke) end
                 if s.first then
                     local pos = vec(s.x, s.y, s.z)
+                    if trees then trees.Strike(s.x, s.z, authority) end
                     if GroundFX then pcall(GroundFX.Event, "strike", pos) end
                     if type(MakeExplosion) == "function" then pcall(MakeExplosion, "xbgndyl", pos) end
                 end
@@ -536,7 +544,17 @@ function Storm.Create(api)
         if age >= state.nextBolt then
             state.boltN = state.boltN + 1
             local ground_ = rng:Float() >= P.dry and 1 or 0
-            send("bolt", state.boltN, floor((0.35 + 0.65 * P.level) * 100) / 100, ground_)
+            local bx, by, bz
+            if ground_ == 1 then
+                local list = anchors()
+                if #list > 0 then
+                    local anchor = list[1 + floor(hash(seed(), state.boltN, 10, 32) * #list)]
+                    bx, by, bz = boltPoint(state.boltN, anchor, P.level)
+                end
+            end
+            local power = floor((0.35 + 0.65 * P.level) * 100) / 100
+            if finite(by) then send("bolt", state.boltN, power, ground_, bx, by, bz)
+            else send("bolt", state.boltN, power, 0) end
             if state.burstUntil and age < state.burstUntil then
                 local bb = P.burstBolt or { 0.5, 1.1 }
                 state.nextBolt = age + rng:Range(bb[1], bb[2])
@@ -576,7 +594,7 @@ function Storm.Create(api)
     end
 
     -- Everyone: the picture ---------------------------------------------------------------
-    local function localTick(dt)
+    local function localTick(dt, authority)
         if applied ~= state.phase then enter(state.phase) end
         local P = profile(state.phase)
         lvl = lvl + (P.level - lvl) * (1 - math.exp(-dt / max(1, P.trans / 3)))
@@ -601,7 +619,7 @@ function Storm.Create(api)
         end
 
         updateQuake()
-        runStrokes()
+        runStrokes(authority)
         if tornadoFx and ensureTemplates() then tornadoFx.Update(dt, t, view, clock) end
         if water then water.Update(dt, lvl, P.wind or 1) end
         if api.vehicleWakes ~= false then pcall(Wake.Update, dt) end
@@ -670,6 +688,10 @@ function Storm.Create(api)
         groundMaterial = GROUND_MATERIAL
         if call("MaterialExists", GROUND_MATERIAL, "General") == false then groundMaterial = FALLBACK_GROUND end
         Foliage.Register(groundMaterial, { slot = "emissive" })
+        for _,m in ipairs({"CR17/ForestBranch1Wind","CR17/ForestBranch2Wind",
+            "CR17/CutoutCaster/ForestBranch1Wind","CR17/CutoutCaster/ForestBranch2Wind"}) do
+            Foliage.Register(m, {slot="emissive"})
+        end
         local points = {}
         for _, layer in ipairs(Sites.layers or {}) do
             for _, p in ipairs(layer.instances) do points[#points + 1] = p end
@@ -683,6 +705,8 @@ function Storm.Create(api)
             material = function() return groundMaterial end, sound = sound,
         }
         ground = Ground.Create(gctx)
+        trees = TreesFx.Create({exu=x})
+        state.trees = trees.Reset(state.trees)
         -- Water: baked pools, streams and the cascade, muddied by the storm level; its
         -- resolver also tells CRWake where a craft is over water and where over mud.
         water = WaterFx.Create({
@@ -765,7 +789,7 @@ function Storm.Create(api)
                 if not finite(a) or a <= state.seenBolt then return end
                 state.seenBolt = a
                 boltsSeen = boltsSeen + 1
-                startBolt(a, tonumber(b) or 0.5, c == 1)
+                startBolt(a, tonumber(b) or 0.5, c == 1, d, e2, f2)
             elseif kind == "quake" then
                 if not finite(a) or a <= state.seenQuake or not finite(b) or not finite(c) then return end
                 state.seenQuake = a
@@ -816,7 +840,8 @@ function Storm.Create(api)
                 local sent, serr = pcall(tick, out)
                 if not sent then fail(serr) end
             end
-            localTick(dt)
+            if trees then trees.Update(dt,authority,anchors,state.tornado) end
+            localTick(dt,authority)
             -- Every peer pulls the craft it owns toward the (replicated) funnel.
             if state.tornado and not profile(state.phase).safe and clock >= (nextPush or 0) then
                 nextPush = clock + T.PUSH_STEP
@@ -826,6 +851,8 @@ function Storm.Create(api)
         end)
         if not ok then fail(err) end
     end
+
+    function S.AddObject(h) if trees then trees.AddObject(h) end end
 
     -- Environment owns sensor writes; severity is the shared phase level, never
     -- local particle quality, geometry readiness or camera position.
@@ -857,6 +884,7 @@ function Storm.Create(api)
             error = lastError, templates = templatesReady or false, groundMaterial = groundMaterial,
             seed = state and state.seed or 0, foliage = Foliage.Describe and Foliage.Describe() or nil,
             groundError = g.lastError, water = water and water.Describe() or nil,
+            trees = trees and trees.Describe() or nil,
         }
     end
 

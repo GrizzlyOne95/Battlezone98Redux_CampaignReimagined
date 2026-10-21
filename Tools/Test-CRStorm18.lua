@@ -435,17 +435,18 @@ check(gd.phase == 7 and gd.seed == 777, "guest adopts phase and seed")
 check(gd.bolts == ld.bolts and gd.quakes == ld.quakes and gd.slides == ld.slides, "guest sees every strike, quake and slide")
 check(math.abs(ld.tornadoX - gd.tornadoX) < 3 and math.abs(ld.tornadoZ - gd.tornadoZ) < 3, "tornado agrees across peers")
 do
-    -- Same event, same geometry relative to each peer's own camera.
+    -- Ground strikes now name a shared world point, so lightning tree damage
+    -- corresponds to the channel every peer sees, even with different cameras.
     local mine, theirs = {}, {}
     for _, b in ipairs(groundfx.bolts) do (b.peer == lead and mine or theirs)[#(b.peer == lead and mine or theirs) + 1] = b end
     local n = math.min(#mine, #theirs, 20)
     local same = n > 5
     for i = 1, n do
-        local ox, oz = mine[i].x - lead.view.x, mine[i].z - lead.view.z
-        local gx, gz = theirs[i].x - g1.view.x, theirs[i].z - g1.view.z
+        local ox, oz = mine[i].x, mine[i].z
+        local gx, gz = theirs[i].x, theirs[i].z
         if math.abs(ox - gx) > 1e-6 or math.abs(oz - gz) > 1e-6 then same = false end
     end
-    check(same, "strikes land the same distance and bearing from each camera")
+    check(same, "ground strike world points agree across different cameras")
 end
 -- Late joiner: misses the log entirely, converges on the periodic resend.
 local late = newPeer("late", { view = { x = 1400, y = 100, z = 100000 } })
@@ -814,7 +815,7 @@ do
     run(60, p, {})
     check(next(systems) ~= nil and next(geo) ~= nil and next(lights) ~= nil, "storm has live resources before Stop")
     local reg = Foliage.Describe().materials
-    check(reg == 1, "scrub registered with the wind driver")
+    check(reg == 5, "scrub, fir canopies and shadow casters registered with wind")
     playersList = { { x = 1500, z = 100800 } }
     p.S.Stop()
     local sc = colours["CR18/StormSwirl"]
@@ -1021,8 +1022,29 @@ do
     p.S.Stop()
 end
 
+-- ===================================================================== tree strike ownership
+do
+    fresh()
+    local host, guest = newPeer("tree-host"), newPeer("tree-guest")
+    local p = require("CRStorm18TreesSites").sites[500].position
+    -- Initial service pass adopts the world before a first ground stroke.
+    stepPeer(host,.1,true,function(...) host.S.Apply(...) end)
+    stepPeer(guest,.1,false,function() error("guest sent") end)
+    for _, peer in ipairs({host,guest}) do
+        peer.S.Apply("bolt",1000000,1,1,p[1],p[2],p[3])
+    end
+    stepPeer(host,.1,true,function(...) host.S.Apply(...) end)
+    stepPeer(guest,.1,false,function() error("guest sent") end)
+    check(host.S.Describe().trees.lightning > 0, "first ground stroke destroys nearby authority tree sites")
+    check(guest.S.Describe().trees.lightning == 0, "guest lightning never applies tree destruction")
+    local before = host.S.Describe().trees.lightning
+    stepPeer(host,.5,true,function(...) host.S.Apply(...) end)
+    check(host.S.Describe().trees.lightning == before, "secondary strokes cannot destroy the same sites twice")
+    host.S.Stop();guest.S.Stop()
+end
+
 print = realPrint
-local sources = { "CRStorm18", "CRStorm18Water", "CRStorm18Tornado", "CRStorm18Ground", "CRStorm18Rng", "CRStorm18Sites" }
+local sources = { "CRStorm18", "CRStorm18Water", "CRStorm18Tornado", "CRStorm18Ground", "CRStorm18Rng", "CRStorm18Sites", "CRStorm18Trees", "CRStorm18TreesSites" }
 for _, n in ipairs(sources) do
     local src = readFile("Scripts/" .. n .. ".lua")
     check(loadstring(src, n) ~= nil, n .. " compiles under Lua 5.1")

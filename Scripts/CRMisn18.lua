@@ -1076,6 +1076,7 @@ function R.Start()
 end
 function R.AddObject(h)
     if Valid(h) then Environment.OnObjectCreated(h) end
+    StormCall("AddObject",h)
 end
 function R.CreatePlayer(id,name,team) CRCoop.CreatePlayer(id,name,team);ConfigureAlliances() end
 function R.AddPlayer(id,name,team) CRCoop.AddPlayer(id,name,team);ConfigureAlliances() end
