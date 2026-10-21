@@ -1397,6 +1397,7 @@ function Environment.Update(timestep)
     targetFog = ClampFogToHorizon(targetFog)
     local artFrame = WorldArt.Apply(Environment.ArtWorld, {ambient=targetAmbient,diffuse=targetDiffuse,specular=targetSpecular})
     targetAmbient,targetDiffuse,targetSpecular = artFrame.ambient,artFrame.diffuse,artFrame.specular
+    if Environment.ArtSkyOwned then WorldArt.UpdateSky(exu,Environment.ArtWorld) end
 
     -- -------------------------------------------------------------------------
     -- Lighting / fog writes

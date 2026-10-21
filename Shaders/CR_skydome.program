@@ -6,41 +6,55 @@
 // Ogre binds unified default_params only against delegates already parsed,
 // and an unbound wvpMat draws nothing.
 
-vertex_program CR_SkyDome_vertexHLSL4_art_9f87f24738 hlsl
+vertex_program CR_SkyDome_vertexHLSL4_art_13fed9209c hlsl
 {
     source CR_skydome-sm4.hlsl
     target vs_4_0
     entry_point skydome_vertex
 }
 
-vertex_program CR_SkyDome_vertexHLSL_art_f8d4e26ce5 hlsl
+vertex_program CR_SkyDome_vertexHLSL_art_5df07d27d8 hlsl
 {
     source CR_skydome.hlsl
     target vs_3_0
     entry_point skydome_vertex
 }
 
-vertex_program CR_SkyDome_vertexGLSL_art_d078ba3d09 glsl
+vertex_program CR_SkyDome_vertexGLSL_art_928edf9ccf glsl
 {
     source CR_skydome-vertex.glsl
     syntax glsl120
 }
 
-fragment_program CR_SkyDome_fragmentHLSL4_art_9f87f24738 hlsl
+fragment_program CR_SkyDome_fragmentHLSL4_art_ab4de90668 hlsl
 {
     source CR_skydome-sm4.hlsl
     target ps_4_0
     entry_point skydome_fragment
 }
 
-fragment_program CR_SkyDome_fragmentHLSL_art_f8d4e26ce5 hlsl
+fragment_program CR_WorldSky_fragmentHLSL4_art_327c8c8a66 hlsl
+{
+    source CR_skydome-sm4.hlsl
+    target ps_4_0
+    entry_point skydome_fragment
+    preprocessor_defines CR_WORLD_SKY=1
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto skyProfile surface_specular_colour
+        param_named fogAmbient float4 .35 .16 0 0
+    }
+}
+
+fragment_program CR_SkyDome_fragmentHLSL_art_f05ef638c7 hlsl
 {
     source CR_skydome.hlsl
     target ps_3_0
     entry_point skydome_fragment
 }
 
-fragment_program CR_SkyDome_fragmentGLSL_art_9f7a627f29 glsl
+fragment_program CR_SkyDome_fragmentGLSL_art_335131f02f glsl
 {
     source CR_skydome-fragment.glsl
     syntax glsl120
@@ -52,9 +66,9 @@ fragment_program CR_SkyDome_fragmentGLSL_art_9f7a627f29 glsl
 
 vertex_program CR_SkyDome_vertex unified
 {
-    delegate CR_SkyDome_vertexGLSL_art_d078ba3d09
-    delegate CR_SkyDome_vertexHLSL4_art_9f87f24738
-    delegate CR_SkyDome_vertexHLSL_art_f8d4e26ce5
+    delegate CR_SkyDome_vertexGLSL_art_928edf9ccf
+    delegate CR_SkyDome_vertexHLSL4_art_13fed9209c
+    delegate CR_SkyDome_vertexHLSL_art_5df07d27d8
     default_params
     {
         param_named_auto wvpMat worldviewproj_matrix
@@ -67,9 +81,22 @@ vertex_program CR_SkyDome_vertex unified
 
 fragment_program CR_SkyDome_fragment unified
 {
-    delegate CR_SkyDome_fragmentGLSL_art_9f7a627f29
-    delegate CR_SkyDome_fragmentHLSL4_art_9f87f24738
-    delegate CR_SkyDome_fragmentHLSL_art_f8d4e26ce5
+    delegate CR_SkyDome_fragmentGLSL_art_335131f02f
+    delegate CR_SkyDome_fragmentHLSL4_art_ab4de90668
+    delegate CR_SkyDome_fragmentHLSL_art_f05ef638c7
+    default_params
+    {
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named horizonBlend float4 0.015 0.14 1 0
+    }
+}
+
+fragment_program CR_WorldSky_fragment unified
+{
+    delegate CR_SkyDome_fragmentGLSL_art_335131f02f
+    delegate CR_WorldSky_fragmentHLSL4_art_327c8c8a66
+    delegate CR_SkyDome_fragmentHLSL_art_f05ef638c7
     default_params
     {
         param_named_auto fogColour fog_colour

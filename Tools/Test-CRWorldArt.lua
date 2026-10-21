@@ -22,7 +22,7 @@ local api={MaterialExists=function() return true end,
  GetSkyPlaneEnabled=function() return false end,
  GetSkyBoxEnabled=function() return false end,
  SetSkyDome=function(material,curvature,tiling,distance,drawFirst)
-  check(material=="CRSKYMA.MAP" and drawFirst==false,"haze draws after native sky with its owned material")
+  check(material=="CRSKYMA.MAP" and drawFirst==true,"owned sky draws behind scene geometry and transparent effects")
   draws=draws+1;return true
  end}
 check(not Art.InitializeSky(api,"moon") and draws==0,"airless world keeps stock sky")
@@ -37,4 +37,13 @@ check(not Art.InitializeSky({},"mars"),"missing optional renderer API preserves 
 api.MaterialExists=function() return true end
 api.GetSkyPlaneEnabled=function() error("unavailable") end
 check(not Art.InitializeSky(api,"mars") and draws==1,"failed ownership query preserves native sky")
+local profile,writes="enhanced",{}
+api.GetEffectiveRenderProfile=function() return profile end
+api.SetMaterialPassColors=function(name,colours)
+ writes[#writes+1]=colours.specular.r;return true
+end
+Art.UpdateSky(api,"mars");Art.UpdateSky(api,"mars")
+check(#writes==1 and writes[1]==1,"Enhanced sky calibration is applied once")
+profile="redux";Art.UpdateSky(api,"mars")
+check(#writes==2 and writes[2]==0,"Redux switches the sky back to native fog colour")
 print("World art lighting: "..count.." checks passed")

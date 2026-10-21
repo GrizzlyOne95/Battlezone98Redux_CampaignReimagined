@@ -7,12 +7,12 @@ material CRSKYVE.MAP
 			vertex_program_ref CR_SkyDome_vertex
 			{
 			}
-			fragment_program_ref CR_SkyDome_fragment
+			fragment_program_ref CR_WorldSky_fragment
 			{
 				param_named horizonBlend float4 .02 .35 1 0
 			}
 			lighting off
-			scene_blend replace
+			scene_blend one zero
 			depth_write off
 			texture_unit
 			{

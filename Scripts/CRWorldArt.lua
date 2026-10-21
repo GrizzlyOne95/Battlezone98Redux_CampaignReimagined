@@ -13,7 +13,21 @@ Art.Worlds = {
     elysium  = {ambient=1.04, diffuse=0.98, specular=0.90},
 }
 local stems={mn="moon",ma="mars",ve="venus",io="io",eu="europa",ti="titan",ga="ganymede",ac="achilles",el="elysium"}
-Art.Skies={mars="CRSKYMA.MAP",venus="CRSKYVE.MAP",titan="CRSKYTI.MAP",achilles="CRSKYAC.MAP"}
+Art.Skies={mars="CRSKYMA.MAP",venus="CRSKYVE.MAP",titan="CRSKYTI.MAP",achilles="CRSKYAC.MAP",elysium="CRSKYEL.MAP"}
+Art.SkyCalibration={}
+function Art.UpdateSky(api,world)
+    local material=Art.Skies[world]
+    if not material or type(api.GetEffectiveRenderProfile)~="function" or type(api.SetMaterialPassColors)~="function" then return end
+    local ok,profile=pcall(api.GetEffectiveRenderProfile)
+    if not ok or type(profile)~="string" then return end
+    local enhanced=profile:lower()=="enhanced"
+    if Art.SkyCalibration[material]==enhanced then return end
+    local accepted,result=pcall(api.SetMaterialPassColors,material,{specular={r=enhanced and 1 or 0,g=0,b=0,a=1}},0,0,"General")
+    if accepted and result==true then
+        Art.SkyCalibration[material]=enhanced
+        print("WorldArt: sky fog calibration -> "..profile:lower())
+    end
+end
 function Art.InitializeSky(api,world,mapName)
     -- The orbital film temporarily replaces the dome and restores its enabled
     -- state. Keep its original no-dome baseline intact.
@@ -28,10 +42,11 @@ function Art.InitializeSky(api,world,mapName)
     end
     local ok,exists=pcall(api.MaterialExists,material,"General")
     if not ok or not exists then return false end
-    -- Late rendering with far-plane depth preserves nearer terrain. Redux
+    -- Draw behind scene geometry/effects with far-plane depth. Redux
     -- suppresses its native sky when an Ogre sky is enabled, so this material
     -- must draw the original texture rather than a transparent haze alone.
-    local accepted,result=pcall(api.SetSkyDome,material,10,2,4000,false,32,16,-1,"General")
+    local accepted,result=pcall(api.SetSkyDome,material,10,8,4000,true,32,16,-1,"General")
+    if accepted and result==true then Art.UpdateSky(api,world) end
     return accepted and result==true
 end
 function Art.Detect(trn)

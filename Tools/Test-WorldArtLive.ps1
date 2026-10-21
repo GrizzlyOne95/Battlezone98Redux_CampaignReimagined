@@ -16,7 +16,7 @@ foreach($world in $Worlds){
  $arguments=@('-NoProfile','-ExecutionPolicy','Bypass','-File',"$PSScriptRoot\Test-MarsHdTerrainLive.ps1",'-OpenShimRepo',$OpenShimRepo,
               '-TileDirectory',$bundle,'-World',$world,'-Hd','-MicroRelief','-GroundView','-SettingsOnly','-MeasureMemory','-WorldArt','-SurfaceType',[string]$types[$world])
  if($world -eq 'achilles'){$arguments+='-CloudDeck'}
- if($world -in @('mars','venus','titan','achilles')){$arguments+='-WideView'}
+ if($world -in @('mars','venus','titan','achilles','elysium')){$arguments+='-WideView'}
  if($world -eq 'moon'){$arguments+=@('-DetailTexture',(Join-Path $bundle 'resources\crhd_moon_regolith_detail.dds'))}
  $previousErrorAction=$ErrorActionPreference
  try {

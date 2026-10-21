@@ -73,15 +73,15 @@ atmosphere writer; fog limits, day/night timing and sensor/gameplay effects are
 unchanged. Unknown worlds retain their existing light.
 
 `CRWorldArt.InitializeSky` supplies a dome using the original Mars, Venus,
-Titan or Achilles sky texture. TRNs remain unchanged. The dome smoothly blends
+Titan, Achilles or Elysium sky texture. TRNs remain unchanged. The dome smoothly blends
 its lower edge toward the current fog colour, retaining the texture above its
-editable elevation band. It renders late with depth testing and no depth writes,
-preserving nearer terrain. Missing EXU/materials or an existing authored Ogre
+editable elevation band. It renders first with depth testing and no depth writes,
+preserving scene geometry and transparent effects. Missing EXU/materials or an existing authored Ogre
 sky leave native rendering alone. Moon, Io, Europa
-and Ganymede retain airless silhouettes; Elysium retains its fictional
-atmospheric sky during this trial.
+and Ganymede retain airless silhouettes. Elysium keeps its fictional purple
+atmospheric palette.
 
-Mission 17's cloud deck renders late, pins depth just inside the far plane and
+Mission 17's cloud deck renders behind scene effects, pins depth just inside the far plane and
 fades into fog near the horizon. Its alpha approaches opaque fog at the low
 edge. The director recognizes Environment's owned baseline sky, so it can add
 storm clouds while preserving unrelated authored sky ownership. Weather domes
@@ -95,6 +95,14 @@ projected draw; generated face-local Y is not assumed to be world-up. Run
 `Tools/Update-WorldSkyProgramVersions.py` after shader edits: Ogre caches bytecode
 by program name, so source hashes version the delegates. SM4, SM3 and GLSL share
 the contract. No OpenShim renderer fork is introduced.
+
+The owned world-sky SM4 delegate also matches Enhanced's ambient haze colour:
+`fogAmbient` (`0.35`, `0.16`) in its program controls the ambient contribution
+in linear space before output encoding. Without this, fully fogged terrain was
+lighter than the plain sky fog and retained a straight colour seam. The delegate
+is separate from ordinary weather/space sky shaders. Its unlit specular pass
+colour carries the runtime profile flag; `CRWorldArt.UpdateSky` switches that
+flag when Enhanced/Redux/Retro changes. SM3/GLSL retain native fog colour.
 
 ## Review and validation
 
@@ -119,13 +127,13 @@ byte-for-byte. No new texture dimensions/slots are added, and only the active
 world's arrays are resident. Memory measurements must still come from the
 32-bit game; summed pack sizes are not process RAM.
 Four focused surface checks cover bounded palette changes, Ganymede hue
-retention, unchanged E and normal-slope sign. Lighting and sky ownership pass 46
+retention, unchanged E and normal-slope sign. Lighting and sky ownership pass 48
 checks. Existing atmosphere integration passes 93 checks and Mission 17 jungle
-logic passes 272. All eight changed HLSL sky vertex/fragment variants compile in
+logic passes 272. All nine HLSL sky vertex/fragment variants compile in
 SM3/SM4; owned program references resolve. Live evidence and visual findings
 are recorded as the per-world review completes.
 
-The shipping lock adds only four sky materials and the lighting data module.
+The shipping lock adds only five sky materials and the lighting data module.
 Existing sibling-supplied payloads were restored
 to this worktree before blessing, retaining their manifest hashes and all
 previous shipping members. This pass does not update native binaries, publish
@@ -138,20 +146,37 @@ world texture on the owned dome and inspect a fresh capture. Earlier flat-fog
 captures and those retaining the straight sky cutoff are rejected for horizon
 qualification, even when their HD terrain/restoration checks pass.
 
-The nine successful HD terrain/lighting checkpoints below have been visually
-inspected. They use different maps and do not isolate this pass's RAM overhead.
-All retain a largest free address-space block of approximately 2045 MiB in the
-32-bit process. Four atmospheric sky entries remain rejected for final horizon
-review because these earlier captures flattened too much of the cloud art.
+The nine HD terrain/lighting checkpoints below have been visually inspected.
+They use different maps and do not isolate this pass's RAM overhead. All retain
+a largest free address-space block of approximately 2045 MiB in the 32-bit
+process. The five atmospheric entries use the original sky art with ambient
+haze matching, superseding the rejected cutoff/flat-fog revisions.
 
 | World | Local TerrainHD evidence folder | Private MiB | Peak private MiB |
 | --- | --- | ---: | ---: |
 | Moon | run-20261020-214856 | 372.3 | 511.5 |
-| Mars | run-20261020-215401 | 447.1 | 618.2 |
-| Venus | run-20261020-215914 | 481.6 | 623.0 |
+| Mars | run-20261020-222723 | 449.6 | 629.1 |
+| Venus | run-20261020-223016 | 481.0 | 623.5 |
 | Io | run-20261020-193107 | 483.6 | 614.5 |
 | Europa | run-20261020-193200 | 483.1 | 642.8 |
-| Titan | run-20261020-220007 | 508.2 | 656.6 |
+| Titan | run-20261020-222630 | 501.6 | 655.7 |
 | Ganymede | run-20261020-214522 | 478.2 | 669.9 |
-| Achilles | run-20261020-215731 | 482.1 | 621.9 |
-| Elysium | run-20261020-214803 | 483.8 | 638.0 |
+| Achilles | run-20261020-222815 | 484.0 | 630.2 |
+| Elysium | run-20261020-223143 | 482.2 | 616.6 |
+
+The final separate world-sky delegate and all five material scripts load without
+owned compiler/material errors in `run-20261020-223143` (Elysium). Earlier
+calibration captures used the same opaque blend result via Ogre's default;
+the unsupported `replace` keyword was then corrected to `one zero`, and the
+harness now rejects these material errors explicitly. On Elysium, a former
+sky/terrain step from `(72,63,72)` to `(78,70,78)` becomes `(78,70,78)` on both
+sides of the measured join. Titan's former `(146,80,23)` to `(149,86,39)` step
+likewise matches `(149,86,39)` on both sides after calibration.
+
+`run-20261020-222756` validates a live Enhanced -> Redux -> Enhanced cycle:
+the sky calibration switches at the effective profile transitions, OpenShim
+restores the stock atlas, and HD arrays reinstall after Enhanced resumes.
+This is a transition/restoration check; timing-based snapshot filenames are not
+used for an isolated per-profile RAM comparison. All staged files restore.
+The duplicate final cycle trial queued behind a separate benchmark was
+cancelled before deployment; no game was stopped to make room.

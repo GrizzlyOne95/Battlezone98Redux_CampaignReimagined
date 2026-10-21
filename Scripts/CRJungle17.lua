@@ -164,7 +164,7 @@ function Jungle.Create(api)
         if clouds~="on" then
             if safe("MaterialExists",CLOUD,"General")==false then clouds="missing";return end
             local mat=CLOUD
-            local r=safe("SetSkyPlane",mat,{normal=SetVector(0,-1,0),d=1450},2400,2.2,false,0,8,8,"General")
+            local r=safe("SetSkyPlane",mat,{normal=SetVector(0,-1,0),d=1450},2400,2.2,true,0,8,8,"General")
             if r==false then clouds="failed";return end
             safe("SetSkyPlaneEnabled",true)
             clouds="on";J.cloudMaterial=mat

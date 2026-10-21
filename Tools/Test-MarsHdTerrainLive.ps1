@@ -160,7 +160,7 @@ try {
   $previewScripts += 'Materials\CR_sky_events.material'
   $previewScripts += @(Get-ChildItem "$cr\Shaders" -Filter 'CR_sky*' -File | ForEach-Object {'Shaders\'+$_.Name})
   if($WorldArt){
-   $previewScripts += @('Materials\crart_mars.material','Materials\crart_venus.material','Materials\crart_titan.material','Materials\crart_achilles.material')
+   $previewScripts += @(Get-ChildItem "$cr\Materials" -Filter 'crart_*.material' -File | ForEach-Object {'Materials\'+$_.Name})
    $previewScripts += @('Materials\cr17_cloud.material','Shaders\cr17_cloud.program','Shaders\cr17_cloud-sm4.hlsl','Shaders\cr17_cloud.hlsl','Shaders\cr17_cloud-vertex.glsl','Shaders\cr17_cloud-fragment.glsl')
   }
  }
@@ -245,6 +245,9 @@ function Start()
  package.loaded.RuntimeEnhancements={Initialize=function() end,Update=function() end,OnObjectCreated=function() end}
  artEnvironment=require('Environment')
  artEnvironment.Init({nativeBaseline=true,lightingMode='subtle',nightGameplay=false})
+ if require('CRWorldArt').Skies[artEnvironment.ArtWorld] then
+  assert(artEnvironment.ArtSkyOwned,'World sky baseline did not initialize')
+ end
  local trn=OpenODF(GetMapTRNFilename())
  local sky=GetODFString(trn,'Sky','SkyTexture','')
  print('[WORLD-ART] sky='..tostring(sky))
@@ -252,6 +255,8 @@ function Start()
   assert(package.loaded.exu.MaterialExists(string.upper(sky),'General'),'World sky material unavailable')
  end
  print('[WORLD-ART] haze='..tostring(artEnvironment.ArtSkyOwned))
+ local art=require('CRWorldArt')
+ print('[WORLD-ART] enhancedSky='..tostring(art.SkyCalibration[art.Skies[artEnvironment.ArtWorld]]))
  __CLOUD_DECK__
  print('[WORLD-ART] '..tostring(artEnvironment.ArtWorld)..' native palette / lighting active')
 end
@@ -260,7 +265,7 @@ function Update(dt)
  if artEnvironment then artEnvironment.Update(dt) end
 end
 '@
-  $cloudCode=if($CloudDeck){"assert(package.loaded.exu.SetSkyPlane('CR17/StormCloud',{normal=SetVector(0,-1,0),d=1450},2400,2.2,false,0,8,8,'General')~=false);package.loaded.exu.SetSkyPlaneEnabled(true)"}else{''}
+  $cloudCode=if($CloudDeck){"assert(package.loaded.exu.SetSkyPlane('CR17/StormCloud',{normal=SetVector(0,-1,0),d=1450},2400,2.2,true,0,8,8,'General')~=false);package.loaded.exu.SetSkyPlaneEnabled(true)"}else{''}
   $artDriver.Replace('__EXU_DLL__',$ExuDll).Replace('__ART_SCRIPTS__',"$game/addon").Replace('__CLOUD_DECK__',$cloudCode) | Add-Content "$game\addon\$mission.lua" -Encoding ASCII
  }
  if($ProfileCycle){
@@ -386,7 +391,7 @@ finally {
 if(-not (Test-Path -LiteralPath "$out\native.json")){throw "Native capture unavailable; inspect $out"}
 if($WorldArt){
  if(-not (Select-String -LiteralPath "$out\BZLogger.txt" -SimpleMatch "[WORLD-ART] $World native palette / lighting active")){throw 'World art lighting fixture did not initialize'}
- if(Select-String -LiteralPath "$out\BZOgreLogfile.log" -Pattern 'Compiler error:.*(?:CR_sky|CR_Horizon|cr17_cloud)'){throw 'Owned sky program failed to load'}
+ if(Select-String -LiteralPath "$out\BZOgreLogfile.log" -Pattern 'Compiler error:.*(?:CR_sky|CR_Horizon|cr17_cloud|crart_)'){throw 'Owned sky program or material failed to load'}
 }
 if(-not $Hd -and $BindCapture){
  & python "$cr\Tools\Build-MarsHdTileSources.py" --bind-existing --output $tiles --capture "$out\native.json" --atlas-csv "$tiles\native_layout.csv"

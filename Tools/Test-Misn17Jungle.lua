@@ -261,7 +261,7 @@ api.exu.GetSkyDomeEnabled=function() return true end
 modules.Environment.ArtSkyOwned=true
 sky.plane=nil
 J.Reset();J.Update(.1,true,send)
-check(sky.plane=="CR17/StormCloud" and sky.drawFirst==false,"owned haze permits a late storm deck over the native sky")
+check(sky.plane=="CR17/StormCloud" and sky.drawFirst==true,"owned baseline permits a storm deck behind scene effects")
 J.Stop()
 modules.Environment.ArtSkyOwned=false
 sky.plane=nil
