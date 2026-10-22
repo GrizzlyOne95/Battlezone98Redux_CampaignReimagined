@@ -1,0 +1,413 @@
+[
+  {
+    "file": "lme_normal.dds",
+    "master": "imported/lme_normal.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "e42b5723a0b7383cb8a9c8c40e18ab4d6218f2a4a314b885ecf1694a509b2b3c",
+    "aliases": [
+      "lme_normal.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "lme_cast_e.dds",
+    "master": "imported/lme_cast_e.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "751d7431174454833110cb21d3d19bb9c88a3a9de2d26d438a7bda654a5a83c0",
+    "aliases": [
+      "lme_cast_e.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "lme_cast_d.dds",
+    "master": "imported/lme_cast_d.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "d8fe5a523933a615ec3d2615bc4d0ea09f2cff0f2cb86f86ba4543fabf4b50dd",
+    "aliases": [
+      "lme_cast_d.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "lme_cast_s.dds",
+    "master": "imported/lme_cast_s.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "ccdb122f50ed493d073d606984dad608472de053b9e06d3332bf0f6784565123",
+    "aliases": [
+      "lme_cast_s.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "osp_cast_s.dds",
+    "master": "imported/osp_cast_s.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "53173f6470ad9b31dcfaaef7dc562997dad1c180afa34246e7882c11314213ef",
+    "aliases": [
+      "osp_cast_s.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "osp_cast_d.dds",
+    "master": "imported/osp_cast_d.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "cbecb5724f538cf7d775a44136f0da9e76ceff1c128badaf7f427ec0a5834083",
+    "aliases": [
+      "osp_cast_d.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "osp_cast_e.dds",
+    "master": "imported/osp_cast_e.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "dd245b18fa13ce6ffb2e33461de89c69b3171868e42355dc7c1ff76e05f1d1c1",
+    "aliases": [
+      "osp_cast_e.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "osp_normal.dds",
+    "master": "imported/osp_normal.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "125ef28f6511c00b348c374c75f61b069cf1e0d52289ce236d484ae955139ce4",
+    "aliases": [
+      "osp_normal.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "trld_d.dds",
+    "master": "imported/trld_d.png",
+    "size": [
+      256,
+      256
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "c55807203ccc4e4586b6400428bcd866fb513a16f50c7338d2750c26e6ebe29e",
+    "aliases": [
+      "trld_d.dds"
+    ],
+    "preserveBytes": true
+  },
+  {
+    "file": "ohp_dark_e.dds",
+    "master": "imported/ohp_dark_e.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "4a80f7e0edf69b8df10953cf675bf627b163215a6a830bf4f074c87964bab68d",
+    "aliases": [
+      "ohp_dark_e.dds",
+      "ohp_metal_e.dds",
+      "ohp_edge_e.dds",
+      "oth_metal_e.dds",
+      "oth_dark_e.dds",
+      "oth_edge_e.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "ohp_screen_e.dds",
+    "master": "imported/ohp_screen_e.png",
+    "size": [
+      768,
+      256
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "28e1ecf212017404e1c359eff82e83c6b6520e2ea55aa6807485ba4d059b9cc1",
+    "aliases": [
+      "ohp_screen_e.dds",
+      "ohp_screen_d.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "ohp_amber_s.dds",
+    "master": "imported/ohp_amber_s.png",
+    "size": [
+      64,
+      64
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "ef2684a076add6aa7bfce03d84deac3314d161f770bfcab6c2e18c96f3aef3cf",
+    "aliases": [
+      "ohp_amber_s.dds",
+      "ohp_screen_s.dds",
+      "oth_screen_s.dds",
+      "oth_amber_s.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "ohp_src_d.dds",
+    "master": "imported/ohp_src_d.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "6a76b0dfd0353fcf6ac5ae3a4760b380ee90398475a2b9614257bbe3f656d35d",
+    "aliases": [
+      "ohp_src_d.dds",
+      "ohp_metal_d.dds",
+      "ohp_edge_d.dds",
+      "ohp_dark_d.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "ohp_glass_d.dds",
+    "master": "imported/ohp_glass_d.png",
+    "size": [
+      64,
+      64
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "37fb2a3f9af221fba5d2c1d7cb8b42fd0bc6121cd85b070495c3b40f222bc3d4",
+    "aliases": [
+      "ohp_glass_d.dds",
+      "oth_glass_d.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "ohp_amber_e.dds",
+    "master": "imported/ohp_amber_e.png",
+    "size": [
+      64,
+      64
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "740c85962fbfb6aa2a2b8728998e1d288181b9992b5dbf10bf3c5e2554c95d0b",
+    "aliases": [
+      "ohp_amber_e.dds",
+      "ohp_amber_d.dds",
+      "oth_amber_d.dds",
+      "oth_amber_e.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "ohp_screen_n.dds",
+    "master": "imported/ohp_screen_n.png",
+    "size": [
+      64,
+      64
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "5ce70f99c844aca1f2c1110e6bf3093f747748e933e8ee683922e8efecfc05e0",
+    "aliases": [
+      "ohp_screen_n.dds",
+      "ohp_glass_n.dds",
+      "ohp_canopy_n.dds",
+      "ohp_amber_n.dds",
+      "oth_screen_n.dds",
+      "oth_amber_n.dds",
+      "oth_canopy_n.dds",
+      "oth_glass_n.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "ohp_dark_n.dds",
+    "master": "imported/ohp_dark_n.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "bfa8014beb9b5745bd01e569bb3baaf83a48ca7070886d68e680f324b2cf0a84",
+    "aliases": [
+      "ohp_dark_n.dds",
+      "ohp_edge_n.dds",
+      "ohp_metal_n.dds",
+      "oth_dark_n.dds",
+      "oth_metal_n.dds",
+      "oth_edge_n.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "ohp_src_s.dds",
+    "master": "imported/ohp_src_s.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "f5cff456bde99c42a5dec46274af95157750a24636e2be5eba425b4bd3d1ca75",
+    "aliases": [
+      "ohp_src_s.dds",
+      "ohp_edge_s.dds",
+      "ohp_dark_s.dds",
+      "ohp_metal_s.dds",
+      "oth_src_s.dds",
+      "oth_dark_s.dds",
+      "oth_metal_s.dds",
+      "oth_edge_s.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "ohp_src_n.dds",
+    "master": "imported/ohp_src_n.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "77ff2fc8235ee4df4765fc2b79f82780e5020baa3661b9d19cd54bbf08bd3291",
+    "aliases": [
+      "ohp_src_n.dds",
+      "oth_src_n.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "ohp_canopy_e.dds",
+    "master": "imported/ohp_canopy_e.png",
+    "size": [
+      64,
+      64
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "7ee0064f5fe6e8730fb0345a7382ccb47201dd4e5f02aacdaae3aa3bbcc3c96a",
+    "aliases": [
+      "ohp_canopy_e.dds",
+      "ohp_glass_e.dds",
+      "oth_glass_e.dds",
+      "oth_canopy_e.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "ohp_src_e.dds",
+    "master": "imported/ohp_src_e.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "5b0562c37101a44bdb885962857ae0151f78223e821e51efa01fac812e026578",
+    "aliases": [
+      "ohp_src_e.dds",
+      "oth_src_e.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "ohp_canopy_d.dds",
+    "master": "imported/ohp_canopy_d.png",
+    "size": [
+      256,
+      256
+    ],
+    "format": "BC3_UNORM",
+    "sourceSha256": "122422ae62afe32b967ba6a5bb14be2018179ff8e2f36bb98fbffd2ca0b43932",
+    "aliases": [
+      "ohp_canopy_d.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "ohp_glass_s.dds",
+    "master": "imported/ohp_glass_s.png",
+    "size": [
+      64,
+      64
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "fc3f21b0ebdaf305d865f3ad8daa23a218a3c8f04bd6a1c55ea713468c1f9608",
+    "aliases": [
+      "ohp_glass_s.dds",
+      "ohp_canopy_s.dds",
+      "oth_glass_s.dds",
+      "oth_canopy_s.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "oth_src_d.dds",
+    "master": "imported/oth_src_d.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "6d9b0e445152cd9a89b0151cef6329b12ecc330a712ace2b8d3d562345ff4399",
+    "aliases": [
+      "oth_src_d.dds",
+      "oth_dark_d.dds",
+      "oth_metal_d.dds",
+      "oth_edge_d.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "oth_screen_e.dds",
+    "master": "imported/oth_screen_e.png",
+    "size": [
+      768,
+      256
+    ],
+    "format": "BC1_UNORM",
+    "sourceSha256": "9ccb493ea7c472298d2f62b66982b03db6754a20ed612c780fe12763bc0d6f61",
+    "aliases": [
+      "oth_screen_e.dds",
+      "oth_screen_d.dds"
+    ],
+    "preserveBytes": false
+  },
+  {
+    "file": "oth_canopy_d.dds",
+    "master": "imported/oth_canopy_d.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "format": "BC3_UNORM",
+    "sourceSha256": "7a01df29fffa71d6039111aae9132802b76bd34b58d1e31e4d0d60a3575562db",
+    "aliases": [
+      "oth_canopy_d.dds"
+    ],
+    "preserveBytes": false
+  }
+]

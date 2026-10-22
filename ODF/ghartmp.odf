@@ -1,0 +1,22 @@
+[WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored mortar: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_mortar.mesh"
+flashMaterial = "CR/Muzzle/mortar"
+flashDuration = 0.12
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+classLabel = "mortar"
+ordName = "grenade"
+wpnName = "Howitzer"
+fireSound = "ghart00.wav"
+wpnReticle = "gmortar"
+wpnLadder = "gmortar.L0"
+wpnPriority = 0
+wpnCategory = "MORT"
+
+[CannonClass]
+shotDelay = 2.0

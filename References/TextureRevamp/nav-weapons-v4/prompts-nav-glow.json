@@ -1,0 +1,10 @@
+[
+  {
+    "code": "bd",
+    "prompt": "Use case: precise-object-edit. Image 1: edit target, a UV-locked nav beacon texture atlas. Change ONLY the colored glass of the two circular lamps near bottom left at UV centers (.084,.915),(.205,.915), radius .043. Make ALL existing luminous glass saturated signal RED; keep the existing three slash shapes, sockets, hardware and every pixel outside the two lamp glasses unchanged. Preserve exact atlas layout, flat projection, all metal, faction insignia and hazard stripes. No new lights, bloom, text, perspective or rendering. This is a color-only UV texture edit."
+  },
+  {
+    "code": "cr",
+    "prompt": "Use case: precise-object-edit. Image 1: edit target, a UV-locked nav beacon texture atlas. Change ONLY the colored glass of the two circular lamps near bottom left at UV centers (.084,.915),(.205,.915), radius .043. Make ALL existing luminous glass bright LIME green; keep the existing ring and center-dot shapes, sockets, hardware and every pixel outside the two lamp glasses unchanged. Preserve exact atlas layout, flat projection, all metal, faction insignia and hazard stripes. No new lights, bloom, text, perspective or rendering. This is a color-only UV texture edit."
+  }
+]

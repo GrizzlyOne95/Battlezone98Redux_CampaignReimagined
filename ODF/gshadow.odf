@@ -1,0 +1,31 @@
+[WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored rocket: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_rocket.mesh"
+flashMaterial = "CR/Muzzle/rocket"
+flashDuration = 0.1
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+classLabel = "imagelauncher"
+ordName = "imagemsl"
+wpnName = "Shadower"
+fireSound = "gsand00.wav"
+wpnReticle = "gshadow.0"
+wpnPriority = 2
+wpnCategory = "ROCK"
+
+[LauncherClass]
+lockRange = 150.0
+shotDelay = 1.0
+lockDelay = 1.0
+lockingReticle = "gshadow.A"
+lockingSound = "locking2.wav"
+lockedReticle = "gshadow.B"
+lockedSound = "locked2.wav"
+targetCount = 3
+targetReticle01 = "gshadow.1"
+targetReticle02 = "gshadow.2"
+targetReticle03 = "gshadow.3"

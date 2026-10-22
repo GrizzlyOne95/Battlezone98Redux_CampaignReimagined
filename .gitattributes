@@ -55,3 +55,7 @@ Scripts/misn17.lua whitespace=-blank-at-eol,-space-before-tab
 Assets/Audio/*.wav binary
 # The owner-selected standalone fighter port is a byte-pinned source asset.
 References/FuryFighter/original/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+# Byte-pinned stock pickup and existing-menu snapshots must survive Git checkout.
+References/TextureRevamp/nav-pickups/original/*.odf -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
+References/TextureRevamp/nav-pickups/menus/*.odf -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
+References/TextureRevamp/integration/original/*.odf -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol

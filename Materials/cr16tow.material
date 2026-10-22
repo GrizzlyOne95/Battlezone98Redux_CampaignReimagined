@@ -3,9 +3,9 @@ import * from "CR_BZBase.material"
 material cr16tow : CR_BZBase
 {
     set_texture_alias DiffuseMap cr16tow_d.dds
-    set_texture_alias NormalMap flat_N.dds
-    set_texture_alias SpecularMap sbtowe_S.dds
-    set_texture_alias EmissiveMap sbtowe_e.dds
+    set_texture_alias NormalMap cr16tow_n.dds
+    set_texture_alias SpecularMap cr16tow_s.dds
+    set_texture_alias EmissiveMap cr16tow_e.dds
     set $diffuse "1 1 1"
     set $ambient "1 1 1"
     set $specular ".7 .7 .7"

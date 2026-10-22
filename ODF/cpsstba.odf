@@ -1,6 +1,6 @@
 [GameObjectClass] // Cupric Stabber powerup.
 classLabel = "wpnpower"
-baseName = "apcann"
+baseName = "cpcann"
 scrapCost = 6
 scrapValue = 0
 maxHealth = 150

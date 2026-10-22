@@ -1,0 +1,2854 @@
+{
+  "schema": 1,
+  "aliases": {
+    "apcamr": {
+      "source": "crnvns",
+      "kind": "pickup",
+      "faction": "ns",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "apammo": {
+      "source": "cramns",
+      "kind": "pickup",
+      "faction": "ns",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "aprepa": {
+      "source": "crhpns",
+      "kind": "pickup",
+      "faction": "ns",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "apcann": {
+      "source": "crwcns",
+      "kind": "pickup",
+      "faction": "ns",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "aprock": {
+      "source": "crwrns",
+      "kind": "pickup",
+      "faction": "ns",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "apmort": {
+      "source": "crwmns",
+      "kind": "pickup",
+      "faction": "ns",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "apspec": {
+      "source": "crwsns",
+      "kind": "pickup",
+      "faction": "ns",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "abstor": {
+      "source": "crstns",
+      "kind": "storage",
+      "faction": "ns",
+      "extensions": [
+        "mesh",
+        "sdf",
+        "skeleton"
+      ]
+    },
+    "bpcamr": {
+      "source": "crnvbd",
+      "kind": "pickup",
+      "faction": "bd",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "bpammo": {
+      "source": "crambd",
+      "kind": "pickup",
+      "faction": "bd",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "bprepa": {
+      "source": "crhpbd",
+      "kind": "pickup",
+      "faction": "bd",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "bpcann": {
+      "source": "crwcbd",
+      "kind": "pickup",
+      "faction": "bd",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "bprock": {
+      "source": "crwrbd",
+      "kind": "pickup",
+      "faction": "bd",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "bpmort": {
+      "source": "crwmbd",
+      "kind": "pickup",
+      "faction": "bd",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "bpspec": {
+      "source": "crwsbd",
+      "kind": "pickup",
+      "faction": "bd",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "bbstor": {
+      "source": "crstbd",
+      "kind": "storage",
+      "faction": "bd",
+      "extensions": [
+        "mesh",
+        "sdf",
+        "skeleton"
+      ]
+    },
+    "spcamr": {
+      "source": "crnvcc",
+      "kind": "pickup",
+      "faction": "cc",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "spammo": {
+      "source": "cramcc",
+      "kind": "pickup",
+      "faction": "cc",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "sprepa": {
+      "source": "crhpcc",
+      "kind": "pickup",
+      "faction": "cc",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "spcann": {
+      "source": "crwccc",
+      "kind": "pickup",
+      "faction": "cc",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "sprock": {
+      "source": "crwrcc",
+      "kind": "pickup",
+      "faction": "cc",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "spmort": {
+      "source": "crwmcc",
+      "kind": "pickup",
+      "faction": "cc",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "spspec": {
+      "source": "crwscc",
+      "kind": "pickup",
+      "faction": "cc",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "sbstor": {
+      "source": "crstcc",
+      "kind": "storage",
+      "faction": "cc",
+      "extensions": [
+        "mesh",
+        "sdf",
+        "skeleton"
+      ]
+    },
+    "cpcamr": {
+      "source": "crnvcr",
+      "kind": "pickup",
+      "faction": "cr",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "cpammo": {
+      "source": "cramcr",
+      "kind": "pickup",
+      "faction": "cr",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "cprepa": {
+      "source": "crhpcr",
+      "kind": "pickup",
+      "faction": "cr",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "cpcann": {
+      "source": "crwccr",
+      "kind": "pickup",
+      "faction": "cr",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "cprock": {
+      "source": "crwrcr",
+      "kind": "pickup",
+      "faction": "cr",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "cpmort": {
+      "source": "crwmcr",
+      "kind": "pickup",
+      "faction": "cr",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "cpspec": {
+      "source": "crwscr",
+      "kind": "pickup",
+      "faction": "cr",
+      "extensions": [
+        "mesh",
+        "vdf",
+        "skeleton"
+      ]
+    },
+    "cbstor": {
+      "source": "crstcr",
+      "kind": "storage",
+      "faction": "cr",
+      "extensions": [
+        "mesh",
+        "sdf",
+        "skeleton"
+      ]
+    }
+  },
+  "odfs": {
+    "apammo.odf": {
+      "model": "apammo",
+      "faction": "ns",
+      "sourceSha256": "3964d932c1d77b643d27f9d8238f8886d0261f26504d093066e60ed452c9fab9",
+      "created": false,
+      "template": null
+    },
+    "apammoa.odf": {
+      "model": "apammo",
+      "faction": "ns",
+      "sourceSha256": "470911431bd587eb650fb3449649ffcff03667796be6db8914fabb7fc75f6dd9",
+      "created": false,
+      "template": null
+    },
+    "apammob.odf": {
+      "model": "apammo",
+      "faction": "ns",
+      "sourceSha256": "da621dd8a3e1eaef1d5ac57c2832ac8c3edfc125e4f17d5106ac350b4fb69d93",
+      "created": false,
+      "template": null
+    },
+    "apartl.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "47c2bbd92d65bcc3c3c5e2c58743b6345177589ae912c3074ca34f5e7613df0c",
+      "created": false,
+      "template": null
+    },
+    "apbase.odf": {
+      "model": "apcamr",
+      "faction": "ns",
+      "sourceSha256": "a925c3014e45bda8ef2f5fe9d8d85480ce4a7602dfa0ee8afa2cf1df3abdc36b",
+      "created": false,
+      "template": null
+    },
+    "apblst.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "2558fa862fbb4a28475dcf5a8e418f4d8202a1ff50a813c0e52b125db64a0e0b",
+      "created": false,
+      "template": null
+    },
+    "apblstb.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "4ad670050724e939a46858ebd639a44311d7a2917498af7154f1d507421b437f",
+      "created": false,
+      "template": null
+    },
+    "apblstg.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "caf929e152a415e976392e33bf6cf0926e529ba11c37ae9a3e2c8cdb4ae39f68",
+      "created": false,
+      "template": null
+    },
+    "apbltm.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "980f329be686e70a853ed27f44b6a3a2eabdcbed5096149eb5291308dfa884d9",
+      "created": false,
+      "template": null
+    },
+    "apbltmg.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "6673025ab237db7d2f5afbef6a785d26ef7cbbb242cab5c1e337c076f036cc80",
+      "created": false,
+      "template": null
+    },
+    "apbltmr.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "96a4e0af12fb13d8784dd3373c9418ad44e9cfcbd02d8c84683c5fffa16f2176",
+      "created": false,
+      "template": null
+    },
+    "apbolt.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "c59f466354b9fcf4fe7a79574633141e2071c23fa0a841733e4b2b4b69c3cb95",
+      "created": false,
+      "template": null
+    },
+    "apboltg.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "274a09bfa5a91ea138053d7b866903bd6e5c5cc6e5cbdf4c5affe92a05273a9f",
+      "created": false,
+      "template": null
+    },
+    "apboltr.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "ba8266203ad957b611196ec4027cbae053c2102be69bf2a2d03d292dc1d00387",
+      "created": false,
+      "template": null
+    },
+    "apbsstb.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "a7812040968d3a2435ab4dfa7a6a8ce5b74b5ca45f1bd5003fd8fb1f34bffec7",
+      "created": false,
+      "template": null
+    },
+    "apcamr.odf": {
+      "model": "apcamr",
+      "faction": "ns",
+      "sourceSha256": "85949b7f62d379332e0895a6cef567607ee5479fa7c1681f397ddf42a0c535cf",
+      "created": false,
+      "template": null
+    },
+    "apcmet.odf": {
+      "model": "aprock",
+      "faction": "ns",
+      "sourceSha256": "df12706422fcc059383803f865f121497e127d9079fec2fcb64dfde632793bc8",
+      "created": false,
+      "template": null
+    },
+    "apdecoy.odf": {
+      "model": "apcamr",
+      "faction": "ns",
+      "sourceSha256": "fe9f5762ebbebf98655514de5cc0b7a3592f935832b51aa437bee80a227208da",
+      "created": false,
+      "template": null
+    },
+    "apdrop.odf": {
+      "model": "apcamr",
+      "faction": "ns",
+      "sourceSha256": "36444698e8e02d724079375510dd302d2eeb19569ab2ec32293b6d92cac88891",
+      "created": false,
+      "template": null
+    },
+    "apflar.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "d6caffdf316cf15979fc5f223939b0c2b572a0567d13b5583a9973473e1a8bfc",
+      "created": false,
+      "template": null
+    },
+    "apflsh.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "6ffa91e5f9f867aa868dc19ddec8dbc815f934e4193f3a182ffd22ca7964067e",
+      "created": false,
+      "template": null
+    },
+    "apflshb.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "2ee4f6444282ddb1b5170fe06295dbe0763c54ff189c5f05aebc01411567b68d",
+      "created": false,
+      "template": null
+    },
+    "apflshg.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "a71cc7b5ec59bfa05c9aeb0dd3f5b7d0cbab2b0155b2d2c75b961f9b279e1d67",
+      "created": false,
+      "template": null
+    },
+    "apgmini.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "d55fd7f7da6429f8031ffd7cb2d63ad060973d591950ab418445780fc6f5472a",
+      "created": false,
+      "template": null
+    },
+    "aphartl.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "aba44915773fe37f218c6ed0cb7630e2b7b2a9ef78b4f4a67a97c88f3bb1b07d",
+      "created": false,
+      "template": null
+    },
+    "aphorn.odf": {
+      "model": "aprock",
+      "faction": "ns",
+      "sourceSha256": "4b7a3a664bb85f4cbbb217787872618104a62099e391c888a0c776f5a891fa06",
+      "created": false,
+      "template": null
+    },
+    "aplgmsl.odf": {
+      "model": "aprock",
+      "faction": "ns",
+      "sourceSha256": "b7cd7b7b8cd7479051b1db140660e3612ebbaf9658957e970f1a51eb8290ca79",
+      "created": false,
+      "template": null
+    },
+    "apmagg.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "9edee9edd361f066d06fc9e68c4061ad6ba465468e8f3164c4c84fef439f587d",
+      "created": false,
+      "template": null
+    },
+    "apmasg.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "59cc9e4fb09c25ff46ef032f0390e32a7c55d2eceb7f8b91f2ac90b3eb34e6de",
+      "created": false,
+      "template": null
+    },
+    "apmcur.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "0e930557470e724b507501f976b20165eba3f64fe75cc150f08cc542003ba6fe",
+      "created": false,
+      "template": null
+    },
+    "apmdmg.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "0d0b883e779b3a61b148656cfb155cd306c397b2aea970768696934e9e30b719",
+      "created": false,
+      "template": null
+    },
+    "apmini.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "286652224cd5abf79986a579b507004b1221cf124eb564fa9d6e7fc3e822ca2e",
+      "created": false,
+      "template": null
+    },
+    "apmits.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "1b18b296f219fa84c0cbec966bd3a7b707ed1241a0cd212cdb7c20e4f8f1b55c",
+      "created": false,
+      "template": null
+    },
+    "apmort.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "15ff380af4ebeb65d7853e1af3b9404dd6ec9a5fab202221335ddc161fc6bbc6",
+      "created": false,
+      "template": null
+    },
+    "apphan.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "742549f6d359b28594b29d026b5b03a56bb101c38c3621efd7138eede233011f",
+      "created": false,
+      "template": null
+    },
+    "appopg.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "6f98762cbd8553acc644ef9e17b3db9139d4c2f485c1d130f83b887d65de286f",
+      "created": false,
+      "template": null
+    },
+    "approx.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "67cf97f421920e7849bc6d7f614c08c8b9e5441ff9ff5e32f65b1e110744be68",
+      "created": false,
+      "template": null
+    },
+    "apredf.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "b10dab8e6fda7f8e3b506c78336f3b632938b1787dc87f8d94b6154308700859",
+      "created": false,
+      "template": null
+    },
+    "aprepa.odf": {
+      "model": "aprepa",
+      "faction": "ns",
+      "sourceSha256": "cbfeb23c051815e0fe4a7d1d2afb1f804e89ec6a833ee1d9ecc56bff3e154cb1",
+      "created": false,
+      "template": null
+    },
+    "aprepaa.odf": {
+      "model": "aprepa",
+      "faction": "ns",
+      "sourceSha256": "bde9704c6b87b0cc014bd6882407d415c1d6c40128dba8fd917803617e5679d6",
+      "created": false,
+      "template": null
+    },
+    "aprepab.odf": {
+      "model": "aprepa",
+      "faction": "ns",
+      "sourceSha256": "4dcc9d92d0bddd3c0e0cb965cb175c27c0ea7eb7c5bfd2b78c84a586b26c55ff",
+      "created": false,
+      "template": null
+    },
+    "aprktb.odf": {
+      "model": "aprock",
+      "faction": "ns",
+      "sourceSha256": "9a75d27c725d3646eff33826594cf7f90573ee42a1802a58dcd137fa5aae87ee",
+      "created": false,
+      "template": null
+    },
+    "apsand.odf": {
+      "model": "aprock",
+      "faction": "ns",
+      "sourceSha256": "00e14ea2e90ee3d27b8882e8f1cb1151babb449d353b9d9840470e725e210d5c",
+      "created": false,
+      "template": null
+    },
+    "apscrap.odf": {
+      "model": "apcamr",
+      "faction": "ns",
+      "sourceSha256": "4e5b77820aa344412a8655a6049e180ace0d78c117db44d6753dbe8ec4eab6e2",
+      "created": false,
+      "template": null
+    },
+    "apshdw.odf": {
+      "model": "aprock",
+      "faction": "ns",
+      "sourceSha256": "2bf87ca9e7cce5fa410ceeb80fa4410a69bb0413058400c9557d033170000eb9",
+      "created": false,
+      "template": null
+    },
+    "apsite.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "789d6856d417372fdd8a12cb3dbe4a88dfa6078fe34b7c7cac86d030beddea29",
+      "created": false,
+      "template": null
+    },
+    "apspln.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "c78d8bcdf7139755fec11c2851e8fe864b76160fe19db446ca17cd78e74f304d",
+      "created": false,
+      "template": null
+    },
+    "apsplng.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "4f1de05b0733ce502110c903598d02ed09882221a15639b47f743ae1428ada0a",
+      "created": false,
+      "template": null
+    },
+    "apsplnr.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "74c067c5c42e60a91f5683795e3f6ef0dfc79d12abf60d82eed14201d81db900",
+      "created": false,
+      "template": null
+    },
+    "apsstb.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "0f207f04afc0adacd2d9a32e8f7bb4f900effb2fe8d8ad4049a4e3e8275d5700",
+      "created": false,
+      "template": null
+    },
+    "apsstba.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "412f43c57f945ee06414e895768d0fc2175c090414165e3763dc10b79685d5aa",
+      "created": false,
+      "template": null
+    },
+    "apstab.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "2080f9e14d1f37c7c52054c1e84204552d1f51ae5d59cf485e63b9830f61b72f",
+      "created": false,
+      "template": null
+    },
+    "aptagg.odf": {
+      "model": "aprock",
+      "faction": "ns",
+      "sourceSha256": "47828d3e44e761edbd5d128b3d362dacf0cb54bf9f76a8742334b6e8e46d8b29",
+      "created": false,
+      "template": null
+    },
+    "aptech.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "ea61ddeac78b467a692ad924d37142a4ddb356529a5ee7cfb21471064ecc7489",
+      "created": false,
+      "template": null
+    },
+    "apthmp.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "671ec6dc63a3a3b44fa5f8511174b2bd7d83acc7fea18a8ba50bc56e42cc8011",
+      "created": false,
+      "template": null
+    },
+    "aptsmok.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "f29c2bbb1d699cd97bc633e3b23eb252c3c2183bfccc0959783997ff330845cf",
+      "created": false,
+      "template": null
+    },
+    "cpcamr.odf": {
+      "model": "cpcamr",
+      "faction": "cr",
+      "sourceSha256": "85949b7f62d379332e0895a6cef567607ee5479fa7c1681f397ddf42a0c535cf",
+      "created": false,
+      "template": null
+    },
+    "cpsstb.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "4fb2390616a62ce5e4bff4dc8cd3cbe2ee330fe467153c80d327345ca8192203",
+      "created": false,
+      "template": null
+    },
+    "cpsstba.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "2764d946b1c6d1a6b66c3706a9f9a1ffc16511622d57dec0da48ca56b3168bf6",
+      "created": false,
+      "template": null
+    },
+    "cptesla.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "6198840a1490a9be4c1c67a7d78be3ef9f62a137087c9ae49bd7e2f3323648cf",
+      "created": false,
+      "template": null
+    },
+    "spammo.odf": {
+      "model": "spammo",
+      "faction": "cc",
+      "sourceSha256": "38b704dca624d3192dafdad77af40a966758cc1d83a5426eb30470698d3229b9",
+      "created": false,
+      "template": null
+    },
+    "spartl.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "47c2bbd92d65bcc3c3c5e2c58743b6345177589ae912c3074ca34f5e7613df0c",
+      "created": false,
+      "template": null
+    },
+    "spbett.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "eccf923f311cd416f6ba26b1c3fb67c60afb8866c62fa24e460f92da421b9063",
+      "created": false,
+      "template": null
+    },
+    "spblst.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "2558fa862fbb4a28475dcf5a8e418f4d8202a1ff50a813c0e52b125db64a0e0b",
+      "created": false,
+      "template": null
+    },
+    "spbolt.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "c59f466354b9fcf4fe7a79574633141e2071c23fa0a841733e4b2b4b69c3cb95",
+      "created": false,
+      "template": null
+    },
+    "spcamr.odf": {
+      "model": "spcamr",
+      "faction": "cc",
+      "sourceSha256": "85949b7f62d379332e0895a6cef567607ee5479fa7c1681f397ddf42a0c535cf",
+      "created": false,
+      "template": null
+    },
+    "spcmet.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "df12706422fcc059383803f865f121497e127d9079fec2fcb64dfde632793bc8",
+      "created": false,
+      "template": null
+    },
+    "spflar.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "d6caffdf316cf15979fc5f223939b0c2b572a0567d13b5583a9973473e1a8bfc",
+      "created": false,
+      "template": null
+    },
+    "spflsh.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "6ffa91e5f9f867aa868dc19ddec8dbc815f934e4193f3a182ffd22ca7964067e",
+      "created": false,
+      "template": null
+    },
+    "sphorn.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "5f3bfafea33b6e272e11f184a358f91a2425e55b1462d4c9b1451a7272b4658f",
+      "created": false,
+      "template": null
+    },
+    "sphunt.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "aef28d06332c378dc0238adbeb5ebb615c81289011a313ae4dac690f0f6d3ae6",
+      "created": false,
+      "template": null
+    },
+    "spmagg.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "9295be40b9d110fff5ba5925f556d7dd2c6f8b7568c68ee6bf2219bc2e5044a4",
+      "created": false,
+      "template": null
+    },
+    "spmasg.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "59cc9e4fb09c25ff46ef032f0390e32a7c55d2eceb7f8b91f2ac90b3eb34e6de",
+      "created": false,
+      "template": null
+    },
+    "spmcur.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "0e930557470e724b507501f976b20165eba3f64fe75cc150f08cc542003ba6fe",
+      "created": false,
+      "template": null
+    },
+    "spmdmg.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "0d0b883e779b3a61b148656cfb155cd306c397b2aea970768696934e9e30b719",
+      "created": false,
+      "template": null
+    },
+    "spmini.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "d9a5113d765c78b5e39a0b94feb589b6e355c5cc39c6dcd976204427a932199c",
+      "created": false,
+      "template": null
+    },
+    "spmits.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "1b18b296f219fa84c0cbec966bd3a7b707ed1241a0cd212cdb7c20e4f8f1b55c",
+      "created": false,
+      "template": null
+    },
+    "spmort.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "15ff380af4ebeb65d7853e1af3b9404dd6ec9a5fab202221335ddc161fc6bbc6",
+      "created": false,
+      "template": null
+    },
+    "spphan.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "742549f6d359b28594b29d026b5b03a56bb101c38c3621efd7138eede233011f",
+      "created": false,
+      "template": null
+    },
+    "sppopg.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "6f98762cbd8553acc644ef9e17b3db9139d4c2f485c1d130f83b887d65de286f",
+      "created": false,
+      "template": null
+    },
+    "spprox.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "67cf97f421920e7849bc6d7f614c08c8b9e5441ff9ff5e32f65b1e110744be68",
+      "created": false,
+      "template": null
+    },
+    "spredf.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "b10dab8e6fda7f8e3b506c78336f3b632938b1787dc87f8d94b6154308700859",
+      "created": false,
+      "template": null
+    },
+    "sprepa.odf": {
+      "model": "sprepa",
+      "faction": "cc",
+      "sourceSha256": "b0397cfe496bc661f29ea31de8766c8cbe33ce6bef2499d831c11069107aa6d7",
+      "created": false,
+      "template": null
+    },
+    "sprktb.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "9a75d27c725d3646eff33826594cf7f90573ee42a1802a58dcd137fa5aae87ee",
+      "created": false,
+      "template": null
+    },
+    "spsand.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "00e14ea2e90ee3d27b8882e8f1cb1151babb449d353b9d9840470e725e210d5c",
+      "created": false,
+      "template": null
+    },
+    "spshdw.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "2bf87ca9e7cce5fa410ceeb80fa4410a69bb0413058400c9557d033170000eb9",
+      "created": false,
+      "template": null
+    },
+    "spsite.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "789d6856d417372fdd8a12cb3dbe4a88dfa6078fe34b7c7cac86d030beddea29",
+      "created": false,
+      "template": null
+    },
+    "spsmort.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "a1b66cce214373e394fcd081084dcc77cb936bc9131935642448ce59ed9074c6",
+      "created": false,
+      "template": null
+    },
+    "spspln.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "c78d8bcdf7139755fec11c2851e8fe864b76160fe19db446ca17cd78e74f304d",
+      "created": false,
+      "template": null
+    },
+    "spsstb.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "0f207f04afc0adacd2d9a32e8f7bb4f900effb2fe8d8ad4049a4e3e8275d5700",
+      "created": false,
+      "template": null
+    },
+    "spstab.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "2080f9e14d1f37c7c52054c1e84204552d1f51ae5d59cf485e63b9830f61b72f",
+      "created": false,
+      "template": null
+    },
+    "spstlk.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "a94adf353580e513b59f29bd86ada948d67fdd3169c6f05fb1372c50d6eafb3e",
+      "created": false,
+      "template": null
+    },
+    "sptagg.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "42d8695760543b087679d72af7f69bba68e471d46858443967cdfda0081f3c94",
+      "created": false,
+      "template": null
+    },
+    "sptech.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "a037a111c1012c1d1e0de7a2085dd07446e73be7dc64ab4ae32e471387213b6d",
+      "created": false,
+      "template": null
+    },
+    "spthmp.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "c695a9c0d6c499b331aaa8d6b011294a8ee8a439a70b95db24a36b84fdca2750",
+      "created": false,
+      "template": null
+    },
+    "napammo.odf": {
+      "model": "apammo",
+      "faction": "ns",
+      "sourceSha256": "171994d7cc65a6c3b750faa0d6e182dfee33132160c45a6df43a4ebafdc9d52e",
+      "created": false,
+      "template": null
+    },
+    "napammoa.odf": {
+      "model": "apammo",
+      "faction": "ns",
+      "sourceSha256": "71625cdf5c3ed4a82f1715a5b6b5afe60fd7f66a29e43b1b409cec9bb8bccb95",
+      "created": false,
+      "template": null
+    },
+    "napammob.odf": {
+      "model": "apammo",
+      "faction": "ns",
+      "sourceSha256": "7e4191a7666eb81ce29af67ae8d9e5ef99fca9444b408097aded96ccdfc1846c",
+      "created": false,
+      "template": null
+    },
+    "napartl.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "b0f962c74c04d6419cca71018682a80c30454b9a5ef67bc221ec070baf83fe80",
+      "created": false,
+      "template": null
+    },
+    "napblst.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "3efd96f9b6277c906aea6288c699a3be078fc5bbaeefe8936be0a1f8ecdf3d0e",
+      "created": false,
+      "template": null
+    },
+    "napblstb.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "0eccdd5e811bcc876e585c7497968587778981a1dc389559f88ea93fd4656690",
+      "created": false,
+      "template": null
+    },
+    "napblstg.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "d745ae1d3640804fc91f42f783c9677c8ab6be129e3509881f63b5192f1ea6e7",
+      "created": false,
+      "template": null
+    },
+    "napbltm.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "46b309a09cc9c7738eda16d120d17ddcd03aef6a6ac659df2a391e1426584d5e",
+      "created": false,
+      "template": null
+    },
+    "napbltmg.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "f6ff142ff4beafe26451b117c853b4c32a88dd8cb4c9cf72f5e22c5269fe6ffe",
+      "created": false,
+      "template": null
+    },
+    "napbltmr.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "f4c57be77bc842aca7e4911c2465b3b00ce4d2889ac2483e921ed106666a15ad",
+      "created": false,
+      "template": null
+    },
+    "napbolt.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "d94cd4ee01a598f2f2538e1b9bc3707979194214d0218067bf565fad9ac59c8e",
+      "created": false,
+      "template": null
+    },
+    "napboltg.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "3ad7d4a2c14d6ca711eb4550e454c2cfec4770da371bba852ad2e32200348c9f",
+      "created": false,
+      "template": null
+    },
+    "napboltr.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "5fd65a1d173a159895d177f5fd34c249b0866af85a3b7386c42bd899baff9c76",
+      "created": false,
+      "template": null
+    },
+    "napbsstb.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "ebbfebdb942702a4b7df8b6a8a1e1c1db61eccd08e31d76a1bd500046a9890be",
+      "created": false,
+      "template": null
+    },
+    "napcamr.odf": {
+      "model": "apcamr",
+      "faction": "ns",
+      "sourceSha256": "3de5f84c5f8f0ecd20e8c0535188c05dd047f616d2c862a4721736bb5cb43ec4",
+      "created": false,
+      "template": null
+    },
+    "napcmet.odf": {
+      "model": "aprock",
+      "faction": "ns",
+      "sourceSha256": "28bbde34a3541846e6e40e56b9498acab5c41dfc20df4181bf52acf943763dd9",
+      "created": false,
+      "template": null
+    },
+    "napflar.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "5df8ae0f26e9b94f9a684f5c2d188e73556440b236e13e7057f434f3cb7f678d",
+      "created": false,
+      "template": null
+    },
+    "napflsh.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "932483dcec6ed6a67ecdee682580ffd9c48b3039e1ffd81b819c555a8b346c7c",
+      "created": false,
+      "template": null
+    },
+    "napflshb.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "c79d5c154803a599d588fcb7100f4e70e2264b7f6e203da8592543444263acd3",
+      "created": false,
+      "template": null
+    },
+    "napflshg.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "46c2e182ccab61439b138a3c08e306a2c4d803f9754f060fc0da709a355aa773",
+      "created": false,
+      "template": null
+    },
+    "napgmini.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "b21e3124dc6fe3d667d9cc5a6113989432350cc5f06754b9cf362888808c3374",
+      "created": false,
+      "template": null
+    },
+    "naphartl.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "5761ab1356933949b4adf1f9cee67e7f0383b582d7b7a72fa559935d6fab397b",
+      "created": false,
+      "template": null
+    },
+    "naphorn.odf": {
+      "model": "aprock",
+      "faction": "ns",
+      "sourceSha256": "e1580eb11cb7b93f8958c96a9c1c7993e749d9fb1691e9d250c39f1ee4be1823",
+      "created": false,
+      "template": null
+    },
+    "naplgmsl.odf": {
+      "model": "aprock",
+      "faction": "ns",
+      "sourceSha256": "4c5e56ebcc982c2b29f8694063162aed471585d50f7557918d42444a7614ae1b",
+      "created": false,
+      "template": null
+    },
+    "napmagg.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "d34adbec43b00f3008d9f033657b115ecf83278d222b5dfa54eb47ed441e2069",
+      "created": false,
+      "template": null
+    },
+    "napmasg.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "8c4d1047a41f4e3063798fa778b4024ea702051dce4cec02329a6a62eff26c49",
+      "created": false,
+      "template": null
+    },
+    "napmcur.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "b0fe086096b16604f2a1f0e2f673cda80b6ec55d5a45a9ddfe25e2b04ab83b89",
+      "created": false,
+      "template": null
+    },
+    "napmdmg.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "8332adc639aa525f2ba5419caa5a319a9d8644cac992289e06141a9979283037",
+      "created": false,
+      "template": null
+    },
+    "napmini.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "7fe3dd700caeefec948b58b9a7606712b5b337a1ee2bcd12f901d46dbae79f1a",
+      "created": false,
+      "template": null
+    },
+    "napmits.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "355ba52abefb2886b4250d8e54a6ea745461305a972d3beca41581dc798a3c06",
+      "created": false,
+      "template": null
+    },
+    "napmort.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "c73415996f953f1ef0d243b333088b75545fffb93ebca071ebbc4b4e3ebf73cb",
+      "created": false,
+      "template": null
+    },
+    "napphan.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "f18f750f6538174ff8dc151cd136f3e7ecbec6cb5e966485a6d9ad748f59ee03",
+      "created": false,
+      "template": null
+    },
+    "nappopg.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "70331813b9a351398af706f79001d00d5f73e981e41aee308ed1268604b0cf0d",
+      "created": false,
+      "template": null
+    },
+    "napprox.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "6ea6ae2d08c157966a070c741835a2380e29b41a5f73b7108459058a20f2a260",
+      "created": false,
+      "template": null
+    },
+    "napredf.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "8c0553f4a5074ce1eb86d993b1d489985d7982f86d5b5420c47f09b5c5cbbe71",
+      "created": false,
+      "template": null
+    },
+    "naprepa.odf": {
+      "model": "aprepa",
+      "faction": "ns",
+      "sourceSha256": "ca45099817a2658202ae830b01538128844dcd06b12557b414502e48f00aafe0",
+      "created": false,
+      "template": null
+    },
+    "naprepaa.odf": {
+      "model": "aprepa",
+      "faction": "ns",
+      "sourceSha256": "dd3f0fee7694054386ada17dc8ead6bcba274373590a861be12864b443e56927",
+      "created": false,
+      "template": null
+    },
+    "naprepab.odf": {
+      "model": "aprepa",
+      "faction": "ns",
+      "sourceSha256": "39bc9cfbe3c96467650854ea77691236eb58711045167e6ca2f2ed2cf247b27e",
+      "created": false,
+      "template": null
+    },
+    "naprktb.odf": {
+      "model": "aprock",
+      "faction": "ns",
+      "sourceSha256": "295491b65a138743f38072b53f353e999c6303357b68799eae541b6ae1dbe37b",
+      "created": false,
+      "template": null
+    },
+    "napsand.odf": {
+      "model": "aprock",
+      "faction": "ns",
+      "sourceSha256": "36dc01fd77989ac4cfb3b9b352e5678bc97c70e30eb4a4138ceeef5d589214aa",
+      "created": false,
+      "template": null
+    },
+    "napshdw.odf": {
+      "model": "aprock",
+      "faction": "ns",
+      "sourceSha256": "4b5a78b66d46c5e524b622b13f37434cd8fdd55ea6f165b3d8ffda9596d8974e",
+      "created": false,
+      "template": null
+    },
+    "napsite.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "7718ce0e6d3c5f08ab3fffc688afbe282ded58887e0a7fe0642d90b7edd71056",
+      "created": false,
+      "template": null
+    },
+    "napspln.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "ec3d6bb7b32734234ab09ebe35e509d212e38597158d922a780b452862e738e7",
+      "created": false,
+      "template": null
+    },
+    "napsplng.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "a5caf8cde86804a521ab95a9b32e0846c1e6f104473bef4f1382e4d08d5444c1",
+      "created": false,
+      "template": null
+    },
+    "napsplnr.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "a762d79a95325e8458105215a262417b15760df24549f9a280bac49732e54e3b",
+      "created": false,
+      "template": null
+    },
+    "napsstb.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "4b05837763ad5ce4d893463dfe06bf11cb0a94c77e299125d19e6c75d52d36cc",
+      "created": false,
+      "template": null
+    },
+    "napsstba.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "b4d885a199ed687de831a7141af969305660dcaeac545a2a11eb6c8edfcbf257",
+      "created": false,
+      "template": null
+    },
+    "napstab.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "69314acf091ad4bf363f1196fe9da09654a76d7b09e8a305f394d426c59066eb",
+      "created": false,
+      "template": null
+    },
+    "naptagg.odf": {
+      "model": "aprock",
+      "faction": "ns",
+      "sourceSha256": "1d1a795956ad983c338c1030cb90b41bb40b40c4859877f2299199c2fbb506b0",
+      "created": false,
+      "template": null
+    },
+    "naptech.odf": {
+      "model": "apcann",
+      "faction": "ns",
+      "sourceSha256": "edd34ec496a6fcff711e630bdaf44af108e501ec220c1d1c7c6cee558d811c35",
+      "created": false,
+      "template": null
+    },
+    "napthmp.odf": {
+      "model": "apspec",
+      "faction": "ns",
+      "sourceSha256": "2edfe4a6ce7f5f7c76fe78cf2dd6bb4419b1fdfef8fd8deea7766d0d1474b82b",
+      "created": false,
+      "template": null
+    },
+    "naptsmok.odf": {
+      "model": "apmort",
+      "faction": "ns",
+      "sourceSha256": "cf7ff49e1c61ad9a3350a3483e4f83878f27a6395ef855df5dca48df65a08a09",
+      "created": false,
+      "template": null
+    },
+    "bapammo.odf": {
+      "model": "bpammo",
+      "faction": "bd",
+      "sourceSha256": "b2f37c8e2cedcf1f78a381a8ead7d0b005c3d4ff21819f74b1acd141f762a0b5",
+      "created": false,
+      "template": null
+    },
+    "bapammoa.odf": {
+      "model": "bpammo",
+      "faction": "bd",
+      "sourceSha256": "9e8d70a8dfc389a14485c58214129ef6aece25e416368143d3509fa4a96abd32",
+      "created": false,
+      "template": null
+    },
+    "bapammob.odf": {
+      "model": "bpammo",
+      "faction": "bd",
+      "sourceSha256": "39468fccaa7f69b4887e27f0fe32d7808404709ea6f7c5cbfd39a4101c416302",
+      "created": false,
+      "template": null
+    },
+    "bapartl.odf": {
+      "model": "bpmort",
+      "faction": "bd",
+      "sourceSha256": "4eb5f03afcf5522625a30c5a699ce18e62ccf8e137168cd99236a691b8a6a447",
+      "created": false,
+      "template": null
+    },
+    "bapblst.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "63d33994eb6974c5ab101fc03ef68e1e0eb42ff5c556786f1a18e7319fc20eaa",
+      "created": false,
+      "template": null
+    },
+    "bapblstb.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "2dc7b939b6342a23a7f8164ac951781a91aab9a0af95cae930bd249cfd063deb",
+      "created": false,
+      "template": null
+    },
+    "bapblstg.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "82bf2597d0865a76a80458b41215171795bb2e9aaf9d00ee48045aa5e65e8897",
+      "created": false,
+      "template": null
+    },
+    "bapbltm.odf": {
+      "model": "bpspec",
+      "faction": "bd",
+      "sourceSha256": "af0cda5acc503312202e079d390615370a9590ce69224be71f5170355c1607d2",
+      "created": false,
+      "template": null
+    },
+    "bapbltmg.odf": {
+      "model": "bpspec",
+      "faction": "bd",
+      "sourceSha256": "f6f07589f4ebe019d3c11d4403d325e808ea27cfacc01e384c8cf632de108098",
+      "created": false,
+      "template": null
+    },
+    "bapbltmr.odf": {
+      "model": "bpspec",
+      "faction": "bd",
+      "sourceSha256": "7208616af4d04017e99b5c5cf0960f2a646f71eccc177fdb029653325467f6f0",
+      "created": false,
+      "template": null
+    },
+    "bapbolt.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "bdfdeb14dbb8bd2e63b62844d60845d6be68f78f7922394c1fa4d370047745d0",
+      "created": false,
+      "template": null
+    },
+    "bapboltg.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "df06a1dc48ec413714ba1edb44c8001aa774b161a2f70fa8b8e2bae50bb0cf8c",
+      "created": false,
+      "template": null
+    },
+    "bapboltr.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "f511785b294523c37392e5c13a4976370158a400f44dac6e7c623c3d331395f1",
+      "created": false,
+      "template": null
+    },
+    "bapbsstb.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "7878aa27e3cc5f0ed1d33bb6bcfaa00ef808de6bb6988e510022b9c7f9583c19",
+      "created": false,
+      "template": null
+    },
+    "bapcamr.odf": {
+      "model": "bpcamr",
+      "faction": "bd",
+      "sourceSha256": "6f5be27db48d51ca3c746c96793d01110bb5491c1d80fa76e28ef05c9f2c2906",
+      "created": false,
+      "template": null
+    },
+    "bapcmet.odf": {
+      "model": "bprock",
+      "faction": "bd",
+      "sourceSha256": "d45b711486a108de28ef525217397b54028cc5c3d375bd9c572f4a63d67d26ba",
+      "created": false,
+      "template": null
+    },
+    "bapflar.odf": {
+      "model": "bpspec",
+      "faction": "bd",
+      "sourceSha256": "fb5928ec5be148547e26d50f89d02956e337a4bd57f13ddbf9374bafba3c79fc",
+      "created": false,
+      "template": null
+    },
+    "bapflsh.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "77eaa6892071e66ac63c57d2c3eb7e62a3890f0400503403b84dc0937d461a9f",
+      "created": false,
+      "template": null
+    },
+    "bapflshb.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "af63f1935429131035444227697b673e269297b54f000fb1b2bf4922e9ce59a5",
+      "created": false,
+      "template": null
+    },
+    "bapflshg.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "c034b84807484f30ae229438a4bb2e796085266666d9e0662acb4963989d563c",
+      "created": false,
+      "template": null
+    },
+    "bapgmini.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "bb63ea322e61bd91a71b56067a462e010c2a1c756945dea14bd2f4d5a8bc86d5",
+      "created": false,
+      "template": null
+    },
+    "baphartl.odf": {
+      "model": "bpmort",
+      "faction": "bd",
+      "sourceSha256": "b48e4523248b62fed19ea54602acaabfc22e5cce1b696ca3321fcf2aedb9f8d4",
+      "created": false,
+      "template": null
+    },
+    "baphorn.odf": {
+      "model": "bprock",
+      "faction": "bd",
+      "sourceSha256": "9b24a44ab00ff9ca1fbd87d0ff4c2ecb8667c36fd84d2ddcb227f28286894254",
+      "created": false,
+      "template": null
+    },
+    "baplgmsl.odf": {
+      "model": "bprock",
+      "faction": "bd",
+      "sourceSha256": "6b79f87adeabdabfbc59fe475c7db148eefb308a57cc9d9beff884a78cddcba1",
+      "created": false,
+      "template": null
+    },
+    "bapmagg.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "c52b3133786b9e73ae0bd0a0b27f5f50ee725cb200c6dfbc68c9aeb05fd2c8d8",
+      "created": false,
+      "template": null
+    },
+    "bapmasg.odf": {
+      "model": "bpspec",
+      "faction": "bd",
+      "sourceSha256": "795c64531f095754e0071f0aecb37b0a0203f5cffe6e0a29e01a321c2f1d3008",
+      "created": false,
+      "template": null
+    },
+    "bapmcur.odf": {
+      "model": "bpspec",
+      "faction": "bd",
+      "sourceSha256": "850f4f3aaaea0e7c02af9192ede705f89d79e914c5ca46029bb41a95e91a4787",
+      "created": false,
+      "template": null
+    },
+    "bapmdmg.odf": {
+      "model": "bpmort",
+      "faction": "bd",
+      "sourceSha256": "f757c23cba406fc1d829d1217c55905b9a588aea4808b80b723146c5c01c00b2",
+      "created": false,
+      "template": null
+    },
+    "bapmini.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "b40eb1008a17212b62c91e8b68cdae42cebb4d0e15c8d7d6b8bfc82eac483b5f",
+      "created": false,
+      "template": null
+    },
+    "bapmits.odf": {
+      "model": "bpspec",
+      "faction": "bd",
+      "sourceSha256": "00e228f010657d387e39a754f1efce419f166ee8fd3969481f6084d31a2b14e6",
+      "created": false,
+      "template": null
+    },
+    "bapmort.odf": {
+      "model": "bpmort",
+      "faction": "bd",
+      "sourceSha256": "76835bbbf2e3350abc5c59c33a9218774a127ae615e3fbefd359ac2bf62ed755",
+      "created": false,
+      "template": null
+    },
+    "bapphan.odf": {
+      "model": "bpspec",
+      "faction": "bd",
+      "sourceSha256": "9df99be7ed59db94cb5ae268e381041cce5e921d0fabae10d12e2c8968951f08",
+      "created": false,
+      "template": null
+    },
+    "bappopg.odf": {
+      "model": "bpmort",
+      "faction": "bd",
+      "sourceSha256": "3da8f0548ebf3483e8f177857d2c8a1da93345f27399690c512066dc6f3e34cd",
+      "created": false,
+      "template": null
+    },
+    "bapprox.odf": {
+      "model": "bpspec",
+      "faction": "bd",
+      "sourceSha256": "5cd514b1a20851b2a108be2b9472f4c3f604e2e71f56f38d4e43c182d7fe1f6f",
+      "created": false,
+      "template": null
+    },
+    "bapredf.odf": {
+      "model": "bpspec",
+      "faction": "bd",
+      "sourceSha256": "63353c8cfa5b943071100fb76d250e3ce0578e1ce24b7b72c6057db0328aeab7",
+      "created": false,
+      "template": null
+    },
+    "baprepa.odf": {
+      "model": "bprepa",
+      "faction": "bd",
+      "sourceSha256": "d3efb951bd79c1f56387306065062cef1234d4f45e6383169d549f6cd5152ff8",
+      "created": false,
+      "template": null
+    },
+    "baprepaa.odf": {
+      "model": "bprepa",
+      "faction": "bd",
+      "sourceSha256": "bdbdd1f88aa4408f7389c14e959f08d0c0e1d85897d084660a7ec1c6513df9a5",
+      "created": false,
+      "template": null
+    },
+    "baprepab.odf": {
+      "model": "bprepa",
+      "faction": "bd",
+      "sourceSha256": "319c1c7c16dcb855a17f561f3ac96c622b81ef4c8d103094d09cdb4d85f16afa",
+      "created": false,
+      "template": null
+    },
+    "baprktb.odf": {
+      "model": "bprock",
+      "faction": "bd",
+      "sourceSha256": "2e352c33f10ba39cbd5e741240641f76d677c9352f208522039fdf2e0cdfc255",
+      "created": false,
+      "template": null
+    },
+    "bapsand.odf": {
+      "model": "bprock",
+      "faction": "bd",
+      "sourceSha256": "faacd4cb75654077910713fd7f843f7b2773bf0a055c2cfd0173e8befb2c6cb4",
+      "created": false,
+      "template": null
+    },
+    "bapshdw.odf": {
+      "model": "bprock",
+      "faction": "bd",
+      "sourceSha256": "a05d8a3cd891029d02de4169355d1b4073bc671981ad0daf5809814d3f7a873c",
+      "created": false,
+      "template": null
+    },
+    "bapsite.odf": {
+      "model": "bpspec",
+      "faction": "bd",
+      "sourceSha256": "9e91f2795d85aeba2debe10c644a6b38ea2ff90c170f98e44f0bdf32e4f1e3e6",
+      "created": false,
+      "template": null
+    },
+    "bapspln.odf": {
+      "model": "bpmort",
+      "faction": "bd",
+      "sourceSha256": "0db9953021d3f260e58f2cffdc9f280c1d549109980860f7caebeee83e441125",
+      "created": false,
+      "template": null
+    },
+    "bapsplng.odf": {
+      "model": "bpmort",
+      "faction": "bd",
+      "sourceSha256": "4fe7b76bfe0708e8856732c11d6bbf626c1ef4eb2198c44d7ca258c9a951703c",
+      "created": false,
+      "template": null
+    },
+    "bapsplnr.odf": {
+      "model": "bpmort",
+      "faction": "bd",
+      "sourceSha256": "b6b62dbde75eb8f3aafd6deb5c9b86eabf2ec6130168727c72f18531e92d5b28",
+      "created": false,
+      "template": null
+    },
+    "bapsstb.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "593c35b7be1ee4ec414f43372a3908f412e65b63c6cbf8f8b1fab5fa13bd378f",
+      "created": false,
+      "template": null
+    },
+    "bapsstba.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "201a541aa45f4812f5b3ddc84a22a5997406cd77faf2c6535eeb377627540ae9",
+      "created": false,
+      "template": null
+    },
+    "bapstab.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "92398a517aeb26f4f295c1bf5d6452ffede99bfffdbcc6f5eff3d7b79f4ba0ef",
+      "created": false,
+      "template": null
+    },
+    "baptagg.odf": {
+      "model": "bprock",
+      "faction": "bd",
+      "sourceSha256": "3384b323fb91232ffc3d0eaed86d4968c054536b85d3628eeb68ef6fbd459b03",
+      "created": false,
+      "template": null
+    },
+    "baptech.odf": {
+      "model": "bpcann",
+      "faction": "bd",
+      "sourceSha256": "1eb7c0062471a75d8928b71b76b14f3b9eec1650d1da157e93281b6130659942",
+      "created": false,
+      "template": null
+    },
+    "bapthmp.odf": {
+      "model": "bpspec",
+      "faction": "bd",
+      "sourceSha256": "05ff197393d28592e6e9842fc76a5b79f2e16aae2d4f3a2354b17b02c42aedab",
+      "created": false,
+      "template": null
+    },
+    "baptsmok.odf": {
+      "model": "bpmort",
+      "faction": "bd",
+      "sourceSha256": "1eeae94dab79f023adaf67993cdaffda740927f732473527525a8bfbd349c8a3",
+      "created": false,
+      "template": null
+    },
+    "sapammo.odf": {
+      "model": "spammo",
+      "faction": "cc",
+      "sourceSha256": "2028c9f4268ef604d6608cec7e93a88d597a5dce9f91054038e5e71df9dca2c2",
+      "created": false,
+      "template": null
+    },
+    "sapammoa.odf": {
+      "model": "spammo",
+      "faction": "cc",
+      "sourceSha256": "4b9a1df0403c55d211d2069e7eb5ecaa94b4e4fdce02618ca0986fea714183b2",
+      "created": false,
+      "template": null
+    },
+    "sapammob.odf": {
+      "model": "spammo",
+      "faction": "cc",
+      "sourceSha256": "1ac48ce64daaa0cfb11aed9a377d804b44ce3520ac44f4287ef8d208b8089b29",
+      "created": false,
+      "template": null
+    },
+    "sapartl.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "838fe863312d8db934ba06023784bb4413bbe3c092e9ac8cfc137960b4807ff3",
+      "created": false,
+      "template": null
+    },
+    "sapblst.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "d108f1ab622a05ba496a33feae7ec6e72e9393a612928d538183d241aa449acb",
+      "created": false,
+      "template": null
+    },
+    "sapblstb.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "250dee3274a4de90167436f83aa4e0fef682bcaea577b2da3e24467f20d29505",
+      "created": false,
+      "template": null
+    },
+    "sapblstg.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "fbded3ba49e3ef761a60edb97d96184aaf641b68b30a338d5300754759e81c7b",
+      "created": false,
+      "template": null
+    },
+    "sapbltm.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "a88a5c22a76edf0d6ce05d68e422854d93076af24cda93dc847418cb2a49ca3e",
+      "created": false,
+      "template": null
+    },
+    "sapbltmg.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "3499c7396937ac13eb132cb3d33bda27b72a46f836cf468f7690c91da9b0c201",
+      "created": false,
+      "template": null
+    },
+    "sapbltmr.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "f276d0f7ae72062043604bddc860f1dfc6e5e289e4c85cd4fb7e6a52df00fbaf",
+      "created": false,
+      "template": null
+    },
+    "sapbolt.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "d3df2eb7e1e8f2cb5e55b568d1d5efa2cb29b88eb458baad6494ee95914fd13f",
+      "created": false,
+      "template": null
+    },
+    "sapboltg.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "4ab0a37514e87b5fab0b0af6a08fd5189a6d8bb0c4b5af36ac55ac699807be7d",
+      "created": false,
+      "template": null
+    },
+    "sapboltr.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "6b86f6939f5d8b4c0c1d0abe28ff8bc2a88a38763fc29b6f3aff0d2edfaf57c9",
+      "created": false,
+      "template": null
+    },
+    "sapbsstb.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "d0afc46aed55913bade9280e58a726262d88eedf9b9357a717a972367db2a466",
+      "created": false,
+      "template": null
+    },
+    "sapcamr.odf": {
+      "model": "spcamr",
+      "faction": "cc",
+      "sourceSha256": "d6a829cb3f26a438e08a973b79e3a2b523308a042128bbedb974efbaa8a8abcc",
+      "created": false,
+      "template": null
+    },
+    "sapcmet.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "a83ceb0e91ff89d2704f8fe01fabffc62eb2b93289bd65c3a5fc3e5767b4e320",
+      "created": false,
+      "template": null
+    },
+    "sapflar.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "5c0d0b74e60b2e8d67f1c1c47467e53e7234de3ef12af12eaf99a1230d71d837",
+      "created": false,
+      "template": null
+    },
+    "sapflsh.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "d185b4ffa1c14f1ce9106b7e3cb606a12791b5f9d5153ede147b4940d0c42eb1",
+      "created": false,
+      "template": null
+    },
+    "sapflshb.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "609ccf67948f20006c4ff89744e424bbbd1fd395a64b11a7dc8abc83bf479fc9",
+      "created": false,
+      "template": null
+    },
+    "sapflshg.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "1d809bc9e35a70584a619e9b858dd720b6d0da0d34719c635dceaf777bf1d21a",
+      "created": false,
+      "template": null
+    },
+    "sapgmini.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "8a85d243d0844752433304833b47ecc16d8c24e800ff5a15803d72d408bd2992",
+      "created": false,
+      "template": null
+    },
+    "saphartl.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "ac927cfaa7d9109664fce4ba7f86179cbdf4c24dfa02a913469fdc989e588b41",
+      "created": false,
+      "template": null
+    },
+    "saphorn.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "6abc49a95ecdf7fd484352e10e33c1c00b5f207a5ebf922ae845547c02406102",
+      "created": false,
+      "template": null
+    },
+    "saplgmsl.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "d9d733b06fa9c23ffdd76b18fafb7e53c4fbef80fdbb7005d88fd96a287e80c6",
+      "created": false,
+      "template": null
+    },
+    "sapmagg.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "9014f5fa0783040d6bd934a5e166772bce9cb180f14d26a9a02c4a612058fc0c",
+      "created": false,
+      "template": null
+    },
+    "sapmasg.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "de7d26ad9f33719b9c439161ebc4e4106b0091cb0c1fa54ba56c49a816d6e848",
+      "created": false,
+      "template": null
+    },
+    "sapmcur.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "f92bfdf7fdbed82485adfbb96b0aa206f589792ec58616c1e979558d01fec521",
+      "created": false,
+      "template": null
+    },
+    "sapmdmg.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "101ac3b48557fff862950cee3a7a99e500c9b5fda3828a046e26517f6ec0ed23",
+      "created": false,
+      "template": null
+    },
+    "sapmini.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "4200b4c09b04fad1975c9468b60073d1c0f3737967018c17e1228b8acbe77183",
+      "created": false,
+      "template": null
+    },
+    "sapmits.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "39933ac743b6bca11c955d83a54840b39d6b855332da1a1169d633eaf9f26b6b",
+      "created": false,
+      "template": null
+    },
+    "sapmort.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "a2ded751272589cb756f1ce490ef57e1221391065d9ef3dd271ba83b81fb7c0f",
+      "created": false,
+      "template": null
+    },
+    "sapphan.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "2d54c2fc9ab78393ebbee00bae9826c180fd32033f976a1f07f031f0b8e1c73a",
+      "created": false,
+      "template": null
+    },
+    "sappopg.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "e6b8895771ca1a7208eae780ece30f3aa66c165b31d1d4e4f598283b5d0aa0d6",
+      "created": false,
+      "template": null
+    },
+    "sapprox.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "2a92139fb4273bdb17687dbc1dcfe78639b7617d66939a5cc4827c5156592408",
+      "created": false,
+      "template": null
+    },
+    "sapredf.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "7c716b9b5be145f442f189ea1f3e8e3beef7800f162cd63f72eecd41aadc6b46",
+      "created": false,
+      "template": null
+    },
+    "saprepa.odf": {
+      "model": "sprepa",
+      "faction": "cc",
+      "sourceSha256": "6a9c7701d2533f1c661d29f5b9eed150999c259f4cb91e5bc03b4f0f3eca8235",
+      "created": false,
+      "template": null
+    },
+    "saprepaa.odf": {
+      "model": "sprepa",
+      "faction": "cc",
+      "sourceSha256": "36dc500485e61827dd7a6a6f1279e7f6b0055efd7db02d028021cd7c90f93c70",
+      "created": false,
+      "template": null
+    },
+    "saprepab.odf": {
+      "model": "sprepa",
+      "faction": "cc",
+      "sourceSha256": "0c7e50b36a77bef30719ac46f88cc0496a9392df39f333c1aabb9f1f6c8de606",
+      "created": false,
+      "template": null
+    },
+    "saprktb.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "c907513c557fe6c9e11cad1ed191bfa60ea8ad465082493f655c8eed859e911a",
+      "created": false,
+      "template": null
+    },
+    "sapsand.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "bf5c68377fcafe27390abf9a82abb8948f90c48a926edd3529ff1d8832c01043",
+      "created": false,
+      "template": null
+    },
+    "sapshdw.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "e2f63d5630471578f5989329680445c7f6f318febd7ea67f40b246633289a397",
+      "created": false,
+      "template": null
+    },
+    "sapsite.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "9a4171252c68876c733adfe1843b35630268413f537487a68d6358b4801ece04",
+      "created": false,
+      "template": null
+    },
+    "sapspln.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "79f002cc5e5265e4e665fe53630f9dff87cc4c3abaa96478c9e9ecb7941e6622",
+      "created": false,
+      "template": null
+    },
+    "sapsplng.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "6a287837e54f98a394d701d08084f798bb4cbc1d12b601d7b0f4cbf07fcfe995",
+      "created": false,
+      "template": null
+    },
+    "sapsplnr.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "548103d89ef4e89d85639461e2c7c1acc924b2ef4a611dbc1b6d9e0b9261aa07",
+      "created": false,
+      "template": null
+    },
+    "sapsstb.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "6b70aeb04e2ea39da3ac810b4433d83db622ed9811f99d228cf3a7f9958062cb",
+      "created": false,
+      "template": null
+    },
+    "sapsstba.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "885236152058e5fec234ccf8175b1b5da5a64164dd65673da21391aabdc9f471",
+      "created": false,
+      "template": null
+    },
+    "sapstab.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "4be171937f38538646131243ce652226dff8b6dfdda332aefbb8f13b126abb7d",
+      "created": false,
+      "template": null
+    },
+    "saptagg.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "3ecc9ad53a6c236127a39096af1283bdac7387178965d70015fdd0018bd29bfa",
+      "created": false,
+      "template": null
+    },
+    "saptech.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "028bda149a597987f1bec6c3f48291404e4ff4623e6ef15e4bc0decb81e8daab",
+      "created": false,
+      "template": null
+    },
+    "sapthmp.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "fa33288f1a671b3a00832b2d9a751724d70fb3708b5f2b86aedec2e5e87b1570",
+      "created": false,
+      "template": null
+    },
+    "saptsmok.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "216386f8747e7b90d4313838c1b988ed2196b6b7d3381266878d8a415be0442b",
+      "created": false,
+      "template": null
+    },
+    "sspammo.odf": {
+      "model": "spammo",
+      "faction": "cc",
+      "sourceSha256": "fbc08224e073afc6d2d6528a346c8dbab5cbc9aa8d8d86d75bbb832e59236e02",
+      "created": false,
+      "template": null
+    },
+    "sspbett.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "e4cad45feb8e5c41e54ff6c1903a75d6487183e7555605c6441632de69357db0",
+      "created": false,
+      "template": null
+    },
+    "sspblst.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "d108f1ab622a05ba496a33feae7ec6e72e9393a612928d538183d241aa449acb",
+      "created": false,
+      "template": null
+    },
+    "sspcamr.odf": {
+      "model": "spcamr",
+      "faction": "cc",
+      "sourceSha256": "d6a829cb3f26a438e08a973b79e3a2b523308a042128bbedb974efbaa8a8abcc",
+      "created": false,
+      "template": null
+    },
+    "sspcmet.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "a83ceb0e91ff89d2704f8fe01fabffc62eb2b93289bd65c3a5fc3e5767b4e320",
+      "created": false,
+      "template": null
+    },
+    "sspflar.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "5c0d0b74e60b2e8d67f1c1c47467e53e7234de3ef12af12eaf99a1230d71d837",
+      "created": false,
+      "template": null
+    },
+    "sspflsh.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "d185b4ffa1c14f1ce9106b7e3cb606a12791b5f9d5153ede147b4940d0c42eb1",
+      "created": false,
+      "template": null
+    },
+    "ssphunt.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "92466688a3b1161e6cbd75c6cbbbbc6fc2b5d06002de9082d35a66cdc8b1a4a2",
+      "created": false,
+      "template": null
+    },
+    "sspmagg.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "c90d871964f9eedd5044cdb4243c4e25a383c169da8a53b6968368fea1b42828",
+      "created": false,
+      "template": null
+    },
+    "sspmcur.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "f92bfdf7fdbed82485adfbb96b0aa206f589792ec58616c1e979558d01fec521",
+      "created": false,
+      "template": null
+    },
+    "sspmdmg.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "101ac3b48557fff862950cee3a7a99e500c9b5fda3828a046e26517f6ec0ed23",
+      "created": false,
+      "template": null
+    },
+    "sspmini.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "26e925660d3f689fba07aedb3700e83604d8c7c5ebc39ebae00ebfc10ba06cd1",
+      "created": false,
+      "template": null
+    },
+    "sspmits.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "39933ac743b6bca11c955d83a54840b39d6b855332da1a1169d633eaf9f26b6b",
+      "created": false,
+      "template": null
+    },
+    "ssppopg.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "e6b8895771ca1a7208eae780ece30f3aa66c165b31d1d4e4f598283b5d0aa0d6",
+      "created": false,
+      "template": null
+    },
+    "sspredf.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "7c716b9b5be145f442f189ea1f3e8e3beef7800f162cd63f72eecd41aadc6b46",
+      "created": false,
+      "template": null
+    },
+    "ssprepa.odf": {
+      "model": "sprepa",
+      "faction": "cc",
+      "sourceSha256": "206300267c531b61193726dc6592aa747461ce16c94ee52974ae0fc0d3891478",
+      "created": false,
+      "template": null
+    },
+    "ssprktb.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "c907513c557fe6c9e11cad1ed191bfa60ea8ad465082493f655c8eed859e911a",
+      "created": false,
+      "template": null
+    },
+    "sspsand.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "bf5c68377fcafe27390abf9a82abb8948f90c48a926edd3529ff1d8832c01043",
+      "created": false,
+      "template": null
+    },
+    "sspshdw.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "e2f63d5630471578f5989329680445c7f6f318febd7ea67f40b246633289a397",
+      "created": false,
+      "template": null
+    },
+    "sspsite.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "9a4171252c68876c733adfe1843b35630268413f537487a68d6358b4801ece04",
+      "created": false,
+      "template": null
+    },
+    "sspsmort.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "e22df457cbe7d61927bba3a33c690387281ad63e281ccd5eb838f9db54cae176",
+      "created": false,
+      "template": null
+    },
+    "sspspln.odf": {
+      "model": "spmort",
+      "faction": "cc",
+      "sourceSha256": "79f002cc5e5265e4e665fe53630f9dff87cc4c3abaa96478c9e9ecb7941e6622",
+      "created": false,
+      "template": null
+    },
+    "sspsstb.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "6b70aeb04e2ea39da3ac810b4433d83db622ed9811f99d228cf3a7f9958062cb",
+      "created": false,
+      "template": null
+    },
+    "sspstab.odf": {
+      "model": "spcann",
+      "faction": "cc",
+      "sourceSha256": "4be171937f38538646131243ce652226dff8b6dfdda332aefbb8f13b126abb7d",
+      "created": false,
+      "template": null
+    },
+    "sspstlk.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "30f54627df1e919d24cb93f37b699db6d2f1f5154ce90529729ac7a9565cbdde",
+      "created": false,
+      "template": null
+    },
+    "ssptagg.odf": {
+      "model": "sprock",
+      "faction": "cc",
+      "sourceSha256": "2177e87e08386683aa506200c5e8a33b2ab9543a9517b2518794b3e42c790ea0",
+      "created": false,
+      "template": null
+    },
+    "sspthmp.odf": {
+      "model": "spspec",
+      "faction": "cc",
+      "sourceSha256": "fa33288f1a671b3a00832b2d9a751724d70fb3708b5f2b86aedec2e5e87b1570",
+      "created": false,
+      "template": null
+    },
+    "capammo.odf": {
+      "model": "cpammo",
+      "faction": "cr",
+      "sourceSha256": "8f92b6b62618dda229ff3c9b067a3e8332b430ab4b47ed1a429a3bf4f9649e23",
+      "created": false,
+      "template": null
+    },
+    "capammoa.odf": {
+      "model": "cpammo",
+      "faction": "cr",
+      "sourceSha256": "c1b06ec5c09518e9e67558b3415a4da32b5d636f8b514002339d621e9391b469",
+      "created": false,
+      "template": null
+    },
+    "capammob.odf": {
+      "model": "cpammo",
+      "faction": "cr",
+      "sourceSha256": "504f7ad5a5eda208244f9173f6c987345667753911e08bd08c8191e306f658a9",
+      "created": false,
+      "template": null
+    },
+    "capartl.odf": {
+      "model": "cpmort",
+      "faction": "cr",
+      "sourceSha256": "ac92c7ca7a02bebdca677be473df56fccb2bff3239895d1721440aab5601c13c",
+      "created": false,
+      "template": null
+    },
+    "capblst.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "773860d310f5f730569c5675f95e6688fbe68c783565a43b67abd6cfd7d0e68e",
+      "created": false,
+      "template": null
+    },
+    "capblstb.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "1c1e8c019db708dc4b455a4d57bcb70821e951c13b7bd0ce37838a0338eaf103",
+      "created": false,
+      "template": null
+    },
+    "capblstg.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "e94c1c7908eda61519d1380e67702ba6fd0311ed6d0d610ded48fa6f940ff93b",
+      "created": false,
+      "template": null
+    },
+    "capbltm.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "d0a0f9843ecc53372d949b7fd099b937b8d1c95cab2e00113b1e82342baa090e",
+      "created": false,
+      "template": null
+    },
+    "capbltmg.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "967ac2dc205bdf77cce7bb7a3540f2dbbbbbb416cefb380713fd350a9af62cc1",
+      "created": false,
+      "template": null
+    },
+    "capbltmr.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "7593d073a1c000e68474d63012c236104ffdc00c354ddffa2a300c6963121b92",
+      "created": false,
+      "template": null
+    },
+    "capbolt.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "fd27e44a5a09be3535e8d8b2828b969e10b032743818666868aee3b117f0be7c",
+      "created": false,
+      "template": null
+    },
+    "capboltg.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "b886de8629f16af4864c2bdb6a176e4b0b22aa74bab2cfdda892003d6b220523",
+      "created": false,
+      "template": null
+    },
+    "capboltr.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "482c8bca639d595803a1a8c7f1665b6e9d2fd40a07b6c9ef3f6f96d18b22e311",
+      "created": false,
+      "template": null
+    },
+    "capbsstb.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "839a08e29a3a66ada849b8c84f7df2045eca941d312b534196f5154374ecc63e",
+      "created": false,
+      "template": null
+    },
+    "capcamr.odf": {
+      "model": "cpcamr",
+      "faction": "cr",
+      "sourceSha256": "f7ebd35d259d4fb2c2da0e0a3291d79014ffd8c9e609396fc77b45203e231ca9",
+      "created": false,
+      "template": null
+    },
+    "capcmet.odf": {
+      "model": "cprock",
+      "faction": "cr",
+      "sourceSha256": "c61eefdb050df715583a6422ee2b53b6d2b3d2f61eb6bfa5f1a7205e39bc8261",
+      "created": false,
+      "template": null
+    },
+    "capflar.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "4fe980501a70d77f235f834096f5a6f237e2cbbc4a9c4c6ee9ff171775e48acc",
+      "created": false,
+      "template": null
+    },
+    "capflsh.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "33c92b1c269466c0f31ba66731733eb8a880db2a6471a767d74b172db95876d6",
+      "created": false,
+      "template": null
+    },
+    "capflshb.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "289914dd0374ff84c92ed51c8bdb544ba39fa14b0200d92b2160c2bef1cc2438",
+      "created": false,
+      "template": null
+    },
+    "capflshg.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "22c740b099e8811883ad1a32f0c54697581d89c08c46d39348cec3e81a1d63d4",
+      "created": false,
+      "template": null
+    },
+    "capgmini.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "2bb910ba3e8482b64baa2c06f98306f8a640f5ff186c8edcab24b9c64d98b5f0",
+      "created": false,
+      "template": null
+    },
+    "caphartl.odf": {
+      "model": "cpmort",
+      "faction": "cr",
+      "sourceSha256": "2816cc425e3de1845bb96b27f59d51df663f13f66c9ec65e9f840f3ccce7e235",
+      "created": false,
+      "template": null
+    },
+    "caphorn.odf": {
+      "model": "cprock",
+      "faction": "cr",
+      "sourceSha256": "8a1c1c4c378f73b0947d0482808504c599b9b220b9998e858bd431d933b64fc1",
+      "created": false,
+      "template": null
+    },
+    "caplgmsl.odf": {
+      "model": "cprock",
+      "faction": "cr",
+      "sourceSha256": "6500630775a9c320cf59d8e9734469995388520d85e87bac13af5cda22e446fc",
+      "created": false,
+      "template": null
+    },
+    "capmagg.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "6c85cbfbe25e1c70a99b23ab05e59f7984bc6c477834de1ee04627823c62c09c",
+      "created": false,
+      "template": null
+    },
+    "capmasg.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "ab7ce82a309083a14a8df84ebe07ad177dc0e1b3a317fdbac1c45dd278f40033",
+      "created": false,
+      "template": null
+    },
+    "capmcur.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "e9b07e5dff92ea0a04f231a5c2695064fc2d74a6db254a6486d4116a39b79c6f",
+      "created": false,
+      "template": null
+    },
+    "capmdmg.odf": {
+      "model": "cpmort",
+      "faction": "cr",
+      "sourceSha256": "9adde83f5cbc616214de2f75d8fb300f85b4bfffd3f3a8a2dfacb1636dc78384",
+      "created": false,
+      "template": null
+    },
+    "capmini.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "946d51033ac8da96c32f38b5700b8fcba68b9df20e3cd587e6314a408d8b9e60",
+      "created": false,
+      "template": null
+    },
+    "capmits.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "923cba95777ea90e8c10241a716f98b2623a02129103437fadef5b8941c69b49",
+      "created": false,
+      "template": null
+    },
+    "capmort.odf": {
+      "model": "cpmort",
+      "faction": "cr",
+      "sourceSha256": "c5dfad39a9a1a63ed5511981c9f99637a48b39f70265383c94729515d24e069a",
+      "created": false,
+      "template": null
+    },
+    "capphan.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "cbebddf99782ac3939f4183e700bdaf6736929a2b6ab0292202f32b83709fbd2",
+      "created": false,
+      "template": null
+    },
+    "cappopg.odf": {
+      "model": "cpmort",
+      "faction": "cr",
+      "sourceSha256": "28168732cde884fb99faf7fe898e49568d3c3e166c87c4460946ef698b2b09f2",
+      "created": false,
+      "template": null
+    },
+    "capprox.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "de3f67872c44f6ca495bde34dcbebf667ccbb7603ecee7e83d5877fd14641607",
+      "created": false,
+      "template": null
+    },
+    "capredf.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "a8e3c225aa1016f4876729de273377ab29a991a9386bd08ee2e1202be8ddb262",
+      "created": false,
+      "template": null
+    },
+    "caprepa.odf": {
+      "model": "cprepa",
+      "faction": "cr",
+      "sourceSha256": "a55d5be0bcb72a8693b3b3125018720b0d647f9c34c45728bd2b025a7acbcc7c",
+      "created": false,
+      "template": null
+    },
+    "caprepaa.odf": {
+      "model": "cprepa",
+      "faction": "cr",
+      "sourceSha256": "edd3bbe737333a7ace2c2dab545387680fe4a54e36ef64683fe3edf0a1c52c35",
+      "created": false,
+      "template": null
+    },
+    "caprepab.odf": {
+      "model": "cprepa",
+      "faction": "cr",
+      "sourceSha256": "e39e516704c0a127086c9e124b197891a007021768b1d8dc261046344007358f",
+      "created": false,
+      "template": null
+    },
+    "caprktb.odf": {
+      "model": "cprock",
+      "faction": "cr",
+      "sourceSha256": "b51c715f6bf817d5e1c5a84b7913e75f5b0451065330d33511b48ee595826f96",
+      "created": false,
+      "template": null
+    },
+    "capsand.odf": {
+      "model": "cprock",
+      "faction": "cr",
+      "sourceSha256": "770abb392744cf9cfb98bdf2c51967411510a07065c560b8990c63b683ccf4d6",
+      "created": false,
+      "template": null
+    },
+    "capshdw.odf": {
+      "model": "cprock",
+      "faction": "cr",
+      "sourceSha256": "3e19c0f2aaa1fd33cb69a08825f4c1580543e0301fa7060cfa8b25f8d8074591",
+      "created": false,
+      "template": null
+    },
+    "capsite.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "542a1e1e7913e625aa2f070178d4f5d179eca526acbd7919a706edd3048fd637",
+      "created": false,
+      "template": null
+    },
+    "capspln.odf": {
+      "model": "cpmort",
+      "faction": "cr",
+      "sourceSha256": "7999ff2ab8df3b41a30251013335dccca0c285d591432fa5438408e80db2c4cd",
+      "created": false,
+      "template": null
+    },
+    "capsplng.odf": {
+      "model": "cpmort",
+      "faction": "cr",
+      "sourceSha256": "896346e3bee1f6ede4d9b5b2670abbd239ec30e0eec516fcd299d0a7d5311254",
+      "created": false,
+      "template": null
+    },
+    "capsplnr.odf": {
+      "model": "cpmort",
+      "faction": "cr",
+      "sourceSha256": "1bb77f3bd45bb63c3d2d6cc12b188843ebd1623d483fa857fbd210fa0f5deb5b",
+      "created": false,
+      "template": null
+    },
+    "capsstb.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "50b1b2ef0e78023603ce9d93ee2533ec94c9c275fe7cc3963a17efcdfc5ad916",
+      "created": false,
+      "template": null
+    },
+    "capsstba.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "b16de1b05faf074541afdec26b4030b2941a8522a9549dd339ec48096916c0ab",
+      "created": false,
+      "template": null
+    },
+    "capstab.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "de6fa68fc32c910584026f845a713de781719855e7e3020dfcdd63e4b3fe1d95",
+      "created": false,
+      "template": null
+    },
+    "captagg.odf": {
+      "model": "cprock",
+      "faction": "cr",
+      "sourceSha256": "a38f2b349733b4ac1303a47f118c4c1f6c1092e82d61a919c9dce034e2a02c29",
+      "created": false,
+      "template": null
+    },
+    "captech.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "eef895c314d35eea1130adc66c16b409b131e02bca1430248b0daf15eba15013",
+      "created": false,
+      "template": null
+    },
+    "capthmp.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "8123bab90f2909f376817aeeb6898539f43a3936aff54d32fafc008fce0ba9c3",
+      "created": false,
+      "template": null
+    },
+    "captsmok.odf": {
+      "model": "cpmort",
+      "faction": "cr",
+      "sourceSha256": "e62b7a53d9a1c42f6cee231efdf5df73d2aabf318a4d7d8dcc55d4d271c01a7a",
+      "created": false,
+      "template": null
+    },
+    "ccpsstb.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "6d32dbfd4ab234c4513db10d88fd7e270f75911950fea0b921c3651e5fc016e4",
+      "created": false,
+      "template": null
+    },
+    "ccptesla.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "2f239a04af9ea429c346607c59c74bff0f1c8f5465fd1ad052efd33817673fc9",
+      "created": false,
+      "template": null
+    },
+    "cspammo.odf": {
+      "model": "cpammo",
+      "faction": "cr",
+      "sourceSha256": "da9da709d6d980301dba1a324a23c318337a5172d350aaf0569244b046f8716c",
+      "created": false,
+      "template": null
+    },
+    "cspblst.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "773860d310f5f730569c5675f95e6688fbe68c783565a43b67abd6cfd7d0e68e",
+      "created": false,
+      "template": null
+    },
+    "cspcamr.odf": {
+      "model": "cpcamr",
+      "faction": "cr",
+      "sourceSha256": "f7ebd35d259d4fb2c2da0e0a3291d79014ffd8c9e609396fc77b45203e231ca9",
+      "created": false,
+      "template": null
+    },
+    "cspcmet.odf": {
+      "model": "cprock",
+      "faction": "cr",
+      "sourceSha256": "c61eefdb050df715583a6422ee2b53b6d2b3d2f61eb6bfa5f1a7205e39bc8261",
+      "created": false,
+      "template": null
+    },
+    "cspflar.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "4fe980501a70d77f235f834096f5a6f237e2cbbc4a9c4c6ee9ff171775e48acc",
+      "created": false,
+      "template": null
+    },
+    "cspflsh.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "33c92b1c269466c0f31ba66731733eb8a880db2a6471a767d74b172db95876d6",
+      "created": false,
+      "template": null
+    },
+    "csphorn.odf": {
+      "model": "cprock",
+      "faction": "cr",
+      "sourceSha256": "6983ea815ee239e16281985e550add810f3e202bfa1c58e799995e371c99aa44",
+      "created": false,
+      "template": null
+    },
+    "cspmagg.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "4206c81dc510a81d14d5868af5e6da1c50b682df71e9c40e390533f65779c839",
+      "created": false,
+      "template": null
+    },
+    "cspmcur.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "e9b07e5dff92ea0a04f231a5c2695064fc2d74a6db254a6486d4116a39b79c6f",
+      "created": false,
+      "template": null
+    },
+    "cspmdmg.odf": {
+      "model": "cpmort",
+      "faction": "cr",
+      "sourceSha256": "9adde83f5cbc616214de2f75d8fb300f85b4bfffd3f3a8a2dfacb1636dc78384",
+      "created": false,
+      "template": null
+    },
+    "cspmini.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "bd1bae8fb3698df70d47aed2d9f778d4f1e35aa6b9dd4a5920c56490509c6b90",
+      "created": false,
+      "template": null
+    },
+    "cspmits.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "923cba95777ea90e8c10241a716f98b2623a02129103437fadef5b8941c69b49",
+      "created": false,
+      "template": null
+    },
+    "cspmort.odf": {
+      "model": "cpmort",
+      "faction": "cr",
+      "sourceSha256": "c5dfad39a9a1a63ed5511981c9f99637a48b39f70265383c94729515d24e069a",
+      "created": false,
+      "template": null
+    },
+    "cspphan.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "cbebddf99782ac3939f4183e700bdaf6736929a2b6ab0292202f32b83709fbd2",
+      "created": false,
+      "template": null
+    },
+    "csppopg.odf": {
+      "model": "cpmort",
+      "faction": "cr",
+      "sourceSha256": "28168732cde884fb99faf7fe898e49568d3c3e166c87c4460946ef698b2b09f2",
+      "created": false,
+      "template": null
+    },
+    "cspredf.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "a8e3c225aa1016f4876729de273377ab29a991a9386bd08ee2e1202be8ddb262",
+      "created": false,
+      "template": null
+    },
+    "csprepa.odf": {
+      "model": "cprepa",
+      "faction": "cr",
+      "sourceSha256": "6ea989171dde4da6c45ec36c8c77245095aabfcf9a9146620ee59fcf404d58f4",
+      "created": false,
+      "template": null
+    },
+    "csprktb.odf": {
+      "model": "cprock",
+      "faction": "cr",
+      "sourceSha256": "b51c715f6bf817d5e1c5a84b7913e75f5b0451065330d33511b48ee595826f96",
+      "created": false,
+      "template": null
+    },
+    "cspsand.odf": {
+      "model": "cprock",
+      "faction": "cr",
+      "sourceSha256": "770abb392744cf9cfb98bdf2c51967411510a07065c560b8990c63b683ccf4d6",
+      "created": false,
+      "template": null
+    },
+    "cspshdw.odf": {
+      "model": "cprock",
+      "faction": "cr",
+      "sourceSha256": "3e19c0f2aaa1fd33cb69a08825f4c1580543e0301fa7060cfa8b25f8d8074591",
+      "created": false,
+      "template": null
+    },
+    "cspsite.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "542a1e1e7913e625aa2f070178d4f5d179eca526acbd7919a706edd3048fd637",
+      "created": false,
+      "template": null
+    },
+    "cspstab.odf": {
+      "model": "cpcann",
+      "faction": "cr",
+      "sourceSha256": "de6fa68fc32c910584026f845a713de781719855e7e3020dfcdd63e4b3fe1d95",
+      "created": false,
+      "template": null
+    },
+    "csptagg.odf": {
+      "model": "cprock",
+      "faction": "cr",
+      "sourceSha256": "61343f35ce634ab7df380fc8cf43e2680c95a52b495c8132d76a4cfe8ce5c155",
+      "created": false,
+      "template": null
+    },
+    "cspthmp.odf": {
+      "model": "cpspec",
+      "faction": "cr",
+      "sourceSha256": "8123bab90f2909f376817aeeb6898539f43a3936aff54d32fafc008fce0ba9c3",
+      "created": false,
+      "template": null
+    },
+    "abstor.odf": {
+      "model": "abstor",
+      "faction": "ns",
+      "sourceSha256": "24245101077712d7a57f9f3f6fb9c217dde15e1ba2b6228724e29ff092754165",
+      "created": false,
+      "template": null
+    },
+    "bbstor.odf": {
+      "model": "bbstor",
+      "faction": "bd",
+      "sourceSha256": "c6003a17e01ba8f52c0675493be139dce6a9e3e9cc65073c357423d8645b7010",
+      "created": false,
+      "template": null
+    },
+    "sbstor.odf": {
+      "model": "sbstor",
+      "faction": "cc",
+      "sourceSha256": "c8bfb777298da01e95f26affbec10a0e3687849e4ae551fd013ca8dc4425de3a",
+      "created": true,
+      "template": "ODF/crstcc.odf"
+    },
+    "cbstor.odf": {
+      "model": "cbstor",
+      "faction": "cr",
+      "sourceSha256": "577a16db8eff5af04a9cd5dbba7f124a8b0b8ddaa66c5c598b6b394c03f7747f",
+      "created": true,
+      "template": "ODF/crstcr.odf"
+    },
+    "bpcamr.odf": {
+      "model": "bpcamr",
+      "faction": "bd",
+      "sourceSha256": "6f5be27db48d51ca3c746c96793d01110bb5491c1d80fa76e28ef05c9f2c2906",
+      "created": true,
+      "template": "ODF/bapcamr.odf"
+    }
+  }
+}

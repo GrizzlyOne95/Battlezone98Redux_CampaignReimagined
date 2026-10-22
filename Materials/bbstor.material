@@ -2,10 +2,10 @@ import * from "CR_BZBase.material"
 
 material bbstor : CR_BZBase
 {
-	set_texture_alias DiffuseMap bbstor_D.dds
-	set_texture_alias NormalMap flat_N.dds
-	set_texture_alias SpecularMap bbstor_S.dds
-	set_texture_alias EmissiveMap bbstor_E.dds
+	set_texture_alias DiffuseMap crstbd_d.dds
+	set_texture_alias NormalMap crvstor_n.dds
+	set_texture_alias SpecularMap crvcca_patch_s.dds
+	set_texture_alias EmissiveMap crstbd_e.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

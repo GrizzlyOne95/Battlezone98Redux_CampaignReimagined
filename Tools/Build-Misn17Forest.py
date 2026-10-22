@@ -770,9 +770,17 @@ def build(pack, isdfc):
     bzn.header['seq_count'].value = seq; bzn.header['#objects'].value = len(bzn.objects)
     (ROOT / 'Missions/misn17.bzn').write_bytes(write_bzn(bzn, 2016, binary=False, preserve_spelling=False))
 
+    # Keep the reviewed authored trunk pass after a full geometry/site rebuild.
+    # The original GLB still supplies tree geometry, UVs, foliage and credits.
+    import importlib.util
+    art_spec = importlib.util.spec_from_file_location('cr_trunk_art', ROOT / 'Tools/Build-TextureRevamp.py')
+    art = importlib.util.module_from_spec(art_spec); art_spec.loader.exec_module(art)
+    for name in art.build(foliage_only=True):
+        written[name] = check_not_blank(textures / name)
     import collections
     report = {'pack': {k: lic.get(k) for k in ('title', 'author', 'license', 'source')}, 'sha256': consumed,
-              'textures': written, 'trees': tree_info, 'ice': ice_info,
+              'textures': written, 'trunk_art': 'TextureRevamp: generated colour/height masters; original tree geometry and attribution retained.',
+              'trees': tree_info, 'ice': ice_info,
               'tree_sites': dict(collections.Counter(t['odf'] for t in trees)),
               'preplaced_trees': sum(t['preplaced'] for t in trees),
               'ice_sites': len(placed), 'ice_slabs': len(ice),

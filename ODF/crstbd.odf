@@ -1,0 +1,12 @@
+// Independent Black Dog storage crate; retains Black Dog storage statistics.
+[GameObjectClass]
+baseName = "crstbd"
+classLabel = "i76building"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 425
+maxAmmo = 0
+unitName = "Black Dog Storage"
+heatSignature = 0.56
+imageSignature = 5.6
+radarSignature = 0.7
