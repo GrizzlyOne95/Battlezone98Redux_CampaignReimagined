@@ -81,10 +81,12 @@ shot(0); ticks(S, 6)
 local a = anchor()
 assert(a, "heat anchor written")
 near(a[1], 102.41, "forward offset"); near(a[2], 1.1, "up offset"); near(a[3], -0.2, "right offset"); near(a[4], 0.6, "radius")
--- The barrel runs from the native mount to the flash point.
+-- The heated stretch ends BarrelLength (0.8) back from the flash point toward
+-- the mount (100,1,0): flash (102.41,1.1,-0.2), barrel length 2.4229.
 local b = anchor("surfaceBarrel0")
-assert(b, "barrel mount written")
-near(b[1], 100, "barrel mount x"); near(b[2], 1, "barrel mount y"); near(b[3], 0, "barrel mount z"); near(b[4], 0.35, "barrel radius")
+assert(b, "barrel end written")
+local k = 0.8 / math.sqrt(2.41^2 + 0.1^2 + 0.2^2)
+near(b[1], 102.41 - 2.41*k, "barrel end x"); near(b[2], 1.1 - 0.1*k, "barrel end y"); near(b[3], -0.2 + 0.2*k, "barrel end z"); near(b[4], 0.35, "barrel radius")
 
 -- 2. The anchor rides the hull: rotate and move the craft, the barrel tip follows.
 hull = { right = {1,0,0}, up = {0,1,0}, front = {0,0,1}, posit = {0,0,50} }
