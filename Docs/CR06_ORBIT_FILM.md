@@ -30,6 +30,12 @@ Stacked on `agent/mars-rocket` (CR #228), which owns the launch film and the `cr
   refused, the fallback is the `CR06/Starfield` dome plus an upward-facing floor plane, which still
   leaves a band at the horizon. Sky geometry past about half the far clip is culled, so keep it close.
 - Fog, ambient, sun direction and clip are re-asserted every frame; the Mars atmosphere director is paused.
+- misn06 owns the same world-art Mars dome (`CRSKYMA.MAP`, see `TERRAIN_WORLD_ART_PASS.md`) as the other
+  Mars missions, so the horizon blends into the fog. The film saves the dome's enabled flag. On the box
+  path the dome material is untouched and restore just re-enables it. On the fallback path the dome
+  material was replaced by the starfield, so restore calls the API's `restoreSky`
+  (`Environment.RestoreArtSky`), which reinstalls the world-art dome. Atmosphere updates (and so the
+  sky's material-only fog calibration) are paused while the film runs and never toggle dome enablement.
 - The stock sky is not an Ogre sky: `misn06.trn` `SkyTexture=mars.map` is a camera-relative ceiling quad,
   `[Clouds]` draws `acloud2.map` layers, and `SunTexture=sun.0` is a sprite. The engine binds materials
   named after the textures in upper case (`MARS.MAP`, `ACLOUD2.MAP`, `ACLOUD.MAP`), so the film retextures
@@ -60,4 +66,4 @@ step fails with "No visible window". Run with `BZR_NO_FOREGROUND_WATCHDOG=1` and
 ## Open items
 
 - Co-op guests do not see the shot.
-- The CR carrier competing design (`crncarr`, CR #237) is separate; this film uses `cr06lin` only.
+- The CR carrier competing design (`crncarr`, CR #237) is separate and was archived out of the repository on 2026-10-21; this film uses `cr06lin` only.
