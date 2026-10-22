@@ -22,12 +22,12 @@
   "textures": {
     "cr17_fbranch1.dds": "8123840710178167193b3a078e8036a2b687ed2b85434dd024e04f46aecaafee",
     "cr17_fbranch2.dds": "eb355a5f56668fdc3f636a0c039834fce6b863df5d390c344cfab1832a08ad92",
-    "cr17_ftrunk1.dds": "b12da876e04704774ba7d51c29052f01bd4f124eb33f2e33bae7afd8e6edc2ba",
-    "cr17_ftrunk1_n.dds": "989808feba0fb59703b0154116c412887ad54daec909203c15141133bd403ad6",
-    "cr17_ftrunk1_s.dds": "e1d59637f7f8cd1adf36c283551d0dfad6940b745cadef1231209268fc62af32",
-    "cr17_ftrunk2.dds": "49cbbb7ad2c1645d0202b9da908fbe0d927d8b513d8876f9e6a9bb8c6b6b6677",
-    "cr17_ftrunk2_n.dds": "d16c1c77988d71d5ef8f12733bb33f2b6f02c78cf24a84f352de1fdca7168257",
-    "cr17_ftrunk2_s.dds": "d5d85006d492c05ccb8d3e72ea602a82c63c4a4258a39422b33ab4604b28922e",
+    "cr17_ftrunk1.dds": "6f2d2967f1fa4c9b960c3617e640b28168d288645f8230b43781d2968515dc3b",
+    "cr17_ftrunk1_n.dds": "aa0c8bf6f0064eb50dd104def2bb865704cd7a4d60573f8ebcf0bf53e863dc6f",
+    "cr17_ftrunk1_s.dds": "3cd5b50fad10ae8882cb7f349a15dfb654f413ef2ef7a46f072a6b3d6d114d22",
+    "cr17_ftrunk2.dds": "2c2564945593d66ace2c46904b5c148e351ab8936c68bc0040221cb9e75c21ef",
+    "cr17_ftrunk2_n.dds": "eff6993a4d7364bca4c2401cdfc098551c1a1d09a9f9e2393c638d1c164ae716",
+    "cr17_ftrunk2_s.dds": "3cd5b50fad10ae8882cb7f349a15dfb654f413ef2ef7a46f072a6b3d6d114d22",
     "cr17_frock.dds": "0e68c6cd6585adcc3a02b6b06363aebae43ff95e0e78c4ecb657c97169e39553",
     "cr17_frock_n.dds": "ab285cee1e805c3a2bceb6f9f62fcfb3d143dc5da60cc2b70856c6274372686c",
     "cr17_frock_s.dds": "d987eb01fc30555441630514a38e682ab43d75c3aeed2e1d2994a3b20f70de40",
@@ -1369,5 +1369,6 @@
   ],
   "rock_layers": 141,
   "rocks": 5914,
-  "shore_cells": 15053
+  "shore_cells": 15053,
+  "trunk_art": "TextureRevamp: generated colour/height masters; original tree geometry and attribution retained."
 }

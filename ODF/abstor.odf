@@ -1,4 +1,5 @@
 [GameObjectClass]
+baseName = "abstor"
 classLabel = "i76building"
 scrapCost = 0
 scrapValue = 0

@@ -1,0 +1,9 @@
+{
+  "mode": "built-in image_gen",
+  "date": "2026-10-21",
+  "entry": {
+    "id": "obpowr00_height",
+    "file": "obpowr00_height.png",
+    "prompt": "Use case: precise-object-edit. Asset type: shallow grayscale HEIGHT MAP of the original Olympian power/relic texture atlas. Input image is the UV-locked edit target. Preserve every panel island, seam, slot, cut edge and internal machinery region at EXACTLY the same normalized coordinates and scale. Remove paint, patina, all hue and all lighting: uniform plate faces are middle gray, recessed seams/slots darker, existing raised lips slightly brighter, recessed machinery gently stepped. Amber light COLOR is not height; keep amber insets recessed and flat. No new geometry, no redesigned motifs, no scratches added, no perspective, no clay-render lighting, no labels, no border or presentation. A single full-bleed square grayscale height-data image registered precisely with the original. Shallow, smooth, restrained relief."
+  }
+}
