@@ -1,0 +1,867 @@
+{
+  "version": 1,
+  "profiles": {
+    "minigun": {
+      "length": 0.72,
+      "radius": 0.18,
+      "petals": 4,
+      "duration": 0.045,
+      "cool": [
+        0.025,
+        0.2,
+        1
+      ],
+      "hot": [
+        0.65,
+        0.9,
+        1
+      ],
+      "shape": "needle",
+      "animation": [
+        4,
+        0.18,
+        0.12,
+        2.2
+      ]
+    },
+    "chaingun": {
+      "length": 1.05,
+      "radius": 0.31,
+      "petals": 5,
+      "duration": 0.055,
+      "cool": [
+        1,
+        0.045,
+        0.006
+      ],
+      "hot": [
+        1,
+        0.63,
+        0.26
+      ],
+      "shape": "fork",
+      "animation": [
+        6.28,
+        0.25,
+        0.14,
+        1.8
+      ]
+    },
+    "atstab": {
+      "length": 1.85,
+      "radius": 0.48,
+      "petals": 6,
+      "duration": 0.085,
+      "cool": [
+        1,
+        0.19,
+        0.014
+      ],
+      "hot": [
+        1,
+        0.97,
+        0.83
+      ],
+      "shape": "jet",
+      "animation": [
+        6.28,
+        0.14,
+        0.2,
+        1.4
+      ]
+    },
+    "spstab": {
+      "length": 2.5,
+      "radius": 0.67,
+      "petals": 6,
+      "duration": 0.095,
+      "cool": [
+        1,
+        0.34,
+        0.035
+      ],
+      "hot": [
+        1,
+        1,
+        0.92
+      ],
+      "shape": "crown",
+      "animation": [
+        6.28,
+        0.12,
+        0.22,
+        1.2
+      ]
+    },
+    "pulse": {
+      "length": 1.4,
+      "radius": 0.4,
+      "petals": 5,
+      "duration": 0.06,
+      "cool": [
+        1,
+        0.18,
+        0.025
+      ],
+      "hot": [
+        1,
+        0.87,
+        0.5
+      ],
+      "shape": "pulse",
+      "animation": [
+        6.28,
+        0.08,
+        0.1,
+        2
+      ]
+    },
+    "blast": {
+      "length": 1.6,
+      "radius": 0.76,
+      "petals": 7,
+      "duration": 0.09,
+      "cool": [
+        0.26,
+        1,
+        0.07
+      ],
+      "hot": [
+        0.91,
+        1,
+        0.67
+      ],
+      "shape": "crown",
+      "animation": [
+        6.28,
+        0.12,
+        0.2,
+        1.6
+      ]
+    },
+    "blastblue": {
+      "length": 1.6,
+      "radius": 0.76,
+      "petals": 7,
+      "duration": 0.09,
+      "cool": [
+        0.08,
+        0.34,
+        1
+      ],
+      "hot": [
+        0.8,
+        0.95,
+        1
+      ],
+      "shape": "crown",
+      "animation": [
+        6.28,
+        0.12,
+        0.2,
+        1.6
+      ]
+    },
+    "blastred": {
+      "length": 1.6,
+      "radius": 0.76,
+      "petals": 7,
+      "duration": 0.09,
+      "cool": [
+        1,
+        0.03,
+        0.015
+      ],
+      "hot": [
+        1,
+        0.82,
+        0.65
+      ],
+      "shape": "crown",
+      "animation": [
+        6.28,
+        0.12,
+        0.2,
+        1.6
+      ]
+    },
+    "arcblue": {
+      "length": 1.2,
+      "radius": 0.28,
+      "petals": 3,
+      "duration": 0.055,
+      "cool": [
+        0.08,
+        0.32,
+        1
+      ],
+      "hot": [
+        0.8,
+        0.94,
+        1
+      ],
+      "shape": "fork",
+      "animation": [
+        6.28,
+        0.3,
+        0.08,
+        2.8
+      ]
+    },
+    "arcgreen": {
+      "length": 1.2,
+      "radius": 0.28,
+      "petals": 3,
+      "duration": 0.055,
+      "cool": [
+        0.06,
+        1,
+        0.16
+      ],
+      "hot": [
+        0.8,
+        1,
+        0.88
+      ],
+      "shape": "fork",
+      "animation": [
+        6.28,
+        0.3,
+        0.08,
+        2.8
+      ]
+    },
+    "arcred": {
+      "length": 1.2,
+      "radius": 0.28,
+      "petals": 3,
+      "duration": 0.055,
+      "cool": [
+        1,
+        0.05,
+        0.015
+      ],
+      "hot": [
+        1,
+        0.82,
+        0.65
+      ],
+      "shape": "fork",
+      "animation": [
+        6.28,
+        0.3,
+        0.08,
+        2.8
+      ]
+    },
+    "rocket": {
+      "length": 1.9,
+      "radius": 0.55,
+      "petals": 5,
+      "duration": 0.1,
+      "cool": [
+        1,
+        0.24,
+        0.025
+      ],
+      "hot": [
+        1,
+        0.95,
+        0.8
+      ],
+      "shape": "jet",
+      "animation": [
+        6.28,
+        0.18,
+        0.18,
+        1.3
+      ]
+    },
+    "mortar": {
+      "length": 1.35,
+      "radius": 0.82,
+      "petals": 7,
+      "duration": 0.12,
+      "cool": [
+        1,
+        0.25,
+        0.035
+      ],
+      "hot": [
+        1,
+        0.95,
+        0.8
+      ],
+      "shape": "crown",
+      "animation": [
+        6.28,
+        0.15,
+        0.16,
+        1.1
+      ]
+    },
+    "plasmablue": {
+      "length": 0.85,
+      "radius": 0.27,
+      "petals": 4,
+      "duration": 0.06,
+      "cool": [
+        0.03,
+        0.4,
+        1
+      ],
+      "hot": [
+        0.75,
+        0.95,
+        1
+      ],
+      "shape": "pulse",
+      "animation": [
+        6.28,
+        0.08,
+        0.1,
+        2.2
+      ]
+    },
+    "plasmared": {
+      "length": 0.85,
+      "radius": 0.27,
+      "petals": 4,
+      "duration": 0.06,
+      "cool": [
+        1,
+        0.035,
+        0.02
+      ],
+      "hot": [
+        1,
+        0.72,
+        0.55
+      ],
+      "shape": "pulse",
+      "animation": [
+        6.28,
+        0.08,
+        0.1,
+        2.2
+      ]
+    },
+    "plasmagreen": {
+      "length": 0.85,
+      "radius": 0.27,
+      "petals": 4,
+      "duration": 0.06,
+      "cool": [
+        0.08,
+        1,
+        0.2
+      ],
+      "hot": [
+        0.8,
+        1,
+        0.9
+      ],
+      "shape": "pulse",
+      "animation": [
+        6.28,
+        0.08,
+        0.1,
+        2.2
+      ]
+    },
+    "mag": {
+      "length": 1.25,
+      "radius": 0.55,
+      "petals": 4,
+      "duration": 0.09,
+      "cool": [
+        0.32,
+        0.09,
+        1
+      ],
+      "hot": [
+        0.94,
+        0.86,
+        1
+      ],
+      "shape": "pulse",
+      "animation": [
+        6.28,
+        0.08,
+        0.16,
+        1.5
+      ]
+    },
+    "sniper": {
+      "length": 0.46,
+      "radius": 0.1,
+      "petals": 3,
+      "duration": 0.03,
+      "cool": [
+        0.15,
+        0.55,
+        1
+      ],
+      "hot": [
+        0.9,
+        1,
+        1
+      ],
+      "shape": "needle",
+      "animation": [
+        6.28,
+        0.08,
+        0.08,
+        3
+      ]
+    },
+    "popper": {
+      "length": 0.7,
+      "radius": 0.32,
+      "petals": 4,
+      "duration": 0.065,
+      "cool": [
+        1,
+        0.4,
+        0.03
+      ],
+      "hot": [
+        1,
+        1,
+        0.7
+      ],
+      "shape": "crown",
+      "animation": [
+        6.28,
+        0.14,
+        0.16,
+        2
+      ]
+    },
+    "sunarc": {
+      "length": 1.4,
+      "radius": 0.36,
+      "petals": 5,
+      "duration": 0.065,
+      "cool": [
+        1,
+        0.5,
+        0.015
+      ],
+      "hot": [
+        1,
+        1,
+        0.8
+      ],
+      "shape": "fork",
+      "animation": [
+        6.28,
+        0.2,
+        0.12,
+        2
+      ]
+    }
+  },
+  "weapons": {
+    "aprifle": {
+      "profile": "plasmablue",
+      "decision": "authored flash"
+    },
+    "asplsmg": {
+      "profile": "plasmablue",
+      "decision": "authored flash"
+    },
+    "bprifle": {
+      "profile": "plasmablue",
+      "decision": "authored flash"
+    },
+    "bsplsmg": {
+      "profile": "plasmablue",
+      "decision": "authored flash"
+    },
+    "cprifle": {
+      "profile": "plasmagreen",
+      "decision": "authored flash"
+    },
+    "cr16bolt": {
+      "profile": "arcblue",
+      "decision": "authored flash"
+    },
+    "crfarc": {
+      "profile": "arcblue",
+      "decision": "authored flash"
+    },
+    "crfmarc": {
+      "profile": "arcred",
+      "decision": "authored flash"
+    },
+    "crfpuls": {
+      "profile": "plasmablue",
+      "decision": "authored flash"
+    },
+    "cromarc": {
+      "profile": "sunarc",
+      "decision": "authored flash"
+    },
+    "csplsmg": {
+      "profile": "plasmagreen",
+      "decision": "authored flash"
+    },
+    "cvwo003": {
+      "profile": "mortar",
+      "decision": "authored flash"
+    },
+    "ga7stab": {
+      "profile": "atstab",
+      "decision": "authored flash"
+    },
+    "gammo": {
+      "profile": null,
+      "decision": "supply dispenser"
+    },
+    "gammoa": {
+      "profile": null,
+      "decision": "supply dispenser"
+    },
+    "gatstab": {
+      "profile": "atstab",
+      "decision": "authored flash"
+    },
+    "gatstaba": {
+      "profile": "atstab",
+      "decision": "authored flash"
+    },
+    "gatstabh": {
+      "profile": "atstab",
+      "decision": "authored flash"
+    },
+    "gbetmin": {
+      "profile": null,
+      "decision": "mine deployment"
+    },
+    "gbetpop": {
+      "profile": null,
+      "decision": "autonomous mine trigger, no craft muzzle"
+    },
+    "gblast": {
+      "profile": "blast",
+      "decision": "authored flash"
+    },
+    "gblastb": {
+      "profile": "blastblue",
+      "decision": "authored flash"
+    },
+    "gblastg": {
+      "profile": "blast",
+      "decision": "authored flash"
+    },
+    "gblasth": {
+      "profile": "blastred",
+      "decision": "authored flash"
+    },
+    "gbolt": {
+      "profile": "arcblue",
+      "decision": "authored flash"
+    },
+    "gboltg": {
+      "profile": "arcgreen",
+      "decision": "authored flash"
+    },
+    "gboltmig": {
+      "profile": null,
+      "decision": "mine deployment"
+    },
+    "gboltmin": {
+      "profile": null,
+      "decision": "mine deployment"
+    },
+    "gboltmir": {
+      "profile": null,
+      "decision": "mine deployment"
+    },
+    "gboltr": {
+      "profile": "arcred",
+      "decision": "authored flash"
+    },
+    "gbspstab": {
+      "profile": "spstab",
+      "decision": "authored flash"
+    },
+    "gcomet": {
+      "profile": "rocket",
+      "decision": "authored flash"
+    },
+    "gctesla": {
+      "profile": null,
+      "decision": "field deployment"
+    },
+    "gdummy": {
+      "profile": null,
+      "decision": "paintball/debug effect"
+    },
+    "gflare": {
+      "profile": null,
+      "decision": "countermeasure deployment"
+    },
+    "gflashch": {
+      "profile": "arcred",
+      "decision": "authored flash"
+    },
+    "gflashgb": {
+      "profile": "arcblue",
+      "decision": "authored flash"
+    },
+    "gflashgg": {
+      "profile": "arcgreen",
+      "decision": "authored flash"
+    },
+    "gflashgn": {
+      "profile": "arcblue",
+      "decision": "authored flash"
+    },
+    "ghartila": {
+      "profile": "mortar",
+      "decision": "authored flash"
+    },
+    "ghartill": {
+      "profile": "mortar",
+      "decision": "authored flash"
+    },
+    "ghartmp": {
+      "profile": "mortar",
+      "decision": "authored flash"
+    },
+    "ghornet": {
+      "profile": "rocket",
+      "decision": "authored flash"
+    },
+    "ghrntai": {
+      "profile": "rocket",
+      "decision": "authored flash"
+    },
+    "glgmsl": {
+      "profile": "rocket",
+      "decision": "authored flash"
+    },
+    "gmaggun": {
+      "profile": "mag",
+      "decision": "authored flash"
+    },
+    "gmasgren": {
+      "profile": null,
+      "decision": "conversion projectile, keep existing effect"
+    },
+    "gmbolt": {
+      "profile": "arcblue",
+      "decision": "authored flash"
+    },
+    "gmboltg": {
+      "profile": "arcgreen",
+      "decision": "authored flash"
+    },
+    "gmboltr": {
+      "profile": "arcred",
+      "decision": "authored flash"
+    },
+    "gmcurmin": {
+      "profile": null,
+      "decision": "mine deployment"
+    },
+    "gmdmgun": {
+      "profile": "mortar",
+      "decision": "authored flash"
+    },
+    "gminigna": {
+      "profile": "minigun",
+      "decision": "authored flash"
+    },
+    "gminignb": {
+      "profile": "minigun",
+      "decision": "authored flash"
+    },
+    "gminignc": {
+      "profile": "minigun",
+      "decision": "authored flash"
+    },
+    "gminigrn": {
+      "profile": "minigun",
+      "decision": "authored flash"
+    },
+    "gminigun": {
+      "profile": "minigun",
+      "decision": "authored flash"
+    },
+    "gminisov": {
+      "profile": "chaingun",
+      "decision": "authored flash"
+    },
+    "gmitsmin": {
+      "profile": null,
+      "decision": "mine deployment"
+    },
+    "gmortar": {
+      "profile": "mortar",
+      "decision": "authored flash"
+    },
+    "gnavdrop": {
+      "profile": null,
+      "decision": "navigation beacon deployment"
+    },
+    "gobject": {
+      "profile": null,
+      "decision": "internal object lobber"
+    },
+    "gphantom": {
+      "profile": null,
+      "decision": "cloak device"
+    },
+    "gpopgun": {
+      "profile": "popper",
+      "decision": "authored flash"
+    },
+    "gproxmin": {
+      "profile": null,
+      "decision": "mine deployment"
+    },
+    "gquake": {
+      "profile": null,
+      "decision": "ground-contact seismic emitter"
+    },
+    "gredfld": {
+      "profile": null,
+      "decision": "radar device"
+    },
+    "grepa": {
+      "profile": null,
+      "decision": "repair dispenser"
+    },
+    "grepaa": {
+      "profile": null,
+      "decision": "repair dispenser"
+    },
+    "grktbomb": {
+      "profile": "rocket",
+      "decision": "authored flash"
+    },
+    "gsandbag": {
+      "profile": null,
+      "decision": "anchoring device"
+    },
+    "gsatstab": {
+      "profile": "pulse",
+      "decision": "authored flash"
+    },
+    "gshadow": {
+      "profile": "rocket",
+      "decision": "authored flash"
+    },
+    "gshunt": {
+      "profile": "rocket",
+      "decision": "authored flash"
+    },
+    "gsitecam": {
+      "profile": null,
+      "decision": "camera device"
+    },
+    "gsmort": {
+      "profile": "mortar",
+      "decision": "authored flash"
+    },
+    "gsnipe": {
+      "profile": "sniper",
+      "decision": "authored flash"
+    },
+    "gsplint": {
+      "profile": "mortar",
+      "decision": "authored flash"
+    },
+    "gsplinta": {
+      "profile": "mortar",
+      "decision": "authored flash"
+    },
+    "gsplintg": {
+      "profile": "mortar",
+      "decision": "authored flash"
+    },
+    "gsplintr": {
+      "profile": "mortar",
+      "decision": "authored flash"
+    },
+    "gspstab": {
+      "profile": "spstab",
+      "decision": "authored flash"
+    },
+    "gspstaba": {
+      "profile": "spstab",
+      "decision": "authored flash"
+    },
+    "gspstabb": {
+      "profile": "spstab",
+      "decision": "authored flash"
+    },
+    "gspstabc": {
+      "profile": "spstab",
+      "decision": "authored flash"
+    },
+    "gspstabd": {
+      "profile": "spstab",
+      "decision": "authored flash"
+    },
+    "gspstabn": {
+      "profile": "spstab",
+      "decision": "authored flash"
+    },
+    "gsrkbomb": {
+      "profile": "rocket",
+      "decision": "authored flash"
+    },
+    "gstlock": {
+      "profile": null,
+      "decision": "control projectile, keep existing effect"
+    },
+    "gtaggun": {
+      "profile": "rocket",
+      "decision": "authored flash"
+    },
+    "gtechno": {
+      "profile": "plasmablue",
+      "decision": "authored flash"
+    },
+    "gtminig": {
+      "profile": "minigun",
+      "decision": "authored flash"
+    },
+    "gtminis": {
+      "profile": "chaingun",
+      "decision": "authored flash"
+    },
+    "gtminis2": {
+      "profile": "chaingun",
+      "decision": "authored flash"
+    },
+    "gtminisa": {
+      "profile": "chaingun",
+      "decision": "authored flash"
+    },
+    "gtsmoke": {
+      "profile": null,
+      "decision": "smoke launch, keep smoke effect distinct"
+    },
+    "gwasp": {
+      "profile": null,
+      "decision": "mine deployment"
+    },
+    "handgun": {
+      "profile": "plasmablue",
+      "decision": "authored flash"
+    },
+    "sprifle": {
+      "profile": "plasmared",
+      "decision": "authored flash"
+    },
+    "ssplsmg": {
+      "profile": "plasmared",
+      "decision": "authored flash"
+    }
+  }
+}

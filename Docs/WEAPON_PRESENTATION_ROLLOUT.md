@@ -1,0 +1,138 @@
+# Stock BZR / CR weapon presentation: first pass
+
+2026-10-21, owner direction: work through stock and CR weapons with tailored
+muzzle flashes; miniguns blue, chainguns orange-red. Inventory recoil options
+across tanks, light tanks, bombers, walkers and other combat units.
+
+## Inventory and delivered content
+
+The inventory covers all 73 weapon definitions in the installed GOG stock ODF
+archive, overlaid with CR's current ODFs: **100 effective weapon definitions**.
+The stock extracted directory was cross-checked against all 796 `bzone.zfs`
+ODF members; all 73 WeaponClass definitions were present. This includes unused,
+special and variant definitions, rather than assuming a weapon is unused because
+its name does not begin with `g`. It is a definition inventory, not a proof of
+mission reachability or arbitrary external mod coverage.
+
+There are **174 weapon-equipped definitions / 61 models / 330 slots**: 159
+combat carriers (including pilots and armed structures) and 15 armories that
+supply weapons but do not fire them. `References/WeaponPresentation/inventory.json`,
+`weapons.csv` and `recoil.csv` contain the complete inventory. Re-run with:
+
+```powershell
+python Tools/Inventory-WeaponPresentation.py --stock '<game>/StockODFFiles' --output '<report directory>'
+```
+
+**74 weapon ODFs now select authored flashes**, with 20 separate mesh/material
+profiles. The other 26 definitions have an explicit reason for omission: supply
+or mine deployment, countermeasures, cloak/radar/camera devices, paintball/debug,
+ground-contact Thumper/anchor effects, or a utility projectile whose existing
+effect is retained. A mine's trigger is not treated as a craft muzzle.
+
+| Family | Art direction |
+| --- | --- |
+| Minigun, variants, turret minigun | Short narrow blue jet, pale blue-white core, 45 ms |
+| Chaingun, variants, turret chaingun | Wider split orange-red plume, warm core, 55 ms |
+| AT-Stabber | Amber directional gas jet, 85 ms |
+| SP/CP-Stabber | Larger crown with a hotter pale core, 95 ms |
+| CCA Pulse Stabber | Compact orange pulse, 60 ms |
+| Blast cannon variants | Broad crown; green, blue or red presets, 90 ms |
+| Bolt/arc/flash families | Thin forked blue, green or red discharge, 55 ms |
+| Rockets and guided launchers | Longer warm launch jet, 100 ms |
+| Mortars/howitzers/splinter | Broad short pressure crown, 120 ms |
+| Infantry plasma / Fury pulse | Compact faction-coloured pulse, 60 ms |
+| MAG, sniper, popper, Olympian arc | Separate violet pulse, narrow blue needle, warm crown and gold arc profiles |
+
+The colour choices beyond the owner's minigun/chaingun direction are initial
+art choices for review, not recovered stock muzzle colours. Profiles differ in
+geometry, radial shape, petal count, duration and gas animation; this is more
+than tinting/scaling one universal mesh. A shared original EXU flame mask and
+LGPL shader provide hot-core/gas breakup, per-shot variation and pause-aware
+phase. Provenance, original prompt, source revision and input hashes are in
+`References/WeaponPresentation/provenance.json`. No new third-party game model
+or texture was imported. Each profile has its own CR resource names.
+
+`Build-WeaponFlashes.py` writes meshes using the shared Toolbox codec and adds
+only marked presentation fields to complete ODF overrides. Gameplay baselines
+pin every original field, including ammo, delay, ordnance, sounds, damage-related
+references and inheritance. Existing projectiles/effects remain. No ship loadout
+or recoil configuration was changed. Existing example comments remain comments.
+
+## Runtime coverage and fitting limits
+
+The companion OpenShim change adds the separately qualified MachineGun accepted
+shot call to the existing factory bridge. It preserves the original factory
+return, owner/matrix arguments and lifecycle/ODF gates. No extra unit scan or
+Lua per-shot callback is introduced. Existing cannon handling also covers the
+Mortar and SniperGun simulation implementations that use the same stock path.
+
+| Selected flash ODFs | Runtime state |
+| --- | --- |
+| 30 cannon + 10 mortar + 1 sniper | Existing accepted-shot path; these new assets and individual weapons still need live fitting/visual tests |
+| 15 machinegun | New accepted-shot producer compiled and host-tested; live activation/visual test pending |
+| 9 beam + 2 thermal + 2 targeting + radar + image + charge + detonator + popper (18 total) | Art/ODFs prepared; separate accepted-fire producers not added in this pass |
+
+Current native scope stays exact-GOG 2.2.301 **single-player**. OpenShim Video >
+Muzzle Flashes must be enabled and the matching EXU loaded; the setting still
+defaults OFF and requires restart. This does not enable flashes in CR co-op.
+Steam/Proton/Wine execution, other weapon producers and multiplayer remain
+separate runtime qualification work. DX9/DX11 shader compilation is not proof
+of those game/runtime lanes.
+
+Shared weapons use **zero extra muzzle offset**. The stock tank's known
+`0.20 0.10 2.41` trial correction must not be applied to every carrier of gatstab.
+Some models place firing hardpoints behind their visible tips. The inventory
+records exact muzzle/parent IDs, cockpit markers, available clips and dedicated
+barrel candidates; it also gives a local forward tip estimate from barrel GEO
+where possible. Estimates are fitting evidence, not automatically applied offsets.
+For avtank, the measured barrel extent implies approximately 2.413 m forward,
+consistent with the earlier live preset. Exact orientation/lateral offsets and
+shared-weapon/per-craft override policy still require a per-model fitting pass.
+
+## Recoil setup inventory
+
+Legacy topology inspection found **56 slot candidates on 17 distinct dedicated
+barrel nodes**. These are candidates, not 56 proven runtime bindings. It rejects
+whole hulls/turrets/locomotion nodes as automatic recoil choices. Existing position
+tracks are checked for changing translation; aiming rotations must stay live.
+All 61 models resolve through the shipping lock's resource mapping (including
+Assets/ModelFixes), then stock fallbacks. Cockpit hardpoints and actual Ogre
+clips are recorded separately. A stock `Take_001` clip is not assumed
+to be an authored firing recoil clip.
+
+| Unit family | Concrete setup / remaining work |
+| --- | --- |
+| NSDF tank, Black Dog tank variants | `AGR11BGA` / `bGR11BGA` are separate barrel candidates. Existing avtank node trial: 0.30 m kick / 2.5 m/s return. Revalidate every model/slot; inspect cockpit separately. |
+| CCA tank variants | `SCZ11BGB` is the barrel candidate. Slots can share this barrel; avoid conflicting settings and don't mistake Thumper for a firearm. Shorter initial kick than the NSDF cannon is appropriate for the rapid pulse cycle. |
+| Turrets / assault units | Several separate `BGA/BGB/BGC` assemblies appear in the CSV. Bind only the actual fired slot's barrel and retain its aim axes. |
+| NSDF light tank / Black Dog equivalent | GC1 belongs to the hull, not a dedicated barrel. The side gun and launcher need deliberate mesh-weight/bone grouping and an additive helper/clip. Never slide the entire hull. |
+| CCA / CRA light tanks | GC1 is on a turret or integrated hull/head. Author a recoil parent for the actual gun or a restrained firing clip after mesh inspection. |
+| NSDF / Black Dog walkers | GC1 and GC2 are on separate aimed arm assemblies (`age11tx2/tx1` or equivalents). Author separate left/right recoil helpers/clips, preserving shoulder aim and the walking rig. Don't restart one shared clip that recoils both arms for either shot. |
+| CCA / CRA walkers | Both GC muzzles can be on the same head. Separate weighted gun helpers are needed to avoid jerking the whole head/legs. Existing animated translation makes blind node sliding unsuitable. |
+| NSDF / CCA bombers | Current weapons use rocket hardpoints, often on integrated roof/hull structure. Prefer short nozzle/launcher compression or launch effects; a cannon-style sliding hull would be incorrect. |
+| Howitzers | Separate cannon assemblies are candidates where present. Coordinate deployed/aiming pose and long shell cycle; packed/unpacked model changes require lifecycle testing. |
+| Fighters, scouts, missile tanks, Fury units | Follow the exact hardpoint parent in the CSV. Integrated pods require a deliberate helper/clip or no physical slide; beams/launchers also need their own accepted-fire observation. |
+| Pilots | Existing `fireRecoilSniper` and movement clips are recorded. Preserve the person/FPS animation controller; do not treat a pilot as a vehicle node-slide target. |
+| Armories and utility slots | Supplier/utility records stay in the inventory but do not receive firearm recoil. |
+
+## Checks and next work
+
+- All 20 generated meshes round-trip byte-for-byte through the shared codec.
+- All four shader stages compile: DX11 vs/ps 4.0 and DX9 vs/ps 3.0.
+- Content checks cover all 100 decisions, required minigun/chaingun colours,
+  resource links, correct ODF sections and unchanged gameplay baselines for all
+  74 edited/added weapon definitions. The generator's `--check` passes.
+- Repository invariants pass. CI runs the content checks. Shipping adds only
+  new weapon overrides and their resources; the bless refused 50 missing generated
+  UI files, so new membership was inserted in place per knowledge-base section 3.8.
+- Companion native Release Win32 build and all 136 Windows CTests pass; static
+  qualification checks 15 sites, four call targets and five instruction steals.
+  Observer tests cover the added machinegun caller and fail-closed capture.
+
+**Live testing pending.** No active game, installed config, release payload or
+Workshop publication was changed. This is a first authored content/inventory
+checkpoint, not completed visual qualification for every weapon. Next: fit and
+review minigun/chaingun/AT-Stabber on representative craft; establish machinegun
+live proof; add the other accepted-fire producers; implement a safe per-craft
+flash-offset policy; then author and test recoil rigs family by family. Keep
+the current setting/build/network guards until the relevant evidence exists.
