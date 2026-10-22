@@ -59,6 +59,21 @@ clears accumulated marks. Wetting takes 2.5 seconds and drying 10 seconds as
 exponential time constants. Heat accumulates from accepted shots and cools
 smoothly. Missing native mount data suppresses heat rather than guessing.
 
+Cockpit glass and power follow the ISDF Chronicles cockpit damage preset. In F1,
+below 50% hull the glass shows a faint impact star and below 25% a strong one,
+drawn and faded by `CRWetGlass` (on fitted cockpit glass, else the screen
+overlay). Hysteresis (clear above 55%, back to faint above 30%) stops
+damage/repair chatter, and each craft keeps one spot, clear of the reticle.
+`SetCrack` is called only when the stage changes, so a mission that scripts its
+own crack (CRStorm18) is not overridden every frame. Leaving F1, leaving
+Enhanced, turning the setting off or a scene reset clears the crack, and the
+controller keeps calling `CRWetGlass.Update(0)` until it has faded. A real hull
+loss of 5% or more in one tick also dims the cockpit emission briefly through
+`surfaceState.w` (eased down in about 0.1 s, back over about a second, at most
+60%, 0.4 s cooldown). Repair, boarding and the first sample never trigger it.
+Impact dirt on the glass and saving the crack spot are not ported.
+`Tools/Test-CockpitGlassDamage.lua` covers this.
+
 Rain reaches every material in one synchronised sweep: shared materials and
 owned clones (towers, hit units) all receive the same swept value, which moves
 at most 0.03 per completed sweep. A few hundred materials therefore wet or dry

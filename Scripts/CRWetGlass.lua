@@ -40,7 +40,7 @@
 -- turned into view angles. Without that EXU support, without glass on the craft, or
 -- in F2/F5, the screen overlay draws them as before.
 --
--- The same overlay also carries two damage layers for a damage caller (none in CR yet), drawn with the same mask, canopy
+-- The same overlay also carries two damage layers for a damage caller (CRSurfaceEffects cracks by hull stage; CRStorm18 scripts one), drawn with the same mask, canopy
 -- mapping and opacity steps (the ISDFC tools/windshieldgen.py makes their textures):
 --   CRWetGlass.SetCrack(level 0..1, x, y)   an impact star at screen fraction (x, y); level 0 clears it (fast fade)
 --   CRWetGlass.Splat(amount 0..1, x, y, flip) a dirt splat that fades over a few seconds (3 at once)
