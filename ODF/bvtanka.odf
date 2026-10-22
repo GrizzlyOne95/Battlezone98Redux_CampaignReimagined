@@ -22,6 +22,12 @@ weaponHard4 = "GS1"
 weaponName4 = "gproxmin"
 
 [CraftClass]
+// OpenShim mesh recoil (slot 1 cannon barrel; needs Settings > Video > Muzzle Recoil).
+// Node bGR11BGA is the dedicated barrel under the turret (per VDF); metres, m/s.
+// Follows slot 1 if weaponName1 changes. See avtank.odf for the full reference.
+recoilName1 = "bGR11BGA"
+recoilDistance1 = 0.30
+recoilReturn1 = 2.5
 rangeScan = 400.0f
 periodScan = 5.0f
 velocJam = 7.5
