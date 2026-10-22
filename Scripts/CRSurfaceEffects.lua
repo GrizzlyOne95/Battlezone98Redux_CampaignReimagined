@@ -8,7 +8,8 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     hits = {}, shots = {}, active = {}, activeSet = {}, activeCursor = 1,
     clones = {}, nextId = 0, timer = 0, bindCursor = 1, started = false, gen = 0,
     SweepWet = 0, MaxWetStep = 0.03, MaxMaterialBudget = 64, CloneWetBudget = 32,
-    sweepLeft = 0, cloneLeft = 0, wetCursor = 1, sweepMoving = false }
+    sweepLeft = 0, cloneLeft = 0, wetCursor = 1, sweepMoving = false,
+    flashCache = {}, flashCacheCount = 0, MaxFlashCache = 512 }
 
 local function call(fn, ...)
     if type(fn) ~= "function" then return nil end
@@ -24,6 +25,76 @@ local function point(t)
     local x, y, z = t.posit_x or t.x, t.posit_y or t.y, t.posit_z or t.z
     if finite(x) and finite(y) and finite(z) then return { x = x, y = y, z = z } end
 end
+local function axis(m, name)
+    if m == nil then return nil end
+    local ok, x, y, z = pcall(function() return m[name .. "_x"], m[name .. "_y"], m[name .. "_z"] end)
+    if ok and finite(x) and finite(y) and finite(z) then return { x = x, y = y, z = z } end
+end
+local function dot(a, b) return a.x*b.x + a.y*b.y + a.z*b.z end
+local function cross(a, b) return { x = a.y*b.z - a.z*b.y, y = a.z*b.x - a.x*b.z, z = a.x*b.y - a.y*b.x } end
+local function unit(a)
+    local length = math.sqrt(dot(a, a))
+    if finite(length) and length > 0.0001 then return { x = a.x/length, y = a.y/length, z = a.z/length } end
+end
+local function hullBasis(h)
+    local m = call(GetTransform, h)
+    local right, up, front = axis(m, "right"), axis(m, "up"), axis(m, "front")
+    if right and up and front then return right, up, front end
+end
+
+-- The visible muzzle flash sits at the native mount plus a flash offset: the
+-- craft's flashOffset<N> for that slot, else the weapon's own flashOffset. Heat
+-- reads the same keys (never writes them) so the glow lands where the flash
+-- does, not inside the barrel root. "right up forward" metres, each -20..20;
+-- anything else is ignored, exactly like the native parser.
+local function parseOffset(value)
+    if type(value) ~= "string" then return nil end
+    local numbers = {}
+    for word in string.gmatch(string.gsub(value, '"', " "), "%S+") do
+        local n = tonumber(word)
+        if not finite(n) or math.abs(n) > 20 or #numbers >= 3 then return nil end
+        numbers[#numbers + 1] = n
+    end
+    if #numbers == 3 then return { x = numbers[1], y = numbers[2], z = numbers[3] } end
+end
+local function cachedOffset(key, file, section, label)
+    local value = S.flashCache[key]
+    if value == nil then
+        local odf = call(OpenODF, file)
+        value = odf ~= nil and parseOffset((call(GetODFString, odf, section, label, ""))) or false
+        if S.flashCacheCount < S.MaxFlashCache then
+            S.flashCache[key] = value; S.flashCacheCount = S.flashCacheCount + 1
+        end
+    end
+    return value or nil
+end
+local function flashOffset(h, slot)
+    local craft = call(GetOdf, h)
+    if type(craft) == "string" and craft ~= "" then
+        local offset = cachedOffset("c:" .. string.lower(craft) .. ":" .. slot, craft, "CraftClass", "flashOffset" .. (slot + 1))
+        if offset then return offset end
+    end
+    local weapon = call(GetWeaponClass, h, slot)
+    if type(weapon) == "string" and weapon ~= "" then
+        return cachedOffset("w:" .. string.lower(weapon), weapon, "WeaponClass", "flashOffset")
+    end
+end
+-- The offset is in the weapon frame. The shot direction gives that frame for
+-- turrets and pitched barrels too; it is stored in hull axes so the anchor
+-- stays on the barrel while the craft moves. No shot direction: hull axes.
+local function hullOffset(h, offset, shotFront)
+    local right, up, front = hullBasis(h)
+    if not right then return nil end
+    local f = shotFront and unit(shotFront)
+    local r = f and unit(cross(up, f))
+    if not r then return { x = offset.x, y = offset.y, z = offset.z } end
+    local u = cross(f, r)
+    local d = { x = r.x*offset.x + u.x*offset.y + f.x*offset.z,
+                y = r.y*offset.x + u.y*offset.y + f.y*offset.z,
+                z = r.z*offset.x + u.z*offset.y + f.z*offset.z }
+    return { x = dot(d, right), y = dot(d, up), z = dot(d, front) }
+end
+
 local function target(r) return r.cockpit and {kind = "cockpit", handle = r.handle} or r.handle end
 local function own(name) return type(name) == "string" and string.sub(name, 1, 12) == "exu_surface_" end
 local function ready()
@@ -165,7 +236,7 @@ end
 local function enqueue(queue, h, transform, odf)
     if #queue >= S.MaxEvents then return end
     local p = point(transform)
-    if h ~= nil and p then queue[#queue + 1] = {handle = h, position = p, odf = odf} end
+    if h ~= nil and p then queue[#queue + 1] = {handle = h, position = p, odf = odf, front = axis(transform, "front")} end
 end
 
 function S.NotifyHit(odf, _, hit, transform) enqueue(S.hits, hit, transform, odf) end
@@ -197,6 +268,8 @@ local function drain(queue, shot)
                         local mounts=0; for _ in pairs(r.heat) do mounts=mounts+1 end
                         if (next(r.heat) or heated<S.MaxHeated) and (r.heat[best] or mounts<2) then
                             heat.energy = math.min(0.65, heat.energy + 0.055)
+                            local offset = flashOffset(event.handle, best)
+                            heat.offset = offset and hullOffset(event.handle, offset, event.front) or nil
                             r.heat[best] = heat; activate(r); r.touched=S.Clock
                         end
                     end
@@ -230,12 +303,20 @@ local function updateRecord(r, dt)
     end
     local anchors, peak = {}, 0
     r.peak = 0
+    local right, up, front
+    if next(r.heat) then right, up, front = hullBasis(r.handle) end
     for slot, heat in pairs(r.heat) do
         heat.energy = math.max(0, heat.energy-dt*0.16)
         heat.display = heat.energy+(heat.display-heat.energy)*math.exp(-dt*6)
         if heat.display < 0.002 then r.heat[slot] = nil
         else
             local world = call(exu.GetWeaponMuzzlePosition, r.handle, slot)
+            local o = heat.offset
+            if world and o and right then
+                world = vector(world.x + right.x*o.x + up.x*o.y + front.x*o.z,
+                               world.y + right.y*o.x + up.y*o.y + front.y*o.z,
+                               world.z + right.z*o.x + up.z*o.y + front.z*o.z)
+            end
             local localPoint = world and call(exu.EntityLocalPoint,r.handle,world)
             if localPoint and #anchors < 2 then anchors[#anchors+1] = radiusMark(localPoint,0.42); peak = math.max(peak,heat.display) end
         end
