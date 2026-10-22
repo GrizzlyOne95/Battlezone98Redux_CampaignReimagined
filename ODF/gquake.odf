@@ -1,0 +1,16 @@
+[WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
+classLabel = "cannon"
+ordName = "seismic"
+wpnName = "Thumper"
+fireSound = "gquak00.wav"
+wpnReticle = "gquake"
+wpnPriority = 0
+wpnCategory = "SPEC"
+
+[CannonClass]
+shotDelay = 3
+

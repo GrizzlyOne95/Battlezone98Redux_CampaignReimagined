@@ -1,0 +1,16 @@
+[WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
+classLabel = "dispenser"
+wpnName = "WASP"
+fireSound = "gwasp00.wav"
+wpnReticle = "quake.0"
+wpnPriority = 0
+wpnCategory = "SPEC"
+
+[DispenserClass]
+shotDelay = 6.0
+objectClass = "waspmsl"
+

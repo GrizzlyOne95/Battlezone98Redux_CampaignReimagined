@@ -114,6 +114,8 @@ def report(data, output):
         choice=choices.get(weapon['odf'],{})
         weapon['flash_profile']=choice.get('profile') or ''
         weapon['flash_decision']=choice.get('decision','new definition; review required')
+        weapon['casing_type']=choice.get('casing_type','none')
+        weapon['casing_decision']=choice.get('casing_decision','new definition; review required')
     (output / "inventory.json").write_text(json.dumps(data, indent=2) + "\n")
     with (output / "weapons.csv").open("w", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(data["weapons"][0]))

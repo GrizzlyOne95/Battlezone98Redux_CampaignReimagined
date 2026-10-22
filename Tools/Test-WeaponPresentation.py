@@ -11,6 +11,7 @@ def load(name,file):
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
 inventory=load('inventory','Inventory-WeaponPresentation.py')
 builder=load('builder','Build-WeaponFlashes.py')
+casings=load('casings','Build-WeaponCasings.py')
 config=json.loads((ROOT/'References/WeaponPresentation/profiles.json').read_text())
 
 
@@ -37,6 +38,13 @@ class WeaponContentTests(unittest.TestCase):
         for name,expected in baselines.items():
             with self.subTest(weapon=name):
                 text=(ROOT/'ODF'/(name+'.odf')).read_text()
+                self.assertEqual(text.count(casings.BEGIN),1)
+                self.assertEqual(inventory.parse(text)['weaponclass']['casingtype'],config['weapons'][name]['casing_type'])
+                text=casings.strip_block(text)
+                if not config['weapons'][name]['profile']:
+                    digest=hashlib.sha256(json.dumps(inventory.parse(text),sort_keys=True).encode()).hexdigest()
+                    self.assertEqual(digest,expected,'gameplay or stock field changed')
+                    continue
                 self.assertEqual(text.count(builder.BEGIN),1)
                 a=text.index(builder.BEGIN);b=text.index(builder.END,a)+len(builder.END)
                 source=text[:a]+text[b:]
@@ -47,8 +55,26 @@ class WeaponContentTests(unittest.TestCase):
                 self.assertTrue((ROOT/'Assets/Models'/parsed['weaponclass']['flashmesh']).is_file())
                 self.assertNotIn('flashmesh',parsed.get('gameobjectclass',{}))
 
+    def test_explicit_casing_choices(self):
+        for name,choice in config['weapons'].items():
+            self.assertIn(choice['casing_type'],('none','small','medium','large'))
+            self.assertTrue(choice['casing_decision'])
+        for name in ('asplsmg','gblast','gbolt','ghornet','gmortar','gtechno','gammo'):
+            self.assertEqual(config['weapons'][name]['casing_type'],'none',name)
+        self.assertEqual(config['weapons']['gminigun']['casing_type'],'small')
+        self.assertEqual(config['weapons']['gatstab']['casing_type'],'medium')
+        self.assertEqual(config['weapons']['gspstab']['casing_type'],'large')
+        example=(ROOT/'ODF/gminigun.odf').read_text()
+        self.assertIn('// casingMesh = "mymod_brass.mesh"',example)
+        self.assertIn('unit length 1 along local +Z',example)
+        selected=dict(config['weapons']['gminigun'],casing_mesh='MyMod/Brass.mesh')
+        generated=casings.authored_odf(example,selected)
+        self.assertEqual(inventory.parse(generated)['weaponclass']['casingmesh'],'MyMod/Brass.mesh')
+        self.assertEqual(casings.authored_odf(generated,selected),generated)
+
     def test_generated_assets_and_material_contract(self):
         builder.build(ROOT/'ODF',True)
+        casings.build(ROOT/'ODF',True)
         material=(ROOT/'Materials/cr_muzzle.material').read_text()
         program=(ROOT/'Shaders/cr_muzzle.program').read_text()
         for name,p in config['profiles'].items():
