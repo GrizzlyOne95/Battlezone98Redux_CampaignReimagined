@@ -1,5 +1,6 @@
 ---@diagnostic disable: lowercase-global, undefined-global
 local exu = require("exu")
+local SurfaceEffects = require("CRSurfaceEffects")
 local bzfile = require("bzfile")
 local LogPaths = require("LogPaths")
 
@@ -269,6 +270,12 @@ local function NormalizeBaseMaterialName(materialName)
         return nil
     end
 
+    -- OpenShim GPU skinning binds OpenShim/GpuSkin/<generation>/<tag>/[caster/]<source>
+    -- clones; vary the source material so a skinned craft does not stack variants.
+    name = name:match("^OpenShim/GpuSkin/%d+/[^/]+/caster/(.+)$")
+        or name:match("^OpenShim/GpuSkin/%d+/[^/]+/(.+)$")
+        or name
+
     if not IsRuntimeVariantMaterialName(name) then
         return name
     end
@@ -513,6 +520,13 @@ local function EnsureMaterialVariant(materialName, profile, occupied)
         end
     end
 
+    -- DX11 base and glow shaders add the EmissiveMap whatever the pass emissive
+    -- colour is, so an empty craft also swaps that map for black. Older exu.dll
+    -- builds lack the call; the colour-only darkening still applies there.
+    if not occupied and exu.SetMaterialTextureAlias then
+        pcall(exu.SetMaterialTextureAlias, cloneName, "EmissiveMap", "black.dds", group)
+    end
+
     RuntimeEnhancements.MaterialVariants[variantKey] = cloneName
     DebugVisualLog(string.format("variant-ready material=%s base=%s clone=%s occupied=%s profile=%s", tostring(materialName), tostring(baseMaterialName), tostring(cloneName), tostring(occupied), tostring(profile and profile.name or "neutral")))
     return cloneName
@@ -566,6 +580,8 @@ local function RegisterHandle(h)
     if not h or not IsValid(h) then
         return
     end
+
+    SurfaceEffects.Register(h)
 
     local profile = RuntimeEnhancements.TeamProfiles[GetTeamNum(h)]
     local supportsPilot = SupportsPilotVehicleVisuals(h)
@@ -968,6 +984,7 @@ local function ResolveTeamColorProfile(teamNum)
 end
 
 function RuntimeEnhancements.ResetVisualState()
+    SurfaceEffects.ResetScene()
     for _, state in pairs(RuntimeEnhancements.ObjectStates or {}) do
         if state and state.handle and IsValid(state.handle) and type(state.materials) == "table" then
             for _, material in ipairs(state.materials) do
@@ -1155,12 +1172,14 @@ function RuntimeEnhancements.Update()
     if now == RuntimeEnhancements.LastUpdateAt then
         return
     end
+    local surfaceDt = now - (RuntimeEnhancements.LastUpdateAt or now)
     RuntimeEnhancements.LastUpdateAt = now
 
     if RuntimeEnhancements.SupportsDynamicMaterials then
         UpdateVisualStates(now)
         ApplyEmissivePulse(now, false)
     end
+    SurfaceEffects.Update(surfaceDt)
 
     if RuntimeEnhancements.StarTwinkleApplied ~= RuntimeEnhancements.StarTwinkleEnabled
         and now >= (RuntimeEnhancements.StarTwinkleRetryAt or 0.0) then

@@ -1342,6 +1342,13 @@ to the ordinary GOG development mod.
 - A player-only art fixture needs an explicit filesystem Lua search path: the stock asset require fallback truncates long names such as RuntimeEnhancements. Matching shader sources must also be staged wherever the resource resolver can find an older installed copy. Restore all trial files even on initialization errors, and require a successful lighting marker rather than accepting a screenshot of an alert.
 - The stock evolve_1/evolve_3 CLI previews did not activate CR's material group, even with temporary INI registrations. The archive preview now round-trips them through Toolbox under a backed-up registered CR campaign slot; require HD installation/restoration evidence to reject a stock-atlas fallback. Version sky shader delegates after source edits with `Tools/Update-WorldSkyProgramVersions.py` to avoid stale Ogre microcode.
 
+### Reactive material validation (2026-10-21)
+
+- fxc success alone does not qualify the retail Ogre layout. Global HLSL uniforms alongside entry-point uniforms produce `$Globals` and `$Params` constant buffers; this left otherwise valid unit shaders black. Keep reactive inputs in the existing entry-point parameter list, pass them into helpers, and validate generated assembly for a second buffer.
+- A standalone CLI fixture does not imply the production graphics setup. Verify effective Enhanced scheme, vehicle shadow quality, HD manifest/array installation and dependency textures. Missing HD setup and diagnostic fill lights can obscure unrelated material comparisons. Keep the real GOG install untouched when using an isolated instance.
+- Failed shared-uniform writes must not be cached as applied wetness. Use resource-group Autodetect and a bounded retry delay. Separate the active-material creation cursor from the cold-state cursor, or a permanent tower can starve later combatants.
+- Detailed rain normals use the renderer clock and distance filtering; Lua does not animate each unit every frame. See Docs/REACTIVE_SURFACES.md for budgets and remaining qualification.
+
 ### Faction pickup integration and semantic glow (2026-10-21)
 
 - Owner direction: decorative NSDF cyan, Black Dog red, CCA orange (chaingun

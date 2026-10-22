@@ -872,8 +872,8 @@ particle_system CR/Weather/Spore
 particle_system CR/Weather/Rain
 {
     material            CR_FX/Rain
-    particle_width      0.25
-    particle_height     3.2
+    particle_width      0.45
+    particle_height     4.0
     quota               4000
     cull_each           true
     sorted              false
@@ -892,11 +892,11 @@ particle_system CR/Weather/Rain
         direction           0.32 -0.93 -0.18
         velocity_min        46
         velocity_max        62
-        colour_range_start  0.66 0.78 0.38 0.55
-        colour_range_end    0.52 0.64 0.28 0.30
-        width               170
-        height              70
-        depth               170
+        colour_range_start  0.78 0.90 0.50 0.85
+        colour_range_end    0.62 0.76 0.38 0.55
+        width               70
+        height              45
+        depth               70
     }
 }
 
