@@ -1273,7 +1273,7 @@ function Environment.Init(options)
     end
 
     Environment.ArtWorld = WorldArt.Detect(trn)
-    Environment.ArtSkyOwned = WorldArt.InitializeSky(exu,Environment.ArtWorld,trnFilename)
+    Environment.ArtSkyOwned = WorldArt.InitializeSky(exu,Environment.ArtWorld)
     Environment.WorldPreset, Environment.WorldPalette = DetectWorldPreset(trnFilename, trn)
     ApplyWorldPreset(Environment.WorldPreset, baseAmbient, baseDiffuse, baseSpecular, baseFog)
     if options.nativeBaseline then
@@ -1637,6 +1637,13 @@ end
 -- every map and changing it is a separate question -- but weather fog, which
 -- is applied on top and can be authored for far more open ground than a given
 -- map has, is clamped to it by CRWeather.
+-- Re-installs the world-art dome after a cinematic replaced its material (the
+-- misn06 orbit film's fallback path). No-op when this map never owned one.
+function Environment.RestoreArtSky()
+    if not Environment.ArtSkyOwned then return false end
+    return WorldArt.InstallSky(exu,Environment.ArtWorld)
+end
+
 function Environment.GetFogHorizon()
     local horizon = tonumber(Environment.FogHorizon)
     if horizon == nil or horizon <= 0.0 then

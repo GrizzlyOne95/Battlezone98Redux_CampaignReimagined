@@ -12,8 +12,8 @@ The rocket is GrizzlyOne95's own NSDF transport from the ROTBD/Resurgence mods
 (`abtrans.mesh`, submesh `abtrans_BZBase_abtrans`, 2,750 triangles, 92 m tall).
 The pad submesh is dropped and the skeleton link and bone assignments are
 stripped, so it is a static prop. The four 1024 square maps ship as
-uncompressed RGBA8 DDS (`cr03rok_{d,n,s,e}.dds`); BC3 failed in the native DX11
-colour path. The material is `cr03rok00` so it cannot clash with the Resurgence
+BC1 DDS with full offline mips (`cr03rok_{d,n,s,e}.dds`); compressed textures
+without mips render black in native DX11. The material is `cr03rok00` so it cannot clash with the Resurgence
 addon's `abtrans_BZBase_abtrans`.
 
 `python Tools/Build-Misn03Rocket.py [SOURCE_DIR]` regenerates, deterministically,
