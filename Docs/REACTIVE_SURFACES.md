@@ -58,6 +58,17 @@ Hits last 16 seconds and fade over their last four seconds; health recovery also
 clears accumulated marks. Wetting takes 2.5 seconds and drying 10 seconds as
 exponential time constants. Heat accumulates from accepted shots and cools
 smoothly. Missing native mount data suppresses heat rather than guessing.
+
+Heat glows where the muzzle flash is drawn: the native mount plus the same
+flash offset the flash uses, read only. That is the craft's `flashOffset<N>`
+for the firing slot, else the weapon ODF's `flashOffset`, else none (the
+mount). Values are `"right up forward"` metres within -20..20; a malformed one
+is skipped like the native parser does. The offset is turned into the weapon
+frame with the shot's direction (so turrets and pitched barrels work), stored in
+hull axes and re-applied to the live mount every update, so the anchor rides
+the hull. A turret that swings after its last shot keeps the last direction
+until it fires again. Lookups are cached per ODF key (at most 512).
+`Tools/Test-SurfaceHeatAnchor.lua` covers this.
 Shared material lookup uses Autodetect; unsupported uniforms retry with a
 two-second backoff and are never recorded as successfully updated.
 
