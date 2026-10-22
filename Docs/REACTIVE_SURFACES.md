@@ -47,7 +47,7 @@ DXBC stays byte-identical (`Compare-DX11ShaderBinaries.ps1`).
 | Event storage | 64 hits and 64 shots |
 | Event consumption | 2 hits and 2 shots per tick |
 | Tracked objects | 4,096, using existing registration |
-| Cold discovery / shared rain | 4 objects / 16 material names per tick |
+| Cold discovery / shared rain | 4 objects / 16 material names per tick (64 names and 32 clone slots while wetness is changing) |
 | Active object variants | 64 objects, with 8 heated craft |
 | Anchors per craft | 2 impacts, 2 heated mounts |
 | Material creation | 1 world subentity and 1 cockpit subentity per tick |
@@ -73,6 +73,25 @@ loss of 5% or more in one tick also dims the cockpit emission briefly through
 60%, 0.4 s cooldown). Repair, boarding and the first sample never trigger it.
 Impact dirt on the glass and saving the crack spot are not ported.
 `Tools/Test-CockpitGlassDamage.lua` covers this.
+
+Rain reaches every material in one synchronised sweep: shared materials and
+owned clones (towers, hit units) all receive the same swept value, which moves
+at most 0.03 per completed sweep. A few hundred materials therefore wet or dry
+together in small steps (about eight seconds from dry to soaked at 300
+materials) instead of each one jumping when the round robin reaches it. Clones
+no longer wait for their record's slower update. `Tools/Test-SurfaceWetSweep.lua`
+covers this.
+
+Heat glows where the muzzle flash is drawn: the native mount plus the same
+flash offset the flash uses, read only. That is the craft's `flashOffset<N>`
+for the firing slot, else the weapon ODF's `flashOffset`, else none (the
+mount). Values are `"right up forward"` metres within -20..20; a malformed one
+is skipped like the native parser does. The offset is turned into the weapon
+frame with the shot's direction (so turrets and pitched barrels work), stored in
+hull axes and re-applied to the live mount every update, so the anchor rides
+the hull. A turret that swings after its last shot keeps the last direction
+until it fires again. Lookups are cached per ODF key (at most 512).
+`Tools/Test-SurfaceHeatAnchor.lua` covers this.
 Shared material lookup uses Autodetect; unsupported uniforms retry with a
 two-second backoff and are never recorded as successfully updated.
 

@@ -10,7 +10,10 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     -- Cockpit glass damage (CRWetGlass) and electrical brownout.
     CrackStages = { { enter = 0.50, leave = 0.55, level = 0.35 }, { enter = 0.25, leave = 0.30, level = 0.80 } },
     BrownoutDrop = 0.05, BrownoutHold = 0.12, BrownoutCooldown = 0.4, MaxCrackSpots = 32,
-    crackSpots = {}, crackSpotCount = 0, crackLevel = 0, glassOn = false }
+    crackSpots = {}, crackSpotCount = 0, crackLevel = 0, glassOn = false,
+    SweepWet = 0, MaxWetStep = 0.03, MaxMaterialBudget = 64, CloneWetBudget = 32,
+    sweepLeft = 0, cloneLeft = 0, wetCursor = 1, sweepMoving = false,
+    flashCache = {}, flashCacheCount = 0, MaxFlashCache = 512 }
 
 local function call(fn, ...)
     if type(fn) ~= "function" then return nil end
@@ -26,6 +29,76 @@ local function point(t)
     local x, y, z = t.posit_x or t.x, t.posit_y or t.y, t.posit_z or t.z
     if finite(x) and finite(y) and finite(z) then return { x = x, y = y, z = z } end
 end
+local function axis(m, name)
+    if m == nil then return nil end
+    local ok, x, y, z = pcall(function() return m[name .. "_x"], m[name .. "_y"], m[name .. "_z"] end)
+    if ok and finite(x) and finite(y) and finite(z) then return { x = x, y = y, z = z } end
+end
+local function dot(a, b) return a.x*b.x + a.y*b.y + a.z*b.z end
+local function cross(a, b) return { x = a.y*b.z - a.z*b.y, y = a.z*b.x - a.x*b.z, z = a.x*b.y - a.y*b.x } end
+local function unit(a)
+    local length = math.sqrt(dot(a, a))
+    if finite(length) and length > 0.0001 then return { x = a.x/length, y = a.y/length, z = a.z/length } end
+end
+local function hullBasis(h)
+    local m = call(GetTransform, h)
+    local right, up, front = axis(m, "right"), axis(m, "up"), axis(m, "front")
+    if right and up and front then return right, up, front end
+end
+
+-- The visible muzzle flash sits at the native mount plus a flash offset: the
+-- craft's flashOffset<N> for that slot, else the weapon's own flashOffset. Heat
+-- reads the same keys (never writes them) so the glow lands where the flash
+-- does, not inside the barrel root. "right up forward" metres, each -20..20;
+-- anything else is ignored, exactly like the native parser.
+local function parseOffset(value)
+    if type(value) ~= "string" then return nil end
+    local numbers = {}
+    for word in string.gmatch(string.gsub(value, '"', " "), "%S+") do
+        local n = tonumber(word)
+        if not finite(n) or math.abs(n) > 20 or #numbers >= 3 then return nil end
+        numbers[#numbers + 1] = n
+    end
+    if #numbers == 3 then return { x = numbers[1], y = numbers[2], z = numbers[3] } end
+end
+local function cachedOffset(key, file, section, label)
+    local value = S.flashCache[key]
+    if value == nil then
+        local odf = call(OpenODF, file)
+        value = odf ~= nil and parseOffset((call(GetODFString, odf, section, label, ""))) or false
+        if S.flashCacheCount < S.MaxFlashCache then
+            S.flashCache[key] = value; S.flashCacheCount = S.flashCacheCount + 1
+        end
+    end
+    return value or nil
+end
+local function flashOffset(h, slot)
+    local craft = call(GetOdf, h)
+    if type(craft) == "string" and craft ~= "" then
+        local offset = cachedOffset("c:" .. string.lower(craft) .. ":" .. slot, craft, "CraftClass", "flashOffset" .. (slot + 1))
+        if offset then return offset end
+    end
+    local weapon = call(GetWeaponClass, h, slot)
+    if type(weapon) == "string" and weapon ~= "" then
+        return cachedOffset("w:" .. string.lower(weapon), weapon, "WeaponClass", "flashOffset")
+    end
+end
+-- The offset is in the weapon frame. The shot direction gives that frame for
+-- turrets and pitched barrels too; it is stored in hull axes so the anchor
+-- stays on the barrel while the craft moves. No shot direction: hull axes.
+local function hullOffset(h, offset, shotFront)
+    local right, up, front = hullBasis(h)
+    if not right then return nil end
+    local f = shotFront and unit(shotFront)
+    local r = f and unit(cross(up, f))
+    if not r then return { x = offset.x, y = offset.y, z = offset.z } end
+    local u = cross(f, r)
+    local d = { x = r.x*offset.x + u.x*offset.y + f.x*offset.z,
+                y = r.y*offset.x + u.y*offset.y + f.y*offset.z,
+                z = r.z*offset.x + u.z*offset.y + f.z*offset.z }
+    return { x = dot(d, right), y = dot(d, up), z = dot(d, front) }
+end
+
 local function target(r) return r.cockpit and {kind = "cockpit", handle = r.handle} or r.handle end
 local function own(name) return type(name) == "string" and string.sub(name, 1, 12) == "exu_surface_" end
 local function ready()
@@ -167,7 +240,7 @@ end
 local function enqueue(queue, h, transform, odf)
     if #queue >= S.MaxEvents then return end
     local p = point(transform)
-    if h ~= nil and p then queue[#queue + 1] = {handle = h, position = p, odf = odf} end
+    if h ~= nil and p then queue[#queue + 1] = {handle = h, position = p, odf = odf, front = axis(transform, "front")} end
 end
 
 function S.NotifyHit(odf, _, hit, transform) enqueue(S.hits, hit, transform, odf) end
@@ -199,6 +272,8 @@ local function drain(queue, shot)
                         local mounts=0; for _ in pairs(r.heat) do mounts=mounts+1 end
                         if (next(r.heat) or heated<S.MaxHeated) and (r.heat[best] or mounts<2) then
                             heat.energy = math.min(0.65, heat.energy + 0.055)
+                            local offset = flashOffset(event.handle, best)
+                            heat.offset = offset and hullOffset(event.handle, offset, event.front) or nil
                             r.heat[best] = heat; activate(r); r.touched=S.Clock
                         end
                     end
@@ -249,16 +324,26 @@ local function updateRecord(r, dt)
         if type(powered) == "boolean" then r.powerOff = not powered end
     end
     local anchors, peak = {}, 0
+    r.peak = 0
+    local right, up, front
+    if next(r.heat) then right, up, front = hullBasis(r.handle) end
     for slot, heat in pairs(r.heat) do
         heat.energy = math.max(0, heat.energy-dt*0.16)
         heat.display = heat.energy+(heat.display-heat.energy)*math.exp(-dt*6)
         if heat.display < 0.002 then r.heat[slot] = nil
         else
             local world = call(exu.GetWeaponMuzzlePosition, r.handle, slot)
+            local o = heat.offset
+            if world and o and right then
+                world = vector(world.x + right.x*o.x + up.x*o.y + front.x*o.z,
+                               world.y + right.y*o.x + up.y*o.y + front.y*o.z,
+                               world.z + right.z*o.x + up.z*o.y + front.z*o.z)
+            end
             local localPoint = world and call(exu.EntityLocalPoint,r.handle,world)
             if localPoint and #anchors < 2 then anchors[#anchors+1] = radiusMark(localPoint,0.42); peak = math.max(peak,heat.display) end
         end
     end
+    r.peak = peak
     for i=#r.marks,1,-1 do if r.marks[i].untilTime <= S.Clock then table.remove(r.marks,i) end end
     local empty = {0,0,0,0}
     local hit0, hit1 = r.marks[1], r.marks[2]
@@ -279,7 +364,7 @@ local function updateRecord(r, dt)
         if slot.assigned ~= wanted and call(exu.SetSurfaceMaterial,target(r),slot.index,wanted) == true then
             slot.assigned = wanted; slot.values = {}
         end
-        write(slot,"surfaceState", r.cockpit and 0 or S.Wetness, r.damage, peak, r.cockpit and (r.brown or 0) or (r.powerOff and 1 or 0))
+        write(slot,"surfaceState", r.cockpit and 0 or S.SweepWet, r.damage, peak, r.cockpit and (r.brown or 0) or (r.powerOff and 1 or 0))
         write(slot,"surfaceMode",0,r.cockpit and 1 or 0,r.cockpit and S.Clock or 0,0)
         local a,b = hit0 and hit0.anchor or empty,hit1 and hit1.anchor or empty
         write(slot,"surfaceImpact0",a[1],a[2],a[3],a[4]); write(slot,"surfaceImpact1",b[1],b[2],b[3],b[4])
@@ -418,16 +503,43 @@ function S.Update(dt)
         if r and valid(h) then discover(r);S.cursor=S.cursor+1
         else S.Unregister(h);table.remove(S.order,S.cursor) end
     end
-    for _=1,math.min(S.MaterialBudget,#S.materialOrder) do
+    -- Rain sweep. Every shared material and owned clone gets the same swept
+    -- value, which advances by at most MaxWetStep per completed sweep, so no
+    -- material lags its neighbours or pops; the per-tick budget grows only
+    -- while the value is moving.
+    if S.sweepLeft <= 0 and S.cloneLeft <= 0 then
+        local before = S.SweepWet
+        S.SweepWet = S.SweepWet + clamp(S.Wetness-S.SweepWet, -S.MaxWetStep, S.MaxWetStep)
+        S.sweepMoving = math.abs(S.SweepWet-before) > 0.0005
+        S.sweepLeft, S.cloneLeft = #S.materialOrder, #S.active
+    end
+    local moving = S.sweepMoving or math.abs(S.Wetness-S.SweepWet) > 0.001
+    for _=1,math.min(moving and S.MaxMaterialBudget or S.MaterialBudget,#S.materialOrder) do
         if S.materialCursor > #S.materialOrder then S.materialCursor=1 end
         local name=S.materialOrder[S.materialCursor];local state=S.materials[name]
-        if S.Clock >= (state.retry or 0) and (not state.wet or math.abs(state.wet-S.Wetness)>0.001) then
-            local changed=call(exu.SetMaterialShaderVector,name,"surfaceState",S.Wetness,0,0,0,-1,-1,"Autodetect")
-            if finite(changed) and changed > 0 then state.wet=S.Wetness
+        if S.Clock >= (state.retry or 0) and (not state.wet or math.abs(state.wet-S.SweepWet)>0.001) then
+            local changed=call(exu.SetMaterialShaderVector,name,"surfaceState",S.SweepWet,0,0,0,-1,-1,"Autodetect")
+            if finite(changed) and changed > 0 then state.wet=S.SweepWet
             else state.retry=S.Clock+2 end
         end
-        S.materialCursor=S.materialCursor+1
+        S.materialCursor=S.materialCursor+1;S.sweepLeft=S.sweepLeft-1
     end
+    -- Owned clones (towers, hit units) take the swept value here too, not
+    -- only when their record's slower round-robin update comes around.
+    local cloneWrites = 0
+    for _=1,#S.active do
+        if S.cloneLeft <= 0 or cloneWrites >= (moving and S.CloneWetBudget or 4) then break end
+        if S.wetCursor > #S.active then S.wetCursor=1 end
+        local r=S.active[S.wetCursor]
+        if not r.dead and S.activeSet[r] then
+            for _,slot in ipairs(r.slots) do
+                write(slot,"surfaceState",S.SweepWet,r.damage or 0,r.peak or 0,r.powerOff and 1 or 0)
+                cloneWrites=cloneWrites+1
+            end
+        end
+        S.wetCursor=S.wetCursor+1;S.cloneLeft=S.cloneLeft-1
+    end
+    if #S.active == 0 then S.cloneLeft = 0 end
     -- Hot mounts update at 20 Hz (at most eight craft); cold records get
     -- four bounded slices per tick. Only ONE world clone is created per tick.
     if #S.active>0 then
@@ -465,6 +577,7 @@ function S.ResetScene()
     S.hits,S.shots,S.clones = {},{},{}
     S.cockpit=nil;S.cursor=1;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
     setCrack(0);S.crackSpots,S.crackSpotCount={},0
+    S.SweepWet=0;S.sweepLeft=0;S.cloneLeft=0;S.wetCursor=1;S.sweepMoving=false
 end
 
 -- Player setting. Off restores every owned material, releases clones, unhooks
@@ -488,6 +601,7 @@ function S.Suspend()
     S.hits,S.shots,S.clones = {},{},{}
     S.cockpit=nil;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
     setCrack(0)
+    S.SweepWet=0;S.sweepLeft=0;S.cloneLeft=0;S.wetCursor=1;S.sweepMoving=false
     S.Unhook()
 end
 
