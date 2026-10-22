@@ -1,0 +1,15 @@
+[WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
+classLabel = "dispenser"
+wpnName = "M-Curtain"
+fireSound = "gmcur00.wav"
+wpnReticle = "gmcurmin"
+wpnPriority = 3
+wpnCategory = "SPEC"
+
+[DispenserClass]
+shotDelay = 2.0
+objectClass = "magpush"

@@ -1,5 +1,9 @@
 // NSDF Tactical Smoke: utility mortar with optimized visual load.
 [WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
 classLabel = "mortar"
 ordName = "tsmkshl"
 wpnName = "Tactical Smoke"

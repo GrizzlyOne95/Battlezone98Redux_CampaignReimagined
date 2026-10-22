@@ -1,0 +1,16 @@
+[WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
+baseName = "grepa"
+classLabel = "dispenser"
+wpnName = "Repair Dropper"
+fireSound = "gprox00.wav"
+wpnReticle = "gproxmin"
+wpnPriority = 2
+wpnCategory = "SPEC"
+
+[DispenserClass]
+shotDelay = 2.0
+objectClass = "repamina"

@@ -1,0 +1,16 @@
+[WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
+baseName = "gammo"
+classLabel = "dispenser"
+wpnName = "Ammo"
+fireSound = "gprox00.wav"
+wpnReticle = "gproxmin"
+wpnPriority = 2
+wpnCategory = "SPEC"
+
+[DispenserClass]
+shotDelay = 2.0
+objectClass = "ammomina"

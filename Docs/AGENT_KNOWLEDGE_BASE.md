@@ -30,6 +30,13 @@ marks a source that exists only on the maintainer's machine and must never be co
 
 ## 1. How to use this document and where work belongs
 
+Weapon presentation lesson (2026-10-21): native Cannon/MachineGun classes also
+implement plasma weapons. Never infer brass from that class alone. The casing
+follow-up owns `[WeaponClass] casingType` in marked generated blocks and uses
+explicit `none` for energy/launcher/utility definitions. OpenShim owns the
+single shared accepted-shot bridge so flashes and casings cannot replace each
+other's firing hooks. Live visual testing is still pending.
+
 Read `AGENTS.md` first (short, auto-loaded by most agents), then this file for the task you are about to
 do. Sections 3-5 are the working recipes; section 7 is the list of things that have broken the project
 before; section 8 is the pitfall index.
