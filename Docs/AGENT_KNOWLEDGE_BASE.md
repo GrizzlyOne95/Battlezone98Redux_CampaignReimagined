@@ -1030,6 +1030,14 @@ central recess. Keep hazard E explicitly black regardless of hue thresholds.
 
 ### Red Devil cockpit and legacy paint prototype (2026-10-22)
 
+`cvfigh` follow-up: `References/CVFighterCockpit/README.md` owns the new low,
+wide interior and selected, art-positioned minigun surfaces. GC bone geometry
+can be only a six-triangle hardpoint marker: inspect actual body triangles
+before calling those nodes weapon models. Fit source gun pieces behind closed
+mounts instead of leaving them floating above the sill. Preserve actual POV,
+rig/native/ODF identity, and use a continuous tub unwrap rather than repeating
+an entire detailed trim panel per facet. This remains offline art review.
+
 - `References/RedDevilLegacy/README.md` records the owner's legacy-guided skin,
   purpose-built cockpit and no-unintended-holes request. CR already had its own
   1256² diffuse and cockpit-glass mesh fix: use those as the before baseline.
