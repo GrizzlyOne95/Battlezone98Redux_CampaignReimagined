@@ -55,6 +55,38 @@ class WeaponContentTests(unittest.TestCase):
                 self.assertTrue((ROOT/'Assets/Models'/parsed['weaponclass']['flashmesh']).is_file())
                 self.assertNotIn('flashmesh',parsed.get('gameobjectclass',{}))
 
+    def test_craft_flash_offsets(self):
+        data=json.loads(builder.OFFSETS.read_text())['crafts']
+        live=builder.craft_slots(ROOT/'ODF',builder.flash_weapons(config))
+        self.assertEqual(set(data),set(live),'every flash-carrying craft is measured or explicitly skipped')
+        written=0
+        for craft,entry in data.items():
+            text=(ROOT/'ODF'/(craft+'.odf')).read_text()
+            parsed=inventory.parse(text)
+            keys={k:v for k,v in parsed.get('craftclass',{}).items() if k.startswith('flashoffset')}
+            expected={}
+            for n,row in entry['slots'].items():
+                with self.subTest(craft=craft,slot=n):
+                    self.assertEqual(row['weapon'],live[craft]['slots'][int(n)][0])
+                    self.assertNotEqual('offset' in row,'skip' in row,'offset xor skip reason')
+                    if 'offset' in row:
+                        self.assertGreaterEqual(row['offset'][2],builder.MIN_TIP)
+                        self.assertTrue(all(abs(v)<=20 for v in row['offset']))
+                        expected['flashoffset'+n]=' '.join(f'{v:.2f}' for v in row['offset'])
+            self.assertEqual(keys,expected,craft)
+            self.assertEqual(text.count(builder.CRAFT_BEGIN),1 if expected else 0)
+            written+=len(expected)
+        self.assertGreater(written,0)
+        # The live-fitted avtank barrel tip must be reproduced from the mesh.
+        self.assertEqual(inventory.parse((ROOT/'ODF/avtank.odf').read_text())['craftclass']['flashoffset1'],'0.20 0.10 2.41')
+        # Weapons keep their natural zero offset; a craft key never lands on a non-flash slot.
+        for craft in data:
+            game=inventory.parse((ROOT/'ODF'/(craft+'.odf')).read_text())
+            for key in game.get('craftclass',{}):
+                if key.startswith('flashoffset'):
+                    weapon=game['gameobjectclass']['weaponname'+key[len('flashoffset'):]].lower()
+                    self.assertIn(weapon,builder.flash_weapons(config))
+
     def test_explicit_casing_choices(self):
         for name,choice in config['weapons'].items():
             self.assertIn(choice['casing_type'],('none','small','medium','large'))

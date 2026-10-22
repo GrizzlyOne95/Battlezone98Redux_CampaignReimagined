@@ -6,6 +6,11 @@
   two-strand helix with a ground debris skirt, paler and more transparent
   towards the top, fading with distance against the live fog visibility.
   Replaces the per-particle column photograph that read as a dark smoke plume.
+- Place muzzle flashes at the visible barrel tip on dedicated-barrel craft with per-slot
+  `[CraftClass] flashOffset<N>` keys (needs the OpenShim build that reads them; older builds ignore the keys). The
+  offsets are generated from each craft's barrel mesh by `Tools/Build-WeaponFlashes.py` (`--measure`, `--check`):
+  NSDF/Black Dog tanks `0.20 0.10 2.41`, CCA tanks `0.00 0.00 3.42`, howitzers, gun towers and Soviet towers.
+  Hull-mounted hardpoints keep the weapon's zero offset.
 - Enable OpenShim mesh recoil (slot 1 cannon barrel slide) on the NSDF, Black Dog and CCA tank ODFs:
   avtank/avtamp/avdemo (AGR11BGA), bvtank/bvtanka (bGR11BGA) and svtank/svtanka/svtas8/svtk13/svtnk7
   (SCZ11BGB). Takes effect only with Settings > Video > Muzzle Recoil on (single-player, exact GOG).
