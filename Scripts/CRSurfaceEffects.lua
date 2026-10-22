@@ -6,7 +6,11 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     MaxRecords = 4096, MaxActive = 64, MaxHeated = 8, PollBudget = 4, MaterialBudget = 16,
     records = {}, order = {}, cursor = 1, materials = {}, materialOrder = {}, materialCursor = 1,
     hits = {}, shots = {}, active = {}, activeSet = {}, activeCursor = 1,
-    clones = {}, nextId = 0, timer = 0, bindCursor = 1, started = false, gen = 0 }
+    clones = {}, nextId = 0, timer = 0, bindCursor = 1, started = false, gen = 0,
+    -- Cockpit glass damage (CRWetGlass) and electrical brownout.
+    CrackStages = { { enter = 0.50, leave = 0.55, level = 0.35 }, { enter = 0.25, leave = 0.30, level = 0.80 } },
+    BrownoutDrop = 0.05, BrownoutHold = 0.12, BrownoutCooldown = 0.4, MaxCrackSpots = 32,
+    crackSpots = {}, crackSpotCount = 0, crackLevel = 0, glassOn = false }
 
 local function call(fn, ...)
     if type(fn) ~= "function" then return nil end
@@ -211,6 +215,23 @@ local function drain(queue, shot)
     end
 end
 
+-- A real hull loss of at least BrownoutDrop in one tick dips the cockpit's
+-- emission (surfaceState.w, the same channel that powers a tower off) for a
+-- moment: it eases down in about a tenth of a second and back over about a
+-- second. Repair, a new craft and the first sample never trigger it.
+local function brownout(r, health, dt)
+    local drop = finite(r.lastHull) and r.lastHull-health or 0
+    if drop >= S.BrownoutDrop and S.Clock >= (r.brownReady or 0) then
+        r.brownDepth = clamp(0.25+drop*2.5, 0.25, 0.6)
+        r.brownUntil, r.brownReady = S.Clock+S.BrownoutHold, S.Clock+S.BrownoutCooldown
+    end
+    r.lastHull = health
+    local want = S.Clock < (r.brownUntil or 0) and r.brownDepth or 0
+    local now = r.brown or 0
+    r.brown = want+(now-want)*math.exp(-dt*(want > now and 18 or 2.5))
+    if r.brown < 0.002 then r.brown = 0 end
+end
+
 local function updateRecord(r, dt)
     if not valid(r.handle) then S.Unregister(r.handle); return false end
     local health = call(GetHealth, r.handle)
@@ -221,6 +242,7 @@ local function updateRecord(r, dt)
         r.health = health
         local desired = r.cockpit and (1-health) or 0
         r.damage = desired + (r.damage-desired)*math.exp(-dt*5)
+        if r.cockpit then brownout(r, health, dt) end
     end
     if r.tower then
         local powered = call(exu.IsGunTowerPowered, r.handle)
@@ -257,7 +279,7 @@ local function updateRecord(r, dt)
         if slot.assigned ~= wanted and call(exu.SetSurfaceMaterial,target(r),slot.index,wanted) == true then
             slot.assigned = wanted; slot.values = {}
         end
-        write(slot,"surfaceState", r.cockpit and 0 or S.Wetness, r.damage, peak, r.powerOff and 1 or 0)
+        write(slot,"surfaceState", r.cockpit and 0 or S.Wetness, r.damage, peak, r.cockpit and (r.brown or 0) or (r.powerOff and 1 or 0))
         write(slot,"surfaceMode",0,r.cockpit and 1 or 0,r.cockpit and S.Clock or 0,0)
         local a,b = hit0 and hit0.anchor or empty,hit1 and hit1.anchor or empty
         write(slot,"surfaceImpact0",a[1],a[2],a[3],a[4]); write(slot,"surfaceImpact1",b[1],b[2],b[3],b[4])
@@ -267,6 +289,65 @@ local function updateRecord(r, dt)
         write(slot,"surfaceMuzzle0",a[1],a[2],a[3],a[4]); write(slot,"surfaceMuzzle1",b[1],b[2],b[3],b[4])
     end
     return true
+end
+
+-- Cockpit glass cracks by hull stage, after the ISDF Chronicles cockpit
+-- damage preset: a faint star below 50% hull, a strong one below 25%, with
+-- hysteresis so damage and repair do not chatter, at a fixed spot per craft.
+-- CRWetGlass draws and fades it (on the fitted cockpit glass in F1, else the
+-- screen overlay); it only needs Update calls while Busy(). Calls are
+-- edge-triggered so a mission's own SetCrack (CRStorm18) is not fought.
+local glassModule
+local function glass()
+    if glassModule == nil then
+        local ok, m = pcall(require, "CRWetGlass")
+        glassModule = (ok and type(m) == "table" and type(m.SetCrack) == "function" and
+            type(m.Update) == "function" and type(m.Busy) == "function") and m or false
+    end
+    return glassModule or nil
+end
+
+local function crackSpot(h)
+    local spot = S.crackSpots[h]
+    if spot then return spot end
+    if S.crackSpotCount >= S.MaxCrackSpots then S.crackSpots, S.crackSpotCount = {}, 0 end
+    local text, hash = tostring(h), 0
+    for i = 1, #text do hash = (hash*31+text:byte(i)) % 1000003 end
+    local x = 0.30+0.40*((hash*0.6180339887) % 1)
+    if math.abs(x-0.5) < 0.08 then x = x < 0.5 and 0.42 or 0.58 end -- keep the reticle clear
+    spot = { x = x, y = 0.26+0.18*((hash*0.7548776662) % 1) }
+    S.crackSpots[h], S.crackSpotCount = spot, S.crackSpotCount+1
+    return spot
+end
+
+local function setCrack(level, spot)
+    if level <= 0 and S.crackLevel <= 0 then return end
+    if level == S.crackLevel and (level <= 0 or spot == S.crackAt) then return end
+    local g = glass(); if not g then return end
+    call(g.SetCrack, level, spot and spot.x, spot and spot.y)
+    S.crackLevel, S.crackAt, S.glassOn = level, spot, true
+end
+
+-- Every frame, even while disabled or outside Enhanced, until a cleared crack
+-- has faded: CRWetGlass only animates while someone calls Update.
+local function driveGlass()
+    if not S.glassOn then return end
+    local g = glass()
+    if not g then S.glassOn = false; return end
+    call(g.Update, 0)
+    if S.crackLevel <= 0 and call(g.Busy) ~= true then S.glassOn = false end
+end
+
+local function cockpitGlass(r)
+    if not r or not finite(r.health) then setCrack(0); return end
+    local hp, st, stage = r.health, S.CrackStages, r.stage
+    if stage == nil then stage = hp < st[2].enter and 2 or hp < st[1].enter and 1 or 0
+    elseif stage < 2 and hp < st[2].enter then stage = 2
+    elseif stage < 1 and hp < st[1].enter then stage = 1
+    elseif stage == 2 and hp > st[2].leave then stage = hp > st[1].leave and 0 or 1
+    elseif stage == 1 and hp > st[1].leave then stage = 0 end
+    r.stage = stage
+    setCrack(stage > 0 and st[stage].level or 0, crackSpot(r.handle))
 end
 
 local function cockpit()
@@ -311,6 +392,7 @@ function S.Start()
 end
 
 function S.Update(dt)
+    driveGlass()
     if not S.Enabled or not ready() then return end
     if not enhanced() then
         if S.started then S.Suspend() end
@@ -372,6 +454,7 @@ function S.Update(dt)
         end
     end
     if S.cockpit then bindOne(S.cockpit);updateRecord(S.cockpit,step) end
+    cockpitGlass(S.cockpit)
 end
 
 function S.ResetScene()
@@ -381,6 +464,7 @@ function S.ResetScene()
     S.records,S.order,S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{},{},{}
     S.hits,S.shots,S.clones = {},{},{}
     S.cockpit=nil;S.cursor=1;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
+    setCrack(0);S.crackSpots,S.crackSpotCount={},0
 end
 
 -- Player setting. Off restores every owned material, releases clones, unhooks
@@ -403,6 +487,7 @@ function S.Suspend()
     S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{}
     S.hits,S.shots,S.clones = {},{},{}
     S.cockpit=nil;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
+    setCrack(0)
     S.Unhook()
 end
 
