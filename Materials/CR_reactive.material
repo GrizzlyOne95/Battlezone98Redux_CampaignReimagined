@@ -81,9 +81,13 @@ material CR_FX/SlopeWisp : BZSprite/AlphaBlend
 }
 
 // Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
+// Soft light puff, deliberately NOT cr_dustdevil.dds: that 876x572 twister
+// photograph is dark and ragged, and drawn once per particle it produced a
+// stack of lumpy brown smoke. The devil is now many small puffs of cr_dust.dds;
+// the particle colour carries the tan.
 material CR_FX/DustDevil : BZSprite/AlphaBlend
 {
-	set_texture_alias DiffuseMap cr_dustdevil.dds
+	set_texture_alias DiffuseMap cr_dust.dds
 }
 
 // Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md

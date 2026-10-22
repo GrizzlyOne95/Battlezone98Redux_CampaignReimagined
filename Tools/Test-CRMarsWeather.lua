@@ -115,14 +115,32 @@ exu.SetParticleEmitterEmissionRate = function(name, i, r)
     if rec.systems[name] then rec.systems[name].rates[i] = r end
     return true
 end
+rec.devil = {}   -- systemName -> { dirs = {[emitter] = vec}, colours = {[emitter] = alphas}, dirChanges = n }
+local function devilRec(name)
+    local r = rec.devil[name] or { dirs = {}, colours = {}, dirChanges = 0 }
+    rec.devil[name] = r
+    return r
+end
 exu.SetParticleEmitterDirection = function(name, i, d)
+    if string.find(name, "cr_wx_devil_", 1, true) == 1 then
+        local r = devilRec(name)
+        local prev = r.dirs[i]
+        if prev == nil or prev.x ~= d.x or prev.z ~= d.z then r.dirChanges = r.dirChanges + 1 end
+        r.dirs[i] = { x = d.x, y = d.y, z = d.z }
+        return true
+    end
     rec.windDirs[name] = d
     return true
 end
 exu.SetParticleEmitterVelocity = function() return true end
 exu.SetParticleEmitterTimeToLive = function() return true end
 exu.SetParticleEmitterAngle = function() return true end
-exu.SetParticleEmitterColor = function() return true end
+exu.SetParticleEmitterColor = function(name, i, c0, c1)
+    if string.find(name, "cr_wx_devil_", 1, true) == 1 then
+        devilRec(name).colours[i] = { start = c0.a, finish = c1.a }
+    end
+    return true
+end
 exu.UpdateParticleFollowers = function() return 0 end
 exu.SetSkyDome = function(m) rec.sky = m return true end
 exu.SetSkyBox = function(m) rec.sky = m return true end
@@ -291,6 +309,26 @@ end
 check(maxDevilsSeen > 0, "dust devils should have appeared in the calm half of the ladder")
 check(maxDevilsSeen <= CRMarsWeather.MaxDevils,
     "dust devils exceeded the cap: " .. tostring(maxDevilsSeen))
+-- The vortex is faked by sweeping two point emitters round a cone; prove it
+-- actually turns, that the strands are opposed, and that the funnel is a cone.
+do
+    local checked = 0
+    for name, r in pairs(rec.devil) do
+        if r.dirs[1] ~= nil and r.dirs[2] ~= nil then
+            checked = checked + 1
+            check(r.dirChanges > 20, name .. " helix emitters should keep sweeping, saw " .. tostring(r.dirChanges))
+            local a, b = r.dirs[1], r.dirs[2]
+            check(math.abs(a.x + b.x) < 1e-6 and math.abs(a.z + b.z) < 1e-6,
+                name .. " strands should be half a turn apart")
+            check(a.y == 1.0 and (a.x * a.x + a.z * a.z) < 0.30 * 0.30,
+                name .. " funnel tilt should stay a narrow cone")
+            check(r.colours[1] ~= nil and r.colours[1].start <= 0.30 + 1e-6 and r.colours[1].finish >= 0.0,
+                name .. " fade should only ever scale the authored alpha down")
+        end
+    end
+    check(checked > 0, "no dust devil received helix directions")
+end
+
 for level in pairs(devilLevels) do
     check(level <= 3, "dust devils must not form inside a storm, saw one at level " .. tostring(level))
 end

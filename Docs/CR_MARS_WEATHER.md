@@ -73,6 +73,16 @@ drifting downwind at 30% of wind speed, re-sampling terrain height as they go.
 They spin up and spin down through their emission rate rather than popping in
 and out.
 
+The shape is built, not drawn: many small soft `cr_dust.dds` puffs (not the old
+whole-column photograph, which stacked into a dark lump). Two point emitters at
+the foot are swept round a cone by the director (`SetParticleEmitterDirection`
+every frame, half a turn apart), which lays two interleaved helices that are
+narrow at the base and widen with height; a third emitter throws a low ground
+debris skirt. Colour lightens and alpha drains towards the top. Alpha and
+emission also fade with distance against the live visibility
+(`DevilFadeStart/End`, fractions of fog end). Knobs: `DevilSpin`, `DevilTilt`,
+`DevilFadeStart`, `DevilFadeEnd`, and the template's emitter/affector values.
+
 They only occur on the **calmer half** of the ladder. That is physical, not a
 budget dodge: a dust devil needs a convective boundary layer to form, and inside
 a full storm there is neither one nor any way to see the result.
@@ -327,7 +337,7 @@ pass should supply.
 |---|---|---|
 | `CR_FX/Haze` | `cr_haze.png` — very soft wide dust veil, almost pure falloff, ~128×128. The softest texture in the set. | `smoke.png` |
 | `CR_FX/DustSheet` | `cr_dustsheet.png` — elongated horizontal dust streak, ~64×16 | `smoke.png` |
-| `CR_FX/DustDevil` | `cr_devil.png` — ragged vertical dust wisp with a torn top, ~64×128 | `smoke.png` |
+| `CR_FX/DustDevil` | shipped: `cr_dust.dds` soft puff (see Dust devils) | `cr_dust.dds` |
 | `CR_FX/Dust` | `cr_dust.png` — soft irregular dust mote, heavy falloff, ~64×64 | `smoke.png` |
 | `CR_FX/Grit` | `cr_grit.png` — small hard sand fleck, near-opaque centre, ~16×16 | `bpuff.png` |
 

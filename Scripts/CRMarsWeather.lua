@@ -91,6 +91,11 @@ CRMarsWeather.DevilLife            = { 26.0, 58.0 }
 CRMarsWeather.DevilSpinUp          = 6.0
 CRMarsWeather.DevilSpinDown        = 9.0
 CRMarsWeather.DevilDriftFraction   = 0.30    -- of wind speed
+CRMarsWeather.DevilSpin            = 2.4     -- rad/s the helix is swept round
+CRMarsWeather.DevilTilt            = { 0.10, 0.26 }  -- cone slope: thin rope -> full funnel
+CRMarsWeather.DevilFadeStart       = 0.55    -- of visibility: distance fade begins
+CRMarsWeather.DevilFadeEnd         = 0.95    -- of visibility: fully faded out
+CRMarsWeather.DevilFadeStep        = 0.06    -- re-colour only when fade moved this much
 
 -- Haboob fronts. One at a time, always: two fronts on the same wind is not a
 -- thing, and two overlapping thousand-unit walls is not a thing to ask the
@@ -785,12 +790,44 @@ local function SpawnDevil(player)
         z       = z,
         born    = CRMarsWeather.Clock,
         life    = RandomRange(CRMarsWeather.DevilLife[1], CRMarsWeather.DevilLife[2]),
-        skirt   = 55.0,   -- authored emitter 0 rate
-        column  = 40.0,   -- authored emitter 1 rate
+        skirt   = 60.0,   -- authored emitter 0 rate (ground debris)
+        column  = 55.0,   -- authored emitter 1 AND 2 rate (the two helix strands)
+        phase   = RandomRange(0.0, 6.2831853),
+        spin    = CRMarsWeather.DevilSpin * RandomRange(0.85, 1.2) * ((math.random() < 0.5) and -1.0 or 1.0),
+        fade    = nil,    -- last distance/fog fade pushed to the emitter colours
     }
 
     Log("dust devil " .. systemName .. " at " .. string.format("%.0f, %.0f", x, z))
     return true
+end
+
+-- Authored emitter colours (see CR/Weather/DustDevil), scaled in alpha only.
+local DEVIL_COLOURS = {
+    [0] = { { 0.72, 0.55, 0.38, 0.34 }, { 0.62, 0.46, 0.31, 0.22 } },
+    [1] = { { 0.90, 0.75, 0.58, 0.30 }, { 0.84, 0.69, 0.52, 0.22 } },
+    [2] = { { 0.90, 0.75, 0.58, 0.30 }, { 0.84, 0.69, 0.52, 0.22 } },
+}
+
+-- 1 near the player, 0 at the edge of what the fog lets through. Driven by the
+-- live visibility (the fog end Environment.lua is using), so a devil dissolves
+-- into the haze instead of standing out as a clean silhouette in it.
+local function DevilVisibilityFade(distance)
+    local vis = CRMarsWeather.GetVisibility()
+    if type(vis) ~= "number" or vis <= 1.0 then
+        return 1.0
+    end
+    local from = vis * CRMarsWeather.DevilFadeStart
+    local to = vis * CRMarsWeather.DevilFadeEnd
+    return 1.0 - SmoothStep((distance - from) / math.max(1.0, to - from))
+end
+
+local function PushDevilColours(systemName, fade)
+    for index = 0, 2 do
+        local c = DEVIL_COLOURS[index]
+        Call("SetParticleEmitterColor", systemName, index,
+            { r = c[1][1], g = c[1][2], b = c[1][3], a = c[1][4] * fade },
+            { r = c[2][1], g = c[2][2], b = c[2][3], a = c[2][4] * fade })
+    end
 end
 
 local function UpdateDevils(dt, player)
@@ -836,9 +873,41 @@ local function UpdateDevils(dt, player)
                 envelope = SmoothStep((devil.life - age) / CRMarsWeather.DevilSpinDown)
             end
 
-            Call("SetParticleEmitterEmissionRate", systemName, 0, devil.skirt * envelope)
-            Call("SetParticleEmitterEmissionRate", systemName, 1, devil.column * envelope)
-            Call("SetParticleEmitterDirection", systemName, 0, SetVector(0.0, 1.0, 0.0))
+            -- Distance/fog fade. Emission is thinned as well as the alpha, so a
+            -- far devil also costs less to draw.
+            local fade = 1.0
+            if playerPos ~= nil then
+                local dx = devil.x - playerPos.x
+                local dz = devil.z - playerPos.z
+                fade = DevilVisibilityFade(math.sqrt((dx * dx) + (dz * dz)))
+            end
+            if devil.fade == nil or math.abs(fade - devil.fade) >= CRMarsWeather.DevilFadeStep
+                or (fade <= 0.0) ~= (devil.fade <= 0.0)
+            then
+                devil.fade = fade
+                PushDevilColours(systemName, fade)
+            end
+            local thin = envelope * (0.35 + (0.65 * devil.fade))
+
+            Call("SetParticleEmitterEmissionRate", systemName, 0, devil.skirt * thin)
+            Call("SetParticleEmitterEmissionRate", systemName, 1, devil.column * thin)
+            Call("SetParticleEmitterEmissionRate", systemName, 2, devil.column * thin)
+
+            -- The vortex. Two point emitters at the foot are swept round a cone,
+            -- half a turn apart; each particle then flies straight along the
+            -- direction it was born with, which draws two interleaved helices
+            -- that are narrow at the base and widen with height. The funnel
+            -- tightens in the spin-up/down envelope so a forming or dying devil
+            -- is a thin rope rather than a full column.
+            devil.phase = devil.phase + (devil.spin * dt)
+            local tilt = Lerp(CRMarsWeather.DevilTilt[1], CRMarsWeather.DevilTilt[2], envelope)
+            local c1, s1 = math.cos(devil.phase), math.sin(devil.phase)
+            local c2, s2 = math.cos(devil.phase + math.pi), math.sin(devil.phase + math.pi)
+            Call("SetParticleEmitterDirection", systemName, 1, SetVector(c1 * tilt, 1.0, s1 * tilt))
+            Call("SetParticleEmitterDirection", systemName, 2, SetVector(c2 * tilt, 1.0, s2 * tilt))
+            -- Ground debris is flung out nearly flat, a quarter turn ahead.
+            local cs, ss = math.cos(devil.phase + 1.5708), math.sin(devil.phase + 1.5708)
+            Call("SetParticleEmitterDirection", systemName, 0, SetVector(cs, 0.18, ss))
         end
     end
 

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Rework the Mars dust devil: many small light puffs swept into a tapering
+  two-strand helix with a ground debris skirt, paler and more transparent
+  towards the top, fading with distance against the live fog visibility.
+  Replaces the per-particle column photograph that read as a dark smoke plume.
+
 - Promote the accepted HD terrain art for all nine worlds, including fine Moon
   regolith, varied crater relief and authored detail. Preserve original world
   colours while refining ground materials and lighting; blend atmospheric skies
