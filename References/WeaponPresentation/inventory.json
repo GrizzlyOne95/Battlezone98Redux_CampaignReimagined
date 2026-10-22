@@ -11,7 +11,9 @@
       "delay": "0.30",
       "producer": "cannon factory",
       "flash_profile": "plasmablue",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "asplsmg",
@@ -24,7 +26,9 @@
       "delay": "0.20",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "plasmablue",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "bprifle",
@@ -37,7 +41,9 @@
       "delay": "0.60",
       "producer": "cannon factory",
       "flash_profile": "plasmablue",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "bsplsmg",
@@ -50,7 +56,9 @@
       "delay": "0.20",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "plasmablue",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "cprifle",
@@ -63,7 +71,9 @@
       "delay": "0.84",
       "producer": "cannon factory",
       "flash_profile": "plasmagreen",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "cr16bolt",
@@ -76,7 +86,9 @@
       "delay": "0.6",
       "producer": "cannon factory",
       "flash_profile": "arcblue",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "crfarc",
@@ -89,7 +101,9 @@
       "delay": "0.8",
       "producer": "cannon factory",
       "flash_profile": "arcblue",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "crfmarc",
@@ -102,7 +116,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "arcred",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "crfpuls",
@@ -115,7 +131,9 @@
       "delay": "0.5",
       "producer": "cannon factory",
       "flash_profile": "plasmablue",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "cromarc",
@@ -128,7 +146,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "sunarc",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "csplsmg",
@@ -141,7 +161,9 @@
       "delay": "0.10",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "plasmagreen",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "cvwo003",
@@ -154,7 +176,9 @@
       "delay": "2.5",
       "producer": "cannon factory",
       "flash_profile": "mortar",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "ga7stab",
@@ -167,7 +191,9 @@
       "delay": "6.0",
       "producer": "cannon factory",
       "flash_profile": "atstab",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "medium",
+      "casing_decision": "Ballistic medium brass; local cosmetic only."
     },
     {
       "odf": "gammo",
@@ -175,12 +201,14 @@
       "name": "Ammo",
       "ordnance": "",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "supply dispenser"
+      "flash_decision": "supply dispenser",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gammoa",
@@ -188,12 +216,14 @@
       "name": "Ammo",
       "ordnance": "",
       "parent": "gammo",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "supply dispenser"
+      "flash_decision": "supply dispenser",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gatstab",
@@ -206,7 +236,9 @@
       "delay": "0.3",
       "producer": "cannon factory",
       "flash_profile": "atstab",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "medium",
+      "casing_decision": "Ballistic medium brass; local cosmetic only."
     },
     {
       "odf": "gatstaba",
@@ -219,7 +251,9 @@
       "delay": "0.7",
       "producer": "cannon factory",
       "flash_profile": "atstab",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "medium",
+      "casing_decision": "Ballistic medium brass; local cosmetic only."
     },
     {
       "odf": "gatstabh",
@@ -232,7 +266,9 @@
       "delay": "0.3",
       "producer": "cannon factory",
       "flash_profile": "atstab",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "medium",
+      "casing_decision": "Ballistic medium brass; local cosmetic only."
     },
     {
       "odf": "gbetmin",
@@ -245,7 +281,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "mine deployment"
+      "flash_decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gbetpop",
@@ -258,7 +296,9 @@
       "delay": "0.10",
       "producer": "cannon factory",
       "flash_profile": "",
-      "flash_decision": "autonomous mine trigger, no craft muzzle"
+      "flash_decision": "autonomous mine trigger, no craft muzzle",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gblast",
@@ -271,7 +311,9 @@
       "delay": "1.0",
       "producer": "cannon factory",
       "flash_profile": "blast",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gblastb",
@@ -284,7 +326,9 @@
       "delay": "1.0",
       "producer": "cannon factory",
       "flash_profile": "blastblue",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gblastg",
@@ -297,7 +341,9 @@
       "delay": "1.0",
       "producer": "cannon factory",
       "flash_profile": "blast",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gblasth",
@@ -310,7 +356,9 @@
       "delay": "1.0",
       "producer": "cannon factory",
       "flash_profile": "blastred",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gbolt",
@@ -323,7 +371,9 @@
       "delay": "0.6",
       "producer": "cannon factory",
       "flash_profile": "arcblue",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gboltg",
@@ -336,7 +386,9 @@
       "delay": "0.6",
       "producer": "cannon factory",
       "flash_profile": "arcgreen",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gboltmig",
@@ -344,12 +396,14 @@
       "name": "Arc Mine",
       "ordnance": "",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "mine deployment"
+      "flash_decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gboltmin",
@@ -357,12 +411,14 @@
       "name": "Arc Mine",
       "ordnance": "",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "mine deployment"
+      "flash_decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gboltmir",
@@ -370,12 +426,14 @@
       "name": "Arc Mine",
       "ordnance": "",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "mine deployment"
+      "flash_decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gboltr",
@@ -388,7 +446,9 @@
       "delay": "0.6",
       "producer": "cannon factory",
       "flash_profile": "arcred",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gbspstab",
@@ -401,7 +461,9 @@
       "delay": "0.6",
       "producer": "cannon factory",
       "flash_profile": "spstab",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     {
       "odf": "gcomet",
@@ -414,7 +476,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "rocket",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gctesla",
@@ -427,7 +491,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "field deployment"
+      "flash_decision": "field deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gdummy",
@@ -435,12 +501,14 @@
       "name": "Paintball",
       "ordnance": "dummy",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "CANN",
       "delay": "0.20",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "",
-      "flash_decision": "paintball/debug effect"
+      "flash_decision": "paintball/debug effect",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gflare",
@@ -448,12 +516,14 @@
       "name": "Solar Flare",
       "ordnance": "",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "countermeasure deployment"
+      "flash_decision": "countermeasure deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gflashch",
@@ -466,7 +536,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "arcred",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gflashgb",
@@ -479,7 +551,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "arcblue",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gflashgg",
@@ -492,7 +566,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "arcgreen",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gflashgn",
@@ -505,7 +581,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "arcblue",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "ghartila",
@@ -518,7 +596,9 @@
       "delay": "1.0",
       "producer": "cannon factory",
       "flash_profile": "mortar",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     {
       "odf": "ghartill",
@@ -531,7 +611,9 @@
       "delay": "5.0",
       "producer": "cannon factory",
       "flash_profile": "mortar",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     {
       "odf": "ghartmp",
@@ -544,7 +626,9 @@
       "delay": "2.0",
       "producer": "cannon factory",
       "flash_profile": "mortar",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     {
       "odf": "ghornet",
@@ -557,7 +641,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "rocket",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "ghrntai",
@@ -570,7 +656,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "rocket",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "glgmsl",
@@ -583,7 +671,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "rocket",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gmaggun",
@@ -596,7 +686,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "mag",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gmasgren",
@@ -604,12 +696,14 @@
       "name": "MAS Grenade",
       "ordnance": "switch",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "2.0",
       "producer": "cannon factory",
       "flash_profile": "",
-      "flash_decision": "conversion projectile, keep existing effect"
+      "flash_decision": "conversion projectile, keep existing effect",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gmbolt",
@@ -622,7 +716,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "arcblue",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gmboltg",
@@ -635,7 +731,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "arcgreen",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gmboltr",
@@ -648,7 +746,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "arcred",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gmcurmin",
@@ -656,12 +756,14 @@
       "name": "M-Curtain",
       "ordnance": "",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "mine deployment"
+      "flash_decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gmdmgun",
@@ -674,7 +776,9 @@
       "delay": "2.0",
       "producer": "other producer pending",
       "flash_profile": "mortar",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gminigna",
@@ -687,7 +791,9 @@
       "delay": "0.40",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "minigun",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     {
       "odf": "gminignb",
@@ -700,7 +806,9 @@
       "delay": "0.40",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "minigun",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     {
       "odf": "gminignc",
@@ -713,7 +821,9 @@
       "delay": "0.15",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "minigun",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     {
       "odf": "gminigrn",
@@ -726,7 +836,9 @@
       "delay": "0.1",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "minigun",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     {
       "odf": "gminigun",
@@ -739,7 +851,9 @@
       "delay": "0.20",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "minigun",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     {
       "odf": "gminisov",
@@ -752,7 +866,9 @@
       "delay": "0.30",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "chaingun",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     {
       "odf": "gmitsmin",
@@ -760,12 +876,14 @@
       "name": "MITS Mine",
       "ordnance": "",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "mine deployment"
+      "flash_decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gmortar",
@@ -778,7 +896,9 @@
       "delay": "2.0",
       "producer": "cannon factory",
       "flash_profile": "mortar",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gnavdrop",
@@ -786,12 +906,14 @@
       "name": "Nav",
       "ordnance": "",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "navigation beacon deployment"
+      "flash_decision": "navigation beacon deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gobject",
@@ -799,12 +921,14 @@
       "name": "NULL",
       "ordnance": "NULL",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "MORT",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "internal object lobber"
+      "flash_decision": "internal object lobber",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gphantom",
@@ -812,12 +936,14 @@
       "name": "Phantom VIR",
       "ordnance": "NULL",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "cloak device"
+      "flash_decision": "cloak device",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gpopgun",
@@ -830,7 +956,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "popper",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gproxmin",
@@ -838,12 +966,14 @@
       "name": "Prox Mine",
       "ordnance": "",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "mine deployment"
+      "flash_decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gquake",
@@ -851,12 +981,14 @@
       "name": "Thumper",
       "ordnance": "seismic",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "3",
       "producer": "cannon factory",
       "flash_profile": "",
-      "flash_decision": "ground-contact seismic emitter"
+      "flash_decision": "ground-contact seismic emitter",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gredfld",
@@ -864,12 +996,14 @@
       "name": "RED Field",
       "ordnance": "NULL",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "radar device"
+      "flash_decision": "radar device",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "grepa",
@@ -877,12 +1011,14 @@
       "name": "Repair Dropper",
       "ordnance": "",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "repair dispenser"
+      "flash_decision": "repair dispenser",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "grepaa",
@@ -890,12 +1026,14 @@
       "name": "Repair Dropper",
       "ordnance": "",
       "parent": "grepa",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "repair dispenser"
+      "flash_decision": "repair dispenser",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "grktbomb",
@@ -908,7 +1046,9 @@
       "delay": "3.0",
       "producer": "cannon factory",
       "flash_profile": "rocket",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gsandbag",
@@ -916,12 +1056,14 @@
       "name": "Sandbag",
       "ordnance": "anchor",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "ROCK",
       "delay": "1.5",
       "producer": "cannon factory",
       "flash_profile": "",
-      "flash_decision": "anchoring device"
+      "flash_decision": "anchoring device",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gsatstab",
@@ -934,7 +1076,9 @@
       "delay": "0.30",
       "producer": "cannon factory",
       "flash_profile": "pulse",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gshadow",
@@ -947,7 +1091,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "rocket",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gshunt",
@@ -960,7 +1106,9 @@
       "delay": "1.50",
       "producer": "cannon factory",
       "flash_profile": "rocket",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gsitecam",
@@ -968,12 +1116,14 @@
       "name": "SITE Camera",
       "ordnance": "NULL",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "camera device"
+      "flash_decision": "camera device",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gsmort",
@@ -986,7 +1136,9 @@
       "delay": "2.60",
       "producer": "cannon factory",
       "flash_profile": "mortar",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gsnipe",
@@ -999,7 +1151,9 @@
       "delay": "1.0",
       "producer": "cannon factory",
       "flash_profile": "sniper",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     {
       "odf": "gsplint",
@@ -1012,7 +1166,9 @@
       "delay": "3.0",
       "producer": "cannon factory",
       "flash_profile": "mortar",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gsplinta",
@@ -1025,7 +1181,9 @@
       "delay": "2.0",
       "producer": "cannon factory",
       "flash_profile": "mortar",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gsplintg",
@@ -1038,7 +1196,9 @@
       "delay": "3.0",
       "producer": "cannon factory",
       "flash_profile": "mortar",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gsplintr",
@@ -1051,7 +1211,9 @@
       "delay": "3.0",
       "producer": "cannon factory",
       "flash_profile": "mortar",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gspstab",
@@ -1064,7 +1226,9 @@
       "delay": "0.6",
       "producer": "cannon factory",
       "flash_profile": "spstab",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     {
       "odf": "gspstaba",
@@ -1077,7 +1241,9 @@
       "delay": "1.5",
       "producer": "cannon factory",
       "flash_profile": "spstab",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     {
       "odf": "gspstabb",
@@ -1090,7 +1256,9 @@
       "delay": "0.6",
       "producer": "cannon factory",
       "flash_profile": "spstab",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     {
       "odf": "gspstabc",
@@ -1103,7 +1271,9 @@
       "delay": "0.8",
       "producer": "cannon factory",
       "flash_profile": "spstab",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     {
       "odf": "gspstabd",
@@ -1116,7 +1286,9 @@
       "delay": "0.5",
       "producer": "cannon factory",
       "flash_profile": "spstab",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     {
       "odf": "gspstabn",
@@ -1129,7 +1301,9 @@
       "delay": "1.5",
       "producer": "cannon factory",
       "flash_profile": "spstab",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     {
       "odf": "gsrkbomb",
@@ -1142,7 +1316,9 @@
       "delay": "2.70",
       "producer": "cannon factory",
       "flash_profile": "rocket",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gstlock",
@@ -1155,7 +1331,9 @@
       "delay": "1.50",
       "producer": "cannon factory",
       "flash_profile": "",
-      "flash_decision": "control projectile, keep existing effect"
+      "flash_decision": "control projectile, keep existing effect",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gtaggun",
@@ -1168,7 +1346,9 @@
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "rocket",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gtechno",
@@ -1181,7 +1361,9 @@
       "delay": "0.4",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "plasmablue",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gtminig",
@@ -1194,7 +1376,9 @@
       "delay": "0.20",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "minigun",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     {
       "odf": "gtminis",
@@ -1207,7 +1391,9 @@
       "delay": "0.30",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "chaingun",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     {
       "odf": "gtminis2",
@@ -1220,7 +1406,9 @@
       "delay": "0.30",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "chaingun",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     {
       "odf": "gtminisa",
@@ -1233,7 +1421,9 @@
       "delay": "0.48",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "chaingun",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     {
       "odf": "gtsmoke",
@@ -1246,7 +1436,9 @@
       "delay": "4.0",
       "producer": "cannon factory",
       "flash_profile": "",
-      "flash_decision": "smoke launch, keep smoke effect distinct"
+      "flash_decision": "smoke launch, keep smoke effect distinct",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "gwasp",
@@ -1254,12 +1446,14 @@
       "name": "WASP",
       "ordnance": "",
       "parent": "",
-      "scope": "stock",
+      "scope": "CR override",
       "category": "SPEC",
       "delay": "",
       "producer": "other producer pending",
       "flash_profile": "",
-      "flash_decision": "mine deployment"
+      "flash_decision": "mine deployment",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "handgun",
@@ -1272,7 +1466,9 @@
       "delay": "0.3",
       "producer": "cannon factory",
       "flash_profile": "plasmablue",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "sprifle",
@@ -1285,7 +1481,9 @@
       "delay": "0.22",
       "producer": "cannon factory",
       "flash_profile": "plasmared",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
       "odf": "ssplsmg",
@@ -1298,7 +1496,9 @@
       "delay": "0.30",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "plasmared",
-      "flash_decision": "authored flash"
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     }
   ],
   "units": [

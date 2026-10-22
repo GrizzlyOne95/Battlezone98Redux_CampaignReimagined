@@ -9,6 +9,10 @@ flashScale = 1
 flashEndScale = 0.65
 flashOffset = "0 0 0"
 // CR WEAPON FLASH END
+// CR WEAPON CASING BEGIN
+// Ballistic medium brass; local cosmetic only.
+casingType = "medium"
+// CR WEAPON CASING END
 classLabel = "cannon"
 ordName = "rocket"
 wpnName = "AT-Stabber"
