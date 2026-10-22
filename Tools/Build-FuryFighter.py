@@ -11,6 +11,7 @@ import sys
 from PIL import Image
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from bzmodellibs import ogremesh_serializer
+from bcdds import save_bc
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -37,8 +38,8 @@ def build(source):
     ogremesh_serializer.MeshSerializer(out).write(mesh)
     (dest/'crfraz.mesh').write_bytes(namespace(out.getvalue()))
     image=Image.open(ROOT/'References/FuryFighter/fury-diffuse.png').convert('RGBA')
-    image.resize((1024,1024),Image.Resampling.LANCZOS).save(ROOT/'Assets/Textures/crfraz_d.dds')
-    print('Copied crfraz VDF/mesh/skeleton + 12 GEO companions; DDS 1024x1024 RGBA8.')
+    save_bc(image.resize((1024,1024),Image.Resampling.LANCZOS),ROOT/'Assets/Textures/crfraz_d.dds')
+    print('Copied crfraz VDF/mesh/skeleton + 12 GEO companions; DDS 1024x1024 BC1 with mips.')
 
 if __name__ == '__main__':
     ap=argparse.ArgumentParser(description=__doc__)

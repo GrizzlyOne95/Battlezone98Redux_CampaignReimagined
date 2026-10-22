@@ -24,7 +24,8 @@ still reads them, including during destruction.
 The diffuse edit starts from Redux `Hvsav00_d.dds`. The built-in imagegen tool
 sharpened the existing cyan-blue Fury atlas, preserving the UV islands and palette.
 The selected PNG and prompt are retained under `References/FuryFighter`.
-The shipped atlas is 1024-square RGBA8 DDS; the engine generates its mipmaps. Stock
+The shipped atlas is 1024-square BC1 DDS with full offline mips (the engine cannot
+generate mips for compressed textures). Stock
 Fury specular/emissive maps and a flat normal map are reused. The initial image
 experiment using ISDFC's red atlas was discarded and is not part of this feature.
 
@@ -110,8 +111,8 @@ network checks do not establish a fighter fault because no fighter was spawned.
 `fury-art-final-19` rechecked the final RGBA8 atlas with both mine variants on
 two native clients: 13 steps / 30 checks, both guns hit (770 pulse / 720 arc damage)
 and both clients observed destruction and exited normally. The original geometry
-and material links remain; only the DDS encoding changed after the mine art
-comparison exposed gray BC3 output. [Native fighter frame](images/fury-assets-20261017/fury-fighter.png).
+and material links remain; only the DDS encoding changed (RGBA8, then BC1 with
+offline mips after the mine art comparison exposed gray BC3 output without mips). [Native fighter frame](images/fury-assets-20261017/fury-fighter.png).
 
 Steam, Proton/Wine, native save/load and full mission combat balance are unverified
 for this prototype. No normal game installation or Workshop content is deployed.
