@@ -14,9 +14,11 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     SweepWet = 0, MaxWetStep = 0.03, MaxMaterialBudget = 64, CloneWetBudget = 32,
     sweepLeft = 0, cloneLeft = 0, wetCursor = 1, sweepMoving = false,
     flashCache = {}, flashCacheCount = 0, MaxFlashCache = 512,
-    -- Muzzle heat: each shot adds HeatPerShot, cooling HeatCool per second,
-    -- so a slow cannon stays warm and only sustained fire reaches HeatMax.
-    HeatPerShot = 0.06, HeatMax = 1.0, HeatCool = 0.12, HeatRadius = 0.6,
+    -- Muzzle heat: each shot adds HeatPerShot. Heat cools in proportion to
+    -- itself (HeatCool per second) plus a small HeatFloor, so steady fire
+    -- settles at a warm level instead of draining: ~0.27 at 1 shot/s,
+    -- ~0.47 at 1.5, full from about 3 shots/s. A lone shot fades away.
+    HeatPerShot = 0.06, HeatMax = 1.0, HeatCool = 0.15, HeatFloor = 0.02, HeatRadius = 0.6,
     -- The glow wraps the barrel within BarrelRadius, from the flash point back
     -- toward the mount for at most BarrelLength, fading out along the way.
     BarrelRadius = 0.35, BarrelLength = 0.8 }
@@ -346,7 +348,7 @@ local function updateRecord(r, dt)
     local right, up, front
     if next(r.heat) then right, up, front = hullBasis(r.handle) end
     for slot, heat in pairs(r.heat) do
-        heat.energy = math.max(0, heat.energy-dt*S.HeatCool)
+        heat.energy = math.max(0, heat.energy*math.exp(-dt*S.HeatCool)-dt*S.HeatFloor)
         heat.display = heat.energy+(heat.display-heat.energy)*math.exp(-dt*6)
         if heat.display < 0.002 then r.heat[slot] = nil
         else
