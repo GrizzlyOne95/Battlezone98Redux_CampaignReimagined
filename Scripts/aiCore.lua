@@ -1303,7 +1303,6 @@ aiCore.DefaultNativeConfig = aiCore.DefaultNativeConfig or {
             kiteSwitchPeriod = 3.5,
             lowHealthThreshold = 0.35,
             kiteLowHealthScale = 1.04,
-            retargetPeriod = 10.0,
         },
         bomber = {
             engageRange = 300.0,
@@ -1313,7 +1312,6 @@ aiCore.DefaultNativeConfig = aiCore.DefaultNativeConfig or {
             kiteExitRange = 260.0,
             kitePreserveLos = true,
         },
-        howitzer = { standoffFraction = 0.9 },
     },
 }
 
@@ -1459,25 +1457,25 @@ function aiCore.ApplyNativeTactics(h, team)
         end
     end
 
-    -- Standoff/kite band: hold at a fraction of the effective fire range
-    -- instead of driving to point-blank. Natively, units hold fire and back
-    -- off inside this distance (UnitTask closeSq).
-    if profile.standoff ~= false and fireRange
+    -- Standoff band: hold at a fraction of the effective fire range instead
+    -- of driving to point-blank. Natively, units hold fire and back off
+    -- inside this distance (UnitTask closeSq), so it is opt-in per profile
+    -- and no stock profile uses it; applied to every gun craft it left them
+    -- retreating instead of shooting in close fights.
+    local standoffFraction = tonumber(profile.standoffFraction)
+    if profile.standoff ~= false and (profile.standoff == true or standoffFraction)
+        and fireRange
         and fireRange >= (config.nativeStandoffMinWeaponRange or 90.0) then
-        local fraction = tonumber(profile.standoffFraction)
-            or config.nativeStandoffFraction or 0.85
-        policy.weaponRangeMin = fireRange * fraction
+        policy.weaponRangeMin = fireRange * (standoffFraction
+            or config.nativeStandoffFraction or 0.85)
     end
 
-    -- Faster forced target re-acquisition on higher difficulties.
-    local difficulty = config.difficulty or 1
+    -- Forced target re-acquisition period, only when a profile asks for one.
+    -- OpenShim sets the next scan to now + period, so a long period makes a
+    -- unit slower to pick targets than stock; keep authored values short.
     local retarget = tonumber(profile.retargetPeriod)
     if retarget and retarget > 0 then
         policy.retargetPeriod = retarget
-    elseif difficulty >= 4 then
-        policy.retargetPeriod = 8.0
-    elseif difficulty >= 3 then
-        policy.retargetPeriod = 15.0
     end
 
     if policy.engageRange or policy.weaponRangeMin or policy.retargetPeriod
@@ -6897,7 +6895,8 @@ function aiCore.Team:new(teamNum, faction)
         -- Native tactics (per-unit fire range/standoff/retarget via exu+OpenShim).
         -- engageRange floors the AI fire-range decision (unit stops its attack
         -- run and opens fire at this distance); weaponRangeMin floors the native
-        -- "too close" band (units hold fire, back off and kite inside it).
+        -- "too close" band (units hold fire, back off and kite inside it) and
+        -- applies only to profiles that set standoff = true or standoffFraction.
         nativeTactics = true,
         nativeStandoffFraction = 0.85,
         nativeStandoffMinWeaponRange = 90.0,
@@ -6905,7 +6904,8 @@ function aiCore.Team:new(teamNum, faction)
         -- ScoutFriend/ScoutEnemy and BomberFriend/BomberEnemy resolve exactly
         -- to shared semantic roles; longest-substring matching is a fallback.
         -- Fields: engageRange (m), standoffFraction (0..1 of fire range),
-        --         standoff (false = disable legacy close-band retreat),
+        --         standoff (true = opt in to the close-band retreat at
+        --         nativeStandoffFraction; false = never), standoffFraction,
         --         kiteDesired/Enter/ExitRange (m) or matching Fraction fields,
         --         kitePreserveLos, kiteStrafe, kiteSwitchPeriod,
         --         lowHealthThreshold, kiteLowHealthScale,
@@ -6932,9 +6932,7 @@ function aiCore.Team:new(teamNum, faction)
                 kiteSwitchPeriod = 3.5,
                 lowHealthThreshold = 0.35,
                 kiteLowHealthScale = 1.04,
-                retargetPeriod = 10.0,
             },
-            howitzer = { standoffFraction = 0.9 },
         },
         -- Candidate scoring inside the native ChooseAttackTarget search. Focus
         -- fire is a score bonus rather than a forced ATTACK replacement.
