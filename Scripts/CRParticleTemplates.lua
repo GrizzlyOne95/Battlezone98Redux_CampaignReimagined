@@ -75,6 +75,29 @@ local function ParsePayload(root, name)
     return true
 end
 
+-- Redux only parses a mod .material file when a material of the same name is
+-- requested, so nothing loads CR_reactive.material (CR_FX/*, CR_Sky/*) into
+-- Modable. A template naming CR_FX/Rain then gets a blank, shaderless material
+-- from Ogre: untextured quads on DX9, an exception per draw on DX11. Parse it
+-- before any template can ask. Ogre keeps it across Lua states, hence the
+-- existence check. A failure here leaves the templates usable, so it only warns.
+local materialProbe = "CR_FX/Rain"
+local function EnsureMaterials(root)
+    if loaded.materials then return end
+    if type(exu.MaterialExists) == "function" and exu.MaterialExists(materialProbe, "Modable") then
+        loaded.materials = true
+        return
+    end
+    local ok, text = pcall(ReadPayload, root .. "/CR_reactive.material")
+    local parsed, completed = ok, false
+    if ok then parsed, completed = pcall(exu.ParseResourceScript, text, "CR_reactive.material", "Modable") end
+    if parsed and completed then
+        loaded.materials = true
+    else
+        print("CR_reactive.material could not be parsed; CR particle materials will draw blank.")
+    end
+end
+
 function Templates.Ensure()
     if type(exu.ParseResourceScript) ~= "function" then
         print("CR particle templates require the bundled EXU runtime; run Setup / Repair.")
@@ -82,6 +105,7 @@ function Templates.Ensure()
     end
     local root = ResolveRoot()
     if not root then print("CR particle payload root could not be resolved."); return false end
+    EnsureMaterials(root)
     for _, name in ipairs(names) do
         if not loaded[name] then
             local ok, err = ParsePayload(root, name)
@@ -103,6 +127,7 @@ function Templates.EnsureExtra(name)
     end
     local okRoot, root = pcall(ResolveRoot)
     if not okRoot or not root then return false, "CR particle payload root could not be resolved" end
+    EnsureMaterials(root)
     return ParsePayload(root, name)
 end
 

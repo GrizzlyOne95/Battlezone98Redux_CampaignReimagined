@@ -89,6 +89,7 @@ PersistentConfig.DefaultSettings = {
     EmptyCraftLightsEnabled = false, -- Empty craft emissive/running lights off by default
     EmissivePulseEnabled = false,   -- Gradual occupied-craft emissive pulse
     StarTwinkleEnabled = false,     -- Ogre shader star brightness animation
+    SurfaceEffects = true,          -- Local reactive surface materials (damage, heat, wetness, tower power)
     AutoRepairWingmen = true,       -- Auto-repair wingmen on by default
     RainbowMode = false,            -- Special color effect
     ScavengerAssistEnabled = false, -- Auto-scavenge for player scavengers
@@ -5408,6 +5409,7 @@ function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
         options.applyPilotVisuals or
         options.applyEmissivePulse or
         options.applyStarTwinkle or
+        options.applySurfaceEffects or
         options.applyTeamColors or
         options.applyFactionFlames or
         options.applyUnitVo or
@@ -5578,6 +5580,18 @@ function PersistentConfig._SettingsActions.SetSubtitlesEnabled(enabled)
         end
     end
     ShowSettingsFeedback("Subtitles: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    return true
+end
+
+function PersistentConfig._SettingsActions.SetSurfaceEffectsEnabled(enabled)
+    local value = not not enabled
+    if PersistentConfig.Settings.SurfaceEffects == value then
+        return false
+    end
+
+    PersistentConfig.Settings.SurfaceEffects = value
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySurfaceEffects = true })
+    ShowSettingsFeedback("Surface Effects: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5831,6 +5845,13 @@ GetSettingsPageEntries = function()
                 return PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(DirectionEnabled(delta))
             end,
         },
+        {
+            label = "Surface Effects",
+            value = PersistentConfig.Settings.SurfaceEffects and "On" or "Off",
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.SetSurfaceEffectsEnabled(DirectionEnabled(delta))
+            end,
+        },
         Section("Audio & Alerts"),
         {
             label = "Subtitles",
@@ -6027,6 +6048,8 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.EmissivePulseEnabled = (val == "true")
                 elseif key == "StarTwinkleEnabled" then
                     PersistentConfig.Settings.StarTwinkleEnabled = (val == "true")
+                elseif key == "SurfaceEffects" then
+                    PersistentConfig.Settings.SurfaceEffects = (val == "true")
                 elseif key == "AutoRepairWingmen" then
                     PersistentConfig.Settings.AutoRepairWingmen = (val == "true")
                 elseif key == "RainbowMode" then
@@ -6203,6 +6226,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("EmptyCraftLightsEnabled=" .. tostring(PersistentConfig.Settings.EmptyCraftLightsEnabled))
         f:Writeln("EmissivePulseEnabled=" .. tostring(PersistentConfig.Settings.EmissivePulseEnabled))
         f:Writeln("StarTwinkleEnabled=" .. tostring(PersistentConfig.Settings.StarTwinkleEnabled))
+        f:Writeln("SurfaceEffects=" .. tostring(PersistentConfig.Settings.SurfaceEffects))
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
         f:Writeln("AutoSaveEnabled=" .. tostring(PersistentConfig.Settings.AutoSaveEnabled))
@@ -6286,6 +6310,16 @@ function PersistentConfig.ApplySettings(options)
         end
         if applyAll or (options and options.applyStarTwinkle) then
             RuntimeEnhancements.SetStarTwinkleEnabled(PersistentConfig.Settings.StarTwinkleEnabled)
+        end
+    end
+
+    if applyAll or (options and options.applySurfaceEffects) then
+        -- Off restores every owned material and stops work; on resumes it.
+        local changed = require("CRSurfaceEffects").SetEnabled(PersistentConfig.Settings.SurfaceEffects ~= false)
+        if changed and PersistentConfig.Settings.SurfaceEffects ~= false
+            and type(RuntimeEnhancements.RebuildVisuals) == "function" then
+            -- Re-registers live objects that were dropped while it was off.
+            pcall(RuntimeEnhancements.RebuildVisuals)
         end
     end
 
@@ -7204,6 +7238,7 @@ function PersistentConfig.OnObjectDeleted(h)
     end
 
     InputState.processedCreationHandles[h] = nil
+    require("CRSurfaceEffects").Unregister(h)
     RemoveTrackedWorldHandle(h)
 
     if aiCore and type(aiCore.DeleteObject) == "function" then
