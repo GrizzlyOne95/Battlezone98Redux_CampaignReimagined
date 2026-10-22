@@ -9,6 +9,10 @@ flashScale = 1
 flashEndScale = 0.65
 flashOffset = "0 0 0"
 // CR WEAPON FLASH END
+// CR WEAPON CASING BEGIN
+// Ballistic small brass; local cosmetic only.
+casingType = "small"
+// CR WEAPON CASING END
 baseName = "gminigun"
 classLabel = "machinegun"
 ordName = "bullet1b"

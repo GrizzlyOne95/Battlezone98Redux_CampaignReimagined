@@ -1,0 +1,16 @@
+[WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
+classLabel = "lobber"
+ordName = NULL
+wpnName = NULL
+fireSound = "gobje00.wav"
+wpnReticle = NULL
+wpnPriority = 0
+wpnCategory = "MORT"
+
+[ObjectLobberClass]
+shotDelay = 0.0
+shotSpeed = 200.0

@@ -1,6 +1,10 @@
 // CCA replacement for the stock Prox Mine.
 // Same dispenser cadence and ammo footprint, but triggers a pop-up shrapnel burst.
 [WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
 classLabel = "dispenser"
 wpnName = "CCA Bouncing Betty"
 fireSound = "gprox00.wav"
