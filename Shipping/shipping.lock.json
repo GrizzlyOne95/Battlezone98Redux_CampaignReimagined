@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-22T15:51:47-05:00",
-  "count": 4470,
+  "generated": "2026-10-22T16:38:45-05:00",
+  "count": 4480,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -466,6 +466,10 @@
     {
       "source": "Assets\\ModelFixes\\avrecy.vdf",
       "runtime": "avrecy.vdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avsav.mesh",
+      "runtime": "avsav.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\avscav.mesh",
@@ -5928,6 +5932,14 @@
       "runtime": "crwx_wsplat.dds"
     },
     {
+      "source": "Assets\\Textures\\exu_hud_ring_segment.png",
+      "runtime": "exu_hud_ring_segment.png"
+    },
+    {
+      "source": "Assets\\Textures\\exu_hud_status_plate.png",
+      "runtime": "exu_hud_status_plate.png"
+    },
+    {
       "source": "Assets\\Textures\\lbolt.dds",
       "runtime": "lbolt.dds"
     },
@@ -7868,6 +7880,10 @@
       "runtime": "avrecy.material"
     },
     {
+      "source": "Materials\\avsav14.material",
+      "runtime": "avsav14.material"
+    },
+    {
       "source": "Materials\\avscav.material",
       "runtime": "avscav.material"
     },
@@ -8538,6 +8554,10 @@
     {
       "source": "Materials\\eu_detail_atlas.material",
       "runtime": "eu_detail_atlas.material"
+    },
+    {
+      "source": "Materials\\exu_hud.material",
+      "runtime": "exu_hud.material"
     },
     {
       "source": "Materials\\flare.material",
@@ -14718,6 +14738,26 @@
     {
       "source": "Shaders\\crwx_wetglass.program",
       "runtime": "crwx_wetglass.program"
+    },
+    {
+      "source": "Shaders\\exu_hud_tint-fragment.glsl",
+      "runtime": "exu_hud_tint-fragment.glsl"
+    },
+    {
+      "source": "Shaders\\exu_hud_tint-sm4.hlsl",
+      "runtime": "exu_hud_tint-sm4.hlsl"
+    },
+    {
+      "source": "Shaders\\exu_hud_tint-vertex.glsl",
+      "runtime": "exu_hud_tint-vertex.glsl"
+    },
+    {
+      "source": "Shaders\\exu_hud_tint.hlsl",
+      "runtime": "exu_hud_tint.hlsl"
+    },
+    {
+      "source": "Shaders\\exu_hud_tint.program",
+      "runtime": "exu_hud_tint.program"
     },
     {
       "source": "staged.des",
