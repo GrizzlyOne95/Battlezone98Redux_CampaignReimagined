@@ -324,6 +324,11 @@ Local grass/flower removal is client-only (owner, 2026-10-21): `Docs/LOCAL_FLORA
 Use the shared bounded `CRFloraDamage` service and actual EXU explosion events; do not
 scan units every frame or synchronize cosmetic bare patches. Solid trees keep gameplay ownership.
 
+Mission 18's firs reuse Mission 17 art but have their own bounded authority streamer:
+`Docs/MISN18_TREES.md`. Lightning ground points are shared world coordinates; only the
+authority destroys/uproots tree objects or marks unstreamed sites gone. Do not apply
+tree damage in every peer's cosmetic lightning handler or use craft AI on the plants.
+
 Weapon presentation inventory and first art pass: `Docs/WEAPON_PRESENTATION_ROLLOUT.md`
 (2026-10-21). Weapon flashes belong on WeaponClass; recoil belongs on craft slots.
 Never apply avtank's barrel-tip offset to a shared weapon used by other models,
