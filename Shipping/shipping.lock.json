@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-21T14:37:36-05:00",
-  "count": 4426,
+  "count": 4431,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -1378,6 +1378,14 @@
     {
       "source": "Assets\\Textures\\crvpkup_n.dds",
       "runtime": "crvpkup_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvrdcp_d.dds",
+      "runtime": "crvrdcp_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvrdcp_e.dds",
+      "runtime": "crvrdcp_e.dds"
     },
     {
       "source": "Assets\\Textures\\crvsalv_d.dds",
@@ -3594,6 +3602,10 @@
     {
       "source": "Materials\\cr_reactive.particle.payload",
       "runtime": "cr_reactive.particle.payload"
+    },
+    {
+      "source": "Materials\\CR_reddevil_cockpit.material",
+      "runtime": "CR_reddevil_cockpit.material"
     },
     {
       "source": "Materials\\CR_scope.material",
@@ -12710,6 +12722,14 @@
     {
       "source": "Assets\\Models\\bpspec.vdf",
       "runtime": "bpspec.vdf"
+    },
+    {
+      "source": "Assets\\Models\\bvrdev_cockpit.mesh",
+      "runtime": "bvrdev_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bvrdev_cockpit.skeleton",
+      "runtime": "bvrdev_cockpit.skeleton"
     },
     {
       "source": "Assets\\Models\\c17proc.geo",

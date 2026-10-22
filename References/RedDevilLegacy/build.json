@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "master": "reddevil-selected.png",
+  "masterSha256": "c17e519ffae69c9035b7c0b36e22f5eb6e185fc35f2e55bd4daccb7da7feec60",
+  "authoredSize": [
+    1254,
+    1254
+  ],
+  "output": "Assets/Textures/bvrdev_d.dds",
+  "size": [
+    1280,
+    1280
+  ],
+  "format": "BC1_UNORM",
+  "sha256": "e5e899e41e686cd2cbf8970eb9f313f83c9be4417fe3de602ef4bfe978fa84b9",
+  "bytes": 1092448,
+  "meshSha256": "820438108bf16720abefe87b71585ba7d8a1f374002e41a008c7603bdf1c0466",
+  "unchanged": [
+    "mesh",
+    "UVs",
+    "skeleton",
+    "native model",
+    "ODFs",
+    "material",
+    "normal/specular/emissive bindings"
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "masters": {
+    "cockpit-d.png": "6b4cbef557e39a3cd5a6aae4084116ff6d20072ae9d7c24d0025b143281bee25"
+  },
+  "outputs": {
+    "Assets/Models/bvrdev_cockpit.mesh": "3162733d44597594e889072f400453368b25a74d595cda2284c6b61057316e38",
+    "Assets/Models/bvrdev_cockpit.skeleton": "ebb62f13b6561c50ff830101226cd6e7fe7005436181dcfa16b297a02fdf798a",
+    "Assets/Textures/crvrdcp_d.dds": "c1a9349ade400ef92dc52102a46a38c19dffb669ae167483a4ecff8c69f5b83f",
+    "Assets/Textures/crvrdcp_e.dds": "37953931043ea4a90e9b732fb15d6771956afee9d9dcd62bb62ed51d1d145917",
+    "Materials/CR_reddevil_cockpit.material": "3ab09892de98a0195a816d7eaa60a7ede5af371e83ff373f97cebe90e596ad30"
+  },
+  "alignment": {
+    "pov": "brd11POV",
+    "povPosition": [
+      0.0,
+      1.6659959554672241,
+      1.2292560338974
+    ],
+    "povBasis": [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "shell": "brd21BDA",
+    "shellHandle": 14,
+    "foredeckTriangles": 252,
+    "rim": [
+      [
+        -0.58,
+        -0.3,
+        0.83
+      ],
+      [
+        0.0,
+        -0.34,
+        1.05
+      ],
+      [
+        0.58,
+        -0.3,
+        0.83
+      ],
+      [
+        0.65,
+        0.1,
+        0.62
+      ],
+      [
+        0.4,
+        0.46,
+        0.28
+      ],
+      [
+        0.0,
+        0.5,
+        0.38
+      ],
+      [
+        -0.4,
+        0.46,
+        0.28
+      ],
+      [
+        -0.65,
+        0.1,
+        0.62
+      ]
+    ],
+    "innerShell": {
+      "triangles": 36,
+      "boundaryEdges": 14,
+      "boundaryLoops": 1,
+      "role": "single intentional wraparound canopy opening"
+    }
+  },
+  "glass": {
+    "openFraction": 0.4257896524397147,
+    "depth": [
+      0.6459771084563105,
+      1.5073704623323816
+    ],
+    "bone": "brd21BDA",
+    "vertices": 572,
+    "triangles": 1024
+  },
+  "triangles": {
+    "CRV/RedDevilCockpit": 609,
+    "CRV/RedDevilForedeck": 252
+  },
+  "glassMaskSha256": "90acf02028b69f1d96db374f944f9b1c1604da53da9ef86dd86fd9235c959de5"
+}
