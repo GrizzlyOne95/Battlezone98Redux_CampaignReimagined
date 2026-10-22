@@ -1153,7 +1153,7 @@ function Update()
                 local cutsceneActive = (M.lemcin1 and not M.lemcin2)
                     or (M.endseq_started and not M.endseq_cutscene_done)
                 if M.next505 < GetTime() and not cutsceneActive then
-                    subtit.Play("misn0505.wav")
+                    subtit.Queue("misn0505.wav")
                     M.next505 = GetTime() + 150.0
                 end
 
