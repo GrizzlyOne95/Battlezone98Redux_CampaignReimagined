@@ -194,7 +194,8 @@ local function CreateLitter()
         return
     end
     Call("SetParticleSystemKeepLocalSpace", LITTER_SYSTEM, false)
-    Call("SetParticleSystemNonVisibleUpdateTimeout", LITTER_SYSTEM, 2.0)
+    -- Camera-attached: a timeout would freeze an idle volume culled forever.
+    Call("SetParticleSystemNonVisibleUpdateTimeout", LITTER_SYSTEM, 0)
     if type(SetVector) == "function" then
         Call("AttachParticleSystemToCamera", LITTER_SYSTEM, SetVector(0, 0, 0))
     end

@@ -996,6 +996,8 @@ local function EnsureAsh()
     if name == nil then return nil end
     Call("SetParticleSystemParticleQuota", name, V.AshMaxQuota)
     Call("AttachParticleSystemToCamera", name, Vec(0.0, V.AshOffset, 0.0))
+    -- Camera-attached: a timeout would freeze an idle volume culled forever.
+    Call("SetParticleSystemNonVisibleUpdateTimeout", name, 0)
     local t = V.AshTint
     Call("SetParticleEmitterColor", name, 0,
         { r = t.r, g = t.g, b = t.b, a = 0.80 }, { r = t.r * 0.7, g = t.g * 0.7, b = t.b * 0.7, a = 0.45 })
@@ -1470,6 +1472,7 @@ local function UpdateQuake()
             local name = Fx_Create("dust", "CR/Io/QuakeDust", 0.0, 0.0, 0.0)
             if name ~= nil then
                 Call("AttachParticleSystemToCamera", name, Vec(0.0, 22.0, 0.0))
+                Call("SetParticleSystemNonVisibleUpdateTimeout", name, 0)
                 V.QuakeFx = { name = name, dust = name, rate = -1.0, until_ = math.huge }
             end
         end

@@ -37,6 +37,25 @@ fragment_program CR_Textured_fragmentHLSL4 hlsl
     entry_point textured_fragment
 }
 
+fragment_program CR_Textured_fragmentHLSL4Enhanced hlsl
+{
+    source CR_textured-sm4.hlsl
+    target ps_4_0
+    entry_point textured_fragment
+    // OSE_* are the validator's Enhanced opt-in markers; this shader does not read them.
+    preprocessor_defines ENHANCED_MODE,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1
+    default_params
+    {
+        param_named surfaceState float4 0 0 0 0
+        param_named surfaceMode float4 0 0 0 0
+        // Only consumer: the glow pass of CRSurfaceEffects' owned clones, swapped in
+        // by exu.SetSurfaceFragmentProgram. The swap resets pass parameters, so the
+        // glow pass's black fog override lives here. It must not sit in the unified
+        // block below, whose defaults land on the shared DX9/GL delegates.
+        param_named fogColour float3 0 0 0
+    }
+}
+
 fragment_program CR_Textured_fragmentHLSL hlsl
 {
     source CR_textured.hlsl
@@ -103,7 +122,23 @@ fragment_program CR_Textured_fragment unified
     }
 } 
 
+// Enhanced-only twin: identical to CR_Textured_fragment except that the DX11
+// delegate compiles with ENHANCED_MODE, adding the surfaceState/surfaceMode
+// power-off and cockpit warning response used by CRSurfaceEffects. The legacy
+// program above keeps byte-identical DXBC. With zeroed uniforms the output is
+// unchanged, so it is safe on any profile.
+fragment_program CR_TexturedEnhanced_fragment unified
+{
+	delegate CR_Textured_fragmentGLSLES
+	delegate CR_Textured_fragmentGLSL
+	delegate CR_Textured_fragmentHLSL4Enhanced
+	delegate CR_Textured_fragmentHLSL
 
-
-
-
+	default_params
+    {
+		param_named_auto diffuseColor surface_diffuse_colour
+		param_named_auto materialEmissive surface_emissive_colour
+		param_named_auto fogParams fog_params
+		param_named alphaRejection float 0
+    }
+}
