@@ -81,6 +81,10 @@ shot(0); ticks(S, 6)
 local a = anchor()
 assert(a, "heat anchor written")
 near(a[1], 102.41, "forward offset"); near(a[2], 1.1, "up offset"); near(a[3], -0.2, "right offset"); near(a[4], 0.6, "radius")
+-- The barrel runs from the native mount to the flash point.
+local b = anchor("surfaceBarrel0")
+assert(b, "barrel mount written")
+near(b[1], 100, "barrel mount x"); near(b[2], 1, "barrel mount y"); near(b[3], 0, "barrel mount z"); near(b[4], 0.35, "barrel radius")
 
 -- 2. The anchor rides the hull: rotate and move the craft, the barrel tip follows.
 hull = { right = {1,0,0}, up = {0,1,0}, front = {0,0,1}, posit = {0,0,50} }
@@ -113,6 +117,7 @@ S = load()
 shot(0); ticks(S, 4)
 a = anchor()
 near(a[1], 100, "mount x"); near(a[2], 1, "mount y"); near(a[3], 0, "mount z")
+near(anchor("surfaceBarrel0")[4], 0, "no flash offset keeps the round tip mask")
 
 -- 7. Without the ODF API the controller still heats the native mount.
 local open = OpenODF; OpenODF = nil
@@ -161,4 +166,4 @@ assert(cockpitAnchor, "cockpit muzzle anchor written")
 near(cockpitAnchor[1], 102.41, "cockpit anchor at the flash offset")
 E.GetCameraView = function() return 0 end
 
-print("SurfaceHeatAnchor: craft offset, hull follow, turret shot, weapon fallback, invalid value, mount, no API, cache, smoothness, cockpit PASS")
+print("SurfaceHeatAnchor: craft offset, hull follow, turret shot, weapon fallback, invalid value, mount, no API, cache, smoothness, cockpit, barrel PASS")
