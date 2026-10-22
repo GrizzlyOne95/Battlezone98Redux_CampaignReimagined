@@ -1,6 +1,6 @@
 [GameObjectClass] // Red Splinter, created by General BlackDragon
 classLabel = "wpnpower"
-baseName = "crwmcr"
+baseName = "cpmort"
 scrapCost = 2
 scrapValue = 0
 maxHealth = 150

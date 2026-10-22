@@ -1,6 +1,6 @@
 [GameObjectClass] // Green Minigun, created by General BlackDragon
 classLabel = "wpnpower"
-baseName = "crwcbd"
+baseName = "bpcann"
 scrapCost = 1
 scrapValue = 0
 maxHealth = 150

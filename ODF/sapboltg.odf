@@ -1,6 +1,6 @@
 [GameObjectClass] // Green Bolt Buddy, created by General BlackDragon
 classLabel = "wpnpower"
-baseName = "crwccc"
+baseName = "spcann"
 scrapCost = 8
 scrapValue = 0
 maxHealth = 150

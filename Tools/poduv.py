@@ -104,7 +104,9 @@ def remesh(mesh,uv,name):
 def atlas_image(master,uv,size=1024):
     """Technical resampling and nearest-covered-texel gutter extrusion only."""
     from scipy.ndimage import distance_transform_edt
-    with Image.open(master) as source:im=source.convert('RGB').resize((size,size),Image.Resampling.LANCZOS)
+    if isinstance(master,Image.Image):im=master.convert('RGB').resize((size,size),Image.Resampling.LANCZOS)
+    else:
+        with Image.open(master) as source:im=source.convert('RGB').resize((size,size),Image.Resampling.LANCZOS)
     mask=Image.new('1',im.size);draw=ImageDraw.Draw(mask)
     for row in uv:draw.polygon([tuple(v*(size-1)) for v in row],fill=1)
     unused=~np.array(mask);nearest=distance_transform_edt(unused,return_distances=False,return_indices=True)

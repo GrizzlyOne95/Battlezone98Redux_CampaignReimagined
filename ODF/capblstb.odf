@@ -1,6 +1,6 @@
 [GameObjectClass] // Blue Blast Cannon, created by General BlackDragon
 classLabel = "wpnpower"
-baseName = "crwccr"
+baseName = "cpcann"
 scrapCost = 4
 scrapValue = 0
 maxHealth = 150

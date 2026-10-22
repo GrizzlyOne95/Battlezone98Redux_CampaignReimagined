@@ -1,313 +1,313 @@
 {
-  "schema": 2,
+  "schema": 4,
   "files": {
     "crpkns_plain.dds": {
       "size": [
         512,
         512
       ],
-      "sha256": "1d7bd09de9e94670344eda6fada938aed3850f0f2098390ad624f6c1ac6a4f3b"
+      "sha256": "d073bf285d9407020327059c4520ce27109f9580e84606e3a32863e5e44e791a"
     },
     "crnvns_d.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "93a41d73f2f5b1dc99ff1efe643930c15024e3d0af3656543c07966327327bee"
+      "sha256": "a5074aecd2ce7dfcd21ac0901c1a4fc7a7c80ffa62f125763f2f104d6774d2be"
     },
     "crnvns_e.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "082724f2041641c99fd1314e6d320d61d9cd006e574bfe44d0f9db9f8b5d8adf"
-    },
-    "crpkns0_d.dds": {
-      "size": [
-        1024,
-        1024
-      ],
-      "sha256": "44da5377537489b863f5514aae2629655eef9a564ba4af949f0c4d0566f47a2c"
-    },
-    "crpkns1_d.dds": {
-      "size": [
-        1024,
-        1024
-      ],
-      "sha256": "70eddcf51797cf0c376a5a9455469d42a4b8c8e335fcd24e431d5ed6a76517b7"
+      "sha256": "342511d73146ae7041dd7316e67d27733e02e784ea88b4503e1296be32cb9b06"
     },
     "crpkns2_d.dds": {
       "size": [
         512,
         512
       ],
-      "sha256": "e61360b374ba1d2f15be33934593b5e2e296b3773ed8bf37ac7bb8bbebe9bfdf"
+      "sha256": "77a05582f6602092c4824ac62da635ce8b6e7388c42e813a3e271870a82f664b"
     },
-    "crpkns3_d.dds": {
+    "crpkns2_e.dds": {
       "size": [
         512,
         512
       ],
-      "sha256": "9dfe2ebd965f2cf7d69d38b7d26f977fa6ce70e1b01a4f12b29b04d394fadbfb"
+      "sha256": "da5699583393e1ef8323fbd23eaf22939074f1120068d0cc27ab8b48441b616e"
     },
-    "crpkns0_surf.dds": {
+    "crwpns_d.dds": {
       "size": [
-        512,
-        512
+        1024,
+        1024
       ],
-      "sha256": "5cbb60c3fbe1c777264ca8c35ec4de0f2dcb3d25490141bc782aa37291b12280"
+      "sha256": "425ff6fe0d36d82d6d3f49b4faf03e6061d0e22e87125766be2dcd4d062b568c"
     },
-    "crpkns1_surf.dds": {
+    "crwpns_e.dds": {
       "size": [
-        512,
-        512
+        1024,
+        1024
       ],
-      "sha256": "8a2937137598d28e8938bd4941c41658b15a779396957904f0ae2d7fabf63fb6"
+      "sha256": "1f1c82aed8f3f4dca6d460c42370b4b9f98e5fde726c229609e02dd210a570b9"
+    },
+    "crpkns0_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "e30ad12488f6798265318edb17f450180ea8476e2a86d050f5cc185f160e404b"
     },
     "crpkns0_e.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "c45bb12047c4f95449bcb8cd7e16749f15c314174db026872fa7e1bf62431546"
+      "sha256": "782fb41bb9d456958d92b46e59f87c1b883794bd668f810faa6e11b68ddb09ac"
+    },
+    "crpkns1_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "d280d1c268c298cc5bd90b6138c945e0b6d6348fe64f296d04567f130a62e40d"
     },
     "crpkns1_e.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "f9171e1ac0c7c240888a7b8542a614312c1d951d3f435638f54edd439b8edbd4"
+      "sha256": "dff36d144ef878d8fe3295a07c412eac7e2b9c5452eda65c90645a09ce1340dc"
     },
     "crpkbd_plain.dds": {
       "size": [
         512,
         512
       ],
-      "sha256": "c116542fe992bee8116c6aed503b950d56988d4f03751336be3d8ad6aaadd848"
+      "sha256": "db950af933859989576e7bf253641a6d2ae1ede86f21ec5e53c293c6000b1de3"
     },
     "crnvbd_d.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "62ad7ebd0c8bead16bd491fa2b0f23f17d4e5d4cadbc5e0977a3d9f7debcc39b"
+      "sha256": "f3ac61b84abbf7e2780f03fc4b3c9ea5632e3264279c2d010cc0f4a2121b196f"
     },
     "crnvbd_e.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "3b8825def4661caf06df00eae6095f1dcaa26ff310056aee1bef22286c37a53e"
-    },
-    "crpkbd0_d.dds": {
-      "size": [
-        1024,
-        1024
-      ],
-      "sha256": "23fc96d9ec7a3a209a1d97a87fc85037a489100917d96c61d7765b5fbfd8e941"
-    },
-    "crpkbd1_d.dds": {
-      "size": [
-        1024,
-        1024
-      ],
-      "sha256": "2c5567d03d81fce9eb1ec5143cc691a45b8e2b0e041fbdadeb450ae18936baa7"
+      "sha256": "d44f97865100610a3d3ff9de2006dcc15af42cf44e2762890673aabe644c17e7"
     },
     "crpkbd2_d.dds": {
       "size": [
         512,
         512
       ],
-      "sha256": "3ba007b178298f18d104698bd59fc8b8fffed1d8daed2f4d8ccd8daccde7edef"
+      "sha256": "cc5f55777834c6dc4ccd7df6466183652a977256e457d5cef5cead1ac0e0e944"
     },
-    "crpkbd3_d.dds": {
+    "crpkbd2_e.dds": {
       "size": [
         512,
         512
       ],
-      "sha256": "d81b531b573d08f3b39e6a0b34780f27cf2c6ffff04db7d11faa0eb25c0a02d8"
+      "sha256": "d0a923e9e3c3b6db9a65b6de76b02b15c2caeb245e0ebf6d6aaed620bc2310c0"
     },
-    "crpkbd0_surf.dds": {
+    "crwpbd_d.dds": {
       "size": [
-        512,
-        512
+        1024,
+        1024
       ],
-      "sha256": "dbec4cdb7eaa8d942f046b41ab863bc581b67147caf09157794c0db81f4651c4"
+      "sha256": "c028f2a04876261d51d6f076fe67cf2d7cc98aacc190371f1fdf6f62e56beb85"
     },
-    "crpkbd1_surf.dds": {
+    "crwpbd_e.dds": {
       "size": [
-        512,
-        512
+        1024,
+        1024
       ],
-      "sha256": "2fdec2218c7ef17efa0d8b20f5c1ca7ccedc57d6a98394b06d905e17ddfd912f"
+      "sha256": "8fdd687a870964c915a676c8877056e97841e47de67cd45e7538714d4a2f8e13"
+    },
+    "crpkbd0_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "e4514ba526d50333ccdf244e0b43cec05e645a4ba59bd758a38c5b590759ecf8"
     },
     "crpkbd0_e.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "3cfc6bf0f28bc6883de77e1d4fff6cafcac80987e2ab5be75816e009dbda4558"
+      "sha256": "9644632824fa0e77a23ce4630480131102f1c1dac420be5b965b6d120acb4cf4"
+    },
+    "crpkbd1_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "8fac4e981de9952d7cddc764cf5c677350bce67313f915e89ad66509fd46da2d"
     },
     "crpkbd1_e.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "9a6d42000f0f2d49489bf38f6dd7751f94f97cd994cac32c113c7c110a61254e"
+      "sha256": "6d096fc0928a36374d972c90f53541970d58ffced89fa1f373221208a3489418"
     },
     "crpkcc_plain.dds": {
       "size": [
         512,
         512
       ],
-      "sha256": "ff06afcc8cc4305d3540730b3333640679ffbbd174f2357f2e93b1e997e62f9d"
+      "sha256": "dfe64eed1b03a5e798365f217ccc372f61258344ff38b149daa314c16da4b1e8"
     },
     "crnvcc_d.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "dcdc7c57fa83d69aa217eae137d3b89e7270a2613d6716a010c999cc101df28e"
+      "sha256": "05dcd5694a0ea13c644a88391ec7d20e6d2573d48e9fbb91b089bf4ed371e733"
     },
     "crnvcc_e.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "c1ca99e77bb42542f0781892391e76074edcf2770a5ec08c5543c1dab28e1bb4"
-    },
-    "crpkcc0_d.dds": {
-      "size": [
-        1024,
-        1024
-      ],
-      "sha256": "47c36a9fb6a45f011e655b19b47e1f3741432d39c87b0a5ff4984d5e2b584c9e"
-    },
-    "crpkcc1_d.dds": {
-      "size": [
-        1024,
-        1024
-      ],
-      "sha256": "b95e812fa82ffa20dd0b0b79612b2252648263e43e8e33e4ca0e0b80796fe83e"
+      "sha256": "119a58489529c51f79f53a81c569ea9fbdf851a12cacc09fe344501c0d696939"
     },
     "crpkcc2_d.dds": {
       "size": [
         512,
         512
       ],
-      "sha256": "fbbf7992121c75c1c3e551e8fa39ba883a732ef917984652fed230a0d3d79671"
+      "sha256": "5979b45a9edf590c995c6cf6bbe272102634625a002a867f613f7ff1994bd4e1"
     },
-    "crpkcc3_d.dds": {
+    "crpkcc2_e.dds": {
       "size": [
         512,
         512
       ],
-      "sha256": "3fa74ee85ea33038fdf9fca7a1cd37cf8d8e99cdec405823a6f7fa9d51699798"
+      "sha256": "1cb658aecdacb46119bbb49d2d028db9a6a7fca79c2ece2acd6b2b0ef58d5870"
     },
-    "crpkcc0_surf.dds": {
+    "crwpcc_d.dds": {
       "size": [
-        512,
-        512
+        1024,
+        1024
       ],
-      "sha256": "934f76799fc83b9fa6d4f54ed12a698f81519c0122f1d1f4ce53349c9662e5a2"
+      "sha256": "c8449406956a3ebb5ecd9334b63cd96741f73924f80ac7295cb506face9f01e6"
     },
-    "crpkcc1_surf.dds": {
+    "crwpcc_e.dds": {
       "size": [
-        512,
-        512
+        1024,
+        1024
       ],
-      "sha256": "1b4004d0dafb52890e7fdd4b0d157e2f911847cab1532274c68d4659223b41bf"
+      "sha256": "7c9ad63f1827423452d0c8f927dce9dbbcdf9ccd583c037329861bfcae57e5cf"
+    },
+    "crpkcc0_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "0288ee6920dbd215c3f4947666429eaea7f2e909af1c3c0a5c83379c3aec541a"
     },
     "crpkcc0_e.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "921cae204750a7e8cab9bc6cbb562a3eb13893c90877950695b9e29f7a114105"
+      "sha256": "2d03a179024c97eebc89baa12626f0c04b4e9e1a4d48f14cd61187513682e644"
+    },
+    "crpkcc1_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "8b75a980b843a364b1e346b0f87d21ff020483e38978086a2e267c8c3d16a9bc"
     },
     "crpkcc1_e.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "137ddb00bc4d0f94cc7f3bfb7571b4c79855eeb9b6823787a71b275c2bed1f3b"
+      "sha256": "8ddb9ef584c29eada7eadf56e7b735ae4df7a678774b35d2b0945eb941acfaf6"
     },
     "crpkcr_plain.dds": {
       "size": [
         512,
         512
       ],
-      "sha256": "4d887f81e3bc6f7a0d1a699ca3c70ea107ad1cda160b0fec6d24860ab2e78a4b"
+      "sha256": "b8fd18541de86f1f02ce24869828af68b3722faef046f73e9a3770a4bb0dbd60"
     },
     "crnvcr_d.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "9581a595b397cfd51294db174848a5595843c5499c0a62e7b991584634c9b484"
+      "sha256": "07e06ad9865a01e3468bc7e71feb519f645142f3e96e967b4ecc49ec7132f598"
     },
     "crnvcr_e.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "1531ee5138e4026db2e91b2f86f957440482cdf7d31abf1b4aa3859c924c31ad"
-    },
-    "crpkcr0_d.dds": {
-      "size": [
-        1024,
-        1024
-      ],
-      "sha256": "56d8ef4316b6badfa78f2bedce396768ed0a38e6e5d25fe374e2a15c47c1e46c"
-    },
-    "crpkcr1_d.dds": {
-      "size": [
-        1024,
-        1024
-      ],
-      "sha256": "54c33318ff98f428b4468fc82a8fa1027b2a959546d8d5601a9b7346e496a7b2"
+      "sha256": "d397b00ff50bd338ad46644d9cd125d555a215e3f614d3c4d9f3b27ca87eaf34"
     },
     "crpkcr2_d.dds": {
       "size": [
         512,
         512
       ],
-      "sha256": "4ca8fcf40ad07f44d690528fd71ea4661049c4119db2977cf0579d1e6f1d4bf2"
+      "sha256": "7993609395a8c354ddbf08e60ca0fc4a19732bb9d7335bed0f30fbf2fbc1b940"
     },
-    "crpkcr3_d.dds": {
+    "crpkcr2_e.dds": {
       "size": [
         512,
         512
       ],
-      "sha256": "38ffacebddb7b6f98fd21ba2f481cd61680aa15765bef2891e1752f96034730f"
+      "sha256": "e01550f668b14b0c2dc65124c66f5da6f4f38ef1d6db97c027045bd3a26ac95a"
     },
-    "crpkcr0_surf.dds": {
+    "crwpcr_d.dds": {
       "size": [
-        512,
-        512
+        1024,
+        1024
       ],
-      "sha256": "1c51de2733d29b58787fa6c05579bbe7517b2125fc5a0951751be13629409acd"
+      "sha256": "84814d4f764f21d383a09a546195064827f4d1aca7c8bfe8458fec62c168d406"
     },
-    "crpkcr1_surf.dds": {
+    "crwpcr_e.dds": {
       "size": [
-        512,
-        512
+        1024,
+        1024
       ],
-      "sha256": "6ca0ebc84c3245e1b2f0013d70f943029fc74f52bd709ff65331e6b02883f538"
+      "sha256": "727fb52a475bc45b87cbbb55d76e9b0c361b2490502dedd658aaf574465fb098"
+    },
+    "crpkcr0_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "af287f7b1755e018d0bdf6aee1b1e9e3063a70860a60c3b396e209755192c7b6"
     },
     "crpkcr0_e.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "cd1bf06ec7ee495fa76c8a87c381f89c38f0a1e21fdbd3ce0c80e474d020c3ec"
+      "sha256": "89fe6371bd8915a72c47bf039f67e8f3cead8a716739f599e77e9786ddc93432"
+    },
+    "crpkcr1_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "37bd19bd3210f3b89c97b0410fed1400608e401a5af8e8f8ee11350050e1b848"
     },
     "crpkcr1_e.dds": {
       "size": [
         1024,
         1024
       ],
-      "sha256": "c7ba9c7bd2e4813e03388b79f9619fb12e2bcba9f61cfa355da35f81a7211f29"
+      "sha256": "c56cfc16c1accb7526e5a52edf833d9006f22fd15caf94c1ab7f5e078db2b5c5"
     }
   },
   "models": {
@@ -688,7 +688,32 @@
         "quadrant": [
           0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 2,
+        "lampUvTriangles": 4,
+        "lampUvGroups": 4,
+        "lampUvBounds": [
+          0.02,
+          0.29,
+          0.16,
+          0.36
+        ],
+        "coreUvRows": [
+          576
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 0,
+        "hazardUvBand": [
+          0.0,
+          0.25
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
       },
       "geometry": {
         "bounds": {
@@ -703,7 +728,7 @@
         "count": 620,
         "sha256": "77a40b20955586840d1d827d2ae4567a34977e8a9d03920832c61eeaa95486b4"
       },
-      "sha256": "cf4eb467a5f9666e5bea514608166555ff54f7752aa5856688efc839d47e0fb2"
+      "sha256": "3d6734f8aba7619cdc589f1fd6031fcea27436e381bfc414bdd214ceead66558"
     },
     "crwrns": {
       "source": "aprock",
@@ -715,7 +740,37 @@
         "quadrant": [
           0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 138,
+        "lampUvGroups": 50,
+        "lampUvBounds": [
+          0.06,
+          0.81,
+          0.315,
+          0.91
+        ],
+        "coreUvRows": [
+          0,
+          1,
+          3,
+          5,
+          8,
+          9
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 96,
+        "hazardUvBand": [
+          0.25,
+          0.5
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
       },
       "geometry": {
         "bounds": {
@@ -730,7 +785,7 @@
         "count": 254,
         "sha256": "c68141ab6ced7b7395ab03f9bc765c0b816c41a0a9c379beca88c1a53ab48e7e"
       },
-      "sha256": "7e1ec6b706faf66e1b724d7d8dd34c0b65695620d07ba2af2b2b3b7db684b758"
+      "sha256": "b329ce0aedb9701c37bed3be13b0571e1fe8b8f6b69e916ccafa621ad4194f8b"
     },
     "crwmns": {
       "source": "apmort",
@@ -740,9 +795,39 @@
         "faceGroups": 16,
         "badgePanels": 1,
         "quadrant": [
-          1,
+          0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 10,
+        "lampUvBounds": [
+          0.775,
+          0.35,
+          0.82,
+          0.435
+        ],
+        "coreUvRows": [
+          28,
+          29,
+          30,
+          36,
+          39,
+          41
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 4,
+        "hazardUvBand": [
+          0.5,
+          0.75
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
       },
       "geometry": {
         "bounds": {
@@ -757,19 +842,46 @@
         "count": 76,
         "sha256": "436535ca6d1dad4e8b7edfe3613219edc4f8499e669e3f847cd2942d2c851245"
       },
-      "sha256": "922ef6c8c1dfbf7e7f1605f00abe2995be542297293bc143a3d6a6f28e953c79"
+      "sha256": "e49fc2bbe56bd8a33aec9712548cd9d66e356a137e7cec70266417b8dd9018bb"
     },
     "crwsns": {
       "source": "apspec",
       "coverage": {
         "triangles": 10,
         "totalTriangles": 100,
-        "faceGroups": 1,
+        "faceGroups": 4,
         "badgePanels": 0,
         "quadrant": [
-          1,
+          0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 8,
+        "lampUvBounds": [
+          0.065,
+          0.785,
+          0.165,
+          0.935
+        ],
+        "coreUvRows": [
+          52,
+          53,
+          54
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 8,
+        "hazardUvBand": [
+          0.75,
+          1.0
+        ],
+        "quietUvTriangles": 8,
+        "alignedWarningPanels": 4
       },
       "geometry": {
         "bounds": {
@@ -784,7 +896,7 @@
         "count": 100,
         "sha256": "0b254622d95a1db7334f9962bb23d88ed4b805a7bbc5cbf23d22536eb56d9e83"
       },
-      "sha256": "f2c5968d54d44ab20749f72fe0c9de6aded61cf720e748073cbcd98d14b497d1"
+      "sha256": "42aa2b132d079a746b43361892e084bc93ae98ef31b11e335ebed2529e883df7"
     },
     "crnvbd": {
       "source": "apcamr",
@@ -1163,7 +1275,32 @@
         "quadrant": [
           0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 2,
+        "lampUvTriangles": 4,
+        "lampUvGroups": 4,
+        "lampUvBounds": [
+          0.14,
+          0.075,
+          0.26,
+          0.23
+        ],
+        "coreUvRows": [
+          576
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 0,
+        "hazardUvBand": [
+          0.0,
+          0.25
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
       },
       "geometry": {
         "bounds": {
@@ -1178,7 +1315,7 @@
         "count": 620,
         "sha256": "77a40b20955586840d1d827d2ae4567a34977e8a9d03920832c61eeaa95486b4"
       },
-      "sha256": "7187b7103e009a2b6d0ce01ee43e052948724c617cdffcab182381c4c676b261"
+      "sha256": "ab0ebb7c1567db997bb82fc2e4206bef8faa57361fe063a21f8d7fb17a00ed72"
     },
     "crwrbd": {
       "source": "aprock",
@@ -1190,7 +1327,37 @@
         "quadrant": [
           0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 138,
+        "lampUvGroups": 50,
+        "lampUvBounds": [
+          0.06,
+          0.81,
+          0.315,
+          0.91
+        ],
+        "coreUvRows": [
+          0,
+          1,
+          3,
+          5,
+          8,
+          9
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 96,
+        "hazardUvBand": [
+          0.25,
+          0.5
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
       },
       "geometry": {
         "bounds": {
@@ -1205,7 +1372,7 @@
         "count": 254,
         "sha256": "c68141ab6ced7b7395ab03f9bc765c0b816c41a0a9c379beca88c1a53ab48e7e"
       },
-      "sha256": "76fd0bee1acf3d9ea182d4dbed5d21ce914e60ad9543cf7c6f045d6016dde5d6"
+      "sha256": "c9af4837ac7117255bef06ad3128b34479bef564b9eecca93715acca7c45dd17"
     },
     "crwmbd": {
       "source": "apmort",
@@ -1215,9 +1382,39 @@
         "faceGroups": 16,
         "badgePanels": 1,
         "quadrant": [
-          1,
+          0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 10,
+        "lampUvBounds": [
+          0.775,
+          0.35,
+          0.82,
+          0.435
+        ],
+        "coreUvRows": [
+          28,
+          29,
+          30,
+          36,
+          39,
+          41
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 4,
+        "hazardUvBand": [
+          0.5,
+          0.75
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
       },
       "geometry": {
         "bounds": {
@@ -1232,19 +1429,46 @@
         "count": 76,
         "sha256": "436535ca6d1dad4e8b7edfe3613219edc4f8499e669e3f847cd2942d2c851245"
       },
-      "sha256": "f154fe0b9de2daf030b472fdbb81b8fab2a3b5c2bbd09795c91bae8c3c3087b9"
+      "sha256": "32c6d32e797c16f0f72a89f4932cc54b24f49a5fd3a77e1e7224a719d60e8219"
     },
     "crwsbd": {
       "source": "apspec",
       "coverage": {
         "triangles": 10,
         "totalTriangles": 100,
-        "faceGroups": 1,
+        "faceGroups": 4,
         "badgePanels": 0,
         "quadrant": [
-          1,
+          0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 8,
+        "lampUvBounds": [
+          0.065,
+          0.785,
+          0.165,
+          0.935
+        ],
+        "coreUvRows": [
+          52,
+          53,
+          54
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 8,
+        "hazardUvBand": [
+          0.75,
+          1.0
+        ],
+        "quietUvTriangles": 8,
+        "alignedWarningPanels": 4
       },
       "geometry": {
         "bounds": {
@@ -1259,7 +1483,7 @@
         "count": 100,
         "sha256": "0b254622d95a1db7334f9962bb23d88ed4b805a7bbc5cbf23d22536eb56d9e83"
       },
-      "sha256": "1b31bfdef172db6f4a9783772407a1f0b19f9bcc17cd06b2bed68405d1b78415"
+      "sha256": "3da46bae622ea2319ae9e349d4ea8dc9e8343ad194d812035c3261e55f2c31da"
     },
     "crnvcc": {
       "source": "apcamr",
@@ -1638,7 +1862,32 @@
         "quadrant": [
           0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 2,
+        "lampUvTriangles": 4,
+        "lampUvGroups": 4,
+        "lampUvBounds": [
+          0.16,
+          0.275,
+          0.32,
+          0.37
+        ],
+        "coreUvRows": [
+          576
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 0,
+        "hazardUvBand": [
+          0.0,
+          0.25
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
       },
       "geometry": {
         "bounds": {
@@ -1653,7 +1902,7 @@
         "count": 620,
         "sha256": "77a40b20955586840d1d827d2ae4567a34977e8a9d03920832c61eeaa95486b4"
       },
-      "sha256": "9d93d06ab5ab8625c02db192a55f3199756683e31917cc231c0c98342da544ac"
+      "sha256": "0e57b93395247bd22c7cd48c7b022aaecd3d9fa6f38ad74df6f178394ea44c51"
     },
     "crwrcc": {
       "source": "aprock",
@@ -1665,7 +1914,37 @@
         "quadrant": [
           0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 138,
+        "lampUvGroups": 50,
+        "lampUvBounds": [
+          0.06,
+          0.81,
+          0.315,
+          0.91
+        ],
+        "coreUvRows": [
+          0,
+          1,
+          3,
+          5,
+          8,
+          9
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 96,
+        "hazardUvBand": [
+          0.25,
+          0.5
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
       },
       "geometry": {
         "bounds": {
@@ -1680,7 +1959,7 @@
         "count": 254,
         "sha256": "c68141ab6ced7b7395ab03f9bc765c0b816c41a0a9c379beca88c1a53ab48e7e"
       },
-      "sha256": "9e36b88d13adaa7c599f9166b18fad86e333c1fdb918f4ff6df7800a2cf025db"
+      "sha256": "8f99c222c90602292d8aec09fcf364e6aed2f786866c0f58bf855c6b18bd4d17"
     },
     "crwmcc": {
       "source": "apmort",
@@ -1690,9 +1969,39 @@
         "faceGroups": 16,
         "badgePanels": 1,
         "quadrant": [
-          1,
+          0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 10,
+        "lampUvBounds": [
+          0.775,
+          0.35,
+          0.82,
+          0.435
+        ],
+        "coreUvRows": [
+          28,
+          29,
+          30,
+          36,
+          39,
+          41
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 4,
+        "hazardUvBand": [
+          0.5,
+          0.75
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
       },
       "geometry": {
         "bounds": {
@@ -1707,19 +2016,46 @@
         "count": 76,
         "sha256": "436535ca6d1dad4e8b7edfe3613219edc4f8499e669e3f847cd2942d2c851245"
       },
-      "sha256": "6b37121b88f149aad30cd0c5cb31e5d3880bded010a5ff25f920e607e1f8df38"
+      "sha256": "7a274647750895132a06af60e5b0ea9335e881d770a9641de76ab29aa0fa4824"
     },
     "crwscc": {
       "source": "apspec",
       "coverage": {
         "triangles": 10,
         "totalTriangles": 100,
-        "faceGroups": 1,
+        "faceGroups": 4,
         "badgePanels": 0,
         "quadrant": [
-          1,
+          0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 8,
+        "lampUvBounds": [
+          0.065,
+          0.785,
+          0.165,
+          0.935
+        ],
+        "coreUvRows": [
+          52,
+          53,
+          54
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 8,
+        "hazardUvBand": [
+          0.75,
+          1.0
+        ],
+        "quietUvTriangles": 8,
+        "alignedWarningPanels": 4
       },
       "geometry": {
         "bounds": {
@@ -1734,7 +2070,7 @@
         "count": 100,
         "sha256": "0b254622d95a1db7334f9962bb23d88ed4b805a7bbc5cbf23d22536eb56d9e83"
       },
-      "sha256": "5907dc5de03bb15412145d4bffe820cb8e0692ae23e540ccd1750f4b932a4ab5"
+      "sha256": "d4e3634da756ce413d02dd575db4d93b96ecf2fcb68bd6654b9c6f9a0fee5d05"
     },
     "crnvcr": {
       "source": "apcamr",
@@ -2113,7 +2449,32 @@
         "quadrant": [
           0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 2,
+        "lampUvTriangles": 4,
+        "lampUvGroups": 4,
+        "lampUvBounds": [
+          0.16,
+          0.275,
+          0.32,
+          0.37
+        ],
+        "coreUvRows": [
+          576
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 0,
+        "hazardUvBand": [
+          0.0,
+          0.25
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
       },
       "geometry": {
         "bounds": {
@@ -2128,7 +2489,7 @@
         "count": 620,
         "sha256": "77a40b20955586840d1d827d2ae4567a34977e8a9d03920832c61eeaa95486b4"
       },
-      "sha256": "0fbf0d33173a99db4a36117dd797345c51415b88cdb617299cad3521f4d4703c"
+      "sha256": "e02f01ab61955edadab64820346415214fdedc44566e75a41afb49345a822175"
     },
     "crwrcr": {
       "source": "aprock",
@@ -2140,7 +2501,37 @@
         "quadrant": [
           0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 138,
+        "lampUvGroups": 50,
+        "lampUvBounds": [
+          0.06,
+          0.81,
+          0.315,
+          0.91
+        ],
+        "coreUvRows": [
+          0,
+          1,
+          3,
+          5,
+          8,
+          9
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 96,
+        "hazardUvBand": [
+          0.25,
+          0.5
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
       },
       "geometry": {
         "bounds": {
@@ -2155,7 +2546,7 @@
         "count": 254,
         "sha256": "c68141ab6ced7b7395ab03f9bc765c0b816c41a0a9c379beca88c1a53ab48e7e"
       },
-      "sha256": "be48eb991c4f40a111198591d134e260f58076dd590042549f9a20f2303f38ce"
+      "sha256": "c646fa5b0797f3f665a21fe2f1eda3a160b09d66f668e9b31b6b33dbabd49780"
     },
     "crwmcr": {
       "source": "apmort",
@@ -2165,9 +2556,39 @@
         "faceGroups": 16,
         "badgePanels": 1,
         "quadrant": [
-          1,
+          0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 10,
+        "lampUvBounds": [
+          0.775,
+          0.35,
+          0.82,
+          0.435
+        ],
+        "coreUvRows": [
+          28,
+          29,
+          30,
+          36,
+          39,
+          41
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 4,
+        "hazardUvBand": [
+          0.5,
+          0.75
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
       },
       "geometry": {
         "bounds": {
@@ -2182,19 +2603,46 @@
         "count": 76,
         "sha256": "436535ca6d1dad4e8b7edfe3613219edc4f8499e669e3f847cd2942d2c851245"
       },
-      "sha256": "674a0e18f9686ca8a90ed96e7da211eb8ddacefeb9c9f29d568522a09e357022"
+      "sha256": "0a9f1075cb8c7ee72aad196066b7bfbc138fbb0de0b562e1c4bbd4b73dab7dd9"
     },
     "crwscr": {
       "source": "apspec",
       "coverage": {
         "triangles": 10,
         "totalTriangles": 100,
-        "faceGroups": 1,
+        "faceGroups": 4,
         "badgePanels": 0,
         "quadrant": [
-          1,
+          0,
           1
-        ]
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 8,
+        "lampUvBounds": [
+          0.065,
+          0.785,
+          0.165,
+          0.935
+        ],
+        "coreUvRows": [
+          52,
+          53,
+          54
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 8,
+        "hazardUvBand": [
+          0.75,
+          1.0
+        ],
+        "quietUvTriangles": 8,
+        "alignedWarningPanels": 4
       },
       "geometry": {
         "bounds": {
@@ -2209,7 +2657,7 @@
         "count": 100,
         "sha256": "0b254622d95a1db7334f9962bb23d88ed4b805a7bbc5cbf23d22536eb56d9e83"
       },
-      "sha256": "7adc8d1fee388df86430a5675341b9e9cea2b0331ba1d8b32817106096f0edc5"
+      "sha256": "7d3fa3eae9fc63cd3d729253fe85e070ad471f16d1d769e2da11e31b64d548cb"
     }
   },
   "odfs": {
@@ -3540,13 +3988,91 @@
     "supply_ns_v2.png": "71c5ffc92db4303a07f2236e59e1439654671fe495e0efcfb0a3e2894245002e"
   },
   "podMasters": {
-    "References/TextureRevamp/pod-uv-v3/cramns3-master.png": "d8d8eec88fb973065ecd683cda67b56d60d65c3ac82c700d281094d4a16ce02c",
-    "References/TextureRevamp/pod-uv-v3/crhpns3-master.png": "31c61fe36448073b020218eebef8bc728b298003dcba6485aa1a76e9886bec4a",
-    "References/TextureRevamp/pod-uv-v3/crambd3-master.png": "6381e0c8d9cb5c03fe9d9e0dea05939dce1c5163b0baefcd174a2773602f25c8",
-    "References/TextureRevamp/pod-uv-v3/crhpbd3-master.png": "0d164433c21f8255b180a7f10d0e3b93cba3b1ee53f387a1cc2e12b29e1000c4",
-    "References/TextureRevamp/pod-uv-v3/cramcc3-master.png": "43318afaf1202a2e37814fde1dfd6575c7445235ca0cc020da41b1c2caee98ae",
-    "References/TextureRevamp/pod-uv-v3/crhpcc3-master.png": "eaf4533dcbdb4f25ca765af216e1f10dca7150f39d31b48f2a1d380bfff3d0e9",
-    "References/TextureRevamp/pod-uv-v3/cramcr3-master.png": "a2fab04fdc36d847f4a2c36d180942e86d76f77b41c82f1c66d007e7608dd912",
-    "References/TextureRevamp/pod-uv-v3/crhpcr3-master.png": "29299c43d5bd2d40ed28586c927d08e80e67bbcfaa7edda687aac2ca635d1623"
+    "References/TextureRevamp/pod-palette-v4/cramns4-master.png": "74508ee87eeac26de0c47f6a1a69f2d94615d5d10866beee6672a76999bc161f",
+    "References/TextureRevamp/pod-palette-v4/crhpns4-master.png": "65ff3d72dbe7059eba7dd3e574a0607a03e71c67c43ecca22a580d11a37c32bc",
+    "References/TextureRevamp/pod-palette-v4/crambd4-master.png": "32730ff55a46aae28076435160074329a919a783842b392e32889ab1d68c7882",
+    "References/TextureRevamp/pod-palette-v4/crhpbd4-master.png": "49b7c47169a3fbbf1ef591ef26b4d6c5d6c47eca7842644f9e1fbdefafd30f6f",
+    "References/TextureRevamp/pod-palette-v4/cramcc4-master.png": "d6ea28b07e22195d466e4b9c2cdf6a76e0cec7480da31925078da21ec8d1b22b",
+    "References/TextureRevamp/pod-palette-v4/crhpcc4-master.png": "10ace6b253592b5fd6f7a56457171b9c028255aa5a41f3ff01bff4554df0e34c",
+    "References/TextureRevamp/pod-palette-v4/cramcr4-master.png": "62f4dadca98df6181a775445a76b4355ad070cc97920f39bae723b2f807839a1",
+    "References/TextureRevamp/pod-palette-v4/crhpcr4-master.png": "de363e418ef22e82e18dc89fdfe8005e9f61af7f9cc9a9900ed994b0deb8c3c5"
+  },
+  "navWeaponMasters": {
+    "References/TextureRevamp/nav-weapons-v4/badge_bd_master.png": "236f7167120ebb1b879712702044817d94d791a51ce4f7d34e2e952f72a8e11a",
+    "References/TextureRevamp/nav-weapons-v4/badge_cc_master.png": "47d87756dcc53a1595d46331720166a6de141a1ad79da67a0234b8b53b0713d0",
+    "References/TextureRevamp/nav-weapons-v4/badge_cr_master.png": "b98f430684d35643e10a8ec9c68d8c3f598c3c6173736117572c82112381caa9",
+    "References/TextureRevamp/nav-weapons-v4/badge_ns_master.png": "b54647842db2ff32493c6f3000b8804c611ca0cec7490a8ee40da5f2c6614ef3",
+    "References/TextureRevamp/nav-weapons-v4/nav_bd_v4.png": "099b4d68d4292d9425aa0fa61e0add5ce8b0369a757138f72f15205e7bf499d4",
+    "References/TextureRevamp/nav-weapons-v4/nav_cc_v4.png": "fc27e73fae0441d02400d02d6d46fb9696eb297c763b946a6796594bc89e7487",
+    "References/TextureRevamp/nav-weapons-v4/nav_cr_v4.png": "33a111518d3e04a1bf6cee90e86bb139a645bf6c65fabf7f7c4128e26fd5003c",
+    "References/TextureRevamp/nav-weapons-v4/nav_ns_v4.png": "db57704ea516efde88014d7621ac0e949a387209691bc7819ca90e975f9136f2",
+    "References/TextureRevamp/nav-weapons-v4/plain_v4.png": "eb95e98026185aa63b105ab81388320098df2a454cc3d8215f593ab9cc91d9ce",
+    "References/TextureRevamp/nav-weapons-v4/weapon-stock-layout.png": "82cb9f5452ea7b6e8419cd32bd17dd0a16b0bc6be522e01024ce4faf8557c2a9",
+    "References/TextureRevamp/nav-weapons-v4/weapon_bd_master.png": "83b53a1f169989172f6e1bfb3aca7de941c2d9e237dcc68d393e8381f15c5056",
+    "References/TextureRevamp/nav-weapons-v4/weapon_cc_master.png": "9c02f4cb324ca372f949162c6eef1464c5d38f88f7d011610ff021b9e093fa64",
+    "References/TextureRevamp/nav-weapons-v4/weapon_cr_master.png": "317c54b9eb441c73b61df6151dd5bc50f0d653e6de894d04426444d8b489699e",
+    "References/TextureRevamp/nav-weapons-v4/weapon_ns_master.png": "24d5ba6b363a76d44a15524438340cd647aae51a9791217876a016be24dcc676"
+  },
+  "atlasOptimization": {
+    "previousDraftMaps": 84,
+    "previousDraftBytes": 44052064,
+    "currentMaps": 44,
+    "currentBytes": 24472992,
+    "retiredFiles": [
+      "crpkbd0_surf.dds",
+      "crpkbd1_surf.dds",
+      "crpkbd3_d.dds",
+      "crpkbd3_e.dds",
+      "crpkcc0_surf.dds",
+      "crpkcc1_surf.dds",
+      "crpkcc3_d.dds",
+      "crpkcc3_e.dds",
+      "crpkcr0_surf.dds",
+      "crpkcr1_surf.dds",
+      "crpkcr3_d.dds",
+      "crpkcr3_e.dds",
+      "crpkns0_surf.dds",
+      "crpkns1_surf.dds",
+      "crpkns3_d.dds",
+      "crpkns3_e.dds",
+      "crwcbd_d.dds",
+      "crwcbd_e.dds",
+      "crwccc_d.dds",
+      "crwccc_e.dds",
+      "crwccr_d.dds",
+      "crwccr_e.dds",
+      "crwcns_d.dds",
+      "crwcns_e.dds",
+      "crwmbd_d.dds",
+      "crwmbd_e.dds",
+      "crwmcc_d.dds",
+      "crwmcc_e.dds",
+      "crwmcr_d.dds",
+      "crwmcr_e.dds",
+      "crwmns_d.dds",
+      "crwmns_e.dds",
+      "crwrbd_d.dds",
+      "crwrbd_e.dds",
+      "crwrcc_d.dds",
+      "crwrcc_e.dds",
+      "crwrcr_d.dds",
+      "crwrcr_e.dds",
+      "crwrns_d.dds",
+      "crwrns_e.dds",
+      "crwsbd_d.dds",
+      "crwsbd_e.dds",
+      "crwscc_d.dds",
+      "crwscc_e.dds",
+      "crwscr_d.dds",
+      "crwscr_e.dds",
+      "crwsns_d.dds",
+      "crwsns_e.dds"
+    ],
+    "sharedWeaponDetail": {
+      "ns": "crwpns",
+      "bd": "crwpbd",
+      "cc": "crwpcc",
+      "cr": "crwpcr"
+    }
   }
 }

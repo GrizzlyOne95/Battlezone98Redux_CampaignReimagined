@@ -1,5 +1,5 @@
 [GameObjectClass]
-baseName = "cramcr"
+baseName = "cpammo"
 classLabel = "ammopack"
 scrapCost = 0
 scrapValue = 0

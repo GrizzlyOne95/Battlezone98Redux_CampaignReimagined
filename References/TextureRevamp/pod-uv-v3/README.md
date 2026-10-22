@@ -1,5 +1,10 @@
 # Pod v3 — selected stock geometry, full unwrap and functional glow
 
+**Historical colours:** the later owner-requested actual building/vehicle
+palette pass is in `../pod-palette-v4/README.md`. V4 keeps this exact stock
+geometry/unwrap but supersedes olive NSDF paint and generic blue/green light
+wraps. These v3 masters and comparison sheets stay preserved, not repainted.
+
 The owner selected **A: stock models with the new texturing**, then requested
 the stock emissive/glowy idea be retained. B's new silhouettes were explicitly
 rejected and are kept only as labelled historical render experiments.

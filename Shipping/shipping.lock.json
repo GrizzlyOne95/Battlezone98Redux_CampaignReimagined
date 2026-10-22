@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-21T07:48:17-05:00",
-  "count": 4225,
+  "count": 4324,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -1152,10 +1152,6 @@
       "runtime": "crpkbd0_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkbd0_surf.dds",
-      "runtime": "crpkbd0_surf.dds"
-    },
-    {
       "source": "Assets\\Textures\\crpkbd1_d.dds",
       "runtime": "crpkbd1_d.dds"
     },
@@ -1164,16 +1160,12 @@
       "runtime": "crpkbd1_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkbd1_surf.dds",
-      "runtime": "crpkbd1_surf.dds"
-    },
-    {
       "source": "Assets\\Textures\\crpkbd2_d.dds",
       "runtime": "crpkbd2_d.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkbd3_d.dds",
-      "runtime": "crpkbd3_d.dds"
+      "source": "Assets\\Textures\\crpkbd2_e.dds",
+      "runtime": "crpkbd2_e.dds"
     },
     {
       "source": "Assets\\Textures\\crpkbd_plain.dds",
@@ -1188,10 +1180,6 @@
       "runtime": "crpkcc0_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkcc0_surf.dds",
-      "runtime": "crpkcc0_surf.dds"
-    },
-    {
       "source": "Assets\\Textures\\crpkcc1_d.dds",
       "runtime": "crpkcc1_d.dds"
     },
@@ -1200,16 +1188,12 @@
       "runtime": "crpkcc1_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkcc1_surf.dds",
-      "runtime": "crpkcc1_surf.dds"
-    },
-    {
       "source": "Assets\\Textures\\crpkcc2_d.dds",
       "runtime": "crpkcc2_d.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkcc3_d.dds",
-      "runtime": "crpkcc3_d.dds"
+      "source": "Assets\\Textures\\crpkcc2_e.dds",
+      "runtime": "crpkcc2_e.dds"
     },
     {
       "source": "Assets\\Textures\\crpkcc_plain.dds",
@@ -1224,10 +1208,6 @@
       "runtime": "crpkcr0_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkcr0_surf.dds",
-      "runtime": "crpkcr0_surf.dds"
-    },
-    {
       "source": "Assets\\Textures\\crpkcr1_d.dds",
       "runtime": "crpkcr1_d.dds"
     },
@@ -1236,16 +1216,12 @@
       "runtime": "crpkcr1_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkcr1_surf.dds",
-      "runtime": "crpkcr1_surf.dds"
-    },
-    {
       "source": "Assets\\Textures\\crpkcr2_d.dds",
       "runtime": "crpkcr2_d.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkcr3_d.dds",
-      "runtime": "crpkcr3_d.dds"
+      "source": "Assets\\Textures\\crpkcr2_e.dds",
+      "runtime": "crpkcr2_e.dds"
     },
     {
       "source": "Assets\\Textures\\crpkcr_plain.dds",
@@ -1260,10 +1236,6 @@
       "runtime": "crpkns0_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkns0_surf.dds",
-      "runtime": "crpkns0_surf.dds"
-    },
-    {
       "source": "Assets\\Textures\\crpkns1_d.dds",
       "runtime": "crpkns1_d.dds"
     },
@@ -1272,16 +1244,12 @@
       "runtime": "crpkns1_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkns1_surf.dds",
-      "runtime": "crpkns1_surf.dds"
-    },
-    {
       "source": "Assets\\Textures\\crpkns2_d.dds",
       "runtime": "crpkns2_d.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkns3_d.dds",
-      "runtime": "crpkns3_d.dds"
+      "source": "Assets\\Textures\\crpkns2_e.dds",
+      "runtime": "crpkns2_e.dds"
     },
     {
       "source": "Assets\\Textures\\crpkns_plain.dds",
@@ -1418,6 +1386,38 @@
     {
       "source": "Assets\\Textures\\crvstor_n.dds",
       "runtime": "crvstor_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crwpbd_d.dds",
+      "runtime": "crwpbd_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crwpbd_e.dds",
+      "runtime": "crwpbd_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crwpcc_d.dds",
+      "runtime": "crwpcc_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crwpcc_e.dds",
+      "runtime": "crwpcc_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crwpcr_d.dds",
+      "runtime": "crwpcr_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crwpcr_e.dds",
+      "runtime": "crwpcr_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crwpns_d.dds",
+      "runtime": "crwpns_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crwpns_e.dds",
+      "runtime": "crwpns_e.dds"
     },
     {
       "source": "Assets\\Textures\\crwx_acidbeads.png",
@@ -5744,6 +5744,10 @@
       "runtime": "blasth.odf"
     },
     {
+      "source": "ODF\\bpcamr.odf",
+      "runtime": "bpcamr.odf"
+    },
+    {
       "source": "ODF\\bplasma.odf",
       "runtime": "bplasma.odf"
     },
@@ -6046,6 +6050,10 @@
     {
       "source": "ODF\\cbspowa.odf",
       "runtime": "cbspowa.odf"
+    },
+    {
+      "source": "ODF\\cbstor.odf",
+      "runtime": "cbstor.odf"
     },
     {
       "source": "ODF\\cbsupp.odf",
@@ -7230,6 +7238,10 @@
     {
       "source": "ODF\\sbspowa.odf",
       "runtime": "sbspowa.odf"
+    },
+    {
+      "source": "ODF\\sbstor.odf",
+      "runtime": "sbstor.odf"
     },
     {
       "source": "ODF\\sbsupp.odf",
@@ -12420,8 +12432,200 @@
       "runtime": "misn18.bmp"
     },
     {
+      "source": "Assets\\Models\\abstor.mesh",
+      "runtime": "abstor.mesh"
+    },
+    {
+      "source": "Assets\\Models\\abstor.sdf",
+      "runtime": "abstor.sdf"
+    },
+    {
+      "source": "Assets\\Models\\abstor.skeleton",
+      "runtime": "abstor.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\apammo.mesh",
+      "runtime": "apammo.mesh"
+    },
+    {
+      "source": "Assets\\Models\\apammo.skeleton",
+      "runtime": "apammo.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\apammo.vdf",
+      "runtime": "apammo.vdf"
+    },
+    {
+      "source": "Assets\\Models\\apcamr.mesh",
+      "runtime": "apcamr.mesh"
+    },
+    {
+      "source": "Assets\\Models\\apcamr.skeleton",
+      "runtime": "apcamr.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\apcamr.vdf",
+      "runtime": "apcamr.vdf"
+    },
+    {
+      "source": "Assets\\Models\\apcann.mesh",
+      "runtime": "apcann.mesh"
+    },
+    {
+      "source": "Assets\\Models\\apcann.skeleton",
+      "runtime": "apcann.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\apcann.vdf",
+      "runtime": "apcann.vdf"
+    },
+    {
+      "source": "Assets\\Models\\apmort.mesh",
+      "runtime": "apmort.mesh"
+    },
+    {
+      "source": "Assets\\Models\\apmort.skeleton",
+      "runtime": "apmort.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\apmort.vdf",
+      "runtime": "apmort.vdf"
+    },
+    {
+      "source": "Assets\\Models\\aprepa.mesh",
+      "runtime": "aprepa.mesh"
+    },
+    {
+      "source": "Assets\\Models\\aprepa.skeleton",
+      "runtime": "aprepa.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\aprepa.vdf",
+      "runtime": "aprepa.vdf"
+    },
+    {
+      "source": "Assets\\Models\\aprock.mesh",
+      "runtime": "aprock.mesh"
+    },
+    {
+      "source": "Assets\\Models\\aprock.skeleton",
+      "runtime": "aprock.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\aprock.vdf",
+      "runtime": "aprock.vdf"
+    },
+    {
+      "source": "Assets\\Models\\apspec.mesh",
+      "runtime": "apspec.mesh"
+    },
+    {
+      "source": "Assets\\Models\\apspec.skeleton",
+      "runtime": "apspec.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\apspec.vdf",
+      "runtime": "apspec.vdf"
+    },
+    {
       "source": "Assets\\Models\\bblpad.mesh",
       "runtime": "bblpad.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bbstor.mesh",
+      "runtime": "bbstor.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bbstor.sdf",
+      "runtime": "bbstor.sdf"
+    },
+    {
+      "source": "Assets\\Models\\bbstor.skeleton",
+      "runtime": "bbstor.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bpammo.mesh",
+      "runtime": "bpammo.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bpammo.skeleton",
+      "runtime": "bpammo.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bpammo.vdf",
+      "runtime": "bpammo.vdf"
+    },
+    {
+      "source": "Assets\\Models\\bpcamr.mesh",
+      "runtime": "bpcamr.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bpcamr.skeleton",
+      "runtime": "bpcamr.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bpcamr.vdf",
+      "runtime": "bpcamr.vdf"
+    },
+    {
+      "source": "Assets\\Models\\bpcann.mesh",
+      "runtime": "bpcann.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bpcann.skeleton",
+      "runtime": "bpcann.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bpcann.vdf",
+      "runtime": "bpcann.vdf"
+    },
+    {
+      "source": "Assets\\Models\\bpmort.mesh",
+      "runtime": "bpmort.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bpmort.skeleton",
+      "runtime": "bpmort.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bpmort.vdf",
+      "runtime": "bpmort.vdf"
+    },
+    {
+      "source": "Assets\\Models\\bprepa.mesh",
+      "runtime": "bprepa.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bprepa.skeleton",
+      "runtime": "bprepa.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bprepa.vdf",
+      "runtime": "bprepa.vdf"
+    },
+    {
+      "source": "Assets\\Models\\bprock.mesh",
+      "runtime": "bprock.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bprock.skeleton",
+      "runtime": "bprock.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bprock.vdf",
+      "runtime": "bprock.vdf"
+    },
+    {
+      "source": "Assets\\Models\\bpspec.mesh",
+      "runtime": "bpspec.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bpspec.skeleton",
+      "runtime": "bpspec.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bpspec.vdf",
+      "runtime": "bpspec.vdf"
     },
     {
       "source": "Assets\\Models\\c17proc.geo",
@@ -12510,6 +12714,102 @@
     {
       "source": "Assets\\Models\\c17tree2.skeleton",
       "runtime": "c17tree2.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cbstor.mesh",
+      "runtime": "cbstor.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cbstor.sdf",
+      "runtime": "cbstor.sdf"
+    },
+    {
+      "source": "Assets\\Models\\cbstor.skeleton",
+      "runtime": "cbstor.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cpammo.mesh",
+      "runtime": "cpammo.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cpammo.skeleton",
+      "runtime": "cpammo.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cpammo.vdf",
+      "runtime": "cpammo.vdf"
+    },
+    {
+      "source": "Assets\\Models\\cpcamr.mesh",
+      "runtime": "cpcamr.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cpcamr.skeleton",
+      "runtime": "cpcamr.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cpcamr.vdf",
+      "runtime": "cpcamr.vdf"
+    },
+    {
+      "source": "Assets\\Models\\cpcann.mesh",
+      "runtime": "cpcann.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cpcann.skeleton",
+      "runtime": "cpcann.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cpcann.vdf",
+      "runtime": "cpcann.vdf"
+    },
+    {
+      "source": "Assets\\Models\\cpmort.mesh",
+      "runtime": "cpmort.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cpmort.skeleton",
+      "runtime": "cpmort.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cpmort.vdf",
+      "runtime": "cpmort.vdf"
+    },
+    {
+      "source": "Assets\\Models\\cprepa.mesh",
+      "runtime": "cprepa.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cprepa.skeleton",
+      "runtime": "cprepa.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cprepa.vdf",
+      "runtime": "cprepa.vdf"
+    },
+    {
+      "source": "Assets\\Models\\cprock.mesh",
+      "runtime": "cprock.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cprock.skeleton",
+      "runtime": "cprock.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cprock.vdf",
+      "runtime": "cprock.vdf"
+    },
+    {
+      "source": "Assets\\Models\\cpspec.mesh",
+      "runtime": "cpspec.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cpspec.skeleton",
+      "runtime": "cpspec.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cpspec.vdf",
+      "runtime": "cpspec.vdf"
     },
     {
       "source": "Assets\\Models\\cr17_mire_ferna.mesh",
@@ -13318,6 +13618,102 @@
     {
       "source": "Assets\\Models\\sblpad.mesh",
       "runtime": "sblpad.mesh"
+    },
+    {
+      "source": "Assets\\Models\\sbstor.mesh",
+      "runtime": "sbstor.mesh"
+    },
+    {
+      "source": "Assets\\Models\\sbstor.sdf",
+      "runtime": "sbstor.sdf"
+    },
+    {
+      "source": "Assets\\Models\\sbstor.skeleton",
+      "runtime": "sbstor.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\spammo.mesh",
+      "runtime": "spammo.mesh"
+    },
+    {
+      "source": "Assets\\Models\\spammo.skeleton",
+      "runtime": "spammo.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\spammo.vdf",
+      "runtime": "spammo.vdf"
+    },
+    {
+      "source": "Assets\\Models\\spcamr.mesh",
+      "runtime": "spcamr.mesh"
+    },
+    {
+      "source": "Assets\\Models\\spcamr.skeleton",
+      "runtime": "spcamr.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\spcamr.vdf",
+      "runtime": "spcamr.vdf"
+    },
+    {
+      "source": "Assets\\Models\\spcann.mesh",
+      "runtime": "spcann.mesh"
+    },
+    {
+      "source": "Assets\\Models\\spcann.skeleton",
+      "runtime": "spcann.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\spcann.vdf",
+      "runtime": "spcann.vdf"
+    },
+    {
+      "source": "Assets\\Models\\spmort.mesh",
+      "runtime": "spmort.mesh"
+    },
+    {
+      "source": "Assets\\Models\\spmort.skeleton",
+      "runtime": "spmort.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\spmort.vdf",
+      "runtime": "spmort.vdf"
+    },
+    {
+      "source": "Assets\\Models\\sprepa.mesh",
+      "runtime": "sprepa.mesh"
+    },
+    {
+      "source": "Assets\\Models\\sprepa.skeleton",
+      "runtime": "sprepa.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\sprepa.vdf",
+      "runtime": "sprepa.vdf"
+    },
+    {
+      "source": "Assets\\Models\\sprock.mesh",
+      "runtime": "sprock.mesh"
+    },
+    {
+      "source": "Assets\\Models\\sprock.skeleton",
+      "runtime": "sprock.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\sprock.vdf",
+      "runtime": "sprock.vdf"
+    },
+    {
+      "source": "Assets\\Models\\spspec.mesh",
+      "runtime": "spspec.mesh"
+    },
+    {
+      "source": "Assets\\Models\\spspec.skeleton",
+      "runtime": "spspec.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\spspec.vdf",
+      "runtime": "spspec.vdf"
     },
     {
       "source": "Assets\\Models\\ubtart.mesh",

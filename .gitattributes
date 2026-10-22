@@ -58,3 +58,4 @@ References/FuryFighter/original/* -text whitespace=-blank-at-eol,-blank-at-eof,-
 # Byte-pinned stock pickup and existing-menu snapshots must survive Git checkout.
 References/TextureRevamp/nav-pickups/original/*.odf -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
 References/TextureRevamp/nav-pickups/menus/*.odf -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
+References/TextureRevamp/integration/original/*.odf -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol

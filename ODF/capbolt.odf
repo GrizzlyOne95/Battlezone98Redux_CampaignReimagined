@@ -1,6 +1,6 @@
 [GameObjectClass]
 classLabel = "wpnpower"
-baseName = "crwccr"
+baseName = "cpcann"
 scrapCost = 8
 scrapValue = 0
 maxHealth = 150

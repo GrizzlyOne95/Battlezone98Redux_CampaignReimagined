@@ -1,0 +1,170 @@
+{
+  "ns": [
+    {
+      "model": "avtank",
+      "material": "avtank00",
+      "diffuse": "avtank_D.dds",
+      "source": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\DIFF\\avtank_D.dds",
+      "sha256": "4123311639f24412160817a53d91d9693ac2f20ce075bf4af68189063ffa4779",
+      "emissive": "avtank_E.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\EMIS\\avtank_E.dds",
+      "emissiveSha256": "acff03e2530d1fbf0becb94a8dc3290657731de35fbab1a936f0b2b5b651b904"
+    },
+    {
+      "model": "avfigh",
+      "material": "avfigh00",
+      "diffuse": "avfigh_D.dds",
+      "source": "C:\\Users\\iestu\\Documents\\GIT\\Campaign-Reimagined-texture-revamp\\Assets\\Textures\\avfigh_D.dds",
+      "sha256": "96972c5b898693010652fe8bae7b6bb9fd6108d9e22d56f0173e1b3c903b23af",
+      "emissive": "avfigh_E.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\EMIS\\avfigh_E.dds",
+      "emissiveSha256": "68cd8760d823f9564be01254583251fd989d92aaae007e9d3d1e59de84f6e314"
+    },
+    {
+      "model": "abmbld",
+      "material": "abmbld",
+      "diffuse": "abmbld_D.dds",
+      "source": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\DIFF\\abmbld_d.dds",
+      "sha256": "883978d77f42e1ecf3ab1eccab3c5e83c9e85d4c9ce849b002a2b6649cd33541",
+      "emissive": "abmbld_E.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\EMIS\\abmbld_e.dds",
+      "emissiveSha256": "c843da458a3d4e763fe961ece27d52d6912a941073afe788399ed6833799d5de"
+    },
+    {
+      "model": "abspow",
+      "material": "abspow",
+      "diffuse": "abspow_D.dds",
+      "source": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\DIFF\\abspow_d.dds",
+      "sha256": "195ce6bb0dfd8b8554219db841b9e08dd1ca6f6a3f687e42a97c6adac09322e7",
+      "emissive": "abspow_E.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\EMIS\\abspow_e.dds",
+      "emissiveSha256": "d8bcb4abc924e000932657b596d416cf96fc9b2ed0d727f2bc42b37933eafa17"
+    }
+  ],
+  "bd": [
+    {
+      "model": "bvtank",
+      "material": "bvtank00",
+      "diffuse": "bvtank_D.dds",
+      "source": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\DIFF\\bvtank_D.dds",
+      "sha256": "c6bc10ee22737dda825b9e0ddc7df0f680aeed869767a8629916be9dbe21d3ac",
+      "emissive": "bvtank_E.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\EMIS\\bvtank_E.dds",
+      "emissiveSha256": "8722055bbc55761196106db7d2bac3f761ccb88ad40e9062109cc776451c8974"
+    },
+    {
+      "model": "bvltnk",
+      "material": "bvltnk00",
+      "diffuse": "bvltnk_D.dds",
+      "source": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\DIFF\\bvltnk_D.dds",
+      "sha256": "fedae4efc9508da4ca860c1050dfb94bfd013a0427908fd0bbabd420b17c04bb",
+      "emissive": "bvltnk_E.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\EMIS\\bvltnk_E.dds",
+      "emissiveSha256": "43e53bb3c0578cc1292e04a782a36a9cc7c8d72ea9438e0e84d3a1acd03fbda9"
+    },
+    {
+      "model": "bbmbld",
+      "material": "bbmbld",
+      "diffuse": "bbmbld_D.dds",
+      "source": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\TRO\\DIFF\\bbmbld_d.dds",
+      "sha256": "00137f11e5d85a9c1278dc89fc67e56ed67dc7f82aca5906fd3194f203dceb95",
+      "emissive": "abmbld_E.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\EMIS\\abmbld_e.dds",
+      "emissiveSha256": "c843da458a3d4e763fe961ece27d52d6912a941073afe788399ed6833799d5de"
+    },
+    {
+      "model": "bbspow",
+      "material": "bbspow",
+      "diffuse": "bbspow_D.dds",
+      "source": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\TRO\\DIFF\\bbspow_d.dds",
+      "sha256": "aaaa27cfbf1c9fd604d4fd5b9f11f9cda2ef06f11d107bb334e99a0a80c29958",
+      "emissive": "abspow_E.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\EMIS\\abspow_e.dds",
+      "emissiveSha256": "d8bcb4abc924e000932657b596d416cf96fc9b2ed0d727f2bc42b37933eafa17"
+    }
+  ],
+  "cc": [
+    {
+      "model": "svtank",
+      "material": "svtank00",
+      "diffuse": "svtank_d.dds",
+      "source": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\DIFF\\svtank_D.dds",
+      "sha256": "461e1ae7ba81085e271aabb77932f72d6593b19995c9ff51710a846b939f9263",
+      "emissive": "svtank_e.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\EMIS\\svtank_E.dds",
+      "emissiveSha256": "f500a47f7330d5b2fed05f52ef73a0931178c758e1a125ef7a59303a70e98368"
+    },
+    {
+      "model": "svfigh",
+      "material": "svfigh00",
+      "diffuse": "svfigh_d.dds",
+      "source": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\DIFF\\svfigh_D.dds",
+      "sha256": "c60e1d789e3c17547cbd447c24591c70c8ec3d33d631fd377e125656abfd9227",
+      "emissive": "svfigh_e.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\EMIS\\svfigh_E.dds",
+      "emissiveSha256": "cdbbbbfb008026e3d897e6a6d98782cd9690f40cd37ea459066f0982e76502aa"
+    },
+    {
+      "model": "sbmbld",
+      "material": "sbmbld00",
+      "diffuse": "sbmbld_d.dds",
+      "source": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\DIFF\\sbmbld_d.dds",
+      "sha256": "820a8cc5c7c4b14e7bef097d068578e175539f8124456261a145530b0ad93a41",
+      "emissive": "sbmbld_e.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\EMIS\\sbmbld_e.dds",
+      "emissiveSha256": "978823252628973f27b07d80fd46926b150ecc14eb7d6e84e1caabe8a299cc56"
+    },
+    {
+      "model": "sbspow",
+      "material": "sbspow",
+      "diffuse": "sbspow_d.dds",
+      "source": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\DIFF\\sbspow_d.dds",
+      "sha256": "eadcd0657fc90f31bd7c491216b7c08aff777f4383e4d3251dcaddc74de43aa2",
+      "emissive": "sbspow_e.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\EMIS\\sbspow_e.dds",
+      "emissiveSha256": "ddb3e23950b57d830a4f357d59b79d848d592bcc485ff99f8f8624726875003a"
+    }
+  ],
+  "cr": [
+    {
+      "model": "cvtnk",
+      "material": "cvtnk",
+      "diffuse": "cvtnk_d.dds",
+      "source": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\TRO\\DIFF\\CVTNK_D.dds",
+      "sha256": "5efb5540acdaf404459a9366129e39d586197bcc98371a29709c52b4ece406e5",
+      "emissive": "cvtnk_e.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\TRO\\EMIS\\CVTNK_E.dds",
+      "emissiveSha256": "dc55dad60945c3b841e88f8ed426390ebff3b21e87ff7df5147e270c45b70e40"
+    },
+    {
+      "model": "cvfigh",
+      "material": "cvfigh",
+      "diffuse": "cvfigh_d.dds",
+      "source": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\TRO\\DIFF\\cvfigh_d.dds",
+      "sha256": "d4be6504f4013e5bd71bb83e1db33381073661bdd92d77fd108abde7004a4ef3",
+      "emissive": "cvfigh_e.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\TRO\\EMIS\\cvfigh_e.dds",
+      "emissiveSha256": "30730dda5a890c59deb8fe1c808ffa90c7b9372c6c992b273fe59a4d833c5e30"
+    },
+    {
+      "model": "cbmbld",
+      "material": "CBSUPP",
+      "diffuse": "cbsmbld_d.dds",
+      "source": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\TRO\\DIFF\\cbsmbld_d.dds",
+      "sha256": "d6e2aa2ea8564a82d56f87e08aa3c19dbdfcc716490d1173360c7f63cf7f395f",
+      "emissive": "cbsmbld_e.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\TRO\\EMIS\\cbsmbld_e.dds",
+      "emissiveSha256": "f2646ff19e40f11d0e249e2d2220c62199e1f5af740ede3a4735e487a3b86930"
+    },
+    {
+      "model": "cbspow",
+      "material": "CBSPOW",
+      "diffuse": "cbspow_d.dds",
+      "source": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\TRO\\DIFF\\cbspow_d.dds",
+      "sha256": "18281dc8aaac5d8ea61dd0d2e1fde4852a6e22b4e2a12436c5e3600f97b3acdb",
+      "emissive": "cbspow_e.dds",
+      "emissiveSource": "C:\\Program Files (x86)\\GOG Galaxy\\Games\\Battlezone 98 Redux\\BZ_ASSETS\\pc\\textures\\TRO\\EMIS\\cbspow_e.dds",
+      "emissiveSha256": "2e13ce9f8853ca1cb73f58b9bfed48ca622ae9430cc849b7b49787e774f383a6"
+    }
+  ]
+}

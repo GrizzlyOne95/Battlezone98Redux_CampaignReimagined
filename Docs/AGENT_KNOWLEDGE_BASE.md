@@ -965,6 +965,39 @@ propagating faction paint. Tests include full-UV overlap/geometry contracts,
 emission colour/nonemitting badge checks and those acceptance pins. Dark
 Blender views prove map selection/readability only, not native bloom or
 performance. Nav v2 hazard bands are faction-specific patterns.
+Later owner correction: NSDF olive pods do not match actual petrol blue-green
+vehicle armour. `pod-palette-v4` under References now anchors every faction to
+two real vehicles and two buildings, with resolved D/E filenames and hashes.
+Keep stock geometry/UVs, but author distinct lamp footprints as well as hues;
+do not tint the same generic band four ways. Historical v3 master pins do not
+freeze current paint after an explicit owner revision. Shared stock E resources
+also mean a warmer-looking diffuse lamp is not proof of a unique stock hue.
+The owner wants offline renders only for now; do not deploy or launch a test.
+The owner subsequently requested v4 palettes/unique optics on navs and weapon
+powerups too (`nav-weapons-v4/README.md`). This explicitly supersedes v2 nav
+paint acceptance, not geometry/UV/hazard identity: retain old accepted maps
+and hashes historically. Weapon panel recolouring alone left most triangles
+on a shared stock human material; bind the preserved-UV remainder to its own
+faction D/E. Plain material children must override E to black, or they inherit
+the badge panel's unrelated lamp layout. No added draw batches are needed.
+Owner then requested atlas optimization and unique emissives for **each pickup
+type**, not just faction. Four original-layout weapon detail repaints duplicated
+most machinery: share one faction D/E, badge panel and quiet finish instead.
+Retire only the receipt's named redundant maps; keep authoring/history PNGs out
+of shipping. Current nav/pickup DDS fall from 84 / 42.0 MiB to 44 / 23.3 MiB,
+without shrinking surviving maps. Stock light-swatch UVs also magnified a tiny
+blob across whole tips/wedges: project those faces onto separate authored lamp
+regions for cannon, rocket, mortar and special. Test normalized E silhouettes
+as well as different region addresses; shared atlases need not mean shared
+light patterns. Unselected UV corners and all geometry/skin/native bytes stay.
+Further owner request: unique hazard paint on all pickups. Keep four padded
+type bands in the shared weapon atlas, matched to each faction nav's warning
+identity; reuse authored pixels on pod trim, not new copies of the whole atlas.
+ImageGen edits may drift outside the requested paint: composite only the exact
+warning ROIs and pin the untouched RGB hash. Cannon has no stock warning UV
+island, so map one existing side case; never claim a zero-coverage repaint.
+Special optics need visible rim-sector UVs rather than placing them in its
+central recess. Keep hazard E explicitly black regardless of hue thresholds.
 
 ### Moon independent HD tiles and normal polarity (2026-10-20)
 
@@ -1287,3 +1320,24 @@ to the ordinary GOG development mod.
 - Plain sky fog did not match Enhanced terrain's ambient-tinted fog; Titan/Elysium retained flat colour steps. The owned world-sky SM4 delegate applies the matching ambient contribution in linear space, selected by the effective runtime profile and reset on Redux/Retro. Keep ordinary weather/space delegates separate. An explicit `scene_blend one zero` is valid; `scene_blend replace` is rejected by this Ogre parser. Live sky checks must reject `crart_` material errors as well as program errors.
 - A player-only art fixture needs an explicit filesystem Lua search path: the stock asset require fallback truncates long names such as RuntimeEnhancements. Matching shader sources must also be staged wherever the resource resolver can find an older installed copy. Restore all trial files even on initialization errors, and require a successful lighting marker rather than accepting a screenshot of an alert.
 - The stock evolve_1/evolve_3 CLI previews did not activate CR's material group, even with temporary INI registrations. The archive preview now round-trips them through Toolbox under a backed-up registered CR campaign slot; require HD installation/restoration evidence to reject a stock-atlas fallback. Version sky shader delegates after source edits with `Tools/Update-WorldSkyProgramVersions.py` to avoid stale Ogre microcode.
+
+### Faction pickup integration and semantic glow (2026-10-21)
+
+- Owner direction: decorative NSDF cyan, Black Dog red, CCA orange (chaingun
+  identity), CRA lime; functional ammo blue, repair green, common weapon cores
+  amber. Keep accepted NSDF cyan pod rails emissive. Hue alone is unsafe for
+  red factions: restrict emission to saved physical glass masks so red armour,
+  stars and warning paint stay dark. ImageGen edits retain exact unselected
+  source RGB; saved glass masks cannot overlap the earlier hazard paint ROIs.
+- Stock special edge UVs had unrelated scales and directions. Project its four
+  straight outer warning panels at one physical scale and common Y phase;
+  leave bevel/end caps quiet metal rather than extending warped strip fragments.
+  Retain geometry/non-UV/weights/native bytes with the shared model codecs.
+- `Build-FactionPickupIntegration.py` runs AFTER the storage/nav art builders.
+  It routes 361 existing/new ODFs to 32 canonical a/b/s/c-prefixed model aliases,
+  including spblst → spcann, spcamr, sbstor and cbstor. Only baseName changes:
+  it is a render selector, not ODF inheritance. Preserve original storage health
+  and Soviet weapon/ammo values. Exact ODF snapshots guard unrelated edits.
+  Canonical aliases share reviewed cr* materials/maps, not duplicate atlases.
+  Source and isolated Blender checks do not establish native gameplay/loading
+  or platform qualification; the owner's offline-only review boundary remains.

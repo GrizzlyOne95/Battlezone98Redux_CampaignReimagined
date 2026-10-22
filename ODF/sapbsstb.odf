@@ -1,6 +1,6 @@
 [GameObjectClass] // Blue SP Stab, created by General BlackDragon
 classLabel = "wpnpower"
-baseName = "crwccc"
+baseName = "spcann"
 scrapCost = 5
 scrapValue = 0
 maxHealth = 150

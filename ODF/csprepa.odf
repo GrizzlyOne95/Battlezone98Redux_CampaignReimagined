@@ -1,5 +1,5 @@
 [GameObjectClass]
-baseName = "crhpcr"
+baseName = "cprepa"
 classLabel = "repairkit"
 scrapCost = 1
 scrapValue = 0

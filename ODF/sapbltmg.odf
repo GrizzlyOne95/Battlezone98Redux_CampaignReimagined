@@ -1,6 +1,6 @@
 [GameObjectClass] // Green Bolt Mine, created by General BlackDragon
 classLabel = "wpnpower"
-baseName = "crwscc"
+baseName = "spspec"
 scrapCost = 1
 scrapValue = 0
 maxHealth = 150
