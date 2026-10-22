@@ -94,6 +94,7 @@ jobs:
         run: |
           python Tools/Test-TextureRevamp.py
           python Tools/Test-FactionStorage.py
+          python Tools/Test-FactionNavPickups.py
 
       - name: Audit looping model animations
         # bvwalk.vdf is an older walker fix whose cycles still seam (reported, not owned here).

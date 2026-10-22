@@ -1,0 +1,175 @@
+{
+  "source": "Installed GOG stock BZ_ASSETS and bzone.zfs; ODF behavior from current CR",
+  "models": [
+    {
+      "model": "apcamr",
+      "materials": [
+        "apcamr00"
+      ],
+      "skeleton": "apcamr.skeleton"
+    },
+    {
+      "model": "apammo",
+      "materials": [
+        "apammo00"
+      ],
+      "skeleton": "apammo.skeleton"
+    },
+    {
+      "model": "aprepa",
+      "materials": [
+        "aprepa00"
+      ],
+      "skeleton": "aprepa.skeleton"
+    },
+    {
+      "model": "apcann",
+      "materials": [
+        "apcann00"
+      ],
+      "skeleton": "apcann.skeleton"
+    },
+    {
+      "model": "aprock",
+      "materials": [
+        "aprock00"
+      ],
+      "skeleton": "aprock.skeleton"
+    },
+    {
+      "model": "apmort",
+      "materials": [
+        "apmort00"
+      ],
+      "skeleton": "apmort.skeleton"
+    },
+    {
+      "model": "apspec",
+      "materials": [
+        "apspec00"
+      ],
+      "skeleton": "apspec.skeleton"
+    }
+  ],
+  "files": {
+    "apammo.mesh": "bbd5d5567fdfe907ef176d5e75d4fc59337daa534f833233e3868d0244764ab4",
+    "apammo.odf": "adf00529a4f94b977eeceecb4cda5a035eb5dc0acd2221e2d2267e0b27d14339",
+    "apammo.png": "f109240c30c28fb3a5be789ffdf6d4c0cbfaff2b2adfe0228b4b57298b10dc92",
+    "apammo.skeleton": "ff63f00c06913c0e05da0302340963071796811ccb4a0c6cb22a8699ac6ab5e7",
+    "apammo.vdf": "a37c5b990d4a46658f3845edf7efda692fa0725a9d0b22a619b794ac05f5740f",
+    "apammoa.odf": "d35405ce1535863577f84bf5f01e009d7a0a4b5e89fbd7c8e5d38c9ac22419fd",
+    "apammob.odf": "db03500779a240f9e452b56d4d9934e412508a8a441af4d373affff1163a9fd6",
+    "apartl.odf": "12b8b5f0c0cdc93d1fd459e9e3d00459edf3207c08d925fc3d23a279cdf74f65",
+    "apblst.odf": "5bc6a41218a08983d2333be4bdd80769abfe9c44ff16a6b8b5273f67f12bd80b",
+    "apblstb.odf": "e60e1b4ac35d183ee1795139fa342b745a719e6811614986b5596b039790e3eb",
+    "apblstg.odf": "a61e8d525b2901693bead81f861472d8357233ad0f8938e3074e92716deb572c",
+    "apbltm.odf": "4c66abe3d1191ec605f45aed0a7ab280e8909456b763e1dc930f6324ae6e6a91",
+    "apbltmg.odf": "3119b73b00621cc58235f1e8b4ff3a9b32b13bd24e5c3cfcdda6a7f1381f452d",
+    "apbltmr.odf": "d82567ffc8e5981c0e89c9ee3499bdd3b23d57f523733cdb5109c3fc3c0f90db",
+    "apbolt.odf": "95682722f0b10f8f965de4724ab5b0dec6110d220ea91762580e2da28355b860",
+    "apboltg.odf": "b778946621e406b220174516978f2e3c28f3de53812caf33f3d1f2aab67a1b6d",
+    "apboltr.odf": "ee05e907dc8daa0d255f6456a502e0a4d74c96e59607c8983202a95859338c53",
+    "apbsstb.odf": "1fbb6cbe97d140d0d0149e375b8b02bce42688557d7661f6f6567849d1700793",
+    "apcamr.mesh": "2a03a3198fce4ba302518fb4cc201023eb242c2291cc047775300373875b61c3",
+    "apcamr.odf": "ed17de016e61a9eb3226154e3876d82714d642568ddf7d8c6510d390bb6ada20",
+    "apcamr.png": "b48951e85cedb71a20c289b2946b79a11db1fd5c45879e8850df2228c3739ea4",
+    "apcamr.skeleton": "048c6b1e47bf781e74d873774859c10eae90a01afae7866045e05756c0bd8f7e",
+    "apcamr.vdf": "ecb2ee1e1d8db4d0dd929acd8419eee4f3401beb63b7a250138ef92485ce1e4e",
+    "apcann.mesh": "00148e563a435c51c463b51780ae59f26a8294f7625f9b46f45ac062395d2d56",
+    "apcann.png": "e97d7c46d72bd5c23474278c80fe56bc30e7d8aa8c68679f12c23954fe6d5484",
+    "apcann.skeleton": "f49684b357b5bfc53ac297fb650314f624ba20ecc51a246fcf9a6c96d780a763",
+    "apcann.vdf": "924f077d50537334d67580542f313ebd62acf54cf3f2950d9abad3538275cd52",
+    "apcmet.odf": "77259e81e89eb49840a681fe871b9860150917d2af1e8aab62d93243ba613249",
+    "apflar.odf": "1a8c1eb7edb1f2851b954027fda8f65211e19a194c81428644c6fafb7bbe150a",
+    "apflsh.odf": "b658df67e02ea0c19ece50746df2d94cd69ad17502d90df5db68bea72fae8eff",
+    "apflshb.odf": "5336db58524ba74c975b6a2370ff66c175d094343a1d713800dfdaccb249ea54",
+    "apflshg.odf": "ed1633dc6c098da05f9e40f3939b217e5f04521e8aece2753125dcd0de1b9cc1",
+    "apgmini.odf": "223f1a20d832aba2a77b497b36ce9b24a4f0907e1a15835dc73862008f564828",
+    "aphartl.odf": "879744e70588bc1688ac970ada63aca7d9cb0841c0b25282f7974f92a24a551e",
+    "aphorn.odf": "2ef4545fa2e919ea4479fbd4fb6a706d2718b8b11c4fd4d0397c23780b46e219",
+    "aplgmsl.odf": "cf4acc520eb0e38d16d68330c2bf24bbe0ab4bb72c4e5299001195b0699fcbc6",
+    "apmagg.odf": "a40cb31b97b45ba6bf0c190105c6b0ccf676e18a01f88dd869c54c75d620195a",
+    "apmasg.odf": "61b641a89508fa36c96a5742d8010f1fa5611a575d88f78a7d2b8b304d91c597",
+    "apmcur.odf": "23ae7bc30f9184a406244924dd052666c8db6b0031bdc188f564d9395185024d",
+    "apmdmg.odf": "230c59311528a49cbde7319e062c976bee107b5e4c369cbc8cd469075079be0f",
+    "apmini.odf": "02a475c777463a7c4c4e4fb3e17c6e8353893916290e9aac9ec9cc5da5a12ddf",
+    "apmits.odf": "4f677ee957e48a06634d055d2820cbf8896d975427c83b59ace46b2e673435da",
+    "apmort.mesh": "8ca2e8ba5d182cb0eee74d1525d7f93fbed8b897134ba108f7cf9aa4c49c08b6",
+    "apmort.odf": "9c757f32539ba0e9035d0db1f06767c5a5a41c0ec012fd47fd5982e9c973b600",
+    "apmort.png": "7acf686418215ea01737273088cb74607c207c265c5f5d1995b87171c93e85c2",
+    "apmort.skeleton": "ac6712b7d6798b1fbb6d341ae90e2ef31237ceca640c11e61b28afe03dda058f",
+    "apmort.vdf": "91556d548cdd81b1bdb095993cbfc4aef875bf0890793d56808895c6f6e01f41",
+    "apphan.odf": "69441884675195e384d4b31ea6575d607584429d629f05f9cf80926572da20bb",
+    "appopg.odf": "f6870365cacc8b6a51cd6ec9096b21cedf2213385540e27a6ae07bc8f035450a",
+    "approx.odf": "9fdc74eae6089dff0f09f4cba9be0b83ec02fea2e6dad7f120a95f6403fa2fae",
+    "apredf.odf": "13b8c5018b7e91a5825018ae9083ff03448cb5d4470497f7f43d61e3486514b9",
+    "aprepa.mesh": "aff6b7aab000f4dc273c9bd35753c08475763d22f8ce0f744cb8db939ce1fed1",
+    "aprepa.odf": "4f5316e54be74be2393723628ee6b51ffd7d881b3103193264dd8607fc5217a8",
+    "aprepa.png": "f109240c30c28fb3a5be789ffdf6d4c0cbfaff2b2adfe0228b4b57298b10dc92",
+    "aprepa.skeleton": "5f608bcd1abe6f12ce2843934f61b3be4af68b3b057521d13e18a7a575070bcd",
+    "aprepa.vdf": "7a8d48fd59d195051e269c159ae1a5206b3e534b1c1180537e660c1709ca32ae",
+    "aprepaa.odf": "8deabdbe5d53b5cfe0b26ea74b04095479dc1b629e18f2bdab83db2b32c2a1ba",
+    "aprepab.odf": "ba6590151706a60a1bec90f0122b38a42e4751406a4e7c1b8db3aae270a33be3",
+    "aprktb.odf": "50aa1230e112e6bfe5c67caf6943a323ab326855ac947a9bce14d54cc64dbb0f",
+    "aprock.mesh": "7db84baebddef2841d2e9ee59c59e349f1f75a01ab269ee9a3b61b0efeb1987a",
+    "aprock.png": "f109240c30c28fb3a5be789ffdf6d4c0cbfaff2b2adfe0228b4b57298b10dc92",
+    "aprock.skeleton": "6c44e3e46af041c665a23b985573c604984bfc36912ce344de4b6c6bf3e7f9ae",
+    "aprock.vdf": "8984da9598352c1fd10e055f0190b2618bbcd9216883e1804d25c413f72d5d79",
+    "apsand.odf": "9253bb38cac892ebe2fac9d7ce6dab1492f260499a8d2f22ad2b86ee2236b6d5",
+    "apshdw.odf": "421e2f514afc6a34acc3049f0d74f594b842ab231f3022ee6c254b664efd8974",
+    "apsite.odf": "52326edd4674992951b436eff3f32080b59d295a702daa81e46d41eb52c8ef4a",
+    "apspec.mesh": "a25ce20a6a28fbd7521c6d4327dacc32d858309bd16211a062ed56c1677a42b2",
+    "apspec.png": "f109240c30c28fb3a5be789ffdf6d4c0cbfaff2b2adfe0228b4b57298b10dc92",
+    "apspec.skeleton": "d90cfa11bcadc972a0adc0d0229919fd922fbf59064d26cc2e251fa70f589ff6",
+    "apspec.vdf": "c1ad835dba4cd0b0d1b6bd14dca252abd0d4ea13fd7b9e9935b52ab6b99c6b3d",
+    "apspln.odf": "6f88a67ecc1b2bad177c78004eda72be8c02bc4ccd200e631a97fd7c1bc7ba54",
+    "apsplng.odf": "36217317566cb463d5b13bd904e2dd99a129d6c73f69e2e08f087b0e590c78cb",
+    "apsplnr.odf": "a760f353ba3f5f63174d7c52cc25e0b9e72276d04cd8b3f42fa651b51d047ee2",
+    "apsstb.odf": "44d20ba39ea6397ac53f97aa7aecaf287d7fb15ab4fb5792e0b31444150965eb",
+    "apsstba.odf": "099a6cdb604a6735aa06e81b78c46d7349481965adf19521d0f5bcea6a495562",
+    "apstab.odf": "36b2e64a14c55022624bdfd2107d46df07aa1e07d174ed9b6063b552517b0a42",
+    "aptagg.odf": "d5ae13a4c3718eee59e934c05a21a2e8b7e29dbf30e966a53878face38ed8750",
+    "aptech.odf": "c9007ca05ae4e8328869df34ca78fd0b49156af9e53ba41391df6232fd42d835",
+    "apthmp.odf": "27156daf47ac8242eac5cafab6fa233603ccb7f95985fe00c03ca56bc4808b6e",
+    "aptsmok.odf": "f7e9d4a0aeff14f50bf692482688ea3384333e4e804b01904969f294bc89f0cb",
+    "cpcamr.odf": "ed17de016e61a9eb3226154e3876d82714d642568ddf7d8c6510d390bb6ada20",
+    "cpsstb.odf": "e22a15de6c56c89b3563541a999e7b3a78304ac4f58835b7ca8708bfaf242d88",
+    "cpsstba.odf": "478538a19f24c43e62254e0b14b5624d9e6f5fc3e38e74aded073e491d008a16",
+    "cptesla.odf": "90c99ad8bc263823065e24a62e86204a546a329c79056ec0818815070b096d84",
+    "spammo.odf": "ecb1d322bccd6df21641a61e41fdfbf322bed6aeef47427e16b32acc23e3e17a",
+    "spartl.odf": "12b8b5f0c0cdc93d1fd459e9e3d00459edf3207c08d925fc3d23a279cdf74f65",
+    "spbett.odf": "1f5b4166359966eae76ef3c42864fcf9e33079267b770a79146af7d96b51cb60",
+    "spblst.odf": "5bc6a41218a08983d2333be4bdd80769abfe9c44ff16a6b8b5273f67f12bd80b",
+    "spbolt.odf": "95682722f0b10f8f965de4724ab5b0dec6110d220ea91762580e2da28355b860",
+    "spcamr.odf": "ed17de016e61a9eb3226154e3876d82714d642568ddf7d8c6510d390bb6ada20",
+    "spcmet.odf": "77259e81e89eb49840a681fe871b9860150917d2af1e8aab62d93243ba613249",
+    "spflar.odf": "1a8c1eb7edb1f2851b954027fda8f65211e19a194c81428644c6fafb7bbe150a",
+    "spflsh.odf": "b658df67e02ea0c19ece50746df2d94cd69ad17502d90df5db68bea72fae8eff",
+    "sphorn.odf": "ac612a5e87ba36fb920ef9d064f44091fe844ffce968a96999b3d5feb55fa166",
+    "sphunt.odf": "995e1868b1d97083d3d8b12165ab85e618474dd9321789eadb176931cb096bbf",
+    "spmagg.odf": "a28945442c5c12286ed38d4c7ef497e1887ae2d70345ce867226ae9e54c7fdf2",
+    "spmasg.odf": "61b641a89508fa36c96a5742d8010f1fa5611a575d88f78a7d2b8b304d91c597",
+    "spmcur.odf": "23ae7bc30f9184a406244924dd052666c8db6b0031bdc188f564d9395185024d",
+    "spmdmg.odf": "230c59311528a49cbde7319e062c976bee107b5e4c369cbc8cd469075079be0f",
+    "spmini.odf": "4256b4281436b1c5aecc84910c369aa2870aba9669052593f014aa159c55bef1",
+    "spmits.odf": "4f677ee957e48a06634d055d2820cbf8896d975427c83b59ace46b2e673435da",
+    "spmort.odf": "9c757f32539ba0e9035d0db1f06767c5a5a41c0ec012fd47fd5982e9c973b600",
+    "spphan.odf": "69441884675195e384d4b31ea6575d607584429d629f05f9cf80926572da20bb",
+    "sppopg.odf": "f6870365cacc8b6a51cd6ec9096b21cedf2213385540e27a6ae07bc8f035450a",
+    "spprox.odf": "9fdc74eae6089dff0f09f4cba9be0b83ec02fea2e6dad7f120a95f6403fa2fae",
+    "spredf.odf": "13b8c5018b7e91a5825018ae9083ff03448cb5d4470497f7f43d61e3486514b9",
+    "sprepa.odf": "545adcb50de4359cacc1cdfad1af357b6b9cc77af275a7fbb34bcec9bcfe1e44",
+    "sprktb.odf": "50aa1230e112e6bfe5c67caf6943a323ab326855ac947a9bce14d54cc64dbb0f",
+    "spsand.odf": "9253bb38cac892ebe2fac9d7ce6dab1492f260499a8d2f22ad2b86ee2236b6d5",
+    "spshdw.odf": "421e2f514afc6a34acc3049f0d74f594b842ab231f3022ee6c254b664efd8974",
+    "spsite.odf": "52326edd4674992951b436eff3f32080b59d295a702daa81e46d41eb52c8ef4a",
+    "spsmort.odf": "5b96ec44072657fb7c417e340a7d2ec8231702f678cfcd8299184098920af435",
+    "spspln.odf": "6f88a67ecc1b2bad177c78004eda72be8c02bc4ccd200e631a97fd7c1bc7ba54",
+    "spsstb.odf": "44d20ba39ea6397ac53f97aa7aecaf287d7fb15ab4fb5792e0b31444150965eb",
+    "spstab.odf": "36b2e64a14c55022624bdfd2107d46df07aa1e07d174ed9b6063b552517b0a42",
+    "spstlk.odf": "a62dfd000663f94de823a430b6450cdc0e963351732f42712125364dddda27fb",
+    "sptagg.odf": "189c5d18d809e9b7a426a1610bc1ff50946f8b17f205eb7ddee2aebd08fd84b9",
+    "sptech.odf": "72b456b902a06b4ad6a8f0637319a8cdb17c8d474e764d6d674eb55040600a6b",
+    "spthmp.odf": "0305f4f6f4f0f3be35fd0dd2506a725a605fb5c3f6675477391ebb627235146c"
+  }
+}

@@ -1,0 +1,127 @@
+import * from "CR_BZBase.material"
+
+material crnvcr : CR_BZBase
+{
+    set_texture_alias DiffuseMap crnvcr_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap crnvcr_e.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
+    set $specular ".25 .25 .25"
+    set $shininess "48"
+}
+
+material cramcr : CR_BZBase
+{
+    set_texture_alias DiffuseMap crpkcr0_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap black.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
+    set $specular ".25 .25 .25"
+    set $shininess "48"
+}
+
+material cramcr/plain : cramcr
+{
+    set_texture_alias DiffuseMap crpkcr_plain.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
+}
+
+material crhpcr : CR_BZBase
+{
+    set_texture_alias DiffuseMap crpkcr1_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap black.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
+    set $specular ".25 .25 .25"
+    set $shininess "48"
+}
+
+material crhpcr/plain : crhpcr
+{
+    set_texture_alias DiffuseMap crpkcr_plain.dds
+    set $diffuse "0.45 1 0.4"
+    set $ambient "0.45 1 0.4"
+}
+
+material crwccr : CR_BZBase
+{
+    set_texture_alias DiffuseMap crpkcr2_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap black.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
+    set $specular ".25 .25 .25"
+    set $shininess "48"
+}
+
+material crwccr/plain : crwccr
+{
+    set_texture_alias DiffuseMap crpkcr_plain.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
+}
+
+material crwrcr : CR_BZBase
+{
+    set_texture_alias DiffuseMap crpkcr2_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap black.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
+    set $specular ".25 .25 .25"
+    set $shininess "48"
+}
+
+material crwrcr/plain : crwrcr
+{
+    set_texture_alias DiffuseMap crpkcr_plain.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
+}
+
+material crwmcr : CR_BZBase
+{
+    set_texture_alias DiffuseMap crpkcr3_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap black.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
+    set $specular ".25 .25 .25"
+    set $shininess "48"
+}
+
+material crwmcr/plain : crwmcr
+{
+    set_texture_alias DiffuseMap crpkcr_plain.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
+}
+
+material crwscr : CR_BZBase
+{
+    set_texture_alias DiffuseMap crpkcr3_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap black.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
+    set $specular ".25 .25 .25"
+    set $shininess "48"
+}
+
+material crwscr/plain : crwscr
+{
+    set_texture_alias DiffuseMap crpkcr_plain.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
+}

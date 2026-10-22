@@ -22,6 +22,7 @@ part of the deliverable.
 | Mission 16 corrupted CCA | Approved diffuse DDS remain byte-identical. Add restrained authored normals and cyan-node emissive/specular companions selected by the actual Fury overlay, not the stock human lamp map. |
 | NSDF storage | Conservative original-layout colour refinement plus shallow authored broad panel outlines. |
 | Faction storage crates | Four independently placeable faction assets: `crstns` (NSDF), `crstbd` (Black Dog), `crstcc` (CCA), `crstcr` (CRA), each with its own ODF, render mesh, SDF, skeleton, material and diffuse/emissive maps. Existing `abstor` and `bbstor` material selectors also receive appropriate branding. |
+| Faction navs/powerups | Four beacons and twenty-four pickup model variants, independent ODFs and faction-correct recycler/armory menus; corrected casing UVs and isolated texture cells. See `Docs/FACTION_NAV_PICKUPS.md` for use, mapping, validation and pending native review. |
 | Shared NSDF cockpit | Conservative original-layout colour refinement; retain the established stock normal/specular/emissive bindings. No cockpit geometry, animations or camera changes. |
 | Large building expansion | Audit 49 active building models/materials. CCA launch-pad pilot dedicates texture space to its existing door, stairs and large plate; Black Dog pad pilot covers its painted ribbed panel. Other building art remains pending; see the ranked queue below. |
 

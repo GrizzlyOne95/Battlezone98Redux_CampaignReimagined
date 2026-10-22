@@ -1,0 +1,2254 @@
+{
+  "schema": 1,
+  "files": {
+    "crpkns_plain.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "1d7bd09de9e94670344eda6fada938aed3850f0f2098390ad624f6c1ac6a4f3b"
+    },
+    "crnvns_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "4d39a7258ec2dd8d36c9d759f7b0a2c1cc8e231ffee044da89e121689e1755f2"
+    },
+    "crnvns_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "0a7d46b0d12a46d72aa4e821016d06dd249dca046d82118487bd441ee0aa20d2"
+    },
+    "crpkns0_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "f7c74f9c0879b27dce7957050c157aaf166dd121e21eeccd40d71442054b7dd8"
+    },
+    "crpkns1_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "40bc23c5d92e807fe88bcd2e77c479ff91df38572c4db7da436d642b454bd679"
+    },
+    "crpkns2_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "e61360b374ba1d2f15be33934593b5e2e296b3773ed8bf37ac7bb8bbebe9bfdf"
+    },
+    "crpkns3_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "9dfe2ebd965f2cf7d69d38b7d26f977fa6ce70e1b01a4f12b29b04d394fadbfb"
+    },
+    "crpkbd_plain.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "c116542fe992bee8116c6aed503b950d56988d4f03751336be3d8ad6aaadd848"
+    },
+    "crnvbd_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "17f98e72ea364abab83415d536652c7252f809b07576d95f180e9b15cbbf6983"
+    },
+    "crnvbd_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "a64f99534772fca3fad90da88a70463fd8caed7eca44484eb189753e2998f13e"
+    },
+    "crpkbd0_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "cc15bc5f298bb8cce7503bb12e9357b2313768fbd435036569fdeb0ce3456f61"
+    },
+    "crpkbd1_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "e6c30a1c153ee43d49dbe1af6702a588676071ec74a078fd3b4ce52a41092481"
+    },
+    "crpkbd2_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "3ba007b178298f18d104698bd59fc8b8fffed1d8daed2f4d8ccd8daccde7edef"
+    },
+    "crpkbd3_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "d81b531b573d08f3b39e6a0b34780f27cf2c6ffff04db7d11faa0eb25c0a02d8"
+    },
+    "crpkcc_plain.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "ff06afcc8cc4305d3540730b3333640679ffbbd174f2357f2e93b1e997e62f9d"
+    },
+    "crnvcc_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "563691e146c6ec28e5660dcc982080dd3e318d7e8ff7fba00f0691863e0ca771"
+    },
+    "crnvcc_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "9a2ef7b38d56822ea41335b7d222ae3f7d6ec0769875328440526ad2ee65e1a9"
+    },
+    "crpkcc0_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "9e4143ce720b17a984e9b9d11903f241b44c0ab26578851046b3a957bd266f49"
+    },
+    "crpkcc1_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "3619494c17e8ddbbb04c484708712165926290c3d4747968573b8e28c14c49b3"
+    },
+    "crpkcc2_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "fbbf7992121c75c1c3e551e8fa39ba883a732ef917984652fed230a0d3d79671"
+    },
+    "crpkcc3_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "3fa74ee85ea33038fdf9fca7a1cd37cf8d8e99cdec405823a6f7fa9d51699798"
+    },
+    "crpkcr_plain.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "4d887f81e3bc6f7a0d1a699ca3c70ea107ad1cda160b0fec6d24860ab2e78a4b"
+    },
+    "crnvcr_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "30ecad0cb6af10a8c2733ac62bb060ad79f5b9ac031a5398fe86f029edf28ef2"
+    },
+    "crnvcr_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "e771f5aef1edb1b3b9e344cc127478550ab9fcae11fcc595d132237a54a00320"
+    },
+    "crpkcr0_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "a8d3725b9e500ccc5a2c718bbf5635340261c4d2a4ef9f5cdf3ac89718cc3406"
+    },
+    "crpkcr1_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "52a2a916c95ef6559d1b84a8f5aa976877b122222a0b22dac8b5b2b5e60b80a6"
+    },
+    "crpkcr2_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "4ca8fcf40ad07f44d690528fd71ea4661049c4119db2977cf0579d1e6f1d4bf2"
+    },
+    "crpkcr3_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "38ffacebddb7b6f98fd21ba2f481cd61680aa15765bef2891e1752f96034730f"
+    }
+  },
+  "models": {
+    "crnvns": {
+      "source": "apcamr",
+      "coverage": {
+        "triangles": 208,
+        "totalTriangles": 208
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5621619820594788,
+          "min_y": 0.0015010000206530094,
+          "min_z": -1.0875669717788696,
+          "max_x": 0.5621619820594788,
+          "max_y": 4.659055233001709,
+          "max_z": 1.3690730333328247
+        },
+        "radius": 4.659172058105469,
+        "count": 208,
+        "sha256": "92cc95f695d9a23f0ab3db398706ce754826d91e163d948bf5f58d34e8466805"
+      },
+      "sha256": "bf8cf68ae3cb25fb3140709ff4b1914c275bd3e262cb2047140e5876da5b322b"
+    },
+    "cramns": {
+      "source": "apammo",
+      "coverage": {
+        "triangles": 28,
+        "totalTriangles": 126,
+        "faceGroups": 12,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          0
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8769389986991882,
+          "min_y": 0.29379498958587646,
+          "min_z": -0.8769389986991882,
+          "max_x": 0.8769389986991882,
+          "max_y": 2.6499290466308594,
+          "max_z": 0.8769389986991882
+        },
+        "radius": 2.651768207550049,
+        "count": 126,
+        "sha256": "c1bcf2b67bd4e358448553fb742127d2fc8226d6ff731cbbddf1f0bb16d90c95"
+      },
+      "sha256": "cc5151a0c393ff07af9c3ece4e07c00def003afc5363ea6fc0a8866a20c29ce0"
+    },
+    "crhpns": {
+      "source": "aprepa",
+      "coverage": {
+        "triangles": 50,
+        "totalTriangles": 92,
+        "faceGroups": 25,
+        "badgePanels": 1,
+        "quadrant": [
+          1,
+          0
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.1700010299682617,
+          "min_y": 0.019122999161481857,
+          "min_z": -1.1700010299682617,
+          "max_x": 1.1700010299682617,
+          "max_y": 1.5300029516220093,
+          "max_z": 1.1700010299682617
+        },
+        "radius": 1.5663601160049438,
+        "count": 92,
+        "sha256": "d25b92a68e9ec502a24b98562446e94c419e1987f4a39220479f0b483915dabf"
+      },
+      "sha256": "2288ef9f4ea34e140ac543246c2156d1e3b9f0f6a5c559033eb0f378ecbabd50"
+    },
+    "crwcns": {
+      "source": "apcann",
+      "coverage": {
+        "triangles": 18,
+        "totalTriangles": 620,
+        "faceGroups": 9,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.4676080048084259,
+          "min_y": 0.013151999562978745,
+          "min_z": -0.2416049987077713,
+          "max_x": 0.4676080048084259,
+          "max_y": 3.095319986343384,
+          "max_z": 0.2416049987077713
+        },
+        "radius": 3.1087310314178467,
+        "count": 620,
+        "sha256": "77a40b20955586840d1d827d2ae4567a34977e8a9d03920832c61eeaa95486b4"
+      },
+      "sha256": "cf4eb467a5f9666e5bea514608166555ff54f7752aa5856688efc839d47e0fb2"
+    },
+    "crwrns": {
+      "source": "aprock",
+      "coverage": {
+        "triangles": 8,
+        "totalTriangles": 254,
+        "faceGroups": 8,
+        "badgePanels": 0,
+        "quadrant": [
+          0,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8974270224571228,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.8983439803123474,
+          "max_x": 0.8974270224571228,
+          "max_y": 2.904745101928711,
+          "max_z": 0.8983439803123474
+        },
+        "radius": 2.904745101928711,
+        "count": 254,
+        "sha256": "c68141ab6ced7b7395ab03f9bc765c0b816c41a0a9c379beca88c1a53ab48e7e"
+      },
+      "sha256": "7e1ec6b706faf66e1b724d7d8dd34c0b65695620d07ba2af2b2b3b7db684b758"
+    },
+    "crwmns": {
+      "source": "apmort",
+      "coverage": {
+        "triangles": 32,
+        "totalTriangles": 76,
+        "faceGroups": 16,
+        "badgePanels": 1,
+        "quadrant": [
+          1,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5903080105781555,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.5798239707946777,
+          "max_x": 0.5903080105781555,
+          "max_y": 3.1406829357147217,
+          "max_z": 0.5798239707946777
+        },
+        "radius": 3.141977548599243,
+        "count": 76,
+        "sha256": "436535ca6d1dad4e8b7edfe3613219edc4f8499e669e3f847cd2942d2c851245"
+      },
+      "sha256": "922ef6c8c1dfbf7e7f1605f00abe2995be542297293bc143a3d6a6f28e953c79"
+    },
+    "crwsns": {
+      "source": "apspec",
+      "coverage": {
+        "triangles": 10,
+        "totalTriangles": 100,
+        "faceGroups": 1,
+        "badgePanels": 0,
+        "quadrant": [
+          1,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.3001199960708618,
+          "min_y": 0.16733099520206451,
+          "min_z": -1.346006989479065,
+          "max_x": 1.3001199960708618,
+          "max_y": 1.2486380338668823,
+          "max_z": 1.346006989479065
+        },
+        "radius": 1.7351948022842407,
+        "count": 100,
+        "sha256": "0b254622d95a1db7334f9962bb23d88ed4b805a7bbc5cbf23d22536eb56d9e83"
+      },
+      "sha256": "f2c5968d54d44ab20749f72fe0c9de6aded61cf720e748073cbcd98d14b497d1"
+    },
+    "crnvbd": {
+      "source": "apcamr",
+      "coverage": {
+        "triangles": 208,
+        "totalTriangles": 208
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5621619820594788,
+          "min_y": 0.0015010000206530094,
+          "min_z": -1.0875669717788696,
+          "max_x": 0.5621619820594788,
+          "max_y": 4.659055233001709,
+          "max_z": 1.3690730333328247
+        },
+        "radius": 4.659172058105469,
+        "count": 208,
+        "sha256": "92cc95f695d9a23f0ab3db398706ce754826d91e163d948bf5f58d34e8466805"
+      },
+      "sha256": "bc5bcde94d5988af80e04b7ee461cf64f85603b6e6d9bc5d92a85628dd8ad307"
+    },
+    "crambd": {
+      "source": "apammo",
+      "coverage": {
+        "triangles": 28,
+        "totalTriangles": 126,
+        "faceGroups": 12,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          0
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8769389986991882,
+          "min_y": 0.29379498958587646,
+          "min_z": -0.8769389986991882,
+          "max_x": 0.8769389986991882,
+          "max_y": 2.6499290466308594,
+          "max_z": 0.8769389986991882
+        },
+        "radius": 2.651768207550049,
+        "count": 126,
+        "sha256": "c1bcf2b67bd4e358448553fb742127d2fc8226d6ff731cbbddf1f0bb16d90c95"
+      },
+      "sha256": "ac9942f117bb594385b82abfc6c0c6082363df3009885bc316bf51d5affa4d3c"
+    },
+    "crhpbd": {
+      "source": "aprepa",
+      "coverage": {
+        "triangles": 50,
+        "totalTriangles": 92,
+        "faceGroups": 25,
+        "badgePanels": 1,
+        "quadrant": [
+          1,
+          0
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.1700010299682617,
+          "min_y": 0.019122999161481857,
+          "min_z": -1.1700010299682617,
+          "max_x": 1.1700010299682617,
+          "max_y": 1.5300029516220093,
+          "max_z": 1.1700010299682617
+        },
+        "radius": 1.5663601160049438,
+        "count": 92,
+        "sha256": "d25b92a68e9ec502a24b98562446e94c419e1987f4a39220479f0b483915dabf"
+      },
+      "sha256": "434516a04bc9bebac3ec7aa008fec8e50f408d93251cbe129ea992a94ff246dd"
+    },
+    "crwcbd": {
+      "source": "apcann",
+      "coverage": {
+        "triangles": 18,
+        "totalTriangles": 620,
+        "faceGroups": 9,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.4676080048084259,
+          "min_y": 0.013151999562978745,
+          "min_z": -0.2416049987077713,
+          "max_x": 0.4676080048084259,
+          "max_y": 3.095319986343384,
+          "max_z": 0.2416049987077713
+        },
+        "radius": 3.1087310314178467,
+        "count": 620,
+        "sha256": "77a40b20955586840d1d827d2ae4567a34977e8a9d03920832c61eeaa95486b4"
+      },
+      "sha256": "7187b7103e009a2b6d0ce01ee43e052948724c617cdffcab182381c4c676b261"
+    },
+    "crwrbd": {
+      "source": "aprock",
+      "coverage": {
+        "triangles": 8,
+        "totalTriangles": 254,
+        "faceGroups": 8,
+        "badgePanels": 0,
+        "quadrant": [
+          0,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8974270224571228,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.8983439803123474,
+          "max_x": 0.8974270224571228,
+          "max_y": 2.904745101928711,
+          "max_z": 0.8983439803123474
+        },
+        "radius": 2.904745101928711,
+        "count": 254,
+        "sha256": "c68141ab6ced7b7395ab03f9bc765c0b816c41a0a9c379beca88c1a53ab48e7e"
+      },
+      "sha256": "76fd0bee1acf3d9ea182d4dbed5d21ce914e60ad9543cf7c6f045d6016dde5d6"
+    },
+    "crwmbd": {
+      "source": "apmort",
+      "coverage": {
+        "triangles": 32,
+        "totalTriangles": 76,
+        "faceGroups": 16,
+        "badgePanels": 1,
+        "quadrant": [
+          1,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5903080105781555,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.5798239707946777,
+          "max_x": 0.5903080105781555,
+          "max_y": 3.1406829357147217,
+          "max_z": 0.5798239707946777
+        },
+        "radius": 3.141977548599243,
+        "count": 76,
+        "sha256": "436535ca6d1dad4e8b7edfe3613219edc4f8499e669e3f847cd2942d2c851245"
+      },
+      "sha256": "f154fe0b9de2daf030b472fdbb81b8fab2a3b5c2bbd09795c91bae8c3c3087b9"
+    },
+    "crwsbd": {
+      "source": "apspec",
+      "coverage": {
+        "triangles": 10,
+        "totalTriangles": 100,
+        "faceGroups": 1,
+        "badgePanels": 0,
+        "quadrant": [
+          1,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.3001199960708618,
+          "min_y": 0.16733099520206451,
+          "min_z": -1.346006989479065,
+          "max_x": 1.3001199960708618,
+          "max_y": 1.2486380338668823,
+          "max_z": 1.346006989479065
+        },
+        "radius": 1.7351948022842407,
+        "count": 100,
+        "sha256": "0b254622d95a1db7334f9962bb23d88ed4b805a7bbc5cbf23d22536eb56d9e83"
+      },
+      "sha256": "1b31bfdef172db6f4a9783772407a1f0b19f9bcc17cd06b2bed68405d1b78415"
+    },
+    "crnvcc": {
+      "source": "apcamr",
+      "coverage": {
+        "triangles": 208,
+        "totalTriangles": 208
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5621619820594788,
+          "min_y": 0.0015010000206530094,
+          "min_z": -1.0875669717788696,
+          "max_x": 0.5621619820594788,
+          "max_y": 4.659055233001709,
+          "max_z": 1.3690730333328247
+        },
+        "radius": 4.659172058105469,
+        "count": 208,
+        "sha256": "92cc95f695d9a23f0ab3db398706ce754826d91e163d948bf5f58d34e8466805"
+      },
+      "sha256": "a86cba3e1db18cb631ca6c98b5bc19c43fab82123a645e82972f41ad428ba101"
+    },
+    "cramcc": {
+      "source": "apammo",
+      "coverage": {
+        "triangles": 28,
+        "totalTriangles": 126,
+        "faceGroups": 12,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          0
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8769389986991882,
+          "min_y": 0.29379498958587646,
+          "min_z": -0.8769389986991882,
+          "max_x": 0.8769389986991882,
+          "max_y": 2.6499290466308594,
+          "max_z": 0.8769389986991882
+        },
+        "radius": 2.651768207550049,
+        "count": 126,
+        "sha256": "c1bcf2b67bd4e358448553fb742127d2fc8226d6ff731cbbddf1f0bb16d90c95"
+      },
+      "sha256": "97c136b61110a09e2764b9a3b068d6c2e003b2bd0fb8d13aae4a21db5bc47cd0"
+    },
+    "crhpcc": {
+      "source": "aprepa",
+      "coverage": {
+        "triangles": 50,
+        "totalTriangles": 92,
+        "faceGroups": 25,
+        "badgePanels": 1,
+        "quadrant": [
+          1,
+          0
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.1700010299682617,
+          "min_y": 0.019122999161481857,
+          "min_z": -1.1700010299682617,
+          "max_x": 1.1700010299682617,
+          "max_y": 1.5300029516220093,
+          "max_z": 1.1700010299682617
+        },
+        "radius": 1.5663601160049438,
+        "count": 92,
+        "sha256": "d25b92a68e9ec502a24b98562446e94c419e1987f4a39220479f0b483915dabf"
+      },
+      "sha256": "4002dbe4524843a94879c5904e6452b4303bba47e8a27af52805c154398d0722"
+    },
+    "crwccc": {
+      "source": "apcann",
+      "coverage": {
+        "triangles": 18,
+        "totalTriangles": 620,
+        "faceGroups": 9,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.4676080048084259,
+          "min_y": 0.013151999562978745,
+          "min_z": -0.2416049987077713,
+          "max_x": 0.4676080048084259,
+          "max_y": 3.095319986343384,
+          "max_z": 0.2416049987077713
+        },
+        "radius": 3.1087310314178467,
+        "count": 620,
+        "sha256": "77a40b20955586840d1d827d2ae4567a34977e8a9d03920832c61eeaa95486b4"
+      },
+      "sha256": "9d93d06ab5ab8625c02db192a55f3199756683e31917cc231c0c98342da544ac"
+    },
+    "crwrcc": {
+      "source": "aprock",
+      "coverage": {
+        "triangles": 8,
+        "totalTriangles": 254,
+        "faceGroups": 8,
+        "badgePanels": 0,
+        "quadrant": [
+          0,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8974270224571228,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.8983439803123474,
+          "max_x": 0.8974270224571228,
+          "max_y": 2.904745101928711,
+          "max_z": 0.8983439803123474
+        },
+        "radius": 2.904745101928711,
+        "count": 254,
+        "sha256": "c68141ab6ced7b7395ab03f9bc765c0b816c41a0a9c379beca88c1a53ab48e7e"
+      },
+      "sha256": "9e36b88d13adaa7c599f9166b18fad86e333c1fdb918f4ff6df7800a2cf025db"
+    },
+    "crwmcc": {
+      "source": "apmort",
+      "coverage": {
+        "triangles": 32,
+        "totalTriangles": 76,
+        "faceGroups": 16,
+        "badgePanels": 1,
+        "quadrant": [
+          1,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5903080105781555,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.5798239707946777,
+          "max_x": 0.5903080105781555,
+          "max_y": 3.1406829357147217,
+          "max_z": 0.5798239707946777
+        },
+        "radius": 3.141977548599243,
+        "count": 76,
+        "sha256": "436535ca6d1dad4e8b7edfe3613219edc4f8499e669e3f847cd2942d2c851245"
+      },
+      "sha256": "6b37121b88f149aad30cd0c5cb31e5d3880bded010a5ff25f920e607e1f8df38"
+    },
+    "crwscc": {
+      "source": "apspec",
+      "coverage": {
+        "triangles": 10,
+        "totalTriangles": 100,
+        "faceGroups": 1,
+        "badgePanels": 0,
+        "quadrant": [
+          1,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.3001199960708618,
+          "min_y": 0.16733099520206451,
+          "min_z": -1.346006989479065,
+          "max_x": 1.3001199960708618,
+          "max_y": 1.2486380338668823,
+          "max_z": 1.346006989479065
+        },
+        "radius": 1.7351948022842407,
+        "count": 100,
+        "sha256": "0b254622d95a1db7334f9962bb23d88ed4b805a7bbc5cbf23d22536eb56d9e83"
+      },
+      "sha256": "5907dc5de03bb15412145d4bffe820cb8e0692ae23e540ccd1750f4b932a4ab5"
+    },
+    "crnvcr": {
+      "source": "apcamr",
+      "coverage": {
+        "triangles": 208,
+        "totalTriangles": 208
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5621619820594788,
+          "min_y": 0.0015010000206530094,
+          "min_z": -1.0875669717788696,
+          "max_x": 0.5621619820594788,
+          "max_y": 4.659055233001709,
+          "max_z": 1.3690730333328247
+        },
+        "radius": 4.659172058105469,
+        "count": 208,
+        "sha256": "92cc95f695d9a23f0ab3db398706ce754826d91e163d948bf5f58d34e8466805"
+      },
+      "sha256": "4eb30c79d01bd95338c05c58da7116e4d0aff9e93e2f38734e8085f4193a85c0"
+    },
+    "cramcr": {
+      "source": "apammo",
+      "coverage": {
+        "triangles": 28,
+        "totalTriangles": 126,
+        "faceGroups": 12,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          0
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8769389986991882,
+          "min_y": 0.29379498958587646,
+          "min_z": -0.8769389986991882,
+          "max_x": 0.8769389986991882,
+          "max_y": 2.6499290466308594,
+          "max_z": 0.8769389986991882
+        },
+        "radius": 2.651768207550049,
+        "count": 126,
+        "sha256": "c1bcf2b67bd4e358448553fb742127d2fc8226d6ff731cbbddf1f0bb16d90c95"
+      },
+      "sha256": "a334eef88e30540983a61693771f79453be1b4121e3b5eacfaed6b7c3b61646b"
+    },
+    "crhpcr": {
+      "source": "aprepa",
+      "coverage": {
+        "triangles": 50,
+        "totalTriangles": 92,
+        "faceGroups": 25,
+        "badgePanels": 1,
+        "quadrant": [
+          1,
+          0
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.1700010299682617,
+          "min_y": 0.019122999161481857,
+          "min_z": -1.1700010299682617,
+          "max_x": 1.1700010299682617,
+          "max_y": 1.5300029516220093,
+          "max_z": 1.1700010299682617
+        },
+        "radius": 1.5663601160049438,
+        "count": 92,
+        "sha256": "d25b92a68e9ec502a24b98562446e94c419e1987f4a39220479f0b483915dabf"
+      },
+      "sha256": "e8f6a952d4309eddcef27603d02250ee4bae5bdff5b8215499cfb05778f04cd2"
+    },
+    "crwccr": {
+      "source": "apcann",
+      "coverage": {
+        "triangles": 18,
+        "totalTriangles": 620,
+        "faceGroups": 9,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.4676080048084259,
+          "min_y": 0.013151999562978745,
+          "min_z": -0.2416049987077713,
+          "max_x": 0.4676080048084259,
+          "max_y": 3.095319986343384,
+          "max_z": 0.2416049987077713
+        },
+        "radius": 3.1087310314178467,
+        "count": 620,
+        "sha256": "77a40b20955586840d1d827d2ae4567a34977e8a9d03920832c61eeaa95486b4"
+      },
+      "sha256": "0fbf0d33173a99db4a36117dd797345c51415b88cdb617299cad3521f4d4703c"
+    },
+    "crwrcr": {
+      "source": "aprock",
+      "coverage": {
+        "triangles": 8,
+        "totalTriangles": 254,
+        "faceGroups": 8,
+        "badgePanels": 0,
+        "quadrant": [
+          0,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8974270224571228,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.8983439803123474,
+          "max_x": 0.8974270224571228,
+          "max_y": 2.904745101928711,
+          "max_z": 0.8983439803123474
+        },
+        "radius": 2.904745101928711,
+        "count": 254,
+        "sha256": "c68141ab6ced7b7395ab03f9bc765c0b816c41a0a9c379beca88c1a53ab48e7e"
+      },
+      "sha256": "be48eb991c4f40a111198591d134e260f58076dd590042549f9a20f2303f38ce"
+    },
+    "crwmcr": {
+      "source": "apmort",
+      "coverage": {
+        "triangles": 32,
+        "totalTriangles": 76,
+        "faceGroups": 16,
+        "badgePanels": 1,
+        "quadrant": [
+          1,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5903080105781555,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.5798239707946777,
+          "max_x": 0.5903080105781555,
+          "max_y": 3.1406829357147217,
+          "max_z": 0.5798239707946777
+        },
+        "radius": 3.141977548599243,
+        "count": 76,
+        "sha256": "436535ca6d1dad4e8b7edfe3613219edc4f8499e669e3f847cd2942d2c851245"
+      },
+      "sha256": "674a0e18f9686ca8a90ed96e7da211eb8ddacefeb9c9f29d568522a09e357022"
+    },
+    "crwscr": {
+      "source": "apspec",
+      "coverage": {
+        "triangles": 10,
+        "totalTriangles": 100,
+        "faceGroups": 1,
+        "badgePanels": 0,
+        "quadrant": [
+          1,
+          1
+        ]
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.3001199960708618,
+          "min_y": 0.16733099520206451,
+          "min_z": -1.346006989479065,
+          "max_x": 1.3001199960708618,
+          "max_y": 1.2486380338668823,
+          "max_z": 1.346006989479065
+        },
+        "radius": 1.7351948022842407,
+        "count": 100,
+        "sha256": "0b254622d95a1db7334f9962bb23d88ed4b805a7bbc5cbf23d22536eb56d9e83"
+      },
+      "sha256": "7adc8d1fee388df86430a5675341b9e9cea2b0331ba1d8b32817106096f0edc5"
+    }
+  },
+  "odfs": {
+    "napammo": {
+      "source": "apammo.odf",
+      "model": "cramns",
+      "faction": "NSDF"
+    },
+    "napammoa": {
+      "source": "apammoa.odf",
+      "model": "cramns",
+      "faction": "NSDF"
+    },
+    "napammob": {
+      "source": "apammob.odf",
+      "model": "cramns",
+      "faction": "NSDF"
+    },
+    "napartl": {
+      "source": "apartl.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "napblst": {
+      "source": "apblst.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napblstb": {
+      "source": "apblstb.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napblstg": {
+      "source": "apblstg.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napbltm": {
+      "source": "apbltm.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napbltmg": {
+      "source": "apbltmg.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napbltmr": {
+      "source": "apbltmr.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napbolt": {
+      "source": "apbolt.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napboltg": {
+      "source": "apboltg.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napboltr": {
+      "source": "apboltr.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napbsstb": {
+      "source": "apbsstb.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napcamr": {
+      "source": "apcamr.odf",
+      "model": "crnvns",
+      "faction": "NSDF"
+    },
+    "napcmet": {
+      "source": "apcmet.odf",
+      "model": "crwrns",
+      "faction": "NSDF"
+    },
+    "napflar": {
+      "source": "apflar.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napflsh": {
+      "source": "apflsh.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napflshb": {
+      "source": "apflshb.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napflshg": {
+      "source": "apflshg.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napgmini": {
+      "source": "apgmini.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "naphartl": {
+      "source": "aphartl.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "naphorn": {
+      "source": "aphorn.odf",
+      "model": "crwrns",
+      "faction": "NSDF"
+    },
+    "naplgmsl": {
+      "source": "aplgmsl.odf",
+      "model": "crwrns",
+      "faction": "NSDF"
+    },
+    "napmagg": {
+      "source": "apmagg.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napmasg": {
+      "source": "apmasg.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napmcur": {
+      "source": "apmcur.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napmdmg": {
+      "source": "apmdmg.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "napmini": {
+      "source": "apmini.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napmits": {
+      "source": "apmits.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napmort": {
+      "source": "apmort.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "napphan": {
+      "source": "apphan.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "nappopg": {
+      "source": "appopg.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "napprox": {
+      "source": "approx.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napredf": {
+      "source": "apredf.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "naprepa": {
+      "source": "aprepa.odf",
+      "model": "crhpns",
+      "faction": "NSDF"
+    },
+    "naprepaa": {
+      "source": "aprepaa.odf",
+      "model": "crhpns",
+      "faction": "NSDF"
+    },
+    "naprepab": {
+      "source": "aprepab.odf",
+      "model": "crhpns",
+      "faction": "NSDF"
+    },
+    "naprktb": {
+      "source": "aprktb.odf",
+      "model": "crwrns",
+      "faction": "NSDF"
+    },
+    "napsand": {
+      "source": "apsand.odf",
+      "model": "crwrns",
+      "faction": "NSDF"
+    },
+    "napshdw": {
+      "source": "apshdw.odf",
+      "model": "crwrns",
+      "faction": "NSDF"
+    },
+    "napsite": {
+      "source": "apsite.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napspln": {
+      "source": "apspln.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "napsplng": {
+      "source": "apsplng.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "napsplnr": {
+      "source": "apsplnr.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "napsstb": {
+      "source": "apsstb.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napsstba": {
+      "source": "apsstba.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napstab": {
+      "source": "apstab.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "naptagg": {
+      "source": "aptagg.odf",
+      "model": "crwrns",
+      "faction": "NSDF"
+    },
+    "naptech": {
+      "source": "aptech.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napthmp": {
+      "source": "apthmp.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "naptsmok": {
+      "source": "aptsmok.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "bapammo": {
+      "source": "apammo.odf",
+      "model": "crambd",
+      "faction": "Black Dog"
+    },
+    "bapammoa": {
+      "source": "apammoa.odf",
+      "model": "crambd",
+      "faction": "Black Dog"
+    },
+    "bapammob": {
+      "source": "apammob.odf",
+      "model": "crambd",
+      "faction": "Black Dog"
+    },
+    "bapartl": {
+      "source": "apartl.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "bapblst": {
+      "source": "apblst.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapblstb": {
+      "source": "apblstb.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapblstg": {
+      "source": "apblstg.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapbltm": {
+      "source": "apbltm.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapbltmg": {
+      "source": "apbltmg.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapbltmr": {
+      "source": "apbltmr.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapbolt": {
+      "source": "apbolt.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapboltg": {
+      "source": "apboltg.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapboltr": {
+      "source": "apboltr.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapbsstb": {
+      "source": "apbsstb.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapcamr": {
+      "source": "apcamr.odf",
+      "model": "crnvbd",
+      "faction": "Black Dog"
+    },
+    "bapcmet": {
+      "source": "apcmet.odf",
+      "model": "crwrbd",
+      "faction": "Black Dog"
+    },
+    "bapflar": {
+      "source": "apflar.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapflsh": {
+      "source": "apflsh.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapflshb": {
+      "source": "apflshb.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapflshg": {
+      "source": "apflshg.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapgmini": {
+      "source": "apgmini.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "baphartl": {
+      "source": "aphartl.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "baphorn": {
+      "source": "aphorn.odf",
+      "model": "crwrbd",
+      "faction": "Black Dog"
+    },
+    "baplgmsl": {
+      "source": "aplgmsl.odf",
+      "model": "crwrbd",
+      "faction": "Black Dog"
+    },
+    "bapmagg": {
+      "source": "apmagg.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapmasg": {
+      "source": "apmasg.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapmcur": {
+      "source": "apmcur.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapmdmg": {
+      "source": "apmdmg.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "bapmini": {
+      "source": "apmini.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapmits": {
+      "source": "apmits.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapmort": {
+      "source": "apmort.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "bapphan": {
+      "source": "apphan.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bappopg": {
+      "source": "appopg.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "bapprox": {
+      "source": "approx.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapredf": {
+      "source": "apredf.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "baprepa": {
+      "source": "aprepa.odf",
+      "model": "crhpbd",
+      "faction": "Black Dog"
+    },
+    "baprepaa": {
+      "source": "aprepaa.odf",
+      "model": "crhpbd",
+      "faction": "Black Dog"
+    },
+    "baprepab": {
+      "source": "aprepab.odf",
+      "model": "crhpbd",
+      "faction": "Black Dog"
+    },
+    "baprktb": {
+      "source": "aprktb.odf",
+      "model": "crwrbd",
+      "faction": "Black Dog"
+    },
+    "bapsand": {
+      "source": "apsand.odf",
+      "model": "crwrbd",
+      "faction": "Black Dog"
+    },
+    "bapshdw": {
+      "source": "apshdw.odf",
+      "model": "crwrbd",
+      "faction": "Black Dog"
+    },
+    "bapsite": {
+      "source": "apsite.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapspln": {
+      "source": "apspln.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "bapsplng": {
+      "source": "apsplng.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "bapsplnr": {
+      "source": "apsplnr.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "bapsstb": {
+      "source": "apsstb.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapsstba": {
+      "source": "apsstba.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapstab": {
+      "source": "apstab.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "baptagg": {
+      "source": "aptagg.odf",
+      "model": "crwrbd",
+      "faction": "Black Dog"
+    },
+    "baptech": {
+      "source": "aptech.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapthmp": {
+      "source": "apthmp.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "baptsmok": {
+      "source": "aptsmok.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "sapammo": {
+      "source": "apammo.odf",
+      "model": "cramcc",
+      "faction": "CCA"
+    },
+    "sapammoa": {
+      "source": "apammoa.odf",
+      "model": "cramcc",
+      "faction": "CCA"
+    },
+    "sapammob": {
+      "source": "apammob.odf",
+      "model": "cramcc",
+      "faction": "CCA"
+    },
+    "sapartl": {
+      "source": "apartl.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sapblst": {
+      "source": "apblst.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapblstb": {
+      "source": "apblstb.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapblstg": {
+      "source": "apblstg.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapbltm": {
+      "source": "apbltm.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapbltmg": {
+      "source": "apbltmg.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapbltmr": {
+      "source": "apbltmr.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapbolt": {
+      "source": "apbolt.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapboltg": {
+      "source": "apboltg.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapboltr": {
+      "source": "apboltr.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapbsstb": {
+      "source": "apbsstb.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapcamr": {
+      "source": "apcamr.odf",
+      "model": "crnvcc",
+      "faction": "CCA"
+    },
+    "sapcmet": {
+      "source": "apcmet.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sapflar": {
+      "source": "apflar.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapflsh": {
+      "source": "apflsh.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapflshb": {
+      "source": "apflshb.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapflshg": {
+      "source": "apflshg.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapgmini": {
+      "source": "apgmini.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "saphartl": {
+      "source": "aphartl.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "saphorn": {
+      "source": "aphorn.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "saplgmsl": {
+      "source": "aplgmsl.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sapmagg": {
+      "source": "apmagg.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapmasg": {
+      "source": "apmasg.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapmcur": {
+      "source": "apmcur.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapmdmg": {
+      "source": "apmdmg.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sapmini": {
+      "source": "apmini.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapmits": {
+      "source": "apmits.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapmort": {
+      "source": "apmort.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sapphan": {
+      "source": "apphan.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sappopg": {
+      "source": "appopg.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sapprox": {
+      "source": "approx.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapredf": {
+      "source": "apredf.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "saprepa": {
+      "source": "aprepa.odf",
+      "model": "crhpcc",
+      "faction": "CCA"
+    },
+    "saprepaa": {
+      "source": "aprepaa.odf",
+      "model": "crhpcc",
+      "faction": "CCA"
+    },
+    "saprepab": {
+      "source": "aprepab.odf",
+      "model": "crhpcc",
+      "faction": "CCA"
+    },
+    "saprktb": {
+      "source": "aprktb.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sapsand": {
+      "source": "apsand.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sapshdw": {
+      "source": "apshdw.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sapsite": {
+      "source": "apsite.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapspln": {
+      "source": "apspln.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sapsplng": {
+      "source": "apsplng.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sapsplnr": {
+      "source": "apsplnr.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sapsstb": {
+      "source": "apsstb.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapsstba": {
+      "source": "apsstba.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapstab": {
+      "source": "apstab.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "saptagg": {
+      "source": "aptagg.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "saptech": {
+      "source": "aptech.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapthmp": {
+      "source": "apthmp.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "saptsmok": {
+      "source": "aptsmok.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sspammo": {
+      "source": "spammo.odf",
+      "model": "cramcc",
+      "faction": "CCA"
+    },
+    "sspbett": {
+      "source": "spbett.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sspblst": {
+      "source": "spblst.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sspcamr": {
+      "source": "spcamr.odf",
+      "model": "crnvcc",
+      "faction": "CCA"
+    },
+    "sspcmet": {
+      "source": "spcmet.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sspflar": {
+      "source": "spflar.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sspflsh": {
+      "source": "spflsh.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "ssphunt": {
+      "source": "sphunt.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sspmagg": {
+      "source": "spmagg.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sspmcur": {
+      "source": "spmcur.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sspmdmg": {
+      "source": "spmdmg.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sspmini": {
+      "source": "spmini.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sspmits": {
+      "source": "spmits.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "ssppopg": {
+      "source": "sppopg.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sspredf": {
+      "source": "spredf.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "ssprepa": {
+      "source": "sprepa.odf",
+      "model": "crhpcc",
+      "faction": "CCA"
+    },
+    "ssprktb": {
+      "source": "sprktb.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sspsand": {
+      "source": "spsand.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sspshdw": {
+      "source": "spshdw.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sspsite": {
+      "source": "spsite.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sspsmort": {
+      "source": "spsmort.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sspspln": {
+      "source": "spspln.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sspsstb": {
+      "source": "spsstb.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sspstab": {
+      "source": "spstab.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sspstlk": {
+      "source": "spstlk.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "ssptagg": {
+      "source": "sptagg.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sspthmp": {
+      "source": "spthmp.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "capammo": {
+      "source": "apammo.odf",
+      "model": "cramcr",
+      "faction": "CRA"
+    },
+    "capammoa": {
+      "source": "apammoa.odf",
+      "model": "cramcr",
+      "faction": "CRA"
+    },
+    "capammob": {
+      "source": "apammob.odf",
+      "model": "cramcr",
+      "faction": "CRA"
+    },
+    "capartl": {
+      "source": "apartl.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "capblst": {
+      "source": "apblst.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capblstb": {
+      "source": "apblstb.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capblstg": {
+      "source": "apblstg.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capbltm": {
+      "source": "apbltm.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capbltmg": {
+      "source": "apbltmg.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capbltmr": {
+      "source": "apbltmr.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capbolt": {
+      "source": "apbolt.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capboltg": {
+      "source": "apboltg.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capboltr": {
+      "source": "apboltr.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capbsstb": {
+      "source": "apbsstb.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capcamr": {
+      "source": "apcamr.odf",
+      "model": "crnvcr",
+      "faction": "CRA"
+    },
+    "capcmet": {
+      "source": "apcmet.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "capflar": {
+      "source": "apflar.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capflsh": {
+      "source": "apflsh.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capflshb": {
+      "source": "apflshb.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capflshg": {
+      "source": "apflshg.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capgmini": {
+      "source": "apgmini.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "caphartl": {
+      "source": "aphartl.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "caphorn": {
+      "source": "aphorn.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "caplgmsl": {
+      "source": "aplgmsl.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "capmagg": {
+      "source": "apmagg.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capmasg": {
+      "source": "apmasg.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capmcur": {
+      "source": "apmcur.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capmdmg": {
+      "source": "apmdmg.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "capmini": {
+      "source": "apmini.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capmits": {
+      "source": "apmits.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capmort": {
+      "source": "apmort.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "capphan": {
+      "source": "apphan.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "cappopg": {
+      "source": "appopg.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "capprox": {
+      "source": "approx.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capredf": {
+      "source": "apredf.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "caprepa": {
+      "source": "aprepa.odf",
+      "model": "crhpcr",
+      "faction": "CRA"
+    },
+    "caprepaa": {
+      "source": "aprepaa.odf",
+      "model": "crhpcr",
+      "faction": "CRA"
+    },
+    "caprepab": {
+      "source": "aprepab.odf",
+      "model": "crhpcr",
+      "faction": "CRA"
+    },
+    "caprktb": {
+      "source": "aprktb.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "capsand": {
+      "source": "apsand.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "capshdw": {
+      "source": "apshdw.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "capsite": {
+      "source": "apsite.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capspln": {
+      "source": "apspln.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "capsplng": {
+      "source": "apsplng.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "capsplnr": {
+      "source": "apsplnr.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "capsstb": {
+      "source": "apsstb.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capsstba": {
+      "source": "apsstba.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capstab": {
+      "source": "apstab.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "captagg": {
+      "source": "aptagg.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "captech": {
+      "source": "aptech.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capthmp": {
+      "source": "apthmp.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "captsmok": {
+      "source": "aptsmok.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "ccpsstb": {
+      "source": "cpsstb.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "ccptesla": {
+      "source": "cptesla.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "cspammo": {
+      "source": "spammo.odf",
+      "model": "cramcr",
+      "faction": "CRA"
+    },
+    "cspblst": {
+      "source": "spblst.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "cspcamr": {
+      "source": "spcamr.odf",
+      "model": "crnvcr",
+      "faction": "CRA"
+    },
+    "cspcmet": {
+      "source": "spcmet.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "cspflar": {
+      "source": "spflar.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "cspflsh": {
+      "source": "spflsh.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "csphorn": {
+      "source": "sphorn.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "cspmagg": {
+      "source": "spmagg.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "cspmcur": {
+      "source": "spmcur.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "cspmdmg": {
+      "source": "spmdmg.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "cspmini": {
+      "source": "spmini.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "cspmits": {
+      "source": "spmits.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "cspmort": {
+      "source": "spmort.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "cspphan": {
+      "source": "spphan.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "csppopg": {
+      "source": "sppopg.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "cspredf": {
+      "source": "spredf.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "csprepa": {
+      "source": "sprepa.odf",
+      "model": "crhpcr",
+      "faction": "CRA"
+    },
+    "csprktb": {
+      "source": "sprktb.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "cspsand": {
+      "source": "spsand.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "cspshdw": {
+      "source": "spshdw.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "cspsite": {
+      "source": "spsite.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "cspstab": {
+      "source": "spstab.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "csptagg": {
+      "source": "sptagg.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "cspthmp": {
+      "source": "spthmp.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    }
+  },
+  "menuRoutes": 40,
+  "masters": {
+    "nav_bd.png": "507a85582762bade2513b2158b087f8411dc96d5ec9927929b4458a90a90130c",
+    "nav_cc.png": "39171bd7c356f6d9ac52f8d05e380cffaeb0fde7534a6ab51ccb49e1c0ffabb8",
+    "nav_cr.png": "7ca756aafcb7403d0ae44ba6bd4542d8e61f642da4c065ec906bf5c99d3e6775",
+    "nav_ns.png": "3e761e736850fd688ea8ef68bc4d9c18c4d2fa8b9e67ea375409294ae9b3496a",
+    "panels_bd.png": "f07d2116472e2c049f969e2256d2169cbc752886aeeb633a85f7d3a212916068",
+    "panels_cc.png": "14698c3765040ec868cebf062d02c601081717350ae5fa196a4f35bece88ebc2",
+    "panels_cr.png": "d4414a6d2adfc5e68c0464fd02223fe57ff75160df70d9bb1af332b042ee86b8",
+    "panels_ns.png": "aa3176f0c9a922520f3df4d9fc295fcfb88c297171190ba300f73048af6d157b",
+    "plain-finishes.png": "068161f53392fea9fc9e27a954159bef1475d4263298135c28b8abf9490d4cdd"
+  }
+}

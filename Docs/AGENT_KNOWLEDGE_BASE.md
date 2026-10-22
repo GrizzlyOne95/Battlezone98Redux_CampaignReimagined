@@ -945,6 +945,13 @@ chains over stock `abstor` geometry. Existing `abstor`/`bbstor` selectors receiv
 matching NSDF/Black Dog art too. Do not silently swap CCA/CRA objects by team or
 change explosive `abstora` gameplay. Emissive extraction is confined to the
 status-lamp UV region so painted red stars/stripes never become glowing lamps.
+Faction navs/pickups: see `Docs/FACTION_NAV_PICKUPS.md`. Keep original ODF
+identity in the namespaced lookup: Soviet `spmini` is `gminisov`, not NSDF
+`gminigun`, and `spammo` restores 700 rather than 500. Menu routing tests compare
+every non-slot field and each exact source payload. For art, do not stamp a
+framed badge per facet or enlarge its corner as plain metal: use a separate
+quiet finish and check the complete emblem footprint against mapped triangles.
+Unpack pickup-type atlas cells before mip generation to avoid neighbor bleed.
 
 ### Moon independent HD tiles and normal polarity (2026-10-20)
 
