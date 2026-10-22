@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-21T07:48:17-05:00",
-  "count": 4217,
+  "count": 4225,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -1148,12 +1148,20 @@
       "runtime": "crpkbd0_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crpkbd0_e.dds",
+      "runtime": "crpkbd0_e.dds"
+    },
+    {
       "source": "Assets\\Textures\\crpkbd0_surf.dds",
       "runtime": "crpkbd0_surf.dds"
     },
     {
       "source": "Assets\\Textures\\crpkbd1_d.dds",
       "runtime": "crpkbd1_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkbd1_e.dds",
+      "runtime": "crpkbd1_e.dds"
     },
     {
       "source": "Assets\\Textures\\crpkbd1_surf.dds",
@@ -1176,12 +1184,20 @@
       "runtime": "crpkcc0_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crpkcc0_e.dds",
+      "runtime": "crpkcc0_e.dds"
+    },
+    {
       "source": "Assets\\Textures\\crpkcc0_surf.dds",
       "runtime": "crpkcc0_surf.dds"
     },
     {
       "source": "Assets\\Textures\\crpkcc1_d.dds",
       "runtime": "crpkcc1_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkcc1_e.dds",
+      "runtime": "crpkcc1_e.dds"
     },
     {
       "source": "Assets\\Textures\\crpkcc1_surf.dds",
@@ -1204,12 +1220,20 @@
       "runtime": "crpkcr0_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crpkcr0_e.dds",
+      "runtime": "crpkcr0_e.dds"
+    },
+    {
       "source": "Assets\\Textures\\crpkcr0_surf.dds",
       "runtime": "crpkcr0_surf.dds"
     },
     {
       "source": "Assets\\Textures\\crpkcr1_d.dds",
       "runtime": "crpkcr1_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkcr1_e.dds",
+      "runtime": "crpkcr1_e.dds"
     },
     {
       "source": "Assets\\Textures\\crpkcr1_surf.dds",
@@ -1232,12 +1256,20 @@
       "runtime": "crpkns0_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crpkns0_e.dds",
+      "runtime": "crpkns0_e.dds"
+    },
+    {
       "source": "Assets\\Textures\\crpkns0_surf.dds",
       "runtime": "crpkns0_surf.dds"
     },
     {
       "source": "Assets\\Textures\\crpkns1_d.dds",
       "runtime": "crpkns1_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkns1_e.dds",
+      "runtime": "crpkns1_e.dds"
     },
     {
       "source": "Assets\\Textures\\crpkns1_surf.dds",

@@ -952,11 +952,19 @@ every non-slot field and each exact source payload. For art, do not stamp a
 framed badge per facet or enlarge its corner as plain metal: use a separate
 quiet finish and check the complete emblem footprint against mapped triangles.
 Unpack pickup-type atlas cells before mip generation to avoid neighbor bleed.
-The owner rejected plain recolored ammo/repair metal too: v2 uses authored
-mechanical utility panels, including narrow faces excluded by badge-fit rules.
-Do not equate "cannot fit a badge" with "must stay featureless". Keep utility
-UV allocation separate from emblem eligibility; repair uses ivory/green art,
-not a whole-casing green tint. Nav v2 hazard bands are faction-specific patterns.
+The owner rejected plain recolored ammo/repair metal and the v2 vent-panel
+collage. The selected v3 keeps stock silhouettes and fully unwraps every
+triangle into continuous perimeter/top/underside charts (`Tools/poduv.py`), one
+material with 1024px D/E maps. New purpose-built pod shapes were rejected; keep
+them labelled historical and out of runtime/shipping. Blue/cyan ammo and green
+repair parts remain emissive, never whole shells or faction badges. Keep CCA
+red branding separate from the functional green repair cue. The original NSDF
+masters and accepted v2 nav resources/material blocks are pinned by
+`nav-pickups/owner-selected-art.json`; do not redraw approved work while
+propagating faction paint. Tests include full-UV overlap/geometry contracts,
+emission colour/nonemitting badge checks and those acceptance pins. Dark
+Blender views prove map selection/readability only, not native bloom or
+performance. Nav v2 hazard bands are faction-specific patterns.
 
 ### Moon independent HD tiles and normal polarity (2026-10-20)
 

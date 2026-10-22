@@ -26,6 +26,13 @@ def settings(text):
     return result
 for name,digest in source['files'].items():check(hashlib.sha256((SRC/name).read_bytes()).hexdigest()==digest,'stock/source pin: '+name)
 for name,digest in receipt['masters'].items():check(hashlib.sha256((REF/name).read_bytes()).hexdigest()==digest,'art master receipt: '+name)
+for name,digest in receipt['podMasters'].items():check(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()==digest,'selected full-atlas pod master: '+name)
+approved=json.loads((REF/'owner-selected-art.json').read_text())
+for name,digest in approved['files'].items():check(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()==digest,'owner-selected nav / NSDF master remains unchanged: '+name)
+for code,definition in approved['navMaterials'].items():
+    text=(ROOT/'Materials'/('CR_pickups_'+code+'.material')).read_text()
+    match=re.search(r'(?ms)^material crnv'+code+r' :[^\n]*\n\{.*?^\}',text)
+    check(match is not None and match[0]==definition,'owner-approved nav material stays unchanged: '+code)
 check(len(receipt['models'])==28,'four factions times seven source mesh families')
 for name,record in receipt['models'].items():
     family=record['source'];path=ROOT/'Assets/Models'/(name+'.mesh');mesh=build.read(path);original=build.read(SRC/(family+'.mesh'))
@@ -38,13 +45,22 @@ for name,record in receipt['models'].items():
         a=build.values(mesh.submesh_list[0].vertex_data,build.om.VES.TEXTURE_COORDINATES)
         b=build.values(original.submesh_list[0].vertex_data,build.om.VES.TEXTURE_COORDINATES)
         check(np.array_equal(a,b),'beacon original UVs preserved')
+    elif family in ('apammo','aprepa'):
+        check(record['coverage'].get('fullUnwrap') is True,'owner-selected complete pod unwrap, no stock-UV remainder')
+        check(len(mesh.submesh_list)==1 and mesh.submesh_list[0].material_name==name,'one material / one atlas per stock pod')
+        sub=mesh.submesh_list[0];old=original.submesh_list[0]
+        uv=build.values(sub.vertex_data,build.om.VES.TEXTURE_COORDINATES)[sub.index_array].reshape(-1,3,2)
+        prior=build.values(old.vertex_data,build.om.VES.TEXTURE_COORDINATES)[old.index_array].reshape(-1,3,2)
+        expected,metadata=build.full_uv(old,family)
+        check(np.isfinite(uv).all() and uv.min()>.005 and uv.max()<.995,'full atlas has finite bounded UVs')
+        check(np.allclose(uv,expected,atol=1e-7),'all factions use the selected no-overlap UV charts')
+        check(np.all(np.any(abs(uv-prior)>1e-5,axis=(1,2))),'every original pod triangle receives new UVs')
+        check(len(uv)==record['coverage']['triangles']==record['coverage']['totalTriangles'],'100 percent triangle coverage')
+        check(record['coverage']['charts']==metadata['charts'],'continuous side / top / underside chart membership retained')
     else:
         check(2<=len(mesh.submesh_list)<=3,'at most two bounded additional casing batches')
         check(record['coverage']['badgePanels']<=1,'no per-facet repeated badge tiling')
         if family=='aprock':check(record['coverage']['badgePanels']==0,'triangular fins are plain, never clipped badges')
-        if family in ('apammo','aprepa'):
-            check(record['coverage']['triangles']>=80,'supply casing panels replace broad stock striping and plain recolor')
-            check(record['coverage']['badgePanels']==1,'one intact supply faction badge')
         for sub in mesh.submesh_list[1:]:
             uv=build.values(sub.vertex_data,build.om.VES.TEXTURE_COORDINATES)
             used=uv[np.unique(sub.index_array)]
@@ -65,7 +81,9 @@ for name,record in receipt['files'].items():
     path=ROOT/'Assets/Textures'/name
     check(hashlib.sha256(path.read_bytes()).hexdigest()==record['sha256'],'DDS build receipt: '+name)
     check(bc_dds_problem(path.read_bytes(),*record['size']) is None,'full legacy-header mips: '+name)
-    if name.startswith('crpk'):check(record['size']==[512,512],'isolated pickup cell has its own full mip chain')
+    if name.startswith('crpk'):
+        full=bool(re.fullmatch(r'crpk(?:ns|bd|cc|cr)[01]_[de].dds',name))
+        check(record['size']==([1024,1024] if full else [512,512]),'full pod atlas or isolated weapon cell dimensions')
     shipped(path)
 for code in build.FACTIONS:
     path=ROOT/'Materials'/('CR_pickups_'+code+'.material');text=path.read_text();shipped(path)
@@ -75,8 +93,20 @@ for code in build.FACTIONS:
         if quad is not None:
             check(f'crpk{code}{quad[0]+quad[1]*2}_d.dds' in text,'type-specific isolated panel selected')
     for type_id in (0,1):
-        check(f'crpk{code}{type_id}_surf.dds' in text,'ammo/repair use dedicated authored mechanical casing art')
+        check(f'crpk{code}{type_id}_surf.dds' not in text,'superseded vent utility maps are no longer selected')
+    check('material cram'+code+'/plain' not in text and 'material crhp'+code+'/plain' not in text,'pods have no per-facet overlay material')
     check('set $diffuse "0.45 1 0.4"' not in text,'repair ivory/green art is not flattened by a whole-casing green tint')
+    for type_id in (0,1):
+        check(f'EmissiveMap crpk{code}{type_id}_e.dds' in text,'stock-style pod glow map is bound')
+        with Image.open(ROOT/'Assets/Textures'/f'crpk{code}{type_id}_e.dds') as image:
+            e=np.array(image.convert('RGB'));lit=e.max(2)>35
+            check(lit.sum()>500 and lit.mean()<.28,'glow is visible but not the entire casing')
+            if type_id==0:
+                check((e[lit,2]>=e[lit,0]).mean()>.98,'ammo glow remains blue/cyan/white-hot, never faction red paint')
+                check(e[70:158,500:590].max()<20,'ammo faction badge is not an emitter')
+            else:
+                check((e[lit,1]>e[lit,0]).mean()>.98,'repair glow remains green, never faction insignia')
+                check(e[300:425,300:425].max()<20,'repair central faction cap is not an emitter')
     with Image.open(ROOT/'Assets/Textures'/('crnv'+code+'_e.dds')) as image:
         e=np.array(image.convert('RGB'));x,y=np.meshgrid(np.linspace(0,1,1024),np.linspace(0,1,1024))
         allowed=(((x-.084)**2/(.049**2)+(y-.915)**2/(.052**2)<1)|((x-.205)**2/(.049**2)+(y-.915)**2/(.052**2)<1))

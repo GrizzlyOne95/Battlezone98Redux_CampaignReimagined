@@ -7,11 +7,13 @@ changes geometry. ImageGen masters are offline inputs, never build-time calls.
 from pathlib import Path
 import copy,hashlib,importlib.util,io,json,re,shutil,sys
 import numpy as np
-from PIL import Image
+from PIL import Image,ImageDraw,ImageFilter
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from bzmodellibs import ogremesh as om,ogremesh_serializer as oms
 from bcdds import save_bc
+from poduv import full_uv,remesh,atlas_image
 ROOT=Path(__file__).resolve().parents[1];REF=ROOT/'References/TextureRevamp/nav-pickups';SRC=REF/'original'
+PODREF=ROOT/'References/TextureRevamp/pod-uv-v3'
 FACTIONS={'ns':('NSDF','n'),'bd':('Black Dog','b'),'cc':('CCA','s'),'cr':('CRA','c')}
 # The four quadrant accents remain independent of faction paint.
 FAMILIES={'apcamr':('crnv',None),'apammo':('cram',(0,0)),'aprepa':('crhp',(1,0)),
@@ -142,8 +144,27 @@ def reuv_body(mesh,family,material,quadrant):
     mesh.name_table={i:sub.material_name for i,sub in enumerate(mesh.submesh_list)}
     return dict(triangles=int(claimed.sum()),totalTriangles=len(indices),faceGroups=len(groups),badgePanels=sum(g['badge'] for g in groups),quadrant=list(quadrant))
 
+
+def pod_emission(atlas,family,uv):
+    """Stock-style blue/green self-lit parts; never faction paint or whole metal."""
+    a=np.array(atlas.convert('RGB'));rgb=a.astype(float)
+    y,x=np.meshgrid(np.linspace(0,1,a.shape[0]),np.linspace(0,1,a.shape[1]),indexing='ij')
+    if family=='apammo':
+        regions=((y>.155)&(y<.215))|((y>.315)&(y<.387))|(y>.58)
+        mask=regions&(rgb[:,:,2]>rgb[:,:,0]*1.2+5)&(rgb[:,:,2]>rgb[:,:,1]*1.07)&(rgb[:,:,2]>65)
+        gain=1.6
+    else:
+        center=(abs(x-.355)<.075)&(abs(y-.355)<.075)
+        mask=(~center)&(rgb[:,:,1]>rgb[:,:,0]*1.35+5)&(rgb[:,:,1]>rgb[:,:,2]*1.25)&(rgb[:,:,1]>45)
+        gain=2.
+    coverage=Image.new('L',atlas.size);draw=ImageDraw.Draw(coverage)
+    for row in uv:draw.polygon([tuple(v*(a.shape[0]-1)) for v in row],fill=255)
+    mask&=np.array(coverage.filter(ImageFilter.MaxFilter(17)))>0
+    e=np.zeros_like(a);e[mask]=np.clip(rgb[mask]*gain,0,255).astype('uint8')
+    return Image.fromarray(e)
+
 def build():
-    files={};models={};odfs={}
+    files={};models={};odfs={};pod_masters={}
     routes=json.loads((REF/'routes.json').read_text())
     def put(file,image):
         path=ROOT/'Assets/Textures'/file;save_bc(image,path)
@@ -174,6 +195,15 @@ def build():
                 for qx,ending in ((0,'_d.dds'),(1,'_surf.dds')):
                     cell=atlas.crop((round(qx*w/2),round(qy*h/2),round((qx+1)*w/2),round((qy+1)*h/2)))
                     put(f'crpk{code}{type_id}'+ending,cell.resize((512,512),Image.Resampling.LANCZOS))
+        # Owner chose the stock silhouettes with the full v3 unwrap. The NSDF
+        # masters stay byte-identical to that review; other factions only repaint.
+        for family,type_id in (('apammo',0),('aprepa',1)):
+            stem=FAMILIES[family][0];uv,_=full_uv(read(SRC/(family+'.mesh')).submesh_list[0],family)
+            master=PODREF/(stem+code+'3-master.png')
+            atlas=atlas_image(master,uv)
+            put(f'crpk{code}{type_id}_d.dds',atlas)
+            put(f'crpk{code}{type_id}_e.dds',pod_emission(atlas,family,uv))
+            pod_masters[master.relative_to(ROOT).as_posix()]=hashlib.sha256(master.read_bytes()).hexdigest()
         materials=['import * from "CR_BZBase.material"','']
         for family,(stem,quad) in FAMILIES.items():
             name=stem+code;mesh=read(SRC/(family+'.mesh'));before=geometry(mesh)
@@ -181,6 +211,9 @@ def build():
             if family=='apcamr':
                 for sub in mesh.submesh_list:sub.material_name=name
                 coverage=dict(triangles=mesh.submesh_list[0].index_count//3,totalTriangles=mesh.submesh_list[0].index_count//3)
+            elif family in ('apammo','aprepa'):
+                uv,metadata=full_uv(mesh.submesh_list[0],family);remesh(mesh,uv,name)
+                coverage=dict(triangles=len(uv),totalTriangles=len(uv),fullUnwrap=True,charts=metadata['charts'])
             else:coverage=reuv_body(mesh,family,name,quad)
             assert geometry(mesh)==before,'Geometry/skin changed: '+name
             stream=io.BytesIO();oms.MeshSerializer(stream).write(mesh)
@@ -190,13 +223,14 @@ def build():
             models[name]=dict(source=family,coverage=coverage,geometry=before,sha256=hashlib.sha256(path.read_bytes()).hexdigest())
             type_id=None if quad is None else quad[0]+quad[1]*2
             diffuse='crnv'+code+'_d.dds' if quad is None else f'crpk{code}{type_id}_d.dds'
-            emission='crnv'+code+'_e.dds' if family=='apcamr' else 'black.dds'
+            emission='crnv'+code+'_e.dds' if family=='apcamr' else (f'crpk{code}{type_id}_e.dds' if family in ('apammo','aprepa') else 'black.dds')
             materials.extend([f'material {name} : CR_BZBase','{',f'    set_texture_alias DiffuseMap {diffuse}',
               '    set_texture_alias NormalMap flat_N.dds','    set_texture_alias SpecularMap crvcca_patch_s.dds',
               f'    set_texture_alias EmissiveMap {emission}','    set $diffuse "1 1 1"','    set $ambient "1 1 1"',
-              '    set $specular ".25 .25 .25"','    set $shininess "48"','}',''])
-            if quad is not None:
-                finish=f'crpk{code}{type_id}_surf.dds' if family in ('apammo','aprepa') else f'crpk{code}_plain.dds'
+              '    set $specular ".15 .15 .15"' if family in ('apammo','aprepa') else '    set $specular ".25 .25 .25"',
+              '    set $shininess "32"' if family in ('apammo','aprepa') else '    set $shininess "48"','}',''])
+            if quad is not None and family not in ('apammo','aprepa'):
+                finish=f'crpk{code}_plain.dds'
                 materials.extend([f'material {name}/plain : {name}','{',f'    set_texture_alias DiffuseMap {finish}','    set $diffuse "1 1 1"','    set $ambient "1 1 1"','}',''])
         (ROOT/'Materials'/('CR_pickups_'+code+'.material')).write_text('\n'.join(materials),newline='\n')
         # Retain source identity in the output name: e.g. sapmini != sspmini.
@@ -229,7 +263,7 @@ def build():
             output=re.sub(pattern,substitute,text)
             assert current in (text,output),'Unrelated menu edit: '+str(path)
             path.write_text(output,newline='\n')
-    receipt=dict(schema=1,files=files,models=models,odfs=odfs,menuRoutes=len(routes),masters={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in REF.glob('*.png')})
+    receipt=dict(schema=2,files=files,models=models,odfs=odfs,menuRoutes=len(routes),masters={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in REF.glob('*.png')},podMasters=pod_masters)
     (REF/'build.json').write_text(json.dumps(receipt,indent=2)+'\n')
     print(f'Built {len(models)} faction models, {len(odfs)} independent ODFs and {len(files)} mipped DDS maps; native geometry/rig bytes retained.')
 
