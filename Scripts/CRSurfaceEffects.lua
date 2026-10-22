@@ -17,8 +17,9 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     -- Muzzle heat: each shot adds HeatPerShot, cooling HeatCool per second,
     -- so a slow cannon stays warm and only sustained fire reaches HeatMax.
     HeatPerShot = 0.06, HeatMax = 1.0, HeatCool = 0.12, HeatRadius = 0.6,
-    -- The glow wraps the barrel from mount to flash point within this radius.
-    BarrelRadius = 0.35 }
+    -- The glow wraps the barrel within BarrelRadius, from the flash point back
+    -- toward the mount for at most BarrelLength, fading out along the way.
+    BarrelRadius = 0.35, BarrelLength = 0.8 }
 
 local function call(fn, ...)
     if type(fn) ~= "function" then return nil end
@@ -364,8 +365,12 @@ local function updateRecord(r, dt)
                 anchors[#anchors+1] = radiusMark(localPoint,S.HeatRadius); peak = math.max(peak,heat.display)
                 -- A barrel needs a real mount-to-flash length; else the round tip mask.
                 local base = mount ~= world and call(exu.EntityLocalPoint,target(r),mount)
-                local dx,dy,dz = base and localPoint.x-base.x, base and localPoint.y-base.y, base and localPoint.z-base.z
-                barrels[#anchors] = base and dx*dx+dy*dy+dz*dz > 0.0025 and {base.x,base.y,base.z,S.BarrelRadius} or nil
+                local dx,dy,dz = base and base.x-localPoint.x, base and base.y-localPoint.y, base and base.z-localPoint.z
+                local length = base and math.sqrt(dx*dx+dy*dy+dz*dz) or 0
+                if length > 0.05 then
+                    local k = math.min(1, S.BarrelLength/length)
+                    barrels[#anchors] = {localPoint.x+dx*k, localPoint.y+dy*k, localPoint.z+dz*k, S.BarrelRadius}
+                end
             end
         end
     end
