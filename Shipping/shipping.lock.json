@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-21T14:37:36-05:00",
-  "count": 4436,
+  "count": 4441,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -1378,6 +1378,14 @@
     {
       "source": "Assets\\Textures\\crvpkup_n.dds",
       "runtime": "crvpkup_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvarcp_d.dds",
+      "runtime": "crvarcp_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvarcp_e.dds",
+      "runtime": "crvarcp_e.dds"
     },
     {
       "source": "Assets\\Textures\\crvcfcp_d.dds",
@@ -3610,6 +3618,10 @@
     {
       "source": "Materials\\cr_reactive.particle.payload",
       "runtime": "cr_reactive.particle.payload"
+    },
+    {
+      "source": "Materials\\CR_avrckt_cockpit.material",
+      "runtime": "CR_avrckt_cockpit.material"
     },
     {
       "source": "Materials\\CR_cvfigh_cockpit.material",
@@ -12742,6 +12754,14 @@
     {
       "source": "Assets\\Models\\bvrdev_cockpit.skeleton",
       "runtime": "bvrdev_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\avrckt_cockpit.mesh",
+      "runtime": "avrckt_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\avrckt_cockpit.skeleton",
+      "runtime": "avrckt_cockpit.skeleton"
     },
     {
       "source": "Assets\\Models\\cvfigh_cockpit.mesh",
