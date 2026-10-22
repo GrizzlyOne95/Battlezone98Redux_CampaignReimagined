@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "model": "bblpad",
+  "atlasSize": [4096, 2048],
+  "sourceMaterial": "bblpad",
+  "receipt": "bdog-building-build.json",
+  "materialFile": "CR_bdog_pad_patch.material",
+  "patches": [
+    {"id": "bdog_walkway", "bounds": [0, 1024, 600, 2024], "size": [768, 1280], "expectedTriangles": 88}
+  ]
+}

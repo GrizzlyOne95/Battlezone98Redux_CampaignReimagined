@@ -1,0 +1,4078 @@
+{
+  "schema": 4,
+  "files": {
+    "crpkns_plain.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "d073bf285d9407020327059c4520ce27109f9580e84606e3a32863e5e44e791a"
+    },
+    "crnvns_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "a5074aecd2ce7dfcd21ac0901c1a4fc7a7c80ffa62f125763f2f104d6774d2be"
+    },
+    "crnvns_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "342511d73146ae7041dd7316e67d27733e02e784ea88b4503e1296be32cb9b06"
+    },
+    "crpkns2_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "77a05582f6602092c4824ac62da635ce8b6e7388c42e813a3e271870a82f664b"
+    },
+    "crpkns2_e.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "da5699583393e1ef8323fbd23eaf22939074f1120068d0cc27ab8b48441b616e"
+    },
+    "crwpns_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "425ff6fe0d36d82d6d3f49b4faf03e6061d0e22e87125766be2dcd4d062b568c"
+    },
+    "crwpns_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "1f1c82aed8f3f4dca6d460c42370b4b9f98e5fde726c229609e02dd210a570b9"
+    },
+    "crpkns0_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "e30ad12488f6798265318edb17f450180ea8476e2a86d050f5cc185f160e404b"
+    },
+    "crpkns0_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "782fb41bb9d456958d92b46e59f87c1b883794bd668f810faa6e11b68ddb09ac"
+    },
+    "crpkns1_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "d280d1c268c298cc5bd90b6138c945e0b6d6348fe64f296d04567f130a62e40d"
+    },
+    "crpkns1_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "dff36d144ef878d8fe3295a07c412eac7e2b9c5452eda65c90645a09ce1340dc"
+    },
+    "crpkbd_plain.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "db950af933859989576e7bf253641a6d2ae1ede86f21ec5e53c293c6000b1de3"
+    },
+    "crnvbd_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "f3ac61b84abbf7e2780f03fc4b3c9ea5632e3264279c2d010cc0f4a2121b196f"
+    },
+    "crnvbd_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "d44f97865100610a3d3ff9de2006dcc15af42cf44e2762890673aabe644c17e7"
+    },
+    "crpkbd2_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "cc5f55777834c6dc4ccd7df6466183652a977256e457d5cef5cead1ac0e0e944"
+    },
+    "crpkbd2_e.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "d0a923e9e3c3b6db9a65b6de76b02b15c2caeb245e0ebf6d6aaed620bc2310c0"
+    },
+    "crwpbd_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "c028f2a04876261d51d6f076fe67cf2d7cc98aacc190371f1fdf6f62e56beb85"
+    },
+    "crwpbd_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "8fdd687a870964c915a676c8877056e97841e47de67cd45e7538714d4a2f8e13"
+    },
+    "crpkbd0_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "e4514ba526d50333ccdf244e0b43cec05e645a4ba59bd758a38c5b590759ecf8"
+    },
+    "crpkbd0_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "9644632824fa0e77a23ce4630480131102f1c1dac420be5b965b6d120acb4cf4"
+    },
+    "crpkbd1_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "8fac4e981de9952d7cddc764cf5c677350bce67313f915e89ad66509fd46da2d"
+    },
+    "crpkbd1_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "6d096fc0928a36374d972c90f53541970d58ffced89fa1f373221208a3489418"
+    },
+    "crpkcc_plain.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "dfe64eed1b03a5e798365f217ccc372f61258344ff38b149daa314c16da4b1e8"
+    },
+    "crnvcc_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "05dcd5694a0ea13c644a88391ec7d20e6d2573d48e9fbb91b089bf4ed371e733"
+    },
+    "crnvcc_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "119a58489529c51f79f53a81c569ea9fbdf851a12cacc09fe344501c0d696939"
+    },
+    "crpkcc2_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "5979b45a9edf590c995c6cf6bbe272102634625a002a867f613f7ff1994bd4e1"
+    },
+    "crpkcc2_e.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "1cb658aecdacb46119bbb49d2d028db9a6a7fca79c2ece2acd6b2b0ef58d5870"
+    },
+    "crwpcc_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "c8449406956a3ebb5ecd9334b63cd96741f73924f80ac7295cb506face9f01e6"
+    },
+    "crwpcc_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "7c9ad63f1827423452d0c8f927dce9dbbcdf9ccd583c037329861bfcae57e5cf"
+    },
+    "crpkcc0_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "0288ee6920dbd215c3f4947666429eaea7f2e909af1c3c0a5c83379c3aec541a"
+    },
+    "crpkcc0_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "2d03a179024c97eebc89baa12626f0c04b4e9e1a4d48f14cd61187513682e644"
+    },
+    "crpkcc1_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "8b75a980b843a364b1e346b0f87d21ff020483e38978086a2e267c8c3d16a9bc"
+    },
+    "crpkcc1_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "8ddb9ef584c29eada7eadf56e7b735ae4df7a678774b35d2b0945eb941acfaf6"
+    },
+    "crpkcr_plain.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "b8fd18541de86f1f02ce24869828af68b3722faef046f73e9a3770a4bb0dbd60"
+    },
+    "crnvcr_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "07e06ad9865a01e3468bc7e71feb519f645142f3e96e967b4ecc49ec7132f598"
+    },
+    "crnvcr_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "d397b00ff50bd338ad46644d9cd125d555a215e3f614d3c4d9f3b27ca87eaf34"
+    },
+    "crpkcr2_d.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "7993609395a8c354ddbf08e60ca0fc4a19732bb9d7335bed0f30fbf2fbc1b940"
+    },
+    "crpkcr2_e.dds": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "e01550f668b14b0c2dc65124c66f5da6f4f38ef1d6db97c027045bd3a26ac95a"
+    },
+    "crwpcr_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "84814d4f764f21d383a09a546195064827f4d1aca7c8bfe8458fec62c168d406"
+    },
+    "crwpcr_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "727fb52a475bc45b87cbbb55d76e9b0c361b2490502dedd658aaf574465fb098"
+    },
+    "crpkcr0_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "af287f7b1755e018d0bdf6aee1b1e9e3063a70860a60c3b396e209755192c7b6"
+    },
+    "crpkcr0_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "89fe6371bd8915a72c47bf039f67e8f3cead8a716739f599e77e9786ddc93432"
+    },
+    "crpkcr1_d.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "37bd19bd3210f3b89c97b0410fed1400608e401a5af8e8f8ee11350050e1b848"
+    },
+    "crpkcr1_e.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "c56cfc16c1accb7526e5a52edf833d9006f22fd15caf94c1ab7f5e078db2b5c5"
+    }
+  },
+  "models": {
+    "crnvns": {
+      "source": "apcamr",
+      "coverage": {
+        "triangles": 208,
+        "totalTriangles": 208
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5621619820594788,
+          "min_y": 0.0015010000206530094,
+          "min_z": -1.0875669717788696,
+          "max_x": 0.5621619820594788,
+          "max_y": 4.659055233001709,
+          "max_z": 1.3690730333328247
+        },
+        "radius": 4.659172058105469,
+        "count": 208,
+        "sha256": "92cc95f695d9a23f0ab3db398706ce754826d91e163d948bf5f58d34e8466805"
+      },
+      "sha256": "bf8cf68ae3cb25fb3140709ff4b1914c275bd3e262cb2047140e5876da5b322b"
+    },
+    "cramns": {
+      "source": "apammo",
+      "coverage": {
+        "triangles": 126,
+        "totalTriangles": 126,
+        "fullUnwrap": true,
+        "charts": {
+          "side": {
+            "box": [
+              0.04,
+              0.04,
+              0.96,
+              0.25818665191591506
+            ],
+            "triangles": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              15,
+              16,
+              17,
+              18,
+              21,
+              22,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              88,
+              89,
+              90,
+              91,
+              100,
+              101,
+              102,
+              103,
+              104,
+              105,
+              106,
+              107,
+              108,
+              109,
+              110,
+              111
+            ]
+          },
+          "cone": {
+            "box": [
+              0.06,
+              0.32,
+              0.94,
+              0.55
+            ],
+            "triangles": [
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61,
+              62,
+              63,
+              64,
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              73,
+              74,
+              75,
+              84,
+              85,
+              86,
+              87,
+              92,
+              93,
+              94,
+              95,
+              96,
+              97,
+              98,
+              99
+            ]
+          },
+          "shoulder": {
+            "box": [
+              0.56,
+              0.59,
+              0.96,
+              0.99
+            ],
+            "triangles": [
+              0,
+              13,
+              20,
+              31,
+              32,
+              33,
+              34,
+              35,
+              36,
+              37,
+              38,
+              39
+            ]
+          },
+          "bottom": {
+            "box": [
+              0.04,
+              0.59,
+              0.44,
+              0.99
+            ],
+            "triangles": [
+              14,
+              19,
+              23,
+              30,
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              112,
+              113,
+              114,
+              115,
+              116,
+              117,
+              118,
+              119,
+              120,
+              121,
+              122,
+              123,
+              124,
+              125
+            ]
+          },
+          "cap": {
+            "box": [
+              0.48,
+              0.59,
+              0.52,
+              0.63
+            ],
+            "triangles": [
+              76,
+              77,
+              78,
+              79,
+              80,
+              81,
+              82,
+              83
+            ]
+          }
+        }
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8769389986991882,
+          "min_y": 0.29379498958587646,
+          "min_z": -0.8769389986991882,
+          "max_x": 0.8769389986991882,
+          "max_y": 2.6499290466308594,
+          "max_z": 0.8769389986991882
+        },
+        "radius": 2.651768207550049,
+        "count": 126,
+        "sha256": "c1bcf2b67bd4e358448553fb742127d2fc8226d6ff731cbbddf1f0bb16d90c95"
+      },
+      "sha256": "93ffbb0d4c7e30624767b5928c27662d8d797cde086f869aeffbe8b7c8ed5399"
+    },
+    "crhpns": {
+      "source": "aprepa",
+      "coverage": {
+        "triangles": 92,
+        "totalTriangles": 92,
+        "fullUnwrap": true,
+        "charts": {
+          "top": {
+            "box": [
+              0.03,
+              0.03,
+              0.68,
+              0.68
+            ],
+            "triangles": [
+              0,
+              1,
+              18,
+              21,
+              22,
+              23,
+              26,
+              27,
+              28,
+              29,
+              32,
+              33,
+              48,
+              53,
+              56,
+              57,
+              58,
+              59,
+              64,
+              65,
+              66,
+              67,
+              68,
+              69,
+              72,
+              73,
+              82,
+              83,
+              84,
+              85
+            ]
+          },
+          "bottom": {
+            "box": [
+              0.72,
+              0.03,
+              0.97,
+              0.28
+            ],
+            "triangles": [
+              4,
+              5,
+              12,
+              13,
+              14,
+              15,
+              24,
+              25,
+              30,
+              31,
+              38,
+              39,
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              60,
+              61,
+              62,
+              63,
+              70,
+              71,
+              74,
+              75,
+              78,
+              79,
+              80,
+              81
+            ]
+          },
+          "side": {
+            "box": [
+              0.03,
+              0.77,
+              0.97,
+              0.8468042096428059
+            ],
+            "triangles": [
+              2,
+              3,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              16,
+              17,
+              19,
+              20,
+              34,
+              35,
+              36,
+              37,
+              46,
+              47,
+              49,
+              50,
+              51,
+              52,
+              54,
+              55,
+              76,
+              77,
+              86,
+              87,
+              88,
+              89,
+              90,
+              91
+            ]
+          }
+        }
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.1700010299682617,
+          "min_y": 0.019122999161481857,
+          "min_z": -1.1700010299682617,
+          "max_x": 1.1700010299682617,
+          "max_y": 1.5300029516220093,
+          "max_z": 1.1700010299682617
+        },
+        "radius": 1.5663601160049438,
+        "count": 92,
+        "sha256": "d25b92a68e9ec502a24b98562446e94c419e1987f4a39220479f0b483915dabf"
+      },
+      "sha256": "021f38141167a71039faed9efe6e8972183e17e6274c45e33cdc2d41c05296bc"
+    },
+    "crwcns": {
+      "source": "apcann",
+      "coverage": {
+        "triangles": 18,
+        "totalTriangles": 620,
+        "faceGroups": 9,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 2,
+        "lampUvTriangles": 4,
+        "lampUvGroups": 4,
+        "lampUvBounds": [
+          0.02,
+          0.29,
+          0.16,
+          0.36
+        ],
+        "coreUvRows": [
+          576
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 0,
+        "hazardUvBand": [
+          0.0,
+          0.25
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.4676080048084259,
+          "min_y": 0.013151999562978745,
+          "min_z": -0.2416049987077713,
+          "max_x": 0.4676080048084259,
+          "max_y": 3.095319986343384,
+          "max_z": 0.2416049987077713
+        },
+        "radius": 3.1087310314178467,
+        "count": 620,
+        "sha256": "77a40b20955586840d1d827d2ae4567a34977e8a9d03920832c61eeaa95486b4"
+      },
+      "sha256": "3d6734f8aba7619cdc589f1fd6031fcea27436e381bfc414bdd214ceead66558"
+    },
+    "crwrns": {
+      "source": "aprock",
+      "coverage": {
+        "triangles": 8,
+        "totalTriangles": 254,
+        "faceGroups": 8,
+        "badgePanels": 0,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 138,
+        "lampUvGroups": 50,
+        "lampUvBounds": [
+          0.06,
+          0.81,
+          0.315,
+          0.91
+        ],
+        "coreUvRows": [
+          0,
+          1,
+          3,
+          5,
+          8,
+          9
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 96,
+        "hazardUvBand": [
+          0.25,
+          0.5
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8974270224571228,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.8983439803123474,
+          "max_x": 0.8974270224571228,
+          "max_y": 2.904745101928711,
+          "max_z": 0.8983439803123474
+        },
+        "radius": 2.904745101928711,
+        "count": 254,
+        "sha256": "c68141ab6ced7b7395ab03f9bc765c0b816c41a0a9c379beca88c1a53ab48e7e"
+      },
+      "sha256": "b329ce0aedb9701c37bed3be13b0571e1fe8b8f6b69e916ccafa621ad4194f8b"
+    },
+    "crwmns": {
+      "source": "apmort",
+      "coverage": {
+        "triangles": 32,
+        "totalTriangles": 76,
+        "faceGroups": 16,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 10,
+        "lampUvBounds": [
+          0.775,
+          0.35,
+          0.82,
+          0.435
+        ],
+        "coreUvRows": [
+          28,
+          29,
+          30,
+          36,
+          39,
+          41
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 4,
+        "hazardUvBand": [
+          0.5,
+          0.75
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5903080105781555,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.5798239707946777,
+          "max_x": 0.5903080105781555,
+          "max_y": 3.1406829357147217,
+          "max_z": 0.5798239707946777
+        },
+        "radius": 3.141977548599243,
+        "count": 76,
+        "sha256": "436535ca6d1dad4e8b7edfe3613219edc4f8499e669e3f847cd2942d2c851245"
+      },
+      "sha256": "e49fc2bbe56bd8a33aec9712548cd9d66e356a137e7cec70266417b8dd9018bb"
+    },
+    "crwsns": {
+      "source": "apspec",
+      "coverage": {
+        "triangles": 10,
+        "totalTriangles": 100,
+        "faceGroups": 4,
+        "badgePanels": 0,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 8,
+        "lampUvBounds": [
+          0.065,
+          0.785,
+          0.165,
+          0.935
+        ],
+        "coreUvRows": [
+          52,
+          53,
+          54
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 8,
+        "hazardUvBand": [
+          0.75,
+          1.0
+        ],
+        "quietUvTriangles": 8,
+        "alignedWarningPanels": 4
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.3001199960708618,
+          "min_y": 0.16733099520206451,
+          "min_z": -1.346006989479065,
+          "max_x": 1.3001199960708618,
+          "max_y": 1.2486380338668823,
+          "max_z": 1.346006989479065
+        },
+        "radius": 1.7351948022842407,
+        "count": 100,
+        "sha256": "0b254622d95a1db7334f9962bb23d88ed4b805a7bbc5cbf23d22536eb56d9e83"
+      },
+      "sha256": "42aa2b132d079a746b43361892e084bc93ae98ef31b11e335ebed2529e883df7"
+    },
+    "crnvbd": {
+      "source": "apcamr",
+      "coverage": {
+        "triangles": 208,
+        "totalTriangles": 208
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5621619820594788,
+          "min_y": 0.0015010000206530094,
+          "min_z": -1.0875669717788696,
+          "max_x": 0.5621619820594788,
+          "max_y": 4.659055233001709,
+          "max_z": 1.3690730333328247
+        },
+        "radius": 4.659172058105469,
+        "count": 208,
+        "sha256": "92cc95f695d9a23f0ab3db398706ce754826d91e163d948bf5f58d34e8466805"
+      },
+      "sha256": "bc5bcde94d5988af80e04b7ee461cf64f85603b6e6d9bc5d92a85628dd8ad307"
+    },
+    "crambd": {
+      "source": "apammo",
+      "coverage": {
+        "triangles": 126,
+        "totalTriangles": 126,
+        "fullUnwrap": true,
+        "charts": {
+          "side": {
+            "box": [
+              0.04,
+              0.04,
+              0.96,
+              0.25818665191591506
+            ],
+            "triangles": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              15,
+              16,
+              17,
+              18,
+              21,
+              22,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              88,
+              89,
+              90,
+              91,
+              100,
+              101,
+              102,
+              103,
+              104,
+              105,
+              106,
+              107,
+              108,
+              109,
+              110,
+              111
+            ]
+          },
+          "cone": {
+            "box": [
+              0.06,
+              0.32,
+              0.94,
+              0.55
+            ],
+            "triangles": [
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61,
+              62,
+              63,
+              64,
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              73,
+              74,
+              75,
+              84,
+              85,
+              86,
+              87,
+              92,
+              93,
+              94,
+              95,
+              96,
+              97,
+              98,
+              99
+            ]
+          },
+          "shoulder": {
+            "box": [
+              0.56,
+              0.59,
+              0.96,
+              0.99
+            ],
+            "triangles": [
+              0,
+              13,
+              20,
+              31,
+              32,
+              33,
+              34,
+              35,
+              36,
+              37,
+              38,
+              39
+            ]
+          },
+          "bottom": {
+            "box": [
+              0.04,
+              0.59,
+              0.44,
+              0.99
+            ],
+            "triangles": [
+              14,
+              19,
+              23,
+              30,
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              112,
+              113,
+              114,
+              115,
+              116,
+              117,
+              118,
+              119,
+              120,
+              121,
+              122,
+              123,
+              124,
+              125
+            ]
+          },
+          "cap": {
+            "box": [
+              0.48,
+              0.59,
+              0.52,
+              0.63
+            ],
+            "triangles": [
+              76,
+              77,
+              78,
+              79,
+              80,
+              81,
+              82,
+              83
+            ]
+          }
+        }
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8769389986991882,
+          "min_y": 0.29379498958587646,
+          "min_z": -0.8769389986991882,
+          "max_x": 0.8769389986991882,
+          "max_y": 2.6499290466308594,
+          "max_z": 0.8769389986991882
+        },
+        "radius": 2.651768207550049,
+        "count": 126,
+        "sha256": "c1bcf2b67bd4e358448553fb742127d2fc8226d6ff731cbbddf1f0bb16d90c95"
+      },
+      "sha256": "8c35f0d295a033a65ee8d5f8aadaecf7e8fba74baa56601f94ab465ebaa8e3d4"
+    },
+    "crhpbd": {
+      "source": "aprepa",
+      "coverage": {
+        "triangles": 92,
+        "totalTriangles": 92,
+        "fullUnwrap": true,
+        "charts": {
+          "top": {
+            "box": [
+              0.03,
+              0.03,
+              0.68,
+              0.68
+            ],
+            "triangles": [
+              0,
+              1,
+              18,
+              21,
+              22,
+              23,
+              26,
+              27,
+              28,
+              29,
+              32,
+              33,
+              48,
+              53,
+              56,
+              57,
+              58,
+              59,
+              64,
+              65,
+              66,
+              67,
+              68,
+              69,
+              72,
+              73,
+              82,
+              83,
+              84,
+              85
+            ]
+          },
+          "bottom": {
+            "box": [
+              0.72,
+              0.03,
+              0.97,
+              0.28
+            ],
+            "triangles": [
+              4,
+              5,
+              12,
+              13,
+              14,
+              15,
+              24,
+              25,
+              30,
+              31,
+              38,
+              39,
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              60,
+              61,
+              62,
+              63,
+              70,
+              71,
+              74,
+              75,
+              78,
+              79,
+              80,
+              81
+            ]
+          },
+          "side": {
+            "box": [
+              0.03,
+              0.77,
+              0.97,
+              0.8468042096428059
+            ],
+            "triangles": [
+              2,
+              3,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              16,
+              17,
+              19,
+              20,
+              34,
+              35,
+              36,
+              37,
+              46,
+              47,
+              49,
+              50,
+              51,
+              52,
+              54,
+              55,
+              76,
+              77,
+              86,
+              87,
+              88,
+              89,
+              90,
+              91
+            ]
+          }
+        }
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.1700010299682617,
+          "min_y": 0.019122999161481857,
+          "min_z": -1.1700010299682617,
+          "max_x": 1.1700010299682617,
+          "max_y": 1.5300029516220093,
+          "max_z": 1.1700010299682617
+        },
+        "radius": 1.5663601160049438,
+        "count": 92,
+        "sha256": "d25b92a68e9ec502a24b98562446e94c419e1987f4a39220479f0b483915dabf"
+      },
+      "sha256": "881e4917fac7e4c2284cbe7edd13404c42d8b3122d1e92b3af69f85d4eb7d368"
+    },
+    "crwcbd": {
+      "source": "apcann",
+      "coverage": {
+        "triangles": 18,
+        "totalTriangles": 620,
+        "faceGroups": 9,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 2,
+        "lampUvTriangles": 4,
+        "lampUvGroups": 4,
+        "lampUvBounds": [
+          0.14,
+          0.075,
+          0.26,
+          0.23
+        ],
+        "coreUvRows": [
+          576
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 0,
+        "hazardUvBand": [
+          0.0,
+          0.25
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.4676080048084259,
+          "min_y": 0.013151999562978745,
+          "min_z": -0.2416049987077713,
+          "max_x": 0.4676080048084259,
+          "max_y": 3.095319986343384,
+          "max_z": 0.2416049987077713
+        },
+        "radius": 3.1087310314178467,
+        "count": 620,
+        "sha256": "77a40b20955586840d1d827d2ae4567a34977e8a9d03920832c61eeaa95486b4"
+      },
+      "sha256": "ab0ebb7c1567db997bb82fc2e4206bef8faa57361fe063a21f8d7fb17a00ed72"
+    },
+    "crwrbd": {
+      "source": "aprock",
+      "coverage": {
+        "triangles": 8,
+        "totalTriangles": 254,
+        "faceGroups": 8,
+        "badgePanels": 0,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 138,
+        "lampUvGroups": 50,
+        "lampUvBounds": [
+          0.06,
+          0.81,
+          0.315,
+          0.91
+        ],
+        "coreUvRows": [
+          0,
+          1,
+          3,
+          5,
+          8,
+          9
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 96,
+        "hazardUvBand": [
+          0.25,
+          0.5
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8974270224571228,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.8983439803123474,
+          "max_x": 0.8974270224571228,
+          "max_y": 2.904745101928711,
+          "max_z": 0.8983439803123474
+        },
+        "radius": 2.904745101928711,
+        "count": 254,
+        "sha256": "c68141ab6ced7b7395ab03f9bc765c0b816c41a0a9c379beca88c1a53ab48e7e"
+      },
+      "sha256": "c9af4837ac7117255bef06ad3128b34479bef564b9eecca93715acca7c45dd17"
+    },
+    "crwmbd": {
+      "source": "apmort",
+      "coverage": {
+        "triangles": 32,
+        "totalTriangles": 76,
+        "faceGroups": 16,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 10,
+        "lampUvBounds": [
+          0.775,
+          0.35,
+          0.82,
+          0.435
+        ],
+        "coreUvRows": [
+          28,
+          29,
+          30,
+          36,
+          39,
+          41
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 4,
+        "hazardUvBand": [
+          0.5,
+          0.75
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5903080105781555,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.5798239707946777,
+          "max_x": 0.5903080105781555,
+          "max_y": 3.1406829357147217,
+          "max_z": 0.5798239707946777
+        },
+        "radius": 3.141977548599243,
+        "count": 76,
+        "sha256": "436535ca6d1dad4e8b7edfe3613219edc4f8499e669e3f847cd2942d2c851245"
+      },
+      "sha256": "32c6d32e797c16f0f72a89f4932cc54b24f49a5fd3a77e1e7224a719d60e8219"
+    },
+    "crwsbd": {
+      "source": "apspec",
+      "coverage": {
+        "triangles": 10,
+        "totalTriangles": 100,
+        "faceGroups": 4,
+        "badgePanels": 0,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 8,
+        "lampUvBounds": [
+          0.065,
+          0.785,
+          0.165,
+          0.935
+        ],
+        "coreUvRows": [
+          52,
+          53,
+          54
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 8,
+        "hazardUvBand": [
+          0.75,
+          1.0
+        ],
+        "quietUvTriangles": 8,
+        "alignedWarningPanels": 4
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.3001199960708618,
+          "min_y": 0.16733099520206451,
+          "min_z": -1.346006989479065,
+          "max_x": 1.3001199960708618,
+          "max_y": 1.2486380338668823,
+          "max_z": 1.346006989479065
+        },
+        "radius": 1.7351948022842407,
+        "count": 100,
+        "sha256": "0b254622d95a1db7334f9962bb23d88ed4b805a7bbc5cbf23d22536eb56d9e83"
+      },
+      "sha256": "3da46bae622ea2319ae9e349d4ea8dc9e8343ad194d812035c3261e55f2c31da"
+    },
+    "crnvcc": {
+      "source": "apcamr",
+      "coverage": {
+        "triangles": 208,
+        "totalTriangles": 208
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5621619820594788,
+          "min_y": 0.0015010000206530094,
+          "min_z": -1.0875669717788696,
+          "max_x": 0.5621619820594788,
+          "max_y": 4.659055233001709,
+          "max_z": 1.3690730333328247
+        },
+        "radius": 4.659172058105469,
+        "count": 208,
+        "sha256": "92cc95f695d9a23f0ab3db398706ce754826d91e163d948bf5f58d34e8466805"
+      },
+      "sha256": "a86cba3e1db18cb631ca6c98b5bc19c43fab82123a645e82972f41ad428ba101"
+    },
+    "cramcc": {
+      "source": "apammo",
+      "coverage": {
+        "triangles": 126,
+        "totalTriangles": 126,
+        "fullUnwrap": true,
+        "charts": {
+          "side": {
+            "box": [
+              0.04,
+              0.04,
+              0.96,
+              0.25818665191591506
+            ],
+            "triangles": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              15,
+              16,
+              17,
+              18,
+              21,
+              22,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              88,
+              89,
+              90,
+              91,
+              100,
+              101,
+              102,
+              103,
+              104,
+              105,
+              106,
+              107,
+              108,
+              109,
+              110,
+              111
+            ]
+          },
+          "cone": {
+            "box": [
+              0.06,
+              0.32,
+              0.94,
+              0.55
+            ],
+            "triangles": [
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61,
+              62,
+              63,
+              64,
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              73,
+              74,
+              75,
+              84,
+              85,
+              86,
+              87,
+              92,
+              93,
+              94,
+              95,
+              96,
+              97,
+              98,
+              99
+            ]
+          },
+          "shoulder": {
+            "box": [
+              0.56,
+              0.59,
+              0.96,
+              0.99
+            ],
+            "triangles": [
+              0,
+              13,
+              20,
+              31,
+              32,
+              33,
+              34,
+              35,
+              36,
+              37,
+              38,
+              39
+            ]
+          },
+          "bottom": {
+            "box": [
+              0.04,
+              0.59,
+              0.44,
+              0.99
+            ],
+            "triangles": [
+              14,
+              19,
+              23,
+              30,
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              112,
+              113,
+              114,
+              115,
+              116,
+              117,
+              118,
+              119,
+              120,
+              121,
+              122,
+              123,
+              124,
+              125
+            ]
+          },
+          "cap": {
+            "box": [
+              0.48,
+              0.59,
+              0.52,
+              0.63
+            ],
+            "triangles": [
+              76,
+              77,
+              78,
+              79,
+              80,
+              81,
+              82,
+              83
+            ]
+          }
+        }
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8769389986991882,
+          "min_y": 0.29379498958587646,
+          "min_z": -0.8769389986991882,
+          "max_x": 0.8769389986991882,
+          "max_y": 2.6499290466308594,
+          "max_z": 0.8769389986991882
+        },
+        "radius": 2.651768207550049,
+        "count": 126,
+        "sha256": "c1bcf2b67bd4e358448553fb742127d2fc8226d6ff731cbbddf1f0bb16d90c95"
+      },
+      "sha256": "0324d096105d60e0e95b73bbe06749063fca76f5576733a2d61b8bb91d149911"
+    },
+    "crhpcc": {
+      "source": "aprepa",
+      "coverage": {
+        "triangles": 92,
+        "totalTriangles": 92,
+        "fullUnwrap": true,
+        "charts": {
+          "top": {
+            "box": [
+              0.03,
+              0.03,
+              0.68,
+              0.68
+            ],
+            "triangles": [
+              0,
+              1,
+              18,
+              21,
+              22,
+              23,
+              26,
+              27,
+              28,
+              29,
+              32,
+              33,
+              48,
+              53,
+              56,
+              57,
+              58,
+              59,
+              64,
+              65,
+              66,
+              67,
+              68,
+              69,
+              72,
+              73,
+              82,
+              83,
+              84,
+              85
+            ]
+          },
+          "bottom": {
+            "box": [
+              0.72,
+              0.03,
+              0.97,
+              0.28
+            ],
+            "triangles": [
+              4,
+              5,
+              12,
+              13,
+              14,
+              15,
+              24,
+              25,
+              30,
+              31,
+              38,
+              39,
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              60,
+              61,
+              62,
+              63,
+              70,
+              71,
+              74,
+              75,
+              78,
+              79,
+              80,
+              81
+            ]
+          },
+          "side": {
+            "box": [
+              0.03,
+              0.77,
+              0.97,
+              0.8468042096428059
+            ],
+            "triangles": [
+              2,
+              3,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              16,
+              17,
+              19,
+              20,
+              34,
+              35,
+              36,
+              37,
+              46,
+              47,
+              49,
+              50,
+              51,
+              52,
+              54,
+              55,
+              76,
+              77,
+              86,
+              87,
+              88,
+              89,
+              90,
+              91
+            ]
+          }
+        }
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.1700010299682617,
+          "min_y": 0.019122999161481857,
+          "min_z": -1.1700010299682617,
+          "max_x": 1.1700010299682617,
+          "max_y": 1.5300029516220093,
+          "max_z": 1.1700010299682617
+        },
+        "radius": 1.5663601160049438,
+        "count": 92,
+        "sha256": "d25b92a68e9ec502a24b98562446e94c419e1987f4a39220479f0b483915dabf"
+      },
+      "sha256": "97bd437a84cf10414dc8edac4f46ddc8e7eb917374cbed30308c6bd8a29717d6"
+    },
+    "crwccc": {
+      "source": "apcann",
+      "coverage": {
+        "triangles": 18,
+        "totalTriangles": 620,
+        "faceGroups": 9,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 2,
+        "lampUvTriangles": 4,
+        "lampUvGroups": 4,
+        "lampUvBounds": [
+          0.16,
+          0.275,
+          0.32,
+          0.37
+        ],
+        "coreUvRows": [
+          576
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 0,
+        "hazardUvBand": [
+          0.0,
+          0.25
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.4676080048084259,
+          "min_y": 0.013151999562978745,
+          "min_z": -0.2416049987077713,
+          "max_x": 0.4676080048084259,
+          "max_y": 3.095319986343384,
+          "max_z": 0.2416049987077713
+        },
+        "radius": 3.1087310314178467,
+        "count": 620,
+        "sha256": "77a40b20955586840d1d827d2ae4567a34977e8a9d03920832c61eeaa95486b4"
+      },
+      "sha256": "0e57b93395247bd22c7cd48c7b022aaecd3d9fa6f38ad74df6f178394ea44c51"
+    },
+    "crwrcc": {
+      "source": "aprock",
+      "coverage": {
+        "triangles": 8,
+        "totalTriangles": 254,
+        "faceGroups": 8,
+        "badgePanels": 0,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 138,
+        "lampUvGroups": 50,
+        "lampUvBounds": [
+          0.06,
+          0.81,
+          0.315,
+          0.91
+        ],
+        "coreUvRows": [
+          0,
+          1,
+          3,
+          5,
+          8,
+          9
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 96,
+        "hazardUvBand": [
+          0.25,
+          0.5
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8974270224571228,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.8983439803123474,
+          "max_x": 0.8974270224571228,
+          "max_y": 2.904745101928711,
+          "max_z": 0.8983439803123474
+        },
+        "radius": 2.904745101928711,
+        "count": 254,
+        "sha256": "c68141ab6ced7b7395ab03f9bc765c0b816c41a0a9c379beca88c1a53ab48e7e"
+      },
+      "sha256": "8f99c222c90602292d8aec09fcf364e6aed2f786866c0f58bf855c6b18bd4d17"
+    },
+    "crwmcc": {
+      "source": "apmort",
+      "coverage": {
+        "triangles": 32,
+        "totalTriangles": 76,
+        "faceGroups": 16,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 10,
+        "lampUvBounds": [
+          0.775,
+          0.35,
+          0.82,
+          0.435
+        ],
+        "coreUvRows": [
+          28,
+          29,
+          30,
+          36,
+          39,
+          41
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 4,
+        "hazardUvBand": [
+          0.5,
+          0.75
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5903080105781555,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.5798239707946777,
+          "max_x": 0.5903080105781555,
+          "max_y": 3.1406829357147217,
+          "max_z": 0.5798239707946777
+        },
+        "radius": 3.141977548599243,
+        "count": 76,
+        "sha256": "436535ca6d1dad4e8b7edfe3613219edc4f8499e669e3f847cd2942d2c851245"
+      },
+      "sha256": "7a274647750895132a06af60e5b0ea9335e881d770a9641de76ab29aa0fa4824"
+    },
+    "crwscc": {
+      "source": "apspec",
+      "coverage": {
+        "triangles": 10,
+        "totalTriangles": 100,
+        "faceGroups": 4,
+        "badgePanels": 0,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 8,
+        "lampUvBounds": [
+          0.065,
+          0.785,
+          0.165,
+          0.935
+        ],
+        "coreUvRows": [
+          52,
+          53,
+          54
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 8,
+        "hazardUvBand": [
+          0.75,
+          1.0
+        ],
+        "quietUvTriangles": 8,
+        "alignedWarningPanels": 4
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.3001199960708618,
+          "min_y": 0.16733099520206451,
+          "min_z": -1.346006989479065,
+          "max_x": 1.3001199960708618,
+          "max_y": 1.2486380338668823,
+          "max_z": 1.346006989479065
+        },
+        "radius": 1.7351948022842407,
+        "count": 100,
+        "sha256": "0b254622d95a1db7334f9962bb23d88ed4b805a7bbc5cbf23d22536eb56d9e83"
+      },
+      "sha256": "d4e3634da756ce413d02dd575db4d93b96ecf2fcb68bd6654b9c6f9a0fee5d05"
+    },
+    "crnvcr": {
+      "source": "apcamr",
+      "coverage": {
+        "triangles": 208,
+        "totalTriangles": 208
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5621619820594788,
+          "min_y": 0.0015010000206530094,
+          "min_z": -1.0875669717788696,
+          "max_x": 0.5621619820594788,
+          "max_y": 4.659055233001709,
+          "max_z": 1.3690730333328247
+        },
+        "radius": 4.659172058105469,
+        "count": 208,
+        "sha256": "92cc95f695d9a23f0ab3db398706ce754826d91e163d948bf5f58d34e8466805"
+      },
+      "sha256": "4eb30c79d01bd95338c05c58da7116e4d0aff9e93e2f38734e8085f4193a85c0"
+    },
+    "cramcr": {
+      "source": "apammo",
+      "coverage": {
+        "triangles": 126,
+        "totalTriangles": 126,
+        "fullUnwrap": true,
+        "charts": {
+          "side": {
+            "box": [
+              0.04,
+              0.04,
+              0.96,
+              0.25818665191591506
+            ],
+            "triangles": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              15,
+              16,
+              17,
+              18,
+              21,
+              22,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              88,
+              89,
+              90,
+              91,
+              100,
+              101,
+              102,
+              103,
+              104,
+              105,
+              106,
+              107,
+              108,
+              109,
+              110,
+              111
+            ]
+          },
+          "cone": {
+            "box": [
+              0.06,
+              0.32,
+              0.94,
+              0.55
+            ],
+            "triangles": [
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61,
+              62,
+              63,
+              64,
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              73,
+              74,
+              75,
+              84,
+              85,
+              86,
+              87,
+              92,
+              93,
+              94,
+              95,
+              96,
+              97,
+              98,
+              99
+            ]
+          },
+          "shoulder": {
+            "box": [
+              0.56,
+              0.59,
+              0.96,
+              0.99
+            ],
+            "triangles": [
+              0,
+              13,
+              20,
+              31,
+              32,
+              33,
+              34,
+              35,
+              36,
+              37,
+              38,
+              39
+            ]
+          },
+          "bottom": {
+            "box": [
+              0.04,
+              0.59,
+              0.44,
+              0.99
+            ],
+            "triangles": [
+              14,
+              19,
+              23,
+              30,
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              112,
+              113,
+              114,
+              115,
+              116,
+              117,
+              118,
+              119,
+              120,
+              121,
+              122,
+              123,
+              124,
+              125
+            ]
+          },
+          "cap": {
+            "box": [
+              0.48,
+              0.59,
+              0.52,
+              0.63
+            ],
+            "triangles": [
+              76,
+              77,
+              78,
+              79,
+              80,
+              81,
+              82,
+              83
+            ]
+          }
+        }
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8769389986991882,
+          "min_y": 0.29379498958587646,
+          "min_z": -0.8769389986991882,
+          "max_x": 0.8769389986991882,
+          "max_y": 2.6499290466308594,
+          "max_z": 0.8769389986991882
+        },
+        "radius": 2.651768207550049,
+        "count": 126,
+        "sha256": "c1bcf2b67bd4e358448553fb742127d2fc8226d6ff731cbbddf1f0bb16d90c95"
+      },
+      "sha256": "788b225c13614f11454ee3698725913fb382c7a4dcb6529c6bfd5309a520c5fd"
+    },
+    "crhpcr": {
+      "source": "aprepa",
+      "coverage": {
+        "triangles": 92,
+        "totalTriangles": 92,
+        "fullUnwrap": true,
+        "charts": {
+          "top": {
+            "box": [
+              0.03,
+              0.03,
+              0.68,
+              0.68
+            ],
+            "triangles": [
+              0,
+              1,
+              18,
+              21,
+              22,
+              23,
+              26,
+              27,
+              28,
+              29,
+              32,
+              33,
+              48,
+              53,
+              56,
+              57,
+              58,
+              59,
+              64,
+              65,
+              66,
+              67,
+              68,
+              69,
+              72,
+              73,
+              82,
+              83,
+              84,
+              85
+            ]
+          },
+          "bottom": {
+            "box": [
+              0.72,
+              0.03,
+              0.97,
+              0.28
+            ],
+            "triangles": [
+              4,
+              5,
+              12,
+              13,
+              14,
+              15,
+              24,
+              25,
+              30,
+              31,
+              38,
+              39,
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              60,
+              61,
+              62,
+              63,
+              70,
+              71,
+              74,
+              75,
+              78,
+              79,
+              80,
+              81
+            ]
+          },
+          "side": {
+            "box": [
+              0.03,
+              0.77,
+              0.97,
+              0.8468042096428059
+            ],
+            "triangles": [
+              2,
+              3,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              16,
+              17,
+              19,
+              20,
+              34,
+              35,
+              36,
+              37,
+              46,
+              47,
+              49,
+              50,
+              51,
+              52,
+              54,
+              55,
+              76,
+              77,
+              86,
+              87,
+              88,
+              89,
+              90,
+              91
+            ]
+          }
+        }
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.1700010299682617,
+          "min_y": 0.019122999161481857,
+          "min_z": -1.1700010299682617,
+          "max_x": 1.1700010299682617,
+          "max_y": 1.5300029516220093,
+          "max_z": 1.1700010299682617
+        },
+        "radius": 1.5663601160049438,
+        "count": 92,
+        "sha256": "d25b92a68e9ec502a24b98562446e94c419e1987f4a39220479f0b483915dabf"
+      },
+      "sha256": "5b13045ce136561f93cefd684ee754b73b4e7f8a2253f626667e8460a729cb50"
+    },
+    "crwccr": {
+      "source": "apcann",
+      "coverage": {
+        "triangles": 18,
+        "totalTriangles": 620,
+        "faceGroups": 9,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 2,
+        "lampUvTriangles": 4,
+        "lampUvGroups": 4,
+        "lampUvBounds": [
+          0.16,
+          0.275,
+          0.32,
+          0.37
+        ],
+        "coreUvRows": [
+          576
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 0,
+        "hazardUvBand": [
+          0.0,
+          0.25
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.4676080048084259,
+          "min_y": 0.013151999562978745,
+          "min_z": -0.2416049987077713,
+          "max_x": 0.4676080048084259,
+          "max_y": 3.095319986343384,
+          "max_z": 0.2416049987077713
+        },
+        "radius": 3.1087310314178467,
+        "count": 620,
+        "sha256": "77a40b20955586840d1d827d2ae4567a34977e8a9d03920832c61eeaa95486b4"
+      },
+      "sha256": "e02f01ab61955edadab64820346415214fdedc44566e75a41afb49345a822175"
+    },
+    "crwrcr": {
+      "source": "aprock",
+      "coverage": {
+        "triangles": 8,
+        "totalTriangles": 254,
+        "faceGroups": 8,
+        "badgePanels": 0,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 138,
+        "lampUvGroups": 50,
+        "lampUvBounds": [
+          0.06,
+          0.81,
+          0.315,
+          0.91
+        ],
+        "coreUvRows": [
+          0,
+          1,
+          3,
+          5,
+          8,
+          9
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 96,
+        "hazardUvBand": [
+          0.25,
+          0.5
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.8974270224571228,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.8983439803123474,
+          "max_x": 0.8974270224571228,
+          "max_y": 2.904745101928711,
+          "max_z": 0.8983439803123474
+        },
+        "radius": 2.904745101928711,
+        "count": 254,
+        "sha256": "c68141ab6ced7b7395ab03f9bc765c0b816c41a0a9c379beca88c1a53ab48e7e"
+      },
+      "sha256": "c646fa5b0797f3f665a21fe2f1eda3a160b09d66f668e9b31b6b33dbabd49780"
+    },
+    "crwmcr": {
+      "source": "apmort",
+      "coverage": {
+        "triangles": 32,
+        "totalTriangles": 76,
+        "faceGroups": 16,
+        "badgePanels": 1,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 10,
+        "lampUvBounds": [
+          0.775,
+          0.35,
+          0.82,
+          0.435
+        ],
+        "coreUvRows": [
+          28,
+          29,
+          30,
+          36,
+          39,
+          41
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 4,
+        "hazardUvBand": [
+          0.5,
+          0.75
+        ],
+        "quietUvTriangles": 0,
+        "alignedWarningPanels": 0
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -0.5903080105781555,
+          "min_y": 0.015472999773919582,
+          "min_z": -0.5798239707946777,
+          "max_x": 0.5903080105781555,
+          "max_y": 3.1406829357147217,
+          "max_z": 0.5798239707946777
+        },
+        "radius": 3.141977548599243,
+        "count": 76,
+        "sha256": "436535ca6d1dad4e8b7edfe3613219edc4f8499e669e3f847cd2942d2c851245"
+      },
+      "sha256": "0a9f1075cb8c7ee72aad196066b7bfbc138fbb0de0b562e1c4bbd4b73dab7dd9"
+    },
+    "crwscr": {
+      "source": "apspec",
+      "coverage": {
+        "triangles": 10,
+        "totalTriangles": 100,
+        "faceGroups": 4,
+        "badgePanels": 0,
+        "quadrant": [
+          0,
+          1
+        ],
+        "casingHazardTriangles": 0,
+        "lampUvTriangles": 16,
+        "lampUvGroups": 8,
+        "lampUvBounds": [
+          0.065,
+          0.785,
+          0.165,
+          0.935
+        ],
+        "coreUvRows": [
+          52,
+          53,
+          54
+        ],
+        "coreUvBounds": [
+          0.725,
+          0.45,
+          0.8,
+          0.555
+        ],
+        "hazardUvTriangles": 8,
+        "hazardUvBand": [
+          0.75,
+          1.0
+        ],
+        "quietUvTriangles": 8,
+        "alignedWarningPanels": 4
+      },
+      "geometry": {
+        "bounds": {
+          "min_x": -1.3001199960708618,
+          "min_y": 0.16733099520206451,
+          "min_z": -1.346006989479065,
+          "max_x": 1.3001199960708618,
+          "max_y": 1.2486380338668823,
+          "max_z": 1.346006989479065
+        },
+        "radius": 1.7351948022842407,
+        "count": 100,
+        "sha256": "0b254622d95a1db7334f9962bb23d88ed4b805a7bbc5cbf23d22536eb56d9e83"
+      },
+      "sha256": "7d3fa3eae9fc63cd3d729253fe85e070ad471f16d1d769e2da11e31b64d548cb"
+    }
+  },
+  "odfs": {
+    "napammo": {
+      "source": "apammo.odf",
+      "model": "cramns",
+      "faction": "NSDF"
+    },
+    "napammoa": {
+      "source": "apammoa.odf",
+      "model": "cramns",
+      "faction": "NSDF"
+    },
+    "napammob": {
+      "source": "apammob.odf",
+      "model": "cramns",
+      "faction": "NSDF"
+    },
+    "napartl": {
+      "source": "apartl.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "napblst": {
+      "source": "apblst.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napblstb": {
+      "source": "apblstb.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napblstg": {
+      "source": "apblstg.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napbltm": {
+      "source": "apbltm.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napbltmg": {
+      "source": "apbltmg.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napbltmr": {
+      "source": "apbltmr.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napbolt": {
+      "source": "apbolt.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napboltg": {
+      "source": "apboltg.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napboltr": {
+      "source": "apboltr.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napbsstb": {
+      "source": "apbsstb.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napcamr": {
+      "source": "apcamr.odf",
+      "model": "crnvns",
+      "faction": "NSDF"
+    },
+    "napcmet": {
+      "source": "apcmet.odf",
+      "model": "crwrns",
+      "faction": "NSDF"
+    },
+    "napflar": {
+      "source": "apflar.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napflsh": {
+      "source": "apflsh.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napflshb": {
+      "source": "apflshb.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napflshg": {
+      "source": "apflshg.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napgmini": {
+      "source": "apgmini.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "naphartl": {
+      "source": "aphartl.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "naphorn": {
+      "source": "aphorn.odf",
+      "model": "crwrns",
+      "faction": "NSDF"
+    },
+    "naplgmsl": {
+      "source": "aplgmsl.odf",
+      "model": "crwrns",
+      "faction": "NSDF"
+    },
+    "napmagg": {
+      "source": "apmagg.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napmasg": {
+      "source": "apmasg.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napmcur": {
+      "source": "apmcur.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napmdmg": {
+      "source": "apmdmg.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "napmini": {
+      "source": "apmini.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napmits": {
+      "source": "apmits.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napmort": {
+      "source": "apmort.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "napphan": {
+      "source": "apphan.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "nappopg": {
+      "source": "appopg.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "napprox": {
+      "source": "approx.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napredf": {
+      "source": "apredf.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "naprepa": {
+      "source": "aprepa.odf",
+      "model": "crhpns",
+      "faction": "NSDF"
+    },
+    "naprepaa": {
+      "source": "aprepaa.odf",
+      "model": "crhpns",
+      "faction": "NSDF"
+    },
+    "naprepab": {
+      "source": "aprepab.odf",
+      "model": "crhpns",
+      "faction": "NSDF"
+    },
+    "naprktb": {
+      "source": "aprktb.odf",
+      "model": "crwrns",
+      "faction": "NSDF"
+    },
+    "napsand": {
+      "source": "apsand.odf",
+      "model": "crwrns",
+      "faction": "NSDF"
+    },
+    "napshdw": {
+      "source": "apshdw.odf",
+      "model": "crwrns",
+      "faction": "NSDF"
+    },
+    "napsite": {
+      "source": "apsite.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "napspln": {
+      "source": "apspln.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "napsplng": {
+      "source": "apsplng.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "napsplnr": {
+      "source": "apsplnr.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "napsstb": {
+      "source": "apsstb.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napsstba": {
+      "source": "apsstba.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napstab": {
+      "source": "apstab.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "naptagg": {
+      "source": "aptagg.odf",
+      "model": "crwrns",
+      "faction": "NSDF"
+    },
+    "naptech": {
+      "source": "aptech.odf",
+      "model": "crwcns",
+      "faction": "NSDF"
+    },
+    "napthmp": {
+      "source": "apthmp.odf",
+      "model": "crwsns",
+      "faction": "NSDF"
+    },
+    "naptsmok": {
+      "source": "aptsmok.odf",
+      "model": "crwmns",
+      "faction": "NSDF"
+    },
+    "bapammo": {
+      "source": "apammo.odf",
+      "model": "crambd",
+      "faction": "Black Dog"
+    },
+    "bapammoa": {
+      "source": "apammoa.odf",
+      "model": "crambd",
+      "faction": "Black Dog"
+    },
+    "bapammob": {
+      "source": "apammob.odf",
+      "model": "crambd",
+      "faction": "Black Dog"
+    },
+    "bapartl": {
+      "source": "apartl.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "bapblst": {
+      "source": "apblst.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapblstb": {
+      "source": "apblstb.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapblstg": {
+      "source": "apblstg.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapbltm": {
+      "source": "apbltm.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapbltmg": {
+      "source": "apbltmg.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapbltmr": {
+      "source": "apbltmr.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapbolt": {
+      "source": "apbolt.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapboltg": {
+      "source": "apboltg.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapboltr": {
+      "source": "apboltr.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapbsstb": {
+      "source": "apbsstb.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapcamr": {
+      "source": "apcamr.odf",
+      "model": "crnvbd",
+      "faction": "Black Dog"
+    },
+    "bapcmet": {
+      "source": "apcmet.odf",
+      "model": "crwrbd",
+      "faction": "Black Dog"
+    },
+    "bapflar": {
+      "source": "apflar.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapflsh": {
+      "source": "apflsh.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapflshb": {
+      "source": "apflshb.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapflshg": {
+      "source": "apflshg.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapgmini": {
+      "source": "apgmini.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "baphartl": {
+      "source": "aphartl.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "baphorn": {
+      "source": "aphorn.odf",
+      "model": "crwrbd",
+      "faction": "Black Dog"
+    },
+    "baplgmsl": {
+      "source": "aplgmsl.odf",
+      "model": "crwrbd",
+      "faction": "Black Dog"
+    },
+    "bapmagg": {
+      "source": "apmagg.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapmasg": {
+      "source": "apmasg.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapmcur": {
+      "source": "apmcur.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapmdmg": {
+      "source": "apmdmg.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "bapmini": {
+      "source": "apmini.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapmits": {
+      "source": "apmits.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapmort": {
+      "source": "apmort.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "bapphan": {
+      "source": "apphan.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bappopg": {
+      "source": "appopg.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "bapprox": {
+      "source": "approx.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapredf": {
+      "source": "apredf.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "baprepa": {
+      "source": "aprepa.odf",
+      "model": "crhpbd",
+      "faction": "Black Dog"
+    },
+    "baprepaa": {
+      "source": "aprepaa.odf",
+      "model": "crhpbd",
+      "faction": "Black Dog"
+    },
+    "baprepab": {
+      "source": "aprepab.odf",
+      "model": "crhpbd",
+      "faction": "Black Dog"
+    },
+    "baprktb": {
+      "source": "aprktb.odf",
+      "model": "crwrbd",
+      "faction": "Black Dog"
+    },
+    "bapsand": {
+      "source": "apsand.odf",
+      "model": "crwrbd",
+      "faction": "Black Dog"
+    },
+    "bapshdw": {
+      "source": "apshdw.odf",
+      "model": "crwrbd",
+      "faction": "Black Dog"
+    },
+    "bapsite": {
+      "source": "apsite.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "bapspln": {
+      "source": "apspln.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "bapsplng": {
+      "source": "apsplng.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "bapsplnr": {
+      "source": "apsplnr.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "bapsstb": {
+      "source": "apsstb.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapsstba": {
+      "source": "apsstba.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapstab": {
+      "source": "apstab.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "baptagg": {
+      "source": "aptagg.odf",
+      "model": "crwrbd",
+      "faction": "Black Dog"
+    },
+    "baptech": {
+      "source": "aptech.odf",
+      "model": "crwcbd",
+      "faction": "Black Dog"
+    },
+    "bapthmp": {
+      "source": "apthmp.odf",
+      "model": "crwsbd",
+      "faction": "Black Dog"
+    },
+    "baptsmok": {
+      "source": "aptsmok.odf",
+      "model": "crwmbd",
+      "faction": "Black Dog"
+    },
+    "sapammo": {
+      "source": "apammo.odf",
+      "model": "cramcc",
+      "faction": "CCA"
+    },
+    "sapammoa": {
+      "source": "apammoa.odf",
+      "model": "cramcc",
+      "faction": "CCA"
+    },
+    "sapammob": {
+      "source": "apammob.odf",
+      "model": "cramcc",
+      "faction": "CCA"
+    },
+    "sapartl": {
+      "source": "apartl.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sapblst": {
+      "source": "apblst.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapblstb": {
+      "source": "apblstb.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapblstg": {
+      "source": "apblstg.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapbltm": {
+      "source": "apbltm.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapbltmg": {
+      "source": "apbltmg.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapbltmr": {
+      "source": "apbltmr.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapbolt": {
+      "source": "apbolt.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapboltg": {
+      "source": "apboltg.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapboltr": {
+      "source": "apboltr.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapbsstb": {
+      "source": "apbsstb.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapcamr": {
+      "source": "apcamr.odf",
+      "model": "crnvcc",
+      "faction": "CCA"
+    },
+    "sapcmet": {
+      "source": "apcmet.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sapflar": {
+      "source": "apflar.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapflsh": {
+      "source": "apflsh.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapflshb": {
+      "source": "apflshb.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapflshg": {
+      "source": "apflshg.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapgmini": {
+      "source": "apgmini.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "saphartl": {
+      "source": "aphartl.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "saphorn": {
+      "source": "aphorn.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "saplgmsl": {
+      "source": "aplgmsl.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sapmagg": {
+      "source": "apmagg.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapmasg": {
+      "source": "apmasg.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapmcur": {
+      "source": "apmcur.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapmdmg": {
+      "source": "apmdmg.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sapmini": {
+      "source": "apmini.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapmits": {
+      "source": "apmits.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapmort": {
+      "source": "apmort.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sapphan": {
+      "source": "apphan.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sappopg": {
+      "source": "appopg.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sapprox": {
+      "source": "approx.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapredf": {
+      "source": "apredf.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "saprepa": {
+      "source": "aprepa.odf",
+      "model": "crhpcc",
+      "faction": "CCA"
+    },
+    "saprepaa": {
+      "source": "aprepaa.odf",
+      "model": "crhpcc",
+      "faction": "CCA"
+    },
+    "saprepab": {
+      "source": "aprepab.odf",
+      "model": "crhpcc",
+      "faction": "CCA"
+    },
+    "saprktb": {
+      "source": "aprktb.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sapsand": {
+      "source": "apsand.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sapshdw": {
+      "source": "apshdw.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sapsite": {
+      "source": "apsite.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sapspln": {
+      "source": "apspln.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sapsplng": {
+      "source": "apsplng.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sapsplnr": {
+      "source": "apsplnr.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sapsstb": {
+      "source": "apsstb.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapsstba": {
+      "source": "apsstba.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapstab": {
+      "source": "apstab.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "saptagg": {
+      "source": "aptagg.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "saptech": {
+      "source": "aptech.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sapthmp": {
+      "source": "apthmp.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "saptsmok": {
+      "source": "aptsmok.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sspammo": {
+      "source": "spammo.odf",
+      "model": "cramcc",
+      "faction": "CCA"
+    },
+    "sspbett": {
+      "source": "spbett.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sspblst": {
+      "source": "spblst.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sspcamr": {
+      "source": "spcamr.odf",
+      "model": "crnvcc",
+      "faction": "CCA"
+    },
+    "sspcmet": {
+      "source": "spcmet.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sspflar": {
+      "source": "spflar.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sspflsh": {
+      "source": "spflsh.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "ssphunt": {
+      "source": "sphunt.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sspmagg": {
+      "source": "spmagg.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sspmcur": {
+      "source": "spmcur.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sspmdmg": {
+      "source": "spmdmg.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sspmini": {
+      "source": "spmini.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sspmits": {
+      "source": "spmits.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "ssppopg": {
+      "source": "sppopg.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sspredf": {
+      "source": "spredf.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "ssprepa": {
+      "source": "sprepa.odf",
+      "model": "crhpcc",
+      "faction": "CCA"
+    },
+    "ssprktb": {
+      "source": "sprktb.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sspsand": {
+      "source": "spsand.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sspshdw": {
+      "source": "spshdw.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sspsite": {
+      "source": "spsite.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "sspsmort": {
+      "source": "spsmort.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sspspln": {
+      "source": "spspln.odf",
+      "model": "crwmcc",
+      "faction": "CCA"
+    },
+    "sspsstb": {
+      "source": "spsstb.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sspstab": {
+      "source": "spstab.odf",
+      "model": "crwccc",
+      "faction": "CCA"
+    },
+    "sspstlk": {
+      "source": "spstlk.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "ssptagg": {
+      "source": "sptagg.odf",
+      "model": "crwrcc",
+      "faction": "CCA"
+    },
+    "sspthmp": {
+      "source": "spthmp.odf",
+      "model": "crwscc",
+      "faction": "CCA"
+    },
+    "capammo": {
+      "source": "apammo.odf",
+      "model": "cramcr",
+      "faction": "CRA"
+    },
+    "capammoa": {
+      "source": "apammoa.odf",
+      "model": "cramcr",
+      "faction": "CRA"
+    },
+    "capammob": {
+      "source": "apammob.odf",
+      "model": "cramcr",
+      "faction": "CRA"
+    },
+    "capartl": {
+      "source": "apartl.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "capblst": {
+      "source": "apblst.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capblstb": {
+      "source": "apblstb.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capblstg": {
+      "source": "apblstg.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capbltm": {
+      "source": "apbltm.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capbltmg": {
+      "source": "apbltmg.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capbltmr": {
+      "source": "apbltmr.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capbolt": {
+      "source": "apbolt.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capboltg": {
+      "source": "apboltg.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capboltr": {
+      "source": "apboltr.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capbsstb": {
+      "source": "apbsstb.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capcamr": {
+      "source": "apcamr.odf",
+      "model": "crnvcr",
+      "faction": "CRA"
+    },
+    "capcmet": {
+      "source": "apcmet.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "capflar": {
+      "source": "apflar.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capflsh": {
+      "source": "apflsh.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capflshb": {
+      "source": "apflshb.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capflshg": {
+      "source": "apflshg.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capgmini": {
+      "source": "apgmini.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "caphartl": {
+      "source": "aphartl.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "caphorn": {
+      "source": "aphorn.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "caplgmsl": {
+      "source": "aplgmsl.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "capmagg": {
+      "source": "apmagg.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capmasg": {
+      "source": "apmasg.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capmcur": {
+      "source": "apmcur.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capmdmg": {
+      "source": "apmdmg.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "capmini": {
+      "source": "apmini.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capmits": {
+      "source": "apmits.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capmort": {
+      "source": "apmort.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "capphan": {
+      "source": "apphan.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "cappopg": {
+      "source": "appopg.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "capprox": {
+      "source": "approx.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capredf": {
+      "source": "apredf.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "caprepa": {
+      "source": "aprepa.odf",
+      "model": "crhpcr",
+      "faction": "CRA"
+    },
+    "caprepaa": {
+      "source": "aprepaa.odf",
+      "model": "crhpcr",
+      "faction": "CRA"
+    },
+    "caprepab": {
+      "source": "aprepab.odf",
+      "model": "crhpcr",
+      "faction": "CRA"
+    },
+    "caprktb": {
+      "source": "aprktb.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "capsand": {
+      "source": "apsand.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "capshdw": {
+      "source": "apshdw.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "capsite": {
+      "source": "apsite.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "capspln": {
+      "source": "apspln.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "capsplng": {
+      "source": "apsplng.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "capsplnr": {
+      "source": "apsplnr.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "capsstb": {
+      "source": "apsstb.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capsstba": {
+      "source": "apsstba.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capstab": {
+      "source": "apstab.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "captagg": {
+      "source": "aptagg.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "captech": {
+      "source": "aptech.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "capthmp": {
+      "source": "apthmp.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "captsmok": {
+      "source": "aptsmok.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "ccpsstb": {
+      "source": "cpsstb.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "ccptesla": {
+      "source": "cptesla.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "cspammo": {
+      "source": "spammo.odf",
+      "model": "cramcr",
+      "faction": "CRA"
+    },
+    "cspblst": {
+      "source": "spblst.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "cspcamr": {
+      "source": "spcamr.odf",
+      "model": "crnvcr",
+      "faction": "CRA"
+    },
+    "cspcmet": {
+      "source": "spcmet.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "cspflar": {
+      "source": "spflar.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "cspflsh": {
+      "source": "spflsh.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "csphorn": {
+      "source": "sphorn.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "cspmagg": {
+      "source": "spmagg.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "cspmcur": {
+      "source": "spmcur.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "cspmdmg": {
+      "source": "spmdmg.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "cspmini": {
+      "source": "spmini.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "cspmits": {
+      "source": "spmits.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "cspmort": {
+      "source": "spmort.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "cspphan": {
+      "source": "spphan.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "csppopg": {
+      "source": "sppopg.odf",
+      "model": "crwmcr",
+      "faction": "CRA"
+    },
+    "cspredf": {
+      "source": "spredf.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "csprepa": {
+      "source": "sprepa.odf",
+      "model": "crhpcr",
+      "faction": "CRA"
+    },
+    "csprktb": {
+      "source": "sprktb.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "cspsand": {
+      "source": "spsand.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "cspshdw": {
+      "source": "spshdw.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "cspsite": {
+      "source": "spsite.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    },
+    "cspstab": {
+      "source": "spstab.odf",
+      "model": "crwccr",
+      "faction": "CRA"
+    },
+    "csptagg": {
+      "source": "sptagg.odf",
+      "model": "crwrcr",
+      "faction": "CRA"
+    },
+    "cspthmp": {
+      "source": "spthmp.odf",
+      "model": "crwscr",
+      "faction": "CRA"
+    }
+  },
+  "menuRoutes": 40,
+  "masters": {
+    "nav_bd.png": "507a85582762bade2513b2158b087f8411dc96d5ec9927929b4458a90a90130c",
+    "nav_bd_v2.png": "a9b8efa53043e569dbcbb65247b08be24f28d9f677bbb22d67d2dade016e6941",
+    "nav_cc.png": "39171bd7c356f6d9ac52f8d05e380cffaeb0fde7534a6ab51ccb49e1c0ffabb8",
+    "nav_cc_v2.png": "3319d7cc0dd8f5071ca0f2020115d3545ed97057305b9b0f86db2ce5a88997f6",
+    "nav_cr.png": "7ca756aafcb7403d0ae44ba6bd4542d8e61f642da4c065ec906bf5c99d3e6775",
+    "nav_cr_v2.png": "ae6ad0bbbef4db5401806d4df6c63feef0463cd1a0e7ca1f3b2986216f59da6e",
+    "nav_ns.png": "3e761e736850fd688ea8ef68bc4d9c18c4d2fa8b9e67ea375409294ae9b3496a",
+    "nav_ns_v2.png": "f7370cdaa6cab0081af0e27aa023cfef3b667623450d90856a8f8cf6afa04b18",
+    "panels_bd.png": "f07d2116472e2c049f969e2256d2169cbc752886aeeb633a85f7d3a212916068",
+    "panels_cc.png": "14698c3765040ec868cebf062d02c601081717350ae5fa196a4f35bece88ebc2",
+    "panels_cr.png": "d4414a6d2adfc5e68c0464fd02223fe57ff75160df70d9bb1af332b042ee86b8",
+    "panels_ns.png": "aa3176f0c9a922520f3df4d9fc295fcfb88c297171190ba300f73048af6d157b",
+    "plain-finishes.png": "068161f53392fea9fc9e27a954159bef1475d4263298135c28b8abf9490d4cdd",
+    "supply_bd_v2.png": "11c811fd05f7120016b1d4b09e4225d9226dc504ef5a95669fc51eb2daf00a3e",
+    "supply_cc_v2.png": "d560538640f11862f87407b4f17d08c21c9950cce92d70b7c9a7662aeed8a285",
+    "supply_cr_v2.png": "114b79b7f60f81c9c49fbd15b4d05b4181ac6e7c9b9377fa9883ee65800ad999",
+    "supply_ns_v2.png": "71c5ffc92db4303a07f2236e59e1439654671fe495e0efcfb0a3e2894245002e"
+  },
+  "podMasters": {
+    "References/TextureRevamp/pod-palette-v4/cramns4-master.png": "74508ee87eeac26de0c47f6a1a69f2d94615d5d10866beee6672a76999bc161f",
+    "References/TextureRevamp/pod-palette-v4/crhpns4-master.png": "65ff3d72dbe7059eba7dd3e574a0607a03e71c67c43ecca22a580d11a37c32bc",
+    "References/TextureRevamp/pod-palette-v4/crambd4-master.png": "32730ff55a46aae28076435160074329a919a783842b392e32889ab1d68c7882",
+    "References/TextureRevamp/pod-palette-v4/crhpbd4-master.png": "49b7c47169a3fbbf1ef591ef26b4d6c5d6c47eca7842644f9e1fbdefafd30f6f",
+    "References/TextureRevamp/pod-palette-v4/cramcc4-master.png": "d6ea28b07e22195d466e4b9c2cdf6a76e0cec7480da31925078da21ec8d1b22b",
+    "References/TextureRevamp/pod-palette-v4/crhpcc4-master.png": "10ace6b253592b5fd6f7a56457171b9c028255aa5a41f3ff01bff4554df0e34c",
+    "References/TextureRevamp/pod-palette-v4/cramcr4-master.png": "62f4dadca98df6181a775445a76b4355ad070cc97920f39bae723b2f807839a1",
+    "References/TextureRevamp/pod-palette-v4/crhpcr4-master.png": "de363e418ef22e82e18dc89fdfe8005e9f61af7f9cc9a9900ed994b0deb8c3c5"
+  },
+  "navWeaponMasters": {
+    "References/TextureRevamp/nav-weapons-v4/badge_bd_master.png": "236f7167120ebb1b879712702044817d94d791a51ce4f7d34e2e952f72a8e11a",
+    "References/TextureRevamp/nav-weapons-v4/badge_cc_master.png": "47d87756dcc53a1595d46331720166a6de141a1ad79da67a0234b8b53b0713d0",
+    "References/TextureRevamp/nav-weapons-v4/badge_cr_master.png": "b98f430684d35643e10a8ec9c68d8c3f598c3c6173736117572c82112381caa9",
+    "References/TextureRevamp/nav-weapons-v4/badge_ns_master.png": "b54647842db2ff32493c6f3000b8804c611ca0cec7490a8ee40da5f2c6614ef3",
+    "References/TextureRevamp/nav-weapons-v4/nav_bd_v4.png": "099b4d68d4292d9425aa0fa61e0add5ce8b0369a757138f72f15205e7bf499d4",
+    "References/TextureRevamp/nav-weapons-v4/nav_cc_v4.png": "fc27e73fae0441d02400d02d6d46fb9696eb297c763b946a6796594bc89e7487",
+    "References/TextureRevamp/nav-weapons-v4/nav_cr_v4.png": "33a111518d3e04a1bf6cee90e86bb139a645bf6c65fabf7f7c4128e26fd5003c",
+    "References/TextureRevamp/nav-weapons-v4/nav_ns_v4.png": "db57704ea516efde88014d7621ac0e949a387209691bc7819ca90e975f9136f2",
+    "References/TextureRevamp/nav-weapons-v4/plain_v4.png": "eb95e98026185aa63b105ab81388320098df2a454cc3d8215f593ab9cc91d9ce",
+    "References/TextureRevamp/nav-weapons-v4/weapon-stock-layout.png": "82cb9f5452ea7b6e8419cd32bd17dd0a16b0bc6be522e01024ce4faf8557c2a9",
+    "References/TextureRevamp/nav-weapons-v4/weapon_bd_master.png": "83b53a1f169989172f6e1bfb3aca7de941c2d9e237dcc68d393e8381f15c5056",
+    "References/TextureRevamp/nav-weapons-v4/weapon_cc_master.png": "9c02f4cb324ca372f949162c6eef1464c5d38f88f7d011610ff021b9e093fa64",
+    "References/TextureRevamp/nav-weapons-v4/weapon_cr_master.png": "317c54b9eb441c73b61df6151dd5bc50f0d653e6de894d04426444d8b489699e",
+    "References/TextureRevamp/nav-weapons-v4/weapon_ns_master.png": "24d5ba6b363a76d44a15524438340cd647aae51a9791217876a016be24dcc676"
+  },
+  "atlasOptimization": {
+    "previousDraftMaps": 84,
+    "previousDraftBytes": 44052064,
+    "currentMaps": 44,
+    "currentBytes": 24472992,
+    "retiredFiles": [
+      "crpkbd0_surf.dds",
+      "crpkbd1_surf.dds",
+      "crpkbd3_d.dds",
+      "crpkbd3_e.dds",
+      "crpkcc0_surf.dds",
+      "crpkcc1_surf.dds",
+      "crpkcc3_d.dds",
+      "crpkcc3_e.dds",
+      "crpkcr0_surf.dds",
+      "crpkcr1_surf.dds",
+      "crpkcr3_d.dds",
+      "crpkcr3_e.dds",
+      "crpkns0_surf.dds",
+      "crpkns1_surf.dds",
+      "crpkns3_d.dds",
+      "crpkns3_e.dds",
+      "crwcbd_d.dds",
+      "crwcbd_e.dds",
+      "crwccc_d.dds",
+      "crwccc_e.dds",
+      "crwccr_d.dds",
+      "crwccr_e.dds",
+      "crwcns_d.dds",
+      "crwcns_e.dds",
+      "crwmbd_d.dds",
+      "crwmbd_e.dds",
+      "crwmcc_d.dds",
+      "crwmcc_e.dds",
+      "crwmcr_d.dds",
+      "crwmcr_e.dds",
+      "crwmns_d.dds",
+      "crwmns_e.dds",
+      "crwrbd_d.dds",
+      "crwrbd_e.dds",
+      "crwrcc_d.dds",
+      "crwrcc_e.dds",
+      "crwrcr_d.dds",
+      "crwrcr_e.dds",
+      "crwrns_d.dds",
+      "crwrns_e.dds",
+      "crwsbd_d.dds",
+      "crwsbd_e.dds",
+      "crwscc_d.dds",
+      "crwscc_e.dds",
+      "crwscr_d.dds",
+      "crwscr_e.dds",
+      "crwsns_d.dds",
+      "crwsns_e.dds"
+    ],
+    "sharedWeaponDetail": {
+      "ns": "crwpns",
+      "bd": "crwpbd",
+      "cc": "crwpcc",
+      "cr": "crwpcr"
+    }
+  }
+}

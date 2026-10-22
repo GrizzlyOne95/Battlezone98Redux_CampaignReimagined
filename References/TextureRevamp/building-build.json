@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "sourceSha256": "ce7464f51fa77fb504fe57c15c5ff667a761ba235905b4a92171373d1d1ea406",
+  "modelSha256": "98d8b0ab3008e2ac3057d831eea39e1fe51197f199a6d9e4a0e1b27f8c37a843",
+  "geometry": {
+    "skeleton": "sblpad.skeleton",
+    "bounds": {
+      "min_x": -17.942800521850586,
+      "min_y": 0.014884999953210354,
+      "min_z": -60.15660095214844,
+      "max_x": 40.219200134277344,
+      "max_y": 69.05789947509766,
+      "max_z": 45.79899978637695
+    },
+    "radius": 74.23330688476562,
+    "count": 4973,
+    "sha256": "4e738e9e152d1ed03868cf4289166e874ee356fcec50861164351deb931ffe07"
+  },
+  "coverage": {
+    "cca_door": 184,
+    "cca_stairs": 168,
+    "cca_plate": 4
+  },
+  "files": {
+    "crvcca_door_d.dds": {
+      "size": [
+        1024,
+        1536
+      ],
+      "format": "BC1_UNORM",
+      "sha256": "c770eca80bb720a9fd1caa5de9cf0f708ac92dcc3b8b289415342389aa6e5c44"
+    },
+    "crvcca_door_e.dds": {
+      "size": [
+        1024,
+        1536
+      ],
+      "format": "BC1_UNORM",
+      "sha256": "cc1b928f09e56b42ad8ba66c3706353406a479863f60c2c6cc137278f5c533b9"
+    },
+    "crvcca_stairs_d.dds": {
+      "size": [
+        512,
+        1408
+      ],
+      "format": "BC1_UNORM",
+      "sha256": "5ffed251a4251a3569da019ead1a1d01843ba7cf649bc5b05ae96a98f4f4de21"
+    },
+    "crvcca_plate_d.dds": {
+      "size": [
+        1280,
+        1024
+      ],
+      "format": "BC1_UNORM",
+      "sha256": "c6bdb0578d9e70550091533d73e46d25c971b44c23196f077832ac50385abeec"
+    },
+    "crvcca_patch_s.dds": {
+      "size": [
+        4,
+        4
+      ],
+      "format": "BC1_UNORM",
+      "sha256": "6c7d7f86637c350a22f7e50553f79a55d3c500cf4759c9282e719397d4242e84"
+    }
+  }
+}

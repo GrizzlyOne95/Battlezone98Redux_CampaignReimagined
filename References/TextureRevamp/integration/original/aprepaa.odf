@@ -1,0 +1,15 @@
+[GameObjectClass]
+baseName = "aprepa"
+classLabel = "repairkit"
+scrapCost = 0
+scrapValue = 0
+maxHealth = 150
+maxAmmo = 0
+unitName = "Repair"
+aiName = "PowerUpProcess"
+aiName2 = "PowerUpProcess"
+
+[HealthPowerupClass]
+healthUp = 5000
+soundPickup = "repair.wav"
+soundReject = "mnu_buzz.wav"

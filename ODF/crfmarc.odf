@@ -1,4 +1,14 @@
 [WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored arcred: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_arcred.mesh"
+flashMaterial = "CR/Muzzle/arcred"
+flashDuration = 0.055
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
 classLabel = "beamgun"
 ordName = "crfm0"
 wpnName = "Fury Storm Arc"

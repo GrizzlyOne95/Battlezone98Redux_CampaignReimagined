@@ -1,0 +1,164 @@
+{
+  "models": {
+    "oblema": [
+      "lme_src",
+      "CRV/InteriorWall",
+      "CRV/InteriorTrim",
+      "CRV/InteriorFloor",
+      "lme_ember"
+    ],
+    "obstp1": [
+      "osp_source",
+      "CRV/InteriorWall",
+      "CRV/InteriorFloor",
+      "CRV/InteriorTrim",
+      "osp_signal"
+    ],
+    "obstp2": [
+      "osp_source",
+      "CRV/InteriorWall",
+      "CRV/InteriorFloor",
+      "CRV/InteriorTrim",
+      "osp_signal"
+    ],
+    "obstp3": [
+      "osp_source",
+      "CRV/InteriorFloor",
+      "CRV/InteriorWall",
+      "CRV/InteriorTrim",
+      "osp_signal"
+    ],
+    "ubtart": [
+      "trld00"
+    ],
+    "obheph": [
+      "ovheph_src",
+      "CRV/InteriorFloor",
+      "ovheph_canopy",
+      "CRV/InteriorTrim",
+      "CRV/InteriorWall",
+      "ovheph_amber",
+      "ovheph_glass",
+      "CRV/InteriorScreen"
+    ],
+    "obher100": [
+      "oth_src",
+      "CRV/InteriorFloor",
+      "oth_canopy",
+      "CRV/InteriorTrim",
+      "CRV/InteriorWall",
+      "oth_amber",
+      "CRV/InteriorScreen"
+    ],
+    "obher200": [
+      "oth_src",
+      "CRV/InteriorFloor",
+      "oth_canopy",
+      "CRV/InteriorTrim",
+      "CRV/InteriorWall",
+      "oth_amber",
+      "CRV/InteriorScreen"
+    ],
+    "obher300": [
+      "oth_src",
+      "CRV/InteriorFloor",
+      "oth_canopy",
+      "CRV/InteriorTrim",
+      "CRV/InteriorWall",
+      "oth_amber",
+      "CRV/InteriorScreen"
+    ]
+  },
+  "selectors": {
+    "abstor": {
+      "DiffuseMap": "crstns_d.dds",
+      "NormalMap": "crvstor_n.dds",
+      "SpecularMap": "crvcca_patch_s.dds",
+      "EmissiveMap": "crstns_e.dds"
+    },
+    "bbstor": {
+      "DiffuseMap": "crstbd_d.dds",
+      "NormalMap": "crvstor_n.dds",
+      "SpecularMap": "crvcca_patch_s.dds",
+      "EmissiveMap": "crstbd_e.dds"
+    },
+    "apammo": {
+      "DiffuseMap": "crvpkup_d.dds",
+      "NormalMap": "crvpkup_n.dds"
+    },
+    "aprepa": {
+      "DiffuseMap": "crvpkup_d.dds",
+      "NormalMap": "crvpkup_n.dds"
+    },
+    "aprock": {
+      "DiffuseMap": "crvpkup_d.dds",
+      "NormalMap": "crvpkup_n.dds"
+    },
+    "apwrck": {
+      "DiffuseMap": "crvsalv_d.dds",
+      "NormalMap": "crvpkup_n.dds"
+    },
+    "obdata": {
+      "NormalMap": "crvobdata00_n.dds"
+    },
+    "obcycl": {
+      "NormalMap": "crvobcycl00_n.dds"
+    },
+    "oblemb": {
+      "NormalMap": "crvoblemb00_n.dds"
+    },
+    "oblemd": {
+      "NormalMap": "crvoblemb00_n.dds"
+    },
+    "obcurt": {
+      "NormalMap": "crvobpowr00_n.dds"
+    },
+    "obhavc": {
+      "NormalMap": "crvobpowr00_n.dds"
+    },
+    "obmits": {
+      "NormalMap": "crvobpowr00_n.dds"
+    },
+    "obmagc": {
+      "NormalMap": "crvobpowr00_n.dds"
+    },
+    "obrfld": {
+      "NormalMap": "crvobpowr00_n.dds"
+    },
+    "obtags": {
+      "NormalMap": "crvobpowr00_n.dds"
+    },
+    "cr16cmd": {
+      "NormalMap": "cr16cmd_n.dds",
+      "SpecularMap": "cr16cmd_s.dds",
+      "EmissiveMap": "cr16cmd_e.dds"
+    },
+    "cr16hng": {
+      "NormalMap": "cr16hng_n.dds",
+      "SpecularMap": "cr16hng_s.dds",
+      "EmissiveMap": "cr16hng_e.dds"
+    },
+    "cr16pwr": {
+      "NormalMap": "cr16pwr_n.dds",
+      "SpecularMap": "cr16pwr_s.dds",
+      "EmissiveMap": "cr16pwr_e.dds"
+    },
+    "cr16tow": {
+      "NormalMap": "cr16tow_n.dds",
+      "SpecularMap": "cr16tow_s.dds",
+      "EmissiveMap": "cr16tow_e.dds"
+    },
+    "ubtart": {
+      "DiffuseMap": "trld_d.dds",
+      "NormalMap": "flat_N.dds",
+      "SpecularMap": "black.dds",
+      "EmissiveMap": "black.dds"
+    },
+    "trld": {
+      "DiffuseMap": "trld_d.dds",
+      "NormalMap": "flat_N.dds",
+      "SpecularMap": "black.dds",
+      "EmissiveMap": "black.dds"
+    }
+  }
+}

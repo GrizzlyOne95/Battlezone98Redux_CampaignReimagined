@@ -1,4 +1,14 @@
 [WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored sunarc: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_sunarc.mesh"
+flashMaterial = "CR/Muzzle/sunarc"
+flashDuration = 0.065
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
 classLabel = "beamgun"
 ordName = "crom0"
 wpnName = "Olympian Sun Arc"
