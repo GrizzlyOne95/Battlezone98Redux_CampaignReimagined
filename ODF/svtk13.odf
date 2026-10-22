@@ -23,6 +23,12 @@ weaponName4 = "gnavdrop"
 weaponMask = 00001
 
 [CraftClass]
+// OpenShim mesh recoil (slot 1 cannon barrel; needs Settings > Video > Muzzle Recoil).
+// Node SCZ11BGB is the dedicated barrel under the turret (per VDF); metres, m/s.
+// Follows slot 1 if weaponName1 changes. See avtank.odf for the full reference.
+recoilName1 = "SCZ11BGB"
+recoilDistance1 = 0.20
+recoilReturn1 = 2.5
 rangeScan = 400.0f
 periodScan = 2.0f
 velocJam = 2.5f

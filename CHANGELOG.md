@@ -6,6 +6,9 @@
   two-strand helix with a ground debris skirt, paler and more transparent
   towards the top, fading with distance against the live fog visibility.
   Replaces the per-particle column photograph that read as a dark smoke plume.
+- Enable OpenShim mesh recoil (slot 1 cannon barrel slide) on the NSDF, Black Dog and CCA tank ODFs:
+  avtank/avtamp/avdemo (AGR11BGA), bvtank/bvtanka (bGR11BGA) and svtank/svtanka/svtas8/svtk13/svtnk7
+  (SCZ11BGB). Takes effect only with Settings > Video > Muzzle Recoil on (single-player, exact GOG).
 
 - Promote the accepted HD terrain art for all nine worlds, including fine Moon
   regolith, varied crater relief and authored detail. Preserve original world
