@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "sourceSha256": "dd7073631706c66b269b1fb32edcce933f1d5c66c925dfcab18871a610163df1",
+  "modelSha256": "a9a6cad6f54f436cf021480c72e8f7bb74a62ad39043705646b40173b3946c53",
+  "geometry": {
+    "skeleton": "bblpad.skeleton",
+    "bounds": {
+      "min_x": -42.10652542114258,
+      "min_y": 0.14609499275684357,
+      "min_z": -37.34889221191406,
+      "max_x": 29.747150421142578,
+      "max_y": 54.367271423339844,
+      "max_z": 52.04847717285156
+    },
+    "radius": 64.1572265625,
+    "count": 5813,
+    "sha256": "2acb5b316c42080514f9bab0ed68b1100c1dd7a6648f6ae53595f1437c458831"
+  },
+  "coverage": {
+    "bdog_walkway": 88
+  },
+  "files": {
+    "crvbdog_walkway_d.dds": {
+      "size": [
+        768,
+        1280
+      ],
+      "format": "BC1_UNORM",
+      "sha256": "18bbe9510cc1da2268d740995dd2ace0d1f09c7e9e91b701abcef2a5b7f3a628"
+    },
+    "crvcca_patch_s.dds": {
+      "size": [
+        4,
+        4
+      ],
+      "format": "BC1_UNORM",
+      "sha256": "6c7d7f86637c350a22f7e50553f79a55d3c500cf4759c9282e719397d4242e84"
+    }
+  }
+}

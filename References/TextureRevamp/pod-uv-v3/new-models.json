@@ -1,0 +1,42 @@
+{
+  "cramnew3": {
+    "atlas": "cramns3",
+    "triangles": 628,
+    "batches": 2,
+    "bounds": [
+      [
+        -0.7949999999999999,
+        0.15,
+        -0.7949999999999999
+      ],
+      [
+        0.7949999999999999,
+        2.1,
+        0.7949999999999999
+      ]
+    ],
+    "meshSha256": "7aae32882b9f22f1046f92f51739962ca528ce5e7a68a2257c7aaf0ab3165390",
+    "unskinned": true,
+    "nativeCollisionAuthored": false
+  },
+  "crhpnew3": {
+    "atlas": "crhpnew3",
+    "triangles": 288,
+    "batches": 2,
+    "bounds": [
+      [
+        -1.04,
+        0.13,
+        -1.04
+      ],
+      [
+        1.04,
+        1.17,
+        1.04
+      ]
+    ],
+    "meshSha256": "74aedd1524a186ad1c027b2be85476caa19071852edf405521edff13dffd6f3e",
+    "unskinned": true,
+    "nativeCollisionAuthored": false
+  }
+}

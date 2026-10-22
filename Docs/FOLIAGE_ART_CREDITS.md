@@ -41,13 +41,26 @@ changes are:
 | CR file | From |
 |---|---|
 | `cr17_fbranch1.dds`, `cr17_fbranch2.dds` | pack branch base colour |
-| `cr17_ftrunk1*.dds`, `cr17_ftrunk2*.dds` | pack trunk base colour, normal, roughness |
+| `cr17_ftrunk1*.dds`, `cr17_ftrunk2*.dds` | TextureRevamp colour/height masters, based on the pack's original trunk references; see below |
 | `cr17_frock.dds`, `cr17_frock_n.dds`, `cr17_frock_s.dds` | pack rock base colour, normal, roughness |
 | `c17frst1`-`4` `.mesh/.skeleton/.sdf/.geo` | pack tree meshes |
 | `cr17_frock1`-`9.mesh` | pack rock meshes |
 
 `References/Misn17Forest/source-assets.json` records the SHA-256 of every source
 consumed and every texture written.
+
+### Trunk detail pass (2026-10-21)
+
+The tree geometry, UVs, branch cards and attribution above are unchanged. The
+two trunk sets now use built-in ImageGen colour/height masters in
+`References/TextureRevamp`, authored against the original bark species/palettes.
+`Tools/Build-TextureRevamp.py` compiles their DDS, derives restrained DirectX RGB
+normals from the separate height masters and uses a quiet non-metallic specular
+response. The forest builder reapplies those six reviewed maps after rebuilding
+the original pack assets, so regeneration does not discard the art pass.
+Prompts and source/build receipts are retained. These are authored relief
+approximations, not measured bark scans. See `Docs/TEXTURE_REVAMP.md` for visual
+acceptance and runtime-validation limits.
 
 ## Ice slabs and the xplnxpl puff (not from the pack)
 

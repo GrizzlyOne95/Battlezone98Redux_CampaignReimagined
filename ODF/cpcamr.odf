@@ -1,5 +1,5 @@
 [GameObjectClass]
-baseName = "apcamr"
+baseName = "cpcamr"
 classLabel = "camerapod"
 scrapCost = 1
 scrapValue = 0
