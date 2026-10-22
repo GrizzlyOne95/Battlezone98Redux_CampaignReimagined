@@ -1028,6 +1028,23 @@ island, so map one existing side case; never claim a zero-coverage repaint.
 Special optics need visible rim-sector UVs rather than placing them in its
 central recess. Keep hazard E explicitly black regardless of hue thresholds.
 
+### Red Devil cockpit and legacy paint prototype (2026-10-22)
+
+- `References/RedDevilLegacy/README.md` records the owner's legacy-guided skin,
+  purpose-built cockpit and no-unintended-holes request. CR already had its own
+  1256² diffuse and cockpit-glass mesh fix: use those as the before baseline.
+  The legacy 256² atlas has different UV packing, so it is a paint reference,
+  not a direct rebind. Keep the exterior, ODFs, native records and stock optics.
+- The separate `bvrdev_cockpit.mesh` lookup avoids modifying the exterior/fallback.
+  Derive geometry from brd11POV's full transform, retain stock skeleton bytes,
+  and bind to brd21BDA. Looking along +Z makes model +X screen-left: orient the
+  console UVs deliberately. Refit weather glass rather than reuse the old shape.
+  Reuse only cockpitglass.py's array-based fitter; shared codecs own model I/O.
+- Instrument panels need a connected inner tub/roof/bulkhead behind them.
+  Welded-edge topology admits only the deliberate canopy window loop; POV rays
+  through floor/roof/rear detect unintended gaps. Check off-axis views as well
+  as the forward view. These are offline checks, not native/FOV qualification.
+
 ### Moon independent HD tiles and normal polarity (2026-10-20)
 
 All-planet expansion: `Tools/Build-AllHdTerrain.py` routes independent source

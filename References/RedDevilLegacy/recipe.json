@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "model": "bvrdev",
+  "master": "reddevil-selected.png",
+  "output": "Assets/Textures/bvrdev_d.dds",
+  "size": [1280, 1280],
+  "format": "BC1_UNORM",
+  "material": "Materials/bvrdev.material",
+  "mesh": "Assets/ModelFixes/bvrdev.mesh",
+  "notes": "Texture-only offline prototype. Keep all mesh/native/ODF/UV/material bindings and stock E/N/S unchanged. Legacy atlas is paint reference only."
+}

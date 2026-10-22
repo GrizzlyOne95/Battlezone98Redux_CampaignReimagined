@@ -1,0 +1,15 @@
+{
+  "tool": "built-in image_gen",
+  "mode": "edit",
+  "inputs": [
+    {
+      "path": "cockpit-layout.png",
+      "role": "technical UV layout edit target"
+    },
+    {
+      "path": "reddevil-selected.png",
+      "role": "paint/material reference"
+    }
+  ],
+  "prompt": "Use case: precise-object-edit.\nAsset type: production game cockpit diffuse UV atlas, not a cockpit render.\nInput image 1 is the EXACT technical UV chart layout EDIT TARGET. Remove ALL guide labels and outlines, fill its five rectangles with finished texture artwork while keeping their exact bounds and gutters. Input image 2 is a supporting Red Devil paint/material reference only.\nOne edge-to-edge square 1024x1024 atlas. A: x8..1016,y8..192, one long charcoal canopy-frame metal strip, recessed rubber seals, narrow deep-crimson edge, restrained screws and scuffs; no lights. B: x8..640,y208..640, a dark faceted flight-console face with two sharply separated cyan instrument displays, one circular radar plot on left and a vertical systems readout on right, small amber annunciators and restrained red toggles along the lower edge, physical beveled bezels and service seams; no readable words or digits. C: x656..1016,y208..640, one vertical side-console with toggle rows, recessed ventilation slots and a few tiny cyan/amber indicator glass lenses; no large screen. D: x8..640,y656..1016, angular crimson/red-and-charcoal armor paint matching image 2, quiet panels, light edge wear, no logo or lights. E: x656..1016,y656..1016, quiet dark charcoal ribbed structural trim, no lights, symbols or display. Keep 8-16px dark gutters between all charts. The cockpit should feel like the inside of the pointed, compact Black Dog Red Devil, not generic white spaceship plastic. Crisp painted industrial steel, readable larger features, no excessive micro-grunge. Flat texture lighting, no bloom, glow spill, cast shadows, perspective, render or 3D cabin. No labels, letters, watermark or references embedded."
+}

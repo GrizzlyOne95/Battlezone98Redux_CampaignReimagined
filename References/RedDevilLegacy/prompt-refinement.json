@@ -1,0 +1,15 @@
+{
+  "tool": "built-in image_gen",
+  "mode": "edit",
+  "inputs": [
+    {
+      "path": "reddevil-draft1.png",
+      "role": "edit target / current UV layout"
+    },
+    {
+      "path": "original/bvrdev00_d.png",
+      "role": "legacy paint reference, not UV layout"
+    }
+  ],
+  "prompt": "Use case: precise-object-edit.\nInput image 1 is the EDIT TARGET: draft of the current-UV Red Devil atlas. Image 2 is the original LEGACY PAINT reference only, NOT a UV layout.\nMake one targeted correction: bring the painted red armor closer to the legacy reference's clean angular tonal blocking. Replace the repeated fine all-over cracked/flaking finish on red armor with broad confident scarlet, deep crimson and charcoal angular paint shapes, following the sharp triangular paint facets visible in image 2. Preserve fine edge wear but leave panel centers smooth painted metal, not leather/crackle. Concentrate this paint change inside the large top-left red rectangular plate, the mid-left segmented red hull plate, the lower-left red wedge and the large bottom red side plate. Existing mostly-black plates remain mostly black. Keep details low-contrast so the silhouette and faction colors read at distance.\nABSOLUTE invariants: preserve EVERY current island outline, normalized position, packing, scale, panel boundary, seam, vent, hardware, bolt and circular optic. Keep the dog medallion, red star with white outline, white star/bones emblem and all yellow edge stripes exactly positioned and unchanged in size. Keep technical instruments and optics in their current locations. This is NOT a redesign or repack. Do not copy the legacy atlas packing. No added markings, lamps, text, border, render, perspective, cast shadows, glow spill, inset reference or watermark. One edge-to-edge square flat diffuse atlas at the same layout."
+}

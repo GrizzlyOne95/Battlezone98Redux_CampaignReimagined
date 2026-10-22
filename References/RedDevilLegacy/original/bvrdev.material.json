@@ -1,0 +1,3 @@
+{
+  "text": "import * from \"CR_BZBase.material\"\n\nmaterial bvrdev : CR_BZBase\n{\n\tset_texture_alias DiffuseMap bvrdev_D.dds\n\tset_texture_alias NormalMap bvrdev_N.dds\n\tset_texture_alias SpecularMap bvrdev_S.dds\n\tset_texture_alias EmissiveMap bvrdev_E.dds\n\t\n\tset $diffuse \"1 1 1\"\n\tset $ambient \"1 1 1\"\n\tset $specular \".7 .7 .7\"\n\tset $shininess \"127\"\n}\n\n\nmaterial bvrdev01 : CR_BZBaseCockpit\n{\n\tset_texture_alias DiffuseMap avapc_cockpit_D.dds\n\tset_texture_alias NormalMap avapc_cockpit_N.dds\n\tset_texture_alias SpecularMap avapc_cockpit_S.dds\n\tset_texture_alias EmissiveMap avapc_cockpit_E.dds\n\t\n\tset $diffuse \"1 1 1\"\n\tset $ambient \"1 1 1\"\n\tset $specular \".7 .7 .7\"\n\tset $shininess \"127\"\n}\n\n\n"
+}
