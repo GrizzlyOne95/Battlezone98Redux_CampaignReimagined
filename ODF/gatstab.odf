@@ -1,0 +1,22 @@
+[WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored atstab: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_atstab.mesh"
+flashMaterial = "CR/Muzzle/atstab"
+flashDuration = 0.085
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+classLabel = "cannon"
+ordName = "rocket"
+wpnName = "AT-Stabber"
+fireSound = "gatst00.wav"
+wpnReticle = "gatstab"
+wpnPriority = 3
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 0.3
+

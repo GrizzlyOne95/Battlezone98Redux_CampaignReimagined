@@ -1,0 +1,23 @@
+[WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored chaingun: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_chaingun.mesh"
+flashMaterial = "CR/Muzzle/chaingun"
+flashDuration = 0.055
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+baseName = "gtminis"
+classLabel = "machinegun"
+ordName = "bullet6a"
+wpnName = "Chaingun"
+fireSound = "gmsov00.wav"
+wpnReticle = "gminigun"
+wpnPriority = 1
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 0.48
+

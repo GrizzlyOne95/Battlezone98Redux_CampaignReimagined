@@ -1,0 +1,22 @@
+[WeaponClass] // Green Minigun, created by General BlackDragon
+// CR WEAPON FLASH BEGIN
+// Authored minigun: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_minigun.mesh"
+flashMaterial = "CR/Muzzle/minigun"
+flashDuration = 0.045
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+classLabel = "machinegun"
+ordName = "bullet1g"
+wpnName = "Minigun"
+fireSound = "gmini00.wav"
+wpnReticle = "gminigun"
+wpnPriority = 0
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 0.1 //0.20
+

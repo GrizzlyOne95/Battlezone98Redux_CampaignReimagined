@@ -1,0 +1,27 @@
+{
+  "mode": "built-in image_gen",
+  "date": "2026-10-21",
+  "reason": "Owner requested unique hazard-striping patterns per faction",
+  "entries": [
+    {
+      "code": "ns",
+      "faction": "NSDF",
+      "prompt": "Use case: precise-object-edit. Asset type: UV-locked Battlezone nav-beacon diffuse texture atlas. Image 1 is the EDIT TARGET. Change ONLY hazard-striping paint in the three existing stripe islands: left x=0..0.32 full height ending y=.80, right x=.83..1 upper y=0...50 and lower y=.50..1. Keep exact island outlines. Preserve ALL central body, emblem, round black port, vents, lower two lamps, seams, bottom lamp strip and small technical scraps in their exact current coordinates. Do not add any new islands. Unlit flat full-bleed square game texture, no perspective, object, backdrop, watermark or text. Retain restrained paint chips, not dense uniform noise. All faction emblems including symmetrical stars remain unchanged. Use off-white and charcoal repeated broad military V chevrons, two thin ochre-yellow separator lines along the edges of the bands. Left band must be a stack of white down-pointing V chevrons on charcoal, not diagonal stripes. Both right bands use matching off-white/charcoal V chevrons. No red or orange striping."
+    },
+    {
+      "code": "bd",
+      "faction": "Black Dog",
+      "prompt": "Use case: precise-object-edit. Asset type: UV-locked Battlezone nav-beacon diffuse texture atlas. Image 1 is the EDIT TARGET. Change ONLY hazard-striping paint in the three existing stripe islands: left x=0..0.32 full height ending y=.80, right x=.83..1 upper y=0...50 and lower y=.50..1. Keep exact island outlines. Preserve ALL central body, emblem, round black port, vents, lower two lamps, seams, bottom lamp strip and small technical scraps in their exact current coordinates. Do not add any new islands. Unlit flat full-bleed square game texture, no perspective, object, backdrop, watermark or text. Retain restrained paint chips, not dense uniform noise. All faction emblems including symmetrical stars remain unchanged. Use aggressive crimson and charcoal broken diagonal slashes: groups of three narrow parallel red slashes separated by a wide black gap. All three bands matching crimson/charcoal triple-slash pattern with a very thin dull ivory edge. Not yellow/black, not ordinary evenly spaced stripes, not V chevrons."
+    },
+    {
+      "code": "cc",
+      "faction": "CCA",
+      "prompt": "Use case: precise-object-edit. Asset type: UV-locked Battlezone nav-beacon diffuse texture atlas. Image 1 is the EDIT TARGET. Change ONLY hazard-striping paint in the three existing stripe islands: left x=0..0.32 full height ending y=.80, right x=.83..1 upper y=0...50 and lower y=.50..1. Keep exact island outlines. Preserve ALL central body, emblem, round black port, vents, lower two lamps, seams, bottom lamp strip and small technical scraps in their exact current coordinates. Do not add any new islands. Unlit flat full-bleed square game texture, no perspective, object, backdrop, watermark or text. Retain restrained paint chips, not dense uniform noise. All faction emblems including symmetrical stars remain unchanged. Use red and aged ivory ladder markings: broad IVORY HORIZONTAL bars separated by crimson gaps, with a single thin charcoal vertical line down the center of each band. All three bands use this red/ivory horizontal ladder. Not diagonal and not chevrons. Precise industrial Soviet marking, strong red/ivory read."
+    },
+    {
+      "code": "cr",
+      "faction": "CRA",
+      "prompt": "Use case: precise-object-edit. Asset type: UV-locked Battlezone nav-beacon diffuse texture atlas. Image 1 is the EDIT TARGET. Change ONLY hazard-striping paint in the three existing stripe islands: left x=0..0.32 full height ending y=.80, right x=.83..1 upper y=0...50 and lower y=.50..1. Keep exact island outlines. Preserve ALL central body, emblem, round black port, vents, lower two lamps, seams, bottom lamp strip and small technical scraps in their exact current coordinates. Do not add any new islands. Unlit flat full-bleed square game texture, no perspective, object, backdrop, watermark or text. Retain restrained paint chips, not dense uniform noise. All faction emblems including symmetrical stars remain unchanged. Use muted yellow-ochre and deep olive angular sawtooth zigzag hazard bands, repeating W-shaped pointed teeth, with a thin red edge line. All three bands matching yellow/deep-olive sawtooth pattern, NOT regular diagonal stripes, NOT white V chevrons. Keep recognizable field-worn military equipment."
+    }
+  ]
+}

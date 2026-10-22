@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "source": "Stock abstor render/native geometry; faction variants are independent render/ODF resources",
+  "stock": {
+    "abstor.mesh": "c06382a93624ed679b2aff044437036bf93ece9fdffe950f001150ddb8fe3f09",
+    "abstor.sdf": "10287a6c808bedccabfd6a25637947e00cab36e0ff69f64e82dd50c51d56094e",
+    "abstor.skeleton": "8601e541f21b60681c1ffff0c13996c446c538d0a93d42b82ae10c30a367669f"
+  },
+  "masters": {
+    "crstns.png": "b107a3223e15a443f1454e7931bf60b51b100324fec50e66b05809ccbae01ef5",
+    "crstbd.png": "ad429bb857323de0ef29502509c6dba1fbc714ca3645e0f9c351ff156f0bb365",
+    "crstcc.png": "9660eed51fbc181a0e836692bfd978991d9e4adcf4a0ecddc76b7bf73db59c19",
+    "crstcr.png": "5aaf9eb5fd6b2a5226c28d62982f06b3063ca7fc22d50f84b094b75011024401"
+  },
+  "files": {
+    "crstns_d.dds": {
+      "size": [
+        1280,
+        1280
+      ],
+      "sha256": "fabd4c61bb5b7d703016aef83bc6b2b44a90d766a11e5d28d014ab5974295f88"
+    },
+    "crstns_e.dds": {
+      "size": [
+        1280,
+        1280
+      ],
+      "sha256": "2d77df220004ff2803f05731a8e370e3d1b7ad9a3f5fcbaec6f053ba970059fa"
+    },
+    "crstbd_d.dds": {
+      "size": [
+        1280,
+        1280
+      ],
+      "sha256": "a18dbe3af68801ce443aa07846d102e4f328f79fecf36ea9a7c1af22005247c7"
+    },
+    "crstbd_e.dds": {
+      "size": [
+        1280,
+        1280
+      ],
+      "sha256": "2362d35156028df30ec96e66344704b0866777efd5a35995e5f2da4afac00419"
+    },
+    "crstcc_d.dds": {
+      "size": [
+        1280,
+        1280
+      ],
+      "sha256": "9a6cad34a10602e18eb9d8ad14942c7f8b3ed04f99296b7deb57c74316764887"
+    },
+    "crstcc_e.dds": {
+      "size": [
+        1280,
+        1280
+      ],
+      "sha256": "5f592660e77ee6ad38018a296dfdc2f1d7e84c218349e86987f027a3f8496f07"
+    },
+    "crstcr_d.dds": {
+      "size": [
+        1280,
+        1280
+      ],
+      "sha256": "0596f05c4f76574e523a89a9fab281be66d4288bc64240922149a8f1d4524b2e"
+    },
+    "crstcr_e.dds": {
+      "size": [
+        1280,
+        1280
+      ],
+      "sha256": "a46a92379711bb99007e129ab985f1aea9bf0177f2eb52e1f0410254c2756ee3"
+    }
+  },
+  "factions": {
+    "crstns": "NSDF",
+    "crstbd": "Black Dog",
+    "crstcc": "CCA",
+    "crstcr": "CRA"
+  }
+}
