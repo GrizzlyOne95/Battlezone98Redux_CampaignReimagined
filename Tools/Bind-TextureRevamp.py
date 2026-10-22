@@ -18,7 +18,8 @@ MAPPING={
  **{prefix+suffix:kind for prefix in ('ovheph_','oth_') for suffix,kind in [('metal','Floor'),('dark','Wall'),('edge','Trim'),('screen','Screen')]},
 }
 SELECTORS={
- 'abstor':{'NormalMap':'crvstor_n.dds'},
+ 'abstor':{'DiffuseMap':'crstns_d.dds','NormalMap':'crvstor_n.dds','SpecularMap':'crvcca_patch_s.dds','EmissiveMap':'crstns_e.dds'},
+ 'bbstor':{'DiffuseMap':'crstbd_d.dds','NormalMap':'crvstor_n.dds','SpecularMap':'crvcca_patch_s.dds','EmissiveMap':'crstbd_e.dds'},
  **{key:{'DiffuseMap':'crvpkup_d.dds','NormalMap':'crvpkup_n.dds'} for key in ('apammo','aprepa','aprock')},
  'apwrck':{'DiffuseMap':'crvsalv_d.dds','NormalMap':'crvpkup_n.dds'},
  **{key:{'NormalMap':f'crv{stem}_n.dds'} for key,stem in [('obdata','obdata00'),('obcycl','obcycl00'),('oblemb','oblemb00'),('oblemd','oblemb00')]},

@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-21T07:48:17-05:00",
-  "count": 3804,
+  "count": 3832,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -1142,6 +1142,38 @@
     {
       "source": "Assets\\Textures\\cromine_e.dds",
       "runtime": "cromine_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crstbd_d.dds",
+      "runtime": "crstbd_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crstbd_e.dds",
+      "runtime": "crstbd_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crstcc_d.dds",
+      "runtime": "crstcc_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crstcc_e.dds",
+      "runtime": "crstcc_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crstcr_d.dds",
+      "runtime": "crstcr_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crstcr_e.dds",
+      "runtime": "crstcr_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crstns_d.dds",
+      "runtime": "crstns_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crstns_e.dds",
+      "runtime": "crstns_e.dds"
     },
     {
       "source": "Assets\\Textures\\crvbdog_walkway_d.dds",
@@ -3454,6 +3486,22 @@
     {
       "source": "Materials\\cromine.material",
       "runtime": "cromine.material"
+    },
+    {
+      "source": "Materials\\crstbd.material",
+      "runtime": "crstbd.material"
+    },
+    {
+      "source": "Materials\\crstcc.material",
+      "runtime": "crstcc.material"
+    },
+    {
+      "source": "Materials\\crstcr.material",
+      "runtime": "crstcr.material"
+    },
+    {
+      "source": "Materials\\crstns.material",
+      "runtime": "crstns.material"
     },
     {
       "source": "Materials\\crwx_cockpitglass.material",
@@ -5782,6 +5830,22 @@
     {
       "source": "ODF\\crping.odf",
       "runtime": "crping.odf"
+    },
+    {
+      "source": "ODF\\crstbd.odf",
+      "runtime": "crstbd.odf"
+    },
+    {
+      "source": "ODF\\crstcc.odf",
+      "runtime": "crstcc.odf"
+    },
+    {
+      "source": "ODF\\crstcr.odf",
+      "runtime": "crstcr.odf"
+    },
+    {
+      "source": "ODF\\crstns.odf",
+      "runtime": "crstns.odf"
     },
     {
       "source": "ODF\\cspilo.odf",
@@ -11482,6 +11546,54 @@
     {
       "source": "Assets\\Models\\cr18_streams.mesh",
       "runtime": "cr18_streams.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crstbd.mesh",
+      "runtime": "crstbd.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crstbd.sdf",
+      "runtime": "crstbd.sdf"
+    },
+    {
+      "source": "Assets\\Models\\crstbd.skeleton",
+      "runtime": "crstbd.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\crstcc.mesh",
+      "runtime": "crstcc.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crstcc.sdf",
+      "runtime": "crstcc.sdf"
+    },
+    {
+      "source": "Assets\\Models\\crstcc.skeleton",
+      "runtime": "crstcc.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\crstcr.mesh",
+      "runtime": "crstcr.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crstcr.sdf",
+      "runtime": "crstcr.sdf"
+    },
+    {
+      "source": "Assets\\Models\\crstcr.skeleton",
+      "runtime": "crstcr.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\crstns.mesh",
+      "runtime": "crstns.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crstns.sdf",
+      "runtime": "crstns.sdf"
+    },
+    {
+      "source": "Assets\\Models\\crstns.skeleton",
+      "runtime": "crstns.skeleton"
     },
     {
       "source": "Assets\\Models\\cr17_river.mesh",

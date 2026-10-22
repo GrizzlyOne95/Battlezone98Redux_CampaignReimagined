@@ -71,7 +71,16 @@
   },
   "selectors": {
     "abstor": {
-      "NormalMap": "crvstor_n.dds"
+      "DiffuseMap": "crstns_d.dds",
+      "NormalMap": "crvstor_n.dds",
+      "SpecularMap": "crvcca_patch_s.dds",
+      "EmissiveMap": "crstns_e.dds"
+    },
+    "bbstor": {
+      "DiffuseMap": "crstbd_d.dds",
+      "NormalMap": "crvstor_n.dds",
+      "SpecularMap": "crvcca_patch_s.dds",
+      "EmissiveMap": "crstbd_e.dds"
     },
     "apammo": {
       "DiffuseMap": "crvpkup_d.dds",

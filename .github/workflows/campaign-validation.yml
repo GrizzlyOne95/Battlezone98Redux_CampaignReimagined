@@ -91,7 +91,9 @@ jobs:
         run: python Tools/Test-UnitAnimSlots.py
 
       - name: Validate texture revamp and Olympian interior contracts
-        run: python Tools/Test-TextureRevamp.py
+        run: |
+          python Tools/Test-TextureRevamp.py
+          python Tools/Test-FactionStorage.py
 
       - name: Audit looping model animations
         # bvwalk.vdf is an older walker fix whose cycles still seam (reported, not owned here).

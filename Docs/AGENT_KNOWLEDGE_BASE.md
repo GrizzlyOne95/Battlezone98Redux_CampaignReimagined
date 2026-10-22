@@ -940,6 +940,11 @@ contract and unchanged stock remainder. It adds three batches: qualify native
 load/launch states and performance before extending that tradeoff fleet-wide.
 Offline Blender is only an art check. Its multi-model reset crashed on cleanup;
 use fresh isolated processes and check each exit, never infer native success.
+Faction storage uses `crstns`/`crstbd`/`crstcc`/`crstcr` independent ODF/model
+chains over stock `abstor` geometry. Existing `abstor`/`bbstor` selectors receive
+matching NSDF/Black Dog art too. Do not silently swap CCA/CRA objects by team or
+change explosive `abstora` gameplay. Emissive extraction is confined to the
+status-lamp UV region so painted red stars/stripes never become glowing lamps.
 
 ### Moon independent HD tiles and normal polarity (2026-10-20)
 
