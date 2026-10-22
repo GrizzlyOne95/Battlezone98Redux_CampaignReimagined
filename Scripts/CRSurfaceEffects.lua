@@ -13,7 +13,10 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     crackSpots = {}, crackSpotCount = 0, crackLevel = 0, glassOn = false,
     SweepWet = 0, MaxWetStep = 0.03, MaxMaterialBudget = 64, CloneWetBudget = 32,
     sweepLeft = 0, cloneLeft = 0, wetCursor = 1, sweepMoving = false,
-    flashCache = {}, flashCacheCount = 0, MaxFlashCache = 512 }
+    flashCache = {}, flashCacheCount = 0, MaxFlashCache = 512,
+    -- Muzzle heat: each shot adds HeatPerShot, cooling HeatCool per second,
+    -- so a slow cannon stays warm and only sustained fire reaches HeatMax.
+    HeatPerShot = 0.06, HeatMax = 1.0, HeatCool = 0.12, HeatRadius = 0.6 }
 
 local function call(fn, ...)
     if type(fn) ~= "function" then return nil end
@@ -270,11 +273,23 @@ local function drain(queue, shot)
                         for _, active in ipairs(S.active) do if next(active.heat) then heated=heated+1 end end
                         local heat = r.heat[best] or {energy = 0, display = 0}
                         local mounts=0; for _ in pairs(r.heat) do mounts=mounts+1 end
+                        local offset = flashOffset(event.handle, best)
+                        offset = offset and hullOffset(event.handle, offset, event.front) or nil
                         if (next(r.heat) or heated<S.MaxHeated) and (r.heat[best] or mounts<2) then
-                            heat.energy = math.min(0.65, heat.energy + 0.055)
-                            local offset = flashOffset(event.handle, best)
-                            heat.offset = offset and hullOffset(event.handle, offset, event.front) or nil
+                            heat.energy = math.min(S.HeatMax, heat.energy + S.HeatPerShot)
+                            heat.offset = offset
                             r.heat[best] = heat; activate(r); r.touched=S.Clock
+                        end
+                        -- The player's own barrel heats in F1 too: the cockpit
+                        -- record keeps its own heat so each decays once.
+                        local c = S.cockpit
+                        if c and c.handle == event.handle then
+                            local ch = c.heat[best] or {energy = 0, display = 0}
+                            local cm=0; for _ in pairs(c.heat) do cm=cm+1 end
+                            if c.heat[best] or cm<2 then
+                                ch.energy = math.min(S.HeatMax, ch.energy + S.HeatPerShot)
+                                ch.offset = offset; c.heat[best] = ch
+                            end
                         end
                     end
                 else
@@ -328,7 +343,7 @@ local function updateRecord(r, dt)
     local right, up, front
     if next(r.heat) then right, up, front = hullBasis(r.handle) end
     for slot, heat in pairs(r.heat) do
-        heat.energy = math.max(0, heat.energy-dt*0.16)
+        heat.energy = math.max(0, heat.energy-dt*S.HeatCool)
         heat.display = heat.energy+(heat.display-heat.energy)*math.exp(-dt*6)
         if heat.display < 0.002 then r.heat[slot] = nil
         else
@@ -339,8 +354,10 @@ local function updateRecord(r, dt)
                                world.y + right.y*o.x + up.y*o.y + front.y*o.z,
                                world.z + right.z*o.x + up.z*o.y + front.z*o.z)
             end
-            local localPoint = world and call(exu.EntityLocalPoint,r.handle,world)
-            if localPoint and #anchors < 2 then anchors[#anchors+1] = radiusMark(localPoint,0.42); peak = math.max(peak,heat.display) end
+            -- target(r) is the cockpit model for the F1 record, so the anchor
+            -- lands in that model's own space.
+            local localPoint = world and call(exu.EntityLocalPoint,target(r),world)
+            if localPoint and #anchors < 2 then anchors[#anchors+1] = radiusMark(localPoint,S.HeatRadius); peak = math.max(peak,heat.display) end
         end
     end
     r.peak = peak
