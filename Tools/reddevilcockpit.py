@@ -117,8 +117,8 @@ def geometry(source,skeleton_path):
 
 def pub(x):return np.array(x).tolist()
 
-def mesh_bytes(parts,skeleton,world,eye,shell):
-    mesh=om.Mesh();mesh.skeleton_name='bvrdev_cockpit.skeleton'
+def mesh_bytes(parts,skeleton,world,eye,shell,skeleton_name='bvrdev_cockpit.skeleton'):
+    mesh=om.Mesh();mesh.skeleton_name=skeleton_name
     def add(name,data,index):
         if data.shape[1]==8:
             # Positive/negative UV axes both get a matching orthogonal tangent.

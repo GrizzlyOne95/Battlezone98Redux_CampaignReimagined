@@ -105,6 +105,7 @@ jobs:
         run: |
           python Tools/Test-RedDevilLegacy.py
           python Tools/Test-RedDevilCockpit.py
+          python Tools/Test-CVFighterCockpit.py
 
       - name: Audit looping model animations
         # bvwalk.vdf is an older walker fix whose cycles still seam (reported, not owned here).
