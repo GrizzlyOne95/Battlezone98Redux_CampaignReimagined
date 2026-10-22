@@ -49,7 +49,7 @@ local RuntimeEnhancements = {
     SkyEventsPending = false,
     SkyEventsRetryAt = 0.0,
     ResourceGroup = "General",
-    DebugVisualLogging = true,
+    DebugVisualLogging = false,
     DebugLogPath = nil,
     DebugSessionStarted = false,
 
