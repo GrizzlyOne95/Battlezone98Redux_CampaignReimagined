@@ -47,7 +47,7 @@ DXBC stays byte-identical (`Compare-DX11ShaderBinaries.ps1`).
 | Event storage | 64 hits and 64 shots |
 | Event consumption | 2 hits and 2 shots per tick |
 | Tracked objects | 4,096, using existing registration |
-| Cold discovery / shared rain | 4 objects / 16 material names per tick |
+| Cold discovery / shared rain | 4 objects / 16 material names per tick (64 names and 32 clone slots while wetness is changing) |
 | Active object variants | 64 objects, with 8 heated craft |
 | Anchors per craft | 2 impacts, 2 heated mounts |
 | Material creation | 1 world subentity and 1 cockpit subentity per tick |
@@ -58,6 +58,14 @@ Hits last 16 seconds and fade over their last four seconds; health recovery also
 clears accumulated marks. Wetting takes 2.5 seconds and drying 10 seconds as
 exponential time constants. Heat accumulates from accepted shots and cools
 smoothly. Missing native mount data suppresses heat rather than guessing.
+
+Rain reaches every material in one synchronised sweep: shared materials and
+owned clones (towers, hit units) all receive the same swept value, which moves
+at most 0.03 per completed sweep. A few hundred materials therefore wet or dry
+together in small steps (about eight seconds from dry to soaked at 300
+materials) instead of each one jumping when the round robin reaches it. Clones
+no longer wait for their record's slower update. `Tools/Test-SurfaceWetSweep.lua`
+covers this.
 
 Heat glows where the muzzle flash is drawn: the native mount plus the same
 flash offset the flash uses, read only. That is the craft's `flashOffset<N>`
