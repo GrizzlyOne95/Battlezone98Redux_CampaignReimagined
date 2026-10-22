@@ -4,6 +4,11 @@ Owner request: four NSDF, Black Dog, CCA and CRA versions of `apcamr`, ammo,
 repair and weapon pickups. The owner explicitly permits full atlas/UV changes.
 This extends draft PR #288; no installed game or Workshop files are changed.
 
+Owner review update: v2 navs are accepted; v2 pods are **not**. A full-stock-
+unwrap versus new-model NSDF comparison is under
+`References/TextureRevamp/pod-uv-v3/README.md`. It does not change runtime assets
+or shipping. Wait for direction before carrying either prototype across factions.
+
 ## Resources and use
 
 | Faction | Beacon model | Ammo model | Repair model | Cannon / rocket / mortar / special models |
