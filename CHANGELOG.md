@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Give the misn14 NSDF Fury squad (`avsav14`) a mesh: the Resurgence addon's Fury, pointed at a CR
+  `avsav14` material using `avsav2_d.dds`. Redux has no `avsav` mesh, so the squad was invisible and
+  flooded the Ogre log with "Cannot locate resource avsav.mesh" every frame.
+- Bundle EXU's HUD material and shaders (`exu_hud.material`, `exu_hud_tint.*`, the two HUD textures) so
+  EXU's DX11 overlay text gets its `EXU_HUD/Text` shader material instead of falling back to the
+  fixed-function font material.
+
 - Rework the Mars dust devil: many small light puffs swept into a tapering
   two-strand helix with a ground debris skirt, paler and more transparent
   towards the top, fading with distance against the live fog visibility.
