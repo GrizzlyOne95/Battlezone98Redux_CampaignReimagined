@@ -7,7 +7,9 @@ sys.path.insert(0,str(Path(__file__).resolve().parent))
 from bcdds import save_bc
 import cvfighcockpit as cp
 ROOT=Path(__file__).resolve().parents[1];REF=ROOT/'References/CVFighterCockpit'
-def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+def sha(p):
+    data=p.read_bytes()
+    return hashlib.sha256(data.replace(b'\r\n',b'\n') if p.suffix=='.material' else data).hexdigest()
 def textures():
     with Image.open(REF/'atlas-master.png') as master:
         a=np.array(master.convert('RGB'));size=master.size

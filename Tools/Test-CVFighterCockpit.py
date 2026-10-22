@@ -12,7 +12,9 @@ def check(ok,message):
     global count
     assert ok,message
     count+=1
-def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+def sha(p):
+    data=p.read_bytes()
+    return hashlib.sha256(data.replace(b'\r\n',b'\n') if p.suffix=='.material' else data).hexdigest()
 receipt=json.loads((REF/'build.json').read_text());check(sha(REF/'atlas-master.png')==receipt['masterSha256'],'authored bitmap pinned')
 for relative,digest in receipt['outputs'].items():check(sha(ROOT/relative)==digest,'compiled output pinned: '+relative)
 check(sha(ROOT/'Assets/ModelFixes/cvfigh.mesh')==receipt['sources']['exteriorSha256'],'existing exterior / fallback unchanged')

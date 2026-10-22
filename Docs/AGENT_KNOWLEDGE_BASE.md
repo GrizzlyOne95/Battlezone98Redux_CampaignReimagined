@@ -1030,6 +1030,17 @@ central recess. Keep hazard E explicitly black regardless of hue thresholds.
 
 ### Red Devil cockpit and legacy paint prototype (2026-10-22)
 
+`avrckt` follow-up: `References/AVRocketCockpit/README.md` owns the low split
+NSDF console and bounded lower nose/fin apron. A crop admitting only separated
+side triangles leaves floating bevels and loses adjoining surfaces. Keep the
+small apron contiguous through its centre and apply one rigid first-person
+fit to positions, normals and tangents; do not translate each side separately.
+Verify one-sided actual-POV renders, not only two-sided exterior inspection.
+New cyan emission needs physical lens masks too: petrol paint can pass a hue
+threshold. Preserve the original exterior and rig; runtime remains unverified.
+Text-only material hash pins must canonicalize CRLF/LF consistently in builders
+and tests; Git-for-Windows can change line endings in a fresh worktree.
+
 `cvfigh` follow-up: `References/CVFighterCockpit/README.md` owns the new low,
 wide interior and selected, art-positioned minigun surfaces. GC bone geometry
 can be only a six-triangle hardpoint marker: inspect actual body triangles

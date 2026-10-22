@@ -14,7 +14,7 @@ def values(vd,semantic):
 
 def read_mesh(path):return oms.MeshSerializer(io.BytesIO(path.read_bytes())).read()
 
-def rig(path):
+def rig(path,shell_name='brd21bda'):
     skeleton=oss.SkeletonSerializer(io.BytesIO(path.read_bytes())).read();world={}
     def transform(b):
         if b.handle in world:return world[b.handle]
@@ -26,7 +26,7 @@ def rig(path):
         world[b.handle]=(p,r);return p,r
     for b in skeleton.bones():transform(b)
     eye=next(b for b in skeleton.bones() if b.name.lower().endswith('pov'))
-    shell=next(b for b in skeleton.bones() if b.name.lower()=='brd21bda')
+    shell=next(b for b in skeleton.bones() if b.name.lower()==shell_name.lower())
     return skeleton,world,eye,shell
 
 def geometry(source,skeleton_path):
