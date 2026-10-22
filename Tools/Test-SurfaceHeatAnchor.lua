@@ -152,6 +152,19 @@ for i = 1, 160 do
 end
 assert(maxStep < 0.06, "heat display steps must stay small, got " .. maxStep)
 
+-- 9b. Slow sustained fire (1.5 shots/s for 30 s) holds a warm glow
+-- instead of cooling away between shots; stopping lets it fade.
+S = load()
+for i = 1, 600 do
+    if i % 13 == 0 then shot(0) end
+    ticks(S, 1)
+end
+local warm = S.records[1].heat[0]
+assert(warm and warm.energy > 0.35, "slow sustained fire stays warm, got " .. tostring(warm and warm.energy))
+local warmEnergy = warm.energy
+ticks(S, 200)
+assert((S.records[1].heat[0] and S.records[1].heat[0].energy or 0) < warmEnergy * 0.5, "heat fades after firing stops")
+
 -- 10. In F1 the player's cockpit model heats too, anchored in its own space.
 E.GetCameraView = function() return 1 end
 S = load()
@@ -168,4 +181,4 @@ assert(cockpitAnchor, "cockpit muzzle anchor written")
 near(cockpitAnchor[1], 102.41, "cockpit anchor at the flash offset")
 E.GetCameraView = function() return 0 end
 
-print("SurfaceHeatAnchor: craft offset, hull follow, turret shot, weapon fallback, invalid value, mount, no API, cache, smoothness, cockpit, barrel PASS")
+print("SurfaceHeatAnchor: craft offset, hull follow, turret shot, weapon fallback, invalid value, mount, no API, cache, smoothness, slow fire, cockpit, barrel PASS")
