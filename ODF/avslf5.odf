@@ -71,18 +71,18 @@ timeRepair = 1.0
 healthRepair = 100
 scrapHold = 5
 pilotHold = 0
-buildItem1 = "aprepa"
-buildItem2 = "apammo"
-buildItem3 = "apcamr"
+buildItem1 = "naprepa"
+buildItem2 = "napammo"
+buildItem3 = "napcamr"
 blockedGeyserMsg = "avslfvb.wav"
 soundBuild = "avslfe1.wav"
 
 [ArmoryClass]
-cannonItem1 = "apmini"
-cannonItem2 = "apstab"
-rocketItem2 = "aphorn"
-rocketItem4 = "aptagg"
-mortarItem1 = "apmdmg"
-specialItem5 = "apthmp"
-specialItem7 = "apsite"
+cannonItem1 = "napmini"
+cannonItem2 = "napstab"
+rocketItem2 = "naphorn"
+rocketItem4 = "naptagg"
+mortarItem1 = "napmdmg"
+specialItem5 = "napthmp"
+specialItem7 = "napsite"
 

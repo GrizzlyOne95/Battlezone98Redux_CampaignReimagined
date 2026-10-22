@@ -1,0 +1,66 @@
+import * from "CR_BZBase.material"
+
+material lme_src : CR_BZBase
+{
+ set_texture_alias DiffuseMap lme_cast_d.dds
+ set_texture_alias NormalMap lme_normal.dds
+ set_texture_alias SpecularMap lme_cast_s.dds
+ set_texture_alias EmissiveMap lme_cast_e.dds
+ set $diffuse "1 1 1"
+ set $ambient "1 1 1"
+ set $specular ".55 .55 .55"
+ set $shininess "70"
+ set $glow "0.25 0.25 0.25"
+}
+
+material lme_bronze : CR_BZBase
+{
+ set_texture_alias DiffuseMap lme_cast_d.dds
+ set_texture_alias NormalMap lme_normal.dds
+ set_texture_alias SpecularMap lme_cast_s.dds
+ set_texture_alias EmissiveMap lme_cast_e.dds
+ set $diffuse "1 1 1"
+ set $ambient "1 1 1"
+ set $specular ".55 .55 .55"
+ set $shininess "70"
+ set $glow "0.05 0.05 0.05"
+}
+
+material lme_dark : CR_BZBase
+{
+ set_texture_alias DiffuseMap lme_cast_d.dds
+ set_texture_alias NormalMap lme_normal.dds
+ set_texture_alias SpecularMap lme_cast_s.dds
+ set_texture_alias EmissiveMap lme_cast_e.dds
+ set $diffuse "0.42 0.42 0.42"
+ set $ambient "1 1 1"
+ set $specular ".55 .55 .55"
+ set $shininess "70"
+ set $glow "0.05 0.05 0.05"
+}
+
+material lme_edge : CR_BZBase
+{
+ set_texture_alias DiffuseMap lme_cast_d.dds
+ set_texture_alias NormalMap lme_normal.dds
+ set_texture_alias SpecularMap lme_cast_s.dds
+ set_texture_alias EmissiveMap lme_cast_e.dds
+ set $diffuse "1 1 1"
+ set $ambient "1 1 1"
+ set $specular ".55 .55 .55"
+ set $shininess "70"
+ set $glow "0.05 0.05 0.05"
+}
+
+material lme_ember : CR_BZBase
+{
+ set_texture_alias DiffuseMap lme_cast_d.dds
+ set_texture_alias NormalMap lme_normal.dds
+ set_texture_alias SpecularMap lme_cast_s.dds
+ set_texture_alias EmissiveMap lme_cast_e.dds
+ set $diffuse "1 1 1"
+ set $ambient "1 1 1"
+ set $specular ".55 .55 .55"
+ set $shininess "70"
+ set $glow "0.75 0.75 0.75"
+}

@@ -1,0 +1,682 @@
+[
+  {
+    "path": "ODF/avrec2.odf",
+    "faction": "ns",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "c742cdd2204dcf96bd058eef42c329648d3c0092eb8a8e79ac6709b1e5efaf1e"
+  },
+  {
+    "path": "ODF/avrec3.odf",
+    "faction": "ns",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "6d036e112fb2e0422d7e0e09c8a3e44c08d16420c3896c74594f3428c9cef3c7"
+  },
+  {
+    "path": "ODF/avrec4.odf",
+    "faction": "ns",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "43af86292c2433f3b27f088feb5b68c87bfe47ce96cfb5a4013ec18f47b931ff"
+  },
+  {
+    "path": "ODF/avrec5.odf",
+    "faction": "ns",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "f3a5e1267b302856df74cb237242292b187454a01f2e566bd27818c41f305a51"
+  },
+  {
+    "path": "ODF/avrec6.odf",
+    "faction": "ns",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "7842fe7e7bebd64682b8601a98181e23a6abd9dccf11945e6db6de45ad324376"
+  },
+  {
+    "path": "ODF/avrec7.odf",
+    "faction": "ns",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "aff8f3051a53721437dc7a531712f4252aaefb96afe987747d85e57be9332b1f"
+  },
+  {
+    "path": "ODF/avrec8.odf",
+    "faction": "ns",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "926483ebf1223a7bbf91c0b7bd8d05140ca68173c555f1bc0cf6bcc536cbe3c6"
+  },
+  {
+    "path": "ODF/avrecy.odf",
+    "faction": "ns",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "f93cd9aaa72c3b88eecbedf6293702f9c308eae2681d5990060a7a1d06d282f1"
+  },
+  {
+    "path": "ODF/avremp.odf",
+    "faction": "ns",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "eda6ac52af13da3b3269988e7096f0d5e74c5491b3346a7d1ae21d411d650884"
+  },
+  {
+    "path": "ODF/avsl7.odf",
+    "faction": "ns",
+    "sources": [
+      "apammo",
+      "apcamr",
+      "apflar",
+      "aphorn",
+      "apmcur",
+      "apmdmg",
+      "apmini",
+      "apmits",
+      "approx",
+      "aprepa",
+      "apsand",
+      "apshdw",
+      "apsite",
+      "apspln",
+      "apsstb",
+      "apstab",
+      "aptagg",
+      "apthmp"
+    ],
+    "sha256": "b8d33d969df8ae0e4f4a1f873d76643f9cb0248aa6e8973d4da465ccd325e96b"
+  },
+  {
+    "path": "ODF/avsl8.odf",
+    "faction": "ns",
+    "sources": [
+      "apammo",
+      "apcamr",
+      "apflar",
+      "aphorn",
+      "apmcur",
+      "apmdmg",
+      "apmini",
+      "apmits",
+      "approx",
+      "aprepa",
+      "apsand",
+      "apshdw",
+      "apsite",
+      "apspln",
+      "apsstb",
+      "apstab",
+      "aptagg",
+      "apthmp"
+    ],
+    "sha256": "d656668825f5e5ebad3d29e22ce450d959ffd78d6f2aa8889045b5f807236eb2"
+  },
+  {
+    "path": "ODF/avslf.odf",
+    "faction": "ns",
+    "sources": [
+      "apammo",
+      "apcamr",
+      "apcmet",
+      "apflar",
+      "apflsh",
+      "aphorn",
+      "aplgmsl",
+      "apmagg",
+      "apmcur",
+      "apmdmg",
+      "apmini",
+      "apmits",
+      "apmort",
+      "apphan",
+      "appopg",
+      "approx",
+      "apredf",
+      "aprepa",
+      "aprktb",
+      "apsand",
+      "apshdw",
+      "apsite",
+      "apspln",
+      "apsstb",
+      "apstab",
+      "aptagg",
+      "apthmp",
+      "aptsmok"
+    ],
+    "sha256": "277a5a4eee15785ed9618ce8a614d73766ff3915e3c28684b69f3517954a98a0"
+  },
+  {
+    "path": "ODF/avslf5.odf",
+    "faction": "ns",
+    "sources": [
+      "apammo",
+      "apcamr",
+      "aphorn",
+      "apmdmg",
+      "apmini",
+      "aprepa",
+      "apsite",
+      "apstab",
+      "aptagg",
+      "apthmp"
+    ],
+    "sha256": "25696d015ffef72ea8bbef7d2d4b12621bece0507e69511409dad52c88ab90b3"
+  },
+  {
+    "path": "ODF/avslf6.odf",
+    "faction": "ns",
+    "sources": [
+      "apammo",
+      "apcamr",
+      "apflar",
+      "aphorn",
+      "apmdmg",
+      "apmini",
+      "apmits",
+      "aprepa",
+      "apsite",
+      "apspln",
+      "apstab",
+      "aptagg",
+      "apthmp"
+    ],
+    "sha256": "13bb5845eebc34cb5a45aa5948f7872d49f5d89244f5c0889deac663aa4d31c9"
+  },
+  {
+    "path": "ODF/bv0001.odf",
+    "faction": "bd",
+    "sources": [
+      "apammo",
+      "apbolt",
+      "apcamr",
+      "apcmet",
+      "apflar",
+      "apflsh",
+      "aphorn",
+      "apmagg",
+      "apmasg",
+      "apmcur",
+      "apmdmg",
+      "apmini",
+      "apmits",
+      "apmort",
+      "apphan",
+      "appopg",
+      "approx",
+      "apredf",
+      "aprepa",
+      "aprktb",
+      "apsand",
+      "apshdw",
+      "apsite",
+      "apspln",
+      "apsstb",
+      "apstab",
+      "aptagg",
+      "apthmp"
+    ],
+    "sha256": "b8ba92df7f1cb198ecae3193f67c3e3611dbd232fdbf6b86443ff9f96444bc4f"
+  },
+  {
+    "path": "ODF/bvrec3.odf",
+    "faction": "bd",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "21def604ec585ae97feb14382cac174170bfb5b66e96d54faeda27a88d79459f"
+  },
+  {
+    "path": "ODF/bvrec8.odf",
+    "faction": "bd",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "0ce2880686d802f21374a1ceb61c090496223c3a862f2e07902631de1e5ad633"
+  },
+  {
+    "path": "ODF/bvrecy.odf",
+    "faction": "bd",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "f7f01fbb6f64f5b571706fe19ae6a621da351d87ae09688792ad00be07131a21"
+  },
+  {
+    "path": "ODF/bvrecya.odf",
+    "faction": "bd",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "fdc0fdbb392007fa3e782c8f145a2cee31d6e160c0a001b2e5cd7e97e1b5b2c3"
+  },
+  {
+    "path": "ODF/bvrecyb.odf",
+    "faction": "bd",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "243343f32280a36dcbc3d0d44947ed27b398523d1767d685841d32c2c1e8cc55"
+  },
+  {
+    "path": "ODF/bvrecyc.odf",
+    "faction": "bd",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "ca3668ea3231c5ad0be80344d5e4f08722aa389d9f9fe2a1ce9fb694c5908893"
+  },
+  {
+    "path": "ODF/bvrecyd.odf",
+    "faction": "bd",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "137b8848feb0d932ebb213e0fb081791bd4ee6c2a265863a090a618c00f61b83"
+  },
+  {
+    "path": "ODF/bvrecye.odf",
+    "faction": "bd",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "311339c1133bcb73870c8525d42e4c1fbb1032ed629e9fa3d1b141e6665ccecf"
+  },
+  {
+    "path": "ODF/bvremp.odf",
+    "faction": "bd",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "859c7d1ef1ce25eb212b37c529e6989e92f71ad08876052ea02666d341fec1b6"
+  },
+  {
+    "path": "ODF/bvslf.odf",
+    "faction": "bd",
+    "sources": [
+      "apammo",
+      "apbolt",
+      "apcamr",
+      "apcmet",
+      "apflar",
+      "apflsh",
+      "aphorn",
+      "apmagg",
+      "apmasg",
+      "apmcur",
+      "apmdmg",
+      "apmini",
+      "apmits",
+      "apmort",
+      "apphan",
+      "appopg",
+      "approx",
+      "apredf",
+      "aprepa",
+      "aprktb",
+      "apsand",
+      "apshdw",
+      "apsite",
+      "apspln",
+      "apsstb",
+      "apstab",
+      "aptagg",
+      "apthmp"
+    ],
+    "sha256": "8800975abff28d2ed19108cf054b0021b65c3d4d9aa7a3f6df6f2d61446c8d87"
+  },
+  {
+    "path": "ODF/bvslfa.odf",
+    "faction": "bd",
+    "sources": [
+      "apammo",
+      "apbolt",
+      "apcamr",
+      "apcmet",
+      "apflar",
+      "apflsh",
+      "aphorn",
+      "apmagg",
+      "apmasg",
+      "apmcur",
+      "apmini",
+      "apmits",
+      "apphan",
+      "approx",
+      "apredf",
+      "aprepa",
+      "aprktb",
+      "apsand",
+      "apshdw",
+      "apsite",
+      "apsstb",
+      "apstab",
+      "aptagg",
+      "apthmp"
+    ],
+    "sha256": "5c6a9c75de4f5931bc21601ed9838fda7bc74cb6a6a56f2e1458ab0d905e34ac"
+  },
+  {
+    "path": "ODF/bvslfb.odf",
+    "faction": "bd",
+    "sources": [
+      "apammo",
+      "apbolt",
+      "apcamr",
+      "apcmet",
+      "apflar",
+      "apflsh",
+      "aphorn",
+      "apmagg",
+      "apmasg",
+      "apmcur",
+      "apmini",
+      "apmits",
+      "apphan",
+      "approx",
+      "apredf",
+      "aprepa",
+      "aprktb",
+      "apsand",
+      "apshdw",
+      "apsite",
+      "apsstb",
+      "apstab",
+      "aptagg",
+      "apthmp"
+    ],
+    "sha256": "a185b757977cad84e5fc093304516c945c562c8959a889e9744655ad87eaa623"
+  },
+  {
+    "path": "ODF/bvslfc.odf",
+    "faction": "bd",
+    "sources": [
+      "apammo",
+      "apbolt",
+      "apcamr",
+      "apcmet",
+      "apflar",
+      "apflsh",
+      "aphorn",
+      "apmagg",
+      "apmasg",
+      "apmcur",
+      "apmdmg",
+      "apmini",
+      "apmits",
+      "apmort",
+      "apphan",
+      "appopg",
+      "approx",
+      "apredf",
+      "aprepa",
+      "aprktb",
+      "apsand",
+      "apshdw",
+      "apsite",
+      "apsstb",
+      "apstab",
+      "aptagg",
+      "apthmp"
+    ],
+    "sha256": "09ffe906e98bc3994181886681ec9666a35258138979e807c64265458e12d049"
+  },
+  {
+    "path": "ODF/bvslfd.odf",
+    "faction": "bd",
+    "sources": [
+      "apammo",
+      "apbolt",
+      "apcamr",
+      "apcmet",
+      "apflar",
+      "apflsh",
+      "aphorn",
+      "apmagg",
+      "apmasg",
+      "apmcur",
+      "apmdmg",
+      "apmini",
+      "apmits",
+      "apmort",
+      "apphan",
+      "appopg",
+      "approx",
+      "apredf",
+      "aprepa",
+      "aprktb",
+      "apsand",
+      "apshdw",
+      "apsite",
+      "apspln",
+      "apsstb",
+      "apstab",
+      "aptagg",
+      "apthmp"
+    ],
+    "sha256": "89958d1e9457a2f3f3e7385157f2a6bc33d0ccb08493a26696b52115720d6582"
+  },
+  {
+    "path": "ODF/cvrecy.odf",
+    "faction": "cr",
+    "sources": [
+      "spammo",
+      "sprepa"
+    ],
+    "sha256": "fc65edc56eb98a95a05ef37d6e07dafbbdd4e5ef33bbff5e2379942d59b347ed"
+  },
+  {
+    "path": "ODF/cvrecya.odf",
+    "faction": "cr",
+    "sources": [
+      "spammo",
+      "sprepa"
+    ],
+    "sha256": "a944ad3ad6a823204634886cf0ce4f6db47239ce01aabdeaa98b5fe5d9d6e88a"
+  },
+  {
+    "path": "ODF/cvrecyd.odf",
+    "faction": "cr",
+    "sources": [
+      "apammo",
+      "aprepa"
+    ],
+    "sha256": "07733422978bb43fa3fe0d9152a876c15b11c33b7fd4f504f1f79cd729ea8446"
+  },
+  {
+    "path": "ODF/cvrecye.odf",
+    "faction": "cr",
+    "sources": [
+      "spammo",
+      "sprepa"
+    ],
+    "sha256": "17ff88d28115a8e016e09c6f45e54b8517d2000ba7bb19566e1df7f644ac72d3"
+  },
+  {
+    "path": "ODF/cvremp.odf",
+    "faction": "cr",
+    "sources": [
+      "spammo",
+      "sprepa"
+    ],
+    "sha256": "7d9f8fa70cff253d52a685ccf945da04a421e0826416bfde4288a3c8f7828a36"
+  },
+  {
+    "path": "ODF/cvslf.odf",
+    "faction": "cr",
+    "sources": [
+      "cpsstb",
+      "cptesla",
+      "spammo",
+      "spblst",
+      "spcamr",
+      "spcmet",
+      "spflar",
+      "spflsh",
+      "sphorn",
+      "spmagg",
+      "spmcur",
+      "spmdmg",
+      "spmini",
+      "spmits",
+      "spmort",
+      "spphan",
+      "sppopg",
+      "spredf",
+      "sprepa",
+      "sprktb",
+      "spsand",
+      "spshdw",
+      "spsite",
+      "spstab",
+      "sptagg",
+      "spthmp"
+    ],
+    "sha256": "6ea9290c06bf55b36a3005a72aa65f5d483b22ee5077e3908fe5cd444b28d137"
+  },
+  {
+    "path": "ODF/cvslfa.odf",
+    "faction": "cr",
+    "sources": [
+      "apammo",
+      "apcamr",
+      "aprepa",
+      "cpsstb",
+      "cptesla",
+      "spblst",
+      "spcmet",
+      "spflar",
+      "spflsh",
+      "sphorn",
+      "spmagg",
+      "spmcur",
+      "spmdmg",
+      "spmini",
+      "spmits",
+      "spmort",
+      "spphan",
+      "sppopg",
+      "spredf",
+      "sprktb",
+      "spsand",
+      "spshdw",
+      "spsite",
+      "spstab",
+      "sptagg",
+      "spthmp"
+    ],
+    "sha256": "4114fd8fb89848262dd3012a2ef32f12abdee67490c30a81bc51a6c805a2be30"
+  },
+  {
+    "path": "ODF/cvslfb.odf",
+    "faction": "cr",
+    "sources": [
+      "apblst",
+      "apbolt",
+      "apcmet",
+      "apflar",
+      "apflsh",
+      "aphorn",
+      "apmagg",
+      "apmasg",
+      "apmcur",
+      "apmini",
+      "apmits",
+      "apphan",
+      "approx",
+      "apredf",
+      "aprktb",
+      "apsand",
+      "apshdw",
+      "apsite",
+      "apstab",
+      "aptagg",
+      "apthmp",
+      "cpsstb",
+      "spammo",
+      "spcamr",
+      "sprepa"
+    ],
+    "sha256": "17338acace0a8a0260303eb70ec2048919c0f0af68880822934722ecac05fec0"
+  },
+  {
+    "path": "ODF/svrecy.odf",
+    "faction": "cc",
+    "sources": [
+      "spammo",
+      "sprepa"
+    ],
+    "sha256": "b6cfaea2396ceb7ed234ba8337b9bf8fcd0f7ee02030ecdf202258c4026aafe1"
+  },
+  {
+    "path": "ODF/svremp.odf",
+    "faction": "cc",
+    "sources": [
+      "spammo",
+      "sprepa"
+    ],
+    "sha256": "15ea241a62725bdea69474fc281888bfb5e4e4f7b9255c0c7c8bb628c92bb98b"
+  },
+  {
+    "path": "ODF/svslf.odf",
+    "faction": "cc",
+    "sources": [
+      "spammo",
+      "spbett",
+      "spblst",
+      "spcamr",
+      "spcmet",
+      "spflar",
+      "spflsh",
+      "sphunt",
+      "spmagg",
+      "spmcur",
+      "spmdmg",
+      "spmini",
+      "spmits",
+      "sppopg",
+      "spredf",
+      "sprepa",
+      "sprktb",
+      "spsand",
+      "spshdw",
+      "spsite",
+      "spsmort",
+      "spspln",
+      "spsstb",
+      "spstab",
+      "spstlk",
+      "sptagg",
+      "spthmp"
+    ],
+    "sha256": "2004f01afdf59b212b3aef4c1fe673ed41b7c4bc9330bb4afb24b6da6f9172a9"
+  }
+]

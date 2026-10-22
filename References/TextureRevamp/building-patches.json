@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "model": "sblpad",
+  "atlasSize": [2048, 1024],
+  "sourceMaterial": "sblpad",
+  "patches": [
+    {"id": "cca_door", "bounds": [0, 530, 180, 804], "size": [1024, 1536], "expectedTriangles": 184},
+    {"id": "cca_stairs", "bounds": [1784, 458, 1870, 692], "size": [512, 1408], "expectedTriangles": 168},
+    {"id": "cca_plate", "bounds": [804, 406, 1132, 670], "size": [1280, 1024], "expectedTriangles": 4}
+  ]
+}

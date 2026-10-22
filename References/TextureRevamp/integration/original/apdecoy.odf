@@ -1,0 +1,29 @@
+[GameObjectClass]
+baseName = "apcamr"
+classLabel = "torpedo"
+scrapCost = 1
+scrapValue = 0
+maxHealth = 150
+maxAmmo = 0
+heatSignature = 3
+imageSignature = 3.5
+radarSignature = 0.1
+unitName = "Missile Decoy"
+aiName = "PowerUpProcess"
+aiName2 = "PowerUpProcess"
+
+[CraftClass]
+rangeScan = 0.0f
+periodScan = 0.0f
+velocJam = 0.0f
+
+[TorpedoClass]
+setAltitude = 1.0
+alphaTrack = 20.0
+alphaDamp = 5.0
+velocForward = 0
+accelThrust = 0
+omegaTurn = 2.0
+alphaSteer = 5.0
+lifeSpan = 5
+
