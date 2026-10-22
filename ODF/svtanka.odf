@@ -23,6 +23,11 @@ weaponName4 = "gquake"
 weaponMask = 00001
 
 [CraftClass]
+// CR CRAFT FLASH OFFSET BEGIN
+// Visible barrel tip from the hardpoint (right up forward, metres); replaces the
+// weapon's flashOffset for this craft. Regenerate: Tools/Build-WeaponFlashes.py --measure
+flashOffset1 = "0.00 0.00 3.42"
+// CR CRAFT FLASH OFFSET END
 // OpenShim mesh recoil (slot 1 cannon barrel; needs Settings > Video > Muzzle Recoil).
 // Node SCZ11BGB is the dedicated barrel under the turret (per VDF); metres, m/s.
 // Follows slot 1 if weaponName1 changes. See avtank.odf for the full reference.

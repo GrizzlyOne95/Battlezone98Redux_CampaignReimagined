@@ -117,15 +117,44 @@ Steam/Proton/Wine execution, other weapon producers and multiplayer remain
 separate runtime qualification work. DX9/DX11 shader compilation is not proof
 of those game/runtime lanes.
 
-Shared weapons use **zero extra muzzle offset**. The stock tank's known
-`0.20 0.10 2.41` trial correction must not be applied to every carrier of gatstab.
-Some models place firing hardpoints behind their visible tips. The inventory
-records exact muzzle/parent IDs, cockpit markers, available clips and dedicated
-barrel candidates; it also gives a local forward tip estimate from barrel GEO
-where possible. Estimates are fitting evidence, not automatically applied offsets.
-For avtank, the measured barrel extent implies approximately 2.413 m forward,
-consistent with the earlier live preset. Exact orientation/lateral offsets and
-shared-weapon/per-craft override policy still require a per-model fitting pass.
+Shared weapons use **zero extra muzzle offset** (`flashOffset = "0 0 0"`). The
+stock tank's `0.20 0.10 2.41` trial correction is never applied to every carrier
+of gatstab; some models place firing hardpoints behind their visible tips.
+
+### Per-craft flash offsets (offset policy)
+
+Craft ODFs carry the correction instead, using OpenShim's
+`[CraftClass] flashOffset<N> = "right up forward"` (N = weapon slot 1..5, metres,
+|v| <= 20), which replaces the weapon's offset for that craft's slot only.
+`References/WeaponPresentation/craft-flash-offsets.json` records, for every CR
+craft slot whose `weaponName<N>` selects a weapon with `flashMesh`, either a
+measured offset or the reason it has none. `Tools/Build-WeaponFlashes.py` writes
+the keys inside a `// CR CRAFT FLASH OFFSET BEGIN/END` block directly under
+`[CraftClass]`; `--check` (also run by `Tools/Test-WeaponPresentation.py` and CI)
+fails if a craft or slot is missing from the data, a weapon selection changed
+without re-measuring, or the ODF block differs.
+
+Measurement (`python Tools/Build-WeaponFlashes.py --measure`, needs the installed
+game's Ogre meshes and skeletons via `BZR_GAME_DIR`; shipped `Assets/ModelFixes`
+meshes win): the hardpoint's parent must be a dedicated barrel node (`*BG?`);
+the barrel is every vertex weighted at least 0.5 to that bone. The sim hardpoint
+shares its barrel's frame, so vertices are expressed in the barrel frame relative
+to the hardpoint position. Forward is the furthest barrel vertex; right/up is the
+centre of the bounding box of the front 0.25 m (the aperture), rounded to
+0.01 m. This reproduces the live avtank fit exactly (`0.20 0.10 2.41`) and is
+consistent with the legacy-GEO estimates in the inventory (the inventory's value
+is a forward distance from the older collision GEO; the Ogre mesh is what is
+drawn, so it is used for lateral and vertical too).
+
+Not emitted (listed in the JSON with the reason): hardpoints whose parent is a
+hull, turret, arm or pod rather than a dedicated barrel (166 slots, including all
+fighters, bombers, light tanks and walkers; these need the per-family fitting pass
+below), pilots (32 slots, no `[CraftClass]`), hardpoint bones not present in the
+Ogre skeleton (10), hardpoints already at the tip (under 0.1 m: Soviet howitzers
+`svartl`/`svarmp`/`svartla`, and `bvhraz` slot 1 whose barrel mesh ends behind
+its hardpoint), and `avsav`/`avsav14` (no Ogre mesh).
+Re-run `--measure` after changing a craft's weapons, hardpoints or model.
+Offsets are fitted from geometry, not yet confirmed live except avtank.
 
 ## Recoil setup inventory
 
@@ -171,6 +200,7 @@ to be an authored firing recoil clip.
 Workshop publication was changed. This is a first authored content/inventory
 checkpoint, not completed visual qualification for every weapon. Next: fit and
 review minigun/chaingun/AT-Stabber on representative craft; establish machinegun
-live proof; add the other accepted-fire producers; implement a safe per-craft
-flash-offset policy; then author and test recoil rigs family by family. Keep
+live proof; add the other accepted-fire producers; visually confirm the per-craft
+flash offsets live (needs the OpenShim `flashOffset<N>` build) and fit the unmeasured
+hull-mounted hardpoints; then author and test recoil rigs family by family. Keep
 the current setting/build/network guards until the relevant evidence exists.
