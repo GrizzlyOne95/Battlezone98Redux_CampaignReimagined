@@ -1,0 +1,18 @@
+[WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
+classLabel = "terrainexpose"
+ordName = NULL
+wpnName = "SITE Camera"
+fireSound = "gsite00.wav"
+wpnReticle = "gsitecam.0"
+wpnPriority = 0
+wpnCategory = "SPEC"
+
+[SpecialItemClass]
+ammoCost = 10
+triggerDelay = 1.0
+expireSound = "gsite02.wav"
+reticleCount = 1

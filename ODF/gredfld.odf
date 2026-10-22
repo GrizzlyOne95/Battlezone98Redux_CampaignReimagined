@@ -1,0 +1,19 @@
+[WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
+classLabel = "radardamper"
+ordName = NULL
+wpnName = "RED Field"
+fireSound = "gredf00.wav"
+wpnReticle = "gredfld.0"
+wpnPriority = 0
+wpnCategory = "SPEC"
+
+[SpecialItemClass]
+ammoCost = 20
+triggerDelay = 1.0
+activeSound = "gredf01.wav"
+expireSound = "gredf02.wav"
+reticleCount = 1

@@ -1,0 +1,16 @@
+[WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
+classLabel = "dispenser"
+wpnName = "Arc Mine"
+fireSound = "gbmin00.wav"
+wpnReticle = "quake.0"
+wpnPriority = 5
+wpnCategory = "SPEC"
+
+[DispenserClass]
+shotDelay = 1.0
+objectClass = "boltmine"
+
