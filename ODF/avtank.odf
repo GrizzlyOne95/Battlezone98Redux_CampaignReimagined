@@ -35,6 +35,18 @@ flashOffset1 = "0.20 0.10 2.41"
 // Slot 1 (cannon) has this node slide enabled; with the switch OFF nothing
 // moves. Old trial environment flags cannot bypass an OFF setting.
 //
+// Recoil is opt-in on BOTH sides, so nothing recoils by accident:
+//  - the craft supplies the node, distance and return (recoilName<N>,
+//    recoilDistance<N>, recoilReturn<N>);
+//  - the weapon supplies the kick: [WeaponClass] recoilKick (0..4, absent = 0).
+//    CR sets recoilKick = 1.0 on every cannon-category weapon (generated block
+//    in the weapon ODF by Tools/Build-WeaponFlashes.py) and none on machineguns
+//    or miniguns, so a weapon with no kick never moves the node.
+//  - the node slides recoilDistance<N> x kick metres.
+// recoilKick<N> on the craft overrides the weapon's kick for that slot, e.g. a
+// scout's miniguns at a gentle 0.15 (the example below stays commented):
+// recoilKick2 = 0.15
+//
 // Slot 1 currently uses STOCK gatstab above. Recoil belongs here on the craft;
 // flash/smoke/light belong in the WEAPON's [WeaponClass], not this section.
 // See the commented references in gatstaba.odf and gatstabh.odf; neither local

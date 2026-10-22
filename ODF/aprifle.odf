@@ -13,6 +13,11 @@ flashOffset = "0 0 0"
 // Energy, launcher, explosive or utility: no ejected brass.
 casingType = "none"
 // CR WEAPON CASING END
+// CR WEAPON RECOIL BEGIN
+// Opt-in recoil: the craft supplies the node/distance/return, this weapon supplies the kick.
+// A craft's recoilKick<N> overrides it (e.g. 0.15 for a scout's miniguns). Machineguns get none.
+recoilKick = 1.0
+// CR WEAPON RECOIL END
 classLabel = "cannon"
 ordName = "aplasma"
 wpnName = "NSDF Plasma Rifle"

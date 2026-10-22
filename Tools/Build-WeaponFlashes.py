@@ -18,6 +18,11 @@ from bzmodellibs import toolbox_root
 ROOT = Path(__file__).resolve().parents[1]
 BEGIN, END = "// CR WEAPON FLASH BEGIN", "// CR WEAPON FLASH END"
 CRAFT_BEGIN, CRAFT_END = "// CR CRAFT FLASH OFFSET BEGIN", "// CR CRAFT FLASH OFFSET END"
+RECOIL_BEGIN, RECOIL_END = "// CR WEAPON RECOIL BEGIN", "// CR WEAPON RECOIL END"
+CASING_END = "// CR WEAPON CASING END"
+# OpenShim `[WeaponClass] recoilKick` (0..4, absent = no recoil). CR gives every
+# non-machinegun CANN weapon this kick; a craft's `recoilKick<N>` overrides it.
+CANNON_KICK = "1.0"
 OFFSETS = ROOT / "References/WeaponPresentation/craft-flash-offsets.json"
 GAME = Path(os.environ.get("BZR_GAME_DIR", r"C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux"))
 # Tips closer than this (m) to the hardpoint get no per-craft key.
@@ -117,6 +122,40 @@ flashOffset = "0 0 0"
 {END}
 '''
     return text[:at]+block+text[at:]
+
+
+def strip_recoil(text):
+    if RECOIL_BEGIN in text:
+        a = text.index(RECOIL_BEGIN)
+        b = text.index(RECOIL_END, a) + len(RECOIL_END)
+        if text[b:b+1] == "\n":
+            b += 1
+        text = text[:a] + text[b:]
+    return text
+
+
+def wants_kick(text):
+    """True for a cannon-category weapon; machineguns/miniguns (classLabel machinegun) never kick."""
+    weapon = odf_lines(text).get("weaponclass", {})
+    return weapon.get("wpncategory", "").upper() == "CANN" and weapon.get("classlabel", "").lower() != "machinegun"
+
+
+def with_recoil(text):
+    """Return the ODF with its generated recoilKick block (placed after the flash and casing blocks)."""
+    text = strip_recoil(text.replace("\r\n", "\n"))
+    if not wants_kick(text):
+        return text
+    section = re.search(r"(?im)^[ \t]*\[WeaponClass\][^\n]*\n", text)
+    assert section, "missing WeaponClass section"
+    at = section.end()
+    for end in (END, CASING_END):
+        found = text.find(end, at)
+        if found >= 0:
+            at = max(at, found + len(end) + (1 if text[found+len(end):found+len(end)+1] == "\n" else 0))
+    block = (f"{RECOIL_BEGIN}\n// Opt-in recoil: the craft supplies the node/distance/return, this weapon supplies the kick.\n"
+             "// A craft's recoilKick<N> overrides it (e.g. 0.15 for a scout's miniguns). Machineguns get none.\n"
+             f"recoilKick = {CANNON_KICK}\n{RECOIL_END}\n")
+    return text[:at] + block + text[at:]
 
 
 def material(profiles):
@@ -398,10 +437,14 @@ def build(stock, check):
         outputs[ROOT/f'Assets/Models/crmf_{name}.mesh']=mesh_bytes(p,'CR/Muzzle/'+name)
     outputs[ROOT/'Materials/cr_muzzle.material']=material(profiles).encode()
     for name,choice in config['weapons'].items():
-        if not choice['profile']: continue
         target=ROOT/'ODF'/(name+'.odf')
         source=target if target.exists() else stock/(name+'.odf')
-        outputs[target]=authored_odf(source.read_text(),name,choice,profiles).encode()
+        text=source.read_text()
+        if choice['profile']: text=authored_odf(text,name,choice,profiles)
+        text=with_recoil(text)
+        # Weapons without a flash profile are rewritten only if the recoil block changes them.
+        if choice['profile'] or text!=source.read_text().replace('\r\n','\n'):
+            outputs[target]=text.encode()
     outputs.update(craft_outputs(config))
     for path,data in outputs.items():
         if check:
@@ -411,6 +454,8 @@ def build(stock, check):
         else:
             path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(data)
     craft_n=sum(1 for p in outputs if CRAFT_BEGIN in outputs[p].decode(errors="replace"))
+    kicked=sum(1 for p in outputs if RECOIL_BEGIN in outputs[p].decode(errors="replace"))
+    print(f"Weapon recoil: {kicked} weapon ODFs carry recoilKick = {CANNON_KICK}")
     print(f"Weapon flashes: {len(profiles)} profiles, {len(outputs)-len(profiles)-1} ODFs ({craft_n} with craft flashOffset keys); mesh round trips pass")
 
 
