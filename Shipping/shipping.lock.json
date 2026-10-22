@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-21T14:37:36-05:00",
-  "count": 4437,
+  "count": 4450,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -1288,6 +1288,26 @@
       "runtime": "crstns_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crvabhang_d.dds",
+      "runtime": "crvabhang_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbdhqctrl_d.dds",
+      "runtime": "crvbdhqctrl_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbdhqctrl_e.dds",
+      "runtime": "crvbdhqctrl_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbdhqwall_d.dds",
+      "runtime": "crvbdhqwall_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbdhqwall_e.dds",
+      "runtime": "crvbdhqwall_e.dds"
+    },
+    {
       "source": "Assets\\Textures\\crvbdog_walkway_d.dds",
       "runtime": "crvbdog_walkway_d.dds"
     },
@@ -1326,6 +1346,22 @@
     {
       "source": "Assets\\Textures\\crvccdoor_e.dds",
       "runtime": "crvccdoor_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcchangdoor_d.dds",
+      "runtime": "crvcchangdoor_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcchangdoor_e.dds",
+      "runtime": "crvcchangdoor_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcchangvent_d.dds",
+      "runtime": "crvcchangvent_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcchangvent_e.dds",
+      "runtime": "crvcchangvent_e.dds"
     },
     {
       "source": "Assets\\Textures\\crviolfloor_d.dds",
@@ -3562,6 +3598,14 @@
     {
       "source": "Materials\\CR_detail_ablpad.material",
       "runtime": "CR_detail_ablpad.material"
+    },
+    {
+      "source": "Materials\\CR_detail_bbhqcp.material",
+      "runtime": "CR_detail_bbhqcp.material"
+    },
+    {
+      "source": "Materials\\CR_detail_sbhang.material",
+      "runtime": "CR_detail_sbhang.material"
     },
     {
       "source": "Materials\\CR_detail_sbsupp.material",
@@ -12652,6 +12696,10 @@
       "runtime": "apspec.vdf"
     },
     {
+      "source": "Assets\\Models\\bbhqcp.mesh",
+      "runtime": "bbhqcp.mesh"
+    },
+    {
       "source": "Assets\\Models\\bblpad.mesh",
       "runtime": "bblpad.mesh"
     },
@@ -13738,6 +13786,10 @@
     {
       "source": "Assets\\Models\\op3dck01.geo",
       "runtime": "op3dck01.geo"
+    },
+    {
+      "source": "Assets\\Models\\sbhang.mesh",
+      "runtime": "sbhang.mesh"
     },
     {
       "source": "Assets\\Models\\sblpad.mesh",

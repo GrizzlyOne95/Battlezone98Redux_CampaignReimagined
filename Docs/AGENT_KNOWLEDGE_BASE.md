@@ -1393,3 +1393,22 @@ to the ordinary GOG development mod.
   for the sbsupp00 parent. The tiny door atlas is repeated around service
   pillars; a whole-building auto-camera hides its improvement. Use one measured
   original pillar face for matched offline before/after inspection.
+
+### HQ / hangar detail continuation (2026-10-22)
+
+- The same building reference pack now covers Black Dog HQ facade/control banks
+  and CCA hangar door/vent crops. HQ's outer facade UV reaches 524.21px: use a
+  525px bound, not a 524px crop that passes selection tolerance but wraps outside
+  the new texture. Tests require every drawn patch UV strictly inside [0,1].
+- NSDF abhang's ModelFixes mesh has precomputed shadow edge lists. Do not clear
+  or retain stale lists after repartitioning. Until the shared codec supports
+  rebuilding them, keep mesh/SDF/skeleton byte-identical and use a texture-only
+  atlas overlay. This batch changes only the diffuse alias; untouched charts
+  remain resampled stock, E/N/S stay original, and no draw batches are added.
+- A generated extreme-wide control strip arrived with white letterbox bands.
+  Crop padding before atlas compilation and record the technical crop. Inspect
+  the actual small outside control bank: an auto-camera aimed at all selected
+  triangles' midpoint points into the HQ tower and hides the improvement.
+- Owner Red Devil direction: legacy bvrdev00's strong red/black shapes and warm
+  yellow headlights are preferred to the Redux skin. Its UV layout differs from
+  bvrdev, so use it as reference for an authored restoration, not a DDS swap.

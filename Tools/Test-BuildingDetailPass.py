@@ -15,13 +15,54 @@ def check(ok,why):
 def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
 def shipped(path):check(members.get(path.relative_to(ROOT).as_posix())==path.name,'shipped resource: '+path.name)
-for path,record in json.loads((REF/'sources.json').read_text()).items():check(sha(REF/path)==record['sha256'],'captured stock input: '+path)
+for path,record in json.loads((REF/'sources.json').read_text()).items():
+    captured=(ROOT if record.get('externalToReference') else REF)/path
+    digest=hashlib.sha256(captured.read_text().encode()).hexdigest() if record.get('normalizedText') else sha(captured)
+    check(digest==record['sha256'],'captured source / retained native input: '+path)
+
+def test_overlay(row,source,model_path,old,new,receipt):
+    check(model_path.read_bytes()==source.read_bytes(),'animated mesh, every UV, edge list and rig byte stays identical')
+    check(bool(new.edge_lists) and len(new.submesh_list)==1,'existing shadow topology and one original batch preserved')
+    baseline=json.loads((REF/'original'/(row['model']+'-material.json')).read_text())['text']
+    material=ROOT/'Materials'/row['materialFile'];text=material.read_text();shipped(material)
+    check(text==build.overlay_material(row,baseline),'only diffuse alias changes; E/N/S and material constants preserved')
+    check(hashlib.sha256(text.encode()).hexdigest()==receipt['materialSha256'],'normalized material hash')
+    sub=old.submesh_list[0];uv=b.values(sub.vertex_data,b.om.VES.TEXTURE_COORDINATES);indices=sub.index_array.reshape(-1,3)
+    size=tuple(row['atlasOutputSize']);scale=np.array(size)/row['atlasSize'];changed=np.zeros(size[::-1],bool);claimed=np.zeros(len(indices),bool)
+    path=ROOT/'Assets/Textures'/row['diffuseOutput']
+    with Image.open(path) as im:actual=np.array(im.convert('RGB')).astype(float)
+    for patch in row['patches']:
+        key=patch['id'];selected=b.patch_mask(uv,indices,patch['bounds'],row['atlasSize'])
+        check(not (selected&claimed).any(),'overlay charts select disjoint triangle sets');claimed|=selected
+        check(int(selected.sum())==patch['expectedTriangles']==receipt['coverage'][key]>0,'exact overlay coverage: '+key)
+        check(sha(REF/(key+'.png'))==receipt['masters'][key+'.png'],'overlay source art hash')
+        box=(np.array(patch['bounds'])*np.tile(scale,2)).astype(int);x0,y0,x1,y1=box;changed[y0:y1,x0:x1]=True
+        with Image.open(REF/(key+'.png')) as im:
+            check(max((x1-x0)/im.width,(y1-y0)/im.height)<1.15,'overlay stays near authored resolution')
+        with Image.open(REF/'original'/(row['model']+'_e.png')) as im:
+            normalized=im.convert('RGB').resize(tuple(row['atlasSize']),Image.Resampling.LANCZOS).crop(patch['bounds'])
+        with Image.open(REF/patch['emissionSource']) as im:crop_e=im.convert('RGB')
+        check(np.array_equal(np.array(normalized),np.array(crop_e)),'original E registration for overlay lamp preservation')
+    with Image.open(REF/'original'/(row['model']+'_d.png')) as im:base=np.array(im.convert('RGB').resize(size,Image.Resampling.LANCZOS)).astype(float)
+    from scipy.ndimage import binary_dilation
+    untouched=~binary_dilation(changed,iterations=4)
+    check(np.abs(actual[untouched]-base[untouched]).mean()<3,'unselected atlas charts preserved within BC1 tolerance')
+    expected=np.array(build.atlas_image(row)).astype(float)
+    check(np.abs(actual-expected).mean()<3,'compiled overlay reproduces authored regions and source lamps')
+    check(list(receipt['files'])==[row['diffuseOutput']],'only one atlas D; no duplicate E/N/S or patch atlases')
+    record=receipt['files'][path.name]
+    check(sha(path)==record['sha256'],'overlay DDS hash')
+    check(bc_dds_problem(path.read_bytes(),*size) is None,'overlay BC1 legacy header and all mip levels');shipped(path)
+
 for row in build.recipes():
-    name=row['model'];source=REF/'original'/(name+'.mesh');path=ROOT/'Assets/Models'/(name+'.mesh')
+    name=row['model'];source=REF/'original'/(name+'.mesh');model_path=ROOT/row.get('outputDirectory','Assets/Models')/(name+'.mesh');path=model_path
     old=b.read_mesh(source);new=b.read_mesh(path);receipt=json.loads((REF/row['receipt']).read_text())
     check(sha(source)==receipt['sourceSha256'],'pinned source mesh')
     check(sha(path)==receipt['modelSha256'],'current mesh hash')
     check(b.triangle_contract(old)==b.triangle_contract(new)==receipt['geometry'],'exact oriented geometry/non-UV attributes/weights/bounds/skeleton')
+    if row.get('mode')=='atlas-overlay':
+        test_overlay(row,source,model_path,old,new,receipt)
+        continue
     check(not new.edge_lists and len(new.submesh_list)==3,'two additional batches only; no stale shadow topology')
     shipped(path)
     sub=old.submesh_list[0];uv=b.values(sub.vertex_data,b.om.VES.TEXTURE_COORDINATES);ids=sub.index_array.reshape(-1,3)
@@ -68,7 +109,7 @@ for row in build.recipes():
         check(bc_dds_problem(path.read_bytes(),*record['size']) is None,'legacy BC1 header and complete offline mips')
         shipped(path)
     # Negative proof: the geometry contract rejects an accidental moved vertex.
-    bad=b.read_mesh(ROOT/'Assets/Models'/(name+'.mesh'));part=bad.submesh_list[0];vd=part.vertex_data
+    bad=b.read_mesh(model_path);part=bad.submesh_list[0];vd=part.vertex_data
     element=vd.vertex_declaration.find_by_semantic(b.om.VES.POSITION);vb=vd.get_vertex_buffer(element.source);vb.set_buffer(bytearray(vb.buffer))
     v=b.values(vd,b.om.VES.POSITION);v[int(part.index_array[0]),0]+=.1
     check(b.triangle_contract(bad)!=b.triangle_contract(old),'negative moved-vertex fixture is rejected')

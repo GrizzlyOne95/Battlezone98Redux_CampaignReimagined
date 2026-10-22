@@ -76,6 +76,125 @@
           "expectedTriangles": 1207
         }
       ]
+    },
+    {
+      "model": "bbhqcp",
+      "sourceMaterial": "bbhqcp00",
+      "atlasSize": [
+        1024,
+        512
+      ],
+      "patches": [
+        {
+          "id": "bdhqwall",
+          "bounds": [
+            0,
+            0,
+            525,
+            440
+          ],
+          "size": [
+            1280,
+            1088
+          ],
+          "expectedTriangles": 778
+        },
+        {
+          "id": "bdhqctrl",
+          "bounds": [
+            130,
+            440,
+            520,
+            512
+          ],
+          "size": [
+            1536,
+            288
+          ],
+          "expectedTriangles": 412
+        }
+      ]
+    },
+    {
+      "model": "abhang",
+      "sourceMaterial": "abhang00",
+      "atlasSize": [
+        1024,
+        1024
+      ],
+      "patches": [
+        {
+          "id": "nshangwall",
+          "bounds": [
+            0,
+            0,
+            562,
+            477
+          ],
+          "size": [
+            1280,
+            1088
+          ],
+          "expectedTriangles": 1672
+        },
+        {
+          "id": "nshangdoor",
+          "bounds": [
+            4,
+            479,
+            461,
+            744
+          ],
+          "size": [
+            1408,
+            832
+          ],
+          "expectedTriangles": 724
+        }
+      ],
+      "outputDirectory": "Assets/ModelFixes",
+      "mode": "atlas-overlay",
+      "atlasOutputSize": [2048, 2048],
+      "diffuseAlias": "abhang_D.dds",
+      "diffuseOutput": "crvabhang_d.dds"
+    },
+    {
+      "model": "sbhang",
+      "sourceMaterial": "sbhang",
+      "atlasSize": [
+        1024,
+        1024
+      ],
+      "patches": [
+        {
+          "id": "cchangdoor",
+          "bounds": [
+            0,
+            0,
+            714,
+            715
+          ],
+          "size": [
+            1280,
+            1280
+          ],
+          "expectedTriangles": 610
+        },
+        {
+          "id": "cchangvent",
+          "bounds": [
+            0,
+            716,
+            426,
+            1024
+          ],
+          "size": [
+            1280,
+            928
+          ],
+          "expectedTriangles": 1248
+        }
+      ]
     }
   ]
 }
