@@ -125,7 +125,12 @@ superseded maps remain on disk. Offline isolated
 Blender renders are art checks only; native GOG/Steam/Proton/Wine load, spinning
 parts, pickup collection/rejection, menu behavior and performance remain unrun.
 See `review/faction-navs-v2.jpg` (accepted, both sides),
-`review/faction-ammo-repair-stock-v3.jpg` (new stock-model faction paint) and
-`review/pod-stock-glow-v3.jpg` (day/low-light emission inspection). Dark renders
+`review/faction-ammo-repair-stock-v3.jpg` (all four factions in daylight),
+`review/faction-ammo-repair-glow-v3.jpg` (all four in low light), and their
+`*-rear-v3.jpg` counterparts (opposite sides). The smaller
+`review/pod-stock-glow-v3.jpg` pairs NSDF day/low-light inspection. Dark renders
 use reduced Blender scene lights, not an engine bloom/performance claim.
 Rejected v2 and new-geometry renders are historical only, not acceptance evidence.
+
+Owner direction after this checkpoint is **offline rendering only for now**.
+No game launch or installed-file changes were made for the all-faction review.

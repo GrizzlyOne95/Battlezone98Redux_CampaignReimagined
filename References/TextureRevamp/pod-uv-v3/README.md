@@ -86,6 +86,9 @@ rejected historical B comparison, not as an integration step.
 Offline Blender renders only, not native engine acceptance:
 
 - `../review/faction-ammo-repair-stock-v3.jpg`: current runtime stock/faction art.
+- `../review/faction-ammo-repair-glow-v3.jpg`: all four faction pairs in low light.
+- `../review/faction-ammo-repair-rear-v3.jpg`: all four pairs, opposite side.
+- `../review/faction-ammo-repair-glow-rear-v3.jpg`: opposite-side low-light views.
 - `../review/pod-stock-glow-v3.jpg`: current runtime day/low-light emission.
 - `../review/pod-v3-shape-comparison.jpg`: historical A/B; B explicitly rejected.
 - `../review/pod-v3-stock-full-unwrap.jpg`: stock-remap front/rear.
@@ -94,3 +97,5 @@ Offline Blender renders only, not native engine acceptance:
 The selected stock direction is implemented across four factions. Native
 GOG/Steam/Proton/Wine load, spinning parts, collection/rejection and performance
 remain unrun; the new faction paint/glow is still an art-review checkpoint.
+The owner requested offline renders only for now; no native test or runtime
+deployment accompanies these all-faction front/rear day/low-light sheets.
