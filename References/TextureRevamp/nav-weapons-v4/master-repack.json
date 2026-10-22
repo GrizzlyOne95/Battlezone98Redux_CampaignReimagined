@@ -1,0 +1,146 @@
+{
+  "operation": "Lossless base cell crop; weapon masters subsequently receive ImageGen-authored hazard ROIs only",
+  "archivedSource": "Local/TextureRevamp/unoptimized-authoring-masters (ignored, recoverable)",
+  "records": [
+    {
+      "source": "detail_ns_v4.png",
+      "sourceSha256": "18877de9bc2683bdc6a505fa7df19d1fc771c99738400c0219f0894ce6d9b5b3",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "crop": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "current": "weapon_ns_master.png",
+      "currentSha256": "24d5ba6b363a76d44a15524438340cd647aae51a9791217876a016be24dcc676",
+      "baseCropSha256": "15786bbf8ea37a0db4a11f3020742465807c5325b8a81bc92db2c826b8418ea9",
+      "followup": "ImageGen hazard/glass-only edits; see hazard-repaint.json and glow-repaint.json"
+    },
+    {
+      "source": "panels_ns_v4.png",
+      "sourceSha256": "a71b903fd1c1c81074bfe0fe7b6aee75bc06eb21cd7e2b446bcd3a6fe26f333a",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "crop": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "current": "badge_ns_master.png",
+      "currentSha256": "b54647842db2ff32493c6f3000b8804c611ca0cec7490a8ee40da5f2c6614ef3",
+      "followup": "ImageGen hazard/glass-only edits; see hazard-repaint.json and glow-repaint.json"
+    },
+    {
+      "source": "detail_bd_v4.png",
+      "sourceSha256": "2477f88d6ae5a86422ff3fbc86b12982dfd9a9177035518e84d80096e6542bb7",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "crop": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "current": "weapon_bd_master.png",
+      "currentSha256": "83b53a1f169989172f6e1bfb3aca7de941c2d9e237dcc68d393e8381f15c5056",
+      "baseCropSha256": "6ba3ba7954ee6710d6041789c4b3506ef3b56870be8f1e84eee6291531c36bb2",
+      "followup": "ImageGen hazard/glass-only edits; see hazard-repaint.json and glow-repaint.json"
+    },
+    {
+      "source": "panels_bd_v4.png",
+      "sourceSha256": "55405fe8e3f07fe3c44bad0e57688de0892b9523f8838141525f4dca4943eec3",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "crop": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "current": "badge_bd_master.png",
+      "currentSha256": "236f7167120ebb1b879712702044817d94d791a51ce4f7d34e2e952f72a8e11a",
+      "followup": "ImageGen hazard/glass-only edits; see hazard-repaint.json and glow-repaint.json"
+    },
+    {
+      "source": "detail_cc_v4.png",
+      "sourceSha256": "7fc5717c815826b8f4d6322b1e32d61515323098e329b9ce5fd29fc001fccd0d",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "crop": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "current": "weapon_cc_master.png",
+      "currentSha256": "9c02f4cb324ca372f949162c6eef1464c5d38f88f7d011610ff021b9e093fa64",
+      "baseCropSha256": "5b6cded46e462c86eb6eb04b6ae93ec710120d50b5ca0bbee803cae9376c1ddc",
+      "followup": "ImageGen hazard/glass-only edits; see hazard-repaint.json and glow-repaint.json"
+    },
+    {
+      "source": "panels_cc_v4.png",
+      "sourceSha256": "514884f419370fa6c33fc173992ed4cebd714bfac03530434a6915c39864566b",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "crop": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "current": "badge_cc_master.png",
+      "currentSha256": "47d87756dcc53a1595d46331720166a6de141a1ad79da67a0234b8b53b0713d0",
+      "followup": "ImageGen hazard/glass-only edits; see hazard-repaint.json and glow-repaint.json"
+    },
+    {
+      "source": "detail_cr_v4.png",
+      "sourceSha256": "7fecdd3e7300a14ec56c2b4de893f6b115cc5aea89bb1ef14f5b9538e6551c22",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "crop": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "current": "weapon_cr_master.png",
+      "currentSha256": "317c54b9eb441c73b61df6151dd5bc50f0d653e6de894d04426444d8b489699e",
+      "baseCropSha256": "650b6aa8fffeaa4495a6d40e32792be0dea95b361e96a35ac472b554f138339e",
+      "followup": "ImageGen hazard/glass-only edits; see hazard-repaint.json and glow-repaint.json"
+    },
+    {
+      "source": "panels_cr_v4.png",
+      "sourceSha256": "274b26065daf5bf0fd85bfc29dc36596bdd79eafef29dcac60f6f5aefb3706e1",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "crop": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "current": "badge_cr_master.png",
+      "currentSha256": "b98f430684d35643e10a8ec9c68d8c3f598c3c6173736117572c82112381caa9",
+      "followup": "ImageGen hazard/glass-only edits; see hazard-repaint.json and glow-repaint.json"
+    }
+  ]
+}

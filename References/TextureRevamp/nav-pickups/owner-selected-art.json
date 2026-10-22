@@ -1,0 +1,33 @@
+{
+  "decision": "Owner accepted v2 navs and selected fully unwrapped stock pods; replacement geometry rejected",
+  "files": {
+    "Assets/Models/crnvbd.mesh": "bc5bcde94d5988af80e04b7ee461cf64f85603b6e6d9bc5d92a85628dd8ad307",
+    "Assets/Models/crnvbd.skeleton": "048c6b1e47bf781e74d873774859c10eae90a01afae7866045e05756c0bd8f7e",
+    "Assets/Models/crnvbd.vdf": "ecb2ee1e1d8db4d0dd929acd8419eee4f3401beb63b7a250138ef92485ce1e4e",
+    "Assets/Models/crnvcc.mesh": "a86cba3e1db18cb631ca6c98b5bc19c43fab82123a645e82972f41ad428ba101",
+    "Assets/Models/crnvcc.skeleton": "048c6b1e47bf781e74d873774859c10eae90a01afae7866045e05756c0bd8f7e",
+    "Assets/Models/crnvcc.vdf": "ecb2ee1e1d8db4d0dd929acd8419eee4f3401beb63b7a250138ef92485ce1e4e",
+    "Assets/Models/crnvcr.mesh": "4eb30c79d01bd95338c05c58da7116e4d0aff9e93e2f38734e8085f4193a85c0",
+    "Assets/Models/crnvcr.skeleton": "048c6b1e47bf781e74d873774859c10eae90a01afae7866045e05756c0bd8f7e",
+    "Assets/Models/crnvcr.vdf": "ecb2ee1e1d8db4d0dd929acd8419eee4f3401beb63b7a250138ef92485ce1e4e",
+    "Assets/Models/crnvns.mesh": "bf8cf68ae3cb25fb3140709ff4b1914c275bd3e262cb2047140e5876da5b322b",
+    "Assets/Models/crnvns.skeleton": "048c6b1e47bf781e74d873774859c10eae90a01afae7866045e05756c0bd8f7e",
+    "Assets/Models/crnvns.vdf": "ecb2ee1e1d8db4d0dd929acd8419eee4f3401beb63b7a250138ef92485ce1e4e",
+    "Assets/Textures/crnvbd_d.dds": "62ad7ebd0c8bead16bd491fa2b0f23f17d4e5d4cadbc5e0977a3d9f7debcc39b",
+    "Assets/Textures/crnvbd_e.dds": "3b8825def4661caf06df00eae6095f1dcaa26ff310056aee1bef22286c37a53e",
+    "Assets/Textures/crnvcc_d.dds": "dcdc7c57fa83d69aa217eae137d3b89e7270a2613d6716a010c999cc101df28e",
+    "Assets/Textures/crnvcc_e.dds": "c1ca99e77bb42542f0781892391e76074edcf2770a5ec08c5543c1dab28e1bb4",
+    "Assets/Textures/crnvcr_d.dds": "9581a595b397cfd51294db174848a5595843c5499c0a62e7b991584634c9b484",
+    "Assets/Textures/crnvcr_e.dds": "1531ee5138e4026db2e91b2f86f957440482cdf7d31abf1b4aa3859c924c31ad",
+    "Assets/Textures/crnvns_d.dds": "93a41d73f2f5b1dc99ff1efe643930c15024e3d0af3656543c07966327327bee",
+    "Assets/Textures/crnvns_e.dds": "082724f2041641c99fd1314e6d320d61d9cd006e574bfe44d0f9db9f8b5d8adf",
+    "References/TextureRevamp/pod-uv-v3/cramns3-master.png": "d8d8eec88fb973065ecd683cda67b56d60d65c3ac82c700d281094d4a16ce02c",
+    "References/TextureRevamp/pod-uv-v3/crhpns3-master.png": "31c61fe36448073b020218eebef8bc728b298003dcba6485aa1a76e9886bec4a"
+  },
+  "navMaterials": {
+    "ns": "material crnvns : CR_BZBase\n{\n    set_texture_alias DiffuseMap crnvns_d.dds\n    set_texture_alias NormalMap flat_N.dds\n    set_texture_alias SpecularMap crvcca_patch_s.dds\n    set_texture_alias EmissiveMap crnvns_e.dds\n    set $diffuse \"1 1 1\"\n    set $ambient \"1 1 1\"\n    set $specular \".25 .25 .25\"\n    set $shininess \"48\"\n}",
+    "bd": "material crnvbd : CR_BZBase\n{\n    set_texture_alias DiffuseMap crnvbd_d.dds\n    set_texture_alias NormalMap flat_N.dds\n    set_texture_alias SpecularMap crvcca_patch_s.dds\n    set_texture_alias EmissiveMap crnvbd_e.dds\n    set $diffuse \"1 1 1\"\n    set $ambient \"1 1 1\"\n    set $specular \".25 .25 .25\"\n    set $shininess \"48\"\n}",
+    "cc": "material crnvcc : CR_BZBase\n{\n    set_texture_alias DiffuseMap crnvcc_d.dds\n    set_texture_alias NormalMap flat_N.dds\n    set_texture_alias SpecularMap crvcca_patch_s.dds\n    set_texture_alias EmissiveMap crnvcc_e.dds\n    set $diffuse \"1 1 1\"\n    set $ambient \"1 1 1\"\n    set $specular \".25 .25 .25\"\n    set $shininess \"48\"\n}",
+    "cr": "material crnvcr : CR_BZBase\n{\n    set_texture_alias DiffuseMap crnvcr_d.dds\n    set_texture_alias NormalMap flat_N.dds\n    set_texture_alias SpecularMap crvcca_patch_s.dds\n    set_texture_alias EmissiveMap crnvcr_e.dds\n    set $diffuse \"1 1 1\"\n    set $ambient \"1 1 1\"\n    set $specular \".25 .25 .25\"\n    set $shininess \"48\"\n}"
+  }
+}

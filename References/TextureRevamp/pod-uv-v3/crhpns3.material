@@ -1,0 +1,12 @@
+import * from "CR_BZBase.material"
+material crhpns3 : CR_BZBase
+{
+    set_texture_alias DiffuseMap crhpns3_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap black.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
+    set $specular ".15 .15 .15"
+    set $shininess "32"
+}
