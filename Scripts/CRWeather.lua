@@ -701,8 +701,10 @@ local function CreateSystem(spec, preset)
     -- the particles it has already produced do not.
     Call("SetParticleSystemKeepLocalSpace", spec.system, false)
 
-    -- An off-screen storm should not keep simulating.
-    Call("SetParticleSystemNonVisibleUpdateTimeout", spec.system, 2.0)
+    -- No non-visible timeout: the volume rides the camera, so culling saves
+    -- nothing, and a system created idle has null bounds. Once a timeout stops
+    -- its updates it stays culled with no particles and never rains again.
+    Call("SetParticleSystemNonVisibleUpdateTimeout", spec.system, 0)
 
     if HasExu("AttachParticleSystemToCamera") then
         Call("AttachParticleSystemToCamera", spec.system, Vec(spec.offset or { x = 0, y = 0, z = 0 }))
@@ -1319,6 +1321,17 @@ end
 
 function CRWeather.GetIntensity()
     return CRWeather.Intensity
+end
+
+-- Liquid precipitation explicitly opts in; snow, ash and fog remain dry.
+-- Include retiring layers so a weather transition never snaps wetness.
+function CRWeather.GetSurfaceWetness()
+    if not CRWeather.Enabled then return 0 end
+    local wet = 0
+    for _, layer in ipairs(CRWeather.Layers or {}) do
+        wet = wet + Clamp01(layer.preset.surfaceWetness or 0) * Clamp01(layer.weight)
+    end
+    return Clamp01(wet * Clamp01(CRWeather.Intensity))
 end
 
 -- Development/diagnostic snapshot for terrain-pooled systems. The returned
