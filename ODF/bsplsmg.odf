@@ -1,5 +1,15 @@
 // Black Dog APC infantry plasma rifle: 110 DPS per soldier.
 [WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored plasmablue: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_plasmablue.mesh"
+flashMaterial = "CR/Muzzle/plasmablue"
+flashDuration = 0.06
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
 classLabel = "machinegun"
 ordName = "bsplblt"
 wpnName = "Black Dog Infantry Plasma Rifle"

@@ -1,4 +1,14 @@
 [WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored spstab: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_spstab.mesh"
+flashMaterial = "CR/Muzzle/spstab"
+flashDuration = 0.095
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
 baseName = "gatstab"
 classLabel = "cannon"
 ordName = "rocket3n"

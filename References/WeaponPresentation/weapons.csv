@@ -1,0 +1,101 @@
+odf,class,name,ordnance,parent,scope,category,delay,producer,flash_profile,flash_decision
+aprifle,cannon,NSDF Plasma Rifle,aplasma,,CR,CANN,0.30,cannon factory,plasmablue,authored flash
+asplsmg,machinegun,NSDF Infantry Plasma Rifle,asplblt,,CR,CANN,0.20,machinegun factory (companion OpenShim change; live pending),plasmablue,authored flash
+bprifle,cannon,Black Dog Plasma AT Rifle,bplasma,,CR,CANN,0.60,cannon factory,plasmablue,authored flash
+bsplsmg,machinegun,Black Dog Infantry Plasma Rifle,bsplblt,,CR,CANN,0.20,machinegun factory (companion OpenShim change; live pending),plasmablue,authored flash
+cprifle,cannon,CRA Plasma Shotgun,cplasma,,CR,CANN,0.84,cannon factory,plasmagreen,authored flash
+cr16bolt,cannon,Bolt Buddy,cr16b0,,CR,CANN,0.6,cannon factory,arcblue,authored flash
+crfarc,cannon,Fury Arc,crfa0,,CR,CANN,0.8,cannon factory,arcblue,authored flash
+crfmarc,beamgun,Fury Storm Arc,crfm0,,CR,CANN,,other producer pending,arcred,authored flash
+crfpuls,cannon,Fury Pulse,crfp0,,CR,CANN,0.5,cannon factory,plasmablue,authored flash
+cromarc,beamgun,Olympian Sun Arc,crom0,,CR,CANN,,other producer pending,sunarc,authored flash
+csplsmg,machinegun,CRA Infantry Plasma Repeater,csplblt,,CR,CANN,0.10,machinegun factory (companion OpenShim change; live pending),plasmagreen,authored flash
+cvwo003,mortar,Howitzer,cvwo004,ghartill,CR override,MORT,2.5,cannon factory,mortar,authored flash
+ga7stab,cannon,AT-Stabber,charge6,gatstab,CR override,CANN,6.0,cannon factory,atstab,authored flash
+gammo,dispenser,Ammo,,,stock,SPEC,,other producer pending,,supply dispenser
+gammoa,dispenser,Ammo,,gammo,stock,SPEC,,other producer pending,,supply dispenser
+gatstab,cannon,AT-Stabber,rocket,,CR override,CANN,0.3,cannon factory,atstab,authored flash
+gatstaba,cannon,AT-Stabber,rocketa,gatstab,CR override,CANN,0.7,cannon factory,atstab,authored flash
+gatstabh,cannon,AT-Stabber,rocketh,,CR,CANN,0.3,cannon factory,atstab,authored flash
+gbetmin,dispenser,CCA Bouncing Betty,,,CR,SPEC,,other producer pending,,mine deployment
+gbetpop,cannon,Bouncing Betty Trigger,betjump,,CR,SPEC,0.10,cannon factory,,"autonomous mine trigger, no craft muzzle"
+gblast,cannon,Blast Cannon,blast,,CR override,CANN,1.0,cannon factory,blast,authored flash
+gblastb,cannon,Blast Cannon,blastb,,CR override,CANN,1.0,cannon factory,blastblue,authored flash
+gblastg,cannon,Blast Cannon,blastg,,CR override,CANN,1.0,cannon factory,blast,authored flash
+gblasth,cannon,Blast Cannon,blasth,,CR,CANN,1.0,cannon factory,blastred,authored flash
+gbolt,cannon,Bolt Buddy,bolt,,CR override,CANN,0.6,cannon factory,arcblue,authored flash
+gboltg,cannon,Bolt Buddy,boltg,,CR override,CANN,0.6,cannon factory,arcgreen,authored flash
+gboltmig,dispenser,Arc Mine,,,stock,SPEC,,other producer pending,,mine deployment
+gboltmin,dispenser,Arc Mine,,,stock,SPEC,,other producer pending,,mine deployment
+gboltmir,dispenser,Arc Mine,,,stock,SPEC,,other producer pending,,mine deployment
+gboltr,cannon,Bolt Buddy,boltr,,CR override,CANN,0.6,cannon factory,arcred,authored flash
+gbspstab,cannon,SP-Stabber,rocketb3,gatstab,CR override,CANN,0.6,cannon factory,spstab,authored flash
+gcomet,radarlauncher,Comet,,,CR override,ROCK,,other producer pending,rocket,authored flash
+gctesla,dispenser,CRA Tesla Field,,,CR,SPEC,,other producer pending,,field deployment
+gdummy,machinegun,Paintball,dummy,,stock,CANN,0.20,machinegun factory (companion OpenShim change; live pending),,paintball/debug effect
+gflare,dispenser,Solar Flare,,,stock,SPEC,,other producer pending,,countermeasure deployment
+gflashch,beamgun,Flash Cannon,flashch,,CR override,CANN,,other producer pending,arcred,authored flash
+gflashgb,beamgun,Flash Cannon,flashb,,CR override,CANN,,other producer pending,arcblue,authored flash
+gflashgg,beamgun,Flash Cannon,flashg,,CR override,CANN,,other producer pending,arcgreen,authored flash
+gflashgn,beamgun,Flash Cannon,flash,,CR override,CANN,,other producer pending,arcblue,authored flash
+ghartila,mortar,Howitzer,shella,ghartill,CR override,MORT,1.0,cannon factory,mortar,authored flash
+ghartill,mortar,Howitzer,shell,,CR override,MORT,5.0,cannon factory,mortar,authored flash
+ghartmp,mortar,Howitzer,grenade,,CR override,MORT,2.0,cannon factory,mortar,authored flash
+ghornet,thermallauncher,Hornet,heatmsl,,CR override,ROCK,,other producer pending,rocket,authored flash
+ghrntai,thermallauncher,Hornet,heatmsl,ghornet,CR override,ROCK,,other producer pending,rocket,authored flash
+glgmsl,targeting,Laser-Guided Missile,lgmissl,,CR,ROCK,,other producer pending,rocket,authored flash
+gmaggun,chargegun,MAG Cannon,NULL,,CR override,CANN,,other producer pending,mag,authored flash
+gmasgren,cannon,MAS Grenade,switch,,stock,SPEC,2.0,cannon factory,,"conversion projectile, keep existing effect"
+gmbolt,beamgun,Bolt Buddy,mbolt,,CR override,CANN,,other producer pending,arcblue,authored flash
+gmboltg,beamgun,Bolt Buddy,mboltg,,CR override,CANN,,other producer pending,arcgreen,authored flash
+gmboltr,beamgun,Bolt Buddy,mboltr,,CR override,CANN,,other producer pending,arcred,authored flash
+gmcurmin,dispenser,M-Curtain,,,stock,SPEC,,other producer pending,,mine deployment
+gmdmgun,detonator,MDM Mortar,bouncebm,,CR override,MORT,2.0,other producer pending,mortar,authored flash
+gminigna,machinegun,Minigun,bullet1a,gminigun,CR override,CANN,0.40,machinegun factory (companion OpenShim change; live pending),minigun,authored flash
+gminignb,machinegun,Minigun,bullet1b,gminigun,CR override,CANN,0.40,machinegun factory (companion OpenShim change; live pending),minigun,authored flash
+gminignc,machinegun,Minigun,bullet1a,gminigun,CR override,CANN,0.15,machinegun factory (companion OpenShim change; live pending),minigun,authored flash
+gminigrn,machinegun,Minigun,bullet1g,,CR override,CANN,0.1,machinegun factory (companion OpenShim change; live pending),minigun,authored flash
+gminigun,machinegun,Minigun,bullet1,,CR override,CANN,0.20,machinegun factory (companion OpenShim change; live pending),minigun,authored flash
+gminisov,machinegun,Chaingun,bullet2,,CR override,CANN,0.30,machinegun factory (companion OpenShim change; live pending),chaingun,authored flash
+gmitsmin,dispenser,MITS Mine,,,stock,SPEC,,other producer pending,,mine deployment
+gmortar,mortar,Mortar,grenade,,CR override,MORT,2.0,cannon factory,mortar,authored flash
+gnavdrop,dispenser,Nav,,,stock,SPEC,,other producer pending,,navigation beacon deployment
+gobject,lobber,NULL,NULL,,stock,MORT,,other producer pending,,internal object lobber
+gphantom,imagerefract,Phantom VIR,NULL,,stock,SPEC,,other producer pending,,cloak device
+gpopgun,poppergun,Pop Gun,popper,,CR override,MORT,,other producer pending,popper,authored flash
+gproxmin,dispenser,Prox Mine,,,stock,SPEC,,other producer pending,,mine deployment
+gquake,cannon,Thumper,seismic,,stock,SPEC,3,cannon factory,,ground-contact seismic emitter
+gredfld,radardamper,RED Field,NULL,,stock,SPEC,,other producer pending,,radar device
+grepa,dispenser,Repair Dropper,,,stock,SPEC,,other producer pending,,repair dispenser
+grepaa,dispenser,Repair Dropper,,grepa,stock,SPEC,,other producer pending,,repair dispenser
+grktbomb,cannon,Rocket,rocket2,,CR override,ROCK,3.0,cannon factory,rocket,authored flash
+gsandbag,cannon,Sandbag,anchor,,stock,ROCK,1.5,cannon factory,,anchoring device
+gsatstab,cannon,CCA Pulse Stabber,satbolt,,CR,CANN,0.30,cannon factory,pulse,authored flash
+gshadow,imagelauncher,Shadower,imagemsl,,CR override,ROCK,,other producer pending,rocket,authored flash
+gshunt,cannon,CCA Hunter Rocket,shunter,,CR,ROCK,1.50,cannon factory,rocket,authored flash
+gsitecam,terrainexpose,SITE Camera,NULL,,stock,SPEC,,other producer pending,,camera device
+gsmort,mortar,CCA Siege Mortar,sgrenade,,CR,MORT,2.60,cannon factory,mortar,authored flash
+gsnipe,snipergun,Sniper Rifle,snipe,,CR override,CANN,1.0,cannon factory,sniper,authored flash
+gsplint,mortar,Splinter,splintbm,,CR override,MORT,3.0,cannon factory,mortar,authored flash
+gsplinta,mortar,Splinter,splntbma,,CR override,MORT,2.0,cannon factory,mortar,authored flash
+gsplintg,mortar,Splinter,splintbg,,CR override,MORT,3.0,cannon factory,mortar,authored flash
+gsplintr,mortar,Splinter,splintbr,,CR override,MORT,3.0,cannon factory,mortar,authored flash
+gspstab,cannon,SP-Stabber,rocket3,gatstab,CR override,CANN,0.6,cannon factory,spstab,authored flash
+gspstaba,cannon,CP-Stabber,rocket3a,gatstab,CR override,CANN,1.5,cannon factory,spstab,authored flash
+gspstabb,cannon,SP-Stabber,rocket3b,gatstab,CR override,CANN,0.6,cannon factory,spstab,authored flash
+gspstabc,cannon,SP-Stabber,rocket3c,gatstab,CR override,CANN,0.8,cannon factory,spstab,authored flash
+gspstabd,cannon,SP-Stabber,rocket3d,gatstab,CR override,CANN,0.5,cannon factory,spstab,authored flash
+gspstabn,cannon,SP-Stabber,rocket3n,gatstab,CR,CANN,1.5,cannon factory,spstab,authored flash
+gsrkbomb,cannon,CCA Saturation Rocket,srktbom,,CR,ROCK,2.70,cannon factory,rocket,authored flash
+gstlock,cannon,CCA Steering Lock,stlock,,CR,SPEC,1.50,cannon factory,,"control projectile, keep existing effect"
+gtaggun,targeting,TAG Cannon,swarmer,,CR override,ROCK,,other producer pending,rocket,authored flash
+gtechno,machinegun,RAVE GUN!,plasma,,CR override,CANN,0.4,machinegun factory (companion OpenShim change; live pending),plasmablue,authored flash
+gtminig,machinegun,Minigun,bullet5,,CR override,CANN,0.20,machinegun factory (companion OpenShim change; live pending),minigun,authored flash
+gtminis,machinegun,Chaingun,bullet6,,CR override,CANN,0.30,machinegun factory (companion OpenShim change; live pending),chaingun,authored flash
+gtminis2,machinegun,Chaingun,bullet6,,CR,CANN,0.30,machinegun factory (companion OpenShim change; live pending),chaingun,authored flash
+gtminisa,machinegun,Chaingun,bullet6a,gtminis,CR override,CANN,0.48,machinegun factory (companion OpenShim change; live pending),chaingun,authored flash
+gtsmoke,mortar,Tactical Smoke,tsmkshl,,CR,MORT,4.0,cannon factory,,"smoke launch, keep smoke effect distinct"
+gwasp,dispenser,WASP,,,stock,SPEC,,other producer pending,,mine deployment
+handgun,cannon,Plasma Rifle,tracer,,CR override,CANN,0.3,cannon factory,plasmablue,authored flash
+sprifle,cannon,CCA Plasma Assault Rifle,splasma,,CR,CANN,0.22,cannon factory,plasmared,authored flash
+ssplsmg,machinegun,CCA Infantry Plasma Assault Rifle,ssplblt,,CR,CANN,0.30,machinegun factory (companion OpenShim change; live pending),plasmared,authored flash

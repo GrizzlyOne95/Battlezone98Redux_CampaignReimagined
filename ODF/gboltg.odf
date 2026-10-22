@@ -1,0 +1,22 @@
+[WeaponClass] // Green Bolt Buddy, created by General BlackDragon
+// CR WEAPON FLASH BEGIN
+// Authored arcgreen: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_arcgreen.mesh"
+flashMaterial = "CR/Muzzle/arcgreen"
+flashDuration = 0.055
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+classLabel = "cannon"
+ordName = "boltg"
+wpnName = "Bolt Buddy"
+fireSound = "gbolt00.wav"
+wpnReticle = "gbolt"
+wpnPriority = 0
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 0.6
+

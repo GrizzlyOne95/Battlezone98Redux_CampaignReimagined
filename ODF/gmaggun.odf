@@ -1,0 +1,75 @@
+[WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored mag: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_mag.mesh"
+flashMaterial = "CR/Muzzle/mag"
+flashDuration = 0.09
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+classLabel = "chargegun"
+ordName = NULL;
+wpnName = "MAG Cannon"
+fireSound = "gmagg00.wav"
+wpnReticle = "gmaggun.0"
+wpnPriority = 4
+wpnCategory = "CANN"
+
+[ChargeGunClass]
+startRate = 11025.0
+deltaRate = 4000.0
+startVolume = 40.0
+deltaVolume = 20.0
+
+ordnanceCount = 7
+
+shotDelay1 = 0.0
+salvoCount1 = 0
+salvoDelay1 = 0
+fireSound1 = NULL
+ordName1 = NULL
+wpnReticle1 = "gmaggun.1"
+
+shotDelay2 = 0.5
+salvoCount2 = 6
+salvoDelay2 = 0.1
+fireSound2 = "gmagg01.wav"
+ordName2 = "charge1"
+wpnReticle2 = "gmaggun.2"
+
+shotDelay3 = 1.0
+salvoCount3 = 5
+salvoDelay3 = 0.15
+fireSound3 = "gmagg02.wav"
+ordName3 = "charge2"
+wpnReticle3 = "gmaggun.3"
+
+shotDelay4 = 2.0
+salvoCount4 = 4
+salvoDelay4 = 0.2
+fireSound4 = "gmagg03.wav"
+ordName4 = "charge3"
+wpnReticle4 = "gmaggun.4"
+
+shotDelay5 = 3.5
+salvoCount5 = 3
+salvoDelay5 = 0.3
+fireSound5 = "gmagg04.wav"
+ordName5 = "charge4"
+wpnReticle5 = "gmaggun.5"
+
+shotDelay6 = 5.0
+salvoCount6 = 2
+salvoDelay6 = 0.5
+fireSound6 = "gmagg05.wav"
+ordName6 = "charge5"
+wpnReticle6 = "gmaggun.6"
+
+shotDelay7 = 7.5
+salvoCount7 = 1
+salvoDelay7 = 0.0
+fireSound7 = "gmagg06.wav"
+ordName7 = "charge6"
+wpnReticle7 = "gmaggun.7"

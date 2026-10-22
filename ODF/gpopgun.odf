@@ -1,0 +1,23 @@
+[WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored popper: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_popper.mesh"
+flashMaterial = "CR/Muzzle/popper"
+flashDuration = 0.065
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+classLabel = "poppergun"
+ordName = "popper"
+wpnName = "Pop Gun"
+fireSound = "gpopp00.wav"
+wpnReticle = "gpopgun"
+wpnLadder = "gpopgun.L0"
+wpnPriority = 5
+wpnCategory = "MORT"
+
+[PopperGunClass]
+shotDelay = 1.5
+fireAngle = 1.2
