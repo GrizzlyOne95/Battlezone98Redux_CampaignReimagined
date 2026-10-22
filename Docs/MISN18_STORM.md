@@ -1,12 +1,65 @@
 # Mission 18 storm (CRStorm18)
 
+## Large hell fissures (2026-10-21 prototype)
+
+Owner direction: occasional large ruptures, like a white-hot crack with red
+light escaping upward, made more frightening. `CRStorm18Fissures.lua` layers
+these over the ordinary small crack field once cores start dying. A rupture
+opens over 2.8 seconds into a 44-60 m winding mouth, with a charred lip and a
+searing interior, five uneven 24-36 m red shafts, rising embers and one actual
+EXU point light at 2.5 m above the ground. The light is saturated red
+`{r=4,g=.035,b=.008}`, range 48 m; its power breathes up to about 1.8. Point
+lights are omnidirectional; upright additive billboards carry the upward shafts.
+
+The first rupture follows core1 after a 9 s lead-in, then roughly every 45-50 s.
+Collapse brings one forward to about a second after the crack density reaches
+0.8; full density gives an 18-24 s cadence. Each lasts 22-28 s, with a 4 s fade.
+At most two ruptures exist: two lights plus the tornado's one, and six particle
+systems (304 total particle quota). Writes run at 10 Hz. They are cosmetic,
+camera-local and seeded, like landslides; they add no network traffic or damage
+and do not change the terrain heightmap or collision. Cosmetic transients are
+rebuilt after load, rather than saved as game objects.
+
+Placement tries up to 16 sites 45-95 m from the local camera, sampling the whole
+decal footprint and its five shafts against the terrain plane. Reject water,
+cliffs, rough relief above 0.35 m, map edges and overlapping active fissures.
+Missing payloads/unsuitable ground retry after 5 s. A refused light leaves the
+visual mouth and retries after 2 s. `Stop`, quality 0, zero crack density and
+moving 180 m away destroy every owned system/light. Other EXU lights are untouched.
+
+Art: `Assets/Textures/c18rift.png` is a newly generated transparent 2172x724
+decal. `Docs/MISN18_FISSURE_ART_PROMPT.txt` records the built-in image generation
+prompt; the owner's reference image is mood guidance and is not distributed.
+The original RGBA alpha is preserved. `CR18/FissureMouth` uses alpha blending
+so the dark lip survives; rays use CR's existing soft streak, embers its credited
+`cr_ember.dds`. No shader changes. The inherited CRWX particle path keeps RGBA.
+
+`Tools/Test-CRStorm18Fissures.lua` executes placement, phase cadence, seeded
+repeatability, native vector/RGB shapes, bounded light power/resource counts,
+stop/quality/distance cleanup, rejected terrain and refused capabilities. It is
+wired into CI; `Test-CRStorm18.lua` also lints the new payload/material/texture.
+An isolated Windows/GOG DX11 preview on 2026-10-21 loaded all three new templates
+and the original RGBA texture, rendered the mouth/shafts/embers and red terrain
+spill, then reported `FISSURE_LIGHTS_AFTER_STOP 0`. DLL hashes matched before
+and after. Evidence: `C:\BZRCoop\hell-fissures-20261021\`. The first capture
+exposed UV-only rotation on the long mouth: it now requests vertex rotation
+with the corresponding -normal bearing. The UV-to-shaft geometry regression
+protects that alignment. Ogre documents the distinction in its
+[particle attribute reference](https://www.ogre3d.org/docs/manual18/manual_35.html).
+This is a prototype pending visual acceptance, not a release qualification;
+the complete storm/co-op run and DX9/Steam/Proton/Wine lanes remain unverified
+for this addition. The generic bless refused to remove 50 absent generated UI
+files, so only the new module/texture memberships were inserted in place per
+the knowledge-base fallback. Existing shipping entries were preserved.
+
 Weather, ground cover and environment FX for mission 18, where the player has
 destroyed the Fury transport's cores and the moon tears itself apart. New files
 only for the storm itself; nothing here edits `misn18.lua` or the map. The module is
 wired into the co-op port by `CRMisn18.lua` exactly like `CRJungle17` in `CRMisn17`, plus
 one leader-side call, `SetPhase`, and the quake routing below (see also
-[`MISN18_COOP.md`](MISN18_COOP.md), which owns the mission-side contract). **Nothing has been rendered yet**: every visual claim below is
-host-tested for its logic and unverified on screen (see the smoke list at the end).
+[`MISN18_COOP.md`](MISN18_COOP.md), which owns the mission-side contract). The
+2026-10-19 one- and two-peer DX11 results and remaining horizon/capture gaps are
+recorded there; the smoke list below remains the broader qualification checklist.
 
 ## The world
 
@@ -251,10 +304,13 @@ Held to misn17's. Scrub is the same meshes, cull distance 260 and one layer per 
 384 m tile, but is **streamed**: a tile builds when its centre is within 520 m of the camera
 (one per 0.25 s) and is destroyed beyond 700 m, so about 25 layers / 2-3k plants are resident
 against misn17's 31k built up front. All 31,355 placements still seed the leaf litter grid.
-No solid trees (gameplay objects) are added. Particles: weather about 6 systems (quota 7,100,
+The stacked forest extension adds bounded solid trees (see `MISN18_TREES.md`).
+Particles: weather about 6 systems (quota 7,100,
 most idle at low phases), tornado about 850 live at peak, decals bounded by 120-quota systems
-and 3 new cracks per 0.35 s. One sky plane, three samples per pixel. Two point lights at
-most (tornado) of EXU's 8. Per frame: a handful of guarded EXU writes throttled to 4-20 Hz.
+and 3 new cracks per 0.35 s. One sky plane, three samples per pixel. Up to three
+EXU lights of its eight: one tornado and two rare large fissures. The large
+fissures add at most six systems (304 quota), with writes at 10 Hz. Other
+guarded EXU writes are throttled to 4-20 Hz.
 
 ## Regenerating assets
 
@@ -285,7 +341,8 @@ ladder and peaking in the ascent, throttled writes, seamless phase wrap, calm on
 
 ## Live smoke (lcbench / in-game) must check
 
-Everything rendered is unverified. In order of risk:
+Broader qualification remains incomplete; see the dated live evidence in
+`MISN18_COOP.md` and the large-fissure prototype section above. In order of risk:
 
 1. `cr18_storm.particle.payload` parses (Ogre skips a bad block silently): every
    `CreateParticleSystem` returns true; `CRWeather.DescribeSystem` on `cr18_wx_*` shows the

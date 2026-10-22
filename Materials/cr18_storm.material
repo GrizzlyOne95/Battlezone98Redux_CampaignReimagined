@@ -109,3 +109,16 @@ material CR18/CrackB : CRWX_FX/ParticleAdditive
 {
 	set_texture_alias DiffuseMap cr18_crack_b.png
 }
+
+// A dark broken rim and a white-hot interior: alpha blending retains the
+// charred lip, whereas an additive mouth would erase it against bright terrain.
+material CR18/FissureMouth : CRWX_FX/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap c18rift.png
+}
+
+// Soft tapered shaft; its red colour comes from the particle, not global fog.
+material CR18/FissureRay : CRWX_FX/ParticleAdditive
+{
+	set_texture_alias DiffuseMap crwx_precip_streak.png
+}

@@ -60,6 +60,10 @@ end
 check(templates["CR18/CrackA"].emitters == 6 and templates["CR18/CrackB"].emitters == 6 and templates["CR18/Soot"].emitters == 6
     and templates["CR18/CrackPuff"].emitters == 6, "decal systems have the six slots CRStorm18Ground fires")
 check(templates["CR18/SlideDust"].emitters == 1 and templates["CR18/SlideRock"].emitters == 1, "slide systems have one emitter")
+check(templates["CR18/FissureMouth"].emitters == 1 and templates["CR18/FissureRays"].emitters == 5
+    and templates["CR18/FissureEmbers"].emitters == 5, "large fissures have the exact mouth and shaft slots")
+check(payload:match("particle_system CR18/FissureMouth.-billboard_rotation_type vertex"),
+    "large rectangular fissure rotates geometry, preserving texture shape and shaft alignment")
 for _, n in ipairs({ "CrackA", "CrackB", "Soot" }) do
     check(payload:find("particle_system CR18/" .. n, 1, true) and payload:match("CR18/" .. n .. "\n{.-ColourInterpolator"), n .. " pulses through a ColourInterpolator")
 end
