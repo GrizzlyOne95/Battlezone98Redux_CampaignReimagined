@@ -1377,3 +1377,19 @@ to the ordinary GOG development mod.
   Canonical aliases share reviewed cr* materials/maps, not duplicate atlases.
   Source and isolated Blender checks do not establish native gameplay/loading
   or platform qualification; the owner's offline-only review boundary remains.
+
+### NSDF pad / CCA supply detail patches (2026-10-22)
+
+- `References/BuildingDetailPass/README.md` records the next bounded building
+  batch: approach deck/star wall on ablpad and service deck/pillar door chart on
+  sbsupp. Preserve source geometry/non-UV/skin/native data; two added render
+  batches per model remain an unqualified native load/performance tradeoff.
+- D/E dimensions differ: ablpad D is 2048×1024 and both stock E rasters are
+  512-square. Resize to a common normalized UV grid before cropping, or lamps
+  disappear/move. Keep existing lamp pixels over that footprint; do not turn
+  white stars or painted hazard bands into emissive masks. A dark patch reuses
+  black.dds, not a redundant full-size black map.
+- Material identifiers are not always material filenames: import sbsupp.material
+  for the sbsupp00 parent. The tiny door atlas is repeated around service
+  pillars; a whole-building auto-camera hides its improvement. Use one measured
+  original pillar face for matched offline before/after inspection.

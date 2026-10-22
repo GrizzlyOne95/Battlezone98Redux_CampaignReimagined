@@ -130,9 +130,9 @@ Skeleton scale, UV anisotropy, camera distance and tiny close-up islands matter.
 
 | Queue | Active source atlas | Approx. texels/model unit | Status |
 |---|---|---:|---|
-| NSDF pad `ablpad` | 2048×1024 | 10.8 | Approach surfaces pending |
+| NSDF pad `ablpad` | 2048×1024 | 10.8 | Approach deck / star wall follow-up built; remaining surfaces pending |
 | CCA pad `sblpad` | 2048×1024 | 11.8 | Door/stairs/plate pilot built; remaining atlas pending |
-| CCA supply `sbsupp` | 1024×1024 | 14.6 | Pending |
+| CCA supply `sbsupp` | 1024×1024 | 14.6 | Service deck / pillar door-chart follow-up built; other surfaces pending |
 | Black Dog HQ `bbhqcp` | 1024×512 | 18.7 | Pending |
 | NSDF hangar `abhang` | 1024×1024 | 20.5 | Pending; preserve existing animated ModelFixes |
 | Black Dog pad `bblpad` | 4096×2048 | 21.5 | Painted ribbed-panel pilot built; other surfaces pending |
@@ -142,6 +142,11 @@ Skeleton scale, UV anisotropy, camera distance and tiny close-up islands matter.
 
 Black Dog silo's active atlas is **4096×2048**, not the inactive 256px legacy
 `bbsilo00_d.dds`. Do not replace it on that false low-resolution premise.
+
+The 22 October follow-up is documented in `References/BuildingDetailPass/README.md`.
+It adds four bounded higher-detail patches on `ablpad` and `sbsupp`, two batches
+per model and seven maps (~6.29 MiB), with unchanged geometry/native/gameplay
+data. This is a separate offline review batch, not completion of the whole queue.
 
 The CCA source mesh is hash-pinned under `building-sources/`. Three disjoint UV
 crops select **356 of 4973 existing triangles**. These move into three new

@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "models": [
+    {
+      "model": "ablpad",
+      "sourceMaterial": "ablpad",
+      "atlasSize": [
+        2048,
+        1024
+      ],
+      "patches": [
+        {
+          "id": "nsdeck",
+          "bounds": [
+            0,
+            512,
+            960,
+            1024
+          ],
+          "size": [
+            1792,
+            960
+          ],
+          "expectedTriangles": 809
+        },
+        {
+          "id": "nswall",
+          "bounds": [
+            1120,
+            626,
+            1650,
+            985
+          ],
+          "size": [
+            1280,
+            864
+          ],
+          "expectedTriangles": 197
+        }
+      ]
+    },
+    {
+      "model": "sbsupp",
+      "sourceMaterial": "sbsupp00",
+      "atlasSize": [
+        1024,
+        1024
+      ],
+      "patches": [
+        {
+          "id": "ccdeck",
+          "bounds": [
+            396,
+            430,
+            1024,
+            1024
+          ],
+          "size": [
+            1280,
+            1216
+          ],
+          "expectedTriangles": 506
+        },
+        {
+          "id": "ccdoor",
+          "bounds": [
+            850,
+            0,
+            1024,
+            186
+          ],
+          "size": [
+            1024,
+            1088
+          ],
+          "expectedTriangles": 1207
+        }
+      ]
+    }
+  ]
+}

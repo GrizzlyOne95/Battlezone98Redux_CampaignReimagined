@@ -1,0 +1,17 @@
+import * from "sbsupp.material"
+
+material CRV/Building/ccdeck : sbsupp00
+{
+    set_texture_alias DiffuseMap crvccdeck_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap crvccdeck_e.dds
+}
+
+material CRV/Building/ccdoor : sbsupp00
+{
+    set_texture_alias DiffuseMap crvccdoor_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap crvccdoor_e.dds
+}

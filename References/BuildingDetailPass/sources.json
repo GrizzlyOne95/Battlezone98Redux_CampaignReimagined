@@ -1,0 +1,30 @@
+{
+  "original/ablpad.mesh": {
+    "sha256": "de66d4217a5b340b1b6dc2a17b41e570ade11cbb55d39cc31064fcec00a1cc40",
+    "source": "Redux stock common/models"
+  },
+  "original/ablpad_d.png": {
+    "sha256": "57902f8d4e3b1b9914e9be7de815394174b94a5b8e68c7da7a206b1c95eb3c03",
+    "source": "pc/textures/DIFF/ablpad_d.dds",
+    "ddsSha256": "6a4a455e192a15a959317b8d15957a913616c1ddab361462a178ed1de927072f"
+  },
+  "original/ablpad_e.png": {
+    "sha256": "fd1b3091fd5af17b9291b1063b9ad8c9706fd660d7654b0ff8b18c2c296e1585",
+    "source": "pc/textures/EMIS/ablpad_e.dds",
+    "ddsSha256": "ea89af487f8cac9f77bf8d95ae8cdc0bc9d49694e3e449447241c89e6bb28998"
+  },
+  "original/sbsupp.mesh": {
+    "sha256": "05d66ceccb79f80098e3109811223e309da0ecc295dc90350028f96a0d1b0736",
+    "source": "Redux stock common/models"
+  },
+  "original/sbsupp_d.png": {
+    "sha256": "d6f86e71e02bd1db18a427d640c43697a9dd53a0724bb102cebc342b5e87c0cd",
+    "source": "pc/textures/DIFF/sbsupp_d.dds",
+    "ddsSha256": "e45c04ba467f4815c14bd961c8e4cd615bc094c42133e22235be3d1e105048d1"
+  },
+  "original/sbsupp_e.png": {
+    "sha256": "b0b3a2982060d68fe050a21fcc761ea6cb489a3becf82e9c6d608bf0f51d227b",
+    "source": "pc/textures/EMIS/sbsupp_e.dds",
+    "ddsSha256": "859597da762b6cdd068d36fd3391a33a386bc855a2948e9e7661f79e249377d3"
+  }
+}
