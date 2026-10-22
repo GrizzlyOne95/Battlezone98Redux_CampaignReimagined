@@ -8,7 +8,7 @@ private format parser. These CCA/Black Dog pad pilots are pending native review.
 from pathlib import Path
 import copy,hashlib,io,json,sys
 import numpy as np
-from PIL import Image
+from PIL import Image,ImageFilter
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from bzmodellibs import ogremesh as om,ogremesh_serializer as oms
 from bcdds import save_bc
@@ -56,9 +56,9 @@ def patch_mask(uv,indices,box,atlas):
     coords=uv[indices]*np.array(atlas)
     return np.all((coords>=np.array(box[:2])-.25)&(coords<=np.array(box[2:])+.25),axis=(1,2))
 
-def build_one(recipe_file):
-    recipe=json.loads((REF/recipe_file).read_text())
-    name=recipe['model'];source=REF/'building-sources'/(name+'.mesh')
+def build_one(recipe_file,ref=REF):
+    recipe=recipe_file if isinstance(recipe_file,dict) else json.loads((ref/recipe_file).read_text())
+    name=recipe['model'];source=ref/recipe.get('sourceDirectory','building-sources')/(name+'.mesh')
     mesh=read_mesh(source)
     assert len(mesh.submesh_list)==1 and not mesh.submesh_list[0].use_shared_vertices
     sub=mesh.submesh_list[0];assert sub.material_name==recipe['sourceMaterial']
@@ -69,7 +69,8 @@ def build_one(recipe_file):
     def put(file,image):
         path=ROOT/'Assets/Textures'/file;save_bc(image,path)
         files[file]=dict(size=list(image.size),format='BC1_UNORM',sha256=hashlib.sha256(path.read_bytes()).hexdigest())
-    material=[f'import * from "{recipe["sourceMaterial"]}.material"','']
+    source_file=recipe.get('sourceMaterialFile',recipe['sourceMaterial']+'.material')
+    material=[f'import * from "{source_file}"','']
     for patch in recipe['patches']:
         key=patch['id'];box=patch['bounds'];size=tuple(patch['size'])
         selected=patch_mask(original_uv,indices,box,recipe['atlasSize'])
@@ -85,20 +86,30 @@ def build_one(recipe_file):
         uv[:]=(original_uv*np.array(recipe['atlasSize'])-np.array(box[:2]))/np.array([box[2]-box[0],box[3]-box[1]])
         vb.set_buffer(data);parts.append(part)
         coverage[key]=int(selected.sum())
-        with Image.open(REF/(key+'.png')) as im:image=im.convert('RGB').resize(size,Image.Resampling.LANCZOS)
+        with Image.open(ref/(key+'.png')) as im:image=im.convert('RGB').resize(size,Image.Resampling.LANCZOS)
+        if patch.get('emissionSource'):
+            # Preserve stock functional glass registration/colour rather than
+            # accepting incidental ImageGen lamp movement. No new light motif.
+            with Image.open(ref/patch['emissionSource']) as im:source_e=im.convert('RGB').resize(size,Image.Resampling.LANCZOS)
+            with Image.open(ref/patch['diffuseLampSource']) as im:source_d=im.convert('RGB').resize(size,Image.Resampling.LANCZOS)
+            has_emission=bool(np.array(source_e).max()>0)
+            mask=Image.fromarray((np.array(source_e).max(2)>10).astype('uint8')*255).filter(ImageFilter.MaxFilter(5))
+            image.paste(source_d,(0,0),mask)
         stem='crv'+key
         put(stem+'_d.dds',image)
         # Matched lamp extraction, never diffuse-as-height. Only the authored
         # four green central lamps and two red upper bars can emit.
         emission=np.zeros((size[1],size[0],3),dtype=np.uint8)
-        if key=='cca_door':
+        if patch.get('emissionSource'):
+            if has_emission:put(stem+'_e.dds',source_e)
+        elif key=='cca_door':
             a=np.array(image);r,g,b=[a[:,:,i].astype(float) for i in range(3)]
             x,y=np.meshgrid(np.linspace(0,1,size[0]),np.linspace(0,1,size[1]))
             green=(g>100)&(g>r*1.8)&(g>b*1.8)&(abs(x-.5)<.04)
             red=(r>85)&(r>g*2.2)&(r>b*2.2)&(y>.14)&(y<.20)&(((x>.25)&(x<.40))|((x>.60)&(x<.75)))
             emission[green|red]=a[green|red]
             put(stem+'_e.dds',Image.fromarray(emission))
-        emissive=stem+'_e.dds' if key=='cca_door' else 'black.dds'
+        emissive=stem+'_e.dds' if key=='cca_door' or (patch.get('emissionSource') and has_emission) else 'black.dds'
         material.extend([f'material {part.material_name} : {recipe["sourceMaterial"]}','{',
           f'    set_texture_alias DiffuseMap {stem}_d.dds','    set_texture_alias NormalMap flat_N.dds',
           '    set_texture_alias SpecularMap crvcca_patch_s.dds',f'    set_texture_alias EmissiveMap {emissive}','}',''])
@@ -117,7 +128,9 @@ def build_one(recipe_file):
     assert triangle_contract(read_mesh(path))==before,'roundtrip geometry changed'
     (ROOT/'Materials'/recipe.get('materialFile','CR_building_patches.material')).write_text('\n'.join(material),newline='\n')
     receipt=dict(schema=1,sourceSha256=hashlib.sha256(source.read_bytes()).hexdigest(),modelSha256=hashlib.sha256(path.read_bytes()).hexdigest(),geometry=before,coverage=coverage,files=files)
-    (REF/recipe.get('receipt','building-build.json')).write_text(json.dumps(receipt,indent=2)+'\n')
+    if recipe.get('recordMasters'):
+        receipt['masters']={patch['id']+'.png':hashlib.sha256((ref/(patch['id']+'.png')).read_bytes()).hexdigest() for patch in recipe['patches']}
+    (ref/recipe.get('receipt','building-build.json')).write_text(json.dumps(receipt,indent=2)+'\n')
     print(name+': dedicated texture space for',coverage,'with exact triangle/rig preservation')
 
 def build():

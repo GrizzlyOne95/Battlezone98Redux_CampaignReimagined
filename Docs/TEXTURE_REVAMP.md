@@ -130,18 +130,33 @@ Skeleton scale, UV anisotropy, camera distance and tiny close-up islands matter.
 
 | Queue | Active source atlas | Approx. texels/model unit | Status |
 |---|---|---:|---|
-| NSDF pad `ablpad` | 2048×1024 | 10.8 | Approach surfaces pending |
+| NSDF pad `ablpad` | 2048×1024 | 10.8 | Approach deck / star wall follow-up built; remaining surfaces pending |
 | CCA pad `sblpad` | 2048×1024 | 11.8 | Door/stairs/plate pilot built; remaining atlas pending |
-| CCA supply `sbsupp` | 1024×1024 | 14.6 | Pending |
-| Black Dog HQ `bbhqcp` | 1024×512 | 18.7 | Pending |
-| NSDF hangar `abhang` | 1024×1024 | 20.5 | Pending; preserve existing animated ModelFixes |
+| CCA supply `sbsupp` | 1024×1024 | 14.6 | Service deck / pillar door-chart follow-up built; other surfaces pending |
+| Black Dog HQ `bbhqcp` | 1024×512 | 18.7 | Facade/control patches built; offline review pending |
+| NSDF hangar `abhang` | 1024×1024 | 20.5 | Wall/control atlas overlay built; animated ModelFixes and shadow mesh unchanged |
 | Black Dog pad `bblpad` | 4096×2048 | 21.5 | Painted ribbed-panel pilot built; other surfaces pending |
-| CCA hangar `sbhang` | 1024×1024 | 25.1 | Pending |
+| CCA hangar `sbhang` | 1024×1024 | 25.1 | Octagonal door/insignia vent patches built; offline review pending |
 | NSDF factory `abmbld` / comm `abcomm` | 1024×1024 | 26.5 / 28.0 | Pending |
 | Remaining HQ/power/silo/support/tower families | See audit | Varies | Lower priority; review close-up doors, walkways and controls individually |
 
 Black Dog silo's active atlas is **4096×2048**, not the inactive 256px legacy
 `bbsilo00_d.dds`. Do not replace it on that false low-resolution premise.
+
+The 22 October follow-up is documented in `References/BuildingDetailPass/README.md`.
+It adds four bounded higher-detail patches on `ablpad` and `sbsupp`, two batches
+per model and seven maps (~6.29 MiB), with unchanged geometry/native/gameplay
+data. This is a separate offline review batch, not completion of the whole queue.
+
+The continuation adds six authored HQ/hangar regions (nine maps, ~8.60 MiB).
+HQ/CCA hangar each add two render batches; NSDF hangar instead changes only
+the diffuse alias to a 2048² composite atlas because its existing animated mesh
+contains precomputed shadow edges. Its mesh/SDF/skeleton remain byte-identical.
+All original emission is retained; no extra NSDF hangar E/N/S maps ship. See the
+same README for source allocations, hashes, offline comparisons and limitations.
+The owner also flagged Black Dog Red Devil (`bvrdev`): prefer legacy red/black
+markings and warm yellow headlights. Legacy `bvrdev00_d.dds` uses a different UV
+layout; restoration is queued separately, not a blind material rebind here.
 
 The CCA source mesh is hash-pinned under `building-sources/`. Three disjoint UV
 crops select **356 of 4973 existing triangles**. These move into three new

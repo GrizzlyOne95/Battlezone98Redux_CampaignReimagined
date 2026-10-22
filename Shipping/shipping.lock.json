@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-21T14:37:36-05:00",
-  "count": 4426,
+  "count": 4450,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -1288,6 +1288,26 @@
       "runtime": "crstns_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crvabhang_d.dds",
+      "runtime": "crvabhang_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbdhqctrl_d.dds",
+      "runtime": "crvbdhqctrl_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbdhqctrl_e.dds",
+      "runtime": "crvbdhqctrl_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbdhqwall_d.dds",
+      "runtime": "crvbdhqwall_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbdhqwall_e.dds",
+      "runtime": "crvbdhqwall_e.dds"
+    },
+    {
       "source": "Assets\\Textures\\crvbdog_walkway_d.dds",
       "runtime": "crvbdog_walkway_d.dds"
     },
@@ -1310,6 +1330,38 @@
     {
       "source": "Assets\\Textures\\crvcca_stairs_d.dds",
       "runtime": "crvcca_stairs_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvccdeck_d.dds",
+      "runtime": "crvccdeck_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvccdeck_e.dds",
+      "runtime": "crvccdeck_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvccdoor_d.dds",
+      "runtime": "crvccdoor_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvccdoor_e.dds",
+      "runtime": "crvccdoor_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcchangdoor_d.dds",
+      "runtime": "crvcchangdoor_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcchangdoor_e.dds",
+      "runtime": "crvcchangdoor_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcchangvent_d.dds",
+      "runtime": "crvcchangvent_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcchangvent_e.dds",
+      "runtime": "crvcchangvent_e.dds"
     },
     {
       "source": "Assets\\Textures\\crviolfloor_d.dds",
@@ -1354,6 +1406,18 @@
     {
       "source": "Assets\\Textures\\crviolwall_s.dds",
       "runtime": "crviolwall_s.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvnsdeck_d.dds",
+      "runtime": "crvnsdeck_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvnsdeck_e.dds",
+      "runtime": "crvnsdeck_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvnswall_d.dds",
+      "runtime": "crvnswall_d.dds"
     },
     {
       "source": "Assets\\Textures\\crvobcycl00_n.dds",
@@ -3530,6 +3594,22 @@
     {
       "source": "Materials\\CR_DepthShadowmap.material",
       "runtime": "CR_DepthShadowmap.material"
+    },
+    {
+      "source": "Materials\\CR_detail_ablpad.material",
+      "runtime": "CR_detail_ablpad.material"
+    },
+    {
+      "source": "Materials\\CR_detail_bbhqcp.material",
+      "runtime": "CR_detail_bbhqcp.material"
+    },
+    {
+      "source": "Materials\\CR_detail_sbhang.material",
+      "runtime": "CR_detail_sbhang.material"
+    },
+    {
+      "source": "Materials\\CR_detail_sbsupp.material",
+      "runtime": "CR_detail_sbsupp.material"
     },
     {
       "source": "Materials\\cr_foliage.material",
@@ -12516,6 +12596,10 @@
       "runtime": "misn18.bmp"
     },
     {
+      "source": "Assets\\Models\\ablpad.mesh",
+      "runtime": "ablpad.mesh"
+    },
+    {
       "source": "Assets\\Models\\abstor.mesh",
       "runtime": "abstor.mesh"
     },
@@ -12610,6 +12694,10 @@
     {
       "source": "Assets\\Models\\apspec.vdf",
       "runtime": "apspec.vdf"
+    },
+    {
+      "source": "Assets\\Models\\bbhqcp.mesh",
+      "runtime": "bbhqcp.mesh"
     },
     {
       "source": "Assets\\Models\\bblpad.mesh",
@@ -13700,6 +13788,10 @@
       "runtime": "op3dck01.geo"
     },
     {
+      "source": "Assets\\Models\\sbhang.mesh",
+      "runtime": "sbhang.mesh"
+    },
+    {
       "source": "Assets\\Models\\sblpad.mesh",
       "runtime": "sblpad.mesh"
     },
@@ -13714,6 +13806,10 @@
     {
       "source": "Assets\\Models\\sbstor.skeleton",
       "runtime": "sbstor.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\sbsupp.mesh",
+      "runtime": "sbsupp.mesh"
     },
     {
       "source": "Assets\\Models\\spammo.mesh",
