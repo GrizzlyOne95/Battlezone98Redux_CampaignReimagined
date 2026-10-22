@@ -156,6 +156,31 @@ its hardpoint), and `avsav`/`avsav14` (no Ogre mesh).
 Re-run `--measure` after changing a craft's weapons, hardpoints or model.
 Offsets are fitted from geometry, not yet confirmed live except avtank.
 
+## Recoil opt-in: craft node, weapon kick
+
+OpenShim recoil is opt-in on both sides, so a slot never recoils by accident:
+
+- The **craft** supplies the node, distance and return: `recoilName<N>`,
+  `recoilDistance<N>`, `recoilReturn<N>` in `[CraftClass]`. These are enabled on
+  avtank, avtamp, avdemo, bvtank, bvtanka, svtank, svtanka, svtas8, svtk13 and
+  svtnk7 (slot 1 cannon barrel).
+- The **weapon** supplies the kick: `[WeaponClass] recoilKick` (float 0..4, absent
+  means 0 and no recoil). The node slides `recoilDistance<N>` x kick metres.
+- `recoilKick<N>` in the craft's `[CraftClass]` overrides the weapon's kick for
+  that slot, for example a scout's miniguns at 0.15 (see the commented example in
+  `avtank.odf`).
+
+CR gives `recoilKick = 1.0` to every cannon-category weapon (`wpnCategory = "CANN"`)
+whose `classLabel` is not `machinegun`: the slot-1 defaults gatstab, gspstab,
+gsatstab and ga7stab plus every other CANN weapon the armory could swap into those
+slots (stabber variants, blast, bolt, flash, MAG, sniper, plasma rifles and the
+Fury/Olympian arcs). Machineguns and miniguns get no kick. The block is generated
+between `// CR WEAPON RECOIL BEGIN` and `// CR WEAPON RECOIL END` by
+`Tools/Build-WeaponFlashes.py`; `--check` and `Tools/Test-WeaponPresentation.py`
+fail on drift, on a recoil slot whose default weapon has no kick, and on any
+machinegun with a kick. Muzzle flashes are separate: a craft shows a mesh flash
+only for slots with a `flashOffset<N>` key (see the flash offsets section).
+
 ## Recoil setup inventory
 
 Legacy topology inspection found **56 slot candidates on 17 distinct dedicated

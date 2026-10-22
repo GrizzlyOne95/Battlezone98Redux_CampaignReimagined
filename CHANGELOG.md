@@ -11,6 +11,7 @@
   offsets are generated from each craft's barrel mesh by `Tools/Build-WeaponFlashes.py` (`--measure`, `--check`):
   NSDF/Black Dog tanks `0.20 0.10 2.41`, CCA tanks `0.00 0.00 3.42`, howitzers, gun towers and Soviet towers.
   Hull-mounted hardpoints keep the weapon's zero offset.
+- Make OpenShim mesh recoil opt-in on the weapon too: every cannon-category (CANN, non-machinegun) weapon ODF gets a generated `[WeaponClass] recoilKick = 1.0` block, so the slot-1 barrel slide on the tank crafts (distance = `recoilDistance1` x kick) happens only for weapons with a kick; machineguns and miniguns get none and a craft can override per slot with `recoilKick<N>`. Needs the OpenShim build that reads `recoilKick`; generated and checked by `Tools/Build-WeaponFlashes.py`.
 - Enable OpenShim mesh recoil (slot 1 cannon barrel slide) on the NSDF, Black Dog and CCA tank ODFs:
   avtank/avtamp/avdemo (AGR11BGA), bvtank/bvtanka (bGR11BGA) and svtank/svtanka/svtas8/svtk13/svtnk7
   (SCZ11BGB). Takes effect only with Settings > Video > Muzzle Recoil on (single-player, exact GOG).

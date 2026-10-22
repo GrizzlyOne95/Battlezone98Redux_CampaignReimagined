@@ -41,6 +41,8 @@ class WeaponContentTests(unittest.TestCase):
                 self.assertEqual(text.count(casings.BEGIN),1)
                 self.assertEqual(inventory.parse(text)['weaponclass']['casingtype'],config['weapons'][name]['casing_type'])
                 text=casings.strip_block(text)
+                self.assertEqual(text.count(builder.RECOIL_BEGIN),1 if builder.wants_kick(text) else 0)
+                text=builder.strip_recoil(text)
                 if not config['weapons'][name]['profile']:
                     digest=hashlib.sha256(json.dumps(inventory.parse(text),sort_keys=True).encode()).hexdigest()
                     self.assertEqual(digest,expected,'gameplay or stock field changed')
@@ -86,6 +88,43 @@ class WeaponContentTests(unittest.TestCase):
                 if key.startswith('flashoffset'):
                     weapon=game['gameobjectclass']['weaponname'+key[len('flashoffset'):]].lower()
                     self.assertIn(weapon,builder.flash_weapons(config))
+
+    def test_weapon_recoil_kick_is_opt_in(self):
+        kicked=set()
+        for path in sorted((ROOT/'ODF').glob('*.odf')):
+            text=path.read_text(errors='replace')
+            weapon=inventory.parse(text).get('weaponclass')
+            if not weapon: continue
+            with self.subTest(weapon=path.stem):
+                if weapon.get('classlabel','').lower()=='machinegun':
+                    self.assertNotIn('recoilkick',weapon,'no machinegun or minigun kicks')
+                if weapon.get('wpncategory','').upper()=='CANN' and weapon.get('classlabel','').lower()!='machinegun':
+                    self.assertEqual(weapon.get('recoilkick'),builder.CANNON_KICK,'every cannon-category weapon kicks')
+                    self.assertEqual(text.count(builder.RECOIL_BEGIN),1)
+                    kicked.add(path.stem.lower())
+                else:
+                    self.assertNotIn('recoilkick',weapon)
+        self.assertTrue({'gatstab','gspstab','gsatstab','ga7stab'}<=kicked)
+        for name in ('gminigun','gtminig','gminigna','gminisov','gtminis'):
+            self.assertNotIn('recoilkick',inventory.parse((ROOT/'ODF'/(name+'.odf')).read_text())['weaponclass'])
+
+    def test_every_recoil_slot_default_weapon_has_kick(self):
+        crafts=set('avtank avtamp avdemo bvtank bvtanka svtank svtanka svtas8 svtk13 svtnk7'.split())
+        found=set()
+        for path in sorted((ROOT/'ODF').glob('*.odf')):
+            parsed=inventory.parse(path.read_text(errors='replace'))
+            craft=parsed.get('craftclass',{})
+            slots=[k[len('recoilname'):] for k in craft if k.startswith('recoilname')]
+            if not slots: continue
+            found.add(path.stem.lower())
+            for n in slots:
+                with self.subTest(craft=path.stem,slot=n):
+                    weapon=parsed['gameobjectclass']['weaponname'+n].lower()
+                    kick=craft.get('recoilkick'+n)
+                    if kick is None:
+                        kick=inventory.parse((ROOT/'ODF'/(weapon+'.odf')).read_text()).get('weaponclass',{}).get('recoilkick')
+                    self.assertEqual(float(kick or 0),1.0,'recoil slot default weapon kicks at 1.0')
+        self.assertEqual(found,crafts)
 
     def test_explicit_casing_choices(self):
         for name,choice in config['weapons'].items():
