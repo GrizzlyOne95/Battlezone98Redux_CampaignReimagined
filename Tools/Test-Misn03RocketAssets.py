@@ -11,6 +11,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from bzmodellibs import bwd2_serializer, geo_serializer, ogremesh_serializer
+from bcdds import bc_dds_problem
 
 NAME = 'cr03rok'
 build = json.loads((ROOT / 'References/Misn03Rocket/build.json').read_text())
@@ -60,13 +61,10 @@ obj = sdf.get_object(0, 0, 0)
 assert obj.name == NAME and obj.parent == 'WORLD'
 assert abs(obj.half_size.y - half_height) < .01 and 14.3 < obj.half_size.x < 14.7 and 17.0 < obj.half_size.z < 18.5
 
-# --- Textures: 1024 squared, uncompressed RGBA8 (BC3 failed in the native DX11 colour path).
+# --- Textures: 1024 squared, BC1 with a full offline mip chain (DX11 cannot generate mips for compressed textures).
 for suffix in 'dnse':
     dds = (ROOT / f'Assets/Textures/{NAME}_{suffix}.dds').read_bytes()
-    assert dds[:4] == b'DDS ' and struct.unpack_from('<II', dds, 12) == (1024, 1024)
-    assert struct.unpack_from('<I', dds, 80)[0] == 0x41 and struct.unpack_from('<I', dds, 88)[0] == 32, 'RGBA8 texture'
-    assert struct.unpack_from('<3I', dds, 92) == (0xff0000, 0xff00, 0xff), 'BGRA8 masks'
-    assert len(dds) == 128 + 4 * 1024 * 1024
+    assert not bc_dds_problem(dds, 1024), bc_dds_problem(dds, 1024)
 
 # --- Material and ODF.
 material = (ROOT / f'Materials/{NAME}.material').read_text()
@@ -141,4 +139,4 @@ assert abs((posit[1] + nozzle_y) - (origin[1] + 20.2515)) < .01, 'nozzle plane 2
 for key in ('v', 'omega', 'Accel'):
     assert re.search(r'^ ' + key + r' \[1\] =\n  x \[1\] =\n0\n  y \[1\] =\n0\n  z \[1\] =\n0\n', rocket, re.M)
 
-print('Misn03 NSDF rocket: static mesh, RGBA8 textures, 7-bell layout and pad-relative BZN fixture passed')
+print('Misn03 NSDF rocket: static mesh, BC1 mipped textures, 7-bell layout and pad-relative BZN fixture passed')
