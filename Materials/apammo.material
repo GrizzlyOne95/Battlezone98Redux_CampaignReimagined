@@ -2,8 +2,8 @@ import * from "CR_BZBase.material"
 
 material apammo00 : CR_BZBase
 {
-	set_texture_alias DiffuseMap apammo00.dds
-	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias DiffuseMap crvpkup_d.dds
+	set_texture_alias NormalMap crvpkup_n.dds
 	set_texture_alias SpecularMap apammo00_S.dds
 	set_texture_alias EmissiveMap apammo00_E.dds
 	

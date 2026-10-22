@@ -1,0 +1,18 @@
+[GameObjectClass]
+classLabel = "wpnpower"
+baseName = "apcann"
+scrapCost = 5
+scrapValue = 0
+maxHealth = 150
+maxAmmo = 0
+unitName = NULL
+aiName = "PowerUpProcess"
+aiName2 = "PowerUpProcess"
+
+[WeaponPowerupClass]
+weaponName = "gspstaba"
+
+[PowerUpClass]
+soundPickup = "apcann.wav"
+soundReject = "mnu_buzz.wav"
+

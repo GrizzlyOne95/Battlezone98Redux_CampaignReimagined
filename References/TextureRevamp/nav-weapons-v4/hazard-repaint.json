@@ -1,0 +1,152 @@
+{
+  "mode": "Built-in ImageGen edit, exact ROI-only composite",
+  "sourceBackup": "Local/TextureRevamp/pre-hazard-masters (ignored)",
+  "typeBands": {
+    "cannon": [
+      0,
+      0.25
+    ],
+    "rocket": [
+      0.25,
+      0.5
+    ],
+    "mortar": [
+      0.5,
+      0.75
+    ],
+    "special": [
+      0.75,
+      1
+    ]
+  },
+  "records": [
+    {
+      "faction": "ns",
+      "current": "weapon_ns_master.png",
+      "baseSha256": "15786bbf8ea37a0db4a11f3020742465807c5325b8a81bc92db2c826b8418ea9",
+      "resultSha256": "9e470b850ede01af30b90e8938473f3d893348e2aa49e0879c23b1c35fdc161d",
+      "unmodifiedRgbSha256": "1f92f1b4400b6aa22f7170a4410cefb41161a2260d82137dc1b475bf012dea43",
+      "rawOutputSha256": "5b00413037f92fa7f381d5ea77adba9a7a4c646f98d90b732fac71e7431b863b",
+      "rawOutputSize": [
+        1254,
+        1254
+      ],
+      "editedRegions": [
+        [
+          0.825,
+          0,
+          1,
+          1
+        ],
+        [
+          0.635,
+          0.365,
+          0.715,
+          0.635
+        ],
+        [
+          0.315,
+          0.8,
+          0.495,
+          1
+        ]
+      ]
+    },
+    {
+      "faction": "bd",
+      "current": "weapon_bd_master.png",
+      "baseSha256": "6ba3ba7954ee6710d6041789c4b3506ef3b56870be8f1e84eee6291531c36bb2",
+      "resultSha256": "4e1f1eb9244053b918176f0b38b986fcfbc7e6cdb50c1358e4ac0cb4d854b8d3",
+      "unmodifiedRgbSha256": "37648871d3598653c0c683f8c15a4720f968a0d2117241ba3252d494607c4641",
+      "rawOutputSha256": "c9701e6ecf2bb4ff19ca8cb2a202cc44ff859d8d92e8eb6aa01c4a3bc7745faa",
+      "rawOutputSize": [
+        1254,
+        1254
+      ],
+      "editedRegions": [
+        [
+          0.825,
+          0,
+          1,
+          1
+        ],
+        [
+          0.635,
+          0.365,
+          0.715,
+          0.635
+        ],
+        [
+          0.315,
+          0.8,
+          0.495,
+          1
+        ]
+      ]
+    },
+    {
+      "faction": "cc",
+      "current": "weapon_cc_master.png",
+      "baseSha256": "5b6cded46e462c86eb6eb04b6ae93ec710120d50b5ca0bbee803cae9376c1ddc",
+      "resultSha256": "d37ffb5ead382db6b8307b411bd6380707811d3d36a6a7cf03d15cb2576f71c8",
+      "unmodifiedRgbSha256": "804aeef0cb5a60157daa72e98703821cf8402675f2ff576aaddd58c289723357",
+      "rawOutputSha256": "976c1dfdf7f774cd0c211159ff651473b41f90fb61587a9e79b0ddc65e207063",
+      "rawOutputSize": [
+        1254,
+        1254
+      ],
+      "editedRegions": [
+        [
+          0.825,
+          0,
+          1,
+          1
+        ],
+        [
+          0.635,
+          0.365,
+          0.715,
+          0.635
+        ],
+        [
+          0.315,
+          0.8,
+          0.495,
+          1
+        ]
+      ]
+    },
+    {
+      "faction": "cr",
+      "current": "weapon_cr_master.png",
+      "baseSha256": "650b6aa8fffeaa4495a6d40e32792be0dea95b361e96a35ac472b554f138339e",
+      "resultSha256": "ce475ac1251936e2def95410b606fd7e9ed02b8074c5122c98d20d694110b90d",
+      "unmodifiedRgbSha256": "d694a479306dd5ca5fdb0d82a4124585c353a95389b50de1b99ce4f6062e982a",
+      "rawOutputSha256": "e40ee06f1037fb45c45f240645d593ce30dc84901f46a93b6bd8994477e13eef",
+      "rawOutputSize": [
+        1254,
+        1254
+      ],
+      "editedRegions": [
+        [
+          0.825,
+          0,
+          1,
+          1
+        ],
+        [
+          0.635,
+          0.365,
+          0.715,
+          0.635
+        ],
+        [
+          0.315,
+          0.8,
+          0.495,
+          1
+        ]
+      ]
+    }
+  ]
+}

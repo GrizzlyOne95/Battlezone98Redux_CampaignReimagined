@@ -1,0 +1,25 @@
+import * from "sblpad.material"
+
+material CRV/Building/cca_door : sblpad
+{
+    set_texture_alias DiffuseMap crvcca_door_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap crvcca_door_e.dds
+}
+
+material CRV/Building/cca_stairs : sblpad
+{
+    set_texture_alias DiffuseMap crvcca_stairs_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap black.dds
+}
+
+material CRV/Building/cca_plate : sblpad
+{
+    set_texture_alias DiffuseMap crvcca_plate_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap black.dds
+}

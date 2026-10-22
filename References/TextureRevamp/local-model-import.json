@@ -1,0 +1,737 @@
+{
+  "source": "Owner-authorized local ISDFC relic replacements, copied read-only from canonical CR on 2026-10-21",
+  "models": [
+    {
+      "stock": "oblema",
+      "source": "oblemr",
+      "folder": "lemnos_ruins",
+      "ready_alias": true
+    },
+    {
+      "stock": "obstp1",
+      "source": "osport1",
+      "folder": "omega_starport",
+      "ready_alias": true
+    },
+    {
+      "stock": "obstp2",
+      "source": "osport2",
+      "folder": "omega_starport",
+      "ready_alias": true
+    },
+    {
+      "stock": "obstp3",
+      "source": "osport3",
+      "folder": "omega_starport",
+      "ready_alias": true
+    },
+    {
+      "stock": "ubtart",
+      "source": "ubtarta",
+      "folder": "tartarus_lid",
+      "ready_alias": false
+    },
+    {
+      "stock": "obheph",
+      "source": "ovheph",
+      "folder": "hephaestus",
+      "ready_alias": false
+    },
+    {
+      "stock": "obher100",
+      "source": "ovtheta1p",
+      "folder": "hercules_brigade",
+      "ready_alias": false
+    },
+    {
+      "stock": "obher200",
+      "source": "ovtheta2p",
+      "folder": "hercules_brigade",
+      "ready_alias": false
+    },
+    {
+      "stock": "obher300",
+      "source": "ovtheta3p",
+      "folder": "hercules_brigade",
+      "ready_alias": false
+    }
+  ],
+  "files": [
+    {
+      "path": "Assets/Models/oblema.sdf",
+      "sha256": "9c368e8ed76dc3dd7c7fd7db65fda5210bcf3389fc037e37dee699d98d72fb03"
+    },
+    {
+      "path": "Assets/Models/oblema.mesh",
+      "sha256": "b3b869be45fa566da5867d92f4d5cf831ad7e44c89c3477623b626a865cbcd3b"
+    },
+    {
+      "path": "Assets/Models/oblema.skeleton",
+      "sha256": "124eb9c44f31abc4c75cbcfeb0504091f3e552ef570f68f1cfbd8ee1e8f7226d"
+    },
+    {
+      "path": "Assets/Models/lme11bda.geo",
+      "sha256": "e989dbb672aabb84124b80fb1d15d9456d3bd8cb395316195c7cb616a5a2230d"
+    },
+    {
+      "path": "Assets/Models/lme11dck.geo",
+      "sha256": "b0b6172da9ec41f3ea6199d21598231d971db09e3fc34d7d191f4e15045d1b71"
+    },
+    {
+      "path": "Assets/Models/lme11gal.geo",
+      "sha256": "2df3374fae5331ab357d6a557d23d82484ad2791f99288916826c16081bf9e98"
+    },
+    {
+      "path": "Assets/Models/lme11ru1.geo",
+      "sha256": "36315dc43dcc811a83e508d2dc857e3cc8f125eb14c7b5f1cefcb6dbd53b5197"
+    },
+    {
+      "path": "Materials/lme_shared.material",
+      "sha256": "cc5d8802b233f8fa1cc697a6ab129e7247ce2c3b445d86ebb3b6746978591dfe"
+    },
+    {
+      "path": "Assets/Textures/lme_normal.dds",
+      "sha256": "e42b5723a0b7383cb8a9c8c40e18ab4d6218f2a4a314b885ecf1694a509b2b3c"
+    },
+    {
+      "path": "Assets/Textures/lme_cast_e.dds",
+      "sha256": "751d7431174454833110cb21d3d19bb9c88a3a9de2d26d438a7bda654a5a83c0"
+    },
+    {
+      "path": "Assets/Textures/lme_cast_d.dds",
+      "sha256": "d8fe5a523933a615ec3d2615bc4d0ea09f2cff0f2cb86f86ba4543fabf4b50dd"
+    },
+    {
+      "path": "Assets/Textures/lme_cast_s.dds",
+      "sha256": "ccdb122f50ed493d073d606984dad608472de053b9e06d3332bf0f6784565123"
+    },
+    {
+      "path": "Assets/Models/obstp1.sdf",
+      "sha256": "9159cec085d6bf4bd0e964eaed9978457ed6fa0b7895840b01c74d3d4ba27a3d"
+    },
+    {
+      "path": "Assets/Models/obstp1.mesh",
+      "sha256": "7505ce8d6fd13f5963b4d2bfd547b65ba26f3ae602f29b2bb988b64e9a578dba"
+    },
+    {
+      "path": "Assets/Models/obstp1.skeleton",
+      "sha256": "4458e635ecfb5d83ec1287e229c14510e105f0fa16bbefd5dc61752157f02fcb"
+    },
+    {
+      "path": "Assets/Models/op1bda01.geo",
+      "sha256": "456805d5d10e903743c9898b79b0dbeaacd156d16612549b7d2d64b1f555daf7"
+    },
+    {
+      "path": "Assets/Models/op1dck01.geo",
+      "sha256": "4c77314561a9c035683bebbfdd2b0143f048892831b167c3da99fa284227d159"
+    },
+    {
+      "path": "Materials/osp_shared.material",
+      "sha256": "4a2b7d4fc774f103e9c0ca7d338bb0b590311d59de70c6a13bacf6d9664b3531"
+    },
+    {
+      "path": "Assets/Textures/osp_cast_s.dds",
+      "sha256": "53173f6470ad9b31dcfaaef7dc562997dad1c180afa34246e7882c11314213ef"
+    },
+    {
+      "path": "Assets/Textures/osp_cast_d.dds",
+      "sha256": "cbecb5724f538cf7d775a44136f0da9e76ceff1c128badaf7f427ec0a5834083"
+    },
+    {
+      "path": "Assets/Textures/osp_cast_e.dds",
+      "sha256": "dd245b18fa13ce6ffb2e33461de89c69b3171868e42355dc7c1ff76e05f1d1c1"
+    },
+    {
+      "path": "Assets/Textures/osp_normal.dds",
+      "sha256": "125ef28f6511c00b348c374c75f61b069cf1e0d52289ce236d484ae955139ce4"
+    },
+    {
+      "path": "Assets/Models/obstp2.sdf",
+      "sha256": "4c90a150056c65e2bce1c879c79871fa89aa2a4e0f00aee5af9871280221c7c8"
+    },
+    {
+      "path": "Assets/Models/obstp2.mesh",
+      "sha256": "8f15cd37524c2a75194ca2cb7f4153b8ff8370800d92af0350351fd48ccb7686"
+    },
+    {
+      "path": "Assets/Models/obstp2.skeleton",
+      "sha256": "b8f6a2b1f90b2a5c587a2bef00a0d4ca946f630f2b2aa2304ca396b40069dbcd"
+    },
+    {
+      "path": "Assets/Models/op2bda01.geo",
+      "sha256": "3f1d38114b5bd7964aeaf7dc20da9a7d9280d213cc854fbb1d7d17f9e7111836"
+    },
+    {
+      "path": "Assets/Models/op2dck01.geo",
+      "sha256": "c5edda7e2c04ee7714b20a6a9c7455fdef681c3a8c80a46dcd66ba321d5526b3"
+    },
+    {
+      "path": "Assets/Models/obstp3.sdf",
+      "sha256": "fee2d7922c528ee9527fc2de33dfa8a88d64202a4b473fb1bedb7f574a6a64de"
+    },
+    {
+      "path": "Assets/Models/obstp3.mesh",
+      "sha256": "827016c758cb67f66ef69db2b8d989a2cc2cffd1131c3e348901981980217084"
+    },
+    {
+      "path": "Assets/Models/obstp3.skeleton",
+      "sha256": "dd4582fe626d7ee584e667248cd3e6d85ea28fcec9896cf342ae11b3c14108f7"
+    },
+    {
+      "path": "Assets/Models/op3bda01.geo",
+      "sha256": "cf6423e524b65edd5c32d658a9486428d50da97cdcf8bff86a5addf6e9f7939d"
+    },
+    {
+      "path": "Assets/Models/op3dck01.geo",
+      "sha256": "63748eb61e7d44d1a368d4c463ce01c24e8f86099509f414b820364a1cae10f6"
+    },
+    {
+      "path": "Assets/Models/ubtart.sdf",
+      "sha256": "0b592db2ca2d73b2bf27cb8b6ae4e29e552175eb07aae3449146b2c6956a2c51"
+    },
+    {
+      "path": "Assets/Models/ubtart.mesh",
+      "sha256": "ccbca8bf67847fbaed92776d723e245a16c065ad01d209f538c966e6da58bb47"
+    },
+    {
+      "path": "Assets/Models/ubtart.skeleton",
+      "sha256": "77fc29c701bfe8a2dea4e34620b9802b6adc363a6262eab791c00d230c945007"
+    },
+    {
+      "path": "Materials/trld.material",
+      "sha256": "fa050e2b205364ff75081c31c25a0b6a5288ff6156d1c2eccfcecde6efab8e67"
+    },
+    {
+      "path": "Assets/Textures/trld_d.dds",
+      "sha256": "c55807203ccc4e4586b6400428bcd866fb513a16f50c7338d2750c26e6ebe29e"
+    },
+    {
+      "path": "Assets/Models/obheph.sdf",
+      "sha256": "f71c9652841f1dfd73cfd439aea795932f556c93bf879705c21ae8157b9fd5aa"
+    },
+    {
+      "path": "Assets/Models/obheph.mesh",
+      "sha256": "e311bd94f063794739402833d2d5291009455e6c66becfac879d1b9589cef67e"
+    },
+    {
+      "path": "Assets/Models/obheph.skeleton",
+      "sha256": "607cbb3a9f1b75571ede59601f73996214b62f80e11c70bd6d2b7fb97e02f3c7"
+    },
+    {
+      "path": "Assets/Models/ohp11bda.geo",
+      "sha256": "e5a4d32adc4a2877be31c48fdecc9988daca018b8edcbf4773381d392e523e0d"
+    },
+    {
+      "path": "Assets/Models/ohp11bdc.geo",
+      "sha256": "209b3ecc79d6317569b657ddc6ca6deb577110da9ea9ebc03a1d8eabaed39ef6"
+    },
+    {
+      "path": "Assets/Models/ohp11bdb.geo",
+      "sha256": "f72014c1e5fafd75118da8d94f2332d1b951cf6a9ce96effba787638d86c7f4a"
+    },
+    {
+      "path": "Assets/Models/ohp11bde.geo",
+      "sha256": "7cce2faeaf161fa63c217a78dc3d44dd01d24414b7392337f3550d56bb0cd450"
+    },
+    {
+      "path": "Assets/Models/ohp11bdd.geo",
+      "sha256": "07a086968ced022d1d604afa6e879228e3d5c4894c2432d2c1e3c10fafd0df9f"
+    },
+    {
+      "path": "Assets/Models/ohp11pr1.geo",
+      "sha256": "7858cf6e40290d1caf0406e360f1426c671f3a4c9acab1831fa8ad6c2ec525c9"
+    },
+    {
+      "path": "Assets/Models/ohp11cl1.geo",
+      "sha256": "1e3f18ec8b3cfe8f8f65c54b73259f7c6c6d86090ac62790c0bdf7fef2e00caa"
+    },
+    {
+      "path": "Assets/Models/ohp11cr1.geo",
+      "sha256": "54a8687a532627a6c823f232ecde7e5436262ee03aaf87d8f427c98477d3b46a"
+    },
+    {
+      "path": "Assets/Models/ohp21cab.geo",
+      "sha256": "a8786b1e85812c23fed6276af2a7e9e76c76bd9a5cbad681643706e793e3bc59"
+    },
+    {
+      "path": "Assets/Models/ohp11rt1.geo",
+      "sha256": "530d72e0012ffdbb569ca1531892ee17d25389e35dd82d4e70816f04c6bf9afa"
+    },
+    {
+      "path": "Assets/Models/ohp11rt2.geo",
+      "sha256": "b2582c029bfdd8bc804b2ad96dd8ccf2a2034dd8c3ff08d4d8feb9402dfc6734"
+    },
+    {
+      "path": "Assets/Models/ohp11rt3.geo",
+      "sha256": "52dfd6cc2eae6cbf6111850440a13b2b70e27002dc2196d52ab1828146de5cb9"
+    },
+    {
+      "path": "Materials/ovheph.material",
+      "sha256": "741ae87984200e1e1fc26baffcc89199b1503994f96dbacf693f3f3fda19ccaa"
+    },
+    {
+      "path": "Assets/Textures/ohp_dark_e.dds",
+      "sha256": "4a80f7e0edf69b8df10953cf675bf627b163215a6a830bf4f074c87964bab68d"
+    },
+    {
+      "path": "Assets/Textures/ohp_screen_e.dds",
+      "sha256": "28e1ecf212017404e1c359eff82e83c6b6520e2ea55aa6807485ba4d059b9cc1"
+    },
+    {
+      "path": "Assets/Textures/ohp_amber_s.dds",
+      "sha256": "ef2684a076add6aa7bfce03d84deac3314d161f770bfcab6c2e18c96f3aef3cf"
+    },
+    {
+      "path": "Assets/Textures/ohp_src_d.dds",
+      "sha256": "6a76b0dfd0353fcf6ac5ae3a4760b380ee90398475a2b9614257bbe3f656d35d"
+    },
+    {
+      "path": "Assets/Textures/ohp_glass_d.dds",
+      "sha256": "37fb2a3f9af221fba5d2c1d7cb8b42fd0bc6121cd85b070495c3b40f222bc3d4"
+    },
+    {
+      "path": "Assets/Textures/ohp_amber_e.dds",
+      "sha256": "740c85962fbfb6aa2a2b8728998e1d288181b9992b5dbf10bf3c5e2554c95d0b"
+    },
+    {
+      "path": "Assets/Textures/ohp_screen_n.dds",
+      "sha256": "5ce70f99c844aca1f2c1110e6bf3093f747748e933e8ee683922e8efecfc05e0"
+    },
+    {
+      "path": "Assets/Textures/ohp_metal_e.dds",
+      "sha256": "4a80f7e0edf69b8df10953cf675bf627b163215a6a830bf4f074c87964bab68d"
+    },
+    {
+      "path": "Assets/Textures/ohp_dark_n.dds",
+      "sha256": "bfa8014beb9b5745bd01e569bb3baaf83a48ca7070886d68e680f324b2cf0a84"
+    },
+    {
+      "path": "Assets/Textures/ohp_src_s.dds",
+      "sha256": "f5cff456bde99c42a5dec46274af95157750a24636e2be5eba425b4bd3d1ca75"
+    },
+    {
+      "path": "Assets/Textures/ohp_src_n.dds",
+      "sha256": "77ff2fc8235ee4df4765fc2b79f82780e5020baa3661b9d19cd54bbf08bd3291"
+    },
+    {
+      "path": "Assets/Textures/ohp_canopy_e.dds",
+      "sha256": "7ee0064f5fe6e8730fb0345a7382ccb47201dd4e5f02aacdaae3aa3bbcc3c96a"
+    },
+    {
+      "path": "Assets/Textures/ohp_amber_d.dds",
+      "sha256": "740c85962fbfb6aa2a2b8728998e1d288181b9992b5dbf10bf3c5e2554c95d0b"
+    },
+    {
+      "path": "Assets/Textures/ohp_edge_n.dds",
+      "sha256": "bfa8014beb9b5745bd01e569bb3baaf83a48ca7070886d68e680f324b2cf0a84"
+    },
+    {
+      "path": "Assets/Textures/ohp_metal_n.dds",
+      "sha256": "bfa8014beb9b5745bd01e569bb3baaf83a48ca7070886d68e680f324b2cf0a84"
+    },
+    {
+      "path": "Assets/Textures/ohp_glass_n.dds",
+      "sha256": "5ce70f99c844aca1f2c1110e6bf3093f747748e933e8ee683922e8efecfc05e0"
+    },
+    {
+      "path": "Assets/Textures/ohp_glass_e.dds",
+      "sha256": "7ee0064f5fe6e8730fb0345a7382ccb47201dd4e5f02aacdaae3aa3bbcc3c96a"
+    },
+    {
+      "path": "Assets/Textures/ohp_canopy_n.dds",
+      "sha256": "5ce70f99c844aca1f2c1110e6bf3093f747748e933e8ee683922e8efecfc05e0"
+    },
+    {
+      "path": "Assets/Textures/ohp_screen_d.dds",
+      "sha256": "28e1ecf212017404e1c359eff82e83c6b6520e2ea55aa6807485ba4d059b9cc1"
+    },
+    {
+      "path": "Assets/Textures/ohp_src_e.dds",
+      "sha256": "5b0562c37101a44bdb885962857ae0151f78223e821e51efa01fac812e026578"
+    },
+    {
+      "path": "Assets/Textures/ohp_canopy_d.dds",
+      "sha256": "122422ae62afe32b967ba6a5bb14be2018179ff8e2f36bb98fbffd2ca0b43932"
+    },
+    {
+      "path": "Assets/Textures/ohp_metal_d.dds",
+      "sha256": "6a76b0dfd0353fcf6ac5ae3a4760b380ee90398475a2b9614257bbe3f656d35d"
+    },
+    {
+      "path": "Assets/Textures/ohp_edge_e.dds",
+      "sha256": "4a80f7e0edf69b8df10953cf675bf627b163215a6a830bf4f074c87964bab68d"
+    },
+    {
+      "path": "Assets/Textures/ohp_edge_d.dds",
+      "sha256": "6a76b0dfd0353fcf6ac5ae3a4760b380ee90398475a2b9614257bbe3f656d35d"
+    },
+    {
+      "path": "Assets/Textures/ohp_edge_s.dds",
+      "sha256": "f5cff456bde99c42a5dec46274af95157750a24636e2be5eba425b4bd3d1ca75"
+    },
+    {
+      "path": "Assets/Textures/ohp_glass_s.dds",
+      "sha256": "fc3f21b0ebdaf305d865f3ad8daa23a218a3c8f04bd6a1c55ea713468c1f9608"
+    },
+    {
+      "path": "Assets/Textures/ohp_dark_s.dds",
+      "sha256": "f5cff456bde99c42a5dec46274af95157750a24636e2be5eba425b4bd3d1ca75"
+    },
+    {
+      "path": "Assets/Textures/ohp_screen_s.dds",
+      "sha256": "ef2684a076add6aa7bfce03d84deac3314d161f770bfcab6c2e18c96f3aef3cf"
+    },
+    {
+      "path": "Assets/Textures/ohp_canopy_s.dds",
+      "sha256": "fc3f21b0ebdaf305d865f3ad8daa23a218a3c8f04bd6a1c55ea713468c1f9608"
+    },
+    {
+      "path": "Assets/Textures/ohp_dark_d.dds",
+      "sha256": "6a76b0dfd0353fcf6ac5ae3a4760b380ee90398475a2b9614257bbe3f656d35d"
+    },
+    {
+      "path": "Assets/Textures/ohp_metal_s.dds",
+      "sha256": "f5cff456bde99c42a5dec46274af95157750a24636e2be5eba425b4bd3d1ca75"
+    },
+    {
+      "path": "Assets/Textures/ohp_amber_n.dds",
+      "sha256": "5ce70f99c844aca1f2c1110e6bf3093f747748e933e8ee683922e8efecfc05e0"
+    },
+    {
+      "path": "Assets/Models/obher100.sdf",
+      "sha256": "9b4a0831de4a782c3da2110951194df9947590fe17216da1f4d066c2390f5308"
+    },
+    {
+      "path": "Assets/Models/obher100.mesh",
+      "sha256": "ee19df07789f7c5dfcec2ae9d1fc265ed246aa12b59a2d9ddab69c821d398a92"
+    },
+    {
+      "path": "Assets/Models/obher100.skeleton",
+      "sha256": "ce08fed4fde0ba87af4300ede402b3c59b0de3c95634234bdc7b12e189c98e99"
+    },
+    {
+      "path": "Assets/Models/op111bda.geo",
+      "sha256": "ebacee59d9a782754415791af616fc0ffb0881adff791574ddc82abf897a3c5c"
+    },
+    {
+      "path": "Assets/Models/op111dck.geo",
+      "sha256": "eabc2c5719b7a0d5b6fdf4dfd1e327db915ebe96b0c07cf90ece51e071280400"
+    },
+    {
+      "path": "Assets/Models/op111rmp.geo",
+      "sha256": "feb2cbb01f83da4d5c16ef721336783954af2ecb3c2c4cb10f781471b267925d"
+    },
+    {
+      "path": "Assets/Models/op111drl.geo",
+      "sha256": "251078eac5fa6239b4a04c62bc1511b36367e3f67dfcf38205b474aaa7f3a251"
+    },
+    {
+      "path": "Assets/Models/op111drr.geo",
+      "sha256": "17934aadc235b958b8a994dec7444c1a14c5dcc4e139c84dcc779975bd344e8b"
+    },
+    {
+      "path": "Assets/Models/op111bgl.geo",
+      "sha256": "923fae8bbb0dc0889edc26ecacdf1698b961f697c3557a2de6e87b9c250ecc0d"
+    },
+    {
+      "path": "Assets/Models/op111bgr.geo",
+      "sha256": "d1f1a808df891e6a10ff4f15dc95083ae7245124f8b708d7341e86b7cb4f79ab"
+    },
+    {
+      "path": "Assets/Models/op111tx1.geo",
+      "sha256": "56d88c23ee28c743ce94372045bd96730c617f2384576b2d04614a5f1023ea6e"
+    },
+    {
+      "path": "Assets/Models/op111ty1.geo",
+      "sha256": "430c9cb6a3f70b20a97c9202fec5356d6e8d7c1b4a3fa343675d57c898c2f591"
+    },
+    {
+      "path": "Assets/Models/op111bgt.geo",
+      "sha256": "7ca0f04358c3f4030e9558e91ead4033c70fe6e94b13951b43c8893035e9387e"
+    },
+    {
+      "path": "Assets/Models/op121cab.geo",
+      "sha256": "0694ccde6cd82b30720385033738a8199c51528d5a4bbb4e8b233158abee718c"
+    },
+    {
+      "path": "Assets/Models/op111lg1.geo",
+      "sha256": "299e757929078cc877966d1d8e51b8e7c8d5f4826bf20f8bc7618346cd246f1d"
+    },
+    {
+      "path": "Assets/Models/op111lg2.geo",
+      "sha256": "820160d3f5905b14b85f0d227ea5dde61b7f8744e22a307b42ede4257ea34dbc"
+    },
+    {
+      "path": "Assets/Models/op111lg3.geo",
+      "sha256": "f637dfdaea705bbd9eea855170bdb5bbfe998f90319d3172f0400affc7a86110"
+    },
+    {
+      "path": "Materials/oth_shared.material",
+      "sha256": "07ee8b996d6939dea6bd5f1cedde9b88d5c3c94981fcd3ccf6af68cb12f8862f"
+    },
+    {
+      "path": "Assets/Textures/oth_src_s.dds",
+      "sha256": "f5cff456bde99c42a5dec46274af95157750a24636e2be5eba425b4bd3d1ca75"
+    },
+    {
+      "path": "Assets/Textures/oth_src_e.dds",
+      "sha256": "5b0562c37101a44bdb885962857ae0151f78223e821e51efa01fac812e026578"
+    },
+    {
+      "path": "Assets/Textures/oth_dark_s.dds",
+      "sha256": "f5cff456bde99c42a5dec46274af95157750a24636e2be5eba425b4bd3d1ca75"
+    },
+    {
+      "path": "Assets/Textures/oth_screen_n.dds",
+      "sha256": "5ce70f99c844aca1f2c1110e6bf3093f747748e933e8ee683922e8efecfc05e0"
+    },
+    {
+      "path": "Assets/Textures/oth_glass_s.dds",
+      "sha256": "fc3f21b0ebdaf305d865f3ad8daa23a218a3c8f04bd6a1c55ea713468c1f9608"
+    },
+    {
+      "path": "Assets/Textures/oth_src_d.dds",
+      "sha256": "6d9b0e445152cd9a89b0151cef6329b12ecc330a712ace2b8d3d562345ff4399"
+    },
+    {
+      "path": "Assets/Textures/oth_dark_n.dds",
+      "sha256": "bfa8014beb9b5745bd01e569bb3baaf83a48ca7070886d68e680f324b2cf0a84"
+    },
+    {
+      "path": "Assets/Textures/oth_glass_d.dds",
+      "sha256": "37fb2a3f9af221fba5d2c1d7cb8b42fd0bc6121cd85b070495c3b40f222bc3d4"
+    },
+    {
+      "path": "Assets/Textures/oth_amber_d.dds",
+      "sha256": "740c85962fbfb6aa2a2b8728998e1d288181b9992b5dbf10bf3c5e2554c95d0b"
+    },
+    {
+      "path": "Assets/Textures/oth_dark_d.dds",
+      "sha256": "6d9b0e445152cd9a89b0151cef6329b12ecc330a712ace2b8d3d562345ff4399"
+    },
+    {
+      "path": "Assets/Textures/oth_screen_e.dds",
+      "sha256": "9ccb493ea7c472298d2f62b66982b03db6754a20ed612c780fe12763bc0d6f61"
+    },
+    {
+      "path": "Assets/Textures/oth_screen_d.dds",
+      "sha256": "9ccb493ea7c472298d2f62b66982b03db6754a20ed612c780fe12763bc0d6f61"
+    },
+    {
+      "path": "Assets/Textures/oth_metal_e.dds",
+      "sha256": "4a80f7e0edf69b8df10953cf675bf627b163215a6a830bf4f074c87964bab68d"
+    },
+    {
+      "path": "Assets/Textures/oth_screen_s.dds",
+      "sha256": "ef2684a076add6aa7bfce03d84deac3314d161f770bfcab6c2e18c96f3aef3cf"
+    },
+    {
+      "path": "Assets/Textures/oth_metal_n.dds",
+      "sha256": "bfa8014beb9b5745bd01e569bb3baaf83a48ca7070886d68e680f324b2cf0a84"
+    },
+    {
+      "path": "Assets/Textures/oth_amber_e.dds",
+      "sha256": "740c85962fbfb6aa2a2b8728998e1d288181b9992b5dbf10bf3c5e2554c95d0b"
+    },
+    {
+      "path": "Assets/Textures/oth_edge_n.dds",
+      "sha256": "bfa8014beb9b5745bd01e569bb3baaf83a48ca7070886d68e680f324b2cf0a84"
+    },
+    {
+      "path": "Assets/Textures/oth_glass_e.dds",
+      "sha256": "7ee0064f5fe6e8730fb0345a7382ccb47201dd4e5f02aacdaae3aa3bbcc3c96a"
+    },
+    {
+      "path": "Assets/Textures/oth_canopy_d.dds",
+      "sha256": "7a01df29fffa71d6039111aae9132802b76bd34b58d1e31e4d0d60a3575562db"
+    },
+    {
+      "path": "Assets/Textures/oth_canopy_e.dds",
+      "sha256": "7ee0064f5fe6e8730fb0345a7382ccb47201dd4e5f02aacdaae3aa3bbcc3c96a"
+    },
+    {
+      "path": "Assets/Textures/oth_metal_s.dds",
+      "sha256": "f5cff456bde99c42a5dec46274af95157750a24636e2be5eba425b4bd3d1ca75"
+    },
+    {
+      "path": "Assets/Textures/oth_metal_d.dds",
+      "sha256": "6d9b0e445152cd9a89b0151cef6329b12ecc330a712ace2b8d3d562345ff4399"
+    },
+    {
+      "path": "Assets/Textures/oth_edge_d.dds",
+      "sha256": "6d9b0e445152cd9a89b0151cef6329b12ecc330a712ace2b8d3d562345ff4399"
+    },
+    {
+      "path": "Assets/Textures/oth_edge_s.dds",
+      "sha256": "f5cff456bde99c42a5dec46274af95157750a24636e2be5eba425b4bd3d1ca75"
+    },
+    {
+      "path": "Assets/Textures/oth_amber_n.dds",
+      "sha256": "5ce70f99c844aca1f2c1110e6bf3093f747748e933e8ee683922e8efecfc05e0"
+    },
+    {
+      "path": "Assets/Textures/oth_src_n.dds",
+      "sha256": "77ff2fc8235ee4df4765fc2b79f82780e5020baa3661b9d19cd54bbf08bd3291"
+    },
+    {
+      "path": "Assets/Textures/oth_dark_e.dds",
+      "sha256": "4a80f7e0edf69b8df10953cf675bf627b163215a6a830bf4f074c87964bab68d"
+    },
+    {
+      "path": "Assets/Textures/oth_canopy_n.dds",
+      "sha256": "5ce70f99c844aca1f2c1110e6bf3093f747748e933e8ee683922e8efecfc05e0"
+    },
+    {
+      "path": "Assets/Textures/oth_edge_e.dds",
+      "sha256": "4a80f7e0edf69b8df10953cf675bf627b163215a6a830bf4f074c87964bab68d"
+    },
+    {
+      "path": "Assets/Textures/oth_amber_s.dds",
+      "sha256": "ef2684a076add6aa7bfce03d84deac3314d161f770bfcab6c2e18c96f3aef3cf"
+    },
+    {
+      "path": "Assets/Textures/oth_canopy_s.dds",
+      "sha256": "fc3f21b0ebdaf305d865f3ad8daa23a218a3c8f04bd6a1c55ea713468c1f9608"
+    },
+    {
+      "path": "Assets/Textures/oth_glass_n.dds",
+      "sha256": "5ce70f99c844aca1f2c1110e6bf3093f747748e933e8ee683922e8efecfc05e0"
+    },
+    {
+      "path": "Assets/Models/obher200.sdf",
+      "sha256": "763f88ee2ff92af00afd39b91e615d679ef2a574676a495856d011d8982caa08"
+    },
+    {
+      "path": "Assets/Models/obher200.mesh",
+      "sha256": "affa6bee6d77aa7646d52e2817d67b7803223d12a7bd3ae8d40a5dfc395cc649"
+    },
+    {
+      "path": "Assets/Models/obher200.skeleton",
+      "sha256": "7c3c3c2de82034edd91553b46315570c6ea0ff0ed7880ca1d0206ab44f4ddf1b"
+    },
+    {
+      "path": "Assets/Models/op211bda.geo",
+      "sha256": "d5804045ed216ad4cd9e55e8be5eeba3ae963efb7bd179dab4d2879faca5ac62"
+    },
+    {
+      "path": "Assets/Models/op211dck.geo",
+      "sha256": "85cc9c267e4944443d2dc96613b45c7eebd9b7c4c7f9cd34ba92074e30dbc781"
+    },
+    {
+      "path": "Assets/Models/op211rmp.geo",
+      "sha256": "afc0165d104e623821f43125d17b60dfe16b182eecd8e7eb4c864c8a3d27c864"
+    },
+    {
+      "path": "Assets/Models/op211drl.geo",
+      "sha256": "3fe207e33867074768b164656bc606acee3022da612a15087fd4506785baa0e5"
+    },
+    {
+      "path": "Assets/Models/op211drr.geo",
+      "sha256": "ef1b0ca39cabfc43b1663ef8f5221f2be6215a36c42734ea6b899edb0463cbcc"
+    },
+    {
+      "path": "Assets/Models/op211bgl.geo",
+      "sha256": "3bcae33103c59d01bdea862db7252a3cd550c586dc591bae0ef48ac3829e30f1"
+    },
+    {
+      "path": "Assets/Models/op211bgr.geo",
+      "sha256": "9c4647c1dfb5c8ab618e58ff7a9058a17b15b1453859cb5e02589c0490c8cd28"
+    },
+    {
+      "path": "Assets/Models/op211tx1.geo",
+      "sha256": "209eafdcc741dfae6038cf5bdcb290466eeffad921bfeb4f5021666effe841cd"
+    },
+    {
+      "path": "Assets/Models/op211ty1.geo",
+      "sha256": "1bb3a2f1471541e39b20433dd2269b44b9a71971fed268c60e8494d3b577b37c"
+    },
+    {
+      "path": "Assets/Models/op211bgt.geo",
+      "sha256": "495ca57175c23b31779b9b80ec322bf7be09b6c89919b1d1091569069c2d4716"
+    },
+    {
+      "path": "Assets/Models/op221cab.geo",
+      "sha256": "813b8bcd176b1ae4aa6e30e322817ad554f3744df0c5137ff19cd1ea24ed2864"
+    },
+    {
+      "path": "Assets/Models/op211lg1.geo",
+      "sha256": "88d27e9e7930bc0c8d1faa85e32e89a46ed50e5affdcbf66600c49b4c24b7a95"
+    },
+    {
+      "path": "Assets/Models/op211lg2.geo",
+      "sha256": "751488e482a2421820d81d609e56852b9721e2565f61eaa3b43d05db39983a32"
+    },
+    {
+      "path": "Assets/Models/op211lg3.geo",
+      "sha256": "3a8196ebe65fd3750fc7377dd2913921eba9eb63f322db5090d389fbc44fd55f"
+    },
+    {
+      "path": "Assets/Models/obher300.sdf",
+      "sha256": "e2112d490b116521bbdc819dc9a57ee6ade7103e27f0def3d4b0a7939ab5135d"
+    },
+    {
+      "path": "Assets/Models/obher300.mesh",
+      "sha256": "54be2ebc9ea321a8c2d510e70fd1e91f6ab24a35cc26cdceb4d082ca7971cd3f"
+    },
+    {
+      "path": "Assets/Models/obher300.skeleton",
+      "sha256": "337551bb28043ed1a056e30e84fe8c6c8f5f7936c93c183456c1790e9bc7543c"
+    },
+    {
+      "path": "Assets/Models/op311bda.geo",
+      "sha256": "3d39a53dd573c072d76efedd34e4ebe183bdd9d71bcc48891c8041aeb422e534"
+    },
+    {
+      "path": "Assets/Models/op311dck.geo",
+      "sha256": "d641bf1a6155dbe74f1ed30b2d354c1569af87ef3b8622ffd68e2a80863f84d0"
+    },
+    {
+      "path": "Assets/Models/op311rmp.geo",
+      "sha256": "9a23b29cc0631e8e71387de07ba35e03111343035947af3085ef00dc8c488545"
+    },
+    {
+      "path": "Assets/Models/op311drl.geo",
+      "sha256": "c99c393363573129cabda76c5a6f150e8b7b2ee01998ed6ebafa9588dee3a6ea"
+    },
+    {
+      "path": "Assets/Models/op311drr.geo",
+      "sha256": "ad658f6e8b01291170064c3323f5f269da85c103d43714455880bf266c30b254"
+    },
+    {
+      "path": "Assets/Models/op311bgl.geo",
+      "sha256": "80aabdce10df3fa8a695a56a8c59175b46266040365cb934b3cd4d3d0ee1f903"
+    },
+    {
+      "path": "Assets/Models/op311bgr.geo",
+      "sha256": "e9c0dd1f3581cb3f8ef8259d9dce6a30d8da47678cc90d05a48502cf2ce6cad9"
+    },
+    {
+      "path": "Assets/Models/op311tx1.geo",
+      "sha256": "17e096925dc756b136932587a2d5e345636f5c6989228045ada44c534229e663"
+    },
+    {
+      "path": "Assets/Models/op311ty1.geo",
+      "sha256": "11fe544f68a714f274d9d897c3dbbba51bdd029c860c4d77a98ca68979dce86c"
+    },
+    {
+      "path": "Assets/Models/op311bgt.geo",
+      "sha256": "11d00561a4c869a3f3a7552ca8de94df7d7dc9133f816b12f3aa1212c54de2e4"
+    },
+    {
+      "path": "Assets/Models/op321cab.geo",
+      "sha256": "66762abdf2bfe8d23b917efd51a89f890d0a344bdab21f4758b5b6a00edb1607"
+    },
+    {
+      "path": "Assets/Models/op311lg1.geo",
+      "sha256": "3ff274f1fa70fb9aa94edcc3c4c194fe7e25fff496b70571e54eeb7848976c52"
+    },
+    {
+      "path": "Assets/Models/op311lg2.geo",
+      "sha256": "b3b05417d74d681ec9a31bb8bc4dc0ebcf075368fed9667b64afa9b3924f77df"
+    },
+    {
+      "path": "Assets/Models/op311lg3.geo",
+      "sha256": "feb02b58b58eb96ca3c0f425fc2ab74386f4159cba0132494df9360a2b6b1c10"
+    }
+  ]
+}
