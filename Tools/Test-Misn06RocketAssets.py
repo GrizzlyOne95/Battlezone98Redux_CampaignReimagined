@@ -10,11 +10,20 @@ import sys
 ROOT=Path(__file__).resolve().parents[1]
 atlas=(ROOT/'Assets/Textures/cr06rok_d.dds').read_bytes()
 atlas_height,atlas_width=struct.unpack_from('<II',atlas,12)
-assert struct.unpack_from('<3I',atlas,92)==(0xff0000,0xff00,0xff),'BGRA8 atlas masks'
+
+def atlas_rgb(px,py):
+    # Decode one mip-0 texel of the BC1 atlas.
+    offset=128+8*((py>>2)*(atlas_width>>2)+(px>>2))
+    c0,c1,bits=struct.unpack_from('<HHI',atlas,offset)
+    def rgb(c):return ((c>>11)*255//31,((c>>5)&63)*255//63,(c&31)*255//31)
+    a,b=rgb(c0),rgb(c1)
+    palette=[a,b,tuple((2*x+y)//3 for x,y in zip(a,b)),tuple((x+2*y)//3 for x,y in zip(a,b))] if c0>c1 else [a,b,tuple((x+y)//2 for x,y in zip(a,b)),(0,0,0)]
+    return palette[(bits>>(2*(4*(py&3)+(px&3))))&3]
 
 
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from bzmodellibs import bwd2_serializer,geo_serializer,ogremesh_serializer
+from bcdds import bc_dds_problem
 
 mesh=ogremesh_serializer.MeshSerializer(io.BytesIO((ROOT/'Assets/ModelFixes/cr06rok.mesh').read_bytes())).read()
 assert mesh.skeleton_name is None,'static Ogre mesh'
@@ -44,7 +53,7 @@ for sub in mesh.submesh_list:
         uv=[sum(v[j] for v in (a,b,c))/3 for j in (6,7)]
         px=min(atlas_width-1,max(0,int(uv[0]*atlas_width)))
         py=min(atlas_height-1,max(0,int(uv[1]*atlas_height)))
-        blue,green,red,_=atlas[128+4*(py*atlas_width+px):132+4*(py*atlas_width+px)]
+        red,green,blue=atlas_rgb(px,py)
         if red>60 and red>2*green and red>2*blue:
             red_paint+=1
             center=[sum(v[j] for v in (a,b,c))/3 for j in range(3)]
@@ -68,8 +77,11 @@ assert half[1]>=48.5 and half[0]>=15.0 and half[2]>=15.0,'updated native bounds'
 
 for suffix,size in [('d',2048),('e',1024),('s',512),('n',16)]:
     dds=(ROOT/'Assets/Textures'/('cr06rok_'+suffix+'.dds')).read_bytes()
-    assert dds[:4]==b'DDS ' and struct.unpack_from('<II',dds,12)==(size,size)
-    assert struct.unpack_from('<I',dds,80)[0]==0x41 and struct.unpack_from('<I',dds,88)[0]==32,'RGBA8 texture'
+    if suffix=='n':  # flat 16x16 normal stays RGBA8
+        assert dds[:4]==b'DDS ' and struct.unpack_from('<II',dds,12)==(size,size)
+        assert struct.unpack_from('<I',dds,80)[0]==0x41 and struct.unpack_from('<I',dds,88)[0]==32,'RGBA8 texture'
+    else:
+        assert not bc_dds_problem(dds,size),bc_dds_problem(dds,size)
 
 layout=(ROOT/'Scripts/CR06RocketLayout.lua').read_text()
 jets=[tuple(map(float,m)) for m in re.findall(r'\{(-?[\d.]+),\s*(-?[\d.]+)\}',layout)]
@@ -81,4 +93,4 @@ core,plume,smoke,dust=template.split('particle_system CR/M06/')[1:]
 assert core.startswith('Core') and core.count('emitter Point')==8
 assert plume.startswith('Plume') and plume.count('emitter Point')==8
 assert sum(map(int,re.findall(r'\bquota\s+(\d+)',template)))==1006,'shared bounded particle quotas'
-print('Misn06 rebuilt rocket: geometry, normals, native bounds, RGBA8 atlases and eight nozzle anchors passed')
+print('Misn06 rebuilt rocket: geometry, normals, native bounds, BC1 mipped atlases and eight nozzle anchors passed')

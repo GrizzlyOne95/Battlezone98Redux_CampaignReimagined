@@ -4,6 +4,7 @@ from hashlib import sha256
 import io,json,re,struct,sys
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from bzmodellibs import ogremesh_serializer
+from bcdds import bc_dds_problem
 ROOT=Path(__file__).resolve().parents[1]
 REF=ROOT/'References/BoltMines'
 count=0
@@ -53,7 +54,7 @@ for name,weapon,ordnance in [('cromine','cromarc','crom0'),('crfmine','crfmarc',
     for suffix in ['d','e']:
         texture=ROOT/'Assets/Textures'/f'{name}_{suffix}.dds';ship.append(texture)
         raw=texture.read_bytes()
-        check(raw[:4]==b'DDS ' and struct.unpack_from('<II',raw,12)==(1024,1024) and struct.unpack_from('<I',raw,80)[0]==0x41 and struct.unpack_from('<I',raw,88)[0]==32,'own diffuse/emission RGBA8 atlas')
+        check(bc_dds_problem(raw,1024) is None,'own diffuse/emission BC1 atlas with full mips')
         check(texture.name in text,'own atlas is actually selected')
     ship.extend(ROOT/'ODF'/f'{n}.odf' for n in (name,weapon,ordnance))
     ship.append(ROOT/'ODF'/f'{name}.inf')

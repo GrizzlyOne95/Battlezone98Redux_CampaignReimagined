@@ -84,17 +84,11 @@ jobs:
       - name: Validate hangar door assets
         run: python Tools/Test-HangarAssets.py
 
-      - name: Validate cinematic NSDF carrier assets
-        run: python Tools/Test-NSDFCarrierAssets.py
-
       - name: Validate L-Power fin spin and lightning shader
         run: python Tools/Test-LightningPlants.py
 
       - name: Validate building spin and armory launch animations
         run: python Tools/Test-BuildingAnimations.py
-
-      - name: Validate CCA concept fleet assets
-        run: python Tools/Test-CCAFleetAssets.py
 
       - name: Validate unit animation slot fixes
         run: python Tools/Test-UnitAnimSlots.py

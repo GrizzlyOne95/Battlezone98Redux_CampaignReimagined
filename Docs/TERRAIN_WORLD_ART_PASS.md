@@ -83,7 +83,8 @@ editable elevation band. It renders first with depth testing and no depth writes
 preserving scene geometry and transparent effects. Missing EXU/materials or an existing authored Ogre
 sky leave native rendering alone. Moon, Io, Europa
 and Ganymede retain airless silhouettes. Elysium keeps its fictional purple
-atmospheric palette.
+atmospheric palette. Mission 6 uses the same dome; its orbital film swaps the sky out and
+`Environment.RestoreArtSky` reinstalls it afterwards (see `CR06_ORBIT_FILM.md`).
 
 Mission 17's cloud deck renders behind scene effects, pins depth just inside the far plane and
 fades into fog near the horizon. Its alpha approaches opaque fog at the low

@@ -27,16 +27,18 @@ local api={MaterialExists=function() return true end,
  end}
 check(not Art.InitializeSky(api,"moon") and draws==0,"airless world keeps stock sky")
 check(Art.InitializeSky(api,"mars") and draws==1,"atmospheric baseline installs")
-check(not Art.InitializeSky(api,"mars","misn06.trn") and draws==1,"orbital film retains its original no-dome baseline")
+check(Art.InitializeSky(api,"mars","misn06.trn") and draws==2,"Mission 6 owns the world dome like other Mars maps")
+check(Art.InstallSky(api,"mars") and draws==3,"orbital film can reinstall the baseline dome")
+check(not Art.InstallSky(api,"moon") and draws==3,"airless world has no dome to reinstall")
 api.GetSkyDomeEnabled=function() return true end
-check(not Art.InitializeSky(api,"mars") and draws==1,"existing cinematic or weather dome is preserved")
+check(not Art.InitializeSky(api,"mars") and draws==3,"existing cinematic or weather dome is preserved")
 api.GetSkyDomeEnabled=function() return false end
 api.MaterialExists=function() return false end
-check(not Art.InitializeSky(api,"mars") and draws==1,"missing material preserves native sky")
+check(not Art.InitializeSky(api,"mars") and draws==3,"missing material preserves native sky")
 check(not Art.InitializeSky({},"mars"),"missing optional renderer API preserves native sky")
 api.MaterialExists=function() return true end
 api.GetSkyPlaneEnabled=function() error("unavailable") end
-check(not Art.InitializeSky(api,"mars") and draws==1,"failed ownership query preserves native sky")
+check(not Art.InitializeSky(api,"mars") and draws==3,"failed ownership query preserves native sky")
 local profile,writes="enhanced",{}
 api.GetEffectiveRenderProfile=function() return profile end
 api.SetMaterialPassColors=function(name,colours)
