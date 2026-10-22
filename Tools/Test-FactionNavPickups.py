@@ -42,6 +42,9 @@ for name,record in receipt['models'].items():
         check(2<=len(mesh.submesh_list)<=3,'at most two bounded additional casing batches')
         check(record['coverage']['badgePanels']<=1,'no per-facet repeated badge tiling')
         if family=='aprock':check(record['coverage']['badgePanels']==0,'triangular fins are plain, never clipped badges')
+        if family in ('apammo','aprepa'):
+            check(record['coverage']['triangles']>=80,'supply casing panels replace broad stock striping and plain recolor')
+            check(record['coverage']['badgePanels']==1,'one intact supply faction badge')
         for sub in mesh.submesh_list[1:]:
             uv=build.values(sub.vertex_data,build.om.VES.TEXTURE_COORDINATES)
             used=uv[np.unique(sub.index_array)]
@@ -71,7 +74,9 @@ for code in build.FACTIONS:
         name=stem+code;check(f'material {name} : CR_BZBase' in text,'all own materials declared')
         if quad is not None:
             check(f'crpk{code}{quad[0]+quad[1]*2}_d.dds' in text,'type-specific isolated panel selected')
-    check('set $diffuse "0.45 1 0.4"' in text,'repair casing keeps its green type tint')
+    for type_id in (0,1):
+        check(f'crpk{code}{type_id}_surf.dds' in text,'ammo/repair use dedicated authored mechanical casing art')
+    check('set $diffuse "0.45 1 0.4"' not in text,'repair ivory/green art is not flattened by a whole-casing green tint')
     with Image.open(ROOT/'Assets/Textures'/('crnv'+code+'_e.dds')) as image:
         e=np.array(image.convert('RGB'));x,y=np.meshgrid(np.linspace(0,1,1024),np.linspace(0,1,1024))
         allowed=(((x-.084)**2/(.049**2)+(y-.915)**2/(.052**2)<1)|((x-.205)**2/(.049**2)+(y-.915)**2/(.052**2)<1))

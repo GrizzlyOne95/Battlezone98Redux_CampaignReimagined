@@ -26,7 +26,7 @@ material crambd : CR_BZBase
 
 material crambd/plain : crambd
 {
-    set_texture_alias DiffuseMap crpkbd_plain.dds
+    set_texture_alias DiffuseMap crpkbd0_surf.dds
     set $diffuse "1 1 1"
     set $ambient "1 1 1"
 }
@@ -45,9 +45,9 @@ material crhpbd : CR_BZBase
 
 material crhpbd/plain : crhpbd
 {
-    set_texture_alias DiffuseMap crpkbd_plain.dds
-    set $diffuse "0.45 1 0.4"
-    set $ambient "0.45 1 0.4"
+    set_texture_alias DiffuseMap crpkbd1_surf.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
 }
 
 material crwcbd : CR_BZBase

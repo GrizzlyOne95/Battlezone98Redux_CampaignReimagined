@@ -39,19 +39,25 @@ menus are retained instead of substituting an NSDF payload under a new skin.
 ## UV correction after owner review
 
 The first preview repeated framed badges per facet and clipped them on fins.
-It is superseded. The revised pass:
+The owner then rejected the corrected but overly plain ammo/repair casings.
+Both supply previews are superseded by the v2 mechanical casing pass:
 
-- Uses dedicated plain faction metal on ordinary casing faces, at an object-
-  scale projection. It never enlarges a corner of a framed badge as "plain" art.
+- Uses dedicated plain faction metal on ordinary **weapon** casing faces, at
+  object scale. Ammo and repair instead use separate authored mechanical
+  utility panels with cooling ribs, fasteners and blue/green equipment trim.
+  Supply UVs now include narrow broad panels that retained oversized stock
+  stripes before. Every selected panel has an aspect-preserving planar unwrap.
 - Uses at most one complete emblem panel per pickup. Its circular footprint
   must lie inside the actual mapped triangle union; a clipped fixture fails.
   Narrow bevels, rocket fins and unsuitable surfaces remain unmarked.
 - Unpacks each pickup-type cell to a **separate 512px DDS before generating
   mips**. Referenced UVs remain inside that texture, avoiding neighbor-cell
-  colors and frame fragments. Sixteen emblem maps and four plain finishes are
-  shared across the twenty-four pickup models. No cross-cell sampler trick.
-- Keeps stock type colors/details on untouched surfaces; repair's plain casing
-  additionally has a green material tint. The tint does not recolor its badge.
+  colors and frame fragments. Sixteen emblem maps, eight supply utility maps
+  and four plain weapon finishes serve the twenty-four pickup models.
+- Keeps stock details on untouched surfaces, including ammo's blue tip and
+  repair's small coupling caps. Repair art uses ivory, graphite and green
+  service trim, not a whole-casing green tint. One repair badge faces +Z so it
+  is visible from the same front inspection view as the other supply badge.
 - Uses flat body normals rather than mismatched relief. Changing UV orientation
   would require a matching tangent basis if a non-flat normal is added later.
 
@@ -61,10 +67,23 @@ performance/art review, not an unqualified fleet-wide performance claim.
 Stock UVs often wrap above V=1; audit them modulo one when inspecting an atlas,
 and preserve the original wrapped values on the detail remainder.
 
+## Unique nav hazard striping
+
+The owner requested unique faction hazard markings after reviewing the navs.
+The v2 atlases retain the same stock UV islands, body identity and two lamps:
+
+| Faction | Hazard-band pattern |
+|---|---|
+| NSDF | Off-white/charcoal V chevrons with ochre edge lines |
+| Black Dog | Crimson triple-slash groups on charcoal, thin ivory lines |
+| CCA | Red/ivory horizontal ladder bars with a charcoal centerline |
+| CRA | Yellow/olive angular sawtooth bands edged in red |
+
 ## Authoring, rebuild and evidence
 
-Built-in ImageGen authored four beacon masters, four type-panel atlases and
-one plain-finish palette. PNGs and full prompts are retained in
+Built-in ImageGen authored four initial beacon masters, four type-panel
+atlases and one plain-finish palette, followed by four v2 hazard-band edits
+and four v2 ammo/repair panel atlases. PNGs and full prompts are retained in
 `References/TextureRevamp/nav-pickups/`. Returned square masters are 1254px;
 beacon DDS are 1024px, and isolated panel/finish cells are 512px. The compiler
 performs only technical unpacking/compression and model/ODF transformation.
@@ -77,12 +96,17 @@ python Tools/Build-FactionNavPickups.py
 python Tools/Test-FactionNavPickups.py
 ```
 
-The targeted test currently passes 5241 contracts, including source/master
-hashes, exact drawn geometry, native bytes, ODF behavior equality, UV bounds,
+The targeted test passes 5305 contracts: source/master hashes, exact drawn
+geometry, native bytes, ODF behavior equality, UV bounds,
 emblem footprint, all forty menu diffs and shipping membership. Existing art,
-storage, repository and program-reference checks also pass. All five art
-builders/binders reproduce 1132 asset hashes exactly. Offline isolated
+storage, repository and program-reference checks also apply. The five
+builders/binders reproduce 1140 asset hashes exactly. The eight
+supply utility DDS add roughly 1.33 MiB; the existing material-batch limit is
+unchanged. Offline isolated
 Blender renders are art checks only; native GOG/Steam/Proton/Wine load, spinning
 parts, pickup collection/rejection, menu behavior and performance remain unrun.
 The new UV/material treatment still needs owner acceptance. Rejected renders
-are not acceptance evidence. See `review/faction-navs.jpg` and the pickup sheets.
+are not acceptance evidence. See `review/faction-navs-v2.jpg` (both sides) and
+`review/faction-ammo-repair-v2.jpg`. Prompt sets are `nav-v2-prompts.json` and
+`supply-v2-prompts.json`; selected masters are `nav_*_v2.png` and
+`supply_*_v2.png`. Weapons still use their existing v1 artwork/UV treatment.

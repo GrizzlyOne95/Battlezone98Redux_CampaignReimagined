@@ -952,6 +952,11 @@ every non-slot field and each exact source payload. For art, do not stamp a
 framed badge per facet or enlarge its corner as plain metal: use a separate
 quiet finish and check the complete emblem footprint against mapped triangles.
 Unpack pickup-type atlas cells before mip generation to avoid neighbor bleed.
+The owner rejected plain recolored ammo/repair metal too: v2 uses authored
+mechanical utility panels, including narrow faces excluded by badge-fit rules.
+Do not equate "cannot fit a badge" with "must stay featureless". Keep utility
+UV allocation separate from emblem eligibility; repair uses ivory/green art,
+not a whole-casing green tint. Nav v2 hazard bands are faction-specific patterns.
 
 ### Moon independent HD tiles and normal polarity (2026-10-20)
 

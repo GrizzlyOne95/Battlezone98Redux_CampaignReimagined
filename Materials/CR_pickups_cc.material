@@ -26,7 +26,7 @@ material cramcc : CR_BZBase
 
 material cramcc/plain : cramcc
 {
-    set_texture_alias DiffuseMap crpkcc_plain.dds
+    set_texture_alias DiffuseMap crpkcc0_surf.dds
     set $diffuse "1 1 1"
     set $ambient "1 1 1"
 }
@@ -45,9 +45,9 @@ material crhpcc : CR_BZBase
 
 material crhpcc/plain : crhpcc
 {
-    set_texture_alias DiffuseMap crpkcc_plain.dds
-    set $diffuse "0.45 1 0.4"
-    set $ambient "0.45 1 0.4"
+    set_texture_alias DiffuseMap crpkcc1_surf.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
 }
 
 material crwccc : CR_BZBase

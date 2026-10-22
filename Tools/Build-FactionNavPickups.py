@@ -47,7 +47,11 @@ def panel_groups(sub,family):
     xyz=values(sub.vertex_data,om.VES.POSITION);indices=sub.index_array.reshape(-1,3)
     tri=xyz[indices];cross=np.cross(tri[:,1]-tri[:,0],tri[:,2]-tri[:,0]);length=np.linalg.norm(cross,axis=1)
     normal=cross/np.maximum(length[:,None],1e-12);area=length*.5
-    mask=(area>area.max()*.18)&(normal[:,1]>-.45)
+    supply=family in ('apammo','aprepa')
+    mask=(area>area.max()*(.14 if supply else .18))
+    if not supply:mask&=normal[:,1]>-.45
+    if family=='apammo':mask&=tri[:,:,1].mean(1)<2.30 # Preserve the stock blue tip.
+    if family=='aprepa':mask[[0,1,4,5]]=False # Keep the small top/bottom coupling caps.
     if family=='apspec':mask&=normal[:,1]>.2
     groups=[];tolerance=np.linalg.norm(xyz.max(0)-xyz.min(0))*.025
     for i in np.flatnonzero(mask):
@@ -59,13 +63,13 @@ def panel_groups(sub,family):
     result=[]
     for group in groups:
         rows=group['triangles']
-        if len(rows)<2 and family!='aprock':continue # Rocket's broad casing faces are triangular.
+        if len(rows)<2 and family!='aprock' and not supply:continue
         n=group['normal'];n/=np.linalg.norm(n)
         up=np.array([0,1,0] if abs(n[1])<.9 else [0,0,-1],dtype=float)
         t=np.cross(up,n);t/=np.linalg.norm(t);b=np.cross(n,t)
         points=xyz[np.unique(indices[rows])]
         projected=np.column_stack((points@t,-points@b));lo=projected.min(0);hi=projected.max(0)
-        if min(hi-lo)/max(hi-lo)<.36:continue # Too narrow to carry a legible badge.
+        if min(hi-lo)/max(hi-lo)<(.08 if supply else .36):continue
         result.append(dict(triangles=rows,t=t,b=b,lo=lo,hi=hi,normal=n,area=float(area[rows].sum())))
     assert result,'No broad, legible casing panels in '+family
     # One complete, broad panel gets an emblem. Fins/bevels are plain metal,
@@ -74,7 +78,7 @@ def panel_groups(sub,family):
     candidates=[]
     for i,g in enumerate(result):
         span=g['hi']-g['lo'];fill=g['area']/np.prod(span)
-        facing=g['normal'][1] if family in ('aprepa','apspec') else g['normal'][2]
+        facing=g['normal'][1] if family=='apspec' else g['normal'][2]
         center=(g['hi']+g['lo'])*.5
         projected=(np.column_stack((xyz@g['t'],-xyz@g['b']))-center)/max(span)*.92+.5
         if len(g['triangles'])>=2 and fill>.4 and emblem_fits(projected,indices[g['triangles']]):
@@ -101,7 +105,7 @@ def reuv_body(mesh,family,material,quadrant):
         uv=np.column_stack((points@group['t'],-points@group['b']))
         center=(group['hi']+group['lo'])*.5;scale=max(group['hi']-group['lo'])
         uv=(uv-center)/scale*.92+.5
-        if not group['badge']:
+        if not group['badge'] and family not in ('apammo','aprepa'):
             # Object-scale plain metal has no frame, stripe or emblem to chop.
             # It no longer magnifies a tiny corner of the artwork.
             centered=points-whole_center
@@ -149,7 +153,7 @@ def build():
             qx,qy={'ns':(0,0),'bd':(1,0),'cc':(0,1),'cr':(1,1)}[code];w,h=image.size
             cell=image.crop((round(qx*w/2),round(qy*h/2),round((qx+1)*w/2),round((qy+1)*h/2)))
             put(f'crpk{code}_plain.dds',cell.convert('RGB').resize((512,512),Image.Resampling.LANCZOS))
-        with Image.open(REF/('nav_'+code+'.png')) as image:nav=image.convert('RGB').resize((1024,1024),Image.Resampling.LANCZOS)
+        with Image.open(REF/('nav_'+code+'_v2.png')) as image:nav=image.convert('RGB').resize((1024,1024),Image.Resampling.LANCZOS)
         put('crnv'+code+'_d.dds',nav)
         # Restrict emission to the two stock lower lamps. Painted emblems and
         # faction red markings must not glow. No diffuse-derived normal map.
@@ -162,6 +166,14 @@ def build():
             for type_id,(qx,qy) in enumerate(((0,0),(1,0),(0,1),(1,1))):
                 cell=atlas.crop((round(qx*w/2),round(qy*h/2),round((qx+1)*w/2),round((qy+1)*h/2)))
                 put(f'crpk{code}{type_id}_d.dds',cell.resize((512,512),Image.Resampling.LANCZOS))
+        # Dedicated supply art replaces plain-metal casings and oversized stock
+        # stripe panels, without altering weapon art or its source snapshots.
+        with Image.open(REF/('supply_'+code+'_v2.png')) as image:
+            atlas=image.convert('RGB');w,h=atlas.size
+            for type_id,qy in ((0,0),(1,1)):
+                for qx,ending in ((0,'_d.dds'),(1,'_surf.dds')):
+                    cell=atlas.crop((round(qx*w/2),round(qy*h/2),round((qx+1)*w/2),round((qy+1)*h/2)))
+                    put(f'crpk{code}{type_id}'+ending,cell.resize((512,512),Image.Resampling.LANCZOS))
         materials=['import * from "CR_BZBase.material"','']
         for family,(stem,quad) in FAMILIES.items():
             name=stem+code;mesh=read(SRC/(family+'.mesh'));before=geometry(mesh)
@@ -184,8 +196,8 @@ def build():
               f'    set_texture_alias EmissiveMap {emission}','    set $diffuse "1 1 1"','    set $ambient "1 1 1"',
               '    set $specular ".25 .25 .25"','    set $shininess "48"','}',''])
             if quad is not None:
-                tint='0.45 1 0.4' if family=='aprepa' else '1 1 1'
-                materials.extend([f'material {name}/plain : {name}','{',f'    set_texture_alias DiffuseMap crpk{code}_plain.dds',f'    set $diffuse "{tint}"',f'    set $ambient "{tint}"','}',''])
+                finish=f'crpk{code}{type_id}_surf.dds' if family in ('apammo','aprepa') else f'crpk{code}_plain.dds'
+                materials.extend([f'material {name}/plain : {name}','{',f'    set_texture_alias DiffuseMap {finish}','    set $diffuse "1 1 1"','    set $ambient "1 1 1"','}',''])
         (ROOT/'Materials'/('CR_pickups_'+code+'.material')).write_text('\n'.join(materials),newline='\n')
         # Retain source identity in the output name: e.g. sapmini != sspmini.
         # Soviet minigun/ammo values differ from NSDF and must not be conflated.
