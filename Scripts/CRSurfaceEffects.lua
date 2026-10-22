@@ -6,7 +6,9 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     MaxRecords = 4096, MaxActive = 64, MaxHeated = 8, PollBudget = 4, MaterialBudget = 16,
     records = {}, order = {}, cursor = 1, materials = {}, materialOrder = {}, materialCursor = 1,
     hits = {}, shots = {}, active = {}, activeSet = {}, activeCursor = 1,
-    clones = {}, nextId = 0, timer = 0, bindCursor = 1, started = false, gen = 0 }
+    clones = {}, nextId = 0, timer = 0, bindCursor = 1, started = false, gen = 0,
+    SweepWet = 0, MaxWetStep = 0.03, MaxMaterialBudget = 64, CloneWetBudget = 32,
+    sweepLeft = 0, cloneLeft = 0, wetCursor = 1, sweepMoving = false }
 
 local function call(fn, ...)
     if type(fn) ~= "function" then return nil end
@@ -227,6 +229,7 @@ local function updateRecord(r, dt)
         if type(powered) == "boolean" then r.powerOff = not powered end
     end
     local anchors, peak = {}, 0
+    r.peak = 0
     for slot, heat in pairs(r.heat) do
         heat.energy = math.max(0, heat.energy-dt*0.16)
         heat.display = heat.energy+(heat.display-heat.energy)*math.exp(-dt*6)
@@ -237,6 +240,7 @@ local function updateRecord(r, dt)
             if localPoint and #anchors < 2 then anchors[#anchors+1] = radiusMark(localPoint,0.42); peak = math.max(peak,heat.display) end
         end
     end
+    r.peak = peak
     for i=#r.marks,1,-1 do if r.marks[i].untilTime <= S.Clock then table.remove(r.marks,i) end end
     local empty = {0,0,0,0}
     local hit0, hit1 = r.marks[1], r.marks[2]
@@ -257,7 +261,7 @@ local function updateRecord(r, dt)
         if slot.assigned ~= wanted and call(exu.SetSurfaceMaterial,target(r),slot.index,wanted) == true then
             slot.assigned = wanted; slot.values = {}
         end
-        write(slot,"surfaceState", r.cockpit and 0 or S.Wetness, r.damage, peak, r.powerOff and 1 or 0)
+        write(slot,"surfaceState", r.cockpit and 0 or S.SweepWet, r.damage, peak, r.powerOff and 1 or 0)
         write(slot,"surfaceMode",0,r.cockpit and 1 or 0,r.cockpit and S.Clock or 0,0)
         local a,b = hit0 and hit0.anchor or empty,hit1 and hit1.anchor or empty
         write(slot,"surfaceImpact0",a[1],a[2],a[3],a[4]); write(slot,"surfaceImpact1",b[1],b[2],b[3],b[4])
@@ -336,16 +340,43 @@ function S.Update(dt)
         if r and valid(h) then discover(r);S.cursor=S.cursor+1
         else S.Unregister(h);table.remove(S.order,S.cursor) end
     end
-    for _=1,math.min(S.MaterialBudget,#S.materialOrder) do
+    -- Rain sweep. Every shared material and owned clone gets the same swept
+    -- value, which advances by at most MaxWetStep per completed sweep, so no
+    -- material lags its neighbours or pops; the per-tick budget grows only
+    -- while the value is moving.
+    if S.sweepLeft <= 0 and S.cloneLeft <= 0 then
+        local before = S.SweepWet
+        S.SweepWet = S.SweepWet + clamp(S.Wetness-S.SweepWet, -S.MaxWetStep, S.MaxWetStep)
+        S.sweepMoving = math.abs(S.SweepWet-before) > 0.0005
+        S.sweepLeft, S.cloneLeft = #S.materialOrder, #S.active
+    end
+    local moving = S.sweepMoving or math.abs(S.Wetness-S.SweepWet) > 0.001
+    for _=1,math.min(moving and S.MaxMaterialBudget or S.MaterialBudget,#S.materialOrder) do
         if S.materialCursor > #S.materialOrder then S.materialCursor=1 end
         local name=S.materialOrder[S.materialCursor];local state=S.materials[name]
-        if S.Clock >= (state.retry or 0) and (not state.wet or math.abs(state.wet-S.Wetness)>0.001) then
-            local changed=call(exu.SetMaterialShaderVector,name,"surfaceState",S.Wetness,0,0,0,-1,-1,"Autodetect")
-            if finite(changed) and changed > 0 then state.wet=S.Wetness
+        if S.Clock >= (state.retry or 0) and (not state.wet or math.abs(state.wet-S.SweepWet)>0.001) then
+            local changed=call(exu.SetMaterialShaderVector,name,"surfaceState",S.SweepWet,0,0,0,-1,-1,"Autodetect")
+            if finite(changed) and changed > 0 then state.wet=S.SweepWet
             else state.retry=S.Clock+2 end
         end
-        S.materialCursor=S.materialCursor+1
+        S.materialCursor=S.materialCursor+1;S.sweepLeft=S.sweepLeft-1
     end
+    -- Owned clones (towers, hit units) take the swept value here too, not
+    -- only when their record's slower round-robin update comes around.
+    local cloneWrites = 0
+    for _=1,#S.active do
+        if S.cloneLeft <= 0 or cloneWrites >= (moving and S.CloneWetBudget or 4) then break end
+        if S.wetCursor > #S.active then S.wetCursor=1 end
+        local r=S.active[S.wetCursor]
+        if not r.dead and S.activeSet[r] then
+            for _,slot in ipairs(r.slots) do
+                write(slot,"surfaceState",S.SweepWet,r.damage or 0,r.peak or 0,r.powerOff and 1 or 0)
+                cloneWrites=cloneWrites+1
+            end
+        end
+        S.wetCursor=S.wetCursor+1;S.cloneLeft=S.cloneLeft-1
+    end
+    if #S.active == 0 then S.cloneLeft = 0 end
     -- Hot mounts update at 20 Hz (at most eight craft); cold records get
     -- four bounded slices per tick. Only ONE world clone is created per tick.
     if #S.active>0 then
@@ -381,6 +412,7 @@ function S.ResetScene()
     S.records,S.order,S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{},{},{}
     S.hits,S.shots,S.clones = {},{},{}
     S.cockpit=nil;S.cursor=1;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
+    S.SweepWet=0;S.sweepLeft=0;S.cloneLeft=0;S.wetCursor=1;S.sweepMoving=false
 end
 
 -- Player setting. Off restores every owned material, releases clones, unhooks
@@ -403,6 +435,7 @@ function S.Suspend()
     S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{}
     S.hits,S.shots,S.clones = {},{},{}
     S.cockpit=nil;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
+    S.SweepWet=0;S.sweepLeft=0;S.cloneLeft=0;S.wetCursor=1;S.sweepMoving=false
     S.Unhook()
 end
 
