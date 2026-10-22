@@ -150,6 +150,11 @@ local function restore_scene(shot, api)
     if s.ambient then call(api, "SetAmbientLight", s.ambient) end
     if s.sun then call(api, "SetSunDirection", s.sun) end
     if shot.domeOwned or shot.boxOwned then call(api, "SetSkyDomeEnabled", s.dome == true) end
+    -- The fallback path replaced the dome material with the starfield; put the
+    -- baseline world-art dome back (SetSkyDome re-enables it).
+    if shot.domeOwned and s.dome and api.restoreSky then
+        if not api.restoreSky() then api.log("[misn06] baseline sky dome not restored") end
+    end
     if s.plane then call(api, "SetSkyPlaneEnabled", true)
     elseif shot.floorOwned then call(api, "SetSkyPlaneEnabled", false) end
     shot.floorOwned = nil

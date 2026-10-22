@@ -157,14 +157,15 @@ def armour_panel(name,z0,z1,a0,a1,r0,r1,mat):
     surface(.23,.14,mat)
 
 
-def star(angle, z, radius=10.96):
+def star(angle, z, radius=10.96, outer=2.05, inner=.86, slope=0.0):
     # Curved geometric marking: no texture projection or alpha sorting dependency.
     verts = [(radius*math.cos(angle), radius*math.sin(angle), z)]
     for i in range(10):
         t = math.pi/2 + i*math.pi/5
-        r = 2.05 if i % 2 == 0 else .86
+        r = outer if i % 2 == 0 else inner
         a = angle + r*math.cos(t)/radius
-        verts.append((radius*math.cos(a), radius*math.sin(a), z+r*math.sin(t)))
+        rr = radius + slope*r*math.sin(t)  # follow a tapering surface
+        verts.append((rr*math.cos(a), rr*math.sin(a), z+r*math.sin(t)))
     return mesh('CCA red star', verts, [(0, i+1, (i+1) % 10+1) for i in range(10)], 'Red')
 
 
@@ -297,7 +298,7 @@ def make_rocket():
     for a in (0,math.pi):
         patch('Hatch gasket',z(18.8),z(22.6),a-.15,a+.15,r(11.98),r(11.18),'Dark recess',4)
         patch('Hatch inset',z(19),z(22.4),a-.13,a+.13,r(11.99),r(11.20),'Alternate panel',4)
-        star(a,z(21.0),r(11.64))
+        star(a,z(20.7),r(11.64),outer=1.6,inner=.67,slope=-.79/3.4)  # centred on the inset, hugging its taper
         plate('Hatch indicator',a,z(18.45),r(.28),r(.18),r(12.01),'Red lamp')
     # Close-to-reference forward sensor band rather than a solid red stripe.
     for i in range(48):
