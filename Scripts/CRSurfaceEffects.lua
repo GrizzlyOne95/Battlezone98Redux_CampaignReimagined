@@ -16,7 +16,9 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     flashCache = {}, flashCacheCount = 0, MaxFlashCache = 512,
     -- Muzzle heat: each shot adds HeatPerShot, cooling HeatCool per second,
     -- so a slow cannon stays warm and only sustained fire reaches HeatMax.
-    HeatPerShot = 0.06, HeatMax = 1.0, HeatCool = 0.12, HeatRadius = 0.6 }
+    HeatPerShot = 0.06, HeatMax = 1.0, HeatCool = 0.12, HeatRadius = 0.6,
+    -- The glow wraps the barrel from mount to flash point within this radius.
+    BarrelRadius = 0.35 }
 
 local function call(fn, ...)
     if type(fn) ~= "function" then return nil end
@@ -338,7 +340,7 @@ local function updateRecord(r, dt)
         local powered = call(exu.IsGunTowerPowered, r.handle)
         if type(powered) == "boolean" then r.powerOff = not powered end
     end
-    local anchors, peak = {}, 0
+    local anchors, barrels, peak = {}, {}, 0
     r.peak = 0
     local right, up, front
     if next(r.heat) then right, up, front = hullBasis(r.handle) end
@@ -348,6 +350,7 @@ local function updateRecord(r, dt)
         if heat.display < 0.002 then r.heat[slot] = nil
         else
             local world = call(exu.GetWeaponMuzzlePosition, r.handle, slot)
+            local mount = world
             local o = heat.offset
             if world and o and right then
                 world = vector(world.x + right.x*o.x + up.x*o.y + front.x*o.z,
@@ -357,7 +360,13 @@ local function updateRecord(r, dt)
             -- target(r) is the cockpit model for the F1 record, so the anchor
             -- lands in that model's own space.
             local localPoint = world and call(exu.EntityLocalPoint,target(r),world)
-            if localPoint and #anchors < 2 then anchors[#anchors+1] = radiusMark(localPoint,S.HeatRadius); peak = math.max(peak,heat.display) end
+            if localPoint and #anchors < 2 then
+                anchors[#anchors+1] = radiusMark(localPoint,S.HeatRadius); peak = math.max(peak,heat.display)
+                -- A barrel needs a real mount-to-flash length; else the round tip mask.
+                local base = mount ~= world and call(exu.EntityLocalPoint,target(r),mount)
+                local dx,dy,dz = base and localPoint.x-base.x, base and localPoint.y-base.y, base and localPoint.z-base.z
+                barrels[#anchors] = base and dx*dx+dy*dy+dz*dz > 0.0025 and {base.x,base.y,base.z,S.BarrelRadius} or nil
+            end
         end
     end
     r.peak = peak
@@ -389,6 +398,8 @@ local function updateRecord(r, dt)
             hit1 and clamp((hit1.untilTime-S.Clock)/4,0,1) or 0,0,0)
         a,b = anchors[1] or empty,anchors[2] or empty
         write(slot,"surfaceMuzzle0",a[1],a[2],a[3],a[4]); write(slot,"surfaceMuzzle1",b[1],b[2],b[3],b[4])
+        a,b = barrels[1] or empty,barrels[2] or empty
+        write(slot,"surfaceBarrel0",a[1],a[2],a[3],a[4]); write(slot,"surfaceBarrel1",b[1],b[2],b[3],b[4])
     end
     return true
 end
