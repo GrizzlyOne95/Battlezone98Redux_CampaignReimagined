@@ -316,6 +316,9 @@ jobs:
           "$LUA" Tools/Test-CRMarsVolcano.lua
           "$LUA" Tools/Test-CRTitanWeather.lua Scripts
           "$LUA" Tools/Test-CRFoliageWind.lua Scripts
+            "$LUA" Tools/Test-CRFloraDamage.lua
+            "$LUA" Tools/Test-CRFloraAdapters.lua
+            "$LUA" Tools/Test-CRFloraDamageStress.lua
           # Mission 18 storm: director, tornado, ground, replication, payload lint.
           "$LUA" Tools/Test-CRStorm18.lua
           python -I Tools/Build-Misn18Storm.py --check

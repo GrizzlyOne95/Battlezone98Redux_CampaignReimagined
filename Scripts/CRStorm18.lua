@@ -675,7 +675,9 @@ function Storm.Create(api)
             for _, p in ipairs(layer.instances) do points[#points + 1] = p end
         end
         Foliage.EnableLitter(points, { rate = 70, saturation = 40, minSpeed = 3 })
+        state.flora=type(state.flora)=="table" and state.flora or {}
         gctx = {
+            flora=state.flora,removeLitter=Foliage.RemoveLitterSource,
             call = call, call2 = call2, vec = vec, sites = Sites, seed = state.seed, hash = hash,
             ready = ensureTemplates, clock = function() return clock end, height = terrain,
             material = function() return groundMaterial end, sound = sound,

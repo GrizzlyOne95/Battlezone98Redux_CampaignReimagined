@@ -9,6 +9,8 @@
 --   2 downpour   towers falling (deepens with each loss)
 --   3 storm      all towers or the mine field gone; lightning
 --   4 tempest    converter overload or the factory falls; frequent lightning
+local okDamage,Damage=pcall(require,"CRFloraDamage")
+if not okDamage then Damage=nil end
 local Jungle={}
 local LEVELS=4
 function Jungle.Create(api)
@@ -25,6 +27,7 @@ function Jungle.Create(api)
     local J={Initialized=false,Enabled=true}
     local state,level,intensity,windSpeed,bearing,nextLayer,groups,waters,mist,error
     local flash,flashAt,flashPower,thunder,thunderAt,rainSound,fallSound,nextRain,nextFalls
+    local floraNames={}
     local clouds,baseSky,nextSync
     local boltsSeen=0 -- bolts applied on this peer, for diagnostics
     local function copy(v)
@@ -181,10 +184,12 @@ function Jungle.Create(api)
     local function cellKey(ix,iz) return ix*20000+iz end
     local function buildCover()
         cover={}
-        for _,layer in ipairs(Sites.layers or {}) do
-            for _,p in ipairs(layer.instances) do
+        for li,layer in ipairs(Sites.layers or {}) do
+            for pi,p in ipairs(layer.instances) do
+                if not Damage or not Damage.IsRemoved("CR17/Jungle/"..li,pi) then
                 local k=cellKey(math.floor(p[1]/CELL),math.floor(p[3]/CELL))
                 cover[k]=(cover[k] or 0)+1
+                end
             end
         end
     end
@@ -235,6 +240,8 @@ function Jungle.Create(api)
 
     function J.Stop()
         Wake.Stop()
+        if Damage then for _,name in ipairs(floraNames) do Damage.Unregister(name) end end
+        floraNames={}
         J.Initialized=false
         for _,name in ipairs(groups or {}) do call("DestroyStaticGeometry",name) end
         for _,w in ipairs(WATERS) do call("DestroyStaticGeometry",w[1]) end
@@ -255,7 +262,7 @@ function Jungle.Create(api)
         state.sentVents=nil
         state.level=nil -- the leader re-announces after load
         level,intensity,windSpeed,bearing=nil,0,0,210
-        nextLayer=1;groups={};waters={};mist=false;error=nil;clouds="off"
+        nextLayer=1;groups={};waters={};mist=false;error=nil;clouds="off";cover=nil
         nextRain,nextFalls,nextSync=0,0,0
         baseSky=safe("GetSkyPlaneEnabled")==true or (safe("GetSkyDomeEnabled")==true and not E.ArtSkyOwned) or safe("GetSkyBoxEnabled")==true
         Weather.Init()
@@ -278,6 +285,32 @@ function Jungle.Create(api)
             end
         end
         Foliage.EnableLitter(points,{rate=45,saturation=50,minSpeed=3})
+        state.flora=type(state.flora)=="table" and state.flora or {}
+        if Damage then
+            for i,layer in ipairs(Sites.layers) do
+                if layer.mesh:find("^cr17_mire_") or layer.mesh:find("^cr17_fl_") then
+                    local name="CR17/Jungle/"..i
+                    floraNames[#floraNames+1]=name
+                    local sheds=layer.mesh:find("^cr17_mire_")~=nil
+                    state.flora[name]=Damage.Register(name,{mesh=layer.mesh,points=layer.instances,
+                        material=sheds and "CR17/GroundWindCold" or nil,
+                        options={origin={x=2048,y=0,z=99328},regionDimensions={x=192,y=256,z=192},
+                            renderingDistance=layer.distance or 260,castShadows=false,visible=true},
+                        onRemove=function(p)
+                            if sheds and Foliage.RemoveLitterSource then Foliage.RemoveLitterSource(p) end
+                            if cover then
+                                local k=cellKey(math.floor(p[1]/CELL),math.floor(p[3]/CELL))
+                                cover[k]=math.max(0,(cover[k] or 0)-1)
+                            end
+                        end},state.flora[name])
+                    if sheds and Foliage.RemoveLitterSource then
+                        for pi,p in ipairs(layer.instances) do
+                            if Damage.IsRemoved(name,pi) then Foliage.RemoveLitterSource(p) end
+                        end
+                    end
+                end
+            end
+        end
         if api.vehicleWakes~=false then
             pcall(Wake.Init,{surface=J.WakeSurface,surfaces={"water","grass"}})
         end
@@ -374,16 +407,23 @@ function Jungle.Create(api)
         end
         local layer=Sites.layers[nextLayer]
         if layer then
-            local instances={}
-            for _,p in ipairs(layer.instances) do
-                instances[#instances+1]={position={x=p[1],y=p[2],z=p[3]},yaw=p[4],scale=p[5]}
-            end
             local name="CR17/Jungle/"..nextLayer
+            local instances=Damage and Damage.Has(name) and Damage.Instances(name) or nil
+            if not instances then
+                instances={}
+                for _,p in ipairs(layer.instances) do
+                    instances[#instances+1]={position={x=p[1],y=p[2],z=p[3]},yaw=p[4],scale=p[5]}
+                end
+            end
+            if #instances==0 then nextLayer=nextLayer+1;return end
             -- The Mire ground cover (shared with misn18) is cooled for Achilles here.
             local material=layer.mesh:find("^cr17_mire_") and "CR17/GroundWindCold" or nil
             local info,reason=x.CreateStaticGeometry(name,layer.mesh,material,instances,
                 {origin={x=2048,y=0,z=99328},regionDimensions={x=192,y=256,z=192},renderingDistance=layer.distance or 260,castShadows=false,visible=true})
-            if info then groups[#groups+1]=name;nextLayer=nextLayer+1 else error=tostring(reason) end
+            if info then
+                if Damage then Damage.Resident(name,true) end
+                groups[#groups+1]=name;nextLayer=nextLayer+1
+            else error=tostring(reason) end
         end
         if not mist and type(x.CreateParticleSystem)=="function" and Templates.EnsureExtra("cr17_jungle") then
             local p=Sites.cascade
@@ -423,6 +463,7 @@ function Jungle.Create(api)
             end
         end
         geometry()
+        if Damage then Damage.Update() end
         for i=1,3 do if hasVent(state.vents,i) then lightVent(i) end end
         updateVents(math.max(0,tonumber(dt) or 0))
         if watersReady() and nextLayer>#Sites.layers and mist then error=nil end
@@ -448,7 +489,7 @@ function Jungle.Create(api)
     function J.GetSeverity() return level and level/LEVELS or 0 end
     function J.Save() return copy(state) end
     function J.Describe() return {level=level,phase=level,intensity=intensity,wind=windSpeed,bearing=bearing,
-        clouds=clouds,batches=#groups,totalBatches=#Sites.layers,river=waters and waters.water or false,
+        flora=Damage and Damage.Describe() or nil,clouds=clouds,batches=#groups,totalBatches=#Sites.layers,river=waters and waters.water or false,
         streams=waters and waters.streams or false,pools=waters and waters.pools or false,
         mist=mist,error=error,age=state and state.age or 0,bolts=boltsSeen,foliage=Foliage.Describe(),
         vents=state and state.vents or 0,ventsLit=(function() local n=0;for _ in pairs(vents) do n=n+1 end;return n end)(),
