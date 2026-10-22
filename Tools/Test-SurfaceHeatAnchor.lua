@@ -41,7 +41,8 @@ function E.CloneSurfaceMaterial() return true end
 function E.ReleaseSurfaceMaterial() return true end
 function E.SetSurfaceTexture() return 1 end
 function E.SetMaterialShaderVector(name, key, ...) uniforms[name .. key] = {...}; return 1 end
-function E.EntityLocalPoint(_, p) return p end
+local localTargets = {}
+function E.EntityLocalPoint(t, p) localTargets[#localTargets + 1] = t; return p end
 -- Native mounts: slot 0 one metre above the hull origin, slot 1 beside it.
 function E.GetWeaponMuzzlePosition(_, slot)
     if slot == 0 then return SetVector(hull.posit[1], hull.posit[2] + 1, hull.posit[3]) end
@@ -79,7 +80,7 @@ local S = load()
 shot(0); ticks(S, 6)
 local a = anchor()
 assert(a, "heat anchor written")
-near(a[1], 102.41, "forward offset"); near(a[2], 1.1, "up offset"); near(a[3], -0.2, "right offset"); near(a[4], 0.42, "radius")
+near(a[1], 102.41, "forward offset"); near(a[2], 1.1, "up offset"); near(a[3], -0.2, "right offset"); near(a[4], 0.6, "radius")
 
 -- 2. The anchor rides the hull: rotate and move the craft, the barrel tip follows.
 hull = { right = {1,0,0}, up = {0,1,0}, front = {0,0,1}, posit = {0,0,50} }
@@ -144,4 +145,20 @@ for i = 1, 160 do
 end
 assert(maxStep < 0.06, "heat display steps must stay small, got " .. maxStep)
 
-print("SurfaceHeatAnchor: craft offset, hull follow, turret shot, weapon fallback, invalid value, mount, no API, cache, smoothness PASS")
+-- 10. In F1 the player's cockpit model heats too, anchored in its own space.
+E.GetCameraView = function() return 1 end
+S = load()
+localTargets = {}
+for _ = 1, 10 do shot(0); ticks(S, 1) end
+assert(S.cockpit and S.cockpit.heat[0] and S.cockpit.heat[0].energy > 0.3, "cockpit barrel heats")
+assert(S.records[1].heat[0], "hull still heats alongside the cockpit")
+local sawCockpit = false
+for _, t in ipairs(localTargets) do if type(t) == "table" and t.kind == "cockpit" then sawCockpit = true end end
+assert(sawCockpit, "cockpit anchor uses the cockpit model target")
+local cockpitAnchor
+for k, v in pairs(uniforms) do if k:find("_cockpitsurfaceMuzzle0", 1, true) and v[4] > 0 then cockpitAnchor = v end end
+assert(cockpitAnchor, "cockpit muzzle anchor written")
+near(cockpitAnchor[1], 102.41, "cockpit anchor at the flash offset")
+E.GetCameraView = function() return 0 end
+
+print("SurfaceHeatAnchor: craft offset, hull follow, turret shot, weapon fallback, invalid value, mount, no API, cache, smoothness, cockpit PASS")
