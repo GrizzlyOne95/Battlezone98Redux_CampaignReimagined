@@ -11,6 +11,28 @@
 --   * Existing public entry points are preserved for mission compatibility.
 
 local exu = require("exu")
+
+-- exu.SetFog moves only the rendered fog. The colour the game clears its
+-- viewports to (what shows past the sky's rim) stays the TRN FogColor, so a
+-- scripted fog change leaves a hard band of the old colour above the horizon.
+-- Every require("exu") shares this table, so wrapping it once here keeps the
+-- clear colour on the fog for every mission and weather module.
+if type(exu) == "table" and type(exu.SetFog) == "function"
+    and type(exu.SetSkyClearColor) == "function" and not exu._crSkyClearFollowsFog then
+    local rawSetFog, setClear = exu.SetFog, exu.SetSkyClearColor
+    exu.SetFog = function(r, g, b, ...)
+        local result = rawSetFog(r, g, b, ...)
+        if type(r) == "table" then
+            r, g, b = r.r, r.g, r.b
+        end
+        if type(r) == "number" and type(g) == "number" and type(b) == "number" then
+            pcall(setClear, r, g, b)
+        end
+        return result
+    end
+    exu._crSkyClearFollowsFog = true
+end
+
 local RuntimeEnhancements = require("RuntimeEnhancements")
 local WorldArt = require("CRWorldArt")
 
