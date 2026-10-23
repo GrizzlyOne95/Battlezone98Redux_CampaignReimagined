@@ -1030,6 +1030,20 @@ central recess. Keep hazard E explicitly black regardless of hue thresholds.
 
 ### Red Devil cockpit and legacy paint prototype (2026-10-22)
 
+Walker pair (`References/WalkerCockpits/README.md`, 2026-10-23): `avwalk` and
+`bvwalk` use the fixed `_c` first-person table BEFORE namespaced cockpit lookup.
+Keep the actual low independent POV, not the exterior head. Original shoulder
+and forearm bones are separate drivers; remap by name. Copy complete real arm
+components, exclude hardpoint cubes, and back only the tiny upper sockets, not
+the three intentional muzzle bores. A sideways art fit breaks shot alignment:
+derive native GC1/GC2 rays from the VDF's full transform chain, not Ogre bind
+hardpoint positions. The current offline axial fit aligns the main bores with
+those rest rays and measures projectile-frustum entry beyond the model lip;
+it does NOT put the unchanged flash origin at that lip. Preserve this caveat.
+Offline inclusion of `*11*` arm geometry does not prove native first-person
+branch visibility, aim/locomotion synchronization or firing behavior. Synthetic
+joint rotations are rig diagnostics, not native animation qualification.
+
 Light-tank pair (`References/LightTankCockpits/README.md`, 2026-10-23): `avltnk`
 and `bvltnk` share an eye position but not skeleton handle numbers. Their stock
 painted exterior frame is shell-weighted geometry in the BODY material batch,

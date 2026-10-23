@@ -1,0 +1,24 @@
+{
+  "avwalk": {
+    "forwardCannonFraction": 0.010763888888888889,
+    "cannonPixels": 620,
+    "sample": [
+      320,
+      180
+    ],
+    "verticalFov": 64,
+    "sourceArmTriangles": 2824,
+    "opaqueTriangles": 5432
+  },
+  "bvwalk": {
+    "forwardCannonFraction": 0.010763888888888889,
+    "cannonPixels": 620,
+    "sample": [
+      320,
+      180
+    ],
+    "verticalFov": 64,
+    "sourceArmTriangles": 2824,
+    "opaqueTriangles": 5432
+  }
+}
