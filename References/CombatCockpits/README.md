@@ -57,12 +57,15 @@ transformed together. No whole-body merge or arbitrary per-triangle stretching.
   lowered/inboard sill fit and artificial mounting fairings were removed.
 - Flanker: 2,881 triangles of the forward twin-gun/fuselage module, not wings,
   rear body or tail. Its denser Redux surface accounts for the largest budget.
-- CCA light tank: front glacis and actual side cannon, 700 triangles total.
-  Twenty degenerate source triangles are omitted from the selected prototype
-  group; the source is not edited. The cannon retains native position instead
+- CCA light tank: front glacis, actual side cannon, and its original red body
+  casing, 816 triangles total. Twenty-four degenerate source triangles are
+  omitted from these selections; the source is not edited. The casing is a
+  complete welded body island (116 usable triangles), not part of the cannon
+  bone. Both casing and cannon keep their native positions and original UVs.
+  The invented white bracket was removed. The cannon retains native position instead
   of the earlier lowered/inboard fit. Its two normally buried rear mounting
   loops (28 boundary edges) are explicitly capped in the cockpit hardware batch
-  and supported by a closed mounting fairing, not made double-sided.
+  and covered by the actual red casing, not made double-sided.
 - Each bomber: 705 original bow triangles, fitted above the sill after an
   initial fit proved fully occluded. Kept as a small cue rather than a large
   obstruction in the bomb-aiming window.
@@ -121,7 +124,12 @@ All model I/O uses `Tools/bzmodellibs.py` and shared toolkit serializers; no
 hand-rolled binary formats. `build.json` per unit pins outputs, source rig/mesh,
 native VDF, POV, charts, source triangle selections, rigid transforms and glass.
 
-461 focused checks pass: compiled hashes, rig/eye identity, source surface/UV
+The Flanker's large dark liner areas now have worn cream upper wall/roof panels,
+separate knee covers and foot trays, tread bars and structural ribs. These reuse
+the same CCA atlas and leave dark recesses for contrast; no extra atlas, emissive
+paint, or instrument stretching was introduced.
+
+497 focused checks pass: compiled hashes, rig/eye identity, source surface/UV
 identity, rigid unit-scale transforms, finite orthonormal tangent bases,
 nondegenerate geometry, stable-shell skinning, closure, central aim corridor,
 one canopy boundary, selected exterior visibility, first-person resource lookup,
@@ -146,7 +154,7 @@ The emissive test view is near-dark; the static lamps are artwork, not live
 engine telemetry or a native bloom/light demonstration.
 
 Four material batches each including weather; opaque triangle counts: turret
-6,984, fighter 4,001, light tank 2,060, each bomber 2,337. These are prototype
+6,984, fighter 5,361, light tank 2,164, each bomber 2,337. These are prototype
 budgets, not measured retail draw time or memory qualification.
 
 ## Explicit limits

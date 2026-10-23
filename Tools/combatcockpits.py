@@ -23,6 +23,20 @@ CONFIG={
  'avhraz':dict(faction='nsdf',role='bomber',shell='ahr21bda',batch=2,material='CRV/NSDFScoutCockpit',charts=scout.CHARTS,stock='avhraz01',exterior='avhraz00',width=.98,lip=-.48,front=1.37,roof=.76,back=-.72),
  'bvhraz':dict(faction='bdog',role='bomber',shell='bhr21bda',batch=2,material='CRV/BDogScoutCockpit',charts=scout.CHARTS,stock='bvhraz01',exterior='bvhraz00',width=.98,lip=-.48,front=1.37,roof=.76,back=-.72)}
 
+def source_island(points,triangles,eligible,seed):
+    """One complete welded source island, including faces split at UV seams."""
+    indices=np.flatnonzero(eligible);parent={int(i):int(i) for i in indices};at={}
+    def find(i):
+        while parent[i]!=i:parent[i]=parent[parent[i]];i=parent[i]
+        return i
+    for i in indices:
+        for point in points[triangles[i]]:
+            key=tuple(np.rint(point*10000).astype(np.int64))
+            if key in at:parent[find(int(i))]=find(at[key])
+            else:at[key]=int(i)
+    nearest=int(indices[np.argmin(np.linalg.norm(points[triangles[indices]]-np.array(seed),axis=2).min(1))]);root=find(nearest)
+    return np.array([i in parent and find(i)==root for i in range(len(triangles))])
+
 class Hardware:
     def __init__(self,origin,R,charts,aspects=None):self.origin=origin;self.R=R;self.charts=charts;self.aspects=aspects or {};self.rows=[];self.ix=[];self.panels=[]
     def face(self,points,chart='trim',hint=None,uvs=None):
@@ -89,9 +103,12 @@ class Hardware:
         length=np.r_[0,np.cumsum(np.linalg.norm(np.diff(np.array(rings[0]),axis=0),axis=1))];length/=length[-1];tx0,ty0,tx1,ty1=self.charts['trim']
         def uv(i,z):return (tx0+(tx1-tx0)*length[i],ty0+(ty1-ty0)*(z-back)/(front-back))
         for a,b in zip(rings,rings[1:]):
-            for i in range(5):self.face([a[i],b[i],b[i+1],a[i+1]],uvs=[uv(i,a[i][2]),uv(i,b[i][2]),uv(i+1,b[i+1][2]),uv(i+1,a[i+1][2])])
+            for i in range(5):
+                points=[a[i],b[i],b[i+1],a[i+1]]
+                if cfg['role']=='fighter' and i in (0,4):self.face(points,'armor')
+                else:self.face(points,uvs=[uv(i,a[i][2]),uv(i,b[i][2]),uv(i+1,b[i+1][2]),uv(i+1,a[i+1][2])])
         self.face(rings[0]);self.face(rings[-1]);self.face([rings[0][0],rings[0][-1],(w*1.08,roof,back),(-w*1.08,roof,back)])
-        self.face([(-w*1.08,roof,back),(w*1.08,roof,back),(w*.63,roof,front*.30),(-w*.63,roof,front*.30)])
+        self.face([(-w*1.08,roof,back),(w*1.08,roof,back),(w*.63,roof,front*.30),(-w*.63,roof,front*.30)],'armor' if cfg['role']=='fighter' else 'trim')
         # Prove this inner liner has only the single intended canopy opening.
         tris=np.array(self.rows)[:,:3][np.array(self.ix[start:]).reshape(-1,3)];edges=Counter()
         for tri in tris:
@@ -124,6 +141,15 @@ def geometry(source,skelpath,base,game,root):
             h.cassette([(sign*.54,-.48,.72),(sign*.70,-.46,.12),(sign*.65,-.72,-.09),(sign*.47,-.72,.48)],'switch' if sign>0 else 'service',.022)
             h.fairing((sign*.65,-.47,1.04),(sign*1.04,-.54,1.53),.22,.18)
             h.beam((sign*.81,.16,.66),(sign*.82,.24,-.54),.030)
+            # Worn knee armor and foot trays break up the former uninterrupted
+            # black liner. Physical ribs/tread retain dark recesses, not glow.
+            h.cassette([(sign*.69,-.76,-.38),(sign*.63,-.76,.71),(sign*.47,-.93,.71),(sign*.52,-.93,-.38)],'armor',.014)
+            h.cassette([(sign*.08,-.957,-.20),(sign*.40,-.957,-.20),(sign*.40,-.84,.64),(sign*.08,-.84,.64)],'armor',.012)
+            for z in (.04,.18,.32,.46):
+                y=-.957+(z+.20)*(.117/.84)+.027
+                h.beam((sign*.11,y,z),(sign*.37,y,z),.018,'trim')
+            h.beam((sign*.74,-.43,-.42),(sign*.72,-.43,.96),.024)
+            for z in (-.33,.12,.58):h.beam((sign*.74,-.44,z),(sign*.70,-.69,z),.018)
     elif role=='lighttank':
         rim=[(-.78,-.44,1.34),(0,-.47,1.50),(.78,-.44,1.34),(.89,.29,.78),(.48,.58,.48),(-.48,.58,.48),(-.89,.29,.78)]
         # Characteristic armored asymmetric work stations, no giant X over aim.
@@ -132,7 +158,6 @@ def geometry(source,skelpath,base,game,root):
         for sign in (-1,1):
             h.cassette([(sign*.62,-.52,.87),(sign*.79,-.47,.15),(sign*.76,-.77,-.10),(sign*.54,-.79,.60)],'service' if sign>0 else 'switch',.025)
             h.beam((sign*.89,.29,.78),(sign*.88,.35,-.60),.038)
-        h.fairing((-.85,-.58,.40),(-1.36,-.47,.90),.78,.26)
     else:
         # Thunderbolt: a tall tapered bomber screen and split side desks keep
         # its angular, open bomb-aiming pit; the scout canopy is not reused.
@@ -199,6 +224,14 @@ def geometry(source,skelpath,base,game,root):
     elif role=='lighttank':
         piece('Stoli front glacis',[1],q[:,:,2].min(1)>2.50,-8,-.56,1.55)
         piece('Stoli side cannon, native position',[2],np.ones(len(tri),bool),cap_rear=True)
+        # The red gun casing is in the BODY batch, not the cannon bone. Keep
+        # its complete source island rather than presenting two bare cylinders
+        # on an invented white bracket. Native positions and UVs are unchanged.
+        bodyweight=np.zeros(len(p))
+        for assignment in weights:
+            if assignment.bone_index==1:bodyweight[assignment.vertex_index]+=assignment.weight
+        housing=source_island(p,tri,(bodyweight[tri]>.99).all(1),[-1.7,3.039,-1.5])
+        piece('Stoli original red gun housing',[1],housing)
     else:piece('Thunderbolt sloped bow',[1],q[:,:,2].min(1)>3.25,-16,-.36,1.62)
     parts['CRV/'+base+'CombatExterior']=(np.concatenate(exterior),np.array(indices,dtype='<u2'))
     parts[cfg['material']]=h.part()

@@ -61,6 +61,13 @@ for base,cfg in cp.CONFIG.items():
         check(np.allclose(data[:,3:6],raw[:,3:6]@T[:3,:3].T,atol=1e-6),'normals follow piece rotation')
         check(0<len(ix)//3<3000,'bounded exterior group, not whole exterior')
         if base=='cvturr' or (base=='svltnk' and piece['bones']==[2]):check(np.allclose(T,np.eye(4),atol=1e-8),'gun assemblies retain actual position relative to POV')
+        if base=='svltnk' and 'original red gun housing' in piece['label']:
+            check(np.allclose(T,np.eye(4),atol=1e-8),'stock red casing stays aligned with native barrels')
+            source_points=cp.shared.values(body.vertex_data,cp.shared.om.VES.POSITION);source_tri=body.index_array.reshape(-1,3);weights=np.zeros(len(source_points))
+            for a in body.bone_assignments():
+                if a.bone_index==1:weights[a.vertex_index]+=a.weight
+            island=cp.source_island(source_points,source_tri,(weights[source_tri]>.99).all(1),[-1.7,3.039,-1.5]);face=source_points[source_tri];valid=np.linalg.norm(np.cross(face[:,1]-face[:,0],face[:,2]-face[:,0]),axis=1)>1e-9
+            check(np.array_equal(mask,island&valid) and mask.sum()==116,'entire original red housing island reused across UV seams, not body scraps')
         if base=='svltnk' and piece['bones']==[2]:
             from collections import Counter
             edges=Counter()
@@ -97,6 +104,7 @@ for base,cfg in cp.CONFIG.items():
     if cfg['role']=='bomber':check(min(hits)>10,'bow visible on both sides')
     src=cg.Sources(game=str(ROOT/'Local/no-game'),cr=str(ROOT));path,kind,_=cg.cockpit_mesh(src,base);check(kind=='separate' and Path(path).name==base+'_cockpit.mesh','first-person resource lookup')
     check(len(meta['panels'])>=3,'role-specific fitted instrument banks')
+    if base=='svfigh':check(sum(p['chart']=='armor' for p in meta['panels'])==4,'Flanker has physical paired knee panels and foot trays, not just a black liner')
     for panel in meta['panels']:
         corners=np.array(panel['points']);normal=np.cross(corners[1]-corners[0],corners[2]-corners[0]);normal/=np.linalg.norm(normal)
         check(abs((corners-corners[0])@normal).max()<1e-8,'each cassette mounting face is planar, preventing self-intersection')
