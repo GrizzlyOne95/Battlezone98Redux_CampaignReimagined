@@ -5,7 +5,7 @@
     "skeletonSha256": "1ec0ac4acbe9137c4243ea0792aecfb3d76ca32e1f539d6095eeae34b0c2e01c"
   },
   "outputs": {
-    "Assets/Models/svfigh_cockpit.mesh": "205a34856d63430e52cadced4a205bb9b3c92ca8d41bf3393e9c98f95604c417",
+    "Assets/Models/svfigh_cockpit.mesh": "47b7e2ffcc66cd3a10aacfe2304da2f98100a8f196e912f278b8b8e77074dacc",
     "Assets/Models/svfigh_cockpit.skeleton": "1ec0ac4acbe9137c4243ea0792aecfb3d76ca32e1f539d6095eeae34b0c2e01c",
     "Materials/CR_svfigh_cockpit.material": "16fa5275d68e75271226e024875a5b657b1fb935dad97b71657de0d4f1f2b559"
   },
@@ -105,7 +105,30 @@
           ]
         ],
         "depth": 0.032,
-        "section": null
+        "section": null,
+        "instrumentPoints": [
+          [
+            -0.41693944393639704,
+            -0.4515123309741411,
+            0.9416453658679671
+          ],
+          [
+            0.41693944393639704,
+            -0.4515123309741411,
+            0.9416453658679671
+          ],
+          [
+            0.41693944393639704,
+            -0.5893536809011011,
+            0.7841123945228701
+          ],
+          [
+            -0.41693944393639704,
+            -0.5893536809011011,
+            0.7841123945228701
+          ]
+        ],
+        "sourceAspect": 3.9836601307189543
       },
       {
         "chart": "service",
@@ -132,7 +155,30 @@
           ]
         ],
         "depth": 0.022,
-        "section": null
+        "section": null,
+        "instrumentPoints": [
+          [
+            -0.5795230809973605,
+            -0.4879218673835323,
+            0.4667424494097234
+          ],
+          [
+            -0.6656142446614363,
+            -0.481481654339475,
+            0.17211269921737837
+          ],
+          [
+            -0.5726429200406883,
+            -0.6883702919164387,
+            0.1404240580659468
+          ],
+          [
+            -0.4865517563766125,
+            -0.6948105049604961,
+            0.4350538082582919
+          ]
+        ],
+        "sourceAspect": 1.3405639913232104
       },
       {
         "chart": "switch",
@@ -159,7 +205,30 @@
           ]
         ],
         "depth": 0.022,
-        "section": null
+        "section": null,
+        "instrumentPoints": [
+          [
+            0.5831526775140529,
+            -0.48754222614241116,
+            0.45451008642171287
+          ],
+          [
+            0.6620852042660657,
+            -0.48163752853172204,
+            0.1843793360727039
+          ],
+          [
+            0.5690133235239959,
+            -0.68874993315756,
+            0.1526564210539574
+          ],
+          [
+            0.4900807967719831,
+            -0.6946546307682491,
+            0.42278717140296634
+          ]
+        ],
+        "sourceAspect": 1.227765726681128
       }
     ],
     "exteriorPieces": [
@@ -3077,7 +3146,8 @@
             1.0
           ]
         ],
-        "triangles": 2881
+        "triangles": 2881,
+        "rearCaps": []
       }
     ],
     "nativeVdfSha256": "ce6dbe71df7efb6fdd007e2ca5810b323777e886fe79d75a1ddc10d66a6750ba"
@@ -3085,15 +3155,15 @@
   "glass": {
     "openFraction": 0.44016755349258463,
     "depth": [
-      0.6525644527737634,
-      2.3682925806208157
+      0.6525644520239039,
+      2.368292579199523
     ],
     "bone": "SFL21bda",
     "vertices": 581,
     "triangles": 1044
   },
   "triangles": {
-    "CRV/CCAMechanicalCockpit": 1092,
+    "CRV/CCAMechanicalCockpit": 1116,
     "svfigh01": 4,
     "CRV/svfighCombatExterior": 2881
   }

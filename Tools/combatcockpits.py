@@ -9,6 +9,13 @@ import cvhrazcockpit as bomber
 
 CCA_CHARTS={'console':(.02,.02,.98,.30),'switch':(.02,.34,.48,.64),'service':(.52,.34,.98,.64),'armor':(.02,.68,.48,.98),'frame':(.52,.68,.98,.80),'trim':(.52,.84,.98,.98)}
 CRA_CHARTS={**bomber.CHARTS,'switch':bomber.CHARTS['pilot'],'service':bomber.CHARTS['ordnance']}
+# Ratios of the original bitmap crops, before atlas repacking. A square UV
+# allocation need not contain square artwork: never fit dials to a trapezoid.
+ART_ASPECT={
+ 'cca':{'console':1219/306,'switch':566/461,'service':618/461},
+ 'cra':{'console':.96/.30,'switch':.46/.28,'service':.46/.28},
+ 'nsdf':{'console':1218/296,'switch':595/385,'service':588/385},
+ 'bdog':{'console':1218/279,'switch':596/476,'service':588/476}}
 CONFIG={
  'cvturr':dict(faction='cra',role='turret',shell='CAD21BDA',batch=1,material='CRV/CVBomberCockpit',charts=CRA_CHARTS,stock='cvturr01',exterior='cvturr',width=.86,lip=-.40,front=1.10,roof=.66,back=-.64),
  'svfigh':dict(faction='cca',role='fighter',shell='SFL21bda',batch=2,material='CRV/CCAMechanicalCockpit',charts=CCA_CHARTS,stock='svfigh01',exterior='svfigh00',width=.72,lip=-.38,front=1.07,roof=.54,back=-.54),
@@ -17,7 +24,7 @@ CONFIG={
  'bvhraz':dict(faction='bdog',role='bomber',shell='bhr21bda',batch=2,material='CRV/BDogScoutCockpit',charts=scout.CHARTS,stock='bvhraz01',exterior='bvhraz00',width=.98,lip=-.48,front=1.37,roof=.76,back=-.72)}
 
 class Hardware:
-    def __init__(self,origin,R,charts):self.origin=origin;self.R=R;self.charts=charts;self.rows=[];self.ix=[];self.panels=[]
+    def __init__(self,origin,R,charts,aspects=None):self.origin=origin;self.R=R;self.charts=charts;self.aspects=aspects or {};self.rows=[];self.ix=[];self.panels=[]
     def face(self,points,chart='trim',hint=None,uvs=None):
         p=np.array(points,float);n=np.cross(p[1]-p[0],p[2]-p[0]);n/=np.linalg.norm(n);hint=-p.mean(0) if hint is None else np.array(hint)
         if np.dot(n,hint)<0:p=p[::-1];n=-n;uvs=None if uvs is None else list(reversed(uvs))
@@ -46,14 +53,29 @@ class Hardware:
         self.face(p,'trim',hint=-n)
         x0,y0,x1,y1=self.charts[chart]
         if section is not None:a,b=section;x0,x1=x0+(x1-x0)*a,x0+(x1-x0)*b
-        self.face(inside,chart,uvs=[(x1,y0),(x0,y0),(x0,y1),(x1,y1)])
+        aspect=self.aspects.get(chart,(x1-x0)/(y1-y0))*(1 if section is None else section[1]-section[0])
+        # Largest centered rectangular insert within the convex housing. Keep
+        # its physical axes orthogonal and its aspect equal to source artwork;
+        # the surrounding tapered area is plain metal, not skewed instruments.
+        center=inside.mean(0);u=inside[1]-inside[0];u/=np.linalg.norm(u)
+        v=inside[3]-inside[0];v-=u*np.dot(u,v);v/=np.linalg.norm(v)
+        corners=np.array([-u*aspect-v,u*aspect-v,u*aspect+v,-u*aspect+v])*.5
+        scale=float('inf')
+        for i in range(4):
+            edge=inside[(i+1)%4]-inside[i];inward=np.cross(n,edge)
+            if np.dot(inward,center-inside[i])<0:inward=-inward
+            distance=np.dot(inward,center-inside[i]);limit=-(corners@inward).min()
+            if limit>1e-12:scale=min(scale,distance/limit)
+        instrument=center+corners*scale*.96
+        for i in range(4):j=(i+1)%4;self.face([inside[i],inside[j],instrument[j],instrument[i]],'armor',hint=n)
+        self.face(instrument,chart,uvs=[(x1,y0),(x0,y0),(x0,y1),(x1,y1)])
         # Tangible screw caps at the four corners (no embossed huge bolts).
         u=p[1]-p[0];u/=np.linalg.norm(u);v=np.cross(n,u)
         for corner in front:
             at=front.mean(0)+(corner-front.mean(0))*.96+n*.001;r=.004
             cap=[at+r*(math.cos(i*math.pi/4)*u+math.sin(i*math.pi/4)*v) for i in range(8)];self.face(cap,'frame',hint=n)
             for i in range(8):j=(i+1)%8;self.face([cap[i],cap[j],cap[j]-n*.003,cap[i]-n*.003],'trim',hint=cap[i]-at)
-        self.panels.append(dict(chart=chart,points=p.tolist(),depth=depth,section=section))
+        self.panels.append(dict(chart=chart,points=p.tolist(),depth=depth,section=section,instrumentPoints=instrument.tolist(),sourceAspect=aspect))
     def fairing(self,a,b,width=.28,height=.15):
         rings=[]
         for c in (np.array(a),np.array(b)):rings.append([c+[x*width,y*height,0] for x,y in [(-.5,-.5),(.5,-.5),(.5,.5),(-.5,.5)]])
@@ -86,14 +108,13 @@ class Hardware:
     def part(self):return np.array(self.rows,dtype='<f4'),np.array(self.ix,dtype='<u2')
 
 def geometry(source,skelpath,base,game,root):
-    cfg=CONFIG[base];s,w,eye,shell=shared.rig(skelpath,cfg['shell']);native=tank.native_eye(w,eye,game,base,root);origin,R=w[eye.handle];h=Hardware(origin,R,cfg['charts']);role=cfg['role'];width=cfg['width'];front=cfg['front'];lip=cfg['lip'];roof=cfg['roof']
+    cfg=CONFIG[base];s,w,eye,shell=shared.rig(skelpath,cfg['shell']);native=tank.native_eye(w,eye,game,base,root);origin,R=w[eye.handle];h=Hardware(origin,R,cfg['charts'],ART_ASPECT[cfg['faction']]);role=cfg['role'];width=cfg['width'];front=cfg['front'];lip=cfg['lip'];roof=cfg['roof']
     # Different structural silhouettes, not a generic shared canopy.
     if role=='turret':
         rim=[(-.86,-.40,1.10),(.86,-.40,1.10),(.93,.34,.62),(.57,.65,.39),(-.57,.65,.39),(-.93,.34,.62)]
         # Two low independent fire-control stations and a dropped selector bank.
         for sign in (-1,1):
             h.cassette([(sign*.13,-.42,1.04),(sign*.73,-.39,.98),(sign*.71,-.67,.61),(sign*.16,-.69,.66)],'switch' if sign>0 else 'service',.04)
-            h.fairing((sign*.83,-.48,.94),(sign*1.15,-.45,1.65),.36,.24)
             h.beam((sign*.91,.32,.63),(sign*1.00,.38,-.64),.038)
         h.cassette([(-.15,-.71,.64),(.15,-.71,.64),(.13,-.88,.15),(-.13,-.88,.15)],'service',.028)
     elif role=='fighter':
@@ -111,7 +132,7 @@ def geometry(source,skelpath,base,game,root):
         for sign in (-1,1):
             h.cassette([(sign*.62,-.52,.87),(sign*.79,-.47,.15),(sign*.76,-.77,-.10),(sign*.54,-.79,.60)],'service' if sign>0 else 'switch',.025)
             h.beam((sign*.89,.29,.78),(sign*.88,.35,-.60),.038)
-        h.fairing((-.79,-.57,.98),(-1.18,-.49,1.69),.46,.30)
+        h.fairing((-.85,-.58,.40),(-1.36,-.47,.90),.78,.26)
     else:
         # Thunderbolt: a tall tapered bomber screen and split side desks keep
         # its angular, open bomb-aiming pit; the scout canopy is not reused.
@@ -141,23 +162,45 @@ def geometry(source,skelpath,base,game,root):
         legacy.face(points)
     parts[cfg['stock']]=legacy.part()
     body=shared.read_mesh(source).submesh_list[0];p=shared.values(body.vertex_data,shared.om.VES.POSITION);tri=body.index_array.reshape(-1,3);q=p[tri];pieces=[];exterior=[];indices=[];weights=list(body.bone_assignments())
-    def piece(label,bones,mask,pitch,target_top,near,inboard=0):
+    def piece(label,bones,mask,pitch=0,target_top=None,near=None,inboard=0,cap_rear=False):
         boneweight=np.zeros(len(p))
         for a in weights:
             if a.bone_index in bones:boneweight[a.vertex_index]+=a.weight
         area2=np.linalg.norm(np.cross(q[:,1]-q[:,0],q[:,2]-q[:,0]),axis=1)
         keep=(boneweight[tri]>.99).all(1)&mask&(area2>1e-9);data,ix,used=tank.source_part(body,keep);assert len(ix)>0,label
         angle=math.radians(pitch);c,ss=math.cos(angle),math.sin(angle);rot=np.array([[1,0,0],[0,c,-ss],[0,ss,c]],float);local=(data[:,:3]-origin)@R;center=np.array([0.,0.,local[:,2].min()]);local=(local-center)@rot.T+center
-        delta=np.array([-np.sign(local[:,0].mean())*inboard,target_top-local[:,1].max(),near-local[:,2].min()]);T=np.eye(4);T[:3,:3]=R@rot@R.T;T[:3,3]=origin+R@(center-rot@center+delta)-T[:3,:3]@origin
+        delta=np.array([-np.sign(local[:,0].mean())*inboard,0 if target_top is None else target_top-local[:,1].max(),0 if near is None else near-local[:,2].min()]);T=np.eye(4);T[:3,:3]=R@rot@R.T;T[:3,3]=origin+R@(center-rot@center+delta)-T[:3,:3]@origin
         data[:,:3]=data[:,:3]@T[:3,:3].T+T[:3,3];data[:,3:6]=data[:,3:6]@T[:3,:3].T;data[:,8:11]=data[:,8:11]@T[:3,:3].T
-        indices.extend((ix+sum(len(x) for x in exterior)).tolist());exterior.append(data);pieces.append(dict(label=label,bones=bones,sourceIndices=np.flatnonzero(keep).tolist(),transform=T.tolist(),triangles=len(ix)//3))
+        caps=[]
+        if cap_rear:
+            # Source cannon is open on its normally buried rear mounting plane.
+            # Close each real boundary loop, rather than hiding it two-sided.
+            edge_counts=Counter();points={}
+            for face in data[ix.reshape(-1,3),:3]:
+                keys=[tuple(np.rint(v*10000).astype(np.int64)) for v in face]
+                points.update(zip(keys,face))
+                for i in range(3):edge_counts[tuple(sorted((keys[i],keys[(i+1)%3])))]+=1
+            edges={edge for edge,count in edge_counts.items() if count==1};adj={}
+            for a,b in edges:adj.setdefault(a,set()).add(b);adj.setdefault(b,set()).add(a)
+            assert all(len(neighbors)==2 for neighbors in adj.values()),'rear cap must have simple closed boundary loops'
+            while edges:
+                a,b=next(iter(edges));loop=[a];previous=a;current=b;edges.remove(tuple(sorted((a,b))))
+                while current!=loop[0]:
+                    loop.append(current);nxt=next(x for x in adj[current] if x!=previous);edges.remove(tuple(sorted((current,nxt))));previous,current=current,nxt
+                polygon=np.array([points[key] for key in loop]);localpoly=(polygon-origin)@R
+                assert np.ptp(localpoly[:,2])<1e-4,'only planar rear mount openings are capped'
+                h.face(localpoly,'armor',hint=[0,0,-1]);caps.append(localpoly.tolist())
+        indices.extend((ix+sum(len(x) for x in exterior)).tolist());exterior.append(data);pieces.append(dict(label=label,bones=bones,sourceIndices=np.flatnonzero(keep).tolist(),transform=T.tolist(),triangles=len(ix)//3,rearCaps=caps))
     if role=='turret':
-        for sign,bone in [(1,4),(-1,7)]:piece('original '+str(sign)+' paired-gun pod',[bone],q[:,:,2].min(1)>.70,-5,-.29,1.29,.36)
+        # Four guns flank the eye: one high and one low on each side. Keep
+        # the complete pod geometry at native coordinates, not on the sill.
+        for sign,bone in [(1,4),(-1,7)]:piece('native '+str(sign)+' high/low gun pod',[bone],np.ones(len(tri),bool))
     elif role=='fighter':piece('Flanker gun/fuselage nose',[4],q[:,:,2].min(1)>1.50,-10,-.47,1.18)
     elif role=='lighttank':
         piece('Stoli front glacis',[1],q[:,:,2].min(1)>2.50,-8,-.56,1.55)
-        piece('Stoli side cannon',[2],np.ones(len(tri),bool),-5,-.30,1.22,.48)
+        piece('Stoli side cannon, native position',[2],np.ones(len(tri),bool),cap_rear=True)
     else:piece('Thunderbolt sloped bow',[1],q[:,:,2].min(1)>3.25,-16,-.36,1.62)
     parts['CRV/'+base+'CombatExterior']=(np.concatenate(exterior),np.array(indices,dtype='<u2'))
+    parts[cfg['material']]=h.part()
     meta=dict(base=base,role=role,pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,innerShell=topology,rim=rim,panels=h.panels,exteriorPieces=pieces,nativeVdfSha256=__import__('hashlib').sha256(native).hexdigest())
     return parts,s,w,eye,shell,meta

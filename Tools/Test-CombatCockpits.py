@@ -60,18 +60,53 @@ for base,cfg in cp.CONFIG.items():
         check(np.array_equal(data[:,6:8],raw[:,6:8]),'original exterior UVs')
         check(np.allclose(data[:,3:6],raw[:,3:6]@T[:3,:3].T,atol=1e-6),'normals follow piece rotation')
         check(0<len(ix)//3<3000,'bounded exterior group, not whole exterior')
+        if base=='cvturr' or (base=='svltnk' and piece['bones']==[2]):check(np.allclose(T,np.eye(4),atol=1e-8),'gun assemblies retain actual position relative to POV')
+        if base=='svltnk' and piece['bones']==[2]:
+            from collections import Counter
+            edges=Counter()
+            def count_edges(face):
+                keys=[tuple(np.rint(point*10000).astype(np.int64)) for point in face]
+                for i in range(len(keys)):edges[tuple(sorted((keys[i],keys[(i+1)%len(keys)])))]+=1
+            for face in data[ix.reshape(-1,3),:3]:count_edges(face)
+            for cap in piece['rearCaps']:count_edges(np.array(cap)@R.T+origin)
+            check(len(piece['rearCaps'])>0 and all(count==2 for count in edges.values()),'all source cannon mounting openings explicitly capped')
+            hardware=m.submesh_list[0];hp=cp.shared.values(hardware.vertex_data,cp.shared.om.VES.POSITION);hn=cp.shared.values(hardware.vertex_data,cp.shared.om.VES.NORMAL)
+            for cap in piece['rearCaps']:
+                for point in np.array(cap)@R.T+origin:check(np.any((np.linalg.norm(hp-point,axis=1)<1e-5)&(hn[:,2]<-.99)),'rear cap emitted with outward normal')
     check(offset==len(extdata),'every exterior vertex accounted for')
     hits=[0,0];lo,hi=ranges[ext.material_name]
     for pitch in range(-31,1):
         yaw=np.arange(-45,46);dist,hit=cast(yaw,pitch);visible=(hit>=lo)&(hit<hi)&np.isfinite(dist);hits[0]+=int((visible&(yaw<0)).sum());hits[1]+=int((visible&(yaw>0)).sum())
-    check(sum(hits)>20,'real exterior pieces visibly connect the view '+base+' '+str(hits))
-    if base=='cvturr':check(min(hits)>15,'both original gun pods visible')
+    if base=='cvturr':
+        # Native gun pods flank the pilot; do not require them to sit artificially
+        # on the bottom of a forward render. Both high/low pairs must be visible
+        # through side looks, with their original high/low geometry.
+        side_hits=[0,0];high_low=[0,0]
+        for pitch in range(-25,26):
+            yaw=np.r_[np.arange(-85,-44),np.arange(45,86)];dist,hit=cast(yaw,pitch);visible=(hit>=lo)&(hit<hi)&np.isfinite(dist)
+            side_hits[0]+=int((visible&(yaw<0)).sum());side_hits[1]+=int((visible&(yaw>0)).sum());high_low[int(pitch>0)]+=int(visible.sum())
+        check(min(side_hits)>15 and min(high_low)>15,'both native gun pods visible above/below eye in peripheral views')
+        for piece in meta['exteriorPieces']:
+            mask=np.zeros(len(body.index_array)//3,bool);mask[piece['sourceIndices']]=True;weights=np.zeros(len(cp.shared.values(body.vertex_data,cp.shared.om.VES.POSITION)))
+            for a in body.bone_assignments():
+                if a.bone_index in piece['bones']:weights[a.vertex_index]+=a.weight
+            t=cp.shared.values(body.vertex_data,cp.shared.om.VES.POSITION)[body.index_array.reshape(-1,3)];valid=(weights[body.index_array.reshape(-1,3)]>.99).all(1)&(np.linalg.norm(np.cross(t[:,1]-t[:,0],t[:,2]-t[:,0]),axis=1)>1e-9)
+            check(np.array_equal(mask,valid),'whole original gun pod retained, no floating front crop')
+        report['turretPeripheralVisibility']=side_hits
+    else:check(sum(hits)>20,'real exterior pieces visibly connect the view '+base+' '+str(hits))
     if cfg['role']=='bomber':check(min(hits)>10,'bow visible on both sides')
     src=cg.Sources(game=str(ROOT/'Local/no-game'),cr=str(ROOT));path,kind,_=cg.cockpit_mesh(src,base);check(kind=='separate' and Path(path).name==base+'_cockpit.mesh','first-person resource lookup')
     check(len(meta['panels'])>=3,'role-specific fitted instrument banks')
     for panel in meta['panels']:
         corners=np.array(panel['points']);normal=np.cross(corners[1]-corners[0],corners[2]-corners[0]);normal/=np.linalg.norm(normal)
         check(abs((corners-corners[0])@normal).max()<1e-8,'each cassette mounting face is planar, preventing self-intersection')
+        insert=np.array(panel['instrumentPoints']);u=insert[1]-insert[0];v=insert[3]-insert[0]
+        check(abs(np.dot(u,v))<1e-8 and np.allclose(insert[2],insert[1]+insert[3]-insert[0]),'instrument insert is rectangular, never a skewed or tapered UV quad')
+        check(abs(np.linalg.norm(u)/np.linalg.norm(v)-panel['sourceAspect'])<1e-7,'instruments preserve original pre-repack artwork proportions')
+        hardware=m.submesh_list[0];hp=cp.shared.values(hardware.vertex_data,cp.shared.om.VES.POSITION);huv=cp.shared.values(hardware.vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES)
+        x0,y0,x1,y1=cfg['charts'][panel['chart']]
+        if panel['section'] is not None:a,b=panel['section'];x0,x1=x0+(x1-x0)*a,x0+(x1-x0)*b
+        for point,uv in zip(insert@R.T+origin,[(x1,y0),(x0,y0),(x0,y1),(x1,y1)]):check(np.any((np.linalg.norm(hp-point,axis=1)<1e-5)&(np.linalg.norm(huv-uv,axis=1)<1e-6)),'compiled instrument UV corner matches aspect-correct insert')
     report[base]=dict(opaqueTriangles=len(tri),exteriorVisibility=hits,materials=len(m.submesh_list))
 
 receipt=json.loads((REF/'cca/build.json').read_text());check(sha(REF/'cca/atlas-master.png')==receipt['masterSha256'],'CCA master pin')
