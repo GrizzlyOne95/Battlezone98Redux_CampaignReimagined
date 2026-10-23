@@ -1030,6 +1030,24 @@ central recess. Keep hazard E explicitly black regardless of hue thresholds.
 
 ### Red Devil cockpit and legacy paint prototype (2026-10-22)
 
+CRA connection pass (`References/CVHeavyCockpit/README.md`, 2026-10-23): keep
+`cvfigh` guns under their actual wing/pod shells, returning the whole section
+to native coordinates instead of moving guns alone inward/upward. Do not
+attribute missing barrels to the wings without testing occlusion: here the
+cockpit side sills were the actual blocker. Lowering the forward outer lip
+from -.34 to -.58 m reveals the native-position guns without moving their
+hardpoints. Classify actual barrel source faces in ray tests, not a combined
+wing/gun material: wing hits falsely passed the original visibility test.
+Restoring the old sill faces must fail the barrel-visibility contract. Keep
+the liner closed and join exposed frame posts to the lowered lip.
+`cvhtnk` needs complete side gun pods
+with rear armor housings, not a z-crop of bare barrels. Source surface sections
+must interpolate attributes and cap new cut contours, preserving intentional
+source cavities. Synthetic two-cut tests cover watertightness/area/UVs; shared
+codecs still own binary I/O. Recompute AABB after appending exterior batches.
+Native driver names in an offline batch do not prove first-person visibility
+or animation/shot synchronization; preserve the explicit qualification gaps.
+
 Walker pair (`References/WalkerCockpits/README.md`, 2026-10-23): `avwalk` and
 `bvwalk` use the fixed `_c` first-person table BEFORE namespaced cockpit lookup.
 Keep the actual low independent POV, not the exterior head. Original shoulder
