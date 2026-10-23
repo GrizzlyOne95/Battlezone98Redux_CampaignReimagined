@@ -112,6 +112,7 @@ jobs:
           python Tools/Test-WalkerCockpits.py
           python Tools/Test-CVHeavyCockpit.py
           python Tools/Test-BomberRocketCockpits.py
+          python Tools/Test-LightWalkerCockpits.py
           python Tools/Test-CockpitSections.py
 
       - name: Audit looping model animations
