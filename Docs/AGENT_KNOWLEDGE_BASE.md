@@ -1030,6 +1030,13 @@ central recess. Keep hazard E explicitly black regardless of hue thresholds.
 
 ### Red Devil cockpit and legacy paint prototype (2026-10-22)
 
+`cvhraz` follow-up: `References/CVBomberCockpit/README.md` owns the low bomber
+flight deck. Compare screen obstruction using identical one-sided perspective
+samples, not different auto-framed inspection views. Rotation of a landscape
+control chart onto a portrait keel preserves lamp proportions better than
+stretching it longitudinally. Keep the pose and exterior byte-exact and retain
+closed fairings under the selected pod caps; this is still offline art review.
+
 `avrckt` follow-up: `References/AVRocketCockpit/README.md` owns the low split
 NSDF console and bounded lower nose/fin apron. A crop admitting only separated
 side triangles leaves floating bevels and loses adjoining surfaces. Keep the
