@@ -1030,6 +1030,19 @@ central recess. Keep hazard E explicitly black regardless of hue thresholds.
 
 ### Red Devil cockpit and legacy paint prototype (2026-10-22)
 
+Tank detail pass (`References/TankCockpits/README.md`): preserve the actual
+stock layout instead of giving every vehicle a shared modern dashboard. Main
+tank Black Dog's eye is 0.8 m lower than NSDF's; source shell positions differ
+too. CCA `SCZ11POV` has a 90-degree bind rotation but identity native VDF-rest
+orientation: derive it through shared codecs, keep exact skeleton bytes, and
+use that native basis for the glass fitter as well as review cameras. Retain
+each original gun's skin weights, not just geometry frozen onto the shell.
+CRA's first-person barrel starts behind its eye; fit that complete part rigidly
+so only its tip clears the ceiling, then test actual one-sided occlusion.
+Liner lips must follow the low dashboard sightline, not become walls in the
+window. Reuse accepted mechanical atlas charts and a quiet shared liner; do
+not stretch a stock conduit illustration across the tub. Offline only.
+
 Scout pair (`References/ScoutCockpits/README.md`): owner wants stock-grounded
 BZ machinery, not a generic modern-avionics makeover. Use actual cockpit
 hardware and faction exteriors as separate art references: square button
