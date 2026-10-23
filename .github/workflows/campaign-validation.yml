@@ -108,6 +108,7 @@ jobs:
           python Tools/Test-CVFighterCockpit.py
           python Tools/Test-AVRocketCockpit.py
           python Tools/Test-CVBomberCockpit.py
+          python Tools/Test-ScoutCockpits.py
 
       - name: Audit looping model animations
         # bvwalk.vdf is an older walker fix whose cycles still seam (reported, not owned here).

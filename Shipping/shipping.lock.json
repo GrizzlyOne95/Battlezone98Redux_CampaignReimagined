@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-21T14:37:36-05:00",
-  "count": 4446,
+  "count": 4456,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -1378,6 +1378,22 @@
     {
       "source": "Assets\\Textures\\crvpkup_n.dds",
       "runtime": "crvpkup_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvascp_d.dds",
+      "runtime": "crvascp_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvascp_e.dds",
+      "runtime": "crvascp_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbscp_d.dds",
+      "runtime": "crvbscp_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbscp_e.dds",
+      "runtime": "crvbscp_e.dds"
     },
     {
       "source": "Assets\\Textures\\crvarcp_d.dds",
@@ -3626,6 +3642,14 @@
     {
       "source": "Materials\\cr_reactive.particle.payload",
       "runtime": "cr_reactive.particle.payload"
+    },
+    {
+      "source": "Materials\\CR_avfigh_cockpit.material",
+      "runtime": "CR_avfigh_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_bvraz_cockpit.material",
+      "runtime": "CR_bvraz_cockpit.material"
     },
     {
       "source": "Materials\\CR_avrckt_cockpit.material",
@@ -12766,6 +12790,22 @@
     {
       "source": "Assets\\Models\\bvrdev_cockpit.skeleton",
       "runtime": "bvrdev_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\avfigh_cockpit.mesh",
+      "runtime": "avfigh_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\avfigh_cockpit.skeleton",
+      "runtime": "avfigh_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bvraz_cockpit.mesh",
+      "runtime": "bvraz_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bvraz_cockpit.skeleton",
+      "runtime": "bvraz_cockpit.skeleton"
     },
     {
       "source": "Assets\\Models\\avrckt_cockpit.mesh",
