@@ -1030,6 +1030,18 @@ central recess. Keep hazard E explicitly black regardless of hue thresholds.
 
 ### Red Devil cockpit and legacy paint prototype (2026-10-22)
 
+Bomber/rocket pass (`References/BomberRocketCockpits/README.md`, 2026-10-23):
+the CCA bomber's actual eye is offset in its pilot pod. Do not recenter POV
+to rescue its mostly missing old cockpit. Owner prefers this unit's actual
+red/charcoal exterior finish: reuse quiet red source-chart regions for its
+structure, keep cream on instrument inserts and black emission on paint.
+Selected nose hoods can be art-fitted lower, but record that transform and
+do not describe it as native gun alignment. CRA rocket prongs retain native
+positions; cap the trimmed high shoulders rather than displaying huge dark
+cut walls beside the pilot. Test original source surfaces separately from
+new caps. Float32 can collapse a tiny cap UV determinant independently of
+its geometry: remap only that face inside the quiet chart, never source UVs.
+
 CRA connection pass (`References/CVHeavyCockpit/README.md`, 2026-10-23): keep
 `cvfigh` guns under their actual wing/pod shells, returning the whole section
 to native coordinates instead of moving guns alone inward/upward. Do not
