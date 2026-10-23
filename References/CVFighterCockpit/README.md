@@ -13,19 +13,24 @@ the previous `.55/.45/.65 m` fit is gone. Original UVs interpolate at cuts;
 no new atlas or texture edits. Guns stay under their wings, not hovering above
 the sill or moved sideways away from the original firing locations.
 
-The wing roofs are especially visible during side looks. The higher pilot
-seat and the actual wings hide much of the low miniguns; the old easy forward
-gun peek is intentionally reduced, not recreated by lifting them through their
-wing. Tests distinguish visible wing/gun-section geometry from a claim that
-the barrel mouths must be visible: at the original narrow forward angular
-sample, the combined source section hits only two rays per side. Side/down
-renders show the resulting physical relationship. The compiled cockpit now
-has 664 interior/back triangles and 3,992 source section triangles, plus glass.
-The 110 cap triangles use the existing quiet interior trim allocation.
+The wing roofs are especially visible during side looks. A subsequent ray
+diagnostic corrected the initial explanation for missing forward barrels:
+our outer cockpit sills, NOT the native wings, completely occluded them.
+Lower the forward outer lip from eye-relative y=-.34 to -.58 m, blend the
+closed liner into that profile and add capped front joining posts. Keep the
+rear lip, center console, camera, wing/gun source positions and hardpoints
+unchanged. Both barrels now just peek at the lower outer corners: 69 actual
+barrel samples per side in a 160x90 forward view (64-degree vertical FOV,
+16:9), about .96% of the screen combined. The compiled cockpit now has 720
+interior/back triangles and 3,992 source section triangles, plus glass.
+The 110 section-cap triangles use the existing quiet interior trim allocation.
 
 `References/CRACockpitConnections/review` retains this follow-up's exported
 renders and comparisons; the earlier `review/` images below remain the first
-accepted prototype. Fighter tests now run 63 checks. Weather glass is fitted
+accepted prototype. Fighter tests now run 71 checks. Barrel checks classify
+source faces rather than accepting any wing/gun material hit; restoring the
+old sill faces is a negative fixture that must hide the barrels again.
+Weather glass is fitted
 only to the retained cabin, excluding distant exterior sections and their backs.
 The common compiler's optional fit subset leaves other builders unchanged.
 Exterior/native hardpoints,

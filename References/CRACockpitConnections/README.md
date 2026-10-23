@@ -12,13 +12,19 @@ the rest of the proposed candidate queue or deploy anything.
 - `review/`: before/after, exported one-sided forward/down/console/side views,
   side-down, roof/rear/floor, low-light optics, camera contracts and heavy checks.
 
+The fighter follow-up lowers only its outer sills and blends the closed liner
+to reveal the actual native-position barrels in the lower forward corners.
+The previous sill, not the wings, was the occluder. Camera, guns, wings,
+hardpoints and textures remain unchanged. `cvfigh-sill-before-after.jpg` compares
+this focused correction against the first wing-connection checkpoint.
+
 The local review gallery is `http://127.0.0.1:8767/cra-connections/index.html`
 while the existing maintainer review server runs. Original third-person POV
 locators and cutaways are copied there as diagnostic references only.
 Images use 64-degree vertical FOV, 16:9 and each unchanged actual eye. Both
 appear in the same render pipeline, with the same lighting/material handling.
 
-Validation: fighter 63 checks, heavy tank 106, synthetic section geometry 15;
+Validation: fighter 71 checks, heavy tank 106, synthetic section geometry 15;
 combat-five regression 497, main tanks 277, Red Devil 55. Repeat builds leave
 runtime resources and receipts byte-identical; repository invariants pass.
 All new tests are wired into CI. New texture count: zero.

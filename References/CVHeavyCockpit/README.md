@@ -63,7 +63,7 @@ open-contour rejection. Heavy-tank tests require no installed game: output
 and source pins, exact camera, assembly provenance, cap reproduction, original
 pod geometry, skinning, closure, aim/exterior visibility and compiled chart
 corners. Saved review images live in `References/CRACockpitConnections/review`.
-The heavy-tank suite passes 106 checks; fighter 63 and synthetic section
+The heavy-tank suite passes 106 checks; fighter 71 and synthetic section
 geometry 15. Earlier combat-five (497), main tanks (277) and Red Devil (55)
 regressions pass. Repeat builds produce identical runtime resources/receipts.
 

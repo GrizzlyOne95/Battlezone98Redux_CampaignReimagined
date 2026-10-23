@@ -49,7 +49,7 @@ check(receipt['alignment']['innerShell']['boundaryLoops']==1,'only intended cano
 visible=[]
 for sign in (-1,1):
     directions=np.concatenate([rays(sign*np.arange(15,48,1),pitch) for pitch in range(-31,1)])
-    dist,hit=cg.cast(origin,directions,tri[:,0],tri[:,1],tri[:,2]);hits=np.isfinite(dist)&(hit>=gun_first)&(hit<gun_last);visible.append(int(hits.sum()));check(hits.any(),'source gun visibly present inside forward FOV: '+str(sign))
+    dist,hit=cg.cast(origin,directions,tri[:,0],tri[:,1],tri[:,2]);hits=np.isfinite(dist)&(hit>=gun_first)&(hit<gun_last);visible.append(int(hits.sum()));check(hits.any(),'source wing/gun assembly present inside forward angular sample: '+str(sign))
 parts,*_=cp.geometry(ROOT/'Assets/ModelFixes/cvfigh.mesh',skelpath);compiled=mesh.submesh_list[1]
 check(np.array_equal(cp.shared.values(compiled.vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),parts[cp.GUNS][0][:,6:8]),'source gun UVs preserved')
 check(receipt['alignment']['gunTriangles']==3992 and len(mesh.submesh_list[1].index_array)//3==3992,'bounded wing-and-gun sections, not full hull or hardpoint cubes')
@@ -57,7 +57,28 @@ check(receipt['alignment']['gunPlacement']==dict(inboard=0,up=0,forward=0),'nati
 check(receipt['alignment']['wingCapTriangles']==110 and len(receipt['alignment']['wingSections'])==2,'both rear wing sections explicitly capped')
 for sem,column in [(cp.shared.om.VES.POSITION,slice(0,3)),(cp.shared.om.VES.NORMAL,slice(3,6)),(cp.shared.om.VES.TANGENT,slice(8,11))]:
     check(np.array_equal(cp.shared.values(compiled.vertex_data,sem),parts[cp.GUNS][0][:,column]),'compiled source section attributes reproduce')
-check(len(parts[cp.MATERIAL][1])//3==664,'only old invented mounts replaced by section backs; interior otherwise retained')
+check(len(parts[cp.MATERIAL][1])//3==720,'lowered side sills with capped front join posts and source-section backs')
+check(receipt['alignment']['sillFit']==cp.SILL_FIT,'intentional lowered outer-sill profile recorded')
+# Classify actual low barrel source faces, NOT every triangle in the combined
+# wing/gun material batch. A visible wing must not satisfy the barrel test.
+body=cp.shared.read_mesh(ROOT/'Assets/ModelFixes/cvfigh.mesh').submesh_list[0];source_p=cp.shared.values(body.vertex_data,cp.shared.om.VES.POSITION);source_tri=body.index_array.reshape(-1,3);q=source_p[source_tri]
+barrel_source=(np.abs(q[:,:,0]).min(1)>1.7)&(np.abs(q[:,:,0]).max(1)<2.3)&(q[:,:,1].max(1)<.35)&(q[:,:,2].min(1)>2.0)
+source_ids=np.concatenate([section['sourceFaceIds'] for section in receipt['alignment']['wingSections']]);barrel=np.zeros(len(tri),bool);barrel[gun_first:gun_last]=barrel_source[source_ids]
+v=np.tan(np.radians(32));x,y=np.meshgrid(np.linspace(-v*16/9,v*16/9,160),np.linspace(-v,v,90));directions=np.column_stack([x.ravel(),y.ravel(),np.ones(x.size)]);directions/=np.linalg.norm(directions,axis=1)[:,None];distance,hit=cg.cast(origin,directions@R.T,tri[:,0],tri[:,1],tri[:,2]);pixels=np.isfinite(distance)&barrel[np.maximum(hit,0)];cols=np.tile(np.arange(160),90);pixel_counts=[]
+for side in (cols<80,cols>=80):
+    n=int((pixels&side).sum());pixel_counts.append(n);check(n>=20,'actual barrel surface visibly clears complete forward cockpit, on both sides')
+check(.002<pixels.mean()<.025,'small forward barrel peek, not oversized guns in aiming view')
+check(((cols[pixels]<20)|(cols[pixels]>=140)).all(),'barrel peeks confined to outer screen corners')
+for sign in (-1,1):
+    muzzle=np.array([sign*1.98511195,.219458,2.95545602]);direction=muzzle-origin;direction/=np.linalg.norm(direction);distance,hit=cg.cast(origin,direction[None,:],tri[:,0],tri[:,1],tri[:,2]);check(np.isfinite(distance[0]) and barrel[hit[0]],'muzzle sightline first hits barrel, not cockpit sill')
+# Restore the two exact old armor faces as a negative fixture. The same screen
+# rays must expose the old failure instead of passing on visible wing triangles.
+old_sills=[]
+for sign in (-1,1):
+    p=np.array([(sign*.74,-.34,1.02),(sign*.88,-.34,-.40),(sign*.94,-.72,-.35),(sign*.78,-.72,.91)])
+    if np.dot(np.cross(p[1]-p[0],p[2]-p[0]),-p.mean(0))<0:p=p[::-1]
+    p=origin+p@R.T;old_sills.extend([p[[0,1,2]],p[[0,2,3]]])
+bad_tri=np.concatenate([tri,np.array(old_sills)]);bad_barrel=np.concatenate([barrel,np.zeros(len(old_sills),bool)]);distance,hit=cg.cast(origin,directions@R.T,bad_tri[:,0],bad_tri[:,1],bad_tri[:,2]);old_pixels=np.isfinite(distance)&bad_barrel[np.maximum(hit,0)];check(old_pixels.sum()<pixels.sum()*.25,'old-sill negative fixture rejects barrel occlusion regression')
 check(receipt['glass']['bone']=='CFL21BDA' and receipt['glass']['vertices']>0,'weather glass refit onto new window')
 check(receipt['alignment']['glassPolicy']=='cabin-only','distant wing/pod surfaces do not drive weather-glass fitting')
 src=cg.Sources(game=str(ROOT/'Local/no-game'),cr=str(ROOT));path,kind,_=cg.cockpit_mesh(src,'cvfigh');check(kind=='separate' and Path(path).name=='cvfigh_cockpit.mesh','separate first-person resource selected for all cvfigh ODF aliases')
@@ -72,4 +93,4 @@ for channel,expected in [('d',d),('e',e)]:
 bad=origin+R@np.array([0,-.5,0]);distance,_=cg.cast(bad,rays(np.array([0]),0),tri[:,0],tri[:,1],tri[:,2]);check(np.isfinite(distance).all(),'misaligned-eye negative fixture is rejected by obstruction')
 members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
 for relative in receipt['outputs']:check(members.get(relative)==Path(relative).name,'case-correct shipping resource: '+relative)
-print('CV fighter cockpit:',count,'checks passed; visible gun samples L/R',visible)
+print('CV fighter cockpit:',count,'checks passed; visible wing/gun angular samples L/R',visible,'actual barrel forward pixels L/R',pixel_counts)

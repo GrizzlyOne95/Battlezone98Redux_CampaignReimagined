@@ -6,7 +6,7 @@
     "skeletonSha256": "751b6c92b0cfc97913508f79b87a6a5c10486ac1457ef52f6af7a93799c70e1c"
   },
   "outputs": {
-    "Assets/Models/cvfigh_cockpit.mesh": "2c716007ec4045ee5ed45a2e21006e704c74b0b2b71efc9e5eb82cb09a3581ce",
+    "Assets/Models/cvfigh_cockpit.mesh": "04259197ebe0775f6008e3e9d09356e219c3d0a40ea57b46a01895e7267e5297",
     "Assets/Models/cvfigh_cockpit.skeleton": "751b6c92b0cfc97913508f79b87a6a5c10486ac1457ef52f6af7a93799c70e1c",
     "Assets/Textures/crvcfcp_d.dds": "1ef0bc860adb14a521dc12166fde945df4ab68ffb89a4b378589c7608a0a1acd",
     "Assets/Textures/crvcfcp_e.dds": "9297cb02ab851ce3d3f694909477492d8cdcd00fd660dd58537cda90d7dfa049",
@@ -11939,6 +11939,10 @@
       }
     ],
     "wingCapTriangles": 110,
+    "sillFit": {
+      "rearLip": -0.34,
+      "forwardLip": -0.58
+    },
     "rim": [
       [
         -0.76,
@@ -11989,17 +11993,17 @@
     "glassPolicy": "cabin-only"
   },
   "glass": {
-    "openFraction": 0.36782520095097926,
+    "openFraction": 0.3900147175365108,
     "depth": [
-      0.6495760734986185,
-      1.3150176647110456
+      0.6491011597926086,
+      1.3431743022184546
     ],
     "bone": "CFL21BDA",
-    "vertices": 499,
-    "triangles": 884
+    "vertices": 537,
+    "triangles": 956
   },
   "triangles": {
-    "CRV/CVFighterCockpit": 664,
+    "CRV/CVFighterCockpit": 720,
     "CRV/CVFighterGuns": 3992
   }
 }

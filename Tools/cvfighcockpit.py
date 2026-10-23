@@ -8,6 +8,7 @@ import tankcockpits as tank
 import cockpitsections
 
 MATERIAL='CRV/CVFighterCockpit';GUNS='CRV/CVFighterGuns'
+SILL_FIT=dict(rearLip=-.34,forwardLip=-.58)
 # Pixel-authored rectangles in the 1254-square generated master; inset gutters.
 CHARTS={'console':(24,28,1230,397),'switch':(24,436,610,706),'engine':(644,436,1230,706),'armor':(24,743,609,1227),'frame':(720,775,1150,875),'trim':(644,954,1230,1227)}
 
@@ -48,8 +49,10 @@ def geometry(source,skeleton_path):
     for sign in (-1,1):
         beam((sign*.86,.10,.70),(sign*.88,.16,-.55),.033,.049)
         beam((sign*.60,.43,.30),(sign*.64,.49,-.55),.029,.041)
-        # Deep sill and angled gun-control wing, below the forward aim corridor.
-        face([(sign*.74,-.34,1.02),(sign*.88,-.34,-.40),(sign*.94,-.72,-.35),(sign*.78,-.72,.91)],'armor')
+        # Drop the forward/outboard sill below the native barrel sightlines.
+        # Keep its closed liner behind it, not a hole cut through the cabin.
+        face([(sign*.74,SILL_FIT['forwardLip'],1.02),(sign*.88,SILL_FIT['rearLip'],-.40),(sign*.94,-.72,-.35),(sign*.78,-.72,.91)],'armor')
+        beam((sign*.76,-.33,1.02),(sign*.74,SILL_FIT['forwardLip'],1.02),.022,.030)
         face([(sign*.61,-.43,.73),(sign*.84,-.43,.17),(sign*.82,-.68,-.17),(sign*.58,-.68,.39)],'switch' if sign<0 else 'engine')
         beam((sign*.63,-.42,.72),(sign*.85,-.42,.17),.026,.031)
     dash=[(-.61,-.37,1.03),(.61,-.37,1.03),(.56,-.67,.67),(-.56,-.67,.67)]
@@ -60,7 +63,7 @@ def geometry(source,skeleton_path):
     face([(-.75,-.36,1.04),(0,-.38,1.28),(.75,-.36,1.04),(.56,-.49,1.52),(0,-.53,1.64),(-.56,-.49,1.52)],'armor',hint=[0,1,0])
     # The real capped wing/pod sections replace the old invented gun outriggers.
     shell_start=len(indices);rings=[]
-    for z,w,lip in [(-.55,.88,-.34),(.17,.85,-.34),(1.02,.76,-.33)]:
+    for z,w,lip in [(-.55,.88,SILL_FIT['rearLip']),(.17,.85,SILL_FIT['forwardLip']),(1.02,.76,SILL_FIT['forwardLip'])]:
         rings.append([(-w,lip,z),(-w*.97,-.72,z),(-w*.66,-1.04,z),(w*.66,-1.04,z),(w*.97,-.72,z),(w,lip,z)])
     # One continuous unwrap across the entire lower tub, not a repeated full
     # panel stamp on every small facet. Shared seam coordinates remain exact.
@@ -96,4 +99,4 @@ def geometry(source,skeleton_path):
     for sign in (-1,1):
         a,b,audit=cockpitsections.section(raw,ix,np.flatnonzero(keep),[([sign,0,0],.90),([0,0,1],.80)],np.array(CHARTS['trim'])/1254);sections.append(dict(side=sign,**audit));exterior.append(a[0]);caps.append(b[0][:,:8])
     data=np.concatenate(exterior);parts[GUNS]=(data,np.arange(len(data),dtype='<u2'));interior,ii=parts[MATERIAL];capdata=np.concatenate(caps);parts[MATERIAL]=(np.concatenate([interior,capdata]),np.r_[ii,np.arange(len(capdata))+len(interior)].astype('<u2'))
-    return parts,skeleton,world,eye,shell,dict(pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,gunTriangles=len(data)//3,gunSourceIndices=sorted(set(i for section in sections for i in section['sourceTriangles'])),gunPlacement=dict(inboard=0,up=0,forward=0),wingSections=sections,wingCapTriangles=len(capdata)//3,rim=np.array(rim).tolist(),innerShell=dict(triangles=len(shell_tri),boundaryEdges=len(boundary),boundaryLoops=1))
+    return parts,skeleton,world,eye,shell,dict(pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,gunTriangles=len(data)//3,gunSourceIndices=sorted(set(i for section in sections for i in section['sourceTriangles'])),gunPlacement=dict(inboard=0,up=0,forward=0),wingSections=sections,wingCapTriangles=len(capdata)//3,sillFit=SILL_FIT,rim=np.array(rim).tolist(),innerShell=dict(triangles=len(shell_tri),boundaryEdges=len(boundary),boundaryLoops=1))
