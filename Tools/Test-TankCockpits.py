@@ -67,11 +67,22 @@ for faction,cfg in cp.CONFIG.items():
     check(np.allclose(fitted,d[:,:3]+R@np.array(meta['gunOffset']),atol=1e-6),'complete original barrel geometry, rigid fit only')
     check(np.array_equal(cp.shared.values(gunsub.vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),d[:,6:8]),'original barrel UVs')
     hull=next(x for x in mesh.submesh_list if x.material_name.endswith('TankHull'));mask=np.zeros(len(body.index_array)//3,bool);mask[meta['apronSourceIndices']]=True;d,i,_=cp.source_part(body,mask)
-    check(np.allclose(cp.shared.values(hull.vertex_data,cp.shared.om.VES.POSITION),d[:,:3]+R@np.array(meta['apronOffset']),atol=1e-6),'bounded original hull geometry, rigid fit only')
-    check(0<len(i)//3<100,'not a whole exterior merge')
+    transform=np.eye(4);transform[:3,3]=R@np.array(meta['apronOffset']);transform=np.array(meta.get('apronTransform',transform))
+    check(np.allclose(cp.shared.values(hull.vertex_data,cp.shared.om.VES.POSITION),d[:,:3]@transform[:3,:3].T+transform[:3,3],atol=1e-6),'bounded original hull geometry, rigid fit only')
+    check(np.allclose(transform[:3,:3].T@transform[:3,:3],np.eye(3),atol=1e-6) and abs(np.linalg.det(transform[:3,:3])-1)<1e-6,'hull fit never stretches or mirrors the real shape')
+    check(np.array_equal(cp.shared.values(hull.vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),d[:,6:8]),'real hull paint and UV layout retained')
+    check(np.allclose(cp.shared.values(hull.vertex_data,cp.shared.om.VES.NORMAL),d[:,3:6]@transform[:3,:3].T,atol=1e-6),'hull normals rotate with the geometry')
+    check(0<len(i)//3<(500 if faction in ('nsdf','bdog') else 100),'not a whole exterior merge')
+    hullhits=0;hull_sides=[0,0];hlo,hhi=ranges[hull.material_name]
+    if faction in ('nsdf','bdog'):
+        check(len(i)//3==448,'complete Grizzly front group including recess walls and bevels')
+        for pitch in range(-31,-9):
+            yaws=np.arange(-45,46);dist,hit=cast(yaws,pitch);visible=(hit>=hlo)&(hit<hhi)&np.isfinite(dist);hullhits+=int(visible.sum());hull_sides[0]+=int((visible&(yaws< -10)).sum());hull_sides[1]+=int((visible&(yaws>10)).sum())
+        check(hullhits>150 and min(hull_sides)>30,'recognizable real hull visible across both sides of the lower forward view')
+        check(np.isfinite(cast(np.array([-25,25]),-23)[0]).all(),'no sky slivers beside the horns at the rear hull join')
     gunhits=0;lo,hi=ranges[gunsub.material_name]
     for pitch in np.arange(-31,32,1):
         dist,hit=cast(np.arange(-45,46,1),pitch);gunhits+=int(((hit>=lo)&(hit<hi)&np.isfinite(dist)).sum())
     if faction=='cra':check(0<gunhits<120,'CRA barrel barely peeks into the upper view')
-    report[faction]=dict(opaqueTriangles=len(tri),gunScreenSamples=gunhits,materials=len(mesh.submesh_list))
+    report[faction]=dict(opaqueTriangles=len(tri),gunScreenSamples=gunhits,hullScreenSamples=hullhits,hullSideSamples=hull_sides,materials=len(mesh.submesh_list))
 print('TANK_COCKPITS_PASS',checks,json.dumps(report))

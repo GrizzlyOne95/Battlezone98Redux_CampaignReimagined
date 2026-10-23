@@ -26,10 +26,16 @@ rigid offset: `[0, +0.02, +4.30]` m in the native POV frame. Its root is hidden
 by the original ceiling, not left floating. This is a review fit, not native
 animation or muzzle alignment qualification.
 
-Each hull apron is a bounded crop of original body-weighted, upward-facing
-front triangles, with original UVs and one rigid fitting translation. Counts
-are NSDF 20, Black Dog 20, CCA 3, CRA 10 triangles. These are small hull hints,
-not complete exterior meshes. Existing first-person guns remain separate from
+Each hull apron is a bounded crop of original body-weighted front triangles,
+with original UVs and one rigid fit. Owner follow-up replaces the inadequate
+20-triangle Grizzly strips with the complete 448-triangle front group on each:
+center sloped nose, painted markings, shoulders, bevels and recess walls. The
+NSDF group pitches -12 degrees, Black Dog -22 degrees, about model point
+`[0, 1.25, 1.10]`, with separate eye-relative offsets. No scaling, bending,
+mirroring, texture stretching, or eye adjustment. The coaming extends underneath
+the rear crop to avoid sky slivers beside the warning horns. CCA 3 and CRA 10
+triangles are unchanged. These are front groups, not complete exterior meshes.
+Existing first-person guns remain separate from
 the new, stable-shell interior skinning. ODFs, native VDF/GEOs, original exterior
 meshes and existing materials are unchanged.
 
@@ -79,14 +85,19 @@ right, roof, floor and rear. All use actual faction eye positions, native rest
 orientations, one-sided faces and 64-degree vertical FOV. The old CCA view is
 the actual same-camera problematic source, not an auto-framed comparison.
 
-259 offline geometry/identity checks pass: finite tangent bases, nondegenerate
+277 offline geometry/identity checks pass: finite tangent bases, nondegenerate
 triangles, original gun skinning/UVs, bounded original hull crops, clear central
 aiming corridors, floor/roof/rear closure, a single deliberate liner opening,
 weather-glass ownership, output hashes and case-correct separate resource lookup.
 At the 1-degree diagnostic angular sample grid, the CRA barrel occupies only
 21 forward samples, with none in the central aiming corridor. This is not a
 pixel or gameplay obstruction measurement. All tanks have five material batches
-including weather, and 1,240–1,808 opaque triangles.
+including weather, and 1,240–2,236 opaque triangles. Grizzly hull visibility
+is tested against the entire one-sided cockpit, not the isolated hull: NSDF
+418 and Black Dog 379 diagnostic angular samples, with both shoulders visible.
+The original eye, dashboard geometry, gun parts and central aiming corridor
+stay unchanged. `review/grizzly-hulls.jpg` compares the previous strip-only
+pass with this revision from the identical forward cameras.
 
 Adjacent scout (134 checks) and bomber (68 checks) regressions pass. Repository
 validation passes. The shipping lock adds only 12 owned model/rig/material files:

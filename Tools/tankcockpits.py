@@ -131,7 +131,11 @@ def geometry(source,skelpath,faction,game,root):
     assert len(seen)==len(adj),'only one intentional window boundary'
     topology=dict(triangles=(shellend-shellstart)//3,boundaryEdges=len(boundary),boundaryLoops=1)
     # A bounded solid coaming joins the lower window to the visible hull apron.
-    deck=[(-width,lip,front),(width,lip,front),(width*.90,lip-.075,front+.35),(-width*.90,lip-.075,front+.35)]
+    # Grizzly's broader nose needs a continuous lower fairing behind the cut
+    # source group; otherwise sky shows through the rear crop beside the horns.
+    if faction in ('nsdf','bdog'):
+        deck=[(-width,lip,front),(width,lip,front),(width,lip-.20,1.85),(-width,lip-.20,1.85)]
+    else:deck=[(-width,lip,front),(width,lip,front),(width*.90,lip-.075,front+.35),(-width*.90,lip-.075,front+.35)]
     face(deck,'armor',hint=[0,1,0]);bottom=np.array(deck)-[0,.07,0];face(bottom,hint=[0,-1,0])
     for i in range(4):j=(i+1)%4;face([deck[i],deck[j],bottom[j],bottom[i]],'frame')
     if faction=='cca':
@@ -152,16 +156,29 @@ def geometry(source,skelpath,faction,game,root):
     gunoffset=np.array([0.,.02,4.30]) if faction=='cra' else np.zeros(3)
     gunpart[:,:3]+=(R@gunoffset).astype('<f4')
     parts['CRV/'+cfg['base']+'TankGuns']=(gunpart,gunix)
-    # Small original-painted front glacis, not the whole exterior. Keep triangle
+    # Original-painted front glacis, not the whole exterior. Keep triangle
     # shapes and UVs; one rigid fit gives the low view an actual vehicle surface.
     bodyweight=np.zeros(len(p))
     for a in body.bone_assignments():
         if a.bone_index==cfg['bodyBone']:bodyweight[a.vertex_index]+=a.weight
-    q=p[tri];mask=(q[:,:,2].min(1)>cfg['cut'])&(abs(q[:,:,0]).max(1)<2.05)&(n[tri].mean(1)[:,1]>.25)&(bodyweight[tri]>.99).all(1)&~gun
+    grizzly=faction in ('nsdf','bdog')
+    # A recognizable Grizzly needs the complete front deck/shoulder group,
+    # not just the last upward-facing strip at the tip. Keep its original
+    # sloping plate, vents, lamp recesses and bevels as one rigid source piece.
+    cut=1.0 if grizzly else cfg['cut'];normal_floor=-1.1 if grizzly else .25
+    q=p[tri];mask=(q[:,:,2].min(1)>cut)&(abs(q[:,:,0]).max(1)<2.05)&(n[tri].mean(1)[:,1]>normal_floor)&(bodyweight[tri]>.99).all(1)&~gun
     apron,apronix,used=source_part(body,mask);assert len(apronix)>0,'front hull crop must exist'
-    local=(apron[:,:3]-origin)@R;offset=np.array([0.,lip-.09-local[:,1].max(),max(front+.04-local[:,2].min(),0.)]);apron[:,:3]+=(R@offset).astype('<f4')
+    pitch=(-12. if faction=='nsdf' else -22.) if grizzly else 0.;angle=math.radians(pitch);c,ss=math.cos(angle),math.sin(angle);rotation=np.array([[1.,0,0],[0,c,-ss],[0,ss,c]])
+    pivot_model=np.array([0.,1.25,1.10]) if grizzly else np.zeros(3);pivot=(pivot_model-origin)@R
+    local=((apron[:,:3]-origin)@R-pivot)@rotation.T+pivot
+    top=(-.48 if faction=='nsdf' else -.32) if grizzly else lip-.09
+    near=1.10 if grizzly else front+.04
+    offset=np.array([0.,top-local[:,1].max(),max(near-local[:,2].min(),0.)]);transform=np.eye(4);transform[:3,:3]=R@rotation@R.T;transform[:3,3]=pivot_model-transform[:3,:3]@pivot_model+R@offset
+    apron[:,:3]=apron[:,:3]@transform[:3,:3].T+transform[:3,3]
+    apron[:,3:6]=apron[:,3:6]@transform[:3,:3].T;apron[:,8:11]=apron[:,8:11]@transform[:3,:3].T
     parts['CRV/'+cfg['base']+'TankHull']=(apron,apronix)
     meta=dict(faction=faction,base=cfg['base'],pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,panels=panels,stockCockpitRetained=faction!='cca',stockTriangles=len(stockix)//3,gunWeights=gunweights,gunBones=cfg['gun'],gunOffset=gunoffset.tolist(),apronSourceIndices=np.flatnonzero(mask).tolist(),apronOffset=offset.tolist(),apronTriangles=len(apronix)//3,innerShell=topology,window=dict(width=width,lip=lip,front=front,roof=roof),nativeVdfSha256=__import__('hashlib').sha256(native).hexdigest())
+    if grizzly:meta.update(apronTransform=transform.tolist(),apronPitchDegrees=pitch,apronPivotModel=pivot_model.tolist())
     return parts,s,w,eye,shell,meta
 
 def compile_mesh(parts,s,w,eye,shell,base,meta):
