@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-21T14:37:36-05:00",
-  "count": 4486,
+  "count": 4492,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -3658,6 +3658,14 @@
     {
       "source": "Materials\\CR_avtank_cockpit.material",
       "runtime": "CR_avtank_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_avltnk_cockpit.material",
+      "runtime": "CR_avltnk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_bvltnk_cockpit.material",
+      "runtime": "CR_bvltnk_cockpit.material"
     },
     {
       "source": "Materials\\CR_avhraz_cockpit.material",
@@ -12846,6 +12854,22 @@
     {
       "source": "Assets\\Models\\avfigh_cockpit.skeleton",
       "runtime": "avfigh_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\avltnk_cockpit.mesh",
+      "runtime": "avltnk_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\avltnk_cockpit.skeleton",
+      "runtime": "avltnk_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bvltnk_cockpit.mesh",
+      "runtime": "bvltnk_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bvltnk_cockpit.skeleton",
+      "runtime": "bvltnk_cockpit.skeleton"
     },
     {
       "source": "Assets\\Models\\cvturr_cockpit.mesh",

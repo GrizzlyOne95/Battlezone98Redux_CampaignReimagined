@@ -1030,6 +1030,17 @@ central recess. Keep hazard E explicitly black regardless of hue thresholds.
 
 ### Red Devil cockpit and legacy paint prototype (2026-10-22)
 
+Light-tank pair (`References/LightTankCockpits/README.md`, 2026-10-23): `avltnk`
+and `bvltnk` share an eye position but not skeleton handle numbers. Their stock
+painted exterior frame is shell-weighted geometry in the BODY material batch,
+not the tall interior-control batch. Preserve that 316-triangle frame byte-exact
+in positions/UVs while replacing obstructive interior walls. Measure side-view
+improvement using identical horizon-band rays, not an auto-framed render.
+Owner requested matching faction bands on both full vehicles and cockpit rails:
+clip the quiet paint charts to the source surfaces, preserve original skinning
+on the full model, and retain immutable pre-paint baselines for reproducibility.
+Do not feed the painted output back into the builder or stack paint batches.
+
 Combat-five pass (`References/CombatCockpits/README.md`): owner prioritizes
 combatants over utility craft. Keep combat roles distinct: CRA turret dual
 fire-control desks, CCA fighter compact center bank, CCA light-tank asymmetric
