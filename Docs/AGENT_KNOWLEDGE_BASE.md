@@ -1030,6 +1030,19 @@ central recess. Keep hazard E explicitly black regardless of hue thresholds.
 
 ### Red Devil cockpit and legacy paint prototype (2026-10-22)
 
+Combat-five pass (`References/CombatCockpits/README.md`): owner prioritizes
+combatants over utility craft. Keep combat roles distinct: CRA turret dual
+fire-control desks, CCA fighter compact center bank, CCA light-tank asymmetric
+stations, NSDF/Black Dog tapered bomber pits. Reuse accepted faction atlases;
+one stock-inspired CCA hardware sheet serves both CCA units with physical
+orange lens masks. Project cassette corner profiles to a single mounting
+plane before recessing the face: a warped rear quad can protrude through it
+as an apparently black rectangular hole despite passing triangle checks.
+Review steep console views, not only forward. Test actual exterior visibility
+against the whole cockpit; a selected bomber bow can be entirely hidden by
+the new coaming. Turret rest art is not deployed/yaw/pitch qualification, and
+stable-shell art-fitted gun fragments do not prove native recoil alignment.
+
 Tank detail pass (`References/TankCockpits/README.md`): preserve the actual
 stock layout instead of giving every vehicle a shared modern dashboard. Main
 tank Black Dog's eye is 0.8 m lower than NSDF's; source shell positions differ
