@@ -1030,6 +1030,14 @@ central recess. Keep hazard E explicitly black regardless of hue thresholds.
 
 ### Red Devil cockpit and legacy paint prototype (2026-10-22)
 
+Scout pair (`References/ScoutCockpits/README.md`): owner wants stock-grounded
+BZ machinery, not a generic modern-avionics makeover. Use actual cockpit
+hardware and faction exteriors as separate art references: square button
+banks, dials, vents and recessed cable bays. `bvfigh` resolves `bvraz`; its
+eye is 0.1078 m forward of avfigh, so share a layout, not one rig/POV resource.
+Physically mask red lenses so Black Dog enamel and cables do not emit. Repack
+each generated sheet into deliberate UV charts; generated layouts can differ.
+
 `cvhraz` follow-up: `References/CVBomberCockpit/README.md` owns the low bomber
 flight deck. Compare screen obstruction using identical one-sided perspective
 samples, not different auto-framed inspection views. Rotation of a landscape
