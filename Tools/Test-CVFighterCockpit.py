@@ -52,8 +52,14 @@ for sign in (-1,1):
     dist,hit=cg.cast(origin,directions,tri[:,0],tri[:,1],tri[:,2]);hits=np.isfinite(dist)&(hit>=gun_first)&(hit<gun_last);visible.append(int(hits.sum()));check(hits.any(),'source gun visibly present inside forward FOV: '+str(sign))
 parts,*_=cp.geometry(ROOT/'Assets/ModelFixes/cvfigh.mesh',skelpath);compiled=mesh.submesh_list[1]
 check(np.array_equal(cp.shared.values(compiled.vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),parts[cp.GUNS][0][:,6:8]),'source gun UVs preserved')
-check(receipt['alignment']['gunTriangles']==2326 and len(mesh.submesh_list[1].index_array)//3==2326,'bounded selected gun tips, not full hull or hardpoint cubes')
+check(receipt['alignment']['gunTriangles']==3992 and len(mesh.submesh_list[1].index_array)//3==3992,'bounded wing-and-gun sections, not full hull or hardpoint cubes')
+check(receipt['alignment']['gunPlacement']==dict(inboard=0,up=0,forward=0),'native wing/gun relationship, no sideways muzzle drift')
+check(receipt['alignment']['wingCapTriangles']==110 and len(receipt['alignment']['wingSections'])==2,'both rear wing sections explicitly capped')
+for sem,column in [(cp.shared.om.VES.POSITION,slice(0,3)),(cp.shared.om.VES.NORMAL,slice(3,6)),(cp.shared.om.VES.TANGENT,slice(8,11))]:
+    check(np.array_equal(cp.shared.values(compiled.vertex_data,sem),parts[cp.GUNS][0][:,column]),'compiled source section attributes reproduce')
+check(len(parts[cp.MATERIAL][1])//3==664,'only old invented mounts replaced by section backs; interior otherwise retained')
 check(receipt['glass']['bone']=='CFL21BDA' and receipt['glass']['vertices']>0,'weather glass refit onto new window')
+check(receipt['alignment']['glassPolicy']=='cabin-only','distant wing/pod surfaces do not drive weather-glass fitting')
 src=cg.Sources(game=str(ROOT/'Local/no-game'),cr=str(ROOT));path,kind,_=cg.cockpit_mesh(src,'cvfigh');check(kind=='separate' and Path(path).name=='cvfigh_cockpit.mesh','separate first-person resource selected for all cvfigh ODF aliases')
 spec=importlib.util.spec_from_file_location('build_cv',ROOT/'Tools/Build-CVFighterCockpit.py');build=importlib.util.module_from_spec(spec);spec.loader.exec_module(build);d,e,mask=build.textures()
 check(np.array_equal(np.array(mask),np.array(Image.open(REF/'optical-mask.png'))),'physical optical mask reproduces')

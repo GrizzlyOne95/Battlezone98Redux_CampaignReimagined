@@ -1,5 +1,40 @@
 # CRA fighter cockpit revamp prototype
 
+## Wing-and-gun connection follow-up (2026-10-23)
+
+Owner asked to move the miniguns farther outboard and show their overlying
+wings. Supersedes the original fitted-gun description below. The accepted
+interior remains; remove only its 24-triangle invented swept outriggers and
+replace the old gun crop with both real capped wing/pod-and-gun sections.
+Select body-bone surfaces at `abs(x) >= .90`, `z >= .80`, excluding every
+hardpoint marker, using attribute-interpolated cuts and explicit rear caps.
+Source positions/scale are **native**, with zero inboard/up/forward offset:
+the previous `.55/.45/.65 m` fit is gone. Original UVs interpolate at cuts;
+no new atlas or texture edits. Guns stay under their wings, not hovering above
+the sill or moved sideways away from the original firing locations.
+
+The wing roofs are especially visible during side looks. The higher pilot
+seat and the actual wings hide much of the low miniguns; the old easy forward
+gun peek is intentionally reduced, not recreated by lifting them through their
+wing. Tests distinguish visible wing/gun-section geometry from a claim that
+the barrel mouths must be visible: at the original narrow forward angular
+sample, the combined source section hits only two rays per side. Side/down
+renders show the resulting physical relationship. The compiled cockpit now
+has 664 interior/back triangles and 3,992 source section triangles, plus glass.
+The 110 cap triangles use the existing quiet interior trim allocation.
+
+`References/CRACockpitConnections/review` retains this follow-up's exported
+renders and comparisons; the earlier `review/` images below remain the first
+accepted prototype. Fighter tests now run 63 checks. Weather glass is fitted
+only to the retained cabin, excluding distant exterior sections and their backs.
+The common compiler's optional fit subset leaves other builders unchanged.
+Exterior/native hardpoints,
+ODFs, original/fallback mesh, rig, interior textures and emission masks remain
+unchanged. No promise of live shot/flash alignment or native animation follows
+from this offline fit. No game launch or deployment.
+
+## Original prototype record
+
 Owner request: pick one reviewed cockpit and fully revamp it. Chosen `cvfigh`:
 replace its generic cage with a low, broad CRA fighter interior and show small
 portions of the miniguns at the lower sides. Preserve the approved Red Devil.

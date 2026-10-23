@@ -1,0 +1,70 @@
+[
+  {
+    "base": "cvfigh",
+    "eye": [
+      0.0,
+      1.301751971244812,
+      1.0566309690475464
+    ],
+    "basis": [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "verticalFov": 64,
+    "aspect": [
+      16,
+      9
+    ],
+    "backfaceCulling": true,
+    "triangles": 4656,
+    "warnings": [],
+    "poseNotes": []
+  },
+  {
+    "base": "cvhtnk",
+    "eye": [
+      0.0,
+      2.7389559745788574,
+      0.09809499979019165
+    ],
+    "basis": [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "verticalFov": 64,
+    "aspect": [
+      16,
+      9
+    ],
+    "backfaceCulling": true,
+    "triangles": 7614,
+    "warnings": [],
+    "poseNotes": []
+  }
+]

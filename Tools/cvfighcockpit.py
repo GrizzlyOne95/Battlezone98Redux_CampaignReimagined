@@ -4,6 +4,8 @@ from collections import Counter
 import io,math
 import numpy as np
 import reddevilcockpit as shared
+import tankcockpits as tank
+import cockpitsections
 
 MATERIAL='CRV/CVFighterCockpit';GUNS='CRV/CVFighterGuns'
 # Pixel-authored rectangles in the 1254-square generated master; inset gutters.
@@ -56,14 +58,7 @@ def geometry(source,skeleton_path):
     for i in range(4):beam(dash[i],dash[(i+1)%4],.022,.030)
     # Restrained split-nose apron joins the sill, not a full exterior hull merge.
     face([(-.75,-.36,1.04),(0,-.38,1.28),(.75,-.36,1.04),(.56,-.49,1.52),(0,-.53,1.64),(-.56,-.49,1.52)],'armor',hint=[0,1,0])
-    # Closed swept mounting shoulders hide the gun backs and join them to the
-    # sill. Only their forward upper barrel sections should peek into view.
-    for sign in (-1,1):
-        a=np.array([sign*.78,-.48,1.08]);b=np.array([sign*1.48,-.69,2.20]);rings_mount=[]
-        for c,w,h in [(a,.22,.15),(b,.28,.20)]:rings_mount.append([c+np.array([dx*w,dy*h,0]) for dx,dy in [(-.5,-.5),(.5,-.5),(.5,.5),(-.5,.5)]])
-        c=(a+b)/2
-        for i in range(4):j=(i+1)%4;p=[rings_mount[0][i],rings_mount[1][i],rings_mount[1][j],rings_mount[0][j]];face(p,'armor' if i==2 else 'trim',hint=np.mean(p,0)-c)
-        face(rings_mount[0],'trim',hint=[0,0,-1]);face(rings_mount[1],'trim',hint=[0,0,1])
+    # The real capped wing/pod sections replace the old invented gun outriggers.
     shell_start=len(indices);rings=[]
     for z,w,lip in [(-.55,.88,-.34),(.17,.85,-.34),(1.02,.76,-.33)]:
         rings.append([(-w,lip,z),(-w*.97,-.72,z),(-w*.66,-1.04,z),(w*.66,-1.04,z),(w*.97,-.72,z),(w,lip,z)])
@@ -91,20 +86,14 @@ def geometry(source,skeleton_path):
         if p not in seen:seen.add(p);todo.extend(adj[p]-seen)
     assert len(seen)==len(adj),'unintended separate tub opening'
     parts={MATERIAL:(np.array(rows,dtype='<f4'),np.array(indices,dtype='<u2'))}
-    # Actual visible gun-tip surface triangles, not the tiny GC hardpoint cubes.
+    # Keep the miniguns UNDER their real wing/pod shells, at native coordinates.
+    # A sideways fit would separate their bores from the unchanged shot rays.
     body=shared.read_mesh(source).submesh_list[0];vd=body.vertex_data;p=shared.values(vd,shared.om.VES.POSITION);n=shared.values(vd,shared.om.VES.NORMAL);uv=shared.values(vd,shared.om.VES.TEXTURE_COORDINATES);t=shared.values(vd,shared.om.VES.TANGENT);tri=body.index_array.reshape(-1,3);q=p[tri]
     weights=np.zeros(len(p))
     for a in body.bone_assignments():
         if a.bone_index==0:weights[a.vertex_index]+=a.weight
-    keep=(weights[tri]>.99).all(1)&(np.abs(q[:,:,0]).min(1)>1.7)&(np.abs(q[:,:,0]).max(1)<2.3)&(q[:,:,1].max(1)<.35)&(q[:,:,2].min(1)>2.0)
-    selected=tri[keep];used,remap=np.unique(selected,return_inverse=True);positions=p[used].copy();local=(positions-origin)@R
-    # Art-directed first-person fitting: no rotation/rescaling or UV changes.
-    local[:,0]-=np.sign(local[:,0])*.55;local[:,1]+=.45;local[:,2]+=.65;positions=origin+local@R.T
-    data=np.column_stack([positions,n[used],uv[used]]).astype('<f4')
-    if t is not None:
-        tangent=t[used,:3].copy();normal=n[used];tangent-=normal*(tangent*normal).sum(1)[:,None];length=np.linalg.norm(tangent,axis=1);bad=length<1e-8
-        for i in np.flatnonzero(bad):
-            axis=np.eye(3)[np.argmin(np.abs(normal[i]))];tangent[i]=np.cross(axis,normal[i])
-        tangent/=np.linalg.norm(tangent,axis=1)[:,None];data=np.column_stack([data,tangent]).astype('<f4')
-    parts[GUNS]=(data,remap.astype('<u2').reshape(-1));assert len(selected)>100
-    return parts,skeleton,world,eye,shell,dict(pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,gunTriangles=len(selected),gunSourceIndices=np.flatnonzero(keep).tolist(),gunPlacement=dict(inboard=.55,up=.45,forward=.65),rim=np.array(rim).tolist(),innerShell=dict(triangles=len(shell_tri),boundaryEdges=len(boundary),boundaryLoops=1))
+    keep=(weights[tri]>.99).all(1)&(np.linalg.norm(np.cross(q[:,1]-q[:,0],q[:,2]-q[:,0]),axis=1)>1e-9);raw,ix,_=tank.source_part(body,keep);sections=[];exterior=[];caps=[]
+    for sign in (-1,1):
+        a,b,audit=cockpitsections.section(raw,ix,np.flatnonzero(keep),[([sign,0,0],.90),([0,0,1],.80)],np.array(CHARTS['trim'])/1254);sections.append(dict(side=sign,**audit));exterior.append(a[0]);caps.append(b[0][:,:8])
+    data=np.concatenate(exterior);parts[GUNS]=(data,np.arange(len(data),dtype='<u2'));interior,ii=parts[MATERIAL];capdata=np.concatenate(caps);parts[MATERIAL]=(np.concatenate([interior,capdata]),np.r_[ii,np.arange(len(capdata))+len(interior)].astype('<u2'))
+    return parts,skeleton,world,eye,shell,dict(pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,gunTriangles=len(data)//3,gunSourceIndices=sorted(set(i for section in sections for i in section['sourceTriangles'])),gunPlacement=dict(inboard=0,up=0,forward=0),wingSections=sections,wingCapTriangles=len(capdata)//3,rim=np.array(rim).tolist(),innerShell=dict(triangles=len(shell_tri),boundaryEdges=len(boundary),boundaryLoops=1))
