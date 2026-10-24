@@ -15,6 +15,9 @@ class TerrainArt(unittest.TestCase):
     def test_all_nine_worlds_are_explicit_and_mars_is_unchanged(self):
         for world in ("moon","mars","venus","io","europa","titan","achilles","ganymede","elysium"):
             binding = art.binding_for(world)
+            if "paint" in binding:
+                self.assertEqual(art.paint_problems(world), [])
+                continue
             self.assertTrue(set(art.RUNTIME_DEFAULTS) <= binding.keys())
             self.assertEqual(art.validate_runtime(binding),dict(art.RUNTIME_DEFAULTS,
                 microReliefScale=2.5 if world=="moon" else 1.0))

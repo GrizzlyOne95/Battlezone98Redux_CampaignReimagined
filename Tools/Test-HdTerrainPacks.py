@@ -10,7 +10,7 @@ import unittest
 import numpy as np
 from bzmodellibs import toolbox_root
 from terrain_hd_base_emissives import apply_base_emissives, apply_source_height_corrections
-from terrain_art_tuning import RUNTIME_DEFAULTS
+from terrain_art_tuning import RUNTIME_DEFAULTS, KEEP_DDS, binding_for, paint_problems
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(toolbox_root()))
@@ -31,6 +31,18 @@ class HdPacks(unittest.TestCase):
             self.assertEqual(json.loads(path.read_text())["materials"], {
                 "MN": dict(RUNTIME_DEFAULTS, microReliefScale=2.5, new=True),
                 "MA": {"microReliefScale": 0.0}, "VE": dict(RUNTIME_DEFAULTS)})
+
+    def test_pack_rebuild_refuses_to_overwrite_a_paint_world(self):
+        spec = importlib.util.spec_from_file_location("bundle", ROOT / "Tools/Build-HdTerrainBundle.py")
+        bundle = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(bundle)
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "terrain.json"
+            path.write_text(json.dumps({"schema": "v2", "materials": {"IO": {"paint": {}, "tiles": {}}}}))
+            before = path.read_bytes()
+            with self.assertRaisesRegex(ValueError, "paint world"):
+                bundle.merge_manifest(path, {"schema": "v2", "materials": {"IO": {"sliceCount": 4}}})
+            self.assertEqual(path.read_bytes(), before)
 
     def test_base_preview_swatch_preserves_source_terrain(self):
         from unittest.mock import patch
@@ -68,6 +80,9 @@ class HdPacks(unittest.TestCase):
         self.assertEqual(len(worlds), 9)
         for world in worlds:
             with self.subTest(world=world), tempfile.TemporaryDirectory() as temporary:
+                if "paint" in binding_for(world):
+                    self.assertEqual(paint_problems(world), [])
+                    continue
                 folder = ROOT / "Tools/TerrainHD" / world.title()
                 project = load_project(folder / "authoring.json")
                 out = Path(temporary) / "bundle"
@@ -100,8 +115,11 @@ class HdPacks(unittest.TestCase):
         shipped = {r["source"].replace("\\", "/") for r in lock["files"]}
         self.assertEqual(len(acceptance["worlds"]), 9)
         self.assertEqual(sum(len(w["sha256"]) for w in acceptance["worlds"].values()), 606)
-        for world in acceptance["worlds"].values():
+        for key, world in acceptance["worlds"].items():
+            painted = "paint" in binding_for(key)
             for name, digest in world["sha256"].items():
+                if painted and name not in KEEP_DDS:
+                    continue  # retired DDS tiles; paint_problems covers the replacement files
                 relative = "Assets/Textures/" + name
                 self.assertEqual(hashlib.sha256((ROOT / relative).read_bytes()).hexdigest(), digest)
                 self.assertIn(relative, shipped)

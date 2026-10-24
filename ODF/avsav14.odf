@@ -5,6 +5,7 @@
 // no SAVFriend process or RTTI, only SAVEnemy), so on a human team it has no AI and cannot take orders.
 // This copy uses the commandable wingman class and the tank AI (TankFriend / TankEnemy), like hvsat.
 // Redux has no ODF inheritance: every key the unit needs is spelled out here.
+// Redux ships no avsav mesh; CR carries one (Assets/ModelFixes/avsav.mesh, material avsav14).
 baseName = "avsav"
 classLabel = "wingman"
 scrapValue = 5

@@ -96,6 +96,7 @@ jobs:
       - name: Validate texture revamp and Olympian interior contracts
         run: |
           python Tools/Test-TextureRevamp.py
+          python Tools/Test-BuildingDetailPass.py
           python Tools/Test-FactionStorage.py
           python Tools/Test-FactionNavPickups.py
           python Tools/Test-FactionPickupIntegration.py
