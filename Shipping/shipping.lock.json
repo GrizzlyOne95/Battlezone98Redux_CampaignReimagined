@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-21T14:37:36-05:00",
-  "count": 4446,
+  "count": 4508,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -1378,6 +1378,22 @@
     {
       "source": "Assets\\Textures\\crvpkup_n.dds",
       "runtime": "crvpkup_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvascp_d.dds",
+      "runtime": "crvascp_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvascp_e.dds",
+      "runtime": "crvascp_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbscp_d.dds",
+      "runtime": "crvbscp_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbscp_e.dds",
+      "runtime": "crvbscp_e.dds"
     },
     {
       "source": "Assets\\Textures\\crvarcp_d.dds",
@@ -3628,6 +3644,78 @@
       "runtime": "cr_reactive.particle.payload"
     },
     {
+      "source": "Assets\\Textures\\crvsmcp_d.dds",
+      "runtime": "crvsmcp_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvsmcp_e.dds",
+      "runtime": "crvsmcp_e.dds"
+    },
+    {
+      "source": "Materials\\CR_avfigh_cockpit.material",
+      "runtime": "CR_avfigh_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_avtank_cockpit.material",
+      "runtime": "CR_avtank_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_avltnk_cockpit.material",
+      "runtime": "CR_avltnk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_bvltnk_cockpit.material",
+      "runtime": "CR_bvltnk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_avwalk_cockpit.material",
+      "runtime": "CR_avwalk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_bvwalk_cockpit.material",
+      "runtime": "CR_bvwalk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_avhraz_cockpit.material",
+      "runtime": "CR_avhraz_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_bvhraz_cockpit.material",
+      "runtime": "CR_bvhraz_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_cvturr_cockpit.material",
+      "runtime": "CR_cvturr_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_svfigh_cockpit.material",
+      "runtime": "CR_svfigh_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_svltnk_cockpit.material",
+      "runtime": "CR_svltnk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_cca_mechanical_cockpit.material",
+      "runtime": "CR_cca_mechanical_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_bvtank_cockpit.material",
+      "runtime": "CR_bvtank_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_cvtnk_cockpit.material",
+      "runtime": "CR_cvtnk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_svtank_cockpit.material",
+      "runtime": "CR_svtank_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_bvraz_cockpit.material",
+      "runtime": "CR_bvraz_cockpit.material"
+    },
+    {
       "source": "Materials\\CR_avrckt_cockpit.material",
       "runtime": "CR_avrckt_cockpit.material"
     },
@@ -3638,6 +3726,30 @@
     {
       "source": "Materials\\CR_cvfigh_cockpit.material",
       "runtime": "CR_cvfigh_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_cvhtnk_cockpit.material",
+      "runtime": "CR_cvhtnk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_svhraz_cockpit.material",
+      "runtime": "CR_svhraz_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_cvrckt_cockpit.material",
+      "runtime": "CR_cvrckt_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_cvltnk_cockpit.material",
+      "runtime": "CR_cvltnk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_cvwalk_cockpit.material",
+      "runtime": "CR_cvwalk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_svwalk_cockpit.material",
+      "runtime": "CR_svwalk_cockpit.material"
     },
     {
       "source": "Materials\\CR_reddevil_cockpit.material",
@@ -12768,6 +12880,110 @@
       "runtime": "bvrdev_cockpit.skeleton"
     },
     {
+      "source": "Assets\\Models\\avfigh_cockpit.mesh",
+      "runtime": "avfigh_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\avfigh_cockpit.skeleton",
+      "runtime": "avfigh_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\avltnk_cockpit.mesh",
+      "runtime": "avltnk_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\avltnk_cockpit.skeleton",
+      "runtime": "avltnk_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bvltnk_cockpit.mesh",
+      "runtime": "bvltnk_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bvltnk_cockpit.skeleton",
+      "runtime": "bvltnk_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvturr_cockpit.mesh",
+      "runtime": "cvturr_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cvturr_cockpit.skeleton",
+      "runtime": "cvturr_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svfigh_cockpit.mesh",
+      "runtime": "svfigh_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\svfigh_cockpit.skeleton",
+      "runtime": "svfigh_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svltnk_cockpit.mesh",
+      "runtime": "svltnk_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\svltnk_cockpit.skeleton",
+      "runtime": "svltnk_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\avhraz_cockpit.mesh",
+      "runtime": "avhraz_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\avhraz_cockpit.skeleton",
+      "runtime": "avhraz_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bvhraz_cockpit.mesh",
+      "runtime": "bvhraz_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bvhraz_cockpit.skeleton",
+      "runtime": "bvhraz_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\avtank_cockpit.mesh",
+      "runtime": "avtank_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\avtank_cockpit.skeleton",
+      "runtime": "avtank_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bvtank_cockpit.mesh",
+      "runtime": "bvtank_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bvtank_cockpit.skeleton",
+      "runtime": "bvtank_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvtnk_cockpit.mesh",
+      "runtime": "cvtnk_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cvtnk_cockpit.skeleton",
+      "runtime": "cvtnk_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svtank_cockpit.mesh",
+      "runtime": "svtank_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\svtank_cockpit.skeleton",
+      "runtime": "svtank_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bvraz_cockpit.mesh",
+      "runtime": "bvraz_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bvraz_cockpit.skeleton",
+      "runtime": "bvraz_cockpit.skeleton"
+    },
+    {
       "source": "Assets\\Models\\avrckt_cockpit.mesh",
       "runtime": "avrckt_cockpit.mesh"
     },
@@ -12790,6 +13006,38 @@
     {
       "source": "Assets\\Models\\cvfigh_cockpit.skeleton",
       "runtime": "cvfigh_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvhtnk_cockpit.mesh",
+      "runtime": "cvhtnk_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cvhtnk_cockpit.skeleton",
+      "runtime": "cvhtnk_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svhraz_cockpit.mesh",
+      "runtime": "svhraz_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\svhraz_cockpit.skeleton",
+      "runtime": "svhraz_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvrckt_cockpit.mesh",
+      "runtime": "cvrckt_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cvrckt_cockpit.skeleton",
+      "runtime": "cvrckt_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvltnk_cockpit.mesh",
+      "runtime": "cvltnk_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cvltnk_cockpit.skeleton",
+      "runtime": "cvltnk_cockpit.skeleton"
     },
     {
       "source": "Assets\\Models\\c17proc.geo",

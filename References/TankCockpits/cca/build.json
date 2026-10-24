@@ -1,0 +1,225 @@
+{
+  "schema": 1,
+  "sources": {
+    "exteriorSha256": "fe33044ced40bf9b415c15e62385b1a3c8e51142351a9e1b19b9bca238c3ff0f",
+    "skeletonSha256": "e687e51928b6b9126c01881690e6122562844942ae3ddd4d94c13c6288558e50"
+  },
+  "outputs": {
+    "Assets/Models/svtank_cockpit.mesh": "24c9fca249cb6d3cb3e9d0c8a7766941e65cb9b82b368e2f1068695f21d0a289",
+    "Assets/Models/svtank_cockpit.skeleton": "e687e51928b6b9126c01881690e6122562844942ae3ddd4d94c13c6288558e50",
+    "Materials/CR_svtank_cockpit.material": "4a094435358976ec3c8f035751ab42dbddaff15c373d63f557d37193716366c7"
+  },
+  "alignment": {
+    "faction": "cca",
+    "base": "svtank",
+    "pov": "SCZ11POV",
+    "povPosition": [
+      -0.27610001154243946,
+      1.9194999933242798,
+      0.3680000305175781
+    ],
+    "povBasis": [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "shell": "scz21bda",
+    "shellHandle": 15,
+    "panels": [
+      {
+        "points": [
+          [
+            -0.12,
+            -0.35,
+            1.05
+          ],
+          [
+            -0.61,
+            -0.3,
+            1.03
+          ],
+          [
+            -0.59,
+            -0.6,
+            0.79
+          ],
+          [
+            -0.12,
+            -0.61,
+            0.79
+          ]
+        ],
+        "chart": "console",
+        "depth": 0.019
+      },
+      {
+        "points": [
+          [
+            -0.58,
+            -0.38,
+            0.83
+          ],
+          [
+            -0.71,
+            -0.25,
+            0.55
+          ],
+          [
+            -0.71,
+            -0.55,
+            0.2
+          ],
+          [
+            -0.56,
+            -0.66,
+            0.48
+          ]
+        ],
+        "chart": "switch",
+        "depth": 0.016
+      },
+      {
+        "points": [
+          [
+            0.12,
+            -0.35,
+            1.05
+          ],
+          [
+            0.61,
+            -0.3,
+            1.03
+          ],
+          [
+            0.59,
+            -0.6,
+            0.79
+          ],
+          [
+            0.12,
+            -0.61,
+            0.79
+          ]
+        ],
+        "chart": "console",
+        "depth": 0.019
+      },
+      {
+        "points": [
+          [
+            0.58,
+            -0.38,
+            0.83
+          ],
+          [
+            0.71,
+            -0.25,
+            0.55
+          ],
+          [
+            0.71,
+            -0.55,
+            0.2
+          ],
+          [
+            0.56,
+            -0.66,
+            0.48
+          ]
+        ],
+        "chart": "switch",
+        "depth": 0.016
+      },
+      {
+        "points": [
+          [
+            -0.105,
+            -0.4,
+            1.01
+          ],
+          [
+            0.105,
+            -0.4,
+            1.01
+          ],
+          [
+            0.105,
+            -0.59,
+            0.81
+          ],
+          [
+            -0.105,
+            -0.59,
+            0.81
+          ]
+        ],
+        "chart": "switch",
+        "depth": 0.018
+      }
+    ],
+    "stockCockpitRetained": false,
+    "stockTriangles": 124,
+    "gunBones": [
+      18,
+      19
+    ],
+    "gunOffset": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "apronSourceIndices": [
+      1387,
+      1465,
+      1466
+    ],
+    "apronOffset": [
+      0.0,
+      0.40123698234558103,
+      0.0
+    ],
+    "apronTriangles": 3,
+    "innerShell": {
+      "triangles": 32,
+      "boundaryEdges": 10,
+      "boundaryLoops": 1
+    },
+    "window": {
+      "width": 0.76,
+      "lip": -0.44,
+      "front": 1.1,
+      "roof": 0.62
+    },
+    "nativeVdfSha256": "c34800bdb378717dc571ac196f5d199682767947739ddb90433fa61d1bde1f00",
+    "gunWeightSha256": "154a0d7baddf9746c7f7f498d35cf11852837ef634e571673442283094dc6c15"
+  },
+  "glass": {
+    "openFraction": 0.40846824408468246,
+    "depth": [
+      0.5434430956208451,
+      1.4205880818333556
+    ],
+    "bone": "scz21bda",
+    "vertices": 573,
+    "triangles": 1020
+  },
+  "triangles": {
+    "svtank01": 604,
+    "CRV/SharedCockpitLiner": 782,
+    "CRV/svtankTankGuns": 332,
+    "CRV/svtankTankHull": 3
+  },
+  "atlasPolicy": "Reuse original and accepted faction atlases; no duplicate DDS"
+}
