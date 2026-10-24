@@ -24,7 +24,11 @@ def textures():
     return Image.fromarray(a).resize((1024,1024),Image.Resampling.LANCZOS),Image.fromarray(e).resize((1024,1024),Image.Resampling.LANCZOS),Image.fromarray(mask.astype('uint8')*255)
 def build(game):
     source=ROOT/'Assets/ModelFixes/cvfigh.mesh';skel=Path(game)/'BZ_ASSETS/common/models/TRO/cvfigh.skeleton'
-    parts,s,world,eye,shell,meta=cp.geometry(source,skel);model,glass=cp.shared.mesh_bytes(parts,s,world,eye,shell,skeleton_name='cvfigh_cockpit.skeleton');outputs={}
+    parts,s,world,eye,shell,meta=cp.geometry(source,skel)
+    # Fit weather glass to the actual cabin, not distant wing/pod surfaces or
+    # the backs that cap their cuts. Export all authored geometry as before.
+    cabin,indices=parts[cp.MATERIAL];indices=indices[:-meta['wingCapTriangles']*3];glass_parts={cp.MATERIAL:(cabin[:int(indices.max())+1],indices)}
+    model,glass=cp.shared.mesh_bytes(parts,s,world,eye,shell,skeleton_name='cvfigh_cockpit.skeleton',glass_parts=glass_parts);meta['glassPolicy']='cabin-only';outputs={}
     for path,content in [(ROOT/'Assets/Models/cvfigh_cockpit.mesh',model),(ROOT/'Assets/Models/cvfigh_cockpit.skeleton',skel.read_bytes())]:path.write_bytes(content);outputs[path.relative_to(ROOT).as_posix()]=sha(path)
     diffuse,emissive,mask=textures()
     for channel,image in [('d',diffuse),('e',emissive)]:
