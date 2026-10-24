@@ -8,11 +8,11 @@ import unittest
 from unittest.mock import patch
 
 from bzmodellibs import toolbox_root
-from terrain_art_tuning import RUNTIME_DEFAULTS, validate_runtime
+from terrain_art_tuning import RUNTIME_DEFAULTS, binding_for, paint_problems
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(toolbox_root()))
-from battlezone.terrain.hd_tiles import build_bundle, load_project, read_layout
+from battlezone.terrain.hd_tiles import read_layout
 
 
 def module(name):
@@ -23,33 +23,24 @@ def module(name):
 
 
 class VenusHdTerrain(unittest.TestCase):
-    def test_rebuild_matches_shipped_bytes_and_venus_binding(self):
+    def test_painted_venus_cannot_be_overwritten_by_a_dds_rebuild(self):
+        builder = module("Build-HdTerrainBundle.py")
         with tempfile.TemporaryDirectory() as directory:
-            output = Path(directory) / "bundle"
-            report = build_bundle(load_project(ROOT / "Tools/TerrainHD/Venus/authoring.json"), output)
-            self.assertEqual(report["conversion"], {"preserved": 52, "converted": 0})
-            expected = json.loads((ROOT / "Config/cr_terrain_hd.json").read_text())
-            binding = expected["materials"]["VE_DETAIL_ATLAS"]
-            self.assertEqual(validate_runtime(binding), RUNTIME_DEFAULTS)
-            for key in (*RUNTIME_DEFAULTS, "surfaceBlend"):
-                binding.pop(key)
-            self.assertEqual(json.loads((output / "terrain_hd_tiles.json").read_text())["materials"]["VE_DETAIL_ATLAS"],
-                             binding)
-            evidence = json.loads((ROOT / "Tools/TerrainHD/Venus/pack_validation.json").read_text())
-            self.assertEqual(report["sha256"], evidence["bundle"]["sha256"])
+            path = Path(directory) / "terrain.json"
+            path.write_text(json.dumps({"schema": "v2", "materials": {"VE_DETAIL_ATLAS": binding_for("venus")}}))
+            before = path.read_bytes()
+            with self.assertRaisesRegex(ValueError, "paint world"):
+                builder.merge_manifest(path, {"schema": "v2", "materials": {"VE_DETAIL_ATLAS": {"sliceCount": 13}}})
+            self.assertEqual(path.read_bytes(), before)
 
     def test_material_guards_mission_selection_and_layout(self):
         materials = json.loads((ROOT / "Config/cr_terrain_hd.json").read_text())["materials"]
         self.assertIn("MN_DETAIL_ATLAS", materials)
         binding = materials["VE_DETAIL_ATLAS"]
-        self.assertEqual(binding["sliceCount"], 13)
-        self.assertEqual(len(binding["tileRects"]), 13)
+        self.assertEqual(binding["sliceCount"], 9)
+        self.assertEqual(paint_problems("venus"), [])
         material = (ROOT / "Materials/ve_detail_atlas.material").read_text()
-        for alias, resource in (("DiffuseMap", binding["diffuseResource"]),
-                                ("NormalMap", binding["normal"]["sourceResource"]),
-                                ("SpecularMap", binding["specular"]["sourceResource"]),
-                                ("EmissiveMap", binding["emissive"]["sourceResource"])):
-            self.assertIn(f"set_texture_alias {alias} {resource}", material)
+        self.assertIn(f"set_texture_alias DiffuseMap {binding['diffuseResource']}", material)
         self.assertEqual(read_layout(ROOT / "Config/ve_detail_atlas.csv", "VE00SA0.MAP"),
                          read_layout(ROOT / "Tools/TerrainHD/Venus/layout.csv", "VE00SA0.MAP"))
         for mission in ("misn07", "misn08", "misn09"):
@@ -99,9 +90,7 @@ class VenusHdTerrain(unittest.TestCase):
         lock = json.loads((ROOT / "Shipping/shipping.lock.json").read_text(encoding="utf-8-sig"))
         files = {entry["source"].replace("\\", "/") for entry in lock["files"]}
         self.assertIn("Config/ve_detail_atlas.csv", files)
-        textures = list((ROOT / "Assets/Textures").glob("crhd_venus_*.dds"))
-        self.assertEqual(len(textures), 52)
-        self.assertTrue(all(path.relative_to(ROOT).as_posix() in files for path in textures))
+        self.assertEqual(list((ROOT / "Assets/Textures").glob("crhd_venus_*.dds")), [])
 
 
 if __name__ == "__main__":

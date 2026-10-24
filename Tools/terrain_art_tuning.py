@@ -27,6 +27,22 @@ def binding_for(world, path=None):
     return json.loads((path or ROOT/"Config/cr_terrain_hd.json").read_text())["materials"][stems[world]+"_DETAIL_ATLAS"]
 
 
+# Painted worlds ship OpenShim paint textures instead of crhd_<world>_*.dds tiles.
+KEEP_DDS = {"crhd_moon_regolith_detail.dds"}
+
+
+def paint_problems(world, textures=None):
+    """Return why a painted world's textures are inconsistent (empty when sound)."""
+    textures = textures or ROOT/"Assets/Textures"
+    binding = binding_for(world)
+    if "paint" not in binding:
+        return [f"{world} binding is not a paint binding"]
+    names = {binding["fallback"], *binding["tiles"].values(), *(m["control"] for m in binding["paint"]["maps"])}
+    problems = [f"missing {name}" for name in sorted(names) if not (textures/name).is_file()]
+    problems += [f"stale {path.name}" for path in sorted(textures.glob(f"crhd_{world}_*.dds")) if path.name not in KEEP_DDS]
+    return problems
+
+
 def surface_coverage(binding):
     value = binding.get("surfaceBlend", {}).get("coverage", 0.)
     if type(value) not in (int,float) or not math.isfinite(value) or not 0 <= value <= 1:
