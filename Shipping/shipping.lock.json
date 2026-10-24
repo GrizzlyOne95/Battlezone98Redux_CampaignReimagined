@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-21T14:37:36-05:00",
-  "count": 4486,
+  "count": 4508,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -3660,6 +3660,22 @@
       "runtime": "CR_avtank_cockpit.material"
     },
     {
+      "source": "Materials\\CR_avltnk_cockpit.material",
+      "runtime": "CR_avltnk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_bvltnk_cockpit.material",
+      "runtime": "CR_bvltnk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_avwalk_cockpit.material",
+      "runtime": "CR_avwalk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_bvwalk_cockpit.material",
+      "runtime": "CR_bvwalk_cockpit.material"
+    },
+    {
       "source": "Materials\\CR_avhraz_cockpit.material",
       "runtime": "CR_avhraz_cockpit.material"
     },
@@ -3710,6 +3726,30 @@
     {
       "source": "Materials\\CR_cvfigh_cockpit.material",
       "runtime": "CR_cvfigh_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_cvhtnk_cockpit.material",
+      "runtime": "CR_cvhtnk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_svhraz_cockpit.material",
+      "runtime": "CR_svhraz_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_cvrckt_cockpit.material",
+      "runtime": "CR_cvrckt_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_cvltnk_cockpit.material",
+      "runtime": "CR_cvltnk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_cvwalk_cockpit.material",
+      "runtime": "CR_cvwalk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_svwalk_cockpit.material",
+      "runtime": "CR_svwalk_cockpit.material"
     },
     {
       "source": "Materials\\CR_reddevil_cockpit.material",
@@ -12848,6 +12888,22 @@
       "runtime": "avfigh_cockpit.skeleton"
     },
     {
+      "source": "Assets\\Models\\avltnk_cockpit.mesh",
+      "runtime": "avltnk_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\avltnk_cockpit.skeleton",
+      "runtime": "avltnk_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bvltnk_cockpit.mesh",
+      "runtime": "bvltnk_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\bvltnk_cockpit.skeleton",
+      "runtime": "bvltnk_cockpit.skeleton"
+    },
+    {
       "source": "Assets\\Models\\cvturr_cockpit.mesh",
       "runtime": "cvturr_cockpit.mesh"
     },
@@ -12950,6 +13006,38 @@
     {
       "source": "Assets\\Models\\cvfigh_cockpit.skeleton",
       "runtime": "cvfigh_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvhtnk_cockpit.mesh",
+      "runtime": "cvhtnk_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cvhtnk_cockpit.skeleton",
+      "runtime": "cvhtnk_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svhraz_cockpit.mesh",
+      "runtime": "svhraz_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\svhraz_cockpit.skeleton",
+      "runtime": "svhraz_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvrckt_cockpit.mesh",
+      "runtime": "cvrckt_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cvrckt_cockpit.skeleton",
+      "runtime": "cvrckt_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvltnk_cockpit.mesh",
+      "runtime": "cvltnk_cockpit.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cvltnk_cockpit.skeleton",
+      "runtime": "cvltnk_cockpit.skeleton"
     },
     {
       "source": "Assets\\Models\\c17proc.geo",

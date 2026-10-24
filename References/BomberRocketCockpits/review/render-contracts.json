@@ -1,0 +1,66 @@
+[
+  {
+    "base": "svhraz",
+    "pov": "Shb11POV",
+    "eye": [
+      2.5341849327087402,
+      1.170401031151414,
+      0.48031704127788544
+    ],
+    "basis": [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "triangles": 2358,
+    "warnings": [],
+    "poseNotes": [],
+    "backfaceCulling": true,
+    "fovVertical": 64
+  },
+  {
+    "base": "cvrckt",
+    "pov": "CDR11POV",
+    "eye": [
+      0.0,
+      2.611823081970215,
+      -0.9334869980812073
+    ],
+    "basis": [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "triangles": 5760,
+    "warnings": [],
+    "poseNotes": [
+      "Native GEO-local orientation overrides: CDR11DUL, CDR11GR2, CDR11SM1"
+    ],
+    "backfaceCulling": true,
+    "fovVertical": 64
+  }
+]
