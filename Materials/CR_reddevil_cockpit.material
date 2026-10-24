@@ -1,0 +1,17 @@
+import * from "CR_BZBase.material"
+
+material CRV/RedDevilCockpit : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap crvrdcp_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap crvrdcp_e.dds
+}
+
+material CRV/RedDevilForedeck : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap bvrdev_D.dds
+    set_texture_alias NormalMap bvrdev_N.dds
+    set_texture_alias SpecularMap bvrdev_S.dds
+    set_texture_alias EmissiveMap bvrdev_E.dds
+}

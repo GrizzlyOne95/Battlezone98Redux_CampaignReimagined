@@ -1,0 +1,22 @@
+{
+  "mode": "built-in image_gen",
+  "use_case": "stylized-concept",
+  "reference_roles": {
+    "../stock-hardware-reference.png": "Actual stock BZ cockpit sheet: mechanical hardware style only",
+    "source-reference.png": "Actual faction scout exterior: palette/shape identity only"
+  },
+  "requested_size": [
+    2048,
+    2048
+  ],
+  "actual_size": [
+    1254,
+    1254
+  ],
+  "runtime_size": [
+    1024,
+    1024
+  ],
+  "superseded_direction": "Initial unconsumed modern-avionics candidates were replaced after owner requested BZ-grounded hardware; not shipped.",
+  "prompt": "Use case: stylized-concept. Asset type: flat game cockpit diffuse texture atlas, square ideally 2048. IMPORTANT art direction: grounded in actual 1998 Battlezone industrial vehicle cockpits, NOT generic sci-fi avionics. Image 1 is a style/hardware reference ONLY: stock Battlezone cockpit atlas with heavy rectangular bezels, square pushbutton banks, toggle blocks, ventilation slats, inset cable/service bays and simple round analog dial. Image 2 is the actual scout exterior for faction PALETTE ONLY. Neither is an edit target. Do not copy their layout or draw a ship. Need practical steel submarine/tank-like switchgear. NO big glass MFD dashboard, NO aircraft HUD horizon display, NO large circular radar, NO holograms. Most console is physical switches and equipment; tiny glass indicator area only. Flat orthographic albedo, crisp fine wear, neutral even illumination, no shadows or bloom. Precise padded charts: TOP x2%-98%,y2%-34% wide squat main console, in three bordered clusters: left a 3x4 grid of small illuminated square pushbuttons beside a tiny horizontal status strip, middle a plain mechanical round dial, two columns of rocker switches and narrow ventilation slots, right a 3x3 illuminated square pushbutton bank with two recessed fuse/connector blocks. Glass optics under 25 percent of panel. MIDDLE LEFT x2%-48%,y38%-64% asymmetric side control panel, chunky guarded toggles, long slotted grille, recessed round mechanical selector and tiny square optical status bank. MIDDLE RIGHT x52%-98%,y38%-64% service panel with small inset cable bundle under metal braces, compact fuse blocks, one tiny analog dial and small optical indicator bank. BOTTOM LEFT x2%-48%,y68%-98% quiet plain faction armor metal swatch, subtle wear no panels or emblem. BOTTOM RIGHT x52%-98%,y68%-80% quiet plain faction frame-color metal strip, no symbols or lamps. BOTTOM RIGHT x52%-98%,y84%-98% quiet charcoal metal/rubber grain, no ribs/giant fasteners. Clear chart gutters and internal margins. Early Battlezone chunky utilitarian mechanical hardware, NOT polished modern airplane instruments. No readable text, logos, watermark, extra objects, people, scene or perspective. Faction: NSDF. Main finish muted petrol blue-green with charcoal inset panels, ivory ticks. Cyan square pushbuttons/status lamps with a few amber lenses. Frame swatch petrol blue-green, armor swatch blue-green. Keep paint non-luminous; no red or lime optical displays."
+}

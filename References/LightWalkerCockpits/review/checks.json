@@ -1,0 +1,47 @@
+{
+  "checks": 355,
+  "units": [
+    {
+      "base": "cvltnk",
+      "opaqueTriangles": 4630,
+      "sourceCueSamples": {
+        "bow": 57,
+        "overheadCannon": 207
+      },
+      "pov": "CNA11POV",
+      "eye": [
+        0.0,
+        1.8568799495697021,
+        0.5823789834976196
+      ]
+    },
+    {
+      "base": "cvwalk",
+      "opaqueTriangles": 3282,
+      "sourceCueSamples": {
+        "brow": 1,
+        "chin": 0
+      },
+      "pov": "cvw11POV",
+      "eye": [
+        -0.16454999707639217,
+        8.042611239004158,
+        5.09501777567511
+      ]
+    },
+    {
+      "base": "svwalk",
+      "opaqueTriangles": 3282,
+      "sourceCueSamples": {
+        "brow": 1,
+        "chin": 0
+      },
+      "pov": "svw11POV",
+      "eye": [
+        -0.16454999707639217,
+        8.042610979127188,
+        5.095021673490479
+      ]
+    }
+  ]
+}

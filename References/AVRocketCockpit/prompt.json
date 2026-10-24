@@ -1,0 +1,19 @@
+{
+  "mode": "built-in image_gen",
+  "use_case": "stylized-concept",
+  "reference_role": "Actual avrckt third-person POV locator: vehicle identity and palette only, not an edit target",
+  "reference": "source-reference.png",
+  "requested_size": [
+    2048,
+    2048
+  ],
+  "actual_size": [
+    1254,
+    1254
+  ],
+  "runtime_size": [
+    1024,
+    1024
+  ],
+  "prompt": "Use case: stylized-concept. Asset type: production diffuse texture atlas for a purpose-built Battlezone 98 Redux NSDF rocket tank interior, not a cockpit illustration or render. Image 1 is a REFERENCE ONLY: actual avrckt vehicle identity and petrol blue-green armor palette; do not copy its view or draw a spaceship. Generate one square flat orthographic texture sheet, ideally 2048 square, physically used and slightly worn 1990s military aerospace hardware with fine realistic material detail, even neutral albedo lighting, no perspective, no cast shadows, no bloom. Layout precise padded rectangular UV charts in normalized coordinates with charcoal 2 percent gutters: top left chart x2%-48%,y2%-34% is a wide charcoal instrument panel in muted petrol blue steel surround, one circular cyan radar display on left and cyan horizon/vertical bars on right, small white stencil ticks, subdued amber status lamps; top right chart x52%-98%,y2%-34% is an equally wide rocket-system console, two horizontal rows of five amber rectangular launch-tube indicators, a small cyan schematic and guarded red toggle. Middle left x2%-48%,y38%-61% separate flight switches and rotary knobs in dark steel, a few small cyan and amber lamps. Middle right x52%-98%,y38%-61% separate engine/fuel control panel with two cyan linear bar meters, recessed connectors, subdued labels as ticks only. Bottom left x2%-48%,y65%-98% quiet petrol blue-green metal armor panel with fine scuffs, seams near its perimeter, NO emblem NO screen NO decorative stripes. Bottom right x52%-98%,y65%-79% quiet plain petrol blue-green metal strip with subtle edge abrasion, no badges/fasteners/large designs in its middle. Bottom right x52%-98%,y83%-98% quiet charcoal textured rubber and metal trim with very subtle horizontal ribs and minimal fasteners, no big grilles or repeated instrument panels. Restrained caution yellow accents on switch guards only, not big hazard stripes. Main optical colors cyan/ice-blue with small amber launcher lamps; armor and all painted markings non-glowing. Keep charts axis-aligned and entirely separate with generous internal margins. No giant captions, no logos, no watermark, no hands, no glass window, no complete cockpit, no scene, no extra objects. Dense clear manufactured panel detail, readable at 1024px mipmapped output. Avoid emerald green or wine-red CRA palette."
+}
