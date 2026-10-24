@@ -9,12 +9,12 @@ return {
     payloads = {
         winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "26e891b6c5b7720e3b44b24ae0a2338d2c1ceefb673569dfd1bfd0530b38ae9a", size = 128512, version = "1.0.0.54", architecture = "x86" },
         loader = { source = "bzloader.dll", destination = "bzloader.dll", sha256 = "3f6e7fbd8748c8db28e48261af630e2ae4b82e6dde4551046767a4dc29a4f9f5", size = 45568, version = "1.0.0.54", architecture = "x86" },
-        plugin = { source = "openshim.dll", destination = "plugins\\openshim.dll", sha256 = "828297999abc495b1dd937ab39704dc2f9e4463942702c6d07d53861fef54d6f", size = 4741632, version = "1.0.0.54", architecture = "x86" },
+        plugin = { source = "openshim.dll", destination = "plugins\\openshim.dll", sha256 = "9770509e95c6c3c8807261c2366fff60f6822acc5678d0847f3c65191ae0d736", size = 4744704, version = "1.0.0.54", architecture = "x86" },
         network = { source = "openshim_net.ini.payload", destination = "net.ini", sha256 = "cb42a3358b99a215f9a0a4aee55236d89648d4d734d5dc91c4f6aa4928902200", size = 13807 },
         patches = { source = "openshim_patches.json.payload", destination = "scripts\\patches.json", sha256 = "4f6515a339d5fc343d98a501e73512e43c50a4aaed959be870568d8ae45a7423", size = 328723 },
-        playerConfig = { source = "openshim.ini.payload", destination = "openshim.ini", sha256 = "7a2dfc82027a6771f71a9d779b69e67e918b75d7d3b4ccf777a651cffb473f85", size = 38227, overwrite = false },
+        playerConfig = { source = "openshim.ini.payload", destination = "openshim.ini", sha256 = "5685a9a13c9253929fe36313a3fb470843ca00bbf201eb864cf3c10b1894c67d", size = 38227, overwrite = false },
         assetManifest = { source = "OpenShimAssets.ini.payload", destination = "openshim\\OpenShimAssets.ini", sha256 = "f60b0e8d8be42ad7a157588f165b19d0c9634c14f58e660a28a816a0628aff75", size = 1278 },
-        helper = { source = "bzfile_replace_helper.exe", sha256 = "3111a483b6f249bfa469b319e51f730cca7fd4a82e030b290ce994a6d0846e89", size = 271360 },
+        helper = { source = "bzfile_replace_helper.exe", sha256 = "0698c9b868450eb8bf3d4ecad2f4e46852f54b777baca2525a5ff6df5d349a0d", size = 271360 },
     },
     assetSets = {
         renderer = { source = "openshim\\renderer\\enhanced", destination = "openshim\\renderer\\enhanced", sha256 = "f040f443e109821349c997a89eb9ea9b99fdad761ddac4a3156242682641aeba", files = 46 },
