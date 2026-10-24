@@ -1030,6 +1030,32 @@ central recess. Keep hazard E explicitly black regardless of hue thresholds.
 
 ### Red Devil cockpit and legacy paint prototype (2026-10-22)
 
+Light/walker pass (`References/LightWalkerCockpits/README.md`, 2026-10-23):
+`cvltnk` cannon and bow are separate welded islands in the same source body
+batch. Section them separately; cuts farther back in the original open bow
+must fail closed. Connect the cropped cannon to an actual overhead housing.
+`cvwalk_c` / `svwalk_c` keep their fixed-table selection and original rigs;
+derive the FULL native parent chain, not just the POV's own local rotation.
+Author around that eye, then inverse-compensate geometry AND weather glass
+into each original driver's bind coordinates. This avoids double-applying
+native head rotations without editing hierarchy/animation. New head cut backs
+must sit beyond instruments; otherwise closed caps can hide every control.
+Original outer helmet skin can be back-facing from inside: label inner-cap
+visibility honestly and do not count it as extensive exterior surface reuse.
+Synthetic head pitch is a relative-geometry check, not native motion proof.
+
+Bomber/rocket pass (`References/BomberRocketCockpits/README.md`, 2026-10-23):
+the CCA bomber's actual eye is offset in its pilot pod. Do not recenter POV
+to rescue its mostly missing old cockpit. Owner prefers this unit's actual
+red/charcoal exterior finish: reuse quiet red source-chart regions for its
+structure, keep cream on instrument inserts and black emission on paint.
+Selected nose hoods can be art-fitted lower, but record that transform and
+do not describe it as native gun alignment. CRA rocket prongs retain native
+positions; cap the trimmed high shoulders rather than displaying huge dark
+cut walls beside the pilot. Test original source surfaces separately from
+new caps. Float32 can collapse a tiny cap UV determinant independently of
+its geometry: remap only that face inside the quiet chart, never source UVs.
+
 CRA connection pass (`References/CVHeavyCockpit/README.md`, 2026-10-23): keep
 `cvfigh` guns under their actual wing/pod shells, returning the whole section
 to native coordinates instead of moving guns alone inward/upward. Do not
