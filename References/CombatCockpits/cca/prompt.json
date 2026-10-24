@@ -1,0 +1,14 @@
+{
+  "mode": "built-in ImageGen",
+  "intent": "generate",
+  "reference": "source-reference.png (stock hardware style only)",
+  "prompt": "Use case: stylized-concept. Asset: square flat albedo texture atlas of retro mechanical cockpit equipment for a fictional 1998-style vehicle game. Input image 1 is HARDWARE STYLE reference only, not an edit target. Make a fresh higher-detail modular sheet, faithful to its plain cream enamel, red seam trim, dark equipment boxes, domed mechanical buttons, square status windows and conduit. No modern glass dashboard, holograms, giant monitors or ornate sci-fi. Orthographic straight-on neutral albedo; no scene, perspective, cast shadows, bloom, text, logos or watermark. Layout six padded charts: top x2-98%, y2-30% broad squat control bank of three modules, small square AMBER/ORANGE lamps at both ends, central rotary gauge and guarded toggles, slotted vents, screws; middle-left x2-48%,y34-64% small switch/fuse bank and one analog dial; middle-right x52-98%,y34-64% recessed service panel, clipped cables, cross brace, small orange indicator bank, connectors; bottom-left x2-48%,y68-98% quiet cream structural metal swatch with very fine wear, NO lamps/instruments; bottom-right x52-98%,y68-80% quiet cream frame paint swatch with subtle oxide-red edge; bottom-right x52-98%,y84-98% quiet CHARCOAL rubber/metal trim swatch, no large ribs/fasteners or panels. All charts axis-aligned with clean gutters. Optics luminous only inside small glass lenses. Red enamel and cables not luminous. Small-scale believable machinery, readable manufacturing detail, restrained wear. Ideally 2048 square.",
+  "actualSize": [
+    1254,
+    1254
+  ],
+  "runtimeSize": [
+    1024,
+    1024
+  ]
+}

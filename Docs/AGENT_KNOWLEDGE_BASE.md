@@ -1030,6 +1030,88 @@ central recess. Keep hazard E explicitly black regardless of hue thresholds.
 
 ### Red Devil cockpit and legacy paint prototype (2026-10-22)
 
+Light/walker pass (`References/LightWalkerCockpits/README.md`, 2026-10-23):
+`cvltnk` cannon and bow are separate welded islands in the same source body
+batch. Section them separately; cuts farther back in the original open bow
+must fail closed. Connect the cropped cannon to an actual overhead housing.
+`cvwalk_c` / `svwalk_c` keep their fixed-table selection and original rigs;
+derive the FULL native parent chain, not just the POV's own local rotation.
+Author around that eye, then inverse-compensate geometry AND weather glass
+into each original driver's bind coordinates. This avoids double-applying
+native head rotations without editing hierarchy/animation. New head cut backs
+must sit beyond instruments; otherwise closed caps can hide every control.
+Original outer helmet skin can be back-facing from inside: label inner-cap
+visibility honestly and do not count it as extensive exterior surface reuse.
+Synthetic head pitch is a relative-geometry check, not native motion proof.
+
+Bomber/rocket pass (`References/BomberRocketCockpits/README.md`, 2026-10-23):
+the CCA bomber's actual eye is offset in its pilot pod. Do not recenter POV
+to rescue its mostly missing old cockpit. Owner prefers this unit's actual
+red/charcoal exterior finish: reuse quiet red source-chart regions for its
+structure, keep cream on instrument inserts and black emission on paint.
+Selected nose hoods can be art-fitted lower, but record that transform and
+do not describe it as native gun alignment. CRA rocket prongs retain native
+positions; cap the trimmed high shoulders rather than displaying huge dark
+cut walls beside the pilot. Test original source surfaces separately from
+new caps. Float32 can collapse a tiny cap UV determinant independently of
+its geometry: remap only that face inside the quiet chart, never source UVs.
+
+CRA connection pass (`References/CVHeavyCockpit/README.md`, 2026-10-23): keep
+`cvfigh` guns under their actual wing/pod shells, returning the whole section
+to native coordinates instead of moving guns alone inward/upward. Do not
+attribute missing barrels to the wings without testing occlusion: here the
+cockpit side sills were the actual blocker. Lowering the forward outer lip
+from -.34 to -.58 m reveals the native-position guns without moving their
+hardpoints. Classify actual barrel source faces in ray tests, not a combined
+wing/gun material: wing hits falsely passed the original visibility test.
+Restoring the old sill faces must fail the barrel-visibility contract. Keep
+the liner closed and join exposed frame posts to the lowered lip.
+`cvhtnk` needs complete side gun pods
+with rear armor housings, not a z-crop of bare barrels. Source surface sections
+must interpolate attributes and cap new cut contours, preserving intentional
+source cavities. Synthetic two-cut tests cover watertightness/area/UVs; shared
+codecs still own binary I/O. Recompute AABB after appending exterior batches.
+Native driver names in an offline batch do not prove first-person visibility
+or animation/shot synchronization; preserve the explicit qualification gaps.
+
+Walker pair (`References/WalkerCockpits/README.md`, 2026-10-23): `avwalk` and
+`bvwalk` use the fixed `_c` first-person table BEFORE namespaced cockpit lookup.
+Keep the actual low independent POV, not the exterior head. Original shoulder
+and forearm bones are separate drivers; remap by name. Copy complete real arm
+components, exclude hardpoint cubes, and back only the tiny upper sockets, not
+the three intentional muzzle bores. A sideways art fit breaks shot alignment:
+derive native GC1/GC2 rays from the VDF's full transform chain, not Ogre bind
+hardpoint positions. The current offline axial fit aligns the main bores with
+those rest rays and measures projectile-frustum entry beyond the model lip;
+it does NOT put the unchanged flash origin at that lip. Preserve this caveat.
+Offline inclusion of `*11*` arm geometry does not prove native first-person
+branch visibility, aim/locomotion synchronization or firing behavior. Synthetic
+joint rotations are rig diagnostics, not native animation qualification.
+
+Light-tank pair (`References/LightTankCockpits/README.md`, 2026-10-23): `avltnk`
+and `bvltnk` share an eye position but not skeleton handle numbers. Their stock
+painted exterior frame is shell-weighted geometry in the BODY material batch,
+not the tall interior-control batch. Preserve that 316-triangle frame byte-exact
+in positions/UVs while replacing obstructive interior walls. Measure side-view
+improvement using identical horizon-band rays, not an auto-framed render.
+Owner requested matching faction bands on both full vehicles and cockpit rails:
+clip the quiet paint charts to the source surfaces, preserve original skinning
+on the full model, and retain immutable pre-paint baselines for reproducibility.
+Do not feed the painted output back into the builder or stack paint batches.
+
+Combat-five pass (`References/CombatCockpits/README.md`): owner prioritizes
+combatants over utility craft. Keep combat roles distinct: CRA turret dual
+fire-control desks, CCA fighter compact center bank, CCA light-tank asymmetric
+stations, NSDF/Black Dog tapered bomber pits. Reuse accepted faction atlases;
+one stock-inspired CCA hardware sheet serves both CCA units with physical
+orange lens masks. Project cassette corner profiles to a single mounting
+plane before recessing the face: a warped rear quad can protrude through it
+as an apparently black rectangular hole despite passing triangle checks.
+Review steep console views, not only forward. Test actual exterior visibility
+against the whole cockpit; a selected bomber bow can be entirely hidden by
+the new coaming. Turret rest art is not deployed/yaw/pitch qualification, and
+stable-shell art-fitted gun fragments do not prove native recoil alignment.
+
 Tank detail pass (`References/TankCockpits/README.md`): preserve the actual
 stock layout instead of giving every vehicle a shared modern dashboard. Main
 tank Black Dog's eye is 0.8 m lower than NSDF's; source shell positions differ

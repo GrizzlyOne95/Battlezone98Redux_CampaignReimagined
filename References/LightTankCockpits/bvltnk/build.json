@@ -1,0 +1,2550 @@
+{
+  "schema": 1,
+  "sources": {
+    "baseline": "References/LightTankCockpits/source/bvltnk.mesh",
+    "exteriorSha256": "0fa7eefb71db4c58b0c10f0373e193cd67bb2fd92baa834b13c0da2a58ea7ec1",
+    "skeletonSha256": "20d755d8a26a5e185bca18cb949855773647da50c3fd52947867ee0ce1d8a8da"
+  },
+  "outputs": {
+    "Assets/Models/bvltnk_cockpit.mesh": "8dc66a2687fe582803b4695d761d078000beccaec0878ef80bf2c2946afc67ce",
+    "Assets/Models/bvltnk_cockpit.skeleton": "20d755d8a26a5e185bca18cb949855773647da50c3fd52947867ee0ce1d8a8da",
+    "Materials/CR_bvltnk_cockpit.material": "1f2f661f95ff99e210812121bc13ff0428e9981fb6bc88403730c49be3925339",
+    "Assets/ModelFixes/bvltnk.mesh": "5a8d44a7ebbf5377288ad6467c4957408eafa03242c37667844572dd0e9e3c20"
+  },
+  "alignment": {
+    "base": "bvltnk",
+    "faction": "bdog",
+    "pov": "bln11pov",
+    "povPosition": [
+      0.0997999981045723,
+      1.46069997549057,
+      0.1421000063419342
+    ],
+    "povBasis": [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "shell": "bln21bdb",
+    "shellHandle": 15,
+    "layout": {
+      "role": "lighttank",
+      "width": 0.7,
+      "lip": -0.37,
+      "front": 0.86,
+      "roof": 0.57,
+      "back": -0.65
+    },
+    "panels": [
+      {
+        "chart": "console",
+        "points": [
+          [
+            -0.5,
+            -0.28,
+            0.94
+          ],
+          [
+            0.5,
+            -0.28,
+            0.94
+          ],
+          [
+            0.44,
+            -0.54,
+            0.63
+          ],
+          [
+            -0.44,
+            -0.54,
+            0.63
+          ]
+        ],
+        "depth": 0.032,
+        "section": null,
+        "instrumentPoints": [
+          [
+            -0.3773785564217427,
+            -0.3345291377062811,
+            0.8345246330096078
+          ],
+          [
+            0.3773785564217427,
+            -0.3345291377062811,
+            0.8345246330096078
+          ],
+          [
+            0.3773785564217427,
+            -0.44562890205117767,
+            0.7020595293676156
+          ],
+          [
+            -0.3773785564217427,
+            -0.44562890205117767,
+            0.7020595293676156
+          ]
+        ],
+        "sourceAspect": 4.365591397849462
+      },
+      {
+        "chart": "service",
+        "points": [
+          [
+            -0.4774371111960708,
+            -0.4489869224432935,
+            0.5792896989560876
+          ],
+          [
+            -0.6726005075047521,
+            -0.4310279477537504,
+            -0.09927927298582152
+          ],
+          [
+            -0.6173841260874026,
+            -0.7189659780994152,
+            -0.31072498579259955
+          ],
+          [
+            -0.42257825521177445,
+            -0.7410191517035408,
+            0.36071455982233336
+          ]
+        ],
+        "depth": 0.025,
+        "section": null,
+        "instrumentPoints": [
+          [
+            -0.5296488554849513,
+            -0.4605326698221701,
+            0.29830730747314393
+          ],
+          [
+            -0.6186578968866816,
+            -0.45234204006316614,
+            -0.011170672823821642
+          ],
+          [
+            -0.531130287237375,
+            -0.695940257748423,
+            -0.042791570157753006
+          ],
+          [
+            -0.44212124583564477,
+            -0.704130887507427,
+            0.26668641013921257
+          ]
+        ],
+        "sourceAspect": 1.2352941176470589
+      },
+      {
+        "chart": "armor",
+        "points": [
+          [
+            -0.66,
+            -0.75,
+            -0.52
+          ],
+          [
+            -0.6299999999999999,
+            -0.7499999999999999,
+            0.65
+          ],
+          [
+            -0.46999999999999986,
+            -0.9199999999999999,
+            0.65
+          ],
+          [
+            -0.5,
+            -0.92,
+            -0.52
+          ]
+        ],
+        "depth": 0.012,
+        "section": null,
+        "instrumentPoints": [
+          [
+            -0.6308127430798784,
+            -0.7603208484468408,
+            -0.08192913384353134
+          ],
+          [
+            -0.6231963843900261,
+            -0.7603208484468407,
+            0.2151088550607084
+          ],
+          [
+            -0.4904503798696582,
+            -0.9014562084468408,
+            0.21170511135505793
+          ],
+          [
+            -0.49806673855951056,
+            -0.9014562084468409,
+            -0.08533287754918181
+          ]
+        ],
+        "sourceAspect": 1.5333333333333337
+      },
+      {
+        "chart": "armor",
+        "points": [
+          [
+            -0.1,
+            -0.9599999999999999,
+            -0.2
+          ],
+          [
+            -0.39,
+            -0.9599999999999999,
+            -0.2
+          ],
+          [
+            -0.39,
+            -0.86,
+            0.57
+          ],
+          [
+            -0.1,
+            -0.86,
+            0.57
+          ]
+        ],
+        "depth": 0.012,
+        "section": null,
+        "instrumentPoints": [
+          [
+            -0.12461984000000005,
+            -0.9141610045050794,
+            0.1063722840281577
+          ],
+          [
+            -0.36538015999999995,
+            -0.9141610045050794,
+            0.1063722840281577
+          ],
+          [
+            -0.36538015999999995,
+            -0.8939389306126175,
+            0.2620822530001146
+          ],
+          [
+            -0.12461984000000005,
+            -0.8939389306126175,
+            0.2620822530001146
+          ]
+        ],
+        "sourceAspect": 1.5333333333333337
+      },
+      {
+        "chart": "switch",
+        "points": [
+          [
+            0.4774371111960708,
+            -0.4489869224432935,
+            0.5792896989560876
+          ],
+          [
+            0.6726005075047521,
+            -0.4310279477537504,
+            -0.09927927298582152
+          ],
+          [
+            0.6173841260874026,
+            -0.7189659780994152,
+            -0.31072498579259955
+          ],
+          [
+            0.42257825521177445,
+            -0.7410191517035408,
+            0.36071455982233336
+          ]
+        ],
+        "depth": 0.025,
+        "section": null,
+        "instrumentPoints": [
+          [
+            0.529043498400077,
+            -0.4606011998147479,
+            0.300393798420135
+          ],
+          [
+            0.6192537225516056,
+            -0.45230003697931076,
+            -0.013260607164878896
+          ],
+          [
+            0.5317356443222493,
+            -0.6958717277558453,
+            -0.044878061104744155
+          ],
+          [
+            0.44152542017072066,
+            -0.7041728905912824,
+            0.26877634448026977
+          ]
+        ],
+        "sourceAspect": 1.2521008403361344
+      },
+      {
+        "chart": "armor",
+        "points": [
+          [
+            0.66,
+            -0.75,
+            -0.52
+          ],
+          [
+            0.6299999999999999,
+            -0.7499999999999999,
+            0.65
+          ],
+          [
+            0.46999999999999986,
+            -0.9199999999999999,
+            0.65
+          ],
+          [
+            0.5,
+            -0.92,
+            -0.52
+          ]
+        ],
+        "depth": 0.012,
+        "section": null,
+        "instrumentPoints": [
+          [
+            0.6308127430798784,
+            -0.7603208484468408,
+            -0.08192913384353134
+          ],
+          [
+            0.6231963843900261,
+            -0.7603208484468407,
+            0.2151088550607084
+          ],
+          [
+            0.4904503798696582,
+            -0.9014562084468408,
+            0.21170511135505793
+          ],
+          [
+            0.49806673855951056,
+            -0.9014562084468409,
+            -0.08533287754918181
+          ]
+        ],
+        "sourceAspect": 1.5333333333333337
+      },
+      {
+        "chart": "armor",
+        "points": [
+          [
+            0.1,
+            -0.9599999999999999,
+            -0.2
+          ],
+          [
+            0.39,
+            -0.9599999999999999,
+            -0.2
+          ],
+          [
+            0.39,
+            -0.86,
+            0.57
+          ],
+          [
+            0.1,
+            -0.86,
+            0.57
+          ]
+        ],
+        "depth": 0.012,
+        "section": null,
+        "instrumentPoints": [
+          [
+            0.12461984000000005,
+            -0.9141610045050794,
+            0.1063722840281577
+          ],
+          [
+            0.36538015999999995,
+            -0.9141610045050794,
+            0.1063722840281577
+          ],
+          [
+            0.36538015999999995,
+            -0.8939389306126175,
+            0.2620822530001146
+          ],
+          [
+            0.12461984000000005,
+            -0.8939389306126175,
+            0.2620822530001146
+          ]
+        ],
+        "sourceAspect": 1.5333333333333337
+      },
+      {
+        "chart": "service",
+        "points": [
+          [
+            -0.16,
+            -0.74,
+            0.49
+          ],
+          [
+            0.16,
+            -0.74,
+            0.49
+          ],
+          [
+            0.14,
+            -0.94,
+            -0.04000000000000002
+          ],
+          [
+            -0.14,
+            -0.94,
+            -0.04000000000000002
+          ]
+        ],
+        "depth": 0.02,
+        "section": null,
+        "instrumentPoints": [
+          [
+            -0.12107089394374236,
+            -0.7922985153721135,
+            0.31175530895674736
+          ],
+          [
+            0.12107089394374236,
+            -0.7922985153721135,
+            0.31175530895674736
+          ],
+          [
+            0.12107089394374236,
+            -0.8615046364972657,
+            0.12835908797509382
+          ],
+          [
+            -0.12107089394374236,
+            -0.8615046364972657,
+            0.12835908797509382
+          ]
+        ],
+        "sourceAspect": 1.2352941176470589
+      }
+    ],
+    "innerShell": {
+      "triangles": 32,
+      "boundaryLoops": 1,
+      "boundaryEdges": 10
+    },
+    "exteriorSourceIndices": [
+      7471,
+      7472,
+      7473,
+      7474,
+      7475,
+      7476,
+      7477,
+      7478,
+      7479,
+      7480,
+      7481,
+      7482,
+      7483,
+      7484,
+      7485,
+      7486,
+      7487,
+      7488,
+      7489,
+      7490,
+      7491,
+      7492,
+      7493,
+      7494,
+      7495,
+      7496,
+      7497,
+      7498,
+      7499,
+      7500,
+      7501,
+      7502,
+      7503,
+      7504,
+      7505,
+      7506,
+      7507,
+      7508,
+      7509,
+      7510,
+      7511,
+      7512,
+      7513,
+      7514,
+      7515,
+      7516,
+      7517,
+      7518,
+      7519,
+      7520,
+      7521,
+      7522,
+      7523,
+      7524,
+      7525,
+      7526,
+      7527,
+      7528,
+      7529,
+      7530,
+      7531,
+      7532,
+      7533,
+      7534,
+      7535,
+      7536,
+      7537,
+      7538,
+      7539,
+      7540,
+      7541,
+      7542,
+      7543,
+      7544,
+      7545,
+      7546,
+      7547,
+      7548,
+      7549,
+      7550,
+      7551,
+      7552,
+      7553,
+      7554,
+      7555,
+      7556,
+      7557,
+      7558,
+      7559,
+      7560,
+      7561,
+      7562,
+      7563,
+      7564,
+      7565,
+      7566,
+      7567,
+      7568,
+      7569,
+      7570,
+      7571,
+      7572,
+      7573,
+      7574,
+      7575,
+      7576,
+      7577,
+      7578,
+      7579,
+      7580,
+      7581,
+      7582,
+      7583,
+      7584,
+      7585,
+      7586,
+      7587,
+      7588,
+      7589,
+      7590,
+      7591,
+      7592,
+      7593,
+      7594,
+      7595,
+      7596,
+      7597,
+      7598,
+      7599,
+      7600,
+      7601,
+      7602,
+      7603,
+      7604,
+      7605,
+      7606,
+      7607,
+      7608,
+      7609,
+      7610,
+      7611,
+      7612,
+      7613,
+      7614,
+      7615,
+      7616,
+      7617,
+      7618,
+      7619,
+      7620,
+      7621,
+      7622,
+      7623,
+      7624,
+      7625,
+      7626,
+      7627,
+      7628,
+      7629,
+      7630,
+      7631,
+      7632,
+      7633,
+      7634,
+      7635,
+      7636,
+      7637,
+      7638,
+      7639,
+      7640,
+      7641,
+      7642,
+      7643,
+      7644,
+      7645,
+      7646,
+      7647,
+      7648,
+      7649,
+      7650,
+      7651,
+      7652,
+      7653,
+      7654,
+      7655,
+      7656,
+      7657,
+      7658,
+      7659,
+      7660,
+      7661,
+      7662,
+      7663,
+      7664,
+      7665,
+      7666,
+      7667,
+      7668,
+      7669,
+      7670,
+      7671,
+      7672,
+      7673,
+      7674,
+      7675,
+      7676,
+      7677,
+      7678,
+      7679,
+      7680,
+      7681,
+      7682,
+      7683,
+      7684,
+      7685,
+      7686,
+      7687,
+      7688,
+      7689,
+      7690,
+      7691,
+      7692,
+      7693,
+      7694,
+      7695,
+      7696,
+      7697,
+      7698,
+      7699,
+      7700,
+      7701,
+      7702,
+      7703,
+      7704,
+      7705,
+      7706,
+      7707,
+      7708,
+      7709,
+      7710,
+      7711,
+      7712,
+      7713,
+      7714,
+      7715,
+      7716,
+      7717,
+      7718,
+      7719,
+      7720,
+      7721,
+      7722,
+      7723,
+      7724,
+      7725,
+      7726,
+      7727,
+      7728,
+      7729,
+      7730,
+      7731,
+      7732,
+      7733,
+      7734,
+      7735,
+      7736,
+      7737,
+      7738,
+      7739,
+      7740,
+      7741,
+      7742,
+      7743,
+      7744,
+      7745,
+      7746,
+      7747,
+      7748,
+      7749,
+      7750,
+      7751,
+      7752,
+      7753,
+      7754,
+      7755,
+      7756,
+      7757,
+      7758,
+      7759,
+      7760,
+      7761,
+      7762,
+      7763,
+      7764,
+      7765,
+      7766,
+      7767,
+      7768,
+      7769,
+      7770,
+      7771,
+      7772,
+      7773,
+      7774,
+      7775,
+      7776,
+      7777,
+      7778,
+      7779,
+      7780,
+      7781,
+      7782,
+      7783,
+      7784,
+      7785,
+      7786
+    ],
+    "exteriorTransform": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "nativeVdfSha256": "2b897cf54cc35dd972602f4693ba1cde1a4bad8f38cba193b356a5bbbfbc5a52",
+    "paintTriangles": [
+      {
+        "sourceTriangle": 7686,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7686,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7686,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7686,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7686,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7686,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7686,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7686,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7702,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7702,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7702,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7702,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7702,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7702,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7702,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7702,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7703,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7703,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7703,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7703,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7703,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7703,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7703,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7703,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7709,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7709,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7709,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7709,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7709,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7709,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7709,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7709,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7714,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7714,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7714,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7714,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7714,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7714,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7714,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7714,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7715,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7715,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7715,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7715,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7715,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7715,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7715,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7715,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7759,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7759,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7759,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7759,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7759,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7759,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7759,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7759,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7760,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7760,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7760,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7760,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7760,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7760,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7760,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7760,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7765,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7765,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7765,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7765,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7765,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7765,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7765,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7765,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7766,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7766,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7766,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7766,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7766,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7766,
+        "bone": 15,
+        "layer": "dark",
+        "offset": 0.0015
+      },
+      {
+        "sourceTriangle": 7766,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      },
+      {
+        "sourceTriangle": 7766,
+        "bone": 15,
+        "layer": "accent",
+        "offset": 0.0025
+      }
+    ]
+  },
+  "glass": {
+    "openFraction": 0.4122042341220423,
+    "depth": [
+      0.6820776149514907,
+      2.550659327155396
+    ],
+    "bone": "bln21bdb",
+    "vertices": 571,
+    "triangles": 998
+  },
+  "triangles": {
+    "CRV/BDogScoutCockpit": 2248,
+    "CRV/bvltnkOriginalFrame": 316,
+    "CRV/bvltnkHullPaint": 80
+  },
+  "thirdPersonPaint": [
+    {
+      "sourceTriangle": 322,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 322,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 322,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 322,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 322,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 322,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 322,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 322,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 323,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 323,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 323,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 323,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 323,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 323,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 323,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 323,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 339,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 339,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 339,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 339,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 339,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 339,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 339,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 339,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 340,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 340,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 340,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 340,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 340,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 340,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 340,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 340,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 349,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 349,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 349,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 349,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 349,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 349,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 349,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 349,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 350,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 350,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 350,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 350,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 350,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 350,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 350,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 350,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 396,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 396,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 396,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 396,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 396,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 397,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 397,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 397,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 398,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 398,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 398,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 398,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 398,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 398,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 398,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 398,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4208,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4208,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4208,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4208,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4208,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4208,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4208,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4208,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4209,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4209,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4209,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4209,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4209,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4209,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4209,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4209,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4225,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4225,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4225,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4225,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4225,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4225,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4225,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4225,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4226,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4226,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4226,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4226,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4226,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4226,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4226,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4226,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4235,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4235,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4235,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4235,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4235,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4235,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4235,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4235,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4236,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4236,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4236,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4236,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4236,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4236,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4236,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4236,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4278,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4278,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4278,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4279,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4279,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4279,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4279,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4279,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4280,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4280,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4280,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4280,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4280,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4280,
+      "bone": 3,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 4280,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 4280,
+      "bone": 3,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7686,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7686,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7686,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7686,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7686,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7686,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7686,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7686,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7702,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7702,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7702,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7702,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7702,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7702,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7702,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7702,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7703,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7703,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7703,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7703,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7703,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7703,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7703,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7703,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7709,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7709,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7709,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7709,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7709,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7709,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7709,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7709,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7714,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7714,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7714,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7714,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7714,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7714,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7714,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7714,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7715,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7715,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7715,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7715,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7715,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7715,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7715,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7715,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7759,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7759,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7759,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7759,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7759,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7759,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7759,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7759,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7760,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7760,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7760,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7760,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7760,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7760,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7760,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7760,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7765,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7765,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7765,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7765,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7765,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7765,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7765,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7765,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7766,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7766,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7766,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7766,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7766,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7766,
+      "bone": 15,
+      "layer": "dark",
+      "offset": 0.0015
+    },
+    {
+      "sourceTriangle": 7766,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    },
+    {
+      "sourceTriangle": 7766,
+      "bone": 15,
+      "layer": "accent",
+      "offset": 0.0025
+    }
+  ]
+}
