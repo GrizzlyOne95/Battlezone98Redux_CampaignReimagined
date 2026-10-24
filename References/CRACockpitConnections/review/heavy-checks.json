@@ -1,0 +1,9 @@
+{
+  "checks": 106,
+  "sidePodSamples": [
+    125,
+    125
+  ],
+  "bowSamples": 28,
+  "opaqueTriangles": 7614
+}

@@ -1,0 +1,17 @@
+import * from "CR_BZBase.material"
+
+material CRV/AVRocketCockpit : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap crvarcp_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap crvarcp_e.dds
+}
+
+material CRV/AVRocketNoseFins : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap avrckt_D.dds
+    set_texture_alias NormalMap avrckt_N.dds
+    set_texture_alias SpecularMap avrckt_S.dds
+    set_texture_alias EmissiveMap avrckt_E.dds
+}
