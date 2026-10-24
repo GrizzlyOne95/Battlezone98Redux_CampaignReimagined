@@ -2,6 +2,7 @@
 import json
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 import numpy as np
 from world_surface_art import apply,normal,slopes
 
@@ -23,7 +24,10 @@ class WorldArt(unittest.TestCase):
         # Only light terrain is selected; untouched materials remain identical.
         policy={"schema":POLICY["schema"],"worlds":{"ganymede":{"types":{"1":POLICY["worlds"]["ganymede"]["types"]["1"]}}}}
         bases={uid:old.copy(),"base":old.copy()}
-        apply("ganymede","D",{1:uid},bases,{},policy)
+        # Europa's DDS reference tiles were retired for paint; stand in a textured reference.
+        reference=np.random.default_rng(7).integers(60,200,(128,128,3),dtype=np.uint8)
+        with patch("world_surface_art.reference",return_value=(reference,{})):
+            apply("ganymede","D",{1:uid},bases,{},policy)
         np.testing.assert_allclose(bases[uid].mean(axis=(0,1)),np.array([110,70,45])*1.06,atol=1.2)
         np.testing.assert_array_equal(bases["base"],old)
         self.assertGreater(float(bases[uid].std()),1)
