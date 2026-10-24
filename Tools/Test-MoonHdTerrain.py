@@ -12,12 +12,12 @@ import numpy as np
 from PIL import Image
 
 from bzmodellibs import toolbox_root
-from terrain_art_tuning import RUNTIME_DEFAULTS, validate_runtime
+from terrain_art_tuning import binding_for, paint_problems
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(toolbox_root()))
 try:
-    from battlezone.terrain.hd_tiles import build_bundle, load_project, read_layout
+    from battlezone.terrain.hd_tiles import read_layout
 except ImportError as exc:
     raise RuntimeError("Set BZ_TOOLBOX_DIR to Toolbox with HD terrain authoring (PR #36 / ec0fce2)") from exc
 
@@ -34,34 +34,25 @@ class MoonHdTerrain(unittest.TestCase):
         manifest = json.loads((ROOT / "Config/cr_terrain_hd.json").read_text())
         self.assertIn("MN_DETAIL_ATLAS", manifest["materials"])
         binding = manifest["materials"]["MN_DETAIL_ATLAS"]
-        self.assertEqual(binding["sliceCount"], 11)
-        self.assertEqual(len(binding["tileRects"]), 11)
+        self.assertEqual(binding["sliceCount"], 9)
+        self.assertEqual(paint_problems("moon"), [])
         self.assertEqual(read_layout(ROOT / "Config/mn_detail_atlas.csv", "MN00SA0.MAP"),
                          read_layout(ROOT / "Tools/TerrainHD/Moon/layout.csv", "MN00SA0.MAP"))
-        self.assertEqual(binding["emissive"]["sourceResource"], "black.dds")
         material = (ROOT / "Materials/mn_detail_atlas.material").read_text()
-        for alias, resource in (("DiffuseMap", binding["diffuseResource"]),
-                                ("NormalMap", binding["normal"]["sourceResource"]),
-                                ("SpecularMap", binding["specular"]["sourceResource"])):
-            self.assertIn(f"set_texture_alias {alias} {resource}", material)
+        self.assertIn(f"set_texture_alias DiffuseMap {binding['diffuseResource']}", material)
         for mission in ("misn02b", "misn03"):
             self.assertRegex((ROOT / f"Missions/{mission}.trn").read_text(), r"MaterialName\s*=\s*mn_detail_atlas")
 
-    def test_toolbox_rebuild_matches_every_shipped_byte_and_manifest(self):
-        recipe = load_project(ROOT / "Tools/TerrainHD/Moon/authoring.json")
+    def test_painted_moon_cannot_be_overwritten_by_a_dds_rebuild(self):
+        # The DDS pack was retired for OpenShim paint; rebuilding it would clobber the paint binding.
+        builder = module("Build-HdTerrainBundle.py")
         with tempfile.TemporaryDirectory() as directory:
-            output = Path(directory) / "bundle"
-            report = build_bundle(recipe, output)
-            self.assertEqual(report["conversion"], {"preserved": 44, "converted": 0})
-            expected = json.loads((ROOT / "Config/cr_terrain_hd.json").read_text())["materials"]["MN_DETAIL_ATLAS"]
-            self.assertEqual(validate_runtime(expected), dict(RUNTIME_DEFAULTS, microReliefScale=2.5))
-            for key in (*RUNTIME_DEFAULTS, "surfaceBlend", "heightTexture", "heightEncoding"):
-                expected.pop(key)
-            self.assertEqual(json.loads((output / "terrain_hd_tiles.json").read_text())["materials"]["MN_DETAIL_ATLAS"], expected)
-            # Original normal_validation remains historical source-basis evidence.
-            # Current art hashes belong to the accepted pack's validation record.
-            evidence = json.loads((ROOT / "Tools/TerrainHD/Moon/pack_validation.json").read_text())
-            self.assertEqual(report["sha256"], evidence["bundle"]["sha256"])
+            path = Path(directory) / "terrain.json"
+            path.write_text(json.dumps({"schema": "v2", "materials": {"MN_DETAIL_ATLAS": binding_for("moon")}}))
+            before = path.read_bytes()
+            with self.assertRaisesRegex(ValueError, "paint world"):
+                builder.merge_manifest(path, {"schema": "v2", "materials": {"MN_DETAIL_ATLAS": {"sliceCount": 11}}})
+            self.assertEqual(path.read_bytes(), before)
 
     def test_height_evidence_and_shader_basis_are_not_empirical_polarity_guesses(self):
         audit = module("Validate-MoonHdNormals.py")
