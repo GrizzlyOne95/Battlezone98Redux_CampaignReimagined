@@ -1,0 +1,9 @@
+import * from "CR_BZBase.material"
+
+material CRV/avhrazCombatExterior : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap avhraz_D.dds
+    set_texture_alias NormalMap avhraz_N.dds
+    set_texture_alias SpecularMap avhraz_S.dds
+    set_texture_alias EmissiveMap avhraz_E.dds
+}

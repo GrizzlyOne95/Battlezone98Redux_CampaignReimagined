@@ -1,0 +1,19 @@
+{
+  "tool": "built-in image_gen",
+  "mode": "edit",
+  "inputs": [
+    {
+      "path": "original/cr_d.png",
+      "role": "edit target / current UV layout"
+    },
+    {
+      "path": "original/bvrdev00_d.png",
+      "role": "legacy paint reference, not UV layout"
+    },
+    {
+      "path": "original/bvrdev_e.png",
+      "role": "normalized-UV lamp registration"
+    }
+  ],
+  "prompt": "Use case: precise-object-edit.\nAsset type: UV-locked diffuse texture atlas for the Battlezone Red Devil vehicle, a faithful legacy-guided remaster.\nInput image 1 is the EDIT TARGET: current CR/Redux-layout atlas. Input image 2 is the LEGACY STYLE AND PAINT reference, NOT the layout to copy. Input image 3 is the existing EMISSIVE REGISTRATION reference, with the same normalized UV coordinates as image 1; do not include black-map graphics in the output.\nPrimary request: restore the legacy Red Devil's clean, punchy crimson-red and deep charcoal-black identity on the CURRENT atlas layout. Replace the noisy all-over flaking/grunge with broad crisp angular red/black paint blocks inspired by image 2, restrained edge wear and finer close-up metal detail. Preserve all current UV island silhouettes, packing, panel boundaries, seams, machinery, vents and circles exactly; do not move, rotate, repack, resize, duplicate or merge any island. Keep black technical areas dark, red armor red, yellow edge accents, and the three EXISTING round headlights warm golden yellow with bright yellow centers exactly inside their original lamp locations indicated by image 3. Retain existing cyan instrument/slit glass at the registered locations. Preserve the existing dog medallion, red star with white outline and white star/bones marking at their exact positions, orientation and footprint; sharpen but do not redesign them. Do not turn ordinary red armor into glowing surfaces. Do not add logos, lamps, text, unrelated hazard tape, frames or extra mechanical geometry.\nStyle: high-detail flat game texture, unlit/albedo-like lighting, no bloom, no cast shadows, no 3D render or perspective. Preserve the original atlas edge-to-edge square composition and all UV registration. Output one square atlas, approximately 2048 by 2048, no border, labels, watermark, letterbox or reference panels."
+}

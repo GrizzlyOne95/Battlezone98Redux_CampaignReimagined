@@ -1,0 +1,14 @@
+import * from "CR_BZBase.material"
+
+// NSDF Fury squad (ODF/avsav14.odf, misn14). Redux ships no avsav mesh, so
+// Assets/ModelFixes/avsav.mesh is the Resurgence addon's Fury with its
+// material renamed to avsav14; avsav2_d.dds is CR's skin for that unwrap.
+material avsav14 : CR_BZBase
+{
+	set_texture_alias DiffuseMap avsav2_d.dds
+
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".5 .5 .5"
+	set $shininess "96"
+}

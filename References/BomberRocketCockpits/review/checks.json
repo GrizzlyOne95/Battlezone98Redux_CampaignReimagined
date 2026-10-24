@@ -1,0 +1,27 @@
+{
+  "checks": 195,
+  "units": [
+    {
+      "base": "svhraz",
+      "opaqueTriangles": 2358,
+      "sourceHullSamples": 1,
+      "pov": "Shb11POV",
+      "eye": [
+        2.5341849327087402,
+        1.170401031151414,
+        0.48031704127788544
+      ]
+    },
+    {
+      "base": "cvrckt",
+      "opaqueTriangles": 5760,
+      "sourceHullSamples": 41,
+      "pov": "CDR11POV",
+      "eye": [
+        0.0,
+        2.611823081970215,
+        -0.9334869980812073
+      ]
+    }
+  ]
+}

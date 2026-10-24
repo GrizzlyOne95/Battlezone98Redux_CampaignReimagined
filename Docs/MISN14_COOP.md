@@ -212,8 +212,10 @@ so the run used a copy named `m14t.bzn` in `addon\m14t\` (with the CR scripts be
 
 Not verified live: the cinematic framing of the activation/loss shots (the window was in the background and its
 captures stopped refreshing after the intro, so the screenshots show a stale cockpit frame), and everything co-op.
-Redux logs one "mission issue": the `avsav` mesh is not preloaded (the squad loads it at run time); harmless but a
-possible hitch when the squad is built 3 s in.
+Redux ships no `avsav` mesh, so CR carries one: `Assets/ModelFixes/avsav.mesh` is the Resurgence addon's NSDF Fury
+(stock `hvsav.skeleton`) with its material renamed to `avsav14` (`Materials/avsav14.material`, CR's `avsav2_d.dds`,
+which matches that unwrap). Without it the squad logged "could not load avsav.mesh" every frame (~40k Ogre
+exceptions in 80 s) and drew nothing.
 
 ## Live checklist
 
