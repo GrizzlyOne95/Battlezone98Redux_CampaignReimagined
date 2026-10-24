@@ -1,0 +1,17 @@
+import * from "CR_BZBase.material"
+
+material CRV/avwalkGunArms : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap avwalk_D.dds
+    set_texture_alias NormalMap avwalk_N.dds
+    set_texture_alias SpecularMap avwalk_S.dds
+    set_texture_alias EmissiveMap avwalk_E.dds
+}
+
+material CRV/avwalkJointBacks : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap crvascp_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap crvascp_e.dds
+}

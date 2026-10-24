@@ -1,0 +1,17 @@
+import * from "CR_BZBase.material"
+
+material CRV/avtankTankGuns : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap avtank_D.dds
+    set_texture_alias NormalMap avtank_N.dds
+    set_texture_alias SpecularMap avtank_S.dds
+    set_texture_alias EmissiveMap avtank_E.dds
+}
+
+material CRV/avtankTankHull : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap avtank_D.dds
+    set_texture_alias NormalMap avtank_N.dds
+    set_texture_alias SpecularMap avtank_S.dds
+    set_texture_alias EmissiveMap avtank_E.dds
+}

@@ -14,7 +14,7 @@ def values(vd,semantic):
 
 def read_mesh(path):return oms.MeshSerializer(io.BytesIO(path.read_bytes())).read()
 
-def rig(path):
+def rig(path,shell_name='brd21bda'):
     skeleton=oss.SkeletonSerializer(io.BytesIO(path.read_bytes())).read();world={}
     def transform(b):
         if b.handle in world:return world[b.handle]
@@ -26,7 +26,7 @@ def rig(path):
         world[b.handle]=(p,r);return p,r
     for b in skeleton.bones():transform(b)
     eye=next(b for b in skeleton.bones() if b.name.lower().endswith('pov'))
-    shell=next(b for b in skeleton.bones() if b.name.lower()=='brd21bda')
+    shell=next(b for b in skeleton.bones() if b.name.lower()==shell_name.lower())
     return skeleton,world,eye,shell
 
 def geometry(source,skeleton_path):
@@ -117,7 +117,7 @@ def geometry(source,skeleton_path):
 
 def pub(x):return np.array(x).tolist()
 
-def mesh_bytes(parts,skeleton,world,eye,shell,skeleton_name='bvrdev_cockpit.skeleton'):
+def mesh_bytes(parts,skeleton,world,eye,shell,skeleton_name='bvrdev_cockpit.skeleton',glass_parts=None):
     mesh=om.Mesh();mesh.skeleton_name=skeleton_name
     def add(name,data,index):
         if data.shape[1]==8:
@@ -140,7 +140,10 @@ def mesh_bytes(parts,skeleton,world,eye,shell,skeleton_name='bvrdev_cockpit.skel
     # Reuse the established bounded ray-grid fit, not its legacy file parser.
     # All on-disk model I/O in this builder uses bzmodellibs exclusively.
     import cockpitglass as cg
-    adapter=SimpleNamespace(submeshes=[dict(positions=d[:,:3],tris=i.reshape(-1,3),bones=np.full(len(d),shell.handle),material=name) for name,(d,i) in parts.items()])
+    # Optional fitting-only subset excludes distant exterior assemblies. The
+    # default retains every established builder's exact output and behavior.
+    fit_parts=parts if glass_parts is None else glass_parts
+    adapter=SimpleNamespace(submeshes=[dict(positions=d[:,:3],tris=i.reshape(-1,3),bones=np.full(len(d),shell.handle),material=name) for name,(d,i) in fit_parts.items()])
     skel=SimpleNamespace(names={b.handle:b.name for b in skeleton.bones()},world=world,parent={b.handle:b.parent.handle for b in skeleton.bones() if b.parent is not None})
     fit=cg.make_glass(adapter,skel,{})
     glass=np.column_stack([fit.positions,fit.normals,fit.uvs]).astype('<f4');add('CRWX_CockpitGlass',glass,fit.tris.reshape(-1))

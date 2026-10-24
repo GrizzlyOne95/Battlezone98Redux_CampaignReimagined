@@ -1,0 +1,9 @@
+import * from "CR_BZBase.material"
+
+material CRV/CCAMechanicalCockpit : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap crvsmcp_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap crvsmcp_e.dds
+}
