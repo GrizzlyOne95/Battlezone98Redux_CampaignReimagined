@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-24T09:23:04-05:00",
+  "generated": "2026-10-24T12:06:13-05:00",
   "count": 4190,
   "files": [
     {
