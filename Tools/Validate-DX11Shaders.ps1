@@ -105,7 +105,15 @@ $universalDecodeTargets = @('diffuseTex.rgb', 'emissiveTex', 'authoredFog')
 # because it is the terrain output alpha. The base shader has no vertex COLOR
 # input at all, so a 'vertexTint' decode appearing there is by definition a
 # copy-paste of terrain code into the wrong family.
-$familyScopedDecodeOwners = @{ 'vertexTint' = 'openshim_enhanced_terrain-sm4.hlsl' }
+#
+# 'skyLinear' is the base shader's hemisphere sky colour for the BZCC-style
+# environment term. It is saturate(fogColour) - the same authored display colour
+# as authoredFog - so it decodes for the same reason. Terrain has no
+# environment term, so a 'skyLinear' decode there is a stray copy.
+$familyScopedDecodeOwners = @{
+    'vertexTint' = 'openshim_enhanced_terrain-sm4.hlsl'
+    'skyLinear'  = 'openshim_enhanced_base-sm4.hlsl'
+}
 
 # Any swizzle or member access that includes an alpha/w component.
 $alphaComponentPattern = '\.[rgbaxyzw]*[awAW][rgbaxyzw]*\b'
@@ -1340,14 +1348,20 @@ foreach ($case in $sweepCases) {
     # fog (+ emissive) for the decode. Terrain adds one more: the per-vertex
     # COLOR0 tint, which multiplies the decoded albedo and is therefore authored
     # display colour. The base shader has no vertex COLOR input, so it never
-    # gains this call.
+    # gains this call. The base shader instead adds the hemisphere sky colour
+    # (skyLinear, the authored fog colour) for its environment term, which only
+    # exists on specular variants that do not take the IBL path.
     $isTerrainSource = (Split-Path -Leaf $case.File) -eq 'openshim_enhanced_terrain-sm4.hlsl'
+    $hasSpecular = $case.Defines -match '^SPECULAR(MAP)?_ENABLED'
+    $hasIbl = $case.Defines -match '^IBL_ENABLED'
+    $isBaseSource = ((Split-Path -Leaf $case.File) -eq 'openshim_enhanced_base-sm4.hlsl') -and $hasSpecular -and (-not $hasIbl)
 
     $expectedEncode = if ($shouldActivate) { 2 } else { 0 }
     $expectedDecode = 0
     if ($shouldActivate) {
         $expectedDecode = if ($hasEmissive) { 4 } else { 3 }
         if ($isTerrainSource) { $expectedDecode += 1 }
+        if ($isBaseSource) { $expectedDecode += 1 }
     }
 
     $encodeCount = [regex]::Matches($text, '\blinear_to_srgb\s*\(').Count

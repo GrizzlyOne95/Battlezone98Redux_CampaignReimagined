@@ -38,6 +38,8 @@ def merge_manifest(path, incoming):
         # Art direction belongs to CR's config; rebuilding textures must not
         # reset a world's hand-tuned geometric relief.
         previous = current["materials"].get(material, {})
+        if "paint" in previous:
+            raise ValueError(f"{material} is an OpenShim paint world; refusing to overwrite it with a DDS bundle")
         authored = validate_runtime(previous)
         surface_coverage(previous)
         if "surfaceBlend" in previous:
