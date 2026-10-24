@@ -1,5 +1,45 @@
 # CRA fighter cockpit revamp prototype
 
+## Wing-and-gun connection follow-up (2026-10-23)
+
+Owner asked to move the miniguns farther outboard and show their overlying
+wings. Supersedes the original fitted-gun description below. The accepted
+interior remains; remove only its 24-triangle invented swept outriggers and
+replace the old gun crop with both real capped wing/pod-and-gun sections.
+Select body-bone surfaces at `abs(x) >= .90`, `z >= .80`, excluding every
+hardpoint marker, using attribute-interpolated cuts and explicit rear caps.
+Source positions/scale are **native**, with zero inboard/up/forward offset:
+the previous `.55/.45/.65 m` fit is gone. Original UVs interpolate at cuts;
+no new atlas or texture edits. Guns stay under their wings, not hovering above
+the sill or moved sideways away from the original firing locations.
+
+The wing roofs are especially visible during side looks. A subsequent ray
+diagnostic corrected the initial explanation for missing forward barrels:
+our outer cockpit sills, NOT the native wings, completely occluded them.
+Lower the forward outer lip from eye-relative y=-.34 to -.58 m, blend the
+closed liner into that profile and add capped front joining posts. Keep the
+rear lip, center console, camera, wing/gun source positions and hardpoints
+unchanged. Both barrels now just peek at the lower outer corners: 69 actual
+barrel samples per side in a 160x90 forward view (64-degree vertical FOV,
+16:9), about .96% of the screen combined. The compiled cockpit now has 720
+interior/back triangles and 3,992 source section triangles, plus glass.
+The 110 section-cap triangles use the existing quiet interior trim allocation.
+
+`References/CRACockpitConnections/review` retains this follow-up's exported
+renders and comparisons; the earlier `review/` images below remain the first
+accepted prototype. Fighter tests now run 71 checks. Barrel checks classify
+source faces rather than accepting any wing/gun material hit; restoring the
+old sill faces is a negative fixture that must hide the barrels again.
+Weather glass is fitted
+only to the retained cabin, excluding distant exterior sections and their backs.
+The common compiler's optional fit subset leaves other builders unchanged.
+Exterior/native hardpoints,
+ODFs, original/fallback mesh, rig, interior textures and emission masks remain
+unchanged. No promise of live shot/flash alignment or native animation follows
+from this offline fit. No game launch or deployment.
+
+## Original prototype record
+
 Owner request: pick one reviewed cockpit and fully revamp it. Chosen `cvfigh`:
 replace its generic cage with a low, broad CRA fighter interior and show small
 portions of the miniguns at the lower sides. Preserve the approved Red Devil.
