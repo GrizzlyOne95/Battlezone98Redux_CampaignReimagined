@@ -1,0 +1,20 @@
+{
+  "mode": "built-in image_gen",
+  "use_case": "stylized-concept",
+  "reference_role": "Actual cvhraz third-person POV locator: palette/material reference only, not edit target",
+  "reference": "source-reference.png",
+  "requested_size": [
+    2048,
+    2048
+  ],
+  "actual_size": [
+    1254,
+    1254
+  ],
+  "runtime_size": [
+    1024,
+    1024
+  ],
+  "initial_attempt": "First image request was rejected at output safety review; no output was saved or used. Retried with a simpler fictional decorative panel brief.",
+  "prompt": "Use case: stylized-concept. Create a flat square diffuse texture atlas for an imaginary retro science-fiction vehicle cockpit in a video game. This is decorative instrument-panel artwork only, no functional machinery diagram. Image 1 is a palette reference only: subdued oxblood brown-red paint and ochre yellow accents. Do not draw the referenced vehicle or scene. Ideally 2048 square, neutral orthographic albedo lighting, no perspective or cast shadows. Worn manufactured metal, fine realistic detail, late-20th-century analog aerospace aesthetic. Six padded axis-aligned rectangular charts separated by charcoal gutters. TOP x2%-98%,y2%-32% one very wide horizontal instrument console: left half a large lime-green monochrome landscape scanner display with abstract stepped traces, a small analog dial; right half a small lime-green abstract vehicle status screen, two rows of four small amber indicator lenses and recessed knobs. No pair of matching giant round radars. MIDDLE LEFT x2%-48%,y36%-64% a separate pilot panel with three modest round gauges with lime needles and two narrow lime vertical bar meters. MIDDLE RIGHT x52%-98%,y36%-64% a separate auxiliary control panel with lime status lamps, simple green geometric symbols, recessed red toggle switches and small amber lenses. BOTTOM LEFT x2%-48%,y68%-98% quiet oxblood brown-red painted metal swatch, subtle scuffs, no instruments, no emblem; keep most of this swatch plain. BOTTOM RIGHT x52%-98%,y68%-80% quiet ochre yellow painted metal strip, subtle scratches, no symbols or lamps. BOTTOM RIGHT x52%-98%,y84%-98% quiet charcoal rubberized metal trim, fine subtle grain, no ribs or big grilles. Restrained practical detail; slim panel borders, generous inner margins, no large fasteners in the material swatch centers. Green and amber light comes ONLY from small screen marks and glass lenses, not painted red or ochre surfaces. No readable text, no logos, watermark, complete cockpit, hands, people, exterior scene, bloom, or extra objects. This is a flat UV texture sheet, with all charts filling the sheet. Clear detailed instruments that remain readable at 1024px."
+}

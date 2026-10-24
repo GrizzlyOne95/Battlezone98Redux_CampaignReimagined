@@ -1,0 +1,9 @@
+import * from "CR_BZBase.material"
+
+material CRV/svltnkCombatExterior : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap svltnk_d.dds
+    set_texture_alias NormalMap svltnk_N.dds
+    set_texture_alias SpecularMap svltnk_S.dds
+    set_texture_alias EmissiveMap svltnk_e.dds
+}
