@@ -13,7 +13,7 @@ they register human teams 1–4 before native multiplayer initialization.
   Both modes load the same `misn03.bzn` and `misn03.lua`.
 - The MP INI permits 2–4 players. `misn03.vxt` offers only the NSDF tank
   (`avtank`) and multiplayer scout (`avfimp`), following the stock strategy VXT
-  format. `misn03.des` supplies the lobby description; `misn03.bmp` reuses the
+  format. `misn03.mpdes` supplies the lobby description; `misn03.bmp` reuses the
   existing CR campaign preview artwork. All four files deploy under their bare
   `misn03` names alongside the shared map/script.
 - Host on team 1. Guests select distinct teams 2, 3, or 4. All four teams are

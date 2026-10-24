@@ -14,7 +14,7 @@ Quake"). One `Missions/misn18.bzn` and one `Scripts/misn18.lua` serve both modes
 | `Scripts/CRMisn18.lua` | Co-op runtime: ownership, concealed Fury arrivals, presentation transport, storm hook, extraction ending. Adapted from `CRMisn17.lua`. |
 | `Scripts/CRDrop18.lua` | The extraction ending's dropship choreography (pure functions of the plan and the clock). |
 | `Missions/misn18.{bzn,hg2,lgt,mat,trn,vxt}` | Map and companions, built by `Tools/Build-Misn18CoopMap.py`. |
-| `Config/misn18.ini`, `misn18.des`, `Assets/Graphics/misn18.bmp`, `Config/crcampgn.ini` `[MISSION17]` | Lobby listing and campaign entry (voice `misn1800.wav`, planet `titan`: the menu has no Achilles icon). |
+| `Config/misn18.ini`, `misn18.mpdes`, `Assets/Graphics/misn18.bmp`, `Config/crcampgn.ini` `[MISSION17]` | Lobby listing and campaign entry (voice `misn1800.wav`, planet `titan`: the menu has no Achilles icon). |
 | `Tools/Misn18Fixture.lua`, `Misn18RealStorm.lua`, `Test-Misn18Coop.lua`, `Test-Misn18CoopContract.py` | Four-peer fixture (with the real storm loader) and contract tests. |
 
 The map is the 1.5 original (22 objects, 46 named paths), converted to Redux 2016 text, class `MultSTMission`,

@@ -59,7 +59,7 @@ print(f"misn04 co-op team contract passed ({len(enemy_blocks)} preplaced Team-5 
 # Separate native mode INIs must resolve the one shared BZN/script by stem.
 mp = configparser.ConfigParser()
 mp.read(root / "Config" / "misn04.ini", encoding="utf-8")
-assert mp["DESCRIPTION"]["missionName"] == '"CR: The Relic Discovered Coop"'
+assert mp["DESCRIPTION"]["missionName"] == '"CR 03: The Relic Discovered Coop"'
 assert mp["WORKSHOP"]["mapType"] == '"multiplayer"'
 assert dict(mp["MULTIPLAYER"]) == {
     "minplayers": '"2"', "maxplayers": '"4"', "gametype": '"S"',
@@ -75,7 +75,7 @@ assert vehicles == ['avtank', 'avfimp', 'avltnk'], "MP selection must match the 
 for odf in vehicles:
     assert (root / "ODF" / (odf + ".odf")).is_file()
 
-description = (root / "misn04.des").read_text().strip()
+description = (root / "misn04.mpdes").read_text().strip()
 assert len(description) <= 300 and "\n" not in description
 assert "team 1" in description and "teams 2-4" in description
 bitmap = (root / "Assets" / "Graphics" / "misn04.bmp").read_bytes()
@@ -89,7 +89,7 @@ entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
 assert lock["count"] == len(lock["files"])
 manager = (root / "Manage-CampaignFiles.ps1").read_text(encoding="utf-8-sig")
 for source in (r"Config\misn04.ini", r"Assets\Graphics\misn04.bmp",
-               "misn04.des", r"Missions\misn04.vxt",
+               "misn04.mpdes", r"Missions\misn04.vxt",
                r"Missions\misn04.bzn", r"Scripts\misn04.lua"):
     runtime = source.split("\\")[-1]
     assert entries.get(source) == runtime, f"missing shipping entry: {source}"

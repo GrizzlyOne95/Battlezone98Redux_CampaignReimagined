@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Move the multiplayer co-op blurbs from root `misnNN.des` to `misnNN.mpdes` so single-player briefings fall back to the stock localized text; the MP map list reads `<stem>.mpdes` (needs the OpenShim build that prefers it). Prefix the co-op map names with their campaign order (`CR 01: Red Arrival Coop` ... `CR 17: The Ultimate Quake Coop`) so the list sorts in story order.
 - Give the misn14 NSDF Fury squad (`avsav14`) a mesh: the Resurgence addon's Fury, pointed at a CR
   `avsav14` material using `avsav2_d.dds`. Redux has no `avsav` mesh, so the squad was invisible and
   flooded the Ogre log with "Cannot locate resource avsav.mesh" every frame.

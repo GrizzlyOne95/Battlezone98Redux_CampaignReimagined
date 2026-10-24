@@ -161,7 +161,7 @@ pending. One `.bzn` and one `.lua` serve both modes. Use the newest finished mis
    by `086ba03`): `git show ce18e89:Missions/misnNN.hg2`.
 4. **Lua co-op layer** (section 3.2-3.6), marked with `-- CR ... >>` / `<<` regions so the source-parity
    test can strip them and prove the DLL port underneath is unchanged.
-5. **Listing.** `Config/misnNN.ini` (mapType multiplayer, gameType S, 2-4 players), root `misnNN.des`
+5. **Listing.** `Config/misnNN.ini` (mapType multiplayer, gameType S, 2-4 players), root `misnNN.mpdes` (the MP listing blurb; SP uses the stock `.des`)
    (<= 300 bytes, CRLF, and it must be allowlisted in `.gitignore`), `Missions/misnNN.vxt`
    (approved roster: `Docs/COOP_STARTING_UNITS.md`),
    `Assets/Graphics/misnNN.bmp` (generic shared image), and the `[MISSIONk]` entry in
