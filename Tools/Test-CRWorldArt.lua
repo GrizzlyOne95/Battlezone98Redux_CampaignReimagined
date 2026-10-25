@@ -128,4 +128,30 @@ Art.UpdateSky(api,"mars",{sun=sun,night=.5,clarity=1})
 check(#frames==n+1,"reinstalling the dome rewrites the frame state")
 hidden={}
 Art.HideSkySprites(api,"venus");check(next(hidden)==nil,"other domes keep the stock clouds")
+-- Planetshine: the Earth's TRN entry places it; the phase scales the ambient.
+local stars={Texture00="earth.map",Texture02="CREARTH.MAP",Azimuth02="90",Elevation02="0"}
+-- Like the game, GetODFString also returns whether the key was found.
+GetODFString=function(_,section,key,default) if section=="Stars" and stars[key] then return stars[key],true end return default,false end
+local earth=Art.DetectShine({},"moon")
+check(earth and math.abs(earth.x-1)<1e-9 and math.abs(earth.y)<1e-9 and math.abs(earth.z)<1e-9,"TRN azimuth 90 places the Earth along +x")
+stars.Azimuth02,stars.Elevation02="150","10"
+earth=Art.DetectShine({},"moon")
+check(math.abs(earth.x-math.sin(math.rad(150))*math.cos(math.rad(10)))<1e-9 and math.abs(earth.y-math.sin(math.rad(10)))<1e-9 and earth.z<0,"azimuth is a compass heading from +z")
+stars.Azimuth02,stars.Elevation02="90","0"
+Art.DetectShine({},"moon")
+local function shine(sun,night)
+ local f=Art.Apply("moon",{ambient={r=.2,g=.2,b=.2},sun=sun,night=night})
+ return f.shine or 0,f.ambient
+end
+check(shine({x=1,y=0,z=0},1)==0,"an Earth beside the sun shows its night side and gives no light")
+local full,lit=shine({x=-2,y=0,z=0},1)
+check(math.abs(full-Art.Shine.moon.night)<1e-9 and lit.b>lit.r,"a full Earth at night gives the whole night share, blue")
+local half=shine({x=0,y=1,z=0},1)
+check(math.abs(half-full*0.5)<1e-9,"a half-lit Earth gives half")
+check(math.abs(shine({x=-1,y=0,z=0},0)-Art.Shine.moon.day)<1e-9,"daylight keeps only the day share")
+check(shine(nil,1)==0 and shine({x=0,y=0,z=0},1)==0,"no sun, no phase, no shine")
+local f=Art.Apply("mars",{ambient={r=.2,g=.2,b=.2},sun={x=-1,y=0,z=0},night=1})
+check(f.shine==nil,"worlds without a shining body are untouched")
+stars.Texture02=nil
+check(Art.DetectShine({},"moon")==nil and shine({x=-1,y=0,z=0},1)==0,"a TRN without the Earth entry gives no shine")
 print("World art lighting: "..count.." checks passed")
