@@ -49,3 +49,22 @@ Gaia DR2: ESA/Gaia/DPAC.
   `Scripts/CRWorldArt.lua` feeds it the Environment sun direction, night blend and weather
   clarity, and hides the TRN's stock `ACLOUD`/`ACLOUD2` sprites. OpenGL keeps the stock
   `mars.tga` dome (technique 1).
+
+## Earth over the Moon (CREARTH.MAP)
+
+Imagery: NASA Earth Observatory. NASA imagery is generally not copyrighted (public domain);
+credit is given as the pages request.
+
+- Surface: Blue Marble Next Generation, December 2004, `world.topo.bathy.200412.3x5400x2700.jpg`
+  (Reto Stockli, NASA Earth Observatory),
+  <https://earthobservatory.nasa.gov/images/73909>.
+- Clouds: `cloud_combined_2048.jpg`, <https://earthobservatory.nasa.gov/images/57747>.
+- City lights: Black Marble 2016, `BlackMarble_2016_01deg.jpg` (Suomi NPP VIIRS),
+  <https://earthobservatory.nasa.gov/images/144898>.
+- Used as: `Assets/Textures/crsky_earth.png` (2048x1024; RGB the surface, A the clouds) and
+  `Assets/Textures/crsky_earth_night.png` (1024x512; R city lights picked out of Black Marble
+  by warmth, G an ocean mask from Blue Marble's sea colour), baked by `Tools/Build-EarthSky.py`.
+  `Shaders/CR_earth.hlsl` draws them as a sphere on the TRN's `[Stars]` Earth quad, lit from the
+  TRN sun (`Scripts/CRWorldArt.lua`) so the phase is the one seen from the Moon.
+  OpenGL keeps the stock `earth.dds` (technique 1).
+- None of the source files is stored in the repository.

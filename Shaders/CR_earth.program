@@ -1,0 +1,64 @@
+// The Earth seen from the Moon (CREARTH.MAP): a sphere lit by the TRN sun,
+// drawn on the [Stars] quad. See CR_earth.hlsl. DX11 and DX9 only: on OpenGL
+// the unified programs have no supported delegate, so
+// Materials/cr_earth.material falls through to the stock earth.dds technique.
+// Tools/Update-WorldSkyProgramVersions.py versions the delegate names.
+
+vertex_program CR_Earth_vertexHLSL4_art_213377079e hlsl
+{
+    source CR_earth.hlsl
+    target vs_4_0
+    entry_point earth_vertex
+    preprocessor_defines SM4=1
+}
+
+vertex_program CR_Earth_vertexHLSL_art_41421faa2c hlsl
+{
+    source CR_earth.hlsl
+    target vs_3_0
+    entry_point earth_vertex
+}
+
+fragment_program CR_Earth_fragmentHLSL4_art_bc6b0de983 hlsl
+{
+    source CR_earth.hlsl
+    target ps_4_0
+    entry_point earth_fragment
+    preprocessor_defines SM4=1
+}
+
+fragment_program CR_Earth_fragmentHLSL_art_22f05e925b hlsl
+{
+    source CR_earth.hlsl
+    target ps_3_0
+    entry_point earth_fragment
+}
+
+vertex_program CR_Earth_vertex unified
+{
+    delegate CR_Earth_vertexHLSL4_art_213377079e
+    delegate CR_Earth_vertexHLSL_art_41421faa2c
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto worldMat world_matrix
+        param_named_auto cameraPosition camera_position
+    }
+}
+
+// The Earth turns once in 86400 s of time_0_x, which wraps on the same
+// period, so the turn never jumps. At time 0 the Americas face the Moon.
+fragment_program CR_Earth_fragment unified
+{
+    delegate CR_Earth_fragmentHLSL4_art_bc6b0de983
+    delegate CR_Earth_fragmentHLSL_art_22f05e925b
+    default_params
+    {
+        // Off until Lua sets w: lit from the right, a gibbous Earth.
+        param_named sunDirection float4 0 0 0 0
+        param_named earthLook float4 0.43 0.1 1.25 0.004
+        param_named earthLights float4 1.6 0.7 0.6 60
+        param_named earthSpin float4 -1.31 -0.0000727221 0.35 0.2
+        param_named_auto earthTime time_0_x 86400
+    }
+}
