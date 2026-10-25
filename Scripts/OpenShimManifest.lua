@@ -2,22 +2,22 @@
 -- Do not edit payload metadata by hand.
 return {
     formatVersion = 3,
-    version = "1.0.0.58",
-    sha256 = "5e65e91dcc438b55489e3bab139499268f446f7efd2a72def45cdda4fb0719dc",
+    version = "1.0.0.59",
+    sha256 = "d9cbb5cc3489b904eb2dba0643b00ea3537d2df69fd122796ba09eba4fa68f0e",
     size = 129024,
     architecture = "x86",
     payloads = {
-        winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "5e65e91dcc438b55489e3bab139499268f446f7efd2a72def45cdda4fb0719dc", size = 129024, version = "1.0.0.58", architecture = "x86" },
-        loader = { source = "bzloader.dll", destination = "bzloader.dll", sha256 = "cf8ee23dd69d1c3b6fd2ec879955ac531008c702d88b0490b3a51f26b217a19b", size = 45568, version = "1.0.0.58", architecture = "x86" },
-        plugin = { source = "openshim.dll", destination = "plugins\\openshim.dll", sha256 = "07a55c2f11cef786f28dad558a2d0d7e4a84c67e93662fd2e3cc19a0788f5e58", size = 4771328, version = "1.0.0.58", architecture = "x86" },
+        winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "d9cbb5cc3489b904eb2dba0643b00ea3537d2df69fd122796ba09eba4fa68f0e", size = 129024, version = "1.0.0.59", architecture = "x86" },
+        loader = { source = "bzloader.dll", destination = "bzloader.dll", sha256 = "6bb87a36094bfd07bd9afbef6c0263873454b3c05c039f95c8b67e2522f577b4", size = 45568, version = "1.0.0.59", architecture = "x86" },
+        plugin = { source = "openshim.dll", destination = "plugins\\openshim.dll", sha256 = "ab028cee19dac4d877d9cc846c52e740212e2b872a24f74a30610043dcecc4d2", size = 4780032, version = "1.0.0.59", architecture = "x86" },
         network = { source = "openshim_net.ini.payload", destination = "net.ini", sha256 = "cb42a3358b99a215f9a0a4aee55236d89648d4d734d5dc91c4f6aa4928902200", size = 13807 },
         patches = { source = "openshim_patches.json.payload", destination = "scripts\\patches.json", sha256 = "79fe60fe12a265d9fd7b77e5222bb15c98e4c1cf48f7ec256584616b4fb04f0d", size = 334160 },
-        playerConfig = { source = "openshim.ini.payload", destination = "openshim.ini", sha256 = "3f9b9780a0c533b86ef9a78ceedb5b61f55dde5763333b90ec4a2f6eeba57a22", size = 38667, overwrite = false },
+        playerConfig = { source = "openshim.ini.payload", destination = "openshim.ini", sha256 = "b1284cd22a526e9520f707523de97dd9d99acf14f9d70faae2deefb09cc3dcbc", size = 39054, overwrite = false },
         assetManifest = { source = "OpenShimAssets.ini.payload", destination = "openshim\\OpenShimAssets.ini", sha256 = "f60b0e8d8be42ad7a157588f165b19d0c9634c14f58e660a28a816a0628aff75", size = 1278 },
         helper = { source = "bzfile_replace_helper.exe", sha256 = "0698c9b868450eb8bf3d4ecad2f4e46852f54b777baca2525a5ff6df5d349a0d", size = 271360 },
     },
     assetSets = {
-        renderer = { source = "openshim\\renderer\\enhanced", destination = "openshim\\renderer\\enhanced", sha256 = "39a7f8331ff4b3765b1542937d2115dcf6e0041a0b6500f517278d8c7e24f306", files = 46 },
+        renderer = { source = "openshim\\renderer\\enhanced", destination = "openshim\\renderer\\enhanced", sha256 = "35eaa98bb4914fd199a1505250d8db6021d7f8fe3a08d95e01abddda16f20692", files = 46 },
         customWidgets = { source = "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets", destination = "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets", sha256 = "74b4a91ce6da32486f5e58e56de6336fb8c0037f356988b1dbaa98d4f2fce7b1", files = 21 },
     },
     assetFiles = {
@@ -65,7 +65,7 @@ return {
         { set = "renderer", path = "openshim_stock_bzbase.import", sha256 = "26e4618ec8a534038977053f85438d736c72de2da6c4a909044e7ac901588446", size = 39472 },
         { set = "renderer", path = "openshim_stock_bzterrainbase.import", sha256 = "a7fc2ba77a8c196966376f168fe6a3fa4bd64a0087117fde424343cb89c2069f", size = 36913 },
         { set = "renderer", path = "openshim_surface_reactions.hlsl", sha256 = "2667e853b304fcce5f8e47c9135caae61adb2a4dd96a95a9655b5403ada77cd8", size = 9158 },
-        { set = "renderer", path = "openshim_terrain_tessellation_test.hlsl", sha256 = "2a3f0048ece4fefc8f108b763bb5f3f922258d7fc1b15b02a3691967c91b3cb8", size = 17458 },
+        { set = "renderer", path = "openshim_terrain_tessellation_test.hlsl", sha256 = "7f955de1e2056136d3caa121f73d73d5bc5696a5c6d1a34f79066d89ba34a8f5", size = 20613 },
         { set = "renderer", path = "resources.version", sha256 = "ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d", size = 1 },
         { set = "customWidgets", path = "osh_career_center.png", sha256 = "69240a42a2302170caab842088922c299c9f56bacd97bf0b6f57c50283de1f7c", size = 46453 },
         { set = "customWidgets", path = "osh_category_center.png", sha256 = "be5a9074499ffc2602551cda7d6532e71485b9c897493551a425f96586576fec", size = 53519 },

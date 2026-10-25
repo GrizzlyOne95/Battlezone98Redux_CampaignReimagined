@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Bundle OpenShim 1.0.0.59 (hotfix): Terrain Micro Detail computes height and slope analytically in one pass, roughly
+  halving its cost (adaptive 7.6 to 3.4 ms at 4K) with unchanged visuals, and stays opt-in; the HD paint shader shares
+  blend weights and diffuse taps per pixel (about 0.9 ms faster at 4K); Enhanced DX11 gives every map's first sun a native
+  power and colour-grade baseline matching CR's calibration, so stock and non-CR maps light like CR worlds.
+- Replace the Moon terrain paint's mossy Dust and lichen-crusted Cratered dust layers with Poly Haven lunar regolith
+  scans (CC0) with cavity shading, and desaturate the wide blue rock, so no green remains on the Moon.
 - Bundle OpenShim 1.0.0.58 (hotfix for the shader/lighting flap and the frame-rate drop at pilot spawn):
   generated terrain programs are named by content so the Ogre microcode cache hits from the second launch on
   instead of recompiling ~40 terrain shaders (a 14-22 s frame) every launch; the per-planet IBL cubemaps are
