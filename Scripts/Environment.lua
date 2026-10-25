@@ -48,7 +48,8 @@ Environment = {
     --   Dawn  : 13:00 - 15:00
     -- Set CycleDuration = 1200 for the same proportions over a 20 minute cycle.
     CycleDuration          = 900.0,
-    LightingMode           = "cycle", -- "subtle" keeps a bounded daylight variation
+    LightingMode           = "cycle", -- "subtle" keeps a bounded daylight variation;
+                                      -- "night" holds full night (see Init's skySun)
     SubtlePeriod           = 3600.0,
     SubtleDimming          = 0.06,
     SubtleSunAngle         = 4.0,
@@ -744,6 +745,11 @@ end
 
 local function CurrentCycleState()
     local time = GetTime() * (Environment.DebugScale or 1.0)
+    if Environment.LightingMode == "night" then
+        -- An airless world's night outlasts any mission: hold the middle of it.
+        local duration = math.max(1.0, Environment.CycleDuration or 900.0)
+        return ComputeCycleState(duration * (Environment.NightStartFraction + Environment.DawnStartFraction) * 0.5)
+    end
     if Environment.LightingMode == "subtle" then
         local state = ComputeCycleState(0.0)
         state.cycle = (time % math.max(1.0, Environment.SubtlePeriod)) / math.max(1.0, Environment.SubtlePeriod)
@@ -1296,6 +1302,9 @@ function Environment.Init(options)
 
     Environment.ArtWorld = WorldArt.Detect(trn)
     WorldArt.DetectShine(trn, Environment.ArtWorld)
+    -- options.skySun = {azimuth=, elevation=} in degrees: where the real sun is,
+    -- for the sky. Night mode wants it below the horizon.
+    WorldArt.SetSkySun(Environment.ArtWorld, options.skySun)
     Environment.ArtSkyOwned = WorldArt.InitializeSky(exu,Environment.ArtWorld)
     Environment.WorldPreset, Environment.WorldPalette = DetectWorldPreset(trnFilename, trn)
     ApplyWorldPreset(Environment.WorldPreset, baseAmbient, baseDiffuse, baseSpecular, baseFog)
@@ -1311,6 +1320,25 @@ function Environment.Init(options)
         Environment.DaySunPowerScale = NativeValue("GetSunPowerScale") or Environment.DaySunPowerScale
         Environment.StableShadowFarDistance = NativeValue("GetSunShadowFarDistance") or Environment.StableShadowFarDistance
         Environment.DayFog = CopyFog(baseFog)
+    end
+    if Environment.LightingMode == "night" then
+        -- The night light comes from the world's shining body (the Earth over
+        -- the Moon). Its strength is set here, so the night power cut would
+        -- only dim it twice. With no air, darkness does not shorten the view:
+        -- the fog keeps the day's range and only goes dark.
+        local nightLight = WorldArt.NightLight(Environment.ArtWorld)
+        Environment.NightBodyLight = nightLight ~= nil
+        if nightLight then
+            Environment.NightSunDirection = nightLight.direction
+            Environment.NightDiffuse = nightLight.diffuse
+            Environment.NightSpecular = nightLight.specular
+            Environment.NightAmbient = { r = 0.02, g = 0.02, b = 0.03 }
+            Environment.NightSunPowerScale = Environment.DaySunPowerScale
+            Environment.NightFog = {
+                r = Environment.DayFog.r * 0.12, g = Environment.DayFog.g * 0.12, b = Environment.DayFog.b * 0.15,
+                fogStart = Environment.DayFog.fogStart, fogEnd = Environment.DayFog.fogEnd,
+            }
+        end
     end
     Environment.DayFog = ClampFogToHorizon(Environment.DayFog)
     Environment.NightFog = ClampFogToHorizon(Environment.NightFog)
@@ -1419,8 +1447,10 @@ function Environment.Update(timestep)
     end
     targetFog = ClampFogToHorizon(targetFog)
     local sunDirection = sunState.direction
+    local skySun = WorldArt.SkySun[Environment.ArtWorld]
     local artFrame = WorldArt.Apply(Environment.ArtWorld, {ambient=targetAmbient,diffuse=targetDiffuse,specular=targetSpecular,
-        sun={x=-sunDirection.x,y=-sunDirection.y,z=-sunDirection.z},night=state.nightBlend})
+        sun=skySun or {x=-sunDirection.x,y=-sunDirection.y,z=-sunDirection.z},night=state.nightBlend,
+        bodyLight=Environment.LightingMode == "night" and Environment.NightBodyLight or nil})
     targetAmbient,targetDiffuse,targetSpecular = artFrame.ambient,artFrame.diffuse,artFrame.specular
     if Environment.ArtSkyOwned then
         -- Domes that take the frame (Mars) get the sun, the night blend and how

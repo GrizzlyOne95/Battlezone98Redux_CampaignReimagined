@@ -1102,8 +1102,10 @@ local function InitMoonWeather()
     moonStarted = true
     local net = CRCoop.IsNetworkGame()
     local authority = (not net) or CRCoop.IsAuthority()
-    Environment.Init({ lightingMode = "subtle", nativeBaseline = true,
-        subtlePeriod = 3600, subtleDimming = 0.06, subtleSunAngle = 4 })
+    -- Lunar night: the sun is below the horizon, opposite a nearly full Earth,
+    -- which lights the base. Visual only; sensors keep their day ranges.
+    Environment.Init({ lightingMode = "night", nativeBaseline = true, nightGameplay = false,
+        skySun = { azimuth = 300, elevation = -30 } })
     Environment.BindWeatherSensors("Moon", CRMoonWeather)
     CRMoonWeather.Init({
         authority = authority,

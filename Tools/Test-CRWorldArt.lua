@@ -154,4 +154,33 @@ local f=Art.Apply("mars",{ambient={r=.2,g=.2,b=.2},sun={x=-1,y=0,z=0},night=1})
 check(f.shine==nil,"worlds without a shining body are untouched")
 stars.Texture02=nil
 check(Art.DetectShine({},"moon")==nil and shine({x=-1,y=0,z=0},1)==0,"a TRN without the Earth entry gives no shine")
+-- Lunar night: the mission sets the sky's sun below the horizon and the Earth
+-- takes the scene light.
+stars.Texture02,stars.Azimuth02,stars.Elevation02="CREARTH.MAP","90","0"
+Art.DetectShine({},"moon")
+local skySun=Art.SetSkySun("moon",{azimuth=270,elevation=0})
+check(math.abs(skySun.x+1)<1e-9 and math.abs(skySun.y)<1e-9 and Art.SkySun.moon==skySun,"the sky sun takes the TRN heading convention")
+local night=Art.NightLight("moon")
+check(night and math.abs(night.direction.x+1)<1e-9 and math.abs(night.direction.y)<1e-9,"the night light travels away from the Earth")
+check(math.abs(night.diffuse.b-Art.Shine.moon.light)<1e-9 and night.diffuse.r<night.diffuse.b and math.abs(night.specular.b-night.diffuse.b*0.5)<1e-9,"a full Earth lights at full strength, blue")
+check(math.abs(shine(skySun,1)-Art.Shine.moon.night)<1e-9,"the sky sun drives the shine's phase")
+local bounce=Art.Apply("moon",{ambient={r=.02,g=.02,b=.02},sun=skySun,night=1,bodyLight=true})
+check(math.abs(bounce.shine-Art.Shine.moon.bounce)<1e-9,"an Earth that also lights the scene adds only its bounce as ambient")
+Art.SetSkySun("moon",{azimuth=90,elevation=0})
+check(Art.NightLight("moon").diffuse.b<1e-9,"a new Earth gives no night light")
+Art.SetSkySun("moon",{azimuth=0,elevation=0})
+check(math.abs(Art.NightLight("moon").diffuse.b-Art.Shine.moon.light*0.5)<1e-9,"a half Earth gives half")
+check(Art.NightLight("mars")==nil,"worlds without a shining body have no night light")
+local box={vectors={}}
+local boxApi={SetSkyBox=function() return true end,
+ GetSunDirection=function() return {x=0,y=-1,z=0} end,
+ SetMaterialShaderVector=function(material,name,x,y,z) box.vectors[material]={x,y,z};return 1 end}
+Art.SetSkySun("moon",{azimuth=270,elevation=-20})
+Art.InstallStarBox(boxApi,"moon")
+local e=box.vectors["crearth.map"]
+check(e and e[1]<0 and e[2]<0 and Art.SunAnchored.moon,"the star box and the Earth take the sky sun, not the light")
+check(Art.SetSkySun("moon",nil)==nil and Art.SkySun.moon==nil,"clearing the sky sun goes back to the light")
+Art.InstallStarBox(boxApi,"moon")
+e=box.vectors["crearth.map"]
+check(math.abs(e[2]-1)<1e-9,"without a sky sun the box anchors on the light")
 print("World art lighting: "..count.." checks passed")

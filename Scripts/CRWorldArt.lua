@@ -31,6 +31,24 @@ Art.SkyFrameState={}
 -- the box's sun also gives the Earth its phase.
 Art.StarBoxes={moon={material="CR_Sky/CatalogStars",hide={"STARS.MAP","MILKYWAY.MAP"},sunSprite="crsun",earth="CREARTH.MAP"}}
 Art.SunAnchored={}
+-- A compass heading (0 along +z, 90 along +x) and elevation, in degrees, as a
+-- unit vector. TRN [Stars] entries use this convention.
+local function heading_vector(azimuth,elevation)
+    local a,e=math.rad(tonumber(azimuth) or 0),math.rad(tonumber(elevation) or 0)
+    return {x=math.sin(a)*math.cos(e),y=math.sin(e),z=math.cos(a)*math.cos(e)}
+end
+-- The sky's sun, when a mission sets one (Environment's night mode). It stands
+-- in for the light's direction wherever the sky needs the real sun: the star
+-- box, the Earth's phase and its shine. The scene light can then come from
+-- somewhere else, the Earth at lunar night.
+Art.SkySun={}
+function Art.SetSkySun(world,spec)
+    Art.SkySun[world or ""]=nil
+    if not world or type(spec)~="table" then return nil end
+    local sun=heading_vector(spec.azimuth,spec.elevation)
+    Art.SkySun[world]=sun
+    return sun
+end
 -- The box turns the star sphere so the sun sits at the March equinox, which
 -- keeps the Milky Way at least 60 degrees from it. The engine's sun sprite
 -- never follows the light, so the TRN direction read at install is the anchor.
@@ -74,7 +92,8 @@ function Art.InstallStarBox(api,world)
     end
     local accepted,result=pcall(api.SetSkyBox,box.material,far*0.2,true)
     if not accepted or result~=true then return false end
-    local sun=sun_vector(api)
+    local sky=Art.SkySun[world]
+    local sun=sky and {sky.x,sky.y,sky.z} or sun_vector(api)
     Art.SunAnchored[world]=sun~=nil and anchor_box_faces(api,sun)
     if sun and box.earth then
         -- Engine sky materials take the TRN's case.
@@ -187,7 +206,10 @@ end
 -- texture names the body's TRN [Stars] entry, whose Azimuth/Elevation place it:
 -- azimuth is a compass heading, 0 along +z and 90 along +x. GetODFString also
 -- returns a found flag, so its string is taken alone before tonumber.
-Art.Shine={moon={texture="crearth.map",colour={r=0.62,g=0.74,b=1.00},day=0.10,night=0.30}}
+-- light (optional) is the body's strength as the night's directional light,
+-- see Art.NightLight; a frame flagged bodyLight then takes only the bounce
+-- share as ambient, since the light itself already carries the rest.
+Art.Shine={moon={texture="crearth.map",colour={r=0.62,g=0.74,b=1.00},day=0.10,night=0.30,light=0.45,bounce=0.08}}
 Art.ShineSource={}
 function Art.DetectShine(trn,world)
     Art.ShineSource[world or ""]=nil
@@ -196,9 +218,7 @@ function Art.DetectShine(trn,world)
     for index=0,31 do
         local key=string.format("%02d",index)
         if string.lower(GetODFString(trn,"Stars","Texture"..key,"") or "")==spec.texture then
-            local azimuth=math.rad(tonumber((GetODFString(trn,"Stars","Azimuth"..key,"0"))) or 0)
-            local elevation=math.rad(tonumber((GetODFString(trn,"Stars","Elevation"..key,"0"))) or 0)
-            local body={x=math.sin(azimuth)*math.cos(elevation),y=math.sin(elevation),z=math.cos(azimuth)*math.cos(elevation)}
+            local body=heading_vector((GetODFString(trn,"Stars","Azimuth"..key,"0")),(GetODFString(trn,"Stars","Elevation"..key,"0")))
             Art.ShineSource[world]=body
             return body
         end
@@ -214,10 +234,22 @@ local function apply_shine(world,frame)
     if len<1e-6 then return end
     local phase=(1-(s.x*body.x+s.y*body.y+s.z*body.z)/len)*0.5
     local night=math.max(0,math.min(1,tonumber(frame.night) or 0))
-    local k=phase*(spec.day+(spec.night-spec.day)*night)
+    local k=phase*(frame.bodyLight and spec.bounce or (spec.day+(spec.night-spec.day)*night))
     local c=spec.colour
     frame.ambient={r=math.min(1,a.r+c.r*k),g=math.min(1,a.g+c.g*k),b=math.min(1,a.b+c.b*k)}
     frame.shine=k
+end
+-- At night the shining body is the brightest thing in the sky, so it takes the
+-- scene's directional light: shadows fall away from it, in its colour, as
+-- strong as its phase allows. Nil when the world has no such body.
+function Art.NightLight(world)
+    local spec,body=Art.Shine[world],Art.ShineSource[world]
+    if not spec or not body or not spec.light then return nil end
+    local s=Art.SkySun[world]
+    local phase=s and (1-(s.x*body.x+s.y*body.y+s.z*body.z))*0.5 or 1
+    local k,c=spec.light*phase,spec.colour
+    return {direction={x=-body.x,y=-body.y,z=-body.z},
+        diffuse={r=c.r*k,g=c.g*k,b=c.b*k},specular={r=c.r*k*0.5,g=c.g*k*0.5,b=c.b*k*0.5}}
 end
 function Art.Apply(world,frame)
     local settings=Art.Worlds[world]

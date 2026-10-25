@@ -67,6 +67,27 @@ check(#w.writes==writeCount,'identical live frame avoids redundant renderer writ
 w.E.InvalidateRenderer(); w.E.Update(0)
 check(#w.writes>writeCount,'same-time load reapplies light/fog after renderer reconstruction')
 
+-- Lunar night: the sun sits below the horizon for the sky, the Earth lights
+-- the scene, and the airless horizon keeps its range in the dark.
+w=world('moon.act',250)
+w.trn.Atlases={MaterialName='MN_DETAIL_ATLAS'}
+w.trn.Stars={Texture00='crearth.map',Azimuth00='90',Elevation00='30'}
+w.E.Init({lightingMode='night',nativeBaseline=true,nightGameplay=false,skySun={azimuth=270,elevation=-20}})
+w.E.Update(0)
+local earth={x=math.cos(math.rad(30)),y=math.sin(math.rad(30))}
+check(w.E.IsNight and w.E.NightBlend==1,'night mode holds full night')
+check(near(w.SetOgreSunDirection[1],-earth.x) and near(w.SetOgreSunDirection[2],-earth.y),'the light falls from the Earth')
+local diffuse=copy(w.SetSunDiffuse)
+check(diffuse[3]>diffuse[1] and diffuse[3]>0.2 and diffuse[3]<0.5,'the earthlight is blue and moonlit, not daylight')
+check(w.SetAmbientLight[3]<diffuse[3]*0.35,'shadows stay dark: the Earth is the light, not a fill')
+check(near(w.SetFog[5],250) and w.SetFog[1]<0.01,'the dark keeps the airless horizon')
+w.time=5000; w.E.Update(10)
+check(near(w.SetSunDiffuse[3],diffuse[3]) and w.E.NightBlend==1,'lunar night does not end with game time')
+w=world('moon.act',250)
+w.E.Init({lightingMode='night',nativeBaseline=true,nightGameplay=false})
+w.E.Update(0)
+check(w.E.NightBlend==1 and w.SetSunDiffuse[3]<0.2,'night mode without a shining body falls back to the stock night')
+
 -- Final composition, including a misbehaving local modifier and manual fog,
 -- always fits the TRN horizon. Even a ramp starting beyond it stays ordered.
 for _,limit in ipairs({100,130,250,700}) do
