@@ -50,6 +50,18 @@ Gaia DR2: ESA/Gaia/DPAC.
   clarity, and hides the TRN's stock `ACLOUD`/`ACLOUD2` sprites. OpenGL keeps the stock
   `mars.tga` dome (technique 1).
 
+## Venus sky (CRSKYVE.MAP)
+
+- `Assets/Textures/crsky_venus_clouds.png` is original, procedural art: `Tools/Build-VenusSkyClouds.py`
+  synthesises it from seeded spectral noise (R long warped cloud bands, G billowed convective
+  cells, B breakup), so it tiles exactly and can be rebaked at any size. No third-party source.
+- `Shaders/CR_venussky.hlsl` draws the underside of the cloud deck from it, coloured from the
+  composed fog: a brighter, yellower deck overhead, fast-drifting bands and cells, a sun glow
+  with no disc, a storm that darkens and greens the deck and adds scud, lightning that lights
+  the deck round the strike, and fog banks that flatten it all into bright murk.
+  `Scripts/CRWorldArt.lua` feeds it the sun, night blend, clarity and `CRVenusWeather`'s sky
+  state. OpenGL keeps the stock `venus.tga` dome (technique 1).
+
 ## Earth over the Moon (CREARTH.MAP)
 
 Imagery: NASA Earth Observatory. NASA imagery is generally not copyrighted (public domain);

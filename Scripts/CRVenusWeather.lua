@@ -225,6 +225,12 @@ V.FlashAmbient         = { r = 0.46, g = 0.43, b = 0.34 }
 V.FlashDiffuse         = { r = 0.52, g = 0.48, b = 0.36 }
 V.FlashSunBoost        = 0.9
 V.FlashSeconds         = 0.42
+-- The sky dome's share of a flash (CR_venussky lights the cloud deck round it).
+-- A strike lights the deck this high above its point; heat lightning sits low
+-- on the horizon, at a heading stepped by the golden angle so no RNG is drawn.
+V.SkyFlashHeight       = 260.0
+V.SkyFlashFloor        = 0.35    -- even a far strike lights its patch of deck this much
+V.HeatFlashElevation   = 10.0    -- degrees
 
 -- Storm lighting beyond the presets.
 V.GloomDim             = 0.14
@@ -1700,7 +1706,7 @@ local function ImpactStrike(strike)
     end
 
     if V.AllowFlash then
-        V.Flashes[#V.Flashes + 1] = { at = V.Clock, strength = FlashStrength(strike.x, strike.z) }
+        V.Flashes[#V.Flashes + 1] = { at = V.Clock, strength = FlashStrength(strike.x, strike.z), x = strike.x, z = strike.z }
         if #V.Flashes > 6 then table.remove(V.Flashes, 1) end
     end
     PlayThunder(strike.x, strike.z, strike.power)
@@ -2014,21 +2020,43 @@ end
 -- Environment contribution
 -- =============================================================================
 
+-- A strike flickers: a hard first pulse, a dip, a weaker second.
+local function FlashPulse(age)
+    if age < 0.0 or age >= V.FlashSeconds then return 0.0 end
+    local first = math.exp(-age * 11.0)
+    local second = 0.0
+    if age > 0.13 then second = 0.55 * math.exp(-(age - 0.13) * 13.0) end
+    return math.max(first, second)
+end
+
 local function FlashCurve()
     local total = 0.0
     for i = 1, #V.Flashes do
         local f = V.Flashes[i]
-        local age = V.Clock - f.at
-        if age >= 0.0 and age < V.FlashSeconds then
-            -- A strike flickers: a hard first pulse, a dip, a weaker second.
-            local first = math.exp(-age * 11.0)
-            local second = 0.0
-            if age > 0.13 then second = 0.55 * math.exp(-(age - 0.13) * 13.0) end
-            total = total + (f.strength * math.max(first, second))
-        end
+        total = total + (f.strength * FlashPulse(V.Clock - f.at))
     end
     return Clamp(total, 0.0, 1.0)
 end
+
+-- The brightest flash on the sky right now: its strength and the direction
+-- from the local player toward the patch of deck it lights.
+local function SkyFlash()
+    local best, bestFlash = 0.0, nil
+    for i = 1, #V.Flashes do
+        local f = V.Flashes[i]
+        local sky = (f.x ~= nil and math.max(f.strength, V.SkyFlashFloor) or f.strength) * FlashPulse(V.Clock - f.at)
+        if sky > best then best, bestFlash = sky, f end
+    end
+    if bestFlash == nil then return 0.0, nil end
+    local p = bestFlash.x ~= nil and LocalPlayerPosition() or nil
+    if p ~= nil then
+        return Clamp(best, 0.0, 1.0), { x = bestFlash.x - p.x, y = V.SkyFlashHeight, z = bestFlash.z - p.z }
+    end
+    local heading = (bestFlash.at * 2.39996) % (2.0 * math.pi)
+    local e = math.rad(V.HeatFlashElevation)
+    return Clamp(best, 0.0, 1.0), { x = math.sin(heading) * math.cos(e), y = math.sin(e), z = math.cos(heading) * math.cos(e) }
+end
+V.SkyFlash = SkyFlash
 
 local function EnvironmentModifier(frame)
     if not V.Enabled then return end
@@ -2116,6 +2144,17 @@ local function EnvironmentModifier(frame)
             end
         end
     end
+
+    -- The sky dome's share (Environment forwards it to CR_venussky): the same
+    -- gloom and bank as the light, and the brightest flash with its direction.
+    local skyFlash, skyFlashDir = 0.0, nil
+    if V.AllowFlash then skyFlash, skyFlashDir = SkyFlash() end
+    frame.sky = {
+        storm = Clamp(gloom, 0.0, 1.0),
+        bank = (V.AllowFogBanks and Clamp(bank, 0.0, 1.0)) or 0.0,
+        flash = skyFlash,
+        flashDir = skyFlashDir,
+    }
 end
 
 V.EnvironmentModifier = EnvironmentModifier

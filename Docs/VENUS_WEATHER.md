@@ -299,9 +299,16 @@ disk, and a glowing yellow-ochre haze sheet lies on the ground. The ladder canno
   on the lightning peak and eases away if a storm arrives mid-bank), and is 0 while any
   `ForceLevel` set piece is pinned. A script that wants fog inside a set piece or a storm
   calls `RequestFogBank{ force = true }`.
-- **Sun disk caveat.** The director controls the sun's *power* and the fog; the visible
-  disk, bloom and rays come from the sky and the renderer, and the Venus sky material is
-  an unlit shader that the fog may or may not wash out. Judge it live.
+- **The sky dome.** `CRSKYVE.MAP` is drawn by `Shaders/CR_venussky.hlsl` (DX9/DX11; OpenGL
+  keeps the old flat dome). The modifier leaves `frame.sky = { storm, bank, flash, flashDir }`
+  and Environment forwards it through `CRWorldArt.UpdateSky`: `storm` is the same gloom the
+  light gets (already washed out by a bank), `bank` is `FogIntensity`, and `flash` is the
+  brightest live flash, with `flashDir` pointing from the local player to the deck above the
+  strike (`SkyFlashHeight` up) or, for heat lightning, low on the deck (`HeatFlashElevation`)
+  on a heading that varies flash to flash. A strike's sky flash never drops below
+  `SkyFlashFloor`, so a far bolt still lights the clouds. The sun has no disc (the misn07-09
+  TRNs leave `SunTexture` empty, as Io's do): a cloud-smeared glow whose strength falls with
+  the storm.
 
 ### Mission API
 
@@ -570,7 +577,7 @@ Checked against `ExtraUtilities/Definitions/ExtraUtils.lua`:
 | A line / beam / ribbon / billboard chain for the bolt | `exu.DrawLine` and `DrawBox` are documented placeholders that draw nothing | A burst of leaning `oriented_self` `CR_FX/Arc` cards in a tall Box emitter |
 | A dynamic point light for the flash | Only lights on existing objects (`SetLightPosition`, `SetLightPowerScale` ...) | Ambient + sun spike through the Environment modifier |
 | The terrain material under a point | None | Offline `Build-VenusSites.py` reads the `.mat` once |
-| Sky-plane alpha / a sky tint | `SetSkyPlane` needs a material that does not exist; the Venus sky material is an unlit shader (`Effect_fragment`), so pass colours would not darken it | Sky darkening comes from fog, light and the cloud deck. A `CR_Sky/VenusStorm` art asset (or an OpenShim sky-tint intent) would complete it |
+| Sky-plane alpha / a sky tint | `SetSkyPlane` needs a material that does not exist | Done another way: `CR_venussky` reads the storm, bank and flash from the dome's pass colours (`exu.SetMaterialPassColors`), as the Mars dome does |
 | Positional thunder | `StartSound` without a handle is 2D | Delay by distance, volume by distance |
 | Camera shake | None in EXU; stock `StartEarthquake` exists | Not used (the brief asked for visual-only vents) |
 | Soft particles / depth haze | OpenShim intent ABI exists but reports `not-implemented` | Intent written; no effect yet |
