@@ -190,7 +190,7 @@ when the uplink completes, level 4 if cover is blown, calm on the win. The gener
 ## Briefing
 
 The stock briefing said the data tap works within 50 m and needs one minute. The script has always used
-60 m and 45 s, so the shipped `misn12.des` (lobby and campaign text) now states them.
+60 m and 45 s, so the shipped `misn12.mpdes` (lobby and campaign text) now states them.
 
 ## Focused checks
 

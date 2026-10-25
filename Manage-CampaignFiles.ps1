@@ -1541,19 +1541,19 @@ function Build-WorkshopContent {
         "misn02b.bzn",
         "misn02b.ini",
         "misn02b.bmp",
-        "misn02b.des",
+        "misn02b.mpdes",
         "misn02b.vxt",
         "misn03.lua",
         "misn03.bzn",
         "misn03.ini",
         "misn03.bmp",
-        "misn03.des",
+        "misn03.mpdes",
         "misn03.vxt",
         "misn04.lua",
         "misn04.bzn",
         "misn04.ini",
         "misn04.bmp",
-        "misn04.des",
+        "misn04.mpdes",
         "misn04.vxt"
     )
     foreach ($relativePath in $requiredFiles) {

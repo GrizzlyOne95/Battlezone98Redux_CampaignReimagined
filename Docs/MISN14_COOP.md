@@ -98,7 +98,7 @@ team 7.
 - Razor tie (owner decision 8): the second beacon's first pilot is named **Razor Two**, Razor One's wingman from
   misn12's Razor flight; he is the pilot who speaks misn1418. No new mechanics.
 - Briefing fix (owner decision 4): the stock `misn14.des` says "Recycler Utah" while 1414 and the debriefs say
-  Texas. The CR root `misn14.des` (lobby/briefing text) names the Texas; `misn1401.otf` never named the Recycler.
+  Texas. The CR root `misn14.mpdes` (lobby/briefing text) names the Texas; `misn1401.otf` never named the Recycler.
 
 ## Shipped-1.5 behaviour restored (owner decision 2)
 

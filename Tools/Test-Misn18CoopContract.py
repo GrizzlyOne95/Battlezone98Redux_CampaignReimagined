@@ -76,12 +76,12 @@ for ext in ('trn', 'mat', 'lgt', 'hg2'):
     assert (ROOT / 'Missions' / f'misn18.{ext}').stat().st_size > 0, ext
 assert (ROOT / 'Missions/misn18.hg2').stat().st_size == 1048588, 'unsmoothed 1.5 heightmap'
 ini = (ROOT / 'Config/misn18.ini').read_text(encoding='utf-8')
-assert 'missionName = "CR: The Ultimate Quake Coop"' in ini and 'mapType = "multiplayer"' in ini
+assert 'missionName = "CR 17: The Ultimate Quake Coop"' in ini and 'mapType = "multiplayer"' in ini
 assert 'minPlayers = "2"' in ini and 'maxPlayers = "4"' in ini and 'gameType = "S"' in ini
-des = (ROOT / 'misn18.des').read_bytes()
+des = (ROOT / 'misn18.mpdes').read_bytes()
 assert len(des) <= 300 and des.endswith(b'\r\n') and b'\n' not in des.replace(b'\r\n', b''), 'des: <= 300 bytes, CRLF'
 assert b'thruster' in des and b'transport' in des, 'briefing matches the transport/thrusters mission'
-assert '!misn18.des' in (ROOT / '.gitignore').read_text(encoding='utf-8').splitlines()
+assert '!misn18.mpdes' in (ROOT / '.gitignore').read_text(encoding='utf-8').splitlines()
 assert (ROOT / 'Assets/Graphics/misn18.bmp').read_bytes()[:2] == b'BM'
 vxt = (ROOT / 'Missions/misn18.vxt').read_bytes().decode('ascii').split('\r\n')
 assert vxt == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,', ''], 'Tank, Scout, Light Tank, Rocket Tank, Bomber'
@@ -116,6 +116,6 @@ assert not (ROOT / 'Scripts/CRStorm18.lua').exists() or 'SetPhase' in (ROOT / 'S
 members = {e['source'].replace('\\', '/'): e['runtime'] for e in json.loads((ROOT / 'Shipping/shipping.lock.json').read_text(encoding='utf-8'))['files']}
 for path in ('Scripts/misn18.lua', 'Scripts/CRMisn18.lua', 'Missions/misn18.bzn', 'Missions/misn18.trn',
              'Missions/misn18.hg2', 'Missions/misn18.mat', 'Missions/misn18.lgt', 'Missions/misn18.vxt',
-             'Config/misn18.ini', 'misn18.des', 'Assets/Graphics/misn18.bmp'):
+             'Config/misn18.ini', 'misn18.mpdes', 'Assets/Graphics/misn18.bmp'):
     assert members.get(path) == Path(path).name, 'shipping membership: ' + path
 print('misn18 map, teams, paths, listing, campaign entry, restorations, storm contract and shipping passed')

@@ -595,7 +595,7 @@ local function AddObjectTeamAllowed(h)
 end
 -- CR team filter <<
 -- CR win >>
--- The DLL won when the Unit Factory fell. The briefing (misn13.des) asks for the whole CCA base and every
+-- The DLL won when the Unit Factory fell. The briefing (misn13.mpdes) asks for the whole CCA base and every
 -- escape hatch / supply line: the Unit Factory, the hangar (map label svguntower2, an sbhang) and all four
 -- silos. The silo scrap clamp and the factory's +40 scrap under attack are the DLL's and stay.
 local SILO_COUNT = 4

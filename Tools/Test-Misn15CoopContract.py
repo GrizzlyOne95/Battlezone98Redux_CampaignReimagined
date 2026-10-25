@@ -49,7 +49,7 @@ for path in text.split('[AiPath]\n')[1:]:
     assert size==len(name[1].encode('latin-1')) if name else size==0, 'native path label allocation size'
 assert '[MISSION14]' in (ROOT/'Config/crcampgn.ini').read_text()
 assert 'voice = "misn1500.wav"' in (ROOT/'Config/crcampgn.ini').read_text()
-assert len((ROOT/'misn15.des').read_bytes())<=300
+assert len((ROOT/'misn15.mpdes').read_bytes())<=300
 assert (ROOT/'Assets/Graphics/misn15.bmp').read_bytes()[:2]==b'BM'
 assert (ROOT/'Missions/misn15.vxt').read_bytes()==(ROOT/'Missions/misn14.vxt').read_bytes()
 
@@ -78,7 +78,7 @@ assert 'CRTitanSites15' in (ROOT/'Scripts/CRMisn15.lua').read_text()
 members={e['source'].replace('\\','/'):e['runtime'] for e in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
 for path in ('Scripts/CRMisn15.lua','Scripts/CRTitanSites15.lua','Missions/misn15.bzn','Missions/misn15.trn',
              'Missions/misn15.hg2','Missions/misn15.mat','Missions/misn15.lgt','Missions/misn15.vxt',
-             'Config/misn15.ini','misn15.des','Assets/Textures/cr_titan15_wet.png',
+             'Config/misn15.ini','misn15.mpdes','Assets/Textures/cr_titan15_wet.png',
              'Assets/Audio/misn1506.wav','Assets/Audio/misn1508.wav','Assets/Audio/misn1512.wav',
              'Text/misn15l2.des','Text/misn15l3.des'):
     assert members.get(path)==Path(path).name, 'shipping membership: '+path
