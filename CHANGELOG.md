@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Bundle OpenShim 1.0.0.59 (hotfix): Terrain Micro Detail computes height and slope analytically in one pass, roughly
+  halving its cost (adaptive 7.6 to 3.4 ms at 4K) with unchanged visuals, and stays opt-in; the HD paint shader shares
+  blend weights and diffuse taps per pixel (about 0.9 ms faster at 4K); Enhanced DX11 gives every map's first sun a native
+  power and colour-grade baseline matching CR's calibration, so stock and non-CR maps light like CR worlds.
+- Replace the Moon terrain paint's mossy Dust and lichen-crusted Cratered dust layers with Poly Haven lunar regolith
+  scans (CC0) with cavity shading, and desaturate the wide blue rock, so no green remains on the Moon.
+- Bundle OpenShim 1.0.0.58 (hotfix for the shader/lighting flap and the frame-rate drop at pilot spawn):
+  generated terrain programs are named by content so the Ogre microcode cache hits from the second launch on
+  instead of recompiling ~40 terrain shaders (a 14-22 s frame) every launch; the per-planet IBL cubemaps are
+  exposure-calibrated against the neutral set (the raw bakes were ~15x darker and read as a lighting failure
+  when they swapped in) and the swap retries every frame so it lands when the textures load; Terrain Micro Detail
+  returns to off by default (roughly halved 4K frame rate on the Moon start) while HD terrain tiles stay on.
 - Move the multiplayer co-op blurbs from root `misnNN.des` to `misnNN.mpdes` so single-player briefings fall back to the stock localized text; the MP map list reads `<stem>.mpdes` (needs the OpenShim build that prefers it). Prefix the co-op map names with their campaign order (`CR 01: Red Arrival Coop` ... `CR 17: The Ultimate Quake Coop`) so the list sorts in story order.
 - Give the misn14 NSDF Fury squad (`avsav14`) a mesh: the Resurgence addon's Fury, pointed at a CR
   `avsav14` material using `avsav2_d.dds`. Redux has no `avsav` mesh, so the squad was invisible and
