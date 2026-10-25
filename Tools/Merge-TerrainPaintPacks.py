@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "Config/cr_terrain_hd.json"
 TEXTURES = ROOT / "Assets/Textures"
 WORLDS = {
-    "moon": "MN_DETAIL_ATLAS", "venus": "VE_DETAIL_ATLAS", "io": "IO_DETAIL_ATLAS",
+    "moon": "MN_DETAIL_ATLAS", "mars": "MA_DETAIL_ATLAS", "venus": "VE_DETAIL_ATLAS", "io": "IO_DETAIL_ATLAS",
     "europa": "EU_DETAIL_ATLAS", "titan": "TI_DETAIL_ATLAS", "achilles": "AC_DETAIL_ATLAS",
 }
 # Used outside the HD binding (Materials/mn_detail_atlas.material), so it stays.

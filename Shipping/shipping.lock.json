@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-10-24T19:03:28-05:00",
-  "count": 4282,
+  "generated": "2026-10-25T12:56:15-05:00",
+  "count": 4224,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -3884,294 +3884,6 @@
       "runtime": "crhd_ganymede_ga44sb0_s.dds"
     },
     {
-      "source": "Assets\\Textures\\crhd_mars_ma00sa0_d.dds",
-      "runtime": "crhd_mars_ma00sa0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma00sa0_e.dds",
-      "runtime": "crhd_mars_ma00sa0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma00sa0_n.dds",
-      "runtime": "crhd_mars_ma00sa0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma00sa0_s.dds",
-      "runtime": "crhd_mars_ma00sa0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma00sb0_d.dds",
-      "runtime": "crhd_mars_ma00sb0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma00sb0_e.dds",
-      "runtime": "crhd_mars_ma00sb0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma00sb0_n.dds",
-      "runtime": "crhd_mars_ma00sb0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma00sb0_s.dds",
-      "runtime": "crhd_mars_ma00sb0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma00sc0_d.dds",
-      "runtime": "crhd_mars_ma00sc0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma00sc0_e.dds",
-      "runtime": "crhd_mars_ma00sc0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma00sc0_n.dds",
-      "runtime": "crhd_mars_ma00sc0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma00sc0_s.dds",
-      "runtime": "crhd_mars_ma00sc0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma01ca0_d.dds",
-      "runtime": "crhd_mars_ma01ca0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma01ca0_e.dds",
-      "runtime": "crhd_mars_ma01ca0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma01ca0_n.dds",
-      "runtime": "crhd_mars_ma01ca0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma01ca0_s.dds",
-      "runtime": "crhd_mars_ma01ca0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma01da0_d.dds",
-      "runtime": "crhd_mars_ma01da0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma01da0_e.dds",
-      "runtime": "crhd_mars_ma01da0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma01da0_n.dds",
-      "runtime": "crhd_mars_ma01da0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma01da0_s.dds",
-      "runtime": "crhd_mars_ma01da0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma04ca0_d.dds",
-      "runtime": "crhd_mars_ma04ca0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma04ca0_e.dds",
-      "runtime": "crhd_mars_ma04ca0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma04ca0_n.dds",
-      "runtime": "crhd_mars_ma04ca0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma04ca0_s.dds",
-      "runtime": "crhd_mars_ma04ca0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma04cb0_d.dds",
-      "runtime": "crhd_mars_ma04cb0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma04cb0_e.dds",
-      "runtime": "crhd_mars_ma04cb0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma04cb0_n.dds",
-      "runtime": "crhd_mars_ma04cb0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma04cb0_s.dds",
-      "runtime": "crhd_mars_ma04cb0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma04da0_d.dds",
-      "runtime": "crhd_mars_ma04da0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma04da0_e.dds",
-      "runtime": "crhd_mars_ma04da0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma04da0_n.dds",
-      "runtime": "crhd_mars_ma04da0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma04da0_s.dds",
-      "runtime": "crhd_mars_ma04da0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma11sa0_d.dds",
-      "runtime": "crhd_mars_ma11sa0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma11sa0_e.dds",
-      "runtime": "crhd_mars_ma11sa0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma11sa0_n.dds",
-      "runtime": "crhd_mars_ma11sa0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma11sa0_s.dds",
-      "runtime": "crhd_mars_ma11sa0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma11sb0_d.dds",
-      "runtime": "crhd_mars_ma11sb0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma11sb0_e.dds",
-      "runtime": "crhd_mars_ma11sb0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma11sb0_n.dds",
-      "runtime": "crhd_mars_ma11sb0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma11sb0_s.dds",
-      "runtime": "crhd_mars_ma11sb0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma11sc0_d.dds",
-      "runtime": "crhd_mars_ma11sc0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma11sc0_e.dds",
-      "runtime": "crhd_mars_ma11sc0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma11sc0_n.dds",
-      "runtime": "crhd_mars_ma11sc0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma11sc0_s.dds",
-      "runtime": "crhd_mars_ma11sc0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma13ca0_d.dds",
-      "runtime": "crhd_mars_ma13ca0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma13ca0_e.dds",
-      "runtime": "crhd_mars_ma13ca0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma13ca0_n.dds",
-      "runtime": "crhd_mars_ma13ca0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma13ca0_s.dds",
-      "runtime": "crhd_mars_ma13ca0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma13da0_d.dds",
-      "runtime": "crhd_mars_ma13da0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma13da0_e.dds",
-      "runtime": "crhd_mars_ma13da0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma13da0_n.dds",
-      "runtime": "crhd_mars_ma13da0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma13da0_s.dds",
-      "runtime": "crhd_mars_ma13da0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma22sa0_d.dds",
-      "runtime": "crhd_mars_ma22sa0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma22sa0_e.dds",
-      "runtime": "crhd_mars_ma22sa0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma22sa0_n.dds",
-      "runtime": "crhd_mars_ma22sa0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma22sa0_s.dds",
-      "runtime": "crhd_mars_ma22sa0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma33sa0_d.dds",
-      "runtime": "crhd_mars_ma33sa0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma33sa0_e.dds",
-      "runtime": "crhd_mars_ma33sa0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma33sa0_n.dds",
-      "runtime": "crhd_mars_ma33sa0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma33sa0_s.dds",
-      "runtime": "crhd_mars_ma33sa0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma44sa0_d.dds",
-      "runtime": "crhd_mars_ma44sa0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma44sa0_e.dds",
-      "runtime": "crhd_mars_ma44sa0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma44sa0_n.dds",
-      "runtime": "crhd_mars_ma44sa0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma44sa0_s.dds",
-      "runtime": "crhd_mars_ma44sa0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma44sb0_d.dds",
-      "runtime": "crhd_mars_ma44sb0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma44sb0_e.dds",
-      "runtime": "crhd_mars_ma44sb0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma44sb0_n.dds",
-      "runtime": "crhd_mars_ma44sb0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma44sb0_s.dds",
-      "runtime": "crhd_mars_ma44sb0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma44sc0_d.dds",
-      "runtime": "crhd_mars_ma44sc0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma44sc0_e.dds",
-      "runtime": "crhd_mars_ma44sc0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma44sc0_n.dds",
-      "runtime": "crhd_mars_ma44sc0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_mars_ma44sc0_s.dds",
-      "runtime": "crhd_mars_ma44sc0_s.dds"
-    },
-    {
       "source": "Assets\\Textures\\crhd_moon_regolith_detail.dds",
       "runtime": "crhd_moon_regolith_detail.dds"
     },
@@ -4982,6 +4694,62 @@
     {
       "source": "Assets\\Textures\\openshim_io_auto_misns4_stock_control.png",
       "runtime": "openshim_io_auto_misns4_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_mars_auto_layer0.png",
+      "runtime": "openshim_mars_auto_layer0.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_mars_auto_layer0_n.png",
+      "runtime": "openshim_mars_auto_layer0_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_mars_auto_layer1.png",
+      "runtime": "openshim_mars_auto_layer1.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_mars_auto_layer1_n.png",
+      "runtime": "openshim_mars_auto_layer1_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_mars_auto_layer2.png",
+      "runtime": "openshim_mars_auto_layer2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_mars_auto_layer2_n.png",
+      "runtime": "openshim_mars_auto_layer2_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_mars_auto_layer3.png",
+      "runtime": "openshim_mars_auto_layer3.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_mars_auto_layer3_n.png",
+      "runtime": "openshim_mars_auto_layer3_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_mars_auto_misn04_control.png",
+      "runtime": "openshim_mars_auto_misn04_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_mars_auto_misn04_stock_control.png",
+      "runtime": "openshim_mars_auto_misn04_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_mars_auto_misn05_control.png",
+      "runtime": "openshim_mars_auto_misn05_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_mars_auto_misn05_stock_control.png",
+      "runtime": "openshim_mars_auto_misn05_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_mars_auto_misn06_control.png",
+      "runtime": "openshim_mars_auto_misn06_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_mars_auto_misn06_stock_control.png",
+      "runtime": "openshim_mars_auto_misn06_stock_control.png"
     },
     {
       "source": "Assets\\Textures\\openshim_moon_auto_crsetup_control.png",
