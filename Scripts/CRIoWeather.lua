@@ -842,10 +842,27 @@ local function UpdateLavaFactor(dt)
     V.LavaFactor = Clamp(V.LavaFactor + delta, 0.0, 1.0)
 end
 
+-- A vent whose geyser has a building deployed on it draws nothing: CRGeysers
+-- reads the occupancy (read-only, cached about a second). Without CRGeysers, or
+-- when it knows no geyser there, the vent is drawn as before.
+local GeysersModule = nil
+local function VentOccupied(site)
+    if GeysersModule == nil then
+        local okLoad, loaded = pcall(require, "CRGeysers")
+        GeysersModule = (okLoad and type(loaded) == "table") and loaded or false
+    end
+    local geysers = GeysersModule
+    if not geysers or type(geysers.IsOccupiedAt) ~= "function" or site == nil then
+        return false
+    end
+    local ok, occupied = pcall(geysers.IsOccupiedAt, site.x, site.z)
+    return ok and occupied == true
+end
+
 -- Generic streaming pass: keep up to `maxLive` systems for the sites nearest the
 -- player, create inside `inRange`, destroy beyond `outRange`. One creation per
 -- pass, so a long list never costs a frame spike.
-local function StreamSites(sites, live, maxLive, inRange, outRange, create, destroy, playerPos)
+local function StreamSites(sites, live, maxLive, inRange, outRange, create, destroy, playerPos, blocked)
     if playerPos == nil then return end
 
     local count = 0
@@ -853,7 +870,7 @@ local function StreamSites(sites, live, maxLive, inRange, outRange, create, dest
     for index in pairs(live) do
         local site = sites[index]
         local d = site and Distance2D(site.x, site.z, playerPos.x, playerPos.z) or nil
-        if d == nil or d > outRange then
+        if d == nil or d > outRange or (blocked ~= nil and blocked(site)) then
             drop[#drop + 1] = index
         else
             count = count + 1
@@ -870,7 +887,7 @@ local function StreamSites(sites, live, maxLive, inRange, outRange, create, dest
     for index = 1, #sites do
         if live[index] == nil then
             local d = Distance2D(sites[index].x, sites[index].z, playerPos.x, playerPos.z)
-            if d < bestDistance then
+            if d < bestDistance and not (blocked ~= nil and blocked(sites[index])) then
                 best, bestDistance = index, d
             end
         end
@@ -1103,7 +1120,7 @@ function V.BeginEruption(id, siteIndex, duration, power)
     if not V.AllowEruptions then return false end
     siteIndex = floor(tonumber(siteIndex) or 0)
     local site = V.VentSites[siteIndex]
-    if site == nil then return false end
+    if site == nil or VentOccupied(site) then return false end
     if id ~= nil then
         id = tonumber(id)
         if id ~= nil then
@@ -1905,7 +1922,7 @@ function V.Update(dt)
             end
             if V.AllowVents then
                 StreamSites(V.VentSites, V.PlumeLive, V.MaxLivePlumes, V.PlumeStreamIn, V.PlumeStreamOut,
-                    PlumeCreate, PlumeDestroy, playerPos)
+                    PlumeCreate, PlumeDestroy, playerPos, VentOccupied)
             end
         end
         UpdateRenderIntents()

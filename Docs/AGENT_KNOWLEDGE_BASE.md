@@ -404,6 +404,12 @@ Rules:
   back, `BZOgreLogfile.log` clean. Ogre ignores wrong parameter names and out-of-range affector indices
   silently; `CRWeather.DescribeSystem(name)` prints what the running build registers. Silence in the
   weather scripts is the healthy result (they only print on failure).
+- **Scrap geysers** (`eggeizr1`, class `geyser`) get per-world cosmetic effects from `CRGeysers`,
+  started by `CRWeather.Init` (no mission edits). Occupancy = a deployed craft or a
+  recycler/factory/armory/constructionrig building within 11 m, read at most once a second.
+  Europa/Io hide their own vents through it; Venus is not wired until the Venus sky stack
+  (PRs #330-#337) merges. Particle materials must be RGBA-safe (`CR18/*`, `CRWX_FX/*`), never `CR_FX/*`.
+  `Docs/WORLD_GEYSERS.md`.
 - Atmosphere screenshots need windowed mode, a deployed build, DPI-aware capture and 1920x1080 or larger
   (`exu.CAMERA.NO_HUD` removes the HUD). Tuning passes therefore need the owner's session (5.3).
 

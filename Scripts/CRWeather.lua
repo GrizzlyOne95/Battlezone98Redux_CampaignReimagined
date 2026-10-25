@@ -1208,6 +1208,34 @@ end
 --   debug    boolean
 --   baseSky  { type = "dome"|"box", material = "...", curvature, tiling, distance }
 --            The map's own sky, so the sky layer knows what to restore.
+-- Per-world scrap geyser effects (CRGeysers.lua) ride the weather lifecycle, so
+-- every weather-enabled mission gets them without an edit. They are optional
+-- presentation: the first fault latches them off and weather carries on.
+local GeyserFault = false
+local GeyserModule = nil
+local function GeyserHook(method, ...)
+    if GeyserFault then return nil end
+    local module = GeyserModule
+    if module == nil and method == "Init" then
+        local okLoad, loaded = pcall(require, "CRGeysers")
+        if not okLoad then
+            GeyserFault = true
+            print("CRWeather: CRGeysers unavailable: " .. tostring(loaded))
+            return nil
+        end
+        module = loaded
+        GeyserModule = loaded
+    end
+    if type(module) ~= "table" or type(module[method]) ~= "function" then return nil end
+    local ok, result = pcall(module[method], ...)
+    if not ok then
+        GeyserFault = true
+        print("CRWeather: CRGeysers." .. method .. " failed: " .. tostring(result))
+        return nil
+    end
+    return result
+end
+
 function CRWeather.Init(options)
     require("CRParticleTemplates").Ensure()
     if CRWeather.Initialized then
@@ -1253,6 +1281,10 @@ function CRWeather.Init(options)
     end
 
     CRWeather.Initialized = true
+    GeyserHook("Init", {
+        world = CRWeather.ArtWorld, quality = CRWeather.Quality,
+        enabled = CRWeather.Enabled, debug = CRWeather.Debug,
+    })
 end
 
 -- Switches to a named preset. Pass nil, "clear", or "Clear" to stand the
@@ -1568,6 +1600,8 @@ function CRWeather.Update(dt)
     if foliage and type(foliage.Update) == "function" then
         foliage.Update(dt, CRWeather)
     end
+
+    GeyserHook("Update", dt, CRWeather.Quality)
 end
 
 -- Drops all particle bookkeeping so the next preset application rebuilds from
@@ -1578,6 +1612,7 @@ end
 -- silently never render again.
 function CRWeather.ResetSystems()
     DestroyAllSystems()
+    GeyserHook("ResetSystems")
     CRWeather.Active = nil
     CRWeather.Layers = {}
     CRWeather.Blend = 0.0
@@ -1606,6 +1641,7 @@ function CRWeather.Shutdown()
     end
 
     DestroyAllSystems()
+    GeyserHook("Shutdown")
 
     local foliage = Foliage()
     if foliage and type(foliage.Stop) == "function" then
@@ -1683,6 +1719,9 @@ end
 
 -- Compatibility stubs so a mission can call the same lifecycle shape it uses
 -- for the other CR modules without guarding every call.
-function CRWeather.OnObjectCreated(h) end
+function CRWeather.OnObjectCreated(h)
+    -- A geyser built mid-mission (misn17 swaps a fallen tower for one).
+    GeyserHook("OnObjectCreated", h)
+end
 
 return CRWeather

@@ -757,6 +757,71 @@ do
 end
 
 -- =============================================================================
+-- 4b. A building deployed on a geyser takes its vent away (CRGeysers occupancy)
+-- =============================================================================
+
+do
+    local world = NewWorld()
+    local occ = Track(NewPeer("occupied", world))
+
+    -- The BZ read-only natives CRGeysers uses to see what stands on a geyser.
+    local env = occ.env
+    env.GetClassLabel = function(h) local o = world.objects[h]; return o and o.class or "" end
+    env.IsBuilding = function(h) local o = world.objects[h]; return o ~= nil and o.building == true end
+    env.IsAlive = function(h) local o = world.objects[h]; return o ~= nil and o.alive ~= false end
+    env.IsDeployed = function(h) local o = world.objects[h]; return o ~= nil and o.deployed == true end
+    env.ObjectsInRange = function(range, ref)
+        local origin = world.objects[ref]
+        local i = 0
+        return function()
+            while true do
+                i = i + 1
+                local h = world.order[i]
+                if h == nil then return nil end
+                local o = world.objects[h]
+                if o ~= nil and origin ~= nil and Dist2(o.x, o.z, origin.x, origin.z) <= range then return h end
+            end
+        end
+    end
+
+    -- A geyser object at the centre vent site (and no other).
+    occ.init({ seed = 77, startLevel = 1, targetLevel = 1 })
+    local E = occ.Eu
+    E.PlumeFirstDelay = 1e6
+    local ci = VentIndex(E, "center_geyser")
+    local cs = E.GetVentSites()[ci]
+    local geyser = AddObject(world, "eggeizr1", cs.x, 0.0, cs.z, { craft = false })
+    world.objects[geyser].class, world.objects[geyser].building = "geyser", true
+    for i = 1, #E.VentTimers do E.VentTimers[i] = 1e9 end
+    occ.playerPos = { x = cs.x + 40.0, y = SHELF, z = cs.z + 30.0 }
+
+    local function VentSystemsAtCenter()
+        local n = 0
+        for _, name in ipairs(SystemsOfTemplate(occ, "CR/Europa/Plume")) do
+            local pos = occ.rec.systems[name].position
+            if near(pos.x, cs.x, 0.01) and near(pos.z, cs.z, 0.01) then n = n + 1 end
+        end
+        return n
+    end
+
+    occ.run(15.0)
+    check(VentSystemsAtCenter() == 1, "a free geyser's vent is drawn")
+
+    local recycler = AddObject(world, "avrecy", cs.x + 2.0, 0.0, cs.z, { craft = true })
+    world.objects[recycler].class, world.objects[recycler].deployed = "recycler", true
+    occ.run(15.0)
+    check(VentSystemsAtCenter() == 0, "the vent is taken away while a recycler is deployed on its geyser")
+    check(E.TriggerPlume(ci, 1.0) == false, "no plume erupts from an occupied vent")
+    check(#occ.events("EuropaPlume") == 0, "and none is announced to the guests")
+
+    world.objects[recycler] = nil
+    occ.run(15.0)
+    check(VentSystemsAtCenter() == 1, "the vent comes back when the building is gone")
+    check(E.TriggerPlume(ci, 1.0) == true, "and can erupt again")
+    E.Shutdown()
+end
+
+-- =============================================================================
 -- 5. Frost haze: streamed over frosted ground, bounded
 -- =============================================================================
 

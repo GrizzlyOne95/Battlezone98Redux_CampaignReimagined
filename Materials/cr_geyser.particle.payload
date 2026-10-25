@@ -1,0 +1,219 @@
+// cr_geyser.particle
+//
+// Ogre particle templates for the per-world scrap geyser effects
+// (CRGeysers.lua). Purely cosmetic: a geyser object stays exactly what the
+// engine made it, and these systems are never visible to the simulation.
+//
+// Every template is a NEUTRAL baseline. CRGeysers re-tints and re-shapes each
+// one per world at run time (colour, size, velocity, life, angle, gravity), so
+// the same three templates read as Martian dust, Titan haze, Achilles dirt or
+// lunar grit.
+//
+// Materials are the CR18/* sprites in cr18_storm.material (Puff, Dust, Chunk).
+// They inherit CRWX_FX/ParticleAlphaBlend, whose vertex program keeps Ogre's
+// RGBA order, so the emitter colours below mean what they say on every backend.
+// The CR_FX/* weather materials go through the BGRA sprite swizzle and draw red
+// and blue swapped on DX11, so they must not be used here. No new art and no new
+// materials: this file adds templates only.
+//
+// Emitter and affector ORDER MATTERS: CRGeysers addresses both by index.
+//   emitter 0  the steady jet (always on while the geyser is free)
+//   emitter 1  the spurt (rate driven by a per-geyser envelope; zero between)
+
+// =============================================================================
+// Plume -- the column
+// =============================================================================
+
+//   affector 0 Scaler
+//   affector 1 ColourFader
+//   affector 2 LinearForce          (gravity, or buoyancy when it points up)
+//   affector 3 Rotator
+particle_system CR/Geyser/Plume
+{
+    material            CR18/Puff
+    particle_width      8.0
+    particle_height     8.0
+    quota               120
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               7
+        emission_rate       1.5
+        time_to_live_min    5.0
+        time_to_live_max    8.0
+        direction           0 1 0
+        velocity_min        5
+        velocity_max        8
+        colour_range_start  0.80 0.80 0.80 0.20
+        colour_range_end    0.70 0.70 0.70 0.00
+    }
+
+    emitter Point
+    {
+        angle               12
+        emission_rate       0
+        time_to_live_min    3.5
+        time_to_live_max    5.0
+        direction           0 1 0
+        velocity_min        16
+        velocity_max        26
+        colour_range_start  0.84 0.84 0.84 0.44
+        colour_range_end    0.70 0.70 0.70 0.00
+    }
+
+    affector Scaler
+    {
+        rate 1.6
+    }
+
+    affector ColourFader
+    {
+        alpha -0.07
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -3 0
+        force_application   add
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -20
+        rotation_speed_range_end     20
+        rotation_range_start          0
+        rotation_range_end          360
+    }
+}
+
+// =============================================================================
+// Dust -- a low skirt at the base of the column
+// =============================================================================
+
+//   affector 0 Scaler
+//   affector 1 ColourFader
+//   affector 2 LinearForce
+//   affector 3 Rotator
+particle_system CR/Geyser/Dust
+{
+    material            CR18/Dust
+    particle_width      6.0
+    particle_height     6.0
+    quota               90
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               75
+        emission_rate       2.5
+        time_to_live_min    2.5
+        time_to_live_max    4.5
+        direction           0 1 0
+        velocity_min        1
+        velocity_max        3
+        colour_range_start  0.60 0.55 0.48 0.20
+        colour_range_end    0.52 0.47 0.40 0.00
+    }
+
+    emitter Point
+    {
+        angle               45
+        emission_rate       0
+        time_to_live_min    2.0
+        time_to_live_max    3.5
+        direction           0 1 0
+        velocity_min        6
+        velocity_max        13
+        colour_range_start  0.62 0.56 0.48 0.34
+        colour_range_end    0.52 0.47 0.40 0.00
+    }
+
+    affector Scaler
+    {
+        rate 1.4
+    }
+
+    affector ColourFader
+    {
+        alpha -0.10
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -1 0
+        force_application   add
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -30
+        rotation_speed_range_end     30
+        rotation_range_start          0
+        rotation_range_end          360
+    }
+}
+
+// =============================================================================
+// Grit -- flecks thrown ballistically by a spurt
+// =============================================================================
+
+// Small, fast and short-lived; gravity pulls them back so a spurt reads as
+// thrown rather than floating. Emitter 0 stays at zero unless a world's look
+// asks for a trickle.
+//   affector 0 ColourFader
+//   affector 1 LinearForce
+particle_system CR/Geyser/Grit
+{
+    material            CR18/Chunk
+    particle_width      0.9
+    particle_height     0.9
+    quota               60
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               25
+        emission_rate       0
+        time_to_live_min    1.5
+        time_to_live_max    2.5
+        direction           0 1 0
+        velocity_min        4
+        velocity_max        9
+        colour_range_start  0.50 0.46 0.40 0.70
+        colour_range_end    0.40 0.36 0.30 0.00
+    }
+
+    emitter Point
+    {
+        angle               22
+        emission_rate       0
+        time_to_live_min    2.0
+        time_to_live_max    3.2
+        direction           0 1 0
+        velocity_min        12
+        velocity_max        24
+        colour_range_start  0.52 0.48 0.42 0.85
+        colour_range_end    0.40 0.36 0.30 0.00
+    }
+
+    affector ColourFader
+    {
+        alpha -0.20
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -8 0
+        force_application   add
+    }
+}

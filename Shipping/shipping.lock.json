@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4224,
+  "count": 4226,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -7132,6 +7132,10 @@
       "runtime": "cr_foliage.particle.payload"
     },
     {
+      "source": "Materials\\cr_geyser.particle.payload",
+      "runtime": "cr_geyser.particle.payload"
+    },
+    {
       "source": "Materials\\CR_glow.material",
       "runtime": "CR_glow.material"
     },
@@ -12822,6 +12826,10 @@
     {
       "source": "Scripts\\CRFuryRoster.lua",
       "runtime": "CRFuryRoster.lua"
+    },
+    {
+      "source": "Scripts\\CRGeysers.lua",
+      "runtime": "CRGeysers.lua"
     },
     {
       "source": "Scripts\\CRGroundFX.lua",
