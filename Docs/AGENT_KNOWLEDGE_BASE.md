@@ -703,12 +703,14 @@ Never by focus or `SendInput` unless the owner says the PC is free. The scenario
    instruction** (a per-batch "merge as you go" granted in the current session counts, and only for that
    scope). When merging: CI green, mergeable, `gh pr merge --merge`.
 5. **Workshop publishing is a local maintainer operation** through `Manage-CampaignFiles.ps1`
-   (`-workshop-init`, `-workshop-auth`, `-workshop-build "<note>"` dry run, `-workshop-upload "<note>"`),
-   not CI; follow `Docs/STEAM_PUBLISH_CHECKLIST.md` and its OpenShim Roadmap sync. Publishing stages the
-   **working tree**, not HEAD, so a dirty tree is a blocker. Publishing silently reverts the Steam
-   description unless `workshop.config.json` is set to leave it alone (`PublishDescription` stays false;
-   the description is hand-edited and capped at 8000 characters). Exit code 0 is not proof of an upload;
-   confirm the "Uploading app 301650 item ..." line. Never hand-copy files into `Local\Workshop\content`;
+   (`-workshop-init`, `-workshop-build "<note>"` dry run, `-workshop-upload "<note>"`), not CI; follow
+   `Docs/STEAM_PUBLISH_CHECKLIST.md` and its OpenShim Roadmap sync. The upload goes through the
+   **running, signed-in Steam client** via the Modding Toolbox's `steamworks_helper.ps1`
+   (`BZR_TOOLBOX_REPO`), and sends only content and the change note, never the hand-edited description.
+   **Never use SteamCMD (`-steamcmd`) on the owner's PC**: its login signs the desktop client out mid-game.
+   Publishing stages the **working tree**, not HEAD, so a dirty tree is a blocker. Exit code 0 is not proof
+   of an upload; confirm the "Workshop upload succeeded for item ..." line.
+   Never hand-copy files into `Local\Workshop\content`;
    `Scripts/OpenShimManifest.lua` hashes must come from staging. Publication needs a tagged OpenShim
    release, never a branch.
 6. **Never copy source into Steam's Workshop cache** or treat `Local\Workshop`/installed copies as source.
@@ -738,9 +740,12 @@ Each bullet: the pitfall, the one-line why, and where to read more.
   validator's required list is independent of the lock. Fix with `-bless`, never by hand-editing.
 - The manager's dispatch falls through to an interactive menu for unrecognized args, so a typo once exited
   0 with nothing uploaded (now exits 2 and lists received args). Check output, not exit codes.
-- Publishing the description reverts hand edits made on Steam; SteamCMD's VDF cannot hold a literal double
-  quote (the publisher rewrites `"` to `'`). Snapshot the live text first
-  (`Docs/workshop_description.published-*.bbcode`).
+- Publishing the description reverts hand edits made on Steam, so the default upload never sends it; only
+  `-steamcmd` with `PublishDescription: true` can. SteamCMD's VDF cannot hold a literal double quote (the
+  publisher rewrites `"` to `'`). Snapshot the live text first (`Docs/workshop_description.published-*.bbcode`).
+- SteamCMD signs the desktop Steam client of the same account out ("Session Replaced"); the 1.0.0.57
+  publish (2026-10-24) kicked the owner out of a running game. `-workshop-upload` now uploads through the
+  running client via the toolbox helper, and SteamCMD needs an explicit `-steamcmd`.
 - `Docs/STEAM_WORKSHOP_RUNNER.md` describes a two-runner design that has never run; the README and
   checklist are the current path (`Docs/LEVEL1_RELEASE_PIPELINE.md` for release packaging).
 - Zero-byte or stand-in files used to unblock a bless must be removed again (3.8).

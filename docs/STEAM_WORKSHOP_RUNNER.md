@@ -42,6 +42,12 @@ The workflow deliberately splits publishing into two trust zones:
    verifies every file against the manifest, generates the Steam VDF, and calls
    SteamCMD.
 
+This design is the one place SteamCMD still fits: a dedicated machine with no
+desktop Steam client to sign out. Local maintainer publishing does not use it;
+`Manage-CampaignFiles.ps1 -workshop-upload` uploads through the running Steam
+client (see `Docs/STEAM_PUBLISH_CHECKLIST.md`). Never point this runner at the
+maintainer's own Steam account while that account is signed in elsewhere.
+
 The Steam-authenticated runner does **not** check out or compile repository code.
 This keeps the machine holding the cached Steam login as small and isolated as
 possible.
