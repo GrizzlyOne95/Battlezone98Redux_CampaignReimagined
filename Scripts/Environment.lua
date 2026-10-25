@@ -1419,7 +1419,18 @@ function Environment.Update(timestep)
     targetFog = ClampFogToHorizon(targetFog)
     local artFrame = WorldArt.Apply(Environment.ArtWorld, {ambient=targetAmbient,diffuse=targetDiffuse,specular=targetSpecular})
     targetAmbient,targetDiffuse,targetSpecular = artFrame.ambient,artFrame.diffuse,artFrame.specular
-    if Environment.ArtSkyOwned then WorldArt.UpdateSky(exu,Environment.ArtWorld) end
+    if Environment.ArtSkyOwned then
+        -- Domes that take the frame (Mars) get the sun, the night blend and how
+        -- much of the clear-day visibility the weather has left.
+        local base = ClampFogToHorizon(Environment.LastBaseFog)
+        local clarity = base.fogEnd > 0.0 and Clamp01(targetFog.fogEnd / base.fogEnd) or 1.0
+        local d = sunState.direction
+        WorldArt.UpdateSky(exu, Environment.ArtWorld, {
+            sun = { x = -d.x, y = -d.y, z = -d.z },
+            night = state.nightBlend,
+            clarity = clarity,
+        })
+    end
 
     -- -------------------------------------------------------------------------
     -- Lighting / fog writes

@@ -15,6 +15,11 @@ Art.Worlds = {
 local stems={mn="moon",ma="mars",ve="venus",io="io",eu="europa",ti="titan",ga="ganymede",ac="achilles",el="elysium"}
 Art.Skies={mars="CRSKYMA.MAP",venus="CRSKYVE.MAP",titan="CRSKYTI.MAP",achilles="CRSKYAC.MAP",elysium="CRSKYEL.MAP"}
 Art.SkyCalibration={}
+-- Domes drawn by a shader that takes the frame state (CR_marssky): the sun,
+-- night blend and clarity go into the technique 0 pass colours, and the stock
+-- engine cloud sprites are hidden because the dome draws its own clouds.
+Art.SkyFrames={mars={hide={"ACLOUD2.MAP","ACLOUD.MAP"}}}
+Art.SkyFrameState={}
 -- Airless worlds get the catalog sky box instead of a dome. Its stars and
 -- Milky Way replace the TRN's STARS.MAP sprites and MILKYWAY.MAP quad; the
 -- other [Stars] quads (Earth, meteors) still draw over the opaque box.
@@ -30,23 +35,55 @@ function Art.InstallStarBox(api,world)
     end
     local accepted,result=pcall(api.SetSkyBox,box.material,far*0.2,true)
     if not accepted or result~=true then return false end
-    if type(api.SetMaterialTexture)=="function" then
-        -- Engine sky materials report false to MaterialExists, and their case follows the TRN.
-        for _,name in ipairs(box.hide) do
-            for _,material in ipairs({name,name:lower()}) do pcall(api.SetMaterialTexture,material,"cr06void.dds") end
-        end
-    end
+    Art.HideSkySprites(api,world)
     print("WorldArt: catalog star box at "..tostring(far*0.2))
     return true
 end
-function Art.UpdateSky(api,world)
+local function hide_sprites(api,names)
+    if type(api.SetMaterialTexture)~="function" then return end
+    -- Engine sky materials report false to MaterialExists, and their case follows the TRN.
+    for _,name in ipairs(names) do
+        for _,material in ipairs({name,name:lower()}) do pcall(api.SetMaterialTexture,material,"cr06void.dds") end
+    end
+end
+-- Re-hides the stock sprites a dome replaces; the misn06 orbit film restores
+-- their textures when it ends.
+function Art.HideSkySprites(api,world)
+    local spec=Art.StarBoxes[world] or Art.SkyFrames[world]
+    if spec and api then hide_sprites(api,spec.hide) end
+end
+-- frame (optional): {sun={x,y,z} toward the sun, night=0..1, clarity=0..1}.
+-- Specular stays (Enhanced flag, sun direction); emissive is (night, clarity,
+-- cloud cover, 0). Writes are skipped until something moves noticeably.
+local function update_sky_frame(api,material,enhanced,frame)
+    local s=frame.sun
+    local night=math.max(0,math.min(1,tonumber(frame.night) or 0))
+    local clarity=math.max(0,math.min(1,tonumber(frame.clarity) or 1))
+    local last=Art.SkyFrameState[material]
+    if last and last.enhanced==enhanced and math.abs(last.x-s.x)+math.abs(last.y-s.y)+math.abs(last.z-s.z)<0.002
+        and math.abs(last.night-night)<0.004 and math.abs(last.clarity-clarity)<0.004 then return true end
+    local accepted,result=pcall(api.SetMaterialPassColors,material,{specular={r=enhanced and 1 or 0,g=s.x,b=s.y,a=s.z},emissive={r=night,g=clarity,b=clarity,a=0}},0,0,"General")
+    if not accepted or result~=true then return false end
+    Art.SkyFrameState[material]={enhanced=enhanced,x=s.x,y=s.y,z=s.z,night=night,clarity=clarity}
+    return true
+end
+function Art.UpdateSky(api,world,frame)
     local material=Art.Skies[world]
     if not material or type(api.GetEffectiveRenderProfile)~="function" or type(api.SetMaterialPassColors)~="function" then return end
     local ok,profile=pcall(api.GetEffectiveRenderProfile)
     if not ok or type(profile)~="string" then return end
     local enhanced=profile:lower()=="enhanced"
-    if Art.SkyCalibration[material]==enhanced then return end
-    local accepted,result=pcall(api.SetMaterialPassColors,material,{specular={r=enhanced and 1 or 0,g=0,b=0,a=1}},0,0,"General")
+    local accepted,result
+    if Art.SkyFrames[world] and type(frame)=="table" and type(frame.sun)=="table" then
+        -- The frame write carries the calibration flag too.
+        accepted,result=true,update_sky_frame(api,material,enhanced,frame)
+        if Art.SkyCalibration[material]==enhanced then return end
+    else
+        if Art.SkyCalibration[material]==enhanced then return end
+        accepted,result=pcall(api.SetMaterialPassColors,material,{specular={r=enhanced and 1 or 0,g=0,b=0,a=1}},0,0,"General")
+        -- That cleared the sun direction; the next frame must rewrite it.
+        Art.SkyFrameState[material]=nil
+    end
     if accepted and result==true then
         Art.SkyCalibration[material]=enhanced
         print("WorldArt: sky fog calibration -> "..profile:lower())
@@ -65,7 +102,11 @@ function Art.InstallSky(api,world)
     -- suppresses its native sky when an Ogre sky is enabled, so this material
     -- must draw the original texture rather than a transparent haze alone.
     local accepted,result=pcall(api.SetSkyDome,material,10,8,4000,true,32,16,-1,"General")
-    if accepted and result==true then Art.UpdateSky(api,world) end
+    if accepted and result==true then
+        Art.SkyFrameState[material]=nil
+        Art.HideSkySprites(api,world)
+        Art.UpdateSky(api,world)
+    end
     return accepted and result==true
 end
 function Art.InitializeSky(api,world)

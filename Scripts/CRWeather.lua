@@ -958,10 +958,13 @@ local function ApplyPresetToFrame(frame, preset, weight)
         return
     end
 
+    -- Presets are daylight colours: the haze dims with the light at night, or a
+    -- fully blended preset holds the horizon and the sky at noon all night.
+    local daylight = frame.weatherLightScale or 1.0
     if preset.fog and frame.fog then
-        frame.fog.r = Lerp(frame.fog.r, preset.fog.r, weight)
-        frame.fog.g = Lerp(frame.fog.g, preset.fog.g, weight)
-        frame.fog.b = Lerp(frame.fog.b, preset.fog.b, weight)
+        frame.fog.r = Lerp(frame.fog.r, preset.fog.r * daylight, weight)
+        frame.fog.g = Lerp(frame.fog.g, preset.fog.g * daylight, weight)
+        frame.fog.b = Lerp(frame.fog.b, preset.fog.b * daylight, weight)
 
         -- weatherFogEnd = min(requested, authored terrain horizon).
         --
@@ -990,7 +993,6 @@ local function ApplyPresetToFrame(frame, preset, weight)
         frame.fog.fogEnd = Lerp(frame.fog.fogEnd, presetEnd, weight)
     end
 
-    local daylight = frame.weatherLightScale or 1.0
     if preset.ambient and frame.ambient then
         frame.ambient.r = Lerp(frame.ambient.r, preset.ambient.r * daylight, weight)
         frame.ambient.g = Lerp(frame.ambient.g, preset.ambient.g * daylight, weight)
