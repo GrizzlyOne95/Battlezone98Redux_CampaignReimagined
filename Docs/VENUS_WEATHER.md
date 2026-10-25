@@ -18,7 +18,8 @@ that is the point of the setting.
 | `Scripts/CRVenusSites09.lua` | Generated map data for misn09 (`python Tools/Build-VenusSites.py misn09 --types 1`). |
 | `Tools/Build-VenusSites.py` | Regenerates a `CRVenusSites<NN>.lua` from a mission's `.trn`, `.mat` and `.bzn`. |
 | `Scripts/CRWeatherPresets.lua` | Adds the five ladder presets `VenusCalm` .. `VenusSevere` (fog, light, haze, grit; no lightning, no rain). |
-| `Materials/cr_venus.particle.payload` | Eight particle templates, all on existing `CR_FX/*` materials. |
+| `Materials/cr_venus.particle.payload` | Eight particle templates on the `CRVenus/*` materials. |
+| `Materials/crart_venus.material` | The `CRVenus/*` particle materials: existing `CR_FX` art on the RGBA-order `CRWX_FX` vertex program plus `CR_Effect_fragment`, so DX11 draws the pass natively. On the `CR_FX/*` originals DX11 swapped red and blue, which made the fog bank's ochre haze draw teal (see Fog banks). |
 | `Scripts/CRParticleTemplates.lua` | New `EnsureExtra(name)` loads an opt-in payload without risking the base set. |
 | `Scripts/Environment.lua` | New `SetObjectScramble` / `ClearObjectScramble` / `GetObjectScramble`: a per-craft, self-expiring sensor scale. |
 | `Tools/Test-CRVenusWeather.lua` | Isolated-peer tests against an exu / BZ mock. |
@@ -111,7 +112,7 @@ the central play area (x 1500-3700, z 98500-100500).
 A strike is a small state machine on every peer:
 
 1. **Telegraph** (1.2-2.0 s): a `CR/Venus/StElmo` corona of cold sparks builds on the target.
-2. **Impact**: `CR/Venus/Bolt` (a burst of leaning `CR_FX/Arc` cards, about 0.11 s) and
+2. **Impact**: `CR/Venus/Bolt` (a burst of leaning `CRVenus/Arc` cards, about 0.11 s) and
    `CR/Venus/BoltGlow` at the foot; the local scene flash; thunder after a distance delay;
    shove and radar scramble.
 3. **Afterglow**: a struck generator keeps crackling for `PowerAfterglow` (3 s), as if it
@@ -293,7 +294,12 @@ disk, and a glowing yellow-ochre haze sheet lies on the ground. The ladder canno
   the basin `FogPool` systems emit 2.6x harder; and a ring of up to 7 `CR/Venus/FogPool`
   ground-haze systems (a 55 m grid within 115 m of the player, yellow-ochre, 70 particle
   quota each) streams in at 7 cards/s, lingers 36 s after the bank, then is released.
-  All of it is existing `CR_FX/Haze` art; no new materials or payload entries.
+  The cards are `CRVenus/Haze`, so the ochre draws as written. On `CR_FX/Haze` itself
+  DX11 swapped red and blue and the bank came out teal. Ogre's billboards are RGBA, but
+  the stock `Effect_fragment` has no DX11 delegate, so OpenShim's DX11 compat layer
+  rebuilds the pass with its BGRA sprite adapter. Swapping only the vertex program does
+  not escape that: the pass needs `CR_Effect_fragment`, whose SM4 delegate keeps it native
+  (`[DX11COMPAT] ... action=skip` in openshim.log means it was left alone).
 - **Precedence.** `FogAllow` (0..1, smoothed 0.12/s) multiplies every scheduled bank. It
   is 1 up to rung 3.0 and falls to 0 by rung 4.0 (storm and severe, so a bank never stacks
   on the lightning peak and eases away if a storm arrives mid-bank), and is 0 while any
@@ -574,7 +580,7 @@ Checked against `ExtraUtilities/Definitions/ExtraUtils.lua`:
 
 | Wanted | Reality | Workaround |
 | --- | --- | --- |
-| A line / beam / ribbon / billboard chain for the bolt | `exu.DrawLine` and `DrawBox` are documented placeholders that draw nothing | A burst of leaning `oriented_self` `CR_FX/Arc` cards in a tall Box emitter |
+| A line / beam / ribbon / billboard chain for the bolt | `exu.DrawLine` and `DrawBox` are documented placeholders that draw nothing | A burst of leaning `oriented_self` `CRVenus/Arc` cards in a tall Box emitter |
 | A dynamic point light for the flash | Only lights on existing objects (`SetLightPosition`, `SetLightPowerScale` ...) | Ambient + sun spike through the Environment modifier |
 | The terrain material under a point | None | Offline `Build-VenusSites.py` reads the `.mat` once |
 | Sky-plane alpha / a sky tint | `SetSkyPlane` needs a material that does not exist | Done another way: `CR_venussky` reads the storm, bank and flash from the dome's pass colours (`exu.SetMaterialPassColors`), as the Mars dome does |
@@ -599,7 +605,7 @@ Checked against `ExtraUtilities/Definitions/ExtraUtils.lua`:
 
 ## What must be judged live
 
-- The bolt: whether leaning `CR_FX/Arc` cards read as lightning, their size and burst
+- The bolt: whether leaning `CRVenus/Arc` cards read as lightning, their size and burst
   length (`CR/Venus/Bolt` `particle_width/height`, emitter `depth`, the 900 / 420 rates).
 - Box-emitter axes: the templates assume `direction` is the depth axis (vertical when
   `direction 0 1 0`). If a column comes out sideways, swap `width/height/depth`.
