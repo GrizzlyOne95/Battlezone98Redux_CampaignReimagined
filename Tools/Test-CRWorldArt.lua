@@ -33,8 +33,43 @@ api.SetMaterialTexture=function(material,texture) hidden[material]=texture;retur
 check(Art.InitializeSky(api,"moon") and draws==0 and #boxes==1,"airless world installs the catalog star box, not a dome")
 check(boxes[1][1]=="CR_Sky/CatalogStars" and boxes[1][2]==500 and boxes[1][3]==true,"star box draws first at 0.2x far")
 check(hidden["STARS.MAP"]=="cr06void.dds" and hidden["milkyway.map"]=="cr06void.dds","star box hides the TRN star sprites and Milky Way quad")
+check(hidden["crsun"]==nil,"without a sun anchor the engine sun sprite stays")
 check(Art.InstallSky(api,"moon") and #boxes==2,"star box can be reinstalled after a cinematic")
-api.SetSkyBox,api.SetMaterialTexture,api.GetCameraClipDistances=nil,nil,nil
+local vectors,faces={},{}
+-- The game returns VECTOR_3D userdata, not a table.
+local light=newproxy(true);getmetatable(light).__index=function(_,k) return ({x=0,y=-3,z=4})[k] end
+api.GetSunDirection=function() return light end
+api.SetMaterialShaderVector=function(material,name,x,y,z,w)
+ vectors[#vectors+1]={material,name,x,y,z,w,#boxes}
+ return material:match("^SceneManagerInstance2SkyBoxPlane%d$") and 1 or 0
+end
+check(Art.InstallSky(api,"moon") and #vectors==7,"star box anchors its sun on each face")
+for i=1,#vectors do local v=vectors[i];if v[6]==1 and v[1]:match("^SceneManagerInstance2") then faces[v[1]]=v end end
+local v=faces["SceneManagerInstance2SkyBoxPlane5"]
+check(next(faces)~=nil and v and v[2]=="sunDirection" and v[7]==3,"faces are written after the box clones them")
+check(math.abs(v[3])<1e-9 and math.abs(v[4]-0.6)<1e-9 and math.abs(v[5]+0.8)<1e-9,"sun points back along the light, normalized")
+check(vectors[1][1]=="SceneManagerInstance1SkyBoxPlane0","the usual scene manager is tried first")
+check(hidden["crsun"]=="cr06void.dds","an anchored sun hides the engine sun sprite")
+hidden={}
+api.SetMaterialShaderVector=function() return 0 end
+check(Art.InstallSky(api,"moon") and hidden["crsun"]==nil and hidden["STARS.MAP"],"unfound faces keep the engine sun")
+api.GetSunDirection=function() return {x=0,y=0,z=0} end
+check(Art.InstallSky(api,"moon") and hidden["crsun"]==nil,"a zero light keeps the engine sun")
+api.GetSunDirection=function() error("no light") end
+check(Art.InstallSky(api,"moon") and #boxes==6,"a failing light read still installs the box")
+api.SetSkyBox,api.SetMaterialTexture,api.GetCameraClipDistances,api.GetSunDirection,api.SetMaterialShaderVector=nil,nil,nil,nil,nil
+-- Only the sun row moves to crsun; the lens flare rings keep sprite_a.
+local st=assert(io.open(scripts.."/../Config/spritea.st","rb")):read("*a")
+local crsunRows,sunRow=0,nil
+for line in st:gmatch("[^\r\n]+") do
+ local name,material=line:match('^"([^"]+)"%s+(%S+)')
+ if material=="crsun" then crsunRows=crsunRows+1 end
+ if name=="sun.0" then sunRow=material end
+ if name and name:match("^ring%.") then check(material=="sprite_a",name.." keeps sprite_a") end
+end
+check(crsunRows==1 and sunRow=="crsun","spritea.st points only sun.0 at crsun")
+local sprites=assert(io.open(scripts.."/../Materials/sprites.material","rb")):read("*a")
+check(sprites:find("material crsun : BZSprite/Additive",1,true)~=nil,"crsun material exists")
 check(Art.InitializeSky(api,"mars") and draws==1,"atmospheric baseline installs")
 check(Art.InitializeSky(api,"mars","misn06.trn") and draws==2,"Mission 6 owns the world dome like other Mars maps")
 check(Art.InstallSky(api,"mars") and draws==3,"orbital film can reinstall the baseline dome")

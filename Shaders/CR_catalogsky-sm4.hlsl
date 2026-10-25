@@ -15,6 +15,16 @@ static const float BV_MIN = -0.5;
 static const float BV_SPAN = 2.5;
 static const float PI = 3.14159265;
 
+// With a sun direction, the star sphere is turned so the sun sits at the March
+// equinox (RA 0, Dec 0, galactic latitude -60) and the galactic centre lies
+// toward the zenith on the far side of the sky. The Milky Way then stays at
+// least 60 degrees from the sun at any sun angle.
+static const float3 SUN_EQ = float3(1, 0, 0);
+static const float3 GC_EQ = float3(0, -0.874755, -0.484565);
+static const float3 POLE_EQ = float3(0, 0.484565, -0.874755);
+static const float3 SUN_COLOUR = float3(1.00, 0.97, 0.92);
+static const float3 GLARE_COLOUR = float3(1.00, 0.90, 0.78);
+
 void catalogsky_vertex(
 	uniform float4x4 wvpMat,
 	in float4 iPosition : POSITION,
@@ -49,9 +59,27 @@ float3 star_colour(float bv)
 	return lerp(c, c4, saturate((bv - 1.0) / 0.6));
 }
 
+// World to J2000. The world frame is built from the sun and the zenith the
+// same way the celestial frame is built from SUN_EQ and GC_EQ.
+float3 sky_direction(float3 p, float4x4 skyRotation, float4 sunDirection)
+{
+	if (sunDirection.w <= 0.5) return mul((float3x3)skyRotation, p);
+	float3 w1 = normalize(sunDirection.xyz);
+	float3 up = abs(w1.y) > 0.999 ? float3(0, 0, 1) : float3(0, 1, 0);
+	float3 w2 = normalize(up - dot(up, w1) * w1);
+	float3 w3 = cross(w1, w2);
+	return SUN_EQ * dot(p, w1) + GC_EQ * dot(p, w2) + POLE_EQ * dot(p, w3);
+}
+
 // starParams: x gain, y core sigma (pixels), z halo gain, w reference magnitude.
 // starShape:  x brightness exponent (1 = physical), y halo radius (pixels).
 // milkyParams: x gain, y RA direction (+1/-1), z RA of the map's left edge (turns).
+// sunDirection: xyz toward the sun in world space, w 1 once Lua has set it.
+//               At w 0 the sky keeps skyRotation and draws no sun.
+// sunLook:  x disc radius (image plane, about radians at the screen centre),
+//           y disc gain, z/w the stars fade in from z to w (radians).
+// sunGlow:  x glare gain at the limb, y glare falloff power,
+//           z halo gain, w halo radius (radians).
 void catalogsky_fragment(
 	uniform Texture2D starIndex : register(t0),
 	uniform SamplerState starSam : register(s0),
@@ -61,10 +89,15 @@ void catalogsky_fragment(
 	uniform float4 starParams,
 	uniform float4 starShape,
 	uniform float4 milkyParams,
+	uniform float4 sunDirection,
+	uniform float4 sunLook,
+	uniform float4 sunGlow,
+	uniform float4x4 inverseView,
 	in float3 vDir : TEXCOORD0,
 	out float4 oColor : SV_TARGET)
 {
-	float3 d = normalize(mul((float3x3)skyRotation, vDir));
+	float3 p = normalize(vDir);
+	float3 d = normalize(sky_direction(p, skyRotation, sunDirection));
 	float pixelAngle = max(max(length(ddx(d)), length(ddy(d))), 1e-6);
 
 	// Face selection; must match Build-CatalogSky.py.
@@ -103,5 +136,25 @@ void catalogsky_fragment(
 	gx.x -= round(gx.x); gy.x -= round(gy.x);
 	float3 milky = sky_decode(milkyWay.SampleGrad(milkySam, mwUv, gx, gy).rgb) * milkyParams.x;
 
-	oColor = float4(sky_encode(milky + stars), 1);
+	float3 sky = milky + stars;
+	if (sunDirection.w > 0.5)
+	{
+		// Sun: a limb-darkened disc with a one-pixel edge, a power-law glare and
+		// a wide faint halo. There is no air to scatter it, so the sky stays
+		// black, but the stars and the Milky Way fade out close to the sun.
+		// The disc and glare are measured on the image plane, so the sun stays
+		// round and one size anywhere on screen, like the engine sprite did.
+		float3 s = normalize(sunDirection.xyz);
+		float3 f = normalize(mul((float3x3)inverseView, float3(0, 0, -1)));
+		float3 q = p / max(dot(p, f), 1e-3);
+		float pixelPlane = max(max(length(ddx(q)), length(ddy(q))), 1e-6);
+		float theta = 2 * asin(saturate(0.5 * length(p - s)));
+		float t = dot(s, f) > 0.01 ? length(q - s / dot(s, f)) / sunLook.x : 1e3;
+		float disc = saturate((1 - t) * sunLook.x / pixelPlane + 0.5);
+		float limb = 0.4 + 0.6 * sqrt(saturate(1 - t * t));
+		float glare = sunGlow.x * pow(saturate(1 / max(t, 1)), sunGlow.y) + sunGlow.z * exp(-theta / sunGlow.w);
+		sky = sky * smoothstep(sunLook.z, sunLook.w, theta) + SUN_COLOUR * (sunLook.y * disc * limb) + GLARE_COLOUR * glare;
+	}
+
+	oColor = float4(sky_encode(sky), 1);
 }

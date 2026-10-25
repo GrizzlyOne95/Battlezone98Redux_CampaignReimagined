@@ -23,7 +23,44 @@ Art.SkyFrameState={}
 -- Airless worlds get the catalog sky box instead of a dome. Its stars and
 -- Milky Way replace the TRN's STARS.MAP sprites and MILKYWAY.MAP quad; the
 -- other [Stars] quads (Earth, meteors) still draw over the opaque box.
-Art.StarBoxes={moon={material="CR_Sky/CatalogStars",hide={"STARS.MAP","MILKYWAY.MAP"}}}
+-- The box also draws the sun, so Config/spritea.st points the engine's sun.0
+-- sprite at its own material, crsun, which is hidden once the box's sun is
+-- anchored. The sprite still rasterizes, so the lens flare's occlusion test
+-- keeps working.
+Art.StarBoxes={moon={material="CR_Sky/CatalogStars",hide={"STARS.MAP","MILKYWAY.MAP"},sunSprite="crsun"}}
+Art.SunAnchored={}
+-- The box turns the star sphere so the sun sits at the March equinox, which
+-- keeps the Milky Way at least 60 degrees from it. The engine's sun sprite
+-- never follows the light, so the TRN direction read at install is the anchor.
+local function sun_vector(api)
+    if type(api.GetSunDirection)~="function" or type(api.SetMaterialShaderVector)~="function" then return nil end
+    -- A game VECTOR_3D is userdata, so read the fields under pcall.
+    local ok,x,y,z=pcall(function() local d=api.GetSunDirection();return tonumber(d.x),tonumber(d.y),tonumber(d.z) end)
+    if not ok then return nil end
+    local len=x and y and z and math.sqrt(x*x+y*y+z*z) or 0
+    if len<1e-6 then return nil end
+    -- The light travels away from the sun.
+    return {-x/len,-y/len,-z/len}
+end
+local function write_sun(api,material,s)
+    local ok,n=pcall(api.SetMaterialShaderVector,material,"sunDirection",s[1],s[2],s[3],1,-1,-1,"Autodetect")
+    return ok and tonumber(n) or 0
+end
+-- Ogre draws the box with one clone per face, <scene manager>SkyBoxPlane0..5.
+-- A uniform written to the base before SetSkyBox does not reach them in game,
+-- so the clones are written after it; each reinstall copies the base (no sun)
+-- over them again. Redux has one scene manager,
+-- normally SceneManagerInstance1; the next few names are tried in case.
+local function anchor_box_faces(api,s)
+    for instance=1,4 do
+        local prefix="SceneManagerInstance"..instance.."SkyBoxPlane"
+        if write_sun(api,prefix.."0",s)>0 then
+            for face=1,5 do write_sun(api,prefix..face,s) end
+            return true
+        end
+    end
+    return false
+end
 function Art.InstallStarBox(api,world)
     local box=Art.StarBoxes[world]
     if not box or not api or type(api.SetSkyBox)~="function" then return false end
@@ -35,6 +72,9 @@ function Art.InstallStarBox(api,world)
     end
     local accepted,result=pcall(api.SetSkyBox,box.material,far*0.2,true)
     if not accepted or result~=true then return false end
+    local sun=sun_vector(api)
+    Art.SunAnchored[world]=sun~=nil and anchor_box_faces(api,sun)
+    if sun and not Art.SunAnchored[world] then print("WorldArt: star box faces not found; the stock sun stays") end
     Art.HideSkySprites(api,world)
     print("WorldArt: catalog star box at "..tostring(far*0.2))
     return true
@@ -50,7 +90,10 @@ end
 -- their textures when it ends.
 function Art.HideSkySprites(api,world)
     local spec=Art.StarBoxes[world] or Art.SkyFrames[world]
-    if spec and api then hide_sprites(api,spec.hide) end
+    if spec and api then
+        hide_sprites(api,spec.hide)
+        if spec.sunSprite and Art.SunAnchored[world] then hide_sprites(api,{spec.sunSprite}) end
+    end
 end
 -- frame (optional): {sun={x,y,z} toward the sun, night=0..1, clarity=0..1}.
 -- Specular stays (Enhanced flag, sun direction); emissive is (night, clarity,
