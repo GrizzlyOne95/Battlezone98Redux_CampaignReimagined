@@ -1,0 +1,43 @@
+// Catalog sky for airless worlds: real star positions as sharp points over a
+// Milky Way map, drawn as Ogre's sky box. Ogre gives each box face its own
+// frame of texture unit 0, so the star index is listed once per face; the
+// shader picks its face from the view direction, not from the frame.
+material CR_Sky/CatalogStars
+{
+	receive_shadows off
+	technique 0
+	{
+		pass 0
+		{
+			vertex_program_ref CR_CatalogSky_vertex
+			{
+			}
+			fragment_program_ref CR_CatalogSky_fragment
+			{
+				// World (x east, y up, z north) to J2000 equatorial: the galactic
+				// centre sits 30 degrees off the zenith, the band crossing overhead.
+				param_named skyRotation matrix4x4 -0.455344 0.199528 -0.867669 0 -0.051486 -0.978834 -0.198072 0 -0.888825 -0.045518 0.455980 0 0 0 0 1
+				// The NASA map puts RA 0h at its centre and runs RA leftwards. Its
+				// dark sky is a faint grey floor, so the gain stays well under 1.
+				param_named milkyParams float4 0.3 -1 0.5 0
+			}
+			cull_hardware none
+			cull_software none
+			lighting off
+			fog_override true none
+			depth_write off
+			texture_unit 0
+			{
+				anim_texture crsky_stars.png crsky_stars.png crsky_stars.png crsky_stars.png crsky_stars.png crsky_stars.png 0
+				tex_address_mode clamp
+				filtering none
+			}
+			texture_unit 1
+			{
+				texture crsky_milkyway.png
+				tex_address_mode wrap clamp
+				filtering trilinear
+			}
+		}
+	}
+}

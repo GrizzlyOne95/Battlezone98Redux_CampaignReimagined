@@ -4,7 +4,7 @@ from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parent.parent / "Shaders"
-for filename in ("CR_skydome.program", "cr17_cloud.program"):
+for filename in ("CR_skydome.program", "cr17_cloud.program", "CR_catalogsky.program"):
     path = ROOT / filename
     text = path.read_text()
     names = {}
