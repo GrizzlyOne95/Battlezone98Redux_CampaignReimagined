@@ -58,6 +58,12 @@ baseline; their live visual tuning and Steam/Proton/Wine remain unverified.
 | Ganymede | GA_DETAIL_ATLAS | 22 | 88 |
 | Elysium | EL_DETAIL_ATLAS | 20 | 80 |
 
+The table is the DDS form. Moon, Mars, Venus, Io, Europa, Titan and Achilles now
+ship OpenShim paint bindings instead (`Tools/Merge-TerrainPaintPacks.py`, packs
+from OpenShim `scripts/terrain-packs/build-world-packs.sh`), and their crhd tile
+DDS files are retired; Ganymede and Elysium keep the DDS packs. Mars switched on
+2026-10-25 (misn04-06, CR and stock maps).
+
 Each material retains exact original D/N/S/E resource guards and CSV rectangles.
 Only the active material's arrays are built. The nine packs do not imply nine
 sets of arrays resident at once. The 32-bit process RAM cost is a live measured
