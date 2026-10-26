@@ -20,7 +20,7 @@ recoilKick = 1.0
 // CR WEAPON RECOIL END
 // OpenShim weapon muzzle effects reference (all examples stay commented).
 // Settings > Video > Muzzle Flashes gates BOTH mesh and native render effects;
-// OFF by default, restart required, no generic fallback. Experimental exact-GOG
+// ON by default from OpenShim 1.0.0.61, restart required, no generic fallback. Exact-GOG
 // 2.2.301 / single-player cannon path. Assets and ODF configuration are required;
 // old trial environment flags cannot bypass an OFF master setting.
 //

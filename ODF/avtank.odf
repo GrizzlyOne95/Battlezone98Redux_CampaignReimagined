@@ -30,8 +30,8 @@ flashOffset1 = "0.20 0.10 2.41"
 // CR CRAFT FLASH OFFSET END
 // OpenShim muzzle presentation authoring reference (examples stay commented).
 // Experimental exact-GOG 2.2.301 / single-player cannon path, not MP support.
-// Settings > Video > Muzzle Recoil is the master switch: OFF by default,
-// restart required. Enabling it still needs these ODF keys and matching art.
+// Settings > Video > Muzzle Recoil is the master switch: ON by default from
+// OpenShim 1.0.0.61, restart required. It still needs these ODF keys and art.
 // Slot 1 (cannon) has this node slide enabled; with the switch OFF nothing
 // moves. Old trial environment flags cannot bypass an OFF setting.
 //

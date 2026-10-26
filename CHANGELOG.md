@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Bundle OpenShim 1.0.0.61: authored muzzle flashes and mesh recoil are on by default (existing installs at the old
+  shipped off migrate to on; a later choice is kept), so CR's weapon flashes and craft recoil show without a settings
+  change; Shell Casings gains a Settings > Video row and stays off by default.
+- Rebuild every skinned CR mesh with the stock two-stream vertex layout so DX11 no longer draws them flat grey
+  (cockpits included); `Tools/ogrelayout.py` writes the layout and CI guards it.
 - Bundle OpenShim 1.0.0.60: terrain paint reuses the height pass's near taps and Micro Detail culls off-screen relief
   patches (each about +11-12% fps at 4K); paint packs gain a MAT-aligned Base-pad layer, a variation-rule list and
   per-layer contrast; native weapon muzzle flash and mesh recoil are now allowed on the Steam executable too.
