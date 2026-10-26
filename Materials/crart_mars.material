@@ -14,8 +14,11 @@ material CRSKYMA.MAP
 			}
 			fragment_program_ref CR_MarsSky_fragment
 			{
-				// As CR_Sky/CatalogStars, so Mars and the Moon share one star sky.
-				param_named skyRotation matrix4x4 -0.455344 0.199528 -0.867669 0 -0.051486 -0.978834 -0.198072 0 -0.888825 -0.045518 0.455980 0 0 0 0 1
+				// The Moon's star sky, turned for Environment's Mars sun: the Milky Way
+				// lies 62-73 deg from the sunset and sunrise suns and at least 33 deg
+				// from the sinking dusk/dawn sun, and still crosses the zenith at night
+				// with the galactic centre 60 deg up.
+				param_named skyRotation matrix4x4 -0.849697 -0.247085 0.465794 0 -0.288816 -0.520985 -0.803218 0 0.441135 -0.817021 0.371317 0 0 0 0 1
 			}
 			lighting off
 			scene_blend one zero
