@@ -80,6 +80,24 @@ Gaia DR2: ESA/Gaia/DPAC.
   It fades with `CRTitanWeather`'s haze and rolls. The ring opening is exaggerated for readability
   (see `Docs/TITAN_WEATHER.md`). OpenGL keeps the stock `titan.tga` dome (technique 1).
 
+## Achilles sky and Uranus (CRSKYAC.MAP)
+
+- `Assets/Textures/crsky_achilles_clouds.png`, `crsky_uranus.png` and `crsky_uranus_rings.png` are original,
+  procedural art from `Tools/Build-AchillesSky.py` (seed 17). Nothing is downloaded and there is no
+  third-party source.
+  - Clouds: seeded spectral noise. R holds billowing cumulus, rank-normalised so a threshold reads as a
+    cover share; G fine detail that frays the edges; B rain curtains stretched down the sky. It tiles exactly.
+  - Uranus: a latitude table modelled on the Voyager and Keck/JWST views: a pale cyan, nearly bland
+    globe with faint zonal bands, a bright north polar cap inside a darker collar, and a few small bright
+    methane clouds.
+  - Rings: a radial profile from the published radii of the 6, 5, 4, alpha, beta, eta, gamma, delta,
+    lambda and epsilon rings and the dusty zeta, nu (reddish) and mu (blue) rings. The narrow rings are
+    widened to a few texels so they read; epsilon stays the brightest.
+- `Shaders/CR_achillessky.hlsl` draws the cold blue sky, the sun disc, cumulus that the storm closes into
+  a dark deck, rain murk and curtains, lightning inside the cloud, the overloaded core's red glow on the
+  cloud base, and Uranus with its rings between the clouds. See `Docs/ACHILLES_SKY.md` for the cinematic
+  licences. OpenGL keeps the stock `achilles.tga` dome (technique 1).
+
 ## Earth over the Moon (CREARTH.MAP)
 
 Imagery: NASA Earth Observatory. NASA imagery is generally not copyrighted (public domain);

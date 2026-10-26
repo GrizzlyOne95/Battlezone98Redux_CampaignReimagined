@@ -1,0 +1,83 @@
+// Achilles sky dome (CRSKYAC.MAP): the cold blue sky, the sun disc, the
+// cumulus that the storm closes into a dark deck, rain murk and curtains,
+// lightning, the core's red glow in the tempest, and Uranus with its rings
+// between the clouds. See CR_achillessky.hlsl. DX11 and DX9 only: on OpenGL
+// the unified programs have no supported delegate, so
+// Materials/crart_achilles.material falls through to its CR_SkyDome technique.
+// Tools/Update-WorldSkyProgramVersions.py versions the delegate names.
+
+vertex_program CR_AchillesSky_vertexHLSL4_art_64d058ade5 hlsl
+{
+    source CR_achillessky.hlsl
+    target vs_4_0
+    entry_point achillessky_vertex
+    preprocessor_defines SM4=1
+}
+
+vertex_program CR_AchillesSky_vertexHLSL_art_bb4617e0f2 hlsl
+{
+    source CR_achillessky.hlsl
+    target vs_3_0
+    entry_point achillessky_vertex
+}
+
+fragment_program CR_AchillesSky_fragmentHLSL4_art_e9d8ccbb2d hlsl
+{
+    source CR_achillessky.hlsl
+    target ps_4_0
+    entry_point achillessky_fragment
+    preprocessor_defines SM4=1
+}
+
+fragment_program CR_AchillesSky_fragmentHLSL_art_cc3d3ffe6c hlsl
+{
+    source CR_achillessky.hlsl
+    target ps_3_0
+    entry_point achillessky_fragment
+}
+
+vertex_program CR_AchillesSky_vertex unified
+{
+    delegate CR_AchillesSky_vertexHLSL4_art_64d058ade5
+    delegate CR_AchillesSky_vertexHLSL_art_bb4617e0f2
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto inverseProjection inverse_projection_matrix
+        param_named_auto inverseView inverse_view_matrix
+    }
+}
+
+// The cloud drifts with time_0_x; its 7200 s wrap makes one jump every two
+// hours of play.
+fragment_program CR_AchillesSky_fragment unified
+{
+    delegate CR_AchillesSky_fragmentHLSL4_art_e9d8ccbb2d
+    delegate CR_AchillesSky_fragmentHLSL_art_cc3d3ffe6c
+    default_params
+    {
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto skyProfile surface_specular_colour
+        param_named_auto achillesState surface_emissive_colour
+        param_named_auto achillesFlash surface_diffuse_colour
+        param_named_auto uranusDir surface_ambient_colour
+        param_named_auto skyTime time_0_x 7200
+        param_named horizonBlend float4 .02 .35 1 0
+        param_named fogAmbient float4 .35 .16 0 0
+        param_named zenithTint float4 0.55 0.72 1.05 0.7
+        param_named sunGlow float4 1.4 0.35 60 4
+        param_named sunDisc float4 0.008 14 0.35 0
+        param_named cloudScale float4 0.11 0.42 0.0012 0.10
+        param_named cloudCover float4 0.38 0.92 0.20 0.22
+        param_named cloudLook float4 1.25 0.80 1.4 0.45
+        param_named rainLook float4 0.55 0.92 0.45 0.22
+        param_named flashLook float4 3.0 10 0.25 0.8
+        param_named flashColour float4 0.80 0.86 1.0 0
+        param_named coreGlow float4 0.16 0.035 0.01 0.8
+        param_named uranusShape float4 4.55 0.977 0.20 1.30
+        param_named uranusLook float4 0.85 0.75 0.0 1.0
+        param_named ringLook float4 0.9 2.5 6 0.12
+    }
+}

@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4259,
+  "count": 4264,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -4044,6 +4044,10 @@
       "runtime": "crpkns2_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crsky_achilles_clouds.png",
+      "runtime": "crsky_achilles_clouds.png"
+    },
+    {
       "source": "Assets\\Textures\\crsky_callisto.png",
       "runtime": "crsky_callisto.png"
     },
@@ -4094,6 +4098,14 @@
     {
       "source": "Assets\\Textures\\crsky_titan_haze.png",
       "runtime": "crsky_titan_haze.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_uranus_rings.png",
+      "runtime": "crsky_uranus_rings.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_uranus.png",
+      "runtime": "crsky_uranus.png"
     },
     {
       "source": "Assets\\Textures\\crsky_venus_clouds.png",
@@ -13782,6 +13794,14 @@
     {
       "source": "Shaders\\cr18_water.program",
       "runtime": "cr18_water.program"
+    },
+    {
+      "source": "Shaders\\CR_achillessky.hlsl",
+      "runtime": "CR_achillessky.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_achillessky.program",
+      "runtime": "CR_achillessky.program"
     },
     {
       "source": "Shaders\\CR_catalogsky-fragment.glsl",

@@ -1047,6 +1047,36 @@ do
     host.S.Stop();guest.S.Stop()
 end
 
+-- the CR Achilles dome keeps the night sky to found; the swirl tears in at core1
+do
+    fresh(); skyPlane = {}
+    local p = newPeer("ac")
+    local vis = {}
+    envStub.ArtSkyOwned = true; envStub.SkyWeatherSource = p.S
+    envStub.SetArtSkyVisible = function(v) vis[#vis + 1] = v; return true end
+    run(5, p, {})
+    check(p.S.Describe().sky == "dome" and not skyPlane.enabled and dome.on, "the CR dome keeps the opening sky")
+    local w = p.S.SkyState()
+    check(w and w.storm > 0.2 and w.storm < 0.5 and w.bank > 0, "the dome takes the opening's gathering cloud")
+    local flashed
+    check(p.S.SetPhase("search") and p.S.SetPhase("found"), "found accepted")
+    for _ = 1, 600 do
+        run(0.1, p, {})
+        local f = p.S.SkyState()
+        if f and f.flash then flashed = f end
+    end
+    w = p.S.SkyState()
+    check(p.S.Describe().sky == "dome" and w.storm > 0.75, "found still shows the dome, its cloud near closed")
+    check(flashed and flashed.flash <= 1 and flashed.flashDir.y == 0.31, "lightning lights the dome cloud")
+    check(p.S.SetPhase("core1"), "core1 accepted")
+    run(2, p, {})
+    check(p.S.Describe().sky == "on" and skyPlane.enabled and dome.on == false and vis[#vis] == false, "core1 tears the swirl in and hands the stock sprites back")
+    check(p.S.SkyState() == nil, "the swirl owns the sky from core1")
+    p.S.Stop()
+    check(dome.on and vis[#vis] == true, "stop gives the dome back and hides the sprites again")
+    envStub.ArtSkyOwned, envStub.SkyWeatherSource, envStub.SetArtSkyVisible = nil, nil, nil
+end
+
 print = realPrint
 local sources = { "CRStorm18", "CRStorm18Water", "CRStorm18Tornado", "CRStorm18Ground", "CRStorm18Rng", "CRStorm18Sites", "CRStorm18Trees", "CRStorm18TreesSites" }
 for _, n in ipairs(sources) do

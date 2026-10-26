@@ -118,8 +118,8 @@ Art.UpdateSky(api,"mars",{sun=sun,night=.5,clarity=2})
 check(#frames==2 and frames[2].colours.emissive.r==.5 and frames[2].colours.emissive.g==1,"night moves rewrite, clarity clamps")
 profile="enhanced";Art.UpdateSky(api,"mars",{sun=sun,night=.5,clarity=1})
 check(#frames==3 and frames[3].colours.specular.r==1 and frames[3].colours.specular.b==sun.y,"profile change keeps the sun direction")
-Art.UpdateSky(api,"achilles",{sun=sun,night=0,clarity=1})
-check(frames[#frames].name=="CRSKYAC.MAP" and frames[#frames].colours.specular.g==0,"other domes keep the plain calibration")
+Art.UpdateSky(api,"elysium",{sun=sun,night=0,clarity=1})
+check(frames[#frames].name=="CRSKYEL.MAP" and frames[#frames].colours.specular.g==0,"other domes keep the plain calibration")
 check(frames[3].colours.emissive.a==0 and frames[3].colours.diffuse.a==0,"Mars carries no fog bank or flash")
 -- Venus: the weather's storm gloom, fog bank and lightning ride with the frame.
 local n=#frames
@@ -307,4 +307,30 @@ Art.SetSkySun("titan",{azimuth=20,elevation=-25})
 local ti=Art.NightLight("titan")
 check(ti and ti.diffuse.r>Art.Shine.titan.light*0.95 and ti.diffuse.r>ti.diffuse.b and near(ti.direction.z,-saturn.z),"misn15's night sun leaves Saturn nearly full, lighting warm from Saturn")
 Art.SetSkySun("titan",nil)
+-- Achilles: the jungle storm and rain take the weather slots, and the dome
+-- draws Uranus between the clouds, so it takes Uranus's TRN direction and hides
+-- the quad and the cloud sprites; misn18's swirl gives them back.
+stars={Texture00="URANUS.MAP",Azimuth00="210",Elevation00="30"}
+local uranus=Art.DetectShine({},"achilles")
+check(uranus and near(uranus.y,math.sin(math.rad(30))) and uranus.x<0 and uranus.z>0,"Uranus at heading 210 stands up and behind")
+frames={}
+Art.UpdateSky(api,"achilles",{sun=sun,night=.3,clarity=1,weather={storm=.5,bank=.6,flash=.9,flashDir={x=.2,y=.31,z=-.9}}})
+last=frames[#frames]
+check(#frames==1 and last.name=="CRSKYAC.MAP" and last.colours.specular.g==sun.x,"Achilles dome takes the frame state")
+check(last.colours.emissive.r==.3 and last.colours.emissive.b==.5 and last.colours.emissive.a==.6,"emissive carries night, the storm and the rain")
+check(last.colours.diffuse.b==-.9 and last.colours.diffuse.a==.9,"diffuse carries the lightning")
+check(last.colours.ambient and near(last.colours.ambient.r,uranus.x) and near(last.colours.ambient.g,uranus.y) and last.colours.ambient.a==1,"ambient carries Uranus's direction")
+hidden={}
+api.SetSkyDome=function(material) return material=="CRSKYAC.MAP" end
+check(Art.InstallSky(api,"achilles") and hidden["URANUS.MAP"]=="cr06void.dds" and hidden["uranus.map"]=="cr06void.dds" and hidden["acloud.map"]=="cr06void.dds" and hidden["ACLOUD2.MAP"]=="cr06void.dds","Achilles dome hides the Uranus quad and the cloud sprites")
+check(Art.RestoreSkySprites(api,"achilles") and hidden["URANUS.MAP"]=="uranus.dds" and hidden["uranus.map"]=="uranus.dds" and hidden["acloud2.map"]=="acloud2.tga","RestoreSkySprites gives the stock textures back")
+Art.HideSkySprites(api,"achilles")
+check(hidden["URANUS.MAP"]=="cr06void.dds","HideSkySprites takes them away again")
+check(Art.RestoreSkySprites(api,"titan")==false and Art.RestoreSkySprites(api,"europa")==false,"worlds with no restore list report false")
+-- Uranus lights an Achilles night faintly cyan, and barely by day.
+check(Art.Shine.achilles.day<Art.Shine.achilles.night and Art.Shine.achilles.colour.b>Art.Shine.achilles.colour.r,"Uranus's light is cyan and mostly a night light")
+Art.SetSkySun("achilles",{azimuth=55,elevation=-28})
+local ac=Art.NightLight("achilles")
+check(ac and ac.diffuse.b>ac.diffuse.r and ac.diffuse.b<=Art.Shine.achilles.light*1.05 and near(ac.direction.y,-uranus.y),"misn18's night lights cyan from Uranus")
+Art.SetSkySun("achilles",nil)
 print("World art lighting: "..count.." checks passed")

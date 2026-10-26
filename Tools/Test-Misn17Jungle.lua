@@ -268,4 +268,32 @@ sky.plane=nil
 J.Reset();J.Update(.1,true,send)
 check(sky.plane==nil,"a separate authored sky still keeps ownership")
 J.Stop()
+-- The CR Achilles dome draws the storm itself: no deck, and J.SkyState eases.
+modules.Environment.ArtSkyOwned=true
+modules.Environment.SkyWeatherSource=J
+sky.plane=nil
+J.Reset();J.Update(.1,true,send)
+local lv=J.Describe().level
+check(lv and lv>=2 and J.Describe().clouds=="dome" and sky.plane==nil,"the Achilles dome keeps the storm deck down")
+local st=J.SkyState()
+check(st and math.abs(st.storm-lv/4)<1e-6 and st.bank>0 and st.flash==nil,"the dome starts at the weather's level")
+J.Apply("bolt",12)
+st=J.SkyState()
+check(st.flash and st.flash>.5 and st.flashDir and math.abs(st.flashDir.y-math.sin(math.rad(18)))<1e-6,"a bolt lights the dome toward a shared bearing")
+local dir=st.flashDir
+J.Apply("bolt",12)
+check(J.SkyState().flashDir.x==dir.x and J.SkyState().flashDir.z==dir.z,"the same bolt age strikes in the same place on every peer")
+now=now+1
+check(J.SkyState().flash==nil,"the flash is over in under a second")
+m.missionwon=true;J.Update(1,true,send)
+st=J.SkyState()
+check(J.Describe().level==0 and st.storm<lv/4 and st.storm>lv/4*.8,"clearing eases the dome, not snaps it")
+for _=1,60 do now=now+1;J.Update(1,true,send) end
+st=J.SkyState()
+check(st.storm<.01 and st.bank<.01,"the dome clears in under a minute")
+J.Stop()
+check(J.SkyState()==nil,"a stopped jungle gives the dome no weather")
+m.missionwon=nil
+modules.Environment.SkyWeatherSource=nil
+modules.Environment.ArtSkyOwned=false
 print("misn17 jungle: "..n.." checks passed")

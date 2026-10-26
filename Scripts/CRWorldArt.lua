@@ -16,15 +16,19 @@ local stems={mn="moon",ma="mars",ve="venus",io="io",eu="europa",ti="titan",ga="g
 Art.Skies={mars="CRSKYMA.MAP",venus="CRSKYVE.MAP",titan="CRSKYTI.MAP",achilles="CRSKYAC.MAP",elysium="CRSKYEL.MAP"}
 Art.SkyCalibration={}
 -- Domes drawn by a shader that takes the frame state (CR_marssky,
--- CR_venussky, CR_titansky): the sun, night blend and clarity go into the
--- technique 0 pass colours, and the stock engine cloud sprites are hidden
--- because the dome draws its own clouds. A dome flagged weather (Venus, Titan)
--- also takes the weather's sky state. A dome flagged body draws the world's
--- shining body itself (Saturn over Titan, through the haze), so its TRN quad
--- is hidden and the dome takes the body's direction. Titan's haze is opaque, so
--- its TRN star sprites go too.
+-- CR_venussky, CR_titansky, CR_achillessky): the sun, night blend and clarity
+-- go into the technique 0 pass colours, and the stock engine cloud sprites are
+-- hidden because the dome draws its own clouds. A dome flagged weather (Venus,
+-- Titan, Achilles) also takes the weather's sky state. A dome flagged body
+-- draws the world's shining body itself (Saturn over Titan, through the haze;
+-- Uranus and its rings over Achilles, between the clouds), so its TRN quad is
+-- hidden and the dome takes the body's direction. Titan's haze is opaque, so
+-- its TRN star sprites go too. restore gives each hidden sprite's own texture
+-- back while a mission hides the dome (misn18's storm, Art.RestoreSkySprites).
 Art.SkyFrames={mars={hide={"ACLOUD2.MAP","ACLOUD.MAP"}},venus={hide={},weather=true},
-    titan={hide={"ACLOUD2.MAP","SATURN.MAP","STARS.MAP"},weather=true,body=true}}
+    titan={hide={"ACLOUD2.MAP","SATURN.MAP","STARS.MAP"},weather=true,body=true},
+    achilles={hide={"ACLOUD2.MAP","ACLOUD.MAP","URANUS.MAP"},weather=true,body=true,
+        restore={["ACLOUD2.MAP"]="acloud2.tga",["ACLOUD.MAP"]="acloud.tga",["URANUS.MAP"]="uranus.dds"}}}
 Art.SkyFrameState={}
 -- Airless worlds get the catalog sky box instead of a dome. Its stars and
 -- Milky Way replace the TRN's STARS.MAP sprites and MILKYWAY.MAP quad; the
@@ -150,6 +154,17 @@ function Art.HideSkySprites(api,world)
         hide_sprites(api,spec.hide)
         if spec.sunSprite and Art.SunAnchored[world] then hide_sprites(api,{spec.sunSprite}) end
     end
+end
+-- Gives the stock sprites back while a mission hides the dome that replaced
+-- them; HideSkySprites takes them away again. False when the world names no
+-- textures to restore.
+function Art.RestoreSkySprites(api,world)
+    local spec=Art.SkyFrames[world]
+    if not spec or not spec.restore or not api or type(api.SetMaterialTexture)~="function" then return false end
+    for name,texture in pairs(spec.restore) do
+        for _,material in ipairs({name,name:lower()}) do pcall(api.SetMaterialTexture,material,texture) end
+    end
+    return true
 end
 local function unit(v) return math.max(0,math.min(1,tonumber(v) or 0)) end
 -- Io keeps one face to Jupiter, so Jupiter hangs still in its sky while the
@@ -351,10 +366,14 @@ end
 -- local midnight. By day the haze hides its light entirely; at night it is
 -- the haze-reddened light that casts the shadows (Environment's night mode),
 -- and the haze scatters a good share of it round as ambient.
+-- Achilles' is Uranus, 25 degrees across in the TRN, so close that its pale
+-- cyan light tints the day a little and the night a good deal. The real Uranus
+-- gets a 360th of the Earth's sunlight; this one is lit for the screen.
 Art.Shine={moon={texture="crearth.map",colour={r=0.62,g=0.74,b=1.00},day=0.10,night=0.30,light=0.45,bounce=0.08},
     io={texture="crjovian.map",colour={r=1.00,g=0.80,b=0.58},day=0.05,night=0.07,light=0.36},
     europa={texture="crjovian.map",colour={r=1.00,g=0.82,b=0.62},day=0.03,night=0.05,light=0.22},
-    titan={texture="saturn.map",colour={r=1.00,g=0.70,b=0.40},day=0.0,night=0.06,light=0.26,bounce=0.10}}
+    titan={texture="saturn.map",colour={r=1.00,g=0.70,b=0.40},day=0.0,night=0.06,light=0.26,bounce=0.10},
+    achilles={texture="uranus.map",colour={r=0.62,g=0.86,b=1.00},day=0.04,night=0.22,light=0.24,bounce=0.07}}
 Art.ShineSource={}
 function Art.DetectShine(trn,world)
     Art.ShineSource[world or ""]=nil

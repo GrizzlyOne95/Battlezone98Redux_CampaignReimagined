@@ -405,7 +405,7 @@ function F.makePeer(id, team, network, options)
         CRFuryRoster = assert(loadfile("Scripts/CRFuryRoster.lua"))(),
         CRDrop18 = (not options.noDrop) and assert(loadfile("Scripts/CRDrop18.lua"))() or nil,
         CRWire = assert(loadfile("Scripts/CRWire.lua"))(),
-        Environment = {Init=function() record("EnvironmentInit") end,
+        Environment = {Init=function(o) record("EnvironmentInit", o) end,
             BindWeatherSensors=function(name) record("WeatherSensors",name) end,
             Update=noop,OnObjectCreated=noop,InvalidateRenderer=noop},
         PersistentConfig = {Initialize=function() record("PdaInitialize") end,
