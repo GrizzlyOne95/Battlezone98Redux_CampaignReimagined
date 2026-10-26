@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4224,
+  "count": 4232,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -4044,6 +4044,14 @@
       "runtime": "crpkns2_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crsky_milkyway.png",
+      "runtime": "crsky_milkyway.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_stars.png",
+      "runtime": "crsky_stars.png"
+    },
+    {
       "source": "Assets\\Textures\\crstbd_d.dds",
       "runtime": "crstbd_d.dds"
     },
@@ -7358,6 +7366,10 @@
     {
       "source": "Materials\\cr18_water.material",
       "runtime": "cr18_water.material"
+    },
+    {
+      "source": "Materials\\cr_catalogsky.material",
+      "runtime": "cr_catalogsky.material"
     },
     {
       "source": "Materials\\crart_achilles.material",
@@ -13686,6 +13698,26 @@
     {
       "source": "Shaders\\cr18_water.program",
       "runtime": "cr18_water.program"
+    },
+    {
+      "source": "Shaders\\CR_catalogsky-fragment.glsl",
+      "runtime": "CR_catalogsky-fragment.glsl"
+    },
+    {
+      "source": "Shaders\\CR_catalogsky-sm4.hlsl",
+      "runtime": "CR_catalogsky-sm4.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_catalogsky-vertex.glsl",
+      "runtime": "CR_catalogsky-vertex.glsl"
+    },
+    {
+      "source": "Shaders\\CR_catalogsky.hlsl",
+      "runtime": "CR_catalogsky.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_catalogsky.program",
+      "runtime": "CR_catalogsky.program"
     },
     {
       "source": "Shaders\\crwx_fixedfunc-sm4.hlsl",

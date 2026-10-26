@@ -15,6 +15,30 @@ Art.Worlds = {
 local stems={mn="moon",ma="mars",ve="venus",io="io",eu="europa",ti="titan",ga="ganymede",ac="achilles",el="elysium"}
 Art.Skies={mars="CRSKYMA.MAP",venus="CRSKYVE.MAP",titan="CRSKYTI.MAP",achilles="CRSKYAC.MAP",elysium="CRSKYEL.MAP"}
 Art.SkyCalibration={}
+-- Airless worlds get the catalog sky box instead of a dome. Its stars and
+-- Milky Way replace the TRN's STARS.MAP sprites and MILKYWAY.MAP quad; the
+-- other [Stars] quads (Earth, meteors) still draw over the opaque box.
+Art.StarBoxes={moon={material="CR_Sky/CatalogStars",hide={"STARS.MAP","MILKYWAY.MAP"}}}
+function Art.InstallStarBox(api,world)
+    local box=Art.StarBoxes[world]
+    if not box or not api or type(api.SetSkyBox)~="function" then return false end
+    -- Like the misn06 orbit box: at 0.2x far its corners stay inside the sky cull limit.
+    local far=3000
+    if type(api.GetCameraClipDistances)=="function" then
+        local ok,_,f=pcall(api.GetCameraClipDistances)
+        if ok and tonumber(f) and f>0 then far=f end
+    end
+    local accepted,result=pcall(api.SetSkyBox,box.material,far*0.2,true)
+    if not accepted or result~=true then return false end
+    if type(api.SetMaterialTexture)=="function" then
+        -- Engine sky materials report false to MaterialExists, and their case follows the TRN.
+        for _,name in ipairs(box.hide) do
+            for _,material in ipairs({name,name:lower()}) do pcall(api.SetMaterialTexture,material,"cr06void.dds") end
+        end
+    end
+    print("WorldArt: catalog star box at "..tostring(far*0.2))
+    return true
+end
 function Art.UpdateSky(api,world)
     local material=Art.Skies[world]
     if not material or type(api.GetEffectiveRenderProfile)~="function" or type(api.SetMaterialPassColors)~="function" then return end
@@ -34,6 +58,7 @@ end
 -- film runs, and UpdateSky only writes material parameters (it never toggles
 -- dome enablement), so it cannot fight the film.
 function Art.InstallSky(api,world)
+    if Art.StarBoxes[world] then return Art.InstallStarBox(api,world) end
     local material=Art.Skies[world]
     if not material or not api or type(api.SetSkyDome)~="function" then return false end
     -- Draw behind scene geometry/effects with far-plane depth. Redux
@@ -44,8 +69,10 @@ function Art.InstallSky(api,world)
     return accepted and result==true
 end
 function Art.InitializeSky(api,world)
-    local material=Art.Skies[world]
-    if not material or not api or type(api.SetSkyDome)~="function" or type(api.MaterialExists)~="function" then return false end
+    local box=Art.StarBoxes[world]
+    local material=box and box.material or Art.Skies[world]
+    if not material or not api or type(api.MaterialExists)~="function" then return false end
+    if not box and type(api.SetSkyDome)~="function" then return false end
     -- Respect map-owned cinematics and weather skies. This baseline reuses
     -- the world's original sky art, with a continuous fog-coloured lower edge.
     for _,name in ipairs({"GetSkyDomeEnabled","GetSkyPlaneEnabled","GetSkyBoxEnabled"}) do

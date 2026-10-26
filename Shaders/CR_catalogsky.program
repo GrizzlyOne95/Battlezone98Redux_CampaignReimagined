@@ -1,0 +1,74 @@
+// Catalog sky box (CR_Sky/CatalogStars): stars drawn from a baked star index
+// over an equirectangular Milky Way. See CR_catalogsky-sm4.hlsl and
+// Tools/Build-CatalogSky.py. Delegates precede the unified programs, as in
+// CR_skydome.program.
+
+vertex_program CR_CatalogSky_vertexHLSL4_art_23b141a3cc hlsl
+{
+    source CR_catalogsky-sm4.hlsl
+    target vs_4_0
+    entry_point catalogsky_vertex
+}
+
+vertex_program CR_CatalogSky_vertexHLSL_art_1d8bfe7f04 hlsl
+{
+    source CR_catalogsky.hlsl
+    target vs_3_0
+    entry_point catalogsky_vertex
+}
+
+vertex_program CR_CatalogSky_vertexGLSL_art_67131c2c77 glsl
+{
+    source CR_catalogsky-vertex.glsl
+    syntax glsl120
+}
+
+fragment_program CR_CatalogSky_fragmentHLSL4_art_c091450122 hlsl
+{
+    source CR_catalogsky-sm4.hlsl
+    target ps_4_0
+    entry_point catalogsky_fragment
+}
+
+fragment_program CR_CatalogSky_fragmentHLSL_art_be945ececa hlsl
+{
+    source CR_catalogsky.hlsl
+    target ps_3_0
+    entry_point catalogsky_fragment
+}
+
+fragment_program CR_CatalogSky_fragmentGLSL_art_39d407b3bd glsl
+{
+    source CR_catalogsky-fragment.glsl
+    syntax glsl120
+    default_params
+    {
+        param_named starIndex int 0
+        param_named milkyWay int 1
+    }
+}
+
+vertex_program CR_CatalogSky_vertex unified
+{
+    delegate CR_CatalogSky_vertexGLSL_art_67131c2c77
+    delegate CR_CatalogSky_vertexHLSL4_art_23b141a3cc
+    delegate CR_CatalogSky_vertexHLSL_art_1d8bfe7f04
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+    }
+}
+
+fragment_program CR_CatalogSky_fragment unified
+{
+    delegate CR_CatalogSky_fragmentGLSL_art_39d407b3bd
+    delegate CR_CatalogSky_fragmentHLSL4_art_c091450122
+    delegate CR_CatalogSky_fragmentHLSL_art_be945ececa
+    default_params
+    {
+        param_named skyRotation matrix4x4 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
+        param_named starParams float4 1 0.65 0.02 4
+        param_named starShape float4 0.6 1.5 0 0
+        param_named milkyParams float4 1 1 0 0
+    }
+}

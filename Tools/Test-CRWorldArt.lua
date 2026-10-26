@@ -25,7 +25,16 @@ local api={MaterialExists=function() return true end,
   check(material=="CRSKYMA.MAP" and drawFirst==true,"owned sky draws behind scene geometry and transparent effects")
   draws=draws+1;return true
  end}
-check(not Art.InitializeSky(api,"moon") and draws==0,"airless world keeps stock sky")
+check(not Art.InitializeSky(api,"moon") and draws==0,"airless world without a sky box API keeps stock sky")
+local boxes,hidden={},{}
+api.GetCameraClipDistances=function() return 1,2500 end
+api.SetSkyBox=function(material,distance,drawFirst) boxes[#boxes+1]={material,distance,drawFirst};return true end
+api.SetMaterialTexture=function(material,texture) hidden[material]=texture;return true end
+check(Art.InitializeSky(api,"moon") and draws==0 and #boxes==1,"airless world installs the catalog star box, not a dome")
+check(boxes[1][1]=="CR_Sky/CatalogStars" and boxes[1][2]==500 and boxes[1][3]==true,"star box draws first at 0.2x far")
+check(hidden["STARS.MAP"]=="cr06void.dds" and hidden["milkyway.map"]=="cr06void.dds","star box hides the TRN star sprites and Milky Way quad")
+check(Art.InstallSky(api,"moon") and #boxes==2,"star box can be reinstalled after a cinematic")
+api.SetSkyBox,api.SetMaterialTexture,api.GetCameraClipDistances=nil,nil,nil
 check(Art.InitializeSky(api,"mars") and draws==1,"atmospheric baseline installs")
 check(Art.InitializeSky(api,"mars","misn06.trn") and draws==2,"Mission 6 owns the world dome like other Mars maps")
 check(Art.InstallSky(api,"mars") and draws==3,"orbital film can reinstall the baseline dome")
