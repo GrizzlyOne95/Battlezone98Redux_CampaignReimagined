@@ -1809,6 +1809,17 @@ function Environment.RestoreArtSky()
     if not Environment.ArtSkyOwned then return false end
     return WorldArt.InstallSky(exu,Environment.ArtWorld)
 end
+-- A mission hiding the world-art dome under its own sky (misn18's storm deck)
+-- tells it here, so the stock sprites the dome replaced come back while it is
+-- hidden and go again when it returns. No-op when this map never owned one.
+function Environment.SetArtSkyVisible(visible)
+    if not Environment.ArtSkyOwned then return false end
+    if visible then
+        WorldArt.HideSkySprites(exu,Environment.ArtWorld)
+        return true
+    end
+    return WorldArt.RestoreSkySprites(exu,Environment.ArtWorld)
+end
 
 function Environment.GetFogHorizon()
     local horizon = tonumber(Environment.FogHorizon)

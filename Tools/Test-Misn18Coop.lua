@@ -295,6 +295,9 @@ for _,shape in ipairs({"create","flat"}) do
     w,p,m=setup(3,{storm=recordingStorm(shape)})
     check(phases(p[1])=="opening,search" and phases(p[2])=="" and phases(p[3])=="","opening then search; guests never set phases ("..shape..")")
     check(F.count(p[1],"WeatherSensors","Achilles")>=1,"storm binds the weather sensors")
+    local init=F.last(p[2],"EnvironmentInit")
+    local io=init and init[2] or {}
+    check(io.lightingMode=="night" and io.nightGameplay==false and io.skySun and io.skySun.elevation<0,"every peer opens on a Uranus-lit night with day sensors")
     F.nearTo(p[2].player,"transfound");F.run(2)
     check(F.count(p[1],"StartEarthquake")==1 and F.count(p[3],"StartEarthquake")==1,"a director without Quake leaves the mission's own quake path alone ("..shape..")")
     for _,name in ipairs(THRUSTERS) do F.kill(name);F.run(1) end

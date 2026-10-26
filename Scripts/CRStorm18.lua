@@ -80,6 +80,12 @@ Storm.TUNING = {
     CLOUD_SCALE = 2400,
     CLOUD_TILING = 24,      -- must match plane.xx = 12 in cr18_swirl.program
     FAR_FRACTION = 0.15,
+    -- While the CR Achilles dome takes this director's sky state, the phases up
+    -- to found keep the night sky (Uranus through the gathering cloud) and the
+    -- swirl deck tears in with the first core. DOME_STORM is the level at which
+    -- the dome's cloud has closed and its base glows red.
+    DOME_PHASES = 3,
+    DOME_STORM = 0.47,
 }
 local T = Storm.TUNING
 
@@ -202,7 +208,7 @@ function Storm.Create(api)
     local sky, skyRetry, skyWritten, nextSkyWrite, baseSkyPlane, domeHidden
     local applied, view, nextView, nextWind, nextQuake, nextSkyAnim, nextPush
     local quake, nativeQuake, nextNative, missionQuakes
-    local flashAt, flashPower, strokes, sounds, shown
+    local flashAt, flashPower, flashDir, strokes, sounds, shown
     local boltsSeen, groundMaterial, gctx, burstEnd
 
     -- Guarded engine access ------------------------------------------------------
@@ -315,6 +321,12 @@ function Storm.Create(api)
         call("SetMaterialTextureRotateAnimation", SKY_MATERIAL, lerp(0.0015, 0.006, l), 0, 0, 0, "General")
     end
 
+    -- The CR Achilles dome (CR_achillessky) draws this storm's sky when it owns
+    -- the sky and Environment reads S.SkyState.
+    local function domeSky()
+        return E ~= nil and E.ArtSkyOwned == true and E.SkyWeatherSource == S
+    end
+
     local function setSky(on)
         if type(x.SetSkyPlane) ~= "function" or type(x.SetSkyPlaneEnabled) ~= "function" then
             if on then sky = "unsupported" end
@@ -322,12 +334,16 @@ function Storm.Create(api)
         end
         if not on then
             if sky == "on" then call("SetSkyPlaneEnabled", false); sky = "off" end
-            if domeHidden then call("SetSkyDomeEnabled", true); domeHidden = nil end
+            if domeHidden then
+                call("SetSkyDomeEnabled", true); domeHidden = nil
+                if E and type(E.SetArtSkyVisible) == "function" then pcall(E.SetArtSkyVisible, true) end
+            end
             return
         end
         if sky == "on" or sky == "skipped" or sky == "unsupported" then return end
         if (clock or 0) < (skyRetry or 0) then return end
         if baseSkyPlane then sky = "skipped"; return end
+        if state and state.phase <= T.DOME_PHASES and domeSky() then sky = "dome"; return end
         if call("MaterialExists", SKY_MATERIAL, "General") == false then
             sky, skyRetry = "missing", (clock or 0) + 30
             return
@@ -342,7 +358,11 @@ function Storm.Create(api)
         sky = "on"
         -- The map's pale dome would show in any sliver the deck leaves open at
         -- the horizon; hide it while the deck is up and give it back in Stop.
-        if call("GetSkyDomeEnabled") == true and call("SetSkyDomeEnabled", false) ~= false then domeHidden = true end
+        if call("GetSkyDomeEnabled") == true and call("SetSkyDomeEnabled", false) ~= false then
+            domeHidden = true
+            -- The CR dome had taken the stock cloud and Uranus sprites; give them back.
+            if E and type(E.SetArtSkyVisible) == "function" then pcall(E.SetArtSkyVisible, false) end
+        end
         writeSky(lvl or 0, 0)
         skyAnimation(6 + 40 * (lvl or 0), lvl or 0)
     end
@@ -427,11 +447,20 @@ function Storm.Create(api)
     local function startBolt(n, power, groundStrike, bx, by, bz)
         flashAt, flashPower = clock, 0.5 + 0.5 * clamp(power, 0, 1)
         local l = lvl or 0
+        -- Where the flash lights the dome: over the strike, or for a cloud flash
+        -- a seeded bearing, so every peer lights the same part of the sky.
+        local h = 2 * math.pi * hash(seed(), n, 2, 22)
+        flashDir = { x = sin(h) * 0.95, y = 0.31, z = -cos(h) * 0.95 }
         if groundStrike and (view or (finite(bx) and finite(by) and finite(bz))) then
             local sx, gh, sz = bx, by, bz
             if not (finite(sx) and finite(gh) and finite(sz)) then sx, gh, sz = boltPoint(n, view, l) end
             local d = view and sqrt((sx-view.x)^2+(sz-view.z)^2) or 300
             if gh then
+                if view then
+                    local dx, dz = sx - view.x, sz - view.z
+                    local d2 = sqrt(dx * dx + dz * dz)
+                    if d2 > 1 then flashDir = { x = dx / d2 * 0.95, y = 0.31, z = -dz / d2 * 0.95 } end
+                end
                 local c = { 1.0, 0.80, 0.52 }
                 local drawn = false
                 if GroundFX then
@@ -860,6 +889,19 @@ function Storm.Create(api)
     function S.GetSeverity()
         if not state then return 0 end
         return profile(state.phase).level
+    end
+
+    -- The CR Achilles dome's weather while it draws the early storm (Environment
+    -- reads it through BindWeatherSensors): the cloud gathers and closes with
+    -- the level, a dust murk dims Uranus, and the lightning lights the cloud.
+    -- Nil once the swirl deck has the sky.
+    function S.SkyState()
+        if not S.Initialized or S.Enabled == false or sky ~= "dome" then return nil end
+        local l = lvl or 0
+        local w = { storm = clamp(l / T.DOME_STORM, 0, 1), bank = 0.5 * l }
+        local fl = flashLevel()
+        if fl > 0.01 and flashDir then w.flash, w.flashDir = min(1, fl), flashDir end
+        return w
     end
 
     function S.Save()

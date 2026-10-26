@@ -27,7 +27,7 @@ MaterialName	= ac_detail_atlas
 MusicTrack=5
 
 [Sky]
-SunTexture= sun.0
+SunTexture=
 SkyType= 0
 SkyHeight = 3000
 SkyTexture= achilles.map
