@@ -1,0 +1,62 @@
+// The Earth over the Moon maps, lit from the TRN sun with its true phase.
+// Missions/crsetup.trn, misn02b.trn and misn03.trn name it in [Stars];
+// Scripts/CRWorldArt.lua writes sunDirection when it installs the star box.
+// Technique 1 is the stock EARTH.MAP look for OpenGL. Sources and credits:
+// Docs/SKY_ART_CREDITS.md.
+material CREARTH.MAP
+{
+	technique 0
+	{
+		pass 0
+		{
+			vertex_program_ref CR_Earth_vertex
+			{
+			}
+			fragment_program_ref CR_Earth_fragment
+			{
+			}
+			cull_hardware none
+			cull_software none
+			lighting off
+			fog_override true none
+			scene_blend alpha_blend
+			depth_write off
+			texture_unit 0
+			{
+				texture crsky_earth.png
+				tex_address_mode wrap clamp
+				filtering trilinear
+			}
+			texture_unit 1
+			{
+				texture crsky_earth_night.png
+				tex_address_mode wrap clamp
+				filtering trilinear
+			}
+		}
+	}
+	technique 1
+	{
+		pass 0
+		{
+			vertex_program_ref Sky_vertex
+			{
+			}
+			fragment_program_ref Sky_fragment
+			{
+			}
+			cull_hardware none
+			cull_software none
+			lighting off
+			fog_override true none
+			scene_blend src_alpha one
+			depth_write off
+			diffuse vertexcolour
+			texture_unit
+			{
+				tex_address_mode clamp
+				texture earth.dds
+			}
+		}
+	}
+}

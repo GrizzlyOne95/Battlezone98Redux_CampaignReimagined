@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4236,
+  "count": 4241,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -4044,6 +4044,14 @@
       "runtime": "crpkns2_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crsky_earth.png",
+      "runtime": "crsky_earth.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_earth_night.png",
+      "runtime": "crsky_earth_night.png"
+    },
+    {
       "source": "Assets\\Textures\\crsky_mars_clouds.png",
       "runtime": "crsky_mars_clouds.png"
     },
@@ -7378,6 +7386,10 @@
     {
       "source": "Materials\\cr_catalogsky.material",
       "runtime": "cr_catalogsky.material"
+    },
+    {
+      "source": "Materials\\cr_earth.material",
+      "runtime": "cr_earth.material"
     },
     {
       "source": "Materials\\crart_achilles.material",
@@ -13726,6 +13738,14 @@
     {
       "source": "Shaders\\CR_catalogsky.program",
       "runtime": "CR_catalogsky.program"
+    },
+    {
+      "source": "Shaders\\CR_earth.hlsl",
+      "runtime": "CR_earth.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_earth.program",
+      "runtime": "CR_earth.program"
     },
     {
       "source": "Shaders\\CR_marssky.hlsl",

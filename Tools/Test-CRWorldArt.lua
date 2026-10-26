@@ -43,20 +43,30 @@ api.SetMaterialShaderVector=function(material,name,x,y,z,w)
  vectors[#vectors+1]={material,name,x,y,z,w,#boxes}
  return material:match("^SceneManagerInstance2SkyBoxPlane%d$") and 1 or 0
 end
-check(Art.InstallSky(api,"moon") and #vectors==7,"star box anchors its sun on each face")
+check(Art.InstallSky(api,"moon") and #vectors==9,"star box anchors its sun on each face and the Earth")
 for i=1,#vectors do local v=vectors[i];if v[6]==1 and v[1]:match("^SceneManagerInstance2") then faces[v[1]]=v end end
 local v=faces["SceneManagerInstance2SkyBoxPlane5"]
 check(next(faces)~=nil and v and v[2]=="sunDirection" and v[7]==3,"faces are written after the box clones them")
 check(math.abs(v[3])<1e-9 and math.abs(v[4]-0.6)<1e-9 and math.abs(v[5]+0.8)<1e-9,"sun points back along the light, normalized")
 check(vectors[1][1]=="SceneManagerInstance1SkyBoxPlane0","the usual scene manager is tried first")
 check(hidden["crsun"]=="cr06void.dds","an anchored sun hides the engine sun sprite")
+local earth={}
+for i=1,#vectors do local v=vectors[i];if v[1]:upper()=="CREARTH.MAP" then earth[v[1]]=v end end
+check(earth["CREARTH.MAP"] and earth["crearth.map"],"the Earth is lit under both material cases")
+check(earth["crearth.map"][2]=="sunDirection" and math.abs(earth["crearth.map"][4]-0.6)<1e-9 and earth["crearth.map"][6]==1,"the Earth takes the box's sun")
+vectors={}
+local faceless=api.SetMaterialShaderVector
+api.SetMaterialShaderVector=function(material,...) vectors[#vectors+1]=material;return 0 end
+Art.InstallSky(api,"moon")
+check(vectors[#vectors]=="crearth.map","the Earth is lit even when the box faces are not found")
+api.SetMaterialShaderVector=faceless
 hidden={}
 api.SetMaterialShaderVector=function() return 0 end
 check(Art.InstallSky(api,"moon") and hidden["crsun"]==nil and hidden["STARS.MAP"],"unfound faces keep the engine sun")
 api.GetSunDirection=function() return {x=0,y=0,z=0} end
 check(Art.InstallSky(api,"moon") and hidden["crsun"]==nil,"a zero light keeps the engine sun")
 api.GetSunDirection=function() error("no light") end
-check(Art.InstallSky(api,"moon") and #boxes==6,"a failing light read still installs the box")
+check(Art.InstallSky(api,"moon") and #boxes==7,"a failing light read still installs the box")
 api.SetSkyBox,api.SetMaterialTexture,api.GetCameraClipDistances,api.GetSunDirection,api.SetMaterialShaderVector=nil,nil,nil,nil,nil
 -- Only the sun row moves to crsun; the lens flare rings keep sprite_a.
 local st=assert(io.open(scripts.."/../Config/spritea.st","rb")):read("*a")

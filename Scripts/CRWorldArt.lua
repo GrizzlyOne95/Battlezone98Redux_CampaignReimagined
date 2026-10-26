@@ -27,7 +27,9 @@ Art.SkyFrameState={}
 -- sprite at its own material, crsun, which is hidden once the box's sun is
 -- anchored. The sprite still rasterizes, so the lens flare's occlusion test
 -- keeps working.
-Art.StarBoxes={moon={material="CR_Sky/CatalogStars",hide={"STARS.MAP","MILKYWAY.MAP"},sunSprite="crsun"}}
+-- The TRN's Earth quad uses CREARTH.MAP, a sphere lit from sunDirection, so
+-- the box's sun also gives the Earth its phase.
+Art.StarBoxes={moon={material="CR_Sky/CatalogStars",hide={"STARS.MAP","MILKYWAY.MAP"},sunSprite="crsun",earth="CREARTH.MAP"}}
 Art.SunAnchored={}
 -- The box turns the star sphere so the sun sits at the March equinox, which
 -- keeps the Milky Way at least 60 degrees from it. The engine's sun sprite
@@ -74,6 +76,10 @@ function Art.InstallStarBox(api,world)
     if not accepted or result~=true then return false end
     local sun=sun_vector(api)
     Art.SunAnchored[world]=sun~=nil and anchor_box_faces(api,sun)
+    if sun and box.earth then
+        -- Engine sky materials take the TRN's case.
+        for _,material in ipairs({box.earth,box.earth:lower()}) do write_sun(api,material,sun) end
+    end
     if sun and not Art.SunAnchored[world] then print("WorldArt: star box faces not found; the stock sun stays") end
     Art.HideSkySprites(api,world)
     print("WorldArt: catalog star box at "..tostring(far*0.2))
