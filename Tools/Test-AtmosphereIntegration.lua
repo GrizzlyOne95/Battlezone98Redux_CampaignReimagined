@@ -88,6 +88,35 @@ w.E.Init({lightingMode='night',nativeBaseline=true,nightGameplay=false})
 w.E.Update(0)
 check(w.E.NightBlend==1 and w.SetSunDiffuse[3]<0.2,'night mode without a shining body falls back to the stock night')
 
+-- Titan night (misn15): Saturn lights the scene through the haze, while the
+-- dome takes the real sun below the horizon and the director's haze and roll.
+w=world('titan.act',250)
+w.trn.Atlases={MaterialName='ti_detail_atlas'}
+w.trn.Stars={Texture00='saturn.map',Azimuth00='180',Elevation00='15'}
+local dome,exu={},w.e.require('exu')
+exu.MaterialExists=function() return true end
+for _,name in ipairs({'GetSkyDomeEnabled','GetSkyPlaneEnabled','GetSkyBoxEnabled'}) do exu[name]=function() return false end end
+exu.SetSkyDome=function(material) dome.material=material; return true end
+exu.SetMaterialTexture=function() return true end
+exu.GetEffectiveRenderProfile=function() return 'enhanced' end
+exu.SetMaterialPassColors=function(material,colours) dome[material]=colours; return true end
+w.E.Init({lightingMode='night',nativeBaseline=true,nightGameplay=false,skySun={azimuth=20,elevation=-25}})
+local director={Initialized=true,Enabled=true,GetSeverity=function() return 0.3 end,
+    SkyState=function() return {storm=0.3,bank=0.6} end}
+w.E.BindWeatherSensors('Titan',director)
+w.E.Update(0)
+local saturn={y=math.sin(math.rad(15)),z=math.cos(math.rad(15))}
+local sky=dome['CRSKYTI.MAP']
+check(dome.material=='CRSKYTI.MAP' and sky,'Titan installs and feeds its own dome')
+check(near(w.SetOgreSunDirection[2],-saturn.y) and near(w.SetOgreSunDirection[3],-saturn.z),'the night light falls from Saturn')
+check(w.SetSunDiffuse[1]>w.SetSunDiffuse[3],'Saturn-light is warm')
+check(near(sky.specular.b,math.sin(math.rad(-25))) and sky.specular.r==1,'the dome takes the real sun below the horizon, not Saturn-light')
+check(near(sky.emissive.r,1) and near(sky.emissive.b,0.3) and near(sky.emissive.a,0.6),'the dome takes the haze and roll from the director')
+check(near(sky.ambient.y or sky.ambient.g,saturn.y) and near(sky.ambient.b,saturn.z) and sky.ambient.a==1,'the dome takes Saturn from its TRN entry')
+director.SkyState=function() return nil end
+w.time=10; w.E.Update(1)
+check(dome['CRSKYTI.MAP'].emissive.a==0,'a director with no sky state gives a calm haze')
+
 -- Io: the sun's real path past a fixed Jupiter. One day runs through a short
 -- eclipse, day, a horizon-sharp dusk and a Jupiter-lit night.
 w=world('io.act',250)

@@ -14,7 +14,7 @@ MaterialName	= ti_detail_atlas
 
 
 [Sky]
-SunTexture= sun.0
+SunTexture=
 SkyType= 0
 SkyHeight = 110
 SkyTexture= titan.map

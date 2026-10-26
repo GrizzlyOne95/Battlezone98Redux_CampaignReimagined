@@ -118,8 +118,8 @@ Art.UpdateSky(api,"mars",{sun=sun,night=.5,clarity=2})
 check(#frames==2 and frames[2].colours.emissive.r==.5 and frames[2].colours.emissive.g==1,"night moves rewrite, clarity clamps")
 profile="enhanced";Art.UpdateSky(api,"mars",{sun=sun,night=.5,clarity=1})
 check(#frames==3 and frames[3].colours.specular.r==1 and frames[3].colours.specular.b==sun.y,"profile change keeps the sun direction")
-Art.UpdateSky(api,"titan",{sun=sun,night=0,clarity=1})
-check(frames[#frames].name=="CRSKYTI.MAP" and frames[#frames].colours.specular.g==0,"other domes keep the plain calibration")
+Art.UpdateSky(api,"achilles",{sun=sun,night=0,clarity=1})
+check(frames[#frames].name=="CRSKYAC.MAP" and frames[#frames].colours.specular.g==0,"other domes keep the plain calibration")
 check(frames[3].colours.emissive.a==0 and frames[3].colours.diffuse.a==0,"Mars carries no fog bank or flash")
 -- Venus: the weather's storm gloom, fog bank and lightning ride with the frame.
 local n=#frames
@@ -277,4 +277,34 @@ local euApi={SetSkyBox=function(material) eu.box=material;return true end,
 Art.SkySun.europa=Art.OrbitSun("europa",-0.7)
 check(Art.InstallStarBox(euApi,"europa") and eu.box=="CR_Sky/EuropaStars","Europa installs its own star box")
 check(eu.vectors["crio.map:bodyPole"] and eu.vectors["CRJOVIAN.MAP:sunDirection"],"Io and Jupiter take Europa's sun and pole")
+-- Titan: the haze ladder and roll take the weather slots, and the dome draws
+-- Saturn itself, so it takes Saturn's TRN direction and hides the quad.
+stars={Texture00="SATURN.MAP",Azimuth00="180",Elevation00="15"}
+local saturn=Art.DetectShine({},"titan")
+check(saturn and near(saturn.x,0) and near(saturn.y,math.sin(math.rad(15))) and near(saturn.z,math.cos(math.rad(15))),"Saturn at heading 180 stands at render +z")
+frames={}
+Art.UpdateSky(api,"titan",{sun=sun,night=0,clarity=.8,weather={storm=.4,bank=.7}})
+last=frames[#frames]
+check(#frames==1 and last.name=="CRSKYTI.MAP" and last.colours.specular.g==sun.x,"Titan dome takes the frame state")
+check(last.colours.emissive.g==.8 and last.colours.emissive.b==.4 and last.colours.emissive.a==.7,"emissive carries the haze and the roll")
+check(last.colours.ambient and near(last.colours.ambient.b,saturn.z) and last.colours.ambient.a==1,"ambient carries Saturn's direction")
+Art.UpdateSky(api,"titan",{sun=sun,night=0,clarity=.8,weather={storm=.4,bank=.7}})
+check(#frames==1,"an unchanged Titan frame is not rewritten")
+Art.UpdateSky(api,"mars",{sun=sun,night=.2,clarity=1})
+check(frames[#frames].colours.ambient==nil,"domes without a body leave ambient alone")
+stars={}
+Art.DetectShine({},"titan");Art.SkyFrameState["CRSKYTI.MAP"]=nil
+Art.UpdateSky(api,"titan",{sun=sun,night=0,clarity=.8})
+check(frames[#frames].colours.ambient.a==0,"a map without Saturn draws none")
+hidden={}
+api.SetSkyDome=function(material) return material=="CRSKYTI.MAP" end
+check(Art.InstallSky(api,"titan") and hidden["SATURN.MAP"]=="cr06void.dds" and hidden["acloud2.map"]=="cr06void.dds" and hidden["STARS.MAP"]=="cr06void.dds","Titan dome hides the Saturn quad, the cloud sprites and the stars")
+-- Saturn lights a Titan night: none by day, nearly full opposite the sun.
+check(Art.Shine.titan.day==0,"the day haze hides Saturn's light")
+stars={Texture00="saturn.map",Azimuth00="180",Elevation00="15"}
+Art.DetectShine({},"titan")
+Art.SetSkySun("titan",{azimuth=20,elevation=-25})
+local ti=Art.NightLight("titan")
+check(ti and ti.diffuse.r>Art.Shine.titan.light*0.95 and ti.diffuse.r>ti.diffuse.b and near(ti.direction.z,-saturn.z),"misn15's night sun leaves Saturn nearly full, lighting warm from Saturn")
+Art.SetSkySun("titan",nil)
 print("World art lighting: "..count.." checks passed")

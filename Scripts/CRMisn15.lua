@@ -111,7 +111,11 @@ do
 end
 local function TitanHook(event, ...)
     if event=="init" then
-        Environment.Init({nativeBaseline=true})
+        -- Titan night: the sun is below the horizon opposite Saturn, which is
+        -- nearly full and lights the base through the haze. Visual only;
+        -- sensors keep their day ranges.
+        Environment.Init({lightingMode="night",nativeBaseline=true,nightGameplay=false,
+            skySun={azimuth=20,elevation=-25}})
         Environment.BindWeatherSensors("Titan",TitanSensorDirector)
     end
     if not TitanWeather then return nil end

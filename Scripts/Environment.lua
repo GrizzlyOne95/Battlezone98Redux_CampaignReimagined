@@ -1154,10 +1154,14 @@ end
 -- Mission policy over the visual-only directors. Keep sensor writes here, not
 -- in particles/directors. Existing Mars/Venus tuned modifiers use this same
 -- gameplay composition path and must not also bind a second weather modifier.
+-- A director with SkyState() (CRTitanWeather) also feeds the sky dome its
+-- weather state, which a director without an Environment modifier cannot
+-- leave in frame.sky.
 function Environment.BindWeatherSensors(name, director)
     local key = "WeatherSensors:" .. tostring(name)
     if type(director) ~= "table" then return false end
     Environment.WeatherSensorsBound = true
+    if type(director.SkyState) == "function" then Environment.SkyWeatherSource = director end
     Environment.NextWeatherSensorRefresh = 0.0
     return Environment.RegisterGameplayModifier(key, function(frame)
         local amount = 0.0
@@ -1365,6 +1369,7 @@ function Environment.Init(options)
     end
 
     Environment.ArtWorld = WorldArt.Detect(trn)
+    Environment.SkyWeatherSource = nil
     WorldArt.DetectShine(trn, Environment.ArtWorld)
     -- options.skySun = {azimuth=, elevation=} in degrees: where the real sun is,
     -- for the sky. Night mode wants it below the horizon.
@@ -1498,6 +1503,7 @@ function Environment.Update(timestep)
     -- -------------------------------------------------------------------------
     -- A modifier may also leave the sky dome's weather state in frame.sky
     -- (CRVenusWeather: storm gloom, fog bank, lightning); see WorldArt.UpdateSky.
+    -- Otherwise a bound sensor director may give it (CRTitanWeather: haze, roll).
     local skyWeather = nil
     if #Environment.ModifierOrder > 0 then
         local frame = RunEnvironmentModifiers({
@@ -1521,6 +1527,11 @@ function Environment.Update(timestep)
         sunState.powerScale = math.max(0.0, tonumber(frame.sunPowerScale) or sunState.powerScale)
         skyWeather = frame.sky
     end
+    local skySource = Environment.SkyWeatherSource
+    if skyWeather == nil and skySource then
+        local ok, sky = pcall(skySource.SkyState)
+        if ok and type(sky) == "table" then skyWeather = sky end
+    end
 
     -- Weather owns its fog/light targets; subtle TOD remains visible even at
     -- full weather weight. No second fog, sky, cloud or gameplay-night layer.
@@ -1538,14 +1549,15 @@ function Environment.Update(timestep)
         bodyLight=Environment.LightingMode == "night" and Environment.NightBodyLight or nil})
     targetAmbient,targetDiffuse,targetSpecular = artFrame.ambient,artFrame.diffuse,artFrame.specular
     if Environment.ArtSkyOwned then
-        -- Domes that take the frame (Mars, Venus) get the sun, the night blend,
-        -- how much of the clear-day visibility the weather has left and the
-        -- weather's own sky state.
+        -- Domes that take the frame (Mars, Venus, Titan) get the sun, the night
+        -- blend, how much of the clear-day visibility the weather has left and
+        -- the weather's own sky state. At night the scene light is the shining
+        -- body's, so the dome takes the real sun from skySun when there is one.
         local base = ClampFogToHorizon(Environment.LastBaseFog)
         local clarity = base.fogEnd > 0.0 and Clamp01(targetFog.fogEnd / base.fogEnd) or 1.0
         local d = sunState.direction
         WorldArt.UpdateSky(exu, Environment.ArtWorld, {
-            sun = { x = -d.x, y = -d.y, z = -d.z },
+            sun = skySun or { x = -d.x, y = -d.y, z = -d.z },
             night = state.nightBlend,
             clarity = clarity,
             weather = skyWeather,

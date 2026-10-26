@@ -1,0 +1,78 @@
+// Titan sky dome (CRSKYTI.MAP): the orange haze, a soft sun glow, haze bands,
+// banks and rolls, and Saturn with its rings faint through the haze. See
+// CR_titansky.hlsl. DX11 and DX9 only: on OpenGL the unified programs have no
+// supported delegate, so Materials/crart_titan.material falls through to its
+// CR_SkyDome technique.
+// Tools/Update-WorldSkyProgramVersions.py versions the delegate names.
+
+vertex_program CR_TitanSky_vertexHLSL4_art_3f40b2b468 hlsl
+{
+    source CR_titansky.hlsl
+    target vs_4_0
+    entry_point titansky_vertex
+    preprocessor_defines SM4=1
+}
+
+vertex_program CR_TitanSky_vertexHLSL_art_75555f220d hlsl
+{
+    source CR_titansky.hlsl
+    target vs_3_0
+    entry_point titansky_vertex
+}
+
+fragment_program CR_TitanSky_fragmentHLSL4_art_2b27e2153b hlsl
+{
+    source CR_titansky.hlsl
+    target ps_4_0
+    entry_point titansky_fragment
+    preprocessor_defines SM4=1
+}
+
+fragment_program CR_TitanSky_fragmentHLSL_art_12a4976cb1 hlsl
+{
+    source CR_titansky.hlsl
+    target ps_3_0
+    entry_point titansky_fragment
+}
+
+vertex_program CR_TitanSky_vertex unified
+{
+    delegate CR_TitanSky_vertexHLSL4_art_3f40b2b468
+    delegate CR_TitanSky_vertexHLSL_art_75555f220d
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto inverseProjection inverse_projection_matrix
+        param_named_auto inverseView inverse_view_matrix
+    }
+}
+
+// The haze drifts with time_0_x; its 7200 s wrap makes one jump every two
+// hours of play.
+fragment_program CR_TitanSky_fragment unified
+{
+    delegate CR_TitanSky_fragmentHLSL4_art_2b27e2153b
+    delegate CR_TitanSky_fragmentHLSL_art_12a4976cb1
+    default_params
+    {
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto skyProfile surface_specular_colour
+        param_named_auto titanState surface_emissive_colour
+        param_named_auto saturnDir surface_ambient_colour
+        param_named_auto skyTime time_0_x 7200
+        param_named horizonBlend float4 .02 .35 1 0
+        param_named fogAmbient float4 .35 .16 0 0
+        param_named zenithTint float4 0.80 0.66 0.55 0.9
+        param_named sunGlow float4 1.2 0.45 10 3
+        param_named hazeScale float4 0.06 0.16 0.0006 0.12
+        param_named hazeLook float4 0.22 0.28 0.35 0.8
+        param_named rollLook float4 0.7 0.95 0 0
+        param_named saturnShape float4 20.28 0.902 0.12 0
+        param_named saturnLook float4 0.9 0.6 0.12 0.85
+        param_named ringLook float4 1.0 0.6 0.7 0.85
+        param_named saturnGlow float4 0.25 40 0.04 0
+        param_named hazeTint float4 1.0 0.70 0.38 0
+    }
+}

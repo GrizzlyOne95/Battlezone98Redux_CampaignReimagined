@@ -669,6 +669,19 @@ do
     check(host.Ti.Roll(30, 0.9) == true, "the host can roll on cue")
     check(host.Ti.GetStats().rolls == hostRolls + 1, "a scripted roll counts")
     check(guest.Ti.IsRolling(), "the scripted roll reached the guest")
+
+    -- The sky dome sees the same haze and roll on every peer.
+    for _ = 1, 20 do host.step(0.5); guest.step(0.5) end
+    local hs, gs = host.Ti.SkyState(), guest.Ti.SkyState()
+    check(type(hs) == "table" and hs.storm == host.Ti.GetSeverity() and hs.bank == host.Ti.GetRollIntensity(),
+        "SkyState is the haze ladder and the roll envelope")
+    check(hs.bank > 0, "a rolling haze reaches the sky")
+    -- The guest's roll starts when the event lands, so only the ladder is compared.
+    check(math.abs(gs.storm - hs.storm) < 0.05 and gs.bank > 0, "guest and host skies agree")
+    local enabled = guest.Ti.Enabled
+    guest.Ti.Enabled = false
+    check(guest.Ti.SkyState() == nil, "a disabled director leaves the sky alone")
+    guest.Ti.Enabled = enabled
 end
 
 -- =============================================================================

@@ -62,6 +62,24 @@ Gaia DR2: ESA/Gaia/DPAC.
   `Scripts/CRWorldArt.lua` feeds it the sun, night blend, clarity and `CRVenusWeather`'s sky
   state. OpenGL keeps the stock `venus.tga` dome (technique 1).
 
+## Titan sky and Saturn (CRSKYTI.MAP)
+
+- `Assets/Textures/crsky_titan_haze.png`, `crsky_saturn.png` and `crsky_saturn_rings.png` are original,
+  procedural art from `Tools/Build-TitanSky.py`. Nothing is downloaded and there is no third-party source.
+  - Haze: seeded spectral noise. R holds broad zonal bands, G billowing banks and B rare methane
+    streaks. It tiles exactly.
+  - Saturn: a latitude table of zones and belts, modelled on the Cassini-era true-colour views,
+    with fine banding, longitude turbulence and the north polar hexagon at 78 N.
+  - Rings: a radial profile built from the published edges of the D, C, B and A rings, the Cassini
+    Division, the Encke and Keeler gaps, the Huygens ringlet and the F ring, with seeded ringlet noise.
+- `Shaders/CR_titansky.hlsl` draws the haze dome and, through it, Saturn:
+  - an oblate globe, true to size from Titan;
+  - lit by the sun with limb darkening;
+  - the rings' shadow on the globe and the globe's shadow on the rings;
+  - the rings lit face or backlit through.
+  It fades with `CRTitanWeather`'s haze and rolls. The ring opening is exaggerated for readability
+  (see `Docs/TITAN_WEATHER.md`). OpenGL keeps the stock `titan.tga` dome (technique 1).
+
 ## Earth over the Moon (CREARTH.MAP)
 
 Imagery: NASA Earth Observatory. NASA imagery is generally not copyrighted (public domain);
