@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fix the crash when loading a save of a CR mission (misn02b first reported): `aiCore.Load` no longer rebuilds its
+  object cache inside the mission `Load()` callback, where units still hold load placeholders instead of AI
+  processes; the rebuild runs on the first `Update()` after the load. Bundle OpenShim 1.0.0.62, whose Lua
+  `GetIndependence` returns 0 instead of faulting for an object whose AI process is not yet attached.
 - Bundle OpenShim 1.0.0.61: authored muzzle flashes and mesh recoil are on by default (existing installs at the old
   shipped off migrate to on; a later choice is kept), so CR's weapon flashes and craft recoil show without a settings
   change; Shell Casings gains a Settings > Video row and stays off by default.
