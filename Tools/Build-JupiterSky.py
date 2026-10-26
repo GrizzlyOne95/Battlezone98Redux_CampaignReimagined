@@ -1,12 +1,14 @@
-"""Bake the textures for Io's sky: Jupiter (CRJOVIAN.MAP) and the other
-Galilean moons (CREUROPA.MAP, CRGANYME.MAP, CRCALLIS.MAP).
+"""Bake the textures for the Jovian skies: Jupiter (CRJOVIAN.MAP) and the
+Galilean moons (CRIO.MAP, CREUROPA.MAP, CRGANYME.MAP, CRCALLIS.MAP), seen from
+Io (misn10, misn11) and Europa (misn12, misn13).
 
 Shaders/CR_jovian.hlsl draws each body as a sphere lit by the TRN sun, so it
 needs the surface unlit, in plate carree (north up, the map's own longitude
 origin at the left edge). The shader turns the sphere about its pole, so where
 longitude 0 sits only changes which face is towards Io at the start.
 
-  crsky_jupiter.png   RGB Jupiter's cloud tops
+  crsky_jupiter.png   RGB Jupiter's cloud tops (only with --map)
+  crsky_io.png        RGB Io          (only with --io)
   crsky_europa.png    RGB Europa      (only with --europa)
   crsky_ganymede.png  RGB Ganymede    (only with --ganymede)
   crsky_callisto.png  RGB Callisto    (only with --callisto)
@@ -15,6 +17,8 @@ Sources (not stored in the repository):
   --map       PIA07782, Cassini's Best Maps of Jupiter (Cylindrical Map),
               NASA/JPL/Space Science Institute
               (photojournal.jpl.nasa.gov/catalog/PIA07782)
+  --io        Io Galileo SSI / Voyager Color Merged Global Mosaic 1km,
+              1024 px preview (full.jpg)
   --europa    Europa Voyager/Galileo SSI Global Mosaic 500m, 1024 px preview
   --ganymede  Ganymede Voyager-Galileo SSI Color Global Mosaic 1.4km, 1024 px
   --callisto  Callisto Galileo/Voyager Global Mosaic 1km, 1024 px preview
@@ -23,8 +27,10 @@ Sources (not stored in the repository):
 
 Europa and Callisto have no public-domain colour mosaic, so their greyscale
 maps are tinted: Europa's ice white with its rust-brown lineae and terrain,
-Callisto a dusky grey-brown with bright crater ice. Each map's no-data areas
-(black) are filled with the mean of the valid pixels in the same row.
+Callisto a dusky grey-brown with bright crater ice. Io's colour merge is false colour from
+violet, green and near-infrared filters, much stronger than the eye sees, so
+it is desaturated toward Io's real pale yellow and orange. Each map's no-data
+areas (black) are filled with the mean of the valid pixels in the same row.
 """
 import argparse
 from pathlib import Path
@@ -42,6 +48,10 @@ MOON_WIDTH = 512
 MOON_TINTS = {
     "europa": ((1.10, 0.90, 0.74), (1.0, 0.99, 0.96)),
     "callisto": ((1.10, 0.96, 0.80), (1.0, 1.0, 1.0)),
+}
+# Colour mosaics graded toward what the eye sees: (gain, saturation).
+MOON_GRADES = {
+    "io": ((1.12, 0.98, 0.74), 0.85),
 }
 NO_DATA = 6.0
 
@@ -81,7 +91,8 @@ def save(rgb, name, out):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--map", type=Path, required=True)
+    parser.add_argument("--map", type=Path)
+    parser.add_argument("--io", type=Path)
     parser.add_argument("--europa", type=Path)
     parser.add_argument("--ganymede", type=Path)
     parser.add_argument("--callisto", type=Path)
@@ -90,14 +101,17 @@ def main():
     args = parser.parse_args()
     Image.MAX_IMAGE_PIXELS = None
 
-    jupiter = load(args.map, (args.width, args.width // 2))
-    save(grade(jupiter, JUPITER_GAIN, JUPITER_SATURATION), "crsky_jupiter.png", args.out)
-    for name in ("europa", "ganymede", "callisto"):
+    if args.map:
+        jupiter = load(args.map, (args.width, args.width // 2))
+        save(grade(jupiter, JUPITER_GAIN, JUPITER_SATURATION), "crsky_jupiter.png", args.out)
+    for name in ("io", "europa", "ganymede", "callisto"):
         path = getattr(args, name)
         if path:
             moon = fill_no_data(load(path, (MOON_WIDTH, MOON_WIDTH // 2)))
             if name in MOON_TINTS:
                 moon = tint(moon, *MOON_TINTS[name])
+            if name in MOON_GRADES:
+                moon = grade(moon, *MOON_GRADES[name])
             save(moon, "crsky_%s.png" % name, args.out)
 
 

@@ -84,3 +84,10 @@ material CR_Sky/IoStars
 		}
 	}
 }
+
+// Europa's sky (misn12, misn13): Io's sky one moon further out, the same Sun
+// from 5.2 AU over a black sky. Its own name so CRWorldArt.lua can write
+// Europa's orbit pole and sun into it without touching Io's.
+material CR_Sky/EuropaStars : CR_Sky/IoStars
+{
+}

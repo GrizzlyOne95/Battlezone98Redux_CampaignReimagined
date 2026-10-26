@@ -22,8 +22,10 @@
 --              drives everything continuous; integer rungs select a CRWeather
 --              preset. It sets the event rates (plumes, quakes, surges).
 --   presets    five Europa* CRWeather presets (registered at Init; the shared
---              CRWeatherPresets.lua is not edited): cold pale fog, Jupiter-lit
---              ambient, and a sparse ice glitter falling STRAIGHT down.
+--              CRWeatherPresets.lua is not edited): a faint cold frost haze and
+--              a sparse ice glitter (CR/Europa/Glitter) falling STRAIGHT down.
+--              The light itself is Environment.lua's orbit (sun, eclipse,
+--              Jupiter-shine).
 --   plumes     a vapour column at each vent site, host-scheduled and replicated,
 --              with ice fall (CR/Europa/IceFall) and a local frost haze that
 --              briefly thins the view near the vent.
@@ -259,11 +261,14 @@ local LEVEL_COUNT = #V.Levels
 -- =============================================================================
 -- Presets
 --
--- Europa's light is a weak distant sun plus a huge Jupiter: pale, cold, blue-grey
--- ice under a black sky. There is no air, so there is no real fog; the faint
--- cold haze is the frost the vents and the surface leave in the lowest metres,
--- and it thickens a little with activity. Each preset carries ONE precipitation
--- layer: a sparse ice glitter (CR/Weather/SnowLight) that falls straight down
+-- Europa is airless: pale, cold, blue-grey ice under a black sky, and the light
+-- is Environment's orbit (a small, far sun by day, Jupiter at night), so the
+-- presets carry no ambient or diffuse of their own. There is no real fog
+-- either; the faint cold haze is the frost the vents and the surface leave in
+-- the lowest metres, kept dark so the horizon does not glow against the black
+-- sky, and it thickens a little with activity. Each preset carries ONE
+-- precipitation layer: a sparse ice glitter (CR/Europa/Glitter, SnowLight on a
+-- material DX11 draws in the right colours) that falls straight down
 -- (the director pins CRWeather's wind override to straight down, so the emitter
 -- direction is vertical and no drift is ever applied). No preset has lightning,
 -- a sky, or a wind. Registered into CRWeatherPresets.Presets at Init rather than
@@ -272,20 +277,15 @@ local LEVEL_COUNT = #V.Levels
 
 local PRESET_ROWS = {
     { name = "EuropaQuiescent", rate = 14.0, quota = 260, a = 0.55,
-      fog = { 0.52, 0.60, 0.72, 150.0, 290.0 }, ambient = { 0.30, 0.34, 0.43 },
-      diffuse = { 0.62, 0.65, 0.72 }, sun = 0.82, tin = 24.0, tout = 28.0 },
+      fog = { 0.20, 0.24, 0.30, 150.0, 290.0 }, sun = 0.82, tin = 24.0, tout = 28.0 },
     { name = "EuropaStirring", rate = 26.0, quota = 360, a = 0.58,
-      fog = { 0.51, 0.59, 0.71, 130.0, 275.0 }, ambient = { 0.29, 0.33, 0.43 },
-      diffuse = { 0.61, 0.64, 0.72 }, sun = 0.80, tin = 22.0, tout = 28.0 },
+      fog = { 0.21, 0.25, 0.31, 130.0, 275.0 }, sun = 0.80, tin = 22.0, tout = 28.0 },
     { name = "EuropaVenting", rate = 44.0, quota = 480, a = 0.62,
-      fog = { 0.50, 0.58, 0.71, 110.0, 258.0 }, ambient = { 0.28, 0.33, 0.43 },
-      diffuse = { 0.60, 0.64, 0.72 }, sun = 0.78, tin = 20.0, tout = 26.0 },
+      fog = { 0.21, 0.26, 0.33, 110.0, 258.0 }, sun = 0.78, tin = 20.0, tout = 26.0 },
     { name = "EuropaFlexing", rate = 64.0, quota = 600, a = 0.66,
-      fog = { 0.48, 0.57, 0.71, 95.0, 242.0 }, ambient = { 0.27, 0.32, 0.43 },
-      diffuse = { 0.58, 0.63, 0.72 }, sun = 0.75, tin = 18.0, tout = 26.0 },
+      fog = { 0.22, 0.27, 0.34, 95.0, 242.0 }, sun = 0.75, tin = 18.0, tout = 26.0 },
     { name = "EuropaPerijove", rate = 90.0, quota = 760, a = 0.70,
-      fog = { 0.45, 0.55, 0.70, 80.0, 222.0 }, ambient = { 0.26, 0.31, 0.43 },
-      diffuse = { 0.56, 0.62, 0.72 }, sun = 0.72, tin = 16.0, tout = 26.0 },
+      fog = { 0.22, 0.28, 0.36, 80.0, 222.0 }, sun = 0.72, tin = 16.0, tout = 26.0 },
 }
 
 local function BuildPreset(row)
@@ -294,7 +294,7 @@ local function BuildPreset(row)
         precipitation = {
             {
                 system   = "cr_wx_europa_ice",
-                template = "CR/Weather/SnowLight",
+                template = "CR/Europa/Glitter",
                 offset   = { x = 0.0, y = 28.0, z = 0.0 },
                 quota    = row.quota,
                 emitters = {
@@ -313,8 +313,8 @@ local function BuildPreset(row)
         },
         sky           = nil,
         fog           = { r = row.fog[1], g = row.fog[2], b = row.fog[3], fogStart = row.fog[4], fogEnd = row.fog[5] },
-        ambient       = { r = row.ambient[1], g = row.ambient[2], b = row.ambient[3] },
-        diffuse       = { r = row.diffuse[1], g = row.diffuse[2], b = row.diffuse[3] },
+        ambient       = nil,
+        diffuse       = nil,
         sunPowerScale = row.sun,
         wind          = { x = 0.0, y = -1.0, z = 0.0 },
         windSpeed     = 1.0,

@@ -7,9 +7,10 @@
 // vapour, ice crystals) or hangs in place (frost haze, quake dust). The director
 // never pushes a wind vector into any of them.
 //
-// Every material below already exists in CR_reactive.material (CR_FX/Smoke*,
-// Snow, Haze, Dust, Spark, Bloom), so this file adds templates only -- no new
-// art, no new materials.
+// The materials are CREuropa/* (crart_europa.material): the CR_FX/* art of
+// CR_reactive.material (SmokeThin, Snow, Haze, Bloom) on a pass DX11 draws
+// natively. On the CR_FX/* originals DX11 swapped red and blue, so the cold
+// blue-white systems drew a warm peach. No new art.
 //
 // Axis note for Box emitters (Ogre AreaEmitter): `direction` is the DEPTH axis.
 // With a horizontal direction, `height` becomes the thin vertical axis, which is
@@ -28,7 +29,7 @@
 //   affector 2 LinearForce          (gravity pulling the vapour back down)
 particle_system CR/Europa/Plume
 {
-    material            CR_FX/SmokeThin
+    material            CREuropa/SmokeThin
     particle_width      12.0
     particle_height     12.0
     quota               260
@@ -93,7 +94,7 @@ particle_system CR/Europa/Plume
 //   affector 1 ColourFader
 particle_system CR/Europa/IceFall
 {
-    material            CR_FX/Snow
+    material            CREuropa/Snow
     particle_width      0.7
     particle_height     0.7
     quota               500
@@ -142,7 +143,7 @@ particle_system CR/Europa/IceFall
 //   affector 2 DirectionRandomiser
 particle_system CR/Europa/FrostHaze
 {
-    material            CR_FX/Haze
+    material            CREuropa/Haze
     particle_width      46.0
     particle_height     46.0
     quota               60
@@ -200,7 +201,7 @@ particle_system CR/Europa/FrostHaze
 // per-peer system for quakes (the shake itself is the engine's native).
 particle_system CR/Europa/QuakeIce
 {
-    material            CR_FX/Snow
+    material            CREuropa/Snow
     particle_width      1.6
     particle_height     1.6
     quota               500
@@ -246,7 +247,7 @@ particle_system CR/Europa/QuakeIce
 // no effect on any sensor.
 particle_system CR/Europa/SurgeMotes
 {
-    material            CR_FX/Bloom
+    material            CREuropa/Bloom
     particle_width      9.0
     particle_height     9.0
     quota               80

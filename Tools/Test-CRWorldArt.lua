@@ -155,7 +155,7 @@ local earth=Art.DetectShine({},"moon")
 check(earth and math.abs(earth.x-1)<1e-9 and math.abs(earth.y)<1e-9 and math.abs(earth.z)<1e-9,"TRN azimuth 90 places the Earth along +x")
 stars.Azimuth02,stars.Elevation02="150","10"
 earth=Art.DetectShine({},"moon")
-check(math.abs(earth.x-math.sin(math.rad(150))*math.cos(math.rad(10)))<1e-9 and math.abs(earth.y-math.sin(math.rad(10)))<1e-9 and earth.z<0,"azimuth is a compass heading from +z")
+check(math.abs(earth.x-math.sin(math.rad(150))*math.cos(math.rad(10)))<1e-9 and math.abs(earth.y-math.sin(math.rad(10)))<1e-9 and math.abs(earth.z+math.cos(math.rad(150))*math.cos(math.rad(10)))<1e-9,"azimuth is a compass heading from sim +z, drawn with z mirrored")
 stars.Azimuth02,stars.Elevation02="90","0"
 Art.DetectShine({},"moon")
 local function shine(sun,night)
@@ -216,6 +216,11 @@ local atJupiter=Art.OrbitSun("io",orbit.bodyHour)
 check(near(dot(atJupiter,jupiter),1,1e-9),"the sun's path runs through Jupiter")
 check(near(Art.OrbitSun("io",-math.pi/2).x,1) and near(Art.OrbitSun("io",math.pi/2).x,-1),"the sun rises in the east and sets in the west")
 check(Art.OrbitSun("io",0).y>0.7,"noon stands high")
+-- Jupiter is to the south (render +z), so the pole points north (render -z),
+-- and in render space's right-handed frame the sky turns about the south pole.
+local dawn,noon=Art.OrbitSun("io",-math.pi/2),Art.OrbitSun("io",0)
+local turn={x=dawn.y*noon.z-dawn.z*noon.y,y=dawn.z*noon.x-dawn.x*noon.z,z=dawn.x*noon.y-dawn.y*noon.x}
+check(jupiter.z>0 and orbit.pole.z<0 and near(dot(turn,orbit.pole),-1),"the pole is north and the sky turns about it the real way")
 check(near(Art.OrbitEclipse("io",atJupiter),1),"behind Jupiter the sun is gone")
 check(near(Art.OrbitEclipse("io",Art.OrbitSun("io",orbit.bodyHour+math.rad(12))),0),"twelve degrees off the disc the sun is whole")
 local limb=Art.OrbitEclipse("io",Art.OrbitSun("io",orbit.bodyHour+math.rad(Art.Orbits.io.radius)))
@@ -249,4 +254,27 @@ Art.UpdateSky(ioApi,"io",{orbit={sun=Art.OrbitSun("io",orbit.bodyHour+0.01),ecli
 spin=io.vectors["CRJOVIAN.MAP:bodySpin"]
 check(spin and near(spin[1],(Art.Orbits.io.spinStart-Art.Orbits.io.spinTurns*0.01)%(2*math.pi)),"Jupiter turns spinTurns times as fast as the sun")
 check(near(io.vectors["SceneManagerInstance1SkyBoxPlane3:skyOrbit"][4],0.6),"a partial eclipse dims the sun")
+-- Europa: the same machinery one moon out, with misn12's Jupiter.
+stars={Texture00="crjovian.map",Azimuth00="210",Elevation00="35",Texture01="crio.map",Azimuth01="172",Elevation01="40"}
+local euJupiter=Art.DetectShine({},"europa")
+check(euJupiter and near(euJupiter.y,math.sin(math.rad(35))),"Europa finds its Jupiter")
+local euOrbit=Art.SetOrbit("europa")
+check(euOrbit and near(dot(euOrbit.pole,euJupiter),0) and euOrbit.pole.y>0,"Europa's pole is square to Jupiter and tilts up")
+local ioDir={x=math.sin(math.rad(172))*math.cos(math.rad(40)),y=math.sin(math.rad(40)),z=-math.cos(math.rad(172))*math.cos(math.rad(40))}
+check(math.abs(dot(ioDir,euOrbit.pole))<math.sin(math.rad(1.5)),"Io sits on Jupiter's equator, within 1.5 degrees")
+check(math.deg(math.acos(dot(ioDir,euJupiter)))<38.9,"Io stays inside its greatest elongation from Europa")
+check(Art.Orbits.europa.radius<Art.Orbits.io.radius,"Jupiter is smaller from Europa than from Io")
+local euAt=Art.OrbitSun("europa",euOrbit.bodyHour)
+check(near(Art.OrbitEclipse("europa",euAt),1),"behind Jupiter Europa's sun is gone")
+check(near(Art.OrbitEclipse("europa",Art.OrbitSun("europa",euOrbit.bodyHour+math.rad(8))),0),"eight degrees off Europa's Jupiter the sun is whole")
+Art.SkySun.europa={x=-euJupiter.x,y=-euJupiter.y,z=-euJupiter.z}
+local euFull=Art.NightLight("europa")
+check(euFull and euFull.diffuse.r<full.diffuse.r and euFull.diffuse.r>euFull.diffuse.b,"a full Jupiter lights Europa warm, weaker than Io")
+local eu={vectors={},box=nil}
+local euApi={SetSkyBox=function(material) eu.box=material;return true end,
+ SetMaterialTexture=function() return true end,
+ SetMaterialShaderVector=function(material,name,x,y,z,w) eu.vectors[material..":"..name]={x,y,z,w};return 1 end}
+Art.SkySun.europa=Art.OrbitSun("europa",-0.7)
+check(Art.InstallStarBox(euApi,"europa") and eu.box=="CR_Sky/EuropaStars","Europa installs its own star box")
+check(eu.vectors["crio.map:bodyPole"] and eu.vectors["CRJOVIAN.MAP:sunDirection"],"Io and Jupiter take Europa's sun and pole")
 print("World art lighting: "..count.." checks passed")

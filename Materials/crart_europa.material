@@ -1,0 +1,56 @@
+// Europa weather particles (cr_europa.particle.payload, and CR/Europa/Glitter
+// in cr_weather.particle.payload). As for Io (crart_io.material): on DX11 the
+// CR_FX/* sprite materials draw Ogre's RGBA billboard colours through a BGRA
+// swizzle, so red and blue swap and Europa's cold blue-white plumes, ice and
+// frost came out a warm peach, its green-violet surge motes pink. The same
+// CR_FX art goes on the RGBA-order CRWX_FX vertex program paired with
+// CR_Effect_fragment, whose SM4 delegate keeps the pass native, so the colours
+// draw as written.
+
+import * from "crwx_precip.material"
+
+material CREuropa/ParticleAlphaBlend : CRWX_FX/ParticleAlphaBlend
+{
+	technique 0
+	{
+		pass 0
+		{
+			fragment_program_ref CR_Effect_fragment
+			{
+			}
+		}
+	}
+}
+
+material CREuropa/ParticleAdditive : CRWX_FX/ParticleAdditive
+{
+	technique 0
+	{
+		pass 0
+		{
+			fragment_program_ref CR_Effect_fragment
+			{
+			}
+		}
+	}
+}
+
+material CREuropa/SmokeThin : CREuropa/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_smokethin.dds
+}
+
+material CREuropa/Snow : CREuropa/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_snow.dds
+}
+
+material CREuropa/Haze : CREuropa/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_haze.dds
+}
+
+material CREuropa/Bloom : CREuropa/ParticleAdditive
+{
+	set_texture_alias DiffuseMap blast.png
+}

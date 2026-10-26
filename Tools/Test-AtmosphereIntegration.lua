@@ -120,6 +120,34 @@ w=world('io.act',250)
 w.E.Init({lightingMode='orbit'})
 check(w.E.LightingMode=='cycle' and w.E.Orbit==nil,'without Jupiter in the TRN orbit mode falls back to the cycle')
 
+-- Europa (misn12, misn13): a smaller Jupiter, so a shorter eclipse and a
+-- dimmer, still warm Jupiter-lit night.
+w=world('europa.act',250)
+w.trn.Atlases={MaterialName='eu_detail_atlas'}
+w.trn.Stars={Texture00='crjovian.map',Azimuth00='210',Elevation00='35'}
+w.E.Init({lightingMode='orbit',orbit={period=1800,startHour=-40}})
+check(w.E.LightingMode=='orbit' and w.E.ArtWorld=='europa','Europa keeps orbit mode')
+phases,eclipseTime,dayTime,nightTime,minDiffuse,nightWarm={},0,0,0,1,true
+last=nil
+local nightMax=0
+for t=0,1800,2 do
+    w.time=t; w.E.Update(2)
+    local phase=w.E.LastPhase
+    if phase~=last then phases[#phases+1]=phase; last=phase end
+    if phase=='Eclipse' then eclipseTime=eclipseTime+2; minDiffuse=math.min(minDiffuse,w.SetSunDiffuse[1]) end
+    if phase=='Day' then dayTime=dayTime+2 end
+    if phase=='Night' then
+        nightTime=nightTime+2
+        nightWarm=nightWarm and w.SetSunDiffuse[1]>w.SetSunDiffuse[3]
+        nightMax=math.max(nightMax,w.SetSunDiffuse[1])
+    end
+end
+check(phases[1]=='Day' and phases[2]=='Eclipse' and phases[3]=='Day','the Europa morning passes into eclipse and out')
+check(eclipseTime>=40 and eclipseTime<=90,'the Europa eclipse lasts about 3.5 per cent of the day ('..eclipseTime..' s)')
+check(dayTime>500 and nightTime>600,'Europa day and night each hold a large share of the cycle')
+check(minDiffuse<0.2,'the Europa eclipse darkens the scene')
+check(nightWarm and nightMax>0.05 and nightMax<0.4,'Jupiter-shine lights the Europa night warm and dim ('..nightMax..')')
+
 -- Final composition, including a misbehaving local modifier and manual fog,
 -- always fits the TRN horizon. Even a ramp starting beyond it stays ordered.
 for _,limit in ipairs({100,130,250,700}) do

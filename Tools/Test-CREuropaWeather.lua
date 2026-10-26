@@ -519,11 +519,11 @@ do
         check(preset.sunPowerScale <= lastSun, presetName .. " is no brighter than the rung below")
         check(preset.fog.fogEnd <= lastEnd, presetName .. " is no clearer than the rung below")
         lastSun, lastEnd = preset.sunPowerScale, preset.fog.fogEnd
-        -- Cold ice under a cold sky: blue >= red everywhere.
-        for _, key in ipairs({ "fog", "ambient", "diffuse" }) do
-            local c = preset[key]
-            check(c.b >= c.r, presetName .. "." .. key .. " is a cold colour")
-        end
+        -- Cold ice under a black sky: a cold, dark haze, and the light left to
+        -- Environment's orbit.
+        check(preset.fog.b >= preset.fog.r, presetName .. ".fog is a cold colour")
+        check(preset.fog.b <= 0.40, presetName .. ".fog stays dark under Europa's black sky")
+        check(preset.ambient == nil and preset.diffuse == nil, presetName .. " leaves the light to Environment's orbit")
         -- No wind: straight down, one unit of speed so CRWeather's velocity scale stays 1.
         check(preset.wind.x == 0.0 and preset.wind.z == 0.0 and preset.wind.y < 0.0,
             presetName .. " has no horizontal wind")
@@ -531,7 +531,7 @@ do
         check(preset.gusts == nil, presetName .. " has no gusts")
         check(#preset.precipitation == 1, presetName .. " carries exactly one precipitation layer")
         local layer = preset.precipitation[1]
-        check(layer.template == "CR/Weather/SnowLight", presetName .. " reuses the existing SnowLight template")
+        check(layer.template == "CR/Europa/Glitter", presetName .. " uses the DX11-safe Europa glitter template")
         check(string.find(layer.system, "cr_wx_europa_", 1, true) == 1, "Europa layers use cr_wx_europa_ system names")
         check(layer.emitters[0].angle <= 8.0, presetName .. " ice falls near-vertically, not in a blown cone")
         check(layer.emitters[0].velocity[2] <= 3.0, presetName .. " ice falls slowly (low gravity)")
