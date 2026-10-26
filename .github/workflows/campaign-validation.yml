@@ -248,6 +248,13 @@ jobs:
           python Tools/Test-Misn06SourceParity.py
           python Tools/Test-Misn06CoopContract.py
 
+      - name: Test per-world geyser effects
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-CRGeysers.lua Scripts
+
       - name: Test misn12 source port, co-op layer, presentation and Europa weather
         shell: bash
         run: |

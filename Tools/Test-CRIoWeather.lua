@@ -1270,6 +1270,70 @@ do
 end
 
 -- =============================================================================
+-- 8b. A building deployed on a geyser takes its vent away (CRGeysers occupancy)
+-- =============================================================================
+
+do
+    local world = NewWorld()
+    local peer = NewPeer("occupied", world)
+    local IO = peer.Io
+
+    -- The BZ read-only natives CRGeysers uses to see what stands on a geyser.
+    local env = peer.env
+    env.GetClassLabel = function(h) local o = world.objects[h]; return o and o.class or "" end
+    env.IsBuilding = function(h) local o = world.objects[h]; return o ~= nil and o.building == true end
+    env.IsAlive = function(h) local o = world.objects[h]; return o ~= nil and o.alive ~= false end
+    env.IsDeployed = function(h) local o = world.objects[h]; return o ~= nil and o.deployed == true end
+    env.ObjectsInRange = function(range, ref)
+        local origin = world.objects[ref]
+        local i = 0
+        return function()
+            while true do
+                i = i + 1
+                local h = world.order[i]
+                if h == nil then return nil end
+                local o = world.objects[h]
+                if o ~= nil and origin ~= nil and Dist2(o.x, o.z, origin.x, origin.z) <= range then return h end
+            end
+        end
+    end
+
+    peer.Environment.Init()
+    IO.Init({ seed = 1357, authority = true, sites = sites, bounds = BOUNDS, startLevel = 3, targetLevel = 3,
+              send = function() end })
+    IO.AllowRandomQuakes = false
+    local vent = IO.VentSites[1]
+    local geyser = AddObject(world, "eggeizr1", vent.x, vent.y, vent.z, { building = true })
+    world.objects[geyser].class, world.objects[geyser].building = "geyser", true
+    for i = 1, #IO.VentSites do IO.VentTimers[i] = 1e9 end
+    peer.playerPos = { x = vent.x + 40.0, y = 40, z = vent.z + 30.0 }
+
+    local function PlumesAtVent()
+        local n = 0
+        for _, name in ipairs(SystemsOfTemplate(peer, "CR/Io/Plume")) do
+            local pos = peer.rec.systems[name].position
+            if Dist2(pos.x, pos.z, vent.x, vent.z) < 0.01 then n = n + 1 end
+        end
+        return n
+    end
+
+    peer.run(15.0)
+    check(PlumesAtVent() == 1, "a free geyser's vent is drawn")
+
+    local recycler = AddObject(world, "avrecy", vent.x + 2.0, vent.y, vent.z, { craft = true })
+    world.objects[recycler].class, world.objects[recycler].deployed = "recycler", true
+    peer.run(15.0)
+    check(PlumesAtVent() == 0, "the vent is taken away while a recycler is deployed on its geyser")
+    check(IO.TriggerEruption(1, 1.0) == false, "no eruption comes out of an occupied vent")
+
+    world.objects[recycler] = nil
+    peer.run(15.0)
+    check(PlumesAtVent() == 1, "the vent comes back when the building is gone")
+    check(IO.TriggerEruption(1, 1.0) == true, "and can erupt again")
+    IO.Shutdown()
+end
+
+-- =============================================================================
 -- 9. Degradation, solo, save / load
 -- =============================================================================
 
