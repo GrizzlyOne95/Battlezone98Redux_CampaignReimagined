@@ -588,7 +588,8 @@ local function InitIoWeather()
     ioStarted = true
     local net = CRCoop.IsNetworkGame()
     local authority = (not net) or CRCoop.IsAuthority()
-    Environment.Init()
+    -- Io under Jupiter: the sun's real path, a short eclipse, Jupiter-shine at night.
+    Environment.Init({ lightingMode = "orbit", orbit = { period = 1800, startHour = -75 } })
     Environment.BindWeatherSensors("Io", CRIoWeather)
     CRIoWeather.Init({
         authority = authority,

@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4244,
+  "count": 4252,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -4044,12 +4044,28 @@
       "runtime": "crpkns2_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crsky_callisto.png",
+      "runtime": "crsky_callisto.png"
+    },
+    {
       "source": "Assets\\Textures\\crsky_earth.png",
       "runtime": "crsky_earth.png"
     },
     {
       "source": "Assets\\Textures\\crsky_earth_night.png",
       "runtime": "crsky_earth_night.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_europa.png",
+      "runtime": "crsky_europa.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_ganymede.png",
+      "runtime": "crsky_ganymede.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_jupiter.png",
+      "runtime": "crsky_jupiter.png"
     },
     {
       "source": "Assets\\Textures\\crsky_mars_clouds.png",
@@ -7168,6 +7184,10 @@
       "runtime": "cr_io.particle.payload"
     },
     {
+      "source": "Materials\\cr_jovian.material",
+      "runtime": "cr_jovian.material"
+    },
+    {
       "source": "Materials\\cr_lightarc.material",
       "runtime": "cr_lightarc.material"
     },
@@ -7402,6 +7422,10 @@
     {
       "source": "Materials\\crart_elysium.material",
       "runtime": "crart_elysium.material"
+    },
+    {
+      "source": "Materials\\crart_io.material",
+      "runtime": "crart_io.material"
     },
     {
       "source": "Materials\\crart_mars.material",
@@ -13340,6 +13364,14 @@
       "runtime": "CR_DepthShadowmapReceiverVp.glsl"
     },
     {
+      "source": "Shaders\\CR_earth.hlsl",
+      "runtime": "CR_earth.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_earth.program",
+      "runtime": "CR_earth.program"
+    },
+    {
       "source": "Shaders\\CR_effect-fragment.glsl",
       "runtime": "CR_effect-fragment.glsl"
     },
@@ -13390,6 +13422,14 @@
     {
       "source": "Shaders\\CR_grasswind.program",
       "runtime": "CR_grasswind.program"
+    },
+    {
+      "source": "Shaders\\CR_jovian.hlsl",
+      "runtime": "CR_jovian.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_jovian.program",
+      "runtime": "CR_jovian.program"
     },
     {
       "source": "Shaders\\cr_lightarc-fragment.glsl",
@@ -13742,14 +13782,6 @@
     {
       "source": "Shaders\\CR_catalogsky.program",
       "runtime": "CR_catalogsky.program"
-    },
-    {
-      "source": "Shaders\\CR_earth.hlsl",
-      "runtime": "CR_earth.hlsl"
-    },
-    {
-      "source": "Shaders\\CR_earth.program",
-      "runtime": "CR_earth.program"
     },
     {
       "source": "Shaders\\CR_marssky.hlsl",

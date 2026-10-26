@@ -52,13 +52,16 @@ float3 star_colour(float bv)
 	return lerp(c, c4, saturate((bv - 1.0) / 0.6));
 }
 
-// World to J2000. The world frame is built from the sun and the zenith the
-// same way the celestial frame is built from SUN_EQ and GC_EQ.
-float3 sky_direction(float3 p, float4x4 skyRotation, float4 sunDirection)
+// World to J2000. The world frame is built from the sun and a pole (the
+// zenith unless skyOrbit says otherwise) the same way the celestial frame is
+// built from SUN_EQ and GC_EQ. A sun that circles the pole turns the stars
+// with it as one rigid sphere.
+float3 sky_direction(float3 p, float4x4 skyRotation, float4 sunDirection, float4 skyOrbit)
 {
 	if (sunDirection.w <= 0.5) return mul((float3x3)skyRotation, p);
 	float3 w1 = normalize(sunDirection.xyz);
-	float3 up = abs(w1.y) > 0.999 ? float3(0, 0, 1) : float3(0, 1, 0);
+	float3 pole = normalize(skyOrbit.xyz);
+	float3 up = abs(dot(w1, pole)) > 0.999 ? (abs(pole.y) < 0.9 ? float3(0, 1, 0) : float3(0, 0, 1)) : pole;
 	float3 w2 = normalize(up - dot(up, w1) * w1);
 	float3 w3 = cross(w1, w2);
 	return SUN_EQ * dot(p, w1) + GC_EQ * dot(p, w2) + POLE_EQ * dot(p, w3);
@@ -73,6 +76,9 @@ float3 sky_direction(float3 p, float4x4 skyRotation, float4 sunDirection)
 //           y disc gain, z/w the stars fade in from z to w (radians).
 // sunGlow:  x glare gain at the limb, y glare falloff power,
 //           z halo gain, w halo radius (radians).
+// skyOrbit: xyz the pole the sun circles (world up on the Moon), w how much
+//           of the sun shows: 0 hides the disc and glare (Io in Jupiter's
+//           shadow) and brings the stars back around it.
 void catalogsky_fragment(
 	uniform sampler2D starIndex : register(s0),
 	uniform sampler2D milkyWay : register(s1),
@@ -83,12 +89,13 @@ void catalogsky_fragment(
 	uniform float4 sunDirection,
 	uniform float4 sunLook,
 	uniform float4 sunGlow,
+	uniform float4 skyOrbit,
 	uniform float4x4 inverseView,
 	in float3 vDir : TEXCOORD0,
 	out float4 oColor : COLOR)
 {
 	float3 p = normalize(vDir);
-	float3 d = normalize(sky_direction(p, skyRotation, sunDirection));
+	float3 d = normalize(sky_direction(p, skyRotation, sunDirection, skyOrbit));
 	float pixelAngle = max(max(length(ddx(d)), length(ddy(d))), 1e-6);
 
 	// Face selection; must match Build-CatalogSky.py.
@@ -145,7 +152,8 @@ void catalogsky_fragment(
 		float disc = saturate((1 - t) * sunLook.x / pixelPlane + 0.5);
 		float limb = 0.4 + 0.6 * sqrt(saturate(1 - t * t));
 		float glare = sunGlow.x * pow(saturate(1 / max(t, 1)), sunGlow.y) + sunGlow.z * exp(-theta / sunGlow.w);
-		sky = sky * smoothstep(sunLook.z, sunLook.w, theta) + SUN_COLOUR * (sunLook.y * disc * limb) + GLARE_COLOUR * glare;
+		float fade = smoothstep(sunLook.z, sunLook.w, theta);
+		sky = sky * lerp(1, fade, skyOrbit.w) + (SUN_COLOUR * (sunLook.y * disc * limb) + GLARE_COLOUR * glare) * skyOrbit.w;
 	}
 
 	oColor = float4(sky_encode(sky), 1);

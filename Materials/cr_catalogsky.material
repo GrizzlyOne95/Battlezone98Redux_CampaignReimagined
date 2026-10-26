@@ -41,3 +41,46 @@ material CR_Sky/CatalogStars
 		}
 	}
 }
+
+// Io's sky (misn10, misn11): the same sky from 5.2 AU. The Sun is 0.1 degrees
+// across and 1/27 as bright as at Earth, so its disc is a fifth the Moon's and
+// its glare and halo are tighter; the stars come back from 2 to 17 degrees out.
+// Scripts/CRWorldArt.lua sets skyOrbit to Io's orbit pole and hides the sun
+// while Io is in Jupiter's shadow.
+material CR_Sky/IoStars
+{
+	receive_shadows off
+	technique 0
+	{
+		pass 0
+		{
+			vertex_program_ref CR_CatalogSky_vertex
+			{
+			}
+			fragment_program_ref CR_CatalogSky_fragment
+			{
+				param_named skyRotation matrix4x4 -0.455344 0.199528 -0.867669 0 -0.051486 -0.978834 -0.198072 0 -0.888825 -0.045518 0.455980 0 0 0 0 1
+				param_named milkyParams float4 0.3 -1 0.5 0
+				param_named sunLook float4 0.00093 6 0.03 0.3
+				param_named sunGlow float4 0.7 2 0.008 0.07
+			}
+			cull_hardware none
+			cull_software none
+			lighting off
+			fog_override true none
+			depth_write off
+			texture_unit 0
+			{
+				anim_texture crsky_stars.png crsky_stars.png crsky_stars.png crsky_stars.png crsky_stars.png crsky_stars.png 0
+				tex_address_mode clamp
+				filtering none
+			}
+			texture_unit 1
+			{
+				texture crsky_milkyway.png
+				tex_address_mode wrap clamp
+				filtering trilinear
+			}
+		}
+	}
+}

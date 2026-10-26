@@ -1,0 +1,71 @@
+// Io weather particles (cr_io.particle.payload, and the CR/Io/* templates in
+// cr_weather.particle.payload). Ogre's ParticleFX billboards carry RGBA vertex
+// colours, but on DX11 the CR_FX/* sprite materials draw them through a BGRA
+// swizzle, so red and blue swap: Io's sulphur haze drew as a blue band along
+// the horizon and the red lava fog came out blue. As for Venus
+// (crart_venus.material), the same CR_FX art goes on the RGBA-order CRWX_FX
+// vertex program paired with CR_Effect_fragment, whose SM4 delegate keeps the
+// pass native, so the colours draw as written.
+
+import * from "crwx_precip.material"
+
+material CRIo/ParticleAlphaBlend : CRWX_FX/ParticleAlphaBlend
+{
+	technique 0
+	{
+		pass 0
+		{
+			fragment_program_ref CR_Effect_fragment
+			{
+			}
+		}
+	}
+}
+
+material CRIo/ParticleAdditive : CRWX_FX/ParticleAdditive
+{
+	technique 0
+	{
+		pass 0
+		{
+			fragment_program_ref CR_Effect_fragment
+			{
+			}
+		}
+	}
+}
+
+material CRIo/Haze : CRIo/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_haze.dds
+}
+
+material CRIo/Grit : CRIo/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_grit.dds
+}
+
+material CRIo/Dust : CRIo/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_dust.dds
+}
+
+material CRIo/Ash : CRIo/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_ash.dds
+}
+
+material CRIo/SmokeHeavy : CRIo/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_smokeheavy.dds
+}
+
+material CRIo/Ember : CRIo/ParticleAdditive
+{
+	set_texture_alias DiffuseMap cr_ember.dds
+}
+
+material CRIo/Bloom : CRIo/ParticleAdditive
+{
+	set_texture_alias DiffuseMap blast.png
+}

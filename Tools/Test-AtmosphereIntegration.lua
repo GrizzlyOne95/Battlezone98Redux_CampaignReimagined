@@ -88,6 +88,38 @@ w.E.Init({lightingMode='night',nativeBaseline=true,nightGameplay=false})
 w.E.Update(0)
 check(w.E.NightBlend==1 and w.SetSunDiffuse[3]<0.2,'night mode without a shining body falls back to the stock night')
 
+-- Io: the sun's real path past a fixed Jupiter. One day runs through a short
+-- eclipse, day, a horizon-sharp dusk and a Jupiter-lit night.
+w=world('io.act',250)
+w.trn.Atlases={MaterialName='io_detail_atlas'}
+w.trn.Stars={Texture30='crjovian.map',Azimuth30='120',Elevation30='32'}
+w.E.Init({lightingMode='orbit',orbit={period=1800,startHour=-75}})
+check(w.E.LightingMode=='orbit' and w.E.Orbit and near(w.E.Orbit.period,1800),'Io keeps orbit mode')
+local phases,eclipseTime,dayTime,nightTime,minDiffuse,nightWarm={},0,0,0,1,true
+local last
+for t=0,1800,2 do
+    w.time=t; w.E.Update(2)
+    local phase=w.E.LastPhase
+    if phase~=last then phases[#phases+1]=phase; last=phase end
+    if phase=='Eclipse' then eclipseTime=eclipseTime+2; minDiffuse=math.min(minDiffuse,w.SetSunDiffuse[1]) end
+    if phase=='Day' then dayTime=dayTime+2 end
+    if phase=='Night' then
+        nightTime=nightTime+2
+        nightWarm=nightWarm and w.SetSunDiffuse[1]>w.SetSunDiffuse[3]
+    end
+end
+check(phases[1]=='Day' and phases[2]=='Eclipse' and phases[3]=='Day','the morning starts in sunlight and passes into eclipse')
+check(eclipseTime>=60 and eclipseTime<=130,'the eclipse lasts about five per cent of the day ('..eclipseTime..' s)')
+check(dayTime>500 and nightTime>600,'day and night each hold a large share of the cycle')
+check(minDiffuse<0.2,'the eclipse darkens the scene')
+check(nightWarm,'Jupiter-shine lights the night warm')
+w.time=0; w.E.Update(0)
+local morning=copy(w.SetOgreSunDirection)
+check(morning[1]<0 and morning[2]<0,'the morning light falls westward and down, from the eastern sun')
+w=world('io.act',250)
+w.E.Init({lightingMode='orbit'})
+check(w.E.LightingMode=='cycle' and w.E.Orbit==nil,'without Jupiter in the TRN orbit mode falls back to the cycle')
+
 -- Final composition, including a misbehaving local modifier and manual fog,
 -- always fits the TRN horizon. Even a ramp starting beyond it stays ordered.
 for _,limit in ipairs({100,130,250,700}) do

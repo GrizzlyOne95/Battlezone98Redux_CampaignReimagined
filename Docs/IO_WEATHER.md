@@ -22,13 +22,15 @@ keeps throwing ash columns, a steady fall of ash, and ground that shakes.
 | `Scripts/CRIoSites11.lua` | Generated map data for misn11 (painted lava, one vent; see `MISN11_COOP.md`). |
 | `Scripts/CRIoSites10.lua` | Generated map data for misn10 (playable box, lava cells, 322 lava fog anchors, 21 vents). |
 | `Tools/Build-IoSites.py` | Regenerates a `CRIoSites<NN>.lua` from a mission's `.trn`, `.mat` and `.bzn`, read straight out of Redux's `bzone.zfs`. |
-| `Materials/cr_io.particle.payload` | Six particle templates, all on existing `CR_FX/*` materials. Loaded through `CRParticleTemplates.EnsureExtra("cr_io")`. |
+| `Materials/cr_io.particle.payload` | Six particle templates on the `CRIo/*` materials. Loaded through `CRParticleTemplates.EnsureExtra("cr_io")`. |
+| `Materials/crart_io.material` | The `CRIo/*` particle materials: existing `CR_FX` art on the RGBA-order `CRWX_FX` vertex program plus `CR_Effect_fragment`, so DX11 draws the pass natively. On the `CR_FX/*` originals DX11 swapped red and blue, so the warm haze drew as a blue band along the horizon. |
 | `Tools/Test-CRIoWeather.lua` | Isolated-peer tests against an exu / BZ mock. |
 
-Nothing shared was edited. The five `Io*` presets are registered into
-`CRWeatherPresets.Presets` by the director at `Init` (idempotently), so
-`CRWeatherPresets.lua` is untouched, and ash fall reuses `CR/Weather/AshFall` from the base
-weather payload.
+The five `Io*` presets are registered into `CRWeatherPresets.Presets` by the director at
+`Init` (idempotently), so `CRWeatherPresets.lua` is untouched. The haze, grit and ash
+templates (`CR/Io/Haze`, `CR/Io/Grit`, `CR/Io/AshFall`) are copies of `MarsHaze`, `DustGrit`
+and `AshFall` on the `CRIo/*` materials. They sit in the base `cr_weather.particle.payload`,
+not the opt-in `cr_io` one, so the presets and ash still work when `cr_io` is unavailable.
 
 ## Ownership rules (same as Venus and Mars)
 
@@ -58,16 +60,22 @@ intense **episodes** from rung 3 up). The brief's "calm / active / intense" are 
 
 Inside an episode eruptions run a further x1.5 faster (`EpisodeEruptBoost`).
 
-## 1. Sulphur haze lit by Jupiter
+## 1. Thin volcanic haze under a black sky
+
+Io is nearly airless. Its sky is the catalog star box (`CR_Sky/IoStars`), with Jupiter and the
+Galilean moons drawn on the TRN `[Stars]` quads. The light comes from Environment's `orbit`
+mode: the sun's real path, a short eclipse behind Jupiter, and Jupiter-shine at night. The
+presets therefore carry no ambient or diffuse (both `nil`), which leaves the light to the orbit.
 
 The global retune is the five presets plus the director's own Environment modifier. Calm is
-a bright amber haze (sulphur-yellow fog `0.50 0.37 0.15`, warm tan Jupiter-lit diffuse
-`0.74 0.55 0.33`, sun power 0.85). Each rung thickens the haze, drops the sun and pulls the
-whole palette from sulphur-yellow toward red-brown, until a paroxysm is a dim, ember-coloured
-gloom (fog `0.31 0.13 0.05` closing to 150, sun power 0.36). A `MarsHaze` particle layer
-carries the haze and, from rung 2, a ground-level `DustGrit` layer. Presets keep the map's own
-`[Sky] SkyTexture=jupiter.map` (`sky = nil`), carry no lightning, and are authored for
-misn10's `VisibilityRange=250`; CRWeather clamps fog ends to the real horizon.
+barely there: a dark sulphur-tinted fog `0.22 0.17 0.10` from 140 to 250, a thin haze layer
+(alpha 0.16) and sun power 0.85. Each rung thickens the haze, darkens the fog and drops the
+sun, moving from a faint sulphur tint toward ash-brown. A paroxysm is a dim gloom (fog
+`0.17 0.10 0.06` closing to 150, sun power 0.36).
+
+A `CR/Io/Haze` particle layer carries the haze. From rung 2 a ground-level `CR/Io/Grit`
+layer joins it. Presets set no sky (`sky = nil`) and carry no lightning. They are authored for
+misn10's `VisibilityRange=250`, and CRWeather clamps fog ends to the real horizon.
 
 `Environment` modifier additions on top of the presets: gloom (`GloomDim` 0.16,
 `GloomRed` 0.08, scaled by the rung's gloom value, so the light slides between rungs instead
@@ -168,7 +176,7 @@ Eruptions are **periodic and staggered**, scheduled by the host:
 
 ## 4. Ash fall
 
-One camera-attached `CR/Weather/AshFall` (the base weather payload's template, 2,000
+One camera-attached `CR/Io/AshFall` (the base weather payload's template, 2,000
 particle quota, 44 units overhead), emission = 150/s x the rung's ash value, tinted
 sulphur-grey and leaning with the wind. Quakes add up to x1.6 more while they last. `ashFall
 = false` switches it off.
