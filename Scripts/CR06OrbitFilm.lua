@@ -149,12 +149,8 @@ local function restore_scene(shot, api)
     if s.fog then call(api, "SetFog", s.fog) end
     if s.ambient then call(api, "SetAmbientLight", s.ambient) end
     if s.sun then call(api, "SetSunDirection", s.sun) end
-    if shot.domeOwned or shot.boxOwned then call(api, "SetSkyDomeEnabled", s.dome == true) end
-    -- The fallback path replaced the dome material with the starfield; put the
-    -- baseline world-art dome back (SetSkyDome re-enables it).
-    if shot.domeOwned and s.dome and api.restoreSky then
-        if not api.restoreSky() then api.log("[misn06] baseline sky dome not restored") end
-    end
+    local skyOwned = shot.domeOwned or shot.boxOwned
+    if skyOwned then call(api, "SetSkyDomeEnabled", s.dome == true) end
     if s.plane then call(api, "SetSkyPlaneEnabled", true)
     elseif shot.floorOwned then call(api, "SetSkyPlaneEnabled", false) end
     shot.floorOwned = nil
@@ -163,6 +159,13 @@ local function restore_scene(shot, api)
     for _, name in ipairs(shot.hidden or {}) do call(api, "SetParticleSystemVisible", name, true) end
     for _, material in ipairs(shot.retextured or {}) do call(api, "SetMaterialTexture", material, material) end
     shot.retextured = nil
+    -- Last, after the stock sky textures are back: reinstall the baseline
+    -- world-art dome (the fallback path replaced its material with the
+    -- starfield; SetSkyDome re-enables it), which also re-hides the stock
+    -- cloud sprites the Mars dome draws itself.
+    if skyOwned and s.dome and api.restoreSky then
+        if not api.restoreSky() then api.log("[misn06] baseline sky dome not restored") end
+    end
     shot.saved = nil
 end
 

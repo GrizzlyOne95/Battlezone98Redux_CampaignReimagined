@@ -1,0 +1,78 @@
+// Mars sky dome (CRSKYMA.MAP): gradient, aureole, sun disc, cirrus and dust
+// veils, and catalog stars at night. See CR_marssky.hlsl. DX11 and DX9 only:
+// on OpenGL the unified programs have no supported delegate, so
+// Materials/crart_mars.material falls through to its CR_SkyDome technique.
+// Tools/Update-WorldSkyProgramVersions.py versions the delegate names.
+
+vertex_program CR_MarsSky_vertexHLSL4_art_dc7e1af267 hlsl
+{
+    source CR_marssky.hlsl
+    target vs_4_0
+    entry_point marssky_vertex
+    preprocessor_defines SM4=1
+}
+
+vertex_program CR_MarsSky_vertexHLSL_art_89fb646ca3 hlsl
+{
+    source CR_marssky.hlsl
+    target vs_3_0
+    entry_point marssky_vertex
+}
+
+fragment_program CR_MarsSky_fragmentHLSL4_art_64b15905a9 hlsl
+{
+    source CR_marssky.hlsl
+    target ps_4_0
+    entry_point marssky_fragment
+    preprocessor_defines SM4=1
+}
+
+fragment_program CR_MarsSky_fragmentHLSL_art_bc1ee4376d hlsl
+{
+    source CR_marssky.hlsl
+    target ps_3_0
+    entry_point marssky_fragment
+}
+
+vertex_program CR_MarsSky_vertex unified
+{
+    delegate CR_MarsSky_vertexHLSL4_art_dc7e1af267
+    delegate CR_MarsSky_vertexHLSL_art_89fb646ca3
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto inverseProjection inverse_projection_matrix
+        param_named_auto inverseView inverse_view_matrix
+    }
+}
+
+// The cloud deck drifts with time_0_x; its 7200 s wrap makes one jump every
+// two hours of play.
+fragment_program CR_MarsSky_fragment unified
+{
+    delegate CR_MarsSky_fragmentHLSL4_art_64b15905a9
+    delegate CR_MarsSky_fragmentHLSL_art_bc1ee4376d
+    default_params
+    {
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto skyProfile surface_specular_colour
+        param_named_auto marsState surface_emissive_colour
+        param_named_auto skyTime time_0_x 7200
+        param_named horizonBlend float4 .02 .35 1 0
+        param_named fogAmbient float4 .35 .16 0 0
+        param_named zenithTint float4 0.62 0.52 0.48 0.55
+        param_named nightTint float4 0.30 0.32 0.40 0.5
+        param_named aureole float4 1.6 0.35 32 3
+        param_named aureoleBlue float4 0.38 0.60 1.00 0.25
+        param_named sunDisc float4 0.005 4 0 0
+        param_named twilight float4 0.85 0.35 0.8 0
+        param_named cloudScale float4 0.05 0.018 0.0004 0.08
+        param_named cloudLook float4 1.4 0.8 2.6 1.5
+        param_named skyRotation matrix4x4 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
+        param_named starParams float4 1 0.65 0.02 4
+        param_named starShape float4 0.6 1.5 0 0
+        param_named milkyParams float4 0.15 -1 0.5 0
+    }
+}

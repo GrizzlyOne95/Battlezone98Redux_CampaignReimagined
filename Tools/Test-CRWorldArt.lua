@@ -57,4 +57,30 @@ Art.UpdateSky(api,"mars");Art.UpdateSky(api,"mars")
 check(#writes==1 and writes[1]==1,"Enhanced sky calibration is applied once")
 profile="redux";Art.UpdateSky(api,"mars")
 check(#writes==2 and writes[2]==0,"Redux switches the sky back to native fog colour")
+local frames={}
+api.SetMaterialPassColors=function(name,colours,technique)
+ frames[#frames+1]={name=name,colours=colours,technique=technique};return true
+end
+local sun={x=-.62,y=.73,z=.29}
+Art.UpdateSky(api,"mars",{sun=sun,night=0,clarity=1})
+local last=frames[#frames]
+check(#frames==1 and last.name=="CRSKYMA.MAP" and last.technique==0,"Mars dome takes the frame state")
+check(last.colours.specular.r==0 and last.colours.specular.g==sun.x and last.colours.specular.b==sun.y and last.colours.specular.a==sun.z,"specular carries the calibration flag and the sun direction")
+check(last.colours.emissive.r==0 and last.colours.emissive.g==1 and last.colours.emissive.b==1,"emissive carries night, clarity and cloud cover")
+Art.UpdateSky(api,"mars",{sun={x=sun.x+.0003,y=sun.y,z=sun.z},night=.001,clarity=1})
+check(#frames==1,"unchanged frame state is not rewritten")
+Art.UpdateSky(api,"mars",{sun=sun,night=.5,clarity=2})
+check(#frames==2 and frames[2].colours.emissive.r==.5 and frames[2].colours.emissive.g==1,"night moves rewrite, clarity clamps")
+profile="enhanced";Art.UpdateSky(api,"mars",{sun=sun,night=.5,clarity=1})
+check(#frames==3 and frames[3].colours.specular.r==1 and frames[3].colours.specular.b==sun.y,"profile change keeps the sun direction")
+Art.UpdateSky(api,"venus",{sun=sun,night=0,clarity=1})
+check(frames[#frames].name=="CRSKYVE.MAP" and frames[#frames].colours.specular.g==0,"other domes keep the plain calibration")
+hidden={}
+api.SetMaterialTexture=function(material,texture) hidden[material]=texture;return true end
+check(Art.InstallSky(api,"mars") and hidden["ACLOUD2.MAP"]=="cr06void.dds" and hidden["acloud.map"]=="cr06void.dds","Mars dome hides the stock cloud sprites")
+local n=#frames
+Art.UpdateSky(api,"mars",{sun=sun,night=.5,clarity=1})
+check(#frames==n+1,"reinstalling the dome rewrites the frame state")
+hidden={}
+Art.HideSkySprites(api,"venus");check(next(hidden)==nil,"other domes keep the stock clouds")
 print("World art lighting: "..count.." checks passed")

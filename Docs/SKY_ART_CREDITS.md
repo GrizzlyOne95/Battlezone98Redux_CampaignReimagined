@@ -37,3 +37,15 @@ Gaia DR2: ESA/Gaia/DPAC.
   `.npy` (Blender's bundled Python reads EXR). The material's `milkyParams` (-1, 0.5) encode
   the map's RA direction and origin.
 - Neither source file is stored in the repository.
+
+## Mars sky (CRSKYMA.MAP)
+
+- `Assets/Textures/crsky_mars_clouds.png` is original, procedural art: `Tools/Build-MarsSkyClouds.py`
+  synthesises it from seeded spectral noise (R water-ice cirrus, G dust veils, B breakup), so it
+  tiles exactly and can be rebaked at any size. No third-party source.
+- `Shaders/CR_marssky.hlsl` draws the dome from it, coloured from the composed fog: a darker
+  zenith, the aureole (blue round a low sun, as Mars sunsets are), a small sun disc, and at night
+  the catalog stars and Milky Way above (credited under "Catalog star sky").
+  `Scripts/CRWorldArt.lua` feeds it the Environment sun direction, night blend and weather
+  clarity, and hides the TRN's stock `ACLOUD`/`ACLOUD2` sprites. OpenGL keeps the stock
+  `mars.tga` dome (technique 1).
