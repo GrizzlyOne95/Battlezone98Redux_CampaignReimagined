@@ -21,8 +21,7 @@ MusicTrack=4
 
 
 [Sky]
-SunTexture= sun.0
-SkyType= 0
+SunTexture=
 SkyHeight = 110
 SkyTexture= 
 
@@ -34,12 +33,25 @@ BackdropHeight  = 100
 [Stars]
 Radius		= 1000
 
-Texture00   = smjovian.map
-Alpha00     = 0
-Size00      = 350
+Texture00   = crjovian.map
+Size00      = 249
 Azimuth00   = 210
 Elevation00 = 35
-Roll00      = 300
+
+Texture01   = crio.map
+Size01      = 13
+Azimuth01   = 172
+Elevation01 = 40
+
+Texture02   = crganyme.map
+Size02      = 8
+Azimuth02   = 108
+Elevation02 = 13
+
+Texture03   = crcallis.map
+Size03      = 3
+Azimuth03   = 243
+Elevation03 = 21
 
 [StarList]
 

@@ -1,6 +1,7 @@
-// Jupiter and the other Galilean moons over the Io maps, each lit from the
-// TRN sun with its true phase. Missions/misn10.trn and misn11.trn name them in
-// [Stars]; Scripts/CRWorldArt.lua turns them with Io's orbit. Shaders:
+// Jupiter and the Galilean moons over the Io and Europa maps, each lit from
+// the TRN sun with its true phase. Missions/misn10.trn and misn11.trn (Io) and
+// misn12.trn and misn13.trn (Europa) name them in [Stars];
+// Scripts/CRWorldArt.lua turns them with the world's orbit. Shaders:
 // Shaders/CR_jovian.hlsl. Technique 1 draws nothing (OpenGL has no delegate).
 // Sources and credits: Docs/SKY_ART_CREDITS.md.
 
@@ -51,6 +52,26 @@ material CRJOVIAN.MAP
 
 // The moons: airless ice and rock, so a flatter limb (Minnaert 0.6), no haze
 // and no eclipse ring.
+material CRIO.MAP : CRJOVIAN.MAP
+{
+	technique 0
+	{
+		pass 0
+		{
+			fragment_program_ref CR_Jovian_fragment
+			{
+				param_named bodyLook float4 0.43 0.05 1.2 0.0015
+				param_named bodySpin float4 0 0 0.6 0
+				param_named bodyRing float4 0 0 0 0.01
+			}
+			texture_unit 0
+			{
+				texture crsky_io.png
+			}
+		}
+	}
+}
+
 material CREUROPA.MAP : CRJOVIAN.MAP
 {
 	technique 0

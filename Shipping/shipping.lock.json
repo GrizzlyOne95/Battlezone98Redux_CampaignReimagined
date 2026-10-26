@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4252,
+  "count": 4254,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -4064,6 +4064,10 @@
       "runtime": "crsky_ganymede.png"
     },
     {
+      "source": "Assets\\Textures\\crsky_io.png",
+      "runtime": "crsky_io.png"
+    },
+    {
       "source": "Assets\\Textures\\crsky_jupiter.png",
       "runtime": "crsky_jupiter.png"
     },
@@ -7422,6 +7426,10 @@
     {
       "source": "Materials\\crart_elysium.material",
       "runtime": "crart_elysium.material"
+    },
+    {
+      "source": "Materials\\crart_europa.material",
+      "runtime": "crart_europa.material"
     },
     {
       "source": "Materials\\crart_io.material",

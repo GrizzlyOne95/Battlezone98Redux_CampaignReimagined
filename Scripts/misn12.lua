@@ -1347,7 +1347,8 @@ local function InitEuropaWeather()
     europaStarted = true
     local net = CRCoop.IsNetworkGame()
     local authority = (not net) or CRCoop.IsAuthority()
-    Environment.Init()
+    -- Europa under Jupiter: the sun's real path, a short eclipse, Jupiter-shine at night.
+    Environment.Init({ lightingMode = "orbit", orbit = { period = 1800, startHour = -40 } })
     Environment.BindWeatherSensors("Europa", CREuropaWeather)
     CREuropaWeather.Init({
         authority = authority,

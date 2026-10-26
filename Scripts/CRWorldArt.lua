@@ -30,17 +30,22 @@ Art.SkyFrameState={}
 -- anchored. The sprite still rasterizes, so the lens flare's occlusion test
 -- keeps working.
 -- The TRN's sky bodies (bodies: the Earth over the Moon, CREARTH.MAP; Jupiter
--- and its other moons over Io, Shaders/CR_jovian.hlsl) are spheres lit from
--- sunDirection, so the box's sun also gives them their phases. Io's TRNs name
--- no sun sprite: the box's sun is the only one.
+-- and the other Galilean moons over Io and Europa, Shaders/CR_jovian.hlsl) are
+-- spheres lit from sunDirection, so the box's sun also gives them their
+-- phases. The Io and Europa TRNs name no sun sprite: the box's sun is the
+-- only one.
 Art.StarBoxes={moon={material="CR_Sky/CatalogStars",hide={"STARS.MAP","MILKYWAY.MAP"},sunSprite="crsun",bodies={"CREARTH.MAP"}},
-    io={material="CR_Sky/IoStars",hide={"STARS.MAP"},bodies={"CRJOVIAN.MAP","CREUROPA.MAP","CRGANYME.MAP","CRCALLIS.MAP"}}}
+    io={material="CR_Sky/IoStars",hide={"STARS.MAP"},bodies={"CRJOVIAN.MAP","CREUROPA.MAP","CRGANYME.MAP","CRCALLIS.MAP"}},
+    europa={material="CR_Sky/EuropaStars",hide={"STARS.MAP"},bodies={"CRJOVIAN.MAP","CRIO.MAP","CRGANYME.MAP","CRCALLIS.MAP"}}}
 Art.SunAnchored={}
 -- A compass heading (0 along +z, 90 along +x) and elevation, in degrees, as a
--- unit vector. TRN [Stars] entries use this convention.
+-- unit vector. TRN [Stars] entries use this convention, in sim space; Redux
+-- draws the world with z mirrored (render z = -sim z), so the entry's quad
+-- stands at (x, y, -z). Every direction here is in that render space, the
+-- one the sky shaders, GetSunDirection and the scene light use.
 local function heading_vector(azimuth,elevation)
     local a,e=math.rad(tonumber(azimuth) or 0),math.rad(tonumber(elevation) or 0)
-    return {x=math.sin(a)*math.cos(e),y=math.sin(e),z=math.cos(a)*math.cos(e)}
+    return {x=math.sin(a)*math.cos(e),y=math.sin(e),z=-math.cos(a)*math.cos(e)}
 end
 -- The sky's sun, when a mission sets one (Environment's night mode). It stands
 -- in for the light's direction wherever the sky needs the real sun: the star
@@ -150,11 +155,14 @@ local function unit(v) return math.max(0,math.min(1,tonumber(v) or 0)) end
 -- through Jupiter square to the pole P, the axis square to both Jupiter's
 -- direction and east-west that tilts up. The hour angle h counts from noon,
 -- where the sun stands highest: S(h) = cos h * noon + sin h * west.
--- radius: Jupiter's angular radius from Io (degrees). spinTurns: how often
--- Jupiter turns, seen from Io, in one Io day (synodic 12.95 h in 42.46 h);
--- spin names the material that turns, from longitude spinStart (radians), and
--- spinLook carries the rest of its bodySpin (Minnaert exponent, limb haze).
-Art.Orbits={io={radius=9.625,spin="CRJOVIAN.MAP",spinTurns=3.28,spinStart=-0.3,spinLook={0.9,0.35}}}
+-- Europa is the same, one moon out: a smaller Jupiter and a longer day.
+-- radius: Jupiter's angular radius from the moon (degrees). spinTurns: how
+-- often Jupiter turns, seen from the moon, in one of its days (Io: synodic
+-- 12.95 h in 42.46 h; Europa: 11.23 h in 85.23 h); spin names the material
+-- that turns, from longitude spinStart (radians), and spinLook carries the
+-- rest of its bodySpin (Minnaert exponent, limb haze).
+Art.Orbits={io={radius=9.625,spin="CRJOVIAN.MAP",spinTurns=3.28,spinStart=-0.3,spinLook={0.9,0.35}},
+    europa={radius=6.115,spin="CRJOVIAN.MAP",spinTurns=7.59,spinStart=1.2,spinLook={0.9,0.35}}}
 Art.Orbit={}
 Art.OrbitWritten={}
 local atan2=math.atan2 or math.atan
@@ -164,8 +172,9 @@ function Art.SetOrbit(world)
     local spec,body=Art.Orbits[world],Art.ShineSource[world]
     if not spec or not body or body.y<0.05 then return nil end
     local len=math.sqrt(body.y*body.y+body.z*body.z)
-    local pole={x=0,y=-body.z/len,z=body.y/len}
-    local noon={x=0,y=pole.z,z=-pole.y}
+    -- Render space is right-handed with z to the south, so this pole is north.
+    local pole={x=0,y=body.z/len,z=-body.y/len}
+    local noon={x=0,y=-pole.z,z=pole.y}
     local orbit={spec=spec,pole=pole,noon=noon,body=body,bodyHour=atan2(-body.x,body.y*noon.y+body.z*noon.z)}
     Art.Orbit[world]=orbit
     return orbit
@@ -325,9 +334,12 @@ end
 -- Io's is Jupiter: a warm tan light, full when the sun is opposite it (Io's
 -- midnight) and new in eclipse. Its night share is small because, in orbit
 -- mode, Jupiter is already the night's directional light. Its light stays
--- below the day's diffuse, so a full Jupiter still reads as night.
+-- below the day's diffuse, so a full Jupiter still reads as night. From
+-- Europa Jupiter covers 0.4 times the sky it does from Io, so its light is
+-- weaker, but the bright ice gives more of it back.
 Art.Shine={moon={texture="crearth.map",colour={r=0.62,g=0.74,b=1.00},day=0.10,night=0.30,light=0.45,bounce=0.08},
-    io={texture="crjovian.map",colour={r=1.00,g=0.80,b=0.58},day=0.05,night=0.07,light=0.36}}
+    io={texture="crjovian.map",colour={r=1.00,g=0.80,b=0.58},day=0.05,night=0.07,light=0.36},
+    europa={texture="crjovian.map",colour={r=1.00,g=0.82,b=0.62},day=0.03,night=0.05,light=0.22}}
 Art.ShineSource={}
 function Art.DetectShine(trn,world)
     Art.ShineSource[world or ""]=nil

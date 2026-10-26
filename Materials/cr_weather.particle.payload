@@ -1075,3 +1075,47 @@ particle_system CR/Io/AshFall
         rotation_range_end          360
     }
 }
+
+// =============================================================================
+// Europa (CREuropaWeather presets)
+// =============================================================================
+
+// A copy of SnowLight on CREuropa/Snow (crart_europa.material), which DX11 draws
+// natively. On CR_FX/Snow DX11 swaps red and blue, so the cold glitter drew a
+// warm peach. Here rather than in the opt-in cr_europa payload because the
+// Europa presets must work without it. CREuropaWeather overrides the colours.
+
+particle_system CR/Europa/Glitter
+{
+    material            CREuropa/Snow
+    particle_width      0.7
+    particle_height     0.7
+    quota               1400
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               32
+        emission_rate       55
+        time_to_live_min    7
+        time_to_live_max    11
+        direction           0 -1 0
+        velocity_min        3
+        velocity_max        7
+        colour_range_start  0.88 0.92 1.00 0.70
+        colour_range_end    0.80 0.86 1.00 0.45
+        width               200
+        height              30
+        depth               200
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      3
+        scope           0.6
+        keep_velocity   true
+    }
+}
