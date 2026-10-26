@@ -21,7 +21,11 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     HeatPerShot = 0.06, HeatMax = 1.0, HeatCool = 0.15, HeatFloor = 0.02, HeatRadius = 0.6,
     -- The glow wraps the barrel within BarrelRadius, from the flash point back
     -- toward the mount for at most BarrelLength, fading out along the way.
-    BarrelRadius = 0.35, BarrelLength = 0.8 }
+    BarrelRadius = 0.35, BarrelLength = 0.8,
+    -- Snow on upward faces by world (CRWorldArt name): cover, linear albedo,
+    -- blue tint, reserved -- the surfaceSnow uniform. The world's terrain
+    -- atlas material takes it too. Cockpit materials never do.
+    SnowWorlds = { europa = { 0.55, 0.88, 0.35, 0 } }, snow = nil }
 
 local function call(fn, ...)
     if type(fn) ~= "function" then return nil end
@@ -125,10 +129,30 @@ local function enhanced()
     return type(profile) == "string" and string.lower(profile) == "enhanced"
 end
 
-local function wetMaterial(name)
+local function wetMaterial(name, cockpit)
     if type(name) ~= "string" or name == "" or own(name) or S.materials[name] or #S.materialOrder >= 4096 then return end
-    S.materials[name] = {}; S.materialOrder[#S.materialOrder + 1] = name
+    S.materials[name] = {cockpit = cockpit}; S.materialOrder[#S.materialOrder + 1] = name
 end
+
+-- Detected once per scene from the TRN's terrain atlas; false = no snow.
+local function sceneSnow()
+    if S.snow ~= nil then return S.snow end
+    local file = call(GetMapTRNFilename)
+    local trn = type(file) == "string" and file ~= "" and call(OpenODF, file) or nil
+    local ok, art = pcall(require, "CRWorldArt")
+    local world = trn and ok and type(art) == "table" and call(art.Detect, trn) or nil
+    S.snow = S.SnowWorlds[world] or false
+    if S.snow then
+        local atlas = call(GetODFString, trn, "Atlases", "MaterialName", "")
+        if type(atlas) == "string" and atlas ~= "" then wetMaterial(string.upper(atlas)) end
+    end
+    return S.snow
+end
+
+local function writeSnow(name, snow)
+    return call(exu.SetMaterialShaderVector, name, "surfaceSnow", snow[1], snow[2], snow[3], snow[4], -1, -1, "Autodetect")
+end
+local NoSnow = {0, 0, 0, 0}
 
 local function write(slot, name, a, b, c, d)
     local old = slot.values[name]
@@ -215,7 +239,7 @@ local function bindOne(r)
     local source = call(exu.GetSubEntityMaterial, target(r), index)
     if own(source) then r.bindIndex=index+1;return end
     if type(source) ~= "string" or source == "" then r.retry = S.Clock + 1; return end
-    wetMaterial(source)
+    wetMaterial(source, r.cockpit)
     local name = "exu_surface_cr_" .. tostring(r.id) .. "_" .. tostring(index) .. (r.cockpit and "_cockpit" or "")
     if call(exu.CloneSurfaceMaterial, source, name) ~= true then r.retry = S.Clock + 1; return end
     S.clones[name] = true
@@ -227,6 +251,8 @@ local function bindOne(r)
     if not finite(supported) or supported < 1 then
         call(exu.ReleaseSurfaceMaterial,name); S.clones[name]=nil; r.bindIndex=index+1;r.unsupported[index]=S.Clock+2; return
     end
+    local snow = not r.cockpit and sceneSnow()
+    if snow then call(exu.SetMaterialShaderVector, name, "surfaceSnow", snow[1], snow[2], snow[3], snow[4]) end
     if call(exu.SetSurfaceMaterial, target(r), index, name) ~= true then
         call(exu.ReleaseSurfaceMaterial, name); S.clones[name] = nil; r.retry = S.Clock + 1; return
     end
@@ -549,6 +575,7 @@ function S.Update(dt)
         S.sweepLeft, S.cloneLeft = #S.materialOrder, #S.active
     end
     local moving = S.sweepMoving or math.abs(S.Wetness-S.SweepWet) > 0.001
+    local snow = sceneSnow()
     for _=1,math.min(moving and S.MaxMaterialBudget or S.MaterialBudget,#S.materialOrder) do
         if S.materialCursor > #S.materialOrder then S.materialCursor=1 end
         local name=S.materialOrder[S.materialCursor];local state=S.materials[name]
@@ -556,6 +583,12 @@ function S.Update(dt)
             local changed=call(exu.SetMaterialShaderVector,name,"surfaceState",S.SweepWet,0,0,0,-1,-1,"Autodetect")
             if finite(changed) and changed > 0 then state.wet=S.SweepWet
             else state.retry=S.Clock+2 end
+        end
+        -- Snow is fixed for the scene: one write per material, own retry,
+        -- since terrain takes surfaceSnow but has no surfaceState.
+        if snow and not state.cockpit and not state.snow and S.Clock >= (state.snowRetry or 0) then
+            local changed=writeSnow(name,snow)
+            if finite(changed) and changed > 0 then state.snow=true else state.snowRetry=S.Clock+2 end
         end
         S.materialCursor=S.materialCursor+1;S.sweepLeft=S.sweepLeft-1
     end
@@ -607,12 +640,16 @@ end
 function S.ResetScene()
     for _,r in pairs(S.records) do release(r) end
     if S.cockpit then release(S.cockpit) end
-    for name in pairs(S.materials) do call(exu.SetMaterialShaderVector,name,"surfaceState",0,0,0,0,-1,-1,"Autodetect") end
+    for name,state in pairs(S.materials) do
+        call(exu.SetMaterialShaderVector,name,"surfaceState",0,0,0,0,-1,-1,"Autodetect")
+        if state.snow then writeSnow(name,NoSnow) end
+    end
     S.records,S.order,S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{},{},{}
     S.hits,S.shots,S.clones = {},{},{}
     S.cockpit=nil;S.cursor=1;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
     setCrack(0);S.crackSpots,S.crackSpotCount={},0
     S.SweepWet=0;S.sweepLeft=0;S.cloneLeft=0;S.wetCursor=1;S.sweepMoving=false
+    S.snow=nil
 end
 
 -- Player setting. Off restores every owned material, releases clones, unhooks
@@ -631,7 +668,10 @@ end
 function S.Suspend()
     for _,r in pairs(S.records) do release(r); r.needs=false; r.marks={}; r.heat={}; r.discover=nil; r.discoverAt=nil end
     if S.cockpit then release(S.cockpit) end
-    for name in pairs(S.materials) do call(exu.SetMaterialShaderVector,name,"surfaceState",0,0,0,0,-1,-1,"Autodetect") end
+    for name,state in pairs(S.materials) do
+        call(exu.SetMaterialShaderVector,name,"surfaceState",0,0,0,0,-1,-1,"Autodetect")
+        if state.snow then writeSnow(name,NoSnow) end
+    end
     S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{}
     S.hits,S.shots,S.clones = {},{},{}
     S.cockpit=nil;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
