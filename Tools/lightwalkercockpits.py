@@ -1,6 +1,7 @@
 """CRA light tank and CRA/CCA head-armored walker cockpits; native-rest fitting."""
 import io
 import numpy as np
+import ogrelayout
 import reddevilcockpit as shared
 import combatcockpits as hw
 import tankcockpits as tank
@@ -93,6 +94,6 @@ def compile_mesh(parts,s,w,eye,shell,bind,posed,meta,base):
         vd=sub.vertex_data;d=np.column_stack([shared.values(vd,sem) for sem in (shared.om.VES.POSITION,shared.om.VES.NORMAL,shared.om.VES.TEXTURE_COORDINATES,shared.om.VES.TANGENT)]);handles=np.array([a.bone_index for a in sub.bone_assignments()]);original=d.copy()
         for handle in set(handles):
             ids=handles==handle;T=bind[handle]@np.linalg.inv(posed[handle]);d[ids]=transform(original[ids],T)
-        vd.get_vertex_buffer(0).buffer=np.frombuffer(d.astype('<f4').tobytes(),dtype=np.uint8).copy()
+        ogrelayout.set_rows(vd,d)
     points=np.concatenate([shared.values(sub.vertex_data,shared.om.VES.POSITION) for sub in mesh.submesh_list]);lo=points.min(0);hi=points.max(0);mesh.aabb=shared.om.AxisAlignedBoundingBox(*lo,*hi);mesh.bound_radius=float(np.linalg.norm(points,axis=1).max());out=io.BytesIO();shared.oms.MeshSerializer(out).write(mesh)
     return out.getvalue(),glass

@@ -2,15 +2,15 @@
   "schema": 1,
   "base": "cvltnk",
   "sources": {
-    "exteriorSha256": "79b6f191ca13fa757884e301867b9da4b226d02186a092d51e05fa8bbc09ce26",
+    "exteriorSha256": "0ec42bde5ed477e628299b4177ad259e2354aa5d9e29ade6c8f1e559d6fcf620",
     "fullRigSha256": "61a9e52a0e4d9f661d0e54728a91085a76747c90542d118fb1b3f5d486f81756",
     "cockpitRigSha256": "61a9e52a0e4d9f661d0e54728a91085a76747c90542d118fb1b3f5d486f81756",
-    "sourceCockpitSha256": "79b6f191ca13fa757884e301867b9da4b226d02186a092d51e05fa8bbc09ce26",
+    "sourceCockpitSha256": "0ec42bde5ed477e628299b4177ad259e2354aa5d9e29ade6c8f1e559d6fcf620",
     "sectionFixtureSha256": "fe90d09287f1528502eae146fa62df18a3f87db1ea4211ff08a966c0ad9f4452",
     "nativeVdfSha256": "44e035491ca52c0370d93c4f11944baa93f2581b5914100fa5d4fed3b9a36861"
   },
   "outputs": {
-    "Assets/Models/cvltnk_cockpit.mesh": "e303ea943b3b92a51d65ac6abb8c9d36bd029b286558dbcfb34465c5da505da0",
+    "Assets/Models/cvltnk_cockpit.mesh": "7652b641a8afbf6eb03b1c9451a879038cd91b3b2cc23a7a415c2c6a844d9166",
     "Assets/Models/cvltnk_cockpit.skeleton": "61a9e52a0e4d9f661d0e54728a91085a76747c90542d118fb1b3f5d486f81756",
     "Materials/CR_cvltnk_cockpit.material": "f53f238e2c861b765917390717242b11b2dfa1e55f062a136a2da59e4d6298f8"
   },

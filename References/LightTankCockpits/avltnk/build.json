@@ -2,14 +2,14 @@
   "schema": 1,
   "sources": {
     "baseline": "References/LightTankCockpits/source/avltnk.mesh",
-    "exteriorSha256": "7190c50ad83130c46a51f429857b1397e92d565be1804b2009805c61f23bc7c7",
+    "exteriorSha256": "2c26236bd36733fac856a237ff881be7f61e6fdd6cb4293470c1a32437f1f8a1",
     "skeletonSha256": "a856d40b4859aa5ea5ea3877e76bbff4181cd04c4323a9c132577e9ff9dfa5dd"
   },
   "outputs": {
-    "Assets/Models/avltnk_cockpit.mesh": "f831df4e0a2411f68a0ec1ea8ad22af6c13d0254f19c75aead635117ec168e08",
+    "Assets/Models/avltnk_cockpit.mesh": "f3272f759a34eef8b2311323ec506464a360f9db46ffe6807f3780fd1838389b",
     "Assets/Models/avltnk_cockpit.skeleton": "a856d40b4859aa5ea5ea3877e76bbff4181cd04c4323a9c132577e9ff9dfa5dd",
     "Materials/CR_avltnk_cockpit.material": "efc5d1b272db78d50bcbfa665781e60e863a155016ebb881650c6f4f01fd32d9",
-    "Assets/ModelFixes/avltnk.mesh": "205ccc156d5a2409cf670bd6489063b8103e22f16df2aaee4c37cd9d8e617b3a"
+    "Assets/ModelFixes/avltnk.mesh": "254cbda076c8049019235ecc4201cfca805c742c2989f66c266f52ed7627bb34"
   },
   "alignment": {
     "base": "avltnk",

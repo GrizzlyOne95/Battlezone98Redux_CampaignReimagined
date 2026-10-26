@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "sources": {
-    "exteriorSha256": "6e276c9bcb70c7ab200db0dc7aa0d4f9d5ae262ffec84e5c5553721212fa01c6",
+    "exteriorSha256": "8bde0ed33f7f4819abed5d5e442ec10fcf37990f02186ff5055d0169411ebbb2",
     "skeletonSha256": "00ea42ea2f580a3c982180c93204866d1ccf443f1eba6a62754f70c6069d3acd"
   },
   "outputs": {
-    "Assets/Models/avtank_cockpit.mesh": "5eb6a7db11f4621993816ca649d99d2b1619ed080690ef424329789f848272ba",
+    "Assets/Models/avtank_cockpit.mesh": "9868c0b465eda741fd5d0061823c4e90e680201441ed98aae7ff00b319035205",
     "Assets/Models/avtank_cockpit.skeleton": "00ea42ea2f580a3c982180c93204866d1ccf443f1eba6a62754f70c6069d3acd",
     "Materials/CR_avtank_cockpit.material": "4ae42fd729eee346437b0b72745e7dbf5ef43db3bd9c149959153060a4dcbe2f"
   },

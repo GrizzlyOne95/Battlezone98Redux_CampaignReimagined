@@ -5,12 +5,12 @@
     "exteriorSha256": "4b6144934042567dce657a189e5542499c926566533df0d92adf939f14eec898",
     "fullRigSha256": "bc4ead083945e0bfcaf8a3b7ee7241f445ff6a287ad1ecba80307dd803ead9cb",
     "cockpitRigSha256": "b2f3a2a7afbcac893e5cdc1e58a4ee46ef58b4f9784f8146be3f8064f2495d2e",
-    "sourceCockpitSha256": "ccd499b3d5a20d9112447219083138301f294901f8528737ade96c84cf435c4f",
+    "sourceCockpitSha256": "7062ca39add6846cdcdd1d694e921c534fa8743a0c6f11b4a5e728420468a51c",
     "sectionFixtureSha256": "f845955fbb4df663b71bf5e75c297557719c7d9dc4740ac16fb1a6d7be755b22",
     "nativeVdfSha256": "085cafa1c0da615f7127657a1d885c896a68a43b25c41cfd329b8cc11076fb67"
   },
   "outputs": {
-    "Assets/ModelFixes/cvwalk_c.mesh": "96b8ca1218c371d17fa794975080c51e1869a0d61347fb423fa13b58a4478447",
+    "Assets/ModelFixes/cvwalk_c.mesh": "013fcf186861a04c3970e465f26211418eecd10dcfa3291d7a750d44895366ad",
     "Materials/CR_cvwalk_cockpit.material": "e9a8546c726d871ebd164db2c4851e751f183d62aa8866fef8c23e40a399eee9"
   },
   "alignment": {

@@ -5,12 +5,12 @@
     "exteriorSha256": "89ebdeb8a532646ba2ed6ec8cfb7b628fc7f6920aa86604388b40b1959fb93fd",
     "fullRigSha256": "173938b8262bfa4ff0c99a42d83fe7ac86f2a622bf69a9bfd949568c453300b3",
     "cockpitRigSha256": "a8dc8728227824f42afe36aedf2aa3ba7540481bfc5e93c37127eda150532c6a",
-    "sourceCockpitSha256": "19deab0c076a5d8ad53a0c46cae13197011d4b286834a03d9464210adb457208",
+    "sourceCockpitSha256": "be6bb37c34e65515e89345f67e8599daf7a3204d68ad34d109adff57835f27b5",
     "sectionFixtureSha256": "8db6f2b0eb87304d2cd09ff41f82e12f2854b40bca2a3365b09a3a82c1160aa0",
     "nativeVdfSha256": "5d058adbe90a3e4dd10a681784c1ae4e7b17b1888e9c90d8497f8ebdc3602602"
   },
   "outputs": {
-    "Assets/ModelFixes/svwalk_c.mesh": "43ae4a2fc429ae96ad57ad0a5fa23644e9bd28cbe2d5cda545eb8643b3ca170e",
+    "Assets/ModelFixes/svwalk_c.mesh": "028a467441db4346a6d33399db97616bc9a490770bb1e65a76b698cd6960b9f1",
     "Materials/CR_svwalk_cockpit.material": "e64e5a7926286c3fc8fddd1a66ec92c1cdddee6b53bc63f51139145f8d296071"
   },
   "alignment": {

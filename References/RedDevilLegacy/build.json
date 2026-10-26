@@ -14,7 +14,7 @@
   "format": "BC1_UNORM",
   "sha256": "e5e899e41e686cd2cbf8970eb9f313f83c9be4417fe3de602ef4bfe978fa84b9",
   "bytes": 1092448,
-  "meshSha256": "820438108bf16720abefe87b71585ba7d8a1f374002e41a008c7603bdf1c0466",
+  "meshSha256": "dd4ee3c667353962688298b11833ba1c10ad591b26cdd3005a4197a74cde9188",
   "unchanged": [
     "mesh",
     "UVs",

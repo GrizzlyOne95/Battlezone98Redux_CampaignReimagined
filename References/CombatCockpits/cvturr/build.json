@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "sources": {
-    "exteriorSha256": "f6f8bfd818e12edcee99ef9ef17e46d6460e2edf19ef4ff9a12b7db73a1e6b6e",
+    "exteriorSha256": "828376d69954f73e4f33472d88ee96e70431948acf016d674e14c3fe128e55da",
     "skeletonSha256": "6e9d00b6e962666467b5dbbf9c8fbee7a0be0aabde40641dd6b8e8ca5961eb48"
   },
   "outputs": {
-    "Assets/Models/cvturr_cockpit.mesh": "463f4c4042b93247aead9d90a6b9ed1a8688db3825ae1a7ebd16aec1ff5408a5",
+    "Assets/Models/cvturr_cockpit.mesh": "675901456595e989ce708729cc82606337d4280ac751bcd0d48f98093f74941b",
     "Assets/Models/cvturr_cockpit.skeleton": "6e9d00b6e962666467b5dbbf9c8fbee7a0be0aabde40641dd6b8e8ca5961eb48",
     "Materials/CR_cvturr_cockpit.material": "048dd96c3f94786ad33e4206b31faf9d64076955525be3d411dbef16e89e289f"
   },

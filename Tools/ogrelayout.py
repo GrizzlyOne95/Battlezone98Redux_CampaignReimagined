@@ -59,6 +59,15 @@ def fill_vertex_data(vertex_data, rows):
         vertex_data.create_vertex_buffer(data, bind, stride)
 
 
+def set_rows(vertex_data, rows):
+    """Overwrite the buffers of a stock-layout bzmodellibs VertexData with new rows."""
+    for bind, stride, data in stock_layout(rows)[1]:
+        buffer = vertex_data.get_vertex_buffer(bind)
+        if buffer.vertex_size != stride:
+            raise ValueError("vertex data is not in the stock layout")
+        buffer.buffer = np.frombuffer(data, dtype=np.uint8).copy()
+
+
 def chunk(cid, body):
     return struct.pack("<HI", cid, len(body) + 6) + body
 

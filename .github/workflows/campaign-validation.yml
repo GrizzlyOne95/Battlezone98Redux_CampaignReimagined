@@ -104,6 +104,7 @@ jobs:
 
       - name: Validate cockpit revamps and Red Devil legacy skin
         run: |
+          python Tools/ogrelayout.py --check
           python Tools/Test-RedDevilLegacy.py
           python Tools/Test-RedDevilCockpit.py
           python Tools/Test-CVFighterCockpit.py
