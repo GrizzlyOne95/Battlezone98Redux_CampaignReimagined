@@ -108,7 +108,13 @@ local function step(time)
     Update(0.05)
 end
 local function noop() end
+local pda = {Initialize = 0, UpdateInputs = 0, UpdateHeadlights = 0, OnObjectCreated = 0}
 local modules = {
+    PersistentConfig = {
+        Initialize = function() pda.Initialize = pda.Initialize + 1 end,
+        UpdateInputs = function() pda.UpdateInputs = pda.UpdateInputs + 1 end,
+        UpdateHeadlights = function() pda.UpdateHeadlights = pda.UpdateHeadlights + 1 end,
+        OnObjectCreated = function() pda.OnObjectCreated = pda.OnObjectCreated + 1 end},
     RequireFix = {Initialize = noop}, exu = {},
     Environment = {Init = noop, BindWeatherSensors = noop, Update = noop, OnObjectCreated = noop},
     -- The real module plays through AudioMessage and returns its handle.
@@ -135,6 +141,7 @@ local function reset()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoop = assert(loadfile("Scripts/CRCoop.lua"))()
     timer, timerRunning = 0, false
+    for k in pairs(pda) do pda[k] = 0 end
     dofile("Scripts/misn12.lua")
     Start()
     check(not Save().start_done and #calls == count("RemoveObject"), "Start only performs source Setup (and drops the co-op buoys)")
@@ -163,6 +170,9 @@ local function copy(t)
 end
 
 local m = reset()
+check(pda.Initialize == 1, "PersistentConfig.Initialize ran exactly once after Start")
+check(pda.UpdateInputs >= 1 and pda.UpdateHeadlights >= 1, "the first Update drives PersistentConfig inputs and headlights")
+check(pda.Initialize == 1, "the first Update does not re-initialize PersistentConfig")
 check(m.start_done and objects[m.key_ship].odf == "svfi12", "original key-ship ODF")
 check(count("BuildObject", "apcamr") == 6 and count("BuildObject", "svfi12") == 1, "startup spawns")
 check(not m.multi and not m.strict and m.slots == 1 and #m.arty == 4, "offline: one human, one key ship, four howitzers found")

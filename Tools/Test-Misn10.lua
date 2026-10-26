@@ -102,7 +102,13 @@ end
 
 local function noop() end
 local ioSites = {mission = "misn10"}
+local pda = {Initialize = 0, UpdateInputs = 0, UpdateHeadlights = 0, OnObjectCreated = 0}
 local modules = {
+    PersistentConfig = {
+        Initialize = function() pda.Initialize = pda.Initialize + 1 end,
+        UpdateInputs = function() pda.UpdateInputs = pda.UpdateInputs + 1 end,
+        UpdateHeadlights = function() pda.UpdateHeadlights = pda.UpdateHeadlights + 1 end,
+        OnObjectCreated = function() pda.OnObjectCreated = pda.OnObjectCreated + 1 end},
     RequireFix = {Initialize = noop}, exu = {},
     Environment = {Init = noop, BindWeatherSensors = noop, Update = noop, OnObjectCreated = noop},
     -- The real module plays through AudioMessage and returns its handle.
@@ -143,6 +149,7 @@ local function reset(started)
     modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoop = assert(loadfile("Scripts/CRCoop.lua"))()
+    for k in pairs(pda) do pda[k] = 0 end
     dofile("Scripts/misn10.lua")
     Start()
     if started ~= false then Update(0.05) end
@@ -173,11 +180,14 @@ end
 
 -- ---------------------------------------------------------------- startup / setup
 local m = reset(false)
+check(pda.Initialize == 1, "PersistentConfig.Initialize ran exactly once after Start")
 check(count("SetAIControl", 5, true) == 1 and count("SetAIControl") == 1,
     "strategic AI enabled once, on the CCA team (team 5), at the chunk root")
 check(m.sav_free and not m.start_done and m.quake_time == 4 and m.geys1check == 180, "native Setup defaults")
 check(not called("IoInit") and Save().weatherState == nil, "no weather before the first update")
 Update(0.05)
+check(pda.UpdateInputs >= 1 and pda.UpdateHeadlights >= 1, "the first Update drives PersistentConfig inputs and headlights")
+check(pda.Initialize == 1, "the first Update does not re-initialize PersistentConfig")
 check(m.start_done and called("AudioMessage", "misn1000.wav"), "briefing")
 check(called("AddObjective", "misn1000.otf", "white"), "original objective")
 check(called("SetScrap", 1, 30) and called("SetScrap", 5, 40)

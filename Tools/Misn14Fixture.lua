@@ -155,6 +155,7 @@ function F.makePeer(id, team, network, options)
         p.calls[#p.calls + 1] = c
     end
     p.record = record
+    p.pda = {Initialize = 0, UpdateInputs = 0, UpdateHeadlights = 0, OnObjectCreated = 0}
     local e = setmetatable({}, {__index = _G})
     e._G = e
     e.print = function(...) record("print", ...) end
@@ -314,6 +315,11 @@ function F.makePeer(id, team, network, options)
         RequireFix = {Initialize = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end},
+        PersistentConfig = {
+            Initialize = function() p.pda.Initialize = p.pda.Initialize + 1 end,
+            UpdateInputs = function() p.pda.UpdateInputs = p.pda.UpdateInputs + 1 end,
+            UpdateHeadlights = function() p.pda.UpdateHeadlights = p.pda.UpdateHeadlights + 1 end,
+            OnObjectCreated = function() p.pda.OnObjectCreated = p.pda.OnObjectCreated + 1 end},
         ScriptSubtitles = {
             Play = function(file) record("Play", file); return "audio:" .. file end,
             Queue = function(file) record("Queue", file); return "audio:" .. file end,

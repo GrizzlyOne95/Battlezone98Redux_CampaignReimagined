@@ -25,7 +25,7 @@ for name, expected in {
 source = (SNAPSHOT / "Misn13Mission.cpp").read_text(encoding="utf-8")
 lua_full = (ROOT / "Scripts/misn13.lua").read_text(encoding="utf-8").replace("\r\n", "\n")
 
-REGIONS = ("CR co-op layer", "CR CCA scaling", "CR team filter", "CR win", "CR objectives", "CR cut VO",
+REGIONS = ("CR PDA", "CR co-op layer", "CR CCA scaling", "CR team filter", "CR win", "CR objectives", "CR cut VO",
            "CR restored waves", "CR escort", "CR reserve", "CR GetWhoShotMe", "CR rally", "CR Europa weather")
 opens = {f"-- {name} >>": name for name in REGIONS}
 closes = {f"-- {name} <<": name for name in REGIONS}

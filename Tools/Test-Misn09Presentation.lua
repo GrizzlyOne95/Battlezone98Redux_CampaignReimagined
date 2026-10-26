@@ -11,6 +11,7 @@ local function peer(id)
     local p = {calls={}, valid={subject=true, target=true}, cancelled=false, info={},
         resources={scrap=0, pilots=0, maxScrap=id == 1 and 35 or 0, maxPilots=id == 1 and 15 or 0}}
     local env = setmetatable({}, {__index=_G})
+    env._G = env -- mission chunks resolve _G.SucceedMission/FailMission at call time
     local function record(op, ...)
         p.calls[#p.calls+1] = {op, ...}
     end
