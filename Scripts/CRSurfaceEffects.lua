@@ -23,9 +23,10 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     -- toward the mount for at most BarrelLength, fading out along the way.
     BarrelRadius = 0.35, BarrelLength = 0.8,
     -- Snow on upward faces by world (CRWorldArt name): cover, linear albedo,
-    -- blue tint, reserved -- the surfaceSnow uniform. The world's terrain
+    -- blue tint, ice depth in metres (terrain parallax ice under the snow
+    -- line, 0 = off) -- the surfaceSnow uniform. The world's terrain
     -- atlas material takes it too. Cockpit materials never do.
-    SnowWorlds = { europa = { 0.55, 0.88, 0.35, 0 } }, snow = nil }
+    SnowWorlds = { europa = { 0.4, 0.88, 0.35, 1.0 } }, snow = nil }
 
 local function call(fn, ...)
     if type(fn) ~= "function" then return nil end

@@ -1,7 +1,7 @@
 -- Lua 5.1 host regression: a snow world (Europa, from the TRN atlas) puts
 -- surfaceSnow on every shared material, owned clones and the terrain atlas,
 -- never on cockpit materials, and clears it on reset. Other worlds write none.
-local E, objects, snowOf, stateOf = {}, {}, {}, {}
+local E, objects, snowOf, stateOf, iceOf = {}, {}, {}, {}, {}
 local atlas = "eu_detail_atlas"
 local N = 40
 for h = 1, N do objects[h] = { material = "mat" .. h, class = h == 2 and "turret" or "tank" } end
@@ -31,13 +31,13 @@ function E.SetSubEntityMaterial(t, _, name) if type(t) == "table" then obj(t).co
 E.SetSurfaceMaterial = E.SetSubEntityMaterial
 function E.CloneSurfaceMaterial() return true end
 function E.ReleaseSurfaceMaterial() return true end
-function E.SetMaterialShaderVector(name, key, a)
+function E.SetMaterialShaderVector(name, key, a, b, c, d)
     -- Terrain has surfaceSnow but no surfaceState.
     if key == "surfaceState" then
         if name == "EU_DETAIL_ATLAS" then return 0 end
         stateOf[name] = a; return 1
     end
-    if key == "surfaceSnow" then snowOf[name] = a; return 1 end
+    if key == "surfaceSnow" then snowOf[name] = a; iceOf[name] = d; return 1 end
     return 0
 end
 function E.EntityLocalPoint(_, p) return p end
@@ -55,12 +55,13 @@ view = 1 -- cockpit view: its "panel" material must stay clear of snow
 for h = 1, N do S.Register(h) end
 for _ = 1, 200 do S.Update(0.05) end
 
-assert(snowOf.EU_DETAIL_ATLAS and snowOf.EU_DETAIL_ATLAS > 0.5, "terrain atlas takes snow")
+assert(snowOf.EU_DETAIL_ATLAS and snowOf.EU_DETAIL_ATLAS > 0.2, "terrain atlas takes snow")
+assert(iceOf.EU_DETAIL_ATLAS and iceOf.EU_DETAIL_ATLAS > 0.5, "terrain atlas takes ice depth")
 for h = 1, N do
-    if h ~= 2 then assert(snowOf["mat" .. h] and snowOf["mat" .. h] > 0.5, "mat" .. h .. " has snow") end
+    if h ~= 2 then assert(snowOf["mat" .. h] and snowOf["mat" .. h] > 0.2, "mat" .. h .. " has snow") end
 end
 local tower = objects[2].material
-assert(tower ~= "mat2" and snowOf[tower] and snowOf[tower] > 0.5, "tower clone has snow")
+assert(tower ~= "mat2" and snowOf[tower] and snowOf[tower] > 0.2, "tower clone has snow")
 assert(not snowOf.panel, "cockpit material never gets snow")
 local cockpitClone = objects[1].cockpit
 assert(cockpitClone and cockpitClone ~= "panel" and not snowOf[cockpitClone], "cockpit clone never gets snow")
