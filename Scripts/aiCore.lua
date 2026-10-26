@@ -3344,8 +3344,16 @@ function aiCore.Load(data)
         setmetatable(mgr, aiCore.OffenseRetaliationManager)
     end
 
+    -- The rebuild below reads live engine state (GetIndependence, mass, tactics), but
+    -- Load() runs before the engine has attached each unit's AI process (PostLoadAll):
+    -- GetIndependence on a unit in that state is a native crash that pcall cannot catch.
+    -- So it waits for the first aiCore.Update() after the load.
+    aiCore._postLoadPending = true
+end
+
+function aiCore.FinishPostLoad()
     -- The object cache is not saved: rebuild it from the live world so the GetCached*
-    -- getters work immediately (this is the only full rebuild; afterwards it is incremental).
+    -- getters work (this is the only full rebuild; afterwards it is incremental).
     aiCore.ResetObjectCacheTracking()
     for h in AllObjects() do
         if not ((IsCraft(h) or IsPerson(h)) and IsIndependenceLocked(h)) then
@@ -12914,6 +12922,10 @@ end
 
 function aiCore.Update()
     local Step = aiCore.SafeStep
+    if aiCore._postLoadPending then
+        aiCore._postLoadPending = false
+        Step("FinishPostLoad", aiCore.FinishPostLoad)
+    end
     Step("SetupOrdnanceHooks", aiCore.SetupOrdnanceHooks)
     Step("SyncNativeTactics", aiCore.SyncNativeTactics)
 

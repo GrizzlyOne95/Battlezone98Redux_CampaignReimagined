@@ -236,6 +236,7 @@ H.try("bug 13", function()
     local alive1 = H.addObject { team = 2, odf = "svtank", class = "wingman", craft = true }
     aiCore.ResetObjectCacheTracking()
     aiCore.Load(saved)
+    aiCore.Update()   -- the object cache rebuild waits for the first Update after Load
     local loadedTeam = aiCore.ActiveTeams[2]
     check("bug 13: loaded squads point back at their team", loadedTeam.squads[1].teamObj == loadedTeam)
     check("bug 13: the object cache is repopulated after Load", #aiCore.GetCachedTeamCraft(2) == 1
