@@ -154,10 +154,12 @@ without the other.
 3. Review `docs/workshop_description.bbcode` against the live Steam
    description. The default upload never sends the description: it is edited
    by hand on Steam between releases, and a content push must not revert those
-   edits. Change it on Steam directly. (Only the `-steamcmd` path can replace
-   it, and only with `PublishDescription: true`; re-snapshot the live text
-   first, see `docs/workshop_description.published-*.bbcode`. Steam rejects a
-   description over 8000 characters.)
+   edits. To replace it, set `PublishDescription: true` in
+   `workshop.config.json` for that run (both the Steam-client and `-steamcmd`
+   paths honour it; the dry run says whether it will be sent). Rebuild the file
+   from the live text first so hand edits survive, see
+   `docs/workshop_description.published-*.bbcode`. Steam rejects a description
+   over 8000 characters.
 4. Review all OpenShim, EXU, bzfile, and CR changes entering the upload against
    `Battlezone98Redux_Shim/Docs/STEAM_ROADMAP_BBCODE.txt`.
 5. Update the roadmap BBCode so completed work, changed implementation status,

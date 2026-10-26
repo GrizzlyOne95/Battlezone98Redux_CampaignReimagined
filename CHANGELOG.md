@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- Bundle OpenShim 1.0.0.60: terrain paint reuses the height pass's near taps and Micro Detail culls off-screen relief
+  patches (each about +11-12% fps at 4K); paint packs gain a MAT-aligned Base-pad layer, a variation-rule list and
+  per-layer contrast; native weapon muzzle flash and mesh recoil are now allowed on the Steam executable too.
+- Per-world Enhanced DX11/DX9 sky domes: Moon (catalog star box, NASA Milky Way, phase-lit Earth with city lights and
+  earthshine; misn03 is a lunar night), Mars (day cycle, cirrus, dust veils, night Milky Way), Venus (a live cloud deck
+  driven by the storm, lightning and fog banks), Io and Europa (black star skies, Jupiter at true size and phase,
+  eclipse and Jupiter-shine), Titan (haze dome with Saturn through the haze; misn15 at night) and Achilles (storm dome
+  with Uranus and its rings; misn18 at night). Art is original or credited in `Docs/SKY_ART_CREDITS.md`. OpenGL keeps
+  the stock domes.
+- Per-world scrap geyser effects (`CRGeysers`) on Achilles, Mars, Titan and the Moon, hidden while a Recycler, Factory,
+  Armory or Construction Rig is deployed on the vent; Europa's and Io's existing plumes get the same gate (Venus not
+  yet). Visual only: no sim objects, network traffic or random numbers, and no per-mission edits. See
+  `Docs/WORLD_GEYSERS.md`.
+- Move Mars onto the terrain paint binding with an eight-layer recipe (sand, rock, gravel, cracked rock, Base pad, dark
+  streaks, pale crust, scree) for misn04 to misn06, replacing the 72 `crhd_mars` DDS tiles.
+- Send the Workshop description with the Steam-client upload when `PublishDescription` is true in
+  `workshop.config.json`; it stays off by default.
 - Bundle OpenShim 1.0.0.59 (hotfix): Terrain Micro Detail computes height and slope analytically in one pass, roughly
   halving its cost (adaptive 7.6 to 3.4 ms at 4K) with unchanged visuals, and stays opt-in; the HD paint shader shares
   blend weights and diffuse taps per pixel (about 0.9 ms faster at 4K); Enhanced DX11 gives every map's first sun a native
