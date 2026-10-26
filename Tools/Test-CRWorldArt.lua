@@ -202,4 +202,51 @@ check(Art.SetSkySun("moon",nil)==nil and Art.SkySun.moon==nil,"clearing the sky 
 Art.InstallStarBox(boxApi,"moon")
 e=box.vectors["crearth.map"]
 check(math.abs(e[2]-1)<1e-9,"without a sky sun the box anchors on the light")
+-- Io: Jupiter stands still where the TRN puts it; the sun circles the pole of
+-- Jupiter's equator through it.
+local function near(a,b,eps) return math.abs(a-b)<(eps or 1e-6) end
+local function dot(a,b) return a.x*b.x+a.y*b.y+a.z*b.z end
+stars={Texture31="CRJOVIAN.MAP",Azimuth31="120",Elevation31="32"}
+local jupiter=Art.DetectShine({},"io")
+check(jupiter and near(jupiter.y,math.sin(math.rad(32))),"Jupiter's entry is found past index 31")
+check(Art.SetOrbit("mars")==nil,"worlds without an orbit get none")
+local orbit=Art.SetOrbit("io")
+check(orbit and near(dot(orbit.pole,jupiter),0) and near(dot(orbit.pole,orbit.noon),0) and orbit.pole.y>0,"the pole is square to Jupiter and the noon line, and tilts up")
+local atJupiter=Art.OrbitSun("io",orbit.bodyHour)
+check(near(dot(atJupiter,jupiter),1,1e-9),"the sun's path runs through Jupiter")
+check(near(Art.OrbitSun("io",-math.pi/2).x,1) and near(Art.OrbitSun("io",math.pi/2).x,-1),"the sun rises in the east and sets in the west")
+check(Art.OrbitSun("io",0).y>0.7,"noon stands high")
+check(near(Art.OrbitEclipse("io",atJupiter),1),"behind Jupiter the sun is gone")
+check(near(Art.OrbitEclipse("io",Art.OrbitSun("io",orbit.bodyHour+math.rad(12))),0),"twelve degrees off the disc the sun is whole")
+local limb=Art.OrbitEclipse("io",Art.OrbitSun("io",orbit.bodyHour+math.rad(Art.Orbits.io.radius)))
+check(limb>0.3 and limb<0.7,"at the limb the sun is half hidden")
+Art.SkySun.io=atJupiter
+check(Art.NightLight("io").diffuse.r<1e-9,"a new Jupiter in eclipse gives no light")
+Art.SkySun.io={x=-jupiter.x,y=-jupiter.y,z=-jupiter.z}
+local full=Art.NightLight("io")
+check(near(full.diffuse.r,Art.Shine.io.light) and full.diffuse.r>full.diffuse.b,"a full Jupiter lights warm at full strength")
+local io={vectors={}}
+local ioApi={SetSkyBox=function() return true end,
+ SetMaterialTexture=function() return true end,
+ SetMaterialShaderVector=function(material,name,x,y,z,w) io.vectors[material..":"..name]={x,y,z,w};return 1 end}
+Art.SkySun.io=Art.OrbitSun("io",-1.3)
+check(Art.InstallStarBox(ioApi,"io") and io.vectors["SceneManagerInstance1SkyBoxPlane5:skyOrbit"],"the Io box faces take the pole")
+check(io.vectors["crganyme.map:bodyPole"] and io.vectors["CRJOVIAN.MAP:sunDirection"],"every body takes the sun and the pole")
+io.vectors={}
+Art.UpdateSky(ioApi,"io",{sun={x=0,y=1,z=0},night=0})
+check(next(io.vectors)==nil,"an orbit world ignores a frame without its orbit")
+local sun=Art.OrbitSun("io",orbit.bodyHour)
+Art.UpdateSky(ioApi,"io",{orbit={sun=sun,eclipse=1,hour=orbit.bodyHour,startHour=orbit.bodyHour}})
+local o=io.vectors["SceneManagerInstance1SkyBoxPlane0:skyOrbit"]
+check(o and near(o[4],0),"in eclipse the box hides the sun")
+local spin=io.vectors["CRJOVIAN.MAP:bodySpin"]
+check(spin and near(spin[1],Art.Orbits.io.spinStart%(2*math.pi)) and near(spin[3],Art.Orbits.io.spinLook[1]),"Jupiter starts at its start longitude")
+check(io.vectors["crcallis.map:bodySpin"]==nil,"only Jupiter turns")
+io.vectors={}
+Art.UpdateSky(ioApi,"io",{orbit={sun=sun,eclipse=1,hour=orbit.bodyHour+1e-5,startHour=orbit.bodyHour}})
+check(next(io.vectors)==nil,"a sun that has not moved is not rewritten")
+Art.UpdateSky(ioApi,"io",{orbit={sun=Art.OrbitSun("io",orbit.bodyHour+0.01),eclipse=0.4,hour=orbit.bodyHour+0.01,startHour=orbit.bodyHour}})
+spin=io.vectors["CRJOVIAN.MAP:bodySpin"]
+check(spin and near(spin[1],(Art.Orbits.io.spinStart-Art.Orbits.io.spinTurns*0.01)%(2*math.pi)),"Jupiter turns spinTurns times as fast as the sun")
+check(near(io.vectors["SceneManagerInstance1SkyBoxPlane3:skyOrbit"][4],0.6),"a partial eclipse dims the sun")
 print("World art lighting: "..count.." checks passed")

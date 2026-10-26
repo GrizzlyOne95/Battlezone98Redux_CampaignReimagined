@@ -80,3 +80,30 @@ credit is given as the pages request.
   TRN sun (`Scripts/CRWorldArt.lua`) so the phase is the one seen from the Moon.
   OpenGL keeps the stock `earth.dds` (technique 1).
 - None of the source files is stored in the repository.
+
+## Jupiter and the Galilean moons over Io (CRJOVIAN.MAP, CREUROPA.MAP, CRGANYME.MAP, CRCALLIS.MAP)
+
+Imagery: NASA/JPL and the USGS Astrogeology Science Center. NASA and USGS imagery is generally
+not copyrighted (public domain); credit is given as the pages request.
+
+- Jupiter: PIA07782, "Cassini's Best Maps of Jupiter" (cylindrical map),
+  NASA/JPL/Space Science Institute, <https://photojournal.jpl.nasa.gov/catalog/PIA07782>.
+- Europa: "Europa Voyager/Galileo SSI Global Mosaic 500m", USGS Astrogeology Science Center
+  (T. Becker, 2010), <https://astrogeology.usgs.gov/search/map/europa_voyager_galileo_ssi_global_mosaic_500m>.
+- Ganymede: "Ganymede Voyager-Galileo SSI Color Global Mosaic 1.4km", USGS Astrogeology Science
+  Center, <https://astrogeology.usgs.gov/search/map/ganymede_voyager_galileo_ssi_color_global_mosaic_1_4km>.
+- Callisto: "Callisto Galileo/Voyager Global Mosaic 1km", USGS Astrogeology Science Center,
+  <https://astrogeology.usgs.gov/search/map/callisto_galileo_voyager_global_mosaic_1km>.
+- Used as: `Assets/Textures/crsky_jupiter.png` (2048x1024, warmed and a little more saturated,
+  closer to Jupiter as the eye sees it) and `crsky_europa.png`, `crsky_ganymede.png`,
+  `crsky_callisto.png` (512x256), baked by `Tools/Build-JupiterSky.py`. Europa and Callisto have
+  no public-domain colour mosaic, so their greyscale mosaics are tinted (Europa's ice white with
+  rust-brown terrain, Callisto a dusky grey-brown); missing-data areas are filled from the row.
+- `Shaders/CR_jovian.hlsl` draws each one as a sphere on its TRN `[Stars]` quad (misn10, misn11),
+  lit from the orbit's sun so every phase is the one seen from Io: Minnaert limb darkening, a
+  thin haze at Jupiter's limb that brightens as the sun goes behind it, and while it is behind,
+  a red ring of sunlight bent through Jupiter's upper air. Jupiter turns with the orbit.
+  `Scripts/CRWorldArt.lua` and Environment's `orbit` lighting mode drive it; the catalog star box
+  (`CR_Sky/IoStars`) turns its stars with the same sun and hides its sun disc in eclipse.
+  OpenGL has no GLSL twin yet and draws no bodies (technique 1 is invisible).
+- None of the source files is stored in the repository.

@@ -29,9 +29,12 @@ Art.SkyFrameState={}
 -- sprite at its own material, crsun, which is hidden once the box's sun is
 -- anchored. The sprite still rasterizes, so the lens flare's occlusion test
 -- keeps working.
--- The TRN's Earth quad uses CREARTH.MAP, a sphere lit from sunDirection, so
--- the box's sun also gives the Earth its phase.
-Art.StarBoxes={moon={material="CR_Sky/CatalogStars",hide={"STARS.MAP","MILKYWAY.MAP"},sunSprite="crsun",earth="CREARTH.MAP"}}
+-- The TRN's sky bodies (bodies: the Earth over the Moon, CREARTH.MAP; Jupiter
+-- and its other moons over Io, Shaders/CR_jovian.hlsl) are spheres lit from
+-- sunDirection, so the box's sun also gives them their phases. Io's TRNs name
+-- no sun sprite: the box's sun is the only one.
+Art.StarBoxes={moon={material="CR_Sky/CatalogStars",hide={"STARS.MAP","MILKYWAY.MAP"},sunSprite="crsun",bodies={"CREARTH.MAP"}},
+    io={material="CR_Sky/IoStars",hide={"STARS.MAP"},bodies={"CRJOVIAN.MAP","CREUROPA.MAP","CRGANYME.MAP","CRCALLIS.MAP"}}}
 Art.SunAnchored={}
 -- A compass heading (0 along +z, 90 along +x) and elevation, in degrees, as a
 -- unit vector. TRN [Stars] entries use this convention.
@@ -64,20 +67,30 @@ local function sun_vector(api)
     -- The light travels away from the sun.
     return {-x/len,-y/len,-z/len}
 end
-local function write_sun(api,material,s)
-    local ok,n=pcall(api.SetMaterialShaderVector,material,"sunDirection",s[1],s[2],s[3],1,-1,-1,"Autodetect")
+local function write_vector(api,material,name,x,y,z,w)
+    local ok,n=pcall(api.SetMaterialShaderVector,material,name,x,y,z,w,-1,-1,"Autodetect")
     return ok and tonumber(n) or 0
+end
+local function write_sun(api,material,s)
+    return write_vector(api,material,"sunDirection",s[1],s[2],s[3],1)
 end
 -- Ogre draws the box with one clone per face, <scene manager>SkyBoxPlane0..5.
 -- A uniform written to the base before SetSkyBox does not reach them in game,
 -- so the clones are written after it; each reinstall copies the base (no sun)
 -- over them again. Redux has one scene manager,
--- normally SceneManagerInstance1; the next few names are tried in case.
-local function anchor_box_faces(api,s)
+-- normally SceneManagerInstance1; the next few names are tried in case. On an
+-- orbit world the faces also take the pole the sun circles.
+Art.BoxFaces={}
+local function anchor_box_faces(api,s,world,orbit)
+    Art.BoxFaces[world]=nil
     for instance=1,4 do
         local prefix="SceneManagerInstance"..instance.."SkyBoxPlane"
         if write_sun(api,prefix.."0",s)>0 then
-            for face=1,5 do write_sun(api,prefix..face,s) end
+            for face=0,5 do
+                if face>0 then write_sun(api,prefix..face,s) end
+                if orbit then write_vector(api,prefix..face,"skyOrbit",orbit.pole.x,orbit.pole.y,orbit.pole.z,1) end
+            end
+            Art.BoxFaces[world]=prefix
             return true
         end
     end
@@ -96,10 +109,17 @@ function Art.InstallStarBox(api,world)
     if not accepted or result~=true then return false end
     local sky=Art.SkySun[world]
     local sun=sky and {sky.x,sky.y,sky.z} or sun_vector(api)
-    Art.SunAnchored[world]=sun~=nil and anchor_box_faces(api,sun)
-    if sun and box.earth then
+    local orbit=Art.Orbit[world]
+    Art.SunAnchored[world]=sun~=nil and anchor_box_faces(api,sun,world,orbit)
+    Art.OrbitWritten[world]=nil
+    if sun then
         -- Engine sky materials take the TRN's case.
-        for _,material in ipairs({box.earth,box.earth:lower()}) do write_sun(api,material,sun) end
+        for _,name in ipairs(box.bodies or {}) do
+            for _,material in ipairs({name,name:lower()}) do
+                write_sun(api,material,sun)
+                if orbit then write_vector(api,material,"bodyPole",orbit.pole.x,orbit.pole.y,orbit.pole.z,1) end
+            end
+        end
     end
     if sun and not Art.SunAnchored[world] then print("WorldArt: star box faces not found; the stock sun stays") end
     Art.HideSkySprites(api,world)
@@ -123,6 +143,81 @@ function Art.HideSkySprites(api,world)
     end
 end
 local function unit(v) return math.max(0,math.min(1,tonumber(v) or 0)) end
+-- Io keeps one face to Jupiter, so Jupiter hangs still in its sky while the
+-- sun crosses it once an Io day along Jupiter's equator (Io orbits in that
+-- plane) and passes behind the planet once an orbit. Art.SetOrbit works the
+-- path out from Jupiter's TRN place, the world's shine source: the great circle
+-- through Jupiter square to the pole P, the axis square to both Jupiter's
+-- direction and east-west that tilts up. The hour angle h counts from noon,
+-- where the sun stands highest: S(h) = cos h * noon + sin h * west.
+-- radius: Jupiter's angular radius from Io (degrees). spinTurns: how often
+-- Jupiter turns, seen from Io, in one Io day (synodic 12.95 h in 42.46 h);
+-- spin names the material that turns, from longitude spinStart (radians), and
+-- spinLook carries the rest of its bodySpin (Minnaert exponent, limb haze).
+Art.Orbits={io={radius=9.625,spin="CRJOVIAN.MAP",spinTurns=3.28,spinStart=-0.3,spinLook={0.9,0.35}}}
+Art.Orbit={}
+Art.OrbitWritten={}
+local atan2=math.atan2 or math.atan
+function Art.SetOrbit(world)
+    Art.Orbit[world or ""]=nil
+    Art.OrbitWritten[world or ""]=nil
+    local spec,body=Art.Orbits[world],Art.ShineSource[world]
+    if not spec or not body or body.y<0.05 then return nil end
+    local len=math.sqrt(body.y*body.y+body.z*body.z)
+    local pole={x=0,y=-body.z/len,z=body.y/len}
+    local noon={x=0,y=pole.z,z=-pole.y}
+    local orbit={spec=spec,pole=pole,noon=noon,body=body,bodyHour=atan2(-body.x,body.y*noon.y+body.z*noon.z)}
+    Art.Orbit[world]=orbit
+    return orbit
+end
+-- Toward the sun at hour angle h (radians).
+function Art.OrbitSun(world,hour)
+    local o=Art.Orbit[world]
+    if not o then return nil end
+    local c,s=math.cos(hour),math.sin(hour)
+    return {x=-s,y=c*o.noon.y,z=c*o.noon.z}
+end
+-- How much of the sun Jupiter hides: 1 with the sun behind the disc, easing
+-- over 0.6 degrees either side of the limb.
+function Art.OrbitEclipse(world,sun)
+    local o=Art.Orbit[world]
+    if not o or type(sun)~="table" then return 0 end
+    local b=o.body
+    local separation=math.deg(math.acos(math.max(-1,math.min(1,sun.x*b.x+sun.y*b.y+sun.z*b.z))))
+    local t=unit((separation-(o.spec.radius-0.6))/1.2)
+    return 1-t*t*(3-2*t)
+end
+-- Every frame on an orbit world: the box turns its stars with the sun and
+-- hides it in eclipse, each body takes the sun for its phase and the pole for
+-- its axis, and Jupiter turns. orbit = {sun={x,y,z} toward the sun, eclipse,
+-- hour, startHour}. Writes wait until the sun has moved about a sixtieth of a
+-- degree, well under a pixel of star motion.
+local function update_orbit(api,world,orbit)
+    local o,box,s=Art.Orbit[world],Art.StarBoxes[world],orbit.sun
+    if not o or not box or type(s)~="table" or type(api.SetMaterialShaderVector)~="function" then return end
+    local visible=1-unit(orbit.eclipse)
+    local last=Art.OrbitWritten[world]
+    if last and math.abs(last.x-s.x)+math.abs(last.y-s.y)+math.abs(last.z-s.z)<0.0003
+        and math.abs(last.visible-visible)<0.005 then return end
+    local p,spec=o.pole,o.spec
+    -- Seen from Io, Jupiter's face drifts west to east (left to right, north up).
+    local spin=(spec.spinStart-spec.spinTurns*((tonumber(orbit.hour) or 0)-(tonumber(orbit.startHour) or 0)))%(2*math.pi)
+    local prefix=Art.BoxFaces[world]
+    if prefix then
+        for face=0,5 do
+            write_vector(api,prefix..face,"sunDirection",s.x,s.y,s.z,1)
+            write_vector(api,prefix..face,"skyOrbit",p.x,p.y,p.z,visible)
+        end
+    end
+    for _,name in ipairs(box.bodies or {}) do
+        for _,material in ipairs({name,name:lower()}) do
+            write_vector(api,material,"sunDirection",s.x,s.y,s.z,1)
+            write_vector(api,material,"bodyPole",p.x,p.y,p.z,1)
+            if name==spec.spin then write_vector(api,material,"bodySpin",spin,0,spec.spinLook[1],spec.spinLook[2]) end
+        end
+    end
+    Art.OrbitWritten[world]={x=s.x,y=s.y,z=s.z,visible=visible}
+end
 -- frame (optional): {sun={x,y,z} toward the sun, night=0..1, clarity=0..1,
 -- weather={storm=0..1, bank=0..1, flash=0..1, flashDir={x,y,z}} (optional)}.
 -- Specular stays (Enhanced flag, sun direction). Emissive is (night, clarity,
@@ -150,6 +245,10 @@ local function update_sky_frame(api,material,enhanced,frame,spec)
     return true
 end
 function Art.UpdateSky(api,world,frame)
+    if Art.Orbit[world] then
+        if api and type(frame)=="table" and type(frame.orbit)=="table" then update_orbit(api,world,frame.orbit) end
+        return
+    end
     local material=Art.Skies[world]
     if not material or type(api.GetEffectiveRenderProfile)~="function" or type(api.SetMaterialPassColors)~="function" then return end
     local ok,profile=pcall(api.GetEffectiveRenderProfile)
@@ -223,13 +322,18 @@ end
 -- light (optional) is the body's strength as the night's directional light,
 -- see Art.NightLight; a frame flagged bodyLight then takes only the bounce
 -- share as ambient, since the light itself already carries the rest.
-Art.Shine={moon={texture="crearth.map",colour={r=0.62,g=0.74,b=1.00},day=0.10,night=0.30,light=0.45,bounce=0.08}}
+-- Io's is Jupiter: a warm tan light, full when the sun is opposite it (Io's
+-- midnight) and new in eclipse. Its night share is small because, in orbit
+-- mode, Jupiter is already the night's directional light. Its light stays
+-- below the day's diffuse, so a full Jupiter still reads as night.
+Art.Shine={moon={texture="crearth.map",colour={r=0.62,g=0.74,b=1.00},day=0.10,night=0.30,light=0.45,bounce=0.08},
+    io={texture="crjovian.map",colour={r=1.00,g=0.80,b=0.58},day=0.05,night=0.07,light=0.36}}
 Art.ShineSource={}
 function Art.DetectShine(trn,world)
     Art.ShineSource[world or ""]=nil
     local spec=Art.Shine[world]
     if not spec or not trn or type(GetODFString)~="function" then return nil end
-    for index=0,31 do
+    for index=0,63 do
         local key=string.format("%02d",index)
         if string.lower(GetODFString(trn,"Stars","Texture"..key,"") or "")==spec.texture then
             local body=heading_vector((GetODFString(trn,"Stars","Azimuth"..key,"0")),(GetODFString(trn,"Stars","Elevation"..key,"0")))

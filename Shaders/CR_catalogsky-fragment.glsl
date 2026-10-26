@@ -11,6 +11,7 @@ uniform vec4 milkyParams;
 uniform vec4 sunDirection;
 uniform vec4 sunLook;
 uniform vec4 sunGlow;
+uniform vec4 skyOrbit;
 uniform mat4 inverseView;
 varying vec3 vDir;
 
@@ -53,7 +54,8 @@ vec3 sky_direction(vec3 p)
 {
 	if (sunDirection.w <= 0.5) return mat3(skyRotation) * p;
 	vec3 w1 = normalize(sunDirection.xyz);
-	vec3 up = abs(w1.y) > 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
+	vec3 pole = normalize(skyOrbit.xyz);
+	vec3 up = abs(dot(w1, pole)) > 0.999 ? (abs(pole.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 1.0)) : pole;
 	vec3 w2 = normalize(up - dot(up, w1) * w1);
 	vec3 w3 = cross(w1, w2);
 	return SUN_EQ * dot(p, w1) + GC_EQ * dot(p, w2) + POLE_EQ * dot(p, w3);
@@ -119,7 +121,8 @@ void main()
 		float disc = clamp((1.0 - t) * sunLook.x / pixelPlane + 0.5, 0.0, 1.0);
 		float limb = 0.4 + 0.6 * sqrt(clamp(1.0 - t * t, 0.0, 1.0));
 		float glare = sunGlow.x * pow(1.0 / max(t, 1.0), sunGlow.y) + sunGlow.z * exp(-theta / sunGlow.w);
-		sky = sky * smoothstep(sunLook.z, sunLook.w, theta) + SUN_COLOUR * (sunLook.y * disc * limb) + GLARE_COLOUR * glare;
+		float fade = smoothstep(sunLook.z, sunLook.w, theta);
+		sky = sky * mix(1.0, fade, skyOrbit.w) + (SUN_COLOUR * (sunLook.y * disc * limb) + GLARE_COLOUR * glare) * skyOrbit.w;
 	}
 
 	gl_FragColor = vec4(sky_encode(sky), 1.0);
