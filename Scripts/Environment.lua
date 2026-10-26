@@ -1415,6 +1415,9 @@ function Environment.Update(timestep)
     -- Registered modifiers get the last word on the frame targets. Weather
     -- contributes here rather than writing fog and lighting itself.
     -- -------------------------------------------------------------------------
+    -- A modifier may also leave the sky dome's weather state in frame.sky
+    -- (CRVenusWeather: storm gloom, fog bank, lightning); see WorldArt.UpdateSky.
+    local skyWeather = nil
     if #Environment.ModifierOrder > 0 then
         local frame = RunEnvironmentModifiers({
             ambient = targetAmbient,
@@ -1435,6 +1438,7 @@ function Environment.Update(timestep)
         targetSpecular = ClampColor(frame.specular or targetSpecular)
         targetFog = ClampFog(frame.fog or targetFog)
         sunState.powerScale = math.max(0.0, tonumber(frame.sunPowerScale) or sunState.powerScale)
+        skyWeather = frame.sky
     end
 
     -- Weather owns its fog/light targets; subtle TOD remains visible even at
@@ -1453,8 +1457,9 @@ function Environment.Update(timestep)
         bodyLight=Environment.LightingMode == "night" and Environment.NightBodyLight or nil})
     targetAmbient,targetDiffuse,targetSpecular = artFrame.ambient,artFrame.diffuse,artFrame.specular
     if Environment.ArtSkyOwned then
-        -- Domes that take the frame (Mars) get the sun, the night blend and how
-        -- much of the clear-day visibility the weather has left.
+        -- Domes that take the frame (Mars, Venus) get the sun, the night blend,
+        -- how much of the clear-day visibility the weather has left and the
+        -- weather's own sky state.
         local base = ClampFogToHorizon(Environment.LastBaseFog)
         local clarity = base.fogEnd > 0.0 and Clamp01(targetFog.fogEnd / base.fogEnd) or 1.0
         local d = sunState.direction
@@ -1462,6 +1467,7 @@ function Environment.Update(timestep)
             sun = { x = -d.x, y = -d.y, z = -d.z },
             night = state.nightBlend,
             clarity = clarity,
+            weather = skyWeather,
         })
     end
 

@@ -15,10 +15,12 @@ Art.Worlds = {
 local stems={mn="moon",ma="mars",ve="venus",io="io",eu="europa",ti="titan",ga="ganymede",ac="achilles",el="elysium"}
 Art.Skies={mars="CRSKYMA.MAP",venus="CRSKYVE.MAP",titan="CRSKYTI.MAP",achilles="CRSKYAC.MAP",elysium="CRSKYEL.MAP"}
 Art.SkyCalibration={}
--- Domes drawn by a shader that takes the frame state (CR_marssky): the sun,
--- night blend and clarity go into the technique 0 pass colours, and the stock
--- engine cloud sprites are hidden because the dome draws its own clouds.
-Art.SkyFrames={mars={hide={"ACLOUD2.MAP","ACLOUD.MAP"}}}
+-- Domes drawn by a shader that takes the frame state (CR_marssky,
+-- CR_venussky): the sun, night blend and clarity go into the technique 0 pass
+-- colours, and the stock engine cloud sprites are hidden because the dome
+-- draws its own clouds. A dome flagged weather (Venus) also takes the
+-- weather's sky state.
+Art.SkyFrames={mars={hide={"ACLOUD2.MAP","ACLOUD.MAP"}},venus={hide={},weather=true}}
 Art.SkyFrameState={}
 -- Airless worlds get the catalog sky box instead of a dome. Its stars and
 -- Milky Way replace the TRN's STARS.MAP sprites and MILKYWAY.MAP quad; the
@@ -120,19 +122,31 @@ function Art.HideSkySprites(api,world)
         if spec.sunSprite and Art.SunAnchored[world] then hide_sprites(api,{spec.sunSprite}) end
     end
 end
--- frame (optional): {sun={x,y,z} toward the sun, night=0..1, clarity=0..1}.
--- Specular stays (Enhanced flag, sun direction); emissive is (night, clarity,
--- cloud cover, 0). Writes are skipped until something moves noticeably.
-local function update_sky_frame(api,material,enhanced,frame)
+local function unit(v) return math.max(0,math.min(1,tonumber(v) or 0)) end
+-- frame (optional): {sun={x,y,z} toward the sun, night=0..1, clarity=0..1,
+-- weather={storm=0..1, bank=0..1, flash=0..1, flashDir={x,y,z}} (optional)}.
+-- Specular stays (Enhanced flag, sun direction). Emissive is (night, clarity,
+-- then cloud cover (the clarity) and 0, or on a weather dome the storm gloom
+-- and fog bank). Diffuse is (direction toward the lightning, flash strength).
+-- Writes are skipped until something moves noticeably.
+local function update_sky_frame(api,material,enhanced,frame,spec)
     local s=frame.sun
-    local night=math.max(0,math.min(1,tonumber(frame.night) or 0))
+    local night=unit(frame.night)
     local clarity=math.max(0,math.min(1,tonumber(frame.clarity) or 1))
+    local w=spec.weather and (type(frame.weather)=="table" and frame.weather or {}) or nil
+    local storm,bank,flash=unit(w and w.storm),unit(w and w.bank),unit(w and w.flash)
+    local f=flash>0 and type(w.flashDir)=="table" and w.flashDir or {x=0,y=1,z=0}
+    local fx,fy,fz=tonumber(f.x) or 0,tonumber(f.y) or 1,tonumber(f.z) or 0
     local last=Art.SkyFrameState[material]
     if last and last.enhanced==enhanced and math.abs(last.x-s.x)+math.abs(last.y-s.y)+math.abs(last.z-s.z)<0.002
-        and math.abs(last.night-night)<0.004 and math.abs(last.clarity-clarity)<0.004 then return true end
-    local accepted,result=pcall(api.SetMaterialPassColors,material,{specular={r=enhanced and 1 or 0,g=s.x,b=s.y,a=s.z},emissive={r=night,g=clarity,b=clarity,a=0}},0,0,"General")
+        and math.abs(last.night-night)<0.004 and math.abs(last.clarity-clarity)<0.004
+        and math.abs(last.storm-storm)<0.004 and math.abs(last.bank-bank)<0.004 and math.abs(last.flash-flash)<0.004 then return true end
+    local colours={specular={r=enhanced and 1 or 0,g=s.x,b=s.y,a=s.z},
+        emissive=w and {r=night,g=clarity,b=storm,a=bank} or {r=night,g=clarity,b=clarity,a=0},
+        diffuse={r=fx,g=fy,b=fz,a=flash}}
+    local accepted,result=pcall(api.SetMaterialPassColors,material,colours,0,0,"General")
     if not accepted or result~=true then return false end
-    Art.SkyFrameState[material]={enhanced=enhanced,x=s.x,y=s.y,z=s.z,night=night,clarity=clarity}
+    Art.SkyFrameState[material]={enhanced=enhanced,x=s.x,y=s.y,z=s.z,night=night,clarity=clarity,storm=storm,bank=bank,flash=flash}
     return true
 end
 function Art.UpdateSky(api,world,frame)
@@ -144,7 +158,7 @@ function Art.UpdateSky(api,world,frame)
     local accepted,result
     if Art.SkyFrames[world] and type(frame)=="table" and type(frame.sun)=="table" then
         -- The frame write carries the calibration flag too.
-        accepted,result=true,update_sky_frame(api,material,enhanced,frame)
+        accepted,result=true,update_sky_frame(api,material,enhanced,frame,Art.SkyFrames[world])
         if Art.SkyCalibration[material]==enhanced then return end
     else
         if Art.SkyCalibration[material]==enhanced then return end

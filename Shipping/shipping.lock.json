@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4241,
+  "count": 4244,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -4062,6 +4062,10 @@
     {
       "source": "Assets\\Textures\\crsky_stars.png",
       "runtime": "crsky_stars.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_venus_clouds.png",
+      "runtime": "crsky_venus_clouds.png"
     },
     {
       "source": "Assets\\Textures\\crstbd_d.dds",
@@ -13754,6 +13758,14 @@
     {
       "source": "Shaders\\CR_marssky.program",
       "runtime": "CR_marssky.program"
+    },
+    {
+      "source": "Shaders\\CR_venussky.hlsl",
+      "runtime": "CR_venussky.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_venussky.program",
+      "runtime": "CR_venussky.program"
     },
     {
       "source": "Shaders\\crwx_fixedfunc-sm4.hlsl",

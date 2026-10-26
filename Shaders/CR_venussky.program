@@ -1,0 +1,76 @@
+// Venus sky dome (CRSKYVE.MAP): the underside of the cloud deck, a smeared sun
+// glow, storm gloom, lightning and fog banks. See CR_venussky.hlsl. DX11 and
+// DX9 only: on OpenGL the unified programs have no supported delegate, so
+// Materials/crart_venus.material falls through to its CR_SkyDome technique.
+// Tools/Update-WorldSkyProgramVersions.py versions the delegate names.
+
+vertex_program CR_VenusSky_vertexHLSL4_art_b4a391780a hlsl
+{
+    source CR_venussky.hlsl
+    target vs_4_0
+    entry_point venussky_vertex
+    preprocessor_defines SM4=1
+}
+
+vertex_program CR_VenusSky_vertexHLSL_art_8827c4fe7d hlsl
+{
+    source CR_venussky.hlsl
+    target vs_3_0
+    entry_point venussky_vertex
+}
+
+fragment_program CR_VenusSky_fragmentHLSL4_art_fd2725c903 hlsl
+{
+    source CR_venussky.hlsl
+    target ps_4_0
+    entry_point venussky_fragment
+    preprocessor_defines SM4=1
+}
+
+fragment_program CR_VenusSky_fragmentHLSL_art_24eac12298 hlsl
+{
+    source CR_venussky.hlsl
+    target ps_3_0
+    entry_point venussky_fragment
+}
+
+vertex_program CR_VenusSky_vertex unified
+{
+    delegate CR_VenusSky_vertexHLSL4_art_b4a391780a
+    delegate CR_VenusSky_vertexHLSL_art_8827c4fe7d
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto inverseProjection inverse_projection_matrix
+        param_named_auto inverseView inverse_view_matrix
+    }
+}
+
+// The deck drifts with time_0_x; its 7200 s wrap makes one jump every two
+// hours of play.
+fragment_program CR_VenusSky_fragment unified
+{
+    delegate CR_VenusSky_fragmentHLSL4_art_fd2725c903
+    delegate CR_VenusSky_fragmentHLSL_art_24eac12298
+    default_params
+    {
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto skyProfile surface_specular_colour
+        param_named_auto venusState surface_emissive_colour
+        param_named_auto venusFlash surface_diffuse_colour
+        param_named_auto skyTime time_0_x 7200
+        param_named horizonBlend float4 .02 .35 1 0
+        param_named fogAmbient float4 .35 .16 0 0
+        param_named zenithTint float4 1.25 1.30 0.70 0.8
+        param_named stormTint float4 0.45 0.55 0.32 0.8
+        param_named sunGlow float4 2.0 0.6 12 3
+        param_named sunRays float4 0.35 6 0.004 0
+        param_named cloudScale float4 0.08 0.22 0.0016 0.10
+        param_named cloudLook float4 0.45 0.15 0.6 0.35
+        param_named flashLook float4 0.7 6 0.06 0.6
+        param_named flashColour float4 0.85 0.82 0.95 0
+        param_named bankLook float4 0.85 1.2 4 0.8
+    }
+}
