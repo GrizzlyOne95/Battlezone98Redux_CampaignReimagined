@@ -1066,7 +1066,11 @@ function R.Start()
     if localCameraActive then native.CameraFinish() end
     ConfigureAlliances();ResetPresentation();ExtractStop();lastAudio=nil
     pda.Initialize();subtit.Initialize()
-    Environment.Init({nativeBaseline=true})
+    -- Night on Achilles: the sun is down behind the moon and a gibbous Uranus
+    -- lights the valley until the storm closes over it (CRStorm18 keeps the CR
+    -- dome up to the found phase). Visual only; sensors keep their day ranges.
+    Environment.Init({nativeBaseline=true,lightingMode="night",nightGameplay=false,
+        skySun={azimuth=55,elevation=-28}})
     StormCall("Reset",State().storm)
     if Storm then pcall(Environment.BindWeatherSensors,"Achilles",Storm) end
     -- After a load the leader tells the (idempotent) director where the mission stands.

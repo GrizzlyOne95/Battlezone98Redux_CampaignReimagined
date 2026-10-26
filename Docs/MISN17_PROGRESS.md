@@ -48,7 +48,8 @@ head at branch creation `476390ed`. Canonical main stays untouched.
   lightning during converter overload or after a converter falls. Each level
   sets rain, basin mist, fog distance and wind (an override that also slants
   splashes). From level 2 the `CR17/StormCloud` sky plane scrolls with the
-  wind, unless the map already has a sky. Bolts are leader-timed number-only
+  wind, unless the map already has a sky; while the CR Achilles dome owns the
+  sky it draws the storm itself from `J.SkyState()` instead (`Docs/ACHILLES_SKY.md`). Bolts are leader-timed number-only
   packets, and thunder is delayed locally. The level resyncs every 15 s and
   survives save/load. Also included: splash and wet glass, the flowing river,
   cascade mist and local rain/water audio.

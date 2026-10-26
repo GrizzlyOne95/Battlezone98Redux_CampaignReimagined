@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4226,
+  "count": 4266,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -4044,6 +4044,74 @@
       "runtime": "crpkns2_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crsky_achilles_clouds.png",
+      "runtime": "crsky_achilles_clouds.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_callisto.png",
+      "runtime": "crsky_callisto.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_earth.png",
+      "runtime": "crsky_earth.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_earth_night.png",
+      "runtime": "crsky_earth_night.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_europa.png",
+      "runtime": "crsky_europa.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_ganymede.png",
+      "runtime": "crsky_ganymede.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_io.png",
+      "runtime": "crsky_io.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_jupiter.png",
+      "runtime": "crsky_jupiter.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_mars_clouds.png",
+      "runtime": "crsky_mars_clouds.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_milkyway.png",
+      "runtime": "crsky_milkyway.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_saturn_rings.png",
+      "runtime": "crsky_saturn_rings.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_saturn.png",
+      "runtime": "crsky_saturn.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_stars.png",
+      "runtime": "crsky_stars.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_titan_haze.png",
+      "runtime": "crsky_titan_haze.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_uranus_rings.png",
+      "runtime": "crsky_uranus_rings.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_uranus.png",
+      "runtime": "crsky_uranus.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_venus_clouds.png",
+      "runtime": "crsky_venus_clouds.png"
+    },
+    {
       "source": "Assets\\Textures\\crstbd_d.dds",
       "runtime": "crstbd_d.dds"
     },
@@ -5278,6 +5346,10 @@
     {
       "source": "Config\\mn_detail_atlas.csv",
       "runtime": "mn_detail_atlas.csv"
+    },
+    {
+      "source": "Config\\spritea.st",
+      "runtime": "spritea.st"
     },
     {
       "source": "Config\\sxshow.ini",
@@ -7144,6 +7216,10 @@
       "runtime": "cr_io.particle.payload"
     },
     {
+      "source": "Materials\\cr_jovian.material",
+      "runtime": "cr_jovian.material"
+    },
+    {
       "source": "Materials\\cr_lightarc.material",
       "runtime": "cr_lightarc.material"
     },
@@ -7364,12 +7440,28 @@
       "runtime": "cr18_water.material"
     },
     {
+      "source": "Materials\\cr_catalogsky.material",
+      "runtime": "cr_catalogsky.material"
+    },
+    {
+      "source": "Materials\\cr_earth.material",
+      "runtime": "cr_earth.material"
+    },
+    {
       "source": "Materials\\crart_achilles.material",
       "runtime": "crart_achilles.material"
     },
     {
       "source": "Materials\\crart_elysium.material",
       "runtime": "crart_elysium.material"
+    },
+    {
+      "source": "Materials\\crart_europa.material",
+      "runtime": "crart_europa.material"
+    },
+    {
+      "source": "Materials\\crart_io.material",
+      "runtime": "crart_io.material"
     },
     {
       "source": "Materials\\crart_mars.material",
@@ -13312,6 +13404,14 @@
       "runtime": "CR_DepthShadowmapReceiverVp.glsl"
     },
     {
+      "source": "Shaders\\CR_earth.hlsl",
+      "runtime": "CR_earth.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_earth.program",
+      "runtime": "CR_earth.program"
+    },
+    {
       "source": "Shaders\\CR_effect-fragment.glsl",
       "runtime": "CR_effect-fragment.glsl"
     },
@@ -13362,6 +13462,14 @@
     {
       "source": "Shaders\\CR_grasswind.program",
       "runtime": "CR_grasswind.program"
+    },
+    {
+      "source": "Shaders\\CR_jovian.hlsl",
+      "runtime": "CR_jovian.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_jovian.program",
+      "runtime": "CR_jovian.program"
     },
     {
       "source": "Shaders\\cr_lightarc-fragment.glsl",
@@ -13694,6 +13802,58 @@
     {
       "source": "Shaders\\cr18_water.program",
       "runtime": "cr18_water.program"
+    },
+    {
+      "source": "Shaders\\CR_achillessky.hlsl",
+      "runtime": "CR_achillessky.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_achillessky.program",
+      "runtime": "CR_achillessky.program"
+    },
+    {
+      "source": "Shaders\\CR_catalogsky-fragment.glsl",
+      "runtime": "CR_catalogsky-fragment.glsl"
+    },
+    {
+      "source": "Shaders\\CR_catalogsky-sm4.hlsl",
+      "runtime": "CR_catalogsky-sm4.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_catalogsky-vertex.glsl",
+      "runtime": "CR_catalogsky-vertex.glsl"
+    },
+    {
+      "source": "Shaders\\CR_catalogsky.hlsl",
+      "runtime": "CR_catalogsky.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_catalogsky.program",
+      "runtime": "CR_catalogsky.program"
+    },
+    {
+      "source": "Shaders\\CR_marssky.hlsl",
+      "runtime": "CR_marssky.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_marssky.program",
+      "runtime": "CR_marssky.program"
+    },
+    {
+      "source": "Shaders\\CR_titansky.hlsl",
+      "runtime": "CR_titansky.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_titansky.program",
+      "runtime": "CR_titansky.program"
+    },
+    {
+      "source": "Shaders\\CR_venussky.hlsl",
+      "runtime": "CR_venussky.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_venussky.program",
+      "runtime": "CR_venussky.program"
     },
     {
       "source": "Shaders\\crwx_fixedfunc-sm4.hlsl",

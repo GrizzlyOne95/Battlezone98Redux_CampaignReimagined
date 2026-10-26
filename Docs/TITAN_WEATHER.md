@@ -92,8 +92,34 @@ temporary **episodes** from rung 3 up to rung 4).
 Each rung has a **Roll variant** (`TitanStillRoll` ...): the same layers with fog pulled in (start x0.55,
 end x0.70), deepened 30 % toward `0.66 0.38 0.12`, and the light dimmed (diffuse and sun x0.80, ambient
 x0.90). All eight presets are registered into `CRWeatherPresets.Presets` at `Init`, idempotently; the shared
-`CRWeatherPresets.lua` is not edited. No preset sets a sky (the map's own `titan.map` dome, Saturn and the
-`acloud2` deck stay), lightning or gusts. Wind is `0.10 -1 0.04` at speed 2: the drizzle leans only slightly.
+`CRWeatherPresets.lua` is not edited. No preset sets a sky, lightning or gusts. Wind is `0.10 -1 0.04` at
+speed 2: the drizzle leans only slightly.
+
+**The sky (`CRSKYTI.MAP`, `Shaders/CR_titansky.hlsl`).** CRWorldArt replaces the stock `titan.map` dome with a
+haze dome: a fog-to-brown gradient, slow zonal haze bands, billowing banks and rare methane streaks
+(`crsky_titan_haze.png`), and a soft sun glow with no disc (the five Titan TRNs now leave `SunTexture` empty,
+as Venus does). The dome draws Saturn itself, oblate and ringed (`crsky_saturn.png`, `crsky_saturn_rings.png`),
+at the place the TRN's `[Stars]` `saturn.map` entry gives it (heading 180, 15 degrees up). It hides that quad
+and the `acloud2` sprites, and the `[StarList]` stars, which no real eye would see through the haze. Saturn takes the sun for its phase and casts its shadow on the rings. The rings
+shadow the globe. It shows only faintly through the haze and fades as the ladder thickens and a roll comes in:
+`V.SkyState()` returns `{ storm = GetSeverity(), bank = GetRollIntensity() }`, which Environment reads through
+`BindWeatherSensors` (the director still registers no Environment modifier).
+
+Two cinematic licences:
+
+- Real Titan haze hides Saturn entirely in visible light.
+- Saturn's rings, which Titan sees almost edge-on (about 0.3 degrees open, since Titan orbits in the ring
+  plane), are drawn opened to about 7 degrees (`saturnShape.z = 0.12` rad; 0.006 gives the true view).
+
+Saturn's size is true: 5.65 degrees across from 20.28 Saturn radii.
+
+**Night (misn15).** Titan keeps one face to Saturn and its day lasts about 16 Earth days, so Saturn hangs
+still in the sky and is full at local midnight. misn15 runs at night: `lightingMode = "night"` with
+`nightGameplay = false`, so sensors keep their day ranges, and `skySun = { azimuth = 20, elevation = -25 }`,
+opposite Saturn. Saturn, about 97 % lit, is the scene's warm light (`CRWorldArt.Shine.titan`; it adds no light
+by day). The presets' fog and light dim to 0.2 at night (`weatherLightScale`), so the haze turns a dark brown.
+The dome still takes the real sun from `skySun`, below the horizon. misn14 and misn16 stay in daylight with
+a crescent Saturn.
 
 **Fog and DX11 Enhanced.** The Enhanced terrain shader scales terrain diffuse IBL by
 `saturate(160 / (fogEnd - fogStart))` (`OSE_TERRAIN_IBL_REFERENCE_FOG_RANGE`, `openshim_enhanced_terrain`).
@@ -240,6 +266,7 @@ Host / offline unless noted; a guest's call is ignored.
 | `IsWet(x, z)` | static-data query, any peer |
 | `GetSurface()` | `{ up, reason, material, controls = { drizzle, glare, wetness, chop } }` |
 | `RegisterPresets()`, `GetPresetNames()` | preset registration, idempotent |
+| `SkyState()` | `{ storm, bank }` for the CR_titansky dome (haze ladder and roll envelope), nil when disabled; read by Environment |
 | getters | `GetLevel GetLevelName GetTargetLevel IsEpisode GetSeverity GetRollIntensity IsRolling GetRoll GetPools GetLivePoolCount GetSplashCount GetStats GetSystemCount Describe` |
 
 ## 8. How misn14 calls it

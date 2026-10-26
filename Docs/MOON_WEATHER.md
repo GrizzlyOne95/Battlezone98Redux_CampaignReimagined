@@ -67,6 +67,16 @@ night cycle or night sensor penalty. Glow also contributes its existing tiny
 ambient lift through Environment. The director itself still never writes
 renderer fog or light. See `ATMOSPHERE_AUDIT_20261015.md`.
 
+**2026-10-25 owner revision:** misn03 is now a lunar night. Environment's
+`lightingMode = "night"` holds full night; `skySun` puts the sky's sun below the
+horizon opposite a nearly full Earth (TRN Elevation00 35), and the Earth becomes
+the scene's directional light (`CRWorldArt.NightLight`), with only a small
+bounce share as ambient. The black fog keeps its 175–250 range and goes darker.
+`nightGameplay = false`, so sensors keep their day ranges. misn02b stays subtle.
+The TRN's `Time = 1100` puts the engine's own sun 80 degrees up (it cannot go
+below the horizon): the stock lens flare follows that sun, not the Ogre light,
+and at `Time = 900` it fired toward an empty sky at 35 degrees.
+
 ## The layers
 
 ### 1. Ground mist (pools, from map data)

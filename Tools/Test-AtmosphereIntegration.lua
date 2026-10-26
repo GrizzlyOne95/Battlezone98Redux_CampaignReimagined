@@ -67,6 +67,116 @@ check(#w.writes==writeCount,'identical live frame avoids redundant renderer writ
 w.E.InvalidateRenderer(); w.E.Update(0)
 check(#w.writes>writeCount,'same-time load reapplies light/fog after renderer reconstruction')
 
+-- Lunar night: the sun sits below the horizon for the sky, the Earth lights
+-- the scene, and the airless horizon keeps its range in the dark.
+w=world('moon.act',250)
+w.trn.Atlases={MaterialName='MN_DETAIL_ATLAS'}
+w.trn.Stars={Texture00='crearth.map',Azimuth00='90',Elevation00='30'}
+w.E.Init({lightingMode='night',nativeBaseline=true,nightGameplay=false,skySun={azimuth=270,elevation=-20}})
+w.E.Update(0)
+local earth={x=math.cos(math.rad(30)),y=math.sin(math.rad(30))}
+check(w.E.IsNight and w.E.NightBlend==1,'night mode holds full night')
+check(near(w.SetOgreSunDirection[1],-earth.x) and near(w.SetOgreSunDirection[2],-earth.y),'the light falls from the Earth')
+local diffuse=copy(w.SetSunDiffuse)
+check(diffuse[3]>diffuse[1] and diffuse[3]>0.2 and diffuse[3]<0.5,'the earthlight is blue and moonlit, not daylight')
+check(w.SetAmbientLight[3]<diffuse[3]*0.35,'shadows stay dark: the Earth is the light, not a fill')
+check(near(w.SetFog[5],250) and w.SetFog[1]<0.01,'the dark keeps the airless horizon')
+w.time=5000; w.E.Update(10)
+check(near(w.SetSunDiffuse[3],diffuse[3]) and w.E.NightBlend==1,'lunar night does not end with game time')
+w=world('moon.act',250)
+w.E.Init({lightingMode='night',nativeBaseline=true,nightGameplay=false})
+w.E.Update(0)
+check(w.E.NightBlend==1 and w.SetSunDiffuse[3]<0.2,'night mode without a shining body falls back to the stock night')
+
+-- Titan night (misn15): Saturn lights the scene through the haze, while the
+-- dome takes the real sun below the horizon and the director's haze and roll.
+w=world('titan.act',250)
+w.trn.Atlases={MaterialName='ti_detail_atlas'}
+w.trn.Stars={Texture00='saturn.map',Azimuth00='180',Elevation00='15'}
+local dome,exu={},w.e.require('exu')
+exu.MaterialExists=function() return true end
+for _,name in ipairs({'GetSkyDomeEnabled','GetSkyPlaneEnabled','GetSkyBoxEnabled'}) do exu[name]=function() return false end end
+exu.SetSkyDome=function(material) dome.material=material; return true end
+exu.SetMaterialTexture=function() return true end
+exu.GetEffectiveRenderProfile=function() return 'enhanced' end
+exu.SetMaterialPassColors=function(material,colours) dome[material]=colours; return true end
+w.E.Init({lightingMode='night',nativeBaseline=true,nightGameplay=false,skySun={azimuth=20,elevation=-25}})
+local director={Initialized=true,Enabled=true,GetSeverity=function() return 0.3 end,
+    SkyState=function() return {storm=0.3,bank=0.6} end}
+w.E.BindWeatherSensors('Titan',director)
+w.E.Update(0)
+local saturn={y=math.sin(math.rad(15)),z=math.cos(math.rad(15))}
+local sky=dome['CRSKYTI.MAP']
+check(dome.material=='CRSKYTI.MAP' and sky,'Titan installs and feeds its own dome')
+check(near(w.SetOgreSunDirection[2],-saturn.y) and near(w.SetOgreSunDirection[3],-saturn.z),'the night light falls from Saturn')
+check(w.SetSunDiffuse[1]>w.SetSunDiffuse[3],'Saturn-light is warm')
+check(near(sky.specular.b,math.sin(math.rad(-25))) and sky.specular.r==1,'the dome takes the real sun below the horizon, not Saturn-light')
+check(near(sky.emissive.r,1) and near(sky.emissive.b,0.3) and near(sky.emissive.a,0.6),'the dome takes the haze and roll from the director')
+check(near(sky.ambient.y or sky.ambient.g,saturn.y) and near(sky.ambient.b,saturn.z) and sky.ambient.a==1,'the dome takes Saturn from its TRN entry')
+director.SkyState=function() return nil end
+w.time=10; w.E.Update(1)
+check(dome['CRSKYTI.MAP'].emissive.a==0,'a director with no sky state gives a calm haze')
+
+-- Io: the sun's real path past a fixed Jupiter. One day runs through a short
+-- eclipse, day, a horizon-sharp dusk and a Jupiter-lit night.
+w=world('io.act',250)
+w.trn.Atlases={MaterialName='io_detail_atlas'}
+w.trn.Stars={Texture30='crjovian.map',Azimuth30='120',Elevation30='32'}
+w.E.Init({lightingMode='orbit',orbit={period=1800,startHour=-75}})
+check(w.E.LightingMode=='orbit' and w.E.Orbit and near(w.E.Orbit.period,1800),'Io keeps orbit mode')
+local phases,eclipseTime,dayTime,nightTime,minDiffuse,nightWarm={},0,0,0,1,true
+local last
+for t=0,1800,2 do
+    w.time=t; w.E.Update(2)
+    local phase=w.E.LastPhase
+    if phase~=last then phases[#phases+1]=phase; last=phase end
+    if phase=='Eclipse' then eclipseTime=eclipseTime+2; minDiffuse=math.min(minDiffuse,w.SetSunDiffuse[1]) end
+    if phase=='Day' then dayTime=dayTime+2 end
+    if phase=='Night' then
+        nightTime=nightTime+2
+        nightWarm=nightWarm and w.SetSunDiffuse[1]>w.SetSunDiffuse[3]
+    end
+end
+check(phases[1]=='Day' and phases[2]=='Eclipse' and phases[3]=='Day','the morning starts in sunlight and passes into eclipse')
+check(eclipseTime>=60 and eclipseTime<=130,'the eclipse lasts about five per cent of the day ('..eclipseTime..' s)')
+check(dayTime>500 and nightTime>600,'day and night each hold a large share of the cycle')
+check(minDiffuse<0.2,'the eclipse darkens the scene')
+check(nightWarm,'Jupiter-shine lights the night warm')
+w.time=0; w.E.Update(0)
+local morning=copy(w.SetOgreSunDirection)
+check(morning[1]<0 and morning[2]<0,'the morning light falls westward and down, from the eastern sun')
+w=world('io.act',250)
+w.E.Init({lightingMode='orbit'})
+check(w.E.LightingMode=='cycle' and w.E.Orbit==nil,'without Jupiter in the TRN orbit mode falls back to the cycle')
+
+-- Europa (misn12, misn13): a smaller Jupiter, so a shorter eclipse and a
+-- dimmer, still warm Jupiter-lit night.
+w=world('europa.act',250)
+w.trn.Atlases={MaterialName='eu_detail_atlas'}
+w.trn.Stars={Texture00='crjovian.map',Azimuth00='210',Elevation00='35'}
+w.E.Init({lightingMode='orbit',orbit={period=1800,startHour=-40}})
+check(w.E.LightingMode=='orbit' and w.E.ArtWorld=='europa','Europa keeps orbit mode')
+phases,eclipseTime,dayTime,nightTime,minDiffuse,nightWarm={},0,0,0,1,true
+last=nil
+local nightMax=0
+for t=0,1800,2 do
+    w.time=t; w.E.Update(2)
+    local phase=w.E.LastPhase
+    if phase~=last then phases[#phases+1]=phase; last=phase end
+    if phase=='Eclipse' then eclipseTime=eclipseTime+2; minDiffuse=math.min(minDiffuse,w.SetSunDiffuse[1]) end
+    if phase=='Day' then dayTime=dayTime+2 end
+    if phase=='Night' then
+        nightTime=nightTime+2
+        nightWarm=nightWarm and w.SetSunDiffuse[1]>w.SetSunDiffuse[3]
+        nightMax=math.max(nightMax,w.SetSunDiffuse[1])
+    end
+end
+check(phases[1]=='Day' and phases[2]=='Eclipse' and phases[3]=='Day','the Europa morning passes into eclipse and out')
+check(eclipseTime>=40 and eclipseTime<=90,'the Europa eclipse lasts about 3.5 per cent of the day ('..eclipseTime..' s)')
+check(dayTime>500 and nightTime>600,'Europa day and night each hold a large share of the cycle')
+check(minDiffuse<0.2,'the Europa eclipse darkens the scene')
+check(nightWarm and nightMax>0.05 and nightMax<0.4,'Jupiter-shine lights the Europa night warm and dim ('..nightMax..')')
+
 -- Final composition, including a misbehaving local modifier and manual fog,
 -- always fits the TRN horizon. Even a ramp starting beyond it stays ordered.
 for _,limit in ipairs({100,130,250,700}) do

@@ -117,6 +117,23 @@ check(approx(severeFrame.fog.fogStart, severe.fog.fogStart),
     "its fogStart must not be touched either")
 
 -- =============================================================================
+-- Preset fog colours are daylight colours: night attenuation dims them too
+-- =============================================================================
+
+local haze = CRWeatherPresets.Get("MarsHaze")
+CRWeather.Layers = { { preset = haze, weight = 1.0 } }
+local dayFrame, nightFrame = newFrame(), newFrame()
+nightFrame.weatherLightScale = 0.2
+CRWeather.ApplyEnvironmentContribution(dayFrame)
+CRWeather.ApplyEnvironmentContribution(nightFrame)
+check(approx(dayFrame.fog.r, haze.fog.r) and approx(dayFrame.fog.b, haze.fog.b),
+    "a full daylight preset must take the preset fog colour")
+check(approx(nightFrame.fog.r, haze.fog.r * 0.2) and approx(nightFrame.fog.g, haze.fog.g * 0.2),
+    "a full night preset must dim its fog colour with the light, got r=" .. tostring(nightFrame.fog.r))
+check(approx(nightFrame.fog.fogEnd, dayFrame.fog.fogEnd),
+    "night attenuation must leave the fog range alone")
+
+-- =============================================================================
 -- The regression guard: base Environment fog is NOT clamped
 --
 -- This is the whole reason the clamp is applied to the preset's requested value

@@ -499,13 +499,13 @@ do
         check(preset.fog.fogEnd <= lastEnd, presetName .. " is no clearer than the rung below")
         local redness = preset.fog.r / math.max(0.001, preset.fog.g)
         check(redness >= lastRed - 1e-6, presetName .. " is no less red than the rung below")
-        -- Sulphur haze under Jupiter light: warm, red >= green >= blue everywhere.
-        for _, key in ipairs({ "fog", "ambient", "diffuse" }) do
-            local c = preset[key]
-            check(c.r >= c.g and c.g >= c.b, presetName .. "." .. key .. " is a warm sulphur / ember colour")
-        end
+        -- Sulphur-to-ash haze: warm, red >= green >= blue.
+        local c = preset.fog
+        check(c.r >= c.g and c.g >= c.b, presetName .. ".fog is a warm sulphur / ash colour")
+        check(c.r <= 0.25, presetName .. ".fog stays dark under Io's black sky")
+        check(preset.ambient == nil and preset.diffuse == nil, presetName .. " leaves the light to Environment's orbit")
         lastSun, lastEnd, lastRed = preset.sunPowerScale, preset.fog.fogEnd, redness
-        check(#preset.precipitation >= 1 and preset.precipitation[1].template == "CR/Weather/MarsHaze",
+        check(#preset.precipitation >= 1 and preset.precipitation[1].template == "CR/Io/Haze",
             presetName .. " carries the sulphur haze layer")
         for _, layer in ipairs(preset.precipitation) do
             check(string.find(layer.system, "cr_wx_io_", 1, true) == 1, "Io layers use cr_wx_io_ system names")
@@ -683,7 +683,7 @@ do
     for rung = 1, 5 do
         Rung(peer, rung)
         peer.run(8.0)
-        local ash = SystemsOfTemplate(peer, "CR/Weather/AshFall")[1]
+        local ash = SystemsOfTemplate(peer, "CR/Io/AshFall")[1]
         ashRate[rung] = ash and peer.rec.systems[ash].rates[0] or 0.0
         sun[rung] = peer.rec.sunPower or 1.0
         fogEnd[rung] = peer.rec.fog.fogEnd
@@ -696,7 +696,7 @@ do
         check(fogEnd[rung] <= fogEnd[rung - 1] + 0.5, "fog closes in as the ladder climbs: " .. fogEnd[rung - 1] .. " -> " .. fogEnd[rung])
     end
     check(ashRate[5] > ashRate[1] * 3.0, string.format("paroxysm ash (%.0f) is far heavier than calm (%.0f)", ashRate[5], ashRate[1]))
-    local ashSys = SystemsOfTemplate(peer, "CR/Weather/AshFall")[1]
+    local ashSys = SystemsOfTemplate(peer, "CR/Io/AshFall")[1]
     check(ashSys ~= nil and peer.rec.systems[ashSys].camera ~= nil, "ash fall rides the camera")
     check(CountSystems(peer, "cr_iw_ash") == 1, "exactly one ash system")
 
@@ -907,7 +907,7 @@ do
     check(peer.rec.systems[dust[1]].camera ~= nil, "the dust rides the camera")
     check(peer.rec.systems[dust[1]].rates[0] > 100.0, "the dust is thick at the height of a strong quake, got " .. tostring(peer.rec.systems[dust[1]].rates[0]))
     check(IO.GetAshIntensity() > ashBefore * 1.5, "extra ash falls during the quake")
-    local ash = SystemsOfTemplate(peer, "CR/Weather/AshFall")[1]
+    local ash = SystemsOfTemplate(peer, "CR/Io/AshFall")[1]
     check(peer.rec.systems[ash].rates[0] > IO.AshMaxRate * ashBefore, "the ash system's rate rises with the quake")
     peer.run(12.0)
     check(#SystemsOfTemplate(peer, "CR/Io/QuakeDust") == 0, "the dust clears after the shake")

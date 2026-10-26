@@ -29,6 +29,7 @@ function Jungle.Create(api)
     local flash,flashAt,flashPower,thunder,thunderAt,rainSound,fallSound,nextRain,nextFalls
     local floraNames={}
     local clouds,baseSky,nextSync
+    local skyStorm,skyRain,boltDir -- the CR_achillessky dome's eased weather (J.SkyState)
     local boltsSeen=0 -- bolts applied on this peer, for diagnostics
     local function copy(v)
         if type(v)~="table" then return v end
@@ -153,7 +154,9 @@ function Jungle.Create(api)
     -- Storm cloud deck: the map's own cloud art on a scrolling sky plane, via
     -- cr17_cloud.material. A clone of ACLOUD2.MAP would keep its Effect
     -- programs, which read vertex colour the sky plane lacks, so D3D11 throws
-    -- on every draw. Never replaces a sky system the map already enabled.
+    -- on every draw. Never replaces a sky system the map already enabled, and
+    -- stays down while the CR Achilles dome draws the storm itself (it takes
+    -- J.SkyState through Environment.BindWeatherSensors).
     local CLOUD="CR17/StormCloud"
     local function setClouds(on)
         if type(x.SetSkyPlane)~="function" or type(x.SetSkyPlaneEnabled)~="function" then
@@ -164,6 +167,7 @@ function Jungle.Create(api)
             return
         end
         if baseSky then clouds="skipped";return end
+        if E.ArtSkyOwned and E.SkyWeatherSource==J then clouds="dome";return end
         if clouds~="on" then
             if safe("MaterialExists",CLOUD,"General")==false then clouds="missing";return end
             local mat=CLOUD
@@ -262,6 +266,7 @@ function Jungle.Create(api)
         state.sentVents=nil
         state.level=nil -- the leader re-announces after load
         level,intensity,windSpeed,bearing=nil,0,0,210
+        skyStorm,skyRain,boltDir=nil,nil,nil
         nextLayer=1;groups={};waters={};mist=false;error=nil;clouds="off";cover=nil
         nextRain,nextFalls,nextSync=0,0,0
         baseSky=safe("GetSkyPlaneEnabled")==true or (safe("GetSkyDomeEnabled")==true and not E.ArtSkyOwned) or safe("GetSkyBoxEnabled")==true
@@ -338,6 +343,8 @@ function Jungle.Create(api)
         bearing=tonumber(deg) or bearing
         windSpeed=tonumber(speed) or SPEED[l+1]
         if changed then Weather.SetPreset("AchillesJungle"..l,10) end
+        -- The dome starts where the weather is (a load, a late join) and eases after.
+        if skyStorm==nil then skyStorm,skyRain=l/LEVELS,l>0 and intensity or 0 end
         local r=math.rad(bearing)
         local lean=windSpeed/30
         Weather.SetWindOverride({x=math.sin(r)*lean,y=-1,z=math.cos(r)*lean},windSpeed)
@@ -353,6 +360,10 @@ function Jungle.Create(api)
             applyLevel(a,({35,60,85})[math.floor(a)])
         elseif kind=="bolt" then
             flash=true;flashAt=GetTime();thunder=true;boltsSeen=boltsSeen+1
+            -- The strike's bearing on the dome comes from the shared bolt age,
+            -- so every peer sees it in the same part of the sky.
+            local h=math.rad(((tonumber(a) or 0)*97.31)%360);local e=math.rad(18)
+            boltDir={x=math.sin(h)*math.cos(e),y=math.sin(e),z=-math.cos(h)*math.cos(e)}
             flashPower=level==4 and 1.3 or 1
             thunderAt=GetTime()+(level==4 and 1.2 or 2.2)
         elseif kind=="vents" and state and type(a)=="number" and a>=0 and a<8 then
@@ -462,6 +473,11 @@ function Jungle.Create(api)
                 send("bolt",state.age)
             end
         end
+        if level then
+            local step=math.max(0,tonumber(dt) or 0)
+            skyStorm=skyStorm+(level/LEVELS-skyStorm)*(1-math.exp(-step/8))
+            skyRain=skyRain+((level>0 and intensity or 0)-skyRain)*(1-math.exp(-step/5))
+        end
         geometry()
         if Damage then Damage.Update() end
         for i=1,3 do if hasVent(state.vents,i) then lightVent(i) end end
@@ -487,11 +503,27 @@ function Jungle.Create(api)
     -- Environment owns sensor writes; severity uses the shared level, never local
     -- particle quality, geometry readiness or camera position.
     function J.GetSeverity() return level and level/LEVELS or 0 end
+    -- The CR_achillessky dome's weather, read by Environment: storm closes the
+    -- cumulus into a deck (and from the storm level lights its base red), bank
+    -- is the rain murk, and a bolt lights the cloud round the strike, twice in
+    -- quick succession like a real return stroke.
+    function J.SkyState()
+        if not J.Initialized or J.Enabled==false or not level then return nil end
+        local s={storm=skyStorm,bank=skyRain}
+        if flashAt and boltDir then
+            local age=GetTime()-flashAt
+            if age>=0 and age<.8 then
+                local k=math.exp(-age/.09)+(age>.16 and .75*math.exp(-(age-.16)/.12) or 0)
+                s.flash=math.min(1,k*.85*(flashPower or 1));s.flashDir=boltDir
+            end
+        end
+        return s
+    end
     function J.Save() return copy(state) end
     function J.Describe() return {level=level,phase=level,intensity=intensity,wind=windSpeed,bearing=bearing,
         flora=Damage and Damage.Describe() or nil,clouds=clouds,batches=#groups,totalBatches=#Sites.layers,river=waters and waters.water or false,
         streams=waters and waters.streams or false,pools=waters and waters.pools or false,
-        mist=mist,error=error,age=state and state.age or 0,bolts=boltsSeen,foliage=Foliage.Describe(),
+        mist=mist,error=error,age=state and state.age or 0,bolts=boltsSeen,sky=skyStorm and {storm=skyStorm,rain=skyRain} or nil,foliage=Foliage.Describe(),
         vents=state and state.vents or 0,ventsLit=(function() local n=0;for _ in pairs(vents) do n=n+1 end;return n end)(),
         ventLights=(function() local n=0;for _,v in pairs(vents) do if v.light then n=n+1 end end;return n end)(),
         ventGlow=ventGlow} end

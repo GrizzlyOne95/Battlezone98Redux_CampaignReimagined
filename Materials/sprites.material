@@ -460,6 +460,23 @@ material sprite_a : BZSprite/Additive
 	}
 }
 
+// The sun.0 sprite alone (Config/spritea.st), so a world that draws its own
+// sun can hide it without losing the lens flare rings that share sprite_a.
+material crsun : BZSprite/Additive
+{
+	set_texture_alias DiffuseMap sprite_a.png
+	technique 0
+	{
+		pass 0
+		{
+			fragment_program_ref CR_Effect_fragment
+			{
+				param_named fogParams float4 0 0 0 0
+			}
+		}
+	}
+}
+
 // Font
 material bzfont : BZSprite/AlphaHUD
 {

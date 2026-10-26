@@ -1,5 +1,5 @@
 [NormalView]
-Time=900
+Time=1100
 FogStart=175
 FogEnd=250
 FogBreak=60
@@ -31,11 +31,11 @@ BackdropHeight  = 100
 [Stars]
 Radius		= 1000
 
-Texture00   = earth.map
+Texture00   = crearth.map
 Alpha00     = 0
 Size00      = 200
 Azimuth00   = 150
-Elevation00 = 10
+Elevation00 = 35
 Roll00      = 300
 
 Texture01   = milkyway.map

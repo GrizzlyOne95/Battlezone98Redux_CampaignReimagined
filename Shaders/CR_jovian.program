@@ -1,0 +1,65 @@
+// Jupiter and the other Galilean moons seen from Io (CRJOVIAN.MAP and the
+// moons): spheres lit by the TRN sun, drawn on the [Stars] quads. See
+// CR_jovian.hlsl. DX11 and DX9 only: on OpenGL the unified programs have no
+// supported delegate, so Materials/cr_jovian.material falls through to a
+// technique that draws nothing.
+// Tools/Update-WorldSkyProgramVersions.py versions the delegate names.
+
+vertex_program CR_Jovian_vertexHLSL4_art_c2140aa1cd hlsl
+{
+    source CR_jovian.hlsl
+    target vs_4_0
+    entry_point jovian_vertex
+    preprocessor_defines SM4=1
+}
+
+vertex_program CR_Jovian_vertexHLSL_art_2381235930 hlsl
+{
+    source CR_jovian.hlsl
+    target vs_3_0
+    entry_point jovian_vertex
+}
+
+fragment_program CR_Jovian_fragmentHLSL4_art_2b711ca077 hlsl
+{
+    source CR_jovian.hlsl
+    target ps_4_0
+    entry_point jovian_fragment
+    preprocessor_defines SM4=1
+}
+
+fragment_program CR_Jovian_fragmentHLSL_art_a1caa0a216 hlsl
+{
+    source CR_jovian.hlsl
+    target ps_3_0
+    entry_point jovian_fragment
+}
+
+vertex_program CR_Jovian_vertex unified
+{
+    delegate CR_Jovian_vertexHLSL4_art_c2140aa1cd
+    delegate CR_Jovian_vertexHLSL_art_2381235930
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto worldMat world_matrix
+        param_named_auto cameraPosition camera_position
+    }
+}
+
+// Jupiter's look; the moons' materials override it. Scripts/CRWorldArt.lua
+// writes sunDirection, bodyPole and bodySpin.x every frame on Io.
+fragment_program CR_Jovian_fragment unified
+{
+    delegate CR_Jovian_fragmentHLSL4_art_2b711ca077
+    delegate CR_Jovian_fragmentHLSL_art_a1caa0a216
+    default_params
+    {
+        // Off until Lua sets w: lit from the right, north world up.
+        param_named sunDirection float4 0 0 0 0
+        param_named bodyPole float4 0 1 0 0
+        param_named bodyLook float4 0.43 0.05 1.15 0.0015
+        param_named bodySpin float4 0 0 0.9 0.35
+        param_named bodyRing float4 1.0 0.30 0.08 0.025
+    }
+}

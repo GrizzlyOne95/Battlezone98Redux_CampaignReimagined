@@ -1973,6 +1973,82 @@ do
 end
 
 -- =============================================================================
+-- The sky dome's share of the weather (frame.sky, read by CR_venussky)
+-- =============================================================================
+
+do
+    local world = NewWorld()
+    local peer = NewPeer("sky", world)
+    local V = peer.Venus
+    peer.Environment.Init()
+    V.Init({ seed = 9090, authority = true, sites = sites, startLevel = 1, targetLevel = 1, bounds = BOUNDS })
+    local function Sky()
+        local frame = {
+            ambient = { r = .3, g = .25, b = .1 }, diffuse = { r = .6, g = .5, b = .3 },
+            specular = { r = .2, g = .2, b = .2 }, fog = { r = .5, g = .4, b = .2, fogStart = 30, fogEnd = 300 },
+            sunPowerScale = 1.0, weatherLightScale = 1.0, nightBlend = 0.0, phase = "day", timestep = 1.0 / 30.0,
+        }
+        V.EnvironmentModifier(frame)
+        return frame.sky
+    end
+    ForceRung(peer, 1)
+    V.NextStrikeAt = 1e9
+    V.NextHeatAt = 1e9
+    peer.run(10.0)
+    V.Flashes = {}
+    local calm = Sky()
+    check(calm ~= nil and calm.storm < 0.05 and calm.flash == 0, "a calm deck publishes no gloom and no flash")
+    ForceRung(peer, 5)
+    for _ = 1, 30 do       -- the ladder climbs a rung at a time
+        if V.GetLevel() >= 5 then break end
+        peer.run(20.0)
+    end
+    peer.run(40.0)
+    V.NextStrikeAt = 1e9
+    V.NextHeatAt = 1e9
+    local held = V.FogIntensity
+    V.FogIntensity = 0.0
+    local storm = Sky()
+    check(storm.storm > 0.95 and storm.storm <= 1.0 and storm.bank == 0, "a full storm publishes its gloom, got " .. tostring(storm.storm))
+    V.FogIntensity = 0.5
+    local banked = Sky()
+    check(near(banked.bank, 0.5, 1e-6) and near(banked.storm, storm.storm * (1 - V.FogBankGloomRelief * 0.5), 1e-6),
+        "a fog bank publishes itself and washes out the gloom as the light does")
+    V.AllowFogBanks = false
+    check(Sky().bank == 0, "with fog banks off the sky sees none")
+    V.AllowFogBanks = true
+    V.FogIntensity = held
+
+    -- A strike lights the deck above it, seen from the player.
+    peer.playerPos = { x = 500, y = 12, z = 500 }
+    V.Flashes = {}
+    V.TriggerStrike({ x = 900, y = 40, z = 500, kind = 1 })
+    local peak, dir = 0, nil
+    for _ = 1, 30 * 4 do
+        peer.step(1.0 / 30.0)
+        local sky = Sky()
+        if sky.flash > peak then peak, dir = sky.flash, sky.flashDir end
+    end
+    check(peak >= V.SkyFlashFloor * 0.9, "a far strike still lights the deck, peak " .. peak)
+    check(dir ~= nil and dir.x > 0 and near(dir.z, 0, 1) and dir.y == V.SkyFlashHeight,
+        "the flash points from the player toward the strike")
+    peer.run(4.0)
+    check(Sky().flash < 0.01, "the deck goes dark again after the flash")
+
+    -- Heat lightning has no position: a heading near the horizon instead.
+    V.Flashes = { { at = V.Clock, strength = 0.14 } }
+    local _, heatDir = V.SkyFlash()
+    check(heatDir ~= nil and near(heatDir.x * heatDir.x + heatDir.y * heatDir.y + heatDir.z * heatDir.z, 1, 1e-6)
+        and near(heatDir.y, math.sin(math.rad(V.HeatFlashElevation)), 1e-6), "heat lightning lights a patch low on the deck")
+
+    V.AllowFlash = false
+    V.Flashes = { { at = V.Clock, strength = 1.0, x = 600, z = 500 } }
+    check(Sky().flash == 0, "with flashes off the deck is not lit")
+    V.AllowFlash = true
+    V.Shutdown()
+end
+
+-- =============================================================================
 -- Report
 -- =============================================================================
 

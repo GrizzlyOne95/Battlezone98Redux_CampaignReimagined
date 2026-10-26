@@ -48,7 +48,10 @@ Environment = {
     --   Dawn  : 13:00 - 15:00
     -- Set CycleDuration = 1200 for the same proportions over a 20 minute cycle.
     CycleDuration          = 900.0,
-    LightingMode           = "cycle", -- "subtle" keeps a bounded daylight variation
+    LightingMode           = "cycle", -- "subtle" keeps a bounded daylight variation;
+                                      -- "night" holds full night (see Init's skySun);
+                                      -- "orbit" follows the sun's real path past a
+                                      -- fixed planet (Io; see ComputeOrbitState)
     SubtlePeriod           = 3600.0,
     SubtleDimming          = 0.06,
     SubtleSunAngle         = 4.0,
@@ -742,8 +745,69 @@ local function ComputeCycleState(progress)
     return state
 end
 
+-- Orbit mode (Io under Jupiter). WorldArt.SetOrbit fixes Jupiter in the sky
+-- and the sun circles the orbit pole once every Orbit.period seconds, starting
+-- Orbit.startHour from noon; once a turn it passes behind Jupiter. No air, so
+-- day ends at the horizon with no sunset colours. Night (the sun down, or
+-- hidden) hands the directional light to Jupiter, as bright as its phase: full
+-- at Io's midnight, new in eclipse, when only the ring of sunlight through
+-- Jupiter's air reddens the ambient.
+local ORBIT_ECLIPSE_AMBIENT = { r = 0.025, g = 0.006, b = 0.0 }
+
+local function ComputeOrbitState(time)
+    local E = Environment
+    local orbit = E.Orbit
+    local hour = orbit.startHour + (E.LockDaylight and 0.0 or time) / orbit.period * math.pi * 2.0
+    hour = (hour + math.pi) % (math.pi * 2.0) - math.pi
+    local sun = WorldArt.OrbitSun(E.ArtWorld, hour)
+    local eclipse = WorldArt.OrbitEclipse(E.ArtWorld, sun)
+    local elevation = math.deg(math.asin(math.max(-1.0, math.min(1.0, sun.y))))
+    local daylight = SmootherStep(InverseLerp(-1.0, 4.0, elevation)) * (1.0 - eclipse)
+
+    -- Jupiter's light follows its phase, so the night colours move with the sun.
+    WorldArt.SkySun[E.ArtWorld] = sun
+    local light = WorldArt.NightLight(E.ArtWorld)
+    if light then
+        E.NightDiffuse = light.diffuse
+        E.NightSpecular = light.specular
+    end
+    local floor = orbit.ambientFloor
+    E.NightAmbient = {
+        r = floor.r + ORBIT_ECLIPSE_AMBIENT.r * eclipse,
+        g = floor.g + ORBIT_ECLIPSE_AMBIENT.g * eclipse,
+        b = floor.b + ORBIT_ECLIPSE_AMBIENT.b * eclipse,
+    }
+
+    local phase = "Day"
+    if eclipse > 0.02 then
+        phase = "Eclipse"
+    elseif daylight <= 0.02 then
+        phase = "Night"
+    elseif daylight < 0.98 then
+        phase = hour < 0.0 and "Dawn" or "Dusk"
+    end
+    return {
+        cycle = (hour / (math.pi * 2.0)) % 1.0,
+        phase = phase,
+        phaseProgress = 0.0,
+        nightBlend = 1.0 - daylight,
+        daylight = daylight,
+        sunsetAccent = 0.0,
+        sunriseAccent = 0.0,
+        orbit = { sun = sun, eclipse = eclipse, hour = hour, startHour = orbit.startHour },
+    }
+end
+
 local function CurrentCycleState()
     local time = GetTime() * (Environment.DebugScale or 1.0)
+    if Environment.LightingMode == "orbit" then
+        return ComputeOrbitState(time)
+    end
+    if Environment.LightingMode == "night" then
+        -- An airless world's night outlasts any mission: hold the middle of it.
+        local duration = math.max(1.0, Environment.CycleDuration or 900.0)
+        return ComputeCycleState(duration * (Environment.NightStartFraction + Environment.DawnStartFraction) * 0.5)
+    end
     if Environment.LightingMode == "subtle" then
         local state = ComputeCycleState(0.0)
         state.cycle = (time % math.max(1.0, Environment.SubtlePeriod)) / math.max(1.0, Environment.SubtlePeriod)
@@ -807,6 +871,12 @@ local function ComputeSunDirection(state)
             y = d.y + wave * 0.015,
             z = d.x * math.sin(angle) + d.z * math.cos(angle),
         })
+    end
+
+    if state.orbit then
+        -- The light travels away from the sun, or from Jupiter at night.
+        local s = state.orbit.sun
+        return LerpDirection({ x = -s.x, y = -s.y, z = -s.z }, E.NightSunDirection, SmootherStep(state.nightBlend))
     end
 
     if state.phase == "Day" then
@@ -1084,10 +1154,14 @@ end
 -- Mission policy over the visual-only directors. Keep sensor writes here, not
 -- in particles/directors. Existing Mars/Venus tuned modifiers use this same
 -- gameplay composition path and must not also bind a second weather modifier.
+-- A director with SkyState() (CRTitanWeather) also feeds the sky dome its
+-- weather state, which a director without an Environment modifier cannot
+-- leave in frame.sky.
 function Environment.BindWeatherSensors(name, director)
     local key = "WeatherSensors:" .. tostring(name)
     if type(director) ~= "table" then return false end
     Environment.WeatherSensorsBound = true
+    if type(director.SkyState) == "function" then Environment.SkyWeatherSource = director end
     Environment.NextWeatherSensorRefresh = 0.0
     return Environment.RegisterGameplayModifier(key, function(frame)
         local amount = 0.0
@@ -1295,6 +1369,28 @@ function Environment.Init(options)
     end
 
     Environment.ArtWorld = WorldArt.Detect(trn)
+    Environment.SkyWeatherSource = nil
+    WorldArt.DetectShine(trn, Environment.ArtWorld)
+    -- options.skySun = {azimuth=, elevation=} in degrees: where the real sun is,
+    -- for the sky. Night mode wants it below the horizon.
+    WorldArt.SetSkySun(Environment.ArtWorld, options.skySun)
+    Environment.Orbit = nil
+    if Environment.LightingMode == "orbit" then
+        -- options.orbit = {period = seconds per day, startHour = degrees from
+        -- noon (negative is morning)}.
+        local spec = type(options.orbit) == "table" and options.orbit or {}
+        if WorldArt.SetOrbit(Environment.ArtWorld) then
+            Environment.Orbit = {
+                period = math.max(60.0, tonumber(spec.period) or 1800.0),
+                startHour = math.rad(tonumber(spec.startHour) or -75.0),
+                ambientFloor = { r = 0.05, g = 0.045, b = 0.04 },
+            }
+            WorldArt.SkySun[Environment.ArtWorld] = WorldArt.OrbitSun(Environment.ArtWorld, Environment.Orbit.startHour)
+        else
+            print("Environment: no orbit for world " .. tostring(Environment.ArtWorld) .. "; using the cycle")
+            Environment.LightingMode = "cycle"
+        end
+    end
     Environment.ArtSkyOwned = WorldArt.InitializeSky(exu,Environment.ArtWorld)
     Environment.WorldPreset, Environment.WorldPalette = DetectWorldPreset(trnFilename, trn)
     ApplyWorldPreset(Environment.WorldPreset, baseAmbient, baseDiffuse, baseSpecular, baseFog)
@@ -1310,6 +1406,25 @@ function Environment.Init(options)
         Environment.DaySunPowerScale = NativeValue("GetSunPowerScale") or Environment.DaySunPowerScale
         Environment.StableShadowFarDistance = NativeValue("GetSunShadowFarDistance") or Environment.StableShadowFarDistance
         Environment.DayFog = CopyFog(baseFog)
+    end
+    if Environment.LightingMode == "night" or Environment.LightingMode == "orbit" then
+        -- The night light comes from the world's shining body (the Earth over
+        -- the Moon). Its strength is set here, so the night power cut would
+        -- only dim it twice. With no air, darkness does not shorten the view:
+        -- the fog keeps the day's range and only goes dark.
+        local nightLight = WorldArt.NightLight(Environment.ArtWorld)
+        Environment.NightBodyLight = nightLight ~= nil
+        if nightLight then
+            Environment.NightSunDirection = nightLight.direction
+            Environment.NightDiffuse = nightLight.diffuse
+            Environment.NightSpecular = nightLight.specular
+            Environment.NightAmbient = Environment.Orbit and Environment.Orbit.ambientFloor or { r = 0.02, g = 0.02, b = 0.03 }
+            Environment.NightSunPowerScale = Environment.DaySunPowerScale
+            Environment.NightFog = {
+                r = Environment.DayFog.r * 0.12, g = Environment.DayFog.g * 0.12, b = Environment.DayFog.b * 0.15,
+                fogStart = Environment.DayFog.fogStart, fogEnd = Environment.DayFog.fogEnd,
+            }
+        end
     end
     Environment.DayFog = ClampFogToHorizon(Environment.DayFog)
     Environment.NightFog = ClampFogToHorizon(Environment.NightFog)
@@ -1386,6 +1501,10 @@ function Environment.Update(timestep)
     -- Registered modifiers get the last word on the frame targets. Weather
     -- contributes here rather than writing fog and lighting itself.
     -- -------------------------------------------------------------------------
+    -- A modifier may also leave the sky dome's weather state in frame.sky
+    -- (CRVenusWeather: storm gloom, fog bank, lightning); see WorldArt.UpdateSky.
+    -- Otherwise a bound sensor director may give it (CRTitanWeather: haze, roll).
+    local skyWeather = nil
     if #Environment.ModifierOrder > 0 then
         local frame = RunEnvironmentModifiers({
             ambient = targetAmbient,
@@ -1406,6 +1525,12 @@ function Environment.Update(timestep)
         targetSpecular = ClampColor(frame.specular or targetSpecular)
         targetFog = ClampFog(frame.fog or targetFog)
         sunState.powerScale = math.max(0.0, tonumber(frame.sunPowerScale) or sunState.powerScale)
+        skyWeather = frame.sky
+    end
+    local skySource = Environment.SkyWeatherSource
+    if skyWeather == nil and skySource then
+        local ok, sky = pcall(skySource.SkyState)
+        if ok and type(sky) == "table" then skyWeather = sky end
     end
 
     -- Weather owns its fog/light targets; subtle TOD remains visible even at
@@ -1417,9 +1542,28 @@ function Environment.Update(timestep)
         targetSpecular = ModulateColor(targetSpecular, { r = 1, g = 1, b = 1 }, 1.0 - dim)
     end
     targetFog = ClampFogToHorizon(targetFog)
-    local artFrame = WorldArt.Apply(Environment.ArtWorld, {ambient=targetAmbient,diffuse=targetDiffuse,specular=targetSpecular})
+    local sunDirection = sunState.direction
+    local skySun = WorldArt.SkySun[Environment.ArtWorld]
+    local artFrame = WorldArt.Apply(Environment.ArtWorld, {ambient=targetAmbient,diffuse=targetDiffuse,specular=targetSpecular,
+        sun=skySun or {x=-sunDirection.x,y=-sunDirection.y,z=-sunDirection.z},night=state.nightBlend,
+        bodyLight=Environment.LightingMode == "night" and Environment.NightBodyLight or nil})
     targetAmbient,targetDiffuse,targetSpecular = artFrame.ambient,artFrame.diffuse,artFrame.specular
-    if Environment.ArtSkyOwned then WorldArt.UpdateSky(exu,Environment.ArtWorld) end
+    if Environment.ArtSkyOwned then
+        -- Domes that take the frame (Mars, Venus, Titan) get the sun, the night
+        -- blend, how much of the clear-day visibility the weather has left and
+        -- the weather's own sky state. At night the scene light is the shining
+        -- body's, so the dome takes the real sun from skySun when there is one.
+        local base = ClampFogToHorizon(Environment.LastBaseFog)
+        local clarity = base.fogEnd > 0.0 and Clamp01(targetFog.fogEnd / base.fogEnd) or 1.0
+        local d = sunState.direction
+        WorldArt.UpdateSky(exu, Environment.ArtWorld, {
+            sun = skySun or { x = -d.x, y = -d.y, z = -d.z },
+            night = state.nightBlend,
+            clarity = clarity,
+            weather = skyWeather,
+            orbit = state.orbit,
+        })
+    end
 
     -- -------------------------------------------------------------------------
     -- Lighting / fog writes
@@ -1664,6 +1808,17 @@ end
 function Environment.RestoreArtSky()
     if not Environment.ArtSkyOwned then return false end
     return WorldArt.InstallSky(exu,Environment.ArtWorld)
+end
+-- A mission hiding the world-art dome under its own sky (misn18's storm deck)
+-- tells it here, so the stock sprites the dome replaced come back while it is
+-- hidden and go again when it returns. No-op when this map never owned one.
+function Environment.SetArtSkyVisible(visible)
+    if not Environment.ArtSkyOwned then return false end
+    if visible then
+        WorldArt.HideSkySprites(exu,Environment.ArtWorld)
+        return true
+    end
+    return WorldArt.RestoreSkySprites(exu,Environment.ArtWorld)
 end
 
 function Environment.GetFogHorizon()
