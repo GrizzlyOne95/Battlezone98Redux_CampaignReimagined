@@ -44,4 +44,4 @@ The DX11 Enhanced base and terrain shaders are the exception to CR ownership: th
 - New shipped files require `-bless`; review the lock diff. Use `-allow-removals` only when removing shipping entries intentionally. Deploy verifies against the lock by default.
 - Preserve runtime-only files excluded by the manager. Installed copies and `Local\Workshop` are generated output, not source.
 - `Bin\` is a cache refreshed from sibling build outputs, not an independent source. Override those repositories only with the documented `BZR_OPENSHIM_REPO`, `BZR_EXU_REPO`, and `BZR_BZFILE_REPO` variables.
-- Real Workshop publication is incomplete until OpenShim's `Docs/STEAM_ROADMAP_BBCODE.txt` is synchronized to the Steam Roadmap discussion. Follow the checklist; dry runs do not require public edits.
+- Real Workshop publication is incomplete until OpenShim's `Docs/STEAM_ROADMAP_BBCODE.txt` and `Docs/STEAM_STOCK_FIXES_BBCODE.txt` are synchronized to the Steam Roadmap and stock bug fixes discussions. Follow the checklist; dry runs do not require public edits.
