@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "sources": {
-    "exteriorSha256": "ed2fffa6775ee1e428f586c2338afb0a873a20bd6181253495af8134de4a3aef",
+    "exteriorSha256": "1f01fe10d43a16e4139a8d867bd8016c08b71024f062d42edb9c2ab0a6b4b8cd",
     "skeletonSha256": "27f0e9443109fe7f1b337e09bd5882de6aa9e88deb5cfa1d886822ef5061043e"
   },
   "outputs": {
-    "Assets/Models/cvhtnk_cockpit.mesh": "0278696fd77de0a9d74438f25606149780aaa43ae25d3834a70306be65a99612",
+    "Assets/Models/cvhtnk_cockpit.mesh": "48fe1c89ab9e0560c25ed85f757e89882b9623d7a93a1ab7238f22e29a58d674",
     "Assets/Models/cvhtnk_cockpit.skeleton": "27f0e9443109fe7f1b337e09bd5882de6aa9e88deb5cfa1d886822ef5061043e",
     "Materials/CR_cvhtnk_cockpit.material": "f374d8c2b4cb3f7fb6e74dae868e0a9c536f2248949d9723076a1c01a9ac1ccd"
   },

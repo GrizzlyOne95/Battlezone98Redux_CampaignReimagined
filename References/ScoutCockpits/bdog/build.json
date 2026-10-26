@@ -10,11 +10,11 @@
     1024
   ],
   "sources": {
-    "exteriorSha256": "bd3e849408598803a8b7960989f1e4d59b991dee2cbb12aabd9c8563c862869b",
+    "exteriorSha256": "2049713c30cad2cd0c7afb15ea0f2a2c43cdb8f0e8627e256e8d1024d84a41a3",
     "skeletonSha256": "ec1dbc02748d5ba4f576ca6c732551df3e6a73b9ad508a4e745ea415add93cc7"
   },
   "outputs": {
-    "Assets/Models/bvraz_cockpit.mesh": "f6d040c957f413289c102dd93387415ada3905a51bf95bd24581c5ebd1fe7a18",
+    "Assets/Models/bvraz_cockpit.mesh": "89fef9223a122d9cf0a64d3da08c29abe7ae94dc63e600e3ad24d481ad145b27",
     "Assets/Models/bvraz_cockpit.skeleton": "ec1dbc02748d5ba4f576ca6c732551df3e6a73b9ad508a4e745ea415add93cc7",
     "Assets/Textures/crvbscp_d.dds": "c2db5d269e0887791551c2ae7b92861ababd28cf3ec3b603d7926abe276b072f",
     "Assets/Textures/crvbscp_e.dds": "623acd56e9995b5b03cf33becd39fef2ac512fab29c4b7dc8a708cda0d559d76",

@@ -2,11 +2,11 @@
   "schema": 1,
   "masterSha256": "afd8405cfa77441176832379f19a22ccf81626fc6cc91b63d0016a7e6de55ee5",
   "sources": {
-    "exteriorSha256": "ec57b7b5b0093cf6697a03a54bf9178205883a057e9985b178ed314f8e89cdc9",
+    "exteriorSha256": "1fd243fc936c8841bab2a380a7db6bf583fbd3b3415bb2999f642db82120626e",
     "skeletonSha256": "751b6c92b0cfc97913508f79b87a6a5c10486ac1457ef52f6af7a93799c70e1c"
   },
   "outputs": {
-    "Assets/Models/cvfigh_cockpit.mesh": "04259197ebe0775f6008e3e9d09356e219c3d0a40ea57b46a01895e7267e5297",
+    "Assets/Models/cvfigh_cockpit.mesh": "09ccc89c1db9b5a57c7de97f1d7091a660acd74c7f27cd2ba5566ba1891b4599",
     "Assets/Models/cvfigh_cockpit.skeleton": "751b6c92b0cfc97913508f79b87a6a5c10486ac1457ef52f6af7a93799c70e1c",
     "Assets/Textures/crvcfcp_d.dds": "1ef0bc860adb14a521dc12166fde945df4ab68ffb89a4b378589c7608a0a1acd",
     "Assets/Textures/crvcfcp_e.dds": "9297cb02ab851ce3d3f694909477492d8cdcd00fd660dd58537cda90d7dfa049",

@@ -2,14 +2,14 @@
   "schema": 1,
   "sources": {
     "baseline": "References/LightTankCockpits/source/bvltnk.mesh",
-    "exteriorSha256": "0fa7eefb71db4c58b0c10f0373e193cd67bb2fd92baa834b13c0da2a58ea7ec1",
+    "exteriorSha256": "4584ab39219fa210ee1fe5a10864ef76baf448bfa6be6e94858917e8be1503e5",
     "skeletonSha256": "20d755d8a26a5e185bca18cb949855773647da50c3fd52947867ee0ce1d8a8da"
   },
   "outputs": {
-    "Assets/Models/bvltnk_cockpit.mesh": "8dc66a2687fe582803b4695d761d078000beccaec0878ef80bf2c2946afc67ce",
+    "Assets/Models/bvltnk_cockpit.mesh": "a79cbe7d2401b3a15cb28ff72cd65c988a9ccf7b720294ed4f0d56c49118999c",
     "Assets/Models/bvltnk_cockpit.skeleton": "20d755d8a26a5e185bca18cb949855773647da50c3fd52947867ee0ce1d8a8da",
     "Materials/CR_bvltnk_cockpit.material": "1f2f661f95ff99e210812121bc13ff0428e9981fb6bc88403730c49be3925339",
-    "Assets/ModelFixes/bvltnk.mesh": "5a8d44a7ebbf5377288ad6467c4957408eafa03242c37667844572dd0e9e3c20"
+    "Assets/ModelFixes/bvltnk.mesh": "4f08b1ac2d6af6c43a946e29aa1373ae7a75ed0f853dfd30226199f0649dd0ce"
   },
   "alignment": {
     "base": "bvltnk",

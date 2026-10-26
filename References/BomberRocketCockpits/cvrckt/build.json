@@ -2,12 +2,12 @@
   "schema": 1,
   "base": "cvrckt",
   "sources": {
-    "exteriorSha256": "1289797e5e1d4f7009d93a1ade3d51baa1907a9a158210973990ba8d788fba0e",
+    "exteriorSha256": "b4f82b9184b51bd7cabe78d4e43234945405884a0029a001f8a5914d312a0ca6",
     "skeletonSha256": "139a19d3cd2bb1d41881a567fb608e3d818b43274f3775abefb6f9aed0481c3d",
     "nativeSha256": "8d40d6caddb91d07e02d907e4ccfe58570d4d64d360d775ff0c02fae128c2941"
   },
   "outputs": {
-    "Assets/Models/cvrckt_cockpit.mesh": "c2a1f1dfcbaf5fa811ea123cb0893189dc1cd2129c047b7fa6dc68aa8f81730e",
+    "Assets/Models/cvrckt_cockpit.mesh": "9ed35b41c8dc100f2a52f6d767394c9f9b346847da3fb45bd81bf52aee55a1b7",
     "Assets/Models/cvrckt_cockpit.skeleton": "139a19d3cd2bb1d41881a567fb608e3d818b43274f3775abefb6f9aed0481c3d",
     "Materials/CR_cvrckt_cockpit.material": "b60de9fe2f3ccacc23a541f3818acf84e8183f45a544e8aeb6241e7da48aa518"
   },

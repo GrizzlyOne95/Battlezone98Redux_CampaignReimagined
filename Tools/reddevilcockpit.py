@@ -3,6 +3,7 @@ from pathlib import Path
 import io,math,sys
 from types import SimpleNamespace
 import numpy as np
+import ogrelayout
 from bzmodellibs import ogremesh as om,ogremesh_serializer as oms,ogreskeleton_serializer as oss
 
 CHARTS={'frame':(240,66,770,144),'console':(16,216,632,632),'switch':(664,216,1008,632),'armor':(16,664,632,1008),'trim':(664,664,1008,1008)}
@@ -132,8 +133,8 @@ def mesh_bytes(parts,skeleton,world,eye,shell,skeleton_name='bvrdev_cockpit.skel
             assert (length>1e-9).all(),'all mapped cockpit vertices need a tangent'
             data=np.column_stack([data,t/length[:,None]]).astype('<f4')
         sub=mesh.create_submesh();sub.material_name=name;sub.index_count=len(index);sub.indices_32_bit=False;sub.set_index_buffer(index.astype('<u2').tobytes());vd=sub.create_vertex_data(len(data))
-        for typ,sem,offset in [(om.VET.FLOAT3,om.VES.POSITION,0),(om.VET.FLOAT3,om.VES.NORMAL,12),(om.VET.FLOAT2,om.VES.TEXTURE_COORDINATES,24),(om.VET.FLOAT3,om.VES.TANGENT,32)]:vd.vertex_declaration.create_vertex_element(0,typ,sem,offset,0)
-        vd.create_vertex_buffer(np.asarray(data,dtype='<f4').tobytes(),0,44)
+        # Skinned: stock two-stream layout, or the batch draws flat (ogrelayout.py).
+        ogrelayout.fill_vertex_data(vd,data)
         for i in range(len(data)):sub.create_bone_assignment(i,shell.handle,1.)
         return sub
     for name,(data,index) in parts.items():add(name,data,index)

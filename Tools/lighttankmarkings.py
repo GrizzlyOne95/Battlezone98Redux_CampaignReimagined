@@ -1,6 +1,7 @@
 """Surface-conforming faction bands using existing quiet paint atlas charts."""
 import io
 import numpy as np
+import ogrelayout
 import reddevilcockpit as shared
 
 def clip(poly,axis,limit):
@@ -53,8 +54,7 @@ def geometry(body,origin,bones,faction):
 def model_bytes(mesh,data,indices,handles,material):
     """Append one paint batch through the shared Ogre serializer, keep all others."""
     sub=mesh.create_submesh();sub.material_name=material;sub.index_count=len(indices);sub.indices_32_bit=False;sub.set_index_buffer(indices.astype('<u2').tobytes());vd=sub.create_vertex_data(len(data))
-    om=shared.om
-    for typ,sem,offset in [(om.VET.FLOAT3,om.VES.POSITION,0),(om.VET.FLOAT3,om.VES.NORMAL,12),(om.VET.FLOAT2,om.VES.TEXTURE_COORDINATES,24),(om.VET.FLOAT3,om.VES.TANGENT,32)]:vd.vertex_declaration.create_vertex_element(0,typ,sem,offset,0)
-    vd.create_vertex_buffer(data.astype('<f4').tobytes(),0,44)
+    # Skinned: stock two-stream layout, or the batch draws flat (ogrelayout.py).
+    ogrelayout.fill_vertex_data(vd,data)
     for i,bone in enumerate(handles):sub.create_bone_assignment(i,int(bone),1.)
     out=io.BytesIO();shared.oms.MeshSerializer(out).write(mesh);return out.getvalue()

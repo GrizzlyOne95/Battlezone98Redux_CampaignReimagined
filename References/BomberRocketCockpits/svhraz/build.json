@@ -2,12 +2,12 @@
   "schema": 1,
   "base": "svhraz",
   "sources": {
-    "exteriorSha256": "90a5b1ee83952deb6efb24cc3892dc9aa57e79314777105e593b811d522c5153",
+    "exteriorSha256": "32da28b780b770ddcf305fd9e7f068d4fd918d744a9c90f709ee039f412de7bf",
     "skeletonSha256": "60c475e58b936b3ca77cb628a5e9cfacf75fbd5780254c3e18d4e2fd90760f82",
     "nativeSha256": "11d1c3a9b6f1fa602fb4b0f0a0326f81936f1ed796ba1aa5197934548b461cde"
   },
   "outputs": {
-    "Assets/Models/svhraz_cockpit.mesh": "8ada4628b275d7e1ea0adea56a70bb47fe3434679aca2ef3ce2bc86d6c71f80a",
+    "Assets/Models/svhraz_cockpit.mesh": "8bf27aa6d6fdc19cc0c5a344fdc8f1ddce5f4fbff4667ef5e48e6ef6dc6e97e4",
     "Assets/Models/svhraz_cockpit.skeleton": "60c475e58b936b3ca77cb628a5e9cfacf75fbd5780254c3e18d4e2fd90760f82",
     "Materials/CR_svhraz_cockpit.material": "47845372df88d3bef22a10041fcbcc4004650a5fe3c6fae2bd25f9b180965117"
   },
