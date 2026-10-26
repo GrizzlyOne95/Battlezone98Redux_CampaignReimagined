@@ -1919,6 +1919,16 @@ function Get-WorkshopClientUploadPlan {
         "-ContentB64", (& $b64 $contentFolder)
     )
     if ($ChangeNote) { $arguments += @("-NoteB64", (& $b64 $ChangeNote)) }
+    # The description goes only when PublishDescription opts in; the helper
+    # leaves Steam's copy alone when the flag is absent.
+    $descriptionText = Get-WorkshopDescriptionText -Config $Config
+    if ($descriptionText) {
+        if ($descriptionText.Length -gt $script:WorkshopDescriptionMaxLength) {
+            throw ("Description is $($descriptionText.Length) characters; Steam allows " +
+                "$script:WorkshopDescriptionMaxLength. Shorten it before uploading.")
+        }
+        $arguments += @("-DescriptionB64", (& $b64 $descriptionText))
+    }
 
     return [pscustomobject]@{
         ToolboxRoot = $toolboxRoot
@@ -1934,11 +1944,15 @@ function Get-WorkshopClientUploadPlan {
 function Write-WorkshopPublishScopeNote {
     param($Config)
 
-    Write-Host ("Sending: content folder and change note only. Title, description, tags, preview and " +
-        "visibility are left exactly as they are on Steam.") -ForegroundColor DarkGray
     if ($Config.PublishDescription) {
-        Write-Host ("PublishDescription is true, but the Steam-client upload never sends the description. " +
-            "Edit it on Steam (or use -steamcmd, which honours PublishDescription).") -ForegroundColor Yellow
+        $descriptionText = Get-WorkshopDescriptionText -Config $Config
+        Write-Host ("Sending: content folder, change note and the description ($($descriptionText.Length) characters" +
+            $(if ($Config.DescriptionFile) { " from $($Config.DescriptionFile)" } else { "" }) +
+            "), replacing the live one. Title, tags, preview and visibility are left exactly as they are on Steam.") -ForegroundColor Yellow
+    }
+    else {
+        Write-Host ("Sending: content folder and change note only. Title, description, tags, preview and " +
+            "visibility are left exactly as they are on Steam.") -ForegroundColor DarkGray
     }
 }
 
