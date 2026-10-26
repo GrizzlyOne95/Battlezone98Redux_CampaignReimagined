@@ -381,7 +381,10 @@ Rules:
   mist instead. Do not "fix" mood with global fog.
 - **Moon 02b/03 now explicitly load Environment in subtle/native-baseline mode** [owner, 2026-10-15]:
   retain their 175-250 black fog and use bounded lighting variation, with no full night or sensor penalty.
-  Do not replace this with the default full-cycle moon profile. Titan 14 now loads Environment with
+  Do not replace this with the default full-cycle moon profile. **Revised 2026-10-25 [owner]:** misn03
+  is a lunar night instead (`lightingMode = "night"`, `skySun` below the horizon, `nightGameplay = false`):
+  a nearly full Earth is the directional light, the fog keeps its 175-250 range and only darkens, and
+  sensors are unchanged. misn02b stays subtle. Titan 14 now loads Environment with
   its native baseline and daylight lock; CRWeather contributes through the shared writer.
 - **CR owns weather content**; do not migrate or "unify" it into EXU [owner]. EXU provides mechanics.
   Redux ships no `.particle` scripts; assets ship flat in `mods/<id>/` (`.particle`, `.material`, `.png`

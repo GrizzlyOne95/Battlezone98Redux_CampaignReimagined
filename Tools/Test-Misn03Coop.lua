@@ -257,8 +257,9 @@ settle()
 check(host.state.first_wave_done, "host did not run the opening")
 -- CR Moon weather: the leader runs the director on the map data, guests follow the ordered stream.
 check(host.moon.init.authority and host.moon.init.sites.mission == "misn03", "the leader runs the Moon weather director on the misn03 sites")
-check(host.environmentOptions.lightingMode == "subtle" and host.environmentOptions.nativeBaseline,
-    "Moon lighting uses bounded native-baseline TOD")
+check(host.environmentOptions.lightingMode == "night" and host.environmentOptions.nativeBaseline
+    and host.environmentOptions.nightGameplay == false and host.environmentOptions.skySun.elevation < 0,
+    "misn03 is a visual-only lunar night with the sun below the horizon")
 check(host.weatherSensors and host.weatherSensors[1] == "Moon" and host.weatherSensors[2].Seed == 4242,
     "Moon weather director is bound to Environment sensors")
 check(count(host, "environmentUpdate") > 0, "Moon updates Environment alongside weather")
