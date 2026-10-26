@@ -300,7 +300,7 @@ local function BuildPreset(row, roll)
     return {
         name          = row.name .. (roll and "Roll" or ""),
         precipitation = precipitation,
-        sky           = nil,     -- the map's own sky: Saturn and the cloud deck stay
+        sky           = nil,     -- the CR_titansky dome takes V.SkyState() instead
         fog           = { r = r, g = g, b = b, fogStart = fogStart, fogEnd = fogEnd },
         ambient       = { r = row.ambient[1] * Mix(1.0, light, 0.5), g = row.ambient[2] * Mix(1.0, light, 0.5),
                           b = row.ambient[3] * Mix(1.0, light, 0.5) },
@@ -641,6 +641,14 @@ function V.GetRollIntensity()
 end
 
 function V.IsRolling() return V.Roll_ ~= nil end
+
+-- The sky dome's weather state (CR_titansky): storm is the haze ladder and
+-- bank the roll envelope, so Saturn fades as the haze thickens and rolls in.
+-- Environment reads it through BindWeatherSensors; this registers nothing.
+function V.SkyState()
+    if not V.Initialized or V.Disabled or not V.Enabled then return nil end
+    return { storm = V.GetSeverity(), bank = V.GetRollIntensity() }
+end
 function V.GetRoll() return V.Roll_ end
 
 -- A roll begins (host, and by event guests). Purely visual.

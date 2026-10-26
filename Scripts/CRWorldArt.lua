@@ -16,11 +16,15 @@ local stems={mn="moon",ma="mars",ve="venus",io="io",eu="europa",ti="titan",ga="g
 Art.Skies={mars="CRSKYMA.MAP",venus="CRSKYVE.MAP",titan="CRSKYTI.MAP",achilles="CRSKYAC.MAP",elysium="CRSKYEL.MAP"}
 Art.SkyCalibration={}
 -- Domes drawn by a shader that takes the frame state (CR_marssky,
--- CR_venussky): the sun, night blend and clarity go into the technique 0 pass
--- colours, and the stock engine cloud sprites are hidden because the dome
--- draws its own clouds. A dome flagged weather (Venus) also takes the
--- weather's sky state.
-Art.SkyFrames={mars={hide={"ACLOUD2.MAP","ACLOUD.MAP"}},venus={hide={},weather=true}}
+-- CR_venussky, CR_titansky): the sun, night blend and clarity go into the
+-- technique 0 pass colours, and the stock engine cloud sprites are hidden
+-- because the dome draws its own clouds. A dome flagged weather (Venus, Titan)
+-- also takes the weather's sky state. A dome flagged body draws the world's
+-- shining body itself (Saturn over Titan, through the haze), so its TRN quad
+-- is hidden and the dome takes the body's direction. Titan's haze is opaque, so
+-- its TRN star sprites go too.
+Art.SkyFrames={mars={hide={"ACLOUD2.MAP","ACLOUD.MAP"}},venus={hide={},weather=true},
+    titan={hide={"ACLOUD2.MAP","SATURN.MAP","STARS.MAP"},weather=true,body=true}}
 Art.SkyFrameState={}
 -- Airless worlds get the catalog sky box instead of a dome. Its stars and
 -- Milky Way replace the TRN's STARS.MAP sprites and MILKYWAY.MAP quad; the
@@ -231,9 +235,11 @@ end
 -- weather={storm=0..1, bank=0..1, flash=0..1, flashDir={x,y,z}} (optional)}.
 -- Specular stays (Enhanced flag, sun direction). Emissive is (night, clarity,
 -- then cloud cover (the clarity) and 0, or on a weather dome the storm gloom
--- and fog bank). Diffuse is (direction toward the lightning, flash strength).
+-- and fog bank; Titan's haze and haze roll take those two slots). Diffuse is
+-- (direction toward the lightning, flash strength). On a body dome, ambient is
+-- (direction toward the body, 1), or 0 in w when the map has none.
 -- Writes are skipped until something moves noticeably.
-local function update_sky_frame(api,material,enhanced,frame,spec)
+local function update_sky_frame(api,material,enhanced,frame,spec,world)
     local s=frame.sun
     local night=unit(frame.night)
     local clarity=math.max(0,math.min(1,tonumber(frame.clarity) or 1))
@@ -248,6 +254,10 @@ local function update_sky_frame(api,material,enhanced,frame,spec)
     local colours={specular={r=enhanced and 1 or 0,g=s.x,b=s.y,a=s.z},
         emissive=w and {r=night,g=clarity,b=storm,a=bank} or {r=night,g=clarity,b=clarity,a=0},
         diffuse={r=fx,g=fy,b=fz,a=flash}}
+    if spec.body then
+        local b=Art.ShineSource[world]
+        colours.ambient=b and {r=b.x,g=b.y,b=b.z,a=1} or {r=0,g=0,b=1,a=0}
+    end
     local accepted,result=pcall(api.SetMaterialPassColors,material,colours,0,0,"General")
     if not accepted or result~=true then return false end
     Art.SkyFrameState[material]={enhanced=enhanced,x=s.x,y=s.y,z=s.z,night=night,clarity=clarity,storm=storm,bank=bank,flash=flash}
@@ -266,7 +276,7 @@ function Art.UpdateSky(api,world,frame)
     local accepted,result
     if Art.SkyFrames[world] and type(frame)=="table" and type(frame.sun)=="table" then
         -- The frame write carries the calibration flag too.
-        accepted,result=true,update_sky_frame(api,material,enhanced,frame,Art.SkyFrames[world])
+        accepted,result=true,update_sky_frame(api,material,enhanced,frame,Art.SkyFrames[world],world)
         if Art.SkyCalibration[material]==enhanced then return end
     else
         if Art.SkyCalibration[material]==enhanced then return end
@@ -337,9 +347,14 @@ end
 -- below the day's diffuse, so a full Jupiter still reads as night. From
 -- Europa Jupiter covers 0.4 times the sky it does from Io, so its light is
 -- weaker, but the bright ice gives more of it back.
+-- Titan's is Saturn, which hangs still over the Saturn-facing side, full at
+-- local midnight. By day the haze hides its light entirely; at night it is
+-- the haze-reddened light that casts the shadows (Environment's night mode),
+-- and the haze scatters a good share of it round as ambient.
 Art.Shine={moon={texture="crearth.map",colour={r=0.62,g=0.74,b=1.00},day=0.10,night=0.30,light=0.45,bounce=0.08},
     io={texture="crjovian.map",colour={r=1.00,g=0.80,b=0.58},day=0.05,night=0.07,light=0.36},
-    europa={texture="crjovian.map",colour={r=1.00,g=0.82,b=0.62},day=0.03,night=0.05,light=0.22}}
+    europa={texture="crjovian.map",colour={r=1.00,g=0.82,b=0.62},day=0.03,night=0.05,light=0.22},
+    titan={texture="saturn.map",colour={r=1.00,g=0.70,b=0.40},day=0.0,night=0.06,light=0.26,bounce=0.10}}
 Art.ShineSource={}
 function Art.DetectShine(trn,world)
     Art.ShineSource[world or ""]=nil
