@@ -8,33 +8,32 @@
 
 This patch modifies native game behavior and remains highly experimental. Expect bugs, crashes, compatibility problems, or changes not present in the unmodified game.
 
-Game improvements should be open and shared. Other 'community' patches are closed source, with no way to verify the code is safe or to contribute. Here all source code is public on Github, and you can build it yourself.
+This item operates under the philosophy that game improvement methods should be open and shared. Other 'community' patches tend to operate under closed/hidden source with no way to verify if the code is safe, and no way to contribute or review it. Here, all source code is available publicly on Github and you can compile it from source yourself if desired. 
 
 [h2]Install and Play[/h2]
 [b]1. First-time install[/b]
 [list=1]
 [*] Subscribe and let Steam finish downloading. Do [b]not[/b] enable anything in the Mods menu.
 [*] Download and run [url=https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/releases/latest/download/OpenShimSetup.exe]OpenShimSetup.exe[/url]. It installs the complete OpenShim suite.
-[*] Start the game. (No installer? In the game, open [b]Single Player > Instant Action[/b] (bottom right) and start [b]! SETUP / REPAIR - Open Community Patch[/b], then [b]exit the game completely[/b] and start it again. The files are put in place while the game is closed.)
+[*] Start the game. No installer? Start [b]! SETUP / REPAIR - Open Community Patch[/b] from [b]Single Player > Instant Action[/b] (bottom right), then [b]exit the game completely[/b] and restart (files install while it is closed).
 [/list]
 
 [b]2. Where the campaign is[/b]
-Open [b]Single Player > Custom Campaign[/b] (top right) and choose [b]Campaign Reimagined[/b]. It holds the full 17-mission NSDF campaign, from [b]Red Arrival[/b] to [b]The Ultimate Quake[/b]. The early missions are the most polished; the last few are still in development. Every mission is also in the multiplayer list as [b]CR 01[/b] to [b]CR 17 Coop[/b] for up to four players.
+Open [b]Single Player > Custom Campaign[/b] (top right) and choose [b]Campaign Reimagined[/b]. It holds the full 17-mission NSDF campaign, [b]Red Arrival[/b] to [b]The Ultimate Quake[/b]; the last few missions are still in development. All 17 are also multiplayer co-op maps ([b]CR 01[/b] to [b]CR 17 Coop[/b]) for up to four players.
 Campaign assets load only with this campaign. OpenShim's engine fixes stay active game-wide, and all other content uses its usual menus.
 
 [b]3. Updating[/b]
-Once OpenShim is installed, updates install automatically. After the Workshop item updates, the game stages the new OpenShim when you start a campaign mission or reach the main menu, and installs it when you quit the game. You don't need the installer or the setup mission again. To update by hand, open [b]Options[/b], go to the [b]OpenShim[/b] page and press [b]Check for Updates[/b] (Steam only). Run the installer or Setup / Repair again only if the install is damaged.
+Updates install automatically: when the Workshop item updates, the game stages the new OpenShim at the main menu or when a campaign mission starts, and installs it when you quit. To update by hand, press [b]Check for Updates[/b] on the [b]Options > OpenShim[/b] page (Steam only). Rerun the installer or Setup / Repair only if the install is damaged.
 
 [b]Guarded and Reversible:[/b] OpenShim validates the game build and patch sites, fails closed on mismatches, and never modifies battlezone98redux.exe on disk.
 
-If setup fails, check [i]openshim_update.status[/i] and [i]winmm_replace.log[/i]. Manual installs need the [url=https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/releases]complete OpenShim suite[/url]; winmm.dll alone is not enough. Remove other native DLL mods before troubleshooting.
+If setup fails, check [i]openshim_update.status[/i] and [i]winmm_replace.log[/i]. Manual installs need the [url=https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/releases]complete OpenShim suite[/url]: winmm.dll, bzloader.dll, plugins/openshim.dll and matching configuration/assets. winmm.dll alone is not enough. Remove other native DLL mods before troubleshooting.
 
 [h2]Major Player-Facing Improvements[/h2]
 [list]
 [*] [b]Game-Wide Native Patch:[/b] OpenShim isn't limited to Campaign Reimagined. Engine fixes, input improvements, multiplayer fixes, HUD options, networking changes, crash protection, and many other features work across the stock campaigns, Instant Action, multiplayer, and compatible mods.
-[*] [b]Remastered Worlds (DX11 Enhanced):[/b] High-resolution terrain packs for all nine worlds. The stock textures remain the fallback on other renderers.
 [*] [b]Destruction Debris:[/b] Restored the classic Battlezone 1.5 behavior where destroyed vehicles and buildings break into visible physical geometry chunks. These aren't estimations - they track exactly with the legacy hidden GEOs. They're the real deal.
-[*] [b] Massive FPS and optimization boosts: [/b] Removed major rendering bottlenecks: redundant Ogre geometry rebuilds, excess destruction submissions, broken craft culling and needless DX11 CPU/GPU syncs. Benchmarks show 5-15% gains in representative CPU-heavy scenarios, with improvements exceeding 70% in destruction-heavy stress tests.
+[*] [b]Massive FPS and optimization boosts:[/b] Identified and eliminated several major rendering bottlenecks, including redundant Ogre geometry rebuilds, excessive destruction-object submissions, broken craft culling, and unnecessary DX11 CPU/GPU synchronization. Benchmarks show 5-15% gains in representative CPU-heavy scenarios, with improvements exceeding 70% in destruction-heavy stress tests.
 [*] [b]Multiplayer:[/b] Fixed the server list jumping to the top on refresh and a crash when creating a game; removed the ~30-second hang on leaving a match by caching compiled shaders; team flags above player vehicles, toggleable live. Massive netcode improvements to help stability in longer matches.
 [*] [b]Audio Reliability:[/b] Larger sound-channel pool, so fewer dropouts in big battles and dialogue-heavy missions.
 [*] [b]Native AutoSave:[/b] A dedicated AutoSave entry that doesn't consume normal save slots. Works in ALL single player content including Instant Action missions. 
@@ -43,7 +42,7 @@ If setup fails, check [i]openshim_update.status[/i] and [i]winmm_replace.log[/i]
 
 [h2]In-Game Options and Controls[/h2]
 [list]
-[*] [b]OpenShim Options Page:[/b] New settings pages on the stock Options screen; most apply instantly, and hovering a row explains it. Includes Raw Mouse Input (bypassing legacy mouse smoothing/acceleration), custom keybindings, attack alerts, target popups, scrap/pilot HUD style, jet flames, unit voices, weapon and reticle convergence, smarter scavengers, anti-air turret pitch, jump-snipe crouch, global turbo, and player/AI headlights with colour and beam controls.
+[*] [b]OpenShim Options Page:[/b] A new page on the stock Options screen for settings the original interface has no room for. Most apply instantly; those needing a restart are marked, and hovering a row explains what it does. Includes Raw Mouse Input (bypassing legacy mouse smoothing/acceleration), custom keybindings, attack alerts, target popups, scrap/pilot HUD style, jet flames, unit voices, weapon and reticle convergence, smarter scavengers, anti-air turret pitch, jump-snipe crouch, global turbo, and player/AI headlights with colour and beam controls.
 [*] [b]Renderer Profiles:[/b] Switch between stock-compatible Redux presentation, enhanced rendering, and retro-oriented presentation through OpenShim's native renderer-profile system, with optional DX11-specific visual features.
 [*] [b]Rewritten Key Binding Screen:[/b] Rebind controls in-game across both control families, with paging, live key capture, and cancel, written safely back to your key map.
 [*] [b]Career tracking:[/b] Added a dedicated main menu button for Career stats, if you have that turned on in OpenShim settings. Kills, deaths, etc. 
@@ -58,13 +57,13 @@ If setup fails, check [i]openshim_update.status[/i] and [i]winmm_replace.log[/i]
 [/list]
 
 [h2]Platform Support[/h2]
-Windows and Linux (including Steam Deck, through Proton or Wine) are supported on Steam and GOG, running the same files. If something works on one and not another, please report it.
+Windows and Linux are both supported, on Steam and on GOG. On Linux, including Steam Deck, the patch runs through Proton or a compatible Wine prefix using the same 32-bit Windows files, so both platforms run identical code and update together. If something works on one and not another, that's a bug worth reporting.
 
 [h2]Uninstallation[/h2]
-Delete [b]winmm.dll[/b] from the game folder to return to unpatched startup. The campaign needs the patch; unsubscribe for full removal.
+Delete [b]winmm.dll[/b] from the Battlezone 98 Redux installation folder and the game returns to normal, unpatched startup. Campaign, addon, or config files can be removed manually too. The modded campaign will error without the patch; unsubscribe for full removal.
 
 [h2]Reporting Issues[/h2]
-Please avoid reports such as 'it does not work.' Detailed reproduction steps make it much more likely a problem gets fixed. Include the mission or mode, what you saw, and a zipped [b]logs[/b] folder.
+Please avoid reports such as 'it does not work.' Detailed reproduction steps make it much more likely a problem gets fixed.
 
 [h2]AI-Assisted Development:[/h2]
 Anthropic's Claude and OpenAI's GPT Sol models are extremely adept at reverse engineering and writing patches, so I use them to save time and help with long tedious tasks. All work is designed, implemented, tested, and reviewed by me.
