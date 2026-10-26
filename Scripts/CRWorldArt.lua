@@ -179,6 +179,46 @@ function Art.Detect(trn)
         return stems[atlas:sub(1,2)]
     end
 end
+-- Planetshine: the sunlit face of a big sky body lights the ground. It adds to
+-- the ambient in the body's colour, scaled by how much of its lit face the
+-- ground sees, (1 - cos(sun to body angle)) / 2, the phase the CREARTH.MAP
+-- shader draws. Night uses the larger share. In daylight the real light is
+-- tiny beside the sun, so the day share only tints the shadows.
+-- texture names the body's TRN [Stars] entry, whose Azimuth/Elevation place it:
+-- azimuth is a compass heading, 0 along +z and 90 along +x. GetODFString also
+-- returns a found flag, so its string is taken alone before tonumber.
+Art.Shine={moon={texture="crearth.map",colour={r=0.62,g=0.74,b=1.00},day=0.10,night=0.30}}
+Art.ShineSource={}
+function Art.DetectShine(trn,world)
+    Art.ShineSource[world or ""]=nil
+    local spec=Art.Shine[world]
+    if not spec or not trn or type(GetODFString)~="function" then return nil end
+    for index=0,31 do
+        local key=string.format("%02d",index)
+        if string.lower(GetODFString(trn,"Stars","Texture"..key,"") or "")==spec.texture then
+            local azimuth=math.rad(tonumber((GetODFString(trn,"Stars","Azimuth"..key,"0"))) or 0)
+            local elevation=math.rad(tonumber((GetODFString(trn,"Stars","Elevation"..key,"0"))) or 0)
+            local body={x=math.sin(azimuth)*math.cos(elevation),y=math.sin(elevation),z=math.cos(azimuth)*math.cos(elevation)}
+            Art.ShineSource[world]=body
+            return body
+        end
+    end
+    return nil
+end
+-- frame.sun (toward the sun) and frame.night (0..1) are optional; without the
+-- sun there is no phase and no shine.
+local function apply_shine(world,frame)
+    local spec,body,s,a=Art.Shine[world],Art.ShineSource[world],frame.sun,frame.ambient
+    if not spec or not body or type(s)~="table" or not a then return end
+    local len=math.sqrt(s.x*s.x+s.y*s.y+s.z*s.z)
+    if len<1e-6 then return end
+    local phase=(1-(s.x*body.x+s.y*body.y+s.z*body.z)/len)*0.5
+    local night=math.max(0,math.min(1,tonumber(frame.night) or 0))
+    local k=phase*(spec.day+(spec.night-spec.day)*night)
+    local c=spec.colour
+    frame.ambient={r=math.min(1,a.r+c.r*k),g=math.min(1,a.g+c.g*k),b=math.min(1,a.b+c.b*k)}
+    frame.shine=k
+end
 function Art.Apply(world,frame)
     local settings=Art.Worlds[world]
     if not settings then return frame end
@@ -189,6 +229,7 @@ function Art.Apply(world,frame)
             frame[channel]={r=math.max(0,math.min(1,c.r*gain)),g=math.max(0,math.min(1,c.g*gain)),b=math.max(0,math.min(1,c.b*gain))}
         end
     end
+    apply_shine(world,frame)
     return frame
 end
 return Art

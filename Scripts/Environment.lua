@@ -1295,6 +1295,7 @@ function Environment.Init(options)
     end
 
     Environment.ArtWorld = WorldArt.Detect(trn)
+    WorldArt.DetectShine(trn, Environment.ArtWorld)
     Environment.ArtSkyOwned = WorldArt.InitializeSky(exu,Environment.ArtWorld)
     Environment.WorldPreset, Environment.WorldPalette = DetectWorldPreset(trnFilename, trn)
     ApplyWorldPreset(Environment.WorldPreset, baseAmbient, baseDiffuse, baseSpecular, baseFog)
@@ -1417,7 +1418,9 @@ function Environment.Update(timestep)
         targetSpecular = ModulateColor(targetSpecular, { r = 1, g = 1, b = 1 }, 1.0 - dim)
     end
     targetFog = ClampFogToHorizon(targetFog)
-    local artFrame = WorldArt.Apply(Environment.ArtWorld, {ambient=targetAmbient,diffuse=targetDiffuse,specular=targetSpecular})
+    local sunDirection = sunState.direction
+    local artFrame = WorldArt.Apply(Environment.ArtWorld, {ambient=targetAmbient,diffuse=targetDiffuse,specular=targetSpecular,
+        sun={x=-sunDirection.x,y=-sunDirection.y,z=-sunDirection.z},night=state.nightBlend})
     targetAmbient,targetDiffuse,targetSpecular = artFrame.ambient,artFrame.diffuse,artFrame.specular
     if Environment.ArtSkyOwned then
         -- Domes that take the frame (Mars) get the sun, the night blend and how
