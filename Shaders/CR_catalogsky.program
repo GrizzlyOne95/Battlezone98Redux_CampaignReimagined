@@ -3,14 +3,14 @@
 // Tools/Build-CatalogSky.py. Delegates precede the unified programs, as in
 // CR_skydome.program.
 
-vertex_program CR_CatalogSky_vertexHLSL4_art_23b141a3cc hlsl
+vertex_program CR_CatalogSky_vertexHLSL4_art_c06afd048b hlsl
 {
     source CR_catalogsky-sm4.hlsl
     target vs_4_0
     entry_point catalogsky_vertex
 }
 
-vertex_program CR_CatalogSky_vertexHLSL_art_1d8bfe7f04 hlsl
+vertex_program CR_CatalogSky_vertexHLSL_art_7870be3da5 hlsl
 {
     source CR_catalogsky.hlsl
     target vs_3_0
@@ -23,21 +23,21 @@ vertex_program CR_CatalogSky_vertexGLSL_art_67131c2c77 glsl
     syntax glsl120
 }
 
-fragment_program CR_CatalogSky_fragmentHLSL4_art_c091450122 hlsl
+fragment_program CR_CatalogSky_fragmentHLSL4_art_1f2f146074 hlsl
 {
     source CR_catalogsky-sm4.hlsl
     target ps_4_0
     entry_point catalogsky_fragment
 }
 
-fragment_program CR_CatalogSky_fragmentHLSL_art_be945ececa hlsl
+fragment_program CR_CatalogSky_fragmentHLSL_art_15e5c9cfd3 hlsl
 {
     source CR_catalogsky.hlsl
     target ps_3_0
     entry_point catalogsky_fragment
 }
 
-fragment_program CR_CatalogSky_fragmentGLSL_art_39d407b3bd glsl
+fragment_program CR_CatalogSky_fragmentGLSL_art_bfe852a9b6 glsl
 {
     source CR_catalogsky-fragment.glsl
     syntax glsl120
@@ -51,8 +51,8 @@ fragment_program CR_CatalogSky_fragmentGLSL_art_39d407b3bd glsl
 vertex_program CR_CatalogSky_vertex unified
 {
     delegate CR_CatalogSky_vertexGLSL_art_67131c2c77
-    delegate CR_CatalogSky_vertexHLSL4_art_23b141a3cc
-    delegate CR_CatalogSky_vertexHLSL_art_1d8bfe7f04
+    delegate CR_CatalogSky_vertexHLSL4_art_c06afd048b
+    delegate CR_CatalogSky_vertexHLSL_art_7870be3da5
     default_params
     {
         param_named_auto wvpMat worldviewproj_matrix
@@ -61,14 +61,21 @@ vertex_program CR_CatalogSky_vertex unified
 
 fragment_program CR_CatalogSky_fragment unified
 {
-    delegate CR_CatalogSky_fragmentGLSL_art_39d407b3bd
-    delegate CR_CatalogSky_fragmentHLSL4_art_c091450122
-    delegate CR_CatalogSky_fragmentHLSL_art_be945ececa
+    delegate CR_CatalogSky_fragmentGLSL_art_bfe852a9b6
+    delegate CR_CatalogSky_fragmentHLSL4_art_1f2f146074
+    delegate CR_CatalogSky_fragmentHLSL_art_15e5c9cfd3
     default_params
     {
         param_named skyRotation matrix4x4 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
         param_named starParams float4 1 0.65 0.02 4
         param_named starShape float4 0.6 1.5 0 0
         param_named milkyParams float4 1 1 0 0
+        // Off until Lua sets w; Scripts/CRWorldArt.lua writes the TRN sun.
+        param_named sunDirection float4 0 0 0 0
+        // Disc radius 0.27 deg at the screen centre, the Sun's true size from
+        // the Moon; the glare carries it. Stars return from 4 to 30 deg out.
+        param_named sunLook float4 0.0047 2 0.07 0.52
+        param_named sunGlow float4 0.8 2 0.02 0.12
+        param_named_auto inverseView inverse_view_matrix
     }
 }

@@ -8,6 +8,10 @@ uniform mat4 skyRotation;
 uniform vec4 starParams;
 uniform vec4 starShape;
 uniform vec4 milkyParams;
+uniform vec4 sunDirection;
+uniform vec4 sunLook;
+uniform vec4 sunGlow;
+uniform mat4 inverseView;
 varying vec3 vDir;
 
 const float CELLS = 512.0;
@@ -17,6 +21,16 @@ const float MAG_STEP = 24.0;
 const float BV_MIN = -0.5;
 const float BV_SPAN = 2.5;
 const float PI = 3.14159265;
+
+// With a sun direction, the star sphere is turned so the sun sits at the March
+// equinox (RA 0, Dec 0, galactic latitude -60) and the galactic centre lies
+// toward the zenith on the far side of the sky. The Milky Way then stays at
+// least 60 degrees from the sun at any sun angle.
+const vec3 SUN_EQ = vec3(1, 0, 0);
+const vec3 GC_EQ = vec3(0, -0.874755, -0.484565);
+const vec3 POLE_EQ = vec3(0, 0.484565, -0.874755);
+const vec3 SUN_COLOUR = vec3(1.00, 0.97, 0.92);
+const vec3 GLARE_COLOUR = vec3(1.00, 0.90, 0.78);
 
 vec3 sky_decode(vec3 c)
 {
@@ -35,9 +49,20 @@ vec3 star_colour(float bv)
 	return mix(c, vec3(1.00, 0.58, 0.32), clamp((bv - 1.0) / 0.6, 0.0, 1.0));
 }
 
+vec3 sky_direction(vec3 p)
+{
+	if (sunDirection.w <= 0.5) return mat3(skyRotation) * p;
+	vec3 w1 = normalize(sunDirection.xyz);
+	vec3 up = abs(w1.y) > 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
+	vec3 w2 = normalize(up - dot(up, w1) * w1);
+	vec3 w3 = cross(w1, w2);
+	return SUN_EQ * dot(p, w1) + GC_EQ * dot(p, w2) + POLE_EQ * dot(p, w3);
+}
+
 void main()
 {
-	vec3 d = normalize(mat3(skyRotation) * vDir);
+	vec3 p = normalize(vDir);
+	vec3 d = normalize(sky_direction(p));
 	float pixelAngle = max(max(length(dFdx(d)), length(dFdy(d))), 1e-6);
 
 	vec3 ad = abs(d);
@@ -77,5 +102,25 @@ void main()
 	vec3 milky = sky_decode(texture2D(milkyWay, mwUv).rgb) * milkyParams.x;
 #endif
 
-	gl_FragColor = vec4(sky_encode(milky + stars), 1.0);
+	vec3 sky = milky + stars;
+	if (sunDirection.w > 0.5)
+	{
+		// Sun: a limb-darkened disc with a one-pixel edge, a power-law glare and
+		// a wide faint halo. There is no air to scatter it, so the sky stays
+		// black, but the stars and the Milky Way fade out close to the sun.
+		// The disc and glare are measured on the image plane, so the sun stays
+		// round and one size anywhere on screen, like the engine sprite did.
+		vec3 s = normalize(sunDirection.xyz);
+		vec3 f = normalize(mat3(inverseView) * vec3(0.0, 0.0, -1.0));
+		vec3 q = p / max(dot(p, f), 1e-3);
+		float pixelPlane = max(max(length(dFdx(q)), length(dFdy(q))), 1e-6);
+		float theta = 2.0 * asin(clamp(0.5 * length(p - s), 0.0, 1.0));
+		float t = dot(s, f) > 0.01 ? length(q - s / dot(s, f)) / sunLook.x : 1e3;
+		float disc = clamp((1.0 - t) * sunLook.x / pixelPlane + 0.5, 0.0, 1.0);
+		float limb = 0.4 + 0.6 * sqrt(clamp(1.0 - t * t, 0.0, 1.0));
+		float glare = sunGlow.x * pow(1.0 / max(t, 1.0), sunGlow.y) + sunGlow.z * exp(-theta / sunGlow.w);
+		sky = sky * smoothstep(sunLook.z, sunLook.w, theta) + SUN_COLOUR * (sunLook.y * disc * limb) + GLARE_COLOUR * glare;
+	}
+
+	gl_FragColor = vec4(sky_encode(sky), 1.0);
 }

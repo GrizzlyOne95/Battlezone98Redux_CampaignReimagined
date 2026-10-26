@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4235,
+  "count": 4236,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -5290,6 +5290,10 @@
     {
       "source": "Config\\mn_detail_atlas.csv",
       "runtime": "mn_detail_atlas.csv"
+    },
+    {
+      "source": "Config\\spritea.st",
+      "runtime": "spritea.st"
     },
     {
       "source": "Config\\sxshow.ini",
