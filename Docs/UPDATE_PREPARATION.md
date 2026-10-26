@@ -93,5 +93,5 @@ activated; require campaign-native module paths when counting a Steam pass.
 
 Follow [the Workshop publication checklist](STEAM_PUBLISH_CHECKLIST.md) for
 the real upload. Preserve the live item description by default, synchronize
-the Roadmap discussion afterward, download the subscribed item and test the
+the Roadmap and stock bug fixes discussions afterward, download the subscribed item and test the
 Steam copy. A local preparation receipt is not a completed publication.
