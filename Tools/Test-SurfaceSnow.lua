@@ -1,7 +1,9 @@
 -- Lua 5.1 host regression: a snow world (Europa, from the TRN atlas) puts
 -- surfaceSnow on every shared material, owned clones and the terrain atlas,
 -- never on cockpit materials, and clears it on reset. Other worlds write none.
-local E, objects, snowOf, stateOf, iceOf = {}, {}, {}, {}, {}
+-- A dust world (Mars) puts surfaceDust on the same objects, never on cockpit
+-- materials or terrain.
+local E, objects, snowOf, stateOf, iceOf, dustOf = {}, {}, {}, {}, {}, {}
 local atlas = "eu_detail_atlas"
 local N = 40
 for h = 1, N do objects[h] = { material = "mat" .. h, class = h == 2 and "turret" or "tank" } end
@@ -38,6 +40,10 @@ function E.SetMaterialShaderVector(name, key, a, b, c, d)
         stateOf[name] = a; return 1
     end
     if key == "surfaceSnow" then snowOf[name] = a; iceOf[name] = d; return 1 end
+    if key == "surfaceDust" then
+        if name == "EU_DETAIL_ATLAS" then return 0 end
+        dustOf[name] = d; return 1
+    end
     return 0
 end
 function E.EntityLocalPoint(_, p) return p end
@@ -68,6 +74,7 @@ assert(cockpitClone and cockpitClone ~= "panel" and not snowOf[cockpitClone], "c
 
 S.ResetScene()
 assert(snowOf.EU_DETAIL_ATLAS == 0 and snowOf.mat5 == 0, "reset clears snow")
+assert(next(dustOf) == nil, "Europa gets no dust writes")
 
 -- A non-snow world writes nothing.
 atlas = "ma_detail_atlas"
@@ -76,5 +83,12 @@ view = 0
 for h = 1, N do objects[h].material = "mat" .. h; S.Register(h) end
 for _ = 1, 200 do S.Update(0.05) end
 assert(next(snowOf) == nil, "Mars gets no snow writes")
+for h = 1, N do
+    local m = objects[h].material
+    assert(dustOf[m] and dustOf[m] > 0.2, m .. " has dust")
+end
+assert(not dustOf.panel, "cockpit material never gets dust")
+S.ResetScene()
+assert(dustOf.mat5 == 0, "reset clears dust")
 
-print("SurfaceSnow: Europa materials, clones, terrain atlas, cockpit excluded, reset, other worlds PASS")
+print("SurfaceSnow: Europa materials, clones, terrain atlas, cockpit excluded, reset, other worlds, Mars dust PASS")

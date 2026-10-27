@@ -26,7 +26,11 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     -- blue tint, ice depth in metres (terrain parallax ice under the snow
     -- line, 0 = off) -- the surfaceSnow uniform. The world's terrain
     -- atlas material takes it too. Cockpit materials never do.
-    SnowWorlds = { europa = { 0.4, 0.88, 0.35, 1.0 } }, snow = nil }
+    SnowWorlds = { europa = { 0.4, 0.88, 0.35, 1.0 } }, snow = nil,
+    -- Dust by world: linear r, g, b and amount -- the surfaceDust uniform.
+    -- It settles on tops and, where a material has an ACT map, in occluded
+    -- corners and creases; rain washes it off. Objects only, not terrain.
+    DustWorlds = { mars = { 0.45, 0.17, 0.07, 0.5 } }, dust = nil }
 
 local function call(fn, ...)
     if type(fn) ~= "function" then return nil end
@@ -143,9 +147,14 @@ local function sceneSnow()
     local ok, art = pcall(require, "CRWorldArt")
     local world = trn and ok and type(art) == "table" and call(art.Detect, trn) or nil
     S.snow = S.SnowWorlds[world] or false
+    S.dust = S.DustWorlds[world] or false
     if S.snow then
         local atlas = call(GetODFString, trn, "Atlases", "MaterialName", "")
-        if type(atlas) == "string" and atlas ~= "" then wetMaterial(string.upper(atlas)) end
+        if type(atlas) == "string" and atlas ~= "" then
+            wetMaterial(string.upper(atlas))
+            local state = S.materials[string.upper(atlas)]
+            if state then state.terrain = true end
+        end
     end
     return S.snow
 end
@@ -154,6 +163,10 @@ local function writeSnow(name, snow)
     return call(exu.SetMaterialShaderVector, name, "surfaceSnow", snow[1], snow[2], snow[3], snow[4], -1, -1, "Autodetect")
 end
 local NoSnow = {0, 0, 0, 0}
+local function sceneDust() sceneSnow(); return S.dust end
+local function writeDust(name, dust)
+    return call(exu.SetMaterialShaderVector, name, "surfaceDust", dust[1], dust[2], dust[3], dust[4], -1, -1, "Autodetect")
+end
 
 local function write(slot, name, a, b, c, d)
     local old = slot.values[name]
@@ -254,6 +267,8 @@ local function bindOne(r)
     end
     local snow = not r.cockpit and sceneSnow()
     if snow then call(exu.SetMaterialShaderVector, name, "surfaceSnow", snow[1], snow[2], snow[3], snow[4]) end
+    local dust = not r.cockpit and sceneDust()
+    if dust then call(exu.SetMaterialShaderVector, name, "surfaceDust", dust[1], dust[2], dust[3], dust[4]) end
     if call(exu.SetSurfaceMaterial, target(r), index, name) ~= true then
         call(exu.ReleaseSurfaceMaterial, name); S.clones[name] = nil; r.retry = S.Clock + 1; return
     end
@@ -576,7 +591,7 @@ function S.Update(dt)
         S.sweepLeft, S.cloneLeft = #S.materialOrder, #S.active
     end
     local moving = S.sweepMoving or math.abs(S.Wetness-S.SweepWet) > 0.001
-    local snow = sceneSnow()
+    local snow, dust = sceneSnow(), sceneDust()
     for _=1,math.min(moving and S.MaxMaterialBudget or S.MaterialBudget,#S.materialOrder) do
         if S.materialCursor > #S.materialOrder then S.materialCursor=1 end
         local name=S.materialOrder[S.materialCursor];local state=S.materials[name]
@@ -590,6 +605,10 @@ function S.Update(dt)
         if snow and not state.cockpit and not state.snow and S.Clock >= (state.snowRetry or 0) then
             local changed=writeSnow(name,snow)
             if finite(changed) and changed > 0 then state.snow=true else state.snowRetry=S.Clock+2 end
+        end
+        if dust and not state.cockpit and not state.terrain and not state.dust and S.Clock >= (state.dustRetry or 0) then
+            local changed=writeDust(name,dust)
+            if finite(changed) and changed > 0 then state.dust=true else state.dustRetry=S.Clock+2 end
         end
         S.materialCursor=S.materialCursor+1;S.sweepLeft=S.sweepLeft-1
     end
@@ -644,13 +663,14 @@ function S.ResetScene()
     for name,state in pairs(S.materials) do
         call(exu.SetMaterialShaderVector,name,"surfaceState",0,0,0,0,-1,-1,"Autodetect")
         if state.snow then writeSnow(name,NoSnow) end
+        if state.dust then writeDust(name,NoSnow) end
     end
     S.records,S.order,S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{},{},{}
     S.hits,S.shots,S.clones = {},{},{}
     S.cockpit=nil;S.cursor=1;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
     setCrack(0);S.crackSpots,S.crackSpotCount={},0
     S.SweepWet=0;S.sweepLeft=0;S.cloneLeft=0;S.wetCursor=1;S.sweepMoving=false
-    S.snow=nil
+    S.snow=nil;S.dust=nil
 end
 
 -- Player setting. Off restores every owned material, releases clones, unhooks
@@ -672,6 +692,7 @@ function S.Suspend()
     for name,state in pairs(S.materials) do
         call(exu.SetMaterialShaderVector,name,"surfaceState",0,0,0,0,-1,-1,"Autodetect")
         if state.snow then writeSnow(name,NoSnow) end
+        if state.dust then writeDust(name,NoSnow) end
     end
     S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{}
     S.hits,S.shots,S.clones = {},{},{}
