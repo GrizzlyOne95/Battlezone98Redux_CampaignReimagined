@@ -357,9 +357,9 @@ function Is-ExcludedSourceRelativePath($relativePath) {
     return $false
 }
 
-# Every shipping binary is refreshed from its sibling repository's build output,
-# so the bundled copy under Bin\ is always the authoritative one. A runtime copy
-# must never sync back over it, and a deploy must always push it out.
+# The committed copy of every shipping binary under Bin\ is authoritative (only
+# -refresh-natives rewrites it). A runtime copy must never sync back over it,
+# and a deploy must always push it out.
 $SourceAuthoritativeFlatFileNames = @(
     "winmm.dll",
     "exu.dll",
