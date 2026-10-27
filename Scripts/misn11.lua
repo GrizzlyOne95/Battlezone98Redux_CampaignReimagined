@@ -42,6 +42,24 @@ if type(IsNetGame) == "function" and IsNetGame() then
     exu.DisableStartingRecycler()
 end
 local subtit = require("ScriptSubtitles")
+-- CR PDA >>
+-- PersistentConfig owns the PDA (X), subtitle/UI settings and AutoSave. Script
+-- locals reset when a save loads, so Update initializes it once per Lua state.
+-- One table local keeps the main chunk under Lua 5.1's 200-local limit.
+local missionPda = { config = require("PersistentConfig"), ready = false }
+function missionPda.Init()
+    missionPda.ready = true
+    missionPda.config.Initialize()
+end
+function missionPda.Update(cinematicActive)
+    if not missionPda.ready then missionPda.Init() end
+    missionPda.config.UpdateInputs(cinematicActive)
+    missionPda.config.UpdateHeadlights()
+end
+function missionPda.Object(h)
+    if missionPda.ready and h ~= nil then missionPda.config.OnObjectCreated(h) end
+end
+-- CR PDA <<
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
 -- The DLL's CCA is team 2 (a guest slot in co-op): every CCA object and spawn is team 5. The mission
@@ -70,7 +88,9 @@ local native = {
     UpdateObjective = UpdateObjective, SetObjectiveOn = SetObjectiveOn,
     SetObjectiveOff = SetObjectiveOff, SetObjectiveName = SetObjectiveName,
     SetUserTarget = SetUserTarget, RemoveObject = RemoveObject,
-    SucceedMission = SucceedMission, FailMission = FailMission,
+    -- Resolve result hooks after PersistentConfig.Initialize installs cleanup.
+    SucceedMission = function(...) return _G.SucceedMission(...) end,
+    FailMission = function(...) return _G.FailMission(...) end,
     Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
 }
 local events, acknowledgements = {}, {}
@@ -312,14 +332,13 @@ end
 
 -- Victory eases the sky back to calm while the result screen counts down. EndMission has
 -- already queued the result; this only nudges the director (leader/offline).
-local presentSucceed = SucceedMission
 local function SucceedMission(...)
     if (not M.ioCalm) and ((not CRCoop.IsNetworkGame()) or CRCoop.IsAuthority()) then
         M.ioCalm = true
         CRIoWeather.ReleaseForcedLevel()
         CRIoWeather.SetTargetLevel(1)
     end
-    return presentSucceed(...)
+    return EndMission("SucceedMission", ...)
 end
 
 -- The DLL's AudioMessage(file) is the shared radio line: the leader plays it and every peer hears
@@ -720,11 +739,13 @@ function Start()
 -- CR co-op layer >>
     InitializeCoopState()
     subtit.Initialize()
+    missionPda.Init()
 -- CR co-op layer <<
 end
 
 -- CR Io weather >>
 function AddObject(h)
+    missionPda.Object(h)
     if not IsValid(h) then return end
     Environment.OnObjectCreated(h)
     CRIoWeather.OnObjectCreated(h)
@@ -751,6 +772,7 @@ end
 function Update(timestep)
 -- CR co-op layer >>
     subtit.Update()
+    missionPda.Update()
     CRCoop.Update()
     UpdatePresentationTransport()
     if M.coopResult or M.coopPendingResult then

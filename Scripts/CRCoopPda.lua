@@ -1,6 +1,7 @@
 -- Keyboard-only co-op page for the existing PDA.
 -- Only actions that work right now are listed, one short row each;
--- Backspace does the selected row (Enter, ` and Ctrl+C are stock chat). Urgent actions also have keys that work without
+-- Enter does the selected row (CR unbinds it from chat online; ` and Ctrl+C
+-- still chat, Backspace is the stock satellite view). Urgent actions also have keys that work without
 -- opening the PDA: J pings, V calls for help (host: sends the selected vehicle
 -- to pick up a guest on foot), Z gives the selected units to the teammate
 -- under the reticle. V and Z are the only letters stock leaves unbound in play
@@ -183,7 +184,7 @@ function M.Create(d)
         end
         if host then
             local armed = ui.recallAt and now() < ui.recallAt
-            add({ key = "recall", text = armed and "RECALL ALL? BKSP AGAIN" or "RECALL ALL TO ME",
+            add({ key = "recall", text = armed and "RECALL ALL? ENTER AGAIN" or "RECALL ALL TO ME",
                 run = function()
                     if not (ui.recallAt and now() < ui.recallAt) then
                         ui.recallAt = now() + RECALL_CONFIRM
@@ -192,6 +193,9 @@ function M.Create(d)
                     ui.recallAt = nil
                     return c.Recall()
                 end })
+        elseif c.SetHostMarker then
+            add({ key = "hostmark", text = "HOST MARKER " .. (c.HostMarkerOn() and "ON" or "OFF"),
+                run = function() c.SetHostMarker(not c.HostMarkerOn()); return true end })
         end
         add({ key = "markers", text = "MARKERS " .. (c.MarkersOn() and "ON" or "OFF"),
             run = function() c.SetMarkers(not c.MarkersOn()); return true end })
@@ -313,7 +317,7 @@ function M.Create(d)
                 lines[#lines + 1] = "  " .. name(p) .. tag .. (word ~= "" and "  " .. word or "")
             end
         end
-        footer(lines, "Bksp do   Arrows pick   J ping",
+        footer(lines, "Enter do   Arrows pick   J ping",
             (host and "V send ride" or "V help") .. "   Z give to aimed",
             "* you  ^ host   [ ] page  X close")
         return table.concat(lines, "\n")

@@ -40,7 +40,13 @@ function GetTeamNum() return 1 end
 function ObjectsInRange() return function() return nil end end
 function IsAudioMessageDone() return true end
 local function noop() end
+local pda = {Initialize = 0, UpdateInputs = 0, UpdateHeadlights = 0, OnObjectCreated = 0}
 local modules = {
+    PersistentConfig = {
+        Initialize = function() pda.Initialize = pda.Initialize + 1 end,
+        UpdateInputs = function() pda.UpdateInputs = pda.UpdateInputs + 1 end,
+        UpdateHeadlights = function() pda.UpdateHeadlights = pda.UpdateHeadlights + 1 end,
+        OnObjectCreated = function() pda.OnObjectCreated = pda.OnObjectCreated + 1 end},
     RequireFix = {Initialize = noop}, exu = {},
     CRVenusWeather = {Init = noop, Update = noop, Shutdown = noop, OnObjectCreated = noop, Save = function() return {} end,
         Load = noop, SetTargetLevel = noop, ForceLevel = noop, AnnounceState = noop, ApplyNetEvent = noop, Seed = 1},
@@ -86,6 +92,7 @@ local function reset()
     modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoop = assert(loadfile("Scripts/CRCoop.lua"))()
+    for k in pairs(pda) do pda[k] = 0 end
     dofile("Scripts/misn07.lua")
     Start()
     Update(0.05)
@@ -97,6 +104,9 @@ end
 local function kill(h) objects[h].alive = false end
 
 local m = reset()
+check(pda.Initialize == 1, "PersistentConfig.Initialize ran exactly once after Start")
+check(pda.UpdateInputs >= 1 and pda.UpdateHeadlights >= 1, "the first Update drives PersistentConfig inputs and headlights")
+check(pda.Initialize == 1, "the first Update does not re-initialize PersistentConfig")
 check(m.start_done and m.mine[0] == "m000" and m.mine[110] == "m110", "startup paths")
 check(m.count == 111 and m.mine_check == 11, "native zero-based loop state")
 check(not called("AudioMessage"), "briefing remains delayed")

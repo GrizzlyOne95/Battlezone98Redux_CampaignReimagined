@@ -48,6 +48,8 @@ function M.Create(d)
     -- Status markers are opt-in (PDA MARKERS row): they add SetObjectiveName/On
     -- calls on teammates' craft, which missions and their tests treat as their own.
     local enabled, markers = false, false
+    -- Guests can keep just the host's craft marked (PDA HOST MARKER row).
+    local hostMarker = false
     local function now() return d.time() end
     local function changed() revision = revision + 1 end
     local function valid(h)
@@ -143,7 +145,8 @@ function M.Create(d)
             pings[from] = { sender = from, seq = number, handle = value == 1 and h or nil,
                 position = { x = p[8], y = p[9], z = p[10] }, expires = now() + 10,
                 name = clean(who.name), kind = value == 1 and "object" or "terrain" }
-            notify(clean(who.name) .. (value == 1 and " marked a target." or " marked a spot."))
+            notify(clean(who.name) .. (value ~= 1 and " marked a spot." or
+                from ~= me and h == d.localHandle() and " marked you." or " marked a target."))
         elseif op == REQUEST then
             local old = requests[from]
             if old and number <= old.seq then return end
@@ -271,6 +274,8 @@ function M.Create(d)
     function service.GetDispatches() return dispatches end
     function service.MarkersOn() return markers end
     function service.SetMarkers(on) markers = on == true; nextMarkers = 0; changed() end
+    function service.HostMarkerOn() return hostMarker end
+    function service.SetHostMarker(on) hostMarker = on == true; nextMarkers = 0; changed() end
     -- Short status word for the PDA team list and the HUD markers.
     function service.Describe(id)
         local request = requests[id]
@@ -449,6 +454,8 @@ function M.Create(d)
     -- A teammate's marker is switched on once and renamed only when its
     -- status text changes. Re-marking every period would bury the mission's
     -- own SetObjectiveOn calls under co-op ones (and undo a ping's rename).
+    -- A marker found switched off (the mission or engine cleared it) is
+    -- switched back on; that needs EXU IsObjectiveOn.
     local function updateMarkers(time)
         if time < nextMarkers then return end
         nextMarkers = time + MARKER_PERIOD
@@ -460,15 +467,18 @@ function M.Create(d)
                 if valid(mark.handle) then call("objective", mark.handle, nil, clean(p.name)) end
                 marked[id], mark = nil, nil
             end
-            if h and markers then
+            if h and (markers or hostMarker and p.team == d.leaderTeam()) then
                 local word = service.Describe(id)
                 local label = clean(p.name) .. (word ~= "" and "  " .. word or "")
                 if not mark then
                     call("objective", h, label, clean(p.name), true)
                     marked[id] = { handle = h, label = label }
-                elseif mark.label ~= label then
-                    call("objective", h, label, clean(p.name), false)
-                    mark.label = label
+                else
+                    local off = call("objectiveOn", h) == false
+                    if off or mark.label ~= label then
+                        call("objective", h, label, clean(p.name), off)
+                        mark.label = label
+                    end
                 end
             elseif h and mark then
                 call("objective", h, nil, clean(p.name))

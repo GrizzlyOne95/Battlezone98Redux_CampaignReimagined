@@ -196,6 +196,24 @@ if type(IsNetGame) == "function" and IsNetGame() then
     exu.DisableStartingRecycler()
 end
 local subtit = require("ScriptSubtitles")
+-- CR PDA >>
+-- PersistentConfig owns the PDA (X), subtitle/UI settings and AutoSave. Script
+-- locals reset when a save loads, so Update initializes it once per Lua state.
+-- One table local keeps the main chunk under Lua 5.1's 200-local limit.
+local missionPda = { config = require("PersistentConfig"), ready = false }
+function missionPda.Init()
+    missionPda.ready = true
+    missionPda.config.Initialize()
+end
+function missionPda.Update(cinematicActive)
+    if not missionPda.ready then missionPda.Init() end
+    missionPda.config.UpdateInputs(cinematicActive)
+    missionPda.config.UpdateHeadlights()
+end
+function missionPda.Object(h)
+    if missionPda.ready and h ~= nil then missionPda.config.OnObjectCreated(h) end
+end
+-- CR PDA <<
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
 -- The DLL's CCA is team 2, a guest slot in co-op: every CCA object, spawn, AIP and scrap/pilot count
@@ -230,7 +248,9 @@ local native = {
     UpdateObjective = UpdateObjective, SetObjectiveOn = SetObjectiveOn,
     SetObjectiveOff = SetObjectiveOff, SetObjectiveName = SetObjectiveName,
     SetUserTarget = SetUserTarget, RemoveObject = RemoveObject,
-    SucceedMission = SucceedMission, FailMission = FailMission,
+    -- Resolve result hooks after PersistentConfig.Initialize installs cleanup.
+    SucceedMission = function(...) return _G.SucceedMission(...) end,
+    FailMission = function(...) return _G.FailMission(...) end,
     Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
 }
 local events, acknowledgements = {}, {}
@@ -522,14 +542,13 @@ end
 
 -- Victory eases the sky back to calm while the result screen counts down. EndMission has already queued the
 -- result; this only nudges the director (leader/offline).
-local presentSucceed = SucceedMission
 local function SucceedMission(...)
     if (not M.europaCalm) and ((not CRCoop.IsNetworkGame()) or CRCoop.IsAuthority()) then
         M.europaCalm = true
         CREuropaWeather.ReleaseForcedLevel()
         CREuropaWeather.SetTargetLevel(1)
     end
-    return presentSucceed(...)
+    return EndMission("SucceedMission", ...)
 end
 -- CR Europa weather <<
 -- CR co-op layer >>
@@ -1151,6 +1170,7 @@ function Start()
 -- CR co-op layer >>
     InitializeCoopState()
     subtit.Initialize()
+    missionPda.Init()
 -- CR co-op layer <<
     -- LuaMission can report map objects before Start; native Setup preceded
     -- those callbacks. Replay them after Setup so producer handles are retained.
@@ -1163,6 +1183,9 @@ end
 // this is the handle thing brad made for me
 ]=]
 function AddObject(h)
+-- CR PDA >>
+    missionPda.Object(h)
+-- CR PDA <<
 -- CR Europa weather >>
     if IsValid(h) then
         Environment.OnObjectCreated(h)
@@ -1195,6 +1218,7 @@ end
 function Update(dt)
 -- CR co-op layer >>
     subtit.Update()
+    missionPda.Update()
     CRCoop.Update()
     UpdatePresentationTransport()
     if M.coopResult or M.coopPendingResult then

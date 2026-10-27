@@ -352,6 +352,7 @@ local function makePeer(id, team, network)
         CRVenusSites08 = { mission = "misn08" }, Environment = {Init = noop, Update = noop, OnObjectCreated = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end},
+        PersistentConfig = {Initialize = noop, UpdateInputs = noop, UpdateHeadlights = noop, OnObjectCreated = noop},
         ScriptSubtitles = {
             Play = function(file) record("Play", file); return file end,
             Queue = function(file) record("Queue", file) end,

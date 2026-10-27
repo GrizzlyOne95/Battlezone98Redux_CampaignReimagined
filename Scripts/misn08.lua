@@ -24,6 +24,24 @@ if type(IsNetGame) == "function" and IsNetGame() then
     exu.DisableStartingRecycler()
 end
 local subtit = require("ScriptSubtitles")
+-- CR PDA >>
+-- PersistentConfig owns the PDA (X), subtitle/UI settings and AutoSave. Script
+-- locals reset when a save loads, so Update initializes it once per Lua state.
+-- One table local keeps the main chunk under Lua 5.1's 200-local limit.
+local missionPda = { config = require("PersistentConfig"), ready = false }
+function missionPda.Init()
+    missionPda.ready = true
+    missionPda.config.Initialize()
+end
+function missionPda.Update(cinematicActive)
+    if not missionPda.ready then missionPda.Init() end
+    missionPda.config.UpdateInputs(cinematicActive)
+    missionPda.config.UpdateHeadlights()
+end
+function missionPda.Object(h)
+    if missionPda.ready and h ~= nil then missionPda.config.OnObjectCreated(h) end
+end
+-- CR PDA <<
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
 local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
@@ -88,7 +106,9 @@ local native = {
     SetUserTarget = SetUserTarget, RemoveObject = RemoveObject,
     StartCockpitTimer = StartCockpitTimer, StopCockpitTimer = StopCockpitTimer,
     HideCockpitTimer = HideCockpitTimer,
-    SucceedMission = SucceedMission, FailMission = FailMission,
+    -- Resolve result hooks after PersistentConfig.Initialize installs cleanup.
+    SucceedMission = function(...) return _G.SucceedMission(...) end,
+    FailMission = function(...) return _G.FailMission(...) end,
     CameraReady = CameraReady, CameraPath = CameraPath, CameraObject = CameraObject,
     CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
     Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
@@ -1234,6 +1254,9 @@ Here's where you set the values at the start.
 end
 
 function AddObject(h)
+-- CR PDA >>
+    missionPda.Object(h)
+-- CR PDA <<
 -- CR Venus weather >>
     Environment.OnObjectCreated(h)
     CRVenusWeather.OnObjectCreated(h)
@@ -1300,6 +1323,9 @@ function Start()
     M.next_second2 = 0.0
 -- CR relic heal fix <<
     subtit.Initialize()
+-- CR PDA >>
+    missionPda.Init()
+-- CR PDA <<
 end
 
 function CreatePlayer(id, name, team)
@@ -1318,6 +1344,9 @@ end
 
 function Update(dt)
     subtit.Update()
+-- CR PDA >>
+    missionPda.Update(localCameraActive)
+-- CR PDA <<
     CRCoop.Update()
     UpdatePresentationTransport()
     if M.coopResult or M.coopPendingResult then return end

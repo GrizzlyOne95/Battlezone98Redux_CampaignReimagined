@@ -13,6 +13,7 @@ local function check(value, why) assert(value, why); checks = checks + 1 end
 local function peer(id)
     local p = {calls={}, valid={subject=true, target=true}, cancelled=false, info={}, europa={}}
     local env = setmetatable({}, {__index=_G})
+    env._G = env -- mission chunks resolve _G.SucceedMission/FailMission at call time
     local function record(op, ...)
         p.calls[#p.calls+1] = {op, ...}
     end
