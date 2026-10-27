@@ -3,7 +3,7 @@ import * from "CR_BZBase.material"
 material ordnanceRed : CR_BZBase
 {
 	set_texture_alias DiffuseMap color_ramp_plasma_red.dds
-	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias NormalMap color_ramp_plasma_red_N.dds
 	set_texture_alias SpecularMap black.dds
 	set_texture_alias EmissiveMap black.dds
 	

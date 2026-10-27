@@ -4,7 +4,7 @@ import * from "CR_BZBase.material"
 material bbcafe : CR_BZBase
 {
 	set_texture_alias DiffuseMap bbcafe_D.dds
-	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias NormalMap bbcafe_N.dds
 	set_texture_alias SpecularMap bbcafe_S.dds
 	set_texture_alias EmissiveMap abcafe_E.dds
 	

@@ -3,7 +3,7 @@ import * from "CR_BZBase.material"
 material hbpvir : CR_BZBase
 {
 	set_texture_alias DiffuseMap hbpow00_D.dds
-	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias NormalMap hbpow00_N.dds
 	set_texture_alias SpecularMap hbpow00_S.dds
 	set_texture_alias EmissiveMap hbpow00_E.dds
 	

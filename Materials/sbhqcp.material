@@ -3,7 +3,7 @@ import * from "CR_BZBase.material"
 material sbhqcp : CR_BZBase
 {
 	set_texture_alias DiffuseMap sbhqcp_d.dds
-	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias NormalMap sbhqcp_N.dds
 	set_texture_alias SpecularMap sbhqcp_S.dds
 	set_texture_alias EmissiveMap sbhqcp_e.dds
 	

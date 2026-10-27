@@ -3,7 +3,7 @@ import * from "CR_BZBase.material"
 material absilo003 : CR_BZBase
 {
 	set_texture_alias DiffuseMap absilo_D.dds
-	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias NormalMap absilo_N.dds
 	set_texture_alias SpecularMap absilo_S.dds
 	set_texture_alias EmissiveMap absilo_E.dds
 	

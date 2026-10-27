@@ -3,7 +3,7 @@ import * from "CR_BZBase.material"
 material proxmine : CR_BZBase
 {
 	set_texture_alias DiffuseMap proxmine00.dds
-	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias NormalMap proxmine00_N.dds
 	set_texture_alias SpecularMap gmine00_S.dds
 	set_texture_alias EmissiveMap proxmine00_e.dds
 	

@@ -3,7 +3,7 @@ import * from "CR_BZBase.material"
 material boltmine00 : CR_BZBase
 {
 	set_texture_alias DiffuseMap boltmine00.dds
-	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias NormalMap boltmine00_N.dds
 	set_texture_alias SpecularMap boltmine00_SPEC.dds
 	set_texture_alias EmissiveMap boltmine00_e.dds
 	

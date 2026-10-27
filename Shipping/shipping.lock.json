@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4421,
+  "count": 4497,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -3400,8 +3400,72 @@
       "runtime": "xlitblt3.wav"
     },
     {
+      "source": "Assets\\Textures\\abbarr_N.dds",
+      "runtime": "abbarr_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\abcafe_N.dds",
+      "runtime": "abcafe_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\abcomm_N.dds",
+      "runtime": "abcomm_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\abhqcp_N.dds",
+      "runtime": "abhqcp_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ablpad_N.dds",
+      "runtime": "ablpad_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ablpow_N.dds",
+      "runtime": "ablpow_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\abmbld_N.dds",
+      "runtime": "abmbld_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\abshld_N.dds",
+      "runtime": "abshld_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\absilo_N.dds",
+      "runtime": "absilo_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\abspow_N.dds",
+      "runtime": "abspow_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\abstor_d.dds",
       "runtime": "abstor_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\absupp_N.dds",
+      "runtime": "absupp_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\abtowe02_N.dds",
+      "runtime": "abtowe02_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\abtowe03_N.dds",
+      "runtime": "abtowe03_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\abtowe2_N.dds",
+      "runtime": "abtowe2_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\abwpow_N.dds",
+      "runtime": "abwpow_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\appowr00_N.dds",
+      "runtime": "appowr00_N.dds"
     },
     {
       "source": "Assets\\Textures\\avapc_cockpit_D.dds",
@@ -3416,6 +3480,10 @@
       "runtime": "avheadlight00_d.dds"
     },
     {
+      "source": "Assets\\Textures\\avheadlight00_N.dds",
+      "runtime": "avheadlight00_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\avsav_d.dds",
       "runtime": "avsav_d.dds"
     },
@@ -3424,12 +3492,72 @@
       "runtime": "avsav2_d.dds"
     },
     {
+      "source": "Assets\\Textures\\bbbarr_N.dds",
+      "runtime": "bbbarr_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bbcafe_N.dds",
+      "runtime": "bbcafe_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\bbcom2_n.dds",
       "runtime": "bbcom2_n.dds"
     },
     {
+      "source": "Assets\\Textures\\bbcomm_N.dds",
+      "runtime": "bbcomm_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bbhang_N.dds",
+      "runtime": "bbhang_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\bbhqcp_d.dds",
       "runtime": "bbhqcp_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bbhqcp_N.dds",
+      "runtime": "bbhqcp_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bblpad_N.dds",
+      "runtime": "bblpad_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bblpow_N.dds",
+      "runtime": "bblpow_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bbmbld_N.dds",
+      "runtime": "bbmbld_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bbshld_N.dds",
+      "runtime": "bbshld_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bbsilo_N.dds",
+      "runtime": "bbsilo_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bbspow_N.dds",
+      "runtime": "bbspow_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bbsupp_N.dds",
+      "runtime": "bbsupp_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bbtowe_N.dds",
+      "runtime": "bbtowe_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bbwpow_N.dds",
+      "runtime": "bbwpow_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\boltmine00_N.dds",
+      "runtime": "boltmine00_N.dds"
     },
     {
       "source": "Assets\\Textures\\bvrdev_d.dds",
@@ -3442,6 +3570,82 @@
     {
       "source": "Assets\\Textures\\capblack_E.dds",
       "runtime": "capblack_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cbbarr_N.dds",
+      "runtime": "cbbarr_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cbcafe_N.dds",
+      "runtime": "cbcafe_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cbcomm_N.dds",
+      "runtime": "cbcomm_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cbhang_N.dds",
+      "runtime": "cbhang_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cbhqcp_N.dds",
+      "runtime": "cbhqcp_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cblasr_N.dds",
+      "runtime": "cblasr_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cblpad_N.dds",
+      "runtime": "cblpad_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cblpow_N.dds",
+      "runtime": "cblpow_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cbport_N.dds",
+      "runtime": "cbport_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cbshld_N.dds",
+      "runtime": "cbshld_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cbsilo_N.dds",
+      "runtime": "cbsilo_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cbsmbld_N.dds",
+      "runtime": "cbsmbld_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cbspow_N.dds",
+      "runtime": "cbspow_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cbsupp_N.dds",
+      "runtime": "cbsupp_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cbtowe_N.dds",
+      "runtime": "cbtowe_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cbwpow_N.dds",
+      "runtime": "cbwpow_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\color_ramp_plasma_blue_N.dds",
+      "runtime": "color_ramp_plasma_blue_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\color_ramp_plasma_green_N.dds",
+      "runtime": "color_ramp_plasma_green_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\color_ramp_plasma_red_N.dds",
+      "runtime": "color_ramp_plasma_red_N.dds"
     },
     {
       "source": "Assets\\Textures\\cr_arc.dds",
@@ -5104,6 +5308,34 @@
       "runtime": "exu_hud_status_plate.png"
     },
     {
+      "source": "Assets\\Textures\\gmine00_N.dds",
+      "runtime": "gmine00_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\hbfact00_N.dds",
+      "runtime": "hbfact00_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\hbhydr00_N.dds",
+      "runtime": "hbhydr00_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\hbpow00_N.dds",
+      "runtime": "hbpow00_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\hbtran_N.dds",
+      "runtime": "hbtran_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\hvsat00_N.dds",
+      "runtime": "hvsat00_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\hvsav00_N.dds",
+      "runtime": "hvsav00_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\lbolt.dds",
       "runtime": "lbolt.dds"
     },
@@ -5138,6 +5370,14 @@
     {
       "source": "Assets\\Textures\\LoadingScreenBlank.png",
       "runtime": "LoadingScreenBlank.png"
+    },
+    {
+      "source": "Assets\\Textures\\magpull00_N.dds",
+      "runtime": "magpull00_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\nparr00_N.dds",
+      "runtime": "nparr00_N.dds"
     },
     {
       "source": "Assets\\Textures\\nsdfvhull_D.dds",
@@ -5652,12 +5892,72 @@
       "runtime": "oth_src_d.dds"
     },
     {
+      "source": "Assets\\Textures\\proxmine00_N.dds",
+      "runtime": "proxmine00_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\raintoxc_mask.dds",
       "runtime": "raintoxc_mask.dds"
     },
     {
       "source": "Assets\\Textures\\raintoxc.dds",
       "runtime": "raintoxc.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sbbarr_N.dds",
+      "runtime": "sbbarr_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sbcafe_N.dds",
+      "runtime": "sbcafe_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sbcomm_N.dds",
+      "runtime": "sbcomm_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sbhang_N.dds",
+      "runtime": "sbhang_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sbhqcp_N.dds",
+      "runtime": "sbhqcp_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sblpad_N.dds",
+      "runtime": "sblpad_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sblpow_N.dds",
+      "runtime": "sblpow_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sbmbld_N.dds",
+      "runtime": "sbmbld_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sbshld_N.dds",
+      "runtime": "sbshld_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sbsilo_N.dds",
+      "runtime": "sbsilo_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sbspow_N.dds",
+      "runtime": "sbspow_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sbsupp_N.dds",
+      "runtime": "sbsupp_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sbtowe_N.dds",
+      "runtime": "sbtowe_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sbwpow_N.dds",
+      "runtime": "sbwpow_N.dds"
     },
     {
       "source": "Assets\\Textures\\smoke.dds",
@@ -5674,6 +5974,10 @@
     {
       "source": "Assets\\Textures\\svheadlight00_d.dds",
       "runtime": "svheadlight00_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svheadlight00_N.dds",
+      "runtime": "svheadlight00_N.dds"
     },
     {
       "source": "Assets\\Textures\\sxsky_dust.png",
