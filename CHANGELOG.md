@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Bundle ExtraUtilities 1.3.1 (main 8c175e5): adds `exu.SetChatOnEnter`, so the co-op PDA takes Enter for rows
+  instead of opening chat, plus the surface/snow vertex vector API used by the weather surfaces.
 - Fix the crash when loading a save of a CR mission (misn02b first reported): `aiCore.Load` no longer rebuilds its
   object cache inside the mission `Load()` callback, where units still hold load placeholders instead of AI
   processes; the rebuild runs on the first `Update()` after the load. Bundle OpenShim 1.0.0.62, whose Lua
