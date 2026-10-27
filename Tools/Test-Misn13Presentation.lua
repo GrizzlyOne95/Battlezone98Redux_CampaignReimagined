@@ -21,6 +21,7 @@ do
     local function peer(id)
         local p = {calls={}, valid={}}
         local env = setmetatable({}, {__index=_G})
+        env._G = env -- mission chunks resolve _G.SucceedMission/FailMission at call time
         local function record(op, ...) p.calls[#p.calls+1] = {op, ...} end
         for _, op in ipairs({"ClearObjectives", "AddObjective", "UpdateObjective", "SetObjectiveOn",
             "SetObjectiveOff", "SetObjectiveName", "SetUserTarget", "RemoveObject", "SucceedMission",
@@ -485,6 +486,7 @@ local function makePeer(id, team)
             OnObjectCreated = noop, BindWeatherSensors = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end},
+        PersistentConfig = {Initialize = noop, UpdateInputs = noop, UpdateHeadlights = noop, OnObjectCreated = noop},
         ScriptSubtitles = {
             Play = function(file) record("Play", file); return file end,
             Queue = function(file) record("Queue", file) end,

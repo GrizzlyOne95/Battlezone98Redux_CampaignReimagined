@@ -12,8 +12,10 @@ end
 
 local function NewMission()
     local w = { time = 0, objects = {}, calls = {}, distances = {}, info = {},
-        audioDone = true, cancelled = false, nextId = 0, objectives = 0 }
+        audioDone = true, cancelled = false, nextId = 0, objectives = 0,
+        pda = { Initialize = 0, UpdateInputs = 0, UpdateHeadlights = 0, OnObjectCreated = 0 } }
     local e = setmetatable({}, { __index = _G })
+    e._G = e -- mission resolves _G.SucceedMission/FailMission at call time
     local function Object(label, odf)
         w.nextId = w.nextId + 1
         local h = { id = label or ("spawn" .. w.nextId), alive = true, odf = odf,
@@ -148,6 +150,11 @@ local function NewMission()
             Load = function(state) w.weatherLevel=state.level; w.weatherTarget=state.targetLevel end,
             Shutdown = function() Record("weatherShutdown") end,
         },
+        PersistentConfig = {
+            Initialize = function() w.pda.Initialize = w.pda.Initialize + 1 end,
+            UpdateInputs = function() w.pda.UpdateInputs = w.pda.UpdateInputs + 1 end,
+            UpdateHeadlights = function() w.pda.UpdateHeadlights = w.pda.UpdateHeadlights + 1 end,
+            OnObjectCreated = function() w.pda.OnObjectCreated = w.pda.OnObjectCreated + 1 end},
         ScriptSubtitles = {
             Play = function(file) return e.AudioMessage(file) end,
             Queue = function(file) return e.AudioMessage(file) end,
@@ -184,6 +191,9 @@ local function CheckTeams(w, context)
 end
 
 local e, w, m = NewMission()
+Check(w.pda.Initialize == 1, "PersistentConfig.Initialize ran exactly once after Start")
+Check(w.pda.UpdateInputs >= 1 and w.pda.UpdateHeadlights >= 1, "the first Update drives PersistentConfig inputs and headlights")
+Check(w.pda.Initialize == 1, "the first Update does not re-initialize PersistentConfig")
 Check(w:Count("AudioMessage", "misn0601.wav") == 1 and w:Count("Ally") >= 8 and w:Count("UnAlly") >= 2,
     "offline subtit.Play reaches AudioMessage and alliances are configured")
 Check(m.corbettalive and m.fifthplatoon, "source setup enables Corbett and 5th Platoon")
