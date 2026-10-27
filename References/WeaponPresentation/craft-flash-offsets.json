@@ -246,6 +246,15 @@
         }
       }
     },
+    "avpsav": {
+      "model": "avsav",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "skip": "no Ogre mesh/skeleton for model avsav"
+        }
+      }
+    },
     "avrckt": {
       "model": "avrckt",
       "slots": {
@@ -256,6 +265,15 @@
         "2": {
           "weapon": "ghornet",
           "skip": "parent art11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "avrsav": {
+      "model": "avsav",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "skip": "no Ogre mesh/skeleton for model avsav"
         }
       }
     },

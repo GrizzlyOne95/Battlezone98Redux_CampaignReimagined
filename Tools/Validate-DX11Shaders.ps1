@@ -110,9 +110,14 @@ $universalDecodeTargets = @('diffuseTex.rgb', 'emissiveTex', 'authoredFog')
 # environment term. It is saturate(fogColour) - the same authored display colour
 # as authoredFog - so it decodes for the same reason. Terrain has no
 # environment term, so a 'skyLinear' decode there is a stray copy.
+#
+# 'iceNear' is the terrain ice layer's refracted diffuse sample (OpenShim #621):
+# the same authored albedo as diffuseTex, re-sampled at a parallax offset, so it
+# decodes for the same reason. Only terrain has the ice layer.
 $familyScopedDecodeOwners = @{
     'vertexTint' = 'openshim_enhanced_terrain-sm4.hlsl'
     'skyLinear'  = 'openshim_enhanced_base-sm4.hlsl'
+    'iceNear'    = 'openshim_enhanced_terrain-sm4.hlsl'
 }
 
 # Any swizzle or member access that includes an alpha/w component.
@@ -1361,6 +1366,9 @@ foreach ($case in $sweepCases) {
     if ($shouldActivate) {
         $expectedDecode = if ($hasEmissive) { 4 } else { 3 }
         if ($isTerrainSource) { $expectedDecode += 1 }
+        # Terrain ice re-samples the diffuse atlas at a parallax offset
+        # (iceNear) and decodes it; HD paint reuses diffuseTex instead.
+        if ($isTerrainSource -and -not ($case.Defines -match '^OPENSHIM_TERRAIN_HD')) { $expectedDecode += 1 }
         if ($isBaseSource) { $expectedDecode += 1 }
     }
 
