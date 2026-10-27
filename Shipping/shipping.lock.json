@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4497,
+  "count": 4538,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -4028,8 +4028,16 @@
       "runtime": "crfmine_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crfmine_N.dds",
+      "runtime": "crfmine_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crfraz_d.dds",
       "runtime": "crfraz_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crfraz_N.dds",
+      "runtime": "crfraz_N.dds"
     },
     {
       "source": "Assets\\Textures\\crgrass.png",
@@ -4724,12 +4732,20 @@
       "runtime": "crnvbd_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crnvbd_N.dds",
+      "runtime": "crnvbd_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crnvcc_d.dds",
       "runtime": "crnvcc_d.dds"
     },
     {
       "source": "Assets\\Textures\\crnvcc_e.dds",
       "runtime": "crnvcc_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crnvcc_N.dds",
+      "runtime": "crnvcc_N.dds"
     },
     {
       "source": "Assets\\Textures\\crnvcr_d.dds",
@@ -4740,6 +4756,10 @@
       "runtime": "crnvcr_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crnvcr_N.dds",
+      "runtime": "crnvcr_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crnvns_d.dds",
       "runtime": "crnvns_d.dds"
     },
@@ -4748,12 +4768,32 @@
       "runtime": "crnvns_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crnvns_N.dds",
+      "runtime": "crnvns_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\cromine_d.dds",
       "runtime": "cromine_d.dds"
     },
     {
       "source": "Assets\\Textures\\cromine_e.dds",
       "runtime": "cromine_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cromine_N.dds",
+      "runtime": "cromine_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkbd0_N.dds",
+      "runtime": "crpkbd0_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkbd1_N.dds",
+      "runtime": "crpkbd1_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkbd2_N.dds",
+      "runtime": "crpkbd2_N.dds"
     },
     {
       "source": "Assets\\Textures\\crpkbd_plain.dds",
@@ -4784,6 +4824,18 @@
       "runtime": "crpkbd2_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crpkcc0_N.dds",
+      "runtime": "crpkcc0_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkcc1_N.dds",
+      "runtime": "crpkcc1_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkcc2_N.dds",
+      "runtime": "crpkcc2_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crpkcc_plain.dds",
       "runtime": "crpkcc_plain.dds"
     },
@@ -4812,6 +4864,18 @@
       "runtime": "crpkcc2_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crpkcr0_N.dds",
+      "runtime": "crpkcr0_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkcr1_N.dds",
+      "runtime": "crpkcr1_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkcr2_N.dds",
+      "runtime": "crpkcr2_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crpkcr_plain.dds",
       "runtime": "crpkcr_plain.dds"
     },
@@ -4838,6 +4902,18 @@
     {
       "source": "Assets\\Textures\\crpkcr2_e.dds",
       "runtime": "crpkcr2_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkns0_N.dds",
+      "runtime": "crpkns0_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkns1_N.dds",
+      "runtime": "crpkns1_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkns2_N.dds",
+      "runtime": "crpkns2_N.dds"
     },
     {
       "source": "Assets\\Textures\\crpkns_plain.dds",
@@ -4972,12 +5048,20 @@
       "runtime": "crvabhang_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crvabhang_N.dds",
+      "runtime": "crvabhang_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crvarcp_d.dds",
       "runtime": "crvarcp_d.dds"
     },
     {
       "source": "Assets\\Textures\\crvarcp_e.dds",
       "runtime": "crvarcp_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvarcp_N.dds",
+      "runtime": "crvarcp_N.dds"
     },
     {
       "source": "Assets\\Textures\\crvascp_d.dds",
@@ -4988,12 +5072,20 @@
       "runtime": "crvascp_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crvascp_N.dds",
+      "runtime": "crvascp_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crvbdhqctrl_d.dds",
       "runtime": "crvbdhqctrl_d.dds"
     },
     {
       "source": "Assets\\Textures\\crvbdhqctrl_e.dds",
       "runtime": "crvbdhqctrl_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbdhqctrl_N.dds",
+      "runtime": "crvbdhqctrl_N.dds"
     },
     {
       "source": "Assets\\Textures\\crvbdhqwall_d.dds",
@@ -5004,8 +5096,16 @@
       "runtime": "crvbdhqwall_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crvbdhqwall_N.dds",
+      "runtime": "crvbdhqwall_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crvbdog_walkway_d.dds",
       "runtime": "crvbdog_walkway_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbdog_walkway_N.dds",
+      "runtime": "crvbdog_walkway_N.dds"
     },
     {
       "source": "Assets\\Textures\\crvbscp_d.dds",
@@ -5016,12 +5116,20 @@
       "runtime": "crvbscp_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crvbscp_N.dds",
+      "runtime": "crvbscp_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crvcca_door_d.dds",
       "runtime": "crvcca_door_d.dds"
     },
     {
       "source": "Assets\\Textures\\crvcca_door_e.dds",
       "runtime": "crvcca_door_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcca_door_N.dds",
+      "runtime": "crvcca_door_N.dds"
     },
     {
       "source": "Assets\\Textures\\crvcca_patch_s.dds",
@@ -5032,8 +5140,16 @@
       "runtime": "crvcca_plate_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crvcca_plate_N.dds",
+      "runtime": "crvcca_plate_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crvcca_stairs_d.dds",
       "runtime": "crvcca_stairs_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcca_stairs_N.dds",
+      "runtime": "crvcca_stairs_N.dds"
     },
     {
       "source": "Assets\\Textures\\crvccdeck_d.dds",
@@ -5044,12 +5160,20 @@
       "runtime": "crvccdeck_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crvccdeck_N.dds",
+      "runtime": "crvccdeck_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crvccdoor_d.dds",
       "runtime": "crvccdoor_d.dds"
     },
     {
       "source": "Assets\\Textures\\crvccdoor_e.dds",
       "runtime": "crvccdoor_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvccdoor_N.dds",
+      "runtime": "crvccdoor_N.dds"
     },
     {
       "source": "Assets\\Textures\\crvcchangdoor_d.dds",
@@ -5060,12 +5184,20 @@
       "runtime": "crvcchangdoor_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crvcchangdoor_N.dds",
+      "runtime": "crvcchangdoor_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crvcchangvent_d.dds",
       "runtime": "crvcchangvent_d.dds"
     },
     {
       "source": "Assets\\Textures\\crvcchangvent_e.dds",
       "runtime": "crvcchangvent_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvcchangvent_N.dds",
+      "runtime": "crvcchangvent_N.dds"
     },
     {
       "source": "Assets\\Textures\\crvcfcp_d.dds",
@@ -5076,12 +5208,20 @@
       "runtime": "crvcfcp_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crvcfcp_N.dds",
+      "runtime": "crvcfcp_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crvchcp_d.dds",
       "runtime": "crvchcp_d.dds"
     },
     {
       "source": "Assets\\Textures\\crvchcp_e.dds",
       "runtime": "crvchcp_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvchcp_N.dds",
+      "runtime": "crvchcp_N.dds"
     },
     {
       "source": "Assets\\Textures\\crviolfloor_d.dds",
@@ -5102,6 +5242,10 @@
     {
       "source": "Assets\\Textures\\crviolscreen_e.dds",
       "runtime": "crviolscreen_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crviolscreen_N.dds",
+      "runtime": "crviolscreen_N.dds"
     },
     {
       "source": "Assets\\Textures\\crvioltrim_d.dds",
@@ -5136,8 +5280,16 @@
       "runtime": "crvnsdeck_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crvnsdeck_N.dds",
+      "runtime": "crvnsdeck_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crvnswall_d.dds",
       "runtime": "crvnswall_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvnswall_N.dds",
+      "runtime": "crvnswall_N.dds"
     },
     {
       "source": "Assets\\Textures\\crvobcycl00_n.dds",
@@ -5172,6 +5324,10 @@
       "runtime": "crvrdcp_e.dds"
     },
     {
+      "source": "Assets\\Textures\\crvrdcp_N.dds",
+      "runtime": "crvrdcp_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crvsalv_d.dds",
       "runtime": "crvsalv_d.dds"
     },
@@ -5182,6 +5338,10 @@
     {
       "source": "Assets\\Textures\\crvsmcp_e.dds",
       "runtime": "crvsmcp_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvsmcp_N.dds",
+      "runtime": "crvsmcp_N.dds"
     },
     {
       "source": "Assets\\Textures\\crvstor_n.dds",
@@ -6022,6 +6182,10 @@
     {
       "source": "Assets\\Textures\\trld_d.dds",
       "runtime": "trld_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\trld_N.dds",
+      "runtime": "trld_N.dds"
     },
     {
       "source": "Assets\\Textures\\ubtart00.dds",

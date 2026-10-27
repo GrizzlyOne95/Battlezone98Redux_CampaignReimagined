@@ -2,7 +2,7 @@ import * from "CR_BZBase.material"
 material crfmine : CR_BZBase
 {
     set_texture_alias DiffuseMap crfmine_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crfmine_N.dds
     set_texture_alias SpecularMap boltmine00_SPEC.dds
     set_texture_alias EmissiveMap crfmine_e.dds
     set $diffuse "1 1 1"

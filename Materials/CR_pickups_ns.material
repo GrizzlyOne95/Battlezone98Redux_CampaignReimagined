@@ -3,7 +3,7 @@ import * from "CR_BZBase.material"
 material crnvns : CR_BZBase
 {
     set_texture_alias DiffuseMap crnvns_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crnvns_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crnvns_e.dds
     set $diffuse "1 1 1"
@@ -15,7 +15,7 @@ material crnvns : CR_BZBase
 material cramns : CR_BZBase
 {
     set_texture_alias DiffuseMap crpkns0_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crpkns0_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crpkns0_e.dds
     set $diffuse "1 1 1"
@@ -27,7 +27,7 @@ material cramns : CR_BZBase
 material crhpns : CR_BZBase
 {
     set_texture_alias DiffuseMap crpkns1_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crpkns1_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crpkns1_e.dds
     set $diffuse "1 1 1"
@@ -39,7 +39,7 @@ material crhpns : CR_BZBase
 material crwcns : CR_BZBase
 {
     set_texture_alias DiffuseMap crpkns2_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crpkns2_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crpkns2_e.dds
     set $diffuse "1 1 1"
@@ -65,7 +65,7 @@ material crwcns/plain : crwcns
 material crwrns : CR_BZBase
 {
     set_texture_alias DiffuseMap crpkns2_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crpkns2_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crpkns2_e.dds
     set $diffuse "1 1 1"
@@ -91,7 +91,7 @@ material crwrns/plain : crwrns
 material crwmns : CR_BZBase
 {
     set_texture_alias DiffuseMap crpkns2_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crpkns2_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crpkns2_e.dds
     set $diffuse "1 1 1"
@@ -117,7 +117,7 @@ material crwmns/plain : crwmns
 material crwsns : CR_BZBase
 {
     set_texture_alias DiffuseMap crpkns2_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crpkns2_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crpkns2_e.dds
     set $diffuse "1 1 1"

@@ -11,7 +11,7 @@ material CRV/cvwalkHeadHull : CR_BZBaseCockpit
 material CRV/cvwalkSectionBacks : CR_BZBaseCockpit
 {
     set_texture_alias DiffuseMap crvchcp_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crvchcp_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap capblack_E.dds
 }

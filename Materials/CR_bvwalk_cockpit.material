@@ -11,7 +11,7 @@ material CRV/bvwalkGunArms : CR_BZBaseCockpit
 material CRV/bvwalkJointBacks : CR_BZBaseCockpit
 {
     set_texture_alias DiffuseMap crvbscp_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crvbscp_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crvbscp_e.dds
 }

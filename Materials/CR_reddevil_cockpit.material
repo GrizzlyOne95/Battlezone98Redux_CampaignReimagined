@@ -3,7 +3,7 @@ import * from "CR_BZBase.material"
 material CRV/RedDevilCockpit : CR_BZBaseCockpit
 {
     set_texture_alias DiffuseMap crvrdcp_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crvrdcp_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crvrdcp_e.dds
 }

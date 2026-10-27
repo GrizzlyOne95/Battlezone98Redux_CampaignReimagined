@@ -3,7 +3,7 @@ import * from "bblpad.material"
 material CRV/Building/bdog_walkway : bblpad
 {
     set_texture_alias DiffuseMap crvbdog_walkway_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crvbdog_walkway_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap black.dds
 }

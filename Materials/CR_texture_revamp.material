@@ -39,7 +39,7 @@ material CRV/InteriorTrim : CR_BZBase
 material CRV/InteriorScreen : CR_BZBase
 {
  set_texture_alias DiffuseMap crviolscreen_d.dds
- set_texture_alias NormalMap flat_N.dds
+ set_texture_alias NormalMap crviolscreen_N.dds
  set_texture_alias SpecularMap black.dds
  set_texture_alias EmissiveMap crviolscreen_e.dds
  set $diffuse "1 1 1"
