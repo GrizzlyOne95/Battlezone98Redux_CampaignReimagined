@@ -1,0 +1,54 @@
+// Opt-in player boarding prototype. Spawn empty with CRSAVTest.Spawn().
+// Real SAV physics and flight deployment; no friendly AI controller is claimed.
+[GameObjectClass]
+baseName = "avsav"
+classLabel = "sav"
+pilotCost = 1
+pilotClass = "aspilo"
+userClass = "asuser"
+scrapValue = 5
+scrapCost = 8
+maxHealth = 3500
+maxAmmo = 2000
+unitName = "Fury - SAV Test"
+aiName = ""
+aiName2 = ""
+heatSignature = 0.5
+imageSignature = 0.8
+radarSignature = 1.0
+weaponHard1 = "GC1"
+weaponName1 = "gbolt"
+weaponHard2 = "GR1"
+weaponName2 = "gwasp"
+
+[CraftClass]
+rangeScan = 460.0
+periodScan = 2.0
+velocJam = 5.0
+diedMsg = "abetty3.wav"
+
+[HoverCraftClass]
+setAltitude = 1.0
+accelDragStop = 3.5
+accelDragFull = 1.0
+alphaTrack = 20.0
+alphaDamp = 5.0
+pitchPitch = 0.25
+pitchThrust = 0.1
+rollStrafe = 0.1
+rollSteer = 0.1
+velocForward = 200.0
+velocReverse = 20.0
+velocStrafe = 20.0
+accelThrust = 200.0
+accelBrake = 25.0
+omegaSpin = 2.0
+omegaTurn = 1.0
+alphaSteer = 5.0
+accelJump = 480.0
+soundDeploy = "avsave5.wav"
+soundUndeploy = "avsave6.wav"
+soundThrust = "avsave0.wav"
+
+[SAVClass]
+flightAltitude = 150.0
