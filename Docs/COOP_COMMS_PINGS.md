@@ -59,6 +59,9 @@ mission objective or a teammate status marker) it flashes for about a second
 and is never switched off. A teammate's status marker relabels its craft every
 second, so on teammates the ping name is brief. The check needs EXU `IsObjectiveOn` (it reads the
 engine flag at GameObject+0x189); without it, an object ping shows only the chat line.
+A ping on your own craft is never marked on your own HUD (you cannot see a
+marker on yourself, and the rename would replace your name); your chat line
+reads `Name marked you.` and every other player still sees the marker.
 A terrain ping builds an invisible marker object on each player's machine
 (`exu.BuildAsyncObject("crping", 0, pos)`, local-only), names it
 `Name: TERRAIN PING`, switches its objective marker on, and removes it when the ping
@@ -84,6 +87,13 @@ local-only), switching a marker on once and renaming it only when its status
 text changes. They are off by default because those calls share the mission's
 objective namespace: mission scripts and their presentation tests expect only
 their own objective calls.
+
+Host marker (guests only, PDA row `HOST MARKER ON/OFF`, in the place of the
+host's RECALL row, off by default): keeps just the host's craft marked with the
+same label as a status marker, so a guest can lead others to the host. While
+any marker is on, a marker found switched off (the mission or engine cleared
+it) is switched back on at the next one-second check; that check needs EXU
+`IsObjectiveOn`, and without it a cleared marker stays off.
 
 Ownership rule: a world change runs only on the machine that owns the object.
 - **Send ride**: the host gives one of its own craft the stock "Pick Me Up"

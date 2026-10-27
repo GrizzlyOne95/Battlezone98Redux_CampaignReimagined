@@ -5176,6 +5176,7 @@ PersistentConfig.CoopPda = require("CRCoopPda").Create({
 PersistentConfig.CoopPingHud = require("CRCoopPingHud").Create({
     comms = function() return require("CRCoop").GetComms() end,
     time = function() return GetTime() end,
+    self = function() return GetPlayerHandle() end,
     objective = {
         isOn = function(h)
             if exu and type(exu.IsObjectiveOn) == "function" then return exu.IsObjectiveOn(h) end

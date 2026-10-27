@@ -193,6 +193,9 @@ function M.Create(d)
                     ui.recallAt = nil
                     return c.Recall()
                 end })
+        elseif c.SetHostMarker then
+            add({ key = "hostmark", text = "HOST MARKER " .. (c.HostMarkerOn() and "ON" or "OFF"),
+                run = function() c.SetHostMarker(not c.HostMarkerOn()); return true end })
         end
         add({ key = "markers", text = "MARKERS " .. (c.MarkersOn() and "ON" or "OFF"),
             run = function() c.SetMarkers(not c.MarkersOn()); return true end })

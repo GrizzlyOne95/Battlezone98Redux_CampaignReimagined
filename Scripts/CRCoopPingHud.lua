@@ -5,7 +5,9 @@
 -- ping ends, then gets its old name back. If it was not an objective it gets
 -- the marker and loses it again; if it already was (a mission objective, a
 -- teammate marker) it flashes and is never switched off. Without
--- exu.IsObjectiveOn that state is unknown, so the unit is left alone.
+-- exu.IsObjectiveOn that state is unknown, so the unit is left alone. A ping
+-- on your own craft is not marked: you cannot see a marker on yourself, and
+-- the name would replace yours. Its chat line says you were marked.
 local M = {}
 local FLASH_TIME, FLASH_STEP = 1.2, 0.2
 function M.Create(d)
@@ -36,6 +38,7 @@ function M.Create(d)
             return
         end
         local pings, time = c.GetPings(), d.time()
+        local own = d.self and d.self()
         for id, mark in pairs(marks) do
             local ping = pings[id]
             if not ping or ping.seq ~= mark.seq or (not mark.spawned and ping.handle ~= mark.handle) then
@@ -52,6 +55,8 @@ function M.Create(d)
                     objective("name", h, ping.name:sub(1, 16) .. ": TERRAIN PING")
                     objective("on", h)
                 end
+            elseif ping.kind == "object" and ping.handle and ping.handle == own then
+                marks[id] = { handle = ping.handle, seq = ping.seq }
             elseif ping.kind == "object" and ping.handle then
                 local on = objective("isOn", ping.handle)
                 local mark = { handle = ping.handle, seq = ping.seq }
