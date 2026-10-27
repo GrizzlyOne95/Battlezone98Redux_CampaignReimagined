@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4266,
+  "count": 4267,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -290,6 +290,10 @@
     {
       "source": "Assets\\LoadingScreens\\vload.png",
       "runtime": "vload.png"
+    },
+    {
+      "source": "Assets\\ModelFixes\\abbarr.mesh",
+      "runtime": "abbarr.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\abhang.mesh",
