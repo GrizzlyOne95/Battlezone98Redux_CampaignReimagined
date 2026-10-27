@@ -100,6 +100,18 @@ owners win. Scene reset releases owned variants and clears shared wetness before
 the existing bootstrap re-registers objects. EXU caps all owned surface materials
 at 1,024; destruction finishes share at most 128 source variants within that cap.
 
+## Snow
+
+Snow worlds (`SnowWorlds`, keyed by the CRWorldArt name read from the TRN
+`[Atlases] MaterialName`; Europa only for now) write the `surfaceSnow` uniform
+once per scene: x cover, y linear albedo, z blue tint. Every shared material,
+owned clone and the world's terrain atlas material (`EU_DETAIL_ATLAS`) take it.
+Cockpit materials and clones never do. The OpenShim Enhanced base and terrain
+shaders whiten upward faces from the world-space normal plus noise (object-local
+on craft and buildings, world XZ on terrain), flatten the normal map under the
+snow and raise roughness. Zero is the default and changes nothing. DX11
+Enhanced only, any tier. Reset and Suspend write zeros back.
+
 ## Water and compatibility
 
 OpenShim Enhanced High DX11 shaders provide small beads, flowing trails and
