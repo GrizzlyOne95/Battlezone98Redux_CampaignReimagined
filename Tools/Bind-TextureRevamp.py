@@ -17,6 +17,7 @@ MAPPING={
  'lme_bronze':'Floor','lme_dark':'Wall','lme_edge':'Trim',
  **{prefix+suffix:kind for prefix in ('ovheph_','oth_') for suffix,kind in [('metal','Floor'),('dark','Wall'),('edge','Trim'),('screen','Screen')]},
 }
+# Owner accepted #355's diffuse-derived trld_N.dds for ubtart/trld on 2026-10-27.
 SELECTORS={
  'abstor':{'DiffuseMap':'crstns_d.dds','NormalMap':'crvstor_n.dds','SpecularMap':'crvcca_patch_s.dds','EmissiveMap':'crstns_e.dds'},
  'bbstor':{'DiffuseMap':'crstbd_d.dds','NormalMap':'crvstor_n.dds','SpecularMap':'crvcca_patch_s.dds','EmissiveMap':'crstbd_e.dds'},
@@ -25,8 +26,8 @@ SELECTORS={
  **{key:{'NormalMap':f'crv{stem}_n.dds'} for key,stem in [('obdata','obdata00'),('obcycl','obcycl00'),('oblemb','oblemb00'),('oblemd','oblemb00')]},
  **{key:{'NormalMap':'crvobpowr00_n.dds'} for key in ('obcurt','obhavc','obmits','obmagc','obrfld','obtags')},
  **{f'cr16{x}':{'NormalMap':f'cr16{x}_n.dds','SpecularMap':f'cr16{x}_s.dds','EmissiveMap':f'cr16{x}_e.dds'} for x in ('cmd','hng','pwr','tow')},
- 'ubtart':{'DiffuseMap':'trld_d.dds','NormalMap':'flat_N.dds','SpecularMap':'black.dds','EmissiveMap':'black.dds'},
- 'trld':{'DiffuseMap':'trld_d.dds','NormalMap':'flat_N.dds','SpecularMap':'black.dds','EmissiveMap':'black.dds'},
+ 'ubtart':{'DiffuseMap':'trld_d.dds','NormalMap':'trld_N.dds','SpecularMap':'black.dds','EmissiveMap':'black.dds'},
+ 'trld':{'DiffuseMap':'trld_d.dds','NormalMap':'trld_N.dds','SpecularMap':'black.dds','EmissiveMap':'black.dds'},
 }
 
 def bone_digest(rows):

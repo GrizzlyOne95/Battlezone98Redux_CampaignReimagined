@@ -3,7 +3,7 @@ import * from "bbhqcp.material"
 material CRV/Building/bdhqwall : bbhqcp00
 {
     set_texture_alias DiffuseMap crvbdhqwall_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crvbdhqwall_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crvbdhqwall_e.dds
 }
@@ -11,7 +11,7 @@ material CRV/Building/bdhqwall : bbhqcp00
 material CRV/Building/bdhqctrl : bbhqcp00
 {
     set_texture_alias DiffuseMap crvbdhqctrl_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crvbdhqctrl_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crvbdhqctrl_e.dds
 }

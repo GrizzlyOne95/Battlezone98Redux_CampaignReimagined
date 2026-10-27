@@ -3,7 +3,7 @@ import * from "CR_BZBase.material"
 material crfraz : CR_BZBase
 {
     set_texture_alias DiffuseMap crfraz_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crfraz_N.dds
     set_texture_alias SpecularMap Hvsav00_s.dds
     set_texture_alias EmissiveMap Hvsav00_e.dds
     set $diffuse "1 1 1"

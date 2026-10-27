@@ -7,7 +7,7 @@
   "outputs": {
     "Assets/Models/svtank_cockpit.mesh": "5a0766016239a032af5990c24e7a6b227fa1132f2e7692147265506a8167011a",
     "Assets/Models/svtank_cockpit.skeleton": "e687e51928b6b9126c01881690e6122562844942ae3ddd4d94c13c6288558e50",
-    "Materials/CR_svtank_cockpit.material": "4a094435358976ec3c8f035751ab42dbddaff15c373d63f557d37193716366c7"
+    "Materials/CR_svtank_cockpit.material": "b79f956dc2ef9bfc69f35795088a59d02db82c9d93b6407d4034dc82aeefa1d7"
   },
   "alignment": {
     "faction": "cca",

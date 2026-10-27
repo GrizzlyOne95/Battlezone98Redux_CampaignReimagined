@@ -18,7 +18,7 @@
     "Assets/Models/avfigh_cockpit.skeleton": "bbacefcf8d0c047eb82842e447a658c357240003f5404d460443a7871df7a460",
     "Assets/Textures/crvascp_d.dds": "d3c2a4e08ede03f9fceb5c555ca7f95602ea38af597e0f68fba04fe7ac300eda",
     "Assets/Textures/crvascp_e.dds": "6fada7a94aa077af90ba84de405dabbdd00ef54d0ef55519db876cf4be1459b1",
-    "Materials/CR_avfigh_cockpit.material": "1d61e7d2f3426dbbd41077f52ef00486c87620d17f612d90fb3aadd51772d1ef"
+    "Materials/CR_avfigh_cockpit.material": "8e6c1a6bd43e5b92f95e07986bdfbb573d9f6b58a62d068dfcb7543108222e7d"
   },
   "alignment": {
     "faction": "nsdf",

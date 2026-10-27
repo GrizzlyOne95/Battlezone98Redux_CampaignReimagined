@@ -3,7 +3,7 @@ import * from "CR_BZBase.material"
 material sbhang : CR_BZBase
 {
 	set_texture_alias DiffuseMap sbhang_d.dds
-	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias NormalMap sbhang_N.dds
 	set_texture_alias SpecularMap sbhang_S.dds
 	set_texture_alias EmissiveMap sbhang_e.dds
 	

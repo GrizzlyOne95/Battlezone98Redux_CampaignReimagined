@@ -3,7 +3,7 @@ import * from "CR_BZBase.material"
 material magpull : CR_BZBase
 {
 	set_texture_alias DiffuseMap magpull00.dds
-	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias NormalMap magpull00_N.dds
 	set_texture_alias SpecularMap black.dds
 	set_texture_alias EmissiveMap magpull00_e.dds
 	

@@ -3,7 +3,7 @@ import * from "sbhang.material"
 material CRV/Building/cchangdoor : sbhang
 {
     set_texture_alias DiffuseMap crvcchangdoor_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crvcchangdoor_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crvcchangdoor_e.dds
 }
@@ -11,7 +11,7 @@ material CRV/Building/cchangdoor : sbhang
 material CRV/Building/cchangvent : sbhang
 {
     set_texture_alias DiffuseMap crvcchangvent_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap crvcchangvent_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crvcchangvent_e.dds
 }

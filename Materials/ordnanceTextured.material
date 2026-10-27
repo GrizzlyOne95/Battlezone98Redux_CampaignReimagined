@@ -3,7 +3,7 @@ import * from "CR_BZBase.material"
 material ordnanceTextured : CR_BZBase
 {
 	set_texture_alias DiffuseMap appowr00_d.dds
-	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias NormalMap appowr00_N.dds
 	set_texture_alias SpecularMap appowr00_s.dds
 	set_texture_alias EmissiveMap appowr00_e.dds
 	

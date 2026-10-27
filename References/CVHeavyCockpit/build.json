@@ -7,7 +7,7 @@
   "outputs": {
     "Assets/Models/cvhtnk_cockpit.mesh": "48fe1c89ab9e0560c25ed85f757e89882b9623d7a93a1ab7238f22e29a58d674",
     "Assets/Models/cvhtnk_cockpit.skeleton": "27f0e9443109fe7f1b337e09bd5882de6aa9e88deb5cfa1d886822ef5061043e",
-    "Materials/CR_cvhtnk_cockpit.material": "f374d8c2b4cb3f7fb6e74dae868e0a9c536f2248949d9723076a1c01a9ac1ccd"
+    "Materials/CR_cvhtnk_cockpit.material": "a3ff32ae0838ba3eac7ec0b0fbf35e521f3d3228a2bf44a61391438099fcc159"
   },
   "alignment": {
     "pov": "CEM11POV",

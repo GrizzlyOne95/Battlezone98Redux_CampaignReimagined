@@ -4,7 +4,7 @@ import * from "CR_BZBase.material"
 material bbspow : CR_BZBase
 {
 	set_texture_alias DiffuseMap bbspow_D.dds
-	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias NormalMap bbspow_N.dds
 	set_texture_alias SpecularMap bbspow_S.dds
 	set_texture_alias EmissiveMap abspow_E.dds
 	

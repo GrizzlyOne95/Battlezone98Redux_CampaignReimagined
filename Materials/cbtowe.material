@@ -3,7 +3,7 @@ import * from "CR_BZBase.material"
 material cbtowe : CR_BZBase
 {
 	set_texture_alias DiffuseMap cbtowe_d.dds
-	set_texture_alias NormalMap flat_N.dds
+	set_texture_alias NormalMap cbtowe_N.dds
 	set_texture_alias SpecularMap cbtowe_S.dds
 	set_texture_alias EmissiveMap cbtowe_e.dds
 	
