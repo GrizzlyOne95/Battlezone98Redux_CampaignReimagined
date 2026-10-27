@@ -30,10 +30,16 @@ Each hull apron is a bounded crop of original body-weighted front triangles,
 with original UVs and one rigid fit. Owner follow-up replaces the inadequate
 20-triangle Grizzly strips with the complete 448-triangle front group on each:
 center sloped nose, painted markings, shoulders, bevels and recess walls. The
-NSDF group pitches -12 degrees, Black Dog -22 degrees, about model point
-`[0, 1.25, 1.10]`, with separate eye-relative offsets. No scaling, bending,
-mirroring, texture stretching, or eye adjustment. The coaming extends underneath
-the rear crop to avoid sky slivers beside the warning horns. CCA 3 and CRA 10
+NSDF group pitches -5 degrees (owner review: -12 read as nose-up), Black Dog
+-22 degrees, about model point `[0, 1.25, 1.10]`, with separate eye-relative
+offsets. NSDF alone widens 1.35x across X (owner review: the nose read as a
+narrow wedge); no other scaling, bending, mirroring, or eye adjustment. The
+coaming extends underneath the rear crop to avoid sky slivers beside the warning
+horns. On NSDF it drops and tapers to stay under the hull shoulders (they
+clipped through it), and a leaning bulkhead under the plate's open near edge
+stops the pilot eye seeing into the hull; the test casts for any such ray. The
+right instrument pod mirrors the left pod's console strip, which previously cut
+its top button row (both Grizzly cockpits). CCA 3 and CRA 10
 triangles are unchanged. These are front groups, not complete exterior meshes.
 Existing first-person guns remain separate from
 the new, stable-shell interior skinning. ODFs, native VDF/GEOs, original exterior
