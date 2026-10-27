@@ -716,9 +716,9 @@ function Sync-SupportWrapper {
             (Join-Path $sourceDirUpload $name) (Join-Path $destDir $name) "OpenShim support wrapper $name")
     }
 
-    # openshim\ is generated and untracked, so the reader-facing README cannot
-    # live there. Its source of truth is Docs\, which is tracked but excluded
-    # from the payload; this copy is what subscribers actually get.
+    # openshim\ is a committed cache of OpenShim files (Tools\Sync-OpenShimFiles.py),
+    # so the README's source of truth stays in Docs\, which is excluded from the
+    # payload; this copy is what subscribers actually get.
     $readmeSource = Join-Path $SourceDir "Docs\openshim_support_README.txt"
     if (-not (Test-Path -LiteralPath $readmeSource)) {
         throw "Cannot stage the support wrapper without its README: '$readmeSource' is missing."

@@ -1,0 +1,596 @@
+// OpenShim DX11 fixed-function compatibility programs (SM4-only).
+// Ships for Docs/DX11_LEGACY_MATERIAL_COMPATIBILITY.md Levels 1-2.
+//
+// OSE_FixedFunc_* emulate the bounded fixed-function support set (0 units;
+// 1 unit with modulate/replace/add/alpha_blend, texture matrix, fog, alpha).
+// OSE_Compat_* are the known legacy BZR/SM2/3 family adapters (Effect,
+// Textured, Untextured, Sky, Base, SimpleOneTex, Ui, Terrain). They share the
+// fixed-function SM4 implementation with a COMPAT_FAMILY define recording
+// which legacy family selected them, so per-family tuning lands here without
+// touching the resolver or rewriting mod files on disk.
+//
+// *_lit fragment variants carry the fixed-function emissive term for passes
+// with `lighting on` (surface_emissive_colour, live per draw). OSE_Compat_*
+// adapters stand in for programmable legacy families whose shaders never read
+// emissive, so they stay without it.
+//
+// DX9 never loads this file: the runtime probe is DX11-gated and stock DX9
+// keeps its fixed pipeline. Uniform names must match
+// openshim_dx11_fixedfunc-sm4.hlsl exactly; Ogre binds them through the
+// default_params auto constants below.
+
+// ---------------------------------------------------------------------------
+// Core fixed-function SM4 programs
+// ---------------------------------------------------------------------------
+
+vertex_program OSE_FixedFunc_Textured_vertex hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc_vertex
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto texMatrix texture_matrix 0
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+fragment_program OSE_FixedFunc_Textured_fragment hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc_fragment
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+    }
+}
+
+fragment_program OSE_FixedFunc_Textured_fragment_replace hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc_fragment
+
+    preprocessor_defines COMPAT_OP_REPLACE
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+    }
+}
+
+fragment_program OSE_FixedFunc_Textured_fragment_add hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc_fragment
+
+    preprocessor_defines COMPAT_OP_ADD
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+    }
+}
+
+// `lighting on` twins: add the pass emissive (surface_emissive_colour) to the
+// colour the texture stage combines with, as fixed-function lighting did.
+// Bound only to passes with lighting enabled; see the .hlsl header.
+// Replace discards the lit colour, so it has no twin.
+
+fragment_program OSE_FixedFunc_Textured_fragment_lit hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc_fragment
+
+    preprocessor_defines COMPAT_LIGHTING_EMISSIVE
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto emissiveColour surface_emissive_colour
+    }
+}
+
+vertex_program OSE_FixedFunc_Untextured_vertex hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc_untextured_vertex
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+fragment_program OSE_FixedFunc_Untextured_fragment hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc_untextured_fragment
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+    }
+}
+
+fragment_program OSE_FixedFunc_Untextured_fragment_lit hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc_untextured_fragment
+
+    preprocessor_defines COMPAT_LIGHTING_EMISSIVE
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto emissiveColour surface_emissive_colour
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Input-reduced vertex variants.
+// D3D11 throws per draw when a vertex shader reads an element the mesh does
+// not supply. These stand in for any OSE_FixedFunc_*/OSE_Compat_* vertex
+// program of the same entry point when the renderable lacks a vertex colour
+// (_novc) or a first UV set (_nouv). Output signatures are unchanged, so the
+// fragment program of the original pairing still links.
+// ---------------------------------------------------------------------------
+
+vertex_program OSE_FixedFunc_Textured_vertex_novc hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc_vertex
+
+    preprocessor_defines COMPAT_NO_VERTEX_COLOUR
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto texMatrix texture_matrix 0
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+vertex_program OSE_FixedFunc_Textured_vertex_nouv hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc_vertex
+
+    preprocessor_defines COMPAT_NO_TEXCOORD
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto texMatrix texture_matrix 0
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+vertex_program OSE_FixedFunc_Textured_vertex_novc_nouv hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc_vertex
+
+    preprocessor_defines COMPAT_NO_VERTEX_COLOUR;COMPAT_NO_TEXCOORD
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto texMatrix texture_matrix 0
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+vertex_program OSE_FixedFunc_Untextured_vertex_novc hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc_untextured_vertex
+
+    preprocessor_defines COMPAT_NO_VERTEX_COLOUR
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Known legacy family adapters (all SM4, all DX11-only).
+// Each carries its family name so diagnostics stay attributable while the
+// implementation is shared until corpus telemetry justifies divergence.
+// ---------------------------------------------------------------------------
+
+vertex_program OSE_Compat_Effect_vertex hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc_vertex
+
+    preprocessor_defines COMPAT_FAMILY_EFFECT
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto texMatrix texture_matrix 0
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+fragment_program OSE_Compat_Effect_fragment hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc_fragment
+
+    preprocessor_defines COMPAT_FAMILY_EFFECT
+    default_params
+    {
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+    }
+}
+
+vertex_program OSE_Compat_Textured_vertex hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc_vertex
+
+    preprocessor_defines COMPAT_FAMILY_TEXTURED
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto texMatrix texture_matrix 0
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+fragment_program OSE_Compat_Textured_fragment hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc_fragment
+
+    preprocessor_defines COMPAT_FAMILY_TEXTURED
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+    }
+}
+
+vertex_program OSE_Compat_Untextured_vertex hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc_untextured_vertex
+
+    preprocessor_defines COMPAT_FAMILY_UNTEXTURED
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+fragment_program OSE_Compat_Untextured_fragment hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc_untextured_fragment
+
+    preprocessor_defines COMPAT_FAMILY_UNTEXTURED
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+    }
+}
+
+vertex_program OSE_Compat_Sky_vertex hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc_vertex
+
+    preprocessor_defines COMPAT_FAMILY_SKY
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto texMatrix texture_matrix 0
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+fragment_program OSE_Compat_Sky_fragment hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc_fragment
+
+    // No fog: the stock sky programs never fog (sky dome sits at the far plane).
+    preprocessor_defines COMPAT_FAMILY_SKY
+}
+
+vertex_program OSE_Compat_Base_vertex hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc_vertex
+
+    preprocessor_defines COMPAT_FAMILY_BASE
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto texMatrix texture_matrix 0
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+fragment_program OSE_Compat_Base_fragment hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc_fragment
+
+    preprocessor_defines COMPAT_FAMILY_BASE
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+    }
+}
+
+vertex_program OSE_Compat_SimpleOneTex_vertex hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc_vertex
+
+    preprocessor_defines COMPAT_FAMILY_SIMPLEONETEX
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto texMatrix texture_matrix 0
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+fragment_program OSE_Compat_SimpleOneTex_fragment hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc_fragment
+
+    preprocessor_defines COMPAT_FAMILY_SIMPLEONETEX
+    default_params
+    {
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+    }
+}
+
+vertex_program OSE_Compat_Ui_vertex hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc_vertex
+
+    preprocessor_defines COMPAT_FAMILY_UI
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto texMatrix texture_matrix 0
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+fragment_program OSE_Compat_Ui_fragment hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc_fragment
+
+    preprocessor_defines COMPAT_FAMILY_UI
+    default_params
+    {
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+    }
+}
+
+vertex_program OSE_Compat_Terrain_vertex hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc_vertex
+
+    preprocessor_defines COMPAT_FAMILY_TERRAIN
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto texMatrix texture_matrix 0
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+fragment_program OSE_Compat_Terrain_fragment hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc_fragment
+
+    preprocessor_defines COMPAT_FAMILY_TERRAIN
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Two-stage fixed function: 2 texture units on UV set 0, stage 0 modulate.
+// The fragment variant carries the stage 1 combine; the vertex program has
+// the usual no-vertex-colour reduction (FitVertexProgramToInputs).
+// ---------------------------------------------------------------------------
+
+vertex_program OSE_FixedFunc_Textured2_vertex hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc2_vertex
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto texMatrix texture_matrix 0
+        param_named_auto texMatrix1 texture_matrix 1
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+vertex_program OSE_FixedFunc_Textured2_vertex_novc hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point fixedfunc2_vertex
+
+    preprocessor_defines COMPAT_NO_VERTEX_COLOUR
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto texMatrix texture_matrix 0
+        param_named_auto texMatrix1 texture_matrix 1
+        param_named_auto diffuseColor surface_diffuse_colour
+    }
+}
+
+fragment_program OSE_FixedFunc_Textured2_fragment_modulate hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc2_fragment
+
+    preprocessor_defines COMPAT_OP1_MODULATE
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+    }
+}
+
+fragment_program OSE_FixedFunc_Textured2_fragment_add hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc2_fragment
+
+    preprocessor_defines COMPAT_OP1_ADD
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+    }
+}
+
+fragment_program OSE_FixedFunc_Textured2_fragment_alphablend hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc2_fragment
+
+    preprocessor_defines COMPAT_OP1_ALPHABLEND
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+    }
+}
+
+fragment_program OSE_FixedFunc_Textured2_fragment_modulate_lit hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc2_fragment
+
+    preprocessor_defines COMPAT_OP1_MODULATE;COMPAT_LIGHTING_EMISSIVE
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto emissiveColour surface_emissive_colour
+    }
+}
+
+fragment_program OSE_FixedFunc_Textured2_fragment_add_lit hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc2_fragment
+
+    preprocessor_defines COMPAT_OP1_ADD;COMPAT_LIGHTING_EMISSIVE
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto emissiveColour surface_emissive_colour
+    }
+}
+
+fragment_program OSE_FixedFunc_Textured2_fragment_alphablend_lit hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point fixedfunc2_fragment
+
+    preprocessor_defines COMPAT_OP1_ALPHABLEND;COMPAT_LIGHTING_EMISSIVE
+    default_params
+    {
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto emissiveColour surface_emissive_colour
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Suppress pair: draws nothing, binds on any vertex declaration. Bound only
+// to fixed-function passes that cannot be expressed and have no programmable
+// fallback, so D3D11 never sees a shaderless draw.
+// ---------------------------------------------------------------------------
+
+vertex_program OSE_FixedFunc_Suppress_vertex hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target vs_4_0
+    entry_point suppress_vertex
+}
+
+fragment_program OSE_FixedFunc_Suppress_fragment hlsl
+{
+    source openshim_dx11_fixedfunc-sm4.hlsl
+    target ps_4_0
+    entry_point suppress_fragment
+}

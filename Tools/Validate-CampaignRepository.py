@@ -20,10 +20,6 @@ EXCLUDED_PARTS = {".git", "Local", "References", "_deps"}
 STRICT_ENGINE_EXTENSIONS = {".odf", ".wav", ".trn", ".bzn"}
 EXTERNAL_LUA_MODULES = {"bzfile", "exu"}
 STOCK_API_DEFINITION_FILES = {"scripts/scriptutils.lua"}
-# Top-level roots the campaign ships but does not author: the sibling
-# OpenShim deploy writes them into this tree, so a clean checkout has none
-# of them and their absence here is not a defect.
-SIBLING_SUPPLIED_ROOTS = {"openshim", "BZ_ASSETS_CORE"}
 # Shared with ExtraUtilities, BZR-OpenShim and bzfile. SHA-256 of the file
 # bytes with CRLF normalised to LF; every repository pins the same values.
 SHARED_BZR_DOCS = {
@@ -179,12 +175,6 @@ def check_shipping_lock_resolves() -> list[str]:
             errors.append("shipping lock has a row with no 'source'")
             continue
         normalized = source.replace(chr(92), "/")
-        if normalized.split("/", 1)[0] in SIBLING_SUPPLIED_ROOTS:
-            # Written into this tree by the sibling repository's deploy, not
-            # authored here, so a clean checkout legitimately lacks them. Their
-            # integrity is that repository's job -- OpenShim validates its own
-            # renderer payload before deploying it.
-            continue
         if not (ROOT / normalized.replace("/", os.sep)).exists():
             missing.append(source)
 
