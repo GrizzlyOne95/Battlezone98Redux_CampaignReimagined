@@ -5,7 +5,7 @@
     "skeletonSha256": "4043ddea5148c1171f5b9aea8cf9c6d3786515cd92f102e3b3e2f891f3f7241e"
   },
   "outputs": {
-    "Assets/Models/bvtank_cockpit.mesh": "e68d05bca8058f79e69169d6a23a521ba61e847f7eb954513e7557da3918ce44",
+    "Assets/Models/bvtank_cockpit.mesh": "db29470156e4b94ad9f336777e99f5c43b6efaa74c58dfa2781c3b577a7c4225",
     "Assets/Models/bvtank_cockpit.skeleton": "4043ddea5148c1171f5b9aea8cf9c6d3786515cd92f102e3b3e2f891f3f7241e",
     "Materials/CR_bvtank_cockpit.material": "66e37d1da8dbea150049e5c101cd62e73a5547403308ed86707ccd77d5922b32"
   },

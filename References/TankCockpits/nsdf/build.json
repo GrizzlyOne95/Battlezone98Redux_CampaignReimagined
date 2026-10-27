@@ -5,7 +5,7 @@
     "skeletonSha256": "00ea42ea2f580a3c982180c93204866d1ccf443f1eba6a62754f70c6069d3acd"
   },
   "outputs": {
-    "Assets/Models/avtank_cockpit.mesh": "29e82cd602926a10af03c4844bf91d5d697a8afb4d917283104dc91f8977ffc9",
+    "Assets/Models/avtank_cockpit.mesh": "9868c0b465eda741fd5d0061823c4e90e680201441ed98aae7ff00b319035205",
     "Assets/Models/avtank_cockpit.skeleton": "00ea42ea2f580a3c982180c93204866d1ccf443f1eba6a62754f70c6069d3acd",
     "Materials/CR_avtank_cockpit.material": "4ae42fd729eee346437b0b72745e7dbf5ef43db3bd9c149959153060a4dcbe2f"
   },
@@ -683,8 +683,8 @@
     ],
     "apronOffset": [
       0.0,
-      -0.6147331712590539,
-      1.2515458947699813
+      -0.6143243666821531,
+      1.2774315879640112
     ],
     "apronTriangles": 448,
     "innerShell": {
@@ -701,22 +701,22 @@
     "nativeVdfSha256": "fb4bdf8c4e8f4ccd3c768417eab9bbafcf076ee8d77f077b9791b69ac23afaaf",
     "apronTransform": [
       [
-        1.35,
+        1.0,
         0.0,
         0.0,
         0.0
       ],
       [
         0.0,
-        0.9961946980917455,
-        0.08715574274765817,
-        -0.7058478608961597
+        0.9781476007338057,
+        0.20791169081775934,
+        -0.8157117274989455
       ],
       [
         0.0,
-        -0.08715574274765817,
-        0.9961946980917455,
-        1.364676405303634
+        -0.20791169081775934,
+        0.9781476007338057,
+        1.5613588406790242
       ],
       [
         0.0,
@@ -725,28 +725,27 @@
         1.0
       ]
     ],
-    "apronPitchDegrees": -5.0,
+    "apronPitchDegrees": -12.0,
     "apronPivotModel": [
       0.0,
       1.25,
       1.1
     ],
-    "apronSpreadX": 1.35,
     "gunWeightSha256": "fa7958a03e98431de994e5d15ac7b093ac6fe4cd82939ed1a41792bf9ce8750a"
   },
   "glass": {
-    "openFraction": 0.25653798256537985,
+    "openFraction": 0.25246235707007814,
     "depth": [
-      0.6980359896291977,
-      2.457330809535113
+      0.69803620544924,
+      2.5275263993370256
     ],
     "bone": "agr21bda",
-    "vertices": 401,
-    "triangles": 676
+    "vertices": 396,
+    "triangles": 664
   },
   "triangles": {
     "avtank01": 68,
-    "CRV/NSDFScoutCockpit": 1670,
+    "CRV/NSDFScoutCockpit": 1570,
     "CRV/avtankTankGuns": 150,
     "CRV/avtankTankHull": 448
   },

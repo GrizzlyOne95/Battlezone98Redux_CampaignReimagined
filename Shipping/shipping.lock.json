@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4284,
+  "count": 4439,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -320,6 +320,18 @@
       "runtime": "vload.png"
     },
     {
+      "source": "Assets\\ModelFixes\\abbarr.mesh",
+      "runtime": "abbarr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\abcafe.mesh",
+      "runtime": "abcafe.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\abcomm.mesh",
+      "runtime": "abcomm.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\abhang.mesh",
       "runtime": "abhang.mesh"
     },
@@ -332,12 +344,56 @@
       "runtime": "abhang.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\abhqcp.mesh",
+      "runtime": "abhqcp.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\ablpow.mesh",
       "runtime": "ablpow.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\ablpow.sdf",
       "runtime": "ablpow.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\abmbld.mesh",
+      "runtime": "abmbld.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\abshld.mesh",
+      "runtime": "abshld.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\absilo.mesh",
+      "runtime": "absilo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\abspow.mesh",
+      "runtime": "abspow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\absupp.mesh",
+      "runtime": "absupp.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\abtowe.mesh",
+      "runtime": "abtowe.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\abtowe02.mesh",
+      "runtime": "abtowe02.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\abtowe03.mesh",
+      "runtime": "abtowe03.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\abtowe2.mesh",
+      "runtime": "abtowe2.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\abwpow.mesh",
+      "runtime": "abwpow.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\abwpow.sdf",
@@ -412,12 +468,40 @@
       "runtime": "adr11vt6.geo"
     },
     {
+      "source": "Assets\\ModelFixes\\apc11bda.mesh",
+      "runtime": "apc11bda.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\apm11bda.mesh",
+      "runtime": "apm11bda.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\apwrck.mesh",
+      "runtime": "apwrck.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\aspilo.mesh",
+      "runtime": "aspilo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\aspilo_fp.mesh",
+      "runtime": "aspilo_fp.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\avapc.mesh",
       "runtime": "avapc.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avartl.mesh",
+      "runtime": "avartl.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\avartl_c.mesh",
       "runtime": "avartl_c.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avcnst.mesh",
+      "runtime": "avcnst.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\avcnst.vdf",
@@ -476,6 +560,10 @@
       "runtime": "avhraz.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avland.mesh",
+      "runtime": "avland.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\avltnk.mesh",
       "runtime": "avltnk.mesh"
     },
@@ -484,12 +572,20 @@
       "runtime": "avmine.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avmuf.mesh",
+      "runtime": "avmuf.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\avmuf.vdf",
       "runtime": "avmuf.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\avrckt.mesh",
       "runtime": "avrckt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avrecy.mesh",
+      "runtime": "avrecy.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\avrecy.vdf",
@@ -508,8 +604,20 @@
       "runtime": "avscav.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avslf.mesh",
+      "runtime": "avslf.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\avtank.mesh",
       "runtime": "avtank.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avtest.mesh",
+      "runtime": "avtest.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avturr.mesh",
+      "runtime": "avturr.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\avturr_c.mesh",
@@ -520,8 +628,32 @@
       "runtime": "avturr_c.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\avwalk.mesh",
+      "runtime": "avwalk.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\avwalk_c.mesh",
       "runtime": "avwalk_c.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bbbarr.mesh",
+      "runtime": "bbbarr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bbbarr2.mesh",
+      "runtime": "bbbarr2.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bbcafe.mesh",
+      "runtime": "bbcafe.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bbcom2.mesh",
+      "runtime": "bbcom2.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bbcomm.mesh",
+      "runtime": "bbcomm.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\bbhang.mesh",
@@ -544,12 +676,68 @@
       "runtime": "bblpow.sdf"
     },
     {
+      "source": "Assets\\ModelFixes\\bbmbld.mesh",
+      "runtime": "bbmbld.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bbshld.mesh",
+      "runtime": "bbshld.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bbsilo.mesh",
+      "runtime": "bbsilo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bbspow.mesh",
+      "runtime": "bbspow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bbsupp.mesh",
+      "runtime": "bbsupp.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bbtowe.mesh",
+      "runtime": "bbtowe.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bbwpow.mesh",
+      "runtime": "bbwpow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\boltmine.mesh",
+      "runtime": "boltmine.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bsheav.mesh",
+      "runtime": "bsheav.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bsheav_fp.mesh",
+      "runtime": "bsheav_fp.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bspilo.mesh",
+      "runtime": "bspilo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bspilo_fp.mesh",
+      "runtime": "bspilo_fp.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvapc.mesh",
       "runtime": "bvapc.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvartl.mesh",
+      "runtime": "bvartl.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvartl_c.mesh",
       "runtime": "bvartl_c.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvcnst.mesh",
+      "runtime": "bvcnst.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\bvcnst.vdf",
@@ -580,6 +768,10 @@
       "runtime": "bvmru.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvmuf.mesh",
+      "runtime": "bvmuf.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvmuf.vdf",
       "runtime": "bvmuf.vdf"
     },
@@ -596,12 +788,24 @@
       "runtime": "bvrdev.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvrecy.mesh",
+      "runtime": "bvrecy.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvrecy.vdf",
       "runtime": "bvrecy.vdf"
     },
     {
+      "source": "Assets\\ModelFixes\\bvremp.mesh",
+      "runtime": "bvremp.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvscav.mesh",
       "runtime": "bvscav.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvslf.mesh",
+      "runtime": "bvslf.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\bvslf.skeleton",
@@ -610,6 +814,10 @@
     {
       "source": "Assets\\ModelFixes\\bvtank.mesh",
       "runtime": "bvtank.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvturr.mesh",
+      "runtime": "bvturr.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\bvturr_c.mesh",
@@ -638,6 +846,66 @@
     {
       "source": "Assets\\ModelFixes\\bvwalk.vdf",
       "runtime": "bvwalk.vdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbbarr.mesh",
+      "runtime": "cbbarr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbcafe.mesh",
+      "runtime": "cbcafe.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbcomm.mesh",
+      "runtime": "cbcomm.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbhang.mesh",
+      "runtime": "cbhang.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbhqcp.mesh",
+      "runtime": "cbhqcp.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cblasr.mesh",
+      "runtime": "cblasr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cblpad.mesh",
+      "runtime": "cblpad.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cblpow.mesh",
+      "runtime": "cblpow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbmbld.mesh",
+      "runtime": "cbmbld.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbport.mesh",
+      "runtime": "cbport.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbshld.mesh",
+      "runtime": "cbshld.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbsilo.mesh",
+      "runtime": "cbsilo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbspow.mesh",
+      "runtime": "cbspow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbsupp.mesh",
+      "runtime": "cbsupp.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cbtowe.mesh",
+      "runtime": "cbtowe.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\cbwpow.mesh",
@@ -840,12 +1108,28 @@
       "runtime": "cromine.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\cspilo.mesh",
+      "runtime": "cspilo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cspilo_fp.mesh",
+      "runtime": "cspilo_fp.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cube_10x10x10.mesh",
+      "runtime": "cube_10x10x10.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvapc.mesh",
       "runtime": "cvapc.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\cvartl.mesh",
       "runtime": "cvartl.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvcnst.mesh",
+      "runtime": "cvcnst.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\cvcnst.vdf",
@@ -884,6 +1168,10 @@
       "runtime": "cvmine.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cvmuf.mesh",
+      "runtime": "cvmuf.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvmuf.vdf",
       "runtime": "cvmuf.vdf"
     },
@@ -892,12 +1180,20 @@
       "runtime": "cvrckt.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cvrecy.mesh",
+      "runtime": "cvrecy.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvrecy.vdf",
       "runtime": "cvrecy.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\cvscav.mesh",
       "runtime": "cvscav.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvslf.mesh",
+      "runtime": "cvslf.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\cvslf.vdf",
@@ -910,6 +1206,10 @@
     {
       "source": "Assets\\ModelFixes\\cvturr.mesh",
       "runtime": "cvturr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvwalk.mesh",
+      "runtime": "cvwalk.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\cvwalk_c.mesh",
@@ -928,6 +1228,146 @@
       "runtime": "cwp11rot.geo"
     },
     {
+      "source": "Assets\\ModelFixes\\eggeizr1.mesh",
+      "runtime": "eggeizr1.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\flare.mesh",
+      "runtime": "flare.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\gatst00.mesh",
+      "runtime": "gatst00.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\ghartl00.mesh",
+      "runtime": "ghartl00.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\ghorn00.mesh",
+      "runtime": "ghorn00.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\grccmi.mesh",
+      "runtime": "grccmi.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\grckt00.mesh",
+      "runtime": "grckt00.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\gsand00.mesh",
+      "runtime": "gsand00.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\gshad00.mesh",
+      "runtime": "gshad00.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\gsplnt00.mesh",
+      "runtime": "gsplnt00.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\gspst00.mesh",
+      "runtime": "gspst00.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\gtagg00.mesh",
+      "runtime": "gtagg00.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\gtagg01.mesh",
+      "runtime": "gtagg01.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbblda.mesh",
+      "runtime": "hbblda.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbbldb.mesh",
+      "runtime": "hbbldb.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbbldc.mesh",
+      "runtime": "hbbldc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbbldd.mesh",
+      "runtime": "hbbldd.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbblde.mesh",
+      "runtime": "hbblde.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbbldf.mesh",
+      "runtime": "hbbldf.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbcerb.mesh",
+      "runtime": "hbcerb.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbchar.mesh",
+      "runtime": "hbchar.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbchar_v2.mesh",
+      "runtime": "hbchar_v2.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbcrys.mesh",
+      "runtime": "hbcrys.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbcrys_v2.mesh",
+      "runtime": "hbcrys_v2.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbdayw.mesh",
+      "runtime": "hbdayw.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbelec.mesh",
+      "runtime": "hbelec.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbfact.mesh",
+      "runtime": "hbfact.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbflsh.mesh",
+      "runtime": "hbflsh.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbhydr.mesh",
+      "runtime": "hbhydr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbmasg.mesh",
+      "runtime": "hbmasg.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbpopg.mesh",
+      "runtime": "hbpopg.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbptow.mesh",
+      "runtime": "hbptow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbpvir.mesh",
+      "runtime": "hbpvir.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbsbmi.mesh",
+      "runtime": "hbsbmi.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbspln.mesh",
+      "runtime": "hbspln.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\hbtran00.mesh",
       "runtime": "hbtran00.mesh"
     },
@@ -936,28 +1376,184 @@
       "runtime": "hbtrn200.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\hocrys.mesh",
+      "runtime": "hocrys.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvrckt.mesh",
+      "runtime": "hvrckt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvsat.mesh",
+      "runtime": "hvsat.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvsav.mesh",
+      "runtime": "hvsav.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvsrb.mesh",
+      "runtime": "hvsrb.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\magpull.mesh",
+      "runtime": "magpull.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\magpush.mesh",
+      "runtime": "magpush.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\nparr.mesh",
+      "runtime": "nparr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\npscr1.mesh",
+      "runtime": "npscr1.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\npscr2.mesh",
+      "runtime": "npscr2.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\npscr3.mesh",
+      "runtime": "npscr3.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\obcurt.mesh",
+      "runtime": "obcurt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\obcycl.mesh",
+      "runtime": "obcycl.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\obdata.mesh",
       "runtime": "obdata.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\obhavc.mesh",
+      "runtime": "obhavc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\oblemb.mesh",
+      "runtime": "oblemb.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\oblemc.mesh",
+      "runtime": "oblemc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\oblemd.mesh",
+      "runtime": "oblemd.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\obmagc.mesh",
+      "runtime": "obmagc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\obmits.mesh",
+      "runtime": "obmits.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\obrfld.mesh",
+      "runtime": "obrfld.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\obtags.mesh",
+      "runtime": "obtags.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\proxmine.mesh",
+      "runtime": "proxmine.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\pspwn_1.mesh",
+      "runtime": "pspwn_1.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sbbarr.mesh",
+      "runtime": "sbbarr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sbcafe.mesh",
+      "runtime": "sbcafe.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sbcomm.mesh",
+      "runtime": "sbcomm.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sbhqcp.mesh",
+      "runtime": "sbhqcp.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sblpow.mesh",
+      "runtime": "sblpow.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\sblpow.sdf",
       "runtime": "sblpow.sdf"
     },
     {
+      "source": "Assets\\ModelFixes\\sbmbld.mesh",
+      "runtime": "sbmbld.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sbshld.mesh",
+      "runtime": "sbshld.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\sbsilo.mesh",
       "runtime": "sbsilo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sbspow.mesh",
+      "runtime": "sbspow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sbtowe.mesh",
+      "runtime": "sbtowe.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sbwpow.mesh",
+      "runtime": "sbwpow.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\sbwpow.sdf",
       "runtime": "sbwpow.sdf"
     },
     {
+      "source": "Assets\\ModelFixes\\splintbm.mesh",
+      "runtime": "splintbm.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sscr_1.mesh",
+      "runtime": "sscr_1.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sspilo.mesh",
+      "runtime": "sspilo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sspilo_fp.mesh",
+      "runtime": "sspilo_fp.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\svapc.mesh",
       "runtime": "svapc.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\svartl.mesh",
+      "runtime": "svartl.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\svartl_c.mesh",
       "runtime": "svartl_c.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svcnst.mesh",
+      "runtime": "svcnst.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\svcnst.vdf",
@@ -988,6 +1584,10 @@
       "runtime": "svmine.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\svmuf.mesh",
+      "runtime": "svmuf.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\svmuf.vdf",
       "runtime": "svmuf.vdf"
     },
@@ -996,12 +1596,24 @@
       "runtime": "svrckt.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\svrecy.mesh",
+      "runtime": "svrecy.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\svrecy.vdf",
       "runtime": "svrecy.vdf"
     },
     {
+      "source": "Assets\\ModelFixes\\svsav.mesh",
+      "runtime": "svsav.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\svscav.mesh",
       "runtime": "svscav.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svslf.mesh",
+      "runtime": "svslf.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\svslf.vdf",
@@ -1010,6 +1622,10 @@
     {
       "source": "Assets\\ModelFixes\\svtank.mesh",
       "runtime": "svtank.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svturr.mesh",
+      "runtime": "svturr.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\svturr_c.mesh",
@@ -1022,6 +1638,10 @@
     {
       "source": "Assets\\ModelFixes\\svturr.vdf",
       "runtime": "svturr.vdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svwalk.mesh",
+      "runtime": "svwalk.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\svwalk_c.mesh",
