@@ -8,7 +8,7 @@
   },
   "outputs": {
     "Assets/ModelFixes/bvwalk_c.mesh": "c0eb939a52e29835de202a949757c68c6522e9a804a35fe727bdbfbf2fd96c87",
-    "Materials/CR_bvwalk_cockpit.material": "7992884bda7ca7cbe7d70c4f7ada014278a56563ceeae94903b2bbefc78576c5"
+    "Materials/CR_bvwalk_cockpit.material": "70b656d7bcdced726f5f7e683bdacf6392bc6df65885419490999a9f2d35f7a3"
   },
   "alignment": {
     "base": "bvwalk",

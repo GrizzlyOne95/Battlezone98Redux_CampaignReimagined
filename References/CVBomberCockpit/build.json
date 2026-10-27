@@ -18,7 +18,7 @@
     "Assets/Models/cvhraz_cockpit.skeleton": "206f0de69d7440b0a65ac0fd49f3b2029131c0d4ae4b760fc7946d8637c6aa8c",
     "Assets/Textures/crvchcp_d.dds": "62d51cef3f75929bd9c7d69518a48e9bdec2b41eb4bac3e0aafa745531f85aa8",
     "Assets/Textures/crvchcp_e.dds": "12c5a54a19cc9189de1c3a08619ab143d5ce63b5cff49d31e0a95b0c3c5d4470",
-    "Materials/CR_cvhraz_cockpit.material": "1bd28093cfb1a7d4bf8a051f6fd73c70f31752237d965db963d5eab82fe7a8d5"
+    "Materials/CR_cvhraz_cockpit.material": "d50c74d312a94d3c333b284a129902bb834f4097ef9b80f941c72ffa66166a35"
   },
   "alignment": {
     "pov": "CPX11POV",

@@ -18,7 +18,7 @@
     "Assets/Models/bvraz_cockpit.skeleton": "ec1dbc02748d5ba4f576ca6c732551df3e6a73b9ad508a4e745ea415add93cc7",
     "Assets/Textures/crvbscp_d.dds": "c2db5d269e0887791551c2ae7b92861ababd28cf3ec3b603d7926abe276b072f",
     "Assets/Textures/crvbscp_e.dds": "623acd56e9995b5b03cf33becd39fef2ac512fab29c4b7dc8a708cda0d559d76",
-    "Materials/CR_bvraz_cockpit.material": "46087a0dc0bebc7c65b89d1852c2ff7bfc9b7745b209752a18aac8797997812d"
+    "Materials/CR_bvraz_cockpit.material": "3c753d8ca3a843404ff10036722ad7145b80e5f7318bbf76d6dcd26ac3de9b33"
   },
   "alignment": {
     "faction": "bdog",

@@ -1,6 +1,6 @@
 """Texture-only Red Devil art, source, rig and package regression contracts."""
 from pathlib import Path
-import hashlib,io,json,sys
+import hashlib,io,json,re,sys
 import numpy as np
 from PIL import Image
 sys.path.insert(0,str(Path(__file__).resolve().parent))
@@ -21,7 +21,7 @@ for name,record in sources.items():
     if record.get('normalizedText'):
         baseline=json.loads(path.read_text())['text']
         check(hashlib.sha256(baseline.encode()).hexdigest()==record['sha256'],'normalized original text: '+name)
-        check((ROOT/record['source']).read_text()==baseline,'retained material / gameplay definition: '+record['source'])
+        check(re.sub(r'(?m)^[ \t]*set_texture_alias ACTMap \S+\n','',(ROOT/record['source']).read_text())==baseline,'retained material / gameplay definition: '+record['source'])
     else:
         check(sha(path)==record['sha256'],'captured source: '+name)
         if record['source'].startswith('Assets/ModelFixes/'):

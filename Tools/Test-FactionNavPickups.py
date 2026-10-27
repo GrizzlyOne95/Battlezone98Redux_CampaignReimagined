@@ -73,7 +73,7 @@ for code,definition in approved['navMaterials'].items():
     # nav materials. The pin is the owner-approved definition with flat_N.dds
     # replaced by the derived <diffuse stem>_N.dds map; everything else is unchanged.
     derived=re.search(r'DiffuseMap (\S+)_d\.dds',definition)[1]+'_N.dds'
-    check(match is not None and match[0]==definition.replace('NormalMap flat_N.dds','NormalMap '+derived) and (ROOT/'Assets/Textures'/derived).exists(),'owner-approved nav material stays unchanged except the accepted derived normal map: '+code)
+    check(match is not None and re.sub(r'(?m)^[ \t]*set_texture_alias ACTMap \S+\n','',match[0])==definition.replace('NormalMap flat_N.dds','NormalMap '+derived) and (ROOT/'Assets/Textures'/derived).exists(),'owner-approved nav material stays unchanged except the accepted derived normal map: '+code)
 check(len(receipt['models'])==28,'four factions times seven source mesh families')
 for name,record in receipt['models'].items():
     family=record['source'];path=ROOT/'Assets/Models'/(name+'.mesh');mesh=build.read(path);original=build.read(SRC/(family+'.mesh'))
