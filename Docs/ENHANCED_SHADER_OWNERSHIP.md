@@ -19,9 +19,9 @@ direction.**
 Ogre resolves program names from one flat namespace, so a CR material can
 reference an `OSE_` program with no ceremony. The payload is deployed by
 OpenShim into `openshim\renderer\enhanced\` in the game root; CR's Workshop
-staging copies it from the OpenShim repo on every publish
-(`Update-OpenShimManifest` in `Manage-CampaignFiles.ps1`), so CR's local
-`openshim/` folder is a build artifact and is not tracked.
+staging ships the committed copy in `openshim/` (pinned by
+`openshim/OPENSHIM_PIN.txt`); `Manage-CampaignFiles.ps1 -refresh-natives`
+is the only thing that updates it from the OpenShim repo.
 
 ## Working on an Enhanced shader
 

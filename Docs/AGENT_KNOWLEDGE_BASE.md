@@ -730,11 +730,12 @@ Never by focus or `SendInput` unless the owner says the PC is free. The scenario
    `Tools/Validate-CampaignRepository.py`; each sibling pins them too). Changing one requires changing all
    four plus every pin in one workstream.
 2. **Never run `Manage-CampaignFiles.ps1 -deploy`** (or `-fromsource`/`-release`/no-arg) unless the
-   owner asks in-session, and never touch `Bin/`. `-deploy` overwrites repo `Bin/` natives from whichever
-   branch each sibling build output is on, self-elevates and returns no stdout/exit code. If the owner asks
-   for a deploy: point `BZR_OPENSHIM_REPO`/`BZR_EXU_REPO`/`BZR_BZFILE_REPO` at the intended builds, then
-   always follow with `-verify` (pipe its long MISSING list through `Select-Object -First 12`).
-   `Bin/` is a cache of sibling build outputs, not a source.
+   owner asks in-session; it self-elevates and returns no stdout/exit code. `-deploy`, `-release` and
+   Workshop staging install/ship the **committed** `Bin/`, `InstallerPayload/`, `openshim/`, CustomWidgets
+   and `Scripts/OpenShimManifest.lua` bytes (pinned to `openshim/OPENSHIM_PIN.txt`); they never touch the
+   sibling repos. Only `-refresh-natives` rewrites those files (from `BZR_OPENSHIM_REPO`/`BZR_EXU_REPO`/
+   `BZR_BZFILE_REPO` builds, and re-pins `OPENSHIM_PIN.txt`); review and commit its result together.
+   After any deploy, follow with `-verify` (pipe its long MISSING list through `Select-Object -First 12`).
 3. **Never re-sort `Shipping/shipping.lock.json`**; keep it LF; see 3.8.
 4. **No merges, releases/tags, Workshop uploads or other public publication without explicit owner
    instruction** (a per-batch "merge as you go" granted in the current session counts, and only for that

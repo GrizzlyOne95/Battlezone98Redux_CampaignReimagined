@@ -180,7 +180,8 @@ try {
     Invoke-Check 'Build EXU hardening smoke' $msbuild @('tests\HardeningSmoke.vcxproj','/p:Configuration=Release','/p:Platform=Win32',"/p:VCToolsVersion=$exuToolset",'/verbosity:minimal') $exu
     Invoke-Check 'EXU hardening smoke' (Join-Path $exu 'tests\bin\Release\HardeningSmoke.exe') @() $exu
     Invoke-Check 'EXU MSVC host tests' (Join-Path $exu 'tests\host\run_msvc.cmd') @() $exu
-    # Refresh the six cached binaries and installer manifest before CR checks.
+    # Refresh the cached binaries and installer manifest before CR checks; -workshop-build ships them as committed.
+    Invoke-PsCheck 'Refresh committed natives' $manager @('-refresh-natives')
     if (-not (Test-Path -LiteralPath (Join-Path $campaign 'workshop.config.json'))) { Invoke-PsCheck 'Initialize Workshop dry-run config' $manager @('-workshop-init') }
     Invoke-PsCheck 'Stage Workshop dry run' $manager @('-workshop-build',$ChangeNote)
     foreach ($item in @('Validate-CampaignRepository.py','Import-GoombaTranscripts.py','Test-Misn03CoopContract.py','Test-SetupMissionShell.py')) {

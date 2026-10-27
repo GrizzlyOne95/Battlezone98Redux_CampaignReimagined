@@ -166,6 +166,29 @@ jobs:
             }
           }
 
+          # The payload ships the committed Bin\ natives, not this download, so
+          # they must match the qualified suite or the provenance recorded below
+          # would describe binaries that did not ship.
+          $refreshHint = "Run Manage-CampaignFiles.ps1 -refresh-natives against OpenShim $tag and commit the result."
+          $pinPath = Join-Path $env:GITHUB_WORKSPACE "openshim\OPENSHIM_PIN.txt"
+          $pinned = if (Test-Path -LiteralPath $pinPath -PathType Leaf) { (Get-Content -LiteralPath $pinPath -Raw).Trim() } else { "" }
+          if ($pinned -ne [string]$metadata.Commit) {
+            throw "openshim\OPENSHIM_PIN.txt ('$pinned') does not match suite '$tag' commit $($metadata.Commit). $refreshHint"
+          }
+          $nativePairs = @(
+            @("bin\Release\winmm.dll", "Bin\winmm.dll"),
+            @("bin\Release\bzloader.dll", "Bin\bzloader.dll"),
+            @("bin\Release\plugins\openshim.dll", "Bin\openshim.dll")
+          )
+          foreach ($pair in $nativePairs) {
+            $suiteFile = Join-Path $dependencyRoot $pair[0]
+            $committedFile = Join-Path $env:GITHUB_WORKSPACE $pair[1]
+            if (-not (Test-Path -LiteralPath $suiteFile -PathType Leaf) -or -not (Test-Path -LiteralPath $committedFile -PathType Leaf) -or
+                (Get-FileHash -LiteralPath $suiteFile -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $committedFile -Algorithm SHA256).Hash) {
+              throw "Committed $($pair[1]) does not match $($pair[0]) in OpenShim suite '$tag'. $refreshHint"
+            }
+          }
+
           "OPENSHIM_TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "OPENSHIM_COMMIT=$($metadata.Commit)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "OPENSHIM_SUITE_SHA256=$actualHash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
