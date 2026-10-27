@@ -6412,13 +6412,13 @@ end
 
 -- Raw key name (exu.GetGameKey) -> the name GameKey would have queued.
 local NetworkPolledGameKeys = {
-    { raw = "J", key = "J" }, { raw = "V", key = "V" }, { raw = "Z", key = "Z" }, { raw = "BACKSPACE", key = "BACKSPACE" }, { raw = "LBRACKET", key = "[" }, { raw = "RBRACKET", key = "]" },
+    { raw = "J", key = "J" }, { raw = "V", key = "V" }, { raw = "Z", key = "Z" }, { raw = "ENTER", key = "ENTER" }, { raw = "LBRACKET", key = "[" }, { raw = "RBRACKET", key = "]" },
     { raw = "UARROW", key = "UP" }, { raw = "DARROW", key = "DOWN" },
     { raw = "LARROW", key = "LEFT" }, { raw = "RARROW", key = "RIGHT" },
 }
 -- Every GameKey name the consumers below accept for those keys.
 local NetworkPolledKeyNames = {}
-for _, name in ipairs({ "J", "V", "Z", "BACKSPACE", "BACK", "[", "{", "SHIFT+[", "OEM_4", "LBRACKET", "LEFTBRACKET",
+for _, name in ipairs({ "J", "V", "Z", "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER", "[", "{", "SHIFT+[", "OEM_4", "LBRACKET", "LEFTBRACKET",
     "]", "}", "SHIFT+]", "OEM_6", "RBRACKET", "RIGHTBRACKET", "UP", "UPARROW", "DOWN", "DOWNARROW",
     "LEFT", "LEFTARROW", "RIGHT", "RIGHTARROW" }) do
     NetworkPolledKeyNames[name] = true
@@ -6468,6 +6468,19 @@ function PersistentConfig._PollNetworkGameKeys(typing)
             PersistentConfig.R.QueueGameKey(entry.key)
         end
     end
+end
+
+-- Stock gamekey.map binds Enter, ` and Ctrl+C to chat. In network games CR
+-- unbinds Enter only (exu.SetChatOnEnter) so it can do PDA rows; ` and Ctrl+C
+-- still open chat. Redux rebinds Enter whenever it rereads gamekey.map (after
+-- every ESC menu), so this runs every frame. Older EXU builds lack the call
+-- and Enter keeps opening chat.
+function PersistentConfig._UpdateEnterChat(missionEnded)
+    local want = missionEnded or not IsNetworkGame()
+    if InputState.enterChatOff == nil and want then return end
+    if not exu or type(exu.SetChatOnEnter) ~= "function" then return end
+    local ok, applied = pcall(exu.SetChatOnEnter, want)
+    InputState.enterChatOff = (not want and ok and applied == true) or nil
 end
 
 -- True for a GameKey the network poller owns (dropped from the callback).
@@ -6668,12 +6681,15 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     -- would send pings while someone types J in chat. Enter remains stock chat.
     -- In network games these keys are polled instead (_PollNetworkGameKeys).
     local typing = PersistentConfig._IsTextEntryActive()
+    PersistentConfig._UpdateEnterChat(false)
     PersistentConfig._PollNetworkGameKeys(typing)
     local coopAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "J" })
     local helpAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "V" })
     local giveAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "Z" })
-    -- Backspace does the selected co-op row: Enter, ` and Ctrl+C are stock chat.
-    local doAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "BACKSPACE", "BACK" })
+    -- Enter does the selected PDA row; in network games it no longer opens chat
+    -- (_UpdateEnterChat). Backspace stays the stock satellite view.
+    local enterPressed = PersistentConfig.R.ConsumePendingGameKeyMatch({ "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER" })
+    local doAction = enterPressed
     if uiInteractionSuppressed then return end
     if typing then
         -- Keep the X edge current so an X typed in chat does not toggle later.
@@ -6730,7 +6746,6 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     local pda_down_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "DOWN", "DOWNARROW" })
     local pda_left_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "LEFT", "LEFTARROW" })
     local pda_right_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "RIGHT", "RIGHTARROW" })
-    local enterPressed = PersistentConfig.R.ConsumePendingGameKeyMatch({ "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER" })
 
     if InputState.pdaPage == PdaPages.COOP_DIAGNOSTICS then
         PersistentConfig.CoopPda.HandleDiagnosticsInput(pda_up_key, pda_down_key)
@@ -7398,6 +7413,7 @@ function PersistentConfig.Initialize()
 
     local function EnterMissionEndedState()
         InputState.missionEnded = true
+        PersistentConfig._UpdateEnterChat(true)
         if InputState.missionEndCleanupDone then
             return
         end

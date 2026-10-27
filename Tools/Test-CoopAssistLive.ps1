@@ -23,7 +23,7 @@ assert(type(exu.AdoptObject)=="function" and type(exu.IsObjectiveOn)=="function"
 assert(type(exu.GetReticleHit)=="function" and type(exu.IsTextEntryActive)=="function")
 pc._SettingsActions.SetWeaponStatsHudEnabled(true)
 local text=pc.P.BuildWeaponStatsText(me(),0)
-assert(text:find("==COOP==",1,true) and text:find("Bksp do",1,true))
+assert(text:find("==COOP==",1,true) and text:find("Enter do",1,true))
 assert(not ct.MarkersOn())
 pc._SettingsActions.SetWeaponStatsHudEnabled(false)
 return true
