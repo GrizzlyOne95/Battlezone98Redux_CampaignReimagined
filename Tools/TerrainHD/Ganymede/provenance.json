@@ -1,0 +1,163 @@
+{
+  "schema": "cr-hd-source-images-v1",
+  "world": "ganymede",
+  "tileSize": 1024,
+  "normalPolarity": "source-height-matched",
+  "sourceRecipeSha256": "dea64d74c33429b5d643a587b6add156cd510d181cfb95997eeacffc5c24bc10",
+  "normalEngineConversion": {
+    "8a87a2b0ad66": "keep_directx",
+    "8c27b65e3161": "flip_green",
+    "ph_metal_grate_rusty": "flip_green",
+    "51cf568801c2": "flip_green",
+    "da271eb5cd22": "flip_green"
+  },
+  "normalCorrections": {},
+  "normalRotation": "Sources converted to engine U/V tangent basis first; CCW image variants rotate engine normal XY as (Y, -X).",
+  "atlasPixelsRead": false,
+  "baseEmissives": {
+    "schema": "cr-base-emissive-accents-v1",
+    "sourceId": "ph_metal_grate_rusty",
+    "maximum": 32,
+    "sourceGain": 0.1,
+    "settings": {
+      "type": 4,
+      "color": [
+        32,
+        24,
+        8
+      ],
+      "rectangles": [
+        [
+          0.06,
+          0.1,
+          0.025,
+          0.004
+        ],
+        [
+          0.56,
+          0.6,
+          0.025,
+          0.004
+        ]
+      ]
+    },
+    "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
+  },
+  "sourceHeightCorrections": {},
+  "sources": [
+    {
+      "id": "8a87a2b0ad66",
+      "name": "IceCrater_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "49bd5be6acd148d7c852eade22e0e228f14309494964e7b66781b335cd557736",
+        "E": "3a7fa4380bae4ea262ab5869208228c7b1b58e49678ab057dda34cd1791f37a5",
+        "S": "8d5bdb9f007d6bb10567e08921a5caf1cf150cee212485fb98b31c49666560ab",
+        "N": "4b7d77ebe99a73895ef7e2b0afa094b8c2c6783c7d42b4189d3d6c3b97a45cb5",
+        "G": "045b8bffddd067ba70318922b14406294492762664742fef40eda275a801fb55"
+      }
+    },
+    {
+      "id": "8c27b65e3161",
+      "name": "MarsSurfacePebbles_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "8b68f684ada7bc5e25aeca3793f61dca92eb01329d4d6cda25015cb4ed0a1f8c",
+        "E": "3a7fa4380bae4ea262ab5869208228c7b1b58e49678ab057dda34cd1791f37a5",
+        "S": "8d5bdb9f007d6bb10567e08921a5caf1cf150cee212485fb98b31c49666560ab",
+        "G": "b8d7f33334384202b311e0bd3d1fa0b698566819cb75fe79b552286b1211362d",
+        "N": "e217a7ea2c8bfa913c844d824dabddcbf5f6ca550250168fce6eef6bb175bba7"
+      }
+    },
+    {
+      "id": "ph_metal_grate_rusty",
+      "name": "metal_grate_rusty_diff_4k.jpg",
+      "library": "Poly Haven",
+      "inputHashes": {
+        "D": "349cd904a370661570f493f7d6519e8a9b4d3d4b1a9921f9a7b419c75d32ae69",
+        "N": "22fc5a9db097f4a957022d9662fbfe25094cdf5e8444f7c089f077616cc09c2e",
+        "R": "1d0892856d1f0a0d48d3cdc93fd5305bf46adb078f96939350b2168f4758544f",
+        "A": "039a3370de3fa712f6c6d719bcee722c3df5fc87cc72245f19fd3f7184c232fb"
+      }
+    },
+    {
+      "id": "51cf568801c2",
+      "name": "IceWallLayers_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "69e52e0c32360ba7267628a45fafe7dcc5f8d113c133ea8fa42a1afbc5c31ad3",
+        "S": "8d5bdb9f007d6bb10567e08921a5caf1cf150cee212485fb98b31c49666560ab",
+        "E": "3a7fa4380bae4ea262ab5869208228c7b1b58e49678ab057dda34cd1791f37a5",
+        "G": "7d3b77564d26721fe68765e9fd7d79f18b56f15f37d3e3489152d67ca7952775",
+        "N": "b2acaa214fda18716e5b23fff1cb1aa2ce3a7a3056e429382b54fb5e250b6d4f"
+      }
+    },
+    {
+      "id": "da271eb5cd22",
+      "name": "red_laterite_soil_stones_diff_8k.jpg",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "673c7a0d15f30bf4429a921ae704da686249a2ff0b3cd185d9c71ab7b958fdda",
+        "R": "e3dc24e3468cb7c768ceb697c3397a0764e1d57be4904af71e4b033cfc06775c",
+        "N": "6db07a472c6c41ac49ea92d63462909eb773c0f4b1bf3bf72157a5ac2b576b84"
+      }
+    }
+  ],
+  "worldSurfaceArt": {
+    "schema": "cr-world-surface-art-v1",
+    "settings": {
+      "intent": "Keep warm brown/cream identity while introducing dirty fractured ice instead of pebble beds",
+      "types": {
+        "0": {
+          "replacement": {
+            "world": "Europa",
+            "alias": "EU11SA0.MAP",
+            "weight": 0.35
+          },
+          "normalStrength": 0.9,
+          "specularMaximum": 36
+        },
+        "1": {
+          "replacement": {
+            "world": "Europa",
+            "alias": "EU33SA0.MAP",
+            "weight": 0.72
+          },
+          "brightness": 1.06,
+          "normalStrength": 0.9,
+          "specularMaximum": 44
+        },
+        "2": {
+          "contrast": 0.94,
+          "normalStrength": 0.9
+        }
+      }
+    },
+    "references": {
+      "0:D": {
+        "file": "crhd_europa_eu11sa0_d.dds",
+        "sha256": "f18b71b9214669d4ff9d35ab0524a9802a0c653a77d01399fb6c848397a3d396"
+      },
+      "1:D": {
+        "file": "crhd_europa_eu33sa0_d.dds",
+        "sha256": "cfe708e69fa7190987dd713d80f7489b387405904358d511c89d9fcdc36c089b"
+      },
+      "0:N": {
+        "file": "crhd_europa_eu11sa0_n.dds",
+        "sha256": "caefb8f03d421609d9258355e9c1eaf4391b5b3bbd1c7846efa88ab6ff4babea"
+      },
+      "1:N": {
+        "file": "crhd_europa_eu33sa0_n.dds",
+        "sha256": "17fe634e38ba4c4ceebda40c98e05f9c4feb518ac0f385ac437d65e0c4c1e148"
+      },
+      "0:S": {
+        "file": "crhd_europa_eu11sa0_s.dds",
+        "sha256": "2c7681e1b2ecd768c4d8226b1981dd35ad7ddd43b667bab990e71c3353fb12d2"
+      },
+      "1:S": {
+        "file": "crhd_europa_eu33sa0_s.dds",
+        "sha256": "68b531d56c0a48ba2431d2d6e33f0600eba8d702c9703c8d74f4ba618b4365c8"
+      }
+    }
+  }
+}

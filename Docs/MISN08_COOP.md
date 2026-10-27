@@ -1,10 +1,11 @@
 # Mission 08 offline and co-op
 
-A Nasty Surprise shares `misn08.bzn` / `misn08.lua` between the campaign
-mission (`crcampgn.ini`) and the strategy listing `CR: A Nasty Surprise Coop`.
-Use matching CR, EXU and OpenShim builds. Host on team 1, with guests on
-distinct teams 2-4; select an NSDF tank or scout and start together.
-Late join/rejoin requires a restart. Host departure ends the mission.
+A Nasty Surprise shares `misn08.bzn` / `misn08.lua` between the campaign mission (`crcampgn.ini`)
+and the strategy listing `CR: A Nasty Surprise Coop`. Use matching CR, EXU and OpenShim builds. Host
+on team 1, with guests on distinct teams 2-4; select an NSDF tank, scout, light tank, rocket tank,
+or bomber and start together. Late join/rejoin requires a restart. Host departure ends the mission.
+
+Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.md).
 
 ## Map
 

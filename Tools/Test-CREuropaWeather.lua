@@ -519,11 +519,11 @@ do
         check(preset.sunPowerScale <= lastSun, presetName .. " is no brighter than the rung below")
         check(preset.fog.fogEnd <= lastEnd, presetName .. " is no clearer than the rung below")
         lastSun, lastEnd = preset.sunPowerScale, preset.fog.fogEnd
-        -- Cold ice under a cold sky: blue >= red everywhere.
-        for _, key in ipairs({ "fog", "ambient", "diffuse" }) do
-            local c = preset[key]
-            check(c.b >= c.r, presetName .. "." .. key .. " is a cold colour")
-        end
+        -- Cold ice under a black sky: a cold, dark haze, and the light left to
+        -- Environment's orbit.
+        check(preset.fog.b >= preset.fog.r, presetName .. ".fog is a cold colour")
+        check(preset.fog.b <= 0.40, presetName .. ".fog stays dark under Europa's black sky")
+        check(preset.ambient == nil and preset.diffuse == nil, presetName .. " leaves the light to Environment's orbit")
         -- No wind: straight down, one unit of speed so CRWeather's velocity scale stays 1.
         check(preset.wind.x == 0.0 and preset.wind.z == 0.0 and preset.wind.y < 0.0,
             presetName .. " has no horizontal wind")
@@ -531,7 +531,7 @@ do
         check(preset.gusts == nil, presetName .. " has no gusts")
         check(#preset.precipitation == 1, presetName .. " carries exactly one precipitation layer")
         local layer = preset.precipitation[1]
-        check(layer.template == "CR/Weather/SnowLight", presetName .. " reuses the existing SnowLight template")
+        check(layer.template == "CR/Europa/Glitter", presetName .. " uses the DX11-safe Europa glitter template")
         check(string.find(layer.system, "cr_wx_europa_", 1, true) == 1, "Europa layers use cr_wx_europa_ system names")
         check(layer.emitters[0].angle <= 8.0, presetName .. " ice falls near-vertically, not in a blown cone")
         check(layer.emitters[0].velocity[2] <= 3.0, presetName .. " ice falls slowly (low gravity)")
@@ -754,6 +754,71 @@ do
     lone.run(20.0)
     check(L.GetVentHaze() < 0.001, "a player far from the vent sees no haze")
     lone.Eu.Shutdown()
+end
+
+-- =============================================================================
+-- 4b. A building deployed on a geyser takes its vent away (CRGeysers occupancy)
+-- =============================================================================
+
+do
+    local world = NewWorld()
+    local occ = Track(NewPeer("occupied", world))
+
+    -- The BZ read-only natives CRGeysers uses to see what stands on a geyser.
+    local env = occ.env
+    env.GetClassLabel = function(h) local o = world.objects[h]; return o and o.class or "" end
+    env.IsBuilding = function(h) local o = world.objects[h]; return o ~= nil and o.building == true end
+    env.IsAlive = function(h) local o = world.objects[h]; return o ~= nil and o.alive ~= false end
+    env.IsDeployed = function(h) local o = world.objects[h]; return o ~= nil and o.deployed == true end
+    env.ObjectsInRange = function(range, ref)
+        local origin = world.objects[ref]
+        local i = 0
+        return function()
+            while true do
+                i = i + 1
+                local h = world.order[i]
+                if h == nil then return nil end
+                local o = world.objects[h]
+                if o ~= nil and origin ~= nil and Dist2(o.x, o.z, origin.x, origin.z) <= range then return h end
+            end
+        end
+    end
+
+    -- A geyser object at the centre vent site (and no other).
+    occ.init({ seed = 77, startLevel = 1, targetLevel = 1 })
+    local E = occ.Eu
+    E.PlumeFirstDelay = 1e6
+    local ci = VentIndex(E, "center_geyser")
+    local cs = E.GetVentSites()[ci]
+    local geyser = AddObject(world, "eggeizr1", cs.x, 0.0, cs.z, { craft = false })
+    world.objects[geyser].class, world.objects[geyser].building = "geyser", true
+    for i = 1, #E.VentTimers do E.VentTimers[i] = 1e9 end
+    occ.playerPos = { x = cs.x + 40.0, y = SHELF, z = cs.z + 30.0 }
+
+    local function VentSystemsAtCenter()
+        local n = 0
+        for _, name in ipairs(SystemsOfTemplate(occ, "CR/Europa/Plume")) do
+            local pos = occ.rec.systems[name].position
+            if near(pos.x, cs.x, 0.01) and near(pos.z, cs.z, 0.01) then n = n + 1 end
+        end
+        return n
+    end
+
+    occ.run(15.0)
+    check(VentSystemsAtCenter() == 1, "a free geyser's vent is drawn")
+
+    local recycler = AddObject(world, "avrecy", cs.x + 2.0, 0.0, cs.z, { craft = true })
+    world.objects[recycler].class, world.objects[recycler].deployed = "recycler", true
+    occ.run(15.0)
+    check(VentSystemsAtCenter() == 0, "the vent is taken away while a recycler is deployed on its geyser")
+    check(E.TriggerPlume(ci, 1.0) == false, "no plume erupts from an occupied vent")
+    check(#occ.events("EuropaPlume") == 0, "and none is announced to the guests")
+
+    world.objects[recycler] = nil
+    occ.run(15.0)
+    check(VentSystemsAtCenter() == 1, "the vent comes back when the building is gone")
+    check(E.TriggerPlume(ci, 1.0) == true, "and can erupt again")
+    E.Shutdown()
 end
 
 -- =============================================================================
@@ -1339,6 +1404,65 @@ do
     end
     check(compared == 2, "both craft's sensors were compared with the control, got " .. compared)
     peer.Eu.Shutdown()
+end
+
+do
+    -- Light snow on the cockpit glass (CRWetGlass.Weather): a low, slowly varying level that follows the
+    -- activity ladder, eased, switchable, and released at Shutdown.
+    local function GlassPeer(name, options)
+        local g = { snow = 0, updates = 0, stops = 0, calls = 0 }
+        local peer = Track(NewPeer(name, NewWorld()))
+        peer.preload["CRWetGlass"] = {
+            Weather = function(kind, level) if kind == "snow" then g.snow = level; g.calls = g.calls + 1 end end,
+            Busy = function() return g.snow > 0 end,
+            Update = function(i) g.updates = g.updates + 1; g.rain = i end,
+            Splat = function() g.splats = (g.splats or 0) + 1 end,
+            Stop = function() g.stops = g.stops + 1 end,
+        }
+        peer.init(options)
+        return peer, g
+    end
+    local RATE = 0.04
+    local peer, g = GlassPeer("glasssnow", { seed = 99, startLevel = 1, targetLevel = 1 })
+    peer.Eu.ForceLevel(1, 1e6, 0.1)
+    local dt, prev, worst = 0.25, 0, 0
+    for _ = 1, 480 do
+        peer.step(dt)
+        worst = math.max(worst, math.abs(g.snow - prev)); prev = g.snow
+    end
+    local quiet = g.snow
+    check(quiet > 0.1 and quiet < 0.35, string.format("a quiet Europa has a light snow level, got %.3f", quiet))
+    check(worst <= RATE * dt + 1e-9, string.format("snow level is eased (largest step %.5f)", worst))
+    check(g.rain == 0, "snow never drives the rain layers")
+    check(g.updates > 400, "the glass is kept updated while snow is on it")
+    check(near(peer.Eu.GetGlassSnow(), g.snow, 1e-9), "GetGlassSnow reports the level")
+    peer.Eu.ForceLevel(5, 1e6, 0.1)
+    for _ = 1, 4 * 240 do peer.step(dt) end
+    check(g.snow > quiet + 0.1 and g.snow < 0.8, string.format("perijove snows more but stays light, got %.3f vs %.3f", g.snow, quiet))
+    -- It breathes slowly rather than sitting at one number.
+    local a, b = 1, 0
+    for _ = 1, 2 * 170 * 4 do
+        peer.step(dt)
+        a, b = math.min(a, g.snow), math.max(b, g.snow)
+    end
+    check(b - a > 0.02 and b - a < 0.2, string.format("the level varies slowly, spread %.3f", b - a))
+    peer.Eu.Shutdown()
+    check(g.snow == 0 and g.stops >= 1, "Shutdown releases the cockpit-glass layers")
+
+    local off, go = GlassPeer("glasssnowoff", { seed = 99, startLevel = 5, targetLevel = 5, glassSnow = false })
+    off.run(120.0, dt)
+    check(go.snow == 0 and go.updates == 0, "glassSnow = false keeps the glass clear and idle")
+    off.Eu.Shutdown()
+
+    local lowq, gq = GlassPeer("glasssnowq", { seed = 99, startLevel = 5, targetLevel = 5, quality = 0 })
+    lowq.run(120.0, dt)
+    check(gq.snow == 0, "CRWeather quality 0 keeps the glass clear")
+    lowq.Eu.Shutdown()
+
+    local disabled, gd = GlassPeer("glasssnowdis", { seed = 99, enabled = false })
+    disabled.run(60.0, dt)
+    check(gd.snow == 0 and gd.updates == 0, "a disabled director never touches the glass")
+    disabled.Eu.Shutdown()
 end
 
 do

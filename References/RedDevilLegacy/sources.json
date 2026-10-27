@@ -1,0 +1,75 @@
+{
+  "original/bvrdev.mesh": {
+    "sha256": "dd4ee3c667353962688298b11833ba1c10ad591b26cdd3005a4197a74cde9188",
+    "source": "Assets/ModelFixes/bvrdev.mesh"
+  },
+  "original/bvrdev_d.dds": {
+    "sha256": "22dbd1413061a9781c9faf5533f54fb8daef3b4101647d50cd0a01ad80ba22f6",
+    "source": "Assets/Textures/bvrdev_d.dds"
+  },
+  "original/bvrdev.material.json": {
+    "sha256": "755e4ceaea507bb6fba6da4e165b7d76b601c30ef5e3c00e760d1b26304cfe17",
+    "source": "Materials/bvrdev.material",
+    "normalizedText": true
+  },
+  "original/bvrdev.odf.json": {
+    "sha256": "00b1a87e4003b3aa91e5721a7eb84775c94a27e057ca9606fc82c0af351987a0",
+    "source": "ODF/bvrdev.odf",
+    "normalizedText": true
+  },
+  "original/bvrdeva.odf.json": {
+    "sha256": "915235cdbae4add371e205a49f6d1970ed9e976ad40cdba1625bd7a8a8d79c72",
+    "source": "ODF/bvrdeva.odf",
+    "normalizedText": true
+  },
+  "original/bvrmpa.odf.json": {
+    "sha256": "236d6a01f41fda52b9ebe6423d11a8a7e3fd710826dc46ba07c570baa76770b2",
+    "source": "ODF/bvrmpa.odf",
+    "normalizedText": true
+  },
+  "original/bvrmpb.odf.json": {
+    "sha256": "de2f74e480c4a040007f4a30595d871376b9517b169248abdc03c4672ae5db6a",
+    "source": "ODF/bvrmpb.odf",
+    "normalizedText": true
+  },
+  "original/bvrdev_d.png": {
+    "source": "pc/textures/TRO/DIFF/bvrdev_d.dds",
+    "sha256": "ecc6f7cd7bd0e1389a8d552f617e9688ce6085fe0c8977b73ab45335452a7931",
+    "ddsSha256": "145bbf5cd2c62c58a344de4a58aed93c62559707e050b4107839f6763b4a5962"
+  },
+  "original/bvrdev_n.png": {
+    "source": "pc/textures/TRO/NORM/bvrdev_n.dds",
+    "sha256": "c6445930e3cb34309e64f76802613159eb6ad2a0b37fd81da34d6be9810d2ba5",
+    "ddsSha256": "46d4cd3315d60e7c74df880ea5d3072b08d03ae87e711cbc72640e577ec3819e"
+  },
+  "original/bvrdev_s.png": {
+    "source": "pc/textures/TRO/SPEC/bvrdev_s.dds",
+    "sha256": "110b662cab0410462fe8792d63adbeaa133dd7d6247e5489755eb037a0306922",
+    "ddsSha256": "09666bb08bcebcd8ac9e49514135e0033b6133e0817f0e5acd724341b383244c"
+  },
+  "original/bvrdev_e.png": {
+    "source": "pc/textures/TRO/EMIS/bvrdev_e.dds",
+    "sha256": "7cf3d5756e44d2141036667eef2be163fc756a74314c2b7f1080b05f39ee6c3d",
+    "ddsSha256": "6238cc32492d65f484765e7571059401b5fc3f91075e2da11afb359f5961b1a7"
+  },
+  "original/bvrdev00_d.png": {
+    "source": "pc/textures/TRO/DIFF/bvrdev00_d.dds",
+    "sha256": "ec61850077da1da433644d7a78b59d265929ca3b8f902ef9f322114cea649bf8",
+    "ddsSha256": "99598ca72a26cce3641feb6afc041b308004dde2abdc4d52f8d8a254a456536e"
+  },
+  "original/bvrdev00_e.png": {
+    "source": "pc/textures/TRO/EMIS/bvrdev00_e.dds",
+    "sha256": "d5cb5bfb6e619ba7cd5b79899ab1ba8ae1f79cfbe72723f9264645895aa91170",
+    "ddsSha256": "70b9679c9e927e9be447d8a9958737a12f5a1b85f989b1c220b472da66e85428"
+  },
+  "original/cr_d.png": {
+    "sha256": "d7adf8f225ae4f08e909e2e2709c480b3203ae40a402f9069f54a96eda0e70e8",
+    "source": "Assets/Textures/bvrdev_d.dds",
+    "conversion": "decoded top mip of captured original DDS"
+  },
+  "original/bvrdev.skeleton": {
+    "source": "bvrdev.skeleton",
+    "sha256": "ebb62f13b6561c50ff830101226cd6e7fe7005436181dcfa16b297a02fdf798a",
+    "role": "unaltered stock skeleton / POV authority"
+  }
+}

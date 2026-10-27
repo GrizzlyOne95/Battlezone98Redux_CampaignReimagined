@@ -206,7 +206,26 @@ if type(IsNetGame) == "function" and IsNetGame() then
     exu.DisableStartingRecycler()
 end
 local subtit = require("ScriptSubtitles")
+-- CR PDA >>
+-- PersistentConfig owns the PDA (X), subtitle/UI settings and AutoSave. Script
+-- locals reset when a save loads, so Update initializes it once per Lua state.
+-- One table local keeps the main chunk under Lua 5.1's 200-local limit.
+local missionPda = { config = require("PersistentConfig"), ready = false }
+function missionPda.Init()
+    missionPda.ready = true
+    missionPda.config.Initialize()
+end
+function missionPda.Update(cinematicActive)
+    if not missionPda.ready then missionPda.Init() end
+    missionPda.config.UpdateInputs(cinematicActive)
+    missionPda.config.UpdateHeadlights()
+end
+function missionPda.Object(h)
+    if missionPda.ready and h ~= nil then missionPda.config.OnObjectCreated(h) end
+end
+-- CR PDA <<
 local CRCoop = require("CRCoop")
+local CRWire = require("CRWire")
 -- The DLL's CCA is team 2 (a guest slot in co-op): every CCA object and spawn is team 5. The DLL's
 -- camera pods sit on team 3 (a guest slot too) while hidden: they hide on the support team 7, which no
 -- human is allied with, and are revealed to team 1 (allied with every human) exactly as the DLL does.
@@ -238,7 +257,9 @@ local native = {
     SetUserTarget = SetUserTarget, RemoveObject = RemoveObject,
     StartCockpitTimer = StartCockpitTimer, StopCockpitTimer = StopCockpitTimer,
     HideCockpitTimer = HideCockpitTimer,
-    SucceedMission = SucceedMission, FailMission = FailMission,
+    -- Resolve result hooks after PersistentConfig.Initialize installs cleanup.
+    SucceedMission = function(...) return _G.SucceedMission(...) end,
+    FailMission = function(...) return _G.FailMission(...) end,
     CameraReady = CameraReady, CameraPath = CameraPath, CameraObject = CameraObject,
     CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
     AddAmmo = AddAmmo, StopAudioMessage = StopAudioMessage,
@@ -319,10 +340,10 @@ local function ApplyPresentation(op, ...)
     end
 end
 
--- Ops whose first argument is a game object. Objects travel by identity, never by a bare
--- handle the engine may not carry: "@handle@label" (a guest resolves the label first, then
--- the replicated handle), or "!" when the leader reports the object gone. Label is the
--- event that makes a leader-side SetLabel on a spawned object true on every guest.
+-- Marker operations use "@handle@label" (resolve the authored/bound label first),
+-- or "!" when the leader reports the object gone. Label bindings carry a native
+-- Handle so Send translates spawned-object identity across peers; the receiver
+-- falls back to the existing label for map objects without native wire identity.
 local HANDLE_OPS = { SetObjectiveOn = true, SetObjectiveOff = true, SetObjectiveName = true,
     SetUserTarget = true, RemoveObject = true, Label = true }
 local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget = true, Label = true }
@@ -349,7 +370,10 @@ end
 local function AnnounceLabel(handle, label)
     if announced[handle] == label then return end
     announced[handle] = label
-    events[#events + 1] = { op = "Label", args = { "@" .. HandleText(handle) .. "@" .. label, label },
+    -- A newly assigned label does not exist on the receiver yet. Preserve the
+    -- native Handle value so Send serializes its network identity; encoding
+    -- it inside a string loses that mapping across peers.
+    events[#events + 1] = { op = "Label", args = { handle, label },
         n = 2, ttl = RESOLVE_TIMEOUT, handle = handle, target = 0 }
 end
 
@@ -617,7 +641,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    Send(id, "E", seq, event.op, event.ttl, event.target or 0, unpackArgs(EventArgs(event), 1, event.n))
+                    Send(id, "E", CRWire.Pack(seq, event.op, event.ttl, event.target or 0, unpackArgs(EventArgs(event), 1, event.n)))
                 end
             end
         end
@@ -634,14 +658,19 @@ local function UpdatePresentationTransport()
         nextCameraSend = now + 0.2
         cameraSerial = cameraSerial + 1
         if cameraFrame then
-            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
+            Send(0, "C", CRWire.Pack(cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame))))
         else
             Send(0, "C", cameraSerial, cameraGeneration, "")
         end
     end
 end
 
+local ReceivePresentationDecoded = nil
+-- Presentation packets are CRWire-packed: reassemble chunked strings first.
 local function ReceivePresentation(from, kind, ...)
+    return ReceivePresentationDecoded(from, kind, CRWire.Unpack(...))
+end
+function ReceivePresentationDecoded(from, kind, ...)
     if not CRCoop.IsNetworkGame() then return false end
     if kind == "I" then
         -- Leader only: a human's report that their UI shows one of our prefixes.
@@ -695,6 +724,16 @@ local function ReceivePresentation(from, kind, ...)
             apply = false
         elseif HANDLE_OPS[op] then
             local sent, described = args[1], args[1]
+            if op == "Label" and sent ~= GONE then
+                described = args[2] or sent
+                -- Authored map objects may have no native network handle;
+                -- their existing label is a safe fallback. Spawned objects
+                -- must arrive by native identity before their label is set.
+                if not IsValid(sent) and type(args[2]) == "string" then
+                    local resolved = GetHandle(args[2])
+                    if IsValid(resolved) then sent, args[1] = resolved, resolved end
+                end
+            end
             if sent == GONE then
                 -- The leader reports the object gone: skip this marker, never wait.
                 apply = false
@@ -1328,7 +1367,9 @@ local function InitEuropaWeather()
     europaStarted = true
     local net = CRCoop.IsNetworkGame()
     local authority = (not net) or CRCoop.IsAuthority()
-    Environment.Init()
+    -- Europa under Jupiter: the sun's real path, a short eclipse, Jupiter-shine at night.
+    Environment.Init({ lightingMode = "orbit", orbit = { period = 1800, startHour = -40 } })
+    Environment.BindWeatherSensors("Europa", CREuropaWeather)
     CREuropaWeather.Init({
         authority = authority,
         seed = M.europaSeed, -- nil: the leader/offline picks one, guests wait for the host's state
@@ -1365,14 +1406,13 @@ end
 
 -- Victory eases the sky back to calm while the result screen counts down. EndMission has
 -- already queued the result; this only nudges the director (leader/offline).
-local presentSucceed = SucceedMission
 local function SucceedMission(...)
     if (not M.europaCalm) and ((not CRCoop.IsNetworkGame()) or CRCoop.IsAuthority()) then
         M.europaCalm = true
         CREuropaWeather.ReleaseForcedLevel()
         CREuropaWeather.SetTargetLevel(1)
     end
-    return presentSucceed(...)
+    return EndMission("SucceedMission", ...)
 end
 
 -- The index of a named vent in the director's site list (nil when absent).
@@ -1547,6 +1587,7 @@ function Start()
 -- CR co-op layer >>
     InitializeCoopState()
     subtit.Initialize()
+    missionPda.Init()
 -- CR co-op layer <<
     --[==[ Here's where you set the values at the start. ]==]
     M.start_done = false
@@ -1725,6 +1766,9 @@ function Start()
     M.goal_cam = nil
 end
 function AddObject(h)
+-- CR PDA >>
+    missionPda.Object(h)
+-- CR PDA <<
     -- Original AddObject(Handle h) is empty.
 -- CR Europa weather >>
     if not IsValid(h) then return end
@@ -2976,6 +3020,7 @@ end
 function Update(dt)
 -- CR co-op layer >>
     subtit.Update()
+    missionPda.Update(localCameraActive)
     CRCoop.Update()
     UpdatePresentationTransport()
     if M.coopResult then
@@ -3066,5 +3111,9 @@ function Save()
 end
 
 function Load(state)
+-- CR Europa weather >>
+    ShutdownEuropaWeather()
+    if Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
+-- CR Europa weather <<
     M = state
 end

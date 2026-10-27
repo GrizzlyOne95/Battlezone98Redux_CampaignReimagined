@@ -1,0 +1,101 @@
+odf,class,name,ordnance,parent,scope,category,delay,producer,flash_profile,flash_decision,casing_type,casing_decision
+aprifle,cannon,NSDF Plasma Rifle,aplasma,,CR,CANN,0.30,cannon factory,plasmablue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+asplsmg,machinegun,NSDF Infantry Plasma Rifle,asplblt,,CR,CANN,0.20,machinegun factory (companion OpenShim change; live pending),plasmablue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+bprifle,cannon,Black Dog Plasma AT Rifle,bplasma,,CR,CANN,0.60,cannon factory,plasmablue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+bsplsmg,machinegun,Black Dog Infantry Plasma Rifle,bsplblt,,CR,CANN,0.20,machinegun factory (companion OpenShim change; live pending),plasmablue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+cprifle,cannon,CRA Plasma Shotgun,cplasma,,CR,CANN,0.84,cannon factory,plasmagreen,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+cr16bolt,cannon,Bolt Buddy,cr16b0,,CR,CANN,0.6,cannon factory,arcblue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+crfarc,cannon,Fury Arc,crfa0,,CR,CANN,0.8,cannon factory,arcblue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+crfmarc,beamgun,Fury Storm Arc,crfm0,,CR,CANN,,other producer pending,arcred,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+crfpuls,cannon,Fury Pulse,crfp0,,CR,CANN,0.5,cannon factory,plasmablue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+cromarc,beamgun,Olympian Sun Arc,crom0,,CR,CANN,,other producer pending,sunarc,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+csplsmg,machinegun,CRA Infantry Plasma Repeater,csplblt,,CR,CANN,0.10,machinegun factory (companion OpenShim change; live pending),plasmagreen,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+cvwo003,mortar,Howitzer,cvwo004,ghartill,CR override,MORT,2.5,cannon factory,mortar,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+ga7stab,cannon,AT-Stabber,charge6,gatstab,CR override,CANN,6.0,cannon factory,atstab,authored flash,medium,Ballistic medium brass; local cosmetic only.
+gammo,dispenser,Ammo,,,CR override,SPEC,,other producer pending,,supply dispenser,none,"Energy, launcher, explosive or utility: no ejected brass."
+gammoa,dispenser,Ammo,,gammo,CR override,SPEC,,other producer pending,,supply dispenser,none,"Energy, launcher, explosive or utility: no ejected brass."
+gatstab,cannon,AT-Stabber,rocket,,CR override,CANN,0.3,cannon factory,atstab,authored flash,medium,Ballistic medium brass; local cosmetic only.
+gatstaba,cannon,AT-Stabber,rocketa,gatstab,CR override,CANN,0.7,cannon factory,atstab,authored flash,medium,Ballistic medium brass; local cosmetic only.
+gatstabh,cannon,AT-Stabber,rocketh,,CR,CANN,0.3,cannon factory,atstab,authored flash,medium,Ballistic medium brass; local cosmetic only.
+gbetmin,dispenser,CCA Bouncing Betty,,,CR,SPEC,,other producer pending,,mine deployment,none,"Energy, launcher, explosive or utility: no ejected brass."
+gbetpop,cannon,Bouncing Betty Trigger,betjump,,CR,SPEC,0.10,cannon factory,,"autonomous mine trigger, no craft muzzle",none,"Energy, launcher, explosive or utility: no ejected brass."
+gblast,cannon,Blast Cannon,blast,,CR override,CANN,1.0,cannon factory,blast,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gblastb,cannon,Blast Cannon,blastb,,CR override,CANN,1.0,cannon factory,blastblue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gblastg,cannon,Blast Cannon,blastg,,CR override,CANN,1.0,cannon factory,blast,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gblasth,cannon,Blast Cannon,blasth,,CR,CANN,1.0,cannon factory,blastred,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gbolt,cannon,Bolt Buddy,bolt,,CR override,CANN,0.6,cannon factory,arcblue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gboltg,cannon,Bolt Buddy,boltg,,CR override,CANN,0.6,cannon factory,arcgreen,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gboltmig,dispenser,Arc Mine,,,CR override,SPEC,,other producer pending,,mine deployment,none,"Energy, launcher, explosive or utility: no ejected brass."
+gboltmin,dispenser,Arc Mine,,,CR override,SPEC,,other producer pending,,mine deployment,none,"Energy, launcher, explosive or utility: no ejected brass."
+gboltmir,dispenser,Arc Mine,,,CR override,SPEC,,other producer pending,,mine deployment,none,"Energy, launcher, explosive or utility: no ejected brass."
+gboltr,cannon,Bolt Buddy,boltr,,CR override,CANN,0.6,cannon factory,arcred,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gbspstab,cannon,SP-Stabber,rocketb3,gatstab,CR override,CANN,0.6,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
+gcomet,radarlauncher,Comet,,,CR override,ROCK,,other producer pending,rocket,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gctesla,dispenser,CRA Tesla Field,,,CR,SPEC,,other producer pending,,field deployment,none,"Energy, launcher, explosive or utility: no ejected brass."
+gdummy,machinegun,Paintball,dummy,,CR override,CANN,0.20,machinegun factory (companion OpenShim change; live pending),,paintball/debug effect,none,"Energy, launcher, explosive or utility: no ejected brass."
+gflare,dispenser,Solar Flare,,,CR override,SPEC,,other producer pending,,countermeasure deployment,none,"Energy, launcher, explosive or utility: no ejected brass."
+gflashch,beamgun,Flash Cannon,flashch,,CR override,CANN,,other producer pending,arcred,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gflashgb,beamgun,Flash Cannon,flashb,,CR override,CANN,,other producer pending,arcblue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gflashgg,beamgun,Flash Cannon,flashg,,CR override,CANN,,other producer pending,arcgreen,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gflashgn,beamgun,Flash Cannon,flash,,CR override,CANN,,other producer pending,arcblue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+ghartila,mortar,Howitzer,shella,ghartill,CR override,MORT,1.0,cannon factory,mortar,authored flash,large,Ballistic large brass; local cosmetic only.
+ghartill,mortar,Howitzer,shell,,CR override,MORT,5.0,cannon factory,mortar,authored flash,large,Ballistic large brass; local cosmetic only.
+ghartmp,mortar,Howitzer,grenade,,CR override,MORT,2.0,cannon factory,mortar,authored flash,large,Ballistic large brass; local cosmetic only.
+ghornet,thermallauncher,Hornet,heatmsl,,CR override,ROCK,,other producer pending,rocket,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+ghrntai,thermallauncher,Hornet,heatmsl,ghornet,CR override,ROCK,,other producer pending,rocket,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+glgmsl,targeting,Laser-Guided Missile,lgmissl,,CR,ROCK,,other producer pending,rocket,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gmaggun,chargegun,MAG Cannon,NULL,,CR override,CANN,,other producer pending,mag,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gmasgren,cannon,MAS Grenade,switch,,CR override,SPEC,2.0,cannon factory,,"conversion projectile, keep existing effect",none,"Energy, launcher, explosive or utility: no ejected brass."
+gmbolt,beamgun,Bolt Buddy,mbolt,,CR override,CANN,,other producer pending,arcblue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gmboltg,beamgun,Bolt Buddy,mboltg,,CR override,CANN,,other producer pending,arcgreen,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gmboltr,beamgun,Bolt Buddy,mboltr,,CR override,CANN,,other producer pending,arcred,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gmcurmin,dispenser,M-Curtain,,,CR override,SPEC,,other producer pending,,mine deployment,none,"Energy, launcher, explosive or utility: no ejected brass."
+gmdmgun,detonator,MDM Mortar,bouncebm,,CR override,MORT,2.0,other producer pending,mortar,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gminigna,machinegun,Minigun,bullet1a,gminigun,CR override,CANN,0.40,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
+gminignb,machinegun,Minigun,bullet1b,gminigun,CR override,CANN,0.40,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
+gminignc,machinegun,Minigun,bullet1a,gminigun,CR override,CANN,0.15,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
+gminigrn,machinegun,Minigun,bullet1g,,CR override,CANN,0.1,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
+gminigun,machinegun,Minigun,bullet1,,CR override,CANN,0.20,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
+gminisov,machinegun,Chaingun,bullet2,,CR override,CANN,0.30,machinegun factory (companion OpenShim change; live pending),chaingun,authored flash,small,Ballistic small brass; local cosmetic only.
+gmitsmin,dispenser,MITS Mine,,,CR override,SPEC,,other producer pending,,mine deployment,none,"Energy, launcher, explosive or utility: no ejected brass."
+gmortar,mortar,Mortar,grenade,,CR override,MORT,2.0,cannon factory,mortar,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gnavdrop,dispenser,Nav,,,CR override,SPEC,,other producer pending,,navigation beacon deployment,none,"Energy, launcher, explosive or utility: no ejected brass."
+gobject,lobber,NULL,NULL,,CR override,MORT,,other producer pending,,internal object lobber,none,"Energy, launcher, explosive or utility: no ejected brass."
+gphantom,imagerefract,Phantom VIR,NULL,,CR override,SPEC,,other producer pending,,cloak device,none,"Energy, launcher, explosive or utility: no ejected brass."
+gpopgun,poppergun,Pop Gun,popper,,CR override,MORT,,other producer pending,popper,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gproxmin,dispenser,Prox Mine,,,CR override,SPEC,,other producer pending,,mine deployment,none,"Energy, launcher, explosive or utility: no ejected brass."
+gquake,cannon,Thumper,seismic,,CR override,SPEC,3,cannon factory,,ground-contact seismic emitter,none,"Energy, launcher, explosive or utility: no ejected brass."
+gredfld,radardamper,RED Field,NULL,,CR override,SPEC,,other producer pending,,radar device,none,"Energy, launcher, explosive or utility: no ejected brass."
+grepa,dispenser,Repair Dropper,,,CR override,SPEC,,other producer pending,,repair dispenser,none,"Energy, launcher, explosive or utility: no ejected brass."
+grepaa,dispenser,Repair Dropper,,grepa,CR override,SPEC,,other producer pending,,repair dispenser,none,"Energy, launcher, explosive or utility: no ejected brass."
+grktbomb,cannon,Rocket,rocket2,,CR override,ROCK,3.0,cannon factory,rocket,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gsandbag,cannon,Sandbag,anchor,,CR override,ROCK,1.5,cannon factory,,anchoring device,none,"Energy, launcher, explosive or utility: no ejected brass."
+gsatstab,cannon,CCA Pulse Stabber,satbolt,,CR,CANN,0.30,cannon factory,pulse,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gshadow,imagelauncher,Shadower,imagemsl,,CR override,ROCK,,other producer pending,rocket,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gshunt,cannon,CCA Hunter Rocket,shunter,,CR,ROCK,1.50,cannon factory,rocket,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gsitecam,terrainexpose,SITE Camera,NULL,,CR override,SPEC,,other producer pending,,camera device,none,"Energy, launcher, explosive or utility: no ejected brass."
+gsmort,mortar,CCA Siege Mortar,sgrenade,,CR,MORT,2.60,cannon factory,mortar,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gsnipe,snipergun,Sniper Rifle,snipe,,CR override,CANN,1.0,cannon factory,sniper,authored flash,small,Ballistic small brass; local cosmetic only.
+gsplint,mortar,Splinter,splintbm,,CR override,MORT,3.0,cannon factory,mortar,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gsplinta,mortar,Splinter,splntbma,,CR override,MORT,2.0,cannon factory,mortar,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gsplintg,mortar,Splinter,splintbg,,CR override,MORT,3.0,cannon factory,mortar,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gsplintr,mortar,Splinter,splintbr,,CR override,MORT,3.0,cannon factory,mortar,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gspstab,cannon,SP-Stabber,rocket3,gatstab,CR override,CANN,0.6,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
+gspstaba,cannon,CP-Stabber,rocket3a,gatstab,CR override,CANN,1.5,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
+gspstabb,cannon,SP-Stabber,rocket3b,gatstab,CR override,CANN,0.6,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
+gspstabc,cannon,SP-Stabber,rocket3c,gatstab,CR override,CANN,0.8,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
+gspstabd,cannon,SP-Stabber,rocket3d,gatstab,CR override,CANN,0.5,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
+gspstabn,cannon,SP-Stabber,rocket3n,gatstab,CR,CANN,1.5,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
+gsrkbomb,cannon,CCA Saturation Rocket,srktbom,,CR,ROCK,2.70,cannon factory,rocket,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gstlock,cannon,CCA Steering Lock,stlock,,CR,SPEC,1.50,cannon factory,,"control projectile, keep existing effect",none,"Energy, launcher, explosive or utility: no ejected brass."
+gtaggun,targeting,TAG Cannon,swarmer,,CR override,ROCK,,other producer pending,rocket,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gtechno,machinegun,RAVE GUN!,plasma,,CR override,CANN,0.4,machinegun factory (companion OpenShim change; live pending),plasmablue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+gtminig,machinegun,Minigun,bullet5,,CR override,CANN,0.20,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
+gtminis,machinegun,Chaingun,bullet6,,CR override,CANN,0.30,machinegun factory (companion OpenShim change; live pending),chaingun,authored flash,small,Ballistic small brass; local cosmetic only.
+gtminis2,machinegun,Chaingun,bullet6,,CR,CANN,0.30,machinegun factory (companion OpenShim change; live pending),chaingun,authored flash,small,Ballistic small brass; local cosmetic only.
+gtminisa,machinegun,Chaingun,bullet6a,gtminis,CR override,CANN,0.48,machinegun factory (companion OpenShim change; live pending),chaingun,authored flash,small,Ballistic small brass; local cosmetic only.
+gtsmoke,mortar,Tactical Smoke,tsmkshl,,CR,MORT,4.0,cannon factory,,"smoke launch, keep smoke effect distinct",none,"Energy, launcher, explosive or utility: no ejected brass."
+gwasp,dispenser,WASP,,,CR override,SPEC,,other producer pending,,mine deployment,none,"Energy, launcher, explosive or utility: no ejected brass."
+handgun,cannon,Plasma Rifle,tracer,,CR override,CANN,0.3,cannon factory,plasmablue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+sprifle,cannon,CCA Plasma Assault Rifle,splasma,,CR,CANN,0.22,cannon factory,plasmared,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
+ssplsmg,machinegun,CCA Infantry Plasma Assault Rifle,ssplblt,,CR,CANN,0.30,machinegun factory (companion OpenShim change; live pending),plasmared,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."

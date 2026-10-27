@@ -1,14 +1,22 @@
 # Mission 14 offline and co-op: The Three Beacons (Concept C)
 
-The Three Beacons shares `misn14.bzn` / `misn14.lua` between the campaign mission (`crcampgn.ini` MISSION13,
-Titan, retrospective `misn1422.wav`) and the strategy listing `CR: The Three Beacons Coop`. Use matching CR,
-EXU and OpenShim builds. Host on team 1, guests on distinct teams 2-4; select an NSDF tank or scout and start
-together. Late join/rejoin requires a restart. Host departure ends the mission.
+Fury roster amendment (2026-10-16): recurring waves lead with restored `crfraz`
+fighters, retaining a SAV and later SAT escalation. The controllable squad keeps
+its existing identity. See [Fury fighter](FURY_FIGHTER.md) for the current roster;
+earlier SAV-only descriptions below document the Concept C baseline.
+
+The Three Beacons shares `misn14.bzn` / `misn14.lua` between the campaign mission (`crcampgn.ini`
+MISSION13, Titan, retrospective `misn1422.wav`) and the strategy listing `CR: The Three Beacons
+Coop`. Use matching CR, EXU and OpenShim builds. Host on team 1, guests on distinct teams 2-4;
+select an NSDF tank, scout, light tank, rocket tank, bomber, or walker and start together. Late
+join/rejoin requires a restart. Host departure ends the mission.
 
 The rework is the owner's **Concept C**: the mission is rebuilt around the NSDF's own Furies. The Fury relics the
 NSDF recovered on Io (misn10/11) come to Titan with the Liberty's platoon. Command activates them, the players
 command them briefly, then lose control; the rogue Furies fall on NSDF and CCA alike, and the CCA surrender is a
 consequence of that onslaught. The three beacons, the CCA scientists and the win are the stock mission's.
+
+Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.md).
 
 ## Story beats (host-triggered, shared by every human)
 
@@ -90,7 +98,7 @@ team 7.
 - Razor tie (owner decision 8): the second beacon's first pilot is named **Razor Two**, Razor One's wingman from
   misn12's Razor flight; he is the pilot who speaks misn1418. No new mechanics.
 - Briefing fix (owner decision 4): the stock `misn14.des` says "Recycler Utah" while 1414 and the debriefs say
-  Texas. The CR root `misn14.des` (lobby/briefing text) names the Texas; `misn1401.otf` never named the Recycler.
+  Texas. The CR root `misn14.mpdes` (lobby/briefing text) names the Texas; `misn1401.otf` never named the Recycler.
 
 ## Shipped-1.5 behaviour restored (owner decision 2)
 
@@ -204,8 +212,10 @@ so the run used a copy named `m14t.bzn` in `addon\m14t\` (with the CR scripts be
 
 Not verified live: the cinematic framing of the activation/loss shots (the window was in the background and its
 captures stopped refreshing after the intro, so the screenshots show a stale cockpit frame), and everything co-op.
-Redux logs one "mission issue": the `avsav` mesh is not preloaded (the squad loads it at run time); harmless but a
-possible hitch when the squad is built 3 s in.
+Redux ships no `avsav` mesh, so CR carries one: `Assets/ModelFixes/avsav.mesh` is the Resurgence addon's NSDF Fury
+(stock `hvsav.skeleton`) with its material renamed to `avsav14` (`Materials/avsav14.material`, CR's `avsav2_d.dds`,
+which matches that unwrap). Without it the squad logged "could not load avsav.mesh" every frame (~40k Ogre
+exceptions in 80 s) and drew nothing.
 
 ## Live checklist
 

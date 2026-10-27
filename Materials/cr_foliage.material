@@ -1,0 +1,10 @@
+// Leaf litter sprite for cr_foliage.particle.payload. Alpha blended through the
+// shared weather particle material, which keeps Ogre's RGBA vertex colour order
+// so the emitter's colour range tints the near-white cr_leaf.png.
+
+import * from "crwx_precip.material"
+
+material CR_FX/Leaf : CRWX_FX/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_leaf.png
+}

@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Run from the repository root: lua5.1 Tools/Test-Misn06.lua
 -- Stock API host fakes test mission decisions, not native AI/camera rendering.
 assert(_VERSION == "Lua 5.1", "use Lua 5.1")
@@ -10,8 +12,10 @@ end
 
 local function NewMission()
     local w = { time = 0, objects = {}, calls = {}, distances = {}, info = {},
-        audioDone = true, cancelled = false, nextId = 0, objectives = 0 }
+        audioDone = true, cancelled = false, nextId = 0, objectives = 0,
+        pda = { Initialize = 0, UpdateInputs = 0, UpdateHeadlights = 0, OnObjectCreated = 0 } }
     local e = setmetatable({}, { __index = _G })
+    e._G = e -- mission resolves _G.SucceedMission/FailMission at call time
     local function Object(label, odf)
         w.nextId = w.nextId + 1
         local h = { id = label or ("spawn" .. w.nextId), alive = true, odf = odf,
@@ -52,6 +56,20 @@ local function NewMission()
         assert(e.IsValid(h)); return { x = h.pos.x, y = h.pos.y, z = h.pos.z }
     end
     e.SetPosition = function(h, p) h.pos = p; Record("SetPosition", h, p) end
+    e.SetVector = function(x,y,z) return {x=x,y=y,z=z} end
+    e.GetTerrainHeightAndNormal = function(p)
+        assert(type(p.x)=="number" and type(p.z)=="number")
+        return 0,{x=0,y=1,z=0}
+    end
+    e.GetTransform = function(h)
+        assert(e.IsValid(h))
+        return {right_x=1,right_y=0,right_z=0,up_x=0,up_y=1,up_z=0,
+            front_x=0,front_y=0,front_z=1,posit_x=h.pos.x,posit_y=h.pos.y,posit_z=h.pos.z}
+    end
+    e.SetTransform = function(h, p)
+        assert(e.IsValid(h)); h.pos={x=p.posit_x,y=p.posit_y,z=p.posit_z}
+        Record("SetTransform", h, p)
+    end
     e.GetNearestEnemy = function(h) assert(e.IsValid(h)); return h.enemy end
     e.GetDistance = function(a, b)
         assert(e.IsValid(a), "invalid origin reached native distance query")
@@ -112,7 +130,31 @@ local function NewMission()
     -- engine modules. subtit.Play forwards to AudioMessage like the real module.
     local function noop() end
     local modules = {
+        CR06LaunchFilm = assert(loadfile("Scripts/CR06LaunchFilm.lua"))(),
+        CR06OrbitFilm = assert(loadfile("Scripts/CR06OrbitFilm.lua"))(),
+        CR06LaunchFX = assert(loadfile("Scripts/CR06LaunchFX.lua"))(),
+        CR06RocketLayout = assert(loadfile("Scripts/CR06RocketLayout.lua"))(),
+        CRParticleTemplates = { Ensure = noop, EnsureExtra = function() return true end },
+        CRWeather = { LiveSystems = {} },
         RequireFix = { Initialize = noop }, exu = {},
+        Environment = { Init = function(options) w.environmentOptions=options; Record("environmentInit") end,
+            Update = function() Record("environmentUpdate") end, OnObjectCreated = noop },
+        CRMarsWeather = {
+            Init = function(options) w.weatherOptions=options; w.weatherTarget=options.targetLevel; w.weatherLevel=options.startLevel end,
+            Update = function(dt) w.weatherDt=dt; Record("weatherUpdate") end, OnObjectCreated = noop,
+            SetAutomatic = function(value) w.weatherAutomatic=value end,
+            SetTargetLevel = function(value) w.weatherTarget=value end,
+            GetTargetLevel = function() return w.weatherTarget end,
+            GetLevel = function() return w.weatherLevel end,
+            Save = function() return {level=w.weatherLevel,targetLevel=w.weatherTarget} end,
+            Load = function(state) w.weatherLevel=state.level; w.weatherTarget=state.targetLevel end,
+            Shutdown = function() Record("weatherShutdown") end,
+        },
+        PersistentConfig = {
+            Initialize = function() w.pda.Initialize = w.pda.Initialize + 1 end,
+            UpdateInputs = function() w.pda.UpdateInputs = w.pda.UpdateInputs + 1 end,
+            UpdateHeadlights = function() w.pda.UpdateHeadlights = w.pda.UpdateHeadlights + 1 end,
+            OnObjectCreated = function() w.pda.OnObjectCreated = w.pda.OnObjectCreated + 1 end},
         ScriptSubtitles = {
             Play = function(file) return e.AudioMessage(file) end,
             Queue = function(file) return e.AudioMessage(file) end,
@@ -120,6 +162,7 @@ local function NewMission()
             Update = noop, Initialize = noop },
     }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     e.package = setmetatable({ loaded = { exu = modules.exu } }, { __index = package })
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
@@ -132,13 +175,14 @@ local function NewMission()
 end
 
 -- Co-op team remap: authored/spawned CCA is team 5, the 5th Platoon cinematic is
--- support team 7, and the player-side camera beacons stay on team 1.
+-- support team 7, the player-side camera beacons stay on team 1, and cr06* film
+-- props (rocket, orbit Lincoln/destroyer) are neutral team 0.
 local function CheckTeams(w, context)
     local seen = 0
     for _, c in ipairs(w.calls) do
         if c.name == "BuildObject" then
             local odf, team = c.args[1], c.args[2]
-            local want = odf:find("^sv") and 5 or odf:find("^av") and 7 or 1
+            local want = odf:find("^cr06") and 0 or odf:find("^sv") and 5 or odf:find("^av") and 7 or 1
             Check(team == want, context .. ": " .. odf .. " built on team " .. tostring(team))
             seen = seen + 1
         end
@@ -147,6 +191,9 @@ local function CheckTeams(w, context)
 end
 
 local e, w, m = NewMission()
+Check(w.pda.Initialize == 1, "PersistentConfig.Initialize ran exactly once after Start")
+Check(w.pda.UpdateInputs >= 1 and w.pda.UpdateHeadlights >= 1, "the first Update drives PersistentConfig inputs and headlights")
+Check(w.pda.Initialize == 1, "the first Update does not re-initialize PersistentConfig")
 Check(w:Count("AudioMessage", "misn0601.wav") == 1 and w:Count("Ally") >= 8 and w:Count("UnAlly") >= 2,
     "offline subtit.Play reaches AudioMessage and alliances are configured")
 Check(m.corbettalive and m.fifthplatoon, "source setup enables Corbett and 5th Platoon")
@@ -463,4 +510,20 @@ do
     Check(m.vob1 == true and e.Save() == m, "B1 latch lives in the saved mission table")
 end
 
-print("Misn06: " .. checks .. " Lua 5.1 host checks passed")
+-- Story/weather wiring uses the real mission phases and save/load callbacks.
+e,w,m = NewMission()
+Check(w.weatherOptions.profile == "Plains" and w.weatherOptions.sensorDegrade and not w.weatherOptions.windPush,
+    "mission06 uses Mars sensor effects without wind handling changes")
+Check(w.environmentOptions==nil,"mission06 uses the shared Environment night policy")
+Check(w.weatherTarget == 1 and w.weatherAutomatic, "recon begins calm and host drives the ladder")
+m.hephikey=true; e.Update(0.1); Check(w.weatherTarget==2,"Hephaestus scan raises breeze")
+m.starportreconed=true; e.Update(0.1); Check(w.weatherTarget==3,"starport recon raises dust")
+m.lprecon=true; e.Update(0.1); Check(w.weatherTarget==4,"blockade/launch assault trends stormy")
+m.launchpadreconed=true; e.Update(0.1); Check(w.weatherTarget==2,"extraction clears weather")
+local saved=e.Save(); w.weatherLevel=3; saved.weatherState.level=2
+e.Load(saved); e.Update(0.1)
+Check(w.weatherLevel==2 and w:Count("weatherShutdown")==1,"load restores saved weather and rebuilds runtime")
+Check(w:Count("environmentUpdate") > 0 and w:Count("weatherUpdate") > 0,"mission updates weather and environment together")
+e.Update(); Check(w.weatherDt>0,"argument-free Redux Update does not freeze weather clock")
+e.Update(0); Check(w.weatherDt==0,"explicit zero timestep still settles without advancing weather")
+print("Misn06: " .. checks .. " Lua 5.1 host checks passed, including atmosphere story/save wiring")

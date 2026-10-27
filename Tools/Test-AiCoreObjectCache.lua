@@ -67,7 +67,12 @@ H.try("no world scans", function()
     aiCore.DeleteObject(h)
     check("DeleteObject removes the handle", not contains(aiCore.GetCachedTeamCraft(2), h))
     aiCore.Load({ teams = {}, producer = {} })
-    check("Load is the one place that rebuilds from the world", H.allObjectsCalls == 1)
+    -- Load() runs before the engine attaches AI processes, so it must not touch live objects.
+    check("Load itself does not scan the world", H.allObjectsCalls == 0)
+    aiCore.Update()
+    check("the first Update after Load is the one place that rebuilds from the world", H.allObjectsCalls == 1)
+    aiCore.Update()
+    check("the post-load rebuild runs once", H.allObjectsCalls == 1)
     H.objects = {}
 end)
 

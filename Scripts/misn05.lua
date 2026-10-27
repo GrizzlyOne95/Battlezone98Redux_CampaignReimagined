@@ -21,6 +21,7 @@ local Environment = require("Environment")
 local CRMarsWeather = require("CRMarsWeather")
 local PhysicsImpact = require("PhysicsImpact")
 local CRCoop = require("CRCoop")
+local CRWire = require("CRWire")
 local LEADER_TEAM, ENEMY_TEAM, MINE_TEAM, SUPPORT_TEAM = 1, 5, 6, 7
 local stockWeatherWindPush = CRMarsWeather.AllowWindPush
 local M
@@ -351,7 +352,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
+                    Send(id, "E", CRWire.Pack(seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n)))
                 end
             end
         end
@@ -366,14 +367,19 @@ local function UpdatePresentationTransport()
         nextCameraSend = now + 0.2
         cameraSerial = cameraSerial + 1
         if cameraFrame then
-            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
+            Send(0, "C", CRWire.Pack(cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame))))
         else
             Send(0, "C", cameraSerial, cameraGeneration, "", 0, 0, 0)
         end
     end
 end
 
+local ReceivePresentationDecoded = nil
+-- Presentation packets are CRWire-packed: reassemble chunked strings first.
 local function ReceivePresentation(from, kind, ...)
+    return ReceivePresentationDecoded(from, kind, CRWire.Unpack(...))
+end
+function ReceivePresentationDecoded(from, kind, ...)
     if not CRCoop.IsNetworkGame() then return false end
     if kind == "A" then
         local seq = ...
@@ -876,7 +882,7 @@ function Start()
         -- Preserve the clearable field; reserve separate hostile and support teams.
         for i = 1, 23 do
             local pathName = "path_" .. i
-            BuildObject("boltmine", MINE_TEAM, pathName)
+            BuildObject("cromine", MINE_TEAM, pathName)
         end
     end
     subtit.Initialize()
@@ -1147,7 +1153,7 @@ function Update()
                 local cutsceneActive = (M.lemcin1 and not M.lemcin2)
                     or (M.endseq_started and not M.endseq_cutscene_done)
                 if M.next505 < GetTime() and not cutsceneActive then
-                    subtit.Play("misn0505.wav")
+                    subtit.Queue("misn0505.wav")
                     M.next505 = GetTime() + 150.0
                 end
 

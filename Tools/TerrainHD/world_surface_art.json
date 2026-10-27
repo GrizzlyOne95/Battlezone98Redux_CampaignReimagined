@@ -1,0 +1,45 @@
+{
+  "schema": "cr-world-surface-art-v1",
+  "policy": "Retain recognizable original world palettes; borrow material morphology and modestly tune response before source variants/transitions. No natural-ground emissive additions.",
+  "worlds": {
+    "moon": {"intent": "Retain the separately authored Poly Haven regolith/crater candidate", "types": {}},
+    "mars": {"intent": "Keep rusty orange dust, varied weathered rock and restrained dry highlights", "types": {
+      "0": {"neutralMix": 0.06, "normalStrength": 0.92, "specularMaximum": 32},
+      "1": {"neutralMix": 0.10, "contrast": 0.95, "specularMaximum": 35},
+      "3": {"neutralMix": 0.12, "brightness": 1.04, "specularMaximum": 36}
+    }},
+    "venus": {"intent": "Retain ochre/sulphur identity with subdued crust and matte sediment", "types": {
+      "0": {"neutralMix": 0.08, "contrast": 0.93, "specularMaximum": 26},
+      "3": {"neutralMix": 0.14, "brightness": 1.06, "normalStrength": 0.9, "specularMaximum": 30}
+    }},
+    "io": {"intent": "Retain red/yellow volcanic palette; distinguish cooled crust, hot pools and local pale frost", "types": {
+      "0": {"neutralMix": 0.10, "brightness": 0.94, "specularMaximum": 32},
+      "3": {"normalStrength": 0.85, "specularMaximum": 30, "frost": {"seed": 31021, "threshold": 0.4, "strength": 0.48, "colour": [164,155,115]}},
+      "4": {"neutralMix": 0.10, "normalStrength": 0.92, "specularMaximum": 30}
+    }},
+    "europa": {"intent": "Keep cold blues/white while softening saturated glacier facets and snowy grit", "types": {
+      "0": {"neutralMix": 0.12, "contrast": 0.92, "normalStrength": 0.88},
+      "1": {"neutralMix": 0.08, "contrast": 0.94, "normalStrength": 0.88, "specularMaximum": 42},
+      "2": {"neutralMix": 0.10, "contrast": 0.93, "specularMaximum": 46},
+      "3": {"neutralMix": 0.10, "normalStrength": 0.92}
+    }},
+    "titan": {"intent": "Keep amber/brown identity, with smaller worn icy cobbles and fine sediment instead of only folded rock", "types": {
+      "3": {"replacement": {"world": "Moon", "alias": "MN00SA0.MAP", "weight": 0.68, "repeats": 2}, "neutralMix": 0.06, "contrast": 0.93, "normalStrength": 0.85, "specularMaximum": 28}
+    }},
+    "ganymede": {"intent": "Keep warm brown/cream identity while introducing dirty fractured ice instead of pebble beds", "types": {
+      "0": {"replacement": {"world": "Europa", "alias": "EU11SA0.MAP", "weight": 0.35}, "normalStrength": 0.9, "specularMaximum": 36},
+      "1": {"replacement": {"world": "Europa", "alias": "EU33SA0.MAP", "weight": 0.72}, "brightness": 1.06, "normalStrength": 0.9, "specularMaximum": 44},
+      "2": {"contrast": 0.94, "normalStrength": 0.9}
+    }},
+    "achilles": {"intent": "Keep lush greens, distinguish soft forest floor from hard wet rock, preserve canopy identity", "types": {
+      "0": {"contrast": 0.94, "normalStrength": 0.88, "specularMaximum": 24},
+      "1": {"contrast": 0.93, "normalStrength": 0.8, "specularMaximum": 22},
+      "2": {"normalStrength": 0.94, "specularMaximum": 42}
+    }},
+    "elysium": {"intent": "Keep gray desolation with softer fine deposits and sharper exposed rock", "types": {
+      "0": {"contrast": 0.94, "normalStrength": 0.85, "specularMaximum": 28},
+      "1": {"normalStrength": 0.94, "specularMaximum": 32},
+      "2": {"contrast": 1.03, "specularMaximum": 36}
+    }}
+  }
+}

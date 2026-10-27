@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Run from the repository root with Lua 5.1.
 -- Offline (single-player) behavior of the co-op-capable misn08: the real CRCoop
 -- runs with single-player semantics, so every check below is the DLL's own flow
@@ -47,7 +49,13 @@ function Ally() end
 function UnAlly() end
 function GetPilot() return 10 end
 local function noop() end
+local pda = {Initialize = 0, UpdateInputs = 0, UpdateHeadlights = 0, OnObjectCreated = 0}
 local modules = {
+    PersistentConfig = {
+        Initialize = function() pda.Initialize = pda.Initialize + 1 end,
+        UpdateInputs = function() pda.UpdateInputs = pda.UpdateInputs + 1 end,
+        UpdateHeadlights = function() pda.UpdateHeadlights = pda.UpdateHeadlights + 1 end,
+        OnObjectCreated = function() pda.OnObjectCreated = pda.OnObjectCreated + 1 end},
     RequireFix = {Initialize = noop}, exu = {},
     CRVenusWeather = {Init = noop, Update = noop, Shutdown = noop, OnObjectCreated = noop, Save = function() return {} end,
         Load = noop, AnnounceState = noop, ApplyNetEvent = noop, Seed = 1,
@@ -110,9 +118,12 @@ local function reset(specs)
         objects[serial] = {alive = true, health = 1, odf = spec[1], team = spec[2]}
         handles[i] = serial
     end
+    modules.CRCoopDiagnostics = assert(loadfile("Scripts/CRCoopDiagnostics.lua"))()
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoop = assert(loadfile("Scripts/CRCoop.lua"))()
+    for k in pairs(pda) do pda[k] = 0 end
     dofile("Scripts/misn08.lua")
     Start()
     return Save(), handles
@@ -124,9 +135,12 @@ local function kill(h) objects[h].alive = false end
 
 -- ------------------------------------------------------------- full host flow
 local m, h = reset({{"avmu8", 1}, {"abtowe", 1}, {"abtowe", 1}, {"svapc", 5}})
+check(pda.Initialize == 1, "PersistentConfig.Initialize ran exactly once after Start")
 check(called("SetAIControl", 5, true), "native AI startup on the CCA team")
 check(m.nsdfmuf == h[1] and m.guntower1 == h[2] and m.guntower2 == h[3] and m.ccaapc == h[4], "map object bootstrap")
 step(0)
+check(pda.UpdateInputs >= 1 and pda.UpdateHeadlights >= 1, "the first Update drives PersistentConfig inputs and headlights")
+check(pda.Initialize == 1, "the first Update does not re-initialize PersistentConfig")
 check(count("Play", "misn0800.wav") == 1, "opening radio")
 check(count("AddObjective") == 2 and called("SetScrap", 1, 30), "opening objectives/resources")
 check(called("SetWeaponMask", m.ccagech1, 1), "initial walker weapons")

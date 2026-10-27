@@ -10,17 +10,24 @@ game; this page uses the existing keyboard navigation.
 | [ / ] | Previous/next visible PDA page |
 | Up / Down | Select a row |
 | Left / Right | Change the selected row's choice (mark, teammate, YES/NO) |
-| Backspace | Do the selected row |
+| Enter | Do the selected row (chat stays on ` and Ctrl+C) |
 | J | Ping the object or terrain under the reticle (PDA open or closed) |
 | V | Guests: call for help (on foot: a ride; in a vehicle: supplies), 20-second cooldown. Host: send the selected vehicle to pick up whoever asked first (or the first guest on foot) |
 | Z | Give your selected units to the teammate under the reticle |
 
 J, V and Z work without opening the PDA, so urgent actions never need menu
 scrolling. Stock `input.map`/`gamekey.map` bind every other letter (H is hop
-out); V and Z are edit-mode only. Backspace does PDA rows because Enter, ` and
-Ctrl+C are all stock chat.
+out); V and Z are edit-mode only. Stock binds Backspace to the satellite view
+(`TOGGLE_OVERVIEW BSP`), so it cannot do PDA rows.
 
-Enter retains native chat. In network games Redux calls the mission `GameKey`
+Stock binds Enter, ` and Ctrl+C to chat. In network games CR calls
+`exu.SetChatOnEnter(false)` every frame (Redux rereads `gamekey.map`, and so
+rebinds Enter, after every ESC menu) and `SetChatOnEnter(true)` at mission
+end, so Enter does PDA rows while ` and Ctrl+C still open chat. EXU builds
+without the call leave Enter on chat. Plain `[` and `]` are bound only to
+DEC_VAR/INC_VAR, which the shipping exe never handles (Ctrl+[ / Ctrl+] are
+the separate ally prompts); the real arrow keys are bound only to the
+Shift-held command menu and the track camera. In network games Redux calls the mission `GameKey`
 callback for J, [ ], the arrows and Enter only sometimes, so CR polls those keys
 there through `exu.GetGameKey` (EXU needs the `LBRACKET`/`RBRACKET` names) and
 ignores their `GameKey` copies. [ ] and the arrows act only while the PDA is
@@ -36,7 +43,7 @@ The page lists only rows that work right now. Guests see a help row (CALL
 RIDE, CALL SUPPLY or CANCEL HELP), TARGET for a teammate's object mark, GIVE
 when they have their own units selected, and MARKERS. The host also sees SEND
 RIDE (vehicle selected, guest on foot), one YES/NO reply row per open call, and
-RECALL ALL TO ME (Backspace twice within three seconds). The team list shows each
+RECALL ALL TO ME (Enter twice within three seconds). The team list shows each
 player's status: `H<hull%> A<ammo%>`, `on foot`, `NEEDS A RIDE`,
 `NEEDS SUPPLIES`, or `ride coming`/`supplies coming`; ` !` marks hull at most 25%
 or ammo at most 10%.
@@ -52,6 +59,9 @@ mission objective or a teammate status marker) it flashes for about a second
 and is never switched off. A teammate's status marker relabels its craft every
 second, so on teammates the ping name is brief. The check needs EXU `IsObjectiveOn` (it reads the
 engine flag at GameObject+0x189); without it, an object ping shows only the chat line.
+A ping on your own craft is never marked on your own HUD (you cannot see a
+marker on yourself, and the rename would replace your name); your chat line
+reads `Name marked you.` and every other player still sees the marker.
 A terrain ping builds an invisible marker object on each player's machine
 (`exu.BuildAsyncObject("crping", 0, pos)`, local-only), names it
 `Name: TERRAIN PING`, switches its objective marker on, and removes it when the ping
@@ -77,6 +87,13 @@ local-only), switching a marker on once and renaming it only when its status
 text changes. They are off by default because those calls share the mission's
 objective namespace: mission scripts and their presentation tests expect only
 their own objective calls.
+
+Host marker (guests only, PDA row `HOST MARKER ON/OFF`, in the place of the
+host's RECALL row, off by default): keeps just the host's craft marked with the
+same label as a status marker, so a guest can lead others to the host. While
+any marker is on, a marker found switched off (the mission or engine cleared
+it) is switched back on at the next one-second check; that check needs EXU
+`IsObjectiveOn`, and without it a cleared marker stays off.
 
 Ownership rule: a world change runs only on the machine that owns the object.
 - **Send ride**: the host gives one of its own craft the stock "Pick Me Up"

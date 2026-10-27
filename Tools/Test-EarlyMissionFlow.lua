@@ -459,7 +459,7 @@ local randomWave = compile(between("05", "    -- Random Spawns (Start of mission
 reset(); live("enemyRec", "avRec")
 m = { svrec = "enemyRec", avrec = "avRec", difficulty = 2, needtospawn = true, randomwave = 0, next505 = 0 }
 randomWave(m, context())
-check(audioLog() == "play:misn0505" and m.next505 == 250, "05 first wave alert plays 0505 and sets 150 s throttle")
+check(audioLog() == "queue:misn0505" and m.next505 == 250, "05 first wave alert queues 0505 behind the briefing and sets 150 s throttle")
 world.alive[m.rand1], world.alive[m.rand2] = false, false
 randomWave(m, context())
 world.now = 140

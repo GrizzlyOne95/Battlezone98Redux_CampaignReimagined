@@ -1,5 +1,12 @@
 # misn18 DLL source port
 
+The marked 2026-10-16 CR roster adapter uses `CRFuryRoster.lua` to make restored
+fighters two-thirds of scripted Fury spawns, with a saved composition counter.
+The source-faithful tests bypass only that adapter; a separate test exercises
+the production closure. See [Fury fighter](FURY_FIGHTER.md). This remains an
+offline port; the co-op conversion, the restorations and the storm hook are marked `-- CR ... >>` regions in
+`Scripts/misn18.lua` and `Scripts/CRMisn18.lua`, described in [Mission 18 co-op](MISN18_COOP.md).
+
 `Scripts/misn18.lua` ports the original `Misn18Mission` to stock Battlezone 98
 Redux Lua 5.1. It uses no Campaign Reimagined helper, EXU, or OpenShim APIs.
 
@@ -61,8 +68,8 @@ snapshot hashes, all original mission comments, all 124 fields, 137 ordered
 string references, Setup assignments, and all 2,068 adapted active logic tokens.
 The new Lua files also pass the campaign validator's Lua/API/filename rules.
 
-This change supplies the script and audit files. It does not change a mission
-map, the shipping lock, or installed content. In-game validation still needs
+The faithful-port change supplied the script and audit files and no map; the co-op change adds the map and lock
+entries (`MISN18_COOP.md`). In-game validation still needs
 the original misn18 map labels/paths and stock assets, the map configured to
 load this Lua mission, and checks of native AI, camera rendering, earthquake,
 timer UI, audio, and engine save/load handle restoration.

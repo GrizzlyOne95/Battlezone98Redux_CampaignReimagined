@@ -1,0 +1,279 @@
+{
+  "schema": "cr-hd-pack-validation-v1",
+  "world": "elysium",
+  "acceptedArt": "2026-10-21; see Docs/WORLD_ART_PROMOTION.md",
+  "bundle": {
+    "schema": "bzr-terrain-hd-bundle-report-v1",
+    "material": "EL_DETAIL_ATLAS",
+    "tileSize": 1024,
+    "slices": 20,
+    "rectangles": 21,
+    "channels": [
+      "D",
+      "N",
+      "S",
+      "E"
+    ],
+    "resourceCount": 80,
+    "ddsBytes": 125840140,
+    "estimatedGpuArrayBytes": 153791920,
+    "processRamEstimate": null,
+    "memoryNote": "GPU storage is not 32-bit process RAM. Profile private bytes, peak and largest free VA in game.",
+    "sha256": {
+      "crhd_elysium_el00sa0_d.dds": "f1c99ac3f5d3888c7775c67676f324d3808bf3440737b9c29231138176c02e7c",
+      "crhd_elysium_el00sb0_d.dds": "5f58e575227e3e9497155c06da5ee880b01903647b462afce009a2742ec8b590",
+      "crhd_elysium_el00sc0_d.dds": "30aad5ad474744ad814267c35a0a5a745d0588cfe9859b2f36e888e21288f13f",
+      "crhd_elysium_el01ca0_d.dds": "f8813b9b825fa64cfc972d9b2c1b2c8f05b77b8b39fe6a9e74dfaf4b8a5e5f30",
+      "crhd_elysium_el01da0_d.dds": "eaa9faac76657181071852e514c6a261357cf51de5d2805848ba6786a68c7b22",
+      "crhd_elysium_el02ca0_d.dds": "d9309276da2d89d15606ab32803e8b0318a6a94a64367c93d20365e75aefd4c6",
+      "crhd_elysium_el02da0_d.dds": "d5d2022db86be882556821ea850e900ade096952670f820f7cc08e461ed74c4f",
+      "crhd_elysium_el04ca0_d.dds": "e3686874b22d722ead694181935f99e958bee34f67160608dee54c4538f0d55a",
+      "crhd_elysium_el04da0_d.dds": "7c454fba8922a626495625a6cc220884802eceb922afe07e259b7f693aaf5bb5",
+      "crhd_elysium_el04sa0_d.dds": "c4e79e40a08dc11776f6665caca3b6efb0b26e6cca079f5b9bf5c50c316674ab",
+      "crhd_elysium_el04sb0_d.dds": "a24ead4d68ecf2cec081bf9dc8dd11f90bf53223b8c6f546f14be430130a3962",
+      "crhd_elysium_el11sa0_d.dds": "5fc7e5e50b7fd190e34fe025e4fd664b81ec78f6c50ba854087653685ea59b77",
+      "crhd_elysium_el11sb0_d.dds": "84a0ad2103df28d6994b7ff4882f6b72b8c335f9f5d792d732da19b5e886f32a",
+      "crhd_elysium_el11sc0_d.dds": "27ca1f437bc6aa7c826b30e152573247e62c1e7fd89defd3645420639ad98348",
+      "crhd_elysium_el12ca0_d.dds": "a36a530e234af16e82a86952108aceacd3284d9991d3e68f729f122db6bd7e8e",
+      "crhd_elysium_el12da0_d.dds": "c53cd6ae9f9bc2ff5f0cc73e9235afb967622ba2846cc3ce1de9593d4aa3fecf",
+      "crhd_elysium_el22sa0_d.dds": "b36033cf852cff07a585dd388311fbf7e6cbfa02cf90508fd0f2aa7c903cbdfa",
+      "crhd_elysium_el22sb0_d.dds": "e927782ef1323d912f48ffe7def87bf8e830e80cb9f34b7ef2aa0b356a2180ea",
+      "crhd_elysium_el22sc0_d.dds": "81a5b8b7c2a8635e856e2b0d822736be5c18d0f2dee66eddafa6569f4b5daa1f",
+      "crhd_elysium_el33sa0_d.dds": "5cc4cf4e9061b1c457d82d4bffc0d81444cc27668e7b2fb9f5774048a7486bf3",
+      "crhd_elysium_el00sa0_n.dds": "fd4df73a9dc560ac0487768614d5b8b14c4539762ec60ffaa298ffdb25785f9d",
+      "crhd_elysium_el00sb0_n.dds": "e11d6e677df0ec87c4dfeb82f9bbb6664d08ae873a3648f22b3dc4e085d274cc",
+      "crhd_elysium_el00sc0_n.dds": "088b1ba8bb28d0d030a736bb75678253aec809d9153c3e6afab71f1ab77ce9f9",
+      "crhd_elysium_el01ca0_n.dds": "a89b1eb7946875c7b408b6814eee4d51b223837d5011dd77df1e946f26482795",
+      "crhd_elysium_el01da0_n.dds": "a937871875955c17add68dacd4b1d083ffdc7161c6bb80ed6c7962232a516597",
+      "crhd_elysium_el02ca0_n.dds": "f5fff2b52b18f907ec57bcada93f2fd005e23e8f1ae88a359355a7cce1d0936f",
+      "crhd_elysium_el02da0_n.dds": "f4c3cf326584ac45fe28d8626c396f80a5c7cb2ffba505c61be1be65f84e0dba",
+      "crhd_elysium_el04ca0_n.dds": "588879c13cc7bb5fed7364be2111e665434e8cb38e424d7b241b66935bd62d02",
+      "crhd_elysium_el04da0_n.dds": "84af74b796e51b8e05dec8d6547a315ddf691b82e1d8db71b4c6d0b6056f9e27",
+      "crhd_elysium_el04sa0_n.dds": "c9b2dc6fed0c5a7cbbacc75a23aedcf6bed6b6157e791693620c0fef6e7b1c6e",
+      "crhd_elysium_el04sb0_n.dds": "65d43b4271cd2a06c81270efa344b1de0926c85e1b5fbba3417ebb7180b207a2",
+      "crhd_elysium_el11sa0_n.dds": "37d0a82daf51aed6700af38833998684f6b819c1c01ca86131cd9b89f8fa4794",
+      "crhd_elysium_el11sb0_n.dds": "7b8efa37030fc1ef1506fcb340ede6c3ddd2796ce1d1f1f2722205d0ae09cf7c",
+      "crhd_elysium_el11sc0_n.dds": "d539a41c21591e5b0e231121400f51950b709351694dc9c2ea44fc94cacccb2d",
+      "crhd_elysium_el12ca0_n.dds": "7e8e808dba5eb576d81143d389c4dcd2e2849189dd46de5c26dc66b3b73ee9fd",
+      "crhd_elysium_el12da0_n.dds": "25b483706a75cd428488712caccc1383cf317dca6835d1ec43cf84809fd2c0bf",
+      "crhd_elysium_el22sa0_n.dds": "ec1b5cdfc1fec27575f20091576624968fc7fe0a66dcfdf7283869ef89334263",
+      "crhd_elysium_el22sb0_n.dds": "95d57ee62980e6d32bd16e995bc0a839376acf0d25fe62ffc793f759b45ae647",
+      "crhd_elysium_el22sc0_n.dds": "f54eceb80c1a64d343c2fc1aa8cc623d4111cfcf362f3efe4c0db28ecd4289e1",
+      "crhd_elysium_el33sa0_n.dds": "ea0246cd08e4b9052afe126093dc8ed11e6e5ea51ef5bbf955921e7697600ca8",
+      "crhd_elysium_el00sa0_s.dds": "b20c22a9cc3f672e9730e230b081be35f169ac4cbfd8ba74afd29aa2f17b5d3a",
+      "crhd_elysium_el00sb0_s.dds": "cdc6b9b39a4f9c507d97decdadb6e34efdd5a5a18218f2b2869dfaef1cc66c4a",
+      "crhd_elysium_el00sc0_s.dds": "ef20c74a74c30df64c6825ef4a9eff9b594b1d27947601b5ec0d521cd6e43aab",
+      "crhd_elysium_el01ca0_s.dds": "24d90b88dcb076284c2aaf19def4186867367d2048898a6b11b8effea0ff135f",
+      "crhd_elysium_el01da0_s.dds": "ef4764385cb83d47ab60543ceeec37e816badf90c0ebd6b6267cf70181c8edb2",
+      "crhd_elysium_el02ca0_s.dds": "31861fb491f237d817d1a4fe38aae15e925ec62f1f6a66be30a59e2293e5cdf9",
+      "crhd_elysium_el02da0_s.dds": "327a74b5070b7f09b9856cfd13422529dc3ae38bd8df73e6adfc9f574a38353f",
+      "crhd_elysium_el04ca0_s.dds": "ae26e14698832675d48fd9b42b2a89d697528364a6d0bc6471ecc8cd0d3ba913",
+      "crhd_elysium_el04da0_s.dds": "9c2e3859d51f6ffbc7182ffe276c903904b5c6efc42abcb9ca0485de590d7dab",
+      "crhd_elysium_el04sa0_s.dds": "c3d7afac809cc83564c7622e6765d5130b6f19c83b2f282af0c38855f03295ab",
+      "crhd_elysium_el04sb0_s.dds": "d19c71c950a4e57022dd50213f8b8df4d83b2dced047f379f028304566198401",
+      "crhd_elysium_el11sa0_s.dds": "715d95f8dd77adc216f54d50d47ddf60020672a412db7a1168200482869d9716",
+      "crhd_elysium_el11sb0_s.dds": "cd300fddcb45598f569552a9d4312d447318067ca771b29e49a9bbad14f6f164",
+      "crhd_elysium_el11sc0_s.dds": "161d2477513107336b9437e64dd09d60f69712269f6a185f5beb1d3cd4033dd9",
+      "crhd_elysium_el12ca0_s.dds": "695275699caf27f40952ddf5cbb7e404bb9c767382b0d4b34129f91902fc6b67",
+      "crhd_elysium_el12da0_s.dds": "a7f91d5ec331e87755381a46a0b7d2d63a3f1be76885b763b85e5f38145d9998",
+      "crhd_elysium_el22sa0_s.dds": "ae8a9041fa4a37d625b9e7f8a04b31b39b36563404cb405e78d59179d963f430",
+      "crhd_elysium_el22sb0_s.dds": "aead144f3bd76ed25f197c5351688a09995173e75e110e001adc608797d104f3",
+      "crhd_elysium_el22sc0_s.dds": "9178b773e70d877f64dbd0b388da01e44f1a25404355e443a1ceb47803405c58",
+      "crhd_elysium_el33sa0_s.dds": "9a3e7bc6f9a009604ce7c75c2a34417186acc73a942a761d057ea158a900b554",
+      "crhd_elysium_el00sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el00sb0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el00sc0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el01ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el01da0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el02ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el02da0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el04ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el04da0_e.dds": "ec2c4a06020754469a5e742ef1d52540ccd403219df88f7f8f8ab2dca4f79f81",
+      "crhd_elysium_el04sa0_e.dds": "774740d385154dfe90ebe33adf3e900a9abcf73b601729d49de483c827853bf7",
+      "crhd_elysium_el04sb0_e.dds": "5acae05c970c1be80c9b5004550326fc0a6f4a02daf0f0796b89cd7d2ffcbd88",
+      "crhd_elysium_el11sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el11sb0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el11sc0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el12ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el12da0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el22sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el22sb0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el22sc0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_elysium_el33sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0"
+    }
+  },
+  "baselineEvidenceNote": "Historical pre-promotion source audits, not replacement-art measurements",
+  "baselineEvidence": {
+    "baseEmissives": {
+      "schema": "cr-base-emissive-accents-v1",
+      "sourceId": "ph_metal_plate",
+      "maximum": 32,
+      "sourceGain": 0.1,
+      "settings": {
+        "type": 4,
+        "color": [
+          28,
+          22,
+          10
+        ],
+        "rectangles": [
+          [
+            0.18,
+            0.2,
+            0.025,
+            0.004
+          ],
+          [
+            0.68,
+            0.7,
+            0.025,
+            0.004
+          ]
+        ]
+      },
+      "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
+    },
+    "sources": [
+      {
+        "id": "7a8203b8f4c2",
+        "name": "CrateredAsteroidTerrain_albedo.png",
+        "engineConversion": "flip_green",
+        "sourceHeightSha256": "faecb95dbdc6fc127c10bbf70c0cca44b52d7d25e99baa11e7ca291328e79736",
+        "convertedSourceSlopeCorrelations": [
+          null,
+          null
+        ],
+        "heightQualification": "unverified absolute polarity: supplied height/normal has no measurable slope variation"
+      },
+      {
+        "id": "37e08a5c5ac8",
+        "name": "rock_ground_02_diff_8k.jpg",
+        "engineConversion": "flip_green",
+        "sourceHeightSha256": "0bd50d0d1c56e66e2ec7d0694ca12e267de46b4230a57408109ccff5a1f6c0ff",
+        "convertedSourceSlopeCorrelations": [
+          0.5055934957777516,
+          0.5056376977547459
+        ],
+        "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+      },
+      {
+        "id": "a664493e4059",
+        "name": "ground_grey_diff_4k.png",
+        "engineConversion": "flip_green",
+        "heightQualification": "unverified absolute polarity: no independent source height"
+      },
+      {
+        "id": "7ca5977439dc",
+        "name": "rocks_ground_04_diff_4k.png",
+        "engineConversion": "flip_green",
+        "heightQualification": "unverified absolute polarity: no independent source height"
+      },
+      {
+        "id": "ph_metal_plate",
+        "name": "metal_plate_diff_4k.jpg",
+        "engineConversion": "flip_green",
+        "sourceHeightSha256": "cb69a366057b6b43627cded72795b58b1d277b00134cfe340d2c677771357efd",
+        "convertedSourceSlopeCorrelations": [
+          0.9366720416446372,
+          0.9336419763972357
+        ],
+        "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+      }
+    ],
+    "normalMips": 220,
+    "nonPositiveZTexels": {},
+    "emissiveTiles": {
+      "crhd_elysium_el00sa0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el00sb0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el00sc0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el01ca0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el01da0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el02ca0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el02da0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el04ca0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el04da0_e.dds": {
+        "maximum": 24,
+        "litFraction": 0.0001239776611328125
+      },
+      "crhd_elysium_el04sa0_e.dds": {
+        "maximum": 24,
+        "litFraction": 0.000247955322265625
+      },
+      "crhd_elysium_el04sb0_e.dds": {
+        "maximum": 24,
+        "litFraction": 0.000247955322265625
+      },
+      "crhd_elysium_el11sa0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el11sb0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el11sc0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el12ca0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el12da0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el22sa0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el22sb0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el22sc0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_elysium_el33sa0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      }
+    },
+    "projectedBasis": {
+      "cases": 24,
+      "minimumCosineToHeightGeometry": 0.9999999999999997,
+      "projectionContract": "Ogre GPU-program RH: clip w=-view z; Direct3D screen y down",
+      "upstreamProjectionSource": "https://github.com/OGRECave/ogre/blob/v1-9-0/RenderSystems/Direct3D11/src/OgreD3D11RenderSystem.cpp#L1473-L1523",
+      "runtimeCameraQualification": "Requires live draw-level validation; analytical projection tests alone are not a game capture"
+    },
+    "limitations": [
+      "Source height and analytical basis checks do not substitute for native GPU draw evidence.",
+      "Nonpositive Z samples are inventoried; native source maps are not silently reauthored."
+    ]
+  }
+}

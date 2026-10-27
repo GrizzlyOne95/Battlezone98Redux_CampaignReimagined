@@ -1,0 +1,121 @@
+[NormalView]
+Time=1100
+FogStart=100
+FogEnd=250
+FogBreak=60
+VisibilityRange=250
+Intensity=40
+Ambient=0
+FlatRange=250
+ShadowLuma=0
+
+[Atlases]
+MaterialName	= ti_detail_atlas
+
+
+[Sky]
+SunTexture=
+SkyType= 0
+SkyHeight = 150
+SkyTexture= titan.map
+
+
+BackdropDistance= 400
+BackdropWidth   = 800
+BackdropHeight  = 100
+
+
+[Clouds]
+Count    = 6
+Type     = 1
+TileSize = 1000
+
+Texture0 = acloud2.map
+Size0    = 500
+Height0  = 140
+
+Texture1 = acloud2.map
+Size1    = 500
+Height1  = 130
+
+Texture2 = acloud2.map
+Size2    = 500
+Height2  = 120
+
+[Stars]
+Radius      = 300
+
+Texture00   = saturn.map
+Size00      = 200
+Azimuth00   = 180
+Elevation00 = 15
+Roll00      = 0
+
+[StarList]
+
+Solid       = 0
+LayerHeight = 15
+Texture     = stars.map
+Radius      = 1000
+
+Start0      = 235
+End0        = 510
+Size0       = 350
+Count0      = 12
+
+Start1      = 235
+End1        = 510
+Size1       = 350
+Count1      = 9 
+
+Start2      = 0
+End2        = 360
+Size2       = 350
+Count2      = 11
+
+[Color]
+Palette=TITAN.ACT
+Luma=TITAN.LUM
+Translucency=TITAN.TBL
+Alpha=TITAN.ALB
+
+[Size]
+MinX=0
+MinZ=97280
+Width=5120
+Depth=5120
+Height=100
+
+[World]
+MusicTrack=2
+
+[Size]
+MinX=0
+MinZ=97280
+Width=5120
+Depth=5120
+Height=50
+
+[TextureType0]
+SolidA0           =ti00sa0.MAP
+SolidA1           =ti00sa1.MAP
+SolidA2           =ti00sa2.MAP
+SolidA3           =ti00sa3.MAP
+
+CapTo3_A0         =ti03ca0.map
+CapTo3_A1         =ti03ca1.map
+CapTo3_A2         =ti03ca2.map
+CapTo3_A3         =ti03ca3.map
+
+DiagonalTo3_A0    =ti03dA0.map
+DiagonalTo3_A1    =ti03dA1.map
+DiagonalTo3_A2    =ti03dA2.map
+DiagonalTo3_A3    =ti03dA3.map
+
+[TextureType3]
+SolidA0           =ti33sA0.map
+SolidA1           =ti33sA1.map
+SolidA2           =ti33sA2.map
+SolidA3           =ti33sA3.map
+
+

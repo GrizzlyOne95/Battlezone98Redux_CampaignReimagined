@@ -29,12 +29,14 @@ StaticGeometry and shades it with Materials/cr_methane.material
       is the NORTH edge (largest z) and column 0 the west edge: the director's sheet
       is not mirrored, and Redux's render space mirrors z, so v runs south.
 
-Pure Python (zlib, struct): CI can run --check without the toolbox or the game.
+The mesh is written by the shared Ogre serializer (Tools/bzmodellibs.py: BZ98RBlenderToolKit and
+numpy); the textures are pure Python (zlib, struct). CI runs --check with the pinned toolkit, not the game.
 """
 
 from __future__ import annotations
 
 import argparse
+import io
 import math
 import random
 import re
@@ -46,7 +48,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MESH_OUT = ROOT / "Assets" / "ModelFixes" / "cr_methane_plane.mesh"
 RIPPLE_OUT = ROOT / "Assets" / "Textures" / "cr_methane_ripple.png"
-MASK_MISSIONS = ("14",)            # CRTitanSites<NN>.lua files that get a mask
+MASK_MISSIONS = ("14", "15", "16")       # Each map uses its own MAT/HG2 wet mask.
 GRID = 16
 RIPPLE_SIZE = 256
 MASK_UPSAMPLE = 2
@@ -95,18 +97,17 @@ def png_pixels(data: bytes) -> tuple[int, int, bytes] | None:
 # ---------------------------------------------------------------------------------------
 
 def mesh_bytes() -> bytes:
-    def chunk(cid: int, body: bytes) -> bytes:
-        return struct.pack("<HI", cid, len(body) + 6) + body
-
-    def string(text: str) -> bytes:
-        return text.encode("ascii") + b"\n"
+    # Written by BZ98RBlenderToolKit's Ogre serializer (AGENTS.md, "Model tooling"), not by hand.
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import numpy as np
+    from bzmodellibs import ogremesh as om, ogremesh_serializer as oms
 
     n = GRID
-    verts = []
+    verts = np.zeros(((n + 1) * (n + 1), 8), dtype="<f4")
     for j in range(n + 1):
         for i in range(n + 1):
             u, v = i / n, j / n
-            verts.append(struct.pack("<8f", u - 0.5, 0.0, v - 0.5, 0.0, 1.0, 0.0, u, v))
+            verts[j * (n + 1) + i] = (u - 0.5, 0.0, v - 0.5, 0.0, 1.0, 0.0, u, v)
     indices = []
     for j in range(n):
         for i in range(n):
@@ -115,17 +116,23 @@ def mesh_bytes() -> bytes:
             # Counter-clockwise seen from +y (the material is two-sided anyway).
             indices += [a, c, b, b, c, d]
 
-    elements = b"".join(chunk(0x5110, struct.pack("<5H", 0, kind, semantic, offset, 0))
-                        for kind, semantic, offset in ((2, 1, 0), (2, 4, 12), (1, 7, 24)))
-    geometry = struct.pack("<I", len(verts)) + chunk(0x5100, elements) + chunk(
-        0x5200, struct.pack("<HH", 0, 32) + chunk(0x5210, b"".join(verts)))
-    submesh = (string("CR/Titan/Methane") + struct.pack("<?I?", False, len(indices), False)
-               + struct.pack("<%dH" % len(indices), *indices)
-               + chunk(0x5000, geometry)
-               + chunk(0x4010, struct.pack("<H", 4)))
-    body = (struct.pack("<?", False) + chunk(0x4000, submesh)
-            + chunk(0x9000, struct.pack("<7f", -0.5, -0.01, -0.5, 0.5, 0.01, 0.5, math.sqrt(0.5))))
-    return struct.pack("<H", 0x1000) + string("[MeshSerializer_v1.100]") + chunk(0x3000, body)
+    mesh = om.Mesh()
+    mesh.skeleton_name = None
+    sub = mesh.create_submesh()
+    sub.material_name = "CR/Titan/Methane"
+    sub.index_count = len(indices)
+    sub.set_index_buffer(np.array(indices, dtype="<u2").tobytes())
+    data = sub.create_vertex_data(len(verts))
+    for semantic_type, semantic, offset in ((om.VET.FLOAT3, om.VES.POSITION, 0),
+                                            (om.VET.FLOAT3, om.VES.NORMAL, 12),
+                                            (om.VET.FLOAT2, om.VES.TEXTURE_COORDINATES, 24)):
+        data.vertex_declaration.create_vertex_element(0, semantic_type, semantic, offset, 0)
+    data.create_vertex_buffer(verts.tobytes(), 0, 32)
+    mesh.aabb = om.AxisAlignedBoundingBox(-0.5, -0.01, -0.5, 0.5, 0.01, 0.5)
+    mesh.bound_radius = math.sqrt(0.5)
+    out = io.BytesIO()
+    oms.MeshSerializer(out).write(mesh)
+    return out.getvalue()
 
 
 # ---------------------------------------------------------------------------------------

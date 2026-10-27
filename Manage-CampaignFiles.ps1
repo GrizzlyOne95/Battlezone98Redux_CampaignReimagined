@@ -1591,19 +1591,19 @@ function Build-WorkshopContent {
         "misn02b.bzn",
         "misn02b.ini",
         "misn02b.bmp",
-        "misn02b.des",
+        "misn02b.mpdes",
         "misn02b.vxt",
         "misn03.lua",
         "misn03.bzn",
         "misn03.ini",
         "misn03.bmp",
-        "misn03.des",
+        "misn03.mpdes",
         "misn03.vxt",
         "misn04.lua",
         "misn04.bzn",
         "misn04.ini",
         "misn04.bmp",
-        "misn04.des",
+        "misn04.mpdes",
         "misn04.vxt"
     )
     foreach ($relativePath in $requiredFiles) {
@@ -1742,7 +1742,372 @@ function Write-WorkshopVdf {
     return $vdfPath
 }
 
+# --- Workshop upload through the running Steam client -----------------------
+#
+# The default upload path. SteamCMD logs in as a second session of the same
+# account, and Steam answers that by signing the desktop client out ("Session
+# Replaced"): the 1.0.0.57 publish kicked the owner out of a running game. The
+# Battlezone98_Modding_Toolbox already uploads through the signed-in client
+# instead, by driving the game's 32-bit steam_api.dll from a helper script, so
+# this calls that helper rather than keeping a second copy of it here.
+#
+# Only the content folder and the change note are sent. Title, description,
+# tags, preview and visibility are never passed, and the helper leaves every
+# field it is not given exactly as it is on Steam, so the hand-edited
+# description cannot be overwritten by a content push.
+
+$WorkshopHelperRelativePath = "bztoolbox\modules\publishing\steamworks_helper.ps1"
+$WorkshopSteamErrorsRelativePath = "bztoolbox\modules\publishing\steam_errors.py"
+$WorkshopUploaderToolFolder = "Battlezone 98 Redux - Uploader Tool"
+# Large uploads on a slow link take a long time; the toolbox allows the same.
+$WorkshopClientUploadTimeoutSeconds = 4 * 3600
+
+# EItemUpdateStatus, as the helper reports it in its progress lines.
+$WorkshopUpdateStatusNames = @{
+    1 = "Preparing"
+    2 = "Preparing content"
+    3 = "Uploading content"
+    4 = "Uploading preview"
+    5 = "Committing changes"
+}
+
+function Resolve-ToolboxRepoRoot {
+    return Resolve-SiblingRepoRoot "BZR_TOOLBOX_REPO" "GIT\Battlezone98_Modding_Toolbox"
+}
+
+function Get-Steam32BitPowerShell {
+    $windowsDir = if ($env:WINDIR) { $env:WINDIR } elseif ($env:SystemRoot) { $env:SystemRoot } else { "C:\Windows" }
+    $path = Join-Path $windowsDir "SysWOW64\WindowsPowerShell\v1.0\powershell.exe"
+    if (Test-Path -LiteralPath $path) { return $path }
+    return $null
+}
+
+function Get-SteamInstallRoot {
+    try {
+        $steamPath = (Get-ItemProperty -Path "HKCU:\Software\Valve\Steam" -Name SteamPath -ErrorAction Stop).SteamPath
+        if ($steamPath) { return [System.IO.Path]::GetFullPath($steamPath) }
+    }
+    catch { }
+    return $null
+}
+
+# The 32-bit steam_api.dll the helper drives: Battlezone 98 Redux ships one,
+# and so does the official uploader tool. BZ_STEAM_API_DIR (the toolbox's own
+# override) and BZR_GAME_DIR are checked first.
+function Find-WorkshopSteamApiDll {
+    $directories = New-Object System.Collections.Generic.List[string]
+    foreach ($variable in @("BZ_STEAM_API_DIR", "BZR_GAME_DIR")) {
+        $value = [Environment]::GetEnvironmentVariable($variable)
+        if ($value -and $value.Trim()) { $directories.Add($value.Trim()) }
+    }
+
+    $libraryRoots = New-Object System.Collections.Generic.List[string]
+    $steamRoot = Get-SteamInstallRoot
+    if ($steamRoot) { $libraryRoots.Add($steamRoot) }
+    $programFilesX86 = [Environment]::GetEnvironmentVariable("ProgramFiles(x86)")
+    if ($programFilesX86) { $libraryRoots.Add((Join-Path $programFilesX86 "Steam")) }
+    if ($steamRoot) {
+        # Extra Steam libraries on other drives.
+        $libraryFile = Join-Path $steamRoot "steamapps\libraryfolders.vdf"
+        if (Test-Path -LiteralPath $libraryFile) {
+            foreach ($match in [regex]::Matches((Get-Content -LiteralPath $libraryFile -Raw), '"path"\s+"([^"]+)"')) {
+                $libraryRoots.Add(($match.Groups[1].Value -replace '\\\\', '\'))
+            }
+        }
+    }
+    foreach ($root in $libraryRoots) {
+        $directories.Add((Join-Path $root "steamapps\common\Battlezone 98 Redux"))
+        $directories.Add((Join-Path $root "steamapps\common\$WorkshopUploaderToolFolder"))
+    }
+
+    foreach ($directory in $directories) {
+        $candidate = Join-Path $directory "steam_api.dll"
+        if (Test-Path -LiteralPath $candidate) { return [System.IO.Path]::GetFullPath($candidate) }
+    }
+    return $null
+}
+
+# The "<prefix>NNN" interface version steam_api.dll was built against. The flat
+# API calls through the vtable of that SDK, so the interface has to be asked
+# for at exactly that version. Old SDKs compiled the ISteamUGC version into the
+# game rather than the DLL, so executables beside it are searched too. Mirrors
+# the toolbox's embedded_interface_version.
+function Get-SteamInterfaceVersion {
+    param(
+        [string]$DllPath,
+        [string]$Prefix,
+        [string]$Default
+    )
+
+    $pattern = [regex]([regex]::Escape($Prefix) + '(\d{3})')
+    $folder = Split-Path -Parent $DllPath
+    $files = @($DllPath) + @(Get-ChildItem -LiteralPath $folder -Filter *.exe -File -ErrorAction SilentlyContinue |
+        Sort-Object Name | ForEach-Object { $_.FullName })
+    foreach ($file in $files) {
+        try {
+            # Latin-1 maps every byte to one char, so ASCII markers survive intact.
+            $text = [System.Text.Encoding]::GetEncoding(28591).GetString([System.IO.File]::ReadAllBytes($file))
+        }
+        catch { continue }
+        $versions = @($pattern.Matches($text) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+        if ($versions.Count -gt 0) { return $Prefix + $versions[-1] }
+    }
+    return $Default
+}
+
+# $null when the Steam client looks signed in; otherwise why not. The helper
+# checks again from inside Steamworks (SteamAPI_Init, BLoggedOn); this only
+# fails early, before staging work is thrown away on a doomed upload.
+function Get-SteamClientProblem {
+    if (-not (Get-Process -Name steam -ErrorAction SilentlyContinue)) {
+        return "Steam is not running. Start the Steam client and sign in with the account that owns Workshop item $WorkshopPublishedFileId, then try again."
+    }
+    try {
+        $activeUser = (Get-ItemProperty -Path "HKCU:\Software\Valve\Steam\ActiveProcess" -Name ActiveUser -ErrorAction Stop).ActiveUser
+        if (-not $activeUser) {
+            return "Steam is running but not signed in. Sign in with the account that owns Workshop item $WorkshopPublishedFileId, then try again."
+        }
+    }
+    catch {
+        # Cannot tell from the registry; let SteamAPI_Init decide.
+    }
+    return $null
+}
+
+# Puts a helper failure into words with the toolbox's steam_errors.py, the same
+# text the toolbox shows: an EResult becomes its name, meaning and fix, and a
+# known helper message gains its fix. Loaded by file path so nothing else in
+# the toolbox (or its dependencies) has to import.
+function Get-WorkshopFailureText {
+    param(
+        [string]$ToolboxRoot,
+        $Payload
+    )
+
+    $eresult = $null
+    if ($Payload.PSObject.Properties["eresult"] -and $null -ne $Payload.eresult) { $eresult = [int]$Payload.eresult }
+    $stage = if ($Payload.PSObject.Properties["stage"] -and $Payload.stage) { [string]$Payload.stage } else { "submit" }
+    $message = if ($Payload.PSObject.Properties["error"] -and $Payload.error) { ([string]$Payload.error) -replace '^NOT_LOGGED_ON: ', '' } else { "" }
+
+    $fallback = if ($message) { $message }
+        elseif ($null -ne $eresult) { "Steam rejected the Workshop upload (EResult $eresult, stage $stage)." }
+        else { "The Steamworks helper reported a failure without saying why." }
+
+    $errorsModule = Join-Path $ToolboxRoot $WorkshopSteamErrorsRelativePath
+    $python = Get-Command python -ErrorAction SilentlyContinue
+    if (-not $python) { $python = Get-Command py -ErrorAction SilentlyContinue }
+    if (-not $python -or -not (Test-Path -LiteralPath $errorsModule)) { return $fallback }
+
+    $script = @'
+import base64, importlib.util, sys
+spec = importlib.util.spec_from_file_location("steam_errors", sys.argv[1])
+errors = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(errors)
+code, stage, message = sys.argv[2], sys.argv[3], sys.argv[4]
+if message != "-":
+    message = base64.b64decode(message).decode("utf-8")
+    print(errors.explain_steamworks_message(message))
+else:
+    print(errors.describe_eresult(int(code), stage))
+'@
+    $codeArgument = if ($null -ne $eresult) { [string]$eresult } else { "2" }
+    # Base64 so quotes survive Windows PowerShell's native argument passing,
+    # which also drops a blank argument; "-" stands for none.
+    $messageArgument = if ($message) { [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($message)) } else { "-" }
+    try {
+        $text = @(& $python.Source -I -c $script $errorsModule $codeArgument $stage $messageArgument 2>$null)
+        if ($LASTEXITCODE -eq 0 -and $text.Count -gt 0) { return ($text -join "`n") }
+    }
+    catch { }
+    return $fallback
+}
+
+# Everything the client upload needs, resolved without contacting Steam. Throws
+# with the reason when something is missing. Shared by the upload and the dry run.
+function Get-WorkshopClientUploadPlan {
+    param(
+        $Config,
+        [string]$ChangeNote
+    )
+
+    $toolboxRoot = Resolve-ToolboxRepoRoot
+    $helper = Join-Path $toolboxRoot $WorkshopHelperRelativePath
+    if (-not (Test-Path -LiteralPath $helper)) {
+        throw ("The Modding Toolbox Steamworks helper was not found at '$helper'. Check out " +
+            "Battlezone98_Modding_Toolbox beside this repository or set BZR_TOOLBOX_REPO to its root.")
+    }
+    $powershell32 = Get-Steam32BitPowerShell
+    if (-not $powershell32) {
+        throw "32-bit Windows PowerShell (SysWOW64) was not found; the Steamworks helper needs it to load the game's 32-bit steam_api.dll."
+    }
+    $dll = Find-WorkshopSteamApiDll
+    if (-not $dll) {
+        throw ("No Battlezone 98 Redux steam_api.dll was found (Steam game folder or the official uploader tool). " +
+            "Install the Steam copy of the game, or set BZ_STEAM_API_DIR to the folder holding its steam_api.dll.")
+    }
+    $ugcVersion = Get-SteamInterfaceVersion -DllPath $dll -Prefix "STEAMUGC_INTERFACE_VERSION"
+    if (-not $ugcVersion) { throw "Could not tell which ISteamUGC version '$dll' was built for." }
+
+    $contentFolder = [System.IO.Path]::GetFullPath([string]$Config.ContentFolder)
+    $b64 = { param($text) [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($text)) }
+    # Content and change note only. Every flag left out keeps Steam's copy.
+    # Windows PowerShell's -File drops an empty argument, which would let the
+    # flag before it swallow the next flag, so a blank note is not passed.
+    $arguments = @(
+        "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+        "-File", $helper,
+        "-DllPath", $dll,
+        "-AppId", $WorkshopAppId,
+        # The item was created as app 301650. Running as the creating app only
+        # matters for preview changes, which this never sends.
+        "-InitAppId", $WorkshopAppId,
+        "-ItemId", $WorkshopPublishedFileId,
+        "-UgcVersion", $ugcVersion,
+        "-UtilsVersion", (Get-SteamInterfaceVersion -DllPath $dll -Prefix "SteamUtils" -Default "SteamUtils008"),
+        "-UserVersion", (Get-SteamInterfaceVersion -DllPath $dll -Prefix "SteamUser" -Default "SteamUser019"),
+        "-TimeoutSeconds", [string]$WorkshopClientUploadTimeoutSeconds,
+        "-ContentB64", (& $b64 $contentFolder)
+    )
+    if ($ChangeNote) { $arguments += @("-NoteB64", (& $b64 $ChangeNote)) }
+    # The description goes only when PublishDescription opts in; the helper
+    # leaves Steam's copy alone when the flag is absent.
+    $descriptionText = Get-WorkshopDescriptionText -Config $Config
+    if ($descriptionText) {
+        if ($descriptionText.Length -gt $script:WorkshopDescriptionMaxLength) {
+            throw ("Description is $($descriptionText.Length) characters; Steam allows " +
+                "$script:WorkshopDescriptionMaxLength. Shorten it before uploading.")
+        }
+        $arguments += @("-DescriptionB64", (& $b64 $descriptionText))
+    }
+
+    return [pscustomobject]@{
+        ToolboxRoot = $toolboxRoot
+        Helper = $helper
+        PowerShell32 = $powershell32
+        DllPath = $dll
+        UgcVersion = $ugcVersion
+        ContentFolder = $contentFolder
+        Arguments = $arguments
+    }
+}
+
+function Write-WorkshopPublishScopeNote {
+    param($Config)
+
+    if ($Config.PublishDescription) {
+        $descriptionText = Get-WorkshopDescriptionText -Config $Config
+        Write-Host ("Sending: content folder, change note and the description ($($descriptionText.Length) characters" +
+            $(if ($Config.DescriptionFile) { " from $($Config.DescriptionFile)" } else { "" }) +
+            "), replacing the live one. Title, tags, preview and visibility are left exactly as they are on Steam.") -ForegroundColor Yellow
+    }
+    else {
+        Write-Host ("Sending: content folder and change note only. Title, description, tags, preview and " +
+            "visibility are left exactly as they are on Steam.") -ForegroundColor DarkGray
+    }
+}
+
+function Invoke-WorkshopClientUpload {
+    param(
+        [string]$ChangeNote,
+        $Config
+    )
+
+    $cfg = $Config
+    if (-not $cfg) { $cfg = Get-PublishConfig }
+    if (-not $cfg) { return }
+
+    if (-not (Test-Path $cfg.ContentFolder)) {
+        throw "ContentFolder not found: $($cfg.ContentFolder). Build the validated Workshop staging payload first."
+    }
+    $problem = Get-SteamClientProblem
+    if ($problem) { throw $problem }
+
+    $plan = Get-WorkshopClientUploadPlan -Config $cfg -ChangeNote $ChangeNote
+    Write-WorkshopPublishScopeNote -Config $cfg
+
+    [System.IO.Directory]::CreateDirectory($WorkshopLocalRoot) | Out-Null
+    $uploadLog = Join-Path $WorkshopLocalRoot ("steamclient_upload_" + (Get-Date -Format "yyyyMMdd_HHmmss") + ".log")
+    Write-Host "Uploading app $WorkshopAppId item $WorkshopPublishedFileId to Steam Workshop through the running Steam client..." -ForegroundColor Cyan
+    Write-Host "  helper: $($plan.Helper)" -ForegroundColor DarkGray
+    Write-Host "  steam_api.dll: $($plan.DllPath) ($($plan.UgcVersion))" -ForegroundColor DarkGray
+
+    # The helper prints one JSON object per line: progress while uploading and
+    # a final {"ok": ...}. Anything else (a PowerShell error) is kept for the log.
+    $payload = $null
+    $lastProgress = ""
+    $other = New-Object System.Collections.Generic.List[string]
+    & $plan.PowerShell32 @($plan.Arguments) 2>&1 | ForEach-Object {
+        $line = ([string]$_).Trim()
+        Add-Content -LiteralPath $uploadLog -Value $line -Encoding UTF8
+        if (-not $line.StartsWith("{")) {
+            if ($line) { $other.Add($line) }
+            return
+        }
+        try { $data = $line | ConvertFrom-Json }
+        catch { $other.Add($line); return }
+
+        if ($data.PSObject.Properties["progress"]) {
+            $status = [int]$data.progress.status
+            $statusName = if ($WorkshopUpdateStatusNames.ContainsKey($status)) { $WorkshopUpdateStatusNames[$status] } else { "Status $status" }
+            $total = [double]$data.progress.total
+            $text = if ($total -gt 0) {
+                "{0}: {1:N1} / {2:N1} MB ({3:P0})" -f $statusName, ([double]$data.progress.processed / 1MB), ($total / 1MB), ([double]$data.progress.processed / $total)
+            } else { $statusName }
+            if ($text -ne $lastProgress) { Write-Host "  $text" -ForegroundColor DarkCyan; $lastProgress = $text }
+        }
+        elseif ($data.PSObject.Properties["ok"]) {
+            $payload = $data
+        }
+    }
+    $exitCode = $LASTEXITCODE
+
+    if (-not $payload) {
+        $detail = if ($other.Count -gt 0) { ": " + $other[$other.Count - 1] } else { "" }
+        throw "The Steamworks helper exited with code $exitCode and no result$detail. See '$uploadLog'."
+    }
+    if (-not $payload.ok) {
+        $reason = Get-WorkshopFailureText -ToolboxRoot $plan.ToolboxRoot -Payload $payload
+        throw "Workshop upload FAILED. Nothing was published.`n$reason`nSee '$uploadLog'."
+    }
+    if ($payload.PSObject.Properties["needs_legal_agreement"] -and $payload.needs_legal_agreement) {
+        Write-Host ("Steam reports the Workshop legal agreement is not accepted for this account; the item " +
+            "stays hidden until it is: https://steamcommunity.com/sharedfiles/workshoplegalagreement") -ForegroundColor Yellow
+    }
+
+    $receipt = [ordered]@{
+        AppId = $WorkshopAppId
+        PublishedFileId = $WorkshopPublishedFileId
+        UploadedAt = (Get-Date).ToString("o")
+        Method = "steam-client"
+        ChangeNote = $ChangeNote
+        ContentFolder = [string]$cfg.ContentFolder
+        ContentManifest = (Join-Path $WorkshopLocalRoot "content_manifest.sha256")
+        SteamApiDll = $plan.DllPath
+        UploadLog = $uploadLog
+    }
+    $receipt | ConvertTo-Json -Depth 4 |
+        Set-Content -LiteralPath (Join-Path $WorkshopLocalRoot "last_upload.json") -Encoding UTF8
+    Write-Host "Workshop upload succeeded for item $WorkshopPublishedFileId (EResult 1)." -ForegroundColor Green
+}
+
 function Invoke-WorkshopUpload {
+    param(
+        [string]$ChangeNote,
+        $Config,
+        [switch]$UseSteamCmd
+    )
+
+    if (-not $UseSteamCmd) {
+        Invoke-WorkshopClientUpload -ChangeNote $ChangeNote -Config $Config
+        return
+    }
+    Invoke-WorkshopSteamCmdUpload -ChangeNote $ChangeNote -Config $Config
+}
+
+# Opt-in only (-steamcmd), for a machine with no desktop Steam client. SteamCMD
+# signs in as its own session, which signs the desktop client of the same
+# account out: never use it on a machine where that account is playing.
+function Invoke-WorkshopSteamCmdUpload {
     param(
         [string]$ChangeNote,
         $Config
@@ -1759,6 +2124,8 @@ function Invoke-WorkshopUpload {
         return
     }
 
+    Write-Host ("Warning: -steamcmd signs in as a second session and will sign the desktop Steam client " +
+        "of '$($cfg.SteamUser)' out, including any running game.") -ForegroundColor Yellow
     $vdfPath = Write-WorkshopVdf -Config $cfg -ChangeNote $ChangeNote
 
     $steamArgs = @(
@@ -1798,6 +2165,9 @@ function Initialize-WorkshopAuth {
     $cfg = Get-PublishConfig -RequireSteamCmd -RequireSteamUser
     if (-not $cfg) { return }
 
+    Write-Host ("Only the -steamcmd upload path needs this. The default upload uses the running Steam " +
+        "client and needs no separate login. SteamCMD signing in signs the desktop client out.") -ForegroundColor Yellow
+
     Write-Host "Starting interactive SteamCMD authentication for '$($cfg.SteamUser)'." -ForegroundColor Cyan
     Write-Host "SteamCMD may request your password and Steam Guard code; neither is stored in this repository." -ForegroundColor Yellow
     & $cfg.SteamCmdPath "+login" ([string]$cfg.SteamUser) "+quit"
@@ -1808,7 +2178,8 @@ function Initialize-WorkshopAuth {
 
 function Build-WorkshopPackage {
     param(
-        [string]$Message
+        [string]$Message,
+        [switch]$UseSteamCmd
     )
 
     $cfg = Get-PublishConfig
@@ -1819,25 +2190,59 @@ function Build-WorkshopPackage {
 
     $build = Build-WorkshopContent -Config $cfg
     if (-not $build) { return }
-    $vdfPath = Write-WorkshopVdf -Config $cfg -ChangeNote $Message
-    Write-Host "Workshop dry run complete. Upload VDF: $vdfPath" -ForegroundColor Green
+    if ($UseSteamCmd) {
+        $vdfPath = Write-WorkshopVdf -Config $cfg -ChangeNote $Message
+        Write-Host "Workshop dry run complete. SteamCMD upload VDF: $vdfPath" -ForegroundColor Green
+        return $build
+    }
+
+    # Resolve the Steam-client upload exactly as -workshop-upload would, short
+    # of running the helper, so a missing toolbox or DLL shows up here.
+    $plan = Get-WorkshopClientUploadPlan -Config $cfg -ChangeNote $Message
+    Write-WorkshopPublishScopeNote -Config $cfg
+    Write-Host "Steam-client upload plan (not run):" -ForegroundColor Cyan
+    Write-Host "  helper: $($plan.Helper)" -ForegroundColor DarkGray
+    Write-Host "  steam_api.dll: $($plan.DllPath) ($($plan.UgcVersion))" -ForegroundColor DarkGray
+    Write-Host "  content: $($plan.ContentFolder)" -ForegroundColor DarkGray
+    Write-Host "  change note: $Message" -ForegroundColor DarkGray
+    $problem = Get-SteamClientProblem
+    if ($problem) {
+        Write-Host "  Steam client: $problem" -ForegroundColor Yellow
+    }
+    else {
+        Write-Host "  Steam client: running and signed in." -ForegroundColor DarkGray
+    }
+    Write-Host "Workshop dry run complete." -ForegroundColor Green
     return $build
 }
 
 function Publish-All {
     param(
-        [string]$Message
+        [string]$Message,
+        [switch]$UseSteamCmd
     )
 
-    $cfg = Get-PublishConfig -RequireSteamCmd -RequireSteamUser
+    if ($UseSteamCmd) {
+        $cfg = Get-PublishConfig -RequireSteamCmd -RequireSteamUser
+    }
+    else {
+        $cfg = Get-PublishConfig
+    }
     if (-not $cfg) { return }
     if (-not $Message) {
         $Message = "Campaign Reimagined update " + (Get-Date -Format "yyyy-MM-dd HH:mm")
     }
 
+    if (-not $UseSteamCmd) {
+        # Fail before staging, not after it, when the upload cannot happen.
+        $problem = Get-SteamClientProblem
+        if ($problem) { throw $problem }
+        Get-WorkshopClientUploadPlan -Config $cfg -ChangeNote $Message | Out-Null
+    }
+
     $build = Build-WorkshopContent -Config $cfg
     if (-not $build) { return }
-    Invoke-WorkshopUpload -ChangeNote $Message -Config $cfg
+    Invoke-WorkshopUpload -ChangeNote $Message -Config $cfg -UseSteamCmd:$UseSteamCmd
 }
 
 function Show-Menu {
@@ -1856,10 +2261,10 @@ function Show-Menu {
     Write-Host ""
     Write-Host "1. Sync To Source (Pull GOG working runtime -> source tree)"
     Write-Host "2. Deploy GOG Test Mod (Flatten source tree -> GOG mods install)"
-    Write-Host "3. Workshop Upload (clean staging + validation + upload)"
+    Write-Host "3. Workshop Upload (clean staging + validation + upload via the running Steam client)"
     Write-Host "4. Sync from Runtime only (same as option 1)"
-    Write-Host "5. Workshop Dry Run (clean staging + VDF only)"
-    Write-Host "6. SteamCMD Authentication Bootstrap"
+    Write-Host "5. Workshop Dry Run (clean staging + upload plan only)"
+    Write-Host "6. SteamCMD Authentication Bootstrap (-steamcmd uploads only)"
     Write-Host "7. Prepare Update (build DLLs, check, deploy/test GOG, make all bundles)"
     Write-Host "8. Initialize local release/build configuration"
     Write-Host "Q. Quit"
@@ -2172,6 +2577,15 @@ $KnownActions = @(
     "-publish"
 )
 
+# -steamcmd is a modifier for the Workshop actions, not an action: it may
+# appear anywhere after the action and is never part of the change note.
+$UseSteamCmd = $args -contains "-steamcmd"
+function Get-WorkshopChangeNoteFromArgs($actionArgs) {
+    $rest = @($actionArgs | Select-Object -Skip 1 | Where-Object { $_ -ne "-steamcmd" })
+    if ($rest.Count -eq 0) { return $null }
+    return ($rest -join " ")
+}
+
 # Check for args to run non-interactively
 if ($args[0] -eq "-sync") {
     Sync-ToSource
@@ -2214,11 +2628,7 @@ elseif ($args[0] -eq "-addon") {
     Sync-FromRuntime
 }
 elseif ($args[0] -eq "-workshop-build") {
-    $message = $null
-    if ($args.Count -gt 1) {
-        $message = ($args[1..($args.Count - 1)] -join " ")
-    }
-    Build-WorkshopPackage -Message $message
+    Build-WorkshopPackage -Message (Get-WorkshopChangeNoteFromArgs $args) -UseSteamCmd:$UseSteamCmd
 }
 elseif ($args[0] -eq '-release-init') {
     Initialize-ReleaseConfig
@@ -2250,25 +2660,21 @@ elseif ($args[0] -eq "-workshop-init") {
     }
     $cfg = Get-Content -LiteralPath $target -Raw | ConvertFrom-Json
     if (-not $cfg.SteamUser -and -not $env:STEAM_USERNAME) {
-        Write-Host ("Still required: SteamUser (the Steam account that can update item " +
-            "$WorkshopPublishedFileId), either in workshop.config.json or as STEAM_USERNAME.") -ForegroundColor Yellow
+        Write-Host ("SteamUser is only needed for -steamcmd uploads (the default upload uses whoever is " +
+            "signed in to the Steam client, which must own item $WorkshopPublishedFileId).") -ForegroundColor DarkGray
     }
     Write-Host "PublishDescription is $([bool]$cfg.PublishDescription); leave it false unless this run is meant to replace the live Steam description." -ForegroundColor DarkGray
-    Write-Host "Then: -workshop-auth (once per machine), -workshop-build (dry run), -workshop-upload `"<change note>`"." -ForegroundColor DarkGray
+    Write-Host "Then: -workshop-build (dry run), then -workshop-upload `"<change note>`" with the Steam client running and signed in." -ForegroundColor DarkGray
 }
-elseif ($args[0] -eq "-workshop-upload") {
-    $message = $null
-    if ($args.Count -gt 1) {
-        $message = ($args[1..($args.Count - 1)] -join " ")
+elseif ($args[0] -eq "-workshop-upload" -or $args[0] -eq "-publish") {
+    try {
+        Publish-All -Message (Get-WorkshopChangeNoteFromArgs $args) -UseSteamCmd:$UseSteamCmd
     }
-    Publish-All -Message $message
-}
-elseif ($args[0] -eq "-publish") {
-    $message = $null
-    if ($args.Count -gt 1) {
-        $message = ($args[1..($args.Count - 1)] -join " ")
+    catch {
+        Write-Host ""
+        Write-Host $_.Exception.Message -ForegroundColor Red
+        exit 1
     }
-    Publish-All -Message $message
 }
 elseif ($args.Count -eq 0) {
     # The genuine interactive case: no action was asked for at all.

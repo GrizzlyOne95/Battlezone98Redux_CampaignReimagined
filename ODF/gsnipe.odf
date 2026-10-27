@@ -1,0 +1,31 @@
+[WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored sniper: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_sniper.mesh"
+flashMaterial = "CR/Muzzle/sniper"
+flashDuration = 0.03
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+// CR WEAPON CASING BEGIN
+// Ballistic small brass; local cosmetic only.
+casingType = "small"
+// CR WEAPON CASING END
+// CR WEAPON RECOIL BEGIN
+// Opt-in recoil: the craft supplies the node/distance/return, this weapon supplies the kick.
+// A craft's recoilKick<N> overrides it (e.g. 0.15 for a scout's miniguns). Machineguns get none.
+recoilKick = 1.0
+// CR WEAPON RECOIL END
+classLabel = "snipergun"
+ordName = "snipe"
+wpnName = "Sniper Rifle"
+fireSound = "gsnipe00.wav"
+wpnReticle = "gminigun"
+wpnPriority = 0
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 1.0
+

@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Execute the complete mission with separate Lua 5.1 environments and the real
 -- CRCoop registry. Engine/network mocks verify script decisions, not Redux
 -- native map loading, physics, pathfinding, Lua wire serialization, or EXU hooks.
@@ -124,6 +126,7 @@ local function makePeer(id, team, network)
     e.CameraReady = function() record("CameraReady"); p.skip = false end
     e.CameraFinish = function() record("CameraFinish") end
     e.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         local args = { ... }
         -- Conservative payload estimate: doubles plus per-field type tags;
         -- strings include terminators. Actual handle encoding is smaller.
@@ -180,6 +183,10 @@ local function makePeer(id, team, network)
         CRMoonSites02b = {mission = "misn02b"},
     }
     local modules = {
+        Environment = { Init = function(options) p.environmentOptions = options end,
+            BindWeatherSensors = function(name, director) p.weatherSensors = {name, director} end,
+            InvalidateRenderer = function() record("environmentInvalidate") end,
+            Update = function() record("environmentUpdate") end },
         RequireFix = { Initialize = noop }, exu = {
             GetMyNetID = function() return id end, GetDifficulty = function() return p.difficulty end,
             SetDifficulty = function(d) p.difficulty = d end,
@@ -195,6 +202,7 @@ local function makePeer(id, team, network)
     }
     for k, v in pairs(moonModules) do modules[k] = v end
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     e.package = setmetatable({loaded={exu=modules.exu}}, {__index=package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
@@ -241,6 +249,11 @@ settle()
 check(host.state.start_done and host.state.camera1, "leader opening did not run")
 -- CR Moon weather: the leader runs the director on the map data, guests follow the ordered stream.
 check(host.moon.init.authority and host.moon.init.sites.mission == "misn02b", "the leader runs the Moon weather director on the misn02b sites")
+check(host.environmentOptions.lightingMode == "subtle" and host.environmentOptions.nativeBaseline,
+    "Moon lighting uses bounded native-baseline TOD")
+check(host.weatherSensors and host.weatherSensors[1] == "Moon" and host.weatherSensors[2].Seed == 4242,
+    "Moon weather director is bound to Environment sensors")
+check(count(host, "environmentUpdate") > 0, "Moon updates Environment alongside weather")
 for _, c in ipairs(clients) do
     check(not c.moon.init.authority and c.moon.init.seed == nil, "guests run the director from the host's events")
     check(c.moon.updates > 0, "guests update the Moon weather every frame")
@@ -321,11 +334,14 @@ check(solo.state.camera1 and count(solo, "SetPosition") == 1 and count(solo, "au
 check(count(solo, "DisableStartingRecycler") == 0 and #packets == 0, "offline used network")
 solo.skip = true; tick(0.1)
 check(not solo.state.camera3 and solo.state.intro_skipped, "offline skip changed")
-local saved = solo.env.Save(); solo.env.Load(saved, {}, {}); now = now + 3; solo.env.Update()
+local saved = solo.env.Save(); local savedWeather = saved.moonWeatherState
+solo.env.Load(saved, {}, {}); now = now + 3; solo.env.Update()
 -- CR Moon weather offline: the host path with nothing sent, and its state survives Save.
 check(solo.moon.init.authority and solo.moon.init.send == nil and solo.moon.announces == 0
     and solo.moon.init.sites.mission == "misn02b", "offline Moon weather is the host path with nothing sent")
-check(solo.moon.updates > 0 and saved.moonWeatherState ~= nil and saved.moonWeatherState.saved, "Moon weather state is saved and the seed persists")
+check(solo.moon.updates > 0 and savedWeather and solo.moon.loaded == savedWeather,
+    "Moon weather state is restored through the deferred init path")
+check(count(solo,"environmentInvalidate")>0,"load invalidates cached renderer writes")
 check(solo.state.loading_done and count(solo, "clutter") == 2, "offline load did not rehydrate")
 solo.env.BuildObject("avscav", 1, "start"); objects[solo.player].alive = false
 solo.audioDone = true; tick(0.1)

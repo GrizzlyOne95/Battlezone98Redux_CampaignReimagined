@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "sources": {
+    "exteriorSha256": "39aed073ab49726722e634ea9d43622835516b7677c22a54184330fe40f596e5",
+    "skeletonSha256": "61676c8d88315ed5e4ce95c55a5a5ee32ff614d8780d18e14060396e94fe4d6d"
+  },
+  "outputs": {
+    "Assets/Models/cvtnk_cockpit.mesh": "3614346c93d463a1aadace54a1fccbb10c1bd392748b046fa9db261d0a363739",
+    "Assets/Models/cvtnk_cockpit.skeleton": "61676c8d88315ed5e4ce95c55a5a5ee32ff614d8780d18e14060396e94fe4d6d",
+    "Materials/CR_cvtnk_cockpit.material": "4d198485295e05a5eb8531ebe990f67027d7a723eeb1a2d5f6c924de200a9372"
+  },
+  "alignment": {
+    "faction": "cra",
+    "base": "cvtnk",
+    "pov": "CYE11POV",
+    "povPosition": [
+      0.0,
+      1.7300000190734863,
+      3.5074000358581543
+    ],
+    "povBasis": [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "shell": "CYE21BDA",
+    "shellHandle": 12,
+    "panels": [
+      {
+        "points": [
+          [
+            -0.065,
+            -0.229,
+            0.365
+          ],
+          [
+            -0.172,
+            -0.176,
+            0.356
+          ],
+          [
+            -0.264,
+            -0.264,
+            0.206
+          ],
+          [
+            -0.103,
+            -0.347,
+            0.222
+          ]
+        ],
+        "chart": "switch",
+        "depth": 0.006
+      },
+      {
+        "points": [
+          [
+            0.065,
+            -0.229,
+            0.365
+          ],
+          [
+            0.172,
+            -0.176,
+            0.356
+          ],
+          [
+            0.264,
+            -0.264,
+            0.206
+          ],
+          [
+            0.103,
+            -0.347,
+            0.222
+          ]
+        ],
+        "chart": "service",
+        "depth": 0.006
+      }
+    ],
+    "stockCockpitRetained": true,
+    "stockTriangles": 105,
+    "gunBones": [
+      11
+    ],
+    "gunOffset": [
+      0.0,
+      0.02,
+      4.3
+    ],
+    "apronSourceIndices": [
+      731,
+      1517,
+      1988,
+      1989,
+      1995,
+      1996,
+      2297,
+      2298,
+      2304,
+      2305
+    ],
+    "apronOffset": [
+      0.0,
+      -0.30532397747039797,
+      0.0
+    ],
+    "apronTriangles": 10,
+    "innerShell": {
+      "triangles": 32,
+      "boundaryEdges": 10,
+      "boundaryLoops": 1
+    },
+    "window": {
+      "width": 0.34,
+      "lip": -0.43,
+      "front": 0.69,
+      "roof": 0.3
+    },
+    "nativeVdfSha256": "8f399b47d325d28b7b4d67f88b06a8954be84bb34fcfaaae30e3ca8f01438790",
+    "gunWeightSha256": "98bed8b46925a294afbab333f6116a64a1516b3adaf6db14f4f8246a8784d7bd"
+  },
+  "glass": {
+    "openFraction": 0.40450583040869464,
+    "depth": [
+      0.3152095923923986,
+      1.76820287162503
+    ],
+    "bone": "CYE21BDA",
+    "vertices": 576,
+    "triangles": 1006
+  },
+  "triangles": {
+    "cvtnk01": 105,
+    "CRV/CVBomberCockpit": 536,
+    "CRV/cvtnkTankGuns": 589,
+    "CRV/cvtnkTankHull": 10
+  },
+  "atlasPolicy": "Reuse original and accepted faction atlases; no duplicate DDS"
+}

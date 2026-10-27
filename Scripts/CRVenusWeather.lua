@@ -63,7 +63,9 @@
 
 local exu = require("exu")
 local CRWeather = require("CRWeather")
+local Wake = require("CRWake")
 local Map = require("CRVenusMap")
+local PoolFX = require("CRPoolFX")
 
 local CRVenusWeather = {}
 local V = CRVenusWeather
@@ -84,7 +86,9 @@ V.AllowRadarScramble   = true
 V.AllowFlash           = true    -- local scene flash on a strike
 V.AllowClouds          = true
 V.AllowAcidRain        = true    -- visual only
+V.AllowGlassAcid       = true    -- acid rain on the cockpit glass: yellow-green drops and a slow etch haze (CRWetGlass)
 V.AllowSulfur          = true
+V.AllowPoolFx          = true    -- yellow bubble pops, motes and pale fumes on the liquid-sulphur pools (CRPoolFX)
 V.AllowVents           = true
 V.AllowEruptions       = true
 V.AllowSensorDegrade   = true    -- storm-wide radar / velocity-jam scales
@@ -221,6 +225,12 @@ V.FlashAmbient         = { r = 0.46, g = 0.43, b = 0.34 }
 V.FlashDiffuse         = { r = 0.52, g = 0.48, b = 0.36 }
 V.FlashSunBoost        = 0.9
 V.FlashSeconds         = 0.42
+-- The sky dome's share of a flash (CR_venussky lights the cloud deck round it).
+-- A strike lights the deck this high above its point; heat lightning sits low
+-- on the horizon, at a heading stepped by the golden angle so no RNG is drawn.
+V.SkyFlashHeight       = 260.0
+V.SkyFlashFloor        = 0.35    -- even a far strike lights its patch of deck this much
+V.HeatFlashElevation   = 10.0    -- degrees
 
 -- Storm lighting beyond the presets.
 V.GloomDim             = 0.14
@@ -250,6 +260,14 @@ V.SulfurBurpSeconds    = 0.35
 V.SulfurBurpSound      = "lburn1.wav"
 V.SulfurSoundRange     = 90.0
 V.SulfurSoundVolume    = 45
+-- Pool pops (CRPoolFX through CRGroundFX "sulfur"): at most PoolFxNear pools within
+-- PoolFxRange of the player fire one event each every PoolFxGap seconds, quicker as
+-- the storm builds (1 + 0.5 x severity). CRGroundFX caps the live emitters (4 systems).
+V.PoolFxRange          = 170.0
+V.PoolFxNear           = 3
+V.PoolFxGap            = { 1.6, 4.2 }
+V.PoolFxRadius         = 24.0
+V.PoolFxMask           = { glow = 1.4, drops = 1.4, motes = 1.6 }   -- pale-yellow pops read faintly in the thick haze
 
 -- Vents.
 V.VentMergeRadius      = 45.0
@@ -1277,6 +1295,39 @@ local function UpdateRain()
     end
 end
 
+-- Acid rain on the cockpit glass (CRWetGlass). The same rain value that drives the particle rain
+-- (V.GetRainIntensity, already eased through the ladder) goes to the glass as its rain intensity and
+-- as the "acid" level: drops and streaks are drawn in a faint yellow-green and a very faint pitted
+-- etch builds over minutes of exposure and clears slowly. Render only, local to each peer. Off with
+-- the director, with AllowAcidRain, with AllowGlassAcid or with CRWeather.Quality 0; Quality below 1
+-- scales the level (a lighter rain and a slower etch).
+local GlassModule = nil
+local function Glass()
+    if GlassModule == nil then
+        local ok, m = pcall(require, "CRWetGlass")
+        GlassModule = (ok and type(m) == "table" and type(m.Weather) == "function"
+            and type(m.Update) == "function") and m or false
+    end
+    return GlassModule or nil
+end
+
+local function UpdateGlassAcid()
+    local glass = Glass()
+    if glass == nil then return end
+    local level = 0.0
+    local quality = tonumber(CRWeather.Quality) or 1.0
+    if V.AllowGlassAcid and quality > 0.0 then
+        level = V.GetRainIntensity()
+        if level < 0.02 then level = 0.0 end
+        level = level * Clamp(quality, 0.0, 1.0)
+    end
+    V.GlassAcid = level
+    glass.Weather("acid", level)
+    if level > 0.0 or glass.Busy() then glass.Update(level) end
+end
+
+function V.GetGlassAcid() return V.GlassAcid or 0.0 end
+
 -- =============================================================================
 -- Cloud deck
 -- =============================================================================
@@ -1655,7 +1706,7 @@ local function ImpactStrike(strike)
     end
 
     if V.AllowFlash then
-        V.Flashes[#V.Flashes + 1] = { at = V.Clock, strength = FlashStrength(strike.x, strike.z) }
+        V.Flashes[#V.Flashes + 1] = { at = V.Clock, strength = FlashStrength(strike.x, strike.z), x = strike.x, z = strike.z }
         if #V.Flashes > 6 then table.remove(V.Flashes, 1) end
     end
     PlayThunder(strike.x, strike.z, strike.power)
@@ -1768,6 +1819,16 @@ end
 
 local function SulfurDestroy(_, record)
     Fx_Destroy(record.name)
+end
+
+-- Yellow bubble pops, drifting motes and pale fumes on the nearest sulphur pools.
+local function UpdatePoolFx(dt)
+    if V.PoolFx == nil then return end
+    PoolFX.Update(V.PoolFx, dt, LocalPlayerPosition(), {
+        enabled = V.AllowPoolFx and V.AllowSulfur and V.TemplatesReady,
+        scale = 1.0 + (0.5 * V.GetSeverity()),
+        quality = CRWeather.Quality,
+    })
 end
 
 local function UpdateSulfur()
@@ -1959,21 +2020,43 @@ end
 -- Environment contribution
 -- =============================================================================
 
+-- A strike flickers: a hard first pulse, a dip, a weaker second.
+local function FlashPulse(age)
+    if age < 0.0 or age >= V.FlashSeconds then return 0.0 end
+    local first = math.exp(-age * 11.0)
+    local second = 0.0
+    if age > 0.13 then second = 0.55 * math.exp(-(age - 0.13) * 13.0) end
+    return math.max(first, second)
+end
+
 local function FlashCurve()
     local total = 0.0
     for i = 1, #V.Flashes do
         local f = V.Flashes[i]
-        local age = V.Clock - f.at
-        if age >= 0.0 and age < V.FlashSeconds then
-            -- A strike flickers: a hard first pulse, a dip, a weaker second.
-            local first = math.exp(-age * 11.0)
-            local second = 0.0
-            if age > 0.13 then second = 0.55 * math.exp(-(age - 0.13) * 13.0) end
-            total = total + (f.strength * math.max(first, second))
-        end
+        total = total + (f.strength * FlashPulse(V.Clock - f.at))
     end
     return Clamp(total, 0.0, 1.0)
 end
+
+-- The brightest flash on the sky right now: its strength and the direction
+-- from the local player toward the patch of deck it lights.
+local function SkyFlash()
+    local best, bestFlash = 0.0, nil
+    for i = 1, #V.Flashes do
+        local f = V.Flashes[i]
+        local sky = (f.x ~= nil and math.max(f.strength, V.SkyFlashFloor) or f.strength) * FlashPulse(V.Clock - f.at)
+        if sky > best then best, bestFlash = sky, f end
+    end
+    if bestFlash == nil then return 0.0, nil end
+    local p = bestFlash.x ~= nil and LocalPlayerPosition() or nil
+    if p ~= nil then
+        return Clamp(best, 0.0, 1.0), { x = bestFlash.x - p.x, y = V.SkyFlashHeight, z = bestFlash.z - p.z }
+    end
+    local heading = (bestFlash.at * 2.39996) % (2.0 * math.pi)
+    local e = math.rad(V.HeatFlashElevation)
+    return Clamp(best, 0.0, 1.0), { x = math.sin(heading) * math.cos(e), y = math.sin(e), z = math.cos(heading) * math.cos(e) }
+end
+V.SkyFlash = SkyFlash
 
 local function EnvironmentModifier(frame)
     if not V.Enabled then return end
@@ -2061,6 +2144,17 @@ local function EnvironmentModifier(frame)
             end
         end
     end
+
+    -- The sky dome's share (Environment forwards it to CR_venussky): the same
+    -- gloom and bank as the light, and the brightest flash with its direction.
+    local skyFlash, skyFlashDir = 0.0, nil
+    if V.AllowFlash then skyFlash, skyFlashDir = SkyFlash() end
+    frame.sky = {
+        storm = Clamp(gloom, 0.0, 1.0),
+        bank = (V.AllowFogBanks and Clamp(bank, 0.0, 1.0)) or 0.0,
+        flash = skyFlash,
+        flashDir = skyFlashDir,
+    }
 end
 
 V.EnvironmentModifier = EnvironmentModifier
@@ -2217,9 +2311,10 @@ function V.Init(options)
     local switches = {
         fogPools = "AllowFogPools", altitudeFog = "AllowAltitudeFog", lightning = "AllowLightning",
         knockback = "AllowKnockback", radarScramble = "AllowRadarScramble", flash = "AllowFlash",
-        clouds = "AllowClouds", acidRain = "AllowAcidRain", sulfur = "AllowSulfur",
+        clouds = "AllowClouds", acidRain = "AllowAcidRain", sulfur = "AllowSulfur", poolFx = "AllowPoolFx",
         vents = "AllowVents", eruptions = "AllowEruptions", sensorDegrade = "AllowSensorDegrade",
         episodes = "AllowEpisodes", fogBanks = "AllowFogBanks", fogDrama = "AllowFogDrama",
+        glassAcid = "AllowGlassAcid",
     }
     for key, field in pairs(switches) do
         if options[key] ~= nil then V[field] = options[key] and true or false end
@@ -2233,6 +2328,13 @@ function V.Init(options)
         quality = options.quality,
         debug   = options.debug,
         baseSky = options.baseSky,
+    })
+
+    -- Vehicle wakes: render-only debris under low, moving craft near the viewer
+    -- (shared CRWake module). options.vehicleWakes = false switches them off.
+    pcall(Wake.Init, {
+        surface = "ash", enabled = options.vehicleWakes ~= false, quality = options.quality,
+        debug = options.debug,
     })
 
     -- Our particle templates are an opt-in payload, so a build that has not
@@ -2249,6 +2351,7 @@ function V.Init(options)
     end
 
     V.Clock = 0.0
+    V.GlassAcid = 0.0
     V.LastRealTime = nil
     V.TargetLevel = Clamp(tonumber(options.targetLevel) or 2, 1, LEVEL_COUNT)
     V.ForcedLevel = nil
@@ -2300,12 +2403,28 @@ function V.Init(options)
     -- Map data.
     local sites = options.sites
     V.SulfurSites, V.VentSites = {}, {}
+    V.PoolFx, V.SulfurCells, V.SulfurGeom = nil, {}, nil
     if sites ~= nil then
         if sites.sulfur ~= nil then
             local cells = Map.ExpandRuns(sites.sulfur)
             local clustered = Map.ClusterSulfur(cells, sites.sulfur, {})
             V.SulfurSites = clustered.emitters
             V.SulfurClusters = clustered.clusters
+            V.SulfurCells = cells
+            V.SulfurGeom = {
+                cols = sites.sulfur.cols, rows = sites.sulfur.rows, cell = sites.sulfur.cell,
+                originX = sites.sulfur.originX, originZ = sites.sulfur.originZ,
+            }
+            -- The rng is looked up per call: BuildLadder replaces V.FxRng when a guest's seed arrives.
+            local poolRng = { Range = function(lo, hi)
+                if V.FxRng == nil then return (lo + hi) * 0.5 end
+                return V.FxRng.Range(lo, hi)
+            end }
+            V.PoolFx = PoolFX.New({
+                kind = "sulfur", sites = V.SulfurSites, rng = poolRng, weightAt = V.SulfurWeightAt,
+                heightAt = TerrainHeight, range = V.PoolFxRange, maxNear = V.PoolFxNear,
+                gap = V.PoolFxGap, radius = V.PoolFxRadius, mask = V.PoolFxMask,
+            })
         end
         if sites.vents ~= nil then
             V.VentSites = Map.MergeVents(sites.vents, V.VentMergeRadius)
@@ -2370,10 +2489,12 @@ function V.Update(dt)
     UpdatePoolFactor(dt)
     UpdateSensors()
     UpdateRain()
+    UpdateGlassAcid()
     UpdateClouds(dt)
     UpdateLightning()
     UpdateStrikes()
     UpdateSulfur()
+    UpdatePoolFx(dt)
     UpdateVents()
     UpdateFogSystems(dt)
     UpdateHazeRates()
@@ -2400,6 +2521,7 @@ function V.Update(dt)
     end
 
     BroadcastState(false)
+    Wake.Update(dt)
     CRWeather.Update(dt)
 end
 
@@ -2407,9 +2529,17 @@ function V.Shutdown()
     if not V.Initialized then return end
 
     Fx_DestroyAll()
+    PoolFX.Stop(V.PoolFx)
     V.FogLive, V.SulfurLive, V.PlumeLive, V.Clouds = {}, {}, {}, {}
     V.HazeLive, V.FogRequests, V.FogIntensity, V.FogAllow = {}, {}, 0.0, 0.0
     V.Strikes, V.Rain = {}, nil
+
+    local glass = Glass()
+    if glass ~= nil then
+        glass.Weather("acid", 0.0)
+        pcall(glass.Stop)
+    end
+    V.GlassAcid = 0.0
 
     local environment = rawget(_G, "Environment")
     if V.EnvModifierRegistered and environment ~= nil
@@ -2446,6 +2576,7 @@ function V.Shutdown()
     end
 
     CRWeather.ClearWindOverride()
+    Wake.Stop()
     CRWeather.Shutdown()
     V.Initialized = false
 end
@@ -2562,6 +2693,16 @@ function V.GetFogSchedule(untilT)
 end
 function V.GetDramaStats() return V.DramaCount, V.LastDrama end
 function V.GetBasins() return V.Basins end
+-- Liquid-sulphur weight of the .mat cell under (x, z): 0 off the pool, 1 solid pool.
+function V.SulfurWeightAt(x, z)
+    local g = V.SulfurGeom
+    if g == nil then return 0.0 end
+    local col = math.floor((x - g.originX) / g.cell)
+    local row = math.floor((z - g.originZ) / g.cell)
+    if row < 0 or row >= g.rows or col < 0 or col >= g.cols then return 0.0 end
+    return V.SulfurCells[(row * g.cols) + col] or 0.0
+end
+
 function V.GetSulfurSites() return V.SulfurSites end
 function V.GetVentSites() return V.VentSites end
 function V.GetStats() return V.Stats end
@@ -2645,6 +2786,7 @@ function V.Load(state)
 
     -- Loading rebuilds the Ogre scene: every system we held is already gone.
     Fx_DestroyAll()
+    PoolFX.Stop(V.PoolFx)
     V.FogLive, V.SulfurLive, V.PlumeLive, V.Clouds = {}, {}, {}, {}
     V.HazeLive = {}
     V.Strikes, V.Eruptions, V.Rain, V.Flashes, V.Thunder = {}, {}, nil, {}, {}

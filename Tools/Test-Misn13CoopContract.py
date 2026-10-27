@@ -88,14 +88,14 @@ for suffix in ('hg2', 'lgt', 'trn', 'mat', 'vxt'):
 trn = (root / 'Missions/misn13.trn').read_text(encoding='latin-1')
 assert 'LightningBolt' not in trn and 'eu_detail_atlas' in trn
 assert len((root / 'Missions/misn13.mat').read_bytes()) == 131072
-assert (root / 'Missions/misn13.vxt').read_text().split() == ['avtank', ',', 'avfimp', ',']
+assert (root / 'Missions/misn13.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,', 'avwalk ,']
 
 ini = configparser.ConfigParser()
 ini.read(root / 'Config/misn13.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
 assert (root / 'Assets/Graphics/misn13.bmp').read_bytes()[:2] == b'BM'
-des = (root / 'misn13.des').read_text()
+des = (root / 'misn13.mpdes').read_text()
 assert len(des.strip()) <= 300
 assert 'Unit Factory' in des and 'hangar' in des and 'silos' in des, 'the briefing must state the real win'
 campaign = (root / 'Config/crcampgn.ini').read_text().replace('\r\n', '\n')
@@ -172,7 +172,7 @@ assert (root / 'Docs/MISN13_COOP.md').is_file()
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn13.ini', 'Missions/misn13.vxt', 'Assets/Graphics/misn13.bmp', 'misn13.des',
+for source in ['Config/misn13.ini', 'Missions/misn13.vxt', 'Assets/Graphics/misn13.bmp', 'misn13.mpdes',
                'Missions/misn13.bzn', 'Missions/misn13.hg2', 'Missions/misn13.trn', 'Missions/misn13.mat',
                'Missions/misn13.lgt', 'Scripts/misn13.lua', 'Scripts/CREuropaSites13.lua', 'ODF/b_misn13.odf']:
     assert members.get(source) == Path(source).name, 'Map/lobby file must be admitted by the shipping manager: ' + source

@@ -17,7 +17,26 @@ if type(IsNetGame) == "function" and IsNetGame() then
     exu.DisableStartingRecycler()
 end
 local subtit = require("ScriptSubtitles")
+-- CR PDA >>
+-- PersistentConfig owns the PDA (X), subtitle/UI settings and AutoSave. Script
+-- locals reset when a save loads, so Update initializes it once per Lua state.
+-- One table local keeps the main chunk under Lua 5.1's 200-local limit.
+local missionPda = { config = require("PersistentConfig"), ready = false }
+function missionPda.Init()
+    missionPda.ready = true
+    missionPda.config.Initialize()
+end
+function missionPda.Update(cinematicActive)
+    if not missionPda.ready then missionPda.Init() end
+    missionPda.config.UpdateInputs(cinematicActive)
+    missionPda.config.UpdateHeadlights()
+end
+function missionPda.Object(h)
+    if missionPda.ready and h ~= nil then missionPda.config.OnObjectCreated(h) end
+end
+-- CR PDA <<
 local CRCoop = require("CRCoop")
+local CRWire = require("CRWire")
 local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
 -- CR Venus weather >>
 local CRVenusWeather = require("CRVenusWeather")
@@ -55,7 +74,9 @@ local native = {
     SetUserTarget = SetUserTarget, RemoveObject = RemoveObject,
     StartCockpitTimer = StartCockpitTimer, StopCockpitTimer = StopCockpitTimer,
     HideCockpitTimer = HideCockpitTimer,
-    SucceedMission = SucceedMission, FailMission = FailMission,
+    -- Resolve result hooks after PersistentConfig.Initialize installs cleanup.
+    SucceedMission = function(...) return _G.SucceedMission(...) end,
+    FailMission = function(...) return _G.FailMission(...) end,
     CameraReady = CameraReady, CameraPath = CameraPath, CameraObject = CameraObject,
     CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
     Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
@@ -402,7 +423,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
+                    Send(id, "E", CRWire.Pack(seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n)))
                 end
             end
         end
@@ -417,14 +438,19 @@ local function UpdatePresentationTransport()
         nextCameraSend = now + 0.2
         cameraSerial = cameraSerial + 1
         if cameraFrame then
-            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
+            Send(0, "C", CRWire.Pack(cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame))))
         else
             Send(0, "C", cameraSerial, cameraGeneration, "")
         end
     end
 end
 
+local ReceivePresentationDecoded = nil
+-- Presentation packets are CRWire-packed: reassemble chunked strings first.
 local function ReceivePresentation(from, kind, ...)
+    return ReceivePresentationDecoded(from, kind, CRWire.Unpack(...))
+end
+function ReceivePresentationDecoded(from, kind, ...)
     if not CRCoop.IsNetworkGame() then return false end
     if kind == "A" then
         local seq = ...
@@ -866,7 +892,8 @@ local function InitVenusWeather()
     venusStarted = true
     local net = CRCoop.IsNetworkGame()
     local authority = (not net) or CRCoop.IsAuthority()
-    Environment.Init()
+    Environment.Init({ lightingMode = "subtle", nativeBaseline = true,
+        subtlePeriod = 3600, subtleDimming = 0.04, subtleSunAngle = 2 })
     CRVenusWeather.Init({
         authority = authority,
         seed = M.venusSeed, -- nil: the leader/offline picks one, guests wait for the host's state
@@ -1729,9 +1756,15 @@ function Start()
     M.new_tank1=nil
     M.new_tank2=nil
     subtit.Initialize()
+-- CR PDA >>
+    missionPda.Init()
+-- CR PDA <<
 end
 
 function AddObject(h)
+-- CR PDA >>
+    missionPda.Object(h)
+-- CR PDA <<
     -- Empty in the source.
 -- CR Razor One infiltration >>
     RazorOneAdopt(h)
@@ -1758,6 +1791,9 @@ end
 
 function Update(dt)
     subtit.Update()
+-- CR PDA >>
+    missionPda.Update(localCameraActive)
+-- CR PDA <<
     CRCoop.Update()
     UpdatePresentationTransport()
     if M.coopResult or M.coopPendingResult then return end
@@ -2947,5 +2983,9 @@ function Save()
 end
 
 function Load(state)
+-- CR Venus weather >>
+    ShutdownVenusWeather()
+    if Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
+-- CR Venus weather <<
     M = state
 end

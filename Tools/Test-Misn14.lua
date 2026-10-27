@@ -35,6 +35,9 @@ check(F.count(host, "SetAIControl", 5) == 1 and F.index(host, "SetAIControl") <=
 check(F.count(host, "SetAIControl", 2) == 0, "no DLL team-2 AI control survives")
 check(F.count(host, "DisableStartingRecycler") == 0, "offline keeps the native recycler rules")
 F.tick()
+check(host.pda.Initialize == 1, "PersistentConfig.Initialize ran exactly once after Start")
+check(host.pda.UpdateInputs >= 1 and host.pda.UpdateHeadlights >= 1, "the first Update drives PersistentConfig inputs and headlights")
+check(host.pda.Initialize == 1, "the first Update does not re-initialize PersistentConfig")
 check(F.count(host, "SetAIP") == 1 and F.last(host, "SetAIP")[2] == "misn14.aip" and F.last(host, "SetAIP")[3] == 5,
     "SetAIP names the CCA team (shipped 1.5 passes the team)")
 check(F.count(host, "AddPilot", 5) == 1 and F.count(host, "SetScrap", 5) == 1 and F.count(host, "SetScrap", 1) == 1,
@@ -133,7 +136,7 @@ F.runUntil(function() return M().wave_count >= 1 end, 400)
 local wave = F.builds(host, mark)
 local furies = 0
 for _, b in ipairs(wave) do
-    if b.odf == "hvsav" then
+    if b.odf == "hvsav" or b.odf == "crfraz" then
         furies = furies + 1
         check(b.team == 6, "wave Furies are on team 6")
         local pos = F.posOf(b.h)
@@ -142,7 +145,8 @@ for _, b in ipairs(wave) do
         check(b.where ~= "alien2" and b.where ~= "alien4", "the drop-zone points are watched")
     end
 end
-check(furies == 3, "offline wave: three hvsav, as in the DLL")
+check(furies == 3,"offline wave retains three total craft")
+check(#F.builds(host,mark,"crfraz")==2,"two restored fighters lead the offline wave")
 check(F.heard(host, "misn1403.wav"), "the alien warning on the first wave")
 -- Every point watched: the wave waits.
 boot()
@@ -174,7 +178,7 @@ local tanks = 0
 for _, b in ipairs(all) do if b.odf == "hvsat" then tanks = tanks + 1 end end
 check(tanks == 1, "Fury Tanks join from wave 4 (one offline)")
 local live = 0
-for _, b in ipairs(all) do if (b.odf == "hvsav" or b.odf == "hvsat") and F.alive(b.h) then live = live + 1 end end
+for _, b in ipairs(all) do if (b.odf == "hvsav" or b.odf == "hvsat" or b.odf == "crfraz") and F.alive(b.h) then live = live + 1 end end
 check(live == 12, "3+3+3 then wave 4 (3 hvsav + 1 hvsat) trimmed to the cap of 12, got " .. live)
 check(tanks == 1, "the cap keeps the Fury Tank when it trims a wave")
 M().alien_time = W.now
@@ -183,7 +187,7 @@ F.tick()
 check(#F.builds(host, mark) == 0 and M().wave_count == 5, "a capped wave still counts (the story never stalls)")
 local killed = 0
 for _, b in ipairs(all) do
-    if b.odf == "hvsav" and killed < 2 then F.kill(b.h); killed = killed + 1 end
+    if (b.odf == "hvsav" or b.odf == "crfraz") and killed < 2 then F.kill(b.h); killed = killed + 1 end
 end
 M().alien_time = W.now
 mark = #host.calls
@@ -333,6 +337,11 @@ local function apiCount(name, a)
 end
 check(api.init and api.init.authority == true and api.init.startLevel == 1 and api.init.send == nil,
     "adapter: offline Init as authority")
+check(host.environmentOptions and host.environmentOptions.nativeBaseline,
+    "Titan Environment captures native baseline while preserving daylight")
+check(host.weatherSensors and host.weatherSensors[1] == "Titan" and host.weatherSensors[2] == director,
+    "Titan's existing director supplies shared sensor severity")
+check(F.count(host,"EnvironmentUpdate")>0,"Titan composes Environment on each update")
 check(apiCount("Update") >= 1 and apiCount("SetTargetLevel", 2) == 1, "adapter: per-frame Update and the start beat")
 throughIntro()
 toPhase("rogue", 300)

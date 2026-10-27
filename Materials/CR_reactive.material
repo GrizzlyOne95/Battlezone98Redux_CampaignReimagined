@@ -81,9 +81,13 @@ material CR_FX/SlopeWisp : BZSprite/AlphaBlend
 }
 
 // Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
+// Soft light puff, deliberately NOT cr_dustdevil.dds: that 876x572 twister
+// photograph is dark and ragged, and drawn once per particle it produced a
+// stack of lumpy brown smoke. The devil is now many small puffs of cr_dust.dds;
+// the particle colour carries the tan.
 material CR_FX/DustDevil : BZSprite/AlphaBlend
 {
-	set_texture_alias DiffuseMap cr_dustdevil.dds
+	set_texture_alias DiffuseMap cr_dust.dds
 }
 
 // Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
@@ -266,39 +270,89 @@ material CR_FX/BioLeak : BZSprite/Additive
 // they are deliberately NOT used here pending that decision.
 // =============================================================================
 
-material CR_Sky/MarsStorm : BZSprite/AlphaBlend
+// Ogre's sky dome has no vertex colour, so the domes cannot inherit
+// BZSprite/AlphaBlend: its Effect program reads COLOR0 and D3D11 rejects the
+// input layout on every draw. CR_SkyDome is Effect without that input.
+material CR_Sky/DomeBase
+{
+	receive_shadows off
+	technique 0
+	{
+		pass 0
+		{
+			vertex_program_ref CR_SkyDome_vertex
+			{
+			}
+			fragment_program_ref CR_SkyDome_fragment
+			{
+			}
+			cull_hardware none
+			cull_software none
+			lighting off
+			scene_blend alpha_blend
+			depth_write off
+			diffuse 1 1 1 1
+			texture_unit 0
+			{
+				texture_alias DiffuseMap
+				texture white.png
+				tex_address_mode wrap
+			}
+		}
+	}
+}
+
+material CR_Sky/MarsStorm : CR_Sky/DomeBase
 {
 	set_texture_alias DiffuseMap white.png
 }
 
 // The Mars ladder needs three rungs, not one: a haze sky that is still
 // recognisably sky, the storm sky, and a severe sky with no sun disc left in it.
-material CR_Sky/MarsHaze : BZSprite/AlphaBlend
+material CR_Sky/MarsHaze : CR_Sky/DomeBase
 {
 	set_texture_alias DiffuseMap white.png
 }
 
-material CR_Sky/MarsStormSevere : BZSprite/AlphaBlend
+material CR_Sky/MarsStormSevere : CR_Sky/DomeBase
 {
 	set_texture_alias DiffuseMap white.png
 }
 
-material CR_Sky/Blizzard : BZSprite/AlphaBlend
+material CR_Sky/Blizzard : CR_Sky/DomeBase
 {
 	set_texture_alias DiffuseMap white.png
 }
 
-material CR_Sky/AshFall : BZSprite/AlphaBlend
+material CR_Sky/AshFall : CR_Sky/DomeBase
 {
 	set_texture_alias DiffuseMap white.png
 }
 
-material CR_Sky/Spore : BZSprite/AlphaBlend
+material CR_Sky/Spore : CR_Sky/DomeBase
 {
 	set_texture_alias DiffuseMap white.png
 }
 
-material CR_Sky/Storm : BZSprite/AlphaBlend
+material CR_Sky/Storm : CR_Sky/DomeBase
 {
 	set_texture_alias DiffuseMap white.png
+}
+
+// Weather.lua cloud planes. Ogre's sky plane has no vertex colour either, so the
+// stock ACLOUD*.MAP and vsmoke2.tga materials (Effect, COLOR0) throw on D3D11.
+// The stock materials are left alone; the presets point here instead.
+material CR_Sky/Cloud : CR_Sky/DomeBase
+{
+	set_texture_alias DiffuseMap acloud.tga
+}
+
+material CR_Sky/Cloud2 : CR_Sky/DomeBase
+{
+	set_texture_alias DiffuseMap acloud2.tga
+}
+
+material CR_Sky/DustCloud : CR_Sky/DomeBase
+{
+	set_texture_alias DiffuseMap vsmoke2.png
 }

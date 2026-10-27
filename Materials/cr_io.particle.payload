@@ -5,12 +5,14 @@
 // World-placed systems, streamed in and out around the players: red fog and a
 // faint glow over lava pools, smoke plumes with an eruption burst at every
 // geyser, the glowing core and thrown spatter of an eruption, and the dust a
-// quake shakes loose (camera-attached). Ash fall is NOT here: the director
-// reuses CR/Weather/AshFall from cr_weather.particle.payload.
+// quake shakes loose (camera-attached). Ash fall, haze and grit are NOT here:
+// the presets and the ash layer must work without this opt-in payload, so
+// CR/Io/Haze, CR/Io/Grit and CR/Io/AshFall live in cr_weather.particle.payload.
 //
-// Every material below already exists in CR_reactive.material, so this file adds
-// templates only -- no new art, no new materials. Docs/IO_WEATHER.md lists which
-// ones would improve with a dedicated texture.
+// The materials are CRIo/* in crart_io.material: CR_reactive's art on a pass
+// DX11 draws natively, so every colour here draws as written (the CR_FX/*
+// originals swap red and blue on DX11). No new art. Docs/IO_WEATHER.md lists
+// which ones would improve with a dedicated texture.
 //
 // Axis note for Box emitters (Ogre AreaEmitter): `direction` is the DEPTH axis.
 // With direction 0 1 0, depth runs vertically and width/height are horizontal.
@@ -30,7 +32,7 @@
 //   affector 3 DirectionRandomiser
 particle_system CR/Io/LavaFog
 {
-    material            CR_FX/Haze
+    material            CRIo/Haze
     particle_width      54.0
     particle_height     54.0
     quota               70
@@ -94,7 +96,7 @@ particle_system CR/Io/LavaFog
 //   affector 1 Scaler
 particle_system CR/Io/LavaGlow
 {
-    material            CR_FX/Bloom
+    material            CRIo/Bloom
     particle_width      46.0
     particle_height     46.0
     quota               40
@@ -149,7 +151,7 @@ particle_system CR/Io/LavaGlow
 //   affector 3 Rotator
 particle_system CR/Io/Plume
 {
-    material            CR_FX/SmokeHeavy
+    material            CRIo/SmokeHeavy
     particle_width      16.0
     particle_height     16.0
     quota               300
@@ -215,7 +217,7 @@ particle_system CR/Io/Plume
 //   emitter 1  base flare
 particle_system CR/Io/PlumeGlow
 {
-    material            CR_FX/Bloom
+    material            CRIo/Bloom
     particle_width      11.0
     particle_height     11.0
     quota               180
@@ -268,7 +270,7 @@ particle_system CR/Io/PlumeGlow
 // reads as thrown rather than floating.
 particle_system CR/Io/Spatter
 {
-    material            CR_FX/Ember
+    material            CRIo/Ember
     particle_width      1.7
     particle_height     1.7
     quota               130
@@ -313,7 +315,7 @@ particle_system CR/Io/Spatter
 // dust arrives with the shake and settles after it.
 particle_system CR/Io/QuakeDust
 {
-    material            CR_FX/Dust
+    material            CRIo/Dust
     particle_width      3.2
     particle_height     3.2
     quota               700

@@ -2,6 +2,182 @@
 
 ## Unreleased
 
+- Fix the crash when loading a save of a CR mission (misn02b first reported): `aiCore.Load` no longer rebuilds its
+  object cache inside the mission `Load()` callback, where units still hold load placeholders instead of AI
+  processes; the rebuild runs on the first `Update()` after the load. Bundle OpenShim 1.0.0.62, whose Lua
+  `GetIndependence` returns 0 instead of faulting for an object whose AI process is not yet attached.
+- Bundle OpenShim 1.0.0.61: authored muzzle flashes and mesh recoil are on by default (existing installs at the old
+  shipped off migrate to on; a later choice is kept), so CR's weapon flashes and craft recoil show without a settings
+  change; Shell Casings gains a Settings > Video row and stays off by default.
+- Rebuild every skinned CR mesh with the stock two-stream vertex layout so DX11 no longer draws them flat grey
+  (cockpits included); `Tools/ogrelayout.py` writes the layout and CI guards it.
+- Bundle OpenShim 1.0.0.60: terrain paint reuses the height pass's near taps and Micro Detail culls off-screen relief
+  patches (each about +11-12% fps at 4K); paint packs gain a MAT-aligned Base-pad layer, a variation-rule list and
+  per-layer contrast; native weapon muzzle flash and mesh recoil are now allowed on the Steam executable too.
+- Per-world Enhanced DX11/DX9 sky domes: Moon (catalog star box, NASA Milky Way, phase-lit Earth with city lights and
+  earthshine; misn03 is a lunar night), Mars (day cycle, cirrus, dust veils, night Milky Way), Venus (a live cloud deck
+  driven by the storm, lightning and fog banks), Io and Europa (black star skies, Jupiter at true size and phase,
+  eclipse and Jupiter-shine), Titan (haze dome with Saturn through the haze; misn15 at night) and Achilles (storm dome
+  with Uranus and its rings; misn18 at night). Art is original or credited in `Docs/SKY_ART_CREDITS.md`. OpenGL keeps
+  the stock domes.
+- Per-world scrap geyser effects (`CRGeysers`) on Achilles, Mars, Titan and the Moon, hidden while a Recycler, Factory,
+  Armory or Construction Rig is deployed on the vent; Europa's and Io's existing plumes get the same gate (Venus not
+  yet). Visual only: no sim objects, network traffic or random numbers, and no per-mission edits. See
+  `Docs/WORLD_GEYSERS.md`.
+- Move Mars onto the terrain paint binding with an eight-layer recipe (sand, rock, gravel, cracked rock, Base pad, dark
+  streaks, pale crust, scree) for misn04 to misn06, replacing the 72 `crhd_mars` DDS tiles.
+- Send the Workshop description with the Steam-client upload when `PublishDescription` is true in
+  `workshop.config.json`; it stays off by default.
+- Bundle OpenShim 1.0.0.59 (hotfix): Terrain Micro Detail computes height and slope analytically in one pass, roughly
+  halving its cost (adaptive 7.6 to 3.4 ms at 4K) with unchanged visuals, and stays opt-in; the HD paint shader shares
+  blend weights and diffuse taps per pixel (about 0.9 ms faster at 4K); Enhanced DX11 gives every map's first sun a native
+  power and colour-grade baseline matching CR's calibration, so stock and non-CR maps light like CR worlds.
+- Replace the Moon terrain paint's mossy Dust and lichen-crusted Cratered dust layers with Poly Haven lunar regolith
+  scans (CC0) with cavity shading, and desaturate the wide blue rock, so no green remains on the Moon.
+- Bundle OpenShim 1.0.0.58 (hotfix for the shader/lighting flap and the frame-rate drop at pilot spawn):
+  generated terrain programs are named by content so the Ogre microcode cache hits from the second launch on
+  instead of recompiling ~40 terrain shaders (a 14-22 s frame) every launch; the per-planet IBL cubemaps are
+  exposure-calibrated against the neutral set (the raw bakes were ~15x darker and read as a lighting failure
+  when they swapped in) and the swap retries every frame so it lands when the textures load; Terrain Micro Detail
+  returns to off by default (roughly halved 4K frame rate on the Moon start) while HD terrain tiles stay on.
+- Move the multiplayer co-op blurbs from root `misnNN.des` to `misnNN.mpdes` so single-player briefings fall back to the stock localized text; the MP map list reads `<stem>.mpdes` (needs the OpenShim build that prefers it). Prefix the co-op map names with their campaign order (`CR 01: Red Arrival Coop` ... `CR 17: The Ultimate Quake Coop`) so the list sorts in story order.
+- Give the misn14 NSDF Fury squad (`avsav14`) a mesh: the Resurgence addon's Fury, pointed at a CR
+  `avsav14` material using `avsav2_d.dds`. Redux has no `avsav` mesh, so the squad was invisible and
+  flooded the Ogre log with "Cannot locate resource avsav.mesh" every frame.
+- Bundle EXU's HUD material and shaders (`exu_hud.material`, `exu_hud_tint.*`, the two HUD textures) so
+  EXU's DX11 overlay text gets its `EXU_HUD/Text` shader material instead of falling back to the
+  fixed-function font material.
+
+- Rework the Mars dust devil: many small light puffs swept into a tapering
+  two-strand helix with a ground debris skirt, paler and more transparent
+  towards the top, fading with distance against the live fog visibility.
+  Replaces the per-particle column photograph that read as a dark smoke plume.
+- Place muzzle flashes at the visible barrel tip on dedicated-barrel craft with per-slot
+  `[CraftClass] flashOffset<N>` keys (needs the OpenShim build that reads them; older builds ignore the keys). The
+  offsets are generated from each craft's barrel mesh by `Tools/Build-WeaponFlashes.py` (`--measure`, `--check`):
+  NSDF/Black Dog tanks `0.20 0.10 2.41`, CCA tanks `0.00 0.00 3.42`, howitzers, gun towers and Soviet towers.
+  Hull-mounted hardpoints keep the weapon's zero offset.
+- Make OpenShim mesh recoil opt-in on the weapon too: every cannon-category (CANN, non-machinegun) weapon ODF gets a generated `[WeaponClass] recoilKick = 1.0` block, so the slot-1 barrel slide on the tank crafts (distance = `recoilDistance1` x kick) happens only for weapons with a kick; machineguns and miniguns get none and a craft can override per slot with `recoilKick<N>`. Needs the OpenShim build that reads `recoilKick`; generated and checked by `Tools/Build-WeaponFlashes.py`.
+- Enable OpenShim mesh recoil (slot 1 cannon barrel slide) on the NSDF, Black Dog and CCA tank ODFs:
+  avtank/avtamp/avdemo (AGR11BGA), bvtank/bvtanka (bGR11BGA) and svtank/svtanka/svtas8/svtk13/svtnk7
+  (SCZ11BGB). Takes effect only with Settings > Video > Muzzle Recoil on (single-player, exact GOG).
+
+- Promote the accepted HD terrain art for all nine worlds, including fine Moon
+  regolith, varied crater relief and authored detail. Preserve original world
+  colours while refining ground materials and lighting; blend atmospheric skies
+  smoothly into the horizon fog. Per-world terrain art controls remain editable.
+  See `Docs/WORLD_ART_PROMOTION.md` for acceptance, provenance and validation.
+
+- Bundle OpenShim main 1.0.0.53 (6789591), ExtraUtilities main (bc283dd) and bzfile main (44f012e). Brings the
+  ODF muzzle flash/smoke/light and recoil companions, DX11 Enhanced FXAA on the 3D scene only (HUD and text stay
+  sharp), the deferred Modable rebuild (faster Instant Action, multiplayer and campaign-list menu transitions), and
+  the current network defaults.
+
+- Bundle ExtraUtilities main (5c3051c). The bundled build was from 2026-10-11 and lacked
+  `exu.SetShowKillMessages` and the point-light API, so co-op kept the stock kill feed ("BUILDING DESTROYED" lines
+  over the misn03 launch film) and the scripted engine/vent lights (misn03/misn06 launch, CR06 orbit film, misn17
+  vents, misn18 tornado) were silently skipped. Also brings `exu.SetSkyClearColor` and `exu.GetClock`.
+
+- Independent 1K HD terrain packs for all nine stock planet families, including
+  sparse configurable base emissive accents and portable Toolbox recipes.
+  Europa snowy-rock relief is corrected against its authored height. DX11
+  Enhanced and the native HD option remain required; stock atlases remain the
+  fallback. See `Docs/HD_TERRAIN_PACKS.md` for authoring and validation limits.
+
+- Optional 1K Moon HD terrain: 11 independent diffuse/normal/specular tile sets,
+  built with the Modding Toolbox. Source-height checks correct the ground/rock
+  normal polarity. Requires the native HD OpenShim build, authored manifest and
+  DX11 Enhanced; Redux/Retro and disabled HD tiles retain the ordinary atlas.
+  See `Docs/MOON_HD_TERRAIN.md` for setup, evidence and memory limits.
+
+- Campaign skies with a star field gain occasional shooting stars: a short streak crosses part of the sky in
+  0.3-0.8 s, about one every 25 s across the whole sky (Moon: Missions 1-2 and the setup map; Io: Missions 9-10
+  and `misns4`). The Moon also gets three satellites that drift across it over one to three minutes, some with a
+  brief glint. Both are procedural `[Stars]` entries (`CRMETEOR.MAP`, `CRSATELL.MAP`) on DX11 and DX9, on by
+  default; `openshim.ini [Display] SkyEvents=0` switches them off. Star Twinkle is unchanged.
+
+- Venus acid rain on the cockpit glass (misn07, misn08, misn09): the rain level the Venus director already computes now also
+  drives the `CRWetGlass` rain layers, drawn in faint yellow-green instead of the Earth-like blue-grey, and long exposure
+  builds a very faint pitted etch haze that clears slowly after the rain. Render only, local to each peer, and can be
+  switched off (`AllowGlassAcid` / `glassAcid`, `AllowAcidRain`, `CRWeather.Quality` 0). New `CRWetGlass.Weather("acid", level)`,
+  `crwx_acidbeads/acidrivulet/acidstreak.png` and `crwx_winetch.png` (`Tools/Generate-GlassWeatherAssets.py`). Stacks on the
+  cockpit-glass snow/grit work (#256) and the pool effects (#255). See `Docs/VENUS_WEATHER.md` and `Docs/CR_STORMFX_PORT.md`.
+
+- Cockpit-glass weather: a few soft-white snow flakes land on and melt off the glass on Europa (misn12, misn13; scaled to the
+  Europa activity ladder), and fine dust grit builds on the glass in Mars storms (misn04, misn05, misn06; builds with the
+  severity, clears slowly, with a few small splats at the upper rungs). Both ride the existing CRWetGlass layers
+  (`CRWetGlass.Weather`), are render only, local to each peer, and can be switched off (`AllowGlassSnow`, `AllowGlassGrit`,
+  `CRWeather.Quality` 0). New `crwx_winsnow.png` and `crwx_wingrit.png` (`Tools/Generate-GlassWeatherAssets.py`; the large
+  crystals are ISDF Chronicles' `snowflak.dds` sprite) and `crwx_glassweather.material`. See `Docs/CR_STORMFX_PORT.md`.
+
+- Mission 18 gains water and landscaping: four standing pools in closed basins, six streams that run downhill into and out
+  of them and one 22 m cascade with mist, baked from the original heightmap (nothing is carved; `Missions/misn18.hg2` is
+  untouched) and kept clear of the start, transport, spawns, ambush column, Fury paths and the tornado's keep-clear circles.
+  The storm drives it: streams turn muddy and scroll faster as the level rises, the mist thickens, and collapse/final/ascent
+  are the most violent. Vehicles raise water spray over the water and a new dark `mud` wake (`CRWake/MudClods`) elsewhere.
+  New `CR18/*` water materials on a `STORMWATER` variant of the CR17 water shader. Unrendered so far; see
+  `Docs/MISN18_STORM.md` and `Docs/VEHICLE_WAKES.md`.
+
+- Add Mission 18's shared offline/co-op port, The Ultimate Quake, on the original 1.5 map: the opening
+  cinematics play for everyone, any player can find the Fury transport and destroy its four
+  thrusters, one shared 180 s countdown ends in a win only when every pilot is within 200 m of the
+  Texas and a loss if any is beyond 400 m (each peer sees its own ship left behind). Furies are team 6,
+  scaled by one extra per two players through concealed arrivals with a 12-craft cap. Restore the
+  earthquake pulse, the Texas-under-attack (`misn1817`) and Texas-destroyed (`misn1818`) lines and the
+  two cut return-wave Furies, and the cut transport-destroyed shot (the countdown now starts when it ends); add an optional storm hook (`CRStorm18`). Not yet qualified in a live
+  2/4-client session; see `Docs/MISN18_COOP.md`.
+
+- Mission 18 ends with a dropship extraction: when everyone makes it, NSDF dropships land beside the Texas, load each
+  human's ship and the Recycler and Factory (at most five ships), and lift into the storm in two unskippable,
+  replicated shots; the mission succeeds, and the normal outro plays, only afterwards. Nothing can fail it once
+  the win has latched. The storm gains `extract` and `ascent` phases, owns the earthquake (the mission's quakes go
+  through `Storm.Quake`) and its tornado now pulls the craft each peer owns. Timings and camera offsets need a
+  live tune; see `Docs/MISN18_COOP.md`.
+
+- Add Mission 18's apocalyptic storm (`CRStorm18`, wired into the co-op port):
+  ten leader-driven phases from a bruised, gusting opening to the collapse of the
+  Fury transport's moon, with a swirling red sky deck, escalating lightning, quakes,
+  glowing ground cracks, landslides, a roaming giant tornado, scorched ground cover
+  and a collapse entry timed to the thruster cinematic. Design, tunables and wiring
+  in `Docs/MISN18_STORM.md`; in-game rendering still needs a live smoke.
+
+- Add Mission 16's shared offline/co-op prototype: Fury-corrupted CCA base
+  copies, 200 m Bolt Buddy towers, restored warnings and an evacuation finale
+  using the stock Fury transport on a Titan-textured pad beyond the map edge.
+  Keep the amended terrain as the base; this is not full gameplay qualification.
+
+- Add Mission 15's shared offline/co-op prototype on the shipped misn15b layout:
+  recover allied survivors, secure 75 shared scrap and escort the Texas to Supply.
+  Restore the Alaska rescue and withdrawal dialogue; add the map-specific Titan
+  weather/methane mask and a warned Tartarus response with persistent-intrusion
+  arc mines. Native progression and tuning remain under qualification.
+
+- Match co-op starting ships to mission production: Light Tank from 04, Rocket Tank
+  from 07, Bomber from 08 and Walker from 09. Keep the pilot start in 02b, the
+  mobile escort kit in 11 and the capture-based infiltration kit in 12.
+
+- Apply weather-driven sensor effects across all weather-enabled campaign
+  missions, including Titan and mission 06. Preserve Mars/Venus tuning; restore
+  native values when conditions clear, without restarting the radar sweep for
+  range-only changes. See `Docs/WEATHER_SENSOR_POLICY.md`.
+- Coop Diagnostics shows local UDP send/receive byte and packet rates, recent
+  observed route and last-receive age when the updated EXU/OpenShim are available.
+- Add Coop Diagnostics as the second co-op PDA page: native per-player ping/loss,
+  co-op admission/phase and heartbeat freshness, plus message receipts/retries.
+  Quiet or stalled co-op traffic no longer retains a stale Synced label.
+- Add subtle sun/light progression to Moon 02b/03 and Venus 07–09, retaining
+  authored Moon fog and avoiding a full night cycle in those missions.
+- Cap composed atmosphere fog to TRN visibility, preserve explicit TRN sunlight
+  colors, and keep time-of-day lighting effective under weather.
+- Add story-driven Plains weather and visual day/night lighting to Escape from
+  Mars (06), with co-op weather synchronization and save/load support. Its new
+  atmosphere does not add wind handling or sensor penalties.
+- Co-op starts with the stock scoreboard and destruction/death notices hidden.
+  M still toggles the scoreboard. Notice suppression requires the new EXU
+  presentation switch; normal chat and campaign messages remain available.
+- Fix DX11 subtitle rendering: overlay panels use a vertex shader matching their
+  geometry, and missions without PDA settings receive an explicit subtitle border
+  material. This prevents repeated vertex-layout and missing-shader exceptions.
 - Titan: the methane lakes are now a reflective liquid surface. `CRTitanWeather` lays one flat sheet over
   the map's flat methane sea through EXU StaticGeometry (render-only: no collision, radar, AI path or
   targeting; identical on every co-op peer from static data), clipped to a generated wet mask
@@ -984,3 +1160,4 @@ Covers everything since the 2026-08-06 Workshop upload.
 - `luac -p _Source/Scripts/aiCore.lua`
 - `luac -p _Source/Scripts/misn04.lua`
 - `luac -p _Source/Scripts/PersistentConfig.lua`
+- Fixed network V help and Z give shortcuts while the co-op PDA is closed; chat and navigation gating remain intact.

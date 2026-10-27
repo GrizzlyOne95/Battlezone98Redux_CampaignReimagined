@@ -499,13 +499,13 @@ do
         check(preset.fog.fogEnd <= lastEnd, presetName .. " is no clearer than the rung below")
         local redness = preset.fog.r / math.max(0.001, preset.fog.g)
         check(redness >= lastRed - 1e-6, presetName .. " is no less red than the rung below")
-        -- Sulphur haze under Jupiter light: warm, red >= green >= blue everywhere.
-        for _, key in ipairs({ "fog", "ambient", "diffuse" }) do
-            local c = preset[key]
-            check(c.r >= c.g and c.g >= c.b, presetName .. "." .. key .. " is a warm sulphur / ember colour")
-        end
+        -- Sulphur-to-ash haze: warm, red >= green >= blue.
+        local c = preset.fog
+        check(c.r >= c.g and c.g >= c.b, presetName .. ".fog is a warm sulphur / ash colour")
+        check(c.r <= 0.25, presetName .. ".fog stays dark under Io's black sky")
+        check(preset.ambient == nil and preset.diffuse == nil, presetName .. " leaves the light to Environment's orbit")
         lastSun, lastEnd, lastRed = preset.sunPowerScale, preset.fog.fogEnd, redness
-        check(#preset.precipitation >= 1 and preset.precipitation[1].template == "CR/Weather/MarsHaze",
+        check(#preset.precipitation >= 1 and preset.precipitation[1].template == "CR/Io/Haze",
             presetName .. " carries the sulphur haze layer")
         for _, layer in ipairs(preset.precipitation) do
             check(string.find(layer.system, "cr_wx_io_", 1, true) == 1, "Io layers use cr_wx_io_ system names")
@@ -683,7 +683,7 @@ do
     for rung = 1, 5 do
         Rung(peer, rung)
         peer.run(8.0)
-        local ash = SystemsOfTemplate(peer, "CR/Weather/AshFall")[1]
+        local ash = SystemsOfTemplate(peer, "CR/Io/AshFall")[1]
         ashRate[rung] = ash and peer.rec.systems[ash].rates[0] or 0.0
         sun[rung] = peer.rec.sunPower or 1.0
         fogEnd[rung] = peer.rec.fog.fogEnd
@@ -696,7 +696,7 @@ do
         check(fogEnd[rung] <= fogEnd[rung - 1] + 0.5, "fog closes in as the ladder climbs: " .. fogEnd[rung - 1] .. " -> " .. fogEnd[rung])
     end
     check(ashRate[5] > ashRate[1] * 3.0, string.format("paroxysm ash (%.0f) is far heavier than calm (%.0f)", ashRate[5], ashRate[1]))
-    local ashSys = SystemsOfTemplate(peer, "CR/Weather/AshFall")[1]
+    local ashSys = SystemsOfTemplate(peer, "CR/Io/AshFall")[1]
     check(ashSys ~= nil and peer.rec.systems[ashSys].camera ~= nil, "ash fall rides the camera")
     check(CountSystems(peer, "cr_iw_ash") == 1, "exactly one ash system")
 
@@ -907,7 +907,7 @@ do
     check(peer.rec.systems[dust[1]].camera ~= nil, "the dust rides the camera")
     check(peer.rec.systems[dust[1]].rates[0] > 100.0, "the dust is thick at the height of a strong quake, got " .. tostring(peer.rec.systems[dust[1]].rates[0]))
     check(IO.GetAshIntensity() > ashBefore * 1.5, "extra ash falls during the quake")
-    local ash = SystemsOfTemplate(peer, "CR/Weather/AshFall")[1]
+    local ash = SystemsOfTemplate(peer, "CR/Io/AshFall")[1]
     check(peer.rec.systems[ash].rates[0] > IO.AshMaxRate * ashBefore, "the ash system's rate rises with the quake")
     peer.run(12.0)
     check(#SystemsOfTemplate(peer, "CR/Io/QuakeDust") == 0, "the dust clears after the shake")
@@ -1270,6 +1270,70 @@ do
 end
 
 -- =============================================================================
+-- 8b. A building deployed on a geyser takes its vent away (CRGeysers occupancy)
+-- =============================================================================
+
+do
+    local world = NewWorld()
+    local peer = NewPeer("occupied", world)
+    local IO = peer.Io
+
+    -- The BZ read-only natives CRGeysers uses to see what stands on a geyser.
+    local env = peer.env
+    env.GetClassLabel = function(h) local o = world.objects[h]; return o and o.class or "" end
+    env.IsBuilding = function(h) local o = world.objects[h]; return o ~= nil and o.building == true end
+    env.IsAlive = function(h) local o = world.objects[h]; return o ~= nil and o.alive ~= false end
+    env.IsDeployed = function(h) local o = world.objects[h]; return o ~= nil and o.deployed == true end
+    env.ObjectsInRange = function(range, ref)
+        local origin = world.objects[ref]
+        local i = 0
+        return function()
+            while true do
+                i = i + 1
+                local h = world.order[i]
+                if h == nil then return nil end
+                local o = world.objects[h]
+                if o ~= nil and origin ~= nil and Dist2(o.x, o.z, origin.x, origin.z) <= range then return h end
+            end
+        end
+    end
+
+    peer.Environment.Init()
+    IO.Init({ seed = 1357, authority = true, sites = sites, bounds = BOUNDS, startLevel = 3, targetLevel = 3,
+              send = function() end })
+    IO.AllowRandomQuakes = false
+    local vent = IO.VentSites[1]
+    local geyser = AddObject(world, "eggeizr1", vent.x, vent.y, vent.z, { building = true })
+    world.objects[geyser].class, world.objects[geyser].building = "geyser", true
+    for i = 1, #IO.VentSites do IO.VentTimers[i] = 1e9 end
+    peer.playerPos = { x = vent.x + 40.0, y = 40, z = vent.z + 30.0 }
+
+    local function PlumesAtVent()
+        local n = 0
+        for _, name in ipairs(SystemsOfTemplate(peer, "CR/Io/Plume")) do
+            local pos = peer.rec.systems[name].position
+            if Dist2(pos.x, pos.z, vent.x, vent.z) < 0.01 then n = n + 1 end
+        end
+        return n
+    end
+
+    peer.run(15.0)
+    check(PlumesAtVent() == 1, "a free geyser's vent is drawn")
+
+    local recycler = AddObject(world, "avrecy", vent.x + 2.0, vent.y, vent.z, { craft = true })
+    world.objects[recycler].class, world.objects[recycler].deployed = "recycler", true
+    peer.run(15.0)
+    check(PlumesAtVent() == 0, "the vent is taken away while a recycler is deployed on its geyser")
+    check(IO.TriggerEruption(1, 1.0) == false, "no eruption comes out of an occupied vent")
+
+    world.objects[recycler] = nil
+    peer.run(15.0)
+    check(PlumesAtVent() == 1, "the vent comes back when the building is gone")
+    check(IO.TriggerEruption(1, 1.0) == true, "and can erupt again")
+    IO.Shutdown()
+end
+
+-- =============================================================================
 -- 9. Degradation, solo, save / load
 -- =============================================================================
 
@@ -1326,6 +1390,79 @@ do
     check(#b.calls("stop") >= 1 and #b.calls("start") == 0, "Load stops any quake the engine replays and does not start one")
     check(not b.Io.IsQuaking(), "a quake in progress at save time is not resumed")
     b.Io.Shutdown(); a.Io.Shutdown()
+end
+
+-- =============================================================================
+-- 9b. Pool pops: bubbles, embers and spatter on the molten pools (CRPoolFX)
+-- =============================================================================
+
+do
+    local function Recording(rec)
+        return {
+            Event = function(kind, pos, scale, mask)
+                rec[#rec + 1] = { kind = kind, x = pos.x, y = pos.y, z = pos.z, scale = scale, mask = mask }
+                return true
+            end,
+            Update = function() end,
+            StopKind = function(kind) rec.stopped = kind end,
+        }
+    end
+
+    local function Run(label, setup, rung, seconds)
+        local world = NewWorld()
+        local peer = NewPeer(label, world)
+        local rec = {}
+        peer.preload["CRGroundFX"] = Recording(rec)
+        peer.playerPos = { x = LavaPool.x, y = 40, z = LavaPool.z }
+        peer.Environment.Init()
+        peer.Io.Init({ seed = 77, authority = true, sites = sites, startLevel = rung, targetLevel = rung })
+        if setup then setup(peer) end
+        peer.run(seconds)
+        return peer, rec
+    end
+
+    local peer, rec = Run("poolfx", nil, 1, 120.0)
+    local IO = peer.Io
+    check(#rec > 20, "molten pools pop while the player is near them, got " .. #rec .. " events in 120 s")
+    check(#rec <= (120.0 / 0.35) + 1, "events are rate limited by the minimum spacing")
+    local weightOk, nearOk, kindOk, maskOk = true, true, true, true
+    for _, e in ipairs(rec) do
+        if IO.LavaWeightAt(e.x, e.z) < 0.5 then weightOk = false end
+        if Dist2(e.x, e.z, LavaPool.x, LavaPool.z) > IO.PoolFxRange + IO.PoolFxRadius + 1 then nearOk = false end
+        if e.kind ~= "lava" then kindOk = false end
+        if e.mask == nil or e.mask.smoke == nil or e.mask.smoke >= 1.0 then maskOk = false end
+    end
+    check(weightOk, "every pop lands on a molten cell (weight >= 0.5)")
+    check(nearOk, "pops happen only near the player")
+    check(kindOk and maskOk, "pops use the lava kind with the light-smoke mask")
+
+    local _, high = Run("poolfx-high", nil, 5, 120.0)
+    check(#high > #rec, "a higher rung pops more often (" .. #high .. " vs " .. #rec .. ")")
+
+    local _, off = Run("poolfx-off", function(p) p.Io.AllowPoolFx = false end, 3, 60.0)
+    check(#off == 0, "AllowPoolFx = false silences the pops")
+
+    local _, noq = Run("poolfx-q0", function(p) p.CRWeather.Quality = 0.0 end, 3, 60.0)
+    check(#noq == 0, "weather quality 0 silences the pops")
+
+    local peerFar, far = Run("poolfx-far", nil, 3, 1.0)
+    peerFar.playerPos = { x = 100, y = 40, z = 99000 }
+    local before = #far
+    peerFar.run(60.0)
+    check(#far == before, "no pops while every pool is out of range")
+
+    -- Shutdown stops the kind's systems; the option switches it off at Init.
+    peer.Io.Shutdown()
+    check(rec.stopped == "lava", "Shutdown removes the lava systems it owns")
+    local world2 = NewWorld()
+    local p2 = NewPeer("poolfx-init-off", world2)
+    local rec2 = {}
+    p2.preload["CRGroundFX"] = Recording(rec2)
+    p2.playerPos = { x = LavaPool.x, y = 40, z = LavaPool.z }
+    p2.Environment.Init()
+    p2.Io.Init({ seed = 77, authority = true, sites = sites, poolFx = false, startLevel = 3, targetLevel = 3 })
+    p2.run(60.0)
+    check(#rec2 == 0, "Init{ poolFx = false } silences the pops")
 end
 
 -- =============================================================================

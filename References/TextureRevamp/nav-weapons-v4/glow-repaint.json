@@ -1,0 +1,178 @@
+{
+  "mode": "Built-in ImageGen lamp edits; bounded existing-glass/core extraction only",
+  "factionDecor": {
+    "ns": "cyan",
+    "bd": "red",
+    "cc": "orange",
+    "cr": "lime"
+  },
+  "functional": {
+    "ammo": "blue",
+    "repair": "green",
+    "weapon": "amber"
+  },
+  "records": [
+    {
+      "current": "References/TextureRevamp/nav-weapons-v4/weapon_ns_master.png",
+      "baseSha256": "9e470b850ede01af30b90e8938473f3d893348e2aa49e0879c23b1c35fdc161d",
+      "resultSha256": "24d5ba6b363a76d44a15524438340cd647aae51a9791217876a016be24dcc676",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/weapon_ns_master.png",
+      "maskSha256": "3826a7d45ff44a9e675f76ce3886f03230b0173363aadf7bd3aa0bd56ebebce8",
+      "unmodifiedRgbSha256": "c7686c0c929fe7c3dcd7b6a5b2683970b75dd372cafa70915996730fcdfed63f",
+      "rawOutputSha256": "ecdf82000312db689f7d333982e9e8e3edd94a2c0ae5bf094ff10e4483a98205"
+    },
+    {
+      "current": "References/TextureRevamp/nav-weapons-v4/badge_ns_master.png",
+      "baseSha256": "b54647842db2ff32493c6f3000b8804c611ca0cec7490a8ee40da5f2c6614ef3",
+      "resultSha256": "b54647842db2ff32493c6f3000b8804c611ca0cec7490a8ee40da5f2c6614ef3",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/badge_ns_master.png",
+      "maskSha256": "760414f1020f452350efbb5bbc969add8e52ece3cefd35fa2dffc1bc212a2b66",
+      "unmodifiedRgbSha256": "bb4b548105b89e424fb1b3cb472b44f057b0e72ba6e699ebe617ca3c038c049a",
+      "rawOutputSha256": "ecdf82000312db689f7d333982e9e8e3edd94a2c0ae5bf094ff10e4483a98205"
+    },
+    {
+      "current": "References/TextureRevamp/pod-palette-v4/cramns4-master.png",
+      "baseSha256": "d4c647db06be126f5676fa19bcdfdff2c7db27c253a31c08550b891b08e4f9d4",
+      "resultSha256": "74508ee87eeac26de0c47f6a1a69f2d94615d5d10866beee6672a76999bc161f",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/cramns4-master.png",
+      "maskSha256": "29ebb1b8a29adc84ec22e2043e53beb86e2518f58409250dafa4af1867ab65f6",
+      "unmodifiedRgbSha256": "7f47cf21bef876a8360b89d5af9a7764bf084cb39d3e817e7f6c2ecb5c009804",
+      "rawOutputSha256": "ecdf82000312db689f7d333982e9e8e3edd94a2c0ae5bf094ff10e4483a98205"
+    },
+    {
+      "current": "References/TextureRevamp/pod-palette-v4/crhpns4-master.png",
+      "baseSha256": "7ffe182417cd3c8ef896f4422f31e2f5f98d282fc6577ea734066c1a2ceadef3",
+      "resultSha256": "65ff3d72dbe7059eba7dd3e574a0607a03e71c67c43ecca22a580d11a37c32bc",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/crhpns4-master.png",
+      "maskSha256": "bff3649e4ed37c9112f244a2279af4a9d39e62f0b42c70a6daae2bc11e3e37ed",
+      "unmodifiedRgbSha256": "c8aad2a0aff99aa8a4907e562f3e431ed64892c18d454ba472953bad3a155b21",
+      "rawOutputSha256": "ecdf82000312db689f7d333982e9e8e3edd94a2c0ae5bf094ff10e4483a98205"
+    },
+    {
+      "current": "References/TextureRevamp/nav-weapons-v4/weapon_bd_master.png",
+      "baseSha256": "4e1f1eb9244053b918176f0b38b986fcfbc7e6cdb50c1358e4ac0cb4d854b8d3",
+      "resultSha256": "83b53a1f169989172f6e1bfb3aca7de941c2d9e237dcc68d393e8381f15c5056",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/weapon_bd_master.png",
+      "maskSha256": "bd4998b11ccb8c7a81cc1edf36a84b5c13cacc1ed0b63e6e6a7faf272cb9bd16",
+      "unmodifiedRgbSha256": "ba136b1f3fa7363783500bb91f2738a6529a479ea422320f51d85fdc878710d5",
+      "rawOutputSha256": "385fd2f045cab0aeeddb0a61f46d559bd6f1016e5320b968b1b71556c716e477"
+    },
+    {
+      "current": "References/TextureRevamp/nav-weapons-v4/badge_bd_master.png",
+      "baseSha256": "812accdfc5373f6d8cf2a5c29bef1462d4323c51e80c174eff8eb96a60cd55ee",
+      "resultSha256": "236f7167120ebb1b879712702044817d94d791a51ce4f7d34e2e952f72a8e11a",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/badge_bd_master.png",
+      "maskSha256": "8168284746085cbc83cbce614d372405a08d3da1257118009dd82080b6cfdc98",
+      "unmodifiedRgbSha256": "169a25dada0ead7f868647eb0fe48e914537281b719ac2869cd39515c5001309",
+      "rawOutputSha256": "385fd2f045cab0aeeddb0a61f46d559bd6f1016e5320b968b1b71556c716e477"
+    },
+    {
+      "current": "References/TextureRevamp/pod-palette-v4/crambd4-master.png",
+      "baseSha256": "cf47835f03a5ff45f000319accf099e384fef98610277c6d6bdd8c1cf2cb20a3",
+      "resultSha256": "32730ff55a46aae28076435160074329a919a783842b392e32889ab1d68c7882",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/crambd4-master.png",
+      "maskSha256": "d152e32b59303db51498f6af294b776450023df50c20bfc63d6aa344d1654db7",
+      "unmodifiedRgbSha256": "1701422369df63dcbebcd227aa515fab7c5afe5566464e044c43181c24945f9e",
+      "rawOutputSha256": "385fd2f045cab0aeeddb0a61f46d559bd6f1016e5320b968b1b71556c716e477"
+    },
+    {
+      "current": "References/TextureRevamp/pod-palette-v4/crhpbd4-master.png",
+      "baseSha256": "4647d64040911c633d9b9c4a205f4e79b754712b08a304f966984f6df1ded1da",
+      "resultSha256": "49b7c47169a3fbbf1ef591ef26b4d6c5d6c47eca7842644f9e1fbdefafd30f6f",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/crhpbd4-master.png",
+      "maskSha256": "bd57c527b2696003eedf99e1bd1483e7781d2070bdb3a92bcca7110561a2abc8",
+      "unmodifiedRgbSha256": "42ae35a40d8247a3e904df1cb468bfe37e25b12120e22a14f21c91f9778ea67d",
+      "rawOutputSha256": "385fd2f045cab0aeeddb0a61f46d559bd6f1016e5320b968b1b71556c716e477"
+    },
+    {
+      "current": "References/TextureRevamp/nav-weapons-v4/weapon_cc_master.png",
+      "baseSha256": "d37ffb5ead382db6b8307b411bd6380707811d3d36a6a7cf03d15cb2576f71c8",
+      "resultSha256": "9c02f4cb324ca372f949162c6eef1464c5d38f88f7d011610ff021b9e093fa64",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/weapon_cc_master.png",
+      "maskSha256": "e190fc81850203fcc336dd1f5f13e5e35785af6464d6c2bdf4f1d62a09e411fb",
+      "unmodifiedRgbSha256": "ffee357cf48f679b560791a21faa16c084b73854a9d51a6d6b9e89c03c1ec87f",
+      "rawOutputSha256": "5e55fa175c6b5fcccb568147052027b4d008c5053ed23df1d78827264650d729"
+    },
+    {
+      "current": "References/TextureRevamp/nav-weapons-v4/badge_cc_master.png",
+      "baseSha256": "c28fddb948ceea9b7d69d6d6012243a91ebcecefc74dfb0fdaf42b3f36c418c9",
+      "resultSha256": "47d87756dcc53a1595d46331720166a6de141a1ad79da67a0234b8b53b0713d0",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/badge_cc_master.png",
+      "maskSha256": "018658acab3a596fcab72a1d8aba90615dc0cc06f4b2eb4cd40484a8a56c3446",
+      "unmodifiedRgbSha256": "061c243fb93b21cd086d9ef8e6b0a7121aeec2742954cce57b80a901691f75ae",
+      "rawOutputSha256": "5e55fa175c6b5fcccb568147052027b4d008c5053ed23df1d78827264650d729"
+    },
+    {
+      "current": "References/TextureRevamp/pod-palette-v4/cramcc4-master.png",
+      "baseSha256": "0d59da80cf6fc4e6f6f6af14635f0eaf4c650eb90f2141aa8bc9793d232b849d",
+      "resultSha256": "d6ea28b07e22195d466e4b9c2cdf6a76e0cec7480da31925078da21ec8d1b22b",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/cramcc4-master.png",
+      "maskSha256": "830a79cf7c2d26e7efcaacc7213a8b0dcdd6c81b1fa7e4340d41bc4f31425f2a",
+      "unmodifiedRgbSha256": "f70e08d14988fc90b4f8c4a5793546cfc70bfd6c98cad35f81d2c0167c6a720b",
+      "rawOutputSha256": "5e55fa175c6b5fcccb568147052027b4d008c5053ed23df1d78827264650d729"
+    },
+    {
+      "current": "References/TextureRevamp/pod-palette-v4/crhpcc4-master.png",
+      "baseSha256": "b0a0b74669cca34cdcd71ec7935836279ec8e9e6f7f3f7a5cfcafed0e35aa99d",
+      "resultSha256": "10ace6b253592b5fd6f7a56457171b9c028255aa5a41f3ff01bff4554df0e34c",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/crhpcc4-master.png",
+      "maskSha256": "73a403fd30f43747cbdafde3b853be74203cacaff8c873380430d45209eba58c",
+      "unmodifiedRgbSha256": "0bc4afb2a5a4d30e0d000300e90096665040d9b79faf85a2e7089dba2caccd99",
+      "rawOutputSha256": "5e55fa175c6b5fcccb568147052027b4d008c5053ed23df1d78827264650d729"
+    },
+    {
+      "current": "References/TextureRevamp/nav-weapons-v4/weapon_cr_master.png",
+      "baseSha256": "ce475ac1251936e2def95410b606fd7e9ed02b8074c5122c98d20d694110b90d",
+      "resultSha256": "317c54b9eb441c73b61df6151dd5bc50f0d653e6de894d04426444d8b489699e",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/weapon_cr_master.png",
+      "maskSha256": "f95f78680ecaf6e660d6c6b15cd95814412ea58d1e886afb8cf82a9b77ce7f90",
+      "unmodifiedRgbSha256": "090a09f54044c705db48a2f69a6fae0344673ab92b99572322e6e0617a37da22",
+      "rawOutputSha256": "43f31e70c5646a1869ca52054c3bf503a3afdf94f07897a362e493e46d763ced"
+    },
+    {
+      "current": "References/TextureRevamp/nav-weapons-v4/badge_cr_master.png",
+      "baseSha256": "77db8d72688cc5b9d138ecdfa57639cdd56a028429c0276121bfb2bfaa5a7dca",
+      "resultSha256": "b98f430684d35643e10a8ec9c68d8c3f598c3c6173736117572c82112381caa9",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/badge_cr_master.png",
+      "maskSha256": "c747c5c58b8a2415fb8fcf6bcb8f257bae5a872c6dc1764169b5d6163a06de3b",
+      "unmodifiedRgbSha256": "1d44671b1d0d92c925ef2cbef2f61ae7bda00024b6718c44c123ba542a2ec81d",
+      "rawOutputSha256": "43f31e70c5646a1869ca52054c3bf503a3afdf94f07897a362e493e46d763ced"
+    },
+    {
+      "current": "References/TextureRevamp/pod-palette-v4/cramcr4-master.png",
+      "baseSha256": "045e57224af41d5614f5d7dc8a0330ba1402951086d0dbe9d394b3ad8d4aea95",
+      "resultSha256": "62f4dadca98df6181a775445a76b4355ad070cc97920f39bae723b2f807839a1",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/cramcr4-master.png",
+      "maskSha256": "31cf6ff774679699668942b1a3445e866aa0d1e64bbf408b366b14513c8b7392",
+      "unmodifiedRgbSha256": "5a86b53c8fa62d4819ea5d1057bb7dd1b1d5bab2eaf40deb1579bfab49d12a9e",
+      "rawOutputSha256": "43f31e70c5646a1869ca52054c3bf503a3afdf94f07897a362e493e46d763ced"
+    },
+    {
+      "current": "References/TextureRevamp/pod-palette-v4/crhpcr4-master.png",
+      "baseSha256": "73466184c38a49dfb6dd573926dbf48d567efad0ff2e731c8a2ff3ae1ee19d11",
+      "resultSha256": "de363e418ef22e82e18dc89fdfe8005e9f61af7f9cc9a9900ed994b0deb8c3c5",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/crhpcr4-master.png",
+      "maskSha256": "103f2d1e72fa37414d992cc599a82e91e7b7fb2e0405d29802ebfe6d2ebc76f3",
+      "unmodifiedRgbSha256": "686a987eb5701e02330d496541030c8daeb018e6ae0adc11f1f97715047cca19",
+      "rawOutputSha256": "43f31e70c5646a1869ca52054c3bf503a3afdf94f07897a362e493e46d763ced"
+    },
+    {
+      "current": "References/TextureRevamp/nav-weapons-v4/nav_bd_v4.png",
+      "baseSha256": "1beb8413efb2952ef8cfe3929fbe710b9060c240e5741351a36ef2a715f20c4b",
+      "resultSha256": "099b4d68d4292d9425aa0fa61e0add5ce8b0369a757138f72f15205e7bf499d4",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/nav_bd_v4.png",
+      "maskSha256": "9607195a94e0a2892eee23e3ff91ff9ef7a728a4885a7cc24f1efd2492d97bd1",
+      "unmodifiedRgbSha256": "e21c0c5a1ccde0843e32285af14bcb8e8b57a82705f07b807b93915eea313e1f",
+      "rawOutputSha256": "ef9d8a410c318b48c0b075e4fab80f49ec066cf5087d51c3b94f5fc49141fd1f"
+    },
+    {
+      "current": "References/TextureRevamp/nav-weapons-v4/nav_cr_v4.png",
+      "baseSha256": "cc9a25521ccd31bcd1a0cd3f1c276d4e95f292e21a7eb28483a37edb174f1a22",
+      "resultSha256": "33a111518d3e04a1bf6cee90e86bb139a645bf6c65fabf7f7c4128e26fd5003c",
+      "mask": "References/TextureRevamp/nav-weapons-v4/glow-masks/nav_cr_v4.png",
+      "maskSha256": "8746f5ef02e7fd7cc7033a1c919f99827706d085ca0fa9855324755c2757ec8e",
+      "unmodifiedRgbSha256": "724abb5109b9cd8336c0f61a7cd7c1d21b0f4f3bd198ec4f14b1cb7cf2d9bd15",
+      "rawOutputSha256": "c88609ece3345c1578d58a4ca3aee2fb6193b24fafd5cf52a1e674b8b7f1cbed"
+    }
+  ]
+}

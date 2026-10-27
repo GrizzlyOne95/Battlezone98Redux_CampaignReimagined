@@ -1,0 +1,27 @@
+{
+  "mode": "built-in image_gen",
+  "date": "2026-10-21",
+  "entries": [
+    {
+      "id": "cca_door",
+      "input": "building-sources/cca_door_before.png",
+      "prompt": "Use case: precise-object-edit. Image 1 is a UV-LOCKED edit target: the original CCA launch pad door diffuse texture. This is NOT a redesign. Reconstruct the SAME small image in high detail, keeping EVERY shape and colored indicator in the same normalized position. Tall full bleed aspect 180:274. Twin arched doors with original V braces and lower hazard panels. Four and ONLY FOUR tiny green lamps at x=0.50 and y=0.39,0.59,0.78,0.94. Two dim red tiny bars near x=.30 and .70, y=.10. Green lamps remain tiny pinpoints, not big buttons. Original thin diagonal braces and arch remain thin with identical dimensions and placements. Lower hazard-panel top at y=.76 and bottom at y=.97, original stripe directions/count. Preserve darkness, heavy black/charcoal steel and muted rusty red recesses, not shiny metallic gray. Only add resolved fine metal grain, small edge abrasion and quiet detail within the original shapes. Do not add new rivet grids, external border or change broad lighting. No perspective, model rendering, shadows, background, text, gold, new panels or additional lamps. Accurate original UV layout outranks detail. The texture alone.",
+      "followup": "Use case: precise-object-edit. Remove ONLY the single uppermost green square indicator on the central vertical door seam, located 19.4 percent down the image. Fill that tiny area with matching continuous dark steel from the immediately surrounding central seam. There must be exactly FOUR green indicators remaining, at 39%,59%,78%,94% down. Preserve EVERYTHING ELSE pixel-for-pixel: door, other green indicators, red lights, arch, braces, scratches, hazard panels, image proportions and framing. No other changes."
+    },
+    {
+      "id": "cca_stairs",
+      "input": "building-sources/cca_stairs_before.png",
+      "prompt": "Use case: precise-object-edit. Asset type: UV-locked game diffuse texture patch of the CCA launch pad stair treads. Image 1 is the edit target. Conservatively restore the original narrow, tall rectangular stair texture with clearly resolved steel tread wear and subtle anti-slip grain. Preserve the EXACT number of steps (19), widths, spacing and trapezoidal silhouette, edge coordinates, dark gray surround and off-white worn tread fronts. This is an orthographic FLAT TEXTURE strip, not a perspective image or a new 3D stairway. Keep every step at the original normalized location. Add only small believable steel detail, no new railings, bolts that look like lights, doors, signage, labels or graphics. Preserve the source muted charcoal gray palette and brightness. No directional lighting, perspective, glow or presentation layout. Full bleed tall texture patch only."
+    },
+    {
+      "id": "cca_plate",
+      "input": "building-sources/cca_plate_before.png",
+      "prompt": "Use case: precise-object-edit. Asset type: diffuse texture patch for the existing CCA launch pad's large flat steel plate. Image 1 is the edit target. Make a conservative high-detail restoration of this worn dark gray industrial plate. Keep the nearly rectangular outline, original edge placement, mottled dark charcoal / muted gray palette and subdued brightness; faint branching hairline stress scratches especially along the bottom. Resolve fine rolled-steel grain, tiny paint chips and fine worn scratches across the plate without inventing large structural features. Retain this quiet mostly blank metal surface: no new panels, bolts, machinery, shapes, logos, lettering or lamps. Full bleed orthographic flat texture, even neutral illumination, no vignette, perspective, cast shadows, glossy highlights or presentation frame. Preserve all large source forms, just give the diffuse surface truly resolved close-range detail."
+    },
+    {
+      "id": "bdog_walkway",
+      "input": "building-sources/bdog_walkway_before.png",
+      "prompt": "Use case: precise-object-edit. Image 1 is the UV-LOCKED edit target: a cropped painted ribbed steel panel from the original Black Dog launch pad game texture atlas. Conservative high-detail material restoration, never a redesign. Preserve ALL broad rib outlines and their angles, the polygonal dark border, worn red-and-off-white vertical marking columns on the left, gray dark brown steel palette, framing, and positions exactly. Tall 3:5 full-bleed texture patch, flat orthographic. Add genuinely resolved fine rolled metal grain, subtle small scratches, fine peeling paint edges, restrained industrial surface wear. The current original is coarse and fuzzy on a huge mesh; resolve the surface without inventing new architecture. Keep the existing painted marking geometry and colour values, no new letters or logos, rivet rows, doors, stairs, machinery, lights, perspective, new highlights, background, drop shadows, vignette, gold or large cracks. Preserve original structural lines even at the edges. No extra vertical markings or changed rib count. Texture only, no presentation."
+    }
+  ]
+}

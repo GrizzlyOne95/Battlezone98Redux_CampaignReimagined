@@ -1,6 +1,20 @@
 // CCA Siege Mortar.
 // Heavier, shorter-ranged mortar with approximately stock sustained damage.
 [WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored mortar: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_mortar.mesh"
+flashMaterial = "CR/Muzzle/mortar"
+flashDuration = 0.12
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
 classLabel = "mortar"
 ordName = "sgrenade"
 wpnName = "CCA Siege Mortar"

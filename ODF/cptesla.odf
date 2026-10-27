@@ -1,6 +1,6 @@
 [GameObjectClass]
 classLabel = "wpnpower"
-baseName = "apspec"
+baseName = "cpspec"
 scrapCost = 1
 scrapValue = 0
 maxHealth = 150

@@ -37,9 +37,8 @@ Height=0
 
 [Sky]
 SunTexture=
-SkyType= 1
 SkyHeight = 200
-SkyTexture= jupiter.map
+SkyTexture=
 
 
 BackdropDistance= 400
@@ -47,139 +46,201 @@ BackdropWidth   = 800
 BackdropHeight  = 100
 
 [Stars]
-Radius		= 500
+Radius		= 1000
 
 Texture00   = stars.map
-Size00      = 100
+Size00      = 200
 Azimuth00   = 0
 Elevation00 = 5
 
 Texture01   = stars.map
-Size01      = 100
+Size01      = 200
 Azimuth01   = 15
 Elevation01 = 5
 Roll01      = 176
 
 Texture02   = stars.map
-Size02      = 100
+Size02      = 200
 Azimuth02   = 30
 Elevation02 = 5
 Roll16      = 90
 
 Texture03   = stars.map
-Size03      = 100
+Size03      = 200
 Azimuth03   = 45
 Elevation03 = 5
 
 Texture04   = stars.map
-Size04      = 100
+Size04      = 200
 Azimuth04   = 60
 Elevation04 = 5
 Roll04      = 78
 
 Texture05   = stars.map
-Size05      = 100
+Size05      = 200
 Azimuth05   = 75
 Elevation05 = 5
 Roll05      = 300
 
 Texture06   = stars.map
-Size06      = 100
+Size06      = 200
 Azimuth06   = 90
 Elevation06 = 5
 Roll16      = 180
 
 Texture07   = stars.map
-Size07      = 100
+Size07      = 200
 Azimuth07   = 105
 Elevation07 = 5
 
 Texture08   = stars.map
-Size08      = 100
+Size08      = 200
 Azimuth08   = 120
 Elevation08 = 5
 
 Texture09   = stars.map
-Size09      = 100
+Size09      = 200
 Azimuth09   = 135
 Elevation09 = 5
 Roll16      = 90
 
 Texture10   = stars.map
-Size10      = 100
+Size10      = 200
 Azimuth10   = 150
 Elevation10 = 5
 
 Texture11   = stars.map
-Size11      = 100
+Size11      = 200
 Azimuth11   = 165
 Elevation11 = 5
 Roll16      = 180
 
 Texture12   = stars.map
-Size12      = 100
+Size12      = 200
 Azimuth12   = 180
 Elevation12 = 5
 
 Texture13   = stars.map
-Size13      = 100
+Size13      = 200
 Azimuth13   = 195
 Elevation13 = 5
 Roll13      = 176
 
 Texture14   = stars.map
-Size14      = 100
+Size14      = 200
 Azimuth14   = 210
 Elevation14 = 5
 
 Texture15   = stars.map
-Size15      = 100
+Size15      = 200
 Azimuth15   = 225
 Elevation15 = 5
 
 Texture16   = stars.map
-Size16      = 100
+Size16      = 200
 Azimuth16   = 240
 Elevation16 = 5
 Roll16      = 78
 
 Texture17   = stars.map
-Size17      = 100
+Size17      = 200
 Azimuth17   = 255
 Elevation17 = 5
 Roll17      = 300
 
 Texture18   = stars.map
-Size18      = 100
+Size18      = 200
 Azimuth18   = 270
 Elevation18 = 5
 
 Texture19   = stars.map
-Size19      = 100
+Size19      = 200
 Azimuth19   = 285
 Elevation19 = 5
 
 Texture20   = stars.map
-Size20      = 100
+Size20      = 200
 Azimuth20   = 300
 Elevation20 = 5
 Roll16      = 180
 
 Texture21   = stars.map
-Size21      = 100
+Size21      = 200
 Azimuth21   = 315
 Elevation21 = 5
 
 Texture22   = stars.map
-Size22      = 100
+Size22      = 200
 Azimuth22   = 345
 Elevation22 = 5
 
 Texture23   = stars.map
-Size23      = 100
+Size23      = 200
 Azimuth23   = 360
 Elevation23 = 5
 Roll16      = 180
+
+Texture24   = crmeteor.map
+Color24     = "255 252 246 255"
+Size24      = 360
+Azimuth24   = 15
+Elevation24 = 25
+Roll24      = 30
+
+Texture25   = crmeteor.map
+Color25     = "250 255 250 255"
+Size25      = 440
+Azimuth25   = 80
+Elevation25 = 12
+Roll25      = 110
+
+Texture26   = crmeteor.map
+Color26     = "255 248 240 255"
+Size26      = 400
+Azimuth26   = 135
+Elevation26 = 40
+Roll26      = 200
+
+Texture27   = crmeteor.map
+Color27     = "246 252 255 255"
+Size27      = 520
+Azimuth27   = 205
+Elevation27 = 18
+Roll27      = 290
+
+Texture28   = crmeteor.map
+Color28     = "255 255 244 255"
+Size28      = 380
+Azimuth28   = 265
+Elevation28 = 50
+Roll28      = 60
+
+Texture29   = crmeteor.map
+Color29     = "252 246 255 255"
+Size29      = 480
+Azimuth29   = 325
+Elevation29 = 12
+Roll29      = 150
+
+Texture30   = crjovian.map
+Size30      = 394
+Azimuth30   = 120
+Elevation30 = 32
+
+Texture31   = creuropa.map
+Size31      = 11
+Azimuth31   = 210
+Elevation31 = 47
+
+Texture32   = crganyme.map
+Size32      = 8
+Azimuth32   = 246
+Elevation32 = 27
+
+Texture33   = crcallis.map
+Size33      = 4
+Azimuth33   = 150
+Elevation33 = 47
 
 [TextureType0] // Lava
 FlatColor= 134

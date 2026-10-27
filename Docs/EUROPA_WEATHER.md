@@ -1,5 +1,9 @@
 # Europa weather and atmosphere director
 
+**Sensor policy update (15 October 2026):** Missions 12/13 now bind director severity to Environment sensors, including during the stealth mission. This deliberately supersedes the old visual-only mission policy below; the visual director itself still has no native sensor writes. See
+`WEATHER_SENSOR_POLICY.md` for the current campaign policy.
+
+
 `Scripts/CREuropaWeather.lua` is the Europa counterpart of `CRIoWeather`, `CRVenusWeather` and
 `CRMarsWeather`, and it follows the Io architecture (seeded ladder, host-decided replicated
 events, generated map data). It is reusable by any Europa mission; the first user is misn12
@@ -19,7 +23,9 @@ subset of an allowlist (details under "Gameplay-effect statement").
 | `Scripts/CRVenusMap.lua` | Shared pure half (seeded rng, ladder, vent merge, weighted pick). Reused as is. |
 | `Scripts/CREuropaSites12.lua` | Generated map data for misn12 (16 geysers, 120 frost-haze anchors, bounds). |
 | `Tools/Build-EuropaSites.py` | Regenerates a `CREuropaSites<NN>.lua` from a mission's `.trn`, `.mat`, `.bzn` (and optionally the map worker's geysers JSON). |
-| `Materials/cr_europa.particle.payload` | Five particle templates, all on existing `CR_FX/*` materials. Loaded through `CRParticleTemplates.EnsureExtra("cr_europa")`. |
+| `Materials/cr_europa.particle.payload` | Five particle templates on the `CREuropa/*` materials. Loaded through `CRParticleTemplates.EnsureExtra("cr_europa")`. |
+| `Materials/crart_europa.material` | The `CREuropa/*` particle materials: existing `CR_FX` art on the RGBA-order `CRWX_FX` vertex program plus `CR_Effect_fragment`, so DX11 draws the pass natively. On the `CR_FX/*` originals DX11 swapped red and blue, so the cold blue-white plumes, ice and frost drew a warm peach. |
+| `Materials/cr_weather.particle.payload` | `CR/Europa/Glitter`, the presets' ice glitter: `CR/Weather/SnowLight` on `CREuropa/Snow`. It lives in the base payload so the presets work without the opt-in `cr_europa` one. |
 | `Tools/Test-CREuropaWeather.lua` | Isolated-peer tests against an exu / BZ mock. |
 
 No shared file was edited for the feature. The five `Europa*` presets are registered into
@@ -63,8 +69,19 @@ Io (`CRVenusMap.NewLadder`, including temporary intense **episodes** from rung 3
 it; a vent's plume timer runs at it). Inside an episode plumes run a further x1.4. The tide
 multiplies plume and quake pacing by `1 +/- 0.35` along a sine whose phase is derived from the seed.
 
-The presets are cold and pale (fog `0.45-0.52 / 0.55-0.60 / 0.70-0.72`, a weak sun, blue-grey ambient),
-carry **one** precipitation layer (`CR/Weather/SnowLight`, an ice glitter at 14-90 particles/s falling
+Europa is airless. Its sky is the catalog star box (`CR_Sky/EuropaStars`), with Jupiter (12.2
+degrees across, fixed in the sky) and Io, Ganymede and Callisto drawn on the TRN `[Stars]` quads of
+misn12 and misn13. The light comes from Environment's `orbit` mode: the sun's real path, a short
+eclipse behind Jupiter (about 3.5 % of the day), and a dimmer Jupiter-shine at night than Io's. The
+presets therefore carry no ambient or diffuse (both `nil`), which leaves the light to the orbit.
+`Scripts/CRWorldArt.lua` turns each TRN heading into Redux's render space (z mirrored, see
+`Docs/TERRAIN_CLUTTER_PHASE_A_VALIDATION.md`) before any orbit maths. The sky shaders and the scene
+light work in that space, and before this conversion Jupiter's phase (and Io's, on misn10/11) came
+out mirrored.
+
+The presets are cold and dark (fog `0.20-0.22 / 0.24-0.28 / 0.30-0.36`, so the horizon does not
+glow against the black sky, and a weak sun), and
+carry **one** precipitation layer (`CR/Europa/Glitter`, an ice glitter at 14-90 particles/s falling
 1.0-2.2 units/s at a 5 degree cone) and no lightning, sky or gusts. Each preset has `wind = (0,-1,0)`,
 `windSpeed = 1.0`; the director also pins `CRWeather.SetWindOverride({0,-1,0}, 1.0)`, so
 CRWeather's wind-to-emitter-direction push is exactly vertical and its velocity scale is exactly 1.
@@ -242,13 +259,22 @@ CREuropaWeather.SetTargetLevel(1)          -- on the win
 
 | Group | Names |
 | --- | --- |
-| Switches | `AllowPlumes`, `AllowIceFall`, `AllowFrostHaze`, `AllowVentHaze`, `AllowQuakes`, `AllowRandomQuakes`, `AllowQuakeIce`, `AllowSurges`, `AllowRandomSurges`, `AllowAurora`, `AllowEpisodes`, `AllowSounds` (also `Init` options `plumes`, `iceFall`, ...) |
+| Switches | `AllowPlumes`, `AllowIceFall`, `AllowFrostHaze`, `AllowVentHaze`, `AllowQuakes`, `AllowRandomQuakes`, `AllowQuakeIce`, `AllowSurges`, `AllowRandomSurges`, `AllowAurora`, `AllowEpisodes`, `AllowSounds`, `AllowGlassSnow` (also `Init` options `plumes`, `iceFall`, ..., `glassSnow`) |
 | Budgets | `MaxSystems` 28, `MaxLiveFrost` 6, `MaxLivePlumes` 8, `MaxLiveFall` 4, stream in/out distances |
 | Ladder | `SeverityRate`, `EpisodeChance`, `EpisodePeak`, `EpisodeHold`, `EpisodeCooldown`, `EpisodeRateBoost`, the `Levels` table, `TidalPeriod`, `TidalDepth` |
 | Plumes | `PlumePeriod`, `PlumeMajorPeriodScale`, `PlumeFirstDelay`, `PlumeSeconds`, `PlumePower`, `PlumeMinSpacing`, `PlumeBurstRate`, `FallDelay`, `FallLinger`, `FallRate`, `FallHeight`, `VentHaze*` |
 | Quakes | `QuakeGap`, `QuakeStrength`, `QuakeDuration`, `QuakeStrengthBias`, `QuakeMinSpacing`, `QuakeScriptedDefault`, `QuakeDurationLimit`, `QuakeMagnitudeScale`, `QuakeMinNative`, `QuakeIceRate`, `QuakePlumeStrength` |
 | Surges | `SurgeGap`, `SurgeStrength`, `SurgeDuration`, `SurgeAmbient`, `SurgeFogColor`, `SurgeFogTint`, `SurgeFlicker`, `SurgeMoteRate`, `SurgeSound` |
 | Co-op | `NetHeartbeat` 30, `HostOverrideSeconds` 45 |
+
+## Cockpit-glass snow
+
+A few soft-white snow flakes land on the cockpit glass, melt away and return elsewhere (`CRWetGlass.Weather("snow", level)`,
+see `Docs/CR_STORMFX_PORT.md`). Render only. The level is `(0.22 + 0.38 * GetSeverity()) * (0.85 + 0.15 * sin(2 pi clock / 170))`,
+eased at 0.04 per second, so a quiescent Europa (misn12 opens there) carries about 0.2 and perijove about 0.5; the layer
+opacity at that level is about 0.2-0.4 of a sparse sheet. Local to each peer (no wire traffic), off with `AllowGlassSnow` /
+`Init{ glassSnow = false }`, with `CRWeather.Quality` 0, or when the director is disabled. `GetGlassSnow()` reports the
+level; `Shutdown` clears it and calls `CRWetGlass.Stop()`. Misn12 and misn13 need no change.
 
 ## Gameplay-effect statement
 

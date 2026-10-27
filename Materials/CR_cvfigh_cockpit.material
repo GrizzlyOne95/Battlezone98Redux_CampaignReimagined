@@ -1,0 +1,17 @@
+import * from "CR_BZBase.material"
+
+material CRV/CVFighterCockpit : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap crvcfcp_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap crvcfcp_e.dds
+}
+
+material CRV/CVFighterGuns : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap cvfigh_d.dds
+    set_texture_alias NormalMap cvfigh_N.dds
+    set_texture_alias SpecularMap cvfigh_S.dds
+    set_texture_alias EmissiveMap cvfigh_e.dds
+}

@@ -1,0 +1,86 @@
+{
+  "schema": "cr-hd-source-images-v1",
+  "world": "moon",
+  "tileSize": 1024,
+  "normalPolarity": "source-height-matched",
+  "sourceRecipeSha256": "dea64d74c33429b5d643a587b6add156cd510d181cfb95997eeacffc5c24bc10",
+  "normalEngineConversion": {
+    "ccf846357bf1": "flip_green",
+    "92a81dc059aa": "flip_green",
+    "97a97e4e6580": "flip_green"
+  },
+  "normalCorrections": {},
+  "normalRotation": "Sources converted to engine U/V tangent basis first; CCW image variants rotate engine normal XY as (Y, -X).",
+  "atlasPixelsRead": false,
+  "baseEmissives": {
+    "schema": "cr-base-emissive-accents-v1",
+    "sourceId": "ccf846357bf1",
+    "maximum": 32,
+    "sourceGain": 0.1,
+    "settings": {
+      "type": 4,
+      "color": [
+        12,
+        24,
+        32
+      ],
+      "rectangles": [
+        [
+          0.2,
+          0.12,
+          0.05,
+          0.004
+        ],
+        [
+          0.7,
+          0.87,
+          0.05,
+          0.004
+        ]
+      ]
+    },
+    "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
+  },
+  "sources": [
+    {
+      "id": "ccf846357bf1",
+      "name": "pbintf02.png",
+      "library": "BZCC",
+      "inputHashes": {
+        "D": "c30a34c0beb980ce05683e06c2279187c0c3edbee42ff59acdddfb2fcafa7060",
+        "N": "2dfad5dbf355c385240bd94607683609ca016ee7c6dce9604dc5aed45cac722c",
+        "S": "853474fa3bb7c20677a829eb6664ab498fa7f844b4f54f7bb5036833c357114f"
+      }
+    },
+    {
+      "id": "92a81dc059aa",
+      "name": "StonyMoonGround_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "60bab70f93d428490cf268f0866e25acb46bbd7061ae822cd4200dd963b1f4ec",
+        "S": "8d5bdb9f007d6bb10567e08921a5caf1cf150cee212485fb98b31c49666560ab",
+        "E": "3a7fa4380bae4ea262ab5869208228c7b1b58e49678ab057dda34cd1791f37a5",
+        "G": "d84de78f4cc9c4cd58f4086ca408dea75311fdbad26975bc9fa214cd56ca4b5f",
+        "N": "2f31230dfb4690a544aa223f4f243711a7b7de8f89871cf21f433d77bcabab7a",
+        "A": "6f36ac5634d40e0db3527f57e0535783bc61ed97e471434802cd8202fe4b3758"
+      }
+    },
+    {
+      "id": "97a97e4e6580",
+      "name": "LunarBarrens_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "0065e0931b9fc644ad4b9b4df69b158c4d42e4a99845e7f847036595e3dba6ef",
+        "E": "3a7fa4380bae4ea262ab5869208228c7b1b58e49678ab057dda34cd1791f37a5",
+        "S": "8d5bdb9f007d6bb10567e08921a5caf1cf150cee212485fb98b31c49666560ab",
+        "G": "e6215c924a3543e2e00d25a8e02056f99696efeedd79c6eba54fcb3ebdf1a143",
+        "N": "e82c6e8c52c7f2d4bf48ee2955f90faf2d0bda77655806b2f6ca4b4de9df92cb"
+      }
+    }
+  ],
+  "acceptedArt": {
+    "recipe": "Tools/TerrainHD/Moon/polyhaven.json",
+    "craters": "Tools/TerrainHD/Moon/regolith.json",
+    "license": "CC0-1.0"
+  }
+}

@@ -18,7 +18,8 @@ that is the point of the setting.
 | `Scripts/CRVenusSites09.lua` | Generated map data for misn09 (`python Tools/Build-VenusSites.py misn09 --types 1`). |
 | `Tools/Build-VenusSites.py` | Regenerates a `CRVenusSites<NN>.lua` from a mission's `.trn`, `.mat` and `.bzn`. |
 | `Scripts/CRWeatherPresets.lua` | Adds the five ladder presets `VenusCalm` .. `VenusSevere` (fog, light, haze, grit; no lightning, no rain). |
-| `Materials/cr_venus.particle.payload` | Eight particle templates, all on existing `CR_FX/*` materials. |
+| `Materials/cr_venus.particle.payload` | Eight particle templates on the `CRVenus/*` materials. |
+| `Materials/crart_venus.material` | The `CRVenus/*` particle materials: existing `CR_FX` art on the RGBA-order `CRWX_FX` vertex program plus `CR_Effect_fragment`, so DX11 draws the pass natively. On the `CR_FX/*` originals DX11 swapped red and blue, which made the fog bank's ochre haze draw teal (see Fog banks). |
 | `Scripts/CRParticleTemplates.lua` | New `EnsureExtra(name)` loads an opt-in payload without risking the base set. |
 | `Scripts/Environment.lua` | New `SetObjectScramble` / `ClearObjectScramble` / `GetObjectScramble`: a per-craft, self-expiring sensor scale. |
 | `Tools/Test-CRVenusWeather.lua` | Isolated-peer tests against an exu / BZ mock. |
@@ -111,7 +112,7 @@ the central play area (x 1500-3700, z 98500-100500).
 A strike is a small state machine on every peer:
 
 1. **Telegraph** (1.2-2.0 s): a `CR/Venus/StElmo` corona of cold sparks builds on the target.
-2. **Impact**: `CR/Venus/Bolt` (a burst of leaning `CR_FX/Arc` cards, about 0.11 s) and
+2. **Impact**: `CR/Venus/Bolt` (a burst of leaning `CRVenus/Arc` cards, about 0.11 s) and
    `CR/Venus/BoltGlow` at the foot; the local scene flash; thunder after a distance delay;
    shove and radar scramble.
 3. **Afterglow**: a struck generator keeps crackling for `PowerAfterglow` (3 s), as if it
@@ -178,6 +179,20 @@ At run time up to `MaxLiveSulfur` (8) `CR/Venus/SulfurPool` systems stream in in
 of the player: continuous steam plus a burp (`SulfurBurpRate` for 0.35 s) every 2.5-9 s,
 more often in storms. A pool within 90 units of the player blurps audibly (`lburn1.wav`).
 
+### Pool pops: bubbles, motes and fumes
+
+`Scripts/CRPoolFX.lua` (shared with Io) adds occasional yellow bubble pops on the liquid-sulphur
+pools through `CRGroundFX.Event("sulfur", ...)`. The `CRWX/Sulfur*` templates in
+`crwx_precip.particle.payload` are the Toxic layout recoloured: `SulfurGlow` bubble, `SulfurDrops`
+spatter, `SulfurMotes` slow pale-yellow motes (no orange embers) and `SulfurGas` pale fumes.
+Only the `PoolFxNear` (3) emitter sites nearest the player inside `PoolFxRange` (170) are
+eligible; each fires every `PoolFxGap` (1.6-4.2 s), faster by `1 + 0.5 x severity`, at a random
+spot within `PoolFxRadius` (24) that must be a liquid-sulphur cell (`SulfurWeightAt >= 0.5`).
+Minimum 0.35 s between events and CRGroundFX's fixed slot ring (4 systems) cap the live
+emitters. Gates: `AllowPoolFx` / `Init{ poolFx = false }`, `AllowSulfur`, loaded templates and
+`CRWeather.Quality`. Cosmetic, local, no network traffic. Applies to misn07, misn08 and misn09
+(12, three-pool and one-pool site lists respectively).
+
 ## 5. Volcanic vents
 
 The converted `misn07.bzn` has 21 `eggeizr1` geyser objects. Several are clumps a few metres
@@ -197,6 +212,25 @@ Visual only. A camera-attached `CR/Weather/Rain` (+ `RainSplash`) is driven by t
 severity: rate = `RainMaxRate` (520) x the ladder's rain value, tinted sulphur-green, leaning
 gently with the wind. Switch it off with `acidRain = false`. It is a director-owned layer
 rather than part of the presets so it can follow severity continuously.
+
+### Acid rain on the cockpit glass
+
+The same rain value (`GetRainIntensity()`, already eased through the ladder, zero at Calm and Haze: 0.30 Storm, 0.70
+Heavy, 1.00 Severe) also goes to `CRWetGlass`, every frame in a first-person craft view:
+`CRWetGlass.Weather("acid", rain)` then `CRWetGlass.Update(rain)`. Earth-like rain draws blue-grey beads, rivulets and
+streaks; with the acid level above zero the drops and streaks are drawn from yellow-green variants of the same textures
+(`crwx_acidbeads/acidrivulet/acidstreak.png`: same alpha, faint sulphur tint), picked as each layer lands so a drop never
+changes colour mid-fade. Exposure also builds a very faint pitted etch haze (`crwx_winetch.png`, at most 30% opacity,
+about three minutes at level 1 to reach full, about twelve minutes to clear after the rain stops; a short or light
+shower leaves almost none). Rain keeps its pass slots: the etch is the last wrap layer, after rain, snow and grit.
+
+Switch it off with `AllowGlassAcid = false` (`Init` option `glassAcid`); `AllowAcidRain = false` or
+`CRWeather.Quality` 0 also leaves the glass clear, and Quality below 1 scales the level (lighter rain, slower etch).
+Render only, local to each peer (guests run it from the ladder state they already follow), and it does nothing without
+EXU overlay support. Misn07, misn08 and misn09 pick it up with no mission change. Layers and files:
+`Docs/CR_STORMFX_PORT.md`. Live-checked 2026-10-19 on the screen overlay only (the cockpit-glass mode drew nothing on the
+test instance, even for plain rain): faint yellow-green drops, rivulets and streaks against grey Earth-like rain, and a
+barely visible etch after about three minutes of severe rain. Not yet judged on the cockpit glass or in a full mission.
 
 ## 7. Render profiles
 
@@ -260,15 +294,27 @@ disk, and a glowing yellow-ochre haze sheet lies on the ground. The ladder canno
   the basin `FogPool` systems emit 2.6x harder; and a ring of up to 7 `CR/Venus/FogPool`
   ground-haze systems (a 55 m grid within 115 m of the player, yellow-ochre, 70 particle
   quota each) streams in at 7 cards/s, lingers 36 s after the bank, then is released.
-  All of it is existing `CR_FX/Haze` art; no new materials or payload entries.
+  The cards are `CRVenus/Haze`, so the ochre draws as written. On `CR_FX/Haze` itself
+  DX11 swapped red and blue and the bank came out teal. Ogre's billboards are RGBA, but
+  the stock `Effect_fragment` has no DX11 delegate, so OpenShim's DX11 compat layer
+  rebuilds the pass with its BGRA sprite adapter. Swapping only the vertex program does
+  not escape that: the pass needs `CR_Effect_fragment`, whose SM4 delegate keeps it native
+  (`[DX11COMPAT] ... action=skip` in openshim.log means it was left alone).
 - **Precedence.** `FogAllow` (0..1, smoothed 0.12/s) multiplies every scheduled bank. It
   is 1 up to rung 3.0 and falls to 0 by rung 4.0 (storm and severe, so a bank never stacks
   on the lightning peak and eases away if a storm arrives mid-bank), and is 0 while any
   `ForceLevel` set piece is pinned. A script that wants fog inside a set piece or a storm
   calls `RequestFogBank{ force = true }`.
-- **Sun disk caveat.** The director controls the sun's *power* and the fog; the visible
-  disk, bloom and rays come from the sky and the renderer, and the Venus sky material is
-  an unlit shader that the fog may or may not wash out. Judge it live.
+- **The sky dome.** `CRSKYVE.MAP` is drawn by `Shaders/CR_venussky.hlsl` (DX9/DX11; OpenGL
+  keeps the old flat dome). The modifier leaves `frame.sky = { storm, bank, flash, flashDir }`
+  and Environment forwards it through `CRWorldArt.UpdateSky`: `storm` is the same gloom the
+  light gets (already washed out by a bank), `bank` is `FogIntensity`, and `flash` is the
+  brightest live flash, with `flashDir` pointing from the local player to the deck above the
+  strike (`SkyFlashHeight` up) or, for heat lightning, low on the deck (`HeatFlashElevation`)
+  on a heading that varies flash to flash. A strike's sky flash never drops below
+  `SkyFlashFloor`, so a far bolt still lights the clouds. The sun has no disc (the misn07-09
+  TRNs leave `SunTexture` empty, as Io's do): a cloud-smeared glow whose strength falls with
+  the storm.
 
 ### Mission API
 
@@ -518,7 +564,7 @@ keeps updating through the result window for that reason.
 
 | Group | Names |
 | --- | --- |
-| Switches | `AllowFogPools`, `AllowAltitudeFog`, `AllowLightning`, `AllowKnockback`, `AllowRadarScramble`, `AllowFlash`, `AllowClouds`, `AllowAcidRain`, `AllowSulfur`, `AllowVents`, `AllowEruptions`, `AllowSensorDegrade`, `AllowEpisodes` (also `Init` options `fogPools`, `lightning`, ...) |
+| Switches | `AllowFogPools`, `AllowAltitudeFog`, `AllowLightning`, `AllowKnockback`, `AllowRadarScramble`, `AllowFlash`, `AllowClouds`, `AllowAcidRain`, `AllowGlassAcid`, `AllowSulfur`, `AllowPoolFx`, `AllowVents`, `AllowEruptions`, `AllowSensorDegrade`, `AllowEpisodes` (also `Init` options `fogPools`, `lightning`, ...) |
 | Budgets | `MaxSystems` 36, `MaxLiveFog` 6, `MaxLiveSulfur` 8, `MaxLivePlumes` 6, `MaxLiveStrikes` 3, stream in/out distances |
 | Ladder | `SeverityRate`, `EpisodeChance`, `EpisodePeak`, `EpisodeHold`, `EpisodeCooldown`, `EpisodeStrikeBoost`, the `Levels` table |
 | Fog | `ScanColumns/Rows/Budget/Inset`, `PoolFogEndScale`, `PoolFogStartScale`, `PoolFogTint`, `PoolFogColor`, `PoolBand`, `PoolResponse`, `FogDensity` |
@@ -534,10 +580,10 @@ Checked against `ExtraUtilities/Definitions/ExtraUtils.lua`:
 
 | Wanted | Reality | Workaround |
 | --- | --- | --- |
-| A line / beam / ribbon / billboard chain for the bolt | `exu.DrawLine` and `DrawBox` are documented placeholders that draw nothing | A burst of leaning `oriented_self` `CR_FX/Arc` cards in a tall Box emitter |
+| A line / beam / ribbon / billboard chain for the bolt | `exu.DrawLine` and `DrawBox` are documented placeholders that draw nothing | A burst of leaning `oriented_self` `CRVenus/Arc` cards in a tall Box emitter |
 | A dynamic point light for the flash | Only lights on existing objects (`SetLightPosition`, `SetLightPowerScale` ...) | Ambient + sun spike through the Environment modifier |
 | The terrain material under a point | None | Offline `Build-VenusSites.py` reads the `.mat` once |
-| Sky-plane alpha / a sky tint | `SetSkyPlane` needs a material that does not exist; the Venus sky material is an unlit shader (`Effect_fragment`), so pass colours would not darken it | Sky darkening comes from fog, light and the cloud deck. A `CR_Sky/VenusStorm` art asset (or an OpenShim sky-tint intent) would complete it |
+| Sky-plane alpha / a sky tint | `SetSkyPlane` needs a material that does not exist | Done another way: `CR_venussky` reads the storm, bank and flash from the dome's pass colours (`exu.SetMaterialPassColors`), as the Mars dome does |
 | Positional thunder | `StartSound` without a handle is 2D | Delay by distance, volume by distance |
 | Camera shake | None in EXU; stock `StartEarthquake` exists | Not used (the brief asked for visual-only vents) |
 | Soft particles / depth haze | OpenShim intent ABI exists but reports `not-implemented` | Intent written; no effect yet |
@@ -559,7 +605,7 @@ Checked against `ExtraUtilities/Definitions/ExtraUtils.lua`:
 
 ## What must be judged live
 
-- The bolt: whether leaning `CR_FX/Arc` cards read as lightning, their size and burst
+- The bolt: whether leaning `CRVenus/Arc` cards read as lightning, their size and burst
   length (`CR/Venus/Bolt` `particle_width/height`, emitter `depth`, the 900 / 420 rates).
 - Box-emitter axes: the templates assume `direction` is the depth axis (vertical when
   `direction 0 1 0`). If a column comes out sideways, swap `width/height/depth`.
@@ -578,3 +624,13 @@ Checked against `ExtraUtilities/Definitions/ExtraUtils.lua`:
 - Eruption scale and the density of the minor vent plumes.
 - Sulfur burp frequency and steam colour.
 - Total particle cost with every layer up; `MaxSystems` and the per-layer caps are the knobs.
+
+## Subtle time-of-day lighting (2026-10-15)
+
+Missions 07–09 now use Environment subtle/native-baseline mode: a one-hour
+bounded variation with at most 4% dimming and a 2-degree azimuth excursion plus
+small elevation drift. It replaces the generic rapid full night cycle. Modulation
+is applied after the Venus weather and local fog-bank/flash contributions, so
+weather and lighting share one final frame. Weather gameplay/strike behavior
+and story beats are unchanged. Final fog obeys each TRN visibility horizon.
+No additional cloud layer was added. See `ATMOSPHERE_AUDIT_20261015.md`.

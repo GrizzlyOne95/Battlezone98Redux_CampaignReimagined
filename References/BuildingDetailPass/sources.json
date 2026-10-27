@@ -1,0 +1,87 @@
+{
+  "original/ablpad.mesh": {
+    "sha256": "de66d4217a5b340b1b6dc2a17b41e570ade11cbb55d39cc31064fcec00a1cc40",
+    "source": "Redux stock common/models"
+  },
+  "original/ablpad_d.png": {
+    "sha256": "57902f8d4e3b1b9914e9be7de815394174b94a5b8e68c7da7a206b1c95eb3c03",
+    "source": "pc/textures/DIFF/ablpad_d.dds",
+    "ddsSha256": "6a4a455e192a15a959317b8d15957a913616c1ddab361462a178ed1de927072f"
+  },
+  "original/ablpad_e.png": {
+    "sha256": "fd1b3091fd5af17b9291b1063b9ad8c9706fd660d7654b0ff8b18c2c296e1585",
+    "source": "pc/textures/EMIS/ablpad_e.dds",
+    "ddsSha256": "ea89af487f8cac9f77bf8d95ae8cdc0bc9d49694e3e449447241c89e6bb28998"
+  },
+  "original/sbsupp.mesh": {
+    "sha256": "05d66ceccb79f80098e3109811223e309da0ecc295dc90350028f96a0d1b0736",
+    "source": "Redux stock common/models"
+  },
+  "original/sbsupp_d.png": {
+    "sha256": "d6f86e71e02bd1db18a427d640c43697a9dd53a0724bb102cebc342b5e87c0cd",
+    "source": "pc/textures/DIFF/sbsupp_d.dds",
+    "ddsSha256": "e45c04ba467f4815c14bd961c8e4cd615bc094c42133e22235be3d1e105048d1"
+  },
+  "original/sbsupp_e.png": {
+    "sha256": "b0b3a2982060d68fe050a21fcc761ea6cb489a3becf82e9c6d608bf0f51d227b",
+    "source": "pc/textures/EMIS/sbsupp_e.dds",
+    "ddsSha256": "859597da762b6cdd068d36fd3391a33a386bc855a2948e9e7661f79e249377d3"
+  },
+  "original/bbhqcp.mesh": {
+    "sha256": "0bc2b2cb3d69cbf6c476a755f126a94264f09f184a356613fe7d8e5d33576172",
+    "source": "Redux stock common/models"
+  },
+  "original/bbhqcp_d.png": {
+    "sha256": "521355867bff2bcabe6653d6e3f239c7938678e75b9ccda1bc39201659fad85f",
+    "source": "pc/textures/DIFF/bbhqcp_d.dds",
+    "ddsSha256": "31e4c16759cd8fcf833123db18c1d009e62404f27fade400fa20f997265e4e66"
+  },
+  "original/bbhqcp_e.png": {
+    "sha256": "4cdddfbf7a0108653d01ad371b72b7875c5e6b6dbc30ae3edda2e8e2e6d7ccdf",
+    "source": "pc/textures/EMIS/bbhqcp_e.dds",
+    "ddsSha256": "b50f7fb69fbbc2e648c1c6d5e94c1529de1ef49602865002b66e148be4cc5eb7"
+  },
+  "original/abhang.mesh": {
+    "sha256": "8fb94e4d92e4f7d8e370c8462f76803ab1e445f2588cbadbdd0a16c72821f8cd",
+    "source": "CR ModelFixes"
+  },
+  "Assets/ModelFixes/abhang.sdf": {
+    "sha256": "63e42dac153019f53e97c463f1c6deda3b0d845561f608838a3403a12e3622fe",
+    "source": "Retained CR animation/native companion",
+    "externalToReference": true
+  },
+  "Assets/ModelFixes/abhang.skeleton": {
+    "sha256": "bd4ef5eaa22524b0f6d3367aa8ef40339c45945e662ce9ab93d713f2ebd4b8af",
+    "source": "Retained CR animation/native companion",
+    "externalToReference": true
+  },
+  "original/abhang_d.png": {
+    "sha256": "46ca69fac76e381c86be964510b9583e25b926bdfb7f2adff01da0de0050e671",
+    "source": "pc/textures/DIFF/abhang_d.dds",
+    "ddsSha256": "3f9f6b551e54fe78143ec2843f87da9fb9248304f9034f4ad296e7fb26082b9d"
+  },
+  "original/abhang_e.png": {
+    "sha256": "358a9e5554586bd92598b4abc34560a904884c23b59adbab764985ac5531144a",
+    "source": "pc/textures/EMIS/abhang_e.dds",
+    "ddsSha256": "6e52621ef8dbc91ac6e4e5def90ef14d50507668e1a208dcfc9efb557aebcb9f"
+  },
+  "original/sbhang.mesh": {
+    "sha256": "927b2f791767b56b219a3dd721e063777c809fba793fbef981c119c49fcc5e1f",
+    "source": "Redux stock common/models"
+  },
+  "original/sbhang_d.png": {
+    "sha256": "9744fde6aeb04b30d8d7f82bbf1ecf10fa4678cbb39c036c84055428835528f0",
+    "source": "pc/textures/DIFF/sbhang_d.dds",
+    "ddsSha256": "603832840e7bcf8eac3f7141e7563bf40a25aee202181a30e254b3910eedd539"
+  },
+  "original/sbhang_e.png": {
+    "sha256": "e6067cb2235c17ee30f1b3674213114dad3490baaba7ec1219f3668d5ea6669d",
+    "source": "pc/textures/EMIS/sbhang_e.dds",
+    "ddsSha256": "6a3d8a27b894bbd9a456b0450a181b13b51e393fe578833ccf35f8d8cfcf8828"
+  },
+  "original/abhang-material.json": {
+    "sha256": "9190dff9c5b32a57b87546b1270a8b7e1121475562a4b6140e05e5571feb1bae",
+    "source": "CR abhang material; normalized LF text",
+    "normalizedText": true
+  }
+}

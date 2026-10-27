@@ -1,3 +1,5 @@
+-- Exercise the preserved source body independently from the campaign runtime.
+package.loaded.CRMisn15 = { Create = function() return nil end }
 -- Run from the repository root: lua5.1 Tools/Test-Misn15.lua
 -- Mock-host checks of the mission's public callbacks and observable behavior.
 local now, objects, labels, calls, distances, serial, scrap, audioDone, cancelled

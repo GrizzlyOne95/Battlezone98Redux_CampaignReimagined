@@ -89,6 +89,7 @@ PersistentConfig.DefaultSettings = {
     EmptyCraftLightsEnabled = false, -- Empty craft emissive/running lights off by default
     EmissivePulseEnabled = false,   -- Gradual occupied-craft emissive pulse
     StarTwinkleEnabled = false,     -- Ogre shader star brightness animation
+    SurfaceEffects = true,          -- Local reactive surface materials (damage, heat, wetness, tower power)
     AutoRepairWingmen = true,       -- Auto-repair wingmen on by default
     RainbowMode = false,            -- Special color effect
     ScavengerAssistEnabled = false, -- Auto-scavenge for player scavengers
@@ -2518,6 +2519,7 @@ local function ReadOpenShimCampaignVisualSettings()
         EmptyCraftLights = false,
         EmissivePulse = false,
         StarTwinkle = false,
+        SkyEvents = true, -- shooting stars and satellites; ships on
     }
 
     local candidates = {}
@@ -2569,6 +2571,8 @@ local function ReadOpenShimCampaignVisualSettings()
                 settings.EmissivePulse = ParseOpenShimBool(value, false)
             elseif key == "StarTwinkle" then
                 settings.StarTwinkle = ParseOpenShimBool(value, false)
+            elseif key == "SkyEvents" then
+                settings.SkyEvents = ParseOpenShimBool(value, true)
             end
         end
         line = f:Readln()
@@ -2588,6 +2592,7 @@ function PersistentConfig._SyncOpenShimCampaignVisualSettings(force)
         settings.EmptyCraftLights and "1" or "0",
         settings.EmissivePulse and "1" or "0",
         settings.StarTwinkle and "1" or "0",
+        settings.SkyEvents and "1" or "0",
     }, ":")
 
     if not force and PersistentConfig._OpenShimCampaignVisualSignature == signature then
@@ -2599,6 +2604,7 @@ function PersistentConfig._SyncOpenShimCampaignVisualSettings(force)
     RuntimeEnhancements.SetPilotVisualsEnabled(not settings.EmptyCraftLights)
     RuntimeEnhancements.SetEmissivePulseEnabled(settings.EmissivePulse)
     RuntimeEnhancements.SetStarTwinkleEnabled(settings.StarTwinkle)
+    RuntimeEnhancements.SetSkyEventsEnabled(settings.SkyEvents)
 
     PersistentConfig._OpenShimCampaignVisualSignature = signature
     if force or PersistentConfig.Debug then
@@ -5170,6 +5176,7 @@ PersistentConfig.CoopPda = require("CRCoopPda").Create({
 PersistentConfig.CoopPingHud = require("CRCoopPingHud").Create({
     comms = function() return require("CRCoop").GetComms() end,
     time = function() return GetTime() end,
+    self = function() return GetPlayerHandle() end,
     objective = {
         isOn = function(h)
             if exu and type(exu.IsObjectiveOn) == "function" then return exu.IsObjectiveOn(h) end
@@ -5403,6 +5410,7 @@ function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
         options.applyPilotVisuals or
         options.applyEmissivePulse or
         options.applyStarTwinkle or
+        options.applySurfaceEffects or
         options.applyTeamColors or
         options.applyFactionFlames or
         options.applyUnitVo or
@@ -5573,6 +5581,18 @@ function PersistentConfig._SettingsActions.SetSubtitlesEnabled(enabled)
         end
     end
     ShowSettingsFeedback("Subtitles: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    return true
+end
+
+function PersistentConfig._SettingsActions.SetSurfaceEffectsEnabled(enabled)
+    local value = not not enabled
+    if PersistentConfig.Settings.SurfaceEffects == value then
+        return false
+    end
+
+    PersistentConfig.Settings.SurfaceEffects = value
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySurfaceEffects = true })
+    ShowSettingsFeedback("Surface Effects: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5826,6 +5846,13 @@ GetSettingsPageEntries = function()
                 return PersistentConfig._SettingsActions.SetWeaponStatsHudEnabled(DirectionEnabled(delta))
             end,
         },
+        {
+            label = "Surface Effects",
+            value = PersistentConfig.Settings.SurfaceEffects and "On" or "Off",
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.SetSurfaceEffectsEnabled(DirectionEnabled(delta))
+            end,
+        },
         Section("Audio & Alerts"),
         {
             label = "Subtitles",
@@ -6022,6 +6049,8 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.EmissivePulseEnabled = (val == "true")
                 elseif key == "StarTwinkleEnabled" then
                     PersistentConfig.Settings.StarTwinkleEnabled = (val == "true")
+                elseif key == "SurfaceEffects" then
+                    PersistentConfig.Settings.SurfaceEffects = (val == "true")
                 elseif key == "AutoRepairWingmen" then
                     PersistentConfig.Settings.AutoRepairWingmen = (val == "true")
                 elseif key == "RainbowMode" then
@@ -6198,6 +6227,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("EmptyCraftLightsEnabled=" .. tostring(PersistentConfig.Settings.EmptyCraftLightsEnabled))
         f:Writeln("EmissivePulseEnabled=" .. tostring(PersistentConfig.Settings.EmissivePulseEnabled))
         f:Writeln("StarTwinkleEnabled=" .. tostring(PersistentConfig.Settings.StarTwinkleEnabled))
+        f:Writeln("SurfaceEffects=" .. tostring(PersistentConfig.Settings.SurfaceEffects))
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
         f:Writeln("AutoSaveEnabled=" .. tostring(PersistentConfig.Settings.AutoSaveEnabled))
@@ -6281,6 +6311,16 @@ function PersistentConfig.ApplySettings(options)
         end
         if applyAll or (options and options.applyStarTwinkle) then
             RuntimeEnhancements.SetStarTwinkleEnabled(PersistentConfig.Settings.StarTwinkleEnabled)
+        end
+    end
+
+    if applyAll or (options and options.applySurfaceEffects) then
+        -- Off restores every owned material and stops work; on resumes it.
+        local changed = require("CRSurfaceEffects").SetEnabled(PersistentConfig.Settings.SurfaceEffects ~= false)
+        if changed and PersistentConfig.Settings.SurfaceEffects ~= false
+            and type(RuntimeEnhancements.RebuildVisuals) == "function" then
+            -- Re-registers live objects that were dropped while it was off.
+            pcall(RuntimeEnhancements.RebuildVisuals)
         end
     end
 
@@ -6373,13 +6413,13 @@ end
 
 -- Raw key name (exu.GetGameKey) -> the name GameKey would have queued.
 local NetworkPolledGameKeys = {
-    { raw = "J", key = "J" }, { raw = "V", key = "V" }, { raw = "Z", key = "Z" }, { raw = "BACKSPACE", key = "BACKSPACE" }, { raw = "LBRACKET", key = "[" }, { raw = "RBRACKET", key = "]" },
+    { raw = "J", key = "J" }, { raw = "V", key = "V" }, { raw = "Z", key = "Z" }, { raw = "ENTER", key = "ENTER" }, { raw = "LBRACKET", key = "[" }, { raw = "RBRACKET", key = "]" },
     { raw = "UARROW", key = "UP" }, { raw = "DARROW", key = "DOWN" },
     { raw = "LARROW", key = "LEFT" }, { raw = "RARROW", key = "RIGHT" },
 }
 -- Every GameKey name the consumers below accept for those keys.
 local NetworkPolledKeyNames = {}
-for _, name in ipairs({ "J", "V", "Z", "BACKSPACE", "BACK", "[", "{", "SHIFT+[", "OEM_4", "LBRACKET", "LEFTBRACKET",
+for _, name in ipairs({ "J", "V", "Z", "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER", "[", "{", "SHIFT+[", "OEM_4", "LBRACKET", "LEFTBRACKET",
     "]", "}", "SHIFT+]", "OEM_6", "RBRACKET", "RIGHTBRACKET", "UP", "UPARROW", "DOWN", "DOWNARROW",
     "LEFT", "LEFTARROW", "RIGHT", "RIGHTARROW" }) do
     NetworkPolledKeyNames[name] = true
@@ -6423,12 +6463,25 @@ function PersistentConfig._PollNetworkGameKeys(typing)
         local now = RawKeyDown(entry.raw)
         local edge = now and not down[entry.raw] and not typing
         down[entry.raw] = now
-        -- The queue is only drained while the PDA is open (J: every frame), so
-        -- navigation presses while flying would replay when it next opens.
-        if edge and (entry.key == "J" or PersistentConfig.Settings.WeaponStatsHud) then
+        -- Quick actions are drained every frame, with or without the PDA.
+        -- Navigation stays gated so it cannot replay when the PDA opens.
+        if edge and (entry.key == "J" or entry.key == "V" or entry.key == "Z" or PersistentConfig.Settings.WeaponStatsHud) then
             PersistentConfig.R.QueueGameKey(entry.key)
         end
     end
+end
+
+-- Stock gamekey.map binds Enter, ` and Ctrl+C to chat. In network games CR
+-- unbinds Enter only (exu.SetChatOnEnter) so it can do PDA rows; ` and Ctrl+C
+-- still open chat. Redux rebinds Enter whenever it rereads gamekey.map (after
+-- every ESC menu), so this runs every frame. Older EXU builds lack the call
+-- and Enter keeps opening chat.
+function PersistentConfig._UpdateEnterChat(missionEnded)
+    local want = missionEnded or not IsNetworkGame()
+    if InputState.enterChatOff == nil and want then return end
+    if not exu or type(exu.SetChatOnEnter) ~= "function" then return end
+    local ok, applied = pcall(exu.SetChatOnEnter, want)
+    InputState.enterChatOff = (not want and ok and applied == true) or nil
 end
 
 -- True for a GameKey the network poller owns (dropped from the callback).
@@ -6629,12 +6682,15 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     -- would send pings while someone types J in chat. Enter remains stock chat.
     -- In network games these keys are polled instead (_PollNetworkGameKeys).
     local typing = PersistentConfig._IsTextEntryActive()
+    PersistentConfig._UpdateEnterChat(false)
     PersistentConfig._PollNetworkGameKeys(typing)
     local coopAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "J" })
     local helpAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "V" })
     local giveAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "Z" })
-    -- Backspace does the selected co-op row: Enter, ` and Ctrl+C are stock chat.
-    local doAction = PersistentConfig.R.ConsumePendingGameKeyMatch({ "BACKSPACE", "BACK" })
+    -- Enter does the selected PDA row; in network games it no longer opens chat
+    -- (_UpdateEnterChat). Backspace stays the stock satellite view.
+    local enterPressed = PersistentConfig.R.ConsumePendingGameKeyMatch({ "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER" })
+    local doAction = enterPressed
     if uiInteractionSuppressed then return end
     if typing then
         -- Keep the X edge current so an X typed in chat does not toggle later.
@@ -6691,9 +6747,11 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     local pda_down_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "DOWN", "DOWNARROW" })
     local pda_left_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "LEFT", "LEFTARROW" })
     local pda_right_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "RIGHT", "RIGHTARROW" })
-    local enterPressed = PersistentConfig.R.ConsumePendingGameKeyMatch({ "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER" })
 
-    if InputState.pdaPage == PdaPages.COOP then
+    if InputState.pdaPage == PdaPages.COOP_DIAGNOSTICS then
+        PersistentConfig.CoopPda.HandleDiagnosticsInput(pda_up_key, pda_down_key)
+        if pda_up_key or pda_down_key then RefreshPdaOverlay() end
+    elseif InputState.pdaPage == PdaPages.COOP then
         PersistentConfig.CoopPda.HandleInput(pda_up_key, pda_down_key, pda_left_key, pda_right_key,
             doAction and IsValid(currentPlayerHandle))
         if pda_up_key or pda_down_key or pda_left_key or pda_right_key or doAction or coopAction or helpAction or giveAction then RefreshPdaOverlay() end
@@ -7196,6 +7254,7 @@ function PersistentConfig.OnObjectDeleted(h)
     end
 
     InputState.processedCreationHandles[h] = nil
+    require("CRSurfaceEffects").Unregister(h)
     RemoveTrackedWorldHandle(h)
 
     if aiCore and type(aiCore.DeleteObject) == "function" then
@@ -7355,6 +7414,7 @@ function PersistentConfig.Initialize()
 
     local function EnterMissionEndedState()
         InputState.missionEnded = true
+        PersistentConfig._UpdateEnterChat(true)
         if InputState.missionEndCleanupDone then
             return
         end

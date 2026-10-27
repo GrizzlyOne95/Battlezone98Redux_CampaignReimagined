@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Run from the repository root: lua5.1 Tools/Test-Misn12Coop.lua
 -- Executes the complete misn12 script in separate Lua 5.1 environments over the
 -- real CRCoop registry and the E/A (+C camera, +I info) presentation transport. The engine, AI and
@@ -152,6 +154,9 @@ local function makePeer(id, team, network)
         return p.player
     end
     e.GetHandle = function(label)
+        for h, object in pairs(objects) do
+            if object.alive and object.label == label then return h end
+        end
         if not objects[label] then
             local spec = LABELS[label]
             if spec then newObject(label, spec.odf, spec.team, spec.pos) else newObject(label, "x", 0) end
@@ -159,6 +164,9 @@ local function makePeer(id, team, network)
         return objects[label].alive and label or nil
     end
     e.GetLabel = function(h) return objects[h] and objects[h].label end
+    e.SetLabel = function(h, label)
+        if objects[h] then objects[h].label = label end
+    end
     e.IsValid = function(h) return type(h) == "string" and objects[h] ~= nil and objects[h].alive end
     e.IsAlive = e.IsValid
     e.IsOdf = function(h, odf) return e.IsValid(h) and objects[h].odf == odf end
@@ -249,11 +257,18 @@ local function makePeer(id, team, network)
         end
     end
     e.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         record("Send", kind)
         local args = {...}
+        if kind == "E" and args[2] == "Label" then
+            check(e.IsValid(args[5]), "label announcement carries the replicated handle, not a local handle string")
+        end
         for index = 1, select("#", ...) do
-            -- A map-authored handle arrives as an invalid handle on a guest.
-            if type(args[index]) == "string" and LABELS[args[index]] then args[index] = false end
+            -- Mock handles use strings, unlike native userdata. The Label
+            -- event's text argument remains text even when it names a map
+            -- object; only its handle argument loses native map identity.
+            local labelText = kind == "E" and args[2] == "Label" and index == 6
+            if not labelText and type(args[index]) == "string" and LABELS[args[index]] then args[index] = false end
         end
         local bytes = 4
         for _, value in ipairs(args) do bytes = bytes + (type(value) == "string" and #value + 2 or 9) end
@@ -304,15 +319,20 @@ local function makePeer(id, team, network)
                 if p.europa.init and p.europa.init.send then p.europa.init.send("EuropaSurge", seconds, strength) end
             end,
             Seed = 4242},
-        CREuropaSites12 = {mission = "misn12"}, Environment = {Init = noop, Update = noop, OnObjectCreated = noop},
+        CREuropaSites12 = {mission = "misn12"}, Environment = {Init = noop, BindWeatherSensors = function(name, director)
+            check(name == "Europa" and type(director) == "table", "mission binds its weather director to shared sensors")
+            p.sensorBinding = name
+        end, Update = noop, OnObjectCreated = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end},
+        PersistentConfig = {Initialize = noop, UpdateInputs = noop, UpdateHeadlights = noop, OnObjectCreated = noop},
         ScriptSubtitles = {
             Play = function(file) record("Play", file); return file end,
             Queue = function(file) record("Queue", file) end,
             Stop = function() record("Stop") end, Update = noop, Initialize = noop},
     }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     local realRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoopRespawn = {Create = function(d)
         local service = realRespawn.Create(d)

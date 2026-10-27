@@ -22,6 +22,8 @@ local CRMarsWeather = require("CRMarsWeather")
 local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
 local CRCoop = require("CRCoop")
+local CRWire = require("CRWire")
+local CR04Drop = require("CR04Drop")
 local LEADER_TEAM = 1
 local ENEMY_TEAM = 5
 local stockWeatherWindPush = CRMarsWeather.AllowWindPush
@@ -360,7 +362,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
+                    Send(id, "E", CRWire.Pack(seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n)))
                 end
             end
         end
@@ -375,14 +377,19 @@ local function UpdatePresentationTransport()
         nextCameraSend = now + 0.2
         cameraSerial = cameraSerial + 1
         if cameraFrame then
-            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
+            Send(0, "C", CRWire.Pack(cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame))))
         else
             Send(0, "C", cameraSerial, cameraGeneration, "", 0, 0)
         end
     end
 end
 
+local ReceivePresentationDecoded = nil
+-- Presentation packets are CRWire-packed: reassemble chunked strings first.
 local function ReceivePresentation(from, kind, ...)
+    return ReceivePresentationDecoded(from, kind, CRWire.Unpack(...))
+end
+function ReceivePresentationDecoded(from, kind, ...)
     if not CRCoop.IsNetworkGame() then return false end
     if kind == "A" then
         local seq = ...
@@ -996,8 +1003,8 @@ local function ApplyQOL()
     -- Mars weather. Init is idempotent, so the reload path in Update can call
     -- ApplyQOL again without restarting the storm.
     --
-    -- No baseSky is supplied: misn04.trn declares no SkyTexture, so there is no
-    -- dome to restore and the sky layer correctly stays off. The storm reads
+    -- No baseSky descriptor is supplied: retain the native mars.map backdrop
+    -- and authored clouds; the optional runtime sky-swap layer stays off. The storm reads
     -- through fog, light and particles, which is where nearly all of it lives
     -- anyway.
     if CRMarsWeather and CRMarsWeather.Init then
@@ -2874,6 +2881,10 @@ function Start()
     remoteCamera, remoteCameraSerial, localCameraGeneration = nil, 0, 0
     cameraSkipped, localCameraActive = false, false
     RefreshDifficulty()
+    -- Single-player opening: the dropship landing (CR04Drop). Co-op keeps the stock start.
+    CR04Drop.Configure({ exu = exu, log = print, cameraReady = CameraReady,
+        cameraFinish = CameraFinish, cameraCancelled = CameraCancelled })
+    CR04Drop.Reset()
     if CRCoop.IsAuthority() then
         M.relicstartpos = math.random(0, 3)
         if not CRCoop.IsNetworkGame() then
@@ -3149,6 +3160,13 @@ function Update()
     if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
         BootstrapPreservingScriptedTeam2()
         M.coopBootstrapped = true
+    end
+    -- The stock opening (and Pilot Mode, which would order the carried recycler) waits while the
+    -- dropships descend and open; the landing then keeps running alongside the mission.
+    M.cr04dropHold = not CRCoop.IsNetworkGame() and CR04Drop.Update(M)
+    if M.cr04dropHold then
+        TraceUpdateCall("misn04.Update UpdateWeatherBeats", UpdateWeatherBeats)
+        return
     end
     PlayerPilotMode.SetCargoJob("misn04_relic", {
         enabled = M.discoverrelic and not M.relicsecure,
@@ -3847,6 +3865,9 @@ end
 function Load(missionData, aiData, pilotModeData)
     DestroyOverlayDemo()
     M = missionData or M
+    CR04Drop.Configure({ exu = exu, log = print, cameraReady = CameraReady,
+        cameraFinish = CameraFinish, cameraCancelled = CameraCancelled })
+    CR04Drop.OnLoad(M)
     M.playerPilotModeState = pilotModeData or M.playerPilotModeState
     if aiData then
         aiCore.Load(aiData)

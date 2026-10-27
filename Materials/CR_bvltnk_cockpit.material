@@ -1,0 +1,17 @@
+import * from "CR_BZBase.material"
+
+material CRV/bvltnkOriginalFrame : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap bvltnk_D.dds
+    set_texture_alias NormalMap bvltnk_N.dds
+    set_texture_alias SpecularMap bvltnk_S.dds
+    set_texture_alias EmissiveMap bvltnk_E.dds
+}
+
+material CRV/bvltnkHullPaint : CR_BZBase
+{
+    set_texture_alias DiffuseMap crvbscp_d.dds
+    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap crvbscp_e.dds
+}

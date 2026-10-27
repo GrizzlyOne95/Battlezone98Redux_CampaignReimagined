@@ -72,16 +72,24 @@ for _, c in ipairs(F.callsOf(host, "Attack")) do
 end
 check(guestTargets > 0, "rogue Furies attack guest craft too")
 
--- Waves: +1 hvsav per extra human, never within 400 m of any human.
+-- Mixed waves: restored fighters are primary; existing cap and no-pop-in apply.
+local function waveBuilds(peer,mark)
+    local out={}
+    for _,b in ipairs(F.builds(peer,mark)) do
+        if b.odf=="hvsav" or b.odf=="crfraz" then out[#out+1]=b end
+    end
+    return out
+end
 F.nearTo(guests[1].player, "alien1", 30, 0)
 F.nearTo(guests[2].player, "alien5", 30, 0)
 F.nearTo(guests[3].player, "alien3", -30, 0)
 local mark = #host.calls
 M().alien_time = W.now
 F.tick()
-local wave = F.builds(host, mark, "hvsav")
+local wave = waveBuilds(host, mark)
 -- The rogue squad is 8 live Furies: the cap of 12 leaves room for 4 of the 6 (3 + 3 extra humans).
 check(#wave == 4 and M().wave_count == 1, "4-player wave capped by the 12 live Furies")
+check(#F.builds(host,mark,"crfraz")==4,"cap retains primary light fighters")
 for _, b in ipairs(wave) do
     local pos = F.posOf(b.h)
     for _, p in pairs(W.peers) do
@@ -95,7 +103,8 @@ for _, b in ipairs(wave) do F.kill(b.h) end
 mark = #host.calls
 M().alien_time = W.now
 F.tick()
-check(#F.builds(host, mark, "hvsav") == 6, "3 + 1 per extra human")
+check(#waveBuilds(host,mark)==6,"3 + 1 per extra human")
+check(#F.builds(host,mark,"crfraz")==5 and #F.builds(host,mark,"hvsav")==1,"five fighters and one heavy SAV")
 
 -- Surrender: only the CCA's team flips; a guest's team-2 craft is never touched.
 local guestCraft = F.spawn("avtank", 2, 3100, 99800)
@@ -107,8 +116,18 @@ check(F.team("svscav55_scavenger") == 0, "CCA craft go to team 0")
 for _, label in ipairs({"sbbarr0_i76building", "sblpow1_powerplant", "sblpow55_powerplant", "sbtowe0_turret"}) do
     check(F.team(label) == 7, label .. " to team 7")
 end
+F.run(3)
+for _, guest in ipairs(guests) do
+    for _, label in ipairs({"sbbarr0_i76building", "sblpow1_powerplant", "sblpow55_powerplant"}) do
+        local applied = false
+        for _, call in ipairs(F.callsOf(guest, "SetTeamNum")) do
+            if call[2] == label and call[3] == 7 then applied = true end
+        end
+        check(applied, "guest applies authored building surrender: " .. label)
+    end
+end
 -- Wave 4 with 4 humans: two Fury Tanks (clear the field so the cap does not trim it).
-for _, b in ipairs(F.builds(host, 0, "hvsav")) do F.kill(b.h) end
+for _, b in ipairs(waveBuilds(host,0)) do F.kill(b.h) end
 mark = #host.calls
 M().alien_time = W.now
 F.tick()
@@ -192,6 +211,10 @@ F.connect()
 F.run(4)
 check(hooks.host.init.authority == true and type(hooks.host.init.send) == "function", "host director can send")
 check(hooks.guest.init.authority == false and hooks.guest.init.send == nil, "guest director only listens")
+check(host.weatherSensors and host.weatherSensors[1]=="Titan" and guests[1].weatherSensors
+    and guests[1].weatherSensors[1]=="Titan", "every Titan peer binds the same sensor policy")
+check(F.count(host,"EnvironmentUpdate")>0 and F.count(guests[1],"EnvironmentUpdate")>0,
+    "every Titan peer runs Environment with its replicated weather")
 hooks.host.init.send("TitanGust", 3, 0.5)
 hooks.host.init.send("NotTitan", 1) -- refused: only Titan* ops ride the stream
 F.run(4)

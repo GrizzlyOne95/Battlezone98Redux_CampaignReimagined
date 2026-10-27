@@ -380,73 +380,100 @@ particle_system CR/Weather/DustSheet
 // downwind, so local_space is true and the whole column travels intact, which
 // is how a real devil behaves.
 //
-// Emitter 0 is the ground skirt, emitter 1 is the column. The director scales
-// both by devil age so a devil spins up and dies out instead of popping.
+// It is built from many SMALL, soft, light puffs (cr_dust.dds, the same soft
+// disc the ground dust uses). The first version stamped a whole 876x572 column
+// photograph on every particle; stacked, those read as a dark lumpy smoke plume
+// with visible sprite edges and no vortex.
+//
+// The funnel and the spin both come from CRMarsWeather, because Ogre has no
+// rotational affector. Emitters 1 and 2 are point sources at the foot that the
+// director sweeps round a cone every frame (SetParticleEmitterDirection). A
+// particle flies straight along the direction it was born with, so the sweep
+// leaves two interleaved helical strands: narrow at the base, wider with height
+// (a funnel), turning at the devil's spin rate. Emitter 0 is the ground debris
+// skirt, swept the same way at the foot. Emitter rates, directions and colours
+// are all director-driven (spin up/down, cone tilt, distance and fog fade).
+//
+// ColourFader lifts the colour a little as it climbs and drains alpha to zero,
+// so the top of the column is paler and more transparent than its base.
 particle_system CR/Weather/DustDevil
 {
     material            CR_FX/DustDevil
-    particle_width      7.0
-    particle_height     14.0
-    quota               700
+    particle_width      2.4
+    particle_height     2.4
+    quota               560
     cull_each           true
     sorted              false
     local_space         true
-    billboard_type      oriented_common
-    common_direction    0 1 0
+    billboard_type      point
 
+    // Ground debris skirt: a low, tight, dirtier ring of grit kicked outward.
     emitter Ring
     {
-        angle               18
-        emission_rate       55
-        time_to_live_min    1.4
-        time_to_live_max    2.4
-        direction           0 1 0
-        velocity_min        6
-        velocity_max        13
-        colour_range_start  0.74 0.51 0.30 0.50
-        colour_range_end    0.60 0.40 0.24 0.22
-        width               26
-        height              4
-        depth               26
-        inner_width         0.62
-        inner_height        0.62
+        angle               75
+        emission_rate       60
+        time_to_live_min    1.0
+        time_to_live_max    1.8
+        direction           1 0.18 0
+        velocity_min        3
+        velocity_max        7
+        colour_range_start  0.72 0.55 0.38 0.34
+        colour_range_end    0.62 0.46 0.31 0.22
+        width               5
+        height              1
+        depth               5
+        inner_width         0.55
+        inner_height        0.55
     }
 
-    emitter Cylinder
+    // Helix strand A.
+    emitter Point
     {
-        angle               10
-        emission_rate       40
-        time_to_live_min    2.6
-        time_to_live_max    4.4
-        direction           0 1 0
-        velocity_min        14
-        velocity_max        26
-        colour_range_start  0.70 0.47 0.28 0.38
-        colour_range_end    0.56 0.36 0.21 0.00
-        width               14
-        height              60
-        depth               14
+        angle               3
+        emission_rate       55
+        time_to_live_min    3.4
+        time_to_live_max    4.6
+        direction           0.2 1 0
+        velocity_min        9
+        velocity_max        13
+        colour_range_start  0.90 0.75 0.58 0.30
+        colour_range_end    0.84 0.69 0.52 0.22
+    }
+
+    // Helix strand B, half a turn behind A (the director sets the phase).
+    emitter Point
+    {
+        angle               3
+        emission_rate       55
+        time_to_live_min    3.4
+        time_to_live_max    4.6
+        direction           -0.2 1 0
+        velocity_min        9
+        velocity_max        13
+        colour_range_start  0.90 0.75 0.58 0.30
+        colour_range_end    0.84 0.69 0.52 0.22
     }
 
     affector ColourFader
     {
-        alpha -0.13
+        red     0.018
+        green   0.018
+        blue    0.018
+        alpha  -0.085
     }
 
-    // The vortex is faked: Ogre has no rotational affector, so the spin comes
-    // from billboard rotation plus a widening column, which reads correctly at
-    // the distances a devil is ever seen from.
     affector Rotator
     {
-        rotation_speed_range_start  -70
-        rotation_speed_range_end     70
-        rotation_range_start           0
-        rotation_range_end           360
+        rotation_speed_range_start  -45
+        rotation_speed_range_end     45
+        rotation_range_start          0
+        rotation_range_end          360
     }
 
+    // Puffs grow as they rise: ~2.4 m at birth, ~8 m at the end of life.
     affector Scaler
     {
-        rate 3.5
+        rate 1.3
     }
 }
 
@@ -872,8 +899,8 @@ particle_system CR/Weather/Spore
 particle_system CR/Weather/Rain
 {
     material            CR_FX/Rain
-    particle_width      0.25
-    particle_height     3.2
+    particle_width      0.45
+    particle_height     4.0
     quota               4000
     cull_each           true
     sorted              false
@@ -892,11 +919,11 @@ particle_system CR/Weather/Rain
         direction           0.32 -0.93 -0.18
         velocity_min        46
         velocity_max        62
-        colour_range_start  0.66 0.78 0.38 0.55
-        colour_range_end    0.52 0.64 0.28 0.30
-        width               170
-        height              70
-        depth               170
+        colour_range_start  0.78 0.90 0.50 0.85
+        colour_range_end    0.62 0.76 0.38 0.55
+        width               70
+        height              45
+        depth               70
     }
 }
 
@@ -939,5 +966,156 @@ particle_system CR/Weather/RainSplash
     affector ColourFader
     {
         alpha -2.0
+    }
+}
+
+// =============================================================================
+// Io (CRIoWeather presets and ash layer)
+// =============================================================================
+
+// Copies of MarsHaze, DustGrit and AshFall on CRIo/* materials
+// (crart_io.material), which DX11 draws natively. On the CR_FX/* originals DX11
+// swaps red and blue, so Io's warm haze drew as a blue band on the horizon.
+// They live here rather than in the opt-in cr_io payload because the Io presets
+// and ash layer must work without it. CRIoWeather overrides the colours.
+
+particle_system CR/Io/Haze
+{
+    material            CRIo/Haze
+    particle_width      18.0
+    particle_height     18.0
+    quota               420
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               60
+        emission_rate       22
+        time_to_live_min    7.0
+        time_to_live_max    11.0
+        direction           -1 -0.05 0
+        velocity_min        3
+        velocity_max        7
+        colour_range_start  0.70 0.50 0.33 0.16
+        colour_range_end    0.62 0.43 0.28 0.06
+        width               420
+        height              150
+        depth               420
+    }
+
+    affector ColourFader
+    {
+        alpha -0.014
+    }
+}
+
+particle_system CR/Io/Grit
+{
+    material            CRIo/Grit
+    particle_width      0.9
+    particle_height     0.9
+    quota               400
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      oriented_self
+
+    emitter Box
+    {
+        angle               10
+        emission_rate       26
+        time_to_live_min    1.2
+        time_to_live_max    2.0
+        direction           -1 -0.2 0
+        velocity_min        44
+        velocity_max        68
+        colour_range_start  0.78 0.56 0.34 0.85
+        colour_range_end    0.62 0.42 0.24 0.60
+        width               160
+        height              26
+        depth               160
+    }
+}
+
+particle_system CR/Io/AshFall
+{
+    material            CRIo/Ash
+    particle_width      1.1
+    particle_height     1.1
+    quota               2000
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               28
+        emission_rate       130
+        time_to_live_min    6
+        time_to_live_max    9
+        direction           -0.35 -0.9 0.26
+        velocity_min        5
+        velocity_max        11
+        colour_range_start  0.24 0.22 0.21 0.80
+        colour_range_end    0.16 0.15 0.15 0.45
+        width               240
+        height              80
+        depth               240
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -40
+        rotation_speed_range_end    40
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+}
+
+// =============================================================================
+// Europa (CREuropaWeather presets)
+// =============================================================================
+
+// A copy of SnowLight on CREuropa/Snow (crart_europa.material), which DX11 draws
+// natively. On CR_FX/Snow DX11 swaps red and blue, so the cold glitter drew a
+// warm peach. Here rather than in the opt-in cr_europa payload because the
+// Europa presets must work without it. CREuropaWeather overrides the colours.
+
+particle_system CR/Europa/Glitter
+{
+    material            CREuropa/Snow
+    particle_width      0.7
+    particle_height     0.7
+    quota               1400
+    cull_each           true
+    sorted              true
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               32
+        emission_rate       55
+        time_to_live_min    7
+        time_to_live_max    11
+        direction           0 -1 0
+        velocity_min        3
+        velocity_max        7
+        colour_range_start  0.88 0.92 1.00 0.70
+        colour_range_end    0.80 0.86 1.00 0.45
+        width               200
+        height              30
+        depth               200
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      3
+        scope           0.6
+        keep_velocity   true
     }
 }

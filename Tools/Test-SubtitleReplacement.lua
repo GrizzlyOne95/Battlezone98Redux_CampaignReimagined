@@ -2,6 +2,7 @@
 package.path = "Scripts/?.lua;" .. package.path
 local now, created, destroyed, notices, stopped = 0, 0, 0, 0, 0
 local shown, caption, failures = false, "", {}
+local borderMaterials, materials = {}, {}
 local exu = { OVERLAY_METRICS = { PIXELS = 0 } }
 local function success() return true end
 for _, name in ipairs({ "CreateOverlayElement", "DestroyOverlayElement", "AddOverlay2D",
@@ -16,6 +17,11 @@ function exu.DestroyOverlay() destroyed = destroyed + 1; return true end
 function exu.ShowOverlay() shown = true; return true end
 function exu.HideOverlay() shown = false; return true end
 function exu.SetOverlayCaption(_, text) caption = text; return true end
+function exu.SetOverlayMaterial(id, name) materials[id] = name; return true end
+function exu.SetOverlayParameter(id, key, value)
+    if key == "border_material" then borderMaterials[id] = value end
+    return true
+end
 package.loaded.exu = exu
 package.loaded.bzfile = { Open = function() return {
     Writeln = function(_, line) failures[#failures + 1] = line end,
@@ -38,6 +44,10 @@ now = 10 -- the initial renderer warm-up window has expired
 subtitles.Play("first.wav")
 assert(shown and caption == "first.txt", "first dialogue is visible")
 assert(created == 1 and destroyed == 0, "first dialogue creates one renderer")
+assert(borderMaterials.cr_mission_subtitle_overlay_frame == "CRPdaBorder_DG_A10",
+    "without PersistentConfig, the border uses a baked-colour panel material")
+assert(materials.cr_mission_subtitle_overlay_backdrop == "CRPdaBackdrop_DG_A10",
+    "without PersistentConfig, the backdrop uses a baked-colour panel material, never white CR_UI")
 subtitles.Play("second.wav")
 assert(shown and caption == "second.txt", "same-frame replacement remains visible")
 assert(created == 1 and destroyed == 0, "replacement reuses the renderer")
@@ -50,4 +60,4 @@ assert(destroyed == 1 and stopped == 2, "repeated cleanup is harmless")
 now = 12
 subtitles.Play("first.wav")
 assert(created == 2 and shown and caption == "first.txt", "playback can restart after cleanup")
-print("PASS: subtitle replacement and mission-end cleanup (9 checks)")
+print("PASS: subtitle replacement, standalone border and mission-end cleanup (11 checks)")

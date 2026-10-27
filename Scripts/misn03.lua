@@ -22,11 +22,32 @@ local PersistentConfig = require("PersistentConfig")
 local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
 local CRCoop = require("CRCoop")
+local CRWire = require("CRWire")
 -- CR Moon weather >>
 local CRMoonWeather = require("CRMoonWeather")
+local Environment = require("Environment")
 local MoonSites = require("CRMoonSites03")
 local MOON_OPS = { MoonState = true, MoonGlow = true }
 -- CR Moon weather <<
+-- CR launch film >>
+-- The closing shot reuses Mission 06's launch film and exhaust with a Moon
+-- configuration: the NSDF rocket's centre bell plus six on a ring, and no
+-- smoke layer (no atmosphere). See Docs/MISN03_ROCKET_LAUNCH.md.
+local CR03RocketLayout = require("CR03RocketLayout")
+local CR06LaunchFilm = require("CR06LaunchFilm")
+local LAUNCH_SECONDS = 11
+local OBJECT_CAMERA = "@object" -- path slot marking a CameraObject snapshot on the "C" channel
+local function RocketHandle() return GetHandle("cr03_rocket") end
+local launchFX = require("CR06LaunchFX").Create({
+    config = { layout = CR03RocketLayout, label = "cr03_rocket", prefix = "CR03/Launch/", tag = "misn03",
+        systems = { "Core", "Plume", "Dust" } },
+    exu = exu, time = GetTime, log = print,
+    vector = function(...) return SetVector(...) end,
+    terrain = function(p) return GetTerrainHeightAndNormal(p) end,
+    handle = RocketHandle, valid = IsValid, transform = GetTransform, place = SetTransform,
+    templates = function() return require("CRParticleTemplates").EnsureExtra("cr06_launch") end,
+})
+-- CR launch film <<
 
 local LEADER_TEAM = 1
 local ENEMY_TEAM = 5
@@ -52,7 +73,7 @@ local native = {
     SetUserTarget = SetUserTarget, RemoveObject = RemoveObject,
     SetMaxHealth = SetMaxHealth, SetCurHealth = SetCurHealth,
     SucceedMission = SucceedMission, FailMission = FailMission,
-    CameraReady = CameraReady, CameraPath = CameraPath,
+    CameraReady = CameraReady, CameraPath = CameraPath, CameraObject = CameraObject,
     CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
     Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
 }
@@ -111,12 +132,21 @@ local function ApplyPresentation(op, ...)
         local fraction = GetHealth(h)
         native.SetMaxHealth(h, value)
         native.SetCurHealth(h, fraction * value)
+-- CR launch film >>
+    elseif op == "RocketFX" then
+        launchFX.Begin(...)
+    elseif op == "RocketFXStop" then
+        launchFX.Stop()
+-- CR launch film <<
     elseif op == "Label" then
         local handle, label = ...
         if type(SetLabel) == "function" and IsValid(handle) and type(label) == "string" then
             pcall(SetLabel, handle, label)
         end
     elseif op == "SucceedMission" or op == "FailMission" then
+-- CR launch film >>
+        launchFX.Reset()
+-- CR launch film <<
         local when, description = ...
         if localCameraActive then native.CameraFinish() end
         cameraFrame = nil
@@ -128,10 +158,10 @@ local function ApplyPresentation(op, ...)
     end
 end
 
--- Ops whose first argument is a game object. Objects travel by identity, never by a bare
--- handle the engine may not carry: "@handle@label" (a guest resolves the label first, then
--- the replicated handle), or "!" when the leader reports the object gone. Label is the
--- event that makes a leader-side SetLabel on a spawned object true on every guest.
+-- Marker operations use "@handle@label" (resolve the authored/bound label first),
+-- or "!" when the leader reports the object gone. Label bindings carry a native
+-- Handle so Send translates spawned-object identity across peers; the receiver
+-- falls back to the existing label for map objects without native wire identity.
 local HANDLE_OPS = { SetObjectiveOn = true, SetObjectiveOff = true, SetObjectiveName = true,
     SetUserTarget = true, RemoveObject = true, Label = true, SetMaxHealth = true }
 local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget = true, Label = true, SetMaxHealth = true }
@@ -160,7 +190,7 @@ end
 local function AnnounceLabel(handle, label)
     if announced[handle] == label then return end
     announced[handle] = label
-    events[#events + 1] = { op = "Label", args = { "@" .. HandleText(handle) .. "@" .. label, label },
+    events[#events + 1] = { op = "Label", args = { handle, label },
         n = 2, ttl = RESOLVE_TIMEOUT, handle = handle }
 end
 
@@ -208,6 +238,11 @@ local function Present(op, ...)
 end
 
 local function WireCameraFrame(frame)
+    if frame[1] == OBJECT_CAMERA then
+        -- { tag, x, y, target, subject, z }: the first four slots read as a path
+        -- frame to any peer that predates object cameras.
+        return { frame[1], frame[2], frame[3], WireHandle(frame[4]), WireHandle(frame[5]), frame[6] }
+    end
     return { frame[1], frame[2], frame[3], WireHandle(frame[4]) }
 end
 
@@ -257,6 +292,22 @@ local function CameraPath(path, height, speed, target)
     end
     if not cameraSkipped then return native.CameraPath(path, height, speed, target) end
 end
+-- CR launch film >>
+local function CameraObject(subject, x, y, z, target)
+    cameraFrame = { OBJECT_CAMERA, x, y, target, subject, z }
+    if cameraSkipped then return end
+    local done = native.CameraObject(subject, x, y, z, target)
+    -- Match the authored CameraObject -> CameraCancelled order: the object
+    -- camera can process the skip during this call, before the next frame.
+    if CRCoop.IsNetworkGame() and native.CameraCancelled() then
+        cameraSkipped = true
+        local wasActive = localCameraActive
+        localCameraActive = false
+        if wasActive then native.CameraFinish() end
+    end
+    return done
+end
+-- CR launch film <<
 local function CameraCancelled()
     -- A player's skip releases only their own camera; never skips shared
     -- destruction, transport orders, or the success gate for everyone else.
@@ -270,6 +321,45 @@ local function CameraFinish()
     localCameraActive = false
     if not CRCoop.IsNetworkGame() or wasActive then return native.CameraFinish() end
 end
+
+-- CR launch film >>
+local launchFilmAPI = {
+    label = "cr03_rocket", halfHeight = -CR03RocketLayout.nozzleY,
+    valid = IsValid, time = GetTime, transform = GetTransform,
+    terrain = function(x, z) return GetTerrainHeightAndNormal(SetVector(x, 0, z)) end,
+    handle = RocketHandle, remove = RemoveObject,
+    ready = CameraReady, camera = CameraObject, finish = CameraFinish,
+    cancelled = CameraCancelled,
+    fxBegin = function(pose, age) Present("RocketFX", pose.posit_x, pose.posit_y, pose.posit_z, age) end,
+    fxStop = function() Present("RocketFXStop") end,
+}
+
+-- Close the outro. The launch film releases its own camera (at its eleven
+-- seconds, on a local skip, or when it stops), so only the older shots finish it here.
+local function FinishOutro(cameraReleased, skipped)
+    M.startfinishingmovie = false
+    if not cameraReleased then CameraFinish() end
+    -- Only stop subtitles if the user skipped the cinematic
+    if skipped or CameraCancelled() then
+        subtit.Stop()
+    end
+    SucceedMission(0.1, "misn03w1.des")
+    M.camera_off = true
+end
+
+-- The older outro would end here: roll the NSDF launch as the closing shot.
+-- Returns false (and leaves the camera alone) when there is no fixture, as in a
+-- mission started from an older map, or the pad is already gone.
+local function BeginRocketLaunch()
+    if M.launchPhase or M.launchFilmStarted or M.launchFilmTerminal then return false end
+    if not IsValid(M.launch) or not IsValid(RocketHandle()) then return false end
+    CameraFinish() -- hand the previous shot's camera back; the film takes a fresh one
+    M.launchPhase, M.launchStart = true, GetTime()
+    CR06LaunchFilm.Begin(M, launchFilmAPI, M.launch)
+    CR06LaunchFilm.Update(M, launchFilmAPI)
+    return true
+end
+-- CR launch film <<
 
 -- Camera frames carry their subject/target as "@handle@label" (or "!" when the leader
 -- reports it gone). A guest holds the film's start until the REAL objects resolve. Only a
@@ -331,7 +421,8 @@ end
 
 local function UpdateRemoteCamera()
     if not remoteCamera then return end
-    local generation, path, height, speed, target = unpackArgs(remoteCamera)
+    local generation, path, height, speed, target = remoteCamera[1], remoteCamera[2],
+        remoteCamera[3], remoteCamera[4], remoteCamera[5]
     if path == "" or M.coopResult then
         if localCameraActive then native.CameraFinish() end
         localCameraActive = false
@@ -343,6 +434,24 @@ local function UpdateRemoteCamera()
         cameraWaitSince, cameraGaveUp, cameraLast = nil, false, nil
     end
     if cameraSkipped then return end
+-- CR launch film >>
+    if path == OBJECT_CAMERA then
+        -- CameraObject snapshot: { generation, tag, x, y, target, subject, z }
+        local readyObject, subject, aim = ResolveCameraHandles(remoteCamera[6], target)
+        if not readyObject then return end
+        if not localCameraActive then
+            native.CameraReady()
+            localCameraActive = true
+        end
+        native.CameraObject(subject, height, speed, remoteCamera[7], aim)
+        if native.CameraCancelled() then
+            cameraSkipped = true
+            localCameraActive = false
+            native.CameraFinish()
+        end
+        return
+    end
+-- CR launch film <<
     local ready, _, resolved = ResolveCameraHandles(nil, target)
     if not ready then return end
     target = resolved
@@ -374,7 +483,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
+                    Send(id, "E", CRWire.Pack(seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n)))
                 end
             end
         end
@@ -389,14 +498,19 @@ local function UpdatePresentationTransport()
         nextCameraSend = now + 0.2
         cameraSerial = cameraSerial + 1
         if cameraFrame then
-            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
+            Send(0, "C", CRWire.Pack(cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame))))
         else
             Send(0, "C", cameraSerial, cameraGeneration, "", 0, 0)
         end
     end
 end
 
+local ReceivePresentationDecoded = nil
+-- Presentation packets are CRWire-packed: reassemble chunked strings first.
 local function ReceivePresentation(from, kind, ...)
+    return ReceivePresentationDecoded(from, kind, CRWire.Unpack(...))
+end
+function ReceivePresentationDecoded(from, kind, ...)
     if not CRCoop.IsNetworkGame() then return false end
     if kind == "A" then
         local seq = ...
@@ -409,22 +523,37 @@ local function ReceivePresentation(from, kind, ...)
     if kind ~= "E" and kind ~= "C" then return false end
     if CRCoop.IsAuthority() or not FromLeader(from) then return true end
     if kind == "C" then
-        local seq, generation, path, height, speed, target = ...
+        local seq, generation, path, height, speed, target, subject, zoffset = ...
         if type(seq) == "number" and seq > remoteCameraSerial and type(generation) == "number" and
-            type(path) == "string" and type(height) == "number" and type(speed) == "number" then
+            type(path) == "string" and type(height) == "number" and type(speed) == "number" and
+            (path ~= OBJECT_CAMERA or type(zoffset) == "number") then
             remoteCameraSerial = seq
-            remoteCamera = { generation, path, height, speed, target }
+            remoteCamera = { generation, path, height, speed, target, subject, zoffset }
         end
         return true
     end
     local seq, op, ttl = ...
     if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
-    if seq == receivedEvent + 1 and (native[op] or MOON_OPS[op] or op == "Label" or op == "Resources" or op == "Difficulty") then
+    if seq == receivedEvent + 1 and (native[op] or MOON_OPS[op] or op == "Label" or op == "Resources" or op == "Difficulty"
+-- CR launch film >>
+        or op == "RocketFX" or op == "RocketFXStop"
+-- CR launch film <<
+        ) then
         local args = { select(4, ...) }
         local count = select("#", ...) - 3
         local apply, unresolved = true, false
         if HANDLE_OPS[op] then
             local sent, described = args[1], args[1]
+            if op == "Label" and sent ~= GONE then
+                described = args[2] or sent
+                -- Authored map objects may have no native network handle;
+                -- their existing label is a safe fallback. Spawned objects
+                -- must arrive by native identity before their label is set.
+                if not IsValid(sent) and type(args[2]) == "string" then
+                    local resolved = GetHandle(args[2])
+                    if IsValid(resolved) then sent, args[1] = resolved, resolved end
+                end
+            end
             if sent == GONE then
                 -- The leader reports the object gone: skip this marker, never wait.
                 apply = false
@@ -685,6 +814,7 @@ M = {
     end_shot = false,
     clean_sweep = false,
     startfinishingmovie = false,
+    launchPhase = false, -- the closing NSDF launch is rolling (saved with the mission)
     turrets_set = false,
     speach2 = false,
     second_warning = false,
@@ -722,6 +852,7 @@ M = {
     wave3_time = 99999.0,
     wave4_time = 99999.0,
     camera_off_time = 99999.0,
+    launchStart = 0.0, -- GetTime() when the launch began; Save/Load resume from it
     support_time = 99999.0,
     movie_time = 99999.0,
     new_unit_time = 99999.0,
@@ -971,6 +1102,11 @@ local function InitMoonWeather()
     moonStarted = true
     local net = CRCoop.IsNetworkGame()
     local authority = (not net) or CRCoop.IsAuthority()
+    -- Lunar night: the sun is below the horizon, opposite a nearly full Earth,
+    -- which lights the base. Visual only; sensors keep their day ranges.
+    Environment.Init({ lightingMode = "night", nativeBaseline = true, nightGameplay = false,
+        skySun = { azimuth = 300, elevation = -30 } })
+    Environment.BindWeatherSensors("Moon", CRMoonWeather)
     CRMoonWeather.Init({
         authority = authority,
         seed = M.moonSeed, -- nil: the leader/offline picks one, guests wait for the host's state
@@ -996,6 +1132,7 @@ local function UpdateMoonWeather(dt)
         CRMoonWeather.AnnounceState()
     end
     CRMoonWeather.Update(dt)
+    Environment.Update(dt)
 end
 
 local function ShutdownMoonWeather()
@@ -1015,7 +1152,20 @@ function Save()
 end
 
 function Load(missionData, aiData, pilotModeData)
+-- CR Moon weather >>
+    ShutdownMoonWeather()
+    if Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
+-- CR Moon weather <<
+-- CR launch film >>
+    if M.launchFilm and M.launchFilm.camera and localCameraActive then CameraFinish() end
+-- CR launch film <<
     M = missionData or M
+-- CR launch film >>
+    -- Native camera and particle ownership is local; the saved start time and
+    -- phase make the film re-acquire both and resume the flight at its age.
+    CR06LaunchFilm.Load(M)
+    launchFX.Reset()
+-- CR launch film <<
     M.playerPilotModeState = pilotModeData or M.playerPilotModeState
     if aiData then
         aiCore.Load(aiData)
@@ -1032,6 +1182,9 @@ function Start()
 -- CR Moon weather >>
     ShutdownMoonWeather()
 -- CR Moon weather <<
+-- CR launch film >>
+    launchFX.Reset()
+-- CR launch film <<
     M.x = 4000
     M.z = 1
     M.y = 1
@@ -1198,6 +1351,9 @@ function Update()
     M.user = GetPlayerHandle()
     CRCoop.Update()
     UpdatePresentationTransport()
+-- CR launch film >>
+    launchFX.Update() -- every peer moves its own fixture and exhaust
+-- CR launch film <<
     TraceUpdateCall("misn03.Update UpdateModules", UpdateModules, 1.0 / (M.TPS or 20))
 -- CR Moon weather >>
     -- The mist keeps drifting while the result screen counts down.
@@ -2124,7 +2280,7 @@ if ((!help_spawn) && (support_time < Get_Time()))
         M.clean_sweep_time = GetTime() + 14.0
         -- With local-only skipping in co-op, a pathfinding-stalled film prop
         -- must not hold the entire session forever. Offline keeps its skip gate.
-        M.coopOutroDeadline = GetTime() + 90.0
+        M.coopOutroDeadline = GetTime() + 90.0 + LAUNCH_SECONDS -- must not cut the launch shot short
         M.next_shot = GetTime() + 18.5
         M.new_unit_time = GetTime() + 2.0
         M.audmsg = subtit.Play("misn0316.wav")
@@ -2135,7 +2291,7 @@ if ((!help_spawn) && (support_time < Get_Time()))
         M.startfinishingmovie = true
     end
 
-    if M.startfinishingmovie and not M.camera_2 then
+    if M.startfinishingmovie and not M.camera_2 and not M.launchPhase then
         CameraPath("camera_path", M.x, 3500, M.cam_geyser)
         M.x = M.x - 15
         M.camera_on = true
@@ -2145,7 +2301,7 @@ if ((!help_spawn) && (support_time < Get_Time()))
         M.clean_sweep = true
     end
 
-    if M.startfinishingmovie and M.next_shot < GetTime() and not M.camera_off then
+    if M.startfinishingmovie and M.next_shot < GetTime() and not M.camera_off and not M.launchPhase then
         CameraPath("inbase_path", 160, 90, M.prop1)
         M.camera_2 = true
     end
@@ -2239,17 +2395,27 @@ if ((!help_spawn) && (support_time < Get_Time()))
         M.end_shot = true
     end
 
-    if M.camera_on and not M.camera_off and (CameraCancelled() or M.camera_off_time < GetTime() or
+    if M.camera_on and not M.camera_off and not M.launchPhase and (CameraCancelled() or M.camera_off_time < GetTime() or
         (CRCoop.IsNetworkGame() and GetTime() > (M.coopOutroDeadline or math.huge))) then
-        M.startfinishingmovie = false
-        CameraFinish()
-        -- Only stop subtitles if the user skipped the cinematic
-        if CameraCancelled() then
-            subtit.Stop()
+-- CR launch film >>
+        -- A skip still ends the mission at once; otherwise the launch is the last shot.
+        if CameraCancelled() or not BeginRocketLaunch() then
+-- CR launch film <<
+            FinishOutro(false, false)
+-- CR launch film >>
         end
-        SucceedMission(0.1, "misn03w1.des")
-        M.camera_off = true
+-- CR launch film <<
     end
+
+-- CR launch film >>
+    if M.camera_on and not M.camera_off and M.launchPhase then
+        CR06LaunchFilm.Update(M, launchFilmAPI)
+        local shot = M.launchFilm
+        if not shot or shot.skipped or GetTime() - (M.launchStart or 0) >= LAUNCH_SECONDS then
+            FinishOutro(true, shot and shot.skipped)
+        end
+    end
+-- CR launch film <<
 
     if M.last_warning and M.final_check < GetTime() and not M.final_objective and not M.lost then
         FailMission(GetTime() + 1.0, "misn03f5.des")
@@ -2321,7 +2487,8 @@ if ((!help_spawn) && (support_time < Get_Time()))
     end
 
     -- Preserve the stock mission failure if the evacuation launch pad is destroyed.
-    if not M.lost and not IsAlive(M.launch) then
+    -- (the launch film is the only thing that needs the pad after the evacuation)
+    if not M.lost and not M.launchPhase and not IsAlive(M.launch) then
         FailMission(GetTime() + 1.0)
         M.lost = true
     end

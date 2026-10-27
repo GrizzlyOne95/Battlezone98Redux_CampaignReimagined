@@ -30,6 +30,13 @@ marks a source that exists only on the maintainer's machine and must never be co
 
 ## 1. How to use this document and where work belongs
 
+Weapon presentation lesson (2026-10-21): native Cannon/MachineGun classes also
+implement plasma weapons. Never infer brass from that class alone. The casing
+follow-up owns `[WeaponClass] casingType` in marked generated blocks and uses
+explicit `none` for energy/launcher/utility definitions. OpenShim owns the
+single shared accepted-shot bridge so flashes and casings cannot replace each
+other's firing hooks. Live visual testing is still pending.
+
 Read `AGENTS.md` first (short, auto-loaded by most agents), then this file for the task you are about to
 do. Sections 3-5 are the working recipes; section 7 is the list of things that have broken the project
 before; section 8 is the pitfall index.
@@ -110,6 +117,7 @@ the Steam exe is SteamStub-packed, so let runtime bytes settle before comparing.
 | Per-mission docs | `Docs/MISNNN_SOURCE_PORT.md`, `Docs/MISNNN_COOP.md`, `Docs/*_LUA_PORT.md` | Why each divergence from the original exists, owner decisions, live-check lists. | Co-op docs end with *inferences* and an unrun live checklist; read both. |
 | Early mission audit | `Docs/EARLY_MISSION_SOURCE_AUDIT.md` | Native vs port phase coverage for misn02b-05. | Differences alone are not omissions (QOL changes are intentional). |
 | Transcripts | `Tools/TranscriptSources/GoombaBZ/campaigns.csv` (778 lines), `units.csv`, README | Mission titles, VO line text, which wavs exist. `Tools/Import-GoombaTranscripts.py --check` is a CI step. | Annotations are upstream data kept verbatim and **often wrong** ("Unused voiceover" on lines that do play, e.g. `misn1303`). Verify against the source and the Lua. |
+| Original guide / cut VO audit | `Docs/ORIGINAL_GUIDE_LORE_AND_CUT_CONTENT_20261016.md` | 1998 strategy-guide Cthonian/Tartarus/Titan lore, Achilles crystal-sabotage evidence, Titan-to-Achilles transition, unused-recordings restoration backlog. | Separate published guide narrative, recorded audio, archived source, CR implementation and inference. The owner's full guide OCR is **not** committed to this public repo. |
 | Terrain codecs | WorldBuilder repo (see 1) | `.mat`, `.hg2`, `.trn` structure. | `.mat` is zone-major with Base in the high bits; use the codecs, not hex guesses. |
 | Pilot Mode notes | `Docs/PILOT_MODE_CAMPAIGN.md` | Per-mission N64 Pilot branches, to tune `PlayerPilotMode`. | Offline only. |
 | Lua API ground truth | `Docs/BZR_LUA_AGENT_REFERENCE.md` | Lua-facing engine APIs. | Hash-pinned across four repos; do not edit (section 7). |
@@ -153,8 +161,9 @@ pending. One `.bzn` and one `.lua` serve both modes. Use the newest finished mis
    by `086ba03`): `git show ce18e89:Missions/misnNN.hg2`.
 4. **Lua co-op layer** (section 3.2-3.6), marked with `-- CR ... >>` / `<<` regions so the source-parity
    test can strip them and prove the DLL port underneath is unchanged.
-5. **Listing.** `Config/misnNN.ini` (mapType multiplayer, gameType S, 2-4 players), root `misnNN.des`
-   (<= 300 bytes, CRLF, and it must be allowlisted in `.gitignore`), `Missions/misnNN.vxt` (avtank/avfimp),
+5. **Listing.** `Config/misnNN.ini` (mapType multiplayer, gameType S, 2-4 players), root `misnNN.mpdes` (the MP listing blurb; SP uses the stock `.des`)
+   (<= 300 bytes, CRLF, and it must be allowlisted in `.gitignore`), `Missions/misnNN.vxt`
+   (approved roster: `Docs/COOP_STARTING_UNITS.md`),
    `Assets/Graphics/misnNN.bmp` (generic shared image), and the `[MISSIONk]` entry in
    `Config/crcampgn.ini` (3.7).
 6. **Tests and lock.** Add the tests (section 5), update `Tools/Test-SetupMissionShell.py`'s campaign list,
@@ -162,6 +171,11 @@ pending. One `.bzn` and one `.lua` serve both modes. Use the newest finished mis
 7. **Docs.** `Docs/MISNNN_COOP.md`: map, ownership, team table, owner decisions, restored content,
    inferences, and a live-harness checklist. Label unrun checks as unrun.
 8. **Live check** with the harness (section 5.3) when the owner's session is available; update the doc.
+
+Starting ships follow the player-controlled production menus, not the support team's factory.
+The approved progression and the no-production mission exceptions are in
+`Docs/COOP_STARTING_UNITS.md` [owner]. `baseName` selects assets, not ODF inheritance: inspect
+the actual mission factory's `buildItem` entries (07 `avmu7`, 08 `avmu8`, 09+ `avmuf`).
 
 ### 3.2 Team and ownership model
 
@@ -267,6 +281,12 @@ Grep every ported mission for these before trusting it in MP:
 - Restored VO wavs ship as `Assets/Audio/*.wav` byte-exact from `bzone_en.zfs` (marked binary in
   `.gitattributes`; the manager has a `.wav` map) because Redux's de/es/fr/it archives lack many cut
   wavs (subtitle but silence). `Tools/Test-ShippedCutVo.py` guards this.
+- Parity-safe human triggers (misn18): when the faithful body is full of `Distance(M.player, ...)`, shadow
+  `GetPlayerHandle` with a token and reassign the body's local `Distance` from a CR region; the wrapper answers
+  the nearest human for approach triggers and the farthest for recycler gates, so no body line changes. Camera
+  shots about the player's own ship ("left behind") stream only a height and each peer films its own ship.
+  Check which of a mission's wavs ship in every Redux language archive before adding one to `Assets/Audio`
+  (misn1817/1818 do, misn1803 does not). `Docs/MISN18_COOP.md` is the template for storm-style optional hooks.
 
 ### 3.7 `crcampgn.ini` conventions
 
@@ -328,7 +348,31 @@ For a small content iteration while other game sessions are open, the manager's
 content, with hash verification. It never updates native payloads or cleans
 unrelated runtime files.
 
-Full detail: `Docs/WEATHER_ENVIRONMENT_OWNERSHIP.md`. The split is deliberate; do not blur it.
+Mission 18's large glowing fissures are cosmetic and camera-local; see
+`Docs/MISN18_STORM.md`. EXU point lights have an eight-light cap and no beam
+direction: reserve at most two short-range lights for fissures and use upright
+particles for upward shafts. A large decal needs terrain-plane checks across
+its whole footprint; a valid centre alone can leave it bridging a ravine.
+Rectangular ground particle decals also need `billboard_rotation_type vertex`:
+Ogre defaults to UV rotation, which distorts the mouth and separates its shafts.
+
+Local grass/flower removal is client-only (owner, 2026-10-21): `Docs/LOCAL_FLORA_DAMAGE.md`.
+Use the shared bounded `CRFloraDamage` service and actual EXU explosion events; do not
+scan units every frame or synchronize cosmetic bare patches. Solid trees keep gameplay ownership.
+
+Mission 18's firs reuse Mission 17 art but have their own bounded authority streamer:
+`Docs/MISN18_TREES.md`. Lightning ground points are shared world coordinates; only the
+authority destroys/uproots tree objects or marks unstreamed sites gone. Do not apply
+tree damage in every peer's cosmetic lightning handler or use craft AI on the plants.
+
+Weapon presentation inventory and first art pass: `Docs/WEAPON_PRESENTATION_ROLLOUT.md`
+(2026-10-21). Weapon flashes belong on WeaponClass; recoil belongs on craft slots.
+Never apply avtank's barrel-tip offset to a shared weapon used by other models,
+or slide a hull/locomotion node merely because it owns a firing hardpoint.
+
+Full detail: `Docs/WEATHER_ENVIRONMENT_OWNERSHIP.md`; full mission/stack audit and the 2026-10-15 owner
+revision: `Docs/ATMOSPHERE_AUDIT_20261015.md`. Environment caps the final composed fog to TRN visibility,
+including base/Clear/local overrides. It is the only atmosphere writer while loaded.
 
 ```text
 .trn (FogEnd / VisibilityRange)
@@ -350,18 +394,26 @@ Rules:
 
 - **Environment owns fog.** Weather requests are `min(requested, authored terrain horizon)`, applied before
   blending; at zero weight a layer contributes nothing. Do not fold changes to Environment's own `DayFog`
-  into a weather commit.
-- **Visual only by default** [owner]. Gameplay effects need an explicit owner decision (Venus lightning
-  knockback/radar scramble is the approved exception; acid rain is visual only because chip damage annoyed
-  players; Europa touches no sensor/gameplay/perception state at all, which keeps stealth missions safe).
+  into a weather-only commit. The owner explicitly authorized the final/base cap
+  and subtle Moon/Venus integration on 2026-10-15; see `ATMOSPHERE_AUDIT_20261015.md`.
+- **Shared weather sensors** [owner, 2026-10-15]: every weather-enabled campaign mission now applies
+  sensor effects through Environment, including Moon dust/glow, Io, Europa, Titan and Mars 06.
+  See `Docs/WEATHER_SENSOR_POLICY.md`; this supersedes the old visual-only mission exceptions.
+  Directors stay render-only when used alone; missions bind activity to the sensor service.
+  Damage/handling changes are separate; Venus lightning retains its approved knockback/scramble.
 - **Seeded and peer-identical.** The leader decides; every peer renders from the same seed and shared
   events (`VenusFog`, `IoQuake`, `MoonGlow`, ...). Weather events must be routed to guests; a director
   that only runs on the host will desynchronize visuals.
 - **DX11 Enhanced caveat:** fog range scales terrain diffuse IBL. Raising global fog greys the sky and
   terrain. Where the owner wants subtle effects (Moon), keep global fog near off and use particle ground
   mist instead. Do not "fix" mood with global fog.
-- **Missions that do not load Environment** (the moon missions) must not have a director that assumes it:
-  loading Environment would add day/night and fog 420-1120.
+- **Moon 02b/03 now explicitly load Environment in subtle/native-baseline mode** [owner, 2026-10-15]:
+  retain their 175-250 black fog and use bounded lighting variation, with no full night or sensor penalty.
+  Do not replace this with the default full-cycle moon profile. **Revised 2026-10-25 [owner]:** misn03
+  is a lunar night instead (`lightingMode = "night"`, `skySun` below the horizon, `nightGameplay = false`):
+  a nearly full Earth is the directional light, the fog keeps its 175-250 range and only darkens, and
+  sensors are unchanged. misn02b stays subtle. Titan 14 now loads Environment with
+  its native baseline and daylight lock; CRWeather contributes through the shared writer.
 - **CR owns weather content**; do not migrate or "unify" it into EXU [owner]. EXU provides mechanics.
   Redux ships no `.particle` scripts; assets ship flat in `mods/<id>/` (`.particle`, `.material`, `.png`
   at the root) and Ogre parses any registered resource location.
@@ -383,6 +435,12 @@ Rules:
   back, `BZOgreLogfile.log` clean. Ogre ignores wrong parameter names and out-of-range affector indices
   silently; `CRWeather.DescribeSystem(name)` prints what the running build registers. Silence in the
   weather scripts is the healthy result (they only print on failure).
+- **Scrap geysers** (`eggeizr1`, class `geyser`) get per-world cosmetic effects from `CRGeysers`,
+  started by `CRWeather.Init` (no mission edits). Occupancy = a deployed craft or a
+  recycler/factory/armory/constructionrig building within 11 m, read at most once a second.
+  Europa/Io hide their own vents through it; Venus is not wired until the Venus sky stack
+  (PRs #330-#337) merges. Particle materials must be RGBA-safe (`CR18/*`, `CRWX_FX/*`), never `CR_FX/*`.
+  `Docs/WORLD_GEYSERS.md`.
 - Atmosphere screenshots need windowed mode, a deployed build, DPI-aware capture and 1920x1080 or larger
   (`exu.CAMERA.NO_HUD` removes the HUD). Tuning passes therefore need the owner's session (5.3).
 
@@ -682,12 +740,14 @@ Never by focus or `SendInput` unless the owner says the PC is free. The scenario
    instruction** (a per-batch "merge as you go" granted in the current session counts, and only for that
    scope). When merging: CI green, mergeable, `gh pr merge --merge`.
 5. **Workshop publishing is a local maintainer operation** through `Manage-CampaignFiles.ps1`
-   (`-workshop-init`, `-workshop-auth`, `-workshop-build "<note>"` dry run, `-workshop-upload "<note>"`),
-   not CI; follow `Docs/STEAM_PUBLISH_CHECKLIST.md` and its OpenShim Roadmap sync. Publishing stages the
-   **working tree**, not HEAD, so a dirty tree is a blocker. Publishing silently reverts the Steam
-   description unless `workshop.config.json` is set to leave it alone (`PublishDescription` stays false;
-   the description is hand-edited and capped at 8000 characters). Exit code 0 is not proof of an upload;
-   confirm the "Uploading app 301650 item ..." line. Never hand-copy files into `Local\Workshop\content`;
+   (`-workshop-init`, `-workshop-build "<note>"` dry run, `-workshop-upload "<note>"`), not CI; follow
+   `Docs/STEAM_PUBLISH_CHECKLIST.md` and its OpenShim Roadmap sync. The upload goes through the
+   **running, signed-in Steam client** via the Modding Toolbox's `steamworks_helper.ps1`
+   (`BZR_TOOLBOX_REPO`), and sends only content and the change note, never the hand-edited description.
+   **Never use SteamCMD (`-steamcmd`) on the owner's PC**: its login signs the desktop client out mid-game.
+   Publishing stages the **working tree**, not HEAD, so a dirty tree is a blocker. Exit code 0 is not proof
+   of an upload; confirm the "Workshop upload succeeded for item ..." line.
+   Never hand-copy files into `Local\Workshop\content`;
    `Scripts/OpenShimManifest.lua` hashes must come from staging. Publication needs a tagged OpenShim
    release, never a branch.
 6. **Never copy source into Steam's Workshop cache** or treat `Local\Workshop`/installed copies as source.
@@ -717,9 +777,12 @@ Each bullet: the pitfall, the one-line why, and where to read more.
   validator's required list is independent of the lock. Fix with `-bless`, never by hand-editing.
 - The manager's dispatch falls through to an interactive menu for unrecognized args, so a typo once exited
   0 with nothing uploaded (now exits 2 and lists received args). Check output, not exit codes.
-- Publishing the description reverts hand edits made on Steam; SteamCMD's VDF cannot hold a literal double
-  quote (the publisher rewrites `"` to `'`). Snapshot the live text first
-  (`Docs/workshop_description.published-*.bbcode`).
+- Publishing the description reverts hand edits made on Steam, so the default upload never sends it; only
+  `-steamcmd` with `PublishDescription: true` can. SteamCMD's VDF cannot hold a literal double quote (the
+  publisher rewrites `"` to `'`). Snapshot the live text first (`Docs/workshop_description.published-*.bbcode`).
+- SteamCMD signs the desktop Steam client of the same account out ("Session Replaced"); the 1.0.0.57
+  publish (2026-10-24) kicked the owner out of a running game. `-workshop-upload` now uploads through the
+  running client via the toolbox helper, and SteamCMD needs an explicit `-steamcmd`.
 - `Docs/STEAM_WORKSHOP_RUNNER.md` describes a two-runner design that has never run; the README and
   checklist are the current path (`Docs/LEVEL1_RELEASE_PIPELINE.md` for release packaging).
 - Zero-byte or stand-in files used to unblock a bless must be removed again (3.8).
@@ -741,6 +804,13 @@ Each bullet: the pitfall, the one-line why, and where to read more.
   159 hp/s on molten tiles. The stock misn11 `.trn` had no lava key; a 2-tile crust moat is needed because
   sulphur is the walkable continent.
 - `GetCameraPosition`-style and `IsInfo` calls are local; don't branch gameplay on them.
+- Before adding a CR hotkey, check the stock install-root `gamekey.map` AND `input.map` (Backspace is
+  `TOGGLE_OVERVIEW BSP`, the satellite). Truly free in play: J V X Z, plain `, . ; ' \ [ ] /`
+  (their DEC_VAR/MONO_DEBUG actions are compiled out of the shipping dispatcher 0x0061DC10), and the real
+  arrow keys (`Grey*`; plain `LeftArrow`/`RightArrow` in input.map are numpad steering). Many players have
+  no Home/End/PgUp/PgDn. `GameKey` receives every key, bound or not. Mods cannot override `gamekey.map`;
+  change binds at runtime in the byte table 0x00918850 (index = key | 0x100 Ctrl | 0x200 Shift |
+  0x400 Alt), which Redux re-parses after every ESC menu (see `exu.SetChatOnEnter`).
 
 ### 8.3 Source fidelity
 
@@ -759,6 +829,20 @@ Each bullet: the pitfall, the one-line why, and where to read more.
 
 ### 8.4 Rendering and weather
 
+- **Skinned meshes need the stock two-stream layout (2026-10-26):** every CR-built cockpit, walker `_c` mesh, light-tank paint batch and `CRWX_CockpitGlass` submesh kept TEXCOORD0/TANGENT in the POSITION/NORMAL buffer and drew one flat grey in game, although materials, textures and UVs were valid. Rewriting the same mesh to the stock layout (source 0 POSITION NORMAL, source 1 DIFFUSE TEXCOORD0 [TANGENT]) fixed it live; the likely cause is Ogre software skinning blending into an uninitialised copy of the POSITION/NORMAL buffer. Write skinned meshes only through `Tools/ogrelayout.py` (`fill_vertex_data`, `set_rows`, `geometry_chunk`); `python Tools/ogrelayout.py --check` runs in CI. Static meshes (EXU StaticGeometry water, methane, props) are not affected.
+- **Glass panel first draw (2026-10-19, Instance2, overlay mode):** the first time a glass panel is drawn beside other showing panels, the DX11 renderer can start throwing `OGRE EXCEPTION ... Unable to set D3D11 vertex declaration` on every frame (100-250 per second) until exit, with the panels still drawing. The Mars severe-storm bench logged 14,062 of them (they began at the first dirt splat; with `AllowGlassGrit = false` the same bench logged 0). Preloading one panel per family did not help (14,208): the splats use dirt panels 2 and 3, never shown before. `CRWetGlass.warmUp` now shows every panel once, alone, for two frames at its faintest step right after the glass is built (about one second); the same bench then logged 0. A single panel's first show or a single splat in isolation was harmless, so the trigger needs other panels already showing. Check the Ogre log for `vertex declaration` after adding any glass layer; new layers are warmed automatically because the list is `allLayers()`.
+- **Acid glass live check (2026-10-19, Instance2, overlay mode):** a texture that loads the first time a glass panel draws it can break the DX11 renderer if five other panels are already showing: `OGRE EXCEPTION ... Unable to set D3D11 vertex declaration` on every frame (100-250 per second) from that frame to the end of the run, with the panels still drawing. It reproduced three ways (acid rain then the etch, the same panel carrying the grit texture, and the etch panel created first), never with seven plain-rain and snow panels, and never when the etch texture loaded while the glass was empty, so the trigger is a first texture load beside a crowd of panels, not the panel count or the material. `CRWetGlass.warmUp` therefore shows each acid family once, alone, at its faintest step right after the glass is built. Mars grit/dirt showed the same exceptions in the earlier glass run (13,915 at the first dirt splat), so a first-use `crwx_winddirt.png` is a probable instance of the same thing and unfixed here. Check the Ogre log for `vertex declaration` after any new glass layer. Bench notes: the scratch bench is the `crsetup.lua` swap above; the harness scripts need Windows PowerShell 5.1 (`powershell.exe -File`), under pwsh 7 `BZRWindowInput.ps1` fails its `Add-Type`; back up and byte-verify the Instance2 mod folder and `logs` (the game also rewrites `BZPLYR.DEF` and appends `bzloader.log` in the instance root).
+- **Glass weather live check (2026-10-19):** `CRWetGlass.Weather("snow"|"grit", level)` layers were captured live only in the screen-overlay mode (forced by hiding `exu.animation.TargetCockpit`). In a scratch Instance2 the cockpit-glass (F1 shell) mode reported "layers on the cockpit glass" but drew nothing, not even rain, a crack or a splat, so shell-mode rendering of ANY layer is unverified there. A scratch bench can run CR from `crsetup.bzn` by swapping `crsetup.lua` for a bench script (instant_action activates CR); the instance's mod folder is old and flat, so deploy the lock's files into it and restore from a backup afterwards.
+- **Confirmed 2026-10-15:** Ogre Panel/BorderPanel geometry supplies POSITION and TEXCOORD0,
+  not COLOR0. Binding `CR_UI_vertexHLSL4` caused the repeated co-op DX11 vertex-declaration
+  exceptions; `CR_UI` now selects the dedicated panel shader on DX11 and keeps its older
+  backend fallback. `Tools/Test-OverlayPanelInputs.ps1 -VerifyRegression` reflects the
+  actual material-selected shader and rejects the old COLOR0 input requirement.
+- A subtitle BorderPanel always queues its border. Missions without `PersistentConfig`
+  cannot resolve a palette material, so leaving its border unbound draws Ogre's shaderless
+  default on DX11. `ScriptSubtitles` binds `CR_UI` as the explicit fallback before showing
+  it; `Test-SubtitleReplacement.lua` covers this standalone path. A responsive Lua probe
+  does not prove the renderer is presenting frames.
 - Edit the shader family the material actually binds (`CR_*` vs `OSE_*`); presence in the microcode cache
   proves nothing.
 - Hash generated shader program names or Ogre's microcode cache serves stale code.
@@ -795,6 +879,23 @@ Each bullet: the pitfall, the one-line why, and where to read more.
 - EXU StaticGeometry positions are sim space (EXU converts); a unit mesh scaled per instance keeps its UVs,
   and render z is mirrored, so mesh `v` runs south. A sheet over a "flat" floor must clear the floor's
   relief (misn14's wet cells vary by up to 0.3; at +0.06 the floor poked through in patches).
+- Vehicle wakes are one shared module (`Scripts/CRWake.lua`, `Docs/VEHICLE_WAKES.md`): directors call
+  `Init` / `Update` / `Stop`; a particle system per tracked craft is budgeted globally (default 4, max 6),
+  scanned at 4 Hz, near-viewer only. Do not add per-director hover/wake loops, and do not give a director
+  its own copy of the craft scan. Its second `EnsureExtra("cr_wake")` overwrites the "last payload
+  requested" in director test stubs: call `Wake.Init` before the director's own `EnsureExtra`.
+- **TRN `[Stars]` in Redux is not the 1.5 format** (confirmed from the GOG exe's parser, `FUN_00776690`):
+  keys are `Texture%02d` / `Color%02d` / `Size%02d` / `Width%02d` / `Height%02d` / `Azimuth%02d` /
+  `Elevation%02d` / `Roll%02d`, indices 00-63 (64 entries total), values are floats. There is **no
+  `Alpha` key** (1.5's per-entry blend op): blending comes from the material. `Color` reaches the shader
+  as vertex colour. Names are looked up as uppercased materials (`crmeteor.map` -> `CRMETEOR.MAP`, 15
+  characters max). `Radius` is per section (Io uses 500, Moon 1000), so sizes scale with it.
+- Sky events (2026-10-19): shooting stars (`CRMETEOR.MAP`) and Moon satellites (`CRSATELL.MAP`) are
+  procedural `[Stars]` entries (`Materials/CR_sky_events.material`, `Shaders/CR_sky_events*`). All quads
+  share UVs, so each entry seeds from its `Color`: **give every entry a distinct colour** or they fire
+  in lockstep. `time_0_x 3600` with periods that divide 3600 (meteor slot 25 s, satellite cycle 300 s)
+  so the wrap is invisible. Pass emissive x enables, y forces every slot (testing only);
+  `openshim.ini [Display] SkyEvents=0` switches both off through `RuntimeEnhancements.SetSkyEventsEnabled`.
 
 ### 8.5 Live testing
 
@@ -833,6 +934,8 @@ Each bullet: the pitfall, the one-line why, and where to read more.
 
 ## 9. Decision log pointers and active work
 
+**Original 1998 guide / cut campaign VO (2026-10-16):** `Docs/ORIGINAL_GUIDE_LORE_AND_CUT_CONTENT_20261016.md` records the owner-provided Shane Mooney guide findings, the Tartarus/Titan warning (not a proven boss), the potential Mission 17 processed/unprocessed crystal mechanic, and other cut-dialogue leads. **[owner goal]** restore the Achilles crystal idea after map/1.5-source verification; keep faithful Lua behavior distinguished from newly authored CR extensions. Mission 4-7/12/13/15 cut VO already restored must not be added a second time. This is a research/backlog checkpoint, not approval of a specific gameplay design.
+
 Per-mission owner decisions live in the mission docs (read their "owner decision" sections before
 changing behaviour). Highlights:
 
@@ -862,7 +965,316 @@ own change).
 
 ---
 
+### Mars rocket presentation (18 October 2026)
+
+`misn06` now follows the Mission 16 pattern for moving static cinematic fixtures:
+preplace the labelled actor, relay one acknowledged visual event, and apply its
+translation on each peer. Do not assume host `SetTransform` on a static building
+will replicate like a craft. Custom presentation operations must also be admitted
+by `ReceivePresentation`; otherwise they stall the ordered event stream even if
+the local host effect works. The four-peer presentation test covers this case.
+Art, native validation status and resume steps: `Docs/MISN06_ROCKET_FILM.md`.
+
+For stock launch-pad docking, do not transfer Ogre mesh X directly into a BZN
+local offset. Redux's `sblpad.mesh` raised deck has positive model X; its native
+SDF `sbl11bdc` bounds have negative X. The validated native deck centre is
+(-19.407374,29.129,-42.536600). A wrong sign displaced the rocket by about 40 m.
+EXU point-light colour arguments need named `{r=...,g=...,b=...}` fields; an
+array silently failed inside the effect's pcall until the mock asserted the
+actual native shape. Rebuild 4 proves the corrected pad and light on both peers.
+
+Native scenarios are dot-sourced into `Run-BZRCoopMission.ps1`. Avoid names from
+its parameters: `$clients` aliases its `[int]$Clients` parameter because
+PowerShell is case-insensitive. Assigning a peer-index array then fails before
+the first scenario step. Use a scoped name such as `$rocketClients`; also avoid
+using `$c` for an array and `$C` for its loop element.
+
+### Mission 03 NSDF launch (19 October 2026)
+
+`misn03` ends on the user's own NSDF rocket (`Docs/MISN03_ROCKET_LAUNCH.md`). It reuses
+`CR06LaunchFilm`/`CR06LaunchFX` through `api.config`/`api.label`; misn06 behaviour is the default.
+Placing a prop on a stock pad: take the offset in the pad's Ogre mesh frame, then negate X for the
+native local offset (verified against the ablpad SDF), and derive the world transform from the pad's
+basis. `Test-Misn03Launch.lua` runs the real misn03 script on the harness text of `Test-Misn03Coop.lua`
+(everything before its first scenario), so harness changes there flow into it.
+
 ## 10. Keeping this document current
+
+### Texture masters and imported Olympian interiors (2026-10-21)
+
+See `Docs/TEXTURE_REVAMP.md` and `References/TextureRevamp` before changing these
+assets. The owner chose the local replacement relic models, but rejected the
+first Tartarus redraw: keep its original eye DDS, not a newly interpreted eye
+or the Styx diffuse. A detailed generated image is not automatically a faithful
+UV atlas. Preserve approved colour art where a normal/emission supplement is
+the actual need. Interior UV reprojection also needs a matching tangent basis;
+an atlas-wide range remap left large surfaces sampling tiny, stretched regions.
+Keep native geometry/rig hashes and explicit unverified runtime/art-acceptance
+status. The forest builder reapplies reviewed bark masters after regeneration.
+Large-building audits must resolve active diffuse aliases: the Black Dog silo
+uses 4096×2048 `bbsilo_d.dds`, not its inactive 256px `bbsilo00_d.dds`. Overall
+image dimensions also hide tiny door/stair allocations. The CCA pad pilot uses
+three disjoint material/UV crops, with an oriented triangle/attribute/skin
+contract and unchanged stock remainder. It adds three batches: qualify native
+load/launch states and performance before extending that tradeoff fleet-wide.
+Offline Blender is only an art check. Its multi-model reset crashed on cleanup;
+use fresh isolated processes and check each exit, never infer native success.
+Faction storage uses `crstns`/`crstbd`/`crstcc`/`crstcr` independent ODF/model
+chains over stock `abstor` geometry. Existing `abstor`/`bbstor` selectors receive
+matching NSDF/Black Dog art too. Do not silently swap CCA/CRA objects by team or
+change explosive `abstora` gameplay. Emissive extraction is confined to the
+status-lamp UV region so painted red stars/stripes never become glowing lamps.
+Faction navs/pickups: see `Docs/FACTION_NAV_PICKUPS.md`. Keep original ODF
+identity in the namespaced lookup: Soviet `spmini` is `gminisov`, not NSDF
+`gminigun`, and `spammo` restores 700 rather than 500. Menu routing tests compare
+every non-slot field and each exact source payload. For art, do not stamp a
+framed badge per facet or enlarge its corner as plain metal: use a separate
+quiet finish and check the complete emblem footprint against mapped triangles.
+Unpack pickup-type atlas cells before mip generation to avoid neighbor bleed.
+The owner rejected plain recolored ammo/repair metal and the v2 vent-panel
+collage. The selected v3 keeps stock silhouettes and fully unwraps every
+triangle into continuous perimeter/top/underside charts (`Tools/poduv.py`), one
+material with 1024px D/E maps. New purpose-built pod shapes were rejected; keep
+them labelled historical and out of runtime/shipping. Blue/cyan ammo and green
+repair parts remain emissive, never whole shells or faction badges. Keep CCA
+red branding separate from the functional green repair cue. The original NSDF
+masters and accepted v2 nav resources/material blocks are pinned by
+`nav-pickups/owner-selected-art.json`; do not redraw approved work while
+propagating faction paint. Tests include full-UV overlap/geometry contracts,
+emission colour/nonemitting badge checks and those acceptance pins. Dark
+Blender views prove map selection/readability only, not native bloom or
+performance. Nav v2 hazard bands are faction-specific patterns.
+Later owner correction: NSDF olive pods do not match actual petrol blue-green
+vehicle armour. `pod-palette-v4` under References now anchors every faction to
+two real vehicles and two buildings, with resolved D/E filenames and hashes.
+Keep stock geometry/UVs, but author distinct lamp footprints as well as hues;
+do not tint the same generic band four ways. Historical v3 master pins do not
+freeze current paint after an explicit owner revision. Shared stock E resources
+also mean a warmer-looking diffuse lamp is not proof of a unique stock hue.
+The owner wants offline renders only for now; do not deploy or launch a test.
+The owner subsequently requested v4 palettes/unique optics on navs and weapon
+powerups too (`nav-weapons-v4/README.md`). This explicitly supersedes v2 nav
+paint acceptance, not geometry/UV/hazard identity: retain old accepted maps
+and hashes historically. Weapon panel recolouring alone left most triangles
+on a shared stock human material; bind the preserved-UV remainder to its own
+faction D/E. Plain material children must override E to black, or they inherit
+the badge panel's unrelated lamp layout. No added draw batches are needed.
+Owner then requested atlas optimization and unique emissives for **each pickup
+type**, not just faction. Four original-layout weapon detail repaints duplicated
+most machinery: share one faction D/E, badge panel and quiet finish instead.
+Retire only the receipt's named redundant maps; keep authoring/history PNGs out
+of shipping. Current nav/pickup DDS fall from 84 / 42.0 MiB to 44 / 23.3 MiB,
+without shrinking surviving maps. Stock light-swatch UVs also magnified a tiny
+blob across whole tips/wedges: project those faces onto separate authored lamp
+regions for cannon, rocket, mortar and special. Test normalized E silhouettes
+as well as different region addresses; shared atlases need not mean shared
+light patterns. Unselected UV corners and all geometry/skin/native bytes stay.
+Further owner request: unique hazard paint on all pickups. Keep four padded
+type bands in the shared weapon atlas, matched to each faction nav's warning
+identity; reuse authored pixels on pod trim, not new copies of the whole atlas.
+ImageGen edits may drift outside the requested paint: composite only the exact
+warning ROIs and pin the untouched RGB hash. Cannon has no stock warning UV
+island, so map one existing side case; never claim a zero-coverage repaint.
+Special optics need visible rim-sector UVs rather than placing them in its
+central recess. Keep hazard E explicitly black regardless of hue thresholds.
+
+### Red Devil cockpit and legacy paint prototype (2026-10-22)
+
+Light/walker pass (`References/LightWalkerCockpits/README.md`, 2026-10-23):
+`cvltnk` cannon and bow are separate welded islands in the same source body
+batch. Section them separately; cuts farther back in the original open bow
+must fail closed. Connect the cropped cannon to an actual overhead housing.
+`cvwalk_c` / `svwalk_c` keep their fixed-table selection and original rigs;
+derive the FULL native parent chain, not just the POV's own local rotation.
+Author around that eye, then inverse-compensate geometry AND weather glass
+into each original driver's bind coordinates. This avoids double-applying
+native head rotations without editing hierarchy/animation. New head cut backs
+must sit beyond instruments; otherwise closed caps can hide every control.
+Original outer helmet skin can be back-facing from inside: label inner-cap
+visibility honestly and do not count it as extensive exterior surface reuse.
+Synthetic head pitch is a relative-geometry check, not native motion proof.
+
+Bomber/rocket pass (`References/BomberRocketCockpits/README.md`, 2026-10-23):
+the CCA bomber's actual eye is offset in its pilot pod. Do not recenter POV
+to rescue its mostly missing old cockpit. Owner prefers this unit's actual
+red/charcoal exterior finish: reuse quiet red source-chart regions for its
+structure, keep cream on instrument inserts and black emission on paint.
+Selected nose hoods can be art-fitted lower, but record that transform and
+do not describe it as native gun alignment. CRA rocket prongs retain native
+positions; cap the trimmed high shoulders rather than displaying huge dark
+cut walls beside the pilot. Test original source surfaces separately from
+new caps. Float32 can collapse a tiny cap UV determinant independently of
+its geometry: remap only that face inside the quiet chart, never source UVs.
+
+CRA connection pass (`References/CVHeavyCockpit/README.md`, 2026-10-23): keep
+`cvfigh` guns under their actual wing/pod shells, returning the whole section
+to native coordinates instead of moving guns alone inward/upward. Do not
+attribute missing barrels to the wings without testing occlusion: here the
+cockpit side sills were the actual blocker. Lowering the forward outer lip
+from -.34 to -.58 m reveals the native-position guns without moving their
+hardpoints. Classify actual barrel source faces in ray tests, not a combined
+wing/gun material: wing hits falsely passed the original visibility test.
+Restoring the old sill faces must fail the barrel-visibility contract. Keep
+the liner closed and join exposed frame posts to the lowered lip.
+`cvhtnk` needs complete side gun pods
+with rear armor housings, not a z-crop of bare barrels. Source surface sections
+must interpolate attributes and cap new cut contours, preserving intentional
+source cavities. Synthetic two-cut tests cover watertightness/area/UVs; shared
+codecs still own binary I/O. Recompute AABB after appending exterior batches.
+Native driver names in an offline batch do not prove first-person visibility
+or animation/shot synchronization; preserve the explicit qualification gaps.
+
+Walker pair (`References/WalkerCockpits/README.md`, 2026-10-23): `avwalk` and
+`bvwalk` use the fixed `_c` first-person table BEFORE namespaced cockpit lookup.
+Keep the actual low independent POV, not the exterior head. Original shoulder
+and forearm bones are separate drivers; remap by name. Copy complete real arm
+components, exclude hardpoint cubes, and back only the tiny upper sockets, not
+the three intentional muzzle bores. A sideways art fit breaks shot alignment:
+derive native GC1/GC2 rays from the VDF's full transform chain, not Ogre bind
+hardpoint positions. The current offline axial fit aligns the main bores with
+those rest rays and measures projectile-frustum entry beyond the model lip;
+it does NOT put the unchanged flash origin at that lip. Preserve this caveat.
+Offline inclusion of `*11*` arm geometry does not prove native first-person
+branch visibility, aim/locomotion synchronization or firing behavior. Synthetic
+joint rotations are rig diagnostics, not native animation qualification.
+
+Light-tank pair (`References/LightTankCockpits/README.md`, 2026-10-23): `avltnk`
+and `bvltnk` share an eye position but not skeleton handle numbers. Their stock
+painted exterior frame is shell-weighted geometry in the BODY material batch,
+not the tall interior-control batch. Preserve that 316-triangle frame byte-exact
+in positions/UVs while replacing obstructive interior walls. Measure side-view
+improvement using identical horizon-band rays, not an auto-framed render.
+Owner requested matching faction bands on both full vehicles and cockpit rails:
+clip the quiet paint charts to the source surfaces, preserve original skinning
+on the full model, and retain immutable pre-paint baselines for reproducibility.
+Do not feed the painted output back into the builder or stack paint batches.
+
+Combat-five pass (`References/CombatCockpits/README.md`): owner prioritizes
+combatants over utility craft. Keep combat roles distinct: CRA turret dual
+fire-control desks, CCA fighter compact center bank, CCA light-tank asymmetric
+stations, NSDF/Black Dog tapered bomber pits. Reuse accepted faction atlases;
+one stock-inspired CCA hardware sheet serves both CCA units with physical
+orange lens masks. Project cassette corner profiles to a single mounting
+plane before recessing the face: a warped rear quad can protrude through it
+as an apparently black rectangular hole despite passing triangle checks.
+Review steep console views, not only forward. Test actual exterior visibility
+against the whole cockpit; a selected bomber bow can be entirely hidden by
+the new coaming. Turret rest art is not deployed/yaw/pitch qualification, and
+stable-shell art-fitted gun fragments do not prove native recoil alignment.
+
+Tank detail pass (`References/TankCockpits/README.md`): preserve the actual
+stock layout instead of giving every vehicle a shared modern dashboard. Main
+tank Black Dog's eye is 0.8 m lower than NSDF's; source shell positions differ
+too. CCA `SCZ11POV` has a 90-degree bind rotation but identity native VDF-rest
+orientation: derive it through shared codecs, keep exact skeleton bytes, and
+use that native basis for the glass fitter as well as review cameras. Retain
+each original gun's skin weights, not just geometry frozen onto the shell.
+CRA's first-person barrel starts behind its eye; fit that complete part rigidly
+so only its tip clears the ceiling, then test actual one-sided occlusion.
+Liner lips must follow the low dashboard sightline, not become walls in the
+window. Reuse accepted mechanical atlas charts and a quiet shared liner; do
+not stretch a stock conduit illustration across the tub. Offline only.
+
+Scout pair (`References/ScoutCockpits/README.md`): owner wants stock-grounded
+BZ machinery, not a generic modern-avionics makeover. Use actual cockpit
+hardware and faction exteriors as separate art references: square button
+banks, dials, vents and recessed cable bays. `bvfigh` resolves `bvraz`; its
+eye is 0.1078 m forward of avfigh, so share a layout, not one rig/POV resource.
+Physically mask red lenses so Black Dog enamel and cables do not emit. Repack
+each generated sheet into deliberate UV charts; generated layouts can differ.
+
+`cvhraz` follow-up: `References/CVBomberCockpit/README.md` owns the low bomber
+flight deck. Compare screen obstruction using identical one-sided perspective
+samples, not different auto-framed inspection views. Rotation of a landscape
+control chart onto a portrait keel preserves lamp proportions better than
+stretching it longitudinally. Keep the pose and exterior byte-exact and retain
+closed fairings under the selected pod caps; this is still offline art review.
+
+`avrckt` follow-up: `References/AVRocketCockpit/README.md` owns the low split
+NSDF console and bounded lower nose/fin apron. A crop admitting only separated
+side triangles leaves floating bevels and loses adjoining surfaces. Keep the
+small apron contiguous through its centre and apply one rigid first-person
+fit to positions, normals and tangents; do not translate each side separately.
+Verify one-sided actual-POV renders, not only two-sided exterior inspection.
+New cyan emission needs physical lens masks too: petrol paint can pass a hue
+threshold. Preserve the original exterior and rig; runtime remains unverified.
+Text-only material hash pins must canonicalize CRLF/LF consistently in builders
+and tests; Git-for-Windows can change line endings in a fresh worktree.
+
+`cvfigh` follow-up: `References/CVFighterCockpit/README.md` owns the new low,
+wide interior and selected, art-positioned minigun surfaces. GC bone geometry
+can be only a six-triangle hardpoint marker: inspect actual body triangles
+before calling those nodes weapon models. Fit source gun pieces behind closed
+mounts instead of leaving them floating above the sill. Preserve actual POV,
+rig/native/ODF identity, and use a continuous tub unwrap rather than repeating
+an entire detailed trim panel per facet. This remains offline art review.
+
+- `References/RedDevilLegacy/README.md` records the owner's legacy-guided skin,
+  purpose-built cockpit and no-unintended-holes request. CR already had its own
+  1256² diffuse and cockpit-glass mesh fix: use those as the before baseline.
+  The legacy 256² atlas has different UV packing, so it is a paint reference,
+  not a direct rebind. Keep the exterior, ODFs, native records and stock optics.
+- The separate `bvrdev_cockpit.mesh` lookup avoids modifying the exterior/fallback.
+  Derive geometry from brd11POV's full transform, retain stock skeleton bytes,
+  and bind to brd21BDA. Looking along +Z makes model +X screen-left: orient the
+  console UVs deliberately. Refit weather glass rather than reuse the old shape.
+  Reuse only cockpitglass.py's array-based fitter; shared codecs own model I/O.
+- Instrument panels need a connected inner tub/roof/bulkhead behind them.
+  Welded-edge topology admits only the deliberate canopy window loop; POV rays
+  through floor/roof/rear detect unintended gaps. Check off-axis views as well
+  as the forward view. These are offline checks, not native/FOV qualification.
+
+### Moon independent HD tiles and normal polarity (2026-10-20)
+
+All-planet expansion: `Tools/Build-AllHdTerrain.py` routes independent source
+PNGs through the shared Toolbox, merging material entries instead of replacing
+the whole manifest. Source-level base E accents must precede variants/blends;
+their UV authoring lives in `Tools/TerrainHD/base_emissives.json`. Source height
+also identifies opposite relief in Europa Snowy Rock 21; record that separate
+correction before all variants. The CLI preview stages CR shader/IBL dependencies
+in the registered material folder before parsing wrappers, avoiding a load-order
+failure when the OpenShim group registers later. See `Docs/HD_TERRAIN_PACKS.md`.
+
+Mars follow-up: the saved recipe also reverses ChunkyMartianGravel
+(`a8264dc12988`). Source-height comparison found negative X/Y slope correlation
+in the generated gravel solid. Mars export now omits empirical XY reversals by
+default; regenerate gravel variants and transitions together. Rebinding older
+packs is refused rather than overwriting artist edits. See
+`Tools/Validate-MarsHdNormals.py` for the independent before/after check.
+
+`Docs/MOON_HD_TERRAIN.md` and `Tools/TerrainHD/Moon/authoring.json` describe the
+Toolbox-built Moon D/N/S pack. Source N/H comparisons prove the later empirical
+Moon ground/rock XY reversal in the saved HD-atlas recipe inverted authored
+height slopes; keep its green conversion and omit the extra XY reversal for
+this pack. Paving has no independent source height: integrability establishes
+its Y convention but cannot prove absolute relief polarity. Projected shader
+basis/rotation/mip checks are numerical evidence, not a substitute for live
+camera/resource qualification. The Moon preview is player-only because a CLI
+campaign launch does not mount CR's custom rocket assets. Use the Toolbox BZN
+codec and repoint `sObject` to the retained player; preserve terrain companions.
+
+Cut Fury fighter (2026-10-16): the owner-selected standalone `hvraz` port is
+`Battlezone Files/Mods and Custom Files/Fury Fighter` in Drive, not ISDFC's
+ODF/red texture. CR's `crfraz` copies its model/native data and namespaces every
+GEO companion; ship those companions even with a Redux mesh. Destruction passed
+in the private current-bundle baseline; the historical crash cause remains
+unknown. See `Docs/FURY_FIGHTER.md` for the source hashes, initial weapon balance,
+Mission 14-18 roster changes and exact native evidence/limits.
+
+### Mission 16 map selection and cut-content evidence (2026-10-16)
+
+The installed stock campaign selects `misn16b.bzn` for Strike at the Heart.
+Both `misn16` maps use the same mission class; the suffix does not establish a
+second story phase. The selected `b` layout includes six spawn paths required
+by the active port but absent from the alternate map. Its unnamed paths and
+saved SAT/camera motion need deliberate handling during conversion. See
+`Docs/MISN16_PLANNING.md` for the asset inventory and proposal.
+
+Six available Mission 16 radio files have no active call in the audited source;
+only one is explicitly commented out there. Distinguish available unused
+dialogue, disabled code, shipped quirks and a proposed new set piece. In
+particular, the transport-escape VO and debrief support the story, but the
+inspected mission/map do not establish a recovered transport sequence.
 
 ### Terrain source and boundary preservation (2026-10-14)
 
@@ -899,3 +1311,300 @@ default sibling checkout can be older than CR's committed binaries.
 - Keep it skimmable: tables for maps, one-line bullets for pitfalls, no code dumps, no decompiler or
   PDB-derived content, no secrets, no machine-specific credentials.
 - Add a pointer here from any new doc that agents must read before touching a subsystem.
+
+### Co-op quick-action polling (2026-10-15)
+
+The network GameKey wrapper discards every key owned by the raw-key poller.
+Its closed-PDA gate must allow J, V and Z, since all three consumers run every
+frame. Restricting that gate to J silently disables closed-PDA help and give.
+Keep navigation gated, and update down-edge state during text entry so held chat
+keys cannot replay on exit. `Tools/Test-CoopNetworkInput.lua` executes the actual
+polling block; `Tools/Test-CoopInputLive.ps1` exercises native input separately.
+
+### Co-op HUD defaults and native stats (2026-10-15)
+
+Apply the native scoreboard default once after a local network player is ready;
+reasserting it in every Update defeats the stock M toggle. Retry late EXU loading
+and reset defaults on Initialize. The optional EXU kill-notice switch suppresses
+presentation only; stock scores and mission text remain active. Confirmed by
+`Tools/Test-CoopHudLive.ps1` on two native GOG clients, including a controlled
+death. GetPlayerNetworkStats takes a network id, not a team. Local ping/loss are
+absent and native lives differ from CR's respawn budget; see
+`Docs/COOP_DX11_RECOVERY_20261015.md` for evidence and platform limits.
+
+### Coop Diagnostics freshness (2026-10-15)
+
+The second co-op PDA page uses mission-scoped CR control/receipt observations;
+polling native scoreboard data does not establish fresh traffic. Native
+pingSamples is retained history size, not a last-packet timestamp. Status must
+expire and recover from actual received messages, distinguish a delayed heartbeat
+from other live CR traffic, and clear on Initialize/DeletePlayer. Application
+receipt timeouts are not measured UDP loss. Legacy heartbeat metadata stays
+unknown. See `Docs/COOP_DIAGNOSTICS_20261015.md`; regression fixtures cover these
+boundaries and the native three-client run demonstrates stalled/recovered traffic.
+
+Transport totals come from optional EXU GetNetworkTrafficStats/OpenShim snapshots:
+two-second wall-clock UDP rates and observed routes, not per-player delivery.
+Tx includes accepted pending submissions; Rx uses observed completions. Keep
+unavailable providers and unknown/idle route states explicit. Never infer the
+route from a configured preference or count a truncated trace prefix as the
+datagram's actual byte length.
+
+### Mission 15 map and methane classification (2026-10-15)
+
+Mission 15 campaign play uses the shipped `misn15b` layout under the `misn15`
+runtime stem (`Docs/MISN15_COOP.md`). The alternate map is not interchangeable:
+it lacks the active patrol label, sixth camera and Tartarus. Prepare close
+rescue groups before discovery; their authored spawn sites are inside the
+discovery radius. Mission 15 authors them with stable labels on team 7.
+The global pure-MAT-0 height mode is a dry exterior plateau at 102.2 m here;
+use the explicit 38.1 m lower-basin classification for this map's water data,
+not Mission 14's mask or the generic mode. Validate both MAT nibbles and the
+height range. When changing parsed BZN Fields, write with
+`preserve_spelling=False` and reparse; source text spellings can hide mutations.
+Changing an AiPath label also requires updating its `label.size` field to the
+encoded byte length. The native loader allocates from that count; a successful
+Toolbox reparse does not check their agreement. Mission 15's map contract checks
+every path's allocation length after renaming the duplicate editor labels.
+
+### Four-client evidence and cold startup (2026-10-16)
+
+Per-mission "not yet verified" sections can lag the native reports. Check the
+saved `flow-summary.json` participant array, scenario and actual result checks;
+a four-player filename or a short startup pass is not a complete story pass.
+The focused queue and coverage boundaries are in
+`Docs/FOUR_PLAYER_QUALIFICATION_20261016.md`. Require all four results and move
+all humans through extraction, not just the host and the original second-client
+fixture. Hash the selected native build before and after each run.
+
+A fourth cold client exposed a shader-resource hook installed only after CR's
+first Modable parse. OpenShim owns the correction: arm the identity-checked
+import hook before the expensive patch sweep, while keeping actual Ogre
+registration on its caller thread. Do not hide caught rendering errors or
+switch renderer to obtain a green campaign result. An assisted key-ship swap
+in the Mission 12 scenario does not qualify physical sniping or boarding.
+
+Newly assigned label announcements, including custom mission names and `crco_`
+names, must carry the native handle itself until
+Send serializes it. A printable `@handle@label` string is not a native network
+identity and cannot bootstrap a label the guest has not received. Keep authored
+map labels unique as well. Host-owned static objects can need explicit peer
+presentation of surrender `SetTeamNum`; check the actual buildings on every
+guest rather than only the authority's mission flag. Dynamic craft ownership
+continues through native replication.
+
+Per-human objective panels intentionally differ. Compare each peer's native
+operations with the authority's recipient-specific dispatch plan, and retain a
+negative regression for a missing fourth-player operation. Native object deletion
+can arrive before a presentation RemoveObject event, so verify the previously
+observed guest objects are gone. Travel helpers that take object handles must not
+receive position vectors: use owner-local SetPosition for a vector assist.
+
+Compile the complete mission plus appended harness probe under Lua 5.1 before
+launching. A separately valid probe can exceed the mission chunk's 200-local
+limit; keep extra wrapper captures inside nested functions. A sampled event
+delivery check must allow bounded time to reach the authority's sampled
+watermark. Equality between two independent instantaneous reads can reject an
+in-flight event or a guest that has already received newer events. Keep actual
+undelivered watermarks and final presentation mismatches as failures.
+
+### Mission 16 captured CCA assets and escape reference (2026-10-16)
+
+Owner-approved art: copy the stock SDF/VDF and mesh, rebind a new material and
+texture; preserve geometry, rig and native hardpoints. Use `cr16cmd`, `cr16hng`,
+`cr16pwr`, `cr16tow` for every hostile CCA base instance in Mission 16. Allies
+keep normal CCA assets. Both tower hardpoints use a mission-local 200 m Bolt
+Buddy (ordnance lifetime must change as well as scan range). Keep CR's amended
+`misn16b` terrain. Mission 18 already provides the Fury transport: `hbtran00`
+hull and `hbtrn200` thrusters. Mission 16's unused boarding VO supports a new
+evacuation scene using those models; this is not proof of recovered takeoff
+logic or a working boarding animation. See `Docs/MISN16_PLANNING.md`.
+
+Mission 16 evacuation prototype now uses a preplaced stock Mission 18 assembly
+and two SATs beyond edge_path, on a local type-1 Titan pad. Static hull/engine
+movement is a visual translation per peer after an acknowledged scene event;
+never issue craft AI commands to it. Publish scene identities before boarding
+removals so a late initial Label cannot block the ordered stream. Register new
+scene opcodes in both ApplyPresentation and ReceivePresentation's allowlist.
+See `Docs/MISN16_COOP.md` for validation boundaries.
+
+The native SAV class is the flying Fury and can ignore a cinematic Goto in
+favor of its attack behavior. Use the ground SAT for evacuation actors and
+script their route velocity, keeping the two lanes separated; the native AIP
+can supersede ordinary enemy movement orders. Keep boarding pockets outside
+engine collision shapes and stop accepting boarders before launch. The pad
+film also needs a camera high enough to clear the southern foreground ridge.
+
+### Fury fighter and faction mine asset checks (2026-10-17)
+
+`crfraz` uses the owner's standalone Drive Fury Fighter port, not ISDFC gameplay
+or its red atlas. Mars volcano mines use `cromine`; later Fury fields use
+`crfmine`. See `Docs/FURY_FIGHTER.md` and `Docs/BOLT_MINE_VARIANTS.md` for scope,
+source hashes and native evidence. The historical original VDF destruction crash
+was not reproduced with either replacement or native debris; its cause remains
+unknown, so do not describe the asset copy as a proven crash fix.
+
+Verify mesh -> material -> texture in the live renderer, then inspect an actual
+frame. A loaded texture and a correct material readback did not prove the first
+BC3 conversions displayed: these mine atlases appeared gray, most likely because
+they had no mips (hypothesis; the files did not survive). The engine cannot generate
+mips for compressed textures and samples uninitialised levels, so BCn DDS need a full
+offline chain (`Tools/bcdds.py`, texconv). BC1/BC3 with mips matched RGBA8 in native
+DX11 on 2026-10-21; BC1 without mips renders black. BC1 suits RGB normal maps (BC5
+has no Z reconstruction here). Native `draw_bolt`
+and `draw_twirl` texture names also need an Ogre sprite material; copying a new
+image alone is insufficient. Hidden camera pods retain collision: keep fixture
+anchors away from the mine-to-target firing line, and apply no craft AI setters
+to the mines or pods. Private art/damage fixtures do not qualify mission combat.
+
+Mission 16 transport exhaust is peer-local `CRMisn16LaunchFX`, started by the
+existing `EvacLaunch` event. Attach at the `hbtrn200` mesh's lower end, local Y=12;
+its object origin is below the actual nozzle. Keep spent exhaust in world space
+and pad dust grounded. `MakeExplosion` light particles are local-only, so each
+peer emits its own bounded zero-damage ignition pulses. Stop effects on departure,
+result and restart; do not replay ground wash when resuming an airborne launch.
+
+The SM4 and GLSL `CR_Effect` sprite vertex programs swizzle stock vertex color
+BGRA, while SM3 HLSL does not. For Mission 16 Ogre exhaust, use neutral emitter
+RGB with the Fury blue hue in `CR16/FuryExhaust` material diffuse/glow constants
+(after that swizzle). Do not fix one Ogre effect by recoloring shared stock shaders.
+
+Concept fleet assets (`crncarr`, `crccarr`, `crcred1`, `crcred2`): archived out of the repository on 2026-10-21 because no mission used them (the Mission 6 orbit film uses `cr06lin`/`cr06dst`). The meshes, textures, references, builders, preview tools and their docs live in the owner's Google Drive under `Ian Files/Battlezone Files/Archives/CR Concept Fleet 2026-10-21`, and in git history before that date.
+
+Create an explicit `BZR_CAMPAIGN_RUNTIME_DIR` **before** invoking the manager and
+check the actual deployment footer. A nonexistent override currently falls back
+to the ordinary GOG development mod.
+- Mission 18 water (`Docs/MISN18_STORM.md`, Water): water that must react to Lua cannot use `$water*` material variables (fixed at parse). Drive it through pass colours on a program built with a define (`STORMWATER`), bind the power-scaled light autos so the pass colours do not dim the lighting, and integrate any speed change as an extra phase (scroll * phase) that wraps at a whole number of turns; `time * speed` jumps whenever the speed changes. Pools on an uncarved map need no hg2 edit: fill existing basins, keep a keep-out mask (zones + pads + path corridors), stop streams a margin early so the drawn width and mask stay clear. fxc takes one /D per define (a comma list silently defines nothing).
+- Mission 17 forest (`Docs/FOLIAGE_ART_CREDITS.md`, `Tools/Build-Misn17Forest.py`): the local `BZ98RBlenderToolKit` checkout can lag the CI pin; `bzstaticmodel.static_sdf_bytes` then fails inside `append_object`. Export the pinned toolkit and toolbox commits with `git archive` and point `BZ_TOOLKIT_DIR`/`BZ_TOOLBOX_DIR` at them rather than switching another agent's checkout. glTF normal maps are OpenGL (+Y); flip green for the game's DirectX (-Y). For a single-instance crsetup test built from a mission BZN, rewrite the embedded `msn_filename` to `crsetup.bzn`: Redux names the mission Lua from it, so a copied `misn17.bzn` silently runs the shipped `misn17.lua` instead of the test `crsetup.lua` (OpenShim logs this as `[BZNLOAD] embedded msn_filename ... differs`).
+- Cockpit skeletons (`*_c`, see `Docs/STOCK_ASSET_CONTENT_FIXES.md` Issue #42): a bone named exactly like a VDF GEO (case-sensitive) gets that GEO's VDF-local orientation every frame, relative to its *skeleton* parent; VDF position keys do not move the cockpit view; `*21*` shells keep their bind local. Before blaming a cockpit skeleton, test every vehicle state: `BuildObject`ed turrets auto-deploy about 9 s after spawn (Lua `Deploy` then undeploys them), and a deploy animation that rotates a parent of the yaw bone (svturr `bdb`) defeats every static helper, so svturr needs a native hook. A fast walker-cockpit twitch is VDF data (single-key reversals skinned into the frame), not hierarchy: fix the keys, keep the bob. Benching: lcbench does not mount CR (copy `_c` files and the `crwx_*` glass programs into `addon\lcbench`); verify an override with a big rotation sentinel before trusting a subtle A/B.
+
+### Independent HD terrain source tiles (2026-10-20)
+
+- The current `addon/stock_terrain_hd` art comes from the saved `output/stock_world_texture_survey_20261014` build, not the older BetterGround/XCF work. Its `material_cache` retains source-authored D/N/S/E and provenance. `Tools/Build-MarsHdTileSources.py` intercepts that recipe before packing, retaining revision 6 masks and normal corrections. See `Docs/MARS_HD_TERRAIN_EXAMPLE.md`.
+- Native tile IDs differ from CSV row order. The v2 `tileRects` form maps CSV alias/rectangle metadata against the engine table automatically; `Tools/New-MarsHdTerrainExample.ps1` generates and previews editable 1K/2K packs without a preliminary capture. The controlled example material supplies exact D/N/S identity guards. Use a native capture for another material's actual channel names; installed mods can override the material/CSV. Unknown/ambiguous used rectangles must fail rather than guess.
+- Preserve DDS art edits on repeat previews: refresh the manifest with `--bind-existing`, do not rerun the source recipe over an existing output folder. True 2K export must override the recipe's source sampling and transition-mask resolution before packing; enlarging its old 1344-pixel interior is not a 2K source export.
+- `.material`/`.program` files in an arbitrary addon folder are not necessarily parsed. The local helper stages selectors/wrappers in an already enabled resource folder and restores them by hash. Existing INI values take precedence over OpenShim environment aliases; write and restore the INI for trials. A separate authored terrain manifest can enable availability even when the base suite's `TerrainHd=0` means it ships no terrain pack.
+- Profile the **32-bit process**, including lifetime peak private commit and occupied/free VA, not only GPU counters. GPU-default semantic streams saved roughly 85 MiB private commit versus dynamic CPU-mapped streams. Repeated Enhanced switches exposed retained handoffs in the old guessed Ogre control-block handling; native copy/release exports fixed the accumulating references. Compare fresh starts separately from repeated profile cycles, and preserve both measurements. See the example document for evidence and remaining campaign/co-op/other-platform limits.
+
+### Lava and sulphur pool pops (2026-10-19)
+
+- Pool bubbles/embers/spatter live in `Scripts/CRPoolFX.lua`, a thin scheduler over `CRGroundFX.Event`. Io (`kind = "lava"`) and Venus (`kind = "sulfur"`) each own one state; both are campaign-only because only misn07-11 run those directors (misn15b is Titan).
+- The hard cap is CRGroundFX's fixed slot ring (4 systems per kind, created under `crwx_lava_<kind>_*` names, outside the directors' `MaxSystems`), not the scheduler. Use `CRGroundFX.StopKind(kind)` to drop one kind; `Stop()` removes everything including misn18's storm systems.
+- Sulphur uses the new `CRWX/Sulfur*` templates (Toxic recoloured to yellow, pale gas): recolouring an existing template via `SetColour` was not relied on because the template's ColourInterpolator owns the colour.
+- Ogre keeps particle templates across Lua states in one process: a game that already registered `crwx_precip` before this payload change needs a restart to see `CRWX/Sulfur*`.
+- Live single-instance recipe (used for the pool pass): copy `misnNN.bzn/.trn/.hg2/.mat/.lgt` over the `crsetup.*` slot of the instance's staged CR, launch `crsetup.bzn /nointro /renderer:dx11` through `BZRHarness.ps1` (launch mutex, `BZR_FORCE_WINDOWED=1`, `BZR_NO_FOREGROUND_WATCHDOG=1`, `Stop-BZRGame -Id`). The Lua that runs is the one named inside the `.bzn` (`misnNN.lua`), NOT `crsetup.lua`: patch a test driver onto the staged `misnNN.lua` (wrap `Update`, `SetPosition` the player, build an `apcamr`, `CameraReady` + `CameraObject` for a HUD-free view). `print` lands in `BZLogger.txt`. A craft teleported onto lava dies; keep its health topped up. Pool events attach to the anchors nearest the PLAYER, so keep the player within a few metres of the camera target. Restore the instance by robocopy /MIR from `C:\BZRCoop\stage\3686673790`.
+
+### HD relief art direction (2026-10-20)
+
+- Tune each world with `microReliefScale` in `Config/cr_terrain_hd.json` (Moon 2.5; other worlds 1.0 initially). This is geometric amplitude, independent of normal-map polarity. It scales procedural relief by default and the opt-in signed-unit height candidate when present (see `Docs/MOON_CRATER_DISPLACEMENT.md`). Keep HD tiles and Terrain Micro Detail enabled in Enhanced. Restart after config deployment.
+- `Build-HdTerrainBundle.py` preserves manual scales when replacing texture bindings; the live helper copies matching CR config tuning into its temporary manifest and `-MicroRelief` verifies identical native shader/bounds amplitude. An old portable texture bundle alone may predate current art direction.
+
+### Moon crater height candidate (2026-10-20)
+
+- `Tools/Build-MoonCraterDisplacement.py` authors a separate signed height lookup from `Tools/TerrainHD/Moon/craters.json` into a local HD bundle. Edit its 16-bit grayscale PNG with `--height-image`; export reasserts flat paving and guarded tile borders. DNSE files are untouched. New PNG/DDS binaries stay in ignored `Local/`; canonical shipping art is not yet promoted.
+- `heightTexture` is a manifest-relative file path, not an Ogre resource name, and requires `heightEncoding: signed-unit-r32`. Its values scale with `microReliefScale`; do not substitute the older world-meter height DDS without conversion. The native path owns DS t127 only for exact owned shaders.
+- Preserve both proof lanes: `-MicroRelief` establishes actual DS texture/HD raster evidence; `-SettingsOnly` verifies regular INI feature activation without a diagnostic tessellation flag. Balanced binding restoration, original streams/materials and file hashes must all pass.
+
+### Moon dust/detail candidate (2026-10-20)
+
+- The older CR terrain preview binds stock `mn_detail.dds`; the installed HD addon uses a different, quieter detail. Verify the actual material alias and texture load before attributing grain to HD normal tiles. Enhanced derives detail normals from DetailMap luminance at 8x/32x; there is no separate detail-normal map in this path.
+- `Tools/Build-MoonRegolith.py` and `Tools/TerrainHD/Moon/regolith.json` produce a local matched dust/crater preview with the shared Toolbox packer. The native domain shader already transforms normals using the height gradient: tile normals should add microheight, not duplicate the macro crater slope. See `Docs/MOON_REGOLITH_CANDIDATE.md` for the measured detail input slopes, evidence and memory limits.
+- Owner correction: preserve the existing HD surface, not a full-tile generic dust replacement. Regolith01's smoother shapes were liked but its lost HD rocky character was rejected. The corrected Regolith03 bundle keeps the original HD DNSE outside a localized dust mask (~90% unchanged pixels), retains crater geometry and copies the authored HD detail byte-for-byte. The zero-turn source exporter also renormalizes RGB normals: compare against that same normalized baseline, not raw pre-export vectors. Keep original references/hashes in local output and do not present rejected-preview live evidence as corrected-candidate acceptance.
+
+### Per-world terrain art controls (2026-10-20)
+
+- `Config/cr_terrain_hd.json` is the single source for each world's depth, detail contrast/normal/near strength and optional surface coverage. Defaults retain current HD art, including rocky Mars; coverage requires authored masks/maps and is not a generic effect toggle. See `Docs/TERRAIN_WORLD_ART_CONTROLS.md`.
+- Runtime detail controls specialize owned OpenShim HD fragment sources before the existing source-hash cache key. Offline surface blending happens before source variants/transitions, uses the same mask for D/N/S/E and preserves unmasked HD pixels. Changed mask/overlay hashes require new source/output caches. Moon's custom generator consumes its own recipe and global coverage while retaining its original HD detail.
+
+### Moon crater variety (2026-10-20)
+
+- Author independent ground A/C crater layouts in `Tools/TerrainHD/Moon/regolith.json`; a rotation of one layout does not provide enough variety. Per-crater floor radius, aspect, rim width/height and angular wear support fresh, worn and overlapping impacts. Keep meter-scale features for factor-4 tessellation and retain flat tile/paving guards.
+- Improve shape readability locally: soften competing HD rock normals on raised rims and dusted floors, retain the original HD detail and leave surrounding HD pixels intact. DS already supplies the geometric crater normal. The builder asserts exact unmasked HD pixels against separately rotated original A/C references; comparing a twice-renormalized normal baseline can introduce quantization differences. See `Docs/MOON_REGOLITH_CANDIDATE.md` for the inspected Windows/GOG trial. Canonical shipping art is not promoted by a local candidate build.
+
+### Poly Haven lunar source trial (2026-10-20)
+
+- `Tools/Build-MoonPolyHaven.py` prepares hash-pinned CC0 Meteor 02 and Dusted 01 maps, then calls the existing Moon/Toolbox builder with explicit alternate ground/dust inputs. Preserve physical scan scale with integer periodic repeats and prefilter before reducing to 1024px; do not stretch the 3.2 m scan across a 20 m tile or enlarge individual dust grains.
+- Measure normal polarity against each supplied displacement. These Poly Haven DX maps already match negative image U/V gradients, unlike the previous UE sources that required green conversion. A label alone is insufficient. Use displacement for the detail field, not diffuse; retain separate authored crater geometry. Legacy specular is only a restrained roughness approximation. See `Docs/MOON_POLYHAVEN_TRIAL.md` for reproducible authoring and current qualification.
+- The harness acquires its automatic launch mutex while being dot-sourced, before the terrain helper's later two-second lock request. Another harness can therefore leave the preview shell waiting much longer than two seconds. Preserve its games; if deferring, cancel only the positively identified queued preview shell before deployment rather than leave a surprise future launch behind.
+- The successful Poly Haven retry and fresh rocky-HD baseline are recorded in `Docs/MOON_POLYHAVEN_TRIAL.md`: both captures inspected, all staged files restored, private RAM approximately 366 MiB for each. The new surface is fine powdery regolith with clearer crater rims, substantially quieter than the rock-slab source. Treat this as a local art comparison, not owner acceptance or long-session qualification.
+
+### World surface, lighting and horizon pass (2026-10-20)
+
+- **Owner acceptance, 2026-10-21:** promote the complete nine-world art stack
+  (#273–277), including Poly Haven Moon height/detail. See
+  `Docs/WORLD_ART_PROMOTION.md` and `Tools/TerrainHD/accepted_world_art.json`.
+  Import reviewed DDS byte-for-byte; rebuild tests compare current accepted
+  hashes, while original normal audits remain historical evidence. The Toolbox
+  generates texture mappings; CR separately owns runtime tuning, authoring
+  metadata and signed height bindings, so compare these contracts explicitly.
+  Fresh worktrees must regenerate/retain every locked sibling payload before
+  blessing, rather than dropping absent generated files from the shipping set.
+
+- Owner direction: retain the original world palettes while improving material morphology, scale and response. `Tools/TerrainHD/world_surface_art.json` anchors borrowed material RGB means to the destination; Titan borrows worn Moon stones, Ganymede borrows fractured ice without importing Europa's blue palette. Apply before variants/transitions; preserve all E channels and base accents. See `Docs/TERRAIN_WORLD_ART_PASS.md`.
+- `CRWorldArt` supplies modest per-world scalar light gains through the existing single atmosphere writer. Native Mars has no Ogre sky dome: material existence and a changed TRN value did not prove draw selection. Explicitly bind the original world sky texture through the owned dome; a transparent haze alone lost the original cloud background. Generated dome faces need the actual projected world view direction. Draw sky first so it cannot overwrite scene transparency. Mission 17 uses a far-plane pin and low-elevation fog fade. Preserve unrelated sky ownership and the orbital film's no-dome baseline. Fog-disabled space domes remain unaffected.
+- Plain sky fog did not match Enhanced terrain's ambient-tinted fog; Titan/Elysium retained flat colour steps. The owned world-sky SM4 delegate applies the matching ambient contribution in linear space, selected by the effective runtime profile and reset on Redux/Retro. Keep ordinary weather/space delegates separate. An explicit `scene_blend one zero` is valid; `scene_blend replace` is rejected by this Ogre parser. Live sky checks must reject `crart_` material errors as well as program errors.
+- A player-only art fixture needs an explicit filesystem Lua search path: the stock asset require fallback truncates long names such as RuntimeEnhancements. Matching shader sources must also be staged wherever the resource resolver can find an older installed copy. Restore all trial files even on initialization errors, and require a successful lighting marker rather than accepting a screenshot of an alert.
+- The stock evolve_1/evolve_3 CLI previews did not activate CR's material group, even with temporary INI registrations. The archive preview now round-trips them through Toolbox under a backed-up registered CR campaign slot; require HD installation/restoration evidence to reject a stock-atlas fallback. Version sky shader delegates after source edits with `Tools/Update-WorldSkyProgramVersions.py` to avoid stale Ogre microcode.
+
+### Reactive material validation (2026-10-21)
+
+- fxc success alone does not qualify the retail Ogre layout. Global HLSL uniforms alongside entry-point uniforms produce `$Globals` and `$Params` constant buffers; this left otherwise valid unit shaders black. Keep reactive inputs in the existing entry-point parameter list, pass them into helpers, and validate generated assembly for a second buffer.
+- A standalone CLI fixture does not imply the production graphics setup. Verify effective Enhanced scheme, vehicle shadow quality, HD manifest/array installation and dependency textures. Missing HD setup and diagnostic fill lights can obscure unrelated material comparisons. Keep the real GOG install untouched when using an isolated instance.
+- Failed shared-uniform writes must not be cached as applied wetness. Use resource-group Autodetect and a bounded retry delay. Separate the active-material creation cursor from the cold-state cursor, or a permanent tower can starve later combatants.
+- Detailed rain normals use the renderer clock and distance filtering; Lua does not animate each unit every frame. See Docs/REACTIVE_SURFACES.md for budgets and remaining qualification.
+
+### Faction pickup integration and semantic glow (2026-10-21)
+
+- Owner direction: decorative NSDF cyan, Black Dog red, CCA orange (chaingun
+  identity), CRA lime; functional ammo blue, repair green, common weapon cores
+  amber. Keep accepted NSDF cyan pod rails emissive. Hue alone is unsafe for
+  red factions: restrict emission to saved physical glass masks so red armour,
+  stars and warning paint stay dark. ImageGen edits retain exact unselected
+  source RGB; saved glass masks cannot overlap the earlier hazard paint ROIs.
+- Stock special edge UVs had unrelated scales and directions. Project its four
+  straight outer warning panels at one physical scale and common Y phase;
+  leave bevel/end caps quiet metal rather than extending warped strip fragments.
+  Retain geometry/non-UV/weights/native bytes with the shared model codecs.
+- `Build-FactionPickupIntegration.py` runs AFTER the storage/nav art builders.
+  It routes 361 existing/new ODFs to 32 canonical a/b/s/c-prefixed model aliases,
+  including spblst → spcann, spcamr, sbstor and cbstor. Only baseName changes:
+  it is a render selector, not ODF inheritance. Preserve original storage health
+  and Soviet weapon/ammo values. Exact ODF snapshots guard unrelated edits.
+  Canonical aliases share reviewed cr* materials/maps, not duplicate atlases.
+  Source and isolated Blender checks do not establish native gameplay/loading
+  or platform qualification; the owner's offline-only review boundary remains.
+
+### NSDF pad / CCA supply detail patches (2026-10-22)
+
+- `References/BuildingDetailPass/README.md` records the next bounded building
+  batch: approach deck/star wall on ablpad and service deck/pillar door chart on
+  sbsupp. Preserve source geometry/non-UV/skin/native data; two added render
+  batches per model remain an unqualified native load/performance tradeoff.
+- D/E dimensions differ: ablpad D is 2048×1024 and both stock E rasters are
+  512-square. Resize to a common normalized UV grid before cropping, or lamps
+  disappear/move. Keep existing lamp pixels over that footprint; do not turn
+  white stars or painted hazard bands into emissive masks. A dark patch reuses
+  black.dds, not a redundant full-size black map.
+- Material identifiers are not always material filenames: import sbsupp.material
+  for the sbsupp00 parent. The tiny door atlas is repeated around service
+  pillars; a whole-building auto-camera hides its improvement. Use one measured
+  original pillar face for matched offline before/after inspection.
+
+### HQ / hangar detail continuation (2026-10-22)
+
+- The same building reference pack now covers Black Dog HQ facade/control banks
+  and CCA hangar door/vent crops. HQ's outer facade UV reaches 524.21px: use a
+  525px bound, not a 524px crop that passes selection tolerance but wraps outside
+  the new texture. Tests require every drawn patch UV strictly inside [0,1].
+- NSDF abhang's ModelFixes mesh has precomputed shadow edge lists. Do not clear
+  or retain stale lists after repartitioning. Until the shared codec supports
+  rebuilding them, keep mesh/SDF/skeleton byte-identical and use a texture-only
+  atlas overlay. This batch changes only the diffuse alias; untouched charts
+  remain resampled stock, E/N/S stay original, and no draw batches are added.
+- A generated extreme-wide control strip arrived with white letterbox bands.
+  Crop padding before atlas compilation and record the technical crop. Inspect
+  the actual small outside control bank: an auto-camera aimed at all selected
+  triangles' midpoint points into the HQ tower and hides the improvement.
+- Owner Red Devil direction: legacy bvrdev00's strong red/black shapes and warm
+  yellow headlights are preferred to the Redux skin. Its UV layout differs from
+  bvrdev, so use it as reference for an authored restoration, not a DDS swap.

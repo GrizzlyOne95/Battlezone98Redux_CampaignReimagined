@@ -1,0 +1,15 @@
+[WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
+classLabel = "dispenser"
+wpnName = "MITS Mine"
+fireSound = "gmits00.wav"
+wpnReticle = "gmitsmin"
+wpnPriority = 4
+wpnCategory = "SPEC"
+
+[DispenserClass]
+shotDelay = 2.0
+objectClass = "magpull"

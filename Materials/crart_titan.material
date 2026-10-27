@@ -1,0 +1,71 @@
+// Titan sky dome. Technique 0 is the CR_TitanSky look (Shaders/CR_titansky.hlsl,
+// DX11/DX9); technique 1 keeps the stock titan.tga dome for OpenGL. Both start
+// with titan.tga on unit 0 so the dome's own texture lookups stay valid.
+// CRWorldArt.UpdateSky writes the sun direction, clarity, the Titan haze and
+// roll, and Saturn's direction into the technique 0 pass colours every frame.
+material CRSKYTI.MAP
+{
+	technique 0
+	{
+		pass 0
+		{
+			vertex_program_ref CR_TitanSky_vertex
+			{
+			}
+			fragment_program_ref CR_TitanSky_fragment
+			{
+			}
+			lighting off
+			scene_blend one zero
+			depth_write off
+			// A low sun, a clear sky and Saturn where the stock Titan maps put
+			// it (heading 180, 15 degrees up) until the first UpdateSky write,
+			// so the dome still draws when CR's Lua is not running.
+			specular 0 -0.78 0.36 0.51 0
+			emissive 0 1 0 0
+			ambient 0 0.2588 0.9659 1
+			texture_unit 0
+			{
+				texture titan.tga
+			}
+			texture_unit 1
+			{
+				texture crsky_titan_haze.png
+				tex_address_mode wrap
+				filtering trilinear
+			}
+			texture_unit 2
+			{
+				texture crsky_saturn.png
+				tex_address_mode wrap clamp
+				filtering trilinear
+			}
+			texture_unit 3
+			{
+				texture crsky_saturn_rings.png
+				tex_address_mode clamp
+				filtering trilinear
+			}
+		}
+	}
+	technique 1
+	{
+		pass 0
+		{
+			vertex_program_ref CR_SkyDome_vertex
+			{
+			}
+			fragment_program_ref CR_WorldSky_fragment
+			{
+				param_named horizonBlend float4 .02 .35 1 0
+			}
+			lighting off
+			scene_blend one zero
+			depth_write off
+			texture_unit
+			{
+				texture titan.tga
+			}
+		}
+	}
+}

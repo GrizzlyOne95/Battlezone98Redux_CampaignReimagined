@@ -1,0 +1,190 @@
+{
+  "schema": "cr-hd-pack-validation-v1",
+  "world": "moon",
+  "acceptedArt": "2026-10-21; see Docs/WORLD_ART_PROMOTION.md",
+  "bundle": {
+    "schema": "bzr-terrain-hd-bundle-report-v1",
+    "material": "MN_DETAIL_ATLAS",
+    "tileSize": 1024,
+    "slices": 11,
+    "rectangles": 11,
+    "channels": [
+      "D",
+      "N",
+      "S",
+      "E"
+    ],
+    "resourceCount": 44,
+    "ddsBytes": 69212077,
+    "estimatedGpuArrayBytes": 84585556,
+    "processRamEstimate": null,
+    "memoryNote": "GPU storage is not 32-bit process RAM. Profile private bytes, peak and largest free VA in game.",
+    "sha256": {
+      "crhd_moon_mn00sa0_d.dds": "f87ae6c020207abb253eefd736846c87d4b3f08457cadab41dcf62ec92dbdf77",
+      "crhd_moon_mn00sc0_d.dds": "0e3e0184593a1793ed96fd3a564215e107f7eee5b6b0d0e613ab5a3bca513c36",
+      "crhd_moon_mn03ca0_d.dds": "844d4f0f7142e3fedb034ba3bba8703246ed4659a32a2962334ae315692b9620",
+      "crhd_moon_mn03da0_d.dds": "b36245826e961c62b80b8826a1c5f76a9ebd946499d82e5318330f575a78659f",
+      "crhd_moon_mn04ca0_d.dds": "636acb4c809132b59196650ada736203679209cff3023094031ab52d36dd0827",
+      "crhd_moon_mn04da0_d.dds": "10d02f373c103db061ee943e4e28f4157931726aef1ab7c7e768a0f2a350d8a7",
+      "crhd_moon_mn33sa0_d.dds": "01e210b646c5b593c83cfbb8b9dc99459ccb87df3ea0d78173c8a69dad3c3a63",
+      "crhd_moon_mn44sa0_d.dds": "4811ac3c0dd8e493b94d279be9662038e28776c576e6df0ecd5b41ae7249dadd",
+      "crhd_moon_mn44sb0_d.dds": "b965c5f026724ed24b032af5c9e9e2e5e5d4a27722c26f5ddc185f8aa16623f1",
+      "crhd_moon_mn55sa0_d.dds": "204fbefcf037ac136a4e7ecd5b6b7d7bdd2712d0f20dc76c3473df319423fedf",
+      "crhd_moon_mn66sa0_d.dds": "01036140a15cbc80b89b13aac82f8f3a960327d9311fb1fbcec0470c6f94adc8",
+      "crhd_moon_mn00sa0_n.dds": "88fab054bdbf6e9f014a912de163ddd401b6db053a50332b22b6d213c4238ffc",
+      "crhd_moon_mn00sc0_n.dds": "b38d3a962c918c857d83f56d69945824edcd0f9daa2dddcd5b71dfa4d530a0c0",
+      "crhd_moon_mn03ca0_n.dds": "9a84108c245c195477a14010c11b9f7b870e033589dffc8630d8469a0ad817bb",
+      "crhd_moon_mn03da0_n.dds": "8af1a36774cd151c107cdf63fadf90df1a45bbcc8ed7970f3f9a1317828cf6d7",
+      "crhd_moon_mn04ca0_n.dds": "c062bdf204b97fc8206898fed57f7c49673b061314e416089a14e16c8f047906",
+      "crhd_moon_mn04da0_n.dds": "724f4ce619a9b55f1c3b87d9c39968eadac4eb004b7d9dce4b3a56658b2220e9",
+      "crhd_moon_mn33sa0_n.dds": "a1ec72e5ed9723e736812a75047a68f6d055a4c329685016619cc966d5663278",
+      "crhd_moon_mn44sa0_n.dds": "e9473abc07f59e8a3923f7981d4ab8d3f2246a951f00a1f3ee1482ac2d06d595",
+      "crhd_moon_mn44sb0_n.dds": "996683ce676db36861cc58e8a5635ab8dc5e9b6f18e7eff136c3c8f9d8ef11ec",
+      "crhd_moon_mn55sa0_n.dds": "bf66b4d790ae89ed69e8039d80a1a52367e086f561fd17dce8c2ba6080fa93fd",
+      "crhd_moon_mn66sa0_n.dds": "e00345e697dd681f260a9aacb917ffaa93ed9ca79293a93f6e23caf878e0731a",
+      "crhd_moon_mn00sa0_s.dds": "05a9a7a582931d4c52f2146c46cd65a0784915271efe2d31173e4097b5a89ef6",
+      "crhd_moon_mn00sc0_s.dds": "05a9a7a582931d4c52f2146c46cd65a0784915271efe2d31173e4097b5a89ef6",
+      "crhd_moon_mn03ca0_s.dds": "45d81818be39e9a0b5d31aaf91110f944224d0fca0be42debe60111e09554b49",
+      "crhd_moon_mn03da0_s.dds": "1cdf8ba361ab453736a20d5687c5d905927738e60097d38ed6c0eda8c5320098",
+      "crhd_moon_mn04ca0_s.dds": "d92f4fecef32c9d1eb744b8b822480c06eb1b1674be3acddd215f45fc28724e5",
+      "crhd_moon_mn04da0_s.dds": "9617ef121fe58f0abc5f6e5a7babd4aa92d030437fe8643e6e242a2b2e9b8536",
+      "crhd_moon_mn33sa0_s.dds": "3a5aad23cd2ede4c2ee95b13c77bea1fa0eb61efed9d63d817f83218a4cc95e1",
+      "crhd_moon_mn44sa0_s.dds": "56e0bde650aa7267ed8c954788335eaeebf81f9087a963392fd79899b03f30c9",
+      "crhd_moon_mn44sb0_s.dds": "5abf03b98dc3c6532c01f72f98662a77dcb3fffecf9a9e1d98cd3753c74d1bd2",
+      "crhd_moon_mn55sa0_s.dds": "df672d152f93ff702158debfea5cd1e3ae59e9be552092d1a4fd3168002763b8",
+      "crhd_moon_mn66sa0_s.dds": "945b8a411af096440b0ae719d3dbaa535b87b5048a89837fde7ecd7315e9a19c",
+      "crhd_moon_mn00sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_moon_mn00sc0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_moon_mn03ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_moon_mn03da0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_moon_mn04ca0_e.dds": "87a9e0b37c84970f5efbdb80555ef72aec40fca947ac1af5aa309b12a1eaa4a2",
+      "crhd_moon_mn04da0_e.dds": "87a9e0b37c84970f5efbdb80555ef72aec40fca947ac1af5aa309b12a1eaa4a2",
+      "crhd_moon_mn33sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_moon_mn44sa0_e.dds": "69e1daf8c807f6de6f9e809455c4c8e0a8608947b0ac56554c56221f66e8a6f4",
+      "crhd_moon_mn44sb0_e.dds": "8e5306ad3c958729e8bb478b23f1b4d78aec83250113afdec92f12ce2314bb81",
+      "crhd_moon_mn55sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_moon_mn66sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0"
+    }
+  },
+  "baselineEvidenceNote": "Historical pre-promotion source audits, not replacement-art measurements",
+  "baselineEvidence": {
+    "baseEmissives": {
+      "schema": "cr-base-emissive-accents-v1",
+      "sourceId": "ccf846357bf1",
+      "maximum": 32,
+      "sourceGain": 0.1,
+      "settings": {
+        "type": 4,
+        "color": [
+          12,
+          24,
+          32
+        ],
+        "rectangles": [
+          [
+            0.2,
+            0.12,
+            0.05,
+            0.004
+          ],
+          [
+            0.7,
+            0.87,
+            0.05,
+            0.004
+          ]
+        ]
+      },
+      "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
+    },
+    "sources": [
+      {
+        "id": "ccf846357bf1",
+        "name": "pbintf02.png",
+        "engineConversion": "flip_green",
+        "heightQualification": "unverified absolute polarity: no independent source height"
+      },
+      {
+        "id": "92a81dc059aa",
+        "name": "StonyMoonGround_albedo.png",
+        "engineConversion": "flip_green",
+        "sourceHeightSha256": "3c0e65bc57d5358e7e70c25710f901c3f7a063974f341a4e63c742cf79aaee95",
+        "convertedSourceSlopeCorrelations": [
+          0.7688126965619192,
+          0.7684754845342215
+        ],
+        "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+      },
+      {
+        "id": "97a97e4e6580",
+        "name": "LunarBarrens_albedo.png",
+        "engineConversion": "flip_green",
+        "sourceHeightSha256": "befedfc961f97f8a3812c51a4f091a4811816d76843bf9660fa91334bdb34540",
+        "convertedSourceSlopeCorrelations": [
+          0.9175217362009396,
+          0.9167537649910799
+        ],
+        "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+      }
+    ],
+    "normalMips": 121,
+    "nonPositiveZTexels": {},
+    "emissiveTiles": {
+      "crhd_moon_mn00sa0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_moon_mn00sc0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_moon_mn03ca0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_moon_mn03da0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_moon_mn04ca0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.0001983642578125
+      },
+      "crhd_moon_mn04da0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.0001983642578125
+      },
+      "crhd_moon_mn33sa0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_moon_mn44sa0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.000396728515625
+      },
+      "crhd_moon_mn44sb0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.000392913818359375
+      },
+      "crhd_moon_mn55sa0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_moon_mn66sa0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      }
+    },
+    "projectedBasis": {
+      "cases": 24,
+      "minimumCosineToHeightGeometry": 0.9999999999999997,
+      "projectionContract": "Ogre GPU-program RH: clip w=-view z; Direct3D screen y down",
+      "upstreamProjectionSource": "https://github.com/OGRECave/ogre/blob/v1-9-0/RenderSystems/Direct3D11/src/OgreD3D11RenderSystem.cpp#L1473-L1523",
+      "runtimeCameraQualification": "Requires live draw-level validation; analytical projection tests alone are not a game capture"
+    },
+    "limitations": [
+      "Source height and analytical basis checks do not substitute for native GPU draw evidence.",
+      "Nonpositive Z samples are inventoried; native source maps are not silently reauthored."
+    ]
+  }
+}

@@ -14,6 +14,11 @@ Missions/crsetup.trn whitespace=-blank-at-eol,-blank-at-eof
 Missions/misn14.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misn15b.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misn16b.trn -text whitespace=-blank-at-eol,-blank-at-eof
+Missions/misn16.trn -text whitespace=-blank-at-eol,-blank-at-eof
+Missions/misn18.trn -text whitespace=-blank-at-eol,-blank-at-eof
+# The misn18 briefing must stay CRLF on every checkout (Test-Misn18CoopContract.py).
+misn18.mpdes -text
+Missions/misn18.vxt -text
 Missions/misns4.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misns5.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misns6.trn -text whitespace=-blank-at-eol,-blank-at-eof
@@ -48,3 +53,9 @@ References/Misn17Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-be
 Scripts/misn17.lua whitespace=-blank-at-eol,-space-before-tab
 # Shipped voice-over (extracted byte-exact from the stock archives).
 Assets/Audio/*.wav binary
+# The owner-selected standalone fighter port is a byte-pinned source asset.
+References/FuryFighter/original/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+# Byte-pinned stock pickup and existing-menu snapshots must survive Git checkout.
+References/TextureRevamp/nav-pickups/original/*.odf -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
+References/TextureRevamp/nav-pickups/menus/*.odf -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
+References/TextureRevamp/integration/original/*.odf -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol

@@ -1,3 +1,4 @@
+CR_TEST_FAITHFUL=true
 -- Stock-host behavioral tests; run from the repository root with Lua 5.1.
 local checks = 0
 local function eq(actual, expected, label)

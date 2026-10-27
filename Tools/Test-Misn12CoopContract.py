@@ -75,7 +75,7 @@ ini.read(root / 'Config/misn12.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
 assert (root / 'Assets/Graphics/misn12.bmp').read_bytes()[:2] == b'BM'
-des = (root / 'misn12.des').read_text()
+des = (root / 'misn12.mpdes').read_text()
 assert len(des.strip()) <= 300
 assert '60 m' in des and '45 s' in des and '50 m' not in des, 'the briefing must state the script\'s tap range and time'
 campaign = (root / 'Config/crcampgn.ini').read_text()
@@ -138,7 +138,7 @@ assert (root / 'Tools/Preview-Misn12Map.py').exists() and (root / 'Docs/MISN12_R
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn12.ini', 'Missions/misn12.vxt', 'Assets/Graphics/misn12.bmp', 'misn12.des',
+for source in ['Config/misn12.ini', 'Missions/misn12.vxt', 'Assets/Graphics/misn12.bmp', 'misn12.mpdes',
                'Missions/misn12.bzn', 'Missions/misn12.hg2', 'Missions/misn12.trn', 'Missions/misn12.mat',
                'Missions/misn12.lgt', 'Scripts/misn12.lua', 'Scripts/CREuropaWeather.lua', 'Scripts/CREuropaSites12.lua',
                'Materials/cr_europa.particle.payload', 'Assets/Audio/misn1224.wav']:

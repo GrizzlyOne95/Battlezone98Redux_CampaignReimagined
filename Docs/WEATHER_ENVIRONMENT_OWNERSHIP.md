@@ -1,5 +1,11 @@
 # Atmosphere ownership: Environment, CRWeather, and the terrain horizon
 
+The later owner sensor decision is documented in `WEATHER_SENSOR_POLICY.md`.
+Every weather-enabled campaign mission now uses Environment for sensor effects,
+and Titan 14 also joins its atmosphere writer with the native baseline/daylight
+lock. References below to Titan's old standalone mission wiring and mission
+06's old visual-only opt-out describe the prior checkpoint, not current policy.
+
 Three concerns, kept separate on purpose. They were drifting together — two
 independent definitions of a dust storm, and weather fog that could outrun the
 terrain — and this records where the lines are so they stay put.
@@ -54,13 +60,17 @@ property of the terrain, and both systems are consumers of it.
 ### The rule
 
 ```text
+baseFogEnd = min(requestedBaseFogEnd, authoredTerrainHorizon)
 weatherFogEnd = min(requestedWeatherFogEnd, authoredTerrainHorizon)
+finalFogEnd = min(composedFogEnd, authoredTerrainHorizon)
 ```
 
-Applied to the preset's requested value **before** the blend, never to the
-composed frame afterwards. At zero weight a weather layer therefore contributes
-nothing at all, and a mission with weather disabled or standing clear keeps
-exactly the base fog Environment asked for.
+The preset is capped before its blend and Environment caps the final composed
+frame after all modifiers and manual transitions. Base keyframes are capped too.
+At zero weight weather contributes nothing; the capped base remains. An overlong
+base/final ramp scales into the horizon, so its start stays below its end.
+This broad cap is the owner's explicit 2026-10-15 revision of the earlier
+weather-only policy. See `ATMOSPHERE_AUDIT_20261015.md`.
 
 ### Why the rule exists
 
@@ -84,18 +94,18 @@ The clamp costs density: fog is thicker at mid range than the preset asks for.
 That is the honest price of a map that stops at 250, and no view distance is
 actually lost, because there is nothing past 250 to see.
 
-`Init{ fogHorizon = false }` opts out entirely; a number overrides.
+`CRWeather.Init{ fogHorizon = false }` disables its weather-request and standalone
+cap; a number overrides those caps. Environment still enforces the TRN limit on
+its final frame.
 
-### What is deliberately *not* clamped
+### Base fog is capped as well
 
-Environment's own `DayFog` finishes at 700 on that same 250-unit map, so the
-identical argument applies to it. It is left alone anyway.
-
-Clamping it would change the established appearance of **every** mission that
-loads Environment, weather or no weather. Whether 700 is architecturally wrong
-is a fair question, but answering it is not required to fix the weather defect,
-and it deserves its own change tested across maps with different `FogEnd` and
-`VisibilityRange` values. Do not fold it into a weather commit.
+Environment previously left its own long daytime fog outside the horizon.
+That exception is retired: Clear, zero weather weight, time-of-day changes,
+manual fog and local modifiers all obey the final visibility limit. Moon 02b/03
+explicitly retain their native 175–250 fog while using subtle lighting mode.
+Standalone CRWeather also caps its composed frame and reads TRN VisibilityRange
+before falling back to captured fog end (these differ on Titan 14).
 
 ## Dust storms: one definition
 
@@ -126,7 +136,9 @@ the regression running the other way: that base Environment fog survives
 untouched with no weather active and at zero weight. Verified to fail when the
 clamp is disabled, so it is not passing vacuously.
 
-The weather suites had never been wired into CI. They are now, in
+`Tools/Test-AtmosphereIntegration.lua` additionally executes the real Environment
+and CRWeather together, including the final cap, subtle TOD and single-writer
+contract. The weather suites had originally not been wired into CI. They are now, in
 `campaign-validation.yml` — a weather regression could previously reach a
 release with CI green.
 
@@ -164,3 +176,21 @@ presets and draws particles, so it runs the same on CRWeather's standalone path 
 Environment). Environment has a `titan` world preset of its own (detected from `TITAN.ACT`, the `ti_` atlas
 or the `titan` sky) that holds the cycle at day through `Environment.LockDaylight`; any mission may set that
 field, and `TitanAllowNight = true` before `Init` keeps the cycle on a Titan map.
+
+## Subtle Moon and Venus lighting (2026-10-15)
+
+Moon 02b/03 and Venus 07–09 call `Environment.Init` with `lightingMode="subtle"`
+and `nativeBaseline=true`. This captures the authored light, sun and fog before
+scripts modify them. A one-hour bounded lighting variation replaces the full
+night cycle in those missions: at most 6% dimming / 4-degree azimuth excursion
+on Moon and 4% / 2 degrees on Venus, with a small smooth elevation drift.
+Subtle light modulation runs after weather, so full weather weight cannot erase
+it. It does not add fog, clouds or night sensor penalties. Moon glow now lends
+its small existing ambient contribution through Environment.
+
+Other cycle-mode missions pass a day/night light scale to CRWeather so its
+absolute daylight ambient/diffuse targets cannot relight the night. Manual fog
+transitions start from unmodified base fog, not last frame's composed weather.
+Mission 06 uses the Plains director and the full visual cycle, with both weather
+sensor/wind effects and Environment night gameplay disabled. Full coverage,
+remaining visual checks and inactive legacy modules are recorded in the audit.

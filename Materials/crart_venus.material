@@ -1,0 +1,126 @@
+// Venus sky dome. Technique 0 is the CR_VenusSky look (Shaders/CR_venussky.hlsl,
+// DX11/DX9); technique 1 keeps the stock venus.tga dome for OpenGL. Both start
+// with venus.tga on unit 0 so the dome's own texture lookups stay valid.
+// CRWorldArt.UpdateSky writes the sun direction, clarity and the Venus weather
+// (storm gloom, fog bank, lightning) into the technique 0 pass colours every frame.
+//
+// Below the dome: the materials cr_venus.particle.payload's weather draws with.
+
+import * from "crwx_precip.material"
+material CRSKYVE.MAP
+{
+	technique 0
+	{
+		pass 0
+		{
+			vertex_program_ref CR_VenusSky_vertex
+			{
+			}
+			fragment_program_ref CR_VenusSky_fragment
+			{
+			}
+			lighting off
+			scene_blend one zero
+			depth_write off
+			// Calm, sun nearly overhead and no flash until the first UpdateSky
+			// write, so the dome still has a sun when CR's Lua is not running.
+			specular 0 0.17 0.98 0 0
+			emissive 0 1 0 0
+			diffuse 0 1 0 0
+			texture_unit 0
+			{
+				texture venus.tga
+			}
+			texture_unit 1
+			{
+				texture crsky_venus_clouds.png
+				tex_address_mode wrap
+				filtering trilinear
+			}
+		}
+	}
+	technique 1
+	{
+		pass 0
+		{
+			vertex_program_ref CR_SkyDome_vertex
+			{
+			}
+			fragment_program_ref CR_WorldSky_fragment
+			{
+				param_named horizonBlend float4 .02 .35 1 0
+			}
+			lighting off
+			scene_blend one zero
+			depth_write off
+			texture_unit
+			{
+				texture venus.tga
+			}
+		}
+	}
+}
+
+// Venus weather particles (cr_venus.particle.payload). Ogre's ParticleFX
+// billboards carry RGBA vertex colours, but on DX11 the CR_FX/* sprite
+// materials draw them through a BGRA swizzle, so red and blue swap: the fog
+// bank's ochre haze came out teal. CRWX_FX/* alone does not help. Its RGBA
+// vertex program still pairs with the stock Effect_fragment, which has no DX11
+// delegate, so OpenShim's DX11 compat layer replaces the whole pass and brings
+// the BGRA vertex adapter back. Pairing it with CR_Effect_fragment (which has
+// an SM4 delegate) keeps the pass native, and the colours draw as written.
+material CRVenus/ParticleAlphaBlend : CRWX_FX/ParticleAlphaBlend
+{
+	technique 0
+	{
+		pass 0
+		{
+			fragment_program_ref CR_Effect_fragment
+			{
+			}
+		}
+	}
+}
+
+material CRVenus/ParticleAdditive : CRWX_FX/ParticleAdditive
+{
+	technique 0
+	{
+		pass 0
+		{
+			fragment_program_ref CR_Effect_fragment
+			{
+			}
+		}
+	}
+}
+
+material CRVenus/Haze : CRVenus/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_haze.dds
+}
+
+material CRVenus/Smoke : CRVenus/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_smokeheavy.dds
+}
+
+material CRVenus/Ember : CRVenus/ParticleAdditive
+{
+	set_texture_alias DiffuseMap cr_ember.dds
+}
+
+material CRVenus/Arc : CRVenus/ParticleAdditive
+{
+	set_texture_alias DiffuseMap cr_arc.dds
+}
+
+material CRVenus/Bloom : CRVenus/ParticleAdditive
+{
+	set_texture_alias DiffuseMap blast.png
+}
+
+material CRVenus/Ion : CRVenus/ParticleAdditive
+{
+	set_texture_alias DiffuseMap shock.png
+}

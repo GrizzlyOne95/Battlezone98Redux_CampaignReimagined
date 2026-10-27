@@ -1,0 +1,1478 @@
+{
+  "schema": "bzr-openshim-terrain-hd-v2",
+  "materials": {
+    "MN_DETAIL_ATLAS": {
+      "sliceCount": 9,
+      "diffuseResource": "moon_atlas_d.dds",
+      "fallback": "openshim_moon_auto_layer0.png",
+      "tiles": {
+        "0": "openshim_moon_auto_layer0.png",
+        "1": "openshim_moon_auto_layer1.png",
+        "2": "openshim_moon_auto_layer2.png",
+        "3": "openshim_moon_auto_layer3.png",
+        "4": "openshim_moon_auto_misn01_stock_control.png",
+        "5": "openshim_moon_auto_layer0_n.png",
+        "6": "openshim_moon_auto_layer1_n.png",
+        "7": "openshim_moon_auto_layer2_n.png",
+        "8": "openshim_moon_auto_layer3_n.png"
+      },
+      "paint": {
+        "schema": "bzr-openshim-terrain-paint-v1",
+        "rowZero": "minZ",
+        "repeatMeters": [
+          24,
+          16,
+          40,
+          40
+        ],
+        "maps": [
+          {
+            "terrainFingerprint": "0ae4c477b71f039f",
+            "boundsMeters": [
+              -1910.0,
+              -1930.0,
+              1930.0,
+              1910.0
+            ],
+            "control": "openshim_moon_auto_misn01_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "45adf276da82be72",
+            "boundsMeters": [
+              -2550.0,
+              -2570.0,
+              2570.0,
+              2550.0
+            ],
+            "control": "openshim_moon_auto_misn02_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "11b000341eb35573",
+            "boundsMeters": [
+              -2550.0,
+              -2570.0,
+              2570.0,
+              2550.0
+            ],
+            "control": "openshim_moon_auto_misn02b_control.png"
+          },
+          {
+            "terrainFingerprint": "4e14e2dfdaf49124",
+            "boundsMeters": [
+              -2550.0,
+              -2570.0,
+              2570.0,
+              2550.0
+            ],
+            "control": "openshim_moon_auto_misn02b_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "63f4006bc3827fad",
+            "boundsMeters": [
+              -1910.0,
+              -1930.0,
+              1930.0,
+              1910.0
+            ],
+            "control": "openshim_moon_auto_misn03_control.png"
+          },
+          {
+            "terrainFingerprint": "c4740d36b6ce2c78",
+            "boundsMeters": [
+              -1910.0,
+              -1930.0,
+              1930.0,
+              1910.0
+            ],
+            "control": "openshim_moon_auto_misn03_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "e4241c78fc44def5",
+            "boundsMeters": [
+              -2550.0,
+              -2570.0,
+              2570.0,
+              2550.0
+            ],
+            "control": "openshim_moon_auto_crsetup_control.png"
+          }
+        ],
+        "detile": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "far": [
+          5,
+          40,
+          250,
+          0.6
+        ],
+        "macro": [
+          260,
+          0.12,
+          0.15
+        ],
+        "heightBlend": 0.5,
+        "heightMeters": [
+          0.6,
+          1.2,
+          1.0,
+          1.6
+        ],
+        "craters": [
+          8,
+          0.2,
+          0.35,
+          3
+        ],
+        "craterLayers": [
+          0.6,
+          0.0,
+          1.0,
+          0.0
+        ]
+      }
+    },
+    "VE_DETAIL_ATLAS": {
+      "sliceCount": 9,
+      "diffuseResource": "venus_atlas_d.dds",
+      "fallback": "openshim_venus_auto_layer0.png",
+      "tiles": {
+        "0": "openshim_venus_auto_layer0.png",
+        "1": "openshim_venus_auto_layer1.png",
+        "2": "openshim_venus_auto_layer2.png",
+        "3": "openshim_venus_auto_layer3.png",
+        "4": "openshim_venus_auto_misn07_control.png",
+        "5": "openshim_venus_auto_layer0_n.png",
+        "6": "openshim_venus_auto_layer1_n.png",
+        "7": "openshim_venus_auto_layer2_n.png",
+        "8": "openshim_venus_auto_layer3_n.png"
+      },
+      "paint": {
+        "schema": "bzr-openshim-terrain-paint-v1",
+        "rowZero": "minZ",
+        "repeatMeters": [
+          18,
+          16,
+          20,
+          40
+        ],
+        "maps": [
+          {
+            "terrainFingerprint": "cca3217d3d8ec02c",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_venus_auto_misn07_control.png"
+          },
+          {
+            "terrainFingerprint": "b6671b747acc75ba",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_venus_auto_misn07_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "d2c132545d75be8f",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_venus_auto_misn08_control.png"
+          },
+          {
+            "terrainFingerprint": "2296f12e2dc04bb2",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_venus_auto_misn08_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "3ee49e58e8c11f45",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_venus_auto_misn09_control.png"
+          },
+          {
+            "terrainFingerprint": "c21819c07ec57d1c",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_venus_auto_misn09_stock_control.png"
+          }
+        ],
+        "detile": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "far": [
+          5,
+          40,
+          250,
+          0.6
+        ],
+        "macro": [
+          260,
+          0.12,
+          0.15
+        ],
+        "heightBlend": 0.5,
+        "heightMeters": [
+          1.2,
+          0.15,
+          1.0,
+          2.6
+        ],
+        "detail": [
+          60,
+          1.5,
+          4,
+          1
+        ],
+        "detailLayers": [
+          0.6,
+          0.0,
+          0.8,
+          1.0
+        ],
+        "parallax": [
+          1,
+          30,
+          12
+        ]
+      }
+    },
+    "MA_DETAIL_ATLAS": {
+      "sliceCount": 9,
+      "diffuseResource": "mars_atlas_d.dds",
+      "fallback": "openshim_mars_auto_layer0.png",
+      "tiles": {
+        "0": "openshim_mars_auto_layer0.png",
+        "1": "openshim_mars_auto_layer1.png",
+        "2": "openshim_mars_auto_layer2.png",
+        "3": "openshim_mars_auto_layer3.png",
+        "4": "openshim_mars_auto_misn04_control.png",
+        "5": "openshim_mars_auto_layer0_n.png",
+        "6": "openshim_mars_auto_layer1_n.png",
+        "7": "openshim_mars_auto_layer2_n.png",
+        "8": "openshim_mars_auto_layer3_n.png"
+      },
+      "paint": {
+        "schema": "bzr-openshim-terrain-paint-v1",
+        "rowZero": "minZ",
+        "repeatMeters": [
+          20,
+          16,
+          12,
+          24
+        ],
+        "maps": [
+          {
+            "terrainFingerprint": "cd7f44e80ffb7fc1",
+            "boundsMeters": [
+              -3190.0,
+              -2570.0,
+              3210.0,
+              2550.0
+            ],
+            "control": "openshim_mars_auto_misn04_control.png"
+          },
+          {
+            "terrainFingerprint": "73f9729303821983",
+            "boundsMeters": [
+              -3190.0,
+              -2570.0,
+              3210.0,
+              2550.0
+            ],
+            "control": "openshim_mars_auto_misn04_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "5e4ef40b581c2c36",
+            "boundsMeters": [
+              -2550.0,
+              -2570.0,
+              2570.0,
+              2550.0
+            ],
+            "control": "openshim_mars_auto_misn05_control.png"
+          },
+          {
+            "terrainFingerprint": "04e39ffb0e80a25e",
+            "boundsMeters": [
+              -2550.0,
+              -2570.0,
+              2570.0,
+              2550.0
+            ],
+            "control": "openshim_mars_auto_misn05_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "47910f1f7563463d",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_mars_auto_misn06_control.png"
+          },
+          {
+            "terrainFingerprint": "9c77ccbdec3593fe",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_mars_auto_misn06_stock_control.png"
+          }
+        ],
+        "detile": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "far": [
+          5,
+          40,
+          250,
+          0.6
+        ],
+        "macro": [
+          260,
+          0.12,
+          0.15
+        ],
+        "heightBlend": 0.5,
+        "heightMeters": [
+          0.4,
+          0.8,
+          0.5,
+          2.0
+        ],
+        "detail": [
+          60,
+          1.5,
+          4,
+          1
+        ],
+        "detailLayers": [
+          0.4,
+          0.6,
+          0.5,
+          1.0
+        ],
+        "parallax": [
+          1,
+          30,
+          12
+        ]
+      }
+    },
+    "IO_DETAIL_ATLAS": {
+      "sliceCount": 9,
+      "diffuseResource": "io_atlas_d.dds",
+      "fallback": "openshim_io_auto_layer0.png",
+      "tiles": {
+        "0": "openshim_io_auto_layer0.png",
+        "1": "openshim_io_auto_layer1.png",
+        "2": "openshim_io_auto_layer2.png",
+        "3": "openshim_io_auto_layer3.png",
+        "4": "openshim_io_auto_misn10_control.png",
+        "5": "openshim_io_auto_layer0_n.png",
+        "6": "openshim_io_auto_layer1_n.png",
+        "7": "openshim_io_auto_layer2_n.png",
+        "8": "openshim_io_auto_layer3_n.png"
+      },
+      "paint": {
+        "schema": "bzr-openshim-terrain-paint-v1",
+        "rowZero": "minZ",
+        "repeatMeters": [
+          20,
+          18,
+          18,
+          20
+        ],
+        "maps": [
+          {
+            "terrainFingerprint": "1763fbe0b3233ffb",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_io_auto_misn10_control.png"
+          },
+          {
+            "terrainFingerprint": "064a152ebc9da197",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_io_auto_misn10_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "13d07782c2f02faf",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_io_auto_misn11_control.png"
+          },
+          {
+            "terrainFingerprint": "6f3bd72a26e5959b",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_io_auto_misn11_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "d6e25d9d88429904",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_io_auto_misns4_control.png"
+          },
+          {
+            "terrainFingerprint": "5956950c3c9623f6",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_io_auto_misns4_stock_control.png"
+          }
+        ],
+        "detile": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "far": [
+          5,
+          40,
+          250,
+          0.6
+        ],
+        "macro": [
+          260,
+          0.12,
+          0.15
+        ],
+        "heightBlend": 0.5,
+        "heightMeters": [
+          0.8,
+          0.15,
+          0.8,
+          1.0
+        ]
+      }
+    },
+    "EU_DETAIL_ATLAS": {
+      "sliceCount": 9,
+      "diffuseResource": "europa_atlas_d.dds",
+      "fallback": "openshim_europa_auto_layer0.png",
+      "tiles": {
+        "0": "openshim_europa_auto_layer0.png",
+        "1": "openshim_europa_auto_layer1.png",
+        "2": "openshim_europa_auto_layer2.png",
+        "3": "openshim_europa_auto_layer3.png",
+        "4": "openshim_europa_auto_misn12_control.png",
+        "5": "openshim_europa_auto_layer0_n.png",
+        "6": "openshim_europa_auto_layer1_n.png",
+        "7": "openshim_europa_auto_layer2_n.png",
+        "8": "openshim_europa_auto_layer3_n.png"
+      },
+      "paint": {
+        "schema": "bzr-openshim-terrain-paint-v1",
+        "rowZero": "minZ",
+        "repeatMeters": [
+          24,
+          16,
+          16,
+          48
+        ],
+        "maps": [
+          {
+            "terrainFingerprint": "69636621b1b6e510",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_europa_auto_misn12_control.png"
+          },
+          {
+            "terrainFingerprint": "becac6427a58ab6e",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_europa_auto_misn12_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "f8f8399777baffea",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_europa_auto_misn13_control.png"
+          },
+          {
+            "terrainFingerprint": "7e9dd58dc80601a6",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_europa_auto_misn13_stock_control.png"
+          }
+        ],
+        "detile": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "far": [
+          5,
+          40,
+          250,
+          0.6
+        ],
+        "macro": [
+          260,
+          0.12,
+          0.15
+        ],
+        "heightBlend": 0.5,
+        "heightMeters": [
+          0.4,
+          0.3,
+          1.0,
+          1.2
+        ]
+      }
+    },
+    "TI_DETAIL_ATLAS": {
+      "sliceCount": 9,
+      "diffuseResource": "titan_atlas_d.dds",
+      "fallback": "openshim_titan_auto_layer0.png",
+      "tiles": {
+        "0": "openshim_titan_auto_layer0.png",
+        "1": "openshim_titan_auto_layer1.png",
+        "2": "openshim_titan_auto_layer2.png",
+        "3": "openshim_titan_auto_layer3.png",
+        "4": "openshim_titan_auto_misn14_control.png",
+        "5": "openshim_titan_auto_layer0_n.png",
+        "6": "openshim_titan_auto_layer1_n.png",
+        "7": "openshim_titan_auto_layer2_n.png",
+        "8": "openshim_titan_auto_layer3_n.png"
+      },
+      "paint": {
+        "schema": "bzr-openshim-terrain-paint-v1",
+        "rowZero": "minZ",
+        "repeatMeters": [
+          20,
+          20,
+          40,
+          36
+        ],
+        "maps": [
+          {
+            "terrainFingerprint": "378e49d25c33ac43",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misn14_control.png"
+          },
+          {
+            "terrainFingerprint": "bdce4fb1e689b169",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misn14_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "092514bdd5a255c9",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misn15_control.png"
+          },
+          {
+            "terrainFingerprint": "9e1f4d6b9543cb1d",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misn15_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "1d1e0af4edb38b16",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misn16_control.png"
+          },
+          {
+            "terrainFingerprint": "08adc2abf76fd176",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misn16_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "787e1d63d79eeb3e",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misn15b_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "a7edee74b712cfd6",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misn16b_control.png"
+          },
+          {
+            "terrainFingerprint": "deee6ea8f9e3aa7e",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misn16b_stock_control.png"
+          }
+        ],
+        "detile": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "far": [
+          5,
+          40,
+          250,
+          0.6
+        ],
+        "macro": [
+          260,
+          0.12,
+          0.15
+        ],
+        "heightBlend": 0.5,
+        "heightMeters": [
+          0.35,
+          1.4,
+          0.8,
+          1.2
+        ]
+      }
+    },
+    "AC_DETAIL_ATLAS": {
+      "sliceCount": 9,
+      "diffuseResource": "achilles_atlas_d.dds",
+      "fallback": "openshim_achilles_auto_layer0.png",
+      "tiles": {
+        "0": "openshim_achilles_auto_layer0.png",
+        "1": "openshim_achilles_auto_layer1.png",
+        "2": "openshim_achilles_auto_layer2.png",
+        "3": "openshim_achilles_auto_layer3.png",
+        "4": "openshim_achilles_auto_misn17_control.png",
+        "5": "openshim_achilles_auto_layer0_n.png",
+        "6": "openshim_achilles_auto_layer1_n.png",
+        "7": "openshim_achilles_auto_layer2_n.png",
+        "8": "openshim_achilles_auto_layer3_n.png"
+      },
+      "paint": {
+        "schema": "bzr-openshim-terrain-paint-v1",
+        "rowZero": "minZ",
+        "repeatMeters": [
+          16,
+          16,
+          12,
+          18
+        ],
+        "maps": [
+          {
+            "terrainFingerprint": "120a7283e9727a45",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_achilles_auto_misn17_control.png"
+          },
+          {
+            "terrainFingerprint": "fda1034769facef5",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_achilles_auto_misn17_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "d8f70565e3d51947",
+            "boundsMeters": [
+              -1910.0,
+              -3210.0,
+              1930.0,
+              3190.0
+            ],
+            "control": "openshim_achilles_auto_misn18_control.png"
+          },
+          {
+            "terrainFingerprint": "7a918703327d147d",
+            "boundsMeters": [
+              -1910.0,
+              -3210.0,
+              1930.0,
+              3190.0
+            ],
+            "control": "openshim_achilles_auto_misn18_stock_control.png"
+          }
+        ],
+        "detile": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "far": [
+          5,
+          40,
+          250,
+          0.6
+        ],
+        "macro": [
+          260,
+          0.12,
+          0.15,
+          0.35
+        ],
+        "heightBlend": 0.5,
+        "heightMeters": [
+          0.6,
+          0.4,
+          1.2,
+          0.4
+        ]
+      }
+    },
+    "GA_DETAIL_ATLAS": {
+      "sliceCount": 22,
+      "releaseSourceTextures": true,
+      "diffuseResource": "GANYMEDE_ATLAS_D.dds",
+      "tileRects": [
+        {
+          "rect": [
+            0.0,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.125,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.25,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 1
+        },
+        {
+          "rect": [
+            0.375,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 2
+        },
+        {
+          "rect": [
+            0.5,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 3
+        },
+        {
+          "rect": [
+            0.625,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 5
+        },
+        {
+          "rect": [
+            0.75,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 4
+        },
+        {
+          "rect": [
+            0.825,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 6
+        },
+        {
+          "rect": [
+            0.0,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 7
+        },
+        {
+          "rect": [
+            0.125,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 8
+        },
+        {
+          "rect": [
+            0.25,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 9
+        },
+        {
+          "rect": [
+            0.375,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 11
+        },
+        {
+          "rect": [
+            0.5,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 10
+        },
+        {
+          "rect": [
+            0.625,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 12
+        },
+        {
+          "rect": [
+            0.75,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 13
+        },
+        {
+          "rect": [
+            0.825,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 14
+        },
+        {
+          "rect": [
+            0.0,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 15
+        },
+        {
+          "rect": [
+            0.125,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 16
+        },
+        {
+          "rect": [
+            0.25,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 17
+        },
+        {
+          "rect": [
+            0.375,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 18
+        },
+        {
+          "rect": [
+            0.5,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 19
+        },
+        {
+          "rect": [
+            0.625,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 20
+        },
+        {
+          "rect": [
+            0.75,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 21
+        }
+      ],
+      "tiles": {
+        "0": "crhd_ganymede_ga00sa0_d.dds",
+        "1": "crhd_ganymede_ga00sb0_d.dds",
+        "2": "crhd_ganymede_ga00sc0_d.dds",
+        "3": "crhd_ganymede_ga01ca0_d.dds",
+        "4": "crhd_ganymede_ga01da0_d.dds",
+        "5": "crhd_ganymede_ga04ca0_d.dds",
+        "6": "crhd_ganymede_ga04da0_d.dds",
+        "7": "crhd_ganymede_ga11sa0_d.dds",
+        "8": "crhd_ganymede_ga11sb0_d.dds",
+        "9": "crhd_ganymede_ga12ca0_d.dds",
+        "10": "crhd_ganymede_ga12da0_d.dds",
+        "11": "crhd_ganymede_ga14ca0_d.dds",
+        "12": "crhd_ganymede_ga14da0_d.dds",
+        "13": "crhd_ganymede_ga22sa0_d.dds",
+        "14": "crhd_ganymede_ga22sb0_d.dds",
+        "15": "crhd_ganymede_ga22sc0_d.dds",
+        "16": "crhd_ganymede_ga24ca0_d.dds",
+        "17": "crhd_ganymede_ga24da0_d.dds",
+        "18": "crhd_ganymede_ga33sa0_d.dds",
+        "19": "crhd_ganymede_ga33sb0_d.dds",
+        "20": "crhd_ganymede_ga44sa0_d.dds",
+        "21": "crhd_ganymede_ga44sb0_d.dds"
+      },
+      "fallback": "crhd_ganymede_ga00sa0_d.dds",
+      "normal": {
+        "sourceResource": "GANYMEDE_ATLAS_N.dds",
+        "tiles": {
+          "0": "crhd_ganymede_ga00sa0_n.dds",
+          "1": "crhd_ganymede_ga00sb0_n.dds",
+          "2": "crhd_ganymede_ga00sc0_n.dds",
+          "3": "crhd_ganymede_ga01ca0_n.dds",
+          "4": "crhd_ganymede_ga01da0_n.dds",
+          "5": "crhd_ganymede_ga04ca0_n.dds",
+          "6": "crhd_ganymede_ga04da0_n.dds",
+          "7": "crhd_ganymede_ga11sa0_n.dds",
+          "8": "crhd_ganymede_ga11sb0_n.dds",
+          "9": "crhd_ganymede_ga12ca0_n.dds",
+          "10": "crhd_ganymede_ga12da0_n.dds",
+          "11": "crhd_ganymede_ga14ca0_n.dds",
+          "12": "crhd_ganymede_ga14da0_n.dds",
+          "13": "crhd_ganymede_ga22sa0_n.dds",
+          "14": "crhd_ganymede_ga22sb0_n.dds",
+          "15": "crhd_ganymede_ga22sc0_n.dds",
+          "16": "crhd_ganymede_ga24ca0_n.dds",
+          "17": "crhd_ganymede_ga24da0_n.dds",
+          "18": "crhd_ganymede_ga33sa0_n.dds",
+          "19": "crhd_ganymede_ga33sb0_n.dds",
+          "20": "crhd_ganymede_ga44sa0_n.dds",
+          "21": "crhd_ganymede_ga44sb0_n.dds"
+        },
+        "fallback": "crhd_ganymede_ga00sa0_n.dds",
+        "encoding": "rgb-xyz-linear"
+      },
+      "specular": {
+        "sourceResource": "GANYMEDE_ATLAS_S.dds",
+        "tiles": {
+          "0": "crhd_ganymede_ga00sa0_s.dds",
+          "1": "crhd_ganymede_ga00sb0_s.dds",
+          "2": "crhd_ganymede_ga00sc0_s.dds",
+          "3": "crhd_ganymede_ga01ca0_s.dds",
+          "4": "crhd_ganymede_ga01da0_s.dds",
+          "5": "crhd_ganymede_ga04ca0_s.dds",
+          "6": "crhd_ganymede_ga04da0_s.dds",
+          "7": "crhd_ganymede_ga11sa0_s.dds",
+          "8": "crhd_ganymede_ga11sb0_s.dds",
+          "9": "crhd_ganymede_ga12ca0_s.dds",
+          "10": "crhd_ganymede_ga12da0_s.dds",
+          "11": "crhd_ganymede_ga14ca0_s.dds",
+          "12": "crhd_ganymede_ga14da0_s.dds",
+          "13": "crhd_ganymede_ga22sa0_s.dds",
+          "14": "crhd_ganymede_ga22sb0_s.dds",
+          "15": "crhd_ganymede_ga22sc0_s.dds",
+          "16": "crhd_ganymede_ga24ca0_s.dds",
+          "17": "crhd_ganymede_ga24da0_s.dds",
+          "18": "crhd_ganymede_ga33sa0_s.dds",
+          "19": "crhd_ganymede_ga33sb0_s.dds",
+          "20": "crhd_ganymede_ga44sa0_s.dds",
+          "21": "crhd_ganymede_ga44sb0_s.dds"
+        },
+        "fallback": "crhd_ganymede_ga00sa0_s.dds"
+      },
+      "emissive": {
+        "sourceResource": "black.dds",
+        "tiles": {
+          "0": "crhd_ganymede_ga00sa0_e.dds",
+          "1": "crhd_ganymede_ga00sb0_e.dds",
+          "2": "crhd_ganymede_ga00sc0_e.dds",
+          "3": "crhd_ganymede_ga01ca0_e.dds",
+          "4": "crhd_ganymede_ga01da0_e.dds",
+          "5": "crhd_ganymede_ga04ca0_e.dds",
+          "6": "crhd_ganymede_ga04da0_e.dds",
+          "7": "crhd_ganymede_ga11sa0_e.dds",
+          "8": "crhd_ganymede_ga11sb0_e.dds",
+          "9": "crhd_ganymede_ga12ca0_e.dds",
+          "10": "crhd_ganymede_ga12da0_e.dds",
+          "11": "crhd_ganymede_ga14ca0_e.dds",
+          "12": "crhd_ganymede_ga14da0_e.dds",
+          "13": "crhd_ganymede_ga22sa0_e.dds",
+          "14": "crhd_ganymede_ga22sb0_e.dds",
+          "15": "crhd_ganymede_ga22sc0_e.dds",
+          "16": "crhd_ganymede_ga24ca0_e.dds",
+          "17": "crhd_ganymede_ga24da0_e.dds",
+          "18": "crhd_ganymede_ga33sa0_e.dds",
+          "19": "crhd_ganymede_ga33sb0_e.dds",
+          "20": "crhd_ganymede_ga44sa0_e.dds",
+          "21": "crhd_ganymede_ga44sb0_e.dds"
+        },
+        "fallback": "crhd_ganymede_ga00sa0_e.dds"
+      },
+      "microReliefScale": 1.0,
+      "detailContrast": 0.55,
+      "detailNormalStrength": 2.2,
+      "detailNormalNearScale": 0.55,
+      "surfaceBlend": {
+        "coverage": 0.0,
+        "sourceType": 0,
+        "mask": "",
+        "channels": {}
+      }
+    },
+    "EL_DETAIL_ATLAS": {
+      "sliceCount": 20,
+      "releaseSourceTextures": true,
+      "diffuseResource": "ELYSIUM_ATLAS_D.dds",
+      "tileRects": [
+        {
+          "rect": [
+            0.0,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.125,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 0
+        },
+        {
+          "rect": [
+            0.25,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 1
+        },
+        {
+          "rect": [
+            0.375,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 2
+        },
+        {
+          "rect": [
+            0.5,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 3
+        },
+        {
+          "rect": [
+            0.625,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 5
+        },
+        {
+          "rect": [
+            0.75,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 7
+        },
+        {
+          "rect": [
+            0.825,
+            0.0,
+            0.125,
+            0.125
+          ],
+          "slice": 4
+        },
+        {
+          "rect": [
+            0.0,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 6
+        },
+        {
+          "rect": [
+            0.125,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 8
+        },
+        {
+          "rect": [
+            0.25,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 11
+        },
+        {
+          "rect": [
+            0.375,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 12
+        },
+        {
+          "rect": [
+            0.5,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 13
+        },
+        {
+          "rect": [
+            0.625,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 14
+        },
+        {
+          "rect": [
+            0.75,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 15
+        },
+        {
+          "rect": [
+            0.825,
+            0.125,
+            0.125,
+            0.125
+          ],
+          "slice": 16
+        },
+        {
+          "rect": [
+            0.0,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 17
+        },
+        {
+          "rect": [
+            0.125,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 18
+        },
+        {
+          "rect": [
+            0.25,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 19
+        },
+        {
+          "rect": [
+            0.375,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 9
+        },
+        {
+          "rect": [
+            0.5,
+            0.25,
+            0.125,
+            0.125
+          ],
+          "slice": 10
+        }
+      ],
+      "tiles": {
+        "0": "crhd_elysium_el00sa0_d.dds",
+        "1": "crhd_elysium_el00sb0_d.dds",
+        "2": "crhd_elysium_el00sc0_d.dds",
+        "3": "crhd_elysium_el01ca0_d.dds",
+        "4": "crhd_elysium_el01da0_d.dds",
+        "5": "crhd_elysium_el02ca0_d.dds",
+        "6": "crhd_elysium_el02da0_d.dds",
+        "7": "crhd_elysium_el04ca0_d.dds",
+        "8": "crhd_elysium_el04da0_d.dds",
+        "9": "crhd_elysium_el04sa0_d.dds",
+        "10": "crhd_elysium_el04sb0_d.dds",
+        "11": "crhd_elysium_el11sa0_d.dds",
+        "12": "crhd_elysium_el11sb0_d.dds",
+        "13": "crhd_elysium_el11sc0_d.dds",
+        "14": "crhd_elysium_el12ca0_d.dds",
+        "15": "crhd_elysium_el12da0_d.dds",
+        "16": "crhd_elysium_el22sa0_d.dds",
+        "17": "crhd_elysium_el22sb0_d.dds",
+        "18": "crhd_elysium_el22sc0_d.dds",
+        "19": "crhd_elysium_el33sa0_d.dds"
+      },
+      "fallback": "crhd_elysium_el00sa0_d.dds",
+      "normal": {
+        "sourceResource": "ELYSIUM_ATLAS_N.dds",
+        "tiles": {
+          "0": "crhd_elysium_el00sa0_n.dds",
+          "1": "crhd_elysium_el00sb0_n.dds",
+          "2": "crhd_elysium_el00sc0_n.dds",
+          "3": "crhd_elysium_el01ca0_n.dds",
+          "4": "crhd_elysium_el01da0_n.dds",
+          "5": "crhd_elysium_el02ca0_n.dds",
+          "6": "crhd_elysium_el02da0_n.dds",
+          "7": "crhd_elysium_el04ca0_n.dds",
+          "8": "crhd_elysium_el04da0_n.dds",
+          "9": "crhd_elysium_el04sa0_n.dds",
+          "10": "crhd_elysium_el04sb0_n.dds",
+          "11": "crhd_elysium_el11sa0_n.dds",
+          "12": "crhd_elysium_el11sb0_n.dds",
+          "13": "crhd_elysium_el11sc0_n.dds",
+          "14": "crhd_elysium_el12ca0_n.dds",
+          "15": "crhd_elysium_el12da0_n.dds",
+          "16": "crhd_elysium_el22sa0_n.dds",
+          "17": "crhd_elysium_el22sb0_n.dds",
+          "18": "crhd_elysium_el22sc0_n.dds",
+          "19": "crhd_elysium_el33sa0_n.dds"
+        },
+        "fallback": "crhd_elysium_el00sa0_n.dds",
+        "encoding": "rgb-xyz-linear"
+      },
+      "specular": {
+        "sourceResource": "ELYSIUM_ATLAS_S.dds",
+        "tiles": {
+          "0": "crhd_elysium_el00sa0_s.dds",
+          "1": "crhd_elysium_el00sb0_s.dds",
+          "2": "crhd_elysium_el00sc0_s.dds",
+          "3": "crhd_elysium_el01ca0_s.dds",
+          "4": "crhd_elysium_el01da0_s.dds",
+          "5": "crhd_elysium_el02ca0_s.dds",
+          "6": "crhd_elysium_el02da0_s.dds",
+          "7": "crhd_elysium_el04ca0_s.dds",
+          "8": "crhd_elysium_el04da0_s.dds",
+          "9": "crhd_elysium_el04sa0_s.dds",
+          "10": "crhd_elysium_el04sb0_s.dds",
+          "11": "crhd_elysium_el11sa0_s.dds",
+          "12": "crhd_elysium_el11sb0_s.dds",
+          "13": "crhd_elysium_el11sc0_s.dds",
+          "14": "crhd_elysium_el12ca0_s.dds",
+          "15": "crhd_elysium_el12da0_s.dds",
+          "16": "crhd_elysium_el22sa0_s.dds",
+          "17": "crhd_elysium_el22sb0_s.dds",
+          "18": "crhd_elysium_el22sc0_s.dds",
+          "19": "crhd_elysium_el33sa0_s.dds"
+        },
+        "fallback": "crhd_elysium_el00sa0_s.dds"
+      },
+      "emissive": {
+        "sourceResource": "black.dds",
+        "tiles": {
+          "0": "crhd_elysium_el00sa0_e.dds",
+          "1": "crhd_elysium_el00sb0_e.dds",
+          "2": "crhd_elysium_el00sc0_e.dds",
+          "3": "crhd_elysium_el01ca0_e.dds",
+          "4": "crhd_elysium_el01da0_e.dds",
+          "5": "crhd_elysium_el02ca0_e.dds",
+          "6": "crhd_elysium_el02da0_e.dds",
+          "7": "crhd_elysium_el04ca0_e.dds",
+          "8": "crhd_elysium_el04da0_e.dds",
+          "9": "crhd_elysium_el04sa0_e.dds",
+          "10": "crhd_elysium_el04sb0_e.dds",
+          "11": "crhd_elysium_el11sa0_e.dds",
+          "12": "crhd_elysium_el11sb0_e.dds",
+          "13": "crhd_elysium_el11sc0_e.dds",
+          "14": "crhd_elysium_el12ca0_e.dds",
+          "15": "crhd_elysium_el12da0_e.dds",
+          "16": "crhd_elysium_el22sa0_e.dds",
+          "17": "crhd_elysium_el22sb0_e.dds",
+          "18": "crhd_elysium_el22sc0_e.dds",
+          "19": "crhd_elysium_el33sa0_e.dds"
+        },
+        "fallback": "crhd_elysium_el00sa0_e.dds"
+      },
+      "microReliefScale": 1.0,
+      "detailContrast": 0.55,
+      "detailNormalStrength": 2.2,
+      "detailNormalNearScale": 0.55,
+      "surfaceBlend": {
+        "coverage": 0.0,
+        "sourceType": 0,
+        "mask": "",
+        "channels": {}
+      }
+    }
+  }
+}

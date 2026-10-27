@@ -97,7 +97,8 @@ local function create(spec)
 		return nil
 	end
 	call("SetParticleSystemKeepLocalSpace", name, false)
-	call("SetParticleSystemNonVisibleUpdateTimeout", name, 2.0)
+	-- Camera-attached: a timeout would freeze an idle volume culled forever.
+	call("SetParticleSystemNonVisibleUpdateTimeout", name, 0)
 	if call("AttachParticleSystemToCamera", name, vec(spec.offset)) ~= true then
 		call("DestroyParticleSystem", name)
 		print("CRPrecip: could not attach " .. spec.template .. " to the camera")

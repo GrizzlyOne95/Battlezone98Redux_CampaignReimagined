@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Run from the repository root: lua5.1 Tools/Test-Misn13Presentation.lua
 -- Part A executes the misn13 presentation adapter (the block between "local unpackArgs" and
 -- "Presentation adapter ends") in isolated Lua 5.1 peers: protocol decisions only, not native
@@ -19,6 +21,7 @@ do
     local function peer(id)
         local p = {calls={}, valid={}}
         local env = setmetatable({}, {__index=_G})
+        env._G = env -- mission chunks resolve _G.SucceedMission/FailMission at call time
         local function record(op, ...) p.calls[#p.calls+1] = {op, ...} end
         for _, op in ipairs({"ClearObjectives", "AddObjective", "UpdateObjective", "SetObjectiveOn",
             "SetObjectiveOff", "SetObjectiveName", "SetUserTarget", "RemoveObject", "SucceedMission",
@@ -31,7 +34,9 @@ do
         env.GetLabel = function(h) return p.labels[h] end
         env.GetHandle = function(label) return p.byLabel[label] end
         env.IsValid = function(h) return p.valid[h] == true end
+        env.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
         env.Send = function(to, kind, ...)
+            for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
             packets[#packets+1] = {from=id, to=to, kind=kind, args={...}}
         end
         env.CRCoop = {
@@ -425,6 +430,7 @@ local function makePeer(id, team)
     e.SetScrap = function(t, v) record("SetScrap", t, v); world.scrap[t] = v end
     e.AddScrap = function(t, v) record("AddScrap", t, v); world.scrap[t] = (world.scrap[t] or 0) + v end
     e.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         record("Send", kind)
         local args = {...}
         local bytes = 4
@@ -476,15 +482,18 @@ local function makePeer(id, team)
                 if p.eu.init and p.eu.init.send then p.eu.init.send("EuropaSurge", seconds, strength) end
             end,
             Seed = 4242},
-        CREuropaSites13 = {mission = "misn13"}, Environment = {Init = noop, Update = noop, OnObjectCreated = noop},
+        CREuropaSites13 = {mission = "misn13"}, Environment = {Init = noop, Update = noop,
+            OnObjectCreated = noop, BindWeatherSensors = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end},
+        PersistentConfig = {Initialize = noop, UpdateInputs = noop, UpdateHeadlights = noop, OnObjectCreated = noop},
         ScriptSubtitles = {
             Play = function(file) record("Play", file); return file end,
             Queue = function(file) record("Queue", file) end,
             Stop = function() record("Stop") end, Update = noop, Initialize = noop},
     }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     e.package = setmetatable({loaded = {exu = modules.exu}}, {__index = package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()

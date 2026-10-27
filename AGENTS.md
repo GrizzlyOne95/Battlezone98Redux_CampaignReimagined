@@ -20,6 +20,15 @@ The DX11 Enhanced base and terrain shaders are the exception to CR ownership: th
 - Terrain data formats (`.trn`/`.hg2`/`.mat`/`.lgt`) are documented, with working codecs, in the sibling `Battlezone98Redux_WorldBuilder` repo at `docs/MAT_FORMAT_VALIDATION.md` and `mat_codec.py`/`hg2_codec.py`. Read it before reasoning about terrain byte layout from a hex dump.
 - The two shared BZR documents above must remain byte-identical across CR, OpenShim, EXU, and bzfile; update all four in one workstream if either changes. `Tools/Validate-CampaignRepository.py` pins their hashes (`SHARED_BZR_DOCS`); update the pins in all four repositories together.
 
+## Model tooling
+
+- Never hand-roll a reader or writer for SDF, VDF, GEO, ANIM, Ogre `.mesh` or `.skeleton`. These already exist:
+  - **Read:** Battlezone98_Modding_Toolbox `battlezone/meshes/legacy.py` (`read_sdf`, `read_vdf`, `read_geo`, `AnimSequence`, `AnimTrack`). Its `legacy_port.py` handles cockpit and person animation.
+  - **Read and write:** BZ98RBlenderToolKit `bz98tools/bzrmodelporter/` (`bzbwd2.py` with `bzbwd2_serializer.py` for SDF/VDF, `bzgeo*`, `ogremesh*`, `ogreskeleton*`).
+- Import them through `Tools/bzmodellibs.py`, which finds both libraries locally (sibling checkouts or `BZ_TOOLBOX_DIR`/`BZ_TOOLKIT_DIR`) and in CI, where `campaign-validation.yml` checks them out at pinned commits.
+- `Tools/bzstaticmodel.py` wraps those writers for CR's one-part static buildings (`static_sdf_bytes`, `static_mesh_bytes`); use it instead of packing SDF/mesh chunks.
+- If a library lacks something you need, fix it upstream in that repository, or report the gap. Never fork a copy into `Tools/`.
+
 ## Working style
 
 - Inspect `git status -sb` and the relevant diff before editing. Preserve unrelated changes.
@@ -35,4 +44,4 @@ The DX11 Enhanced base and terrain shaders are the exception to CR ownership: th
 - New shipped files require `-bless`; review the lock diff. Use `-allow-removals` only when removing shipping entries intentionally. Deploy verifies against the lock by default.
 - Preserve runtime-only files excluded by the manager. Installed copies and `Local\Workshop` are generated output, not source.
 - `Bin\` is a cache refreshed from sibling build outputs, not an independent source. Override those repositories only with the documented `BZR_OPENSHIM_REPO`, `BZR_EXU_REPO`, and `BZR_BZFILE_REPO` variables.
-- Real Workshop publication is incomplete until OpenShim's `Docs/STEAM_ROADMAP_BBCODE.txt` is synchronized to the Steam Roadmap discussion. Follow the checklist; dry runs do not require public edits.
+- Real Workshop publication is incomplete until OpenShim's `Docs/STEAM_ROADMAP_BBCODE.txt` and `Docs/STEAM_STOCK_FIXES_BBCODE.txt` are synchronized to the Steam Roadmap and stock bug fixes discussions. Follow the checklist; dry runs do not require public edits.

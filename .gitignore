@@ -49,22 +49,25 @@
 !/update.des
 !/staged.des
 !/nocopy.des
-!/misn03.des
-!/misn04.des
-!/misn05.des
-!/misn06.des
-!/misn07.des
-!/misn08.des
-!/misn09.des
-!/misn10.des
-!/misn11.des
-!/misn12.des
-!/misn13.des
-!/misn14.des
-!/misn02b.des
+!/misn03.mpdes
+!/misn04.mpdes
+!/misn05.mpdes
+!/misn06.mpdes
+!/misn07.mpdes
+!/misn08.mpdes
+!/misn09.mpdes
+!/misn10.mpdes
+!/misn11.mpdes
+!/misn12.mpdes
+!/misn13.mpdes
+!/misn14.mpdes
+!/misn02b.mpdes
 
 # Local machine/generated artifacts live under Local and stay ignored
 /Local/
+
+# Blender's authoring helpers import modules beside these build scripts.
+/Tools/__pycache__/
 
 # Ignore system files
 thumbs.db
@@ -78,3 +81,11 @@ desktop.ini
 # Chunk meshes are no longer part of this repository or the pack: OpenShim
 # generates them at runtime from the stock models. Assets/chunkMeshes*
 # is excluded from the shipping set in Manage-CampaignFiles.ps1.
+
+!misn15.mpdes
+
+!misn16.mpdes
+
+!misn17.mpdes
+
+!misn18.mpdes

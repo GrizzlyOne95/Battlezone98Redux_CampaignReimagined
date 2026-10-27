@@ -22,8 +22,10 @@
 --              drives everything continuous; integer rungs select a CRWeather
 --              preset. It sets the event rates (plumes, quakes, surges).
 --   presets    five Europa* CRWeather presets (registered at Init; the shared
---              CRWeatherPresets.lua is not edited): cold pale fog, Jupiter-lit
---              ambient, and a sparse ice glitter falling STRAIGHT down.
+--              CRWeatherPresets.lua is not edited): a faint cold frost haze and
+--              a sparse ice glitter (CR/Europa/Glitter) falling STRAIGHT down.
+--              The light itself is Environment.lua's orbit (sun, eclipse,
+--              Jupiter-shine).
 --   plumes     a vapour column at each vent site, host-scheduled and replicated,
 --              with ice fall (CR/Europa/IceFall) and a local frost haze that
 --              briefly thins the view near the vent.
@@ -86,6 +88,7 @@
 
 local exu = require("exu")
 local CRWeather = require("CRWeather")
+local Wake = require("CRWake")
 local CRWeatherPresets = require("CRWeatherPresets")
 local Map = require("CRVenusMap")
 
@@ -112,6 +115,7 @@ V.AllowRandomSurges    = true    -- the host schedules unscripted surges
 V.AllowAurora          = true    -- violet-green motes during a surge
 V.AllowEpisodes        = true    -- temporary intense spells
 V.AllowSounds          = true    -- local 2D rumble / crackle (never positional gameplay noise)
+V.AllowGlassSnow       = true    -- a few snow flakes on the cockpit glass (CRWetGlass.Weather)
 
 -- Hard budgets. These are caps, not targets.
 V.MaxSystems           = 28      -- every particle system this module owns, at once
@@ -257,11 +261,14 @@ local LEVEL_COUNT = #V.Levels
 -- =============================================================================
 -- Presets
 --
--- Europa's light is a weak distant sun plus a huge Jupiter: pale, cold, blue-grey
--- ice under a black sky. There is no air, so there is no real fog; the faint
--- cold haze is the frost the vents and the surface leave in the lowest metres,
--- and it thickens a little with activity. Each preset carries ONE precipitation
--- layer: a sparse ice glitter (CR/Weather/SnowLight) that falls straight down
+-- Europa is airless: pale, cold, blue-grey ice under a black sky, and the light
+-- is Environment's orbit (a small, far sun by day, Jupiter at night), so the
+-- presets carry no ambient or diffuse of their own. There is no real fog
+-- either; the faint cold haze is the frost the vents and the surface leave in
+-- the lowest metres, kept dark so the horizon does not glow against the black
+-- sky, and it thickens a little with activity. Each preset carries ONE
+-- precipitation layer: a sparse ice glitter (CR/Europa/Glitter, SnowLight on a
+-- material DX11 draws in the right colours) that falls straight down
 -- (the director pins CRWeather's wind override to straight down, so the emitter
 -- direction is vertical and no drift is ever applied). No preset has lightning,
 -- a sky, or a wind. Registered into CRWeatherPresets.Presets at Init rather than
@@ -270,20 +277,15 @@ local LEVEL_COUNT = #V.Levels
 
 local PRESET_ROWS = {
     { name = "EuropaQuiescent", rate = 14.0, quota = 260, a = 0.55,
-      fog = { 0.52, 0.60, 0.72, 150.0, 290.0 }, ambient = { 0.30, 0.34, 0.43 },
-      diffuse = { 0.62, 0.65, 0.72 }, sun = 0.82, tin = 24.0, tout = 28.0 },
+      fog = { 0.20, 0.24, 0.30, 150.0, 290.0 }, sun = 0.82, tin = 24.0, tout = 28.0 },
     { name = "EuropaStirring", rate = 26.0, quota = 360, a = 0.58,
-      fog = { 0.51, 0.59, 0.71, 130.0, 275.0 }, ambient = { 0.29, 0.33, 0.43 },
-      diffuse = { 0.61, 0.64, 0.72 }, sun = 0.80, tin = 22.0, tout = 28.0 },
+      fog = { 0.21, 0.25, 0.31, 130.0, 275.0 }, sun = 0.80, tin = 22.0, tout = 28.0 },
     { name = "EuropaVenting", rate = 44.0, quota = 480, a = 0.62,
-      fog = { 0.50, 0.58, 0.71, 110.0, 258.0 }, ambient = { 0.28, 0.33, 0.43 },
-      diffuse = { 0.60, 0.64, 0.72 }, sun = 0.78, tin = 20.0, tout = 26.0 },
+      fog = { 0.21, 0.26, 0.33, 110.0, 258.0 }, sun = 0.78, tin = 20.0, tout = 26.0 },
     { name = "EuropaFlexing", rate = 64.0, quota = 600, a = 0.66,
-      fog = { 0.48, 0.57, 0.71, 95.0, 242.0 }, ambient = { 0.27, 0.32, 0.43 },
-      diffuse = { 0.58, 0.63, 0.72 }, sun = 0.75, tin = 18.0, tout = 26.0 },
+      fog = { 0.22, 0.27, 0.34, 95.0, 242.0 }, sun = 0.75, tin = 18.0, tout = 26.0 },
     { name = "EuropaPerijove", rate = 90.0, quota = 760, a = 0.70,
-      fog = { 0.45, 0.55, 0.70, 80.0, 222.0 }, ambient = { 0.26, 0.31, 0.43 },
-      diffuse = { 0.56, 0.62, 0.72 }, sun = 0.72, tin = 16.0, tout = 26.0 },
+      fog = { 0.22, 0.28, 0.36, 80.0, 222.0 }, sun = 0.72, tin = 16.0, tout = 26.0 },
 }
 
 local function BuildPreset(row)
@@ -292,7 +294,7 @@ local function BuildPreset(row)
         precipitation = {
             {
                 system   = "cr_wx_europa_ice",
-                template = "CR/Weather/SnowLight",
+                template = "CR/Europa/Glitter",
                 offset   = { x = 0.0, y = 28.0, z = 0.0 },
                 quota    = row.quota,
                 emitters = {
@@ -311,8 +313,8 @@ local function BuildPreset(row)
         },
         sky           = nil,
         fog           = { r = row.fog[1], g = row.fog[2], b = row.fog[3], fogStart = row.fog[4], fogEnd = row.fog[5] },
-        ambient       = { r = row.ambient[1], g = row.ambient[2], b = row.ambient[3] },
-        diffuse       = { r = row.diffuse[1], g = row.diffuse[2], b = row.diffuse[3] },
+        ambient       = nil,
+        diffuse       = nil,
         sunPowerScale = row.sun,
         wind          = { x = 0.0, y = -1.0, z = 0.0 },
         windSpeed     = 1.0,
@@ -691,7 +693,24 @@ end
 -- Streaming
 -- =============================================================================
 
-local function StreamSites(sites, live, maxLive, inRange, outRange, create, destroy, playerPos)
+-- A vent whose geyser has a building deployed on it draws nothing: CRGeysers
+-- reads the occupancy (read-only, cached about a second). Without CRGeysers, or
+-- when it knows no geyser there, the vent is drawn as before.
+local GeysersModule = nil
+local function VentOccupied(site)
+    if GeysersModule == nil then
+        local okLoad, loaded = pcall(require, "CRGeysers")
+        GeysersModule = (okLoad and type(loaded) == "table") and loaded or false
+    end
+    local geysers = GeysersModule
+    if not geysers or type(geysers.IsOccupiedAt) ~= "function" or site == nil then
+        return false
+    end
+    local ok, occupied = pcall(geysers.IsOccupiedAt, site.x, site.z)
+    return ok and occupied == true
+end
+
+local function StreamSites(sites, live, maxLive, inRange, outRange, create, destroy, playerPos, blocked)
     if playerPos == nil then return end
 
     local count = 0
@@ -699,7 +718,7 @@ local function StreamSites(sites, live, maxLive, inRange, outRange, create, dest
     for index in pairs(live) do
         local site = sites[index]
         local d = site and Distance2D(site.x, site.z, playerPos.x, playerPos.z) or nil
-        if d == nil or d > outRange then
+        if d == nil or d > outRange or (blocked ~= nil and blocked(site)) then
             drop[#drop + 1] = index
         else
             count = count + 1
@@ -716,7 +735,7 @@ local function StreamSites(sites, live, maxLive, inRange, outRange, create, dest
     for index = 1, #sites do
         if live[index] == nil then
             local d = Distance2D(sites[index].x, sites[index].z, playerPos.x, playerPos.z)
-            if d < bestDistance then
+            if d < bestDistance and not (blocked ~= nil and blocked(sites[index])) then
                 best, bestDistance = index, d
             end
         end
@@ -847,7 +866,7 @@ function V.BeginPlume(id, siteIndex, duration, power)
     if not V.AllowPlumes then return false end
     siteIndex = floor(tonumber(siteIndex) or 0)
     local site = V.VentSites[siteIndex]
-    if site == nil then return false end
+    if site == nil or VentOccupied(site) then return false end
     id = tonumber(id)
     if id ~= nil then
         if V.SeenPlumes[id] then return false end
@@ -1192,6 +1211,8 @@ local function UpdateQuake()
             local name = Fx_Create("quakeice", "CR/Europa/QuakeIce", 0.0, 0.0, 0.0)
             if name ~= nil then
                 Call("AttachParticleSystemToCamera", name, Vec(0.0, 22.0, 0.0))
+                -- Idle until a quake; a timeout would leave it culled for good.
+                Call("SetParticleSystemNonVisibleUpdateTimeout", name, 0)
                 V.QuakeFx = { name = name, rate = -1.0, until_ = math.huge }
             end
         end
@@ -1346,6 +1367,7 @@ local function UpdateSurge()
             local name = Fx_Create("surge", "CR/Europa/SurgeMotes", 0.0, 0.0, 0.0)
             if name ~= nil then
                 Call("AttachParticleSystemToCamera", name, Vec(0.0, 40.0, 0.0))
+                Call("SetParticleSystemNonVisibleUpdateTimeout", name, 0)
                 V.SurgeFx = { name = name, rate = -1.0, until_ = math.huge }
             end
         end
@@ -1562,6 +1584,7 @@ function V.Init(options)
         ventHaze = "AllowVentHaze", quakes = "AllowQuakes", randomQuakes = "AllowRandomQuakes",
         quakeIce = "AllowQuakeIce", surges = "AllowSurges", randomSurges = "AllowRandomSurges",
         aurora = "AllowAurora", episodes = "AllowEpisodes", sounds = "AllowSounds",
+        glassSnow = "AllowGlassSnow",
     }
     for key, field in pairs(switches) do
         if options[key] ~= nil then V[field] = options[key] and true or false end
@@ -1575,6 +1598,13 @@ function V.Init(options)
         quality = options.quality,
         debug   = options.debug,
         baseSky = options.baseSky,
+    })
+
+    -- Vehicle wakes: render-only debris under low, moving craft near the viewer
+    -- (shared CRWake module). options.vehicleWakes = false switches them off.
+    pcall(Wake.Init, {
+        surface = "ice", enabled = options.vehicleWakes ~= false, quality = options.quality,
+        debug = options.debug,
     })
 
     -- Our particle templates are an opt-in payload, so a build that has not
@@ -1592,6 +1622,7 @@ function V.Init(options)
 
     V.Clock = 0.0
     V.LastRealTime = nil
+    V.GlassSnow = 0.0
     V.TargetLevel = Clamp(tonumber(options.targetLevel) or 2, 1, LEVEL_COUNT)
     V.ForcedLevel = nil
     V.ForcedUntil = nil
@@ -1679,6 +1710,37 @@ local function RealDelta(fallbackDt)
     return delta
 end
 
+-- Light snow on the cockpit glass (CRWetGlass: sparse flakes that land and melt, no streaks). A
+-- constant light level that follows the activity ladder a little and breathes slowly, eased so the
+-- glass never jumps. Off with the director, with CRWeather.Quality 0 or with AllowGlassSnow.
+local GlassModule = nil
+local function Glass()
+    if GlassModule == nil then
+        local ok, m = pcall(require, "CRWetGlass")
+        GlassModule = (ok and type(m) == "table" and type(m.Weather) == "function") and m or false
+    end
+    return GlassModule or nil
+end
+
+local GLASS_SNOW_BASE, GLASS_SNOW_SPAN = 0.22, 0.38   -- level at quiescent, plus the climb to perijove
+local GLASS_SNOW_RATE = 0.04                          -- level per second the glass follows the target at
+
+local function UpdateGlassSnow(dt)
+    local glass = Glass()
+    if glass == nil then return end
+    local target = 0.0
+    if V.AllowGlassSnow and (tonumber(CRWeather.Quality) or 1.0) > 0.0 then
+        local breathe = 0.85 + 0.15 * math.sin(V.Clock * (2.0 * math.pi / 170.0))
+        target = (GLASS_SNOW_BASE + GLASS_SNOW_SPAN * V.GetSeverity()) * breathe
+    end
+    local step = GLASS_SNOW_RATE * dt
+    V.GlassSnow = V.GlassSnow + Clamp(target - V.GlassSnow, -step, step)
+    glass.Weather("snow", V.GlassSnow)
+    if V.GlassSnow > 0.0 or glass.Busy() then glass.Update(0.0) end
+end
+
+function V.GetGlassSnow() return V.GlassSnow or 0.0 end
+
 function V.Update(dt)
     if not V.Initialized then V.Init() end
     if not V.Enabled then return end
@@ -1699,6 +1761,7 @@ function V.Update(dt)
     UpdateSurge()
     UpdateVents(dt)
     UpdateFrostSystems()
+    UpdateGlassSnow(dt)
 
     if V.Clock >= V.NextStreamAt then
         V.NextStreamAt = V.Clock + V.StreamInterval
@@ -1710,12 +1773,13 @@ function V.Update(dt)
             end
             if V.AllowPlumes then
                 StreamSites(V.VentSites, V.PlumeLive, V.MaxLivePlumes, V.PlumeStreamIn, V.PlumeStreamOut,
-                    PlumeCreate, PlumeDestroy, playerPos)
+                    PlumeCreate, PlumeDestroy, playerPos, VentOccupied)
             end
         end
     end
 
     BroadcastState(false)
+    Wake.Update(dt)
     CRWeather.Update(dt)
 end
 
@@ -1729,6 +1793,13 @@ function V.Shutdown()
     Fx_DestroyAll()
     V.FrostLive, V.PlumeLive = {}, {}
 
+    local glass = Glass()
+    if glass ~= nil then
+        glass.Weather("snow", 0.0)
+        pcall(glass.Stop)
+    end
+    V.GlassSnow = 0.0
+
     local environment = rawget(_G, "Environment")
     if V.EnvModifierRegistered and environment ~= nil
         and type(environment.UnregisterEnvironmentModifier) == "function"
@@ -1738,6 +1809,7 @@ function V.Shutdown()
     V.EnvModifierRegistered = false
 
     CRWeather.ClearWindOverride()
+    Wake.Stop()
     CRWeather.Shutdown()
     V.Initialized = false
 end

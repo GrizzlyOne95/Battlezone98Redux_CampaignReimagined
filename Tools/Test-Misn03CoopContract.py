@@ -64,7 +64,7 @@ assert "local function PresentMissionPhase()" in lua, "phase presentation handle
 # Separate native mode INIs must resolve the one shared BZN/script by stem.
 mp = configparser.ConfigParser()
 mp.read(root / "Config" / "misn03.ini", encoding="utf-8")
-assert mp["DESCRIPTION"]["missionName"] == '"CR: Eagle\'s Nest 1 Coop"'
+assert mp["DESCRIPTION"]["missionName"] == '"CR 02: Eagle\'s Nest 1 Coop"'
 assert mp["WORKSHOP"]["mapType"] == '"multiplayer"'
 assert dict(mp["MULTIPLAYER"]) == {
     "minplayers": '"2"', "maxplayers": '"4"', "gametype": '"S"',
@@ -80,7 +80,7 @@ assert vehicles == ["avtank", "avfimp"], "MP selection must be tank or scout onl
 for odf in vehicles:
     assert (root / "ODF" / (odf + ".odf")).is_file()
 
-description = (root / "misn03.des").read_text().strip()
+description = (root / "misn03.mpdes").read_text().strip()
 assert len(description) <= 300 and "\n" not in description
 assert "team 1" in description and "teams 2-4" in description
 bitmap = (root / "Assets" / "Graphics" / "misn03.bmp").read_bytes()
@@ -94,7 +94,7 @@ entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
 assert lock["count"] == len(lock["files"])
 manager = (root / "Manage-CampaignFiles.ps1").read_text(encoding="utf-8-sig")
 for source in (r"Config\misn03.ini", r"Assets\Graphics\misn03.bmp",
-               "misn03.des", r"Missions\misn03.vxt",
+               "misn03.mpdes", r"Missions\misn03.vxt",
                r"Missions\misn03.bzn", r"Scripts\misn03.lua"):
     runtime = source.split("\\")[-1]
     assert entries.get(source) == runtime, f"missing shipping entry: {source}"

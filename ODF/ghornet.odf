@@ -1,0 +1,36 @@
+[WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored rocket: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_rocket.mesh"
+flashMaterial = "CR/Muzzle/rocket"
+flashDuration = 0.1
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
+classLabel = "thermallauncher"
+ordName = "heatmsl"
+wpnName = "Hornet"
+fireSound = "gmasg00.wav"
+wpnReticle = "ghornet.0"
+wpnPriority = 0
+wpnCategory = "ROCK"
+
+[LauncherClass]
+lockRange = 200.0
+shotDelay = 1.0
+lockDelay = 2.0
+coneAngle = 0.075
+lockingReticle = "ghornet.A"
+lockingSound = "locking3.wav"
+lockedReticle = "ghornet.B"
+lockedSound = "locked3.wav"
+targetCount = 3
+targetReticle01 = "ghornet.1"
+targetReticle02 = "ghornet.2"
+targetReticle03 = "ghornet.3"

@@ -1,0 +1,464 @@
+{
+  "plates": {
+    "harebell": {
+      "file": "01_harebell.jpg",
+      "sha256": "9863e9c83cd98b1d3eee693831a0626b2a66e5f1e21b468652abe639e3e31ce8",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/39/Campanula_rotundifolia_%28Thom%C3%A9_Bd.4_1905%2C_BHL-81515%2C_Tafel_561%29_clean.jpg"
+    },
+    "fireweed": {
+      "file": "02_fireweed.jpg",
+      "sha256": "58c254b9e4af2b5108a63bd3e32f6ef1311e68abb2e833b3a8afde8ef1f40c58",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/66/Illustration_Epilobium_angustifolium0.jpg"
+    },
+    "anemone": {
+      "file": "03_anemone.jpg",
+      "sha256": "9f9f9cb229241480609621db5b3302c43efd76f845b6d9e6cc8c481bc2c7b6b8",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/14/Illustration_Anemone_nemorosa0.jpg"
+    },
+    "bunchberry": {
+      "file": "04_bunchberry.png",
+      "sha256": "13dbc5c0b804e5febb210df00fef6dd1bafd7af2a7efc88c615d07fbac04b5b7",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Cornus_canadensis_HdB2.png"
+    },
+    "twinflower": {
+      "file": "06_twinflower_sturm.jpg",
+      "sha256": "bf9b927a2779a20e04447cb5966c5704edc7c9115183e81213cb4e4ea817320e",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Linnaea_borealis_Sturm12046.jpg"
+    },
+    "cottongrass": {
+      "file": "07_cottongrass.jpg",
+      "sha256": "ecf87e96d85b14a2a2ebe15e1e05497e02cb7ba41cd53ca3e3cf4eafc26172a3",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2a/Eriophorum_polystachion_%E2%80%94_Flora_Batava_%E2%80%94_Volume_v1.jpg"
+    },
+    "saxifrage": {
+      "file": "08_saxifrage.jpg",
+      "sha256": "2d3a5e83e8294fc97ba2caeefb7ee349ca9948551306065fc4e74273c3f6651b",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Saxifraga_oppositifolia_Sturm54.jpg"
+    },
+    "lupine": {
+      "file": "09_lupine.jpg",
+      "sha256": "36a370a4a66e654db363d64e3875f18566dcf3834342ac0273df4811032d227b",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Lupinus_polyphyllus_Lindley_1827.jpg"
+    },
+    "fern_moore": {
+      "file": "10_fern_moore.png",
+      "sha256": "f244eee97d15dfd6a29b27a42ea55af8c50be531e28f87c3ebb89ba99078043a",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a7/Athyrium_filix-femina_Moore30.png"
+    },
+    "fern_thome": {
+      "file": "11_fern_thome.jpg",
+      "sha256": "4db4335856c91bd3a3d409e5071698b45d1a06bb4be189217a0ecc5b544a1b00",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/dc/Illustration_Athyrium_filix-femina0.jpg"
+    },
+    "fescue": {
+      "file": "12_fescue.jpg",
+      "sha256": "d4c8e7f049cc7684a455d39ac69e21b6c889c28bdd8f98b7c9975313e830dd66",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/50/Illustration_Festuca_ovina0.jpg"
+    },
+    "sedge": {
+      "file": "13_sedge.jpg",
+      "sha256": "0aa26da033370c0c7338bc156b0bea3194cec32f2b4a3adb1f4d345975beee9b",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b2/Carex_vulgaris_%E2%80%94_Flora_Batava_%E2%80%94_Volume_v12.jpg"
+    },
+    "blades": {
+      "file": "Foliage006/Foliage006_1K-PNG_Color.png",
+      "sha256": "4ded0f29ccffbc8a7044f4cf439cc54d366c9db49f7aa9547066c6b16c3aed49",
+      "url": "https://ambientcg.com/get?file=Foliage006_1K-PNG.zip"
+    },
+    "blades_alpha": {
+      "file": "Foliage006/Foliage006_1K-PNG_Opacity.png",
+      "sha256": "9961f4b9284d898c5346445ce09e91a212155ad60b785b9d5b21a20bbdc8170a",
+      "url": "https://ambientcg.com/get?file=Foliage006_1K-PNG.zip"
+    }
+  },
+  "atlas": {
+    "file": "cr17_flowers.dds",
+    "size": 2048,
+    "format": "DXT5 with mips",
+    "sha256": "43698e785659df929fad76349c47aeb25feda1805e45c3fd66d215a737c73de0",
+    "rects_xywh": {
+      "anemone": [
+        946,
+        796,
+        320,
+        463
+      ],
+      "anemone_leaf": [
+        1756,
+        1464,
+        292,
+        270
+      ],
+      "bunchberry": [
+        521,
+        1464,
+        610,
+        386
+      ],
+      "bunchberry_top": [
+        1143,
+        1464,
+        252,
+        347
+      ],
+      "cottongrass": [
+        489,
+        796,
+        286,
+        618
+      ],
+      "fern": [
+        12,
+        12,
+        468,
+        772
+      ],
+      "fern_b": [
+        753,
+        12,
+        482,
+        734
+      ],
+      "fireweed": [
+        492,
+        12,
+        249,
+        772
+      ],
+      "grass": [
+        787,
+        796,
+        147,
+        618
+      ],
+      "grass_seed": [
+        1767,
+        12,
+        170,
+        656
+      ],
+      "harebell": [
+        12,
+        796,
+        233,
+        656
+      ],
+      "lupine": [
+        1247,
+        12,
+        508,
+        734
+      ],
+      "saxifrage": [
+        1407,
+        1464,
+        337,
+        347
+      ],
+      "sedge": [
+        257,
+        796,
+        220,
+        656
+      ],
+      "tuft": [
+        1278,
+        796,
+        341,
+        425
+      ],
+      "twinflower": [
+        12,
+        1464,
+        497,
+        425
+      ]
+    }
+  },
+  "meshes": {
+    "cr17_fl_harebell": {
+      "cards": [
+        "harebell"
+      ],
+      "layout": "cross3",
+      "height_m": 0.3,
+      "material": "CR17/FlowerWind",
+      "triangles": 6,
+      "bounds_min": [
+        -0.05,
+        -0.012,
+        -0.056
+      ],
+      "bounds_max": [
+        0.049,
+        0.299,
+        0.053
+      ],
+      "sha256": "52ffc5977ff2a6d57d90985e1658d39e35a8070da161c407e901ffb74d674d7d"
+    },
+    "cr17_fl_fireweed": {
+      "cards": [
+        "fireweed"
+      ],
+      "layout": "cross3",
+      "height_m": 1.25,
+      "material": "CR17/FlowerTallWind",
+      "triangles": 6,
+      "bounds_min": [
+        -0.197,
+        -0.05,
+        -0.193
+      ],
+      "bounds_max": [
+        0.2,
+        1.255,
+        0.185
+      ],
+      "sha256": "283d7a467908c5255df486289ee507d513732ac7fe839b4b10c3964af355f27f"
+    },
+    "cr17_fl_anemone": {
+      "cards": [
+        "anemone_leaf",
+        "anemone"
+      ],
+      "layout": "carpet",
+      "height_m": 0.15,
+      "material": "CR17/FlowerWind",
+      "triangles": 6,
+      "bounds_min": [
+        -0.181,
+        -0.025,
+        -0.164
+      ],
+      "bounds_max": [
+        0.181,
+        0.135,
+        0.164
+      ],
+      "sha256": "f8077845c2ed2cefac752f0e59016a2d9bf9ae5d80f9d389eb3ce19763c7a267"
+    },
+    "cr17_fl_bunchberry": {
+      "cards": [
+        "bunchberry_top",
+        "bunchberry"
+      ],
+      "layout": "carpet",
+      "height_m": 0.15,
+      "material": "CR17/FlowerWind",
+      "triangles": 6,
+      "bounds_min": [
+        -0.223,
+        -0.042,
+        -0.273
+      ],
+      "bounds_max": [
+        0.223,
+        0.147,
+        0.273
+      ],
+      "sha256": "bcf9063e9b32708b779b0bf4b909cf351cb802c111381ebca01b593acb3de99b"
+    },
+    "cr17_fl_twinflower": {
+      "cards": [
+        "twinflower",
+        "twinflower"
+      ],
+      "layout": "carpet",
+      "height_m": 0.15,
+      "material": "CR17/FlowerWind",
+      "triangles": 6,
+      "bounds_min": [
+        -0.172,
+        -0.062,
+        -0.204
+      ],
+      "bounds_max": [
+        0.172,
+        0.143,
+        0.204
+      ],
+      "sha256": "a4eb62d68c0b744dd1e3f4ccc891267f3469b4d020f0f77af26543616a59162e"
+    },
+    "cr17_fl_cottongrass": {
+      "cards": [
+        "cottongrass"
+      ],
+      "layout": "cross3",
+      "height_m": 0.4,
+      "material": "CR17/FlowerWind",
+      "triangles": 6,
+      "bounds_min": [
+        -0.098,
+        -0.016,
+        -0.096
+      ],
+      "bounds_max": [
+        0.087,
+        0.385,
+        0.084
+      ],
+      "sha256": "352c94e7778b8df934f0d7c5667eff10fafafa0859b4d9d5c9079d9df278c384"
+    },
+    "cr17_fl_saxifrage": {
+      "cards": [
+        "saxifrage",
+        "saxifrage"
+      ],
+      "layout": "carpet",
+      "height_m": 0.08,
+      "material": "CR17/FlowerWind",
+      "triangles": 6,
+      "bounds_min": [
+        -0.114,
+        -0.032,
+        -0.111
+      ],
+      "bounds_max": [
+        0.114,
+        0.08,
+        0.111
+      ],
+      "sha256": "739ac03e4dfc81c51901054c62cd91a6334f6b6812e9408b13ae41b4a7e676ec"
+    },
+    "cr17_fl_lupine": {
+      "cards": [
+        "lupine"
+      ],
+      "layout": "cross3",
+      "height_m": 0.6,
+      "material": "CR17/FlowerTallWind",
+      "triangles": 6,
+      "bounds_min": [
+        -0.184,
+        -0.024,
+        -0.186
+      ],
+      "bounds_max": [
+        0.201,
+        0.598,
+        0.19
+      ],
+      "sha256": "464752cc6d4d5a045ebcb984eadccca7b5827de1fdcae8f2bfe3a478a300b994"
+    },
+    "cr17_fl_fern": {
+      "cards": [
+        "fern"
+      ],
+      "layout": "fan",
+      "height_m": 0.75,
+      "material": "CR17/FlowerTallWind",
+      "triangles": 10,
+      "bounds_min": [
+        -0.605,
+        -0.03,
+        -0.521
+      ],
+      "bounds_max": [
+        0.673,
+        0.734,
+        0.465
+      ],
+      "sha256": "795fe184ebcc50014d60302469c852e2282bf83575b0be93fa04afa82a8a2a02"
+    },
+    "cr17_fl_fernb": {
+      "cards": [
+        "fern_b"
+      ],
+      "layout": "fan",
+      "height_m": 0.75,
+      "material": "CR17/FlowerTallWind",
+      "triangles": 10,
+      "bounds_min": [
+        -0.563,
+        -0.03,
+        -0.708
+      ],
+      "bounds_max": [
+        0.592,
+        0.752,
+        0.606
+      ],
+      "sha256": "a17326e6940b2e88cf6ffd0b5758dfdff8bc67e8321d9603964ffa14bb5a376f"
+    },
+    "cr17_fl_grass": {
+      "cards": [
+        "grass"
+      ],
+      "layout": "cross3",
+      "height_m": 0.4,
+      "material": "CR17/FlowerWind",
+      "triangles": 6,
+      "bounds_min": [
+        -0.055,
+        -0.016,
+        -0.047
+      ],
+      "bounds_max": [
+        0.044,
+        0.381,
+        0.046
+      ],
+      "sha256": "529f581d62efe744c0045f23ad0a29555bf5810eaeb9b89b135f60f17265b719"
+    },
+    "cr17_fl_grassseed": {
+      "cards": [
+        "grass_seed"
+      ],
+      "layout": "cross2",
+      "height_m": 0.5,
+      "material": "CR17/FlowerWind",
+      "triangles": 4,
+      "bounds_min": [
+        -0.079,
+        -0.02,
+        -0.061
+      ],
+      "bounds_max": [
+        0.044,
+        0.479,
+        0.081
+      ],
+      "sha256": "77b11e245fa285b0a6f9db99c0dbd7c88fcd338c2ff72bf46e62db713c1d5944"
+    },
+    "cr17_fl_sedge": {
+      "cards": [
+        "sedge"
+      ],
+      "layout": "cross3",
+      "height_m": 0.45,
+      "material": "CR17/FlowerWind",
+      "triangles": 6,
+      "bounds_min": [
+        -0.076,
+        -0.018,
+        -0.076
+      ],
+      "bounds_max": [
+        0.078,
+        0.454,
+        0.071
+      ],
+      "sha256": "d249b760c83e01dfd1c5ed2a5b15154b70d5d10ce2d9bf56c04ec5441c808b70"
+    },
+    "cr17_fl_tuft": {
+      "cards": [
+        "tuft"
+      ],
+      "layout": "cross3",
+      "height_m": 0.35,
+      "material": "CR17/FlowerWind",
+      "triangles": 6,
+      "bounds_min": [
+        -0.126,
+        -0.014,
+        -0.137
+      ],
+      "bounds_max": [
+        0.127,
+        0.342,
+        0.135
+      ],
+      "sha256": "8ed75251a6a230ed755c99dcd6f70d1aa00efe82df4b0090ad5f58ef2f5c24da"
+    }
+  }
+}

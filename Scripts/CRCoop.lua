@@ -48,6 +48,7 @@ local missionStarted = false
 local leaderDeparted = false
 local missionPhase = 0
 local initialized = false
+local scoreboardDefaultApplied, killNoticeDefaultApplied = false, false
 local onOutOfLives = nil
 local outOfLivesLocal = false     -- this player has no lives left
 local outOfLivesHandled = false   -- host: the mission failure was requested
@@ -142,8 +143,27 @@ local function FindLeaderId()
     return nil
 end
 
+local diagnostics = require("CRCoopDiagnostics").Create({
+    time = function() return type(GetTime) == "function" and GetTime() or 0 end,
+    players = function() return players end, localId = ResolveLocalPlayerId,
+    valid = IsUsableHandle, humanTeam = IsHumanTeam, protocol = PROTOCOL_VERSION,
+    phase = function() return missionPhase end,
+    ready = function() return CRCoop.IsSessionReady() end,
+    leaderTeam = function() return leaderTeam end,
+    leaderDeparted = function() return leaderDeparted end,
+    delivery = function() return comms and comms.GetNetworkDiagnostics() or { peers = {} } end,
+})
+local function SendControl(to, kind, ...)
+    if type(Send) ~= "function" then return end
+    diagnostics.Sent(to)
+    return Send(to, kind, ...)
+end
+function CRCoop.GetNetworkDiagnostics() return diagnostics.Snapshot() end
+
 function CRCoop.Initialize(options)
     initialized = false
+    diagnostics.Reset()
+    scoreboardDefaultApplied, killNoticeDefaultApplied = false, false
     options = options or {}
 
     if type(options.getLocalPlayerId) == "function" then
@@ -265,6 +285,11 @@ function CRCoop.Initialize(options)
                     SetObjectiveName(h, label)
                     if switchOn then SetObjectiveOn(h) end
                 else SetObjectiveOff(h); SetObjectiveName(h, plain) end
+            end,
+            -- nil (unknown) without EXU, so markers are never re-applied blind.
+            objectiveOn = function(h)
+                local x = package.loaded.exu
+                if x and type(x.IsObjectiveOn) == "function" then return x.IsObjectiveOn(h) end
             end,
         })
     end
@@ -469,6 +494,7 @@ function CRCoop.DeletePlayer(id)
         leaderDeparted = true
     end
     players[id] = nil
+    diagnostics.Forget(id)
 end
 
 function CRCoop.ApplyCoopAlliances(enemyTeam)
@@ -498,13 +524,29 @@ end
 function CRCoop.Update()
     if not initialized then return end
     local localHandle = RefreshLocalHandle()
+    -- Set local presentation defaults once after native mission setup. M must
+    -- remain free to reveal/hide the scoreboard for the rest of the session.
+    -- Retry if EXU is loaded after Initialize, without changing solo behavior.
+    if IsNetworkGame() and IsUsableHandle(localHandle) then
+        local x = package.loaded.exu
+        if x then
+            if not scoreboardDefaultApplied and type(x.SetShowScoreboard) == "function" then
+                local ok = pcall(x.SetShowScoreboard, false)
+                scoreboardDefaultApplied = ok
+            end
+            if not killNoticeDefaultApplied and type(x.SetShowKillMessages) == "function" then
+                local ok, applied = pcall(x.SetShowKillMessages, false)
+                killNoticeDefaultApplied = ok and applied == true
+            end
+        end
+    end
     if comms then comms.Update() end
     if respawn then respawn.Update() end
     if outOfLivesLocal and not CRCoop.IsCampaignLeader() and IsNetworkGame() and type(Send) == "function" then
         local t = type(GetTime) == "function" and GetTime() or 0.0
         if t >= nextOutOfLivesSend then
             nextOutOfLivesSend = t + 1.0
-            Send(0, OUT_OF_LIVES_MESSAGE)
+            SendControl(0, OUT_OF_LIVES_MESSAGE)
         end
     end
 
@@ -524,7 +566,10 @@ function CRCoop.Update()
     if now >= nextHandleBroadcast then
         nextHandleBroadcast = now + handleBroadcastInterval
         if type(Send) == "function" then
-            Send(0, HANDLE_MESSAGE, localHandle)
+            -- Append diagnostics to the existing heartbeat, no new packet.
+            -- Older clients consume its first handle argument as before.
+            SendControl(0, HANDLE_MESSAGE, localHandle, PROTOCOL_VERSION,
+                CRCoop.IsCampaignLeader() or syncAcknowledged, missionPhase)
         end
     end
 
@@ -533,14 +578,14 @@ function CRCoop.Update()
         if type(Send) == "function" then
             -- Phase messages are intentionally periodic. Script-level Send()
             -- must not be treated as reliable across lifecycle transitions.
-            Send(0, PHASE_MESSAGE, missionPhase)
+            SendControl(0, PHASE_MESSAGE, missionPhase)
         end
     elseif not CRCoop.IsCampaignLeader() and not syncAcknowledged and now >= nextHandshakeRequest then
         nextHandshakeRequest = now + handshakeRetryInterval
         if type(Send) == "function" then
             -- Broadcast the request because a joining client may not yet know
             -- the leader's current network ID. Only the campaign leader answers.
-            Send(0, SYNC_REQUEST_MESSAGE, localHandle, CRCoop.GetLocalTeam(), PROTOCOL_VERSION)
+            SendControl(0, SYNC_REQUEST_MESSAGE, localHandle, CRCoop.GetLocalTeam(), PROTOCOL_VERSION)
         end
     end
 end
@@ -557,14 +602,18 @@ function CRCoop.Receive(from, kind, ...)
     if comms and comms.Receive(from, kind, ...) then return true end
     if kind == OUT_OF_LIVES_MESSAGE then
         local player = players[from]
-        if player and IsHumanTeam(player.team) then HandleOutOfLives(player.name) end
+        if player and IsHumanTeam(player.team) then
+            diagnostics.Received(from)
+            HandleOutOfLives(player.name)
+        end
         return true
     end
 
     if kind == HANDLE_MESSAGE then
-        local h = ...
+        local h, version, admitted, phase = ...
         local player = RegisterPlayer(from)
         player.handle = h
+        if initialized and IsUsableHandle(h) then diagnostics.Received(from, true, version, admitted, phase) end
         return true
     end
 
@@ -576,10 +625,11 @@ function CRCoop.Receive(from, kind, ...)
 
         if CRCoop.IsCampaignLeader() and IsHumanTeam(player.team) and version == PROTOCOL_VERSION then
             player.ready = true
+            diagnostics.Received(from)
             if type(Send) == "function" then
                 -- Include the current phase so a client can recover even if the
                 -- most recent phase broadcast was lost before its handshake.
-                Send(from, SYNC_ACK_MESSAGE, PROTOCOL_VERSION, missionPhase)
+                SendControl(from, SYNC_ACK_MESSAGE, PROTOCOL_VERSION, missionPhase)
             end
         end
         return true
@@ -592,6 +642,7 @@ function CRCoop.Receive(from, kind, ...)
         if version == PROTOCOL_VERSION and
             ((leaderId ~= nil and from == leaderId) or (leader and leader.team == leaderTeam)) then
             syncAcknowledged = true
+            diagnostics.Received(from)
             if type(phase) == "number" and phase > missionPhase then
                 missionPhase = math.floor(phase)
             end
@@ -603,6 +654,7 @@ function CRCoop.Receive(from, kind, ...)
         local phase = ...
         local leader = players[from]
         if leader and leader.team == leaderTeam and type(phase) == "number" then
+            diagnostics.Received(from)
             phase = math.floor(phase)
             if phase > missionPhase then
                 missionPhase = phase

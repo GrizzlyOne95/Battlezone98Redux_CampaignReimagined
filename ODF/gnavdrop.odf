@@ -1,0 +1,16 @@
+[WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
+classLabel = "dispenser"
+wpnName = "Nav"
+fireSound = "gprox00.wav"
+wpnReticle = "gnavdrop"
+wpnPriority = 0
+wpnCategory = "SPEC"
+
+[DispenserClass]
+shotDelay = 2.0
+objectClass = "apcamr"
+

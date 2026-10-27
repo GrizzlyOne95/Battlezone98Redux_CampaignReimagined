@@ -1,0 +1,308 @@
+{
+  "schema": "cr-hd-pack-validation-v1",
+  "world": "ganymede",
+  "acceptedArt": "2026-10-21; see Docs/WORLD_ART_PROMOTION.md",
+  "bundle": {
+    "schema": "bzr-terrain-hd-bundle-report-v1",
+    "material": "GA_DETAIL_ATLAS",
+    "tileSize": 1024,
+    "slices": 22,
+    "rectangles": 23,
+    "channels": [
+      "D",
+      "N",
+      "S",
+      "E"
+    ],
+    "resourceCount": 88,
+    "ddsBytes": 138424154,
+    "estimatedGpuArrayBytes": 169171112,
+    "processRamEstimate": null,
+    "memoryNote": "GPU storage is not 32-bit process RAM. Profile private bytes, peak and largest free VA in game.",
+    "sha256": {
+      "crhd_ganymede_ga00sa0_d.dds": "b94ffc0fb1fef0528c7bbb7556fecb11def6b3c7272feb309b0a7827cf3e8b35",
+      "crhd_ganymede_ga00sb0_d.dds": "4ad1080aa8967182d51d1fa5f44009349cf512fded304dc12234971dc3fb71c7",
+      "crhd_ganymede_ga00sc0_d.dds": "52e4bb027bd397ca6333ca26f74d528da52e4a6fb3ff370235b1d1547964457a",
+      "crhd_ganymede_ga01ca0_d.dds": "dbc19a43e007501433baf0e93ed8197b25bbcf32d12d8036af66e9165e7d1c69",
+      "crhd_ganymede_ga01da0_d.dds": "cbf04df1024c63d2f612caa66bb794d1ac017f39e7256caae8be59aa7b56d66a",
+      "crhd_ganymede_ga04ca0_d.dds": "0ea466f016a3131fb4857c122b15e092daa2b07418b39cc1da0558c920c807e2",
+      "crhd_ganymede_ga04da0_d.dds": "fd9809be60f701918092d169ea64925afee9d2ccc15692220c3901fdf65728ff",
+      "crhd_ganymede_ga11sa0_d.dds": "504b9cfbad686fc4f8278fbde45799b4548b2af0227ca903f7945aabe0fc8630",
+      "crhd_ganymede_ga11sb0_d.dds": "fc017f820e76d506d8d9ae47870b700ec42789b7a085e0fc7b75605894b4d80b",
+      "crhd_ganymede_ga12ca0_d.dds": "dbb0b2b459ab74e6e60a6c815450f6d867df00a94db077fb0816ce3ecc2597e8",
+      "crhd_ganymede_ga12da0_d.dds": "9c0906b932db40a75906844f4b524875ecb8ed8a8eb95d80ac1b8767ffffac8a",
+      "crhd_ganymede_ga14ca0_d.dds": "9bca1c956c56f70a4014ce029bdc729f7e305060993614d40088d8c4297382bb",
+      "crhd_ganymede_ga14da0_d.dds": "ba3acea9df215d576926b9b6fb2bb8774bc6b71c81af3f348cde3ee902c8b16e",
+      "crhd_ganymede_ga22sa0_d.dds": "6d9354f50e9eac6e5a9aba9f8ba3110efed2c872e4895e4d6de1de4f68ba8347",
+      "crhd_ganymede_ga22sb0_d.dds": "799101c55c22ae209c508400c844aacf4b5139f87283efed6fdad0954d780330",
+      "crhd_ganymede_ga22sc0_d.dds": "06fed1d4a32f53de9075d31767090e79fa6f57bb1051b9de8427f07faa092c52",
+      "crhd_ganymede_ga24ca0_d.dds": "5b468614bd6a1c0f0dad3228ad3f27e2e17e071e2d203204107124ba2dfec6ca",
+      "crhd_ganymede_ga24da0_d.dds": "6bc335e72231b01451770c4bb1fca1b3c9d288e9852b5cb5109e85e1838b9d1c",
+      "crhd_ganymede_ga33sa0_d.dds": "f52510d443d5f073f0174ecc061dfd1714f0a186589596f7932d37c27bd546b6",
+      "crhd_ganymede_ga33sb0_d.dds": "f52510d443d5f073f0174ecc061dfd1714f0a186589596f7932d37c27bd546b6",
+      "crhd_ganymede_ga44sa0_d.dds": "dd321675182abde1d79b1a2253860d05d254c1566ee7c117ba2942a62aa927fe",
+      "crhd_ganymede_ga44sb0_d.dds": "6dcc40d7b2c327e4b32cadc99ef36bdba0d9bc08449053764edf7ca7732969b0",
+      "crhd_ganymede_ga00sa0_n.dds": "7e7f1f902a98f8512924f3f837c01b87e192e2aeacfa35433c930485c4634232",
+      "crhd_ganymede_ga00sb0_n.dds": "7960af80fb61f16720823cd1c4e7f0d8d4975df62ef524ae045cabfd173a017d",
+      "crhd_ganymede_ga00sc0_n.dds": "3cfaf70428974c99aac3cf1dc08de7211fcb13981113fe4eab7e0d8265143c34",
+      "crhd_ganymede_ga01ca0_n.dds": "d9d93ec85e1d4dff57a5282427e7a33853fab621624ff93a2ab2ebc2ffd5ba40",
+      "crhd_ganymede_ga01da0_n.dds": "64081b059a5690a498950278422b2752261706b82eee99745a42042ceb44eebe",
+      "crhd_ganymede_ga04ca0_n.dds": "a27e3e790000ebfa5a321fcf2bc0eace7cc1825893b89fbc31fb73dddbd44f85",
+      "crhd_ganymede_ga04da0_n.dds": "216b7ee5df5c84fac81ec642b0a19a0e70a8eeacdd02a6f3ec002ac9e0e1609b",
+      "crhd_ganymede_ga11sa0_n.dds": "733d32819eafe8f7381c7864d6481122466f89acc9b0f1c7722f52dec8205450",
+      "crhd_ganymede_ga11sb0_n.dds": "f6c14b76f78c2c262f0a5aac2775f1418572da8ba9e1a0e4139f6a0f920b3a04",
+      "crhd_ganymede_ga12ca0_n.dds": "ac28721103edbb7f795b1f15aa8b2ec2a3875af1ccd50a99e8cc14ac477f8b10",
+      "crhd_ganymede_ga12da0_n.dds": "149205faf97c878e1543e2ba683fbe8d926818cd567ec41523b784983f152345",
+      "crhd_ganymede_ga14ca0_n.dds": "fb375859d97a928dbf896e17182b79b99ce6abd204b1515098b3a83c23191cd4",
+      "crhd_ganymede_ga14da0_n.dds": "2111a9664ff2ab4c1b529ce6398270da49e395309cbcd25e33854b8782720211",
+      "crhd_ganymede_ga22sa0_n.dds": "d0504fac3e747771699411533ad3d6f337f565bc66601474833a7e376321fe83",
+      "crhd_ganymede_ga22sb0_n.dds": "ba8e81b922dec5be4c4e754686ab2267062b91a6b922a3a0b4ca7326d64e05c5",
+      "crhd_ganymede_ga22sc0_n.dds": "24d0f0d472a3be825853a638ce2d72a8f404b6888d5fdb2afdf30794a2c8f4a5",
+      "crhd_ganymede_ga24ca0_n.dds": "65ec0631c7611b490a94e2ef77c622af92586cc1c524f76fb5c597f26ac04e23",
+      "crhd_ganymede_ga24da0_n.dds": "0cd7963789533696daebce5fb9c9094110c317f993080bb7659476fc098aa88b",
+      "crhd_ganymede_ga33sa0_n.dds": "f2453d240f3e3c09bb9b82d0eda96236739849b1ceb941a95717d718f66072d0",
+      "crhd_ganymede_ga33sb0_n.dds": "f2453d240f3e3c09bb9b82d0eda96236739849b1ceb941a95717d718f66072d0",
+      "crhd_ganymede_ga44sa0_n.dds": "c1a6bf408d062b3375a4fdb4277c896a1e8a1108c3ffcdb6436c4cce8ca37e39",
+      "crhd_ganymede_ga44sb0_n.dds": "845c30d6e893739d7e9de985d658e6d0e0f43d61528d1290c04728a9f21991b7",
+      "crhd_ganymede_ga00sa0_s.dds": "d215ed7aa9355bcf9caf188aa770fec6b77e0ec75517c6065a089fdf48d9c76a",
+      "crhd_ganymede_ga00sb0_s.dds": "e422b6154875703a1622f6d24f6af76344bc89452cd73b0b95e882a5601c1707",
+      "crhd_ganymede_ga00sc0_s.dds": "b4fa5f945dbafa51ad78047418587b3d9ed29e9c5124c29b1e6ff7cd5b113bad",
+      "crhd_ganymede_ga01ca0_s.dds": "4fe81f489cda62c5b15f375fce729e44b1fcbf6da4ec004e14d370e0c4125583",
+      "crhd_ganymede_ga01da0_s.dds": "4d4dacab9702fb88f2bdfb0c43cfdcde1ab3a0404e778e583cb61eaa7e8621d8",
+      "crhd_ganymede_ga04ca0_s.dds": "8d1231a74e314d80494f723bcdb3ba682bcb8bb6154278758fcf6dd334d956f9",
+      "crhd_ganymede_ga04da0_s.dds": "3ca516043090e25c9352f1237501c1738c03760e7dd94f36663f6796533203c8",
+      "crhd_ganymede_ga11sa0_s.dds": "6790420635beff220ba1ea512a3657b10fd4c31bc314806ee99b7719dc96475b",
+      "crhd_ganymede_ga11sb0_s.dds": "0d84a13b2607dc82fde0a96008f25983cc6c413d72c7a103ecf6d1349cd5b349",
+      "crhd_ganymede_ga12ca0_s.dds": "5816200a4fe71c2ad89af1d8e3b609567fe194c193adde4678892c456f42ecff",
+      "crhd_ganymede_ga12da0_s.dds": "d7044c9a57ac2292de2274b273f70fcc20f92c8403f0f464fe7425d904bf7d22",
+      "crhd_ganymede_ga14ca0_s.dds": "967c077c5c9660d93b23b312263d1cb1d96f3cfbe27a62e6e3b4316403b53c3f",
+      "crhd_ganymede_ga14da0_s.dds": "a4b5df61bc2e5d08ac54ef0405c262af46814616a971784d6d7f94f102700dd9",
+      "crhd_ganymede_ga22sa0_s.dds": "b3027a0b10786cbb630f47028a1d75aea98bda0ee13ec48c273bbd4025d6a104",
+      "crhd_ganymede_ga22sb0_s.dds": "e061ec159228f6db541f3e741071eb4ad79c3874c98632d4c7295a35b5b995b7",
+      "crhd_ganymede_ga22sc0_s.dds": "db15d4b6bf555020f3c183cb6ac7fd8e72e45f3d0fc12e8714909076c17ebaa9",
+      "crhd_ganymede_ga24ca0_s.dds": "3cbe4806b9ba862b6b9bff33357c6d014b40dc1eb2b4c4382e506f225365ea34",
+      "crhd_ganymede_ga24da0_s.dds": "bbb2b50005bb6206b26490977bd2fdf40c9a520e64352fcd572360633396e4cd",
+      "crhd_ganymede_ga33sa0_s.dds": "2199a78f5a54c20493420194779487497347dc2cd6eed566be495b63f7436aa1",
+      "crhd_ganymede_ga33sb0_s.dds": "2199a78f5a54c20493420194779487497347dc2cd6eed566be495b63f7436aa1",
+      "crhd_ganymede_ga44sa0_s.dds": "17b3e7b71274169439301f5a699e8ae88571d283504a6bcd1b8c002470c2dbe1",
+      "crhd_ganymede_ga44sb0_s.dds": "8df0e5b33a98d87f69d605b0214713d579ba4e0e40cf9037407a1c05a595118d",
+      "crhd_ganymede_ga00sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga00sb0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga00sc0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga01ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga01da0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga04ca0_e.dds": "d4c2355b2079f5e777a5d7e3b5047b568fe560a9f5f6d7ff68d6563c2bb14b10",
+      "crhd_ganymede_ga04da0_e.dds": "80b74726dd0e59dac407ace3fcb897660747fae30987a6895f15ce4b8184b19e",
+      "crhd_ganymede_ga11sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga11sb0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga12ca0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga12da0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga14ca0_e.dds": "060693e6ac6fa275ea7ab3a24791f296006a1670f9bf8e220ce17462a2b15d7e",
+      "crhd_ganymede_ga14da0_e.dds": "2159d8df5a2bdbe11f996f5dc5b021d8ace52694e38fe1772d05a2788917a63a",
+      "crhd_ganymede_ga22sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga22sb0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga22sc0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga24ca0_e.dds": "b57507d3975ec89f88e6816a2367cec8522ebf927809ce1f0ab764848bc89e1c",
+      "crhd_ganymede_ga24da0_e.dds": "80b74726dd0e59dac407ace3fcb897660747fae30987a6895f15ce4b8184b19e",
+      "crhd_ganymede_ga33sa0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga33sb0_e.dds": "7f05a4c7ee875578a961653526b3db8bb0c2d1df2103def255e60d0b2c4333e0",
+      "crhd_ganymede_ga44sa0_e.dds": "907158b337e3eac920f3d6e3d48b49e052dce70644eec4e78838de1668f1d6c9",
+      "crhd_ganymede_ga44sb0_e.dds": "dc3e9ebb3dde9271e6ed73c774e1a3acb8aebf6a422fd2a6c69bf2499a4829a3"
+    }
+  },
+  "baselineEvidenceNote": "Historical pre-promotion source audits, not replacement-art measurements",
+  "baselineEvidence": {
+    "baseEmissives": {
+      "schema": "cr-base-emissive-accents-v1",
+      "sourceId": "ph_metal_grate_rusty",
+      "maximum": 32,
+      "sourceGain": 0.1,
+      "settings": {
+        "type": 4,
+        "color": [
+          32,
+          24,
+          8
+        ],
+        "rectangles": [
+          [
+            0.06,
+            0.1,
+            0.025,
+            0.004
+          ],
+          [
+            0.56,
+            0.6,
+            0.025,
+            0.004
+          ]
+        ]
+      },
+      "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
+    },
+    "sources": [
+      {
+        "id": "8a87a2b0ad66",
+        "name": "IceCrater_albedo.png",
+        "engineConversion": "keep_directx",
+        "sourceHeightSha256": "79d5c4d81846c508f8a65f5d4b64c9ba503c4578166b91faebe5026ddf42ce23",
+        "convertedSourceSlopeCorrelations": [
+          0.8336575595776221,
+          0.8201875037940559
+        ],
+        "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+      },
+      {
+        "id": "8c27b65e3161",
+        "name": "MarsSurfacePebbles_albedo.png",
+        "engineConversion": "flip_green",
+        "sourceHeightSha256": "927dee0adf6d97ec7a2cb8412dd843c350dfe0fd549b604d45d8c8dbe09c6626",
+        "convertedSourceSlopeCorrelations": [
+          0.8719493690294813,
+          0.8715221724818467
+        ],
+        "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+      },
+      {
+        "id": "ph_metal_grate_rusty",
+        "name": "metal_grate_rusty_diff_4k.jpg",
+        "engineConversion": "flip_green",
+        "sourceHeightSha256": "5fb5ba4faf46a4092ddd76382c8e16f653ba6e36c6575449227946c4494e6415",
+        "convertedSourceSlopeCorrelations": [
+          0.9519114029528937,
+          0.9561914721420116
+        ],
+        "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+      },
+      {
+        "id": "51cf568801c2",
+        "name": "IceWallLayers_albedo.png",
+        "engineConversion": "flip_green",
+        "sourceHeightSha256": "d7a42985b2d020c563a5f9b7a28c464ac6e3f532e1177e75ab848132e37566c7",
+        "convertedSourceSlopeCorrelations": [
+          0.7401471889433054,
+          0.7644443876145504
+        ],
+        "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+      },
+      {
+        "id": "da271eb5cd22",
+        "name": "red_laterite_soil_stones_diff_8k.jpg",
+        "engineConversion": "flip_green",
+        "sourceHeightSha256": "157f88d1750fe80c1b5ca115e7a68c357e614ea0fe30590aadd98e4e88f32d70",
+        "convertedSourceSlopeCorrelations": [
+          0.648191420569028,
+          0.6521257446651433
+        ],
+        "heightQualification": "source pair only; recipe scale/compositing and final GPU shading are separate"
+      }
+    ],
+    "normalMips": 242,
+    "nonPositiveZTexels": {
+      "crhd_ganymede_ga33sa0_n.dds": 4,
+      "crhd_ganymede_ga33sb0_n.dds": 4
+    },
+    "emissiveTiles": {
+      "crhd_ganymede_ga00sa0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_ganymede_ga00sb0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_ganymede_ga00sc0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_ganymede_ga01ca0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_ganymede_ga01da0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_ganymede_ga04ca0_e.dds": {
+        "maximum": 5,
+        "litFraction": 3.24249267578125e-05
+      },
+      "crhd_ganymede_ga04da0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.0001239776611328125
+      },
+      "crhd_ganymede_ga11sa0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_ganymede_ga11sb0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_ganymede_ga12ca0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_ganymede_ga12da0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_ganymede_ga14ca0_e.dds": {
+        "maximum": 8,
+        "litFraction": 8.0108642578125e-05
+      },
+      "crhd_ganymede_ga14da0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.0001239776611328125
+      },
+      "crhd_ganymede_ga22sa0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_ganymede_ga22sb0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_ganymede_ga22sc0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_ganymede_ga24ca0_e.dds": {
+        "maximum": 24,
+        "litFraction": 0.0001239776611328125
+      },
+      "crhd_ganymede_ga24da0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.0001239776611328125
+      },
+      "crhd_ganymede_ga33sa0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_ganymede_ga33sb0_e.dds": {
+        "maximum": 0,
+        "litFraction": 0.0
+      },
+      "crhd_ganymede_ga44sa0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.000247955322265625
+      },
+      "crhd_ganymede_ga44sb0_e.dds": {
+        "maximum": 33,
+        "litFraction": 0.000247955322265625
+      }
+    },
+    "projectedBasis": {
+      "cases": 24,
+      "minimumCosineToHeightGeometry": 0.9999999999999997,
+      "projectionContract": "Ogre GPU-program RH: clip w=-view z; Direct3D screen y down",
+      "upstreamProjectionSource": "https://github.com/OGRECave/ogre/blob/v1-9-0/RenderSystems/Direct3D11/src/OgreD3D11RenderSystem.cpp#L1473-L1523",
+      "runtimeCameraQualification": "Requires live draw-level validation; analytical projection tests alone are not a game capture"
+    },
+    "limitations": [
+      "Source height and analytical basis checks do not substitute for native GPU draw evidence.",
+      "Nonpositive Z samples are inventoried; native source maps are not silently reauthored."
+    ]
+  }
+}

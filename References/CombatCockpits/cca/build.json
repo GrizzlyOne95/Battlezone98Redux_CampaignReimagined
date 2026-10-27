@@ -1,0 +1,16 @@
+{
+  "masterSha256": "64a267445b95fddfc91a04591d7274bf9bdf4dbd5d032693060243c175bc772c",
+  "masterSize": [
+    1254,
+    1254
+  ],
+  "runtimeSize": [
+    1024,
+    1024
+  ],
+  "outputs": {
+    "Assets/Textures/crvsmcp_d.dds": "660704c3393c8458c3803920bd01ebaa66f6785ea93fa2523f91521b4c7cad9d",
+    "Assets/Textures/crvsmcp_e.dds": "97584eea3502ef51e2ec8ebb4e827e75d44ce214655c9f0ebdecff778cef3da9",
+    "Materials/CR_cca_mechanical_cockpit.material": "cdb52743c4d805562ca291617f753e09607e08f93ecbbf110f75baa7ee26da47"
+  }
+}

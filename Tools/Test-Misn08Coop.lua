@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Run from the repository root: lua5.1 Tools/Test-Misn08Coop.lua
 -- Executes the complete misn08 script in separate Lua 5.1 environments over the
 -- real CRCoop registry and the E/A/C presentation transport. The engine, AI and
@@ -304,6 +306,7 @@ local function makePeer(id, team, network)
         record("CameraObject", subject, x, y, z, target)
     end
     e.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         local args = {...}
         if world.nilMapHandles then
             -- The engine maps a handle across Send only for replicated objects: a
@@ -349,12 +352,14 @@ local function makePeer(id, team, network)
         CRVenusSites08 = { mission = "misn08" }, Environment = {Init = noop, Update = noop, OnObjectCreated = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end},
+        PersistentConfig = {Initialize = noop, UpdateInputs = noop, UpdateHeadlights = noop, OnObjectCreated = noop},
         ScriptSubtitles = {
             Play = function(file) record("Play", file); return file end,
             Queue = function(file) record("Queue", file) end,
             Stop = function() record("Stop") end, Update = noop, Initialize = noop},
     }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     local realRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoopRespawn = {Create = function(d)
         local service = realRespawn.Create(d)

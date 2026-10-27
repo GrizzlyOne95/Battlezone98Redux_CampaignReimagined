@@ -18,8 +18,43 @@ if type(IsNetGame) == "function" and IsNetGame() then
     exu.DisableStartingRecycler()
 end
 local subtit = require("ScriptSubtitles")
+-- CR PDA >>
+-- PersistentConfig owns the PDA (X), subtitle/UI settings and AutoSave. Script
+-- locals reset when a save loads, so Update initializes it once per Lua state.
+-- One table local keeps the main chunk under Lua 5.1's 200-local limit.
+local missionPda = { config = require("PersistentConfig"), ready = false }
+function missionPda.Init()
+    missionPda.ready = true
+    missionPda.config.Initialize()
+end
+function missionPda.Update(cinematicActive)
+    if not missionPda.ready then missionPda.Init() end
+    missionPda.config.UpdateInputs(cinematicActive)
+    missionPda.config.UpdateHeadlights()
+end
+function missionPda.Object(h)
+    if missionPda.ready and h ~= nil then missionPda.config.OnObjectCreated(h) end
+end
+-- CR PDA <<
 local CRCoop = require("CRCoop")
+local CRWire = require("CRWire")
+-- CR atmosphere >>
+local Environment = require("Environment")
+local CRMarsWeather = require("CRMarsWeather")
+local InitAtmosphere, weatherStarted, nextWeatherSync = nil, false, 0
+-- CR atmosphere <<
 local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
+-- CR launch film >>
+local CR06LaunchFilm = require("CR06LaunchFilm")
+local function RocketHandle() return GetHandle("cr06_rocket") end
+local launchFX = require("CR06LaunchFX").Create({
+    exu = exu, time = GetTime, log = print,
+    vector = function(...) return SetVector(...) end,
+    terrain = function(p) return GetTerrainHeightAndNormal(p) end,
+    handle = RocketHandle, valid = IsValid, transform = GetTransform, place = SetTransform,
+    templates = function() return require("CRParticleTemplates").EnsureExtra("cr06_launch") end,
+})
+-- CR launch film <<
 
 -- Co-op presentation uses the established misn03/misn05 E/A and C transport.
 -- Only the campaign leader runs the mission body below; HUD/audio/removal/timer/
@@ -31,6 +66,9 @@ local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
 -- These types do not collide with CRCoop's H/Q/K/P/L protocol. Join-in-progress
 -- still requires a restart: native world reconstruction is not available here.
 local unpackArgs = unpack or table.unpack
+-- CR launch film >>
+local StopLaunchFilm, StopOrbitFilm
+-- CR launch film <<
 local native = {
     ClearObjectives = ClearObjectives, AddObjective = AddObjective,
     UpdateObjective = UpdateObjective, SetObjectiveOn = SetObjectiveOn,
@@ -38,7 +76,9 @@ local native = {
     SetUserTarget = SetUserTarget, RemoveObject = RemoveObject,
     StartCockpitTimer = StartCockpitTimer, StopCockpitTimer = StopCockpitTimer,
     HideCockpitTimer = HideCockpitTimer,
-    SucceedMission = SucceedMission, FailMission = FailMission,
+    -- Resolve result hooks after PersistentConfig.Initialize installs cleanup.
+    SucceedMission = function(...) return _G.SucceedMission(...) end,
+    FailMission = function(...) return _G.FailMission(...) end,
     CameraReady = CameraReady, CameraPath = CameraPath, CameraObject = CameraObject,
     CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
     Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
@@ -93,12 +133,29 @@ local function ApplyPresentation(op, ...)
             SetScrap(team, scrap)
             SetPilot(team, pilots)
         end
+-- CR atmosphere >>
+    elseif op == "WeatherTarget" then
+        InitAtmosphere()
+        CRMarsWeather.SetTargetLevel(...)
+    elseif op == "WeatherLevel" then
+        InitAtmosphere()
+        if not CRCoop.IsAuthority() then CRMarsWeather.ForceLevel((...), 86400, 18.0) end
+-- CR atmosphere <<
+-- CR launch film >>
+    elseif op == "RocketFX" then
+        launchFX.Begin(...)
+    elseif op == "RocketFXStop" then
+        launchFX.Stop()
+-- CR launch film <<
     elseif op == "Label" then
         local handle, label = ...
         if type(SetLabel) == "function" and IsValid(handle) and type(label) == "string" then
             pcall(SetLabel, handle, label)
         end
     elseif op == "SucceedMission" or op == "FailMission" then
+-- CR launch film >>
+        if launchFX then launchFX.Reset() end
+-- CR launch film <<
         local when, description = ...
         if localCameraActive then native.CameraFinish() end
         cameraFrame = nil
@@ -224,8 +281,22 @@ local function EndMission(op, when, description)
         native[op](when, description)
     end
 end
-local function SucceedMission(...) return EndMission("SucceedMission", ...) end
-local function FailMission(...) return EndMission("FailMission", ...) end
+local function SucceedMission(...)
+-- CR launch film >>
+    M.launchFilmTerminal = true
+    if StopLaunchFilm then StopLaunchFilm() end
+    if StopOrbitFilm then StopOrbitFilm() end
+-- CR launch film <<
+    return EndMission("SucceedMission", ...)
+end
+local function FailMission(...)
+-- CR launch film >>
+    M.launchFilmTerminal = true
+    if StopLaunchFilm then StopLaunchFilm() end
+    if StopOrbitFilm then StopOrbitFilm() end
+-- CR launch film <<
+    return EndMission("FailMission", ...)
+end
 
 local function CameraReady()
     cameraGeneration = cameraGeneration + 1
@@ -403,7 +474,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
+                    Send(id, "E", CRWire.Pack(seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n)))
                 end
             end
         end
@@ -418,14 +489,19 @@ local function UpdatePresentationTransport()
         nextCameraSend = now + 0.2
         cameraSerial = cameraSerial + 1
         if cameraFrame then
-            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
+            Send(0, "C", CRWire.Pack(cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame))))
         else
             Send(0, "C", cameraSerial, cameraGeneration, "")
         end
     end
 end
 
+local ReceivePresentationDecoded = nil
+-- Presentation packets are CRWire-packed: reassemble chunked strings first.
 local function ReceivePresentation(from, kind, ...)
+    return ReceivePresentationDecoded(from, kind, CRWire.Unpack(...))
+end
+function ReceivePresentationDecoded(from, kind, ...)
     if not CRCoop.IsNetworkGame() then return false end
     if kind == "I" then
         -- Leader only: a human's report that their UI shows one of our prefixes.
@@ -467,7 +543,12 @@ local function ReceivePresentation(from, kind, ...)
     end
     local seq, op, ttl = ...
     if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
-    if seq == receivedEvent + 1 and (native[op] or op == "Label" or op == "Resources") then
+    if seq == receivedEvent + 1 and (native[op] or op == "Label" or op == "Resources"
+        or op == "WeatherTarget" or op == "WeatherLevel"
+-- CR launch film >>
+        or op == "RocketFX" or op == "RocketFXStop"
+-- CR launch film <<
+        ) then
         local args = { select(4, ...) }
         local count = select("#", ...) - 3
         local apply, unresolved = true, false
@@ -908,15 +989,113 @@ local function ResetState()
     M.audmsg = nil
 end
 
+-- CR launch film >>
+local launchFilmAPI = {
+    valid = IsValid, time = GetTime, transform = GetTransform,
+    terrain = function(x,z) return GetTerrainHeightAndNormal(SetVector(x,0,z)) end,
+    handle = RocketHandle, remove = RemoveObject,
+    ready = CameraReady, camera = CameraObject, finish = CameraFinish,
+    cancelled = CameraCancelled,
+    fxBegin = function(pose, age) Present("RocketFX", pose.posit_x, pose.posit_y, pose.posit_z, age) end,
+    fxStop = function() Present("RocketFXStop") end,
+}
+StopLaunchFilm = function() CR06LaunchFilm.Stop(M, launchFilmAPI) end
+-- CR launch film <<
+-- CR orbit film >>
+-- Lincoln Mayday insert under the restored 0625/0626 VO (single player prototype).
+local CR06OrbitFilm = require("CR06OrbitFilm")
+local orbitFilmAPI = {
+    exu = exu, log = print, valid = IsValid, time = GetTime, transform = GetTransform,
+    place = SetTransform, build = BuildObject, remove = RemoveObject, explode = MakeExplosion,
+    vector = function(...) return SetVector(...) end,
+    ready = CameraReady, camera = CameraObject, finish = CameraFinish, cancelled = CameraCancelled,
+    network = function() return CRCoop.IsNetworkGame() end,
+    audioDone = function() return M.vob4h == nil or AudioDone(M.vob4h) end,
+    layout = require("CR06RocketLayout"),
+    -- Re-installs the world-art dome when the fallback starfield dome ends.
+    restoreSky = function() return Environment.RestoreArtSky() end,
+    -- misn06.trn: SkyTexture, [Clouds] Texture0-2, SunTexture.
+    skyTextures = {
+        { "mars.map", "cr06star.dds" }, { "acloud2.map", "cr06void.dds" }, { "acloud.map", "cr06void.dds" }, { "sun.0", "cr06void.dds" },
+    },
+    templates = function()
+        local T = require("CRParticleTemplates")
+        return T.EnsureExtra("cr06_launch") and T.EnsureExtra("cr06_orbit")
+    end,
+    weatherSystems = function()
+        local names = {}
+        for name in pairs(require("CRWeather").LiveSystems or {}) do names[#names + 1] = name end
+        return names
+    end,
+}
+StopOrbitFilm = function() CR06OrbitFilm.Stop(M, orbitFilmAPI) end
+-- CR orbit film <<
+
+-- CR atmosphere >>
+InitAtmosphere = function()
+    if weatherStarted then return end
+    Environment.Init()
+    CRMarsWeather.Init({ profile = "Plains", startLevel = 1, targetLevel = 2,
+        -- Sensor policy matches the other Mars missions; wind push stays off.
+        sensorDegrade = true, windPush = false })
+    if M.weatherState then CRMarsWeather.Load(M.weatherState); M.weatherState = nil end
+    CRMarsWeather.SetAutomatic(not CRCoop.IsNetworkGame() or CRCoop.IsAuthority())
+    weatherStarted, nextWeatherSync = true, 0
+end
+
+local function UpdateAtmosphere(dt)
+    InitAtmosphere()
+    if CRCoop.IsAuthority() then
+        local target = M.hephikey and 2 or 1
+        if M.starportreconed then target = 3 end
+        if M.lprecon then target = 4 end -- orbital blockade / timed launch-pad assault
+        if M.launchpadreconed or M.pickupreached or M.dustoff then target = 2 end
+        if CRMarsWeather.GetTargetLevel() ~= target then Present("WeatherTarget", target) end
+    end
+    CRMarsWeather.Update(dt)
+    -- Re-announce periodically: even a session resumed from an older save gets
+    -- the host's actual rung rather than running an independent random ladder.
+    if CRCoop.IsNetworkGame() and CRCoop.IsAuthority() and GetTime() >= nextWeatherSync then
+        nextWeatherSync = GetTime() + 5.0
+        Present("WeatherLevel", CRMarsWeather.GetLevel())
+    end
+    Environment.Update(dt)
+end
+-- CR atmosphere <<
+
 function Save()
+-- CR atmosphere >>
+    if weatherStarted then M.weatherState = CRMarsWeather.Save() end
+-- CR atmosphere <<
     return M
 end
 
 function Load(state)
+-- CR launch film >>
+    if M.launchFilm and M.launchFilm.camera and localCameraActive then CameraFinish() end
+-- CR launch film <<
     if state ~= nil then M = state end
+-- CR launch film >>
+    CR06LaunchFilm.Load(M)
+    launchFX.Reset()
+    CR06OrbitFilm.Load(M, orbitFilmAPI)
+-- CR launch film <<
+-- CR atmosphere >>
+    if weatherStarted then CRMarsWeather.Shutdown() end
+    weatherStarted, nextWeatherSync = false, 0
+-- CR atmosphere <<
 end
 
 function Start()
+-- CR launch film >>
+    StopLaunchFilm()
+    StopOrbitFilm()
+    launchFX.Reset()
+-- CR launch film <<
+-- CR atmosphere >>
+    if weatherStarted then CRMarsWeather.Shutdown() end
+    weatherStarted, nextWeatherSync = false, 0
+-- CR atmosphere <<
     ResetState()
     CRCoop.Initialize({
         getLocalPlayerId = function() return exu.GetMyNetID and exu.GetMyNetID() end,
@@ -976,10 +1155,20 @@ function Start()
     M.timerstart = 999999999.0
     M.deathtime = 999999999999.0
     subtit.Initialize()
+-- CR PDA >>
+    missionPda.Init()
+-- CR PDA <<
 end
 
 function AddObject(h)
+-- CR PDA >>
+    missionPda.Object(h)
+-- CR PDA <<
     -- Native AddObject has no mission-specific behavior.
+-- CR atmosphere >>
+    Environment.OnObjectCreated(h)
+    CRMarsWeather.OnObjectCreated(h)
+-- CR atmosphere <<
 end
 
 function CreatePlayer(id, name, team)
@@ -998,11 +1187,25 @@ end
 
 function Update(dt)
     subtit.Update()
+-- CR PDA >>
+    missionPda.Update(localCameraActive)
+-- CR PDA <<
     CRCoop.Update()
     UpdatePresentationTransport()
-    if M.coopResult or M.coopPendingResult then return end
+-- CR launch film >>
+    launchFX.Update()
+-- CR launch film <<
+    if M.coopResult or M.coopPendingResult then
+-- CR launch film >>
+        if CRCoop.IsAuthority() then StopLaunchFilm() end
+-- CR launch film <<
+        return
+    end
     if CRCoop.IsNetworkGame() then
         if CRCoop.HasLeaderDeparted() then
+-- CR launch film >>
+            if CRCoop.IsAuthority() then StopLaunchFilm() end
+-- CR launch film <<
             M.coopResult = true
             if localCameraActive then native.CameraFinish() end
             localCameraActive = false
@@ -1023,6 +1226,12 @@ function Update(dt)
         M.coopMissionStarted = true
     end
     UpdateInfoRelay()
+-- CR atmosphere >>
+    -- Redux can call Update without a timestep. A positive fallback lets the
+    -- director derive elapsed time from GetTime; explicit zero remains settle-only.
+    -- The orbital insert owns sky, fog and clip while it runs.
+    if not CR06OrbitFilm.Active(M) then UpdateAtmosphere(tonumber(dt) or (1.0 / 20.0)) end
+-- CR atmosphere <<
     if not CRCoop.IsAuthority() then return end
     if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
         M.coopBootstrapped = true
@@ -1714,7 +1923,7 @@ function Update(dt)
     if M.cam3done == true then
         CameraObject(M.wAu1, 300, 100, - 900, M.wAu1)
     end
-    if ((M.cam3done == true) and (AudioDone(M.aud500))) or (CameraCancelled()) then
+    if (M.cam3done == true) and ((AudioDone(M.aud500)) or (CameraCancelled())) then
         CameraFinish()
         M.cam3done = false
     end
@@ -1792,6 +2001,9 @@ function Update(dt)
         M.wave3start = true
     end
     if (M.transportarrive < GetTime()) and (M.transarrive == true) then
+-- CR launch film >>
+        CR06LaunchFilm.Begin(M, launchFilmAPI, M.launchpad)
+-- CR launch film <<
 -- CR restored VO >>
         if RESTORED_VO then
             M.aud6 = subtit.Play("misn0614.wav")
@@ -1872,6 +2084,9 @@ function Update(dt)
                 M.vob4played = true
                 subtit.Play(CUT_VO.b4a)
                 M.vob4h = subtit.Queue(CUT_VO.b4b)
+-- CR orbit film >>
+                CR06OrbitFilm.Begin(M, orbitFilmAPI, M.launchpad)
+-- CR orbit film <<
             end
         end
     end
@@ -2326,6 +2541,12 @@ function Update(dt)
     if (M.endme == true) and (AudioDone(M.aud102)) and (AudioDone(M.aud103)) and (AudioDone(M.aud104)) then
         FailMission(GetTime() + 0.0, "misn06l4.des")
     end
+-- CR launch film >>
+    CR06LaunchFilm.Update(M, launchFilmAPI)
+-- CR launch film <<
+-- CR orbit film >>
+    CR06OrbitFilm.Update(M, orbitFilmAPI)
+-- CR orbit film <<
 end
 
 --[=[ DLL declarations/lifecycle comment (inactive C++):

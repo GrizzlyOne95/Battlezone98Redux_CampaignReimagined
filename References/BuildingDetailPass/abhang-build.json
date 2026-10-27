@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "mode": "atlas-overlay",
+  "sourceSha256": "8fb94e4d92e4f7d8e370c8462f76803ab1e445f2588cbadbdd0a16c72821f8cd",
+  "modelSha256": "8fb94e4d92e4f7d8e370c8462f76803ab1e445f2588cbadbdd0a16c72821f8cd",
+  "geometry": {
+    "skeleton": "abhang.skeleton",
+    "bounds": {
+      "min_x": -12.032999992370605,
+      "min_y": -0.09456100314855576,
+      "min_z": -15.311800003051758,
+      "max_x": 17.547199249267578,
+      "max_y": 16.005800247192383,
+      "max_z": 32.0260009765625
+    },
+    "radius": 32.50642013549805,
+    "count": 3403,
+    "sha256": "17e811d63a17ea91d9bf1fa356e96ac5fcc8589eb780137aafbc71a45d21d93a"
+  },
+  "coverage": {
+    "nshangwall": 1672,
+    "nshangdoor": 724
+  },
+  "materialSha256": "866d0b240c328feaf5688ec7891982a0c798795549b36d03ae05709d1af3b454",
+  "masters": {
+    "nshangwall.png": "854ec0317a9bab5a760683565a446539ee8924fe42c26c830ef7920dcc194cfc",
+    "nshangdoor.png": "78b66c10ce3adf2c218f449c197ec147ad1d43f01fde3b8dda7bfc28858ae9fe"
+  },
+  "files": {
+    "crvabhang_d.dds": {
+      "size": [
+        2048,
+        2048
+      ],
+      "format": "BC1_UNORM",
+      "sha256": "f112ae425578a7715860230b18f7ebce80cff5c6c6237e8da104f8c378210482"
+    }
+  }
+}

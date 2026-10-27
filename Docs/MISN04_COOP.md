@@ -5,10 +5,12 @@ The Relic Discovered uses one `misn04.bzn`/`misn04.lua` pair for campaign
 The map uses `MultSTMission`, four native `pspwn_1` spawn buoys at the authored
 player start, and the bundled EXU hooks to suppress extra starting recyclers.
 
+Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.md).
+
 ## Session setup
 
 - Use matching CR/EXU/OpenShim builds and content on every client.
-- Host on team 1. Guests use distinct teams 2–4; select an NSDF tank or scout.
+- Host on team 1. Guests use distinct teams 2–4; select an NSDF tank, scout, or light tank.
 - Start together. Late join/rejoin pauses progression and requires a restart.
   Host departure ends the mission; guest departure releases readiness.
 - Team 1 owns Montana, production, the automated relic cargo job and mission AI.

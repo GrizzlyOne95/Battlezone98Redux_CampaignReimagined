@@ -1,0 +1,1334 @@
+// cr18_storm.particle.payload
+//
+// Particle templates for the mission 18 storm (CRStorm18). Loaded on demand by
+// CRParticleTemplates.EnsureExtra("cr18_storm"); a missing or malformed script
+// costs this mission only. Ogre skips a malformed block silently (the only
+// symptom is exu.CreateParticleSystem returning false), so CRStorm18 reports
+// every template it could not create.
+//
+// Emitter and affector ORDER MATTERS: CRStorm18's presets and effects address
+// them by zero-based index, exactly as cr_weather.particle.payload documents.
+// Billboard materials are CR18/* (cr18_storm.material): RGBA-order sprites, so
+// the colours below are the colours that draw.
+//
+// Three families:
+//   weather   camera-attached volumes driven by CRWeather presets (world space)
+//   tornado   world-placed columns (local_space true): CRStorm18Tornado moves the
+//             node and turns it with SetParticleSystemDirection, so each stacked
+//             band spins at its own rate
+//   ground    emitter-slot decals and bursts (cracks, soot, slides): CRStorm18Ground
+//             parks every emitter at rate 0 and pulses one slot per event
+
+// =============================================================================
+// Weather
+// =============================================================================
+
+// Wind-driven dust. [0] ColourFader, [1] DirectionRandomiser.
+particle_system CR18/Dust
+{
+    material            CR18/Dust
+    particle_width      4.5
+    particle_height     4.5
+    quota               2200
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               22
+        emission_rate       200
+        time_to_live_min    2.0
+        time_to_live_max    3.4
+        direction           -1 0.05 0
+        velocity_min        26
+        velocity_max        48
+        colour_range_start  0.42 0.17 0.10 0.50
+        colour_range_end    0.30 0.12 0.08 0.30
+        width               240
+        height              80
+        depth               240
+    }
+
+    affector ColourFader
+    {
+        alpha -0.17
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      6
+        scope           0.35
+        keep_velocity   true
+    }
+}
+
+// Stretched streaks: the layer that says how hard the wind blows.
+// [0] ColourFader, [1] Scaler.
+particle_system CR18/Streak
+{
+    material            CR18/Streak
+    particle_width      11.0
+    particle_height     2.4
+    quota               700
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      oriented_self
+
+    emitter Box
+    {
+        angle               6
+        emission_rate       50
+        time_to_live_min    1.4
+        time_to_live_max    2.2
+        direction           -1 0.02 0
+        velocity_min        60
+        velocity_max        95
+        colour_range_start  0.50 0.20 0.11 0.40
+        colour_range_end    0.34 0.13 0.08 0.00
+        width               280
+        height              16
+        depth               280
+    }
+
+    affector ColourFader
+    {
+        alpha -0.20
+    }
+
+    affector Scaler
+    {
+        rate 2.4
+    }
+}
+
+// Ground-hugging dark haze, large and slow: depth in the air in place of a
+// heavy global fog (which greys the DX11 Enhanced terrain). [0] ColourFader.
+particle_system CR18/Haze
+{
+    material            CR18/Haze
+    particle_width      24.0
+    particle_height     24.0
+    quota               380
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               60
+        emission_rate       26
+        time_to_live_min    6.0
+        time_to_live_max    9.5
+        direction           -1 0.02 0
+        velocity_min        4
+        velocity_max        9
+        colour_range_start  0.34 0.10 0.06 0.20
+        colour_range_end    0.20 0.06 0.04 0.08
+        width               400
+        height              40
+        depth               400
+    }
+
+    affector ColourFader
+    {
+        alpha -0.018
+    }
+}
+
+// Soot and ash flakes: dark chunks carried on the wind, tumbling. The flake
+// sprite is the stock crumpled-grey chunk. [0] ColourFader, [1] Rotator.
+particle_system CR18/Ash
+{
+    material            CR18/Chunk
+    particle_width      0.9
+    particle_height     0.9
+    quota               1400
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               30
+        emission_rate       80
+        time_to_live_min    3.0
+        time_to_live_max    5.5
+        direction           -1 -0.35 0
+        velocity_min        8
+        velocity_max        22
+        colour_range_start  0.16 0.12 0.11 0.85
+        colour_range_end    0.10 0.08 0.07 0.55
+        width               200
+        height              70
+        depth               200
+    }
+
+    affector ColourFader
+    {
+        alpha -0.04
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -120
+        rotation_speed_range_end     120
+        rotation_range_start         0
+        rotation_range_end           360
+    }
+}
+
+// Glowing cinders streaming past, lifted off the ground. [0] ColourFader.
+particle_system CR18/Cinder
+{
+    material            CR18/Cinder
+    particle_width      0.7
+    particle_height     0.7
+    quota               700
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               24
+        emission_rate       30
+        time_to_live_min    1.6
+        time_to_live_max    3.4
+        direction           -1 0.10 0
+        velocity_min        16
+        velocity_max        40
+        colour_range_start  1.00 0.50 0.14 0.95
+        colour_range_end    0.80 0.22 0.05 0.70
+        width               180
+        height              40
+        depth               180
+    }
+
+    affector ColourFader
+    {
+        red     -0.10
+        green   -0.30
+        blue    -0.10
+        alpha   -0.28
+    }
+}
+
+// Whipped debris: fast chunks and uprooted scrub at head height, the layer that
+// makes the final storm dangerous to look at. [0] ColourFader, [1] Rotator,
+// [2] DirectionRandomiser.
+particle_system CR18/Debris
+{
+    material            CR18/Chunk
+    particle_width      1.7
+    particle_height     1.7
+    quota               420
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       20
+        time_to_live_min    1.1
+        time_to_live_max    2.0
+        direction           -1 0.08 0
+        velocity_min        52
+        velocity_max        92
+        colour_range_start  0.22 0.15 0.12 0.95
+        colour_range_end    0.14 0.10 0.09 0.80
+        width               170
+        height              26
+        depth               170
+    }
+
+    affector ColourFader
+    {
+        alpha -0.12
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -420
+        rotation_speed_range_end     420
+        rotation_range_start         0
+        rotation_range_end           360
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      9
+        scope           0.45
+        keep_velocity   true
+    }
+}
+
+// =============================================================================
+// Tornado (world placed, local space: the node moves and turns, particles ride)
+// =============================================================================
+
+// Lower funnel, ground to ~55 m. Rotator turns each card on its own axis too.
+// [0] ColourFader, [1] Scaler, [2] Rotator.
+particle_system CR18/TornadoBase
+{
+    material            CR18/Funnel
+    particle_width      18.0
+    particle_height     34.0
+    quota               260
+    cull_each           true
+    sorted              false
+    local_space         true
+    billboard_type      oriented_common
+    common_direction    0 1 0
+
+    emitter Ring
+    {
+        position            0 3 0
+        angle               10
+        emission_rate       70
+        time_to_live_min    2.0
+        time_to_live_max    2.8
+        direction           0 1 0
+        velocity_min        18
+        velocity_max        26
+        colour_range_start  0.32 0.13 0.09 0.60
+        colour_range_end    0.20 0.08 0.06 0.40
+        width               30
+        height              4
+        depth               30
+        inner_width         0.50
+        inner_height        0.50
+    }
+
+    affector ColourFader
+    {
+        alpha -0.17
+    }
+
+    affector Scaler
+    {
+        rate 6.0
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -40
+        rotation_speed_range_end     40
+        rotation_range_start         0
+        rotation_range_end           360
+    }
+}
+
+// Middle funnel, ~50 to ~125 m, wider and faster. Same affector order.
+particle_system CR18/TornadoMid
+{
+    material            CR18/Funnel
+    particle_width      28.0
+    particle_height     48.0
+    quota               240
+    cull_each           true
+    sorted              false
+    local_space         true
+    billboard_type      oriented_common
+    common_direction    0 1 0
+
+    emitter Ring
+    {
+        position            0 50 0
+        angle               10
+        emission_rate       60
+        time_to_live_min    2.4
+        time_to_live_max    3.2
+        direction           0 1 0
+        velocity_min        22
+        velocity_max        30
+        colour_range_start  0.30 0.12 0.09 0.52
+        colour_range_end    0.20 0.09 0.07 0.34
+        width               44
+        height              4
+        depth               44
+        inner_width         0.55
+        inner_height        0.55
+    }
+
+    affector ColourFader
+    {
+        alpha -0.15
+    }
+
+    affector Scaler
+    {
+        rate 7.5
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -35
+        rotation_speed_range_end     35
+        rotation_range_start         0
+        rotation_range_end           360
+    }
+}
+
+// Upper funnel and anvil, ~110 m up: broad, pale-red, nearly transparent cards
+// that merge into the cloud deck.
+particle_system CR18/TornadoTop
+{
+    material            CR18/Funnel
+    particle_width      42.0
+    particle_height     60.0
+    quota               200
+    cull_each           true
+    sorted              false
+    local_space         true
+    billboard_type      oriented_common
+    common_direction    0 1 0
+
+    emitter Ring
+    {
+        position            0 105 0
+        angle               14
+        emission_rate       48
+        time_to_live_min    2.6
+        time_to_live_max    3.6
+        direction           0 1 0
+        velocity_min        20
+        velocity_max        28
+        colour_range_start  0.38 0.17 0.12 0.42
+        colour_range_end    0.26 0.11 0.09 0.26
+        width               64
+        height              4
+        depth               64
+        inner_width         0.50
+        inner_height        0.50
+    }
+
+    affector ColourFader
+    {
+        alpha -0.11
+    }
+
+    affector Scaler
+    {
+        rate 9.0
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -30
+        rotation_speed_range_end     30
+        rotation_range_start         0
+        rotation_range_end           360
+    }
+}
+
+// Black inner core turning against the funnel (the director spins it the other
+// way). [0] ColourFader, [1] Scaler.
+particle_system CR18/TornadoCore
+{
+    material            CR18/Smoke
+    particle_width      16.0
+    particle_height     16.0
+    quota               160
+    cull_each           true
+    sorted              false
+    local_space         true
+    billboard_type      point
+
+    emitter Cylinder
+    {
+        position            0 60 0
+        angle               6
+        emission_rate       44
+        time_to_live_min    2.6
+        time_to_live_max    3.6
+        direction           0 1 0
+        velocity_min        6
+        velocity_max        14
+        colour_range_start  0.05 0.02 0.02 0.65
+        colour_range_end    0.03 0.01 0.01 0.45
+        width               16
+        height              120
+        depth               16
+    }
+
+    affector ColourFader
+    {
+        alpha -0.14
+    }
+
+    affector Scaler
+    {
+        rate 3.5
+    }
+}
+
+// Dust skirt where the column meets the ground. [0] ColourFader, [1] Scaler.
+particle_system CR18/TornadoSkirt
+{
+    material            CR18/Dust
+    particle_width      16.0
+    particle_height     14.0
+    quota               200
+    cull_each           true
+    sorted              false
+    local_space         true
+    billboard_type      point
+
+    emitter Ring
+    {
+        position            0 2 0
+        angle               80
+        emission_rate       70
+        time_to_live_min    2.0
+        time_to_live_max    3.4
+        direction           0 1 0
+        velocity_min        10
+        velocity_max        22
+        colour_range_start  0.44 0.21 0.13 0.56
+        colour_range_end    0.30 0.14 0.09 0.34
+        width               72
+        height              6
+        depth               72
+        inner_width         0.40
+        inner_height        0.40
+    }
+
+    affector ColourFader
+    {
+        alpha -0.15
+    }
+
+    affector Scaler
+    {
+        rate 6.5
+    }
+}
+
+// Debris flung up the column. [0] ColourFader, [1] Rotator, [2] LinearForce.
+particle_system CR18/TornadoDebris
+{
+    material            CR18/Chunk
+    particle_width      2.2
+    particle_height     2.2
+    quota               180
+    cull_each           true
+    sorted              false
+    local_space         true
+    billboard_type      point
+
+    emitter Ring
+    {
+        position            0 2 0
+        angle               32
+        emission_rate       32
+        time_to_live_min    2.2
+        time_to_live_max    3.4
+        direction           0 1 0
+        velocity_min        24
+        velocity_max        46
+        colour_range_start  0.24 0.16 0.13 0.95
+        colour_range_end    0.15 0.10 0.09 0.80
+        width               34
+        height              6
+        depth               34
+        inner_width         0.30
+        inner_height        0.30
+    }
+
+    affector ColourFader
+    {
+        alpha -0.10
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -380
+        rotation_speed_range_end     380
+        rotation_range_start         0
+        rotation_range_end           360
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -7 0
+        force_application   add
+    }
+}
+
+// Fire inside the base and the cinders it lifts: additive, so they read as a
+// glow behind the dust. [0] ColourFader, [1] Scaler.
+particle_system CR18/TornadoGlow
+{
+    material            CR18/Glow
+    particle_width      26.0
+    particle_height     26.0
+    quota               60
+    cull_each           true
+    sorted              false
+    local_space         true
+    billboard_type      point
+
+    emitter Ring
+    {
+        position            0 6 0
+        angle               20
+        emission_rate       12
+        time_to_live_min    1.2
+        time_to_live_max    2.0
+        direction           0 1 0
+        velocity_min        6
+        velocity_max        12
+        colour_range_start  1.00 0.34 0.07 0.42
+        colour_range_end    0.80 0.16 0.03 0.20
+        width               20
+        height              4
+        depth               20
+        inner_width         0.30
+        inner_height        0.30
+    }
+
+    affector ColourFader
+    {
+        alpha -0.22
+    }
+
+    affector Scaler
+    {
+        rate 5.0
+    }
+}
+
+particle_system CR18/TornadoEmber
+{
+    material            CR18/Cinder
+    particle_width      1.6
+    particle_height     1.6
+    quota               160
+    cull_each           true
+    sorted              false
+    local_space         true
+    billboard_type      point
+
+    emitter Ring
+    {
+        position            0 4 0
+        angle               26
+        emission_rate       34
+        time_to_live_min    2.0
+        time_to_live_max    3.6
+        direction           0 1 0
+        velocity_min        26
+        velocity_max        50
+        colour_range_start  1.00 0.52 0.14 0.95
+        colour_range_end    0.80 0.24 0.05 0.70
+        width               40
+        height              6
+        depth               40
+        inner_width         0.25
+        inner_height        0.25
+    }
+
+    affector ColourFader
+    {
+        red     -0.08
+        green   -0.26
+        blue    -0.10
+        alpha   -0.22
+    }
+}
+
+// =============================================================================
+// Ground: landslides, cracks, soot, dust bursts
+// =============================================================================
+
+// Landslide dust cloud and the rock riding it. One emitter each; the director
+// parks a system on the slope, points emitter 0 downhill and raises its rate
+// for a few seconds. [0] ColourFader, [1] Scaler.
+particle_system CR18/SlideDust
+{
+    material            CR18/Dust
+    particle_width      9.0
+    particle_height     8.0
+    quota               240
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               18
+        emission_rate       0
+        time_to_live_min    2.8
+        time_to_live_max    4.6
+        direction           0 -0.3 1
+        velocity_min        7
+        velocity_max        13
+        colour_range_start  0.46 0.27 0.17 0.55
+        colour_range_end    0.34 0.20 0.13 0.35
+        width               24
+        height              3
+        depth               14
+    }
+
+    affector ColourFader
+    {
+        alpha -0.12
+    }
+
+    affector Scaler
+    {
+        rate 3.5
+    }
+}
+
+// [0] ColourFader, [1] Rotator.
+particle_system CR18/SlideRock
+{
+    material            CR18/Chunk
+    particle_width      1.8
+    particle_height     1.8
+    quota               180
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               14
+        emission_rate       0
+        time_to_live_min    2.4
+        time_to_live_max    4.0
+        direction           0 -0.3 1
+        velocity_min        6
+        velocity_max        13
+        colour_range_start  0.26 0.19 0.15 0.95
+        colour_range_end    0.18 0.13 0.10 0.85
+        width               24
+        height              3
+        depth               10
+    }
+
+    affector ColourFader
+    {
+        alpha -0.08
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -260
+        rotation_speed_range_end     260
+        rotation_range_start         0
+        rotation_range_end           360
+    }
+}
+
+// Ground decals, the CRGroundFX.Print pattern: six Point emitters ("slots"),
+// each fired for a blink at a ground point, particle flat on the ground
+// (perpendicular_self, emitter direction = ground normal) at a random turn.
+// The glow pulses through a ColourInterpolator over its 18 s life; the
+// director re-lays a crack that is still near the camera before it fades.
+// ColourInterpolator replaces the colour outright, so the heat tint is here.
+particle_system CR18/CrackA
+{
+    material            CR18/CrackA
+    particle_width      9.0
+    particle_height     9.0
+    quota               120
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      perpendicular_self
+    common_up_vector    0 0 -1
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        18
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        18
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        18
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        18
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        18
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        18
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.0 0.0 0.0 0.0
+        time1   0.05
+        colour1 1.0 0.85 0.55 1.0
+        time2   0.22
+        colour2 0.55 0.30 0.16 0.70
+        time3   0.46
+        colour3 1.0 0.72 0.40 0.95
+        time4   0.78
+        colour4 0.60 0.32 0.16 0.65
+        time5   1.00
+        colour5 0.0 0.0 0.0 0.0
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  0
+        rotation_speed_range_end    0
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+}
+
+particle_system CR18/CrackB
+{
+    material            CR18/CrackB
+    particle_width      11.0
+    particle_height     11.0
+    quota               120
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      perpendicular_self
+    common_up_vector    0 0 -1
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        18
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        18
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        18
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        18
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        18
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        18
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.0 0.0 0.0 0.0
+        time1   0.05
+        colour1 1.0 0.85 0.55 1.0
+        time2   0.22
+        colour2 0.55 0.30 0.16 0.70
+        time3   0.46
+        colour3 1.0 0.72 0.40 0.95
+        time4   0.78
+        colour4 0.60 0.32 0.16 0.65
+        time5   1.00
+        colour5 0.0 0.0 0.0 0.0
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  0
+        rotation_speed_range_end    0
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+}
+
+// The scorched stain under a crack: alpha blended near-black, so the glow has
+// something to burn against. Held for most of its 26 s, then faded; the director
+// lays it again at 21 s while the crack is in view. [0] ColourInterpolator.
+particle_system CR18/Soot
+{
+    material            CR18/Puff
+    particle_width      13.0
+    particle_height     13.0
+    quota               120
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      perpendicular_self
+    common_up_vector    0 0 -1
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        26
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        26
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        26
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        26
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        26
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    emitter Point
+    {
+        angle               0
+        emission_rate       0
+        time_to_live        26
+        direction           0 1 0
+        velocity            0.001
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.03 0.02 0.02 0.00
+        time1   0.04
+        colour1 0.03 0.02 0.02 0.62
+        time2   0.74
+        colour2 0.03 0.02 0.02 0.62
+        time3   0.86
+        colour3 0.03 0.02 0.02 0.30
+        time4   0.95
+        colour4 0.03 0.02 0.02 0.08
+        time5   1.00
+        colour5 0.03 0.02 0.02 0.00
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  0
+        rotation_speed_range_end    0
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+}
+
+// A burst of dust where the ground splits. Six Point slots; a slot fired at rate
+// 260 for 0.05 s throws about a dozen puffs. [0] ColourFader, [1] Scaler.
+particle_system CR18/CrackPuff
+{
+    material            CR18/Dust
+    particle_width      4.0
+    particle_height     4.0
+    quota               240
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               42
+        emission_rate       0
+        time_to_live_min    1.2
+        time_to_live_max    2.4
+        direction           0 1 0
+        velocity_min        3
+        velocity_max        8
+        colour_range_start  0.44 0.26 0.16 0.55
+        colour_range_end    0.32 0.19 0.12 0.35
+    }
+
+    emitter Point
+    {
+        angle               42
+        emission_rate       0
+        time_to_live_min    1.2
+        time_to_live_max    2.4
+        direction           0 1 0
+        velocity_min        3
+        velocity_max        8
+        colour_range_start  0.44 0.26 0.16 0.55
+        colour_range_end    0.32 0.19 0.12 0.35
+    }
+
+    emitter Point
+    {
+        angle               42
+        emission_rate       0
+        time_to_live_min    1.2
+        time_to_live_max    2.4
+        direction           0 1 0
+        velocity_min        3
+        velocity_max        8
+        colour_range_start  0.44 0.26 0.16 0.55
+        colour_range_end    0.32 0.19 0.12 0.35
+    }
+
+    emitter Point
+    {
+        angle               42
+        emission_rate       0
+        time_to_live_min    1.2
+        time_to_live_max    2.4
+        direction           0 1 0
+        velocity_min        3
+        velocity_max        8
+        colour_range_start  0.44 0.26 0.16 0.55
+        colour_range_end    0.32 0.19 0.12 0.35
+    }
+
+    emitter Point
+    {
+        angle               42
+        emission_rate       0
+        time_to_live_min    1.2
+        time_to_live_max    2.4
+        direction           0 1 0
+        velocity_min        3
+        velocity_max        8
+        colour_range_start  0.44 0.26 0.16 0.55
+        colour_range_end    0.32 0.19 0.12 0.35
+    }
+
+    emitter Point
+    {
+        angle               42
+        emission_rate       0
+        time_to_live_min    1.2
+        time_to_live_max    2.4
+        direction           0 1 0
+        velocity_min        3
+        velocity_max        8
+        colour_range_start  0.44 0.26 0.16 0.55
+        colour_range_end    0.32 0.19 0.12 0.35
+    }
+
+    affector ColourFader
+    {
+        alpha -0.24
+    }
+
+    affector Scaler
+    {
+        rate 3.2
+    }
+}
+
+// The cascade's mist (CRStorm18Water): one box at the foot of the fall. Emitter 0's
+// rate is driven by the storm level; ColourFader and Scaler are fixed.
+particle_system CR18/CascadeMist
+{
+    material CRWX_FX/Mist
+    particle_width 6
+    particle_height 5
+    quota 260
+    cull_each true
+    sorted false
+    local_space false
+    billboard_type point
+
+    emitter Box
+    {
+        width 12
+        height 2
+        depth 8
+        direction 0 1 0
+        angle 35
+        emission_rate 18
+        time_to_live_min 1.8
+        time_to_live_max 3.6
+        velocity_min 1
+        velocity_max 3.5
+        colour 0.62 0.60 0.58 0.16
+    }
+
+    affector ColourFader
+    {
+        alpha -0.05
+    }
+
+    affector Scaler
+    {
+        rate 1.3
+    }
+}
+
+// Large, rare ruptures (CRStorm18Fissures). The mouth is a terrain-facing decal;
+// upright additive shafts and escaping embers sell the light leaking upward.
+// All start idle: Lua positions them and opens the emission envelope.
+particle_system CR18/FissureMouth
+{
+    material CR18/FissureMouth
+    particle_width 48
+    particle_height 16
+    quota 8
+    cull_each true
+    sorted false
+    local_space false
+    billboard_type perpendicular_self
+    // Rotate the whole 3:1 decal; texcoord rotation clips/stretches its mouth.
+    billboard_rotation_type vertex
+    common_up_vector 0 0 -1
+    emitter Point
+    {
+        emission_rate 0
+        direction 0 1 0
+        angle 0
+        time_to_live 0.65
+        velocity 0.001
+        colour 1 1 1 1
+    }
+
+    affector ColourFader
+    {
+        alpha -0.25
+    }
+    // Lua fixes both ends to this rupture's bearing before emission.
+    affector Rotator
+    {
+        rotation_speed_range_start 0
+        rotation_speed_range_end 0
+        rotation_range_start 0
+        rotation_range_end 0
+    }
+}
+
+particle_system CR18/FissureRays
+{
+    material CR18/FissureRay
+    particle_width 5.5
+    particle_height 30
+    quota 24
+    cull_each true
+    sorted false
+    local_space false
+    billboard_type oriented_common
+    common_direction 0 1 0
+    emitter Point
+    {
+        emission_rate 0
+        direction 0 1 0
+        angle 0
+        time_to_live 0.85
+        velocity 0.08
+        colour 1 0.07 0.015 0.30
+    }
+
+    emitter Point
+    {
+        emission_rate 0
+        direction 0 1 0
+        angle 0
+        time_to_live 0.85
+        velocity 0.08
+        colour 1 0.07 0.015 0.30
+    }
+
+    emitter Point
+    {
+        emission_rate 0
+        direction 0 1 0
+        angle 0
+        time_to_live 0.85
+        velocity 0.08
+        colour 1 0.07 0.015 0.30
+    }
+
+    emitter Point
+    {
+        emission_rate 0
+        direction 0 1 0
+        angle 0
+        time_to_live 0.85
+        velocity 0.08
+        colour 1 0.07 0.015 0.30
+    }
+
+    emitter Point
+    {
+        emission_rate 0
+        direction 0 1 0
+        angle 0
+        time_to_live 0.85
+        velocity 0.08
+        colour 1 0.07 0.015 0.30
+    }
+
+    affector ColourFader
+    {
+        alpha -0.36
+    }
+}
+
+particle_system CR18/FissureEmbers
+{
+    material CR18/Cinder
+    particle_width 0.40
+    particle_height 0.75
+    quota 120
+    cull_each true
+    sorted false
+    local_space false
+    billboard_type point
+    emitter Point
+    {
+        emission_rate 0
+        direction 0 1 0
+        angle 18
+        time_to_live 2.4
+        velocity 9
+        colour 1 0.13 0.02 0.85
+    }
+
+    emitter Point
+    {
+        emission_rate 0
+        direction 0 1 0
+        angle 18
+        time_to_live 2.4
+        velocity 9
+        colour 1 0.13 0.02 0.85
+    }
+
+    emitter Point
+    {
+        emission_rate 0
+        direction 0 1 0
+        angle 18
+        time_to_live 2.4
+        velocity 9
+        colour 1 0.13 0.02 0.85
+    }
+
+    emitter Point
+    {
+        emission_rate 0
+        direction 0 1 0
+        angle 18
+        time_to_live 2.4
+        velocity 9
+        colour 1 0.13 0.02 0.85
+    }
+
+    emitter Point
+    {
+        emission_rate 0
+        direction 0 1 0
+        angle 18
+        time_to_live 2.4
+        velocity 9
+        colour 1 0.13 0.02 0.85
+    }
+
+    affector ColourFader
+    {
+        alpha -0.36
+    }
+    affector LinearForce
+    {
+        force_vector 1 1 0
+        force_application add
+    }
+}

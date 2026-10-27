@@ -22,8 +22,10 @@ local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
 local TerrainClutter = require("TerrainClutter")
 local CRCoop = require("CRCoop")
+local CRWire = require("CRWire")
 -- CR Moon weather >>
 local CRMoonWeather = require("CRMoonWeather")
+local Environment = require("Environment")
 local MoonSites = require("CRMoonSites02b")
 local MOON_OPS = { MoonState = true, MoonGlow = true }
 -- CR Moon weather <<
@@ -145,10 +147,10 @@ local function ApplyPresentation(op, ...)
     end
 end
 
--- Ops whose first argument is a game object. Objects travel by identity, never by a bare
--- handle the engine may not carry: "@handle@label" (a guest resolves the label first, then
--- the replicated handle), or "!" when the leader reports the object gone. Label is the
--- event that makes a leader-side SetLabel on a spawned object true on every guest.
+-- Marker operations use "@handle@label" (resolve the authored/bound label first),
+-- or "!" when the leader reports the object gone. Label bindings carry a native
+-- Handle so Send translates spawned-object identity across peers; the receiver
+-- falls back to the existing label for map objects without native wire identity.
 local HANDLE_OPS = { SetObjectiveOn = true, SetObjectiveOff = true, SetObjectiveName = true,
     SetUserTarget = true, RemoveObject = true, Label = true }
 local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, SetUserTarget = true, Label = true }
@@ -177,7 +179,7 @@ end
 local function AnnounceLabel(handle, label)
     if announced[handle] == label then return end
     announced[handle] = label
-    events[#events + 1] = { op = "Label", args = { "@" .. HandleText(handle) .. "@" .. label, label },
+    events[#events + 1] = { op = "Label", args = { handle, label },
         n = 2, ttl = RESOLVE_TIMEOUT, handle = handle }
 end
 
@@ -411,7 +413,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
+                    Send(id, "E", CRWire.Pack(seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n)))
                 end
             end
         end
@@ -426,14 +428,19 @@ local function UpdatePresentationTransport()
         nextCameraSend = now + 0.2
         cameraSerial = cameraSerial + 1
         if cameraFrame then
-            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
+            Send(0, "C", CRWire.Pack(cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame))))
         else
             Send(0, "C", cameraSerial, cameraGeneration, "", 0, 0)
         end
     end
 end
 
+local ReceivePresentationDecoded = nil
+-- Presentation packets are CRWire-packed: reassemble chunked strings first.
 local function ReceivePresentation(from, kind, ...)
+    return ReceivePresentationDecoded(from, kind, CRWire.Unpack(...))
+end
+function ReceivePresentationDecoded(from, kind, ...)
     if not CRCoop.IsNetworkGame() then return false end
     if kind == "A" then
         local seq = ...
@@ -462,6 +469,16 @@ local function ReceivePresentation(from, kind, ...)
         local apply, unresolved = true, false
         if HANDLE_OPS[op] then
             local sent, described = args[1], args[1]
+            if op == "Label" and sent ~= GONE then
+                described = args[2] or sent
+                -- Authored map objects may have no native network handle;
+                -- their existing label is a safe fallback. Spawned objects
+                -- must arrive by native identity before their label is set.
+                if not IsValid(sent) and type(args[2]) == "string" then
+                    local resolved = GetHandle(args[2])
+                    if IsValid(resolved) then sent, args[1] = resolved, resolved end
+                end
+            end
             if sent == GONE then
                 -- The leader reports the object gone: skip this marker, never wait.
                 apply = false
@@ -681,6 +698,9 @@ local function InitMoonWeather()
     moonStarted = true
     local net = CRCoop.IsNetworkGame()
     local authority = (not net) or CRCoop.IsAuthority()
+    Environment.Init({ lightingMode = "subtle", nativeBaseline = true,
+        subtlePeriod = 3600, subtleDimming = 0.06, subtleSunAngle = 4 })
+    Environment.BindWeatherSensors("Moon", CRMoonWeather)
     CRMoonWeather.Init({
         authority = authority,
         seed = M.moonSeed, -- nil: the leader/offline picks one, guests wait for the host's state
@@ -706,6 +726,7 @@ local function UpdateMoonWeather(dt)
         CRMoonWeather.AnnounceState()
     end
     CRMoonWeather.Update(dt)
+    Environment.Update(dt)
 end
 
 local function ShutdownMoonWeather()
@@ -715,6 +736,7 @@ end
 -- CR Moon weather <<
 
 function Save()
+    if TerrainClutter.Save then M.terrainClutterState=TerrainClutter.Save() end
 -- CR Moon weather >>
     if moonStarted and ((not CRCoop.IsNetworkGame()) or CRCoop.IsAuthority()) then
         M.moonWeatherState = CRMoonWeather.Save()
@@ -725,7 +747,12 @@ function Save()
 end
 
 function Load(missionData, aiData, pilotModeData)
+-- CR Moon weather >>
+    ShutdownMoonWeather()
+    if Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
+-- CR Moon weather <<
     M = missionData or M
+    if TerrainClutter.Load then TerrainClutter.Load(M.terrainClutterState) end
     M.playerPilotModeState = pilotModeData or M.playerPilotModeState
     if aiData then
         aiCore.Load(aiData)
@@ -979,7 +1006,7 @@ local function ApplyPostLoadInit()
     end
 
     for h in AllCraft() do
-        SetObjectiveOff(h)
+        if not CRCoop.IsNetworkGame() or not CRCoop.IsHumanCraft(h) then SetObjectiveOff(h) end
     end
 end
 
@@ -1018,7 +1045,7 @@ function Start()
     BuildTerrainClutter()
 
     for h in AllCraft() do
-        SetObjectiveOff(h)
+        if not CRCoop.IsNetworkGame() or not CRCoop.IsHumanCraft(h) then SetObjectiveOff(h) end
     end
 
     M.loading_done = true

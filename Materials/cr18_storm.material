@@ -1,0 +1,124 @@
+// Mission 18 storm (CRStorm18): the swirling sky deck, the scorched ground
+// cover atlas and every billboard the storm draws. See Docs/MISN18_STORM.md.
+//
+// Particle materials inherit CRWX_FX/ParticleAlphaBlend / ParticleAdditive: the
+// BZSprite pipeline with the vertex program that keeps Ogre's RGBA order, so the
+// emitter colours in cr18_storm.particle.payload mean what they say on every
+// backend (the CR_FX/* weather materials go through the BGRA sprite swizzle).
+
+import * from "crwx_precip.material"
+import * from "cr17_wind.material"
+
+// Sky plane deck. The programs read pass colours (see cr18_swirl-sm4.hlsl);
+// CRStorm18 rewrites them as the storm builds, so these are the calm values.
+// specular is r g b a shininess: five numbers, or Ogre reads the fourth as the
+// shininess and drops the alpha.
+material CR18/StormSwirl
+{
+	technique
+	{
+		pass
+		{
+			vertex_program_ref CR18_Swirl_v2_vertex
+			{
+			}
+			fragment_program_ref CR18_Swirl_v2_fragment
+			{
+			}
+			cull_hardware none
+			lighting off
+			scene_blend alpha_blend
+			depth_check off
+			depth_write off
+			ambient 0.10 0.02 0.015 1
+			diffuse 0.95 0.30 0.10 0.30
+			emissive 0.90 0.25 0.05 0.10
+			specular 0.5 0 0 0 1
+			texture_unit
+			{
+				texture acloud2.tga
+				tex_address_mode wrap
+			}
+		}
+	}
+}
+
+// Dead scrub: the baked misn17 ground-cover meshes (their wind sway stream is
+// kept) on a scorched copy of the mire atlas. CRFoliageWind registers this name.
+material CR18/GroundWind : CR17/GroundWind
+{
+	set_texture_alias DiffuseMap cr18_foliage.dds
+}
+
+// ---------------------------------------------------------------- weather
+material CR18/Dust : CRWX_FX/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_dust.dds
+}
+
+material CR18/Haze : CRWX_FX/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_haze.dds
+}
+
+material CR18/Streak : CRWX_FX/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_dustsheet.dds
+}
+
+// A crumpled grey chunk: ash flakes, thrown debris and rockfall.
+material CR18/Chunk : CRWX_FX/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_ash.dds
+}
+
+material CR18/Smoke : CRWX_FX/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_smokeheavy.dds
+}
+
+material CR18/Puff : CRWX_FX/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_smokethin.dds
+}
+
+material CR18/Cinder : CRWX_FX/ParticleAdditive
+{
+	set_texture_alias DiffuseMap cr_ember.dds
+}
+
+material CR18/Glow : CRWX_FX/ParticleAdditive
+{
+	set_texture_alias DiffuseMap crwx_fx_glow.png
+}
+
+// ---------------------------------------------------------------- tornado
+material CR18/Funnel : CRWX_FX/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap cr_dustdevil.dds
+}
+
+// ----------------------------------------------------------------- ground
+// Glowing cracks are additive, the soot stain under them alpha blended.
+material CR18/CrackA : CRWX_FX/ParticleAdditive
+{
+	set_texture_alias DiffuseMap cr18_crack_a.png
+}
+
+material CR18/CrackB : CRWX_FX/ParticleAdditive
+{
+	set_texture_alias DiffuseMap cr18_crack_b.png
+}
+
+// A dark broken rim and a white-hot interior: alpha blending retains the
+// charred lip, whereas an additive mouth would erase it against bright terrain.
+material CR18/FissureMouth : CRWX_FX/ParticleAlphaBlend
+{
+	set_texture_alias DiffuseMap c18rift.png
+}
+
+// Soft tapered shaft; its red colour comes from the particle, not global fog.
+material CR18/FissureRay : CRWX_FX/ParticleAdditive
+{
+	set_texture_alias DiffuseMap crwx_precip_streak.png
+}

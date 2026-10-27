@@ -1,0 +1,50 @@
+import * from "CR_BZBase.material"
+
+material CRV/InteriorWall : CR_BZBase
+{
+ set_texture_alias DiffuseMap crviolwall_d.dds
+ set_texture_alias NormalMap crviolwall_n.dds
+ set_texture_alias SpecularMap crviolwall_s.dds
+ set_texture_alias EmissiveMap black.dds
+ set $diffuse "1 1 1"
+ set $ambient "1 1 1"
+ set $specular ".35 .35 .35"
+ set $shininess "40"
+}
+
+material CRV/InteriorFloor : CR_BZBase
+{
+ set_texture_alias DiffuseMap crviolfloor_d.dds
+ set_texture_alias NormalMap crviolfloor_n.dds
+ set_texture_alias SpecularMap crviolfloor_s.dds
+ set_texture_alias EmissiveMap black.dds
+ set $diffuse "1 1 1"
+ set $ambient "1 1 1"
+ set $specular ".25 .25 .25"
+ set $shininess "32"
+}
+
+material CRV/InteriorTrim : CR_BZBase
+{
+ set_texture_alias DiffuseMap crvioltrim_d.dds
+ set_texture_alias NormalMap crvioltrim_n.dds
+ set_texture_alias SpecularMap crvioltrim_s.dds
+ set_texture_alias EmissiveMap black.dds
+ set $diffuse "1 1 1"
+ set $ambient "1 1 1"
+ set $specular ".4 .4 .4"
+ set $shininess "50"
+}
+
+material CRV/InteriorScreen : CR_BZBase
+{
+ set_texture_alias DiffuseMap crviolscreen_d.dds
+ set_texture_alias NormalMap flat_N.dds
+ set_texture_alias SpecularMap black.dds
+ set_texture_alias EmissiveMap crviolscreen_e.dds
+ set $diffuse "1 1 1"
+ set $ambient "1 1 1"
+ set $specular "0 0 0"
+ set $shininess "16"
+ set $glow ".35 .35 .35"
+}

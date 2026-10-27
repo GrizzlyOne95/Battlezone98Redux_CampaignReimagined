@@ -1,0 +1,574 @@
+// cr_wake.particle
+//
+// Ogre particle templates for the shared vehicle-wake module (CRWake.lua):
+// surface-appropriate debris under low, moving craft. One system per tracked
+// craft (plus an optional flat ring system over water), parked on the ground
+// under the craft by the module, which drives emitter rates from speed and
+// height.
+//
+// Every material below already exists (CR_reactive.material, crwx_precip
+// material), so this file adds templates only -- no new art, no new materials,
+// no new shader programs. Quotas are deliberately small: the module keeps at
+// most a handful of these alive at once and only near the viewer.
+//
+// Emitter ORDER MATTERS: CRWake sets the rate of emitter 0 (the main body) and
+// emitter 1 (the secondary flecks) by index. The regolith (Moon) surface reuses
+// CR/Moon/HoverDust from cr_moon.particle.payload and has no template here.
+
+// =============================================================================
+// Mars -- red-ochre dust and rock chips
+// =============================================================================
+
+//   emitter 0  Box disc under the craft: dust
+//   emitter 1  Box disc: faster, shorter-lived chips thrown out and down
+//   affector 0 ColourInterpolator
+//   affector 1 Scaler
+//   affector 2 LinearForce
+particle_system CRWake/MarsDust
+{
+    material            CR_FX/Dust
+    particle_width      2.2
+    particle_height     2.2
+    quota               64
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               80
+        emission_rate       0
+        time_to_live_min    1.6
+        time_to_live_max    2.8
+        direction           0 1 0
+        velocity_min        0.6
+        velocity_max        2.6
+        colour_range_start  0.74 0.46 0.28 0.00
+        colour_range_end    0.68 0.40 0.24 0.00
+        width               4
+        height              0.4
+        depth               4
+    }
+
+    emitter Box
+    {
+        angle               60
+        emission_rate       0
+        time_to_live_min    0.5
+        time_to_live_max    0.9
+        direction           0 1 0
+        velocity_min        3.0
+        velocity_max        6.0
+        colour_range_start  0.42 0.26 0.18 0.00
+        colour_range_end    0.34 0.20 0.14 0.00
+        width               3
+        height              0.2
+        depth               3
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.74 0.46 0.28 0.18
+        time1   0.30
+        colour1 0.72 0.44 0.27 0.14
+        time2   0.70
+        colour2 0.68 0.42 0.26 0.07
+        time3   1.00
+        colour3 0.62 0.38 0.24 0.00
+    }
+
+    affector Scaler
+    {
+        rate 0.55
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -3.0 0
+        force_application   add
+    }
+}
+
+// =============================================================================
+// Europa -- ice crystals and powder spray, a little glittery
+// =============================================================================
+
+//   emitter 0  Box disc: powder
+//   emitter 1  Box disc: bright crystals thrown higher
+//   affector 0 ColourInterpolator
+//   affector 1 Scaler
+//   affector 2 LinearForce
+particle_system CRWake/IceSpray
+{
+    material            CR_FX/Snow
+    particle_width      1.2
+    particle_height     1.2
+    quota               64
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               75
+        emission_rate       0
+        time_to_live_min    1.4
+        time_to_live_max    2.6
+        direction           0 1 0
+        velocity_min        0.5
+        velocity_max        2.2
+        colour_range_start  0.86 0.92 1.00 0.00
+        colour_range_end    0.78 0.88 1.00 0.00
+        width               4
+        height              0.3
+        depth               4
+    }
+
+    emitter Box
+    {
+        angle               55
+        emission_rate       0
+        time_to_live_min    0.7
+        time_to_live_max    1.3
+        direction           0 1 0
+        velocity_min        2.5
+        velocity_max        5.5
+        colour_range_start  1.00 1.00 1.00 0.00
+        colour_range_end    0.90 0.96 1.00 0.00
+        width               3
+        height              0.2
+        depth               3
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.88 0.94 1.00 0.55
+        time1   0.35
+        colour1 0.90 0.95 1.00 0.45
+        time2   0.75
+        colour2 0.82 0.90 1.00 0.20
+        time3   1.00
+        colour3 0.78 0.88 1.00 0.00
+    }
+
+    affector Scaler
+    {
+        rate 0.25
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -2.2 0
+        force_application   add
+    }
+}
+
+// =============================================================================
+// Water -- spray and mist, plus a flat wake ring
+// =============================================================================
+
+//   emitter 0  Point spray, a cone thrown up and back
+//   emitter 1  Box mist disc
+//   affector 0 LinearForce          (gravity)
+//   affector 1 ColourFader
+particle_system CRWake/WaterSpray
+{
+    material            CR_FX/RainSplash
+    particle_width      1.1
+    particle_height     1.1
+    quota               72
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Point
+    {
+        angle               42
+        emission_rate       0
+        time_to_live_min    0.6
+        time_to_live_max    1.1
+        direction           0 1 0
+        velocity_min        3.0
+        velocity_max        7.0
+        colour_range_start  0.90 0.96 1.00 0.55
+        colour_range_end    0.78 0.88 0.96 0.35
+    }
+
+    emitter Box
+    {
+        angle               70
+        emission_rate       0
+        time_to_live_min    1.0
+        time_to_live_max    1.8
+        direction           0 1 0
+        velocity_min        0.4
+        velocity_max        1.4
+        colour_range_start  0.84 0.90 0.94 0.20
+        colour_range_end    0.78 0.86 0.92 0.12
+        width               3
+        height              0.2
+        depth               3
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -7 0
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha -0.35
+    }
+}
+
+// Flat ripples on the water under the craft. perpendicular_self faces each
+// ring along its (tiny) velocity, which is straight up. Same recipe as
+// CRWX/SplashRing in crwx_precip.particle.payload (additive: the fader takes
+// the colour to black, which is transparent). The module creates this accent
+// only when a system slot is spare.
+//   emitter 0  Box disc
+//   affector 0 Scaler
+//   affector 1 ColourFader
+particle_system CRWake/WaterRing
+{
+    material            CRWX_FX/SplashRing
+    particle_width      0.5
+    particle_height     0.5
+    quota               24
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      perpendicular_self
+    common_up_vector    0 0 1
+
+    emitter Box
+    {
+        angle               0
+        emission_rate       0
+        time_to_live_min    0.9
+        time_to_live_max    1.3
+        direction           0 1 0
+        velocity_min        0.01
+        velocity_max        0.01
+        colour              0.80 0.90 0.95 1
+        width               3.5
+        height              0
+        depth               3.5
+    }
+
+    affector Scaler
+    {
+        rate 5.0
+    }
+
+    affector ColourFader
+    {
+        red   -0.55
+        green -0.55
+        blue  -0.55
+    }
+}
+
+// =============================================================================
+// Grass -- clippings, leaf bits and a little dust
+// =============================================================================
+
+//   emitter 0  Box disc: clippings and dust
+//   emitter 1  Box disc: leaf bits thrown higher
+//   affector 0 ColourInterpolator
+//   affector 1 Scaler
+//   affector 2 LinearForce
+particle_system CRWake/GrassBits
+{
+    material            CR_FX/Grit
+    particle_width      0.9
+    particle_height     0.9
+    quota               56
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               70
+        emission_rate       0
+        time_to_live_min    1.0
+        time_to_live_max    1.8
+        direction           0 1 0
+        velocity_min        0.8
+        velocity_max        3.0
+        colour_range_start  0.46 0.52 0.28 0.00
+        colour_range_end    0.40 0.44 0.24 0.00
+        width               4
+        height              0.3
+        depth               4
+    }
+
+    emitter Box
+    {
+        angle               55
+        emission_rate       0
+        time_to_live_min    0.8
+        time_to_live_max    1.4
+        direction           0 1 0
+        velocity_min        2.5
+        velocity_max        5.0
+        colour_range_start  0.30 0.40 0.16 0.00
+        colour_range_end    0.26 0.34 0.14 0.00
+        width               3
+        height              0.2
+        depth               3
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.46 0.50 0.28 0.45
+        time1   0.30
+        colour1 0.44 0.48 0.27 0.40
+        time2   0.70
+        colour2 0.42 0.45 0.26 0.20
+        time3   1.00
+        colour3 0.40 0.42 0.25 0.00
+    }
+
+    affector Scaler
+    {
+        rate 0.20
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -4.0 0
+        force_application   add
+    }
+}
+
+// =============================================================================
+// Io -- sulfur dust
+// =============================================================================
+
+//   emitter 0  Box disc: dust
+//   emitter 1  Box disc: crust flecks
+//   affector 0 ColourInterpolator
+//   affector 1 Scaler
+//   affector 2 LinearForce
+particle_system CRWake/SulfurDust
+{
+    material            CR_FX/Dust
+    particle_width      2.0
+    particle_height     2.0
+    quota               64
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               80
+        emission_rate       0
+        time_to_live_min    1.6
+        time_to_live_max    2.8
+        direction           0 1 0
+        velocity_min        0.6
+        velocity_max        2.4
+        colour_range_start  0.92 0.84 0.38 0.00
+        colour_range_end    0.84 0.74 0.30 0.00
+        width               4
+        height              0.4
+        depth               4
+    }
+
+    emitter Box
+    {
+        angle               60
+        emission_rate       0
+        time_to_live_min    0.5
+        time_to_live_max    0.9
+        direction           0 1 0
+        velocity_min        2.5
+        velocity_max        5.0
+        colour_range_start  0.70 0.58 0.22 0.00
+        colour_range_end    0.60 0.48 0.18 0.00
+        width               3
+        height              0.2
+        depth               3
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.92 0.84 0.38 0.18
+        time1   0.30
+        colour1 0.90 0.82 0.36 0.14
+        time2   0.70
+        colour2 0.84 0.74 0.32 0.07
+        time3   1.00
+        colour3 0.78 0.68 0.28 0.00
+    }
+
+    affector Scaler
+    {
+        rate 0.50
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -2.2 0
+        force_application   add
+    }
+}
+
+// =============================================================================
+// Venus -- dark ash
+// =============================================================================
+
+//   emitter 0  Box disc: ash
+//   emitter 1  Box disc: heavier cinders
+//   affector 0 ColourInterpolator
+//   affector 1 Scaler
+//   affector 2 LinearForce
+particle_system CRWake/AshDust
+{
+    material            CR_FX/Ash
+    particle_width      2.0
+    particle_height     2.0
+    quota               64
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               75
+        emission_rate       0
+        time_to_live_min    1.8
+        time_to_live_max    3.0
+        direction           0 1 0
+        velocity_min        0.4
+        velocity_max        1.8
+        colour_range_start  0.30 0.28 0.26 0.00
+        colour_range_end    0.24 0.22 0.20 0.00
+        width               4
+        height              0.4
+        depth               4
+    }
+
+    emitter Box
+    {
+        angle               55
+        emission_rate       0
+        time_to_live_min    0.6
+        time_to_live_max    1.1
+        direction           0 1 0
+        velocity_min        2.0
+        velocity_max        4.5
+        colour_range_start  0.18 0.16 0.15 0.00
+        colour_range_end    0.14 0.12 0.11 0.00
+        width               3
+        height              0.2
+        depth               3
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.30 0.28 0.26 0.30
+        time1   0.30
+        colour1 0.28 0.26 0.24 0.24
+        time2   0.70
+        colour2 0.24 0.22 0.20 0.12
+        time3   1.00
+        colour3 0.20 0.18 0.17 0.00
+    }
+
+    affector Scaler
+    {
+        rate 0.40
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -2.4 0
+        force_application   add
+    }
+}
+
+// Mission 18's scorched, storm-soaked ground (CRStorm18Water's resolver): dark wet dirt
+// thrown up and heavy clods that fall back fast. Same material as GrassBits.
+//   emitter 0  wet dirt spray        emitter 1  clods
+particle_system CRWake/MudClods
+{
+    material            CR_FX/Grit
+    particle_width      1.1
+    particle_height     1.1
+    quota               56
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               65
+        emission_rate       0
+        time_to_live_min    0.9
+        time_to_live_max    1.6
+        direction           0 1 0
+        velocity_min        1.0
+        velocity_max        3.6
+        colour_range_start  0.20 0.14 0.09 0.00
+        colour_range_end    0.15 0.10 0.07 0.00
+        width               4
+        height              0.3
+        depth               4
+    }
+
+    emitter Box
+    {
+        angle               50
+        emission_rate       0
+        time_to_live_min    0.7
+        time_to_live_max    1.2
+        direction           0 1 0
+        velocity_min        3.0
+        velocity_max        6.0
+        colour_range_start  0.12 0.08 0.05 0.00
+        colour_range_end    0.09 0.06 0.04 0.00
+        width               3
+        height              0.2
+        depth               3
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0.00
+        colour0 0.20 0.14 0.09 0.55
+        time1   0.30
+        colour1 0.18 0.12 0.08 0.50
+        time2   0.70
+        colour2 0.15 0.10 0.07 0.28
+        time3   1.00
+        colour3 0.12 0.08 0.05 0.00
+    }
+
+    affector Scaler
+    {
+        rate 0.15
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -9.0 0
+        force_application   add
+    }
+}

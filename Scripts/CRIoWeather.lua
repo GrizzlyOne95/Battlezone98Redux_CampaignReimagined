@@ -17,9 +17,9 @@
 --                seeded timeline (CRVenusMap.NewLadder) with temporary intense
 --                EPISODES. The fractional position drives everything
 --                continuous; integer rungs select a CRWeather preset.
---   atmosphere   sulphur haze lit by Jupiter: the five Io* presets (fog, ambient,
---                sun, haze) plus this module's own Environment modifier. Fog,
---                ambient and sun still belong to Environment.lua.
+--   atmosphere   thin volcanic haze: the five Io* presets (fog, sun power, haze)
+--                plus this module's own Environment modifier. The light itself
+--                is Environment.lua's orbit (sun, eclipse, Jupiter-shine).
 --   lava fog     red, glowing, low fog pools streamed in over the molten lava
 --                tiles of the map (anchors generated from the .mat by
 --                Tools/Build-IoSites.py), and a lava factor that reddens the
@@ -30,7 +30,7 @@
 --                own staggered period (host-decided, replicated): a tall ash
 --                column, a glowing core, thrown spatter, rumble, and a red lift
 --                on the ambient light near the vent.
---   ash fall     camera-attached CR/Weather/AshFall driven by the ladder.
+--   ash fall     camera-attached CR/Io/AshFall driven by the ladder.
 --   quakes       the stock StartEarthquake / UpdateEarthQuake / StopEarthquake
 --                natives driven by an envelope, plus dust and extra ash. Quakes
 --                are scripted (CRIoWeather.Quake) or random, host-decided and
@@ -54,8 +54,10 @@
 
 local exu = require("exu")
 local CRWeather = require("CRWeather")
+local Wake = require("CRWake")
 local CRWeatherPresets = require("CRWeatherPresets")
 local Map = require("CRVenusMap")
+local PoolFX = require("CRPoolFX")
 
 local CRIoWeather = {}
 local V = CRIoWeather
@@ -71,6 +73,7 @@ V.Debug                = false
 V.AllowLavaFog         = true    -- red fog pools over the lava tiles
 V.AllowLavaGlow        = true    -- the additive glow half of a pool
 V.AllowLavaTint        = true    -- global fog / light reddens over lava
+V.AllowPoolFx          = true    -- bubble pops, rising embers and spatter on the molten pools (CRPoolFX)
 V.AllowAltitudeFog     = true    -- global fog density follows the player's altitude
 V.AllowAshFall         = true
 V.AllowVents           = true    -- smoke plumes at the geysers
@@ -111,6 +114,15 @@ V.LavaFogRate          = 2.6     -- particles/second of a pool at full weight, b
 V.LavaGlowRate         = 0.8
 V.LavaGlowPulse        = { 0.45, 1.0 }   -- glow rate swings between these fractions
 V.LavaGlowPulseSeconds = 9.0
+-- Pool pops (CRPoolFX through CRGroundFX "lava"): at most PoolFxNear pools within
+-- PoolFxRange of the player fire one event each every PoolFxGap seconds (shorter
+-- at a higher rung); CRGroundFX caps the live emitters (4 systems, fixed slots).
+-- The ladder's lavaFog value (0.60 calm .. 1.60 paroxysm) is the rung scale.
+V.PoolFxRange          = 170.0
+V.PoolFxNear           = 3
+V.PoolFxGap            = { 1.6, 4.0 }
+V.PoolFxRadius         = 32.0
+V.PoolFxMask           = { smoke = 0.35 }   -- embers, drops and the bubble glow at full; light smoke
 V.LavaSampleWindow     = 3       -- cells either side of the player for the lava factor (7x7)
 V.LavaResponse         = 0.45    -- factor change per second (smoothing)
 V.LavaFogEndScale      = 0.72    -- fog end multiplier standing in the middle of lava
@@ -142,7 +154,7 @@ V.GloomRed             = 0.08
 V.BearingWander        = 0.7
 V.BearingRate          = 0.035
 
--- Ash fall (CR/Weather/AshFall from the base weather payload).
+-- Ash fall (CR/Io/AshFall from the base weather payload).
 V.AshMaxRate           = 150.0
 V.AshMaxQuota          = 2000
 V.AshOffset            = 44.0    -- camera-attached height
@@ -228,12 +240,14 @@ local LEVEL_COUNT = #V.Levels
 -- =============================================================================
 -- Presets
 --
--- The Io light is Jupiter's: a huge warm disc standing over a sulphur-yellow,
--- lava-lit landscape. Calm sits amber and bright; each rung after thickens the
--- haze, drops the sun, and pulls the whole palette from sulphur-yellow toward
--- red-brown until a paroxysm is a dim, ember-coloured gloom. Fog ends are
--- authored for misn10's VisibilityRange=250; CRWeather clamps them to whatever
--- horizon a map really has. No preset carries lightning or a sky.
+-- Io is nearly airless: its sky is black, and the light is Environment's orbit
+-- (a small, far sun by day, Jupiter at night), so the presets carry no ambient
+-- or diffuse of their own. What they do carry is the volcanic haze: barely
+-- there when calm, thickening with each rung, the fog dark and the sun dimmer,
+-- from a faint sulphur tint toward ash-brown until a paroxysm is a dim gloom
+-- (the module's gloom modifier darkens and reddens the light on top). Fog ends
+-- are authored for misn10's VisibilityRange=250; CRWeather clamps them to
+-- whatever horizon a map really has. No preset carries lightning or a sky.
 --
 -- They are registered into CRWeatherPresets.Presets at Init rather than
 -- appended to CRWeatherPresets.lua, so this module is self-contained and the
@@ -241,30 +255,25 @@ local LEVEL_COUNT = #V.Levels
 -- =============================================================================
 
 local PRESET_ROWS = {
-    { name = "IoCalm", haze = { rate = 18.0, quota = 420, a = 0.30, c = { 0.84, 0.62, 0.22 } },
+    { name = "IoCalm", haze = { rate = 10.0, quota = 260, a = 0.16, c = { 0.70, 0.60, 0.42 } },
       grit = nil,
-      fog = { 0.50, 0.37, 0.15, 120.0, 250.0 }, ambient = { 0.30, 0.21, 0.11 },
-      diffuse = { 0.74, 0.55, 0.33 }, sun = 0.85, wind = { 0.50, -0.04, -0.86 }, speed = 2.0,
+      fog = { 0.22, 0.17, 0.10, 140.0, 250.0 }, sun = 0.85, wind = { 0.50, -0.04, -0.86 }, speed = 2.0,
       tin = 22.0, tout = 28.0 },
-    { name = "IoRestless", haze = { rate = 28.0, quota = 560, a = 0.36, c = { 0.82, 0.55, 0.19 } },
+    { name = "IoRestless", haze = { rate = 18.0, quota = 380, a = 0.22, c = { 0.68, 0.56, 0.38 } },
       grit = { rate = 8.0, quota = 180, a = 0.40, c = { 0.50, 0.36, 0.20 } },
-      fog = { 0.48, 0.32, 0.12, 100.0, 240.0 }, ambient = { 0.28, 0.18, 0.09 },
-      diffuse = { 0.68, 0.48, 0.28 }, sun = 0.75, wind = { 0.50, -0.05, -0.86 }, speed = 3.0,
+      fog = { 0.22, 0.16, 0.09, 120.0, 240.0 }, sun = 0.75, wind = { 0.50, -0.05, -0.86 }, speed = 3.0,
       tin = 22.0, tout = 28.0 },
-    { name = "IoActive", haze = { rate = 40.0, quota = 700, a = 0.42, c = { 0.80, 0.46, 0.15 } },
+    { name = "IoActive", haze = { rate = 32.0, quota = 600, a = 0.32, c = { 0.62, 0.48, 0.32 } },
       grit = { rate = 14.0, quota = 240, a = 0.48, c = { 0.46, 0.30, 0.16 } },
-      fog = { 0.44, 0.25, 0.09, 80.0, 215.0 }, ambient = { 0.26, 0.15, 0.07 },
-      diffuse = { 0.62, 0.40, 0.22 }, sun = 0.62, wind = { 0.52, -0.07, -0.85 }, speed = 5.0,
+      fog = { 0.21, 0.14, 0.08, 95.0, 215.0 }, sun = 0.62, wind = { 0.52, -0.07, -0.85 }, speed = 5.0,
       tin = 20.0, tout = 26.0 },
-    { name = "IoIntense", haze = { rate = 52.0, quota = 820, a = 0.50, c = { 0.76, 0.36, 0.11 } },
+    { name = "IoIntense", haze = { rate = 48.0, quota = 780, a = 0.44, c = { 0.56, 0.40, 0.26 } },
       grit = { rate = 22.0, quota = 300, a = 0.56, c = { 0.42, 0.24, 0.12 } },
-      fog = { 0.38, 0.19, 0.07, 60.0, 185.0 }, ambient = { 0.24, 0.12, 0.055 },
-      diffuse = { 0.56, 0.31, 0.17 }, sun = 0.48, wind = { 0.54, -0.10, -0.83 }, speed = 8.0,
+      fog = { 0.19, 0.12, 0.07, 70.0, 185.0 }, sun = 0.48, wind = { 0.54, -0.10, -0.83 }, speed = 8.0,
       tin = 18.0, tout = 26.0 },
-    { name = "IoParoxysm", haze = { rate = 64.0, quota = 900, a = 0.58, c = { 0.70, 0.27, 0.08 } },
+    { name = "IoParoxysm", haze = { rate = 64.0, quota = 900, a = 0.54, c = { 0.50, 0.34, 0.22 } },
       grit = { rate = 30.0, quota = 360, a = 0.62, c = { 0.38, 0.18, 0.09 } },
-      fog = { 0.31, 0.13, 0.05, 40.0, 150.0 }, ambient = { 0.22, 0.10, 0.045 },
-      diffuse = { 0.50, 0.25, 0.13 }, sun = 0.36, wind = { 0.56, -0.14, -0.81 }, speed = 12.0,
+      fog = { 0.17, 0.10, 0.06, 45.0, 150.0 }, sun = 0.36, wind = { 0.56, -0.14, -0.81 }, speed = 12.0,
       tin = 16.0, tout = 26.0 },
 }
 
@@ -272,7 +281,7 @@ local function BuildPreset(row)
     local precipitation = {
         {
             system   = "cr_wx_io_haze",
-            template = "CR/Weather/MarsHaze",
+            template = "CR/Io/Haze",
             offset   = { x = 0.0, y = 26.0, z = 0.0 },
             quota    = row.haze.quota,
             emitters = {
@@ -292,7 +301,7 @@ local function BuildPreset(row)
     if row.grit ~= nil then
         precipitation[#precipitation + 1] = {
             system   = "cr_wx_io_grit",
-            template = "CR/Weather/DustGrit",
+            template = "CR/Io/Grit",
             offset   = { x = 0.0, y = 3.0, z = 0.0 },
             quota    = row.grit.quota,
             emitters = {
@@ -314,8 +323,8 @@ local function BuildPreset(row)
         precipitation = precipitation,
         sky           = nil,
         fog           = { r = row.fog[1], g = row.fog[2], b = row.fog[3], fogStart = row.fog[4], fogEnd = row.fog[5] },
-        ambient       = { r = row.ambient[1], g = row.ambient[2], b = row.ambient[3] },
-        diffuse       = { r = row.diffuse[1], g = row.diffuse[2], b = row.diffuse[3] },
+        ambient       = nil,
+        diffuse       = nil,
         sunPowerScale = row.sun,
         wind          = { x = row.wind[1], y = row.wind[2], z = row.wind[3] },
         windSpeed     = row.speed,
@@ -830,10 +839,27 @@ local function UpdateLavaFactor(dt)
     V.LavaFactor = Clamp(V.LavaFactor + delta, 0.0, 1.0)
 end
 
+-- A vent whose geyser has a building deployed on it draws nothing: CRGeysers
+-- reads the occupancy (read-only, cached about a second). Without CRGeysers, or
+-- when it knows no geyser there, the vent is drawn as before.
+local GeysersModule = nil
+local function VentOccupied(site)
+    if GeysersModule == nil then
+        local okLoad, loaded = pcall(require, "CRGeysers")
+        GeysersModule = (okLoad and type(loaded) == "table") and loaded or false
+    end
+    local geysers = GeysersModule
+    if not geysers or type(geysers.IsOccupiedAt) ~= "function" or site == nil then
+        return false
+    end
+    local ok, occupied = pcall(geysers.IsOccupiedAt, site.x, site.z)
+    return ok and occupied == true
+end
+
 -- Generic streaming pass: keep up to `maxLive` systems for the sites nearest the
 -- player, create inside `inRange`, destroy beyond `outRange`. One creation per
 -- pass, so a long list never costs a frame spike.
-local function StreamSites(sites, live, maxLive, inRange, outRange, create, destroy, playerPos)
+local function StreamSites(sites, live, maxLive, inRange, outRange, create, destroy, playerPos, blocked)
     if playerPos == nil then return end
 
     local count = 0
@@ -841,7 +867,7 @@ local function StreamSites(sites, live, maxLive, inRange, outRange, create, dest
     for index in pairs(live) do
         local site = sites[index]
         local d = site and Distance2D(site.x, site.z, playerPos.x, playerPos.z) or nil
-        if d == nil or d > outRange then
+        if d == nil or d > outRange or (blocked ~= nil and blocked(site)) then
             drop[#drop + 1] = index
         else
             count = count + 1
@@ -858,7 +884,7 @@ local function StreamSites(sites, live, maxLive, inRange, outRange, create, dest
     for index = 1, #sites do
         if live[index] == nil then
             local d = Distance2D(sites[index].x, sites[index].z, playerPos.x, playerPos.z)
-            if d < bestDistance then
+            if d < bestDistance and not (blocked ~= nil and blocked(sites[index])) then
                 best, bestDistance = index, d
             end
         end
@@ -898,6 +924,17 @@ local function LavaDestroy(_, record)
         Fx_Destroy(record.glow)
         record.glow = nil
     end
+end
+
+-- Bubble pops, rising embers and spatter on the nearest molten pools. Cosmetic
+-- and local; the rung scales how often and how hard they pop.
+local function UpdatePoolFx(dt)
+    if V.PoolFx == nil then return end
+    PoolFX.Update(V.PoolFx, dt, LocalPlayerPosition(), {
+        enabled = V.AllowPoolFx and V.TemplatesReady,
+        scale = LadderValue("lavaFog"),
+        quality = CRWeather.Quality,
+    })
 end
 
 local function UpdateLavaSystems()
@@ -969,10 +1006,12 @@ end
 
 local function EnsureAsh()
     if V.Ash ~= nil then return V.Ash end
-    local name = Fx_Create("ash", "CR/Weather/AshFall", 0.0, 0.0, 0.0)
+    local name = Fx_Create("ash", "CR/Io/AshFall", 0.0, 0.0, 0.0)
     if name == nil then return nil end
     Call("SetParticleSystemParticleQuota", name, V.AshMaxQuota)
     Call("AttachParticleSystemToCamera", name, Vec(0.0, V.AshOffset, 0.0))
+    -- Camera-attached: a timeout would freeze an idle volume culled forever.
+    Call("SetParticleSystemNonVisibleUpdateTimeout", name, 0)
     local t = V.AshTint
     Call("SetParticleEmitterColor", name, 0,
         { r = t.r, g = t.g, b = t.b, a = 0.80 }, { r = t.r * 0.7, g = t.g * 0.7, b = t.b * 0.7, a = 0.45 })
@@ -1078,7 +1117,7 @@ function V.BeginEruption(id, siteIndex, duration, power)
     if not V.AllowEruptions then return false end
     siteIndex = floor(tonumber(siteIndex) or 0)
     local site = V.VentSites[siteIndex]
-    if site == nil then return false end
+    if site == nil or VentOccupied(site) then return false end
     if id ~= nil then
         id = tonumber(id)
         if id ~= nil then
@@ -1447,6 +1486,7 @@ local function UpdateQuake()
             local name = Fx_Create("dust", "CR/Io/QuakeDust", 0.0, 0.0, 0.0)
             if name ~= nil then
                 Call("AttachParticleSystemToCamera", name, Vec(0.0, 22.0, 0.0))
+                Call("SetParticleSystemNonVisibleUpdateTimeout", name, 0)
                 V.QuakeFx = { name = name, dust = name, rate = -1.0, until_ = math.huge }
             end
         end
@@ -1698,7 +1738,7 @@ function V.Init(options)
     local switches = {
         lavaFog = "AllowLavaFog", lavaGlow = "AllowLavaGlow", lavaTint = "AllowLavaTint",
         altitudeFog = "AllowAltitudeFog", ashFall = "AllowAshFall", vents = "AllowVents",
-        eruptions = "AllowEruptions", eruptLight = "AllowEruptLight", quakes = "AllowQuakes",
+        poolFx = "AllowPoolFx", eruptions = "AllowEruptions", eruptLight = "AllowEruptLight", quakes = "AllowQuakes",
         randomQuakes = "AllowRandomQuakes", quakeDust = "AllowQuakeDust", episodes = "AllowEpisodes",
     }
     for key, field in pairs(switches) do
@@ -1713,6 +1753,13 @@ function V.Init(options)
         quality = options.quality,
         debug   = options.debug,
         baseSky = options.baseSky,
+    })
+
+    -- Vehicle wakes: render-only debris under low, moving craft near the viewer
+    -- (shared CRWake module). options.vehicleWakes = false switches them off.
+    pcall(Wake.Init, {
+        surface = "sulfur", enabled = options.vehicleWakes ~= false, quality = options.quality,
+        debug = options.debug,
     })
 
     -- Our particle templates are an opt-in payload, so a build that has not
@@ -1778,6 +1825,7 @@ function V.Init(options)
     -- Map data.
     local sites = options.sites
     V.LavaPools, V.VentSites, V.LavaCells, V.LavaGeom = {}, {}, {}, nil
+    V.PoolFx = nil
     if sites ~= nil then
         if sites.lava ~= nil then
             V.LavaCells = Map.ExpandRuns(sites.lava)
@@ -1787,6 +1835,16 @@ function V.Init(options)
             }
             V.LavaPools = sites.lava.pools or {}
         end
+        -- The rng is looked up per call: BuildLadder replaces V.FxRng when a guest's seed arrives.
+        local poolRng = { Range = function(lo, hi)
+            if V.FxRng == nil then return (lo + hi) * 0.5 end
+            return V.FxRng.Range(lo, hi)
+        end }
+        V.PoolFx = PoolFX.New({
+            kind = "lava", sites = V.LavaPools, rng = poolRng, weightAt = V.LavaWeightAt,
+            heightAt = TerrainHeight, range = V.PoolFxRange, maxNear = V.PoolFxNear,
+            gap = V.PoolFxGap, radius = V.PoolFxRadius, mask = V.PoolFxMask,
+        })
         if sites.vents ~= nil then
             V.VentSites = Map.MergeVents(sites.vents, V.VentMergeRadius)
         end
@@ -1849,6 +1907,7 @@ function V.Update(dt)
     UpdateAsh()
     UpdateVents(dt)
     UpdateLavaSystems()
+    UpdatePoolFx(dt)
 
     if V.Clock >= V.NextStreamAt then
         V.NextStreamAt = V.Clock + V.StreamInterval
@@ -1860,13 +1919,14 @@ function V.Update(dt)
             end
             if V.AllowVents then
                 StreamSites(V.VentSites, V.PlumeLive, V.MaxLivePlumes, V.PlumeStreamIn, V.PlumeStreamOut,
-                    PlumeCreate, PlumeDestroy, playerPos)
+                    PlumeCreate, PlumeDestroy, playerPos, VentOccupied)
             end
         end
         UpdateRenderIntents()
     end
 
     BroadcastState(false)
+    Wake.Update(dt)
     CRWeather.Update(dt)
 end
 
@@ -1878,6 +1938,7 @@ function V.Shutdown()
     V.Quake_, V.QuakeFx = nil, nil
 
     Fx_DestroyAll()
+    PoolFX.Stop(V.PoolFx)
     V.LavaLive, V.PlumeLive = {}, {}
     V.Ash = nil
 
@@ -1894,6 +1955,7 @@ function V.Shutdown()
     end
 
     CRWeather.ClearWindOverride()
+    Wake.Stop()
     CRWeather.Shutdown()
     V.Initialized = false
 end
@@ -2019,6 +2081,7 @@ function V.Load(state)
     -- Loading rebuilds the Ogre scene: every system we held is already gone, and
     -- the engine may replay a quake that was running at save time. Stop it.
     Fx_DestroyAll()
+    PoolFX.Stop(V.PoolFx)
     V.LavaLive, V.PlumeLive = {}, {}
     V.Ash, V.QuakeFx, V.Quake_ = nil, nil, nil
     NativeStopQuake(true)

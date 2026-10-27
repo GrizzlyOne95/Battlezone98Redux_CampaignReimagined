@@ -1,0 +1,31 @@
+[WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored atstab: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_atstab.mesh"
+flashMaterial = "CR/Muzzle/atstab"
+flashDuration = 0.085
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+// CR WEAPON CASING BEGIN
+// Ballistic medium brass; local cosmetic only.
+casingType = "medium"
+// CR WEAPON CASING END
+// CR WEAPON RECOIL BEGIN
+// Opt-in recoil: the craft supplies the node/distance/return, this weapon supplies the kick.
+// A craft's recoilKick<N> overrides it (e.g. 0.15 for a scout's miniguns). Machineguns get none.
+recoilKick = 1.0
+// CR WEAPON RECOIL END
+classLabel = "cannon"
+ordName = "rocket"
+wpnName = "AT-Stabber"
+fireSound = "gatst00.wav"
+wpnReticle = "gatstab"
+wpnPriority = 3
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 0.3
+

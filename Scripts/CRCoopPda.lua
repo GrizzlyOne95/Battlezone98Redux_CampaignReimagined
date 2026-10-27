@@ -1,6 +1,7 @@
 -- Keyboard-only co-op page for the existing PDA.
 -- Only actions that work right now are listed, one short row each;
--- Backspace does the selected row (Enter, ` and Ctrl+C are stock chat). Urgent actions also have keys that work without
+-- Enter does the selected row (CR unbinds it from chat online; ` and Ctrl+C
+-- still chat, Backspace is the stock satellite view). Urgent actions also have keys that work without
 -- opening the PDA: J pings, V calls for help (host: sends the selected vehicle
 -- to pick up a guest on foot), Z gives the selected units to the teammate
 -- under the reticle. V and Z are the only letters stock leaves unbound in play
@@ -36,7 +37,7 @@ function M.Create(d)
         return c and c.IsActive() or false
     end
     function ui.PageOrder()
-        local pages = ui.IsActive() and { d.pages.COOP } or {}
+        local pages = ui.IsActive() and { d.pages.COOP, d.pages.COOP_DIAGNOSTICS } or {}
         for page = 1, d.pages.SETTINGS do pages[#pages + 1] = page end
         return pages
     end
@@ -53,11 +54,15 @@ function M.Create(d)
     function ui.Reset()
         ui.row, ui.selected, ui.pingId, ui.giveTo, ui.sendTo, ui.recallAt = 1, nil, nil, nil, nil, nil
         ui.replies, ui.wasActive = {}, false
+        ui.diagPlayer, ui.nativeRows, ui.nextNativeSample = nil, {}, 0
+        ui.traffic = nil
     end
     function ui.UpdatePage(state)
         local active = ui.IsActive()
         if active and not ui.wasActive then state.pdaPage = d.pages.COOP end
-        if not active and state.pdaPage == d.pages.COOP then state.pdaPage = d.pages.VEHICLE end
+        if not active and (state.pdaPage == d.pages.COOP or state.pdaPage == d.pages.COOP_DIAGNOSTICS) then
+            state.pdaPage = d.pages.VEHICLE
+        end
         ui.wasActive = active
     end
     local function selected()
@@ -179,7 +184,7 @@ function M.Create(d)
         end
         if host then
             local armed = ui.recallAt and now() < ui.recallAt
-            add({ key = "recall", text = armed and "RECALL ALL? BKSP AGAIN" or "RECALL ALL TO ME",
+            add({ key = "recall", text = armed and "RECALL ALL? ENTER AGAIN" or "RECALL ALL TO ME",
                 run = function()
                     if not (ui.recallAt and now() < ui.recallAt) then
                         ui.recallAt = now() + RECALL_CONFIRM
@@ -188,6 +193,9 @@ function M.Create(d)
                     ui.recallAt = nil
                     return c.Recall()
                 end })
+        elseif c.SetHostMarker then
+            add({ key = "hostmark", text = "HOST MARKER " .. (c.HostMarkerOn() and "ON" or "OFF"),
+                run = function() c.SetHostMarker(not c.HostMarkerOn()); return true end })
         end
         add({ key = "markers", text = "MARKERS " .. (c.MarkersOn() and "ON" or "OFF"),
             run = function() c.SetMarkers(not c.MarkersOn()); return true end })
@@ -216,6 +224,79 @@ function M.Create(d)
             if ok == false and reason then d.feedback(reason) end
         end
     end
+    function ui.HandleDiagnosticsInput(up, down)
+        if not ui.IsActive() then return end
+        ui.diagPlayer = choose(d.coop.GetNetworkDiagnostics().players, ui.diagPlayer, up and -1 or down and 1 or 0)
+    end
+    function ui.BuildDiagnosticsText(header, footer)
+        local lines = { header(d.pages.COOP_DIAGNOSTICS) }
+        if not ui.IsActive() then return table.concat(lines, "\n") end
+        local snapshot = d.coop.GetNetworkDiagnostics()
+        local c = comms()
+        local delivery = c.GetNetworkDiagnostics and c.GetNetworkDiagnostics() or { peers = {} }
+        local records = snapshot.players
+        ui.diagPlayer = choose(records, ui.diagPlayer)
+        -- Native snapshots do not measure freshness. Use the actual CR
+        -- heartbeat for that; polling the same NetPlayer cannot prove traffic.
+        if now() >= ui.nextNativeSample then
+            ui.nativeRows, ui.nextNativeSample = {}, now() + 1
+            ui.traffic = nil
+            if d.exu and type(d.exu.GetNetworkTrafficStats) == "function" then
+                local ok, traffic = pcall(d.exu.GetNetworkTrafficStats)
+                if ok and type(traffic) == "table" then ui.traffic = traffic end
+            end
+            if d.exu and type(d.exu.GetPlayerNetworkStats) == "function" then
+                for id, p in pairs(records) do
+                    local ok, row = pcall(d.exu.GetPlayerNetworkStats, id)
+                    if ok and type(row) == "table" and row.id == id and row.team == p.team then
+                        ui.nativeRows[id] = row
+                    end
+                end
+            end
+        end
+        lines[#lines + 1] = (snapshot.ready and "Admitted" or "Syncing admission") .. " | Phase " .. snapshot.phase
+        for _, id in ipairs(ordered(records)) do
+            local p, row = records[id], ui.nativeRows[id]
+            local link
+            if p.localPlayer then link = "local / n/a"
+            elseif not row then link = "net stats unavailable"
+            elseif row.pingSamples == 0 then link = "waiting for ping samples"
+            elseif type(row.pingMs) == "number" and type(row.lossPercent) == "number" then
+                link = string.format("%dms / %d%% loss", row.pingMs, row.lossPercent)
+            else link = "net stats unavailable" end
+            lines[#lines + 1] = (id == ui.diagPlayer and "> " or "  ") .. name(p) ..
+                (p.localPlayer and " *" or "") .. (p.host and " ^" or "")
+            lines[#lines + 1] = "  " .. p.status .. " | " .. link
+        end
+        local traffic = ui.traffic
+        if traffic then
+            lines[#lines + 1] = string.format("UDP B/s Tx %d Rx %d", traffic.txBytesPerSecond, traffic.rxBytesPerSecond)
+            lines[#lines + 1] = string.format("UDP pkt/s Tx %d Rx %d", traffic.txPacketsPerSecond, traffic.rxPacketsPerSecond)
+            lines[#lines + 1] = "Route " .. tostring(traffic.route) .. " | Rx " ..
+                (traffic.receiveAgeMs and string.format("%.1fs",traffic.receiveAgeMs / 1000) or "none") ..
+                (traffic.coverageLimited and " !" or "")
+        else
+            lines[#lines + 1] = "UDP rates/route unavailable"
+        end
+        local p = records[ui.diagPlayer]
+        if p then
+            local row, app = ui.nativeRows[p.id], delivery.peers[p.id] or {}
+            lines[#lines + 1] = ""
+            lines[#lines + 1] = string.format("ID %d Team %d | Peer phase %s", p.id, p.team, tostring(p.phase or "?"))
+            local function elapsed(value) return value and string.format("%.1fs", value) or "none" end
+            lines[#lines + 1] = p.localPlayer and "Traffic: local player" or
+                ("Co-op Rx " .. elapsed(p.receiveAge) .. " | Beat " .. elapsed(p.heartbeatAge))
+            lines[#lines + 1] = string.format("Control Tx/Rx %d/%d | Proto %s", p.sent, p.received, tostring(p.protocol or "?"))
+            lines[#lines + 1] = string.format("Action pending %d | retry %d", app.pending or 0, app.retries or 0)
+            lines[#lines + 1] = string.format("Ack %d | expired %d", app.acknowledged or 0, app.expired or 0)
+            if row then
+                lines[#lines + 1] = string.format("Kills/deaths %d/%d | Samples %s", row.kills, row.deaths,
+                    p.localPlayer and "n/a" or tostring(row.pingSamples or "?"))
+            end
+        end
+        footer(lines, "UDP local totals / 2s; Tx accepted", "Arrows player  [ ] page  X close")
+        return table.concat(lines, "\n")
+    end
     function ui.BuildText(header, footer)
         local lines = { header(d.pages.COOP) }
         if not ui.IsActive() then return table.concat(lines, "\n") end
@@ -236,7 +317,7 @@ function M.Create(d)
                 lines[#lines + 1] = "  " .. name(p) .. tag .. (word ~= "" and "  " .. word or "")
             end
         end
-        footer(lines, "Bksp do   Arrows pick   J ping",
+        footer(lines, "Enter do   Arrows pick   J ping",
             (host and "V send ride" or "V help") .. "   Z give to aimed",
             "* you  ^ host   [ ] page  X close")
         return table.concat(lines, "\n")

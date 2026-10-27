@@ -1,0 +1,258 @@
+particle_system CR17/CascadeMist
+{
+    material CRWX_FX/Mist
+    particle_width 5
+    particle_height 4
+    quota 120
+    billboard_type point
+    emitter Box
+    {
+        width 12
+        height 2
+        depth 7
+        emission_rate 22
+        time_to_live_min 1.8
+        time_to_live_max 3.5
+        direction 0 1 0
+        angle 35
+        velocity_min 1
+        velocity_max 3
+        colour 0.7 0.7 0.7 0.16
+    }
+    affector ColourFader
+    {
+        alpha -0.05
+    }
+    affector Scaler
+    {
+        rate 1.2
+    }
+}
+
+// Core vents: one set per fallen converter, created by CRJungle17 on every peer
+// at the stock partNgeizer path. Emitter RGB stays neutral; the CR17/Vent*
+// materials (cr17_vents.material) carry the fire hue after the vertex-colour
+// swizzle. CRJungle17 pulses emitter 0 of Flame, Lick and Spatter by index.
+//   emitter 0  column (rate driven by the director)
+//   emitter 1  base flare (Flame only)
+particle_system CR17/VentFlame
+{
+    material CR17/VentFlame
+    particle_width 9
+    particle_height 9
+    quota 260
+    cull_each true
+    sorted false
+    local_space false
+    billboard_type point
+    emitter Box
+    {
+        width 7
+        height 7
+        depth 1
+        direction 0 1 0
+        angle 7
+        emission_rate 70
+        time_to_live_min 1.1
+        time_to_live_max 2.0
+        velocity_min 16
+        velocity_max 28
+        colour_range_start 1 1 1 0.9
+        colour_range_end 0.85 0.85 0.85 0.7
+    }
+    emitter Box
+    {
+        width 9
+        height 9
+        depth 1
+        direction 0 1 0
+        angle 60
+        emission_rate 16
+        time_to_live_min 0.4
+        time_to_live_max 0.9
+        velocity_min 2
+        velocity_max 6
+        colour_range_start 1 1 1 0.9
+        colour_range_end 0.9 0.9 0.9 0.7
+    }
+    affector Scaler
+    {
+        rate 4
+    }
+    affector ColourFader
+    {
+        red -0.45
+        green -0.45
+        blue -0.45
+        alpha -0.5
+    }
+}
+
+// Red tongues licking higher than the core.
+particle_system CR17/VentLick
+{
+    material CR17/VentLick
+    particle_width 12
+    particle_height 12
+    quota 160
+    cull_each true
+    sorted false
+    local_space false
+    billboard_type point
+    emitter Box
+    {
+        width 8
+        height 8
+        depth 2
+        direction 0 1 0
+        angle 12
+        emission_rate 30
+        time_to_live_min 1.6
+        time_to_live_max 2.8
+        velocity_min 14
+        velocity_max 24
+        colour_range_start 0.9 0.9 0.9 0.75
+        colour_range_end 0.7 0.7 0.7 0.5
+    }
+    affector Scaler
+    {
+        rate 5
+    }
+    affector ColourFader
+    {
+        red -0.3
+        green -0.3
+        blue -0.3
+        alpha -0.32
+    }
+    affector Rotator
+    {
+        rotation_speed_range_start -40
+        rotation_speed_range_end 40
+        rotation_range_start 0
+        rotation_range_end 360
+    }
+}
+
+// Black smoke above the fire, leaning with the storm.
+//   affector 2 LinearForce (live wind from the director)
+particle_system CR17/VentSmoke
+{
+    material CR_FX/SmokeHeavy
+    particle_width 18
+    particle_height 18
+    quota 220
+    cull_each true
+    sorted false
+    local_space false
+    billboard_type point
+    emitter Box
+    {
+        width 8
+        height 8
+        depth 4
+        position 0 30 0
+        direction 0 1 0
+        angle 14
+        emission_rate 9
+        time_to_live_min 8
+        time_to_live_max 13
+        velocity_min 9
+        velocity_max 16
+        colour_range_start 0.2 0.2 0.2 0.75
+        colour_range_end 0.1 0.1 0.1 0.55
+    }
+    affector Scaler
+    {
+        rate 3.5
+    }
+    affector ColourFader
+    {
+        alpha -0.06
+    }
+    affector LinearForce
+    {
+        force_vector 0 0 0
+        force_application add
+    }
+    affector Rotator
+    {
+        rotation_speed_range_start -20
+        rotation_speed_range_end 20
+        rotation_range_start 0
+        rotation_range_end 360
+    }
+}
+
+// Molten glow flat on the pit floor.
+particle_system CR17/VentPool
+{
+    material CR17/VentGlow
+    particle_width 26
+    particle_height 26
+    quota 24
+    cull_each true
+    sorted false
+    local_space false
+    billboard_type perpendicular_common
+    common_direction 0 1 0
+    common_up_vector 0 0 1
+    emitter Box
+    {
+        width 6
+        height 6
+        depth 0.5
+        direction 0 1 0
+        angle 0
+        emission_rate 10
+        time_to_live_min 1.4
+        time_to_live_max 2.2
+        velocity 0
+        colour_range_start 0.8 0.8 0.8 0.6
+        colour_range_end 0.6 0.6 0.6 0.45
+    }
+    affector ColourFader
+    {
+        red -0.3
+        green -0.3
+        blue -0.3
+        alpha -0.3
+    }
+}
+
+// Lava thrown by a surge; gravity brings it back down.
+particle_system CR17/VentSpatter
+{
+    material CR17/VentEmber
+    particle_width 1.9
+    particle_height 1.9
+    quota 220
+    cull_each true
+    sorted false
+    local_space false
+    billboard_type point
+    emitter Point
+    {
+        angle 32
+        emission_rate 6
+        time_to_live_min 2.4
+        time_to_live_max 4.4
+        direction 0 1 0
+        velocity_min 20
+        velocity_max 42
+        colour_range_start 1 1 1 0.95
+        colour_range_end 0.8 0.8 0.8 0.75
+    }
+    affector LinearForce
+    {
+        force_vector 0 -18 0
+        force_application add
+    }
+    affector ColourFader
+    {
+        red -0.2
+        green -0.2
+        blue -0.2
+        alpha -0.2
+    }
+}

@@ -39,15 +39,15 @@ ini = configparser.ConfigParser()
 ini.read(root / 'Config/misn05.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
-assert (root / 'Missions/misn05.vxt').read_text().splitlines() == ['avtank ,', 'avfimp ,']
+assert (root / 'Missions/misn05.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,']
 assert (root / 'Assets/Graphics/misn05.bmp').read_bytes()[:2] == b'BM'
-assert len((root / 'misn05.des').read_text().strip()) <= 300
+assert len((root / 'misn05.mpdes').read_text().strip()) <= 300
 
 lua = (root / 'Scripts/misn05.lua').read_text()
 lua = re.sub(r'--\[(=*)\[.*?\]\1\]', '', lua, flags=re.S)
 assert 'local LEADER_TEAM, ENEMY_TEAM, MINE_TEAM, SUPPORT_TEAM = 1, 5, 6, 7' in lua
 assert 'pcall(BuildObject, odf, ENEMY_TEAM, spawn)' in lua
-assert 'BuildObject("boltmine", MINE_TEAM, pathName)' in lua
+assert 'BuildObject("cromine", MINE_TEAM, pathName)' in lua
 assert 'BuildObject("avtank", SUPPORT_TEAM, spawnPos)' in lua
 assert not re.search(r'BuildObject\([^\n]*,\s*[234]\s*,', lua)
 assert 'aiCore.SetStrategyFromAip("misn05.aip", ENEMY_TEAM)' in lua
@@ -63,6 +63,6 @@ assert 'CRCoop.AnyPlayerSatisfies' in lua
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn05.ini', 'Missions/misn05.vxt', 'Assets/Graphics/misn05.bmp', 'misn05.des']:
+for source in ['Config/misn05.ini', 'Missions/misn05.vxt', 'Assets/Graphics/misn05.bmp', 'misn05.mpdes']:
     assert members.get(source) == Path(source).name, 'New lobby asset must be admitted by the shipping manager: ' + source
 print('misn05 co-op native map, team isolation, authority and lobby contract passed')

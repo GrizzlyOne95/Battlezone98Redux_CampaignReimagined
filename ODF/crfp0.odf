@@ -1,0 +1,45 @@
+// 180 m, dodgeable blue pulse: 55 damage / 0.5 s = 110 DPS.
+[OrdnanceClass]
+classLabel = "bullet"
+shotGeometry = "gatst00.geo"
+shotSound = "Ordin_a.wav"
+xplGround = "xlgtgnd"
+xplVehicle = "xlgtcar"
+xplBuilding = "xlgtbld"
+renderName = "crfp0.render"
+ammoCost = 5
+lifeSpan = 1.0
+shotSpeed = 180.0
+damageBallistic = 55
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "crfp0.core"
+renderName2 = "crfp0.trail"
+
+[Core]
+renderBase = "draw_twirl"
+textureName = "plasma_bz2.tga"
+textureBlend = "one one modulate"
+startColor = "80 210 255 255"
+finishColor = "30 100 255 180"
+startRadius = 0.40
+finishRadius = 0.28
+rotationRate = 12.0
+
+[Trail]
+renderBase = "draw_twirl_trail"
+textureName = "smokeflame2.tga"
+startColor = "50 150 255 100"
+finishColor = "10 50 180 0"
+startRadius = 0.22
+finishRadius = 0.08
+animateTime = 0.12
+emitDelay = 0.012
+emitVelocity = "0.0 0.0 0.0"
+emitVariance = "0.0 0.0 0.0"
+emitLife = 0.12

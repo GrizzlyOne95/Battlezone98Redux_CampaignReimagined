@@ -1,5 +1,9 @@
 // CCA Steering Lock: brief control projectile, not a damage weapon.
 [WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
 classLabel = "cannon"
 ordName = "stlock"
 wpnName = "CCA Steering Lock"

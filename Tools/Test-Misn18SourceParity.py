@@ -12,7 +12,17 @@ raw = source_path.read_bytes()
 assert sha256(raw).hexdigest() == "19a999b8e06b445dcccf51ede5cb1312820daacb0dc457064feaee721baab538", "DLL source snapshot changed"
 assert sha256(header_path.read_bytes()).hexdigest() == "ea2a4cbebe8853904bf463c41eb1c7f4b165084e74967026724cfd6cf5f0ba5c", "DLL header snapshot changed"
 source = raw.decode("utf-8").replace("\r\n", "\n")
-lua = (ROOT / "Scripts/misn18.lua").read_text(encoding="utf-8")
+lua_full = (ROOT / "Scripts/misn18.lua").read_text(encoding="utf-8")
+# The marked Campaign Reimagined co-op/restoration layer is audited separately (Test-Misn18Coop.lua,
+# Test-Misn18CoopContract.py). Everything outside it must still be exactly the DLL port.
+region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
+opened = re.findall(r"(?m)^-- CR ([^\n]*) >>$", lua_full)
+closed = re.findall(r"(?m)^-- CR ([^\n]*) <<$", lua_full)
+assert opened == closed and opened, "every CR region opens and closes in order"
+assert set(opened) == {"co-op runtime", "co-op callback", "co-op callbacks", "Fury scaling",
+                       "restored earthquake pulse", "restored voice", "restored return units"}, opened
+lua = re.sub(region, "", lua_full)
+assert "CRMisn18" not in lua and "campaignRuntime" not in lua and "RESTORED" not in lua, "CR code outside a region"
 cpp_comment = r"//[^\n]*|/\*.*?\*/"
 long_comment = r"--\[==\[(.*?)\]==\]"
 setup = source.split("void Misn18Mission::Setup(void)", 1)[1].split("void Misn18Mission::Execute(void)", 1)[0]

@@ -1,0 +1,74 @@
+// Mars sky dome. Technique 0 is the CR_MarsSky look (Shaders/CR_marssky.hlsl,
+// DX11/DX9); technique 1 keeps the stock mars.tga dome for OpenGL. Both start
+// with mars.tga on unit 0 so the dome's own texture lookups stay valid.
+// CRWorldArt.UpdateSky writes the sun direction, night blend and clarity into
+// the technique 0 pass colours every frame.
+material CRSKYMA.MAP
+{
+	technique 0
+	{
+		pass 0
+		{
+			vertex_program_ref CR_MarsSky_vertex
+			{
+			}
+			fragment_program_ref CR_MarsSky_fragment
+			{
+				// The Moon's star sky, turned for Environment's Mars sun: the Milky Way
+				// lies 62-73 deg from the sunset and sunrise suns and at least 33 deg
+				// from the sinking dusk/dawn sun, and still crosses the zenith at night
+				// with the galactic centre 60 deg up.
+				param_named skyRotation matrix4x4 -0.849697 -0.247085 0.465794 0 -0.288816 -0.520985 -0.803218 0 0.441135 -0.817021 0.371317 0 0 0 0 1
+			}
+			lighting off
+			scene_blend one zero
+			depth_write off
+			// Day, clear, sun high in the south until the first UpdateSky write, so
+			// the dome still has a sun when CR's Lua is not running.
+			specular 0 0.35 0.6 0.72 0
+			emissive 0 1 1 0
+			texture_unit 0
+			{
+				texture mars.tga
+			}
+			texture_unit 1
+			{
+				texture crsky_mars_clouds.png
+				tex_address_mode wrap
+				filtering trilinear
+			}
+			texture_unit 2
+			{
+				texture crsky_stars.png
+				tex_address_mode clamp
+				filtering none
+			}
+			texture_unit 3
+			{
+				texture crsky_milkyway.png
+				tex_address_mode wrap clamp
+				filtering trilinear
+			}
+		}
+	}
+	technique 1
+	{
+		pass 0
+		{
+			vertex_program_ref CR_SkyDome_vertex
+			{
+			}
+			fragment_program_ref CR_WorldSky_fragment
+			{
+				param_named horizonBlend float4 .02 .35 1 0
+			}
+			lighting off
+			scene_blend one zero
+			depth_write off
+			texture_unit
+			{
+				texture mars.tga
+			}
+		}
+	}
+}

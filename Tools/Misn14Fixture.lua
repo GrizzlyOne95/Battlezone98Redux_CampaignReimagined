@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Shared mock world for the misn14 suites (Test-Misn14.lua offline, Test-Misn14Coop.lua multi-peer,
 -- Test-Misn14Presentation.lua). Each peer runs the complete Scripts/misn14.lua in its own Lua 5.1
 -- environment over the real CRCoop registry and the E/A + C presentation transport. The engine, AI and
@@ -153,6 +155,7 @@ function F.makePeer(id, team, network, options)
         p.calls[#p.calls + 1] = c
     end
     p.record = record
+    p.pda = {Initialize = 0, UpdateInputs = 0, UpdateHeadlights = 0, OnObjectCreated = 0}
     local e = setmetatable({}, {__index = _G})
     e._G = e
     e.print = function(...) record("print", ...) end
@@ -267,6 +270,7 @@ function F.makePeer(id, team, network, options)
     e.SetMaxHealth = function(h, v) record("SetMaxHealth", h, v) end
     e.AddHealth = function(h, v) record("AddHealth", h, v) end
     e.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         record("Send", kind)
         local args = {...}
         for index = 1, select("#", ...) do
@@ -302,9 +306,20 @@ function F.makePeer(id, team, network, options)
     end
     local function noop() end
     local modules = {
+        Environment = {
+            Init = function(options) p.environmentOptions=options; record("EnvironmentInit") end,
+            BindWeatherSensors = function(name, director) p.weatherSensors={name,director} end,
+            Update = function() record("EnvironmentUpdate") end,
+            OnObjectCreated = noop, InvalidateRenderer = noop,
+        },
         RequireFix = {Initialize = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end},
+        PersistentConfig = {
+            Initialize = function() p.pda.Initialize = p.pda.Initialize + 1 end,
+            UpdateInputs = function() p.pda.UpdateInputs = p.pda.UpdateInputs + 1 end,
+            UpdateHeadlights = function() p.pda.UpdateHeadlights = p.pda.UpdateHeadlights + 1 end,
+            OnObjectCreated = function() p.pda.OnObjectCreated = p.pda.OnObjectCreated + 1 end},
         ScriptSubtitles = {
             Play = function(file) record("Play", file); return "audio:" .. file end,
             Queue = function(file) record("Queue", file); return "audio:" .. file end,
@@ -312,6 +327,7 @@ function F.makePeer(id, team, network, options)
         CRTitanWeather = options.titan,
     }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     local realRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoopRespawn = {Create = function(d)
         local service = realRespawn.Create(d)

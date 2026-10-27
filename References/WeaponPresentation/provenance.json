@@ -1,0 +1,15 @@
+{
+  "source_repository": "https://github.com/GrizzlyOne95/ExtraUtilities",
+  "source_commit": "aad6e2b916075cb566f3095799dd2f6c6f13524c",
+  "shader_license": "LGPL-3.0-or-later; ExtraUtilities COPYING.LESSER/COPYING",
+  "flame_provenance": {
+    "generator": "built-in image_gen",
+    "prompt": "Asset type: original photorealistic game VFX flame-mask texture for a weapon muzzle flash, one isolated vertical plume on a truly transparent background, square canvas. This is an emission/opacity texture, not a scene or illustration. Shape: a short, violent burst of incandescent gas, narrow rooted nozzle point at bottom center around x=50%, y=93%, expanding upward into several uneven branching flame tongues ending before y=8%. Strong white-hot central spine near the root, delicate gray-white turbulent gas filaments and torn transparent gaps in the outer tongues. Rich internal wisps and realistic high-speed gas breakup, asymmetrical irregular edges; keep most of the outer canvas fully transparent with at least 7% empty padding. Use grayscale white and gray emission only; transparency provides the outer falloff. No orange color so the game can tint the material. A compact directional muzzle jet, not a bonfire, explosion ball, long torch flame, glowing cone or circular halo. No weapon, barrel, smoke cloud, sparks, ground, lighting scene, background color, text, borders, labels, checkerboard pattern, or baked shadow. Crisp useful silhouette and fine filament detail suitable for additive rendering on crossed mesh planes; fully contain all gas inside the canvas.",
+    "resource": "exu_muzzle_flame_v2.png"
+  },
+  "inputs": {
+    "exu_cannon_flash.hlsl": "116220aa16d96a3a186a8a389b1e51347a9eaa2157731c4ac31c9f3c775b379d",
+    "exu_cannon_flash.program": "d47a4bbbc54900b11068552b62c8a79aefb1dd1dd5e81999848aa722dab0c81b",
+    "exu_muzzle_flame_v2.png": "75a52a4537014e23521268e34f7ae30b7379cac82e6cb726edb6577946b88006"
+  }
+}

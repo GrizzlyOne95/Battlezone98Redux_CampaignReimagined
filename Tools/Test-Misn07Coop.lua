@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Run from the repository root: lua5.1 Tools/Test-Misn07Coop.lua
 -- Executes the complete misn07 script in separate Lua 5.1 environments over the
 -- real CRCoop registry and the E/A/C presentation transport. The engine, AI and
@@ -277,6 +279,7 @@ local function makePeer(id, team, network)
         record("CameraObject", subject, x, y, z, target)
     end
     e.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         local args = {...}
         local bytes = 4
         for _, value in ipairs(args) do bytes = bytes + (type(value) == "string" and #value + 2 or 9) end
@@ -301,6 +304,7 @@ local function makePeer(id, team, network)
         RequireFix = {Initialize = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end},
+        PersistentConfig = {Initialize = noop, UpdateInputs = noop, UpdateHeadlights = noop, OnObjectCreated = noop},
         ScriptSubtitles = {
             Play = function(file) record("Play", file); return file end,
             Queue = function(file) record("Queue", file) end,
@@ -331,6 +335,7 @@ local function makePeer(id, team, network)
         Shutdown = function() venus.shutdowns = venus.shutdowns + 1 end,
     }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     local realRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoopRespawn = {Create = function(d)
         local service = realRespawn.Create(d)
@@ -1359,6 +1364,11 @@ do
     registerAll(); run(3)
     check(host.venus.loaded and host.venus.loaded.tag == "saved" and host.state.weatherState == nil, "a saved state is loaded and consumed")
     check(host.venus.options.seed == 99, "the saved seed is reused")
+    local restored = host.env.Save()
+    restored.weatherState = {tag = "same-lua"}
+    host.env.Load(restored); run(1)
+    check(host.venus.loaded and host.venus.loaded.tag == "same-lua" and host.state.weatherState == nil,
+        "same-Lua load consumes saved weather and rebuilds the director")
     -- A mission restart in the same process stands the director down first.
     local before = host.venus.shutdowns
     host.env.Start(); run(1)

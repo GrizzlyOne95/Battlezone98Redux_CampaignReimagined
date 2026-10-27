@@ -29,7 +29,7 @@ BackdropHeight  = 100
 [Stars]
 Radius		= 1000
 
-Texture00   = earth.map
+Texture00   = crearth.map
 Alpha00     = 0
 Size00      = 200
 Azimuth00   = 150
@@ -44,6 +44,72 @@ Height01    = 1000
 Azimuth01   = -50
 Elevation01 = 40
 Roll01      = 40
+
+Texture02   = crmeteor.map
+Color02     = "255 252 246 255"
+Size02      = 360
+Azimuth02   = 15
+Elevation02 = 35
+Roll02      = 30
+
+Texture03   = crmeteor.map
+Color03     = "250 255 250 255"
+Size03      = 440
+Azimuth03   = 80
+Elevation03 = 22
+Roll03      = 110
+
+Texture04   = crmeteor.map
+Color04     = "255 248 240 255"
+Size04      = 400
+Azimuth04   = 135
+Elevation04 = 50
+Roll04      = 200
+
+Texture05   = crmeteor.map
+Color05     = "246 252 255 255"
+Size05      = 520
+Azimuth05   = 205
+Elevation05 = 28
+Roll05      = 290
+
+Texture06   = crmeteor.map
+Color06     = "255 255 244 255"
+Size06      = 380
+Azimuth06   = 265
+Elevation06 = 60
+Roll06      = 60
+
+Texture07   = crmeteor.map
+Color07     = "252 246 255 255"
+Size07      = 480
+Azimuth07   = 325
+Elevation07 = 18
+Roll07      = 150
+
+Texture08   = crsatell.map
+Color08     = "236 240 255 255"
+Width08     = 1800
+Height08    = 110
+Azimuth08   = 40
+Elevation08 = 45
+Roll08      = 20
+
+Texture09   = crsatell.map
+Color09     = "240 236 250 255"
+Width09     = 1800
+Height09    = 110
+Azimuth09   = 170
+Elevation09 = 30
+Roll09      = -15
+
+Texture10   = crsatell.map
+Color10     = "232 236 246 255"
+Width10     = 1800
+Height10    = 110
+Azimuth10   = 290
+Elevation10 = 55
+Roll10      = 35
 
 [StarList]
 

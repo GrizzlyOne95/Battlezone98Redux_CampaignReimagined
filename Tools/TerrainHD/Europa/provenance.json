@@ -1,0 +1,135 @@
+{
+  "schema": "cr-hd-source-images-v1",
+  "world": "europa",
+  "tileSize": 1024,
+  "normalPolarity": "source-height-matched",
+  "sourceRecipeSha256": "dea64d74c33429b5d643a587b6add156cd510d181cfb95997eeacffc5c24bc10",
+  "normalEngineConversion": {
+    "706d0f146702": "flip_green",
+    "ccc49245e212": "flip_green",
+    "e39ac0f49b87": "flip_green",
+    "2fb5706a9216": "flip_green",
+    "fe_d473d38616": "flip_green"
+  },
+  "normalCorrections": {},
+  "normalRotation": "Sources converted to engine U/V tangent basis first; CCW image variants rotate engine normal XY as (Y, -X).",
+  "atlasPixelsRead": false,
+  "baseEmissives": {
+    "schema": "cr-base-emissive-accents-v1",
+    "sourceId": "ccc49245e212",
+    "maximum": 32,
+    "sourceGain": 0.1,
+    "settings": {
+      "type": 4,
+      "color": [
+        12,
+        26,
+        32
+      ],
+      "rectangles": [
+        [
+          0.06,
+          0.075,
+          0.03,
+          0.004
+        ],
+        [
+          0.56,
+          0.575,
+          0.03,
+          0.004
+        ]
+      ]
+    },
+    "policy": "Independent source E plus sparse UV-authored status accents before variants/blends"
+  },
+  "sourceHeightCorrections": {
+    "2fb5706a9216": "invert_xy"
+  },
+  "sources": [
+    {
+      "id": "706d0f146702",
+      "name": "ExposedGlacialIce_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "f5b0d7a57ba9efa5c5645b1d100e3b751b22a1b6c3b31927e50e9bcff01c4b86",
+        "S": "8d5bdb9f007d6bb10567e08921a5caf1cf150cee212485fb98b31c49666560ab",
+        "E": "482947eadeb3defd2ac594a0c43f7abb623ab20ad5f0f38cf9ea07cd1edc19f1",
+        "G": "0d7c187cce60785b5202807b97d85b7f0760211b8142d665fd6fa49acbff1caa",
+        "N": "7461cad3f705076af9d5e572daf50c44fafa021c4de853e087378d9ef66a6b71"
+      }
+    },
+    {
+      "id": "ccc49245e212",
+      "name": "metal7.tga",
+      "library": "BZCC",
+      "inputHashes": {
+        "D": "dab7d3ec539621fbcc46a012054ba4e5ab791757d9c2491a4c152a1674d863ab",
+        "N": "036d5c340c32a3c584ba53f6264f078150ea38009782e8e154e68890a029a877",
+        "S": "3ab773aee5d2364bd5efaf67d3cd5d01fe6ac5077c43daaf5b4551d6cd9ca0ee",
+        "E": "b6ad158db8c88a5e076e10620a76884e7ecb0228ffa771d7147ac7b3a3a3678a"
+      }
+    },
+    {
+      "id": "e39ac0f49b87",
+      "name": "IceAngledLayers_albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "5c9a5496ad51b9bc1f182e8530580eaaf209b9913c5c4b25850f3c1a21900081",
+        "S": "8d5bdb9f007d6bb10567e08921a5caf1cf150cee212485fb98b31c49666560ab",
+        "E": "3a7fa4380bae4ea262ab5869208228c7b1b58e49678ab057dda34cd1791f37a5",
+        "G": "128cdea6b5e549ac48fe314640da5b035137f9f2229e2a3d65d265bd1aeb3e9a",
+        "N": "2d1c34e5b2d387e58cffd8774de6adafed70d888e956e8c29ba520d2ab338d43"
+      }
+    },
+    {
+      "id": "2fb5706a9216",
+      "name": "Snowy_Rock_21_Albedo.png",
+      "library": "UE Tank Game",
+      "inputHashes": {
+        "D": "106dbe400a06cbe97a86db548e05d6ebe1d321a964c46695f69fb2388f9f5643",
+        "N": "413a1678676f549a21bc0ea0989d8a52fb30704530df93377bffda3affa48a17",
+        "R": "531b60f8d3d93afbf1887acb8d25a75beda234955ba07b8237c550a5f12e13da"
+      }
+    },
+    {
+      "id": "fe_d473d38616",
+      "name": "plutoice.tga",
+      "library": "FE Remastered",
+      "inputHashes": {
+        "D": "c1babbac20d9c967678eda4a821172bdbf35509b24f3bf7ca47fd535922b3d45",
+        "N": "b1dbe397029bc40f29ebb0b244d5caa3116dad96538715f449bdbf3f3a24bdda",
+        "S": "7aab7922204a8cdb1edf6b703f4188f03299b20b3d68c6bd7995cd793f83f71a"
+      }
+    }
+  ],
+  "worldSurfaceArt": {
+    "schema": "cr-world-surface-art-v1",
+    "settings": {
+      "intent": "Keep cold blues/white while softening saturated glacier facets and snowy grit",
+      "types": {
+        "0": {
+          "neutralMix": 0.12,
+          "contrast": 0.92,
+          "normalStrength": 0.88
+        },
+        "1": {
+          "neutralMix": 0.08,
+          "contrast": 0.94,
+          "normalStrength": 0.88,
+          "specularMaximum": 42
+        },
+        "2": {
+          "neutralMix": 0.1,
+          "contrast": 0.93,
+          "specularMaximum": 46
+        },
+        "3": {
+          "neutralMix": 0.1,
+          "normalStrength": 0.92
+        }
+      }
+    },
+    "references": {}
+  }
+}

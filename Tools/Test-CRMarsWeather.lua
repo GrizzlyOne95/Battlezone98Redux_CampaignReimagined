@@ -115,19 +115,50 @@ exu.SetParticleEmitterEmissionRate = function(name, i, r)
     if rec.systems[name] then rec.systems[name].rates[i] = r end
     return true
 end
+rec.devil = {}   -- systemName -> { dirs = {[emitter] = vec}, colours = {[emitter] = alphas}, dirChanges = n }
+local function devilRec(name)
+    local r = rec.devil[name] or { dirs = {}, colours = {}, dirChanges = 0 }
+    rec.devil[name] = r
+    return r
+end
 exu.SetParticleEmitterDirection = function(name, i, d)
+    if string.find(name, "cr_wx_devil_", 1, true) == 1 then
+        local r = devilRec(name)
+        local prev = r.dirs[i]
+        if prev == nil or prev.x ~= d.x or prev.z ~= d.z then r.dirChanges = r.dirChanges + 1 end
+        r.dirs[i] = { x = d.x, y = d.y, z = d.z }
+        return true
+    end
     rec.windDirs[name] = d
     return true
 end
 exu.SetParticleEmitterVelocity = function() return true end
 exu.SetParticleEmitterTimeToLive = function() return true end
 exu.SetParticleEmitterAngle = function() return true end
-exu.SetParticleEmitterColor = function() return true end
+exu.SetParticleEmitterColor = function(name, i, c0, c1)
+    if string.find(name, "cr_wx_devil_", 1, true) == 1 then
+        devilRec(name).colours[i] = { start = c0.a, finish = c1.a }
+    end
+    return true
+end
 exu.UpdateParticleFollowers = function() return 0 end
 exu.SetSkyDome = function(m) rec.sky = m return true end
 exu.SetSkyBox = function(m) rec.sky = m return true end
 
 package.preload["exu"] = function() return exu end
+-- Recording CRWetGlass: the director only feeds it levels and splats.
+local glass = { grit = 0, splats = 0, updates = 0, stops = 0, weatherCalls = 0 }
+package.preload["CRWetGlass"] = function()
+    return {
+        Weather = function(kind, level)
+            if kind == "grit" then glass.grit = level; glass.weatherCalls = glass.weatherCalls + 1 end
+        end,
+        Busy = function() return glass.grit > 0 end,
+        Update = function(i) glass.updates = glass.updates + 1; glass.lastRain = i end,
+        Splat = function(amount) glass.splats = glass.splats + 1; glass.lastSplat = amount end,
+        Stop = function() glass.stops = glass.stops + 1 end,
+    }
+end
 package.preload["RuntimeEnhancements"] = function()
     return { Initialize = function() end, Update = function() end, OnObjectCreated = function() end }
 end
@@ -278,6 +309,26 @@ end
 check(maxDevilsSeen > 0, "dust devils should have appeared in the calm half of the ladder")
 check(maxDevilsSeen <= CRMarsWeather.MaxDevils,
     "dust devils exceeded the cap: " .. tostring(maxDevilsSeen))
+-- The vortex is faked by sweeping two point emitters round a cone; prove it
+-- actually turns, that the strands are opposed, and that the funnel is a cone.
+do
+    local checked = 0
+    for name, r in pairs(rec.devil) do
+        if r.dirs[1] ~= nil and r.dirs[2] ~= nil then
+            checked = checked + 1
+            check(r.dirChanges > 20, name .. " helix emitters should keep sweeping, saw " .. tostring(r.dirChanges))
+            local a, b = r.dirs[1], r.dirs[2]
+            check(math.abs(a.x + b.x) < 1e-6 and math.abs(a.z + b.z) < 1e-6,
+                name .. " strands should be half a turn apart")
+            check(a.y == 1.0 and (a.x * a.x + a.z * a.z) < 0.30 * 0.30,
+                name .. " funnel tilt should stay a narrow cone")
+            check(r.colours[1] ~= nil and r.colours[1].start <= 0.30 + 1e-6 and r.colours[1].finish >= 0.0,
+                name .. " fade should only ever scale the authored alpha down")
+        end
+    end
+    check(checked > 0, "no dust devil received helix directions")
+end
+
 for level in pairs(devilLevels) do
     check(level <= 3, "dust devils must not form inside a storm, saw one at level " .. tostring(level))
 end
@@ -370,8 +421,60 @@ for _ = 1, 30 * 8 do
 end
 check(CRMarsWeather.ForcedUntil == nil, "a forced level must release when its timer expires")
 
+-- --- cockpit-glass grit -------------------------------------------------------
+-- The grit level follows the ladder severity: builds at a bounded rate, stays subtle at the top,
+-- clears slowly afterwards, and a severe storm throws the odd small splat.
+do
+    local RISE, CLEAR = 0.035, 0.007
+    local function Run(seconds)
+        for _ = 1, math.floor(seconds / dt) do
+            now = now + dt; CRMarsWeather.Update(dt); Environment.Update(dt)
+        end
+    end
+    CRMarsWeather.ForceLevel(1, 1e6, 0.5)
+    Run(300)
+    check(glass.grit > 0 and glass.grit < 0.2, string.format("haze leaves only faint grit, got %.3f", glass.grit))
+    check(glass.lastRain == 0, "grit never drives the rain layers")
+    local splatsBefore = glass.splats
+    CRMarsWeather.ForceLevel(5, 1e6, 0.5)
+    local prev, worstRise = glass.grit, 0
+    for _ = 1, math.floor(150 / dt) do
+        now = now + dt; CRMarsWeather.Update(dt); Environment.Update(dt)
+        worstRise = math.max(worstRise, glass.grit - prev); prev = glass.grit
+    end
+    check(worstRise <= RISE * dt + 1e-9, string.format("grit builds no faster than %.3f/s (step %.5f)", RISE, worstRise))
+    check(glass.grit > 0.8 and glass.grit <= 0.9 + 1e-9, string.format("severe storm grit is noticeable but capped, got %.3f", glass.grit))
+    check(glass.splats - splatsBefore >= 2, "a severe storm throws a few grit splats, got " .. (glass.splats - splatsBefore))
+    check(glass.lastSplat >= 0.04 and glass.lastSplat <= 0.12, "grit splats stay small")
+    local peak = glass.grit
+    CRMarsWeather.ForceLevel(1, 1e6, 0.5)
+    prev = glass.grit
+    local worstFall = 0
+    for _ = 1, math.floor(30 / dt) do
+        now = now + dt; CRMarsWeather.Update(dt); Environment.Update(dt)
+        worstFall = math.max(worstFall, prev - glass.grit); prev = glass.grit
+    end
+    check(worstFall <= CLEAR * dt + 1e-9, string.format("grit clears no faster than %.3f/s (step %.5f)", CLEAR, worstFall))
+    check(glass.grit > peak - 0.25 and glass.grit < peak, string.format("30 s after the storm the glass is still dusty, got %.3f", glass.grit))
+    Run(200)
+    check(glass.grit < 0.2, string.format("the glass clears some minutes after the storm, got %.3f", glass.grit))
+    -- The option switches it off: the level only falls and no splats come.
+    CRMarsWeather.ForceLevel(5, 1e6, 0.5)
+    Run(120)
+    CRMarsWeather.AllowGlassGrit = false
+    local atOff = glass.grit
+    Run(20)
+    check(glass.grit < atOff, "AllowGlassGrit = false lets the grit clear")
+    local splatsOff = glass.splats
+    Run(100)
+    check(glass.splats == splatsOff, "AllowGlassGrit = false stops grit splats")
+    CRMarsWeather.AllowGlassGrit = true
+    CRMarsWeather.ReleaseForcedLevel()
+end
+
 -- --- teardown ----------------------------------------------------------------
 CRMarsWeather.Shutdown()
+check(glass.stops >= 1 and glass.grit == 0, "shutdown releases the cockpit-glass layers")
 
 check(countSystems() == 0, "shutdown must destroy every particle system, " .. tostring(countSystems()) .. " left")
 check(Environment.Modifiers["CRWeather"] == nil, "shutdown should unregister the environment modifier")

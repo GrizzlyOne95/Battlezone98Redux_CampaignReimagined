@@ -1,0 +1,101 @@
+[
+  {
+    "base": "cvltnk",
+    "pov": "CNA11POV",
+    "eye": [
+      0.0,
+      1.8568799495697021,
+      0.5823789834976196
+    ],
+    "basis": [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "triangles": 4630,
+    "warnings": [],
+    "poseNotes": [
+      "Native GEO-local orientation overrides: CNA11DUL, CNA11SML"
+    ],
+    "backfaceCulling": true,
+    "fovVertical": 64
+  },
+  {
+    "base": "cvwalk",
+    "pov": "cvw11POV",
+    "eye": [
+      -0.16454999707639217,
+      8.042611239004158,
+      5.09501777567511
+    ],
+    "basis": [
+      [
+        0.996989446592239,
+        0.07747760085672047,
+        0.00304374811479402
+      ],
+      [
+        -0.07750021226428977,
+        0.9969587118840462,
+        0.00818805483074961
+      ],
+      [
+        -0.002400100558518133,
+        -0.008399295446048078,
+        0.9999618449498473
+      ]
+    ],
+    "triangles": 3282,
+    "warnings": [],
+    "poseNotes": [
+      "Native GEO-local orientation overrides: cvw11GM1, cvw11GR1, cvw11bda, cvw11hed, cvw11knk, cvw11lar, cvw11lsh, cvw11rar, cvw11rsh, cvw11POV, cvw21hed"
+    ],
+    "backfaceCulling": true,
+    "fovVertical": 64
+  },
+  {
+    "base": "svwalk",
+    "pov": "svw11POV",
+    "eye": [
+      -0.16454999707639217,
+      8.042610979127188,
+      5.095021673490479
+    ],
+    "basis": [
+      [
+        0.996989446592239,
+        0.07747760085672047,
+        0.00304374811479402
+      ],
+      [
+        -0.07750021226428977,
+        0.9969587118840462,
+        0.00818805483074961
+      ],
+      [
+        -0.002400100558518133,
+        -0.008399295446048078,
+        0.9999618449498473
+      ]
+    ],
+    "triangles": 3282,
+    "warnings": [],
+    "poseNotes": [
+      "Native GEO-local orientation overrides: svw11GM1, svw11GR1, svw11bda, svw11hed, svw11knk, svw11lar, svw11lsh, svw11rar, svw11rsh, svw11POV, svw21hed"
+    ],
+    "backfaceCulling": true,
+    "fovVertical": 64
+  }
+]

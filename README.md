@@ -1,100 +1,89 @@
 # Campaign Reimagined
 
-Campaign Reimagined is an experimental, unofficial overhaul and community patch for Battlezone 98 Redux. It is more than a mission pack: the Workshop payload combines rewritten campaign logic, shared Lua gameplay systems, replacement maps and assets, renderer content, and native engine extensions in one integrated distribution.
+Campaign Reimagined is an experimental, unofficial campaign overhaul and community patch for **Battlezone 98 Redux**. It combines Lua mission rewrites, replacement maps and assets, shared gameplay systems, and native engine extensions. Its goal is to preserve the original campaign's identity while improving reliability, presentation, AI, and player options.
 
-The project aims to preserve the identity and progression of the original campaign while making its missions more reliable, reactive, configurable, and maintainable. It also serves as the live integration environment for OpenShim, Extra Utilities, and bzfile features used by the campaign.
+The integrated runtime uses [OpenShim](https://github.com/GrizzlyOne95/Battlezone98Redux_Shim) for low-level engine fixes, [Extra Utilities](https://github.com/GrizzlyOne95/ExtraUtilities) for native Lua/Ogre features, and bzfile for file and persistence services. Installing the Lua scripts alone does not provide the full experience.
 
-This project is not affiliated with or supported by Rebellion.
+This project is **not affiliated with or supported by Rebellion**.
 
-Windows/GOG, Windows/Steam, Linux/Steam via Proton, and Linux/GOG through a
-compatible Wine/Proton prefix are maintained together. See the shared
-[`BZR platform and distribution compatibility policy`](Docs/BZR_PLATFORM_COMPATIBILITY.md).
+## Status and compatibility
 
-## Current scope
+- The **source tree** contains 17 NSDF campaign entries, from `misn02b` (Red Arrival) through `misn18` (The Ultimate Quake), plus other mission ports and supporting systems. These are not all at the same level of completion or testing.
+- Later missions include experimental implementations: `misn16` and `misn17` remain prototypes, and `misn18` has limited DX11 one-/two-client live test coverage. Its offline, four-player, and DX9 paths are not fully qualified.
+- **Source-tree content is not necessarily in the current Steam Workshop download.** Consult the [Workshop item](https://steamcommunity.com/sharedfiles/filedetails/?id=3686673790) and its change notes for the last published build.
+- Native components target the 32-bit Windows executable of Battlezone 98 Redux **2.2.301**. Windows Steam/GOG and Linux Steam/GOG via Proton or compatible Wine are the maintained compatibility targets, not a guarantee that every experimental feature has passed all four configurations. See the [platform policy](Docs/BZR_PLATFORM_COMPATIBILITY.md).
 
-- The main rewrite and testing focus is currently `misn02b`, `misn03`, and `misn04`.
-- Lua mission ports are present for `misn01` through `misn06`; custom map packages are included for `misn02b` through `misn06`.
-- Missions outside the active focus may be playable but should not be assumed to have the same level of testing or completion.
-- Native components currently target the 32-bit Windows build of Battlezone 98 Redux 2.2.301.
-- The project remains experimental: native hooks, broad asset overrides, and evolving mission scripts can introduce incompatibilities or regressions.
+This is a native patch with broad asset overrides and evolving mission code. Expect regressions, and report reproducible problems.
 
-## What it changes
+## Features
 
-- **Campaign scripting** — Lua ports and rewrites of early NSDF missions, repaired objective flow, safer save/load restoration, difficulty-aware encounters, and mission-specific stability fixes.
-- **AI and combat behavior** — shared team AI, construction and economy management, command-safe wingman behavior, howitzer range assistance, targeting controls, stuck recovery, and configurable unit tuning.
-- **PDA and mission UI** — a persistent multi-page PDA for combat, target, career, logistics, loadout, settings, and system information, with scalable Ogre overlays and mission-aware controls.
-- **Persistent player systems** — autosaves, career statistics, per-unit loadout presets, interface preferences, lighting options, audio/alert settings, and gameplay-assistance toggles.
-- **Subtitles and radio** — script-driven subtitle overlays, audio-duration data, pause-aware presentation, and improved handling of queued, repetitive, or stale unit dialogue.
-- **Rendering and atmosphere** — enhanced and retro lighting modes, custom shaders and materials, terrain and sky controls, weather support, emissive vehicle states, star effects, and high-resolution HUD adjustments.
-- **Native engine fixes** — OpenShim and Extra Utilities integrations for loader behavior, multiplayer stability, shader caching, native autosaves, HUD placement, radar scaling, reticle and weapon convergence, turbo, headlights, and restored legacy behaviors.
-- **Content restoration and replacement** — repaired or replacement meshes, ODFs, textures, materials, flags, localized text, loading screens, and physical destruction chunks used by the integrated runtime.
-- **Diagnostics and maintenance** — manifest-verified native payloads, safer patch validation, crash and replacement logs, local deployment tooling, Workshop staging checks, and reproducible publishing automation.
+- **Campaign rewrites:** Lua-based mission flow, difficulty-aware encounters, objective and save/load repairs, co-op work, and restored or expanded mission presentation.
+- **AI and combat:** Shared team AI, wingman command handling, economy/construction logic, targeting assistance, stuck recovery, and configurable tuning.
+- **PDA and player systems:** Multi-page combat, target, career, logistics, loadout, and settings interfaces; autosaves, statistics, loadout presets, and persistent preferences.
+- **Radio and subtitles:** Subtitle overlays, timing data, pause handling, and controls for stale or repetitive dialogue.
+- **Visuals and atmosphere:** Renderer profiles, shaders/materials, weather, sky and terrain enhancements, emissive states, HUD scaling, and repaired models and textures.
+- **Engine improvements:** Integrated OpenShim/Extra Utilities features for stability, networking, native autosaves, HUD/radar behavior, weapon convergence, headlights, turbo, shader caching, and classic destruction effects. OpenShim's engine-level changes also apply outside this campaign.
+- **Maintenance:** Native-payload verification, diagnostics, repeatable builds, and checked Workshop staging.
 
-## How the package fits together
+Optional [HD terrain packs](Docs/HD_TERRAIN_PACKS.md) are **development/experimental content**, requiring a matching OpenShim HD build and DX11 Enhanced. Do not assume they are available in the published Workshop version.
 
-| Layer | Role |
+## Installation and play
+
+### Steam Workshop
+
+1. [Subscribe to Campaign Reimagined](https://steamcommunity.com/sharedfiles/filedetails/?id=3686673790) and let Steam download it. Do **not** enable the item globally in the Mods menu.
+2. Install the native patch using either the [OpenShimSetup.exe release installer](https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/releases/latest/download/OpenShimSetup.exe) on Windows **or** **Single Player > Instant Action > ! SETUP / REPAIR - Open Community Patch** in-game.
+3. **Exit Battlezone completely** after in-game setup so the verified native replacement can finish. Relaunch the game.
+4. Open **Single Player > Custom Campaign > Campaign Reimagined** and select an entry included in your installed Workshop version.
+
+The native suite installs game-root `winmm.dll` and `bzloader.dll`, `plugins/openshim.dll`, and matching configuration, patches, and resources. Existing player `openshim.ini` settings are preserved. Copying `winmm.dll` alone is **not** a complete installation. The setup mission can be rerun for verification or repair.
+
+For setup failures, inspect `logs/openpatch_setup.log`, `logs/openshim_update.log` (normally under the game directory), and `openshim_update.status` in the game directory. Include these with a bug report. Refer to OpenShim's instructions for native patch removal.
+
+### GOG and manual installations
+
+The Steam subscription instructions do not install campaign assets for GOG. GOG/manual users need a compatible separately packaged campaign payload and the complete OpenShim native suite. This repository's `Manage-CampaignFiles.ps1 -deploy` command is a **maintainer development deployment**, not a general-purpose end-user installer. Follow the instructions accompanying a qualified manual distribution; do not copy individual DLLs from this repository as an installation shortcut.
+
+## Repository layout
+
+| Path | Purpose |
 |---|---|
-| `Scripts/` and `Missions/` | Mission rewrites, shared AI, PDA, autosave, subtitles, persistence, weather, and runtime orchestration |
-| `Bin/` | Bundled OpenShim (`winmm.dll`), Extra Utilities (`exu.dll`), bzfile, symbols, and replacement helper |
-| `Assets/`, `ODF/`, `Materials/`, `Shaders/`, `Textures/`, `Text/` | Models, gameplay definitions, rendering resources, UI content, and localization overrides |
-| `Config/` and `InstallerPayload/` | Mod metadata, shader settings, generated OpenShim configuration inputs, and installation payloads |
-| `Manage-CampaignFiles.ps1` | Canonical source synchronization, GOG development deployment, Workshop staging, validation, and upload control |
+| `Scripts/`, `Missions/` | Mission ports, shared Lua systems, and map packages |
+| `Bin/` | Bundled OpenShim, EXU, bzfile, loader/helper binaries, and symbols |
+| `Assets/` (including `Assets/Textures/`), `ODF/`, `Materials/`, `Shaders/`, `Text/` | Gameplay assets, definitions, rendering content, and localization |
+| `Config/`, `InstallerPayload/` | Campaign metadata, renderer configuration, and native install inputs |
+| `Manage-CampaignFiles.ps1` | Maintainer deployment, validation, staging, and publishing |
 
-OpenShim owns low-level loading and engine patches. Extra Utilities exposes native engine and Ogre functionality to Lua. bzfile supplies file access used by persistent campaign systems. Campaign Reimagined ties those layers to its missions and content; installing only the Lua files does not reproduce the complete experience.
+## Development and publishing
 
-## Installation
+This repository is the canonical campaign source. The maintained workflow is to validate here, deploy and test in the GOG development runtime, stage the verified Workshop payload, upload locally, then test the downloaded Steam copy. Never deploy development files into Steam's subscribed Workshop cache.
 
-Subscribe to [Campaign Reimagined on Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3686673790), then run [OpenShimSetup.exe](https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/releases/latest/download/OpenShimSetup.exe), or open **Single Player > Instant Action** and launch **! SETUP / REPAIR - Open Community Patch**. Setup installs or updates the complete native chain: game-root `winmm.dll` and `bzloader.dll`, plus `plugins/openshim.dll` and matching patch/network data. Restart when prompted so the verified replacement can complete after exit. Player `openshim.ini` is preserved.
+For a prepared update, use PowerShell 7:
 
-Play through **Single Player > Custom Campaign > Campaign Reimagined**. This entry contains the thirteen current playable map rewrites, from **Red Arrival** (`misn02b`) through **The Three Beacons** (`misn14`); training and the later stock missions are outside this campaign. CR content loads with its campaign or setup mission rather than requiring global activation in Mods. Installed OpenShim engine fixes continue to apply throughout the game. Setup remains available in Instant Action for future verification or repair.
+```powershell
+pwsh -File .\Manage-CampaignFiles.ps1 -prepare-update "Describe the fix"
+```
 
-If automatic installation fails, check `openpatch_setup.log`, `openshim_update.log` and `openshim_update.status` in the game directory. Copying `winmm.dll` alone does not install the split native suite. Use OpenShim's uninstall instructions when removing it.
+Use `-reuse-native` for content-only changes when the existing qualified native builds are appropriate. Preparation does **not** publish anything. Workshop publication is a separate local maintainer action, not the GitHub Actions release-artifact workflow.
 
-## Repository workflow
-
-This repository is the canonical source tree. Development follows this promotion path:
-
-1. Make and validate changes here.
-2. Deploy to the GOG working runtime with `Manage-CampaignFiles.ps1 -deploy`.
-3. Test against the GOG game installation.
-4. Build and upload the validated Workshop payload.
-5. Let Steam download item `3686673790`, then perform final Steam verification.
-
-Do not deploy development files directly into Steam's Workshop download cache. `Local/Workshop` is generated staging, not a playable development runtime.
-
-To prepare a native or campaign bug fix locally, run
-`pwsh -File .\Manage-CampaignFiles.ps1 -prepare-update "<change note>"`.
-This builds, checks, deploys/tests GOG and freezes all update packages. Add
-`-reuse-native` for a Lua/content-only fix. See
-[`Docs/UPDATE_PREPARATION.md`](Docs/UPDATE_PREPARATION.md) for configuration,
-output receipts and the separate publication steps.
-
-Useful references:
-
-- [`CHANGELOG.md`](CHANGELOG.md) — recent player-facing and technical changes
-- [`Docs/INSTANT_ACTION_PORTING_BACKLOG.md`](Docs/INSTANT_ACTION_PORTING_BACKLOG.md) — classic Instant Action preservation/Redux porting backlog
-- [`docs/workshop_description.bbcode`](docs/workshop_description.bbcode) — canonical public Workshop description
-- [`docs/STEAM_PUBLISH_CHECKLIST.md`](docs/STEAM_PUBLISH_CHECKLIST.md) — qualified local Workshop publication sequence
-- [`docs/STEAM_WORKSHOP_RUNNER.md`](docs/STEAM_WORKSHOP_RUNNER.md) — future dedicated-runner design, not the current publishing path
-- [`Docs/AGENT_KNOWLEDGE_BASE.md`](Docs/AGENT_KNOWLEDGE_BASE.md) — lessons, recipes, tooling and hard rules for agents building the campaign
-- [`AGENTS.md`](AGENTS.md) — authoritative local paths and promotion rules
-
-## Publishing
-
-Steam Workshop publication is currently a **local maintainer operation** through `Manage-CampaignFiles.ps1`, not the retired **Publish Steam Workshop** GitHub Actions workflow. The manager natively excludes repository-only material from Workshop staging, so no wrapper script or temporary movement of `.github/` is required.
-
-Start from a clean canonical worktree, copy `workshop.config.example.json` to the ignored `workshop.config.json`, initialize/authenticate the local publisher as needed, and use the manager's `-workshop-build` / `-publish` paths. The complete qualified sequence, including OpenShim release requirements, staging validation, Roadmap synchronization, Steam download, and final Steam verification, is documented in [`docs/STEAM_PUBLISH_CHECKLIST.md`](docs/STEAM_PUBLISH_CHECKLIST.md).
-
-The separate **Publish Campaign Release** workflow may build and validate unified release artifacts, but it does not replace the qualified local Workshop publication path unless a dedicated Steam runner is intentionally provisioned and qualified.
+- [Update preparation](Docs/UPDATE_PREPARATION.md) and [Workshop publication checklist](docs/STEAM_PUBLISH_CHECKLIST.md)
+- [Changelog](CHANGELOG.md) and [Workshop description source](docs/workshop_description.bbcode)
+- [Agent knowledge base](Docs/AGENT_KNOWLEDGE_BASE.md) and [repository working rules](AGENTS.md)
 
 ## Reporting problems
 
-Include the mission or game mode, reproduction steps, expected and observed behavior, and any relevant screenshots, logs, or save files. Also identify other installed native modifications. Reports with a reproducible sequence are substantially easier to diagnose.
+Include the mission or game mode, expected versus observed behavior, reproduction steps, installed native modifications, and any relevant screenshots, logs, or save files. A reproducible sequence is especially valuable.
 
 ## Credits and rights
 
-- **GrizzlyOne95** — current campaign maintenance, integration, mission work, and workspace stewardship.
-- **VTrider** — Extra Utilities groundwork used throughout the addon stack.
-- OpenShim, Extra Utilities, bzfile, and earlier Battlezone community contributors whose work supports the integrated runtime.
+- **GrizzlyOne95:** Campaign maintenance, integration, and mission work.
+- **VTrider:** Extra Utilities groundwork used throughout the addon stack.
+- **OpenShim, Extra Utilities, bzfile, and Battlezone community contributors:** Supporting work across the integrated runtime.
+- **NASA/JPL-Caltech:** Uranus image (Voyager 2, PIA18182); [sky art credits](Docs/SKY_ART_CREDITS.md).
+- **99.Miles:** "Low Poly Forest Tree Pack" (Sketchfab), CC BY 4.0; [foliage art credits](Docs/FOLIAGE_ART_CREDITS.md).
 
-This is a mixed-rights addon repository. The MIT terms in [`LICENSE.md`](LICENSE.md) apply only to clearly original project work; bundled binaries, third-party files, and stock-derived game content retain their original rights as described in [`NOTICE.md`](NOTICE.md).
+This is a mixed-rights addon repository. The MIT terms in [LICENSE.md](LICENSE.md) apply only to clearly original project work; stock-derived assets, third-party content, and bundled binaries retain their respective rights. Consult the applicable asset credits and upstream projects before reusing those materials.
+
+### AI-assisted development
+
+AI coding tools help with drafting, analysis, testing, and documentation. Their output is not authoritative reverse-engineering evidence: native behavior and compatibility claims are checked against game binaries, runtime observations, and reproducible tests. Changes remain maintainer-directed and reviewed.

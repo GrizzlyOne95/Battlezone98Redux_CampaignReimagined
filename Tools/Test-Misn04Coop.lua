@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Execute the complete mission with separate Lua 5.1 environments and the real
 -- CRCoop registry. Engine/network mocks verify script decisions, not Redux
 -- native map loading, physics, pathfinding, Lua wire serialization, or EXU hooks.
@@ -131,6 +133,7 @@ local function makePeer(id, team, network)
     e.CameraReady = function() check(not p.cameraUp, "camera opened twice"); p.cameraUp = true; record("CameraReady"); p.skip = false end
     e.CameraFinish = function() check(p.cameraUp, "camera finished without an active camera"); p.cameraUp = false; record("CameraFinish") end
     e.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         local args = { ... }
         -- Conservative payload estimate: doubles plus per-field type tags;
         -- strings include terminators. Actual handle encoding is smaller.
@@ -199,7 +202,11 @@ local function makePeer(id, team, network)
         PersistentConfig = { Settings = {}, Initialize = noop, UpdateInputs = noop,
             UpdateHeadlights = noop }, AutoSave = { Update = function() record("autosave") end },
     }
+    -- The single-player dropship opening has its own test (Tools/Test-CR04Drop.lua); co-op must never run it.
+    modules.CR04Drop = { Configure = noop, Reset = noop, OnLoad = noop,
+        Update = function() check(not p.net, "co-op ran the dropship opening"); return false end }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     e.package = setmetatable({loaded={exu=modules.exu}}, {__index=package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()

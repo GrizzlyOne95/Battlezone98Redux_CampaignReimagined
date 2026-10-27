@@ -1,0 +1,28 @@
+{
+  "schema": "cr-hd-packs-native-validation-v1",
+  "openshimCommit": "4386558eeb1d9a90846cdc7d8138023650ca28cf",
+  "unverifiedWorlds": ["mars", "venus", "io", "europa", "titan", "achilles", "ganymede", "elysium"],
+  "unverifiedReason": "Another benchmark retained the machine-wide game lock; owned queued preview cancelled before deployment.",
+  "runs": [
+    {
+      "world": "moon",
+      "evidenceDirectory": "run-20261020-145335",
+      "profile": "Enhanced",
+      "privateBytes": 366944256,
+      "peakPrivateBytes": 505401344,
+      "largestFreeVaBytes": 2144116736,
+      "nativePasses": 82,
+      "nativeMeshes": 144,
+      "gpuHdMaterialMask": 7,
+      "maximumPixelShaderInvocations": 45151,
+      "restoredMeshes": 144,
+      "trackedMeshes": 144,
+      "openshimLogSha256": "c1465b900d3f2b23f0a651170188d52c513694bae7262ced6dcb2d82dd78b714"
+    }
+  ],
+  "limitations": [
+    "Windowed player-only preview; not campaign gameplay, co-op or long-session qualification.",
+    "Windows/GOG only; Steam, Proton and Wine unverified.",
+    "No per-pixel GPU normal vector readback."
+  ]
+}

@@ -1,0 +1,8 @@
+import * from "sprites.material"
+
+// ISDF Chronicles' xplnxpl puff (Tools/Build-Misn17Forest.py). Alpha-blended to
+// match the ODF's srcalpha/invsrcalpha blend, as smokeb2.material is.
+material smokeb.tga : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap smoke.dds
+}

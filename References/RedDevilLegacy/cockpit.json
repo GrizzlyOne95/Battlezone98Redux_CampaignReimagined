@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "master": "cockpit-d.png",
+  "masterSize": [1254, 1254],
+  "size": [1024, 1024],
+  "charts": {
+    "frame": {"source": [12, 12, 1241, 196], "target": [8, 8, 1016, 192]},
+    "console": {"source": [12, 217, 795, 737], "target": [8, 208, 640, 640]},
+    "switch": {"source": [813, 217, 1241, 737], "target": [656, 208, 1016, 640]},
+    "armor": {"source": [12, 758, 795, 1242], "target": [8, 656, 640, 1016]},
+    "trim": {"source": [813, 758, 1241, 1242], "target": [656, 656, 1016, 1016]}
+  },
+  "amberGlassRegions": [[55, 220, 100, 330], [382, 302, 413, 452], [220, 510, 248, 574], [454, 510, 486, 574], [745, 430, 795, 580], [825, 350, 880, 390], [900, 350, 930, 390]],
+  "geometry": "Tools/reddevilcockpit.py; authored in the captured POV frame",
+  "selection": "bvrdev_cockpit.mesh via the engine's separate-cockpit lookup"
+}

@@ -31,6 +31,46 @@ jobs:
         with:
           python-version: '3.12'
 
+      # Shared model-format libraries (see AGENTS.md "Model tooling").
+      # Tools/bzmodellibs.py imports them from BZ_TOOLBOX_DIR/BZ_TOOLKIT_DIR.
+      # Bump the pinned commits deliberately; they are not tracked to main.
+      - name: Fetch model-format libraries
+        shell: bash
+        env:
+          TOOLBOX_SHA: ec0fce2ed83c678da5a3d5e1f935b254fb27942b
+          TOOLKIT_SHA: 0a6be135092c88331d4f35b134dda69f593dcfd0
+        run: |
+          set -euo pipefail
+          fetch() {
+            git init -q "$2"
+            git -C "$2" fetch -q --depth 1 "https://github.com/GrizzlyOne95/$1.git" "$3"
+            git -C "$2" checkout -q FETCH_HEAD
+          }
+          fetch Battlezone98_Modding_Toolbox "$RUNNER_TEMP/bz-toolbox" "$TOOLBOX_SHA"
+          fetch BZ98RBlenderToolKit "$RUNNER_TEMP/bz-toolkit" "$TOOLKIT_SHA"
+          echo "BZ_TOOLBOX_DIR=$RUNNER_TEMP/bz-toolbox" >> "$GITHUB_ENV"
+          echo "BZ_TOOLKIT_DIR=$RUNNER_TEMP/bz-toolkit" >> "$GITHUB_ENV"
+          echo "BZ_MODELLIBS_REQUIRED=1" >> "$GITHUB_ENV"
+
+      # The toolkit's Ogre and GEO serializers need numpy.
+      - name: Install model-library dependencies
+        run: python -m pip install numpy Pillow scipy
+
+      - name: Validate authored weapon flashes and gameplay preservation
+        run: python Tools/Test-WeaponPresentation.py
+
+      - name: Validate HD terrain bundles and normal contracts
+        run: |
+          python Tools/Test-MoonHdTerrain.py
+          python Tools/Test-MarsHdTileSources.py
+          python Tools/Test-VenusHdTerrain.py
+          python Tools/Test-HdTerrainPacks.py
+          python Tools/Test-MoonCraterDisplacement.py
+          python Tools/Test-MoonRegolith.py
+          python Tools/Test-TerrainArtTuning.py
+          python Tools/Test-MoonPolyHaven.py
+          python Tools/Test-WorldSurfaceArt.py
+
       - name: Install Lua 5.1 compiler
         shell: bash
         run: |
@@ -47,6 +87,48 @@ jobs:
       - name: Test selected content deployment
         shell: pwsh
         run: ./Tools/Test-SelectedContentDeploy.ps1
+
+      - name: Validate hangar door assets
+        run: python Tools/Test-HangarAssets.py
+
+      - name: Validate L-Power fin spin and lightning shader
+        run: python Tools/Test-LightningPlants.py
+
+      - name: Validate building spin and armory launch animations
+        run: python Tools/Test-BuildingAnimations.py
+
+      - name: Validate unit animation slot fixes
+        run: python Tools/Test-UnitAnimSlots.py
+
+      - name: Validate texture revamp and Olympian interior contracts
+        run: |
+          python Tools/Test-TextureRevamp.py
+          python Tools/Test-BuildingDetailPass.py
+          python Tools/Test-FactionStorage.py
+          python Tools/Test-FactionNavPickups.py
+          python Tools/Test-FactionPickupIntegration.py
+          python Tools/Test-PodUVPrototype.py
+
+      - name: Validate cockpit revamps and Red Devil legacy skin
+        run: |
+          python Tools/ogrelayout.py --check
+          python Tools/Test-RedDevilLegacy.py
+          python Tools/Test-RedDevilCockpit.py
+          python Tools/Test-CVFighterCockpit.py
+          python Tools/Test-AVRocketCockpit.py
+          python Tools/Test-CVBomberCockpit.py
+          python Tools/Test-ScoutCockpits.py
+          python Tools/Test-WalkerCockpits.py
+          python Tools/Test-CVHeavyCockpit.py
+          python Tools/Test-BomberRocketCockpits.py
+          python Tools/Test-LightWalkerCockpits.py
+          python Tools/Test-CockpitSections.py
+
+      - name: Audit looping model animations
+        # bvwalk.vdf is an older walker fix whose cycles still seam (reported, not owned here).
+        # svwalk/cvwalk keep the stock loop seams on purpose: the fix only smooths
+        # in-cycle twitch keys, and the audit reports the same 56 findings on the stock VDFs.
+        run: python Tools/Audit-SdfLoops.py Assets/ModelFixes --strict --exclude bvwalk --exclude svwalk --exclude cvwalk
 
       - name: Test BlackDog09 source port
         run: |
@@ -96,6 +178,16 @@ jobs:
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-CRCoop.lua
+          "$LUA" Tools/Test-CRWire.lua
+          "$LUA" Tools/Test-CRCoopComms.lua
+          "$LUA" Tools/Test-CRCoopAssist.lua
+          "$LUA" Tools/Test-CRCoopPda.lua
+          "$LUA" Tools/Test-CRCoopDiagnostics.lua
+          "$LUA" Tools/Test-CoopNetworkInput.lua
+          "$LUA" Tools/Test-SubtitleReplacement.lua
+
+      - name: Test world lighting and sky ownership
+        run: lua5.1 Tools/Test-CRWorldArt.lua
 
       - name: Test misn02b co-op map and shipping contract
         run: python Tools/Test-Misn02bCoopContract.py
@@ -115,10 +207,21 @@ jobs:
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/Test-Misn03Coop.lua
 
+      - name: Test misn03 NSDF rocket launch (film, exhaust, presentation, assets)
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-Misn03LaunchFX.lua
+          "$LUA" Tools/Test-Misn03LaunchFilm.lua
+          "$LUA" Tools/Test-Misn03Launch.lua
+          python Tools/Test-Misn03RocketAssets.py
+
       - name: Test misn04 co-op scaffold and complete mission
         run: |
           python Tools/Test-Misn04CoopContract.py
           lua5.1 Tools/Test-Misn04Coop.lua
+          lua5.1 Tools/Test-CR04Drop.lua
 
       - name: Test misn10 source-faithful port
         shell: bash
@@ -139,6 +242,26 @@ jobs:
           python Tools/Test-Misn11SourceParity.py
           python Tools/Test-Misn11CoopContract.py
           python Tools/Test-CoopAuthoredLabels.py
+
+      - name: Test Mars rocket film and exhaust lifecycle
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-Misn06.lua
+          "$LUA" Tools/Test-Misn06Presentation.lua
+          "$LUA" Tools/Test-Misn06LaunchFilm.lua
+          "$LUA" Tools/Test-Misn06LaunchFX.lua
+          python Tools/Test-Misn06RocketAssets.py
+          python Tools/Test-Misn06SourceParity.py
+          python Tools/Test-Misn06CoopContract.py
+
+      - name: Test per-world geyser effects
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-CRGeysers.lua Scripts
 
       - name: Test misn12 source port, co-op layer, presentation and Europa weather
         shell: bash
@@ -165,6 +288,13 @@ jobs:
           diff <(tr -d '\r' < Scripts/CRMoonSites02b.lua) <(tr -d '\r' < "$RUNNER_TEMP/CRMoonSites02b.lua")
           diff <(tr -d '\r' < Scripts/CRMoonSites03.lua) <(tr -d '\r' < "$RUNNER_TEMP/CRMoonSites03.lua")
       # CR Moon weather <<
+
+      - name: Test shared vehicle wakes (CRWake) and the directors that use it
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-VehicleWakes.lua Scripts
 
       - name: Test aiCore singleton producer recovery
         shell: bash
@@ -206,12 +336,28 @@ jobs:
           # These suites existed but were never wired in, so a weather
           # regression could reach a release with CI green.
           "$LUA" Tools/Test-CRWeatherFogHorizon.lua
+          "$LUA" Tools/Test-AtmosphereIntegration.lua
+          "$LUA" Tools/Test-WeatherSensors.lua
           "$LUA" Tools/Test-CRWeatherParameters.lua
           "$LUA" Tools/Test-CRVenusDenseAtmosphere.lua Scripts
           "$LUA" Tools/Test-CRMarsWeather.lua
+          "$LUA" Tools/Test-CRWetGlassWeather.lua Scripts
           "$LUA" Tools/Test-CRMarsHaboob.lua
           "$LUA" Tools/Test-CRMarsVolcano.lua
           "$LUA" Tools/Test-CRTitanWeather.lua Scripts
+          "$LUA" Tools/Test-CRFoliageWind.lua Scripts
+            "$LUA" Tools/Test-CRFloraDamage.lua
+            "$LUA" Tools/Test-CRFloraAdapters.lua
+            "$LUA" Tools/Test-CRFloraDamageStress.lua
+          # Mission 18 storm: director, tornado, ground, replication, payload lint.
+          "$LUA" Tools/Test-CRStorm18.lua
+          "$LUA" Tools/Test-CRStorm18Fissures.lua
+          "$LUA" Tools/Test-CRStorm18Trees.lua
+          python Tools/Build-Misn18Trees.py --check
+          python -I Tools/Build-Misn18Storm.py --check
+          python -I Tools/Build-Misn18Water.py --check
+          # The wind foliage material is generated from cr17_surface.material.
+          python -I Tools/Build-FoliageWindMaterial.py --check
           # The methane surface mesh, ripple map and wet masks match their generator.
           python -I Tools/Build-MethaneSurface.py --check
 
@@ -269,6 +415,27 @@ jobs:
           python Tools/Test-Misn14SourceParity.py
           python Tools/Test-Misn14CoopContract.py
 
+      - name: Test Mission 15 campaign co-op and methane map contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-Misn15.lua
+          "$LUA" Tools/Test-Misn15Coop.lua
+          python Tools/Test-Misn15SourceParity.py
+          python Tools/Test-Misn15CoopContract.py
+
+      - name: Test Mission 16 evacuation and shared mission
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/Test-Misn16.lua
+          "$LUA" Tools/Test-Misn16Scene.lua
+          "$LUA" Tools/Test-Misn16LaunchFX.lua
+          python Tools/Test-Misn16SourceParity.py
+          python Tools/Test-Misn16SceneMap.py
+
       - name: Test BlackDog08 source port
         run: |
           lua5.1 Tools/Test-BlackDog08.lua
@@ -293,10 +460,25 @@ jobs:
         run: |
           lua5.1 Tools/Test-Misns5.lua
           python Tools/Test-Misns5SourceParity.py
-      - name: Test misn17 source-faithful port
+      - name: Test misn17 faithful port and co-op prototype
         run: |
           lua5.1 Tools/Test-Misn17.lua
+          lua5.1 Tools/Test-Misn17Coop.lua
+          lua5.1 Tools/Test-Misn17Jungle.lua
+          lua5.1 Tools/Test-Misn17Crystals.lua
           python Tools/Test-Misn17SourceParity.py
+      - name: Test misn18 faithful port, co-op layer and map contract
+        run: |
+          lua5.1 Tools/Test-Misn18.lua
+          lua5.1 Tools/Test-Misn18Coop.lua
+          python Tools/Test-Misn18SourceParity.py
+          python Tools/Test-Misn18CoopContract.py
+
+      - name: Test restored Fury fighter assets and mission roster
+        run: |
+          python Tools/Test-FuryFighterAssets.py
+          python Tools/Test-BoltMines.py
+          lua5.1 Tools/Test-FuryRoster.lua
 
       - name: Strictly validate changed Lua 5.1 files
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}

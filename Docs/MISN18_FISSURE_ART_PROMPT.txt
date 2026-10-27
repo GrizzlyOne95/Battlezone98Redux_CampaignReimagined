@@ -1,0 +1,10 @@
+Asset: Assets/Textures/c18rift.png
+Generated with the built-in image_gen tool, 2026-10-21.
+Source output preserved without pixel/alpha edits: RGBA PNG, 2172x724.
+The owner's supplied crack/light image was a mood reference; it is not shipped.
+
+Use case: stylized-concept
+Asset type: transparent top-down game terrain decal sprite, production texture, NOT a perspective scene.
+Input images: Image 1 is a lighting/mood reference only: bright fissure with light escaping. Create a new texture.
+Primary request: a terrifying jagged fissure split in a dying planet's crust, white-hot deep interior edged in scarlet and crimson, charred irregular broken stone lips. A single main wide winding S-shaped rupture running HORIZONTALLY across the middle, left to right, narrowing to pointed ends inside the canvas, with a few small branching tears. Deep glowing gap, not fine hairline cracks or a lava pool. Broad mouth at center, narrower ends.
+Composition: strict orthographic TOP DOWN with no perspective and no visible horizon, rectangular landscape texture aspect about 3:1. The rupture and a narrow irregular charred rim occupy the central horizontal strip. Plenty of transparent padding on every side, especially top and bottom. Ends fully inside canvas. Black rim softly feathers into actual transparent alpha; absolutely no opaque rectangular ground patch. Core almost white yellow at center, bright red orange along inner rocky walls. High contrast, granular fracturing, ominous sci-fi inferno. No upward light rays, smoke or sparks IN this texture: those will be separate game particles. No text, no watermark, no checkerboard pattern. Genuine transparent background preserving the glow alpha.

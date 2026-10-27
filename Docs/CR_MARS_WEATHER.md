@@ -1,7 +1,17 @@
 # Mars weather (CRMarsWeather)
 
-Mars weather director for Campaign Reimagined, wired into **misn04** (plains)
-and **misn05** (volcano flank).
+**Sensor policy update (15 October 2026):** Mission 06 now enables the existing Mars sensor ladder and Environment night effects. Its wind push stays off. This supersedes the earlier visual-only description below. See
+`WEATHER_SENSOR_POLICY.md` for the current campaign policy.
+
+
+Mars weather director for Campaign Reimagined, wired into **misn04** (plains),
+**misn05** (volcano flank), and **misn06** (escape / Plains).
+
+Mission 06 follows reconnaissance -> Hephaestus scan -> starport recon ->
+blockade/timed assault -> extraction, targeting rungs 1/2/3/4/2. It runs on every
+peer, with host target/rung messages and saved scalar state. Its new weather is
+visual-only (no wind push or sensor degradation), and its Environment cycle
+disables night gameplay penalties. See `ATMOSPHERE_AUDIT_20261015.md`.
 
 `CRWeather` is a renderer: hand it a preset and it draws that weather. It has no
 opinion about *when* weather should happen, and its wind is one frozen vector per
@@ -62,6 +72,16 @@ Placed in the world (not camera-attached), upwind of the player by preference,
 drifting downwind at 30% of wind speed, re-sampling terrain height as they go.
 They spin up and spin down through their emission rate rather than popping in
 and out.
+
+The shape is built, not drawn: many small soft `cr_dust.dds` puffs (not the old
+whole-column photograph, which stacked into a dark lump). Two point emitters at
+the foot are swept round a cone by the director (`SetParticleEmitterDirection`
+every frame, half a turn apart), which lays two interleaved helices that are
+narrow at the base and widen with height; a third emitter throws a low ground
+debris skirt. Colour lightens and alpha drains towards the top. Alpha and
+emission also fade with distance against the live visibility
+(`DevilFadeStart/End`, fractions of fog end). Knobs: `DevilSpin`, `DevilTilt`,
+`DevilFadeStart`, `DevilFadeEnd`, and the template's emitter/affector values.
 
 They only occur on the **calmer half** of the ladder. That is physical, not a
 budget dodge: a dust devil needs a convective boundary layer to form, and inside
@@ -317,7 +337,7 @@ pass should supply.
 |---|---|---|
 | `CR_FX/Haze` | `cr_haze.png` — very soft wide dust veil, almost pure falloff, ~128×128. The softest texture in the set. | `smoke.png` |
 | `CR_FX/DustSheet` | `cr_dustsheet.png` — elongated horizontal dust streak, ~64×16 | `smoke.png` |
-| `CR_FX/DustDevil` | `cr_devil.png` — ragged vertical dust wisp with a torn top, ~64×128 | `smoke.png` |
+| `CR_FX/DustDevil` | shipped: `cr_dust.dds` soft puff (see Dust devils) | `cr_dust.dds` |
 | `CR_FX/Dust` | `cr_dust.png` — soft irregular dust mote, heavy falloff, ~64×64 | `smoke.png` |
 | `CR_FX/Grit` | `cr_grit.png` — small hard sand fleck, near-opaque centre, ~16×16 | `bpuff.png` |
 
@@ -342,6 +362,18 @@ Left `nil` rather than pointed at a guessed stock filename, because a wrong
 filename plays nothing and looks exactly like working code.
 
 ---
+
+## Cockpit-glass grit
+
+Fine dust specks build on the cockpit glass with the storm (`CRWetGlass.Weather("grit", level)`, see
+`Docs/CR_STORMFX_PORT.md`). Render only; the particle weather is unchanged. Every Mars mission that runs the director
+gets it (misn04, misn05, misn06) with no mission change. The target level is `0.08 + 0.82 * severity^1.3`
+(`GetSeverity()` is 0 at Calm and 1 at the top rung, whatever the profile), so haze is barely visible and a severe storm
+reaches 0.9, still subtle. The level builds at 0.035 per second and clears at 0.007 per second, so a craft that has left
+a storm stays a little dusty for a few minutes. From severity 0.6 a small `CRWetGlass.Splat` (amount 0.04-0.12) lands
+every 22-46 s (faster toward the top). Local to each peer. Off with `CRMarsWeather.AllowGlassGrit` /
+`Init{ glassGrit = false }`, with `CRWeather.Quality` 0, or when the director is disabled. `GetGlassGrit()` reports the
+level; `Shutdown` clears it and calls `CRWetGlass.Stop()`.
 
 ## Tuning
 

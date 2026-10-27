@@ -1,5 +1,9 @@
 // CRA Tesla Field: finite autonomous area denial.
 [WeaponClass]
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
 classLabel = "dispenser"
 wpnName = "CRA Tesla Field"
 fireSound = "apspec.wav"

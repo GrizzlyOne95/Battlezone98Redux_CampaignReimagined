@@ -1,3 +1,5 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
 -- Execute the complete mission with separate Lua 5.1 environments and the real
 -- CRCoop registry. Engine/network mocks verify script decisions, not Redux
 -- native replication, native map loading, pathfinding, or EXU's binary hooks.
@@ -101,7 +103,18 @@ local function makePeer(id, team, network)
     e.CameraCancelled = function() return p.skip == true end
     e.CameraReady = function() record("CameraReady"); p.skip = false end
     e.CameraFinish = function() record("CameraFinish") end
+    -- Launch-film engine surface (the NSDF closing shot): poses, camera and EXU particles.
+    e.CameraObject = function(...) record("CameraObject", ...) end
+    e.GetTransform = function(h)
+        local o = objects[h]
+        local pose = o and o.pose or { posit_x = 0, posit_y = 0, posit_z = 0 }
+        return { posit_x = pose.posit_x, posit_y = pose.posit_y, posit_z = pose.posit_z }
+    end
+    e.SetTransform = function(h, pose) record("SetTransform", h, pose.posit_y) end
+    e.SetVector = function(x, y, z) return { x = x, y = y, z = z } end
+    e.GetTerrainHeightAndNormal = function() return 0, { x = 0, y = 1, z = 0 } end
     e.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         local args = { ... }
         -- Conservative payload estimate: doubles plus per-field type tags;
         -- strings include terminators. Actual handle encoding is smaller.
@@ -148,7 +161,34 @@ local function makePeer(id, team, network)
         },
         CRMoonSites03 = {mission = "misn03"},
     }
+    p.fx = { systems = {}, lights = {}, created = 0, destroyed = 0 }
+    local fx = p.fx
+    local function particles()
+        local x = {}
+        x.CreateParticleSystem = function(name, template, at)
+            fx.systems[name] = { template = template, at = at, rates = {}, offsets = {} }
+            fx.created = fx.created + 1
+            return true
+        end
+        x.DestroyParticleSystem = function(name) fx.systems[name] = nil; fx.destroyed = fx.destroyed + 1; return true end
+        x.SetParticleSystemPosition = function(name, at) fx.systems[name].at = at; return true end
+        x.SetParticleEmitterEmissionRate = function(name, index, rate) fx.systems[name].rates[index] = rate; return true end
+        x.SetParticleEmitterPosition = function(name, index, at) fx.systems[name].offsets[index] = at; return true end
+        x.SetParticleSystemKeepLocalSpace = function() end
+        x.SetParticleSystemNonVisibleUpdateTimeout = function() end
+        x.CreatePointLight = function(name, at, color, range)
+            fx.lights[name] = { at = at, color = color, range = range }; return true
+        end
+        x.SetPointLightPosition = function(name, at) fx.lights[name].at = at; return true end
+        x.SetPointLightPowerScale = function() return true end
+        x.DestroyPointLight = function(name) fx.lights[name] = nil; return true end
+        return x
+    end
     local modules = {
+        Environment = { Init = function(options) p.environmentOptions = options end,
+            BindWeatherSensors = function(name, director) p.weatherSensors = {name, director} end,
+            InvalidateRenderer = function() record("environmentInvalidate") end,
+            Update = function() record("environmentUpdate") end },
         RequireFix = { Initialize = noop }, exu = {
             GetMyNetID = function() return id end, GetDifficulty = function() return p.difficulty end,
             SetDifficulty = function(d) p.difficulty = d end,
@@ -163,7 +203,13 @@ local function makePeer(id, team, network)
     }
     for k, v in pairs(moonModules) do modules[k] = v end
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
+    for name, fn in pairs(particles()) do modules.exu[name] = fn end
+    modules.CR03RocketLayout = assert(loadfile("Scripts/CR03RocketLayout.lua"))()
+    modules.CR06LaunchFilm = assert(loadfile("Scripts/CR06LaunchFilm.lua"))()
+    modules.CR06LaunchFX = assert(loadfile("Scripts/CR06LaunchFX.lua"))()
+    modules.CRParticleTemplates = { EnsureExtra = function() return true end }
     e.package = setmetatable({loaded={exu=modules.exu}}, {__index=package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
     e.require = function(name) return assert(modules[name], name) end
@@ -211,6 +257,12 @@ settle()
 check(host.state.first_wave_done, "host did not run the opening")
 -- CR Moon weather: the leader runs the director on the map data, guests follow the ordered stream.
 check(host.moon.init.authority and host.moon.init.sites.mission == "misn03", "the leader runs the Moon weather director on the misn03 sites")
+check(host.environmentOptions.lightingMode == "night" and host.environmentOptions.nativeBaseline
+    and host.environmentOptions.nightGameplay == false and host.environmentOptions.skySun.elevation < 0,
+    "misn03 is a visual-only lunar night with the sun below the horizon")
+check(host.weatherSensors and host.weatherSensors[1] == "Moon" and host.weatherSensors[2].Seed == 4242,
+    "Moon weather director is bound to Environment sensors")
+check(count(host, "environmentUpdate") > 0, "Moon updates Environment alongside weather")
 for _, c in ipairs(clients) do
     check(not c.moon.init.authority and c.moon.init.seed == nil, "guests run the director from the host's events")
     check(c.moon.updates > 0, "guests update the Moon weather every frame")
@@ -297,10 +349,13 @@ local saved = offline.env.Save()
 check(offline.moon.init.authority and offline.moon.init.send == nil and offline.moon.announces == 0
     and offline.moon.init.sites.mission == "misn03", "offline Moon weather is the host path with nothing sent")
 check(offline.moon.updates > 0 and saved.moonWeatherState ~= nil and saved.moonWeatherState.saved, "Moon weather state is saved and the seed persists")
+local savedWeather=saved.moonWeatherState
 offline.env.Load(saved, {}, {})
 now = now + 3
 offline.env.Update()
 check(offline.state.loading_done, "offline save/load did not rehydrate")
+check(offline.moon.loaded==savedWeather and count(offline,"environmentInvalidate")>0,
+    "load restores Moon weather and reapplies renderer state")
 
 -- Replicated loss is also an ordered event and cannot turn into success.
 reset()

@@ -40,9 +40,16 @@ function M.Create(d)
     local statuses, dispatches, gives, taken, marked = {}, {}, {}, {}, {}
     local seq, nextPing, nextRequest, revision = 0, 0, 0, 0
     local nextStatus, nextMarkers, lastStatus = 0, 0, nil
+    local delivery = {}
+    local function deliveryFor(id)
+        if not delivery[id] then delivery[id] = { retries = 0, expired = 0, acknowledged = 0 } end
+        return delivery[id]
+    end
     -- Status markers are opt-in (PDA MARKERS row): they add SetObjectiveName/On
     -- calls on teammates' craft, which missions and their tests treat as their own.
     local enabled, markers = false, false
+    -- Guests can keep just the host's craft marked (PDA HOST MARKER row).
+    local hostMarker = false
     local function now() return d.time() end
     local function changed() revision = revision + 1 end
     local function valid(h)
@@ -138,7 +145,8 @@ function M.Create(d)
             pings[from] = { sender = from, seq = number, handle = value == 1 and h or nil,
                 position = { x = p[8], y = p[9], z = p[10] }, expires = now() + 10,
                 name = clean(who.name), kind = value == 1 and "object" or "terrain" }
-            notify(clean(who.name) .. (value == 1 and " marked a target." or " marked a spot."))
+            notify(clean(who.name) .. (value ~= 1 and " marked a spot." or
+                from ~= me and h == d.localHandle() and " marked you." or " marked a target."))
         elseif op == REQUEST then
             local old = requests[from]
             if old and number <= old.seq then return end
@@ -214,7 +222,7 @@ function M.Create(d)
                 send(to, p)
                 if p[2] ~= STATUS then
                     outbox[tostring(p[3]) .. ":" .. tostring(to)] = {
-                        to = to, packet = p, next = now() + 0.6, deadline = now() + 5 }
+                        to = to, packet = p, created = now(), next = now() + 0.6, deadline = now() + 5 }
                 end
             end
         end
@@ -226,6 +234,7 @@ function M.Create(d)
         statuses, dispatches, gives, taken, marked = {}, {}, {}, {}, {}
         seq, nextPing, nextRequest = 0, 0, 0
         nextStatus, nextMarkers, lastStatus = 0, 0, nil
+        delivery = {}
         enabled = active == true
         changed()
     end
@@ -234,11 +243,39 @@ function M.Create(d)
     function service.GetPings() return pings end
     function service.GetRequests() return requests end
     function service.GetStatus(id) return statuses[id] end
+    -- CR application-level receipts/retries, not native reliable queues or
+    -- packet loss. Return copies so diagnostics cannot change delivery state.
+    function service.GetNetworkDiagnostics()
+        local result = { pending = 0, retries = 0, expired = 0, acknowledged = 0, peers = {} }
+        for id in pairs(d.players()) do
+            if id ~= d.localId() and player(id) then
+                local r = delivery[id] or {}
+                result.peers[id] = { pending = 0, oldestPendingAge = 0,
+                    retries = r.retries or 0, expired = r.expired or 0, acknowledged = r.acknowledged or 0,
+                    receiveAge = r.lastReceived and math.max(0, now() - r.lastReceived) or nil }
+            end
+        end
+        for _, job in pairs(outbox) do
+            local row = result.peers[job.to]
+            if row then
+                row.pending = row.pending + 1
+                row.oldestPendingAge = math.max(row.oldestPendingAge, now() - job.created)
+            end
+        end
+        for _, row in pairs(result.peers) do
+            for _, key in ipairs({ "pending", "retries", "expired", "acknowledged" }) do
+                result[key] = result[key] + row[key]
+            end
+        end
+        return result
+    end
     function service.IsOnFoot(id) return onFoot(id) end
     function service.IsCritical(id) return critical(id) end
     function service.GetDispatches() return dispatches end
     function service.MarkersOn() return markers end
     function service.SetMarkers(on) markers = on == true; nextMarkers = 0; changed() end
+    function service.HostMarkerOn() return hostMarker end
+    function service.SetHostMarker(on) hostMarker = on == true; nextMarkers = 0; changed() end
     -- Short status word for the PDA team list and the HUD markers.
     function service.Describe(id)
         local request = requests[id]
@@ -341,10 +378,17 @@ function M.Create(d)
         local who, op = player(from), p[2]
         if not who or from == d.localId() or p[1] ~= VERSION or not integer(p[3]) or
             not valid(p[4]) or who.handle ~= p[4] then return true end
+        -- Envelope from a known peer: evidence of CR traffic even when an
+        -- operation is a duplicate or cannot yet be applied.
+        deliveryFor(from).lastReceived = now()
         if op == RECEIPT then
             local key = tostring(p[3]) .. ":" .. tostring(from)
             local job = outbox[key]
-            if job and p[11] == job.packet[2] then outbox[key] = nil end
+            if job and p[11] == job.packet[2] then
+                outbox[key] = nil
+                local row = deliveryFor(from)
+                row.acknowledged = row.acknowledged + 1
+            end
             return true
         end
         if op == STATUS then
@@ -410,6 +454,8 @@ function M.Create(d)
     -- A teammate's marker is switched on once and renamed only when its
     -- status text changes. Re-marking every period would bury the mission's
     -- own SetObjectiveOn calls under co-op ones (and undo a ping's rename).
+    -- A marker found switched off (the mission or engine cleared it) is
+    -- switched back on; that needs EXU IsObjectiveOn.
     local function updateMarkers(time)
         if time < nextMarkers then return end
         nextMarkers = time + MARKER_PERIOD
@@ -421,15 +467,18 @@ function M.Create(d)
                 if valid(mark.handle) then call("objective", mark.handle, nil, clean(p.name)) end
                 marked[id], mark = nil, nil
             end
-            if h and markers then
+            if h and (markers or hostMarker and p.team == d.leaderTeam()) then
                 local word = service.Describe(id)
                 local label = clean(p.name) .. (word ~= "" and "  " .. word or "")
                 if not mark then
                     call("objective", h, label, clean(p.name), true)
                     marked[id] = { handle = h, label = label }
-                elseif mark.label ~= label then
-                    call("objective", h, label, clean(p.name), false)
-                    mark.label = label
+                else
+                    local off = call("objectiveOn", h) == false
+                    if off or mark.label ~= label then
+                        call("objective", h, label, clean(p.name), off)
+                        mark.label = label
+                    end
                 end
             elseif h and mark then
                 call("objective", h, nil, clean(p.name))
@@ -508,9 +557,18 @@ function M.Create(d)
             if not player(id) then statuses[id] = nil end
         end
         for key, job in pairs(outbox) do
-            if time >= job.deadline or not player(job.to) then outbox[key] = nil
-            elseif time >= job.next then send(job.to, job.packet); job.next = time + 0.6 end
+            if not player(job.to) then outbox[key] = nil
+            elseif time >= job.deadline then
+                local row = deliveryFor(job.to)
+                row.expired = row.expired + 1
+                outbox[key] = nil
+            elseif time >= job.next then
+                local row = deliveryFor(job.to)
+                row.retries = row.retries + 1
+                send(job.to, job.packet); job.next = time + 0.6
+            end
         end
+        for id in pairs(delivery) do if not player(id) then delivery[id] = nil end end
         updateMarkers(time)
     end
     return service

@@ -1,0 +1,1958 @@
+{
+  "method": "Tools/Build-WeaponFlashes.py --measure: forward = barrel tip along hardpoint +Z; right/up = centre of the front 0.25 m of the barrel's weighted vertices",
+  "crafts": {
+    "abtowe": {
+      "model": "abtowe",
+      "slots": {
+        "1": {
+          "weapon": "gspstabn",
+          "offset": [
+            -0.06,
+            0.02,
+            0.23
+          ],
+          "hardpoint": "agn11Gc1",
+          "barrel": "agn11bgb",
+          "vertices": 38
+        }
+      }
+    },
+    "aspilo": {
+      "model": "aspilo",
+      "slots": {
+        "1": {
+          "weapon": "aprifle",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "aspilop": {
+      "model": "aspilo",
+      "slots": {
+        "1": {
+          "weapon": "aprifle",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "assold": {
+      "model": "aspilo",
+      "slots": {
+        "1": {
+          "weapon": "asplsmg",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "asuser": {
+      "model": "aspilo",
+      "slots": {
+        "1": {
+          "weapon": "aprifle",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        },
+        "2": {
+          "weapon": "gsnipe",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "asusera": {
+      "model": "aspilo",
+      "slots": {
+        "1": {
+          "weapon": "aprifle",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        },
+        "2": {
+          "weapon": "gsnipe",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "avarmp": {
+      "model": "avartl",
+      "slots": {
+        "1": {
+          "weapon": "ghartmp",
+          "offset": [
+            0.04,
+            -0.07,
+            0.71
+          ],
+          "hardpoint": "aar11gm1",
+          "barrel": "aar11bgd",
+          "vertices": 194
+        }
+      }
+    },
+    "avartl": {
+      "model": "avartl",
+      "slots": {
+        "1": {
+          "weapon": "ghartill",
+          "offset": [
+            0.04,
+            -0.07,
+            0.71
+          ],
+          "hardpoint": "aar11gm1",
+          "barrel": "aar11bgd",
+          "vertices": 194
+        },
+        "2": {
+          "weapon": "ghartill",
+          "offset": [
+            0.04,
+            -0.06,
+            0.74
+          ],
+          "hardpoint": "aar11gm2",
+          "barrel": "aar11bgc",
+          "vertices": 194
+        },
+        "3": {
+          "weapon": "ghartill",
+          "offset": [
+            0.0,
+            -0.07,
+            0.68
+          ],
+          "hardpoint": "aar11gm3",
+          "barrel": "aar11bgb",
+          "vertices": 194
+        },
+        "4": {
+          "weapon": "ghartill",
+          "offset": [
+            -0.01,
+            -0.08,
+            0.72
+          ],
+          "hardpoint": "aar11gm4",
+          "barrel": "aar11bga",
+          "vertices": 194
+        }
+      }
+    },
+    "avdemo": {
+      "model": "avtank",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "offset": [
+            0.2,
+            0.1,
+            2.41
+          ],
+          "hardpoint": "AGR11GC1",
+          "barrel": "AGR11BGA",
+          "vertices": 113
+        },
+        "2": {
+          "weapon": "gminigun",
+          "skip": "parent AGR11BDA is not a dedicated barrel node"
+        },
+        "4": {
+          "weapon": "gmdmgun",
+          "skip": "parent AGR11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "avfigh": {
+      "model": "avfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "skip": "parent ARA11rof is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminigun",
+          "skip": "parent ARA11rof is not a dedicated barrel node"
+        }
+      }
+    },
+    "avfimp": {
+      "model": "avfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "skip": "parent ARA11rof is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminigun",
+          "skip": "parent ARA11rof is not a dedicated barrel node"
+        }
+      }
+    },
+    "avhraz": {
+      "model": "avhraz",
+      "slots": {
+        "2": {
+          "weapon": "grktbomb",
+          "skip": "parent ahr11rof is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "grktbomb",
+          "skip": "parent ahr11rof is not a dedicated barrel node"
+        }
+      }
+    },
+    "avhrmp": {
+      "model": "avhraz",
+      "slots": {
+        "2": {
+          "weapon": "grktbomb",
+          "skip": "parent ahr11rof is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "grktbomb",
+          "skip": "parent ahr11rof is not a dedicated barrel node"
+        }
+      }
+    },
+    "avlamp": {
+      "model": "avland",
+      "slots": {
+        "1": {
+          "weapon": "gtechno",
+          "skip": "parent lla11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "avltmp": {
+      "model": "avltnk",
+      "slots": {
+        "1": {
+          "weapon": "gtminig",
+          "skip": "parent aln11bda is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gtaggun",
+          "skip": "parent aln11bdc is not a dedicated barrel node"
+        }
+      }
+    },
+    "avltnk": {
+      "model": "avltnk",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "skip": "parent aln11bda is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "ghornet",
+          "skip": "parent aln11bdc is not a dedicated barrel node"
+        }
+      }
+    },
+    "avpsav": {
+      "model": "avsav",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "skip": "no Ogre mesh/skeleton for model avsav"
+        }
+      }
+    },
+    "avrckt": {
+      "model": "avrckt",
+      "slots": {
+        "1": {
+          "weapon": "gshadow",
+          "skip": "parent art11bda is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "ghornet",
+          "skip": "parent art11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "avrsav": {
+      "model": "avsav",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "skip": "no Ogre mesh/skeleton for model avsav"
+        }
+      }
+    },
+    "avsav": {
+      "model": "avsav",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "skip": "no Ogre mesh/skeleton for model avsav"
+        }
+      }
+    },
+    "avsav14": {
+      "model": "avsav",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "skip": "no Ogre mesh/skeleton for model avsav"
+        }
+      }
+    },
+    "avtamp": {
+      "model": "avtank",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "offset": [
+            0.2,
+            0.1,
+            2.41
+          ],
+          "hardpoint": "AGR11GC1",
+          "barrel": "AGR11BGA",
+          "vertices": 113
+        },
+        "2": {
+          "weapon": "gmaggun",
+          "skip": "parent AGR11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "avtank": {
+      "model": "avtank",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "offset": [
+            0.2,
+            0.1,
+            2.41
+          ],
+          "hardpoint": "AGR11GC1",
+          "barrel": "AGR11BGA",
+          "vertices": 113
+        },
+        "2": {
+          "weapon": "gminigun",
+          "skip": "parent AGR11BDA is not a dedicated barrel node"
+        },
+        "4": {
+          "weapon": "gmdmgun",
+          "skip": "parent AGR11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "avtump": {
+      "model": "avturr",
+      "slots": {
+        "1": {
+          "weapon": "gtminig",
+          "skip": "parent aDE11blc is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gtminig",
+          "skip": "parent aDE11blf is not a dedicated barrel node"
+        }
+      }
+    },
+    "avturr": {
+      "model": "avturr",
+      "slots": {
+        "1": {
+          "weapon": "gtminig",
+          "skip": "parent aDE11blc is not a dedicated barrel node"
+        }
+      }
+    },
+    "avwalk": {
+      "model": "avwalk",
+      "slots": {
+        "1": {
+          "weapon": "gatstaba",
+          "skip": "parent age11tx2 is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gatstaba",
+          "skip": "parent age11tx1 is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "skip": "parent age11ty1 is not a dedicated barrel node"
+        }
+      }
+    },
+    "avwamp": {
+      "model": "avwalk",
+      "slots": {
+        "1": {
+          "weapon": "gmaggun",
+          "skip": "parent age11tx2 is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gmaggun",
+          "skip": "parent age11tx1 is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gsplint",
+          "skip": "parent age11ty1 is not a dedicated barrel node"
+        }
+      }
+    },
+    "bbtowe": {
+      "model": "bbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gblastb",
+          "offset": [
+            -0.06,
+            0.02,
+            0.23
+          ],
+          "hardpoint": "agn11Gc1",
+          "barrel": "agn11bgb",
+          "vertices": 38
+        }
+      }
+    },
+    "bsheav": {
+      "model": "bsheav",
+      "slots": {
+        "1": {
+          "weapon": "handgun",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        },
+        "2": {
+          "weapon": "gsnipe",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "bspilo": {
+      "model": "bsheav",
+      "slots": {
+        "1": {
+          "weapon": "bprifle",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "bssold": {
+      "model": "bspilo",
+      "slots": {
+        "1": {
+          "weapon": "bsplsmg",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "bsuser": {
+      "model": "bspilo",
+      "slots": {
+        "1": {
+          "weapon": "bprifle",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        },
+        "2": {
+          "weapon": "gsnipe",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "bv0002": {
+      "model": "bvhraz",
+      "slots": {
+        "2": {
+          "weapon": "grktbomb",
+          "skip": "parent bhr11rof is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "grktbomb",
+          "skip": "parent bhr11rof is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvartl": {
+      "model": "bvartl",
+      "slots": {
+        "1": {
+          "weapon": "ghartill",
+          "offset": [
+            0.04,
+            -0.07,
+            0.71
+          ],
+          "hardpoint": "bar11gm1",
+          "barrel": "bar11bgd",
+          "vertices": 194
+        }
+      }
+    },
+    "bvfigh": {
+      "model": "bvraz",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "skip": "parent bRA11rof is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gshadow",
+          "skip": "parent bRA11rof is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvfigha": {
+      "model": "bvraz",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "skip": "parent bRA11rof is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminigun",
+          "skip": "parent bRA11rof is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvhraz": {
+      "model": "bvhraz",
+      "slots": {
+        "1": {
+          "weapon": "gtaggun",
+          "skip": "visible tip is -2.03 m from the hardpoint (under 0.1 m)"
+        },
+        "3": {
+          "weapon": "gcomet",
+          "skip": "parent bhr11rof is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvhraza": {
+      "model": "bvhraz",
+      "slots": {
+        "2": {
+          "weapon": "grktbomb",
+          "skip": "parent bhr11rof is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "grktbomb",
+          "skip": "parent bhr11rof is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvltnk": {
+      "model": "bvltnk",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "skip": "parent bln11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvltnka": {
+      "model": "bvltnk",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "skip": "parent bln11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvra8": {
+      "model": "bvraz",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "skip": "parent bRA11rof is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gshadow",
+          "skip": "parent bRA11rof is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvraz": {
+      "model": "bvraz",
+      "slots": {
+        "1": {
+          "weapon": "gtminig",
+          "skip": "parent bRA11rof is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gshadow",
+          "skip": "parent bRA11rof is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvrckt": {
+      "model": "bvrckt",
+      "slots": {
+        "1": {
+          "weapon": "gtaggun",
+          "skip": "parent brt11bda is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gtaggun",
+          "skip": "parent brt11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvrdev": {
+      "model": "bvrdev",
+      "slots": {
+        "1": {
+          "weapon": "gtminig",
+          "skip": "parent brd11bda is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gtaggun",
+          "skip": "parent brd11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvrdeva": {
+      "model": "bvrdev",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "skip": "parent brd11bda is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "ghornet",
+          "skip": "parent brd11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvrmpa": {
+      "model": "bvrdev",
+      "slots": {
+        "1": {
+          "weapon": "grktbomb",
+          "skip": "parent brd11bda is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "grktbomb",
+          "skip": "parent brd11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvrmpb": {
+      "model": "bvrdev",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "skip": "parent brd11bda is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gspstab",
+          "skip": "parent brd11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvtank": {
+      "model": "bvtank",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "offset": [
+            0.2,
+            0.1,
+            2.41
+          ],
+          "hardpoint": "bGR11GC1",
+          "barrel": "bGR11BGA",
+          "vertices": 113
+        },
+        "3": {
+          "weapon": "gmortar",
+          "skip": "parent bGR11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvtanka": {
+      "model": "bvtank",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "offset": [
+            0.2,
+            0.1,
+            2.41
+          ],
+          "hardpoint": "bGR11GC1",
+          "barrel": "bGR11BGA",
+          "vertices": 113
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "skip": "parent bGR11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvtump": {
+      "model": "bvturr",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "skip": "parent bDE11blc is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gatstab",
+          "skip": "parent bDE11blf is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvtur8": {
+      "model": "bvturr",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "skip": "parent bDE11blc is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvturr": {
+      "model": "bvturr",
+      "slots": {
+        "1": {
+          "weapon": "gtminig",
+          "skip": "parent bDE11blc is not a dedicated barrel node"
+        }
+      }
+    },
+    "bvwalk": {
+      "model": "bvwalk",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "skip": "parent age11tx2 is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gspstab",
+          "skip": "parent age11tx1 is not a dedicated barrel node"
+        }
+      }
+    },
+    "cblasr": {
+      "model": "cblasr",
+      "slots": {
+        "1": {
+          "weapon": "gspstaba",
+          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+        }
+      }
+    },
+    "cbtowe": {
+      "model": "cbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gatstaba",
+          "skip": "parent cgt11tx1 is not a dedicated barrel node"
+        }
+      }
+    },
+    "cbtowea": {
+      "model": "cblasr",
+      "slots": {
+        "1": {
+          "weapon": "gflashch",
+          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+        }
+      }
+    },
+    "cbtoweb": {
+      "model": "cbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gatstaba",
+          "skip": "parent cgt11tx1 is not a dedicated barrel node"
+        }
+      }
+    },
+    "cbtowec": {
+      "model": "cblasr",
+      "slots": {
+        "1": {
+          "weapon": "gflashch",
+          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+        }
+      }
+    },
+    "cbtowed": {
+      "model": "cbtowe",
+      "slots": {
+        "1": {
+          "weapon": "grktbomb",
+          "skip": "parent cgt11tx1 is not a dedicated barrel node"
+        }
+      }
+    },
+    "cbtowee": {
+      "model": "cblasr",
+      "slots": {
+        "1": {
+          "weapon": "gflashch",
+          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+        }
+      }
+    },
+    "cbtowef": {
+      "model": "cbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gatstaba",
+          "skip": "parent cgt11tx1 is not a dedicated barrel node"
+        }
+      }
+    },
+    "cr16tow": {
+      "model": "cr16tow",
+      "slots": {
+        "1": {
+          "weapon": "cr16bolt",
+          "offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "hardpoint": "sgn11gc1",
+          "barrel": "sgn11bgb",
+          "vertices": 74
+        },
+        "2": {
+          "weapon": "cr16bolt",
+          "offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "hardpoint": "sgn11gc2",
+          "barrel": "sgn11bga",
+          "vertices": 74
+        }
+      }
+    },
+    "crfraz": {
+      "model": "crfraz",
+      "slots": {
+        "1": {
+          "weapon": "crfpuls",
+          "skip": "parent cfr11bda is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "crfarc",
+          "skip": "parent cfr11bdb is not a dedicated barrel node"
+        }
+      }
+    },
+    "cspilo": {
+      "model": "cspilo",
+      "slots": {
+        "1": {
+          "weapon": "cprifle",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "cspiloa": {
+      "model": "cspilo",
+      "slots": {
+        "1": {
+          "weapon": "cprifle",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        },
+        "2": {
+          "weapon": "gsnipe",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "cssold": {
+      "model": "cspilo",
+      "slots": {
+        "1": {
+          "weapon": "csplsmg",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "cssolda": {
+      "model": "cspilo",
+      "slots": {
+        "1": {
+          "weapon": "gtminis",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "csuser": {
+      "model": "cspilo",
+      "slots": {
+        "1": {
+          "weapon": "cprifle",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        },
+        "2": {
+          "weapon": "gsnipe",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "csusera": {
+      "model": "cspilo",
+      "slots": {
+        "1": {
+          "weapon": "cprifle",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        },
+        "2": {
+          "weapon": "gsnipe",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "csuserb": {
+      "model": "cspilo",
+      "slots": {
+        "2": {
+          "weapon": "gsnipe",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "cvartl": {
+      "model": "cvartl",
+      "slots": {
+        "1": {
+          "weapon": "ghartill",
+          "skip": "parent CAR11TX1 is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvartla": {
+      "model": "cvartl",
+      "slots": {
+        "1": {
+          "weapon": "cvwo003",
+          "skip": "parent CAR11TX1 is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvfigh": {
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvfigha": {
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvfighc": {
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvfighe": {
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvfighf": {
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvfighg": {
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvfighh": {
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvfimp": {
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminignc",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminignc",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvhmpa": {
+      "model": "cvhtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstaba",
+          "skip": "parent CEM11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gspstaba",
+          "skip": "parent CEM11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvhmpb": {
+      "model": "cvhtnk",
+      "slots": {
+        "1": {
+          "weapon": "gmaggun",
+          "skip": "parent CEM11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gmaggun",
+          "skip": "parent CEM11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvhraz": {
+      "model": "cvhraz",
+      "slots": {
+        "1": {
+          "weapon": "grktbomb",
+          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "grktbomb",
+          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvhraza": {
+      "model": "cvhraz",
+      "slots": {
+        "2": {
+          "weapon": "grktbomb",
+          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "grktbomb",
+          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvhrazb": {
+      "model": "cvhraz",
+      "slots": {
+        "2": {
+          "weapon": "grktbomb",
+          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "grktbomb",
+          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvhtnk": {
+      "model": "cvhtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstaba",
+          "skip": "parent CEM11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gspstaba",
+          "skip": "parent CEM11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvhzmp": {
+      "model": "cvhraz",
+      "slots": {
+        "1": {
+          "weapon": "grktbomb",
+          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "grktbomb",
+          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvltnk": {
+      "model": "cvltnk",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "skip": "parent CNA11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvraz": {
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminigun",
+          "skip": "parent CFL11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvrckt": {
+      "model": "cvrckt",
+      "slots": {
+        "1": {
+          "weapon": "gshadow",
+          "skip": "parent CDR11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gshadow",
+          "skip": "parent CDR11BDA is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gmdmgun",
+          "skip": "parent CDR11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvtank": {
+      "model": "cvtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstabb",
+          "skip": "parent CYE11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvtmpa": {
+      "model": "cvtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstabb",
+          "skip": "parent CYE11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gmaggun",
+          "skip": "parent CYE11BDA is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "skip": "parent CYE11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvtnk": {
+      "model": "cvtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstabb",
+          "skip": "parent CYE11BDA is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "skip": "parent CYE11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvtnkb": {
+      "model": "cvtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstabb",
+          "skip": "parent CYE11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvtnkc": {
+      "model": "cvtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstabb",
+          "skip": "parent CYE11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gspstabb",
+          "skip": "parent CYE11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvtnkd": {
+      "model": "cvtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstabd",
+          "skip": "parent CYE11BDA is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gspstabd",
+          "skip": "parent CYE11BDA is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvturr": {
+      "model": "cvturr",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "skip": "parent CAD11TX1 is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "skip": "parent CAD11TX1 is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gminigrn",
+          "skip": "parent CAD11TX2 is not a dedicated barrel node"
+        },
+        "4": {
+          "weapon": "gminigrn",
+          "skip": "parent CAD11TX2 is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvturra": {
+      "model": "cvturr",
+      "slots": {
+        "1": {
+          "weapon": "gtminis",
+          "skip": "parent CAD11TX1 is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gtminis",
+          "skip": "parent CAD11TX1 is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gtminis",
+          "skip": "parent CAD11TX2 is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvturrb": {
+      "model": "cvturr",
+      "slots": {
+        "1": {
+          "weapon": "gspstabb",
+          "skip": "parent CAD11TX1 is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gspstabb",
+          "skip": "parent CAD11TX2 is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvturrc": {
+      "model": "cvturr",
+      "slots": {
+        "1": {
+          "weapon": "gspstabc",
+          "skip": "parent CAD11TX1 is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvwalk": {
+      "model": "cvwalk",
+      "slots": {
+        "1": {
+          "weapon": "gblastg",
+          "skip": "parent cvw11hed is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gblastg",
+          "skip": "parent cvw11hed is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "skip": "parent cvw11sup is not a dedicated barrel node"
+        }
+      }
+    },
+    "cvwamp": {
+      "model": "cvwalk",
+      "slots": {
+        "1": {
+          "weapon": "gblast",
+          "skip": "parent cvw11hed is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gmdmgun",
+          "skip": "parent cvw11sup is not a dedicated barrel node"
+        }
+      }
+    },
+    "sb0002": {
+      "model": "sbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gflashgn",
+          "offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "hardpoint": "sgn11gc1",
+          "barrel": "sgn11bgb",
+          "vertices": 74
+        },
+        "2": {
+          "weapon": "gflashgn",
+          "offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "hardpoint": "sgn11gc2",
+          "barrel": "sgn11bga",
+          "vertices": 74
+        }
+      }
+    },
+    "sbtowe": {
+      "model": "sbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gblasth",
+          "offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "hardpoint": "sgn11gc1",
+          "barrel": "sgn11bgb",
+          "vertices": 74
+        },
+        "2": {
+          "weapon": "gblasth",
+          "offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "hardpoint": "sgn11gc2",
+          "barrel": "sgn11bga",
+          "vertices": 74
+        }
+      }
+    },
+    "sbtowea": {
+      "model": "sbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gtminis",
+          "offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "hardpoint": "sgn11gc1",
+          "barrel": "sgn11bgb",
+          "vertices": 74
+        },
+        "2": {
+          "weapon": "gatstab",
+          "offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "hardpoint": "sgn11gc2",
+          "barrel": "sgn11bga",
+          "vertices": 74
+        }
+      }
+    },
+    "sbtoweb": {
+      "model": "sbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "hardpoint": "sgn11gc1",
+          "barrel": "sgn11bgb",
+          "vertices": 74
+        },
+        "2": {
+          "weapon": "gspstab",
+          "offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "hardpoint": "sgn11gc2",
+          "barrel": "sgn11bga",
+          "vertices": 74
+        }
+      }
+    },
+    "sbtowec": {
+      "model": "sbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "hardpoint": "sgn11gc1",
+          "barrel": "sgn11bgb",
+          "vertices": 74
+        },
+        "2": {
+          "weapon": "gbolt",
+          "offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "hardpoint": "sgn11gc2",
+          "barrel": "sgn11bga",
+          "vertices": 74
+        }
+      }
+    },
+    "sbtowed": {
+      "model": "sbtowe",
+      "slots": {
+        "1": {
+          "weapon": "grktbomb",
+          "offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "hardpoint": "sgn11gc1",
+          "barrel": "sgn11bgb",
+          "vertices": 74
+        },
+        "2": {
+          "weapon": "grktbomb",
+          "offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "hardpoint": "sgn11gc2",
+          "barrel": "sgn11bga",
+          "vertices": 74
+        }
+      }
+    },
+    "sbtowee": {
+      "model": "sbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gflashgn",
+          "offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "hardpoint": "sgn11gc1",
+          "barrel": "sgn11bgb",
+          "vertices": 74
+        },
+        "2": {
+          "weapon": "gflashgn",
+          "offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "hardpoint": "sgn11gc2",
+          "barrel": "sgn11bga",
+          "vertices": 74
+        }
+      }
+    },
+    "sspilo": {
+      "model": "sspilo",
+      "slots": {
+        "1": {
+          "weapon": "sprifle",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "sssold": {
+      "model": "sspilo",
+      "slots": {
+        "1": {
+          "weapon": "ssplsmg",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "ssuser": {
+      "model": "sspilo",
+      "slots": {
+        "1": {
+          "weapon": "sprifle",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        },
+        "2": {
+          "weapon": "gsnipe",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "ssusera": {
+      "model": "sspilo",
+      "slots": {
+        "2": {
+          "weapon": "gsnipe",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "ssuserb": {
+      "model": "sspilo",
+      "slots": {
+        "1": {
+          "weapon": "sprifle",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        },
+        "2": {
+          "weapon": "gsnipe",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "ssuserc": {
+      "model": "cspilo",
+      "slots": {
+        "1": {
+          "weapon": "cprifle",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        },
+        "2": {
+          "weapon": "gsnipe",
+          "skip": "no [CraftClass] section (OpenShim reads flashOffset<N> there only)"
+        }
+      }
+    },
+    "svarmp": {
+      "model": "svartl",
+      "slots": {
+        "1": {
+          "weapon": "ghartmp",
+          "skip": "visible tip is -0.02 m from the hardpoint (under 0.1 m)"
+        }
+      }
+    },
+    "svartl": {
+      "model": "svartl",
+      "slots": {
+        "1": {
+          "weapon": "ghartill",
+          "skip": "visible tip is -0.02 m from the hardpoint (under 0.1 m)"
+        }
+      }
+    },
+    "svartla": {
+      "model": "svartl",
+      "slots": {
+        "1": {
+          "weapon": "ghartila",
+          "skip": "visible tip is -0.02 m from the hardpoint (under 0.1 m)"
+        }
+      }
+    },
+    "svdemo": {
+      "model": "svfigh",
+      "slots": {
+        "1": {
+          "weapon": "grktbomb",
+          "skip": "parent SFL11ROR is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "grktbomb",
+          "skip": "parent SFL11ROR is not a dedicated barrel node"
+        }
+      }
+    },
+    "svfi12": {
+      "model": "svfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminisov",
+          "skip": "parent SFL11ROR is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminisov",
+          "skip": "parent SFL11ROR is not a dedicated barrel node"
+        }
+      }
+    },
+    "svfigh": {
+      "model": "svfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminisov",
+          "skip": "parent SFL11ROR is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminisov",
+          "skip": "parent SFL11ROR is not a dedicated barrel node"
+        }
+      }
+    },
+    "svfigha": {
+      "model": "svfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminisov",
+          "skip": "parent SFL11ROR is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminisov",
+          "skip": "parent SFL11ROR is not a dedicated barrel node"
+        }
+      }
+    },
+    "svfimp": {
+      "model": "svfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminisov",
+          "skip": "parent SFL11ROR is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gminisov",
+          "skip": "parent SFL11ROR is not a dedicated barrel node"
+        }
+      }
+    },
+    "svhr13": {
+      "model": "svhraz",
+      "slots": {
+        "2": {
+          "weapon": "gsrkbomb",
+          "skip": "parent shb11bda is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gsrkbomb",
+          "skip": "parent shb11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "svhraz": {
+      "model": "svhraz",
+      "slots": {
+        "2": {
+          "weapon": "gsrkbomb",
+          "skip": "parent shb11bda is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gsrkbomb",
+          "skip": "parent shb11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "svhrmp": {
+      "model": "svhraz",
+      "slots": {
+        "1": {
+          "weapon": "gtaggun",
+          "skip": "parent shb11bdc is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gsrkbomb",
+          "skip": "parent shb11bda is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gsrkbomb",
+          "skip": "parent shb11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "svlt13": {
+      "model": "svltnk",
+      "slots": {
+        "1": {
+          "weapon": "gtaggun",
+          "skip": "parent slt11trt is not a dedicated barrel node"
+        }
+      }
+    },
+    "svltnk": {
+      "model": "svltnk",
+      "slots": {
+        "1": {
+          "weapon": "gtaggun",
+          "skip": "parent slt11trt is not a dedicated barrel node"
+        }
+      }
+    },
+    "svrckt": {
+      "model": "svrckt",
+      "slots": {
+        "1": {
+          "weapon": "gshadow",
+          "skip": "parent srt11bda is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gmdmgun",
+          "skip": "parent srt11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "svsav": {
+      "model": "svsav",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "skip": "parent ssv11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "svtank": {
+      "model": "svtank",
+      "slots": {
+        "1": {
+          "weapon": "gsatstab",
+          "offset": [
+            0.0,
+            0.0,
+            3.42
+          ],
+          "hardpoint": "SCZ11GC1",
+          "barrel": "SCZ11BGB",
+          "vertices": 97
+        },
+        "2": {
+          "weapon": "gminisov",
+          "skip": "parent scz11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "svtanka": {
+      "model": "svtank",
+      "slots": {
+        "1": {
+          "weapon": "gsatstab",
+          "offset": [
+            0.0,
+            0.0,
+            3.42
+          ],
+          "hardpoint": "SCZ11GC1",
+          "barrel": "SCZ11BGB",
+          "vertices": 97
+        },
+        "2": {
+          "weapon": "gminisov",
+          "skip": "parent scz11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "svtas8": {
+      "model": "svtank",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "offset": [
+            0.0,
+            0.0,
+            3.42
+          ],
+          "hardpoint": "SCZ11GC1",
+          "barrel": "SCZ11BGB",
+          "vertices": 97
+        },
+        "2": {
+          "weapon": "gflashgn",
+          "skip": "parent scz11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "svtk13": {
+      "model": "svtank",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "offset": [
+            0.0,
+            0.0,
+            3.42
+          ],
+          "hardpoint": "SCZ11GC1",
+          "barrel": "SCZ11BGB",
+          "vertices": 97
+        },
+        "2": {
+          "weapon": "gflashgn",
+          "skip": "parent scz11bda is not a dedicated barrel node"
+        }
+      }
+    },
+    "svtnk7": {
+      "model": "svtank",
+      "slots": {
+        "1": {
+          "weapon": "ga7stab",
+          "offset": [
+            0.0,
+            0.0,
+            3.42
+          ],
+          "hardpoint": "SCZ11GC1",
+          "barrel": "SCZ11BGB",
+          "vertices": 97
+        }
+      }
+    },
+    "svtump": {
+      "model": "svturr",
+      "slots": {
+        "1": {
+          "weapon": "gtminis",
+          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+        },
+        "2": {
+          "weapon": "gtminis",
+          "skip": "hardpoint 'GC2' matches 0 skeleton bones"
+        }
+      }
+    },
+    "svturr": {
+      "model": "svturr",
+      "slots": {
+        "1": {
+          "weapon": "gtminis",
+          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+        }
+      }
+    },
+    "svturra": {
+      "model": "svturr",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+        }
+      }
+    },
+    "svturrb": {
+      "model": "svturr",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+        }
+      }
+    },
+    "svturrc": {
+      "model": "svturr",
+      "slots": {
+        "1": {
+          "weapon": "gminigna",
+          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+        }
+      }
+    },
+    "svwalk": {
+      "model": "svwalk",
+      "slots": {
+        "1": {
+          "weapon": "gblast",
+          "skip": "parent svw11hed is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gblast",
+          "skip": "parent svw11hed is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "skip": "parent svw11sup is not a dedicated barrel node"
+        }
+      }
+    },
+    "svwalka": {
+      "model": "svwalk",
+      "slots": {
+        "1": {
+          "weapon": "gblast",
+          "skip": "parent svw11hed is not a dedicated barrel node"
+        },
+        "2": {
+          "weapon": "gblast",
+          "skip": "parent svw11hed is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "skip": "parent svw11sup is not a dedicated barrel node"
+        }
+      }
+    },
+    "svwamp": {
+      "model": "svwalk",
+      "slots": {
+        "1": {
+          "weapon": "gblast",
+          "skip": "parent svw11hed is not a dedicated barrel node"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "skip": "parent svw11sup is not a dedicated barrel node"
+        }
+      }
+    }
+  }
+}

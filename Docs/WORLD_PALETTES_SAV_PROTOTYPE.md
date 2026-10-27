@@ -52,13 +52,13 @@ sensor/gameplay settings, or DDS terrain color grading.
 
 ## Fury assets
 
-`avsav.mesh` is the stock Fury body's mesh, with its material and skeleton links
-retargeted to `avsav00` and `avsav.skeleton`. All binary string replacements are
-equal-length, leaving geometry, bone weights, bounds and other chunks intact.
-`avsav.skeleton` and `avsav.vdf` are the matching stock Hadean Fury files; the
-VDF is required for the body's geometry hierarchy, hardpoints and native motion.
-The cut stock American SAV VDF alone has only a placeholder body and no Redux
-mesh, so it is not the source for this complete visual body.
+MERGE NOTE (2026-10-27): main now ships its own `avsav.mesh` (the Resurgence NSDF Fury, stock
+`hvsav.skeleton`, material `avsav14`) for the misn14 squad, and no `avsav.vdf`. This branch's
+original mesh (material `avsav00`, `avsav.skeleton`) and its matching `avsav.vdf` were dropped so the
+merge cannot change misn14's default Fury. `avsav.skeleton`, `avsav.material` and `avsav_s/e.dds`
+are kept but are currently unreferenced by the shipped mesh. The `avpsav`/`avrsav` fixtures therefore
+load main's mesh without a matching VDF and must be re-qualified in-game (or re-pointed at
+separately named assets) before being relied on.
 
 The material uses CR's existing `avsav_d.dds` NSDF skin, the stock Fury specular
 and emissive maps copied as `avsav_s.dds` / `avsav_e.dds`, and the existing flat

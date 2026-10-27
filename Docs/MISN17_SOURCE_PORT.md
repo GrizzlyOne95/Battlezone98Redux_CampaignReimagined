@@ -1,6 +1,6 @@
 # misn17 DLL-source Lua port
 
-`Scripts/misn17.lua` ports `BZ1/from_bz2_dll_src/Misn17Mission.cpp` to stock Battlezone 98 Redux Lua 5.1. It needs no EXU, OpenShim, or Campaign Reimagined helper module. This is a script/source checkpoint; it does not change map registration, package locks, or installed missions.
+`Scripts/misn17.lua` ports `BZ1/from_bz2_dll_src/Misn17Mission.cpp` to stock Battlezone 98 Redux Lua 5.1. The original port needs no EXU/OpenShim. The marked 2026-10-16 CR roster adapter uses `CRFuryRoster.lua` to make restored fighters two-thirds of scripted Fury spawns; source-faithful tests bypass that adapter. See [Fury fighter](FURY_FIGHTER.md). This remains an offline script port, without new co-op registration.
 
 Source repository: [Battlezone_Source](https://github.com/GrizzlyOne95/Battlezone_Source/tree/e7c410573ffedc9e118dd90f402af6d5585955cc/BZ1/from_bz2_dll_src), commit `e7c410573ffedc9e118dd90f402af6d5585955cc`.
 
@@ -46,6 +46,16 @@ Every correction is explained inline. Original faulty lines remain in the exact 
 Victory tests factory parts without requiring tower completion. The source has independent failure and success guards, so simultaneous recycler loss and destruction of all parts request both outcomes, in failure-then-success order. Their eventual engine precedence needs an in-game check; introducing a new outcome gate would change gameplay and is outside this faithful port.
 
 The source does not always request an objective repaint at victory and does not stop recurring waves at victory. Those behaviors remain intact. No extra gameplay audio, hints, units or camera paths were invented from the unused members.
+
+## Cut crystal-processing restoration lead (2026-10-16)
+
+**Documentation/backlog only; the source-faithful Lua port is unchanged.** The owner wants to re-implement the original crystal-sabotage idea in CR, but its exact gameplay was not recovered.
+
+GoombaBZ's `campaigns.csv` contains unused Mission 17 dialogue `misn1705-1708.wav` describing a factory that requires a **processed crystal** in its power converter and suggesting an **unprocessed crystal** substitution. `misn1702.wav` warns of critical power, `misn1703.wav` of an imminent explosion and `misn1709.wav` of success; their exact causal sequence is **not** recoverable from those recordings alone. This source archives fields for `crysswitched`, `firsttimecrysreplaced`, `crystalhint1/2/3`, `procrys`, `rawcrys1..5` and processing timers, but no executable logic for the mechanic.
+
+The owner's OCR of Shane Mooney's **1998 official strategy guide** describes the shipped-style victory path: destroy three power converters behind the otherwise impervious factory buildings; the factory's link to Achilles's core causes catastrophic instability. The guide does **not** mention crystals. A crystal swap is a plausible **alternative** way to disrupt the same system, not a confirmed implemented victory gate.
+
+See [the complete evidence tiers, guide provenance, restoration backlog and test plan](ORIGINAL_GUIDE_LORE_AND_CUT_CONTENT_20261016.md#mission-17-crystal-processing-sabotage-was-at-least-conceived). Before changing this port, inspect the map/ODFs and shipped 1.5 behavior, agree on the CR-only state graph, preserve existing converter-destruction victory, and implement extensions behind clear CR markers with source parity, save/load, subtitle/audio, co-op authority and live tests.
 
 ## Validation
 

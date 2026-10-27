@@ -1,4 +1,66 @@
 [WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored atstab: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_atstab.mesh"
+flashMaterial = "CR/Muzzle/atstab"
+flashDuration = 0.085
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+// CR WEAPON CASING BEGIN
+// Ballistic medium brass; local cosmetic only.
+casingType = "medium"
+// CR WEAPON CASING END
+// CR WEAPON RECOIL BEGIN
+// Opt-in recoil: the craft supplies the node/distance/return, this weapon supplies the kick.
+// A craft's recoilKick<N> overrides it (e.g. 0.15 for a scout's miniguns). Machineguns get none.
+recoilKick = 1.0
+// CR WEAPON RECOIL END
+// OpenShim weapon muzzle effects reference (all examples stay commented).
+// Settings > Video > Muzzle Flashes gates BOTH mesh and native render effects;
+// ON by default from OpenShim 1.0.0.61, restart required, no generic fallback. Exact-GOG
+// 2.2.301 / single-player cannon path. Assets and ODF configuration are required;
+// old trial environment flags cannot bypass an OFF master setting.
+//
+// Mesh flash: needs matching EXU loaded by the mission (require("exu")) and
+// its examples/odf_cannon_flash meshes, .material, .program and .hlsl resources.
+// These example assets are NOT installed by these comments. Use the small mesh
+// for small ordnance, exu_heavy_flash.mesh for heavy ordnance; either can use
+// EXU/CannonFlash/Amber or EXU/CannonFlash/Blue. Colour/brightness/turbulence
+// are material parameters, not extra ODF keys. Shape is authored in the mesh.
+// flashMesh = "exu_small_flash.mesh"
+// flashMaterial = "EXU/CannonFlash/Amber"
+// flashDuration = 0.08
+// flashScale = 1.0
+// flashEndScale = 0.15
+// flashOffset = "0.20 0.10 2.41"
+// flashRoll = 0
+//
+// Offset is right/up/forward METRES; roll is degrees; scales are uniform.
+// This offset is a stock avtank/gatstab BARREL-TIP preset, not universal:
+// measure each model before applying it. It moves only effects, not projectiles.
+// This local weapon is not avtank's current stock gatstab slot selection.
+//
+// Optional native smoke/light alongside the mesh, or by itself without EXU:
+// copy/author the engine ODF resource first. OpenShim examples/odf_muzzle_render
+// supplies oshmuzz.odf, whose [Render] combines smoke/light using draw_multi.
+// muzzleRender = "oshmuzz.render"
+// muzzleRenderDuration = 0.09
+// muzzleRenderOffset = "0.20 0.10 2.41"
+//
+// file.section identifies a render definition, not an Ogre material/mesh.
+// Render attachment and mesh have independent simulation-time durations.
+// Smoke emitLife, emission rate/velocity, texture, light and layer count live
+// in the render definition; emitted smoke can linger after emitter detachment.
+// Missing fields inherit; empty flashMesh or muzzleRender disables that channel.
+// Recoil keys belong in the craft's [CraftClass]; see avtank.odf. Disable any
+// old Lua flash producer before enabling ODF ownership to avoid double flashes.
+// Native smoke/light still needs live qualification; stock ordnance FX remain.
+// Setup/status: OpenShim Docs/ODF_MUZZLE_FLASH.md / PR #513; EXU PR #119:
+// https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/pull/513
+// https://github.com/GrizzlyOne95/ExtraUtilities/pull/119
 classLabel = "cannon"
 ordName = "rocketh"
 wpnName = "AT-Stabber"

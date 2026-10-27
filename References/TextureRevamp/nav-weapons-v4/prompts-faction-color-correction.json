@@ -1,0 +1,20 @@
+{
+  "ownerDirection": "Black Dog decorative lights RED; CCA ORANGE like chaingun. NSDF CYAN and CRA LIME unchanged; functional cores unchanged.",
+  "mode": "built-in ImageGen edit",
+  "jobs": [
+    {
+      "code": "bd",
+      "old": "ORANGE",
+      "color": "SATURATED SIGNAL RED, matching Black Dog red decorative lights",
+      "target": "C:/Users/iestu/Documents/GIT/Campaign-Reimagined-texture-revamp/Local/TextureRevamp/glow-bd-raw.png",
+      "prompt": "Use case: precise-object-edit. Image 1 is a UV-locked 2x2 texture atlas pack. TOP LEFT=weapon, TOP RIGHT=badge, BOTTOM LEFT=ammo, BOTTOM RIGHT=repair. Color-only correction requested by owner: change the faction DECORATIVE ORANGE lens glass/rails/dashes to SATURATED SIGNAL RED, matching Black Dog red decorative lights. Preserve EXACT lamp shapes, locations, sockets and all UV positions. Preserve all BLUE AMMO core lenses, GREEN REPAIR wrench/service symbol and underside round core, and AMBER/GOLD weapon core module at top-left cell local x=.725..80,y=.45..555. Functional cores do NOT change color. Only existing decorative lens glass changes. Never recolor faction painted insignia/stripes/hazard bands, white tactical paint, metal or black machinery; no new lights/art/shapes. Preserve quadrant divisions, all hardware, unchanged surface pixels, worn finish and flat texture projection. No render, perspective, text, watermark, bloom, labels, outline or layout shift."
+    },
+    {
+      "code": "cc",
+      "old": "RED",
+      "color": "WARM ORANGE, matching the CCA chaingun decorative light identity",
+      "target": "C:/Users/iestu/Documents/GIT/Campaign-Reimagined-texture-revamp/Local/TextureRevamp/glow-cc-raw.png",
+      "prompt": "Use case: precise-object-edit. Image 1 is a UV-locked 2x2 texture atlas pack. TOP LEFT=weapon, TOP RIGHT=badge, BOTTOM LEFT=ammo, BOTTOM RIGHT=repair. Color-only correction requested by owner: change the faction DECORATIVE RED lens glass/rails/dashes to WARM ORANGE, matching the CCA chaingun decorative light identity. Preserve EXACT lamp shapes, locations, sockets and all UV positions. Preserve all BLUE AMMO core lenses, GREEN REPAIR wrench/service symbol and underside round core, and AMBER/GOLD weapon core module at top-left cell local x=.725..80,y=.45..555. Functional cores do NOT change color. Only existing decorative lens glass changes. Never recolor faction painted insignia/stripes/hazard bands, white tactical paint, metal or black machinery; no new lights/art/shapes. Preserve quadrant divisions, all hardware, unchanged surface pixels, worn finish and flat texture projection. No render, perspective, text, watermark, bloom, labels, outline or layout shift."
+    }
+  ]
+}

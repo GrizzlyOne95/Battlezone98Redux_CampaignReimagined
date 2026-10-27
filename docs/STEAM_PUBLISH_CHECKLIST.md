@@ -14,13 +14,18 @@ Keep the different Steam surfaces separate:
 | Workshop update/change note | `change_note` supplied to the publish workflow |
 | Project changelog | `CHANGELOG.md` in Campaign Reimagined |
 | Roadmap discussion | `Docs/STEAM_ROADMAP_BBCODE.txt` in `GrizzlyOne95/Battlezone98Redux_Shim` |
+| Stock bug fixes discussion | `Docs/STEAM_STOCK_FIXES_BBCODE.txt` in `GrizzlyOne95/Battlezone98Redux_Shim` |
 
 Roadmap discussion:
 
 `https://steamcommunity.com/workshop/filedetails/discussion/3686673790/216888303627073611/`
 
-The OpenShim BBCode file is the canonical editable source for that discussion.
-Do not maintain a second independent copy in Campaign Reimagined.
+Stock bug fixes discussion:
+
+`https://steamcommunity.com/workshop/filedetails/discussion/3686673790/564797239535461771/`
+
+The OpenShim BBCode files are the canonical editable sources for those
+discussions. Do not maintain second independent copies in Campaign Reimagined.
 
 ## How a publish actually runs
 
@@ -36,15 +41,45 @@ menu that cannot be driven headlessly:
 # once per machine: workshop.config.json is per-machine and gitignored,
 # so a fresh clone never has one
 .\Manage-CampaignFiles.ps1 -workshop-init
-# then set SteamUser in workshop.config.json, or define STEAM_USERNAME
 
-.\Manage-CampaignFiles.ps1 -workshop-auth              # once per machine, interactive
-.\Manage-CampaignFiles.ps1 -workshop-build "<note>"    # dry run: stage + validate + VDF, no Steam
-.\Manage-CampaignFiles.ps1 -workshop-upload "<note>"   # real upload
+.\Manage-CampaignFiles.ps1 -workshop-build "<note>"    # dry run: stage + validate + upload plan, no Steam
+.\Manage-CampaignFiles.ps1 -workshop-upload "<note>"   # real upload through the running Steam client
 ```
 
 `-workshop-build` is a genuine dry run: it stages, validates, writes the
-manifest and generates the VDF without contacting Steam. Always run it first.
+manifest and resolves the upload (helper, `steam_api.dll`, Steam sign-in)
+without contacting Steam. Always run it first.
+
+### The upload goes through the running Steam client, not SteamCMD
+
+`-workshop-upload` and `-publish` upload through the desktop Steam client that
+is already signed in, using the Battlezone98_Modding_Toolbox helper
+`bztoolbox/modules/publishing/steamworks_helper.ps1`. That helper drives the
+game's 32-bit `steam_api.dll` under 32-bit Windows PowerShell, so there is no
+second login, password or Steam Guard prompt. Requirements:
+
+- Steam is running and signed in with the account that owns item `3686673790`.
+  The manager refuses to start otherwise.
+- The toolbox is checked out at `Documents\GIT\Battlezone98_Modding_Toolbox`,
+  or `BZR_TOOLBOX_REPO` points to it.
+- A Battlezone 98 Redux `steam_api.dll` exists: the Steam or GOG game folder
+  (`BZR_GAME_DIR`), the official uploader tool, or `BZ_STEAM_API_DIR`.
+
+Only the content folder and the change note are sent. Title, description,
+tags, preview and visibility are never passed, so Steam keeps its copies, and
+the hand-edited description cannot be overwritten by a content push. The run
+prints upload progress; a failed submit prints the decoded EResult (from the
+toolbox's `steam_errors.py`) and exits 1. Logs go to
+`Local\Workshop\steamclient_upload_*.log`, and a success writes
+`Local\Workshop\last_upload.json`.
+
+**Do not use SteamCMD on the maintainer's PC.** SteamCMD logs in as a second
+session of the same account, and Steam signs the desktop client out ("Session
+Replaced"); the 1.0.0.57 publish kicked the owner out of a running game. The
+old SteamCMD path remains only as an explicit opt-in for a machine with no
+desktop client: add `-steamcmd` to `-workshop-build` / `-workshop-upload`
+(it needs `SteamUser` in `workshop.config.json` and a one-time
+`-workshop-auth`). Only that path writes a VDF or honours `PublishDescription`.
 
 ### Call the manager directly, and prefer `-workshop-upload`
 
@@ -72,12 +107,14 @@ Do not judge a publish by its exit code alone. Check what the run printed:
 
 | Output | Meaning |
 |---|---|
-| `Uploading app 301650 item 3686673790 to Steam Workshop...` | The real upload path ran. |
+| `Uploading app 301650 item 3686673790 to Steam Workshop through the running Steam client...` | The real upload path ran. |
+| `Workshop upload succeeded for item 3686673790 (EResult 1).` | Steam accepted the update. |
+| `Workshop upload FAILED. Nothing was published.` | Steam rejected it; the decoded reason follows. Exit 1. |
 | `Campaign Reimagined - Mod Manager` banner | The run fell into the interactive menu. **Nothing was staged and nothing was uploaded.** |
 | `Unrecognized action: ...` | The action never reached the manager. Nothing ran. |
 
-A publish that never printed the `Uploading app 301650 item 3686673790` line is
-not a publish. Re-run it before reporting the publication as complete.
+A publish that never printed the `Workshop upload succeeded for item 3686673790`
+line is not a publish. Re-run it before reporting the publication as complete.
 
 ### The shipping lock will stop you
 
@@ -114,25 +151,31 @@ without the other.
 
 1. Confirm the candidate has completed the normal GOG deploy/test path.
 2. Update `CHANGELOG.md` for player-facing changes included in the candidate.
-3. Review `docs/workshop_description.bbcode` and update it if the public item
-   description needs to change. **Publishing it is opt-in.** `PublishDescription`
-   defaults to false, so an ordinary content push leaves the live Steam
-   description exactly as it is -- that description is edited by hand between
-   releases and a content push must not revert those edits. Set
-   `PublishDescription: true` only for a run that deliberately replaces it, and
-   re-snapshot the live text first (see `docs/workshop_description.published-*.bbcode`)
-   so any hand edits made on Steam are folded in before they are overwritten.
-   Steam rejects a description over 8000 characters and the publisher throws
-   before uploading, so check the length after editing.
+3. Review `docs/workshop_description.bbcode` against the live Steam
+   description. The default upload never sends the description: it is edited
+   by hand on Steam between releases, and a content push must not revert those
+   edits. To replace it, set `PublishDescription: true` in
+   `workshop.config.json` for that run (both the Steam-client and `-steamcmd`
+   paths honour it; the dry run says whether it will be sent). Rebuild the file
+   from the live text first so hand edits survive, see
+   `docs/workshop_description.published-*.bbcode`. Steam rejects a description
+   over 8000 characters.
 4. Review all OpenShim, EXU, bzfile, and CR changes entering the upload against
    `Battlezone98Redux_Shim/Docs/STEAM_ROADMAP_BBCODE.txt`.
 5. Update the roadmap BBCode so completed work, changed implementation status,
    newly discovered constraints, and newly relevant roadmap items accurately
    reflect the build being published.
-6. Supply a concise `change_note` describing the actual Workshop update.
+6. Review the OpenShim changes entering the upload for fixes to confirmed stock
+   defects (new `[Fixes]` settings in `openshim.ini`, crash fixes, stock Lua
+   binding repairs) and add each one to
+   `Battlezone98Redux_Shim/Docs/STEAM_STOCK_FIXES_BBCODE.txt` under its
+   section. Mark fixes that switch off in network games `[i](SP)[/i]`. List
+   only fixes that ship in the build being published.
+7. Supply a concise `change_note` describing the actual Workshop update.
 
-A real publish should not knowingly ship roadmap-relevant changes while leaving
-`STEAM_ROADMAP_BBCODE.txt` stale.
+A real publish should not knowingly ship roadmap-relevant changes or new stock
+fixes while leaving `STEAM_ROADMAP_BBCODE.txt` or `STEAM_STOCK_FIXES_BBCODE.txt`
+stale.
 
 ## After the Workshop upload succeeds
 
@@ -144,15 +187,20 @@ A real publish should not knowingly ship roadmap-relevant changes while leaving
 4. Save the Steam post and verify the rendered discussion matches the canonical
    BBCode source closely enough that no section was truncated, reverted, or
    accidentally reformatted.
-5. Let Steam download Workshop item `3686673790` and perform the normal final
+5. Do the same for the stock bug fixes discussion
+   (`https://steamcommunity.com/workshop/filedetails/discussion/3686673790/564797239535461771/`)
+   with the complete current contents of
+   `Battlezone98Redux_Shim/Docs/STEAM_STOCK_FIXES_BBCODE.txt`.
+6. Let Steam download Workshop item `3686673790` and perform the normal final
    Steam runtime verification.
 
-**The Workshop publication is not considered complete until the Roadmap
- discussion has been synchronized.**
+**The Workshop publication is not considered complete until the Roadmap and
+ stock bug fixes discussions have been synchronized.**
 
-Even when an upload does not materially change roadmap status, perform the
-synchronization check. The live Steam post should never be allowed to drift from
-the canonical `STEAM_ROADMAP_BBCODE.txt` source.
+Even when an upload does not materially change roadmap status or add a stock
+fix, perform the synchronization check. The live Steam posts should never be
+allowed to drift from their canonical `STEAM_ROADMAP_BBCODE.txt` and
+`STEAM_STOCK_FIXES_BBCODE.txt` sources.
 
 ## Publication completion record
 
@@ -164,9 +212,11 @@ following:
 - Workshop change note used;
 - Roadmap BBCode reviewed/updated;
 - Steam Roadmap discussion synchronized;
+- stock fixes BBCode reviewed/updated, and the stock bug fixes discussion
+  synchronized;
 - subscribed Workshop item downloaded for final verification;
 - final Steam test result.
 
-If the upload succeeds but the Roadmap discussion cannot be updated, report the
-publication as **uploaded but not fully synchronized**, with the Roadmap update
-left as an explicit outstanding action.
+If the upload succeeds but either discussion cannot be updated, report the
+publication as **uploaded but not fully synchronized**, with each missing
+discussion update left as an explicit outstanding action.

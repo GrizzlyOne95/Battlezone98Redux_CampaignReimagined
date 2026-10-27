@@ -23,6 +23,12 @@ for id in pairs(registry) do
         authority = function() return mine == 10 end, leaderTeam = function() return 1 end,
         message = function(text) messages[#messages + 1] = { mine, text } end,
         target = function(h) peers[mine].target = h end,
+        objective = function(h, label, plain, on)
+            local lit = peers[mine].lit
+            if label then if on then lit[h] = true end else lit[h] = nil end
+            peers[mine].marks = (peers[mine].marks or 0) + 1
+        end,
+        objectiveOn = function(h) return peers[mine].lit[h] == true end,
         send = function(to, channel, ...)
             local args = { ... }
             check(#args == 11, "packet holes")
@@ -36,7 +42,7 @@ for id in pairs(registry) do
             queue[#queue + 1] = { from = mine, to = to, channel = channel, args = args }
         end,
     }
-    peers[mine] = { service = Comms.Create(d) }
+    peers[mine] = { service = Comms.Create(d), lit = {} }
     peers[mine].service.Reset(true)
 end
 local unpack = unpack or table.unpack
@@ -52,10 +58,16 @@ local function advance(dt)
 end
 local H, G, F = peers[10].service, peers[20].service, peers[30].service
 check(H.SendPing("terrain", nil, { x = 100, y = 3, z = 120 }), "terrain publish")
+check(H.GetNetworkDiagnostics().pending == 2, "two application receipts outstanding")
+local diagCopy = H.GetNetworkDiagnostics(); diagCopy.peers[20].pending = 999
+check(H.GetNetworkDiagnostics().peers[20].pending == 1, "diagnostics cannot mutate outbox")
 local oldPing = queue[1]
 queue = {} -- Lose both first transmissions.
 advance(0.7); flush()
 check(G.GetPings()[10].position.x == 100 and F.GetPings()[10].kind == "terrain", "retry to both guests")
+local diag = H.GetNetworkDiagnostics()
+check(diag.pending == 0 and diag.retries == 2 and diag.acknowledged == 2, "actual retry/receipt counts")
+check(G.GetNetworkDiagnostics().peers[10].receiveAge == 0, "known peer envelope has traffic timestamp")
 local before = #messages
 deliver(oldPing); flush()
 check(#messages == before, "duplicate does not notify twice")
@@ -107,6 +119,32 @@ check(#messages == before, "unknown sender / invalid handle ignored")
 check(F.SendPing("terrain", nil, { x = 4, y = 0, z = 5 }), "departing player ping"); flush()
 registry[30] = nil; advance(0.1)
 check(not H.GetPings()[30], "departure clears marker")
+check(not H.GetNetworkDiagnostics().peers[30], "departure removes diagnostics")
+advance(2); queue = {}
+check(H.SendPing("terrain", nil, { x = 1, y = 0, z = 1 }), "diagnostic timeout fixture")
+queue = {}; advance(6)
+check(H.GetNetworkDiagnostics().pending == 0 and H.GetNetworkDiagnostics().expired > 0,
+    "unacknowledged action expires instead of claiming delivery")
+-- Guests can keep the host marked; nothing else is marked, and a cleared
+-- marker comes back.
+advance(2); flush()
+check(not G.HostMarkerOn() and not peers[20].lit[objects[1]], "host marker off by default")
+G.SetHostMarker(true); advance(0.1)
+check(peers[20].lit[objects[1]] and not peers[20].lit[objects[3]], "guest marks only the host")
+local marks = peers[20].marks
+advance(1.1); advance(1.1)
+check(peers[20].marks == marks, "steady marker is not re-applied")
+peers[20].lit[objects[1]] = false; advance(1.1)
+check(peers[20].lit[objects[1]] == true, "cleared host marker switched back on")
+G.SetHostMarker(false); advance(0.1)
+check(not peers[20].lit[objects[1]], "host marker switched off")
+before = #messages
+check(G.SendPing("object", objects[1]), "guest pings the host"); flush()
+local heard = {}
+for i = before + 1, #messages do heard[messages[i][1]] = messages[i][2] end
+check(heard[10] == "[CO-OP] Guest marked you." and heard[20] == "[CO-OP] Guest marked a target.",
+    "the pinged player is told they were marked")
 H.Reset(false)
+check(H.GetNetworkDiagnostics().retries == 0 and H.GetNetworkDiagnostics().expired == 0, "reset delivery counters")
 check(not H.IsActive() and not H.SendPing("terrain", nil, { x = 0, y = 0, z = 0 }), "solo inactive")
 print("CRCoopComms: " .. checks .. " checks passed")

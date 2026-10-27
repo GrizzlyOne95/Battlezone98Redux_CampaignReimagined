@@ -1,6 +1,20 @@
 // CCA bomber saturation rocket.
 // Four-round ripple per launcher preserves the stock Rocket's full volley damage.
 [WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored rocket: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_rocket.mesh"
+flashMaterial = "CR/Muzzle/rocket"
+flashDuration = 0.1
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
 classLabel = "cannon"
 ordName = "srktbom"
 wpnName = "CCA Saturation Rocket"

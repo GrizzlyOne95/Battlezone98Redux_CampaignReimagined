@@ -68,7 +68,26 @@ if type(IsNetGame) == "function" and IsNetGame() then
     exu.DisableStartingRecycler()
 end
 local subtit = require("ScriptSubtitles")
+-- CR PDA >>
+-- PersistentConfig owns the PDA (X), subtitle/UI settings and AutoSave. Script
+-- locals reset when a save loads, so Update initializes it once per Lua state.
+-- One table local keeps the main chunk under Lua 5.1's 200-local limit.
+local missionPda = { config = require("PersistentConfig"), ready = false }
+function missionPda.Init()
+    missionPda.ready = true
+    missionPda.config.Initialize()
+end
+function missionPda.Update(cinematicActive)
+    if not missionPda.ready then missionPda.Init() end
+    missionPda.config.UpdateInputs(cinematicActive)
+    missionPda.config.UpdateHeadlights()
+end
+function missionPda.Object(h)
+    if missionPda.ready and h ~= nil then missionPda.config.OnObjectCreated(h) end
+end
+-- CR PDA <<
 local CRCoop = require("CRCoop")
+local CRWire = require("CRWire")
 -- CR co-op layer <<
 -- CR team map >>
 -- Humans occupy teams 1-4 in co-op, so every DLL team that is not the player's moves off them:
@@ -97,10 +116,12 @@ SetAIControl(ENEMY_TEAM, true)
 --   "object"(handle)    every AddObject
 --   "shutdown"()        before a co-op re-initialization
 -- Every call is pcall-protected: a missing or broken director can never stop the mission.
-local TitanWeather
+local Environment = require("Environment")
+local TitanWeather, TitanSensorDirector
 do
     local ok, mod = pcall(require, "CRTitanWeather")
     if ok and type(mod) == "table" then
+        TitanSensorDirector = mod
         if type(mod.MissionHook) == "function" then
             TitanWeather = mod
         elseif type(mod.Init) == "function" and type(mod.Update) == "function" then
@@ -156,9 +177,19 @@ do
     end
 end
 local function TitanHook(event, ...)
+    if event == "init" then
+        -- Keep native Titan lighting/daylight while sharing atmosphere/sensors.
+        Environment.Init({ nativeBaseline = true })
+        Environment.BindWeatherSensors("Titan", TitanSensorDirector)
+    end
     if not TitanWeather then return nil end
     local ok, result = pcall(TitanWeather.MissionHook, event, ...)
-    if ok then return result end
+    if ok then
+        if event == "update" then Environment.Update((...)) end
+        if event == "load" and Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
+        if event == "object" then Environment.OnObjectCreated((...)) end
+        return result
+    end
     if not M.titanHookError then
         M.titanHookError = true
         print("[misn14] Titan weather hook failed: " .. tostring(result))
@@ -180,8 +211,10 @@ local native = {
     ClearObjectives = ClearObjectives, AddObjective = AddObjective,
     UpdateObjective = UpdateObjective, SetObjectiveOn = SetObjectiveOn,
     SetObjectiveOff = SetObjectiveOff, SetObjectiveName = SetObjectiveName,
-    RemoveObject = RemoveObject,
-    SucceedMission = SucceedMission, FailMission = FailMission,
+    RemoveObject = RemoveObject, SetTeamNum = SetTeamNum,
+    -- Resolve result hooks after PersistentConfig.Initialize installs cleanup.
+    SucceedMission = function(...) return _G.SucceedMission(...) end,
+    FailMission = function(...) return _G.FailMission(...) end,
     CameraReady = CameraReady, CameraPath = CameraPath, CameraObject = CameraObject,
     CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
     StopAudioMessage = StopAudioMessage,
@@ -244,8 +277,8 @@ end
 -- the replicated handle), or "!" when the leader reports the object gone. Label is the
 -- event that makes a leader-side SetLabel on a spawned object true on every guest.
 local HANDLE_OPS = { SetObjectiveOn = true, SetObjectiveOff = true, SetObjectiveName = true,
-    RemoveObject = true, Label = true }
-local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, Label = true }
+    RemoveObject = true, Label = true, SetTeamNum = true }
+local WAIT_OPS = { SetObjectiveOn = true, SetObjectiveName = true, Label = true, SetTeamNum = true }
 local GONE = "!"
 -- Guests WAIT for the real object. This is only a never-hang guard: when it fires the
 -- guest logs "[coop] unresolved ..." and counts it in M.coopUnresolved (the harness probe
@@ -330,6 +363,9 @@ local function SetObjectiveOn(...) return Present("SetObjectiveOn", ...) end
 local function SetObjectiveOff(...) return Present("SetObjectiveOff", ...) end
 local function SetObjectiveName(...) return Present("SetObjectiveName", ...) end
 local function RemoveObject(...) return Present("RemoveObject", ...) end
+-- Authored buildings are local map objects, so their team changes must be
+-- applied explicitly on each peer. Dynamic craft keep native replication.
+local function SetSurrenderTeam(handle) return Present("SetTeamNum", handle, SURVIVOR_TEAM) end
 -- Preserve the real subtitle module for Update/Initialize and return values.
 -- Play returns the native audio handle on the leader (offline: AudioMessage's).
 subtit = setmetatable({
@@ -524,7 +560,7 @@ local function UpdatePresentationTransport()
             if now >= nextEventSend then
                 for seq = ack + 1, math.min(ack + 8, #events) do
                     local event = events[seq]
-                    Send(id, "E", seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n))
+                    Send(id, "E", CRWire.Pack(seq, event.op, event.ttl, unpackArgs(EventArgs(event), 1, event.n)))
                 end
             end
         end
@@ -539,14 +575,19 @@ local function UpdatePresentationTransport()
         nextCameraSend = now + 0.2
         cameraSerial = cameraSerial + 1
         if cameraFrame then
-            Send(0, "C", cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame)))
+            Send(0, "C", CRWire.Pack(cameraSerial, cameraGeneration, unpackArgs(WireCameraFrame(cameraFrame))))
         else
             Send(0, "C", cameraSerial, cameraGeneration, "")
         end
     end
 end
 
+local ReceivePresentationDecoded = nil
+-- Presentation packets are CRWire-packed: reassemble chunked strings first.
 local function ReceivePresentation(from, kind, ...)
+    return ReceivePresentationDecoded(from, kind, CRWire.Unpack(...))
+end
+function ReceivePresentationDecoded(from, kind, ...)
     if not CRCoop.IsNetworkGame() then return false end
     if kind == "A" then
         local seq = ...
@@ -1025,8 +1066,9 @@ local function FurySpawns(triplet, count)
 end
 
 local function FuryWaveOdfs(wave)
-    local odfs = { "hvsav", "hvsav", "hvsav" }
-    for _ = 1, ExtraHumans() do odfs[#odfs + 1] = "hvsav" end
+    -- The restored light fighter is the main wave unit; retain one heavy SAV.
+    local odfs = { "hvsav", "crfraz", "crfraz" }
+    for _ = 1, ExtraHumans() do odfs[#odfs + 1] = "crfraz" end
     if wave >= FURY_TANK_FROM_WAVE then
         odfs[#odfs + 1] = "hvsat"
         if HumanCount() >= 3 then odfs[#odfs + 1] = "hvsat" end
@@ -1046,7 +1088,7 @@ local function SpawnFuryWave(wave)
     -- Tanks are the last entries; keep them when the cap trims the wave.
     local built = {}
     for i = 1, #spawns do
-        local odf = odfs[#odfs - #spawns + i] or "hvsav"
+        local odf = odfs[#odfs - #spawns + i] or "crfraz"
         local unit = BuildObject(odf, FURY_TEAM, spawns[i])
         if IsValid(unit) then
             M.fury_wave_units[#M.fury_wave_units + 1] = unit
@@ -1204,10 +1246,14 @@ function Start()
     -- (The DLL port called SetAIControl here; it is a chunk-root call now, see CR team map.)
     InitializeCoop()
     subtit.Initialize()
+    missionPda.Init()
 -- CR co-op layer <<
 end
 
 function AddObject(h)
+-- CR PDA >>
+    missionPda.Object(h)
+-- CR PDA <<
 -- CR Titan weather hook >>
     if IsValid(h) then TitanHook("object", h) end
 -- CR Titan weather hook <<
@@ -1241,6 +1287,7 @@ end
 function Update(dt)
 -- CR co-op layer >>
     subtit.Update()
+    missionPda.Update(localCameraActive)
     CRCoop.Update()
     UpdatePresentationTransport()
     if M.coopResult or M.coopPendingResult then
@@ -1588,17 +1635,17 @@ function Update(dt)
         --[[
             Convert the russian base
         ]]
-        if IsAlive(M.base) then SetTeamNum(M.base, SURVIVOR_TEAM) end
+        if IsAlive(M.base) then SetSurrenderTeam(M.base) end
 -- CR surrender >>
         -- Shipped 1.5: both power plants surrender with the base.
-        if IsAlive(M.pow1) then SetTeamNum(M.pow1, SURVIVOR_TEAM) end
-        if IsAlive(M.pow2) then SetTeamNum(M.pow2, SURVIVOR_TEAM) end
+        if IsAlive(M.pow1) then SetSurrenderTeam(M.pow1) end
+        if IsAlive(M.pow2) then SetSurrenderTeam(M.pow2) end
         TitanHook("beat", "surrender")
 -- CR surrender <<
-        if IsAlive(M.tow1) then SetTeamNum(M.tow1, SURVIVOR_TEAM) end
-        if IsAlive(M.tow2) then SetTeamNum(M.tow2, SURVIVOR_TEAM) end
-        if IsAlive(M.tow3) then SetTeamNum(M.tow3, SURVIVOR_TEAM) end
-        if IsAlive(M.tow4) then SetTeamNum(M.tow4, SURVIVOR_TEAM) end
+        if IsAlive(M.tow1) then SetSurrenderTeam(M.tow1) end
+        if IsAlive(M.tow2) then SetSurrenderTeam(M.tow2) end
+        if IsAlive(M.tow3) then SetSurrenderTeam(M.tow3) end
+        if IsAlive(M.tow4) then SetSurrenderTeam(M.tow4) end
     end
     if M.wave_count > 3 and not M.gen_message and M.rescue3 then
         SetScrap(ENEMY_TEAM, 0)

@@ -19,6 +19,8 @@ assert "name = MultSTMission\n" in bzn, "offline/online map must use MultSTMissi
 assert b"\r\n" in (root / "Missions" / "misn02b.bzn").read_bytes(), "native BZN needs CRLF"
 
 blocks = bzn.split("[GameObject]")[1:]
+labels = [m.group(1) for block in blocks if (m := re.search(r'^label = (.+)$', block, re.M))]
+assert len(labels) == len(set(labels)), 'authored labels must resolve the same object on every peer'
 enemy_blocks = []
 spawn_teams = []
 for block in blocks:
@@ -75,7 +77,7 @@ assert _ai_src.index('SetAIControl(ENEMY_TEAM, true)') < _ai_src.index('function
 # Separate native mode INIs must resolve the one shared BZN/script by stem.
 mp = configparser.ConfigParser()
 mp.read(root / "Config" / "misn02b.ini", encoding="utf-8")
-assert mp["DESCRIPTION"]["missionName"] == '"CR: Red Arrival Coop"'
+assert mp["DESCRIPTION"]["missionName"] == '"CR 01: Red Arrival Coop"'
 assert mp["WORKSHOP"]["mapType"] == '"multiplayer"'
 assert dict(mp["MULTIPLAYER"]) == {
     "minplayers": '"2"', "maxplayers": '"4"', "gametype": '"S"',
@@ -92,7 +94,7 @@ vxt = [line for line in (root / "Missions" / "misn02b.vxt").read_text().splitlin
 assert len(vxt) == 1 and vxt[0].split()[0] == "asuser", "MP start must be the pilot only"
 assert vxt[0].split()[1] == "aspilo.des" and "\t" in vxt[0], "pilot line must use the stock vxt form"
 
-description = (root / "misn02b.des").read_text().strip()
+description = (root / "misn02b.mpdes").read_text().strip()
 assert len(description) <= 300 and "\n" not in description
 assert "team 1" in description and "teams 2-4" in description
 bitmap = (root / "Assets" / "Graphics" / "misn02b.bmp").read_bytes()
@@ -106,7 +108,7 @@ entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
 assert lock["count"] == len(lock["files"])
 manager = (root / "Manage-CampaignFiles.ps1").read_text(encoding="utf-8-sig")
 for source in (r"Config\misn02b.ini", r"Assets\Graphics\misn02b.bmp",
-               "misn02b.des", r"Missions\misn02b.vxt",
+               "misn02b.mpdes", r"Missions\misn02b.vxt",
                r"Missions\misn02b.bzn", r"Scripts\misn02b.lua"):
     runtime = source.split("\\")[-1]
     assert entries.get(source) == runtime, f"missing shipping entry: {source}"

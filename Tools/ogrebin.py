@@ -9,8 +9,14 @@ byte for byte. Only [MeshSerializer_v1.100] meshes (every stock BZR and ISDFC me
 Chunk layout (OgreMeshSerializerImpl.cpp, Ogre 1.10): u16 id, u32 length
 (including the 6-byte header); strings end in '\n'.
 """
+# TODO(toolkit gap): remaining hand-rolled .mesh/.skeleton parsing, kept only because Tools/cockpitglass.py
+# (owned by branch agent/cockpit-fixes) still imports ogrebin.Mesh/Skeleton. The serializer limits that blocked
+# a port (bone assignments re-sorted, LOD levels/poses/animations dropped) are fixed upstream in BZ98RBlenderToolKit
+# PR #19 (preserve_bone_assignment_order, raw_chunks); replace this module with ogremesh/ogreskeleton when
+# cockpitglass is migrated.
 import struct
 import numpy as np
+import ogrelayout
 
 M_HEADER = 0x1000
 M_MESH = 0x3000
@@ -244,19 +250,15 @@ def chunk(cid, body):
 
 
 def build_submesh(material, positions, normals, uvs, tris, bone):
-    """M_SUBMESH chunk: own geometry (POSITION, NORMAL, TEXCOORD0 in one buffer), 16-bit
-    triangle list, every vertex bound to `bone` with weight 1."""
+    """M_SUBMESH chunk: own geometry in the stock skinned layout (ogrelayout.py: POSITION
+    NORMAL in source 0, DIFFUSE TEXCOORD0 in source 1), 16-bit triangle list, every vertex
+    bound to `bone` with weight 1."""
     nv = len(positions)
     if nv >= 65536:
         raise ValueError("too many glass vertices for 16-bit indices")
     idx = np.asarray(tris, dtype="<u2").reshape(-1)
     head = material.encode("latin-1") + b"\n" + struct.pack("<?I?", False, len(idx), False) + idx.tobytes()
-    decl = b"".join(chunk(M_GEOMETRY_VERTEX_ELEMENT, struct.pack("<5H", *e)) for e in (
-        (0, VET_FLOAT3, VES_POSITION, 0, 0), (0, VET_FLOAT3, VES_NORMAL, 12, 0), (0, VET_FLOAT2, VES_TEXCOORD, 24, 0)))
-    verts = np.hstack([positions, normals, uvs]).astype("<f4")
-    vbuf = struct.pack("<2H", 0, 32) + chunk(M_GEOMETRY_VERTEX_BUFFER_DATA, verts.tobytes())
-    geom = chunk(M_GEOMETRY, struct.pack("<I", nv) + chunk(M_GEOMETRY_VERTEX_DECLARATION, decl)
-                 + chunk(M_GEOMETRY_VERTEX_BUFFER, vbuf))
+    geom = ogrelayout.geometry_chunk(np.hstack([positions, normals, uvs]))
     op = chunk(M_SUBMESH_OPERATION, struct.pack("<H", 4))
     ba = b"".join(chunk(M_SUBMESH_BONE_ASSIGNMENT, struct.pack("<IHf", i, bone, 1.0)) for i in range(nv))
     return chunk(M_SUBMESH, head + geom + op + ba)

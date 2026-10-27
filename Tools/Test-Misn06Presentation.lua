@@ -3,6 +3,7 @@
 local file = assert(io.open("Scripts/misn06.lua", "rb"))
 local source = file:read("*a"):gsub("\r\n", "\n"); file:close()
 local adapter = assert(source:match("(local unpackArgs =.-)\n%-%- BuildObject invokes"))
+local atmosphere = assert(source:match("(InitAtmosphere = function%(%)\n.-)\n%-%- CR atmosphere <<"))
 local now, peers, packets = 0, {}, {}
 local registry = {[1]={team=1}, [2]={team=2}, [3]={team=3}, [4]={team=4}}
 local checks = 0
@@ -11,6 +12,7 @@ local function peer(id)
     local p = {calls={}, valid={subject=true, target=true}, cancelled=false, info={},
         resources={scrap=0, pilots=0, maxScrap=id == 1 and 35 or 0, maxPilots=id == 1 and 15 or 0}}
     local env = setmetatable({}, {__index=_G})
+    env._G = env -- mission chunks resolve _G.SucceedMission/FailMission at call time
     local function record(op, ...)
         p.calls[#p.calls+1] = {op, ...}
     end
@@ -41,7 +43,9 @@ local function peer(id)
     env.GetLabel = function(h) return p.labels[h] end
     env.GetHandle = function(label) return p.byLabel[label] end
     env.IsValid = function(h) return p.valid[h] == true end
+    env.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     env.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
         packets[#packets+1] = {from=id, to=to, kind=kind, args={...}}
     end
     env.CRCoop = {
@@ -54,16 +58,31 @@ local function peer(id)
     }
     env.subtit = {Play=function(...) record("Play", ...); return "audio" end,
         Queue=function(...) record("Queue", ...) end, Stop=function() record("Stop") end}
+    env.Environment = {Init=function() end, Update=function() record("EnvironmentUpdate") end}
+    p.weather = {level=1,target=2}
+    env.CRMarsWeather = {
+        Init=function(options) p.weather.options=options end,
+        Load=function() end,
+        SetAutomatic=function(enabled) p.weather.automatic=enabled end,
+        SetTargetLevel=function(value) p.weather.target=value end,
+        GetTargetLevel=function() return p.weather.target end,
+        GetLevel=function() return p.weather.level end,
+        ForceLevel=function(level) p.weather.level=level end,
+        Update=function() record("WeatherUpdate") end,
+    }
     env.M = {}
+    env.launchFX = {Begin=function(...) record('RocketFX',...) end,
+        Stop=function() record('RocketFXStop') end,Reset=function() record('RocketFXReset') end}
     p.M = env.M
     p.printed = {}
     env.print = function(...) p.printed[#p.printed + 1] = table.concat({ ... }, " ") end
     env.SetLabel = function(h, l) record("SetLabel", h, l); p.labels[h] = l; p.byLabel[l] = h end
-    local chunk = assert(loadstring("local CRCoop, M, subtit, LEADER_TEAM = CRCoop, M, subtit, 1\n" .. adapter .. [[
+    local chunk = assert(loadstring("local CRCoop, M, subtit, LEADER_TEAM = CRCoop, M, subtit, 1\nlocal InitAtmosphere, weatherStarted, nextWeatherSync\n" .. adapter .. "\n" .. atmosphere .. [[
         return { ready=CameraReady, object=CameraObject, path=CameraPath, finish=CameraFinish,
             cancelled=CameraCancelled, present=Present, reset=ResetPresentation, ending=EndMission, receive=ReceivePresentation,
             update=UpdatePresentationTransport, isInfo=IsInfo, relay=UpdateInfoRelay,
             play=subtit.Play, timer=StartCockpitTimer, hide=HideCockpitTimer,
+            weatherUpdate=UpdateAtmosphere,
             state=function() return localCameraActive, cameraSkipped, receivedEvent end }
     ]]))
     setfenv(chunk, env)
@@ -391,3 +410,35 @@ fourth.api.receive(1, "C", 700001, 77, "P", "cam1path", 800, 1000, "@9999@never_
 now = now + 0.25; fourth.api.update()
 check(not fourth.api.state(), "an unresolved camera still waits after a presentation reset")
 print("misn06 path/object-camera, timer, IsInfo relay, replica wait, local skip and ordered result checks passed: " .. checks)
+
+-- Actual story helper + actual ordered presentation adapter on four peers.
+packets={}
+host,guest,third,fourth=peer(1),peer(2),peer(3),peer(4)
+host.M.starportreconed=true; host.weather.level=3
+host.api.weatherUpdate(0.1)
+for _=1,12 do tick() end
+for _,p in pairs(peers) do
+    p.api.weatherUpdate(0.1)
+    check(p.weather.target==3,'every peer receives host story target')
+    check(p.weather.level==3,'every peer receives host actual weather rung')
+    check(p.weather.automatic==(p==host),'only host runs automatic weather ladder')
+    check(count(p,'WeatherUpdate')>0 and count(p,'EnvironmentUpdate')>0,'all peers compose weather and Environment')
+end
+-- A guest cannot use the weather presentation operations to change the leader.
+host.api.receive(2,'E',900001,'WeatherTarget',15,5)
+check(host.weather.target==3,'guest cannot dictate host weather')
+print('misn06 four-peer weather target, rung authority and renderer-update wiring passed')
+
+host.api.present('RocketFX',10,77,30,0)
+for _=1,8 do tick() end
+for _,p in pairs(peers)do
+    check(count(p,'RocketFX')==1,'every peer receives rocket translation and FX exactly once')
+    local call=last(p,'RocketFX')
+    check(call[2]==10 and call[3]==77 and call[4]==30 and call[5]==0,'primitive launch payload preserved')
+end
+host.api.present('RocketFXStop')
+for _=1,8 do tick() end
+for _,p in pairs(peers)do check(count(p,'RocketFXStop')==1,'every peer stops rocket FX')end
+host.api.receive(2,'E',900002,'RocketFX',15,0,0,0,0)
+check(count(host,'RocketFX')==1,'guest cannot dictate shared rocket flight')
+print('misn06 four-peer rocket event/FX relay checks passed')

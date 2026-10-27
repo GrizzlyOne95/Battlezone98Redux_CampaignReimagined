@@ -1,0 +1,31 @@
+[WeaponClass] // Blue Blast Cannon, created by General BlackDragon
+// CR WEAPON FLASH BEGIN
+// Authored blastblue: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_blastblue.mesh"
+flashMaterial = "CR/Muzzle/blastblue"
+flashDuration = 0.09
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+// CR WEAPON CASING BEGIN
+// Energy, launcher, explosive or utility: no ejected brass.
+casingType = "none"
+// CR WEAPON CASING END
+// CR WEAPON RECOIL BEGIN
+// Opt-in recoil: the craft supplies the node/distance/return, this weapon supplies the kick.
+// A craft's recoilKick<N> overrides it (e.g. 0.15 for a scout's miniguns). Machineguns get none.
+recoilKick = 1.0
+// CR WEAPON RECOIL END
+classLabel = "cannon"
+ordName = "blastb"
+wpnName = "Blast Cannon"
+fireSound = "gblas00.wav"
+wpnReticle = "gblast"
+wpnPriority = 10
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 1.0
+

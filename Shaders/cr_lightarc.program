@@ -1,0 +1,79 @@
+// Campaign Reimagined: L-Power lightning panels (Shaders/cr_lightarc.hlsl). Delegates are
+// declared before the unified programs (Ogre binds unified default_params only against
+// delegates already parsed). The _v1 suffix is the shader revision: bump it with any
+// source edit, because Ogre's microcode cache keys on the program name and serves stale
+// code for an edited source. Every default_params entry names a constant the compiler
+// keeps (Tools/Test-LightningPlants.py checks this with fxc).
+
+vertex_program CR_LightArc_v1_vertexHLSL4 hlsl
+{
+	source cr_lightarc.hlsl
+	target vs_4_0
+	entry_point lightarc_vertex
+	preprocessor_defines SM4=1
+}
+
+vertex_program CR_LightArc_v1_vertexHLSL hlsl
+{
+	source cr_lightarc.hlsl
+	target vs_3_0
+	entry_point lightarc_vertex
+}
+
+vertex_program CR_LightArc_v1_vertexGLSL glsl
+{
+	source cr_lightarc-vertex.glsl
+	syntax glsl120
+}
+
+fragment_program CR_LightArc_v1_fragmentHLSL4 hlsl
+{
+	source cr_lightarc.hlsl
+	target ps_4_0
+	entry_point lightarc_fragment
+	preprocessor_defines SM4=1
+}
+
+fragment_program CR_LightArc_v1_fragmentHLSL hlsl
+{
+	source cr_lightarc.hlsl
+	target ps_3_0
+	entry_point lightarc_fragment
+}
+
+fragment_program CR_LightArc_v1_fragmentGLSL glsl
+{
+	source cr_lightarc-fragment.glsl
+	syntax glsl120
+	default_params
+	{
+		param_named diffuseMap int 0
+		param_named emissiveMap int 1
+	}
+}
+
+vertex_program CR_LightArc_v1_vertex unified
+{
+	delegate CR_LightArc_v1_vertexGLSL
+	delegate CR_LightArc_v1_vertexHLSL4
+	delegate CR_LightArc_v1_vertexHLSL
+	default_params
+	{
+		param_named_auto wvpMat worldviewproj_matrix
+	}
+}
+
+fragment_program CR_LightArc_v1_fragment unified
+{
+	delegate CR_LightArc_v1_fragmentGLSL
+	delegate CR_LightArc_v1_fragmentHLSL4
+	delegate CR_LightArc_v1_fragmentHLSL
+	default_params
+	{
+		param_named_auto time time_0_x 1000
+		param_named_auto fogColour fog_colour
+		param_named_auto fogParams fog_params
+		param_named_auto sceneAmbient derived_ambient_light_colour
+		param_named_auto lightDiffuse light_diffuse_colour_power_scaled 0
+	}
+}

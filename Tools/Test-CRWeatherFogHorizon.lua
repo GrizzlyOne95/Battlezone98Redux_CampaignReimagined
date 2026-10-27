@@ -1,7 +1,6 @@
 -- Test-CRWeatherFogHorizon.lua
 --
--- Drives the real CRWeather.lua and checks that weather fog -- and only weather
--- fog -- is limited to the terrain draw distance the map authored.
+-- Drives CRWeather in isolation and checks the preset-request horizon cap.
 --
 -- Usage, from the repository root:
 --
@@ -15,14 +14,9 @@
 -- only 37% opaque at the distance terrain is cut off, and the remaining 63%
 -- reads as a bright band along the horizon.
 --
--- The regression running the other way matters just as much. Environment.lua's
--- own DayFog finishes at 700 on the same 250-unit map, and clamping that too
--- would change the established look of every mission whether or not weather is
--- running. So the rule under test is narrow:
---
---     weatherFogEnd = min(requestedWeatherFogEnd, authoredTerrainHorizon)
---
--- with base Environment fog left exactly as it was.
+-- This suite isolates CRWeather's contribution. It must leave base fog alone
+-- at zero weight; Environment owns the base/final cap authorized on 2026-10-15.
+-- Test-AtmosphereIntegration.lua tests that composed cap with the real modules.
 --
 -- Prints FOG HORIZON OK on success; prints each failed expectation and exits 1.
 
@@ -121,6 +115,23 @@ check(approx(severeFrame.fog.fogEnd, severe.fog.fogEnd),
     "a preset inside the horizon must not be touched")
 check(approx(severeFrame.fog.fogStart, severe.fog.fogStart),
     "its fogStart must not be touched either")
+
+-- =============================================================================
+-- Preset fog colours are daylight colours: night attenuation dims them too
+-- =============================================================================
+
+local haze = CRWeatherPresets.Get("MarsHaze")
+CRWeather.Layers = { { preset = haze, weight = 1.0 } }
+local dayFrame, nightFrame = newFrame(), newFrame()
+nightFrame.weatherLightScale = 0.2
+CRWeather.ApplyEnvironmentContribution(dayFrame)
+CRWeather.ApplyEnvironmentContribution(nightFrame)
+check(approx(dayFrame.fog.r, haze.fog.r) and approx(dayFrame.fog.b, haze.fog.b),
+    "a full daylight preset must take the preset fog colour")
+check(approx(nightFrame.fog.r, haze.fog.r * 0.2) and approx(nightFrame.fog.g, haze.fog.g * 0.2),
+    "a full night preset must dim its fog colour with the light, got r=" .. tostring(nightFrame.fog.r))
+check(approx(nightFrame.fog.fogEnd, dayFrame.fog.fogEnd),
+    "night attenuation must leave the fog range alone")
 
 -- =============================================================================
 -- The regression guard: base Environment fog is NOT clamped

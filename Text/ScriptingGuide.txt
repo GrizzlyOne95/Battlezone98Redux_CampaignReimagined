@@ -88,3 +88,10 @@ Passing a team number into GetPlayerHandle does not work properly and will alway
 Workaround: You get around it by updating player handles with Send/Receive every few seconds to update everyone on the current player handles. 
 
 18) you have to use send/receive when giving weapons to tanks otherwise it won't be synced with any other player.
+
+19) Local reactive surface materials:
+See Docs/REACTIVE_SURFACES.md and EXU Docs/SURFACE_MATERIAL_API.md for owned
+material variants, shader float4 values, entity-local hit points, real firing
+mounts, engine gun-tower power and optional debris finishes. Chain BulletHit
+and BulletInit by copying bounded data only; do renderer work from Update.
+Old runtimes and unsupported shaders retain their source presentation.

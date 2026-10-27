@@ -33,6 +33,7 @@
 
 local exu = require("exu")
 local CRWeatherPresets = require("CRWeatherPresets")
+local WorldArt = require("CRWorldArt")
 
 local CRWeather = {}
 
@@ -700,8 +701,10 @@ local function CreateSystem(spec, preset)
     -- the particles it has already produced do not.
     Call("SetParticleSystemKeepLocalSpace", spec.system, false)
 
-    -- An off-screen storm should not keep simulating.
-    Call("SetParticleSystemNonVisibleUpdateTimeout", spec.system, 2.0)
+    -- No non-visible timeout: the volume rides the camera, so culling saves
+    -- nothing, and a system created idle has null bounds. Once a timeout stops
+    -- its updates it stays culled with no particles and never rains again.
+    Call("SetParticleSystemNonVisibleUpdateTimeout", spec.system, 0)
 
     if HasExu("AttachParticleSystemToCamera") then
         Call("AttachParticleSystemToCamera", spec.system, Vec(spec.offset or { x = 0, y = 0, z = 0 }))
@@ -854,16 +857,40 @@ end
 -- Sky layer
 -- =============================================================================
 
+-- Drawing first does not exempt the sky from the far clip: a dome or box past
+-- the camera's far plane is culled and nothing appears. Redux's far clip is
+-- about a kilometre (1125 m on crsetup), far short of the presets' authored
+-- 4 km, so the sky is pulled in to half the far clip. The dome's corners sit
+-- up to sqrt(3) times its distance away; at 0.8 of the far clip a wedge of the
+-- dome was clipped out.
+local function SkyDistance(authored)
+    local distance = tonumber(authored)
+    if exu == nil or type(exu.GetCameraClipDistances) ~= "function" then
+        return distance
+    end
+    local ok, _, farClip = pcall(exu.GetCameraClipDistances)
+    farClip = ok and tonumber(farClip) or nil
+    if farClip == nil or farClip <= 0.0 then
+        return distance
+    end
+    if distance == nil or distance > farClip * 0.5 then
+        return farClip * 0.5
+    end
+    return distance
+end
+
 local function ApplySky(sky)
     if sky == nil then
         return
     end
 
+    local distance = SkyDistance(sky.distance)
     if sky.type == "box" then
-        Call("SetSkyBox", sky.material, sky.distance, sky.drawFirst ~= false)
+        Call("SetSkyBox", sky.material, distance, sky.drawFirst ~= false)
     else
-        Call("SetSkyDome", sky.material, sky.curvature, sky.tiling, sky.distance, sky.drawFirst ~= false)
+        Call("SetSkyDome", sky.material, sky.curvature, sky.tiling, distance, sky.drawFirst ~= false)
     end
+    return distance
 end
 
 local function SyncSky()
@@ -872,9 +899,9 @@ local function SyncSky()
     -- The swap is a hard cut either way, so do it at the midpoint of the
     -- transition where the fog has already contracted enough to hide it.
     if wantSky and not CRWeather.SkyApplied and CRWeather.Blend >= 0.5 then
-        ApplySky(CRWeather.Active.sky)
+        local distance = ApplySky(CRWeather.Active.sky)
         CRWeather.SkyApplied = true
-        Log("sky -> " .. tostring(CRWeather.Active.sky.material))
+        Log("sky -> " .. tostring(CRWeather.Active.sky.material) .. " at " .. tostring(distance))
     elseif CRWeather.SkyApplied and (not wantSky or CRWeather.Blend < 0.5) then
         ApplySky(CRWeather.BaseSky)
         CRWeather.SkyApplied = false
@@ -918,6 +945,7 @@ local function ResolveFogHorizon()
     end
 
     local baseline = CRWeather.BaselineFog
+    if CRWeather.MapFogHorizon then return CRWeather.MapFogHorizon end
     local fallback = baseline and tonumber(baseline.fogEnd)
     if fallback ~= nil and fallback > 0.0 then
         return fallback
@@ -930,10 +958,13 @@ local function ApplyPresetToFrame(frame, preset, weight)
         return
     end
 
+    -- Presets are daylight colours: the haze dims with the light at night, or a
+    -- fully blended preset holds the horizon and the sky at noon all night.
+    local daylight = frame.weatherLightScale or 1.0
     if preset.fog and frame.fog then
-        frame.fog.r = Lerp(frame.fog.r, preset.fog.r, weight)
-        frame.fog.g = Lerp(frame.fog.g, preset.fog.g, weight)
-        frame.fog.b = Lerp(frame.fog.b, preset.fog.b, weight)
+        frame.fog.r = Lerp(frame.fog.r, preset.fog.r * daylight, weight)
+        frame.fog.g = Lerp(frame.fog.g, preset.fog.g * daylight, weight)
+        frame.fog.b = Lerp(frame.fog.b, preset.fog.b * daylight, weight)
 
         -- weatherFogEnd = min(requested, authored terrain horizon).
         --
@@ -941,7 +972,8 @@ local function ApplyPresetToFrame(frame, preset, weight)
         -- blend, not to the composed frame afterwards. That is deliberate: at
         -- weight zero this contributes nothing, so a mission with weather
         -- disabled -- or standing clear -- keeps whatever base fog Environment
-        -- asked for, untouched. Only the weather share is limited.
+        -- asked for. Environment now caps that base and the final frame too;
+        -- weather still contributes nothing when its weight reaches zero.
         --
         -- Presets are authored for open ground: MarsHaze finishes at 520,
         -- MarsDustRising 380, MarsDustStorm 320. On a map whose terrain stops
@@ -962,15 +994,15 @@ local function ApplyPresetToFrame(frame, preset, weight)
     end
 
     if preset.ambient and frame.ambient then
-        frame.ambient.r = Lerp(frame.ambient.r, preset.ambient.r, weight)
-        frame.ambient.g = Lerp(frame.ambient.g, preset.ambient.g, weight)
-        frame.ambient.b = Lerp(frame.ambient.b, preset.ambient.b, weight)
+        frame.ambient.r = Lerp(frame.ambient.r, preset.ambient.r * daylight, weight)
+        frame.ambient.g = Lerp(frame.ambient.g, preset.ambient.g * daylight, weight)
+        frame.ambient.b = Lerp(frame.ambient.b, preset.ambient.b * daylight, weight)
     end
 
     if preset.diffuse and frame.diffuse then
-        frame.diffuse.r = Lerp(frame.diffuse.r, preset.diffuse.r, weight)
-        frame.diffuse.g = Lerp(frame.diffuse.g, preset.diffuse.g, weight)
-        frame.diffuse.b = Lerp(frame.diffuse.b, preset.diffuse.b, weight)
+        frame.diffuse.r = Lerp(frame.diffuse.r, preset.diffuse.r * daylight, weight)
+        frame.diffuse.g = Lerp(frame.diffuse.g, preset.diffuse.g * daylight, weight)
+        frame.diffuse.b = Lerp(frame.diffuse.b, preset.diffuse.b * daylight, weight)
     end
 
     if preset.sunPowerScale and frame.sunPowerScale then
@@ -1009,6 +1041,17 @@ function CRWeather.ApplyEnvironmentContribution(frame)
 end
 
 local function CaptureBaseline()
+    CRWeather.MapFogHorizon = nil
+    CRWeather.ArtWorld = nil
+    if GetMapTRNFilename and OpenODF and GetODFFloat then
+        local name = GetMapTRNFilename()
+        local trn = name and name ~= "" and OpenODF(name)
+        if trn then
+            CRWeather.ArtWorld = WorldArt.Detect(trn)
+            local distance = GetODFFloat(trn, "NormalView", "VisibilityRange", 0)
+            if distance and distance > 0 then CRWeather.MapFogHorizon = distance end
+        end
+    end
     local fog = Call("GetFog")
     if type(fog) == "table" then
         CRWeather.BaselineFog = {
@@ -1053,7 +1096,14 @@ local function WriteEnvironmentDirect()
 
     CRWeather.ApplyEnvironmentContribution(frame)
 
+    local horizon = ResolveFogHorizon()
+    if horizon and frame.fog.fogEnd > horizon then
+        frame.fog.fogStart = math.min(horizon * 0.99, frame.fog.fogStart * horizon / frame.fog.fogEnd)
+        frame.fog.fogEnd = horizon
+    end
+
     Call("SetFog", frame.fog.r, frame.fog.g, frame.fog.b, frame.fog.fogStart, frame.fog.fogEnd)
+    WorldArt.Apply(CRWeather.ArtWorld,frame)
     if frame.ambient then
         if HasExu("SetAmbientLight") then
             Call("SetAmbientLight", frame.ambient.r, frame.ambient.g, frame.ambient.b)
@@ -1160,6 +1210,34 @@ end
 --   debug    boolean
 --   baseSky  { type = "dome"|"box", material = "...", curvature, tiling, distance }
 --            The map's own sky, so the sky layer knows what to restore.
+-- Per-world scrap geyser effects (CRGeysers.lua) ride the weather lifecycle, so
+-- every weather-enabled mission gets them without an edit. They are optional
+-- presentation: the first fault latches them off and weather carries on.
+local GeyserFault = false
+local GeyserModule = nil
+local function GeyserHook(method, ...)
+    if GeyserFault then return nil end
+    local module = GeyserModule
+    if module == nil and method == "Init" then
+        local okLoad, loaded = pcall(require, "CRGeysers")
+        if not okLoad then
+            GeyserFault = true
+            print("CRWeather: CRGeysers unavailable: " .. tostring(loaded))
+            return nil
+        end
+        module = loaded
+        GeyserModule = loaded
+    end
+    if type(module) ~= "table" or type(module[method]) ~= "function" then return nil end
+    local ok, result = pcall(module[method], ...)
+    if not ok then
+        GeyserFault = true
+        print("CRWeather: CRGeysers." .. method .. " failed: " .. tostring(result))
+        return nil
+    end
+    return result
+end
+
 function CRWeather.Init(options)
     require("CRParticleTemplates").Ensure()
     if CRWeather.Initialized then
@@ -1205,6 +1283,10 @@ function CRWeather.Init(options)
     end
 
     CRWeather.Initialized = true
+    GeyserHook("Init", {
+        world = CRWeather.ArtWorld, quality = CRWeather.Quality,
+        enabled = CRWeather.Enabled, debug = CRWeather.Debug,
+    })
 end
 
 -- Switches to a named preset. Pass nil, "clear", or "Clear" to stand the
@@ -1273,6 +1355,17 @@ end
 
 function CRWeather.GetIntensity()
     return CRWeather.Intensity
+end
+
+-- Liquid precipitation explicitly opts in; snow, ash and fog remain dry.
+-- Include retiring layers so a weather transition never snaps wetness.
+function CRWeather.GetSurfaceWetness()
+    if not CRWeather.Enabled then return 0 end
+    local wet = 0
+    for _, layer in ipairs(CRWeather.Layers or {}) do
+        wet = wet + Clamp01(layer.preset.surfaceWetness or 0) * Clamp01(layer.weight)
+    end
+    return Clamp01(wet * Clamp01(CRWeather.Intensity))
 end
 
 -- Development/diagnostic snapshot for terrain-pooled systems. The returned
@@ -1440,7 +1533,32 @@ function CRWeather.GetWindSpeed()
     return ((preset and preset.windSpeed) or 0.0) * CurrentWeight()
 end
 
+-- The active preset's gust, 0 (lull) to its authored depth, on the same wave
+-- SyncSystems applies to particle rates. Foliage reads it to bend harder in a
+-- gust; it is 0 when the preset authors none.
+function CRWeather.GetGust()
+    local preset = CRWeather.Active
+    local gusts = preset and preset.gusts
+    if gusts == nil then
+        return 0.0
+    end
+    local period = math.max(0.5, gusts.period or 12.0)
+    local wave = 0.5 + (0.5 * math.sin((CRWeather.Clock / period) * 6.2831853))
+    return Clamp01(gusts.depth or 0.0) * wave * CurrentWeight()
+end
+
+-- CRFoliageWind is optional: it only exists where a mission registered wind
+-- materials, and it reads its wind back through GetWind/GetGust.
+local function Foliage()
+    local foliage = package.loaded["CRFoliageWind"]
+    return type(foliage) == "table" and foliage or nil
+end
+
 function CRWeather.Update(dt)
+    -- Loaded only by registered clutter providers; timed service is a no-op
+    -- when there are no flora layers. No terrain/object scan occurs here.
+    local floraDamage=package.loaded["CRFloraDamage"]
+    if type(floraDamage)=="table" then floraDamage.Update() end
     if not CRWeather.Initialized then
         CRWeather.Init()
     end
@@ -1479,6 +1597,13 @@ function CRWeather.Update(dt)
     if CRWeather.OwnsEnvironment then
         WriteEnvironmentDirect()
     end
+
+    local foliage = Foliage()
+    if foliage and type(foliage.Update) == "function" then
+        foliage.Update(dt, CRWeather)
+    end
+
+    GeyserHook("Update", dt, CRWeather.Quality)
 end
 
 -- Drops all particle bookkeeping so the next preset application rebuilds from
@@ -1489,6 +1614,7 @@ end
 -- silently never render again.
 function CRWeather.ResetSystems()
     DestroyAllSystems()
+    GeyserHook("ResetSystems")
     CRWeather.Active = nil
     CRWeather.Layers = {}
     CRWeather.Blend = 0.0
@@ -1496,6 +1622,12 @@ function CRWeather.ResetSystems()
     CRWeather.BlendRate = 0.0
     CRWeather.SkyApplied = false
     CRWeather.LastWindApplied = nil
+    local foliage = Foliage()
+    if foliage and type(foliage.ResetScene) == "function" then
+        foliage.ResetScene()
+    end
+    local environment = rawget(_G, "Environment")
+    if environment and type(environment.InvalidateRenderer) == "function" then environment.InvalidateRenderer() end
 end
 
 -- Mission teardown. Every EXU-owned particle, the sky swap, and the environment
@@ -1511,6 +1643,12 @@ function CRWeather.Shutdown()
     end
 
     DestroyAllSystems()
+    GeyserHook("Shutdown")
+
+    local foliage = Foliage()
+    if foliage and type(foliage.Stop) == "function" then
+        foliage.Stop()
+    end
 
     local environment = rawget(_G, "Environment")
     if CRWeather.ModifierRegistered and environment ~= nil
@@ -1519,6 +1657,7 @@ function CRWeather.Shutdown()
         environment.UnregisterEnvironmentModifier("CRWeather")
     end
     CRWeather.ModifierRegistered = false
+    if environment and type(environment.InvalidateRenderer) == "function" then environment.InvalidateRenderer() end
 
     if CRWeather.OwnsEnvironment and CRWeather.BaselineFog ~= nil then
         CRWeather.Active = nil
@@ -1582,6 +1721,9 @@ end
 
 -- Compatibility stubs so a mission can call the same lifecycle shape it uses
 -- for the other CR modules without guarding every call.
-function CRWeather.OnObjectCreated(h) end
+function CRWeather.OnObjectCreated(h)
+    -- A geyser built mid-mission (misn17 swaps a fallen tower for one).
+    GeyserHook("OnObjectCreated", h)
+end
 
 return CRWeather

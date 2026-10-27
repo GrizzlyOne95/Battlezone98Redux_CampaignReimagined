@@ -1,0 +1,21 @@
+{
+  "schema": "cr-moon-crater-art-v1",
+  "size": 1024,
+  "tileMeters": 20.0,
+  "edgeMeters": 1.5,
+  "rimHeight": 0.22,
+  "rimWidth": 0.24,
+  "craters": [
+    {"center": [0.34, 0.34], "radiusMeters": 3.3, "depth": 1.0},
+    {"center": [0.73, 0.71], "radiusMeters": 1.8, "depth": 0.58},
+    {"center": [0.74, 0.23], "radiusMeters": 1.15, "depth": 0.38},
+    {"center": [0.23, 0.76], "radiusMeters": 0.85, "depth": 0.25}
+  ],
+  "tileGains": {
+    "mn00sa0.map": 1.0,
+    "mn00sc0.map": 1.0,
+    "mn03ca0.map": 0.55,
+    "mn03da0.map": 0.55,
+    "mn33sa0.map": 0.30
+  }
+}

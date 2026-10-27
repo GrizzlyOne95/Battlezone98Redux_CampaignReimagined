@@ -1,13 +1,16 @@
 # Mission 13 offline and co-op
 
 Total Destruction shares `misn13.bzn` / `misn13.lua` between the campaign mission (`crcampgn.ini`
-MISSION12, Europa, retrospective `misn1305.wav`) and the strategy listing `CR: Total Destruction Coop`.
-Use matching CR, EXU and OpenShim builds. Host on team 1, guests on distinct teams 2-4; select an NSDF
-tank or scout and start together. Late join/rejoin requires a restart. Host departure ends the mission.
-There is no intro cutscene (the original has none).
+MISSION12, Europa, retrospective `misn1305.wav`) and the strategy listing `CR: Total Destruction
+Coop`. Use matching CR, EXU and OpenShim builds. Host on team 1, guests on distinct teams 2-4;
+select an NSDF tank, scout, light tank, rocket tank, bomber, or walker and start together. Late
+join/rejoin requires a restart. Host departure ends the mission. There is no intro cutscene (the
+original has none).
 
 The mission is the second half of the Europa pair: the CCA base is the same one misn12 infiltrates (a
 different heightmap), and now the Liberty's platoon, with the Texas Recycler, has to tear it down.
+
+Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.md).
 
 ## Map
 
@@ -69,7 +72,7 @@ rely on the archive the same way. `ODF/b_misn13.odf` (byte-identical) is shipped
 
 ## Win and objectives (owner decision)
 
-The DLL won when the Unit Factory fell. The briefing (`misn13.des`) says "destroy the entire CCA base and
+The DLL won when the Unit Factory fell. The briefing (`misn13.mpdes`) says "destroy the entire CCA base and
 close down any possible escape hatches or supply lines", so the win is now **the Unit Factory, the hangar
 (`svguntower2`) and all four silos destroyed** (any order, any human's kills). The DLL's one-shot silo
 scrap clamp (150/100/50/0 as silos fall) and the +40 scrap when the factory is attacked are unchanged, so
@@ -88,7 +91,7 @@ objectives that every peer shows and updates on change:
 | `misn13_hangar` | Destroy the CCA hangar | white, green when dead |
 | `misn13_silos` | Destroy the CCA silos (n/4) | white, green at 4/4 |
 
-`misn13.des` (lobby/briefing text) states the real win. The stock win/fail debriefings
+`misn13.mpdes` (lobby/briefing text) states the real win. The stock win/fail debriefings
 (`misn13w1.des`, `misn13f1.des`) are unchanged.
 
 ## Restored reinforcement waves (owner decision, marked `-- CR restored waves`)
