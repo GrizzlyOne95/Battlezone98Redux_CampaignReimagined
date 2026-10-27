@@ -36,7 +36,7 @@
 !/Tools/
 
 # OpenShim-owned files the lock ships, committed so a clean checkout is complete.
-# Pinned to the commit in openshim/OPENSHIM_PIN.txt; refresh with Tools/Sync-OpenShimFiles.py.
+# Pinned to the commit in openshim/OPENSHIM_PIN.txt; refresh with Manage-CampaignFiles.ps1 -refresh-natives.
 # Only these paths: the rest of BZ_ASSETS_CORE is the game's own content, not ours.
 !/openshim/
 !/openshim/**

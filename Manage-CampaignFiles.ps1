@@ -666,23 +666,48 @@ function Sync-ShippingBinaries {
     return $plan
 }
 
-# Proves the staged payload carries the current build of every shipping binary,
-# so a stale ship is impossible rather than merely unlikely.
+# Proves the staged payload carries exactly the committed Bin\ natives, and that
+# Scripts\OpenShimManifest.lua attests those same bytes. Bin\ and the manifest are
+# committed together (pinned by openshim\OPENSHIM_PIN.txt); only -refresh-natives
+# changes them, so staging never silently swaps in a sibling build.
 function Assert-StagedShippingBinaries($contentFolder) {
-    foreach ($binary in (Get-ShippingBinaryPlan)) {
-        $stagedPath = Join-Path $contentFolder $binary.FileName
+    $manifestPath = Join-Path $contentFolder "OpenShimManifest.lua"
+    if (-not (Test-Path -LiteralPath $manifestPath)) {
+        throw "Workshop staging is missing OpenShimManifest.lua."
+    }
+    $manifestText = Get-Content -Raw -LiteralPath $manifestPath
+    $manifestKeys = @{
+        "winmm.dll" = "winmm"
+        "bzloader.dll" = "loader"
+        "openshim.dll" = "plugin"
+        "bzfile_replace_helper.exe" = "helper"
+    }
+
+    foreach ($fileName in @("winmm.dll", "bzloader.dll", "openshim.dll", "exu.dll", "bzfile.dll", "bzfile_replace_helper.exe")) {
+        $stagedPath = Join-Path $contentFolder $fileName
         if (-not (Test-Path -LiteralPath $stagedPath)) {
-            throw "Workshop staging is missing shipping binary '$($binary.FileName)'."
+            throw "Workshop staging is missing shipping binary '$fileName'."
         }
 
-        $buildHash = Get-Sha256Hex $binary.BuildPath
+        $committedHash = Get-Sha256Hex (Join-Path $SourceDir (Join-Path "Bin" $fileName))
         $stagedHash = Get-Sha256Hex $stagedPath
-        if (-not $buildHash -or $buildHash -ne $stagedHash) {
-            throw ("Workshop staging would ship a stale '$($binary.FileName)': staged $stagedHash does " +
-                "not match the $($binary.Project) build output $buildHash at '$($binary.BuildPath)'.")
+        if (-not $committedHash -or $committedHash -ne $stagedHash) {
+            throw ("Workshop staging does not ship the committed '$fileName': staged $stagedHash, " +
+                "committed Bin\$fileName $committedHash.")
         }
 
-        Write-Host "  $($binary.FileName): $stagedHash ($($binary.Project))" -ForegroundColor DarkGray
+        $key = $manifestKeys[$fileName]
+        if ($key) {
+            $pattern = "(?m)^\s*$key = \{[^\r\n]*?sha256 = `"([0-9a-f]{64})`""
+            $match = [regex]::Match($manifestText, $pattern)
+            if (-not $match.Success -or $match.Groups[1].Value -ne $stagedHash) {
+                throw ("Scripts/OpenShimManifest.lua does not attest the committed '$fileName' " +
+                    "(manifest '$key' sha256 is '$($match.Groups[1].Value)', file is $stagedHash). " +
+                    "Run -refresh-natives and commit the result.")
+            }
+        }
+
+        Write-Host "  ${fileName}: $stagedHash" -ForegroundColor DarkGray
     }
 }
 
@@ -716,7 +741,7 @@ function Sync-SupportWrapper {
             (Join-Path $sourceDirUpload $name) (Join-Path $destDir $name) "OpenShim support wrapper $name")
     }
 
-    # openshim\ is a committed cache of OpenShim files (Tools\Sync-OpenShimFiles.py),
+    # openshim\ is a committed cache of OpenShim files (see -refresh-natives),
     # so the README's source of truth stays in Docs\, which is excluded from the
     # payload; this copy is what subscribers actually get.
     $readmeSource = Join-Path $SourceDir "Docs\openshim_support_README.txt"
@@ -805,6 +830,8 @@ function Get-OpenShimAssetSet {
     return [pscustomobject]@{ Sha256 = $setHash; Files = $sorted }
 }
 
+# Explicit -refresh-natives only: -deploy, -release and Workshop staging ship the
+# committed Bin\, InstallerPayload\, openshim\ and OpenShimManifest.lua bytes as-is.
 function Update-OpenShimManifest {
     Sync-ShippingBinaries | Out-Null
     Sync-SupportWrapper
@@ -966,6 +993,21 @@ function Update-OpenShimManifest {
     Write-Host "OpenShim suite manifest: version=$shimVersion winmm=$shimHash ini=$playerConfigHash net=$networkHash patches=$patchesHash helper=$helperHash" -ForegroundColor DarkGray
 }
 
+# Re-pins the committed natives/payloads to the sibling repos' current builds
+# (BZR_OPENSHIM_REPO / BZR_EXU_REPO / BZR_BZFILE_REPO). Writes only inside this repo.
+function Invoke-RefreshNatives {
+    Update-OpenShimManifest
+
+    $openShimRepo = Resolve-SiblingRepoRoot "BZR_OPENSHIM_REPO" "GIT\BZR-OpenShim"
+    $head = (& git -C $openShimRepo rev-parse HEAD 2>&1 | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0 -or $head -notmatch '^[0-9a-f]{40}$') {
+        throw "Cannot pin OpenShim: 'git -C $openShimRepo rev-parse HEAD' failed: $head"
+    }
+    [System.IO.File]::WriteAllText((Join-Path $SourceDir "openshim\OPENSHIM_PIN.txt"), "$head`n", [System.Text.UTF8Encoding]::new($false))
+    Write-Host "Pinned openshim\OPENSHIM_PIN.txt to OpenShim $head" -ForegroundColor Cyan
+    Write-Host "Review 'git status' / 'git diff --stat' and commit Bin\, InstallerPayload\, openshim\, CustomWidgets and Scripts/OpenShimManifest.lua together." -ForegroundColor Yellow
+}
+
 function Sync-ToSource {
     Write-Host "Syncing files from the GOG working runtime to $SourceDir..." -ForegroundColor Cyan
 
@@ -1096,7 +1138,6 @@ function Deploy-PackagedMod {
         return
     }
 
-    Update-OpenShimManifest
     $sourceFiles = Get-ManagedSourceFiles
     $desiredRuntimePaths = @{}
     foreach ($file in $sourceFiles) {
@@ -1515,8 +1556,6 @@ function Build-WorkshopContent {
         throw "Refusing to clean Workshop staging outside '$WorkshopLocalRoot': $contentFolder"
     }
 
-    Update-OpenShimManifest
-
     if (Test-Path -LiteralPath $contentFolder) {
         Remove-Item -LiteralPath $contentFolder -Recurse -Force
     }
@@ -1631,7 +1670,7 @@ function Build-WorkshopContent {
         }
     }
 
-    Write-Host "Verifying staged shipping binaries against their sibling builds..." -ForegroundColor Cyan
+    Write-Host "Verifying staged shipping binaries against the committed Bin\ and manifest..." -ForegroundColor Cyan
     Assert-StagedShippingBinaries $contentFolder
 
     $stagedFiles = @(Get-ChildItem -LiteralPath $contentFolder -File -Recurse)
@@ -2565,6 +2604,7 @@ $KnownActions = @(
     "-deploy",
     "-deploy-files",
     "-release",
+    "-refresh-natives",
     "-bless",
     "-verify",
     "-release-init",
@@ -2617,6 +2657,9 @@ elseif ($args[0] -eq "-deploy-files") {
 }
 elseif ($args[0] -eq "-release") {
     Deploy-PackagedMod
+}
+elseif ($args[0] -eq "-refresh-natives") {
+    Invoke-RefreshNatives
 }
 elseif ($args[0] -eq "-bless") {
     if (-not (Invoke-BlessShipping -AllowRemovals:($args -contains "-allow-removals"))) { exit 1 }
