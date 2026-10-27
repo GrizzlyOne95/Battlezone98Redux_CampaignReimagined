@@ -6,6 +6,7 @@ material bbtowe00 : CR_BZBase
 	set_texture_alias NormalMap bbtowe_N.dds
 	set_texture_alias SpecularMap bbtowe_S.dds
 	set_texture_alias EmissiveMap bbtowe_E.dds
+	set_texture_alias ACTMap bbtowe00_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

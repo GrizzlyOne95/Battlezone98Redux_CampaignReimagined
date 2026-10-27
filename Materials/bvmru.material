@@ -6,6 +6,7 @@ material BVMRU : CR_BZBase
 	set_texture_alias NormalMap bvmru_N.dds
 	set_texture_alias SpecularMap bvmru_S.dds
 	set_texture_alias EmissiveMap bvmru_E.dds
+	set_texture_alias ACTMap BVMRU_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

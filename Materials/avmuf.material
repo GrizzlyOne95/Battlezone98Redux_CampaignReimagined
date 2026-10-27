@@ -6,6 +6,7 @@ material avmuf00 : CR_BZBase
 	set_texture_alias NormalMap avmuf_N.dds
 	set_texture_alias SpecularMap avmuf_S.dds
 	set_texture_alias EmissiveMap avmuf_E.dds
+	set_texture_alias ACTMap avmuf00_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

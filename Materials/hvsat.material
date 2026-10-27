@@ -6,6 +6,7 @@ material hvsat00 : CR_BZBase
 	set_texture_alias NormalMap hvsat00_N.dds
 	set_texture_alias SpecularMap hvsat00_S.dds
 	set_texture_alias EmissiveMap hvsat00_E.dds
+	set_texture_alias ACTMap hvsat00_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

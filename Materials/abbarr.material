@@ -6,6 +6,7 @@ material abbarr : CR_BZBase
 	set_texture_alias NormalMap abbarr_N.dds
 	set_texture_alias SpecularMap abbarr_S.dds
 	set_texture_alias EmissiveMap abbarr_E.dds
+	set_texture_alias ACTMap abbarr_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

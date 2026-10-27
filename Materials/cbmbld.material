@@ -6,6 +6,7 @@ material CBSUPP : CR_BZBase
 	set_texture_alias NormalMap cbsmbld_N.dds
 	set_texture_alias SpecularMap cbsmbld_S.dds
 	set_texture_alias EmissiveMap cbsmbld_e.dds
+	set_texture_alias ACTMap CBSUPP_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

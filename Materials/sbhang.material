@@ -6,6 +6,7 @@ material sbhang : CR_BZBase
 	set_texture_alias NormalMap sbhang_N.dds
 	set_texture_alias SpecularMap sbhang_S.dds
 	set_texture_alias EmissiveMap sbhang_e.dds
+	set_texture_alias ACTMap sbhang_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

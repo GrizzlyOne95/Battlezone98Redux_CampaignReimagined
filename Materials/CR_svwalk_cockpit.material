@@ -6,6 +6,7 @@ material CRV/svwalkHeadHull : CR_BZBaseCockpit
     set_texture_alias NormalMap svwalk_N.dds
     set_texture_alias SpecularMap svwalk_S.dds
     set_texture_alias EmissiveMap svwalk_e.dds
+    set_texture_alias ACTMap CRV_svwalkHeadHull_ACT.dds
 }
 
 material CRV/svwalkSectionBacks : CR_BZBaseCockpit
@@ -14,4 +15,5 @@ material CRV/svwalkSectionBacks : CR_BZBaseCockpit
     set_texture_alias NormalMap crvsmcp_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap capblack_E.dds
+    set_texture_alias ACTMap CRV_svwalkSectionBacks_ACT.dds
 }

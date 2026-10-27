@@ -6,6 +6,7 @@ material apwrck00 : CR_BZBase
 	set_texture_alias NormalMap crvpkup_n.dds
 	set_texture_alias SpecularMap apwrck00_S.dds
 	set_texture_alias EmissiveMap apwrck00_E.dds
+	set_texture_alias ACTMap apwrck00_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

@@ -6,6 +6,7 @@ material abcafe : CR_BZBase
 	set_texture_alias NormalMap abcafe_N.dds
 	set_texture_alias SpecularMap abcafe_S.dds
 	set_texture_alias EmissiveMap abcafe_E.dds
+	set_texture_alias ACTMap abcafe_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

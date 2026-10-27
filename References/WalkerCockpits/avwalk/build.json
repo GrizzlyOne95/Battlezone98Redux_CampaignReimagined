@@ -8,7 +8,7 @@
   },
   "outputs": {
     "Assets/ModelFixes/avwalk_c.mesh": "7a96c2f76dabe13b191ebdce63b29093908484c352d3161b96235f51201c53a4",
-    "Materials/CR_avwalk_cockpit.material": "8008e5304c7d12cbe4fd88ab74e9b5c0fab5db08412180c8d6661610c14a52d0"
+    "Materials/CR_avwalk_cockpit.material": "e660b741921c25c5b7e4c60d16dcff4f808a568042947e3a5c505d0d5aca921f"
   },
   "alignment": {
     "base": "avwalk",

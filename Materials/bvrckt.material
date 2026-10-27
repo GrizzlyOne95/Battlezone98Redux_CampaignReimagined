@@ -6,6 +6,7 @@ material bvrckt00 : CR_BZBase
 	set_texture_alias NormalMap bvrckt_N.dds
 	set_texture_alias SpecularMap bvrckt_S.dds
 	set_texture_alias EmissiveMap bvrckt_E.dds
+	set_texture_alias ACTMap bvrckt00_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"
@@ -20,6 +21,7 @@ material bvrckt01 : CR_BZBaseCockpit
 	set_texture_alias NormalMap avapc_cockpit_N.dds
 	set_texture_alias SpecularMap avapc_cockpit_S.dds
 	set_texture_alias EmissiveMap avapc_cockpit_E.dds
+	set_texture_alias ACTMap bvrckt01_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

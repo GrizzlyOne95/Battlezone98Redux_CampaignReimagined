@@ -6,6 +6,7 @@ material CRV/Building/nsdeck : ablpad
     set_texture_alias NormalMap crvnsdeck_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crvnsdeck_e.dds
+    set_texture_alias ACTMap CRV_Building_nsdeck_ACT.dds
 }
 
 material CRV/Building/nswall : ablpad
@@ -14,4 +15,5 @@ material CRV/Building/nswall : ablpad
     set_texture_alias NormalMap crvnswall_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap black.dds
+    set_texture_alias ACTMap CRV_Building_nswall_ACT.dds
 }

@@ -6,6 +6,7 @@ material ablpow : CR_BZBase
 	set_texture_alias NormalMap ablpow_N.dds
 	set_texture_alias SpecularMap ablpow_S.dds
 	set_texture_alias EmissiveMap ablpow_E.dds
+	set_texture_alias ACTMap ablpow_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

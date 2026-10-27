@@ -6,6 +6,7 @@ material CRV/Building/cca_door : sblpad
     set_texture_alias NormalMap crvcca_door_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crvcca_door_e.dds
+    set_texture_alias ACTMap CRV_Building_cca_door_ACT.dds
 }
 
 material CRV/Building/cca_stairs : sblpad
@@ -14,6 +15,7 @@ material CRV/Building/cca_stairs : sblpad
     set_texture_alias NormalMap crvcca_stairs_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap black.dds
+    set_texture_alias ACTMap CRV_Building_cca_stairs_ACT.dds
 }
 
 material CRV/Building/cca_plate : sblpad
@@ -22,4 +24,5 @@ material CRV/Building/cca_plate : sblpad
     set_texture_alias NormalMap crvcca_plate_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap black.dds
+    set_texture_alias ACTMap CRV_Building_cca_plate_ACT.dds
 }

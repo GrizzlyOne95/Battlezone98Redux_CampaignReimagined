@@ -7,6 +7,7 @@ material scrapmat3 : CR_BZBase
 	set_texture_alias NormalMap aspilo_gun_N.dds
 	set_texture_alias SpecularMap aspilo_gun_S.dds
 	set_texture_alias EmissiveMap aspilo_gun_E.dds
+	set_texture_alias ACTMap scrapmat3_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

@@ -32,7 +32,7 @@ def test_overlay(row,source,model_path,old,new,receipt):
     derived=flatn.search(text)
     expected=build.overlay_material(row,baseline)
     check(derived is not None and derived[0].lower().endswith('_n.dds') and 'flat' not in derived[0].lower() and (ROOT/'Assets/Textures'/derived[0].split()[-1]).exists(),'owner-accepted diffuse-derived normal map (2026-10-27)')
-    check(flatn.sub('set_texture_alias NormalMap N',text)==flatn.sub('set_texture_alias NormalMap N',expected),'only diffuse alias (and the accepted derived normal) changes; E/S and material constants preserved')
+    check(flatn.sub('set_texture_alias NormalMap N',re.sub(r'(?m)^[ \t]*set_texture_alias ACTMap \S+\n','',text))==flatn.sub('set_texture_alias NormalMap N',expected),'only diffuse alias (and the accepted derived normal) changes (ACTMap lines are additive); E/S and material constants preserved')
     check(hashlib.sha256(text.encode()).hexdigest()==receipt['materialSha256'],'normalized material hash (repinned with the accepted derived normal, 2026-10-27)')
     sub=old.submesh_list[0];uv=b.values(sub.vertex_data,b.om.VES.TEXTURE_COORDINATES);indices=sub.index_array.reshape(-1,3)
     size=tuple(row['atlasOutputSize']);scale=np.array(size)/row['atlasSize'];changed=np.zeros(size[::-1],bool);claimed=np.zeros(len(indices),bool)

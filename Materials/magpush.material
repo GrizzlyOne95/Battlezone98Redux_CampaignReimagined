@@ -6,6 +6,7 @@ material magpush : CR_BZBase
 	set_texture_alias NormalMap gmine00_N.dds
 	set_texture_alias SpecularMap gmine00_s.dds
 	set_texture_alias EmissiveMap gmine00_e.dds
+	set_texture_alias ACTMap magpush_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

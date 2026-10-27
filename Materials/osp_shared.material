@@ -6,6 +6,7 @@ material osp_source : CR_BZBase
  set_texture_alias NormalMap osp_normal.dds
  set_texture_alias SpecularMap osp_cast_s.dds
  set_texture_alias EmissiveMap osp_cast_e.dds
+ set_texture_alias ACTMap osp_source_ACT.dds
  set $diffuse "1 1 1"
  set $ambient "1 1 1"
  set $specular ".55 .55 .55"
@@ -58,6 +59,7 @@ material osp_signal : CR_BZBase
  set_texture_alias NormalMap osp_normal.dds
  set_texture_alias SpecularMap osp_cast_s.dds
  set_texture_alias EmissiveMap osp_cast_e.dds
+ set_texture_alias ACTMap osp_signal_ACT.dds
  set $diffuse "1 1 1"
  set $ambient "1 1 1"
  set $specular ".55 .55 .55"

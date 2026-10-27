@@ -7,6 +7,7 @@ material bbmbld : CR_BZBase
 	set_texture_alias NormalMap bbmbld_N.dds
 	set_texture_alias SpecularMap bbmbld_S.dds
 	set_texture_alias EmissiveMap abmbld_E.dds
+	set_texture_alias ACTMap bbmbld_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"
