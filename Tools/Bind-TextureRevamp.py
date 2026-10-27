@@ -34,23 +34,27 @@ def bone_digest(rows):
     return dict(count=len(rows),sha256=hashlib.sha256(json.dumps(rows,separators=(',',':')).encode()).hexdigest())
 
 def invariant(mesh):
-    """Fingerprint all mesh data except permitted UV/material changes."""
+    """Fingerprint all mesh data except permitted UV/material changes.
+
+    Layout-independent: vertex attributes are hashed per semantic (not per
+    buffer source/offset), so re-packing a mesh into another vertex-stream
+    layout does not count as a geometry change, only changed values do.
+    """
     out=[]
     for sub in mesh.submesh_list:
         vd=mesh.shared_vertex_data if sub.use_shared_vertices else sub.vertex_data
-        buffers=[]
-        for source,vb in vd.vertex_buffer_map.items():
-            raw=bytearray(vb.buffer)
-            for el in vd.vertex_declaration.vertex_element_list:
-                interior=sub.material_name in MAPPING or sub.material_name.startswith('CRV/Interior')
-                if el.source==source and (el.semantic==om.VES.TEXTURE_COORDINATES or
-                        (interior and el.semantic in (om.VES.TANGENT,om.VES.BINORMAL))):
-                    for i in range(vd.vertex_count):
-                        start=i*vb.vertex_size+el.offset
-                        raw[start:start+el.get_type_size()]=bytes(el.get_type_size())
-            buffers.append([source,vb.vertex_size,hashlib.sha256(raw).hexdigest()])
-        out.append(dict(vertices=vd.vertex_count,indices=hashlib.sha256(sub.get_index_buffer()).hexdigest(),buffers=buffers,
-                        layout=[vars(e) for e in vd.vertex_declaration.vertex_element_list],
+        interior=sub.material_name in MAPPING or sub.material_name.startswith('CRV/Interior')
+        attrs={}
+        for el in vd.vertex_declaration.vertex_element_list:
+            if el.semantic==om.VES.TEXTURE_COORDINATES or (interior and el.semantic in (om.VES.TANGENT,om.VES.BINORMAL)):
+                digest=None # permitted to change; only its presence is pinned
+            else:
+                vb=vd.get_vertex_buffer(el.source);size=el.get_type_size();raw=bytes(vb.buffer)
+                digest=hashlib.sha256(b''.join(raw[i*vb.vertex_size+el.offset:i*vb.vertex_size+el.offset+size]
+                                                for i in range(vd.vertex_count))).hexdigest()
+            attrs[f'{int(el.semantic)}:{el.index}:{int(el.type)}']=digest
+        out.append(dict(vertices=vd.vertex_count,indices=hashlib.sha256(sub.get_index_buffer()).hexdigest(),
+                        attributes=dict(sorted(attrs.items())),
                         bones=bone_digest(sorted((b.vertex_index,b.bone_index,b.weight) for b in sub.bone_assignments()))))
     return dict(skeleton=mesh.skeleton_name,submeshes=out,
                 sharedBones=bone_digest(sorted((b.vertex_index,b.bone_index,b.weight) for b in mesh.bone_assignments())))
