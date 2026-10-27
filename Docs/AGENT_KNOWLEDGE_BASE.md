@@ -776,6 +776,13 @@ Each bullet: the pitfall, the one-line why, and where to read more.
   159 hp/s on molten tiles. The stock misn11 `.trn` had no lava key; a 2-tile crust moat is needed because
   sulphur is the walkable continent.
 - `GetCameraPosition`-style and `IsInfo` calls are local; don't branch gameplay on them.
+- Before adding a CR hotkey, check the stock install-root `gamekey.map` AND `input.map` (Backspace is
+  `TOGGLE_OVERVIEW BSP`, the satellite). Truly free in play: J V X Z, plain `, . ; ' \ [ ] /`
+  (their DEC_VAR/MONO_DEBUG actions are compiled out of the shipping dispatcher 0x0061DC10), and the real
+  arrow keys (`Grey*`; plain `LeftArrow`/`RightArrow` in input.map are numpad steering). Many players have
+  no Home/End/PgUp/PgDn. `GameKey` receives every key, bound or not. Mods cannot override `gamekey.map`;
+  change binds at runtime in the byte table 0x00918850 (index = key | 0x100 Ctrl | 0x200 Shift |
+  0x400 Alt), which Redux re-parses after every ESC menu (see `exu.SetChatOnEnter`).
 
 ### 8.3 Source fidelity
 

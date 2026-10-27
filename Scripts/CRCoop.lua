@@ -286,6 +286,11 @@ function CRCoop.Initialize(options)
                     if switchOn then SetObjectiveOn(h) end
                 else SetObjectiveOff(h); SetObjectiveName(h, plain) end
             end,
+            -- nil (unknown) without EXU, so markers are never re-applied blind.
+            objectiveOn = function(h)
+                local x = package.loaded.exu
+                if x and type(x.IsObjectiveOn) == "function" then return x.IsObjectiveOn(h) end
+            end,
         })
     end
     comms.Reset(IsNetworkGame())
