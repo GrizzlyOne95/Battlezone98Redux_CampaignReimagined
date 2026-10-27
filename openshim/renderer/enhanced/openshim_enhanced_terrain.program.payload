@@ -2542,12 +2542,6 @@ fragment_program OSE_TerrainENHighNoShadow_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point terrain_fragment
 	preprocessor_defines MAX_LIGHTS=24,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1
-	default_params
-	{
-		param_named_auto inverseViewMatrix inverse_view_matrix
-		param_named surfaceSnow float4 0 0 0 0
-		param_named surfaceDust float4 0 0 0 0
-	}
 }
 
 fragment_program OSE_TerrainENHighShadow_fragmentHLSL4 hlsl
@@ -2556,12 +2550,6 @@ fragment_program OSE_TerrainENHighShadow_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point terrain_fragment
 	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=4,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1
-	default_params
-	{
-		param_named_auto inverseViewMatrix inverse_view_matrix
-		param_named surfaceSnow float4 0 0 0 0
-		param_named surfaceDust float4 0 0 0 0
-	}
 }
 
 fragment_program OSE_TerrainENHighPSSM_fragmentHLSL4 hlsl
@@ -2570,12 +2558,6 @@ fragment_program OSE_TerrainENHighPSSM_fragmentHLSL4 hlsl
 	target ps_4_0
 	entry_point terrain_fragment
 	preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=4,PSSM_ENABLED,EMISSIVEMAP_ENABLED,SPECULARMAP_ENABLED,NORMALMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1,OSE_ENHANCED_PSSM_V2=1
-	default_params
-	{
-		param_named_auto inverseViewMatrix inverse_view_matrix
-		param_named surfaceSnow float4 0 0 0 0
-		param_named surfaceDust float4 0 0 0 0
-	}
 }
 
 fragment_program OSE_TerrainENHighNoShadow_fragmentHLSL hlsl
@@ -2882,12 +2864,6 @@ fragment_program OSE_TerrainENMediumNoShadow_fragmentHLSL4 hlsl
 	entry_point terrain_fragment
 
 	preprocessor_defines MAX_LIGHTS=8,EMISSIVEMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1,OSE_ENHANCED_LOD_TIER=1
-	default_params
-	{
-		param_named_auto inverseViewMatrix inverse_view_matrix
-		param_named surfaceSnow float4 0 0 0 0
-		param_named surfaceDust float4 0 0 0 0
-	}
 }
 
 fragment_program OSE_TerrainENMediumShadow_fragmentHLSL4 hlsl
@@ -2897,12 +2873,6 @@ fragment_program OSE_TerrainENMediumShadow_fragmentHLSL4 hlsl
 	entry_point terrain_fragment
 
 	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PCF_SIZE=2,EMISSIVEMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1,OSE_ENHANCED_LOD_TIER=1
-	default_params
-	{
-		param_named_auto inverseViewMatrix inverse_view_matrix
-		param_named surfaceSnow float4 0 0 0 0
-		param_named surfaceDust float4 0 0 0 0
-	}
 }
 
 fragment_program OSE_TerrainENMediumPSSM_fragmentHLSL4 hlsl
@@ -2912,12 +2882,6 @@ fragment_program OSE_TerrainENMediumPSSM_fragmentHLSL4 hlsl
 	entry_point terrain_fragment
 
 	preprocessor_defines MAX_LIGHTS=8,SHADOWRECEIVER,PCF_SIZE=2,PSSM_ENABLED,EMISSIVEMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1,OSE_ENHANCED_LOD_TIER=1
-	default_params
-	{
-		param_named_auto inverseViewMatrix inverse_view_matrix
-		param_named surfaceSnow float4 0 0 0 0
-		param_named surfaceDust float4 0 0 0 0
-	}
 }
 
 fragment_program OSE_TerrainENLowNoShadow_fragmentHLSL4 hlsl
@@ -2927,12 +2891,6 @@ fragment_program OSE_TerrainENLowNoShadow_fragmentHLSL4 hlsl
 	entry_point terrain_fragment
 
 	preprocessor_defines MAX_LIGHTS=1,EMISSIVEMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1,OSE_ENHANCED_LOD_TIER=2
-	default_params
-	{
-		param_named_auto inverseViewMatrix inverse_view_matrix
-		param_named surfaceSnow float4 0 0 0 0
-		param_named surfaceDust float4 0 0 0 0
-	}
 }
 
 fragment_program OSE_TerrainENLowShadow_fragmentHLSL4 hlsl
@@ -2942,12 +2900,6 @@ fragment_program OSE_TerrainENLowShadow_fragmentHLSL4 hlsl
 	entry_point terrain_fragment
 
 	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER,PCF_SIZE=2,EMISSIVEMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1,OSE_ENHANCED_LOD_TIER=2
-	default_params
-	{
-		param_named_auto inverseViewMatrix inverse_view_matrix
-		param_named surfaceSnow float4 0 0 0 0
-		param_named surfaceDust float4 0 0 0 0
-	}
 }
 
 fragment_program OSE_TerrainENLowPSSM_fragmentHLSL4 hlsl
@@ -2957,10 +2909,4 @@ fragment_program OSE_TerrainENLowPSSM_fragmentHLSL4 hlsl
 	entry_point terrain_fragment
 
 	preprocessor_defines MAX_LIGHTS=1,SHADOWRECEIVER,PCF_SIZE=2,PSSM_ENABLED,EMISSIVEMAP_ENABLED,DETAILMAP_ENABLED,ENHANCED_MODE,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1,OSE_ENHANCED_LOD_TIER=2
-	default_params
-	{
-		param_named_auto inverseViewMatrix inverse_view_matrix
-		param_named surfaceSnow float4 0 0 0 0
-		param_named surfaceDust float4 0 0 0 0
-	}
 }

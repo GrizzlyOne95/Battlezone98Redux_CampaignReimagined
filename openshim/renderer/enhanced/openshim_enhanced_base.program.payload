@@ -1943,8 +1943,6 @@ vertex_program OSE_BaseENHighPSSMV2_vertex unified
 		param_named_auto texWorldViewProj1 texture_worldviewproj_matrix 0
 		param_named_auto texWorldViewProj2 texture_worldviewproj_matrix 1
 		param_named_auto texWorldViewProj3 texture_worldviewproj_matrix 2
-		param_named_auto worldMat world_matrix
-		param_named surfaceSnow float4 0 0 0 0
 	}
 }
 
@@ -2601,8 +2599,6 @@ fragment_program OSE_BaseENHighNoShadow_fragmentHLSL4 hlsl
         param_named_auto inverseViewMatrix inverse_view_matrix
         param_named_auto surfaceRainTime time_0_x 4000
         param_named surfaceState float4 0 0 0 0
-        param_named surfaceSnow float4 0 0 0 0
-        param_named surfaceDust float4 0 0 0 0
         param_named surfaceMode float4 0 0 0 0
         param_named surfaceImpact0 float4 0 0 0 0
         param_named surfaceImpact1 float4 0 0 0 0
@@ -2627,8 +2623,6 @@ fragment_program OSE_BaseENHighShadow_fragmentHLSL4 hlsl
         param_named_auto inverseViewMatrix inverse_view_matrix
         param_named_auto surfaceRainTime time_0_x 4000
         param_named surfaceState float4 0 0 0 0
-        param_named surfaceSnow float4 0 0 0 0
-        param_named surfaceDust float4 0 0 0 0
         param_named surfaceMode float4 0 0 0 0
         param_named surfaceImpact0 float4 0 0 0 0
         param_named surfaceImpact1 float4 0 0 0 0
@@ -2653,8 +2647,6 @@ fragment_program OSE_BaseENHighPSSM_fragmentHLSL4 hlsl
         param_named_auto inverseViewMatrix inverse_view_matrix
         param_named_auto surfaceRainTime time_0_x 4000
         param_named surfaceState float4 0 0 0 0
-        param_named surfaceSnow float4 0 0 0 0
-        param_named surfaceDust float4 0 0 0 0
         param_named surfaceMode float4 0 0 0 0
         param_named surfaceImpact0 float4 0 0 0 0
         param_named surfaceImpact1 float4 0 0 0 0
@@ -3003,8 +2995,6 @@ fragment_program OSE_BaseENMediumNoShadow_fragmentHLSL4 hlsl
         param_named_auto surfaceViewToLocal inverse_worldview_matrix
         param_named_auto inverseViewMatrix inverse_view_matrix
         param_named surfaceState float4 0 0 0 0
-        param_named surfaceSnow float4 0 0 0 0
-        param_named surfaceDust float4 0 0 0 0
         param_named surfaceMode float4 0 0 0 0
         param_named surfaceImpact0 float4 0 0 0 0
         param_named surfaceImpact1 float4 0 0 0 0
@@ -3029,8 +3019,6 @@ fragment_program OSE_BaseENMediumShadow_fragmentHLSL4 hlsl
         param_named_auto surfaceViewToLocal inverse_worldview_matrix
         param_named_auto inverseViewMatrix inverse_view_matrix
         param_named surfaceState float4 0 0 0 0
-        param_named surfaceSnow float4 0 0 0 0
-        param_named surfaceDust float4 0 0 0 0
         param_named surfaceMode float4 0 0 0 0
         param_named surfaceImpact0 float4 0 0 0 0
         param_named surfaceImpact1 float4 0 0 0 0
@@ -3055,8 +3043,6 @@ fragment_program OSE_BaseENMediumPSSM_fragmentHLSL4 hlsl
         param_named_auto surfaceViewToLocal inverse_worldview_matrix
         param_named_auto inverseViewMatrix inverse_view_matrix
         param_named surfaceState float4 0 0 0 0
-        param_named surfaceSnow float4 0 0 0 0
-        param_named surfaceDust float4 0 0 0 0
         param_named surfaceMode float4 0 0 0 0
         param_named surfaceImpact0 float4 0 0 0 0
         param_named surfaceImpact1 float4 0 0 0 0
@@ -3081,8 +3067,6 @@ fragment_program OSE_BaseENLowNoShadow_fragmentHLSL4 hlsl
         param_named_auto surfaceViewToLocal inverse_worldview_matrix
         param_named_auto inverseViewMatrix inverse_view_matrix
         param_named surfaceState float4 0 0 0 0
-        param_named surfaceSnow float4 0 0 0 0
-        param_named surfaceDust float4 0 0 0 0
         param_named surfaceMode float4 0 0 0 0
         param_named surfaceImpact0 float4 0 0 0 0
         param_named surfaceImpact1 float4 0 0 0 0
@@ -3107,8 +3091,6 @@ fragment_program OSE_BaseENLowShadow_fragmentHLSL4 hlsl
         param_named_auto surfaceViewToLocal inverse_worldview_matrix
         param_named_auto inverseViewMatrix inverse_view_matrix
         param_named surfaceState float4 0 0 0 0
-        param_named surfaceSnow float4 0 0 0 0
-        param_named surfaceDust float4 0 0 0 0
         param_named surfaceMode float4 0 0 0 0
         param_named surfaceImpact0 float4 0 0 0 0
         param_named surfaceImpact1 float4 0 0 0 0
@@ -3133,8 +3115,6 @@ fragment_program OSE_BaseENLowPSSM_fragmentHLSL4 hlsl
         param_named_auto surfaceViewToLocal inverse_worldview_matrix
         param_named_auto inverseViewMatrix inverse_view_matrix
         param_named surfaceState float4 0 0 0 0
-        param_named surfaceSnow float4 0 0 0 0
-        param_named surfaceDust float4 0 0 0 0
         param_named surfaceMode float4 0 0 0 0
         param_named surfaceImpact0 float4 0 0 0 0
         param_named surfaceImpact1 float4 0 0 0 0
@@ -3168,8 +3148,6 @@ fragment_program OSE_BaseIBLHighNoShadow_fragmentHLSL4 hlsl
         param_named_auto surfaceViewToLocal inverse_worldview_matrix
         param_named_auto surfaceRainTime time_0_x 4000
         param_named surfaceState float4 0 0 0 0
-        param_named surfaceSnow float4 0 0 0 0
-        param_named surfaceDust float4 0 0 0 0
         param_named surfaceMode float4 0 0 0 0
         param_named surfaceImpact0 float4 0 0 0 0
         param_named surfaceImpact1 float4 0 0 0 0
@@ -3194,8 +3172,6 @@ fragment_program OSE_BaseIBLHighShadow_fragmentHLSL4 hlsl
         param_named_auto surfaceViewToLocal inverse_worldview_matrix
         param_named_auto surfaceRainTime time_0_x 4000
         param_named surfaceState float4 0 0 0 0
-        param_named surfaceSnow float4 0 0 0 0
-        param_named surfaceDust float4 0 0 0 0
         param_named surfaceMode float4 0 0 0 0
         param_named surfaceImpact0 float4 0 0 0 0
         param_named surfaceImpact1 float4 0 0 0 0
@@ -3220,8 +3196,6 @@ fragment_program OSE_BaseIBLHighPSSM_fragmentHLSL4 hlsl
         param_named_auto surfaceViewToLocal inverse_worldview_matrix
         param_named_auto surfaceRainTime time_0_x 4000
         param_named surfaceState float4 0 0 0 0
-        param_named surfaceSnow float4 0 0 0 0
-        param_named surfaceDust float4 0 0 0 0
         param_named surfaceMode float4 0 0 0 0
         param_named surfaceImpact0 float4 0 0 0 0
         param_named surfaceImpact1 float4 0 0 0 0
