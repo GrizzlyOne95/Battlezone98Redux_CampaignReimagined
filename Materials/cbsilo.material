@@ -6,6 +6,7 @@ material CBSILO : CR_BZBase
 	set_texture_alias NormalMap cbsilo_N.dds
 	set_texture_alias SpecularMap cbsilo_S.dds
 	set_texture_alias EmissiveMap cbsilo_e.dds
+	set_texture_alias ACTMap CBSILO_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

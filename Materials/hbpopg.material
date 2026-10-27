@@ -6,6 +6,7 @@ material hbpopg : CR_BZBase
 	set_texture_alias NormalMap hbpow00_N.dds
 	set_texture_alias SpecularMap hbpow00_S.dds
 	set_texture_alias EmissiveMap hbpow00_E.dds
+	set_texture_alias ACTMap hbpopg_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

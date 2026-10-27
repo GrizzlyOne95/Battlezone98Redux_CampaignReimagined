@@ -6,6 +6,7 @@ material CRV/BDogScoutCockpit : CR_BZBaseCockpit
     set_texture_alias NormalMap crvbscp_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crvbscp_e.dds
+    set_texture_alias ACTMap CRV_BDogScoutCockpit_ACT.dds
 }
 
 material CRV/BDogScoutNose : CR_BZBaseCockpit

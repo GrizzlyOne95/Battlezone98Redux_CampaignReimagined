@@ -6,6 +6,7 @@ material bvslf00 : CR_BZBase
 	set_texture_alias NormalMap bvslf_N.dds
 	set_texture_alias SpecularMap bvslf_S.dds
 	set_texture_alias EmissiveMap bvslf_E.dds
+	set_texture_alias ACTMap bvslf00_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

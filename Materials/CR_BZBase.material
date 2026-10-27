@@ -1415,6 +1415,14 @@ material CR_BZBase
 				texture openshim_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
 			}
+
+			// Baked AO / curvature / thickness (ACT_MAP_ENABLED in CR_static_ibl).
+			// Must stay right after brdfLut: the shader reads it at the next register.
+			texture_unit actMap
+			{
+				texture_alias ACTMap
+				texture cr_act_neutral.dds 2d
+			}
 		}
 	}
 
@@ -1449,6 +1457,14 @@ material CR_BZBase
 				texture_alias EnvironmentBrdfLut
 				texture openshim_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
+			}
+
+			// Baked AO / curvature / thickness (ACT_MAP_ENABLED in CR_static_ibl).
+			// Must stay right after brdfLut: the shader reads it at the next register.
+			texture_unit actMap
+			{
+				texture_alias ACTMap
+				texture cr_act_neutral.dds 2d
 			}
 		}
 	}
@@ -1507,6 +1523,14 @@ material CR_BZBase
 				texture openshim_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
 			}
+
+			// Baked AO / curvature / thickness (ACT_MAP_ENABLED in CR_static_ibl).
+			// Must stay right after brdfLut: the shader reads it at the next register.
+			texture_unit actMap
+			{
+				texture_alias ACTMap
+				texture cr_act_neutral.dds 2d
+			}
 		}
 	}
 
@@ -1563,6 +1587,14 @@ material CR_BZBase
 				texture_alias EnvironmentBrdfLut
 				texture openshim_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
+			}
+
+			// Baked AO / curvature / thickness (ACT_MAP_ENABLED in CR_static_ibl).
+			// Must stay right after brdfLut: the shader reads it at the next register.
+			texture_unit actMap
+			{
+				texture_alias ACTMap
+				texture cr_act_neutral.dds 2d
 			}
 		}
 	}
@@ -2402,6 +2434,14 @@ material CR_BZBaseCockpit
 				texture openshim_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
 			}
+
+			// Baked AO / curvature / thickness (ACT_MAP_ENABLED in CR_static_ibl).
+			// Must stay right after brdfLut: the shader reads it at the next register.
+			texture_unit actMap
+			{
+				texture_alias ACTMap
+				texture cr_act_neutral.dds 2d
+			}
 		}
 	}
 
@@ -2434,6 +2474,14 @@ material CR_BZBaseCockpit
 				texture openshim_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
 			}
+
+			// Baked AO / curvature / thickness (ACT_MAP_ENABLED in CR_static_ibl).
+			// Must stay right after brdfLut: the shader reads it at the next register.
+			texture_unit actMap
+			{
+				texture_alias ACTMap
+				texture cr_act_neutral.dds 2d
+			}
 		}
 	}
 
@@ -2465,6 +2513,14 @@ material CR_BZBaseCockpit
 				texture_alias EnvironmentBrdfLut
 				texture openshim_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
+			}
+
+			// Baked AO / curvature / thickness (ACT_MAP_ENABLED in CR_static_ibl).
+			// Must stay right after brdfLut: the shader reads it at the next register.
+			texture_unit actMap
+			{
+				texture_alias ACTMap
+				texture cr_act_neutral.dds 2d
 			}
 		}
 	}

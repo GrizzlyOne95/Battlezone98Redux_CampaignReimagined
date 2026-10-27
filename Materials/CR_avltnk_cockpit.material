@@ -14,4 +14,5 @@ material CRV/avltnkHullPaint : CR_BZBase
     set_texture_alias NormalMap crvascp_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crvascp_e.dds
+    set_texture_alias ACTMap CRV_avltnkHullPaint_ACT.dds
 }

@@ -6,6 +6,7 @@ material bbcomm2 : CR_BZBase
 	set_texture_alias NormalMap bbcom2_N.dds
 	set_texture_alias SpecularMap bbcom2_S.dds
 	set_texture_alias EmissiveMap bbcom2_E.dds
+	set_texture_alias ACTMap bbcomm2_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

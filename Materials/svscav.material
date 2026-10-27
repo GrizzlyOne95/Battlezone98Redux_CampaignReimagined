@@ -6,6 +6,7 @@ material svscav00 : CR_BZBase
 	set_texture_alias NormalMap svscav_N.dds
 	set_texture_alias SpecularMap svscav_S.dds
 	set_texture_alias EmissiveMap svscav_e.dds
+	set_texture_alias ACTMap svscav00_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"
@@ -20,6 +21,7 @@ material svscav01 : CR_BZBaseCockpit
 	set_texture_alias NormalMap soviet_units_cockpit_n.dds
 	set_texture_alias SpecularMap soviet_units_cockpit_S.dds
 	set_texture_alias EmissiveMap soviet_units_cockpit_e.dds
+	set_texture_alias ACTMap svscav01_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

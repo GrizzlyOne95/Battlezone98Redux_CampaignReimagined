@@ -6,6 +6,7 @@ material cspilo : CR_BZBase
 	set_texture_alias NormalMap cspilo_n.dds
 	set_texture_alias SpecularMap cspilo_S.dds
 	set_texture_alias EmissiveMap black.dds
+	set_texture_alias ACTMap cspilo_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"
@@ -19,6 +20,7 @@ material cspilo2 : CR_BZBaseCockpit
 	set_texture_alias NormalMap cspilo_n.dds
 	set_texture_alias SpecularMap cspilo_S.dds
 	set_texture_alias EmissiveMap black.dds
+	set_texture_alias ACTMap cspilo2_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"
@@ -33,6 +35,7 @@ material cspilo_cockpit : CR_BZBaseCockpit
 	set_texture_alias NormalMap sspilo_cockpit_n.dds
 	set_texture_alias SpecularMap sspilo_cockpit_S.dds
 	set_texture_alias EmissiveMap sspilo_cockpit_e.dds
+	set_texture_alias ACTMap cspilo_cockpit_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

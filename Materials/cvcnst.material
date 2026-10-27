@@ -6,6 +6,7 @@ material cvcnst : CR_BZBase
 	set_texture_alias NormalMap cvcnst_N.dds
 	set_texture_alias SpecularMap cvcnst_S.dds
 	set_texture_alias EmissiveMap cvcnst_e.dds
+	set_texture_alias ACTMap cvcnst_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

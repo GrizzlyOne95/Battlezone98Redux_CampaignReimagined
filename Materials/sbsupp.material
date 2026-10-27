@@ -6,6 +6,7 @@ material sbsupp00 : CR_BZBase
 	set_texture_alias NormalMap sbsupp_N.dds
 	set_texture_alias SpecularMap sbsupp_S.dds
 	set_texture_alias EmissiveMap sbsupp_e.dds
+	set_texture_alias ACTMap sbsupp00_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

@@ -6,6 +6,7 @@ material CRV/Building/cchangdoor : sbhang
     set_texture_alias NormalMap crvcchangdoor_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crvcchangdoor_e.dds
+    set_texture_alias ACTMap CRV_Building_cchangdoor_ACT.dds
 }
 
 material CRV/Building/cchangvent : sbhang
@@ -14,4 +15,5 @@ material CRV/Building/cchangvent : sbhang
     set_texture_alias NormalMap crvcchangvent_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap crvcchangvent_e.dds
+    set_texture_alias ACTMap CRV_Building_cchangvent_ACT.dds
 }

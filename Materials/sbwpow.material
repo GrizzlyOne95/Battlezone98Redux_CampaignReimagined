@@ -6,6 +6,7 @@ material sbwpow : CR_BZBase
 	set_texture_alias NormalMap sbwpow_N.dds
 	set_texture_alias SpecularMap sbwpow_S.dds
 	set_texture_alias EmissiveMap sbwpow_e.dds
+	set_texture_alias ACTMap sbwpow_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

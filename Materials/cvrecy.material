@@ -6,6 +6,7 @@ material cvrecy : CR_BZBase
 	set_texture_alias NormalMap cvrecy_N.dds
 	set_texture_alias SpecularMap cvrecy_S.dds
 	set_texture_alias EmissiveMap cvrecy_e.dds
+	set_texture_alias ACTMap cvrecy_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

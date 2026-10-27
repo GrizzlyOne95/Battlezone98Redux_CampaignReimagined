@@ -6,6 +6,7 @@ material CRV/InteriorWall : CR_BZBase
  set_texture_alias NormalMap crviolwall_n.dds
  set_texture_alias SpecularMap crviolwall_s.dds
  set_texture_alias EmissiveMap black.dds
+ set_texture_alias ACTMap CRV_InteriorWall_ACT.dds
  set $diffuse "1 1 1"
  set $ambient "1 1 1"
  set $specular ".35 .35 .35"
@@ -18,6 +19,7 @@ material CRV/InteriorFloor : CR_BZBase
  set_texture_alias NormalMap crviolfloor_n.dds
  set_texture_alias SpecularMap crviolfloor_s.dds
  set_texture_alias EmissiveMap black.dds
+ set_texture_alias ACTMap CRV_InteriorFloor_ACT.dds
  set $diffuse "1 1 1"
  set $ambient "1 1 1"
  set $specular ".25 .25 .25"
@@ -30,6 +32,7 @@ material CRV/InteriorTrim : CR_BZBase
  set_texture_alias NormalMap crvioltrim_n.dds
  set_texture_alias SpecularMap crvioltrim_s.dds
  set_texture_alias EmissiveMap black.dds
+ set_texture_alias ACTMap CRV_InteriorTrim_ACT.dds
  set $diffuse "1 1 1"
  set $ambient "1 1 1"
  set $specular ".4 .4 .4"
@@ -42,6 +45,7 @@ material CRV/InteriorScreen : CR_BZBase
  set_texture_alias NormalMap crviolscreen_N.dds
  set_texture_alias SpecularMap black.dds
  set_texture_alias EmissiveMap crviolscreen_e.dds
+ set_texture_alias ACTMap CRV_InteriorScreen_ACT.dds
  set $diffuse "1 1 1"
  set $ambient "1 1 1"
  set $specular "0 0 0"

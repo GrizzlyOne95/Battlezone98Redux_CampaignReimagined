@@ -6,6 +6,7 @@ material ovheph_src : CR_BZBase
  set_texture_alias NormalMap ohp_src_n.dds
  set_texture_alias SpecularMap ohp_src_s.dds
  set_texture_alias EmissiveMap ohp_src_e.dds
+ set_texture_alias ACTMap ovheph_src_ACT.dds
  set $diffuse "1.0 1.0 1.0"
  set $ambient "1 1 1"
  set $specular ".55 .55 .55"
@@ -590,6 +591,7 @@ material ovheph_amber : CR_BZBase
  set_texture_alias NormalMap ohp_screen_n.dds
  set_texture_alias SpecularMap ohp_amber_s.dds
  set_texture_alias EmissiveMap ohp_amber_e.dds
+ set_texture_alias ACTMap ovheph_amber_ACT.dds
  set $diffuse "1.0 1.0 1.0"
  set $ambient "1 1 1"
  set $specular ".55 .55 .55"

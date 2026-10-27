@@ -6,6 +6,7 @@ material obcycl00 : CR_BZBase
 	set_texture_alias NormalMap crvobcycl00_n.dds
 	set_texture_alias SpecularMap obcycl00_S.dds
 	set_texture_alias EmissiveMap obcycl00_e.dds
+	set_texture_alias ACTMap obcycl00_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

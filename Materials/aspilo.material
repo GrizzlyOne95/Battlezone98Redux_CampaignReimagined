@@ -6,6 +6,7 @@ material aspilo1 : CR_BZBase
 	set_texture_alias NormalMap aspilo_N.dds
 	set_texture_alias SpecularMap aspilo_S.dds
 	set_texture_alias EmissiveMap aspilo_E.dds
+	set_texture_alias ACTMap aspilo1_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"
@@ -21,6 +22,7 @@ material aspilo2 : CR_BZBaseCockpit
 	set_texture_alias NormalMap aspilo_gun_N.dds
 	set_texture_alias SpecularMap aspilo_gun_S.dds
 	set_texture_alias EmissiveMap aspilo_gun_E.dds
+	set_texture_alias ACTMap aspilo2_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

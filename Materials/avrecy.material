@@ -6,6 +6,7 @@ material avrecy00 : CR_BZBase
 	set_texture_alias NormalMap avrecy_N.dds
 	set_texture_alias SpecularMap avrecy_S.dds
 	set_texture_alias EmissiveMap avrecy_E.dds
+	set_texture_alias ACTMap avrecy00_ACT.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"
