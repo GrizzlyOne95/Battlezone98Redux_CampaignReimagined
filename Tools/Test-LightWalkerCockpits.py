@@ -17,6 +17,12 @@ def sha(p):
     b=p.read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if p.suffix=='.material' else b).hexdigest()
 
 
+def cuts_match(recorded,actual):
+    """Cut planes come from BLAS matmuls whose last bits differ between CPUs, so
+    compare plane normal/distance with a tolerance; contour/cap counts stay exact."""
+    return len(recorded)==len(actual) and all(r['loops']==a['loops'] and r['capTriangles']==a['capTriangles'] and np.allclose(r['normal'],a['normal'],rtol=0,atol=1e-9) and np.isclose(r['distance'],a['distance'],rtol=0,atol=1e-9) for r,a in zip(recorded,actual))
+
+
 def values(sub):return np.column_stack([cp.shared.values(sub.vertex_data,sem) for sem in (cp.shared.om.VES.POSITION,cp.shared.om.VES.NORMAL,cp.shared.om.VES.TEXTURE_COORDINATES,cp.shared.om.VES.TANGENT)])
 
 
@@ -67,7 +73,7 @@ for base,cfg in cp.CONFIG.items():
         raw=fixtures[name+'Data'];indices=fixtures[name+'Indices'];ids=fixtures[name+'SourceIds'];T=fp[bone]@np.linalg.inv(fb[bone]);check(np.allclose(T,record['sourcePose'],atol=1e-9),'native source driver transform '+name)
         a,b,audit=cp.sections.section(cp.transform(raw,T),indices,ids,planes,record['capChart']);cap,collapsed,uv_slivers=cp.stable_caps(b[0],record['capChart']);rows.append(a[0]);backs.append(cap);face_labels.extend([name]*(len(a[1])//3))
         check(record['sourceTriangles']==audit['sourceTriangles'] and record['sourceFaceIds']==audit['sourceFaceIds'],'exact intended source faces, not arbitrary material hits '+name)
-        check(record['cuts']==audit['cuts'] and all(c['loops']>0 and c['capTriangles']>0 for c in audit['cuts']),'new cut contours explicitly closed '+name)
+        check(cuts_match(record['cuts'],audit['cuts']) and all(c['loops']>0 and c['capTriangles']>0 for c in audit['cuts']),'new cut contours explicitly closed '+name)
         check(record['collapsedCapTriangles']==collapsed and record['remappedCapUVSlivers']==uv_slivers,'documented cap quantization '+name)
     check(np.allclose(data['CRV/'+base+'HeadHull'],np.concatenate(rows),atol=7e-6),'compiled native-rest source shape/UVs unchanged '+base)
     check(np.allclose(data['CRV/'+base+'SectionBacks'],np.concatenate(backs),atol=7e-6),'compiled explicit cut backs reproduce '+base)
