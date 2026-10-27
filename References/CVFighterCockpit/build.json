@@ -10,7 +10,7 @@
     "Assets/Models/cvfigh_cockpit.skeleton": "751b6c92b0cfc97913508f79b87a6a5c10486ac1457ef52f6af7a93799c70e1c",
     "Assets/Textures/crvcfcp_d.dds": "1ef0bc860adb14a521dc12166fde945df4ab68ffb89a4b378589c7608a0a1acd",
     "Assets/Textures/crvcfcp_e.dds": "9297cb02ab851ce3d3f694909477492d8cdcd00fd660dd58537cda90d7dfa049",
-    "Materials/CR_cvfigh_cockpit.material": "1ab9884728c104ff8fd8f8e68075544e1dc8065a856a5a5deb112b5e44c109ce"
+    "Materials/CR_cvfigh_cockpit.material": "7da9865a595eb5953d207fc0541361a4edadd88cf1a9e15232853b20a97eaffd"
   },
   "alignment": {
     "pov": "CFL11POV",

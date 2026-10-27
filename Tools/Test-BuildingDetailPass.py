@@ -1,6 +1,6 @@
 """Bounded patch geometry, UV, source-emission, material and package contracts."""
 from pathlib import Path
-import hashlib,importlib.util,json,sys
+import hashlib,importlib.util,json,re,sys
 import numpy as np
 from PIL import Image
 sys.path.insert(0,str(Path(__file__).resolve().parent))
@@ -25,8 +25,15 @@ def test_overlay(row,source,model_path,old,new,receipt):
     check(bool(new.edge_lists) and len(new.submesh_list)==1,'existing shadow topology and one original batch preserved')
     baseline=json.loads((REF/'original'/(row['model']+'-material.json')).read_text())['text']
     material=ROOT/'Materials'/row['materialFile'];text=material.read_text();shipped(material)
-    check(text==build.overlay_material(row,baseline),'only diffuse alias changes; E/N/S and material constants preserved')
-    check(hashlib.sha256(text.encode()).hexdigest()==receipt['materialSha256'],'normalized material hash')
+    # Owner decision 2026-10-27: #355's diffuse-derived <stem>_N.dds normal replaces
+    # the stock flat normal on these materials. Only that one alias may differ from
+    # the baseline; the diffuse alias is still the sole intentional detail-pass edit.
+    flatn=re.compile(r'set_texture_alias NormalMap \S+')
+    derived=flatn.search(text)
+    expected=build.overlay_material(row,baseline)
+    check(derived is not None and derived[0].lower().endswith('_n.dds') and 'flat' not in derived[0].lower() and (ROOT/'Assets/Textures'/derived[0].split()[-1]).exists(),'owner-accepted diffuse-derived normal map (2026-10-27)')
+    check(flatn.sub('set_texture_alias NormalMap N',text)==flatn.sub('set_texture_alias NormalMap N',expected),'only diffuse alias (and the accepted derived normal) changes; E/S and material constants preserved')
+    check(hashlib.sha256(text.encode()).hexdigest()==receipt['materialSha256'],'normalized material hash (repinned with the accepted derived normal, 2026-10-27)')
     sub=old.submesh_list[0];uv=b.values(sub.vertex_data,b.om.VES.TEXTURE_COORDINATES);indices=sub.index_array.reshape(-1,3)
     size=tuple(row['atlasOutputSize']);scale=np.array(size)/row['atlasSize'];changed=np.zeros(size[::-1],bool);claimed=np.zeros(len(indices),bool)
     path=ROOT/'Assets/Textures'/row['diffuseOutput']
@@ -97,7 +104,9 @@ for row in build.recipes():
             from scipy.ndimage import binary_dilation
             check(e[~binary_dilation(allowed,iterations=5)].max()<15,'no invented emitting metal, star or hazard paint')
         else:check('crv'+key+'_e.dds' not in receipt['files'] and 'EmissiveMap black.dds' in text,'dark patch reuses black utility, no duplicate blank map')
-        check('set_texture_alias NormalMap flat_N.dds' in text,'no false diffuse-derived relief')
+        # Owner decision 2026-10-27: diffuse-derived normals (#355) are accepted for
+        # these patches, so the material must use its own derived crv<id>_N.dds map.
+        check('set_texture_alias NormalMap crv'+key+'_N.dds' in text and (ROOT/'Assets/Textures'/('crv'+key+'_N.dds')).exists(),'owner-accepted diffuse-derived normal map (2026-10-27)')
         area_ratio=np.prod(patch['size'])/np.prod(box[2:]-box[:2]);check(area_ratio>3,'selected close-up surface gains genuine dedicated texture space')
     remainder=new.submesh_list[0]
     check(remainder.material_name==sub.material_name,'untouched remainder keeps original material')

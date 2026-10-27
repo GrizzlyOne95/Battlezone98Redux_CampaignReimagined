@@ -69,7 +69,11 @@ for name,digest in approved['files'].items():
 for code,definition in approved['navMaterials'].items():
     text=(ROOT/'Materials'/('CR_pickups_'+code+'.material')).read_text()
     match=re.search(r'(?ms)^material crnv'+code+r' :[^\n]*\n\{.*?^\}',text)
-    check(match is not None and match[0]==definition,'owner-approved nav material stays unchanged: '+code)
+    # Owner decision 2026-10-27: #355's diffuse-derived normals are accepted on the
+    # nav materials. The pin is the owner-approved definition with flat_N.dds
+    # replaced by the derived <diffuse stem>_N.dds map; everything else is unchanged.
+    derived=re.search(r'DiffuseMap (\S+)_d\.dds',definition)[1]+'_N.dds'
+    check(match is not None and match[0]==definition.replace('NormalMap flat_N.dds','NormalMap '+derived) and (ROOT/'Assets/Textures'/derived).exists(),'owner-approved nav material stays unchanged except the accepted derived normal map: '+code)
 check(len(receipt['models'])==28,'four factions times seven source mesh families')
 for name,record in receipt['models'].items():
     family=record['source'];path=ROOT/'Assets/Models'/(name+'.mesh');mesh=build.read(path);original=build.read(SRC/(family+'.mesh'))
