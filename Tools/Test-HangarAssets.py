@@ -163,7 +163,7 @@ lock = json.loads((ROOT / 'Shipping' / 'shipping.lock.json').read_text())
 shipped = {e['runtime'] for e in lock['files']}
 for f in ('abhang.mesh', 'abhang.sdf', 'abhang.skeleton', 'bbhang.mesh', 'bbhang.sdf', 'bbhang.skeleton'):
     assert f in shipped, f + ' is in the shipping lock'
-for f in ('avwalk.mesh', 'avwalk.skeleton'):
-    assert f not in shipped, f + ' is not shipped'
+# avwalk.mesh now ships as a hard-edged-normal rebuild (no longer stock-identical); its skeleton is still stock.
+assert 'avwalk.skeleton' not in shipped, 'avwalk.skeleton is not shipped'
 print('hangar assets: per-frame shortest-path door keys, abhang closed->open and bbhang open->closed '
       '(ends on the closed bind pose), hinge agreement, bone indices in range, bbhang pad removed passed')

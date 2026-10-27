@@ -20,7 +20,7 @@ assert sha256(raw.replace(b"\r\n", b"\n")).hexdigest() == "2179500357224761cd558
 source = raw.decode("utf-8").replace("\r\n", "\n")
 lua = lua_path.read_text(encoding="utf-8").replace("\r\n", "\n")
 
-REGIONS = ("CR restored VO", "CR Razor One infiltration", "CR rendezvous convoy", "CR Venus weather")
+REGIONS = ("CR PDA", "CR restored VO", "CR Razor One infiltration", "CR rendezvous convoy", "CR Venus weather")
 opens = {f"-- {name} >>": name for name in REGIONS}
 closes = {f"-- {name} <<": name for name in REGIONS}
 lua_lines = lua.split("\n")

@@ -21,7 +21,7 @@ assert sha256(raw.replace(b"\r\n", b"\n")).hexdigest() == "d243e4829850eee64f151
 source = raw.decode("utf-8").replace("\r\n", "\n")
 lua = lua_path.read_text(encoding="utf-8").replace("\r\n", "\n")
 
-REGIONS = ("CR Colorado massacre", "CR restored walker content", "CR relic heal fix", "CR failure VO", "CR team filter",
+REGIONS = ("CR PDA", "CR Colorado massacre", "CR restored walker content", "CR relic heal fix", "CR failure VO", "CR team filter",
            "CR Colorado base", "CR CCA walkers", "CR Venus weather")
 opens = {f"-- {name} >>": name for name in REGIONS}
 closes = {f"-- {name} <<": name for name in REGIONS}

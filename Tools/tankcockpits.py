@@ -82,7 +82,9 @@ def geometry(source,skelpath,faction,game,root):
         delta=np.array([0.,0.,0.]) if faction=='nsdf' else np.array([0.,-.633138,-.112862])
         for sign in (-1,1):
             q=np.array([(sign*.12,.959,1.893),(sign*.172,1.030,2.014),(sign*.478,1.030,2.014),(sign*.478,.959,1.893)])+delta-origin
-            x0,y0,x1,y1=cfg['charts']['console'];rect=(x0,y0,x0+(x1-x0)*.29,y1) if sign>0 else (x0+(x1-x0)*.72,y0,x1,y1)
+            # Both pods show the full button block; the right one mirrors the left
+            # (the other chart strip cut its top row and read as sheared).
+            x0,y0,x1,y1=cfg['charts']['console'];rect=(x1,y0,x0+(x1-x0)*.72,y1) if sign>0 else (x0+(x1-x0)*.72,y0,x1,y1)
             panel(q,'console',rect,depth=.009)
         # Central tactile switch unit follows the stepped stock bridge.
         panel([(-.115,-.47 if faction=='nsdf' else -.30,.66 if faction=='nsdf' else .55),(.115,-.47 if faction=='nsdf' else -.30,.66 if faction=='nsdf' else .55),(.115,-.57 if faction=='nsdf' else -.40,.625 if faction=='nsdf' else .515),(-.115,-.57 if faction=='nsdf' else -.40,.625 if faction=='nsdf' else .515)],'switch')
@@ -134,7 +136,10 @@ def geometry(source,skelpath,faction,game,root):
     # Grizzly's broader nose needs a continuous lower fairing behind the cut
     # source group; otherwise sky shows through the rear crop beside the horns.
     if faction in ('nsdf','bdog'):
-        deck=[(-width,lip,front),(width,lip,front),(width,lip-.20,1.85),(-width,lip-.20,1.85)]
+        # NSDF drops further so the slab stays under the widened hull shoulders.
+        drop=.30 if faction=='nsdf' else .20
+        rear,taper=(2.55,.72) if faction=='nsdf' else (1.85,1.)
+        deck=[(-width,lip,front),(width,lip,front),(width*taper,lip-drop*(rear-front)/(1.85-front),rear),(-width*taper,lip-drop*(rear-front)/(1.85-front),rear)]
     else:deck=[(-width,lip,front),(width,lip,front),(width*.90,lip-.075,front+.35),(-width*.90,lip-.075,front+.35)]
     face(deck,'armor',hint=[0,1,0]);bottom=np.array(deck)-[0,.07,0];face(bottom,hint=[0,-1,0])
     for i in range(4):j=(i+1)%4;face([deck[i],deck[j],bottom[j],bottom[i]],'frame')
@@ -168,17 +173,31 @@ def geometry(source,skelpath,faction,game,root):
     cut=1.0 if grizzly else cfg['cut'];normal_floor=-1.1 if grizzly else .25
     q=p[tri];mask=(q[:,:,2].min(1)>cut)&(abs(q[:,:,0]).max(1)<2.05)&(n[tri].mean(1)[:,1]>normal_floor)&(bodyweight[tri]>.99).all(1)&~gun
     apron,apronix,used=source_part(body,mask);assert len(apronix)>0,'front hull crop must exist'
-    pitch=(-12. if faction=='nsdf' else -22.) if grizzly else 0.;angle=math.radians(pitch);c,ss=math.cos(angle),math.sin(angle);rotation=np.array([[1.,0,0],[0,c,-ss],[0,ss,c]])
+    pitch=(-5. if faction=='nsdf' else -22.) if grizzly else 0.;angle=math.radians(pitch);c,ss=math.cos(angle),math.sin(angle);rotation=np.array([[1.,0,0],[0,c,-ss],[0,ss,c]])
+    # NSDF review: the nose read as a narrow wedge, so only its breadth grows.
+    spread=1.35 if faction=='nsdf' else 1.;rotation=rotation@np.diag([spread,1.,1.])
     pivot_model=np.array([0.,1.25,1.10]) if grizzly else np.zeros(3);pivot=(pivot_model-origin)@R
     local=((apron[:,:3]-origin)@R-pivot)@rotation.T+pivot
     top=(-.48 if faction=='nsdf' else -.32) if grizzly else lip-.09
     near=1.10 if grizzly else front+.04
     offset=np.array([0.,top-local[:,1].max(),max(near-local[:,2].min(),0.)]);transform=np.eye(4);transform[:3,:3]=R@rotation@R.T;transform[:3,3]=pivot_model-transform[:3,:3]@pivot_model+R@offset
     apron[:,:3]=apron[:,:3]@transform[:3,:3].T+transform[:3,3]
-    apron[:,3:6]=apron[:,3:6]@transform[:3,:3].T;apron[:,8:11]=apron[:,8:11]@transform[:3,:3].T
+    normal=np.linalg.inv(transform[:3,:3]).T if spread!=1 else transform[:3,:3];apron[:,3:6]=apron[:,3:6]@normal.T;apron[:,8:11]=apron[:,8:11]@transform[:3,:3].T
+    if spread!=1:
+        for k in (3,8):apron[:,k:k+3]/=np.linalg.norm(apron[:,k:k+3],axis=1)[:,None]
     parts['CRV/'+cfg['base']+'TankHull']=(apron,apronix)
+    if faction=='nsdf':
+        # The level hull leaves a slit over the coaming; a bulkhead leaning in
+        # under the plate's open near edge stops see-through rays.
+        hull=((apron[:,:3]-origin)@R)[apronix.reshape(-1,3)];zw,zt=near+.04,near+.10;xs=[];tops=[]
+        for x in np.linspace(-2.6,2.6,53):
+            dist,_=__import__('cockpitglass').cast(np.array([x,2.,zt]),np.array([[0,-1.,0]]),hull[:,0],hull[:,1],hull[:,2])
+            if np.isfinite(dist[0]):xs.append(x);tops.append(2-dist[0]-.003)
+        floor_y=lip-drop*(zw-front)/(1.85-front)-.03
+        for a in range(len(xs)-1):face([(xs[a],floor_y,zw),(xs[a+1],floor_y,zw),(xs[a+1],tops[a+1],zt),(xs[a],tops[a],zt)],'frame',hint=[0,0,-1])
+        parts[cfg['material']]=(np.array(rows,dtype='<f4'),np.array(ix,dtype='<u2'))
     meta=dict(faction=faction,base=cfg['base'],pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,panels=panels,stockCockpitRetained=faction!='cca',stockTriangles=len(stockix)//3,gunWeights=gunweights,gunBones=cfg['gun'],gunOffset=gunoffset.tolist(),apronSourceIndices=np.flatnonzero(mask).tolist(),apronOffset=offset.tolist(),apronTriangles=len(apronix)//3,innerShell=topology,window=dict(width=width,lip=lip,front=front,roof=roof),nativeVdfSha256=__import__('hashlib').sha256(native).hexdigest())
-    if grizzly:meta.update(apronTransform=transform.tolist(),apronPitchDegrees=pitch,apronPivotModel=pivot_model.tolist())
+    if grizzly:meta.update(apronTransform=transform.tolist(),apronPitchDegrees=pitch,apronPivotModel=pivot_model.tolist(),**(dict(apronSpreadX=spread) if spread!=1 else {}))
     return parts,s,w,eye,shell,meta
 
 def compile_mesh(parts,s,w,eye,shell,base,meta):

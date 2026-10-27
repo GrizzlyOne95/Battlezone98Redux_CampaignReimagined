@@ -68,6 +68,24 @@ if type(IsNetGame) == "function" and IsNetGame() then
     exu.DisableStartingRecycler()
 end
 local subtit = require("ScriptSubtitles")
+-- CR PDA >>
+-- PersistentConfig owns the PDA (X), subtitle/UI settings and AutoSave. Script
+-- locals reset when a save loads, so Update initializes it once per Lua state.
+-- One table local keeps the main chunk under Lua 5.1's 200-local limit.
+local missionPda = { config = require("PersistentConfig"), ready = false }
+function missionPda.Init()
+    missionPda.ready = true
+    missionPda.config.Initialize()
+end
+function missionPda.Update(cinematicActive)
+    if not missionPda.ready then missionPda.Init() end
+    missionPda.config.UpdateInputs(cinematicActive)
+    missionPda.config.UpdateHeadlights()
+end
+function missionPda.Object(h)
+    if missionPda.ready and h ~= nil then missionPda.config.OnObjectCreated(h) end
+end
+-- CR PDA <<
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
 -- CR co-op layer <<
@@ -194,7 +212,9 @@ local native = {
     UpdateObjective = UpdateObjective, SetObjectiveOn = SetObjectiveOn,
     SetObjectiveOff = SetObjectiveOff, SetObjectiveName = SetObjectiveName,
     RemoveObject = RemoveObject, SetTeamNum = SetTeamNum,
-    SucceedMission = SucceedMission, FailMission = FailMission,
+    -- Resolve result hooks after PersistentConfig.Initialize installs cleanup.
+    SucceedMission = function(...) return _G.SucceedMission(...) end,
+    FailMission = function(...) return _G.FailMission(...) end,
     CameraReady = CameraReady, CameraPath = CameraPath, CameraObject = CameraObject,
     CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
     StopAudioMessage = StopAudioMessage,
@@ -1226,10 +1246,14 @@ function Start()
     -- (The DLL port called SetAIControl here; it is a chunk-root call now, see CR team map.)
     InitializeCoop()
     subtit.Initialize()
+    missionPda.Init()
 -- CR co-op layer <<
 end
 
 function AddObject(h)
+-- CR PDA >>
+    missionPda.Object(h)
+-- CR PDA <<
 -- CR Titan weather hook >>
     if IsValid(h) then TitanHook("object", h) end
 -- CR Titan weather hook <<
@@ -1263,6 +1287,7 @@ end
 function Update(dt)
 -- CR co-op layer >>
     subtit.Update()
+    missionPda.Update(localCameraActive)
     CRCoop.Update()
     UpdatePresentationTransport()
     if M.coopResult or M.coopPendingResult then

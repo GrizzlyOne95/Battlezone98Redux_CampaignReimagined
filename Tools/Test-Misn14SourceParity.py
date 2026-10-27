@@ -34,7 +34,7 @@ source = (ARCHIVE / "Misn14Mission.cpp").read_text(encoding="utf-8")
 lua_full = (ROOT / "Scripts/misn14.lua").read_text(encoding="utf-8").replace("\r\n", "\n")
 
 # ---- strip the CR regions ---------------------------------------------------------------------------
-REGIONS = ("CR co-op layer", "CR team map", "CR Titan weather hook", "CR rescue", "CR fury squad",
+REGIONS = ("CR PDA", "CR co-op layer", "CR team map", "CR Titan weather hook", "CR rescue", "CR fury squad",
            "CR fury waves", "CR surrender", "CR cut VO", "CR objectives", "CR rally")
 opens = {f"-- {name} >>": name for name in REGIONS}
 closes = {f"-- {name} <<": name for name in REGIONS}

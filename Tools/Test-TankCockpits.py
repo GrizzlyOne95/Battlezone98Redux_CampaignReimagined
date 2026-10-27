@@ -69,9 +69,11 @@ for faction,cfg in cp.CONFIG.items():
     hull=next(x for x in mesh.submesh_list if x.material_name.endswith('TankHull'));mask=np.zeros(len(body.index_array)//3,bool);mask[meta['apronSourceIndices']]=True;d,i,_=cp.source_part(body,mask)
     transform=np.eye(4);transform[:3,3]=R@np.array(meta['apronOffset']);transform=np.array(meta.get('apronTransform',transform))
     check(np.allclose(cp.shared.values(hull.vertex_data,cp.shared.om.VES.POSITION),d[:,:3]@transform[:3,:3].T+transform[:3,3],atol=1e-6),'bounded original hull geometry, rigid fit only')
-    check(np.allclose(transform[:3,:3].T@transform[:3,:3],np.eye(3),atol=1e-6) and abs(np.linalg.det(transform[:3,:3])-1)<1e-6,'hull fit never stretches or mirrors the real shape')
+    spread=meta.get('apronSpreadX',1.);rigid=transform[:3,:3]@np.diag([1/spread,1.,1.])
+    check(1<=spread<=1.5 and np.allclose(rigid.T@rigid,np.eye(3),atol=1e-6) and abs(np.linalg.det(rigid)-1)<1e-6,'hull fit only widens, never mirrors or skews the real shape')
     check(np.array_equal(cp.shared.values(hull.vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),d[:,6:8]),'real hull paint and UV layout retained')
-    check(np.allclose(cp.shared.values(hull.vertex_data,cp.shared.om.VES.NORMAL),d[:,3:6]@transform[:3,:3].T,atol=1e-6),'hull normals rotate with the geometry')
+    normal=d[:,3:6]@np.linalg.inv(transform[:3,:3]);normal/=np.linalg.norm(normal,axis=1)[:,None]
+    check(np.allclose(cp.shared.values(hull.vertex_data,cp.shared.om.VES.NORMAL),normal,atol=1e-5),'hull normals follow the geometry')
     check(0<len(i)//3<(500 if faction in ('nsdf','bdog') else 100),'not a whole exterior merge')
     hullhits=0;hull_sides=[0,0];hlo,hhi=ranges[hull.material_name]
     if faction in ('nsdf','bdog'):
@@ -80,6 +82,9 @@ for faction,cfg in cp.CONFIG.items():
             yaws=np.arange(-45,46);dist,hit=cast(yaws,pitch);visible=(hit>=hlo)&(hit<hhi)&np.isfinite(dist);hullhits+=int(visible.sum());hull_sides[0]+=int((visible&(yaws< -10)).sum());hull_sides[1]+=int((visible&(yaws>10)).sum())
         check(hullhits>150 and min(hull_sides)>30,'recognizable real hull visible across both sides of the lower forward view')
         check(np.isfinite(cast(np.array([-25,25]),-23)[0]).all(),'no sky slivers beside the horns at the rear hull join')
+        ya,pa=np.meshgrid(np.radians(np.arange(-50,51.)),np.radians(np.arange(-30,-11.)));dirs=np.column_stack([np.cos(pa.ravel())*np.sin(ya.ravel()),np.sin(pa.ravel()),np.cos(pa.ravel())*np.cos(ya.ravel())])@R.T
+        front=cg.cast(origin,dirs,tri[:,0],tri[:,1],tri[:,2])[0];both=cg.cast(origin,dirs,tri[:,0],tri[:,1],tri[:,2],front_only=False)[0]
+        check(not (np.isinf(front)&np.isfinite(both)).any(),'no see-through into the hull from the pilot eye')
     gunhits=0;lo,hi=ranges[gunsub.material_name]
     for pitch in np.arange(-31,32,1):
         dist,hit=cast(np.arange(-45,46,1),pitch);gunhits+=int(((hit>=lo)&(hit<hi)&np.isfinite(dist)).sum())
