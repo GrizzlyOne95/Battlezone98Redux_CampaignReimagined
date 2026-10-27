@@ -146,6 +146,17 @@ hollows and is scoured off ridges, and dust worlds settle dust in hollows
 then. Re-run the tool after editing a weather map's HG2; the build writes the
 shipping lock entries too. Reset and Suspend write the transform back to zero.
 
+### Thruster wash
+
+On shaped terrain, hovering craft blow snow and dust off the ground beneath
+them. Each update scans 32 records for craft (not people or walkers) within
+250 m of the camera; strength is 1 at 4 m altitude or lower and 0 at 12 m. The
+nearest fill `surfaceWash0..5` (x, z, 8 m radius, strength); the player also
+drops a trail mark every 5 m, which fades over 4 seconds and takes any free
+slot. The shader clears 90% of the snow and all the dust inside half the
+radius, fading to a noisy rim, so the ice shows through on Europa. Slots are
+written only when they change; Reset and Suspend zero them.
+
 ## Water and compatibility
 
 OpenShim Enhanced High DX11 shaders provide small beads, flowing trails and

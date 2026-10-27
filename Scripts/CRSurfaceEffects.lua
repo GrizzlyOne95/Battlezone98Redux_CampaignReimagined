@@ -32,7 +32,14 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     -- corners and creases; rain washes it off. On terrain it only fills the
     -- hollows of the map's baked shape mask (CRTerrainShape), which also
     -- drifts snow into hollows and off ridges.
-    DustWorlds = { mars = { 0.45, 0.17, 0.07, 0.5 } }, dust = nil }
+    DustWorlds = { mars = { 0.45, 0.17, 0.07, 0.5 } }, dust = nil,
+    -- Thruster wash on shaped snow/dust terrain: craft hovering within
+    -- WashHeight (full, none) metres of the ground and WashRange of the camera
+    -- blow a WashRadius circle clear (surfaceWash0..N: x, z, radius, strength).
+    -- The player also leaves trail marks every WashTrailStep metres that fade
+    -- over WashTrailFade seconds. WashScan records are checked per update.
+    WashSlots = 6, WashRadius = 8, WashHeight = { 4, 12 }, WashRange = 250, WashScan = 32,
+    WashTrailStep = 5, WashTrailFade = 4, washers = {}, washCursor = 1, washTrail = {}, washOut = {} }
 
 local function call(fn, ...)
     if type(fn) ~= "function" then return nil end
@@ -202,6 +209,74 @@ local function followCamera()
     if at and math.abs(x-at[1]) + math.abs(y-at[2]) + math.abs(z-at[3]) < 0.02 then return end
     local changed = call(exu.SetMaterialShaderVector, name, "surfaceCamera", x, y, z, 0, -1, -1, "Autodetect")
     if finite(changed) and changed > 0 then S.cameraAt = {x, y, z} end
+end
+
+-- Wash strength for a craft: 1 hovering low, 0 at WashHeight[2] and above.
+local function washOf(h)
+    local v = call(GetPosition, h)
+    local p = point(v)
+    if not p then return nil end
+    local ground = call(GetTerrainHeightAndNormal, v)
+    if not finite(ground) then return nil end
+    local lo, hi = S.WashHeight[1], S.WashHeight[2]
+    local t = clamp((hi - (p.y - ground)) / (hi - lo), 0, 1)
+    return p, t * t * (3 - 2 * t)
+end
+local function writeWash(slot, w)
+    local last = S.washOut[slot]
+    if last and math.abs(last[1]-w[1]) + math.abs(last[2]-w[2]) + math.abs(last[4]-w[4]) < 0.05 and last[3] == w[3] then return end
+    local changed = call(exu.SetMaterialShaderVector, S.shapeMaterial, "surfaceWash" .. (slot-1), w[1], w[2], w[3], w[4], -1, -1, "Autodetect")
+    if finite(changed) and changed > 0 then S.washOut[slot] = w end
+end
+local NoWash = {0, 0, 0, 0}
+local function clearWash()
+    if S.shapeMaterial then
+        for slot = 1, S.WashSlots do
+            if S.washOut[slot] and S.washOut[slot][4] > 0 then S.washOut[slot] = nil; writeWash(slot, NoWash) end
+        end
+    end
+    S.washers, S.washCursor, S.washTrail, S.washOut = {}, 1, {}, {}
+end
+local function wash(dt)
+    if not S.shapeMaterial or not S.cameraAt then return end
+    -- Keep a list of the registered craft that can hover, a few per update.
+    for _ = 1, math.min(S.WashScan, #S.order) do
+        if S.washCursor > #S.order then S.washCursor = 1 end
+        local h = S.order[S.washCursor]; S.washCursor = S.washCursor + 1
+        if S.washers[h] == nil and valid(h) then
+            local class = call(GetClassLabel, h)
+            S.washers[h] = call(IsCraft, h) == true and class ~= "person" and class ~= "walker"
+        end
+    end
+    local cx, cz, range = S.cameraAt[1], S.cameraAt[3], S.WashRange * S.WashRange
+    local spots, player = {}, call(GetPlayerHandle)
+    for h, craft in pairs(S.washers) do
+        if not S.records[h] or not valid(h) then S.washers[h] = nil
+        elseif craft then
+            local p, s = washOf(h)
+            local d = p and (p.x-cx)*(p.x-cx) + (p.z-cz)*(p.z-cz)
+            if p and s > 0.02 and d < range then
+                spots[#spots+1] = {p.x, p.z, S.WashRadius, s, d}
+                local last = S.washTrail[#S.washTrail]
+                if h == player and (not last or math.abs(last[1]-p.x) + math.abs(last[2]-p.z) > S.WashTrailStep) then
+                    S.washTrail[#S.washTrail+1] = {p.x, p.z, S.WashRadius*0.8, s}
+                    if #S.washTrail > S.WashSlots then table.remove(S.washTrail, 1) end
+                end
+            end
+        end
+    end
+    table.sort(spots, function(a, b) return a[5] < b[5] end)
+    -- The trail fills the slots the craft leave free, newest first.
+    for i = #S.washTrail, 1, -1 do
+        local m = S.washTrail[i]
+        m[4] = m[4] - dt / S.WashTrailFade
+        if m[4] <= 0 then table.remove(S.washTrail, i) else spots[#spots+1] = m end
+    end
+    for slot = 1, S.WashSlots do
+        local w = spots[slot]
+        if w then writeWash(slot, {w[1], w[2], w[3], clamp(w[4], 0, 1)})
+        elseif S.washOut[slot] and S.washOut[slot][4] > 0 then writeWash(slot, NoWash) end
+    end
 end
 
 local function write(slot, name, a, b, c, d)
@@ -600,7 +675,7 @@ function S.Update(dt)
     wrapCallbacks()
     dt = clamp(dt,0,0.25); if dt <= 0 then return end
     S.Clock = S.Clock+dt
-    followCamera()
+    followCamera(); wash(dt)
     local weather = package.loaded.CRWeather
     local rain = weather and call(weather.GetSurfaceWetness) or 0
     rain = clamp(rain,0,1)
@@ -714,7 +789,7 @@ function S.ResetScene()
     S.cockpit=nil;S.cursor=1;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
     setCrack(0);S.crackSpots,S.crackSpotCount={},0
     S.SweepWet=0;S.sweepLeft=0;S.cloneLeft=0;S.wetCursor=1;S.sweepMoving=false
-    S.snow=nil;S.dust=nil;S.shapeMaterial=nil;S.cameraAt=nil
+    clearWash();S.snow=nil;S.dust=nil;S.shapeMaterial=nil;S.cameraAt=nil
 end
 
 -- Player setting. Off restores every owned material, releases clones, unhooks
@@ -742,7 +817,7 @@ function S.Suspend()
     S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{}
     S.hits,S.shots,S.clones = {},{},{}
     S.cockpit=nil;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
-    S.shapeMaterial=nil;S.cameraAt=nil
+    clearWash();S.shapeMaterial=nil;S.cameraAt=nil
     setCrack(0)
     S.SweepWet=0;S.sweepLeft=0;S.cloneLeft=0;S.wetCursor=1;S.sweepMoving=false
     S.Unhook()
