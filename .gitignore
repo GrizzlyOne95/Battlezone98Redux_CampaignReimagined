@@ -35,6 +35,25 @@
 # maintenance scripts must appear in git status instead of being silently hidden.
 !/Tools/
 
+# OpenShim-owned files the lock ships, committed so a clean checkout is complete.
+# Pinned to the commit in openshim/OPENSHIM_PIN.txt; refresh with Tools/Sync-OpenShimFiles.py.
+# Only these paths: the rest of BZ_ASSETS_CORE is the game's own content, not ours.
+!/openshim/
+!/openshim/**
+!/BZ_ASSETS_CORE/
+/BZ_ASSETS_CORE/*
+!/BZ_ASSETS_CORE/common/
+/BZ_ASSETS_CORE/common/*
+!/BZ_ASSETS_CORE/common/ui/
+/BZ_ASSETS_CORE/common/ui/*
+!/BZ_ASSETS_CORE/common/ui/CustomWidgets/
+/BZ_ASSETS_CORE/common/ui/CustomWidgets/*
+!/BZ_ASSETS_CORE/common/ui/CustomWidgets/osh_*.png
+!/BZ_ASSETS_CORE/common/ui/CustomWidgets/uibtn.png
+!/BZ_ASSETS_CORE/common/ui/CustomWidgets/uibtnhv.png
+!/BZ_ASSETS_CORE/common/ui/CustomWidgets/uiline.png
+!/BZ_ASSETS_CORE/common/ui/CustomWidgets/uiplate.png
+
 # Intentional root files
 !/.gitignore
 !/.gitattributes
