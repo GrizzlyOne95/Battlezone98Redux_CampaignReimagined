@@ -112,6 +112,20 @@ on craft and buildings, world XZ on terrain), flatten the normal map under the
 snow and raise roughness. Zero is the default and changes nothing. DX11
 Enhanced only, any tier. Reset and Suspend write zeros back.
 
+## Dust and ACT weather masks
+
+Dust worlds (`DustWorlds`, same world detection; Mars only for now) write the
+`surfaceDust` uniform once per scene: linear rgb dust colour and w amount.
+Shared materials and owned clones take it; cockpit materials and terrain never
+do. The Enhanced base shader settles dust on up-facing faces with noise, lowers
+F0 and raises roughness under it, and rain (`surfaceState.x`) washes it off.
+
+Materials with a baked ACT map (`ACTMap` alias) place all three weather terms
+from it: dust also collects in occluded corners and concave creases, snow thins
+under overhangs and on sharp convex edges, and rain beads, trails and wet gloss
+follow AO exposure while creases pool water (glossier, darker). Without an ACT
+map exposure is 1 and dust uses up-facing faces only.
+
 ## Water and compatibility
 
 OpenShim Enhanced High DX11 shaders provide small beads, flowing trails and
