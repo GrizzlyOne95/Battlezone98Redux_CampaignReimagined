@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4538,
+  "count": 4542,
   "files": [
     {
       "source": "Assets\\ACT\\mars.act",
@@ -3728,6 +3728,10 @@
       "runtime": "cr_spore.dds"
     },
     {
+      "source": "Assets\\Textures\\cr_terrain_shape_none.dds",
+      "runtime": "cr_terrain_shape_none.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr_titan14_wet.png",
       "runtime": "cr_titan14_wet.png"
     },
@@ -5460,6 +5464,10 @@
       "runtime": "crwx_wsplat.dds"
     },
     {
+      "source": "Assets\\Textures\\eu_detail_atlas_shape.dds",
+      "runtime": "eu_detail_atlas_shape.dds"
+    },
+    {
       "source": "Assets\\Textures\\exu_hud_ring_segment.png",
       "runtime": "exu_hud_ring_segment.png"
     },
@@ -5530,6 +5538,10 @@
     {
       "source": "Assets\\Textures\\LoadingScreenBlank.png",
       "runtime": "LoadingScreenBlank.png"
+    },
+    {
+      "source": "Assets\\Textures\\ma_detail_atlas_shape.dds",
+      "runtime": "ma_detail_atlas_shape.dds"
     },
     {
       "source": "Assets\\Textures\\magpull00_N.dds",
@@ -14146,6 +14158,10 @@
     {
       "source": "Scripts\\CRSurfaceEffects.lua",
       "runtime": "CRSurfaceEffects.lua"
+    },
+    {
+      "source": "Scripts\\CRTerrainShape.lua",
+      "runtime": "CRTerrainShape.lua"
     },
     {
       "source": "Scripts\\CRTitanSites14.lua",

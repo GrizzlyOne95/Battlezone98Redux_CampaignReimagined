@@ -301,19 +301,21 @@ local function DisableSubtitleCustomFont(reason)
 end
 
 local function GetSubtitlePanelMaterial(section, r, g, b)
+    -- Missions without PersistentConfig still need a baked-colour panel: CR_UI's
+    -- D3D11 tint is the pass diffuse, so SetOverlayColor never reaches a Panel
+    -- and the backdrop draws opaque white over the text.
+    local familyKey = "DG"
     local persistentConfig = GetPersistentConfig()
-    if not persistentConfig or type(persistentConfig._GetPdaOverlayMaterialFamily) ~= "function" then
-        return nil
-    end
-
-    local ok, family = pcall(persistentConfig._GetPdaOverlayMaterialFamily, r, g, b)
-    if not ok or type(family) ~= "table" or type(family.key) ~= "string" or family.key == "" then
-        return nil
+    if persistentConfig and type(persistentConfig._GetPdaOverlayMaterialFamily) == "function" then
+        local ok, family = pcall(persistentConfig._GetPdaOverlayMaterialFamily, r, g, b)
+        if ok and type(family) == "table" and type(family.key) == "string" and family.key ~= "" then
+            familyKey = family.key
+        end
     end
 
     local opacity = Clamp(tonumber(Subtitles.Config.opacity) or 0.5, 0.0, 1.0)
     local alphaStep = Clamp(math.floor((opacity / 0.05) + 0.5), 0, 20)
-    return string.format("CRPda%s_%s_A%02d", tostring(section or "Backdrop"), family.key, alphaStep)
+    return string.format("CRPda%s_%s_A%02d", tostring(section or "Backdrop"), familyKey, alphaStep)
 end
 
 local function CanUseOverlayRenderer()

@@ -1622,6 +1622,13 @@ material CR_BZTerrainBase
 				texture openshim_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
 			}
+
+			texture_unit terrainShapeMap
+			{
+				texture_alias TerrainShape
+				texture cr_terrain_shape_none.dds 2d
+				tex_address_mode clamp
+			}
 		}
 	}
 
@@ -1657,6 +1664,13 @@ material CR_BZTerrainBase
 				texture openshim_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
 			}
+
+			texture_unit terrainShapeMap
+			{
+				texture_alias TerrainShape
+				texture cr_terrain_shape_none.dds 2d
+				tex_address_mode clamp
+			}
 		}
 	}
 
@@ -1688,6 +1702,13 @@ material CR_BZTerrainBase
 			{
 				texture_alias EnvironmentBrdfLut
 				texture openshim_ibl_brdf_lut.dds 2d
+				tex_address_mode clamp
+			}
+
+			texture_unit terrainShapeMap
+			{
+				texture_alias TerrainShape
+				texture cr_terrain_shape_none.dds 2d
 				tex_address_mode clamp
 			}
 		}
@@ -1735,6 +1756,13 @@ material CR_BZTerrainBase
 				texture openshim_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
 			}
+
+			texture_unit terrainShapeMap
+			{
+				texture_alias TerrainShape
+				texture cr_terrain_shape_none.dds 2d
+				tex_address_mode clamp
+			}
 		}
 	}
 
@@ -1766,6 +1794,13 @@ material CR_BZTerrainBase
 			{
 				texture_alias EnvironmentBrdfLut
 				texture openshim_ibl_brdf_lut.dds 2d
+				tex_address_mode clamp
+			}
+
+			texture_unit terrainShapeMap
+			{
+				texture_alias TerrainShape
+				texture cr_terrain_shape_none.dds 2d
 				tex_address_mode clamp
 			}
 		}
@@ -1813,6 +1848,13 @@ material CR_BZTerrainBase
 				texture openshim_ibl_brdf_lut.dds 2d
 				tex_address_mode clamp
 			}
+
+			texture_unit terrainShapeMap
+			{
+				texture_alias TerrainShape
+				texture cr_terrain_shape_none.dds 2d
+				tex_address_mode clamp
+			}
 		}
 	}
 
@@ -1844,6 +1886,13 @@ material CR_BZTerrainBase
 			{
 				texture_alias EnvironmentBrdfLut
 				texture openshim_ibl_brdf_lut.dds 2d
+				tex_address_mode clamp
+			}
+
+			texture_unit terrainShapeMap
+			{
+				texture_alias TerrainShape
+				texture cr_terrain_shape_none.dds 2d
 				tex_address_mode clamp
 			}
 		}

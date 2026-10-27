@@ -4,51 +4,14 @@
     "submeshes": [
       {
         "vertices": 3414,
-        "indices": "72dde140a5d39d4dea79def15941ab1063ee8d5259702bcce6482a6aa5ccc389",
-        "buffers": [
-          [
-            0,
-            48,
-            "6d7ffe28ba3b275e601bc735f717cf372b76922534b8da5ec5c0bdc8d7e602a5"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "indices": "4022369622cc745699a2181867f48399e4e55ac901b56464fc2afa50895acbf5",
+        "attributes": {
+          "1:0:2": "d50d0b8e96e6bc948bc028b3af5173f2b98596e71fe8c3a4452e2d3bc2223547",
+          "4:0:2": "9d065a2abf131311d7bb537ee9ebb5da4e2520302a296469c17160f0e83320ef",
+          "5:0:4": "65eeddc65a399fa7adc2fd421ba6879bd581079d22d9884b8b3da714b26cb036",
+          "7:0:1": null,
+          "9:0:2": "eb33551c781335db619c96a5af39344b9f6a3567411d71e49dd30ae9ba0510d5"
+        },
         "bones": {
           "count": 3414,
           "sha256": "ea6e1760f0258b69f711f1c073ce7dde526c7f7bc9aa14bf963d654de6b90ad3"
@@ -56,51 +19,14 @@
       },
       {
         "vertices": 9864,
-        "indices": "d0acbc7129dac181c455a8c6bf6511fc0a90a03164cfe254fc690a4b106f3e40",
-        "buffers": [
-          [
-            0,
-            48,
-            "08c1fd2a4d2d6b17b08aee723c23ba2061af507b20cb03dfcdd75b8873cde0de"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "indices": "dbcd32aadad46e53683e32fef6be15b39ef57f7e5c17b8b4ba82e435b55c2e16",
+        "attributes": {
+          "1:0:2": "dfcd4ba319ac4d2577d7aaab6f448e0d50a1a61993682b9c46725ad499b83f22",
+          "4:0:2": "40c6b80e3182398081766f1a21a340ed473f74d0f5587d260a8bf810fe73b57d",
+          "5:0:4": "1a400bf21b11c01c85eeecaba0488ddbe2269ee8378a945b613ea9164e5a6b31",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 9864,
           "sha256": "529acd721ed7f847d5ebb9abafb5f7288cf81ed24a8718f56347599e4faf4e3d"
@@ -109,50 +35,13 @@
       {
         "vertices": 21944,
         "indices": "fe22c99aeaddc0eebfd6728c00b652cf69aa728c527e043061c415578099955e",
-        "buffers": [
-          [
-            0,
-            48,
-            "14c084120fcc80b106ff1343e9821c2cc562f3e5aedbaf313a03699f8ec3968a"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "76454d148f745eb4cd9dab53dc57b0600054f2205029614b6fdbee364d5861af",
+          "4:0:2": "b4de51b5c3564ad3ad9606feee06c952fdcb53ee310b82451927191ab21d0e94",
+          "5:0:4": "7d4c428ad180d27c9d728edad4af0d7090ec0eb18cc562485a1bbd91fe46c664",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 21944,
           "sha256": "f0325fa338327354ef5ff2231a7930c4cbeaae4af990e1153cca2d768479ca48"
@@ -161,50 +50,13 @@
       {
         "vertices": 4563,
         "indices": "e12d8f4900dd233cc7f46c133bdaf3ea3287d8959dc8ad9426cc914c157ad26d",
-        "buffers": [
-          [
-            0,
-            48,
-            "ebc3bba3df175c145809dd8839c2d040f5b60cd5647071db8f05eaa350b5d9d1"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "f91ef83d4f173ef314d4e1cd6a4fac98effc4caa471b725dd492444de93925b3",
+          "4:0:2": "adf7433b5638e52f355c3c6da7f07231ed61ce50a478ac9a0c1133eb406bb1f9",
+          "5:0:4": "c74f73d0d92d99fe764e40aca29c8f542a08f90218164354644ff92cbb2bcd34",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 4563,
           "sha256": "5725da1a74b7db52c4b31ee7d1ea1a198e1f310e6a881242b91ef6c57329a790"
@@ -213,50 +65,13 @@
       {
         "vertices": 120,
         "indices": "e1f30c1f0ed9f7845a6df6723ea973fa8da355a5f535ba80134d4f28d00646a8",
-        "buffers": [
-          [
-            0,
-            48,
-            "8b635d527f0cddcfac63436bcbc86b883e8b5dc8942166fe7a7702d3d435e612"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "098ded0310feeb15c964e2053398fe3757238862b9ad6a0709801a87090fa3c2",
+          "4:0:2": "9e56e45f423fe395509b784c0ed4294d8923cac4b9ec04bc99109acbd1481417",
+          "5:0:4": "bf9b62d4418d862aa0826a28a846948151da66b8042967382ca6bfd6d7d1cdb2",
+          "7:0:1": null,
+          "9:0:2": "af4ba2a86fc75e592b9d6d3c207cec434c7706b04f7f24eb8703bc75620ff5b9"
+        },
         "bones": {
           "count": 120,
           "sha256": "235b736e294db26dd386b99bb50720aac281500241cc3afdcfcdd34d6771bdd6"
@@ -273,51 +88,14 @@
     "submeshes": [
       {
         "vertices": 2654,
-        "indices": "2f95f1326f9c121942796fe83c023d4436ca531af1c5493979d3851adf21a170",
-        "buffers": [
-          [
-            0,
-            48,
-            "73af478e526afa2f798bbe616034bc0c1755bb8db61abedc397a200a3d81ef6e"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "indices": "1e6ef9245d9813ba3833236b73b1e9f0e78601ad631dde9c4ebe1e0176726f1b",
+        "attributes": {
+          "1:0:2": "c3c78ad7cc25d1c52a4dd48e234115e629ab5b413d66c126f5672862daa832d5",
+          "4:0:2": "57410c7b13908526e7a7d27f40d0a52a309ede2029c0bb816198550e1c9d6266",
+          "5:0:4": "f6954a69ac3899ce96838e05051135f77a2536988c81254925eb8af55533b31c",
+          "7:0:1": null,
+          "9:0:2": "8b953cd9fedb036d2cfb6ce759019d26bca84998a80142f1021b44a7bb45d388"
+        },
         "bones": {
           "count": 2654,
           "sha256": "a03ae85d986259184d7dee8a631b59be5fe80f7fd3ac652a006214fc5640c866"
@@ -325,51 +103,14 @@
       },
       {
         "vertices": 8380,
-        "indices": "427da681743715b483e653690d957f728b5aec5edc999d6a1fe2c2acb4fbc20d",
-        "buffers": [
-          [
-            0,
-            48,
-            "4749ee2beafd6ab17f1d28936be707f664ec0ee802b88e4b1a3d934484498fbd"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "indices": "ab06a3bf836ebb36490862b4d856cb29b382f78d06cd2dcbdd0bc1d710b50ca3",
+        "attributes": {
+          "1:0:2": "8ae3f2ae511810d64660e1d66e39fcf0ac66f32d80ac6b4c5ffe7f9dfa56910f",
+          "4:0:2": "b4fab3baa0ff3aa159deabf18955ec9891e13013af3ded50d57bf28eaa095cac",
+          "5:0:4": "ae4f572b35e77135166d50ef30d46e9895e31f10b6b237054e4b7662a5ee0f57",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 8380,
           "sha256": "c08eb5f2659f9b9e715756079715e825951c3b064912269d16d342a6c778f9a1"
@@ -378,50 +119,13 @@
       {
         "vertices": 10458,
         "indices": "2c6c7fd73e0dbbceacb8d2125e3402247a6acd927371eafa6ec7e3b52ee12a56",
-        "buffers": [
-          [
-            0,
-            48,
-            "27931ea3a19a0e7155a832a2384e363b07018bfe27dc2d7900409504cb523db5"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "a3dcf65ebba019525a6fcb75ef03ad8a557fcdd04aeafa44276a63ae6ec569b5",
+          "4:0:2": "e96f467f5ee71a731b621ce16d9eb40c11091ae579b93190e57fe126ccd52c2e",
+          "5:0:4": "b932148d6288766e13402c25c8a7c123cfd245b71e9e8dea3a20cbc2b1bc58f9",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 10458,
           "sha256": "43a1a76a3d23fb879c5dc8368391d1aad0b2f7f2e8cdfe3f8e6647f57dea6c89"
@@ -430,50 +134,13 @@
       {
         "vertices": 1752,
         "indices": "72301e9b70b1495f5987115bea6f86e4143702d4423a9158f2bbb9b413d38e46",
-        "buffers": [
-          [
-            0,
-            48,
-            "1bb4460209eb87f4836277c9408c9ef7c98efd39fbefe22743e65a882470951a"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "be478ff5440df0692f062dec8b182d4ed01e38634db2d7da65b9434880b841d5",
+          "4:0:2": "dd7ba337a240801b13a6b18211df1c904f695e00e558f7e00a2387f0baf5fea2",
+          "5:0:4": "e099771842b6d5ca8b7eb0371d48adc2463903ed168af1af91d36260c9c735a5",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 1752,
           "sha256": "855bf1bf0f7e4f75a64785a143aac93b0d7ef18800606fbd8fb627800b30b63d"
@@ -482,50 +149,13 @@
       {
         "vertices": 3676,
         "indices": "e0919dd22188178672aac0c0ac360d268ffca4c23d29460a39b04019418276c0",
-        "buffers": [
-          [
-            0,
-            48,
-            "4d4801a4ab4f5d9a18c77a271959bf601758c4fb4e1a9ddd40a329324163e149"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "fdcdb91cd18858f7c974bb9b250ab4045106bf260473ec5618d887318065f32a",
+          "4:0:2": "e0dc36ee85dd658e637b4aa7670ca34dba5efbc4cb413ebf83e5db65632ab105",
+          "5:0:4": "8ba49b181cb8d3830639f6035ba9ff784b51c259330e9b1f011165b8c99623de",
+          "7:0:1": null,
+          "9:0:2": "11819fd39f7a98258c72442d1c33814b3aea89e02b0fcb363ca558c837b942d2"
+        },
         "bones": {
           "count": 3676,
           "sha256": "f8292e61792ca0481e0748eb7fee18474f8b39423412ae58cb5595f31d5fe2e4"
@@ -542,51 +172,14 @@
     "submeshes": [
       {
         "vertices": 1000,
-        "indices": "365e91745cf350edb8391c41392ac7fee1f4af84d58c0e691d9fad8fad84b81a",
-        "buffers": [
-          [
-            0,
-            48,
-            "8188b2a7b0c215fd1095966f0c987e4e77213eaf6c4b5f37508c6f8f0a33748d"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "indices": "48c5bf92340ff2b433e0df961ff93ba72087abab78b8c60649421d3914c96319",
+        "attributes": {
+          "1:0:2": "181c9254dc11b9d3b535712db7efce457a095e6e8cb31b2adb5628703dcf9cfc",
+          "4:0:2": "7e5073bc3c50414cb22ff624c15d39f59b7780097593dc86f122c64243d500ce",
+          "5:0:4": "68c5f18d405dd0fb9bb038be9c3c8f56a524921d4abf748060e06567331dfbbd",
+          "7:0:1": null,
+          "9:0:2": "46ecb0c7e886c717e114ea8a4c20bb270548983e1f8cb55e67d6279bbf8f6ec9"
+        },
         "bones": {
           "count": 1000,
           "sha256": "6e98231506d1b58f5c04be80db76a9bf3a650996d8d090cb35a6b79946592548"
@@ -594,51 +187,14 @@
       },
       {
         "vertices": 4168,
-        "indices": "4084eaee9d9a70d11b9746904c0fe9587d12df245a2dde71ca8e9d5c57e54f90",
-        "buffers": [
-          [
-            0,
-            48,
-            "8f856b879a51f6150c93a276f80edf51d6266ec07553011c3b3599e6aa003249"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "indices": "077b0323f8a745126ed730a7e21a3d38b667ebb8ee1f2325d5097e8002c16e2f",
+        "attributes": {
+          "1:0:2": "2e2e80991505d4993f46e9c2e12187c9515deb39508b35745a74180a3dc02bf3",
+          "4:0:2": "2091d59ac8c6f69ee9e2d7bec5a0b717e6181430e335b98c4152f89b001842b3",
+          "5:0:4": "326a00c72367dbe5b5a62be8fb3a374a03a66ca5abbf4ae70bcd63c11bed345f",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 4168,
           "sha256": "d2bcb53304d8587bedf248252420065504d57fcd54f0260d53273dfb06cc21a4"
@@ -647,50 +203,13 @@
       {
         "vertices": 6564,
         "indices": "f81d0b69abbc800f5e3cce1948f73e9ff2c482450e0f960ef2f10ea8c33cab5c",
-        "buffers": [
-          [
-            0,
-            48,
-            "70b038d4749d46e3c61e7cd7f31b190a3e91cff45455ffc1350ea9917bf20850"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "31dae7a2a10ad513497027728e3bf3da34ee9475a5fe23002c8c05ef17482256",
+          "4:0:2": "c9e9ad803a32ec815c17361327e41acf5ef959376b0e2284bdb9b0dc43eaef36",
+          "5:0:4": "43a0c87b760610e8b33dd612170b31f4c061eae70b9ab9ad47d5be2b5222554d",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 6564,
           "sha256": "8283a9bb3d60a8740c3b7792e9c820fedbd28366f655b839bf4162574f8436bd"
@@ -699,50 +218,13 @@
       {
         "vertices": 1478,
         "indices": "98ef1257c5f1d0d9a1ba28ec23fbdbbd987559d3f4575b48ff2dce0f9b90ef05",
-        "buffers": [
-          [
-            0,
-            48,
-            "567f17186bc3d48957e59d8fc13c9a5ee62656c44a24d4221b5bea3a61de9fa1"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "57f29c2d506d836bec86c519ba95fff19847db7bc45bde91f35d8318b4d6f7fa",
+          "4:0:2": "691f46804c7df3b43e2b4f9532aebdc6faa9ea618bc68612d65ebad13a1a60b5",
+          "5:0:4": "d6928d2d60a49c0486f43f8c2fe2bab4c981d352a3620b7d4cbdbd8e2163e573",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 1478,
           "sha256": "9ac94c08a7a8ed48baf1704e0889cac1f23a2f8e70d9246d3ad5bf7588174ad1"
@@ -751,50 +233,13 @@
       {
         "vertices": 1558,
         "indices": "1ad51e0c7724f951b26c6409beebc1e3df569c2b32f76851917d3e31990f406c",
-        "buffers": [
-          [
-            0,
-            48,
-            "826be5043db39c252efc723caf62888f217fa83720b30e57edc4552cc015ea5b"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "49648732e5f64c565b6b5d230556b7457c8a47b28e7ee140fd4c614917047871",
+          "4:0:2": "306a1d557f0e3c06731797ca6f015a1ac100121567e3fdc6d67a66a60c4bc472",
+          "5:0:4": "bf3644df44c0cb6378b47143675129784b1d041fabe42f50b74b51232c9008da",
+          "7:0:1": null,
+          "9:0:2": "452c5c60176cfb4117baedf99adca89b3e8ec37c6ff2586dc74fef7b8859b982"
+        },
         "bones": {
           "count": 1558,
           "sha256": "1e9953ca505f889590a5e3973fa79153b82d541299ced21f64fd27a452844be8"
@@ -811,51 +256,14 @@
     "submeshes": [
       {
         "vertices": 1337,
-        "indices": "6c5e28114a25a96084b6907f1ebd6cad6a1b5dd53c46bb6abc424b08b383dace",
-        "buffers": [
-          [
-            0,
-            48,
-            "7194c418423c1fb0bf03a9a503e910f6475bed112ed300d022b538da1b8447b9"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "indices": "23462a55dbe35f125b0332067180e3abfb5d3aaba0e8034127cc2d8ec5dc5abe",
+        "attributes": {
+          "1:0:2": "a30ea89b3740ae83bc6e02f0139969203297c671648c9c2bc3e9ec0229a07467",
+          "4:0:2": "578059935b1ae5d684c6238c50ace9ed038be7cf51ad94d6be1631d23a39706f",
+          "5:0:4": "16a61e17f8c8d12bc7ecac8f6fb63d2de85c0eec1ea7556e2f1fb2de27c1e68d",
+          "7:0:1": null,
+          "9:0:2": "15ea4975d1fd20eb86a2c6f07fe9469e4ae43857b39134ecd612d018c48d8860"
+        },
         "bones": {
           "count": 1337,
           "sha256": "2c601cecefd181708ad6c959ec3a7c15d4f72095113d71470dd4732359e1c428"
@@ -864,50 +272,13 @@
       {
         "vertices": 22790,
         "indices": "15c92387936963afd4f6969c6be9cc58b17dace507e31e9046973b3996bc4076",
-        "buffers": [
-          [
-            0,
-            48,
-            "81823fe7a1ab4bd699308fa5dbc7878d92cbf5b80407c320098952492371bf1a"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "e0d5dc302fdb7b8f48d6c5e10c45adbf16b44c7b6325355963048d3895e04cbf",
+          "4:0:2": "4cb6ccba18a6fd7fe24bd0fb5d7c8377d281176525da87fbb48969409c743118",
+          "5:0:4": "903e6cba385621a16e8996f25939ef97462268b1221bcb4de06812c7ca350e01",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 22790,
           "sha256": "09138609c2cc0b7e8ca8a06e05076067a5c5497f24034b50a8f19d35ecc8b556"
@@ -916,50 +287,13 @@
       {
         "vertices": 4382,
         "indices": "b20a758c5e0def3634edac979b3d4349bb572333a5a2f3a366388756eeee0036",
-        "buffers": [
-          [
-            0,
-            48,
-            "45f1db8a8ba5b509d6f3f2e076bb51448a851d8e52efea4d0b8cfb399b066073"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "f359f6b5ef1da1f5347dcdd721955976e53adffb03c1a4012868f25a4e3b4633",
+          "4:0:2": "d6ebb9440910e5ef3df7595b80a2bbeddc3c44cd933ff1f0c0f7e5a22601778d",
+          "5:0:4": "3e55c78c45a722ab953e89b8db65828721e3cea8b7da68dbbd0ce1e41ec5a5f4",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 4382,
           "sha256": "46c2549b7600022d2244732c8071802e423f6e8d32ecd830ac0056b23185af20"
@@ -968,50 +302,13 @@
       {
         "vertices": 6004,
         "indices": "f22d83ab5add2675990e21c9572deab40b6e96d8c7b788f21f89b598383f44d6",
-        "buffers": [
-          [
-            0,
-            48,
-            "2129fe0cdc0544488e6ec8a374806b8d656f7154e0ef9d463d88f2ecd3f07321"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "5c9ec95c427077faa7363a4d980d66dd9d912a732d307ce8343465c909e9707d",
+          "4:0:2": "9249492e7f0f2452bf470ed026e7ef24fbd1544eaf1ebb73bfc22cd6a8fa41cb",
+          "5:0:4": "5f51737e5bf8158a3680fb2743864e71f6dcf7ceea997ce18ac97aa52b3232b0",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 6004,
           "sha256": "caf4ef55095fcf78eafbc9d6a1a75cb932e90a1a5c28f6f679b628e434f53b03"
@@ -1020,50 +317,13 @@
       {
         "vertices": 2676,
         "indices": "e396e94987a4e5db3dadb4d77fcdf00ae844eae64dda62606829e7b13e0acbfb",
-        "buffers": [
-          [
-            0,
-            48,
-            "c7d0cb4fde64e1b6abb95b98625759d39d6087c41a820ddea076d6b031e7aa9b"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "d506f0839954d3156776fb4dbea50165b8a5a854dd113187e1f6052b3f10d285",
+          "4:0:2": "3086768bb79c26a285fb0f9c08acbaa975d53fce35081309c945a59eb7d6bb70",
+          "5:0:4": "c6c38234ae4990c3803bfb736eb56cb306c9a8ad88eaba4b636ad8ad62778fe2",
+          "7:0:1": null,
+          "9:0:2": "fead789b020d48c8d2969e5305360d7631820863491f8f2ad934e760904a602f"
+        },
         "bones": {
           "count": 2676,
           "sha256": "084de9863762b57c04b68c920f3d0a4aa68fd563224171a579e7b630feda510d"
@@ -1079,53 +339,17 @@
     "skeleton": "ubtart.skeleton",
     "submeshes": [
       {
-        "vertices": 80,
-        "indices": "38928da9d4652510f41c834a9a5fa25760d47328d624577a981c7e548b99ca9b",
-        "buffers": [
-          [
-            0,
-            24,
-            "f28ca0fb670564f402b071f278f7dd690c88557e94f569d9a303e7ea9722909f"
-          ],
-          [
-            1,
-            12,
-            "c7618b82da95e08186da62b3eb556d7df908e9a9544d8d27ccfb4767ab12321f"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 1,
-            "type": 10,
-            "semantic": 5,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 1,
-            "type": 1,
-            "semantic": 7,
-            "offset": 4,
-            "index": 0
-          }
-        ],
+        "vertices": 84,
+        "indices": "428c99f08461ffd439fdc65778f9356749ae7914aa5c15f9527bfeb9640e36a0",
+        "attributes": {
+          "1:0:2": "4c6d56b3ae6a797a3501216e836d1828ad82b5faf56697e0d66d0604b93dc6d2",
+          "4:0:2": "afcf352248502186c2714e42628c3e78311be83126d936502c8e7eaf16198b7e",
+          "5:0:10": "77071fc978963dce5058c795643c95c195d0d2506c5f02ff38c09e4c8d6ec517",
+          "7:0:1": null
+        },
         "bones": {
-          "count": 80,
-          "sha256": "ba5d7edc14ebd8f99af8a57449948523e0bd867ec858c642502f174415dae7aa"
+          "count": 84,
+          "sha256": "a1afa71027574f77a8aacc75144977e3c693e83c116cb92583cff4b4d4cde92a"
         }
       }
     ],
@@ -1140,50 +364,13 @@
       {
         "vertices": 15890,
         "indices": "08822e419cc041dd372f6faf9620544806cb070e7c71f3d970774419dafce392",
-        "buffers": [
-          [
-            0,
-            48,
-            "fb2c3c4801b6a2f8e78935897508e93f307dfd61b3f8f6425d3b9d4d4e9ffca3"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "1105c80df5312548ac5602adcaf7a8dd50905c914f1f7680b1ff30ded3a8228c",
+          "4:0:2": "5e37bee0951d39d8f6b6718b42f5a58cf8b9cf4676297f4e0c29a0761c7e8fdc",
+          "5:0:4": "5ae2d086f00d01ab1443c188d5a9c739f7ea092727ddc3c8602dde32cf6d6f3c",
+          "7:0:1": null,
+          "9:0:2": "5a504ebdcb0997f7edfa5471db17cf1baa34eacb324e51e039a87dee00eaf0bf"
+        },
         "bones": {
           "count": 15890,
           "sha256": "9433e74f4f982a0414e1745330bc8c011817d95876b5c1f1ee40a722d0d79ab0"
@@ -1192,50 +379,13 @@
       {
         "vertices": 7295,
         "indices": "21db76cb028b329a34c3882d1695ba628c697753e7f923744a0b36c8c38d30a7",
-        "buffers": [
-          [
-            0,
-            48,
-            "ccdf4a2ae0300b494e2543159c52225b5a4841796c957ee27a591d7018c7face"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "1e7e8f871fca47cb8ce5e3ae4f0168a83cb524b4c80435702c666790298516fb",
+          "4:0:2": "977b0652b372510a02a9f57d63996ae0032d13d698773eb576add46fa54a1f30",
+          "5:0:4": "c5a772fc846a8658ee6ff7dc3204a3b73ed2ee5ba7427f4f09e466479ace13dc",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 7295,
           "sha256": "0c2cb25dc642802538f66772a3338b25030d2cd07847eff516caf2f45ca5df4a"
@@ -1244,50 +394,13 @@
       {
         "vertices": 15,
         "indices": "062523a6607976aca0af57c5bf8327a6ebb2d716f34531554a1866911701bd02",
-        "buffers": [
-          [
-            0,
-            48,
-            "2e719df64d16eb92f1bd00fa914a8237a10e189f41c3c6730a04b8eccd0724c5"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "8e6d7710229c5de0b2fe38d421888c0290d879b054d9a96037cbadf9623a3732",
+          "4:0:2": "4e82fb6d23c2822faacc1a8ec0a0fa3d952554d71cbcf749515c5cc1c696f978",
+          "5:0:4": "629a5c51b535fbed8cf66fe66ca7d893116c7b7a851db41f079e929680540f58",
+          "7:0:1": null,
+          "9:0:2": "02342cb3cbc7c851bb5a3fff689974ff7520e12e15778076e2992a49364ca18d"
+        },
         "bones": {
           "count": 15,
           "sha256": "a7649e71e6b2eac19a7743b0c20138ad806d8259fe04b224cf5973d430f7a8db"
@@ -1296,50 +409,13 @@
       {
         "vertices": 12656,
         "indices": "533f6ad0586a1dda4f140a167a42b6000c1b368625477c42df81cde82e4ae944",
-        "buffers": [
-          [
-            0,
-            48,
-            "7e09aaaef11aea1a3f0de52b074efff7c20321f63d83769e86af061beec1732a"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "9111c54e12b6a69c42450359c7330c126f1da31aa447895f617a7ed179542653",
+          "4:0:2": "3ebfe323f435aff7755cb4b0cb711dd5911a253635cbedb8c877975583ef14d2",
+          "5:0:4": "bd29f536d8fcc952edeebd6d266f82621e0bdd75bc70898b019b2df31cf3bd8a",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 12656,
           "sha256": "576e28004d7e2656e554f893f247aaadf9456def147a381049f92fdd0fb83e07"
@@ -1348,50 +424,13 @@
       {
         "vertices": 7690,
         "indices": "84cf54e4928f4e9aecfb45ff45e4498faeec892a22b3aa8fb9db94fe0a8b0e07",
-        "buffers": [
-          [
-            0,
-            48,
-            "a6e8758c8586be70f8abed9f00a3f742f4269411982e6c2c37dffc7b0610550e"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "09755a976fcce5dd552503733e67877b0662667ff35d12ecb1c8c68a10e66723",
+          "4:0:2": "a88e4dc7157cdbbe92fd44610763f6d91ef50ba1cc7d608bd4732e48b7f2a96c",
+          "5:0:4": "37b537f8ec5285c2cd6f7c19474880c268044c0aebe45789a913d6391f6db144",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 7690,
           "sha256": "9bda71b9519426f7b6c0b14810c794aa1baa16463b221dbd343de1aa15d21d68"
@@ -1400,50 +439,13 @@
       {
         "vertices": 904,
         "indices": "5004362cbc2e372781eb13804b3a2e39dcdb6e019cb0f226235652b49d0b66b7",
-        "buffers": [
-          [
-            0,
-            48,
-            "6a765901e5126a8c322aaf9753f815220292cb36ada2bffc8beb586826446e5e"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "acddbace269bd9a489221e3e2d3379ff357f2ddd893bd5d95b675f26cc51a6a7",
+          "4:0:2": "fa501c7aa8f998968199b4924923f83bfa51a923badc01507311276245c117cc",
+          "5:0:4": "666c6977ca8756564107342e952271b110e9534f5abb5b3f32b04c1965101e85",
+          "7:0:1": null,
+          "9:0:2": "ec8548201f5aaa84c522c2756e2788aed7596c894b1234949e434d3f97f4f471"
+        },
         "bones": {
           "count": 904,
           "sha256": "332613ce05439096cfeaa607b74e5acf84c8893edf52833000b436a63639c202"
@@ -1452,50 +454,13 @@
       {
         "vertices": 48,
         "indices": "158799230dccdd2ff8ce6f045f12a0447b69462e6644f179fb72673d2231ef50",
-        "buffers": [
-          [
-            0,
-            48,
-            "67136092dc34acb0b7c0ba6813469d7e79de6450ccfc6ad9a63bd357b79fb432"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "96a32bf65936b16b69617130c75a4745b875517208f15b16a47f89c3bca1e49b",
+          "4:0:2": "098a5c912948742586640dd21424c2c347d26acf97b6776a948bfdf8a93f7869",
+          "5:0:4": "8f62c344eff1568474fb693b8c18526629db443b9653a84264189c97693605de",
+          "7:0:1": null,
+          "9:0:2": "629279cff0f15faee9e614c6ed7c46fb0c1e4a382d2919ab580328367839ec0c"
+        },
         "bones": {
           "count": 48,
           "sha256": "72e2d48491351ac34058f1a3d2c8e4180ee5559be056cd6a28f05a04aed8cf20"
@@ -1504,50 +469,13 @@
       {
         "vertices": 96,
         "indices": "a572acf2bd6113b5fc267dbd26e3916684d76a7abf6a4472c511bef6488513c7",
-        "buffers": [
-          [
-            0,
-            48,
-            "18395b9658ba130fb3c61363c684ae42acc87386fa7013dfd918fda4e03d951f"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "242482aa88e7c84a5e03628f4fc463795c871e51151a90e21865e8eec0aad524",
+          "4:0:2": "03768b65a6c87c99319128c5d724808bdff3be5983fea0187b0bd55173736a7c",
+          "5:0:4": "a292bc4a1d8d3caa7dd32d1858f7d642a27373526b84cde7df8634faad708d2a",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 96,
           "sha256": "dc371d36f4bb67fb448e057e970a7e5fb5fe59711b5b5594ad5c3b270e3afc08"
@@ -1565,50 +493,13 @@
       {
         "vertices": 12113,
         "indices": "7d215818c925dc23ec9696fc1cfcc728b6cd5e57d267de3a64b1b09cd32bb885",
-        "buffers": [
-          [
-            0,
-            48,
-            "7a3a484142df0e3cb0ecb795584753811ad0bff041fcc017ec082f5273a517d1"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "d0cfb678bbc84429860434302b218cc6b04ab49f6b3d7fa80091fcd255689ac0",
+          "4:0:2": "d951fe6f90828d52e678432aae3c6fd68c20df1556847be4b93c2d9c2f77c4ba",
+          "5:0:4": "80a19d430469c43d8569b2cf76b2941314ca3f552718718c9040bfc8f13ec6f8",
+          "7:0:1": null,
+          "9:0:2": "73216c4701e0433b9cf1da95e5540d5bc830527d74eeb2c8f575e9b44d492065"
+        },
         "bones": {
           "count": 12113,
           "sha256": "b0fd47d17edea20d22dcc507c188eb47eea2ac6ac7d501f3eb8030b5d3b264a2"
@@ -1617,50 +508,13 @@
       {
         "vertices": 3315,
         "indices": "c38b87ac9ca4df7604fe0ea59c1c04563fa1d226e99ae63deb4d10a03d561999",
-        "buffers": [
-          [
-            0,
-            48,
-            "3c7a8b7e1a19d57511b136ab7d4bb29c2f0fcb8bc4e44e0f6d96f98e8021aa90"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "76c30c0917a994dd587f667ffac90447daeecb0cf030b7f5aef5c47378bb0571",
+          "4:0:2": "f32865515ca671a7cc6d63ccc2f8a609ab48936c767bd1fbf0e42fb82118f8ab",
+          "5:0:4": "4e2806ea18e732a0c2b2689908b11072c97531e9a858bf31e6277bfda6446969",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 3315,
           "sha256": "511d814d69af8cd5447d03ca2649907c2ea18d65750066d8698298dac2811df4"
@@ -1669,50 +523,13 @@
       {
         "vertices": 81,
         "indices": "68e78f33d6437ebd3f00315baef2f88bd1eb93264485b226cdc79d14dc0ccf1f",
-        "buffers": [
-          [
-            0,
-            48,
-            "1566cf15b3ce1b45aacc16d15a27fb742f298c08fea0414f4eb06e21fb858ab9"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "48b264aec20147b93cf28519fc60bdc010283df7d292e287b878bc6dfec62bb7",
+          "4:0:2": "14630e47a2a5e5ae288a3fed0d3b62cafe84b12faf61a18e9fa8b657df5d0704",
+          "5:0:4": "18cbd03d016c3e706e120559b5cbba2df58eb41820d292665c0ab277b354c921",
+          "7:0:1": null,
+          "9:0:2": "d22d929b5d06b8979a42c5a91bdc6f3c65da9f3efc40d3c838f2a404f3cf1221"
+        },
         "bones": {
           "count": 81,
           "sha256": "92d5a8c766d22ecc1f9057e0733b84af568142e65cad9ae0be6303ef4e46ec23"
@@ -1721,50 +538,13 @@
       {
         "vertices": 18786,
         "indices": "df5c8dca4080f6457e342c481b43fc09c183ea0ab94fbb68f229b7e0b65d8a31",
-        "buffers": [
-          [
-            0,
-            48,
-            "a08a4e6e25d8ec1b444c985d31b766b2c8e80989323895a0e933483eb0f7dc24"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "982aa4b91d18928d66f33115fb43ff5221f0f71b5a0588b42818e3009286dfaa",
+          "4:0:2": "ee5caf570b958c1d999325396bf3ffef043e902374f8f13f438959ba3bb238dc",
+          "5:0:4": "d5563cbf485f5ced5dd17c93eb61a0c59c35b0eb84d85df6c485ed28ea84025b",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 18786,
           "sha256": "e698b671faddbf4c07566cf0671022f1123977d2f24a3d5e7863410177f04f8b"
@@ -1773,50 +553,13 @@
       {
         "vertices": 6656,
         "indices": "d9aa53b9ad9d1d02b6738be2b2ad97d4601227cda649df73e5a5280f07121f99",
-        "buffers": [
-          [
-            0,
-            48,
-            "87429b01cc305aaae7b9ae4ec6040e630e740fcad37de70bcb91a268a7af6832"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "84326e68ae921f8537b9b0b37135d7f1bb8cd735d84104929de3c9ee5d9d76bc",
+          "4:0:2": "ac156db69817cf08092497a12706f914006a4dafec6c07eaf293dca98d48aac9",
+          "5:0:4": "f2fd5bb1a42fb9221e1e23d8c6a5e9bc9aad92ab22015315e913c53c6385e466",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 6656,
           "sha256": "0b6bee87996788c4b565f1e0a635d73dbc2e5c8e9869f213cae32f8f00b66c77"
@@ -1825,50 +568,13 @@
       {
         "vertices": 1272,
         "indices": "e908caf9bda5b797cf1f11893f993530607ad00c9687f87c23d4df5b8c0fe81a",
-        "buffers": [
-          [
-            0,
-            48,
-            "29ddb4a1749fab01082990aa40f6821cc3a0c6e5d7b9f663d11c6fc895404e05"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "25927a3f9af945206a36a25f0c9f6cba06cd2d1b62003bbab0725744d08a87b3",
+          "4:0:2": "950bfa85ec3932fd28e354aab66fb0f04b6cea2bb9124dcb10d630623bb0e8e5",
+          "5:0:4": "97a13c36f23c3f7cdc405e4fffda058cf896d307f42aebd51f3c8a50da44cf41",
+          "7:0:1": null,
+          "9:0:2": "7594fb2e582132ec62060789d02324788efe8d1314ad673b0bac785bd9e7e92a"
+        },
         "bones": {
           "count": 1272,
           "sha256": "5138e6466a88fd70ca5e2b690c417981b0f8e569fca97fd4a5050770c9a786f7"
@@ -1877,50 +583,13 @@
       {
         "vertices": 144,
         "indices": "2b1ec07a89cfeab84263c0c63c5feb220677452d7ba9024bec749a40ae5e759c",
-        "buffers": [
-          [
-            0,
-            48,
-            "299894cf66f24c42c112f695b19d4dc6bc5b003b2491a46d133ec926c6006632"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "72e05ccb617bf0109eed39ed3d4cd3ea09d3b1057c509c2e8141bc3e84acb098",
+          "4:0:2": "303d9d7b29f27212cc7a8abb0cf6c6ef99bfb9cefc5b365ee05963845ba91fdf",
+          "5:0:4": "a240facb7a0d5897b5826bfa52dee1963929a424e1e2d78dd2f72cd5a85cbcdf",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 144,
           "sha256": "088213a193f95cfbd45230ff6c4150822b9c2807ad3c31011a97ea4b4c189bf2"
@@ -1938,50 +607,13 @@
       {
         "vertices": 12113,
         "indices": "7d215818c925dc23ec9696fc1cfcc728b6cd5e57d267de3a64b1b09cd32bb885",
-        "buffers": [
-          [
-            0,
-            48,
-            "da32e8cc81c57bf17b44768b2e4b9a90c5cff0688094f3b4e3d51965e94b71e6"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "d0cfb678bbc84429860434302b218cc6b04ab49f6b3d7fa80091fcd255689ac0",
+          "4:0:2": "d951fe6f90828d52e678432aae3c6fd68c20df1556847be4b93c2d9c2f77c4ba",
+          "5:0:4": "80a19d430469c43d8569b2cf76b2941314ca3f552718718c9040bfc8f13ec6f8",
+          "7:0:1": null,
+          "9:0:2": "a5df24db5a83b1948bfdaba8683fb61e0421ace49bf948fe39122c6b34080462"
+        },
         "bones": {
           "count": 12113,
           "sha256": "b0fd47d17edea20d22dcc507c188eb47eea2ac6ac7d501f3eb8030b5d3b264a2"
@@ -1990,50 +622,13 @@
       {
         "vertices": 3315,
         "indices": "c38b87ac9ca4df7604fe0ea59c1c04563fa1d226e99ae63deb4d10a03d561999",
-        "buffers": [
-          [
-            0,
-            48,
-            "3c7a8b7e1a19d57511b136ab7d4bb29c2f0fcb8bc4e44e0f6d96f98e8021aa90"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "76c30c0917a994dd587f667ffac90447daeecb0cf030b7f5aef5c47378bb0571",
+          "4:0:2": "f32865515ca671a7cc6d63ccc2f8a609ab48936c767bd1fbf0e42fb82118f8ab",
+          "5:0:4": "4e2806ea18e732a0c2b2689908b11072c97531e9a858bf31e6277bfda6446969",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 3315,
           "sha256": "511d814d69af8cd5447d03ca2649907c2ea18d65750066d8698298dac2811df4"
@@ -2042,50 +637,13 @@
       {
         "vertices": 81,
         "indices": "68e78f33d6437ebd3f00315baef2f88bd1eb93264485b226cdc79d14dc0ccf1f",
-        "buffers": [
-          [
-            0,
-            48,
-            "1566cf15b3ce1b45aacc16d15a27fb742f298c08fea0414f4eb06e21fb858ab9"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "48b264aec20147b93cf28519fc60bdc010283df7d292e287b878bc6dfec62bb7",
+          "4:0:2": "14630e47a2a5e5ae288a3fed0d3b62cafe84b12faf61a18e9fa8b657df5d0704",
+          "5:0:4": "18cbd03d016c3e706e120559b5cbba2df58eb41820d292665c0ab277b354c921",
+          "7:0:1": null,
+          "9:0:2": "d22d929b5d06b8979a42c5a91bdc6f3c65da9f3efc40d3c838f2a404f3cf1221"
+        },
         "bones": {
           "count": 81,
           "sha256": "92d5a8c766d22ecc1f9057e0733b84af568142e65cad9ae0be6303ef4e46ec23"
@@ -2094,50 +652,13 @@
       {
         "vertices": 18896,
         "indices": "c5a29f415344a64dad35e1bf02c09e683468130a7449bc98e1486d5059e52fd2",
-        "buffers": [
-          [
-            0,
-            48,
-            "2f9c6c6933dbb6d865b020669bb27e1eef537170ac145b4c1fb3412a515a2a44"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "81e7ae541eb2d91c4f2c4ba5267477a60a9fe7b2fd2a95d90e11296d69dc775f",
+          "4:0:2": "548cbf02cfe89185a4dea4031cb8df40f95a2a99aa113186e9c83334f4b81dd2",
+          "5:0:4": "92651814272d7310839fa2922ac1691c1252ec593b2ed82bfe15c37365cc9a03",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 18896,
           "sha256": "3a97732c5fb16d6928fbe379daf35a4114e81483176a0ef08a0f10a642f44c6c"
@@ -2146,50 +667,13 @@
       {
         "vertices": 6656,
         "indices": "cf9b63be4371c3fb7f384a1f5a7de2aa395b48f69982d181e3bf2d9e73ee0ab3",
-        "buffers": [
-          [
-            0,
-            48,
-            "a19e455fbe957791e49d9bc1d1335675fbb5ff340a47f14f374b85d4eeed081a"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "d374da3f31c56064096d91cf194501aea1105b1579a5107cc0e6644f374038b3",
+          "4:0:2": "79fce4b127594490fdc413d70c0cac615a3b45bb22c6bef0d3d1dabd75a77c3a",
+          "5:0:4": "f2fd5bb1a42fb9221e1e23d8c6a5e9bc9aad92ab22015315e913c53c6385e466",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 6656,
           "sha256": "0b6bee87996788c4b565f1e0a635d73dbc2e5c8e9869f213cae32f8f00b66c77"
@@ -2198,50 +682,13 @@
       {
         "vertices": 1272,
         "indices": "e4d5b494de633cbb6f5604e47b379a3f7dd765d619e5c542f27fcc26e5fbfb05",
-        "buffers": [
-          [
-            0,
-            48,
-            "b9a51a22bb7fc31b1cdd8c659103bd4ffb25a09651aeffa1ba71dabd5773d6aa"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "4fd18c946f5229edcabd39a8e2772a88e2884d96a8d0c1e43e81a5501ac2aa8d",
+          "4:0:2": "0097c50eac69ab83174748d6e1b587cb49528978c2b5e3836fe794763a946417",
+          "5:0:4": "97a13c36f23c3f7cdc405e4fffda058cf896d307f42aebd51f3c8a50da44cf41",
+          "7:0:1": null,
+          "9:0:2": "d1e3258280454d1bc043f9c9b00b231bbea5606664a67e68f9a885f79055409c"
+        },
         "bones": {
           "count": 1272,
           "sha256": "5138e6466a88fd70ca5e2b690c417981b0f8e569fca97fd4a5050770c9a786f7"
@@ -2250,50 +697,13 @@
       {
         "vertices": 144,
         "indices": "2b1ec07a89cfeab84263c0c63c5feb220677452d7ba9024bec749a40ae5e759c",
-        "buffers": [
-          [
-            0,
-            48,
-            "299894cf66f24c42c112f695b19d4dc6bc5b003b2491a46d133ec926c6006632"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "72e05ccb617bf0109eed39ed3d4cd3ea09d3b1057c509c2e8141bc3e84acb098",
+          "4:0:2": "303d9d7b29f27212cc7a8abb0cf6c6ef99bfb9cefc5b365ee05963845ba91fdf",
+          "5:0:4": "a240facb7a0d5897b5826bfa52dee1963929a424e1e2d78dd2f72cd5a85cbcdf",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 144,
           "sha256": "088213a193f95cfbd45230ff6c4150822b9c2807ad3c31011a97ea4b4c189bf2"
@@ -2311,50 +721,13 @@
       {
         "vertices": 12113,
         "indices": "7d215818c925dc23ec9696fc1cfcc728b6cd5e57d267de3a64b1b09cd32bb885",
-        "buffers": [
-          [
-            0,
-            48,
-            "5b4b4b5c20d0411665dd87868ab573adc8b03c17ad655df37ec5a55b80a2b43b"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "d0cfb678bbc84429860434302b218cc6b04ab49f6b3d7fa80091fcd255689ac0",
+          "4:0:2": "d951fe6f90828d52e678432aae3c6fd68c20df1556847be4b93c2d9c2f77c4ba",
+          "5:0:4": "80a19d430469c43d8569b2cf76b2941314ca3f552718718c9040bfc8f13ec6f8",
+          "7:0:1": null,
+          "9:0:2": "9049da79a388a1bdb536d7793626f84cefda928aaafeecc4e17d3b8bb1af3ff5"
+        },
         "bones": {
           "count": 12113,
           "sha256": "b0fd47d17edea20d22dcc507c188eb47eea2ac6ac7d501f3eb8030b5d3b264a2"
@@ -2363,50 +736,13 @@
       {
         "vertices": 3315,
         "indices": "c38b87ac9ca4df7604fe0ea59c1c04563fa1d226e99ae63deb4d10a03d561999",
-        "buffers": [
-          [
-            0,
-            48,
-            "3c7a8b7e1a19d57511b136ab7d4bb29c2f0fcb8bc4e44e0f6d96f98e8021aa90"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "76c30c0917a994dd587f667ffac90447daeecb0cf030b7f5aef5c47378bb0571",
+          "4:0:2": "f32865515ca671a7cc6d63ccc2f8a609ab48936c767bd1fbf0e42fb82118f8ab",
+          "5:0:4": "4e2806ea18e732a0c2b2689908b11072c97531e9a858bf31e6277bfda6446969",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 3315,
           "sha256": "511d814d69af8cd5447d03ca2649907c2ea18d65750066d8698298dac2811df4"
@@ -2415,50 +751,13 @@
       {
         "vertices": 81,
         "indices": "68e78f33d6437ebd3f00315baef2f88bd1eb93264485b226cdc79d14dc0ccf1f",
-        "buffers": [
-          [
-            0,
-            48,
-            "1566cf15b3ce1b45aacc16d15a27fb742f298c08fea0414f4eb06e21fb858ab9"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "48b264aec20147b93cf28519fc60bdc010283df7d292e287b878bc6dfec62bb7",
+          "4:0:2": "14630e47a2a5e5ae288a3fed0d3b62cafe84b12faf61a18e9fa8b657df5d0704",
+          "5:0:4": "18cbd03d016c3e706e120559b5cbba2df58eb41820d292665c0ab277b354c921",
+          "7:0:1": null,
+          "9:0:2": "d22d929b5d06b8979a42c5a91bdc6f3c65da9f3efc40d3c838f2a404f3cf1221"
+        },
         "bones": {
           "count": 81,
           "sha256": "92d5a8c766d22ecc1f9057e0733b84af568142e65cad9ae0be6303ef4e46ec23"
@@ -2467,50 +766,13 @@
       {
         "vertices": 18720,
         "indices": "eba52c5a19a5752c2dfae3a3ff9dd8d72697846ce4ef57331484dff27519b441",
-        "buffers": [
-          [
-            0,
-            48,
-            "374d675eb279ac67b84988cb84d1fb947a84006c1f73b6fba0d23a39e484855d"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "4d6e217dec73719bbfb10a6bfd66e1345ff57ccc151ccbc7bd1edc67805d9d10",
+          "4:0:2": "1618b2518f959ad899d82cd7f36f4d359ea44483aa5d475a3001a1cbfc4b7f1e",
+          "5:0:4": "1a4346688ccf4395f9ec2d310a9f6e26d36b4749519f32000e60257866c6f023",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 18720,
           "sha256": "f4fa253d892e2f55a0b5f4b5ed61d80488e7529f9b6fbabb648badb1d4ab02ee"
@@ -2519,50 +781,13 @@
       {
         "vertices": 6656,
         "indices": "ce1ac2966a71ff7e08c1e6ee867307faa3fc05dcc337eb1493db78b81ed96a8b",
-        "buffers": [
-          [
-            0,
-            48,
-            "2efb2639aedc75ca7fe51699363f4916a7ec56dc8e3c6dd5d3a6adc77c1d920f"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "cd207b73893128e0e708d0477c813b62925ede1a03d875aaa83f0068dc179b40",
+          "4:0:2": "f6446e6743e86ce75373a9c7d039c75a29422d2fcc431a73076093c81d3e9732",
+          "5:0:4": "f2fd5bb1a42fb9221e1e23d8c6a5e9bc9aad92ab22015315e913c53c6385e466",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 6656,
           "sha256": "0b6bee87996788c4b565f1e0a635d73dbc2e5c8e9869f213cae32f8f00b66c77"
@@ -2571,50 +796,13 @@
       {
         "vertices": 1272,
         "indices": "e908caf9bda5b797cf1f11893f993530607ad00c9687f87c23d4df5b8c0fe81a",
-        "buffers": [
-          [
-            0,
-            48,
-            "4656914795cf39bc30710ba1723a795a1c5c4f4a17250c9d5193f62326060328"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "ba1f35681ef7041e943dbbe4a3c93dd8709418e38348bae902c72764171b8584",
+          "4:0:2": "103661b8c1e520f41bfcd75402b03f84caa54c98dcee1254ba1274d2a3c029f3",
+          "5:0:4": "97a13c36f23c3f7cdc405e4fffda058cf896d307f42aebd51f3c8a50da44cf41",
+          "7:0:1": null,
+          "9:0:2": "8a300aa5064e8c6bb0e5a387bc627e14dfdbd2df575555de3028aed9bf904559"
+        },
         "bones": {
           "count": 1272,
           "sha256": "5138e6466a88fd70ca5e2b690c417981b0f8e569fca97fd4a5050770c9a786f7"
@@ -2623,50 +811,13 @@
       {
         "vertices": 144,
         "indices": "2b1ec07a89cfeab84263c0c63c5feb220677452d7ba9024bec749a40ae5e759c",
-        "buffers": [
-          [
-            0,
-            48,
-            "299894cf66f24c42c112f695b19d4dc6bc5b003b2491a46d133ec926c6006632"
-          ]
-        ],
-        "layout": [
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 1,
-            "offset": 0,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 4,
-            "offset": 12,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 1,
-            "semantic": 7,
-            "offset": 24,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 2,
-            "semantic": 9,
-            "offset": 32,
-            "index": 0
-          },
-          {
-            "source": 0,
-            "type": 4,
-            "semantic": 5,
-            "offset": 44,
-            "index": 0
-          }
-        ],
+        "attributes": {
+          "1:0:2": "72e05ccb617bf0109eed39ed3d4cd3ea09d3b1057c509c2e8141bc3e84acb098",
+          "4:0:2": "303d9d7b29f27212cc7a8abb0cf6c6ef99bfb9cefc5b365ee05963845ba91fdf",
+          "5:0:4": "a240facb7a0d5897b5826bfa52dee1963929a424e1e2d78dd2f72cd5a85cbcdf",
+          "7:0:1": null,
+          "9:0:2": null
+        },
         "bones": {
           "count": 144,
           "sha256": "088213a193f95cfbd45230ff6c4150822b9c2807ad3c31011a97ea4b4c189bf2"

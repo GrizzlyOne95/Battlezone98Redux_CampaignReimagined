@@ -35,6 +35,9 @@ check(F.count(host, "SetAIControl", 5) == 1 and F.index(host, "SetAIControl") <=
 check(F.count(host, "SetAIControl", 2) == 0, "no DLL team-2 AI control survives")
 check(F.count(host, "DisableStartingRecycler") == 0, "offline keeps the native recycler rules")
 F.tick()
+check(host.pda.Initialize == 1, "PersistentConfig.Initialize ran exactly once after Start")
+check(host.pda.UpdateInputs >= 1 and host.pda.UpdateHeadlights >= 1, "the first Update drives PersistentConfig inputs and headlights")
+check(host.pda.Initialize == 1, "the first Update does not re-initialize PersistentConfig")
 check(F.count(host, "SetAIP") == 1 and F.last(host, "SetAIP")[2] == "misn14.aip" and F.last(host, "SetAIP")[3] == 5,
     "SetAIP names the CCA team (shipped 1.5 passes the team)")
 check(F.count(host, "AddPilot", 5) == 1 and F.count(host, "SetScrap", 5) == 1 and F.count(host, "SetScrap", 1) == 1,

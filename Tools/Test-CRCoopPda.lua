@@ -5,7 +5,7 @@ local Pda, Hud = require("CRCoopPda"), require("CRCoopPingHud")
 local Data = require("PersistentConfigData")
 local active, calls, checks = false, {}, 0
 local me, host, now = 30, false, 0
-local requests, onFoot, selection, markers = {}, { [30] = true }, {}, true
+local requests, onFoot, selection, markers, hostMarker = {}, { [30] = true }, {}, true, false
 local bo = { name = "bo craft" }
 local aimed = { "terrain", nil, { x = 1, y = 2, z = 3 } }
 local players = { [20] = { name = "Ian", team = 1, ready = true }, [30] = { name = "Ann", team = 2, ready = true },
@@ -20,6 +20,8 @@ local comms = { IsActive = function() return active end, GetPings = function() r
     Describe = function(id) return requests[id] and "NEEDS A RIDE" or onFoot[id] and "on foot" or "H90 A80" end,
     MarkersOn = function() return markers end,
     SetMarkers = function(on) markers = on; return log("markers " .. tostring(on)) end,
+    HostMarkerOn = function() return hostMarker end,
+    SetHostMarker = function(on) hostMarker = on; return log("host marker " .. tostring(on)) end,
     Respond = function(id, value) return log("respond " .. id .. " " .. value) end,
     SendPing = function(kind) return log(kind) end,
     TargetPing = function(id) return log("target " .. id) end,
@@ -56,17 +58,22 @@ local function rows(text)
     for line in (text:match("^[^\n]*\n(.-)\n\n") or ""):gmatch("[^\n]+") do n = n + 1 end
     return n
 end
--- Guest on foot: three rows, no host rows.
+-- Guest on foot: four rows (host marker in place of recall), no host rows.
 local text = render()
 check(text:find("> CALL RIDE (V)", 1, true) and text:find("  TARGET Ian\n", 1, true), "guest rows")
-check(rows(text) == 3 and text:find("MARKERS ON", 1, true), "guest sees three rows")
+check(rows(text) == 4 and text:find("MARKERS ON", 1, true) and text:find("HOST MARKER OFF", 1, true),
+    "guest sees four rows")
 check(not text:find("SEND", 1, true) and not text:find("RECALL", 1, true) and not text:find("GIVE", 1, true), "no host rows")
 check(text:find("Ann*  on foot", 1, true) and text:find("Ian^  H90 A80", 1, true), "team list")
-check(text:find("V help", 1, true) and text:find("Bksp do", 1, true) and text:find("J ping", 1, true), "guest footer")
+check(text:find("V help", 1, true) and text:find("Enter do", 1, true) and text:find("J ping", 1, true), "guest footer")
 ui.HandleInput(false, false, false, false, true)
 check(calls[#calls] == "help", "J calls for help")
 ui.HandleInput(false, true, false, false, true)
 check(calls[#calls] == "target 20", "J targets the teammate's mark")
+ui.HandleInput(false, true, false, false, true)
+check(calls[#calls] == "host marker true" and render():find("HOST MARKER ON", 1, true), "guest keeps the host marked")
+ui.HandleInput(false, false, false, false, true)
+check(calls[#calls] == "host marker false", "and can switch it off")
 ui.HandleInput(false, true, false, false, true)
 check(calls[#calls] == "markers false", "J toggles markers")
 check(ui.PingAim() and calls[#calls] == "terrain", "J pings")
@@ -96,13 +103,14 @@ requests = { [40] = { name = "Bo", kind = 1, status = "Requested" } }
 ui.selected = nil; ui.row = 1
 text = render()
 check(text:find("> SEND RIDE (V) > Bo\n", 1, true) and text:find("Bo RIDE: <YES>", 1, true), "host rows")
-check(text:find("RECALL ALL TO ME", 1, true) and not text:find("CALL RIDE", 1, true), "host has recall, no help call")
+check(text:find("RECALL ALL TO ME", 1, true) and not text:find("CALL RIDE", 1, true) and
+    not text:find("HOST MARKER", 1, true), "host has recall, no help call or host marker")
 check(text:find("V send ride", 1, true) and not text:find("V help", 1, true), "host footer")
 check(ui.HelpKey() and calls[#calls] == "dispatch sabre 40", "V with a vehicle selected sends it")
 ui.HandleInput(false, true, false, false, false); ui.HandleInput(false, false, true, false, true)
 check(calls[#calls] == "respond 40 2", "Left flips the reply to NO")
 ui.selected = "recall"; ui.HandleInput(false, false, false, false, true)
-check(calls[#calls] ~= "recall" and render():find("RECALL ALL? BKSP AGAIN", 1, true), "recall asks first")
+check(calls[#calls] ~= "recall" and render():find("RECALL ALL? ENTER AGAIN", 1, true), "recall asks first")
 ui.HandleInput(false, false, false, false, true)
 check(calls[#calls] == "recall", "second J recalls")
 ui.HandleInput(false, false, false, false, true); now = 5; ui.HandleInput(false, false, false, false, true)
@@ -120,11 +128,13 @@ check(state.pdaPage == 1, "solo clears diagnostics page")
 do
     local clock, pings, active = 0, {}, true
     local enemy, mission, unknown = { name = "enemy" }, { name = "mission" }, { name = "unknown" }
+    local mine = { name = "mine" }
     local state = { [enemy] = { on = false, name = "Grizzly" }, [mission] = { on = true, name = "Relic" },
-        [unknown] = { on = nil, name = "Scout" } }
+        [unknown] = { on = nil, name = "Scout" }, [mine] = { on = false, name = "Ian" } }
     local log, spawned = {}, {}
     local hud = Hud.Create({
         time = function() return clock end,
+        self = function() return mine end,
         comms = function() return { IsActive = function() return active end, GetPings = function() return pings end } end,
         objective = {
             isOn = function(h) return state[h].on end,
@@ -144,8 +154,10 @@ do
     })
     pings = { [20] = { name = "Ann", kind = "object", handle = enemy, seq = 1, position = { x = 0, y = 0, z = 9 } },
         [30] = { name = "Bo", kind = "object", handle = mission, seq = 1, position = { x = 0, y = 0, z = 9 } },
-        [40] = { name = "Cy", kind = "object", handle = unknown, seq = 1, position = { x = 0, y = 0, z = 9 } } }
+        [40] = { name = "Cy", kind = "object", handle = unknown, seq = 1, position = { x = 0, y = 0, z = 9 } },
+        [50] = { name = "Di", kind = "object", handle = mine, seq = 1, position = { x = 0, y = 0, z = 9 } } }
     hud.Update(false)
+    check(not state[mine].on and state[mine].name == "Ian", "a ping on your own craft is not marked")
     check(state[enemy].on and state[enemy].name == "Ann: TARGET PING", "plain unit gets a named marker")
     check(state[mission].name == "Bo: TARGET PING", "existing objective renamed while pinged")
     check(state[unknown].on == nil, "unknown objective state is left alone")

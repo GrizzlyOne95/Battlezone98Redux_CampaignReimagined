@@ -146,7 +146,11 @@ def _scan(data):
     if data[:2] != b"\x00\x10":
         raise ValueError("not a binary Ogre mesh")
     header_end = data.index(b"\n", 2) + 1
-    for cid, cs, ce in _chunks(data, header_end, len(data)):
+    # Stock gsand00.mesh ends with one stray byte after the mesh chunk; too short to be a chunk header.
+    end = len(data)
+    if struct.unpack_from("<HI", data, header_end)[1] + header_end == end - 1:
+        end -= 1
+    for cid, cs, ce in _chunks(data, header_end, end):
         if cid != M_MESH:
             continue
         children = list(_chunks(data, cs + 1, ce))

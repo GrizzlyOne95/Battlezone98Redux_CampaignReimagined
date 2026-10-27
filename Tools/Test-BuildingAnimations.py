@@ -201,7 +201,8 @@ def test_cbwpow():
     counts = {}
     for vba in sm.bone_assignments_unsorted():
         counts[vba.bone_index] = counts.get(vba.bone_index, 0) + 1
-    check(counts.get(1, 0) == 872, "rotor vertices on bone 1: %s" % counts)
+    # 872 stock rotor vertices + 137 duplicated by the hard-edged normal splits.
+    check(counts.get(1, 0) == 1009, "rotor vertices on bone 1: %s" % counts)
     check(mesh.skeleton_name == "cbwpow.skeleton", "mesh skeleton link is %r" % mesh.skeleton_name)
 
 

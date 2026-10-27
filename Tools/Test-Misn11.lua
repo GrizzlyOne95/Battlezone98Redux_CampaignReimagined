@@ -125,7 +125,13 @@ for _, name in ipairs({"SetUserTarget", "SetScrap", "ClearObjectives",
     _G[op] = function(...) record(op, ...) end
 end
 local function noop() end
+local pda = {Initialize = 0, UpdateInputs = 0, UpdateHeadlights = 0, OnObjectCreated = 0}
 local modules = {
+    PersistentConfig = {
+        Initialize = function() pda.Initialize = pda.Initialize + 1 end,
+        UpdateInputs = function() pda.UpdateInputs = pda.UpdateInputs + 1 end,
+        UpdateHeadlights = function() pda.UpdateHeadlights = pda.UpdateHeadlights + 1 end,
+        OnObjectCreated = function() pda.OnObjectCreated = pda.OnObjectCreated + 1 end},
     RequireFix = {Initialize = noop}, exu = {},
     Environment = {Init = noop, BindWeatherSensors = noop, Update = noop, OnObjectCreated = noop},
     -- The real module plays through AudioMessage and returns its handle.
@@ -163,6 +169,7 @@ local function reset(absent)
     modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoop = assert(loadfile("Scripts/CRCoop.lua"))()
+    for k in pairs(pda) do pda[k] = 0 end
     dofile("Scripts/misn11.lua")
     Start()
     check(not Save().start_done and count("AudioMessage") == 0, "Start only initializes")
@@ -171,6 +178,9 @@ local function reset(absent)
 end
 
 local m = reset()
+check(pda.Initialize == 1, "PersistentConfig.Initialize ran exactly once after Start")
+check(pda.UpdateInputs >= 1 and pda.UpdateHeadlights >= 1, "the first Update drives PersistentConfig inputs and headlights")
+check(pda.Initialize == 1, "the first Update does not re-initialize PersistentConfig")
 check(m.start_done and m.start_delay == 15, "first Execute schedules departure")
 check(m.camera_time == 99999 and m.audmsg == 0 and not m.escape_path,
     "unused native state retained")
