@@ -116,8 +116,8 @@ Enhanced only, any tier. Reset and Suspend write zeros back.
 
 Dust worlds (`DustWorlds`, same world detection; Mars only for now) write the
 `surfaceDust` uniform once per scene: linear rgb dust colour and w amount.
-Shared materials and owned clones take it; cockpit materials and terrain never
-do. The Enhanced base shader settles dust on up-facing faces with noise, lowers
+Shared materials and owned clones take it; cockpit materials never do, and
+terrain only on maps with a shape mask (below). The Enhanced base shader settles dust on up-facing faces with noise, lowers
 F0 and raises roughness under it, and rain (`surfaceState.x`) washes it off.
 
 Materials with a baked ACT map (`ACTMap` alias) place all three weather terms
@@ -125,6 +125,37 @@ from it: dust also collects in occluded corners and concave creases, snow thins
 under overhangs and on sharp convex edges, and rain beads, trails and wet gloss
 follow AO exposure while creases pool water (glossier, darker). Without an ACT
 map exposure is 1 and dust uses up-facing faces only.
+
+## Terrain shape masks
+
+`Tools/Build-TerrainShape.py` bakes each weather map's HG2 into hollows (R)
+and ridges (G) at 10 m per texel: height minus 30 m and 90 m Gaussian blurs,
+mixed and smoothstepped. The maps of one terrain atlas sit side by side in
+`<atlas>_shape.dds` (row 0 = min Z), which the atlas material binds through the
+`TerrainShape` alias; the CR terrain base passes default to the black
+`cr_terrain_shape_none.dds`. `Scripts/CRTerrainShape.lua` (generated) maps
+each TRN to its atlas and the `surfaceTerrain` uv transform
+(`u = x*su + ou, v = z*sv + ov`; x = 0 is off). An entry is used only when its
+atlas matches the map's TRN atlas.
+
+The terrain shader's view-space position is camera-relative (maps sit near
+z = 97 km), so the shaped terrain material also takes the camera's world
+position in `surfaceCamera` on every update. With both set, snow piles into
+hollows and is scoured off ridges, and dust worlds settle dust in hollows
+(never under snow). Terrain snow and dust noise also run on absolute world XZ
+then. Re-run the tool after editing a weather map's HG2; the build writes the
+shipping lock entries too. Reset and Suspend write the transform back to zero.
+
+### Thruster wash
+
+On shaped terrain, hovering craft blow snow and dust off the ground beneath
+them. Each update scans 32 records for craft (not people or walkers) within
+250 m of the camera; strength is 1 at 4 m altitude or lower and 0 at 12 m. The
+nearest fill `surfaceWash0..5` (x, z, 8 m radius, strength); the player also
+drops a trail mark every 5 m, which fades over 4 seconds and takes any free
+slot. The shader clears 90% of the snow and all the dust inside half the
+radius, fading to a noisy rim, so the ice shows through on Europa. Slots are
+written only when they change; Reset and Suspend zero them.
 
 ## Water and compatibility
 

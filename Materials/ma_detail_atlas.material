@@ -7,6 +7,7 @@ material MA_DETAIL_ATLAS : CR_BZTerrainBase
 	set_texture_alias NormalMap mars_atlas_n.dds
 	set_texture_alias SpecularMap mars_atlas_s.dds
 	set_texture_alias EmissiveMap black.dds
+	set_texture_alias TerrainShape ma_detail_atlas_shape.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"

@@ -7,6 +7,7 @@ material EU_DETAIL_ATLAS : CR_BZTerrainBase
 	set_texture_alias NormalMap europa_atlas_n.dds
 	set_texture_alias SpecularMap europa_atlas_s.dds
 	set_texture_alias EmissiveMap europa_atlas_e.dds
+	set_texture_alias TerrainShape eu_detail_atlas_shape.dds
 	
 	set $diffuse "1 1 1"
 	set $ambient "1 1 1"
