@@ -712,6 +712,8 @@ do
     for i = 1, #L.VentTimers do L.VentTimers[i] = 1e9 end
     lone.run(5.0)
     check(#SystemsOfTemplate(lone, "CR/Europa/IceFall") == 0, "no ice fall before any plume")
+    check(L.GetFallout() == 0 and near(lone.CRWeather.PrecipitationScale, L.GlitterBase, 1e-9),
+        "with no fallout the glitter runs at its sparse base")
     check(L.TriggerPlume(ci, 1.0), "the host can trigger a plume on cue")
     local ev = lone.events("EuropaPlume")[1]
     check(ev ~= nil and ev.args[2] == ci, "and it is announced with the right site")
@@ -736,6 +738,9 @@ do
     end
     local haze = L.GetVentHaze()
     check(haze > 0.05, "the player beside the vent is in its frost haze, haze=" .. haze)
+    local fall = L.GetFallout()
+    check(fall > 0.3 and lone.CRWeather.PrecipitationScale > L.GlitterBase + 0.25,
+        string.format("under the fallout the glitter thickens, fallout=%.3f scale=%.3f", fall, lone.CRWeather.PrecipitationScale))
     check(lone.rec.fog ~= nil and lone.rec.fog.fogEnd < 270.0 and lone.rec.fog.fogEnd > 40.0,
         "and the view thins there but never closes, fogEnd=" .. tostring(lone.rec.fog and lone.rec.fog.fogEnd))
     -- The column ends, the ice lingers.
@@ -747,13 +752,16 @@ do
     check(#SystemsOfTemplate(lone, "CR/Europa/IceFall") == 0, "the ice system is destroyed once the fallout is over")
     check(#L.GetActivePlumes() == 0, "the plume is retired")
     check(L.GetVentHaze() < 0.001, "the haze clears")
+    check(L.GetFallout() == 0 and near(lone.CRWeather.PrecipitationScale, L.GlitterBase, 1e-9), "and the glitter thins back")
 
     -- Far from the vent the fog is untouched.
     lone.playerPos = { x = cs.x + 2000, y = SHELF, z = cs.z }
     L.TriggerPlume(ci, 1.0)
     lone.run(20.0)
     check(L.GetVentHaze() < 0.001, "a player far from the vent sees no haze")
+    check(L.GetFallout() == 0, "nor any fallout")
     lone.Eu.Shutdown()
+    check(lone.CRWeather.PrecipitationScale == 1.0, "Shutdown gives CRWeather its full precipitation back")
 end
 
 -- =============================================================================
@@ -1423,7 +1431,8 @@ do
         return peer, g
     end
     local RATE = 0.04
-    local peer, g = GlassPeer("glasssnow", { seed = 99, startLevel = 1, targetLevel = 1 })
+    -- No plumes: this is the ladder alone (fallout adds to it, checked with the lone plume).
+    local peer, g = GlassPeer("glasssnow", { seed = 99, startLevel = 1, targetLevel = 1, plumes = false })
     peer.Eu.ForceLevel(1, 1e6, 0.1)
     local dt, prev, worst = 0.25, 0, 0
     for _ = 1, 480 do
