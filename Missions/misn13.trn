@@ -38,17 +38,17 @@ Azimuth00   = 210
 Elevation00 = 35
 
 Texture01   = crio.map
-Size01      = 13
+Size01      = 39
 Azimuth01   = 172
 Elevation01 = 40
 
 Texture02   = crganyme.map
-Size02      = 8
+Size02      = 24
 Azimuth02   = 108
 Elevation02 = 13
 
 Texture03   = crcallis.map
-Size03      = 3
+Size03      = 12
 Azimuth03   = 243
 Elevation03 = 21
 

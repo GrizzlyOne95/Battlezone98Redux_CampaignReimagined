@@ -71,7 +71,8 @@ multiplies plume and quake pacing by `1 +/- 0.35` along a sine whose phase is de
 
 Europa is airless. Its sky is the catalog star box (`CR_Sky/EuropaStars`), with Jupiter (12.2
 degrees across, fixed in the sky) and Io, Ganymede and Callisto drawn on the TRN `[Stars]` quads of
-misn12 and misn13. The light comes from Environment's `orbit` mode: the sun's real path, a short
+misn12 and misn13 (the moons at three times their true size, at least `Size` 12, so they read as
+discs at 4K; Jupiter stays true. misn10/11 do the same for Europa, Ganymede and Callisto from Io). The light comes from Environment's `orbit` mode: the sun's real path, a short
 eclipse behind Jupiter (about 3.5 % of the day), and a dimmer Jupiter-shine at night than Io's. The
 presets therefore carry no ambient or diffuse (both `nil`), which leaves the light to the orbit.
 `Scripts/CRWorldArt.lua` turns each TRN heading into Redux's render space (z mirrored, see

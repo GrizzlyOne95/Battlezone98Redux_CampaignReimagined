@@ -60,7 +60,7 @@ material CRIO.MAP : CRJOVIAN.MAP
 		{
 			fragment_program_ref CR_Jovian_fragment
 			{
-				param_named bodyLook float4 0.43 0.05 1.2 0.0015
+				param_named bodyLook float4 0.43 0.05 1.2 0.02
 				param_named bodySpin float4 0 0 0.6 0
 				param_named bodyRing float4 0 0 0 0.01
 			}
@@ -80,7 +80,7 @@ material CREUROPA.MAP : CRJOVIAN.MAP
 		{
 			fragment_program_ref CR_Jovian_fragment
 			{
-				param_named bodyLook float4 0.43 0.05 1.2 0.0015
+				param_named bodyLook float4 0.43 0.05 1.2 0.02
 				param_named bodySpin float4 0 0 0.6 0
 				param_named bodyRing float4 0 0 0 0.01
 			}
@@ -100,7 +100,7 @@ material CRGANYME.MAP : CRJOVIAN.MAP
 		{
 			fragment_program_ref CR_Jovian_fragment
 			{
-				param_named bodyLook float4 0.43 0.05 1.2 0.0015
+				param_named bodyLook float4 0.43 0.05 1.2 0.02
 				param_named bodySpin float4 0 0 0.6 0
 				param_named bodyRing float4 0 0 0 0.01
 			}
@@ -120,7 +120,7 @@ material CRCALLIS.MAP : CRJOVIAN.MAP
 		{
 			fragment_program_ref CR_Jovian_fragment
 			{
-				param_named bodyLook float4 0.43 0.05 1.3 0.0015
+				param_named bodyLook float4 0.43 0.05 1.3 0.02
 				param_named bodySpin float4 0 0 0.6 0
 				param_named bodyRing float4 0 0 0 0.01
 			}
