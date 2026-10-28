@@ -28,7 +28,9 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     -- atlas material takes it too. Cockpit materials never do. Every world's
     -- terrain atlas also takes the swept rain wetness (darkening, puddles in
     -- the shape-mask hollows, ripples), snow world or not.
-    SnowWorlds = { europa = { 0.4, 0.88, 0.35, 1.0 } }, snow = nil,
+    -- terrain = cover on the terrain atlas only: full cover there washes every
+    -- painted tile to one white, so the ground keeps patches over its own art.
+    SnowWorlds = { europa = { 0.4, 0.88, 0.35, 1.0, terrain = 0.15 } }, snow = nil,
     -- Dust by world: linear r, g, b and amount -- the surfaceDust uniform.
     -- It settles on tops and, where a material has an ACT map, in occluded
     -- corners and creases; rain washes it off. On terrain it only fills the
@@ -372,6 +374,9 @@ local function bindOne(r)
     local source = call(exu.GetSubEntityMaterial, target(r), index)
     if own(source) then r.bindIndex=index+1;return end
     if type(source) ~= "string" or source == "" then r.retry = S.Clock + 1; return end
+    -- CRWetGlass owns CRWX_ materials (the cockpit glass) and finds the glass
+    -- submesh by its material name: a clone would hide it from CRWetGlass.
+    if string.find(source, "^CRWX_") then r.bindIndex=index+1;return end
     wetMaterial(source, r.cockpit)
     local name = "exu_surface_cr_" .. tostring(r.id) .. "_" .. tostring(index) .. (r.cockpit and "_cockpit" or "")
     if call(exu.CloneSurfaceMaterial, source, name) ~= true then r.retry = S.Clock + 1; return end
@@ -723,7 +728,7 @@ function S.Update(dt)
         -- Snow is fixed for the scene: one write per material, own retry,
         -- since terrain takes surfaceSnow but has no surfaceState.
         if snow and not state.cockpit and not state.snow and S.Clock >= (state.snowRetry or 0) then
-            local changed=writeSnow(name,snow)
+            local changed=writeSnow(name,state.terrain and snow.terrain and { snow.terrain, snow[2], snow[3], snow[4] } or snow)
             if finite(changed) and changed > 0 then state.snow=true else state.snowRetry=S.Clock+2 end
         end
         if dust and not state.cockpit and (state.shape or not state.terrain) and not state.dust and S.Clock >= (state.dustRetry or 0) then
