@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- Bundle OpenShim 1.0.0.64. It fixes the crash on the first frame after a mission ends, seen on Wine after a
+  mission win, after a save load and after a restart following a death: OpenShim now turns off the sky dome and sky
+  plane and releases its pooled gib and shell-casing meshes before the engine frees every mesh at mission end. It
+  also adds guards against writes to freed lights (headlights and emissive pulse), a terrain rain and ice shader
+  payload, and the MP setup screen with a Local server choice.
+- Bundle ExtraUtilities 1.3.2 (main bc15fc2): only touches the sun while it is a live light, respects material
+  groups and balances native material references, and fixes DX11 font bridge reference counts (the ISDF Chronicles
+  status-ring crash).
+- Weather and worlds:
+  - rain wetness, puddles and ripples on terrain, plus Achilles shape masks;
+  - Europa gets lighter snow cover, ice glitter as plume fallout, and frost and ice on the cockpit glass;
+  - Jovian moons draw at three times true size, with a faint night side;
+  - thruster wash trails fade out instead of popping;
+  - barrel-less craft guns flash at their hardpoint.
+
 - Bundle ExtraUtilities 1.3.1 (main 8c175e5): adds `exu.SetChatOnEnter`, so the co-op PDA takes Enter for rows
   instead of opening chat, plus the surface/snow vertex vector API used by the weather surfaces.
 - Fix the crash when loading a save of a CR mission (misn02b first reported): `aiCore.Load` no longer rebuilds its
