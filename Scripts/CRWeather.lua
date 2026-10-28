@@ -51,6 +51,11 @@ CRWeather.Quality            = 1.0
 -- approach the objective") without swapping presets.
 CRWeather.Intensity          = 1.0
 
+-- Multiplier on the precipitation particles only (fog, light and sky keep the
+-- preset): a director whose fallout is local, like Europa's plumes, sets it from
+-- where the player is. Not saved; Init puts it back to 1.
+CRWeather.PrecipitationScale = 1.0
+
 -- The sky layer is opt-in. Ogre exposes the skydome's generation parameters but
 -- not its material name, so once we swap the sky we cannot discover what to
 -- swap back to. A mission must state its own base sky before the sky layer will
@@ -813,6 +818,7 @@ local function SyncSystems(dt)
     for systemName, live in pairs(CRWeather.LiveSystems) do
         local presetWeight = LayerWeight(live.preset)
         local weight = Clamp01(presetWeight) * Clamp01(CRWeather.Intensity) * math.max(0.0, CRWeather.Quality)
+            * Clamp01(CRWeather.PrecipitationScale)
         local terrainPool = UpdateTerrainPool(systemName, live, dt)
 
         -- Gusts modulate rate only, so one authored template covers calm and gale.
@@ -1258,6 +1264,7 @@ function CRWeather.Init(options)
     CRWeather.Clock = 0.0
     CRWeather.Blend = 0.0
     CRWeather.BlendTarget = 0.0
+    CRWeather.PrecipitationScale = 1.0
     CRWeather.BlendRate = 0.0
     CRWeather.Active = nil
     CRWeather.Layers = {}
@@ -1355,6 +1362,10 @@ end
 
 function CRWeather.GetIntensity()
     return CRWeather.Intensity
+end
+
+function CRWeather.SetPrecipitationScale(scale)
+    CRWeather.PrecipitationScale = Clamp01(tonumber(scale) or 1.0)
 end
 
 -- Liquid precipitation explicitly opts in; snow, ash and fog remain dry.

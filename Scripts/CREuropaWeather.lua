@@ -149,6 +149,12 @@ V.TidalDepth           = 0.35    -- +/- fraction of the rate
 V.FrostRate            = 1.6     -- particles/second of a sheet at full weight, before the ladder
 V.FrostFallBoost       = 1.5     -- extra frost rate (x) beside a falling-out plume
 V.FrostFallRange       = 380.0
+-- Glitter. Europa has no snowfall: the ice that falls is a plume's fallout, so
+-- the preset glitter runs at GlitterBase (frost sparkling off the surface)
+-- and climbs to full under falling fallout (FalloutNear the player). The
+-- same fallout adds up to GlassFallout to the glass frost level.
+V.GlitterBase          = 0.15
+V.GlassFallout         = 0.5
 V.FrostHeight          = 2.0     -- sheet height above the ground
 
 -- Plumes.
@@ -781,6 +787,15 @@ local function FalloutNear(x, z)
     end
     return Clamp(total, 0.0, 1.0)
 end
+
+-- Fallout where the local player stands, 0..1 (0 with no player).
+local function UpdateFallout()
+    local p = LocalPlayerPosition()
+    V.Fallout = p and FalloutNear(p.x, p.z) or 0.0
+    CRWeather.SetPrecipitationScale(V.GlitterBase + ((1.0 - V.GlitterBase) * V.Fallout))
+end
+
+function V.GetFallout() return V.Fallout or 0.0 end
 
 local function UpdateFrostSystems()
     if V.Clock < V.NextFrostAt then return end
@@ -1731,7 +1746,7 @@ local function UpdateGlassSnow(dt)
     local target = 0.0
     if V.AllowGlassSnow and (tonumber(CRWeather.Quality) or 1.0) > 0.0 then
         local breathe = 0.85 + 0.15 * math.sin(V.Clock * (2.0 * math.pi / 170.0))
-        target = (GLASS_SNOW_BASE + GLASS_SNOW_SPAN * V.GetSeverity()) * breathe
+        target = (GLASS_SNOW_BASE + GLASS_SNOW_SPAN * V.GetSeverity()) * breathe + V.GlassFallout * (V.Fallout or 0.0)
     end
     local step = GLASS_SNOW_RATE * dt
     V.GlassSnow = V.GlassSnow + Clamp(target - V.GlassSnow, -step, step)
@@ -1761,6 +1776,7 @@ function V.Update(dt)
     UpdateSurge()
     UpdateVents(dt)
     UpdateFrostSystems()
+    UpdateFallout()
     UpdateGlassSnow(dt)
 
     if V.Clock >= V.NextStreamAt then
@@ -1809,6 +1825,8 @@ function V.Shutdown()
     V.EnvModifierRegistered = false
 
     CRWeather.ClearWindOverride()
+    CRWeather.SetPrecipitationScale(1.0)
+    V.Fallout = 0.0
     Wake.Stop()
     CRWeather.Shutdown()
     V.Initialized = false
