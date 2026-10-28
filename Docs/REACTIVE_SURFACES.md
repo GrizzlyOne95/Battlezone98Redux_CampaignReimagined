@@ -157,6 +157,19 @@ slot. The shader clears 90% of the snow and all the dust inside half the
 radius, fading to a noisy rim, so the ice shows through on Europa. Slots are
 written only when they change; Reset and Suspend zero them.
 
+### Rain on terrain
+
+Every world's terrain atlas material is registered for the swept rain wetness
+(`surfaceState.x`), whether or not the world has snow or dust. The Enhanced
+terrain shader darkens the ground with it, collects puddles in the hollows of
+the map's shape mask and ripples them. Maps without a shape entry get the
+darkening only. Thruster wash only runs on snow or dust worlds.
+
+Achilles (`AC_DETAIL_ATLAS`: misn17, misn18) has shape masks in
+`ac_detail_atlas_shape.dds`; build with
+`Tools/Build-TerrainShape.py --atlas eu_detail_atlas,ma_detail_atlas,ac_detail_atlas`
+(the default atlas list does not include it).
+
 ## Water and compatibility
 
 OpenShim Enhanced High DX11 shaders provide small beads, flowing trails and
