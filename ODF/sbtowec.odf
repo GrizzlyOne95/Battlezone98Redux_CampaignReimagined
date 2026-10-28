@@ -19,8 +19,9 @@ weaponName2 = "gbolt"
 
 [CraftClass]
 // CR CRAFT FLASH OFFSET BEGIN
-// Visible barrel tip from the hardpoint (right up forward, metres); replaces the
-// weapon's flashOffset for this craft. Regenerate: Tools/Build-WeaponFlashes.py --measure
+// Flash point from the hardpoint (right up forward, metres: barrel tip, or 0 0 0 at
+// a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
+// Regenerate: Tools/Build-WeaponFlashes.py --measure
 flashOffset1 = "-0.02 0.47 3.23"
 flashOffset2 = "0.01 0.47 3.22"
 // CR CRAFT FLASH OFFSET END

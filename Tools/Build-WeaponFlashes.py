@@ -27,6 +27,13 @@ OFFSETS = ROOT / "References/WeaponPresentation/craft-flash-offsets.json"
 GAME = Path(os.environ.get("BZR_GAME_DIR", r"C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux"))
 # Tips closer than this (m) to the hardpoint get no per-craft key.
 MIN_TIP = 0.1
+# A barrel-less hardpoint gets a flash at itself only when its parent's geometry
+# within HULL_WINDOW (m, right/up, parent frame) ends between MAX_AHEAD (m) behind
+# and MAX_BURIED (m) ahead of it: a flash floating in front of the hull, or one
+# buried inside it, is worse than none.
+HULL_WINDOW = 0.25
+MAX_BURIED = 0.3
+MAX_AHEAD = 0.1
 # Front slab (m) of a barrel whose bounding-box centre is the aperture centre.
 TIP_SLAB = 0.25
 
@@ -320,7 +327,8 @@ def barrel_vertices(mesh, bone_index):
 def measure_slot(mesh, skeleton, hardpoint):
     """Offset (right, up, forward) from a hardpoint bone to its barrel's aperture centre.
 
-    Returns (offset, detail) or (None, reason). Forward is the barrel's furthest
+    Returns (offset, detail) or (None, reason). A hardpoint with no barrel node
+    gets 0 0 0 (the hardpoint itself) when it sits at its parent's front face. Forward is the barrel's furthest
     vertex along the barrel frame's +Z; right/up is the centre of the bounding box of
     the front TIP_SLAB metres of the barrel (verified against the live avtank fit
     0.20 0.10 2.41). Ogre bone space is already the mirrored X that "right" uses.
@@ -333,7 +341,22 @@ def measure_slot(mesh, skeleton, hardpoint):
         return None, "hardpoint has no parent bone"
     barrel = skeleton.bones[hp.parent]
     if not re.search(r"bg[a-z0-9]$", barrel.name, re.I):
-        return None, f"parent {barrel.name} is not a dedicated barrel node"
+        # No barrel to measure (a gun moulded into the hull): flash where the shot
+        # spawns, if the hardpoint is at the muzzle face (avfigh/svfigh sit 3-7 cm
+        # behind the front geometry). OpenShim draws no vehicle flash without a key.
+        hp_pos, _ = bone_world(skeleton, hp.handle)
+        _, frame = bone_world(skeleton, barrel.handle)
+        local = [_rotate(_conj(frame), (v[0]-hp_pos[0], v[1]-hp_pos[1], v[2]-hp_pos[2]))
+                 for v in barrel_vertices(mesh, barrel.handle)]
+        ahead = [p[2] for p in local if abs(p[0]) < HULL_WINDOW and abs(p[1]) < HULL_WINDOW]
+        if not ahead:
+            return None, f"parent {barrel.name} is not a barrel node and has no geometry around the hardpoint"
+        depth = max(ahead)
+        if depth > MAX_BURIED:
+            return None, f"parent {barrel.name} is not a barrel node and the hardpoint is {depth:.2f} m behind its front geometry"
+        if depth < -MAX_AHEAD:
+            return None, f"parent {barrel.name} is not a barrel node and the hardpoint is {-depth:.2f} m ahead of its front geometry"
+        return [0.0, 0.0, 0.0], {"hardpoint": hp.name, "anchor": f"hardpoint (parent {barrel.name} is not a barrel node)"}
     # The sim hardpoint shares its barrel's frame (the legacy VDF matrices are identity);
     # an Ogre hardpoint bone may carry an exporter axis fix, so only its position is used.
     hp_pos, _ = bone_world(skeleton, hp.handle)
@@ -401,8 +424,9 @@ def authored_craft_odf(source, craft, entry):
         return text
     section = re.search(r"(?im)^[ \t]*\[CraftClass\][^\n]*\n", text)
     assert section, craft + ": missing CraftClass section"
-    lines = [CRAFT_BEGIN, "// Visible barrel tip from the hardpoint (right up forward, metres); replaces the",
-             "// weapon's flashOffset for this craft. Regenerate: Tools/Build-WeaponFlashes.py --measure"]
+    lines = [CRAFT_BEGIN, "// Flash point from the hardpoint (right up forward, metres: barrel tip, or 0 0 0 at",
+             "// a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.",
+             "// Regenerate: Tools/Build-WeaponFlashes.py --measure"]
     lines += [f'flashOffset{n} = "{o[0]:.2f} {o[1]:.2f} {o[2]:.2f}"' for n, o in keys]
     lines.append(CRAFT_END)
     return text[:section.end()] + "\n".join(lines) + "\n" + text[section.end():]

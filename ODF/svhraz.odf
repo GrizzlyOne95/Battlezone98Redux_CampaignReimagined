@@ -19,6 +19,12 @@ weaponHard3 = "GR2"
 weaponName3 = "gsrkbomb"
 
 [CraftClass]
+// CR CRAFT FLASH OFFSET BEGIN
+// Flash point from the hardpoint (right up forward, metres: barrel tip, or 0 0 0 at
+// a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
+// Regenerate: Tools/Build-WeaponFlashes.py --measure
+flashOffset2 = "0.00 0.00 0.00"
+// CR CRAFT FLASH OFFSET END
 rangeScan = 400.0f
 periodScan = 5.0f
 velocJam = 5.0f

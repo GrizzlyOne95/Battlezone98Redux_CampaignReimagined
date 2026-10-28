@@ -72,7 +72,11 @@ class WeaponContentTests(unittest.TestCase):
                     self.assertEqual(row['weapon'],live[craft]['slots'][int(n)][0])
                     self.assertNotEqual('offset' in row,'skip' in row,'offset xor skip reason')
                     if 'offset' in row:
-                        self.assertGreaterEqual(row['offset'][2],builder.MIN_TIP)
+                        if 'anchor' in row:
+                            # No barrel node: the flash draws at the hardpoint itself.
+                            self.assertEqual(row['offset'],[0.0,0.0,0.0])
+                        else:
+                            self.assertGreaterEqual(row['offset'][2],builder.MIN_TIP)
                         self.assertTrue(all(abs(v)<=20 for v in row['offset']))
                         expected['flashoffset'+n]=' '.join(f'{v:.2f}' for v in row['offset'])
             self.assertEqual(keys,expected,craft)
