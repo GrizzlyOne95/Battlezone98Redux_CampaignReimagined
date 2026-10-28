@@ -47,10 +47,17 @@
 --   CRWetGlass.Busy()                        true while either is on the glass: keep calling Update(0)
 --   CRWetGlass.ClearSplats()
 --
--- WEATHER LAYERS (not rain). Two more wrap families on the same glass, driven by weather directors
--- (CREuropaWeather snow, CRMarsWeather grit) through CRWetGlass.Weather(kind, level 0..1), then Update(0):
+-- WEATHER LAYERS (not rain). More wrap families on the same glass, driven by weather directors
+-- (CREuropaWeather frost, CRMarsWeather grit) through CRWetGlass.Weather(kind, level 0..1), then Update(0):
+--   "frost" CRWX_WinFrost + CRWX_WinIce (Europa): frost creeps in from the edges and corners of the view as
+--           feathery crystal growth, dense at the borders and clear over the centre ~55%, peak opacity 0.55;
+--           the sheet maps once across the view (u, v 0..1: the screen on the overlay, the screen edges as
+--           view angles on the cockpit glass), never tiled or offset, so the edges stay at the edges. It
+--           grows in over about 40 s and recedes as slowly, then stays put. A second layer of sparse fine
+--           frozen grains, small rimed pits and short ice scratches (tiled, fixed, peak 0.45) joins as the
+--           level climbs above about 0.45 (staggered smoothstep, as the grit layers)
 --   "snow"  CRWX_WinSnow: two layers of sparse soft-white flakes that gather over seconds, sit, melt away and
---           return elsewhere on staggered cycles; no streaks, never covers the view
+--           return elsewhere on staggered cycles; no streaks, never covers the view (no director uses it now)
 --   "grit"  CRWX_WinGrit: two layers of fine tan specks that stay put and follow the level (the director
 --           shapes the slow build and clear)
 --   "acid"  Venus acid rain (CRVenusWeather feeds the rain level, then Update(rain)): while the level is above
@@ -61,8 +68,8 @@
 --           CRWX_WinEtch layer: a pale pitted film, at most about 30% opacity, that stays after the rain
 --           stops and clears slowly. Keep calling Update(0) while Busy() is true. On the screen overlay the
 --           acid textures are pre-loaded once, one panel at a time while the glass is empty (see warmUp).
--- Rain wins the pass budget: the weather layers are the last wrap layers. Textures: crwx_winsnow.png,
--- crwx_wingrit.png, crwx_acid*.png and crwx_winetch.png, materials crwx_glassweather.material, all made by
+-- Rain wins the pass budget: the weather layers are the last wrap layers. Textures: crwx_winfrost.png,
+-- crwx_winice.png, crwx_winsnow.png, crwx_wingrit.png, crwx_acid*.png and crwx_winetch.png, materials crwx_glassweather.material, all made by
 -- Tools/Generate-GlassWeatherAssets.py.
 --**********************************************************************
 local wetglass = {}
@@ -74,7 +81,8 @@ local OVERLAY = "crwx_wetglass"
 local Z_ORDER = 5           -- under custom HUD overlays
 local VIEW_OK = { [1] = true, [2] = true, [3] = true } -- cockpit, no cockpit, no HUD
 local FAMILIES = { "CRWX_WetBeads", "CRWX_WetStreak", "CRWX_WetRivulet", "CRWX_WindCrack", "CRWX_WindDirt",
-	"CRWX_WinSnow", "CRWX_WinGrit", "CRWX_AcidBeads", "CRWX_AcidRivulet", "CRWX_AcidStreak", "CRWX_WinEtch" }
+	"CRWX_WinSnow", "CRWX_WinGrit", "CRWX_AcidBeads", "CRWX_AcidRivulet", "CRWX_AcidStreak", "CRWX_WinEtch",
+	"CRWX_WinFrost", "CRWX_WinIce" }
 -- Acid rain: the yellow-green variant of each rain family (same alpha, tinted colour).
 local ACID_OF = { CRWX_WetBeads = "CRWX_AcidBeads", CRWX_WetRivulet = "CRWX_AcidRivulet", CRWX_WetStreak = "CRWX_AcidStreak" }
 local ACID_MIN = 0.02          -- Weather("acid") level above which new drops are acid
@@ -86,6 +94,13 @@ local SNOW_LAYERS = 2       -- crwx_glassweather.material; Weather("snow", level
 local GRIT_LAYERS = 2       -- crwx_glassweather.material; Weather("grit", level)
 local SNOW_PEAK = 0.60      -- opacity of the snow layers at level 1 (the sheet itself is sparse)
 local GRIT_PEAK = 0.50      -- opacity of the grit layers at level 1
+local FROST_PEAK = 0.55     -- opacity of the frost layer at level 1 (Weather("frost", level))
+local ICE_PEAK = 0.45       -- opacity of the ice-grain layer at level 1
+local FROST_RATE = 1 / 40   -- frost level per second the glass follows Weather("frost") at, up and down
+-- On the glass the frost sheet frames this screen box (x0, y0, x1, y1), the usual windshield opening: framed
+-- on the whole screen its frosted rim lands on the cockpit frame, where there is no glass. Clamped, the rim
+-- texels carry on over any glass outside the box.
+local FROST_SHELL_BOX = { 0.18, 0.12, 0.82, 0.76 }
 local CRACK_PEAK = 0.9      -- opacity of a fully cracked windshield
 local CRACK_RATE = 6        -- opacity per second the crack fades in and out at
 
@@ -114,10 +129,11 @@ local LAYER_TEXTURE = {
 	CRWX_WinSnow = "crwx_winsnow.png", CRWX_WinGrit = "crwx_wingrit.png",
 	CRWX_AcidBeads = "crwx_acidbeads.png", CRWX_AcidRivulet = "crwx_acidrivulet.png",
 	CRWX_AcidStreak = "crwx_acidstreak.png", CRWX_WinEtch = "crwx_winetch.png",
+	CRWX_WinFrost = "crwx_winfrost.png", CRWX_WinIce = "crwx_winice.png",
 }
 -- Pass diffuse colour where a layer wants more than SHELL_RGB: snow stays pale in dim Europan light.
-local LAYER_RGB = { CRWX_WinSnow = 0.92, CRWX_WinEtch = 0.70 }
-local CLAMPED = { CRWX_WindCrack = true, CRWX_WindDirt = true }
+local LAYER_RGB = { CRWX_WinSnow = 0.92, CRWX_WinFrost = 0.92, CRWX_WinIce = 0.92, CRWX_WinEtch = 0.70 }
+local CLAMPED = { CRWX_WindCrack = true, CRWX_WindDirt = true, CRWX_WinFrost = true }   -- frost maps once: no tiling past its window
 local SHELL_API = { "SetSubEntityRenderQueueGroup", "SetSubEntityMaterial", "SetMaterialTextureWindow",
 	"SetMaterialTexture", "SetMaterialPassColors" }
 
@@ -128,6 +144,7 @@ local lastRun = nil
 local crackWant, crackX, crackY = 0, 0.5, 0.4   -- what the damage caller asked for; applied by run()
 local splats = {}                               -- queued { amount, x, y, flip }
 local snowWant, gritWant, acidWant = 0, 0, 0    -- Weather() levels 0..1, kept until changed
+local frostWant, frostLevel = 0, 0                  -- Weather("frost") level and the level the glass has eased to
 local etchExposure = 0                              -- 0..1, builds while acidWant > 0 and clears slowly
 local mode = "overlay"                          -- where the layers draw this frame: "overlay" or "shell"
 
@@ -237,6 +254,12 @@ local function build()
 		p.phase = "off"
 		s.grit[k] = p
 	end
+	s.frost = newPanel(OVERLAY .. "_f", "CRWX_WinFrost")
+	if s.frost == nil then return false end
+	s.frost.phase = "off"
+	s.ice = newPanel(OVERLAY .. "_i", "CRWX_WinIce")
+	if s.ice == nil then return false end
+	s.ice.phase = "off"
 	s.etch = newPanel(OVERLAY .. "_e", "CRWX_WinEtch")
 	if s.etch == nil then return false end
 	s.etch.phase = "off"
@@ -276,9 +299,12 @@ local function allLayers()
 	-- Weather layers come last among the wrap layers: if the pass budget runs out, rain wins.
 	for _, p in ipairs(state.snow) do list[#list + 1] = p end
 	for _, p in ipairs(state.grit) do list[#list + 1] = p end
+	list[#list + 1] = state.ice
 	list[#list + 1] = state.etch
 	list[#list + 1] = state.crack
 	for _, p in ipairs(state.dirt) do list[#list + 1] = p end
+	-- Frost is clamped too but nearly always up on Europa: last, so damage wins the clamp budget.
+	list[#list + 1] = state.frost
 	return list
 end
 
@@ -340,6 +366,8 @@ local function poseMask(player)
 	for _, p in ipairs(state.rivulets) do panels[#panels + 1] = p end
 	for _, p in ipairs(state.snow) do panels[#panels + 1] = p end
 	for _, p in ipairs(state.grit) do panels[#panels + 1] = p end
+	panels[#panels + 1] = state.frost
+	panels[#panels + 1] = state.ice
 	panels[#panels + 1] = state.etch
 	for _, p in ipairs(panels) do
 		if p.step > 0 then
@@ -358,11 +386,13 @@ end
 
 -- Screen fractions (x right, y down, 0..1) -> glass UV through the camera's FOV:
 -- the glass UV is the view angle, U_SPAN / V_SPAN radians per unit.
+-- GetCameraFOV is Redux's base angle: horizontal at 4:3 (stock 80 degrees), so the
+-- vertical half-angle tangent is 0.75 * tan(angle / 2) at any display aspect.
 local function screenToShell(x, y)
-	local vfov = math.rad(64)
+	local fov = math.rad(80)
 	local ok, f = pcall(exu.GetCameraFOV or function() end)
-	if ok and type(f) == "number" and f > 0.2 and f < 3 then vfov = f end
-	local ty = math.tan(vfov / 2)
+	if ok and type(f) == "number" and f > 0.2 and f < 3 then fov = f end
+	local ty = 0.75 * math.tan(fov / 2)
 	local tx = ty * aspect()
 	local yaw = math.atan((2 * x - 1) * tx)
 	local pitch = math.atan((1 - 2 * y) * ty)
@@ -634,6 +664,59 @@ local function gritLayers(ar, dt)
 	return any
 end
 
+-- Frost and ice grains (Europa). The caller's level is eased again here (FROST_RATE), so the frost grows in
+-- and recedes slowly whatever the caller does, then stays put. The frost sheet maps once across the view
+-- (u, v 0..1 from screen edge to screen edge, or FROST_SHELL_BOX on the glass; no tiling), so its edges stay at the glass edges; the
+-- ice-grain sheet tiles like grit, with its own scale and offset picked when it first appears, and joins as
+-- the level climbs. Returns true while either shows.
+local function frostLayers(ar, dt)
+	local step = FROST_RATE * dt
+	frostLevel = frostLevel + clamp(clamp(frostWant, 0, 1) - frostLevel, -step, step)
+	local f = frostLevel
+	local p = state.frost
+	local a = FROST_PEAK * smoothstep(0, 0.25, f)   -- full by the quiet base level (~0.2)
+	if a > 0 then
+		local u0, v0, du, dv = 0, 0, 1, 1
+		if mode == "shell" then
+			-- The glass UV is view angle: window it so texture 0..1 spans FROST_SHELL_BOX on screen.
+			local b = FROST_SHELL_BOX
+			local x0, y0 = screenToShell(b[1], b[2])
+			local x1, y1 = screenToShell(b[3], b[4])
+			du, dv = 1 / (x1 - x0), 1 / (y1 - y0)
+			u0, v0 = -x0 * du, -y0 * dv
+		end
+		local key = string.format("%s %.4f %.4f %.4f %.4f", mode, u0, v0, du, dv)
+		if p.key ~= key then
+			setUV(p, u0, v0, du, dv)
+			p.key = key
+		end
+		p.phase = "on"
+	else
+		p.phase = "off"
+	end
+	setAlpha(p, a)
+	local any = p.on == true
+
+	p = state.ice
+	a = ICE_PEAK * smoothstep(0.45, 1.0, f)
+	if a > 0 then
+		if p.v == nil then
+			p.v = randRange(0.8, 1.1)
+			p.u0, p.v0 = math.random() * 8, math.random() * 8
+		end
+		local key = string.format("%s %.3f", mode, ar)
+		if p.key ~= key then
+			setUV(p, p.u0, p.v0, p.v * ar, p.v)
+			p.key = key
+		end
+		p.phase = "on"
+	else
+		p.phase = "off"
+	end
+	setAlpha(p, a)
+	return any or p.on == true
+end
+
 -- Acid etch: one very faint pitted film that follows the exposure. It keeps its place on the glass.
 local function etchLayer(ar)
 	local p = state.etch
@@ -817,6 +900,7 @@ local function run(intensity, dt)
 
 	if snowLayers(ar, dt) then any = true end
 	if gritLayers(ar, dt) then any = true end
+	if frostLayers(ar, dt) then any = true end
 	if etchLayer(ar) then any = true end
 	if damageLayers(ar, dt) then any = true end
 
@@ -847,13 +931,15 @@ function wetglass.Splat(amount, x, y, flip)
 		flip = flip == true }
 end
 
---- Weather layers on the glass: kind "snow" (soft flakes that land and melt), "grit" (fine dust
---- specks) or "acid" (yellow-green rain drops plus a slowly building etch haze), level 0..1. The level stays until changed; 0 lets it fade out. The caller keeps calling
+--- Weather layers on the glass: kind "frost" (frost creeping in from the edges plus ice grains, eased slowly),
+--- "snow" (soft flakes that land and melt), "grit" (fine dust specks) or "acid" (yellow-green rain drops plus a
+--- slowly building etch haze), level 0..1. The level stays until changed; 0 lets it fade out. The caller keeps calling
 --- Update (Update(0) when there is no rain) while Busy() is true.
 function wetglass.Weather(kind, level)
 	level = clamp(tonumber(level) or 0, 0, 1)
 	if kind == "snow" then snowWant = level
 	elseif kind == "grit" then gritWant = level
+	elseif kind == "frost" then frostWant = level
 	elseif kind == "acid" then acidWant = level end
 end
 
@@ -861,13 +947,14 @@ end
 --- or showing: the caller must keep calling Update.
 function wetglass.Busy()
 	if state == false then return false end
-	if crackWant > 0 or #splats > 0 or snowWant > 0 or gritWant > 0 or acidWant > 0 then return true end
-	if etchExposure > 0 then return true end
+	if crackWant > 0 or #splats > 0 or snowWant > 0 or gritWant > 0 or frostWant > 0 or acidWant > 0 then return true end
+	if etchExposure > 0 or frostLevel > 0 then return true end
 	if state then
 		if state.crack.alpha > 0 then return true end
 		for _, p in ipairs(state.dirt) do if p.phase ~= "off" then return true end end
 		for _, p in ipairs(state.snow) do if p.phase ~= "off" then return true end end
 		for _, p in ipairs(state.grit) do if p.on then return true end end
+		if state.frost.on or state.ice.on then return true end
 	end
 	return false
 end
@@ -904,6 +991,7 @@ function wetglass.Stop()
 	state, mode, frame, pending, lastRun = nil, "overlay", nil, 0, nil
 	crackWant, splats = 0, {}
 	snowWant, gritWant, acidWant, etchExposure = 0, 0, 0, 0
+	frostWant, frostLevel = 0, 0
 end
 
 --- Rain on the windshield at intensity 0..1; call every Update.

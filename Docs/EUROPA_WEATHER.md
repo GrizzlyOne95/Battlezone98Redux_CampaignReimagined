@@ -273,12 +273,13 @@ CREuropaWeather.SetTargetLevel(1)          -- on the win
 | Surges | `SurgeGap`, `SurgeStrength`, `SurgeDuration`, `SurgeAmbient`, `SurgeFogColor`, `SurgeFogTint`, `SurgeFlicker`, `SurgeMoteRate`, `SurgeSound` |
 | Co-op | `NetHeartbeat` 30, `HostOverrideSeconds` 45 |
 
-## Cockpit-glass snow
+## Cockpit-glass frost
 
-A few soft-white snow flakes land on the cockpit glass, melt away and return elsewhere (`CRWetGlass.Weather("snow", level)`,
-see `Docs/CR_STORMFX_PORT.md`). Render only. The level is `(0.22 + 0.38 * GetSeverity()) * (0.85 + 0.15 * sin(2 pi clock / 170))`,
-eased at 0.04 per second, so a quiescent Europa (misn12 opens there) carries about 0.2 and perijove about 0.5; the layer
-opacity at that level is about 0.2-0.4 of a sparse sheet. Local to each peer (no wire traffic), off with `AllowGlassSnow` /
+Europa has no snowfall (the plumes fall back as ice around the vents), so the cockpit glass frosts instead: feathery ice
+crystals creep in from the edges and corners of the view, leaving the centre clear, and fine frozen grains and ice scratches
+join at higher levels (`CRWetGlass.Weather("frost", level)`, see `Docs/CR_STORMFX_PORT.md`). Render only. The level is `(0.22 + 0.38 * GetSeverity()) * (0.85 + 0.15 * sin(2 pi clock / 170))`,
+eased at 0.04 per second, so a quiescent Europa (misn12 opens there) carries about 0.2 and perijove about 0.5; the frost
+opacity at that level is about 0.2-0.5 and the glass eases the level again over about 40 s. Local to each peer (no wire traffic), off with `AllowGlassSnow` /
 `Init{ glassSnow = false }`, with `CRWeather.Quality` 0, or when the director is disabled. `GetGlassSnow()` reports the
 level; `Shutdown` clears it and calls `CRWetGlass.Stop()`. Misn12 and misn13 need no change.
 

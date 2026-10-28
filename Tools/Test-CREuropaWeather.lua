@@ -1415,13 +1415,13 @@ do
 end
 
 do
-    -- Light snow on the cockpit glass (CRWetGlass.Weather): a low, slowly varying level that follows the
+    -- Light frost on the cockpit glass (CRWetGlass.Weather "frost"): a low, slowly varying level that follows the
     -- activity ladder, eased, switchable, and released at Shutdown.
     local function GlassPeer(name, options)
         local g = { snow = 0, updates = 0, stops = 0, calls = 0 }
         local peer = Track(NewPeer(name, NewWorld()))
         peer.preload["CRWetGlass"] = {
-            Weather = function(kind, level) if kind == "snow" then g.snow = level; g.calls = g.calls + 1 end end,
+            Weather = function(kind, level) if kind == "frost" then g.snow = level; g.calls = g.calls + 1 end end,
             Busy = function() return g.snow > 0 end,
             Update = function(i) g.updates = g.updates + 1; g.rain = i end,
             Splat = function() g.splats = (g.splats or 0) + 1 end,
