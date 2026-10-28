@@ -1,7 +1,8 @@
 -- Test-CRWetGlassWeather.lua
 --
 -- Drives the real Scripts/CRWetGlass.lua against a recording exu stub and checks the two weather
--- layers that are not plain rain: snow flakes (CRWX_WinSnow, Europa), dust grit (CRWX_WinGrit, Mars) and
+-- layers that are not plain rain: frost and ice grains (CRWX_WinFrost / CRWX_WinIce, Europa), snow flakes
+-- (CRWX_WinSnow, kept for other callers), dust grit (CRWX_WinGrit, Mars) and
 -- Venus acid rain (yellow-green CRWX_Acid* drops plus the CRWX_WinEtch haze), on both the screen overlay (F2/F3) and the cockpit glass submesh (F1). Also checks that every
 -- overlay material and texture the module can ask for ships.
 --
@@ -216,6 +217,53 @@ glass.Weather("snow", 0)
 run(80, 0)
 
 -- =============================================================================
+-- Overlay mode: frost and ice grains (Europa)
+-- =============================================================================
+
+glass.Weather("frost", 0.15)
+check(glass.Busy(), "a frost level makes the glass busy so the caller keeps updating")
+run(1)
+check(#visible("CRWX_WinFrost") == 0 or visible("CRWX_WinFrost")[1].step <= 1, "frost does not appear at once")
+run(30)
+local frost = visible("CRWX_WinFrost")
+check(#frost == 1 and frost[1].step >= 2, "a light frost level grows one frost layer in, got " .. #frost)
+check(#visible("CRWX_WinIce") == 0, "the ice grains wait for a higher level")
+check(frost[1] and frost[1].uv == "0.0000 0.0000 1.0000 1.0000", "frost maps once across the view, no offset or tiling, uv " .. tostring(frost[1] and frost[1].uv))
+local lastFrost = frost[1].step
+glass.Weather("frost", 1.0)
+local sawIce, maxFrost, maxIce, climbed, jump = false, 0, 0, false, 0
+for _ = 1, math.floor(150 / dt) do
+    now = now + dt; glass.Update(0)
+    local f, i = visible("CRWX_WinFrost"), visible("CRWX_WinIce")
+    if #i > 0 then sawIce = true; maxIce = math.max(maxIce, i[1].step) end
+    if #f > 0 then
+        maxFrost = math.max(maxFrost, f[1].step)
+        jump = math.max(jump, math.abs(f[1].step - lastFrost)); lastFrost = f[1].step
+        climbed = climbed or f[1].step > frost[1].step
+    end
+end
+check(climbed, "frost keeps growing with the level")
+check(jump <= 1, "frost changes by single steps, never snaps (jump " .. jump .. ")")
+check(sawIce, "the ice grain layer joins as the level climbs")
+check(maxFrost <= math.floor(0.55 * 16 + 0.5) and maxFrost >= 6, "frost peaks near 0.55 opacity, step " .. maxFrost)
+check(maxIce <= math.floor(0.45 * 16 + 0.5) and maxIce >= 4, "ice peaks near 0.45 opacity, step " .. maxIce)
+local ice = visible("CRWX_WinIce")
+local iceUv = ice[1] and ice[1].uv
+check(iceUv ~= nil and iceUv ~= "0.0000 0.0000 1.0000 1.0000", "ice grains use a tiled, offset mapping")
+check(anyVisibleOther() == nil or string.find(anyVisibleOther(), "^CRWX_WinFrost_A") or string.find(anyVisibleOther(), "^CRWX_WinIce_A"),
+    "frost brings no rain layers, saw " .. tostring(anyVisibleOther()))
+run(5)
+check(visible("CRWX_WinFrost")[1].uv == "0.0000 0.0000 1.0000 1.0000" and visible("CRWX_WinIce")[1].uv == iceUv, "frost and ice do not slide")
+-- Level 0: both recede slowly, then the glass reports idle.
+glass.Weather("frost", 0)
+run(2)
+check(#visible("CRWX_WinFrost") == 1 and glass.Busy(), "frost does not vanish the moment the level drops")
+run(100)
+check(#visible("CRWX_WinFrost") == 0 and #visible("CRWX_WinIce") == 0, "frost and ice have cleared well after the level drops")
+check(not glass.Busy(), "cleared glass is idle again")
+check(not ov.overlayShown, "the overlay hides when nothing is on it")
+
+-- =============================================================================
 -- Overlay mode: acid rain (drops tinted yellow-green, a slow etch haze)
 -- =============================================================================
 
@@ -323,6 +371,36 @@ check(gc and gc.r < 0.6 and gc.a > 0, "grit pass uses the standard glass tint")
 glass.Weather("snow", 0); glass.Weather("grit", 0)
 run(60)
 check(shell.material == "CRWX_CockpitGlass", "with nothing on it the glass is back on the no-op material, got " .. shell.material)
+-- Frost on the glass: one pass, windowed so the texture spans the screen edges (untiled), pale tint.
+glass.Weather("frost", 1.0)
+run(60)
+local frostPass, icePass
+for key, tex in pairs(shell.textures) do
+    if tex == "crwx_winfrost.png" then frostPass = key end
+    if tex == "crwx_winice.png" then icePass = key end
+end
+check(frostPass ~= nil and icePass ~= nil, "the glass passes point at the frost and ice textures")
+local w = frostPass and shell.windows[frostPass]
+check(w and w[3] > 0 and w[3] < 3 and w[4] > 0 and w[4] < 3, "the frost window is one screen-sized span, not a tiling")
+check(w and w[1] < 0.5 and w[2] < 0.5 and w[1] + w[3] > 0.5, "the frost window puts the screen centre in the texture middle half")
+-- GetCameraFOV is the base angle, horizontal at 4:3: at 100 degrees and 16:9 the frost box's left edge
+-- (screen x 0.18) must land on the glass where that screen column looks, not off screen.
+X.GetCameraFOV = function() return math.rad(100) end
+run(1)
+-- Another layer may have joined the glass since, moving frost to a new material / pass: find it again.
+for key, tex in pairs(shell.textures) do
+    if tex == "crwx_winfrost.png" and string.find(key, "^" .. shell.material .. "#") then frostPass = key end
+end
+w = frostPass and shell.windows[frostPass]
+local wantX0 = 0.5 + math.atan((2 * 0.18 - 1) * 0.75 * math.tan(math.rad(50)) * 16 / 9) / math.rad(96)
+local gotX0 = w and -w[1] / w[3]
+check(gotX0 and math.abs(gotX0 - wantX0) < 0.005, "frost box edge follows a 100 degree base FOV: x0 " .. tostring(gotX0) .. " want " .. wantX0)
+X.GetCameraFOV = nil
+local fc = frostPass and shell.colours[frostPass]
+check(fc and fc.r > 0.8 and fc.a > 0 and fc.a <= 0.57, "frost pass is pale and light")
+glass.Weather("frost", 0)
+run(120)
+check(shell.material == "CRWX_CockpitGlass", "with the frost gone the glass is back on the no-op material, got " .. shell.material)
 -- Acid rain on the glass: the passes point at the acid textures and the etch texture.
 glass.Weather("acid", 1.0)
 run(20, 1.0)
@@ -413,7 +491,7 @@ for family in string.gmatch(families, '"(CRWX_[%w]+)"') do
             family .. "_A" .. step .. " is defined")
     end
 end
-check(n == 11, "eleven overlay families, found " .. n)
+check(n == 13, "thirteen overlay families, found " .. n)
 for tex in string.gmatch(string.match(source, "local LAYER_TEXTURE = (%b{})"), '"(crwx_[%w_]+%.png)"') do
     check(slurp(root .. "/Assets/Textures/" .. tex) ~= nil, tex .. " ships")
 end

@@ -115,7 +115,7 @@ V.AllowRandomSurges    = true    -- the host schedules unscripted surges
 V.AllowAurora          = true    -- violet-green motes during a surge
 V.AllowEpisodes        = true    -- temporary intense spells
 V.AllowSounds          = true    -- local 2D rumble / crackle (never positional gameplay noise)
-V.AllowGlassSnow       = true    -- a few snow flakes on the cockpit glass (CRWetGlass.Weather)
+V.AllowGlassSnow       = true    -- frost and ice grains on the cockpit glass (CRWetGlass.Weather "frost"; name kept from the old snow flakes)
 
 -- Hard budgets. These are caps, not targets.
 V.MaxSystems           = 28      -- every particle system this module owns, at once
@@ -1725,9 +1725,10 @@ local function RealDelta(fallbackDt)
     return delta
 end
 
--- Light snow on the cockpit glass (CRWetGlass: sparse flakes that land and melt, no streaks). A
--- constant light level that follows the activity ladder a little and breathes slowly, eased so the
--- glass never jumps. Off with the director, with CRWeather.Quality 0 or with AllowGlassSnow.
+-- Frost on the cockpit glass (CRWetGlass "frost": ice crystals creeping in from the edges, a few ice grains at
+-- higher levels; Europa has no snowfall). A light level that follows the activity ladder a little and
+-- breathes slowly, eased so the glass never jumps. Off with the director, with CRWeather.Quality 0 or with
+-- AllowGlassSnow (the setting and V.GlassSnow / GetGlassSnow keep their old names).
 local GlassModule = nil
 local function Glass()
     if GlassModule == nil then
@@ -1750,7 +1751,7 @@ local function UpdateGlassSnow(dt)
     end
     local step = GLASS_SNOW_RATE * dt
     V.GlassSnow = V.GlassSnow + Clamp(target - V.GlassSnow, -step, step)
-    glass.Weather("snow", V.GlassSnow)
+    glass.Weather("frost", V.GlassSnow)
     if V.GlassSnow > 0.0 or glass.Busy() then glass.Update(0.0) end
 end
 
@@ -1811,7 +1812,7 @@ function V.Shutdown()
 
     local glass = Glass()
     if glass ~= nil then
-        glass.Weather("snow", 0.0)
+        glass.Weather("frost", 0.0)
         pcall(glass.Stop)
     end
     V.GlassSnow = 0.0
