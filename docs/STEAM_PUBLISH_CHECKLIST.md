@@ -13,7 +13,7 @@ Keep the different Steam surfaces separate:
 | Workshop item description | `docs/workshop_description.bbcode` in Campaign Reimagined |
 | Workshop update/change note | `change_note` supplied to the publish workflow |
 | Project changelog | `CHANGELOG.md` in Campaign Reimagined |
-| Roadmap discussion | `Docs/STEAM_ROADMAP_BBCODE.txt` in `GrizzlyOne95/Battlezone98Redux_Shim` |
+| Roadmap discussion | `Docs/STEAM_ROADMAP_PLAYER_BBCODE.txt` in `GrizzlyOne95/Battlezone98Redux_Shim` (player-facing; it links to the technical `Docs/STEAM_ROADMAP_BBCODE.txt`, which is posted nowhere) |
 | Stock bug fixes discussion | `Docs/STEAM_STOCK_FIXES_BBCODE.txt` in `GrizzlyOne95/Battlezone98Redux_Shim` |
 
 Roadmap discussion:
@@ -162,9 +162,11 @@ without the other.
    over 8000 characters.
 4. Review all OpenShim, EXU, bzfile, and CR changes entering the upload against
    `Battlezone98Redux_Shim/Docs/STEAM_ROADMAP_BBCODE.txt`.
-5. Update the roadmap BBCode so completed work, changed implementation status,
+5. Update the technical roadmap BBCode so completed work, changed implementation status,
    newly discovered constraints, and newly relevant roadmap items accurately
-   reflect the build being published.
+   reflect the build being published. Update the player-facing
+   `Docs/STEAM_ROADMAP_PLAYER_BBCODE.txt` too: its version line and a Recent
+   Updates entry for this upload.
 6. Review the OpenShim changes entering the upload for fixes to confirmed stock
    defects (new `[Fixes]` settings in `openshim.ini`, crash fixes, stock Lua
    binding repairs) and add each one to
@@ -174,8 +176,8 @@ without the other.
 7. Supply a concise `change_note` describing the actual Workshop update.
 
 A real publish should not knowingly ship roadmap-relevant changes or new stock
-fixes while leaving `STEAM_ROADMAP_BBCODE.txt` or `STEAM_STOCK_FIXES_BBCODE.txt`
-stale.
+fixes while leaving `STEAM_ROADMAP_BBCODE.txt`, `STEAM_ROADMAP_PLAYER_BBCODE.txt`
+or `STEAM_STOCK_FIXES_BBCODE.txt` stale.
 
 ## After the Workshop upload succeeds
 
@@ -183,10 +185,12 @@ stale.
    `https://steamcommunity.com/workshop/filedetails/discussion/3686673790/216888303627073611/`
 2. Edit the discussion post.
 3. Replace its body with the complete current contents of
-   `Battlezone98Redux_Shim/Docs/STEAM_ROADMAP_BBCODE.txt`.
+   `Battlezone98Redux_Shim/Docs/STEAM_ROADMAP_PLAYER_BBCODE.txt`. Never paste
+   the technical `STEAM_ROADMAP_BBCODE.txt` into any discussion.
 4. Save the Steam post and verify the rendered discussion matches the canonical
    BBCode source closely enough that no section was truncated, reverted, or
-   accidentally reformatted.
+   accidentally reformatted, and that its first line is the post's own
+   heading.
 5. Do the same for the stock bug fixes discussion
    (`https://steamcommunity.com/workshop/filedetails/discussion/3686673790/564797239535461771/`)
    with the complete current contents of
@@ -199,7 +203,7 @@ stale.
 
 Even when an upload does not materially change roadmap status or add a stock
 fix, perform the synchronization check. The live Steam posts should never be
-allowed to drift from their canonical `STEAM_ROADMAP_BBCODE.txt` and
+allowed to drift from their canonical `STEAM_ROADMAP_PLAYER_BBCODE.txt` and
 `STEAM_STOCK_FIXES_BBCODE.txt` sources.
 
 ## Publication completion record

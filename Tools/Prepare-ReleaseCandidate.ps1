@@ -93,7 +93,7 @@ $workshop = Join-Path $output 'Workshop'
 Copy-Item -LiteralPath $bundle -Destination $workshop -Recurse
 Copy-Item -LiteralPath (Join-Path $campaign 'CHANGELOG.md') -Destination $workshop
 [IO.File]::WriteAllText((Join-Path $output 'CHANGE_NOTE.txt'), $ChangeNote + "`n", [Text.UTF8Encoding]::new($false))
-Copy-Item -LiteralPath (Join-Path $OpenShimRepo 'Docs\STEAM_ROADMAP_BBCODE.txt') -Destination (Join-Path $output 'ROADMAP_BBCODE.txt')
+Copy-Item -LiteralPath (Join-Path $OpenShimRepo 'Docs\STEAM_ROADMAP_PLAYER_BBCODE.txt') -Destination (Join-Path $output 'ROADMAP_BBCODE.txt')
 # Point the frozen VDF at the frozen content, including its own thumbnail.
 $vdf = Join-Path $workshop 'workshop_build.vdf'
 $vdfText = [IO.File]::ReadAllText($vdf)
