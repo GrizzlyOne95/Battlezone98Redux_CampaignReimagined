@@ -114,10 +114,15 @@ $universalDecodeTargets = @('diffuseTex.rgb', 'emissiveTex', 'authoredFog')
 # 'iceNear' is the terrain ice layer's refracted diffuse sample (OpenShim #621):
 # the same authored albedo as diffuseTex, re-sampled at a parallax offset, so it
 # decodes for the same reason. Only terrain has the ice layer.
+#
+# 'puddleSky' is the terrain puddle reflection's sky colour (OpenShim #626): it is
+# saturate(fogColour), the same authored display colour as skyLinear, so it decodes
+# for the same reason. Only terrain has puddles.
 $familyScopedDecodeOwners = @{
     'vertexTint' = 'openshim_enhanced_terrain-sm4.hlsl'
     'skyLinear'  = 'openshim_enhanced_base-sm4.hlsl'
     'iceNear'    = 'openshim_enhanced_terrain-sm4.hlsl'
+    'puddleSky'  = 'openshim_enhanced_terrain-sm4.hlsl'
 }
 
 # Any swizzle or member access that includes an alpha/w component.
@@ -1370,6 +1375,9 @@ foreach ($case in $sweepCases) {
         # (iceNear) and decodes it; HD paint reuses diffuseTex instead.
         if ($isTerrainSource -and -not ($case.Defines -match '^OPENSHIM_TERRAIN_HD')) { $expectedDecode += 1 }
         if ($isBaseSource) { $expectedDecode += 1 }
+        # Terrain puddles reflect the authored fog colour (puddleSky) on every
+        # specular variant, IBL or not.
+        if ($isTerrainSource -and $hasSpecular) { $expectedDecode += 1 }
     }
 
     $encodeCount = [regex]::Matches($text, '\blinear_to_srgb\s*\(').Count
