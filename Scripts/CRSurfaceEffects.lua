@@ -28,7 +28,9 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     -- atlas material takes it too. Cockpit materials never do. Every world's
     -- terrain atlas also takes the swept rain wetness (darkening, puddles in
     -- the shape-mask hollows, ripples), snow world or not.
-    SnowWorlds = { europa = { 0.4, 0.88, 0.35, 1.0 } }, snow = nil,
+    -- terrain = cover on the terrain atlas only: full cover there washes every
+    -- painted tile to one white, so the ground keeps patches over its own art.
+    SnowWorlds = { europa = { 0.4, 0.88, 0.35, 1.0, terrain = 0.15 } }, snow = nil,
     -- Dust by world: linear r, g, b and amount -- the surfaceDust uniform.
     -- It settles on tops and, where a material has an ACT map, in occluded
     -- corners and creases; rain washes it off. On terrain it only fills the
@@ -39,9 +41,11 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     -- WashHeight (full, none) metres of the ground and WashRange of the camera
     -- blow a WashRadius circle clear (surfaceWash0..N: x, z, radius, strength).
     -- The player also leaves trail marks every WashTrailStep metres that fade
-    -- over WashTrailFade seconds. WashScan records are checked per update.
+    -- over WashTrailFade seconds, no more often than one per WashTrailFade /
+    -- WashSlots seconds so a fast craft's trail fades out instead of popping
+    -- off the slot cap. WashScan records are checked per update.
     WashSlots = 6, WashRadius = 8, WashHeight = { 4, 12 }, WashRange = 250, WashScan = 32,
-    WashTrailStep = 5, WashTrailFade = 4, washers = {}, washCursor = 1, washTrail = {}, washOut = {} }
+    WashTrailStep = 5, WashTrailFade = 4, washers = {}, washCursor = 1, washTrail = {}, washOut = {}, washClock = 0, washMarkAt = -1e9 }
 
 local function call(fn, ...)
     if type(fn) ~= "function" then return nil end
@@ -243,7 +247,7 @@ local function clearWash()
             if S.washOut[slot] and S.washOut[slot][4] > 0 then S.washOut[slot] = nil; writeWash(slot, NoWash) end
         end
     end
-    S.washers, S.washCursor, S.washTrail, S.washOut = {}, 1, {}, {}
+    S.washers, S.washCursor, S.washTrail, S.washOut, S.washMarkAt = {}, 1, {}, {}, -1e9
 end
 local function wash(dt)
     if not S.shapeMaterial or not S.cameraAt or not (S.snow or S.dust) then return end
@@ -258,6 +262,7 @@ local function wash(dt)
     end
     local cx, cz, range = S.cameraAt[1], S.cameraAt[3], S.WashRange * S.WashRange
     local spots, player = {}, call(GetPlayerHandle)
+    S.washClock = S.washClock + dt
     for h, craft in pairs(S.washers) do
         if not S.records[h] or not valid(h) then S.washers[h] = nil
         elseif craft then
@@ -266,8 +271,10 @@ local function wash(dt)
             if p and s > 0.02 and d < range then
                 spots[#spots+1] = {p.x, p.z, S.WashRadius, s, d}
                 local last = S.washTrail[#S.washTrail]
-                if h == player and (not last or math.abs(last[1]-p.x) + math.abs(last[2]-p.z) > S.WashTrailStep) then
+                if h == player and S.washClock - S.washMarkAt >= S.WashTrailFade / S.WashSlots and
+                    (not last or math.abs(last[1]-p.x) + math.abs(last[2]-p.z) > S.WashTrailStep) then
                     S.washTrail[#S.washTrail+1] = {p.x, p.z, S.WashRadius*0.8, s}
+                    S.washMarkAt = S.washClock
                     if #S.washTrail > S.WashSlots then table.remove(S.washTrail, 1) end
                 end
             end
@@ -372,6 +379,9 @@ local function bindOne(r)
     local source = call(exu.GetSubEntityMaterial, target(r), index)
     if own(source) then r.bindIndex=index+1;return end
     if type(source) ~= "string" or source == "" then r.retry = S.Clock + 1; return end
+    -- CRWetGlass owns CRWX_ materials (the cockpit glass) and finds the glass
+    -- submesh by its material name: a clone would hide it from CRWetGlass.
+    if string.find(source, "^CRWX_") then r.bindIndex=index+1;return end
     wetMaterial(source, r.cockpit)
     local name = "exu_surface_cr_" .. tostring(r.id) .. "_" .. tostring(index) .. (r.cockpit and "_cockpit" or "")
     if call(exu.CloneSurfaceMaterial, source, name) ~= true then r.retry = S.Clock + 1; return end
@@ -723,7 +733,7 @@ function S.Update(dt)
         -- Snow is fixed for the scene: one write per material, own retry,
         -- since terrain takes surfaceSnow but has no surfaceState.
         if snow and not state.cockpit and not state.snow and S.Clock >= (state.snowRetry or 0) then
-            local changed=writeSnow(name,snow)
+            local changed=writeSnow(name,state.terrain and snow.terrain and { snow.terrain, snow[2], snow[3], snow[4] } or snow)
             if finite(changed) and changed > 0 then state.snow=true else state.snowRetry=S.Clock+2 end
         end
         if dust and not state.cockpit and (state.shape or not state.terrain) and not state.dust and S.Clock >= (state.dustRetry or 0) then

@@ -77,7 +77,7 @@ view = 1 -- cockpit view: its "panel" material must stay clear of snow
 for h = 1, N do S.Register(h) end
 for _ = 1, 200 do S.Update(0.05) end
 
-assert(snowOf.EU_DETAIL_ATLAS and snowOf.EU_DETAIL_ATLAS > 0.2, "terrain atlas takes snow")
+assert(snowOf.EU_DETAIL_ATLAS and snowOf.EU_DETAIL_ATLAS > 0.1 and snowOf.EU_DETAIL_ATLAS < 0.2, "terrain atlas takes its own lighter snow cover")
 assert(iceOf.EU_DETAIL_ATLAS and iceOf.EU_DETAIL_ATLAS > 0.5, "terrain atlas takes ice depth")
 assert(shapeOf.EU_DETAIL_ATLAS and shapeOf.EU_DETAIL_ATLAS[1] == 1e-4 and shapeOf.EU_DETAIL_ATLAS[4] == -19,
     "terrain atlas takes the map's shape transform")
@@ -104,6 +104,20 @@ assert(not snowOf.panel, "cockpit material never gets snow")
 local cockpitClone = objects[1].cockpit
 assert(cockpitClone and cockpitClone ~= "panel" and not snowOf[cockpitClone], "cockpit clone never gets snow")
 
+-- The player's trail at speed: every mark fades out before it leaves, none
+-- is pushed off the slot cap while still showing.
+local p1 = objects[1].pos
+local seen = {}
+for _ = 1, 160 do
+    p1.x = p1.x + 40 * 0.05
+    S.Update(0.05)
+    local now = {}
+    for _, m in ipairs(S.washTrail) do now[m] = true; seen[m] = m[4] end
+    for m, last in pairs(seen) do
+        if not now[m] then assert(last < 0.05, "trail mark dropped at strength " .. last); seen[m] = nil end
+    end
+end
+assert(next(seen), "the player leaves a trail")
 S.ResetScene()
 assert(snowOf.EU_DETAIL_ATLAS == 0 and snowOf.mat5 == 0, "reset clears snow")
 assert(next(dustOf) == nil, "Europa gets no dust writes")

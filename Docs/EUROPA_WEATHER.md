@@ -88,6 +88,12 @@ carry **one** precipitation layer (`CR/Europa/Glitter`, an ice glitter at 14-90 
 CRWeather's wind-to-emitter-direction push is exactly vertical and its velocity scale is exactly 1.
 (The test asserts the recorded emitter direction has zero horizontal component even at perijove.)
 
+Europa has no snowfall, so that glitter is not weather everywhere: the director runs it at
+`GlitterBase` (0.15, frost sparkling off the surface) through `CRWeather.SetPrecipitationScale`
+and lifts it to the full preset rate under a plume's fallout where the player stands
+(`GetFallout`, the same falloff as the frost boost, `FrostFallRange`). The fallout also adds up to
+`GlassFallout` (0.5) to the cockpit-glass level. Shutdown puts the scale back to 1.
+
 ## Events
 
 ### 1. Plumes (host-decided, replicated)
