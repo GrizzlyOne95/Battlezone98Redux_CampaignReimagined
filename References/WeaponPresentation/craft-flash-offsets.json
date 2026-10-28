@@ -151,11 +151,11 @@
         },
         "2": {
           "weapon": "gminigun",
-          "skip": "parent AGR11BDA is not a dedicated barrel node"
+          "skip": "parent AGR11BDA is not a barrel node and the hardpoint is 0.41 m behind its front geometry"
         },
         "4": {
           "weapon": "gmdmgun",
-          "skip": "parent AGR11BDA is not a dedicated barrel node"
+          "skip": "parent AGR11BDA is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -164,11 +164,23 @@
       "slots": {
         "1": {
           "weapon": "gminigun",
-          "skip": "parent ARA11rof is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "ARA11Gc1",
+          "anchor": "hardpoint (parent ARA11rof is not a barrel node)"
         },
         "2": {
           "weapon": "gminigun",
-          "skip": "parent ARA11rof is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "ARA11Gc2",
+          "anchor": "hardpoint (parent ARA11rof is not a barrel node)"
         }
       }
     },
@@ -177,11 +189,23 @@
       "slots": {
         "1": {
           "weapon": "gminigun",
-          "skip": "parent ARA11rof is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "ARA11Gc1",
+          "anchor": "hardpoint (parent ARA11rof is not a barrel node)"
         },
         "2": {
           "weapon": "gminigun",
-          "skip": "parent ARA11rof is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "ARA11Gc2",
+          "anchor": "hardpoint (parent ARA11rof is not a barrel node)"
         }
       }
     },
@@ -190,11 +214,11 @@
       "slots": {
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent ahr11rof is not a dedicated barrel node"
+          "skip": "parent ahr11rof is not a barrel node and has no geometry around the hardpoint"
         },
         "3": {
           "weapon": "grktbomb",
-          "skip": "parent ahr11rof is not a dedicated barrel node"
+          "skip": "parent ahr11rof is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -203,11 +227,11 @@
       "slots": {
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent ahr11rof is not a dedicated barrel node"
+          "skip": "parent ahr11rof is not a barrel node and has no geometry around the hardpoint"
         },
         "3": {
           "weapon": "grktbomb",
-          "skip": "parent ahr11rof is not a dedicated barrel node"
+          "skip": "parent ahr11rof is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -216,7 +240,7 @@
       "slots": {
         "1": {
           "weapon": "gtechno",
-          "skip": "parent lla11bda is not a dedicated barrel node"
+          "skip": "parent lla11bda is not a barrel node and the hardpoint is 2.66 m behind its front geometry"
         }
       }
     },
@@ -225,11 +249,11 @@
       "slots": {
         "1": {
           "weapon": "gtminig",
-          "skip": "parent aln11bda is not a dedicated barrel node"
+          "skip": "parent aln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry"
         },
         "2": {
           "weapon": "gtaggun",
-          "skip": "parent aln11bdc is not a dedicated barrel node"
+          "skip": "parent aln11bdc is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -238,11 +262,11 @@
       "slots": {
         "1": {
           "weapon": "gminigun",
-          "skip": "parent aln11bda is not a dedicated barrel node"
+          "skip": "parent aln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry"
         },
         "2": {
           "weapon": "ghornet",
-          "skip": "parent aln11bdc is not a dedicated barrel node"
+          "skip": "parent aln11bdc is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -251,7 +275,7 @@
       "slots": {
         "1": {
           "weapon": "gbolt",
-          "skip": "no Ogre mesh/skeleton for model avsav"
+          "skip": "parent polymsh is not a barrel node and the hardpoint is 2.27 m behind its front geometry"
         }
       }
     },
@@ -260,11 +284,23 @@
       "slots": {
         "1": {
           "weapon": "gshadow",
-          "skip": "parent art11bda is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "art11gr1",
+          "anchor": "hardpoint (parent art11bda is not a barrel node)"
         },
         "2": {
           "weapon": "ghornet",
-          "skip": "parent art11bda is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "art11gr2",
+          "anchor": "hardpoint (parent art11bda is not a barrel node)"
         }
       }
     },
@@ -273,7 +309,7 @@
       "slots": {
         "1": {
           "weapon": "gbolt",
-          "skip": "no Ogre mesh/skeleton for model avsav"
+          "skip": "parent polymsh is not a barrel node and the hardpoint is 2.27 m behind its front geometry"
         }
       }
     },
@@ -282,7 +318,7 @@
       "slots": {
         "1": {
           "weapon": "gbolt",
-          "skip": "no Ogre mesh/skeleton for model avsav"
+          "skip": "parent polymsh is not a barrel node and the hardpoint is 2.27 m behind its front geometry"
         }
       }
     },
@@ -291,7 +327,7 @@
       "slots": {
         "1": {
           "weapon": "gbolt",
-          "skip": "no Ogre mesh/skeleton for model avsav"
+          "skip": "parent polymsh is not a barrel node and the hardpoint is 2.27 m behind its front geometry"
         }
       }
     },
@@ -311,7 +347,7 @@
         },
         "2": {
           "weapon": "gmaggun",
-          "skip": "parent AGR11BDA is not a dedicated barrel node"
+          "skip": "parent AGR11BDA is not a barrel node and the hardpoint is 0.41 m behind its front geometry"
         }
       }
     },
@@ -331,11 +367,11 @@
         },
         "2": {
           "weapon": "gminigun",
-          "skip": "parent AGR11BDA is not a dedicated barrel node"
+          "skip": "parent AGR11BDA is not a barrel node and the hardpoint is 0.41 m behind its front geometry"
         },
         "4": {
           "weapon": "gmdmgun",
-          "skip": "parent AGR11BDA is not a dedicated barrel node"
+          "skip": "parent AGR11BDA is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -344,11 +380,11 @@
       "slots": {
         "1": {
           "weapon": "gtminig",
-          "skip": "parent aDE11blc is not a dedicated barrel node"
+          "skip": "parent aDE11blc is not a barrel node and has no geometry around the hardpoint"
         },
         "2": {
           "weapon": "gtminig",
-          "skip": "parent aDE11blf is not a dedicated barrel node"
+          "skip": "parent aDE11blf is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -357,7 +393,7 @@
       "slots": {
         "1": {
           "weapon": "gtminig",
-          "skip": "parent aDE11blc is not a dedicated barrel node"
+          "skip": "parent aDE11blc is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -366,15 +402,15 @@
       "slots": {
         "1": {
           "weapon": "gatstaba",
-          "skip": "parent age11tx2 is not a dedicated barrel node"
+          "skip": "parent age11tx2 is not a barrel node and the hardpoint is 0.85 m behind its front geometry"
         },
         "2": {
           "weapon": "gatstaba",
-          "skip": "parent age11tx1 is not a dedicated barrel node"
+          "skip": "parent age11tx1 is not a barrel node and the hardpoint is 0.83 m behind its front geometry"
         },
         "3": {
           "weapon": "gpopgun",
-          "skip": "parent age11ty1 is not a dedicated barrel node"
+          "skip": "parent age11ty1 is not a barrel node and the hardpoint is 0.49 m behind its front geometry"
         }
       }
     },
@@ -383,15 +419,15 @@
       "slots": {
         "1": {
           "weapon": "gmaggun",
-          "skip": "parent age11tx2 is not a dedicated barrel node"
+          "skip": "parent age11tx2 is not a barrel node and the hardpoint is 0.85 m behind its front geometry"
         },
         "2": {
           "weapon": "gmaggun",
-          "skip": "parent age11tx1 is not a dedicated barrel node"
+          "skip": "parent age11tx1 is not a barrel node and the hardpoint is 0.83 m behind its front geometry"
         },
         "3": {
           "weapon": "gsplint",
-          "skip": "parent age11ty1 is not a dedicated barrel node"
+          "skip": "parent age11ty1 is not a barrel node and the hardpoint is 0.49 m behind its front geometry"
         }
       }
     },
@@ -460,11 +496,11 @@
       "slots": {
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent bhr11rof is not a dedicated barrel node"
+          "skip": "parent bhr11rof is not a barrel node and has no geometry around the hardpoint"
         },
         "3": {
           "weapon": "grktbomb",
-          "skip": "parent bhr11rof is not a dedicated barrel node"
+          "skip": "parent bhr11rof is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -489,11 +525,23 @@
       "slots": {
         "1": {
           "weapon": "gminigun",
-          "skip": "parent bRA11rof is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "bRA11Gc1",
+          "anchor": "hardpoint (parent bRA11rof is not a barrel node)"
         },
         "3": {
           "weapon": "gshadow",
-          "skip": "parent bRA11rof is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "bRA11Gr1",
+          "anchor": "hardpoint (parent bRA11rof is not a barrel node)"
         }
       }
     },
@@ -502,11 +550,23 @@
       "slots": {
         "1": {
           "weapon": "gminigun",
-          "skip": "parent bRA11rof is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "bRA11Gc1",
+          "anchor": "hardpoint (parent bRA11rof is not a barrel node)"
         },
         "2": {
           "weapon": "gminigun",
-          "skip": "parent bRA11rof is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "bRA11Gc2",
+          "anchor": "hardpoint (parent bRA11rof is not a barrel node)"
         }
       }
     },
@@ -519,7 +579,7 @@
         },
         "3": {
           "weapon": "gcomet",
-          "skip": "parent bhr11rof is not a dedicated barrel node"
+          "skip": "parent bhr11rof is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -528,11 +588,11 @@
       "slots": {
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent bhr11rof is not a dedicated barrel node"
+          "skip": "parent bhr11rof is not a barrel node and has no geometry around the hardpoint"
         },
         "3": {
           "weapon": "grktbomb",
-          "skip": "parent bhr11rof is not a dedicated barrel node"
+          "skip": "parent bhr11rof is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -541,7 +601,7 @@
       "slots": {
         "1": {
           "weapon": "gatstab",
-          "skip": "parent bln11bda is not a dedicated barrel node"
+          "skip": "parent bln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry"
         }
       }
     },
@@ -550,7 +610,7 @@
       "slots": {
         "1": {
           "weapon": "gatstab",
-          "skip": "parent bln11bda is not a dedicated barrel node"
+          "skip": "parent bln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry"
         }
       }
     },
@@ -559,11 +619,23 @@
       "slots": {
         "1": {
           "weapon": "gminigun",
-          "skip": "parent bRA11rof is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "bRA11Gc1",
+          "anchor": "hardpoint (parent bRA11rof is not a barrel node)"
         },
         "2": {
           "weapon": "gshadow",
-          "skip": "parent bRA11rof is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "bRA11Gr1",
+          "anchor": "hardpoint (parent bRA11rof is not a barrel node)"
         }
       }
     },
@@ -572,11 +644,23 @@
       "slots": {
         "1": {
           "weapon": "gtminig",
-          "skip": "parent bRA11rof is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "bRA11Gc1",
+          "anchor": "hardpoint (parent bRA11rof is not a barrel node)"
         },
         "3": {
           "weapon": "gshadow",
-          "skip": "parent bRA11rof is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "bRA11Gr1",
+          "anchor": "hardpoint (parent bRA11rof is not a barrel node)"
         }
       }
     },
@@ -585,11 +669,23 @@
       "slots": {
         "1": {
           "weapon": "gtaggun",
-          "skip": "parent brt11bda is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "brt11gr1",
+          "anchor": "hardpoint (parent brt11bda is not a barrel node)"
         },
         "2": {
           "weapon": "gtaggun",
-          "skip": "parent brt11bda is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "brt11gr2",
+          "anchor": "hardpoint (parent brt11bda is not a barrel node)"
         }
       }
     },
@@ -598,11 +694,11 @@
       "slots": {
         "1": {
           "weapon": "gtminig",
-          "skip": "parent brd11bda is not a dedicated barrel node"
+          "skip": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry"
         },
         "2": {
           "weapon": "gtaggun",
-          "skip": "parent brd11bda is not a dedicated barrel node"
+          "skip": "parent brd11bda is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -611,11 +707,11 @@
       "slots": {
         "1": {
           "weapon": "gspstab",
-          "skip": "parent brd11bda is not a dedicated barrel node"
+          "skip": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry"
         },
         "2": {
           "weapon": "ghornet",
-          "skip": "parent brd11bda is not a dedicated barrel node"
+          "skip": "parent brd11bda is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -624,11 +720,11 @@
       "slots": {
         "1": {
           "weapon": "grktbomb",
-          "skip": "parent brd11bda is not a dedicated barrel node"
+          "skip": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry"
         },
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent brd11bda is not a dedicated barrel node"
+          "skip": "parent brd11bda is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -637,11 +733,11 @@
       "slots": {
         "1": {
           "weapon": "gspstab",
-          "skip": "parent brd11bda is not a dedicated barrel node"
+          "skip": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry"
         },
         "2": {
           "weapon": "gspstab",
-          "skip": "parent brd11bda is not a dedicated barrel node"
+          "skip": "parent brd11bda is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -661,7 +757,7 @@
         },
         "3": {
           "weapon": "gmortar",
-          "skip": "parent bGR11BDA is not a dedicated barrel node"
+          "skip": "parent bGR11BDA is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -681,7 +777,7 @@
         },
         "3": {
           "weapon": "gpopgun",
-          "skip": "parent bGR11BDA is not a dedicated barrel node"
+          "skip": "parent bGR11BDA is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -690,11 +786,11 @@
       "slots": {
         "1": {
           "weapon": "gatstab",
-          "skip": "parent bDE11blc is not a dedicated barrel node"
+          "skip": "parent bDE11blc is not a barrel node and has no geometry around the hardpoint"
         },
         "2": {
           "weapon": "gatstab",
-          "skip": "parent bDE11blf is not a dedicated barrel node"
+          "skip": "parent bDE11blf is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -703,7 +799,7 @@
       "slots": {
         "1": {
           "weapon": "gminigun",
-          "skip": "parent bDE11blc is not a dedicated barrel node"
+          "skip": "parent bDE11blc is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -712,7 +808,7 @@
       "slots": {
         "1": {
           "weapon": "gtminig",
-          "skip": "parent bDE11blc is not a dedicated barrel node"
+          "skip": "parent bDE11blc is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -721,11 +817,11 @@
       "slots": {
         "1": {
           "weapon": "gspstab",
-          "skip": "parent age11tx2 is not a dedicated barrel node"
+          "skip": "parent age11tx2 is not a barrel node and the hardpoint is 0.85 m behind its front geometry"
         },
         "2": {
           "weapon": "gspstab",
-          "skip": "parent age11tx1 is not a dedicated barrel node"
+          "skip": "parent age11tx1 is not a barrel node and the hardpoint is 0.83 m behind its front geometry"
         }
       }
     },
@@ -743,7 +839,13 @@
       "slots": {
         "1": {
           "weapon": "gatstaba",
-          "skip": "parent cgt11tx1 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "cgt11gc1",
+          "anchor": "hardpoint (parent cgt11tx1 is not a barrel node)"
         }
       }
     },
@@ -761,7 +863,13 @@
       "slots": {
         "1": {
           "weapon": "gatstaba",
-          "skip": "parent cgt11tx1 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "cgt11gc1",
+          "anchor": "hardpoint (parent cgt11tx1 is not a barrel node)"
         }
       }
     },
@@ -779,7 +887,13 @@
       "slots": {
         "1": {
           "weapon": "grktbomb",
-          "skip": "parent cgt11tx1 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "cgt11gc1",
+          "anchor": "hardpoint (parent cgt11tx1 is not a barrel node)"
         }
       }
     },
@@ -797,7 +911,13 @@
       "slots": {
         "1": {
           "weapon": "gatstaba",
-          "skip": "parent cgt11tx1 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "cgt11gc1",
+          "anchor": "hardpoint (parent cgt11tx1 is not a barrel node)"
         }
       }
     },
@@ -833,11 +953,11 @@
       "slots": {
         "1": {
           "weapon": "crfpuls",
-          "skip": "parent cfr11bda is not a dedicated barrel node"
+          "skip": "parent cfr11bda is not a barrel node and has no geometry around the hardpoint"
         },
         "2": {
           "weapon": "crfarc",
-          "skip": "parent cfr11bdb is not a dedicated barrel node"
+          "skip": "parent cfr11bdb is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -921,7 +1041,13 @@
       "slots": {
         "1": {
           "weapon": "ghartill",
-          "skip": "parent CAR11TX1 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CAR11GM1",
+          "anchor": "hardpoint (parent CAR11TX1 is not a barrel node)"
         }
       }
     },
@@ -930,7 +1056,13 @@
       "slots": {
         "1": {
           "weapon": "cvwo003",
-          "skip": "parent CAR11TX1 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CAR11GM1",
+          "anchor": "hardpoint (parent CAR11TX1 is not a barrel node)"
         }
       }
     },
@@ -939,11 +1071,23 @@
       "slots": {
         "1": {
           "weapon": "gminigrn",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC1",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         },
         "2": {
           "weapon": "gminigrn",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC2",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         }
       }
     },
@@ -952,11 +1096,23 @@
       "slots": {
         "1": {
           "weapon": "gminigrn",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC1",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         },
         "2": {
           "weapon": "gminigrn",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC2",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         }
       }
     },
@@ -965,11 +1121,23 @@
       "slots": {
         "1": {
           "weapon": "gminigrn",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC1",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         },
         "2": {
           "weapon": "gminigrn",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC2",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         }
       }
     },
@@ -978,11 +1146,23 @@
       "slots": {
         "1": {
           "weapon": "gminigrn",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC1",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         },
         "2": {
           "weapon": "gminigrn",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC2",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         }
       }
     },
@@ -991,11 +1171,23 @@
       "slots": {
         "1": {
           "weapon": "gminigrn",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC1",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         },
         "2": {
           "weapon": "gminigrn",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC2",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         }
       }
     },
@@ -1004,11 +1196,23 @@
       "slots": {
         "1": {
           "weapon": "gminigrn",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC1",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         },
         "2": {
           "weapon": "gminigrn",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC2",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         }
       }
     },
@@ -1017,11 +1221,23 @@
       "slots": {
         "1": {
           "weapon": "gminigrn",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC1",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         },
         "2": {
           "weapon": "gminigrn",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC2",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         }
       }
     },
@@ -1030,11 +1246,23 @@
       "slots": {
         "1": {
           "weapon": "gminignc",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC1",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         },
         "2": {
           "weapon": "gminignc",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC2",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         }
       }
     },
@@ -1043,11 +1271,11 @@
       "slots": {
         "1": {
           "weapon": "gspstaba",
-          "skip": "parent CEM11BDA is not a dedicated barrel node"
+          "skip": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint"
         },
         "2": {
           "weapon": "gspstaba",
-          "skip": "parent CEM11BDA is not a dedicated barrel node"
+          "skip": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -1056,11 +1284,11 @@
       "slots": {
         "1": {
           "weapon": "gmaggun",
-          "skip": "parent CEM11BDA is not a dedicated barrel node"
+          "skip": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint"
         },
         "2": {
           "weapon": "gmaggun",
-          "skip": "parent CEM11BDA is not a dedicated barrel node"
+          "skip": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -1069,11 +1297,11 @@
       "slots": {
         "1": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
         },
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -1082,11 +1310,11 @@
       "slots": {
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
         },
         "3": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -1095,11 +1323,11 @@
       "slots": {
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
         },
         "3": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -1108,11 +1336,11 @@
       "slots": {
         "1": {
           "weapon": "gspstaba",
-          "skip": "parent CEM11BDA is not a dedicated barrel node"
+          "skip": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint"
         },
         "2": {
           "weapon": "gspstaba",
-          "skip": "parent CEM11BDA is not a dedicated barrel node"
+          "skip": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -1121,11 +1349,11 @@
       "slots": {
         "1": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
         },
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a dedicated barrel node"
+          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -1134,7 +1362,13 @@
       "slots": {
         "1": {
           "weapon": "gatstab",
-          "skip": "parent CNA11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "GNA11GC1",
+          "anchor": "hardpoint (parent CNA11BDA is not a barrel node)"
         }
       }
     },
@@ -1143,11 +1377,23 @@
       "slots": {
         "1": {
           "weapon": "gminigun",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC1",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         },
         "2": {
           "weapon": "gminigun",
-          "skip": "parent CFL11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CFL11GC2",
+          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
         }
       }
     },
@@ -1156,15 +1402,21 @@
       "slots": {
         "1": {
           "weapon": "gshadow",
-          "skip": "parent CDR11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CDR11GR1",
+          "anchor": "hardpoint (parent CDR11BDA is not a barrel node)"
         },
         "2": {
           "weapon": "gshadow",
-          "skip": "parent CDR11BDA is not a dedicated barrel node"
+          "skip": "parent CDR11BDA is not a barrel node and the hardpoint is 0.30 m ahead of its front geometry"
         },
         "3": {
           "weapon": "gmdmgun",
-          "skip": "parent CDR11BDA is not a dedicated barrel node"
+          "skip": "parent CDR11BDA is not a barrel node and the hardpoint is 0.30 m ahead of its front geometry"
         }
       }
     },
@@ -1173,7 +1425,13 @@
       "slots": {
         "1": {
           "weapon": "gspstabb",
-          "skip": "parent CYE11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CYE11GC2",
+          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
         }
       }
     },
@@ -1182,15 +1440,27 @@
       "slots": {
         "1": {
           "weapon": "gspstabb",
-          "skip": "parent CYE11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CYE11GC2",
+          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
         },
         "2": {
           "weapon": "gmaggun",
-          "skip": "parent CYE11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CYE11GC1",
+          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
         },
         "3": {
           "weapon": "gpopgun",
-          "skip": "parent CYE11BDA is not a dedicated barrel node"
+          "skip": "parent CYE11BDA is not a barrel node and the hardpoint is 0.12 m ahead of its front geometry"
         }
       }
     },
@@ -1199,11 +1469,17 @@
       "slots": {
         "1": {
           "weapon": "gspstabb",
-          "skip": "parent CYE11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CYE11GC2",
+          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
         },
         "3": {
           "weapon": "gpopgun",
-          "skip": "parent CYE11BDA is not a dedicated barrel node"
+          "skip": "parent CYE11BDA is not a barrel node and the hardpoint is 0.12 m ahead of its front geometry"
         }
       }
     },
@@ -1212,7 +1488,13 @@
       "slots": {
         "1": {
           "weapon": "gspstabb",
-          "skip": "parent CYE11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CYE11GC2",
+          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
         }
       }
     },
@@ -1221,11 +1503,23 @@
       "slots": {
         "1": {
           "weapon": "gspstabb",
-          "skip": "parent CYE11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CYE11GC2",
+          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
         },
         "2": {
           "weapon": "gspstabb",
-          "skip": "parent CYE11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CYE11GC1",
+          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
         }
       }
     },
@@ -1234,11 +1528,23 @@
       "slots": {
         "1": {
           "weapon": "gspstabd",
-          "skip": "parent CYE11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CYE11GC2",
+          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
         },
         "2": {
           "weapon": "gspstabd",
-          "skip": "parent CYE11BDA is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CYE11GC1",
+          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
         }
       }
     },
@@ -1247,19 +1553,43 @@
       "slots": {
         "1": {
           "weapon": "gminigrn",
-          "skip": "parent CAD11TX1 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CAD11GC1",
+          "anchor": "hardpoint (parent CAD11TX1 is not a barrel node)"
         },
         "2": {
           "weapon": "gminigrn",
-          "skip": "parent CAD11TX1 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CAD11GC2",
+          "anchor": "hardpoint (parent CAD11TX1 is not a barrel node)"
         },
         "3": {
           "weapon": "gminigrn",
-          "skip": "parent CAD11TX2 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CAD11GC3",
+          "anchor": "hardpoint (parent CAD11TX2 is not a barrel node)"
         },
         "4": {
           "weapon": "gminigrn",
-          "skip": "parent CAD11TX2 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CAD11GC4",
+          "anchor": "hardpoint (parent CAD11TX2 is not a barrel node)"
         }
       }
     },
@@ -1268,15 +1598,33 @@
       "slots": {
         "1": {
           "weapon": "gtminis",
-          "skip": "parent CAD11TX1 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CAD11GC1",
+          "anchor": "hardpoint (parent CAD11TX1 is not a barrel node)"
         },
         "2": {
           "weapon": "gtminis",
-          "skip": "parent CAD11TX1 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CAD11GC2",
+          "anchor": "hardpoint (parent CAD11TX1 is not a barrel node)"
         },
         "3": {
           "weapon": "gtminis",
-          "skip": "parent CAD11TX2 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CAD11GC3",
+          "anchor": "hardpoint (parent CAD11TX2 is not a barrel node)"
         }
       }
     },
@@ -1285,11 +1633,23 @@
       "slots": {
         "1": {
           "weapon": "gspstabb",
-          "skip": "parent CAD11TX1 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CAD11GC1",
+          "anchor": "hardpoint (parent CAD11TX1 is not a barrel node)"
         },
         "3": {
           "weapon": "gspstabb",
-          "skip": "parent CAD11TX2 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CAD11GC3",
+          "anchor": "hardpoint (parent CAD11TX2 is not a barrel node)"
         }
       }
     },
@@ -1298,7 +1658,13 @@
       "slots": {
         "1": {
           "weapon": "gspstabc",
-          "skip": "parent CAD11TX1 is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "CAD11GC1",
+          "anchor": "hardpoint (parent CAD11TX1 is not a barrel node)"
         }
       }
     },
@@ -1307,15 +1673,15 @@
       "slots": {
         "1": {
           "weapon": "gblastg",
-          "skip": "parent cvw11hed is not a dedicated barrel node"
+          "skip": "parent cvw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry"
         },
         "2": {
           "weapon": "gblastg",
-          "skip": "parent cvw11hed is not a dedicated barrel node"
+          "skip": "parent cvw11hed is not a barrel node and the hardpoint is 0.97 m behind its front geometry"
         },
         "3": {
           "weapon": "gpopgun",
-          "skip": "parent cvw11sup is not a dedicated barrel node"
+          "skip": "parent cvw11sup is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -1324,11 +1690,11 @@
       "slots": {
         "1": {
           "weapon": "gblast",
-          "skip": "parent cvw11hed is not a dedicated barrel node"
+          "skip": "parent cvw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry"
         },
         "3": {
           "weapon": "gmdmgun",
-          "skip": "parent cvw11sup is not a dedicated barrel node"
+          "skip": "parent cvw11sup is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -1619,11 +1985,23 @@
       "slots": {
         "1": {
           "weapon": "grktbomb",
-          "skip": "parent SFL11ROR is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "SFL11GC1",
+          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
         },
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent SFL11ROR is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "SFL11GR1",
+          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
         }
       }
     },
@@ -1632,11 +2010,23 @@
       "slots": {
         "1": {
           "weapon": "gminisov",
-          "skip": "parent SFL11ROR is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "SFL11GC1",
+          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
         },
         "2": {
           "weapon": "gminisov",
-          "skip": "parent SFL11ROR is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "SFL11GR1",
+          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
         }
       }
     },
@@ -1645,11 +2035,23 @@
       "slots": {
         "1": {
           "weapon": "gminisov",
-          "skip": "parent SFL11ROR is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "SFL11GC1",
+          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
         },
         "2": {
           "weapon": "gminisov",
-          "skip": "parent SFL11ROR is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "SFL11Gc2",
+          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
         }
       }
     },
@@ -1658,11 +2060,23 @@
       "slots": {
         "1": {
           "weapon": "gminisov",
-          "skip": "parent SFL11ROR is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "SFL11GC1",
+          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
         },
         "2": {
           "weapon": "gminisov",
-          "skip": "parent SFL11ROR is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "SFL11Gc2",
+          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
         }
       }
     },
@@ -1671,11 +2085,23 @@
       "slots": {
         "1": {
           "weapon": "gminisov",
-          "skip": "parent SFL11ROR is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "SFL11GC1",
+          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
         },
         "2": {
           "weapon": "gminisov",
-          "skip": "parent SFL11ROR is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "SFL11Gc2",
+          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
         }
       }
     },
@@ -1684,11 +2110,17 @@
       "slots": {
         "2": {
           "weapon": "gsrkbomb",
-          "skip": "parent shb11bda is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "Shb11GR1",
+          "anchor": "hardpoint (parent shb11bda is not a barrel node)"
         },
         "3": {
           "weapon": "gsrkbomb",
-          "skip": "parent shb11bda is not a dedicated barrel node"
+          "skip": "parent shb11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry"
         }
       }
     },
@@ -1697,11 +2129,17 @@
       "slots": {
         "2": {
           "weapon": "gsrkbomb",
-          "skip": "parent shb11bda is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "Shb11GR1",
+          "anchor": "hardpoint (parent shb11bda is not a barrel node)"
         },
         "3": {
           "weapon": "gsrkbomb",
-          "skip": "parent shb11bda is not a dedicated barrel node"
+          "skip": "parent shb11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry"
         }
       }
     },
@@ -1710,15 +2148,21 @@
       "slots": {
         "1": {
           "weapon": "gtaggun",
-          "skip": "parent shb11bdc is not a dedicated barrel node"
+          "skip": "parent shb11bdc is not a barrel node and the hardpoint is 0.79 m behind its front geometry"
         },
         "2": {
           "weapon": "gsrkbomb",
-          "skip": "parent shb11bda is not a dedicated barrel node"
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "Shb11GR1",
+          "anchor": "hardpoint (parent shb11bda is not a barrel node)"
         },
         "3": {
           "weapon": "gsrkbomb",
-          "skip": "parent shb11bda is not a dedicated barrel node"
+          "skip": "parent shb11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry"
         }
       }
     },
@@ -1727,7 +2171,7 @@
       "slots": {
         "1": {
           "weapon": "gtaggun",
-          "skip": "parent slt11trt is not a dedicated barrel node"
+          "skip": "parent slt11trt is not a barrel node and the hardpoint is 1.03 m behind its front geometry"
         }
       }
     },
@@ -1736,7 +2180,7 @@
       "slots": {
         "1": {
           "weapon": "gtaggun",
-          "skip": "parent slt11trt is not a dedicated barrel node"
+          "skip": "parent slt11trt is not a barrel node and the hardpoint is 1.03 m behind its front geometry"
         }
       }
     },
@@ -1745,11 +2189,11 @@
       "slots": {
         "1": {
           "weapon": "gshadow",
-          "skip": "parent srt11bda is not a dedicated barrel node"
+          "skip": "parent srt11bda is not a barrel node and the hardpoint is 1.43 m behind its front geometry"
         },
         "3": {
           "weapon": "gmdmgun",
-          "skip": "parent srt11bda is not a dedicated barrel node"
+          "skip": "parent srt11bda is not a barrel node and the hardpoint is 0.74 m ahead of its front geometry"
         }
       }
     },
@@ -1758,7 +2202,7 @@
       "slots": {
         "1": {
           "weapon": "gbolt",
-          "skip": "parent ssv11bda is not a dedicated barrel node"
+          "skip": "parent ssv11bda is not a barrel node and the hardpoint is 17.29 m ahead of its front geometry"
         }
       }
     },
@@ -1778,7 +2222,7 @@
         },
         "2": {
           "weapon": "gminisov",
-          "skip": "parent scz11bda is not a dedicated barrel node"
+          "skip": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry"
         }
       }
     },
@@ -1798,7 +2242,7 @@
         },
         "2": {
           "weapon": "gminisov",
-          "skip": "parent scz11bda is not a dedicated barrel node"
+          "skip": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry"
         }
       }
     },
@@ -1818,7 +2262,7 @@
         },
         "2": {
           "weapon": "gflashgn",
-          "skip": "parent scz11bda is not a dedicated barrel node"
+          "skip": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry"
         }
       }
     },
@@ -1838,7 +2282,7 @@
         },
         "2": {
           "weapon": "gflashgn",
-          "skip": "parent scz11bda is not a dedicated barrel node"
+          "skip": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry"
         }
       }
     },
@@ -1912,15 +2356,15 @@
       "slots": {
         "1": {
           "weapon": "gblast",
-          "skip": "parent svw11hed is not a dedicated barrel node"
+          "skip": "parent svw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry"
         },
         "2": {
           "weapon": "gblast",
-          "skip": "parent svw11hed is not a dedicated barrel node"
+          "skip": "parent svw11hed is not a barrel node and the hardpoint is 0.97 m behind its front geometry"
         },
         "3": {
           "weapon": "gpopgun",
-          "skip": "parent svw11sup is not a dedicated barrel node"
+          "skip": "parent svw11sup is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -1929,15 +2373,15 @@
       "slots": {
         "1": {
           "weapon": "gblast",
-          "skip": "parent svw11hed is not a dedicated barrel node"
+          "skip": "parent svw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry"
         },
         "2": {
           "weapon": "gblast",
-          "skip": "parent svw11hed is not a dedicated barrel node"
+          "skip": "parent svw11hed is not a barrel node and the hardpoint is 0.97 m behind its front geometry"
         },
         "3": {
           "weapon": "gpopgun",
-          "skip": "parent svw11sup is not a dedicated barrel node"
+          "skip": "parent svw11sup is not a barrel node and has no geometry around the hardpoint"
         }
       }
     },
@@ -1946,11 +2390,11 @@
       "slots": {
         "1": {
           "weapon": "gblast",
-          "skip": "parent svw11hed is not a dedicated barrel node"
+          "skip": "parent svw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry"
         },
         "3": {
           "weapon": "gpopgun",
-          "skip": "parent svw11sup is not a dedicated barrel node"
+          "skip": "parent svw11sup is not a barrel node and has no geometry around the hardpoint"
         }
       }
     }

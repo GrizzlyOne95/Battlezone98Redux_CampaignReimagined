@@ -146,13 +146,24 @@ consistent with the legacy-GEO estimates in the inventory (the inventory's value
 is a forward distance from the older collision GEO; the Ogre mesh is what is
 drawn, so it is used for lateral and vertical too).
 
-Not emitted (listed in the JSON with the reason): hardpoints whose parent is a
-hull, turret, arm or pod rather than a dedicated barrel (166 slots, including all
-fighters, bombers, light tanks and walkers; these need the per-family fitting pass
-below), pilots (32 slots, no `[CraftClass]`), hardpoint bones not present in the
+A hardpoint whose parent is a hull, turret, arm or pod rather than a dedicated
+barrel gets `0.00 0.00 0.00`, so the flash draws at the hardpoint, where the shot
+spawns (OpenShim draws no vehicle flash at all without a key). That is only
+right at the muzzle face (`avfigh`/`svfigh` GC1/GC2 are 3-7 cm behind the front
+geometry), so the parent's geometry within 0.25 m right/up of the hardpoint, in
+the parent's frame, must end between 0.1 m behind and 0.3 m ahead of it. 74
+slots pass (mostly fighters, Chinese and Soviet tanks, turrets). The rest are
+skipped with the reason: buried (39, e.g. `avlamp` 2.66 m, the `avsav` family
+2.27 m, `svtank` slot 2 1.46 m), floating ahead of the hull (10, e.g. `svsav`
+17.3 m, `svrckt` slot 3 0.74 m), or no parent geometry near the hardpoint (47).
+The JSON row says `anchor` instead of `barrel`; the per-family fitting pass
+below can replace it.
+
+Not emitted (listed in the JSON with the reason): pilots (32 slots, no
+`[CraftClass]`; they use the weapon's own `flashOffset`), hardpoint bones not present in the
 Ogre skeleton (10), hardpoints already at the tip (under 0.1 m: Soviet howitzers
 `svartl`/`svarmp`/`svartla`, and `bvhraz` slot 1 whose barrel mesh ends behind
-its hardpoint), and `avsav`/`avsav14` (no Ogre mesh).
+its hardpoint), and the skipped hull hardpoints above.
 Re-run `--measure` after changing a craft's weapons, hardpoints or model.
 Offsets are fitted from geometry, not yet confirmed live except avtank.
 
