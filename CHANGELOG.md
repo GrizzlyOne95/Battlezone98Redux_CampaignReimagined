@@ -7,7 +7,7 @@
   plane and releases its pooled gib and shell-casing meshes before the engine frees every mesh at mission end. It
   also adds guards against writes to freed lights (headlights and emissive pulse), a terrain rain and ice shader
   payload, and the MP setup screen with a Local server choice.
-- Bundle ExtraUtilities 1.3.2 (main bc15fc2): only touches the sun while it is a live light, respects material
+- Bundle ExtraUtilities 1.3.2 (main f502a5d): only touches the sun while it is a live light, respects material
   groups and balances native material references, and fixes DX11 font bridge reference counts (the ISDF Chronicles
   status-ring crash).
 - Weather and worlds:
