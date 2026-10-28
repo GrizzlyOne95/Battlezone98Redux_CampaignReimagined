@@ -77,7 +77,7 @@ view = 1 -- cockpit view: its "panel" material must stay clear of snow
 for h = 1, N do S.Register(h) end
 for _ = 1, 200 do S.Update(0.05) end
 
-assert(snowOf.EU_DETAIL_ATLAS and snowOf.EU_DETAIL_ATLAS > 0.2, "terrain atlas takes snow")
+assert(snowOf.EU_DETAIL_ATLAS and snowOf.EU_DETAIL_ATLAS > 0.1 and snowOf.EU_DETAIL_ATLAS < 0.2, "terrain atlas takes its own lighter snow cover")
 assert(iceOf.EU_DETAIL_ATLAS and iceOf.EU_DETAIL_ATLAS > 0.5, "terrain atlas takes ice depth")
 assert(shapeOf.EU_DETAIL_ATLAS and shapeOf.EU_DETAIL_ATLAS[1] == 1e-4 and shapeOf.EU_DETAIL_ATLAS[4] == -19,
     "terrain atlas takes the map's shape transform")
