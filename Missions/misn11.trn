@@ -228,17 +228,17 @@ Azimuth30   = 120
 Elevation30 = 32
 
 Texture31   = creuropa.map
-Size31      = 11
+Size31      = 33
 Azimuth31   = 210
 Elevation31 = 47
 
 Texture32   = crganyme.map
-Size32      = 8
+Size32      = 24
 Azimuth32   = 246
 Elevation32 = 27
 
 Texture33   = crcallis.map
-Size33      = 4
+Size33      = 12
 Azimuth33   = 150
 Elevation33 = 47
 
