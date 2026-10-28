@@ -2,6 +2,8 @@
 -- Map -> terrain atlas material and the surfaceTerrain uv transform
 -- (u = x*su + ou, v = z*sv + ov) into <atlas>_shape.dds.
 return {
+    misn17 = { "AC_DETAIL_ATLAS", 9.765625e-05, 0.0001953125, 0, -19 },
+    misn18 = { "AC_DETAIL_ATLAS", 9.765625e-05, 0.0001953125, 0.5, -19 },
     misn12 = { "EU_DETAIL_ATLAS", 9.765625e-05, 0.0001953125, 0, -19 },
     misn13 = { "EU_DETAIL_ATLAS", 9.765625e-05, 0.0001953125, 0.5, -19 },
     misn04 = { "MA_DETAIL_ATLAS", 9.765625e-05, 0.0001953125, 0, -19.25 },

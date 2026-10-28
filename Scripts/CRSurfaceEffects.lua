@@ -25,13 +25,15 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     -- Snow on upward faces by world (CRWorldArt name): cover, linear albedo,
     -- blue tint, ice depth in metres (terrain parallax ice under the snow
     -- line, 0 = off) -- the surfaceSnow uniform. The world's terrain
-    -- atlas material takes it too. Cockpit materials never do.
+    -- atlas material takes it too. Cockpit materials never do. Every world's
+    -- terrain atlas also takes the swept rain wetness (darkening, puddles in
+    -- the shape-mask hollows, ripples), snow world or not.
     SnowWorlds = { europa = { 0.4, 0.88, 0.35, 1.0 } }, snow = nil,
     -- Dust by world: linear r, g, b and amount -- the surfaceDust uniform.
     -- It settles on tops and, where a material has an ACT map, in occluded
     -- corners and creases; rain washes it off. On terrain it only fills the
     -- hollows of the map's baked shape mask (CRTerrainShape), which also
-    -- drifts snow into hollows and off ridges.
+    -- drifts snow into hollows and off ridges and holds rain puddles.
     DustWorlds = { mars = { 0.45, 0.17, 0.07, 0.5 } }, dust = nil,
     -- Thruster wash on shaped snow/dust terrain: craft hovering within
     -- WashHeight (full, none) metres of the ground and WashRange of the camera
@@ -157,14 +159,18 @@ local function sceneSnow()
     local world = trn and ok and type(art) == "table" and call(art.Detect, trn) or nil
     S.snow = S.SnowWorlds[world] or false
     S.dust = S.DustWorlds[world] or false
-    if S.snow or S.dust then
-        local atlas = call(GetODFString, trn, "Atlases", "MaterialName", "")
+    do
+        -- The terrain atlas is always registered: it takes the swept rain
+        -- wetness (surfaceState.x) in every world, and its baked shape mask
+        -- when the map has one. Snow and dust writes stay gated on their worlds.
+        local atlas = trn and call(GetODFString, trn, "Atlases", "MaterialName", "") or ""
         if type(atlas) == "string" and atlas ~= "" then
             atlas = string.upper(atlas)
             wetMaterial(atlas)
             local state = S.materials[atlas]
             if state then
                 state.terrain = true
+                S.cameraMaterial = atlas
                 -- The shape table is keyed by map; its atlas must match.
                 local okShape, shapes = pcall(require, "CRTerrainShape")
                 local map = string.lower(string.match(file, "([^/\\]+)%.[Tt][Rr][Nn]$") or "")
@@ -201,7 +207,9 @@ local function cameraPosition()
     if ok and finite(x) and finite(y) and finite(z) then return x, y, z end
 end
 local function followCamera()
-    local name = S.shapeMaterial
+    -- Shaped terrain, else the plain atlas: rain puddles and ripples need a
+    -- world (not camera-relative) position on every map.
+    local name = S.shapeMaterial or S.cameraMaterial
     if not name then return end
     local x, y, z = cameraPosition()
     if not x then return end
@@ -238,7 +246,7 @@ local function clearWash()
     S.washers, S.washCursor, S.washTrail, S.washOut = {}, 1, {}, {}
 end
 local function wash(dt)
-    if not S.shapeMaterial or not S.cameraAt then return end
+    if not S.shapeMaterial or not S.cameraAt or not (S.snow or S.dust) then return end
     -- Keep a list of the registered craft that can hover, a few per update.
     for _ = 1, math.min(S.WashScan, #S.order) do
         if S.washCursor > #S.order then S.washCursor = 1 end
@@ -789,7 +797,7 @@ function S.ResetScene()
     S.cockpit=nil;S.cursor=1;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
     setCrack(0);S.crackSpots,S.crackSpotCount={},0
     S.SweepWet=0;S.sweepLeft=0;S.cloneLeft=0;S.wetCursor=1;S.sweepMoving=false
-    clearWash();S.snow=nil;S.dust=nil;S.shapeMaterial=nil;S.cameraAt=nil
+    clearWash();S.snow=nil;S.dust=nil;S.shapeMaterial=nil;S.cameraMaterial=nil;S.cameraAt=nil
 end
 
 -- Player setting. Off restores every owned material, releases clones, unhooks
@@ -817,7 +825,7 @@ function S.Suspend()
     S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{}
     S.hits,S.shots,S.clones = {},{},{}
     S.cockpit=nil;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
-    clearWash();S.shapeMaterial=nil;S.cameraAt=nil
+    clearWash();S.shapeMaterial=nil;S.cameraMaterial=nil;S.cameraAt=nil
     setCrack(0)
     S.SweepWet=0;S.sweepLeft=0;S.cloneLeft=0;S.wetCursor=1;S.sweepMoving=false
     S.Unhook()

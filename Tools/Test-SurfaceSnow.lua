@@ -135,7 +135,8 @@ for _ = 1, 200 do S.Update(0.05) end
 assert(dustOf.mat5 and not dustOf.MA_DETAIL_ATLAS, "unshaped terrain gets no dust")
 assert(next(shapeOf) == nil, "atlas mismatch writes no shape")
 cameraOf, washOf = {}, {}; S.Update(0.05); camera.posit_x = 300; S.Update(0.05)
-assert(next(cameraOf) == nil and next(washOf) == nil, "unshaped terrain takes no camera or wash writes")
+-- Rain puddles still need the camera on unshaped terrain; wash stays off.
+assert(cameraOf.MA_DETAIL_ATLAS and next(washOf) == nil, "unshaped terrain takes camera but no wash writes")
 S.ResetScene()
 
 print("SurfaceSnow: Europa materials, clones, terrain atlas, cockpit excluded, reset, other worlds, Mars dust, terrain shape PASS")

@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4845,
+  "count": 4846,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -3562,6 +3562,10 @@
     {
       "source": "Assets\\Textures\\abwpow_N.dds",
       "runtime": "abwpow_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\ac_detail_atlas_shape.dds",
+      "runtime": "ac_detail_atlas_shape.dds"
     },
     {
       "source": "Assets\\Textures\\appowr00_N.dds",
