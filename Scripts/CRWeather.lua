@@ -53,7 +53,7 @@ CRWeather.Intensity          = 1.0
 
 -- Multiplier on the precipitation particles only (fog, light and sky keep the
 -- preset): a director whose fallout is local, like Europa's plumes, sets it from
--- where the player is. Not saved; Init puts it back to 1.
+-- where the player is. Not saved; Init and Shutdown put it back to 1.
 CRWeather.PrecipitationScale = 1.0
 
 -- The sky layer is opt-in. Ogre exposes the skydome's generation parameters but
@@ -1647,6 +1647,7 @@ function CRWeather.Shutdown()
     if not CRWeather.Initialized then
         return
     end
+    CRWeather.PrecipitationScale = 1.0
 
     if CRWeather.SkyApplied and CRWeather.BaseSky ~= nil then
         ApplySky(CRWeather.BaseSky)
