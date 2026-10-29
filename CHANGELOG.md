@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Bundle OpenShim 1.0.0.65. The OpenShim Options rows get a wider label column so full names fit; descriptions are
+  fitted and several corrected; Target Popup values read Stock / Suppress Neutral / Suppress All; and headlights
+  (player and AI), the pilot flashlight, satellite fog of war and the reactive reticle tint now also run in
+  multiplayer (hit markers stay single player).
 - Rename the 15 campaign missions that shared a stock name (misn02b is now misn2bcr; misn03 through misn14, misn17 and
   misn18 gain a `cr` suffix) so a save loaded from the main menu mounts Campaign Reimagined instead of quitting. Saves
   made before this update for those missions cannot be loaded; restart the mission. The co-op map files are renamed to
