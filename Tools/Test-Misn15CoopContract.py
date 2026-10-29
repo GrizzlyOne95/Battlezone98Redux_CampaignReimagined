@@ -51,7 +51,7 @@ assert '[MISSION14]' in (ROOT/'Config/crcampgn.ini').read_text()
 assert 'voice = "misn1500.wav"' in (ROOT/'Config/crcampgn.ini').read_text()
 assert len((ROOT/'misn15.mpdes').read_bytes())<=300
 assert (ROOT/'Assets/Graphics/misn15.bmp').read_bytes()[:2]==b'BM'
-assert (ROOT/'Missions/misn15.vxt').read_bytes()==(ROOT/'Missions/misn14.vxt').read_bytes()
+assert (ROOT/'Missions/misn15.vxt').read_bytes()==(ROOT/'Missions/misn14cr.vxt').read_bytes()
 
 # Independent reconstruction from the shipping MAT and HG2, including inland
 # plateaus and mixed shore tiles that must never become water.

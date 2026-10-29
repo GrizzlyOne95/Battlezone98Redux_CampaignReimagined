@@ -47,7 +47,7 @@ Plan (see Docs/MISN11_COOP.md "Lava"):
 
 Usage:
     python Tools/Build-Misn11Lava.py [--preview Docs/MISN11_LAVA_PREVIEW.png] [--dry-run]
-Sources: Redux's bzone.zfs (--zfs) for misn11.mat/.trn, Missions/misn11.hg2 and Missions/misn11.bzn.
+Sources: Redux's bzone.zfs (--zfs) for misn11.mat/.trn, Missions/misn11.hg2 and Missions/misn11cr.bzn.
 """
 
 from __future__ import annotations
@@ -597,7 +597,7 @@ def main() -> int:
     mat = unpack_mat_zones(original_mat, 4, 4).astype(np.int64)
     header, hg2 = read_hg2(args.missions / "misn11.hg2")
     assert hg2.shape == (1024, 1024), hg2.shape
-    paths, objects = read_bzn_features(args.missions / "misn11.bzn")
+    paths, objects = read_bzn_features(args.missions / "misn11cr.bzn")
     player = next(o for o in objects if o["odf"] == "player")
     start_xz = (player["x"], player["z"])
     (xa, za), (xb, zb) = paths["edge_path"]

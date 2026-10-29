@@ -6,7 +6,7 @@ package.path = "Scripts/?.lua;" .. package.path
 -- are mocks: they verify script decisions, not Redux native map loading, pathfinding,
 -- Lua wire serialization or EXU hooks. The map coordinates below keep the authored
 -- geometry's relationships (geyser1 nearest the relic, CCA base far from Utah) but are
--- not read from Missions/misn10.bzn. misn10 has no cameras and no IsInfo relay.
+-- not read from Missions/misn10cr.bzn. misn10 has no cameras and no IsInfo relay.
 local PeerTransport = dofile("Tools/BZRPeerTransportSim.lua")
 local checks = 0
 local function check(value, message)
@@ -297,7 +297,7 @@ local function makePeer(id, team, network)
     e.package = setmetatable({loaded = {exu = modules.exu}}, {__index = package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
     e.require = function(name) return assert(modules[name], name) end
-    setfenv(assert(loadfile("Scripts/misn10.lua")), e)()
+    setfenv(assert(loadfile("Scripts/misn10cr.lua")), e)()
     p.chunkCalls = #p.calls -- everything recorded so far ran at chunk load, before Start
     p.env, p.coop = e, modules.CRCoop
     e.Start()

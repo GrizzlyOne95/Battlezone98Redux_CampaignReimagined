@@ -5,7 +5,7 @@ import json
 import re
 
 root = Path(__file__).resolve().parents[1]
-raw = (root / 'Missions/misn05.bzn').read_bytes()
+raw = (root / 'Missions/misn05cr.bzn').read_bytes()
 assert b'\n' not in raw.replace(b'\r\n', b''), 'BZN must retain native CRLF'
 bzn = raw.decode('utf-8').replace('\r\n', '\n')
 assert 'name = MultSTMission\n' in bzn
@@ -36,14 +36,14 @@ assert len(seqs) == len(set(seqs)) and int(re.search(r'seq_count \[1\] =\n(\d+)'
 assert 'player_path' not in bzn, 'Native multiplayer would create a stray player craft'
 
 ini = configparser.ConfigParser()
-ini.read(root / 'Config/misn05.ini')
+ini.read(root / 'Config/misn05cr.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
-assert (root / 'Missions/misn05.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,']
-assert (root / 'Assets/Graphics/misn05.bmp').read_bytes()[:2] == b'BM'
-assert len((root / 'misn05.mpdes').read_text().strip()) <= 300
+assert (root / 'Missions/misn05cr.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,']
+assert (root / 'Assets/Graphics/misn05cr.bmp').read_bytes()[:2] == b'BM'
+assert len((root / 'misn05cr.mpdes').read_text().strip()) <= 300
 
-lua = (root / 'Scripts/misn05.lua').read_text()
+lua = (root / 'Scripts/misn05cr.lua').read_text()
 lua = re.sub(r'--\[(=*)\[.*?\]\1\]', '', lua, flags=re.S)
 assert 'local LEADER_TEAM, ENEMY_TEAM, MINE_TEAM, SUPPORT_TEAM = 1, 5, 6, 7' in lua
 assert 'pcall(BuildObject, odf, ENEMY_TEAM, spawn)' in lua
@@ -53,7 +53,7 @@ assert not re.search(r'BuildObject\([^\n]*,\s*[234]\s*,', lua)
 assert 'aiCore.SetStrategyFromAip("misn05.aip", ENEMY_TEAM)' in lua
 # misn05 keeps the aiCore Lua brain for team 5 (custom strategy, maintain list, perimeter), so the
 # engine's native AI must not be attached: no SetAIControl anywhere, and no native SetAIP call.
-_ai_src = (root / 'Scripts/misn05.lua').read_text()
+_ai_src = (root / 'Scripts/misn05cr.lua').read_text()
 _ai_active = re.sub(r'--[^\n]*', '', re.sub(r'--\[(=*)\[.*?\]\1\]', '', _ai_src, flags=re.S))
 assert not re.search(r'SetAIControl\(', _ai_active), 'misn05 uses the Lua brain: no SetAIControl'
 assert not re.search(r'(?<![\w.])SetAIP\(', _ai_active), 'misn05 must not call the native SetAIP'
@@ -63,6 +63,6 @@ assert 'CRCoop.AnyPlayerSatisfies' in lua
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn05.ini', 'Missions/misn05.vxt', 'Assets/Graphics/misn05.bmp', 'misn05.mpdes']:
+for source in ['Config/misn05cr.ini', 'Missions/misn05cr.vxt', 'Assets/Graphics/misn05cr.bmp', 'misn05cr.mpdes']:
     assert members.get(source) == Path(source).name, 'New lobby asset must be admitted by the shipping manager: ' + source
 print('misn05 co-op native map, team isolation, authority and lobby contract passed')

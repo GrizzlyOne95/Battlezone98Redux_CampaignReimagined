@@ -5,7 +5,7 @@ package.path = "Scripts/?.lua;" .. package.path
 -- real CRCoop registry and the E/A (+C camera, +I info) presentation transport. The engine, AI and
 -- combat are mocks: they verify script decisions, not Redux native map loading, pathfinding,
 -- perceived-team behaviour, Lua wire serialization or EXU hooks. The map coordinates below are the
--- authored ones (Missions/misn12.bzn).
+-- authored ones (Missions/misn12cr.bzn).
 local PeerTransport = dofile("Tools/BZRPeerTransportSim.lua")
 local checks = 0
 local function check(value, message)
@@ -343,7 +343,7 @@ local function makePeer(id, team, network)
     e.package = setmetatable({loaded = {exu = modules.exu}}, {__index = package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
     e.require = function(name) return assert(modules[name], name) end
-    setfenv(assert(loadfile("Scripts/misn12.lua")), e)()
+    setfenv(assert(loadfile("Scripts/misn12cr.lua")), e)()
     p.chunkCalls = #p.calls -- everything recorded so far ran at chunk load, before Start
     p.env, p.coop = e, modules.CRCoop
     e.Start()

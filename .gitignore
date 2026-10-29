@@ -68,19 +68,19 @@
 !/update.des
 !/staged.des
 !/nocopy.des
-!/misn03.mpdes
-!/misn04.mpdes
-!/misn05.mpdes
-!/misn06.mpdes
-!/misn07.mpdes
-!/misn08.mpdes
-!/misn09.mpdes
-!/misn10.mpdes
-!/misn11.mpdes
-!/misn12.mpdes
-!/misn13.mpdes
-!/misn14.mpdes
-!/misn02b.mpdes
+!/misn03cr.mpdes
+!/misn04cr.mpdes
+!/misn05cr.mpdes
+!/misn06cr.mpdes
+!/misn07cr.mpdes
+!/misn08cr.mpdes
+!/misn09cr.mpdes
+!/misn10cr.mpdes
+!/misn11cr.mpdes
+!/misn12cr.mpdes
+!/misn13cr.mpdes
+!/misn14cr.mpdes
+!/misn2bcr.mpdes
 
 # Local machine/generated artifacts live under Local and stay ignored
 /Local/
@@ -105,6 +105,6 @@ desktop.ini
 
 !misn16.mpdes
 
-!misn17.mpdes
+!misn17cr.mpdes
 
-!misn18.mpdes
+!misn18cr.mpdes

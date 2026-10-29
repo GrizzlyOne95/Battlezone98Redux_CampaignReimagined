@@ -25,7 +25,7 @@ local function reset(opts)
         objects[nextId] = { odf = odf, pos = pos, vel = V(0, 0, 0), label = label }
         return nextId
     end
-    -- stock misn04 layout (Missions/misn04.bzn), on flat ground at y 20
+    -- stock misn04 layout (Missions/misn04cr.bzn), on flat ground at y 20
     add("avrec4", V(1933, 20, 100685), "avrecy-1_recycler")
     add("avmuf4", V(1899, 20, 100681), "avmuf0_factory")
     add("player", V(1908, 20, 100764), "player-1_hover")

@@ -3,7 +3,7 @@ package.path = "Scripts/?.lua;" .. package.path
 -- Run from the repository root: lua5.1 Tools/Test-Misn06.lua
 -- Stock API host fakes test mission decisions, not native AI/camera rendering.
 assert(_VERSION == "Lua 5.1", "use Lua 5.1")
-local script = arg[1] or "Scripts/misn06.lua"
+local script = arg[1] or "Scripts/misn06cr.lua"
 local checks = 0
 local function Check(value, message)
     assert(value, message)

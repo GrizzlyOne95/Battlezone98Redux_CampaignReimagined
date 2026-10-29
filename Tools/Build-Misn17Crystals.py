@@ -83,7 +83,7 @@ def build(game,toolbox):
     set $glow "%s"
 }'''%(name,rgb,rgb,'0.01 0.08 0.12' if cargo else '0 0 0'))
     (ROOT/'Materials/cr17_crystal.material').write_text('import * from "BZBase.material"\n\n'+'\n\n'.join(materials)+'\n')
-    b=read_bzn(ROOT/'Missions/misn17.bzn')
+    b=read_bzn(ROOT/'Missions/misn17cr.bzn')
     b.objects=[o for o in b.objects if not o.label.startswith(('cr17_raw','cr17_processed','cr17_refinery','cr17_receiver','cr17_tug'))]
     _,heights=read_hg2(ROOT/'Missions/misn17.hg2')
     stock=read_bzn(arc.read('misn10.bzn'))
@@ -112,7 +112,7 @@ def build(game,toolbox):
                 field.value=bytes(4) if isinstance(field.value,bytes) else 0
         b.objects.append(o);seq+=1
     b.header['seq_count'].value=seq;b.header['#objects'].value=len(b.objects)
-    (ROOT/'Missions/misn17.bzn').write_bytes(write_bzn(b,2016,binary=False,preserve_spelling=False))
+    (ROOT/'Missions/misn17cr.bzn').write_bytes(write_bzn(b,2016,binary=False,preserve_spelling=False))
     en=ZFSArchive(game/'bzone_en.zfs')
     for i in (2,5,6,7,8,9):
         name=f'misn17{i:02}.wav';(ROOT/'Assets/Audio'/name).write_bytes(en.read(name))

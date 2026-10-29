@@ -1,4 +1,4 @@
-"""Compatibility wrapper: rebuild Missions/misn06.bzn via Build-CoopMap.py."""
+"""Compatibility wrapper: rebuild Missions/misn06cr.bzn via Build-CoopMap.py."""
 
 import runpy
 import sys

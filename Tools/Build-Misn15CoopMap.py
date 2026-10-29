@@ -30,7 +30,7 @@ def build(source, toolbox):
     result = read_bzn(base.build(text, 'misn15').encode('latin-1'))
     templates = {}
     for name in ('misn09', 'misn14'):
-        for obj in read_bzn(ROOT/'Missions'/f'{name}.bzn').objects:
+        for obj in read_bzn(ROOT/'Missions'/f'{name}cr.bzn').objects:
             templates.setdefault(obj.prjid, obj)
     templates['avapc'] = next(o for o in original.objects if o.prjid == 'svapc')
     templates['avartl'] = templates['svartl']

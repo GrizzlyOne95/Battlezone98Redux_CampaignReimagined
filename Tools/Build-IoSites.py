@@ -37,7 +37,7 @@ material (same layout and orientation as Tools/Build-VenusSites.py).
 Sources. misn10 is not shipped in Missions/ (it is the stock Redux map), so the
 inputs come from either:
 
-  --source-dir DIR   a folder holding misn10.trn, misn10.mat, misn10.bzn
+  --source-dir DIR   a folder holding misn10.trn, misn10.mat, misn10cr.bzn
   --zfs FILE         Redux's bzone.zfs; the three files are read straight out of
                      it with the Modding Toolbox's battlezone.archives.zfs
 
@@ -74,7 +74,8 @@ def fetch_sources(args) -> dict[str, bytes]:
     names = [f"{args.mission}.trn", f"{args.mission}.mat", f"{args.mission}.bzn"]
     if args.source_dir:
         folder = Path(args.source_dir)
-        return {n: (folder / n).read_bytes() for n in names}
+        # A Missions/ folder holds the co-op BZN as <stem>cr.bzn; a stock folder holds <stem>.bzn.
+        return {n: next(p for p in (folder / n.replace(".bzn", "cr.bzn"), folder / n) if p.is_file()).read_bytes() for n in names}
     sys.path.insert(0, str(args.toolbox))
     from battlezone.archives.zfs import ZFSArchive  # noqa: E402
 

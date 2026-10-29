@@ -216,56 +216,56 @@
       "runtime": "crsetup.bmp"
     },
     {
-      "source": "Assets\\Graphics\\misn02b.bmp",
-      "runtime": "misn02b.bmp"
+      "source": "Assets\\Graphics\\misn2bcr.bmp",
+      "runtime": "misn2bcr.bmp"
     },
     {
-      "source": "Assets\\Graphics\\misn03.bmp",
-      "runtime": "misn03.bmp"
+      "source": "Assets\\Graphics\\misn03cr.bmp",
+      "runtime": "misn03cr.bmp"
     },
     {
-      "source": "Assets\\Graphics\\misn04.bmp",
-      "runtime": "misn04.bmp"
+      "source": "Assets\\Graphics\\misn04cr.bmp",
+      "runtime": "misn04cr.bmp"
     },
     {
-      "source": "Assets\\Graphics\\misn05.bmp",
-      "runtime": "misn05.bmp"
+      "source": "Assets\\Graphics\\misn05cr.bmp",
+      "runtime": "misn05cr.bmp"
     },
     {
-      "source": "Assets\\Graphics\\misn06.bmp",
-      "runtime": "misn06.bmp"
+      "source": "Assets\\Graphics\\misn06cr.bmp",
+      "runtime": "misn06cr.bmp"
     },
     {
-      "source": "Assets\\Graphics\\misn07.bmp",
-      "runtime": "misn07.bmp"
+      "source": "Assets\\Graphics\\misn07cr.bmp",
+      "runtime": "misn07cr.bmp"
     },
     {
-      "source": "Assets\\Graphics\\misn08.bmp",
-      "runtime": "misn08.bmp"
+      "source": "Assets\\Graphics\\misn08cr.bmp",
+      "runtime": "misn08cr.bmp"
     },
     {
-      "source": "Assets\\Graphics\\misn09.bmp",
-      "runtime": "misn09.bmp"
+      "source": "Assets\\Graphics\\misn09cr.bmp",
+      "runtime": "misn09cr.bmp"
     },
     {
-      "source": "Assets\\Graphics\\misn10.bmp",
-      "runtime": "misn10.bmp"
+      "source": "Assets\\Graphics\\misn10cr.bmp",
+      "runtime": "misn10cr.bmp"
     },
     {
-      "source": "Assets\\Graphics\\misn11.bmp",
-      "runtime": "misn11.bmp"
+      "source": "Assets\\Graphics\\misn11cr.bmp",
+      "runtime": "misn11cr.bmp"
     },
     {
-      "source": "Assets\\Graphics\\misn12.bmp",
-      "runtime": "misn12.bmp"
+      "source": "Assets\\Graphics\\misn12cr.bmp",
+      "runtime": "misn12cr.bmp"
     },
     {
-      "source": "Assets\\Graphics\\misn13.bmp",
-      "runtime": "misn13.bmp"
+      "source": "Assets\\Graphics\\misn13cr.bmp",
+      "runtime": "misn13cr.bmp"
     },
     {
-      "source": "Assets\\Graphics\\misn14.bmp",
-      "runtime": "misn14.bmp"
+      "source": "Assets\\Graphics\\misn14cr.bmp",
+      "runtime": "misn14cr.bmp"
     },
     {
       "source": "Assets\\Graphics\\misn15.bmp",
@@ -276,12 +276,12 @@
       "runtime": "misn16.bmp"
     },
     {
-      "source": "Assets\\Graphics\\misn17.bmp",
-      "runtime": "misn17.bmp"
+      "source": "Assets\\Graphics\\misn17cr.bmp",
+      "runtime": "misn17cr.bmp"
     },
     {
-      "source": "Assets\\Graphics\\misn18.bmp",
-      "runtime": "misn18.bmp"
+      "source": "Assets\\Graphics\\misn18cr.bmp",
+      "runtime": "misn18cr.bmp"
     },
     {
       "source": "Assets\\LoadingScreens\\aload.png",
@@ -7584,56 +7584,56 @@
       "runtime": "ma_detail_atlas.csv"
     },
     {
-      "source": "Config\\misn02b.ini",
-      "runtime": "misn02b.ini"
+      "source": "Config\\misn2bcr.ini",
+      "runtime": "misn2bcr.ini"
     },
     {
-      "source": "Config\\misn03.ini",
-      "runtime": "misn03.ini"
+      "source": "Config\\misn03cr.ini",
+      "runtime": "misn03cr.ini"
     },
     {
-      "source": "Config\\misn04.ini",
-      "runtime": "misn04.ini"
+      "source": "Config\\misn04cr.ini",
+      "runtime": "misn04cr.ini"
     },
     {
-      "source": "Config\\misn05.ini",
-      "runtime": "misn05.ini"
+      "source": "Config\\misn05cr.ini",
+      "runtime": "misn05cr.ini"
     },
     {
-      "source": "Config\\misn06.ini",
-      "runtime": "misn06.ini"
+      "source": "Config\\misn06cr.ini",
+      "runtime": "misn06cr.ini"
     },
     {
-      "source": "Config\\misn07.ini",
-      "runtime": "misn07.ini"
+      "source": "Config\\misn07cr.ini",
+      "runtime": "misn07cr.ini"
     },
     {
-      "source": "Config\\misn08.ini",
-      "runtime": "misn08.ini"
+      "source": "Config\\misn08cr.ini",
+      "runtime": "misn08cr.ini"
     },
     {
-      "source": "Config\\misn09.ini",
-      "runtime": "misn09.ini"
+      "source": "Config\\misn09cr.ini",
+      "runtime": "misn09cr.ini"
     },
     {
-      "source": "Config\\misn10.ini",
-      "runtime": "misn10.ini"
+      "source": "Config\\misn10cr.ini",
+      "runtime": "misn10cr.ini"
     },
     {
-      "source": "Config\\misn11.ini",
-      "runtime": "misn11.ini"
+      "source": "Config\\misn11cr.ini",
+      "runtime": "misn11cr.ini"
     },
     {
-      "source": "Config\\misn12.ini",
-      "runtime": "misn12.ini"
+      "source": "Config\\misn12cr.ini",
+      "runtime": "misn12cr.ini"
     },
     {
-      "source": "Config\\misn13.ini",
-      "runtime": "misn13.ini"
+      "source": "Config\\misn13cr.ini",
+      "runtime": "misn13cr.ini"
     },
     {
-      "source": "Config\\misn14.ini",
-      "runtime": "misn14.ini"
+      "source": "Config\\misn14cr.ini",
+      "runtime": "misn14cr.ini"
     },
     {
       "source": "Config\\misn15.ini",
@@ -7644,12 +7644,12 @@
       "runtime": "misn16.ini"
     },
     {
-      "source": "Config\\misn17.ini",
-      "runtime": "misn17.ini"
+      "source": "Config\\misn17cr.ini",
+      "runtime": "misn17cr.ini"
     },
     {
-      "source": "Config\\misn18.ini",
-      "runtime": "misn18.ini"
+      "source": "Config\\misn18cr.ini",
+      "runtime": "misn18cr.ini"
     },
     {
       "source": "Config\\mn_detail_atlas.csv",
@@ -10476,56 +10476,56 @@
       "runtime": "xrainsp.material"
     },
     {
-      "source": "misn02b.mpdes",
-      "runtime": "misn02b.mpdes"
+      "source": "misn2bcr.mpdes",
+      "runtime": "misn2bcr.mpdes"
     },
     {
-      "source": "misn03.mpdes",
-      "runtime": "misn03.mpdes"
+      "source": "misn03cr.mpdes",
+      "runtime": "misn03cr.mpdes"
     },
     {
-      "source": "misn04.mpdes",
-      "runtime": "misn04.mpdes"
+      "source": "misn04cr.mpdes",
+      "runtime": "misn04cr.mpdes"
     },
     {
-      "source": "misn05.mpdes",
-      "runtime": "misn05.mpdes"
+      "source": "misn05cr.mpdes",
+      "runtime": "misn05cr.mpdes"
     },
     {
-      "source": "misn06.mpdes",
-      "runtime": "misn06.mpdes"
+      "source": "misn06cr.mpdes",
+      "runtime": "misn06cr.mpdes"
     },
     {
-      "source": "misn07.mpdes",
-      "runtime": "misn07.mpdes"
+      "source": "misn07cr.mpdes",
+      "runtime": "misn07cr.mpdes"
     },
     {
-      "source": "misn08.mpdes",
-      "runtime": "misn08.mpdes"
+      "source": "misn08cr.mpdes",
+      "runtime": "misn08cr.mpdes"
     },
     {
-      "source": "misn09.mpdes",
-      "runtime": "misn09.mpdes"
+      "source": "misn09cr.mpdes",
+      "runtime": "misn09cr.mpdes"
     },
     {
-      "source": "misn10.mpdes",
-      "runtime": "misn10.mpdes"
+      "source": "misn10cr.mpdes",
+      "runtime": "misn10cr.mpdes"
     },
     {
-      "source": "misn11.mpdes",
-      "runtime": "misn11.mpdes"
+      "source": "misn11cr.mpdes",
+      "runtime": "misn11cr.mpdes"
     },
     {
-      "source": "misn12.mpdes",
-      "runtime": "misn12.mpdes"
+      "source": "misn12cr.mpdes",
+      "runtime": "misn12cr.mpdes"
     },
     {
-      "source": "misn13.mpdes",
-      "runtime": "misn13.mpdes"
+      "source": "misn13cr.mpdes",
+      "runtime": "misn13cr.mpdes"
     },
     {
-      "source": "misn14.mpdes",
-      "runtime": "misn14.mpdes"
+      "source": "misn14cr.mpdes",
+      "runtime": "misn14cr.mpdes"
     },
     {
       "source": "misn15.mpdes",
@@ -10536,12 +10536,12 @@
       "runtime": "misn16.mpdes"
     },
     {
-      "source": "misn17.mpdes",
-      "runtime": "misn17.mpdes"
+      "source": "misn17cr.mpdes",
+      "runtime": "misn17cr.mpdes"
     },
     {
-      "source": "misn18.mpdes",
-      "runtime": "misn18.mpdes"
+      "source": "misn18cr.mpdes",
+      "runtime": "misn18cr.mpdes"
     },
     {
       "source": "Missions\\crsetup.bzn",
@@ -10576,8 +10576,8 @@
       "runtime": "misn02.hg2"
     },
     {
-      "source": "Missions\\misn02b.bzn",
-      "runtime": "misn02b.bzn"
+      "source": "Missions\\misn2bcr.bzn",
+      "runtime": "misn2bcr.bzn"
     },
     {
       "source": "Missions\\misn02b.hg2",
@@ -10596,12 +10596,12 @@
       "runtime": "misn02b.trn"
     },
     {
-      "source": "Missions\\misn02b.vxt",
-      "runtime": "misn02b.vxt"
+      "source": "Missions\\misn2bcr.vxt",
+      "runtime": "misn2bcr.vxt"
     },
     {
-      "source": "Missions\\misn03.bzn",
-      "runtime": "misn03.bzn"
+      "source": "Missions\\misn03cr.bzn",
+      "runtime": "misn03cr.bzn"
     },
     {
       "source": "Missions\\misn03.hg2",
@@ -10620,12 +10620,12 @@
       "runtime": "misn03.trn"
     },
     {
-      "source": "Missions\\misn03.vxt",
-      "runtime": "misn03.vxt"
+      "source": "Missions\\misn03cr.vxt",
+      "runtime": "misn03cr.vxt"
     },
     {
-      "source": "Missions\\misn04.bzn",
-      "runtime": "misn04.bzn"
+      "source": "Missions\\misn04cr.bzn",
+      "runtime": "misn04cr.bzn"
     },
     {
       "source": "Missions\\misn04.hg2",
@@ -10644,24 +10644,24 @@
       "runtime": "misn04.trn"
     },
     {
-      "source": "Missions\\misn04.vxt",
-      "runtime": "misn04.vxt"
+      "source": "Missions\\misn04cr.vxt",
+      "runtime": "misn04cr.vxt"
     },
     {
-      "source": "Missions\\misn05.bzn",
-      "runtime": "misn05.bzn"
+      "source": "Missions\\misn05cr.bzn",
+      "runtime": "misn05cr.bzn"
     },
     {
       "source": "Missions\\misn05.hg2",
       "runtime": "misn05.hg2"
     },
     {
-      "source": "Missions\\misn05.vxt",
-      "runtime": "misn05.vxt"
+      "source": "Missions\\misn05cr.vxt",
+      "runtime": "misn05cr.vxt"
     },
     {
-      "source": "Missions\\misn06.bzn",
-      "runtime": "misn06.bzn"
+      "source": "Missions\\misn06cr.bzn",
+      "runtime": "misn06cr.bzn"
     },
     {
       "source": "Missions\\misn06.hg2",
@@ -10680,12 +10680,12 @@
       "runtime": "misn06.trn"
     },
     {
-      "source": "Missions\\misn06.vxt",
-      "runtime": "misn06.vxt"
+      "source": "Missions\\misn06cr.vxt",
+      "runtime": "misn06cr.vxt"
     },
     {
-      "source": "Missions\\misn07.bzn",
-      "runtime": "misn07.bzn"
+      "source": "Missions\\misn07cr.bzn",
+      "runtime": "misn07cr.bzn"
     },
     {
       "source": "Missions\\misn07.hg2",
@@ -10704,12 +10704,12 @@
       "runtime": "misn07.trn"
     },
     {
-      "source": "Missions\\misn07.vxt",
-      "runtime": "misn07.vxt"
+      "source": "Missions\\misn07cr.vxt",
+      "runtime": "misn07cr.vxt"
     },
     {
-      "source": "Missions\\misn08.bzn",
-      "runtime": "misn08.bzn"
+      "source": "Missions\\misn08cr.bzn",
+      "runtime": "misn08cr.bzn"
     },
     {
       "source": "Missions\\misn08.hg2",
@@ -10728,12 +10728,12 @@
       "runtime": "misn08.trn"
     },
     {
-      "source": "Missions\\misn08.vxt",
-      "runtime": "misn08.vxt"
+      "source": "Missions\\misn08cr.vxt",
+      "runtime": "misn08cr.vxt"
     },
     {
-      "source": "Missions\\misn09.bzn",
-      "runtime": "misn09.bzn"
+      "source": "Missions\\misn09cr.bzn",
+      "runtime": "misn09cr.bzn"
     },
     {
       "source": "Missions\\misn09.hg2",
@@ -10752,12 +10752,12 @@
       "runtime": "misn09.trn"
     },
     {
-      "source": "Missions\\misn09.vxt",
-      "runtime": "misn09.vxt"
+      "source": "Missions\\misn09cr.vxt",
+      "runtime": "misn09cr.vxt"
     },
     {
-      "source": "Missions\\misn10.bzn",
-      "runtime": "misn10.bzn"
+      "source": "Missions\\misn10cr.bzn",
+      "runtime": "misn10cr.bzn"
     },
     {
       "source": "Missions\\misn10.hg2",
@@ -10776,12 +10776,12 @@
       "runtime": "misn10.trn"
     },
     {
-      "source": "Missions\\misn10.vxt",
-      "runtime": "misn10.vxt"
+      "source": "Missions\\misn10cr.vxt",
+      "runtime": "misn10cr.vxt"
     },
     {
-      "source": "Missions\\misn11.bzn",
-      "runtime": "misn11.bzn"
+      "source": "Missions\\misn11cr.bzn",
+      "runtime": "misn11cr.bzn"
     },
     {
       "source": "Missions\\misn11.hg2",
@@ -10800,12 +10800,12 @@
       "runtime": "misn11.trn"
     },
     {
-      "source": "Missions\\misn11.vxt",
-      "runtime": "misn11.vxt"
+      "source": "Missions\\misn11cr.vxt",
+      "runtime": "misn11cr.vxt"
     },
     {
-      "source": "Missions\\misn12.bzn",
-      "runtime": "misn12.bzn"
+      "source": "Missions\\misn12cr.bzn",
+      "runtime": "misn12cr.bzn"
     },
     {
       "source": "Missions\\misn12.hg2",
@@ -10824,12 +10824,12 @@
       "runtime": "misn12.trn"
     },
     {
-      "source": "Missions\\misn12.vxt",
-      "runtime": "misn12.vxt"
+      "source": "Missions\\misn12cr.vxt",
+      "runtime": "misn12cr.vxt"
     },
     {
-      "source": "Missions\\misn13.bzn",
-      "runtime": "misn13.bzn"
+      "source": "Missions\\misn13cr.bzn",
+      "runtime": "misn13cr.bzn"
     },
     {
       "source": "Missions\\misn13.hg2",
@@ -10848,12 +10848,12 @@
       "runtime": "misn13.trn"
     },
     {
-      "source": "Missions\\misn13.vxt",
-      "runtime": "misn13.vxt"
+      "source": "Missions\\misn13cr.vxt",
+      "runtime": "misn13cr.vxt"
     },
     {
-      "source": "Missions\\misn14.bzn",
-      "runtime": "misn14.bzn"
+      "source": "Missions\\misn14cr.bzn",
+      "runtime": "misn14cr.bzn"
     },
     {
       "source": "Missions\\misn14.hg2",
@@ -10872,8 +10872,8 @@
       "runtime": "misn14.trn"
     },
     {
-      "source": "Missions\\misn14.vxt",
-      "runtime": "misn14.vxt"
+      "source": "Missions\\misn14cr.vxt",
+      "runtime": "misn14cr.vxt"
     },
     {
       "source": "Missions\\misn15.bzn",
@@ -10960,8 +10960,8 @@
       "runtime": "misn16b.trn"
     },
     {
-      "source": "Missions\\misn17.bzn",
-      "runtime": "misn17.bzn"
+      "source": "Missions\\misn17cr.bzn",
+      "runtime": "misn17cr.bzn"
     },
     {
       "source": "Missions\\misn17.hg2",
@@ -10980,12 +10980,12 @@
       "runtime": "misn17.trn"
     },
     {
-      "source": "Missions\\misn17.vxt",
-      "runtime": "misn17.vxt"
+      "source": "Missions\\misn17cr.vxt",
+      "runtime": "misn17cr.vxt"
     },
     {
-      "source": "Missions\\misn18.bzn",
-      "runtime": "misn18.bzn"
+      "source": "Missions\\misn18cr.bzn",
+      "runtime": "misn18cr.bzn"
     },
     {
       "source": "Missions\\misn18.hg2",
@@ -11004,8 +11004,8 @@
       "runtime": "misn18.trn"
     },
     {
-      "source": "Missions\\misn18.vxt",
-      "runtime": "misn18.vxt"
+      "source": "Missions\\misn18cr.vxt",
+      "runtime": "misn18cr.vxt"
     },
     {
       "source": "Missions\\misns4.bzn",
@@ -15488,56 +15488,56 @@
       "runtime": "misn01.lua"
     },
     {
-      "source": "Scripts\\misn02b.lua",
-      "runtime": "misn02b.lua"
+      "source": "Scripts\\misn2bcr.lua",
+      "runtime": "misn2bcr.lua"
     },
     {
-      "source": "Scripts\\misn03.lua",
-      "runtime": "misn03.lua"
+      "source": "Scripts\\misn03cr.lua",
+      "runtime": "misn03cr.lua"
     },
     {
-      "source": "Scripts\\misn04.lua",
-      "runtime": "misn04.lua"
+      "source": "Scripts\\misn04cr.lua",
+      "runtime": "misn04cr.lua"
     },
     {
-      "source": "Scripts\\misn05.lua",
-      "runtime": "misn05.lua"
+      "source": "Scripts\\misn05cr.lua",
+      "runtime": "misn05cr.lua"
     },
     {
-      "source": "Scripts\\misn06.lua",
-      "runtime": "misn06.lua"
+      "source": "Scripts\\misn06cr.lua",
+      "runtime": "misn06cr.lua"
     },
     {
-      "source": "Scripts\\misn07.lua",
-      "runtime": "misn07.lua"
+      "source": "Scripts\\misn07cr.lua",
+      "runtime": "misn07cr.lua"
     },
     {
-      "source": "Scripts\\misn08.lua",
-      "runtime": "misn08.lua"
+      "source": "Scripts\\misn08cr.lua",
+      "runtime": "misn08cr.lua"
     },
     {
-      "source": "Scripts\\misn09.lua",
-      "runtime": "misn09.lua"
+      "source": "Scripts\\misn09cr.lua",
+      "runtime": "misn09cr.lua"
     },
     {
-      "source": "Scripts\\misn10.lua",
-      "runtime": "misn10.lua"
+      "source": "Scripts\\misn10cr.lua",
+      "runtime": "misn10cr.lua"
     },
     {
-      "source": "Scripts\\misn11.lua",
-      "runtime": "misn11.lua"
+      "source": "Scripts\\misn11cr.lua",
+      "runtime": "misn11cr.lua"
     },
     {
-      "source": "Scripts\\misn12.lua",
-      "runtime": "misn12.lua"
+      "source": "Scripts\\misn12cr.lua",
+      "runtime": "misn12cr.lua"
     },
     {
-      "source": "Scripts\\misn13.lua",
-      "runtime": "misn13.lua"
+      "source": "Scripts\\misn13cr.lua",
+      "runtime": "misn13cr.lua"
     },
     {
-      "source": "Scripts\\misn14.lua",
-      "runtime": "misn14.lua"
+      "source": "Scripts\\misn14cr.lua",
+      "runtime": "misn14cr.lua"
     },
     {
       "source": "Scripts\\misn15.lua",
@@ -15548,12 +15548,12 @@
       "runtime": "misn16.lua"
     },
     {
-      "source": "Scripts\\misn17.lua",
-      "runtime": "misn17.lua"
+      "source": "Scripts\\misn17cr.lua",
+      "runtime": "misn17cr.lua"
     },
     {
-      "source": "Scripts\\misn18.lua",
-      "runtime": "misn18.lua"
+      "source": "Scripts\\misn18cr.lua",
+      "runtime": "misn18cr.lua"
     },
     {
       "source": "Scripts\\misns1.lua",

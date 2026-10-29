@@ -1453,7 +1453,7 @@ end
 -- so the stealth route stays quiet. Re-evaluated every 3 s, re-issued every 6 s.
 local ART_RANGE_M = 650.0
 
--- The authored labels artil1-artil4 (Missions/misn12.bzn).
+-- The authored labels artil1-artil4 (Missions/misn12cr.bzn).
 local function FindArtillery()
     local found = {}
     for _, label in ipairs({ "artil1", "artil2", "artil3", "artil4" }) do

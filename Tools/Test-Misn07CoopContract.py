@@ -6,7 +6,7 @@ import math
 import re
 
 root = Path(__file__).resolve().parents[1]
-raw = (root / 'Missions/misn07.bzn').read_bytes()
+raw = (root / 'Missions/misn07cr.bzn').read_bytes()
 assert b'\n' not in raw.replace(b'\r\n', b''), 'BZN must retain native CRLF'
 bzn = raw.decode('utf-8').replace('\r\n', '\n')
 assert 'name = MultSTMission\n' in bzn
@@ -52,17 +52,17 @@ for path in ['cam_spawn1', 'cam_spawn2', 'cam_spawn3', 'cam_spawn4', 'cam_spawn5
 assert 'label = m000\n' not in bzn
 
 ini = configparser.ConfigParser()
-ini.read(root / 'Config/misn07.ini')
+ini.read(root / 'Config/misn07cr.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
-assert (root / 'Missions/misn07.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,']
-assert (root / 'Assets/Graphics/misn07.bmp').read_bytes()[:2] == b'BM'
-assert len((root / 'misn07.mpdes').read_text().strip()) <= 300
+assert (root / 'Missions/misn07cr.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,']
+assert (root / 'Assets/Graphics/misn07cr.bmp').read_bytes()[:2] == b'BM'
+assert len((root / 'misn07cr.mpdes').read_text().strip()) <= 300
 
 campaign = (root / 'Config/crcampgn.ini').read_text()
-assert re.search(r'\[MISSION6\][^\[]*missionBZN = "misn07\.bzn"', campaign), 'Campaign must launch the shared BZN'
+assert re.search(r'\[MISSION6\][^\[]*missionBZN = "misn07cr.bzn"', campaign), 'Campaign must launch the shared BZN'
 
-raw_lua = (root / 'Scripts/misn07.lua').read_text()
+raw_lua = (root / 'Scripts/misn07cr.lua').read_text()
 lua = re.sub(r'--\[(=*)\[.*?\]\1\]', '', raw_lua, flags=re.S)
 lua = re.sub(r'--[^\n]*', '', lua)
 assert 'local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7' in lua
@@ -92,9 +92,9 @@ assert 'GetHandle("avtank2")' in raw_lua and 'RENDEZVOUS_CONVOY' in raw_lua
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn07.ini', 'Missions/misn07.vxt', 'Assets/Graphics/misn07.bmp', 'misn07.mpdes',
-               'Missions/misn07.bzn', 'Missions/misn07.hg2', 'Missions/misn07.trn', 'Missions/misn07.mat',
-               'Missions/misn07.lgt', 'Scripts/misn07.lua']:
+for source in ['Config/misn07cr.ini', 'Missions/misn07cr.vxt', 'Assets/Graphics/misn07cr.bmp', 'misn07cr.mpdes',
+               'Missions/misn07cr.bzn', 'Missions/misn07.hg2', 'Missions/misn07.trn', 'Missions/misn07.mat',
+               'Missions/misn07.lgt', 'Scripts/misn07cr.lua']:
     assert members.get(source) == Path(source).name, 'Map/lobby file must be admitted by the shipping manager: ' + source
 # Restored voice lines absent from Redux's de/es/fr/it archives ship with the mod (byte-exact stock
 # English takes, PCM mono 11025 Hz 8-bit like the stock lines).

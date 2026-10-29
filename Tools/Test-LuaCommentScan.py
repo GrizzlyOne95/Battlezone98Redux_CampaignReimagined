@@ -40,12 +40,12 @@ class LuaCommentScanTests(unittest.TestCase):
 
     def test_misn07_archived_comment_is_not_a_goto_statement(self):
         root = Path(__file__).resolve().parents[1]
-        code = validator.strip_lua_comments((root / "Scripts/misn07.lua").read_text())
+        code = validator.strip_lua_comments((root / "Scripts/misn07cr.lua").read_text())
         self.assertNotRegex(code, r"\bgoto\b")
 
     def test_misn12_cut_blocks_are_not_executable(self):
         root = Path(__file__).resolve().parents[1]
-        code = validator.strip_lua_comments((root / "Scripts/misn12.lua").read_text())
+        code = validator.strip_lua_comments((root / "Scripts/misn12cr.lua").read_text())
         self.assertNotIn("GameObjectHandle::", code)
         self.assertNotRegex(code, r"\bgoto\b")
         self.assertIn("function Update(dt)", code)

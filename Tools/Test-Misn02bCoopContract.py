@@ -5,8 +5,8 @@ import re
 import struct
 
 root = Path(__file__).resolve().parents[1]
-bzn = (root / "Missions" / "misn02b.bzn").read_text(encoding="utf-8")
-lua = (root / "Scripts" / "misn02b.lua").read_text(encoding="utf-8")
+bzn = (root / "Missions" / "misn2bcr.bzn").read_text(encoding="utf-8")
+lua = (root / "Scripts" / "misn2bcr.lua").read_text(encoding="utf-8")
 # The source audit retains inactive C++ with original Team-2 orders. Check
 # active Lua only, including equals-delimited long comments, so reconstruction
 # evidence cannot be mistaken for a live co-op team-contract regression.
@@ -16,7 +16,7 @@ lua = re.sub(r"--[^\r\n]*", "", lua)
 # Teams 1-4 are reserved for human players in the co-op contract. Mission 02B
 # must not ship preplaced Team-2 enemies that can collide with Player 2.
 assert "name = MultSTMission\n" in bzn, "offline/online map must use MultSTMission"
-assert b"\r\n" in (root / "Missions" / "misn02b.bzn").read_bytes(), "native BZN needs CRLF"
+assert b"\r\n" in (root / "Missions" / "misn2bcr.bzn").read_bytes(), "native BZN needs CRLF"
 
 blocks = bzn.split("[GameObject]")[1:]
 labels = [m.group(1) for block in blocks if (m := re.search(r'^label = (.+)$', block, re.M))]
@@ -47,8 +47,8 @@ assert header_size == len(blocks), "native object count does not match serialize
 seq_count = int(re.search(r"seq_count \[1\] =\n(\d+)", bzn).group(1))
 assert seq_count > max(int(re.search(r"seqno \[1\] =\n(\d+)", b).group(1)) for b in blocks)
 
-assert "local ENEMY_TEAM = 6" in lua, "misn02b.lua enemy-team contract changed"
-assert "local LEADER_TEAM = 1" in lua, "misn02b.lua leader-team contract changed"
+assert "local ENEMY_TEAM = 6" in lua, "misn2bcr.lua enemy-team contract changed"
+assert "local LEADER_TEAM = 1" in lua, "misn2bcr.lua leader-team contract changed"
 
 for pattern, message in [
     (r"BuildObject\([^\n]*,\s*2\s*,", "dynamic enemy spawn still uses Team 2"),
@@ -68,7 +68,7 @@ assert 'SetAIP("misn02.aip", ENEMY_TEAM)' in lua
 # Chunk-root only: the map uses MultSTMission so team 5 is never flagged, and SetAIP silently skips without
 # SetAIControl. Start runs after DR_AI_Init, so a late call flags team 5 without an AI team record and the
 # first team-5 AI_UnitRemove dereferences null (host crash at load, seen live in misn08).
-_ai_src = (root / 'Scripts' / 'misn02b.lua').read_text(encoding='utf-8')
+_ai_src = (root / 'Scripts' / 'misn2bcr.lua').read_text(encoding='utf-8')
 _ai_active = re.sub(r'--[^\n]*', '', re.sub(r'--\[(=*)\[.*?\]\1\]', '', _ai_src, flags=re.S))
 assert len(re.findall(r'SetAIControl\(', _ai_active)) == 1 and re.search(r'^SetAIControl\(ENEMY_TEAM, true\)\r?$', _ai_src, flags=re.M), \
     'SetAIControl must be a single chunk-root call, never inside Start/Update'
@@ -76,7 +76,7 @@ assert _ai_src.index('SetAIControl(ENEMY_TEAM, true)') < _ai_src.index('function
 
 # Separate native mode INIs must resolve the one shared BZN/script by stem.
 mp = configparser.ConfigParser()
-mp.read(root / "Config" / "misn02b.ini", encoding="utf-8")
+mp.read(root / "Config" / "misn2bcr.ini", encoding="utf-8")
 assert mp["DESCRIPTION"]["missionName"] == '"CR 01: Red Arrival Coop"'
 assert mp["WORKSHOP"]["mapType"] == '"multiplayer"'
 assert dict(mp["MULTIPLAYER"]) == {
@@ -84,20 +84,20 @@ assert dict(mp["MULTIPLAYER"]) == {
 }
 campaign = configparser.ConfigParser()
 campaign.read(root / "Config" / "crcampgn.ini", encoding="utf-8")
-assert campaign["MISSION1"]["missionBZN"] == '"misn02b.bzn"'
+assert campaign["MISSION1"]["missionBZN"] == '"misn2bcr.bzn"'
 assert campaign["WORKSHOP"]["mapType"] == '"campaign"'
 
 # Matches the offline start: everyone begins on foot beside the empty craft.
 # Stock vxt form "odf des<TAB>movie name"; the short "asuser ," form leaves
 # staging at "Vehicle not selected".
-vxt = [line for line in (root / "Missions" / "misn02b.vxt").read_text().splitlines() if line.strip()]
+vxt = [line for line in (root / "Missions" / "misn2bcr.vxt").read_text().splitlines() if line.strip()]
 assert len(vxt) == 1 and vxt[0].split()[0] == "asuser", "MP start must be the pilot only"
 assert vxt[0].split()[1] == "aspilo.des" and "\t" in vxt[0], "pilot line must use the stock vxt form"
 
-description = (root / "misn02b.mpdes").read_text().strip()
+description = (root / "misn2bcr.mpdes").read_text().strip()
 assert len(description) <= 300 and "\n" not in description
 assert "team 1" in description and "teams 2-4" in description
-bitmap = (root / "Assets" / "Graphics" / "misn02b.bmp").read_bytes()
+bitmap = (root / "Assets" / "Graphics" / "misn2bcr.bmp").read_bytes()
 assert bitmap[:2] == b"BM" and struct.unpack_from("<I", bitmap, 14)[0] == 40
 width, height, planes, depth, compression = struct.unpack_from("<iiHHI", bitmap, 18)
 assert width > 0 and height > 0 and planes == 1 and depth == 24 and compression == 0
@@ -107,9 +107,9 @@ lock = json.loads((root / "Shipping" / "shipping.lock.json").read_text())
 entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
 assert lock["count"] == len(lock["files"])
 manager = (root / "Manage-CampaignFiles.ps1").read_text(encoding="utf-8-sig")
-for source in (r"Config\misn02b.ini", r"Assets\Graphics\misn02b.bmp",
-               "misn02b.mpdes", r"Missions\misn02b.vxt",
-               r"Missions\misn02b.bzn", r"Scripts\misn02b.lua"):
+for source in (r"Config\misn2bcr.ini", r"Assets\Graphics\misn2bcr.bmp",
+               "misn2bcr.mpdes", r"Missions\misn2bcr.vxt",
+               r"Missions\misn2bcr.bzn", r"Scripts\misn2bcr.lua"):
     runtime = source.split("\\")[-1]
     assert entries.get(source) == runtime, f"missing shipping entry: {source}"
     assert f'"{runtime}"' in manager, f"missing staging requirement: {runtime}"

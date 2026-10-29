@@ -1,4 +1,4 @@
-# Real GOG clients, native local server. Attach after -Scenario play on misn03.
+# Real GOG clients, native local server. Attach after -Scenario play on misn03cr.
 param([int]$HostClient=0,[int]$GuestClient=1)
 $script:CRFlowSkipParity=$true
 Invoke-CRFlowStep 'co-op starts with stock scoreboard and kill notices hidden' {

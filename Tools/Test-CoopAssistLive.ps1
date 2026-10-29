@@ -1,4 +1,4 @@
-# Run via OpenShim Run-BZRCoopMission.ps1 -Mission misn03 -Scenario <this file>.
+# Run via OpenShim Run-BZRCoopMission.ps1 -Mission misn03cr -Scenario <this file>.
 # Calls the real services and native transport. Setup movement is a test assist;
 # physical keys, reticle aiming and visual layout need separate acceptance.
 param([int]$HostClient = 0, [int]$GuestClient = 1)

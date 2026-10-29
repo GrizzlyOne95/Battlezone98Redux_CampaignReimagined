@@ -1,5 +1,5 @@
 -- Mission 17 ownership, concealed arrivals and shared presentation.
--- Ordered E/A + C transport adapted from Mission 16; gameplay stays in misn17.lua.
+-- Ordered E/A + C transport adapted from Mission 16; gameplay stays in misn17cr.lua.
 local Runtime = {}
 function Runtime.Create(getState)
 local M = getState()

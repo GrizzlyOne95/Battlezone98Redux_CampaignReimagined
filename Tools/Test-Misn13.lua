@@ -27,7 +27,7 @@ local function object(odf, team)
     objects[h] = {alive = true, health = 1, odf = odf, team = team}
     return h
 end
--- Authored teams in Missions/misn13.bzn: the Texas, its nav pod and the player are team 1, every other
+-- Authored teams in Missions/misn13cr.bzn: the Texas, its nav pod and the player are team 1, every other
 -- named object is the CCA (team 5 after Build-CoopMap.py).
 local NSDF_LABELS = {avrecycle = true, apcamr20_camerapod = true, player = true, player0_hover = true}
 function GetHandle(label)
@@ -117,7 +117,7 @@ local function reset(beforeStart)
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoop = assert(loadfile("Scripts/CRCoop.lua"))()
     for k in pairs(pda) do pda[k] = 0 end
-    dofile("Scripts/misn13.lua")
+    dofile("Scripts/misn13cr.lua")
     if beforeStart then beforeStart() end
     Start()
     Update(0.05)
@@ -287,7 +287,7 @@ check(m.scav_swap and count("BuildObject", "svscav") == 2, "dead scavengers stay
 m = reset(); spawn("avmuf"); spawn("svapc13"); spawn("svhr13"); tick(6)
 local saved = {}; for k, v in pairs(Save()) do saved[k] = v end
 local opening = count("AudioMessage", "misn1300.wav")
-dofile("Scripts/misn13.lua"); Load(saved); tick(7)
+dofile("Scripts/misn13cr.lua"); Load(saved); tick(7)
 check(Save() == saved and saved.first_wave and saved.nsdfmuf == m.nsdfmuf, "save/load preserves handles and latches")
 check(count("AudioMessage", "misn1300.wav") == opening, "save/load does not replay startup")
 local postLoad = spawn("svhr13"); check(saved.sv4 == postLoad, "post-load callbacks use restored state")

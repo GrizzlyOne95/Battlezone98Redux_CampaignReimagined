@@ -6,7 +6,7 @@ import math
 import re
 
 root = Path(__file__).resolve().parents[1]
-raw = (root / 'Missions/misn08.bzn').read_bytes()
+raw = (root / 'Missions/misn08cr.bzn').read_bytes()
 assert b'\n' not in raw.replace(b'\r\n', b''), 'BZN must retain native CRLF'
 bzn = raw.decode('utf-8').replace('\r\n', '\n')
 assert 'name = MultSTMission\n' in bzn
@@ -50,16 +50,16 @@ for path in ['gech_path1', 'gech_path2', 'gech_spawn', 'cam2_spawn', 'cam3_spawn
     assert f'label = {path}\n' in bzn, 'path missing from the converted map: ' + path
 
 ini = configparser.ConfigParser()
-ini.read(root / 'Config/misn08.ini')
+ini.read(root / 'Config/misn08cr.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
-assert (root / 'Assets/Graphics/misn08.bmp').read_bytes()[:2] == b'BM'
-assert (root / 'Missions/misn08.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,']
-assert len((root / 'misn08.mpdes').read_text().strip()) <= 300
+assert (root / 'Assets/Graphics/misn08cr.bmp').read_bytes()[:2] == b'BM'
+assert (root / 'Missions/misn08cr.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,']
+assert len((root / 'misn08cr.mpdes').read_text().strip()) <= 300
 campaign = (root / 'Config/crcampgn.ini').read_text()
-assert re.search(r'missionBZN = "misn08\.bzn"', campaign), 'Campaign must launch the shared BZN'
+assert re.search(r'missionBZN = "misn08cr.bzn"', campaign), 'Campaign must launch the shared BZN'
 
-raw_lua = (root / 'Scripts/misn08.lua').read_text()
+raw_lua = (root / 'Scripts/misn08cr.lua').read_text()
 lua = re.sub(r'--\[(=*)\[.*?\]\1\]', '', raw_lua, flags=re.S)
 lua = re.sub(r'--[^\n]*', '', lua)
 assert 'local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7' in lua
@@ -102,8 +102,8 @@ assert 'subtit.Play("misn0421.wav")' in lua and '["misn0421.wav"] = "misn0823.wa
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn08.ini', 'Missions/misn08.vxt', 'Assets/Graphics/misn08.bmp', 'misn08.mpdes',
-               'Missions/misn08.bzn', 'Missions/misn08.hg2', 'Missions/misn08.trn', 'Missions/misn08.mat',
-               'Missions/misn08.lgt', 'Scripts/misn08.lua', 'Text/misn0823.txt', 'Text/misn0824.txt']:
+for source in ['Config/misn08cr.ini', 'Missions/misn08cr.vxt', 'Assets/Graphics/misn08cr.bmp', 'misn08cr.mpdes',
+               'Missions/misn08cr.bzn', 'Missions/misn08.hg2', 'Missions/misn08.trn', 'Missions/misn08.mat',
+               'Missions/misn08.lgt', 'Scripts/misn08cr.lua', 'Text/misn0823.txt', 'Text/misn0824.txt']:
     assert members.get(source) == Path(source).name, 'Map/lobby file must be admitted by the shipping manager: ' + source
 print('misn08 co-op native map, team isolation, authority and lobby contract passed')

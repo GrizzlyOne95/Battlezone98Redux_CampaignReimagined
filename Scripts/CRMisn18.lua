@@ -1,6 +1,6 @@
 -- Mission 18 (The Ultimate Quake) ownership, concealed Fury arrivals, shared presentation and
 -- the optional storm hook. Ordered E/A + C transport adapted from Mission 17 (itself from 16);
--- gameplay stays in misn18.lua. Docs/MISN18_COOP.md is the contract for everything below.
+-- gameplay stays in misn18cr.lua. Docs/MISN18_COOP.md is the contract for everything below.
 local Runtime = {}
 function Runtime.Create(getState)
 local M = getState()

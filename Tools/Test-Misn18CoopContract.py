@@ -4,11 +4,11 @@ import json
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
-bzn_raw = (ROOT / 'Missions/misn18.bzn').read_bytes()
+bzn_raw = (ROOT / 'Missions/misn18cr.bzn').read_bytes()
 text = bzn_raw.decode('latin-1').replace('\r\n', '\n')
 assert b'\n' not in bzn_raw.replace(b'\r\n', b''), 'native BZN line endings'
 assert 'TerrainName = misn18\n' in text and 'name = MultSTMission\n' in text
-assert 'msn_filename = misn18.bzn' in text
+assert 'msn_filename = misn18cr.bzn' in text
 
 # ---------------------------------------------------------------- objects and teams
 blocks = text.split('[GameObject]\n')[1:]
@@ -49,7 +49,7 @@ for path in paths[1:]:
 assert len(path_names) == 46 and len(set(path_names)) == 46
 
 # ---------------------------------------------------------------- the Lua only names real map content
-lua_full = (ROOT / 'Scripts/misn18.lua').read_text(encoding='utf-8')
+lua_full = (ROOT / 'Scripts/misn18cr.lua').read_text(encoding='utf-8')
 live = re.sub(r'(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?', '', lua_full)
 live = re.sub(r'--\[==\[.*?\]==\]', '', live, flags=re.S)
 used = set(re.findall(r'BuildObject\("\w+", 2, "(\w+)"\)', live))
@@ -75,20 +75,20 @@ for label in ('avmuf2_factory', 'avtank0_wingman', 'avtank1_wingman', 'eggeizr11
 for ext in ('trn', 'mat', 'lgt', 'hg2'):
     assert (ROOT / 'Missions' / f'misn18.{ext}').stat().st_size > 0, ext
 assert (ROOT / 'Missions/misn18.hg2').stat().st_size == 1048588, 'unsmoothed 1.5 heightmap'
-ini = (ROOT / 'Config/misn18.ini').read_text(encoding='utf-8')
+ini = (ROOT / 'Config/misn18cr.ini').read_text(encoding='utf-8')
 assert 'missionName = "CR 17: The Ultimate Quake Coop"' in ini and 'mapType = "multiplayer"' in ini
 assert 'minPlayers = "2"' in ini and 'maxPlayers = "4"' in ini and 'gameType = "S"' in ini
-des = (ROOT / 'misn18.mpdes').read_bytes()
+des = (ROOT / 'misn18cr.mpdes').read_bytes()
 assert len(des) <= 300 and des.endswith(b'\r\n') and b'\n' not in des.replace(b'\r\n', b''), 'des: <= 300 bytes, CRLF'
 assert b'thruster' in des and b'transport' in des, 'briefing matches the transport/thrusters mission'
-assert '!misn18.mpdes' in (ROOT / '.gitignore').read_text(encoding='utf-8').splitlines()
-assert (ROOT / 'Assets/Graphics/misn18.bmp').read_bytes()[:2] == b'BM'
-vxt = (ROOT / 'Missions/misn18.vxt').read_bytes().decode('ascii').split('\r\n')
+assert '!misn18cr.mpdes' in (ROOT / '.gitignore').read_text(encoding='utf-8').splitlines()
+assert (ROOT / 'Assets/Graphics/misn18cr.bmp').read_bytes()[:2] == b'BM'
+vxt = (ROOT / 'Missions/misn18cr.vxt').read_bytes().decode('ascii').split('\r\n')
 assert vxt == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,', ''], 'Tank, Scout, Light Tank, Rocket Tank, Bomber'
 for row in vxt[:-1]:
     assert (ROOT / 'ODF' / (row.split()[0] + '.odf')).is_file(), 'starting ship ODF ships: ' + row
 campaign = (ROOT / 'Config/crcampgn.ini').read_text(encoding='utf-8')
-assert re.search(r'\[MISSION17\]\n(?:;[^\n]*\n)?missionName = "The Ultimate Quake"\nmissionBZN = "misn18.bzn"\nplanet = "titan"\nvoice = "misn1800.wav"',
+assert re.search(r'\[MISSION17\]\n(?:;[^\n]*\n)?missionName = "The Ultimate Quake"\nmissionBZN = "misn18cr.bzn"\nplanet = "titan"\nvoice = "misn1800.wav"',
                  campaign.replace('\r\n', '\n')), 'campaign entry after MISSION16'
 for line in ('misn1817', 'misn1818', 'misn1800'):
     assert (ROOT / 'Text' / (line + '.txt')).is_file(), 'subtitle: ' + line
@@ -114,8 +114,8 @@ assert not (ROOT / 'Scripts/CRStorm18.lua').exists() or 'SetPhase' in (ROOT / 'S
 
 # ---------------------------------------------------------------- shipping membership
 members = {e['source'].replace('\\', '/'): e['runtime'] for e in json.loads((ROOT / 'Shipping/shipping.lock.json').read_text(encoding='utf-8'))['files']}
-for path in ('Scripts/misn18.lua', 'Scripts/CRMisn18.lua', 'Missions/misn18.bzn', 'Missions/misn18.trn',
-             'Missions/misn18.hg2', 'Missions/misn18.mat', 'Missions/misn18.lgt', 'Missions/misn18.vxt',
-             'Config/misn18.ini', 'misn18.mpdes', 'Assets/Graphics/misn18.bmp'):
+for path in ('Scripts/misn18cr.lua', 'Scripts/CRMisn18.lua', 'Missions/misn18cr.bzn', 'Missions/misn18.trn',
+             'Missions/misn18.hg2', 'Missions/misn18.mat', 'Missions/misn18.lgt', 'Missions/misn18cr.vxt',
+             'Config/misn18cr.ini', 'misn18cr.mpdes', 'Assets/Graphics/misn18cr.bmp'):
     assert members.get(path) == Path(path).name, 'shipping membership: ' + path
 print('misn18 map, teams, paths, listing, campaign entry, restorations, storm contract and shipping passed')

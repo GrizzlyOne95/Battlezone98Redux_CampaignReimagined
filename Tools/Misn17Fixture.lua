@@ -1,10 +1,10 @@
 -- The real co-op registry loads shared Lua helpers through require().
 package.path = "Scripts/?.lua;" .. package.path
 -- Shared mock world for the misn17 suites (Test-Misn17.lua offline, Test-Misn17Coop.lua multi-peer,
--- Test-Misn17Presentation.lua). Each peer runs the complete Scripts/misn17.lua in its own Lua 5.1
+-- Test-Misn17Presentation.lua). Each peer runs the complete Scripts/misn17cr.lua in its own Lua 5.1
 -- environment over the real CRCoop registry and the E/A + C presentation transport. The engine, AI and
 -- combat are mocks: they verify script decisions, not Redux native map loading, pathfinding, Lua wire
--- serialization or EXU hooks. Coordinates are the authored ones (Missions/misn17.bzn).
+-- serialization or EXU hooks. Coordinates are the authored ones (Missions/misn17cr.bzn).
 local PeerTransport = dofile("Tools/BZRPeerTransportSim.lua")
 local F = {}
 
@@ -521,7 +521,7 @@ function F.makePeer(id, team, network, options)
         return m
     end
     modules.CRMisn17 = setfenv(assert(loadfile("Scripts/CRMisn17.lua")),e)()
-    setfenv(assert(loadfile("Scripts/misn17.lua")), e)()
+    setfenv(assert(loadfile("Scripts/misn17cr.lua")), e)()
     p.chunkCalls = #p.calls -- everything recorded so far ran at chunk load, before Start
     p.env, p.coop = e, modules.CRCoop
     e.Start()

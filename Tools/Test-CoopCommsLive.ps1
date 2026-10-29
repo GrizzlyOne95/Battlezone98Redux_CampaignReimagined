@@ -1,4 +1,4 @@
-# Dot-source through OpenShim's Run-BZRCoopMission.ps1 -Mission misn03 -Scenario
+# Dot-source through OpenShim's Run-BZRCoopMission.ps1 -Mission misn03cr -Scenario
 # <this file>. Uses two disposable clients, the local server and CRFlowProbe.
 # -ContentOverride must contain the changed Lua modules and freshly built EXU.
 param([int]$HostClient = 0, [int]$GuestClient = 1)

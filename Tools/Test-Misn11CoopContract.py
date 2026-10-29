@@ -6,7 +6,7 @@ import math
 import re
 
 root = Path(__file__).resolve().parents[1]
-raw = (root / 'Missions/misn11.bzn').read_bytes()
+raw = (root / 'Missions/misn11cr.bzn').read_bytes()
 assert b'\n' not in raw.replace(b'\r\n', b''), 'BZN must retain native CRLF'
 bzn = raw.decode('utf-8').replace('\r\n', '\n')
 assert 'name = MultSTMission\n' in bzn
@@ -69,19 +69,19 @@ assert all(((v >> 12) & 15) in (0, 1, 3) for v in cells), 'only crust, lava pool
 assert (root / 'Tools/Build-Misn11Lava.py').exists()
 
 ini = configparser.ConfigParser()
-ini.read(root / 'Config/misn11.ini')
+ini.read(root / 'Config/misn11cr.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
-assert (root / 'Assets/Graphics/misn11.bmp').read_bytes()[:2] == b'BM'
-assert (root / 'Missions/misn11.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,']
-assert len((root / 'misn11.mpdes').read_text().strip()) <= 300
+assert (root / 'Assets/Graphics/misn11cr.bmp').read_bytes()[:2] == b'BM'
+assert (root / 'Missions/misn11cr.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,']
+assert len((root / 'misn11cr.mpdes').read_text().strip()) <= 300
 campaign = (root / 'Config/crcampgn.ini').read_text()
-assert re.search(r'missionBZN = "misn11\.bzn"', campaign), 'Campaign must launch the shared BZN'
+assert re.search(r'missionBZN = "misn11cr.bzn"', campaign), 'Campaign must launch the shared BZN'
 section = re.search(r'\[MISSION10\]\n((?:[^\[\n][^\n]*\n)+)', campaign.replace('\r\n', '\n'))[1]
 assert 'voice = "misn1100.wav"' in section, 'the campaign retrospective is the previously unused misn1100 line'
 assert 'planet = "io"' in section
 
-raw_lua = (root / 'Scripts/misn11.lua').read_text().replace('\r\n', '\n')
+raw_lua = (root / 'Scripts/misn11cr.lua').read_text().replace('\r\n', '\n')
 lua = re.sub(r'--\[(=*)\[.*?\]\1\]', '', raw_lua, flags=re.S)
 lua = re.sub(r'--[^\n]*', '', lua)
 assert 'local LEADER_TEAM, ENEMY_TEAM = 1, 5' in lua
@@ -118,9 +118,9 @@ assert 'edge_path' not in raw_lua, 'edge_path is the play boundary, not a route'
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn11.ini', 'Missions/misn11.vxt', 'Assets/Graphics/misn11.bmp', 'misn11.mpdes',
-               'Missions/misn11.bzn', 'Missions/misn11.hg2', 'Missions/misn11.trn', 'Missions/misn11.mat',
-               'Missions/misn11.lgt', 'Scripts/misn11.lua', 'Scripts/CRIoSites11.lua']:
+for source in ['Config/misn11cr.ini', 'Missions/misn11cr.vxt', 'Assets/Graphics/misn11cr.bmp', 'misn11cr.mpdes',
+               'Missions/misn11cr.bzn', 'Missions/misn11.hg2', 'Missions/misn11.trn', 'Missions/misn11.mat',
+               'Missions/misn11.lgt', 'Scripts/misn11cr.lua', 'Scripts/CRIoSites11.lua']:
     assert members.get(source) == Path(source).name, 'Map/lobby file must be admitted by the shipping manager: ' + source
 assert lock['count'] == len(lock['files'])
 print('misn11 co-op native map, team isolation, lava, authority and lobby contract passed')

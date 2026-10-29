@@ -46,7 +46,7 @@ assert mod_parser["WORKSHOP"]["mapType"] == '"campaign"'
 mission_sections = [section for section in mod_parser.sections() if section.startswith("MISSION")]
 assert mission_sections == [f"MISSION{i}" for i in range(1, 18)]
 campaign_maps = [mod_parser[section]["missionBZN"].strip('"') for section in mission_sections]
-assert campaign_maps == ["misn02b.bzn", "misn03.bzn", "misn04.bzn", "misn05.bzn", "misn06.bzn", "misn07.bzn", "misn08.bzn", "misn09.bzn", "misn10.bzn", "misn11.bzn", "misn12.bzn", "misn13.bzn", "misn14.bzn", "misn15.bzn", "misn16.bzn", "misn17.bzn", "misn18.bzn"]
+assert campaign_maps == ["misn2bcr.bzn", "misn03cr.bzn", "misn04cr.bzn", "misn05cr.bzn", "misn06cr.bzn", "misn07cr.bzn", "misn08cr.bzn", "misn09cr.bzn", "misn10cr.bzn", "misn11cr.bzn", "misn12cr.bzn", "misn13cr.bzn", "misn14cr.bzn", "misn15.bzn", "misn16.bzn", "misn17cr.bzn", "misn18cr.bzn"]
 for section, filename in zip(mission_sections, campaign_maps):
     assert mod_parser[section]["missionName"].strip('"')
     assert mod_parser[section]["planet"].strip('"') in {"moon", "mars", "venus", "io", "europa", "titan"}
@@ -89,7 +89,7 @@ for required in (
 
 # The former one-object hand-written file did not load in-game. Reuse the complete, tested mission map
 # serialization while selecting the independent setup script.
-template = (ROOT / "Missions" / "misn02b.bzn").read_text(encoding="utf-8")
+template = (ROOT / "Missions" / "misn2bcr.bzn").read_text(encoding="utf-8")
 # misn02b now carries MP spawn buoys/team reservations. Setup retains its
 # original offline serialization; compare the authored objects after undoing
 # only those mission-specific co-op changes.
@@ -114,7 +114,7 @@ base = re.sub(r"(\[AOI\].*?team \[1\] =\n)6\n", r"\g<1>2\n", base, flags=re.S)
 # retains its original offline map, which never uses that label for transport.
 assert base.count("label = abtowe2_turret\n") == 1
 base = base.replace("label = abtowe2_turret\n", "label = abtowe0_turret\n", 1)
-assert bzn == base.replace("msn_filename = misn02b.bzn", "msn_filename = crsetup.bzn", 1).replace("TerrainName = misn02b", "TerrainName = crsetup", 1)
+assert bzn == base.replace("msn_filename = misn2bcr.bzn", "msn_filename = crsetup.bzn", 1).replace("TerrainName = misn02b", "TerrainName = crsetup", 1)
 for extension in ("trn", "hg2", "mat", "lgt"):
     assert (ROOT / "Missions" / ("crsetup." + extension)).is_file(), "setup terrain must be self-contained"
 

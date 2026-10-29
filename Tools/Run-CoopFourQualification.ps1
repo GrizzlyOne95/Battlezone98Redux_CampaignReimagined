@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory)][string]$HarnessRepo,
     [Parameter(Mandatory)][string]$CampaignContent,
     [Parameter(Mandatory)][string]$BZRCoopRoot,
-    [string[]]$Missions=@('misn15','misn13','misn14','misn12','misn02b','misn03','misn04','misn07','misn08'),
+    [string[]]$Missions=@('misn15','misn13cr','misn14cr','misn12cr','misn2bcr','misn03cr','misn04cr','misn07cr','misn08cr'),
     [switch]$StopOnFailure
 )
 $ErrorActionPreference='Stop'

@@ -87,8 +87,11 @@ def fetch_sources(args) -> dict[str, bytes]:
     if args.source_dir:
         folder = Path(args.source_dir)
         for n in names:
-            if (folder / n).is_file():
-                found[n] = (folder / n).read_bytes()
+            # A Missions/ folder holds the co-op BZN as <stem>cr.bzn; a stock folder holds <stem>.bzn.
+            for p in (folder / n.replace(".bzn", "cr.bzn"), folder / n):
+                if p.is_file():
+                    found[n] = p.read_bytes()
+                    break
     missing = [n for n in names if n not in found]
     if missing:
         sys.path.insert(0, str(args.toolbox))

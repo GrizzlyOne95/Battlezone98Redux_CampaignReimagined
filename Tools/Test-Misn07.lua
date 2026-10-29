@@ -93,7 +93,7 @@ local function reset()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoop = assert(loadfile("Scripts/CRCoop.lua"))()
     for k in pairs(pda) do pda[k] = 0 end
-    dofile("Scripts/misn07.lua")
+    dofile("Scripts/misn07cr.lua")
     Start()
     Update(0.05)
     return Save()

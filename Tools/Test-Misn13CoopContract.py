@@ -6,7 +6,7 @@ import math
 import re
 
 root = Path(__file__).resolve().parents[1]
-raw = (root / 'Missions/misn13.bzn').read_bytes()
+raw = (root / 'Missions/misn13cr.bzn').read_bytes()
 assert b'\n' not in raw.replace(b'\r\n', b''), 'BZN must retain native CRLF'
 bzn = raw.decode('utf-8').replace('\r\n', '\n')
 assert 'name = MultSTMission\n' in bzn
@@ -83,28 +83,28 @@ builder = (root / 'Tools/Build-CoopMap.py').read_text(encoding='utf-8')
 assert 'STRIP_UNNAMED_PATHS = {"misn13"}' in builder and 'CLEAR_COMMANDS = {"misn13"}' in builder
 
 # Terrain companions are Redux's own (the Europa terrain has no lightning key to strip).
-for suffix in ('hg2', 'lgt', 'trn', 'mat', 'vxt'):
+for suffix in ('hg2', 'lgt', 'trn', 'mat'):
     assert (root / f'Missions/misn13.{suffix}').is_file(), 'missing companion: misn13.' + suffix
 trn = (root / 'Missions/misn13.trn').read_text(encoding='latin-1')
 assert 'LightningBolt' not in trn and 'eu_detail_atlas' in trn
 assert len((root / 'Missions/misn13.mat').read_bytes()) == 131072
-assert (root / 'Missions/misn13.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,', 'avwalk ,']
+assert (root / 'Missions/misn13cr.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,', 'avwalk ,']
 
 ini = configparser.ConfigParser()
-ini.read(root / 'Config/misn13.ini')
+ini.read(root / 'Config/misn13cr.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
-assert (root / 'Assets/Graphics/misn13.bmp').read_bytes()[:2] == b'BM'
-des = (root / 'misn13.mpdes').read_text()
+assert (root / 'Assets/Graphics/misn13cr.bmp').read_bytes()[:2] == b'BM'
+des = (root / 'misn13cr.mpdes').read_text()
 assert len(des.strip()) <= 300
 assert 'Unit Factory' in des and 'hangar' in des and 'silos' in des, 'the briefing must state the real win'
 campaign = (root / 'Config/crcampgn.ini').read_text().replace('\r\n', '\n')
-assert re.search(r'missionBZN = "misn13\.bzn"', campaign), 'Campaign must launch the shared BZN'
+assert re.search(r'missionBZN = "misn13cr.bzn"', campaign), 'Campaign must launch the shared BZN'
 section = re.search(r'\[MISSION12\]\n((?:[^\[\n][^\n]*\n)+)', campaign)[1]
 assert 'voice = "misn1305.wav"' in section, 'the campaign retrospective is the previously unused misn1305 line'
 assert 'planet = "europa"' in section
 
-raw_lua = (root / 'Scripts/misn13.lua').read_text().replace('\r\n', '\n')
+raw_lua = (root / 'Scripts/misn13cr.lua').read_text().replace('\r\n', '\n')
 lua = re.sub(r'--\[(=*)\[.*?\]\1\]', '', raw_lua, flags=re.S)
 lua = re.sub(r'--[^\n]*', '', lua)
 assert 'local LEADER_TEAM, ENEMY_TEAM = 1, 5' in lua
@@ -172,9 +172,9 @@ assert (root / 'Docs/MISN13_COOP.md').is_file()
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn13.ini', 'Missions/misn13.vxt', 'Assets/Graphics/misn13.bmp', 'misn13.mpdes',
-               'Missions/misn13.bzn', 'Missions/misn13.hg2', 'Missions/misn13.trn', 'Missions/misn13.mat',
-               'Missions/misn13.lgt', 'Scripts/misn13.lua', 'Scripts/CREuropaSites13.lua', 'ODF/b_misn13.odf']:
+for source in ['Config/misn13cr.ini', 'Missions/misn13cr.vxt', 'Assets/Graphics/misn13cr.bmp', 'misn13cr.mpdes',
+               'Missions/misn13cr.bzn', 'Missions/misn13.hg2', 'Missions/misn13.trn', 'Missions/misn13.mat',
+               'Missions/misn13.lgt', 'Scripts/misn13cr.lua', 'Scripts/CREuropaSites13.lua', 'ODF/b_misn13.odf']:
     assert members.get(source) == Path(source).name, 'Map/lobby file must be admitted by the shipping manager: ' + source
 assert lock['count'] == len(lock['files'])
 print('misn13 co-op native map, snapshot stripping, team isolation, authority and lobby contract passed')

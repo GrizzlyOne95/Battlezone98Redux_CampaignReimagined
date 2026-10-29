@@ -38,7 +38,7 @@ $env:BZR_NO_FOREGROUND_WATCHDOG = '1'
 $ps = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
 $runner = if ($HarnessRunner) { $HarnessRunner } else { Join-Path $HarnessRepo 'reverse_engineering\Run-BZRCoopMission.ps1' }
 if ($Clients -lt 2 -and -not $HarnessRunner) { throw 'One client needs -HarnessRunner (a runner that accepts a single peer).' }
-if (-not (Test-Path -LiteralPath (Join-Path $CampaignContent 'misn18.lua'))) { throw "No misn18.lua in $CampaignContent; build the Workshop staging first." }
+if (-not (Test-Path -LiteralPath (Join-Path $CampaignContent 'misn18cr.lua'))) { throw "No misn18cr.lua in $CampaignContent; build the Workshop staging first." }
 $date = Get-Date -Format 'yyyyMMdd'
 $evidence = New-Item -ItemType Directory -Force -Path (Join-Path $EvidenceRoot "misn18-$date")
 $stamp = Get-Date -Format 'HHmmss'
@@ -66,20 +66,20 @@ customtags = "Coop, Campaign Reimagined"
 minPlayers = "$min"
 maxPlayers = "4"
 gameType = "S"
-"@ | Set-Content -LiteralPath (Join-Path $listing 'misn18.ini') -Encoding ASCII
-    # misn18.lua keeps CRCoop and the native table inside its campaign runtime; the harness probe stub is appended
+"@ | Set-Content -LiteralPath (Join-Path $listing 'misn18cr.ini') -Encoding ASCII
+    # misn18cr.lua keeps CRCoop and the native table inside its campaign runtime; the harness probe stub is appended
     # at the end of the mission chunk and looks for them as file-level locals (misn17 has them). The override adds
     # them after the last line of a copy of the staged mission script, in test instances only.
     $latin1 = [Text.Encoding]::GetEncoding(28591)
-    $mission = [IO.File]::ReadAllText((Join-Path $CampaignContent 'misn18.lua'), $latin1)
+    $mission = [IO.File]::ReadAllText((Join-Path $CampaignContent 'misn18cr.lua'), $latin1)
     $probeLocals = "`r`n-- [misn18 live] expose the runtime locals to the harness probe stub (test instances only)`r`nlocal CRCoop = campaignRuntime and campaignRuntime.Coop`r`nlocal native = campaignRuntime and campaignRuntime.Native`r`n"
-    [IO.File]::WriteAllText((Join-Path $listing 'misn18.lua'), $mission.TrimEnd() + $probeLocals, $latin1)
+    [IO.File]::WriteAllText((Join-Path $listing 'misn18cr.lua'), $mission.TrimEnd() + $probeLocals, $latin1)
     $runName = "misn18-$case-${Clients}p-$Tag$date-$stamp"
     $log = Join-Path $evidence "$runName.log"
     Write-Host "[run] $runName"
     # -ScenarioArgs is a hashtable parameter: pass it through a command string instead of -File.
     $audioArgs = if ($MuteClients) { '-MaxNetworkLogging -MuteClients -AllowNoAudioEndpoint' } else { '' }
-    $cmd = "& '$runner' -Mission misn18 -Scenario '$(Join-Path $here 'Test-Misn18Live.ps1')' -ScenarioArgs @{Case='$case'} -Clients $Clients " +
+    $cmd = "& '$runner' -Mission misn18cr -Scenario '$(Join-Path $here 'Test-Misn18Live.ps1')' -ScenarioArgs @{Case='$case'} -Clients $Clients " +
         "-CampaignContent '$CampaignContent' -BZRCoopRoot '$BZRCoopRoot' -ContentOverride '$listing' -MapListY 99 -MapListScroll 0 " +
         "$audioArgs -RunName '$runName' -HardTimeoutSeconds $HardTimeoutSeconds -FailureGraceSeconds 120" +
         $(if ($SkipPrepare) { ' -SkipPrepare' } else { '' }) + '; exit $LASTEXITCODE'

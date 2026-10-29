@@ -30,7 +30,7 @@ for name, expected in {
     check(hashlib.sha1(blob).hexdigest() == expected, f"verbatim source changed: {name}")
 
 source = (ROOT / "References/Misn10Source/Misn10Mission.cpp").read_text()
-lua_full = (ROOT / "Scripts/misn10.lua").read_text().replace("\r\n", "\n")
+lua_full = (ROOT / "Scripts/misn10cr.lua").read_text().replace("\r\n", "\n")
 
 REGIONS = ("CR PDA", "CR co-op layer", "CR Io weather", "CR CCA scaling", "CR tug rebuild", "CR plan B",
            "CR team filter", "CR rally")

@@ -3,7 +3,7 @@ package.path = "Scripts/?.lua;" .. package.path
 -- Run from the repository root: lua5.1 Tools/Test-Misn13Presentation.lua
 -- Part A executes the misn13 presentation adapter (the block between "local unpackArgs" and
 -- "Presentation adapter ends") in isolated Lua 5.1 peers: protocol decisions only, not native
--- handle serialization. Part B runs the complete Scripts/misn13.lua in four separate environments
+-- handle serialization. Part B runs the complete Scripts/misn13cr.lua in four separate environments
 -- over the real CRCoop registry and the E/A transport (Tools/BZRPeerTransportSim.lua); the engine,
 -- the AI and the Europa director are mocks. misn13 has no cameras and no IsInfo relay: only the
 -- ordered E/A event stream exists.
@@ -12,7 +12,7 @@ local checks = 0
 local function check(value, why) assert(value, why); checks = checks + 1 end
 
 -- ============================================================ PART A: the adapter in isolation
-local file = assert(io.open("Scripts/misn13.lua", "rb"))
+local file = assert(io.open("Scripts/misn13cr.lua", "rb"))
 local source = file:read("*a"):gsub("\r\n", "\n"); file:close()
 local adapter = assert(source:match("(local unpackArgs =.-)\n%-%- Presentation adapter ends"))
 do
@@ -498,7 +498,7 @@ local function makePeer(id, team)
     e.package = setmetatable({loaded = {exu = modules.exu}}, {__index = package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
     e.require = function(name) return assert(modules[name], name) end
-    setfenv(assert(loadfile("Scripts/misn13.lua")), e)()
+    setfenv(assert(loadfile("Scripts/misn13cr.lua")), e)()
     p.env, p.coop = e, modules.CRCoop
     e.Start()
     p.state = e.Save()

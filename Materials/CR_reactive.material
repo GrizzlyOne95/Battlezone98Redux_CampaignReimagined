@@ -245,7 +245,7 @@ material CR_FX/BioLeak : BZSprite/Additive
 //
 // Note that placeholder is not currently visible: SyncSky only applies a dome
 // when CRWeather.BaseSky is set, a mission only sets it when its .trn declares
-// a SkyTexture, and no CR mission does -- misn04.lua and misn05.lua both say so
+// a SkyTexture, and no CR mission does -- misn04cr.lua and misn05cr.lua both say so
 // outright. The whole sky layer is dormant, so new art here changes nothing
 // until a mission brings its own sky. Fix that first, then the textures.
 //

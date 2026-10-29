@@ -79,7 +79,7 @@ class VenusHdTerrain(unittest.TestCase):
         preview = module("Build-HdTerrainPreview.py")
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "preview.bzn"
-            with patch.object(sys, "argv", ["preview", "--source", str(ROOT / "Missions/misn08.bzn"), "--out", str(output)]):
+            with patch.object(sys, "argv", ["preview", "--source", str(ROOT / "Missions/misn08cr.bzn"), "--out", str(output)]):
                 preview.main()
             mission = read_bzn(output)
             self.assertEqual(mission.terrain_name, "misn08")

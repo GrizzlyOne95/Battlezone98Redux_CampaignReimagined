@@ -3,7 +3,7 @@
 -- misn12 adds to the misn06 adapter: objective-panel ops addressed to ONE human (the E stream carries
 -- a target team; every peer acknowledges, only the target applies), an owner-side ammo top-up, the Europa
 -- weather ops, per-player IsInfo reports, and a result that is held until 4.5 s before its time.
-local file = assert(io.open("Scripts/misn12.lua", "rb"))
+local file = assert(io.open("Scripts/misn12cr.lua", "rb"))
 local source = file:read("*a"):gsub("\r\n", "\n"); file:close()
 local adapter = assert(source:match("(local unpackArgs =.-)\n%-%- Presentation adapter ends"))
 local now, peers, packets = 0, {}, {}

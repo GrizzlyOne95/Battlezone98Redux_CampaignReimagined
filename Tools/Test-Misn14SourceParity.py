@@ -31,7 +31,7 @@ for name, sha in {
     check(blob_sha == sha, f"Original source bytes changed: {name}")
 
 source = (ARCHIVE / "Misn14Mission.cpp").read_text(encoding="utf-8")
-lua_full = (ROOT / "Scripts/misn14.lua").read_text(encoding="utf-8").replace("\r\n", "\n")
+lua_full = (ROOT / "Scripts/misn14cr.lua").read_text(encoding="utf-8").replace("\r\n", "\n")
 
 # ---- strip the CR regions ---------------------------------------------------------------------------
 REGIONS = ("CR PDA", "CR co-op layer", "CR team map", "CR Titan weather hook", "CR rescue", "CR fury squad",

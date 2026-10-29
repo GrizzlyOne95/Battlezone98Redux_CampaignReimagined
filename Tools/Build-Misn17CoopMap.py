@@ -76,7 +76,7 @@ def build(source, game, toolbox):
     checked=read_bzn(data)
     assert len(checked.objects)==109
     assert all(o.prjid=='pspwn_1' or o.fields['team'].value not in (2,3,4) for o in checked.objects)
-    (ROOT/'Missions/misn17.bzn').write_bytes(data)
+    (ROOT/'Missions/misn17cr.bzn').write_bytes(data)
     print('Built misn17: 109 objects, seven towers, 54 mines, four human starts')
 
 

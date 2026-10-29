@@ -12,7 +12,7 @@ raw = source_path.read_bytes()
 assert sha256(raw).hexdigest() == "19a999b8e06b445dcccf51ede5cb1312820daacb0dc457064feaee721baab538", "DLL source snapshot changed"
 assert sha256(header_path.read_bytes()).hexdigest() == "ea2a4cbebe8853904bf463c41eb1c7f4b165084e74967026724cfd6cf5f0ba5c", "DLL header snapshot changed"
 source = raw.decode("utf-8").replace("\r\n", "\n")
-lua_full = (ROOT / "Scripts/misn18.lua").read_text(encoding="utf-8")
+lua_full = (ROOT / "Scripts/misn18cr.lua").read_text(encoding="utf-8")
 # The marked Campaign Reimagined co-op/restoration layer is audited separately (Test-Misn18Coop.lua,
 # Test-Misn18CoopContract.py). Everything outside it must still be exactly the DLL port.
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"

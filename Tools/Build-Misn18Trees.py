@@ -32,7 +32,7 @@ def model(toolbox):
     from battlezone.terrain.mat import read_mat
     forest = load("forest", "Build-Misn17Forest.py")
     storm = load("storm", "Build-Misn18Storm.py")
-    bzn = read_bzn(ROOT / "Missions/misn18.bzn", odf_dirs=[ROOT / "ODF"])
+    bzn = read_bzn(ROOT / "Missions/misn18cr.bzn", odf_dirs=[ROOT / "ODF"])
     _, heights = read_hg2(ROOT / "Missions/misn18.hg2")
     heights = heights.astype(float) * .1
     mat = read_mat(ROOT / "Missions/misn18.mat", 2, 4)

@@ -308,8 +308,10 @@ def build(name,args):
  relit=lm.copy();level=float(np.percentile(lm,80));relit[lchange]=np.clip(level*(.65+.35*shade[lchange]),0,255)
  write_lgt(out/(terrain+'.lgt'),relit,head.zones_x,head.zones_z,border=int(lp.read_bytes()[0]))
  if name in ('misn12','misn13','misns4','misns6'):
-  (out/(name+'.bzn')).write_bytes(b.write())
-  reread=read_bzn(out/(name+'.bzn'));assert len(reread.objects)==len(b.objects)
+  bzn_out=out/(name+('cr' if name in ('misn12','misn13') else '')+'.bzn')  # CR ships these two BZNs with a cr suffix
+  if name in ('misn12','misn13'):b.header['msn_filename'].value=(name+'cr.bzn').encode('ascii')
+  bzn_out.write_bytes(b.write())
+  reread=read_bzn(bzn_out);assert len(reread.objects)==len(b.objects)
   assert [o.label for o in reread.objects]==[o.label for o in original_b.objects]
  if name=='misns4':
   # Interior mission data use the same Z warp as terrain and path coordinates.

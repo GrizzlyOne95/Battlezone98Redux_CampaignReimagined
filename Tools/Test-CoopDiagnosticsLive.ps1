@@ -1,4 +1,4 @@
-# Real clients/native local server on misn03; no simulated transport metrics.
+# Real clients/native local server on misn03cr; no simulated transport metrics.
 # The scoped outbound Lua filter below is explicit application-message loss;
 # it does not block engine packets or alter native ping/loss measurements.
 param([int]$HostClient=0,[int]$GuestClient=1)
