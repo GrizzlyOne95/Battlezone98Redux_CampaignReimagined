@@ -52,7 +52,7 @@ def build(source, game, toolbox):
         for block in text.split('[GameObject]\n')[1:]:
             if re.search(rf'^team \[1\] =\n{team}$', block, re.M):
                 assert re.search(r'^PrjID \[1\] =\npspwn_1$', block, re.M), 'authored object on guest team ' + team
-    (ROOT / 'Missions/misn18.bzn').write_bytes(text.replace('\n', '\r\n').encode('latin-1'))
+    (ROOT / 'Missions/misn18cr.bzn').write_bytes(text.replace('\n', '\r\n').encode('latin-1'))
     arc = ZFSArchive(game / 'bzone.zfs')
     for ext in ('trn', 'mat', 'lgt'):
         (ROOT / 'Missions' / f'misn18.{ext}').write_bytes(arc.read(f'misn18.{ext}'))

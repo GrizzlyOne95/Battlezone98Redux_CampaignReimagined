@@ -7,7 +7,7 @@ import re
 
 ROOT = Path(__file__).resolve().parents[1]
 source_path = ROOT / "Docs/MissionSources/Misn06Mission.cpp"
-lua_path = ROOT / "Scripts/misn06.lua"
+lua_path = ROOT / "Scripts/misn06cr.lua"
 raw = source_path.read_bytes()
 assert sha256(raw).hexdigest() == "5a66c54a9d6c7f17ebb293434e645d317a50f7bb8e5518ff08fb705bfc27507a", "DLL source snapshot changed"
 source = raw.decode("utf-8").replace("\r\n", "\n")

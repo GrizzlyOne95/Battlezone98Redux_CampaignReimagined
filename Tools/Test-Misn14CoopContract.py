@@ -6,7 +6,7 @@ import math
 import re
 
 root = Path(__file__).resolve().parents[1]
-raw = (root / 'Missions/misn14.bzn').read_bytes()
+raw = (root / 'Missions/misn14cr.bzn').read_bytes()
 assert b'\n' not in raw.replace(b'\r\n', b''), 'BZN must retain native CRLF'
 bzn = raw.decode('latin-1').replace('\r\n', '\n')
 assert 'name = MultSTMission\n' in bzn and 'TerrainName = misn14\n' in bzn
@@ -53,23 +53,23 @@ for name in ['alien%d' % n for n in range(1, 7)] + ['rescue1', 'rescue2', 'rescu
              'cam_path2', 'camera_path'] + ['help%d' % n for n in range(1, 10)]:
     assert name in path_names, 'script path missing from the map: ' + name
 
-for suffix in ('hg2', 'lgt', 'trn', 'mat', 'vxt'):
+for suffix in ('hg2', 'lgt', 'trn', 'mat'):
     assert (root / f'Missions/misn14.{suffix}').is_file(), 'missing companion: misn14.' + suffix
 trn = (root / 'Missions/misn14.trn').read_text(encoding='latin-1')
 assert 'titan.map' in trn.lower() and 'ti_detail_atlas' in trn, "Redux's own Titan terrain description"
 assert len((root / 'Missions/misn14.mat').read_bytes()) == 131072
-assert (root / 'Missions/misn14.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,', 'avwalk ,']
+assert (root / 'Missions/misn14cr.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,', 'avwalk ,']
 
 ini = configparser.ConfigParser()
-ini.read(root / 'Config/misn14.ini')
+ini.read(root / 'Config/misn14cr.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
-assert (root / 'Assets/Graphics/misn14.bmp').read_bytes()[:2] == b'BM'
-des = (root / 'misn14.mpdes').read_text()
+assert (root / 'Assets/Graphics/misn14cr.bmp').read_bytes()[:2] == b'BM'
+des = (root / 'misn14cr.mpdes').read_text()
 assert len(des.strip()) <= 300 and 'Texas' in des and 'Utah' not in des, 'the briefing names the Recycler Texas'
 campaign = (root / 'Config/crcampgn.ini').read_text().replace('\r\n', '\n')
 section = re.search(r'\[MISSION13\]\n((?:[^\[\n][^\n]*\n)+)', campaign)[1]
-assert 'missionBZN = "misn14.bzn"' in section and 'planet = "titan"' in section
+assert 'missionBZN = "misn14cr.bzn"' in section and 'planet = "titan"' in section
 assert 'voice = "misn1422.wav"' in section, 'the Grizzly One retrospective (exe-hardcoded misn1422)'
 
 # The commandable NSDF Fury: a full ODF (Redux has no ODF inheritance) on the stock avsav mesh.
@@ -79,7 +79,7 @@ for key in ('baseName = "avsav"', 'classLabel = "wingman"', 'aiName = "TankFrien
     assert key in odf, 'avsav14.odf: ' + key
 assert 'SAVFriend' not in re.sub(r'//[^\n]*', '', odf), 'SAVFriend is not a registered Redux AI process'
 
-raw_lua = (root / 'Scripts/misn14.lua').read_text().replace('\r\n', '\n')
+raw_lua = (root / 'Scripts/misn14cr.lua').read_text().replace('\r\n', '\n')
 lua = re.sub(r'--\[(=*)\[.*?\]\1\]', '', raw_lua, flags=re.S)
 lua = re.sub(r'--[^\n]*', '', lua)
 assert 'local LEADER_TEAM, ENEMY_TEAM, FURY_TEAM, SURVIVOR_TEAM = 1, 5, 6, 7' in lua
@@ -112,9 +112,9 @@ assert (root / 'Docs/MISN14_COOP.md').is_file()
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn14.ini', 'Missions/misn14.vxt', 'Assets/Graphics/misn14.bmp', 'misn14.mpdes',
-               'Missions/misn14.bzn', 'Missions/misn14.hg2', 'Missions/misn14.trn', 'Missions/misn14.mat',
-               'Missions/misn14.lgt', 'Scripts/misn14.lua', 'ODF/avsav14.odf']:
+for source in ['Config/misn14cr.ini', 'Missions/misn14cr.vxt', 'Assets/Graphics/misn14cr.bmp', 'misn14cr.mpdes',
+               'Missions/misn14cr.bzn', 'Missions/misn14.hg2', 'Missions/misn14.trn', 'Missions/misn14.mat',
+               'Missions/misn14.lgt', 'Scripts/misn14cr.lua', 'ODF/avsav14.odf']:
     assert members.get(source) == Path(source).name, 'file must be admitted by the shipping manager: ' + source
 assert lock['count'] == len(lock['files'])
 print('misn14 co-op native map, team isolation, Fury ODF, authority and lobby contract passed')

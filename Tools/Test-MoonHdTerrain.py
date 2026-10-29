@@ -118,7 +118,7 @@ class MoonHdTerrain(unittest.TestCase):
         fixture = module("Build-HdTerrainPreview.py")
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "preview.bzn"
-            with patch.object(sys, "argv", ["preview", "--source", str(ROOT / "Missions/misn03.bzn"), "--out", str(output)]):
+            with patch.object(sys, "argv", ["preview", "--source", str(ROOT / "Missions/misn03cr.bzn"), "--out", str(output)]):
                 fixture.main()
             mission = read_bzn(output)
             self.assertEqual(mission.terrain_name, "misn03")

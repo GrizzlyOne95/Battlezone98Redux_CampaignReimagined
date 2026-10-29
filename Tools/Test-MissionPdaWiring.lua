@@ -46,7 +46,7 @@ local function runBlock(block, mission)
 end
 
 for index = 6, 14 do
-    local mission = string.format("misn%02d", index)
+    local mission = string.format("misn%02dcr", index)
     local source = readSource("Scripts/" .. mission .. ".lua")
     -- Compiles the whole chunk, so the 200-local and 60-upvalue limits apply.
     local compiled, compileError = loadstring(source, mission)

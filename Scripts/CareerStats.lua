@@ -302,10 +302,19 @@ local function isSniperOrdnance(odfName)
     return lowered:find("snip", 1, true) ~= nil
 end
 
+-- Missions renamed so saves mount CR keep their pre-rename stats key (existing profiles stay intact).
+local LEGACY_MISSION_KEYS = {
+    misn2bcr = "misn02b", misn03cr = "misn03", misn04cr = "misn04", misn05cr = "misn05",
+    misn06cr = "misn06", misn07cr = "misn07", misn08cr = "misn08", misn09cr = "misn09",
+    misn10cr = "misn10", misn11cr = "misn11", misn12cr = "misn12", misn13cr = "misn13",
+    misn14cr = "misn14", misn17cr = "misn17", misn18cr = "misn18",
+}
+
 local function resolveMissionKey()
     local missionFilename = cleanString(safeCall(GetMissionFilename) or "")
     if missionFilename ~= "" then
-        return sanitizeKey(missionFilename:gsub("%.bzn$", ""), "unknown_mission")
+        local key = sanitizeKey(missionFilename:gsub("%.bzn$", ""), "unknown_mission")
+        return LEGACY_MISSION_KEYS[key] or key
     end
 
     local trnFilename = cleanString(safeCall(GetMapTRNFilename) or "")

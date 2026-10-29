@@ -812,6 +812,11 @@ Each bullet: the pitfall, the one-line why, and where to read more.
   no Home/End/PgUp/PgDn. `GameKey` receives every key, bound or not. Mods cannot override `gamekey.map`;
   change binds at runtime in the byte table 0x00918850 (index = key | 0x100 Ctrl | 0x200 Shift |
   0x400 Alt), which Redux re-parses after every ESC menu (see `exu.SetChatOnEnter`).
+- Never ship a CR mission under a stock mission name. A main-menu load in a fresh process matches the save's
+  BZN name against the stock `usa` table (0x482E20) first; a hit infers the stock campaign, CR never
+  mounts, and the load quits to the menu. That is why misn03..misn14/misn17/misn18 are `misnNNcr` and
+  misn02b is `misn2bcr` (misn15/misn16 are not in the table). A renamed `.bzn` must also say
+  `msn_filename = <new>.bzn` in its header; `TerrainName` keeps the stock stem.
 
 ### 8.3 Source fidelity
 

@@ -51,7 +51,7 @@ class HdPacks(unittest.TestCase):
         spec = importlib.util.spec_from_file_location("preview", ROOT / "Tools/Build-HdTerrainPreview.py")
         preview = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(preview)
-        source = ROOT / "Missions/misn08.bzn"
+        source = ROOT / "Missions/misn08cr.bzn"
         before = source.with_suffix(".mat").read_bytes()
         with tempfile.TemporaryDirectory() as temporary:
             out = Path(temporary) / "fixture.bzn"

@@ -57,25 +57,25 @@ for name, expected in {
 check("uses Tran05Mission.cpp" in (ARCHIVE / "Misn02Mission.cpp").read_text(),
       "misn02b provenance must follow the original source dispatch")
 
-MAPPING = {"misn02b": "Tran05Mission", "misn03": "Misn03Mission",
-           "misn04": "Misn04Mission", "misn05": "Misn05Mission"}
-COMMENT_COUNTS = {"misn02b": 42, "misn03": 87, "misn04": 84, "misn05": 64}
+MAPPING = {"misn2bcr": "Tran05Mission", "misn03cr": "Misn03Mission",
+           "misn04cr": "Misn04Mission", "misn05cr": "Misn05Mission"}
+COMMENT_COUNTS = {"misn2bcr": 42, "misn03cr": 87, "misn04cr": 84, "misn05cr": 64}
 # Named source phases are present despite intentional timing/unit variations.
 PHASES = {
-    "misn02b": ["camera1", "camera3", "patrol1", "message1", "message2", "message3",
+    "misn2bcr": ["camera1", "camera3", "patrol1", "message1", "message2", "message3",
                 "message4", "message5", "last_wave_time", "NextSecond", "mission_lost", "mission_won"],
-    "misn03": ["first_wave_done", "start_retreat", "turrets_set", "second_wave_done", "third_wave_done",
+    "misn03cr": ["first_wave_done", "start_retreat", "turrets_set", "second_wave_done", "third_wave_done",
                "fourth_wave_done", "scavhunt", "scavhunt2", "help_spawn", "second_objective",
                "start_movie", "movie_over", "trans_underway", "turret_move_done", "ambush_message",
                "third_objective", "second_warning", "last_warning", "final_objective",
                "startfinishingmovie", "show_tank_attack", "tower_dead", "climax1", "climax2",
                "last_blown", "end_shot", "dead1", "dead2", "dead3"],
-    "misn04": ["missionstart", "relic", "fetch", "surveysent", "discoverrelic", "relicseen", "reconsent",
+    "misn04cr": ["missionstart", "relic", "fetch", "surveysent", "discoverrelic", "relicseen", "reconsent",
                "relicsecure", "ccatugsent", "ccahasrelic", "missionfail2", "warn", "cin1done",
                "wavenumber", "wave1", "wave2", "wave3", "wave4", "wave5", "wave1arrive",
                "wave2arrive", "wave3arrive", "wave4arrive", "wave5arrive", "possiblewin", "basesecure",
                "secureloopbreak", "retreat", "missionwon", "missionfail"],
-    "misn05": ["game_start", "randomwave", "needtospawn", "reconfactory", "notfound", "shuffle",
+    "misn05cr": ["game_start", "randomwave", "needtospawn", "reconfactory", "notfound", "shuffle",
                "sent1Done", "sent2Done", "sent3Done", "sent4Done", "check1", "check2", "check3", "check4",
                "reconed", "neworders", "basewave", "attacktimeset", "platoonhere", "attackcmd",
                "attackstatement", "aw1sent", "aw2sent", "aw3sent", "aw4sent", "possiblewin",
@@ -101,7 +101,7 @@ for mission, stem in MAPPING.items():
     # already-existing misn02b intro audio replacement explicitly.
     files = set(re.findall(r'"([^"\n]+\.(?:wav|otf|des|aip))"', active_cpp(source)))
     for file in sorted(files):
-        if mission == "misn02b" and file == "misn0224.wav":
+        if mission == "misn2bcr" and file == "misn0224.wav":
             check('"misn0201.wav"' in code and '"misn0224.wav"' in lua,
                   "intentional intro replacement and reconstruction reference lost")
         else:
@@ -110,13 +110,13 @@ for mission, stem in MAPPING.items():
 # Archive + inactive ledger also protects details not represented by a named
 # phase: reduced/cut units, alternate camera paths, audio, timer edits and the
 # mine-system implementation replaced by the intentional static field in Lua.
-five = active_lua((ROOT / "Scripts/misn05.lua").read_text())
+five = active_lua((ROOT / "Scripts/misn05cr.lua").read_text())
 check('"path_" .. i' in five and re.search(r"for i = 1, 23 do", five), "all 23 intentional static mine locations remain")
 check('SetLabel(M.cam1, "Volcano")' not in five and five.count('SetObjectiveName(M.cam1, "Volcano")') == 2,
       "camera display name must not replace its map lookup label")
 
 three_source = (ARCHIVE / "Misn03Mission.cpp").read_text()
-three_lua = (ROOT / "Scripts/misn03.lua").read_text()
+three_lua = (ROOT / "Scripts/misn03cr.lua").read_text()
 i = three_source.index("if ((!help_spawn) && (support_time < Get_Time()))")
 j = three_source.index("//  Time to evacuate the base", i)
 check(three_source[i:j].rstrip() in three_lua, "replaced native escort/arrival block must remain reconstructable")

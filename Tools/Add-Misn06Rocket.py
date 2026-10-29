@@ -69,7 +69,7 @@ def add_rocket(text):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('map',nargs='?',type=Path,default=ROOT/'Missions/misn06.bzn')
+    p.add_argument('map',nargs='?',type=Path,default=ROOT/'Missions/misn06cr.bzn')
     path=p.parse_args().map
     raw=path.read_bytes();text=raw.decode('latin1').replace('\r\n','\n')
     path.write_bytes(add_rocket(text).replace('\n','\r\n').encode('latin1'))

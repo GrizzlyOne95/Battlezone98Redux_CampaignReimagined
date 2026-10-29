@@ -6,7 +6,7 @@ import math
 import re
 
 root = Path(__file__).resolve().parents[1]
-raw = (root / 'Missions/misn10.bzn').read_bytes()
+raw = (root / 'Missions/misn10cr.bzn').read_bytes()
 assert b'\n' not in raw.replace(b'\r\n', b''), 'BZN must retain native CRLF'
 bzn = raw.decode('utf-8').replace('\r\n', '\n')
 assert 'name = MultSTMission\n' in bzn
@@ -58,18 +58,18 @@ for path in ['relic_path1', 'attack_path_central', 'attack_path_south', 'attack_
     assert f'label = {path}\n' in bzn, 'path missing from the converted map: ' + path
 
 ini = configparser.ConfigParser()
-ini.read(root / 'Config/misn10.ini')
+ini.read(root / 'Config/misn10cr.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
-assert (root / 'Assets/Graphics/misn10.bmp').read_bytes()[:2] == b'BM'
-assert (root / 'Missions/misn10.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,', 'avwalk ,']
-assert len((root / 'misn10.mpdes').read_text().strip()) <= 300
+assert (root / 'Assets/Graphics/misn10cr.bmp').read_bytes()[:2] == b'BM'
+assert (root / 'Missions/misn10cr.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,', 'avwalk ,']
+assert len((root / 'misn10cr.mpdes').read_text().strip()) <= 300
 campaign = (root / 'Config/crcampgn.ini').read_text()
-assert re.search(r'missionBZN = "misn10\.bzn"', campaign), 'Campaign must launch the shared BZN'
+assert re.search(r'missionBZN = "misn10cr.bzn"', campaign), 'Campaign must launch the shared BZN'
 section = re.search(r'\[MISSION9\]\n((?:[^\[\n][^\n]*\n)+)', campaign.replace('\r\n', '\n'))[1]
 assert 'voice = "misn1007.wav"' in section, 'the campaign epilogue is the previously unused misn1007 line'
 
-raw_lua = (root / 'Scripts/misn10.lua').read_text().replace('\r\n', '\n')
+raw_lua = (root / 'Scripts/misn10cr.lua').read_text().replace('\r\n', '\n')
 lua = re.sub(r'--\[(=*)\[.*?\]\1\]', '', raw_lua, flags=re.S)
 lua = re.sub(r'--[^\n]*', '', lua)
 assert 'local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7' in lua
@@ -124,8 +124,8 @@ assert 'local function AudioMessage(file) return subtit.Play(file) end' in lua
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn10.ini', 'Missions/misn10.vxt', 'Assets/Graphics/misn10.bmp', 'misn10.mpdes',
-               'Missions/misn10.bzn', 'Missions/misn10.hg2', 'Missions/misn10.trn', 'Missions/misn10.mat',
-               'Missions/misn10.lgt', 'Scripts/misn10.lua']:
+for source in ['Config/misn10cr.ini', 'Missions/misn10cr.vxt', 'Assets/Graphics/misn10cr.bmp', 'misn10cr.mpdes',
+               'Missions/misn10cr.bzn', 'Missions/misn10.hg2', 'Missions/misn10.trn', 'Missions/misn10.mat',
+               'Missions/misn10.lgt', 'Scripts/misn10cr.lua']:
     assert members.get(source) == Path(source).name, 'Map/lobby file must be admitted by the shipping manager: ' + source
 print('misn10 co-op native map, team isolation, authority and lobby contract passed')

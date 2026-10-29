@@ -17,23 +17,23 @@ Missions/misn16b.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misn16.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misn18.trn -text whitespace=-blank-at-eol,-blank-at-eof
 # The misn18 briefing must stay CRLF on every checkout (Test-Misn18CoopContract.py).
-misn18.mpdes -text
-Missions/misn18.vxt -text
+misn18cr.mpdes -text
+Missions/misn18cr.vxt -text
 Missions/misns4.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misns5.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misns6.trn -text whitespace=-blank-at-eol,-blank-at-eof
 # Verbatim misn10 source and in-place cut-code comments retain original spacing.
 # Disable newline conversion for the archive so its pinned Git blobs survive.
 References/Misn10Source/* -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
-Scripts/misn10.lua whitespace=-blank-at-eol
-Scripts/misn11.lua whitespace=-blank-at-eol
-Scripts/misn12.lua whitespace=-blank-at-eol
+Scripts/misn10cr.lua whitespace=-blank-at-eol
+Scripts/misn11cr.lua whitespace=-blank-at-eol
+Scripts/misn12cr.lua whitespace=-blank-at-eol
 # Original DLL snapshots are pinned by Git blob ID. Preserve their CRLF and
 # inherited whitespace even on checkouts that enable automatic text conversion.
 References/Misn13Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
 # Verbatim disabled C++ comments include whitespace-only lines.
-Scripts/misn13.lua whitespace=-blank-at-eol
-Scripts/misn14.lua whitespace=-blank-at-eol
+Scripts/misn13cr.lua whitespace=-blank-at-eol
+Scripts/misn14cr.lua whitespace=-blank-at-eol
 # BlackDog07's full original source is pinned to its upstream Git blob.
 References/BlackDog07Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
 # Exact misns8 DLL archive and verbatim disabled code.
@@ -47,10 +47,10 @@ References/Misns1Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-be
 Scripts/misns1.lua whitespace=-blank-at-eol
 # Preserve the byte-pinned misn18 DLL archive and original cut-code whitespace.
 References/Misn18Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
-Scripts/misn18.lua whitespace=-blank-at-eol
+Scripts/misn18cr.lua whitespace=-blank-at-eol
 # Verbatim misn17 DLL source preserves its pinned bytes and cut-code spacing.
 References/Misn17Source/* -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
-Scripts/misn17.lua whitespace=-blank-at-eol,-space-before-tab
+Scripts/misn17cr.lua whitespace=-blank-at-eol,-space-before-tab
 # Shipped voice-over (extracted byte-exact from the stock archives).
 Assets/Audio/*.wav binary
 # The owner-selected standalone fighter port is a byte-pinned source asset.

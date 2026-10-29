@@ -6,7 +6,7 @@ import math
 import re
 
 root = Path(__file__).resolve().parents[1]
-raw = (root / 'Missions/misn09.bzn').read_bytes()
+raw = (root / 'Missions/misn09cr.bzn').read_bytes()
 assert b'\n' not in raw.replace(b'\r\n', b''), 'BZN must retain native CRLF'
 bzn = raw.decode('utf-8').replace('\r\n', '\n')
 assert 'name = MultSTMission\n' in bzn
@@ -57,16 +57,16 @@ for path in ['spawn1', 'spawn2', 'spawn3', 'spawn4', 'soviet_path', 'return_path
     assert f'label = {path}\n' in bzn, 'path missing from the converted map: ' + path
 
 ini = configparser.ConfigParser()
-ini.read(root / 'Config/misn09.ini')
+ini.read(root / 'Config/misn09cr.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
-assert (root / 'Assets/Graphics/misn09.bmp').read_bytes()[:2] == b'BM'
-assert (root / 'Missions/misn09.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,', 'avwalk ,']
-assert len((root / 'misn09.mpdes').read_text().strip()) <= 300
+assert (root / 'Assets/Graphics/misn09cr.bmp').read_bytes()[:2] == b'BM'
+assert (root / 'Missions/misn09cr.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,', 'avwalk ,']
+assert len((root / 'misn09cr.mpdes').read_text().strip()) <= 300
 campaign = (root / 'Config/crcampgn.ini').read_text()
-assert re.search(r'missionBZN = "misn09\.bzn"', campaign), 'Campaign must launch the shared BZN'
+assert re.search(r'missionBZN = "misn09cr.bzn"', campaign), 'Campaign must launch the shared BZN'
 
-raw_lua = (root / 'Scripts/misn09.lua').read_text().replace('\r\n', '\n')
+raw_lua = (root / 'Scripts/misn09cr.lua').read_text().replace('\r\n', '\n')
 lua = re.sub(r'--\[(=*)\[.*?\]\1\]', '', raw_lua, flags=re.S)
 lua = re.sub(r'--[^\n]*', '', lua)
 assert 'local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7' in lua
@@ -121,9 +121,9 @@ assert 'CONVOY_EXTRA_MAX = 3' in lua and 'local PRESCOTT_COUNT = 5' in lua and '
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn09.ini', 'Missions/misn09.vxt', 'Assets/Graphics/misn09.bmp', 'misn09.mpdes',
-               'Missions/misn09.bzn', 'Missions/misn09.hg2', 'Missions/misn09.trn', 'Missions/misn09.mat',
-               'Missions/misn09.lgt', 'Scripts/misn09.lua', 'Text/misn0910.txt', 'Text/misn0917.txt']:
+for source in ['Config/misn09cr.ini', 'Missions/misn09cr.vxt', 'Assets/Graphics/misn09cr.bmp', 'misn09cr.mpdes',
+               'Missions/misn09cr.bzn', 'Missions/misn09.hg2', 'Missions/misn09.trn', 'Missions/misn09.mat',
+               'Missions/misn09.lgt', 'Scripts/misn09cr.lua', 'Text/misn0910.txt', 'Text/misn0917.txt']:
     assert members.get(source) == Path(source).name, 'Map/lobby file must be admitted by the shipping manager: ' + source
 # Files this mission adds that still need a shipping-lock bless (empty now: the lock admits all of them). A file listed
 # here that the lock already admits must be removed, so the list cannot go stale.

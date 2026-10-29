@@ -55,7 +55,7 @@ def compute(toolbox):
         (root / 'Missions').mkdir()
         original = subprocess.check_output(['git', 'show', 'ce18e89:Missions/misn17.hg2'], cwd=ROOT)
         (root / 'Missions' / 'misn17.hg2').write_bytes(original)
-        for name in ('misn17.mat', 'misn17.bzn'):
+        for name in ('misn17.mat', 'misn17cr.bzn'):
             shutil.copyfile(ROOT / 'Missions' / name, root / 'Missions' / name)
         spec_ns.update(ROOT=root, np=np, math=math, read_hg2=read_hg2, read_mat=read_mat, read_bzn=read_bzn)
         exec(compile(model, 'water-model', 'exec'), spec_ns)

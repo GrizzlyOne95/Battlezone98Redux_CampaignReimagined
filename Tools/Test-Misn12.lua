@@ -142,7 +142,7 @@ local function reset()
     modules.CRCoop = assert(loadfile("Scripts/CRCoop.lua"))()
     timer, timerRunning = 0, false
     for k in pairs(pda) do pda[k] = 0 end
-    dofile("Scripts/misn12.lua")
+    dofile("Scripts/misn12cr.lua")
     Start()
     check(not Save().start_done and #calls == count("RemoveObject"), "Start only performs source Setup (and drops the co-op buoys)")
     step()
@@ -362,11 +362,11 @@ check(m.camera_swap1 and not IsValid(m.check2_cam), "removed camera pod safely s
 -- Save/load into a freshly loaded script must retain timers/handles/camera flags.
 m = capture(reset()); disableMovies(m); approach(m, m.ccacom_tower, 59)
 step(20); local saved = copy(Save()); local builds = count("BuildObject")
-dofile("Scripts/misn12.lua"); Load(saved)
+dofile("Scripts/misn12cr.lua"); Load(saved)
 check(Save().interface_time == 45 and Save().key_ship == m.key_ship, "load restores timer and vehicle handle")
 step(45); check(not Save().interface_complete and count("BuildObject") == builds, "load neither restarts Setup nor duplicates spawns")
 step(45.01); check(Save().interface_complete, "restored upload completes on original schedule")
-saved = copy(Save()); dofile("Scripts/misn12.lua"); Load(saved)
+saved = copy(Save()); dofile("Scripts/misn12cr.lua"); Load(saved)
 near(player, saved.nav1, 74); step(saved.win_check_time + 0.01)
 check(Save().win, "save during escape preserves victory gate")
 check(saved.countdown_time == 99999 and saved.check1 == false, "unused original fields survive serialization")

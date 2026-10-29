@@ -14,7 +14,7 @@ import re
 
 ROOT = Path(__file__).resolve().parents[1]
 source_path = ROOT / "References/Misn08Source/Misn08Mission.cpp"
-lua_path = ROOT / "Scripts/misn08.lua"
+lua_path = ROOT / "Scripts/misn08cr.lua"
 raw = source_path.read_bytes()
 # Pinned on LF-normalized bytes so the check is independent of checkout line endings.
 assert sha256(raw.replace(b"\r\n", b"\n")).hexdigest() == "d243e4829850eee64f151c6962d7f734f05c79acf9f2f240327c5cf1a0522de5", "DLL source snapshot changed"

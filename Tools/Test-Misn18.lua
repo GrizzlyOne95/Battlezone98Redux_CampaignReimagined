@@ -3,7 +3,7 @@
 -- engine's save serializer still need in-game validation.
 CR_TEST_FAITHFUL = true -- The restored roster is covered by Test-FuryRoster.lua.
 assert(_VERSION == "Lua 5.1", "run these checks with Lua 5.1")
-local script = arg[1] or "Scripts/misn18.lua"
+local script = arg[1] or "Scripts/misn18cr.lua"
 local checks = 0
 local function Check(value, message)
     assert(value, message)

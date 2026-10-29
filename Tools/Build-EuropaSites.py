@@ -36,7 +36,7 @@ south (low z) first. Bits 15-12 are the base material and 11-8 the next material
 Sources. Each of <mission>.trn / .mat / .bzn comes from, in order:
 
   --source-dir DIR   a folder holding any of the three (so the converted co-op
-                     Missions/ folder can supply misn12.bzn while the stock
+                     Missions/ folder can supply misn12cr.bzn while the stock
                      .trn/.mat still come from the archive)
   --zfs FILE         Redux's bzone.zfs, read with the Modding Toolbox's
                      battlezone.archives.zfs
@@ -80,8 +80,11 @@ def fetch_sources(args) -> dict[str, bytes]:
     if args.source_dir:
         folder = Path(args.source_dir)
         for n in names:
-            if (folder / n).is_file():
-                found[n] = (folder / n).read_bytes()
+            # A Missions/ folder holds the co-op BZN as <stem>cr.bzn; a stock folder holds <stem>.bzn.
+            for p in (folder / n.replace(".bzn", "cr.bzn"), folder / n):
+                if p.is_file():
+                    found[n] = p.read_bytes()
+                    break
     missing = [n for n in names if n not in found]
     if missing:
         sys.path.insert(0, str(args.toolbox))

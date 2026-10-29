@@ -15,7 +15,7 @@ local function read(path)
 end
 local sources = {}
 for _, name in ipairs({ "02b", "03", "04", "05" }) do
-    local path = "Scripts/misn" .. name .. ".lua"
+    local path = "Scripts/misn" .. (name == "02b" and "2b" or name) .. "cr.lua"
     check(loadfile(path) ~= nil, path .. " must compile on Lua 5.1")
     sources[name] = read(path)
 end

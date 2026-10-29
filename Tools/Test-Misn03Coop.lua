@@ -213,7 +213,7 @@ local function makePeer(id, team, network)
     e.package = setmetatable({loaded={exu=modules.exu}}, {__index=package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
     e.require = function(name) return assert(modules[name], name) end
-    setfenv(assert(loadfile("Scripts/misn03.lua")), e)()
+    setfenv(assert(loadfile("Scripts/misn03cr.lua")), e)()
     p.env, p.coop = e, modules.CRCoop
     p.env.Start()
     p.state = p.env.Save()

@@ -22,7 +22,7 @@ PNG, same numbers.
 
 Inputs (all in the repository, plus the Modding Toolbox for the HG2 reader):
   Missions/misn12.hg2   unsmoothed Battlezone 1.5 heightmap (1024 x 1024 samples of 5 m, 0.1 m per unit)
-  Missions/misn12.bzn   converted co-op map (objects and AI paths)
+  Missions/misn12cr.bzn   converted co-op map (objects and AI paths)
 
 Usage:
   python Tools/Preview-Misn12Map.py [--output Docs/MISN12_ROUTE_PREVIEW.png] [--toolbox DIR]
@@ -478,7 +478,7 @@ def main() -> int:
     args = ap.parse_args()
 
     m = load_heights(args.toolbox, args.missions / "misn12.hg2")
-    objects, paths = read_bzn(args.missions / "misn12.bzn")
+    objects, paths = read_bzn(args.missions / "misn12cr.bzn")
     w = Walker(m)
     route = build_route(w)
     report = jump_report(m)

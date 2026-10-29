@@ -31,7 +31,7 @@ for name, expected in {
     check(actual == expected, "verbatim source blob changed: " + name)
 
 source = (ROOT / "References/Misn09Source/Misn09Mission.cpp").read_text()
-lua = (ROOT / "Scripts/misn09.lua").read_text().replace("\r\n", "\n")
+lua = (ROOT / "Scripts/misn09cr.lua").read_text().replace("\r\n", "\n")
 
 REGIONS = ("CR PDA", "CR Venus weather", "CR team filter", "CR convoy scaling", "CR Prescott platoon", "CR cut VO",
            "CR tug rebuild", "CR rally")

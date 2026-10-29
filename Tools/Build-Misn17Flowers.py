@@ -886,7 +886,7 @@ def place():
     def tile(x, z): return int(tiles[int((z - 97280) / 20), int(x / 20)]) >> 12
 
     # Keep-outs: the forest pass's guards (bzn objects) and route points.
-    bzn = read_bzn(ROOT / 'Missions/misn17.bzn')
+    bzn = read_bzn(ROOT / 'Missions/misn17cr.bzn')
     guards = cKDTree(np.array([o.fields['transform'].value[9::2] for o in bzn.objects
                                if o.prjid != 'sfield' and not o.label.startswith(('cr17_tree', 'cr17_ice'))]))
     route = cKDTree(np.array([pt for p in bzn.paths for pt in p['points'].value], float).reshape(-1, 2))

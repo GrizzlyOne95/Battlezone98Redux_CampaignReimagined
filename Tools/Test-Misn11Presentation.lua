@@ -1,7 +1,7 @@
 -- Execute the misn11 presentation adapter in isolated Lua 5.1 peers.
 -- This covers primitive protocol decisions, not native handle serialization.
 -- misn11 has no cameras and no IsInfo relay: only the ordered E/A event stream exists (and no cockpit timer).
-local file = assert(io.open("Scripts/misn11.lua", "rb"))
+local file = assert(io.open("Scripts/misn11cr.lua", "rb"))
 local source = file:read("*a"):gsub("\r\n", "\n"); file:close()
 local adapter = assert(source:match("(local unpackArgs =.-)\n%-%- Presentation adapter ends"))
 local now, peers, packets = 0, {}, {}

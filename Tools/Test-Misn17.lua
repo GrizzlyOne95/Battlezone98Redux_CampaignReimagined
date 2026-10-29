@@ -111,7 +111,7 @@ local function reset(beforestart)
         "savfactory4", "factorypart1", "factorypart2", "factorypart3", "factorynav", "basenav"}) do
         labels[label] = BuildObject("map_object", 2, label)
     end
-    dofile("Scripts/misn17.lua")
+    dofile("Scripts/misn17cr.lua")
     if beforestart then beforestart() end
     Start()
     calls = {}

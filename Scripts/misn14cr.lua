@@ -1001,7 +1001,7 @@ local FURY_TRIPLETS = {
     { "alien5", "alien6", "alien3" },
 }
 local FURY_ALL_POINTS = { "alien1", "alien2", "alien3", "alien4", "alien5", "alien6" }
--- The "world" AOI polygon corners pulled 150 m inward (Missions/misn14.bzn): the far fallback spawns.
+-- The "world" AOI polygon corners pulled 150 m inward (Missions/misn14cr.bzn): the far fallback spawns.
 local FURY_CORNERS = { { 1550, 101130 }, { 3620, 101150 }, { 3790, 98880 }, { 1480, 98800 } }
 
 local function LiveFuries()

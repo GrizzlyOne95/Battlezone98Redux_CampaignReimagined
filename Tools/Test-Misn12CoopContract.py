@@ -6,7 +6,7 @@ import math
 import re
 
 root = Path(__file__).resolve().parents[1]
-raw = (root / 'Missions/misn12.bzn').read_bytes()
+raw = (root / 'Missions/misn12cr.bzn').read_bytes()
 assert b'\n' not in raw.replace(b'\r\n', b''), 'BZN must retain native CRLF'
 bzn = raw.decode('utf-8').replace('\r\n', '\n')
 assert 'name = MultSTMission\n' in bzn
@@ -71,20 +71,20 @@ for ext in ('mat', 'lgt'):
     assert (root / f'Missions/misn12.{ext}').exists()
 
 ini = configparser.ConfigParser()
-ini.read(root / 'Config/misn12.ini')
+ini.read(root / 'Config/misn12cr.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
-assert (root / 'Assets/Graphics/misn12.bmp').read_bytes()[:2] == b'BM'
-des = (root / 'misn12.mpdes').read_text()
+assert (root / 'Assets/Graphics/misn12cr.bmp').read_bytes()[:2] == b'BM'
+des = (root / 'misn12cr.mpdes').read_text()
 assert len(des.strip()) <= 300
 assert '60 m' in des and '45 s' in des and '50 m' not in des, 'the briefing must state the script\'s tap range and time'
 campaign = (root / 'Config/crcampgn.ini').read_text()
-assert re.search(r'missionBZN = "misn12\.bzn"', campaign), 'Campaign must launch the shared BZN'
+assert re.search(r'missionBZN = "misn12cr.bzn"', campaign), 'Campaign must launch the shared BZN'
 section = re.search(r'\[MISSION11\]\n((?:[^\[\n][^\n]*\n)+)', campaign.replace('\r\n', '\n'))[1]
 assert 'voice = "misn1227.wav"' in section, 'the campaign retrospective is the previously unused misn1227 line'
 assert 'planet = "europa"' in section
 
-raw_lua = (root / 'Scripts/misn12.lua').read_text().replace('\r\n', '\n')
+raw_lua = (root / 'Scripts/misn12cr.lua').read_text().replace('\r\n', '\n')
 lua = re.sub(r'--\[(=*)\[.*?\]\1\]', '', raw_lua, flags=re.S)
 lua = re.sub(r'--[^\n]*', '', lua)
 assert 'local LEADER_TEAM, ENEMY_TEAM, HIDDEN_TEAM = 1, 5, 7' in lua
@@ -138,9 +138,9 @@ assert (root / 'Tools/Preview-Misn12Map.py').exists() and (root / 'Docs/MISN12_R
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn12.ini', 'Missions/misn12.vxt', 'Assets/Graphics/misn12.bmp', 'misn12.mpdes',
-               'Missions/misn12.bzn', 'Missions/misn12.hg2', 'Missions/misn12.trn', 'Missions/misn12.mat',
-               'Missions/misn12.lgt', 'Scripts/misn12.lua', 'Scripts/CREuropaWeather.lua', 'Scripts/CREuropaSites12.lua',
+for source in ['Config/misn12cr.ini', 'Missions/misn12cr.vxt', 'Assets/Graphics/misn12cr.bmp', 'misn12cr.mpdes',
+               'Missions/misn12cr.bzn', 'Missions/misn12.hg2', 'Missions/misn12.trn', 'Missions/misn12.mat',
+               'Missions/misn12.lgt', 'Scripts/misn12cr.lua', 'Scripts/CREuropaWeather.lua', 'Scripts/CREuropaSites12.lua',
                'Materials/cr_europa.particle.payload', 'Assets/Audio/misn1224.wav']:
     assert members.get(source) == Path(source).name, 'Map/lobby file must be admitted by the shipping manager: ' + source
 assert (root / 'Text/misn1224.txt').is_file(), 'the restored Razor One line needs its subtitle'

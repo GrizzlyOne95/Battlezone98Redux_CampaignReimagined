@@ -333,7 +333,7 @@ local function NewPeer(name, world, options)
     end
     if trn ~= nil then
         env.GetMapTRNFilename = function() return options.trnName or "misn14.trn" end
-        env.GetMissionFilename = function() return options.missionName or "misn14.bzn" end
+        env.GetMissionFilename = function() return options.missionName or "misn14cr.bzn" end
         env.OpenODF = function() return trn end
         env.GetODFString = function(t, section, key, default)
             local s = t[section]; local v = s and s[key]
@@ -511,14 +511,14 @@ do
     -- Regressions: an earth map stays earth, a moon map stays moon, and the
     -- Titan fallback by mission name works when the .trn is unhelpful.
     local earth = Track(NewPeer("envearth", NewWorld(), { trn = EARTH_TRN, trnName = "misn04.trn",
-        missionName = "misn04.bzn", environment = true }))
+        missionName = "misn04cr.bzn", environment = true }))
     earth.Environment.Init()
     check(earth.Environment.WorldPreset == "earth" and earth.Environment.LockDaylight == false,
         "a Mars map is still earth with the cycle running")
     local moonTrn = { NormalView = EARTH_TRN.NormalView, Atlases = { MaterialName = "mn_detail_atlas" },
         Sky = {}, Color = { Palette = "MOON.ACT" } }
     local moon = Track(NewPeer("envmoon", NewWorld(), { trn = moonTrn, trnName = "misn03.trn",
-        missionName = "misn03.bzn", environment = true }))
+        missionName = "misn03cr.bzn", environment = true }))
     moon.Environment.Init()
     check(moon.Environment.WorldPreset == "moon", "a moon map is still moon")
     local bare = { NormalView = TITAN_TRN.NormalView, Atlases = {}, Sky = {}, Color = {} }

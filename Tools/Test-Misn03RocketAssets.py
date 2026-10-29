@@ -91,7 +91,7 @@ for kind in ('Core', 'Plume', 'Dust'):
 assert not list((ROOT / 'Materials').glob('cr03*payload'))
 
 # --- BZN fixture, placed from the launch_pad basis.
-raw = (ROOT / 'Missions/misn03.bzn').read_bytes()
+raw = (ROOT / 'Missions/misn03cr.bzn').read_bytes()
 assert b'\r\n' in raw
 text = raw.decode('latin1').replace('\r\n', '\n')
 blocks = text.split('[GameObject]\n')

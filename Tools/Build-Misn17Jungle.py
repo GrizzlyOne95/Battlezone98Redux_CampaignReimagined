@@ -214,7 +214,7 @@ dropScrap = 0
     # WATER-MODEL BEGIN (Tools/Export-Misn17WaterMask.py executes this slice on its own)
     header,h=read_hg2(ROOT/'Missions/misn17.hg2');ground=h.astype(float)*.1
     mat=read_mat(ROOT/'Missions/misn17.mat',4,4)
-    bzn=read_bzn(ROOT/'Missions/misn17.bzn')
+    bzn=read_bzn(ROOT/'Missions/misn17cr.bzn')
     bzn.objects=[o for o in bzn.objects if not o.label.startswith('cr17_tree')]
     guards=np.array([o.fields['transform'].value[9::2] for o in bzn.objects if o.prjid!='sfield'])
     def height(x,z):return float(ground[round((z-97280)/5),round(x/5)])
@@ -448,7 +448,7 @@ dropScrap = 0
             if k in o.fields:o.fields[k].value=[(x,y,z)]
         bzn.objects.append(o);seq+=1
     bzn.header['seq_count'].value=seq;bzn.header['#objects'].value=len(bzn.objects)
-    emit('Missions','misn17.bzn',write_bzn(bzn,2016,binary=False,preserve_spelling=False))
+    emit('Missions','misn17cr.bzn',write_bzn(bzn,2016,binary=False,preserve_spelling=False))
     comp,level=pool_view
     data={'layers':layers,'water':{'mesh':'cr17_river.mesh','position':[1500,0,99600]},
           'streams':{'mesh':'cr17_streams.mesh','position':[1500,0,99600],

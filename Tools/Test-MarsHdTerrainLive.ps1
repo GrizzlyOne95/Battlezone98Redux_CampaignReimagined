@@ -140,7 +140,8 @@ try {
  }
  foreach($item in Get-ChildItem "$missionDirectory\$mission.*" -File){Save-File "$game\addon\$($item.Name)"; Copy-Item $item.FullName "$game\addon\$($item.Name)" -Force}
  if($isBundle){
-  $fixtureOptions=@('--source',"$missionDirectory\$mission.bzn",'--out',"$game\addon\$mission.bzn")
+  $crBzn="$missionDirectory\${mission}cr.bzn"; if(-not (Test-Path -LiteralPath $crBzn)){$crBzn="$missionDirectory\$mission.bzn"}
+  $fixtureOptions=@('--source',$crBzn,'--out',"$game\addon\$mission.bzn")
   if($BaseView){$baseSettings=Get-Content "$PSScriptRoot\TerrainHD\base_emissives.json" -Raw | ConvertFrom-Json;$fixtureOptions+=@('--base-type',[string]$baseSettings.worlds.$World.type)}
   elseif($GroundView){$groundType=if($SurfaceType -ge 0){$SurfaceType}else{0};$fixtureOptions+=@('--base-type',[string]$groundType)}
   & python "$PSScriptRoot\Build-HdTerrainPreview.py" @fixtureOptions

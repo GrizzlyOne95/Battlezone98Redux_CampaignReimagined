@@ -9,7 +9,7 @@ offline/co-op Lua under MultSTMission:
 
   * re-save at 2016 through the Modding Toolbox converter (no data loss
     beyond the 1.5-only collision-damage fields it reports);
-  * TerrainName names the terrain stem (the converter keeps "misn06.bzn");
+  * TerrainName names the terrain stem (the converter keeps "misn06cr.bzn");
   * mission class MultSTMission, so the same BZN also hosts co-op;
   * CCA (authored team 2) moves to team 5, freeing teams 2-4 for guests;
   * four pspwn_1 team-start buoys for teams 1-4, 25 m apart along the
@@ -43,7 +43,7 @@ ENEMY_TEAM = 5
 AUTHORED_ENEMY_TEAM = 2
 # Authored objects dropped from a map; the mission Lua spawns replacements instead.
 # misn07: the DLL parks two disguised NSDF tanks (avtank2/avtank3) on authored team 3,
-# which co-op gives to a guest. misn07.lua spawns support-team (7) tanks off the
+# which co-op gives to a guest. misn07cr.lua spawns support-team (7) tanks off the
 # west edge and drives them to these authored positions (CONVOY_DEST in the Lua):
 #   avtank2 (1426.3, 22.9489, 99546.5)   avtank3 (1442.5, 21.613, 99570.4)
 REMOVE_LABELS = {"misn07": ("avtank2", "avtank3")}
@@ -272,6 +272,12 @@ def build(text: str, mission: str) -> str:
     header = header.replace(f"TerrainName = {mission}.bzn\n", f"TerrainName = {mission}\n")
     if f"TerrainName = {mission}\n" not in header:
         raise SystemExit("TerrainName not rewritten")
+    # CR ships these as <stem>cr.bzn so saves never match the stock campaign table;
+    # the header names the BZN (and so the Lua) a load runs. misn15/16 keep stock names.
+    if mission not in ("misn15", "misn16"):
+        header = header.replace(f"msn_filename = {mission}.bzn\n", f"msn_filename = {mission}cr.bzn\n")
+        if f"msn_filename = {mission}cr.bzn\n" not in header:
+            raise SystemExit("msn_filename not rewritten")
 
     removed = 0
     for label in REMOVE_LABELS.get(mission, ()):
@@ -373,7 +379,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     source = args.source or STOCK_DIR / f"{args.mission}.bzn"
-    output = args.output or REPO / "Missions" / f"{args.mission}.bzn"
+    output = args.output or REPO / "Missions" / f"{args.mission}cr.bzn"
     text = build(convert(source, args.toolbox), args.mission)
     if args.mission == 'misn06':
         spec = importlib.util.spec_from_file_location('marsrocket', REPO/'Tools/Add-Misn06Rocket.py')

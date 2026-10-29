@@ -170,7 +170,7 @@ local function reset(absent)
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoop = assert(loadfile("Scripts/CRCoop.lua"))()
     for k in pairs(pda) do pda[k] = 0 end
-    dofile("Scripts/misn11.lua")
+    dofile("Scripts/misn11cr.lua")
     Start()
     check(not Save().start_done and count("AudioMessage") == 0, "Start only initializes")
     Update(0.05)
@@ -355,7 +355,7 @@ local snapshot = {}
 for k, v in pairs(Save()) do snapshot[k] = v end
 -- Simulate returning only serialized state into a fresh mission chunk, without
 -- calling Start. Numeric mock handles do not test engine handle rebasing.
-dofile("Scripts/misn11.lua"); clear(); Load(snapshot); now = 10; Update(0.05)
+dofile("Scripts/misn11cr.lua"); clear(); Load(snapshot); now = 10; Update(0.05)
 check(Save() == snapshot and snapshot.betrayal_time == 20 and snapshot.start_delay == 15,
     "save/load keeps in-flight timers and mission state")
 check(count("AudioMessage", "misn1101.wav") == 0 and count("SetScrap") == 0
@@ -370,7 +370,7 @@ snapshot.launch_gone = true; snapshot.launch_attack = true; snapshot.escape_star
 snapshot.escape_time = 60; snapshot.last_wave_time = 99999
 local escape_snapshot = {}
 for k, v in pairs(Save()) do escape_snapshot[k] = v end
-dofile("Scripts/misn11.lua"); clear(); Load(escape_snapshot)
+dofile("Scripts/misn11cr.lua"); clear(); Load(escape_snapshot)
 near(escape_snapshot.tug2, escape_snapshot.launch2, 199); now = 30; Update(0.05)
 check(escape_snapshot.got_there1 and escape_snapshot.got_there2 and escape_snapshot.won,
     "late-game arrival latches and wave flags survive reload")

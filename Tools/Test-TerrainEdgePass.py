@@ -43,7 +43,7 @@ def run(args):
   assert doc.size.width==head.zones_x*1280 and doc.size.depth==head.zones_z*1280
   changed=mat!=data['mat_before'];bad=[int(v) for v in np.unique(mat[changed]) if module.slot(doc,v) is None];assert not bad,(name,bad)
   if name!='misns4':assert np.array_equal(new[data['hard']],old[data['hard']])
-  base=read_bzn(local/'baseline'/(name+'.bzn'));out=REPO/'Missions'/(name+'.bzn');revised=read_bzn(out) if out.exists() else base
+  base=read_bzn(local/'baseline'/(name+'.bzn'));out=REPO/'Missions'/(name+('cr' if name in ('misn12','misn13') else '')+'.bzn');revised=read_bzn(out) if out.exists() else base
   assert len(base.objects)==len(revised.objects);assert [o.label for o in base.objects]==[o.label for o in revised.objects]
   if name!='misns4':
    for a,b in zip(base.objects,revised.objects):

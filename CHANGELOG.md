@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Rename the 15 campaign missions that shared a stock name (misn02b is now misn2bcr; misn03 through misn14, misn17 and
+  misn18 gain a `cr` suffix) so a save loaded from the main menu mounts Campaign Reimagined instead of quitting. Saves
+  made before this update for those missions cannot be loaded; restart the mission. The co-op map files are renamed to
+  match, and career stats keep their existing keys.
 - Bundle OpenShim 1.0.0.64. It fixes the crash on the first frame after a mission ends, seen on Wine after a
   mission win, after a save load and after a restart following a death: OpenShim now turns off the sky dome and sky
   plane and releases its pooled gib and shell-casing meshes before the engine frees every mesh at mission end. It

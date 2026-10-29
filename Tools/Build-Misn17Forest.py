@@ -565,7 +565,7 @@ def build(pack, isdfc):
     tiles = read_mat(ROOT / 'Missions/misn17.mat', 4, 4)
     def height(x, z): return float(ground[round((z - 97280) / 5), round(x / 5)])
     def tile(x, z): return int(tiles[int((z - 97280) / 20), int(x / 20)]) >> 12
-    bzn = read_bzn(ROOT / 'Missions/misn17.bzn')
+    bzn = read_bzn(ROOT / 'Missions/misn17cr.bzn')
     ours = ('cr17_tree', 'cr17_ice')
     guards = np.array([o.fields['transform'].value[9::2] for o in bzn.objects
                        if o.prjid != 'sfield' and not o.label.startswith(ours)])
@@ -768,7 +768,7 @@ def build(pack, isdfc):
             o.fields['PrjID'].value = by_label[o.label]['odf'].encode()
     seq = max(o.fields.get('seqno', o.fields.get('seqNo')).value for o in bzn.objects) + 1
     bzn.header['seq_count'].value = seq; bzn.header['#objects'].value = len(bzn.objects)
-    (ROOT / 'Missions/misn17.bzn').write_bytes(write_bzn(bzn, 2016, binary=False, preserve_spelling=False))
+    (ROOT / 'Missions/misn17cr.bzn').write_bytes(write_bzn(bzn, 2016, binary=False, preserve_spelling=False))
 
     # Keep the reviewed authored trunk pass after a full geometry/site rebuild.
     # The original GLB still supplies tree geometry, UVs, foliage and credits.

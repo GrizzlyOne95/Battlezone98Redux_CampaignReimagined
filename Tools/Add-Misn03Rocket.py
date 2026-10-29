@@ -1,11 +1,11 @@
-"""Place the NSDF launch rocket on Mission 03's `launch_pad` in Missions/misn03.bzn.
+"""Place the NSDF launch rocket on Mission 03's `launch_pad` in Missions/misn03cr.bzn.
 
 The fixture is a clone of the pad's own block (team 0, health 0, PrjID cr03rok,
 label cr03_rocket), the same trick Add-Misn06Rocket.py uses. Re-running repairs
 an existing fixture in place, so the step is idempotent. Misn03's BZN is not
 produced by Build-CoopMap.py, so this edits the committed file directly:
 
-  python Tools/Add-Misn03Rocket.py [Missions/misn03.bzn]
+  python Tools/Add-Misn03Rocket.py [Missions/misn03cr.bzn]
 
 Placement. The art's own pad (abtrans) is the stock ablpad rotated 180 degrees
 about Y, and the rocket stands on it. In the stock pad's Ogre mesh frame the
@@ -96,7 +96,7 @@ def add_rocket(text):
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument('map', nargs='?', type=Path, default=ROOT / 'Missions/misn03.bzn')
+    p.add_argument('map', nargs='?', type=Path, default=ROOT / 'Missions/misn03cr.bzn')
     path = p.parse_args().map
     raw = path.read_bytes()
     text = raw.decode('latin1').replace('\r\n', '\n')
