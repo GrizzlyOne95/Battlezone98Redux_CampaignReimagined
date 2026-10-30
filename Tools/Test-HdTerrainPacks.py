@@ -3,6 +3,7 @@ import importlib.util
 import hashlib
 import json
 from pathlib import Path
+import shutil
 import sys
 import tempfile
 import unittest
@@ -51,16 +52,24 @@ class HdPacks(unittest.TestCase):
         spec = importlib.util.spec_from_file_location("preview", ROOT / "Tools/Build-HdTerrainPreview.py")
         preview = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(preview)
-        source = ROOT / "Missions/misn08cr.bzn"
-        before = source.with_suffix(".mat").read_bytes()
+        # CR renamed the BZN to misn08cr but terrain keeps the stock misn08 stem;
+        # the preview reads terrain beside the source, so stage them together.
+        terrain = ROOT / "Missions/misn08.mat"
+        before = terrain.read_bytes()
         with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / "source/misn08.bzn"
+            source.parent.mkdir()
+            shutil.copyfile(ROOT / "Missions/misn08cr.bzn", source)
+            for suffix in (".trn", ".hg2", ".mat"):
+                shutil.copyfile(terrain.with_suffix(suffix), source.with_suffix(suffix))
             out = Path(temporary) / "fixture.bzn"
             with patch.object(sys, "argv", ["preview", "--source", str(source), "--out", str(out), "--base-type", "2"]):
                 preview.main()
             header, _ = read_hg2(source.with_suffix(".hg2"))
             cells = read_mat(out.with_suffix(".mat"), header.zones_x, header.zones_z)
             self.assertEqual(np.count_nonzero((cells >> 12 == 2) & (((cells >> 8) & 15) == 2)), 25)
-        self.assertEqual(source.with_suffix(".mat").read_bytes(), before)
+            self.assertEqual(source.with_suffix(".mat").read_bytes(), before)
+        self.assertEqual(terrain.read_bytes(), before)
 
     def test_europa_height_correction_changes_only_the_target_normal_slopes(self):
         original = np.full((4, 4, 3), [80, 180, 240], np.uint8)
