@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Bundle OpenShim 1.0.0.66. The under-attack alert beep sounds again after the first match of a game session:
+  OpenShim's alert cooldown is now reset when a mission ends, like the stock timer. The Sound Channels option
+  description now names the voice cap.
 - Bundle OpenShim 1.0.0.65. The OpenShim Options rows get a wider label column so full names fit; descriptions are
   fitted and several corrected; Target Popup values read Stock / Suppress Neutral / Suppress All; and headlights
   (player and AI), the pilot flashlight, satellite fog of war and the reactive reticle tint now also run in
