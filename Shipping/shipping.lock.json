@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4932,
+  "count": 4933,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -15874,6 +15874,10 @@
     {
       "source": "Scripts\\misns2.lua",
       "runtime": "misns2.lua"
+    },
+    {
+      "source": "Scripts\\misns2cr.lua",
+      "runtime": "misns2cr.lua"
     },
     {
       "source": "Scripts\\misns3.lua",
