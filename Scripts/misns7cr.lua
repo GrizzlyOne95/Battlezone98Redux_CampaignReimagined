@@ -234,6 +234,7 @@ local M = NewState()
 -- Lexical wrappers affect this mission only. Docs/MISNS7_COOP.md lists every wrapped call and restoration.
 -- Each RESTORED_* flag switches one cut-content restoration off (Docs/MISNS7_COOP.md, "Restored content").
 local RESTORED_PLAN_D, RESTORED_MUF_RETREAT, RESTORED_EXPANSION = true, true, true
+local RESTORED_ENGINEER_LINES = true -- misns701 / misns726 on the first / second engineer pickup
 local GUEST_SCRAP = 10          -- extra starting scrap on the shared team 1 per guest (the misns1 pattern)
 local ENGINEER_GUARD = 75.0     -- seconds after which a dead or missing engineer's cutscene is completed by the CR layer
 local ENGINEER_STUCK = 180.0    -- seconds after which even a living (stuck) engineer's cutscene is completed
@@ -474,6 +475,20 @@ if campaignRuntime then
                 Dropoff(M.avrig, "tower3_spot")
                 M.rig_show3 = true
             end
+        end
+    end
+    -- Unused lines misns701 and misns726: the body plays misns702 on each of the three engineer pickups. The
+    -- first call is voiced as misns701 ("First engineer aboard"), the second as misns726; the third keeps 702.
+    -- The count lives in mission state (r.engLines), so Save/Load never repeats or skips one.
+    if RESTORED_ENGINEER_LINES then
+        local baseAudio = AudioMessage
+        AudioMessage = function(file, ...)
+            if file == "misns702.wav" then
+                local r = State()
+                r.engLines = (r.engLines or 0) + 1
+                if r.engLines == 1 then file = "misns701.wav" elseif r.engLines == 2 then file = "misns726.wav" end
+            end
+            return baseAudio(file, ...)
         end
     end
     function Restored.Step()

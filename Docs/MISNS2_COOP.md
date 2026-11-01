@@ -126,6 +126,9 @@ box), and three paths with no code behind them anywhere: `alt_trigger_wave1`, `a
 `alt_trigger_artillery&mines` (they look like an alternate wave-1 trigger/spawn and an alternate artillery/mine
 trigger for the northern route; the intent is undocumented, so nothing is guessed from them).
 
+Unused shipped voice line `misns211` ("Commandant, we're picking up some American units on the hill.") is audited and
+skipped: nothing in the body marks a moment for it.
+
 ## Stock bugs and co-op fixes in the CR layer (the faithful body is untouched)
 
 - Humans on teams 2-4 and the player tank label: see "Humans as the player" (a stock `GetTeamNum(...) == 1` and a

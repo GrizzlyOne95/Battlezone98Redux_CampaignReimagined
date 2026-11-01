@@ -6,7 +6,8 @@
   `misns8cr` (2-4 players or offline), on co-op maps with the enemy on team 5, terrain and per-mission weather (Venus,
   Io, Titan). Every mission wraps its faithful port: enemy waves scale with the player count and arrive out of sight,
   orders aimed at "the player" go to the nearest human, cutscenes are shared and unskippable in network games, and
-  weather follows the battle. Coherent cut content is restored per mission (each listed in `Docs/MISNS<n>_COOP.md`).
+  weather follows the battle. Coherent cut content is restored per mission (each listed in `Docs/MISNS<n>_COOP.md`), including
+  unused shipped voice lines in missions 04, 06, 07 and 08.
   The Black Dog and American bases in missions 01, 04, 05 and 06 now build their bases: their stock AI plans asked
   for Soviet gun towers they cannot build. Not yet tested in game.
 - Bundle OpenShim 1.0.0.66. The under-attack alert beep sounds again after the first match of a game session:

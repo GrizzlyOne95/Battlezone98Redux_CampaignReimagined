@@ -89,7 +89,9 @@ human parked within 460 m of the camp delays the wave (and the retreat groups) u
 ## Restored content [owner decision 2026-11-01]
 
 None. `References/Misns3Source` has no disabled gameplay blocks (`MISNS3_SOURCE_PORT.md`), and the unused native
-state members (`bd6`..`bd12`) carry no behaviour to restore, so there is no `RESTORED_*` flag.
+state members (`bd6`..`bd12`) carry no behaviour to restore, so there is no `RESTORED_*` flag. The unused shipped
+voice line `misns311` ("Comrade, there is an American unit coming your way...") is audited and skipped: nothing in
+the body marks a moment for it.
 
 ## Stock bugs fixed in the CR layer (the faithful body is untouched)
 

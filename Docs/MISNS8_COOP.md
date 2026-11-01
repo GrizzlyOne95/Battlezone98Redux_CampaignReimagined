@@ -94,6 +94,14 @@ top of the runtime region of `misns8cr.lua`). Each is gated on what `misns8cr.bz
 | --- | --- | --- |
 | Choke Point nav beacon (`RESTORED_CHOKE_CAM`) | Plan C, in the `recycle_move` block: `if (GetDistance(avrecycle, dis_geyser2) < 100.0f) && (!recycle_message)` -> `AudioMessage("misns802.wav")`, `cam4 = BuildObject("apcamr", 1, "last_nav_spawn")`, named "Choke Point" | `dis_geyser2` and the `last_nav_spawn` path exist; the `escape_route` passes about 80 m from `dis_geyser2`. The cut guard (`recycle_message`) is already set by the live plan C block, so it could never fire; the restoration uses its own flag (`State().r.chokeCam`). The nav beacon is restored (so players can chase the fleeing Recycler); `misns802.wav` is NOT replayed because `misns815/816` already announce the retreat in almost the same words (802 differs only by the camera offer). `M.cam4` is kept in the mission state. Skipped when the path or `dis_geyser2` is missing. The Recycler must first have been seen more than 100 m from `dis_geyser2` (it starts about 1 km away in `misns8cr.bzn`), so the beacon cannot drop the instant the retreat begins. |
 
+Unused shipped voice lines [owner decision 2026-11-01] (`RESTORED_VOICE_LINES`): the wav and `Text/misns8NN.txt` ship in the game but the DLL never plays them. They go through the CR `AudioMessage` (replicated to guests, queued behind a line still playing) and are latched in `M.crcca.r` (kept by Save/Load).
+
+| Line | Transcript | Trigger | Why it fits |
+| --- | --- | --- | --- |
+| `misns806` | "Commander, any fool could see that those readings indicate no abnormalities in our new weapons. Perhaps, Commander, you cannot issue orders correctly." | The `danger_message` pair (`misns805`, then the body's `misns818`): the CR layer plays 806 in place of 818 | 806 is the whole of `misns818` plus Romeski's rebuttal (longer wav, same opening sentence), so queueing it after 818 would repeat the sentence. Same beat, same speaker, complete exchange. |
+| `misns809` | "What the..." | Once, immediately before the first of `misns810` (Romeski cries for help) or `misns812` (his scream) | His reaction to the malfunctioning SAVs before he reacts to them. |
+| `misns813` | "This does not look good, comrades." | When Romeski dies (`general_dead`, after the scream), once | The reaction to his death. |
+
 Skipped, with the reason:
 
 - Plan A turret orders (the `/* if ((IsAlive(avturret3)) && (!turret_move)) ... */` block, `misns8.lua` lines 354-476, and its
@@ -106,7 +114,8 @@ Skipped, with the reason:
 - `rigsabuildn` scrap > 18 rig Dropoff (lines 611-631): repeats the live `scrap > 14` block.
 - SAVs follow the Recycler when there is no Romeski (lines 1187-1252): it orders the humans' own tanks to follow the
   ENEMY Recycler.
-- Audio `misns806`, `misns809`, `misns811`, `misns813` are not referenced by the source or the Lua: nothing to restore.
+- Audio `misns806`, `misns809` and `misns813` are restored (table above). `misns811` (a variant of `misns818`
+  ending "Continue with the operation") is audited and skipped: it duplicates the `misns805`/`misns818` exchange.
 
 ## Stock bugs fixed in the CR layer (the faithful body is untouched)
 

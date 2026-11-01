@@ -29,7 +29,10 @@ local M = NewState()
 -- CR co-op runtime >>
 -- Offline and co-op share this adapter (Scripts/CRCCARuntime.lua); the faithful tests set CR_TEST_FAITHFUL.
 -- Lexical wrappers affect this mission only. Docs/MISNS6_COOP.md lists every wrapped call. No cut content is
--- restored in this mission (the doc quotes each cut block and why it stays cut), so there are no RESTORED_* flags.
+-- restored in this mission (the doc quotes each cut block and why it stays cut); the one RESTORED_* flag below
+-- covers a single unused shipped voice line.
+local RESTORED_VOICE_LINES = true -- unused shipped line misns606 (Docs/MISNS6_COOP.md)
+local Restored = {}
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "misns6", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "svrecy0_recycler" },
@@ -164,6 +167,26 @@ local function Distance(from, to, point)
     return GetDistance(from, to)
 end
 
+-- CR restored content >>
+-- misns606 "We've cleared the artillery. Continue to push forward." once, when both howitzers the body holds
+-- (art1, art2) have been seen alive and are now both gone. Not after the mission is won, lost or scheduled.
+if campaignRuntime then
+    function Restored.Voice()
+        if not RESTORED_VOICE_LINES or not M.start_done then return end
+        local s = campaignRuntime.State()
+        s.r = s.r or {}
+        local r = s.r
+        if r.l606 then return end
+        local a1, a2 = IsAlive(M.art1), IsAlive(M.art2)
+        if a1 then r.art1Seen = true end
+        if a2 then r.art2Seen = true end
+        if r.art1Seen and r.art2Seen and not a1 and not a2 and not M.won and not M.lost and not M.success_scheduled then
+            r.l606 = true
+            AudioMessage("misns606.wav")
+        end
+    end
+end
+-- CR restored content <<
 function Start()
     -- Keep unused members and all six native miner slots available for cut content.
     -- In particular, Load's 99999 defaults for check1..4 are NOT zero: the
@@ -374,6 +397,9 @@ function Update(timestep)
         M.lost = true
         FailMission(GetTime() + 2.0, "misns6l1.des")
     end
+-- CR restored content >>
+    if campaignRuntime then Restored.Voice() end
+-- CR restored content <<
 -- CR co-op callback >>
     if campaignRuntime then campaignRuntime.AfterUpdate() end
 -- CR co-op callback <<

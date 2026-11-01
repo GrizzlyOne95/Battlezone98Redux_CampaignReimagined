@@ -182,6 +182,7 @@ local M = NewState()
 -- Lexical wrappers affect this mission only. Docs/MISNS8_COOP.md lists every wrapped call and restoration.
 -- Each RESTORED_* flag switches one cut-content restoration off (Docs/MISNS8_COOP.md, "Restored content").
 local RESTORED_CHOKE_CAM = true
+local RESTORED_VOICE_LINES = true -- unused shipped lines misns806, misns809, misns813 (Docs/MISNS8_COOP.md)
 -- Extra Black Dog scrap per guest (the enemy economy is the AI's attack wave): 0 disables it.
 local ENEMY_SCRAP_PER_GUEST = 10
 local Restored
@@ -359,9 +360,34 @@ if campaignRuntime then
             if Valid(M.cam4) then SetObjectiveName(M.cam4, "Choke Point") end
         end
     end
+    -- Unused lines. misns806 is the whole misns818 line plus Romeski's rebuttal, so it replaces 818 in the
+    -- danger_message pair (805 then 806) instead of repeating its first sentence. misns809 "What the..." goes
+    -- once in front of the first of misns810 / misns812. AudioMessage queues each behind a line still playing.
+    if RESTORED_VOICE_LINES then
+        local baseAudio = AudioMessage
+        AudioMessage = function(file, ...)
+            if file == "misns818.wav" then
+                file = "misns806.wav"
+            elseif file == "misns810.wav" or file == "misns812.wav" then
+                local r = State()
+                if not r.l809 then
+                    r.l809 = true
+                    baseAudio("misns809.wav")
+                end
+            end
+            return baseAudio(file, ...)
+        end
+    end
+    -- misns813 "This does not look good, comrades." once, when Romeski dies (general_dead) after his scream.
+    function Restored.RomeskiDead(r)
+        if not RESTORED_VOICE_LINES or r.l813 or not M.general_dead then return end
+        r.l813 = true
+        AudioMessage("misns813.wav")
+    end
     function Restored.Step()
         if not M.start_done then return end
         Restored.ChokeCam(State())
+        Restored.RomeskiDead(State())
     end
 end
 -- CR restored content <<

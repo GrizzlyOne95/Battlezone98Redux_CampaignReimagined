@@ -119,6 +119,15 @@ Cut-content restorations live only in the CR layer, apply offline and in co-op, 
 | Factory retreat | `RESTORED_MUF_RETREAT` | the commented `muf_redirect` block: an attacked (health < 0.50) NSDF Factory goes to `geyser3` while `M.muf_deployed` is unset (the body sets it only once `avtank1` is alive, so the condition is "no tank built yet", not a deployment check; copied from the cut block) | Restored; `geyser3` ships in the map. Once only. |
 | Later power/tower expansion | `RESTORED_EXPANSION` | the commented `b3`/`b4`/`rig_show2`/`rig_show3` block: the rig builds `abwpow` and drops it at `power2_spot`, then builds `abtowe` and drops it at `tower3_spot` | Restored; both paths ship in the map. Runs only once the Soviet Recycler is back (`camera_off_recycle`) and the rig has taken its barracks order (`blah`), so it never competes with the earlier build chain. Reuses the body's own unused state fields (`b3`, `b4`, `rig_show2`, `rig_show3`, `b5_time`..`b7_time`). |
 
+Unused shipped voice lines [owner decision 2026-11-01] (`RESTORED_ENGINEER_LINES`): the wav and `Text/misns7NN.txt` ship in the game but the DLL never plays them. They go through the CR `AudioMessage` (replicated to guests, queued behind a line still playing) and are counted in `M.crcca.r.engLines`, which Save/Load keeps.
+
+| Line | Transcript | Trigger | Why it fits |
+| --- | --- | --- | --- |
+| `misns701` | "First engineer aboard, comrade." | The first of the body's three `misns702` pickup calls (the body calls `misns702` for each engineer; the CR layer substitutes the call) | Matches the source's own note `// con 1 on board sir! 726` and the first rescue. |
+| `misns726` | "Second engineer aboard, comrade." | The second `misns702` call | Same, second rescue. |
+
+The third pickup keeps the stock `misns702`. The substitution is a wrapper around the mission's `AudioMessage`, so `misns7.lua` is untouched.
+
 Skipped, with the reason:
 
 - **APC stop / pickup cameras** (`con_pickup`, `Stop(apc)`, `Retreat(con, apc)`, `pick_up` blocks and the
@@ -135,10 +144,10 @@ Skipped, with the reason:
   towers to the NSDF.
 - **Extra objective** (`AddObjective("misns702.otf", WHITE)`) and the commented `CameraFinish`: duplicates of what
   the active code does a few lines later.
-- **Per-engineer pickup lines** (`// con 1 on board sir! 726`): the body plays `misns702.wav` for each; `misns701`,
-  `misns726` and `misns703` have subtitles but whether their wavs ship in every language archive was not checked
-  from this tree, so no wav is switched.
-- **`misns713`/`misns719`** (duplicates of `misns704`/`misns718` in the subtitles): never named by the DLL.
+- **Per-engineer pickup lines**: `misns701` and `misns726` are now restored (table above). `misns703` ("we have all
+  of the engineers") is audited and skipped: the body already plays `misns704` for the full load.
+- **`misns713`/`misns719`** (duplicates of `misns704`/`misns718` in the subtitles): audited, skipped; never named by
+  the DLL.
 
 ## Stock bugs fixed in the CR layer (the faithful body and `misns7.lua` are untouched)
 

@@ -36,6 +36,7 @@ local M = NewState()
 -- Lexical wrappers affect this mission only. Docs/MISNS4_COOP.md lists every wrapped call and restoration.
 -- Each RESTORED_* flag switches one cut-content restoration off (Docs/MISNS4_COOP.md, "Restored content").
 local RESTORED_RAIDER_LTNK, RESTORED_BRIDGE_HRAZ, RESTORED_NORTH_TANK = true, true, true
+local RESTORED_VOICE_LINES = true -- unused shipped lines misns404, misns407, misns408 (Docs/MISNS4_COOP.md)
 local SCRAP_PER_GUEST = 10
 local Restored = {}
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
@@ -182,6 +183,26 @@ if campaignRuntime then
         if RESTORED_NORTH_TANK and not r.north and M.north_bridge then
             r.north = true
             if campaignRuntime.PathExists("spawn3") then BuildObject("avtank", 2, "spawn3") end
+        end
+        -- Unused lines, each latched once in mission state; AudioMessage queues behind a line still playing.
+        if RESTORED_VOICE_LINES then
+            -- misns408 "That's the bridge ahead." as the convoy nears the bridge, unless the guard is already
+            -- cleared this beat (misns405 "bridge seems secure" plays first and would contradict it).
+            if M.north_bridge and not r.l408 then
+                r.l408 = true
+                if not M.bridge_clear then AudioMessage("misns408.wav") end
+            end
+            -- misns407 at the win, during the source's ten-second success delay.
+            if M.won and not r.l407 then
+                r.l407 = true
+                r.l404 = true
+                AudioMessage("misns407.wav")
+            end
+            -- misns404 "A transport has cleared the pass." on the first hauler to reach the goal only.
+            if M.win_count >= 1 and not r.l404 then
+                r.l404 = true
+                AudioMessage("misns404.wav")
+            end
         end
     end
 end

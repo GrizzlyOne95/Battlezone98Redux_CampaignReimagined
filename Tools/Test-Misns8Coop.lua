@@ -199,6 +199,27 @@ check(m.general_message2 and F.heardCount(p[1], "misns810.wav") == 1, "he cries 
 local follow
 for _, c in ipairs(F.callsOf(p[1], "Follow")) do if c[2] == key and c[3] == p[2].player then follow = c end end
 check(follow ~= nil, "and follows that human (token translated to a real handle)")
+check(follow ~= nil, "and follows that human (token translated to a real handle)")
+-- restored unused lines: 805 then 806 (the whole 818 line plus the rebuttal), 809 once before 810, 813 at his death
+do
+    local function idx(peer, file) for i, f in ipairs(F.lines(peer)) do if f == file then return i end end end
+    for i = 1, 3 do
+        local q = p[i]
+        check(F.heardCount(q, "misns806.wav") == 1 and F.heardCount(q, "misns818.wav") == 0, "806 replaces 818 once on peer " .. i)
+        check(idx(q, "misns805.wav") < idx(q, "misns806.wav"), "806 follows 805 on peer " .. i)
+        check(F.heardCount(q, "misns809.wav") == 1 and idx(q, "misns809.wav") < idx(q, "misns810.wav"), "809 once, before 810, on peer " .. i)
+        check(F.heardCount(q, "misns813.wav") == 0, "no 813 while he lives on peer " .. i)
+    end
+    w.objects[key].health = 0.05
+    F.run(1)
+    check(F.heardCount(p[1], "misns812.wav") == 1 and F.heardCount(p[1], "misns809.wav") == 1, "the scream does not repeat 809")
+    F.run(6)
+    for i = 1, 3 do
+        check(F.heardCount(p[i], "misns813.wav") == 1 and idx(p[i], "misns812.wav") < idx(p[i], "misns813.wav"), "813 once after the scream on peer " .. i)
+    end
+    F.run(20)
+    check(F.heardCount(p[1], "misns813.wav") == 1, "813 never repeats")
+end
 
 -- a human flying a SAV is never deleted by the betrayal swap
 w, p, m = setup(2)

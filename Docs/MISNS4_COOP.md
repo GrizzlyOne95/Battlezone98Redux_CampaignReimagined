@@ -97,13 +97,21 @@ howitzer is built directly on team 5 with no 460 m check.
 | `RESTORED_BRIDGE_HRAZ` | `-- b2=BuildObject("avhraz",2,"sbridge");` after the bridge guard | A second howitzer at `sbridge` at 100 s, stored in `M.b2`. Not a bridge-clear requirement (the DLL's clear test never named `b2`). |
 | `RESTORED_NORTH_TANK` | `-- BuildObject("avtank",2,"spawn3");` ahead of the north force | One tank at `spawn3` with the north force. |
 
+Unused shipped voice lines [owner decision 2026-11-01]: the wav and `Text/misns4NN.txt` transcript ship in the game but the DLL never plays them. Each plays once through the CR layer (`AudioMessage`: replicated to co-op guests, queued behind a line still playing), is latched in `M.crcca.r` (kept by Save/Load) and sits behind `RESTORED_VOICE_LINES`.
+
+| Line | Transcript | Trigger | Why it fits |
+| --- | --- | --- | --- |
+| `misns408` | "That's the bridge ahead." | `north_bridge` (a human within 200 m of `sbridge`), once; skipped if the guard is already cleared that same beat, because `misns405` ("The bridge seems secure...") would play first and contradict it | Names the bridge the convoy is about to reach. |
+| `misns404` | "A transport has cleared the pass." | The first hauler to reach `goal` (`win_count >= 1`), once; not played if the win line is due in the same beat | The natural report for a hauler arriving; later arrivals stay silent, as in the body. |
+| `misns407` | "The transports have cleared the pass. I'm certain CCA Command will be pleased with our work here." | The win (`M.won`), played at once during the source's 10 s `SucceedMission` delay; queues behind `misns404`/`misns403` if one is still playing | The closing line of the mission. |
+
 ### Skipped (documented, not restored)
 
 - **Casualty cinematic and casualty audio**: the `--[[ Another one bites the dust ... ]]` and `--[[ Cineractive on
   neareset guy ... ]]` notes are stubs; there is no implemented cinematic, no camera pod, no path and no audio line
-  for them. The shipped lines `misns404` ("A transport has cleared the pass"), `misns406` ("this convoy is too
-  insecure"), `misns407` ("the transports have cleared the pass") and `misns408` ("That's the bridge ahead") are
-  never called by any block of the source, so they are not restored: nothing in the DLL says when they play.
+  for them. The shipped line `misns406` ("this convoy is too insecure") is never called by any block of the
+  source and its trigger is not clear (audited, skipped). `misns404`, `misns407` and `misns408` are restored (see
+  above) with CR-chosen triggers, not DLL ones.
 - **`-- AudioMessage("transport dead..")`** (placeholder; `misns403` already plays) and **`-- AudioMessage()`** at the
   failure (the description carries it).
 - **"Now load an AIP" note** at the north force and **`attack_time` / `first_bridge` / `h1` / `h2`**: unused state.

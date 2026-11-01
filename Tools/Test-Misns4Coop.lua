@@ -267,9 +267,12 @@ check(m.north_bridge, "approach")
 F.kill(m.t1); F.kill(m.t2); F.kill(m.b1); F.run(2)
 check(m.bridge_clear, "bridge clear")
 heardAll(p, "misns405.wav")
+heardAll(p, "misns408.wav") -- restored unused line: the convoy nears the bridge, once
 check(F.count(p[1], "SetAIP", "crns4.aip") == 1 and F.count(p[1], "SetAIP", "misns4.aip") == 0 and F.last(p[1], "SetAIP")[3] == 5, "crns4.aip (the avturr plan) is handed to team 5")
 check(F.count(p[2], "SetAIP") == 0, "guests never set the AIP")
 check(math.abs(m.counter_time - (F.world().now + 150) ) < 2, "counterattack in 150 s")
+F.run(10)
+heardAll(p, "misns408.wav") -- still once
 
 -- counterattack by deadline needs the third hauler alive
 w, p, m = setup(2)
@@ -307,10 +310,18 @@ guestsPassive(p)
 w, p, m = setup(4)
 toConvoy(5)
 hs = haulers(p[1])
-for i = 1, 3 do arrive(hs[i].h) end
+arrive(hs[1].h); F.run(1)
+heardAll(p, "misns404.wav") -- restored unused line: first hauler home, once
+arrive(hs[2].h); arrive(hs[3].h)
 F.run(1)
+heardAll(p, "misns404.wav")
 check(F.count(p[1], "SucceedMission") == 0, "three arrivals are not enough")
+F.world().audioBusy = true -- a line is still playing: the win line queues behind it
 arrive(hs[4].h); F.run(15)
+F.world().audioBusy = false
+heardAll(p, "misns407.wav") -- restored unused line: the win, once
+heardAll(p, "misns404.wav")
+check(F.count(p[1], "Queue", "misns407.wav") == 1, "the win line queues behind a line still playing")
 for i = 1, 4 do
     check(F.count(p[i], "SucceedMission") == 1 and F.count(p[i], "FailMission") == 0, "one shared victory on peer " .. i)
     check(F.last(p[i], "SucceedMission")[3] == "misns4w1.des", "victory debrief on peer " .. i)

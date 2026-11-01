@@ -139,6 +139,14 @@ do
     F.run(3)
     check(m2.art_found, "a human within 200 m of a howitzer finds the artillery")
     heardAll(q, "misns605.wav")
+    -- restored unused line misns606: only once BOTH howitzers are gone, then exactly once
+    heardAll(q, "misns606.wav", 0)
+    F.kill(ART1); F.run(2)
+    heardAll(q, "misns606.wav", 0)
+    F.kill(ART2); F.run(2)
+    heardAll(q, "misns606.wav")
+    F.run(10)
+    heardAll(q, "misns606.wav")
 end
 
 -- ------------------------------------------------------------------ the miner raid (counter1): scaled by head count
