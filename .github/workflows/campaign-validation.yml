@@ -592,3 +592,8 @@ jobs:
           lua5.1 Tools/Test-Bdmisn04Presentation.lua
           python Tools/Test-Bdmisn04CoopSourceParity.py
           python Tools/Test-Bdmisn04CoopContract.py
+      - name: Test bdmisn07 co-op layer, and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn07Coop.lua
+          python Tools/Test-Bdmisn07CoopSourceParity.py
+          python Tools/Test-Bdmisn07CoopContract.py
