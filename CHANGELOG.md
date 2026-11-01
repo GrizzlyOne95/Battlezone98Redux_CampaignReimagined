@@ -2,12 +2,13 @@
 
 ## Unreleased
 
-- CCA (Soviet) co-op campaign, in progress: a new "CR Soviet" campaign listing and multiplayer entries for
-  `misns1cr` through `misns8cr` (2-4 players or offline), on co-op maps with the enemy on team 5, terrain and
-  per-mission weather sites (Venus, Io, Titan). CCA 01, The Golem Ambush, is playable: its opening cinematic,
-  Colorado escorts, cavalry tanks and factory attack waves are restored from cut code, enemy waves scale with the
-  player count, Venus weather follows the battle, and cutscenes are shared in network games. Missions 02-08 follow.
-  Not yet tested in game.
+- CCA (Soviet) co-op campaign: a new "CR Soviet" campaign listing and multiplayer entries for `misns1cr` through
+  `misns8cr` (2-4 players or offline), on co-op maps with the enemy on team 5, terrain and per-mission weather (Venus,
+  Io, Titan). Every mission wraps its faithful port: enemy waves scale with the player count and arrive out of sight,
+  orders aimed at "the player" go to the nearest human, cutscenes are shared and unskippable in network games, and
+  weather follows the battle. Coherent cut content is restored per mission (each listed in `Docs/MISNS<n>_COOP.md`).
+  The Black Dog and American bases in missions 01, 04, 05 and 06 now build their bases: their stock AI plans asked
+  for Soviet gun towers they cannot build. Not yet tested in game.
 - Bundle OpenShim 1.0.0.66. The under-attack alert beep sounds again after the first match of a game session:
   OpenShim's alert cooldown is now reset when a mission ends, like the stock timer. The Sound Channels option
   description now names the voice cap.
