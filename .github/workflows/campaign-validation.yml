@@ -523,6 +523,11 @@ jobs:
           lua5.1 Tools/Test-Misns1Presentation.lua
           python Tools/Test-Misns1CoopSourceParity.py
           python Tools/Test-Misns1CoopContract.py
+      - name: Test misns8 co-op layer and map contract
+        run: |
+          lua5.1 Tools/Test-Misns8Coop.lua
+          python Tools/Test-Misns8CoopSourceParity.py
+          python Tools/Test-Misns8CoopContract.py
       - name: Test misns7 co-op layer, presentation and map contract
         run: |
           lua5.1 Tools/Test-Misns7Coop.lua

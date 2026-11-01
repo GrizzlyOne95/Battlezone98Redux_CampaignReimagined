@@ -1,0 +1,432 @@
+-- Independent Lua peers, real CRCoop registry, lossy presentation simulator, the real Scripts/CRCCARuntime.lua
+-- and Scripts/misns8cr.lua. Engine AI, rendering and combat remain mocked. Run from the repository root:
+--   lua5.1 Tools/Test-Misns8Coop.lua
+assert(_VERSION == "Lua 5.1")
+local F = dofile("Tools/Misns8Fixture.lua")
+local checks = 0
+local function check(ok, why) assert(ok, why); checks = checks + 1 end
+
+local REC, MUF = "avrecycle", "avmuf"
+
+local function setup(n, options)
+    options = options or {}
+    local w = F.reset()
+    if options.setup then options.setup(w) end
+    local p = {}
+    for i = 1, n do p[i] = F.makePeer(i, i, n > 1, options) end
+    F.connect(); F.run(options.warmup or 2)
+    return w, p, p[1].env.Save()
+end
+local function allSafe(p, builds)
+    for _, b in ipairs(builds) do
+        for _, q in ipairs(p) do
+            check(q.env.GetDistance(q.player, b.h) >= 460, "no scripted unit is built within 460 m of any human")
+        end
+    end
+end
+local function heardAll(p, file, count)
+    for i, q in ipairs(p) do check(F.heardCount(q, file) == (count or 1), "peer " .. i .. " hears " .. file .. " x" .. (count or 1)) end
+end
+local function guestsPassive(p)
+    for i = 2, #p do
+        for _, name in ipairs({"BuildObject", "SetScrap", "AddScrap", "SetAIP", "Goto", "Follow", "Attack", "SetIndependence",
+            "RemoveObject", "SetPerceivedTeam", "Build", "Dropoff", "Pickup", "Damage"}) do
+            check(F.count(p[i], name) == 0, "guest " .. i .. " never mutates gameplay: " .. name)
+        end
+    end
+end
+-- Every line a peer announced, whether through the faithful AudioMessage or the runtime's subtitle player.
+local function lines(peer)
+    local out = {}
+    for _, c in ipairs(peer.calls) do
+        if c[1] == "AudioMessage" or c[1] == "Play" or c[1] == "Queue" then out[#out + 1] = c[2] end
+    end
+    return table.concat(out, ",")
+end
+local function away(p) -- every human parked 1.7 km from the Black Dog base
+    for _, q in ipairs(p) do F.place(q.player, 1793 + 20 * (q.id - 1), 100362) end
+end
+
+-- ------------------------------------------------------------------ offline vs faithful: same mission outcome and final voice line (not a full behaviour diff)
+local function outcome(options, scenario)
+    local w, p, m = setup(1, options)
+    scenario(w, p, m)
+    local out = {}
+    for _, name in ipairs({"SucceedMission", "FailMission"}) do
+        for _, c in ipairs(F.callsOf(p[1], name)) do out[#out + 1] = name .. ":" .. tostring(c[3]) end
+    end
+    return table.concat(out, ","), p[1], m
+end
+local scenarios = {
+    -- the recycler dies with no Romeski: misns814
+    quickwin = function(w, p, m) F.kill(REC); F.run(10) end,
+    -- plan C with Romeski alive: misns803 + misns808
+    romeskiwin = function(w, p, m)
+        m.plan_a, m.plan_b, m.plan_c = false, false, true
+        F.run(3); F.kill(REC); F.run(10)
+    end,
+}
+for name, scenario in pairs(scenarios) do
+    local faithful, fpeer = outcome({ faithful = true, script = "Scripts/misns8.lua" }, scenario)
+    local offline, peer = outcome({}, scenario)
+    check(faithful == offline and faithful ~= "", "offline completes like the faithful port (" .. name .. "): " .. faithful .. " / " .. offline)
+    local ending = lines(peer):match("misns8%d+%.wav$")
+    check(lines(fpeer):match("misns8%d+%.wav$") == ending, "offline ends with the same closing line (" .. name .. ")")
+    check(offline == "SucceedMission:misns8w1.des" and F.count(peer, "SucceedMission") == 1, "one victory request offline")
+end
+do
+    local _, peer = outcome({}, scenarios.romeskiwin)
+    check(lines(peer):find("misns803.wav" .. "," .. "misns808.wav", 1, true), "Romeski alive: both closing lines, in order")
+    local _, peer2 = outcome({}, scenarios.quickwin)
+    check(lines(peer2):find("misns814.wav", 1, true) and not lines(peer2):find("misns808", 1, true), "no Romeski: the short ending")
+end
+
+-- ------------------------------------------------------------------ opening, ownership, teams, scrap
+local w, p, m = setup(4)
+check(m.start_done and m.coopMissionStarted and m.plan_a, "leader starts the shared mission")
+check(F.count(p[1], "SetAIControl", 5) == 1 and F.count(p[1], "SetAIControl", 2) == 0, "AI control only for enemy team 5 at chunk load")
+check(F.index(p[1], "SetAIControl") <= p[1].chunkCalls, "SetAIControl runs at chunk root, before Start")
+do
+    local scraps = {}
+    for _, c in ipairs(F.callsOf(p[1], "SetScrap")) do scraps[c[2] .. ":" .. c[3]] = true end
+    check(scraps["1:55"] and scraps["5:70"] and not scraps["2:40"] and not scraps["2:70"], "shared scrap 25 + 10 per guest, enemy 40 + 10 per guest on team 5")
+    check(F.count(p[1], "SetPilot", 5) == 1 and F.count(p[1], "SetPilot", 2) == 0 and F.count(p[1], "SetPilot", 1) == 1, "pilots: humans on 1, Black Dogs on 5")
+    check(F.callsOf(p[1], "SetAIP")[1][2] == "misns8.aip" and F.callsOf(p[1], "SetAIP")[1][3] == 5, "the opening plan is issued for team 5")
+end
+for i = 1, 4 do
+    check(F.count(p[i], "DisableStartingRecycler") == 1, "extra starting recyclers disabled on peer " .. i)
+    check(F.heardCount(p[i], "misns800.wav") == 1, "briefing once on peer " .. i)
+    check(F.callsOf(p[i], "AddObjective")[1][2] == "misns800.otf", "objective list on peer " .. i)
+end
+guestsPassive(p)
+F.run(2)
+do
+    local started = F.builds(p[1])
+    local scav, nark = 0, 0
+    for _, b in ipairs(started) do
+        check(b.team == 5, "the Black Dog opening spawns are on team 5, not " .. tostring(b.team))
+        if b.odf == "bvsca8" then scav = scav + 1 elseif b.odf == "bvra8" then nark = nark + 1 end
+    end
+    check(scav == 3 and nark == 1, "scavengers and the scout arrive as concealed requests")
+    allSafe(p, started)
+    check(type(m.avscav1) == "string" and type(m.nark) == "string", "tickets were replaced by real handles")
+end
+check(m.cam1 == "cam" and F.count(p[1], "SetObjectiveName", "cam") == 1, "map labels are bound and named")
+
+-- A human standing at the Black Dog spawn: the opening units use an authored alternative entry, never a pop-in.
+do
+    local w2, q = setup(2, { warmup = 0 })
+    F.place(q[2].player, 2917, 98888 + 100) -- on top of american_spawn
+    F.run(3)
+    local builds = F.builds(q[1], 0)
+    check(#builds == 4, "the opening units still arrive")
+    for _, b in ipairs(builds) do check(b.where ~= "american_spawn", "not at the occupied spawn: " .. tostring(b.where)) end
+    allSafe(q, builds)
+end
+
+-- ------------------------------------------------------------------ the enemy team is 5 everywhere
+w, p, m = setup(3)
+do
+    -- scrap too low and no defences: plan C. Every count/scrap query must be for team 5.
+    w.scrapOf[5] = 5; w.unitCounts["5:abtowe"] = 0; w.unitCounts["5:abwpow"] = 0
+    F.run(70)
+    check(m.plan_c and not m.plan_a, "plan C starts from the team-5 queries")
+    for _, c in ipairs(F.callsOf(p[1], "CountUnitsNearObject")) do check(c[4] == 5, "CountUnitsNearObject asks about team 5") end
+    check(F.count(p[1], "CountUnitsNearObject") >= 2, "defences were counted")
+    for _, c in ipairs(F.callsOf(p[1], "SetPerceivedTeam")) do check(c[3] == 1 or c[3] == 5, "perceived team is 1 or 5, never 2") end
+    check(F.count(p[1], "SetPerceivedTeam", REC) >= 1 and w.objects[REC].perceived == 1, "the fleeing recycler is disguised as the humans' side")
+    -- stock AddScrap(2, 2) top-ups go to the enemy
+    m.plan_c = false
+    m.prep_center_towers, m.rigs_ordered, m.rig_check = true, false, 0
+    w.scrapOf[5] = 0
+    F.run(1)
+    check(F.count(p[1], "AddScrap", 5) >= 1 and F.count(p[1], "AddScrap", 2) == 0, "AddScrap(2, 2) tops up team 5")
+    guestsPassive(p)
+end
+
+-- ------------------------------------------------------------------ Romeski, the SAVs and "the player"
+w, p, m = setup(3)
+w.scrapOf[5] = 5; w.unitCounts["5:abtowe"] = 0; w.unitCounts["5:abwpow"] = 0
+F.run(70)
+local key = m.key_tank
+check(key ~= nil and m.general_spawn and w.objects[key].odf == "svtank" and w.objects[key].team == 1, "Romeski is built on the humans' team")
+check(F.count(p[1], "Follow", key) == 1, "Romeski heads for sv_geyser")
+heardAll(p, "misns816.wav", 0); heardAll(p, "misns815.wav", 1)
+-- the SAVs report in: first ones follow him (misns807, once)
+local savs = {}
+for i = 1, 3 do savs[i] = F.spawn("savtnk", 1 + (i % 3), 1900 + 30 * i, 100300) end
+F.run(2)
+check(m.sav1 == savs[1] and m.sav3 == savs[3], "SAV slots fill from any human team")
+check(F.count(p[1], "Follow", savs[1]) == 1 and F.heardCount(p[1], "misns807.wav") == 1, "SAVs follow Romeski, announced once")
+-- ANY human close to Romeski triggers his arrival, not only the host
+F.place(p[1].player, 1793, 100362); F.place(p[2].player, 1830, 100362); F.place(p[3].player, 1800, 100390)
+F.run(6)
+check(not m.general_message1, "nobody near: no arrival yet")
+F.nearTo(p[3].player, key, 60, 0); F.run(5)
+check(m.general_message1, "a guest within 150 m of Romeski triggers him")
+check(F.count(p[1], "SetObjectiveName", key) == 1 and F.count(p[1], "Attack", key) >= 1, "Romeski is named and attacks the recycler")
+-- a guest shoots him: payback goes at the NEAREST human, as a real handle
+F.nearTo(p[2].player, key, 40, 0)
+w.objects[key].shotBy = p[3].player
+F.run(2)
+check(m.player_payback and m.key_open, "a guest's shot is the player's shot")
+local attack
+for _, c in ipairs(F.callsOf(p[1], "Attack")) do if c[2] == key and c[3] ~= REC then attack = c end end
+check(attack and attack[3] == p[2].player, "Romeski attacks the nearest human, as a real handle")
+check(F.heardCount(p[1], "misns819.wav") == 1, "his protest plays once")
+heardAll(p, "misns819.wav", 1)
+guestsPassive(p)
+
+-- sav_payback branch: a swapped hostile SAV shoots him; he asks the nearest human for help and follows them
+w, p, m = setup(3)
+w.scrapOf[5] = 5; w.unitCounts["5:abtowe"] = 0; w.unitCounts["5:abwpow"] = 0
+F.run(70)
+key = m.key_tank
+local sav = F.spawn("savtnk", 1, 1900, 100300)
+F.run(2)
+F.nearTo(sav, key, 100, 0); F.run(11) -- sav_check fires: the SAV attacks, the swap builds the hostile twin
+check(m.sav_attack and m.sav1_attack, "a SAV that reaches Romeski turns on him")
+local twin
+for _, b in ipairs(F.builds(p[1], 0, "savs8")) do twin = b end
+check(twin and twin.team == 5 and twin.where == sav, "the hostile SAV is built in place on team 5")
+check(F.count(p[1], "RemoveObject", sav) == 1 and F.count(p[1], "SetIndependence", twin.h) == 1, "the loyal tank is swapped out, the twin is independent")
+w.objects[key].shotBy = twin.h
+F.run(2)
+check(m.sav_payback and m.key_open and not m.player_payback, "a hostile SAV's shot is the SAV payback")
+F.nearTo(p[2].player, key, 70, 0)
+F.run(4)
+check(m.general_message2 and F.heardCount(p[1], "misns810.wav") == 1, "he cries for help when a human is within 130 m")
+local follow
+for _, c in ipairs(F.callsOf(p[1], "Follow")) do if c[2] == key and c[3] == p[2].player then follow = c end end
+check(follow ~= nil, "and follows that human (token translated to a real handle)")
+
+-- a human flying a SAV is never deleted by the betrayal swap
+w, p, m = setup(2)
+w.scrapOf[5] = 5; w.unitCounts["5:abtowe"] = 0; w.unitCounts["5:abwpow"] = 0
+F.run(70)
+key = m.key_tank
+w.objects[p[2].player].odf = "savtnk"
+for _, q in ipairs(p) do q.env.AddObject(p[2].player) end
+check(m.sav1 == p[2].player, "the guest's own tank fills a SAV slot")
+m.sav_attack = true
+F.run(2)
+check(F.count(p[1], "RemoveObject", p[2].player) == 0 and F.alive(p[2].player), "the human's ship is not removed")
+check(#F.builds(p[1], 0, "savs8") == 1 and m.sav1_swap, "the hostile twin is still built")
+
+-- ------------------------------------------------------------------ victory
+for _, n in ipairs({1, 3}) do
+    w, p, m = setup(n)
+    w.scrapOf[5] = 5; w.unitCounts["5:abtowe"] = 0; w.unitCounts["5:abwpow"] = 0
+    F.run(70)
+    check(F.alive(m.key_tank), "Romeski lives")
+    F.kill(REC); F.run(12)
+    for i = 1, n do
+        check(F.count(p[i], "SucceedMission") == 1 and F.last(p[i], "SucceedMission")[3] == "misns8w1.des", "victory once on peer " .. i)
+        check(F.heard(p[i], "misns803.wav") and F.heard(p[i], "misns808.wav"), "closing lines on peer " .. i)
+        check(F.count(p[i], "FailMission") == 0, "nothing fails a won mission on peer " .. i)
+    end
+end
+w, p, m = setup(2)
+F.kill(REC); F.run(12)
+for i = 1, 2 do check(F.heard(p[i], "misns814.wav") and F.count(p[i], "SucceedMission") == 1, "short ending on peer " .. i) end
+-- out of lives after the win must not fail it
+F.run(30)
+check(F.count(p[1], "FailMission") == 0, "no failure after the win")
+
+-- ------------------------------------------------------------------ scaling: the retaliation squad
+local expected = { [1] = 2, [2] = 3, [3] = 3, [4] = 4 }
+for n = 1, 4 do
+    w, p, m = setup(n)
+    away(p)
+    m.plan_a, m.plan_b, m.convoy_start = false, true, true
+    F.kill(MUF); F.run(1)
+    F.run(2)
+    local tanks = F.builds(p[1], 0, "bvtavk")
+    check(#tanks == expected[n], "humans " .. n .. ": retaliation squad of " .. expected[n] .. ", got " .. #tanks)
+    allSafe(p, tanks)
+    for _, b in ipairs(tanks) do
+        check(b.team == 5, "retaliation tanks are on team 5")
+        check(F.count(p[1], "Attack", b.h) == 1, "each carries the recycler attack order")
+    end
+    local replacement = F.builds(p[1], 0, "bvmuf")[1]
+    check(replacement and replacement.team == 5 and replacement.where == "american_spawn", "the replacement factory is built on team 5")
+    check(m.new_muf and m.avmuf == replacement.h and F.count(p[1], "Goto", replacement.h) == 1, "and sent to its geyser")
+end
+-- twelve live scaled units at most (extras are the only things dropped)
+do
+    w, p, m = setup(4)
+    away(p)
+    local s = m.crcca
+    for i = 1, 12 do s.live[#s.live + 1] = F.spawn("bvtavk", 5, 2000 + i, 99000) end
+    m.plan_a, m.plan_b, m.convoy_start = false, true, true
+    F.kill(MUF); F.run(3)
+    check(#F.builds(p[1], 0, "bvtavk") == 2, "at the cap only the two primaries arrive")
+end
+-- a human at the post: an authored alternative entry is used, never a pop-in
+do
+    w, p, m = setup(2)
+    F.place(p[2].player, 2017, 99690 + 100) -- standing at t1post
+    m.plan_a, m.plan_b, m.convoy_start = false, true, true
+    F.kill(MUF); F.run(3)
+    local tanks = F.builds(p[1], 0, "bvtavk")
+    check(#tanks == 3, "the squad still arrives")
+    for _, b in ipairs(tanks) do check(b.where ~= "t1post", "not at the occupied post: " .. tostring(b.where)) end
+    allSafe(p, tanks)
+end
+
+-- ------------------------------------------------------------------ the restored Choke Point beacon
+do
+    w, p, m = setup(3)
+    m.recycle_move = true
+    F.nearTo(REC, "dis_geyser2", 300, 0); F.run(2)
+    check(#F.builds(p[1], 0, "apcamr") == 0, "far from dis_geyser2: no beacon")
+    F.nearTo(REC, "dis_geyser2", 60, 0); F.run(2)
+    local cams = F.builds(p[1], 0, "apcamr")
+    check(#cams == 1 and cams[1].team == 1 and cams[1].where == "last_nav_spawn", "the beacon drops at last_nav_spawn on the humans' team")
+    check(m.cam4 == cams[1].h and F.count(p[1], "SetObjectiveName", m.cam4) == 1 and F.last(p[1], "SetObjectiveName")[3] == "Choke Point", "and is named Choke Point")
+    check(not F.heard(p[1], "misns802.wav"), "misns802 repeats the retreat call and is not replayed")
+    F.run(5)
+    check(#F.builds(p[1], 0, "apcamr") == 1, "once only")
+    local mark = #p[1].calls
+    for _, q in ipairs(p) do q.env.Load(q.env.Save()) end
+    F.connect(); F.run(5)
+    check(#F.builds(p[1], mark, "apcamr") == 0, "a load does not rebuild it")
+end
+do -- a recycler that was never seen outside the radius cannot drop the beacon at once
+    w, p, m = setup(2)
+    m.crcca.r.chokeFar = nil
+    m.recycle_move = true
+    F.nearTo(REC, "dis_geyser2", 60, 0); F.run(3)
+    check(#F.builds(p[1], 0, "apcamr") == 0 and m.cam4 == nil, "inside the radius from the start: no beacon")
+    F.nearTo(REC, "dis_geyser2", 300, 0); F.run(2)
+    F.nearTo(REC, "dis_geyser2", 60, 0); F.run(2)
+    check(#F.builds(p[1], 0, "apcamr") == 1 and m.cam4 ~= nil, "once it has been far, coming back inside drops it")
+end
+do -- the map without the beacon path
+    w, p, m = setup(2, { setup = function(world) world.missingPaths = { last_nav_spawn = true } end })
+    m.recycle_move = true
+    F.nearTo(REC, "dis_geyser2", 60, 0); F.run(3)
+    check(#F.builds(p[1], 0, "apcamr") == 0 and m.cam4 == nil, "no beacon path: restoration skipped")
+end
+do -- offline too
+    w, p, m = setup(1)
+    m.recycle_move = true
+    F.nearTo(REC, "dis_geyser2", 60, 0); F.run(2)
+    check(#F.builds(p[1], 0, "apcamr") == 1, "the beacon is restored offline as well")
+end
+
+-- ------------------------------------------------------------------ distance to "the player"
+do
+    w, p, m = setup(3)
+    away(p)
+    local wrapped = p[1].runtime
+    check(wrapped ~= nil, "runtime is reachable")
+    -- MUF convoy warning: the nearest human decides, wherever the player-token sits in the call
+    m.plan_a, m.plan_b, m.convoy_start, m.warning = false, true, true, false
+    m.muf_warning = 0
+    F.nearTo(MUF, "dis_geyser1", 50, 0)
+    F.nearTo(p[3].player, MUF, 40, 0) -- a guest next to the factory
+    F.run(2)
+    check(m.warning and not F.heard(p[1], "misns801.wav"), "a human within 100 m of the factory cancels the warning")
+    m.warning = false; m.muf_warning = 0
+    F.place(p[3].player, 1900, 100362)
+    F.run(2)
+    check(m.warning and F.heard(p[1], "misns801.wav") and #F.builds(p[1], 0, "apcamr") == 1, "otherwise the Choke Point beacon and objective follow")
+end
+
+-- ------------------------------------------------------------------ leader leaves, save/load
+w, p, m = setup(3)
+for i = 2, 3 do p[i].env.DeletePlayer(1) end
+F.run(3)
+for i = 2, 3 do check(F.count(p[i], "FailMission") == 1, "the mission fails for guest " .. i .. " when the leader leaves") end
+check(F.count(p[1], "FailMission") == 0, "the leader itself keeps playing")
+
+w, p, m = setup(4)
+F.run(30)
+local before = F.count(p[1], "SetScrap")
+for _, q in ipairs(p) do q.env.Load(q.env.Save()) end
+F.connect(); F.run(5)
+check(F.count(p[1], "SetScrap") == before and F.count(p[1], "BuildObject") == 4, "load does not rerun the first frame")
+w.scrapOf[5] = 5; w.unitCounts["5:abtowe"] = 0; w.unitCounts["5:abwpow"] = 0
+F.run(70)
+F.kill(REC); F.run(12)
+for i = 1, 4 do check(F.count(p[i], "SucceedMission") == 1, "the loaded mission still ends once on peer " .. i) end
+
+-- ------------------------------------------------------------------ weather: absent, present, broken
+local function titan(record, mode)
+    return function(peer)
+        local V = { Seed = 777, Initialized = true, log = {} }
+        function V.Init(o) peer.titanInit = o; record("TitanInit", o.authority, o.send ~= nil, o.startLevel, o.targetLevel); if mode == "initfail" then error("boom") end end
+        function V.Update(dt)
+            if peer.titanInit and peer.titanInit.authority and peer.titanInit.send and not V.sent then
+                V.sent = true; peer.titanInit.send("TitanRoll", 3, 0.5, 60)
+            end
+            if mode == "updatefail" then error("update boom") end
+        end
+        function V.AnnounceState() record("TitanAnnounce") end
+        function V.ApplyNetEvent(op, ...) record("TitanEvent", op, ...) end
+        function V.SetTargetLevel(n) record("TitanLevel", n) end
+        function V.Roll(duration, strength) record("TitanRollCall", duration, strength) end
+        function V.SkyState() return { storm = 0, bank = 0 } end
+        function V.OnObjectCreated(h) record("TitanCreated", h) end
+        function V.Save() return { saved = true } end
+        function V.Load(s) record("TitanLoad", s and s.saved) end
+        function V.Shutdown() record("TitanShutdown") end
+        return V
+    end
+end
+do
+    w, p, m = setup(3)
+    check(F.count(p[1], "EnvironmentInit") == 0 and m.start_done, "no weather module: the mission runs and touches no Environment")
+    local printed = false
+    for _, c in ipairs(p[1].calls) do if c[1] == "print" and tostring(c[2]):find("weather disabled", 1, true) then printed = true end end
+    check(printed, "missing weather is logged, not fatal")
+end
+do
+    -- the shipped sites table is EMPTY (no pools); weather must still start
+    local sites = dofile("Scripts/CRTitanSitesS8.lua")
+    check(#sites.pools == 0 and sites.mission == "misns8", "the generated Titan sites for this map have no pools")
+    local weather = { module = function(peer, record) return titan(record)(peer) end, sites = sites }
+    w, p, m = setup(3, { weather = weather })
+    check(F.count(p[1], "TitanInit", true) == 1 and F.last(p[1], "TitanInit")[3] == true, "the leader owns the weather and sends through the stream")
+    check(F.last(p[1], "TitanInit")[4] == 2 and F.last(p[1], "TitanInit")[5] == 2, "it opens on the Hazy rung")
+    check(F.count(p[2], "TitanInit", false) == 1, "guests render only (not the authority)")
+    check(F.count(p[1], "TitanAnnounce") == 1 and F.count(p[2], "TitanAnnounce") == 0, "the leader announces its weather state once")
+    check(F.count(p[1], "EnvironmentInit") == 1, "Titan lighting is initialised")
+    for i = 1, 3 do check(F.count(p[i], "WeatherSensors", "Titan") == 1, "the sky follows the haze on peer " .. i) end
+    for i = 2, 3 do
+        local e = F.last(p[i], "TitanEvent")
+        check(e and e[2] == "TitanRoll" and e[3] == 3, "weather events reach guest " .. i)
+    end
+    check(p[1].env.Save().crcca.weatherSeed == 777, "the weather seed is saved with the mission")
+    check(F.count(p[1], "TitanCreated") > 0, "new objects are offered to the weather")
+    -- beats follow the mission
+    check(F.count(p[1], "TitanLevel") == 0, "no beat before the mission moves")
+    m.convoy_start = true; F.run(2)
+    check(F.count(p[1], "TitanLevel", 3) == 1, "the convoy raises the weather to drizzle")
+    m.recycle_pack = true; F.run(2)
+    check(F.count(p[1], "TitanLevel", 4) == 1 and F.count(p[1], "TitanRollCall", 70) == 1, "the recycler's flight brings the shroud and a roll")
+    m.sav_attack = true; F.run(2)
+    check(F.count(p[1], "TitanRollCall", 90) == 1, "the betrayal brings the heavy roll")
+    m.game_over = true; F.run(2)
+    check(F.count(p[1], "TitanLevel", 2) == 1, "victory eases the weather")
+    F.run(3)
+    check(F.count(p[1], "TitanLevel") == 3 and F.count(p[1], "TitanRollCall") == 2, "each beat fires once")
+    for i = 2, 3 do check(F.count(p[i], "TitanLevel") == 0 and F.count(p[i], "TitanRollCall") == 0, "guests never run beats") end
+    for _, q in ipairs(p) do q.env.Load(q.env.Save()) end
+    F.connect(); F.run(3)
+    check(F.count(p[1], "TitanShutdown") >= 1 and F.count(p[1], "TitanLoad", true) == 1, "load restores the leader's weather state")
+    check(F.count(p[1], "TitanInit") == 2 and F.count(p[1], "WeatherSensors", "Titan") == 2, "the weather and sky binding re-initialise after a load")
+    check(F.count(p[1], "TitanLevel") == 3, "saved beats are not replayed after a load")
+end
+do -- sites module missing: no weather, never an error
+    w, p, m = setup(2, { weather = { module = function(peer, record) return titan(record)(peer) end } })
+    check(F.count(p[1], "TitanInit") == 0 and m.start_done, "module without sites: disabled")
+end
+for _, mode in ipairs({ "initfail", "updatefail" }) do
+    w, p, m = setup(2, { weather = { module = function(peer, record) return titan(record, mode)(peer) end, sites = {} } })
+    F.kill(REC); F.run(12)
+    check(F.count(p[1], "SucceedMission") == 1 and F.count(p[2], "SucceedMission") == 1, "a failing weather director (" .. mode .. ") never stops the mission")
+end
+
+print("misns8 co-op: " .. checks .. " checks passed")
