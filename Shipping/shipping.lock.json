@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-10-25T12:56:15-05:00",
-  "count": 4933,
+  "count": 5088,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -200,12 +200,76 @@
       "runtime": "misn1709.wav"
     },
     {
+      "source": "Assets\\Graphics\\bdmisn01cr.bmp",
+      "runtime": "bdmisn01cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\bdmisn02cr.bmp",
+      "runtime": "bdmisn02cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\bdmisn03cr.bmp",
+      "runtime": "bdmisn03cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\bdmisn04cr.bmp",
+      "runtime": "bdmisn04cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\bdmisn05cr.bmp",
+      "runtime": "bdmisn05cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\bdmisn06cr.bmp",
+      "runtime": "bdmisn06cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\bdmisn07cr.bmp",
+      "runtime": "bdmisn07cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\bdmisn08cr.bmp",
+      "runtime": "bdmisn08cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\bdmisn09cr.bmp",
+      "runtime": "bdmisn09cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\bdmisn10cr.bmp",
+      "runtime": "bdmisn10cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\bdmisn11cr.bmp",
+      "runtime": "bdmisn11cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\bdmisn12cr.bmp",
+      "runtime": "bdmisn12cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\bdmisn13cr.bmp",
+      "runtime": "bdmisn13cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\bdmisn14cr.bmp",
+      "runtime": "bdmisn14cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\bdmisn15cr.bmp",
+      "runtime": "bdmisn15cr.bmp"
+    },
+    {
       "source": "Assets\\Graphics\\bio.png",
       "runtime": "bio.png"
     },
     {
       "source": "Assets\\Graphics\\campaignReimagined.jpg",
       "runtime": "campaignReimagined.jpg"
+    },
+    {
+      "source": "Assets\\Graphics\\crbd.bmp",
+      "runtime": "crbd.bmp"
     },
     {
       "source": "Assets\\Graphics\\crcampgn.bmp",
@@ -7472,6 +7536,66 @@
       "runtime": "xrainsp.png"
     },
     {
+      "source": "bdmisn01cr.mpdes",
+      "runtime": "bdmisn01cr.mpdes"
+    },
+    {
+      "source": "bdmisn02cr.mpdes",
+      "runtime": "bdmisn02cr.mpdes"
+    },
+    {
+      "source": "bdmisn03cr.mpdes",
+      "runtime": "bdmisn03cr.mpdes"
+    },
+    {
+      "source": "bdmisn04cr.mpdes",
+      "runtime": "bdmisn04cr.mpdes"
+    },
+    {
+      "source": "bdmisn05cr.mpdes",
+      "runtime": "bdmisn05cr.mpdes"
+    },
+    {
+      "source": "bdmisn06cr.mpdes",
+      "runtime": "bdmisn06cr.mpdes"
+    },
+    {
+      "source": "bdmisn07cr.mpdes",
+      "runtime": "bdmisn07cr.mpdes"
+    },
+    {
+      "source": "bdmisn08cr.mpdes",
+      "runtime": "bdmisn08cr.mpdes"
+    },
+    {
+      "source": "bdmisn09cr.mpdes",
+      "runtime": "bdmisn09cr.mpdes"
+    },
+    {
+      "source": "bdmisn10cr.mpdes",
+      "runtime": "bdmisn10cr.mpdes"
+    },
+    {
+      "source": "bdmisn11cr.mpdes",
+      "runtime": "bdmisn11cr.mpdes"
+    },
+    {
+      "source": "bdmisn12cr.mpdes",
+      "runtime": "bdmisn12cr.mpdes"
+    },
+    {
+      "source": "bdmisn13cr.mpdes",
+      "runtime": "bdmisn13cr.mpdes"
+    },
+    {
+      "source": "bdmisn14cr.mpdes",
+      "runtime": "bdmisn14cr.mpdes"
+    },
+    {
+      "source": "bdmisn15cr.mpdes",
+      "runtime": "bdmisn15cr.mpdes"
+    },
+    {
       "source": "Bin\\bzfile_replace_helper.exe",
       "runtime": "bzfile_replace_helper.exe"
     },
@@ -7584,8 +7708,72 @@
       "runtime": "ac_detail_atlas.csv"
     },
     {
+      "source": "Config\\bdmisn01cr.ini",
+      "runtime": "bdmisn01cr.ini"
+    },
+    {
+      "source": "Config\\bdmisn02cr.ini",
+      "runtime": "bdmisn02cr.ini"
+    },
+    {
+      "source": "Config\\bdmisn03cr.ini",
+      "runtime": "bdmisn03cr.ini"
+    },
+    {
+      "source": "Config\\bdmisn04cr.ini",
+      "runtime": "bdmisn04cr.ini"
+    },
+    {
+      "source": "Config\\bdmisn05cr.ini",
+      "runtime": "bdmisn05cr.ini"
+    },
+    {
+      "source": "Config\\bdmisn06cr.ini",
+      "runtime": "bdmisn06cr.ini"
+    },
+    {
+      "source": "Config\\bdmisn07cr.ini",
+      "runtime": "bdmisn07cr.ini"
+    },
+    {
+      "source": "Config\\bdmisn08cr.ini",
+      "runtime": "bdmisn08cr.ini"
+    },
+    {
+      "source": "Config\\bdmisn09cr.ini",
+      "runtime": "bdmisn09cr.ini"
+    },
+    {
+      "source": "Config\\bdmisn10cr.ini",
+      "runtime": "bdmisn10cr.ini"
+    },
+    {
+      "source": "Config\\bdmisn11cr.ini",
+      "runtime": "bdmisn11cr.ini"
+    },
+    {
+      "source": "Config\\bdmisn12cr.ini",
+      "runtime": "bdmisn12cr.ini"
+    },
+    {
+      "source": "Config\\bdmisn13cr.ini",
+      "runtime": "bdmisn13cr.ini"
+    },
+    {
+      "source": "Config\\bdmisn14cr.ini",
+      "runtime": "bdmisn14cr.ini"
+    },
+    {
+      "source": "Config\\bdmisn15cr.ini",
+      "runtime": "bdmisn15cr.ini"
+    },
+    {
       "source": "Config\\cr_terrain_hd.json",
       "runtime": "cr_terrain_hd.json"
+    },
+    {
+      "source": "Config\\crbd.ini",
+      "runtime": "crbd.ini"
     },
     {
       "source": "Config\\crcampgn.ini",
@@ -7742,6 +7930,10 @@
     {
       "source": "Config\\ve_detail_atlas.csv",
       "runtime": "ve_detail_atlas.csv"
+    },
+    {
+      "source": "crbd.des",
+      "runtime": "crbd.des"
     },
     {
       "source": "crcampgn.des",
@@ -9836,6 +10028,10 @@
       "runtime": "cr_earth.material"
     },
     {
+      "source": "Materials\\cr_elysium.particle.payload",
+      "runtime": "cr_elysium.particle.payload"
+    },
+    {
       "source": "Materials\\crart_achilles.material",
       "runtime": "crart_achilles.material"
     },
@@ -10650,6 +10846,366 @@
     {
       "source": "misn18cr.mpdes",
       "runtime": "misn18cr.mpdes"
+    },
+    {
+      "source": "Missions\\bdmisn01.hg2",
+      "runtime": "Missions\\bdmisn01.hg2"
+    },
+    {
+      "source": "Missions\\bdmisn01.lgt",
+      "runtime": "Missions\\bdmisn01.lgt"
+    },
+    {
+      "source": "Missions\\bdmisn01.mat",
+      "runtime": "Missions\\bdmisn01.mat"
+    },
+    {
+      "source": "Missions\\bdmisn01.trn",
+      "runtime": "Missions\\bdmisn01.trn"
+    },
+    {
+      "source": "Missions\\bdmisn01cr.bzn",
+      "runtime": "Missions\\bdmisn01cr.bzn"
+    },
+    {
+      "source": "Missions\\bdmisn01cr.vxt",
+      "runtime": "Missions\\bdmisn01cr.vxt"
+    },
+    {
+      "source": "Missions\\bdmisn02.hg2",
+      "runtime": "Missions\\bdmisn02.hg2"
+    },
+    {
+      "source": "Missions\\bdmisn02.lgt",
+      "runtime": "Missions\\bdmisn02.lgt"
+    },
+    {
+      "source": "Missions\\bdmisn02.mat",
+      "runtime": "Missions\\bdmisn02.mat"
+    },
+    {
+      "source": "Missions\\bdmisn02.trn",
+      "runtime": "Missions\\bdmisn02.trn"
+    },
+    {
+      "source": "Missions\\bdmisn02cr.bzn",
+      "runtime": "Missions\\bdmisn02cr.bzn"
+    },
+    {
+      "source": "Missions\\bdmisn02cr.vxt",
+      "runtime": "Missions\\bdmisn02cr.vxt"
+    },
+    {
+      "source": "Missions\\bdmisn03.hg2",
+      "runtime": "Missions\\bdmisn03.hg2"
+    },
+    {
+      "source": "Missions\\bdmisn03.lgt",
+      "runtime": "Missions\\bdmisn03.lgt"
+    },
+    {
+      "source": "Missions\\bdmisn03.mat",
+      "runtime": "Missions\\bdmisn03.mat"
+    },
+    {
+      "source": "Missions\\bdmisn03.trn",
+      "runtime": "Missions\\bdmisn03.trn"
+    },
+    {
+      "source": "Missions\\bdmisn03cr.bzn",
+      "runtime": "Missions\\bdmisn03cr.bzn"
+    },
+    {
+      "source": "Missions\\bdmisn03cr.vxt",
+      "runtime": "Missions\\bdmisn03cr.vxt"
+    },
+    {
+      "source": "Missions\\bdmisn04.hg2",
+      "runtime": "Missions\\bdmisn04.hg2"
+    },
+    {
+      "source": "Missions\\bdmisn04.lgt",
+      "runtime": "Missions\\bdmisn04.lgt"
+    },
+    {
+      "source": "Missions\\bdmisn04.mat",
+      "runtime": "Missions\\bdmisn04.mat"
+    },
+    {
+      "source": "Missions\\bdmisn04.trn",
+      "runtime": "Missions\\bdmisn04.trn"
+    },
+    {
+      "source": "Missions\\bdmisn04cr.bzn",
+      "runtime": "Missions\\bdmisn04cr.bzn"
+    },
+    {
+      "source": "Missions\\bdmisn04cr.vxt",
+      "runtime": "Missions\\bdmisn04cr.vxt"
+    },
+    {
+      "source": "Missions\\bdmisn05.hg2",
+      "runtime": "Missions\\bdmisn05.hg2"
+    },
+    {
+      "source": "Missions\\bdmisn05.lgt",
+      "runtime": "Missions\\bdmisn05.lgt"
+    },
+    {
+      "source": "Missions\\bdmisn05.mat",
+      "runtime": "Missions\\bdmisn05.mat"
+    },
+    {
+      "source": "Missions\\bdmisn05.trn",
+      "runtime": "Missions\\bdmisn05.trn"
+    },
+    {
+      "source": "Missions\\bdmisn05cr.bzn",
+      "runtime": "Missions\\bdmisn05cr.bzn"
+    },
+    {
+      "source": "Missions\\bdmisn05cr.vxt",
+      "runtime": "Missions\\bdmisn05cr.vxt"
+    },
+    {
+      "source": "Missions\\bdmisn06.hg2",
+      "runtime": "Missions\\bdmisn06.hg2"
+    },
+    {
+      "source": "Missions\\bdmisn06.lgt",
+      "runtime": "Missions\\bdmisn06.lgt"
+    },
+    {
+      "source": "Missions\\bdmisn06.mat",
+      "runtime": "Missions\\bdmisn06.mat"
+    },
+    {
+      "source": "Missions\\bdmisn06.trn",
+      "runtime": "Missions\\bdmisn06.trn"
+    },
+    {
+      "source": "Missions\\bdmisn06cr.bzn",
+      "runtime": "Missions\\bdmisn06cr.bzn"
+    },
+    {
+      "source": "Missions\\bdmisn06cr.vxt",
+      "runtime": "Missions\\bdmisn06cr.vxt"
+    },
+    {
+      "source": "Missions\\bdmisn07.hg2",
+      "runtime": "Missions\\bdmisn07.hg2"
+    },
+    {
+      "source": "Missions\\bdmisn07.lgt",
+      "runtime": "Missions\\bdmisn07.lgt"
+    },
+    {
+      "source": "Missions\\bdmisn07.mat",
+      "runtime": "Missions\\bdmisn07.mat"
+    },
+    {
+      "source": "Missions\\bdmisn07.trn",
+      "runtime": "Missions\\bdmisn07.trn"
+    },
+    {
+      "source": "Missions\\bdmisn07cr.bzn",
+      "runtime": "Missions\\bdmisn07cr.bzn"
+    },
+    {
+      "source": "Missions\\bdmisn07cr.vxt",
+      "runtime": "Missions\\bdmisn07cr.vxt"
+    },
+    {
+      "source": "Missions\\bdmisn08.hg2",
+      "runtime": "Missions\\bdmisn08.hg2"
+    },
+    {
+      "source": "Missions\\bdmisn08.lgt",
+      "runtime": "Missions\\bdmisn08.lgt"
+    },
+    {
+      "source": "Missions\\bdmisn08.mat",
+      "runtime": "Missions\\bdmisn08.mat"
+    },
+    {
+      "source": "Missions\\bdmisn08.trn",
+      "runtime": "Missions\\bdmisn08.trn"
+    },
+    {
+      "source": "Missions\\bdmisn08cr.bzn",
+      "runtime": "Missions\\bdmisn08cr.bzn"
+    },
+    {
+      "source": "Missions\\bdmisn08cr.vxt",
+      "runtime": "Missions\\bdmisn08cr.vxt"
+    },
+    {
+      "source": "Missions\\bdmisn09.hg2",
+      "runtime": "Missions\\bdmisn09.hg2"
+    },
+    {
+      "source": "Missions\\bdmisn09.lgt",
+      "runtime": "Missions\\bdmisn09.lgt"
+    },
+    {
+      "source": "Missions\\bdmisn09.mat",
+      "runtime": "Missions\\bdmisn09.mat"
+    },
+    {
+      "source": "Missions\\bdmisn09.trn",
+      "runtime": "Missions\\bdmisn09.trn"
+    },
+    {
+      "source": "Missions\\bdmisn09cr.bzn",
+      "runtime": "Missions\\bdmisn09cr.bzn"
+    },
+    {
+      "source": "Missions\\bdmisn09cr.vxt",
+      "runtime": "Missions\\bdmisn09cr.vxt"
+    },
+    {
+      "source": "Missions\\bdmisn10.hg2",
+      "runtime": "Missions\\bdmisn10.hg2"
+    },
+    {
+      "source": "Missions\\bdmisn10.lgt",
+      "runtime": "Missions\\bdmisn10.lgt"
+    },
+    {
+      "source": "Missions\\bdmisn10.mat",
+      "runtime": "Missions\\bdmisn10.mat"
+    },
+    {
+      "source": "Missions\\bdmisn10.trn",
+      "runtime": "Missions\\bdmisn10.trn"
+    },
+    {
+      "source": "Missions\\bdmisn10cr.bzn",
+      "runtime": "Missions\\bdmisn10cr.bzn"
+    },
+    {
+      "source": "Missions\\bdmisn10cr.vxt",
+      "runtime": "Missions\\bdmisn10cr.vxt"
+    },
+    {
+      "source": "Missions\\bdmisn11.hg2",
+      "runtime": "Missions\\bdmisn11.hg2"
+    },
+    {
+      "source": "Missions\\bdmisn11.lgt",
+      "runtime": "Missions\\bdmisn11.lgt"
+    },
+    {
+      "source": "Missions\\bdmisn11.mat",
+      "runtime": "Missions\\bdmisn11.mat"
+    },
+    {
+      "source": "Missions\\bdmisn11.trn",
+      "runtime": "Missions\\bdmisn11.trn"
+    },
+    {
+      "source": "Missions\\bdmisn11cr.bzn",
+      "runtime": "Missions\\bdmisn11cr.bzn"
+    },
+    {
+      "source": "Missions\\bdmisn11cr.vxt",
+      "runtime": "Missions\\bdmisn11cr.vxt"
+    },
+    {
+      "source": "Missions\\bdmisn12.hg2",
+      "runtime": "Missions\\bdmisn12.hg2"
+    },
+    {
+      "source": "Missions\\bdmisn12.lgt",
+      "runtime": "Missions\\bdmisn12.lgt"
+    },
+    {
+      "source": "Missions\\bdmisn12.mat",
+      "runtime": "Missions\\bdmisn12.mat"
+    },
+    {
+      "source": "Missions\\bdmisn12.trn",
+      "runtime": "Missions\\bdmisn12.trn"
+    },
+    {
+      "source": "Missions\\bdmisn12cr.bzn",
+      "runtime": "Missions\\bdmisn12cr.bzn"
+    },
+    {
+      "source": "Missions\\bdmisn12cr.vxt",
+      "runtime": "Missions\\bdmisn12cr.vxt"
+    },
+    {
+      "source": "Missions\\bdmisn13.hg2",
+      "runtime": "Missions\\bdmisn13.hg2"
+    },
+    {
+      "source": "Missions\\bdmisn13.lgt",
+      "runtime": "Missions\\bdmisn13.lgt"
+    },
+    {
+      "source": "Missions\\bdmisn13.mat",
+      "runtime": "Missions\\bdmisn13.mat"
+    },
+    {
+      "source": "Missions\\bdmisn13.trn",
+      "runtime": "Missions\\bdmisn13.trn"
+    },
+    {
+      "source": "Missions\\bdmisn13cr.bzn",
+      "runtime": "Missions\\bdmisn13cr.bzn"
+    },
+    {
+      "source": "Missions\\bdmisn13cr.vxt",
+      "runtime": "Missions\\bdmisn13cr.vxt"
+    },
+    {
+      "source": "Missions\\bdmisn14.hg2",
+      "runtime": "Missions\\bdmisn14.hg2"
+    },
+    {
+      "source": "Missions\\bdmisn14.lgt",
+      "runtime": "Missions\\bdmisn14.lgt"
+    },
+    {
+      "source": "Missions\\bdmisn14.mat",
+      "runtime": "Missions\\bdmisn14.mat"
+    },
+    {
+      "source": "Missions\\bdmisn14.trn",
+      "runtime": "Missions\\bdmisn14.trn"
+    },
+    {
+      "source": "Missions\\bdmisn14cr.bzn",
+      "runtime": "Missions\\bdmisn14cr.bzn"
+    },
+    {
+      "source": "Missions\\bdmisn14cr.vxt",
+      "runtime": "Missions\\bdmisn14cr.vxt"
+    },
+    {
+      "source": "Missions\\bdmisn15.hg2",
+      "runtime": "Missions\\bdmisn15.hg2"
+    },
+    {
+      "source": "Missions\\bdmisn15.lgt",
+      "runtime": "Missions\\bdmisn15.lgt"
+    },
+    {
+      "source": "Missions\\bdmisn15.mat",
+      "runtime": "Missions\\bdmisn15.mat"
+    },
+    {
+      "source": "Missions\\bdmisn15.trn",
+      "runtime": "Missions\\bdmisn15.trn"
+    },
+    {
+      "source": "Missions\\bdmisn15cr.bzn",
+      "runtime": "Missions\\bdmisn15cr.bzn"
+    },
+    {
+      "source": "Missions\\bdmisn15cr.vxt",
+      "runtime": "Missions\\bdmisn15cr.vxt"
     },
     {
       "source": "Missions\\crsetup.bzn",
@@ -15492,6 +16048,26 @@
       "runtime": "CRDrop18.lua"
     },
     {
+      "source": "Scripts\\CRElysiumSitesBD07.lua",
+      "runtime": "CRDrop18.lua"
+    },
+    {
+      "source": "Scripts\\CRElysiumSitesBD09.lua",
+      "runtime": "CRDrop18.lua"
+    },
+    {
+      "source": "Scripts\\CRElysiumSitesBD10.lua",
+      "runtime": "CRDrop18.lua"
+    },
+    {
+      "source": "Scripts\\CRElysiumSitesBD11.lua",
+      "runtime": "CRDrop18.lua"
+    },
+    {
+      "source": "Scripts\\CRElysiumWeather.lua",
+      "runtime": "CRDrop18.lua"
+    },
+    {
       "source": "Scripts\\CREuropaSites12.lua",
       "runtime": "CREuropaSites12.lua"
     },
@@ -15514,6 +16090,50 @@
     {
       "source": "Scripts\\CRFuryRoster.lua",
       "runtime": "CRFuryRoster.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesBD01.lua",
+      "runtime": "CRGanymedeSitesBD01.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesBD02.lua",
+      "runtime": "CRGanymedeSitesBD02.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesBD03.lua",
+      "runtime": "CRGanymedeSitesBD03.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesBD04.lua",
+      "runtime": "CRGanymedeSitesBD04.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesBD05.lua",
+      "runtime": "CRGanymedeSitesBD05.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesBD06.lua",
+      "runtime": "CRGanymedeSitesBD06.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesBD08.lua",
+      "runtime": "CRGanymedeSitesBD08.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesBD12.lua",
+      "runtime": "CRGanymedeSitesBD12.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesBD13.lua",
+      "runtime": "CRGanymedeSitesBD13.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesBD14.lua",
+      "runtime": "CRGanymedeSitesBD14.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesBD15.lua",
+      "runtime": "CRGanymedeSitesBD15.lua"
     },
     {
       "source": "Scripts\\CRGeysers.lua",

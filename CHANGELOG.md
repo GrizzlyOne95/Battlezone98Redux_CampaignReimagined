@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Black Dog co-op campaign listing, in progress: a new "CR Black Dog" campaign listing and multiplayer entries for
+  `bdmisn01cr` through `bdmisn15cr` (2-4 players or offline), on co-op maps with the enemy on team 5, Black Dog starting
+  rosters, Ganymede and Elysium terrain and Ganymede weather sites. Mission scripts follow. Not yet tested in game.
 - CCA (Soviet) co-op campaign: a new "CR Soviet" campaign listing and multiplayer entries for `misns1cr` through
   `misns8cr` (2-4 players or offline), on co-op maps with the enemy on team 5, terrain and per-mission weather (Venus,
   Io, Titan). Every mission wraps its faithful port: enemy waves scale with the player count and arrive out of sight,

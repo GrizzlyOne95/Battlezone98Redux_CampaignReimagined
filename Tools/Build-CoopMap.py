@@ -17,7 +17,11 @@ offline/co-op Lua under MultSTMission:
     pushed misn05's team 3/4 starts far away).
 
 Usage:
-  python Tools/Build-CoopMap.py --mission misn06|...|misn18|misns1|...|misns8 [--source FILE] [--toolbox DIR]
+  python Tools/Build-CoopMap.py --mission misn06|...|misn18|misns1|...|misns8|bdmisn01|...|bdmisn15 [--source FILE] [--toolbox DIR]
+
+Black Dog (bdmisnNN): the source defaults to the stock map inside the Redux tro_cam.zfs, and the
+mission class is BlackDogNNMission. bdmisn13's construction rig carries MSVC debug fill (0xCD...)
+in its never-used dropMat, which cannot be written as float32; the builder resets it to identity.
 
 misn13: the 1.5 BZN is a mid-play snapshot, so the co-op map also drops the 133 unnamed runtime unit
 paths (the 14 named paths stay), clears the commands the snapshot had already issued to units
@@ -37,6 +41,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 STOCK_DIR = Path(r"C:\Program Files (x86)\Battlezone\stockfiles2")
+TRO_CAM = Path(r"C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux\tro_cam.zfs")
 DEFAULT_TOOLBOX = Path(os.environ.get("BZ_MODDING_TOOLBOX", REPO.parent / "Battlezone98_Modding_Toolbox"))
 
 ENEMY_TEAM = 5
@@ -256,16 +261,49 @@ def strip_unnamed_paths(tail: str) -> tuple[str, int, int]:
     return head + "".join("[AiPath]\n" + p for p in kept), len(kept), removed
 
 
-def convert(source: Path, toolbox: Path) -> str:
+def read_source(source: Path | None, mission: str, toolbox: Path) -> bytes:
+    if source:
+        return source.read_bytes()
+    if mission.startswith("bdmisn"):
+        sys.path.insert(0, str(toolbox))
+        from battlezone.archives.zfs import ZFSArchive  # noqa: E402
+
+        return ZFSArchive(str(TRO_CAM)).read(f"{mission}.bzn")
+    return (STOCK_DIR / f"{mission}.bzn").read_bytes()
+
+
+def reset_garbage_drop_mats(data: bytes, toolbox: Path) -> bytes:
+    """Reset construction-rig dropMat matrices that hold uninitialised memory (no float32 value)."""
+    sys.path.insert(0, str(toolbox))
+    from battlezone.bzn.bz1 import read_bzn, write_bzn  # noqa: E402
+
+    bzn = read_bzn(data)
+    fixed = 0
+    for obj in bzn.objects:
+        mat = obj.fields.get("dropMat")
+        if mat is not None and any(abs(c) > 3.4e38 for c in mat.value):
+            mat.value = (1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0)
+            mat.raw = mat.text = None
+            fixed += 1
+    if not fixed:
+        return data
+    print(f"reset {fixed} uninitialised construction-rig dropMat(s) to identity")
+    return write_bzn(bzn, bzn.version, binary=bzn.binary)
+
+
+def convert(data: bytes, toolbox: Path) -> str:
     sys.path.insert(0, str(toolbox))
     from battlezone.bzn.version_convert import convert_bzn  # noqa: E402
 
-    result = convert_bzn(str(source), "redux")
+    result = convert_bzn(reset_garbage_drop_mats(data, toolbox), "redux")
     return result.data.decode("latin-1").replace("\r\n", "\n")
 
 
 def build(text: str, mission: str) -> str:
-    mission_class = mission[0].upper() + mission[1:] + "Mission"
+    if mission.startswith("bdmisn"):
+        mission_class = f"BlackDog{mission[6:]}Mission"
+    else:
+        mission_class = mission[0].upper() + mission[1:] + "Mission"
     header, *objects_and_tail = text.split("[GameObject]\n")
     count = len(objects_and_tail)
     size_match = re.search(r"^size \[1\] =\n(\d+)$", header, re.M)
@@ -397,14 +435,13 @@ def build(text: str, mission: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--mission", default="misn06", help="mission stem: misn06 .. misn18, misns1 .. misns8")
+    parser.add_argument("--mission", default="misn06", help="mission stem: misn06 .. misn18, misns1 .. misns8, bdmisn01 .. bdmisn15")
     parser.add_argument("--source", type=Path)
     parser.add_argument("--toolbox", type=Path, default=DEFAULT_TOOLBOX)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    source = args.source or STOCK_DIR / f"{args.mission}.bzn"
     output = args.output or REPO / "Missions" / f"{args.mission}cr.bzn"
-    text = build(convert(source, args.toolbox), args.mission)
+    text = build(convert(read_source(args.source, args.mission, args.toolbox), args.toolbox), args.mission)
     if args.mission == 'misn06':
         spec = importlib.util.spec_from_file_location('marsrocket', REPO/'Tools/Add-Misn06Rocket.py')
         rocket = importlib.util.module_from_spec(spec); spec.loader.exec_module(rocket)

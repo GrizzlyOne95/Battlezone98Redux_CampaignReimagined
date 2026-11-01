@@ -123,6 +123,8 @@ def main() -> int:
     ap.add_argument("--zfs", type=Path, default=DEFAULT_ZFS)
     ap.add_argument("--toolbox", type=Path, default=DEFAULT_TOOLBOX)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--module", default=None,
+                    help="Lua module name (default CREuropaSites<digits>; Ganymede: CRGanymedeSitesBD<NN>)")
     args = ap.parse_args()
 
     io = load_module("Build-IoSites.py", "build_io_sites")
@@ -178,7 +180,7 @@ def main() -> int:
         vent_source = f"{name}.bzn"
 
     digits = re.sub(r"\D", "", name) or name
-    module = f"CREuropaSites{digits}"
+    module = args.module or f"CREuropaSites{digits}"
     out = Path(args.out) if args.out else ROOT / "Scripts" / f"{module}.lua"
 
     solid = sum(1 for row in weights for w in row if w >= 1.0)

@@ -340,6 +340,7 @@ jobs:
           "$LUA" Tools/Test-WeatherSensors.lua
           "$LUA" Tools/Test-CRWeatherParameters.lua
           "$LUA" Tools/Test-CRVenusDenseAtmosphere.lua Scripts
+          "$LUA" Tools/Test-CRElysiumWeather.lua Scripts
           "$LUA" Tools/Test-CRMarsWeather.lua
           "$LUA" Tools/Test-CRWetGlassWeather.lua Scripts
           "$LUA" Tools/Test-CRMarsHaboob.lua

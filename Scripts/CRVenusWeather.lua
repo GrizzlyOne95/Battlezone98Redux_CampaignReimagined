@@ -245,6 +245,8 @@ V.BearingRate          = 0.04
 V.CloudHeights         = { 38.0, 62.0 }
 V.CloudPrecession      = { 0.020, -0.013 }   -- radians per second, per layer
 V.CloudDrift           = 1.1                 -- LinearForce strength
+V.CloudTintClear       = { r = 0.40, g = 0.30, b = 0.14, a = 0.14 }   -- deck colour in clear air
+V.CloudTintGloom       = { r = 0.18, g = 0.22, b = 0.08, a = 0.30 }   -- ... at full gloom
 
 -- Acid rain.
 V.RainMaxRate          = 520.0
@@ -299,6 +301,16 @@ V.AllowRenderIntents   = true
 -- One row per rung. Continuous values interpolate between adjacent rows by the
 -- smoothed ladder position, so nothing steps when a preset swaps.
 -- =============================================================================
+
+-- Particle templates the director creates, and the payloads that hold them. A thin
+-- wrapper for another planet (CRElysiumWeather) swaps these for its own; Venus keeps
+-- the defaults, so nothing changes for it.
+V.TemplatePayloads = { "cr_venus" }
+V.Templates = {
+    fog    = "CR/Venus/FogPool",   haze   = "CR/Venus/FogPool", cloud = "CR/Venus/CloudDeck",
+    elmo   = "CR/Venus/StElmo",    bolt   = "CR/Venus/Bolt",    glow  = "CR/Venus/BoltGlow",
+    sulfur = "CR/Venus/SulfurPool", plume = "CR/Venus/Plume",   embers = "CR/Venus/Embers",
+}
 
 V.Levels = {
     { name = "Calm",    preset = "VenusCalm",   windSpeed = 3.0,  strikesPerMinute = 0.0,
@@ -854,7 +866,7 @@ end
 
 local function FogCreate(index, anchor)
     local y = TerrainHeight(anchor.x, anchor.z) or anchor.y
-    local name = Fx_Create("fog", "CR/Venus/FogPool", anchor.x, y + 3.0, anchor.z)
+    local name = Fx_Create("fog", V.Templates.fog, anchor.x, y + 3.0, anchor.z)
     if name == nil then return nil end
     Call("SetParticleSystemParticleQuota", name, 90)
     return { name = name, x = anchor.x, z = anchor.z, weight = anchor.weight, wind = -1.0 }
@@ -986,7 +998,7 @@ local function HazeCreate(cell)
         local p = LocalPlayerPosition()
         y = p and p.y or 0.0
     end
-    local name = Fx_Create("haze", "CR/Venus/FogPool", cell.x, y + 2.0, cell.z)
+    local name = Fx_Create("haze", V.Templates.haze, cell.x, y + 2.0, cell.z)
     if name == nil then return nil end
     Call("SetParticleSystemParticleQuota", name, V.FogBankHazeQuota)
     local c, a = V.FogBankHazeColor, V.FogBankHazeAlpha
@@ -1345,7 +1357,7 @@ local function UpdateClouds(dt)
     for layer = 1, #V.CloudHeights do
         local record = V.Clouds[layer]
         if record == nil then
-            local name = Fx_Create("cloud", "CR/Venus/CloudDeck", 0.0, 0.0, 0.0)
+            local name = Fx_Create("cloud", V.Templates.cloud, 0.0, 0.0, 0.0)
             if name ~= nil then
                 Call("AttachParticleSystemToCamera", name, Vec(0.0, V.CloudHeights[layer], 0.0))
                 record = { name = name, phase = (layer - 1) * 2.1, tint = -1.0, rate = -1.0, next = 0.0 }
@@ -1373,10 +1385,11 @@ local function UpdateClouds(dt)
             local gloom = LadderValue("gloom")
             if math.abs(gloom - record.tint) > 0.05 then
                 record.tint = gloom
-                local r = Lerp(0.40, 0.18, gloom)
-                local g = Lerp(0.30, 0.22, gloom)
-                local b = Lerp(0.14, 0.08, gloom)
-                local alpha = Lerp(0.14, 0.30, gloom)
+                local c0, c1 = V.CloudTintClear, V.CloudTintGloom
+                local r = Lerp(c0.r, c1.r, gloom)
+                local g = Lerp(c0.g, c1.g, gloom)
+                local b = Lerp(c0.b, c1.b, gloom)
+                local alpha = Lerp(c0.a, c1.a, gloom)
                 Call("SetParticleAffectorParameter", record.name, 0, "colour1",
                     string.format("%.3f %.3f %.3f %.3f", r, g, b, alpha))
                 Call("SetParticleAffectorParameter", record.name, 0, "colour2",
@@ -1664,7 +1677,7 @@ function V.BeginStrike(id, x, y, z, kind, delay, power)
     local p = LocalPlayerPosition()
     local near = (p == nil) or Distance2D(x, z, p.x, p.z) < 1300.0
     if V.TemplatesReady and near and live < V.MaxLiveStrikes then
-        strike.elmo = Fx_Create("elmo", "CR/Venus/StElmo", x, y, z)
+        strike.elmo = Fx_Create("elmo", V.Templates.elmo, x, y, z)
     end
     return true
 end
@@ -1693,12 +1706,12 @@ local function ImpactStrike(strike)
         end
         if live < V.MaxLiveStrikes then
             local ground = TerrainHeight(strike.x, strike.z) or strike.y
-            strike.bolt = Fx_Create("bolt", "CR/Venus/Bolt", strike.x, ground + 120.0, strike.z)
+            strike.bolt = Fx_Create("bolt", V.Templates.bolt, strike.x, ground + 120.0, strike.z)
             if strike.bolt ~= nil then
                 Call("SetParticleEmitterEmissionRate", strike.bolt, 0, 900.0)
                 Call("SetParticleEmitterEmissionRate", strike.bolt, 1, 420.0)
             end
-            strike.glow = Fx_Create("glow", "CR/Venus/BoltGlow", strike.x, ground + 3.0, strike.z)
+            strike.glow = Fx_Create("glow", V.Templates.glow, strike.x, ground + 3.0, strike.z)
             if strike.glow ~= nil then
                 Call("SetParticleEmitterEmissionRate", strike.glow, 0, 220.0)
             end
@@ -1810,7 +1823,7 @@ end
 
 local function SulfurCreate(index, site)
     local y = TerrainHeight(site.x, site.z) or 0.0
-    local name = Fx_Create("sulfur", "CR/Venus/SulfurPool", site.x, y + 0.6, site.z)
+    local name = Fx_Create("sulfur", V.Templates.sulfur, site.x, y + 0.6, site.z)
     if name == nil then return nil end
     return { name = name, x = site.x, z = site.z, weight = site.weight,
              nextBurp = V.Clock + V.FxRng.Range(V.SulfurBurpGap[1], V.SulfurBurpGap[2]),
@@ -1877,7 +1890,7 @@ end
 -- =============================================================================
 
 local function PlumeCreate(index, site)
-    local name = Fx_Create("plume", "CR/Venus/Plume", site.x, site.y + 1.0, site.z)
+    local name = Fx_Create("plume", V.Templates.plume, site.x, site.y + 1.0, site.z)
     if name == nil then return nil end
     local rate = site.major and V.PlumeMajorRate or V.PlumeMinorRate
     Call("SetParticleEmitterEmissionRate", name, 0, rate)
@@ -1943,7 +1956,7 @@ local function UpdateEruptions()
 
             -- Embers are only worth a system while something is being thrown.
             if (V.Clock - e.start) < 4.0 and record.embers == nil then
-                record.embers = Fx_Create("embers", "CR/Venus/Embers", site.x, site.y + 2.0, site.z)
+                record.embers = Fx_Create("embers", V.Templates.embers, site.x, site.y + 2.0, site.z)
             end
             if record.embers ~= nil then
                 local age = V.Clock - e.start
@@ -2342,10 +2355,14 @@ function V.Init(options)
     V.TemplatesReady = false
     local okTemplates, templates = pcall(require, "CRParticleTemplates")
     if okTemplates and type(templates) == "table" and type(templates.EnsureExtra) == "function" then
-        local ready, reason = templates.EnsureExtra("cr_venus")
+        local ready, reason = true, nil
+        for i = 1, #V.TemplatePayloads do
+            local ok, why = templates.EnsureExtra(V.TemplatePayloads[i])
+            if not ok then ready, reason = false, why; break end
+        end
         V.TemplatesReady = ready and true or false
         if not ready then
-            print("CRVenusWeather: cr_venus particle templates unavailable (" .. tostring(reason) ..
+            print("CRVenusWeather: particle templates unavailable (" .. tostring(reason) ..
                 "); pools, lightning visuals, vents and clouds are off")
         end
     end
