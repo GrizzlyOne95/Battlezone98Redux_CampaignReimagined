@@ -61,3 +61,23 @@ later mission must offer every earlier choice.
 Validation covers the per-mission co-op contracts and repository invariants.
 The expanded selections still need a native two- and four-player playtest,
 including lobby readiness, spawn clearance and the 07/12 infiltration gates.
+
+## CCA (Soviet) campaign
+
+Proposed 2026-11-01, awaiting owner review. The CCA co-op maps (`misns1cr`
+through `misns8cr`) offer Soviet ships, adding each mission's production or
+briefing-relevant craft to the basic kit.
+
+| Mission | VXT choices, in menu order |
+| --- | --- |
+| CCA 01, The Golem Ambush | Tank, Scout |
+| CCA 02, Precious Cargo | Tank, Scout |
+| CCA 03, The Evil Battalion | Tank, Scout, Bomber |
+| CCA 04, Io's Bridge | Tank, Scout |
+| CCA 05, Controlling the High Ground | Tank, Scout, Light Tank |
+| CCA 06, Clear the Path | Tank, Scout, Walker |
+| CCA 07, Reclaim our Base | Tank, Scout |
+| CCA 08, Punishing the Black Dogs | Tank, Scout, Light Tank, Rocket Tank, Bomber, Walker |
+
+ODFs: Tank `svtank`, Scout `svfimp`, Light Tank `svltnk`, Rocket Tank `svrckt`,
+Bomber `svhraz`, Walker `svwalk`.

@@ -271,6 +271,8 @@ def main() -> int:
     vents = [o for o in objects if o["odf"].lower() == args.vent_odf.lower()]
 
     digits = re.sub(r"\D", "", name) or name
+    if name.startswith("misns"):  # CCA (Soviet) campaign: CRIoSitesS1 .. S8, apart from the NSDF misn01..18 files
+        digits = "S" + digits
     module = f"CRIoSites{digits}"
     out = Path(args.out) if args.out else ROOT / "Scripts" / f"{module}.lua"
 

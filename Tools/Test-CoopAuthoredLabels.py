@@ -90,3 +90,43 @@ for mission, labels in TARGETS.items():
 if failures:
     print("\n".join(failures)); sys.exit(1)
 print(f"co-op authored target labels are present and unique in their BZNs: {checked} labels")
+
+# CCA (Soviet) campaign, misns1..misns8: the faithful scripts look objects up by label
+# (GetHandle), including inside the disabled "cut" blocks that are to be restored, so every
+# looked-up label must be declared exactly once on a map object (path labels do not count) in
+# the co-op BZN. These lookups are absent from the stock 1.5 BZN (cut content, nothing to find):
+CCA_CUT_MISSING = {"misns1": {"geyser2"}, "misns2": {"navmine"}}
+cca_failures = []
+cca_checked = 0
+for n in range(1, 9):
+    mission = f"misns{n}"
+    text = (ROOT / "Missions" / f"{mission}cr.bzn").read_text(encoding="latin-1").replace("\r\n", "\n")
+    header, *blocks = text.split("[GameObject]\n")
+    blocks[-1] = re.split(r"(?m)^(?=name = MultSTMission$)", blocks[-1], maxsplit=1)[0]
+    objects = "\n".join(blocks)
+    if f"msn_filename = {mission}cr.bzn\n" not in header:
+        cca_failures.append(f"{mission}: msn_filename is not {mission}cr.bzn")
+    if "name = MultSTMission\n" not in text:
+        cca_failures.append(f"{mission}: mission class is not MultSTMission")
+    # Guest teams 2-4 hold only the four start buoys; the enemy is team 5.
+    for team in "1234":
+        if len(re.findall(rf"(?m)^label = coop_spawn{team}$", objects)) != 1:
+            cca_failures.append(f"{mission}: team {team} start buoy missing or duplicated")
+    for block in blocks:
+        if "label = coop_spawn" in block:
+            continue
+        if re.search(r"(?m)^team \[1\] =\n[234]$", block):
+            found = re.search(r"(?m)^label = (.*)$", block)
+            cca_failures.append(f"{mission}: authored object left on a guest team: {found.group(1) if found else '?'}")
+    script = (ROOT / "Scripts" / f"{mission}.lua").read_text(encoding="utf-8", errors="replace")
+    for label in sorted(set(re.findall(r'GetHandle\s*\(\s*"([^"]+)"', script))):
+        count = len(re.findall(rf"(?m)^label = {re.escape(label)}$", objects))
+        cca_checked += 1
+        if label in CCA_CUT_MISSING.get(mission, ()):
+            if count != 0:
+                cca_failures.append(f"{mission}: {label} is now in the BZN; drop it from CCA_CUT_MISSING")
+        elif count != 1:
+            cca_failures.append(f"{mission}: GetHandle label {label} occurs {count} times on map objects")
+if cca_failures:
+    print("\n".join(cca_failures)); sys.exit(1)
+print(f"CCA co-op BZN labels, teams and spawn buoys are consistent: {cca_checked} labels in 8 maps")

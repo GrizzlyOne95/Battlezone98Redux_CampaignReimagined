@@ -17,7 +17,7 @@ offline/co-op Lua under MultSTMission:
     pushed misn05's team 3/4 starts far away).
 
 Usage:
-  python Tools/Build-CoopMap.py --mission misn06|...|misn14 [--source FILE] [--toolbox DIR]
+  python Tools/Build-CoopMap.py --mission misn06|...|misn18|misns1|...|misns8 [--source FILE] [--toolbox DIR]
 
 misn13: the 1.5 BZN is a mid-play snapshot, so the co-op map also drops the 133 unnamed runtime unit
 paths (the 14 named paths stay), clears the commands the snapshot had already issued to units
@@ -64,6 +64,10 @@ RETEAM_LABELS = {
 # misn13: strip the snapshot (mid-play) state out of the shipped map.
 STRIP_UNNAMED_PATHS = {"misn13"}
 CLEAR_COMMANDS = {"misn13"}
+# misns3/4/8 (CCA campaign): a few units were saved mid-drive (a recycler at 4.8 m/s with a GOTO,
+# the NSDF recycler at 16.6 m/s). Zero the order and motion of objects moving faster than this
+# (m/s) only; the turrets' stock `what` values and the small settling drift stay as authored.
+CLEAR_MOVING = {"misns3": 1.0, "misns4": 1.0, "misns8": 1.0}
 # Objects whose authored label is shared: (old label, posit_x, posit_z, new label). Matched by
 # position (+/- 2 m) because GetHandle(label) on a duplicate is ambiguous.
 #   misn13: three svtank wingmen on DEFEND beside the artillery pad all say "svtank0_wingman"
@@ -74,7 +78,11 @@ RELABEL = {"misn13": (
     ("svtank8_wingman", 1229.0, 100424.0, "artil_escort3"),
     ("svtank3_wingman", 1374.0, 100401.0, "cca_reserve1"),
     ("svtank0_wingman", 1357.0, 100389.0, "cca_reserve2"),
-)}
+),
+    # misns1: two geysers share "eggeizr10_geyser"; the DLL's GetHandle wants the one at the NSDF
+    # Colorado's outpost (3869.6, 99970.6, first in the BZN). The other, far to the west, is renamed.
+    "misns1": (("eggeizr10_geyser", 2830.13, 100510.0, "eggeizr10_geyser_b"),),
+}
 BUOY_SPACING = 25.0
 BUOY_ADDR_BASE = 0x3001
 
@@ -317,6 +325,14 @@ def build(text: str, mission: str) -> str:
         objects = [clear_snapshot_state(b) for b in objects]
         print(f"cleared the snapshot order/motion of {cleared} objects")
 
+    if mission in CLEAR_MOVING:
+        for i, b in enumerate(objects):
+            mag = re.search(r"^ v_mag \[1\] =\n(\S+)$", b, re.M)
+            if mag and float(mag.group(1)) > CLEAR_MOVING[mission]:
+                lab = re.search(r"^label = (.*)$", b, re.M)
+                print("cleared snapshot motion of", lab.group(1) if lab else "?", "v_mag", mag.group(1))
+                objects[i] = clear_snapshot_state(b)
+
     if mission in STRIP_UNNAMED_PATHS:
         tail, kept, dropped = strip_unnamed_paths(tail)
         print(f"removed {dropped} unnamed runtime paths; kept {kept} named paths")
@@ -326,12 +342,20 @@ def build(text: str, mission: str) -> str:
         team = re.search(r"^team \[1\] =\n(\d+)$", block, re.M)
         if team and int(team.group(1)) == AUTHORED_ENEMY_TEAM:
             block = re.sub(r"^team \[1\] =\n2$", f"team [1] =\n{ENEMY_TEAM}", block, count=1, flags=re.M)
-            block, n = re.subn(r"^perceivedTeam \[1\] =\n2$", f"perceivedTeam [1] =\n{ENEMY_TEAM}",
-                               block, count=1, flags=re.M)
-            if n != 1:
-                raise SystemExit(f"object {i} has no perceivedTeam 2")
+            # perceivedTeam 2 follows the enemy; -1 (unset, misns4) or a disguise as another
+            # team (misns6 abcafe8 perceived 1) stays as authored.
+            if not re.search(r"^perceivedTeam \[1\] =\n-?\d+$", block, re.M):
+                raise SystemExit(f"object {i} has no perceivedTeam")
+            block = re.sub(r"^perceivedTeam \[1\] =\n2$", f"perceivedTeam [1] =\n{ENEMY_TEAM}",
+                           block, count=1, flags=re.M)
             objects[i] = block
             moved += 1
+        elif team and re.search(r"^perceivedTeam \[1\] =\n2$", block, re.M):
+            # misns7: player-team towers/depots disguised as the enemy (SetPerceivedTeam(x, 2) in
+            # the DLL). Team 2 is a guest slot in co-op, so they disguise as the enemy team 5.
+            objects[i] = re.sub(r"^perceivedTeam \[1\] =\n2$", f"perceivedTeam [1] =\n{ENEMY_TEAM}",
+                                block, count=1, flags=re.M)
+            print("disguise perceivedTeam 2 -> 5 on", re.search(r"^label = (.*)$", block, re.M).group(1))
 
     player = next(b for b in objects if re.search(r"^isUser \[1\] =\n1$", b, re.M))
     px, py, pz = (field(player, f"posit_{a}") for a in "xyz")
@@ -373,7 +397,7 @@ def build(text: str, mission: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--mission", default="misn06", help="mission stem: misn06 .. misn14")
+    parser.add_argument("--mission", default="misn06", help="mission stem: misn06 .. misn18, misns1 .. misns8")
     parser.add_argument("--source", type=Path)
     parser.add_argument("--toolbox", type=Path, default=DEFAULT_TOOLBOX)
     parser.add_argument("--output", type=Path)

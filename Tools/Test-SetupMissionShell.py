@@ -176,4 +176,59 @@ for runtime in expected.values():
         f"Workshop required-files list missing {runtime!r}"
     )
 
+# Soviet (CCA) campaign listing: a second campaign ini beside crcampgn.ini. The stem stays within
+# the 16-character menu resource limit and the mission planets drive the weather director.
+cca_ini_path = ROOT / "Config" / "crcca.ini"
+cca_des_path = ROOT / "crcca.des"
+cca_parser = configparser.ConfigParser()
+cca_parser.optionxform = str
+cca_parser.read(cca_ini_path, encoding="utf-8")
+assert len(cca_ini_path.stem) <= 16 and len(cca_des_path.stem) <= 16
+assert cca_parser["DESCRIPTION"]["missionName"] == '"CR Soviet"'
+assert cca_parser["WORKSHOP"]["mapType"] == '"campaign"'
+assert [s for s in cca_parser.sections() if s.startswith("MISSION")] == [f"MISSION{i}" for i in range(1, 9)]
+cca_planets = ["venus", "venus", "io", "io", "titan", "titan", "titan", "titan"]
+cca_maps = []
+for index, planet in enumerate(cca_planets, start=1):
+    section = cca_parser[f"MISSION{index}"]
+    filename = section["missionBZN"].strip('"')
+    assert filename == f"misns{index}cr.bzn"
+    assert section["missionName"].strip('"')
+    assert section["planet"].strip('"') == planet
+    cca_maps.append(filename)
+    stem = f"misns{index}cr"
+    bzn_text = (ROOT / "Missions" / filename).read_text(encoding="utf-8")
+    assert "name = MultSTMission\n" in bzn_text
+    assert f"msn_filename = {filename}\n" in bzn_text
+    # Terrain keeps the stock stem (misnsN), named by the BZN.
+    assert f"TerrainName = misns{index}\n" in bzn_text
+    for extension in ("trn", "hg2", "mat", "lgt"):
+        assert (ROOT / "Missions" / f"misns{index}.{extension}").is_file(), f"misns{index} terrain {extension}"
+    assert (ROOT / "Missions" / f"{stem}.vxt").read_text(encoding="ascii").strip()
+    assert (ROOT / "Assets" / "Graphics" / f"{stem}.bmp").read_bytes()[:2] == b"BM"
+    mp = configparser.ConfigParser()
+    mp.optionxform = str
+    mp.read(ROOT / "Config" / f"{stem}.ini", encoding="utf-8")
+    assert mp["WORKSHOP"]["mapType"] == '"multiplayer"'
+    assert (mp["MULTIPLAYER"]["minPlayers"], mp["MULTIPLAYER"]["maxPlayers"], mp["MULTIPLAYER"]["gameType"]) == ('"2"', '"4"', '"S"')
+    blurb = (ROOT / f"{stem}.mpdes").read_bytes()
+    assert len(blurb) <= 300 and b"\r\n" in blurb, f"{stem}.mpdes must be <= 300 bytes with CRLF"
+    site_prefix = {"venus": "CRVenusSites", "io": "CRIoSites", "titan": "CRTitanSites"}[cca_planets[index - 1]]
+    assert (ROOT / "Scripts" / f"{site_prefix}S{index}.lua").is_file(), f"weather sites for misns{index}"
+assert_fits_menu_box(cca_des_path)
+assert (ROOT / "Assets" / "Graphics" / "crcca.bmp").read_bytes()[:2] == b"BM"
+
+# Once the CCA co-op scripts exist, the shipped lock and the Workshop required-files list must
+# carry the listing and every map and script (a stale lock fails Workshop staging).
+if all((ROOT / "Scripts" / f"misns{i}cr.lua").is_file() for i in range(1, 9)):
+    for filename in cca_maps:
+        assert entries.get("Missions\\" + filename) == filename, f"lock missing {filename}"
+        lua_name = str(Path(filename).with_suffix(".lua"))
+        assert entries.get("Scripts\\" + lua_name) == lua_name, f"lock missing {lua_name}"
+    assert entries.get(r"Config\crcca.ini") == "crcca.ini"
+    assert entries.get("crcca.des") == "crcca.des"
+    assert entries.get(r"Assets\Graphics\crcca.bmp") == "crcca.bmp"
+    for runtime in ("crcca.ini", "crcca.des", "crcca.bmp"):
+        assert f'"{runtime}"' in manager, f"Workshop required-files list missing {runtime!r}"
+
 print("Setup mission shell tests passed")
