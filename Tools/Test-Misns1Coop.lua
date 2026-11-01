@@ -183,7 +183,7 @@ heardAll(p, "misns114.wav")
 check(F.count(p[1], "Goto", COLORADO) >= 1, "Colorado is ordered to retreat by the leader")
 guestsPassive(p)
 F.nearTo(COLORADO, "eggeizr10_geyser", 10, 0); F.run(2)
-check(m.coloradosafe and F.count(p[1], "SetAIP", "misn09.aip") == 1 and F.last(p[1], "SetAIP")[3] == 5, "misn09.aip is handed to team 5")
+check(m.coloradosafe and F.count(p[1], "SetAIP", "crns1a.aip") == 1 and F.last(p[1], "SetAIP")[3] == 5, "misn09.aip is replaced by the American crns1a.aip for team 5")
 for i = 1, 4 do check(F.count(p[i], "SetObjectiveOn") >= 3, "objective markers reach peer " .. i) end
 heardAll(p, "misns106.wav")
 -- wave dispatch: aw1 (tank + two fighters) attack the Soviet recycler together, extras included
@@ -251,7 +251,7 @@ end
 -- ------------------------------------------------------------------ shared audio, objectives, results
 w, p, m = setup(4, {})
 F.kill(COLORADO); F.run(2)
-check(m.safety1 and F.count(p[1], "SetAIP", "misn14.aip") == 1 and F.last(p[1], "SetAIP")[3] == 5, "misn14.aip is handed to team 5")
+check(m.safety1 and F.count(p[1], "SetAIP", "crns1b.aip") == 1 and F.last(p[1], "SetAIP")[3] == 5, "misn14.aip is replaced by the American crns1b.aip for team 5")
 heardAll(p, "misns105.wav")
 F.kill(MUF); F.run(1); F.kill(SILO); F.run(1)
 for i = 1, 4 do check(F.heard(p[i], "misns108.wav") and F.heard(p[i], "misns107.wav"), "destruction lines on peer " .. i) end

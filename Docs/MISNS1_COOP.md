@@ -27,7 +27,8 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 Only the authority (host, or the offline player) runs the body; guests only present (`Update` returns before the
 body on guests). `SetAIControl(5, true)` runs once at chunk load; `SetAIP` only inside the body's `Update`.
-`misn09.aip` / `misn14.aip` are issued with team 5.
+`misn09.aip` / `misn14.aip` are issued with team 5, and the CR layer swaps them for `crns1a.aip` / `crns1b.aip`
+(see stock bugs below).
 
 The body never reads the player's ship: every trigger is NPC against NPC (Colorado, the walker, the cavalry,
 `GetNearestEnemy(colorado)`). The nearest-/farthest-human wrapper (`PLAYERS` token + `WrapDistance`) is therefore
@@ -116,6 +117,12 @@ Skipped, with the reason:
   the runtime coalesces a `ClearObjectives`/`AddObjective` rebuild and publishes it only when the list changed.
 - Audio: no stock-line substitution is needed (every line the body names has a subtitle in `Text/`);
   `audioSubstitute` is empty. Which wavs ship in every Redux language archive was not checked from this tree.
+- The enemy base never rebuilt anything (reported by the owner: no AIP activity while the player must destroy the
+  base factory). The stock body loads `misn09.aip` and `misn14.aip`, which are Soviet plans: every build item is an
+  `sv*` unit or structure, and the American factory and recycler on this map cannot build those. The CR layer maps
+  them to `ODF/crns1a.aip` and `ODF/crns1b.aip`, byte copies of the stock plans with only the build items switched to
+  their American counterparts (`svscav`->`avscav`, `svturr`->`avturr`, `svfigh`->`avfigh`, `svtank`->`avtank`,
+  `svrecy`/`svmuf`/`svslf`->`avrecy`/`avmuf`/`avslf`). Priorities, counts and the building-match lists are unchanged.
 - The body already carries its own documented port fixes (see `MISNS1_SOURCE_PORT.md`).
 
 ## Weather: Venus
@@ -161,7 +168,7 @@ The workflow `.github/workflows/campaign-validation.yml` is not yet wired to run
 1. Cavalry arrives out of sight with 2-4 humans; extras follow the same route.
 2. Opening film: guests see the same shots; all cameras balanced afterwards.
 3. Loss shot holds and ends with the result on every peer.
-4. `misn09.aip` / `misn14.aip` actually build and send units for team 5; wave dispatch does not double-order them.
+4. `crns1a.aip` / `crns1b.aip` (the American replacements for `misn09.aip` / `misn14.aip`) actually build and send units for team 5; wave dispatch does not double-order them.
 5. Walker cut-off still works with several humans (ordering the shared walker).
 6. Venus sky renders on guests; no weather error in the log.
 7. Objective list stable (no flicker) after both outpost structures fall.

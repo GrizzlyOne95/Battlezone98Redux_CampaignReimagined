@@ -84,6 +84,13 @@ unused = set(paths) - used - cut_paths
 for name in sorted(unused):
     assert "`" + name + "`" in doc, "undocumented unused map path: " + name
 assert "geyser2" not in objects, "geyser2 does not exist in this map (the lookup is restored but stays nil)"
+# The stock body loads Soviet plans for an American base; the CR layer swaps in American copies.
+coop = (ROOT / "Scripts/misns1cr.lua").read_text(encoding="utf-8")
+for stock, plan in (("misn09.aip", "crns1a.aip"), ("misn14.aip", "crns1b.aip")):
+    assert '["%s"] = "%s"' % (stock, plan) in coop, "misns1cr maps %s to %s" % (stock, plan)
+    builds = re.findall(r'(?m)^\s*\d+,\s*"(\w+)"', (ROOT / "ODF" / plan).read_text(encoding="ascii"))
+    assert builds and all(b.startswith("av") for b in builds), plan + " builds only American units: " + str(builds)
+    assert "`%s`" % plan in doc, "the doc names " + plan
 for src in ("Docs/CCA_COOP_RUNTIME.md",):
     assert (ROOT / src).is_file(), src
 print("misns1 co-op contract passed: %d objects, %d paths, %d scripted path/label names, %s; %d cut paths absent"

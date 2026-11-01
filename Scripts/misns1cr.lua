@@ -211,6 +211,11 @@ local GetDistance = campaignRuntime and campaignRuntime.GetDistance or GetDistan
 local GetNearestEnemy = campaignRuntime and campaignRuntime.GetNearestEnemy or GetNearestEnemy
 local SetScrap = campaignRuntime and campaignRuntime.SetScrap or SetScrap
 local SetAIP = campaignRuntime and campaignRuntime.SetAIP or SetAIP
+-- Stock bug: the body loads the Soviet misn09/misn14 plans for the American base, whose factory cannot build any
+-- of their sv* items, so the enemy never rebuilt. crns1a/crns1b are the same plans with av* build items.
+local CR_AIP = { ["misn09.aip"] = "crns1a.aip", ["misn14.aip"] = "crns1b.aip" }
+local stockSetAIP = SetAIP
+SetAIP = function(name, team) return stockSetAIP(CR_AIP[name] or name, team) end
 local Goto = campaignRuntime and campaignRuntime.Goto or Goto
 local Follow = campaignRuntime and campaignRuntime.Follow or Follow
 local Attack = campaignRuntime and campaignRuntime.Attack or Attack
