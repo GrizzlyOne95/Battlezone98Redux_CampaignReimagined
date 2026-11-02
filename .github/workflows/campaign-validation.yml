@@ -522,3 +522,47 @@ jobs:
         run: |
           lua5.1 Tools/Test-Misns1.lua
           python Tools/Test-Misns1SourceParity.py
+      - name: Test misns1 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Misns1Coop.lua
+          lua5.1 Tools/Test-Misns1Presentation.lua
+          python Tools/Test-Misns1CoopSourceParity.py
+          python Tools/Test-Misns1CoopContract.py
+      - name: Test misns2 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Misns2Coop.lua
+          lua5.1 Tools/Test-Misns2Presentation.lua
+          python Tools/Test-Misns2CoopSourceParity.py
+          python Tools/Test-Misns2CoopContract.py
+      - name: Test misns8 co-op layer and map contract
+        run: |
+          lua5.1 Tools/Test-Misns8Coop.lua
+          python Tools/Test-Misns8CoopSourceParity.py
+          python Tools/Test-Misns8CoopContract.py
+      - name: Test misns7 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Misns7Coop.lua
+          lua5.1 Tools/Test-Misns7Presentation.lua
+          python Tools/Test-Misns7CoopSourceParity.py
+          python Tools/Test-Misns7CoopContract.py
+      - name: Test misns6 co-op layer and map contract
+        run: |
+          lua5.1 Tools/Test-Misns6Coop.lua
+          python Tools/Test-Misns6CoopSourceParity.py
+          python Tools/Test-Misns6CoopContract.py
+      - name: Test misns4 co-op layer and map contract
+        run: |
+          lua5.1 Tools/Test-Misns4Coop.lua
+          python Tools/Test-Misns4CoopSourceParity.py
+          python Tools/Test-Misns4CoopContract.py
+      - name: Test misns3 co-op layer and map contract
+        run: |
+          lua5.1 Tools/Test-Misns3Coop.lua
+          python Tools/Test-Misns3CoopSourceParity.py
+          python Tools/Test-Misns3CoopContract.py
+      - name: Test misns5 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Misns5Coop.lua
+          lua5.1 Tools/Test-Misns5Presentation.lua
+          python Tools/Test-Misns5CoopSourceParity.py
+          python Tools/Test-Misns5CoopContract.py
