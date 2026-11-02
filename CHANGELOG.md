@@ -11,6 +11,9 @@
   reinforcement-wave scaling proportional to player count, and Ganymede weather beats. `Scripts/chmisn08cr.lua`
   shadows its natives as chunk globals inside a private `setfenv` sandbox to stay under Lua 5.1's 60-upvalue limit
   while still restoring the real global table for the engine's own entry points (`Docs/CHMISN08_COOP.md`).
+- Port the stock Chinese campaign mission chmisn08 (the fort assault) to Lua as `Scripts/ch08.lua`, faithful to the
+  original `Chinese08Mission` logic: APC convoy capture, mag-mine power and comm tower timer, and the timed demolition
+  finale. Source parity and behaviour tests are in CI; see `Docs/CH08_LUA_PORT.md`. Single player only.
 - Black Dog co-op campaign: a new "CR Black Dog" campaign listing and multiplayer entries for `bdmisn01cr` through
   `bdmisn15cr` (2-4 players or offline), on co-op maps with the enemy on team 5, Black Dog starting rosters, Ganymede
   and Elysium terrain and Ganymede weather. Every mission wraps its faithful port the same way as the CCA campaign:
@@ -31,6 +34,8 @@
 - Port the stock Chinese campaign mission chmisn08 (the fort assault) to Lua as `Scripts/ch08.lua`, faithful to the
   original `Chinese08Mission` logic: APC convoy capture, mag-mine power and comm tower timer, and the timed demolition
   finale. Source parity and behaviour tests are in CI; see `Docs/CH08_LUA_PORT.md`. Single player only.
+- Ganymede and Elysium terrain now use the OpenShim terrain paint packs like Mars and the other worlds (the
+  evolve maps, Black Dog and Chinese campaigns); their DDS tile packs are removed from the payload.
 - Bundle OpenShim 1.0.0.66. The under-attack alert beep sounds again after the first match of a game session:
   OpenShim's alert cooldown is now reset when a mission ends, like the stock timer. The Sound Channels option
   description now names the voice cap.

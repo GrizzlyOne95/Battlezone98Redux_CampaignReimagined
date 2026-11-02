@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-11-02T09:57:53-06:00",
-  "count": 5204,
+  "generated": "2026-11-01T18:35:37-06:00",
+  "count": 5119,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -320,6 +320,42 @@
       "runtime": "crsetup.bmp"
     },
     {
+      "source": "Assets\\Graphics\\misn2bcr.bmp",
+      "runtime": "misn2bcr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misns1cr.bmp",
+      "runtime": "misns1cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misns2cr.bmp",
+      "runtime": "misns2cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misns3cr.bmp",
+      "runtime": "misns3cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misns4cr.bmp",
+      "runtime": "misns4cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misns5cr.bmp",
+      "runtime": "misns5cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misns6cr.bmp",
+      "runtime": "misns6cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misns7cr.bmp",
+      "runtime": "misns7cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\misns8cr.bmp",
+      "runtime": "misns8cr.bmp"
+    },
+    {
       "source": "Assets\\Graphics\\misn03cr.bmp",
       "runtime": "misn03cr.bmp"
     },
@@ -382,42 +418,6 @@
     {
       "source": "Assets\\Graphics\\misn18cr.bmp",
       "runtime": "misn18cr.bmp"
-    },
-    {
-      "source": "Assets\\Graphics\\misn2bcr.bmp",
-      "runtime": "misn2bcr.bmp"
-    },
-    {
-      "source": "Assets\\Graphics\\misns1cr.bmp",
-      "runtime": "misns1cr.bmp"
-    },
-    {
-      "source": "Assets\\Graphics\\misns2cr.bmp",
-      "runtime": "misns2cr.bmp"
-    },
-    {
-      "source": "Assets\\Graphics\\misns3cr.bmp",
-      "runtime": "misns3cr.bmp"
-    },
-    {
-      "source": "Assets\\Graphics\\misns4cr.bmp",
-      "runtime": "misns4cr.bmp"
-    },
-    {
-      "source": "Assets\\Graphics\\misns5cr.bmp",
-      "runtime": "misns5cr.bmp"
-    },
-    {
-      "source": "Assets\\Graphics\\misns6cr.bmp",
-      "runtime": "misns6cr.bmp"
-    },
-    {
-      "source": "Assets\\Graphics\\misns7cr.bmp",
-      "runtime": "misns7cr.bmp"
-    },
-    {
-      "source": "Assets\\Graphics\\misns8cr.bmp",
-      "runtime": "misns8cr.bmp"
     },
     {
       "source": "Assets\\LoadingScreens\\aload.png",
@@ -616,24 +616,24 @@
       "runtime": "apwrck.mesh"
     },
     {
-      "source": "Assets\\ModelFixes\\aspilo_fp.mesh",
-      "runtime": "aspilo_fp.mesh"
-    },
-    {
       "source": "Assets\\ModelFixes\\aspilo.mesh",
       "runtime": "aspilo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\aspilo_fp.mesh",
+      "runtime": "aspilo_fp.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\avapc.mesh",
       "runtime": "avapc.mesh"
     },
     {
-      "source": "Assets\\ModelFixes\\avartl_c.mesh",
-      "runtime": "avartl_c.mesh"
-    },
-    {
       "source": "Assets\\ModelFixes\\avartl.mesh",
       "runtime": "avartl.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avartl_c.mesh",
+      "runtime": "avartl_c.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\avcnst.mesh",
@@ -752,6 +752,10 @@
       "runtime": "avtest.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avturr.mesh",
+      "runtime": "avturr.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\avturr_c.mesh",
       "runtime": "avturr_c.mesh"
     },
@@ -760,16 +764,12 @@
       "runtime": "avturr_c.skeleton"
     },
     {
-      "source": "Assets\\ModelFixes\\avturr.mesh",
-      "runtime": "avturr.mesh"
+      "source": "Assets\\ModelFixes\\avwalk.mesh",
+      "runtime": "avwalk.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\avwalk_c.mesh",
       "runtime": "avwalk_c.mesh"
-    },
-    {
-      "source": "Assets\\ModelFixes\\avwalk.mesh",
-      "runtime": "avwalk.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\bbbarr.mesh",
@@ -844,32 +844,32 @@
       "runtime": "boltmine.mesh"
     },
     {
-      "source": "Assets\\ModelFixes\\bsheav_fp.mesh",
-      "runtime": "bsheav_fp.mesh"
-    },
-    {
       "source": "Assets\\ModelFixes\\bsheav.mesh",
       "runtime": "bsheav.mesh"
     },
     {
-      "source": "Assets\\ModelFixes\\bspilo_fp.mesh",
-      "runtime": "bspilo_fp.mesh"
+      "source": "Assets\\ModelFixes\\bsheav_fp.mesh",
+      "runtime": "bsheav_fp.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\bspilo.mesh",
       "runtime": "bspilo.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bspilo_fp.mesh",
+      "runtime": "bspilo_fp.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvapc.mesh",
       "runtime": "bvapc.mesh"
     },
     {
-      "source": "Assets\\ModelFixes\\bvartl_c.mesh",
-      "runtime": "bvartl_c.mesh"
-    },
-    {
       "source": "Assets\\ModelFixes\\bvartl.mesh",
       "runtime": "bvartl.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvartl_c.mesh",
+      "runtime": "bvartl_c.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\bvcnst.mesh",
@@ -952,16 +952,16 @@
       "runtime": "bvtank.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvturr.mesh",
+      "runtime": "bvturr.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvturr_c.mesh",
       "runtime": "bvturr_c.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\bvturr_c.skeleton",
       "runtime": "bvturr_c.skeleton"
-    },
-    {
-      "source": "Assets\\ModelFixes\\bvturr.mesh",
-      "runtime": "bvturr.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\bvwalk_c.mesh",
@@ -1244,12 +1244,12 @@
       "runtime": "cromine.skeleton"
     },
     {
-      "source": "Assets\\ModelFixes\\cspilo_fp.mesh",
-      "runtime": "cspilo_fp.mesh"
-    },
-    {
       "source": "Assets\\ModelFixes\\cspilo.mesh",
       "runtime": "cspilo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cspilo_fp.mesh",
+      "runtime": "cspilo_fp.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\cube_10x10x10.mesh",
@@ -1344,16 +1344,16 @@
       "runtime": "cvturr.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cvwalk.mesh",
+      "runtime": "cvwalk.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvwalk_c.mesh",
       "runtime": "cvwalk_c.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\cvwalk_c.skeleton",
       "runtime": "cvwalk_c.skeleton"
-    },
-    {
-      "source": "Assets\\ModelFixes\\cvwalk.mesh",
-      "runtime": "cvwalk.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\cvwalk.vdf",
@@ -1444,20 +1444,20 @@
       "runtime": "hbcerb.mesh"
     },
     {
-      "source": "Assets\\ModelFixes\\hbchar_v2.mesh",
-      "runtime": "hbchar_v2.mesh"
-    },
-    {
       "source": "Assets\\ModelFixes\\hbchar.mesh",
       "runtime": "hbchar.mesh"
     },
     {
-      "source": "Assets\\ModelFixes\\hbcrys_v2.mesh",
-      "runtime": "hbcrys_v2.mesh"
+      "source": "Assets\\ModelFixes\\hbchar_v2.mesh",
+      "runtime": "hbchar_v2.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\hbcrys.mesh",
       "runtime": "hbcrys.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hbcrys_v2.mesh",
+      "runtime": "hbcrys_v2.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\hbdayw.mesh",
@@ -1668,24 +1668,24 @@
       "runtime": "sscr_1.mesh"
     },
     {
-      "source": "Assets\\ModelFixes\\sspilo_fp.mesh",
-      "runtime": "sspilo_fp.mesh"
-    },
-    {
       "source": "Assets\\ModelFixes\\sspilo.mesh",
       "runtime": "sspilo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sspilo_fp.mesh",
+      "runtime": "sspilo_fp.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\svapc.mesh",
       "runtime": "svapc.mesh"
     },
     {
-      "source": "Assets\\ModelFixes\\svartl_c.mesh",
-      "runtime": "svartl_c.mesh"
-    },
-    {
       "source": "Assets\\ModelFixes\\svartl.mesh",
       "runtime": "svartl.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svartl_c.mesh",
+      "runtime": "svartl_c.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\svcnst.mesh",
@@ -1760,6 +1760,10 @@
       "runtime": "svtank.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\svturr.mesh",
+      "runtime": "svturr.mesh"
+    },
+    {
       "source": "Assets\\ModelFixes\\svturr_c.mesh",
       "runtime": "svturr_c.mesh"
     },
@@ -1768,12 +1772,12 @@
       "runtime": "svturr_c.skeleton"
     },
     {
-      "source": "Assets\\ModelFixes\\svturr.mesh",
-      "runtime": "svturr.mesh"
-    },
-    {
       "source": "Assets\\ModelFixes\\svturr.vdf",
       "runtime": "svturr.vdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svwalk.mesh",
+      "runtime": "svwalk.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\svwalk_c.mesh",
@@ -1782,10 +1786,6 @@
     {
       "source": "Assets\\ModelFixes\\svwalk_c.skeleton",
       "runtime": "svwalk_c.skeleton"
-    },
-    {
-      "source": "Assets\\ModelFixes\\svwalk.mesh",
-      "runtime": "svwalk.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\svwalk.vdf",
@@ -3636,12 +3636,12 @@
       "runtime": "abshld_N.dds"
     },
     {
-      "source": "Assets\\Textures\\absilo_N.dds",
-      "runtime": "absilo_N.dds"
-    },
-    {
       "source": "Assets\\Textures\\absilo003_ACT.dds",
       "runtime": "absilo003_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\absilo_N.dds",
+      "runtime": "absilo_N.dds"
     },
     {
       "source": "Assets\\Textures\\abspow_ACT.dds",
@@ -3720,16 +3720,16 @@
       "runtime": "aspilo2_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\avapc_cockpit_D.dds",
-      "runtime": "avapc_cockpit_D.dds"
-    },
-    {
       "source": "Assets\\Textures\\avapc00_ACT.dds",
       "runtime": "avapc00_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\avapc01_ACT.dds",
       "runtime": "avapc01_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avapc_cockpit_D.dds",
+      "runtime": "avapc_cockpit_D.dds"
     },
     {
       "source": "Assets\\Textures\\avartl00_ACT.dds",
@@ -3744,16 +3744,16 @@
       "runtime": "avcnst00_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\avfigh_D.dds",
-      "runtime": "avfigh_D.dds"
-    },
-    {
       "source": "Assets\\Textures\\avfigh00_ACT.dds",
       "runtime": "avfigh00_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\avfigh01_ACT.dds",
       "runtime": "avfigh01_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avfigh_D.dds",
+      "runtime": "avfigh_D.dds"
     },
     {
       "source": "Assets\\Textures\\avhaul00_ACT.dds",
@@ -3820,16 +3820,16 @@
       "runtime": "avsav_d.dds"
     },
     {
+      "source": "Assets\\Textures\\avsav2_d.dds",
+      "runtime": "avsav2_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\avsav_e.dds",
       "runtime": "avsav_e.dds"
     },
     {
       "source": "Assets\\Textures\\avsav_s.dds",
       "runtime": "avsav_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\avsav2_d.dds",
-      "runtime": "avsav2_d.dds"
     },
     {
       "source": "Assets\\Textures\\avscav_00_ACT.dds",
@@ -3872,16 +3872,16 @@
       "runtime": "avwalk01_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\bbbarr_N.dds",
-      "runtime": "bbbarr_N.dds"
-    },
-    {
       "source": "Assets\\Textures\\bbbarr00_ACT.dds",
       "runtime": "bbbarr00_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\bbbarr2_ACT.dds",
       "runtime": "bbbarr2_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bbbarr_N.dds",
+      "runtime": "bbbarr_N.dds"
     },
     {
       "source": "Assets\\Textures\\bbcafe_ACT.dds",
@@ -3896,16 +3896,16 @@
       "runtime": "bbcom2_n.dds"
     },
     {
+      "source": "Assets\\Textures\\bbcomm2_ACT.dds",
+      "runtime": "bbcomm2_ACT.dds"
+    },
+    {
       "source": "Assets\\Textures\\bbcomm_ACT.dds",
       "runtime": "bbcomm_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\bbcomm_N.dds",
       "runtime": "bbcomm_N.dds"
-    },
-    {
-      "source": "Assets\\Textures\\bbcomm2_ACT.dds",
-      "runtime": "bbcomm2_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\bbhang_ACT.dds",
@@ -3916,16 +3916,16 @@
       "runtime": "bbhang_N.dds"
     },
     {
+      "source": "Assets\\Textures\\bbhqcp00_ACT.dds",
+      "runtime": "bbhqcp00_ACT.dds"
+    },
+    {
       "source": "Assets\\Textures\\bbhqcp_d.dds",
       "runtime": "bbhqcp_d.dds"
     },
     {
       "source": "Assets\\Textures\\bbhqcp_N.dds",
       "runtime": "bbhqcp_N.dds"
-    },
-    {
-      "source": "Assets\\Textures\\bbhqcp00_ACT.dds",
-      "runtime": "bbhqcp00_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\bblpad_ACT.dds",
@@ -3960,12 +3960,12 @@
       "runtime": "bbshld_N.dds"
     },
     {
-      "source": "Assets\\Textures\\bbsilo_N.dds",
-      "runtime": "bbsilo_N.dds"
-    },
-    {
       "source": "Assets\\Textures\\bbsilo00_ACT.dds",
       "runtime": "bbsilo00_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bbsilo_N.dds",
+      "runtime": "bbsilo_N.dds"
     },
     {
       "source": "Assets\\Textures\\bbspow_ACT.dds",
@@ -3984,12 +3984,12 @@
       "runtime": "bbsupp_N.dds"
     },
     {
-      "source": "Assets\\Textures\\bbtowe_N.dds",
-      "runtime": "bbtowe_N.dds"
-    },
-    {
       "source": "Assets\\Textures\\bbtowe00_ACT.dds",
       "runtime": "bbtowe00_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bbtowe_N.dds",
+      "runtime": "bbtowe_N.dds"
     },
     {
       "source": "Assets\\Textures\\bbwpow_ACT.dds",
@@ -4092,16 +4092,16 @@
       "runtime": "bvrckt01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\bvrdev01_ACT.dds",
+      "runtime": "bvrdev01_ACT.dds"
+    },
+    {
       "source": "Assets\\Textures\\bvrdev_ACT.dds",
       "runtime": "bvrdev_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\bvrdev_d.dds",
       "runtime": "bvrdev_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\bvrdev01_ACT.dds",
-      "runtime": "bvrdev01_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\bvrecy00_ACT.dds",
@@ -4224,12 +4224,12 @@
       "runtime": "cbport_N.dds"
     },
     {
-      "source": "Assets\\Textures\\cbshld_N.dds",
-      "runtime": "cbshld_N.dds"
-    },
-    {
       "source": "Assets\\Textures\\cbshld00_ACT.dds",
       "runtime": "cbshld00_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cbshld_N.dds",
+      "runtime": "cbshld_N.dds"
     },
     {
       "source": "Assets\\Textures\\CBSILO_ACT.dds",
@@ -4252,16 +4252,16 @@
       "runtime": "cbspow_N.dds"
     },
     {
+      "source": "Assets\\Textures\\cbsupp00_ACT.dds",
+      "runtime": "cbsupp00_ACT.dds"
+    },
+    {
       "source": "Assets\\Textures\\CBSUPP_ACT.dds",
       "runtime": "CBSUPP_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\cbsupp_N.dds",
       "runtime": "cbsupp_N.dds"
-    },
-    {
-      "source": "Assets\\Textures\\cbsupp00_ACT.dds",
-      "runtime": "cbsupp00_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\cbtowe_ACT.dds",
@@ -4700,678 +4700,6 @@
       "runtime": "crgrass.png"
     },
     {
-      "source": "Assets\\Textures\\crhd_elysium_el00sa0_d.dds",
-      "runtime": "crhd_elysium_el00sa0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el00sa0_e.dds",
-      "runtime": "crhd_elysium_el00sa0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el00sa0_n.dds",
-      "runtime": "crhd_elysium_el00sa0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el00sa0_s.dds",
-      "runtime": "crhd_elysium_el00sa0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el00sb0_d.dds",
-      "runtime": "crhd_elysium_el00sb0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el00sb0_e.dds",
-      "runtime": "crhd_elysium_el00sb0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el00sb0_n.dds",
-      "runtime": "crhd_elysium_el00sb0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el00sb0_s.dds",
-      "runtime": "crhd_elysium_el00sb0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el00sc0_d.dds",
-      "runtime": "crhd_elysium_el00sc0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el00sc0_e.dds",
-      "runtime": "crhd_elysium_el00sc0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el00sc0_n.dds",
-      "runtime": "crhd_elysium_el00sc0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el00sc0_s.dds",
-      "runtime": "crhd_elysium_el00sc0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el01ca0_d.dds",
-      "runtime": "crhd_elysium_el01ca0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el01ca0_e.dds",
-      "runtime": "crhd_elysium_el01ca0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el01ca0_n.dds",
-      "runtime": "crhd_elysium_el01ca0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el01ca0_s.dds",
-      "runtime": "crhd_elysium_el01ca0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el01da0_d.dds",
-      "runtime": "crhd_elysium_el01da0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el01da0_e.dds",
-      "runtime": "crhd_elysium_el01da0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el01da0_n.dds",
-      "runtime": "crhd_elysium_el01da0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el01da0_s.dds",
-      "runtime": "crhd_elysium_el01da0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el02ca0_d.dds",
-      "runtime": "crhd_elysium_el02ca0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el02ca0_e.dds",
-      "runtime": "crhd_elysium_el02ca0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el02ca0_n.dds",
-      "runtime": "crhd_elysium_el02ca0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el02ca0_s.dds",
-      "runtime": "crhd_elysium_el02ca0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el02da0_d.dds",
-      "runtime": "crhd_elysium_el02da0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el02da0_e.dds",
-      "runtime": "crhd_elysium_el02da0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el02da0_n.dds",
-      "runtime": "crhd_elysium_el02da0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el02da0_s.dds",
-      "runtime": "crhd_elysium_el02da0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04ca0_d.dds",
-      "runtime": "crhd_elysium_el04ca0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04ca0_e.dds",
-      "runtime": "crhd_elysium_el04ca0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04ca0_n.dds",
-      "runtime": "crhd_elysium_el04ca0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04ca0_s.dds",
-      "runtime": "crhd_elysium_el04ca0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04da0_d.dds",
-      "runtime": "crhd_elysium_el04da0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04da0_e.dds",
-      "runtime": "crhd_elysium_el04da0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04da0_n.dds",
-      "runtime": "crhd_elysium_el04da0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04da0_s.dds",
-      "runtime": "crhd_elysium_el04da0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04sa0_d.dds",
-      "runtime": "crhd_elysium_el04sa0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04sa0_e.dds",
-      "runtime": "crhd_elysium_el04sa0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04sa0_n.dds",
-      "runtime": "crhd_elysium_el04sa0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04sa0_s.dds",
-      "runtime": "crhd_elysium_el04sa0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04sb0_d.dds",
-      "runtime": "crhd_elysium_el04sb0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04sb0_e.dds",
-      "runtime": "crhd_elysium_el04sb0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04sb0_n.dds",
-      "runtime": "crhd_elysium_el04sb0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el04sb0_s.dds",
-      "runtime": "crhd_elysium_el04sb0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el11sa0_d.dds",
-      "runtime": "crhd_elysium_el11sa0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el11sa0_e.dds",
-      "runtime": "crhd_elysium_el11sa0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el11sa0_n.dds",
-      "runtime": "crhd_elysium_el11sa0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el11sa0_s.dds",
-      "runtime": "crhd_elysium_el11sa0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el11sb0_d.dds",
-      "runtime": "crhd_elysium_el11sb0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el11sb0_e.dds",
-      "runtime": "crhd_elysium_el11sb0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el11sb0_n.dds",
-      "runtime": "crhd_elysium_el11sb0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el11sb0_s.dds",
-      "runtime": "crhd_elysium_el11sb0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el11sc0_d.dds",
-      "runtime": "crhd_elysium_el11sc0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el11sc0_e.dds",
-      "runtime": "crhd_elysium_el11sc0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el11sc0_n.dds",
-      "runtime": "crhd_elysium_el11sc0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el11sc0_s.dds",
-      "runtime": "crhd_elysium_el11sc0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el12ca0_d.dds",
-      "runtime": "crhd_elysium_el12ca0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el12ca0_e.dds",
-      "runtime": "crhd_elysium_el12ca0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el12ca0_n.dds",
-      "runtime": "crhd_elysium_el12ca0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el12ca0_s.dds",
-      "runtime": "crhd_elysium_el12ca0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el12da0_d.dds",
-      "runtime": "crhd_elysium_el12da0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el12da0_e.dds",
-      "runtime": "crhd_elysium_el12da0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el12da0_n.dds",
-      "runtime": "crhd_elysium_el12da0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el12da0_s.dds",
-      "runtime": "crhd_elysium_el12da0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el22sa0_d.dds",
-      "runtime": "crhd_elysium_el22sa0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el22sa0_e.dds",
-      "runtime": "crhd_elysium_el22sa0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el22sa0_n.dds",
-      "runtime": "crhd_elysium_el22sa0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el22sa0_s.dds",
-      "runtime": "crhd_elysium_el22sa0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el22sb0_d.dds",
-      "runtime": "crhd_elysium_el22sb0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el22sb0_e.dds",
-      "runtime": "crhd_elysium_el22sb0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el22sb0_n.dds",
-      "runtime": "crhd_elysium_el22sb0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el22sb0_s.dds",
-      "runtime": "crhd_elysium_el22sb0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el22sc0_d.dds",
-      "runtime": "crhd_elysium_el22sc0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el22sc0_e.dds",
-      "runtime": "crhd_elysium_el22sc0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el22sc0_n.dds",
-      "runtime": "crhd_elysium_el22sc0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el22sc0_s.dds",
-      "runtime": "crhd_elysium_el22sc0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el33sa0_d.dds",
-      "runtime": "crhd_elysium_el33sa0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el33sa0_e.dds",
-      "runtime": "crhd_elysium_el33sa0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el33sa0_n.dds",
-      "runtime": "crhd_elysium_el33sa0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_elysium_el33sa0_s.dds",
-      "runtime": "crhd_elysium_el33sa0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga00sa0_d.dds",
-      "runtime": "crhd_ganymede_ga00sa0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga00sa0_e.dds",
-      "runtime": "crhd_ganymede_ga00sa0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga00sa0_n.dds",
-      "runtime": "crhd_ganymede_ga00sa0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga00sa0_s.dds",
-      "runtime": "crhd_ganymede_ga00sa0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga00sb0_d.dds",
-      "runtime": "crhd_ganymede_ga00sb0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga00sb0_e.dds",
-      "runtime": "crhd_ganymede_ga00sb0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga00sb0_n.dds",
-      "runtime": "crhd_ganymede_ga00sb0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga00sb0_s.dds",
-      "runtime": "crhd_ganymede_ga00sb0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga00sc0_d.dds",
-      "runtime": "crhd_ganymede_ga00sc0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga00sc0_e.dds",
-      "runtime": "crhd_ganymede_ga00sc0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga00sc0_n.dds",
-      "runtime": "crhd_ganymede_ga00sc0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga00sc0_s.dds",
-      "runtime": "crhd_ganymede_ga00sc0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga01ca0_d.dds",
-      "runtime": "crhd_ganymede_ga01ca0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga01ca0_e.dds",
-      "runtime": "crhd_ganymede_ga01ca0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga01ca0_n.dds",
-      "runtime": "crhd_ganymede_ga01ca0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga01ca0_s.dds",
-      "runtime": "crhd_ganymede_ga01ca0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga01da0_d.dds",
-      "runtime": "crhd_ganymede_ga01da0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga01da0_e.dds",
-      "runtime": "crhd_ganymede_ga01da0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga01da0_n.dds",
-      "runtime": "crhd_ganymede_ga01da0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga01da0_s.dds",
-      "runtime": "crhd_ganymede_ga01da0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga04ca0_d.dds",
-      "runtime": "crhd_ganymede_ga04ca0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga04ca0_e.dds",
-      "runtime": "crhd_ganymede_ga04ca0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga04ca0_n.dds",
-      "runtime": "crhd_ganymede_ga04ca0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga04ca0_s.dds",
-      "runtime": "crhd_ganymede_ga04ca0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga04da0_d.dds",
-      "runtime": "crhd_ganymede_ga04da0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga04da0_e.dds",
-      "runtime": "crhd_ganymede_ga04da0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga04da0_n.dds",
-      "runtime": "crhd_ganymede_ga04da0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga04da0_s.dds",
-      "runtime": "crhd_ganymede_ga04da0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga11sa0_d.dds",
-      "runtime": "crhd_ganymede_ga11sa0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga11sa0_e.dds",
-      "runtime": "crhd_ganymede_ga11sa0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga11sa0_n.dds",
-      "runtime": "crhd_ganymede_ga11sa0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga11sa0_s.dds",
-      "runtime": "crhd_ganymede_ga11sa0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga11sb0_d.dds",
-      "runtime": "crhd_ganymede_ga11sb0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga11sb0_e.dds",
-      "runtime": "crhd_ganymede_ga11sb0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga11sb0_n.dds",
-      "runtime": "crhd_ganymede_ga11sb0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga11sb0_s.dds",
-      "runtime": "crhd_ganymede_ga11sb0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga12ca0_d.dds",
-      "runtime": "crhd_ganymede_ga12ca0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga12ca0_e.dds",
-      "runtime": "crhd_ganymede_ga12ca0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga12ca0_n.dds",
-      "runtime": "crhd_ganymede_ga12ca0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga12ca0_s.dds",
-      "runtime": "crhd_ganymede_ga12ca0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga12da0_d.dds",
-      "runtime": "crhd_ganymede_ga12da0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga12da0_e.dds",
-      "runtime": "crhd_ganymede_ga12da0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga12da0_n.dds",
-      "runtime": "crhd_ganymede_ga12da0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga12da0_s.dds",
-      "runtime": "crhd_ganymede_ga12da0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga14ca0_d.dds",
-      "runtime": "crhd_ganymede_ga14ca0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga14ca0_e.dds",
-      "runtime": "crhd_ganymede_ga14ca0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga14ca0_n.dds",
-      "runtime": "crhd_ganymede_ga14ca0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga14ca0_s.dds",
-      "runtime": "crhd_ganymede_ga14ca0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga14da0_d.dds",
-      "runtime": "crhd_ganymede_ga14da0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga14da0_e.dds",
-      "runtime": "crhd_ganymede_ga14da0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga14da0_n.dds",
-      "runtime": "crhd_ganymede_ga14da0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga14da0_s.dds",
-      "runtime": "crhd_ganymede_ga14da0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga22sa0_d.dds",
-      "runtime": "crhd_ganymede_ga22sa0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga22sa0_e.dds",
-      "runtime": "crhd_ganymede_ga22sa0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga22sa0_n.dds",
-      "runtime": "crhd_ganymede_ga22sa0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga22sa0_s.dds",
-      "runtime": "crhd_ganymede_ga22sa0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga22sb0_d.dds",
-      "runtime": "crhd_ganymede_ga22sb0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga22sb0_e.dds",
-      "runtime": "crhd_ganymede_ga22sb0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga22sb0_n.dds",
-      "runtime": "crhd_ganymede_ga22sb0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga22sb0_s.dds",
-      "runtime": "crhd_ganymede_ga22sb0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga22sc0_d.dds",
-      "runtime": "crhd_ganymede_ga22sc0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga22sc0_e.dds",
-      "runtime": "crhd_ganymede_ga22sc0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga22sc0_n.dds",
-      "runtime": "crhd_ganymede_ga22sc0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga22sc0_s.dds",
-      "runtime": "crhd_ganymede_ga22sc0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga24ca0_d.dds",
-      "runtime": "crhd_ganymede_ga24ca0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga24ca0_e.dds",
-      "runtime": "crhd_ganymede_ga24ca0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga24ca0_n.dds",
-      "runtime": "crhd_ganymede_ga24ca0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga24ca0_s.dds",
-      "runtime": "crhd_ganymede_ga24ca0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga24da0_d.dds",
-      "runtime": "crhd_ganymede_ga24da0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga24da0_e.dds",
-      "runtime": "crhd_ganymede_ga24da0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga24da0_n.dds",
-      "runtime": "crhd_ganymede_ga24da0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga24da0_s.dds",
-      "runtime": "crhd_ganymede_ga24da0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga33sa0_d.dds",
-      "runtime": "crhd_ganymede_ga33sa0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga33sa0_e.dds",
-      "runtime": "crhd_ganymede_ga33sa0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga33sa0_n.dds",
-      "runtime": "crhd_ganymede_ga33sa0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga33sa0_s.dds",
-      "runtime": "crhd_ganymede_ga33sa0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga33sb0_d.dds",
-      "runtime": "crhd_ganymede_ga33sb0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga33sb0_e.dds",
-      "runtime": "crhd_ganymede_ga33sb0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga33sb0_n.dds",
-      "runtime": "crhd_ganymede_ga33sb0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga33sb0_s.dds",
-      "runtime": "crhd_ganymede_ga33sb0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga44sa0_d.dds",
-      "runtime": "crhd_ganymede_ga44sa0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga44sa0_e.dds",
-      "runtime": "crhd_ganymede_ga44sa0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga44sa0_n.dds",
-      "runtime": "crhd_ganymede_ga44sa0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga44sa0_s.dds",
-      "runtime": "crhd_ganymede_ga44sa0_s.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga44sb0_d.dds",
-      "runtime": "crhd_ganymede_ga44sb0_d.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga44sb0_e.dds",
-      "runtime": "crhd_ganymede_ga44sb0_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga44sb0_n.dds",
-      "runtime": "crhd_ganymede_ga44sb0_n.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crhd_ganymede_ga44sb0_s.dds",
-      "runtime": "crhd_ganymede_ga44sb0_s.dds"
-    },
-    {
       "source": "Assets\\Textures\\crhd_moon_regolith_detail.dds",
       "runtime": "crhd_moon_regolith_detail.dds"
     },
@@ -5448,6 +4776,18 @@
       "runtime": "cromine_N.dds"
     },
     {
+      "source": "Assets\\Textures\\crpkbd0_N.dds",
+      "runtime": "crpkbd0_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkbd1_N.dds",
+      "runtime": "crpkbd1_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkbd2_N.dds",
+      "runtime": "crpkbd2_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crpkbd_plain.dds",
       "runtime": "crpkbd_plain.dds"
     },
@@ -5460,20 +4800,12 @@
       "runtime": "crpkbd0_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkbd0_N.dds",
-      "runtime": "crpkbd0_N.dds"
-    },
-    {
       "source": "Assets\\Textures\\crpkbd1_d.dds",
       "runtime": "crpkbd1_d.dds"
     },
     {
       "source": "Assets\\Textures\\crpkbd1_e.dds",
       "runtime": "crpkbd1_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crpkbd1_N.dds",
-      "runtime": "crpkbd1_N.dds"
     },
     {
       "source": "Assets\\Textures\\crpkbd2_d.dds",
@@ -5484,8 +4816,16 @@
       "runtime": "crpkbd2_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkbd2_N.dds",
-      "runtime": "crpkbd2_N.dds"
+      "source": "Assets\\Textures\\crpkcc0_N.dds",
+      "runtime": "crpkcc0_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkcc1_N.dds",
+      "runtime": "crpkcc1_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkcc2_N.dds",
+      "runtime": "crpkcc2_N.dds"
     },
     {
       "source": "Assets\\Textures\\crpkcc_plain.dds",
@@ -5500,20 +4840,12 @@
       "runtime": "crpkcc0_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkcc0_N.dds",
-      "runtime": "crpkcc0_N.dds"
-    },
-    {
       "source": "Assets\\Textures\\crpkcc1_d.dds",
       "runtime": "crpkcc1_d.dds"
     },
     {
       "source": "Assets\\Textures\\crpkcc1_e.dds",
       "runtime": "crpkcc1_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crpkcc1_N.dds",
-      "runtime": "crpkcc1_N.dds"
     },
     {
       "source": "Assets\\Textures\\crpkcc2_d.dds",
@@ -5524,8 +4856,16 @@
       "runtime": "crpkcc2_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkcc2_N.dds",
-      "runtime": "crpkcc2_N.dds"
+      "source": "Assets\\Textures\\crpkcr0_N.dds",
+      "runtime": "crpkcr0_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkcr1_N.dds",
+      "runtime": "crpkcr1_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkcr2_N.dds",
+      "runtime": "crpkcr2_N.dds"
     },
     {
       "source": "Assets\\Textures\\crpkcr_plain.dds",
@@ -5540,20 +4880,12 @@
       "runtime": "crpkcr0_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkcr0_N.dds",
-      "runtime": "crpkcr0_N.dds"
-    },
-    {
       "source": "Assets\\Textures\\crpkcr1_d.dds",
       "runtime": "crpkcr1_d.dds"
     },
     {
       "source": "Assets\\Textures\\crpkcr1_e.dds",
       "runtime": "crpkcr1_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crpkcr1_N.dds",
-      "runtime": "crpkcr1_N.dds"
     },
     {
       "source": "Assets\\Textures\\crpkcr2_d.dds",
@@ -5564,8 +4896,16 @@
       "runtime": "crpkcr2_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkcr2_N.dds",
-      "runtime": "crpkcr2_N.dds"
+      "source": "Assets\\Textures\\crpkns0_N.dds",
+      "runtime": "crpkns0_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkns1_N.dds",
+      "runtime": "crpkns1_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crpkns2_N.dds",
+      "runtime": "crpkns2_N.dds"
     },
     {
       "source": "Assets\\Textures\\crpkns_plain.dds",
@@ -5580,20 +4920,12 @@
       "runtime": "crpkns0_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkns0_N.dds",
-      "runtime": "crpkns0_N.dds"
-    },
-    {
       "source": "Assets\\Textures\\crpkns1_d.dds",
       "runtime": "crpkns1_d.dds"
     },
     {
       "source": "Assets\\Textures\\crpkns1_e.dds",
       "runtime": "crpkns1_e.dds"
-    },
-    {
-      "source": "Assets\\Textures\\crpkns1_N.dds",
-      "runtime": "crpkns1_N.dds"
     },
     {
       "source": "Assets\\Textures\\crpkns2_d.dds",
@@ -5604,10 +4936,6 @@
       "runtime": "crpkns2_e.dds"
     },
     {
-      "source": "Assets\\Textures\\crpkns2_N.dds",
-      "runtime": "crpkns2_N.dds"
-    },
-    {
       "source": "Assets\\Textures\\crsky_achilles_clouds.png",
       "runtime": "crsky_achilles_clouds.png"
     },
@@ -5616,12 +4944,12 @@
       "runtime": "crsky_callisto.png"
     },
     {
-      "source": "Assets\\Textures\\crsky_earth_night.png",
-      "runtime": "crsky_earth_night.png"
-    },
-    {
       "source": "Assets\\Textures\\crsky_earth.png",
       "runtime": "crsky_earth.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_earth_night.png",
+      "runtime": "crsky_earth_night.png"
     },
     {
       "source": "Assets\\Textures\\crsky_europa.png",
@@ -6300,6 +5628,14 @@
       "runtime": "crwx_wsplat.dds"
     },
     {
+      "source": "Assets\\Textures\\eu_detail_atlas_shape.dds",
+      "runtime": "eu_detail_atlas_shape.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cspilo2_ACT.dds",
+      "runtime": "cspilo2_ACT.dds"
+    },
+    {
       "source": "Assets\\Textures\\cspilo_ACT.dds",
       "runtime": "cspilo_ACT.dds"
     },
@@ -6308,120 +5644,116 @@
       "runtime": "cspilo_cockpit_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\cspilo2_ACT.dds",
-      "runtime": "cspilo2_ACT.dds"
+      "source": "Assets\\Textures\\cvapc01_ACT.dds",
+      "runtime": "cvapc01_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\cvapc_ACT.dds",
       "runtime": "cvapc_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\cvapc01_ACT.dds",
-      "runtime": "cvapc01_ACT.dds"
+      "source": "Assets\\Textures\\cvartl01_ACT.dds",
+      "runtime": "cvartl01_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\cvartl_ACT.dds",
       "runtime": "cvartl_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\cvartl01_ACT.dds",
-      "runtime": "cvartl01_ACT.dds"
-    },
-    {
       "source": "Assets\\Textures\\cvcnst_ACT.dds",
       "runtime": "cvcnst_ACT.dds"
-    },
-    {
-      "source": "Assets\\Textures\\cvfigh_ACT.dds",
-      "runtime": "cvfigh_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\cvfigh01_ACT.dds",
       "runtime": "cvfigh01_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\cvhaul_ACT.dds",
-      "runtime": "cvhaul_ACT.dds"
+      "source": "Assets\\Textures\\cvfigh_ACT.dds",
+      "runtime": "cvfigh_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\cvhaul01_ACT.dds",
       "runtime": "cvhaul01_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\cvhraz_ACT.dds",
-      "runtime": "cvhraz_ACT.dds"
+      "source": "Assets\\Textures\\cvhaul_ACT.dds",
+      "runtime": "cvhaul_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\cvhraz01_ACT.dds",
       "runtime": "cvhraz01_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\cvhtnk_ACT.dds",
-      "runtime": "cvhtnk_ACT.dds"
+      "source": "Assets\\Textures\\cvhraz_ACT.dds",
+      "runtime": "cvhraz_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\cvhtnk01_ACT.dds",
       "runtime": "cvhtnk01_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\cvltnk_ACT.dds",
-      "runtime": "cvltnk_ACT.dds"
+      "source": "Assets\\Textures\\cvhtnk_ACT.dds",
+      "runtime": "cvhtnk_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\cvltnk01_ACT.dds",
       "runtime": "cvltnk01_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\cvmine_ACT.dds",
-      "runtime": "cvmine_ACT.dds"
+      "source": "Assets\\Textures\\cvltnk_ACT.dds",
+      "runtime": "cvltnk_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\cvmine01_ACT.dds",
       "runtime": "cvmine01_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\cvmuf_ACT.dds",
-      "runtime": "cvmuf_ACT.dds"
+      "source": "Assets\\Textures\\cvmine_ACT.dds",
+      "runtime": "cvmine_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\cvrckt_ACT.dds",
-      "runtime": "cvrckt_ACT.dds"
+      "source": "Assets\\Textures\\cvmuf_ACT.dds",
+      "runtime": "cvmuf_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\cvrckt01_ACT.dds",
       "runtime": "cvrckt01_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\cvrecy_ACT.dds",
-      "runtime": "cvrecy_ACT.dds"
+      "source": "Assets\\Textures\\cvrckt_ACT.dds",
+      "runtime": "cvrckt_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\cvscav_ACT.dds",
-      "runtime": "cvscav_ACT.dds"
+      "source": "Assets\\Textures\\cvrecy_ACT.dds",
+      "runtime": "cvrecy_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\cvscav01_ACT.dds",
       "runtime": "cvscav01_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\cvslf_ACT.dds",
-      "runtime": "cvslf_ACT.dds"
+      "source": "Assets\\Textures\\cvscav_ACT.dds",
+      "runtime": "cvscav_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\cvtnk_ACT.dds",
-      "runtime": "cvtnk_ACT.dds"
+      "source": "Assets\\Textures\\cvslf_ACT.dds",
+      "runtime": "cvslf_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\cvtnk01_ACT.dds",
       "runtime": "cvtnk01_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\cvturr_ACT.dds",
-      "runtime": "cvturr_ACT.dds"
+      "source": "Assets\\Textures\\cvtnk_ACT.dds",
+      "runtime": "cvtnk_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\cvturr01_ACT.dds",
       "runtime": "cvturr01_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvturr_ACT.dds",
+      "runtime": "cvturr_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\cvwalk00_ACT.dds",
@@ -6430,10 +5762,6 @@
     {
       "source": "Assets\\Textures\\cvwalk01_ACT.dds",
       "runtime": "cvwalk01_ACT.dds"
-    },
-    {
-      "source": "Assets\\Textures\\eu_detail_atlas_shape.dds",
-      "runtime": "eu_detail_atlas_shape.dds"
     },
     {
       "source": "Assets\\Textures\\exu_hud_ring_segment.png",
@@ -6596,12 +5924,12 @@
       "runtime": "ma_detail_atlas_shape.dds"
     },
     {
-      "source": "Assets\\Textures\\magpull_ACT.dds",
-      "runtime": "magpull_ACT.dds"
-    },
-    {
       "source": "Assets\\Textures\\magpull00_N.dds",
       "runtime": "magpull00_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\magpull_ACT.dds",
+      "runtime": "magpull_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\magpush_ACT.dds",
@@ -6796,6 +6124,134 @@
       "runtime": "openshim_achilles_auto_misn18_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_elysium_auto_bdmisn07_control.png",
+      "runtime": "openshim_elysium_auto_bdmisn07_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_bdmisn07_control2.png",
+      "runtime": "openshim_elysium_auto_bdmisn07_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_bdmisn09_control.png",
+      "runtime": "openshim_elysium_auto_bdmisn09_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_bdmisn09_control2.png",
+      "runtime": "openshim_elysium_auto_bdmisn09_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_bdmisn11_control.png",
+      "runtime": "openshim_elysium_auto_bdmisn11_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_bdmisn11_control2.png",
+      "runtime": "openshim_elysium_auto_bdmisn11_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_chmisn05_control.png",
+      "runtime": "openshim_elysium_auto_chmisn05_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_chmisn05_control2.png",
+      "runtime": "openshim_elysium_auto_chmisn05_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_chmisn06_control.png",
+      "runtime": "openshim_elysium_auto_chmisn06_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_chmisn06_control2.png",
+      "runtime": "openshim_elysium_auto_chmisn06_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_evolve_1_stock_control.png",
+      "runtime": "openshim_elysium_auto_evolve_1_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_evolve_1_stock_control2.png",
+      "runtime": "openshim_elysium_auto_evolve_1_stock_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_evolve_2_stock_control.png",
+      "runtime": "openshim_elysium_auto_evolve_2_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_evolve_2_stock_control2.png",
+      "runtime": "openshim_elysium_auto_evolve_2_stock_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_evolve_5_stock_control.png",
+      "runtime": "openshim_elysium_auto_evolve_5_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_evolve_5_stock_control2.png",
+      "runtime": "openshim_elysium_auto_evolve_5_stock_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer0.png",
+      "runtime": "openshim_elysium_auto_layer0.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer0_n.png",
+      "runtime": "openshim_elysium_auto_layer0_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer1.png",
+      "runtime": "openshim_elysium_auto_layer1.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer1_n.png",
+      "runtime": "openshim_elysium_auto_layer1_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer2.png",
+      "runtime": "openshim_elysium_auto_layer2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer2_n.png",
+      "runtime": "openshim_elysium_auto_layer2_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer3.png",
+      "runtime": "openshim_elysium_auto_layer3.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer3_n.png",
+      "runtime": "openshim_elysium_auto_layer3_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer4.png",
+      "runtime": "openshim_elysium_auto_layer4.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer4_n.png",
+      "runtime": "openshim_elysium_auto_layer4_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer5.png",
+      "runtime": "openshim_elysium_auto_layer5.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer5_n.png",
+      "runtime": "openshim_elysium_auto_layer5_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer6.png",
+      "runtime": "openshim_elysium_auto_layer6.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer6_n.png",
+      "runtime": "openshim_elysium_auto_layer6_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer7.png",
+      "runtime": "openshim_elysium_auto_layer7.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer7_n.png",
+      "runtime": "openshim_elysium_auto_layer7_n.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_europa_auto_layer0_n.png",
       "runtime": "openshim_europa_auto_layer0_n.png"
     },
@@ -6842,6 +6298,214 @@
     {
       "source": "Assets\\Textures\\openshim_europa_auto_misn13_stock_control.png",
       "runtime": "openshim_europa_auto_misn13_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn01_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn01_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn01_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn01_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn02_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn02_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn02_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn02_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn03_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn03_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn03_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn03_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn04_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn04_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn04_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn04_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn05_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn05_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn05_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn05_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn06_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn06_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn06_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn06_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn08_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn08_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn08_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn08_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn12_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn12_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn12_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn12_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn13_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn13_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn13_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn13_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn14_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn14_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn14_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn14_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn15_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn15_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn15_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn15_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn01_control.png",
+      "runtime": "openshim_ganymede_auto_chmisn01_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn01_control2.png",
+      "runtime": "openshim_ganymede_auto_chmisn01_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn02_control.png",
+      "runtime": "openshim_ganymede_auto_chmisn02_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn02_control2.png",
+      "runtime": "openshim_ganymede_auto_chmisn02_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn03_control.png",
+      "runtime": "openshim_ganymede_auto_chmisn03_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn03_control2.png",
+      "runtime": "openshim_ganymede_auto_chmisn03_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn04_control.png",
+      "runtime": "openshim_ganymede_auto_chmisn04_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn04_control2.png",
+      "runtime": "openshim_ganymede_auto_chmisn04_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn08_control.png",
+      "runtime": "openshim_ganymede_auto_chmisn08_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn08_control2.png",
+      "runtime": "openshim_ganymede_auto_chmisn08_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_evolve_3_stock_control.png",
+      "runtime": "openshim_ganymede_auto_evolve_3_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_evolve_3_stock_control2.png",
+      "runtime": "openshim_ganymede_auto_evolve_3_stock_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_evolve_4_stock_control.png",
+      "runtime": "openshim_ganymede_auto_evolve_4_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_evolve_4_stock_control2.png",
+      "runtime": "openshim_ganymede_auto_evolve_4_stock_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer0.png",
+      "runtime": "openshim_ganymede_auto_layer0.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer0_n.png",
+      "runtime": "openshim_ganymede_auto_layer0_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer1.png",
+      "runtime": "openshim_ganymede_auto_layer1.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer1_n.png",
+      "runtime": "openshim_ganymede_auto_layer1_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer2.png",
+      "runtime": "openshim_ganymede_auto_layer2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer2_n.png",
+      "runtime": "openshim_ganymede_auto_layer2_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer3.png",
+      "runtime": "openshim_ganymede_auto_layer3.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer3_n.png",
+      "runtime": "openshim_ganymede_auto_layer3_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer4.png",
+      "runtime": "openshim_ganymede_auto_layer4.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer4_n.png",
+      "runtime": "openshim_ganymede_auto_layer4_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer5.png",
+      "runtime": "openshim_ganymede_auto_layer5.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer5_n.png",
+      "runtime": "openshim_ganymede_auto_layer5_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer6.png",
+      "runtime": "openshim_ganymede_auto_layer6.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer6_n.png",
+      "runtime": "openshim_ganymede_auto_layer6_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer7.png",
+      "runtime": "openshim_ganymede_auto_layer7.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer7_n.png",
+      "runtime": "openshim_ganymede_auto_layer7_n.png"
     },
     {
       "source": "Assets\\Textures\\openshim_io_auto_layer0_n.png",
@@ -6900,36 +6564,36 @@
       "runtime": "openshim_io_auto_misns4_stock_control.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_mars_auto_layer0_n.png",
-      "runtime": "openshim_mars_auto_layer0_n.png"
-    },
-    {
       "source": "Assets\\Textures\\openshim_mars_auto_layer0.png",
       "runtime": "openshim_mars_auto_layer0.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_mars_auto_layer1_n.png",
-      "runtime": "openshim_mars_auto_layer1_n.png"
+      "source": "Assets\\Textures\\openshim_mars_auto_layer0_n.png",
+      "runtime": "openshim_mars_auto_layer0_n.png"
     },
     {
       "source": "Assets\\Textures\\openshim_mars_auto_layer1.png",
       "runtime": "openshim_mars_auto_layer1.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_mars_auto_layer2_n.png",
-      "runtime": "openshim_mars_auto_layer2_n.png"
+      "source": "Assets\\Textures\\openshim_mars_auto_layer1_n.png",
+      "runtime": "openshim_mars_auto_layer1_n.png"
     },
     {
       "source": "Assets\\Textures\\openshim_mars_auto_layer2.png",
       "runtime": "openshim_mars_auto_layer2.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_mars_auto_layer3_n.png",
-      "runtime": "openshim_mars_auto_layer3_n.png"
+      "source": "Assets\\Textures\\openshim_mars_auto_layer2_n.png",
+      "runtime": "openshim_mars_auto_layer2_n.png"
     },
     {
       "source": "Assets\\Textures\\openshim_mars_auto_layer3.png",
       "runtime": "openshim_mars_auto_layer3.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_mars_auto_layer3_n.png",
+      "runtime": "openshim_mars_auto_layer3_n.png"
     },
     {
       "source": "Assets\\Textures\\openshim_mars_auto_misn04_control.png",
@@ -7196,12 +6860,12 @@
       "runtime": "ovheph_src_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\proxmine_ACT.dds",
-      "runtime": "proxmine_ACT.dds"
-    },
-    {
       "source": "Assets\\Textures\\proxmine00_N.dds",
       "runtime": "proxmine00_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\proxmine_ACT.dds",
+      "runtime": "proxmine_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\raintoxc_mask.dds",
@@ -7260,36 +6924,36 @@
       "runtime": "sblpad_N.dds"
     },
     {
-      "source": "Assets\\Textures\\sblpow_N.dds",
-      "runtime": "sblpow_N.dds"
-    },
-    {
       "source": "Assets\\Textures\\sblpow00_ACT.dds",
       "runtime": "sblpow00_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\sbmbld_N.dds",
-      "runtime": "sbmbld_N.dds"
+      "source": "Assets\\Textures\\sblpow_N.dds",
+      "runtime": "sblpow_N.dds"
     },
     {
       "source": "Assets\\Textures\\sbmbld00_ACT.dds",
       "runtime": "sbmbld00_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\sbshld_N.dds",
-      "runtime": "sbshld_N.dds"
+      "source": "Assets\\Textures\\sbmbld_N.dds",
+      "runtime": "sbmbld_N.dds"
     },
     {
       "source": "Assets\\Textures\\sbshld00_ACT.dds",
       "runtime": "sbshld00_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\sbsilo_N.dds",
-      "runtime": "sbsilo_N.dds"
+      "source": "Assets\\Textures\\sbshld_N.dds",
+      "runtime": "sbshld_N.dds"
     },
     {
       "source": "Assets\\Textures\\sbsilo00_ACT.dds",
       "runtime": "sbsilo00_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sbsilo_N.dds",
+      "runtime": "sbsilo_N.dds"
     },
     {
       "source": "Assets\\Textures\\sbspow_ACT.dds",
@@ -7300,12 +6964,12 @@
       "runtime": "sbspow_N.dds"
     },
     {
-      "source": "Assets\\Textures\\sbsupp_N.dds",
-      "runtime": "sbsupp_N.dds"
-    },
-    {
       "source": "Assets\\Textures\\sbsupp00_ACT.dds",
       "runtime": "sbsupp00_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sbsupp_N.dds",
+      "runtime": "sbsupp_N.dds"
     },
     {
       "source": "Assets\\Textures\\sbtowe_ACT.dds",
@@ -7328,16 +6992,16 @@
       "runtime": "scarpmat2_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\scrapmat_ACT.dds",
-      "runtime": "scrapmat_ACT.dds"
-    },
-    {
       "source": "Assets\\Textures\\scrapmat3_ACT.dds",
       "runtime": "scrapmat3_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\scrapmat4_ACT.dds",
       "runtime": "scrapmat4_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\scrapmat_ACT.dds",
+      "runtime": "scrapmat_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\smoke.dds",
@@ -7352,16 +7016,16 @@
       "runtime": "spark2.dds"
     },
     {
+      "source": "Assets\\Textures\\sspilo2_ACT.dds",
+      "runtime": "sspilo2_ACT.dds"
+    },
+    {
       "source": "Assets\\Textures\\sspilo_ACT.dds",
       "runtime": "sspilo_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\sspilo_cockpit_ACT.dds",
       "runtime": "sspilo_cockpit_ACT.dds"
-    },
-    {
-      "source": "Assets\\Textures\\sspilo2_ACT.dds",
-      "runtime": "sspilo2_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\svapc00_ACT.dds",
@@ -7532,16 +7196,16 @@
       "runtime": "sxtint_red.png"
     },
     {
+      "source": "Assets\\Textures\\trld00_ACT.dds",
+      "runtime": "trld00_ACT.dds"
+    },
+    {
       "source": "Assets\\Textures\\trld_d.dds",
       "runtime": "trld_d.dds"
     },
     {
       "source": "Assets\\Textures\\trld_N.dds",
       "runtime": "trld_N.dds"
-    },
-    {
-      "source": "Assets\\Textures\\trld00_ACT.dds",
-      "runtime": "trld00_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\ubtart00.dds",
@@ -7920,6 +7584,42 @@
       "runtime": "ma_detail_atlas.csv"
     },
     {
+      "source": "Config\\misn2bcr.ini",
+      "runtime": "misn2bcr.ini"
+    },
+    {
+      "source": "Config\\misns1cr.ini",
+      "runtime": "misns1cr.ini"
+    },
+    {
+      "source": "Config\\misns2cr.ini",
+      "runtime": "misns2cr.ini"
+    },
+    {
+      "source": "Config\\misns3cr.ini",
+      "runtime": "misns3cr.ini"
+    },
+    {
+      "source": "Config\\misns4cr.ini",
+      "runtime": "misns4cr.ini"
+    },
+    {
+      "source": "Config\\misns5cr.ini",
+      "runtime": "misns5cr.ini"
+    },
+    {
+      "source": "Config\\misns6cr.ini",
+      "runtime": "misns6cr.ini"
+    },
+    {
+      "source": "Config\\misns7cr.ini",
+      "runtime": "misns7cr.ini"
+    },
+    {
+      "source": "Config\\misns8cr.ini",
+      "runtime": "misns8cr.ini"
+    },
+    {
       "source": "Config\\misn03cr.ini",
       "runtime": "misn03cr.ini"
     },
@@ -7982,42 +7682,6 @@
     {
       "source": "Config\\misn18cr.ini",
       "runtime": "misn18cr.ini"
-    },
-    {
-      "source": "Config\\misn2bcr.ini",
-      "runtime": "misn2bcr.ini"
-    },
-    {
-      "source": "Config\\misns1cr.ini",
-      "runtime": "misns1cr.ini"
-    },
-    {
-      "source": "Config\\misns2cr.ini",
-      "runtime": "misns2cr.ini"
-    },
-    {
-      "source": "Config\\misns3cr.ini",
-      "runtime": "misns3cr.ini"
-    },
-    {
-      "source": "Config\\misns4cr.ini",
-      "runtime": "misns4cr.ini"
-    },
-    {
-      "source": "Config\\misns5cr.ini",
-      "runtime": "misns5cr.ini"
-    },
-    {
-      "source": "Config\\misns6cr.ini",
-      "runtime": "misns6cr.ini"
-    },
-    {
-      "source": "Config\\misns7cr.ini",
-      "runtime": "misns7cr.ini"
-    },
-    {
-      "source": "Config\\misns8cr.ini",
-      "runtime": "misns8cr.ini"
     },
     {
       "source": "Config\\mn_detail_atlas.csv",
@@ -9832,10 +9496,6 @@
       "runtime": "CR_BZTerrainBase.material"
     },
     {
-      "source": "Materials\\cr_catalogsky.material",
-      "runtime": "cr_catalogsky.material"
-    },
-    {
       "source": "Materials\\CR_cca_mechanical_cockpit.material",
       "runtime": "CR_cca_mechanical_cockpit.material"
     },
@@ -9890,14 +9550,6 @@
     {
       "source": "Materials\\CR_detail_sbsupp.material",
       "runtime": "CR_detail_sbsupp.material"
-    },
-    {
-      "source": "Materials\\cr_earth.material",
-      "runtime": "cr_earth.material"
-    },
-    {
-      "source": "Materials\\cr_elysium.particle.payload",
-      "runtime": "cr_elysium.particle.payload"
     },
     {
       "source": "Materials\\cr_europa.particle.payload",
@@ -10146,6 +9798,18 @@
     {
       "source": "Materials\\cr18_water.material",
       "runtime": "cr18_water.material"
+    },
+    {
+      "source": "Materials\\cr_catalogsky.material",
+      "runtime": "cr_catalogsky.material"
+    },
+    {
+      "source": "Materials\\cr_earth.material",
+      "runtime": "cr_earth.material"
+    },
+    {
+      "source": "Materials\\cr_elysium.particle.payload",
+      "runtime": "cr_elysium.particle.payload"
     },
     {
       "source": "Materials\\crart_achilles.material",
@@ -10864,6 +10528,42 @@
       "runtime": "xrainsp.material"
     },
     {
+      "source": "misn2bcr.mpdes",
+      "runtime": "misn2bcr.mpdes"
+    },
+    {
+      "source": "misns1cr.mpdes",
+      "runtime": "misns1cr.mpdes"
+    },
+    {
+      "source": "misns2cr.mpdes",
+      "runtime": "misns2cr.mpdes"
+    },
+    {
+      "source": "misns3cr.mpdes",
+      "runtime": "misns3cr.mpdes"
+    },
+    {
+      "source": "misns4cr.mpdes",
+      "runtime": "misns4cr.mpdes"
+    },
+    {
+      "source": "misns5cr.mpdes",
+      "runtime": "misns5cr.mpdes"
+    },
+    {
+      "source": "misns6cr.mpdes",
+      "runtime": "misns6cr.mpdes"
+    },
+    {
+      "source": "misns7cr.mpdes",
+      "runtime": "misns7cr.mpdes"
+    },
+    {
+      "source": "misns8cr.mpdes",
+      "runtime": "misns8cr.mpdes"
+    },
+    {
       "source": "misn03cr.mpdes",
       "runtime": "misn03cr.mpdes"
     },
@@ -10926,42 +10626,6 @@
     {
       "source": "misn18cr.mpdes",
       "runtime": "misn18cr.mpdes"
-    },
-    {
-      "source": "misn2bcr.mpdes",
-      "runtime": "misn2bcr.mpdes"
-    },
-    {
-      "source": "misns1cr.mpdes",
-      "runtime": "misns1cr.mpdes"
-    },
-    {
-      "source": "misns2cr.mpdes",
-      "runtime": "misns2cr.mpdes"
-    },
-    {
-      "source": "misns3cr.mpdes",
-      "runtime": "misns3cr.mpdes"
-    },
-    {
-      "source": "misns4cr.mpdes",
-      "runtime": "misns4cr.mpdes"
-    },
-    {
-      "source": "misns5cr.mpdes",
-      "runtime": "misns5cr.mpdes"
-    },
-    {
-      "source": "misns6cr.mpdes",
-      "runtime": "misns6cr.mpdes"
-    },
-    {
-      "source": "misns7cr.mpdes",
-      "runtime": "misns7cr.mpdes"
-    },
-    {
-      "source": "misns8cr.mpdes",
-      "runtime": "misns8cr.mpdes"
     },
     {
       "source": "Missions\\bdmisn01.hg2",
@@ -11552,6 +11216,10 @@
       "runtime": "misn02.hg2"
     },
     {
+      "source": "Missions\\misn2bcr.bzn",
+      "runtime": "misn2bcr.bzn"
+    },
+    {
       "source": "Missions\\misn02b.hg2",
       "runtime": "misn02b.hg2"
     },
@@ -11566,6 +11234,86 @@
     {
       "source": "Missions\\misn02b.trn",
       "runtime": "misn02b.trn"
+    },
+    {
+      "source": "Missions\\misn2bcr.vxt",
+      "runtime": "misn2bcr.vxt"
+    },
+    {
+      "source": "Missions\\misns1.hg2",
+      "runtime": "misns1.hg2"
+    },
+    {
+      "source": "Missions\\misns1.lgt",
+      "runtime": "misns1.lgt"
+    },
+    {
+      "source": "Missions\\misns1.mat",
+      "runtime": "misns1.mat"
+    },
+    {
+      "source": "Missions\\misns1.trn",
+      "runtime": "misns1.trn"
+    },
+    {
+      "source": "Missions\\misns1cr.bzn",
+      "runtime": "misns1cr.bzn"
+    },
+    {
+      "source": "Missions\\misns1cr.vxt",
+      "runtime": "misns1cr.vxt"
+    },
+    {
+      "source": "Missions\\misns2.hg2",
+      "runtime": "misns2.hg2"
+    },
+    {
+      "source": "Missions\\misns2.lgt",
+      "runtime": "misns2.lgt"
+    },
+    {
+      "source": "Missions\\misns2.mat",
+      "runtime": "misns2.mat"
+    },
+    {
+      "source": "Missions\\misns2.trn",
+      "runtime": "misns2.trn"
+    },
+    {
+      "source": "Missions\\misns2cr.bzn",
+      "runtime": "misns2cr.bzn"
+    },
+    {
+      "source": "Missions\\misns2cr.vxt",
+      "runtime": "misns2cr.vxt"
+    },
+    {
+      "source": "Missions\\misns3.hg2",
+      "runtime": "misns3.hg2"
+    },
+    {
+      "source": "Missions\\misns3.lgt",
+      "runtime": "misns3.lgt"
+    },
+    {
+      "source": "Missions\\misns3.mat",
+      "runtime": "misns3.mat"
+    },
+    {
+      "source": "Missions\\misns3.trn",
+      "runtime": "misns3.trn"
+    },
+    {
+      "source": "Missions\\misns3cr.bzn",
+      "runtime": "misns3cr.bzn"
+    },
+    {
+      "source": "Missions\\misns3cr.vxt",
+      "runtime": "misns3cr.vxt"
+    },
+    {
+      "source": "Missions\\misn03cr.bzn",
+      "runtime": "misn03cr.bzn"
     },
     {
       "source": "Missions\\misn03.hg2",
@@ -11584,12 +11332,12 @@
       "runtime": "misn03.trn"
     },
     {
-      "source": "Missions\\misn03cr.bzn",
-      "runtime": "misn03cr.bzn"
-    },
-    {
       "source": "Missions\\misn03cr.vxt",
       "runtime": "misn03cr.vxt"
+    },
+    {
+      "source": "Missions\\misn04cr.bzn",
+      "runtime": "misn04cr.bzn"
     },
     {
       "source": "Missions\\misn04.hg2",
@@ -11608,24 +11356,24 @@
       "runtime": "misn04.trn"
     },
     {
-      "source": "Missions\\misn04cr.bzn",
-      "runtime": "misn04cr.bzn"
-    },
-    {
       "source": "Missions\\misn04cr.vxt",
       "runtime": "misn04cr.vxt"
-    },
-    {
-      "source": "Missions\\misn05.hg2",
-      "runtime": "misn05.hg2"
     },
     {
       "source": "Missions\\misn05cr.bzn",
       "runtime": "misn05cr.bzn"
     },
     {
+      "source": "Missions\\misn05.hg2",
+      "runtime": "misn05.hg2"
+    },
+    {
       "source": "Missions\\misn05cr.vxt",
       "runtime": "misn05cr.vxt"
+    },
+    {
+      "source": "Missions\\misn06cr.bzn",
+      "runtime": "misn06cr.bzn"
     },
     {
       "source": "Missions\\misn06.hg2",
@@ -11644,12 +11392,12 @@
       "runtime": "misn06.trn"
     },
     {
-      "source": "Missions\\misn06cr.bzn",
-      "runtime": "misn06cr.bzn"
-    },
-    {
       "source": "Missions\\misn06cr.vxt",
       "runtime": "misn06cr.vxt"
+    },
+    {
+      "source": "Missions\\misn07cr.bzn",
+      "runtime": "misn07cr.bzn"
     },
     {
       "source": "Missions\\misn07.hg2",
@@ -11668,12 +11416,12 @@
       "runtime": "misn07.trn"
     },
     {
-      "source": "Missions\\misn07cr.bzn",
-      "runtime": "misn07cr.bzn"
-    },
-    {
       "source": "Missions\\misn07cr.vxt",
       "runtime": "misn07cr.vxt"
+    },
+    {
+      "source": "Missions\\misn08cr.bzn",
+      "runtime": "misn08cr.bzn"
     },
     {
       "source": "Missions\\misn08.hg2",
@@ -11692,12 +11440,12 @@
       "runtime": "misn08.trn"
     },
     {
-      "source": "Missions\\misn08cr.bzn",
-      "runtime": "misn08cr.bzn"
-    },
-    {
       "source": "Missions\\misn08cr.vxt",
       "runtime": "misn08cr.vxt"
+    },
+    {
+      "source": "Missions\\misn09cr.bzn",
+      "runtime": "misn09cr.bzn"
     },
     {
       "source": "Missions\\misn09.hg2",
@@ -11716,12 +11464,12 @@
       "runtime": "misn09.trn"
     },
     {
-      "source": "Missions\\misn09cr.bzn",
-      "runtime": "misn09cr.bzn"
-    },
-    {
       "source": "Missions\\misn09cr.vxt",
       "runtime": "misn09cr.vxt"
+    },
+    {
+      "source": "Missions\\misn10cr.bzn",
+      "runtime": "misn10cr.bzn"
     },
     {
       "source": "Missions\\misn10.hg2",
@@ -11740,12 +11488,12 @@
       "runtime": "misn10.trn"
     },
     {
-      "source": "Missions\\misn10cr.bzn",
-      "runtime": "misn10cr.bzn"
-    },
-    {
       "source": "Missions\\misn10cr.vxt",
       "runtime": "misn10cr.vxt"
+    },
+    {
+      "source": "Missions\\misn11cr.bzn",
+      "runtime": "misn11cr.bzn"
     },
     {
       "source": "Missions\\misn11.hg2",
@@ -11764,12 +11512,12 @@
       "runtime": "misn11.trn"
     },
     {
-      "source": "Missions\\misn11cr.bzn",
-      "runtime": "misn11cr.bzn"
-    },
-    {
       "source": "Missions\\misn11cr.vxt",
       "runtime": "misn11cr.vxt"
+    },
+    {
+      "source": "Missions\\misn12cr.bzn",
+      "runtime": "misn12cr.bzn"
     },
     {
       "source": "Missions\\misn12.hg2",
@@ -11788,12 +11536,12 @@
       "runtime": "misn12.trn"
     },
     {
-      "source": "Missions\\misn12cr.bzn",
-      "runtime": "misn12cr.bzn"
-    },
-    {
       "source": "Missions\\misn12cr.vxt",
       "runtime": "misn12cr.vxt"
+    },
+    {
+      "source": "Missions\\misn13cr.bzn",
+      "runtime": "misn13cr.bzn"
     },
     {
       "source": "Missions\\misn13.hg2",
@@ -11812,12 +11560,12 @@
       "runtime": "misn13.trn"
     },
     {
-      "source": "Missions\\misn13cr.bzn",
-      "runtime": "misn13cr.bzn"
-    },
-    {
       "source": "Missions\\misn13cr.vxt",
       "runtime": "misn13cr.vxt"
+    },
+    {
+      "source": "Missions\\misn14cr.bzn",
+      "runtime": "misn14cr.bzn"
     },
     {
       "source": "Missions\\misn14.hg2",
@@ -11834,10 +11582,6 @@
     {
       "source": "Missions\\misn14.trn",
       "runtime": "misn14.trn"
-    },
-    {
-      "source": "Missions\\misn14cr.bzn",
-      "runtime": "misn14cr.bzn"
     },
     {
       "source": "Missions\\misn14cr.vxt",
@@ -11928,6 +11672,10 @@
       "runtime": "misn16b.trn"
     },
     {
+      "source": "Missions\\misn17cr.bzn",
+      "runtime": "misn17cr.bzn"
+    },
+    {
       "source": "Missions\\misn17.hg2",
       "runtime": "misn17.hg2"
     },
@@ -11944,12 +11692,12 @@
       "runtime": "misn17.trn"
     },
     {
-      "source": "Missions\\misn17cr.bzn",
-      "runtime": "misn17cr.bzn"
-    },
-    {
       "source": "Missions\\misn17cr.vxt",
       "runtime": "misn17cr.vxt"
+    },
+    {
+      "source": "Missions\\misn18cr.bzn",
+      "runtime": "misn18cr.bzn"
     },
     {
       "source": "Missions\\misn18.hg2",
@@ -11968,92 +11716,8 @@
       "runtime": "misn18.trn"
     },
     {
-      "source": "Missions\\misn18cr.bzn",
-      "runtime": "misn18cr.bzn"
-    },
-    {
       "source": "Missions\\misn18cr.vxt",
       "runtime": "misn18cr.vxt"
-    },
-    {
-      "source": "Missions\\misn2bcr.bzn",
-      "runtime": "misn2bcr.bzn"
-    },
-    {
-      "source": "Missions\\misn2bcr.vxt",
-      "runtime": "misn2bcr.vxt"
-    },
-    {
-      "source": "Missions\\misns1.hg2",
-      "runtime": "misns1.hg2"
-    },
-    {
-      "source": "Missions\\misns1.lgt",
-      "runtime": "misns1.lgt"
-    },
-    {
-      "source": "Missions\\misns1.mat",
-      "runtime": "misns1.mat"
-    },
-    {
-      "source": "Missions\\misns1.trn",
-      "runtime": "misns1.trn"
-    },
-    {
-      "source": "Missions\\misns1cr.bzn",
-      "runtime": "misns1cr.bzn"
-    },
-    {
-      "source": "Missions\\misns1cr.vxt",
-      "runtime": "misns1cr.vxt"
-    },
-    {
-      "source": "Missions\\misns2.hg2",
-      "runtime": "misns2.hg2"
-    },
-    {
-      "source": "Missions\\misns2.lgt",
-      "runtime": "misns2.lgt"
-    },
-    {
-      "source": "Missions\\misns2.mat",
-      "runtime": "misns2.mat"
-    },
-    {
-      "source": "Missions\\misns2.trn",
-      "runtime": "misns2.trn"
-    },
-    {
-      "source": "Missions\\misns2cr.bzn",
-      "runtime": "misns2cr.bzn"
-    },
-    {
-      "source": "Missions\\misns2cr.vxt",
-      "runtime": "misns2cr.vxt"
-    },
-    {
-      "source": "Missions\\misns3.hg2",
-      "runtime": "misns3.hg2"
-    },
-    {
-      "source": "Missions\\misns3.lgt",
-      "runtime": "misns3.lgt"
-    },
-    {
-      "source": "Missions\\misns3.mat",
-      "runtime": "misns3.mat"
-    },
-    {
-      "source": "Missions\\misns3.trn",
-      "runtime": "misns3.trn"
-    },
-    {
-      "source": "Missions\\misns3cr.bzn",
-      "runtime": "misns3cr.bzn"
-    },
-    {
-      "source": "Missions\\misns3cr.vxt",
-      "runtime": "misns3cr.vxt"
     },
     {
       "source": "Missions\\misns4.bzn",
@@ -15988,10 +15652,6 @@
       "runtime": "xrainspa.odf"
     },
     {
-      "source": "openshim\\OPENSHIM_PIN.txt",
-      "runtime": "openshim\\OPENSHIM_PIN.txt"
-    },
-    {
       "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl.payload",
       "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc-sm4.hlsl.payload"
     },
@@ -16880,6 +16540,10 @@
       "runtime": "misn01.lua"
     },
     {
+      "source": "Scripts\\misn2bcr.lua",
+      "runtime": "misn2bcr.lua"
+    },
+    {
       "source": "Scripts\\misn03cr.lua",
       "runtime": "misn03cr.lua"
     },
@@ -16942,10 +16606,6 @@
     {
       "source": "Scripts\\misn18cr.lua",
       "runtime": "misn18cr.lua"
-    },
-    {
-      "source": "Scripts\\misn2bcr.lua",
-      "runtime": "misn2bcr.lua"
     },
     {
       "source": "Scripts\\misns1.lua",
@@ -17124,34 +16784,6 @@
       "runtime": "Weather.lua"
     },
     {
-      "source": "Shaders\\CR_achillessky.hlsl",
-      "runtime": "CR_achillessky.hlsl"
-    },
-    {
-      "source": "Shaders\\CR_achillessky.program",
-      "runtime": "CR_achillessky.program"
-    },
-    {
-      "source": "Shaders\\CR_catalogsky-fragment.glsl",
-      "runtime": "CR_catalogsky-fragment.glsl"
-    },
-    {
-      "source": "Shaders\\CR_catalogsky-sm4.hlsl",
-      "runtime": "CR_catalogsky-sm4.hlsl"
-    },
-    {
-      "source": "Shaders\\CR_catalogsky-vertex.glsl",
-      "runtime": "CR_catalogsky-vertex.glsl"
-    },
-    {
-      "source": "Shaders\\CR_catalogsky.hlsl",
-      "runtime": "CR_catalogsky.hlsl"
-    },
-    {
-      "source": "Shaders\\CR_catalogsky.program",
-      "runtime": "CR_catalogsky.program"
-    },
-    {
       "source": "Shaders\\CR_DepthShadowmap-sm4.hlsl",
       "runtime": "CR_DepthShadowmap-sm4.hlsl"
     },
@@ -17266,14 +16898,6 @@
     {
       "source": "Shaders\\cr_lightarc.program",
       "runtime": "cr_lightarc.program"
-    },
-    {
-      "source": "Shaders\\CR_marssky.hlsl",
-      "runtime": "CR_marssky.hlsl"
-    },
-    {
-      "source": "Shaders\\CR_marssky.program",
-      "runtime": "CR_marssky.program"
     },
     {
       "source": "Shaders\\cr_methane.hlsl",
@@ -17460,14 +17084,6 @@
       "runtime": "CR_textured.program"
     },
     {
-      "source": "Shaders\\CR_titansky.hlsl",
-      "runtime": "CR_titansky.hlsl"
-    },
-    {
-      "source": "Shaders\\CR_titansky.program",
-      "runtime": "CR_titansky.program"
-    },
-    {
       "source": "Shaders\\CR_ui-fragment.glsl",
       "runtime": "CR_ui-fragment.glsl"
     },
@@ -17526,14 +17142,6 @@
     {
       "source": "Shaders\\CR_untextured.program",
       "runtime": "CR_untextured.program"
-    },
-    {
-      "source": "Shaders\\CR_venussky.hlsl",
-      "runtime": "CR_venussky.hlsl"
-    },
-    {
-      "source": "Shaders\\CR_venussky.program",
-      "runtime": "CR_venussky.program"
     },
     {
       "source": "Shaders\\cr17_cloud-fragment.glsl",
@@ -17606,6 +17214,58 @@
     {
       "source": "Shaders\\cr18_water.program",
       "runtime": "cr18_water.program"
+    },
+    {
+      "source": "Shaders\\CR_achillessky.hlsl",
+      "runtime": "CR_achillessky.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_achillessky.program",
+      "runtime": "CR_achillessky.program"
+    },
+    {
+      "source": "Shaders\\CR_catalogsky-fragment.glsl",
+      "runtime": "CR_catalogsky-fragment.glsl"
+    },
+    {
+      "source": "Shaders\\CR_catalogsky-sm4.hlsl",
+      "runtime": "CR_catalogsky-sm4.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_catalogsky-vertex.glsl",
+      "runtime": "CR_catalogsky-vertex.glsl"
+    },
+    {
+      "source": "Shaders\\CR_catalogsky.hlsl",
+      "runtime": "CR_catalogsky.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_catalogsky.program",
+      "runtime": "CR_catalogsky.program"
+    },
+    {
+      "source": "Shaders\\CR_marssky.hlsl",
+      "runtime": "CR_marssky.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_marssky.program",
+      "runtime": "CR_marssky.program"
+    },
+    {
+      "source": "Shaders\\CR_titansky.hlsl",
+      "runtime": "CR_titansky.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_titansky.program",
+      "runtime": "CR_titansky.program"
+    },
+    {
+      "source": "Shaders\\CR_venussky.hlsl",
+      "runtime": "CR_venussky.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_venussky.program",
+      "runtime": "CR_venussky.program"
     },
     {
       "source": "Shaders\\crwx_fixedfunc-sm4.hlsl",
