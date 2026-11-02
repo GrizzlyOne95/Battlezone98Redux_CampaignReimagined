@@ -74,13 +74,43 @@ the staged ini with the `"! "` title prefix. Stage the content with
 into `Local\Workshop\content`). Each row records `dumps` (crash dumps written
 during the run). A PASS that left any dump is reported as `PASS-WITH-DUMPS`.
 
-```powershell
-$m = @(1..8 | % { "misns${_}cr" }) + @(1..15 | % { 'bdmisn{0:d2}cr' -f $_ }) + @(1..8 | % { 'chmisn{0:d2}cr' -f $_ })
-.\Tools\Run-CoopFourQualification.ps1 -SmokeFallback -Missions $m `
-  -HarnessRepo <selected-OpenShim-checkout> `
-  -CampaignContent <CR-checkout>\Local\Workshop\content `
-  -BZRCoopRoot <prepared-private-runtime-root>
-```
+1. Prepare four instances from the OpenShim build under test. The runner
+   passes `-SkipPrepare` and refuses to start unless each instance's
+   `winmm.dll`, `bzloader.dll` and `plugins\openshim.dll` match
+   `<HarnessRepo>\bin\Release`. Re-run this step after rebuilding OpenShim.
+   It also needs the Goldberg `steam_api.dll` at
+   `C:\BZRCoop\tools\NucleusCoop\utils\GoldbergEmu\`.
+
+   ```powershell
+   & <HarnessRepo>\reverse_engineering\BZRCoopSession.ps1 -Action Prepare -Clients 4 `
+     -BZRCoopRoot <runtime-root> -OpenShimRepo <HarnessRepo> `
+     -CampaignStage <CR-checkout>\Local\Workshop\content
+   ```
+
+2. Parse-check the scripts:
+   `& <HarnessRepo>\reverse_engineering\coopflow\Test-CRFlowMissionParsing.ps1 -CampaignScripts <CR-checkout>\Scripts`.
+3. Run one mission first. In its run's `flow-summary.json`, confirm that the
+   host picked that mission's `.bzn` from row 1. This proves the `"! "`
+   listing sorts first on this install.
+
+   ```powershell
+   .\Tools\Run-CoopFourQualification.ps1 -SmokeFallback -Missions bdmisn01cr `
+     -HarnessRepo <HarnessRepo> -CampaignContent <CR-checkout>\Local\Workshop\content `
+     -BZRCoopRoot <runtime-root>
+   ```
+
+4. Run the rest. Each mission takes about 3-5 minutes, so the full set takes
+   about 2-3 hours:
+
+   ```powershell
+   $m = @(1..8 | % { "misns${_}cr" }) + @(1..15 | % { 'bdmisn{0:d2}cr' -f $_ }) + @(1..8 | % { 'chmisn{0:d2}cr' -f $_ })
+   .\Tools\Run-CoopFourQualification.ps1 -SmokeFallback -Missions $m `
+     -HarnessRepo <HarnessRepo> -CampaignContent <CR-checkout>\Local\Workshop\content `
+     -BZRCoopRoot <runtime-root>
+   ```
+
+Results are in `<runtime-root>\suite-<stamp>\suite.json` and `suite.txt`, and
+each run directory is under `<runtime-root>\runs\`.
 
 Mission 13 and 14 also accept `Mode=recycler-loss` through the harness's
 `-ScenarioArgs` parameter. These must produce the mission-specific shared
