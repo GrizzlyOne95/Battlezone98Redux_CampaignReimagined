@@ -812,9 +812,22 @@ local function Arrivals()
 end
 
 -- ---------------------------------------------------------------- results and scaling
+local function RunBeats()
+    if not (Weather and weatherStarted) or type(Weather.config.beats) ~= "function" then return end
+    -- A runtime defeat (out of lives) skips the body's own FailMission, so its lost flag stays false:
+    -- the beats see it as lost, so the defeat beat and the closing calm still fire.
+    local state = M
+    if M.coopFailed and not M.lost then state = setmetatable({ lost = true }, { __index = M }) end
+    local ok, err = pcall(Weather.config.beats, Weather.module, state, State())
+    if not ok and not weatherFailed.beats then
+        weatherFailed.beats = true
+        Log(ID, "weather beats failed: " .. tostring(err))
+    end
+end
 local function Failure()
     if not CRCoop.IsAuthority() or WonLatched() or Ended() then return end
     M.coopFailed = true
+    RunBeats() -- the last beats before the result stops the weather updates
     FailMission(GetTime() + 7, FAIL_DES)
 end
 function R.SetScrap(team, amount)
@@ -876,13 +889,7 @@ local function UpdateWeather(dt)
     WeatherCall("Update", dt)
     if envStarted then pcall(Environment.Update, dt) end
     local authority = (not CRCoop.IsNetworkGame()) or CRCoop.IsAuthority()
-    if authority and type(Weather.config.beats) == "function" then
-        local ok, err = pcall(Weather.config.beats, Weather.module, M, State())
-        if not ok and not weatherFailed.beats then
-            weatherFailed.beats = true
-            Log(ID, "weather beats failed: " .. tostring(err))
-        end
-    end
+    if authority then RunBeats() end
 end
 local function ShutdownWeather()
     if weatherStarted then WeatherCall("Shutdown") end

@@ -123,8 +123,13 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     hooks = {
         load = function() Restored.OnLoad() end,
     },
+    -- Cloaking is local engine state: it is switched off on every peer through the stream.
+    presentationOps = {
+        CH2Cloak = function(on) Restored.OpCloak(on) end,
+    },
 })
-local NativeBuildObject, NativeAudioDone = BuildObject, IsAudioMessageDone
+local NativeBuildObject, NativeAudioDone, NativeEnableAllCloaking = BuildObject, IsAudioMessageDone, EnableAllCloaking
+function Restored.OpCloak(on) NativeEnableAllCloaking(on == 1) end
 local GetPlayerHandle = campaignRuntime and campaignRuntime.GetPlayerHandle or GetPlayerHandle
 local SetScrap = campaignRuntime and campaignRuntime.SetScrap or SetScrap
 local Attack = campaignRuntime and campaignRuntime.Attack or Attack
@@ -222,6 +227,9 @@ local CameraPath = campaignRuntime and function(path, height, speed, target)
     end
     return arrived
 end or CameraPath
+local EnableAllCloaking = campaignRuntime and function(on)
+    return campaignRuntime.Present("CH2Cloak", on and 1 or 0)
+end or EnableAllCloaking
 -- CR co-op runtime <<
 
 local function Valid(h)
@@ -337,7 +345,7 @@ if campaignRuntime then
     -- ch03007 follows ch02006 when two convoy APCs are lost: the body only waits for its own line.
     function Restored.LineBusy(message)
         local r = RState()
-        if r.convoyLine == nil or message ~= M.lose2Sound then return false end
+        if r.convoyLine == nil or r.convoyLine == 0 or message ~= M.lose2Sound then return false end
         return not NativeAudioDone(r.convoyLine)
     end
     function Restored.DefectorLost()

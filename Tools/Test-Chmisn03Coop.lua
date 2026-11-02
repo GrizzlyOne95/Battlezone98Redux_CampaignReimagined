@@ -518,6 +518,14 @@ do
     F.nearTo(m.general, "won_mission"); F.run(3)
     check(F.count(p[1], "EuropaRelease") == 1 and F.count(p[1], "EuropaLevel", 1) == 1, "the victory eases the sky back")
 end
+do -- out of lives: the runtime fails the mission and the sky still calms
+    local weather = { module = function(peer, record) return europa(record, nil, {})(peer) end, sites = { mission = "chmisn03", vents = {} } }
+    local w, p, m = setup(2, { weather = weather })
+    reachConvoy(w)
+    p[1].coop.ReportOutOfLives(); F.run(3)
+    check(m.coopFailed and not m.lost, "the runtime, not the body, failed the mission")
+    check(F.count(p[1], "EuropaRelease") == 1 and F.count(p[1], "EuropaLevel", 1) == 1, "an out-of-lives defeat eases the sky back")
+end
 do -- a site list without vents: the plume is skipped, the rest of the weather still follows
     local weather = { module = function(peer, record) return europa(record, nil, {})(peer) end, sites = { mission = "chmisn03", vents = {} } }
     local w, p, m = setup(2, { weather = weather })

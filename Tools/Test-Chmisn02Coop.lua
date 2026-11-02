@@ -142,8 +142,8 @@ for n = 2, 4 do
         for _, c in ipairs(F.callsOf(p[1], "SetPilot")) do if c[2] == team and c[3] == 10 then found = true end end
         check(found, "team " .. team .. " gets 10 pilots")
     end
-    check(F.count(p[1], "EnableAllCloaking", false) == 1, "cloaking is disabled once")
     for i = 1, n do
+        check(F.count(p[i], "EnableAllCloaking", false) == 1, "cloaking is disabled once on peer " .. i)
         check(F.count(p[i], "DisableStartingRecycler") == 1, "extra starting recyclers disabled on peer " .. i)
         check(F.heardCount(p[i], "ch02001.wav") == 1, "briefing once on peer " .. i)
     end
@@ -403,8 +403,8 @@ do -- two APCs lost: ch02006 then the unused ch03007 close the loss
     local w, p, m = setup(2, {})
     reachConvoy(w, m)
     F.hurt(m.apc[0]); F.run(2) -- the first hit has been announced long before two APCs fall
-    w.busyMessages["audio:ch02006.wav"] = true
-    w.busyMessages["audio:ch03007.wav"] = true
+    w.busyMessages["audio:" .. "ch02006.wav"] = true
+    w.busyMessages["audio:" .. "ch03007.wav"] = true
     F.kill(m.apc[0]); F.kill(m.apc[1]); F.run(1)
     heardAll(p, "ch02006.wav"); heardAll(p, "ch03007.wav")
     local queued = false
@@ -412,10 +412,10 @@ do -- two APCs lost: ch02006 then the unused ch03007 close the loss
     check(queued, "ch03007 is queued behind ch02006")
     F.run(8)
     check(F.count(p[1], "FailMission") == 0, "the failure waits for both lines")
-    w.busyMessages["audio:ch02006.wav"] = nil
+    w.busyMessages["audio:" .. "ch02006.wav"] = nil
     F.run(8)
     check(F.count(p[1], "FailMission") == 0, "...and for the second line after the first is done")
-    w.busyMessages["audio:ch03007.wav"] = nil
+    w.busyMessages["audio:" .. "ch03007.wav"] = nil
     F.run(14)
     for i = 1, 2 do check(F.count(p[i], "FailMission") == 1 and F.last(p[i], "FailMission")[3] == "ch02lseb.des", "convoy failure on peer " .. i) end
     check(F.heardCount(p[1], "ch03007.wav") == 1, "the extra line plays once")

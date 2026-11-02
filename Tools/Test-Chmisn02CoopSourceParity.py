@@ -48,7 +48,7 @@ for name in natives:
     assert name in body_calls, "not a call of the body: " + name
     assert name in shadowed, "the body calls it, the runtime region must shadow it: " + name
 # Natives that touch only real units or the engine itself stay unwrapped (the body never holds a ticket in M).
-for name in ("Retreat", "Defend2", "SetPerceivedTeam", "SetTeamNum", "SetCommand", "EnableAllCloaking", "GetHandle",
+for name in ("Retreat", "Defend2", "SetPerceivedTeam", "SetTeamNum", "SetCommand", "GetHandle",
              "GetDistance", "GetHealth", "IsValid", "IsAlive", "GetPathPointCount", "GetTime"):
     assert name not in shadowed, "stays native: " + name
 for name in ("SetAIP", "SetAIControl", "GetTeamNum", "SetCloaked", "CameraObject", "Follow", "Patrol"):

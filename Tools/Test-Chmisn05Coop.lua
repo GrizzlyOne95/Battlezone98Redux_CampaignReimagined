@@ -324,7 +324,7 @@ for n = 1, 4 do
     local order = {}
     for _, l in ipairs(lines) do order[#order + 1] = l end
     local seq = table.concat(order, ",")
-    check(seq:find("ch05005.wav,abetty6.wav,abetty14.wav,ch05006.wav", 1, true), "the lines come in order: " .. seq)
+    check(seq:find(table.concat({ "ch05005.wav", "abetty6.wav", "abetty14.wav", "ch05006.wav" }, ","), 1, true), "the lines come in order: " .. seq)
     for i = 1, n do
         local adds = F.callsOf(p[i], "AddObjective")
         check(adds[#adds][2] == "ch05004.otf" and adds[#adds][3] == "white" and adds[#adds - 1][2] == "ch05003.otf" and adds[#adds - 1][3] == "green",
