@@ -817,6 +817,13 @@ Each bullet: the pitfall, the one-line why, and where to read more.
   mounts, and the load quits to the menu. That is why misn03..misn14/misn17/misn18 are `misnNNcr` and
   misn02b is `misn2bcr` (misn15/misn16 are not in the table). A renamed `.bzn` must also say
   `msn_filename = <new>.bzn` in its header; `TerrainName` keeps the stock stem.
+- A CR region can read and write any field of the mission's own saved state table (`M.x = ...`) freely, but
+  it can only *intercept* a native/global the faithful body calls bare by name (`local X = campaignRuntime
+  and ... or X`, declared textually before the body's first use). It cannot reach a `local function` the
+  body itself declares (a CR-region local of the same name is simply shadowed by the body's later
+  declaration for the rest of the chunk) or a plain table-field *read* (`M.someCount`, not a name at all).
+  When a scaling/behavior change needs one of those, shadow the native the un-reachable code itself calls
+  instead and act on the state table directly from inside that shadow (`Docs/EVOLVE_COOP.md`, "Scaling").
 
 ### 8.3 Source fidelity
 
@@ -832,6 +839,13 @@ Each bullet: the pitfall, the one-line why, and where to read more.
 - Redux has no ODF class inheritance (parent is a descriptor; basename is the mesh), and renamed ODF
   sections can crash (null payload faults on frame 1). Custom ODFs need `aiName`.
 - Hardpoints live in the skeleton, not the ODF; cockpit is a sibling node; pilot aim lives in the node.
+- A stock mission can have no shipping `.bzn`/`.ini` at all (evolve/"sammy": only the two debrief `.des`
+  files ship; a same-named but unrelated map can exist too, e.g. the `evolve_1..5.bzn` deathmatch pack).
+  Check the classic BZ1 1.5 `tro_cam.zfs` archive (`Tools/Build-CoopMap.py` already reads it for Black
+  Dog/Chinese) before concluding a stock map is missing entirely: it carries 1.5-era maps Redux's own
+  `.ini`s never reference, by the C++ mission class name, not the eventual CR script stem (`Docs/EVOLVE_COOP.md`,
+  "Map packaging"). A map pulled from there may still lack a Redux `.hg2` if it was never converted at the
+  time; nothing here hand-rolls that codec (`Battlezone98Redux_WorldBuilder`, if checked out, has it).
 
 ### 8.4 Rendering and weather
 

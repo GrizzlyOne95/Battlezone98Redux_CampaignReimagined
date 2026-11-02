@@ -70,6 +70,7 @@ local native = {
     CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
     StopAudioMessage = StopAudioMessage, GetPlayerHandle = GetPlayerHandle,
     StartCockpitTimer = StartCockpitTimer, StopCockpitTimer = StopCockpitTimer, HideCockpitTimer = HideCockpitTimer,
+    StartCockpitTimerUp = StartCockpitTimerUp,
     StartEarthquake = StartEarthquake, UpdateEarthQuake = UpdateEarthQuake,
     Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
 }
@@ -913,8 +914,14 @@ end
 function R.Start()
     State().started = nil
     CRCoop.Initialize({ getLocalPlayerId = function() return exu.GetMyNetID and exu.GetMyNetID() end,
-        leaderTeam = LEADER_TEAM, humanTeamMin = 1, humanTeamMax = 4, rallyPoints = config.rallyPoints,
-        onOutOfLives = Failure })
+        leaderTeam = LEADER_TEAM, humanTeamMin = 1, humanTeamMax = 4,
+        rallyPoints = config.rallyPoints,
+        -- A mission whose own ending is not a plain FailMission (evolve always SucceedMission-s with a
+        -- score-chosen debrief) overrides this; Failure() is the default for every other CCA mission.
+        onOutOfLives = type(hooks.outOfLives) == "function" and function()
+            local ok, err = pcall(hooks.outOfLives)
+            if not ok then Log(ID, "hook outOfLives failed: " .. tostring(err)); Failure() end
+        end or Failure })
     if localCameraActive then native.CameraFinish() end
     ConfigureAlliances(); ResetPresentation(); lastAudio = nil
     pda.Initialize(); subtit.Initialize()

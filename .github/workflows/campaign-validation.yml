@@ -702,3 +702,9 @@ jobs:
           lua5.1 Tools/Test-Chmisn08Presentation.lua
           python Tools/Test-Chmisn08CoopSourceParity.py
           python Tools/Test-Chmisn08CoopContract.py
+      - name: Test evolve DLL-source port and co-op layer, and map contract
+        run: |
+          lua5.1 Tools/Test-Evolve.lua
+          lua5.1 Tools/Test-EvolveCoop.lua
+          python Tools/Test-EvolveCoopSourceParity.py
+          python Tools/Test-EvolveCoopContract.py

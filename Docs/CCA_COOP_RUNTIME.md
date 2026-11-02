@@ -49,7 +49,7 @@ cutscenes are shared and unskippable in a network game; every optional subsystem
 | `presentationOps` | `{}` | `{Name=function(...)}` ops run on every peer through the ordered stream (`Present("Name", ...)`). |
 | `environment` | nil | `Environment.Init` options when there is no weather. |
 | `weather` | nil | `{module="CRVenusWeather", sites="CRVenusSitesS1", environment=..., startLevel, targetLevel, ops={...}, beats=function(module, M, state)}`. Missing/failing modules disable weather, never the mission. `beats` runs on the authority each frame. |
-| `hooks` | `{}` | `start(R)`, `load(R)`, `update(R, dt, authority)` (every peer), `afterUpdate(R)`, `save(R, state)`, `addObject(R, h)`, `chooseOdf(R, odf, M)`, `heldArrivals(R, M)`, `built(R, handle, request, id)` (a ticket was built; `request.extra`, `.where`, `.odf`, `.team`). |
+| `hooks` | `{}` | `start(R)`, `load(R)`, `update(R, dt, authority)` (every peer), `afterUpdate(R)`, `save(R, state)`, `addObject(R, h)`, `chooseOdf(R, odf, M)`, `heldArrivals(R, M)`, `built(R, handle, request, id)` (a ticket was built; `request.extra`, `.where`, `.odf`, `.team`), `outOfLives()` (every human out of lives; overrides the default `Failure()`/`FailMission(failDes)` for a mission whose own ending is not a plain failure, e.g. `evolvecr`'s score-chosen `SucceedMission`). |
 
 ## API (`R`)
 
@@ -57,7 +57,9 @@ Natives to shadow: `Spawn` (for `BuildObject`), `IsValid`, `IsAlive`, `GetDistan
 valid, alive and infinitely far), `SetScrap`, `SetAIP`, the order names, `AudioMessage`, `StopAudioMessage`,
 `CameraReady/Path/Object/Finish/Cancelled`, `ClearObjectives/AddObjective/UpdateObjective`,
 `SetObjectiveName/On/Off`, `RemoveObject`, `SucceedMission`, `FailMission`.
-Also: `BeginEvent()`, `WrapDistance(original)`, `GetPlayerHandle()` (the `PLAYERS` token, also `R.PLAYERS`),
+`StartCockpitTimerUp` joins `StartCockpitTimer`/`StopCockpitTimer`/`HideCockpitTimer` in the plain native dispatch table
+(presented, since the cockpit timer widget is local-client UI state, not team economy that the engine already
+replicates). Also: `BeginEvent()`, `WrapDistance(original)`, `GetPlayerHandle()` (the `PLAYERS` token, also `R.PLAYERS`),
 `PathExists(name)`, `HumanCount()`, `State()` (the saved `M.crcca` table; keep restoration state in `State().r`),
 `Present(op, ...)`, `Start/Update/AfterUpdate/Save/Load/AddObject/CreatePlayer/AddPlayer/DeletePlayer/Receive`,
 and `Coop/Exu/Native/Weather`.
