@@ -673,6 +673,12 @@ jobs:
           lua5.1 Tools/Test-Chmisn04Presentation.lua
           python Tools/Test-Chmisn04CoopSourceParity.py
           python Tools/Test-Chmisn04CoopContract.py
+      - name: Test chmisn05 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Chmisn05Coop.lua
+          lua5.1 Tools/Test-Chmisn05Presentation.lua
+          python Tools/Test-Chmisn05CoopSourceParity.py
+          python Tools/Test-Chmisn05CoopContract.py
       - name: Test chmisn06 co-op layer, presentation and map contract
         run: |
           lua5.1 Tools/Test-Chmisn06Coop.lua
