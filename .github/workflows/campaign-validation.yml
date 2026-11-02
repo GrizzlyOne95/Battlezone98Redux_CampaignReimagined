@@ -135,6 +135,11 @@ jobs:
           lua5.1 Tools/Test-BlackDog09.lua
           python Tools/Test-BlackDog09SourceParity.py
 
+      - name: Test Chinese08 source port
+        run: |
+          lua5.1 Tools/Test-Chinese08.lua
+          python Tools/Test-Chinese08SourceParity.py
+
       - name: Test misn12 source port and Lua comment scanning
         run: |
           lua5.1 Tools/Test-Misn12.lua
