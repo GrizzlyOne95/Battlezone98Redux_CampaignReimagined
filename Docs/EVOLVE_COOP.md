@@ -5,8 +5,7 @@ Shared offline / 1-4 player co-op port of the cut Redux single-player survival m
 `Missions/evolvecr.bzn` and one `Scripts/evolvecr.lua` serve both modes. Companion to
 [`EVOLVE_LUA_PORT.md`](EVOLVE_LUA_PORT.md) (the faithful DLL port underneath, `Scripts/evolve.lua`) and
 [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime).
-Status: **host-tested only**; nothing here has run in the game (see "Live checklist"), and the map cannot
-load at all until its missing `.hg2` is generated (see "Map packaging").
+Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
 
 ## Layout
 
@@ -14,7 +13,7 @@ load at all until its missing `.hg2` is generated (see "Map packaging").
 | --- | --- |
 | `Scripts/evolvecr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `evolve.lua` (`Tools/Test-EvolveCoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the per-human invehicle/retarget tracking and the scaled-wave extras. |
 | `Scripts/CRCCARuntime.lua` | Shared co-op runtime (misns1..8, bdmisn08, now evolvecr); extended for this mission (see "Runtime changes"). |
-| `Missions/evolvecr.{bzn,vxt?}`, `Missions/sammy__1.{trn,mat,lgt}`, `Config/evolvecr.ini`, `evolvecr.mpdes` | Map and multiplayer listing (see "Map packaging"; there is no `.vxt`, no vehicle depot on this map). |
+| `Missions/evolvecr.{bzn,vxt?}`, `Missions/sammy__1.{hg2,trn,mat,lgt}`, `Config/evolvecr.ini`, `evolvecr.mpdes` | Map and multiplayer listing (see "Map packaging"; there is no `.vxt`, no vehicle depot on this map). |
 | `Tools/Build-EvolveCoopMap.py` | One-off converter: the stock BZ1 1.5 `sammy__1.bzn` (archived in Redux's `tro_cam.zfs` alongside the Black Dog/Chinese maps) to `Missions/evolvecr.bzn`. |
 | `Tools/Test-EvolveCoop.lua`, `Test-EvolveCoopSourceParity.py`, `Test-EvolveCoopContract.py` | Co-op tests (real `CRCoop`/`CRCCARuntime`, single-environment authority harness; see "Tests"). `Tools/Test-Evolve.lua` still covers the faithful port, unchanged. |
 
@@ -42,39 +41,39 @@ Unlike `misn06..misn18`/`misns1..misns8` (terrain stem == mission stem == C++ cl
 `Build-CoopMap.py`, `Tools/Build-EvolveCoopMap.py` is a small standalone script that borrows its proven
 primitives (the toolbox converter, the buoy template, the stock-field reader) for this one case.
 
-**The map has no `.hg2`.** Every other CR co-op map's `tro_cam.zfs` source already carried a Redux-era `.hg2`
-(Pandemic converted the Black Dog/Chinese single-player campaign to Redux at the time); `sammy` was cut
-content that was apparently never carried that far, so only the 1.5-era `.trn` survived in the archive. The
-sibling `Battlezone98Redux_WorldBuilder` repo (`docs/MAT_FORMAT_VALIDATION.md`, `hg2_codec.py`, per
-`AGENTS.md`) is not checked out on this machine, and nothing here hand-rolls a terrain codec from a hex dump.
-Until a `.hg2` is generated (by the codec, once available, or by loading the map once in the Redux editor/
-engine) **the map cannot load**: `Missions/sammy__1.{trn,mat,lgt}` and `Missions/evolvecr.bzn` are ready, but
-Battlezone 98 Redux itself has nothing to render the ground with. `Test-EvolveCoopContract.py` prints a
-warning (not a failure) while it is missing.
+**The heightmap comes from The Red Odyssey.** Redux's `tro_cam.zfs` copy of the map has no height data
+(`bzn/lgt/mat/trn` only), but The Red Odyssey 1.3 installs the BZ1 1.5 heightmap loose as
+`addon/sammy__1.hgt`: 512x512 legacy samples, matching the `.trn`'s 4x4 zones (`Width=5120`). Its `.mat` is
+byte-identical to ours. `Missions/sammy__1.hg2` is that `.hgt` run through the Modding Toolbox's converter
+(`bztoolbox/modules/terrain_generator/research/convert_legacy_hgt.py convert sammy__1.hgt --trn-dir Missions`,
+default engine rounding, *unsmoothed* — the toolbox's `LEGACY_HGT_TO_HG2.md`: Redux's own load-time cook
+adds a 3x3 blur that rounds off authored rims). It is the real map: a closed bowl at 382.5 m walls with a
+165 m sperm-shaped arena floor and "evolve" carved beside it; the stock start sits on that floor and every
+spawn point the script uses is on it or in a lower pit (down to 96 m). The stock start is at the bottom of the
+narrow tail channel, so `Build-EvolveCoopMap.py` lines the co-op starts up 12 m apart along the channel (ahead
+of the start) rather than sideways into its walls; `Test-EvolveCoopContract.py` asserts every start is on the
+floor with the co-op starts clear of walls one sample (5 m) around, and every used spawn point is at or below
+the floor.
 
 ## Teams and ownership
 
 | Team | Use |
 | --- | --- |
-| 1 | **Every human** (owner decision): one shared arena, shared score and shared lives, not one team slot per human like every other CR co-op mission. The stock player start (`asuser0_person`) is already team 1; the four co-op start buoys are also all team 1 (`coop_spawn1_1`..`coop_spawn1_4`, not one per team 1-4). `CRCoop.Initialize`'s `humanTeamMin`/`humanTeamMax` (now configurable, see "Runtime changes") are both `1`. |
-| 2 | The attackers (`attackRounds[*].attacker`, the four `cover_1..4` `csuserb` items). The map authors nothing on it; every unit is a runtime `BuildObject` in the faithful body. Since no human can ever occupy team 2 here (unlike bdmisn08/misns1, where guests populate 2-4), there is no enemy-team remap to make: `enemyTeam = mapEnemyTeam = 2`, an identity mapping. |
+| 1-4 | The humans, one team each (standard CR co-op layout: the engine puts guests on 2-4). The stock player start (`asuser0_person`) is team 1; the map adds one MultST start buoy per team (`coop_spawn1`..`coop_spawn4`). |
+| 5 | The attackers (`attackRounds[*].attacker`, the four `cover_1..4` `csuserb` items). The map authors nothing for them; the faithful body builds every one on map team 2 and `campaignRuntime.Spawn` remaps it (`enemyTeam = 5, mapEnemyTeam = 2`, same as bdmisn08/misns1). |
 
 Only the authority (host, or the offline player) runs the body; guests only present. Authority is
-`CRCoop.IsCampaignLeader()`: team 1 **and** `IsHosting()` — with every human on team 1, team alone can no
-longer distinguish the host from a guest, but `IsHosting()` already does (unchanged, no runtime fix needed).
+`CRCoop.IsCampaignLeader()` (team 1 and `IsHosting()`).
 
-### Humans as one trigger, counted correctly [owner finding]
+### Humans as one trigger
 
 `GetPlayerHandle()` returns the runtime's `PLAYERS` token; `AttackPlayer(h)` (`Attack(h, M.user)`) is
 rewritten, same shadow pattern as every other CR co-op wrapper, to attack the human nearest the attacker.
-`campaignRuntime.HumanCount()`, however, counts *distinct human teams* (`CRCoop.ForEachHumanTeam`), which is
-always 1 here regardless of how many humans are connected. The CR layer counts players itself instead
-(`campaignRuntime.Coop.GetPlayers()`), documented as a general pitfall in `CCA_COOP_RUNTIME.md` for any future
-mission that shares one team.
+Wave scaling counts humans with `campaignRuntime.HumanCount()` (distinct human teams, one per human here).
 
 ## Scaling [owner decision]
 
-Per-spawn-point attackers: `min(20, ceil(native * (1 + 0.5*(humans-1))))`, `humans` counted (as above) at
+Per-spawn-point attackers: `min(20, ceil(native * (1 + 0.5*(humans-1))))`, `humans` counted at
 the start of the wave; `native` is `M.maxroundattackers`, the body's own per-spawn-point count (1, rising to
 20 over repeated clears — unchanged, the faithful port's own escalation). Cover attackers (`cover_1..4`) and
 the twelve friendly pickups use a different odf and are never scaled.
@@ -114,16 +113,15 @@ mission start/restart, same as the faithful body's own `M.olduser = M.user` at s
 persisted: a save/load cannot spuriously relatch it, because nothing changed across the load from its point
 of view.
 
-## Shared score and shared lives [owner decision]
+## Shared score and co-op lives [owner decision]
 
-`SetScrap(1, M.score)`/`SetMaxScrap(1, M.bestscore)` are the score HUD, not production scrap — unlike every
-other CR co-op mission's economy, a per-guest bonus would inflate the displayed score. `scrapPerGuest = 0`
-neutralizes the runtime's default bonus formula entirely (`amount + 0 * (humans-1) == amount`); `SetMaxScrap`
-is left unwrapped (team/HUD state the engine already replicates, same as every other mission).
+`SetScrap(1, M.score)`/`SetMaxScrap(1, M.bestscore)` are the score HUD, not production scrap. The CR layer
+mirrors every team-1 call onto teams 1-4 with the native `SetScrap`/`SetMaxScrap`, so each guest's own HUD (its
+own team's scrap) shows the shared score, with no per-guest bonus (`scrapPerGuest = 0`).
 
 Lives are CRCoop's own (`COOP_LIVES = 5` per connected human, `Docs/COOP_RESPAWN.md`): a craft death respawns
 through the native MultST + `CRCoopRespawn` system, costing one life, not ending the run. The run ends only
-when CRCoop's shared-lives pool is exhausted (`onOutOfLives`, fired once *some* connected human has none
+when CRCoop reports the humans out of lives (`onOutOfLives`, fired once *some* connected human has none
 left — the project's existing "every human out" semantics, unchanged from every other CR co-op mission).
 Evolve's own ending is never a plain failure, though: the faithful body's `FinishRun()` always
 `SucceedMission`s, choosing `sammywin.des` or `sammylse.des` by comparing the run's score against the
@@ -135,14 +133,12 @@ fires in co-op; only the shared-lives ending can.
 
 ## Runtime changes [owner, in `Scripts/CRCCARuntime.lua`]
 
-Three small, backward-compatible additions (every other CCA mission's behavior is unchanged; every existing
+Two small, backward-compatible additions (every other CCA mission's behavior is unchanged; every existing
 coop test in the repo still passes):
 
 - `native.StartCockpitTimerUp` joins `StartCockpitTimer`/`StopCockpitTimer`/`HideCockpitTimer` in the plain
   dispatch table, so `Present("StartCockpitTimerUp", ...)` can relay the cockpit count-up timer (local-client
   HUD widget state, like the other three) to every peer. No other mission starts a cockpit timer.
-- `CRCoop.Initialize`'s `humanTeamMin`/`humanTeamMax` are now `config.humanTeamMin or 1`/`config.humanTeamMax
-  or 4` instead of hardcoded `1`/`4`, for a mission where every human shares one team.
 - `hooks.outOfLives()`, when provided, replaces the default `Failure()` (`FailMission(failDes)`) call made
   when CRCoop reports every human out of lives — for a mission whose own ending is not a plain failure.
 
@@ -150,7 +146,7 @@ coop test in the repo still passes):
 
 ```sh
 lua5.1 Tools/Test-EvolveCoop.lua            # 1-4 humans scaling, nearest-human targeting, invehicle latch,
-                                             # shared lives, single ending, save/load, host-only body
+                                             # co-op lives, single ending, save/load, host-only body
 python Tools/Test-EvolveCoopSourceParity.py  # evolvecr.lua minus CR regions == evolve.lua
 python Tools/Test-EvolveCoopContract.py      # labels/paths/teams in evolvecr.bzn (skips if the map is absent)
 lua5.1 Tools/Test-Evolve.lua                 # the faithful port, unchanged
@@ -168,7 +164,6 @@ evolve commands above plus the faithful-port source-parity check in one new step
 
 ## Inferences and open questions
 
-- The map's missing `.hg2` (above) is the single biggest open item: nothing here has loaded in the engine.
 - `minPlayers = "1"` in `Config/evolvecr.ini` (not `"2"` like every other CR co-op listing): there is no
   existing single-player campaign `.ini` entry for this cut mission to share (unlike bdmisn/chmisn/misnNN),
   so this multiplayer listing is the *only* way to play it at all, including solo.
@@ -178,15 +173,6 @@ evolve commands above plus the faithful-port source-parity check in one new step
   "this human's current craft" signal across an eject/respawn; this is the same assumption every other CR
   co-op mission's nearest-human wrapper already makes, just applied here to a *second* purpose (the latch)
   as well as targeting.
-- Whether four buoys sharing team 1 actually resolves to four distinct spawn positions in native MultST (as
-  opposed to colliding on the first one) is unverified; no other CR co-op mission has tried a same-team buoy
-  set.
-- **Biggest open risk:** the engine, not this script, assigns each human's team. In every other CR co-op
-  mission (`gameType = "S"`), guests land on teams 2-4. If they do here too, `humanTeamMax = 1` makes
-  `CRCoop.HasUnsupportedPlayerTeam()` hold the session, and a guest on team 2 would share the attackers'
-  team. The fallback is the usual layout: humans on 1-4, attackers remapped off team 2
-  (`enemyTeam ~= mapEnemyTeam`), and the shared score and lives kept on team 1. Check this first in the
-  first two-player run.
 - The out-of-lives path in `Tools/Test-EvolveCoop.lua` uses one connected human (`CRCoop.ReportOutOfLives()`
   dispatches without needing a second peer's event acknowledgements, which `CRCCARuntime`'s 3.5 s
   result-publish delay otherwise waits on); a true multi-peer "all four run out together" sequence is
@@ -194,10 +180,10 @@ evolve commands above plus the faithful-port source-parity check in one new step
 
 ## Live checklist (unrun)
 
-1. **Generate `Missions/sammy__1.hg2` first** (above) — nothing else here can be tried without it.
+1. Load: the map renders (bowl, tail channel, carved "evolve"), every co-op start drops onto the floor.
 2. Solo: the opening pilot wave (round 0) matches `Tools/Test-Evolve.lua`'s own native-baseline checks
    (3 pilots total, one per spawn point); scrap/pilot/cockpit-timer HUD all start normally.
-3. 2-4 players, all visibly on team 1: wave sizes scale per the table above; every attacker and cover item
+3. 2-4 players (guests on teams 2-4, every HUD showing the same score): wave sizes scale per the table above; every attacker and cover item
    retargets correctly as players eject, respawn or swap craft.
 4. One player dies (not out of lives): they respawn through `CRCoopRespawn`; the run keeps going, the wave
    clear/scoring is unaffected by their temporary absence.

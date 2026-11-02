@@ -43,12 +43,13 @@ body_calls = set(re.findall(r"\b([A-Z]\w+)\(", body))
 for name in sorted(shadowed):
     assert name in body_calls, "shadowed but never called by the body: " + name
 natives = {"GetPlayerHandle", "RemoveObject", "SetScrap", "ClearObjectives", "AddObjective", "SucceedMission",
-           "StartCockpitTimerUp", "IsValid", "IsAlive", "Attack", "BuildObject"}
+           "StartCockpitTimerUp", "IsValid", "IsAlive", "Attack", "BuildObject", "SetMaxScrap"}
 for name in natives:
     assert name in body_calls, "not a call of the body: " + name
     assert name in shadowed, "the body calls it, the runtime region must shadow it: " + name
-# SetMaxScrap/SetPilot/GetCockpitTimer are team/HUD stats the engine already replicates; never wrapped.
-for name in ("SetMaxScrap", "SetPilot", "GetCockpitTimer", "GetTime", "AllObjects", "GetOdf"):
+# SetPilot/GetCockpitTimer are team/HUD stats the engine already replicates; never wrapped. (SetScrap and
+# SetMaxScrap are wrapped only to mirror the team-1 score HUD onto every human team.)
+for name in ("SetPilot", "GetCockpitTimer", "GetTime", "AllObjects", "GetOdf"):
     assert name not in shadowed, "must not be wrapped: " + name
 
 print("evolvecr parity: %d CR regions and %d shadowed natives; the rest is the faithful port"

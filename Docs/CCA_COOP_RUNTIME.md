@@ -27,7 +27,6 @@ cutscenes are shared and unskippable in a network game; every optional subsystem
 | --- | --- | --- |
 | `id` | `"cca"` | Log prefix. |
 | `leaderTeam` | 1 | The host's team (also the shared-scrap team). |
-| `humanTeamMin`/`humanTeamMax` | 1 / 4 | `CRCoop.Initialize`'s human team range. A mission where every human shares one team (`evolvecr`: `humanTeamMin = humanTeamMax = 1`) sets both to the same value; `HumanCount()` then undercounts (it counts distinct human *teams*, not players) and the mission must count players itself (`campaignRuntime.Coop.GetPlayers()`). |
 | `enemyTeam` | 5 | The co-op enemy. `SetAIControl(enemyTeam, true)` at chunk load; `SetAIP` always uses it. |
 | `mapEnemyTeam` | 2 | The team the faithful body still says; mapped to `enemyTeam` in `Spawn`, `SetScrap`, `SetAIP`. |
 | `supportTeam` | 7 | Allied to humans. |

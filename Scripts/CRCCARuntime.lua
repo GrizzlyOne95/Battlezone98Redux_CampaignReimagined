@@ -914,7 +914,7 @@ end
 function R.Start()
     State().started = nil
     CRCoop.Initialize({ getLocalPlayerId = function() return exu.GetMyNetID and exu.GetMyNetID() end,
-        leaderTeam = LEADER_TEAM, humanTeamMin = config.humanTeamMin or 1, humanTeamMax = config.humanTeamMax or 4,
+        leaderTeam = LEADER_TEAM, humanTeamMin = 1, humanTeamMax = 4,
         rallyPoints = config.rallyPoints,
         -- A mission whose own ending is not a plain FailMission (evolve always SucceedMission-s with a
         -- score-chosen debrief) overrides this; Failure() is the default for every other CCA mission.

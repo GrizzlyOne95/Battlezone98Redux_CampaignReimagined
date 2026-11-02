@@ -106,15 +106,15 @@ local function builds()
 end
 local function step(t) clock = t; Update(0.1) end
 
--- Joins a human (team 1, same as every other human: the shared arena) at id/craft handle/position, acks the
+-- Joins a human on its own team (team == id, the engine's 2-4 guest slots) at id/craft handle/position, acks the
 -- leader-side handshake (CreatePlayer + the "H"/"Q" wire messages CRCoop itself expects) so IsSessionReady()
 -- admits them without needing a second sandboxed peer.
 local function joinHuman(id, x, z)
     local h = "human" .. id
-    objects[h] = {alive = true, odf = "asuser", team = 1, pos = {x = x, y = 0, z = z}}
-    CreatePlayer(id, "P" .. id, 1)
+    objects[h] = {alive = true, odf = "asuser", team = id, pos = {x = x, y = 0, z = z}}
+    CreatePlayer(id, "P" .. id, id)
     Receive(id, "H", h)
-    Receive(id, "Q", h, 1, 1)
+    Receive(id, "Q", h, id, 1)
     return h
 end
 local function startNetwork(humanCount)
@@ -137,7 +137,16 @@ for humans, expectPerPoint in pairs({[1] = 1, [2] = 2, [3] = 2, [4] = 3}) do
     check(perPoint.pilot_2 == expectPerPoint and perPoint.pilot_3 == expectPerPoint,
         "every spawn point in the round scales the same way")
     check(Save().numOfCurrentAttackers == expectPerPoint * 3, "extras are tracked in the wave-clear bookkeeping")
+    for _, b in ipairs(builds()) do
+        check(b[3] == 5, "attackers spawn on the co-op enemy team 5, got " .. tostring(b[3]))
+    end
 end
+
+-- The score HUD (team 1 scrap) is mirrored onto every human team, so each guest's own HUD shows it.
+reset(); startNetwork(4)
+local scrapTeams = {}
+for _, c in ipairs(calls) do if c[1] == "SetScrap" then scrapTeams[c[2]] = c[3] end end
+for t = 1, 4 do check(scrapTeams[t] == 0, "team " .. t .. " gets the score, got " .. tostring(scrapTeams[t])) end
 
 -- Cover items and pickups are never scaled, even with four humans (pickups appear strictly after time 1,
 -- same native threshold Tools/Test-Evolve.lua checks).
@@ -164,7 +173,7 @@ check(nearAttack[3] == "human2", "retarget chose the nearest human, not an arbit
 reset(); startNetwork(2)
 check(not Save().invehicle, "latch starts clear")
 local before = count("Attack")
-objects.human2b = {alive = true, odf = "avtank", team = 1, pos = {x = 1, y = 0, z = 0}}
+objects.human2b = {alive = true, odf = "avtank", team = 2, pos = {x = 1, y = 0, z = 0}}
 Receive(2, "H", "human2b")
 step(0.1)
 check(Save().invehicle, "a GUEST's handle change latches invehicle, same as the native single-player change")

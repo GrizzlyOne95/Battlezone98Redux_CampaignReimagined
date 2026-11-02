@@ -824,11 +824,6 @@ Each bullet: the pitfall, the one-line why, and where to read more.
   declaration for the rest of the chunk) or a plain table-field *read* (`M.someCount`, not a name at all).
   When a scaling/behavior change needs one of those, shadow the native the un-reachable code itself calls
   instead and act on the state table directly from inside that shadow (`Docs/EVOLVE_COOP.md`, "Scaling").
-- `CRCCARuntime.lua`'s `CRCoop.Initialize` hardcoded `humanTeamMin=1, humanTeamMax=4` (one team slot per
-  human) until evolvecr needed every human on the same team (a shared arena, not a shared economy); it is
-  now `config.humanTeamMin`/`humanTeamMax` (default unchanged). `campaignRuntime.HumanCount()` still counts
-  distinct human *teams*, not players — always 1 when they share a team; count
-  `campaignRuntime.Coop.GetPlayers()` directly instead.
 
 ### 8.3 Source fidelity
 

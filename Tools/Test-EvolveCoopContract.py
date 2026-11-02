@@ -5,7 +5,9 @@ Skipped (exit 0, says so) when Missions/evolvecr.bzn is not in the tree. Config/
 evolvecr.mpdes lobby blurb are checked only when present.
 """
 from pathlib import Path
+import array
 import re
+import struct
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,27 +22,30 @@ assert "msn_filename = evolvecr.bzn" in text
 assert "name = MultSTMission" in text and "name = EvolveMission" not in text
 
 # ---------------------------------------------------------------- objects and teams
-objects, starts = {}, []
+objects, starts, start_xz = {}, [], []
 for block in text.split("[GameObject]\n")[1:]:
     label = re.search(r"^label = (.*)$", block, re.M)
     odf = re.search(r"^PrjID \[1\] =\n(.*)$", block, re.M)[1]
     team = int(re.search(r"^team \[1\] =\n(\d+)$", block, re.M)[1])
     if odf == "pspwn_1":
         starts.append(team)
+        start_xz.append(tuple(float(v) for v in re.findall(r"^  posit_[xz] \[1\] =\n(.*)$", block, re.M)))
         continue
     if label:
         objects.setdefault(label[1], (odf, team))
-# Every human shares team 1 (owner decision): one shared arena, not one team-start buoy per human.
-assert starts == [1, 1, 1, 1], "four team-1 start buoys (every human shares team 1): " + str(starts)
+# Standard CR co-op layout: one team-start buoy per human team 1-4.
+assert starts == [1, 2, 3, 4], "one start buoy per human team 1-4: " + str(starts)
 assert objects["asuser0_person"] == ("asusera", 1), "the stock player start is team 1 already"
 assert not any(team == 2 for _, team in objects.values()), \
     "nothing is authored on team 2: every attacker is a runtime BuildObject in evolve.lua"
 
-paths = []
+paths, path_xz = [], {}
 for path in text.split("[AiPath]\n")[1:]:
     m = re.search(r"^label = (.*)$", path.split("pointCount", 1)[0], re.M)
     if m:
         paths.append(m[1])
+        path_xz[m[1]] = list(zip(*(map(float, re.findall(r"^  %s \[1\] =\n(.*)$" % a, path, re.M))
+                                   for a in "xz")))
 
 # ---------------------------------------------------------------- the Lua only names real map content
 lua_full = (ROOT / "Scripts/evolvecr.lua").read_text(encoding="utf-8")
@@ -62,8 +67,8 @@ assert unused == {"edge_path"}, "undocumented unused map path: " + str(unused)
 
 # ---------------------------------------------------------------- the CR layer
 cr_text = "".join(re.findall(region, lua_full))
-assert 'leaderTeam = 1, enemyTeam = 2, mapEnemyTeam = 2' in cr_text
-assert "humanTeamMin = 1, humanTeamMax = 1" in cr_text, "every human shares team 1"
+assert 'leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2' in cr_text
+assert "humanTeamMin" not in cr_text and "humanTeamMax" not in cr_text, "humans use the default teams 1-4"
 scaled = set(re.search(r"SCALED_ODFS = \{([^}]*)\}", cr_text, re.S)[1]
               .replace("=", " ").replace("true", " ").replace(",", " ").split())
 assert scaled == {"cspilo", "cssolda", "cssold", "cvfigh", "cvltnk", "cvtnk", "cvhraz", "cvwalk", "cvhtnk"}, scaled
@@ -87,9 +92,34 @@ else:
     print("  evolvecr.mpdes not present: skipped")
 for ext in ("trn", "mat", "lgt"):
     assert (ROOT / ("Missions/sammy__1." + ext)).is_file(), "sammy__1." + ext + " terrain companion missing"
+# ---------------------------------------------------------------- the terrain (converted from TRO's sammy__1.hgt)
+# HG2: 12-byte header (u16 version 1, zone bits 8, zones x, zones z; u32 map version), then 256x256 u16 per
+# zone, zone-major then row-major, 5 m per sample, 0.1 m per unit (Modding Toolbox LEGACY_HGT_TO_HG2.md).
 hg2 = ROOT / "Missions/sammy__1.hg2"
-if not hg2.is_file():
-    print("  Missions/sammy__1.hg2 NOT present: the map cannot load in Redux until this is generated")
+raw = hg2.read_bytes()
+version, bits, zx, zz, map_version = struct.unpack_from("<4HI", raw)
+assert (version, bits, zx, zz) == (1, 8, 4, 4) and map_version >= 10, "sammy__1.hg2 header"
+assert len(raw) == 12 + zx * zz * 0x20000, "sammy__1.hg2 payload matches its 4x4 zones"
+heights = array.array("H", raw[12:])
+trn = (ROOT / "Missions/sammy__1.trn").read_text(encoding="latin-1")
+min_x, min_z = (float(re.search(r"^%s=(.*)$" % k, trn, re.M)[1]) for k in ("MinX", "MinZ"))
+
+def terrain(x, z):
+    col, row = round((x - min_x) / 5), round((z - min_z) / 5)
+    return heights[(row >> 8) * zx * 0x10000 + (col >> 8) * 0x10000 + (row & 255) * 256 + (col & 255)] / 10
+
+floor = terrain(*start_xz[0])
+assert floor == 165.0, "team 1 starts on the 165 m floor the stock objects were authored at: %s" % floor
+assert all(len(xz) == 2 for xz in start_xz), "each start buoy has one posit_x and one posit_z"
+for i, (x, z) in enumerate(start_xz):
+    assert terrain(x, z) == floor, "co-op start %d is on the floor, not in a wall: %s" % (i + 1, terrain(x, z))
+    if i:  # the generated starts, not the stock one (which has a wall 5 m off)
+        around = max(terrain(x + dx, z + dz) for dx in (-5, 0, 5) for dz in (-5, 0, 5))
+        assert around == floor, "co-op start %d has a wall within 5 m: %s" % (i + 1, around)
+for label in used:
+    for xz in path_xz[label]:
+        assert terrain(*xz) <= floor, "spawn point %s is on the arena floor: %s" % (label, terrain(*xz))
+print("  Missions/sammy__1.hg2 checked: starts on the arena floor, used spawn points at or below it")
 
 print("evolve co-op contract passed: %d objects, %d paths (%d used, %d documented unused)"
       % (len(objects), len(paths), len(used), len(unused)))

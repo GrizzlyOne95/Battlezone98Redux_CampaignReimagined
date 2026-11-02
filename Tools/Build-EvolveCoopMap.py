@@ -9,11 +9,8 @@ primitives (the toolbox converter, the buoy template, the stock-object field rea
 mission naming scheme into the shared one.
 
 The stock map has no authored enemy (every attacker is a runtime BuildObject in evolve.lua): there is nothing to
-reteam, remove or relabel. Its sole authored human start (`asuser0_person`) is already team 1, matching the CR
-decision that every co-op human shares team 1 (a shared arena/shared-lives survival mission, not one team slot per
-human). The four co-op start buoys are therefore all team 1, not one per team 1-4 as Build-CoopMap.py's generic
-buoy loop does; each needs a distinct label (`coop_spawn1_1`..`coop_spawn1_4`) since BUOY_TEMPLATE's default label
-is keyed by team number alone and would collide across four same-team buoys.
+reteam, remove or relabel. Its sole authored human start (`asuser0_person`) is team 1. The four co-op start buoys
+follow Build-CoopMap.py's generic loop: one per human team 1-4 (`coop_spawn1`..`coop_spawn4`), in a line ahead of that start along its channel.
 
 Usage:
   python Tools/Build-EvolveCoopMap.py [--toolbox DIR] [--output FILE]
@@ -31,6 +28,7 @@ REPO = Path(__file__).resolve().parents[1]
 
 MISSION_CLASS = "EvolveMission"
 STOCK_STEM = "sammy__1"
+START_SPACING = 12.0  # metres along the tail channel; at 15 m the last start touches its wall
 
 
 def _load_build_coop_map():
@@ -80,27 +78,24 @@ def build(text: str, bc) -> str:
 
     buoys = []
     for slot in range(4):
-        offset = bc.BUOY_SPACING * slot
-        x = px - right[0] * offset
-        z = pz - right[2] * offset
+        # The stock start is at the bottom of the narrow "tail" channel: a sideways line (Build-CoopMap.py's
+        # -right) runs into its walls, so the starts line up ahead along the channel floor instead.
+        offset = START_SPACING * slot
+        x = px + front[0] * offset
+        z = pz + front[2] * offset
         addr = bc.BUOY_ADDR_BASE + slot
         if addr in used_addrs:
             raise SystemExit(f"buoy obj_addr {addr:08X} collides")
         block = bc.BUOY_TEMPLATE.format(
-            seq=seq + slot, team=1, addr=addr, x=bc.fmt(x), y=bc.fmt(py), z=bc.fmt(z),
+            seq=seq + slot, team=slot + 1, addr=addr, x=bc.fmt(x), y=bc.fmt(py), z=bc.fmt(z),
             rx=bc.fmt(right[0]), ry=bc.fmt(right[1]), rz=bc.fmt(right[2]),
             ux=bc.fmt(up[0]), uy=bc.fmt(up[1]), uz=bc.fmt(up[2]),
             fx=bc.fmt(front[0]), fy=bc.fmt(front[1]), fz=bc.fmt(front[2]))
-        # Every human shares team 1 (shared arena, shared score/lives); the template's default
-        # label is keyed by team number alone, which would collide across four same-team buoys.
-        block, n = re.subn(r"^label = coop_spawn1$", f"label = coop_spawn1_{slot + 1}", block, count=1, flags=re.M)
-        if n != 1:
-            raise SystemExit("buoy label not rewritten")
         buoys.append(block)
 
     header = re.sub(r"^seq_count \[1\] =\n\d+$", f"seq_count [1] =\n{seq + 4}", header, count=1, flags=re.M)
     header = re.sub(r"^size \[1\] =\n\d+$", f"size [1] =\n{count + 4}", header, count=1, flags=re.M)
-    print(f"added 4 team-1 co-op start buoys ({count} stock objects -> {count + 4})")
+    print(f"added 4 co-op team-start buoys ({count} stock objects -> {count + 4})")
     body = "".join("[GameObject]\n" + b for b in objects + [s.split("[GameObject]\n", 1)[1] for s in buoys])
     return header + body + tail
 

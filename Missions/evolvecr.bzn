@@ -298,7 +298,7 @@ pos [1] =
 100840
 team [1] =
 1
-label = coop_spawn1_1
+label = coop_spawn1
 isUser [1] =
 0
 obj_addr = 00003001
@@ -420,14 +420,14 @@ seqno [1] =
 4
 pos [1] =
   x [1] =
-1769.15
+1745.5
   y [1] =
 165
   z [1] =
-100843
+100828
 team [1] =
-1
-label = coop_spawn1_2
+2
+label = coop_spawn2
 isUser [1] =
 0
 obj_addr = 00003002
@@ -451,20 +451,20 @@ transform [1] =
   front_z [1] =
 -0.994789
   posit_x [1] =
-1769.15
+1745.5
   posit_y [1] =
 165
   posit_z [1] =
-100843
+100828
 illumination [1] =
 1
 pos [1] =
   x [1] =
-1769.15
+1745.5
   y [1] =
 165
   z [1] =
-100843
+100828
 euler =
  mass [1] =
 0
@@ -541,7 +541,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
-1
+2
 [GameObject]
 PrjID [1] =
 pspwn_1
@@ -549,14 +549,14 @@ seqno [1] =
 5
 pos [1] =
   x [1] =
-1794.02
+1746.73
   y [1] =
 165
   z [1] =
-100845
+100816
 team [1] =
-1
-label = coop_spawn1_3
+3
+label = coop_spawn3
 isUser [1] =
 0
 obj_addr = 00003003
@@ -580,20 +580,20 @@ transform [1] =
   front_z [1] =
 -0.994789
   posit_x [1] =
-1794.02
+1746.73
   posit_y [1] =
 165
   posit_z [1] =
-100845
+100816
 illumination [1] =
 1
 pos [1] =
   x [1] =
-1794.02
+1746.73
   y [1] =
 165
   z [1] =
-100845
+100816
 euler =
  mass [1] =
 0
@@ -670,7 +670,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
-1
+3
 [GameObject]
 PrjID [1] =
 pspwn_1
@@ -678,14 +678,14 @@ seqno [1] =
 6
 pos [1] =
   x [1] =
-1818.89
+1747.95
   y [1] =
 165
   z [1] =
-100848
+100804
 team [1] =
-1
-label = coop_spawn1_4
+4
+label = coop_spawn4
 isUser [1] =
 0
 obj_addr = 00003004
@@ -709,20 +709,20 @@ transform [1] =
   front_z [1] =
 -0.994789
   posit_x [1] =
-1818.89
+1747.95
   posit_y [1] =
 165
   posit_z [1] =
-100848
+100804
 illumination [1] =
 1
 pos [1] =
   x [1] =
-1818.89
+1747.95
   y [1] =
 165
   z [1] =
-100848
+100804
 euler =
  mass [1] =
 0
@@ -799,7 +799,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
-1
+4
 name = MultSTMission
 sObject = 00CAFEEC
 [AiMission]

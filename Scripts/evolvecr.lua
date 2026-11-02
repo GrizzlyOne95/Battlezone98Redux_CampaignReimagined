@@ -67,10 +67,8 @@ local scaledSeenThisFrame = {}
 local SCALED_ODFS = { cspilo = true, cssolda = true, cssold = true, cvfigh = true, cvltnk = true,
     cvtnk = true, cvhraz = true, cvwalk = true, cvhtnk = true }
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
-    id = "evolvecr", leaderTeam = 1, enemyTeam = 2, mapEnemyTeam = 2,
-    -- Every human shares team 1: one shared arena, shared score and shared lives, not one team slot
-    -- per human like the other CR co-op missions.
-    humanTeamMin = 1, humanTeamMax = 1,
+    -- Standard CR co-op layout: humans on teams 1-4, the runtime-built attackers (map team 2) on team 5.
+    id = "evolvecr", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     -- SetScrap(1, ...) IS the score HUD here, not production scrap: a per-guest bonus would corrupt it.
     scrapPerGuest = 0,
     hooks = {
@@ -107,7 +105,16 @@ local PLAYERS = campaignRuntime and campaignRuntime.PLAYERS
 local NativeIsValid, NativeIsAlive, NativeGetPlayerHandle = IsValid, IsAlive, GetPlayerHandle
 local GetPlayerHandle = campaignRuntime and campaignRuntime.GetPlayerHandle or GetPlayerHandle
 local RemoveObject = campaignRuntime and campaignRuntime.RemoveObject or RemoveObject
-local SetScrap = campaignRuntime and campaignRuntime.SetScrap or SetScrap
+local NativeSetScrap, NativeSetMaxScrap = SetScrap, SetMaxScrap
+-- The score HUD is team 1's scrap; mirror it onto every human team so each guest's own HUD shows the shared score.
+local SetScrap = campaignRuntime and function(team, v)
+    if team ~= 1 then return campaignRuntime.SetScrap(team, v) end
+    for t = 1, 4 do NativeSetScrap(t, v) end
+end or SetScrap
+local SetMaxScrap = campaignRuntime and function(team, v)
+    if team ~= 1 then return NativeSetMaxScrap(team, v) end
+    for t = 1, 4 do NativeSetMaxScrap(t, v) end
+end or SetMaxScrap
 local ClearObjectives = campaignRuntime and campaignRuntime.ClearObjectives or ClearObjectives
 local AddObjective = campaignRuntime and campaignRuntime.AddObjective or AddObjective
 local SucceedMission = campaignRuntime and campaignRuntime.SucceedMission or SucceedMission
@@ -149,14 +156,6 @@ local Attack = campaignRuntime and function(h, target, ...)
     end
     return campaignRuntime.Attack(h, target, ...)
 end or Attack
-local function ConnectedHumanCount()
-    -- campaignRuntime.HumanCount() counts distinct human TEAMS, undercounting when every human shares
-    -- team 1 (humanTeamMin == humanTeamMax above): count connected players instead.
-    if not campaignRuntime.Coop.IsNetworkGame() then return 1 end
-    local n = 0
-    for _ in pairs(campaignRuntime.Coop.GetPlayers()) do n = n + 1 end
-    return math.max(1, n)
-end
 -- Per-spawn-point attacker scaling [owner decision]: min(20, ceil(native * (1 + 0.5*(humans-1)))), humans
 -- connected at the start of this wave. CreateAttackerRound's own `roundmax` loop (M.maxroundattackers,
 -- already the native per-spawn-point count) cannot be intercepted: it is a local function the body
@@ -168,10 +167,11 @@ end
 -- different odf and so never match SCALED_ODFS: they are never scaled.
 local BuildObject = campaignRuntime and function(odf, team, where)
     local h = campaignRuntime.Spawn(odf, team, where)
+    -- team is the body's map enemy team (2); campaignRuntime.Spawn remaps it to the co-op enemy team.
     if SCALED_ODFS[odf] and team == 2 and type(where) == "string" and not scaledSeenThisFrame[where] then
         scaledSeenThisFrame[where] = true
         local native = M.maxroundattackers or 1
-        local target = math.min(20, math.ceil(native * (1 + 0.5 * (ConnectedHumanCount() - 1))))
+        local target = math.min(20, math.ceil(native * (1 + 0.5 * (campaignRuntime.HumanCount() - 1))))
         for _ = 1, target - native do
             local extra = campaignRuntime.Spawn(odf, team, where)
             if IsValid(extra) then
