@@ -111,6 +111,7 @@ CH_PREFIXES = {
     "ch03": {"howitzer_": (1, 6)},
     "ch04": {"empty_": (1, 25), "turret_": (1, 4)},
     "ch06": {"psu_": (1, 4)},
+    "ch08": {"magpull_": (1, 6), "west_mag_": (1, 4), "east_mag_": (1, 4), "sniper_": (1, 26)},
 }
 # CRA lookups absent from the stock chmisn BZN (cut content or runtime-spawned), with the reason.
 CH_CUT_MISSING = {}
@@ -161,4 +162,4 @@ def check_campaign(title, missions, script_for, cut_missing, prefixes):
 
 
 check_campaign("CCA", [f"misns{n}" for n in range(1, 9)], lambda m: m, CCA_CUT_MISSING, {})
-check_campaign("CRA", [f"chmisn{n:02d}" for n in range(1, 8)], lambda m: "ch" + m[6:], CH_CUT_MISSING, CH_PREFIXES)
+check_campaign("CRA", [f"chmisn{n:02d}" for n in range(1, 9)], lambda m: "ch" + m[6:], CH_CUT_MISSING, CH_PREFIXES)

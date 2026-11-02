@@ -17,7 +17,7 @@ offline/co-op Lua under MultSTMission:
     pushed misn05's team 3/4 starts far away).
 
 Usage:
-  python Tools/Build-CoopMap.py --mission misn06|...|misn18|misns1|...|misns8|bdmisn01|...|bdmisn15|chmisn01|...|chmisn07 [--source FILE] [--toolbox DIR]
+  python Tools/Build-CoopMap.py --mission misn06|...|misn18|misns1|...|misns8|bdmisn01|...|bdmisn15|chmisn01|...|chmisn08 [--source FILE] [--toolbox DIR]
 
 Black Dog (bdmisnNN): the source defaults to the stock map inside the Redux tro_cam.zfs, and the
 mission class is BlackDogNNMission. bdmisn13's construction rig carries MSVC debug fill (0xCD...)
@@ -439,7 +439,7 @@ def build(text: str, mission: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--mission", default="misn06", help="mission stem: misn06 .. misn18, misns1 .. misns8, bdmisn01 .. bdmisn15, chmisn01 .. chmisn07")
+    parser.add_argument("--mission", default="misn06", help="mission stem: misn06 .. misn18, misns1 .. misns8, bdmisn01 .. bdmisn15, chmisn01 .. chmisn08")
     parser.add_argument("--source", type=Path)
     parser.add_argument("--toolbox", type=Path, default=DEFAULT_TOOLBOX)
     parser.add_argument("--output", type=Path)

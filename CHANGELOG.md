@@ -3,9 +3,14 @@
 ## Unreleased
 
 - CRA (Chinese) co-op campaign listing, maps and weather sites, in progress: a new "CR Chinese" campaign listing and
-  multiplayer entries for `chmisn01cr` through `chmisn07cr` (2-4 players or offline), on co-op maps with the enemy on
+  multiplayer entries for `chmisn01cr` through `chmisn08cr` (2-4 players or offline), on co-op maps with the enemy on
   team 5, CRA starting rosters, Ganymede, Elysium and Europa terrain and per-mission weather sites. Mission scripts
   follow. Not yet tested in game.
+- chmisn08 (Stolen Convoy) co-op/weather port: the APC convoy capture and fort assault, with a sticky-by-identity
+  "player" rule (whoever captures APC #5 stays the player for the rest of the mission, even after jumping out),
+  reinforcement-wave scaling proportional to player count, and Ganymede weather beats. `Scripts/chmisn08cr.lua`
+  shadows its natives as chunk globals inside a private `setfenv` sandbox to stay under Lua 5.1's 60-upvalue limit
+  while still restoring the real global table for the engine's own entry points (`Docs/CHMISN08_COOP.md`).
 - Black Dog co-op campaign: a new "CR Black Dog" campaign listing and multiplayer entries for `bdmisn01cr` through
   `bdmisn15cr` (2-4 players or offline), on co-op maps with the enemy on team 5, Black Dog starting rosters, Ganymede
   and Elysium terrain and Ganymede weather. Every mission wraps its faithful port the same way as the CCA campaign:

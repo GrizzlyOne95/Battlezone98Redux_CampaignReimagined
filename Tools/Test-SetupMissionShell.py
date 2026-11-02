@@ -300,12 +300,12 @@ ch_parser.read(ch_ini_path, encoding="utf-8")
 assert len(ch_ini_path.stem) <= 16 and len(ch_des_path.stem) <= 16
 assert ch_parser["DESCRIPTION"]["missionName"] == '"CR Chinese"'
 assert ch_parser["WORKSHOP"]["mapType"] == '"campaign"'
-assert [s for s in ch_parser.sections() if s.startswith("MISSION")] == [f"MISSION{i}" for i in range(1, 8)]
-ch_planets = {1: "ganymede", 2: "ganymede", 3: "ganymede", 4: "ganymede", 5: "elysium", 6: "elysium", 7: "europa"}
+assert [s for s in ch_parser.sections() if s.startswith("MISSION")] == [f"MISSION{i}" for i in range(1, 9)]
+ch_planets = {1: "ganymede", 2: "ganymede", 3: "ganymede", 4: "ganymede", 5: "elysium", 6: "elysium", 7: "europa", 8: "ganymede"}
 ch_sites = {1: "CRGanymedeSitesCH01", 2: "CRGanymedeSitesCH02", 3: "CRGanymedeSitesCH03", 4: "CRGanymedeSitesCH04",
-            5: "CRElysiumSitesCH05", 6: "CRElysiumSitesCH06", 7: "CREuropaSitesCH07"}
+            5: "CRElysiumSitesCH05", 6: "CRElysiumSitesCH06", 7: "CREuropaSitesCH07", 8: "CRGanymedeSitesCH08"}
 ch_maps = []
-for index in range(1, 8):
+for index in range(1, 9):
     stem = f"chmisn{index:02d}cr"
     section = ch_parser[f"MISSION{index}"]
     filename = section["missionBZN"].strip('"')
@@ -339,7 +339,7 @@ assert_fits_menu_box(ch_des_path)
 assert (ROOT / "Assets" / "Graphics" / "crch.bmp").read_bytes()[:2] == b"BM"
 
 # Once the CRA co-op scripts exist, the lock and the Workshop list must carry the listing.
-if all((ROOT / "Scripts" / f"chmisn{i:02d}cr.lua").is_file() for i in range(1, 8)):
+if all((ROOT / "Scripts" / f"chmisn{i:02d}cr.lua").is_file() for i in range(1, 9)):
     for filename in ch_maps:
         assert entries.get("Missions\\" + filename) == filename, f"lock missing {filename}"
         lua_name = str(Path(filename).with_suffix(".lua"))
