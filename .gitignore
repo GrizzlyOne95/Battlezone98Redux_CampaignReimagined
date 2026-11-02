@@ -81,6 +81,15 @@
 !/misn13cr.mpdes
 !/misn14cr.mpdes
 !/misn2bcr.mpdes
+!/misns1cr.mpdes
+!/misns2cr.mpdes
+!/misns3cr.mpdes
+!/misns4cr.mpdes
+!/misns5cr.mpdes
+!/misns6cr.mpdes
+!/misns7cr.mpdes
+!/misns8cr.mpdes
+!/crcca.des
 
 # Local machine/generated artifacts live under Local and stay ignored
 /Local/

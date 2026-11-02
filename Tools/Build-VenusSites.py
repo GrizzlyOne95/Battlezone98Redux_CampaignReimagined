@@ -169,6 +169,8 @@ def main() -> int:
     major_labels = [o for o in objects if o["label"].lower().startswith(args.major_prefix)]
 
     digits = re.sub(r"\D", "", name) or name
+    if name.startswith("misns"):  # CCA (Soviet) campaign: CRVenusSitesS1 .. S8, apart from the NSDF misn01..18 files
+        digits = "S" + digits
     module = f"CRVenusSites{digits}"
     out = Path(args.out) if args.out else ROOT / "Scripts" / f"{module}.lua"
 

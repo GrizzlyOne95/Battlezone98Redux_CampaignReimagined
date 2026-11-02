@@ -334,6 +334,8 @@ def main() -> int:
     lake_cells = sum(info[i]["count"] for i in lake_ids)
 
     digits = re.sub(r"\D", "", name) or name
+    if name.startswith("misns"):  # CCA (Soviet) campaign: CRTitanSitesS1 .. S8, apart from the NSDF misn01..18 files
+        digits = "S" + digits
     module = f"CRTitanSites{digits}"
     out = Path(args.out) if args.out else ROOT / "Scripts" / f"{module}.lua"
 
