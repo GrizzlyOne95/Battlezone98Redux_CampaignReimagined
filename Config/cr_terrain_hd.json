@@ -833,645 +833,266 @@
       }
     },
     "GA_DETAIL_ATLAS": {
-      "sliceCount": 22,
-      "releaseSourceTextures": true,
-      "diffuseResource": "GANYMEDE_ATLAS_D.dds",
-      "tileRects": [
-        {
-          "rect": [
-            0.0,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 0
-        },
-        {
-          "rect": [
-            0.125,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 0
-        },
-        {
-          "rect": [
-            0.25,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 1
-        },
-        {
-          "rect": [
-            0.375,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 2
-        },
-        {
-          "rect": [
-            0.5,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 3
-        },
-        {
-          "rect": [
-            0.625,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 5
-        },
-        {
-          "rect": [
-            0.75,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 4
-        },
-        {
-          "rect": [
-            0.825,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 6
-        },
-        {
-          "rect": [
-            0.0,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 7
-        },
-        {
-          "rect": [
-            0.125,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 8
-        },
-        {
-          "rect": [
-            0.25,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 9
-        },
-        {
-          "rect": [
-            0.375,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 11
-        },
-        {
-          "rect": [
-            0.5,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 10
-        },
-        {
-          "rect": [
-            0.625,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 12
-        },
-        {
-          "rect": [
-            0.75,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 13
-        },
-        {
-          "rect": [
-            0.825,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 14
-        },
-        {
-          "rect": [
-            0.0,
-            0.25,
-            0.125,
-            0.125
-          ],
-          "slice": 15
-        },
-        {
-          "rect": [
-            0.125,
-            0.25,
-            0.125,
-            0.125
-          ],
-          "slice": 16
-        },
-        {
-          "rect": [
-            0.25,
-            0.25,
-            0.125,
-            0.125
-          ],
-          "slice": 17
-        },
-        {
-          "rect": [
-            0.375,
-            0.25,
-            0.125,
-            0.125
-          ],
-          "slice": 18
-        },
-        {
-          "rect": [
-            0.5,
-            0.25,
-            0.125,
-            0.125
-          ],
-          "slice": 19
-        },
-        {
-          "rect": [
-            0.625,
-            0.25,
-            0.125,
-            0.125
-          ],
-          "slice": 20
-        },
-        {
-          "rect": [
-            0.75,
-            0.25,
-            0.125,
-            0.125
-          ],
-          "slice": 21
-        }
-      ],
+      "sliceCount": 18,
+      "diffuseResource": "ganymede_atlas_d.dds",
+      "fallback": "openshim_ganymede_auto_layer0.png",
       "tiles": {
-        "0": "crhd_ganymede_ga00sa0_d.dds",
-        "1": "crhd_ganymede_ga00sb0_d.dds",
-        "2": "crhd_ganymede_ga00sc0_d.dds",
-        "3": "crhd_ganymede_ga01ca0_d.dds",
-        "4": "crhd_ganymede_ga01da0_d.dds",
-        "5": "crhd_ganymede_ga04ca0_d.dds",
-        "6": "crhd_ganymede_ga04da0_d.dds",
-        "7": "crhd_ganymede_ga11sa0_d.dds",
-        "8": "crhd_ganymede_ga11sb0_d.dds",
-        "9": "crhd_ganymede_ga12ca0_d.dds",
-        "10": "crhd_ganymede_ga12da0_d.dds",
-        "11": "crhd_ganymede_ga14ca0_d.dds",
-        "12": "crhd_ganymede_ga14da0_d.dds",
-        "13": "crhd_ganymede_ga22sa0_d.dds",
-        "14": "crhd_ganymede_ga22sb0_d.dds",
-        "15": "crhd_ganymede_ga22sc0_d.dds",
-        "16": "crhd_ganymede_ga24ca0_d.dds",
-        "17": "crhd_ganymede_ga24da0_d.dds",
-        "18": "crhd_ganymede_ga33sa0_d.dds",
-        "19": "crhd_ganymede_ga33sb0_d.dds",
-        "20": "crhd_ganymede_ga44sa0_d.dds",
-        "21": "crhd_ganymede_ga44sb0_d.dds"
+        "0": "openshim_ganymede_auto_layer0.png",
+        "1": "openshim_ganymede_auto_layer1.png",
+        "2": "openshim_ganymede_auto_layer2.png",
+        "3": "openshim_ganymede_auto_layer3.png",
+        "9": "openshim_ganymede_auto_layer4.png",
+        "10": "openshim_ganymede_auto_layer5.png",
+        "11": "openshim_ganymede_auto_layer6.png",
+        "12": "openshim_ganymede_auto_layer7.png",
+        "4": "openshim_ganymede_auto_evolve_3_stock_control.png",
+        "13": "openshim_ganymede_auto_evolve_3_stock_control2.png",
+        "5": "openshim_ganymede_auto_layer0_n.png",
+        "6": "openshim_ganymede_auto_layer1_n.png",
+        "7": "openshim_ganymede_auto_layer2_n.png",
+        "8": "openshim_ganymede_auto_layer3_n.png",
+        "14": "openshim_ganymede_auto_layer4_n.png",
+        "15": "openshim_ganymede_auto_layer5_n.png",
+        "16": "openshim_ganymede_auto_layer6_n.png",
+        "17": "openshim_ganymede_auto_layer7_n.png"
       },
-      "fallback": "crhd_ganymede_ga00sa0_d.dds",
-      "normal": {
-        "sourceResource": "GANYMEDE_ATLAS_N.dds",
-        "tiles": {
-          "0": "crhd_ganymede_ga00sa0_n.dds",
-          "1": "crhd_ganymede_ga00sb0_n.dds",
-          "2": "crhd_ganymede_ga00sc0_n.dds",
-          "3": "crhd_ganymede_ga01ca0_n.dds",
-          "4": "crhd_ganymede_ga01da0_n.dds",
-          "5": "crhd_ganymede_ga04ca0_n.dds",
-          "6": "crhd_ganymede_ga04da0_n.dds",
-          "7": "crhd_ganymede_ga11sa0_n.dds",
-          "8": "crhd_ganymede_ga11sb0_n.dds",
-          "9": "crhd_ganymede_ga12ca0_n.dds",
-          "10": "crhd_ganymede_ga12da0_n.dds",
-          "11": "crhd_ganymede_ga14ca0_n.dds",
-          "12": "crhd_ganymede_ga14da0_n.dds",
-          "13": "crhd_ganymede_ga22sa0_n.dds",
-          "14": "crhd_ganymede_ga22sb0_n.dds",
-          "15": "crhd_ganymede_ga22sc0_n.dds",
-          "16": "crhd_ganymede_ga24ca0_n.dds",
-          "17": "crhd_ganymede_ga24da0_n.dds",
-          "18": "crhd_ganymede_ga33sa0_n.dds",
-          "19": "crhd_ganymede_ga33sb0_n.dds",
-          "20": "crhd_ganymede_ga44sa0_n.dds",
-          "21": "crhd_ganymede_ga44sb0_n.dds"
-        },
-        "fallback": "crhd_ganymede_ga00sa0_n.dds",
-        "encoding": "rgb-xyz-linear"
-      },
-      "specular": {
-        "sourceResource": "GANYMEDE_ATLAS_S.dds",
-        "tiles": {
-          "0": "crhd_ganymede_ga00sa0_s.dds",
-          "1": "crhd_ganymede_ga00sb0_s.dds",
-          "2": "crhd_ganymede_ga00sc0_s.dds",
-          "3": "crhd_ganymede_ga01ca0_s.dds",
-          "4": "crhd_ganymede_ga01da0_s.dds",
-          "5": "crhd_ganymede_ga04ca0_s.dds",
-          "6": "crhd_ganymede_ga04da0_s.dds",
-          "7": "crhd_ganymede_ga11sa0_s.dds",
-          "8": "crhd_ganymede_ga11sb0_s.dds",
-          "9": "crhd_ganymede_ga12ca0_s.dds",
-          "10": "crhd_ganymede_ga12da0_s.dds",
-          "11": "crhd_ganymede_ga14ca0_s.dds",
-          "12": "crhd_ganymede_ga14da0_s.dds",
-          "13": "crhd_ganymede_ga22sa0_s.dds",
-          "14": "crhd_ganymede_ga22sb0_s.dds",
-          "15": "crhd_ganymede_ga22sc0_s.dds",
-          "16": "crhd_ganymede_ga24ca0_s.dds",
-          "17": "crhd_ganymede_ga24da0_s.dds",
-          "18": "crhd_ganymede_ga33sa0_s.dds",
-          "19": "crhd_ganymede_ga33sb0_s.dds",
-          "20": "crhd_ganymede_ga44sa0_s.dds",
-          "21": "crhd_ganymede_ga44sb0_s.dds"
-        },
-        "fallback": "crhd_ganymede_ga00sa0_s.dds"
-      },
-      "emissive": {
-        "sourceResource": "black.dds",
-        "tiles": {
-          "0": "crhd_ganymede_ga00sa0_e.dds",
-          "1": "crhd_ganymede_ga00sb0_e.dds",
-          "2": "crhd_ganymede_ga00sc0_e.dds",
-          "3": "crhd_ganymede_ga01ca0_e.dds",
-          "4": "crhd_ganymede_ga01da0_e.dds",
-          "5": "crhd_ganymede_ga04ca0_e.dds",
-          "6": "crhd_ganymede_ga04da0_e.dds",
-          "7": "crhd_ganymede_ga11sa0_e.dds",
-          "8": "crhd_ganymede_ga11sb0_e.dds",
-          "9": "crhd_ganymede_ga12ca0_e.dds",
-          "10": "crhd_ganymede_ga12da0_e.dds",
-          "11": "crhd_ganymede_ga14ca0_e.dds",
-          "12": "crhd_ganymede_ga14da0_e.dds",
-          "13": "crhd_ganymede_ga22sa0_e.dds",
-          "14": "crhd_ganymede_ga22sb0_e.dds",
-          "15": "crhd_ganymede_ga22sc0_e.dds",
-          "16": "crhd_ganymede_ga24ca0_e.dds",
-          "17": "crhd_ganymede_ga24da0_e.dds",
-          "18": "crhd_ganymede_ga33sa0_e.dds",
-          "19": "crhd_ganymede_ga33sb0_e.dds",
-          "20": "crhd_ganymede_ga44sa0_e.dds",
-          "21": "crhd_ganymede_ga44sb0_e.dds"
-        },
-        "fallback": "crhd_ganymede_ga00sa0_e.dds"
-      },
-      "microReliefScale": 1.0,
-      "detailContrast": 0.55,
-      "detailNormalStrength": 2.2,
-      "detailNormalNearScale": 0.55,
-      "surfaceBlend": {
-        "coverage": 0.0,
-        "sourceType": 0,
-        "mask": "",
-        "channels": {}
+      "paint": {
+        "schema": "bzr-openshim-terrain-paint-v1",
+        "rowZero": "minZ",
+        "repeatMeters": [
+          20,
+          16,
+          18,
+          12,
+          20,
+          24,
+          14,
+          10
+        ],
+        "maps": [
+          {
+            "terrainFingerprint": "0f70e1efac1a3283",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_ganymede_auto_evolve_3_stock_control.png",
+            "control2": "openshim_ganymede_auto_evolve_3_stock_control2.png"
+          },
+          {
+            "terrainFingerprint": "381b6825b813ec6c",
+            "boundsMeters": [
+              -1910.0,
+              -1930.0,
+              1930.0,
+              1910.0
+            ],
+            "control": "openshim_ganymede_auto_evolve_4_stock_control.png",
+            "control2": "openshim_ganymede_auto_evolve_4_stock_control2.png"
+          }
+        ],
+        "detile": [
+          1,
+          1,
+          1,
+          1,
+          0,
+          1,
+          1,
+          1
+        ],
+        "nearOnly": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "far": [
+          5,
+          40,
+          250,
+          0.6
+        ],
+        "macro": [
+          260,
+          0.12,
+          0.15
+        ],
+        "heightBlend": 0.5,
+        "heightMeters": [
+          0.4,
+          0.8,
+          0.5,
+          0.5,
+          0.1,
+          2.0,
+          0.3,
+          0.6
+        ],
+        "detail": [
+          60,
+          1.5,
+          4,
+          1
+        ],
+        "detailLayers": [
+          0.4,
+          0.6,
+          0.5,
+          0.5,
+          0.0,
+          1.0,
+          0.4,
+          0.5
+        ],
+        "parallax": [
+          1,
+          30,
+          12
+        ]
       }
     },
     "EL_DETAIL_ATLAS": {
-      "sliceCount": 20,
-      "releaseSourceTextures": true,
-      "diffuseResource": "ELYSIUM_ATLAS_D.dds",
-      "tileRects": [
-        {
-          "rect": [
-            0.0,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 0
-        },
-        {
-          "rect": [
-            0.125,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 0
-        },
-        {
-          "rect": [
-            0.25,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 1
-        },
-        {
-          "rect": [
-            0.375,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 2
-        },
-        {
-          "rect": [
-            0.5,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 3
-        },
-        {
-          "rect": [
-            0.625,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 5
-        },
-        {
-          "rect": [
-            0.75,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 7
-        },
-        {
-          "rect": [
-            0.825,
-            0.0,
-            0.125,
-            0.125
-          ],
-          "slice": 4
-        },
-        {
-          "rect": [
-            0.0,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 6
-        },
-        {
-          "rect": [
-            0.125,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 8
-        },
-        {
-          "rect": [
-            0.25,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 11
-        },
-        {
-          "rect": [
-            0.375,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 12
-        },
-        {
-          "rect": [
-            0.5,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 13
-        },
-        {
-          "rect": [
-            0.625,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 14
-        },
-        {
-          "rect": [
-            0.75,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 15
-        },
-        {
-          "rect": [
-            0.825,
-            0.125,
-            0.125,
-            0.125
-          ],
-          "slice": 16
-        },
-        {
-          "rect": [
-            0.0,
-            0.25,
-            0.125,
-            0.125
-          ],
-          "slice": 17
-        },
-        {
-          "rect": [
-            0.125,
-            0.25,
-            0.125,
-            0.125
-          ],
-          "slice": 18
-        },
-        {
-          "rect": [
-            0.25,
-            0.25,
-            0.125,
-            0.125
-          ],
-          "slice": 19
-        },
-        {
-          "rect": [
-            0.375,
-            0.25,
-            0.125,
-            0.125
-          ],
-          "slice": 9
-        },
-        {
-          "rect": [
-            0.5,
-            0.25,
-            0.125,
-            0.125
-          ],
-          "slice": 10
-        }
-      ],
+      "sliceCount": 18,
+      "diffuseResource": "elysium_atlas_d.dds",
+      "fallback": "openshim_elysium_auto_layer0.png",
       "tiles": {
-        "0": "crhd_elysium_el00sa0_d.dds",
-        "1": "crhd_elysium_el00sb0_d.dds",
-        "2": "crhd_elysium_el00sc0_d.dds",
-        "3": "crhd_elysium_el01ca0_d.dds",
-        "4": "crhd_elysium_el01da0_d.dds",
-        "5": "crhd_elysium_el02ca0_d.dds",
-        "6": "crhd_elysium_el02da0_d.dds",
-        "7": "crhd_elysium_el04ca0_d.dds",
-        "8": "crhd_elysium_el04da0_d.dds",
-        "9": "crhd_elysium_el04sa0_d.dds",
-        "10": "crhd_elysium_el04sb0_d.dds",
-        "11": "crhd_elysium_el11sa0_d.dds",
-        "12": "crhd_elysium_el11sb0_d.dds",
-        "13": "crhd_elysium_el11sc0_d.dds",
-        "14": "crhd_elysium_el12ca0_d.dds",
-        "15": "crhd_elysium_el12da0_d.dds",
-        "16": "crhd_elysium_el22sa0_d.dds",
-        "17": "crhd_elysium_el22sb0_d.dds",
-        "18": "crhd_elysium_el22sc0_d.dds",
-        "19": "crhd_elysium_el33sa0_d.dds"
+        "0": "openshim_elysium_auto_layer0.png",
+        "1": "openshim_elysium_auto_layer1.png",
+        "2": "openshim_elysium_auto_layer2.png",
+        "3": "openshim_elysium_auto_layer3.png",
+        "9": "openshim_elysium_auto_layer4.png",
+        "10": "openshim_elysium_auto_layer5.png",
+        "11": "openshim_elysium_auto_layer6.png",
+        "12": "openshim_elysium_auto_layer7.png",
+        "4": "openshim_elysium_auto_evolve_1_stock_control.png",
+        "13": "openshim_elysium_auto_evolve_1_stock_control2.png",
+        "5": "openshim_elysium_auto_layer0_n.png",
+        "6": "openshim_elysium_auto_layer1_n.png",
+        "7": "openshim_elysium_auto_layer2_n.png",
+        "8": "openshim_elysium_auto_layer3_n.png",
+        "14": "openshim_elysium_auto_layer4_n.png",
+        "15": "openshim_elysium_auto_layer5_n.png",
+        "16": "openshim_elysium_auto_layer6_n.png",
+        "17": "openshim_elysium_auto_layer7_n.png"
       },
-      "fallback": "crhd_elysium_el00sa0_d.dds",
-      "normal": {
-        "sourceResource": "ELYSIUM_ATLAS_N.dds",
-        "tiles": {
-          "0": "crhd_elysium_el00sa0_n.dds",
-          "1": "crhd_elysium_el00sb0_n.dds",
-          "2": "crhd_elysium_el00sc0_n.dds",
-          "3": "crhd_elysium_el01ca0_n.dds",
-          "4": "crhd_elysium_el01da0_n.dds",
-          "5": "crhd_elysium_el02ca0_n.dds",
-          "6": "crhd_elysium_el02da0_n.dds",
-          "7": "crhd_elysium_el04ca0_n.dds",
-          "8": "crhd_elysium_el04da0_n.dds",
-          "9": "crhd_elysium_el04sa0_n.dds",
-          "10": "crhd_elysium_el04sb0_n.dds",
-          "11": "crhd_elysium_el11sa0_n.dds",
-          "12": "crhd_elysium_el11sb0_n.dds",
-          "13": "crhd_elysium_el11sc0_n.dds",
-          "14": "crhd_elysium_el12ca0_n.dds",
-          "15": "crhd_elysium_el12da0_n.dds",
-          "16": "crhd_elysium_el22sa0_n.dds",
-          "17": "crhd_elysium_el22sb0_n.dds",
-          "18": "crhd_elysium_el22sc0_n.dds",
-          "19": "crhd_elysium_el33sa0_n.dds"
-        },
-        "fallback": "crhd_elysium_el00sa0_n.dds",
-        "encoding": "rgb-xyz-linear"
-      },
-      "specular": {
-        "sourceResource": "ELYSIUM_ATLAS_S.dds",
-        "tiles": {
-          "0": "crhd_elysium_el00sa0_s.dds",
-          "1": "crhd_elysium_el00sb0_s.dds",
-          "2": "crhd_elysium_el00sc0_s.dds",
-          "3": "crhd_elysium_el01ca0_s.dds",
-          "4": "crhd_elysium_el01da0_s.dds",
-          "5": "crhd_elysium_el02ca0_s.dds",
-          "6": "crhd_elysium_el02da0_s.dds",
-          "7": "crhd_elysium_el04ca0_s.dds",
-          "8": "crhd_elysium_el04da0_s.dds",
-          "9": "crhd_elysium_el04sa0_s.dds",
-          "10": "crhd_elysium_el04sb0_s.dds",
-          "11": "crhd_elysium_el11sa0_s.dds",
-          "12": "crhd_elysium_el11sb0_s.dds",
-          "13": "crhd_elysium_el11sc0_s.dds",
-          "14": "crhd_elysium_el12ca0_s.dds",
-          "15": "crhd_elysium_el12da0_s.dds",
-          "16": "crhd_elysium_el22sa0_s.dds",
-          "17": "crhd_elysium_el22sb0_s.dds",
-          "18": "crhd_elysium_el22sc0_s.dds",
-          "19": "crhd_elysium_el33sa0_s.dds"
-        },
-        "fallback": "crhd_elysium_el00sa0_s.dds"
-      },
-      "emissive": {
-        "sourceResource": "black.dds",
-        "tiles": {
-          "0": "crhd_elysium_el00sa0_e.dds",
-          "1": "crhd_elysium_el00sb0_e.dds",
-          "2": "crhd_elysium_el00sc0_e.dds",
-          "3": "crhd_elysium_el01ca0_e.dds",
-          "4": "crhd_elysium_el01da0_e.dds",
-          "5": "crhd_elysium_el02ca0_e.dds",
-          "6": "crhd_elysium_el02da0_e.dds",
-          "7": "crhd_elysium_el04ca0_e.dds",
-          "8": "crhd_elysium_el04da0_e.dds",
-          "9": "crhd_elysium_el04sa0_e.dds",
-          "10": "crhd_elysium_el04sb0_e.dds",
-          "11": "crhd_elysium_el11sa0_e.dds",
-          "12": "crhd_elysium_el11sb0_e.dds",
-          "13": "crhd_elysium_el11sc0_e.dds",
-          "14": "crhd_elysium_el12ca0_e.dds",
-          "15": "crhd_elysium_el12da0_e.dds",
-          "16": "crhd_elysium_el22sa0_e.dds",
-          "17": "crhd_elysium_el22sb0_e.dds",
-          "18": "crhd_elysium_el22sc0_e.dds",
-          "19": "crhd_elysium_el33sa0_e.dds"
-        },
-        "fallback": "crhd_elysium_el00sa0_e.dds"
-      },
-      "microReliefScale": 1.0,
-      "detailContrast": 0.55,
-      "detailNormalStrength": 2.2,
-      "detailNormalNearScale": 0.55,
-      "surfaceBlend": {
-        "coverage": 0.0,
-        "sourceType": 0,
-        "mask": "",
-        "channels": {}
+      "paint": {
+        "schema": "bzr-openshim-terrain-paint-v1",
+        "rowZero": "minZ",
+        "repeatMeters": [
+          20,
+          12,
+          24,
+          16,
+          20,
+          18,
+          14,
+          10
+        ],
+        "maps": [
+          {
+            "terrainFingerprint": "b278c3b5d8bf4e02",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_elysium_auto_evolve_1_stock_control.png",
+            "control2": "openshim_elysium_auto_evolve_1_stock_control2.png"
+          },
+          {
+            "terrainFingerprint": "7682e99f8430b282",
+            "boundsMeters": [
+              -1910.0,
+              -1930.0,
+              1930.0,
+              1910.0
+            ],
+            "control": "openshim_elysium_auto_evolve_2_stock_control.png",
+            "control2": "openshim_elysium_auto_evolve_2_stock_control2.png"
+          },
+          {
+            "terrainFingerprint": "d017998bbe2ec20c",
+            "boundsMeters": [
+              -1910.0,
+              -1930.0,
+              1930.0,
+              1910.0
+            ],
+            "control": "openshim_elysium_auto_evolve_5_stock_control.png",
+            "control2": "openshim_elysium_auto_evolve_5_stock_control2.png"
+          }
+        ],
+        "detile": [
+          1,
+          1,
+          1,
+          1,
+          0,
+          1,
+          1,
+          1
+        ],
+        "nearOnly": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "far": [
+          5,
+          40,
+          250,
+          0.6
+        ],
+        "macro": [
+          260,
+          0.12,
+          0.15
+        ],
+        "heightBlend": 0.5,
+        "heightMeters": [
+          0.4,
+          0.5,
+          2.0,
+          0.8,
+          0.1,
+          0.8,
+          0.3,
+          0.6
+        ],
+        "detail": [
+          60,
+          1.5,
+          4,
+          1
+        ],
+        "detailLayers": [
+          0.4,
+          0.5,
+          1.0,
+          0.6,
+          0.0,
+          0.6,
+          0.4,
+          0.5
+        ],
+        "parallax": [
+          1,
+          30,
+          12
+        ]
       }
     }
   }
