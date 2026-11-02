@@ -17,6 +17,7 @@ TEXTURES = ROOT / "Assets/Textures"
 WORLDS = {
     "moon": "MN_DETAIL_ATLAS", "mars": "MA_DETAIL_ATLAS", "venus": "VE_DETAIL_ATLAS", "io": "IO_DETAIL_ATLAS",
     "europa": "EU_DETAIL_ATLAS", "titan": "TI_DETAIL_ATLAS", "achilles": "AC_DETAIL_ATLAS",
+    "ganymede": "GA_DETAIL_ATLAS", "elysium": "EL_DETAIL_ATLAS",
 }
 # Used outside the HD binding (Materials/mn_detail_atlas.material), so it stays.
 KEEP = {"crhd_moon_regolith_detail.dds"}
