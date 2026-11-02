@@ -175,6 +175,18 @@ GetPlayerHandle = campaignRuntime and function()
         coop.ForEachPlayerHandle(function(h, id) if h == M.apc[4] then M.coopDriverId = id end end)
     end
     if M.coopDriverId == nil then return nil end
+    if coop.GetPlayers()[M.coopDriverId] == nil then
+        -- The driver left the game: hand "the player" to the human nearest APC #5 (or anyone, if it is gone),
+        -- or the fort trigger and howitzer objective would wait on a nil M.user forever.
+        local best, bestDistance
+        coop.ForEachPlayerHandle(function(h, id)
+            local ok, distance = pcall(GetDistance, h, M.apc[4])
+            if not (ok and type(distance) == "number") then distance = math.huge end
+            if best == nil or distance < bestDistance then best, bestDistance = id, distance end
+        end)
+        M.coopDriverId = best
+        if best == nil then return nil end
+    end
     local driver
     coop.ForEachPlayerHandle(function(h, id) if id == M.coopDriverId then driver = h end end)
     return driver

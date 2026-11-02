@@ -240,6 +240,23 @@ do
     F.run(1)
     check(not m.howitzerobjectiveon, "the sticky driver boarding it clears the marker")
 end
+-- the sticky driver disconnecting hands "the player" to the human nearest APC #5 instead of soft-locking
+do
+    local w, p, m = setup(3, {})
+    toConvoy(w, m)
+    capture(w, m, p[2])
+    F.board(p[2], p[2].player)
+    F.run(1)
+    bang(w, m)
+    for _, q in ipairs({p[1], p[3]}) do q.env.DeletePlayer(p[2].id) end
+    w.peers[p[2].id] = nil
+    F.nearTo(p[3].player, m.apc[4], 0, 0)
+    F.run(1)
+    check(m.coopDriverId == p[3].id, "the human nearest APC #5 becomes the driver after the driver leaves")
+    F.nearTo(p[3].player, "nw_trigger", 0, 0)
+    F.run(302)
+    check(m.missionState == 23, "the new driver can still fire the fort approach")
+end
 
 -- ------------------------------------------------------------------ CheckAPCs: losing any APC fails
 do

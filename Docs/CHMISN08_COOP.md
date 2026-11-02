@@ -48,6 +48,9 @@ This sticky-by-identity rule is the fix for a real gap: the body leans on `M.use
 howitzer objective marker) — all *after* the driver has jumped out of APC #5. A rule that went nil the moment the
 driver dismounted would silently break every one of those for the rest of the mission.
 
+If the sticky driver disconnects, the role passes to the connected human nearest APC #5 (any human if it is gone),
+so those same checks never wait on a nil `M.user` for the rest of the mission.
+
 - **Snipers.** `Strike()` (26 `ssusera` snipers) orders every sniper onto `M.user` whenever the player handle changes
   (`M.olduser ~= M.user`) or at `MS_STARTUP`. Before anyone has captured APC #5, `M.user` is nil: the CR layer's
   `Attack` shadow falls back to the **nearest human** so the snipers still react from the first frame, matching the
