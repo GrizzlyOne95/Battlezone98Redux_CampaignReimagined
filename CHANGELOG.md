@@ -23,6 +23,9 @@
   unused shipped voice lines in missions 04, 06, 07 and 08.
   The Black Dog and American bases in missions 01, 04, 05 and 06 now build their bases: their stock AI plans asked
   for Soviet gun towers they cannot build. Not yet tested in game.
+- Port the stock Chinese campaign mission chmisn08 (the fort assault) to Lua as `Scripts/ch08.lua`, faithful to the
+  original `Chinese08Mission` logic: APC convoy capture, mag-mine power and comm tower timer, and the timed demolition
+  finale. Source parity and behaviour tests are in CI; see `Docs/CH08_LUA_PORT.md`. Single player only.
 - Bundle OpenShim 1.0.0.66. The under-attack alert beep sounds again after the first match of a game session:
   OpenShim's alert cooldown is now reset when a mission ends, like the stock timer. The Sound Channels option
   description now names the voice cap.
