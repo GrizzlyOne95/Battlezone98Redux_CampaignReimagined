@@ -649,3 +649,9 @@ jobs:
           lua5.1 Tools/Test-Bdmisn15Presentation.lua
           python Tools/Test-Bdmisn15CoopSourceParity.py
           python Tools/Test-Bdmisn15CoopContract.py
+      - name: Test chmisn02 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Chmisn02Coop.lua
+          lua5.1 Tools/Test-Chmisn02Presentation.lua
+          python Tools/Test-Chmisn02CoopSourceParity.py
+          python Tools/Test-Chmisn02CoopContract.py
