@@ -81,3 +81,31 @@ briefing-relevant craft to the basic kit.
 
 ODFs: Tank `svtank`, Scout `svfimp`, Light Tank `svltnk`, Rocket Tank `svrckt`,
 Bomber `svhraz`, Walker `svwalk`.
+
+## Black Dog (Red Odyssey) campaign
+
+Proposed 2026-11-01, awaiting owner review. The Black Dog co-op maps (`bdmisn01cr`
+through `bdmisn15cr`) offer the player's own starting ship class (read from team 1
+in each map) plus at most one light escort. Black Dog craft use the `bv*` ODFs.
+Production menus and mission scripts are unchanged.
+| Mission | VXT choices, in menu order | Basis |
+| --- | --- | --- |
+| BD 01, Close Target Wrecky | Tank, Light Tank | Player starts in a `bvtank` with two `bvltnk` wingmen. |
+| BD 02, Hidden Enemy | Tank, Light Tank | Same kit as 01 (`bvtank`, two `bvltnk`, one scavenger). |
+| BD 03, Spilt Milk | Tank, Light Tank, Scout | Player `bvtank` with `bvltnk` and `bvraz` wingmen. |
+| BD 04, Wolf in Sheep's Clothing | Pilot on foot (`bsuser`) | The mission is an on-foot infiltration: the script perceives the player as team 2, so a Black Dog ship would break the disguise. |
+| BD 05, Achilles Heel | Tank (upgraded), Light Tank | Player starts in a `bvtanka` with `bvturr` support. |
+| BD 06, Blitzkrieg | Rocket Devastator, Light Tank | The player-controlled force is `bvrdeva`; add a Light Tank escort. |
+| BD 07, Terra Incognita | Tank (upgraded), Light Tank | Player starts in a `bvtanka`; the Light Tank represents the authored `bvtank`/`bvrckt` support. |
+| BD 08, Hook, Line, and Sinker | Tank (upgraded), Light Tank | Player starts in a `bvtanka` with a `bvltnk` wingman. |
+| BD 09, Grand Theft Portal | Stolen Chinese APC (`cvapc`) | The player drives a stolen `cvapc` perceived as team 2; a `bvapc` would break the disguise. |
+| BD 10, The Enemy Within | Tank (upgraded), Fighter | Player `bvtanka` with `bvfigha` escorts in the strike force. |
+| BD 11, Stranded | Tank, Light Tank | Player `bvtank` with `bvltnk` in the authored escort. |
+| BD 12, Meanwhile, Back at the Ranch... | Tank (upgraded), Fighter | Player `bvtanka` with `bvfigha` wingmen. |
+| BD 13, Frustrate Their Knavish Tricks | Tank, Light Tank | Player `bvtank` with `bvltnk` wingmen. |
+| BD 14, Lifeline | Tank (upgraded), Light Tank | Player `bvtanka` with `bvtank` wingmen. |
+| BD 15, The Best Laid Plans... | Tank, Light Tank | Player `bvtank` with `bvltnk` wingmen. |
+
+ODFs: Tank `bvtank`/`bvtanka`, Light Tank `bvltnk`, Scout `bvraz`, Rocket
+Devastator `bvrdeva`, Fighter `bvfigha`. Missions 04 (`bsuser` on foot) and
+09 (`cvapc`) keep the disguise unit the map starts the player in.

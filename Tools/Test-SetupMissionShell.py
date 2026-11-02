@@ -231,4 +231,63 @@ if all((ROOT / "Scripts" / f"misns{i}cr.lua").is_file() for i in range(1, 9)):
     for runtime in ("crcca.ini", "crcca.des", "crcca.bmp"):
         assert f'"{runtime}"' in manager, f"Workshop required-files list missing {runtime!r}"
 
+# Black Dog (Red Odyssey) campaign listing: the third campaign ini. Terrain keeps the bdmisnNN stem
+# named by the BZN. Ganymede weather sites are authored per mission; Elysium weather is separate.
+bd_ini_path = ROOT / "Config" / "crbd.ini"
+bd_des_path = ROOT / "crbd.des"
+bd_parser = configparser.ConfigParser()
+bd_parser.optionxform = str
+bd_parser.read(bd_ini_path, encoding="utf-8")
+assert len(bd_ini_path.stem) <= 16 and len(bd_des_path.stem) <= 16
+assert bd_parser["DESCRIPTION"]["missionName"] == '"CR Black Dog"'
+assert bd_parser["WORKSHOP"]["mapType"] == '"campaign"'
+assert [s for s in bd_parser.sections() if s.startswith("MISSION")] == [f"MISSION{i}" for i in range(1, 16)]
+bd_maps = []
+for index in range(1, 16):
+    planet = "elysium" if index in (7, 9, 10, 11) else "ganymede"
+    stem = f"bdmisn{index:02d}cr"
+    section = bd_parser[f"MISSION{index}"]
+    filename = section["missionBZN"].strip('"')
+    assert filename == f"{stem}.bzn"
+    assert section["missionName"].strip('"')
+    assert section["planet"].strip('"') == planet
+    bd_maps.append(filename)
+    bzn_text = (ROOT / "Missions" / filename).read_text(encoding="utf-8")
+    assert "name = MultSTMission\n" in bzn_text
+    assert f"msn_filename = {filename}\n" in bzn_text
+    assert f"TerrainName = bdmisn{index:02d}\n" in bzn_text
+    for extension in ("trn", "hg2", "mat", "lgt"):
+        assert (ROOT / "Missions" / f"bdmisn{index:02d}.{extension}").is_file(), f"bdmisn{index:02d} terrain {extension}"
+    vxt = (ROOT / "Missions" / f"{stem}.vxt").read_text(encoding="ascii").split()
+    # 04 starts on foot and 09 in a stolen Chinese APC: both are disguise missions.
+    disguised = {4: "bsuser", 9: "cvapc"}
+    if index in disguised:
+        assert vxt == [disguised[index], ","], f"{stem}.vxt must start the disguise unit"
+    else:
+        assert vxt and all(line.startswith("bv") or line == "," for line in vxt), f"{stem}.vxt must list bv* units"
+    assert (ROOT / "Assets" / "Graphics" / f"{stem}.bmp").read_bytes()[:2] == b"BM"
+    mp = configparser.ConfigParser()
+    mp.optionxform = str
+    mp.read(ROOT / "Config" / f"{stem}.ini", encoding="utf-8")
+    assert mp["WORKSHOP"]["mapType"] == '"multiplayer"'
+    assert (mp["MULTIPLAYER"]["minPlayers"], mp["MULTIPLAYER"]["maxPlayers"], mp["MULTIPLAYER"]["gameType"]) == ('"2"', '"4"', '"S"')
+    blurb = (ROOT / f"{stem}.mpdes").read_bytes()
+    assert len(blurb) <= 300 and b"\r\n" in blurb, f"{stem}.mpdes must be <= 300 bytes with CRLF"
+    if planet == "ganymede" and index != 7:
+        assert (ROOT / "Scripts" / f"CRGanymedeSitesBD{index:02d}.lua").is_file(), f"weather sites for {stem}"
+assert_fits_menu_box(bd_des_path)
+assert (ROOT / "Assets" / "Graphics" / "crbd.bmp").read_bytes()[:2] == b"BM"
+
+# Once the Black Dog co-op scripts exist, the lock and the Workshop list must carry the listing.
+if all((ROOT / "Scripts" / f"bdmisn{i:02d}cr.lua").is_file() for i in range(1, 16)):
+    for filename in bd_maps:
+        assert entries.get("Missions\\" + filename) == filename, f"lock missing {filename}"
+        lua_name = str(Path(filename).with_suffix(".lua"))
+        assert entries.get("Scripts\\" + lua_name) == lua_name, f"lock missing {lua_name}"
+    assert entries.get(r"Config\crbd.ini") == "crbd.ini"
+    assert entries.get("crbd.des") == "crbd.des"
+    assert entries.get(r"Assets\Graphics\crbd.bmp") == "crbd.bmp"
+    for runtime in ("crbd.ini", "crbd.des", "crbd.bmp"):
+        assert f'"{runtime}"' in manager, f"Workshop required-files list missing {runtime!r}"
+
 print("Setup mission shell tests passed")

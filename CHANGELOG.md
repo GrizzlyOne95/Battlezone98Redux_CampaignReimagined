@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Black Dog co-op campaign: a new "CR Black Dog" campaign listing and multiplayer entries for `bdmisn01cr` through
+  `bdmisn15cr` (2-4 players or offline), on co-op maps with the enemy on team 5, Black Dog starting rosters, Ganymede
+  and Elysium terrain and Ganymede weather. Every mission wraps its faithful port the same way as the CCA campaign:
+  scaled waves that arrive out of sight, orders aimed at the nearest human, shared unskippable cutscenes in network
+  games and weather that follows the battle. Coherent cut content is restored per mission (each listed in
+  `Docs/BDMISN<nn>_COOP.md`), including unused shipped voice lines in missions 04, 05, 06, 08, 11, 12, 13 and 15, the
+  cut bomber routes (02), wave attack (07) and turret convoy (14). Stock bugs fixed in the co-op layer include the
+  mission 15 enemy waves that kept building after the breach and the mission 11 win lost to a Recycler destroyed after
+  the blast. Not yet tested in game.
 - CCA (Soviet) co-op campaign: a new "CR Soviet" campaign listing and multiplayer entries for `misns1cr` through
   `misns8cr` (2-4 players or offline), on co-op maps with the enemy on team 5, terrain and per-mission weather (Venus,
   Io, Titan). Every mission wraps its faithful port: enemy waves scale with the player count and arrive out of sight,
