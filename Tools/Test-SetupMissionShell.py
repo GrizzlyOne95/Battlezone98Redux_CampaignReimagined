@@ -290,4 +290,64 @@ if all((ROOT / "Scripts" / f"bdmisn{i:02d}cr.lua").is_file() for i in range(1, 1
     for runtime in ("crbd.ini", "crbd.des", "crbd.bmp"):
         assert f'"{runtime}"' in manager, f"Workshop required-files list missing {runtime!r}"
 
+# CRA (Chinese) campaign listing: the fourth campaign ini. Terrain keeps the chmisnNN stem named by the BZN.
+# Ganymede weather sites are authored per mission; chmisn05/06 (Elysium) and chmisn07 (Europa) use their own.
+ch_ini_path = ROOT / "Config" / "crch.ini"
+ch_des_path = ROOT / "crch.des"
+ch_parser = configparser.ConfigParser()
+ch_parser.optionxform = str
+ch_parser.read(ch_ini_path, encoding="utf-8")
+assert len(ch_ini_path.stem) <= 16 and len(ch_des_path.stem) <= 16
+assert ch_parser["DESCRIPTION"]["missionName"] == '"CR Chinese"'
+assert ch_parser["WORKSHOP"]["mapType"] == '"campaign"'
+assert [s for s in ch_parser.sections() if s.startswith("MISSION")] == [f"MISSION{i}" for i in range(1, 8)]
+ch_planets = {1: "ganymede", 2: "ganymede", 3: "ganymede", 4: "ganymede", 5: "elysium", 6: "elysium", 7: "europa"}
+ch_sites = {1: "CRGanymedeSitesCH01", 2: "CRGanymedeSitesCH02", 3: "CRGanymedeSitesCH03", 4: "CRGanymedeSitesCH04",
+            5: "CRElysiumSitesCH05", 6: "CRElysiumSitesCH06", 7: "CREuropaSitesCH07"}
+ch_maps = []
+for index in range(1, 8):
+    stem = f"chmisn{index:02d}cr"
+    section = ch_parser[f"MISSION{index}"]
+    filename = section["missionBZN"].strip('"')
+    assert filename == f"{stem}.bzn"
+    assert section["missionName"].strip('"')
+    assert section["planet"].strip('"') == ch_planets[index]
+    ch_maps.append(filename)
+    bzn_text = (ROOT / "Missions" / filename).read_text(encoding="utf-8")
+    assert "name = MultSTMission\n" in bzn_text
+    assert f"msn_filename = {filename}\n" in bzn_text
+    assert f"TerrainName = chmisn{index:02d}\n" in bzn_text
+    for extension in ("trn", "hg2", "mat", "lgt"):
+        assert (ROOT / "Missions" / f"chmisn{index:02d}.{extension}").is_file(), f"chmisn{index:02d} terrain {extension}"
+    vxt = (ROOT / "Missions" / f"{stem}.vxt").read_text(encoding="ascii").split()
+    # 01 starts on foot and 07 on foot disguised as the enemy: both keep their map pilot.
+    pilots = {1: "csusera", 7: "ssuserb"}
+    if index in pilots:
+        assert vxt == [pilots[index], ","], f"{stem}.vxt must start the on-foot pilot"
+    else:
+        assert vxt and all(line.startswith("cv") or line == "," for line in vxt), f"{stem}.vxt must list cv* units"
+    assert (ROOT / "Assets" / "Graphics" / f"{stem}.bmp").read_bytes()[:2] == b"BM"
+    mp = configparser.ConfigParser()
+    mp.optionxform = str
+    mp.read(ROOT / "Config" / f"{stem}.ini", encoding="utf-8")
+    assert mp["WORKSHOP"]["mapType"] == '"multiplayer"'
+    assert (mp["MULTIPLAYER"]["minPlayers"], mp["MULTIPLAYER"]["maxPlayers"], mp["MULTIPLAYER"]["gameType"]) == ('"2"', '"4"', '"S"')
+    blurb = (ROOT / f"{stem}.mpdes").read_bytes()
+    assert len(blurb) <= 300 and b"\r\n" in blurb, f"{stem}.mpdes must be <= 300 bytes with CRLF"
+    assert (ROOT / "Scripts" / f"{ch_sites[index]}.lua").is_file(), f"weather sites for {stem}"
+assert_fits_menu_box(ch_des_path)
+assert (ROOT / "Assets" / "Graphics" / "crch.bmp").read_bytes()[:2] == b"BM"
+
+# Once the CRA co-op scripts exist, the lock and the Workshop list must carry the listing.
+if all((ROOT / "Scripts" / f"chmisn{i:02d}cr.lua").is_file() for i in range(1, 8)):
+    for filename in ch_maps:
+        assert entries.get("Missions\\" + filename) == filename, f"lock missing {filename}"
+        lua_name = str(Path(filename).with_suffix(".lua"))
+        assert entries.get("Scripts\\" + lua_name) == lua_name, f"lock missing {lua_name}"
+    assert entries.get(r"Config\crch.ini") == "crch.ini"
+    assert entries.get("crch.des") == "crch.des"
+    assert entries.get(r"Assets\Graphics\crch.bmp") == "crch.bmp"
+    for runtime in ("crch.ini", "crch.des", "crch.bmp"):
+        assert f'"{runtime}"' in manager, f"Workshop required-files list missing {runtime!r}"
+
 print("Setup mission shell tests passed")

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- CRA (Chinese) co-op campaign listing, maps and weather sites, in progress: a new "CR Chinese" campaign listing and
+  multiplayer entries for `chmisn01cr` through `chmisn07cr` (2-4 players or offline), on co-op maps with the enemy on
+  team 5, CRA starting rosters, Ganymede, Elysium and Europa terrain and per-mission weather sites. Mission scripts
+  follow. Not yet tested in game.
 - Black Dog co-op campaign: a new "CR Black Dog" campaign listing and multiplayer entries for `bdmisn01cr` through
   `bdmisn15cr` (2-4 players or offline), on co-op maps with the enemy on team 5, Black Dog starting rosters, Ganymede
   and Elysium terrain and Ganymede weather. Every mission wraps its faithful port the same way as the CCA campaign:
