@@ -31,6 +31,8 @@
 - Port the stock Chinese campaign mission chmisn08 (the fort assault) to Lua as `Scripts/ch08.lua`, faithful to the
   original `Chinese08Mission` logic: APC convoy capture, mag-mine power and comm tower timer, and the timed demolition
   finale. Source parity and behaviour tests are in CI; see `Docs/CH08_LUA_PORT.md`. Single player only.
+- Ganymede and Elysium terrain now use the OpenShim terrain paint packs like Mars and the other worlds (the
+  evolve maps, Black Dog and Chinese campaigns); their DDS tile packs are removed from the payload.
 - Bundle OpenShim 1.0.0.66. The under-attack alert beep sounds again after the first match of a game session:
   OpenShim's alert cooldown is now reset when a mission ends, like the stock timer. The Sound Channels option
   description now names the voice cap.
