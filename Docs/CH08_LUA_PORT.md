@@ -97,7 +97,7 @@ objective) and these map paths the script never names: `east_scout`,
 
 ## Fixes and API adaptations
 
-- Null native handles become `nil`. Every handle query is guarded (`Alive`,
+- Null native handles become `nil`. Every handle query is guarded (`Alive`, `Cloak`,
   `Distance`, `Health`, `Strike`, `Remove`): invalid handles return infinity,
   false or no-op instead of reaching the stock overloads. A dead or removed
   handle never becomes a zero-distance trigger. No object is resurrected and no

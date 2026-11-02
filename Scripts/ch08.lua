@@ -330,14 +330,14 @@ function Update(dt)
 
         M.missionState = MS_WAITFORTRIGGER
 
-        Cloak(M.west_1_1)
-        Cloak(M.west_1_2)
-        Cloak(M.west_1_3)
-        Cloak(M.west_1_4)
-        Cloak(M.east_1_1)
-        Cloak(M.east_1_2)
-        Cloak(M.east_1_3)
-        Cloak(M.east_1_4)
+        if Valid(M.west_1_1) then Cloak(M.west_1_1) end
+        if Valid(M.west_1_2) then Cloak(M.west_1_2) end
+        if Valid(M.west_1_3) then Cloak(M.west_1_3) end
+        if Valid(M.west_1_4) then Cloak(M.west_1_4) end
+        if Valid(M.east_1_1) then Cloak(M.east_1_1) end
+        if Valid(M.east_1_2) then Cloak(M.east_1_2) end
+        if Valid(M.east_1_3) then Cloak(M.east_1_3) end
+        if Valid(M.east_1_4) then Cloak(M.east_1_4) end
 
         CameraReady()
 
