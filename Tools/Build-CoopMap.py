@@ -17,11 +17,13 @@ offline/co-op Lua under MultSTMission:
     pushed misn05's team 3/4 starts far away).
 
 Usage:
-  python Tools/Build-CoopMap.py --mission misn06|...|misn18|misns1|...|misns8|bdmisn01|...|bdmisn15 [--source FILE] [--toolbox DIR]
+  python Tools/Build-CoopMap.py --mission misn06|...|misn18|misns1|...|misns8|bdmisn01|...|bdmisn15|chmisn01|...|chmisn08 [--source FILE] [--toolbox DIR]
 
 Black Dog (bdmisnNN): the source defaults to the stock map inside the Redux tro_cam.zfs, and the
 mission class is BlackDogNNMission. bdmisn13's construction rig carries MSVC debug fill (0xCD...)
 in its never-used dropMat, which cannot be written as float32; the builder resets it to identity.
+
+CRA (Chinese) chmisnNN: same source as Black Dog, mission class ChineseNNMission.
 
 misn13: the 1.5 BZN is a mid-play snapshot, so the co-op map also drops the 133 unnamed runtime unit
 paths (the 14 named paths stay), clears the commands the snapshot had already issued to units
@@ -264,7 +266,7 @@ def strip_unnamed_paths(tail: str) -> tuple[str, int, int]:
 def read_source(source: Path | None, mission: str, toolbox: Path) -> bytes:
     if source:
         return source.read_bytes()
-    if mission.startswith("bdmisn"):
+    if mission.startswith(("bdmisn", "chmisn")):
         sys.path.insert(0, str(toolbox))
         from battlezone.archives.zfs import ZFSArchive  # noqa: E402
 
@@ -302,6 +304,8 @@ def convert(data: bytes, toolbox: Path) -> str:
 def build(text: str, mission: str) -> str:
     if mission.startswith("bdmisn"):
         mission_class = f"BlackDog{mission[6:]}Mission"
+    elif mission.startswith("chmisn"):
+        mission_class = f"Chinese{mission[6:]}Mission"
     else:
         mission_class = mission[0].upper() + mission[1:] + "Mission"
     header, *objects_and_tail = text.split("[GameObject]\n")
@@ -435,7 +439,7 @@ def build(text: str, mission: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--mission", default="misn06", help="mission stem: misn06 .. misn18, misns1 .. misns8, bdmisn01 .. bdmisn15")
+    parser.add_argument("--mission", default="misn06", help="mission stem: misn06 .. misn18, misns1 .. misns8, bdmisn01 .. bdmisn15, chmisn01 .. chmisn08")
     parser.add_argument("--source", type=Path)
     parser.add_argument("--toolbox", type=Path, default=DEFAULT_TOOLBOX)
     parser.add_argument("--output", type=Path)

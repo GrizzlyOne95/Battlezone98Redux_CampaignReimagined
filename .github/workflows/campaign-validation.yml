@@ -654,3 +654,51 @@ jobs:
           lua5.1 Tools/Test-Bdmisn15Presentation.lua
           python Tools/Test-Bdmisn15CoopSourceParity.py
           python Tools/Test-Bdmisn15CoopContract.py
+      - name: Test chmisn01 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Chmisn01Coop.lua
+          lua5.1 Tools/Test-Chmisn01Presentation.lua
+          python Tools/Test-Chmisn01CoopSourceParity.py
+          python Tools/Test-Chmisn01CoopContract.py
+      - name: Test chmisn02 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Chmisn02Coop.lua
+          lua5.1 Tools/Test-Chmisn02Presentation.lua
+          python Tools/Test-Chmisn02CoopSourceParity.py
+          python Tools/Test-Chmisn02CoopContract.py
+      - name: Test chmisn03 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Chmisn03Coop.lua
+          lua5.1 Tools/Test-Chmisn03Presentation.lua
+          python Tools/Test-Chmisn03CoopSourceParity.py
+          python Tools/Test-Chmisn03CoopContract.py
+      - name: Test chmisn04 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Chmisn04Coop.lua
+          lua5.1 Tools/Test-Chmisn04Presentation.lua
+          python Tools/Test-Chmisn04CoopSourceParity.py
+          python Tools/Test-Chmisn04CoopContract.py
+      - name: Test chmisn05 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Chmisn05Coop.lua
+          lua5.1 Tools/Test-Chmisn05Presentation.lua
+          python Tools/Test-Chmisn05CoopSourceParity.py
+          python Tools/Test-Chmisn05CoopContract.py
+      - name: Test chmisn06 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Chmisn06Coop.lua
+          lua5.1 Tools/Test-Chmisn06Presentation.lua
+          python Tools/Test-Chmisn06CoopSourceParity.py
+          python Tools/Test-Chmisn06CoopContract.py
+      - name: Test chmisn07 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Chmisn07Coop.lua
+          lua5.1 Tools/Test-Chmisn07Presentation.lua
+          python Tools/Test-Chmisn07CoopSourceParity.py
+          python Tools/Test-Chmisn07CoopContract.py
+      - name: Test chmisn08 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Chmisn08Coop.lua
+          lua5.1 Tools/Test-Chmisn08Presentation.lua
+          python Tools/Test-Chmisn08CoopSourceParity.py
+          python Tools/Test-Chmisn08CoopContract.py

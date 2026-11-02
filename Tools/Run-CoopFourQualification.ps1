@@ -5,7 +5,10 @@ param(
     [Parameter(Mandatory)][string]$CampaignContent,
     [Parameter(Mandatory)][string]$BZRCoopRoot,
     [string[]]$Missions=@('misn15','misn13cr','misn14cr','misn12cr','misn2bcr','misn03cr','misn04cr','misn07cr','misn08cr'),
-    [switch]$StopOnFailure
+    [switch]$StopOnFailure,
+    # Missions without a Test-<Misn>Live.ps1 progression scenario run the
+    # harness's generic coop-smoke (load, authority, roster, 45 s synced play).
+    [switch]$SmokeFallback
 )
 $ErrorActionPreference='Stop'
 $env:PSModulePath=$null
@@ -22,7 +25,10 @@ foreach($file in $nativeFiles) {$expectedNative[$file]=(Get-FileHash -LiteralPat
 foreach($mission in $Missions) {
     if(Get-Process battlezone98redux -ErrorAction SilentlyContinue) { throw 'An existing game blocks qualification; no game was closed.' }
     $scenario=Join-Path $PSScriptRoot ('Test-'+$mission.Replace('misn','Misn')+'Live.ps1')
-    if(-not(Test-Path -LiteralPath $scenario)) { throw "Missing progression scenario: $scenario" }
+    if(-not(Test-Path -LiteralPath $scenario)) {
+        if(-not $SmokeFallback) { throw "Missing progression scenario: $scenario" }
+        $scenario='coop-smoke'
+    }
     $runName="$mission-four-progression-$stamp"
     @{started=$stamp;current=$mission;run=$runName;planned=$Missions;completed=@($rows);suite=$suite;state='running'} | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $BZRCoopRoot 'qualification-status.json')
     foreach($client in 0..3) {
@@ -33,6 +39,15 @@ foreach($mission in $Missions) {
     }
     $log=Join-Path $suite ($runName+'.log')
     $listing=Join-Path $BZRCoopRoot ('listings\'+$mission)
+    if(-not(Test-Path -LiteralPath $listing)) {
+        # "! " sorts the mission to row 1 of All Maps (MapListY 99, scroll 0).
+        $ini=Join-Path $CampaignContent "$mission.ini"
+        if(-not(Test-Path -LiteralPath $ini)) { throw "No staged ini for ${mission}: $ini" }
+        New-Item -ItemType Directory -Path $listing -Force | Out-Null
+        $text=[regex]::Replace([IO.File]::ReadAllText($ini),'(?m)^(\s*missionName\s*=\s*")','$1! ')
+        if($text -notmatch '(?m)^\s*missionName\s*=\s*"! ') { throw "No missionName line to sort first in $ini" }
+        [IO.File]::WriteAllText((Join-Path $listing "$mission.ini"),$text)
+    }
     $params=@('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',"$HarnessRepo\reverse_engineering\Run-BZRCoopMission.ps1",'-Mission',$mission,'-Scenario',$scenario,'-Clients','4','-CampaignContent',$CampaignContent,'-BZRCoopRoot',$BZRCoopRoot,'-ContentOverride',$listing,'-MapListY','99','-MapListScroll','0','-SkipPrepare','-MaxNetworkLogging','-MuteClients','-RunName',$runName,'-HardTimeoutSeconds','900','-FailureGraceSeconds','60')
     $child=Start-Process -FilePath $exe -ArgumentList $params -WindowStyle Hidden -PassThru -RedirectStandardOutput $log -RedirectStandardError ($log+'.err')
     $null=$child.Handle
@@ -50,7 +65,12 @@ foreach($mission in $Missions) {
     $summaryPath=Join-Path $BZRCoopRoot ("runs\$runName\flow-summary.json")
     $result=if(Test-Path -LiteralPath $summaryPath) {Get-Content -LiteralPath $summaryPath -Raw | ConvertFrom-Json} else {$null}
     $verdict=if($result){$result.verdict}else{'INCOMPLETE'}
-    [void]$rows.Add([pscustomobject]@{mission=$mission;clients=4;verdict=$verdict;exit=$child.ExitCode;run=$runName;summary=$summaryPath})
+    $runDir=Split-Path -Parent $summaryPath
+    # The harness fails Lua errors itself; it copies only dumps written during
+    # this run into the run dir.
+    $dumps=@(Get-ChildItem -LiteralPath $runDir -Filter *.dmp -Recurse -File -ErrorAction SilentlyContinue).Count
+    if($verdict -eq 'PASS' -and $dumps) {$verdict='PASS-WITH-DUMPS'}
+    [void]$rows.Add([pscustomobject]@{mission=$mission;clients=4;verdict=$verdict;exit=$child.ExitCode;dumps=$dumps;run=$runName;summary=$summaryPath})
     $rows | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $suite 'suite.json')
     $rows | Format-Table -AutoSize | Out-String | Set-Content (Join-Path $suite 'suite.txt')
     Write-Output "$mission $verdict ($summaryPath)"

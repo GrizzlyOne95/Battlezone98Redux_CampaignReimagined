@@ -21,6 +21,7 @@ misn18cr.mpdes -text
 # Co-op briefings (Test-SetupMissionShell.py) need CRLF on every checkout.
 misns?cr.mpdes -text
 bdmisn??cr.mpdes -text
+chmisn??cr.mpdes -text
 Missions/misn18cr.vxt -text
 Missions/misns4.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misns5.trn -text whitespace=-blank-at-eol,-blank-at-eof
@@ -67,3 +68,8 @@ References/TextureRevamp/integration/original/*.odf -text whitespace=-blank-at-e
 # OpenShim-owned files are hash-pinned in Scripts/OpenShimManifest.lua: store exact bytes, no EOL conversion.
 openshim/** -text
 BZ_ASSETS_CORE/common/ui/CustomWidgets/*.png -text
+# Test-Chmisn02/06CoopSourceParity.py require these ports to stay CRLF on every checkout.
+Scripts/ch02.lua -text
+Scripts/ch06.lua -text
+Scripts/chmisn02cr.lua -text
+Scripts/chmisn06cr.lua -text

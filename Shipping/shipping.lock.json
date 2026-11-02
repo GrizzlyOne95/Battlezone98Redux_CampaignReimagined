@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
   "generated": "2026-11-01T18:35:37-06:00",
-  "count": 5020,
+  "count": 5111,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -268,6 +268,38 @@
       "runtime": "campaignReimagined.jpg"
     },
     {
+      "source": "Assets\\Graphics\\chmisn01cr.bmp",
+      "runtime": "chmisn01cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\chmisn02cr.bmp",
+      "runtime": "chmisn02cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\chmisn03cr.bmp",
+      "runtime": "chmisn03cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\chmisn04cr.bmp",
+      "runtime": "chmisn04cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\chmisn05cr.bmp",
+      "runtime": "chmisn05cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\chmisn06cr.bmp",
+      "runtime": "chmisn06cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\chmisn07cr.bmp",
+      "runtime": "chmisn07cr.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\chmisn08cr.bmp",
+      "runtime": "chmisn08cr.bmp"
+    },
+    {
       "source": "Assets\\Graphics\\crbd.bmp",
       "runtime": "crbd.bmp"
     },
@@ -278,6 +310,10 @@
     {
       "source": "Assets\\Graphics\\crcca.bmp",
       "runtime": "crcca.bmp"
+    },
+    {
+      "source": "Assets\\Graphics\\crch.bmp",
+      "runtime": "crch.bmp"
     },
     {
       "source": "Assets\\Graphics\\crsetup.bmp",
@@ -7368,6 +7404,38 @@
       "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uiplate.png"
     },
     {
+      "source": "chmisn01cr.mpdes",
+      "runtime": "chmisn01cr.mpdes"
+    },
+    {
+      "source": "chmisn02cr.mpdes",
+      "runtime": "chmisn02cr.mpdes"
+    },
+    {
+      "source": "chmisn03cr.mpdes",
+      "runtime": "chmisn03cr.mpdes"
+    },
+    {
+      "source": "chmisn04cr.mpdes",
+      "runtime": "chmisn04cr.mpdes"
+    },
+    {
+      "source": "chmisn05cr.mpdes",
+      "runtime": "chmisn05cr.mpdes"
+    },
+    {
+      "source": "chmisn06cr.mpdes",
+      "runtime": "chmisn06cr.mpdes"
+    },
+    {
+      "source": "chmisn07cr.mpdes",
+      "runtime": "chmisn07cr.mpdes"
+    },
+    {
+      "source": "chmisn08cr.mpdes",
+      "runtime": "chmisn08cr.mpdes"
+    },
+    {
       "source": "Config\\ac_detail_atlas.csv",
       "runtime": "ac_detail_atlas.csv"
     },
@@ -7432,6 +7500,38 @@
       "runtime": "bdmisn15cr.ini"
     },
     {
+      "source": "Config\\chmisn01cr.ini",
+      "runtime": "chmisn01cr.ini"
+    },
+    {
+      "source": "Config\\chmisn02cr.ini",
+      "runtime": "chmisn02cr.ini"
+    },
+    {
+      "source": "Config\\chmisn03cr.ini",
+      "runtime": "chmisn03cr.ini"
+    },
+    {
+      "source": "Config\\chmisn04cr.ini",
+      "runtime": "chmisn04cr.ini"
+    },
+    {
+      "source": "Config\\chmisn05cr.ini",
+      "runtime": "chmisn05cr.ini"
+    },
+    {
+      "source": "Config\\chmisn06cr.ini",
+      "runtime": "chmisn06cr.ini"
+    },
+    {
+      "source": "Config\\chmisn07cr.ini",
+      "runtime": "chmisn07cr.ini"
+    },
+    {
+      "source": "Config\\chmisn08cr.ini",
+      "runtime": "chmisn08cr.ini"
+    },
+    {
       "source": "Config\\cr_terrain_hd.json",
       "runtime": "cr_terrain_hd.json"
     },
@@ -7446,6 +7546,10 @@
     {
       "source": "Config\\crcca.ini",
       "runtime": "crcca.ini"
+    },
+    {
+      "source": "Config\\crch.ini",
+      "runtime": "crch.ini"
     },
     {
       "source": "Config\\crsetup.ini",
@@ -7606,6 +7710,10 @@
     {
       "source": "crcca.des",
       "runtime": "crcca.des"
+    },
+    {
+      "source": "crch.des",
+      "runtime": "crch.des"
     },
     {
       "source": "crsetfl.des",
@@ -10870,6 +10978,198 @@
     {
       "source": "Missions\\bdmisn15cr.vxt",
       "runtime": "bdmisn15cr.vxt"
+    },
+    {
+      "source": "Missions\\chmisn01.hg2",
+      "runtime": "chmisn01.hg2"
+    },
+    {
+      "source": "Missions\\chmisn01.lgt",
+      "runtime": "chmisn01.lgt"
+    },
+    {
+      "source": "Missions\\chmisn01.mat",
+      "runtime": "chmisn01.mat"
+    },
+    {
+      "source": "Missions\\chmisn01.trn",
+      "runtime": "chmisn01.trn"
+    },
+    {
+      "source": "Missions\\chmisn01cr.bzn",
+      "runtime": "chmisn01cr.bzn"
+    },
+    {
+      "source": "Missions\\chmisn01cr.vxt",
+      "runtime": "chmisn01cr.vxt"
+    },
+    {
+      "source": "Missions\\chmisn02.hg2",
+      "runtime": "chmisn02.hg2"
+    },
+    {
+      "source": "Missions\\chmisn02.lgt",
+      "runtime": "chmisn02.lgt"
+    },
+    {
+      "source": "Missions\\chmisn02.mat",
+      "runtime": "chmisn02.mat"
+    },
+    {
+      "source": "Missions\\chmisn02.trn",
+      "runtime": "chmisn02.trn"
+    },
+    {
+      "source": "Missions\\chmisn02cr.bzn",
+      "runtime": "chmisn02cr.bzn"
+    },
+    {
+      "source": "Missions\\chmisn02cr.vxt",
+      "runtime": "chmisn02cr.vxt"
+    },
+    {
+      "source": "Missions\\chmisn03.hg2",
+      "runtime": "chmisn03.hg2"
+    },
+    {
+      "source": "Missions\\chmisn03.lgt",
+      "runtime": "chmisn03.lgt"
+    },
+    {
+      "source": "Missions\\chmisn03.mat",
+      "runtime": "chmisn03.mat"
+    },
+    {
+      "source": "Missions\\chmisn03.trn",
+      "runtime": "chmisn03.trn"
+    },
+    {
+      "source": "Missions\\chmisn03cr.bzn",
+      "runtime": "chmisn03cr.bzn"
+    },
+    {
+      "source": "Missions\\chmisn03cr.vxt",
+      "runtime": "chmisn03cr.vxt"
+    },
+    {
+      "source": "Missions\\chmisn04.hg2",
+      "runtime": "chmisn04.hg2"
+    },
+    {
+      "source": "Missions\\chmisn04.lgt",
+      "runtime": "chmisn04.lgt"
+    },
+    {
+      "source": "Missions\\chmisn04.mat",
+      "runtime": "chmisn04.mat"
+    },
+    {
+      "source": "Missions\\chmisn04.trn",
+      "runtime": "chmisn04.trn"
+    },
+    {
+      "source": "Missions\\chmisn04cr.bzn",
+      "runtime": "chmisn04cr.bzn"
+    },
+    {
+      "source": "Missions\\chmisn04cr.vxt",
+      "runtime": "chmisn04cr.vxt"
+    },
+    {
+      "source": "Missions\\chmisn05.hg2",
+      "runtime": "chmisn05.hg2"
+    },
+    {
+      "source": "Missions\\chmisn05.lgt",
+      "runtime": "chmisn05.lgt"
+    },
+    {
+      "source": "Missions\\chmisn05.mat",
+      "runtime": "chmisn05.mat"
+    },
+    {
+      "source": "Missions\\chmisn05.trn",
+      "runtime": "chmisn05.trn"
+    },
+    {
+      "source": "Missions\\chmisn05cr.bzn",
+      "runtime": "chmisn05cr.bzn"
+    },
+    {
+      "source": "Missions\\chmisn05cr.vxt",
+      "runtime": "chmisn05cr.vxt"
+    },
+    {
+      "source": "Missions\\chmisn06.hg2",
+      "runtime": "chmisn06.hg2"
+    },
+    {
+      "source": "Missions\\chmisn06.lgt",
+      "runtime": "chmisn06.lgt"
+    },
+    {
+      "source": "Missions\\chmisn06.mat",
+      "runtime": "chmisn06.mat"
+    },
+    {
+      "source": "Missions\\chmisn06.trn",
+      "runtime": "chmisn06.trn"
+    },
+    {
+      "source": "Missions\\chmisn06cr.bzn",
+      "runtime": "chmisn06cr.bzn"
+    },
+    {
+      "source": "Missions\\chmisn06cr.vxt",
+      "runtime": "chmisn06cr.vxt"
+    },
+    {
+      "source": "Missions\\chmisn07.hg2",
+      "runtime": "chmisn07.hg2"
+    },
+    {
+      "source": "Missions\\chmisn07.lgt",
+      "runtime": "chmisn07.lgt"
+    },
+    {
+      "source": "Missions\\chmisn07.mat",
+      "runtime": "chmisn07.mat"
+    },
+    {
+      "source": "Missions\\chmisn07.trn",
+      "runtime": "chmisn07.trn"
+    },
+    {
+      "source": "Missions\\chmisn07cr.bzn",
+      "runtime": "chmisn07cr.bzn"
+    },
+    {
+      "source": "Missions\\chmisn07cr.vxt",
+      "runtime": "chmisn07cr.vxt"
+    },
+    {
+      "source": "Missions\\chmisn08.hg2",
+      "runtime": "chmisn08.hg2"
+    },
+    {
+      "source": "Missions\\chmisn08.lgt",
+      "runtime": "chmisn08.lgt"
+    },
+    {
+      "source": "Missions\\chmisn08.mat",
+      "runtime": "chmisn08.mat"
+    },
+    {
+      "source": "Missions\\chmisn08.trn",
+      "runtime": "chmisn08.trn"
+    },
+    {
+      "source": "Missions\\chmisn08cr.bzn",
+      "runtime": "chmisn08cr.bzn"
+    },
+    {
+      "source": "Missions\\chmisn08cr.vxt",
+      "runtime": "chmisn08cr.vxt"
     },
     {
       "source": "Missions\\crsetup.bzn",
@@ -15712,6 +16012,38 @@
       "runtime": "ch08.lua"
     },
     {
+      "source": "Scripts\\chmisn01cr.lua",
+      "runtime": "chmisn01cr.lua"
+    },
+    {
+      "source": "Scripts\\chmisn02cr.lua",
+      "runtime": "chmisn02cr.lua"
+    },
+    {
+      "source": "Scripts\\chmisn03cr.lua",
+      "runtime": "chmisn03cr.lua"
+    },
+    {
+      "source": "Scripts\\chmisn04cr.lua",
+      "runtime": "chmisn04cr.lua"
+    },
+    {
+      "source": "Scripts\\chmisn05cr.lua",
+      "runtime": "chmisn05cr.lua"
+    },
+    {
+      "source": "Scripts\\chmisn06cr.lua",
+      "runtime": "chmisn06cr.lua"
+    },
+    {
+      "source": "Scripts\\chmisn07cr.lua",
+      "runtime": "chmisn07cr.lua"
+    },
+    {
+      "source": "Scripts\\chmisn08cr.lua",
+      "runtime": "chmisn08cr.lua"
+    },
+    {
       "source": "Scripts\\ConservativeCulling.lua",
       "runtime": "ConservativeCulling.lua"
     },
@@ -15792,6 +16124,14 @@
       "runtime": "CRElysiumSitesBD11.lua"
     },
     {
+      "source": "Scripts\\CRElysiumSitesCH05.lua",
+      "runtime": "CRElysiumSitesCH05.lua"
+    },
+    {
+      "source": "Scripts\\CRElysiumSitesCH06.lua",
+      "runtime": "CRElysiumSitesCH06.lua"
+    },
+    {
       "source": "Scripts\\CRElysiumWeather.lua",
       "runtime": "CRElysiumWeather.lua"
     },
@@ -15802,6 +16142,10 @@
     {
       "source": "Scripts\\CREuropaSites13.lua",
       "runtime": "CREuropaSites13.lua"
+    },
+    {
+      "source": "Scripts\\CREuropaSitesCH07.lua",
+      "runtime": "CREuropaSitesCH07.lua"
     },
     {
       "source": "Scripts\\CREuropaWeather.lua",
@@ -15862,6 +16206,26 @@
     {
       "source": "Scripts\\CRGanymedeSitesBD15.lua",
       "runtime": "CRGanymedeSitesBD15.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesCH01.lua",
+      "runtime": "CRGanymedeSitesCH01.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesCH02.lua",
+      "runtime": "CRGanymedeSitesCH02.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesCH03.lua",
+      "runtime": "CRGanymedeSitesCH03.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesCH04.lua",
+      "runtime": "CRGanymedeSitesCH04.lua"
+    },
+    {
+      "source": "Scripts\\CRGanymedeSitesCH08.lua",
+      "runtime": "CRGanymedeSitesCH08.lua"
     },
     {
       "source": "Scripts\\CRGeysers.lua",

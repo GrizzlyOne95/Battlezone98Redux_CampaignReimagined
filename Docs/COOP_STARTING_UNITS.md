@@ -109,3 +109,26 @@ Production menus and mission scripts are unchanged.
 ODFs: Tank `bvtank`/`bvtanka`, Light Tank `bvltnk`, Scout `bvraz`, Rocket
 Devastator `bvrdeva`, Fighter `bvfigha`. Missions 04 (`bsuser` on foot) and
 09 (`cvapc`) keep the disguise unit the map starts the player in.
+
+## CRA (Chinese) campaign
+
+Proposed 2026-11-01, awaiting owner review. The CRA co-op maps (`chmisn01cr`
+through `chmisn08cr`) offer the player's own starting craft (read from team 1 in
+each map) plus at most one escort or the mission's briefing craft. CRA craft use
+the `cv*` ODFs; the enemy is the Soviet (CCA) force, authored on team 2 in every
+map and moved to team 5. Production menus and mission scripts are unchanged.
+
+| Mission | VXT choices, in menu order | Basis |
+| --- | --- | --- |
+| CH 01, New Kids on the Block | Pilot on foot (`csusera`) | The player starts as an on-foot infiltrator with no vehicle on team 1; the map has no CRA production. |
+| CH 02, Protection | Tank, Fighter | Player starts in a `cvtnk` with `cvtnk` and `cvfigh` wingmen; the CRA `cvrecy` and `cvmuf` are on the map. |
+| CH 03, Rescue Me | Tank, Minelayer | The player starts on foot beside a `cvtnk` (`player_tank`) and a `cvminea` minelayer. |
+| CH 04, From Out There Somewhere | Fighter (upgraded), Tank | Player starts in a `cvfighe`; the map also holds a `cvmuf`. |
+| CH 05, Dire Straits | Scavenger, Tank | Player starts in a `cvscav` beside a `cvrecy`; the Tank is the basic escort. |
+| CH 06, Out There Somewhere | Tank, Fighter | Player starts in a `cvtnk` with `cvfigh` patrols and a `cvmufc` and `cvslf` on the map. |
+| CH 07, Leave Home | Pilot on foot (`ssuserb`) | The mission is an on-foot infiltration: the script disguises the player as team 2 (`SetPerceivedTeam`), so a CRA ship would break it. |
+| CH 08, Stolen Convoy | VXT default (vehicle) | The player starts in their own vehicle and must independently drive into and capture APC #5 mid-mission (`SetName`'d "apc_5"); the co-op wrapper resolves "the player" for the capture/jump-out/disguise beats as whichever human is currently piloting that specific handle (Docs/CHMISN08_COOP.md). |
+
+ODFs: Tank `cvtnk`, Fighter `cvfigh`/`cvfighe`, Minelayer `cvminea`, Scavenger
+`cvscav`. Missions 01 (`csusera`) and 07 (`ssuserb`) keep the pilot the map
+starts the player in.
