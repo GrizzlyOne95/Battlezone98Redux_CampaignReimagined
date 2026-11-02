@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-11-01T23:04:26-06:00",
-  "count": 5196,
+  "generated": "2026-11-02T09:31:14-06:00",
+  "count": 5203,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -7904,6 +7904,10 @@
       "runtime": "eu_detail_atlas.csv"
     },
     {
+      "source": "Config\\evolvecr.ini",
+      "runtime": "evolvecr.ini"
+    },
+    {
       "source": "Config\\ga_detail_atlas.csv",
       "runtime": "ga_detail_atlas.csv"
     },
@@ -8066,6 +8070,10 @@
     {
       "source": "crsetup.des",
       "runtime": "crsetup.des"
+    },
+    {
+      "source": "evolvecr.mpdes",
+      "runtime": "evolvecr.mpdes"
     },
     {
       "source": "flags\\flag0010.bmp",
@@ -11532,6 +11540,10 @@
       "runtime": "demo01.hg2"
     },
     {
+      "source": "Missions\\evolvecr.bzn",
+      "runtime": "evolvecr.bzn"
+    },
+    {
       "source": "Missions\\misn01.hg2",
       "runtime": "misn01.hg2"
     },
@@ -12170,6 +12182,18 @@
     {
       "source": "Missions\\misns8cr.vxt",
       "runtime": "misns8cr.vxt"
+    },
+    {
+      "source": "Missions\\sammy__1.lgt",
+      "runtime": "sammy__1.lgt"
+    },
+    {
+      "source": "Missions\\sammy__1.mat",
+      "runtime": "sammy__1.mat"
+    },
+    {
+      "source": "Missions\\sammy__1.trn",
+      "runtime": "sammy__1.trn"
     },
     {
       "source": "Missions\\sxshow.bzn",
@@ -16826,6 +16850,10 @@
     {
       "source": "Scripts\\evolve.lua",
       "runtime": "evolve.lua"
+    },
+    {
+      "source": "Scripts\\evolvecr.lua",
+      "runtime": "evolvecr.lua"
     },
     {
       "source": "Scripts\\LavaEffects.lua",
