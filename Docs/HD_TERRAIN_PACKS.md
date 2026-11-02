@@ -62,8 +62,12 @@ The table is the DDS form. Moon, Mars, Ganymede, Elysium, Venus, Io, Europa, Tit
 ship OpenShim paint bindings instead (`Tools/Merge-TerrainPaintPacks.py`, packs
 from OpenShim `scripts/terrain-packs/build-world-packs.sh`), and their crhd tile
 DDS files are retired. Mars switched on 2026-10-25 (misn04-06, CR and stock
-maps); Ganymede (evolve_3, evolve_4) and Elysium (evolve_1, evolve_2, evolve_5)
-followed on 2026-11-01, built from the stock maps.
+maps); Ganymede (evolve_3, evolve_4, bdmisn01-06, 08, 12-15, chmisn01-04, 08) and Elysium
+(evolve_1, evolve_2, evolve_5, bdmisn07, 09-11, chmisn05-06) followed on
+2026-11-01, built from the stock maps (the Black Dog and Chinese ones come from
+`tro_cam.zfs`). A Ganymede or Elysium map with no entry in the pack is declined by
+the shim and renders its stock atlas unpainted; it does not use the removed crhd
+tiles, so nothing goes missing.
 
 Each material retains exact original D/N/S/E resource guards and CSV rectangles.
 Only the active material's arrays are built. The nine packs do not imply nine

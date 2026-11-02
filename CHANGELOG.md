@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- Ganymede and Elysium terrain now use the OpenShim terrain paint packs like Mars and the other worlds (evolve_1 to
-  evolve_5); their DDS tile packs are removed from the payload.
+- Ganymede and Elysium terrain now use the OpenShim terrain paint packs like Mars and the other worlds (the
+  evolve maps, Black Dog and Chinese campaigns); their DDS tile packs are removed from the payload.
 - Bundle OpenShim 1.0.0.66. The under-attack alert beep sounds again after the first match of a game session:
   OpenShim's alert cooldown is now reset when a mission ends, like the stock timer. The Sound Channels option
   description now names the voice cap.

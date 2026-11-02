@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-11-01T18:18:37-06:00",
-  "count": 4722,
+  "generated": "2026-11-01T18:35:37-06:00",
+  "count": 4764,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -5988,6 +5988,46 @@
       "runtime": "openshim_achilles_auto_misn18_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_elysium_auto_bdmisn07_control.png",
+      "runtime": "openshim_elysium_auto_bdmisn07_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_bdmisn07_control2.png",
+      "runtime": "openshim_elysium_auto_bdmisn07_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_bdmisn09_control.png",
+      "runtime": "openshim_elysium_auto_bdmisn09_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_bdmisn09_control2.png",
+      "runtime": "openshim_elysium_auto_bdmisn09_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_bdmisn11_control.png",
+      "runtime": "openshim_elysium_auto_bdmisn11_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_bdmisn11_control2.png",
+      "runtime": "openshim_elysium_auto_bdmisn11_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_chmisn05_control.png",
+      "runtime": "openshim_elysium_auto_chmisn05_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_chmisn05_control2.png",
+      "runtime": "openshim_elysium_auto_chmisn05_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_chmisn06_control.png",
+      "runtime": "openshim_elysium_auto_chmisn06_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_chmisn06_control2.png",
+      "runtime": "openshim_elysium_auto_chmisn06_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_elysium_auto_evolve_1_stock_control.png",
       "runtime": "openshim_elysium_auto_evolve_1_stock_control.png"
     },
@@ -6122,6 +6162,134 @@
     {
       "source": "Assets\\Textures\\openshim_europa_auto_misn13_stock_control.png",
       "runtime": "openshim_europa_auto_misn13_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn01_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn01_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn01_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn01_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn02_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn02_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn02_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn02_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn03_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn03_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn03_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn03_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn04_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn04_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn04_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn04_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn05_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn05_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn05_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn05_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn06_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn06_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn06_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn06_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn08_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn08_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn08_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn08_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn12_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn12_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn12_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn12_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn13_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn13_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn13_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn13_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn14_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn14_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn14_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn14_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn15_control.png",
+      "runtime": "openshim_ganymede_auto_bdmisn15_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn15_control2.png",
+      "runtime": "openshim_ganymede_auto_bdmisn15_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn01_control.png",
+      "runtime": "openshim_ganymede_auto_chmisn01_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn01_control2.png",
+      "runtime": "openshim_ganymede_auto_chmisn01_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn02_control.png",
+      "runtime": "openshim_ganymede_auto_chmisn02_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn02_control2.png",
+      "runtime": "openshim_ganymede_auto_chmisn02_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn03_control.png",
+      "runtime": "openshim_ganymede_auto_chmisn03_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn03_control2.png",
+      "runtime": "openshim_ganymede_auto_chmisn03_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn04_control.png",
+      "runtime": "openshim_ganymede_auto_chmisn04_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn04_control2.png",
+      "runtime": "openshim_ganymede_auto_chmisn04_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn08_control.png",
+      "runtime": "openshim_ganymede_auto_chmisn08_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_ganymede_auto_chmisn08_control2.png",
+      "runtime": "openshim_ganymede_auto_chmisn08_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_ganymede_auto_evolve_3_stock_control.png",
