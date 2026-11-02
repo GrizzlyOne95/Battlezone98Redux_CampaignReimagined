@@ -63,6 +63,25 @@ Each run retains its full report/captures and the suite writes `suite.json`.
 `-StopOnFailure` stops on a failed verdict; surviving clients always stop the
 queue. Never force-kill the game or start over an existing game.
 
+### Campaign co-op smoke batch (CCA / Black Dog / Chinese)
+
+The 31 co-op wrappers (`misns1cr`-`misns8cr`, `bdmisn01cr`-`bdmisn15cr`,
+`chmisn01cr`-`chmisn08cr`) have no progression scenarios yet. `-SmokeFallback`
+runs the harness's generic `coop-smoke` for them (load, authority, roster,
+45 s of synced play). It also writes any missing `listings/<map>/<map>.ini` from
+the staged ini with the `"! "` title prefix. Stage the content with
+`.\Manage-CampaignFiles.ps1 -workshop-build` (a local dry run with no upload,
+into `Local\Workshop\content`). Each row records `dumps` (crash dumps written
+during the run). A PASS that left any dump is reported as `PASS-WITH-DUMPS`.
+
+```powershell
+$m = @(1..8 | % { "misns${_}cr" }) + @(1..15 | % { 'bdmisn{0:d2}cr' -f $_ }) + @(1..8 | % { 'chmisn{0:d2}cr' -f $_ })
+.\Tools\Run-CoopFourQualification.ps1 -SmokeFallback -Missions $m `
+  -HarnessRepo <selected-OpenShim-checkout> `
+  -CampaignContent <CR-checkout>\Local\Workshop\content `
+  -BZRCoopRoot <prepared-private-runtime-root>
+```
+
 Mission 13 and 14 also accept `Mode=recycler-loss` through the harness's
 `-ScenarioArgs` parameter. These must produce the mission-specific shared
 failure result instead of a victory.
