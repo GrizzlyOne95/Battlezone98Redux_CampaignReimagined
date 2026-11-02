@@ -345,6 +345,7 @@ jobs:
           "$LUA" Tools/Test-WeatherSensors.lua
           "$LUA" Tools/Test-CRWeatherParameters.lua
           "$LUA" Tools/Test-CRVenusDenseAtmosphere.lua Scripts
+          "$LUA" Tools/Test-CRElysiumWeather.lua Scripts
           "$LUA" Tools/Test-CRMarsWeather.lua
           "$LUA" Tools/Test-CRWetGlassWeather.lua Scripts
           "$LUA" Tools/Test-CRMarsHaboob.lua
@@ -566,3 +567,90 @@ jobs:
           lua5.1 Tools/Test-Misns5Presentation.lua
           python Tools/Test-Misns5CoopSourceParity.py
           python Tools/Test-Misns5CoopContract.py
+      - name: Test bdmisn01 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn01Coop.lua
+          lua5.1 Tools/Test-Bdmisn01Presentation.lua
+          python Tools/Test-Bdmisn01CoopSourceParity.py
+          python Tools/Test-Bdmisn01CoopContract.py
+      - name: Test bdmisn02 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn02Coop.lua
+          lua5.1 Tools/Test-Bdmisn02Presentation.lua
+          python Tools/Test-Bdmisn02CoopSourceParity.py
+          python Tools/Test-Bdmisn02CoopContract.py
+      - name: Test bdmisn03 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn03Coop.lua
+          lua5.1 Tools/Test-Bdmisn03Presentation.lua
+          python Tools/Test-Bdmisn03CoopSourceParity.py
+          python Tools/Test-Bdmisn03CoopContract.py
+      - name: Test bdmisn05 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn05Coop.lua
+          lua5.1 Tools/Test-Bdmisn05Presentation.lua
+          python Tools/Test-Bdmisn05CoopSourceParity.py
+          python Tools/Test-Bdmisn05CoopContract.py
+      - name: Test bdmisn04 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn04Coop.lua
+          lua5.1 Tools/Test-Bdmisn04Presentation.lua
+          python Tools/Test-Bdmisn04CoopSourceParity.py
+          python Tools/Test-Bdmisn04CoopContract.py
+      - name: Test bdmisn07 co-op layer, and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn07Coop.lua
+          python Tools/Test-Bdmisn07CoopSourceParity.py
+          python Tools/Test-Bdmisn07CoopContract.py
+      - name: Test bdmisn08 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn08Coop.lua
+          lua5.1 Tools/Test-Bdmisn08Presentation.lua
+          python Tools/Test-Bdmisn08CoopSourceParity.py
+          python Tools/Test-Bdmisn08CoopContract.py
+      - name: Test bdmisn06 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn06Coop.lua
+          lua5.1 Tools/Test-Bdmisn06Presentation.lua
+          python Tools/Test-Bdmisn06CoopSourceParity.py
+          python Tools/Test-Bdmisn06CoopContract.py
+      - name: Test bdmisn10 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn10Coop.lua
+          lua5.1 Tools/Test-Bdmisn10Presentation.lua
+          python Tools/Test-Bdmisn10CoopSourceParity.py
+          python Tools/Test-Bdmisn10CoopContract.py
+      - name: Test bdmisn09 co-op layer, and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn09Coop.lua
+          python Tools/Test-Bdmisn09CoopSourceParity.py
+          python Tools/Test-Bdmisn09CoopContract.py
+      - name: Test bdmisn12 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn12Coop.lua
+          lua5.1 Tools/Test-Bdmisn12Presentation.lua
+          python Tools/Test-Bdmisn12CoopSourceParity.py
+          python Tools/Test-Bdmisn12CoopContract.py
+      - name: Test bdmisn11 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn11Coop.lua
+          lua5.1 Tools/Test-Bdmisn11Presentation.lua
+          python Tools/Test-Bdmisn11CoopSourceParity.py
+          python Tools/Test-Bdmisn11CoopContract.py
+      - name: Test bdmisn13 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn13Coop.lua
+          lua5.1 Tools/Test-Bdmisn13Presentation.lua
+          python Tools/Test-Bdmisn13CoopSourceParity.py
+          python Tools/Test-Bdmisn13CoopContract.py
+      - name: Test bdmisn14 co-op layer, and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn14Coop.lua
+          python Tools/Test-Bdmisn14CoopSourceParity.py
+          python Tools/Test-Bdmisn14CoopContract.py
+      - name: Test bdmisn15 co-op layer, presentation and map contract
+        run: |
+          lua5.1 Tools/Test-Bdmisn15Coop.lua
+          lua5.1 Tools/Test-Bdmisn15Presentation.lua
+          python Tools/Test-Bdmisn15CoopSourceParity.py
+          python Tools/Test-Bdmisn15CoopContract.py

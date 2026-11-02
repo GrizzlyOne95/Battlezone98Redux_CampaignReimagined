@@ -90,6 +90,22 @@
 !/misns7cr.mpdes
 !/misns8cr.mpdes
 !/crcca.des
+!/bdmisn01cr.mpdes
+!/bdmisn02cr.mpdes
+!/bdmisn03cr.mpdes
+!/bdmisn04cr.mpdes
+!/bdmisn05cr.mpdes
+!/bdmisn06cr.mpdes
+!/bdmisn07cr.mpdes
+!/bdmisn08cr.mpdes
+!/bdmisn09cr.mpdes
+!/bdmisn10cr.mpdes
+!/bdmisn11cr.mpdes
+!/bdmisn12cr.mpdes
+!/bdmisn13cr.mpdes
+!/bdmisn14cr.mpdes
+!/bdmisn15cr.mpdes
+!/crbd.des
 
 # Local machine/generated artifacts live under Local and stay ignored
 /Local/

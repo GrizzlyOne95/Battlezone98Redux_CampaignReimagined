@@ -64,9 +64,19 @@ TARGETS = {
     "misn18cr": ["scrapcam", "scrapcam2", "hbtran0038_i76building", "hbtrn20049_i76building",
                "hbtrn20050_i76building", "hbtrn20051_i76building", "hbtrn20052_i76building",
                "basenav", "avrecy2_recycler"],
+    # bdmisn04: the portal every peer opens and closes by label (BD4Portal) and the scav to commandeer
+    # (the HUD target every human gets by label, BD4Target).
+    "bdmisn04cr": ["portal", "scav_3"],
+    # bdmisn05/06/08/09/12: the portal every peer animates through a presentation op.
+    "bdmisn05cr": ["portal"],
+    "bdmisn06cr": ["portal"],
+    "bdmisn08cr": ["portal"],
+    "bdmisn09cr": ["portal"],
+    "bdmisn12cr": ["portal"],
 }
-# Labels that are also an authored PATH name in the BZN legitimately occur twice.
-PATH_NAMES = {"launch_pad"}
+# Labels that are also an authored PATH name in the BZN legitimately occur twice (a (mission, label)
+# pair allows it on one map only).
+PATH_NAMES = {"launch_pad", ("bdmisn05cr", "portal")}
 # A label that is also its own ODF class name appears once as PrjID and once as the label;
 # exactly one of the two may be a `label =` line.
 ODF_NAMED = {"svmuf"}
@@ -81,7 +91,7 @@ for mission, labels in TARGETS.items():
             failures.append(f"{mission}: script no longer references {label}")
         pattern = rb"(?<![A-Za-z0-9_\-])" + re.escape(label.encode()) + rb"(?![A-Za-z0-9_\-])"
         n = len(re.findall(pattern, data))
-        allowed = 2 if label in PATH_NAMES or label in ODF_NAMED else 1
+        allowed = 2 if label in PATH_NAMES or (mission, label) in PATH_NAMES or label in ODF_NAMED else 1
         if label in ODF_NAMED and len(re.findall(rb"(?m)^label = " + re.escape(label.encode()) + rb"\s*$", data)) != 1:
             failures.append(f"{mission}: BZN label {label} is not declared exactly once")
         if n < 1 or n > allowed:
