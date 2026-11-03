@@ -415,6 +415,11 @@ function F.makePeer(id, team, network, options)
         if m == nil then error("module '" .. name .. "' not found") end
         return m
     end
+    -- options.difficulty = 0..4: the real Scripts/DiffUtils.lua, reading it as exu.GetDifficulty; absent by default.
+    if options.difficulty then
+        modules.exu.GetDifficulty = function() return options.difficulty end
+        modules.DiffUtils = setfenv(assert(loadfile("Scripts/DiffUtils.lua")), e)()
+    end
     modules.CRCCARuntime = setfenv(assert(loadfile("Scripts/CRCCARuntime.lua")),e)()
     if options.faithful then e.CR_TEST_FAITHFUL = true end
     setfenv(assert(loadfile(options.script or "Scripts/bdmisn01cr.lua")), e)()

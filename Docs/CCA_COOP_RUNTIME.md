@@ -64,6 +64,14 @@ replicates). Also: `BeginEvent()`, `WrapDistance(original)`, `GetPlayerHandle()`
 `Present(op, ...)`, `Start/Update/AfterUpdate/Save/Load/AddObject/CreatePlayer/AddPlayer/DeletePlayer/Receive`,
 and `Coop/Exu/Native/Weather`.
 
+Single-player difficulty (co-op locks it, so a network game ignores it): when `DiffUtils` loads, each scaled spawn
+on the enemy team gets `enemy - 1` extras on average (Hard 0.5, randomly rounded; Very Hard 1), queued and capped like
+co-op extras; like those, they receive only the orders queued while the ticket is pending. `SetScrap` gives the leader
+`DiffUtils.ScaleRes(amount)` clamped to capacity (a fill to capacity stays a fill) and the enemy
+`max(amount, DiffUtils.ScaleEnemy(amount))`, so a body's "at least N" top-up still holds on easier settings. Easier
+settings never remove units (the body tracks their handles) and timers are not scaled. `Tools/Test-CRCCARuntimeDifficulty.lua`
+covers it; fixtures that do not provide `DiffUtils` run unscaled.
+
 State: everything the runtime saves lives in `M.crcca` (tickets, live list, weather seed/state). `M.coopResult`,
 `M.coopFailed`, `M.coopPendingResult`, `M.coopUnresolved` are also written to the mission state.
 
