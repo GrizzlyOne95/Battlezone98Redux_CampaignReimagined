@@ -19,7 +19,6 @@ local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
 local Environment = require("Environment")
 local CRMarsWeather = require("CRMarsWeather")
-local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
@@ -3181,9 +3180,6 @@ function Update()
     })
     TraceUpdateCall("misn04.Update PlayerPilotMode.Update", PlayerPilotMode.Update)
     TraceUpdateCall("misn04.Update aiCore.Update", aiCore.Update)
-    if not CRCoop.IsNetworkGame() and autosave and autosave.Update then
-        TraceUpdateCall("misn04.Update autosave.Update", autosave.Update, 1.0 / M.TPS)
-    end
     TraceUpdateCall("misn04.Update UpdateWeatherBeats", UpdateWeatherBeats)
 
     if (not M.missionstart) then

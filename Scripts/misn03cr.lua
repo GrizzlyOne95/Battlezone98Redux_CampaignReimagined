@@ -19,7 +19,6 @@ local aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
-local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
@@ -1437,9 +1436,6 @@ function Update()
     if isAuthority then
         TraceUpdateCall("misn03.Update PlayerPilotMode.Update", PlayerPilotMode.Update)
         TraceUpdateCall("misn03.Update aiCore.Update", aiCore.Update)
-    end
-    if not CRCoop.IsNetworkGame() and autosave and autosave.Update then
-        TraceUpdateCall("misn03.Update autosave.Update", autosave.Update, 1.0 / (M.TPS or 20))
     end
 
 
