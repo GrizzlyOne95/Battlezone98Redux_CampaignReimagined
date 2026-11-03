@@ -67,6 +67,8 @@ function BuildObject(odf, team, position)
     if options.failedBuild == odf then return nil end
     local h = object(team); AddObject(h); return h
 end
+function GetPosition(h) valid(h); return {of = h} end
+function GetPositionNear(pos, low, high) return {near = pos.of, low = low, high = high} end
 function Goto(h, path, priority) valid(h); record('Goto', h, path, priority) end
 function Stop(h, priority) valid(h); record('Stop', h, priority) end
 function Retreat(h, target, priority)
@@ -179,7 +181,10 @@ m = reload(); tick(m.apcPilotTime1)
 check(not m.pilotSpawned1, 'strict pilot departure boundary')
 tick(m.apcPilotTime1 + 0.1)
 check(m.pilotSpawned1 and objects[m.apc].pilot == nil and objects[m.apc].perceived == 0, 'empty APC and first pilot')
-check(last('BuildObject')[4] == m.apc and last('Retreat')[3] == m.portal and last('Retreat')[4] == 1, 'pilot spawns at APC and retreats to portal')
+local built = last('BuildObject')[4]
+check(built.near == m.apc and built.low == 8 and built.high == 12, 'pilot spawns beside the APC, not inside it')
+check(count('Retreat') == 0 or last('Retreat')[2] ~= m.pilot, 'pilot retreat waits for the pilot to settle')
+tick(now + 2.1); check(last('Retreat')[2] == m.pilot and last('Retreat')[3] == m.portal and last('Retreat')[4] == 1, 'pilot retreats to portal after two seconds')
 check(last('SetObjectiveOn')[2] == m.apc and count('AddObjective') == 3, 'APC marker and two objectives')
 local firstPilot = m.pilot; contact(firstPilot, m.portal); tick(now + 0.1)
 check(not m.pilotSpawned1 and not IsValid(firstPilot) and m.apcPilotTime2 == now + 540, 'nine-minute reprogramming timer starts at portal contact')

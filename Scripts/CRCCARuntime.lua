@@ -742,15 +742,23 @@ function R.PathExists(name)
     local ok, count = pcall(GetPathPointCount, name)
     return ok and type(count) == "number" and count > 0
 end
-function R.Spawn(odf, team, where)
+-- lift is an optional drop height (a paratrooper wave): the unit is built that far above a scatter round the
+-- path's first point, on whichever entry the arrival uses.
+local function Aloft(where, lift)
+    if not lift or type(where) ~= "string" then return where end
+    local p = GetPosition(where)
+    local a, r = math.random() * 2 * math.pi, 10 + math.random() * 40
+    return SetVector(p.x + r * math.cos(a), p.y + lift, p.z + r * math.sin(a))
+end
+function R.Spawn(odf, team, where, lift)
     local s = State()
     if not CRCoop.IsAuthority() then return nil end
     if team == MAP_ENEMY_TEAM then team = ENEMY_TEAM end
-    if not SCALED[odf] then return BuildObject(odf, team, where) end
+    if not SCALED[odf] then return BuildObject(odf, team, Aloft(where, lift)) end
     if Ended() then return nil end
     s.serial = s.serial + 1
     local id = s.serial
-    s.arrivals[id] = { odf = ChooseOdf(odf), team = team, where = where, orders = {} }
+    s.arrivals[id] = { odf = ChooseOdf(odf), team = team, where = where, lift = lift, orders = {} }
     local event = s.event
     if event and not event.made then
         event.made = true
@@ -758,7 +766,7 @@ function R.Spawn(odf, team, where)
         primary.extras = {}
         for _ = 1, event.extras do
             s.serial = s.serial + 1
-            s.arrivals[s.serial] = { odf = ChooseOdf(odf), team = team, where = where, orders = {}, extra = true,
+            s.arrivals[s.serial] = { odf = ChooseOdf(odf), team = team, where = where, lift = lift, orders = {}, extra = true,
                 primary = id }
             primary.extras[#primary.extras + 1] = s.serial
         end
@@ -792,7 +800,7 @@ local function Arrivals()
                 if drop then
                     s.arrivals[id] = nil
                 elseif where then
-                    local h = BuildObject(r.odf, r.team, where)
+                    local h = BuildObject(r.odf, r.team, Aloft(where, r.lift))
                     if Valid(h) then
                         ReplaceTickets(M, -id, h)
                         -- Queued orders of later arrivals may target this ticket.

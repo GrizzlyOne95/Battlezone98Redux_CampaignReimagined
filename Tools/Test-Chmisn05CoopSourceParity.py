@@ -52,7 +52,7 @@ for name in ("SetAIP", "Retreat", "SetIndependence", "StopAudioMessage", "GetNea
     assert not re.search(r"(?m)^local [\w, ]*\b%s\b[\w, ]* =" % name, cr_text), "wrapped but never called: " + name
 
 # The enemy's literal team 2 only reaches the engine through the BuildObject / SetPerceivedTeam shadows.
-builds = re.findall(r'BuildObject\("(\w+)", (\d), ("\w+"|SetVector\([^)]*\)|\w+)\)', body)
+builds = re.findall(r'BuildObject\("(\w+)", (\d), ("\w+"|SetVector\([^\n]*\)|\w+)\)', body)
 assert len(builds) == len(re.findall(r"BuildObject\(", body)), "every build names an odf, a literal team and a place"
 teams = {}
 for odf, team, where in builds:

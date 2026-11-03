@@ -124,7 +124,7 @@ local function NewState()
         explodePortal = false, lost = false, won = false,
         recyclerGoTime = NEVER, drive1Time = NEVER,
         attackTimes = {[0] = NEVER, NEVER, NEVER, NEVER, NEVER, NEVER},
-        goToPortalTime = NEVER, cameraDestructTime = NEVER,
+        goToPortalTime = NEVER, cameraDestructTime = NEVER, waveFallbackTime = NEVER,
         explodeTime = NEVER, explodeDelay = NEVER,
         explode1Time = NEVER, explode2Time = NEVER,
         explode3Time = NEVER, explode4Time = NEVER,
@@ -157,9 +157,10 @@ local function AtPathEnd(h, path)
 end
 local function SpawnAerial()
     for i = 0, 7 do
-        -- SOURCE QUIRK PRESERVED: both aerial waves use "aerial_1", point
-        -- 400. Stock/native path overloads use a point index; do not invent an
-        -- altitude or a second path. Validate this unusual index in the map.
+        -- STOCK BUG FIX (TRO LUA-Patch 2939339901, original TRO): the C++ 400 is an
+        -- altitude, which stock Lua reads as a point index, so the paratroopers landed
+        -- on the ground. The co-op BuildObject (runtime region) passes it on as the drop height;
+        -- the single-player script has no such wrapper and keeps the stock ground spawn.
         local h = BuildObject("cssold", 2, "aerial_1", 400)
         if Valid(h) and Valid(M.recycler) then Attack(h, M.recycler) end
     end
@@ -265,7 +266,10 @@ function Update(dt)
                 FailMission(GetTime() + 1.0, "bd11lsec.des")
             end
 
-            if Valid(M.pilot) and Valid(M.recycler) and not M.lost and GetDistance(M.pilot, M.recycler) < 15.0 then
+            -- STOCK BUG FIX (TRO LUA-Patch 2447482585): 15 m sits inside the Recycler's hull, so the pilot
+            -- often stopped short and never transferred. 25, not the patch's 50: the APC stops anywhere
+            -- inside 50 m, so 50 would transfer the pilot the frame it is built.
+            if Valid(M.pilot) and Valid(M.recycler) and not M.lost and GetDistance(M.pilot, M.recycler) < 25.0 then
                 M.pilotTransferring = false
                 M.objective1Complete = true
                 RemoveObject(M.pilot)
@@ -276,6 +280,9 @@ function Update(dt)
                 SetPilotClass(M.recycler, "bspilo")
 
                 M.recyclerGoTime = GetTime() + 2.0
+                -- STOCK BUG FIX: the waves (and so the portal and the win) arm only when the Recycler
+                -- reaches wave_trigger; a Recycler parked or deployed elsewhere stalled the mission.
+                M.waveFallbackTime = GetTime() + 6 * 60.0
                 -- play sound
                 AudioMessage("bd11002.wav")
             end
@@ -300,7 +307,8 @@ function Update(dt)
             --Goto(recycler, GetHandle("geyser_1"));
         end
 
-        if not M.attacksSent and Valid(M.recycler) and GetDistance(M.recycler, "wave_trigger") < 50.0 then
+        if not M.attacksSent and Valid(M.recycler)
+            and (GetDistance(M.recycler, "wave_trigger") < 50.0 or (M.waveFallbackTime or NEVER) < GetTime()) then
             -- start attacks
             M.attacksSent = true
             M.attackTimes[0] = GetTime() + 2 * 60.0

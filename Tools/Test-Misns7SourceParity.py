@@ -16,6 +16,12 @@ for name, expected in {
     assert actual == expected, (name, actual)
 
 source = (ARCHIVE / "Misns7Mission.cpp").read_text()
+# TRO LUA-Patch 2327051278: these perceived-team re-asserts kept the powered gun
+# towers dormant, so the port drops them (Setup and the final one stay).
+TRO_DROPPED = {n for start in (557, 574, 593, 605, 612, 992) for n in range(start, start + 3)}
+cpp_lines = source.splitlines()
+assert all(cpp_lines[n - 1].strip().startswith("SetPerceivedTeam(") for n in TRO_DROPPED)
+source = chr(10).join("" if i + 1 in TRO_DROPPED else line for i, line in enumerate(cpp_lines))
 lua = (ROOT / "Scripts/misns7.lua").read_text()
 gameplay = source.split("void Misns7Mission::Setup(void)", 1)[1].split("IMPLEMENT_RTIME", 1)[0]
 normalize = lambda s: " ".join(s.split())

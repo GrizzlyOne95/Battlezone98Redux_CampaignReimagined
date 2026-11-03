@@ -499,9 +499,7 @@ function Update(dt)
     -- now that the nsdf has built an muf it will start building fighters
     if (M.avmuf_built) and (M.avfigh1_time < GetTime()) and (not M.fight1_built) then
         M.avfight1 = BuildObject("bvraz",2,"muf_point")
-        SetPerceivedTeam(M.guntower1,2)
-        SetPerceivedTeam(M.guntower2,2)
-        SetPerceivedTeam(M.svrecycle,2)
+        -- No perceived-team re-assert here (TRO LUA-Patch 2327051278): it kept the powered gun towers dormant.
         M.avfigh2_time = GetTime()+ 30.0
         M.fight1_built = true
     end
@@ -512,9 +510,7 @@ function Update(dt)
             Attack(M.avfight2,M.apc)
         end
         SetAIP("misns7.aip")
-        SetPerceivedTeam(M.guntower1,2)
-        SetPerceivedTeam(M.guntower2,2)
-        SetPerceivedTeam(M.svrecycle,2)
+        -- No perceived-team re-assert here (TRO LUA-Patch 2327051278): it kept the powered gun towers dormant.
         AddScrap(2,40)
         M.fight2_built = true
     end
@@ -526,9 +522,7 @@ function Update(dt)
     if (M.avmuf_built) and (not IsAlive(M.avmuf)) and (not M.plan_b) then
         AddScrap(2,20)
         SetAIP("misns7c.aip")
-        SetPerceivedTeam(M.guntower1,2)
-        SetPerceivedTeam(M.guntower2,2)
-        SetPerceivedTeam(M.svrecycle,2)
+        -- No perceived-team re-assert here (TRO LUA-Patch 2327051278): it kept the powered gun towers dormant.
         M.plan_c = false
         M.plan_b = true
     end
@@ -537,14 +531,10 @@ function Update(dt)
             -- if the player has already gotten his muf
             SetAIP("misns7a.aip")
             -- this has scavs
-            SetPerceivedTeam(M.guntower1,2)
-            SetPerceivedTeam(M.guntower2,2)
-            SetPerceivedTeam(M.svrecycle,2)
+            -- No perceived-team re-assert here (TRO LUA-Patch 2327051278): it kept the powered gun towers dormant.
         else
             SetAIP("misns7.aip")
-            SetPerceivedTeam(M.guntower1,2)
-            SetPerceivedTeam(M.guntower2,2)
-            SetPerceivedTeam(M.svrecycle,2)
+            -- No perceived-team re-assert here (TRO LUA-Patch 2327051278): it kept the powered gun towers dormant.
         end
         --		AddScrap(2, 20);
         Goto(M.avmuf,M.geyser1)
@@ -841,9 +831,7 @@ function Update(dt)
         AudioMessage("misns727.wav")
         AddScrap(1,20)
         SetAIP("misns7a.aip")
-        SetPerceivedTeam(M.guntower1,2)
-        SetPerceivedTeam(M.guntower2,2)
-        SetPerceivedTeam(M.svrecycle,2)
+        -- No perceived-team re-assert here (TRO LUA-Patch 2327051278): it kept the powered gun towers dormant.
         M.camera_off_recycle = true
     end
     -- this is when the player retakes his muf
