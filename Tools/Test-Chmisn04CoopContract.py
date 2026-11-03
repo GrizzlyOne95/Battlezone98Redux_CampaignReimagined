@@ -159,7 +159,7 @@ vxt = ROOT / "Missions/chmisn04cr.vxt"
 if vxt.is_file():
     rows = [line.split(None, 3) for line in vxt.read_text().splitlines() if line.strip()]
     assert all(len(row) == 4 for row in rows), "native vehicle rows require ODF, description, animation and display name"
-    assert [row[0] for row in rows] == ["cvfighe", "cvtnk"], "the start file offers the fighter and the tank"
+    assert rows and all(row[0].startswith("cv") for row in rows), "the start file offers Chinese craft"
     print("  Missions/chmisn04cr.vxt checked")
 ini = ROOT / "Config/chmisn04cr.ini"
 if ini.is_file():

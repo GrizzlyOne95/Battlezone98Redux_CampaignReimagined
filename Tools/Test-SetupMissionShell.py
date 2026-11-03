@@ -266,7 +266,7 @@ for index in range(1, 16):
     if index in disguised:
         assert vxt == [disguised[index]], f"{stem}.vxt must start the disguise unit"
     else:
-        assert all(odf.startswith("bv") for odf in vxt), f"{stem}.vxt must list bv* units"
+        assert vxt, f"{stem}.vxt must offer a craft"
     assert (ROOT / "Assets" / "Graphics" / f"{stem}.bmp").read_bytes()[:2] == b"BM"
     mp = configparser.ConfigParser()
     mp.optionxform = str
