@@ -1,2 +1,3 @@
-cvscav ,
-cvtnk ,
+cvscav	Scavenger	x	Scavenger
+cvtank	cvtnk.des	x	Yeti
+cvfigh	cvfigh.des	x	Mongoose

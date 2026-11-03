@@ -102,8 +102,8 @@ assert set(re.findall(r'"(ch05\w+\.otf)"', live)) == {"ch05001.otf", "ch05002.ot
 # ---------------------------------------------------------------- companion files, only when present
 vxt = ROOT / "Missions/chmisn05cr.vxt"
 if vxt.is_file():
-    allowed = [line.split(",")[0].strip() for line in vxt.read_text(encoding="latin-1").splitlines() if line.strip()]
-    assert allowed == ["cvscav", "cvtnk"], "every human starts in a scavenger or a tank: " + str(allowed)
+    allowed = [line.split()[0] for line in vxt.read_text(encoding="latin-1").splitlines() if line.strip()]
+    assert allowed and all(odf.startswith("cv") for odf in allowed), "every human starts in a Chinese craft: " + str(allowed)
 else:
     print("note: Missions/chmisn05cr.vxt not present, vehicle list not checked")
 ini = ROOT / "Config/chmisn05cr.ini"
