@@ -57,7 +57,8 @@ end
 -- The APC reaches the Recycler, the pilot walks in, the Recycler drives to the geyser and the waves are armed.
 local function crew(w)
     finishIntro(w)
-    F.nearTo("apc", "recycler", 20, 0)
+    -- 40 m: the APC stops anywhere inside 50 m and the pilot transfers inside 25 m, so he has a walk.
+    F.nearTo("apc", "recycler", 40, 0)
     F.run(1)
     F.nearTo(assert(pilotOf(w), "the transfer pilot is built"), "recycler", 5, 0)
     F.run(3)
@@ -160,7 +161,7 @@ end
 do
     local w, p, m = setup(2, {})
     finishIntro(w)
-    F.nearTo("apc", "recycler", 20, 0)
+    F.nearTo("apc", "recycler", 40, 0)
     F.nearTo("enemy_1", "apc", 100, 0) -- an enemy inside 200 m holds the transfer
     F.run(2)
     check(not m.pilotTransferring and pilotOf(w) == nil, "no transfer with an enemy within 200 m")
@@ -191,7 +192,7 @@ do -- losses: one shared failure per cause, with the right debrief
     end
     lose(function() F.kill("apc") end, "bd11lsea.des")
     lose(function(w, p, m) F.kill("recycler") end, "bd11lsed.des")
-    lose(function(w) F.nearTo("apc", "recycler", 20, 0); F.run(2); F.kill(pilotOf(w)) end, "bd11lsec.des")
+    lose(function(w) F.nearTo("apc", "recycler", 40, 0); F.run(2); F.kill(pilotOf(w)) end, "bd11lsec.des")
 end
 
 -- ------------------------------------------------------------------ the waves: scaling, cloak, orders, no pop-in

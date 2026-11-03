@@ -25,9 +25,12 @@ end
 
 -- The C++ fourth BuildObject argument is an altitude offset. Stock Lua's fourth
 -- path argument is a POINT INDEX, so use a vector to preserve the 400 m offset.
+-- Each soldier lands 10-50 m from the point (TRO LUA-Patch 2454623614): eight built
+-- on one spot collide.
 local function buildAerialSoldier()
     local pos = GetPosition("aerial_1")
-    return BuildObject("sssold", 2, SetVector(pos.x, pos.y + 400, pos.z))
+    local a, r = math.random() * 2 * math.pi, 10 + math.random() * 40
+    return BuildObject("sssold", 2, SetVector(pos.x + r * math.cos(a), pos.y + 400, pos.z + r * math.sin(a)))
 end
 
 local function getBase()
@@ -311,7 +314,9 @@ BuildObject("cvtank", 1, user);
     end
 
     -- too close to the tug stuff?
-    if S.tugSpawned  and  GetDistance(S.user, S.tug) < 175.0  and  not S.lost  and  not S.won then
+    -- STOCK BUG FIX (TRO LUA-Patch 2454623614): only while disguised. After the reveal
+    -- the tug stays until it is removed, and coming home near it lost the mission.
+    if S.tugSpawned  and  S.stayTeam2  and  GetDistance(S.user, S.tug) < 175.0  and  not S.lost  and  not S.won then
         S.lost = true
         FailMission(GetTime() + 1.0, "ch05lseb.des")
     end
@@ -387,10 +392,21 @@ BuildObject("cvtank", 1, user);
     if S.annoy2Time < GetTime() then
         S.annoy2Time = GetTime() + 4 * 60.0
 
+        -- Orders wait 2 s, as in TRO LUA-Patch 2454623614 (each soldier also picks
+        -- its own target then).
+        S.para = S.para or {}
         for i = 0, 7 do
-            local h = buildAerialSoldier()
-            Attack(h, getBase())
+            S.para[#S.para + 1] = buildAerialSoldier()
         end
+        S.paraTime = GetTime() + 2.0
+    end
+
+    if S.paraTime and S.paraTime < GetTime() then
+        S.paraTime = nil
+        for _, h in ipairs(S.para) do
+            if h and IsAlive(h) then Attack(h, getBase()) end
+        end
+        S.para = nil
     end
 
     if S.team1Time < GetTime() then

@@ -87,12 +87,17 @@ local function reprogram(w, m)
 end
 
 -- ------------------------------------------------------------------ offline == faithful
+-- The stock script builds the engineers' pilot inside the APC (its handle); the co-op script builds him at a
+-- point beside it (TRO LUA-Patch 2492227931). Both read as "at the APC"; path names are compared as they are.
+-- His walk to the portal is ordered 2 s later, so a pilot already touching it is gone first: that Retreat is
+-- left out here and checked on its own below.
 local function signature(peer)
     local entries, audio = {}, {}
     for _, c in ipairs(peer.calls) do
         local n = c[1]
         if n == "BuildObject" then
-            entries[#entries + 1] = "B:" .. c[3] .. ":" .. (c[4] == 5 and 2 or c[4]) .. ":" .. tostring(c[5])
+            local at = type(c[5]) == "table" and "apc" or (peer.env.GetOdf(c[5]) == "cvapc" and "apc" or tostring(c[5]))
+            entries[#entries + 1] = "B:" .. c[3] .. ":" .. (c[4] == 5 and 2 or c[4]) .. ":" .. at
         elseif n == "BuildObjectAtPortal" then
             entries[#entries + 1] = "P:" .. c[3] .. ":" .. (c[4] == 5 and 2 or c[4])
         elseif n == "SetPerceivedTeam" then
@@ -103,6 +108,8 @@ local function signature(peer)
             entries[#entries + 1] = n .. ":" .. tostring(c[3])
         elseif n == "AddObjective" then
             entries[#entries + 1] = "O:" .. c[2] .. ":" .. c[3]
+        elseif n == "Retreat" and peer.env.GetOdf(c[3]) == "cbport" then
+            -- the engineers' walk to the portal (see above)
         elseif n == "Goto" or n == "Attack" or n == "Retreat" or n == "Stop" or n == "GetIn" or n == "RemovePilot"
             or n == "PortalIn" or n == "PortalOut" or n == "ActivatePortal" or n == "DeactivatePortal" then
             entries[#entries + 1] = n
@@ -157,6 +164,21 @@ for name, scenario in pairs(scenarios) do
     check(fs == os, "offline plays the faithful mission (" .. name .. "): " .. fs .. " / " .. os)
     check(fa == oa, "offline plays the faithful audio (" .. name .. "): " .. fa .. " / " .. oa)
     check(fs:find("Mission", 1, true) ~= nil, "the scenario reaches a result (" .. name .. ")")
+end
+do
+    -- The engineers' pilot is built beside the APC, not in it, and told to walk to the portal 2 s later.
+    local peer, w = outcome({}, function(w, p, m)
+        throughPortal(w, m)
+        w.objects.portal.pos = { x = 9000, y = 40, z = 9000 }
+        runTo(w, m.apcPilotTime1); run(4)
+    end)
+    local built, walk
+    for _, c in ipairs(peer.calls) do
+        if c[1] == "BuildObject" and c[3] == "cspilo" and not built then built = c end
+        if c[1] == "Retreat" and c[2] == (built and built[2]) and peer.env.GetOdf(c[3]) == "cbport" then walk = c end
+    end
+    check(built and type(built[5]) == "table", "the engineers' pilot is built at a point, not inside the APC")
+    check(walk and walk.t >= built.t + 2.0, "he is told to walk to the portal 2 s after he is built")
 end
 do
     local win = outcome({}, scenarios.win)

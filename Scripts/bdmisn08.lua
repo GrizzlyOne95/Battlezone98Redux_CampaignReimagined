@@ -25,7 +25,7 @@ local function NewState()
         scheduleLose1 = false, scheduleLose2 = false, scheduleLose3 = false,
         lost = false, won = false,
         secondCameraTime = NEVER, activateTime = NEVER, attackWaveTime = NEVER,
-        apcTime = NEVER, apcPilotTime1 = NEVER, apcPilotTime2 = NEVER,
+        apcTime = NEVER, apcPilotTime1 = NEVER, apcPilotTime2 = NEVER, pilotRetreatTime = NEVER,
         apcGoBackTime = NEVER, sound3Time = NEVER, waveCount = 0,
         -- Nil handles/audio IDs represent native NULL, including unused waveHandle.
         pilotBoarding = false, -- only additional state: asynchronous stock GetIn
@@ -193,16 +193,24 @@ function Update(dt)
             -- It also detaches the now-idle AI, so the later handoff uses GetIn
             -- to restore both the pilot and AI. No HopOut/ejection or extra pilot.
             RemovePilot(M.apc)
-            M.pilot = BuildObject("cspilo", 2, M.apc) --PilotGetOut(apc);
+            -- STOCK BUG FIX (TRO LUA-Patch 2492227931): stock builds the pilot at the APC's own
+            -- position, inside the hull, so he never visibly got out and could die there (bd08 loss 2).
+            -- Build him beside it and give the Retreat 2 s later, as the patch does.
+            M.pilot = BuildObject("cspilo", 2, GetPositionNear(GetPosition(M.apc), 8, 12)) --PilotGetOut(apc);
             SetPerceivedTeam(M.apc, 0)
-            if Healthy(M.pilot) and Healthy(M.portal) then
-                Retreat(M.pilot, M.portal, 1)
-            end
+            M.pilotRetreatTime = now + 2.0
             M.pilotSpawned1 = true
             ClearObjectives()
             AddObjective("bd08001.otf", "white")
             AddObjective("bd08002.otf", "white")
             SetObjectiveOn(M.apc)
+        end
+    end
+
+    if (M.pilotRetreatTime or NEVER) < now then
+        M.pilotRetreatTime = NEVER
+        if Healthy(M.pilot) and Healthy(M.portal) then
+            Retreat(M.pilot, M.portal, 1)
         end
     end
 

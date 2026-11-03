@@ -390,6 +390,7 @@ function F.makePeer(id, team, network, options)
     -- Deterministic: math.random(lo, hi) answers lo + W.random (mod the range).
     e.math = setmetatable({random = function(lo, hi)
         record("random", lo, hi)
+        if lo == nil then return 0.5 end
         return lo + (W.random % (hi - lo + 1))
     end}, {__index = math})
     -- Orders: every handle they name must already be a real object (a ticket reaching a native is a bug).

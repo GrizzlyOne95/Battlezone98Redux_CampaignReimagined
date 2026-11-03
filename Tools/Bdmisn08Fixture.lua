@@ -189,6 +189,7 @@ function F.makePeer(id, team, network, options)
         local pos = F.posOf(h)
         return pos and {x = pos.x, y = pos.y, z = pos.z} or {x = 0, y = 0, z = 0}
     end
+    e.GetPositionNear = function(pos) return {x = pos.x, y = pos.y, z = pos.z} end
     e.IsCraft = function(h) return W.objects[h] ~= nil and W.objects[h].craft == true end
     e.StopCockpitTimer = function() record("StopCockpitTimer") end
     e.HideCockpitTimer = function() record("HideCockpitTimer") end
