@@ -258,13 +258,15 @@ for index in range(1, 16):
     assert f"TerrainName = bdmisn{index:02d}\n" in bzn_text
     for extension in ("trn", "hg2", "mat", "lgt"):
         assert (ROOT / "Missions" / f"bdmisn{index:02d}.{extension}").is_file(), f"bdmisn{index:02d} terrain {extension}"
-    vxt = (ROOT / "Missions" / f"{stem}.vxt").read_text(encoding="ascii").split()
+    vehicle_rows = [line.split(None, 3) for line in (ROOT / "Missions" / f"{stem}.vxt").read_text(encoding="ascii").splitlines() if line.strip()]
+    assert vehicle_rows and all(len(row) == 4 for row in vehicle_rows), f"{stem}.vxt needs four native menu fields"
+    vxt = [row[0] for row in vehicle_rows]
     # 04 starts on foot and 09 in a stolen Chinese APC: both are disguise missions.
     disguised = {4: "bsuser", 9: "cvapc"}
     if index in disguised:
-        assert vxt == [disguised[index], ","], f"{stem}.vxt must start the disguise unit"
+        assert vxt == [disguised[index]], f"{stem}.vxt must start the disguise unit"
     else:
-        assert vxt and all(line.startswith("bv") or line == "," for line in vxt), f"{stem}.vxt must list bv* units"
+        assert all(odf.startswith("bv") for odf in vxt), f"{stem}.vxt must list bv* units"
     assert (ROOT / "Assets" / "Graphics" / f"{stem}.bmp").read_bytes()[:2] == b"BM"
     mp = configparser.ConfigParser()
     mp.optionxform = str
@@ -319,13 +321,15 @@ for index in range(1, 9):
     assert f"TerrainName = chmisn{index:02d}\n" in bzn_text
     for extension in ("trn", "hg2", "mat", "lgt"):
         assert (ROOT / "Missions" / f"chmisn{index:02d}.{extension}").is_file(), f"chmisn{index:02d} terrain {extension}"
-    vxt = (ROOT / "Missions" / f"{stem}.vxt").read_text(encoding="ascii").split()
+    vehicle_rows = [line.split(None, 3) for line in (ROOT / "Missions" / f"{stem}.vxt").read_text(encoding="ascii").splitlines() if line.strip()]
+    assert vehicle_rows and all(len(row) == 4 for row in vehicle_rows), f"{stem}.vxt needs four native menu fields"
+    vxt = [row[0] for row in vehicle_rows]
     # 01 starts on foot and 07 on foot disguised as the enemy: both keep their map pilot.
     pilots = {1: "csusera", 7: "ssuserb"}
     if index in pilots:
-        assert vxt == [pilots[index], ","], f"{stem}.vxt must start the on-foot pilot"
+        assert vxt == [pilots[index]], f"{stem}.vxt must start the on-foot pilot"
     else:
-        assert vxt and all(line.startswith("cv") or line == "," for line in vxt), f"{stem}.vxt must list cv* units"
+        assert all(odf.startswith("cv") for odf in vxt), f"{stem}.vxt must list cv* units"
     assert (ROOT / "Assets" / "Graphics" / f"{stem}.bmp").read_bytes()[:2] == b"BM"
     mp = configparser.ConfigParser()
     mp.optionxform = str

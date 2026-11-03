@@ -111,7 +111,7 @@ assert "bd02lsea.des" in live and 'description == "bd02lsea.des"' in cr_text, "t
 # ---------------------------------------------------------------- companion files, only when present
 vxt = ROOT / "Missions/bdmisn02cr.vxt"
 if vxt.is_file():
-    allowed = {line.split(",")[0].strip() for line in vxt.read_text(encoding="latin-1").splitlines() if line.strip()}
+    allowed = {line.split()[0] for line in vxt.read_text(encoding="latin-1").splitlines() if line.strip()}
     assert allowed and allowed <= {"bvtank", "bvltnk"}, "the vehicle list names Black Dog craft: " + str(allowed)
 else:
     print("note: Missions/bdmisn02cr.vxt not present, vehicle list not checked")

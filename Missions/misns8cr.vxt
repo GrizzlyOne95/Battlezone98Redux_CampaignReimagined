@@ -1,6 +1,6 @@
-svtank ,
-svfimp ,
-svltnk ,
-svrckt ,
-svhraz ,
-svwalk ,
+svtank	svtank.des	x	Czar
+svfimp	svfimp.des	x	Flanker
+svltnk	svltnk.des	x	Stoli
+svrckt	svrckt.des	x	Tusker
+svhraz	svhraz.des	x	Grendel
+svwalk	svwalk.des	x	Walker
