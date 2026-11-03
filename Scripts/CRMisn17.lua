@@ -16,6 +16,7 @@ local subtit = require("ScriptSubtitles")
 local pda = require("PersistentConfig")
 local Environment = require("Environment")
 local roster = require("CRFuryRoster")
+local Difficulty = require("CRDifficulty")
 local Jungle=require("CRJungle17").Create({exu=exu,state=function() return M end})
 local Crystal
 SetAIControl(6,true) -- startup only; never enable strategic AI on humans
@@ -553,7 +554,14 @@ local function ReplaceTickets(t,old,new)
 end
 function R.Order(op,h,target,priority)
     local request=Ticket(h)
-    if request then request.order={op,target,priority};return end
+    if request then
+        request.order={op,target,priority}
+        for _,id in ipairs(request.extras or {}) do
+            local extra=State().arrivals[id]
+            if extra then extra.order=request.order end
+        end
+        return
+    end
     if Valid(h) and Valid(target) then return _G[op](h,target,priority) end
 end
 function R.Spawn(odf,team,where)
@@ -569,8 +577,18 @@ function R.Spawn(odf,team,where)
     if odf~="hvsav" and odf~="hvsat" then return BuildObject(odf,team,where) end
     if M.missionwon or M.missionfail or M.coopResult then return nil end
     s.serial=s.serial+1
-    s.arrivals[s.serial]={odf=roster.Select(odf,M),team=team,where=where}
-    return -s.serial
+    local id=s.serial
+    local primary={odf=roster.Select(odf,M),team=team,where=where}
+    s.arrivals[id]=primary
+    -- Offline Hard/Very Hard: each scripted Fury brings difficulty extras with the same entry and order
+    -- (Scripts/CRDifficulty.lua). They are untracked: no mission field points at them.
+    for _=1,Difficulty.Extras() do
+        s.serial=s.serial+1
+        s.arrivals[s.serial]={odf=roster.Select(odf,M),team=team,where=where}
+        primary.extras=primary.extras or {}
+        primary.extras[#primary.extras+1]=s.serial
+    end
+    return -id
 end
 local function Arrivals()
     local s=State()
@@ -601,6 +619,10 @@ local function Failure()
     FailMission(GetTime()+20,"misn17l1.des")
 end
 function R.SetScrap(team,amount)
+    -- Offline difficulty scales the starting scrap (a fill to capacity stays a fill); co-op locks it.
+    if Difficulty.Active() then
+        return SetScrap(1,Difficulty.PlayerAmount(amount,type(GetMaxScrap)=="function" and GetMaxScrap(1) or nil))
+    end
     -- One shared production base, with a bounded +10 starting scrap per guest.
     local count=0
     CRCoop.ForEachHumanTeam(function() count=count+1 end)

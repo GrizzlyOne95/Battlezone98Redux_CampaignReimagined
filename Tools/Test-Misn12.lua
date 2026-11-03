@@ -130,6 +130,7 @@ local modules = {
         Quake = function(strength, seconds) record("EuropaQuake", strength, seconds) end,
         Surge = function(seconds, strength) record("EuropaSurge", seconds, strength) end},
 }
+modules.CRDifficulty = assert(loadfile("Scripts/CRDifficulty.lua"))()
 function require(name) return assert(modules[name], name) end
 local function reset()
     now, serial, cancelled = 0, 0, false

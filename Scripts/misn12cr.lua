@@ -231,6 +231,9 @@ local CRWire = require("CRWire")
 -- human is allied with, and are revealed to team 1 (allied with every human) exactly as the DLL does.
 local LEADER_TEAM, ENEMY_TEAM, HIDDEN_TEAM = 1, 5, 7
 -- CR co-op layer <<
+-- CR difficulty >>
+-- misn12 gets no extra hostile units: the disguise logic depends on exact enemy counts, and this chunk is at the 200-local limit.
+-- CR difficulty <<
 -- CR Europa weather >>
 local CREuropaWeather = require("CREuropaWeather")
 local EuropaSites = require("CREuropaSites12")

@@ -65,6 +65,7 @@ local modules = {
     ScriptSubtitles = {Play = function(file) record("Play", file); return 1 end,
         Queue = function(file) record("Queue", file) end, Stop = noop, Update = noop, Initialize = noop},
 }
+modules.CRDifficulty = assert(loadfile("Scripts/CRDifficulty.lua"))()
 function require(name) return assert(modules[name], name) end
 function GetPlayerHandle() return GetHandle("player") end
 function GetTime() return now end

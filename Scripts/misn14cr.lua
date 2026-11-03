@@ -102,6 +102,17 @@ local LEADER_TEAM, ENEMY_TEAM, FURY_TEAM, SURVIVOR_TEAM = 1, 5, 6, 7
 -- Update, like the DLL, and names the team (the shipped 1.5 exe passes 2).
 SetAIControl(ENEMY_TEAM, true)
 -- CR team map <<
+-- CR difficulty >>
+-- Single-player difficulty (Scripts/CRDifficulty.lua): lexical wrappers for scrap/pilots and extra hostile combat units;
+-- a network game runs the mission as written.
+local CRDifficulty = require("CRDifficulty")
+local HOSTILE = { [ENEMY_TEAM] = true, [FURY_TEAM] = true }
+local SetScrap = CRDifficulty.Resource(SetScrap, GetMaxScrap, HOSTILE)
+local AddPilot = CRDifficulty.Resource(AddPilot, GetMaxPilot, HOSTILE, true)
+local BuildObject = CRDifficulty.Build(BuildObject, HOSTILE)
+local Attack, Defend, Follow, Goto, Retreat, SetIndependence, SetTeamNum, Stop = CRDifficulty.Mirror(Attack, Defend, Follow, Goto, Retreat, SetIndependence, SetTeamNum, Stop)
+local RemoveObject = CRDifficulty.Remove(RemoveObject)
+-- CR difficulty <<
 -- CR Titan weather hook >>
 -- The single wiring point for the Titan weather director (built separately; this file never edits it).
 -- When a module named CRTitanWeather exists and exports MissionHook(event, ...), it receives:

@@ -163,6 +163,14 @@ local CRWire = require("CRWire")
 -- The relic (hvsrb, label "relic") is authored on team 0 (neutral) and stays there: a tug carries cargo
 -- of any team (GetTug and the seized/secured test read the *tug's* team).
 local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
+-- CR difficulty >>
+-- Single-player difficulty (Scripts/CRDifficulty.lua): lexical wrappers for scrap/pilots and extra hostile combat units;
+-- a network game runs the mission as written.
+local CRDifficulty = require("CRDifficulty")
+local HOSTILE = { [ENEMY_TEAM] = true }
+local SetScrap = CRDifficulty.Resource(SetScrap, GetMaxScrap, HOSTILE)
+local SetPilot = CRDifficulty.Resource(SetPilot, GetMaxPilot, HOSTILE)
+-- CR difficulty <<
 -- CR Io weather >>
 local CRIoWeather = require("CRIoWeather")
 local IoSites = require("CRIoSites10")

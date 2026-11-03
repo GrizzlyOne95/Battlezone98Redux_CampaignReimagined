@@ -129,6 +129,7 @@ local modules = {
         ReleaseForcedLevel = function() record("IoRelease") end,
         Quake = function(strength, duration) record("IoQuake", strength, duration) end},
 }
+modules.CRDifficulty = assert(loadfile("Scripts/CRDifficulty.lua"))()
 function require(name) return assert(modules[name], name) end
 
 local function reset(started)

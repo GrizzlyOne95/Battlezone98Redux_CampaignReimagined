@@ -166,6 +166,7 @@ local function NewMission()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     e.package = setmetatable({ loaded = { exu = modules.exu } }, { __index = package })
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
+    modules.CRDifficulty = assert(loadfile("Scripts/CRDifficulty.lua"))()
     e.require = function(name) return assert(modules[name], name) end
     setfenv(assert(loadfile(script)), e)()
     e.Start()
