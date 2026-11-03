@@ -97,7 +97,7 @@ used = set(re.findall(r'BuildObject\("\w+", [02], "(\w+)"\)', live))
 used |= set(re.findall(r'"(despor_\d)"', live))
 used |= set(re.findall(r'Goto\w*\([^,]+, "(\w+)"', live))
 used |= set(re.findall(r'CameraPath\("(\w+)"', live))
-expected = {"camera_start", "follow", "scrap_1", "scrap_2"} | {"attack_%d" % n for n in range(1, 9)} \
+expected = {"camera_start", "follow"} | {"attack_%d" % n for n in range(1, 9)} \
     | {"defend_%d" % n for n in range(1, 9)} | {"despor_%d" % n for n in range(1, 5)}
 assert used == expected, (used ^ expected)
 assert used <= set(paths), "every path the body names exists: " + str(used - set(paths))
@@ -123,7 +123,7 @@ if ini.is_file():
 unused = sorted(set(paths) - used)
 for name in unused:
     assert "`" + name + "`" in doc, "undocumented unused map path: " + name
-assert unused == ["annoying_1", "camera_arrival", "edge_path", "outer_limit", "portal_spawn"], unused
+assert unused == ["annoying_1", "camera_arrival", "edge_path", "outer_limit", "portal_spawn", "scrap_1", "scrap_2"], unused
 assert (ROOT / "Docs/CCA_COOP_RUNTIME.md").is_file()
 print("bdmisn12 co-op contract passed: %d objects, %d paths, %d scripted path/label names, Ganymede sites present; %d paths unused (documented)"
       % (len(objects), len(paths), len(used) + len(handles), len(unused)))

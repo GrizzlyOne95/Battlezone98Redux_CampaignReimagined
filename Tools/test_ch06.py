@@ -211,14 +211,17 @@ class MissionTests(unittest.TestCase):
         self.assertTrue(all(e[4]=="annoy_1" for e in self.events("build")))
         self.assertTrue(all(e[3]=="annoy_1_path" and e[4] is None for e in self.events("goto")))
         self.g.tick(960.04)
+        self.assertEqual(len(self.events("build")),10)  # TRO 1.3: raids recur every 600 s, not 300
+        self.g.tick(1260.04)
+        self.assertEqual(s.numAnnoyRounds,2)
         self.assertEqual(len(self.events("build")),10)  # surviving slots retained
         for _,h in s.annoy.items(): self.g.kill(h,True)
-        self.g.tick(1260.05)
+        self.g.tick(1860.05)
         self.assertEqual(s.numAnnoyRounds,3)
         self.assertEqual(s.maxAnnoy,6)
         self.assertEqual(len(self.events("build")),16)
         for _,h in s.psu.items(): self.g.kill(h,True)
-        self.g.tick(1560.06)
+        self.g.tick(2460.06)
         self.assertEqual(s.annoyTime,999999.9)
         self.assertEqual(len(self.events("build")),16)
 

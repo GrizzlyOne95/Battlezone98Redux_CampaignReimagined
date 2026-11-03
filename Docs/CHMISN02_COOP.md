@@ -212,7 +212,7 @@ python Tools/test_ch02.py                     # the faithful port, unchanged (ne
 - `fallbackEntries` assumes the eight points are usable enemy approaches (they are all the body's own spawn points).
 - The 1.25x + 3 s network shot fallback is a margin on the 1.5-source flight time (`speed/100` m/s, documented in
   `BZR_LUA_AGENT_REFERENCE.md`, not re-measured on this map).
-- The walker's end-of-path radius (25 m, `AtEndOfPath`) is the faithful port's approximation, not a recovered native value.
+- The walker's end-of-path radius is the TRO 1.3 value (2D, 12 m to the last waypoint; the leaked source gives none).
 - `ch03007` and `ch04005` as the convoy-lost and defector-lost lines, and `attack_9_path` as the route of the attack_9
   column, are inferences from the text and the geometry; the flags switch them off.
 - The restored walker ambushes add 2-4 units to a fight the source balanced for one player; with extras at four players

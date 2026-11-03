@@ -39,6 +39,9 @@ function IsCloaked(h) return objs[h].cloak end
 function Decloak(h) objs[h].cloak = false; log("Decloak", h) end
 function GetCockpitTimer() return cockpit end
 function GetMaxScrap() return 500 end
+function GetCurHealth(h) assert(objs[h]); return objs[h].hp end
+function GetMaxHealth(h) assert(objs[h]); return 1 end
+function AddHealth(h, v) log("AddHealth", h, v); objs[h].hp = objs[h].hp + v end
 function MakeExplosion(odf, where) log("MakeExplosion", odf, where) end
 for _, name in ipairs({"SetAIP", "SetScrap", "SetPilot", "Cloak", "CameraReady", "CameraFinish",
     "SetName", "SetUserTarget", "ClearObjectives", "AddObjective", "Attack", "Goto", "Defend2",
@@ -229,4 +232,30 @@ s = fresh(); tick(0)
 local snap = Save(); local n = #calls
 Load(snap); assert(Save() == snap and #calls == n)
 
+
+-- TRO 1.3: the opening cut_1 scene is skippable while waiting for the trigger.
+do
+    local k = fresh(); tick(0); assert(k.missionState == 3)
+    cancel = true; tick(1); cancel = false
+    assert(k.missionState == 5 and k.stateTimer == 31 and count("CameraFinish") == 1)
+    assert(count("AudioMessage", "ch08002.wav") == 1 and count("RemoveObject") == 9)
+end
+-- ...and while the 22 s hold runs.
+do
+    local k = fresh(); tick(0)
+    dist[tostring(labels.west_1_1) .. ":cut_trigger"] = 49
+    tick(1); assert(k.missionState == 4)
+    cancel = true; tick(2); cancel = false
+    assert(k.missionState == 5 and k.stateTimer == 32 and count("CameraFinish") == 1)
+    assert(count("AudioMessage", "ch08002.wav") == 1 and count("RemoveObject") == 9)
+end
+-- TRO 1.3: comm towers are topped up every frame until the destroy-power-plants phase.
+do
+    local k = fresh(); tick(0)
+    objs[labels.west_comm].hp = 0.25; objs[labels.east_comm].hp = 0.5; tick(1)
+    assert(count("AddHealth", labels.west_comm) == 1 and objs[labels.west_comm].hp == 1)
+    assert(count("AddHealth", labels.east_comm) == 1 and objs[labels.east_comm].hp == 1)
+    k.missionState = 23; objs[labels.west_comm].hp = 0.25; tick(2)
+    assert(count("AddHealth", labels.west_comm) == 1 and objs[labels.west_comm].hp == 0.25, "no top-up from state 23")
+end
 print("Chinese08 behaviour tests passed")

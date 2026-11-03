@@ -124,7 +124,8 @@ Skipped, with the reason:
   target only in the CameraPathDir fallback below).
 
 Authored paths the script never uses (documented, not wired): `edge_path` (the playable box the weather reads from the
-generated sites) and `outer_limits` (a 5-point boundary polygon nothing reads).
+generated sites) and `outer_limits` (a 5-point boundary polygon nothing reads), and `wave2_scout1_attackpath`,
+`wave2_scout2_attackpath`, `wave2_scout3_attackpath` and `wave2_scout4_attackpath` (TRO 1.3 orders wave 2 to attack the recycler directly, so the body no longer follows them).
 
 Unused voice lines: **none**. The game ships `bd02001`..`bd02009` and the body plays all nine (`bd02001` at the
 start, `bd02002` as the first wave decloaks, `bd02003` after it, `bd02004`/`bd02005` through the massive attack,

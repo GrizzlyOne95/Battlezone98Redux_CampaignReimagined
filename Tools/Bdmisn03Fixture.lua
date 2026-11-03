@@ -64,7 +64,7 @@ F.PATHS = {}
 for name, points in pairs(F.PATH_POINTS) do F.PATHS[name] = points[1] end
 F.FAR = 50000
 local CRAFT = {bvtank=true,bvraz=true,bvltnk=true,bvapcb=true,bvscav=true,bvturr=true,bvrec3=true,
-    cvfigh=true,cvfighf=true,cvltnk=true,cvtnk=true,cvrckt=true}
+    cvfigh=true,cvfighf=true,cvltnk=true,cvtnk=true}
 local function vec(t) return {x = t[1], y = t[2], z = t[3]} end
 local function newObject(handle, odf, team, pos, craft)
     W.objects[handle] = {alive = true, odf = odf, team = team, health = 1, pos = vec(pos or {F.FAR, 6, F.FAR}),
@@ -203,7 +203,11 @@ function F.makePeer(id, team, network, options)
     e.IsOdf = function(h, odf) return e.IsValid(h) and W.objects[h].odf == odf end
     e.GetOdf = function(h) return W.objects[h] and W.objects[h].odf end
     e.GetTeamNum = function(h) return W.objects[h] and W.objects[h].team or 0 end
-    e.GetPosition = function(h)
+    e.GetPosition = function(h, index)
+        if index ~= nil then -- GetPosition(path, index): zero-based path point
+            assert(F.PATH_POINTS[h] and F.PATH_POINTS[h][index + 1], "path point out of range")
+            return vec(F.PATH_POINTS[h][index + 1])
+        end
         local pos = F.posOf(h)
         return pos and {x = pos.x, y = pos.y, z = pos.z} or {x = 0, y = 0, z = 0}
     end

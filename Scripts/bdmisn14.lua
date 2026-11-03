@@ -56,12 +56,13 @@ end
 local function AtEndOfPath(h, path)
     -- PORT ADAPTATION: isAtEndOfPath is a native helper, not a stock Lua API.
     -- Stock Redux does expose path queries; use the final zero-based waypoint.
-    -- UNKNOWN: the supplied source does not define the native arrival radius.
-    -- 25 m follows bd03.lua's provisional convention and requires map testing;
-    -- this is an explicit approximation, not a recovered native constant.
+    -- TRO 1.3: 12 m 2D (x,z) distance to the last path point (FUN_0042b850).
     if not Valid(h) or Health(h) <= 0.0 then return false end
     local count = GetPathPointCount(path)
-    return count > 0 and GetDistance(h, path, count - 1) < 25.0
+    if count <= 0 then return false end
+    local p, q = GetPosition(h), GetPosition(path, count - 1)
+    local dx, dz = p.x - q.x, p.z - q.z
+    return math.sqrt(dx * dx + dz * dz) < 12.0
 end
 
 function Start()
@@ -121,9 +122,7 @@ function Update(dt)
         h = BuildObject("cvfigh", 2, "spawn_initial_attack")
         SetCloaked(h)
         Goto(h, "path_initial_attack")
-        h = BuildObject("cvhraz", 2, "spawn_initial_attack")
-        SetCloaked(h)
-        Goto(h, "path_initial_attack")
+        -- TRO 1.3: one cvhraz in the opening strike (FUN_005ac1a0)
         h = BuildObject("cvhraz", 2, "spawn_initial_attack")
         SetCloaked(h)
         Goto(h, "path_initial_attack")
@@ -167,13 +166,14 @@ function Update(dt)
         h = BuildObject("cvfigh", 2, "spawn_attack_waves")
         SetCloaked(h)
         Goto(h, "path_attack_waves")
+        -- TRO 1.3: 1 cvltnk + 2 cvtnk close the main wave (FUN_005ac1a0)
         h = BuildObject("cvltnk", 2, "spawn_attack_waves")
         SetCloaked(h)
         Goto(h, "path_attack_waves")
-        h = BuildObject("cvltnk", 2, "spawn_attack_waves")
+        h = BuildObject("cvtnk", 2, "spawn_attack_waves")
         SetCloaked(h)
         Goto(h, "path_attack_waves")
-        h = BuildObject("cvltnk", 2, "spawn_attack_waves")
+        h = BuildObject("cvtnk", 2, "spawn_attack_waves")
         SetCloaked(h)
         Goto(h, "path_attack_waves")
 
@@ -211,12 +211,7 @@ function Update(dt)
 		Goto(h, "path_turrets");
         #endif ]]
          -- attackers
-        h = BuildObject("cvhraz", 2, "spawn_attack_waves")
-        SetCloaked(h)
-        Goto(h, "path_attack_waves")
-        h = BuildObject("cvhraz", 2, "spawn_attack_waves")
-        SetCloaked(h)
-        Goto(h, "path_attack_waves")
+        -- TRO 1.3: 2 cvhraz, 1 cvltnk, 2 cvfigh (FUN_005ac1a0)
         h = BuildObject("cvhraz", 2, "spawn_attack_waves")
         SetCloaked(h)
         Goto(h, "path_attack_waves")
@@ -226,13 +221,10 @@ function Update(dt)
         h = BuildObject("cvltnk", 2, "spawn_attack_waves")
         SetCloaked(h)
         Goto(h, "path_attack_waves")
-        h = BuildObject("cvltnk", 2, "spawn_attack_waves")
+        h = BuildObject("cvfigh", 2, "spawn_attack_waves")
         SetCloaked(h)
         Goto(h, "path_attack_waves")
-        h = BuildObject("cvltnk", 2, "spawn_attack_waves")
-        SetCloaked(h)
-        Goto(h, "path_attack_waves")
-        h = BuildObject("cvltnk", 2, "spawn_attack_waves")
+        h = BuildObject("cvfigh", 2, "spawn_attack_waves")
         SetCloaked(h)
         Goto(h, "path_attack_waves")
         -- SOURCE BUG FIX: each native walker spawn calls SetCloaked(h), where
@@ -342,13 +334,24 @@ function Update(dt)
     if not M.attack1 and Valid(M.user) and GetDistance(M.user, "trigger_attack_1") < 150.0 then
         M.attack1 = true
 
-        for i = 0, 3 do
+        -- TRO 1.3: 2 cvhraz, 2 cvltnk, 2 cvtnk, 2 cvfigh (FUN_005ac1a0)
+        for i = 0, 1 do
             local h = BuildObject("cvhraz", 2, "spawn_attack_1")
             Goto(h, "path_attack_1")
             SetCloaked(h)
         end
-        for i = 0, 3 do
+        for i = 0, 1 do
             local h = BuildObject("cvltnk", 2, "spawn_attack_1")
+            Goto(h, "path_attack_1")
+            SetCloaked(h)
+        end
+        for i = 0, 1 do
+            local h = BuildObject("cvtnk", 2, "spawn_attack_1")
+            Goto(h, "path_attack_1")
+            SetCloaked(h)
+        end
+        for i = 0, 1 do
+            local h = BuildObject("cvfigh", 2, "spawn_attack_1")
             Goto(h, "path_attack_1")
             SetCloaked(h)
         end
@@ -365,8 +368,14 @@ function Update(dt)
     if not M.attack2 and Valid(M.user) and GetDistance(M.user, "trigger_attack_2") < 150.0 then
         M.attack2 = true
 
-        for i = 0, 5 do
-            local h = BuildObject("cvhraz", 2, "spawn_attack_2")
+        -- TRO 1.3: 3 cvltnk + 2 cvtnk (FUN_005ac1a0)
+        for i = 0, 2 do
+            local h = BuildObject("cvltnk", 2, "spawn_attack_2")
+            Goto(h, "path_attack_2")
+            SetCloaked(h)
+        end
+        for i = 0, 1 do
+            local h = BuildObject("cvtnk", 2, "spawn_attack_2")
             Goto(h, "path_attack_2")
             SetCloaked(h)
         end

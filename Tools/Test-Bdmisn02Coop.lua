@@ -201,9 +201,11 @@ for n = 1, 4 do
             for _, q in ipairs(p) do check(q.env.GetDistance(q.player, b.h) >= 460, "wave units never appear within 460 m: " .. b.where) end
         end
     end
-    local gotos = 0
-    for _, c in ipairs(F.callsOf(p[1], "Goto")) do if c[3]:match("^wave2_scout%d_attackpath$") then gotos = gotos + 1 end end
-    check(gotos == 4 + e, "wave 2 orders are mirrored on the extras: " .. gotos)
+    -- TRO 1.3: wave 2 attacks the recycler directly (no authored attack paths).
+    local fighters, attacks = {}, 0
+    for _, b in ipairs(all) do fighters[b.h] = true end
+    for _, c in ipairs(F.callsOf(p[1], "Attack")) do if c[3] == "recycler" and fighters[c[2]] then attacks = attacks + 1 end end
+    check(attacks == 4 + e, "wave 2 orders are mirrored on the extras: " .. attacks)
     noEnemyTeamTwo(p[1])
     guestsPassive(p)
 end
@@ -460,8 +462,9 @@ do -- orders aimed at the player wait with a ticket
     local w, p, m = toRetreat(2)
     -- (the harassers are already real here) a new watched ambush: the six fighters are tickets with a remembered order
     local release = watchEverything(w, p)
+    local priorAttacks = F.count(p[1], "Attack") -- TRO 1.3 wave 2 already attacked the recycler
     F.nearTo("recycler", "trigger_1", 40, 0); F.run(2)
-    check(#builtAt(p[1], "fighter_1") == 0 and F.count(p[1], "Attack") == 0, "watched ambush waits as tickets, no order for a ticket")
+    check(#builtAt(p[1], "fighter_1") == 0 and F.count(p[1], "Attack") == priorAttacks, "watched ambush waits as tickets, no order for a ticket")
     release(); F.run(3)
     local attackers = 0
     for _, c in ipairs(F.callsOf(p[1], "Attack")) do if isHuman(p, c[3]) then attackers = attackers + 1 end end

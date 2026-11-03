@@ -116,7 +116,8 @@ local function PortalWaves()
         if diff >= 1 then
             for i = 0, 1 do
                 if M.portalattack[i] == nil then
-                    local r, odf = math.random(), "cvrckt"
+                    -- TRO 1.3: roll is uniform in [-1,1), so about 66.5% cvfigh, 16.5% cvtnk, 17% cvrckt
+                    local r, odf = math.random() * 2 - 1, "cvrckt"
                     if r < 0.33 then odf = "cvfigh"
                     elseif r < 0.66 then odf = "cvtnk" end
                     M.portalattack[i] = BuildObjectAtPortal(odf, 2, M.portal)
@@ -204,7 +205,8 @@ function Update(dt)
     PortalWaves()
     if M.stateTimer3 ~= 0 and M.stateTimer3 < GetTime() then
         for i = 0, 4 do
-            local odf = math.random() < 0.5 and "cvfigh" or "cvtnk"
+            -- TRO 1.3: roll is uniform in [-1,1), so about 75% cvfigh, 25% cvtnk
+            local odf = math.random() * 2 - 1 < 0.5 and "cvfigh" or "cvtnk"
             M.randomattack[i] = Spawn(odf, 2, "attack_always", Hunt)
         end
         M.stateTimer3 = GetTime() + 60 + 50

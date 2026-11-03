@@ -124,7 +124,7 @@ eta = {k: float(v) for k, v in re.findall(r"(\w+) = ([\d.]+)", re.search(r"CAMER
 shots = {}
 for path, speed in re.findall(r'CameraPath(?:Dir)?\("(\w+)", \d+, (\d+)', live):
     shots.setdefault(path, speed)  # the first call of a path is the flight; auto_end is called again at speed 0 to hold
-assert set(eta) == {"camera_start", "auto_end"} and shots["camera_start"] == "1200" and shots["auto_end"] == "3000", (eta, shots)
+assert set(eta) == {"camera_start", "auto_end"} and shots["camera_start"] == "1200" and shots["auto_end"] == "4500", (eta, shots)
 for path, seconds in eta.items():
     pts = paths[path]
     length = sum(math.dist(pts[i], pts[i + 1]) for i in range(len(pts) - 1))

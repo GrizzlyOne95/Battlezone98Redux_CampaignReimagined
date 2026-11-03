@@ -104,6 +104,9 @@ for _,c in ipairs(calls) do if c[1]=='BuildObject' and (c[2]=='sspilo' or c[2]==
 cargo=state().relic;tick(1078);assert(state().objective4Complete and timerDuration==180)
 near(1,state().detectors[0],299);tick(1079);assert(count('BuildObject','cvhtnk')==7)
 near(state().navEnd,state().hangar,1000);near(1,state().hangar,951);near(state().relic,state().hangar,951)
+tick(1252);assert(count('AudioMessage','ch01010.wav')==0)
+tick(1253);assert(count('AudioMessage','ch01010.wav')==1) -- TRO 1.3: once, at <= 5 s, player outside the blast radius
+tick(1254);assert(count('AudioMessage','ch01010.wav')==1)
 tick(1256);assert(count('CameraReady')==1)
 tick(1257);assert(count('CameraPath')>=2)
 tick(1258);assert(count('SucceedMission')==1 and state().won and count('MakeExplosion')==1);for _,c in ipairs(calls) do if c[1]=='MakeExplosion' then assert(c[3]=='relic_loc') end end -- the map has no spawn_explosion1
@@ -133,6 +136,9 @@ print('PASS: detection failure cannot be overwritten by later evacuation')
 reset();tick(0);m=state();m.objective4Complete=true;m.relic=BuildObject('obdata',0,'relic_loc');m.navEnd=BuildObject('apcamr',1,'nav_end')
 near(m.navEnd,m.hangar,1000);near(m.relic,m.hangar,950);tick(1);assert(m.lost and count('FailMission')==1 and count('MakeExplosion')==1)
 print('PASS: relic exactly at safety boundary fails (native strict >)')
+reset();tick(0);m=state();m.objective4Complete=true;m.relic=BuildObject('obdata',0,'relic_loc');m.navEnd=BuildObject('apcamr',1,'nav_end')
+near(m.navEnd,m.hangar,1000);near(1,m.hangar,949);timerStart,timerDuration=now,5;tick(1);assert(count('AudioMessage','ch01010.wav')==0)
+print('PASS: ch01010 stays silent when the player is inside the blast radius')
 reset();tick(0);m=state();m.objective4Complete=true;m.relic=BuildObject('obdata',0,'relic_loc');m.navEnd=BuildObject('apcamr',1,'nav_end');objects[m.relic].valid=false
 near(m.navEnd,m.hangar,1000);tick(1);assert(m.lost and count('SucceedMission')==0)
 print('PASS: destroyed relic does not count as safely evacuated')

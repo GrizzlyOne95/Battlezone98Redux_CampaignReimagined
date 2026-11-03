@@ -122,7 +122,7 @@ end
 local m = reset()
 check(count("SetScrap") == 1 and last("SetScrap")[3] == 12, "starting scrap")
 check(last("SetPilot")[2] == 1 and last("SetPilot")[3] == 10, "starting pilots")
-check(count("Goto") == 3 and last("Goto")[4] == 0, "startup movement commandable")
+check(count("Goto") == 3 and last("Goto")[4] == 1, "TRO 1.3: startup movement uncommandable (priority 1)")
 check(count("AudioMessage", "bd01001.wav") == 1, "opening sound once")
 check(objectives["bd01001.otf"] == "white" and not objectives["bd01002.otf"], "initial objective gate")
 check(last("CameraPath")[2] == "camera_start_arc" and last("CameraPath")[3] == 3000

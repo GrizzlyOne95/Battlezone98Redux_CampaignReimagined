@@ -460,6 +460,7 @@ if campaignRuntime then
         if RESTORED_VOICE_LINES and M.objective4Complete and not M.doingExplosion and not M.lost and not M.won
             and r.timerEnd ~= nil and not r.l1010 and Restored.TimerLeft() <= 6.0 then
             r.l1010 = true
+            M.sound12Played = true -- the body's TRO-timed ch01010 (<= 5 s) stands down once this has played
             AudioMessage("ch01010.wav")
         end
     end
@@ -897,37 +898,37 @@ function Update(dt)
         -- units
         local h
         h = BuildObject("svtank", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svtank", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svtank", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svtank", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svhraz", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svhraz", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svhraz", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svhraz", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svltnk", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svltnk", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svltnk", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svltnk", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svturrb", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svturrb", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svturrb", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svturrb", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
     end
 
     if M.objective3Complete and not M.objective4Complete and not M.lost and not M.won then
@@ -1027,6 +1028,13 @@ function Update(dt)
     end
 
     if M.objective4Complete and not M.doingExplosion then
+        -- TRO 1.3: ch01010 plays once at <= 5 s when the player is outside the blast radius (FUN_005ae660)
+        if not M.sound12Played and not M.focusOnExplosion and GetCockpitTimer() > 0 and GetCockpitTimer() <= 5.0
+            and Valid(M.navEnd) and Valid(M.hangar) and Valid(M.user)
+            and Distance(M.user, M.hangar) > Distance(M.navEnd, M.hangar) - 50 then
+            M.sound12Played = true
+            AudioMessage("ch01010.wav")
+        end
         if GetCockpitTimer() <= 0 then
             M.explodeTime = 999999.9
             HideCockpitTimer()

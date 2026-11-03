@@ -82,7 +82,7 @@ scaled = set(re.search(r"SCALED_ODFS = \{([^}]*)\}", cr_text)[1].replace("=", " 
 body_enemy_odfs = set(re.findall(r'BuildObject\("(\w+)", 2,', live))
 body_enemy_odfs |= set(re.findall(r'"(cv\w+)"', live))  # randomUnits and the ambush choices are picked by index
 assert scaled <= body_enemy_odfs, scaled
-assert scaled == {"cvfigh", "cvfighf", "cvltnk", "cvtnk", "cvrckt"}, scaled
+assert scaled == {"cvfigh", "cvfighf", "cvltnk", "cvtnk"}, scaled
 assert "cvturr" not in scaled, "static turrets are never scaled"
 sites = ROOT / "Scripts/CRGanymedeSitesBD03.lua"
 sites_text = sites.read_text(encoding="utf-8")
