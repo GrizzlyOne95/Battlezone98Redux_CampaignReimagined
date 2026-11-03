@@ -27,6 +27,15 @@ local function NewState()
 end
 local M = NewState()
 local function Valid(h) return h ~= nil and h ~= 0 and IsValid(h) end
+-- Stock map bug: the path "spawn_explosion1" is not in the map; the blast goes off at the relic instead.
+local MakeExplosion = (function()
+    local NativeMakeExplosion = MakeExplosion
+    return function(effect, where)
+        local ok, count = pcall(GetPathPointCount, where)
+        if not (ok and type(count) == "number" and count > 0) then where = "relic_loc" end
+        return NativeMakeExplosion(effect, where)
+    end
+end)()
 local function Alive(h) return Valid(h) and IsAlive(h) end
 local function Health(h)
     -- PORT FIX: deleted objects cannot be queried safely. Treat them as dead,
@@ -233,7 +242,7 @@ function Update(dt)
 
         AudioMessage("ch01005.wav")
 
-        M.recycler = BuildObject("cvrecyd", 1, "M.recycler")
+        M.recycler = BuildObject("cvrecyd", 1, "recycler")
         AddScrap(1, 50)
 
         -- update objectives

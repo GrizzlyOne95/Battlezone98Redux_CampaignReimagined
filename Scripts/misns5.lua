@@ -59,6 +59,14 @@ function AddObject(h)
     end
 end
 
+-- Stock bug: misns5.aip asks the Black Dog base for Soviet svturr turrets it cannot build; crns5.aip is the same plan
+-- with bvturr.
+local SetAIP = (function()
+    local stockSetAIP = SetAIP
+    local AIP = { ["misns5.aip"] = "crns5.aip" }
+    return function(name, ...) return stockSetAIP(AIP[name] or name, ...) end
+end)()
+
 function Update(dt)
     if not M.start_done then
         M.recy = GetHandle("svrecy0_recycler")

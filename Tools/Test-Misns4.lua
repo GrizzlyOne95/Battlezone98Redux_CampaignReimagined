@@ -108,7 +108,7 @@ check(count("BuildObject", "avltnk") == 1 and count("BuildObject", "avturr") == 
 objects[m.t1].alive = false; objects[m.t2].alive = false; Update(0.05)
 check(not m.bridge_clear, "howitzer still blocks bridge clear")
 objects[m.b1].alive = false; step(110); Update(0.05)
-check(m.bridge_clear and m.counter_time == 260 and count("SetAIP", "misns4.aip") == 1, "bridge clear and 150s counter deadline once")
+check(m.bridge_clear and m.counter_time == 260 and count("SetAIP", "crns4.aip") == 1 and count("SetAIP", "misns4.aip") == 0, "bridge clear and 150s counter deadline once")
 check(count("AudioMessage", "misns405.wav") == 1, "source annotated wrong audio retained")
 near(1, "warn1", 200); Update(0.05); check(not m.warning, "strict warning radius")
 near(1, "warn1", 199); Update(0.05); Update(0.05)

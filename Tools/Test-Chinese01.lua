@@ -1,4 +1,5 @@
 -- Run from repository root: lua5.1 Tools/Test-Chinese01.lua
+function MakeExplosion(...) return MakeExplosionStub(...) end -- the script captures the native at load
 dofile("Scripts/ch01.lua")
 -- Offline stock-API mock: no engine gameplay validation is implied.
 local now, nextHandle, timerStart, timerDuration, player = 0, 100, nil, nil, 1
@@ -53,7 +54,8 @@ function CameraReady() record('CameraReady'); return true end
 function CameraPath(path,height,speed,target) assert(IsValid(target)); record('CameraPath',path,height,speed,target); return false end
 function CameraCancelled() return false end
 function CameraFinish() record('CameraFinish'); return true end
-function MakeExplosion(effect,path) assert(effect=='xpltrsn' and path=='spawn_explosion1'); record('MakeExplosion',effect,path) end
+function GetPathPointCount(path) return path=='spawn_explosion1' and 0 or 4 end -- the map has no spawn_explosion1
+function MakeExplosionStub(effect,path) assert(effect=='xpltrsn' and path=='relic_loc'); record('MakeExplosion',effect,path) end
 for _,name in ipairs({'SetScrap','SetPilot','EnableAllCloaking','SetName','ClearObjectives','AddObjective','AddScrap','SetPerceivedTeam','SetIndependence','SetObjectiveOn','HideCockpitTimer','ColorFade','FailMission','SucceedMission'}) do
     _G[name]=function(...) record(name,...) end
 end
@@ -83,6 +85,7 @@ info=true;tick(6);finish('hangarSound');tick(7);assert(state().armourySoundTime=
 tick(22);assert(count('AudioMessage','ch01003.wav')==0)
 tick(22.1);finish('armourySound');tick(22.2);assert(count('BuildObject','cvslfb')==1)
 objects[state().commTower].health=0;tick(23);objects[state().recycler].deployed=true;tick(24)
+do local n=0;for _,c in ipairs(calls) do if c[1]=='BuildObject' and c[2]=='cvrecyd' then n=n+1;assert(c[4]=='recycler') end end;assert(n==1) end -- stock port slip: built at the path 'recycler'
 tick(84);assert(count('BuildObject','svfigh')==0)
 tick(84.1);assert(count('BuildObject','svfigh')==4 and count('BuildObject','svtank')==4)
 tick(384.2);assert(count('BuildObject','svtank')==8 and count('BuildObject','svltnk')==3)
@@ -103,7 +106,7 @@ near(1,state().detectors[0],299);tick(1079);assert(count('BuildObject','cvhtnk')
 near(state().navEnd,state().hangar,1000);near(1,state().hangar,951);near(state().relic,state().hangar,951)
 tick(1256);assert(count('CameraReady')==1)
 tick(1257);assert(count('CameraPath')>=2)
-tick(1258);assert(count('SucceedMission')==1 and state().won and count('MakeExplosion')==1)
+tick(1258);assert(count('SucceedMission')==1 and state().won and count('MakeExplosion')==1);for _,c in ipairs(calls) do if c[1]=='MakeExplosion' then assert(c[3]=='relic_loc') end end -- the map has no spawn_explosion1
 tick(1261);assert(count('CameraFinish')==1 and count('SucceedMission')==1)
 print('PASS: full success, all waves, strict timers, aerial heights, escort/decoys, explosion and camera cleanup')
 

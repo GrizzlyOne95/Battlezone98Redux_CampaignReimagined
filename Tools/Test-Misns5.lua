@@ -120,7 +120,7 @@ check(m.wave_count == 2 and count("BuildObject", "bvltnk") == 3 and not m.last_p
 tick(560.3)
 check(m.wave_count == 3 and m.last_phase and count("BuildObject", "bvltnk") == 6, "third wave unlocks final phase")
 check(count("BuildObject", "avrecy") == 1 and count("BuildObject", "avscav") == 2 and count("BuildObject", "spcamr") == 1, "reuse recycler and build two scavs and intelligence pod")
-check(count("SetAIP", "misns5.aip") == 1 and last("SetObjectiveOn")[2] == m.killme, "AIP and source recycler marker")
+check(count("SetAIP", "crns5.aip") == 1 and count("SetAIP", "misns5.aip") == 0 and last("SetObjectiveOn")[2] == m.killme, "AIP and source recycler marker")
 check(last("AddObjective")[2] == "misns502.otf" and count("AudioMessage", "misns506.wav") == 1, "final intelligence briefing")
 objects[m.killme].alive = false; tick(561); tick(562)
 check(m.won and not m.lost and count("SucceedMission") == 1, "victory once")

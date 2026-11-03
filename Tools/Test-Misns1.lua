@@ -197,7 +197,7 @@ check(not called("Follow", m.et3) and not called("SetIndependence", m.et3), "rem
 near(m.colorado, m.geyser, 50); Update(0.05)
 check(not m.coloradosafe, "retreat arrival strict boundary")
 now = 10; near(m.colorado, m.geyser, 49); Update(0.05)
-check(m.coloradosafe and called("SetAIP", "misn09.aip") and not m.safety1, "retreat strategic branch")
+check(m.coloradosafe and called("SetAIP", "crns1a.aip") and not called("SetAIP", "misn09.aip") and not m.safety1, "retreat strategic branch")
 check(m.aw1bt == 40 and m.aw1ct == 45 and m.du1at == 70, "retreat reinforcement offsets")
 check(#matching("SetObjectiveOn") == 3, "retreated Colorado added to outpost objectives")
 kill(m.colorado); now = 11; Update(0.05)
@@ -211,7 +211,7 @@ for _, retreat_branch in ipairs({false, true}) do
         near(m.colorado, m.geyser, 49); Update(0.05)
     else
         kill(m.colorado); Update(0.05)
-        check(m.safety1 and m.escortretreat and called("SetAIP", "misn14.aip"), "ambush strategic branch")
+        check(m.safety1 and m.escortretreat and called("SetAIP", "crns1b.aip") and not called("SetAIP", "misn14.aip"), "ambush strategic branch")
         check(#matching("BuildObject", "avscav") == 2 and IsAlive(m.scav1) and IsAlive(m.scav2), "ambush scavengers")
         local escort = matching("Goto", m.ef1, m.muf)[1]
         check(escort[4] == 1000, "source escort-retreat priority retained")

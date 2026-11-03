@@ -121,6 +121,19 @@ do
     check(F.index(peer, "SetAIControl") <= peer.chunkCalls, "SetAIControl runs at chunk root, before Start")
 end
 
+-- the single-player body drops the late bd14004 itself once the APC is down
+do
+    local w = F.reset()
+    local peer = F.makePeer(1, 1, false, { faithful = true, script = "Scripts/bdmisn14.lua" })
+    F.connect(); F.run(1)
+    toApc(w)
+    F.kill(peer.env.Save().apc)
+    F.run(60)
+    local played = 0
+    for _, c in ipairs(peer.calls) do if c[1] == "AudioMessage" and c[2] == "bd14004.wav" then played = played + 1 end end
+    check(played == 0, "the faithful port never plays bd14004 after the APC is down")
+end
+
 -- ------------------------------------------------------------------ teams, scrap, pilots, the opening
 do
     local w, p, m = setup(4, {})

@@ -84,7 +84,7 @@ spawned = set(re.findall(r'"(\w+)"', live))  # BuildObject literals and the coun
 assert scaled <= spawned and "avmine" not in scaled, "scaled ODFs are enemy raiders the body builds; the mines are not scaled"
 
 # ---------------------------------------------------------------- the AIP substitution
-assert 'local CR_AIP = { ["misns6.aip"] = "crns6.aip" }' in lua_full, "stock svturr AIP is mapped to crns6.aip"
+assert 'local AIP = { ["misns6.aip"] = "crns6.aip" }' in lua_full, "stock svturr AIP is mapped to crns6.aip"
 aip = (ROOT / "ODF/crns6.aip").read_text(encoding="utf-8", errors="replace")
 items = re.findall(r'(?m)^\s*\d+,\s*"(\w+)"', aip)
 assert items and all(i.startswith("av") for i in items), "every build item of crns6.aip is American: " + str(items)

@@ -67,6 +67,13 @@ function AddObject(h)
     M.next_target = closest
 end
 
+-- Stock bug: misns6.aip asks the American base for Soviet svturr turrets it cannot build; crns6.aip is the same plan with avturr.
+local SetAIP = (function()
+    local stockSetAIP = SetAIP
+    local AIP = { ["misns6.aip"] = "crns6.aip" }
+    return function(name, ...) return stockSetAIP(AIP[name] or name, ...) end
+end)()
+
 function Update(timestep)
     local player = GetPlayerHandle()
     if not M.start_done then

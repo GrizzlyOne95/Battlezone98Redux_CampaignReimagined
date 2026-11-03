@@ -163,10 +163,7 @@ local GetDistance = campaignRuntime and (function()
     end
 end)() or GetDistance
 -- A failed AudioMessage yields 0, never nil: the body's gates (`sound ~= nil and done`) must still open.
--- Stock bug: bd14004 ("that APC's getting a little too close") is on a timer 50 s after the convoy appears and
--- plays even after the APC is dead ("Good work") or the mission is decided.
 local AudioMessage = campaignRuntime and function(file)
-    if file == "bd14004.wav" and (M.objective2Complete or M.wonLost) then return 0 end
     return campaignRuntime.AudioMessage(file) or 0
 end or AudioMessage
 -- A line whose audio handle is absent (nil or 0) counts as finished, so no gate can wait on it for ever.
@@ -212,6 +209,15 @@ end or SetCloaked
 local function Valid(h)
     return h ~= nil and h ~= 0 and IsValid(h)
 end
+-- Stock bug: bd14004 ("that APC's getting a little too close") is on a timer 50 s after the convoy appears and
+-- plays even after the APC is dead ("Good work") or the mission is decided.
+local AudioMessage = (function()
+    local NativeAudioMessage = AudioMessage
+    return function(file)
+        if file == "bd14004.wav" and (M.objective2Complete or M.wonLost) then return 0 end
+        return NativeAudioMessage(file)
+    end
+end)()
 
 local function Health(h)
     -- PORT ADAPTATION: an absent/deleted native object has zero health.
