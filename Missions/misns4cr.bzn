@@ -145,7 +145,7 @@ independence [1] =
 curPilot [1] =
 ssuser
 perceivedTeam [1] =
--1
+1
 [GameObject]
 PrjID [1] =
 svrecy
@@ -296,7 +296,7 @@ independence [1] =
 curPilot [1] =
 sspilo
 perceivedTeam [1] =
--1
+1
 [GameObject]
 PrjID [1] =
 eggeizr1
@@ -425,7 +425,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 eggeizr1
@@ -554,7 +554,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 eggeizr1
@@ -683,7 +683,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 eggeizr1
@@ -812,7 +812,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 eggeizr1
@@ -941,7 +941,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 eggeizr1
@@ -1070,7 +1070,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 eggeizr1
@@ -1199,7 +1199,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -1328,7 +1328,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -1457,7 +1457,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -1586,7 +1586,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -1715,7 +1715,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -1844,7 +1844,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -1973,7 +1973,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -2102,7 +2102,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -2231,7 +2231,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -2360,7 +2360,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -2489,7 +2489,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -2618,7 +2618,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -2747,7 +2747,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -2876,7 +2876,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -3005,7 +3005,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -3134,7 +3134,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -3263,7 +3263,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -3392,7 +3392,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -3521,7 +3521,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -3650,7 +3650,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -3779,7 +3779,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -3908,7 +3908,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -4037,7 +4037,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -4166,7 +4166,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -4295,7 +4295,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -4424,7 +4424,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -4553,7 +4553,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -4682,7 +4682,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -4811,7 +4811,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -4940,7 +4940,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -5069,7 +5069,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -5198,7 +5198,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -5327,7 +5327,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -5456,7 +5456,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -5585,7 +5585,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -5714,7 +5714,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -5843,7 +5843,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -5972,7 +5972,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -6101,7 +6101,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -6230,7 +6230,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -6359,7 +6359,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -6488,7 +6488,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -6617,7 +6617,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -6746,7 +6746,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -6875,7 +6875,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -7004,7 +7004,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -7133,7 +7133,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -7262,7 +7262,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -7391,7 +7391,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -7520,7 +7520,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sscr_1
@@ -7649,7 +7649,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 avartl
@@ -7798,7 +7798,7 @@ independence [1] =
 curPilot [1] =
 aspilo
 perceivedTeam [1] =
--1
+5
 [GameObject]
 PrjID [1] =
 sbtowe
@@ -7934,7 +7934,7 @@ independence [1] =
 curPilot [1] =
 sspilo
 perceivedTeam [1] =
--1
+1
 [GameObject]
 PrjID [1] =
 sbspow
@@ -8063,7 +8063,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+1
 [GameObject]
 PrjID [1] =
 sbtowe
@@ -8199,7 +8199,7 @@ independence [1] =
 curPilot [1] =
 sspilo
 perceivedTeam [1] =
--1
+1
 [GameObject]
 PrjID [1] =
 sbspow
@@ -8328,7 +8328,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+1
 [GameObject]
 PrjID [1] =
 sfield
@@ -8457,7 +8457,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 sfield
@@ -8586,7 +8586,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 eggeizr1
@@ -8715,7 +8715,7 @@ independence [1] =
 curPilot [1] =
 
 perceivedTeam [1] =
--1
+0
 [GameObject]
 PrjID [1] =
 pspwn_1

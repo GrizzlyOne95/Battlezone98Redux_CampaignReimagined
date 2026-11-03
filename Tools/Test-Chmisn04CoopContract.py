@@ -157,7 +157,9 @@ for des in ("ch04lsea.des", "ch04lseb.des", "ch04win.des"):
 # ---------------------------------------------------------------- companions, checked only when present
 vxt = ROOT / "Missions/chmisn04cr.vxt"
 if vxt.is_file():
-    assert [l.strip() for l in vxt.read_bytes().decode("latin-1").strip().splitlines()] == ["cvfighe ,", "cvtnk ,"], "the start file offers the fighter and the tank"
+    rows = [line.split(None, 3) for line in vxt.read_text().splitlines() if line.strip()]
+    assert all(len(row) == 4 for row in rows), "native vehicle rows require ODF, description, animation and display name"
+    assert rows and all(row[0].startswith("cv") for row in rows), "the start file offers Chinese craft"
     print("  Missions/chmisn04cr.vxt checked")
 ini = ROOT / "Config/chmisn04cr.ini"
 if ini.is_file():

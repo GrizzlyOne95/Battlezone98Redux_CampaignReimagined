@@ -1,6 +1,18 @@
+[GameObjectClass] // CCA Long Range Power Plant. Used in CH mission 6.
+baseName = "sblpow" //"abspow" // Should look like CCA, not NSDF. -GBD
+classLabel = "powerplant"
+scrapCost = 4
+scrapValue = 0
+maxHealth = 10000
+maxAmmo = 0
+collisionRadius = 4.0
+unitName = "S-Power"
+heatSignature = 0.8
+imageSignature = 8.0
+radarSignature = 1.0
+
 [BuildingClass]
 soundAmbient = "absolce1.wav"
 
 [PowerPlantClass]
 powerRadius = 2500.0
-
