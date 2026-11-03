@@ -170,10 +170,12 @@ do
     _G.IsAlive = nil
 end
 
--- misn12 is a stealth mission at the local limit: it takes no extras.
+-- misn12 is at the 200-local limit, so it wraps the natives in a block-scoped environment instead of locals
+-- (Tools/Test-Misn12.lua drives it at Very Hard).
 do
     local f = assert(io.open("Scripts/misn12cr.lua", "rb")); local src = f:read("*a"); f:close()
-    check(not src:find("CRDifficulty", 1, true), "misn12 builds no extras")
+    check(src:find("setfenv(1, setmetatable(wrapped", 1, true) and src:find("CRDifficulty.Build(BuildObject", 1, true),
+        "misn12 wraps BuildObject through its environment")
 end
 
 -- ------------------------------------------------------------------ misn18 and misn17, real runtimes
