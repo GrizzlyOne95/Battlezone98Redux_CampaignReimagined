@@ -512,8 +512,15 @@ function Update(dt)
             RemovePilot(M.apc)
             -- STOCK BUG FIX (TRO LUA-Patch 2492227931): stock builds the pilot at the APC's own
             -- position, inside the hull, so he never visibly got out and could die there (bd08 loss 2).
-            -- Build him beside it and give the Retreat 2 s later, as the patch does.
-            M.pilot = BuildObject("cspilo", 2, GetPositionNear(GetPosition(M.apc), 8, 12)) --PilotGetOut(apc);
+            -- Build him on the roof and pop him up and out so he reads as hopping out. He is
+            -- invincible (max health 0) until the Retreat 2 s later, as the patch's delay, restores him.
+            local p = GetPosition(M.apc)
+            M.pilot = BuildObject("cspilo", 2, SetVector(p.x, p.y + 4, p.z)) --PilotGetOut(apc);
+            if Valid(M.pilot) then
+                M.pilotMaxHealth = GetMaxHealth(M.pilot)
+                SetMaxHealth(M.pilot, 0)
+                SetVelocity(M.pilot, SetVector(3, 6, 0))
+            end
             SetPerceivedTeam(M.apc, 0)
             M.pilotRetreatTime = now + 2.0
             M.pilotSpawned1 = true
@@ -526,6 +533,11 @@ function Update(dt)
 
     if (M.pilotRetreatTime or NEVER) < now then
         M.pilotRetreatTime = NEVER
+        if Valid(M.pilot) and M.pilotMaxHealth then
+            SetMaxHealth(M.pilot, M.pilotMaxHealth)
+            SetCurHealth(M.pilot, M.pilotMaxHealth)
+        end
+        M.pilotMaxHealth = nil
         if Healthy(M.pilot) and Healthy(M.portal) then
             Retreat(M.pilot, M.portal, 1)
         end
