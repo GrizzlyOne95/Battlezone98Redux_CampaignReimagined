@@ -384,8 +384,8 @@ def build(text: str, mission: str) -> str:
         team = re.search(r"^team \[1\] =\n(\d+)$", block, re.M)
         if team and int(team.group(1)) == AUTHORED_ENEMY_TEAM:
             block = re.sub(r"^team \[1\] =\n2$", f"team [1] =\n{ENEMY_TEAM}", block, count=1, flags=re.M)
-            # perceivedTeam 2 follows the enemy; -1 (unset, misns4) or a disguise as another
-            # team (misns6 abcafe8 perceived 1) stays as authored.
+            # perceivedTeam 2 follows the enemy. Intentional disguises such as
+            # misns6 abcafe8 perceived 1 stay authored; legacy -1 is fixed below.
             if not re.search(r"^perceivedTeam \[1\] =\n-?\d+$", block, re.M):
                 raise SystemExit(f"object {i} has no perceivedTeam")
             block = re.sub(r"^perceivedTeam \[1\] =\n2$", f"perceivedTeam [1] =\n{ENEMY_TEAM}",
@@ -398,6 +398,22 @@ def build(text: str, mission: str) -> str:
             objects[i] = re.sub(r"^perceivedTeam \[1\] =\n2$", f"perceivedTeam [1] =\n{ENEMY_TEAM}",
                                 block, count=1, flags=re.M)
             print("disguise perceivedTeam 2 -> 5 on", re.search(r"^label = (.*)$", block, re.M).group(1))
+
+    # Redux uses the perceived team as a visibility-map index during native
+    # startup, before Lua can repair it. The 1.5 misns4 snapshot has -1 on all
+    # authored objects; serialize their actual (already remapped) team instead.
+    # Keep nonnegative disguises intact.
+    normalized = 0
+    for i, block in enumerate(objects):
+        if re.search(r"^perceivedTeam \[1\] =\n-1$", block, re.M):
+            actual = re.search(r"^team \[1\] =\n(\d+)$", block, re.M)
+            if not actual or not 0 <= int(actual.group(1)) <= 15:
+                raise SystemExit(f"object {i} has no valid team for perceivedTeam -1")
+            objects[i] = re.sub(r"^perceivedTeam \[1\] =\n-1$",
+                                f"perceivedTeam [1] =\n{actual.group(1)}", block, count=1, flags=re.M)
+            normalized += 1
+    if normalized:
+        print(f"normalized {normalized} legacy perceivedTeam -1 values for native visibility")
 
     player = next(b for b in objects if re.search(r"^isUser \[1\] =\n1$", b, re.M))
     px, py, pz = (field(player, f"posit_{a}") for a in "xyz")

@@ -94,7 +94,7 @@ assert set(re.findall(r'"(bd09\w+\.des)"', live)) == {"bd09lose.des", "bd09lseb.
 # ---------------------------------------------------------------- companion files, only when present
 vxt = ROOT / "Missions/bdmisn09cr.vxt"
 if vxt.is_file():
-    allowed = {line.split(",")[0].strip() for line in vxt.read_text(encoding="latin-1").splitlines() if line.strip()}
+    allowed = {line.split()[0] for line in vxt.read_text(encoding="latin-1").splitlines() if line.strip()}
     assert allowed == {"cvapc"}, "every human starts in the stolen Chinese APC: " + str(allowed)
 else:
     print("note: Missions/bdmisn09cr.vxt not present, vehicle list not checked")
