@@ -19,6 +19,7 @@ local subtit = require("ScriptSubtitles")
 local pda = require("PersistentConfig")
 local Environment = require("Environment")
 local roster = require("CRFuryRoster")
+local Difficulty = require("CRDifficulty")
 SetAIControl(FURY_TEAM,true) -- startup only; never enable strategic AI on humans
 local unpackArgs = unpack or table.unpack
 local OWN_CHANNELS = { E = true, C = true, A = true }
@@ -725,12 +726,17 @@ function R.Spawn(odf,team,where)
     s.serial=s.serial+1
     local id=s.serial
     s.arrivals[id]={odf=roster.Select(odf,M),team=team,where=where,orders={}}
+    -- Offline Hard/Very Hard: every scripted Fury brings difficulty extras (Scripts/CRDifficulty.lua); co-op adds its own.
+    local extras=Difficulty.Extras()
     local event=s.event
     if event and not event.made then
         event.made=true
+        extras=extras+event.extras
+    end
+    if extras>0 then
         local primary=s.arrivals[id]
         primary.extras={}
-        for _=1,event.extras do
+        for _=1,extras do
             s.serial=s.serial+1
             s.arrivals[s.serial]={odf=roster.Select(odf,M),team=team,where=where,orders={},extra=true}
             primary.extras[#primary.extras+1]=s.serial
@@ -1016,6 +1022,10 @@ local function Failure()
     FailMission(GetTime()+7,"misn18l2.des")
 end
 function R.SetScrap(team,amount)
+    -- Offline difficulty scales the starting scrap (a fill to capacity stays a fill); co-op locks it.
+    if Difficulty.Active() then
+        return SetScrap(1,Difficulty.PlayerAmount(amount,type(GetMaxScrap)=="function" and GetMaxScrap(1) or nil))
+    end
     -- One shared production base, with a bounded +10 starting scrap per guest.
     return SetScrap(1,amount+10*(HumanCount()-1))
 end

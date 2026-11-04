@@ -44,6 +44,16 @@ local CRMarsWeather = require("CRMarsWeather")
 local InitAtmosphere, weatherStarted, nextWeatherSync = nil, false, 0
 -- CR atmosphere <<
 local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
+-- CR difficulty >>
+-- Single-player difficulty (Scripts/CRDifficulty.lua): lexical wrappers for scrap/pilots and extra hostile combat units;
+-- a network game runs the mission as written.
+local CRDifficulty = require("CRDifficulty")
+local HOSTILE = { [ENEMY_TEAM] = true }
+local SetScrap = CRDifficulty.Resource(SetScrap, GetMaxScrap, HOSTILE)
+local BuildObject = CRDifficulty.Build(BuildObject, HOSTILE)
+local Attack, Defend, Goto, Patrol, SetIndependence, Stop = CRDifficulty.Mirror(Attack, Defend, Goto, Patrol, SetIndependence, Stop)
+local RemoveObject = CRDifficulty.Remove(RemoveObject)
+-- CR difficulty <<
 -- CR launch film >>
 local CR06LaunchFilm = require("CR06LaunchFilm")
 local function RocketHandle() return GetHandle("cr06_rocket") end

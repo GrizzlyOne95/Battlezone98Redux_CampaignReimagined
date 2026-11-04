@@ -337,6 +337,7 @@ function F.makePeer(id, team, network, options)
     end}
     e.package = setmetatable({loaded = {exu = modules.exu}}, {__index = package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
+    modules.CRDifficulty = assert(loadfile("Scripts/CRDifficulty.lua"))()
     e.require = function(name)
         local m = modules[name]
         if m == nil then error("module '" .. name .. "' not found") end

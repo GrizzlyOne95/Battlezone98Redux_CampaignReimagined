@@ -31,7 +31,7 @@ for name, expected in {
 source = (ROOT / "References/Misn12Source/Misn12Mission.cpp").read_text(encoding="utf-8", errors="replace")
 lua_full = (ROOT / "Scripts/misn12cr.lua").read_text().replace("\r\n", "\n")
 
-REGIONS = ("CR PDA", "CR co-op layer", "CR Europa weather", "CR scaling", "CR artillery", "CR Razor One")
+REGIONS = ("CR PDA", "CR co-op layer", "CR Europa weather", "CR scaling", "CR artillery", "CR Razor One", "CR difficulty")
 opens = {f"-- {name} >>": name for name in REGIONS}
 closes = {f"-- {name} <<": name for name in REGIONS}
 lua_lines = lua_full.split("\n")

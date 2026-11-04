@@ -354,6 +354,7 @@ function F.makePeer(id, team, network, options)
         end
     end
     e.math = setmetatable({random = function(lo, hi)
+        if lo == nil then return math.random() end -- the difficulty helper's chance roll
         record("random", lo, hi)
         return math.max(lo, math.min(hi, W.random))
     end}, {__index = math})
@@ -428,6 +429,12 @@ function F.makePeer(id, team, network, options)
         if m == nil then error("module '" .. name .. "' not found") end
         return m
     end
+    -- options.difficulty: a DiffUtils stand-in backed by the real Scripts/DiffUtils.lua at that game difficulty (0..4).
+    if options.difficulty ~= nil then
+        modules.exu.GetDifficulty = function() return options.difficulty end
+        modules.DiffUtils = setfenv(assert(loadfile("Scripts/DiffUtils.lua")), e)()
+    end
+    modules.CRDifficulty = setfenv(assert(loadfile("Scripts/CRDifficulty.lua")), e)()
     modules.CRMisn18 = setfenv(assert(loadfile("Scripts/CRMisn18.lua")),e)()
     setfenv(assert(loadfile("Scripts/misn18cr.lua")), e)()
     p.chunkCalls = #p.calls -- everything recorded so far ran at chunk load, before Start

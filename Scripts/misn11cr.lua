@@ -66,6 +66,16 @@ local CRWire = require("CRWire")
 -- has no AIP and no strategic AI: every CCA unit is driven by the script below.
 local LEADER_TEAM, ENEMY_TEAM = 1, 5
 -- CR co-op layer <<
+-- CR difficulty >>
+-- Single-player difficulty (Scripts/CRDifficulty.lua): lexical wrappers for scrap/pilots and extra hostile combat units;
+-- a network game runs the mission as written.
+local CRDifficulty = require("CRDifficulty")
+local HOSTILE = { [ENEMY_TEAM] = true }
+local SetScrap = CRDifficulty.Resource(SetScrap, GetMaxScrap, HOSTILE)
+local BuildObject = CRDifficulty.Build(BuildObject, HOSTILE)
+local Attack, Defend, Goto, SetTeamNum = CRDifficulty.Mirror(Attack, Defend, Goto, SetTeamNum)
+local RemoveObject = CRDifficulty.Remove(RemoveObject)
+-- CR difficulty <<
 -- CR Io weather >>
 local CRIoWeather = require("CRIoWeather")
 local IoSites = require("CRIoSites11")
