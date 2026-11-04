@@ -81,6 +81,7 @@ class WeaponRigTests(unittest.TestCase):
                 if cp:
                     twin=next(a for a in cp.animations if a.name==channel['clip']);self.assertEqual(clip.length,twin.length)
                 if model=='cvfigh':
+                    self.assertLess(channel['lo'][2],1.9) # Full exposed tubes, not only the forward tips.
                     for track in clip.tracks:
                         self.assertEqual(len(track.keyframes),5)
                         self.assertTrue(all(k.translation==(0,0,0) for k in track.keyframes))

@@ -22,7 +22,7 @@ Gun regions retain source surfaces, materials and UVs. New moving boundaries are
 | `bvwalk` | Independent left/right gun sections beneath their original arm drivers. | 2 / 2 |
 | `cblasr` | Emitter tip split from tower; restore missing native aiming hierarchy in the rendered rig. | Building; no cockpit gun copy |
 | `cvartl` | Four forward tube sections with separate clips; existing single equipped hardpoint selects its own channel. | In-mesh cabin / no separate gun copy |
-| `cvfigh` | Spin the forward minigun barrel clusters and retainers about each bore; rear mounts and wings stay fixed. | 2 / 2 |
+| `cvfigh` | Spin the full exposed minigun barrel clusters and retaining rings about each bore; rear receivers, mounts and wings stay fixed. | 2 / 2 |
 | `cvhraz` | Paired forward launcher aperture sections; launcher bodies stay fixed. | 0 / 2 |
 | `cvhtnk` | Independent paired cannon sections; corresponding cockpit gun copies use the same clip names. | 2 / 2 |
 | `cvltnk` | Forward cannon section, shared by cannon/launcher hardpoint aliases. | 1 / 1 |

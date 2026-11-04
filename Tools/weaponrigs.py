@@ -275,6 +275,13 @@ def channels_mesh(mesh,skel,channels,cockpit=False):
                     if bounds is None or not any(np.all(bounds[0]>=np.asarray(r['lo'])-1e-4) and np.all(bounds[1]<=np.asarray(r['hi'])+1e-4) for r in ch['component_regions']):
                         keep.append((f,owner));continue
                 a,b=partition([f],lo,hi)
+                if ch.get('cylinder_radius'):
+                    # A spinning cluster needs a round rear interface; an AABB
+                    # would also rotate square receiver corners into the mount.
+                    center=np.asarray(ch.get('cockpit_pivot',ch['pivot']) if cockpit else ch['pivot'])
+                    for k in range(16):
+                        angle=math.tau*k/16;normal=np.asarray([math.cos(angle),math.sin(angle),0])
+                        a,outside=split_faces(a,normal,float(center@normal)-ch['cylinder_radius']);b.extend(outside)
                 if a:extracted.setdefault(owner,[]).extend(a)
                 fixed_parts.extend((v,owner) for v in b)
             if not extracted:continue

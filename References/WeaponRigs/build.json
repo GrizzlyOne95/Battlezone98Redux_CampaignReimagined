@@ -5319,8 +5319,8 @@
         "hardpoints": [
           "GC1"
         ],
-        "triangles": 1415,
-        "cap_triangles": 154,
+        "triangles": 1576,
+        "cap_triangles": 31,
         "cockpit": false,
         "helpers": [
           {
@@ -5333,8 +5333,8 @@
         "hardpoints": [
           "GC2"
         ],
-        "triangles": 1415,
-        "cap_triangles": 154,
+        "triangles": 1584,
+        "cap_triangles": 39,
         "cockpit": false,
         "helpers": [
           {
@@ -5349,8 +5349,8 @@
         "hardpoints": [
           "GC1"
         ],
-        "triangles": 1415,
-        "cap_triangles": 154,
+        "triangles": 1576,
+        "cap_triangles": 31,
         "cockpit": true,
         "helpers": [
           {
@@ -5363,8 +5363,8 @@
         "hardpoints": [
           "GC2"
         ],
-        "triangles": 1415,
-        "cap_triangles": 154,
+        "triangles": 1584,
+        "cap_triangles": 39,
         "cockpit": true,
         "helpers": [
           {
@@ -5615,8 +5615,8 @@
     },
     "outputs": {
       "Assets/Models/cvfigh_recoil.skeleton": "d98047f7039e9db15c3e9520f9a0eee431f6e99c5118f12218e0b7e31dc2abbc",
-      "Assets/ModelFixes/cvfigh.mesh": "f0b956289c3d00391f794b18f9278a59a594fe496a2007517e832b67d87f3205",
-      "Assets/Models/cvfigh_cockpit.mesh": "993d46ea3a4a7e50ec4164102693450484a3c84419f2ca1d71cf3e34505a21e1",
+      "Assets/ModelFixes/cvfigh.mesh": "931a8ecd6aea568eaf990d06fcbbb64cf0be97d24c5bf95455fdf115113678cd",
+      "Assets/Models/cvfigh_cockpit.mesh": "4003b62a3ca8f7e06173c3b47dc7f323f1817cead0a8ca7c847d3252c933ee3c",
       "Assets/Models/cvfigh_cockpit_recoil.skeleton": "9a2b5b7fd9adb2b65c502071920e839e43d338cd6926a7fa5af5ef83b5981e90"
     }
   },

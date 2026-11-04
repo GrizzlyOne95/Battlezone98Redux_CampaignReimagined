@@ -295,7 +295,7 @@ def report():
         'bvwalk':'Independent left/right gun sections beneath their original arm drivers.',
         'cblasr':'Emitter tip split from tower; restore missing native aiming hierarchy in the rendered rig.',
         'cvartl':'Four forward tube sections with separate clips; existing single equipped hardpoint selects its own channel.',
-        'cvfigh':'Spin the forward minigun barrel clusters and retainers about each bore; rear mounts and wings stay fixed.',
+        'cvfigh':'Spin the full exposed minigun barrel clusters and retaining rings about each bore; rear receivers, mounts and wings stay fixed.',
         'cvhraz':'Paired forward launcher aperture sections; launcher bodies stay fixed.',
         'cvhtnk':'Independent paired cannon sections; corresponding cockpit gun copies use the same clip names.',
         'cvltnk':'Forward cannon section, shared by cannon/launcher hardpoint aliases.',
