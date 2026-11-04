@@ -20,6 +20,7 @@ weaponName3 = "gflare"
 weaponMask = 00011
 
 [CraftClass]
+holdOrder = 1 // CR: Hunt button becomes native Hold (Scripts/CRHoldOrder.lua)
 rangeScan = 345.0
 periodScan = 5.0f
 velocJam = 5.0f
