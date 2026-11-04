@@ -1,5 +1,5 @@
 -- misn06-14 must initialize PersistentConfig, or X never opens the PDA and
--- ScriptSubtitles/AutoSave fall back to defaults. Checks each mission's
+-- ScriptSubtitles falls back to defaults. Checks each mission's
 -- "CR PDA" block, its Start/Update/AddObject call sites, and that mission
 -- results reach PersistentConfig's SucceedMission/FailMission cleanup hooks.
 local checks, failed = 0, 0

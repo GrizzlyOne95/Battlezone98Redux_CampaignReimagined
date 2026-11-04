@@ -199,7 +199,7 @@ local function makePeer(id, team, network)
             Get = function() return { res = 1 } end, ScaleRes = function(n) return n end,
             ScaleTimer = function(n) return n end },
         PersistentConfig = { Settings = {}, Initialize = noop, UpdateInputs = noop,
-            UpdateHeadlights = noop }, AutoSave = { Update = function() record("autosave") end },
+            UpdateHeadlights = noop },
     }
     for k, v in pairs(moonModules) do modules[k] = v end
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
@@ -335,11 +335,11 @@ for _, client in ipairs(clients) do
     check(last(client, "SucceedMission")[3] == "misn03w1.des", "co-op victory debrief changed")
 end
 
--- Offline: same mission Update, immediate stock result semantics and autosave.
+-- Offline: same mission Update and immediate stock result semantics.
 reset()
 local offline = makePeer(10, 1, false)
 tick(0.1)
-check(offline.state.first_wave_done and count(offline, "autosave") == 1, "offline startup/autosave changed")
+check(offline.state.first_wave_done, "offline startup changed")
 check(count(offline, "DisableStartingRecycler") == 0 and #packets == 0, "offline used network startup/transport")
 objects.solar1.alive = false
 tick(0.1)

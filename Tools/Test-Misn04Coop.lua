@@ -200,7 +200,7 @@ local function makePeer(id, team, network)
             ForceLevel = function(level, seconds, transition) p.weatherLevel = level; record("weatherForce", level, seconds, transition) end,
             Update = function() record("weatherUpdate") end, Save = function() return {} end },
         PersistentConfig = { Settings = {}, Initialize = noop, UpdateInputs = noop,
-            UpdateHeadlights = noop }, AutoSave = { Update = function() record("autosave") end },
+            UpdateHeadlights = noop },
     }
     -- The single-player dropship opening has its own test (Tools/Test-CR04Drop.lua); co-op must never run it.
     modules.CR04Drop = { Configure = noop, Reset = noop, OnLoad = noop,
@@ -264,7 +264,7 @@ for _, mode in ipairs({ false, true }) do
         check(count(c, "Play") == 1 and c.difficulty == 3, "opening/difficulty lost or duplicated")
         check(last(c, "SetScrap")[2] == c.team and count(c, "SetScrap") == 1, "resources not owner-local")
         check(count(c, "DisableStartingRecycler") == 1 and last(c, "SetLives")[2] == 999, "native hooks missing")
-        check(count(c, "autosave") == 0 and count(c, "environmentUpdate") > 0 and count(c, "weatherUpdate") > 0, "guest local modules missing")
+        check(count(c, "environmentUpdate") > 0 and count(c, "weatherUpdate") > 0, "guest local modules missing")
         check(c.weatherAutomatic == false and c.weatherOptions.windPush == false, "guest has independent weather physics")
     end
     check(host.weatherAutomatic and host.weatherOptions.windPush == false, "host weather setup missing")
@@ -339,10 +339,10 @@ tick(121); settle(); settle()
 check(count(guest, "FailMission") == 1 and last(guest, "FailMission")[3] == "misn04l1.des", "theft deadline/debrief missing")
 -- Offline retains the campaign cargo job, weather wind, and save rehydration.
 reset(); local solo = makePeer(10, 1, false); tick(0.1)
-check(solo.state.missionstart and count(solo, "autosave") == 1, "offline startup changed")
+check(solo.state.missionstart, "offline startup changed")
 check(solo.weatherOptions.windPush == true and solo.weatherAutomatic, "offline weather changed")
 local saved = solo.env.Save(); solo.env.Load(saved, {}, {}); tick(3)
-check(solo.state.loading_done and count(solo, "autosave") == 2, "offline save/load failed")
+check(solo.state.loading_done, "offline save/load failed")
 -- Survey route and the authored missed-investigation failure.
 reset(); host = makePeer(10, 1, true); guest = makePeer(20, 2, true)
 registerAll(); settle(); host.state.fetch = now - 1; tick(0.1); settle()

@@ -25,7 +25,7 @@ if type(IsNetGame) == "function" and IsNetGame() then
 end
 local subtit = require("ScriptSubtitles")
 -- CR PDA >>
--- PersistentConfig owns the PDA (X), subtitle/UI settings and AutoSave. Script
+-- PersistentConfig owns the PDA (X), subtitle/UI settings. Script
 -- locals reset when a save loads, so Update initializes it once per Lua state.
 -- One table local keeps the main chunk under Lua 5.1's 200-local limit.
 local missionPda = { config = require("PersistentConfig"), ready = false }
