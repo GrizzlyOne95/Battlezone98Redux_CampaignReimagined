@@ -336,6 +336,46 @@ Art.SetSkySun("achilles",{azimuth=55,elevation=-28})
 local ac=Art.NightLight("achilles")
 check(ac and ac.diffuse.b>ac.diffuse.r and ac.diffuse.b<=Art.Shine.achilles.light*1.05 and near(ac.direction.y,-uranus.y),"misn18's night lights cyan from Uranus")
 Art.SetSkySun("achilles",nil)
+local function slurp(path) return assert(openfile(scripts.."/../"..path,"rb")):read("*a") end
+-- Ganymede: the same machinery another moon out, with the Jupiter of the
+-- bdmisn and chmisn Ganymede maps.
+stars={Texture00="crjovian.map",Azimuth00="180",Elevation00="25",Texture01="crio.map",Azimuth01="164.6",Elevation01="24.2",
+ Texture02="creuropa.map",Azimuth02="213.5",Elevation02="21.2"}
+local gaJupiter=Art.DetectShine({},"ganymede")
+check(gaJupiter and near(gaJupiter.y,math.sin(math.rad(25))) and gaJupiter.z>0,"Ganymede finds its Jupiter")
+local gaOrbit=Art.SetOrbit("ganymede")
+check(gaOrbit and near(dot(gaOrbit.pole,gaJupiter),0) and gaOrbit.pole.y>0 and gaOrbit.pole.z<0,"Ganymede's pole is square to Jupiter and tilts up")
+local function heading(az,el) return {x=math.sin(math.rad(az))*math.cos(math.rad(el)),y=math.sin(math.rad(el)),z=-math.cos(math.rad(az))*math.cos(math.rad(el))} end
+local gaIo,gaEuropa=heading(164.6,24.2),heading(213.5,21.2)
+check(math.abs(dot(gaIo,gaOrbit.pole))<math.sin(math.rad(1.5)) and math.abs(dot(gaEuropa,gaOrbit.pole))<math.sin(math.rad(1.5)),"Io and Europa sit on Jupiter's equator, within 1.5 degrees")
+check(math.deg(math.acos(dot(gaIo,gaJupiter)))<23.2,"Io stays inside its greatest elongation from Ganymede")
+check(math.deg(math.acos(dot(gaEuropa,gaJupiter)))<38.8,"Europa stays inside its greatest elongation from Ganymede")
+check(near(Art.Orbits.ganymede.radius,math.deg(math.asin(71492/1070400)),0.01),"Jupiter's size is its radius over Ganymede's 1,070,400 km orbit")
+check(Art.Orbits.ganymede.radius<Art.Orbits.europa.radius,"Jupiter is smaller from Ganymede than from Europa")
+local gaAt=Art.OrbitSun("ganymede",gaOrbit.bodyHour)
+check(near(Art.OrbitEclipse("ganymede",gaAt),1),"behind Jupiter Ganymede's sun is gone")
+check(near(Art.OrbitEclipse("ganymede",Art.OrbitSun("ganymede",gaOrbit.bodyHour+math.rad(5))),0),"five degrees off Ganymede's Jupiter the sun is whole")
+Art.SkySun.ganymede={x=-gaJupiter.x,y=-gaJupiter.y,z=-gaJupiter.z}
+local gaFull=Art.NightLight("ganymede")
+check(gaFull and gaFull.diffuse.r<euFull.diffuse.r and gaFull.diffuse.r>gaFull.diffuse.b,"a full Jupiter lights Ganymede warm, weaker than Europa")
+local ga={vectors={},box=nil}
+local gaApi={SetSkyBox=function(material) ga.box=material;return true end,
+ SetMaterialTexture=function() return true end,
+ SetMaterialShaderVector=function(material,name,x,y,z,w) ga.vectors[material..":"..name]={x,y,z,w};return 1 end}
+Art.SkySun.ganymede=Art.OrbitSun("ganymede",-0.7)
+check(Art.InstallStarBox(gaApi,"ganymede") and ga.box=="CR_Sky/GanymedeStars","Ganymede installs its own star box")
+check(ga.vectors["crio.map:bodyPole"] and ga.vectors["creuropa.map:sunDirection"] and ga.vectors["CRJOVIAN.MAP:sunDirection"],"Io, Europa and Jupiter take Ganymede's sun and pole")
+-- The Ganymede maps draw Jupiter true to size: a quad is its disc over 0.86 of the
+-- UV square, so Size = 2 * 1000 * tan(radius / 0.86).
+local gaSize=2000*math.tan(math.rad(Art.Orbits.ganymede.radius/0.86))
+for _,file in ipairs({"bdmisn01","bdmisn02","bdmisn03","bdmisn04","bdmisn05","bdmisn06","bdmisn08","bdmisn12","bdmisn13","bdmisn14","bdmisn15",
+ "chmisn01","chmisn02","chmisn03","chmisn04","chmisn08"}) do
+ local trn=slurp("Missions/"..file..".trn")
+ check(trn:find("Texture00%s*=%s*crjovian%.map") and trn:find("Texture01%s*=%s*crio%.map") and trn:find("Texture02%s*=%s*creuropa%.map") and trn:find("Texture03%s*=%s*crcallis%.map"),file.." names Jupiter and three moons")
+ check(not trn:find("SunTexture=%s*sun%.0") and not trn:find("ganyjup"),file.." leaves the sun to the star box and drops the stock Jupiter")
+ local size=tonumber(trn:match("Size00%s*=%s*(%d+)"))
+ check(size and math.abs(size-gaSize)<1.5,file.."'s Jupiter is "..string.format("%.1f",gaSize).." across at Radius 1000")
+end
 -- Elysium: a weather dome without a body. The storm, the dust front and the
 -- dry lightning take the weather slots, and the dome hides the cloud sprites.
 check(Art.SkyFrames.elysium and Art.SkyFrames.elysium.weather and not Art.SkyFrames.elysium.body,"Elysium is a weather dome with no body")
@@ -349,7 +389,6 @@ hidden={}
 api.SetSkyDome=function(material) return material=="CRSKYEL.MAP" end
 check(Art.InstallSky(api,"elysium") and hidden["ACLOUD2.MAP"]=="cr06void.dds" and hidden["acloud.map"]=="cr06void.dds","Elysium dome hides the cloud sprites it draws itself")
 -- The dome is wired in the shipped files: material, programs, texture, sun sprite.
-local function slurp(path) return assert(openfile(scripts.."/../"..path,"rb")):read("*a") end
 local elMaterial=slurp("Materials/crart_elysium.material")
 check(elMaterial:find("material CRSKYEL.MAP",1,true) and elMaterial:find("CR_ElysiumSky_vertex",1,true) and elMaterial:find("CR_ElysiumSky_fragment",1,true) and elMaterial:find("crsky_elysium_clouds.png",1,true),"crart_elysium.material draws the Elysium dome")
 check(elMaterial:find("CR_SkyDome_vertex",1,true) and elMaterial:find("CR_WorldSky_fragment",1,true),"OpenGL keeps the stock Elysium dome")

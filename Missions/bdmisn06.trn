@@ -27,8 +27,7 @@ MaterialName	= ga_detail_atlas
 MusicTrack=22
 
 [Sky]
-SunTexture= sun.0
-SkyType= 0
+SunTexture=
 SkyHeight = 130
 SkyTexture= 
 
@@ -39,14 +38,27 @@ BackdropHeight  = 100
 
 
 [Stars]
-Radius      = 401
+Radius      = 1000
 
-Texture00   = ganyjup.map
-Alpha00     = 0
-Size00      = 150
+Texture00   = crjovian.map
+Size00      = 156
 Azimuth00   = 180
 Elevation00 = 25
-Roll00      = 0
+
+Texture01   = crio.map
+Size01      = 18
+Azimuth01   = 164.6
+Elevation01 = 24.2
+
+Texture02   = creuropa.map
+Size02      = 15
+Azimuth02   = 213.5
+Elevation02 = 21.2
+
+Texture03   = crcallis.map
+Size03      = 17
+Azimuth03   = 115.7
+Elevation03 = 11.4
 
 [StarList]
 

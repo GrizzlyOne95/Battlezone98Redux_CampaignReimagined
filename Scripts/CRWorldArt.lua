@@ -40,13 +40,14 @@ Art.SkyFrameState={}
 -- anchored. The sprite still rasterizes, so the lens flare's occlusion test
 -- keeps working.
 -- The TRN's sky bodies (bodies: the Earth over the Moon, CREARTH.MAP; Jupiter
--- and the other Galilean moons over Io and Europa, Shaders/CR_jovian.hlsl) are
--- spheres lit from sunDirection, so the box's sun also gives them their
--- phases. The Io and Europa TRNs name no sun sprite: the box's sun is the
--- only one.
+-- and the other Galilean moons over Io, Europa and Ganymede,
+-- Shaders/CR_jovian.hlsl) are spheres lit from sunDirection, so the box's sun
+-- also gives them their phases. The Io, Europa and Ganymede TRNs name no sun
+-- sprite: the box's sun is the only one.
 Art.StarBoxes={moon={material="CR_Sky/CatalogStars",hide={"STARS.MAP","MILKYWAY.MAP"},sunSprite="crsun",bodies={"CREARTH.MAP"}},
     io={material="CR_Sky/IoStars",hide={"STARS.MAP"},bodies={"CRJOVIAN.MAP","CREUROPA.MAP","CRGANYME.MAP","CRCALLIS.MAP"}},
-    europa={material="CR_Sky/EuropaStars",hide={"STARS.MAP"},bodies={"CRJOVIAN.MAP","CRIO.MAP","CRGANYME.MAP","CRCALLIS.MAP"}}}
+    europa={material="CR_Sky/EuropaStars",hide={"STARS.MAP"},bodies={"CRJOVIAN.MAP","CRIO.MAP","CRGANYME.MAP","CRCALLIS.MAP"}},
+    ganymede={material="CR_Sky/GanymedeStars",hide={"STARS.MAP"},bodies={"CRJOVIAN.MAP","CRIO.MAP","CREUROPA.MAP","CRCALLIS.MAP"}}}
 Art.SunAnchored={}
 -- A compass heading (0 along +z, 90 along +x) and elevation, in degrees, as a
 -- unit vector. TRN [Stars] entries use this convention, in sim space; Redux
@@ -176,14 +177,18 @@ local function unit(v) return math.max(0,math.min(1,tonumber(v) or 0)) end
 -- through Jupiter square to the pole P, the axis square to both Jupiter's
 -- direction and east-west that tilts up. The hour angle h counts from noon,
 -- where the sun stands highest: S(h) = cos h * noon + sin h * west.
--- Europa is the same, one moon out: a smaller Jupiter and a longer day.
--- radius: Jupiter's angular radius from the moon (degrees). spinTurns: how
--- often Jupiter turns, seen from the moon, in one of its days (Io: synodic
--- 12.95 h in 42.46 h; Europa: 11.23 h in 85.23 h); spin names the material
+-- Europa and Ganymede are the same, further out: a smaller Jupiter and a longer
+-- day.
+-- radius: Jupiter's angular radius from the moon (degrees; Jupiter's 71,492 km
+-- over the orbit: Io 421,800 km, Europa 671,100 km, Ganymede 1,070,400 km).
+-- spinTurns: how often Jupiter turns, seen from the moon, in one of its days
+-- (Io: synodic 12.95 h in 42.46 h; Europa: 11.23 h in 85.23 h; Ganymede:
+-- 10.53 h in 171.7 h); spin names the material
 -- that turns, from longitude spinStart (radians), and spinLook carries the
 -- rest of its bodySpin (Minnaert exponent, limb haze).
 Art.Orbits={io={radius=9.625,spin="CRJOVIAN.MAP",spinTurns=3.28,spinStart=-0.3,spinLook={0.9,0.35}},
-    europa={radius=6.115,spin="CRJOVIAN.MAP",spinTurns=7.59,spinStart=1.2,spinLook={0.9,0.35}}}
+    europa={radius=6.115,spin="CRJOVIAN.MAP",spinTurns=7.59,spinStart=1.2,spinLook={0.9,0.35}},
+    ganymede={radius=3.83,spin="CRJOVIAN.MAP",spinTurns=16.30,spinStart=2.4,spinLook={0.9,0.35}}}
 Art.Orbit={}
 Art.OrbitWritten={}
 local atan2=math.atan2 or math.atan
@@ -363,7 +368,8 @@ end
 -- mode, Jupiter is already the night's directional light. Its light stays
 -- below the day's diffuse, so a full Jupiter still reads as night. From
 -- Europa Jupiter covers 0.4 times the sky it does from Io, so its light is
--- weaker, but the bright ice gives more of it back.
+-- weaker, but the bright ice gives more of it back. From Ganymede it covers
+-- 0.16 times the sky it does from Io, so its light is weaker again.
 -- Titan's is Saturn, which hangs still over the Saturn-facing side, full at
 -- local midnight. By day the haze hides its light entirely; at night it is
 -- the haze-reddened light that casts the shadows (Environment's night mode),
@@ -374,6 +380,7 @@ end
 Art.Shine={moon={texture="crearth.map",colour={r=0.62,g=0.74,b=1.00},day=0.10,night=0.30,light=0.45,bounce=0.08},
     io={texture="crjovian.map",colour={r=1.00,g=0.80,b=0.58},day=0.05,night=0.07,light=0.36},
     europa={texture="crjovian.map",colour={r=1.00,g=0.82,b=0.62},day=0.03,night=0.05,light=0.22},
+    ganymede={texture="crjovian.map",colour={r=1.00,g=0.82,b=0.64},day=0.02,night=0.04,light=0.16},
     titan={texture="saturn.map",colour={r=1.00,g=0.70,b=0.40},day=0.0,night=0.06,light=0.26,bounce=0.10},
     achilles={texture="uranus.map",colour={r=0.62,g=0.86,b=1.00},day=0.04,night=0.22,light=0.24,bounce=0.07}}
 Art.ShineSource={}

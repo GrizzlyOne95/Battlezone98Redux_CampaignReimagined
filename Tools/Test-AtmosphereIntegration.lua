@@ -205,6 +205,34 @@ check(dayTime>500 and nightTime>600,'Europa day and night each hold a large shar
 check(minDiffuse<0.2,'the Europa eclipse darkens the scene')
 check(nightWarm and nightMax>0.05 and nightMax<0.4,'Jupiter-shine lights the Europa night warm and dim ('..nightMax..')')
 
+-- Ganymede (the bdmisn and chmisn Ganymede maps): a still smaller Jupiter, so
+-- a shorter eclipse and a dimmer, still warm Jupiter-lit night.
+do
+    local gw=world('ganymede.act',250)
+    gw.trn.Atlases={MaterialName='ga_detail_atlas'}
+    gw.trn.Stars={Texture00='crjovian.map',Azimuth00='180',Elevation00='25'}
+    gw.E.Init({lightingMode='orbit',orbit={period=1800,startHour=-40}})
+    check(gw.E.LightingMode=='orbit' and gw.E.ArtWorld=='ganymede','Ganymede keeps orbit mode')
+    local gPhases,gEclipse,gDay,gNight,gMinDiffuse,gNightWarm,gNightMax,gLast={},0,0,0,1,true,0,nil
+    for t=0,1800,2 do
+        gw.time=t; gw.E.Update(2)
+        local phase=gw.E.LastPhase
+        if phase~=gLast then gPhases[#gPhases+1]=phase; gLast=phase end
+        if phase=='Eclipse' then gEclipse=gEclipse+2; gMinDiffuse=math.min(gMinDiffuse,gw.SetSunDiffuse[1]) end
+        if phase=='Day' then gDay=gDay+2 end
+        if phase=='Night' then
+            gNight=gNight+2
+            gNightWarm=gNightWarm and gw.SetSunDiffuse[1]>gw.SetSunDiffuse[3]
+            gNightMax=math.max(gNightMax,gw.SetSunDiffuse[1])
+        end
+    end
+    check(gPhases[1]=='Day' and gPhases[2]=='Eclipse' and gPhases[3]=='Day','the Ganymede morning passes into eclipse and out')
+    check(gEclipse>=20 and gEclipse<=60,'the Ganymede eclipse lasts about 2 per cent of the day ('..gEclipse..' s)')
+    check(gDay>500 and gNight>600,'Ganymede day and night each hold a large share of the cycle')
+    check(gMinDiffuse<0.2,'the Ganymede eclipse darkens the scene')
+    check(gNightWarm and gNightMax>0.03 and gNightMax<0.4,'Jupiter-shine lights the Ganymede night warm and dim ('..gNightMax..')')
+end
+
 -- Final composition, including a misbehaving local modifier and manual fog,
 -- always fits the TRN horizon. Even a ramp starting beyond it stays ordered.
 for _,limit in ipairs({100,130,250,700}) do
