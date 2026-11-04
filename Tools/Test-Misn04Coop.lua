@@ -205,6 +205,8 @@ local function makePeer(id, team, network)
     -- The single-player dropship opening has its own test (Tools/Test-CR04Drop.lua); co-op must never run it.
     modules.CR04Drop = { Configure = noop, Reset = noop, OnLoad = noop,
         Update = function() check(not p.net, "co-op ran the dropship opening"); return false end }
+    -- CRHoldOrder needs the EXU/OpenShim bridges, which this harness does not load.
+    modules.CRHoldOrder = { Setup = noop, OnAddObject = noop, Load = noop }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
     modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
