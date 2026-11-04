@@ -1,23 +1,58 @@
+// Elysium sky dome. Technique 0 is the CR_ElysiumSky look (Shaders/CR_elysiumsky.hlsl,
+// DX11/DX9); technique 1 keeps the stock elysium.tga dome for OpenGL. Both start
+// with elysium.tga on unit 0 so the dome's own texture lookups stay valid.
+// CRWorldArt.UpdateSky writes the sun direction, clarity, the storm and dust
+// front and the lightning into the technique 0 pass colours every frame.
 material CRSKYEL.MAP
 {
-    technique
-    {
-        pass
-        {
-            vertex_program_ref CR_SkyDome_vertex
-            {
-            }
-            fragment_program_ref CR_WorldSky_fragment
-            {
-                param_named horizonBlend float4 .02 .35 1 0
-            }
-            lighting off
-            scene_blend one zero
-            depth_write off
-            texture_unit
-            {
-                texture elysium.tga
-            }
-        }
-    }
+	technique 0
+	{
+		pass 0
+		{
+			vertex_program_ref CR_ElysiumSky_vertex
+			{
+			}
+			fragment_program_ref CR_ElysiumSky_fragment
+			{
+			}
+			lighting off
+			scene_blend one zero
+			depth_write off
+			// Calm, sun high and no flash until the first UpdateSky write, so the
+			// dome still draws a sun when CR's Lua is not running.
+			specular 0 0.17 0.98 0 0
+			emissive 0 1 0 0
+			diffuse 0 1 0 0
+			texture_unit 0
+			{
+				texture elysium.tga
+			}
+			texture_unit 1
+			{
+				texture crsky_elysium_clouds.png
+				tex_address_mode wrap
+				filtering trilinear
+			}
+		}
+	}
+	technique 1
+	{
+		pass 0
+		{
+			vertex_program_ref CR_SkyDome_vertex
+			{
+			}
+			fragment_program_ref CR_WorldSky_fragment
+			{
+				param_named horizonBlend float4 .02 .35 1 0
+			}
+			lighting off
+			scene_blend one zero
+			depth_write off
+			texture_unit
+			{
+				texture elysium.tga
+			}
+		}
+	}
 }
