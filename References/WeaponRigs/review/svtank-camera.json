@@ -1,0 +1,31 @@
+{
+  "eye": "SCZ11POV",
+  "position": [
+    0.27610001154243946,
+    1.9194999933242798,
+    0.3680000305175781
+  ],
+  "basis": [
+    [
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "vertical_fov_degrees": 64,
+  "aspect": [
+    960,
+    540
+  ],
+  "source": "unchanged eye position; native VDF local POV rotation"
+}

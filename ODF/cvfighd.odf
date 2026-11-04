@@ -18,6 +18,18 @@ weaponHard2 = "GC2"
 weaponName2 = ""
 
 [CraftClass]
+// CR CRAFT RECOIL BEGIN
+// Reviewed independent gun pieces; preserve aiming and deployment parents.
+// Regenerate: python Tools/Build-CombatPresentation.py
+recoilAnimation1 = "cr_fire_1"
+recoilPlaybackRate1 = 1.0
+recoilCockpit1 = true
+recoilSpin1 = true
+recoilHold1 = 0.15
+casingOffset1 = "0.4697 0.1844 -0.2705"
+casingDirection1 = "0.9345 0.3271 -0.1402"
+recoilKick1 = 0.25
+// CR CRAFT RECOIL END
 rangeScan = 270.0
 periodScan = 5.0f
 velocJam = 5.0f

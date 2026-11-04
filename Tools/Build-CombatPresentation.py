@@ -51,7 +51,7 @@ def armed_units(docs):
 def gameplay_digest(parsed):
     parsed = {section: dict(values) for section, values in parsed.items()}
     for k in list(parsed.get('craftclass', {})):
-        if k.startswith(('recoil', 'flashoffset')):
+        if k.startswith(('recoil', 'flashoffset','casingoffset','casingdirection')):
             del parsed['craftclass'][k]
     return hashlib.sha256(json.dumps(parsed, sort_keys=True).encode()).hexdigest()
 
@@ -61,7 +61,7 @@ def selected_bindings(unit, docs, policy, choices):
     for n, slot in unit['slots'].items():
         weapon = docs.get(slot['weapon'], {}).get('weaponclass', {})
         # An omission/unknown weapon is not permission to kick a utility slot.
-        if not weapon or not choices.get(slot['weapon'], {}).get('profile'):
+        if not weapon or (not choices.get(slot['weapon'], {}).get('profile') and not policy['models'][unit['model']]['bindings'].get(slot['hardpoint'].upper(),{}).get('animation')):
             continue
         binding = policy['models'][unit['model']]['bindings'].get(slot['hardpoint'].upper())
         if binding:
@@ -80,16 +80,25 @@ def authored_odf(text, selected):
     parsed = builder.odf_lines(text).get('craftclass', {})
     lines = []
     for n, binding in sorted(selected.items()):
-        desired = {'recoilName'+n: binding['node'], 'recoilDistance'+n: str(binding['distance']),
-                   'recoilReturn'+n: str(binding['return'])}
-        if binding['kick'] is not None: desired['recoilKick'+n] = str(binding['kick'])
+        if binding.get('presentation_only'):
+            desired={}
+        elif binding.get('animation'):
+            desired={'recoilAnimation'+n:binding['animation'],'recoilPlaybackRate'+n:'1.0','recoilCockpit'+n:'true'}
+            if binding.get('spin'):desired.update({'recoilSpin'+n:'true','recoilHold'+n:'0.15'})
+        else:
+            desired = {'recoilName'+n: binding['node'], 'recoilDistance'+n: str(binding['distance']),
+                       'recoilReturn'+n: str(binding['return'])}
+        if binding.get('casing_offset'):
+            desired['casingOffset'+n]=' '.join(str(v) for v in binding['casing_offset'])
+            desired['casingDirection'+n]=' '.join(str(v) for v in binding['casing_direction'])
+        if binding['kick'] is not None and not binding.get('presentation_only'): desired['recoilKick'+n] = str(binding['kick'])
         # Retain the existing ten documented tank bindings without duplicating keys.
         for key, value in desired.items():
             if key.lower() in parsed:
-                same = parsed[key.lower()] == value if key.startswith('recoilName') else float(parsed[key.lower()]) == float(value)
+                same = parsed[key.lower()] == value if key.startswith(('recoilName','recoilAnimation','recoilCockpit','recoilSpin','casing')) else float(parsed[key.lower()]) == float(value)
                 assert same, f'existing {key} conflicts with reviewed binding'
             else:
-                lines.append(f'{key} = "{value}"' if key.startswith('recoilName') else f'{key} = {value}')
+                lines.append(f'{key} = "{value}"' if key.startswith(('recoilName','recoilAnimation','casing')) else f'{key} = {value}')
     if not lines: return text
     section = re.search(r'(?im)^[ \t]*\[CraftClass\][^\n]*\n', text)
     assert section, 'missing CraftClass for recoil'
@@ -114,13 +123,15 @@ def coverage(docs, units, policy, choices, offsets):
             flash_row = offsets.get(name, {}).get('slots', {}).get(n, {})
             recoil = selected.get(n)
             producer = 'accepted-shot path; live validation pending' if w.get('classlabel') in PRODUCERS else 'native firing producer pending'
-            rows[n] = dict(slot, recoil_node=recoil['node'] if recoil else '',
-                recoil_distance=recoil['distance'] if recoil else None,
-                recoil_effective_kick=(recoil['kick'] if recoil['kick'] is not None else float(w.get('recoilkick', 0))) if recoil else None,
+            animated=recoil and not recoil.get('presentation_only')
+            rows[n] = dict(slot, recoil_node=(recoil.get('node') or 'animation:'+recoil['animation']) if animated else '',
+                recoil_distance=recoil['distance'] if animated else None,
+                recoil_effective_kick=(recoil['kick'] if recoil['kick'] is not None else float(w.get('recoilkick', 0))) if animated else None,
                 flash_offset=flash_row.get('offset'),
                 flash_status='fitted; live validation pending' if 'offset' in flash_row else flash_row.get('skip', choice.get('decision', 'weapon definition missing')),
                 casing_type=choice.get('casing_type', 'unresolved'),
                 casing_status=('weapon definition missing' if not choice else
+                    'fitted outboard port; companion native runtime required' if recoil and recoil.get('casing_offset') and choice['casing_type']!='none' else
                     'estimated native breech; model port fitting pending' if choice['casing_type'] != 'none' else 'no brass by weapon design'),
                 runtime=producer if w else 'weapon definition missing')
         result[name] = dict(unit, category=model['category'], slots=rows)
@@ -136,28 +147,33 @@ def report(data, policy):
             total['flash_slots'] += s['flash_offset'] is not None
             total['casing_slots'] += s['casing_type'] in ('small', 'medium', 'large')
     lines = ['# CR combat weapon effects: implementation and mesh-edit report', '',
-        'Initial implementation, 2026-11-04. This report is generated from the current CR source, reviewed model policy and fitted flash data.', '',
+        'Weapon-rig update, 2026-11-04. Generated from CR source, reviewed model policy and fitted flash data. See [the model-edit report](WEAPON_RIGS.md) for the requested 27-model pass and exported previews.', '',
         f"**{len(data)} armed ODFs / {len(policy['models'])} models / {total['slots']} equipped slots.** "
         f"Authored recoil: {total['recoil_slots']} slots; fitted flash offsets: {total['flash_slots']} slots; ballistic casing selections: {total['casing_slots']} slots.", '',
         'Scope: CR vehicle/building definitions, including mission variants and utility carriers. People retain per-weapon effects; armories supply weapons. This source-only count excludes stock-only aliases from the earlier 139-definition/52-model audit.', '',
         '## What is implemented', '',
-        '- Recoil bindings use reviewed independent gun pieces and preserve the existing tank configurations. Mortar/rocket and minigun slots receive local kick overrides where their weapon supplies none. Weapon gameplay/loadouts are preserved.',
+        '- The requested 27 models now have closed split gun pieces and EXU clips, with matching clips on visible cockpit gun copies. `cvfigh` rotates its forward minigun clusters; `cvturr` has four independent channels. Other reviewed independent gun pieces retain node bindings. Weapon gameplay/loadouts are preserved.',
         '- Flash fitting uses explicit visible gun pieces, including sibling bomber guns, non-BG turret tubes and the CRA gun-tower tube. The weapon offset stays zero; craft slots receive geometry-derived corrections.',
         '- All 100 inventoried weapon ODFs already select small/medium/large/none casings. This pass checks every CR loadout against those decisions; plasma/energy/rocket/utility weapons remain casing-free.', '',
         '## Remaining runtime and asset work', '',
         '- These are authored configurations, not native visual acceptance. Existing OpenShim/EXU effect settings, exact-build and single-player gates remain. Beam/guided/targeting/other producer gaps remain explicit in the slot report.',
-        '- OpenShim currently supports weapon casingType/casingMesh, not per-craft ejection-port offsets. Brass still uses the firing mount and estimated breech. For a fitted port, add native per-slot local offset/direction support and author matching breech/port markers; do not invent inert ODF keys.',
+        '- The new spin and fitted per-slot casing ports require [OpenShim PR 698](https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/pull/698). That source builds and passes host tests; CR shipping binaries have not been refreshed. Other models still use the estimated native breech.',
         '- Recoil is cosmetic. Qualify muzzle flash placement at both rest and kicked poses, aiming, deployment, repeated/simultaneous shots, weapon swaps and scene reload.',
         '- `avartla` selects `gpopguna`, absent from both CR and the extracted stock ODFs. It remains unresolved rather than silently substituting a different weapon.', '',
         '## Units needing mesh or rig edits', '',
         '| Model | Unit ODFs | Work category | Proposed change |', '|---|---|---|---|']
     for name, entry in policy['models'].items():
-        if entry['category'] in ('Existing gun piece', 'Utility only'): continue
+        if entry['category'] in ('Existing gun piece', 'Utility only', 'Authored closed gun rigs'): continue
         members = [n for n, u in data.items() if u['model'] == name]
         brass = any(s['casing_type'] in ('small','medium','large') for n in members for s in data[n]['slots'].values())
         effects = (' Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists.' if brass else
                    ' Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port.')
         lines.append(f"| `{name}` | "+', '.join('`'+n+'`' for n in members)+f" | {entry['category']} | {entry['action']}{effects} |")
+    lines += ['', '## Requested model edits authored', '', '| Model | Unit ODFs | Result / qualification |', '|---|---|---|']
+    for name, entry in policy['models'].items():
+        if entry['category'] != 'Authored closed gun rigs': continue
+        members = [n for n, u in data.items() if u['model'] == name]
+        lines.append(f"| `{name}` | "+', '.join('`'+n+'`' for n in members)+f" | {entry['action']} |")
     lines += ['', '## Models using existing gun pieces', '', '| Model | Unit ODFs | Binding / remaining detail |', '|---|---|---|']
     for name, entry in policy['models'].items():
         if entry['category'] != 'Existing gun piece': continue
@@ -170,7 +186,7 @@ def report(data, policy):
             flash = ' '.join(f'{v:.2f}' for v in slot['flash_offset']) if slot['flash_offset'] is not None else 'pending / omitted'
             notes = slot['runtime']
             if slot['flash_offset'] is None: notes += '; '+slot['flash_status']
-            if slot['casing_type'] in ('small', 'medium', 'large'): notes += '; casing port estimated'
+            if slot['casing_type'] in ('small', 'medium', 'large'): notes += '; '+slot['casing_status']
             lines.append(f"| `{name}` | {n}: `{slot['weapon']}` | `{slot['recoil_node']}` | {flash} | {slot['casing_type']} | {notes} |")
     return '\n'.join(lines)+'\n', total
 
@@ -204,7 +220,7 @@ def verify_models():
     installed = builder.game_models()
     evidence = {}
     for model, entry in policy['models'].items():
-        if not entry['bindings']: continue
+        if not any(not b.get('animation') and not b.get('presentation_only') for b in entry['bindings'].values()): continue
         mp, sp = builder.model_files(model, assets, installed)
         mesh = ogre.read_mesh(mp.read_bytes())
         sp = assets.get(mesh.skeleton.lower()) or installed.get(mesh.skeleton.lower()) or sp
@@ -219,6 +235,7 @@ def verify_models():
                            'skeleton_sha256':hashlib.sha256(sp.read_bytes()).hexdigest(),
                            'native_sha256':hashlib.sha256(vp.read_bytes()).hexdigest(), 'nodes':{}}
         for binding in entry['bindings'].values():
+            if binding.get('animation') or binding.get('presentation_only'):continue
             name = binding['node']; bone = skel.bone(name)
             assert 0 < len(name) <= 8 and name in names and bone is not None, (model,name,'native/rendered node missing')
             vertices = builder.barrel_vertices(mesh, bone.handle)

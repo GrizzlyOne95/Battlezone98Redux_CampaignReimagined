@@ -1,0 +1,31 @@
+{
+  "eye": "AGe11POV",
+  "position": [
+    -0.06509999930858612,
+    9.199999809265137,
+    -0.2865999937057495
+  ],
+  "basis": [
+    [
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "vertical_fov_degrees": 64,
+  "aspect": [
+    960,
+    540
+  ],
+  "source": "unchanged eye position; native VDF local POV rotation"
+}

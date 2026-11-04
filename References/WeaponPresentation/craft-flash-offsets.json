@@ -172,22 +172,24 @@
         "1": {
           "weapon": "gminigun",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0235,
+            -0.2438,
+            -1.4077
           ],
-          "hardpoint": "ARA11Gc1",
-          "anchor": "hardpoint (parent ARA11rof is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminigun",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0274,
+            -0.2453,
+            -1.4118
           ],
-          "hardpoint": "ARA11Gc2",
-          "anchor": "hardpoint (parent ARA11rof is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -197,22 +199,24 @@
         "1": {
           "weapon": "gminigun",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0235,
+            -0.2438,
+            -1.4077
           ],
-          "hardpoint": "ARA11Gc1",
-          "anchor": "hardpoint (parent ARA11rof is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminigun",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0274,
+            -0.2453,
+            -1.4118
           ],
-          "hardpoint": "ARA11Gc2",
-          "anchor": "hardpoint (parent ARA11rof is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -288,11 +292,25 @@
       "slots": {
         "1": {
           "weapon": "gtminig",
-          "skip": "parent aln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry"
+          "offset": [
+            -0.0137,
+            0.0141,
+            0.421
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gtaggun",
-          "skip": "parent aln11bdc is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.0412,
+            -0.0606,
+            0.379
+          ],
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -301,11 +319,25 @@
       "slots": {
         "1": {
           "weapon": "gminigun",
-          "skip": "parent aln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry"
+          "offset": [
+            -0.0137,
+            0.0141,
+            0.421
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "ghornet",
-          "skip": "parent aln11bdc is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.0412,
+            -0.0606,
+            0.379
+          ],
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -325,21 +357,23 @@
           "weapon": "gshadow",
           "offset": [
             0.0,
-            0.0,
-            0.0
+            -0.2329,
+            0.2356
           ],
-          "hardpoint": "art11gr1",
-          "anchor": "hardpoint (parent art11bda is not a barrel node)"
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "ghornet",
           "offset": [
             0.0,
-            0.0,
-            0.0
+            -0.2334,
+            0.2356
           ],
-          "hardpoint": "art11gr2",
-          "anchor": "hardpoint (parent art11bda is not a barrel node)"
+          "hardpoint": "GR2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -467,11 +501,25 @@
       "slots": {
         "1": {
           "weapon": "gatstaba",
-          "skip": "parent age11tx2 is not a barrel node and the hardpoint is 0.85 m behind its front geometry"
+          "offset": [
+            0.1154,
+            0.0709,
+            0.8371
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gatstaba",
-          "skip": "parent age11tx1 is not a barrel node and the hardpoint is 0.83 m behind its front geometry"
+          "offset": [
+            -0.0979,
+            0.1228,
+            0.8131
+          ],
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gpopgun",
@@ -484,11 +532,25 @@
       "slots": {
         "1": {
           "weapon": "gmaggun",
-          "skip": "parent age11tx2 is not a barrel node and the hardpoint is 0.85 m behind its front geometry"
+          "offset": [
+            0.1154,
+            0.0709,
+            0.8371
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gmaggun",
-          "skip": "parent age11tx1 is not a barrel node and the hardpoint is 0.83 m behind its front geometry"
+          "offset": [
+            -0.0979,
+            0.1228,
+            0.8131
+          ],
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gsplint",
@@ -609,12 +671,13 @@
         "1": {
           "weapon": "gminigun",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0235,
+            -0.2438,
+            -1.4077
           ],
-          "hardpoint": "bRA11Gc1",
-          "anchor": "hardpoint (parent bRA11rof is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gshadow",
@@ -634,22 +697,24 @@
         "1": {
           "weapon": "gminigun",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0235,
+            -0.2438,
+            -1.4077
           ],
-          "hardpoint": "bRA11Gc1",
-          "anchor": "hardpoint (parent bRA11rof is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminigun",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0274,
+            -0.2453,
+            -1.4118
           ],
-          "hardpoint": "bRA11Gc2",
-          "anchor": "hardpoint (parent bRA11rof is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -708,7 +773,14 @@
       "slots": {
         "1": {
           "weapon": "gatstab",
-          "skip": "parent bln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry"
+          "offset": [
+            -0.0137,
+            0.0141,
+            0.421
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -717,7 +789,14 @@
       "slots": {
         "1": {
           "weapon": "gatstab",
-          "skip": "parent bln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry"
+          "offset": [
+            -0.0137,
+            0.0141,
+            0.421
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -727,12 +806,13 @@
         "1": {
           "weapon": "gminigun",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0235,
+            -0.2438,
+            -1.4077
           ],
-          "hardpoint": "bRA11Gc1",
-          "anchor": "hardpoint (parent bRA11rof is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gshadow",
@@ -752,12 +832,13 @@
         "1": {
           "weapon": "gtminig",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0235,
+            -0.2438,
+            -1.4077
           ],
-          "hardpoint": "bRA11Gc1",
-          "anchor": "hardpoint (parent bRA11rof is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gshadow",
@@ -778,21 +859,23 @@
           "weapon": "gtaggun",
           "offset": [
             0.0,
-            0.0,
-            0.0
+            -0.2329,
+            0.2356
           ],
-          "hardpoint": "brt11gr1",
-          "anchor": "hardpoint (parent brt11bda is not a barrel node)"
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gtaggun",
           "offset": [
             0.0,
-            0.0,
-            0.0
+            -0.2334,
+            0.2356
           ],
-          "hardpoint": "brt11gr2",
-          "anchor": "hardpoint (parent brt11bda is not a barrel node)"
+          "hardpoint": "GR2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -801,11 +884,25 @@
       "slots": {
         "1": {
           "weapon": "gtminig",
-          "skip": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry"
+          "offset": [
+            -0.1542,
+            -0.2,
+            0.7547
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gtaggun",
-          "skip": "parent brd11bda is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.0249,
+            -0.0133,
+            0.0762
+          ],
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -814,11 +911,25 @@
       "slots": {
         "1": {
           "weapon": "gspstab",
-          "skip": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry"
+          "offset": [
+            -0.1542,
+            -0.2,
+            0.7547
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "ghornet",
-          "skip": "parent brd11bda is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.0249,
+            -0.0133,
+            0.0762
+          ],
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -827,11 +938,25 @@
       "slots": {
         "1": {
           "weapon": "grktbomb",
-          "skip": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry"
+          "offset": [
+            -0.1542,
+            -0.2,
+            0.7547
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent brd11bda is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.0249,
+            -0.0133,
+            0.0762
+          ],
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -840,11 +965,25 @@
       "slots": {
         "1": {
           "weapon": "gspstab",
-          "skip": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry"
+          "offset": [
+            -0.1542,
+            -0.2,
+            0.7547
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gspstab",
-          "skip": "parent brd11bda is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.0249,
+            -0.0133,
+            0.0762
+          ],
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -958,11 +1097,25 @@
       "slots": {
         "1": {
           "weapon": "gspstab",
-          "skip": "parent age11tx2 is not a barrel node and the hardpoint is 0.85 m behind its front geometry"
+          "offset": [
+            0.1154,
+            0.0706,
+            0.8371
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gspstab",
-          "skip": "parent age11tx1 is not a barrel node and the hardpoint is 0.83 m behind its front geometry"
+          "offset": [
+            -0.0979,
+            0.1227,
+            0.8131
+          ],
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -971,7 +1124,14 @@
       "slots": {
         "1": {
           "weapon": "gspstaba",
-          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+          "offset": [
+            0.0358,
+            0.0632,
+            0.2901
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -997,7 +1157,14 @@
       "slots": {
         "1": {
           "weapon": "gflashch",
-          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+          "offset": [
+            0.0358,
+            0.0632,
+            0.2901
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1023,7 +1190,14 @@
       "slots": {
         "1": {
           "weapon": "gflashch",
-          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+          "offset": [
+            0.0358,
+            0.0632,
+            0.2901
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1049,7 +1223,14 @@
       "slots": {
         "1": {
           "weapon": "gflashch",
-          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+          "offset": [
+            0.0358,
+            0.0632,
+            0.2901
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1193,12 +1374,13 @@
         "1": {
           "weapon": "ghartill",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0143,
+            0.013,
+            0.089
           ],
-          "hardpoint": "CAR11GM1",
-          "anchor": "hardpoint (parent CAR11TX1 is not a barrel node)"
+          "hardpoint": "GM1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1208,12 +1390,13 @@
         "1": {
           "weapon": "cvwo003",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0143,
+            0.013,
+            0.089
           ],
-          "hardpoint": "CAR11GM1",
-          "anchor": "hardpoint (parent CAR11TX1 is not a barrel node)"
+          "hardpoint": "GM1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1223,22 +1406,24 @@
         "1": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC1",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC2",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1248,22 +1433,24 @@
         "1": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC1",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC2",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1273,22 +1460,24 @@
         "1": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC1",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC2",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1298,22 +1487,24 @@
         "1": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC1",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC2",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1323,22 +1514,24 @@
         "1": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC1",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC2",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1348,22 +1541,24 @@
         "1": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC1",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC2",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1373,22 +1568,24 @@
         "1": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC1",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC2",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1398,22 +1595,24 @@
         "1": {
           "weapon": "gminignc",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC1",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminignc",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC2",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1422,11 +1621,25 @@
       "slots": {
         "1": {
           "weapon": "gspstaba",
-          "skip": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.0406,
+            -0.0147,
+            0.0192
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gspstaba",
-          "skip": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            -0.0313,
+            -0.0147,
+            0.0192
+          ],
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1435,11 +1648,25 @@
       "slots": {
         "1": {
           "weapon": "gmaggun",
-          "skip": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.0406,
+            -0.0147,
+            0.0192
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gmaggun",
-          "skip": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            -0.0313,
+            -0.0147,
+            0.0192
+          ],
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1448,11 +1675,25 @@
       "slots": {
         "1": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            -0.0182,
+            0.0,
+            0.0141
+          ],
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.0182,
+            0.0,
+            -0.1089
+          ],
+          "hardpoint": "GR2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1461,11 +1702,25 @@
       "slots": {
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            -0.0182,
+            0.0,
+            0.0141
+          ],
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.0182,
+            0.0,
+            -0.1089
+          ],
+          "hardpoint": "GR2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1474,11 +1729,25 @@
       "slots": {
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            -0.0182,
+            0.0,
+            0.0141
+          ],
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.0182,
+            0.0,
+            -0.1089
+          ],
+          "hardpoint": "GR2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1487,11 +1756,25 @@
       "slots": {
         "1": {
           "weapon": "gspstaba",
-          "skip": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.0406,
+            -0.0147,
+            0.0192
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gspstaba",
-          "skip": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            -0.0313,
+            -0.0147,
+            0.0192
+          ],
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1500,11 +1783,25 @@
       "slots": {
         "1": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            -0.0182,
+            0.0,
+            0.0141
+          ],
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.0182,
+            0.0,
+            -0.1089
+          ],
+          "hardpoint": "GR2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1515,11 +1812,12 @@
           "weapon": "gatstab",
           "offset": [
             0.0,
-            0.0,
-            0.0
+            0.0675,
+            0.0782
           ],
-          "hardpoint": "GNA11GC1",
-          "anchor": "hardpoint (parent CNA11BDA is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1529,22 +1827,24 @@
         "1": {
           "weapon": "gminigun",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC1",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminigun",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
-          "hardpoint": "CFL11GC2",
-          "anchor": "hardpoint (parent CFL11BDA is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1554,20 +1854,34 @@
         "1": {
           "weapon": "gshadow",
           "offset": [
+            0.2636,
+            -0.0099,
+            0.0064
+          ],
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
+        },
+        "2": {
+          "weapon": "gshadow",
+          "offset": [
+            -0.2858,
+            -0.0099,
+            0.0064
+          ],
+          "hardpoint": "GR2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
+        },
+        "3": {
+          "weapon": "gmdmgun",
+          "offset": [
             0.0,
             0.0,
             0.0
           ],
-          "hardpoint": "CDR11GR1",
+          "hardpoint": "CDR11GM1",
           "anchor": "hardpoint (parent CDR11BDA is not a barrel node)"
-        },
-        "2": {
-          "weapon": "gshadow",
-          "skip": "parent CDR11BDA is not a barrel node and the hardpoint is 0.30 m ahead of its front geometry"
-        },
-        "3": {
-          "weapon": "gmdmgun",
-          "skip": "parent CDR11BDA is not a barrel node and the hardpoint is 0.30 m ahead of its front geometry"
         }
       }
     },
@@ -1577,12 +1891,13 @@
         "1": {
           "weapon": "gspstabb",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0091,
+            0.0454,
+            -0.0888
           ],
-          "hardpoint": "CYE11GC2",
-          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1592,22 +1907,24 @@
         "1": {
           "weapon": "gspstabb",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0091,
+            0.0454,
+            -0.0888
           ],
-          "hardpoint": "CYE11GC2",
-          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gmaggun",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0038,
+            0.0556,
+            -0.091
           ],
-          "hardpoint": "CYE11GC1",
-          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gpopgun",
@@ -1621,12 +1938,13 @@
         "1": {
           "weapon": "gspstabb",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0091,
+            0.0454,
+            -0.0888
           ],
-          "hardpoint": "CYE11GC2",
-          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gpopgun",
@@ -1640,12 +1958,13 @@
         "1": {
           "weapon": "gspstabb",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0091,
+            0.0454,
+            -0.0888
           ],
-          "hardpoint": "CYE11GC2",
-          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1655,22 +1974,24 @@
         "1": {
           "weapon": "gspstabb",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0091,
+            0.0454,
+            -0.0888
           ],
-          "hardpoint": "CYE11GC2",
-          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gspstabb",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0038,
+            0.0556,
+            -0.091
           ],
-          "hardpoint": "CYE11GC1",
-          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1680,22 +2001,24 @@
         "1": {
           "weapon": "gspstabd",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0091,
+            0.0454,
+            -0.0888
           ],
-          "hardpoint": "CYE11GC2",
-          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gspstabd",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0038,
+            0.0556,
+            -0.091
           ],
-          "hardpoint": "CYE11GC1",
-          "anchor": "hardpoint (parent CYE11BDA is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1705,42 +2028,46 @@
         "1": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.003,
+            0.0019,
+            0.2661
           ],
-          "hardpoint": "CAD11GC1",
-          "anchor": "hardpoint (parent CAD11TX1 is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.003,
+            0.0128,
+            0.2661
           ],
-          "hardpoint": "CAD11GC2",
-          "anchor": "hardpoint (parent CAD11TX1 is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.003,
+            0.0128,
+            0.2661
           ],
-          "hardpoint": "CAD11GC3",
-          "anchor": "hardpoint (parent CAD11TX2 is not a barrel node)"
+          "hardpoint": "GC3",
+          "barrel": "cr_fire_3",
+          "reviewed_barrel": true
         },
         "4": {
           "weapon": "gminigrn",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.003,
+            0.0019,
+            0.2661
           ],
-          "hardpoint": "CAD11GC4",
-          "anchor": "hardpoint (parent CAD11TX2 is not a barrel node)"
+          "hardpoint": "GC4",
+          "barrel": "cr_fire_4",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1750,32 +2077,35 @@
         "1": {
           "weapon": "gtminis",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.003,
+            0.0019,
+            0.2661
           ],
-          "hardpoint": "CAD11GC1",
-          "anchor": "hardpoint (parent CAD11TX1 is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gtminis",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.003,
+            0.0128,
+            0.2661
           ],
-          "hardpoint": "CAD11GC2",
-          "anchor": "hardpoint (parent CAD11TX1 is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gtminis",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.003,
+            0.0128,
+            0.2661
           ],
-          "hardpoint": "CAD11GC3",
-          "anchor": "hardpoint (parent CAD11TX2 is not a barrel node)"
+          "hardpoint": "GC3",
+          "barrel": "cr_fire_3",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1785,22 +2115,24 @@
         "1": {
           "weapon": "gspstabb",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.003,
+            0.0019,
+            0.2661
           ],
-          "hardpoint": "CAD11GC1",
-          "anchor": "hardpoint (parent CAD11TX1 is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gspstabb",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.003,
+            0.0128,
+            0.2661
           ],
-          "hardpoint": "CAD11GC3",
-          "anchor": "hardpoint (parent CAD11TX2 is not a barrel node)"
+          "hardpoint": "GC3",
+          "barrel": "cr_fire_3",
+          "reviewed_barrel": true
         }
       }
     },
@@ -1810,12 +2142,13 @@
         "1": {
           "weapon": "gspstabc",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.003,
+            0.0019,
+            0.2661
           ],
-          "hardpoint": "CAD11GC1",
-          "anchor": "hardpoint (parent CAD11TX1 is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2123,7 +2456,14 @@
       "slots": {
         "1": {
           "weapon": "ghartmp",
-          "skip": "visible tip is -0.02 m from the hardpoint (under 0.1 m)"
+          "offset": [
+            -0.0307,
+            0.0363,
+            -0.021
+          ],
+          "hardpoint": "GM1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2132,7 +2472,14 @@
       "slots": {
         "1": {
           "weapon": "ghartill",
-          "skip": "visible tip is -0.02 m from the hardpoint (under 0.1 m)"
+          "offset": [
+            -0.0307,
+            0.0363,
+            -0.021
+          ],
+          "hardpoint": "GM1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2141,7 +2488,14 @@
       "slots": {
         "1": {
           "weapon": "ghartila",
-          "skip": "visible tip is -0.02 m from the hardpoint (under 0.1 m)"
+          "offset": [
+            -0.0307,
+            0.0363,
+            -0.021
+          ],
+          "hardpoint": "GM1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2151,12 +2505,13 @@
         "1": {
           "weapon": "grktbomb",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0627,
+            -0.0091,
+            0.0306
           ],
-          "hardpoint": "SFL11GC1",
-          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "grktbomb",
@@ -2176,12 +2531,13 @@
         "1": {
           "weapon": "gminisov",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0627,
+            -0.0091,
+            0.0306
           ],
-          "hardpoint": "SFL11GC1",
-          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminisov",
@@ -2201,22 +2557,24 @@
         "1": {
           "weapon": "gminisov",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0627,
+            -0.0091,
+            0.0306
           ],
-          "hardpoint": "SFL11GC1",
-          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminisov",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0681,
+            0.0064,
+            0.0241
           ],
-          "hardpoint": "SFL11Gc2",
-          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2226,22 +2584,24 @@
         "1": {
           "weapon": "gminisov",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0627,
+            -0.0091,
+            0.0306
           ],
-          "hardpoint": "SFL11GC1",
-          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminisov",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0681,
+            0.0064,
+            0.0241
           ],
-          "hardpoint": "SFL11Gc2",
-          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2251,22 +2611,24 @@
         "1": {
           "weapon": "gminisov",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0627,
+            -0.0091,
+            0.0306
           ],
-          "hardpoint": "SFL11GC1",
-          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminisov",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0681,
+            0.0064,
+            0.0241
           ],
-          "hardpoint": "SFL11Gc2",
-          "anchor": "hardpoint (parent SFL11ROR is not a barrel node)"
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2276,16 +2638,24 @@
         "2": {
           "weapon": "gsrkbomb",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.4283,
+            -1.2985,
+            1.3617
           ],
-          "hardpoint": "Shb11GR1",
-          "anchor": "hardpoint (parent shb11bda is not a barrel node)"
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gsrkbomb",
-          "skip": "parent shb11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry"
+          "offset": [
+            1.6118,
+            -0.2728,
+            1.4842
+          ],
+          "hardpoint": "GR2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2295,16 +2665,24 @@
         "2": {
           "weapon": "gsrkbomb",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.4283,
+            -1.2985,
+            1.3617
           ],
-          "hardpoint": "Shb11GR1",
-          "anchor": "hardpoint (parent shb11bda is not a barrel node)"
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gsrkbomb",
-          "skip": "parent shb11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry"
+          "offset": [
+            1.6118,
+            -0.2728,
+            1.4842
+          ],
+          "hardpoint": "GR2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2318,16 +2696,24 @@
         "2": {
           "weapon": "gsrkbomb",
           "offset": [
-            0.0,
-            0.0,
-            0.0
+            0.4283,
+            -1.2985,
+            1.3617
           ],
-          "hardpoint": "Shb11GR1",
-          "anchor": "hardpoint (parent shb11bda is not a barrel node)"
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gsrkbomb",
-          "skip": "parent shb11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry"
+          "offset": [
+            1.6118,
+            -0.2728,
+            1.4842
+          ],
+          "hardpoint": "GR2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2336,7 +2722,14 @@
       "slots": {
         "1": {
           "weapon": "gtaggun",
-          "skip": "parent slt11trt is not a barrel node and the hardpoint is 1.03 m behind its front geometry"
+          "offset": [
+            -0.0115,
+            0.0603,
+            1.028
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2345,7 +2738,14 @@
       "slots": {
         "1": {
           "weapon": "gtaggun",
-          "skip": "parent slt11trt is not a barrel node and the hardpoint is 1.03 m behind its front geometry"
+          "offset": [
+            -0.0115,
+            0.0603,
+            1.028
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2354,7 +2754,14 @@
       "slots": {
         "1": {
           "weapon": "gshadow",
-          "skip": "parent srt11bda is not a barrel node and the hardpoint is 1.43 m behind its front geometry"
+          "offset": [
+            0.0,
+            -0.2635,
+            1.4623
+          ],
+          "hardpoint": "GR1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gmdmgun",
@@ -2377,18 +2784,24 @@
         "1": {
           "weapon": "gsatstab",
           "offset": [
-            0.0,
-            0.0,
-            3.42
+            -0.0029,
+            -0.0042,
+            3.4192
           ],
-          "hardpoint": "SCZ11GC1",
-          "barrel": "SCZ11BGB",
-          "vertices": 97,
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
           "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminisov",
-          "skip": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry"
+          "offset": [
+            0.0875,
+            -0.16,
+            1.901
+          ],
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2398,18 +2811,24 @@
         "1": {
           "weapon": "gsatstab",
           "offset": [
-            0.0,
-            0.0,
-            3.42
+            -0.0029,
+            -0.0042,
+            3.4192
           ],
-          "hardpoint": "SCZ11GC1",
-          "barrel": "SCZ11BGB",
-          "vertices": 97,
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
           "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminisov",
-          "skip": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry"
+          "offset": [
+            0.0875,
+            -0.16,
+            1.901
+          ],
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2419,18 +2838,24 @@
         "1": {
           "weapon": "gatstab",
           "offset": [
-            0.0,
-            0.0,
-            3.42
+            -0.0029,
+            -0.0042,
+            3.4192
           ],
-          "hardpoint": "SCZ11GC1",
-          "barrel": "SCZ11BGB",
-          "vertices": 97,
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
           "reviewed_barrel": true
         },
         "2": {
           "weapon": "gflashgn",
-          "skip": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry"
+          "offset": [
+            0.0875,
+            -0.16,
+            1.901
+          ],
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2440,18 +2865,24 @@
         "1": {
           "weapon": "gspstab",
           "offset": [
-            0.0,
-            0.0,
-            3.42
+            -0.0029,
+            -0.0042,
+            3.4192
           ],
-          "hardpoint": "SCZ11GC1",
-          "barrel": "SCZ11BGB",
-          "vertices": 97,
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
           "reviewed_barrel": true
         },
         "2": {
           "weapon": "gflashgn",
-          "skip": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry"
+          "offset": [
+            0.0875,
+            -0.16,
+            1.901
+          ],
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2461,13 +2892,12 @@
         "1": {
           "weapon": "ga7stab",
           "offset": [
-            0.0,
-            0.0,
-            3.42
+            -0.0029,
+            -0.0042,
+            3.4192
           ],
-          "hardpoint": "SCZ11GC1",
-          "barrel": "SCZ11BGB",
-          "vertices": 97,
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
           "reviewed_barrel": true
         }
       }
@@ -2477,11 +2907,25 @@
       "slots": {
         "1": {
           "weapon": "gtminis",
-          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+          "offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gtminis",
-          "skip": "hardpoint 'GC2' matches 0 skeleton bones"
+          "offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2490,7 +2934,14 @@
       "slots": {
         "1": {
           "weapon": "gtminis",
-          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+          "offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2499,7 +2950,14 @@
       "slots": {
         "1": {
           "weapon": "gspstab",
-          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+          "offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2508,7 +2966,14 @@
       "slots": {
         "1": {
           "weapon": "gspstab",
-          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+          "offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2517,7 +2982,14 @@
       "slots": {
         "1": {
           "weapon": "gminigna",
-          "skip": "hardpoint 'GC1' matches 0 skeleton bones"
+          "offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         }
       }
     },
@@ -2526,11 +2998,25 @@
       "slots": {
         "1": {
           "weapon": "gblast",
-          "skip": "parent svw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry"
+          "offset": [
+            0.2074,
+            -0.6475,
+            0.4652
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gblast",
-          "skip": "parent svw11hed is not a barrel node and the hardpoint is 0.97 m behind its front geometry"
+          "offset": [
+            -0.1019,
+            -0.7315,
+            0.655
+          ],
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gpopgun",
@@ -2543,11 +3029,25 @@
       "slots": {
         "1": {
           "weapon": "gblast",
-          "skip": "parent svw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry"
+          "offset": [
+            0.2074,
+            -0.6475,
+            0.4652
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gblast",
-          "skip": "parent svw11hed is not a barrel node and the hardpoint is 0.97 m behind its front geometry"
+          "offset": [
+            -0.1019,
+            -0.7315,
+            0.655
+          ],
+          "hardpoint": "GC2",
+          "barrel": "cr_fire_2",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gpopgun",
@@ -2560,7 +3060,14 @@
       "slots": {
         "1": {
           "weapon": "gblast",
-          "skip": "parent svw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry"
+          "offset": [
+            0.2074,
+            -0.6475,
+            0.4652
+          ],
+          "hardpoint": "GC1",
+          "barrel": "cr_fire_1",
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gpopgun",

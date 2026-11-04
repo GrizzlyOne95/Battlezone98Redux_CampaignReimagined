@@ -60,6 +60,7 @@ jobs:
         run: |
           python Tools/Test-WeaponPresentation.py
           python Tools/Test-CombatPresentation.py
+          python Tools/Test-WeaponRigs.py
 
       - name: Validate HD terrain bundles and normal contracts
         run: |

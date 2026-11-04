@@ -1,4 +1,5 @@
 """Native-rest geometry and offline-art contracts; no installed game required."""
+from weaponrigs import base_asset_path
 from pathlib import Path
 import io,json,hashlib,sys
 import numpy as np
@@ -14,7 +15,7 @@ def check(ok,label):
 
 
 def sha(p):
-    b=p.read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if p.suffix=='.material' else b).hexdigest()
+    b=base_asset_path(p).read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if p.suffix=='.material' else b).hexdigest()
 
 
 def cuts_match(recorded,actual):
@@ -50,7 +51,7 @@ for base,cfg in cp.CONFIG.items():
     for path,digest in receipt['outputs'].items():check(sha(ROOT/path)==digest,'compiled resource pin '+path);check(members.get(path)==Path(path).name,'case-correct shipping resource '+path)
     check(np.allclose(origin,meta['povPosition'],atol=1e-9) and np.allclose(R,meta['povBasis'],atol=1e-9),'full native-parent POV chain retained '+base)
     check(eye.name==('CNA11POV' if base=='cvltnk' else base[:2]+'w11POV') and shell.handle==meta['shellHandle'],'correct actual POV/shell '+base)
-    modelpath=ROOT/('Assets/Models' if base=='cvltnk' else 'Assets/ModelFixes')/(cfg['resource']+'.mesh');mesh=cp.shared.read_mesh(modelpath)
+    modelpath=ROOT/('Assets/Models' if base=='cvltnk' else 'Assets/ModelFixes')/(cfg['resource']+'.mesh');mesh=cp.shared.read_mesh(base_asset_path(modelpath))
     check(mesh.skeleton_name==cfg['resource']+'.skeleton','original runtime rig selection '+base)
     check([sub.material_name for sub in mesh.submesh_list]==[cfg['material'],'CRWX_CockpitGlass','CRV/'+base+'HeadHull','CRV/'+base+'SectionBacks'],'four deliberate batches '+base)
     triangles=[];labels=[];data={}

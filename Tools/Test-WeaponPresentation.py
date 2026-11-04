@@ -122,7 +122,7 @@ class WeaponContentTests(unittest.TestCase):
         for path in sorted((ROOT/'ODF').glob('*.odf')):
             parsed=inventory.parse(path.read_text(errors='replace'))
             craft=parsed.get('craftclass',{})
-            slots=[k[len('recoilname'):] for k in craft if k.startswith('recoilname')]
+            slots=sorted({k[len(prefix):] for k in craft for prefix in ('recoilname','recoilanimation') if k.startswith(prefix)})
             if not slots: continue
             found.add(path.stem.lower())
             for n in slots:

@@ -54,13 +54,28 @@ class CombatPresentationTests(unittest.TestCase):
         # An artillery utility or missing weapon cannot inherit an arbitrary barrel kick.
         self.assertNotIn('recoilname1',self.docs['avartla']['craftclass'])
         self.assertNotIn('recoilname2',self.docs['bvhraz']['craftclass'])
+        # A centerline ballistic variant lacks a visible barrel. Fit its brass
+        # port independently rather than moving the nose or another gun.
+        self.assertIn('casingoffset2',self.docs['svfi12']['craftclass'])
+        self.assertNotIn('recoilanimation2',self.docs['svfi12']['craftclass'])
+        self.assertNotIn('recoilname2',self.docs['svfi12']['craftclass'])
         for name in ('avwalk','svwalk','avfigh','avltnk'):
             self.assertFalse(any(k.startswith('recoilname') for k in self.docs[name]['craftclass']))
+
+    def test_all_ballistic_slots_on_requested_models_have_fitted_ports(self):
+        for name,unit in self.units.items():
+            if self.policy['models'][unit['model']]['category']!='Authored closed gun rigs':continue
+            for n,slot in unit['slots'].items():
+                if self.choices.get(slot['weapon'],{}).get('casing_type') not in ('small','medium','large'):continue
+                with self.subTest(unit=name,slot=n):
+                    self.assertIn('casingoffset'+n,self.docs[name]['craftclass'])
+                    self.assertIn('casingdirection'+n,self.docs[name]['craftclass'])
 
     def test_native_piece_evidence_and_no_animated_static_binding(self):
         evidence=json.loads((combat.DATA/'combat-model-evidence.json').read_text())
         for name,entry in self.policy['models'].items():
             for b in entry['bindings'].values():
+                if b.get('animation') or b.get('presentation_only'):continue
                 with self.subTest(model=name,node=b['node']):
                     self.assertLessEqual(len(b['node']),8)
                     proof=evidence[name]['nodes'][b['node']]

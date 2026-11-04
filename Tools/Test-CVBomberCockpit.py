@@ -1,4 +1,5 @@
 """Offline geometry/art/visibility contracts; no Blender or game required."""
+from weaponrigs import base_asset_path
 from pathlib import Path
 import hashlib,json,sys,importlib.util
 import numpy as np
@@ -13,7 +14,7 @@ def check(ok,message):
     assert ok,message
     count+=1
 def sha(p):
-    data=p.read_bytes()
+    data=base_asset_path(p).read_bytes()
     return hashlib.sha256(data.replace(b'\r\n',b'\n') if p.suffix=='.material' else data).hexdigest()
 receipt=json.loads((REF/'build.json').read_text())
 check(sha(REF/'atlas-master.png')==receipt['masterSha256'],'authored bitmap pinned')
@@ -23,7 +24,7 @@ skelpath=ROOT/'Assets/Models/cvhraz_cockpit.skeleton';check(sha(skelpath)==recei
 s,world,eye,shell=cp.shared.rig(skelpath,'CPX21BDA');origin,R=world[eye.handle]
 check(eye.name=='CPX11POV' and shell.name=='CPX21BDA' and shell.handle==11,'actual POV and stable shell')
 check(np.allclose(origin,[0,1.5885809659957886,1.1832480430603027],atol=1e-8) and np.allclose(R,np.eye(3)),'exact stock eye transform')
-mesh=cp.shared.read_mesh(ROOT/'Assets/Models/cvhraz_cockpit.mesh')
+mesh=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/Models/cvhraz_cockpit.mesh'))
 check(mesh.skeleton_name=='cvhraz_cockpit.skeleton','namespaced skeleton selector')
 check([x.material_name for x in mesh.submesh_list]==[cp.MATERIAL,cp.PODS,'CRWX_CockpitGlass'],'interior, bounded pod caps and weather glass only')
 opaque=[];pods_first=pods_last=0
@@ -53,13 +54,13 @@ visible=[]
 for sign in (-1,1):
     directions=np.concatenate([rays(sign*np.arange(25,49,1),pitch) for pitch in range(-31,1)])
     dist,hit=cg.cast(origin,directions,tri[:,0],tri[:,1],tri[:,2]);hits=np.isfinite(dist)&(hit>=pods_first)&(hit<pods_last);visible.append(int(hits.sum()));check(hits.any(),'source pod cap visible at lower periphery: '+str(sign))
-parts,*_=cp.geometry(source,skelpath);compiled=mesh.submesh_list[1]
+parts,*_=cp.geometry(base_asset_path(source),skelpath);compiled=mesh.submesh_list[1]
 authored=parts[cp.MATERIAL][0];local=(authored[:,:3]-origin)@R;uv=authored[:,6:8];top=np.isclose(local[:,1],-.88)&np.isclose(local[:,2],.80)&np.isclose(np.abs(local[:,0]),.23)&(uv[:,1]>=.36)&(uv[:,1]<=.64)
 check(top.sum()==2 and np.allclose(uv[top,0],.52),'portrait keel maps the landscape chart across its short axis')
 check(np.array_equal(cp.shared.values(mesh.submesh_list[0].vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),authored[:,6:8]),'authored UVs compile without reinterpretation')
 check(np.array_equal(cp.shared.values(compiled.vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),parts[cp.PODS][0][:,6:8]),'source pod UVs retained')
 check(receipt['alignment']['podTriangles']==586 and len(compiled.index_array)//3==586,'only selected pod caps, not full hull or hardpoint cubes')
-raw=cp.shared.read_mesh(source);body=raw.submesh_list[0];p=cp.shared.values(body.vertex_data,cp.shared.om.VES.POSITION);q=p[body.index_array.reshape(-1,3)[receipt['alignment']['podSourceIndices']]]
+raw=cp.shared.read_mesh(base_asset_path(source));body=raw.submesh_list[0];p=cp.shared.values(body.vertex_data,cp.shared.om.VES.POSITION);q=p[body.index_array.reshape(-1,3)[receipt['alignment']['podSourceIndices']]]
 fitted=parts[cp.PODS][0][:,:3][parts[cp.PODS][1].reshape(-1,3)]
 check(np.allclose(np.linalg.norm(np.roll(q,-1,axis=1)-q,axis=2),np.linalg.norm(np.roll(fitted,-1,axis=1)-fitted,axis=2),atol=1e-6),'pod fit keeps triangle shape and scale')
 old=raw.submesh_list[1];p=cp.shared.values(old.vertex_data,cp.shared.om.VES.POSITION);old_tri=p[old.index_array.reshape(-1,3)]

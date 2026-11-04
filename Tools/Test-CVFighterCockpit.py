@@ -1,4 +1,5 @@
 """Targeted cvfigh cockpit contracts; no installed game or Blender required."""
+from weaponrigs import base_asset_path
 from pathlib import Path
 import hashlib,json,sys,importlib.util
 import numpy as np
@@ -13,7 +14,7 @@ def check(ok,message):
     assert ok,message
     count+=1
 def sha(p):
-    data=p.read_bytes()
+    data=base_asset_path(p).read_bytes()
     return hashlib.sha256(data.replace(b'\r\n',b'\n') if p.suffix=='.material' else data).hexdigest()
 receipt=json.loads((REF/'build.json').read_text());check(sha(REF/'atlas-master.png')==receipt['masterSha256'],'authored bitmap pinned')
 for relative,digest in receipt['outputs'].items():check(sha(ROOT/relative)==digest,'compiled output pinned: '+relative)
@@ -22,7 +23,7 @@ skelpath=ROOT/'Assets/Models/cvfigh_cockpit.skeleton';check(sha(skelpath)==recei
 s,world,eye,shell=cp.rig(skelpath);origin,R=world[eye.handle]
 check(eye.name=='CFL11POV' and shell.name=='CFL21BDA' and shell.handle==10,'correct real POV and shell bone')
 check(np.allclose(origin,receipt['alignment']['povPosition']) and np.allclose(R,receipt['alignment']['povBasis']),'exact source eye transform')
-mesh=cp.shared.read_mesh(ROOT/'Assets/Models/cvfigh_cockpit.mesh');check(mesh.skeleton_name=='cvfigh_cockpit.skeleton','namespaced rig selector')
+mesh=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/Models/cvfigh_cockpit.mesh'));check(mesh.skeleton_name=='cvfigh_cockpit.skeleton','namespaced rig selector')
 check([x.material_name for x in mesh.submesh_list]==[cp.MATERIAL,cp.GUNS,'CRWX_CockpitGlass'],'only authored interior, selected guns and weather glass')
 opaque=[];gun_first=0;gun_last=0
 for sub in mesh.submesh_list:
@@ -50,7 +51,7 @@ visible=[]
 for sign in (-1,1):
     directions=np.concatenate([rays(sign*np.arange(15,48,1),pitch) for pitch in range(-31,1)])
     dist,hit=cg.cast(origin,directions,tri[:,0],tri[:,1],tri[:,2]);hits=np.isfinite(dist)&(hit>=gun_first)&(hit<gun_last);visible.append(int(hits.sum()));check(hits.any(),'source wing/gun assembly present inside forward angular sample: '+str(sign))
-parts,*_=cp.geometry(ROOT/'Assets/ModelFixes/cvfigh.mesh',skelpath);compiled=mesh.submesh_list[1]
+parts,*_=cp.geometry(base_asset_path(ROOT/'Assets/ModelFixes/cvfigh.mesh'),skelpath);compiled=mesh.submesh_list[1]
 check(np.array_equal(cp.shared.values(compiled.vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),parts[cp.GUNS][0][:,6:8]),'source gun UVs preserved')
 check(receipt['alignment']['gunTriangles']==3992 and len(mesh.submesh_list[1].index_array)//3==3992,'bounded wing-and-gun sections, not full hull or hardpoint cubes')
 check(receipt['alignment']['gunPlacement']==dict(inboard=0,up=0,forward=0),'native wing/gun relationship, no sideways muzzle drift')
@@ -61,7 +62,7 @@ check(len(parts[cp.MATERIAL][1])//3==720,'lowered side sills with capped front j
 check(receipt['alignment']['sillFit']==cp.SILL_FIT,'intentional lowered outer-sill profile recorded')
 # Classify actual low barrel source faces, NOT every triangle in the combined
 # wing/gun material batch. A visible wing must not satisfy the barrel test.
-body=cp.shared.read_mesh(ROOT/'Assets/ModelFixes/cvfigh.mesh').submesh_list[0];source_p=cp.shared.values(body.vertex_data,cp.shared.om.VES.POSITION);source_tri=body.index_array.reshape(-1,3);q=source_p[source_tri]
+body=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/ModelFixes/cvfigh.mesh')).submesh_list[0];source_p=cp.shared.values(body.vertex_data,cp.shared.om.VES.POSITION);source_tri=body.index_array.reshape(-1,3);q=source_p[source_tri]
 barrel_source=(np.abs(q[:,:,0]).min(1)>1.7)&(np.abs(q[:,:,0]).max(1)<2.3)&(q[:,:,1].max(1)<.35)&(q[:,:,2].min(1)>2.0)
 source_ids=np.concatenate([section['sourceFaceIds'] for section in receipt['alignment']['wingSections']]);barrel=np.zeros(len(tri),bool);barrel[gun_first:gun_last]=barrel_source[source_ids]
 v=np.tan(np.radians(32));x,y=np.meshgrid(np.linspace(-v*16/9,v*16/9,160),np.linspace(-v,v,90));directions=np.column_stack([x.ravel(),y.ravel(),np.ones(x.size)]);directions/=np.linalg.norm(directions,axis=1)[:,None];distance,hit=cg.cast(origin,directions@R.T,tri[:,0],tri[:,1],tri[:,2]);pixels=np.isfinite(distance)&barrel[np.maximum(hit,0)];cols=np.tile(np.arange(160),90);pixel_counts=[]

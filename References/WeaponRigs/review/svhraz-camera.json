@@ -1,0 +1,31 @@
+{
+  "eye": "Shb11POV",
+  "position": [
+    -2.5341849327087402,
+    1.170401031151414,
+    0.48031704127788544
+  ],
+  "basis": [
+    [
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "vertical_fov_degrees": 64,
+  "aspect": [
+    960,
+    540
+  ],
+  "source": "unchanged eye position; native VDF local POV rotation"
+}

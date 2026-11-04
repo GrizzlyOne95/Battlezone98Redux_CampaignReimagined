@@ -410,6 +410,9 @@ def measure(odf_dir, config):
                 row["skip"] = f"no Ogre mesh/skeleton for model {model}"
                 continue
             binding = reviewed.get(model, {}).get("bindings", {}).get(hard.upper(), {})
+            if binding.get('flash_offset') is not None:
+                row.update(offset=binding['flash_offset'],hardpoint=hard,barrel=binding.get('animation',''),reviewed_barrel=True)
+                continue
             offset, detail = measure_slot(*cache[model], hard, binding.get("node"))
             if offset is None:
                 row["skip"] = detail

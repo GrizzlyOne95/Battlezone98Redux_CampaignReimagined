@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-11-01T18:35:37-06:00",
-  "count": 5119,
+  "generated": "2026-11-04T13:33:19-06:00",
+  "count": 5168,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -1900,6 +1900,14 @@
       "runtime": "avfigh_cockpit.skeleton"
     },
     {
+      "source": "Assets\\Models\\avfigh_cockpit_recoil.skeleton",
+      "runtime": "avfigh_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\avfigh_recoil.skeleton",
+      "runtime": "avfigh_recoil.skeleton"
+    },
+    {
       "source": "Assets\\Models\\avhraz_cockpit.mesh",
       "runtime": "avhraz_cockpit.mesh"
     },
@@ -1916,6 +1924,14 @@
       "runtime": "avltnk_cockpit.skeleton"
     },
     {
+      "source": "Assets\\Models\\avltnk_cockpit_recoil.skeleton",
+      "runtime": "avltnk_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\avltnk_recoil.skeleton",
+      "runtime": "avltnk_recoil.skeleton"
+    },
+    {
       "source": "Assets\\Models\\avrckt_cockpit.mesh",
       "runtime": "avrckt_cockpit.mesh"
     },
@@ -1924,12 +1940,32 @@
       "runtime": "avrckt_cockpit.skeleton"
     },
     {
+      "source": "Assets\\Models\\avrckt_cockpit_recoil.skeleton",
+      "runtime": "avrckt_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\avrckt_recoil.skeleton",
+      "runtime": "avrckt_recoil.skeleton"
+    },
+    {
       "source": "Assets\\Models\\avtank_cockpit.mesh",
       "runtime": "avtank_cockpit.mesh"
     },
     {
       "source": "Assets\\Models\\avtank_cockpit.skeleton",
       "runtime": "avtank_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\avtest_recoil.skeleton",
+      "runtime": "avtest_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\avwalk_cockpit_recoil.skeleton",
+      "runtime": "avwalk_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\avwalk_recoil.skeleton",
+      "runtime": "avwalk_recoil.skeleton"
     },
     {
       "source": "Assets\\Models\\bbhqcp.mesh",
@@ -2052,12 +2088,32 @@
       "runtime": "bvltnk_cockpit.skeleton"
     },
     {
+      "source": "Assets\\Models\\bvltnk_cockpit_recoil.skeleton",
+      "runtime": "bvltnk_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bvltnk_recoil.skeleton",
+      "runtime": "bvltnk_recoil.skeleton"
+    },
+    {
       "source": "Assets\\Models\\bvraz_cockpit.mesh",
       "runtime": "bvraz_cockpit.mesh"
     },
     {
       "source": "Assets\\Models\\bvraz_cockpit.skeleton",
       "runtime": "bvraz_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bvraz_cockpit_recoil.skeleton",
+      "runtime": "bvraz_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bvraz_recoil.skeleton",
+      "runtime": "bvraz_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bvrckt_recoil.skeleton",
+      "runtime": "bvrckt_recoil.skeleton"
     },
     {
       "source": "Assets\\Models\\bvrdev_cockpit.mesh",
@@ -2068,12 +2124,28 @@
       "runtime": "bvrdev_cockpit.skeleton"
     },
     {
+      "source": "Assets\\Models\\bvrdev_cockpit_recoil.skeleton",
+      "runtime": "bvrdev_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bvrdev_recoil.skeleton",
+      "runtime": "bvrdev_recoil.skeleton"
+    },
+    {
       "source": "Assets\\Models\\bvtank_cockpit.mesh",
       "runtime": "bvtank_cockpit.mesh"
     },
     {
       "source": "Assets\\Models\\bvtank_cockpit.skeleton",
       "runtime": "bvtank_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bvwalk_cockpit_recoil.skeleton",
+      "runtime": "bvwalk_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\bvwalk_recoil.skeleton",
+      "runtime": "bvwalk_recoil.skeleton"
     },
     {
       "source": "Assets\\Models\\c17frst1.geo",
@@ -2226,6 +2298,10 @@
     {
       "source": "Assets\\Models\\c17tree2.skeleton",
       "runtime": "c17tree2.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cblasr_recoil.skeleton",
+      "runtime": "cblasr_recoil.skeleton"
     },
     {
       "source": "Assets\\Models\\cbstor.mesh",
@@ -2944,12 +3020,24 @@
       "runtime": "crwsns.vdf"
     },
     {
+      "source": "Assets\\Models\\cvartl_recoil.skeleton",
+      "runtime": "cvartl_recoil.skeleton"
+    },
+    {
       "source": "Assets\\Models\\cvfigh_cockpit.mesh",
       "runtime": "cvfigh_cockpit.mesh"
     },
     {
       "source": "Assets\\Models\\cvfigh_cockpit.skeleton",
       "runtime": "cvfigh_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvfigh_cockpit_recoil.skeleton",
+      "runtime": "cvfigh_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvfigh_recoil.skeleton",
+      "runtime": "cvfigh_recoil.skeleton"
     },
     {
       "source": "Assets\\Models\\cvhraz_cockpit.mesh",
@@ -2960,12 +3048,28 @@
       "runtime": "cvhraz_cockpit.skeleton"
     },
     {
+      "source": "Assets\\Models\\cvhraz_cockpit_recoil.skeleton",
+      "runtime": "cvhraz_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvhraz_recoil.skeleton",
+      "runtime": "cvhraz_recoil.skeleton"
+    },
+    {
       "source": "Assets\\Models\\cvhtnk_cockpit.mesh",
       "runtime": "cvhtnk_cockpit.mesh"
     },
     {
       "source": "Assets\\Models\\cvhtnk_cockpit.skeleton",
       "runtime": "cvhtnk_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvhtnk_cockpit_recoil.skeleton",
+      "runtime": "cvhtnk_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvhtnk_recoil.skeleton",
+      "runtime": "cvhtnk_recoil.skeleton"
     },
     {
       "source": "Assets\\Models\\cvltnk_cockpit.mesh",
@@ -2976,12 +3080,28 @@
       "runtime": "cvltnk_cockpit.skeleton"
     },
     {
+      "source": "Assets\\Models\\cvltnk_cockpit_recoil.skeleton",
+      "runtime": "cvltnk_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvltnk_recoil.skeleton",
+      "runtime": "cvltnk_recoil.skeleton"
+    },
+    {
       "source": "Assets\\Models\\cvrckt_cockpit.mesh",
       "runtime": "cvrckt_cockpit.mesh"
     },
     {
       "source": "Assets\\Models\\cvrckt_cockpit.skeleton",
       "runtime": "cvrckt_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvrckt_cockpit_recoil.skeleton",
+      "runtime": "cvrckt_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvrckt_recoil.skeleton",
+      "runtime": "cvrckt_recoil.skeleton"
     },
     {
       "source": "Assets\\Models\\cvtnk_cockpit.mesh",
@@ -2992,12 +3112,28 @@
       "runtime": "cvtnk_cockpit.skeleton"
     },
     {
+      "source": "Assets\\Models\\cvtnk_cockpit_recoil.skeleton",
+      "runtime": "cvtnk_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvtnk_recoil.skeleton",
+      "runtime": "cvtnk_recoil.skeleton"
+    },
+    {
       "source": "Assets\\Models\\cvturr_cockpit.mesh",
       "runtime": "cvturr_cockpit.mesh"
     },
     {
       "source": "Assets\\Models\\cvturr_cockpit.skeleton",
       "runtime": "cvturr_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvturr_cockpit_recoil.skeleton",
+      "runtime": "cvturr_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\cvturr_recoil.skeleton",
+      "runtime": "cvturr_recoil.skeleton"
     },
     {
       "source": "Assets\\Models\\j1711bda.geo",
@@ -3488,12 +3624,28 @@
       "runtime": "spspec.vdf"
     },
     {
+      "source": "Assets\\Models\\svartl_cockpit_recoil.skeleton",
+      "runtime": "svartl_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svartl_recoil.skeleton",
+      "runtime": "svartl_recoil.skeleton"
+    },
+    {
       "source": "Assets\\Models\\svfigh_cockpit.mesh",
       "runtime": "svfigh_cockpit.mesh"
     },
     {
       "source": "Assets\\Models\\svfigh_cockpit.skeleton",
       "runtime": "svfigh_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svfigh_cockpit_recoil.skeleton",
+      "runtime": "svfigh_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svfigh_recoil.skeleton",
+      "runtime": "svfigh_recoil.skeleton"
     },
     {
       "source": "Assets\\Models\\svhraz_cockpit.mesh",
@@ -3504,6 +3656,14 @@
       "runtime": "svhraz_cockpit.skeleton"
     },
     {
+      "source": "Assets\\Models\\svhraz_cockpit_recoil.skeleton",
+      "runtime": "svhraz_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svhraz_recoil.skeleton",
+      "runtime": "svhraz_recoil.skeleton"
+    },
+    {
       "source": "Assets\\Models\\svltnk_cockpit.mesh",
       "runtime": "svltnk_cockpit.mesh"
     },
@@ -3512,12 +3672,48 @@
       "runtime": "svltnk_cockpit.skeleton"
     },
     {
+      "source": "Assets\\Models\\svltnk_cockpit_recoil.skeleton",
+      "runtime": "svltnk_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svltnk_recoil.skeleton",
+      "runtime": "svltnk_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svrckt_recoil.skeleton",
+      "runtime": "svrckt_recoil.skeleton"
+    },
+    {
       "source": "Assets\\Models\\svtank_cockpit.mesh",
       "runtime": "svtank_cockpit.mesh"
     },
     {
       "source": "Assets\\Models\\svtank_cockpit.skeleton",
       "runtime": "svtank_cockpit.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svtank_cockpit_recoil.skeleton",
+      "runtime": "svtank_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svtank_recoil.skeleton",
+      "runtime": "svtank_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svturr_cockpit_recoil.skeleton",
+      "runtime": "svturr_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svturr_recoil.skeleton",
+      "runtime": "svturr_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svwalk_cockpit_recoil.skeleton",
+      "runtime": "svwalk_cockpit_recoil.skeleton"
+    },
+    {
+      "source": "Assets\\Models\\svwalk_recoil.skeleton",
+      "runtime": "svwalk_recoil.skeleton"
     },
     {
       "source": "Assets\\Models\\ubtart.mesh",

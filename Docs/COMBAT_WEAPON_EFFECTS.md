@@ -1,21 +1,21 @@
 # CR combat weapon effects: implementation and mesh-edit report
 
-Initial implementation, 2026-11-04. This report is generated from the current CR source, reviewed model policy and fitted flash data.
+Weapon-rig update, 2026-11-04. Generated from CR source, reviewed model policy and fitted flash data. See [the model-edit report](WEAPON_RIGS.md) for the requested 27-model pass and exported previews.
 
-**132 armed ODFs / 50 models / 267 equipped slots.** Authored recoil: 55 slots; fitted flash offsets: 124 slots; ballistic casing selections: 114 slots.
+**132 armed ODFs / 50 models / 267 equipped slots.** Authored recoil: 197 slots; fitted flash offsets: 188 slots; ballistic casing selections: 114 slots.
 
 Scope: CR vehicle/building definitions, including mission variants and utility carriers. People retain per-weapon effects; armories supply weapons. This source-only count excludes stock-only aliases from the earlier 139-definition/52-model audit.
 
 ## What is implemented
 
-- Recoil bindings use reviewed independent gun pieces and preserve the existing tank configurations. Mortar/rocket and minigun slots receive local kick overrides where their weapon supplies none. Weapon gameplay/loadouts are preserved.
+- The requested 27 models now have closed split gun pieces and EXU clips, with matching clips on visible cockpit gun copies. `cvfigh` rotates its forward minigun clusters; `cvturr` has four independent channels. Other reviewed independent gun pieces retain node bindings. Weapon gameplay/loadouts are preserved.
 - Flash fitting uses explicit visible gun pieces, including sibling bomber guns, non-BG turret tubes and the CRA gun-tower tube. The weapon offset stays zero; craft slots receive geometry-derived corrections.
 - All 100 inventoried weapon ODFs already select small/medium/large/none casings. This pass checks every CR loadout against those decisions; plasma/energy/rocket/utility weapons remain casing-free.
 
 ## Remaining runtime and asset work
 
 - These are authored configurations, not native visual acceptance. Existing OpenShim/EXU effect settings, exact-build and single-player gates remain. Beam/guided/targeting/other producer gaps remain explicit in the slot report.
-- OpenShim currently supports weapon casingType/casingMesh, not per-craft ejection-port offsets. Brass still uses the firing mount and estimated breech. For a fitted port, add native per-slot local offset/direction support and author matching breech/port markers; do not invent inert ODF keys.
+- The new spin and fitted per-slot casing ports require [OpenShim PR 698](https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/pull/698). That source builds and passes host tests; CR shipping binaries have not been refreshed. Other models still use the estimated native breech.
 - Recoil is cosmetic. Qualify muzzle flash placement at both rest and kicked poses, aiming, deployment, repeated/simultaneous shots, weapon swaps and scene reload.
 - `avartla` selects `gpopguna`, absent from both CR and the extracted stock ODFs. It remains unresolved rather than silently substituting a different weapon.
 
@@ -23,37 +23,43 @@ Scope: CR vehicle/building definitions, including mission variants and utility c
 
 | Model | Unit ODFs | Work category | Proposed change |
 |---|---|---|---|
-| `avfigh` | `avfigh`, `avfimp` | Isolate gun geometry | Guns share roof/hull/pod weights with fixed structure. Select each visible tube or muzzle sleeve, give it its own recoil child below the existing moving parent, and reweight only that geometry. Split and cap joined boundary faces where necessary. Keep left/right channels independent and use a small machinegun kick; do not recoil the entire carrier. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
 | `avland` | `avlamp` | Isolate gun geometry | The armed lander marker is attached to lla11bda. Identify/select the visible muzzle/emitter and give it a gun-only child; preserve the large landing structure. No ready dedicated cannon-tip node found. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
-| `avltnk` | `avltmp`, `avltnk` | Isolate gun geometry | Main gun is weighted to the hull (aln11bda/bln11bda); launcher box is a different part. Isolate the visible cannon/minigun tip and add a recoil child under the hull. Use a separate launcher sleeve if wanted. Black Dog GR1 also lacks a matching rendered marker; use native hardpoint data and verify fit. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
-| `avrckt` | `avrckt` | Isolate gun geometry | Rocket/launcher outlets are integrated into body weights. Separate the actual tube mouth/launch rail/sleeve for a short local compression animation; preserve hull and utility hardpoints. Use per-slot launch behavior, not cannon-like whole-body translation. Guided/targeting launchers need their own accepted-fire path support. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
 | `avsav` | `avpsav`, `avrsav`, `avsav`, `avsav14` | Emitter/asset decision | No independent conventional barrel found for the active weapon. These hull/emitter-driven special units need a deliberate emitter-core/lens mechanism or an authored energy pulse. If mechanical motion is desired, isolate/add a small local piece; do not recoil the complete Fury/special-unit hull or satellite structure. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
-| `avtest` | `avtest` | Rig/animation work | Separate aVT11bgA/bgb gun pieces have changing native position tracks. This is a drone/debug definition with dummy weapons. Compose recoil with existing animation; do not classify as an immediate static slide target. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
-| `avwalk` | `avwalk`, `avwamp` | Isolate gun geometry | Each cannon shares an aimed arm (age11tx2 / age11tx1). Select the gun end/barrel inside each arm, create independent recoil children and reweight. Keep shoulders, arms and walking animation on their existing bones; do not use one clip that kicks both arms for either shot. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
-| `bvltnk` | `bvltnk`, `bvltnka` | Isolate gun geometry | Main gun is weighted to the hull (aln11bda/bln11bda); launcher box is a different part. Isolate the visible cannon/minigun tip and add a recoil child under the hull. Use a separate launcher sleeve if wanted. Black Dog GR1 also lacks a matching rendered marker; use native hardpoint data and verify fit. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
-| `bvraz` | `bvfigh`, `bvfigha`, `bvra8`, `bvraz` | Isolate gun geometry | Guns share roof/hull/pod weights with fixed structure. Select each visible tube or muzzle sleeve, give it its own recoil child below the existing moving parent, and reweight only that geometry. Split and cap joined boundary faces where necessary. Keep left/right channels independent and use a small machinegun kick; do not recoil the entire carrier. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
-| `bvrckt` | `bvrckt` | Isolate gun geometry | Rocket/launcher outlets are integrated into body weights. Separate the actual tube mouth/launch rail/sleeve for a short local compression animation; preserve hull and utility hardpoints. Use per-slot launch behavior, not cannon-like whole-body translation. Guided/targeting launchers need their own accepted-fire path support. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
-| `bvrdev` | `bvrdev`, `bvrdeva`, `bvrmpa`, `bvrmpb` | Isolate gun geometry | Primary and launcher markers are under brd11bda, despite other decorative/aiming pieces existing. Isolate actual gun geometry for cannon/minigun variants and separate launch sleeves where appropriate. Avoid recoiling the entire vehicle shell. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
-| `bvwalk` | `bvwalk` | Isolate gun geometry | Each cannon shares an aimed arm (age11tx2 / age11tx1). Select the gun end/barrel inside each arm, create independent recoil children and reweight. Keep shoulders, arms and walking animation on their existing bones; do not use one clip that kicks both arms for either shot. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
-| `cblasr` | `cblasr`, `cbtowea`, `cbtowec`, `cbtowee` | Emitter/asset decision | The shipped rendered skeleton has only clz11bda/clz11bdb, while native GC1 is under clz11bdd. Resolve the missing rendered aiming/emitter hierarchy first. A localized lens/nozzle pulse can then use isolated geometry; translating the whole tower top is unsuitable. Beam variants also require producer support. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
 | `crfraz` | `crfraz` | Emitter/asset decision | No independent conventional barrel found for the active weapon. These hull/emitter-driven special units need a deliberate emitter-core/lens mechanism or an authored energy pulse. If mechanical motion is desired, isolate/add a small local piece; do not recoil the complete Fury/special-unit hull or satellite structure. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
-| `cvartl` | `cvartl`, `cvartla` | Isolate gun geometry | CAR11TX1 owns 5013 vertices including the large aiming housing and all four gun assemblies. Separate each desired barrel/tube from the housing, with children below TX1; preserve aim/deployment. Do not slide the entire 6.9 m-wide aiming assembly for one fired slot. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
-| `cvfigh` | `cvfigh`, `cvfigha`, `cvfighb`, `cvfighc`, `cvfighd`, `cvfighe`, `cvfighf`, `cvfighg`, `cvfighh`, `cvfimp`, `cvraz` | Isolate gun geometry | Guns share roof/hull/pod weights with fixed structure. Select each visible tube or muzzle sleeve, give it its own recoil child below the existing moving parent, and reweight only that geometry. Split and cap joined boundary faces where necessary. Keep left/right channels independent and use a small machinegun kick; do not recoil the entire carrier. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
-| `cvhraz` | `cvhraz`, `cvhraza`, `cvhrazb`, `cvhzmp` | Isolate gun geometry | Default GR1/GR2 markers are attached to CPX11BDA0 while the physical launcher/side assemblies are weighted with large engine/body pieces. Isolate outlet sleeves or add small moving nozzle parts under the correct pod; do not recoil CPX11BDA0 or an entire engine. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
-| `cvhtnk` | `cvhmpa`, `cvhmpb`, `cvhtnk` | Rig/animation work | The rendered side gun/sponson assemblies already have separate weighted bones CEM11WGL0 and CEM11WGR1 (1070 vertices each), but these are Ogre-only names, longer than the 8-byte native node route. Native WGL/WGR nodes own only tiny marker geometry. An authored clip/helper can recoil existing assemblies; gun-tip-only action needs a further surface selection/split. Do not translate CEM11BDA. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
-| `cvltnk` | `cvltnk` | Isolate gun geometry | GC1 and GR1 are integrated into CNA11BDA. Separate a gun-only tube/sleeve from the hull weights; author independent recoil helper. Preserve the existing rocket hardpoint selection. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
-| `cvrckt` | `cvrckt` | Isolate gun geometry | Rocket/launcher outlets are integrated into body weights. Separate the actual tube mouth/launch rail/sleeve for a short local compression animation; preserve hull and utility hardpoints. Use per-slot launch behavior, not cannon-like whole-body translation. Guided/targeting launchers need their own accepted-fire path support. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
-| `cvtnk` | `cvtank`, `cvtmpa`, `cvtnk`, `cvtnka`, `cvtnkb`, `cvtnkc`, `cvtnkd` | Isolate gun geometry | Primary and secondary guns are on CYE11BDA; the tall/long cannon does not have its own weighted barrel. Isolate the barrel or front sleeve and add a child, retaining hull/pod parts. Handle dual-gun mission variants separately. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
-| `cvturr` | `cvturr`, `cvturra`, `cvturrb`, `cvturrc` | Isolate gun geometry | CAD11TX1/TX2 each combine an aiming assembly with multiple barrels. Reweight individual barrel tips beneath those parents and bind slots 1/2/3/4 independently; preserve folded legs and aimed parts. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
 | `cvwalk` | `cvwalk`, `cvwamp` | Isolate gun geometry | Two guns share the aiming head. Add independent weighted gun children beneath the head, retaining aim and gait. Current rendered muzzle names also differ from some native model names; fit from the native fired slots and actual visible barrels. Do not translate the entire head. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
-| `svartl` | `svarmp`, `svartl`, `svartla` | Rig/animation work | sar11bgb is already a separate weighted barrel, but its native translation is animated. Use an additive recoil child/helper or a composed firing clip so deployment keys do not fight recoil. No initial geometry split is required for whole-barrel recoil. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
-| `svfigh` | `svdemo`, `svfi12`, `svfigh`, `svfigha`, `svfimp` | Isolate gun geometry | Guns share roof/hull/pod weights with fixed structure. Select each visible tube or muzzle sleeve, give it its own recoil child below the existing moving parent, and reweight only that geometry. Split and cap joined boundary faces where necessary. Keep left/right channels independent and use a small machinegun kick; do not recoil the entire carrier. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
-| `svhraz` | `svhr13`, `svhraz`, `svhrmp` | Isolate gun geometry | Default saturation-rocket hardpoints GR1/GR2 belong to shb11bda; there are no independent launcher-barrel bones like the NSDF bomber. Isolate launch-port/nozzle geometry into short-stroke children. The small shb11bdc part belongs to the other-side TAG marker and is not proof of a default rocket barrel. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
-| `svltnk` | `svlt13`, `svltnk` | Isolate gun geometry | Both relevant markers are on slt11trt, a small turret/gun housing rather than a dedicated sliding tip. Whole-housing motion is possible as an art choice, but a localized barrel action needs a separate tube/sleeve child and weights; preserve turret aim. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
-| `svrckt` | `svrckt` | Isolate gun geometry | Rocket/launcher outlets are integrated into body weights. Separate the actual tube mouth/launch rail/sleeve for a short local compression animation; preserve hull and utility hardpoints. Use per-slot launch behavior, not cannon-like whole-body translation. Guided/targeting launchers need their own accepted-fire path support. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
 | `svsav` | `svsav` | Emitter/asset decision | No independent conventional barrel found for the active weapon. These hull/emitter-driven special units need a deliberate emitter-core/lens mechanism or an authored energy pulse. If mechanical motion is desired, isolate/add a small local piece; do not recoil the complete Fury/special-unit hull or satellite structure. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
-| `svturr` | `svtump`, `svturr`, `svturra`, `svturrb`, `svturrc` | Rig/animation work | Separate rendered barrels already exist, so geometry cutting is not the first problem. Native GC1 parent is STU11BGC, which exists and owns 314 vertices. Native GC2 parent STU11BGB is absent from the Ogre skeleton; rendered siblings are STU11BGCA/STU11BGCB/STU11BGC. GC markers are absent from the rendered skeleton. Reconcile world rig names/bindings for each tube and preserve the existing deploy/cockpit fix before enabling. One ready tube does not establish dual-slot correctness. Fit muzzle markers to the visible apertures; add a separate breech/ejection-port marker for ballistic loadouts once native per-slot port support exists. |
-| `svwalk` | `svwalk`, `svwalka`, `svwamp` | Isolate gun geometry | Two guns share the aiming head. Add independent weighted gun children beneath the head, retaining aim and gait. Current rendered muzzle names also differ from some native model names; fit from the native fired slots and actual visible barrels. Do not translate the entire head. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
+
+## Requested model edits authored
+
+| Model | Unit ODFs | Result / qualification |
+|---|---|---|
+| `avfigh` | `avfigh`, `avfimp` | Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `avltnk` | `avltmp`, `avltnk` | Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `avrckt` | `avrckt` | Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `avtest` | `avtest` | Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `avwalk` | `avwalk`, `avwamp` | Closed gun sections and EXU world/cockpit clips authored; 2 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `bvltnk` | `bvltnk`, `bvltnka` | Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `bvraz` | `bvfigh`, `bvfigha`, `bvra8`, `bvraz` | Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `bvrckt` | `bvrckt` | Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `bvrdev` | `bvrdev`, `bvrdeva`, `bvrmpa`, `bvrmpb` | Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `bvwalk` | `bvwalk` | Closed gun sections and EXU world/cockpit clips authored; 2 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `cblasr` | `cblasr`, `cbtowea`, `cbtowec`, `cbtowee` | Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `cvartl` | `cvartl`, `cvartla` | Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `cvfigh` | `cvfigh`, `cvfigha`, `cvfighb`, `cvfighc`, `cvfighd`, `cvfighe`, `cvfighf`, `cvfighg`, `cvfighh`, `cvfimp`, `cvraz` | Closed gun sections and EXU world/cockpit clips authored; 2 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `cvhraz` | `cvhraz`, `cvhraza`, `cvhrazb`, `cvhzmp` | Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `cvhtnk` | `cvhmpa`, `cvhmpb`, `cvhtnk` | Closed gun sections and EXU world/cockpit clips authored; 2 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `cvltnk` | `cvltnk` | Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `cvrckt` | `cvrckt` | Closed gun sections and EXU world/cockpit clips authored; 2 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `cvtnk` | `cvtank`, `cvtmpa`, `cvtnk`, `cvtnka`, `cvtnkb`, `cvtnkc`, `cvtnkd` | Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `cvturr` | `cvturr`, `cvturra`, `cvturrb`, `cvturrc` | Closed gun sections and EXU world/cockpit clips authored; 4 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `svartl` | `svarmp`, `svartl`, `svartla` | Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `svfigh` | `svdemo`, `svfi12`, `svfigh`, `svfigha`, `svfimp` | Closed gun sections and EXU world/cockpit clips authored; 2 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `svhraz` | `svhr13`, `svhraz`, `svhrmp` | Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `svltnk` | `svlt13`, `svltnk` | Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `svrckt` | `svrckt` | Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `svtank` | `svtank`, `svtanka`, `svtas8`, `svtk13`, `svtnk7` | Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `svturr` | `svtump`, `svturr`, `svturra`, `svturrb`, `svturrc` | Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
+| `svwalk` | `svwalk`, `svwalka`, `svwamp` | Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending. |
 
 ## Models using existing gun pieces
 
@@ -72,199 +78,198 @@ Scope: CR vehicle/building definitions, including mission variants and utility c
 | `cbtowe` | `cbtowe`, `cbtoweb`, `cbtowed`, `cbtowef` | cgt11tx1 owns only the long narrow cannon tube: 444 vertices / 648 triangles, approximately 0.70 x 0.70 x 5.65 m. It is a static native node beneath yaw and owns GC1. Recoil can translate this aimed tube while retaining live orientation. No mesh split needed to move the whole tube; splitting is optional if only its end sleeve should telescope. |
 | `cr16tow` | `cr16tow` | Separate sgn11bgb (GC1) and sgn11bga (GC2) tips. Static native nodes and distinct weighted geometry. Keep shared aiming head stationary in translation. Beam variants still need accepted-fire/runtime support and kick policy; geometry readiness alone does not enable them. |
 | `sbtowe` | `sb0002`, `sbtowe`, `sbtowea`, `sbtoweb`, `sbtowec`, `sbtowed`, `sbtowee` | Separate sgn11bgb (GC1) and sgn11bga (GC2) tips. Static native nodes and distinct weighted geometry. Keep shared aiming head stationary in translation. Beam variants still need accepted-fire/runtime support and kick policy; geometry readiness alone does not enable them. |
-| `svtank` | `svtank`, `svtanka`, `svtas8`, `svtk13`, `svtnk7` | Existing SCZ11BGB slot-1 binding. Secondary chaingun is on scz11bda and needs its own gun-only weighting. Utility/Thumper slots must not drive the cannon barrel. |
 
 ## Every CR unit and equipped slot
 
 | ODF | Slot / weapon | Recoil | Flash offset | Casings | Runtime / unresolved placement |
 |---|---|---|---|---|---|
-| `abtowe` | 1: `gspstabn` | `agn11bgb` | -0.06 0.02 0.23 | large | accepted-shot path; live validation pending; casing port estimated |
-| `avarmp` | 1: `ghartmp` | `aar11bgd` | 0.04 -0.07 0.71 | large | accepted-shot path; live validation pending; casing port estimated |
-| `avartl` | 1: `ghartill` | `aar11bgd` | 0.04 -0.07 0.71 | large | accepted-shot path; live validation pending; casing port estimated |
-| `avartl` | 2: `ghartill` | `aar11bgc` | 0.04 -0.06 0.74 | large | accepted-shot path; live validation pending; casing port estimated |
-| `avartl` | 3: `ghartill` | `aar11bgb` | 0.00 -0.07 0.68 | large | accepted-shot path; live validation pending; casing port estimated |
-| `avartl` | 4: `ghartill` | `aar11bga` | -0.01 -0.08 0.72 | large | accepted-shot path; live validation pending; casing port estimated |
+| `abtowe` | 1: `gspstabn` | `agn11bgb` | -0.06 0.02 0.23 | large | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avarmp` | 1: `ghartmp` | `aar11bgd` | 0.04 -0.07 0.71 | large | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avartl` | 1: `ghartill` | `aar11bgd` | 0.04 -0.07 0.71 | large | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avartl` | 2: `ghartill` | `aar11bgc` | 0.04 -0.06 0.74 | large | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avartl` | 3: `ghartill` | `aar11bgb` | 0.00 -0.07 0.68 | large | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avartl` | 4: `ghartill` | `aar11bga` | -0.01 -0.08 0.72 | large | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
 | `avartla` | 1: `gpopguna` | `` | pending / omitted | unresolved | weapon definition missing; weapon definition missing |
-| `avdemo` | 1: `gatstab` | `AGR11BGA` | 0.20 0.10 2.41 | medium | accepted-shot path; live validation pending; casing port estimated |
-| `avdemo` | 2: `gminigun` | `` | pending / omitted | small | accepted-shot path; live validation pending; parent AGR11BDA is not a barrel node and the hardpoint is 0.41 m behind its front geometry; casing port estimated |
+| `avdemo` | 1: `gatstab` | `AGR11BGA` | 0.20 0.10 2.41 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avdemo` | 2: `gminigun` | `` | pending / omitted | small | accepted-shot path; live validation pending; parent AGR11BDA is not a barrel node and the hardpoint is 0.41 m behind its front geometry; estimated native breech; model port fitting pending |
 | `avdemo` | 3: `gquake` | `` | pending / omitted | none | accepted-shot path; live validation pending; ground-contact seismic emitter |
 | `avdemo` | 4: `gmdmgun` | `` | pending / omitted | none | native firing producer pending; parent AGR11BDA is not a barrel node and has no geometry around the hardpoint |
-| `avfigh` | 1: `gminigun` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `avfigh` | 2: `gminigun` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `avfimp` | 1: `gminigun` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `avfimp` | 2: `gminigun` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
+| `avfigh` | 1: `gminigun` | `animation:cr_fire_1` | -0.02 -0.24 -1.41 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `avfigh` | 2: `gminigun` | `animation:cr_fire_2` | 0.03 -0.25 -1.41 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `avfimp` | 1: `gminigun` | `animation:cr_fire_1` | -0.02 -0.24 -1.41 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `avfimp` | 2: `gminigun` | `animation:cr_fire_2` | 0.03 -0.25 -1.41 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `avhraz` | 2: `grktbomb` | `ahr11bga` | 0.03 -0.01 1.32 | none | accepted-shot path; live validation pending |
 | `avhraz` | 3: `grktbomb` | `ahr11bgb` | -0.01 -0.01 1.32 | none | accepted-shot path; live validation pending |
 | `avhrmp` | 2: `grktbomb` | `ahr11bga` | 0.03 -0.01 1.32 | none | accepted-shot path; live validation pending |
 | `avhrmp` | 3: `grktbomb` | `ahr11bgb` | -0.01 -0.01 1.32 | none | accepted-shot path; live validation pending |
 | `avlamp` | 1: `gtechno` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent lla11bda is not a barrel node and the hardpoint is 2.66 m behind its front geometry |
-| `avltmp` | 1: `gtminig` | `` | pending / omitted | small | accepted-shot path; live validation pending; parent aln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry; casing port estimated |
-| `avltmp` | 2: `gtaggun` | `` | pending / omitted | none | native firing producer pending; parent aln11bdc is not a barrel node and has no geometry around the hardpoint |
+| `avltmp` | 1: `gtminig` | `animation:cr_fire_1` | -0.01 0.01 0.42 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `avltmp` | 2: `gtaggun` | `animation:cr_fire_2` | 0.04 -0.06 0.38 | none | native firing producer pending |
 | `avltmp` | 3: `gmitsmin` | `` | pending / omitted | none | native firing producer pending; mine deployment |
-| `avltnk` | 1: `gminigun` | `` | pending / omitted | small | accepted-shot path; live validation pending; parent aln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry; casing port estimated |
-| `avltnk` | 2: `ghornet` | `` | pending / omitted | none | native firing producer pending; parent aln11bdc is not a barrel node and has no geometry around the hardpoint |
+| `avltnk` | 1: `gminigun` | `animation:cr_fire_1` | -0.01 0.01 0.42 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `avltnk` | 2: `ghornet` | `animation:cr_fire_2` | 0.04 -0.06 0.38 | none | native firing producer pending |
 | `avltnk` | 3: `gflare` | `` | pending / omitted | none | native firing producer pending; countermeasure deployment |
 | `avmine` | 1: `gproxmin` | `` | pending / omitted | none | native firing producer pending; mine deployment |
 | `avpsav` | 1: `gbolt` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent polymsh is not a barrel node and the hardpoint is 2.27 m behind its front geometry |
 | `avpsav` | 2: `gwasp` | `` | pending / omitted | none | native firing producer pending; mine deployment |
-| `avrckt` | 1: `gshadow` | `` | 0.00 0.00 0.00 | none | native firing producer pending |
-| `avrckt` | 2: `ghornet` | `` | 0.00 0.00 0.00 | none | native firing producer pending |
+| `avrckt` | 1: `gshadow` | `animation:cr_fire_1` | 0.00 -0.23 0.24 | none | native firing producer pending |
+| `avrckt` | 2: `ghornet` | `animation:cr_fire_2` | 0.00 -0.23 0.24 | none | native firing producer pending |
 | `avrckt` | 4: `gproxmin` | `` | pending / omitted | none | native firing producer pending; mine deployment |
 | `avrsav` | 1: `gbolt` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent polymsh is not a barrel node and the hardpoint is 2.27 m behind its front geometry |
 | `avrsav` | 2: `gwasp` | `` | pending / omitted | none | native firing producer pending; mine deployment |
 | `avsav` | 1: `gbolt` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent polymsh is not a barrel node and the hardpoint is 2.27 m behind its front geometry |
 | `avsav` | 2: `gwasp` | `` | pending / omitted | none | native firing producer pending; mine deployment |
 | `avsav14` | 1: `gbolt` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent polymsh is not a barrel node and the hardpoint is 2.27 m behind its front geometry |
-| `avtamp` | 1: `gatstab` | `AGR11BGA` | 0.20 0.10 2.41 | medium | accepted-shot path; live validation pending; casing port estimated |
+| `avtamp` | 1: `gatstab` | `AGR11BGA` | 0.20 0.10 2.41 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
 | `avtamp` | 2: `gmaggun` | `` | pending / omitted | none | native firing producer pending; parent AGR11BDA is not a barrel node and the hardpoint is 0.41 m behind its front geometry |
 | `avtamp` | 3: `gredfld` | `` | pending / omitted | none | native firing producer pending; radar device |
-| `avtank` | 1: `gatstab` | `AGR11BGA` | 0.20 0.10 2.41 | medium | accepted-shot path; live validation pending; casing port estimated |
-| `avtank` | 2: `gminigun` | `` | pending / omitted | small | accepted-shot path; live validation pending; parent AGR11BDA is not a barrel node and the hardpoint is 0.41 m behind its front geometry; casing port estimated |
+| `avtank` | 1: `gatstab` | `AGR11BGA` | 0.20 0.10 2.41 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avtank` | 2: `gminigun` | `` | pending / omitted | small | accepted-shot path; live validation pending; parent AGR11BDA is not a barrel node and the hardpoint is 0.41 m behind its front geometry; estimated native breech; model port fitting pending |
 | `avtank` | 3: `gquake` | `` | pending / omitted | none | accepted-shot path; live validation pending; ground-contact seismic emitter |
 | `avtank` | 4: `gmdmgun` | `` | pending / omitted | none | native firing producer pending; parent AGR11BDA is not a barrel node and has no geometry around the hardpoint |
-| `avtest` | 1: `gdummy` | `` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
-| `avtest` | 2: `gdummy` | `` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
-| `avtest` | 3: `gdummy` | `` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
-| `avtest` | 4: `gdummy` | `` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
-| `avtump` | 1: `gtminig` | `aDE11blc` | 0.69 0.38 0.27 | small | accepted-shot path; live validation pending; casing port estimated |
-| `avtump` | 2: `gtminig` | `aDE11blf` | 0.83 0.39 0.27 | small | accepted-shot path; live validation pending; casing port estimated |
-| `avturr` | 1: `gtminig` | `aDE11blc` | 0.69 0.38 0.27 | small | accepted-shot path; live validation pending; casing port estimated |
-| `avwalk` | 1: `gatstaba` | `` | pending / omitted | medium | accepted-shot path; live validation pending; parent age11tx2 is not a barrel node and the hardpoint is 0.85 m behind its front geometry; casing port estimated |
-| `avwalk` | 2: `gatstaba` | `` | pending / omitted | medium | accepted-shot path; live validation pending; parent age11tx1 is not a barrel node and the hardpoint is 0.83 m behind its front geometry; casing port estimated |
+| `avtest` | 1: `gdummy` | `animation:cr_fire_1` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
+| `avtest` | 2: `gdummy` | `animation:cr_fire_2` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
+| `avtest` | 3: `gdummy` | `animation:cr_fire_1` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
+| `avtest` | 4: `gdummy` | `animation:cr_fire_2` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
+| `avtump` | 1: `gtminig` | `aDE11blc` | 0.69 0.38 0.27 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avtump` | 2: `gtminig` | `aDE11blf` | 0.83 0.39 0.27 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avturr` | 1: `gtminig` | `aDE11blc` | 0.69 0.38 0.27 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avwalk` | 1: `gatstaba` | `animation:cr_fire_1` | 0.12 0.07 0.84 | medium | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `avwalk` | 2: `gatstaba` | `animation:cr_fire_2` | -0.10 0.12 0.81 | medium | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `avwalk` | 3: `gpopgun` | `` | pending / omitted | none | native firing producer pending; parent age11ty1 is not a barrel node and the hardpoint is 0.49 m behind its front geometry |
-| `avwamp` | 1: `gmaggun` | `` | pending / omitted | none | native firing producer pending; parent age11tx2 is not a barrel node and the hardpoint is 0.85 m behind its front geometry |
-| `avwamp` | 2: `gmaggun` | `` | pending / omitted | none | native firing producer pending; parent age11tx1 is not a barrel node and the hardpoint is 0.83 m behind its front geometry |
+| `avwamp` | 1: `gmaggun` | `animation:cr_fire_1` | 0.12 0.07 0.84 | none | native firing producer pending |
+| `avwamp` | 2: `gmaggun` | `animation:cr_fire_2` | -0.10 0.12 0.81 | none | native firing producer pending |
 | `avwamp` | 3: `gsplint` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent age11ty1 is not a barrel node and the hardpoint is 0.49 m behind its front geometry |
 | `bbtowe` | 1: `gblastb` | `agn11bgb` | -0.06 0.02 0.23 | none | accepted-shot path; live validation pending |
 | `bv0002` | 2: `grktbomb` | `bhr11bga` | 0.03 -0.01 1.32 | none | accepted-shot path; live validation pending |
 | `bv0002` | 3: `grktbomb` | `bhr11bgb` | -0.01 -0.01 1.32 | none | accepted-shot path; live validation pending |
-| `bvartl` | 1: `ghartill` | `bar11bgd` | 0.04 -0.07 0.71 | large | accepted-shot path; live validation pending; casing port estimated |
-| `bvfigh` | 1: `gminigun` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
+| `bvartl` | 1: `ghartill` | `bar11bgd` | 0.04 -0.07 0.71 | large | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvfigh` | 1: `gminigun` | `animation:cr_fire_1` | -0.02 -0.24 -1.41 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `bvfigh` | 3: `gshadow` | `` | 0.00 0.00 0.00 | none | native firing producer pending |
-| `bvfigha` | 1: `gminigun` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `bvfigha` | 2: `gminigun` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
+| `bvfigha` | 1: `gminigun` | `animation:cr_fire_1` | -0.02 -0.24 -1.41 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `bvfigha` | 2: `gminigun` | `animation:cr_fire_2` | 0.03 -0.25 -1.41 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `bvhraz` | 1: `gtaggun` | `bhr11bga` | pending / omitted | none | native firing producer pending; visible tip is -2.03 m from the hardpoint (under -0.1 m) |
 | `bvhraz` | 2: `gsandbag` | `` | pending / omitted | none | accepted-shot path; live validation pending; anchoring device |
 | `bvhraz` | 3: `gcomet` | `bhr11bga` | 0.03 -0.01 1.32 | none | native firing producer pending |
 | `bvhraza` | 2: `grktbomb` | `bhr11bga` | 0.03 -0.01 1.32 | none | accepted-shot path; live validation pending |
 | `bvhraza` | 3: `grktbomb` | `bhr11bgb` | -0.01 -0.01 1.32 | none | accepted-shot path; live validation pending |
-| `bvltnk` | 1: `gatstab` | `` | pending / omitted | medium | accepted-shot path; live validation pending; parent bln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry; casing port estimated |
-| `bvltnk` | 2: `gsandbag` | `` | pending / omitted | none | accepted-shot path; live validation pending; anchoring device |
+| `bvltnk` | 1: `gatstab` | `animation:cr_fire_1` | -0.01 0.01 0.42 | medium | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `bvltnk` | 2: `gsandbag` | `animation:cr_fire_2` | pending / omitted | none | accepted-shot path; live validation pending; anchoring device |
 | `bvltnk` | 3: `gphantom` | `` | pending / omitted | none | native firing producer pending; cloak device |
-| `bvltnka` | 1: `gatstab` | `` | pending / omitted | medium | accepted-shot path; live validation pending; parent bln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry; casing port estimated |
+| `bvltnka` | 1: `gatstab` | `animation:cr_fire_1` | -0.01 0.01 0.42 | medium | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `bvmine` | 1: `gproxmin` | `` | pending / omitted | none | native firing producer pending; mine deployment |
 | `bvmru` | 1: `grepa` | `` | pending / omitted | none | native firing producer pending; repair dispenser |
 | `bvmru` | 2: `gammo` | `` | pending / omitted | none | native firing producer pending; supply dispenser |
-| `bvra8` | 1: `gminigun` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
+| `bvra8` | 1: `gminigun` | `animation:cr_fire_1` | -0.02 -0.24 -1.41 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `bvra8` | 2: `gshadow` | `` | 0.00 0.00 0.00 | none | native firing producer pending |
-| `bvraz` | 1: `gtminig` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
+| `bvraz` | 1: `gtminig` | `animation:cr_fire_1` | -0.02 -0.24 -1.41 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `bvraz` | 3: `gshadow` | `` | 0.00 0.00 0.00 | none | native firing producer pending |
-| `bvrckt` | 1: `gtaggun` | `` | 0.00 0.00 0.00 | none | native firing producer pending |
-| `bvrckt` | 2: `gtaggun` | `` | 0.00 0.00 0.00 | none | native firing producer pending |
+| `bvrckt` | 1: `gtaggun` | `animation:cr_fire_1` | 0.00 -0.23 0.24 | none | native firing producer pending |
+| `bvrckt` | 2: `gtaggun` | `animation:cr_fire_2` | 0.00 -0.23 0.24 | none | native firing producer pending |
 | `bvrckt` | 3: `gredfld` | `` | pending / omitted | none | native firing producer pending; radar device |
-| `bvrdev` | 1: `gtminig` | `` | pending / omitted | small | accepted-shot path; live validation pending; parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry; casing port estimated |
-| `bvrdev` | 2: `gtaggun` | `` | pending / omitted | none | native firing producer pending; parent brd11bda is not a barrel node and has no geometry around the hardpoint |
+| `bvrdev` | 1: `gtminig` | `animation:cr_fire_1` | -0.15 -0.20 0.75 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `bvrdev` | 2: `gtaggun` | `animation:cr_fire_2` | 0.02 -0.01 0.08 | none | native firing producer pending |
 | `bvrdev` | 3: `gsitecam` | `` | pending / omitted | none | native firing producer pending; camera device |
-| `bvrdeva` | 1: `gspstab` | `` | pending / omitted | large | accepted-shot path; live validation pending; parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry; casing port estimated |
-| `bvrdeva` | 2: `ghornet` | `` | pending / omitted | none | native firing producer pending; parent brd11bda is not a barrel node and has no geometry around the hardpoint |
-| `bvrmpa` | 1: `grktbomb` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry |
-| `bvrmpa` | 2: `grktbomb` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent brd11bda is not a barrel node and has no geometry around the hardpoint |
-| `bvrmpb` | 1: `gspstab` | `` | pending / omitted | large | accepted-shot path; live validation pending; parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry; casing port estimated |
-| `bvrmpb` | 2: `gspstab` | `` | pending / omitted | large | accepted-shot path; live validation pending; parent brd11bda is not a barrel node and has no geometry around the hardpoint; casing port estimated |
-| `bvtank` | 1: `gspstab` | `bGR11BGA` | 0.20 0.10 2.41 | large | accepted-shot path; live validation pending; casing port estimated |
+| `bvrdeva` | 1: `gspstab` | `animation:cr_fire_1` | -0.15 -0.20 0.75 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `bvrdeva` | 2: `ghornet` | `animation:cr_fire_2` | 0.02 -0.01 0.08 | none | native firing producer pending |
+| `bvrmpa` | 1: `grktbomb` | `animation:cr_fire_1` | -0.15 -0.20 0.75 | none | accepted-shot path; live validation pending |
+| `bvrmpa` | 2: `grktbomb` | `animation:cr_fire_2` | 0.02 -0.01 0.08 | none | accepted-shot path; live validation pending |
+| `bvrmpb` | 1: `gspstab` | `animation:cr_fire_1` | -0.15 -0.20 0.75 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `bvrmpb` | 2: `gspstab` | `animation:cr_fire_2` | 0.02 -0.01 0.08 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `bvtank` | 1: `gspstab` | `bGR11BGA` | 0.20 0.10 2.41 | large | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
 | `bvtank` | 3: `gmortar` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent bGR11BDA is not a barrel node and has no geometry around the hardpoint |
 | `bvtank` | 4: `gproxmin` | `` | pending / omitted | none | native firing producer pending; mine deployment |
-| `bvtanka` | 1: `gspstab` | `bGR11BGA` | 0.20 0.10 2.41 | large | accepted-shot path; live validation pending; casing port estimated |
+| `bvtanka` | 1: `gspstab` | `bGR11BGA` | 0.20 0.10 2.41 | large | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
 | `bvtanka` | 3: `gpopgun` | `` | pending / omitted | none | native firing producer pending; parent bGR11BDA is not a barrel node and has no geometry around the hardpoint |
 | `bvtanka` | 4: `gproxmin` | `` | pending / omitted | none | native firing producer pending; mine deployment |
-| `bvtump` | 1: `gatstab` | `bDE11blc` | 0.69 0.38 0.27 | medium | accepted-shot path; live validation pending; casing port estimated |
-| `bvtump` | 2: `gatstab` | `bDE11blf` | 0.83 0.39 0.27 | medium | accepted-shot path; live validation pending; casing port estimated |
-| `bvtur8` | 1: `gminigun` | `bDE11blc` | 0.69 0.38 0.27 | small | accepted-shot path; live validation pending; casing port estimated |
-| `bvturr` | 1: `gtminig` | `bDE11blc` | 0.69 0.38 0.27 | small | accepted-shot path; live validation pending; casing port estimated |
-| `bvwalk` | 1: `gspstab` | `` | pending / omitted | large | accepted-shot path; live validation pending; parent age11tx2 is not a barrel node and the hardpoint is 0.85 m behind its front geometry; casing port estimated |
-| `bvwalk` | 2: `gspstab` | `` | pending / omitted | large | accepted-shot path; live validation pending; parent age11tx1 is not a barrel node and the hardpoint is 0.83 m behind its front geometry; casing port estimated |
-| `cblasr` | 1: `gspstaba` | `` | pending / omitted | large | accepted-shot path; live validation pending; hardpoint 'GC1' matches 0 skeleton bones; casing port estimated |
-| `cbtowe` | 1: `gatstaba` | `cgt11tx1` | 0.10 0.00 0.26 | medium | accepted-shot path; live validation pending; casing port estimated |
-| `cbtowea` | 1: `gflashch` | `` | pending / omitted | none | native firing producer pending; hardpoint 'GC1' matches 0 skeleton bones |
-| `cbtoweb` | 1: `gatstaba` | `cgt11tx1` | 0.10 0.00 0.26 | medium | accepted-shot path; live validation pending; casing port estimated |
-| `cbtowec` | 1: `gflashch` | `` | pending / omitted | none | native firing producer pending; hardpoint 'GC1' matches 0 skeleton bones |
+| `bvtump` | 1: `gatstab` | `bDE11blc` | 0.69 0.38 0.27 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvtump` | 2: `gatstab` | `bDE11blf` | 0.83 0.39 0.27 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvtur8` | 1: `gminigun` | `bDE11blc` | 0.69 0.38 0.27 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvturr` | 1: `gtminig` | `bDE11blc` | 0.69 0.38 0.27 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvwalk` | 1: `gspstab` | `animation:cr_fire_1` | 0.12 0.07 0.84 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `bvwalk` | 2: `gspstab` | `animation:cr_fire_2` | -0.10 0.12 0.81 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cblasr` | 1: `gspstaba` | `animation:cr_fire_1` | 0.04 0.06 0.29 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cbtowe` | 1: `gatstaba` | `cgt11tx1` | 0.10 0.00 0.26 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `cbtowea` | 1: `gflashch` | `animation:cr_fire_1` | 0.04 0.06 0.29 | none | native firing producer pending |
+| `cbtoweb` | 1: `gatstaba` | `cgt11tx1` | 0.10 0.00 0.26 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `cbtowec` | 1: `gflashch` | `animation:cr_fire_1` | 0.04 0.06 0.29 | none | native firing producer pending |
 | `cbtowed` | 1: `grktbomb` | `cgt11tx1` | 0.10 0.00 0.26 | none | accepted-shot path; live validation pending |
-| `cbtowee` | 1: `gflashch` | `` | pending / omitted | none | native firing producer pending; hardpoint 'GC1' matches 0 skeleton bones |
-| `cbtowef` | 1: `gatstaba` | `cgt11tx1` | 0.10 0.00 0.26 | medium | accepted-shot path; live validation pending; casing port estimated |
+| `cbtowee` | 1: `gflashch` | `animation:cr_fire_1` | 0.04 0.06 0.29 | none | native firing producer pending |
+| `cbtowef` | 1: `gatstaba` | `cgt11tx1` | 0.10 0.00 0.26 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
 | `cr16tow` | 1: `cr16bolt` | `sgn11bgb` | -0.02 0.47 3.23 | none | accepted-shot path; live validation pending |
 | `cr16tow` | 2: `cr16bolt` | `sgn11bga` | 0.01 0.47 3.22 | none | accepted-shot path; live validation pending |
 | `crfraz` | 1: `crfpuls` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent cfr11bda is not a barrel node and has no geometry around the hardpoint |
 | `crfraz` | 2: `crfarc` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent cfr11bdb is not a barrel node and has no geometry around the hardpoint |
-| `cvartl` | 1: `ghartill` | `` | 0.00 0.00 0.00 | large | accepted-shot path; live validation pending; casing port estimated |
-| `cvartla` | 1: `cvwo003` | `` | 0.00 0.00 0.00 | none | accepted-shot path; live validation pending |
-| `cvfigh` | 1: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvfigh` | 2: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvfigha` | 1: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvfigha` | 2: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvfighb` | 1: `gdummy` | `` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
-| `cvfighb` | 2: `gdummy` | `` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
-| `cvfighc` | 1: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvfighc` | 2: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvfighd` | 1: `gdummy` | `` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
-| `cvfighe` | 1: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvfighe` | 2: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvfighf` | 1: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvfighf` | 2: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvfighg` | 1: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvfighg` | 2: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvfighh` | 1: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvfighh` | 2: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvfimp` | 1: `gminignc` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvfimp` | 2: `gminignc` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvhmpa` | 1: `gspstaba` | `` | pending / omitted | large | accepted-shot path; live validation pending; parent CEM11BDA is not a barrel node and has no geometry around the hardpoint; casing port estimated |
-| `cvhmpa` | 2: `gspstaba` | `` | pending / omitted | large | accepted-shot path; live validation pending; parent CEM11BDA is not a barrel node and has no geometry around the hardpoint; casing port estimated |
+| `cvartl` | 1: `ghartill` | `animation:cr_fire_1` | 0.01 0.01 0.09 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvartla` | 1: `cvwo003` | `animation:cr_fire_1` | 0.01 0.01 0.09 | none | accepted-shot path; live validation pending |
+| `cvfigh` | 1: `gminigrn` | `animation:cr_fire_1` | -0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvfigh` | 2: `gminigrn` | `animation:cr_fire_2` | 0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvfigha` | 1: `gminigrn` | `animation:cr_fire_1` | -0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvfigha` | 2: `gminigrn` | `animation:cr_fire_2` | 0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvfighb` | 1: `gdummy` | `animation:cr_fire_1` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
+| `cvfighb` | 2: `gdummy` | `animation:cr_fire_2` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
+| `cvfighc` | 1: `gminigrn` | `animation:cr_fire_1` | -0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvfighc` | 2: `gminigrn` | `animation:cr_fire_2` | 0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvfighd` | 1: `gdummy` | `animation:cr_fire_1` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
+| `cvfighe` | 1: `gminigrn` | `animation:cr_fire_1` | -0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvfighe` | 2: `gminigrn` | `animation:cr_fire_2` | 0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvfighf` | 1: `gminigrn` | `animation:cr_fire_1` | -0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvfighf` | 2: `gminigrn` | `animation:cr_fire_2` | 0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvfighg` | 1: `gminigrn` | `animation:cr_fire_1` | -0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvfighg` | 2: `gminigrn` | `animation:cr_fire_2` | 0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvfighh` | 1: `gminigrn` | `animation:cr_fire_1` | -0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvfighh` | 2: `gminigrn` | `animation:cr_fire_2` | 0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvfimp` | 1: `gminignc` | `animation:cr_fire_1` | -0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvfimp` | 2: `gminignc` | `animation:cr_fire_2` | 0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvhmpa` | 1: `gspstaba` | `animation:cr_fire_1` | 0.04 -0.01 0.02 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvhmpa` | 2: `gspstaba` | `animation:cr_fire_2` | -0.03 -0.01 0.02 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `cvhmpa` | 4: `gquake` | `` | pending / omitted | none | accepted-shot path; live validation pending; ground-contact seismic emitter |
-| `cvhmpb` | 1: `gmaggun` | `` | pending / omitted | none | native firing producer pending; parent CEM11BDA is not a barrel node and has no geometry around the hardpoint |
-| `cvhmpb` | 2: `gmaggun` | `` | pending / omitted | none | native firing producer pending; parent CEM11BDA is not a barrel node and has no geometry around the hardpoint |
-| `cvhraz` | 1: `grktbomb` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint |
-| `cvhraz` | 2: `grktbomb` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint |
-| `cvhraza` | 2: `grktbomb` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint |
-| `cvhraza` | 3: `grktbomb` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint |
-| `cvhrazb` | 2: `grktbomb` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint |
-| `cvhrazb` | 3: `grktbomb` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint |
-| `cvhtnk` | 1: `gspstaba` | `` | pending / omitted | large | accepted-shot path; live validation pending; parent CEM11BDA is not a barrel node and has no geometry around the hardpoint; casing port estimated |
-| `cvhtnk` | 2: `gspstaba` | `` | pending / omitted | large | accepted-shot path; live validation pending; parent CEM11BDA is not a barrel node and has no geometry around the hardpoint; casing port estimated |
-| `cvhzmp` | 1: `grktbomb` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint |
-| `cvhzmp` | 2: `grktbomb` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint |
-| `cvltnk` | 1: `gatstab` | `` | 0.00 0.00 0.00 | medium | accepted-shot path; live validation pending; casing port estimated |
-| `cvltnk` | 3: `gsandbag` | `` | pending / omitted | none | accepted-shot path; live validation pending; anchoring device |
+| `cvhmpb` | 1: `gmaggun` | `animation:cr_fire_1` | 0.04 -0.01 0.02 | none | native firing producer pending |
+| `cvhmpb` | 2: `gmaggun` | `animation:cr_fire_2` | -0.03 -0.01 0.02 | none | native firing producer pending |
+| `cvhraz` | 1: `grktbomb` | `animation:cr_fire_1` | -0.02 0.00 0.01 | none | accepted-shot path; live validation pending |
+| `cvhraz` | 2: `grktbomb` | `animation:cr_fire_2` | 0.02 0.00 -0.11 | none | accepted-shot path; live validation pending |
+| `cvhraza` | 2: `grktbomb` | `animation:cr_fire_1` | -0.02 0.00 0.01 | none | accepted-shot path; live validation pending |
+| `cvhraza` | 3: `grktbomb` | `animation:cr_fire_2` | 0.02 0.00 -0.11 | none | accepted-shot path; live validation pending |
+| `cvhrazb` | 2: `grktbomb` | `animation:cr_fire_1` | -0.02 0.00 0.01 | none | accepted-shot path; live validation pending |
+| `cvhrazb` | 3: `grktbomb` | `animation:cr_fire_2` | 0.02 0.00 -0.11 | none | accepted-shot path; live validation pending |
+| `cvhtnk` | 1: `gspstaba` | `animation:cr_fire_1` | 0.04 -0.01 0.02 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvhtnk` | 2: `gspstaba` | `animation:cr_fire_2` | -0.03 -0.01 0.02 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvhzmp` | 1: `grktbomb` | `animation:cr_fire_1` | -0.02 0.00 0.01 | none | accepted-shot path; live validation pending |
+| `cvhzmp` | 2: `grktbomb` | `animation:cr_fire_2` | 0.02 0.00 -0.11 | none | accepted-shot path; live validation pending |
+| `cvltnk` | 1: `gatstab` | `animation:cr_fire_1` | 0.00 0.07 0.08 | medium | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvltnk` | 3: `gsandbag` | `animation:cr_fire_1` | pending / omitted | none | accepted-shot path; live validation pending; anchoring device |
 | `cvmine` | 1: `gctesla` | `` | pending / omitted | none | native firing producer pending; field deployment |
 | `cvminea` | 1: `gammoa` | `` | pending / omitted | none | native firing producer pending; supply dispenser |
 | `cvminea` | 2: `grepaa` | `` | pending / omitted | none | native firing producer pending; repair dispenser |
-| `cvraz` | 1: `gminigun` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvraz` | 2: `gminigun` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvrckt` | 1: `gshadow` | `` | 0.00 0.00 0.00 | none | native firing producer pending |
-| `cvrckt` | 2: `gshadow` | `` | pending / omitted | none | native firing producer pending; parent CDR11BDA is not a barrel node and the hardpoint is 0.30 m ahead of its front geometry |
-| `cvrckt` | 3: `gmdmgun` | `` | pending / omitted | none | native firing producer pending; parent CDR11BDA is not a barrel node and the hardpoint is 0.30 m ahead of its front geometry |
+| `cvraz` | 1: `gminigun` | `animation:cr_fire_1` | -0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvraz` | 2: `gminigun` | `animation:cr_fire_2` | 0.05 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvrckt` | 1: `gshadow` | `animation:cr_fire_1` | 0.26 -0.01 0.01 | none | native firing producer pending |
+| `cvrckt` | 2: `gshadow` | `animation:cr_fire_2` | -0.29 -0.01 0.01 | none | native firing producer pending |
+| `cvrckt` | 3: `gmdmgun` | `` | 0.00 0.00 0.00 | none | native firing producer pending |
 | `cvrckt` | 4: `gctesla` | `` | pending / omitted | none | native firing producer pending; field deployment |
-| `cvtank` | 1: `gspstabb` | `` | 0.00 0.00 0.00 | large | accepted-shot path; live validation pending; casing port estimated |
-| `cvtmpa` | 1: `gspstabb` | `` | 0.00 0.00 0.00 | large | accepted-shot path; live validation pending; casing port estimated |
-| `cvtmpa` | 2: `gmaggun` | `` | 0.00 0.00 0.00 | none | native firing producer pending |
+| `cvtank` | 1: `gspstabb` | `animation:cr_fire_2` | 0.01 0.05 -0.09 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvtmpa` | 1: `gspstabb` | `animation:cr_fire_2` | 0.01 0.05 -0.09 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvtmpa` | 2: `gmaggun` | `animation:cr_fire_1` | 0.00 0.06 -0.09 | none | native firing producer pending |
 | `cvtmpa` | 3: `gpopgun` | `` | pending / omitted | none | native firing producer pending; parent CYE11BDA is not a barrel node and the hardpoint is 0.12 m ahead of its front geometry |
-| `cvtnk` | 1: `gspstabb` | `` | 0.00 0.00 0.00 | large | accepted-shot path; live validation pending; casing port estimated |
+| `cvtnk` | 1: `gspstabb` | `animation:cr_fire_2` | 0.01 0.05 -0.09 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `cvtnk` | 3: `gpopgun` | `` | pending / omitted | none | native firing producer pending; parent CYE11BDA is not a barrel node and the hardpoint is 0.12 m ahead of its front geometry |
-| `cvtnka` | 1: `gdummy` | `` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
-| `cvtnkb` | 1: `gspstabb` | `` | 0.00 0.00 0.00 | large | accepted-shot path; live validation pending; casing port estimated |
-| `cvtnkc` | 1: `gspstabb` | `` | 0.00 0.00 0.00 | large | accepted-shot path; live validation pending; casing port estimated |
-| `cvtnkc` | 2: `gspstabb` | `` | 0.00 0.00 0.00 | large | accepted-shot path; live validation pending; casing port estimated |
-| `cvtnkd` | 1: `gspstabd` | `` | 0.00 0.00 0.00 | large | accepted-shot path; live validation pending; casing port estimated |
-| `cvtnkd` | 2: `gspstabd` | `` | 0.00 0.00 0.00 | large | accepted-shot path; live validation pending; casing port estimated |
-| `cvturr` | 1: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvturr` | 2: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvturr` | 3: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvturr` | 4: `gminigrn` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvturra` | 1: `gtminis` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvturra` | 2: `gtminis` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvturra` | 3: `gtminis` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `cvturra` | 4: `gsandbag` | `` | pending / omitted | none | accepted-shot path; live validation pending; anchoring device |
-| `cvturrb` | 1: `gspstabb` | `` | 0.00 0.00 0.00 | large | accepted-shot path; live validation pending; casing port estimated |
-| `cvturrb` | 3: `gspstabb` | `` | 0.00 0.00 0.00 | large | accepted-shot path; live validation pending; casing port estimated |
-| `cvturrc` | 1: `gspstabc` | `` | 0.00 0.00 0.00 | large | accepted-shot path; live validation pending; casing port estimated |
+| `cvtnka` | 1: `gdummy` | `animation:cr_fire_2` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
+| `cvtnkb` | 1: `gspstabb` | `animation:cr_fire_2` | 0.01 0.05 -0.09 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvtnkc` | 1: `gspstabb` | `animation:cr_fire_2` | 0.01 0.05 -0.09 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvtnkc` | 2: `gspstabb` | `animation:cr_fire_1` | 0.00 0.06 -0.09 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvtnkd` | 1: `gspstabd` | `animation:cr_fire_2` | 0.01 0.05 -0.09 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvtnkd` | 2: `gspstabd` | `animation:cr_fire_1` | 0.00 0.06 -0.09 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturr` | 1: `gminigrn` | `animation:cr_fire_1` | -0.00 0.00 0.27 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturr` | 2: `gminigrn` | `animation:cr_fire_2` | -0.00 0.01 0.27 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturr` | 3: `gminigrn` | `animation:cr_fire_3` | 0.00 0.01 0.27 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturr` | 4: `gminigrn` | `animation:cr_fire_4` | 0.00 0.00 0.27 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturra` | 1: `gtminis` | `animation:cr_fire_1` | -0.00 0.00 0.27 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturra` | 2: `gtminis` | `animation:cr_fire_2` | -0.00 0.01 0.27 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturra` | 3: `gtminis` | `animation:cr_fire_3` | 0.00 0.01 0.27 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturra` | 4: `gsandbag` | `animation:cr_fire_4` | pending / omitted | none | accepted-shot path; live validation pending; anchoring device |
+| `cvturrb` | 1: `gspstabb` | `animation:cr_fire_1` | -0.00 0.00 0.27 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturrb` | 3: `gspstabb` | `animation:cr_fire_3` | 0.00 0.01 0.27 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturrc` | 1: `gspstabc` | `animation:cr_fire_1` | -0.00 0.00 0.27 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `cvwalk` | 1: `gblastg` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent cvw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry |
 | `cvwalk` | 2: `gblastg` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent cvw11hed is not a barrel node and the hardpoint is 0.97 m behind its front geometry |
 | `cvwalk` | 3: `gpopgun` | `` | pending / omitted | none | native firing producer pending; parent cvw11sup is not a barrel node and has no geometry around the hardpoint |
@@ -274,74 +279,74 @@ Scope: CR vehicle/building definitions, including mission variants and utility c
 | `sb0002` | 2: `gflashgn` | `sgn11bga` | 0.01 0.47 3.22 | none | native firing producer pending |
 | `sbtowe` | 1: `gblasth` | `sgn11bgb` | -0.02 0.47 3.23 | none | accepted-shot path; live validation pending |
 | `sbtowe` | 2: `gblasth` | `sgn11bga` | 0.01 0.47 3.22 | none | accepted-shot path; live validation pending |
-| `sbtowea` | 1: `gtminis` | `sgn11bgb` | -0.02 0.47 3.23 | small | accepted-shot path; live validation pending; casing port estimated |
-| `sbtowea` | 2: `gatstab` | `sgn11bga` | 0.01 0.47 3.22 | medium | accepted-shot path; live validation pending; casing port estimated |
-| `sbtoweb` | 1: `gspstab` | `sgn11bgb` | -0.02 0.47 3.23 | large | accepted-shot path; live validation pending; casing port estimated |
-| `sbtoweb` | 2: `gspstab` | `sgn11bga` | 0.01 0.47 3.22 | large | accepted-shot path; live validation pending; casing port estimated |
+| `sbtowea` | 1: `gtminis` | `sgn11bgb` | -0.02 0.47 3.23 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `sbtowea` | 2: `gatstab` | `sgn11bga` | 0.01 0.47 3.22 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `sbtoweb` | 1: `gspstab` | `sgn11bgb` | -0.02 0.47 3.23 | large | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `sbtoweb` | 2: `gspstab` | `sgn11bga` | 0.01 0.47 3.22 | large | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
 | `sbtowec` | 1: `gbolt` | `sgn11bgb` | -0.02 0.47 3.23 | none | accepted-shot path; live validation pending |
 | `sbtowec` | 2: `gbolt` | `sgn11bga` | 0.01 0.47 3.22 | none | accepted-shot path; live validation pending |
 | `sbtowed` | 1: `grktbomb` | `sgn11bgb` | -0.02 0.47 3.23 | none | accepted-shot path; live validation pending |
 | `sbtowed` | 2: `grktbomb` | `sgn11bga` | 0.01 0.47 3.22 | none | accepted-shot path; live validation pending |
 | `sbtowee` | 1: `gflashgn` | `sgn11bgb` | -0.02 0.47 3.23 | none | native firing producer pending |
 | `sbtowee` | 2: `gflashgn` | `sgn11bga` | 0.01 0.47 3.22 | none | native firing producer pending |
-| `svarmp` | 1: `ghartmp` | `` | pending / omitted | large | accepted-shot path; live validation pending; visible tip is -0.02 m from the hardpoint (under 0.1 m); casing port estimated |
-| `svartl` | 1: `ghartill` | `` | pending / omitted | large | accepted-shot path; live validation pending; visible tip is -0.02 m from the hardpoint (under 0.1 m); casing port estimated |
-| `svartla` | 1: `ghartila` | `` | pending / omitted | large | accepted-shot path; live validation pending; visible tip is -0.02 m from the hardpoint (under 0.1 m); casing port estimated |
-| `svdemo` | 1: `grktbomb` | `` | 0.00 0.00 0.00 | none | accepted-shot path; live validation pending |
+| `svarmp` | 1: `ghartmp` | `animation:cr_fire_1` | -0.03 0.04 -0.02 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svartl` | 1: `ghartill` | `animation:cr_fire_1` | -0.03 0.04 -0.02 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svartla` | 1: `ghartila` | `animation:cr_fire_1` | -0.03 0.04 -0.02 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svdemo` | 1: `grktbomb` | `animation:cr_fire_1` | 0.06 -0.01 0.03 | none | accepted-shot path; live validation pending |
 | `svdemo` | 2: `grktbomb` | `` | 0.00 0.00 0.00 | none | accepted-shot path; live validation pending |
-| `svfi12` | 1: `gminisov` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `svfi12` | 2: `gminisov` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
+| `svfi12` | 1: `gminisov` | `animation:cr_fire_1` | 0.06 -0.01 0.03 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svfi12` | 2: `gminisov` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `svfi12` | 3: `gsitecam` | `` | pending / omitted | none | native firing producer pending; camera device |
-| `svfigh` | 1: `gminisov` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `svfigh` | 2: `gminisov` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `svfigha` | 1: `gminisov` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `svfigha` | 2: `gminisov` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `svfimp` | 1: `gminisov` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `svfimp` | 2: `gminisov` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; casing port estimated |
-| `svhr13` | 2: `gsrkbomb` | `` | 0.00 0.00 0.00 | none | accepted-shot path; live validation pending |
-| `svhr13` | 3: `gsrkbomb` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent shb11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry |
-| `svhraz` | 2: `gsrkbomb` | `` | 0.00 0.00 0.00 | none | accepted-shot path; live validation pending |
-| `svhraz` | 3: `gsrkbomb` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent shb11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry |
+| `svfigh` | 1: `gminisov` | `animation:cr_fire_1` | 0.06 -0.01 0.03 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svfigh` | 2: `gminisov` | `animation:cr_fire_2` | -0.07 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svfigha` | 1: `gminisov` | `animation:cr_fire_1` | 0.06 -0.01 0.03 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svfigha` | 2: `gminisov` | `animation:cr_fire_2` | -0.07 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svfimp` | 1: `gminisov` | `animation:cr_fire_1` | 0.06 -0.01 0.03 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svfimp` | 2: `gminisov` | `animation:cr_fire_2` | -0.07 0.01 0.02 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svhr13` | 2: `gsrkbomb` | `animation:cr_fire_1` | 0.43 -1.30 1.36 | none | accepted-shot path; live validation pending |
+| `svhr13` | 3: `gsrkbomb` | `animation:cr_fire_2` | 1.61 -0.27 1.48 | none | accepted-shot path; live validation pending |
+| `svhraz` | 2: `gsrkbomb` | `animation:cr_fire_1` | 0.43 -1.30 1.36 | none | accepted-shot path; live validation pending |
+| `svhraz` | 3: `gsrkbomb` | `animation:cr_fire_2` | 1.61 -0.27 1.48 | none | accepted-shot path; live validation pending |
 | `svhrmp` | 1: `gtaggun` | `` | pending / omitted | none | native firing producer pending; parent shb11bdc is not a barrel node and the hardpoint is 0.79 m behind its front geometry |
-| `svhrmp` | 2: `gsrkbomb` | `` | 0.00 0.00 0.00 | none | accepted-shot path; live validation pending |
-| `svhrmp` | 3: `gsrkbomb` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent shb11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry |
-| `svlt13` | 1: `gtaggun` | `` | pending / omitted | none | native firing producer pending; parent slt11trt is not a barrel node and the hardpoint is 1.03 m behind its front geometry |
-| `svlt13` | 3: `gsandbag` | `` | pending / omitted | none | accepted-shot path; live validation pending; anchoring device |
-| `svltnk` | 1: `gtaggun` | `` | pending / omitted | none | native firing producer pending; parent slt11trt is not a barrel node and the hardpoint is 1.03 m behind its front geometry |
-| `svltnk` | 3: `gsandbag` | `` | pending / omitted | none | accepted-shot path; live validation pending; anchoring device |
+| `svhrmp` | 2: `gsrkbomb` | `animation:cr_fire_1` | 0.43 -1.30 1.36 | none | accepted-shot path; live validation pending |
+| `svhrmp` | 3: `gsrkbomb` | `animation:cr_fire_2` | 1.61 -0.27 1.48 | none | accepted-shot path; live validation pending |
+| `svlt13` | 1: `gtaggun` | `animation:cr_fire_1` | -0.01 0.06 1.03 | none | native firing producer pending |
+| `svlt13` | 3: `gsandbag` | `animation:cr_fire_1` | pending / omitted | none | accepted-shot path; live validation pending; anchoring device |
+| `svltnk` | 1: `gtaggun` | `animation:cr_fire_1` | -0.01 0.06 1.03 | none | native firing producer pending |
+| `svltnk` | 3: `gsandbag` | `animation:cr_fire_1` | pending / omitted | none | accepted-shot path; live validation pending; anchoring device |
 | `svmine` | 1: `gbetmin` | `` | pending / omitted | none | native firing producer pending; mine deployment |
-| `svrckt` | 1: `gshadow` | `` | pending / omitted | none | native firing producer pending; parent srt11bda is not a barrel node and the hardpoint is 1.43 m behind its front geometry |
-| `svrckt` | 2: `gsandbag` | `` | pending / omitted | none | accepted-shot path; live validation pending; anchoring device |
+| `svrckt` | 1: `gshadow` | `animation:cr_fire_1` | 0.00 -0.26 1.46 | none | native firing producer pending |
+| `svrckt` | 2: `gsandbag` | `animation:cr_fire_2` | pending / omitted | none | accepted-shot path; live validation pending; anchoring device |
 | `svrckt` | 3: `gmdmgun` | `` | pending / omitted | none | native firing producer pending; parent srt11bda is not a barrel node and the hardpoint is 0.74 m ahead of its front geometry |
 | `svrckt` | 4: `gbetmin` | `` | pending / omitted | none | native firing producer pending; mine deployment |
 | `svsav` | 1: `gbolt` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent ssv11bda is not a barrel node and the hardpoint is 17.29 m ahead of its front geometry |
 | `svsav` | 2: `gwasp` | `` | pending / omitted | none | native firing producer pending; mine deployment |
-| `svtank` | 1: `gsatstab` | `SCZ11BGB` | 0.00 0.00 3.42 | none | accepted-shot path; live validation pending |
-| `svtank` | 2: `gminisov` | `` | pending / omitted | small | accepted-shot path; live validation pending; parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry; casing port estimated |
+| `svtank` | 1: `gsatstab` | `animation:cr_fire_1` | -0.00 -0.00 3.42 | none | accepted-shot path; live validation pending |
+| `svtank` | 2: `gminisov` | `animation:cr_fire_2` | 0.09 -0.16 1.90 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `svtank` | 4: `gquake` | `` | pending / omitted | none | accepted-shot path; live validation pending; ground-contact seismic emitter |
-| `svtanka` | 1: `gsatstab` | `SCZ11BGB` | 0.00 0.00 3.42 | none | accepted-shot path; live validation pending |
-| `svtanka` | 2: `gminisov` | `` | pending / omitted | small | accepted-shot path; live validation pending; parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry; casing port estimated |
+| `svtanka` | 1: `gsatstab` | `animation:cr_fire_1` | -0.00 -0.00 3.42 | none | accepted-shot path; live validation pending |
+| `svtanka` | 2: `gminisov` | `animation:cr_fire_2` | 0.09 -0.16 1.90 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `svtanka` | 4: `gquake` | `` | pending / omitted | none | accepted-shot path; live validation pending; ground-contact seismic emitter |
-| `svtas8` | 1: `gatstab` | `SCZ11BGB` | 0.00 0.00 3.42 | medium | accepted-shot path; live validation pending; casing port estimated |
-| `svtas8` | 2: `gflashgn` | `` | pending / omitted | none | native firing producer pending; parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry |
+| `svtas8` | 1: `gatstab` | `animation:cr_fire_1` | -0.00 -0.00 3.42 | medium | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svtas8` | 2: `gflashgn` | `animation:cr_fire_2` | 0.09 -0.16 1.90 | none | native firing producer pending |
 | `svtas8` | 3: `gquake` | `` | pending / omitted | none | accepted-shot path; live validation pending; ground-contact seismic emitter |
 | `svtas8` | 4: `gnavdrop` | `` | pending / omitted | none | native firing producer pending; navigation beacon deployment |
-| `svtk13` | 1: `gspstab` | `SCZ11BGB` | 0.00 0.00 3.42 | large | accepted-shot path; live validation pending; casing port estimated |
-| `svtk13` | 2: `gflashgn` | `` | pending / omitted | none | native firing producer pending; parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry |
+| `svtk13` | 1: `gspstab` | `animation:cr_fire_1` | -0.00 -0.00 3.42 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svtk13` | 2: `gflashgn` | `animation:cr_fire_2` | 0.09 -0.16 1.90 | none | native firing producer pending |
 | `svtk13` | 3: `gquake` | `` | pending / omitted | none | accepted-shot path; live validation pending; ground-contact seismic emitter |
 | `svtk13` | 4: `gnavdrop` | `` | pending / omitted | none | native firing producer pending; navigation beacon deployment |
-| `svtnk7` | 1: `ga7stab` | `SCZ11BGB` | 0.00 0.00 3.42 | medium | accepted-shot path; live validation pending; casing port estimated |
-| `svtump` | 1: `gtminis` | `` | pending / omitted | small | accepted-shot path; live validation pending; hardpoint 'GC1' matches 0 skeleton bones; casing port estimated |
-| `svtump` | 2: `gtminis` | `` | pending / omitted | small | accepted-shot path; live validation pending; hardpoint 'GC2' matches 0 skeleton bones; casing port estimated |
-| `svturr` | 1: `gtminis` | `` | pending / omitted | small | accepted-shot path; live validation pending; hardpoint 'GC1' matches 0 skeleton bones; casing port estimated |
-| `svturra` | 1: `gspstab` | `` | pending / omitted | large | accepted-shot path; live validation pending; hardpoint 'GC1' matches 0 skeleton bones; casing port estimated |
-| `svturrb` | 1: `gspstab` | `` | pending / omitted | large | accepted-shot path; live validation pending; hardpoint 'GC1' matches 0 skeleton bones; casing port estimated |
-| `svturrc` | 1: `gminigna` | `` | pending / omitted | small | accepted-shot path; live validation pending; hardpoint 'GC1' matches 0 skeleton bones; casing port estimated |
-| `svwalk` | 1: `gblast` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent svw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry |
-| `svwalk` | 2: `gblast` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent svw11hed is not a barrel node and the hardpoint is 0.97 m behind its front geometry |
+| `svtnk7` | 1: `ga7stab` | `animation:cr_fire_1` | -0.00 -0.00 3.42 | medium | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svtump` | 1: `gtminis` | `animation:cr_fire_1` | -0.00 -0.00 0.07 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svtump` | 2: `gtminis` | `animation:cr_fire_2` | -0.00 -0.00 0.07 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturr` | 1: `gtminis` | `animation:cr_fire_1` | -0.00 -0.00 0.07 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturra` | 1: `gspstab` | `animation:cr_fire_1` | -0.00 -0.00 0.07 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturrb` | 1: `gspstab` | `animation:cr_fire_1` | -0.00 -0.00 0.07 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturrc` | 1: `gminigna` | `animation:cr_fire_1` | -0.00 -0.00 0.07 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svwalk` | 1: `gblast` | `animation:cr_fire_1` | 0.21 -0.65 0.47 | none | accepted-shot path; live validation pending |
+| `svwalk` | 2: `gblast` | `animation:cr_fire_2` | -0.10 -0.73 0.66 | none | accepted-shot path; live validation pending |
 | `svwalk` | 3: `gpopgun` | `` | pending / omitted | none | native firing producer pending; parent svw11sup is not a barrel node and has no geometry around the hardpoint |
-| `svwalka` | 1: `gblast` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent svw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry |
-| `svwalka` | 2: `gblast` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent svw11hed is not a barrel node and the hardpoint is 0.97 m behind its front geometry |
+| `svwalka` | 1: `gblast` | `animation:cr_fire_1` | 0.21 -0.65 0.47 | none | accepted-shot path; live validation pending |
+| `svwalka` | 2: `gblast` | `animation:cr_fire_2` | -0.10 -0.73 0.66 | none | accepted-shot path; live validation pending |
 | `svwalka` | 3: `gpopgun` | `` | pending / omitted | none | native firing producer pending; parent svw11sup is not a barrel node and has no geometry around the hardpoint |
-| `svwamp` | 1: `gblast` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent svw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry |
+| `svwamp` | 1: `gblast` | `animation:cr_fire_1` | 0.21 -0.65 0.47 | none | accepted-shot path; live validation pending |
 | `svwamp` | 3: `gpopgun` | `` | pending / omitted | none | native firing producer pending; parent svw11sup is not a barrel node and has no geometry around the hardpoint |

@@ -26,9 +26,25 @@ weaponMask = 00011
 // Flash point from the hardpoint (right up forward, metres: barrel tip, or 0 0 0 at
 // a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
 // Regenerate: Tools/Build-WeaponFlashes.py --measure
-flashOffset1 = "0.00 0.00 0.00"
-flashOffset2 = "0.00 0.00 0.00"
+flashOffset1 = "0.06 -0.01 0.03"
+flashOffset2 = "-0.07 0.01 0.02"
 // CR CRAFT FLASH OFFSET END
+// CR CRAFT RECOIL BEGIN
+// Reviewed independent gun pieces; preserve aiming and deployment parents.
+// Regenerate: python Tools/Build-CombatPresentation.py
+recoilAnimation1 = "cr_fire_1"
+recoilPlaybackRate1 = 1.0
+recoilCockpit1 = true
+casingOffset1 = "-0.7184 0.2714 -0.3078"
+casingDirection1 = "-0.9345 0.3271 -0.1402"
+recoilKick1 = 0.25
+recoilAnimation2 = "cr_fire_2"
+recoilPlaybackRate2 = 1.0
+recoilCockpit2 = true
+casingOffset2 = "0.734 0.2769 -0.3101"
+casingDirection2 = "0.9345 0.3271 -0.1402"
+recoilKick2 = 0.25
+// CR CRAFT RECOIL END
 rangeScan = 400.0f
 periodScan = 5.0f
 velocJam = 5.0f

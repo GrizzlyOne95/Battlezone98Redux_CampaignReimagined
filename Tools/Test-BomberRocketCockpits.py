@@ -1,4 +1,5 @@
 """Offline contracts for the bomber/rocket pair; no Blender or game required."""
+from weaponrigs import base_asset_path
 from pathlib import Path
 import hashlib,json,sys
 import numpy as np
@@ -14,7 +15,7 @@ def check(ok,label):
 
 
 def sha(path):
-    b=path.read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if path.suffix=='.material' else b).hexdigest()
+    b=base_asset_path(path).read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if path.suffix=='.material' else b).hexdigest()
 
 
 def values(sub):return np.column_stack([cp.shared.values(sub.vertex_data,sem) for sem in (cp.shared.om.VES.POSITION,cp.shared.om.VES.NORMAL,cp.shared.om.VES.TEXTURE_COORDINATES,cp.shared.om.VES.TANGENT)])
@@ -22,7 +23,7 @@ def values(sub):return np.column_stack([cp.shared.values(sub.vertex_data,sem) fo
 
 members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
 for base,cfg in cp.CONFIG.items():
-    receipt=json.loads((REF/base/'build.json').read_text());meta=receipt['alignment'];source=ROOT/'Assets/ModelFixes'/(base+'.mesh');skel=ROOT/'Assets/Models'/(base+'_cockpit.skeleton');mesh=cp.shared.read_mesh(ROOT/'Assets/Models'/(base+'_cockpit.mesh'))
+    receipt=json.loads((REF/base/'build.json').read_text());meta=receipt['alignment'];source=ROOT/'Assets/ModelFixes'/(base+'.mesh');skel=ROOT/'Assets/Models'/(base+'_cockpit.skeleton');mesh=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/Models'/(base+'_cockpit.mesh')))
     check(sha(source)==receipt['sources']['exteriorSha256'],'original full hull / fallback preserved '+base)
     check(sha(skel)==receipt['sources']['skeletonSha256'],'byte-exact original rig and every hardpoint '+base)
     for path,digest in receipt['outputs'].items():
@@ -45,7 +46,7 @@ for base,cfg in cp.CONFIG.items():
         if not sub.material_name.startswith('CRWX'):check(uv.min()>=0 and uv.max()<=1,'bounded compiled UVs '+base)
         if not sub.material_name.startswith('CRWX'):triangles.extend(tri);labels.extend([sub.material_name]*len(tri))
     tr=np.array(triangles);labels=np.array(labels);batches={sub.material_name:values(sub) for sub in mesh.submesh_list};interior=np.concatenate([batches[name] for name in meta['cabinTriangleCounts']]);exterior=batches['CRV/'+base+'Exterior']
-    body=cp.shared.read_mesh(source).submesh_list[0];p=cp.shared.values(body.vertex_data,cp.shared.om.VES.POSITION);tri=body.index_array.reshape(-1,3);weights={a.vertex_index:a.bone_index for a in body.bone_assignments()};valid=np.linalg.norm(np.cross(p[tri[:,1]]-p[tri[:,0]],p[tri[:,2]]-p[tri[:,0]]),axis=1)>1e-9
+    body=cp.shared.read_mesh(base_asset_path(source)).submesh_list[0];p=cp.shared.values(body.vertex_data,cp.shared.om.VES.POSITION);tri=body.index_array.reshape(-1,3);weights={a.vertex_index:a.bone_index for a in body.bone_assignments()};valid=np.linalg.norm(np.cross(p[tri[:,1]]-p[tri[:,0]],p[tri[:,2]]-p[tri[:,0]]),axis=1)>1e-9
     charts=cp.hardware.CCA_CHARTS if cfg['faction']=='cca' else cp.hardware.CRA_CHARTS;rows=[];backs=[]
     for recorded,(name,bone,planes) in zip(meta['sections'],cp.cut_configs(base)):
         mask=valid&np.array([all(weights.get(int(v))==bone for v in face) for face in tri]);raw,ix,_=cp.tank.source_part(body,mask);a,b,audit=cp.cockpitsections.section(raw,ix,np.flatnonzero(mask),planes,meta['capChart']);rows.append(a[0]);backs.append(b[0])

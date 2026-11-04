@@ -1,7 +1,7 @@
 {
   "version": 1,
   "scope": "Every armed CR vehicle/building ODF; people use weapon presentation; armories are suppliers.",
-  "casing_port_status": "Weapon casingType is implemented; per-craft ports require an OpenShim extension (estimated native breech only).",
+  "casing_port_status": "Per-slot fitted offsets/directions authored for the weapon-rig models; companion OpenShim runtime required.",
   "models": {
     "abtowe": {
       "category": "Existing gun piece",
@@ -46,9 +46,94 @@
       }
     },
     "avfigh": {
-      "category": "Isolate gun geometry",
-      "action": "Guns share roof/hull/pod weights with fixed structure. Select each visible tube or muzzle sleeve, give it its own recoil child below the existing moving parent, and reweight only that geometry. Split and cap joined boundary faces where necessary. Keep left/right channels independent and use a small machinegun kick; do not recoil the entire carrier.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.025,
+          "return": 2.0,
+          "kick_without_weapon": 0.25,
+          "flash_offset": [
+            -0.0235,
+            -0.2438,
+            -1.4077
+          ],
+          "casing_offset": [
+            0.2799,
+            -0.1288,
+            -1.6555
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2553,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            0.8458702500216648,
+            0.6200545875075827,
+            0.9571194624967503
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.5425091981887817,
+            0.5049999952316284,
+            1.2050000429153442
+          ],
+          "cockpit": true
+        },
+        "GC2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.025,
+          "return": 2.0,
+          "kick_without_weapon": 0.25,
+          "flash_offset": [
+            0.0274,
+            -0.2453,
+            -1.4118
+          ],
+          "casing_offset": [
+            -0.289,
+            -0.1302,
+            -1.6597
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2553,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -0.8458702500216648,
+            0.6200545875075827,
+            0.9571194624967503
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -0.5294856131076813,
+            0.5049999952316284,
+            1.2050000429153442
+          ],
+          "cockpit": true
+        }
+      }
     },
     "avhraz": {
       "category": "Existing gun piece",
@@ -74,9 +159,94 @@
       "bindings": {}
     },
     "avltnk": {
-      "category": "Isolate gun geometry",
-      "action": "Main gun is weighted to the hull (aln11bda/bln11bda); launcher box is a different part. Isolate the visible cannon/minigun tip and add a recoil child under the hull. Use a separate launcher sleeve if wanted. Black Dog GR1 also lacks a matching rendered marker; use native hardpoint data and verify fit.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0137,
+            0.0141,
+            0.421
+          ],
+          "casing_offset": [
+            -0.3226,
+            0.1329,
+            -0.2484
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2534,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -1.5257107231887508,
+            2.830513772056035,
+            0.9570083765108537
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -1.2168149948120117,
+            2.7117215394973755,
+            1.6263539791107178
+          ],
+          "cockpit": true
+        },
+        "GR1": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0412,
+            -0.0606,
+            0.379
+          ],
+          "casing_offset": [
+            -0.4594,
+            0.1808,
+            -0.2689
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2579,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -1.3391259649863654,
+            2.423999011100807,
+            1.3044860923369108
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -0.8384795188903809,
+            2.1826255321502686,
+            1.95244300365448
+          ],
+          "cockpit": true
+        }
+      }
     },
     "avmine": {
       "category": "Utility only",
@@ -84,9 +254,94 @@
       "bindings": {}
     },
     "avrckt": {
-      "category": "Isolate gun geometry",
-      "action": "Rocket/launcher outlets are integrated into body weights. Separate the actual tube mouth/launch rail/sleeve for a short local compression animation; preserve hull and utility hardpoints. Use per-slot launch behavior, not cannon-like whole-body translation. Guided/targeting launchers need their own accepted-fire path support.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GR1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.05,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0,
+            -0.2329,
+            0.2356
+          ],
+          "casing_offset": [
+            -0.7398,
+            0.2789,
+            -0.311
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2558,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -1.34283628462848,
+            2.3059284663168977,
+            1.743455692531024
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -0.6030550003051758,
+            1.7940815091133118,
+            2.289979934692383
+          ],
+          "cockpit": true
+        },
+        "GR2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.05,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0,
+            -0.2334,
+            0.2356
+          ],
+          "casing_offset": [
+            0.7375,
+            0.2781,
+            -0.3106
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2558,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            1.3427613513945929,
+            2.3060852617072847,
+            1.7437934825229735
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.6052320003509521,
+            1.7945539951324463,
+            2.289979934692383
+          ],
+          "cockpit": true
+        }
+      }
     },
     "avsav": {
       "category": "Emitter/asset decision",
@@ -106,9 +361,178 @@
       }
     },
     "avtest": {
-      "category": "Rig/animation work",
-      "action": "Separate aVT11bgA/bgb gun pieces have changing native position tracks. This is a drone/debug definition with dummy weapons. Compose recoil with existing animation; do not classify as an immediate static slide target.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0169,
+            0.4345,
+            3.3224
+          ],
+          "casing_offset": [
+            -0.7583,
+            0.2854,
+            -0.3137
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2868,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -1.8121420864749254,
+            2.9108206301718607,
+            -0.6873030091093972
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -1.0368695259094238,
+            3.0599459409713745,
+            2.94889497756958
+          ],
+          "cockpit": true
+        },
+        "GM1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0078,
+            0.4777,
+            3.3009
+          ],
+          "casing_offset": [
+            -0.7675,
+            0.3285,
+            -0.3353
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2868,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -1.8121420864749254,
+            2.9108206301718607,
+            -0.6873030091093972
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -1.0368695259094238,
+            3.0599459409713745,
+            2.94889497756958
+          ],
+          "cockpit": true
+        },
+        "GC2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.4372,
+            0.4345,
+            3.3224
+          ],
+          "casing_offset": [
+            0.243,
+            0.105,
+            -0.2364
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2989,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            1.7170539895043015,
+            2.7304470451445217,
+            -0.6100000440976804
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            1.0368695259094238,
+            3.0599459409713745,
+            2.94889497756958
+          ],
+          "cockpit": true
+        },
+        "GM2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.4442,
+            0.4345,
+            3.3224
+          ],
+          "casing_offset": [
+            1.1243,
+            0.105,
+            -0.2364
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2989,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            1.7170539895043015,
+            2.7304470451445217,
+            -0.6100000440976804
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            1.0368695259094238,
+            3.0599459409713745,
+            2.94889497756958
+          ],
+          "cockpit": true
+        }
+      }
     },
     "avturr": {
       "category": "Existing gun piece",
@@ -129,9 +553,94 @@
       }
     },
     "avwalk": {
-      "category": "Isolate gun geometry",
-      "action": "Each cannon shares an aimed arm (age11tx2 / age11tx1). Select the gun end/barrel inside each arm, create independent recoil children and reweight. Keep shoulders, arms and walking animation on their existing bones; do not use one clip that kicks both arms for either shot.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 2 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.18,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.1154,
+            0.0709,
+            0.8371
+          ],
+          "casing_offset": [
+            1.5533,
+            0.5529,
+            -0.4604
+          ],
+          "casing_direction": [
+            0.9328,
+            0.3248,
+            -0.1559
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.3443,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            6.406358768739218,
+            10.299663376529756,
+            1.7116191867993413
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            4.963150978088379,
+            9.77085256576538,
+            2.984714984893799
+          ],
+          "cockpit": true
+        },
+        "GC2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.18,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0979,
+            0.1228,
+            0.8131
+          ],
+          "casing_offset": [
+            -1.5328,
+            0.5311,
+            -0.4478
+          ],
+          "casing_direction": [
+            -0.9362,
+            0.3173,
+            -0.151
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.3415,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -6.441179913021278,
+            10.277253948313223,
+            1.7150431579661651
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -5.011276483535767,
+            9.811660289764404,
+            2.9616479873657227
+          ],
+          "cockpit": true
+        }
+      }
     },
     "bbtowe": {
       "category": "Existing gun piece",
@@ -182,9 +691,94 @@
       }
     },
     "bvltnk": {
-      "category": "Isolate gun geometry",
-      "action": "Main gun is weighted to the hull (aln11bda/bln11bda); launcher box is a different part. Isolate the visible cannon/minigun tip and add a recoil child under the hull. Use a separate launcher sleeve if wanted. Black Dog GR1 also lacks a matching rendered marker; use native hardpoint data and verify fit.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0137,
+            0.0141,
+            0.421
+          ],
+          "casing_offset": [
+            -0.3226,
+            0.1329,
+            -0.2484
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2534,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -1.5257107231887508,
+            2.830513772056035,
+            0.9570083765108537
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -1.2168149948120117,
+            2.7117215394973755,
+            1.6263539791107178
+          ],
+          "cockpit": true
+        },
+        "GR1": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0412,
+            -0.0606,
+            0.379
+          ],
+          "casing_offset": [
+            -0.4594,
+            0.1808,
+            -0.2689
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2579,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -1.3391259649863654,
+            2.423999011100807,
+            1.3044860923369108
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -0.8384795188903809,
+            2.1826255321502686,
+            1.95244300365448
+          ],
+          "cockpit": true
+        }
+      }
     },
     "bvmine": {
       "category": "Utility only",
@@ -197,19 +791,316 @@
       "bindings": {}
     },
     "bvraz": {
-      "category": "Isolate gun geometry",
-      "action": "Guns share roof/hull/pod weights with fixed structure. Select each visible tube or muzzle sleeve, give it its own recoil child below the existing moving parent, and reweight only that geometry. Split and cap joined boundary faces where necessary. Keep left/right channels independent and use a small machinegun kick; do not recoil the entire carrier.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.025,
+          "return": 2.0,
+          "kick_without_weapon": 0.25,
+          "flash_offset": [
+            -0.0235,
+            -0.2438,
+            -1.4077
+          ],
+          "casing_offset": [
+            0.2799,
+            -0.1288,
+            -1.6555
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2553,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            0.8458702869699937,
+            0.6200546004394978,
+            0.957119456954501
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.5425091981887817,
+            0.5049999952316284,
+            1.2050000429153442
+          ],
+          "cockpit": true
+        },
+        "GC2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.025,
+          "return": 2.0,
+          "kick_without_weapon": 0.25,
+          "flash_offset": [
+            0.0274,
+            -0.2453,
+            -1.4118
+          ],
+          "casing_offset": [
+            -0.289,
+            -0.1302,
+            -1.6597
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2553,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -0.8458702869699937,
+            0.6200546004394978,
+            0.957119456954501
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -0.5294856131076813,
+            0.5049999952316284,
+            1.2050000429153442
+          ],
+          "cockpit": true
+        }
+      }
     },
     "bvrckt": {
-      "category": "Isolate gun geometry",
-      "action": "Rocket/launcher outlets are integrated into body weights. Separate the actual tube mouth/launch rail/sleeve for a short local compression animation; preserve hull and utility hardpoints. Use per-slot launch behavior, not cannon-like whole-body translation. Guided/targeting launchers need their own accepted-fire path support.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GR1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.05,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0,
+            -0.2329,
+            0.2356
+          ],
+          "casing_offset": [
+            -0.7398,
+            0.2789,
+            -0.311
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2558,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -1.3428362518384214,
+            2.0059284429194486,
+            1.7434556974495328
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -0.6030550003051758,
+            1.4940814971923828,
+            2.289979934692383
+          ],
+          "cockpit": true
+        },
+        "GR2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.05,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0,
+            -0.2334,
+            0.2356
+          ],
+          "casing_offset": [
+            0.7375,
+            0.2781,
+            -0.3106
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2558,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            1.3427613185547531,
+            2.006085238292412,
+            1.7437934874489496
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.6052320003509521,
+            1.4945539832115173,
+            2.289979934692383
+          ],
+          "cockpit": true
+        }
+      }
     },
     "bvrdev": {
-      "category": "Isolate gun geometry",
-      "action": "Primary and launcher markers are under brd11bda, despite other decorative/aiming pieces existing. Isolate actual gun geometry for cannon/minigun variants and separate launch sleeves where appropriate. Avoid recoiling the entire vehicle shell.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.1542,
+            -0.2,
+            0.7547
+          ],
+          "casing_offset": [
+            0.3364,
+            0.1378,
+            -0.2505
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.3366,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            1.1967418972361876,
+            0.8720488445260205,
+            3.0319438668532848
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.7060787975788116,
+            0.534296989440918,
+            4.03715705871582
+          ],
+          "cockpit": true
+        },
+        "GR1": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0249,
+            -0.0133,
+            0.0762
+          ],
+          "casing_offset": [
+            -0.4389,
+            0.1736,
+            -0.2658
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2991,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -1.2580873660444618,
+            1.99302470627127,
+            1.5923105017513128
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -0.7942014932632446,
+            1.8061000108718872,
+            1.934399962425232
+          ],
+          "cockpit": true
+        },
+        "GM1": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0176,
+            -0.0027,
+            0.0661
+          ],
+          "casing_offset": [
+            -0.4463,
+            0.1842,
+            -0.276
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2991,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -1.2580873660444618,
+            1.99302470627127,
+            1.5923105017513128
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -0.7942014932632446,
+            1.8061000108718872,
+            1.934399962425232
+          ],
+          "cockpit": true
+        }
+      }
     },
     "bvtank": {
       "category": "Existing gun piece",
@@ -242,14 +1133,142 @@
       }
     },
     "bvwalk": {
-      "category": "Isolate gun geometry",
-      "action": "Each cannon shares an aimed arm (age11tx2 / age11tx1). Select the gun end/barrel inside each arm, create independent recoil children and reweight. Keep shoulders, arms and walking animation on their existing bones; do not use one clip that kicks both arms for either shot.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 2 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.18,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.1154,
+            0.0706,
+            0.8371
+          ],
+          "casing_offset": [
+            1.5532,
+            0.5529,
+            -0.4604
+          ],
+          "casing_direction": [
+            0.9328,
+            0.3248,
+            -0.1559
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.3443,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            6.406357885967052,
+            10.299849704536665,
+            1.7116028563753247
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            4.963159561157227,
+            9.77085256576538,
+            2.9847099781036377
+          ],
+          "cockpit": true
+        },
+        "GC2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.18,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0979,
+            0.1227,
+            0.8131
+          ],
+          "casing_offset": [
+            -1.5328,
+            0.5311,
+            -0.4478
+          ],
+          "casing_direction": [
+            -0.9362,
+            0.3173,
+            -0.151
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.3415,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -6.441171099449258,
+            10.277329503005054,
+            1.7149910554029697
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -5.011271715164185,
+            9.811668872833252,
+            2.9616498947143555
+          ],
+          "cockpit": true
+        }
+      }
     },
     "cblasr": {
-      "category": "Emitter/asset decision",
-      "action": "The shipped rendered skeleton has only clz11bda/clz11bdb, while native GC1 is under clz11bdd. Resolve the missing rendered aiming/emitter hierarchy first. A localized lens/nozzle pulse can then use isolated geometry; translating the whole tower top is unsuitable. Beam variants also require producer support.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.07,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0358,
+            0.0632,
+            0.2901
+          ],
+          "casing_offset": [
+            1.0674,
+            0.3936,
+            -0.3601
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2861,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            2.0315376897580455,
+            10.383115449048525,
+            3.353795993627205
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.9999999701976776,
+            10.052705764770508,
+            4.004043102264404
+          ],
+          "cockpit": true
+        }
+      }
     },
     "cbtowe": {
       "category": "Existing gun piece",
@@ -287,29 +1306,538 @@
       "bindings": {}
     },
     "cvartl": {
-      "category": "Isolate gun geometry",
-      "action": "CAR11TX1 owns 5013 vertices including the large aiming housing and all four gun assemblies. Separate each desired barrel/tube from the housing, with children below TX1; preserve aim/deployment. Do not slide the entire 6.9 m-wide aiming assembly for one fired slot.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GM1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.18,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0143,
+            0.013,
+            0.089
+          ],
+          "casing_offset": [
+            0.5005,
+            0.1952,
+            -0.2751
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2552,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            2.839288228867703,
+            3.970352636914838,
+            3.102775622290633
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            2.3531270027160645,
+            3.788155436515808,
+            3.466883897781372
+          ],
+          "cockpit": true
+        },
+        "GM2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.18,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0197,
+            0.0203,
+            0.0612
+          ],
+          "casing_offset": [
+            0.4451,
+            0.1758,
+            -0.2668
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2541,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            3.3213830494546612,
+            3.5057576448502443,
+            3.111079625730757
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            2.8565889596939087,
+            3.3502970933914185,
+            3.439052104949951
+          ],
+          "cockpit": true
+        },
+        "GM3": {
+          "animation": "cr_fire_3",
+          "node": "",
+          "spin": false,
+          "distance": 0.18,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0,
+            0.0092,
+            0.0348
+          ],
+          "casing_offset": [
+            -0.4626,
+            0.1819,
+            -0.2694
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2549,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -3.33893362890759,
+            3.5119003476587696,
+            3.108447038812818
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -2.8762929439544678,
+            3.339137554168701,
+            3.4126839637756348
+          ],
+          "cockpit": true
+        },
+        "GM4": {
+          "animation": "cr_fire_4",
+          "node": "",
+          "spin": false,
+          "distance": 0.18,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0,
+            0.0018,
+            0.0348
+          ],
+          "casing_offset": [
+            -0.518,
+            0.2013,
+            -0.2777
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2555,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -2.856839796738493,
+            3.9764956856696143,
+            3.1001428871100143
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -2.3388381004333496,
+            3.7769954204559326,
+            3.4126839637756348
+          ],
+          "cockpit": true
+        }
+      }
     },
     "cvfigh": {
-      "category": "Isolate gun geometry",
-      "action": "Guns share roof/hull/pod weights with fixed structure. Select each visible tube or muzzle sleeve, give it its own recoil child below the existing moving parent, and reweight only that geometry. Split and cap joined boundary faces where necessary. Keep left/right channels independent and use a small machinegun kick; do not recoil the entire carrier.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 2 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": true,
+          "distance": 0,
+          "return": 2.0,
+          "kick_without_weapon": 0.25,
+          "flash_offset": [
+            -0.0457,
+            0.0087,
+            0.0163
+          ],
+          "casing_offset": [
+            0.4697,
+            0.1844,
+            -0.2705
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.3018,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            2.454841041744941,
+            0.40386280483346926,
+            2.6849977695671923
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            1.9394140243530273,
+            0.2281154990196228,
+            2.9717750549316406
+          ],
+          "cockpit": true
+        },
+        "GC2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": true,
+          "distance": 0,
+          "return": 2.0,
+          "kick_without_weapon": 0.25,
+          "flash_offset": [
+            0.0457,
+            0.0087,
+            0.0163
+          ],
+          "casing_offset": [
+            -0.4697,
+            0.1844,
+            -0.2705
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.3018,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -2.454841041744941,
+            0.40386280483346926,
+            2.6849977695671923
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -1.9394140243530273,
+            0.2281154990196228,
+            2.9717750549316406
+          ],
+          "cockpit": true
+        }
+      }
     },
     "cvhraz": {
-      "category": "Isolate gun geometry",
-      "action": "Default GR1/GR2 markers are attached to CPX11BDA0 while the physical launcher/side assemblies are weighted with large engine/body pieces. Isolate outlet sleeves or add small moving nozzle parts under the correct pod; do not recoil CPX11BDA0 or an entire engine.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GR1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.05,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0182,
+            0.0,
+            0.0141
+          ],
+          "casing_offset": [
+            1.4106,
+            0.5137,
+            -0.4116
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.3346,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            4.386654350818208,
+            1.9506265262577474,
+            1.1804343024401351
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            2.957919955253601,
+            1.4369289875030518,
+            1.606145977973938
+          ],
+          "cockpit": true
+        },
+        "GR2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.05,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0182,
+            0.0,
+            -0.1089
+          ],
+          "casing_offset": [
+            -1.3879,
+            0.5058,
+            -0.4082
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.3402,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -4.363969503288069,
+            1.9426871634082092,
+            1.1838368865185087
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -2.957919478416443,
+            1.4369289875030518,
+            1.4830740690231323
+          ],
+          "cockpit": true
+        }
+      }
     },
     "cvhtnk": {
-      "category": "Rig/animation work",
-      "action": "The rendered side gun/sponson assemblies already have separate weighted bones CEM11WGL0 and CEM11WGR1 (1070 vertices each), but these are Ogre-only names, longer than the 8-byte native node route. Native WGL/WGR nodes own only tiny marker geometry. An authored clip/helper can recoil existing assemblies; gun-tip-only action needs a further surface selection/split. Do not translate CEM11BDA.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 2 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.14,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0406,
+            -0.0147,
+            0.0192
+          ],
+          "casing_offset": [
+            0.5185,
+            0.2015,
+            -0.2778
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.347,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            4.075261887232719,
+            2.0043068914732243,
+            3.0332850014686197
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            3.5973974466323853,
+            1.7881159782409668,
+            3.3302419185638428
+          ],
+          "cockpit": true
+        },
+        "GC2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.14,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0313,
+            -0.0147,
+            0.0192
+          ],
+          "casing_offset": [
+            -0.5109,
+            0.1988,
+            -0.2766
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.3475,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -4.067616087510185,
+            2.0016308615703373,
+            3.0344318714269995
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -3.588004946708679,
+            1.7881144881248474,
+            3.3302419185638428
+          ],
+          "cockpit": true
+        }
+      }
     },
     "cvltnk": {
-      "category": "Isolate gun geometry",
-      "action": "GC1 and GR1 are integrated into CNA11BDA. Separate a gun-only tube/sleeve from the hull weights; author independent recoil helper. Preserve the existing rocket hardpoint selection.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0,
+            0.0675,
+            0.0782
+          ],
+          "casing_offset": [
+            0.5235,
+            0.2032,
+            -0.2785
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.3038,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            0.523488731670692,
+            2.281345102410426,
+            2.4661587638425355
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.0,
+            2.1455990076065063,
+            2.8228890895843506
+          ],
+          "cockpit": true
+        },
+        "GR1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0,
+            0.0279,
+            0.0622
+          ],
+          "casing_offset": [
+            0.5235,
+            0.1637,
+            -0.2946
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.3038,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            0.523488731670692,
+            2.281345102410426,
+            2.4661587638425355
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.0,
+            2.1455990076065063,
+            2.8228890895843506
+          ],
+          "cockpit": true
+        }
+      }
     },
     "cvmine": {
       "category": "Utility only",
@@ -317,19 +1845,358 @@
       "bindings": {}
     },
     "cvrckt": {
-      "category": "Isolate gun geometry",
-      "action": "Rocket/launcher outlets are integrated into body weights. Separate the actual tube mouth/launch rail/sleeve for a short local compression animation; preserve hull and utility hardpoints. Use per-slot launch behavior, not cannon-like whole-body translation. Guided/targeting launchers need their own accepted-fire path support.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 2 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GR1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.05,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.2636,
+            -0.0099,
+            0.0064
+          ],
+          "casing_offset": [
+            0.6531,
+            0.2486,
+            -0.298
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.3295,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            2.6473849745413647,
+            1.908879146788254,
+            3.892873553457543
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            2.2579429149627686,
+            1.6503649950027466,
+            4.197285175323486
+          ],
+          "cockpit": true
+        },
+        "GR2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.05,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.2858,
+            -0.0099,
+            0.0064
+          ],
+          "casing_offset": [
+            -0.6766,
+            0.2568,
+            -0.3015
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.3312,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -2.6709301802183765,
+            1.917119968775208,
+            3.8893417726059916
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -2.2800755500793457,
+            1.6503649950027466,
+            4.197285175323486
+          ],
+          "cockpit": true
+        }
+      }
     },
     "cvtnk": {
-      "category": "Isolate gun geometry",
-      "action": "Primary and secondary guns are on CYE11BDA; the tall/long cannon does not have its own weighted barrel. Isolate the barrel or front sleeve and add a child, retaining hull/pod parts. Handle dual-gun mission variants separately.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0038,
+            0.0556,
+            -0.091
+          ],
+          "casing_offset": [
+            0.3545,
+            0.1441,
+            -0.2532
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2539,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            1.8113989508745751,
+            2.409435250243464,
+            1.8104905713111508
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            1.460622489452362,
+            2.3209110498428345,
+            1.9726279973983765
+          ],
+          "cockpit": true
+        },
+        "GC2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0091,
+            0.0454,
+            -0.0888
+          ],
+          "casing_offset": [
+            0.4756,
+            0.1865,
+            -0.2713
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.3391,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            0.4756176434668384,
+            2.496496158733901,
+            3.9501372462106867
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.009125500917434692,
+            2.3554584980010986,
+            4.132636070251465
+          ],
+          "cockpit": true
+        }
+      }
     },
     "cvturr": {
-      "category": "Isolate gun geometry",
-      "action": "CAD11TX1/TX2 each combine an aiming assembly with multiple barrels. Reweight individual barrel tips beneath those parents and bind slots 1/2/3/4 independently; preserve folded legs and aimed parts.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 4 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.003,
+            0.0019,
+            0.2661
+          ],
+          "casing_offset": [
+            0.3373,
+            0.1381,
+            -0.2506
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2532,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            2.040126811141155,
+            3.9646630781467445,
+            1.5227520738084108
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            1.699831485748291,
+            3.8284835815429688,
+            2.0394320487976074
+          ],
+          "cockpit": true
+        },
+        "GC2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.003,
+            0.0128,
+            0.2661
+          ],
+          "casing_offset": [
+            0.3442,
+            0.1405,
+            -0.2516
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2567,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            2.046967705325946,
+            3.6213653898282527,
+            1.5217259396806924
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            1.699831485748291,
+            3.4936904907226562,
+            2.039433002471924
+          ],
+          "cockpit": true
+        },
+        "GC3": {
+          "animation": "cr_fire_3",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.003,
+            0.0128,
+            0.2661
+          ],
+          "casing_offset": [
+            -0.3442,
+            0.1405,
+            -0.2516
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2567,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -2.0469677035095515,
+            3.62136367052086,
+            1.5217262486505179
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -1.6998329758644104,
+            3.4936904907226562,
+            2.039433002471924
+          ],
+          "cockpit": true
+        },
+        "GC4": {
+          "animation": "cr_fire_4",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.003,
+            0.0019,
+            0.2661
+          ],
+          "casing_offset": [
+            -0.3373,
+            0.1381,
+            -0.2506
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2532,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -2.040127343190786,
+            3.9646625440702605,
+            1.5227523026983325
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -1.6998329758644104,
+            3.8284835815429688,
+            2.0394320487976074
+          ],
+          "cockpit": true
+        }
+      }
     },
     "cvwalk": {
       "category": "Isolate gun geometry",
@@ -355,24 +2222,360 @@
       }
     },
     "svartl": {
-      "category": "Rig/animation work",
-      "action": "sar11bgb is already a separate weighted barrel, but its native translation is animated. Use an additive recoil child/helper or a composed firing clip so deployment keys do not fight recoil. No initial geometry split is required for whole-barrel recoil.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GM1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.18,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0307,
+            0.0363,
+            -0.021
+          ],
+          "casing_offset": [
+            0.3904,
+            0.1566,
+            -0.2586
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2518,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            2.451148960215413,
+            3.937566387870433,
+            4.160905422581723
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            2.0301125049591064,
+            3.817227602005005,
+            4.39842414855957
+          ],
+          "cockpit": true
+        }
+      }
     },
     "svfigh": {
-      "category": "Isolate gun geometry",
-      "action": "Guns share roof/hull/pod weights with fixed structure. Select each visible tube or muzzle sleeve, give it its own recoil child below the existing moving parent, and reweight only that geometry. Split and cap joined boundary faces where necessary. Keep left/right channels independent and use a small machinegun kick; do not recoil the entire carrier.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 2 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.025,
+          "return": 2.0,
+          "kick_without_weapon": 0.25,
+          "flash_offset": [
+            0.0627,
+            -0.0091,
+            0.0306
+          ],
+          "casing_offset": [
+            -0.7184,
+            0.2714,
+            -0.3078
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2821,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -1.4526888300197753,
+            0.6918850582069259,
+            2.4378466849145672
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -0.6715864986181259,
+            0.4113449975848198,
+            2.7761940956115723
+          ],
+          "cockpit": true
+        },
+        "GC2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.025,
+          "return": 2.0,
+          "kick_without_weapon": 0.25,
+          "flash_offset": [
+            -0.0681,
+            0.0064,
+            0.0241
+          ],
+          "casing_offset": [
+            0.734,
+            0.2769,
+            -0.3101
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2748,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            1.4736792162487933,
+            0.6818414958715946,
+            2.441949905225187
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.6715720146894455,
+            0.4113449975848198,
+            2.7761940956115723
+          ],
+          "cockpit": true
+        },
+        "GR1": {
+          "animation": "",
+          "node": "",
+          "spin": false,
+          "distance": 0,
+          "return": 2.0,
+          "kick_without_weapon": 0.25,
+          "casing_offset": [
+            1.0287,
+            0.38,
+            -0.3543
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2962,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            1.0324470888840764,
+            0.9683545036084553,
+            2.4045464602552515
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.003737000050023198,
+            0.5883059725165367,
+            2.7588529735803604
+          ],
+          "cockpit": true,
+          "presentation_only": true
+        }
+      }
     },
     "svhraz": {
-      "category": "Isolate gun geometry",
-      "action": "Default saturation-rocket hardpoints GR1/GR2 belong to shb11bda; there are no independent launcher-barrel bones like the NSDF bomber. Isolate launch-port/nozzle geometry into short-stroke children. The small shb11bdc part belongs to the other-side TAG marker and is not proof of a default rocket barrel.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GR1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.05,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.4283,
+            -1.2985,
+            1.3617
+          ],
+          "casing_offset": [
+            -0.411,
+            -0.9154,
+            0.7492
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2509,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -4.184605175535561,
+            1.589611811437446,
+            2.7973092236696653
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -3.3452550172805786,
+            1.2064540088176727,
+            3.4098060131073
+          ],
+          "cockpit": true
+        },
+        "GR2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.05,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            1.6118,
+            -0.2728,
+            1.4842
+          ],
+          "casing_offset": [
+            -0.0821,
+            0.3434,
+            0.9983
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.305,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -4.030543204676442,
+            2.0616901216367545,
+            3.046418519298533
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -2.336577534675598,
+            1.4454565048217773,
+            3.5322909355163574
+          ],
+          "cockpit": true
+        }
+      }
     },
     "svltnk": {
-      "category": "Isolate gun geometry",
-      "action": "Both relevant markers are on slt11trt, a small turret/gun housing rather than a dedicated sliding tip. Whole-housing motion is possible as an art choice, but a localized barrel action needs a separate tube/sleeve child and weights; preserve turret aim.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.07,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0115,
+            0.0603,
+            1.028
+          ],
+          "casing_offset": [
+            -0.6203,
+            0.2371,
+            -0.293
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2545,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -2.502938292545742,
+            2.846340333439064,
+            -0.46207583751727516
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -1.8940869569778442,
+            2.669510006904602,
+            0.8589550256729126
+          ],
+          "cockpit": true
+        },
+        "GR1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.07,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0065,
+            0.0612,
+            1.0268
+          ],
+          "casing_offset": [
+            -0.6153,
+            0.2381,
+            -0.2942
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2545,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -2.502938292545742,
+            2.846340333439064,
+            -0.46207583751727516
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -1.8940869569778442,
+            2.669510006904602,
+            0.8589550256729126
+          ],
+          "cockpit": true
+        }
+      }
     },
     "svmine": {
       "category": "Utility only",
@@ -380,9 +2583,94 @@
       "bindings": {}
     },
     "svrckt": {
-      "category": "Isolate gun geometry",
-      "action": "Rocket/launcher outlets are integrated into body weights. Separate the actual tube mouth/launch rail/sleeve for a short local compression animation; preserve hull and utility hardpoints. Use per-slot launch behavior, not cannon-like whole-body translation. Guided/targeting launchers need their own accepted-fire path support.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GR1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.05,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0,
+            -0.2635,
+            1.4623
+          ],
+          "casing_offset": [
+            -1.1152,
+            0.4103,
+            -0.3673
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.3323,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -1.8302675218329878,
+            2.397341106119863,
+            2.3481197814502406
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -0.7150929868221283,
+            1.7235142588615417,
+            4.177648544311523
+          ],
+          "cockpit": true
+        },
+        "GR2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.05,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0,
+            -0.2629,
+            1.4622
+          ],
+          "casing_offset": [
+            1.1155,
+            0.4104,
+            -0.3673
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.3323,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            1.8304088338358842,
+            2.396179088994888,
+            2.3487705852963976
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.7148999869823456,
+            1.7228980660438538,
+            4.178247451782227
+          ],
+          "cockpit": true
+        }
+      }
     },
     "svsav": {
       "category": "Emitter/asset decision",
@@ -390,26 +2678,274 @@
       "bindings": {}
     },
     "svtank": {
-      "category": "Existing gun piece",
-      "action": "Existing SCZ11BGB slot-1 binding. Secondary chaingun is on scz11bda and needs its own gun-only weighting. Utility/Thumper slots must not drive the cannon barrel.",
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
       "bindings": {
         "GC1": {
-          "node": "SCZ11BGB",
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
           "distance": 0.2,
-          "return": 2.5,
-          "kick_without_weapon": 1.0
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0029,
+            -0.0042,
+            3.4192
+          ],
+          "casing_offset": [
+            -0.6001,
+            0.23,
+            -0.29
+          ],
+          "casing_direction": [
+            -0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2944,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -0.8480728365298271,
+            2.442226496390028,
+            0.7761911788423932
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -0.2508680000901222,
+            2.208000063896179,
+            4.4854350090026855
+          ],
+          "cockpit": true
+        },
+        "GC2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.03,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.0875,
+            -0.16,
+            1.901
+          ],
+          "casing_offset": [
+            0.9369,
+            0.3479,
+            -0.3405
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.3416,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            0.9719901719884644,
+            2.596678336005042,
+            -1.0880542262710118
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.1226188912987709,
+            2.0887720584869385,
+            1.153461217880249
+          ],
+          "cockpit": true
         }
       }
     },
     "svturr": {
-      "category": "Rig/animation work",
-      "action": "Separate rendered barrels already exist, so geometry cutting is not the first problem. Native GC1 parent is STU11BGC, which exists and owns 314 vertices. Native GC2 parent STU11BGB is absent from the Ogre skeleton; rendered siblings are STU11BGCA/STU11BGCB/STU11BGC. GC markers are absent from the rendered skeleton. Reconcile world rig names/bindings for each tube and preserve the existing deploy/cockpit fix before enabling. One ready tube does not establish dual-slot correctness.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "casing_offset": [
+            1.1538,
+            0.4236,
+            -0.2985
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.3201,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            2.147808252539905,
+            4.974739141035413,
+            0.9164949418952061
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.9903975129127502,
+            4.5498130321502686,
+            1.2900350093841553
+          ],
+          "cockpit": true
+        },
+        "GC2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "casing_offset": [
+            0.6027,
+            0.2307,
+            -0.2158
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.3288,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            2.1783651373217987,
+            4.781843943744965,
+            0.9991643121625414
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            1.5720829963684082,
+            4.5498130321502686,
+            1.2900350093841553
+          ],
+          "cockpit": true
+        }
+      }
     },
     "svwalk": {
-      "category": "Isolate gun geometry",
-      "action": "Two guns share the aiming head. Add independent weighted gun children beneath the head, retaining aim and gait. Current rendered muzzle names also differ from some native model names; fit from the native fired slots and actual visible barrels. Do not translate the entire head.",
-      "bindings": {}
+      "category": "Authored closed gun rigs",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "bindings": {
+        "GC1": {
+          "animation": "cr_fire_1",
+          "node": "",
+          "spin": false,
+          "distance": 0.12,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            0.2074,
+            -0.6475,
+            0.4652
+          ],
+          "casing_offset": [
+            -0.7679,
+            -0.0388,
+            0.2697
+          ],
+          "casing_direction": [
+            -0.9282,
+            0.3717,
+            -0.0184
+          ],
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2544,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            -1.80754951846817,
+            8.68914233146386,
+            5.020367572229775
+          ],
+          "direction_world": [
+            -0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            -0.8196736872196198,
+            8.209336757659912,
+            5.412631988525391
+          ],
+          "cockpit": true
+        },
+        "GC2": {
+          "animation": "cr_fire_2",
+          "node": "",
+          "spin": false,
+          "distance": 0.12,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.1019,
+            -0.7315,
+            0.655
+          ],
+          "casing_offset": [
+            0.8141,
+            -0.1879,
+            0.4942
+          ],
+          "casing_direction": [
+            0.9405,
+            0.3397,
+            0.0037
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.2762,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            1.062197243407812,
+            8.661019035192735,
+            5.032420413488829
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.15762245282530785,
+            8.206911563873291,
+            5.401066780090332
+          ],
+          "cockpit": true
+        }
+      }
     }
   }
 }
