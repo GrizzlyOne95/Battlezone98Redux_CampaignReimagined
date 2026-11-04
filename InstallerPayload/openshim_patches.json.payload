@@ -9,6 +9,15 @@
   },
   "patches": [
     {
+      "name": "Map Description Bounds Guard",
+      "pattern": "81 BD 54 F6 FF FF 60 09 00 00 76 0A C7 85 54 F6 FF FF 60 09 00 00 8D 55 C0 52 E8 ?? ?? ?? ?? 83 C4 04 89 85 44 F6 FF FF",
+      "offset": 0,
+      "expected_size": 22,
+      "fallback": "0x00000000",
+      "require_unique": true,
+      "identity": "Released GOG Redux 2.2.301 SHA256 8D71F56C1314E69A8AD38F4EEAF20A8FF825965A84CF196E5F77EA4CC3377413, map-description loader 0x0076EB90, reached from the IA map-selection call at 0x00789A78 and shared with the multiplayer description path. At 0x0076ED0E the loader clamps GetItemSize to 2400, copies that many resource bytes to a 2400-byte local array, then range-checks the terminator index against 2400 at 0x0076ED6C. Crash dump battlezone98redux.exe.65088.dmp records FAST_FAIL_RANGE_CHECK_FAILURE with length 2400 and arsenals.des; the full 3020-byte resource and copied prefix match the installed file. Native ReadProcessMemory of harness-launched GOG PID 60408 after 18 seconds on 2026-10-29 matched this loader's installed-image bytes. Replace both 2400 immediates with 2399 in one guarded 22-byte write; keep the terminator bounds check, resource ownership, and short descriptions unchanged. Exact pattern must match uniquely; no fallback. Steam/Proton/Wine runtime qualification remains separate."
+    },
+    {
       "name": "Custom Planet Video Playback",
       "platforms": [
         "gog"
@@ -2853,6 +2862,30 @@
       "identity": "HUD 2D filled-rect helper, cdecl (buffer, x1, y1, x2, y2, colour, mode); mode 0 passes the colour through."
     },
     {
+      "name": "AutoSaveNoticeHudGauge",
+      "address": "0x005C6F70",
+      "expected": "55 8B EC 83 EC 74 A1 00 70 8E 00",
+      "identity": "Scrap/pilot gauge draw FUN_005c6f70, void(ECX unused), run once per gameplay HUD frame from the HUD draw (its callers sit inside the HUD pass, which is why 0x02BF041C/0x02BF0420 hold the HUD scale there). The autosave notice detours its first six bytes (push ebp; mov ebp,esp; sub esp,0x74) and draws after the original returns."
+    },
+    {
+      "name": "HudSpriteZ",
+      "address": "0x00920EF4",
+      "kind": "data",
+      "identity": "Ambient 2D sprite depth float (DAT_00920ef4). HUD text draw FUN_004c0100 adds the float at 0x0087B038 (0.01) to it around its background fill FUN_0068afb0 and restores it, so a backing rect sits one step behind the text; FUN_005c6f70 does the same with 0.001 for its plates."
+    },
+    {
+      "name": "HudTextStyle",
+      "address": "0x00917550",
+      "kind": "data",
+      "identity": "Pointer to the shared HUD text-style object (DAT_00917550). FUN_005c6f70 passes its value as FUN_004c0100's +0x20 argument; FUN_004c0100 hands it with the colour argument to FUN_00689950, which stores the colour in its first dword, then measures with it through FUN_00689ab0."
+    },
+    {
+      "name": "HudPaneBuffer",
+      "address": "0x00917580",
+      "kind": "data",
+      "identity": "Pointer to the HUD 2D draw buffer (DAT_00917580). FUN_005c6f70 passes its value as the first argument of FUN_004c0100 and FUN_0068ca30; HudFillRect takes the same pointer."
+    },
+    {
       "name": "HudFadeRadarRender",
       "address": "0x00493EC0",
       "expected": "55 8B EC 81 EC 48 03 00 00 A1 00 70 8E 00 33 C5 89 45 FC 56",
@@ -3457,6 +3490,42 @@
       "address": "0x0088A464",
       "kind": "data",
       "identity": "RTTI .?AVWingman@@ primary vtable; UpdateWeaponAim is slot 38 (+0x98)"
+    },
+    {
+      "name": "HoverCraftVtable",
+      "address": "0x0087ABE4",
+      "kind": "data",
+      "identity": "RTTI .?AVHoverCraft@@ primary vtable; UpdateWeaponAim is slot 38 (+0x98), inherited HoverCraft::UpdateWeaponAim"
+    },
+    {
+      "name": "APCVtable",
+      "address": "0x00875828",
+      "kind": "data",
+      "identity": "RTTI .?AVAPC@@ primary vtable; UpdateWeaponAim is slot 38 (+0x98), inherited HoverCraft::UpdateWeaponAim"
+    },
+    {
+      "name": "MinelayerVtable",
+      "address": "0x0087D790",
+      "kind": "data",
+      "identity": "RTTI .?AVMinelayer@@ primary vtable; UpdateWeaponAim is slot 38 (+0x98), inherited HoverCraft::UpdateWeaponAim"
+    },
+    {
+      "name": "SAVVtable",
+      "address": "0x00886BFC",
+      "kind": "data",
+      "identity": "RTTI .?AVSAV@@ primary vtable; UpdateWeaponAim is slot 38 (+0x98), inherited HoverCraft::UpdateWeaponAim"
+    },
+    {
+      "name": "ScavengerVtable",
+      "address": "0x00886FE8",
+      "kind": "data",
+      "identity": "RTTI .?AVScavenger@@ primary vtable; UpdateWeaponAim is slot 38 (+0x98), inherited HoverCraft::UpdateWeaponAim"
+    },
+    {
+      "name": "ArmoryVtable",
+      "address": "0x00875CB0",
+      "kind": "data",
+      "identity": "RTTI .?AVArmory@@ primary vtable; UpdateWeaponAim is slot 38 (+0x98), inherited HoverCraft::UpdateWeaponAim"
     },
     {
       "name": "TurretCraftVtable",
@@ -4869,10 +4938,52 @@
       "identity": "AttackTask::DoState epilog: mov ecx,[ebp-4]; call UpdateSpecial (+3). The lazy NearestVehicle (OPENSHIM_AI_LAZY_NEAREST) resolves avoidObj first when a special weapon is fitted"
     },
     {
-      "name": "TerrainBlocksCraft",
-      "address": "0x00466D40",
-      "expected": "55 8B EC 51 8B 45 08 51 F3 0F 10 40 08",
-      "identity": "IsStuck's first test, bool cdecl(const float* position), true on terrain cell types 5 and 6"
+      "name": "AttackTaskIsStuck",
+      "address": "0x006027F0",
+      "expected": "55 8B EC 83 EC 14 89 4D F8 8B 45 F8",
+      "identity": "AttackTask::IsStuck, bool thiscall(task); takes a new stuck sample when its window elapses. The legacy (1.4) slide and flee call it"
+    },
+    {
+      "name": "AttackTaskDoSlide",
+      "address": "0x00606E20",
+      "expected": "55 8B EC 83 EC 3C 89 4D FC 8B 45 FC",
+      "identity": "AttackTask::DoSlide, void thiscall(task); writes the slide force to task+0x4C. The legacy (1.4) slide calls it while able to hit"
+    },
+    {
+      "name": "AttackTaskDoFlee",
+      "address": "0x00607520",
+      "expected": "55 8B EC 81 EC 8C 01 00 00 A1 00 70",
+      "identity": "AttackTask::DoFlee, void thiscall(task); flees task+0x18. The legacy (1.4) flee calls it without firing"
+    },
+    {
+      "name": "AttackTaskSidewaysAndClose",
+      "address": "0x004788D0",
+      "expected": "55 8B EC 83 EC 2C 8B 45 0C 50 8B 4D",
+      "identity": "DoState's slide-to-stand test, bool cdecl(craftClassInfo, targetClassInfo); class info from entity vtable slot 12"
+    },
+    {
+      "name": "UnitTaskDoStand",
+      "address": "0x006057E0",
+      "expected": "55 8B EC 81 EC 20 01 00 00 A1 00 70",
+      "identity": "UnitTask::DoStand, void thiscall(task); backs away when targetDistSq (+0xD4) < closeSq (+0x9C), which 1.4's stand lacks. Target of the legacy (1.4) stand call site"
+    },
+    {
+      "name": "AttackTaskDoStandCall",
+      "address": "0x00478F4F",
+      "expected": "8B 4D FC E8 89 C8 18 00 E9 D5 04",
+      "identity": "AttackTask::DoState stand state: mov ecx,[ebp-4]; call DoStand (+3). The legacy (1.4) stand zeroes closeSq for this call only, so the craft holds instead of reversing"
+    },
+    {
+      "name": "AttackTaskIsBuildingClass",
+      "address": "0x00477D70",
+      "expected": "55 8B EC 51 8B 45 08 8B 88 84 00 00",
+      "identity": "DoState's target-class test, int cdecl(targetClassInfo); 1 when classInfo+0x84 is 2, 5, 7 or 10 (1.4 slide tests classInfo+0xAC in 2, 5, 7)"
+    },
+    {
+      "name": "DistanceSquared2D",
+      "address": "0x00462010",
+      "expected": "55 8B EC 83 EC 0C 8B 45 08 8B 4D 0C",
+      "identity": "float cdecl(const float* a, const float* b), squared x/z distance; DoState's range and flee band tests"
     },
     {
       "name": "OffensiveProcessDoSubTask",
@@ -4891,6 +5002,12 @@
       "address": "0x005F6FF0",
       "expected": "55 8B EC 83 EC 54 89 4D F8 C7 45 F0 00 00 00 00",
       "identity": "TurretTankProcess::DoSubTask (vtable slot 11)"
+    },
+    {
+      "name": "CraftWeaponSignature",
+      "address": "0x005FED30",
+      "expected": "55 8B EC 83 EC 14 C7 45 FC 00 00 00 00 8B 4D 08",
+      "identity": "cdecl uint(Craft*) weapon signature: XOR of the craft's masked weapon pointers, their ordnance class (+0x0C) and weapon class sig. UnitTask::Execute 0x006002A0 compares it with its cached copy and re-runs CalcRange(Craft) on change; see reverse_engineering/turret_charge_range_cache_20261103.md"
     },
     {
       "name": "GetGameTime",
@@ -4977,6 +5094,126 @@
       "identity": "RTTI .?AVTurretTankProcess@@ vtable"
     },
     {
+      "name": "TurretTankFriendVtable",
+      "address": "0x008895EC",
+      "kind": "data",
+      "identity": "RTTI .?AVTurretTankFriend@@ vtable; slot 11 is TurretTankProcess::DoSubTask 0x005F6FF0"
+    },
+    {
+      "name": "TurretTankEnemyVtable",
+      "address": "0x008897F8",
+      "kind": "data",
+      "identity": "RTTI .?AVTurretTankEnemy@@ vtable; slot 11 is TurretTankProcess::DoSubTask 0x005F6FF0"
+    },
+    {
+      "name": "GunTowerFriendVtable",
+      "address": "0x0087A794",
+      "kind": "data",
+      "identity": "RTTI .?AVGunTowerFriend@@ vtable; slot 11 is GunTowerProcess::DoSubTask 0x004E8780"
+    },
+    {
+      "name": "GunTowerEnemyVtable",
+      "address": "0x0087A9A0",
+      "kind": "data",
+      "identity": "RTTI .?AVGunTowerEnemy@@ vtable; slot 11 is GunTowerProcess::DoSubTask 0x004E8780"
+    },
+    {
+      "name": "TankFriendVtable",
+      "address": "0x0088B088",
+      "kind": "data",
+      "identity": "RTTI .?AVTankFriend@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
+      "name": "TankEnemyVtable",
+      "address": "0x0088AEA8",
+      "kind": "data",
+      "identity": "RTTI .?AVTankEnemy@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
+      "name": "RocketTankFriendVtable",
+      "address": "0x0088AC8C",
+      "kind": "data",
+      "identity": "RTTI .?AVRocketTankFriend@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
+      "name": "RocketTankEnemyVtable",
+      "address": "0x0088A7DC",
+      "kind": "data",
+      "identity": "RTTI .?AVRocketTankEnemy@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
+      "name": "ScoutFriendVtable",
+      "address": "0x0088AD7C",
+      "kind": "data",
+      "identity": "RTTI .?AVScoutFriend@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
+      "name": "ScoutEnemyVtable",
+      "address": "0x0088AAAC",
+      "kind": "data",
+      "identity": "RTTI .?AVScoutEnemy@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
+      "name": "PersonFriendVtable",
+      "address": "0x00885BE4",
+      "kind": "data",
+      "identity": "RTTI .?AVPersonFriend@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
+      "name": "PersonEnemyVtable",
+      "address": "0x00885A74",
+      "kind": "data",
+      "identity": "RTTI .?AVPersonEnemy@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
+      "name": "SoldierFriendVtable",
+      "address": "0x00887E08",
+      "kind": "data",
+      "identity": "RTTI .?AVSoldierFriend@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
+      "name": "SoldierEnemyVtable",
+      "address": "0x00887EF8",
+      "kind": "data",
+      "identity": "RTTI .?AVSoldierEnemy@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
+      "name": "ArtilleryFriendVtable",
+      "address": "0x00876204",
+      "kind": "data",
+      "identity": "RTTI .?AVArtilleryFriend@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
+      "name": "ArtilleryEnemyVtable",
+      "address": "0x00876114",
+      "kind": "data",
+      "identity": "RTTI .?AVArtilleryEnemy@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
+      "name": "GechFriendVtable",
+      "address": "0x0087A04C",
+      "kind": "data",
+      "identity": "RTTI .?AVGechFriend@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
+      "name": "GechEnemyVtable",
+      "address": "0x0087A268",
+      "kind": "data",
+      "identity": "RTTI .?AVGechEnemy@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
+      "name": "BomberFriendVtable",
+      "address": "0x0088A9BC",
+      "kind": "data",
+      "identity": "RTTI .?AVBomberFriend@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
+      "name": "BomberEnemyVtable",
+      "address": "0x0088A8CC",
+      "kind": "data",
+      "identity": "RTTI .?AVBomberEnemy@@ vtable; slot 11 is OffensiveProcess::DoSubTask 0x00583520"
+    },
+    {
       "name": "HowitzerSecondaryVtable",
       "address": "0x0087AE1C",
       "kind": "data",
@@ -4987,6 +5224,36 @@
       "address": "0x00753810",
       "expected": "55 8B EC 51 89 4D FC E8 54 10 01 00 85 C0 74 12 E8 3B 0F 01 00 85 C0 74 09 B8 03 00 00 00",
       "identity": "cNetFriends::GetReadyState: call PlatformReady, test, call BzrNetGetLobby, test, mov eax,3; the MP ready explainer replaces its entry"
+    },
+    {
+      "name": "LanNoAuthNameEmptyCall",
+      "address": "0x006C35F3",
+      "expected": "E8 98 C2 D5 FF 0F B6 C0 85 C0 75 23",
+      "identity": "BZRNet connection initializer FUN_006C35C0: std::string::empty on client realname +0x304, call target independently agrees with ticket-empty call and StringEmpty. Read-only live GOG PID 72140 qualified 2026-10-29; no string storage is changed."
+    },
+    {
+      "name": "LanNoAuthTicketEmptyCall",
+      "address": "0x006C3616",
+      "expected": "E8 75 C2 D5 FF 0F B6 C0 85 C0 74 05",
+      "identity": "Second std::string::empty in the same connection initializer, after the use-Steam byte test; this checks ticket +0x2EC. Both empty calls use ECX, no stack arguments, AL return."
+    },
+    {
+      "name": "LanNoAuthStringEmpty",
+      "address": "0x0041F890",
+      "expected": "55 8B EC 83 EC 08 89 4D F8 8B 45 F8 83 78 10 00",
+      "identity": "Released string-empty leaf: compares size at +0x10, returns AL, no stack arguments; independently confirmed from both connection-initializer call sites."
+    },
+    {
+      "name": "LanNoAuthConnect",
+      "address": "0x006C35C0",
+      "expected": "55 8B EC 83 EC 34 89 4D FC 8B 4D 08 E8 CF 4F E0 FF 0F B6 C0",
+      "identity": "Released native asynchronous connection initializer. ECX client, stack pointer to zero error_code (two dwords), ret4. Called by provider credential callback and stock retry timer. Isolated native GOG PID 71792 reached admission state 3 using this boundary without a provider callback on 2026-10-29; client holder, lobby pairing and state are checked before calling."
+    },
+    {
+      "name": "LanNoAuthGetLocalId",
+      "address": "0x0074B670",
+      "expected": "55 8B EC 51 89 4D FC 68 C8 B1 60 02 8B 4D 08 E8 BC F0 FE FF 8B 45 08 8B E5 5D C2 04 00",
+      "identity": "BZRNetLobby +0x38 GetMyID: ECX lobby, explicit hidden output pointer on stack, native copy preserves offset 4, EAX output and ret4. Used only to require the actual local admission identity before LAN readiness."
     },
     {
       "name": "PlatformReady",
@@ -5214,6 +5481,96 @@
       "address": "0x008871B4",
       "kind": "data",
       "identity": "ScavengerEnemy primary vtable (.?AVScavengerEnemy@@, derives ScavengerProcess); RTTI-verified at patch time."
+    },
+    {
+      "name": "DefendTaskVtable",
+      "address": "0x008785F4",
+      "kind": "data",
+      "identity": "RTTI .?AVDefendTask@@ vtable; slot 12 is DefendTask::DoState 0x004B1250 (thiscall, no args, void). RTTI-verified at patch time."
+    },
+    {
+      "name": "DefendTaskDoState",
+      "address": "0x004B1250",
+      "expected": "55 8B EC 83 EC 24 89 4D FC 8B 45 FC 8B 48 14 51",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) DefendTask::DoState (vtable 0x008785F4 slot 12): refreshes target obj [t+0x18] via GetObj([t+0x14]), then runs the state switch (2 goto, 3, 6 wander); sets next [t+0xC]. OpenShim wraps it for the opt-in Defend refresh. See Docs/NATIVE_HOLD_DEFEND_FOLLOW.md."
+    },
+    {
+      "name": "SitTaskVtable",
+      "address": "0x00889F50",
+      "kind": "data",
+      "identity": "RTTI .?AVSitTask@@ vtable; slot 12 is SitTask::DoState 0x00608630. RTTI-verified at patch time."
+    },
+    {
+      "name": "SitTaskDoState",
+      "address": "0x00608630",
+      "expected": "55 8B EC 51 89 4D FC 8B 4D FC E8 E1 9D FF FF 8B",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) SitTask::DoState (vtable 0x00889F50 slot 12): calls UnitTask::DoSit 0x00602420 only. OpenShim wraps it so a held craft also runs the FollowTask fire block. See Docs/NATIVE_HOLD_DEFEND_FOLLOW.md."
+    },
+    {
+      "name": "AiFollowRangeConstantSite",
+      "address": "0x005833CA",
+      "expected": "F3 0F 10 05 20 2E 8A 00 F3 0F 11 41 6C",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) movss xmm0,[0x008A2E20] at 0x005833CA in OffensiveProcess::ChangesState (0x005833A0), followed by movss [ecx+0x6C],xmm0; its 4-byte absolute operand at 0x005833CE loads [0x008A2E20] = 15625.0 (125^2) and stores it to followRange [process+0x6C] for CMD_FOLLOW. The opt-in Follow-as-Formation toggle repoints the operand at [0x008A2498] (0.0) and restores it."
+    },
+    {
+      "name": "FollowTaskDoState",
+      "address": "0x004D3B80",
+      "expected": "55 8B EC 83 EC 44 A1 00 70 8E 00 33 C5 89 45 FC",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) FollowTask::DoState; its fire block at 0x004D3E49..0x004D3FD4 is the code the Hold SitTask hook re-implements. Identity only, never hooked."
+    },
+    {
+      "name": "AiFireBlockHelperGetEnemyWithin",
+      "address": "0x00463240",
+      "expected": "55 8B EC 81 EC 00 01 00 00 A1 00 70 8E 00 33 C5",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) cdecl closest-enemy search (craft, float* range) returning the enemy or null, called at 0x004D3EA7 in the FollowTask fire block (add esp,8)."
+    },
+    {
+      "name": "AiFireBlockHelperCanFire",
+      "address": "0x00603AD0",
+      "expected": "55 8B EC 81 EC 90 04 00 00 A1 00 70 8E 00 33 C5",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) UnitTask thiscall(task) returning bool, called at 0x004D3ED1 in the FollowTask fire block."
+    },
+    {
+      "name": "AiFireBlockHelperAimPoint",
+      "address": "0x004462D0",
+      "expected": "55 8B EC 83 EC 1C A1 00 70 8E 00 33 C5 89 45 FC",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) cdecl(Vec3* out, float, Vec3 by value) returning out, called at 0x004D3F1B in the FollowTask fire block (add esp,0x14)."
+    },
+    {
+      "name": "AiFireBlockHelperLookAt",
+      "address": "0x00607110",
+      "expected": "55 8B EC 83 EC 60 A1 00 70 8E 00 33 C5 89 45 FC",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) UnitTask::LookAtLocalPos thiscall(task, Vec3* outState, Vec3* point), callee cleans 8 bytes; called at 0x004D3F45 in the FollowTask fire block."
+    },
+    {
+      "name": "AiFireBlockHelperIsAimed",
+      "address": "0x00608460",
+      "expected": "55 8B EC 51 89 4D FC 8B 45 FC 83 78 10 00 75 04",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) UnitTask thiscall(task) returning bool, called at 0x004D3F4D in the FollowTask fire block; selects UpdateWeapon (false) or the 0x00608490/0x006084C0 pair (true)."
+    },
+    {
+      "name": "AiFireBlockHelperSpecialReady",
+      "address": "0x00608490",
+      "expected": "55 8B EC 51 89 4D FC 8B 45 FC 83 78 10 00 75 04",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) UnitTask thiscall(task) returning bool, called at 0x004D3FBA in the FollowTask fire block. Meaning UNVERIFIED."
+    },
+    {
+      "name": "AiFireBlockHelperSpecialFire",
+      "address": "0x006084C0",
+      "expected": "55 8B EC 51 89 4D FC 8B 45 FC 83 78 10 00 75 02",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) UnitTask thiscall(task), called at 0x004D3FC9 in the FollowTask fire block when 0x00608490 answers true. Meaning UNVERIFIED."
+    },
+    {
+      "name": "AiFireBlockHelperMayHitFriends",
+      "address": "0x00462B60",
+      "expected": "55 8B EC 83 EC 64 A1 00 70 8E 00 33 C5 89 45 FC",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) cdecl(craft, float range, float 0.3, float 1.0) returning bool (friendly fire risk), called at 0x004D3F8F in the FollowTask fire block (add esp,0x10)."
+    },
+    {
+      "name": "AiFireBlockHelperUpdateWeapon",
+      "address": "0x00604130",
+      "expected": "55 8B EC 81 EC 84 02 00 00 A1 00 70 8E 00 33 C5",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) UnitTask::UpdateWeapon thiscall(task, DWORD fire), callee cleans 4 bytes; called at 0x004D3FB0 in the FollowTask fire block."
     }
   ],
   "module_addresses": [
