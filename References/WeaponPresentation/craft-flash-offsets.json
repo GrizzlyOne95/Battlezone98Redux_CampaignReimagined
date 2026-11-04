@@ -13,7 +13,8 @@
           ],
           "hardpoint": "agn11Gc1",
           "barrel": "agn11bgb",
-          "vertices": 38
+          "vertices": 38,
+          "reviewed_barrel": true
         }
       }
     },
@@ -82,7 +83,8 @@
           ],
           "hardpoint": "aar11gm1",
           "barrel": "aar11bgd",
-          "vertices": 194
+          "vertices": 281,
+          "reviewed_barrel": true
         }
       }
     },
@@ -98,7 +100,8 @@
           ],
           "hardpoint": "aar11gm1",
           "barrel": "aar11bgd",
-          "vertices": 194
+          "vertices": 281,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "ghartill",
@@ -109,7 +112,8 @@
           ],
           "hardpoint": "aar11gm2",
           "barrel": "aar11bgc",
-          "vertices": 194
+          "vertices": 281,
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "ghartill",
@@ -120,7 +124,8 @@
           ],
           "hardpoint": "aar11gm3",
           "barrel": "aar11bgb",
-          "vertices": 194
+          "vertices": 281,
+          "reviewed_barrel": true
         },
         "4": {
           "weapon": "ghartill",
@@ -131,7 +136,8 @@
           ],
           "hardpoint": "aar11gm4",
           "barrel": "aar11bga",
-          "vertices": 194
+          "vertices": 281,
+          "reviewed_barrel": true
         }
       }
     },
@@ -147,7 +153,8 @@
           ],
           "hardpoint": "AGR11GC1",
           "barrel": "AGR11BGA",
-          "vertices": 113
+          "vertices": 113,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminigun",
@@ -214,11 +221,27 @@
       "slots": {
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent ahr11rof is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.03,
+            -0.01,
+            1.32
+          ],
+          "hardpoint": "Ahr11GR1",
+          "barrel": "ahr11bga",
+          "vertices": 500,
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "grktbomb",
-          "skip": "parent ahr11rof is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            -0.01,
+            -0.01,
+            1.32
+          ],
+          "hardpoint": "Ahr11GR2",
+          "barrel": "ahr11bgb",
+          "vertices": 500,
+          "reviewed_barrel": true
         }
       }
     },
@@ -227,11 +250,27 @@
       "slots": {
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent ahr11rof is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.03,
+            -0.01,
+            1.32
+          ],
+          "hardpoint": "Ahr11GR1",
+          "barrel": "ahr11bga",
+          "vertices": 500,
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "grktbomb",
-          "skip": "parent ahr11rof is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            -0.01,
+            -0.01,
+            1.32
+          ],
+          "hardpoint": "Ahr11GR2",
+          "barrel": "ahr11bgb",
+          "vertices": 500,
+          "reviewed_barrel": true
         }
       }
     },
@@ -343,7 +382,8 @@
           ],
           "hardpoint": "AGR11GC1",
           "barrel": "AGR11BGA",
-          "vertices": 113
+          "vertices": 113,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gmaggun",
@@ -363,7 +403,8 @@
           ],
           "hardpoint": "AGR11GC1",
           "barrel": "AGR11BGA",
-          "vertices": 113
+          "vertices": 113,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminigun",
@@ -380,11 +421,27 @@
       "slots": {
         "1": {
           "weapon": "gtminig",
-          "skip": "parent aDE11blc is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.69,
+            0.38,
+            0.27
+          ],
+          "hardpoint": "aDE11gc1",
+          "barrel": "aDE11blc",
+          "vertices": 116,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gtminig",
-          "skip": "parent aDE11blf is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.83,
+            0.39,
+            0.27
+          ],
+          "hardpoint": "aDE11gc2",
+          "barrel": "aDE11blf",
+          "vertices": 116,
+          "reviewed_barrel": true
         }
       }
     },
@@ -393,7 +450,15 @@
       "slots": {
         "1": {
           "weapon": "gtminig",
-          "skip": "parent aDE11blc is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.69,
+            0.38,
+            0.27
+          ],
+          "hardpoint": "aDE11gc1",
+          "barrel": "aDE11blc",
+          "vertices": 116,
+          "reviewed_barrel": true
         }
       }
     },
@@ -443,7 +508,8 @@
           ],
           "hardpoint": "agn11Gc1",
           "barrel": "agn11bgb",
-          "vertices": 38
+          "vertices": 38,
+          "reviewed_barrel": true
         }
       }
     },
@@ -496,11 +562,27 @@
       "slots": {
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent bhr11rof is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.03,
+            -0.01,
+            1.32
+          ],
+          "hardpoint": "bhr11GR1",
+          "barrel": "bhr11bga",
+          "vertices": 500,
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "grktbomb",
-          "skip": "parent bhr11rof is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            -0.01,
+            -0.01,
+            1.32
+          ],
+          "hardpoint": "bhr11GR2",
+          "barrel": "bhr11bgb",
+          "vertices": 500,
+          "reviewed_barrel": true
         }
       }
     },
@@ -516,7 +598,8 @@
           ],
           "hardpoint": "bar11gm1",
           "barrel": "bar11bgd",
-          "vertices": 194
+          "vertices": 254,
+          "reviewed_barrel": true
         }
       }
     },
@@ -575,11 +658,19 @@
       "slots": {
         "1": {
           "weapon": "gtaggun",
-          "skip": "visible tip is -2.03 m from the hardpoint (under 0.1 m)"
+          "skip": "visible tip is -2.03 m from the hardpoint (under -0.1 m)"
         },
         "3": {
           "weapon": "gcomet",
-          "skip": "parent bhr11rof is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.03,
+            -0.01,
+            1.32
+          ],
+          "hardpoint": "bhr11GR1",
+          "barrel": "bhr11bga",
+          "vertices": 500,
+          "reviewed_barrel": true
         }
       }
     },
@@ -588,11 +679,27 @@
       "slots": {
         "2": {
           "weapon": "grktbomb",
-          "skip": "parent bhr11rof is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.03,
+            -0.01,
+            1.32
+          ],
+          "hardpoint": "bhr11GR1",
+          "barrel": "bhr11bga",
+          "vertices": 500,
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "grktbomb",
-          "skip": "parent bhr11rof is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            -0.01,
+            -0.01,
+            1.32
+          ],
+          "hardpoint": "bhr11GR2",
+          "barrel": "bhr11bgb",
+          "vertices": 500,
+          "reviewed_barrel": true
         }
       }
     },
@@ -753,7 +860,8 @@
           ],
           "hardpoint": "bGR11GC1",
           "barrel": "bGR11BGA",
-          "vertices": 113
+          "vertices": 113,
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gmortar",
@@ -773,7 +881,8 @@
           ],
           "hardpoint": "bGR11GC1",
           "barrel": "bGR11BGA",
-          "vertices": 113
+          "vertices": 113,
+          "reviewed_barrel": true
         },
         "3": {
           "weapon": "gpopgun",
@@ -786,11 +895,27 @@
       "slots": {
         "1": {
           "weapon": "gatstab",
-          "skip": "parent bDE11blc is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.69,
+            0.38,
+            0.27
+          ],
+          "hardpoint": "bDE11gc1",
+          "barrel": "bDE11blc",
+          "vertices": 116,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gatstab",
-          "skip": "parent bDE11blf is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.83,
+            0.39,
+            0.27
+          ],
+          "hardpoint": "bDE11gc2",
+          "barrel": "bDE11blf",
+          "vertices": 116,
+          "reviewed_barrel": true
         }
       }
     },
@@ -799,7 +924,15 @@
       "slots": {
         "1": {
           "weapon": "gminigun",
-          "skip": "parent bDE11blc is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.69,
+            0.38,
+            0.27
+          ],
+          "hardpoint": "bDE11gc1",
+          "barrel": "bDE11blc",
+          "vertices": 116,
+          "reviewed_barrel": true
         }
       }
     },
@@ -808,7 +941,15 @@
       "slots": {
         "1": {
           "weapon": "gtminig",
-          "skip": "parent bDE11blc is not a barrel node and has no geometry around the hardpoint"
+          "offset": [
+            0.69,
+            0.38,
+            0.27
+          ],
+          "hardpoint": "bDE11gc1",
+          "barrel": "bDE11blc",
+          "vertices": 116,
+          "reviewed_barrel": true
         }
       }
     },
@@ -840,12 +981,14 @@
         "1": {
           "weapon": "gatstaba",
           "offset": [
+            0.1,
             0.0,
-            0.0,
-            0.0
+            0.26
           ],
           "hardpoint": "cgt11gc1",
-          "anchor": "hardpoint (parent cgt11tx1 is not a barrel node)"
+          "barrel": "cgt11tx1",
+          "vertices": 444,
+          "reviewed_barrel": true
         }
       }
     },
@@ -864,12 +1007,14 @@
         "1": {
           "weapon": "gatstaba",
           "offset": [
+            0.1,
             0.0,
-            0.0,
-            0.0
+            0.26
           ],
           "hardpoint": "cgt11gc1",
-          "anchor": "hardpoint (parent cgt11tx1 is not a barrel node)"
+          "barrel": "cgt11tx1",
+          "vertices": 444,
+          "reviewed_barrel": true
         }
       }
     },
@@ -888,12 +1033,14 @@
         "1": {
           "weapon": "grktbomb",
           "offset": [
+            0.1,
             0.0,
-            0.0,
-            0.0
+            0.26
           ],
           "hardpoint": "cgt11gc1",
-          "anchor": "hardpoint (parent cgt11tx1 is not a barrel node)"
+          "barrel": "cgt11tx1",
+          "vertices": 444,
+          "reviewed_barrel": true
         }
       }
     },
@@ -912,12 +1059,14 @@
         "1": {
           "weapon": "gatstaba",
           "offset": [
+            0.1,
             0.0,
-            0.0,
-            0.0
+            0.26
           ],
           "hardpoint": "cgt11gc1",
-          "anchor": "hardpoint (parent cgt11tx1 is not a barrel node)"
+          "barrel": "cgt11tx1",
+          "vertices": 444,
+          "reviewed_barrel": true
         }
       }
     },
@@ -933,7 +1082,8 @@
           ],
           "hardpoint": "sgn11gc1",
           "barrel": "sgn11bgb",
-          "vertices": 74
+          "vertices": 74,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "cr16bolt",
@@ -944,7 +1094,8 @@
           ],
           "hardpoint": "sgn11gc2",
           "barrel": "sgn11bga",
-          "vertices": 74
+          "vertices": 74,
+          "reviewed_barrel": true
         }
       }
     },
@@ -1710,7 +1861,8 @@
           ],
           "hardpoint": "sgn11gc1",
           "barrel": "sgn11bgb",
-          "vertices": 74
+          "vertices": 76,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gflashgn",
@@ -1721,7 +1873,8 @@
           ],
           "hardpoint": "sgn11gc2",
           "barrel": "sgn11bga",
-          "vertices": 74
+          "vertices": 78,
+          "reviewed_barrel": true
         }
       }
     },
@@ -1737,7 +1890,8 @@
           ],
           "hardpoint": "sgn11gc1",
           "barrel": "sgn11bgb",
-          "vertices": 74
+          "vertices": 76,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gblasth",
@@ -1748,7 +1902,8 @@
           ],
           "hardpoint": "sgn11gc2",
           "barrel": "sgn11bga",
-          "vertices": 74
+          "vertices": 78,
+          "reviewed_barrel": true
         }
       }
     },
@@ -1764,7 +1919,8 @@
           ],
           "hardpoint": "sgn11gc1",
           "barrel": "sgn11bgb",
-          "vertices": 74
+          "vertices": 76,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gatstab",
@@ -1775,7 +1931,8 @@
           ],
           "hardpoint": "sgn11gc2",
           "barrel": "sgn11bga",
-          "vertices": 74
+          "vertices": 78,
+          "reviewed_barrel": true
         }
       }
     },
@@ -1791,7 +1948,8 @@
           ],
           "hardpoint": "sgn11gc1",
           "barrel": "sgn11bgb",
-          "vertices": 74
+          "vertices": 76,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gspstab",
@@ -1802,7 +1960,8 @@
           ],
           "hardpoint": "sgn11gc2",
           "barrel": "sgn11bga",
-          "vertices": 74
+          "vertices": 78,
+          "reviewed_barrel": true
         }
       }
     },
@@ -1818,7 +1977,8 @@
           ],
           "hardpoint": "sgn11gc1",
           "barrel": "sgn11bgb",
-          "vertices": 74
+          "vertices": 76,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gbolt",
@@ -1829,7 +1989,8 @@
           ],
           "hardpoint": "sgn11gc2",
           "barrel": "sgn11bga",
-          "vertices": 74
+          "vertices": 78,
+          "reviewed_barrel": true
         }
       }
     },
@@ -1845,7 +2006,8 @@
           ],
           "hardpoint": "sgn11gc1",
           "barrel": "sgn11bgb",
-          "vertices": 74
+          "vertices": 76,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "grktbomb",
@@ -1856,7 +2018,8 @@
           ],
           "hardpoint": "sgn11gc2",
           "barrel": "sgn11bga",
-          "vertices": 74
+          "vertices": 78,
+          "reviewed_barrel": true
         }
       }
     },
@@ -1872,7 +2035,8 @@
           ],
           "hardpoint": "sgn11gc1",
           "barrel": "sgn11bgb",
-          "vertices": 74
+          "vertices": 76,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gflashgn",
@@ -1883,7 +2047,8 @@
           ],
           "hardpoint": "sgn11gc2",
           "barrel": "sgn11bga",
-          "vertices": 74
+          "vertices": 78,
+          "reviewed_barrel": true
         }
       }
     },
@@ -2218,7 +2383,8 @@
           ],
           "hardpoint": "SCZ11GC1",
           "barrel": "SCZ11BGB",
-          "vertices": 97
+          "vertices": 97,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminisov",
@@ -2238,7 +2404,8 @@
           ],
           "hardpoint": "SCZ11GC1",
           "barrel": "SCZ11BGB",
-          "vertices": 97
+          "vertices": 97,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gminisov",
@@ -2258,7 +2425,8 @@
           ],
           "hardpoint": "SCZ11GC1",
           "barrel": "SCZ11BGB",
-          "vertices": 97
+          "vertices": 97,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gflashgn",
@@ -2278,7 +2446,8 @@
           ],
           "hardpoint": "SCZ11GC1",
           "barrel": "SCZ11BGB",
-          "vertices": 97
+          "vertices": 97,
+          "reviewed_barrel": true
         },
         "2": {
           "weapon": "gflashgn",
@@ -2298,7 +2467,8 @@
           ],
           "hardpoint": "SCZ11GC1",
           "barrel": "SCZ11BGB",
-          "vertices": 97
+          "vertices": 97,
+          "reviewed_barrel": true
         }
       }
     },

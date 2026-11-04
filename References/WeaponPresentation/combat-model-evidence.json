@@ -1,0 +1,280 @@
+{
+  "abtowe": {
+    "mesh_source": "Assets/ModelFixes/abtowe.mesh",
+    "skeleton_source": null,
+    "native_source": null,
+    "mesh_sha256": "61785c41f856773ae232f86a8cc595833755b34ee2859e4c1531180624f3b023",
+    "skeleton_sha256": "a1604a3e0828d9b1d33a099a92d264ec9aefeee5d4d06b77699d9ee395faa62b",
+    "native_sha256": "166881a0bdeb3a9c249271fd0d587a3b764ee6f2077322dfa91d30e89b9d5210",
+    "nodes": {
+      "agn11bgb": {
+        "weighted_vertices": 38,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      }
+    }
+  },
+  "avartl": {
+    "mesh_source": "Assets/ModelFixes/avartl.mesh",
+    "skeleton_source": null,
+    "native_source": null,
+    "mesh_sha256": "9fe135ecbfd306bbfabd2dfdda00d7df42f954c87f5de85c8b945e1c1b1d5de1",
+    "skeleton_sha256": "53e440408fbf94d62e1d34d43e537ce6d5b2d7f003a08ab27d10f33964011c7c",
+    "native_sha256": "d66f1e70b2f192632ac31e52e9e905a4975627bd54b0bb0a861bd65e8feef95a",
+    "nodes": {
+      "aar11bgd": {
+        "weighted_vertices": 281,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      },
+      "aar11bgc": {
+        "weighted_vertices": 281,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      },
+      "aar11bgb": {
+        "weighted_vertices": 281,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      },
+      "aar11bga": {
+        "weighted_vertices": 281,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      }
+    }
+  },
+  "avhraz": {
+    "mesh_source": "Assets/ModelFixes/avhraz.mesh",
+    "skeleton_source": null,
+    "native_source": null,
+    "mesh_sha256": "043899767cdfca427f90b8c1730c708961eae07aebd8a92fb3dd8c220b69621d",
+    "skeleton_sha256": "df84e7b1798bfc4caafa08a085e36c9d990d8bd7b1622a33171353b357a4508b",
+    "native_sha256": "50af17f360715befb4e420133ba417ffcee23111218bfa04d2ec8aee83af3188",
+    "nodes": {
+      "ahr11bga": {
+        "weighted_vertices": 500,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      },
+      "ahr11bgb": {
+        "weighted_vertices": 500,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      }
+    }
+  },
+  "avtank": {
+    "mesh_source": "Assets/ModelFixes/avtank.mesh",
+    "skeleton_source": null,
+    "native_source": null,
+    "mesh_sha256": "8bde0ed33f7f4819abed5d5e442ec10fcf37990f02186ff5055d0169411ebbb2",
+    "skeleton_sha256": "00ea42ea2f580a3c982180c93204866d1ccf443f1eba6a62754f70c6069d3acd",
+    "native_sha256": "fb4bdf8c4e8f4ccd3c768417eab9bbafcf076ee8d77f077b9791b69ac23afaaf",
+    "nodes": {
+      "AGR11BGA": {
+        "weighted_vertices": 113,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      }
+    }
+  },
+  "avturr": {
+    "mesh_source": "Assets/ModelFixes/avturr.mesh",
+    "skeleton_source": null,
+    "native_source": null,
+    "mesh_sha256": "8a10d78154e8afc2a53cb77980efd123e7fbc993275f408286acaafd1fea604b",
+    "skeleton_sha256": "9111593060527d24c33c812e7395ef44dc2b4356dfbf474689bc88a5598af921",
+    "native_sha256": "b4f8dcfdbc463c831a1745355c84c1bb61b59e1ee38691c5946c7303c1d132c5",
+    "nodes": {
+      "aDE11blc": {
+        "weighted_vertices": 116,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      },
+      "aDE11blf": {
+        "weighted_vertices": 116,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      }
+    }
+  },
+  "bbtowe": {
+    "mesh_source": "Assets/ModelFixes/bbtowe.mesh",
+    "skeleton_source": null,
+    "native_source": null,
+    "mesh_sha256": "ed3113bc6f10a6f44545f816197a315d30f0154c5492fb3ac35525527f526a96",
+    "skeleton_sha256": "a1604a3e0828d9b1d33a099a92d264ec9aefeee5d4d06b77699d9ee395faa62b",
+    "native_sha256": "166881a0bdeb3a9c249271fd0d587a3b764ee6f2077322dfa91d30e89b9d5210",
+    "nodes": {
+      "agn11bgb": {
+        "weighted_vertices": 38,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      }
+    }
+  },
+  "bvartl": {
+    "mesh_source": "Assets/ModelFixes/bvartl.mesh",
+    "skeleton_source": null,
+    "native_source": null,
+    "mesh_sha256": "e6b1845bf5dc340f7dcc371152574ed87083fe70e30536f242ce6b53ddb233d8",
+    "skeleton_sha256": "3b3e2d05696a90b7c6fff26b1797b03737fd24b3c80b7cb2e40628f2b60b0df6",
+    "native_sha256": "a56cf6f2c1471962ab996adae5984098bbd13353a13d0e80de78013558b8b608",
+    "nodes": {
+      "bar11bgd": {
+        "weighted_vertices": 254,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      }
+    }
+  },
+  "bvhraz": {
+    "mesh_source": "Assets/ModelFixes/bvhraz.mesh",
+    "skeleton_source": null,
+    "native_source": null,
+    "mesh_sha256": "dcc14a6ab295e88ce2a63c2d39bd8d025d6095c064ead841ecd46984ef023bdd",
+    "skeleton_sha256": "cab7f4e1495f81324383e22b780c57ff4135dfc9ad8bef15009aed7af74a32ff",
+    "native_sha256": "bebe7e73fec1746f36c9eaf61b61e67aa9d778e24ae60db1ff507f2861ce2f24",
+    "nodes": {
+      "bhr11bga": {
+        "weighted_vertices": 500,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      },
+      "bhr11bgb": {
+        "weighted_vertices": 500,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      }
+    }
+  },
+  "bvtank": {
+    "mesh_source": "Assets/ModelFixes/bvtank.mesh",
+    "skeleton_source": null,
+    "native_source": null,
+    "mesh_sha256": "c7c78d6d97366f65fc34b2c19d64f93f0eb84a5ee812f25658c442698b138c68",
+    "skeleton_sha256": "4043ddea5148c1171f5b9aea8cf9c6d3786515cd92f102e3b3e2f891f3f7241e",
+    "native_sha256": "47ee2ebc9848c572097753eeb645446c15feb9f77dac47b5461469e7e9bfe3d2",
+    "nodes": {
+      "bGR11BGA": {
+        "weighted_vertices": 113,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      }
+    }
+  },
+  "bvturr": {
+    "mesh_source": "Assets/ModelFixes/bvturr.mesh",
+    "skeleton_source": null,
+    "native_source": null,
+    "mesh_sha256": "737045570ad53e1f3ca88a4f6081d4d936fe84b9e91a4e407900cf24c5d1a8c9",
+    "skeleton_sha256": "d9d15305f5678eaf80d4b8fa4c3ef6d298d31160d1be399068f1f0908e6ac745",
+    "native_sha256": "b23b9cbc46ea291187ebcc049b4017644f7ec4257633850f6bdfe7e83c9ebd6b",
+    "nodes": {
+      "bDE11blc": {
+        "weighted_vertices": 116,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      },
+      "bDE11blf": {
+        "weighted_vertices": 116,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      }
+    }
+  },
+  "cbtowe": {
+    "mesh_source": "Assets/ModelFixes/cbtowe.mesh",
+    "skeleton_source": null,
+    "native_source": null,
+    "mesh_sha256": "ce495189dc17513521482ee884c557afe35a7a8bb707a3f54c512c70b1b39f29",
+    "skeleton_sha256": "300986ebfe2c84de2988ecb3e46ee4ed746402f5f89bc9370e16342bf2219973",
+    "native_sha256": "536fb20177da732006ec4e55299bd8b25906e1b2c857bbf503f4b4fa4a629634",
+    "nodes": {
+      "cgt11tx1": {
+        "weighted_vertices": 444,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      }
+    }
+  },
+  "cr16tow": {
+    "mesh_source": "Assets/ModelFixes/cr16tow.mesh",
+    "skeleton_source": "Assets/ModelFixes/cr16tow.skeleton",
+    "native_source": "Assets/ModelFixes/cr16tow.vdf",
+    "mesh_sha256": "80ee1697d019b7be4dea487ada49d2a112a4ad9f56c40b5b81c03a8ee710eff3",
+    "skeleton_sha256": "53d7d5b1e61ecd6a7af6fbcd0d0e8e17d8ceffdd1bf7dbfefd44b3842771a5e6",
+    "native_sha256": "45b819ee2875a598423472bb90cfd1231f12b939fc624799fc9a035720fc67ce",
+    "nodes": {
+      "sgn11bgb": {
+        "weighted_vertices": 74,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      },
+      "sgn11bga": {
+        "weighted_vertices": 74,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      }
+    }
+  },
+  "sbtowe": {
+    "mesh_source": "Assets/ModelFixes/sbtowe.mesh",
+    "skeleton_source": null,
+    "native_source": null,
+    "mesh_sha256": "2efacf236f39c60aac1b3a5bf06b0e89c31019dfb437bf7ac50e39d5e4e349d0",
+    "skeleton_sha256": "53d7d5b1e61ecd6a7af6fbcd0d0e8e17d8ceffdd1bf7dbfefd44b3842771a5e6",
+    "native_sha256": "45b819ee2875a598423472bb90cfd1231f12b939fc624799fc9a035720fc67ce",
+    "nodes": {
+      "sgn11bgb": {
+        "weighted_vertices": 76,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      },
+      "sgn11bga": {
+        "weighted_vertices": 78,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      }
+    }
+  },
+  "svtank": {
+    "mesh_source": "Assets/ModelFixes/svtank.mesh",
+    "skeleton_source": null,
+    "native_source": null,
+    "mesh_sha256": "fc1bb995d9257bb168f49793436f495684f546da770f85ae12c7414d63a79efb",
+    "skeleton_sha256": "e687e51928b6b9126c01881690e6122562844942ae3ddd4d94c13c6288558e50",
+    "native_sha256": "c34800bdb378717dc571ac196f5d199682767947739ddb90433fa61d1bde1f00",
+    "nodes": {
+      "SCZ11BGB": {
+        "weighted_vertices": 97,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      }
+    }
+  }
+}

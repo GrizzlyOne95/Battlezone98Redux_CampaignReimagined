@@ -1,0 +1,4634 @@
+{
+  "totals": {
+    "slots": 267,
+    "recoil_slots": 55,
+    "flash_slots": 124,
+    "casing_slots": 114
+  },
+  "units": {
+    "abtowe": {
+      "name": "Gun Tower",
+      "model": "abtowe",
+      "slots": {
+        "1": {
+          "weapon": "gspstabn",
+          "hardpoint": "GC1",
+          "recoil_node": "agn11bgb",
+          "recoil_distance": 0.12,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.06,
+            0.02,
+            0.23
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "avarmp": {
+      "name": "Howitzer",
+      "model": "avartl",
+      "slots": {
+        "1": {
+          "weapon": "ghartmp",
+          "hardpoint": "GM1",
+          "recoil_node": "aar11bgd",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.04,
+            -0.07,
+            0.71
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "avartl": {
+      "name": "Howitzer",
+      "model": "avartl",
+      "slots": {
+        "1": {
+          "weapon": "ghartill",
+          "hardpoint": "GM1",
+          "recoil_node": "aar11bgd",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.04,
+            -0.07,
+            0.71
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "ghartill",
+          "hardpoint": "GM2",
+          "recoil_node": "aar11bgc",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.04,
+            -0.06,
+            0.74
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "ghartill",
+          "hardpoint": "GM3",
+          "recoil_node": "aar11bgb",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0,
+            -0.07,
+            0.68
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "ghartill",
+          "hardpoint": "GM4",
+          "recoil_node": "aar11bga",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.01,
+            -0.08,
+            0.72
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "avartla": {
+      "name": "Howitzer",
+      "model": "avartl",
+      "slots": {
+        "1": {
+          "weapon": "gpopguna",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "weapon definition missing",
+          "casing_type": "unresolved",
+          "casing_status": "weapon definition missing",
+          "runtime": "weapon definition missing"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "avdemo": {
+      "name": "Tank",
+      "model": "avtank",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "hardpoint": "GC1",
+          "recoil_node": "AGR11BGA",
+          "recoil_distance": 0.3,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.2,
+            0.1,
+            2.41
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminigun",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent AGR11BDA is not a barrel node and the hardpoint is 0.41 m behind its front geometry",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gquake",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "ground-contact seismic emitter",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gmdmgun",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent AGR11BDA is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "avfigh": {
+      "name": "Scout",
+      "model": "avfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminigun",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "avfimp": {
+      "name": "Scout",
+      "model": "avfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminigun",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "avhraz": {
+      "name": "Bomber",
+      "model": "avhraz",
+      "slots": {
+        "2": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR1",
+          "recoil_node": "ahr11bga",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.03,
+            -0.01,
+            1.32
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR2",
+          "recoil_node": "ahr11bgb",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.01,
+            -0.01,
+            1.32
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "avhrmp": {
+      "name": "Bomber",
+      "model": "avhraz",
+      "slots": {
+        "2": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR1",
+          "recoil_node": "ahr11bga",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.03,
+            -0.01,
+            1.32
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR2",
+          "recoil_node": "ahr11bgb",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.01,
+            -0.01,
+            1.32
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "avlamp": {
+      "name": "Lander",
+      "model": "avland",
+      "slots": {
+        "1": {
+          "weapon": "gtechno",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent lla11bda is not a barrel node and the hardpoint is 2.66 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "avltmp": {
+      "name": "Light Tank",
+      "model": "avltnk",
+      "slots": {
+        "1": {
+          "weapon": "gtminig",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent aln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gtaggun",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent aln11bdc is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "3": {
+          "weapon": "gmitsmin",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "mine deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "avltnk": {
+      "name": "Light Tank",
+      "model": "avltnk",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent aln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "ghornet",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent aln11bdc is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "3": {
+          "weapon": "gflare",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "countermeasure deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "avmine": {
+      "name": "Minelayer",
+      "model": "avmine",
+      "slots": {
+        "1": {
+          "weapon": "gproxmin",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "mine deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Utility only"
+    },
+    "avpsav": {
+      "name": "Fury - SAV Test",
+      "model": "avsav",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent polymsh is not a barrel node and the hardpoint is 2.27 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gwasp",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "mine deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Emitter/asset decision"
+    },
+    "avrckt": {
+      "name": "Rocket Tank",
+      "model": "avrckt",
+      "slots": {
+        "1": {
+          "weapon": "gshadow",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "2": {
+          "weapon": "ghornet",
+          "hardpoint": "GR2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "4": {
+          "weapon": "gproxmin",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "mine deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "avrsav": {
+      "name": "Fury - Pickup Test",
+      "model": "avsav",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent polymsh is not a barrel node and the hardpoint is 2.27 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gwasp",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "mine deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Emitter/asset decision"
+    },
+    "avsav": {
+      "name": "Fury",
+      "model": "avsav",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent polymsh is not a barrel node and the hardpoint is 2.27 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gwasp",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "mine deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Emitter/asset decision"
+    },
+    "avsav14": {
+      "name": "Fury",
+      "model": "avsav",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent polymsh is not a barrel node and the hardpoint is 2.27 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Emitter/asset decision"
+    },
+    "avtamp": {
+      "name": "Tank",
+      "model": "avtank",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "hardpoint": "GC1",
+          "recoil_node": "AGR11BGA",
+          "recoil_distance": 0.3,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.2,
+            0.1,
+            2.41
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gmaggun",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent AGR11BDA is not a barrel node and the hardpoint is 0.41 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "3": {
+          "weapon": "gredfld",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "radar device",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "avtank": {
+      "name": "Tank",
+      "model": "avtank",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "hardpoint": "GC1",
+          "recoil_node": "AGR11BGA",
+          "recoil_distance": 0.3,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.2,
+            0.1,
+            2.41
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminigun",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent AGR11BDA is not a barrel node and the hardpoint is 0.41 m behind its front geometry",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gquake",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "ground-contact seismic emitter",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gmdmgun",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent AGR11BDA is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "avtest": {
+      "name": "Drone",
+      "model": "avtest",
+      "slots": {
+        "1": {
+          "weapon": "gdummy",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "paintball/debug effect",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gdummy",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "paintball/debug effect",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gdummy",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "paintball/debug effect",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gdummy",
+          "hardpoint": "GM2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "paintball/debug effect",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Rig/animation work"
+    },
+    "avtump": {
+      "name": "Turret",
+      "model": "avturr",
+      "slots": {
+        "1": {
+          "weapon": "gtminig",
+          "hardpoint": "GC1",
+          "recoil_node": "aDE11blc",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.69,
+            0.38,
+            0.27
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gtminig",
+          "hardpoint": "GC2",
+          "recoil_node": "aDE11blf",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.83,
+            0.39,
+            0.27
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "avturr": {
+      "name": "Turret",
+      "model": "avturr",
+      "slots": {
+        "1": {
+          "weapon": "gtminig",
+          "hardpoint": "GC1",
+          "recoil_node": "aDE11blc",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.69,
+            0.38,
+            0.27
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "avwalk": {
+      "name": "Walker",
+      "model": "avwalk",
+      "slots": {
+        "1": {
+          "weapon": "gatstaba",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent age11tx2 is not a barrel node and the hardpoint is 0.85 m behind its front geometry",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gatstaba",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent age11tx1 is not a barrel node and the hardpoint is 0.83 m behind its front geometry",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent age11ty1 is not a barrel node and the hardpoint is 0.49 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "avwamp": {
+      "name": "Walker",
+      "model": "avwalk",
+      "slots": {
+        "1": {
+          "weapon": "gmaggun",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent age11tx2 is not a barrel node and the hardpoint is 0.85 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "2": {
+          "weapon": "gmaggun",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent age11tx1 is not a barrel node and the hardpoint is 0.83 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "3": {
+          "weapon": "gsplint",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent age11ty1 is not a barrel node and the hardpoint is 0.49 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "bbtowe": {
+      "name": "Gun Tower",
+      "model": "bbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gblastb",
+          "hardpoint": "GC1",
+          "recoil_node": "agn11bgb",
+          "recoil_distance": 0.12,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.06,
+            0.02,
+            0.23
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "bv0002": {
+      "name": "Bomber",
+      "model": "bvhraz",
+      "slots": {
+        "2": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR1",
+          "recoil_node": "bhr11bga",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.03,
+            -0.01,
+            1.32
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR2",
+          "recoil_node": "bhr11bgb",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.01,
+            -0.01,
+            1.32
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "bvartl": {
+      "name": "Howitzer",
+      "model": "bvartl",
+      "slots": {
+        "1": {
+          "weapon": "ghartill",
+          "hardpoint": "GM1",
+          "recoil_node": "bar11bgd",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.04,
+            -0.07,
+            0.71
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "bvfigh": {
+      "name": "Scout",
+      "model": "bvraz",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gshadow",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "bvfigha": {
+      "name": "Scout",
+      "model": "bvraz",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminigun",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "bvhraz": {
+      "name": "Bomber",
+      "model": "bvhraz",
+      "slots": {
+        "1": {
+          "weapon": "gtaggun",
+          "hardpoint": "GC1",
+          "recoil_node": "bhr11bga",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": null,
+          "flash_status": "visible tip is -2.03 m from the hardpoint (under -0.1 m)",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "2": {
+          "weapon": "gsandbag",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "anchoring device",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gcomet",
+          "hardpoint": "GR1",
+          "recoil_node": "bhr11bga",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.03,
+            -0.01,
+            1.32
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "bvhraza": {
+      "name": "Bomber",
+      "model": "bvhraz",
+      "slots": {
+        "2": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR1",
+          "recoil_node": "bhr11bga",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.03,
+            -0.01,
+            1.32
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR2",
+          "recoil_node": "bhr11bgb",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.01,
+            -0.01,
+            1.32
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "bvltnk": {
+      "name": "Light Tank",
+      "model": "bvltnk",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent bln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gsandbag",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "anchoring device",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gphantom",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "cloak device",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "bvltnka": {
+      "name": "Light Tank",
+      "model": "bvltnk",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent bln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "bvmine": {
+      "name": "Minelayer",
+      "model": "bvmine",
+      "slots": {
+        "1": {
+          "weapon": "gproxmin",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "mine deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Utility only"
+    },
+    "bvmru": {
+      "name": "Mobile Repair Unit",
+      "model": "bvmru",
+      "slots": {
+        "1": {
+          "weapon": "grepa",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "repair dispenser",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "2": {
+          "weapon": "gammo",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "supply dispenser",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Utility only"
+    },
+    "bvra8": {
+      "name": "Scout",
+      "model": "bvraz",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gshadow",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "bvraz": {
+      "name": "Scout",
+      "model": "bvraz",
+      "slots": {
+        "1": {
+          "weapon": "gtminig",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gshadow",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "bvrckt": {
+      "name": "Rocket Tank",
+      "model": "bvrckt",
+      "slots": {
+        "1": {
+          "weapon": "gtaggun",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "2": {
+          "weapon": "gtaggun",
+          "hardpoint": "GR2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "3": {
+          "weapon": "gredfld",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "radar device",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "bvrdev": {
+      "name": "Red Devil",
+      "model": "bvrdev",
+      "slots": {
+        "1": {
+          "weapon": "gtminig",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gtaggun",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent brd11bda is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "3": {
+          "weapon": "gsitecam",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "camera device",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "bvrdeva": {
+      "name": "Red Devil",
+      "model": "bvrdev",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "ghornet",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent brd11bda is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "bvrmpa": {
+      "name": "Red Devil",
+      "model": "bvrdev",
+      "slots": {
+        "1": {
+          "weapon": "grktbomb",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent brd11bda is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "bvrmpb": {
+      "name": "Red Devil",
+      "model": "bvrdev",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gspstab",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent brd11bda is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "bvtank": {
+      "name": "Tank",
+      "model": "bvtank",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "hardpoint": "GC1",
+          "recoil_node": "bGR11BGA",
+          "recoil_distance": 0.3,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.2,
+            0.1,
+            2.41
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gmortar",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent bGR11BDA is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gproxmin",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "mine deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "bvtanka": {
+      "name": "Tank",
+      "model": "bvtank",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "hardpoint": "GC1",
+          "recoil_node": "bGR11BGA",
+          "recoil_distance": 0.3,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.2,
+            0.1,
+            2.41
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent bGR11BDA is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "4": {
+          "weapon": "gproxmin",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "mine deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "bvtump": {
+      "name": "Turret",
+      "model": "bvturr",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "hardpoint": "GC1",
+          "recoil_node": "bDE11blc",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.69,
+            0.38,
+            0.27
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gatstab",
+          "hardpoint": "GC2",
+          "recoil_node": "bDE11blf",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.83,
+            0.39,
+            0.27
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "bvtur8": {
+      "name": "Turret",
+      "model": "bvturr",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "hardpoint": "GC1",
+          "recoil_node": "bDE11blc",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.69,
+            0.38,
+            0.27
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "bvturr": {
+      "name": "Turret",
+      "model": "bvturr",
+      "slots": {
+        "1": {
+          "weapon": "gtminig",
+          "hardpoint": "GC1",
+          "recoil_node": "bDE11blc",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.69,
+            0.38,
+            0.27
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "bvwalk": {
+      "name": "Walker",
+      "model": "bvwalk",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent age11tx2 is not a barrel node and the hardpoint is 0.85 m behind its front geometry",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gspstab",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent age11tx1 is not a barrel node and the hardpoint is 0.83 m behind its front geometry",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cblasr": {
+      "name": "Gun Tower",
+      "model": "cblasr",
+      "slots": {
+        "1": {
+          "weapon": "gspstaba",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Emitter/asset decision"
+    },
+    "cbtowe": {
+      "name": "Gun Tower",
+      "model": "cbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gatstaba",
+          "hardpoint": "GC1",
+          "recoil_node": "cgt11tx1",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.1,
+            0.0,
+            0.26
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "cbtowea": {
+      "name": "Gun Tower",
+      "model": "cblasr",
+      "slots": {
+        "1": {
+          "weapon": "gflashch",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Emitter/asset decision"
+    },
+    "cbtoweb": {
+      "name": "Gun Tower",
+      "model": "cbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gatstaba",
+          "hardpoint": "GC1",
+          "recoil_node": "cgt11tx1",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.1,
+            0.0,
+            0.26
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "cbtowec": {
+      "name": "Gun Tower",
+      "model": "cblasr",
+      "slots": {
+        "1": {
+          "weapon": "gflashch",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Emitter/asset decision"
+    },
+    "cbtowed": {
+      "name": "Gun Tower",
+      "model": "cbtowe",
+      "slots": {
+        "1": {
+          "weapon": "grktbomb",
+          "hardpoint": "GC1",
+          "recoil_node": "cgt11tx1",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.1,
+            0.0,
+            0.26
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "cbtowee": {
+      "name": "Gun Tower",
+      "model": "cblasr",
+      "slots": {
+        "1": {
+          "weapon": "gflashch",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Emitter/asset decision"
+    },
+    "cbtowef": {
+      "name": "Gun Tower",
+      "model": "cbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gatstaba",
+          "hardpoint": "GC1",
+          "recoil_node": "cgt11tx1",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.1,
+            0.0,
+            0.26
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "cr16tow": {
+      "name": "Corrupted Gun Tower",
+      "model": "cr16tow",
+      "slots": {
+        "1": {
+          "weapon": "cr16bolt",
+          "hardpoint": "GC1",
+          "recoil_node": "sgn11bgb",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "cr16bolt",
+          "hardpoint": "GC2",
+          "recoil_node": "sgn11bga",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "crfraz": {
+      "name": "Fury Fighter",
+      "model": "crfraz",
+      "slots": {
+        "1": {
+          "weapon": "crfpuls",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent cfr11bda is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "crfarc",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent cfr11bdb is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Emitter/asset decision"
+    },
+    "cvartl": {
+      "name": "Howitzer",
+      "model": "cvartl",
+      "slots": {
+        "1": {
+          "weapon": "ghartill",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvartla": {
+      "name": "Howitzer",
+      "model": "cvartl",
+      "slots": {
+        "1": {
+          "weapon": "cvwo003",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvfigh": {
+      "name": "Fighter",
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvfigha": {
+      "name": "Scout",
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvfighb": {
+      "name": "Scout",
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gdummy",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "paintball/debug effect",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gdummy",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "paintball/debug effect",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvfighc": {
+      "name": "Fighter",
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvfighd": {
+      "name": "Scout",
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gdummy",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "paintball/debug effect",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvfighe": {
+      "name": "Fighter",
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvfighf": {
+      "name": "Fighter",
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvfighg": {
+      "name": "Fighter",
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvfighh": {
+      "name": "Fighter",
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvfimp": {
+      "name": "Fighter",
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminignc",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminignc",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvhmpa": {
+      "name": "Tank",
+      "model": "cvhtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstaba",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gspstaba",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gquake",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "ground-contact seismic emitter",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Rig/animation work"
+    },
+    "cvhmpb": {
+      "name": "Tank",
+      "model": "cvhtnk",
+      "slots": {
+        "1": {
+          "weapon": "gmaggun",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "2": {
+          "weapon": "gmaggun",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Rig/animation work"
+    },
+    "cvhraz": {
+      "name": "Bomber",
+      "model": "cvhraz",
+      "slots": {
+        "1": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvhraza": {
+      "name": "Bomber",
+      "model": "cvhraz",
+      "slots": {
+        "2": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvhrazb": {
+      "name": "Bomber",
+      "model": "cvhraz",
+      "slots": {
+        "2": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvhtnk": {
+      "name": "Heavy Tank",
+      "model": "cvhtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstaba",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gspstaba",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Rig/animation work"
+    },
+    "cvhzmp": {
+      "name": "Bomber",
+      "model": "cvhraz",
+      "slots": {
+        "1": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvltnk": {
+      "name": "Light Tank",
+      "model": "cvltnk",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gsandbag",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "anchoring device",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvmine": {
+      "name": "Minelayer",
+      "model": "cvmine",
+      "slots": {
+        "1": {
+          "weapon": "gctesla",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "field deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Utility only"
+    },
+    "cvminea": {
+      "name": "Minelayer",
+      "model": "cvmine",
+      "slots": {
+        "1": {
+          "weapon": "gammoa",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "supply dispenser",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "2": {
+          "weapon": "grepaa",
+          "hardpoint": "GS2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "repair dispenser",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Utility only"
+    },
+    "cvraz": {
+      "name": "Fighter",
+      "model": "cvfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminigun",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminigun",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvrckt": {
+      "name": "Rocket Tank",
+      "model": "cvrckt",
+      "slots": {
+        "1": {
+          "weapon": "gshadow",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "2": {
+          "weapon": "gshadow",
+          "hardpoint": "GR2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CDR11BDA is not a barrel node and the hardpoint is 0.30 m ahead of its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "3": {
+          "weapon": "gmdmgun",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CDR11BDA is not a barrel node and the hardpoint is 0.30 m ahead of its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "4": {
+          "weapon": "gctesla",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "field deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvtank": {
+      "name": "Tank",
+      "model": "cvtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstabb",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvtmpa": {
+      "name": "Tank",
+      "model": "cvtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstabb",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gmaggun",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CYE11BDA is not a barrel node and the hardpoint is 0.12 m ahead of its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvtnk": {
+      "name": "Tank",
+      "model": "cvtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstabb",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent CYE11BDA is not a barrel node and the hardpoint is 0.12 m ahead of its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvtnka": {
+      "name": "Tank",
+      "model": "cvtnk",
+      "slots": {
+        "1": {
+          "weapon": "gdummy",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "paintball/debug effect",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvtnkb": {
+      "name": "Tank",
+      "model": "cvtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstabb",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvtnkc": {
+      "name": "Tank",
+      "model": "cvtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstabb",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gspstabb",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvtnkd": {
+      "name": "Tank",
+      "model": "cvtnk",
+      "slots": {
+        "1": {
+          "weapon": "gspstabd",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gspstabd",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvturr": {
+      "name": "Turret",
+      "model": "cvturr",
+      "slots": {
+        "1": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC3",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gminigrn",
+          "hardpoint": "GC4",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvturra": {
+      "name": "Turret",
+      "model": "cvturr",
+      "slots": {
+        "1": {
+          "weapon": "gtminis",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gtminis",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gtminis",
+          "hardpoint": "GC3",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gsandbag",
+          "hardpoint": "GC4",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "anchoring device",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvturrb": {
+      "name": "Turret",
+      "model": "cvturr",
+      "slots": {
+        "1": {
+          "weapon": "gspstabb",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gspstabb",
+          "hardpoint": "GC3",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvturrc": {
+      "name": "Turret",
+      "model": "cvturr",
+      "slots": {
+        "1": {
+          "weapon": "gspstabc",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvwalk": {
+      "name": "Walker",
+      "model": "cvwalk",
+      "slots": {
+        "1": {
+          "weapon": "gblastg",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent cvw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gblastg",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent cvw11hed is not a barrel node and the hardpoint is 0.97 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent cvw11sup is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "cvwamp": {
+      "name": "Walker",
+      "model": "cvwalk",
+      "slots": {
+        "1": {
+          "weapon": "gblast",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent cvw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gmdmgun",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent cvw11sup is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "sb0002": {
+      "name": "Gun Tower",
+      "model": "sbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gflashgn",
+          "hardpoint": "GC1",
+          "recoil_node": "sgn11bgb",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "2": {
+          "weapon": "gflashgn",
+          "hardpoint": "GC2",
+          "recoil_node": "sgn11bga",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "sbtowe": {
+      "name": "Gun Tower",
+      "model": "sbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gblasth",
+          "hardpoint": "GC1",
+          "recoil_node": "sgn11bgb",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gblasth",
+          "hardpoint": "GC2",
+          "recoil_node": "sgn11bga",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "sbtowea": {
+      "name": "Gun Tower",
+      "model": "sbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gtminis",
+          "hardpoint": "GC1",
+          "recoil_node": "sgn11bgb",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gatstab",
+          "hardpoint": "GC2",
+          "recoil_node": "sgn11bga",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "sbtoweb": {
+      "name": "Gun Tower",
+      "model": "sbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "hardpoint": "GC1",
+          "recoil_node": "sgn11bgb",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gspstab",
+          "hardpoint": "GC2",
+          "recoil_node": "sgn11bga",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "sbtowec": {
+      "name": "Gun Tower",
+      "model": "sbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "hardpoint": "GC1",
+          "recoil_node": "sgn11bgb",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gbolt",
+          "hardpoint": "GC2",
+          "recoil_node": "sgn11bga",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "sbtowed": {
+      "name": "Gun Tower",
+      "model": "sbtowe",
+      "slots": {
+        "1": {
+          "weapon": "grktbomb",
+          "hardpoint": "GC1",
+          "recoil_node": "sgn11bgb",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "grktbomb",
+          "hardpoint": "GC2",
+          "recoil_node": "sgn11bga",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "sbtowee": {
+      "name": "Gun Tower",
+      "model": "sbtowe",
+      "slots": {
+        "1": {
+          "weapon": "gflashgn",
+          "hardpoint": "GC1",
+          "recoil_node": "sgn11bgb",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.02,
+            0.47,
+            3.23
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "2": {
+          "weapon": "gflashgn",
+          "hardpoint": "GC2",
+          "recoil_node": "sgn11bga",
+          "recoil_distance": 0.1,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.01,
+            0.47,
+            3.22
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "svarmp": {
+      "name": "Howitzer",
+      "model": "svartl",
+      "slots": {
+        "1": {
+          "weapon": "ghartmp",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "visible tip is -0.02 m from the hardpoint (under 0.1 m)",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Rig/animation work"
+    },
+    "svartl": {
+      "name": "Howitzer",
+      "model": "svartl",
+      "slots": {
+        "1": {
+          "weapon": "ghartill",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "visible tip is -0.02 m from the hardpoint (under 0.1 m)",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Rig/animation work"
+    },
+    "svartla": {
+      "name": "Howitzer",
+      "model": "svartl",
+      "slots": {
+        "1": {
+          "weapon": "ghartila",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "visible tip is -0.02 m from the hardpoint (under 0.1 m)",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Rig/animation work"
+    },
+    "svdemo": {
+      "name": "Fighter",
+      "model": "svfigh",
+      "slots": {
+        "1": {
+          "weapon": "grktbomb",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "grktbomb",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "svfi12": {
+      "name": "Fighter",
+      "model": "svfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminisov",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminisov",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gsitecam",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "camera device",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "svfigh": {
+      "name": "Fighter",
+      "model": "svfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminisov",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminisov",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "svfigha": {
+      "name": "Fighter",
+      "model": "svfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminisov",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminisov",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "svfimp": {
+      "name": "Fighter",
+      "model": "svfigh",
+      "slots": {
+        "1": {
+          "weapon": "gminisov",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminisov",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "svhr13": {
+      "name": "Bomber",
+      "model": "svhraz",
+      "slots": {
+        "2": {
+          "weapon": "gsrkbomb",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gsrkbomb",
+          "hardpoint": "GR2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent shb11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "svhraz": {
+      "name": "Bomber",
+      "model": "svhraz",
+      "slots": {
+        "2": {
+          "weapon": "gsrkbomb",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gsrkbomb",
+          "hardpoint": "GR2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent shb11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "svhrmp": {
+      "name": "Bomber",
+      "model": "svhraz",
+      "slots": {
+        "1": {
+          "weapon": "gtaggun",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent shb11bdc is not a barrel node and the hardpoint is 0.79 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "2": {
+          "weapon": "gsrkbomb",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gsrkbomb",
+          "hardpoint": "GR2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent shb11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "svlt13": {
+      "name": "Light Tank",
+      "model": "svltnk",
+      "slots": {
+        "1": {
+          "weapon": "gtaggun",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent slt11trt is not a barrel node and the hardpoint is 1.03 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "3": {
+          "weapon": "gsandbag",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "anchoring device",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "svltnk": {
+      "name": "Light Tank",
+      "model": "svltnk",
+      "slots": {
+        "1": {
+          "weapon": "gtaggun",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent slt11trt is not a barrel node and the hardpoint is 1.03 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "3": {
+          "weapon": "gsandbag",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "anchoring device",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "svmine": {
+      "name": "Minelayer",
+      "model": "svmine",
+      "slots": {
+        "1": {
+          "weapon": "gbetmin",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "mine deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Utility only"
+    },
+    "svrckt": {
+      "name": "Rocket Tank",
+      "model": "svrckt",
+      "slots": {
+        "1": {
+          "weapon": "gshadow",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent srt11bda is not a barrel node and the hardpoint is 1.43 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "2": {
+          "weapon": "gsandbag",
+          "hardpoint": "GR2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "anchoring device",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gmdmgun",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent srt11bda is not a barrel node and the hardpoint is 0.74 m ahead of its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "4": {
+          "weapon": "gbetmin",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "mine deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "svsav": {
+      "name": "Fury",
+      "model": "svsav",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent ssv11bda is not a barrel node and the hardpoint is 17.29 m ahead of its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gwasp",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "mine deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Emitter/asset decision"
+    },
+    "svtank": {
+      "name": "Tank",
+      "model": "svtank",
+      "slots": {
+        "1": {
+          "weapon": "gsatstab",
+          "hardpoint": "GC1",
+          "recoil_node": "SCZ11BGB",
+          "recoil_distance": 0.2,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0,
+            0.0,
+            3.42
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminisov",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gquake",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "ground-contact seismic emitter",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "svtanka": {
+      "name": "Tank",
+      "model": "svtank",
+      "slots": {
+        "1": {
+          "weapon": "gsatstab",
+          "hardpoint": "GC1",
+          "recoil_node": "SCZ11BGB",
+          "recoil_distance": 0.2,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0,
+            0.0,
+            3.42
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gminisov",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gquake",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "ground-contact seismic emitter",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "svtas8": {
+      "name": "Tank",
+      "model": "svtank",
+      "slots": {
+        "1": {
+          "weapon": "gatstab",
+          "hardpoint": "GC1",
+          "recoil_node": "SCZ11BGB",
+          "recoil_distance": 0.2,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0,
+            0.0,
+            3.42
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gflashgn",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "3": {
+          "weapon": "gquake",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "ground-contact seismic emitter",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gnavdrop",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "navigation beacon deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "svtk13": {
+      "name": "Tank",
+      "model": "svtank",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "hardpoint": "GC1",
+          "recoil_node": "SCZ11BGB",
+          "recoil_distance": 0.2,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0,
+            0.0,
+            3.42
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gflashgn",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        },
+        "3": {
+          "weapon": "gquake",
+          "hardpoint": "GS1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "ground-contact seismic emitter",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gnavdrop",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "navigation beacon deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "svtnk7": {
+      "name": "Tank",
+      "model": "svtank",
+      "slots": {
+        "1": {
+          "weapon": "ga7stab",
+          "hardpoint": "GC1",
+          "recoil_node": "SCZ11BGB",
+          "recoil_distance": 0.2,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0,
+            0.0,
+            3.42
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "svtump": {
+      "name": "Turret",
+      "model": "svturr",
+      "slots": {
+        "1": {
+          "weapon": "gtminis",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gtminis",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "hardpoint 'GC2' matches 0 skeleton bones",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Rig/animation work"
+    },
+    "svturr": {
+      "name": "Turret",
+      "model": "svturr",
+      "slots": {
+        "1": {
+          "weapon": "gtminis",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Rig/animation work"
+    },
+    "svturra": {
+      "name": "Turret",
+      "model": "svturr",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Rig/animation work"
+    },
+    "svturrb": {
+      "name": "Turret",
+      "model": "svturr",
+      "slots": {
+        "1": {
+          "weapon": "gspstab",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Rig/animation work"
+    },
+    "svturrc": {
+      "name": "Turret",
+      "model": "svturr",
+      "slots": {
+        "1": {
+          "weapon": "gminigna",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Rig/animation work"
+    },
+    "svwalk": {
+      "name": "Walker",
+      "model": "svwalk",
+      "slots": {
+        "1": {
+          "weapon": "gblast",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent svw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gblast",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent svw11hed is not a barrel node and the hardpoint is 0.97 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent svw11sup is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "svwalka": {
+      "name": "Walker",
+      "model": "svwalk",
+      "slots": {
+        "1": {
+          "weapon": "gblast",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent svw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gblast",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent svw11hed is not a barrel node and the hardpoint is 0.97 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent svw11sup is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "svwamp": {
+      "name": "Walker",
+      "model": "svwalk",
+      "slots": {
+        "1": {
+          "weapon": "gblast",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent svw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent svw11sup is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    }
+  }
+}

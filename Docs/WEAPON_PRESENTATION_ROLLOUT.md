@@ -1,5 +1,16 @@
 # Stock BZR / CR weapon presentation: first pass
 
+2026-11-04 follow-up: [COMBAT_WEAPON_EFFECTS.md](COMBAT_WEAPON_EFFECTS.md) is the
+current source/loadout report and mesh-edit backlog. Reviewed craft bindings
+now cover 55 slots across 37 CR definitions (45 slots added), and explicit gun
+piece fitting adds 16 flash slots. `combat-models.json` records all 50 CR
+vehicle/building models; the source coverage report includes all 132 armed CR
+definitions / 267 equipped slots. The earlier 139/52 audit also included
+stock-only aliases. Casings retain the existing 100 explicit weapon choices;
+per-craft port offsets still need native support. These are authored changes,
+not completed native visual qualification. The dated first-pass notes below
+describe the earlier checkpoint.
+
 2026-10-21, owner direction: work through stock and CR weapons with tailored
 muzzle flashes; miniguns blue, chainguns orange-red. Inventory recoil options
 across tanks, light tanks, bombers, walkers and other combat units.

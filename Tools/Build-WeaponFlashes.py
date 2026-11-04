@@ -324,7 +324,7 @@ def barrel_vertices(mesh, bone_index):
     return out
 
 
-def measure_slot(mesh, skeleton, hardpoint):
+def measure_slot(mesh, skeleton, hardpoint, barrel_name=None):
     """Offset (right, up, forward) from a hardpoint bone to its barrel's aperture centre.
 
     Returns (offset, detail) or (None, reason). A hardpoint with no barrel node
@@ -339,8 +339,10 @@ def measure_slot(mesh, skeleton, hardpoint):
     hp = matches[0]
     if hp.parent is None:
         return None, "hardpoint has no parent bone"
-    barrel = skeleton.bones[hp.parent]
-    if not re.search(r"bg[a-z0-9]$", barrel.name, re.I):
+    barrel = skeleton.bone(barrel_name) if barrel_name else skeleton.bones[hp.parent]
+    if barrel is None:
+        return None, f"reviewed barrel {barrel_name!r} is missing from the skeleton"
+    if not barrel_name and not re.search(r"bg[a-z0-9]$", barrel.name, re.I):
         # No barrel to measure (a gun moulded into the hull): flash where the shot
         # spawns, if the hardpoint is at the muzzle face (avfigh/svfigh sit 3-7 cm
         # behind the front geometry). OpenShim draws no vehicle flash without a key.
@@ -370,11 +372,15 @@ def measure_slot(mesh, skeleton, hardpoint):
     right = (min(p[0] for p in slab) + max(p[0] for p in slab)) / 2
     up = (min(p[1] for p in slab) + max(p[1] for p in slab)) / 2
     offset = [round(right, 2) + 0.0, round(up, 2) + 0.0, round(tip, 2) + 0.0]
-    if tip < MIN_TIP:
-        return None, f"visible tip is {tip:.2f} m from the hardpoint (under {MIN_TIP} m)"
+    minimum = -MAX_AHEAD if barrel_name else MIN_TIP
+    if tip < minimum:
+        return None, f"visible tip is {tip:.2f} m from the hardpoint (under {minimum} m)"
     if any(abs(x) > 20 for x in offset):
         return None, f"offset {offset} outside OpenShim's +/-20 m bounds"
-    return offset, {"hardpoint": hp.name, "barrel": barrel.name, "vertices": len(verts)}
+    detail = {"hardpoint": hp.name, "barrel": barrel.name, "vertices": len(verts)}
+    if barrel_name:
+        detail["reviewed_barrel"] = True
+    return offset, detail
 
 
 def measure(odf_dir, config):
@@ -383,6 +389,8 @@ def measure(odf_dir, config):
     from battlezone.meshes import ogre as codec
     from battlezone.meshes.ogre_skeleton import read_skeleton
     assets, installed, cache, crafts = shipped_assets(), game_models(), {}, {}
+    reviewed_path = ROOT / "References/WeaponPresentation/combat-models.json"
+    reviewed = json.loads(reviewed_path.read_text())["models"] if reviewed_path.exists() else {}
     for craft, info in craft_slots(odf_dir, flash_weapons(config)).items():
         entry = {"model": info["model"], "slots": {}}
         crafts[craft] = entry
@@ -401,7 +409,8 @@ def measure(odf_dir, config):
             if cache[model] is None:
                 row["skip"] = f"no Ogre mesh/skeleton for model {model}"
                 continue
-            offset, detail = measure_slot(*cache[model], hard)
+            binding = reviewed.get(model, {}).get("bindings", {}).get(hard.upper(), {})
+            offset, detail = measure_slot(*cache[model], hard, binding.get("node"))
             if offset is None:
                 row["skip"] = detail
             else:

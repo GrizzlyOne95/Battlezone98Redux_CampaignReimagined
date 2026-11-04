@@ -22,6 +22,13 @@ weaponName1 = "gblastb"
 // Regenerate: Tools/Build-WeaponFlashes.py --measure
 flashOffset1 = "-0.06 0.02 0.23"
 // CR CRAFT FLASH OFFSET END
+// CR CRAFT RECOIL BEGIN
+// Reviewed independent gun pieces; preserve aiming and deployment parents.
+// Regenerate: python Tools/Build-CombatPresentation.py
+recoilName1 = "agn11bgb"
+recoilDistance1 = 0.12
+recoilReturn1 = 2.5
+// CR CRAFT RECOIL END
 rangeScan = 200.0
 periodScan = 0.0
 velocJam = 0.0

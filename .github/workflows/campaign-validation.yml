@@ -57,7 +57,9 @@ jobs:
         run: python -m pip install numpy Pillow scipy
 
       - name: Validate authored weapon flashes and gameplay preservation
-        run: python Tools/Test-WeaponPresentation.py
+        run: |
+          python Tools/Test-WeaponPresentation.py
+          python Tools/Test-CombatPresentation.py
 
       - name: Validate HD terrain bundles and normal contracts
         run: |
