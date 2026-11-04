@@ -55,6 +55,9 @@ local subtit = require("ScriptSubtitles")
 local pda = require("PersistentConfig")
 local Environment = require("Environment")
 local CRWire = require("CRWire")
+-- Single-player difficulty (co-op locks it to Medium). Optional: without DiffUtils nothing is scaled.
+local hasDiff, DiffUtils = pcall(require, "DiffUtils")
+if not hasDiff then DiffUtils = nil end
 -- Enemy strategic AI: startup only (chunk root). Never enable it on a human team.
 SetAIControl(ENEMY_TEAM, true)
 
@@ -750,6 +753,16 @@ local function Aloft(where, lift)
     local a, r = math.random() * 2 * math.pi, 10 + math.random() * 40
     return SetVector(p.x + r * math.cos(a), p.y + lift, p.z + r * math.sin(a))
 end
+-- Offline Hard/Very Hard: each scaled unit brings (enemy multiplier - 1) extras on average (Hard 0.5, Very
+-- Hard 1). Easier settings never remove units, since the body tracks their handles; they scale scrap instead.
+local function DifficultyExtras()
+    if not DiffUtils or CRCoop.IsNetworkGame() then return 0 end
+    local surplus = DiffUtils.Get().enemy - 1
+    if surplus <= 0 then return 0 end
+    local n = math.floor(surplus)
+    if math.random() < surplus - n then n = n + 1 end
+    return n
+end
 function R.Spawn(odf, team, where, lift)
     local s = State()
     if not CRCoop.IsAuthority() then return nil end
@@ -759,12 +772,16 @@ function R.Spawn(odf, team, where, lift)
     s.serial = s.serial + 1
     local id = s.serial
     s.arrivals[id] = { odf = ChooseOdf(odf), team = team, where = where, lift = lift, orders = {} }
+    local extras = team == ENEMY_TEAM and DifficultyExtras() or 0
     local event = s.event
     if event and not event.made then
         event.made = true
+        extras = extras + event.extras
+    end
+    if extras > 0 then
         local primary = s.arrivals[id]
         primary.extras = {}
-        for _ = 1, event.extras do
+        for _ = 1, extras do
             s.serial = s.serial + 1
             s.arrivals[s.serial] = { odf = ChooseOdf(odf), team = team, where = where, lift = lift, orders = {}, extra = true,
                 primary = id }
@@ -840,6 +857,20 @@ local function Failure()
     FailMission(GetTime() + 7, FAIL_DES)
 end
 function R.SetScrap(team, amount)
+    if DiffUtils and not CRCoop.IsNetworkGame() then
+        -- Offline difficulty: player scrap scales with the setting, but a fill to capacity stays a fill and never
+        -- overflows it. Enemy scrap only grows (harder settings), so a body's "at least N" top-up still holds.
+        if team == LEADER_TEAM then
+            local max = type(GetMaxScrap) == "function" and GetMaxScrap(LEADER_TEAM) or nil
+            if max and amount >= max then return SetScrap(LEADER_TEAM, amount) end
+            local scaled = DiffUtils.ScaleRes(amount)
+            if max then scaled = math.min(scaled, max) end
+            return SetScrap(LEADER_TEAM, scaled)
+        end
+        if team == MAP_ENEMY_TEAM or team == ENEMY_TEAM then
+            return SetScrap(ENEMY_TEAM, math.max(amount, DiffUtils.ScaleEnemy(amount)))
+        end
+    end
     if team == LEADER_TEAM then
         -- One shared production base, with a bounded bonus starting scrap per guest.
         return SetScrap(LEADER_TEAM, amount + SCRAP_PER_GUEST * (HumanCount() - 1))
