@@ -541,6 +541,11 @@ The full local-server and 2-4 client recipe is in 5.5.
   `misn02b.bzn` shows no `mods\3686673790` line, no CR Lua, no `exu.dll`. For a CR runtime smoke use
   `-Mission crsetup.bzn` (instant action, activates CR) or `-MenuStart` (requires a click). Co-op
   `strategy` listings (`mapType multiplayer`) are what the co-op harness launches.
+- **Capturing a specific CR mission with the CR runtime (2026-11-04):** copy `<m>.bzn`, `<m>.lua` and the
+  terrain's `.trn/.hg2/.mat/.lgt` over `crsetup.*`, then rewrite the bzn's embedded `msn_filename = <m>.bzn` to
+  `crsetup.bzn` (Redux runs the Lua that line names) and prepend the stock crsetup's
+  `require("RequireFix").Initialize({"campaignReimagined","3686673790"})` to `crsetup.lua` (a CLI launch has no
+  mod `require` path, so `CRCCARuntime` is otherwise not found). Restore every slot file afterwards.
 - Loose files dropped into `mods\<name>\` break mission loading (the folder is an asset root); put test
   assets in `addon\<mission>\`. Disabling a mod means moving it out of `mods\`, not renaming.
 - `mods\<id>` Lua modules **shadow** `addon\` modules of the same basename (the `mods\` copy always wins);

@@ -149,6 +149,9 @@ void elysiumsky_fragment(
 	float strands = SAMPLE(cloudMap, deck * cloudScale.x + wind).r;
 	float veil = SAMPLE(cloudMap, deck * cloudScale.y + float2(wind.x * 0.5, -wind.y * 2) + 0.27).g;
 	float breakup = SAMPLE(cloudMap, deck * cloudScale.x * 3.1 + wind * 1.3 + 0.61).b;
+	// A finer tap of the same breakup frays the edges below one map texel, so the
+	// threshold never shows the map's texel grid where the dome magnifies it.
+	breakup = lerp(breakup, SAMPLE(cloudMap, deck * cloudScale.x * 11.3 + wind * 1.7 + 0.13).b, 0.45);
 	float deckFade = smoothstep(0.0, 0.25, elevation);
 	float cover = lerp(cloudLook.x, cloudLook.y, storm);
 	float edge = max(cloudLook.z * (1 + 0.8 * storm), 0.01);

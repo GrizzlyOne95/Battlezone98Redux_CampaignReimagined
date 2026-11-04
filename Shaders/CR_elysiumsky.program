@@ -5,7 +5,7 @@
 // through to its CR_SkyDome technique.
 // Tools/Update-WorldSkyProgramVersions.py versions the delegate names.
 
-vertex_program CR_ElysiumSky_vertexHLSL4_art_2d42b094b6 hlsl
+vertex_program CR_ElysiumSky_vertexHLSL4_art_ad9f47930e hlsl
 {
     source CR_elysiumsky.hlsl
     target vs_4_0
@@ -13,14 +13,14 @@ vertex_program CR_ElysiumSky_vertexHLSL4_art_2d42b094b6 hlsl
     preprocessor_defines SM4=1
 }
 
-vertex_program CR_ElysiumSky_vertexHLSL_art_fbaf5221cc hlsl
+vertex_program CR_ElysiumSky_vertexHLSL_art_e58a46b51a hlsl
 {
     source CR_elysiumsky.hlsl
     target vs_3_0
     entry_point elysiumsky_vertex
 }
 
-fragment_program CR_ElysiumSky_fragmentHLSL4_art_55ac389481 hlsl
+fragment_program CR_ElysiumSky_fragmentHLSL4_art_fcd3d9ab22 hlsl
 {
     source CR_elysiumsky.hlsl
     target ps_4_0
@@ -28,7 +28,7 @@ fragment_program CR_ElysiumSky_fragmentHLSL4_art_55ac389481 hlsl
     preprocessor_defines SM4=1
 }
 
-fragment_program CR_ElysiumSky_fragmentHLSL_art_abf64d2196 hlsl
+fragment_program CR_ElysiumSky_fragmentHLSL_art_0da6d0dae8 hlsl
 {
     source CR_elysiumsky.hlsl
     target ps_3_0
@@ -37,8 +37,8 @@ fragment_program CR_ElysiumSky_fragmentHLSL_art_abf64d2196 hlsl
 
 vertex_program CR_ElysiumSky_vertex unified
 {
-    delegate CR_ElysiumSky_vertexHLSL4_art_2d42b094b6
-    delegate CR_ElysiumSky_vertexHLSL_art_fbaf5221cc
+    delegate CR_ElysiumSky_vertexHLSL4_art_ad9f47930e
+    delegate CR_ElysiumSky_vertexHLSL_art_e58a46b51a
     default_params
     {
         param_named_auto wvpMat worldviewproj_matrix
@@ -51,8 +51,8 @@ vertex_program CR_ElysiumSky_vertex unified
 // hours of play.
 fragment_program CR_ElysiumSky_fragment unified
 {
-    delegate CR_ElysiumSky_fragmentHLSL4_art_55ac389481
-    delegate CR_ElysiumSky_fragmentHLSL_art_abf64d2196
+    delegate CR_ElysiumSky_fragmentHLSL4_art_fcd3d9ab22
+    delegate CR_ElysiumSky_fragmentHLSL_art_0da6d0dae8
     default_params
     {
         param_named_auto fogColour fog_colour

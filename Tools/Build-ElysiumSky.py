@@ -62,7 +62,10 @@ def build(size, seed):
     wu = spectral(rng, size, 2.0, 1, 12) * 70 * scale
     wv = spectral(rng, size, 2.0, 1, 12) * 34 * scale
     strands = spectral(rng, size, 1.7, 2, 110, stretch=(5.0, 1.0))
-    ragged = spectral(rng, size, 1.2, 10, 300, stretch=(4.0, 1.0))
+    # Rolled off by ~120 cycles a tile across the strands (~8 texels): the shader thresholds this channel, and
+    # texel-scale speckle turns into stair-stepped cloud edges when the dome
+    # magnifies the map overhead. Finer fraying comes from the shader's detail tap.
+    ragged = spectral(rng, size, 1.2, 10, 120, stretch=(4.0, 1.0))
     torn = warp(strands + 0.55 * ragged, wu, wv)
     cloud = rank(torn)
 
@@ -71,7 +74,7 @@ def build(size, seed):
                 spectral(rng, size, 2.2, 1, 8) * 20 * scale)
     veils = soft(veil, -1.5, 1.8)
 
-    breakup = soft(spectral(rng, size, 1.0, 24, 400), -1.6, 1.6)
+    breakup = soft(spectral(rng, size, 1.0, 24, 140), -1.6, 1.6)
 
     rgb = np.stack([cloud, veils, breakup], axis=-1)
     return Image.fromarray(np.clip(rgb * 255 + 0.5, 0, 255).astype(np.uint8), "RGB")
