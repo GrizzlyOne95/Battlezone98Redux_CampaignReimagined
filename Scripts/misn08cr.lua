@@ -45,6 +45,17 @@ end
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
 local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
+-- CR difficulty >>
+-- Single-player difficulty (Scripts/CRDifficulty.lua): lexical wrappers for scrap/pilots and extra hostile combat units;
+-- a network game runs the mission as written.
+local CRDifficulty = require("CRDifficulty")
+local HOSTILE = { [ENEMY_TEAM] = true }
+local SetScrap = CRDifficulty.Resource(SetScrap, GetMaxScrap, HOSTILE)
+local SetPilot = CRDifficulty.Resource(SetPilot, GetMaxPilot, HOSTILE)
+local BuildObject = CRDifficulty.Build(BuildObject, HOSTILE)
+local Attack, Defend, Goto, SetPerceivedTeam = CRDifficulty.Mirror(Attack, Defend, Goto, SetPerceivedTeam)
+local RemoveObject = CRDifficulty.Remove(RemoveObject)
+-- CR difficulty <<
 -- CR Venus weather >>
 local CRVenusWeather = require("CRVenusWeather")
 local VenusSites = require("CRVenusSites08")

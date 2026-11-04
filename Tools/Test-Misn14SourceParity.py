@@ -35,7 +35,7 @@ lua_full = (ROOT / "Scripts/misn14cr.lua").read_text(encoding="utf-8").replace("
 
 # ---- strip the CR regions ---------------------------------------------------------------------------
 REGIONS = ("CR PDA", "CR co-op layer", "CR team map", "CR Titan weather hook", "CR rescue", "CR fury squad",
-           "CR fury waves", "CR surrender", "CR cut VO", "CR objectives", "CR rally")
+           "CR fury waves", "CR surrender", "CR cut VO", "CR objectives", "CR rally", "CR difficulty")
 opens = {f"-- {name} >>": name for name in REGIONS}
 closes = {f"-- {name} <<": name for name in REGIONS}
 lines = lua_full.split("\n")

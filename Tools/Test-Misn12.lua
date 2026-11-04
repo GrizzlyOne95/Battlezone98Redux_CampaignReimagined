@@ -130,6 +130,7 @@ local modules = {
         Quake = function(strength, seconds) record("EuropaQuake", strength, seconds) end,
         Surge = function(seconds, strength) record("EuropaSurge", seconds, strength) end},
 }
+modules.CRDifficulty = assert(loadfile("Scripts/CRDifficulty.lua"))()
 function require(name) return assert(modules[name], name) end
 local function reset()
     now, serial, cancelled = 0, 0, false
@@ -370,4 +371,23 @@ saved = copy(Save()); dofile("Scripts/misn12cr.lua"); Load(saved)
 near(player, saved.nav1, 74); step(saved.win_check_time + 0.01)
 check(Save().win, "save during escape preserves victory gate")
 check(saved.countdown_time == 99999 and saved.check1 == false, "unused original fields survive serialization")
+-- Single-player Very Hard: every hostile combat build (guards, patrols, death squad) gets one extra; the key ship and
+-- cameras are untouched.
+local function deathSquad()
+    local d = reset(); objects[d.user_tank].health = 0.89; step(); step(5); step(10.01)
+    local combat = count("BuildObject", "svltnk") + count("BuildObject", "svfigh") + count("BuildObject", "svtank")
+    return combat, count("BuildObject", "svfi12"), count("BuildObject", "apcamr")
+end
+local fixtureBuild = BuildObject
+local writtenCombat, writtenKey, writtenCams = deathSquad()
+modules.DiffUtils = {Get = function() return {res = 0.5, enemy = 2.0} end,
+    ScaleRes = function(v) return math.floor(v * 0.5) end, ScaleEnemy = function(v) return math.ceil(v * 2) end}
+modules.CRDifficulty = assert(loadfile("Scripts/CRDifficulty.lua"))()
+local hardCombat, hardKey, hardCams = deathSquad()
+local again = deathSquad() -- every reset re-runs the chunk, as a load does: the wrappers must not stack
+check(writtenCombat > 0 and hardCombat == 2 * writtenCombat and again == hardCombat, "Very Hard: one extra per combat build")
+check(hardKey == writtenKey and hardCams == writtenCams, "Very Hard: key ship and cameras unchanged")
+check(type(rawget(_G, "Update")) == "function" and rawget(_G, "BuildObject") == fixtureBuild,
+    "mission callbacks land in the real environment; the wrapper stays out of it")
+modules.DiffUtils, modules.CRDifficulty = nil, assert(loadfile("Scripts/CRDifficulty.lua"))()
 print("misn12: " .. checks .. " checks passed (" .. _VERSION .. ")")

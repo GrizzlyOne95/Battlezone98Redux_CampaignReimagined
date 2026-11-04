@@ -231,6 +231,21 @@ local CRWire = require("CRWire")
 -- human is allied with, and are revealed to team 1 (allied with every human) exactly as the DLL does.
 local LEADER_TEAM, ENEMY_TEAM, HIDDEN_TEAM = 1, 5, 7
 -- CR co-op layer <<
+-- CR difficulty >>
+-- This chunk is at the 200-local limit, so the wrappers live in a block-scoped table that becomes the chunk's
+-- environment: the body's global calls reach them and global definitions still land in the real environment.
+do
+    local CRDifficulty = require("CRDifficulty")
+    local env = getfenv(1)
+    local wrapped = {}
+    wrapped.BuildObject = CRDifficulty.Build(BuildObject, { [ENEMY_TEAM] = true })
+    wrapped.Attack, wrapped.Defend, wrapped.Follow, wrapped.Goto, wrapped.Patrol, wrapped.Stop =
+        CRDifficulty.Mirror(Attack, Defend, Follow, Goto, Patrol, Stop)
+    wrapped.RemoveObject = CRDifficulty.Remove(RemoveObject)
+    -- The metatable goes on last: with __newindex already set, the wrappers above would land in the real env.
+    setfenv(1, setmetatable(wrapped, { __index = env, __newindex = env }))
+end
+-- CR difficulty <<
 -- CR Europa weather >>
 local CREuropaWeather = require("CREuropaWeather")
 local EuropaSites = require("CREuropaSites12")
