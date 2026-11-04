@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Autosave and its notice are now handled by OpenShim; the Lua autosave is removed.
 - CRA (Chinese) co-op campaign listing, maps and weather sites, in progress: a new "CR Chinese" campaign listing and
   multiplayer entries for `chmisn01cr` through `chmisn08cr` (2-4 players or offline), on co-op maps with the enemy on
   team 5, CRA starting rosters, Ganymede, Elysium and Europa terrain and per-mission weather sites. Mission scripts

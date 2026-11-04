@@ -203,7 +203,12 @@ function F.makePeer(id, team, network, options)
         record("SetCommand", h, command, priority)
     end
     e.EnableAllCloaking = function(on) record("EnableAllCloaking", on) end
-    e.GetPosition = function(h)
+    e.GetPosition = function(h, index)
+        -- Path overload (path, point): only the last waypoint is modelled (AtEndOfPath).
+        if index ~= nil then
+            assert(F.PATH_ENDS[h] and index == F.PATH_COUNTS[h] - 1, "native path point must be the last waypoint")
+            return vec(F.PATH_ENDS[h])
+        end
         local pos = F.posOf(h)
         return pos and {x = pos.x, y = pos.y, z = pos.z} or {x = 0, y = 0, z = 0}
     end

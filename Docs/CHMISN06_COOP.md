@@ -57,7 +57,7 @@ distance to the player and never aims a camera at him.
 
 Scaled spawns: the ODFs `svfigh`, `svltnk`, `svtank` and `svhraz`, i.e. exactly the Soviet craft the body builds: the
 second wave (four fighters and four tanks at an alternative entry, two minutes after the betrayal) and the harassment
-raids (up to ten, at `annoy_1`, from ten minutes on, every five minutes, refilling only the dead). They become
+raids (up to ten, at `annoy_1`, from ten minutes on, every ten minutes, refilling only the dead). They become
 *tickets*: the body gets a negative request id, the unit is built by the runtime on the next frames, and the body's
 `Attack(raider, base, 0)` and `Goto(raider, "annoy_1_path")` are replayed on it and on its extras. The shadows of
 `IsValid`, `IsAlive` and `GetHealth` answer "valid, alive, full health" for a waiting ticket so the raid slots are not

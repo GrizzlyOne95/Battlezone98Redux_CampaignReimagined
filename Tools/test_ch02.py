@@ -57,6 +57,16 @@ function near(h, target, distance, point)
     distances[h .. ':' .. tostring(target) .. ':' .. tostring(point)] = distance
 end
 function GetPathPointCount(path) assert(path == 'walker_path'); return pathCount end
+-- 2D (x,z) arrival test: the last waypoint sits at x=1000; height is ignored.
+positions = {}
+function GetPosition(h, point)
+    if point ~= nil then
+        assert(h == 'walker_path' and point == pathCount - 1, 'last waypoint only')
+        return { x = 1000, y = 0, z = 0 }
+    end
+    return positions[h] or { x = 0, y = 0, z = 0 }
+end
+function walkerAt(h, d) positions[h] = { x = 1000 + d, y = 500, z = 0 } end
 function BuildObject(odf, team, path)
     record('BuildObject', odf, team, path)
     nextHandle = nextHandle + 1
@@ -163,7 +173,7 @@ class Chinese02(unittest.TestCase):
         assert(count('Retreat') == 1 and count('SetPerceivedTeam') == 1)
         assert(count('AudioMessage', 'ch02007.wav') == 1)
         tick(310.3); assert(spawnCount('hanger_attack_5') == 1)
-        near(walker, 'walker_path', 24, 3); tick(311)
+        walkerAt(walker, 11.9); tick(311)
         assert(Save().walker == nil and count('SetCommand') == 1)
         assert(count('AudioMessage', 'ch02008.wav') == 1)
         reload(); tick(600.3); assert(spawnCount('attack_8') == 7)
@@ -192,11 +202,15 @@ class Chinese02(unittest.TestCase):
     def test_path_end_uses_last_point_and_no_empty_path(self):
         self.run_lua('''
         calm(); Save().walkerTime = 0; tick(1); local w = Save().walker
-        near(w, 'walker_path', 0, 0); tick(2); assert(Save().walker == w)
-        near(w, 'walker_path', 25, 3); tick(3); assert(Save().walker == w)
-        pathCount = 0; near(w, 'walker_path', 0, 3); tick(4); assert(Save().walker == w)
-        pathCount = 4; tick(5)
+        positions[w] = { x = 0, y = 0, z = 0 }; tick(2); assert(Save().walker == w) -- first point is not the end
+        walkerAt(w, 12); tick(3); assert(Save().walker == w) -- TRO 1.3: strictly inside 12 m
+        pathCount = 0; walkerAt(w, 0); tick(4); assert(Save().walker == w)
+        pathCount = 4; walkerAt(w, 11.9); tick(5)
         assert(Save().walker == nil and count('SetCommand') == 1)
+        -- TRO 1.3: arrival turns ch02003 green; ch02002 waits for the convoy
+        local n = #calls
+        assert(calls[n][1] == 'AddObjective' and calls[n][2] == 'ch02003.otf' and calls[n][3] == 'green')
+        assert(Save().objective2Complete)
         ''')
 
     def test_convoy_damage_and_proximity_waves(self):
@@ -204,7 +218,7 @@ class Chinese02(unittest.TestCase):
         calm(); convoy(); local a = Save().apc[0]
         health[a] = .9; near(a, 'trigger_point_1', 30); near(a, 'trigger_point_2', 40); tick(2)
         assert(count('AudioMessage', 'ch02004.wav') == 1 and spawnCount('nav_convoy') == 1)
-        assert(count('SetName') == 1 and count('AddObjective', 'ch02002.otf') == 1)
+        assert(count('SetName') == 1 and count('AddObjective', 'ch02002.otf') == 2) -- convoy spawn + damage
         assert(spawnCount('convoy_attack_10') == 0 and spawnCount('attack_9') == 0)
         near(a, 'trigger_point_1', 29); near(a, 'trigger_point_2', 39); tick(3)
         assert(spawnCount('convoy_attack_10') == 6 and spawnCount('hanger_attack_3') == 3)
@@ -291,6 +305,10 @@ class Chinese02(unittest.TestCase):
         source = re.sub(r'#if 0.*?#endif', '', source, flags=re.S)
         source = re.sub(r'//[^\n]*|/\*.*?\*/', '', source, flags=re.S)
         active = re.sub(r'--\[=\[.*?\]=\]', '', SCRIPT, flags=re.S)
+        # TRO 1.3 objective refreshes (walker arrival, convoy spawn, walker-done test) are not in the later C++ source.
+        active = re.sub(r'-- TRO 1\.3: arrival.*?AddObjective\("ch02002\.otf", "white"\) end\n', '', active, flags=re.S)
+        active = re.sub(r'-- TRO 1\.3: the convoy objective.*?(?=-- spawn the APCs)', '', active, flags=re.S)
+        active = active.replace('if not M.objective2Complete then AddObjective("ch02003.otf", "white") end', '')
         active = re.sub(r'--[^\n]*', '', active)
         for function in ('BuildObject', 'AudioMessage', 'GetHandle', 'AddObjective'):
             pattern = function + r'\("([^"\n]+)"'

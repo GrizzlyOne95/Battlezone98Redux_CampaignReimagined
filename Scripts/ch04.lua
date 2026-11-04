@@ -206,6 +206,7 @@ function Update(dt)
                 for i = 0, M.uptonavpoint do Remove(M.navPoints[i]) end
                 HideCockpitTimer()
                 M.missionState = MS_WAITFORID
+                M.stateTimer = GetTime() + 20 -- TRO 1.3: 20 s fallback if the player never reaches trigger_1 (FUN_005b33a0)
                 ResetObjectives()
                 -- Cut SetUserTarget(target_silo)/nav_silo beacon: source archive.
                 Perceived(2)
@@ -222,7 +223,7 @@ function Update(dt)
     elseif M.missionState == MS_WAITFORID then
         M.target_silo_inspected = InspectSilo()
         -- Disabled cloak/distance<=400 detection and ch04002: source archive.
-        if Distance(M.user, "trigger_1") <= 70 or M.target_silo_inspected then
+        if Distance(M.user, "trigger_1") <= 70 or M.target_silo_inspected or M.stateTimer < GetTime() then
             M.soundHandle = nil
             M.missionState = WS_WAITFORSOUND2
         end
@@ -320,7 +321,7 @@ function Update(dt)
         -- victory timing are unchanged.
         local arrived = false
         if not M.endNear then
-            arrived = CameraPathDir("auto_end", 500, 3000)
+            arrived = CameraPathDir("auto_end", 500, 4500) -- TRO 1.3: 4500 (FUN_005b33a0)
         else
             CameraPathDir("auto_end", 500, 0)
         end

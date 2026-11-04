@@ -63,6 +63,13 @@ function AddObject(h)
     Goto(h, "escort")
 end
 
+-- Stock bug: misns4.aip asks the American base for Soviet svturr turrets it cannot build; crns4.aip is the same plan with avturr.
+local SetAIP = (function()
+    local stockSetAIP = SetAIP
+    local AIP = { ["misns4.aip"] = "crns4.aip" }
+    return function(name, ...) return stockSetAIP(AIP[name] or name, ...) end
+end)()
+
 function Update(dt)
     local player = GetPlayerHandle()
     --[[

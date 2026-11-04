@@ -106,10 +106,6 @@ local IsAlive = campaignRuntime and campaignRuntime.IsAlive or IsAlive
 local GetDistance = campaignRuntime and campaignRuntime.GetDistance or GetDistance
 local GetPlayerHandle = campaignRuntime and campaignRuntime.GetPlayerHandle or GetPlayerHandle
 local SetAIP = campaignRuntime and campaignRuntime.SetAIP or SetAIP
--- Stock bug: misns4.aip asks the American base for Soviet svturr turrets it cannot build; crns4.aip is the same plan with avturr.
-local CR_AIP = { ["misns4.aip"] = "crns4.aip" }
-local stockSetAIP = SetAIP
-SetAIP = function(name, team) return stockSetAIP(CR_AIP[name] or name, team) end
 local Goto = campaignRuntime and campaignRuntime.Goto or Goto
 local AudioMessage = campaignRuntime and campaignRuntime.AudioMessage or AudioMessage
 local SetObjectiveName = campaignRuntime and campaignRuntime.SetObjectiveName or SetObjectiveName
@@ -229,6 +225,13 @@ function AddObject(h)
     end
     Goto(h, "escort")
 end
+
+-- Stock bug: misns4.aip asks the American base for Soviet svturr turrets it cannot build; crns4.aip is the same plan with avturr.
+local SetAIP = (function()
+    local stockSetAIP = SetAIP
+    local AIP = { ["misns4.aip"] = "crns4.aip" }
+    return function(name, ...) return stockSetAIP(AIP[name] or name, ...) end
+end)()
 
 function Update(dt)
 -- CR co-op callback >>

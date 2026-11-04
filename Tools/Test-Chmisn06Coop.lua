@@ -356,16 +356,16 @@ for humans = 1, 4 do
     local living = {}
     for i, b in ipairs(raid) do if i <= 4 then F.kill(b.h) end end
     local before = #builtAt(p[1], "annoy_1")
-    F.run(300)
+    F.run(600)
     local again = #builtAt(p[1], "annoy_1") - before
-    check(again >= 4 and again <= 4 + e, "five minutes later only the dead are replaced: " .. again)
+    check(again >= 4 and again <= 4 + e, "ten minutes later (TRO 1.3) only the dead are replaced: " .. again)
 end
 do -- the third round shrinks the raid to six
     local w, p, m = setup(1, {}, 1)
     toRaid(m); F.run(8)
     for round = 2, 3 do
         for _, b in ipairs(builtAt(p[1], "annoy_1")) do if F.alive(b.h) then F.kill(b.h) end end
-        F.run(300)
+        F.run(600)
     end
     check(m.numAnnoyRounds == 3 and m.maxAnnoy == 6, "the third round sets the cap to six")
 end

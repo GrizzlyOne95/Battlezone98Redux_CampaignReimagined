@@ -17,6 +17,15 @@ lua = LUA.read_text().split("function Update(dt)", 1)[1].split("function Save()"
 source = re.sub(r"//[^\n]*", "", source)
 lua = re.sub(r"--[^\n]*", "", lua)
 
+# TRO 1.3 (FUN_005aa100) differs from this later source in two places: the escorts, portal close
+# and objective advance follow the 13-minute recycler (786/792/795 s, not 546/552/555 s), and the
+# minute-by-minute npscr1 scrap spawn does not exist. Apply both to the source before comparing.
+for before, after in (("546.0f", "786.0f"), ("552.0f", "792.0f"), ("555.0f", "795.0f")):
+    assert source.count(before) == 1, before
+    source = source.replace(before, after)
+source, removed = re.subn(r"if \(scrapDelay < GetTime\(\)\)\s*\{[^}]*\}", "", source)
+assert removed == 1, "scrap spawn block"
+
 # Compare ordered gameplay side effects, including every explicit spawn,
 # cloak, target, escort assignment, priority, objective, voice and ending.
 aliases = {

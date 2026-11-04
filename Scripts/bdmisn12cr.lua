@@ -50,7 +50,8 @@ local M = NewState()
 -- Lexical wrappers affect this mission only. Docs/BDMISN12_COOP.md lists every wrapped call and restoration.
 -- Each flag switches one restoration off (Docs/BDMISN12_COOP.md, "Restored content").
 local RESTORED_VOICE_LINES = true
-local RESTORED_PORTAL_PULSE = true
+-- Off since the TRO 1.3 timing: the escorts now arrive while the portal is open (778-794 s), so no pulse is needed.
+local RESTORED_PORTAL_PULSE = false
 local Restored
 -- Every Chinese combat craft of the four waves and the counterattack becomes a concealed, head-count-scaled ticket.
 local SCALED_ODFS = { cvfigh = true, cvltnk = true, cvtnk = true, cvhtnk = true, cvhraz = true, cvwalk = true }
@@ -460,16 +461,15 @@ function Update(dt)
         M.delays[1] = GetTime() + 240.0 -- 4 minutes
         M.delays[2] = GetTime() + 360.0 -- 6 minutes
         M.delays[3] = GetTime() + 480.0 -- 8 minutes
-        -- SOURCE TIMING CONFLICT (preserved): 13*60 is 780 seconds despite
-        -- "9 minutes" below. Escorts (546/552), portal close (554) and
-        -- objective advance (555) occur before open (778)/recycler (780).
-        -- Intent is ambiguous; retiming would change mission gameplay.
-        M.delays[4] = GetTime() + 13 * 60.0 -- 9 minutes
+        -- TRO 1.3: recycler at 780 s with the portal open from 778 s, escorts at 786/792 s, portal
+        -- closed at 794 s and the objective advance at 795 s (FUN_005aa100). The later C++ source
+        -- had 546/552/555 s, which put the escorts through a closed portal.
+        M.delays[4] = GetTime() + 13 * 60.0 -- 13 minutes
         M.portalOnTime = M.delays[4] - 2.0
-        M.delays[5] = GetTime() + 546.0 -- 9.1 minutes
-        M.delays[6] = GetTime() + 552.0 -- 9.2 minutes
+        M.delays[5] = GetTime() + 786.0
+        M.delays[6] = GetTime() + 792.0
         M.portalOffTime = M.delays[6] + 2.0
-        M.delays[7] = GetTime() + 555.0 -- 9.2 minutes + 3 seconds
+        M.delays[7] = GetTime() + 795.0
 
         M.scrapDelay = 60.0
     end
@@ -699,17 +699,8 @@ function Update(dt)
         end
     end
 
-    -- spawn scrap
-    if M.scrapDelay < GetTime() then
-        M.scrapDelay = GetTime() + 60.0
-
-        BuildObject("npscr1", 0, "scrap_1")
-        BuildObject("npscr1", 0, "scrap_1")
-        BuildObject("npscr1", 0, "scrap_1")
-        BuildObject("npscr1", 0, "scrap_2")
-        BuildObject("npscr1", 0, "scrap_2")
-        BuildObject("npscr1", 0, "scrap_2")
-    end
+    -- TRO 1.3 spawns no scrap here (scrapDelay is set but never read in FUN_005aa100), so the
+    -- later source's six npscr1 pickups per minute are gone.
 
     -- low health warnings?
     for i = 0, 3 do

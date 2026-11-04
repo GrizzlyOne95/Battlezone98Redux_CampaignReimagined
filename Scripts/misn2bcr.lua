@@ -18,7 +18,6 @@ aiCore = require("aiCore")
 local DiffUtils = require("DiffUtils")
 local subtit = require("ScriptSubtitles")
 local PersistentConfig = require("PersistentConfig")
-local autosave = require("AutoSave")
 local PlayerPilotMode = require("PlayerPilotMode")
 local TerrainClutter = require("TerrainClutter")
 local CRCoop = require("CRCoop")
@@ -1160,9 +1159,6 @@ function Update()
     if not CRCoop.IsAuthority() then return end
     PlayerPilotMode.Update()
     aiCore.Update()
-    if not CRCoop.IsNetworkGame() and autosave and autosave.Update then
-        autosave.Update(1.0 / 20.0)
-    end
 
     -- Holographic Bio Logic
     if (M.camera1 or M.camera2 or M.camera3) and GetTime() >= M.bio_timer then

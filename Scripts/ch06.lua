@@ -217,7 +217,7 @@ function Update(dt)
         -- this one-shot timer just like ranTime/giveScrapTime. The first wave's
         -- deadline, alternate-entry selection, 4 fighters + 4 tanks and attack
         -- orders are unchanged. Only the unintended per-frame flood is removed;
-        -- PSU raids retain their separate five-minute recurrence below.
+        -- PSU raids retain their separate ten-minute recurrence below.
         M.moreRanTime = DISABLED_TIME
         local others = {}
         for i = 1, 3 do
@@ -266,7 +266,7 @@ function Update(dt)
     if M.annoyTime < GetTime() then
         -- are the psu units still alive?
         if alive(M.psu[1]) or alive(M.psu[2]) or alive(M.psu[3]) or alive(M.psu[4]) then
-            M.annoyTime = GetTime() + 5 * 60.0
+            M.annoyTime = GetTime() + 10 * 60.0 -- TRO 1.3: 600 s (FUN_005b6f10)
             M.numAnnoyRounds = M.numAnnoyRounds + 1
             if M.numAnnoyRounds == 3 then M.maxAnnoy = 6 end
             -- spawn; retain surviving slot occupants and only refill deaths

@@ -321,6 +321,16 @@ function Update(dt)
         -- through nil == nil. Actual tug/player equality is unchanged.
         if Valid(M.fragment) and Valid(M.user) and GetTug(M.fragment) == M.user then
             M.gotFragment = true
+            -- TRO 1.3: towing the fragment also completes objective 3 when it has not been scanned
+            if not M.idFragment then
+                StopCockpitTimer()
+                HideCockpitTimer()
+                M.idFragment = true
+                AudioMessage("bd04007.wav")
+                ClearObjectives()
+                AddObjective("bd04003.otf", "white")
+                M.objective3Complete = true
+            end
             M.navBeacon = BuildObject("apcamr", 1, "rv_scout")
             --SetUserTarget(navBeacon);
             -- Native repeatedly overwrites a local h; these escorts receive

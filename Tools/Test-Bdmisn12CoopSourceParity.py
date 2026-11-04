@@ -47,12 +47,11 @@ assert "IsAudioMessageDone" in body_calls and "local function IsAudioMessageDone
 for name in ("SetAIP", "CameraObject", "Follow", "Defend", "SetIndependence", "Retreat", "GetDistance",
              "GetNearestEnemy", "SetObjectiveName", "SetObjectiveOn", "RemoveObject", "UpdateObjective"):
     assert name not in body_calls and name not in shadowed, name
-# The enemy's literal team 2 only ever reaches the engine through the runtime (BuildObject), the scrap is team 0,
+# The enemy's literal team 2 only ever reaches the engine through the runtime (BuildObject); TRO 1.3 spawns no scrap,
 # the portal reinforcements are the Black Dog team 1, and the body never reads a team number back.
 live = re.sub(r"--[^\n]*", "", body)
 builds = re.findall(r'BuildObject\(("\w+"), (\d), ', live)
-assert builds and {team for _, team in builds} == {"2", "0"}, "all body builds are on team 2 or neutral scrap"
-assert {odf for odf, team in builds if team == "0"} == {'"npscr1"'}
+assert builds and {team for _, team in builds} == {"2"}, "all body builds are on team 2 (TRO 1.3 has no scrap spawns)"
 assert re.findall(r'BuildAtPortal\("\w+", (\d), ', live) == ["1", "1", "1", "1"], "reinforcements are team 1"
 assert "GetTeamNum(" not in body and "SetPerceivedTeam(" not in body, "the body names no other team"
 print("bdmisn12cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))

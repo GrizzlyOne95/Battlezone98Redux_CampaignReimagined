@@ -169,6 +169,30 @@ local function FailConvoy()
     FailMission(GetTime() + 20.0, "ch08lsec.des")
 end
 
+local function EndOpeningCutscene()
+    CameraFinish()
+    M.missionState = MS_SPAWNAPC1
+    M.stateTimer = GetTime() + 30
+    AudioMessage("ch08002.wav")
+
+    Remove(M.west_1_1)
+    Remove(M.west_1_2)
+    Remove(M.west_1_3)
+    Remove(M.west_1_4)
+    Remove(M.east_1_1)
+    Remove(M.east_1_2)
+    Remove(M.east_1_3)
+    Remove(M.east_1_4)
+    Remove(M.walker_1)
+end
+
+local function HealToFull(h)
+    if Alive(h) then
+        local current, maximum = GetCurHealth(h), GetMaxHealth(h)
+        if current ~= maximum then AddHealth(h, maximum - current) end
+    end
+end
+
 local function CheckSpawns()
     local function near(path)
         local temp = GetNearestUnitOnTeam(path, 1)
@@ -347,7 +371,10 @@ function Update(dt)
     elseif s == MS_WAITFORTRIGGER then
         if Valid(M.west_1_1) then CameraPath("cut_1", 2000, 0, M.west_1_1) end
 
-        if Distance(M.west_1_1, "cut_trigger") < 50 or Distance(M.east_1_1, "cut_trigger") < 50 then
+        -- TRO 1.3: the opening cut_1 scene can be skipped here and in the next state (FUN_005bab50)
+        if CameraCancelled() then
+            EndOpeningCutscene()
+        elseif Distance(M.west_1_1, "cut_trigger") < 50 or Distance(M.east_1_1, "cut_trigger") < 50 then
             M.missionState = MS_CAMERATRIGGER
             M.stateTimer = GetTime() + 22
         end
@@ -355,21 +382,8 @@ function Update(dt)
     elseif s == MS_CAMERATRIGGER then
         if Valid(M.west_1_1) then CameraPath("cut_1", 2000, 0, M.west_1_1) end
 
-        if M.stateTimer ~= 0 and M.stateTimer < GetTime() then
-            CameraFinish()
-            M.missionState = MS_SPAWNAPC1
-            M.stateTimer = GetTime() + 30
-            AudioMessage("ch08002.wav")
-
-            Remove(M.west_1_1)
-            Remove(M.west_1_2)
-            Remove(M.west_1_3)
-            Remove(M.west_1_4)
-            Remove(M.east_1_1)
-            Remove(M.east_1_2)
-            Remove(M.east_1_3)
-            Remove(M.east_1_4)
-            Remove(M.walker_1)
+        if CameraCancelled() or (M.stateTimer ~= 0 and M.stateTimer < GetTime()) then
+            EndOpeningCutscene()
         end
 
     elseif s == MS_SPAWNAPC1 then
@@ -774,6 +788,12 @@ function Update(dt)
     end
 
     CheckSpawns()
+
+    -- TRO 1.3: both comm towers are kept at full health until the destroy-power-plants phase (FUN_005bab50)
+    if M.missionState < MS_DESTROYPOWERS then
+        HealToFull(M.east_comm)
+        HealToFull(M.west_comm)
+    end
 
     M.olduser = M.user
 end

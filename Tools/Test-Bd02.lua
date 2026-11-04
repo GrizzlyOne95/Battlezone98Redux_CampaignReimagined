@@ -57,6 +57,7 @@ function GetMaxHealth(h) assert(IsValid(h)); return objects[h].maximum end
 function GetHealth(h) assert(IsValid(h)); return objects[h].current / objects[h].maximum end
 function AddHealth(h, amount) assert(IsValid(h)); objects[h].current = objects[h].current + amount; record("AddHealth", h, amount) end
 function AudioMessage(name) local msg = {audio = name}; record("AudioMessage", name); return msg end
+function StopAudioMessage(msg) assert(type(msg) == "table" and msg.audio, "invalid audio handle"); record("StopAudioMessage", msg.audio) end
 function IsAudioMessageDone(msg) assert(type(msg) == "table" and msg.audio, "invalid audio handle"); return done end
 function CameraReady() record("CameraReady"); return true end
 function CameraPath(path, height, speed, target)
@@ -131,6 +132,10 @@ check(m.missionState == 7 and m.stateTimer == 52, "second wave twenty-second del
 step(52); check(count("BuildObject") == 3, "strict second wave boundary")
 step(52.1)
 check(m.missionState == 8 and count("BuildObject") == 7, "second wave four scouts")
+check(count("Attack") == 4 and count("Goto") == 3, "TRO 1.3: wave 2 attacks the recycler, no authored paths")
+for _, c in ipairs(calls) do
+    if c[1] == "Attack" then check(c[3] == m.recycler, "wave 2 target is the recycler") end
+end
 objects[m.wave2_scout1] = nil; objects[m.wave2_scout2] = nil; objects[m.wave2_scout3] = nil
 step(53); check(m.missionState == 8, "all four scouts required")
 objects[m.wave2_scout4] = nil; step(54)
@@ -149,11 +154,11 @@ done = true; step(67)
 check(m.missionState == 13 and m.stateTimer == 71 and not m.recyclerRetreated, "retreat state and preserved unused timer")
 check(count("RemoveObject") == 8 and count("BuildObject") == 18, "massive-wave cleanup, nav and harassment spawns")
 check(last("SetObjectiveName")[3] == "Nav Alpha" and objectives["bd02003.otf"] == "white", "nav and retreat objective")
-check(count("Goto", m.recycler) == 1 and count("Attack") == 0, "retreat and harassment retain Goto behavior")
+check(count("Goto", m.recycler) == 1 and count("Attack") == 4, "retreat and harassment retain Goto behavior")
 distances[m.recycler .. ":trigger_1"] = 100; step(68)
 check(not m.recyclerRetreated, "ambush radius is strictly below 100")
 distances[m.recycler .. ":trigger_1"] = 99; step(69)
-check(m.recyclerRetreated and count("BuildObject") == 24 and count("Attack") == 6, "six-fighter ambush")
+check(m.recyclerRetreated and count("BuildObject") == 24 and count("Attack") == 10, "six-fighter ambush")
 m = reload(); step(70)
 check(count("BuildObject") == 24, "ambush latch survives reload")
 objects[m.recycler].command = AiCommand.NONE; done = false; step(70.1)
@@ -161,7 +166,7 @@ check(m.missionState == 14 and count("AudioMessage", "bd02006.wav") == 1, "idle 
 step(70.2); check(count("BuildObject") == 24, "bomber warning blocks spawn")
 done = true; step(71)
 check(m.missionState == 15 and m.soundhandle == nil and count("BuildObject") == 26, "two bombers and cleared audio sentinel")
-check(count("RemoveObject") == 14 and count("Attack") == 8, "turret/harassment cleanup and bomber attacks")
+check(count("RemoveObject") == 14 and count("Attack") == 12, "turret/harassment cleanup and bomber attacks")
 objects[m.bomber1_scripted].current = 25; objects[m.bomber2_scripted].current = 50
 done = false; step(72)
 check(objects[m.bomber1_scripted].current == 100 and objects[m.bomber2_scripted].current == 100, "both bombers topped up")
@@ -210,4 +215,22 @@ m.missionState = 15; m.bomber1_scripted = object(); m.bomber2_scripted = object(
 objects[m.bomber1_scripted] = nil; objects[m.bomber2_scripted] = nil; step(2)
 check(m.missionState == 15, "missing bombers neither crash nor satisfy distance gate")
 check(count("AddHealth") == 0, "missing bombers are not resurrected")
+-- TRO 1.3 cutscene skips: massive-attack film and final bomber film.
+m = reset(); m.missionState = 10; m.soundhandle = {audio = "bd02004.wav"}; m.enemy_tank1 = object()
+cancelled = true; done = false; step(1)
+check(m.missionState == 11 and m.massiveSkipped and count("AudioMessage", "bd02005.wav") == 0, "cancel skips bd02005")
+step(2)
+check(m.missionState == 13 and count("StopAudioMessage", "bd02004.wav") == 1 and count("RemoveObject") == 1, "cancel stops narration and cleans up")
+check(last("SetObjectiveName")[3] == "Nav Alpha", "cancel still builds Nav Alpha")
+m = reset(); m.missionState = 11; m.soundhandle = {audio = "bd02005.wav"}; m.enemy_tank1 = object()
+cancelled = true; done = false; step(1)
+check(m.missionState == 13 and count("StopAudioMessage", "bd02005.wav") == 1, "cancel during bd02005 skips ahead")
+m = reset(); m.missionState = 16; m.recyclerHealth = 1; m.hitSound = {audio = "bd02008.wav"}
+cancelled = true; done = false; step(1)
+check(m.missionState == 18 and last("SucceedMission")[2] == 6 and last("SucceedMission")[3] == "bd02win.des", "cancel in final film wins after five seconds")
+check(count("StopAudioMessage", "bd02008.wav") == 1 and count("CameraFinish") == 1, "cancel stops hit narration and ends film")
+m = reset(); m.missionState = 17; m.stateTimer = 99
+cancelled = true; step(1)
+check(m.missionState == 18 and last("SucceedMission")[2] == 6, "cancel during end hold wins after five seconds")
+cancelled = false
 print("bd02 Lua 5.1 mock-host checks: " .. checks .. " passed")
