@@ -7,6 +7,7 @@ from pathlib import Path
 import dataclasses, hashlib, json, sys, unittest
 import numpy as np
 import weaponrigs as wr
+import ogrelayout
 
 ROOT=wr.ROOT;REF=ROOT/'References/WeaponRigs'
 
@@ -30,6 +31,7 @@ class WeaponRigTests(unittest.TestCase):
                 with self.subTest(model=model,file=relative):
                     path=ROOT/relative;self.assertEqual(digest(path),expected)
                     if path.suffix!='.mesh':continue
+                    self.assertFalse(ogrelayout.mixed_skinned_submeshes(path.read_bytes()),f'{relative}: position/normal stream must not carry UVs or tangents')
                     mesh=wr.ogre.read_mesh(path.read_bytes());skel=wr.read_skeleton(ROOT/'Assets/Models'/mesh.skeleton)
                     names={b.handle:b.name for b in skel.bones};pieces={}
                     for sub in mesh.submeshes:

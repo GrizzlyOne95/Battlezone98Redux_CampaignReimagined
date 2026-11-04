@@ -4,6 +4,7 @@ import argparse, copy, dataclasses, hashlib, json, re, subprocess, sys
 import numpy as np
 import weaponrigs as wr
 import cockpitglass as cg
+import ogrelayout
 from bzmodellibs import legacy
 
 ROOT=wr.ROOT;REF=ROOT/'References/WeaponRigs';CONFIG=REF/'models.json'
@@ -243,7 +244,7 @@ def build(selected):
         channels=copy.deepcopy(entry['channels']);proof=wr.channels_mesh(mesh,skel,channels)
         assert all(p['triangles'] for p in proof),(model,'empty world gun selection',proof)
         sp=ROOT/'Assets/Models'/(model+'_recoil.skeleton');target=ROOT/'Assets/ModelFixes'/(model+'.mesh')
-        outputs={};mesh.skeleton=sp.name;target.write_bytes(wr.ogre.write_mesh(mesh));sp.write_bytes(wr.write_skeleton(skel))
+        outputs={};mesh.skeleton=sp.name;target.write_bytes(ogrelayout.convert(wr.ogre.write_mesh(mesh))[0]);sp.write_bytes(wr.write_skeleton(skel))
         for path in (sp,target):outputs[path.relative_to(ROOT).as_posix()]=hashlib.sha256(path.read_bytes()).hexdigest()
         cp,kind,_=cg.cockpit_mesh(src,model);cp_proof=[]
         if cp and Path(cp)!=mp:
@@ -251,7 +252,7 @@ def build(selected):
             cp_proof=wr.channels_mesh(cpm,cps,cpchannels,True)
             cpsp=ROOT/'Assets/Models'/(model+'_cockpit_recoil.skeleton')
             cpp=Path(cp) if Path(cp).is_relative_to(ROOT) else ROOT/'Assets/Models'/Path(cp).name
-            cpm.skeleton=cpsp.name;cpp.write_bytes(wr.ogre.write_mesh(cpm));cpsp.write_bytes(wr.write_skeleton(cps))
+            cpm.skeleton=cpsp.name;cpp.write_bytes(ogrelayout.convert(wr.ogre.write_mesh(cpm))[0]);cpsp.write_bytes(wr.write_skeleton(cps))
             for path in (cpp,cpsp):outputs[path.relative_to(ROOT).as_posix()]=hashlib.sha256(path.read_bytes()).hexdigest()
         fit=fit_effects(model,mesh,skel,channels,proof,entry.get('ports_only',()))
         receipts[model]={'source':source,'world':proof,'cockpit':cp_proof,'cockpit_source':csource if cp_proof else None,
