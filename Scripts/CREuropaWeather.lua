@@ -184,7 +184,7 @@ V.VentHazeRange        = 320.0   -- fog thins within this distance of a falling-
 V.VentHazeFogEnd       = 0.72    -- fog end multiplier at the vent at full envelope
 V.VentHazeFogStart     = 0.55
 V.VentHazeTint         = 0.35
-V.VentHazeColor        = { r = 0.80, g = 0.88, b = 1.00 }
+V.VentHazeColor        = { r = 0.30, g = 0.34, b = 0.40 }   -- dim frost: a pale tint glows against the black sky
 V.VentHazeLift         = { r = 0.020, g = 0.024, b = 0.032 }   -- ambient lift in the haze
 
 -- Quakes. All of these are tunables; none is hard-coded in the logic.
@@ -271,7 +271,7 @@ local LEVEL_COUNT = #V.Levels
 -- is Environment's orbit (a small, far sun by day, Jupiter at night), so the
 -- presets carry no ambient or diffuse of their own. There is no real fog
 -- either; the faint cold haze is the frost the vents and the surface leave in
--- the lowest metres, kept dark so the horizon does not glow against the black
+-- the lowest metres, kept near-black so the horizon does not glow against the black
 -- sky, and it thickens a little with activity. Each preset carries ONE
 -- precipitation layer: a sparse ice glitter (CR/Europa/Glitter, SnowLight on a
 -- material DX11 draws in the right colours) that falls straight down
@@ -283,15 +283,15 @@ local LEVEL_COUNT = #V.Levels
 
 local PRESET_ROWS = {
     { name = "EuropaQuiescent", rate = 14.0, quota = 260, a = 0.55,
-      fog = { 0.20, 0.24, 0.30, 150.0, 290.0 }, sun = 0.82, tin = 24.0, tout = 28.0 },
+      fog = { 0.020, 0.024, 0.030, 150.0, 290.0 }, sun = 0.82, tin = 24.0, tout = 28.0 },
     { name = "EuropaStirring", rate = 26.0, quota = 360, a = 0.58,
-      fog = { 0.21, 0.25, 0.31, 130.0, 275.0 }, sun = 0.80, tin = 22.0, tout = 28.0 },
+      fog = { 0.023, 0.028, 0.035, 130.0, 275.0 }, sun = 0.80, tin = 22.0, tout = 28.0 },
     { name = "EuropaVenting", rate = 44.0, quota = 480, a = 0.62,
-      fog = { 0.21, 0.26, 0.33, 110.0, 258.0 }, sun = 0.78, tin = 20.0, tout = 26.0 },
+      fog = { 0.026, 0.032, 0.041, 110.0, 258.0 }, sun = 0.78, tin = 20.0, tout = 26.0 },
     { name = "EuropaFlexing", rate = 64.0, quota = 600, a = 0.66,
-      fog = { 0.22, 0.27, 0.34, 95.0, 242.0 }, sun = 0.75, tin = 18.0, tout = 26.0 },
+      fog = { 0.030, 0.037, 0.048, 95.0, 242.0 }, sun = 0.75, tin = 18.0, tout = 26.0 },
     { name = "EuropaPerijove", rate = 90.0, quota = 760, a = 0.70,
-      fog = { 0.22, 0.28, 0.36, 80.0, 222.0 }, sun = 0.72, tin = 16.0, tout = 26.0 },
+      fog = { 0.034, 0.042, 0.056, 80.0, 222.0 }, sun = 0.72, tin = 16.0, tout = 26.0 },
 }
 
 local function BuildPreset(row)

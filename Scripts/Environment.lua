@@ -486,10 +486,12 @@ local function BuildEarthFogKeyframes(baseFog)
 end
 
 local function BuildMoonFogKeyframes(baseFog)
-    local dayTint   = { r = 0.50, g = 0.52, b = 0.58 }
-    local duskTint  = { r = 0.46, g = 0.45, b = 0.56 }
-    local nightTint = { r = 0.15, g = 0.17, b = 0.24 }
-    local dawnTint  = { r = 0.54, g = 0.50, b = 0.62 }
+    -- Airless: the horizon fades toward the black sky, so the tints stay
+    -- near-black (a pale haze reads as a glowing band against it).
+    local dayTint   = { r = 0.060, g = 0.064, b = 0.074 }
+    local duskTint  = { r = 0.052, g = 0.050, b = 0.066 }
+    local nightTint = { r = 0.020, g = 0.022, b = 0.030 }
+    local dawnTint  = { r = 0.062, g = 0.056, b = 0.072 }
     local dayStart = math.max(baseFog.fogStart * 1.75, 420.0)
     local dayEnd = math.max(baseFog.fogEnd * 2.10, dayStart + 700.0)
 
