@@ -23,6 +23,7 @@ local PlayerPilotMode = require("PlayerPilotMode")
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
 local CR04Drop = require("CR04Drop")
+local CRHoldOrder = require("CRHoldOrder")
 local LEADER_TEAM = 1
 local ENEMY_TEAM = 5
 local stockWeatherWindPush = CRMarsWeather.AllowWindPush
@@ -2231,6 +2232,12 @@ local function ProbeFeatureOverlay()
 end
 
 local function ProbeFeatureCommandReplacement(handle)
+    -- Superseded: CRHoldOrder owns the Hunt -> "Hold" replacement (avltnk only).
+    -- This generic probe is neutralised so the two do not fight over Hunt.
+    if true then
+        FeatureNote("command_menu", "generic Hunt probe disabled; CRHoldOrder owns Hunt replacement")
+        return false
+    end
     if not handle or not IsValid(handle) then
         FeatureNote("command_menu", "waiting for an allied craft to validate Hunt replacement")
         return false
@@ -2873,6 +2880,7 @@ function Start()
         onOutOfLives = function() FailMission(GetTime() + 3.0) end,
     })
     CRCoop.ApplyCoopAlliances(ENEMY_TEAM)
+    CRHoldOrder.Setup()
     events, acknowledgements, receivedEvent = {}, {}, 0
     pendingSeq, pendingSince = nil, nil
     nextEventSend, nextCameraSend = 0, 0
@@ -2962,6 +2970,7 @@ function AddObject(h)
     if CRMarsWeather and CRMarsWeather.OnObjectCreated then
         CRMarsWeather.OnObjectCreated(h)
     end
+    CRHoldOrder.OnAddObject(h)
     ApplyTurbo(h)
 
     if not CRCoop.IsAuthority() or (CRCoop.IsNetworkGame() and not IsLocal(h)) then return end
@@ -3864,6 +3873,7 @@ function Load(missionData, aiData, pilotModeData)
     CR04Drop.Configure({ exu = exu, log = print, cameraReady = CameraReady,
         cameraFinish = CameraFinish, cameraCancelled = CameraCancelled })
     CR04Drop.OnLoad(M)
+    CRHoldOrder.Load()
     M.playerPilotModeState = pilotModeData or M.playerPilotModeState
     if aiData then
         aiCore.Load(aiData)

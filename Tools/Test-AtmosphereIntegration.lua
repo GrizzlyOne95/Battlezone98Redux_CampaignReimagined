@@ -117,6 +117,34 @@ director.SkyState=function() return nil end
 w.time=10; w.E.Update(1)
 check(dome['CRSKYTI.MAP'].emissive.a==0,'a director with no sky state gives a calm haze')
 
+-- Elysium (bdmisn07, 09, 10, 11): the CR dome takes the sun, the clarity and
+-- the weather's storm, dust front and dry lightning from the bound director.
+do
+    local ew=world('elysium.act',250)
+    ew.trn.Atlases={MaterialName='el_detail_atlas'}
+    ew.trn.NormalView.FogStart=80
+    local edome,eexu={},ew.e.require('exu')
+    eexu.MaterialExists=function() return true end
+    for _,name in ipairs({'GetSkyDomeEnabled','GetSkyPlaneEnabled','GetSkyBoxEnabled'}) do eexu[name]=function() return false end end
+    eexu.SetSkyDome=function(material) edome.material=material; return true end
+    eexu.SetMaterialTexture=function() return true end
+    eexu.GetEffectiveRenderProfile=function() return 'enhanced' end
+    eexu.SetMaterialPassColors=function(material,colours) edome[material]=colours; return true end
+    ew.E.Init({lightingMode='subtle',nativeBaseline=true})
+    local edirector={Initialized=true,Enabled=true,GetSeverity=function() return 0.5 end,
+        SkyState=function() return {storm=0.5,bank=0.25,flash=0.7,flashDir={x=0,y=0.3,z=-0.95}} end}
+    ew.E.BindWeatherSensors('Elysium',edirector)
+    ew.E.Update(0)
+    local esky=edome['CRSKYEL.MAP']
+    check(ew.E.ArtWorld=='elysium' and edome.material=='CRSKYEL.MAP' and esky,'Elysium installs and feeds its own dome')
+    check(esky.specular.r==1 and near(esky.emissive.b,0.5) and near(esky.emissive.a,0.25),'the dome takes the storm and the dust front from the director')
+    check(near(esky.diffuse.a,0.7) and near(esky.diffuse.b,-0.95),'the dome takes the dry lightning from the director')
+    check(ew.SetFog[4]<=250 and ew.SetFog[5]<=250 and ew.SetFog[4]>=0,'Elysium fog stays inside the map horizon')
+    edirector.SkyState=function() return nil end
+    ew.time=10; ew.E.Update(1)
+    check(edome['CRSKYEL.MAP'].emissive.a==0 and edome['CRSKYEL.MAP'].diffuse.a==0,'a director with no sky state gives a clear sky')
+end
+
 -- Io: the sun's real path past a fixed Jupiter. One day runs through a short
 -- eclipse, day, a horizon-sharp dusk and a Jupiter-lit night.
 w=world('io.act',250)
@@ -176,6 +204,34 @@ check(eclipseTime>=40 and eclipseTime<=90,'the Europa eclipse lasts about 3.5 pe
 check(dayTime>500 and nightTime>600,'Europa day and night each hold a large share of the cycle')
 check(minDiffuse<0.2,'the Europa eclipse darkens the scene')
 check(nightWarm and nightMax>0.05 and nightMax<0.4,'Jupiter-shine lights the Europa night warm and dim ('..nightMax..')')
+
+-- Ganymede (the bdmisn and chmisn Ganymede maps): a still smaller Jupiter, so
+-- a shorter eclipse and a dimmer, still warm Jupiter-lit night.
+do
+    local gw=world('ganymede.act',250)
+    gw.trn.Atlases={MaterialName='ga_detail_atlas'}
+    gw.trn.Stars={Texture00='crjovian.map',Azimuth00='180',Elevation00='25'}
+    gw.E.Init({lightingMode='orbit',orbit={period=1800,startHour=-40}})
+    check(gw.E.LightingMode=='orbit' and gw.E.ArtWorld=='ganymede','Ganymede keeps orbit mode')
+    local gPhases,gEclipse,gDay,gNight,gMinDiffuse,gNightWarm,gNightMax,gLast={},0,0,0,1,true,0,nil
+    for t=0,1800,2 do
+        gw.time=t; gw.E.Update(2)
+        local phase=gw.E.LastPhase
+        if phase~=gLast then gPhases[#gPhases+1]=phase; gLast=phase end
+        if phase=='Eclipse' then gEclipse=gEclipse+2; gMinDiffuse=math.min(gMinDiffuse,gw.SetSunDiffuse[1]) end
+        if phase=='Day' then gDay=gDay+2 end
+        if phase=='Night' then
+            gNight=gNight+2
+            gNightWarm=gNightWarm and gw.SetSunDiffuse[1]>gw.SetSunDiffuse[3]
+            gNightMax=math.max(gNightMax,gw.SetSunDiffuse[1])
+        end
+    end
+    check(gPhases[1]=='Day' and gPhases[2]=='Eclipse' and gPhases[3]=='Day','the Ganymede morning passes into eclipse and out')
+    check(gEclipse>=20 and gEclipse<=60,'the Ganymede eclipse lasts about 2 per cent of the day ('..gEclipse..' s)')
+    check(gDay>500 and gNight>600,'Ganymede day and night each hold a large share of the cycle')
+    check(gMinDiffuse<0.2,'the Ganymede eclipse darkens the scene')
+    check(gNightWarm and gNightMax>0.03 and gNightMax<0.4,'Jupiter-shine lights the Ganymede night warm and dim ('..gNightMax..')')
+end
 
 -- Final composition, including a misbehaving local modifier and manual fog,
 -- always fits the TRN horizon. Even a ramp starting beyond it stays ordered.

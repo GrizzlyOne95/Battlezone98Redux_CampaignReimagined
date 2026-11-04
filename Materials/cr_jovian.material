@@ -1,6 +1,7 @@
-// Jupiter and the Galilean moons over the Io and Europa maps, each lit from
-// the TRN sun with its true phase. Missions/misn10.trn and misn11.trn (Io) and
-// misn12.trn and misn13.trn (Europa) name them in [Stars];
+// Jupiter and the Galilean moons over the Io, Europa and Ganymede maps, each lit
+// from the TRN sun with its true phase. Missions/misn10.trn and misn11.trn (Io),
+// misn12.trn and misn13.trn (Europa) and the Ganymede bdmisn and chmisn TRNs name
+// them in [Stars];
 // Scripts/CRWorldArt.lua turns them with the world's orbit. Shaders:
 // Shaders/CR_jovian.hlsl. Technique 1 draws nothing (OpenGL has no delegate).
 // Sources and credits: Docs/SKY_ART_CREDITS.md.

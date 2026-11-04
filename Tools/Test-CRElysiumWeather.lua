@@ -380,6 +380,16 @@ do
     check(not peer.Venus.AllowSulfur and not peer.Venus.AllowVents and not peer.Venus.AllowEruptions
         and not peer.Venus.AllowPoolFx and not peer.Venus.AllowGlassAcid, "sulphur, volcano and acid layers are off")
     check(#peer.Venus.SulfurSites == 0, "no sulphur emitters from the Elysium sites")
+    -- Dust, wind and dry lightning, little rain, cold grey-violet fog (Docs/ELYSIUM_WEATHER.md).
+    local calm, severe = peer.Venus.Levels[1], peer.Venus.Levels[5]
+    check(severe.rain <= 0.5 and peer.Venus.Levels[4].rain <= 0.25 and peer.Venus.RainMaxRate <= 250, "Elysium rain is light")
+    check(peer.Venus.Levels[3].strikesPerMinute > peer.Venus.Levels[3].rain * 10 and severe.strikesPerMinute >= 10,
+        "Elysium fronts strike lightning with little rain")
+    check(calm.windSpeed >= 4.0 and severe.windSpeed >= 20.0, "Elysium wind is strong")
+    local calmPreset = peer.loaded["CRWeatherPresets"].Presets["ElysiumCalm"]
+    check(calmPreset.fog.fogStart == 80.0 and calmPreset.fog.fogEnd == 250.0, "calm Elysium fog runs 80 to 250")
+    check(calmPreset.fog.r + 0.04 >= calmPreset.fog.g and calmPreset.fog.b - calmPreset.fog.r < 0.12
+        and calmPreset.fog.b - calmPreset.fog.r > 0.0, "Elysium fog is a desaturated grey-violet")
 
     peer.run(60.0)
     peer.Elysium.ForceLevel(5, 120.0)

@@ -43,6 +43,7 @@ casingOffset2 = "-0.4594 0.1808 -0.2689"
 casingDirection2 = "-0.9345 0.3271 -0.1402"
 recoilKick2 = 1.0
 // CR CRAFT RECOIL END
+holdOrder = 1 // CR: Hunt button becomes native Hold (Scripts/CRHoldOrder.lua)
 rangeScan = 345.0
 periodScan = 5.0f
 velocJam = 5.0f

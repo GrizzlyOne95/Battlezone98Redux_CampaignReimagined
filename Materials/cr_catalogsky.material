@@ -91,3 +91,10 @@ material CR_Sky/IoStars
 material CR_Sky/EuropaStars : CR_Sky/IoStars
 {
 }
+
+// Ganymede's sky (the bdmisn and chmisn Ganymede maps): the same again, one
+// moon further out, over a black sky with no cloud. Its own name for the same
+// reason.
+material CR_Sky/GanymedeStars : CR_Sky/IoStars
+{
+}
