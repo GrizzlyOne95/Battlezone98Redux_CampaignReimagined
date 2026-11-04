@@ -1,0 +1,81 @@
+// Elysium sky dome (CRSKYEL.MAP): a bruised violet-grey sky, thin torn high cloud,
+// dust and ash veils, a small pale sun, faint stars, storm gloom, dry lightning and
+// dust fronts. See CR_elysiumsky.hlsl. DX11 and DX9 only: on OpenGL the unified
+// programs have no supported delegate, so Materials/crart_elysium.material falls
+// through to its CR_SkyDome technique.
+// Tools/Update-WorldSkyProgramVersions.py versions the delegate names.
+
+vertex_program CR_ElysiumSky_vertexHLSL4_art_2d42b094b6 hlsl
+{
+    source CR_elysiumsky.hlsl
+    target vs_4_0
+    entry_point elysiumsky_vertex
+    preprocessor_defines SM4=1
+}
+
+vertex_program CR_ElysiumSky_vertexHLSL_art_fbaf5221cc hlsl
+{
+    source CR_elysiumsky.hlsl
+    target vs_3_0
+    entry_point elysiumsky_vertex
+}
+
+fragment_program CR_ElysiumSky_fragmentHLSL4_art_55ac389481 hlsl
+{
+    source CR_elysiumsky.hlsl
+    target ps_4_0
+    entry_point elysiumsky_fragment
+    preprocessor_defines SM4=1
+}
+
+fragment_program CR_ElysiumSky_fragmentHLSL_art_abf64d2196 hlsl
+{
+    source CR_elysiumsky.hlsl
+    target ps_3_0
+    entry_point elysiumsky_fragment
+}
+
+vertex_program CR_ElysiumSky_vertex unified
+{
+    delegate CR_ElysiumSky_vertexHLSL4_art_2d42b094b6
+    delegate CR_ElysiumSky_vertexHLSL_art_fbaf5221cc
+    default_params
+    {
+        param_named_auto wvpMat worldviewproj_matrix
+        param_named_auto inverseProjection inverse_projection_matrix
+        param_named_auto inverseView inverse_view_matrix
+    }
+}
+
+// The cloud drifts with time_0_x; its 7200 s wrap makes one jump every two
+// hours of play.
+fragment_program CR_ElysiumSky_fragment unified
+{
+    delegate CR_ElysiumSky_fragmentHLSL4_art_55ac389481
+    delegate CR_ElysiumSky_fragmentHLSL_art_abf64d2196
+    default_params
+    {
+        param_named_auto fogColour fog_colour
+        param_named_auto fogParams fog_params
+        param_named_auto sceneAmbient derived_ambient_light_colour
+        param_named_auto skyProfile surface_specular_colour
+        param_named_auto elysiumState surface_emissive_colour
+        param_named_auto elysiumFlash surface_diffuse_colour
+        param_named_auto skyTime time_0_x 7200
+        param_named horizonBlend float4 .02 .35 1 0
+        param_named fogAmbient float4 .35 .16 0 0
+        param_named zenithTint float4 0.46 0.40 0.54 0.8
+        param_named stormTint float4 0.55 0.55 0.62 0.8
+        param_named sunDisc float4 0.0075 0.004 3.0 0
+        param_named sunGlow float4 0.9 0.25 60 4
+        param_named cloudScale float4 0.12 0.06 0.0014 0.10
+        param_named cloudLook float4 0.32 0.85 0.10 0.8
+        param_named cloudColour float4 1.15 1.05 1.12 0.7
+        param_named dustLook float4 0.12 0.45 0 0
+        param_named dustColour float4 1.12 1.02 0.96 0
+        param_named starLook float4 220 0.012 1.2 0.20
+        param_named flashLook float4 0.6 5 0.05 0.5
+        param_named flashColour float4 0.74 0.74 0.95 0
+        param_named bankLook float4 0.80 1.05 3 0.5
+    }
+}

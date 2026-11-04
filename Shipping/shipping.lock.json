@@ -1,7 +1,7 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "generated": "2026-11-04T11:25:41-06:00",
-  "count": 5122,
+  "generated": "2026-11-04T11:51:13-06:00",
+  "count": 5125,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -4950,6 +4950,10 @@
     {
       "source": "Assets\\Textures\\crsky_earth.png",
       "runtime": "crsky_earth.png"
+    },
+    {
+      "source": "Assets\\Textures\\crsky_elysium_clouds.png",
+      "runtime": "crsky_elysium_clouds.png"
     },
     {
       "source": "Assets\\Textures\\crsky_europa.png",
@@ -16882,6 +16886,14 @@
     {
       "source": "Shaders\\CR_effect.program",
       "runtime": "CR_effect.program"
+    },
+    {
+      "source": "Shaders\\CR_elysiumsky.hlsl",
+      "runtime": "CR_elysiumsky.hlsl"
+    },
+    {
+      "source": "Shaders\\CR_elysiumsky.program",
+      "runtime": "CR_elysiumsky.program"
     },
     {
       "source": "Shaders\\CR_glow-blurh.glsl",

@@ -1,4 +1,5 @@
 local scripts=... or "Scripts"
+local openfile=io.open
 package.path=scripts.."/?.lua;"..package.path
 local Art=require("CRWorldArt")
 local count=0
@@ -118,8 +119,10 @@ Art.UpdateSky(api,"mars",{sun=sun,night=.5,clarity=2})
 check(#frames==2 and frames[2].colours.emissive.r==.5 and frames[2].colours.emissive.g==1,"night moves rewrite, clarity clamps")
 profile="enhanced";Art.UpdateSky(api,"mars",{sun=sun,night=.5,clarity=1})
 check(#frames==3 and frames[3].colours.specular.r==1 and frames[3].colours.specular.b==sun.y,"profile change keeps the sun direction")
-Art.UpdateSky(api,"elysium",{sun=sun,night=0,clarity=1})
-check(frames[#frames].name=="CRSKYEL.MAP" and frames[#frames].colours.specular.g==0,"other domes keep the plain calibration")
+Art.Skies.plain="CRSKYPL.MAP"
+Art.UpdateSky(api,"plain",{sun=sun,night=0,clarity=1})
+Art.Skies.plain=nil
+check(frames[#frames].name=="CRSKYPL.MAP" and frames[#frames].colours.specular.g==0,"a dome that takes no frame keeps the plain calibration")
 check(frames[3].colours.emissive.a==0 and frames[3].colours.diffuse.a==0,"Mars carries no fog bank or flash")
 -- Venus: the weather's storm gloom, fog bank and lightning ride with the frame.
 local n=#frames
@@ -333,4 +336,24 @@ Art.SetSkySun("achilles",{azimuth=55,elevation=-28})
 local ac=Art.NightLight("achilles")
 check(ac and ac.diffuse.b>ac.diffuse.r and ac.diffuse.b<=Art.Shine.achilles.light*1.05 and near(ac.direction.y,-uranus.y),"misn18's night lights cyan from Uranus")
 Art.SetSkySun("achilles",nil)
+-- Elysium: a weather dome without a body. The storm, the dust front and the
+-- dry lightning take the weather slots, and the dome hides the cloud sprites.
+check(Art.SkyFrames.elysium and Art.SkyFrames.elysium.weather and not Art.SkyFrames.elysium.body,"Elysium is a weather dome with no body")
+frames={}
+Art.UpdateSky(api,"elysium",{sun=sun,night=.1,clarity=.9,weather={storm=.6,bank=.3,flash=.8,flashDir={x=.1,y=.3,z=-.9}}})
+last=frames[#frames]
+check(#frames==1 and last.name=="CRSKYEL.MAP" and last.colours.specular.g==sun.x,"Elysium dome takes the frame state")
+check(last.colours.emissive.r==.1 and last.colours.emissive.b==.6 and last.colours.emissive.a==.3,"emissive carries night, the storm and the dust front")
+check(last.colours.diffuse.b==-.9 and last.colours.diffuse.a==.8 and last.colours.ambient==nil,"diffuse carries the dry lightning, ambient is left alone")
+hidden={}
+api.SetSkyDome=function(material) return material=="CRSKYEL.MAP" end
+check(Art.InstallSky(api,"elysium") and hidden["ACLOUD2.MAP"]=="cr06void.dds" and hidden["acloud.map"]=="cr06void.dds","Elysium dome hides the cloud sprites it draws itself")
+-- The dome is wired in the shipped files: material, programs, texture, sun sprite.
+local function slurp(path) return assert(openfile(scripts.."/../"..path,"rb")):read("*a") end
+local elMaterial=slurp("Materials/crart_elysium.material")
+check(elMaterial:find("material CRSKYEL.MAP",1,true) and elMaterial:find("CR_ElysiumSky_vertex",1,true) and elMaterial:find("CR_ElysiumSky_fragment",1,true) and elMaterial:find("crsky_elysium_clouds.png",1,true),"crart_elysium.material draws the Elysium dome")
+check(elMaterial:find("CR_SkyDome_vertex",1,true) and elMaterial:find("CR_WorldSky_fragment",1,true),"OpenGL keeps the stock Elysium dome")
+local elProgram=slurp("Shaders/CR_elysiumsky.program")
+check(elProgram:find("elysiumsky_fragment",1,true) and elProgram:find("fragment_program CR_ElysiumSky_fragment unified",1,true),"the Elysium programs exist")
+check(not slurp("Missions/bdmisn07.trn"):find("SunTexture=%s*sun%.0"),"bdmisn07 leaves the sun to the dome")
 print("World art lighting: "..count.." checks passed")

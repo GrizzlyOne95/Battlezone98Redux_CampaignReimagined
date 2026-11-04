@@ -16,10 +16,11 @@ local stems={mn="moon",ma="mars",ve="venus",io="io",eu="europa",ti="titan",ga="g
 Art.Skies={mars="CRSKYMA.MAP",venus="CRSKYVE.MAP",titan="CRSKYTI.MAP",achilles="CRSKYAC.MAP",elysium="CRSKYEL.MAP"}
 Art.SkyCalibration={}
 -- Domes drawn by a shader that takes the frame state (CR_marssky,
--- CR_venussky, CR_titansky, CR_achillessky): the sun, night blend and clarity
--- go into the technique 0 pass colours, and the stock engine cloud sprites are
--- hidden because the dome draws its own clouds. A dome flagged weather (Venus,
--- Titan, Achilles) also takes the weather's sky state. A dome flagged body
+-- CR_venussky, CR_titansky, CR_achillessky, CR_elysiumsky): the sun, night
+-- blend and clarity go into the technique 0 pass colours, and the stock engine
+-- cloud sprites are hidden because the dome draws its own clouds. A dome flagged
+-- weather (Venus, Titan, Achilles, Elysium) also takes the weather's sky state
+-- (Elysium: CRElysiumWeather's storm, dust front and dry lightning). A dome flagged body
 -- draws the world's shining body itself (Saturn over Titan, through the haze;
 -- Uranus and its rings over Achilles, between the clouds), so its TRN quad is
 -- hidden and the dome takes the body's direction. Titan's haze is opaque, so
@@ -28,7 +29,8 @@ Art.SkyCalibration={}
 Art.SkyFrames={mars={hide={"ACLOUD2.MAP","ACLOUD.MAP"}},venus={hide={},weather=true},
     titan={hide={"ACLOUD2.MAP","SATURN.MAP","STARS.MAP"},weather=true,body=true},
     achilles={hide={"ACLOUD2.MAP","ACLOUD.MAP","URANUS.MAP"},weather=true,body=true,
-        restore={["ACLOUD2.MAP"]="acloud2.tga",["ACLOUD.MAP"]="acloud.tga",["URANUS.MAP"]="uranus.dds"}}}
+        restore={["ACLOUD2.MAP"]="acloud2.tga",["ACLOUD.MAP"]="acloud.tga",["URANUS.MAP"]="uranus.dds"}},
+    elysium={hide={"ACLOUD2.MAP","ACLOUD.MAP"},weather=true}}
 Art.SkyFrameState={}
 -- Airless worlds get the catalog sky box instead of a dome. Its stars and
 -- Milky Way replace the TRN's STARS.MAP sprites and MILKYWAY.MAP quad; the

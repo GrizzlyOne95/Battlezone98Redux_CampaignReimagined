@@ -27,7 +27,7 @@ MaterialName	= el_detail_atlas
 MusicTrack=20
 
 [Sky]
-SunTexture= sun.0
+SunTexture=
 SkyType= 0
 SkyHeight = 210
 SkyTexture=elysium.map 

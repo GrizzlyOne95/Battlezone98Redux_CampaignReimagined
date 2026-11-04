@@ -1,8 +1,10 @@
 -- CRElysiumWeather.lua
 -- Elysium storm weather director for the Black Dog missions (bdmisn07, 09, 10, 11).
 --
--- Elysium is an Earth-like world under a blue-grey overcast. It has no sulphur
--- pools and no volcanoes, so this is NOT a new director: it is CRVenusWeather's
+-- Elysium is a dead, Earth-like world under a thin remnant atmosphere: a bruised
+-- violet-grey sky, wind, dust and ash, dry-lightning fronts and ground mist in the
+-- ruins of the Chthonian city, and little rain (Docs/ELYSIUM_WEATHER.md). It has
+-- no sulphur pools and no volcanoes, so this is NOT a new director: it is CRVenusWeather's
 -- engine (seeded severity ladder, strikes, rain, cloud deck, fog banks, co-op
 -- wire protocol) re-dressed. Init swaps in Elysium values for everything that was
 -- sulphur-coloured, switches the sulphur / volcano layers off, and Shutdown puts
@@ -11,12 +13,14 @@
 -- (Update, Save, Load, AnnounceState, ApplyNetEvent, SetTargetLevel, ...).
 --
 -- What changes against Venus:
---   levels     five ElysiumCalm..ElysiumSevere presets (blue-grey fog, cool light,
---              no haze particles), gentler wind and strike rates than Venus;
---   rain       a cool blue-white rain (the shared CR/Weather/Rain system) and no
---              acid film on the cockpit glass;
---   fog        the basin mist and the rare dense fog banks are grey instead of
---              sulphur; the cloud deck and basin mist use the CR/Elysium/*
+--   levels     five ElysiumCalm..ElysiumSevere presets (cold grey-violet fog from
+--              80 to 250 at calm, cool light, no haze particles), a stronger wind
+--              and more lightning than before, and little rain;
+--   rain       a thin, ash-grey fall (the shared CR/Weather/Rain system at a
+--              fraction of Venus's rate) that only the worst fronts bring, so
+--              most strikes are dry; no acid film on the cockpit glass;
+--   fog        the ground mist and the dust fronts (fog banks) are grey-violet
+--              instead of sulphur; the cloud deck and mist use the CR/Elysium/*
 --              templates (cr_elysium payload), the bolt, glow and St. Elmo come
 --              from cr_venus (already blue-white);
 --   flashes    a cold white-blue scene flash on a strike;
@@ -38,16 +42,16 @@ local E = setmetatable({}, { __index = Venus })
 -- ---- presets ----------------------------------------------------------------
 
 local ROWS = {
-    { name = "ElysiumCalm",   fog = { 0.58, 0.64, 0.72, 80.0, 250.0 }, amb = { 0.36, 0.40, 0.46 },
-      dif = { 0.62, 0.64, 0.66 }, sun = 0.62, wind = 3.0,  strikes = 0.0,  tin = 20.0, tout = 26.0 },
-    { name = "ElysiumHaze",   fog = { 0.50, 0.56, 0.64, 72.0, 215.0 }, amb = { 0.31, 0.35, 0.41 },
-      dif = { 0.50, 0.53, 0.57 }, sun = 0.50, wind = 5.0,  strikes = 0.0,  tin = 22.0, tout = 28.0 },
-    { name = "ElysiumRising", fog = { 0.40, 0.46, 0.54, 60.0, 180.0 }, amb = { 0.25, 0.29, 0.35 },
-      dif = { 0.38, 0.41, 0.46 }, sun = 0.38, wind = 9.0,  strikes = 1.5,  tin = 22.0, tout = 28.0 },
-    { name = "ElysiumStorm",  fog = { 0.30, 0.35, 0.42, 45.0, 140.0 }, amb = { 0.19, 0.22, 0.28 },
-      dif = { 0.27, 0.30, 0.35 }, sun = 0.24, wind = 14.0, strikes = 5.0,  tin = 20.0, tout = 26.0 },
-    { name = "ElysiumSevere", fog = { 0.21, 0.25, 0.32, 32.0, 100.0 }, amb = { 0.13, 0.16, 0.21 },
-      dif = { 0.18, 0.21, 0.27 }, sun = 0.14, wind = 20.0, strikes = 11.0, tin = 18.0, tout = 26.0 },
+    { name = "ElysiumCalm",   fog = { 0.60, 0.61, 0.68, 80.0, 250.0 }, amb = { 0.37, 0.38, 0.43 },
+      dif = { 0.62, 0.62, 0.65 }, sun = 0.62, wind = 4.0,  strikes = 0.0,  tin = 20.0, tout = 26.0 },
+    { name = "ElysiumHaze",   fog = { 0.52, 0.53, 0.60, 72.0, 215.0 }, amb = { 0.32, 0.33, 0.38 },
+      dif = { 0.50, 0.51, 0.55 }, sun = 0.50, wind = 7.0,  strikes = 0.0,  tin = 22.0, tout = 28.0 },
+    { name = "ElysiumRising", fog = { 0.42, 0.43, 0.50, 60.0, 180.0 }, amb = { 0.26, 0.27, 0.32 },
+      dif = { 0.38, 0.39, 0.44 }, sun = 0.38, wind = 11.0, strikes = 3.0,  tin = 22.0, tout = 28.0 },
+    { name = "ElysiumStorm",  fog = { 0.32, 0.33, 0.40, 45.0, 140.0 }, amb = { 0.20, 0.21, 0.26 },
+      dif = { 0.27, 0.28, 0.33 }, sun = 0.24, wind = 16.0, strikes = 7.0,  tin = 20.0, tout = 26.0 },
+    { name = "ElysiumSevere", fog = { 0.22, 0.23, 0.30, 32.0, 100.0 }, amb = { 0.14, 0.15, 0.20 },
+      dif = { 0.18, 0.19, 0.25 }, sun = 0.14, wind = 22.0, strikes = 12.0, tin = 18.0, tout = 26.0 },
 }
 
 local function BuildPreset(row)
@@ -84,12 +88,13 @@ end
 -- ---- the Venus values this module replaces -----------------------------------
 
 local LEVEL_NAMES = { "Calm", "Haze", "Rising", "Storm", "Severe" }
+-- Rain is a trace (the dust is the weather); only a severe front brings real rain.
 local LEVEL_FIELDS = {   -- rain, cloud, gloom, visibility, radarRange, velocJam, duration
     { 0.00, 0.20, 0.00, 100.0, 1.00, 1.00, { 80.0, 170.0 } },
-    { 0.10, 0.40, 0.12, 92.0,  0.97, 1.03, { 70.0, 150.0 } },
-    { 0.40, 0.65, 0.38, 84.0,  0.90, 1.08, { 60.0, 130.0 } },
-    { 0.75, 0.88, 0.72, 74.0,  0.78, 1.18, { 50.0, 110.0 } },
-    { 1.00, 1.00, 1.00, 60.0,  0.62, 1.32, { 35.0, 80.0 } },
+    { 0.00, 0.40, 0.12, 92.0,  0.97, 1.03, { 70.0, 150.0 } },
+    { 0.08, 0.65, 0.38, 84.0,  0.90, 1.08, { 60.0, 130.0 } },
+    { 0.22, 0.88, 0.72, 74.0,  0.78, 1.18, { 50.0, 110.0 } },
+    { 0.45, 1.00, 1.00, 60.0,  0.62, 1.32, { 35.0, 80.0 } },
 }
 
 local function BuildLevels()
@@ -109,17 +114,18 @@ local OVERRIDES = {
     AllowSulfur = false, AllowPoolFx = false, AllowVents = false, AllowEruptions = false,
     AllowGlassAcid = false,
     GloomGreen = 0.0,
-    RainTint = { r = 0.64, g = 0.70, b = 0.80 },
-    PoolFogColor = { r = 0.40, g = 0.46, b = 0.54 },
-    FogBankColor = { r = 0.56, g = 0.61, b = 0.68 },
-    FogBankAmbient = { r = 0.34, g = 0.37, b = 0.42 },
-    FogBankDiffuse = { r = 0.50, g = 0.53, b = 0.58 },
-    FogBankHazeColor = { r = 0.70, g = 0.74, b = 0.80 },
-    FogBankHazeAlpha = 0.28,
-    FlashAmbient = { r = 0.42, g = 0.45, b = 0.52 },
-    FlashDiffuse = { r = 0.50, g = 0.54, b = 0.62 },
-    CloudTintClear = { r = 0.34, g = 0.38, b = 0.45, a = 0.14 },
-    CloudTintGloom = { r = 0.14, g = 0.17, b = 0.23, a = 0.30 },
+    RainMaxRate = 210.0, RainSplashRate = 20.0,
+    RainTint = { r = 0.62, g = 0.60, b = 0.64 },
+    PoolFogColor = { r = 0.42, g = 0.42, b = 0.50 },
+    FogBankColor = { r = 0.58, g = 0.57, b = 0.62 },
+    FogBankAmbient = { r = 0.35, g = 0.35, b = 0.40 },
+    FogBankDiffuse = { r = 0.51, g = 0.51, b = 0.56 },
+    FogBankHazeColor = { r = 0.70, g = 0.68, b = 0.72 },
+    FogBankHazeAlpha = 0.36,
+    FlashAmbient = { r = 0.44, g = 0.44, b = 0.52 },
+    FlashDiffuse = { r = 0.52, g = 0.52, b = 0.62 },
+    CloudTintClear = { r = 0.36, g = 0.36, b = 0.43, a = 0.14 },
+    CloudTintGloom = { r = 0.15, g = 0.15, b = 0.22, a = 0.30 },
     TemplatePayloads = { "cr_venus", "cr_elysium" },
     Templates = {
         fog = "CR/Elysium/FogPool", haze = "CR/Elysium/FogPool", cloud = "CR/Elysium/CloudDeck",

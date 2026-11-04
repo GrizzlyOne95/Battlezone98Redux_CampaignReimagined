@@ -149,3 +149,13 @@ not copyrighted (public domain); credit is given as the pages request.
   disc in eclipse.
   OpenGL has no GLSL twin yet and draws no bodies (technique 1 is invisible).
 - None of the source files is stored in the repository.
+
+## Elysium sky (CRSKYEL.MAP)
+
+- `Assets/Textures/crsky_elysium_clouds.png` is original, procedural art: `Tools/Build-ElysiumSky.py`
+  synthesises it from seeded spectral noise (R torn high cloud, G dust and ash veils, B breakup), so it
+  tiles exactly and can be rebaked at any size. No third-party source.
+- `Shaders/CR_elysiumsky.hlsl` draws the dome from it, coloured from the composed fog: a bruised
+  violet-grey overhead, a small pale sun, faint hash stars, storm cloud, dust fronts and dry lightning.
+  `Scripts/CRWorldArt.lua` feeds it the sun, night blend, clarity and `CRElysiumWeather`'s sky state, and
+  hides the TRN's stock `ACLOUD`/`ACLOUD2` sprites. OpenGL keeps the stock `elysium.tga` dome (technique 1).

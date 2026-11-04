@@ -4,7 +4,7 @@
 // the Black Dog planet with an Earth-like sky. Elysium reuses the Venus engine
 // and its cr_venus lightning (bolt, glow, St. Elmo), which are already blue-white;
 // only the two sheets that carry the sulphur colour are repainted here, blue-grey
-// rain cloud instead of sulphur. Same shape, quotas and emitter / affector order
+// violet-grey dust cloud instead of sulphur. Same shape, quotas and emitter / affector order
 // as CR/Venus/FogPool and CR/Venus/CloudDeck (the director addresses them by index).
 //
 // Materials are CRVenus/* in crart_venus.material, as for cr_venus.
@@ -30,8 +30,8 @@ particle_system CR/Elysium/FogPool
         direction           1 0 -0.7
         velocity_min        0.3
         velocity_max        1.1
-        colour_range_start  0.55 0.60 0.68 0.00
-        colour_range_end    0.48 0.53 0.61 0.00
+        colour_range_start  0.58 0.58 0.65 0.00
+        colour_range_end    0.51 0.51 0.58 0.00
         width               96
         height              7
         depth               96
@@ -40,13 +40,13 @@ particle_system CR/Elysium/FogPool
     affector ColourInterpolator
     {
         time0   0.00
-        colour0 0.55 0.60 0.68 0.00
+        colour0 0.58 0.58 0.65 0.00
         time1   0.20
-        colour1 0.55 0.60 0.68 0.22
+        colour1 0.58 0.58 0.65 0.22
         time2   0.78
-        colour2 0.50 0.55 0.63 0.18
+        colour2 0.53 0.53 0.60 0.18
         time3   1.00
-        colour3 0.42 0.47 0.55 0.00
+        colour3 0.45 0.45 0.52 0.00
     }
 
     affector Scaler
@@ -89,8 +89,8 @@ particle_system CR/Elysium/CloudDeck
         direction           1 0 -0.7
         velocity_min        1.5
         velocity_max        4.5
-        colour_range_start  0.34 0.38 0.45 0.00
-        colour_range_end    0.29 0.33 0.40 0.00
+        colour_range_start  0.36 0.36 0.43 0.00
+        colour_range_end    0.31 0.31 0.38 0.00
         width               320
         height              14
         depth               320
@@ -99,13 +99,13 @@ particle_system CR/Elysium/CloudDeck
     affector ColourInterpolator
     {
         time0   0.00
-        colour0 0.34 0.38 0.45 0.00
+        colour0 0.36 0.36 0.43 0.00
         time1   0.22
-        colour1 0.34 0.38 0.45 0.20
+        colour1 0.36 0.36 0.43 0.20
         time2   0.78
-        colour2 0.29 0.33 0.40 0.16
+        colour2 0.31 0.31 0.38 0.16
         time3   1.00
-        colour3 0.25 0.29 0.35 0.00
+        colour3 0.27 0.27 0.33 0.00
     }
 
     affector Rotator
