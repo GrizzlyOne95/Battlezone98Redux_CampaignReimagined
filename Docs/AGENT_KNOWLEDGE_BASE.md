@@ -548,6 +548,9 @@ The full local-server and 2-4 client recipe is in 5.5.
   LuaLS definitions live in `Docs/lua-definitions/` (authoring only, not shipped). Workshop `require`
   names are limited (sourceless, 11-character truncation).
 - `exu` is not a global in mission scope: `local exu = require("exu")`.
+- In a scratch instance (`BZRCoopSession.ps1 -Action Prepare`), `require("exu")` fails until `exu.dll` is
+  copied to the instance root. A `.bzn` fixture with LF line endings (e.g. `lcbench`) fails with "failed to
+  load game files"; convert it to CRLF first. (Legacy AI live test, 2026-11-04.)
 
 ### 5.5 Local server and multi-player co-op testing
 
