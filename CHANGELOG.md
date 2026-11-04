@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- New installs ship with ODF AI gameplay tuning on (`[SinglePlayer] AiOdfGameplayTuning = 1`). Existing
+  `openshim.ini` files are not overwritten; switch it on in Options -> SinglePlayer.
 - Autosave and its notice are now handled by OpenShim; the Lua autosave is removed.
 - CRA (Chinese) co-op campaign listing, maps and weather sites, in progress: a new "CR Chinese" campaign listing and
   multiplayer entries for `chmisn01cr` through `chmisn08cr` (2-4 players or offline), on co-op maps with the enemy on

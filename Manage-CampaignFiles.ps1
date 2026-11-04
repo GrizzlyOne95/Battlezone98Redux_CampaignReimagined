@@ -891,6 +891,13 @@ function Update-OpenShimManifest {
 
     [System.IO.Directory]::CreateDirectory($payloadDir) | Out-Null
     [System.IO.File]::Copy($playerConfigSourcePath, $playerConfigPayloadPath, $true)
+    # CR ships ODF AI gameplay tuning on; standalone OpenShim keeps it off.
+    $playerConfigText = [System.IO.File]::ReadAllText($playerConfigPayloadPath)
+    $tunedConfigText = [regex]::Replace($playerConfigText, '(?m)^(AiOdfGameplayTuning\s*=\s*)0\b', '${1}1')
+    if ($tunedConfigText -eq $playerConfigText -and $playerConfigText -notmatch '(?m)^AiOdfGameplayTuning\s*=\s*1\b') {
+        throw "Cannot enable AiOdfGameplayTuning: key not found in '$playerConfigSourcePath'."
+    }
+    [System.IO.File]::WriteAllText($playerConfigPayloadPath, $tunedConfigText, (New-Object System.Text.UTF8Encoding $false))
     [System.IO.File]::Copy($networkSourcePath, $networkPayloadPath, $true)
     [System.IO.File]::Copy($patchesSourcePath, $patchesPayloadPath, $true)
     [System.IO.File]::Copy($assetManifestSourcePath, $assetManifestPayloadPath, $true)

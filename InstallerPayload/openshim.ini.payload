@@ -737,7 +737,7 @@ SatellitePanSpeed = 1.0
 ; rounds per cycle and consumes four times the ammo.
 AiWeaponMaskArtillery = 0
 AiWeaponMaskMinelayer = 0
-AiOdfGameplayTuning = 0
+AiOdfGameplayTuning = 1
 BomberAiRange = 0
 Turbo = 0
 TurboTolerance = 0.9
