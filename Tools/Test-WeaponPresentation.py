@@ -75,7 +75,7 @@ class WeaponContentTests(unittest.TestCase):
                         if 'anchor' in row:
                             # No barrel node: the flash draws at the hardpoint itself.
                             self.assertEqual(row['offset'],[0.0,0.0,0.0])
-                        else:
+                        elif not row.get('reviewed_barrel'):
                             self.assertGreaterEqual(row['offset'][2],builder.MIN_TIP)
                         self.assertTrue(all(abs(v)<=20 for v in row['offset']))
                         expected['flashoffset'+n]=' '.join(f'{v:.2f}' for v in row['offset'])
@@ -113,7 +113,11 @@ class WeaponContentTests(unittest.TestCase):
             self.assertNotIn('recoilkick',inventory.parse((ROOT/'ODF'/(name+'.odf')).read_text())['weaponclass'])
 
     def test_every_recoil_slot_default_weapon_has_kick(self):
-        crafts=set('avtank avtamp avdemo bvtank bvtanka svtank svtanka svtas8 svtk13 svtnk7'.split())
+        combat=load('combat','Build-CombatPresentation.py')
+        docs=combat.documents()
+        policy=json.loads((ROOT/'References/WeaponPresentation/combat-models.json').read_text())
+        crafts={name for name,unit in combat.armed_units(docs).items()
+                if combat.selected_bindings(unit,docs,policy,config['weapons'])}
         found=set()
         for path in sorted((ROOT/'ODF').glob('*.odf')):
             parsed=inventory.parse(path.read_text(errors='replace'))
@@ -127,7 +131,8 @@ class WeaponContentTests(unittest.TestCase):
                     kick=craft.get('recoilkick'+n)
                     if kick is None:
                         kick=inventory.parse((ROOT/'ODF'/(weapon+'.odf')).read_text()).get('weaponclass',{}).get('recoilkick')
-                    self.assertEqual(float(kick or 0),1.0,'recoil slot default weapon kicks at 1.0')
+                    self.assertGreater(float(kick or 0),0,'recoil slot default weapon has a positive kick')
+                    self.assertLessEqual(float(kick),4.0)
         self.assertEqual(found,crafts)
 
     def test_explicit_casing_choices(self):

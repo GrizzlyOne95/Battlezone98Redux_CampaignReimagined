@@ -370,6 +370,17 @@ Weapon presentation inventory and first art pass: `Docs/WEAPON_PRESENTATION_ROLL
 Never apply avtank's barrel-tip offset to a shared weapon used by other models,
 or slide a hull/locomotion node merely because it owns a firing hardpoint.
 
+Combat presentation follow-up (2026-11-04): `References/WeaponPresentation/combat-models.json`
+owns the reviewed model decisions and existing-piece bindings; `Tools/Build-CombatPresentation.py`
+writes craft recoil and the complete `Docs/COMBAT_WEAPON_EFFECTS.md` backlog. A muzzle's immediate
+parent and a `BG*` naming test are insufficient: NSDF bomber GR1/GR2 are roof children beside
+separately weighted top guns, deployed NSDF/Black Dog turret tubes are `blc`/`blf`, and the CRA
+gun-tower tube is `tx1`. Verify actual weights, static native translation and exact rendered/native
+names before binding. Keep mortar/rocket/minigun kicks local to reviewed craft slots. Regenerate
+flash fits first, then combat presentation; tests pin gameplay fields and complete slot coverage.
+Current casing ODF support is weapon-level only; fitted craft ports require an OpenShim API,
+not invented `casingOffset<N>` fields. `avartla`'s unresolved `gpopguna` is reported, not substituted.
+
 Full detail: `Docs/WEATHER_ENVIRONMENT_OWNERSHIP.md`; full mission/stack audit and the 2026-10-15 owner
 revision: `Docs/ATMOSPHERE_AUDIT_20261015.md`. Environment caps the final composed fog to TRN visibility,
 including base/Clear/local overrides. It is the only atmosphere writer while loaded.

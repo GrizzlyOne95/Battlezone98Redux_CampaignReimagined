@@ -1,0 +1,415 @@
+{
+  "version": 1,
+  "scope": "Every armed CR vehicle/building ODF; people use weapon presentation; armories are suppliers.",
+  "casing_port_status": "Weapon casingType is implemented; per-craft ports require an OpenShim extension (estimated native breech only).",
+  "models": {
+    "abtowe": {
+      "category": "Existing gun piece",
+      "action": "Use agn11bgb: 38 vertices / 34 triangles, rigid weight 1.0, native node and static local translation. GC1 is its child. No geometry split needed; tune short tip travel. Preserve ty1/tx1 aim parents.",
+      "bindings": {
+        "GC1": {
+          "node": "agn11bgb",
+          "distance": 0.12,
+          "return": 2.5,
+          "kick_without_weapon": 1.0
+        }
+      }
+    },
+    "avartl": {
+      "category": "Existing gun piece",
+      "action": "Four separate aar11bgd/bgc/bgb/bga barrels for GM1/2/3/4. Bind each fired slot independently. Preserve deployed pose and aiming; mortar weapons need an explicit kick because existing CR kicks are CANN-category only.",
+      "bindings": {
+        "GM1": {
+          "node": "aar11bgd",
+          "distance": 0.18,
+          "return": 2.0,
+          "kick_without_weapon": 1.0
+        },
+        "GM2": {
+          "node": "aar11bgc",
+          "distance": 0.18,
+          "return": 2.0,
+          "kick_without_weapon": 1.0
+        },
+        "GM3": {
+          "node": "aar11bgb",
+          "distance": 0.18,
+          "return": 2.0,
+          "kick_without_weapon": 1.0
+        },
+        "GM4": {
+          "node": "aar11bga",
+          "distance": 0.18,
+          "return": 2.0,
+          "kick_without_weapon": 1.0
+        }
+      }
+    },
+    "avfigh": {
+      "category": "Isolate gun geometry",
+      "action": "Guns share roof/hull/pod weights with fixed structure. Select each visible tube or muzzle sleeve, give it its own recoil child below the existing moving parent, and reweight only that geometry. Split and cap joined boundary faces where necessary. Keep left/right channels independent and use a small machinegun kick; do not recoil the entire carrier.",
+      "bindings": {}
+    },
+    "avhraz": {
+      "category": "Existing gun piece",
+      "action": "Two independent top-gun meshes: ahr11bga / ahr11bgb, each 500 vertices / 636 triangles, weight 1.0 and static native node. Default GR1/GR2 markers are under ahr11rof, but their positions lie inside the corresponding left/right barrel bounds. Bind slot 2 to bga, slot 3 to bgb explicitly; both grktbomb slots need craft recoilKick overrides. No geometry split is needed to move the whole existing top-gun pieces. A tip-only telescoping action would require subdivision/reweighting. Do not recoil the roof.",
+      "bindings": {
+        "GR1": {
+          "node": "ahr11bga",
+          "distance": 0.08,
+          "return": 1.6,
+          "kick_without_weapon": 1.0
+        },
+        "GR2": {
+          "node": "ahr11bgb",
+          "distance": 0.08,
+          "return": 1.6,
+          "kick_without_weapon": 1.0
+        }
+      }
+    },
+    "avland": {
+      "category": "Isolate gun geometry",
+      "action": "The armed lander marker is attached to lla11bda. Identify/select the visible muzzle/emitter and give it a gun-only child; preserve the large landing structure. No ready dedicated cannon-tip node found.",
+      "bindings": {}
+    },
+    "avltnk": {
+      "category": "Isolate gun geometry",
+      "action": "Main gun is weighted to the hull (aln11bda/bln11bda); launcher box is a different part. Isolate the visible cannon/minigun tip and add a recoil child under the hull. Use a separate launcher sleeve if wanted. Black Dog GR1 also lacks a matching rendered marker; use native hardpoint data and verify fit.",
+      "bindings": {}
+    },
+    "avmine": {
+      "category": "Utility only",
+      "action": "Equipped slots deploy mines/support/utility objects. No firearm barrel recoil required. An optional deployment animation is a separate behavior and must not be triggered as cannon recoil.",
+      "bindings": {}
+    },
+    "avrckt": {
+      "category": "Isolate gun geometry",
+      "action": "Rocket/launcher outlets are integrated into body weights. Separate the actual tube mouth/launch rail/sleeve for a short local compression animation; preserve hull and utility hardpoints. Use per-slot launch behavior, not cannon-like whole-body translation. Guided/targeting launchers need their own accepted-fire path support.",
+      "bindings": {}
+    },
+    "avsav": {
+      "category": "Emitter/asset decision",
+      "action": "No independent conventional barrel found for the active weapon. These hull/emitter-driven special units need a deliberate emitter-core/lens mechanism or an authored energy pulse. If mechanical motion is desired, isolate/add a small local piece; do not recoil the complete Fury/special-unit hull or satellite structure.",
+      "bindings": {}
+    },
+    "avtank": {
+      "category": "Existing gun piece",
+      "action": "Existing AGR11BGA cannon binding. Secondary gun is on AGR11BDA and needs gun-only weighting if physical secondary recoil is wanted; do not slide the hull.",
+      "bindings": {
+        "GC1": {
+          "node": "AGR11BGA",
+          "distance": 0.3,
+          "return": 2.5,
+          "kick_without_weapon": 1.0
+        }
+      }
+    },
+    "avtest": {
+      "category": "Rig/animation work",
+      "action": "Separate aVT11bgA/bgb gun pieces have changing native position tracks. This is a drone/debug definition with dummy weapons. Compose recoil with existing animation; do not classify as an immediate static slide target.",
+      "bindings": {}
+    },
+    "avturr": {
+      "category": "Existing gun piece",
+      "action": "Independent barrel tubes aDE11blc/bld/ble/blf, each 116 vertices / 190 triangles. GC1 uses blc; GC2 uses blf. These names are not BG*, so the old heuristic missed them. Static translations allow a node-slide candidate without cutting geometry. Keep the animated deploy base and aiming parents; choose whether a whole barrel cluster or only fired tube should react. Miniguns require a craft kick override.",
+      "bindings": {
+        "GC1": {
+          "node": "aDE11blc",
+          "distance": 0.08,
+          "return": 0.8,
+          "kick_without_weapon": 0.25
+        },
+        "GC2": {
+          "node": "aDE11blf",
+          "distance": 0.08,
+          "return": 0.8,
+          "kick_without_weapon": 0.25
+        }
+      }
+    },
+    "avwalk": {
+      "category": "Isolate gun geometry",
+      "action": "Each cannon shares an aimed arm (age11tx2 / age11tx1). Select the gun end/barrel inside each arm, create independent recoil children and reweight. Keep shoulders, arms and walking animation on their existing bones; do not use one clip that kicks both arms for either shot.",
+      "bindings": {}
+    },
+    "bbtowe": {
+      "category": "Existing gun piece",
+      "action": "Use agn11bgb: 38 vertices / 34 triangles, rigid weight 1.0, native node and static local translation. GC1 is its child. No geometry split needed; tune short tip travel. Preserve ty1/tx1 aim parents.",
+      "bindings": {
+        "GC1": {
+          "node": "agn11bgb",
+          "distance": 0.12,
+          "return": 2.5,
+          "kick_without_weapon": 1.0
+        }
+      }
+    },
+    "bvartl": {
+      "category": "Existing gun piece",
+      "action": "bar11bgd is the default GM1 barrel; the model also has the other separate barrel pieces. No split needed for its existing barrel; preserve deployment and use mortar kick opt-in.",
+      "bindings": {
+        "GM1": {
+          "node": "bar11bgd",
+          "distance": 0.18,
+          "return": 2.0,
+          "kick_without_weapon": 1.0
+        }
+      }
+    },
+    "bvhraz": {
+      "category": "Existing gun piece",
+      "action": "Same separate top-gun layout as NSDF: bhr11bga/bhr11bgb. The default rocket variants use slots 2/3 under the roof; map them explicitly to left/right gun pieces. The bvhraz variant has TAG at GC1 under bga, GM1 utility and Comet at GR1: choose bindings per loadout, not per generic slot index.",
+      "bindings": {
+        "GR1": {
+          "node": "bhr11bga",
+          "distance": 0.08,
+          "return": 1.6,
+          "kick_without_weapon": 1.0
+        },
+        "GR2": {
+          "node": "bhr11bgb",
+          "distance": 0.08,
+          "return": 1.6,
+          "kick_without_weapon": 1.0
+        },
+        "GC1": {
+          "node": "bhr11bga",
+          "distance": 0.08,
+          "return": 1.6,
+          "kick_without_weapon": 1.0
+        }
+      }
+    },
+    "bvltnk": {
+      "category": "Isolate gun geometry",
+      "action": "Main gun is weighted to the hull (aln11bda/bln11bda); launcher box is a different part. Isolate the visible cannon/minigun tip and add a recoil child under the hull. Use a separate launcher sleeve if wanted. Black Dog GR1 also lacks a matching rendered marker; use native hardpoint data and verify fit.",
+      "bindings": {}
+    },
+    "bvmine": {
+      "category": "Utility only",
+      "action": "Equipped slots deploy mines/support/utility objects. No firearm barrel recoil required. An optional deployment animation is a separate behavior and must not be triggered as cannon recoil.",
+      "bindings": {}
+    },
+    "bvmru": {
+      "category": "Utility only",
+      "action": "Equipped slots deploy mines/support/utility objects. No firearm barrel recoil required. An optional deployment animation is a separate behavior and must not be triggered as cannon recoil.",
+      "bindings": {}
+    },
+    "bvraz": {
+      "category": "Isolate gun geometry",
+      "action": "Guns share roof/hull/pod weights with fixed structure. Select each visible tube or muzzle sleeve, give it its own recoil child below the existing moving parent, and reweight only that geometry. Split and cap joined boundary faces where necessary. Keep left/right channels independent and use a small machinegun kick; do not recoil the entire carrier.",
+      "bindings": {}
+    },
+    "bvrckt": {
+      "category": "Isolate gun geometry",
+      "action": "Rocket/launcher outlets are integrated into body weights. Separate the actual tube mouth/launch rail/sleeve for a short local compression animation; preserve hull and utility hardpoints. Use per-slot launch behavior, not cannon-like whole-body translation. Guided/targeting launchers need their own accepted-fire path support.",
+      "bindings": {}
+    },
+    "bvrdev": {
+      "category": "Isolate gun geometry",
+      "action": "Primary and launcher markers are under brd11bda, despite other decorative/aiming pieces existing. Isolate actual gun geometry for cannon/minigun variants and separate launch sleeves where appropriate. Avoid recoiling the entire vehicle shell.",
+      "bindings": {}
+    },
+    "bvtank": {
+      "category": "Existing gun piece",
+      "action": "Existing bGR11BGA cannon binding. GM1 is under the hull and must not blindly reuse the cannon barrel merely because it is spatially nearby.",
+      "bindings": {
+        "GC1": {
+          "node": "bGR11BGA",
+          "distance": 0.3,
+          "return": 2.5,
+          "kick_without_weapon": 1.0
+        }
+      }
+    },
+    "bvturr": {
+      "category": "Existing gun piece",
+      "action": "Independent bDE11blc/bld/ble/blf tubes; GC1 uses blc, GC2 uses blf. Same static tube/deploy hierarchy as NSDF turret. No split needed for an individual tube; configure kick for machinegun variants and per-slot behavior for AT-Stabber variants.",
+      "bindings": {
+        "GC1": {
+          "node": "bDE11blc",
+          "distance": 0.08,
+          "return": 0.8,
+          "kick_without_weapon": 0.25
+        },
+        "GC2": {
+          "node": "bDE11blf",
+          "distance": 0.08,
+          "return": 0.8,
+          "kick_without_weapon": 0.25
+        }
+      }
+    },
+    "bvwalk": {
+      "category": "Isolate gun geometry",
+      "action": "Each cannon shares an aimed arm (age11tx2 / age11tx1). Select the gun end/barrel inside each arm, create independent recoil children and reweight. Keep shoulders, arms and walking animation on their existing bones; do not use one clip that kicks both arms for either shot.",
+      "bindings": {}
+    },
+    "cblasr": {
+      "category": "Emitter/asset decision",
+      "action": "The shipped rendered skeleton has only clz11bda/clz11bdb, while native GC1 is under clz11bdd. Resolve the missing rendered aiming/emitter hierarchy first. A localized lens/nozzle pulse can then use isolated geometry; translating the whole tower top is unsuitable. Beam variants also require producer support.",
+      "bindings": {}
+    },
+    "cbtowe": {
+      "category": "Existing gun piece",
+      "action": "cgt11tx1 owns only the long narrow cannon tube: 444 vertices / 648 triangles, approximately 0.70 x 0.70 x 5.65 m. It is a static native node beneath yaw and owns GC1. Recoil can translate this aimed tube while retaining live orientation. No mesh split needed to move the whole tube; splitting is optional if only its end sleeve should telescope.",
+      "bindings": {
+        "GC1": {
+          "node": "cgt11tx1",
+          "distance": 0.18,
+          "return": 2.0,
+          "kick_without_weapon": 1.0
+        }
+      }
+    },
+    "cr16tow": {
+      "category": "Existing gun piece",
+      "action": "Separate sgn11bgb (GC1) and sgn11bga (GC2) tips. Static native nodes and distinct weighted geometry. Keep shared aiming head stationary in translation. Beam variants still need accepted-fire/runtime support and kick policy; geometry readiness alone does not enable them.",
+      "bindings": {
+        "GC1": {
+          "node": "sgn11bgb",
+          "distance": 0.1,
+          "return": 2.5,
+          "kick_without_weapon": 1.0
+        },
+        "GC2": {
+          "node": "sgn11bga",
+          "distance": 0.1,
+          "return": 2.5,
+          "kick_without_weapon": 1.0
+        }
+      }
+    },
+    "crfraz": {
+      "category": "Emitter/asset decision",
+      "action": "No independent conventional barrel found for the active weapon. These hull/emitter-driven special units need a deliberate emitter-core/lens mechanism or an authored energy pulse. If mechanical motion is desired, isolate/add a small local piece; do not recoil the complete Fury/special-unit hull or satellite structure.",
+      "bindings": {}
+    },
+    "cvartl": {
+      "category": "Isolate gun geometry",
+      "action": "CAR11TX1 owns 5013 vertices including the large aiming housing and all four gun assemblies. Separate each desired barrel/tube from the housing, with children below TX1; preserve aim/deployment. Do not slide the entire 6.9 m-wide aiming assembly for one fired slot.",
+      "bindings": {}
+    },
+    "cvfigh": {
+      "category": "Isolate gun geometry",
+      "action": "Guns share roof/hull/pod weights with fixed structure. Select each visible tube or muzzle sleeve, give it its own recoil child below the existing moving parent, and reweight only that geometry. Split and cap joined boundary faces where necessary. Keep left/right channels independent and use a small machinegun kick; do not recoil the entire carrier.",
+      "bindings": {}
+    },
+    "cvhraz": {
+      "category": "Isolate gun geometry",
+      "action": "Default GR1/GR2 markers are attached to CPX11BDA0 while the physical launcher/side assemblies are weighted with large engine/body pieces. Isolate outlet sleeves or add small moving nozzle parts under the correct pod; do not recoil CPX11BDA0 or an entire engine.",
+      "bindings": {}
+    },
+    "cvhtnk": {
+      "category": "Rig/animation work",
+      "action": "The rendered side gun/sponson assemblies already have separate weighted bones CEM11WGL0 and CEM11WGR1 (1070 vertices each), but these are Ogre-only names, longer than the 8-byte native node route. Native WGL/WGR nodes own only tiny marker geometry. An authored clip/helper can recoil existing assemblies; gun-tip-only action needs a further surface selection/split. Do not translate CEM11BDA.",
+      "bindings": {}
+    },
+    "cvltnk": {
+      "category": "Isolate gun geometry",
+      "action": "GC1 and GR1 are integrated into CNA11BDA. Separate a gun-only tube/sleeve from the hull weights; author independent recoil helper. Preserve the existing rocket hardpoint selection.",
+      "bindings": {}
+    },
+    "cvmine": {
+      "category": "Utility only",
+      "action": "Equipped slots deploy mines/support/utility objects. No firearm barrel recoil required. An optional deployment animation is a separate behavior and must not be triggered as cannon recoil.",
+      "bindings": {}
+    },
+    "cvrckt": {
+      "category": "Isolate gun geometry",
+      "action": "Rocket/launcher outlets are integrated into body weights. Separate the actual tube mouth/launch rail/sleeve for a short local compression animation; preserve hull and utility hardpoints. Use per-slot launch behavior, not cannon-like whole-body translation. Guided/targeting launchers need their own accepted-fire path support.",
+      "bindings": {}
+    },
+    "cvtnk": {
+      "category": "Isolate gun geometry",
+      "action": "Primary and secondary guns are on CYE11BDA; the tall/long cannon does not have its own weighted barrel. Isolate the barrel or front sleeve and add a child, retaining hull/pod parts. Handle dual-gun mission variants separately.",
+      "bindings": {}
+    },
+    "cvturr": {
+      "category": "Isolate gun geometry",
+      "action": "CAD11TX1/TX2 each combine an aiming assembly with multiple barrels. Reweight individual barrel tips beneath those parents and bind slots 1/2/3/4 independently; preserve folded legs and aimed parts.",
+      "bindings": {}
+    },
+    "cvwalk": {
+      "category": "Isolate gun geometry",
+      "action": "Two guns share the aiming head. Add independent weighted gun children beneath the head, retaining aim and gait. Current rendered muzzle names also differ from some native model names; fit from the native fired slots and actual visible barrels. Do not translate the entire head.",
+      "bindings": {}
+    },
+    "sbtowe": {
+      "category": "Existing gun piece",
+      "action": "Separate sgn11bgb (GC1) and sgn11bga (GC2) tips. Static native nodes and distinct weighted geometry. Keep shared aiming head stationary in translation. Beam variants still need accepted-fire/runtime support and kick policy; geometry readiness alone does not enable them.",
+      "bindings": {
+        "GC1": {
+          "node": "sgn11bgb",
+          "distance": 0.1,
+          "return": 2.5,
+          "kick_without_weapon": 1.0
+        },
+        "GC2": {
+          "node": "sgn11bga",
+          "distance": 0.1,
+          "return": 2.5,
+          "kick_without_weapon": 1.0
+        }
+      }
+    },
+    "svartl": {
+      "category": "Rig/animation work",
+      "action": "sar11bgb is already a separate weighted barrel, but its native translation is animated. Use an additive recoil child/helper or a composed firing clip so deployment keys do not fight recoil. No initial geometry split is required for whole-barrel recoil.",
+      "bindings": {}
+    },
+    "svfigh": {
+      "category": "Isolate gun geometry",
+      "action": "Guns share roof/hull/pod weights with fixed structure. Select each visible tube or muzzle sleeve, give it its own recoil child below the existing moving parent, and reweight only that geometry. Split and cap joined boundary faces where necessary. Keep left/right channels independent and use a small machinegun kick; do not recoil the entire carrier.",
+      "bindings": {}
+    },
+    "svhraz": {
+      "category": "Isolate gun geometry",
+      "action": "Default saturation-rocket hardpoints GR1/GR2 belong to shb11bda; there are no independent launcher-barrel bones like the NSDF bomber. Isolate launch-port/nozzle geometry into short-stroke children. The small shb11bdc part belongs to the other-side TAG marker and is not proof of a default rocket barrel.",
+      "bindings": {}
+    },
+    "svltnk": {
+      "category": "Isolate gun geometry",
+      "action": "Both relevant markers are on slt11trt, a small turret/gun housing rather than a dedicated sliding tip. Whole-housing motion is possible as an art choice, but a localized barrel action needs a separate tube/sleeve child and weights; preserve turret aim.",
+      "bindings": {}
+    },
+    "svmine": {
+      "category": "Utility only",
+      "action": "Equipped slots deploy mines/support/utility objects. No firearm barrel recoil required. An optional deployment animation is a separate behavior and must not be triggered as cannon recoil.",
+      "bindings": {}
+    },
+    "svrckt": {
+      "category": "Isolate gun geometry",
+      "action": "Rocket/launcher outlets are integrated into body weights. Separate the actual tube mouth/launch rail/sleeve for a short local compression animation; preserve hull and utility hardpoints. Use per-slot launch behavior, not cannon-like whole-body translation. Guided/targeting launchers need their own accepted-fire path support.",
+      "bindings": {}
+    },
+    "svsav": {
+      "category": "Emitter/asset decision",
+      "action": "No independent conventional barrel found for the active weapon. These hull/emitter-driven special units need a deliberate emitter-core/lens mechanism or an authored energy pulse. If mechanical motion is desired, isolate/add a small local piece; do not recoil the complete Fury/special-unit hull or satellite structure.",
+      "bindings": {}
+    },
+    "svtank": {
+      "category": "Existing gun piece",
+      "action": "Existing SCZ11BGB slot-1 binding. Secondary chaingun is on scz11bda and needs its own gun-only weighting. Utility/Thumper slots must not drive the cannon barrel.",
+      "bindings": {
+        "GC1": {
+          "node": "SCZ11BGB",
+          "distance": 0.2,
+          "return": 2.5,
+          "kick_without_weapon": 1.0
+        }
+      }
+    },
+    "svturr": {
+      "category": "Rig/animation work",
+      "action": "Separate rendered barrels already exist, so geometry cutting is not the first problem. Native GC1 parent is STU11BGC, which exists and owns 314 vertices. Native GC2 parent STU11BGB is absent from the Ogre skeleton; rendered siblings are STU11BGCA/STU11BGCB/STU11BGC. GC markers are absent from the rendered skeleton. Reconcile world rig names/bindings for each tube and preserve the existing deploy/cockpit fix before enabling. One ready tube does not establish dual-slot correctness.",
+      "bindings": {}
+    },
+    "svwalk": {
+      "category": "Isolate gun geometry",
+      "action": "Two guns share the aiming head. Add independent weighted gun children beneath the head, retaining aim and gait. Current rendered muzzle names also differ from some native model names; fit from the native fired slots and actual visible barrels. Do not translate the entire head.",
+      "bindings": {}
+    }
+  }
+}
