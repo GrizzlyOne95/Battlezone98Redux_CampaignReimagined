@@ -551,6 +551,14 @@ The full local-server and 2-4 client recipe is in 5.5.
 - In a scratch instance (`BZRCoopSession.ps1 -Action Prepare`), `require("exu")` fails until `exu.dll` is
   copied to the instance root. A `.bzn` fixture with LF line endings (e.g. `lcbench`) fails with "failed to
   load game files"; convert it to CRLF first. (Legacy AI live test, 2026-11-04.)
+- **CR's `Bin\exu.dll` lags EXU main.** CR ships its own pinned EXU, so an API merged to ExtraUtilities is
+  absent in-game until `-refresh-natives` re-bundles it, and CR's `hasApi` guards skip it silently. Before a
+  live test of a new EXU API, check that the name is in the bundled DLL
+  (`Select-String -Path Bin\exu.dll -Pattern <ApiName> -SimpleMatch -Quiet`). (Hold probe, 2026-11-04: it
+  exercised nothing because `SetAiHold` was not bundled yet.)
+- **Read an OpenShim log line's numbers, not its wording.** On 2026-11-04 the terrain-paint lines said
+  "four-layer" while `slices=18` (eight layers) was active; the wording was stale text. Trust the logged
+  values (`slices=`, counts) over the prose.
 
 ### 5.5 Local server and multi-player co-op testing
 
