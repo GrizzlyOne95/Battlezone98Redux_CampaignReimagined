@@ -190,6 +190,11 @@ function F.makePeer(id, team, network, options)
         return pos and {x = pos.x, y = pos.y, z = pos.z} or {x = 0, y = 0, z = 0}
     end
     e.GetPositionNear = function(pos) return {x = pos.x, y = pos.y, z = pos.z} end
+    e.SetVector = function(x, y, z) return {x = x, y = y, z = z} end
+    e.GetMaxHealth = function(h) return W.objects[h] and (W.objects[h].maxHealth or 1) or 0 end
+    e.SetMaxHealth = function(h, v) if W.objects[h] then W.objects[h].maxHealth = v end; record("SetMaxHealth", h, v) end
+    e.SetCurHealth = function(h, v) record("SetCurHealth", h, v) end
+    e.SetVelocity = function(h, v) record("SetVelocity", h, v) end
     e.IsCraft = function(h) return W.objects[h] ~= nil and W.objects[h].craft == true end
     e.StopCockpitTimer = function() record("StopCockpitTimer") end
     e.HideCockpitTimer = function() record("HideCockpitTimer") end

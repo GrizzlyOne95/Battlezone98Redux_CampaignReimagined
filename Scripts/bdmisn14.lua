@@ -36,6 +36,15 @@ local M = NewState()
 local function Valid(h)
     return h ~= nil and h ~= 0 and IsValid(h)
 end
+-- Stock bug: bd14004 ("that APC's getting a little too close") is on a timer 50 s after the convoy appears and
+-- plays even after the APC is dead ("Good work") or the mission is decided.
+local AudioMessage = (function()
+    local NativeAudioMessage = AudioMessage
+    return function(file)
+        if file == "bd14004.wav" and (M.objective2Complete or M.wonLost) then return 0 end
+        return NativeAudioMessage(file)
+    end
+end)()
 
 local function Health(h)
     -- PORT ADAPTATION: an absent/deleted native object has zero health.

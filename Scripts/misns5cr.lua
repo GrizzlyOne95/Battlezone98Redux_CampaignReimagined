@@ -84,11 +84,6 @@ local IsValid = campaignRuntime and campaignRuntime.IsValid or IsValid
 local IsAlive = campaignRuntime and campaignRuntime.IsAlive or IsAlive
 local GetDistance = campaignRuntime and campaignRuntime.GetDistance or GetDistance
 local SetAIP = campaignRuntime and campaignRuntime.SetAIP or SetAIP
--- Stock bug: misns5.aip asks the Black Dog base for Soviet svturr turrets it cannot build; crns5.aip is the same plan
--- with bvturr.
-local CR_AIP = { ["misns5.aip"] = "crns5.aip" }
-local stockSetAIP = SetAIP
-SetAIP = function(name, team) return stockSetAIP(CR_AIP[name] or name, team) end
 local Goto = campaignRuntime and campaignRuntime.Goto or Goto
 local Attack = campaignRuntime and campaignRuntime.Attack or Attack
 local Defend2 = campaignRuntime and campaignRuntime.Defend2 or Defend2
@@ -183,6 +178,14 @@ function AddObject(h)
         Command(Goto, h, M.recy or GetHandle("svrecy0_recycler"))
     end
 end
+
+-- Stock bug: misns5.aip asks the Black Dog base for Soviet svturr turrets it cannot build; crns5.aip is the same plan
+-- with bvturr.
+local SetAIP = (function()
+    local stockSetAIP = SetAIP
+    local AIP = { ["misns5.aip"] = "crns5.aip" }
+    return function(name, ...) return stockSetAIP(AIP[name] or name, ...) end
+end)()
 
 function Update(dt)
 -- CR co-op callback >>

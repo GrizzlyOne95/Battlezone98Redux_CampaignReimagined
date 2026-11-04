@@ -50,9 +50,9 @@ for wav in wavs:
 durations = (ROOT / "Config/durations.csv").read_text(encoding="utf-8")
 for wav in wavs:
     assert wav + "," in durations, "no duration for " + wav
-# The game ships no unused bd14 voice line: the CR layer plays no line the body does not (its only wav literal is the
-# gate that drops the late bd14004).
-assert set(re.findall(r'"(bd14\d+\.wav)"', cr_text)) == {"bd14004.wav"}
+# The game ships no unused bd14 voice line: the CR layer plays no line the body does not (the gate that drops the
+# late bd14004 lives in the shared body).
+assert not set(re.findall(r'"(bd14\d+\.wav)"', cr_text))
 assert set(re.findall(r'"(bd14\d+\.wav)"', live)) == set(wavs), "the body plays all eight shipped lines"
 otfs = sorted(set(re.findall(r'"(bd14\d+\.otf)"', lua_full)))
 assert otfs == ["bd14001.otf", "bd14002.otf", "bd14003.otf"], otfs

@@ -77,7 +77,7 @@ assert {"avfigh", "avtank", "avltnk", "avrckt", "avturr", "avscav", "avrecy"} ==
 assert scaled <= built_enemy, "every scaled ODF is one the mission builds on the enemy team"
 
 # ---------------------------------------------------------------- stock AIP bug
-assert 'local CR_AIP = { ["misns4.aip"] = "crns4.aip" }' in lua_full, "the AIP substitution is present"
+assert 'local AIP = { ["misns4.aip"] = "crns4.aip" }' in lua_full, "the AIP substitution is present"
 aip = (ROOT / "ODF/crns4.aip").read_text(encoding="utf-8", errors="replace")
 items = re.findall(r'(?m)^\s*\d+,\s*"(\w+)"', aip)
 assert items and all(i.startswith("av") for i in items), "crns4.aip builds only American items: " + str([i for i in items if not i.startswith("av")])

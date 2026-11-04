@@ -178,8 +178,6 @@ end or SetPilot
 -- (team 1 and 0: navs, armoury, Recycler, escorts, decoys, relic) is built directly and never as a ticket.
 local eventFrame, eventWhere
 local BuildObject = campaignRuntime and function(odf, team, where)
-    -- Stock port bug: the C++ path is "recycler"; the port's rename slipped into the string.
-    if where == "M.recycler" then where = "recycler" end
     if team ~= 2 then return NativeBuildObject(odf, team, where) end
     if SCALED_ODFS[odf] then
         local now = GetTime()
@@ -229,13 +227,20 @@ local HideCockpitTimer = campaignRuntime and function() return campaignRuntime.P
 local GetCockpitTimer = campaignRuntime and function() return Restored.TimerLeft() end or GetCockpitTimer
 -- The flash and the blast are local effects: every peer plays its own copy.
 local ColorFade = campaignRuntime and function(...) return campaignRuntime.Present("CH1Fade", ...) end or ColorFade
--- Stock map bug: the path "spawn_explosion1" is not in the map, so the blast had no place. It goes off at the relic.
 local MakeExplosion = campaignRuntime and function(effect, where)
-    if not campaignRuntime.PathExists(where) then where = "relic_loc" end
     return campaignRuntime.Present("CH1Blast", effect, where)
 end or MakeExplosion
 -- CR co-op runtime <<
 local function Valid(h) return h ~= nil and h ~= 0 and IsValid(h) end
+-- Stock map bug: the path "spawn_explosion1" is not in the map; the blast goes off at the relic instead.
+local MakeExplosion = (function()
+    local NativeMakeExplosion = MakeExplosion
+    return function(effect, where)
+        local ok, count = pcall(GetPathPointCount, where)
+        if not (ok and type(count) == "number" and count > 0) then where = "relic_loc" end
+        return NativeMakeExplosion(effect, where)
+    end
+end)()
 local function Alive(h) return Valid(h) and IsAlive(h) end
 local function Health(h)
     -- PORT FIX: deleted objects cannot be queried safely. Treat them as dead,
@@ -641,7 +646,7 @@ function Update(dt)
 
         AudioMessage("ch01005.wav")
 
-        M.recycler = BuildObject("cvrecyd", 1, "M.recycler")
+        M.recycler = BuildObject("cvrecyd", 1, "recycler")
         AddScrap(1, 50)
 
         -- update objectives

@@ -65,10 +65,6 @@ local BuildObject = campaignRuntime and campaignRuntime.Spawn or BuildObject
 local IsAlive = campaignRuntime and campaignRuntime.IsAlive or IsAlive
 local SetScrap = campaignRuntime and campaignRuntime.SetScrap or SetScrap
 local SetAIP = campaignRuntime and campaignRuntime.SetAIP or SetAIP
--- Stock bug: misns6.aip asks the American base for Soviet svturr turrets it cannot build; crns6.aip is the same plan with avturr.
-local CR_AIP = { ["misns6.aip"] = "crns6.aip" }
-local stockSetAIP = SetAIP
-SetAIP = function(name, team) return stockSetAIP(CR_AIP[name] or name, team) end
 local Goto = campaignRuntime and campaignRuntime.Goto or Goto
 local Attack = campaignRuntime and campaignRuntime.Attack or Attack
 local Defend = campaignRuntime and campaignRuntime.Defend or Defend
@@ -220,6 +216,13 @@ function AddObject(h)
     M.miners[closest + 1] = h
     M.next_target = closest
 end
+
+-- Stock bug: misns6.aip asks the American base for Soviet svturr turrets it cannot build; crns6.aip is the same plan with avturr.
+local SetAIP = (function()
+    local stockSetAIP = SetAIP
+    local AIP = { ["misns6.aip"] = "crns6.aip" }
+    return function(name, ...) return stockSetAIP(AIP[name] or name, ...) end
+end)()
 
 function Update(timestep)
 -- CR co-op callback >>
