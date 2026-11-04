@@ -198,7 +198,7 @@ local function makePeer(id, team, network)
             Get = function() return { res = 1, index = p.difficulty } end, ScaleEnemy = function(n) return n end, ScaleRes = function(n) return n end,
             ScaleTimer = function(n) return n end },
         PersistentConfig = { Settings = {}, Initialize = noop, UpdateInputs = noop,
-            UpdateHeadlights = noop }, AutoSave = { Update = function() record("autosave") end },
+            UpdateHeadlights = noop },
     }
     for k, v in pairs(moonModules) do modules[k] = v end
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
@@ -277,7 +277,6 @@ for _, c in ipairs(clients) do
     check(last(c, "SetScrap")[2] == c.team and count(c, "SetScrap") == 1, "resources not owner-local")
     check(count(c, "CameraPath") > 0 and count(c, "clutter") == 1, "client presentation missing")
     check(count(c, "DisableStartingRecycler") == 1 and last(c, "SetLives")[2] == 999, "native co-op hooks absent")
-    check(count(c, "autosave") == 0, "network attempted autosave")
 end
 check(not host.pilotOptions.shouldManageHandle(clients[1].player), "pilot mode claimed human")
 clients[1].skip = true; host.skip = true; tick(0.1); settle()
@@ -330,7 +329,7 @@ check(last(client, "FailMission")[3] == "misn02l1.des" and count(client, "Succee
 -- Offline retains positioning, intro skips, save/load and player-death failure.
 reset(); local solo = makePeer(10, 1, false)
 tick(0.1)
-check(solo.state.camera1 and count(solo, "SetPosition") == 1 and count(solo, "autosave") == 1, "offline startup changed")
+check(solo.state.camera1 and count(solo, "SetPosition") == 1, "offline startup changed")
 check(count(solo, "DisableStartingRecycler") == 0 and #packets == 0, "offline used network")
 solo.skip = true; tick(0.1)
 check(not solo.state.camera3 and solo.state.intro_skipped, "offline skip changed")

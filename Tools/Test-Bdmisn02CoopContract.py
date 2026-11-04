@@ -133,7 +133,8 @@ all_used = used | route_paths
 unused = set(paths) - all_used
 for name in sorted(unused):
     assert "`" + name + "`" in doc, "undocumented unused map path: " + name
-assert unused == {"edge_path", "outer_limits"}, unused
+# TRO 1.3 sends wave 2 straight at the recycler, so its four authored attack paths are no longer used.
+assert unused == {"edge_path", "outer_limits"} | {"wave2_scout%d_attackpath" % i for i in range(1, 5)}, unused
 for word in ("MS_WAITFORFACTORY", "Explode", "bd02lsea.des", "AOI", "RESTORED_BOMBER_ROUTES"):
     assert word in doc, "the doc accounts for " + word
 assert (ROOT / "Docs/CCA_COOP_RUNTIME.md").is_file()

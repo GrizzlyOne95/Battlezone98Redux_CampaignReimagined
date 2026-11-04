@@ -2,7 +2,6 @@
 ---@diagnostic disable: lowercase-global, undefined-global
 local bzfile = require("bzfile")
 local exu = require("exu")
-local autosave = require("AutoSave")
 local RuntimeEnhancements = require("RuntimeEnhancements")
 local CareerStats = require("CareerStats")
 local LogPaths = require("LogPaths")
@@ -18,14 +17,6 @@ PersistentConfig.Channels = {
     PdaFeedback = 2,
 }
 PersistentConfig.Debug = false
-PersistentConfig.ExperimentalOverlayReady = false
-PersistentConfig.ExperimentalOverlayFailed = false
-PersistentConfig.ExperimentalOverlayVisible = false
-PersistentConfig.ExperimentalOverlayExpireAt = 0.0
-PersistentConfig.ExperimentalOverlayDebugBox = false
-PersistentConfig.ExperimentalOverlayForcePixelMetrics = true
-PersistentConfig.ExperimentalOverlayDebugZOrder = 650
-PersistentConfig.ExperimentalOverlayPending = nil
 PersistentConfig.PdaOverlay = {
     ready = false,
     failed = false,
@@ -93,8 +84,6 @@ PersistentConfig.DefaultSettings = {
     AutoRepairWingmen = true,       -- Auto-repair wingmen on by default
     RainbowMode = false,            -- Special color effect
     ScavengerAssistEnabled = false, -- Auto-scavenge for player scavengers
-    AutoSaveEnabled = true,         -- AutoSave enabled by default
-    AutoSaveInterval = 120,         -- Auto-save every 2 minutes
     AutoRepairBuildings = false,    -- Toggle to auto-repair buildings near power
     LightingMode = 1,               -- 1=Default 2=Enhanced 3=Retro
     RetroLighting = false,          -- Legacy compatibility mirror for LightingMode=Retro
@@ -183,15 +172,6 @@ PersistentConfig.RadarUi = {
     min = 0.50,
     max = 2.00,
     step = 0.05,
-}
-PersistentConfig.AutoSaveUi = {
-    filePath = "Save\\auto.sav",
-    fileLabel = "AUTO.SAV",
-    intervalOptions = {
-        { seconds = 120, label = "2 min" },
-        { seconds = 300, label = "5 min" },
-        { seconds = 600, label = "10 min" },
-    },
 }
 PersistentConfig.UnitVoUi = {
     applyTeam = 1,
@@ -606,60 +586,6 @@ function PersistentConfig._ApplyUnitVoSettings()
     return okMuted and okThrottle and okDepth and okStale
 end
 
-function PersistentConfig._GetAutoSaveIntervalOptionIndex(value)
-    local requested = math.floor((tonumber(value) or PersistentConfig.DefaultSettings.AutoSaveInterval) + 0.5)
-    if requested == 200 then
-        return 2
-    end
-
-    local bestIndex = 1
-    local bestDiff = math.huge
-    for index, option in ipairs(PersistentConfig.AutoSaveUi.intervalOptions) do
-        local diff = math.abs(requested - option.seconds)
-        if diff < bestDiff then
-            bestIndex = index
-            bestDiff = diff
-        end
-    end
-    return bestIndex
-end
-
-function PersistentConfig._GetAutoSaveIntervalOption()
-    local index = PersistentConfig._GetAutoSaveIntervalOptionIndex(PersistentConfig.Settings.AutoSaveInterval)
-    return PersistentConfig.AutoSaveUi.intervalOptions[index], index
-end
-
-function PersistentConfig._GetAutoSavePath()
-    return PersistentConfig.AutoSaveUi.filePath or "Save\\auto.sav"
-end
-
-function PersistentConfig._GetAutoSaveFileLabel()
-    return PersistentConfig.AutoSaveUi.fileLabel or "AUTO.SAV"
-end
-
-function PersistentConfig._ClearAutoSaveEnablePrompt()
-    if not InputState then
-        return false
-    end
-
-    local hadPrompt = InputState.autoSaveEnableArmed or InputState.autoSaveConfirmSlot
-    InputState.autoSaveEnableArmed = false
-    InputState.autoSaveConfirmSlot = nil
-    return not not hadPrompt
-end
-
-function PersistentConfig._GetAutoSaveStatusValue()
-    return PersistentConfig.Settings.AutoSaveEnabled and "On" or "Off"
-end
-
-function PersistentConfig._GetAutoSaveEnterHint()
-    return "Enter Toggle"
-end
-
-function PersistentConfig._BuildAutoSaveWarningLines(selectedEntry)
-    return nil
-end
-
 function ClampUnitInterval(value, fallback)
     local n = tonumber(value)
     if not n then return fallback end
@@ -788,51 +714,6 @@ local function GetPdaLayoutMetrics(page)
     }
 end
 
-function PersistentConfig._GetAutoSaveOverlayLayout(pixelMode)
-    local width, height, uiScale = PersistentConfig._GetUiResolutionMetrics()
-    local fontScale = GetSubtitleFontScale()
-    local aspect = width / math.max(height, 1)
-    local aspectScale = math.min(1.35, math.max(0.82, (16.0 / 9.0) / aspect))
-    local uiScaleFactor = math.min(1.30, math.max(0.90, (uiScale / 2.0) ^ 0.32))
-    local compactFontScale = math.min(1.20, math.max(0.92, fontScale ^ 0.45))
-    if pixelMode then
-        local horizontalMargin = math.max(18, math.floor(width * 0.015))
-        local verticalMargin = math.max(18, math.floor(height * 0.028))
-        local wrapWidth = math.max(220, math.floor(width * 0.16))
-        local charHeight = math.max(18, math.floor(18 * uiScaleFactor * compactFontScale))
-        local panelHeight = math.max(42, math.floor(charHeight * 2.1))
-        return {
-            panelX = math.max(horizontalMargin, math.floor((width - wrapWidth) * 0.5)),
-            panelY = math.max(12, height - panelHeight - verticalMargin),
-            wrapWidth = wrapWidth,
-            panelHeight = panelHeight,
-            charHeight = charHeight,
-            textOffsetX = math.floor(wrapWidth * 0.5),
-            textOffsetY = math.max(5, math.floor(charHeight * 0.24)),
-        }
-    end
-
-    local wrapWidth = math.min(0.24, math.max(0.14,
-        0.16 * math.min(1.18, math.max(0.90, 1.0 / aspectScale)) * compactFontScale))
-    local charHeight = math.min(0.026, math.max(0.016, 0.018 * aspectScale * uiScaleFactor * compactFontScale))
-    local panelHeight = math.min(0.060, math.max(0.036, charHeight * 2.1))
-
-    return {
-        panelX = math.max(0.018, (1.0 - wrapWidth) * 0.5),
-        panelY = math.max(0.90, 0.97 - panelHeight),
-        wrapWidth = wrapWidth,
-        panelHeight = panelHeight,
-        charHeight = charHeight,
-        textOffsetX = wrapWidth * 0.5,
-        textOffsetY = 0.003,
-    }
-end
-
-PersistentConfig.ExperimentalOverlayIds = {
-    overlay = "cr_experimental_autosave_overlay",
-    root = "cr_experimental_autosave_overlay_root",
-    text = "cr_experimental_autosave_overlay_text",
-}
 PersistentConfig.ExperimentalOverlayFont = "CRBZoneOverlayFont"
 PersistentConfig.ExperimentalOverlayUseCustomFont = true
 
@@ -844,271 +725,6 @@ local function DisablePdaOverlayCustomFont(reason)
 
     state.useCustomFont = false
     Log("PersistentConfig: disabling custom PDA overlay font fallback (" .. tostring(reason or "unspecified") .. ")")
-end
-
-local function DisableExperimentalOverlayCustomFont(reason)
-    if PersistentConfig.ExperimentalOverlayUseCustomFont == false then
-        return
-    end
-
-    PersistentConfig.ExperimentalOverlayUseCustomFont = false
-    Log("PersistentConfig: disabling custom autosave overlay font fallback (" .. tostring(reason or "unspecified") .. ")")
-end
-
-function PersistentConfig._HideExperimentalOverlay()
-    local ids = PersistentConfig.ExperimentalOverlayIds
-    PersistentConfig.ExperimentalOverlayVisible = false
-    PersistentConfig.ExperimentalOverlayExpireAt = 0.0
-    if exu and exu.HideOverlay then
-        pcall(exu.HideOverlay, ids.overlay)
-    end
-end
-
-function PersistentConfig._DestroyExperimentalOverlay()
-    local ids = PersistentConfig.ExperimentalOverlayIds
-    PersistentConfig.ExperimentalOverlayReady = false
-    PersistentConfig.ExperimentalOverlayVisible = false
-    PersistentConfig.ExperimentalOverlayExpireAt = 0.0
-
-    if not exu then
-        return
-    end
-
-    PersistentConfig._HideExperimentalOverlay()
-    if exu.RemoveOverlayElementChild then
-        pcall(exu.RemoveOverlayElementChild, ids.root, ids.text)
-    end
-    if exu.RemoveOverlay2D then
-        pcall(exu.RemoveOverlay2D, ids.overlay, ids.root)
-    end
-    if exu.DestroyOverlayElement then
-        pcall(exu.DestroyOverlayElement, ids.text)
-        pcall(exu.DestroyOverlayElement, ids.root)
-    end
-    if exu.DestroyOverlay then
-        pcall(exu.DestroyOverlay, ids.overlay)
-    end
-end
-
-function PersistentConfig._TryCreateExperimentalOverlay()
-    local ids = PersistentConfig.ExperimentalOverlayIds
-    if PersistentConfig.ExperimentalOverlayReady then
-        return true
-    end
-
-    if PersistentConfig.ExperimentalOverlayFailed then
-        return false
-    end
-
-    if not exu or not exu.CreateOverlay or not exu.CreateOverlayElement or not exu.AddOverlay2D
-        or not exu.AddOverlayElementChild or not exu.SetOverlayZOrder or not exu.SetOverlayMetricsMode
-        or not exu.SetOverlayPosition or not exu.SetOverlayDimensions or not exu.SetOverlayTextFont
-        or not exu.SetOverlayTextCharHeight or not exu.SetOverlayColor or not exu.SetOverlayCaption
-        or not exu.ShowOverlayElement or not exu.ShowOverlay or not exu.HideOverlay then
-        PersistentConfig.ExperimentalOverlayFailed = true
-        return false
-    end
-
-    PersistentConfig._DestroyExperimentalOverlay()
-
-    local metricsMode = (exu.OVERLAY_METRICS and exu.OVERLAY_METRICS.RELATIVE) or 0
-    if PersistentConfig.ExperimentalOverlayForcePixelMetrics and exu.OVERLAY_METRICS and exu.OVERLAY_METRICS.PIXELS then
-        metricsMode = exu.OVERLAY_METRICS.PIXELS
-    end
-    local layout = PersistentConfig._GetAutoSaveOverlayLayout(
-        metricsMode == (exu.OVERLAY_METRICS and exu.OVERLAY_METRICS.PIXELS))
-    local ok = true
-
-    local function SafeCall(fn, ...)
-        if not ok or type(fn) ~= "function" then
-            return nil
-        end
-
-        local success, result = pcall(fn, ...)
-        if not success then
-            ok = false
-            Log("PersistentConfig: Experimental overlay call failed: " .. tostring(result))
-            return nil
-        end
-        if result == false then
-            ok = false
-            Log("PersistentConfig: Experimental overlay call returned false.")
-        end
-        return result
-    end
-
-    if SafeCall(exu.CreateOverlay, ids.overlay) == false then
-        ok = false
-        Log("PersistentConfig: Experimental overlay creation returned false for overlay " .. tostring(ids.overlay))
-    end
-    if SafeCall(exu.CreateOverlayElement, "Panel", ids.root) == false then
-        ok = false
-        Log("PersistentConfig: Experimental overlay creation returned false for root " .. tostring(ids.root))
-    end
-    if SafeCall(exu.CreateOverlayElement, "TextArea", ids.text) == false then
-        ok = false
-        Log("PersistentConfig: Experimental overlay creation returned false for text " .. tostring(ids.text))
-    end
-    if exu.HasOverlayElement then
-        if SafeCall(exu.HasOverlayElement, ids.root) ~= true or SafeCall(exu.HasOverlayElement, ids.text) ~= true then
-            ok = false
-            Log("PersistentConfig: Experimental overlay elements failed to materialize after creation.")
-        end
-    end
-    SafeCall(exu.AddOverlay2D, ids.overlay, ids.root)
-    SafeCall(exu.AddOverlayElementChild, ids.root, ids.text)
-    local overlayZOrder = ClampRange(PersistentConfig.ExperimentalOverlayDebugZOrder, 0, 650, 640)
-    SafeCall(exu.SetOverlayZOrder, ids.overlay, overlayZOrder)
-
-    SafeCall(exu.SetOverlayMetricsMode, ids.root, metricsMode)
-    SafeCall(exu.SetOverlayPosition, ids.root, layout.panelX, layout.panelY)
-    SafeCall(exu.SetOverlayDimensions, ids.root, layout.wrapWidth, layout.panelHeight)
-    if PersistentConfig.ExperimentalOverlayDebugBox and exu.SetOverlayMaterial then
-        SafeCall(exu.SetOverlayMaterial, ids.root, "CR_UI")
-    end
-    if PersistentConfig.ExperimentalOverlayDebugBox then
-        SafeCall(exu.SetOverlayColor, ids.root, 0.85, 0.10, 0.10, 0.88)
-    else
-        SafeCall(exu.SetOverlayColor, ids.root, 0.0, 0.0, 0.0, 0.55)
-    end
-
-    SafeCall(exu.SetOverlayMetricsMode, ids.text, metricsMode)
-    SafeCall(exu.SetOverlayPosition, ids.text, layout.textOffsetX or 0.010, layout.textOffsetY or 0.006)
-    SafeCall(exu.SetOverlayDimensions, ids.text, layout.wrapWidth, layout.panelHeight)
-    if exu.SetOverlayParameter then
-        SafeCall(exu.SetOverlayParameter, ids.text, "alignment", "center")
-    end
-    local fontBindFailed = false
-    if PersistentConfig.ExperimentalOverlayUseCustomFont then
-        if SafeCall(exu.SetOverlayTextFont, ids.text, PersistentConfig.ExperimentalOverlayFont) ~= true then
-            fontBindFailed = true
-            Log("PersistentConfig: Experimental overlay font bind failed for " .. tostring(PersistentConfig.ExperimentalOverlayFont))
-        end
-    end
-    if fontBindFailed and PersistentConfig.ExperimentalOverlayUseCustomFont then
-        DisableExperimentalOverlayCustomFont("font-bind-failed")
-        PersistentConfig._DestroyExperimentalOverlay()
-        return PersistentConfig._TryCreateExperimentalOverlay()
-    end
-    SafeCall(exu.SetOverlayTextCharHeight, ids.text, layout.charHeight)
-    if exu.SetOverlayTextColor then
-        SafeCall(exu.SetOverlayTextColor, ids.text, 0.82, 1.0, 0.82, 1.0)
-    else
-        SafeCall(exu.SetOverlayColor, ids.text, 0.82, 1.0, 0.82, 1.0)
-    end
-    SafeCall(exu.SetOverlayCaption, ids.text, "")
-    SafeCall(exu.ShowOverlayElement, ids.root)
-    SafeCall(exu.ShowOverlayElement, ids.text)
-    SafeCall(exu.HideOverlay, ids.overlay)
-
-    if PersistentConfig.ExperimentalOverlayUseCustomFont and type(exu.SetOverlayMaterial) == "function" then
-        SafeCall(exu.SetOverlayMaterial, ids.text, "CR_OverlayFont")
-    end
-
-    if ok then
-        PersistentConfig.ExperimentalOverlayReady = true
-        PersistentConfig.ExperimentalOverlayFailed = false
-        Log("PersistentConfig: Experimental EXU overlay initialized for notifications.")
-    else
-        PersistentConfig.ExperimentalOverlayFailed = true
-        PersistentConfig._DestroyExperimentalOverlay()
-    end
-
-    return ok
-end
-
-function PersistentConfig._ShowAutoSaveOverlayNow(msg, duration, r, g, b)
-    local ids = PersistentConfig.ExperimentalOverlayIds
-    if not msg or msg == "" then
-        return false
-    end
-
-    if not PersistentConfig._TryCreateExperimentalOverlay() then
-        return false
-    end
-
-    local metricsMode = (exu.OVERLAY_METRICS and exu.OVERLAY_METRICS.RELATIVE) or 0
-    if PersistentConfig.ExperimentalOverlayForcePixelMetrics and exu.OVERLAY_METRICS and exu.OVERLAY_METRICS.PIXELS then
-        metricsMode = exu.OVERLAY_METRICS.PIXELS
-    end
-    local layout = PersistentConfig._GetAutoSaveOverlayLayout(
-        metricsMode == (exu.OVERLAY_METRICS and exu.OVERLAY_METRICS.PIXELS))
-    local ok = true
-
-    local function SafeCall(fn, ...)
-        if not ok or type(fn) ~= "function" then
-            return nil
-        end
-
-        local success, result = pcall(fn, ...)
-        if not success then
-            ok = false
-            Log("PersistentConfig: Autosave overlay call failed: " .. tostring(result))
-            return nil
-        end
-        if result == false then
-            ok = false
-            Log("PersistentConfig: Autosave overlay call returned false.")
-        end
-        return result
-    end
-
-    SafeCall(exu.SetOverlayPosition, ids.root, layout.panelX, layout.panelY)
-    SafeCall(exu.SetOverlayDimensions, ids.root, layout.wrapWidth, layout.panelHeight)
-    if PersistentConfig.ExperimentalOverlayDebugBox and exu.SetOverlayMaterial then
-        SafeCall(exu.SetOverlayMaterial, ids.root, "CR_UI")
-    end
-    if PersistentConfig.ExperimentalOverlayDebugBox then
-        SafeCall(exu.SetOverlayColor, ids.root, 0.85, 0.10, 0.10, 0.88)
-    else
-        SafeCall(exu.SetOverlayColor, ids.root, 0.0, 0.0, 0.0, 0.55)
-    end
-    SafeCall(exu.SetOverlayDimensions, ids.text, layout.wrapWidth, layout.panelHeight)
-    SafeCall(exu.SetOverlayPosition, ids.text, layout.textOffsetX or 0.010, layout.textOffsetY or 0.006)
-    SafeCall(exu.SetOverlayTextCharHeight, ids.text, layout.charHeight)
-    local textR, textG, textB = r or 0.82, g or 1.0, b or 0.82
-    if PersistentConfig.ExperimentalOverlayDebugBox then
-        textR, textG, textB = 0.0, 0.0, 0.0
-    end
-    if exu.SetOverlayTextColor then
-        SafeCall(exu.SetOverlayTextColor, ids.text, textR, textG, textB, 1.0)
-    else
-        SafeCall(exu.SetOverlayColor, ids.text, textR, textG, textB, 1.0)
-    end
-    SafeCall(exu.SetOverlayCaption, ids.text, msg)
-    SafeCall(exu.ShowOverlayElement, ids.root)
-    SafeCall(exu.ShowOverlayElement, ids.text)
-    SafeCall(exu.ShowOverlay, ids.overlay)
-
-    if not ok then
-        PersistentConfig.ExperimentalOverlayReady = false
-        PersistentConfig.ExperimentalOverlayFailed = true
-        PersistentConfig._DestroyExperimentalOverlay()
-        return false
-    end
-
-    PersistentConfig.ExperimentalOverlayVisible = true
-    PersistentConfig.ExperimentalOverlayExpireAt = GetTime() + math.max(tonumber(duration) or 5.0, 0.1)
-    Log(string.format("PersistentConfig: Autosave overlay shown text=%q font=%s panelMaterial=CR_UI pos=(%.3f,%.3f) size=(%.3f,%.3f) debugBox=%s",
-        msg, PersistentConfig.ExperimentalOverlayUseCustomFont and tostring(PersistentConfig.ExperimentalOverlayFont) or "disabled",
-        layout.panelX, layout.panelY, layout.wrapWidth, layout.panelHeight,
-        tostring(PersistentConfig.ExperimentalOverlayDebugBox)))
-    return true
-end
-
-function PersistentConfig.TryShowAutoSaveOverlayInfo(msg, duration, r, g, b)
-    if not msg or msg == "" then
-        return false
-    end
-
-    local now = GetTime()
-    if now < 0.75 then
-        PersistentConfig.ExperimentalOverlayPending = nil
-        Log("PersistentConfig: Autosave overlay deferred to mission overlay fallback because startup is too early.")
-        return false
-    end
-
-    return PersistentConfig._ShowAutoSaveOverlayNow(msg, duration, r, g, b)
 end
 
 function PersistentConfig._NormalizeOverlayText(text)
@@ -1567,9 +1183,6 @@ end
 
 function PersistentConfig.EnableOverlayRendererForSession()
     Log("PersistentConfig: EnableOverlayRendererForSession invoked; clearing overlay state for current session.")
-    PersistentConfig._DestroyExperimentalOverlay()
-    PersistentConfig.ExperimentalOverlayFailed = false
-    PersistentConfig.ExperimentalOverlayVisible = false
     PersistentConfig._DestroyAllPdaOverlays()
     PersistentConfig._ResetPdaOverlayState()
 end
@@ -2378,7 +1991,6 @@ InputState = {
     lastWeaponText = nil,
     lastWeaponTarget = nil,
     lastUnitVoTeam = nil,
-    autoSaveStartupPending = false,
     nextWeaponHudCheck = 0.0,
     nextPdaOverlayRefresh = 0.0,
     pdaOverlayRefreshPending = false,
@@ -2405,8 +2017,6 @@ InputState = {
     queueProducerIndex = 1,
     queueRow = 1,
     pendingGameKeys = {},
-    autoSaveEnableArmed = false,
-    autoSaveConfirmSlot = nil,
     processedCreationHandles = {},
     otherHeadlightVisibility = {},
     otherHeadlightsDirty = true,
@@ -2612,26 +2222,6 @@ function PersistentConfig._SyncOpenShimCampaignVisualSettings(force)
             " from " .. tostring(found and sourcePath or "OpenShim defaults"))
     end
     return true
-end
-
-function PersistentConfig._SyncLegacyAutoSaveFallback()
-    if not autosave or not autosave.Config then
-        return false
-    end
-
-    local useLegacyLuaAutoSave = not PersistentConfig._OpenShimOwnsPersistentSettings()
-    autosave.Config.enabled = useLegacyLuaAutoSave and not not PersistentConfig.Settings.AutoSaveEnabled or false
-    autosave.Config.autoSaveInterval = PersistentConfig.Settings.AutoSaveInterval
-    autosave.Config.currentPath = PersistentConfig._GetAutoSavePath()
-
-    if not autosave.Config.enabled then
-        autosave._forceInitialSave = false
-        if InputState then
-            InputState.autoSaveStartupPending = false
-        end
-    end
-
-    return useLegacyLuaAutoSave
 end
 
 local function HasOdfNumber(value, found)
@@ -5446,9 +5036,6 @@ function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
     if options and options.syncScavengerAssist and aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
         aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", PersistentConfig.Settings.ScavengerAssistEnabled)
     end
-    if options and options.syncAutoSave then
-        PersistentConfig._SyncLegacyAutoSaveFallback()
-    end
 
     if options and options.rebuildOverlay then
         RebuildPdaOverlay()
@@ -5713,58 +5300,6 @@ function PersistentConfig._SettingsActions.CycleLightingMode(delta)
     ShowSettingsFeedback("Lighting Mode: " .. ((preset and preset.name) or "DEFAULT"),
         0.8, 1.0, 0.8, 3.0)
     return true
-end
-
-function PersistentConfig._SettingsActions.SetAutoSaveEnabled(enabled)
-    local value = not not enabled
-    local interval = PersistentConfig._GetAutoSaveIntervalOption()
-
-    if not value then
-        PersistentConfig._ClearAutoSaveEnablePrompt()
-    end
-    if PersistentConfig.Settings.AutoSaveEnabled == value then
-        return false
-    end
-
-    PersistentConfig.Settings.AutoSaveEnabled = value
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncAutoSave = true })
-    if autosave then
-        autosave._initialDelayDeadline = nil
-        autosave._wasEnabled = false
-        if not value then
-            autosave._forceInitialSave = false
-        else
-            autosave._forceInitialSave = true
-            InputState.autoSaveStartupPending = true
-        end
-    end
-    if value then
-        ShowSettingsFeedback(string.format("Auto-Save: ON (%s)", interval.label), 0.8, 1.0, 0.8)
-    else
-        ShowSettingsFeedback("Auto-Save: OFF", 0.8, 1.0, 0.8)
-    end
-    return true
-end
-
-function PersistentConfig._AdjustAutoSaveInterval(delta)
-    local direction = ((delta or 0) < 0) and -1 or 1
-    local _, currentIndex = PersistentConfig._GetAutoSaveIntervalOption()
-    local nextIndex = CycleIndex(currentIndex, #PersistentConfig.AutoSaveUi.intervalOptions, direction, currentIndex)
-    if nextIndex == currentIndex then
-        return false
-    end
-
-    local option = PersistentConfig.AutoSaveUi.intervalOptions[nextIndex]
-    PersistentConfig.Settings.AutoSaveInterval = option.seconds
-    PersistentConfig._ClearAutoSaveEnablePrompt()
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncAutoSave = true })
-    ShowSettingsFeedback("Auto-Save Interval: " .. option.label, 0.8, 1.0, 0.8)
-    return true
-end
-
-function PersistentConfig._HandleAutoSaveEnableAction()
-    PersistentConfig._ClearAutoSaveEnablePrompt()
-    return PersistentConfig._SettingsActions.SetAutoSaveEnabled(not PersistentConfig.Settings.AutoSaveEnabled)
 end
 
 -- Pilot Mode is single-player only; the toggle is locked in any network game.
@@ -6057,12 +5592,8 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.RainbowMode = (val == "true")
                 elseif key == "ScavengerAssistEnabled" then
                     PersistentConfig.Settings.ScavengerAssistEnabled = (val == "true")
-                elseif key == "AutoSaveSlot" then
-                    -- Legacy key from the pre-OpenShim autosave slot workflow. Ignore it.
-                elseif key == "AutoSaveEnabled" then
-                    PersistentConfig.Settings.AutoSaveEnabled = (val == "true")
-                elseif key == "AutoSaveInterval" then
-                    PersistentConfig.Settings.AutoSaveInterval = tonumber(val) or 300
+                elseif key == "AutoSaveSlot" or key == "AutoSaveEnabled" or key == "AutoSaveInterval" then
+                    -- Legacy autosave keys (OpenShim owns autosave now). Ignore them.
                 elseif key == "AutoRepairBuildings" then
                     PersistentConfig.Settings.AutoRepairBuildings = (val == "true")
                 elseif key == "LightingMode" then
@@ -6192,7 +5723,6 @@ function PersistentConfig.LoadConfig()
     PersistentConfig.Settings.ScrapPilotHudLayout = ClampIndex(PersistentConfig.Settings.ScrapPilotHudLayout, 1,
         #ScrapPilotHudLayouts, 2)
     PersistentConfig.Settings.RadarSizeScale = GetRadarSizeScaleSetting()
-    PersistentConfig.Settings.AutoSaveInterval = PersistentConfig._GetAutoSaveIntervalOption().seconds
     PersistentConfig._SetLightingModeIndex(PersistentConfig.Settings.LightingMode)
     return loadResult
 end
@@ -6230,8 +5760,6 @@ function PersistentConfig.SaveConfig()
         f:Writeln("SurfaceEffects=" .. tostring(PersistentConfig.Settings.SurfaceEffects))
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
-        f:Writeln("AutoSaveEnabled=" .. tostring(PersistentConfig.Settings.AutoSaveEnabled))
-        f:Writeln("AutoSaveInterval=" .. tostring(PersistentConfig.Settings.AutoSaveInterval))
         f:Writeln("ScavengerAssistEnabled=" .. tostring(PersistentConfig.Settings.ScavengerAssistEnabled))
         f:Writeln("AutoRepairBuildings=" .. tostring(PersistentConfig.Settings.AutoRepairBuildings))
         f:Writeln("LightingMode=" .. tostring(PersistentConfig.Settings.LightingMode))
@@ -6287,8 +5815,6 @@ function PersistentConfig.ResetToDefaults()
     PersistentConfig.SaveConfig()
     PersistentConfig.ApplySettings()
     MarkOtherHeadlightsDirty()
-
-    PersistentConfig._SyncLegacyAutoSaveFallback()
 
     ShowSettingsFeedback("Settings reset to defaults.", 0.7, 1.0, 0.7, 4.0)
 end
@@ -6534,35 +6060,10 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     PersistentConfig.CoopPda.UpdatePage(InputState)
     PersistentConfig.CoopPingHud.Update()
 
-    if autosave and autosave.Config and type(autosave.Update) == "function" then
-        if not autosave.Config.enabled then
-            InputState.autoSaveStartupPending = false
-        elseif not uiInteractionSuppressed then
-            autosave.Update(0.0)
-            InputState.autoSaveStartupPending = false
-        end
-    else
-        InputState.autoSaveStartupPending = false
-    end
-
-    if PersistentConfig.ExperimentalOverlayVisible then
-        local hideAt = PersistentConfig.ExperimentalOverlayExpireAt or 0.0
-        if uiInteractionSuppressed or GetTime() >= hideAt then
-            PersistentConfig._HideExperimentalOverlay()
-        end
-    end
-
     InputState.SubtitlesPaused = uiInteractionSuppressed
     local scriptSubtitles = GetScriptSubtitles()
     if scriptSubtitles and scriptSubtitles.SetSuspended then
         scriptSubtitles.SetSuspended(InputState.SubtitlesPaused)
-    end
-
-    local pendingOverlay = PersistentConfig.ExperimentalOverlayPending
-    if pendingOverlay and not InputState.SubtitlesPaused and GetTime() >= (pendingOverlay.readyAt or 0.0) then
-        PersistentConfig.ExperimentalOverlayPending = nil
-        PersistentConfig._ShowAutoSaveOverlayNow(pendingOverlay.msg, pendingOverlay.duration, pendingOverlay.r,
-            pendingOverlay.g, pendingOverlay.b)
     end
 
     PersistentConfig._UpdatePdaOverlayTimers()
@@ -6730,14 +6231,12 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     local right_bracket_pressed = PersistentConfig.R.ConsumePendingGameKeyMatch({ "]", "}", "SHIFT+]", "OEM_6", "RBRACKET", "RIGHTBRACKET" })
 
     if left_bracket_pressed then
-        PersistentConfig._ClearAutoSaveEnablePrompt()
         InputState.pdaPage = PersistentConfig.CoopPda.CyclePage(InputState.pdaPage, -1)
         PlayPdaSound("mnu_back.wav")
         ClearPdaFeedback()
         RefreshPdaOverlay()
     end
     if right_bracket_pressed then
-        PersistentConfig._ClearAutoSaveEnablePrompt()
         InputState.pdaPage = PersistentConfig.CoopPda.CyclePage(InputState.pdaPage, 1)
         PlayPdaSound("mnu_next.wav")
         ClearPdaFeedback()
@@ -6785,12 +6284,10 @@ function PersistentConfig.UpdateInputs(cinematicActive)
         InputState.pdaSettingsIndex = NormalizeSettingsSelection(settingsEntries, InputState.pdaSettingsIndex)
 
         if pda_up_key then
-            PersistentConfig._ClearAutoSaveEnablePrompt()
             InputState.pdaSettingsIndex = FindNextSelectableSettingsIndex(settingsEntries, InputState.pdaSettingsIndex, -1)
             PlayPdaSound("mnu_clik.wav")
             RefreshPdaOverlay()
         elseif pda_down_key then
-            PersistentConfig._ClearAutoSaveEnablePrompt()
             InputState.pdaSettingsIndex = FindNextSelectableSettingsIndex(settingsEntries, InputState.pdaSettingsIndex, 1)
             PlayPdaSound("mnu_clik.wav")
             RefreshPdaOverlay()
@@ -7293,8 +6790,6 @@ function PersistentConfig.Initialize()
     PersistentConfig.CoopPingHud.Destroy()
     InputState.missionEnded = false
     InputState.missionEndCleanupDone = false
-    PersistentConfig._DestroyExperimentalOverlay()
-    PersistentConfig.ExperimentalOverlayFailed = false
     PersistentConfig.ExperimentalOverlayUseCustomFont = true
     PersistentConfig._DestroyAllPdaOverlays()
     PersistentConfig._ResetPdaOverlayState()
@@ -7311,11 +6806,6 @@ function PersistentConfig.Initialize()
     local configLoadResult = PersistentConfig.LoadConfig()
     WarnIfNativeFeaturesUnavailable()
     OpenShimInstaller.CheckOnce(ShowFeedback)
-
-    -- Reset Passive Tracking in AutoSave
-    if autosave then
-        autosave.ActiveObjectives = {}
-    end
 
     -- Default Auto-Repair based on difficulty if not explicitly set in config
     if PersistentConfig.Settings.AutoRepairWingmen == nil then
@@ -7367,19 +6857,6 @@ function PersistentConfig.Initialize()
         end,
     })
     MarkOtherHeadlightsDirty()
-
-    -- OpenShim owns the visible persistent AutoSave controls on modern builds.
-    -- The Lua implementation remains only as a compatibility fallback when the
-    -- canonical native settings owner is unavailable.
-    local usingLegacyLuaAutoSave = PersistentConfig._SyncLegacyAutoSaveFallback()
-    if autosave and autosave.Config then
-        autosave._forceInitialSave = autosave.Config.enabled and true or false
-        InputState.autoSaveStartupPending = autosave.Config.enabled and true or false
-        print("PersistentConfig: Lua AutoSave fallback=" .. tostring(usingLegacyLuaAutoSave) ..
-            " enabled=" .. tostring(autosave.Config.enabled) ..
-            " interval=" .. tostring(autosave.Config.autoSaveInterval) ..
-            " path=" .. tostring(autosave.Config.currentPath))
-    end
 
     -- Show help reminder on every mission start
     PersistentConfig.ShowHelp()

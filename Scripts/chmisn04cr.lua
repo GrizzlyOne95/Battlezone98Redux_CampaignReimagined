@@ -51,7 +51,7 @@ local remoteInfo = {}
 -- A save during a shot cannot resume it (the cameras are gone). In a network game a shot also ends at its flight
 -- time plus a margin: a skip releases only the skipper's own native camera. CAMERA_ETA is path length / (speed / 100)
 -- in seconds (Tools/Test-Chmisn04CoopContract.py recomputes it from the map).
-local CAMERA_ETA = { camera_start = 18.67, auto_end = 2.51 }
+local CAMERA_ETA = { camera_start = 18.67, auto_end = 1.67 } -- auto_end flies at 4500 (TRO 1.3)
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "chmisn04cr", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "factory" }, -- respawn at the shared base: the Chinese factory beside the portal
@@ -824,6 +824,7 @@ function Update(dt)
                 for i = 0, M.uptonavpoint do Remove(M.navPoints[i]) end
                 HideCockpitTimer()
                 M.missionState = MS_WAITFORID
+                M.stateTimer = GetTime() + 20 -- TRO 1.3: 20 s fallback if the player never reaches trigger_1 (FUN_005b33a0)
                 ResetObjectives()
                 -- Cut SetUserTarget(target_silo)/nav_silo beacon: source archive.
                 Perceived(2)
@@ -840,7 +841,7 @@ function Update(dt)
     elseif M.missionState == MS_WAITFORID then
         M.target_silo_inspected = InspectSilo()
         -- Disabled cloak/distance<=400 detection and ch04002: source archive.
-        if Distance(M.user, "trigger_1") <= 70 or M.target_silo_inspected then
+        if Distance(M.user, "trigger_1") <= 70 or M.target_silo_inspected or M.stateTimer < GetTime() then
             M.soundHandle = nil
             M.missionState = WS_WAITFORSOUND2
         end
@@ -938,7 +939,7 @@ function Update(dt)
         -- victory timing are unchanged.
         local arrived = false
         if not M.endNear then
-            arrived = CameraPathDir("auto_end", 500, 3000)
+            arrived = CameraPathDir("auto_end", 500, 4500) -- TRO 1.3: 4500 (FUN_005b33a0)
         else
             CameraPathDir("auto_end", 500, 0)
         end

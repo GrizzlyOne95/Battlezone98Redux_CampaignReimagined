@@ -20,8 +20,15 @@ weaponName1 = "gatstaba"
 // Flash point from the hardpoint (right up forward, metres: barrel tip, or 0 0 0 at
 // a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
 // Regenerate: Tools/Build-WeaponFlashes.py --measure
-flashOffset1 = "0.00 0.00 0.00"
+flashOffset1 = "0.10 0.00 0.26"
 // CR CRAFT FLASH OFFSET END
+// CR CRAFT RECOIL BEGIN
+// Reviewed independent gun pieces; preserve aiming and deployment parents.
+// Regenerate: python Tools/Build-CombatPresentation.py
+recoilName1 = "cgt11tx1"
+recoilDistance1 = 0.18
+recoilReturn1 = 2.0
+// CR CRAFT RECOIL END
 rangeScan = 180.0
 periodScan = 0.0
 velocJam = 0.0

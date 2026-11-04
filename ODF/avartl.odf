@@ -30,6 +30,26 @@ flashOffset2 = "0.04 -0.06 0.74"
 flashOffset3 = "0.00 -0.07 0.68"
 flashOffset4 = "-0.01 -0.08 0.72"
 // CR CRAFT FLASH OFFSET END
+// CR CRAFT RECOIL BEGIN
+// Reviewed independent gun pieces; preserve aiming and deployment parents.
+// Regenerate: python Tools/Build-CombatPresentation.py
+recoilName1 = "aar11bgd"
+recoilDistance1 = 0.18
+recoilReturn1 = 2.0
+recoilKick1 = 1.0
+recoilName2 = "aar11bgc"
+recoilDistance2 = 0.18
+recoilReturn2 = 2.0
+recoilKick2 = 1.0
+recoilName3 = "aar11bgb"
+recoilDistance3 = 0.18
+recoilReturn3 = 2.0
+recoilKick3 = 1.0
+recoilName4 = "aar11bga"
+recoilDistance4 = 0.18
+recoilReturn4 = 2.0
+recoilKick4 = 1.0
+// CR CRAFT RECOIL END
 rangeScan = 459.99999999999994
 periodScan = 5.0f
 velocJam = 0.0f

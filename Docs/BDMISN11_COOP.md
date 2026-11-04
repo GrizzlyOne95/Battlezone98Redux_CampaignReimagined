@@ -162,7 +162,7 @@ paths, the Chinese base (map-native enemy content) and the Black Dog tanks and e
 - **Pilots and scrap** per human team / per guest (see "Teams").
 - **Objectives, markers and the countdown after a load** (see "Presentation survives a load").
 - The body already carries its own documented port fixes (null-handle guards, the missing second aerial drop, the pilot
-  health reset, the approximated path end at 25 m).
+  health reset, the path end at the TRO 1.3 12 m 2D radius).
 
 Stock fix, post-blast Recycler loss: a Recycler destroyed after the blast sets the body's `lost` flag, the shared
 failure is ignored by `wonFlags`, and the body's win check needs `not M.lost`, so stock would hang. `Restored.Step`

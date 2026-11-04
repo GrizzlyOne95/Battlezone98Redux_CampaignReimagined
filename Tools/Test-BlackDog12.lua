@@ -193,20 +193,23 @@ for _, wave in ipairs(waves) do
     check(#m:events("BuildObject") == 0, "wave only once")
 end
 
-m:clear(); m:step(546); check(#m:events("BuildObjectAtPortal") == 0, "strict tank timer")
-m:step(546.1); m:step(552.1)
-local reinforcement = m:events("BuildObjectAtPortal")
-check(#reinforcement == 3 and reinforcement[1][2] == "bvtank" and
-      reinforcement[2][2] == "bvtank" and reinforcement[3][2] == "bvfigh", "native escort order")
-check(#m:events("Goto") == 3 and m:events("Goto")[1][3] == "follow" and
-      m:events("Goto")[1][4] == 1, "reinforcement route/priority")
-m:step(554.1); check(#m:events("DeactivatePortal") == 1, "native early portal close")
-m:step(555.1)
-check(m.env.Save().objective1Complete and not m.env.Save().objective2Complete, "live goals block win")
+-- TRO 1.3: the portal opens at 778 s, the recycler arrives at 780 s, the escorts follow at
+-- 786/792 s, the portal closes at 794 s and the objective advances at 795 s.
+m:clear(); m:step(778); check(#m:events("BuildObjectAtPortal") == 0, "strict portal timer")
 m:step(778.1)
 check(#m:events("PortalOut") == 1 and #m:events("ActivatePortal") == 1, "outward portal")
 m:step(780.1)
-check(m:events("BuildObjectAtPortal")[4][2] == "bvrecyd", "13-minute recycler retained")
+check(m:events("BuildObjectAtPortal")[1][2] == "bvrecyd", "13-minute recycler retained")
+m:step(786); check(#m:events("BuildObjectAtPortal") == 1, "strict tank timer")
+m:step(786.1); m:step(792.1)
+local reinforcement = m:events("BuildObjectAtPortal")
+check(#reinforcement == 4 and reinforcement[2][2] == "bvtank" and
+      reinforcement[3][2] == "bvtank" and reinforcement[4][2] == "bvfigh", "native escort order")
+check(#m:events("Goto") == 4 and m:events("Goto")[1][3] == "follow" and
+      m:events("Goto")[1][4] == 1, "recycler and reinforcement route/priority")
+m:step(794.1); check(#m:events("DeactivatePortal") == 1, "portal closes after the escorts")
+m:step(795.1)
+check(m.env.Save().objective1Complete and not m.env.Save().objective2Complete, "live goals block win")
 check(m.env.Save().recycler ~= nil, "recycler handle retained")
 
 -- Thresholds, voice mapping, dead infrastructure and one-shot counterattacks.
@@ -273,14 +276,10 @@ check(#s:events("CameraReady") == 0 and #s:events("AudioMessage") == 0 and
       #s:events("StopAudioMessage") == 1, "load continues active intro")
 s:step(121); s:clear(); s.env.Load(clone(s.env.Save())); s:step(122)
 check(#s:events("BuildObject") == 0 and #s:events("SetScrap") == 0, "load does not repeat waves/setup")
-local scrap = NewMission(); scrap:camera(true, false); scrap:step(0); scrap:step(60)
-check(#scrap:events("BuildObject") == 0, "strict scrap boundary")
-scrap:step(60.1); scrap:step(120.1)
+local scrap = NewMission(); scrap:camera(true, false); scrap:step(0); scrap:step(60.1); scrap:step(180.1)
 local scrapCount = 0
 for _, e in ipairs(scrap:events("BuildObject")) do
     if e[2] == "npscr1" then scrapCount = scrapCount + 1 end
 end
-check(scrapCount == 6, "scrap cadence relative to actual spawn")
-scrap:clear(); scrap:step(120.2)
-check(#scrap:events("BuildObject") == 6, "six scrap on next minute")
+check(scrapCount == 0, "TRO 1.3 spawns no scrap")
 print("BlackDog12: " .. checks .. " behavior checks passed (" .. _VERSION .. ")")

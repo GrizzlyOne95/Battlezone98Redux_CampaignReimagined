@@ -20,7 +20,7 @@ blocks; no inactive content has been enabled in Lua.
 - Keep resources (50 player scrap, 10 enemy scrap, 10 player pilots), all 36
   timed enemy units, exact spawn paths/ODFs/targets, all priority-1 commands,
   defender relationships and uncloaked walkers.
-- Keep four portal reinforcements, six scrap per minute, eight independent
+- Keep four portal reinforcements, eight independent
   quarter-health warnings and two counterattack tanks per destroyed
   shield/power pair.
 - Keep intro cancellation, objective transitions, all-goals-dead victory,
@@ -44,18 +44,13 @@ Each fix is documented inline:
 3. Missing narration handles count as completed for endings. Successful
    narration retains the original completion gate and ending delay.
 
-## Timing conflict preserved
+## Timing aligned to TRO 1.3
 
-The source schedules the recycler at `13 * 60` (780 seconds), despite its
-“9 minutes” comment. The portal opens at 778 seconds, but closes at 554;
-the tanks arrive at 546, the fighter at 552 and the next objective at 555.
-All times are relative to initial delay setup except scrap's initial absolute
-60-second timer. These exact expressions and event order are retained.
-
-Changing the recycler to 540 seconds, or moving escorts/closure/objectives
-to 13 minutes, would change the defense duration and progression. The source
-alone does not establish which change was intended, so the discrepancy is
-flagged rather than silently retimed.
+The C++ source schedules the recycler at `13 * 60` (780 seconds) but the escorts at 546/552 s and the objective advance
+at 555 s, with the portal opening at 778 s and closing at 554 s. The shipped TRO 1.3 executable (FUN_005aa100) has
+the recycler at 780 s, the escorts at 786 s and 792 s, the portal open 778-794 s and the objective advance at 795 s,
+and it spawns no scrap (`scrap_1`/`scrap_2` are never used). The Lua follows TRO 1.3 on both counts; the six
+`npscr1` pickups per minute from the C++ source are gone.
 
 ## Validation
 

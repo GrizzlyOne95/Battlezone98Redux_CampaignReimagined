@@ -274,9 +274,12 @@ local function AtEndOfPath(h, path)
     -- stock zero-based path queries, explicitly checking the LAST waypoint.
     -- Its implementation/radius is absent from the supplied source. 25 m is
     -- an explicit provisional tolerance; validate against the original map.
-    -- This approximates native arrival; it is not a recovered native radius.
+    -- TRO 1.3: 2D (x,z) distance to the last waypoint < 12 m (FUN_005b0460).
     local count = GetPathPointCount(path)
-    return Health(h) > 0.0 and count > 0 and Distance(h, path, count - 1) < 25.0
+    if Health(h) <= 0.0 or count <= 0 then return false end
+    local p, e = GetPosition(h), GetPosition(path, count - 1)
+    local dx, dz = p.x - e.x, p.z - e.z
+    return math.sqrt(dx * dx + dz * dz) < 12.0
 end
 
 local function getLiveApc()
@@ -699,6 +702,12 @@ function Update(dt)
         SetCommand(M.walker, AiCommand.RECYCLE, 1)
         M.walker = nil
         AudioMessage("ch02008.wav")
+        -- TRO 1.3: arrival turns ch02003 green and lists ch02002 once the convoy exists (FUN_005b0460)
+        M.objective2Complete = true
+        ClearObjectives()
+        AddObjective("ch02001.otf", "white")
+        AddObjective("ch02003.otf", "green")
+        if M.apcSpawned then AddObjective("ch02002.otf", "white") end
     end
     if M.hangarAttack5Time < GetTime() then
         M.hangarAttack5Time = DISABLED_TIME
@@ -728,6 +737,11 @@ function Update(dt)
     if M.convoyTime < GetTime() then
         M.convoyTime = DISABLED_TIME
         AudioMessage("ch02003.wav")
+        -- TRO 1.3: the convoy objective is listed as soon as the convoy spawns (FUN_005b0460)
+        ClearObjectives()
+        AddObjective("ch02001.otf", "white")
+        AddObjective("ch02003.otf", M.objective2Complete and "green" or "white")
+        AddObjective("ch02002.otf", "white")
         -- spawn the APCs
         M.apcSpawned = true
         M.apc[0] = BuildObject("cvapcb", 1, "convoy_units")
@@ -811,6 +825,7 @@ function Update(dt)
             SetName(M.convoyIntercept, "Convoy Intercept")
             ClearObjectives()
             AddObjective("ch02001.otf", "white")
+            if not M.objective2Complete then AddObjective("ch02003.otf", "white") end
             AddObjective("ch02002.otf", "white")
         end
     end

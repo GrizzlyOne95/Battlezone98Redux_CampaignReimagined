@@ -30,7 +30,9 @@ cpp_active = re.sub(r"//[^\n]*", "", without_blocks)
 lua_active = re.sub(r"--[^\n]*", "", re.sub(r"--\[\[.*?\]\]", "", lua, flags=re.S))
 source_ids = set(re.findall(r'"([^"\n]*)"', cpp_active))
 lua_ids = set(re.findall(r'"([^"\n]*)"', lua_active))
-assert source_ids <= lua_ids, f"source identifiers missing: {source_ids - lua_ids}"
+# TRO 1.3 sends wave 2 straight at the recycler (Attack) instead of these authored attack paths.
+TRO13_DROPPED_IDS = {f"wave2_scout{i}_attackpath" for i in range(1, 5)}
+assert source_ids - TRO13_DROPPED_IDS <= lua_ids, f"source identifiers missing: {source_ids - TRO13_DROPPED_IDS - lua_ids}"
 
 # Wave/ambush composition must not silently change during translation.
 cpp_spawns = Counter(re.findall(r'BuildObject\("([^"\n]*)",\s*(\d+),\s*"([^"\n]*)"\)', cpp_active))

@@ -14,6 +14,23 @@ weaponHard2 = "GC2"
 weaponName2 = "gatstab"
 
 [CraftClass]
+// CR CRAFT FLASH OFFSET BEGIN
+// Flash point from the hardpoint (right up forward, metres: barrel tip, or 0 0 0 at
+// a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
+// Regenerate: Tools/Build-WeaponFlashes.py --measure
+flashOffset1 = "0.69 0.38 0.27"
+flashOffset2 = "0.83 0.39 0.27"
+// CR CRAFT FLASH OFFSET END
+// CR CRAFT RECOIL BEGIN
+// Reviewed independent gun pieces; preserve aiming and deployment parents.
+// Regenerate: python Tools/Build-CombatPresentation.py
+recoilName1 = "bDE11blc"
+recoilDistance1 = 0.08
+recoilReturn1 = 0.8
+recoilName2 = "bDE11blf"
+recoilDistance2 = 0.08
+recoilReturn2 = 0.8
+// CR CRAFT RECOIL END
 rangeScan = 250.0
 periodScan = 0.0
 velocJam = 1.5

@@ -25,6 +25,18 @@ weaponName2 = "grktbomb"
 flashOffset1 = "-0.02 0.47 3.23"
 flashOffset2 = "0.01 0.47 3.22"
 // CR CRAFT FLASH OFFSET END
+// CR CRAFT RECOIL BEGIN
+// Reviewed independent gun pieces; preserve aiming and deployment parents.
+// Regenerate: python Tools/Build-CombatPresentation.py
+recoilName1 = "sgn11bgb"
+recoilDistance1 = 0.1
+recoilReturn1 = 2.5
+recoilKick1 = 1.0
+recoilName2 = "sgn11bga"
+recoilDistance2 = 0.1
+recoilReturn2 = 2.5
+recoilKick2 = 1.0
+// CR CRAFT RECOIL END
 rangeScan = 200.0
 periodScan = 0.0
 velocJam = 0.0

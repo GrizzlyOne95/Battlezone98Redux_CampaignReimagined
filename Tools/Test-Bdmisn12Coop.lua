@@ -251,39 +251,29 @@ do -- more humans, more tanks
     check(#builtAt(p[1], "despor_2", "cvltnk") == 2 + 2, "four humans: the pair plus two extras")
 end
 
--- ------------------------------------------------------------------ the portal: pulse, escorts, recycler
+-- ------------------------------------------------------------------ the portal: recycler, escorts (TRO 1.3 timing)
 do
     for humans = 1, 3 do
         local w, p, m = setup(humans, {})
         finishIntro(w)
-        F.runUntil(function() return w.now > 545 end, 2000)
+        F.runUntil(function() return w.now > 770 end, 2000)
+        check(F.count(p[1], "BuildObjectAtPortal") == 0, "nothing comes through the portal before 13 minutes")
+        for i = 1, humans do check(F.count(p[i], "PortalOut", "portal") == 0, "the portal is shut until 778 s: peer " .. i) end
+        F.runUntil(function() return w.now > 783 end)
         for i = 1, humans do check(F.count(p[i], "PortalOut", "portal") == 1 and F.count(p[i], "ActivatePortal", "portal") == 1,
-            "the portal opens on every peer before the escorts: peer " .. i) end
-        check(F.count(p[1], "BuildObjectAtPortal") == 0, "...two seconds before the first escort")
-        F.runUntil(function() return w.now > 548 end)
-        local tanks = F.builds(p[1], 0, "bvtank")
-        check(F.count(p[1], "BuildObjectAtPortal", nil) == 2, "two tanks come through the portal")
-        for _, c in ipairs(F.callsOf(p[1], "BuildObjectAtPortal")) do check(c[4] == 1 and c[5] == "portal", "escorts belong to the shared Black Dog team") end
-        F.runUntil(function() return w.now > 556 end)
-        check(F.count(p[1], "BuildObjectAtPortal") == 3, "then the fighter")
+            "the portal opens once on every peer, ahead of the recycler: peer " .. i) end
+        check(F.count(p[1], "BuildObjectAtPortal") == 1 and F.callsOf(p[1], "BuildObjectAtPortal")[1][3] == "bvrecyd", "the recycler arrives first")
+        F.runUntil(function() return w.now > 789 end)
+        check(F.count(p[1], "BuildObjectAtPortal") == 3, "two tanks follow the recycler at 786 s")
+        for _, c in ipairs(F.callsOf(p[1], "BuildObjectAtPortal")) do check(c[4] == 1 and c[5] == "portal", "reinforcements belong to the shared Black Dog team") end
+        F.runUntil(function() return w.now > 797 end)
+        check(F.count(p[1], "BuildObjectAtPortal") == 4, "then the fighter at 792 s")
         for i = 1, humans do check(F.count(p[i], "DeactivatePortal", "portal") == 1, "the portal closes on peer " .. i) end
         local follows = 0
         for _, c in ipairs(F.callsOf(p[1], "Goto")) do if c[3] == "follow" and c[4] == 1 then follows = follows + 1 end end
-        check(follows == 3, "the escorts follow the player")
-        F.runUntil(function() return w.now > 785 end, 2000)
-        for i = 1, humans do check(F.count(p[i], "PortalOut", "portal") == 2, "the body's own opening at 778 s still pulses: peer " .. i) end
-        check(F.count(p[1], "BuildObjectAtPortal") == 4 and F.callsOf(p[1], "BuildObjectAtPortal")[4][3] == "bvrecyd", "the recycler arrives last")
+        check(follows == 4, "the recycler and the escorts follow the player")
         guestsPassive(p)
     end
-end
-do -- the pulse can be loaded past: an already-sent escort does not re-pulse
-    local w, p, m = setup(2, {})
-    finishIntro(w)
-    F.runUntil(function() return w.now > 600 end, 2000)
-    local before = F.count(p[1], "PortalOut")
-    for _, q in ipairs(p) do q.env.Load(q.env.Save()) end
-    F.connect(); F.run(5)
-    check(F.count(p[1], "PortalOut") == before, "a load after the escorts does not pulse the portal again")
 end
 
 -- ------------------------------------------------------------------ objectives, the win, the loss
@@ -294,7 +284,7 @@ for humans = 1, 3 do
     F.run(30)
     check(not m.objective2Complete and not m.won, "the goals alone do not win before the defence objective advances")
     w.audioBusy = true
-    F.runUntil(function() return w.now > 560 end, 2000)
+    F.runUntil(function() return w.now > 800 end, 2000)
     for i = 1, humans do
         check(F.last(p[i], "AddObjective")[2] == "bd12002.otf" and F.last(p[i], "AddObjective")[3] == "white", "second objective on peer " .. i)
     end
@@ -329,7 +319,7 @@ do -- missing audio handles never hang an ending
     finishIntro(w)
     p[1].env.AudioMessage = function() return nil end
     killGoals()
-    F.runUntil(function() return w.now > 560 end, 2000)
+    F.runUntil(function() return w.now > 800 end, 2000)
     F.run(4)
     check(F.count(p[1], "SucceedMission") == 1, "a victory narration that returns nothing still ends the mission")
 end
@@ -451,7 +441,7 @@ do -- a load during the opening film opens the camera again, once, and the film 
     finishIntro(w)
     for i = 1, 3 do check(p[i].camera == 0, "camera balanced after the load on peer " .. i) end
 end
-for _, stage in ipairs({ { 200, "bd12001.otf", 1 }, { 600, "bd12002.otf", 2 } }) do
+for _, stage in ipairs({ { 200, "bd12001.otf", 1 }, { 800, "bd12002.otf", 2 } }) do
     -- the objectives survive a load: republished, in full, from the mission state
     local w, p, m = setup(3, {})
     finishIntro(w)

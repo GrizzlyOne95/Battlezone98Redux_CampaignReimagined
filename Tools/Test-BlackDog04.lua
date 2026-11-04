@@ -159,6 +159,14 @@ done[s.congrats] = true; tick(45)
 check(last("SucceedMission")[2] == 45.1 and last("SucceedMission")[3] == "bd04win.des", "absolute success time")
 tick(46); check(count("SucceedMission") == 1, "success once")
 
+-- TRO 1.3: towing the fragment completes objective 3 without the scan.
+reset(); intro(); s = Save()
+info.cbport = true; tick(8); info.cbport = false; tick(10.1)
+check(not s.idFragment and not s.objective3Complete, "no scan yet")
+tug = player; tick(11)
+check(s.gotFragment and s.idFragment and s.objective3Complete and count("AudioMessage", "bd04007.wav") == 1, "pickup completes objective 3")
+check(count("StopCockpitTimer") == 1, "pickup stops the cockpit timer")
+
 reset(); intro(); s = Save()
 for i = 1, 4 do distance(s.hauler, "return_" .. i, 299) end
 tick(8); tick(9); Load(Save()); tick(10)

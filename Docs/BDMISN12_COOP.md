@@ -25,7 +25,6 @@ checklist").
 | 1-4 | Humans (host on 1). The authored Black Dog side (the start tank `player`, the wingmen, the shields, the power units, the portal, the armory, the scavengers) stays on team 1: shared, host-run. Extra starting recyclers are disabled. |
 | 5 | The Chinese: the authored base (the four goals `goal_1`..`goal_4`, barracks, towers, turrets, the ambient wingmen) and every raider and counterattack tank. The body still says team 2; the runtime maps `BuildObject(..., 2, ...)` to team 5. |
 | 7 | Support (nothing uses it here). |
-| 0 | The scrap pickups (six per minute, built straight through the runtime). |
 
 Only the authority (host, or the offline player) runs the body; guests only present. `SetAIControl(5, true)` runs once
 at chunk load. The mission has no `SetAIP`: the enemy is scripted (raids) plus the authored base, so there is no shared
@@ -70,12 +69,12 @@ south-east pair would arrive in view. It uses the first clear entry of `fallback
 within 460 m of one of a raid's own paths, that part of the raid arrives from another approach. All raiders are cloaked
 at spawn except the walkers, as the body does (a ticket is cloaked when the real unit is built).
 
-Not scaled: the scrap pickups (team 0, they pass straight through) and the portal reinforcements, which are friendly
+Not scaled: the portal reinforcements, which are friendly
 (the shared team 1) and unchanged for any head count.
 
 ## Humans' result, timers, win and loss
 
-- Win: unchanged. After the defence objective advances (555 s) and all four goals are dead: `bd12003`, then
+- Win: unchanged. After the defence objective advances (795 s) and all four goals are dead: `bd12003`, then
   `SucceedMission(..., "bd12win.des")` once (the runtime holds the result until every guest acknowledged the preceding
   events).
 - Loss: unchanged. The portal destroyed: `bd12004`, then `FailMission(..., "bd12lsea.des")` once for everyone. The
@@ -83,8 +82,8 @@ Not scaled: the scrap pickups (team 0, they pass straight through) and the porta
   departed leader fails every guest.
 - `wonFlags = { "won" }`, `endedFlags = { "won", "lost" }`: once the win is latched a late failure is ignored, and once
   either ending starts nothing more is built.
-- The source timing conflict is kept (see `BLACKDOG12_LUA_PORT.md`): the recycler is scheduled at 13 minutes (780 s),
-  the escorts and the portal closing at 546-554 s. See "The portal" for the part of it that is repaired.
+- The body uses the TRO 1.3 timing: the recycler at 780 s (portal open from 778 s), the escorts at 786 s and 792 s, the
+  portal closing at 794 s and the defence objective advancing at 795 s. The later C++ source had the escorts at 546-554 s.
 
 ## The portal
 
@@ -123,15 +122,13 @@ in `M.crcca.r` (kept by Save/Load). Flag `RESTORED_VOICE_LINES`.
 | --- | --- | --- | --- |
 | `bd12002` | "Oh yeah, back home to roost. Now where're those commie bastards?" | Once, when the opening ends (after a skip too); not after the win or the loss | It is the Sergeant's answer to the briefing (`bd12001`: "Sergeant, protect those men at all costs"), spoken when he takes control of the base, and it asks for the enemy that arrives two minutes later. |
 
-Portal pulse (flag `RESTORED_PORTAL_PULSE`): in the source the escorts arrive at 546 s and 552 s while the portal is
-shut (it first opens at 778 s). Retiming was refused by the port notes (the intent is ambiguous), so the CR layer
-leaves every time alone and adds only the visible part: the portal opens (`PortalOut` + `ActivatePortal`) two seconds
-before the first escort, and the body's own close at 554 s ends the window. The 778 s opening for the recycler is
-unchanged. No gameplay, count or timing changes.
+Portal pulse (flag `RESTORED_PORTAL_PULSE`, now off): the later C++ source had the escorts arriving at 546 s and 552 s
+while the portal was shut, and the layer opened it for them. The body now follows TRO 1.3 (escorts at 786 s and 792 s,
+portal open 778-794 s), so the pulse is redundant and the flag is false; the code stays for reference.
 
 Authored map content the script never uses (documented, not wired): the paths `camera_arrival` (an arrival camera at
 the portal that nothing plays; no source code or audio belongs to it, so it is not invented), `portal_spawn`,
-`annoying_1`, `edge_path`, `outer_limit`, the five anonymous single-point paths under the Chinese turrets, the Chinese
+`annoying_1`, `edge_path`, `outer_limit`, `scrap_1`/`scrap_2` (the per-minute scrap pickups TRO 1.3 never spawns), the five anonymous single-point paths under the Chinese turrets, the Chinese
 base buildings (map-native enemy content), the Black Dog wingmen, the armory, the scavengers and the silo.
 
 ## Stock bugs and co-op fixes in the CR layer (the faithful body is untouched)
@@ -199,8 +196,6 @@ lua5.1 Tools/Test-BlackDog12.lua && python Tools/Test-BlackDog12SourceParity.py 
   the same frame the runtime releases the camera, and that `CameraCancelled(true)` clears the latch.
 - The retarget uses `GetCurrentCommand`/`AiCommand.NONE`; a unit that is merely between orders for a moment could be
   re-aimed once (the check runs at most every 20 s).
-- The timing conflict (recycler at 780 s rather than 540 s) and the portal being shut when the escorts come are kept as
-  the source has them; only the portal's visible opening is added.
 - The out-of-lives path is not exercised by the host tests (it is the runtime's own `Failure` callback).
 
 ## Live checklist (unrun)
@@ -213,10 +208,10 @@ lua5.1 Tools/Test-BlackDog12.lua && python Tools/Test-BlackDog12SourceParity.py 
    weather error in the log.
 4. Kill a shield or power unit: two tanks from the matching `despor_N` (or a fallback), the warning at 25 % health
    (`bd12005`..`bd12008`), a vent opens.
-5. 544-554 s: the portal opens on every peer before the two tanks and the fighter arrive, then closes; 778 s the portal
-   opens again and the recycler arrives; escorts follow the player.
+5. 778-794 s: the portal opens on every peer and the recycler arrives at 780 s, the two tanks at 786 s and the fighter at
+   792 s, then the portal closes; they follow the player.
 6. Kill a raid's target generator before the raid is built: the raiders attack the nearest human instead of idling.
-7. Destroy the four goals after 555 s: `bd12003`, one shared victory; a goal falling opens the geyser under it.
+7. Destroy the four goals after 795 s: `bd12003`, one shared victory; a goal falling opens the geyser under it.
 8. Destroy the portal: `bd12004`, one shared loss.
 9. Save and load mid-mission: the opening reopens its camera if running, the objective list returns whole, pending
    raids are neither lost nor duplicated, the weather state returns.

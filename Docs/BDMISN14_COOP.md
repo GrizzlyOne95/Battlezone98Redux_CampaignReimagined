@@ -40,10 +40,9 @@ approach triggers (nearest human); `farthestTargets` is empty. Two shadows make 
 
 - `IsValid(token)` is true (the body's `Valid(user)` guard). With no living human the token is infinitely far, so nothing
   springs and nothing errors.
-- `GetDistance` forwards its third argument. The runtime's `WrapDistance` passes two arguments only, and the body's APC
-  arrival test is `GetDistance(apc, path, lastWaypoint)`: wrapping the native with `WrapDistance` alone would drop the
-  waypoint index and measure to the START of the route. The CR shadow answers the token and calls the native with all
-  arguments for everything else.
+- `GetDistance` forwards its third argument. The runtime's `WrapDistance` passes two arguments only; the CR shadow
+  answers the nearest-human token and calls the native with all arguments for everything else. (The body's APC arrival
+  test now reads `GetPosition` for the craft and the last waypoint instead.)
 
 Nothing else reads the player. The body has no player-death loss; the shared lives are CRCoop's.
 
@@ -67,13 +66,13 @@ Events: **a new frame or a new entry path is a new scaling event**, and the firs
 
 | Event | Where | Primaries |
 | --- | --- | --- |
-| Initial raid (at the start) | `spawn_initial_attack` | 3 `cvfigh`, 2 `cvhraz` |
-| The big assault (4 min) | `spawn_attack_waves` | 2 `cvhtnk`, 4 `cvfigh`, 3 `cvltnk` |
+| Initial raid (at the start) | `spawn_initial_attack` | 3 `cvfigh`, 1 `cvhraz` |
+| The big assault (4 min) | `spawn_attack_waves` | 2 `cvhtnk`, 4 `cvfigh`, 1 `cvltnk`, 2 `cvtnk` |
 | APC escort (9 min) | `spawn_apc` | 4 `cvtnk` |
-| APC attackers (9 min) | `spawn_attack_waves` | 4 `cvhraz`, 4 `cvltnk`, 3 `cvwalk`, 3 `cvtnkc` |
+| APC attackers (9 min) | `spawn_attack_waves` | 2 `cvhraz`, 1 `cvltnk`, 2 `cvfigh`, 3 `cvwalk`, 3 `cvtnkc` |
 | Restored turret convoy (9 min) | `spawn_turrets` | 3 `cvturr` |
-| Base ambush (human within 150 m of `trigger_attack_1`) | `spawn_attack_1`, `spawn_defend` | 4 `cvhraz` + 4 `cvltnk`; 2 `cvwalk` + 5 `cvltnk` |
-| Western ambush (within 150 m of `trigger_attack_2`) | `spawn_attack_2` | 6 `cvhraz` |
+| Base ambush (human within 150 m of `trigger_attack_1`) | `spawn_attack_1`, `spawn_defend` | 2 `cvhraz` + 2 `cvltnk` + 2 `cvtnk` + 2 `cvfigh`; 2 `cvwalk` + 5 `cvltnk` |
+| Western ambush (within 150 m of `trigger_attack_2`) | `spawn_attack_2` | 3 `cvltnk`, 2 `cvtnk` |
 
 Cap: at most **24** live scaled units (`liveCap`; the runtime default is 12). The nine-minute convoy alone is 21 primaries
 and 24 with a single extra each; extras are the only requests dropped for the cap, primaries always arrive.
@@ -166,7 +165,7 @@ The unused shipped debrief `bd14lose.des` is the out-of-lives failure.
   debriefs ship with the game.
 - The body already carries its own documented port fixes ([`BLACKDOG14_LUA_PORT.md`](BLACKDOG14_LUA_PORT.md): the walkers
   are cloaked instead of the last light tank, a destroyed APC cannot also lose the intercept, missing handles count as
-  zero health, the native `isAtEndOfPath` is a 25 m approximation of the last waypoint).
+  zero health, the native `isAtEndOfPath` is the TRO 1.3 12 m 2D distance to the last waypoint).
 
 ## Weather: Ganymede
 
@@ -211,8 +210,8 @@ tree.
 
 - Scaling is per (frame, entry path), a CR inference shared with the other missions: a group mirrors only its first unit,
   so a 14-unit APC wave grows by two units at four players. `liveCap = 24` and `safeRadius = 120` are CR choices.
-- The 25 m arrival radius of the APC is the faithful port's approximation of the native `isAtEndOfPath`; the real radius
-  is unknown and needs a map test. With several humans nothing about it changes.
+- The APC arrival radius is the TRO 1.3 `isAtEndOfPath` value: 12 m, measured in the (x, z) plane to the last
+  waypoint. With several humans nothing about it changes.
 - The restored turret convoy is untested against the real map: whether three turret tanks at `path_turrets` make the
   intercept feel unfair (they park east of the base) is a playtest question.
 - The three fallback staging points are all on the eastern edge. A human who watches the west spawn (`spawn_attack_2`)
