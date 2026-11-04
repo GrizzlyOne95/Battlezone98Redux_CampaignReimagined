@@ -24,6 +24,10 @@ bdmisn??cr.mpdes -text
 chmisn??cr.mpdes -text
 evolvecr.mpdes -text
 Missions/misn18cr.vxt -text
+# Co-op vehicle lists keep stock netveh.odf CRLF rows (Test-CoopVehicleLists.py).
+Missions/misns?cr.vxt text eol=crlf
+Missions/bdmisn??cr.vxt text eol=crlf
+Missions/chmisn??cr.vxt text eol=crlf
 Missions/misns4.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misns5.trn -text whitespace=-blank-at-eol,-blank-at-eof
 Missions/misns6.trn -text whitespace=-blank-at-eol,-blank-at-eof

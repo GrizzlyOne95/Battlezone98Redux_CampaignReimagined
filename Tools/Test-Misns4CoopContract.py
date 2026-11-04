@@ -23,13 +23,13 @@ for block in text.split("[GameObject]\n")[1:]:
     label = re.search(r"^label = (.*)$", block, re.M)
     odf = re.search(r"^PrjID \[1\] =\n(.*)$", block, re.M)[1]
     team = int(re.search(r"^team \[1\] =\n(\d+)$", block, re.M)[1])
-    perceived = re.search(r"^perceivedTeam \[1\] =\n(\d+)$", block, re.M)
+    perceived = re.search(r"^perceivedTeam \[1\] =\n(-?\d+)$", block, re.M)
+    assert perceived and 0 <= int(perceived[1]) <= 15, "native visibility requires a real perceived team: " + str(label and label[1])
     if odf == "pspwn_1":
         starts.append(team)
         continue
     assert team in (0, 1, 5), "authored teams are neutral, the Soviet side or the CCA on 5: %s team %d" % (odf, team)
-    if perceived:
-        assert int(perceived[1]) == team, "perceived team follows the move: " + str(label and label[1])
+    assert int(perceived[1]) == team, "perceived team follows the move: " + str(label and label[1])
     if label:
         objects.setdefault(label[1], (odf, team))
 assert sorted(starts) == [1, 2, 3, 4], "one start buoy per human team"
