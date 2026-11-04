@@ -199,7 +199,11 @@ function F.makePeer(id, team, network, options)
         record("SetTeamNum", h, t)
         W.objects[h].team = t
     end
-    e.GetPosition = function(h)
+    e.GetPosition = function(h, point)
+        if point ~= nil and F.PATHPTS[h] then
+            local q = assert(F.PATHPTS[h][point + 1], "path point out of range")
+            return {x = q[1], y = 10, z = q[2]}
+        end
         local pos = F.posOf(h)
         return pos and {x = pos.x, y = pos.y, z = pos.z} or {x = 0, y = 0, z = 0}
     end

@@ -219,10 +219,11 @@ function Update(dt)
             M.wave2_scout2 = BuildObject("cvfigh", 2, "spawn_wave2_scout2")
             M.wave2_scout3 = BuildObject("cvfigh", 2, "spawn_wave2_scout3")
             M.wave2_scout4 = BuildObject("cvfigh", 2, "spawn_wave2_scout4")
-            if Valid(M.wave2_scout1) then Goto(M.wave2_scout1, "wave2_scout1_attackpath") end
-            if Valid(M.wave2_scout2) then Goto(M.wave2_scout2, "wave2_scout2_attackpath") end
-            if Valid(M.wave2_scout3) then Goto(M.wave2_scout3, "wave2_scout3_attackpath") end
-            if Valid(M.wave2_scout4) then Goto(M.wave2_scout4, "wave2_scout4_attackpath") end
+            -- TRO 1.3: wave 2 attacks the recycler directly instead of following authored paths
+            if Valid(M.wave2_scout1) and Valid(M.recycler) then Attack(M.wave2_scout1, M.recycler) end
+            if Valid(M.wave2_scout2) and Valid(M.recycler) then Attack(M.wave2_scout2, M.recycler) end
+            if Valid(M.wave2_scout3) and Valid(M.recycler) then Attack(M.wave2_scout3, M.recycler) end
+            if Valid(M.wave2_scout4) and Valid(M.recycler) then Attack(M.wave2_scout4, M.recycler) end
         end
     elseif state == MS_WAVE2DEAD then
         if not Alive(M.wave2_scout1) and not Alive(M.wave2_scout2)
@@ -260,8 +261,13 @@ function Update(dt)
             state = MS_WAITFORSOUND4
         end
     elseif state == MS_WAITFORSOUND5 then
+        -- TRO 1.3: cancelling the film skips the rest of the sequence (read before CameraPath)
+        local skipped = M.massiveSkipped or CameraCancelled()
         if Valid(M.enemy_tank1) then CameraPath("camera_massive_attack", 2000, 10, M.enemy_tank1) end
-        if IsAudioMessageDone(M.soundhandle) then
+        if skipped or IsAudioMessageDone(M.soundhandle) then
+            if skipped and M.soundhandle ~= nil and not IsAudioMessageDone(M.soundhandle) then
+                StopAudioMessage(M.soundhandle)
+            end
             CameraFinish()
             if Valid(M.enemy_scout1) then RemoveObject(M.enemy_scout1) end
             if Valid(M.enemy_scout2) then RemoveObject(M.enemy_scout2) end
@@ -327,6 +333,13 @@ function Update(dt)
             CameraReady()
             M.missionState = MS_RECYCLERDIE
         end
+    elseif state == MS_RECYCLERDIE and CameraCancelled() then
+        -- TRO 1.3: cancelling the final film ends the mission at once (+5 s), skipping the narration
+        if M.hitSound ~= nil and not IsAudioMessageDone(M.hitSound) then StopAudioMessage(M.hitSound) end
+        if M.soundhandle ~= nil and not IsAudioMessageDone(M.soundhandle) then StopAudioMessage(M.soundhandle) end
+        M.missionState = MS_END
+        CameraFinish()
+        SucceedMission(GetTime() + 5.0, "bd02win.des")
     elseif state == MS_RECYCLERDIE then
         HealBomber(M.bomber1_scripted)
         HealBomber(M.bomber2_scripted)
@@ -336,7 +349,7 @@ function Update(dt)
             -- Recycler *myRecycler = (Recycler *) GameObjectHandle::GetObj(recycler);
             -- myRecycler->Explode();
             M.recyclerHealth = 0
-            AudioMessage("bd02008.wav")
+            M.hitSound = AudioMessage("bd02008.wav")
             -- myRecycler->AddHealth(-((myRecycler->GetCurHealth() / 4) * 3));
             -- Stop(bomber_scripted);
             -- RemoveObject(bomber_scripted);
@@ -364,6 +377,11 @@ function Update(dt)
             M.stateTimer = GetTime() + 3
             ResetObjectives()
         end
+    elseif state == MS_ENDWAIT and CameraCancelled() then
+        -- TRO 1.3: cancelling the final film ends the mission at once (+5 s)
+        M.missionState = MS_END
+        CameraFinish()
+        SucceedMission(GetTime() + 5.0, "bd02win.des")
     elseif state == MS_ENDWAIT then
         RecyclerCamera()
         if M.stateTimer < GetTime() then
@@ -388,8 +406,13 @@ function Update(dt)
             M.stateTimer = GetTime() + 5
         end
     elseif state == MS_WAITFORSOUND4 then
+        -- TRO 1.3: cancelling the film skips bd02005 and the rest of the sequence (read before CameraPath)
+        local skipped = CameraCancelled()
         if Valid(M.enemy_tank1) then CameraPath("camera_massive_attack", 2000, 10, M.enemy_tank1) end
-        if IsAudioMessageDone(M.soundhandle) then
+        if skipped then
+            M.massiveSkipped = true
+            M.missionState = MS_WAITFORSOUND5
+        elseif IsAudioMessageDone(M.soundhandle) then
             M.soundhandle = AudioMessage("bd02005.wav")
             M.missionState = MS_WAITFORSOUND5
         end

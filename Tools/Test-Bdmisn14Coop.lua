@@ -121,6 +121,19 @@ do
     check(F.index(peer, "SetAIControl") <= peer.chunkCalls, "SetAIControl runs at chunk root, before Start")
 end
 
+-- the single-player body drops the late bd14004 itself once the APC is down
+do
+    local w = F.reset()
+    local peer = F.makePeer(1, 1, false, { faithful = true, script = "Scripts/bdmisn14.lua" })
+    F.connect(); F.run(1)
+    toApc(w)
+    F.kill(peer.env.Save().apc)
+    F.run(60)
+    local played = 0
+    for _, c in ipairs(peer.calls) do if c[1] == "AudioMessage" and c[2] == "bd14004.wav" then played = played + 1 end end
+    check(played == 0, "the faithful port never plays bd14004 after the APC is down")
+end
+
 -- ------------------------------------------------------------------ teams, scrap, pilots, the opening
 do
     local w, p, m = setup(4, {})
@@ -155,10 +168,10 @@ do
     guestsPassive(p)
     -- the first raid: five craft (+ extras), cloaked, on the initial route, and the first objective on every peer
     local e = extrasFor(4)
-    check(#builtAt(p[1], "spawn_initial_attack") == 5 + e, "the initial raid: five craft plus " .. e .. " extras")
-    check(#F.builds(p[1], 0, "cvfigh") == 3 + e and #F.builds(p[1], 0, "cvhraz") == 2, "the raid's composition (extras mirror the first unit)")
-    check(F.count(p[1], "SetCloaked") == 6 + 5 + e, "every raider is cloaked, extras included: " .. F.count(p[1], "SetCloaked"))
-    check(F.count(p[1], "Goto") == 5 + e, "every raider, extras included, takes the initial route")
+    check(#builtAt(p[1], "spawn_initial_attack") == 4 + e, "the initial raid: four craft plus " .. e .. " extras")
+    check(#F.builds(p[1], 0, "cvfigh") == 3 + e and #F.builds(p[1], 0, "cvhraz") == 1, "the raid's composition (extras mirror the first unit)")
+    check(F.count(p[1], "SetCloaked") == 6 + 4 + e, "every raider is cloaked, extras included: " .. F.count(p[1], "SetCloaked"))
+    check(F.count(p[1], "Goto") == 4 + e, "every raider, extras included, takes the initial route")
     for _, b in ipairs(F.builds(p[1])) do check(b.team == 5, "raiders are the co-op enemy") end
     for i = 1, 4 do check(lastObjectives(p[i]) == "bd14001.otf:white", "the briefing objective on peer " .. i) end
     guestsPassive(p)
@@ -179,7 +192,7 @@ for _, n in ipairs({ 1, 2 }) do
     F.run(15)
     local assault = builtAt(p[1], "spawn_attack_waves")
     check(#assault == 9 + e, n .. " humans: the assault is nine craft plus " .. e .. " extras: " .. #assault)
-    check(#F.builds(p[1], 0, "cvhtnk") == 2 + e and #F.builds(p[1], 0, "cvltnk") >= 3, "heavy tanks lead the assault")
+    check(#F.builds(p[1], 0, "cvhtnk") == 2 + e and #F.builds(p[1], 0, "cvltnk") == 1 and #F.builds(p[1], 0, "cvtnk") == 2, "heavy tanks lead the assault (TRO 1.3 mix: 1 cvltnk, 2 cvtnk)")
     reap()
     F.run(290)
     check(#F.builds(p[1], 0, "cvapcc") == 0, "the APC waits until five minutes after the assault")
@@ -210,7 +223,7 @@ for _, n in ipairs({ 1, 2 }) do
     for _, c in ipairs(F.callsOf(p[1], "Follow")) do
         check(type(c[2]) == "string" and type(c[3]) == "string" and c[3]:match("^built"), "the follow target is the real walker, not a ticket")
     end
-    check(#builtAt(p[1], "spawn_attack_waves") >= 9 + e + 8 + 3 + 3, "the convoy's attackers join the assault")
+    check(#builtAt(p[1], "spawn_attack_waves") >= 9 + e + 5 + 3 + 3, "the convoy's attackers join the assault")
     for _, b in ipairs(F.builds(p[1])) do check(b.team == 5, "the whole convoy is the co-op enemy") end
     -- every Chinese craft is cloaked once the real unit exists (the APC and the escorts are not)
     local cloaked = {}
@@ -260,7 +273,7 @@ for _, n in ipairs({ 1, 2, 4 }) do
     check(#builtAt(p[1], "spawn_attack_1") == 8 + e, n .. " humans: the eastern ambush is eight craft plus extras")
     check(#builtAt(p[1], "spawn_defend") == 7 + e, n .. " humans: the base defenders are seven craft plus extras")
     -- the first unit of each group is mirrored: the eastern group opens with a raider, the defenders with a walker
-    check(#F.builds(p[1], 0, "cvwalk") == 2 + e and #F.builds(p[1], 0, "cvhraz") == 2 + 4 + e, "the ambush composition")
+    check(#F.builds(p[1], 0, "cvwalk") == 2 + e and #F.builds(p[1], 0, "cvhraz") == 1 + 2 + e, "the ambush composition")
     check(F.count(p[1], "SetCloaked") >= 6 + 8 + e, "the eastern ambush is cloaked")
     local defendGoto = 0
     for _, c in ipairs(F.callsOf(p[1], "Goto")) do if c[3] == "path_defend" then defendGoto = defendGoto + 1 end end
@@ -271,7 +284,7 @@ for _, n in ipairs({ 1, 2, 4 }) do
     reap() -- the live cap bounds the extras of a crowded field, not this check
     atTrigger2(p[n])
     F.run(4)
-    check(m.attack2 and #builtAt(p[1], "spawn_attack_2") == 6 + e, n .. " humans: the western ambush is six craft plus extras")
+    check(m.attack2 and #builtAt(p[1], "spawn_attack_2") == 5 + e, n .. " humans: the western ambush is five craft plus extras")
     noEnemyTeamTwo(p[1])
     guestsPassive(p)
 end
@@ -355,6 +368,9 @@ end
 do -- the APC reaches the Chinese base
     local w, p, m = setup(3, {})
     toApc(w)
+    F.place(m.apc, 1192.64 + 20, 101026)
+    F.run(2)
+    check(not m.wonLost, "20 m short of the route end is outside the TRO 1.3 12 m arrival radius")
     F.place(m.apc, 1192.64, 101026)
     F.run(2)
     check(m.wonLost and not m.objective3Complete and F.heardCount(p[2], "bd14007.wav") == 1, "an APC at the end of its route loses the intercept")

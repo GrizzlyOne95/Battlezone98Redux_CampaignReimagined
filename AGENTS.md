@@ -35,6 +35,7 @@ The DX11 Enhanced base and terrain shaders are the exception to CR ownership: th
 - Use one `agent/<short-description>` branch per workstream, normally from current `origin/main`. Do not reuse merged/closed branches or accumulate unrelated follow-ups. Salvage only task-owned commits from stale branches.
 - For exploratory visual or gameplay work, build the smallest deployable prototype and use targeted validation first. Wait for user acceptance before broad production hardening, release documentation, or a full qualification matrix unless those were explicitly requested.
 - During iteration, run the narrowest meaningful checks. Run broader validation at a stable checkpoint and the release checklist only for a release candidate.
+- A fix in only one variant of a mission (single player or co-op) is incomplete. Port it to the other, or state in the PR why that variant can't have it.
 - Stage only task-owned files. Never blanket-stage, clean, restore, or overwrite unrelated work. Do not force-push or rewrite shared history unless explicitly requested.
 - Agents may commit and push coherent task-owned checkpoints. PR merges, releases/tags, Workshop uploads, and other public publication require explicit user instruction.
 

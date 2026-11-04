@@ -178,8 +178,6 @@ end or SetPilot
 -- (team 1 and 0: navs, armoury, Recycler, escorts, decoys, relic) is built directly and never as a ticket.
 local eventFrame, eventWhere
 local BuildObject = campaignRuntime and function(odf, team, where)
-    -- Stock port bug: the C++ path is "recycler"; the port's rename slipped into the string.
-    if where == "M.recycler" then where = "recycler" end
     if team ~= 2 then return NativeBuildObject(odf, team, where) end
     if SCALED_ODFS[odf] then
         local now = GetTime()
@@ -229,13 +227,20 @@ local HideCockpitTimer = campaignRuntime and function() return campaignRuntime.P
 local GetCockpitTimer = campaignRuntime and function() return Restored.TimerLeft() end or GetCockpitTimer
 -- The flash and the blast are local effects: every peer plays its own copy.
 local ColorFade = campaignRuntime and function(...) return campaignRuntime.Present("CH1Fade", ...) end or ColorFade
--- Stock map bug: the path "spawn_explosion1" is not in the map, so the blast had no place. It goes off at the relic.
 local MakeExplosion = campaignRuntime and function(effect, where)
-    if not campaignRuntime.PathExists(where) then where = "relic_loc" end
     return campaignRuntime.Present("CH1Blast", effect, where)
 end or MakeExplosion
 -- CR co-op runtime <<
 local function Valid(h) return h ~= nil and h ~= 0 and IsValid(h) end
+-- Stock map bug: the path "spawn_explosion1" is not in the map; the blast goes off at the relic instead.
+local MakeExplosion = (function()
+    local NativeMakeExplosion = MakeExplosion
+    return function(effect, where)
+        local ok, count = pcall(GetPathPointCount, where)
+        if not (ok and type(count) == "number" and count > 0) then where = "relic_loc" end
+        return NativeMakeExplosion(effect, where)
+    end
+end)()
 local function Alive(h) return Valid(h) and IsAlive(h) end
 local function Health(h)
     -- PORT FIX: deleted objects cannot be queried safely. Treat them as dead,
@@ -455,6 +460,7 @@ if campaignRuntime then
         if RESTORED_VOICE_LINES and M.objective4Complete and not M.doingExplosion and not M.lost and not M.won
             and r.timerEnd ~= nil and not r.l1010 and Restored.TimerLeft() <= 6.0 then
             r.l1010 = true
+            M.sound12Played = true -- the body's TRO-timed ch01010 (<= 5 s) stands down once this has played
             AudioMessage("ch01010.wav")
         end
     end
@@ -641,7 +647,7 @@ function Update(dt)
 
         AudioMessage("ch01005.wav")
 
-        M.recycler = BuildObject("cvrecyd", 1, "M.recycler")
+        M.recycler = BuildObject("cvrecyd", 1, "recycler")
         AddScrap(1, 50)
 
         -- update objectives
@@ -892,37 +898,37 @@ function Update(dt)
         -- units
         local h
         h = BuildObject("svtank", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svtank", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svtank", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svtank", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svhraz", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svhraz", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svhraz", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svhraz", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svltnk", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svltnk", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svltnk", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svltnk", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svturrb", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svturrb", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svturrb", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
         h = BuildObject("svturrb", 2, "wave_5")
-        Goto(h, "follow_5")
+        Goto(h, "follow_5", 1)
     end
 
     if M.objective3Complete and not M.objective4Complete and not M.lost and not M.won then
@@ -1022,6 +1028,13 @@ function Update(dt)
     end
 
     if M.objective4Complete and not M.doingExplosion then
+        -- TRO 1.3: ch01010 plays once at <= 5 s when the player is outside the blast radius (FUN_005ae660)
+        if not M.sound12Played and not M.focusOnExplosion and GetCockpitTimer() > 0 and GetCockpitTimer() <= 5.0
+            and Valid(M.navEnd) and Valid(M.hangar) and Valid(M.user)
+            and Distance(M.user, M.hangar) > Distance(M.navEnd, M.hangar) - 50 then
+            M.sound12Played = true
+            AudioMessage("ch01010.wav")
+        end
         if GetCockpitTimer() <= 0 then
             M.explodeTime = 999999.9
             HideCockpitTimer()

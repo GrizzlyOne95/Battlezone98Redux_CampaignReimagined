@@ -184,7 +184,13 @@ function F.makePeer(id, team, network, options)
         record("SetTeamNum", h, t)
         W.objects[h].team = t
     end
-    e.GetPosition = function(h)
+    e.GetPosition = function(h, point)
+        if point ~= nil then
+            -- Path overload (path, point): only the last waypoint is modelled.
+            assert(F.PATH_ENDS[h] and point == F.PATH_COUNTS[h] - 1, "native path point must be the last waypoint")
+            local pe = F.PATH_ENDS[h]
+            return {x = pe[1], y = pe[2], z = pe[3]}
+        end
         local pos = F.posOf(h)
         return pos and {x = pos.x, y = pos.y, z = pos.z} or {x = 0, y = 0, z = 0}
     end

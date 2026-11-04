@@ -22,6 +22,8 @@ active_lua = re.sub(r'--\[=\[.*?\]=\]|--\[\[.*?\]\]|--[^\n]*', '', lua, flags=re
 for ext in ('wav', 'otf', 'aip', 'des'):
     assets = set(re.findall(r'"([^"\n]+\.' + ext + r')"', active_cpp))
     ported = set(re.findall(r'"([^"\n]+\.' + ext + r')"', active_lua))
+    if ext == 'aip':
+        ported -= {'crns6.aip'}  # known deviation: the stock-bug SetAIP redirect to the American plan
     assert assets == ported, (ext, assets - ported, ported - assets)
 for label in re.findall(r'GetHandle\("([^"]+)"\)', active_cpp):
     assert 'GetHandle("' + label + '")' in active_lua, label

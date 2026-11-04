@@ -97,7 +97,8 @@ function SucceedMission(time, file) event("success", file, time) end
 local function fresh()
     now, objects, labels, events, messages = 0, {}, {}, {}, {}
     camera, nextHandle, nextMessage = {arrived = false, cancelled = false}, 0, 0
-    randomValues, randomIndex, audioMissing = {0.1, 0.5, 0.8}, 0, {}
+    -- TRO 1.3 rolls are 2x-1: 0.1 -> cvfigh, 0.7 -> cvtnk, 0.9 -> cvrckt
+    randomValues, randomIndex, audioMissing = {0.1, 0.7, 0.9}, 0, {}
     add("player"); add("portal")
     for i = 1, 10 do add("bdtank_" .. i); add("silo_attack" .. i) end
     for _, n in ipairs({1, 2, 3, 7, 9, 10}) do add("2bdest_" .. n) end

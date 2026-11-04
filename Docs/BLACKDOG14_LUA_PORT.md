@@ -35,10 +35,9 @@ Load does not repeat startup or spawns.
   been deleted. All valid-object thresholds remain unchanged.
 - **Native path helper:** stock Lua has `GetPathPointCount` and indexed
   `GetDistance`, but does not expose `isAtEndOfPath`. Lua queries the last
-  zero-based waypoint. The native helper's radius is **unknown** in the
-  supplied source corpus. The provisional 25 m radius follows `bd03.lua` and
-  is explicitly an approximation requiring stock-map testing. Missing/empty
-  paths do not count as arrival.
+  zero-based waypoint. The radius is the TRO 1.3 executable's: 12 m, measured
+  in the (x, z) plane (FUN_0042b850). Missing/empty paths do not count as
+  arrival.
 - C++ color constants become stock Lua color strings. Native base-class
   bookkeeping and handle conversion are supplied by LuaMission.
 

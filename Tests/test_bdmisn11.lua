@@ -20,6 +20,8 @@ function BuildObject(odf, team, where, point)
     Record('BuildObject', odf, team, where, point)
     nextHandle = nextHandle + 1; objects[nextHandle] = 1; return nextHandle
 end
+function GetPosition(where) assert(where == 'aerial_1'); return {x = 1000, y = 50, z = 2000} end
+function SetVector(x, y, z) return {x = x, y = y, z = z} end
 function GetNearestEnemy() return nearest end
 function GetDistance(h, target, point)
     assert(IsValid(h))
@@ -83,13 +85,15 @@ for wave = 1, 6 do
 end
 assert(Count('SetCloaked') == 65 and Count('Defend2') == 42)
 for i = 0, 70 do assert(Save().enemy[i] ~= nil, 'missing enemy slot '..i) end
--- Both aerial waves; preserve unusual source path/point rather than guessing.
+-- Both aerial waves drop from 400 m above a 10-50 m scatter round aerial_1 (TRO fix).
 Reset(); distance = 100; Tick(0); Tick(480.1)
 assert(Count('BuildObject', 'cssold') == 8)
 Tick(780.1); assert(Count('BuildObject', 'cssold') == 16)
 for _, c in ipairs(calls) do
     if c[1] == 'BuildObject' and c[2] == 'cssold' then
-        assert(c[4] == 'aerial_1' and c[5] == 400)
+        local p = c[4]
+        local r = math.sqrt((p.x - 1000) ^ 2 + (p.z - 2000) ^ 2)
+        assert(type(p) == 'table' and p.y == 450 and r >= 10 and r <= 50 and c[5] == nil)
     end
 end
 -- Native health warning ordering is deliberately retained.

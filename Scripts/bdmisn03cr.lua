@@ -12,10 +12,10 @@
 -- Use bd03.lua with the original mission's labels, paths, ODFs, audio, OTFs,
 -- and debrief files. This port does not change map mission-class configuration.
 
--- Preserve C++ array indices and the weighted 50/20/20/10 percent unit pool.
+-- Preserve C++ array indices. TRO 1.3 pool: 7 cvfigh + 3 cvtnk (70/30) in the random waves.
 local randomUnits = {
     [0] = "cvfigh", "cvfigh", "cvfigh", "cvfigh", "cvfigh",
-    "cvltnk", "cvltnk", "cvtnk", "cvtnk", "cvrckt",
+    "cvfigh", "cvfigh", "cvtnk", "cvtnk", "cvtnk",
 }
 
 local function NewState()
@@ -47,7 +47,7 @@ local M = NewState()
 local RESTORED_BASE_START = true -- the cut scavenger and turret at the deployed recycler
 local Restored = {}
 -- The enemy craft the waves are made of become concealed, head-count-scaled tickets. Static turrets are not.
-local SCALED_ODFS = { cvfigh = true, cvfighf = true, cvltnk = true, cvtnk = true, cvrckt = true }
+local SCALED_ODFS = { cvfigh = true, cvfighf = true, cvltnk = true, cvtnk = true }
 local sensorsBound = false
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "bdmisn03", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
@@ -172,12 +172,13 @@ local function AtEndOfPath(h, path)
     -- PORT ADAPTATION: stock Lua exposes path-point queries rather than the
     -- C++ isAtEndOfPath helper. Path indices are zero based; check the final
     -- waypoint, never the first/default point. A missing path is not arrival.
-    -- The supplied mission source does not define the native helper's radius.
-    -- This explicit 25 m arrival tolerance needs validation on the stock map;
-    -- it is an approximation, not a claimed recovered native constant.
+    -- TRO 1.3: arrival is within 12 m of the last waypoint, measured in 2D (x,z) (FUN_0042b850).
     if not Valid(h) then return false end
     local count = GetPathPointCount(path)
-    return count > 0 and GetDistance(h, path, count - 1) < 25.0
+    if count <= 0 then return false end
+    local a, b = GetPosition(h), GetPosition(path, count - 1)
+    local dx, dz = a.x - b.x, a.z - b.z
+    return math.sqrt(dx * dx + dz * dz) < 12.0
 end
 
 -- CR restored content >>

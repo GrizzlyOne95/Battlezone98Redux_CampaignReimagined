@@ -68,8 +68,8 @@ assert scaled | {"svhaula", "sspilo", "sssold"} == team2, team2
 assert other == {("apcamr", "1"), ("cvslfb", "1"), ("cvrecyd", "1"), ("svfigh", "1"), ("cvhtnk", "1"), ("obdata", "0")}, other
 assert "if team ~= 2 then return NativeBuildObject(odf, team, where) end" in coop, "teams other than 2 are built directly"
 # The two map slips in the faithful port that the CR layer corrects.
-assert 'BuildObject("cvrecyd", 1, "M.recycler")' in body and 'if where == "M.recycler" then where = "recycler" end' in coop
-assert '"spawn_explosion1"' in body and 'where = "relic_loc"' in coop
+assert 'BuildObject("cvrecyd", 1, "recycler")' in body and '"M.recycler"' not in body
+assert '"spawn_explosion1"' in body and 'where = "relic_loc"' in body
 # The body's literal enemy team 2 is only compared in the tug test; the shadow answers it.
 assert re.findall(r"GetTeamNum\([^)]*\) == (\d)", body) == ["2"] and "if team == ENEMY_TEAM then return 2 end" in coop
 assert "SetPerceivedTeam(M.user, 2)" in body and "if team == 2 then team = ENEMY_TEAM end" in coop

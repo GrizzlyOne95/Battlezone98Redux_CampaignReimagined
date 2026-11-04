@@ -66,15 +66,15 @@ used |= set(re.findall(r'Goto\([^,]+, "(\w+)"', live))
 used |= set(re.findall(r'CameraPath\("(\w+)"', live))
 used |= set(re.findall(r'Distance\([^,]+, "(\w+)"', live))
 used |= set(re.findall(r'MakeExplosion\("\w+", "(\w+)"\)', live))
-# Two slips of the faithful port name places the map lacks; the CR layer substitutes real ones.
-SLIPS = {"M.recycler": "recycler", "spawn_explosion1": "relic_loc"}
+# A slip of the faithful port names a place the map lacks; the shared body substitutes a real one.
+SLIPS = {"spawn_explosion1": "relic_loc"}
 assert set(SLIPS) <= used and not (set(SLIPS) & set(paths)), "the slipped names are not map paths"
 used -= set(SLIPS)
 assert used <= set(paths), "every path the body names exists: " + str(used - set(paths))
 assert set(SLIPS.values()) <= set(paths)
 assert {"wave_1", "wave_2", "wave_3", "wave_4", "wave_5", "follow_1", "follow_2", "follow_3", "follow_4", "follow_5",
         "aerial_1", "aerial_2", "aerial_3", "aerial_4", "armoury", "nav_start", "nav_tug", "nav_end",
-        "relic_tug", "tug_path", "tug_defend", "tug_fail", "fighters", "fighters_to", "relic_loc", "decoy_units",
+        "relic_tug", "tug_path", "tug_defend", "tug_fail", "fighters", "fighters_to", "relic_loc", "decoy_units", "recycler",
         "cut_end"} == used, used
 for name, expect in (("wave_1", 1), ("wave_5", 1)):
     assert len(paths[name]) == expect, name
@@ -134,7 +134,8 @@ assert (ROOT / "Scripts/CREuropaWeather.lua").is_file()
 wavs = sorted(set(re.findall(r'"(ch01\d+\.wav)"', live, re.I)), key=str.lower)
 restored = sorted(set(re.findall(r'"(ch01\d+\.wav)"', cr_text, re.I)), key=str.lower)
 assert restored == ["ch01010.wav"], restored
-assert len(wavs) == 10, wavs
+# TRO 1.3 plays ch01010 in the body too (timer <= 5 s, FUN_005ae660); the co-op layer still restores it earlier.
+assert len(wavs) == 11, wavs
 for wav in wavs + restored:
     assert (ROOT / "Text" / (wav[:-4].lower() + ".txt")).is_file(), "no subtitle for " + wav
 assert {w.lower() for w in wavs + restored} == {"ch01%03d.wav" % n for n in range(1, 12)}, "no unused voice line is left"

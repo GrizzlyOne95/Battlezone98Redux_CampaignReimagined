@@ -39,7 +39,8 @@ end
 local function guestsPassive(p)
     for i = 2, #p do
         for _, name in ipairs({"BuildObject", "BuildObjectAtPortal", "PortalOut", "PortalIn", "ActivatePortal", "DeactivatePortal",
-            "SetScrap", "SetAIP", "Goto", "Follow", "Attack", "Retreat", "Stop", "GetIn", "RemovePilot", "SetPerceivedTeam"}) do
+            "SetScrap", "SetAIP", "Goto", "Follow", "Attack", "Retreat", "Stop", "GetIn", "RemovePilot", "SetPerceivedTeam",
+            "SetMaxHealth", "SetCurHealth", "SetVelocity"}) do
             check(F.count(p[i], name) == 0, "guest " .. i .. " never mutates gameplay: " .. name)
         end
     end
@@ -179,6 +180,18 @@ do
     end
     check(built and type(built[5]) == "table", "the engineers' pilot is built at a point, not inside the APC")
     check(walk and walk.t >= built.t + 2.0, "he is told to walk to the portal 2 s after he is built")
+    local zero, restore, cur, hop
+    for _, c in ipairs(peer.calls) do
+        if built and c[2] == built[2] then
+            if c[1] == "SetMaxHealth" and c[3] == 0 then zero = c end
+            if c[1] == "SetMaxHealth" and c[3] ~= 0 then restore = c end
+            if c[1] == "SetCurHealth" then cur = c end
+            if c[1] == "SetVelocity" then hop = c end
+        end
+    end
+    check(zero and hop and hop[3].y > 0 and hop.t == built.t, "he hops out invulnerable (max health 0) the frame he is built")
+    check(restore and cur and cur[3] == restore[3] and walk and restore.t <= walk.t and restore.t >= built.t + 2.0,
+        "his health is restored just before the walk")
 end
 do
     local win = outcome({}, scenarios.win)

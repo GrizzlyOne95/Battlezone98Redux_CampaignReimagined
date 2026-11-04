@@ -138,6 +138,8 @@ for _, cloaked in ipairs({true, false}) do
     distances[labels.portal] = 99; tick(); assert(count("hide") == 1)
     objects[player].health = 1
     cameraDone = true; tick()
+    assert(count("camera_dir", "auto_end") >= 1)
+    for _, e in ipairs(events) do if e[1] == "camera_dir" and e[2] == "auto_end" and e[4] ~= 0 then assert(e[4] == 4500, "TRO 1.3 ending speed") end end
     assert(objects[player].health == 100)
     now = now + 2; tick(); assert(count("win") == 0)
     now = now + 0.1; tick()
@@ -157,4 +159,12 @@ objects[labels.factory], objects[labels.portal], objects[labels.empty_1], object
 route(); tick()
 assert(count("attack") == 39, "missing base units skipped without dropping surviving orders")
 assert(count("portal_in") == 0)
+-- TRO 1.3: 20 s after the last nav point the alarm sequence starts even if the player never nears trigger_1.
+reset(true); tick(); cameraCancel = true; tick(); cameraCancel = false
+now = 5.1; tick()
+for i = 0, 5 do local h = Save().navPoints[i]; distances[h] = 49; tick() end
+assert(Save().missionState == 6 and Save().stateTimer == now + 20)
+local t0 = now
+now = t0 + 20; tick(); assert(Save().missionState == 6, "strict fallback timer")
+now = t0 + 20.1; tick(); assert(Save().missionState == 7)
 print("Chinese04: startup, routes, waves, cloak, retargeting, deadlines, victory, missing handles and save/load passed")

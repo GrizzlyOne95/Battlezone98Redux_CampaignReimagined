@@ -328,10 +328,10 @@ function Update(dt)
         SetPilot(1, 10)
         -- objectives
         ResetObjectives()
-        if Valid(M.recycler) then Goto(M.recycler, "start_path_recycler", 0) end
-        if Valid(M.wingman1) then Goto(M.wingman1, "start_path_wingman1", 0) end
-        if Valid(M.wingman2) then Goto(M.wingman2, "start_path_wingman2", 0) end
-        -- Native Goto defaults to commandable priority 0; Lua defaults to 1.
+        -- TRO 1.3: start paths are issued at priority 1 (uncommandable)
+        if Valid(M.recycler) then Goto(M.recycler, "start_path_recycler", 1) end
+        if Valid(M.wingman1) then Goto(M.wingman1, "start_path_wingman1", 1) end
+        if Valid(M.wingman2) then Goto(M.wingman2, "start_path_wingman2", 1) end
         -- play the opening sound
         M.openingSound = AudioMessage("bd01001.wav")
         -- don't do this part after the first shot
