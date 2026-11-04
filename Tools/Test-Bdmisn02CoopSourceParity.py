@@ -38,13 +38,13 @@ body_calls = set(re.findall(r"\b([A-Z]\w+)\(", body))
 # shadow is a native the body really calls (so a stale shadow cannot hide).
 must_shadow = {"BuildObject", "IsValid", "IsAlive", "GetDistance", "Goto", "Attack", "AudioMessage", "IsAudioMessageDone",
                "CameraReady", "CameraPath", "CameraPathDir", "CameraFinish", "CameraCancelled", "SetObjectiveName",
-               "ClearObjectives", "AddObjective", "RemoveObject", "SucceedMission", "FailMission", "SetScrap", "SetPilot",
+               "StopAudioMessage", "ClearObjectives", "AddObjective", "RemoveObject", "SucceedMission", "FailMission", "SetScrap", "SetPilot",
                "GetPlayerHandle"}
 for name in sorted(must_shadow):
     assert name in body_calls, "not a call of the body: " + name
     assert re.search(r"(?m)^local [\w, ]*\b%s\b[\w, ]* =" % name, cr_text), "the body calls it, the runtime region must shadow it: " + name
 # Natives the runtime offers that this body does not call must not be wrapped.
-for name in ("SetAIP", "CameraObject", "Follow", "Defend", "Defend2", "Retreat", "SetIndependence", "StopAudioMessage",
+for name in ("SetAIP", "CameraObject", "Follow", "Defend", "Defend2", "Retreat", "SetIndependence",
              "SetPerceivedTeam", "GetNearestEnemy", "GetTeamNum"):
     assert name not in body_calls, name
     assert not re.search(r"(?m)^local [\w, ]*\b%s\b[\w, ]* =" % name, cr_text), "wrapped but never called: " + name

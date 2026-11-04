@@ -134,7 +134,8 @@ assert (ROOT / "Scripts/CREuropaWeather.lua").is_file()
 wavs = sorted(set(re.findall(r'"(ch01\d+\.wav)"', live, re.I)), key=str.lower)
 restored = sorted(set(re.findall(r'"(ch01\d+\.wav)"', cr_text, re.I)), key=str.lower)
 assert restored == ["ch01010.wav"], restored
-assert len(wavs) == 10, wavs
+# TRO 1.3 plays ch01010 in the body too (timer <= 5 s, FUN_005ae660); the co-op layer still restores it earlier.
+assert len(wavs) == 11, wavs
 for wav in wavs + restored:
     assert (ROOT / "Text" / (wav[:-4].lower() + ".txt")).is_file(), "no subtitle for " + wav
 assert {w.lower() for w in wavs + restored} == {"ch01%03d.wav" % n for n in range(1, 12)}, "no unused voice line is left"

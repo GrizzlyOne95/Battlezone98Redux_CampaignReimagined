@@ -71,6 +71,6 @@ assert 'GetDistance(apc, "apc_in") < 100' in active
 assert 'IsOdf(apc, "bvapc")' in active and 'for apc in AllObjects()' in active
 assert 'Deploy(M.recycler)' in active and 'AiCommand.NONE' in active
 assert all(f'"{odf}"' in active for odf in ('cvfigh', 'cvtnk', 'cvrckt'))
-assert 'r < 0.33' in active and 'r < 0.66' in active and 'math.random() < 0.5' in active
+assert 'r < 0.33' in active and 'r < 0.66' in active and 'math.random() * 2 - 1 < 0.5' in active  # TRO 1.3 rolls are uniform in [-1,1)
 assert 'function Save() return M end' in active and 'function Load(state)' in active
 print('BlackDog06 source parity: exact archive, 25 states, cut blocks, assets, waves and API mappings passed')

@@ -149,11 +149,14 @@ local function StopSound(id)
 end
 local function AtPathEnd(h, path)
     -- STOCK ADAPTATION: native isAtEndOfPath is not exposed to stock Lua.
-    -- Use the last zero-based path point with a 25 m arrival tolerance. Native
-    -- helper internals are unavailable here; this approximation changes only
+    -- TRO 1.3: 12 m 2D (x,z) distance to the last path point (FUN_0042b850). This changes only
     -- when the escort objective turns green, never the independent wave trigger.
+    if not Valid(h) then return false end
     local count = GetPathPointCount(path)
-    return Valid(h) and count > 0 and GetDistance(h, path, count - 1) < 25
+    if count <= 0 then return false end
+    local p, q = GetPosition(h), GetPosition(path, count - 1)
+    local dx, dz = p.x - q.x, p.z - q.z
+    return math.sqrt(dx * dx + dz * dz) < 12
 end
 -- STOCK BUG FIX (TRO LUA-Patch 2939339901, original TRO): the C++ 400 is an altitude, which stock Lua reads as a
 -- point index, so the paratroopers landed on the ground. Drop each one from that height over a 10-50 m scatter

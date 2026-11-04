@@ -43,7 +43,7 @@ token (`crcca_players`), so `M.user` is the token and:
 
 ## Scaling and concealed arrivals [owner rules, mission decisions]
 
-Scaled spawns: the ODFs `cvfigh`, `cvfighf`, `cvltnk`, `cvtnk`, `cvrckt` (every enemy craft). They become *tickets*: the
+Scaled spawns: the ODFs `cvfigh`, `cvfighf`, `cvltnk`, `cvtnk` (every enemy craft). They become *tickets*: the
 body gets a negative request id and the unit is built by the runtime on the next frames, with the body's later orders
 (`SetCloaked`, `Goto`, `Attack`, `Hunt`, `Follow`, `Defend2`) replayed on it; `Hunt` and `SetCloaked` are added to the
 runtime's order list for that. Not scaled: the two enemy turrets (`cvturr`, static) and every team-1 unit (the APC, its
