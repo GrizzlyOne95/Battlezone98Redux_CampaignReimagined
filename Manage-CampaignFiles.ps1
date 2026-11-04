@@ -122,6 +122,8 @@ $StructuredRuntimeDirs = @(
 $SourceExcludedRelativePaths = @(
     ".git",
     ".github",
+    # Local agent notes and settings; never mod content.
+    ".claude",
     # Legacy byte-identical copies; BZ_ASSETS_CORE is the runtime source.
     "Assets\CustomWidgets",
     # Chunk meshes are generated at runtime by OpenShim from the stock models;
