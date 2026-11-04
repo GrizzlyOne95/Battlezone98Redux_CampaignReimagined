@@ -93,7 +93,8 @@ assert '#europa.GetVentSites() > 0' in cr_text, "plumes are only triggered when 
 # The start file: every co-op player starts as the on-foot pilot (the disguise mission); checked when present.
 vxt = ROOT / "Missions/bdmisn04cr.vxt"
 if vxt.is_file():
-    assert vxt.read_bytes().decode("latin-1").strip() == "bsuser ,", "every co-op player starts as bsuser"
+    rows = [line.split(None, 3) for line in vxt.read_text().splitlines() if line.strip()]
+    assert len(rows) == 1 and len(rows[0]) == 4 and rows[0][0] == "bsuser", "native four-field list starts every co-op player as bsuser"
     vxt_note = "start file checked"
 else:
     vxt_note = "start file absent, not checked"
