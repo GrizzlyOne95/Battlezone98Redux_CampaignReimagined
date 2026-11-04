@@ -1,17 +1,14 @@
 [img]https://i.imgur.com/tnBsUBR.png[/img]
 
-[h1]Battlezone 98 Redux: Unofficial Community Patch & Campaign Rewrite[/h1]
-[i]An open-source native community patch and campaign overhaul for Battlezone 98 Redux, featuring engine-level bug fixes, major performance improvements, restored Battlezone 1.5 behavior, multiplayer/netcode improvements, modern input and rendering options, expanded HUD/PDA systems, and extensively rewritten campaign missions.[/i]
+[h1]Battlezone 98 Redux: Unofficial Community Patch, Visual Remaster & Campaign Rewrite[/h1]
+[i]Three projects in one download: an open-source native engine patch that works game-wide, a remaster of the game's own models, textures, terrain, skies and UI, and a rewritten 17-mission campaign you can play solo or in four-player co-op.[/i]
 
 [h2]Important Notice[/h2]
-[b]This project is 100% unofficial and is not affiliated with or supported by Rebellion. It's functional and reasonably stable, but still under active development.[/b]
+[b]This project is 100% unofficial and is not affiliated with or supported by Rebellion. It's functional and reasonably stable, but still under active development.[/b] It changes native game behavior, so expect bugs, crashes or differences from the unmodified game.
 
-This patch modifies native game behavior and remains highly experimental. Expect bugs, crashes, compatibility problems, or changes not present in the unmodified game.
-
-This item operates under the philosophy that game improvement methods should be open and shared. Other 'community' patches tend to operate under closed/hidden source with no way to verify if the code is safe, and no way to contribute or review it. Here, all source code is available publicly on Github and you can compile it from source yourself if desired. 
+All source code is public on GitHub, so you can review it, contribute, or build it yourself. Game improvements should be open and verifiable, not hidden.
 
 [h2]Install and Play[/h2]
-[b]1. First-time install[/b]
 [list=1]
 [*] Subscribe and let Steam finish downloading. Do [b]not[/b] enable anything in the Mods menu.
 [*] Launch the game and open [b]Single Player > Instant Action[/b] (bottom right).
@@ -19,51 +16,53 @@ This item operates under the philosophy that game improvement methods should be 
 [*] [b]Exit the game completely[/b], then start it again. The files are put in place while the game is closed.
 [/list]
 
-[b]2. Where the campaign is[/b]
-Open [b]Single Player > Custom Campaign[/b] (top right) and choose [b]Campaign Reimagined[/b]. It holds the full 17-mission NSDF campaign, [b]Red Arrival[/b] to [b]The Ultimate Quake[/b]; the last few missions are still in development. All 17 are also multiplayer co-op maps ([b]CR 01[/b] to [b]CR 17 Coop[/b]) for up to four players.
-Campaign assets load only with this campaign. OpenShim's engine fixes stay active game-wide, and all other content uses its usual menus.
+[b]The campaign:[/b] open [b]Single Player > Custom Campaign[/b] (top right) and choose [b]Campaign Reimagined[/b]: 17 NSDF missions from [b]Red Arrival[/b] to [b]The Ultimate Quake[/b] (the last few are still in development). Each is also a co-op map ([b]CR 01[/b] to [b]CR 17 Coop[/b]) for up to four players. All other content keeps its usual menus.
 
-[b]3. Updating[/b]
-Updates install automatically: when the Workshop item updates, the game stages the new OpenShim at the main menu or when a campaign mission starts, and installs it when you quit. To update by hand, press [b]Check for Updates[/b] on the [b]Options > OpenShim[/b] page (Steam only). Run Setup / Repair again only if the install is damaged or the button is unavailable.
+[b]Updating:[/b] automatic. When the Workshop item updates, the game stages the new OpenShim and installs it when you quit. You can also press [b]Check for Updates[/b] on [b]Options > OpenShim[/b] (Steam only). Run Setup / Repair again only if the install is damaged or the button is unavailable.
 
-[b]Guarded and Reversible:[/b] OpenShim validates the game build and patch sites, fails closed on mismatches, and never modifies battlezone98redux.exe on disk.
+OpenShim validates the game build and patch sites, fails closed on a mismatch, and never modifies battlezone98redux.exe on disk. If setup fails, check [i]openshim_update.status[/i] and [i]winmm_replace.log[/i]. Manual installs need the [url=https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/releases]complete OpenShim suite[/url] ([b]winmm.dll[/b], [b]bzloader.dll[/b], [b]plugins/openshim.dll[/b] and its config/assets), not winmm.dll alone. Remove other native DLL mods before troubleshooting.
 
-If setup fails, check [i]openshim_update.status[/i] and [i]winmm_replace.log[/i]. Manual installs need the [url=https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/releases]complete OpenShim suite[/url]: [b]winmm.dll[/b], [b]bzloader.dll[/b], [b]plugins/openshim.dll[/b] and matching configuration/assets. Copying winmm.dll alone is insufficient. Remove other native DLL modifications before troubleshooting.
-
-[h2]Major Player-Facing Improvements[/h2]
+[h2]Visual Remaster: Stock Assets Fixed and Rebuilt[/h2]
+Most of the download is art. The stock models and textures are repaired and upgraded, and new terrain, skies, cockpits and UI are added.
 [list]
-[*] [b]Game-Wide Native Patch:[/b] OpenShim isn't limited to Campaign Reimagined. Engine fixes, input improvements, multiplayer fixes, HUD options, networking changes, crash protection, and many other features work across the stock campaigns, Instant Action, multiplayer, and compatible mods.
-[*] [b]Destruction Debris:[/b] Restored the classic Battlezone 1.5 behavior where destroyed vehicles and buildings break into visible physical geometry chunks. These aren't estimations - they track exactly with the legacy hidden GEOs. They're the real deal.
-[*] [b] Massive FPS and optimization boosts: [/b] Identified and eliminated several major rendering bottlenecks, including redundant Ogre geometry rebuilds, excessive destruction-object submissions, broken craft culling, and unnecessary DX11 CPU/GPU synchronization. Benchmarks show 5–15% gains in representative CPU-heavy scenarios, with improvements exceeding 70% in destruction-heavy stress tests.
-[*] [b]Multiplayer:[/b] Fixed the server list jumping to the top on refresh and a crash when creating a game; removed the ~30-second hang on leaving a match by caching compiled shaders; team flags above player vehicles, toggleable live. Massive netcode improvements to help stability in longer matches.
-[*] [b]Audio Reliability:[/b] Larger sound-channel pool, so fewer dropouts in big battles and dialogue-heavy missions.
-[*] [b]Native AutoSave:[/b] A dedicated AutoSave entry that doesn't consume normal save slots. Works in ALL single player content including Instant Action missions. 
-[*] [b]Real Crash Diagnostics:[/b] Native crash logging and minidump capture turn mysterious Redux crashes into actionable module/address reports, making engine-level bugs substantially easier to reproduce and fix.
+[*] [b]Repaired stock models:[/b] about 240 stock vehicle, building and pilot meshes rebuilt with correct hard edges and fixed inside-out triangles, so hulls stop looking smeared or lit backwards. Skinned meshes no longer render flat grey in DX11, and the Soviet turret and walker cockpit views no longer flip or twitch.
+[*] [b]New normal and detail maps:[/b] stock materials that shipped with flat normals get new normal maps derived from their textures, plus baked ambient occlusion, specular and glow work on relics, buildings, pickups and launch pads.
+[*] [b]Revamped cockpits:[/b] 21 reworked interiors for NSDF, Black Dog, Soviet and Chinese craft. The glass cracks as your hull takes damage and collects rain, snow, dust and frost.
+[*] [b]HD terrain on all nine worlds:[/b] new high-resolution ground, real crater relief on the Moon, wet ground and puddles in rain, Europa snow and glittering ice, glowing molten lava on Io and churning, bubbling sulphur on Venus.
+[*] [b]New skies:[/b] a real star field and phase-lit Earth over the Moon, Jupiter at true size and phase (with eclipses) over Io, Europa and Ganymede, Saturn through Titan's haze, Uranus above Achilles' storms, dust and cirrus on Mars and a moving cloud deck on Venus.
+[*] [b]New UI and loading screens:[/b] per-world loading screens, mission briefing images, new menu widgets and a DX11 HUD material.
+[*] [b]New units and props:[/b] faction-styled nav beacons, pickups, storage and weapon crates, plus new mission buildings, capital ships, flora and Olympian relics.
+[*] [b]Sound:[/b] new rain, thunder, lightning and waterfall effects and restored mission voice lines.
+[/list]
+[i]The remastered art loads inside Campaign Reimagined and its co-op maps. Terrain, liquid and weather effects need DX11 with the Enhanced renderer profile.[/i]
+
+[h2]Game-Wide Engine Patch[/h2]
+OpenShim isn't limited to this campaign. Its fixes work across the stock campaigns, Instant Action, multiplayer and compatible mods.
+[list]
+[*] [b]Big FPS gains:[/b] removed redundant geometry rebuilds, excess destruction-object submissions, broken craft culling and needless DX11 CPU/GPU syncs. 5-15% faster in typical CPU-heavy scenes, over 70% in destruction-heavy stress tests.
+[*] [b]Destruction debris:[/b] destroyed vehicles and buildings break into physical chunks again, exactly like Battlezone 1.5, using the original hidden GEOs.
+[*] [b]Multiplayer:[/b] netcode fixes for long matches, no more server list jumping or crash on game creation, no 30-second hang leaving a match, team flags over vehicles, host controls and persistent bans.
+[*] [b]Native AutoSave:[/b] its own slot, in all single-player content including Instant Action.
+[*] [b]Audio:[/b] a larger sound-channel pool, so fewer dropouts in big battles.
+[*] [b]Crash diagnostics:[/b] native crash logs and minidumps that point at the real module and address.
+[*] [b]Restored 1.5 behavior:[/b] working satellite fog of war (Redux shows the whole map), the classic HUD meter layout and the jump-snipe crouch (single-player).
 [/list]
 
-[h2]In-Game Options and Controls[/h2]
+[h2]In-Game Options[/h2]
 [list]
-[*] [b]OpenShim Options Page:[/b] A new page on the stock Options screen for settings the original interface has no room for. Most apply instantly; those needing a restart are marked, and hovering a row explains what it does. Includes Raw Mouse Input (bypassing legacy mouse smoothing/acceleration), custom keybindings, attack alerts, target popups, scrap/pilot HUD style, jet flames, unit voices, weapon and reticle convergence, smarter scavengers, anti-air turret pitch, jump-snipe crouch, global turbo, and player/AI headlights with colour and beam controls.
-[*] [b]Renderer Profiles:[/b] Switch between stock-compatible Redux presentation, enhanced rendering, and retro-oriented presentation through OpenShim's native renderer-profile system, with optional DX11-specific visual features.
-[*] [b]Rewritten Key Binding Screen:[/b] Rebind controls in-game across both control families, with paging, live key capture, and cancel, written safely back to your key map.
-[*] [b]Career tracking:[/b] Added a dedicated main menu button for Career stats, if you have that turned on in OpenShim settings. Kills, deaths, etc. 
-[*] [b]Better Multiplayer Hosting:[/b] Native host controls, persistent player bans, improved network tuning, vehicle flags, nickname/network settings, clearer multiplayer failure diagnostics, and fixes for several stock lobby/UI problems.
-[/list]
-
-[h2]Restored Legacy Battlezone Behavior[/h2]
-[list]
-[*] [b]Classic HUD Layout Option:[/b] Restored legacy-style scrap and pilot meter placement aligned with the command interface and native HUD panels.
-[*] [b]Jump-Snipe Crouch:[/b] Restored the classic crouch while sniping mid-jump. Single-player only.
-[*] [b]Satellite fog of war:[/b] Redux broke the fog of war, so you can see everything on the map even if its not in radar range. This is now fixed.
+[*] [b]OpenShim Options page:[/b] raw mouse input, custom keybindings, attack alerts, target popups, HUD style, jet flames, unit voices, weapon convergence, smarter scavengers, anti-air turret pitch, global turbo and headlights. Most apply instantly, restart-only ones are marked, and hovering a row explains it.
+[*] [b]Renderer profiles:[/b] stock-compatible Redux, Enhanced (with the DX11 features above) or retro presentation.
+[*] [b]Rewritten key binding screen[/b] with live key capture, and a [b]Career stats[/b] main-menu button (enable it in OpenShim settings).
 [/list]
 
 [h2]Platform Support[/h2]
-Windows and Linux are both supported, on Steam and on GOG. On Linux, including Steam Deck, the patch runs through Proton or a compatible Wine prefix using the same 32-bit Windows files, so both platforms run identical code and update together. If something works on one and not another, that's a bug worth reporting.
+Windows and Linux (including Steam Deck, through Proton or Wine), on Steam and GOG. Both run the same 32-bit files and update together, so a difference between them is a bug worth reporting.
 
 [h2]Uninstallation[/h2]
-Delete [b]winmm.dll[/b] from the Battlezone 98 Redux installation folder and the game returns to normal, unpatched startup. Campaign, addon, or config files can be removed manually too. The modded campaign will error without the patch; unsubscribe for full removal.
+Delete [b]winmm.dll[/b] from the game folder to return to normal startup. The campaign will error without the patch, so unsubscribe for full removal.
 
 [h2]Reporting Issues[/h2]
-Please avoid reports such as 'it does not work.' Detailed reproduction steps make it much more likely a problem gets fixed.
+Please include reproduction steps rather than "it does not work." Detailed reports get fixed.
 
-[h3] AI-Assisted Development:[/h3] Anthropic's Claude and OpenAI's GPT Sol models are extremely adept at reverse engineering and writing patches, so I use them to save time and help with long tedious tasks. All work is designed, implemented, tested, and reviewed by me.
+[h3]AI-Assisted Development[/h3]
+I use Anthropic's Claude and OpenAI's GPT Sol models to speed up reverse engineering and long, tedious tasks. All work is designed, implemented, tested and reviewed by me.
