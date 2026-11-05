@@ -311,8 +311,8 @@ Pick the unused retrospective line; for example misn13 uses `misn1305`, misn12 `
   blessing, insert them at their sorted position and bump the count; `Validate-CampaignRepository.py` confirms.
 - Bless scans the **working tree including gitignored files**: move stray files (`luac.out`,
   `.claude/handoffs`, other branches' artifacts) aside first, then restore.
-- Merge conflicts in the lock: resolve by 3-way membership union (theirs in order, plus our additions
-  inserted after their predecessor), then run Validate; do not re-bless to resolve.
+- Merge conflicts in the lock: resolve by 3-way membership union (theirs, plus our additions
+  at their sorted position), then run Validate; do not re-bless to resolve.
 - Renderer payloads ship as `.payload` files (OpenShim 1.0.0.51+ reads them). Chunk meshes ship from
   `Assets/chunkMeshes_capped`; `Assets/chunkMeshes` still supplies 21 companion files the lock ships, so
   deleting that directory makes `-verify` report `LOCKED BUT ABSENT`.
