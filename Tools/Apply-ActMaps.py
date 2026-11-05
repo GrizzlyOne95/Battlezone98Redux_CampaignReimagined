@@ -92,8 +92,7 @@ def main():
             pos = next((i for i in idx if entries[i]["source"].lower() > e["source"].lower()), idx[-1] + 1)
             entries.insert(pos, e)
         lock["count"] = len(entries)
-        lock_path.write_bytes((json.dumps(lock, indent=2, ensure_ascii=False) + "\n")
-                              .replace("\n", "\r\n").encode("utf-8"))
+        lock_path.write_bytes((json.dumps(lock, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
     print(f"materials files {len(changed)}, textures {len(used)}, new lock entries {len(added)}, "
           f"count {lock['count'] if not dry else len(entries) + len(added)}")
 

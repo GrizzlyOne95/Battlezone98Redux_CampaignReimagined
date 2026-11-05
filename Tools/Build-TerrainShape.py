@@ -145,8 +145,7 @@ def main():
                        (idx[-1] + 1) if idx else len(entries))
             entries.insert(pos, e)
         lock["count"] = len(entries)
-        lock_path.write_bytes((json.dumps(lock, indent=2, ensure_ascii=False) + "\n")
-                              .replace("\n", "\r\n").encode("utf-8"))
+        lock_path.write_bytes((json.dumps(lock, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
     print(f"atlases {len(made)}, maps {len(lua)}, new lock entries {len(added)}")
 
 
