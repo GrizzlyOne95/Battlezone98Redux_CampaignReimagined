@@ -1,4 +1,5 @@
 """Offline walker art contracts; does not qualify native arm visibility/animation."""
+from weaponrigs import base_asset_path
 from pathlib import Path
 import hashlib,json,sys
 import numpy as np
@@ -15,7 +16,7 @@ def check(ok,label):
     checks+=1
 
 def sha(path):
-    b=path.read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if path.suffix=='.material' else b).hexdigest()
+    b=base_asset_path(path).read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if path.suffix=='.material' else b).hexdigest()
 
 def data(sub):
     return np.column_stack([cp.shared.values(sub.vertex_data,sem) for sem in (cp.shared.om.VES.POSITION,cp.shared.om.VES.NORMAL,cp.shared.om.VES.TEXTURE_COORDINATES,cp.shared.om.VES.TANGENT)])
@@ -38,7 +39,7 @@ for base,cfg in cp.CONFIG.items():
     check(len(list(skeleton.bones()))==26 and shell.handle==12 and shell.parent is None,'preserved 26-bone rig and independent shell')
     check(np.allclose(walkerpose.world(skeleton,meta['nativeBoneRotations'])[eye.handle][:3,:3],R),'native camera rotation agrees with pose utility')
     animations=list(skeleton.animations());check(len(animations)==1 and animations[0].name=='Take_001','original animation record retained')
-    mesh=cp.shared.read_mesh(ROOT/'Assets/ModelFixes'/(base+'_c.mesh'))
+    mesh=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/ModelFixes'/(base+'_c.mesh')))
     check(mesh.skeleton_name==base+'_c.skeleton','native fixed-table rig resource name')
     check([sub.material_name for sub in mesh.submesh_list]==[cfg['material'],'CRWX_CockpitGlass','CRV/'+base+'GunArms','CRV/'+base+'JointBacks'],'only deliberate interior, glass, source arms and socket backs')
     posed=[];tags=[]

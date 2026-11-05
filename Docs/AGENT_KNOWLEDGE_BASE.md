@@ -302,7 +302,7 @@ Pick the unused retrospective line; for example misn13 uses `misn1305`, misn12 `
 
 - New shipped files need `Manage-CampaignFiles.ps1 -bless`; **read the printed list and review the lock
   diff**. A stale lock fails Workshop staging as "missing required file", not as "lock is stale".
-- Bless under **pwsh 7** (Windows PowerShell 5.1 writes a BOM that breaks `Test-SetupMissionShell`). Keep
+- Bless writes the lock without a BOM on either PowerShell (a BOM breaks the Python validators and CI). Keep
   the lock **LF**. Bless writes CRLF and may re-sort: fix to LF in place.
 - **Never re-sort the lock.** It is not globally sorted. To add entries without blessing, insert them in
   place beside their neighbours and bump the count; `Validate-CampaignRepository.py` confirms.
@@ -1658,3 +1658,25 @@ to the ordinary GOG development mod.
 - Owner Red Devil direction: legacy bvrdev00's strong red/black shapes and warm
   yellow headlights are preferred to the Redux skin. Its UV layout differs from
   bvrdev, so use it as reference for an authored restoration, not a DDS swap.
+
+### Closed weapon rigs and cockpit copies (2026-11-04)
+
+- Hardpoint parents are not necessarily the visible barrel: the NSDF/Black Dog
+  light tanks' small upper gun and launcher bell belong to separate `bdc`/`bdb`
+  pieces. Review actual weighted surfaces before choosing a region.
+- Split recoil/spin geometry must keep helpers beneath each original geometry
+  driver, including cockpit visibility/aiming drivers. One common world helper
+  can make a cockpit copy disappear or bypass its native motion. Preserve source
+  bind poses and tracks, cap both moving pieces and fixed receivers, and verify
+  the final exported mesh separately from its original cockpit-builder stage.
+- Fit first-person copies in their recorded art-fit frame (not blindly in world
+  bounds). Use native VDF local POV rotation for review cameras; the skeleton's
+  bind POV rotation can disagree. A cockpit cabin/nose is not a gun copy.
+- Fitted casing ports require both offset and direction in the native hardpoint
+  frame. Mirror paired scout directions outboard, then check full-hull ray and
+  casing-size clearance; a barrel-local estimate can eject through the hull.
+  These static fits do not qualify live aiming, vehicle motion or collision.
+- `References/WeaponRigs/models.json` pins immutable pre-rig Git inputs. Keep
+  history available; do not repin generated assets by rerunning initialization.
+  New keys for sustained spin and craft casing ports require companion OpenShim
+  PR 698; authored content alone does not refresh CR's committed native payload.

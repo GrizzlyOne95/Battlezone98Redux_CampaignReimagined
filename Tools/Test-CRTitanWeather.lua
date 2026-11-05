@@ -1072,9 +1072,18 @@ do
         check(hlsl:find("float4 " .. param .. ";", 1, true) ~= nil, "uniform " .. param .. " is declared in the shader")
     end
     local lock = read("Shipping/shipping.lock.json") or ""
+    -- JSON writers use different legal spacing (the shipping manager may use
+    -- two spaces after a colon). Test membership, not one writer's formatting.
+    local function hasRuntime(text, runtime)
+        local escaped = runtime:gsub("(%W)", "%%%1")
+        return text:find('"runtime"%s*:%s*"' .. escaped .. '"') ~= nil
+    end
+    check(hasRuntime('{"runtime":"cr_methane.hlsl"}', "cr_methane.hlsl"), "compact shipping JSON membership")
+    check(hasRuntime('"runtime":  "cr_methane.hlsl"', "cr_methane.hlsl"), "shipping manager JSON membership")
+    check(not hasRuntime('"runtime": "cr_methaneXhlsl"', "cr_methane.hlsl"), "shipping resource names match literally")
     for _, runtime in ipairs({ "cr_methane.hlsl", "cr_methane.program", "cr_methane.material",
         "cr_methane_plane.mesh", "cr_methane_ripple.png", "cr_titan14_wet.png" }) do
-        check(lock:find('"runtime": "' .. runtime .. '"', 1, true) ~= nil, runtime .. " is in the shipping lock")
+        check(hasRuntime(lock, runtime), runtime .. " is in the shipping lock")
     end
 end
 

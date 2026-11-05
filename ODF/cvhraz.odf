@@ -17,6 +17,29 @@ weaponHard2 = "GR2"
 weaponName2 = "grktbomb"
 
 [CraftClass]
+// CR CRAFT FLASH OFFSET BEGIN
+// Flash point from the hardpoint (right up forward, metres: barrel tip, or 0 0 0 at
+// a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
+// Regenerate: Tools/Build-WeaponFlashes.py --measure
+flashOffset1 = "-0.02 0.00 0.01"
+flashOffset2 = "0.02 0.00 -0.11"
+// CR CRAFT FLASH OFFSET END
+// CR CRAFT RECOIL BEGIN
+// Reviewed independent gun pieces; preserve aiming and deployment parents.
+// Regenerate: python Tools/Build-CombatPresentation.py
+recoilAnimation1 = "cr_fire_1"
+recoilPlaybackRate1 = 1.0
+recoilCockpit1 = true
+casingOffset1 = "1.4106 0.5137 -0.4116"
+casingDirection1 = "0.9345 0.3271 -0.1402"
+recoilKick1 = 1.0
+recoilAnimation2 = "cr_fire_2"
+recoilPlaybackRate2 = 1.0
+recoilCockpit2 = true
+casingOffset2 = "-1.3879 0.5058 -0.4082"
+casingDirection2 = "-0.9345 0.3271 -0.1402"
+recoilKick2 = 1.0
+// CR CRAFT RECOIL END
 rangeScan = 360.0
 periodScan = 5.0f
 velocJam = 5.0f

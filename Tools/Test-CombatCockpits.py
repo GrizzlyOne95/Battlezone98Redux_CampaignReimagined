@@ -1,4 +1,5 @@
 """Offline five-cockpit geometry, rig, atlas and first-person lookup contracts."""
+from weaponrigs import base_asset_path
 from pathlib import Path
 import hashlib,importlib.util,json,sys
 import numpy as np
@@ -13,7 +14,7 @@ def check(ok,message):
     assert ok,message
     checks+=1
 def sha(p):
-    b=p.read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if p.suffix=='.material' else b).hexdigest()
+    b=base_asset_path(p).read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if p.suffix=='.material' else b).hexdigest()
 spec=importlib.util.spec_from_file_location('build_combat',ROOT/'Tools/Build-CombatCockpits.py');build=importlib.util.module_from_spec(spec);spec.loader.exec_module(build)
 members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
 eyes={'cvturr':[0,3.620931014418602,1.0216540098190308],'svfigh':[0,1.492648959159851,.9383049756288528],'svltnk':[.002672000089660287,2.4873430132865906,-.7983300685882568],'avhraz':[.0007450000266544521,2.3997009992599487,2.301424026489258],'bvhraz':[.0007450000266544521,2.3997009992599487,2.301424026489258]};report={}
@@ -28,7 +29,7 @@ for base,cfg in cp.CONFIG.items():
     check(np.allclose(origin,eyes[base],atol=1e-8),'exact actual eye position')
     check(np.allclose(R,np.eye(3),atol=2e-5) and np.allclose(meta['povBasis'],R),'native/rest camera fixture')
     check(shell.handle==meta['shellHandle'] and shell.name==meta['shell'],'correct stable shell')
-    m=cp.shared.read_mesh(ROOT/'Assets/Models'/(base+'_cockpit.mesh'));check(m.skeleton_name==base+'_cockpit.skeleton','separate namespaced rig')
+    m=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/Models'/(base+'_cockpit.mesh')));check(m.skeleton_name==base+'_cockpit.skeleton','separate namespaced rig')
     check([sub.material_name for sub in m.submesh_list]==[cfg['material'],cfg['stock'],'CRV/'+base+'CombatExterior','CRWX_CockpitGlass'],'four deliberate batches including glass')
     opaque=[];ranges={};cursor=0
     for sub in m.submesh_list:
@@ -52,7 +53,7 @@ for base,cfg in cp.CONFIG.items():
     check(receipt['glass']['vertices']>0 and receipt['glass']['bone'].lower()==cfg['shell'].lower(),'weather glass refitted')
     # Reconstruct selected native pieces from the immutable source, proving
     # actual vehicle identity, original UVs, rigid scale and transformed normals.
-    body=cp.shared.read_mesh(source).submesh_list[0];ext=m.submesh_list[2];extdata=np.column_stack([cp.shared.values(ext.vertex_data,sem) for sem in (cp.shared.om.VES.POSITION,cp.shared.om.VES.NORMAL,cp.shared.om.VES.TEXTURE_COORDINATES,cp.shared.om.VES.TANGENT)]);offset=0
+    body=cp.shared.read_mesh(base_asset_path(source)).submesh_list[0];ext=m.submesh_list[2];extdata=np.column_stack([cp.shared.values(ext.vertex_data,sem) for sem in (cp.shared.om.VES.POSITION,cp.shared.om.VES.NORMAL,cp.shared.om.VES.TEXTURE_COORDINATES,cp.shared.om.VES.TANGENT)]);offset=0
     for piece in meta['exteriorPieces']:
         mask=np.zeros(len(body.index_array)//3,bool);mask[piece['sourceIndices']]=True;raw,ix,_=cp.tank.source_part(body,mask);T=np.array(piece['transform']);data=extdata[offset:offset+len(raw)];offset+=len(raw)
         check(np.allclose(T[:3,:3].T@T[:3,:3],np.eye(3),atol=1e-7) and abs(np.linalg.det(T[:3,:3])-1)<1e-7,'no scale/shear/mirroring of exterior piece')

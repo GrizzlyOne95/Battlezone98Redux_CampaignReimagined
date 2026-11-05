@@ -1,4 +1,5 @@
 """Razor scout pair: offline rig, shape, closure, faction art and lookup checks."""
+from weaponrigs import base_asset_path
 from pathlib import Path
 import hashlib,json,sys,importlib.util,re
 import numpy as np
@@ -13,7 +14,7 @@ def check(ok,message):
     assert ok,message
     count+=1
 def sha(p):
-    data=p.read_bytes()
+    data=base_asset_path(p).read_bytes()
     return hashlib.sha256(data.replace(b'\r\n',b'\n') if p.suffix=='.material' else data).hexdigest()
 spec=importlib.util.spec_from_file_location('build_scouts',ROOT/'Tools/Build-ScoutCockpits.py');build=importlib.util.module_from_spec(spec);spec.loader.exec_module(build)
 members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']};nose_visible={};emission={};diffuse={};authored={}
@@ -26,7 +27,7 @@ for faction,cfg in cp.CONFIG.items():
     s,world,eye,shell=cp.shared.rig(skelpath,cfg['shell']);origin,R=world[eye.handle]
     check(np.allclose(origin,cfg['eye'],atol=1e-8) and np.allclose(R,np.eye(3)),'actual faction POV, including Black Dog forward offset')
     check(shell.name.lower()==cfg['shell'],'correct stable faction shell')
-    mesh=cp.shared.read_mesh(ROOT/'Assets/Models'/(base+'_cockpit.mesh'))
+    mesh=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/Models'/(base+'_cockpit.mesh')))
     check(mesh.skeleton_name==base+'_cockpit.skeleton','namespaced skeleton selector')
     check([x.material_name for x in mesh.submesh_list]==[cfg['material'],cfg['nose'],'CRWX_CockpitGlass'],'authored interior, stock nose, weather glass only')
     opaque=[];nose_first=nose_last=0
@@ -54,10 +55,10 @@ for faction,cfg in cp.CONFIG.items():
     check(receipt['alignment']['innerShell']['boundaryLoops']==1,'only deliberate canopy opening')
     directions=np.concatenate([rays(np.arange(-35,36,1),pitch) for pitch in range(-31,0)])
     dist,hit=cg.cast(origin,directions,tri[:,0],tri[:,1],tri[:,2]);hits=np.isfinite(dist)&(hit>=nose_first)&(hit<nose_last);nose_visible[faction]=int(hits.sum());check(hits.any(),'original nose visible in actual forward FOV')
-    parts,*_=cp.geometry(source,skelpath,faction);authored[faction]=parts[cfg['material']][0]
+    parts,*_=cp.geometry(base_asset_path(source),skelpath,faction);authored[faction]=parts[cfg['material']][0]
     check(np.array_equal(cp.shared.values(mesh.submesh_list[1].vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),parts[cfg['nose']][0][:,6:8]),'stock nose UVs retained')
     check(receipt['alignment']['noseTriangles']==738 and len(mesh.submesh_list[1].index_array)//3==738,'only complete original nose, not whole hull/hardpoint cubes')
-    raw=cp.shared.read_mesh(source).submesh_list[0];rawp=cp.shared.values(raw.vertex_data,cp.shared.om.VES.POSITION);q=rawp[raw.index_array.reshape(-1,3)[receipt['alignment']['noseSourceIndices']]];fitted=parts[cfg['nose']][0][:,:3][parts[cfg['nose']][1].reshape(-1,3)]
+    raw=cp.shared.read_mesh(base_asset_path(source)).submesh_list[0];rawp=cp.shared.values(raw.vertex_data,cp.shared.om.VES.POSITION);q=rawp[raw.index_array.reshape(-1,3)[receipt['alignment']['noseSourceIndices']]];fitted=parts[cfg['nose']][0][:,:3][parts[cfg['nose']][1].reshape(-1,3)]
     check(np.allclose(np.linalg.norm(np.roll(q,-1,axis=1)-q,axis=2),np.linalg.norm(np.roll(fitted,-1,axis=1)-fitted,axis=2),atol=1e-6),'nose shape/scale preserved')
     check(receipt['glass']['bone'].lower()==cfg['shell'] and receipt['glass']['vertices']>0,'weather glass refitted')
     src=cg.Sources(game=str(ROOT/'Local/no-game'),cr=str(ROOT));path,kind,_=cg.cockpit_mesh(src,base);check(kind=='separate' and Path(path).name==base+'_cockpit.mesh','first-person resource selected')

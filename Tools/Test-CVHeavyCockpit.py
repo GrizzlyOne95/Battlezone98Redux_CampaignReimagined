@@ -1,4 +1,5 @@
 """Offline heavy-tank geometry, source sections, camera and UV contracts."""
+from weaponrigs import base_asset_path
 from pathlib import Path
 import hashlib,json,sys
 import numpy as np
@@ -12,7 +13,7 @@ def check(ok,label):
     checks+=1
 
 def sha(path):
-    b=path.read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if path.suffix=='.material' else b).hexdigest()
+    b=base_asset_path(path).read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if path.suffix=='.material' else b).hexdigest()
 
 def values(sub):
     return np.column_stack([cp.shared.values(sub.vertex_data,sem) for sem in (cp.shared.om.VES.POSITION,cp.shared.om.VES.NORMAL,cp.shared.om.VES.TEXTURE_COORDINATES,cp.shared.om.VES.TANGENT)])
@@ -28,7 +29,7 @@ s,w,eye,shell=cp.shared.rig(skel,'CEM21BDA');origin,R=w[eye.handle]
 check(eye.name=='CEM11POV' and eye.handle==13 and shell.handle==16,'actual heavy-tank eye and shell')
 check(np.allclose(origin,[0,2.7389559745788574,.09809499979019165],atol=1e-9) and np.allclose(R,np.eye(3)),'unchanged camera and rest basis')
 check(np.allclose(meta['povPosition'],origin) and np.allclose(meta['povBasis'],R),'receipt camera agrees')
-mesh=cp.shared.read_mesh(ROOT/'Assets/Models/cvhtnk_cockpit.mesh');check(mesh.skeleton_name=='cvhtnk_cockpit.skeleton','namespaced rig selector')
+mesh=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/Models/cvhtnk_cockpit.mesh'));check(mesh.skeleton_name=='cvhtnk_cockpit.skeleton','namespaced rig selector')
 check([sub.material_name for sub in mesh.submesh_list]==[cp.MATERIAL,'CRWX_CockpitGlass',cp.EXTERIOR,cp.CAPS],'four deliberate material batches')
 triangles=[];labels=[];exterior=None
 for sub in mesh.submesh_list:
@@ -45,7 +46,7 @@ for sub in mesh.submesh_list:
     if sub.material_name==cp.EXTERIOR:exterior=sub
     if sub.material_name in (cp.EXTERIOR,cp.CAPS):
         handles=[a.bone_index for a in assign];key='exteriorHandles' if sub.material_name==cp.EXTERIOR else 'capHandles';check(hashlib.sha256(json.dumps(handles,separators=(',',':')).encode()).hexdigest()==meta[key+'Sha256'],'compiled section driver receipt')
-original=cp.shared.read_mesh(source).submesh_list[0];p=cp.shared.values(original.vertex_data,cp.shared.om.VES.POSITION);tri=original.index_array.reshape(-1,3);q=p[tri];weights={a.vertex_index:a.bone_index for a in original.bone_assignments()};valid=np.linalg.norm(np.cross(q[:,1]-q[:,0],q[:,2]-q[:,0]),axis=1)>1e-9
+original=cp.shared.read_mesh(base_asset_path(source)).submesh_list[0];p=cp.shared.values(original.vertex_data,cp.shared.om.VES.POSITION);tri=original.index_array.reshape(-1,3);q=p[tri];weights={a.vertex_index:a.bone_index for a in original.bone_assignments()};valid=np.linalg.norm(np.cross(q[:,1]-q[:,0],q[:,2]-q[:,0]),axis=1)>1e-9
 expected=[];backs=[];expected_handles=[]
 configs=[('bow',0,[([0,0,1],1.95),([0,-1,0],-2.30)]),('portGunPod',1,[]),('starboardGunPod',3,[])]
 for section,(name,bone,planes) in zip(meta['sections'],configs):

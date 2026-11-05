@@ -1,4 +1,5 @@
 """Source-frame identity, native camera, visibility and UV contracts."""
+from weaponrigs import base_asset_path
 from pathlib import Path
 import hashlib,json,sys
 import numpy as np
@@ -14,7 +15,7 @@ def check(ok,label):
     checks+=1
 
 def sha(path):
-    data=path.read_bytes()
+    data=base_asset_path(path).read_bytes()
     return hashlib.sha256(data.replace(b'\r\n',b'\n') if path.suffix=='.material' else data).hexdigest()
 
 def shell_triangles(mesh,handle):
@@ -29,7 +30,7 @@ def shell_triangles(mesh,handle):
 
 report={}
 for base,cfg in cp.CONFIG.items():
-    receipt=json.loads((REF/base/'build.json').read_text());meta=receipt['alignment'];skel=ROOT/'Assets/Models'/(base+'_cockpit.skeleton');source=ROOT/receipt['sources']['baseline'];original=cp.shared.read_mesh(source)
+    receipt=json.loads((REF/base/'build.json').read_text());meta=receipt['alignment'];skel=ROOT/'Assets/Models'/(base+'_cockpit.skeleton');source=ROOT/receipt['sources']['baseline'];original=cp.shared.read_mesh(base_asset_path(source))
     check(sha(source)==receipt['sources']['exteriorSha256'],'original source/fallback preserved')
     check(sha(skel)==receipt['sources']['skeletonSha256'],'full stock rig bytes preserved')
     for path,digest in receipt['outputs'].items():
@@ -39,7 +40,7 @@ for base,cfg in cp.CONFIG.items():
     check(np.allclose(origin,[.0997999981045723,1.46069997549057,.1421000063419342],atol=1e-9),'actual unchanged POV position')
     check(np.allclose(R,np.eye(3),atol=1e-8) and np.allclose(meta['povBasis'],R),'native/rest eye basis fixture')
     check(meta['shell']==shell.name and meta['shellHandle']==shell.handle,'right stable shell for this faction')
-    mesh=cp.shared.read_mesh(ROOT/'Assets/Models'/(base+'_cockpit.mesh'))
+    mesh=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/Models'/(base+'_cockpit.mesh')))
     check(mesh.skeleton_name==base+'_cockpit.skeleton','namespaced rig resource')
     check([sub.material_name for sub in mesh.submesh_list]==[cfg['material'],'CRV/'+base+'OriginalFrame','CRV/'+base+'HullPaint','CRWX_CockpitGlass'],'only intended four batches')
     for sub in mesh.submesh_list:
@@ -61,7 +62,7 @@ for base,cfg in cp.CONFIG.items():
     check(np.array_equal(data[:,6:8],raw[:,6:8]),'original faction framing UVs unchanged')
     check(np.allclose(data[:,3:6],raw[:,3:6],atol=1e-7),'original framing normals unchanged')
     check(np.array_equal(meta['exteriorTransform'],np.eye(4)),'no framing fit, rotation or scale')
-    full=cp.shared.read_mesh(ROOT/'Assets/ModelFixes'/(base+'.mesh'));check(full.skeleton_name==original.skeleton_name and len(full.submesh_list)==len(original.submesh_list)+1,'full vehicle adds only a paint batch, keeps native rig reference')
+    full=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/ModelFixes'/(base+'.mesh')));check(full.skeleton_name==original.skeleton_name and len(full.submesh_list)==len(original.submesh_list)+1,'full vehicle adds only a paint batch, keeps native rig reference')
     for a,b in zip(original.submesh_list,full.submesh_list):
         check(a.material_name==b.material_name and np.array_equal(a.index_array,b.index_array),'full vehicle original material and connectivity preserved')
         for sem in (cp.shared.om.VES.POSITION,cp.shared.om.VES.NORMAL,cp.shared.om.VES.TEXTURE_COORDINATES,cp.shared.om.VES.TANGENT):

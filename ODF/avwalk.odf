@@ -21,6 +21,27 @@ weaponName3 = "gpopgun"
 weaponMask = 00011
 
 [CraftClass]
+// CR CRAFT FLASH OFFSET BEGIN
+// Flash point from the hardpoint (right up forward, metres: barrel tip, or 0 0 0 at
+// a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
+// Regenerate: Tools/Build-WeaponFlashes.py --measure
+flashOffset1 = "0.12 0.07 0.84"
+flashOffset2 = "-0.10 0.12 0.81"
+// CR CRAFT FLASH OFFSET END
+// CR CRAFT RECOIL BEGIN
+// Reviewed independent gun pieces; preserve aiming and deployment parents.
+// Regenerate: python Tools/Build-CombatPresentation.py
+recoilAnimation1 = "cr_fire_1"
+recoilPlaybackRate1 = 1.0
+recoilCockpit1 = true
+casingOffset1 = "1.5533 0.5529 -0.4604"
+casingDirection1 = "0.9328 0.3248 -0.1559"
+recoilAnimation2 = "cr_fire_2"
+recoilPlaybackRate2 = 1.0
+recoilCockpit2 = true
+casingOffset2 = "-1.5328 0.5311 -0.4478"
+casingDirection2 = "-0.9362 0.3173 -0.151"
+// CR CRAFT RECOIL END
 rangeScan = 250.0
 periodScan = 0.0
 velocJam = 0.0

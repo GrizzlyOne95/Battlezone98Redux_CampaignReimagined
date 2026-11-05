@@ -1,0 +1,31 @@
+{
+  "eye": "brd11POV",
+  "position": [
+    0.0,
+    1.6659959554672241,
+    1.2292560338974
+  ],
+  "basis": [
+    [
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "vertical_fov_degrees": 64,
+  "aspect": [
+    960,
+    540
+  ],
+  "source": "unchanged eye position; native VDF local POV rotation"
+}

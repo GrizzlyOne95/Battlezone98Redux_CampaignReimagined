@@ -1,8 +1,8 @@
 {
   "totals": {
     "slots": 267,
-    "recoil_slots": 55,
-    "flash_slots": 124,
+    "recoil_slots": 197,
+    "flash_slots": 188,
     "casing_slots": 114
   },
   "units": {
@@ -208,37 +208,37 @@
         "1": {
           "weapon": "gminigun",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0235,
+            -0.2438,
+            -1.4077
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminigun",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0274,
+            -0.2453,
+            -1.4118
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "avfimp": {
       "name": "Scout",
@@ -247,37 +247,37 @@
         "1": {
           "weapon": "gminigun",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0235,
+            -0.2438,
+            -1.4077
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminigun",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0274,
+            -0.2453,
+            -1.4118
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "avhraz": {
       "name": "Bomber",
@@ -383,23 +383,31 @@
         "1": {
           "weapon": "gtminig",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent aln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.0137,
+            0.0141,
+            0.421
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gtaggun",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent aln11bdc is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0412,
+            -0.0606,
+            0.379
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
@@ -417,7 +425,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "avltnk": {
       "name": "Light Tank",
@@ -426,23 +434,31 @@
         "1": {
           "weapon": "gminigun",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent aln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.0137,
+            0.0141,
+            0.421
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "ghornet",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent aln11bdc is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0412,
+            -0.0606,
+            0.379
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
@@ -460,7 +476,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "avmine": {
       "name": "Minelayer",
@@ -519,13 +535,13 @@
         "1": {
           "weapon": "gshadow",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
             0.0,
-            0.0,
-            0.0
+            -0.2329,
+            0.2356
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -535,13 +551,13 @@
         "2": {
           "weapon": "ghornet",
           "hardpoint": "GR2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
             0.0,
-            0.0,
-            0.0
+            -0.2334,
+            0.2356
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -561,7 +577,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "avrsav": {
       "name": "Fury - Pickup Test",
@@ -757,9 +773,9 @@
         "1": {
           "weapon": "gdummy",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
           "flash_offset": null,
           "flash_status": "paintball/debug effect",
           "casing_type": "none",
@@ -769,9 +785,9 @@
         "2": {
           "weapon": "gdummy",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
           "flash_offset": null,
           "flash_status": "paintball/debug effect",
           "casing_type": "none",
@@ -781,9 +797,9 @@
         "3": {
           "weapon": "gdummy",
           "hardpoint": "GM1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
           "flash_offset": null,
           "flash_status": "paintball/debug effect",
           "casing_type": "none",
@@ -793,9 +809,9 @@
         "4": {
           "weapon": "gdummy",
           "hardpoint": "GM2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
           "flash_offset": null,
           "flash_status": "paintball/debug effect",
           "casing_type": "none",
@@ -803,7 +819,7 @@
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Rig/animation work"
+      "category": "Authored closed gun rigs"
     },
     "avtump": {
       "name": "Turret",
@@ -874,25 +890,33 @@
         "1": {
           "weapon": "gatstaba",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent age11tx2 is not a barrel node and the hardpoint is 0.85 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.1154,
+            0.0709,
+            0.8371
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "medium",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gatstaba",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent age11tx1 is not a barrel node and the hardpoint is 0.83 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0979,
+            0.1228,
+            0.8131
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "medium",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "3": {
@@ -908,7 +932,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "avwamp": {
       "name": "Walker",
@@ -917,11 +941,15 @@
         "1": {
           "weapon": "gmaggun",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent age11tx2 is not a barrel node and the hardpoint is 0.85 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.1154,
+            0.0709,
+            0.8371
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
@@ -929,11 +957,15 @@
         "2": {
           "weapon": "gmaggun",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent age11tx1 is not a barrel node and the hardpoint is 0.83 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0979,
+            0.1228,
+            0.8131
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
@@ -951,7 +983,7 @@
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "bbtowe": {
       "name": "Gun Tower",
@@ -1045,17 +1077,17 @@
         "1": {
           "weapon": "gminigun",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0235,
+            -0.2438,
+            -1.4077
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "3": {
@@ -1075,7 +1107,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "bvfigha": {
       "name": "Scout",
@@ -1084,37 +1116,37 @@
         "1": {
           "weapon": "gminigun",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0235,
+            -0.2438,
+            -1.4077
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminigun",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0274,
+            -0.2453,
+            -1.4118
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "bvhraz": {
       "name": "Bomber",
@@ -1209,21 +1241,25 @@
         "1": {
           "weapon": "gatstab",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent bln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0137,
+            0.0141,
+            0.421
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "medium",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gsandbag",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": null,
           "flash_status": "anchoring device",
           "casing_type": "none",
@@ -1243,7 +1279,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "bvltnka": {
       "name": "Light Tank",
@@ -1252,17 +1288,21 @@
         "1": {
           "weapon": "gatstab",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent bln11bda is not a barrel node and the hardpoint is 0.24 m ahead of its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0137,
+            0.0141,
+            0.421
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "medium",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "bvmine": {
       "name": "Minelayer",
@@ -1321,17 +1361,17 @@
         "1": {
           "weapon": "gminigun",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0235,
+            -0.2438,
+            -1.4077
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
@@ -1351,7 +1391,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "bvraz": {
       "name": "Scout",
@@ -1360,17 +1400,17 @@
         "1": {
           "weapon": "gtminig",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0235,
+            -0.2438,
+            -1.4077
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "3": {
@@ -1390,7 +1430,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "bvrckt": {
       "name": "Rocket Tank",
@@ -1399,13 +1439,13 @@
         "1": {
           "weapon": "gtaggun",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
             0.0,
-            0.0,
-            0.0
+            -0.2329,
+            0.2356
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -1415,13 +1455,13 @@
         "2": {
           "weapon": "gtaggun",
           "hardpoint": "GR2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
             0.0,
-            0.0,
-            0.0
+            -0.2334,
+            0.2356
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -1441,7 +1481,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "bvrdev": {
       "name": "Red Devil",
@@ -1450,23 +1490,31 @@
         "1": {
           "weapon": "gtminig",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.1542,
+            -0.2,
+            0.7547
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gtaggun",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent brd11bda is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0249,
+            -0.0133,
+            0.0762
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
@@ -1484,7 +1532,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "bvrdeva": {
       "name": "Red Devil",
@@ -1493,29 +1541,37 @@
         "1": {
           "weapon": "gspstab",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.1542,
+            -0.2,
+            0.7547
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "ghornet",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent brd11bda is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0249,
+            -0.0133,
+            0.0762
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "bvrmpa": {
       "name": "Red Devil",
@@ -1524,11 +1580,15 @@
         "1": {
           "weapon": "grktbomb",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.1542,
+            -0.2,
+            0.7547
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
@@ -1536,17 +1596,21 @@
         "2": {
           "weapon": "grktbomb",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent brd11bda is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0249,
+            -0.0133,
+            0.0762
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "bvrmpb": {
       "name": "Red Devil",
@@ -1555,29 +1619,37 @@
         "1": {
           "weapon": "gspstab",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent brd11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.1542,
+            -0.2,
+            0.7547
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gspstab",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent brd11bda is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0249,
+            -0.0133,
+            0.0762
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "bvtank": {
       "name": "Tank",
@@ -1765,29 +1837,37 @@
         "1": {
           "weapon": "gspstab",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent age11tx2 is not a barrel node and the hardpoint is 0.85 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.1154,
+            0.0706,
+            0.8371
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gspstab",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent age11tx1 is not a barrel node and the hardpoint is 0.83 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0979,
+            0.1227,
+            0.8131
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cblasr": {
       "name": "Gun Tower",
@@ -1796,17 +1876,21 @@
         "1": {
           "weapon": "gspstaba",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.07,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0358,
+            0.0632,
+            0.2901
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Emitter/asset decision"
+      "category": "Authored closed gun rigs"
     },
     "cbtowe": {
       "name": "Gun Tower",
@@ -1838,17 +1922,21 @@
         "1": {
           "weapon": "gflashch",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.07,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0358,
+            0.0632,
+            0.2901
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Emitter/asset decision"
+      "category": "Authored closed gun rigs"
     },
     "cbtoweb": {
       "name": "Gun Tower",
@@ -1880,17 +1968,21 @@
         "1": {
           "weapon": "gflashch",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.07,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0358,
+            0.0632,
+            0.2901
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Emitter/asset decision"
+      "category": "Authored closed gun rigs"
     },
     "cbtowed": {
       "name": "Gun Tower",
@@ -1922,17 +2014,21 @@
         "1": {
           "weapon": "gflashch",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.07,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0358,
+            0.0632,
+            0.2901
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Emitter/asset decision"
+      "category": "Authored closed gun rigs"
     },
     "cbtowef": {
       "name": "Gun Tower",
@@ -2034,21 +2130,21 @@
         "1": {
           "weapon": "ghartill",
           "hardpoint": "GM1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0143,
+            0.013,
+            0.089
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvartla": {
       "name": "Howitzer",
@@ -2057,13 +2153,13 @@
         "1": {
           "weapon": "cvwo003",
           "hardpoint": "GM1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0143,
+            0.013,
+            0.089
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -2071,7 +2167,7 @@
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvfigh": {
       "name": "Fighter",
@@ -2080,37 +2176,37 @@
         "1": {
           "weapon": "gminigrn",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminigrn",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvfigha": {
       "name": "Scout",
@@ -2119,37 +2215,37 @@
         "1": {
           "weapon": "gminigrn",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminigrn",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvfighb": {
       "name": "Scout",
@@ -2158,9 +2254,9 @@
         "1": {
           "weapon": "gdummy",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": null,
           "flash_status": "paintball/debug effect",
           "casing_type": "none",
@@ -2170,9 +2266,9 @@
         "2": {
           "weapon": "gdummy",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": null,
           "flash_status": "paintball/debug effect",
           "casing_type": "none",
@@ -2180,7 +2276,7 @@
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvfighc": {
       "name": "Fighter",
@@ -2189,37 +2285,37 @@
         "1": {
           "weapon": "gminigrn",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminigrn",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvfighd": {
       "name": "Scout",
@@ -2228,9 +2324,9 @@
         "1": {
           "weapon": "gdummy",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": null,
           "flash_status": "paintball/debug effect",
           "casing_type": "none",
@@ -2238,7 +2334,7 @@
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvfighe": {
       "name": "Fighter",
@@ -2247,37 +2343,37 @@
         "1": {
           "weapon": "gminigrn",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminigrn",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvfighf": {
       "name": "Fighter",
@@ -2286,37 +2382,37 @@
         "1": {
           "weapon": "gminigrn",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminigrn",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvfighg": {
       "name": "Fighter",
@@ -2325,37 +2421,37 @@
         "1": {
           "weapon": "gminigrn",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminigrn",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvfighh": {
       "name": "Fighter",
@@ -2364,37 +2460,37 @@
         "1": {
           "weapon": "gminigrn",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminigrn",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvfimp": {
       "name": "Fighter",
@@ -2403,37 +2499,37 @@
         "1": {
           "weapon": "gminignc",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminignc",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvhmpa": {
       "name": "Tank",
@@ -2442,25 +2538,33 @@
         "1": {
           "weapon": "gspstaba",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.14,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0406,
+            -0.0147,
+            0.0192
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gspstaba",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.14,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0313,
+            -0.0147,
+            0.0192
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "4": {
@@ -2476,7 +2580,7 @@
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Rig/animation work"
+      "category": "Authored closed gun rigs"
     },
     "cvhmpb": {
       "name": "Tank",
@@ -2485,11 +2589,15 @@
         "1": {
           "weapon": "gmaggun",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.14,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0406,
+            -0.0147,
+            0.0192
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
@@ -2497,17 +2605,21 @@
         "2": {
           "weapon": "gmaggun",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.14,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0313,
+            -0.0147,
+            0.0192
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Rig/animation work"
+      "category": "Authored closed gun rigs"
     },
     "cvhraz": {
       "name": "Bomber",
@@ -2516,11 +2628,15 @@
         "1": {
           "weapon": "grktbomb",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0182,
+            0.0,
+            0.0141
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
@@ -2528,17 +2644,21 @@
         "2": {
           "weapon": "grktbomb",
           "hardpoint": "GR2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0182,
+            0.0,
+            -0.1089
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvhraza": {
       "name": "Bomber",
@@ -2547,11 +2667,15 @@
         "2": {
           "weapon": "grktbomb",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0182,
+            0.0,
+            0.0141
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
@@ -2559,17 +2683,21 @@
         "3": {
           "weapon": "grktbomb",
           "hardpoint": "GR2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0182,
+            0.0,
+            -0.1089
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvhrazb": {
       "name": "Bomber",
@@ -2578,11 +2706,15 @@
         "2": {
           "weapon": "grktbomb",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0182,
+            0.0,
+            0.0141
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
@@ -2590,17 +2722,21 @@
         "3": {
           "weapon": "grktbomb",
           "hardpoint": "GR2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0182,
+            0.0,
+            -0.1089
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvhtnk": {
       "name": "Heavy Tank",
@@ -2609,29 +2745,37 @@
         "1": {
           "weapon": "gspstaba",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.14,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0406,
+            -0.0147,
+            0.0192
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gspstaba",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CEM11BDA is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.14,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0313,
+            -0.0147,
+            0.0192
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Rig/animation work"
+      "category": "Authored closed gun rigs"
     },
     "cvhzmp": {
       "name": "Bomber",
@@ -2640,11 +2784,15 @@
         "1": {
           "weapon": "grktbomb",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0182,
+            0.0,
+            0.0141
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
@@ -2652,17 +2800,21 @@
         "2": {
           "weapon": "grktbomb",
           "hardpoint": "GR2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CPX11BDA0 is not a barrel node and has no geometry around the hardpoint",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0182,
+            0.0,
+            -0.1089
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvltnk": {
       "name": "Light Tank",
@@ -2671,25 +2823,25 @@
         "1": {
           "weapon": "gatstab",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
             0.0,
-            0.0,
-            0.0
+            0.0675,
+            0.0782
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "medium",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "3": {
           "weapon": "gsandbag",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": null,
           "flash_status": "anchoring device",
           "casing_type": "none",
@@ -2697,7 +2849,7 @@
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvmine": {
       "name": "Minelayer",
@@ -2756,37 +2908,37 @@
         "1": {
           "weapon": "gminigun",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminigun",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0457,
+            0.0087,
+            0.0163
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvrckt": {
       "name": "Rocket Tank",
@@ -2795,13 +2947,13 @@
         "1": {
           "weapon": "gshadow",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.2636,
+            -0.0099,
+            0.0064
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -2811,11 +2963,15 @@
         "2": {
           "weapon": "gshadow",
           "hardpoint": "GR2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CDR11BDA is not a barrel node and the hardpoint is 0.30 m ahead of its front geometry",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.2858,
+            -0.0099,
+            0.0064
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
@@ -2826,8 +2982,12 @@
           "recoil_node": "",
           "recoil_distance": null,
           "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent CDR11BDA is not a barrel node and the hardpoint is 0.30 m ahead of its front geometry",
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
@@ -2845,7 +3005,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvtank": {
       "name": "Tank",
@@ -2854,21 +3014,21 @@
         "1": {
           "weapon": "gspstabb",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0091,
+            0.0454,
+            -0.0888
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvtmpa": {
       "name": "Tank",
@@ -2877,29 +3037,29 @@
         "1": {
           "weapon": "gspstabb",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0091,
+            0.0454,
+            -0.0888
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gmaggun",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0038,
+            0.0556,
+            -0.091
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -2919,7 +3079,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvtnk": {
       "name": "Tank",
@@ -2928,17 +3088,17 @@
         "1": {
           "weapon": "gspstabb",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0091,
+            0.0454,
+            -0.0888
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "3": {
@@ -2954,7 +3114,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvtnka": {
       "name": "Tank",
@@ -2963,9 +3123,9 @@
         "1": {
           "weapon": "gdummy",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
           "flash_offset": null,
           "flash_status": "paintball/debug effect",
           "casing_type": "none",
@@ -2973,7 +3133,7 @@
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvtnkb": {
       "name": "Tank",
@@ -2982,21 +3142,21 @@
         "1": {
           "weapon": "gspstabb",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0091,
+            0.0454,
+            -0.0888
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvtnkc": {
       "name": "Tank",
@@ -3005,37 +3165,37 @@
         "1": {
           "weapon": "gspstabb",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0091,
+            0.0454,
+            -0.0888
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gspstabb",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0038,
+            0.0556,
+            -0.091
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvtnkd": {
       "name": "Tank",
@@ -3044,37 +3204,37 @@
         "1": {
           "weapon": "gspstabd",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0091,
+            0.0454,
+            -0.0888
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gspstabd",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0038,
+            0.0556,
+            -0.091
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvturr": {
       "name": "Turret",
@@ -3083,69 +3243,69 @@
         "1": {
           "weapon": "gminigrn",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.003,
+            0.0019,
+            0.2661
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminigrn",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.003,
+            0.0128,
+            0.2661
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "3": {
           "weapon": "gminigrn",
           "hardpoint": "GC3",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_3",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.003,
+            0.0128,
+            0.2661
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "4": {
           "weapon": "gminigrn",
           "hardpoint": "GC4",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_4",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.003,
+            0.0019,
+            0.2661
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvturra": {
       "name": "Turret",
@@ -3154,57 +3314,57 @@
         "1": {
           "weapon": "gtminis",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.003,
+            0.0019,
+            0.2661
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gtminis",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.003,
+            0.0128,
+            0.2661
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "3": {
           "weapon": "gtminis",
           "hardpoint": "GC3",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_3",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.003,
+            0.0128,
+            0.2661
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "4": {
           "weapon": "gsandbag",
           "hardpoint": "GC4",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_4",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": null,
           "flash_status": "anchoring device",
           "casing_type": "none",
@@ -3212,7 +3372,7 @@
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvturrb": {
       "name": "Turret",
@@ -3221,37 +3381,37 @@
         "1": {
           "weapon": "gspstabb",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.003,
+            0.0019,
+            0.2661
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "3": {
           "weapon": "gspstabb",
           "hardpoint": "GC3",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_3",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.003,
+            0.0128,
+            0.2661
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvturrc": {
       "name": "Turret",
@@ -3260,21 +3420,21 @@
         "1": {
           "weapon": "gspstabc",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.003,
+            0.0019,
+            0.2661
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "cvwalk": {
       "name": "Walker",
@@ -3630,17 +3790,21 @@
         "1": {
           "weapon": "ghartmp",
           "hardpoint": "GM1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "visible tip is -0.02 m from the hardpoint (under 0.1 m)",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0307,
+            0.0363,
+            -0.021
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Rig/animation work"
+      "category": "Authored closed gun rigs"
     },
     "svartl": {
       "name": "Howitzer",
@@ -3649,17 +3813,21 @@
         "1": {
           "weapon": "ghartill",
           "hardpoint": "GM1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "visible tip is -0.02 m from the hardpoint (under 0.1 m)",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0307,
+            0.0363,
+            -0.021
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Rig/animation work"
+      "category": "Authored closed gun rigs"
     },
     "svartla": {
       "name": "Howitzer",
@@ -3668,17 +3836,21 @@
         "1": {
           "weapon": "ghartila",
           "hardpoint": "GM1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "visible tip is -0.02 m from the hardpoint (under 0.1 m)",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.18,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0307,
+            0.0363,
+            -0.021
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Rig/animation work"
+      "category": "Authored closed gun rigs"
     },
     "svdemo": {
       "name": "Fighter",
@@ -3687,13 +3859,13 @@
         "1": {
           "weapon": "grktbomb",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0627,
+            -0.0091,
+            0.0306
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -3717,7 +3889,7 @@
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "svfi12": {
       "name": "Fighter",
@@ -3726,17 +3898,17 @@
         "1": {
           "weapon": "gminisov",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0627,
+            -0.0091,
+            0.0306
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
@@ -3752,7 +3924,7 @@
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "3": {
@@ -3768,7 +3940,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "svfigh": {
       "name": "Fighter",
@@ -3777,37 +3949,37 @@
         "1": {
           "weapon": "gminisov",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0627,
+            -0.0091,
+            0.0306
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminisov",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0681,
+            0.0064,
+            0.0241
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "svfigha": {
       "name": "Fighter",
@@ -3816,37 +3988,37 @@
         "1": {
           "weapon": "gminisov",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0627,
+            -0.0091,
+            0.0306
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminisov",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0681,
+            0.0064,
+            0.0241
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "svfimp": {
       "name": "Fighter",
@@ -3855,37 +4027,37 @@
         "1": {
           "weapon": "gminisov",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.0627,
+            -0.0091,
+            0.0306
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gminisov",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.025,
+          "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            -0.0681,
+            0.0064,
+            0.0241
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "svhr13": {
       "name": "Bomber",
@@ -3894,13 +4066,13 @@
         "2": {
           "weapon": "gsrkbomb",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.4283,
+            -1.2985,
+            1.3617
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -3910,17 +4082,21 @@
         "3": {
           "weapon": "gsrkbomb",
           "hardpoint": "GR2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent shb11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            1.6118,
+            -0.2728,
+            1.4842
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "svhraz": {
       "name": "Bomber",
@@ -3929,13 +4105,13 @@
         "2": {
           "weapon": "gsrkbomb",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.4283,
+            -1.2985,
+            1.3617
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -3945,17 +4121,21 @@
         "3": {
           "weapon": "gsrkbomb",
           "hardpoint": "GR2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent shb11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            1.6118,
+            -0.2728,
+            1.4842
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "svhrmp": {
       "name": "Bomber",
@@ -3976,13 +4156,13 @@
         "2": {
           "weapon": "gsrkbomb",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            0.0
+            0.4283,
+            -1.2985,
+            1.3617
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -3992,17 +4172,21 @@
         "3": {
           "weapon": "gsrkbomb",
           "hardpoint": "GR2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent shb11bda is not a barrel node and the hardpoint is 0.86 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            1.6118,
+            -0.2728,
+            1.4842
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "svlt13": {
       "name": "Light Tank",
@@ -4011,11 +4195,15 @@
         "1": {
           "weapon": "gtaggun",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent slt11trt is not a barrel node and the hardpoint is 1.03 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.07,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0115,
+            0.0603,
+            1.028
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
@@ -4023,9 +4211,9 @@
         "3": {
           "weapon": "gsandbag",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.07,
+          "recoil_effective_kick": 1.0,
           "flash_offset": null,
           "flash_status": "anchoring device",
           "casing_type": "none",
@@ -4033,7 +4221,7 @@
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "svltnk": {
       "name": "Light Tank",
@@ -4042,11 +4230,15 @@
         "1": {
           "weapon": "gtaggun",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent slt11trt is not a barrel node and the hardpoint is 1.03 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.07,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0115,
+            0.0603,
+            1.028
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
@@ -4054,9 +4246,9 @@
         "3": {
           "weapon": "gsandbag",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.07,
+          "recoil_effective_kick": 1.0,
           "flash_offset": null,
           "flash_status": "anchoring device",
           "casing_type": "none",
@@ -4064,7 +4256,7 @@
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "svmine": {
       "name": "Minelayer",
@@ -4092,11 +4284,15 @@
         "1": {
           "weapon": "gshadow",
           "hardpoint": "GR1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent srt11bda is not a barrel node and the hardpoint is 1.43 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0,
+            -0.2635,
+            1.4623
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
@@ -4104,9 +4300,9 @@
         "2": {
           "weapon": "gsandbag",
           "hardpoint": "GR2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.05,
+          "recoil_effective_kick": 1.0,
           "flash_offset": null,
           "flash_status": "anchoring device",
           "casing_type": "none",
@@ -4138,7 +4334,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "svsav": {
       "name": "Fury",
@@ -4178,13 +4374,13 @@
         "1": {
           "weapon": "gsatstab",
           "hardpoint": "GC1",
-          "recoil_node": "SCZ11BGB",
+          "recoil_node": "animation:cr_fire_1",
           "recoil_distance": 0.2,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            3.42
+            -0.0029,
+            -0.0042,
+            3.4192
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -4194,13 +4390,17 @@
         "2": {
           "weapon": "gminisov",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.03,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.0875,
+            -0.16,
+            1.901
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "4": {
@@ -4216,7 +4416,7 @@
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Existing gun piece"
+      "category": "Authored closed gun rigs"
     },
     "svtanka": {
       "name": "Tank",
@@ -4225,13 +4425,13 @@
         "1": {
           "weapon": "gsatstab",
           "hardpoint": "GC1",
-          "recoil_node": "SCZ11BGB",
+          "recoil_node": "animation:cr_fire_1",
           "recoil_distance": 0.2,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            3.42
+            -0.0029,
+            -0.0042,
+            3.4192
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -4241,13 +4441,17 @@
         "2": {
           "weapon": "gminisov",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.03,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.0875,
+            -0.16,
+            1.901
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "4": {
@@ -4263,7 +4467,7 @@
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Existing gun piece"
+      "category": "Authored closed gun rigs"
     },
     "svtas8": {
       "name": "Tank",
@@ -4272,27 +4476,31 @@
         "1": {
           "weapon": "gatstab",
           "hardpoint": "GC1",
-          "recoil_node": "SCZ11BGB",
+          "recoil_node": "animation:cr_fire_1",
           "recoil_distance": 0.2,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            3.42
+            -0.0029,
+            -0.0042,
+            3.4192
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "medium",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gflashgn",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.03,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0875,
+            -0.16,
+            1.901
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
@@ -4322,7 +4530,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Existing gun piece"
+      "category": "Authored closed gun rigs"
     },
     "svtk13": {
       "name": "Tank",
@@ -4331,27 +4539,31 @@
         "1": {
           "weapon": "gspstab",
           "hardpoint": "GC1",
-          "recoil_node": "SCZ11BGB",
+          "recoil_node": "animation:cr_fire_1",
           "recoil_distance": 0.2,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            3.42
+            -0.0029,
+            -0.0042,
+            3.4192
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gflashgn",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent scz11bda is not a barrel node and the hardpoint is 1.46 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.03,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.0875,
+            -0.16,
+            1.901
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
@@ -4381,7 +4593,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Existing gun piece"
+      "category": "Authored closed gun rigs"
     },
     "svtnk7": {
       "name": "Tank",
@@ -4390,21 +4602,21 @@
         "1": {
           "weapon": "ga7stab",
           "hardpoint": "GC1",
-          "recoil_node": "SCZ11BGB",
+          "recoil_node": "animation:cr_fire_1",
           "recoil_distance": 0.2,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            0.0,
-            3.42
+            -0.0029,
+            -0.0042,
+            3.4192
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "medium",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Existing gun piece"
+      "category": "Authored closed gun rigs"
     },
     "svtump": {
       "name": "Turret",
@@ -4413,29 +4625,37 @@
         "1": {
           "weapon": "gtminis",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
           "weapon": "gtminis",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "hardpoint 'GC2' matches 0 skeleton bones",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Rig/animation work"
+      "category": "Authored closed gun rigs"
     },
     "svturr": {
       "name": "Turret",
@@ -4444,17 +4664,21 @@
         "1": {
           "weapon": "gtminis",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Rig/animation work"
+      "category": "Authored closed gun rigs"
     },
     "svturra": {
       "name": "Turret",
@@ -4463,17 +4687,21 @@
         "1": {
           "weapon": "gspstab",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Rig/animation work"
+      "category": "Authored closed gun rigs"
     },
     "svturrb": {
       "name": "Turret",
@@ -4482,17 +4710,21 @@
         "1": {
           "weapon": "gspstab",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "large",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Rig/animation work"
+      "category": "Authored closed gun rigs"
     },
     "svturrc": {
       "name": "Turret",
@@ -4501,17 +4733,21 @@
         "1": {
           "weapon": "gminigna",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "hardpoint 'GC1' matches 0 skeleton bones",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "small",
-          "casing_status": "estimated native breech; model port fitting pending",
+          "casing_status": "fitted outboard port; companion native runtime required",
           "runtime": "accepted-shot path; live validation pending"
         }
       },
-      "category": "Rig/animation work"
+      "category": "Authored closed gun rigs"
     },
     "svwalk": {
       "name": "Walker",
@@ -4520,11 +4756,15 @@
         "1": {
           "weapon": "gblast",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent svw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.12,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.2074,
+            -0.6475,
+            0.4652
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
@@ -4532,11 +4772,15 @@
         "2": {
           "weapon": "gblast",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent svw11hed is not a barrel node and the hardpoint is 0.97 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.12,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.1019,
+            -0.7315,
+            0.655
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
@@ -4554,7 +4798,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "svwalka": {
       "name": "Walker",
@@ -4563,11 +4807,15 @@
         "1": {
           "weapon": "gblast",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent svw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.12,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.2074,
+            -0.6475,
+            0.4652
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
@@ -4575,11 +4823,15 @@
         "2": {
           "weapon": "gblast",
           "hardpoint": "GC2",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent svw11hed is not a barrel node and the hardpoint is 0.97 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.12,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.1019,
+            -0.7315,
+            0.655
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
@@ -4597,7 +4849,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     },
     "svwamp": {
       "name": "Walker",
@@ -4606,11 +4858,15 @@
         "1": {
           "weapon": "gblast",
           "hardpoint": "GC1",
-          "recoil_node": "",
-          "recoil_distance": null,
-          "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "parent svw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry",
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.12,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.2074,
+            -0.6475,
+            0.4652
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
@@ -4628,7 +4884,7 @@
           "runtime": "native firing producer pending"
         }
       },
-      "category": "Isolate gun geometry"
+      "category": "Authored closed gun rigs"
     }
   }
 }

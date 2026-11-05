@@ -1,0 +1,31 @@
+{
+  "eye": "STU11POV",
+  "position": [
+    0.3703049421310425,
+    4.51818907354027,
+    -0.04885502703837119
+  ],
+  "basis": [
+    [
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "vertical_fov_degrees": 64,
+  "aspect": [
+    960,
+    540
+  ],
+  "source": "unchanged eye position; native VDF local POV rotation"
+}

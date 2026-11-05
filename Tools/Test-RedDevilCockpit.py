@@ -1,4 +1,5 @@
 """POV, cockpit selection, skinning, sightline, atlas/glow and shipping checks."""
+from weaponrigs import base_asset_path
 from pathlib import Path
 import hashlib,importlib.util,io,json,sys
 import numpy as np
@@ -14,20 +15,20 @@ def check(ok,message):
     assert ok,message
     count+=1
 
-def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
+def sha(path):return hashlib.sha256(base_asset_path(path).read_bytes()).hexdigest()
 recipe=json.loads((REF/'cockpit.json').read_text());receipt=json.loads((REF/'cockpit-build.json').read_text())
 for name,digest in receipt['masters'].items():check(sha(REF/name)==digest,'authored cockpit master pinned')
 for name,digest in receipt['outputs'].items():
     p=ROOT/name;actual=hashlib.sha256(p.read_text().encode()).hexdigest() if p.suffix=='.material' else sha(p)
     check(actual==digest,'compiled resource hash: '+name)
 check((ROOT/'Assets/Models/bvrdev_cockpit.skeleton').read_bytes()==(REF/'original/bvrdev.skeleton').read_bytes(),'POV and every original bone/hardpoint unchanged')
-check((ROOT/'Assets/ModelFixes/bvrdev.mesh').read_bytes()==(REF/'original/bvrdev.mesh').read_bytes(),'exterior and old fallback mesh untouched')
+check(base_asset_path(ROOT/'Assets/ModelFixes/bvrdev.mesh').read_bytes()==(REF/'original/bvrdev.mesh').read_bytes(),'exterior and old fallback mesh untouched')
 skeleton,world,eye,shell=cp.rig(REF/'original/bvrdev.skeleton');origin,R=world[eye.handle]
 check(eye.name==receipt['alignment']['pov']=='brd11POV','real POV bone authority')
 check(np.allclose(origin,receipt['alignment']['povPosition'],atol=1e-8),'exact eye-frame origin, not bounding-box centering')
 check(np.allclose(R,receipt['alignment']['povBasis'],atol=1e-8),'POV orientation retained')
 check(shell.handle==receipt['alignment']['shellHandle']==14 and shell.name=='brd21BDA','stable cockpit shell binding')
-mesh=cp.read_mesh(ROOT/'Assets/Models/bvrdev_cockpit.mesh')
+mesh=cp.read_mesh(base_asset_path(ROOT/'Assets/Models/bvrdev_cockpit.mesh'))
 check(mesh.skeleton_name=='bvrdev_cockpit.skeleton','dedicated first-person rig resource')
 check([s.material_name for s in mesh.submesh_list]==[cp.MATERIAL,cp.BOW,'CRWX_CockpitGlass'],'cockpit / real foredeck / fitted weather glass')
 opaque=[]

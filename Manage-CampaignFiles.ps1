@@ -2438,7 +2438,8 @@ function Invoke-BlessShipping {
         count     = $ordered.Count
         files     = $ordered
     }
-    ($payload | ConvertTo-Json -Depth 4) | Set-Content -LiteralPath $lockPath -Encoding UTF8
+    # No BOM: the Python validators read this with json.loads(read_text()).
+    [System.IO.File]::WriteAllText($lockPath, (($payload | ConvertTo-Json -Depth 4) + "`n"), [System.Text.UTF8Encoding]::new($false))
 
     if ($previous) {
         $before = [System.Collections.Generic.HashSet[string]]::new([string[]]@($previous.BySource.Keys))

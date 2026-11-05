@@ -1,4 +1,5 @@
 """Offline tank cockpit contracts; no retail game installation required."""
+from weaponrigs import base_asset_path
 from pathlib import Path
 import hashlib,json,sys
 import numpy as np
@@ -11,7 +12,7 @@ def check(ok,message):
     assert ok,message
     checks+=1
 def sha(p):
-    b=p.read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if p.suffix=='.material' else b).hexdigest()
+    b=base_asset_path(p).read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if p.suffix=='.material' else b).hexdigest()
 members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
 eyes={'nsdf':[0,1.4254159927368164,1.229254961013794],'bdog':[0,.6254140138626099,1.2293000221252441],'cca':[-.27610001154243946,1.9194999933242798,.3680000305175781],'cra':[0,1.7300000190734863,3.5074000358581543]}
 report={}
@@ -26,7 +27,7 @@ for faction,cfg in cp.CONFIG.items():
     check(np.allclose(origin,eyes[faction],atol=1e-8),'exact individual eye position')
     check(np.allclose(R,np.eye(3),atol=2e-5),'native VDF rest POV basis')
     if faction=='cca':check(not np.allclose(bindR,R),'CCA native versus bind orientation fixture is meaningful')
-    mesh=cp.shared.read_mesh(ROOT/'Assets/Models'/(base+'_cockpit.mesh'));check(mesh.skeleton_name==base+'_cockpit.skeleton','namespaced rig reference')
+    mesh=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/Models'/(base+'_cockpit.mesh')));check(mesh.skeleton_name==base+'_cockpit.skeleton','namespaced rig reference')
     check(len(mesh.submesh_list)==5,'bounded material batch count')
     opaque=[];ranges={};cursor=0
     for sub in mesh.submesh_list:
@@ -53,7 +54,7 @@ for faction,cfg in cp.CONFIG.items():
     check(meta['innerShell']['boundaryLoops']==1,'one connected intentional window boundary')
     check(receipt['glass']['bone'].lower()==cfg['shell'].lower() and receipt['glass']['vertices']>0,'refitted weather glass')
     src=cg.Sources(game=str(ROOT/'Local/no-game'),cr=str(ROOT));path,kind,_=cg.cockpit_mesh(src,base);check(kind=='separate' and Path(path).name==base+'_cockpit.mesh','separate first-person resource discovery')
-    raw=cp.shared.read_mesh(source)
+    raw=cp.shared.read_mesh(base_asset_path(source))
     if faction!='cca':
         stock=raw.submesh_list[cfg['batch']];new=mesh.submesh_list[0]
         for sem in (cp.shared.om.VES.POSITION,cp.shared.om.VES.TEXTURE_COORDINATES):check(np.array_equal(cp.shared.values(stock.vertex_data,sem),cp.shared.values(new.vertex_data,sem)),'stock layout and UV identity')
