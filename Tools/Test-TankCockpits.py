@@ -13,7 +13,7 @@ def check(ok,message):
     checks+=1
 def sha(p):
     b=base_asset_path(p).read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if p.suffix=='.material' else b).hexdigest()
-members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
+members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 eyes={'nsdf':[0,1.4254159927368164,1.229254961013794],'bdog':[0,.6254140138626099,1.2293000221252441],'cca':[-.27610001154243946,1.9194999933242798,.3680000305175781],'cra':[0,1.7300000190734863,3.5074000358581543]}
 report={}
 for faction,cfg in cp.CONFIG.items():

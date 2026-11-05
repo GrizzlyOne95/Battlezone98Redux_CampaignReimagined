@@ -9,7 +9,7 @@ ROOT=Path(__file__).resolve().parents[1];REF=ROOT/'References/TextureRevamp/nav-
 spec=importlib.util.spec_from_file_location('faction_pickups',ROOT/'Tools/Build-FactionNavPickups.py')
 build=importlib.util.module_from_spec(spec);spec.loader.exec_module(build)
 receipt=json.loads((REF/'build.json').read_text());source=json.loads((REF/'sources.json').read_text())
-members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
+members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 count=0
 def check(ok,why):
     global count

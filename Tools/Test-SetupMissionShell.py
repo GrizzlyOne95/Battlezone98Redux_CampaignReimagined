@@ -140,7 +140,7 @@ assert "logs\\openpatch_setup.log" in description
 assert "updates OpenShim automatically" in description
 assert "never downgrades" in description
 
-lock = json.loads(lock_path.read_text(encoding="utf-8"))
+lock = json.loads(lock_path.read_text(encoding="utf-8-sig"))
 entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
 expected = {
     r"Config\crcampgn.ini": "crcampgn.ini",

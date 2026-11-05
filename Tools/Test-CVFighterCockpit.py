@@ -92,6 +92,6 @@ for channel,expected in [('d',d),('e',e)]:
         for key in ('armor','frame','trim'):
             x0,y0,x1,y1=np.array(cp.CHARTS[key])*1024/1254;check(a[int(y0)+3:int(y1)-3,int(x0)+3:int(x1)-3].max()<12,'paint/structure never emit: '+key)
 bad=origin+R@np.array([0,-.5,0]);distance,_=cg.cast(bad,rays(np.array([0]),0),tri[:,0],tri[:,1],tri[:,2]);check(np.isfinite(distance).all(),'misaligned-eye negative fixture is rejected by obstruction')
-members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
+members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 for relative in receipt['outputs']:check(members.get(relative)==Path(relative).name,'case-correct shipping resource: '+relative)
 print('CV fighter cockpit:',count,'checks passed; visible wing/gun angular samples L/R',visible,'actual barrel forward pixels L/R',pixel_counts)

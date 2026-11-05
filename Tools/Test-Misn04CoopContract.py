@@ -84,7 +84,7 @@ width, height, planes, depth, compression = struct.unpack_from("<iiHHI", bitmap,
 assert width > 0 and height > 0 and planes == 1 and depth == 24 and compression == 0
 assert struct.unpack_from("<I", bitmap, 2)[0] == len(bitmap)
 
-lock = json.loads((root / "Shipping" / "shipping.lock.json").read_text())
+lock = json.loads((root / "Shipping" / "shipping.lock.json").read_text(encoding="utf-8-sig"))
 entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
 assert lock["count"] == len(lock["files"])
 manager = (root / "Manage-CampaignFiles.ps1").read_text(encoding="utf-8-sig")

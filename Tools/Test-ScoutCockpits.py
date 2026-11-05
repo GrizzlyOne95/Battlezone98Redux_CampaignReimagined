@@ -17,7 +17,7 @@ def sha(p):
     data=base_asset_path(p).read_bytes()
     return hashlib.sha256(data.replace(b'\r\n',b'\n') if p.suffix=='.material' else data).hexdigest()
 spec=importlib.util.spec_from_file_location('build_scouts',ROOT/'Tools/Build-ScoutCockpits.py');build=importlib.util.module_from_spec(spec);spec.loader.exec_module(build)
-members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']};nose_visible={};emission={};diffuse={};authored={}
+members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']};nose_visible={};emission={};diffuse={};authored={}
 for faction,cfg in cp.CONFIG.items():
     base=cfg['base'];ref=REF/faction;receipt=json.loads((ref/'build.json').read_text())
     check(sha(ref/'atlas-master.png')==receipt['masterSha256'],'master pinned: '+faction)

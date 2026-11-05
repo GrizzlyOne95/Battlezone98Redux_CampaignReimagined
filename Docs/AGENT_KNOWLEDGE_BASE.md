@@ -304,6 +304,8 @@ Pick the unused retrospective line; for example misn13 uses `misn1305`, misn12 `
   diff**. A stale lock fails Workshop staging as "missing required file", not as "lock is stale".
 - Bless writes the lock without a BOM on either PowerShell (a BOM breaks the Python validators and CI). Keep
   the lock **LF**. Bless writes CRLF and may re-sort: fix to LF in place.
+- A known cause of red CI is fixed in the same workstream or ticketed, not only documented here. A BOM on
+  the lock broke CI, so the Python lock readers use `encoding='utf-8-sig'`.
 - **Never re-sort the lock.** It is not globally sorted. To add entries without blessing, insert them in
   place beside their neighbours and bump the count; `Validate-CampaignRepository.py` confirms.
 - Bless scans the **working tree including gitignored files**: move stray files (`luac.out`,

@@ -16,7 +16,7 @@ def check(ok,message):
 def sha(p):
     b=base_asset_path(p).read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if p.suffix=='.material' else b).hexdigest()
 spec=importlib.util.spec_from_file_location('build_combat',ROOT/'Tools/Build-CombatCockpits.py');build=importlib.util.module_from_spec(spec);spec.loader.exec_module(build)
-members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
+members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 eyes={'cvturr':[0,3.620931014418602,1.0216540098190308],'svfigh':[0,1.492648959159851,.9383049756288528],'svltnk':[.002672000089660287,2.4873430132865906,-.7983300685882568],'avhraz':[.0007450000266544521,2.3997009992599487,2.301424026489258],'bvhraz':[.0007450000266544521,2.3997009992599487,2.301424026489258]};report={}
 for base,cfg in cp.CONFIG.items():
     receipt=json.loads((REF/base/'build.json').read_text());meta=receipt['alignment'];source=ROOT/'Assets/ModelFixes'/(base+'.mesh');skel=ROOT/'Assets/Models'/(base+'_cockpit.skeleton')

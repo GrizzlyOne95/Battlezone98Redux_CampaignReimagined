@@ -13,7 +13,7 @@ def check(ok,why):
     assert ok,why
     count+=1
 def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
-members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
+members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 def shipped(path):check(members.get(path.relative_to(ROOT).as_posix())==path.name,'shipped resource: '+path.name)
 for path,record in json.loads((REF/'sources.json').read_text()).items():
     captured=(ROOT if record.get('externalToReference') else REF)/path

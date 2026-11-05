@@ -113,7 +113,7 @@ assert not (ROOT / 'Scripts/CRStorm18.lua').exists() or 'SetPhase' in (ROOT / 'S
     'when the storm module ships it must implement SetPhase'
 
 # ---------------------------------------------------------------- shipping membership
-members = {e['source'].replace('\\', '/'): e['runtime'] for e in json.loads((ROOT / 'Shipping/shipping.lock.json').read_text(encoding='utf-8'))['files']}
+members = {e['source'].replace('\\', '/'): e['runtime'] for e in json.loads((ROOT / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 for path in ('Scripts/misn18cr.lua', 'Scripts/CRMisn18.lua', 'Missions/misn18cr.bzn', 'Missions/misn18.trn',
              'Missions/misn18.hg2', 'Missions/misn18.mat', 'Missions/misn18.lgt', 'Missions/misn18cr.vxt',
              'Config/misn18cr.ini', 'misn18cr.mpdes', 'Assets/Graphics/misn18cr.bmp'):

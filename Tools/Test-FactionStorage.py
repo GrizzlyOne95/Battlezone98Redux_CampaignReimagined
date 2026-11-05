@@ -15,7 +15,7 @@ def check(ok,why):
 def mesh(path):return oms.MeshSerializer(io.BytesIO(path.read_bytes())).read()
 def weights(sub):return [(b.vertex_index,b.bone_index,b.weight) for b in sub.bone_assignments()]
 receipt=json.loads((REF/'build.json').read_text())
-members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
+members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 original=mesh(REF/'abstor.mesh');textures=[]
 for file,digest in receipt['stock'].items():check(hashlib.sha256((REF/file).read_bytes()).hexdigest()==digest,'crate source pin: '+file)
 for file,digest in receipt['masters'].items():check(hashlib.sha256((REF/file).read_bytes()).hexdigest()==digest,'faction master receipt: '+file)

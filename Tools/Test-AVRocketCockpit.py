@@ -83,6 +83,6 @@ for channel,expected in [('d',d),('e',e)]:
         check(((a[:,:,1]>a[:,:,0]*1.25)&(a[:,:,2]>a[:,:,0]*1.2)&(a[:,:,1]>100)).sum()>100,'cyan instruments present')
         check(((a[:,:,0]>150)&(a[:,:,1]>80)&(a[:,:,2]<110)).sum()>100,'amber launcher lamps present')
 bad=origin+R@np.array([0,-.7,0]);distance,_=cg.cast(bad,rays(np.array([0]),0),tri[:,0],tri[:,1],tri[:,2]);check(np.isfinite(distance).all(),'moved-eye negative fixture hits dashboard')
-members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
+members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 for relative in receipt['outputs']:check(members.get(relative)==Path(relative).name,'case-correct shipping resource: '+relative)
 print('AV rocket cockpit:',count,'checks passed; front-facing fin samples L/R',visible)

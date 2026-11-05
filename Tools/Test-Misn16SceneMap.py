@@ -36,7 +36,7 @@ assert diff_points(ROOT/'Missions/misn16b.hg2',ROOT/'Missions/misn16.hg2',12,256
 assert diff_points(ROOT/'Missions/misn16b.mat',ROOT/'Missions/misn16.mat',0,64,20)==54
 assert (ROOT/'Missions/misn16.lgt').read_bytes()==(ROOT/'Missions/misn16b.lgt').read_bytes()
 assert (ROOT/'Missions/misn16.trn').read_bytes().startswith((ROOT/'Missions/misn16b.trn').read_bytes())
-lock={r['source'].replace('\\','/') for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
+lock={r['source'].replace('\\','/') for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 for n in (9,10,11,14,15,16):
     p='Assets/Audio/misn16'+str(n).zfill(2)+'.wav'
     assert p in lock and (ROOT/p).read_bytes()[:4]==b'RIFF'

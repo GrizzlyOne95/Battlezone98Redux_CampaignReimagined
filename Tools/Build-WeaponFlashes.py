@@ -304,7 +304,7 @@ def model_files(name, assets, installed):
 
 
 def shipped_assets():
-    lock = json.loads((ROOT / "Shipping/shipping.lock.json").read_text())
+    lock = json.loads((ROOT / "Shipping/shipping.lock.json").read_text(encoding="utf-8-sig"))
     return {Path(e["runtime"]).name.lower(): ROOT / Path(e["source"].replace("\\", "/"))
             for e in lock["files"] if Path(e["runtime"]).suffix.lower() in (".mesh", ".skeleton")}
 
