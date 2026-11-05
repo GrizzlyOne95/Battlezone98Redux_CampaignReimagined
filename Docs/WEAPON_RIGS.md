@@ -61,7 +61,7 @@ Mine, popper, flare, camera and field-device mounts have no firearm barrel to mo
 
 Flash offsets are fitted to the exported moving-piece fronts in the native hardpoint-parent frame. Ballistic slots receive fitted local casing offsets and directions. Each port is outside the full world hull with at least 0.25 m surface clearance; the outward ray and eight jitter-cone corner rays clear the hull in the authored rest pose. Paired scout ports point away from the centerline in opposite directions. Energy, rocket and utility weapons retain their no-brass decisions.
 
-All ballistic slots on the requested model families have fitted casing offsets/directions, including the centerline `svfi12` variant that has no visible recoil barrel. Offsets are a static geometry fit. Aiming, recoil, vehicle motion, casing collision and cockpit emission still require native acceptance. The new spin/port keys require OpenShim PR 698; CR shipping binaries are unchanged.
+All ballistic slots on the requested model families have fitted casing offsets/directions, including the centerline `svfi12` variant that has no visible recoil barrel. Offsets are a static geometry fit. Aiming, recoil, vehicle motion, casing collision and cockpit emission still require native acceptance. The new spin/port keys require OpenShim PR 698, which `Bin/openshim.dll` now includes.
 
 ## Evidence and remaining work
 
