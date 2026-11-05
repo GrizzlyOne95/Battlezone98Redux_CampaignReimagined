@@ -1,7 +1,7 @@
 {
     "comment":  "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-    "generated":  "2026-11-04T13:56:54-06:00",
-    "count":  5174,
+    "generated":  "2026-11-05T11:32:23-06:00",
+    "count":  5205,
     "files":  [
                   {
                       "source":  "Assets\\ACT\\achilles.act",
@@ -7436,60 +7436,120 @@
                       "runtime":  "xrainsp.png"
                   },
                   {
+                      "source":  "bdmisn01cr.des",
+                      "runtime":  "bdmisn01cr.des"
+                  },
+                  {
                       "source":  "bdmisn01cr.mpdes",
                       "runtime":  "bdmisn01cr.mpdes"
+                  },
+                  {
+                      "source":  "bdmisn02cr.des",
+                      "runtime":  "bdmisn02cr.des"
                   },
                   {
                       "source":  "bdmisn02cr.mpdes",
                       "runtime":  "bdmisn02cr.mpdes"
                   },
                   {
+                      "source":  "bdmisn03cr.des",
+                      "runtime":  "bdmisn03cr.des"
+                  },
+                  {
                       "source":  "bdmisn03cr.mpdes",
                       "runtime":  "bdmisn03cr.mpdes"
+                  },
+                  {
+                      "source":  "bdmisn04cr.des",
+                      "runtime":  "bdmisn04cr.des"
                   },
                   {
                       "source":  "bdmisn04cr.mpdes",
                       "runtime":  "bdmisn04cr.mpdes"
                   },
                   {
+                      "source":  "bdmisn05cr.des",
+                      "runtime":  "bdmisn05cr.des"
+                  },
+                  {
                       "source":  "bdmisn05cr.mpdes",
                       "runtime":  "bdmisn05cr.mpdes"
+                  },
+                  {
+                      "source":  "bdmisn06cr.des",
+                      "runtime":  "bdmisn06cr.des"
                   },
                   {
                       "source":  "bdmisn06cr.mpdes",
                       "runtime":  "bdmisn06cr.mpdes"
                   },
                   {
+                      "source":  "bdmisn07cr.des",
+                      "runtime":  "bdmisn07cr.des"
+                  },
+                  {
                       "source":  "bdmisn07cr.mpdes",
                       "runtime":  "bdmisn07cr.mpdes"
+                  },
+                  {
+                      "source":  "bdmisn08cr.des",
+                      "runtime":  "bdmisn08cr.des"
                   },
                   {
                       "source":  "bdmisn08cr.mpdes",
                       "runtime":  "bdmisn08cr.mpdes"
                   },
                   {
+                      "source":  "bdmisn09cr.des",
+                      "runtime":  "bdmisn09cr.des"
+                  },
+                  {
                       "source":  "bdmisn09cr.mpdes",
                       "runtime":  "bdmisn09cr.mpdes"
+                  },
+                  {
+                      "source":  "bdmisn10cr.des",
+                      "runtime":  "bdmisn10cr.des"
                   },
                   {
                       "source":  "bdmisn10cr.mpdes",
                       "runtime":  "bdmisn10cr.mpdes"
                   },
                   {
+                      "source":  "bdmisn11cr.des",
+                      "runtime":  "bdmisn11cr.des"
+                  },
+                  {
                       "source":  "bdmisn11cr.mpdes",
                       "runtime":  "bdmisn11cr.mpdes"
+                  },
+                  {
+                      "source":  "bdmisn12cr.des",
+                      "runtime":  "bdmisn12cr.des"
                   },
                   {
                       "source":  "bdmisn12cr.mpdes",
                       "runtime":  "bdmisn12cr.mpdes"
                   },
                   {
+                      "source":  "bdmisn13cr.des",
+                      "runtime":  "bdmisn13cr.des"
+                  },
+                  {
                       "source":  "bdmisn13cr.mpdes",
                       "runtime":  "bdmisn13cr.mpdes"
                   },
                   {
+                      "source":  "bdmisn14cr.des",
+                      "runtime":  "bdmisn14cr.des"
+                  },
+                  {
                       "source":  "bdmisn14cr.mpdes",
                       "runtime":  "bdmisn14cr.mpdes"
+                  },
+                  {
+                      "source":  "bdmisn15cr.des",
+                      "runtime":  "bdmisn15cr.des"
                   },
                   {
                       "source":  "bdmisn15cr.mpdes",
@@ -7608,32 +7668,64 @@
                       "runtime":  "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uiplate.png"
                   },
                   {
+                      "source":  "chmisn01cr.des",
+                      "runtime":  "chmisn01cr.des"
+                  },
+                  {
                       "source":  "chmisn01cr.mpdes",
                       "runtime":  "chmisn01cr.mpdes"
+                  },
+                  {
+                      "source":  "chmisn02cr.des",
+                      "runtime":  "chmisn02cr.des"
                   },
                   {
                       "source":  "chmisn02cr.mpdes",
                       "runtime":  "chmisn02cr.mpdes"
                   },
                   {
+                      "source":  "chmisn03cr.des",
+                      "runtime":  "chmisn03cr.des"
+                  },
+                  {
                       "source":  "chmisn03cr.mpdes",
                       "runtime":  "chmisn03cr.mpdes"
+                  },
+                  {
+                      "source":  "chmisn04cr.des",
+                      "runtime":  "chmisn04cr.des"
                   },
                   {
                       "source":  "chmisn04cr.mpdes",
                       "runtime":  "chmisn04cr.mpdes"
                   },
                   {
+                      "source":  "chmisn05cr.des",
+                      "runtime":  "chmisn05cr.des"
+                  },
+                  {
                       "source":  "chmisn05cr.mpdes",
                       "runtime":  "chmisn05cr.mpdes"
+                  },
+                  {
+                      "source":  "chmisn06cr.des",
+                      "runtime":  "chmisn06cr.des"
                   },
                   {
                       "source":  "chmisn06cr.mpdes",
                       "runtime":  "chmisn06cr.mpdes"
                   },
                   {
+                      "source":  "chmisn07cr.des",
+                      "runtime":  "chmisn07cr.des"
+                  },
+                  {
                       "source":  "chmisn07cr.mpdes",
                       "runtime":  "chmisn07cr.mpdes"
+                  },
+                  {
+                      "source":  "chmisn08cr.des",
+                      "runtime":  "chmisn08cr.des"
                   },
                   {
                       "source":  "chmisn08cr.mpdes",
@@ -10800,32 +10892,64 @@
                       "runtime":  "misn2bcr.mpdes"
                   },
                   {
+                      "source":  "misns1cr.des",
+                      "runtime":  "misns1cr.des"
+                  },
+                  {
                       "source":  "misns1cr.mpdes",
                       "runtime":  "misns1cr.mpdes"
+                  },
+                  {
+                      "source":  "misns2cr.des",
+                      "runtime":  "misns2cr.des"
                   },
                   {
                       "source":  "misns2cr.mpdes",
                       "runtime":  "misns2cr.mpdes"
                   },
                   {
+                      "source":  "misns3cr.des",
+                      "runtime":  "misns3cr.des"
+                  },
+                  {
                       "source":  "misns3cr.mpdes",
                       "runtime":  "misns3cr.mpdes"
+                  },
+                  {
+                      "source":  "misns4cr.des",
+                      "runtime":  "misns4cr.des"
                   },
                   {
                       "source":  "misns4cr.mpdes",
                       "runtime":  "misns4cr.mpdes"
                   },
                   {
+                      "source":  "misns5cr.des",
+                      "runtime":  "misns5cr.des"
+                  },
+                  {
                       "source":  "misns5cr.mpdes",
                       "runtime":  "misns5cr.mpdes"
+                  },
+                  {
+                      "source":  "misns6cr.des",
+                      "runtime":  "misns6cr.des"
                   },
                   {
                       "source":  "misns6cr.mpdes",
                       "runtime":  "misns6cr.mpdes"
                   },
                   {
+                      "source":  "misns7cr.des",
+                      "runtime":  "misns7cr.des"
+                  },
+                  {
                       "source":  "misns7cr.mpdes",
                       "runtime":  "misns7cr.mpdes"
+                  },
+                  {
+                      "source":  "misns8cr.des",
+                      "runtime":  "misns8cr.des"
                   },
                   {
                       "source":  "misns8cr.mpdes",

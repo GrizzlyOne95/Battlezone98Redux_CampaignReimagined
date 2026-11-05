@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- CCA, CRA and Black Dog campaigns: ship a single-player `<stem>.des` briefing for all 31 missions (stock text, edited only where the CR script differs; the renamed `*cr` stems no longer found the stock file) and rewrite the multiplayer `<stem>.mpdes` blurbs to state the objective, roster and solo campaign entry like misn03cr-misn14cr.
 - New installs ship with ODF AI gameplay tuning on (`[SinglePlayer] AiOdfGameplayTuning = 1`). Existing
   `openshim.ini` files are not overwritten; switch it on in Options -> SinglePlayer.
 - Autosave and its notice are now handled by OpenShim; the Lua autosave is removed.
