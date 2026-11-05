@@ -164,7 +164,7 @@ pending. One `.bzn` and one `.lua` serve both modes. Use the newest finished mis
 5. **Listing.** `Config/misnNN.ini` (mapType multiplayer, gameType S, 2-4 players), root `misnNN.mpdes` (the MP listing blurb; SP uses the stock `.des`)
    (<= 300 bytes, CRLF, and it must be allowlisted in `.gitignore`), `Missions/misnNN.vxt`
    (approved roster: `Docs/COOP_STARTING_UNITS.md`),
-   `Assets/Graphics/misnNN.bmp` (generic shared image), and the `[MISSIONk]` entry in
+   `Assets/Graphics/misnNN.bmp` (from `Tools/Assets/Make-MissionPreviews.py`), and the `[MISSIONk]` entry in
    `Config/crcampgn.ini` (3.7).
 6. **Tests and lock.** Add the tests (section 5), update `Tools/Test-SetupMissionShell.py`'s campaign list,
    `crcampgn.des` range text, README scope lines and `CHANGELOG.md`, then bless the lock (3.8).

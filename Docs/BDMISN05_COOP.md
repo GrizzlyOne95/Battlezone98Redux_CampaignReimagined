@@ -1,4 +1,4 @@
-# Black Dog 05 co-op: Chink in the Armour (bdmisn05cr)
+# Black Dog 05 co-op: Achilles Heel (bdmisn05cr)
 
 Shared offline / 2-4 player co-op port of the Black Dog mission `bd05`: hold the Black Dog base on Ganymede while
 the Chinese (CCA) send four cloaked waves, two rear attacks and an artillery pair against it, destroy everything on

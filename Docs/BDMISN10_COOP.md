@@ -1,4 +1,4 @@
-# Black Dog 10 co-op: Lost Recycler (bdmisn10cr)
+# Black Dog 10 co-op: The Enemy Within (bdmisn10cr)
 
 Shared offline / 2-4 player co-op port of the Black Dog mission `bd10`: on Elysium the Black Dogs must destroy six key
 Chinese (CCA) buildings while eight hidden groups ambush anything that comes within 400 m; when the last building falls

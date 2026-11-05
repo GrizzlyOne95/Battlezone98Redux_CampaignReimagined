@@ -80,7 +80,7 @@ Menu INI/DES conventions are documented in the official
 [Redux Map Editor manual](https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/301650/manuals/BZ98Redux_MapEditorManual.pdf?t=1579791137).
 The two vehicle entries use the format and identifiers in the source repository's
 [stock strategy VXT](https://github.com/GrizzlyOne95/Battlezone_Source/blob/e7c410573ffedc9e118dd90f402af6d5585955cc/BZ1/1.5/Battlezone_Install/stock/multst12.vxt).
-The BMP is an unchanged copy of `crcampgn.bmp`, pending an in-game mission preview.
+The BMP comes from `Tools/Assets/Make-MissionPreviews.py`.
 
 PowerShell is unavailable in this environment, so the four new shipping entries
 were added directly rather than running `Manage-CampaignFiles.ps1 -bless`. The
