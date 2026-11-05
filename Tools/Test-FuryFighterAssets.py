@@ -56,7 +56,7 @@ check(float(pulse['shotSpeed'.lower()])*float(pulse['lifespan'])==180,'pulse max
 check(float(arc['shotspeed'])*float(arc['lifespan'])==160,'arc maximum range 160 m')
 dds=(ROOT/'Assets/Textures/crfraz_d.dds').read_bytes()
 check(bc_dds_problem(dds,1024) is None,'shipped BC1 atlas with full offline mips')
-lock=json.loads((ROOT/'Shipping/shipping.lock.json').read_text())
+lock=json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members={x['source'].replace('\\','/'):x['runtime'] for x in lock['files']}
 shipped=[p for p in ASSETS.iterdir() if p.name.startswith(('crfraz.','cfr11'))]
 shipped+=[ROOT/'Assets/Textures/crfraz_d.dds',ROOT/'Materials/crfraz.material',ROOT/'Scripts/CRFuryRoster.lua']

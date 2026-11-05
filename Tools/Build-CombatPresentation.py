@@ -215,7 +215,7 @@ def verify_models():
     from battlezone.meshes import ogre
     from battlezone.meshes.ogre_skeleton import read_skeleton
     policy = json.loads((DATA/'combat-models.json').read_text())
-    lock = json.loads((ROOT/'Shipping/shipping.lock.json').read_text())
+    lock = json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
     assets = {Path(e['runtime']).name.lower(): ROOT/e['source'].replace('\\','/') for e in lock['files']}
     installed = builder.game_models()
     evidence = {}

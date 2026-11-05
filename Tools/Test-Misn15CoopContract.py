@@ -75,7 +75,7 @@ assert not any((row,col) in mask for row in range(256) for col in range(256) if 
 assert 'CR/Titan/Methane15' in (ROOT/'Materials/cr_methane.material').read_text()
 assert 'cr_titan15_wet.png' in (ROOT/'Materials/cr_methane.material').read_text()
 assert 'CRTitanSites15' in (ROOT/'Scripts/CRMisn15.lua').read_text()
-members={e['source'].replace('\\','/'):e['runtime'] for e in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
+members={e['source'].replace('\\','/'):e['runtime'] for e in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 for path in ('Scripts/CRMisn15.lua','Scripts/CRTitanSites15.lua','Missions/misn15.bzn','Missions/misn15.trn',
              'Missions/misn15.hg2','Missions/misn15.mat','Missions/misn15.lgt','Missions/misn15.vxt',
              'Config/misn15.ini','misn15.mpdes','Assets/Textures/cr_titan15_wet.png',

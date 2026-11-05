@@ -35,7 +35,7 @@ def documents(folder):
 def inventory(stock):
     stock_docs, cr_docs = documents(stock), documents(ROOT / "ODF")
     effective = {**stock_docs, **cr_docs}
-    shipping=json.loads((ROOT/'Shipping/shipping.lock.json').read_text())
+    shipping=json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
     assets={Path(e['runtime']).name.lower():ROOT/Path(e['source'].replace('\\','/')) for e in shipping['files']
             if Path(e['runtime']).suffix.lower() in ('.vdf','.sdf','.geo','.skeleton')}
     weapons, units, models = [], [], {}

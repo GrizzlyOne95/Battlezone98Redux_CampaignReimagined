@@ -131,7 +131,7 @@ def main():
         script.write_bytes(("\r\n".join(body) + "\r\n").encode("utf-8"))
 
     lock_path = Path("Shipping/shipping.lock.json")
-    lock = json.loads(lock_path.read_bytes().decode("utf-8"))
+    lock = json.loads(lock_path.read_bytes().decode("utf-8-sig"))
     entries = lock["files"]
     runtimes = {f["runtime"].lower() for f in entries}
     wanted = [(BS.join(p.parts), p.name) for p in made + [script]]

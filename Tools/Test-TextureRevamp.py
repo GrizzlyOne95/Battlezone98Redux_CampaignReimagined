@@ -22,7 +22,7 @@ building=module('building_patches','Build-BuildingTexturePatches.py')
 compiled=json.loads((REF/'build.json').read_text())['files']
 imported=json.loads((REF/'local-model-import.json').read_text())
 baseline=json.loads((REF/'mesh-invariants.json').read_text())
-members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
+members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 ship=[]
 building_receipt=json.loads((REF/'building-build.json').read_text())
 source=REF/'building-sources/sblpad.mesh';target=ROOT/'Assets/Models/sblpad.mesh'

@@ -78,7 +78,7 @@ def main():
                 mf.write_bytes(s.encode("utf-8"))
 
     lock_path = Path("Shipping/shipping.lock.json")
-    lock = json.loads(lock_path.read_bytes().decode("utf-8"))
+    lock = json.loads(lock_path.read_bytes().decode("utf-8-sig"))
     entries = lock["files"]
     runtimes = {f["runtime"].lower() for f in entries}
     added = [t for t in sorted(used, key=str.lower) if t.lower() not in runtimes]

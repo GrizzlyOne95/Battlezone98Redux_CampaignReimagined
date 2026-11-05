@@ -6,7 +6,7 @@ from bzmodellibs import ogremesh_serializer as oms
 ROOT=Path(__file__).resolve().parents[1];REF=ROOT/'References/TextureRevamp/integration'
 spec=importlib.util.spec_from_file_location('integrate',ROOT/'Tools/Build-FactionPickupIntegration.py');build=importlib.util.module_from_spec(spec);spec.loader.exec_module(build)
 manifest=json.loads((REF/'manifest.json').read_text());receipt=json.loads((REF/'build.json').read_text())
-members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']};count=0
+members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']};count=0
 def check(ok,why):
     global count
     assert ok,why

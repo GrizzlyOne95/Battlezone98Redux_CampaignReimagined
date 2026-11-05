@@ -75,7 +75,7 @@ for channel,expected in [('d',d),('e',e)]:
             x0,y0,x1,y1=recipe['charts'][name]['target'];check(actual[y0:y1,x0:x1].max()<10,'frame/armor/trim remain non-emissive')
 material=(ROOT/'Materials/CR_reddevil_cockpit.material').read_text()
 check('CRV/RedDevilCockpit : CR_BZBaseCockpit' in material and 'CRV/RedDevilForedeck : CR_BZBaseCockpit' in material,'correct first-person material parent for both opaque batches')
-members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
+members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 for path in receipt['outputs']:check(members.get(path)==Path(path).name,'case-correct unique shipping resource: '+path)
 # Negative fixture: an eye moved far below the cockpit intersects the dash.
 bad=origin+R@np.array([0,-.5,0]);distance,_=cg.cast(bad,np.array([[0,0,1.]])@R.T,tri[:,0],tri[:,1],tri[:,2])

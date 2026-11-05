@@ -34,7 +34,7 @@ def posed_data(sub,s,rot):
     return result
 
 
-members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
+members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 for base,cfg in cp.CONFIG.items():
     ref=REF/base;receipt=json.loads((ref/'build.json').read_text());meta=receipt['alignment'];rigpath=ref/'source-rig.skeleton';s,_,eye,shell=cp.shared.rig(rigpath,cfg['shell']);rot=meta['nativeBoneRotations'];posed=cp.walkerpose.world(s,rot);bind=cp.walkerpose.world(s);origin=posed[eye.handle][:3,3];R=posed[eye.handle][:3,:3]
     check(sha(rigpath)==receipt['sources']['cockpitRigSha256'],'original cockpit rig fixture '+base)

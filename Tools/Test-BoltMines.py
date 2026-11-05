@@ -23,7 +23,7 @@ manifest=json.loads((REF/'provenance.json').read_text())
 for name,digest in manifest['stock_sha256'].items():
     check(sha256((REF/'original'/name).read_bytes()).hexdigest()==digest,'byte-pinned stock asset: '+name)
 original=read_mesh((REF/'original/boltmine.mesh').read_bytes())
-lock=json.loads((ROOT/'Shipping/shipping.lock.json').read_text())
+lock=json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members={r['source'].replace('\\','/'):r['runtime'] for r in lock['files']}
 ship=[]
 for name,weapon,ordnance in [('cromine','cromarc','crom0'),('crfmine','crfmarc','crfm0')]:

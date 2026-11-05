@@ -8,7 +8,7 @@ import walkerpose
 import cockpitglass as cg
 
 ROOT=Path(__file__).resolve().parents[1];REF=ROOT/'References/WalkerCockpits';checks=0
-members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
+members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 
 def check(ok,label):
     global checks

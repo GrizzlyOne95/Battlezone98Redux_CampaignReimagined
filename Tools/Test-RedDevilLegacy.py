@@ -51,7 +51,7 @@ check(np.abs(actual-expected).mean()<4,'compiled diffuse stays within BC1 error'
 mesh=oms.MeshSerializer(io.BytesIO((base_asset_path(ROOT/recipe['mesh'])).read_bytes())).read()
 check([s.material_name for s in mesh.submesh_list]==['bvrdev','bvrdev01','CRWX_CockpitGlass'],'existing exterior/cockpit/weather-glass submesh bindings')
 check(mesh.skeleton_name=='bvrdev.skeleton','stock skeleton resource identity')
-lock=json.loads((ROOT/'Shipping/shipping.lock.json').read_text());members=[r for r in lock['files'] if r['source'].replace('\\','/')==recipe['output']]
+lock=json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'));members=[r for r in lock['files'] if r['source'].replace('\\','/')==recipe['output']]
 check(len(members)==1 and members[0]['runtime']==target.name,'existing diffuse ships once, no duplicate atlas alias')
 material=(ROOT/recipe['material']).read_text()
 check('DiffuseMap bvrdev_D.dds' in material and 'EmissiveMap bvrdev_E.dds' in material,'existing diffuse/emissive aliases retained')

@@ -21,7 +21,7 @@ def values(sub):
 receipt=json.loads((REF/'build.json').read_text());meta=receipt['alignment'];source=ROOT/'Assets/ModelFixes/cvhtnk.mesh';skel=ROOT/'Assets/Models/cvhtnk_cockpit.skeleton'
 check(sha(source)==receipt['sources']['exteriorSha256'],'original exterior/fallback untouched')
 check(sha(skel)==receipt['sources']['skeletonSha256'],'byte-exact stock hierarchy, POV and hardpoints')
-members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text())['files']}
+members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 for path,digest in receipt['outputs'].items():
     check(sha(ROOT/path)==digest,'compiled output pin '+path)
     check(members.get(path)==Path(path).name,'case-correct shipping member '+path)

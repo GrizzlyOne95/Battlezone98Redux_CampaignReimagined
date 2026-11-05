@@ -159,7 +159,7 @@ assert len(b_info['bones']) == b_info['vertices'], 'every bbhang vertex is weigh
 assert a_info['bounds'][5] > 32 and b_info['bounds'][5] < 16, 'the exterior pad (z 15..32) is gone from bbhang'
 assert b_info['bounds'][4] < 16.1 and b_info['bounds'][1] < 0, 'the building itself is intact'
 
-lock = json.loads((ROOT / 'Shipping' / 'shipping.lock.json').read_text())
+lock = json.loads((ROOT / 'Shipping' / 'shipping.lock.json').read_text(encoding='utf-8-sig'))
 shipped = {e['runtime'] for e in lock['files']}
 for f in ('abhang.mesh', 'abhang.sdf', 'abhang.skeleton', 'bbhang.mesh', 'bbhang.sdf', 'bbhang.skeleton'):
     assert f in shipped, f + ' is in the shipping lock'
