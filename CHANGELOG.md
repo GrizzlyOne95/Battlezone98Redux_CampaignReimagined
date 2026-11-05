@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Single-player campaign presentation: the CR NSDF, CCA, CRA and Black Dog campaign INIs now set the briefing background and text colour, gift images and movies, Black Dog intro voices and per-planet loading screens that stock uses, and NSDF ships a `<stem>.des` briefing for its renamed missions (stock text, edited only where the CR script differs). Multiplayer listings and `.mpdes` blurbs are unchanged.
 - CCA, CRA and Black Dog campaigns: ship a single-player `<stem>.des` briefing for all 31 missions (stock text, edited only where the CR script differs; the renamed `*cr` stems no longer found the stock file) and rewrite the multiplayer `<stem>.mpdes` blurbs to state the objective, roster and solo campaign entry like misn03cr-misn14cr.
 - New installs ship with ODF AI gameplay tuning on (`[SinglePlayer] AiOdfGameplayTuning = 1`). Existing
   `openshim.ini` files are not overwritten; switch it on in Options -> SinglePlayer.
