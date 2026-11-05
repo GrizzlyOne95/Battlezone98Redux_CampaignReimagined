@@ -302,7 +302,7 @@ Pick the unused retrospective line; for example misn13 uses `misn1305`, misn12 `
 
 - New shipped files need `Manage-CampaignFiles.ps1 -bless`; **read the printed list and review the lock
   diff**. A stale lock fails Workshop staging as "missing required file", not as "lock is stale".
-- Bless under **pwsh 7** (Windows PowerShell 5.1 writes a BOM that breaks `Test-SetupMissionShell`). Keep
+- Bless writes the lock without a BOM on either PowerShell (a BOM breaks the Python validators and CI). Keep
   the lock **LF**. Bless writes CRLF and may re-sort: fix to LF in place.
 - **Never re-sort the lock.** It is not globally sorted. To add entries without blessing, insert them in
   place beside their neighbours and bump the count; `Validate-CampaignRepository.py` confirms.
