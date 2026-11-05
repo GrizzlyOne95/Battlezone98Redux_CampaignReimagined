@@ -1,4 +1,4 @@
-# Mission S1 co-op: The Convoy Trap (misns1)
+# Mission S1 co-op: The Golem Ambush (misns1)
 
 Shared offline / 2-4 player co-op port of the Soviet mission `misns1` (the Americans move their forces from one
 geyser field to another through three passes; the Soviet player ambushes the Colorado convoy and then destroys the

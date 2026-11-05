@@ -72,7 +72,7 @@ briefing-relevant craft to the basic kit.
 | --- | --- |
 | CCA 01, The Golem Ambush | Tank, Scout |
 | CCA 02, Precious Cargo | Tank, Scout |
-| CCA 03, The Evil Battalion | Tank, Scout, Bomber |
+| CCA 03, The Evil Battalion | Bomber (`svhraz`, shown as Grendel; owner decision 2026-11-05) |
 | CCA 04, Io's Bridge | Tank, Scout |
 | CCA 05, Controlling the High Ground | Tank, Scout, Light Tank |
 | CCA 06, Clear the Path | Tank, Scout, Walker |
@@ -105,6 +105,9 @@ Production menus and mission scripts are unchanged.
 | BD 13, Frustrate Their Knavish Tricks | Tank, Light Tank | Player `bvtank` with `bvltnk` wingmen. |
 | BD 14, Lifeline | Tank (upgraded), Light Tank | Player `bvtanka` with `bvtank` wingmen. |
 | BD 15, The Best Laid Plans... | Tank, Light Tank | Player `bvtank` with `bvltnk` wingmen. |
+
+Owner decision 2026-11-05: Red Devil (`bvrdev`) is also on every list after BD 04,
+except BD 09 (the stolen APC). BD 06 keeps its own `bvrdeva`. `Missions/*.vxt` is authoritative for the lists.
 
 ODFs: Tank `bvtank`/`bvtanka`, Light Tank `bvltnk`, Scout `bvraz`, Rocket
 Devastator `bvrdeva`, Fighter `bvfigha`. Missions 04 (`bsuser` on foot) and
