@@ -23,6 +23,9 @@ misns?cr.mpdes -text
 bdmisn??cr.mpdes -text
 chmisn??cr.mpdes -text
 evolvecr.mpdes -text
+misns?cr.des -text
+bdmisn??cr.des -text
+chmisn??cr.des -text
 Missions/misn18cr.vxt -text
 # Co-op vehicle lists keep stock netveh.odf CRLF rows (Test-CoopVehicleLists.py).
 Missions/misns?cr.vxt text eol=crlf
