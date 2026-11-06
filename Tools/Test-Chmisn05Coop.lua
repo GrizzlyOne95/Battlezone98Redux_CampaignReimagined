@@ -1,5 +1,5 @@
 -- Independent Lua peers, real CRCoop registry, lossy presentation simulator, the real Scripts/CRCCARuntime.lua
--- and Scripts/chmisn05cr.lua. Engine AI, rendering and combat remain mocks. Run from the repository root:
+-- and Scripts/ch05cr.lua. Engine AI, rendering and combat remain mocks. Run from the repository root:
 --   lua5.1 Tools/Test-Chmisn05Coop.lua
 assert(_VERSION == "Lua 5.1")
 local F = dofile("Tools/Chmisn05Fixture.lua")

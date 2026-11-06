@@ -823,7 +823,7 @@ Each bullet: the pitfall, the one-line why, and where to read more.
 - `SetAIControl` inside `Start()` crashes the host; chunk root only (3.5).
 - A CR ODF replaces the stock one whole; ODFs do not inherit. A partial override with no
   `classLabel` logs `uses unknown class label ""` and quits the load. The stock "is loading (obj #N)"
-  line names the object before the bad one (`abspowa.odf`, chmisn06cr/08cr, 2026-11-03).
+  line names the object before the bad one (`abspowa.odf`, ch06cr/08cr, 2026-11-03).
 - `Formation(unit, leader)` errors in stock Lua; use `SetCommand(..., AiCommand.FORMATION, ...)`.
 - A Lua error in MP can close the host; every error is fatal in co-op.
 - The Lua state is rebuilt each mission, but Ogre materials and the process are not (section 4).

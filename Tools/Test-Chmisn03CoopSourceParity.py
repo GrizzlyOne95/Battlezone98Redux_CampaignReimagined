@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Prove Scripts/chmisn03cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/ch03.lua."""
+"""Prove Scripts/ch03cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/ch03.lua."""
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
 faithful = (ROOT / "Scripts/ch03.lua").read_bytes()
-coop_raw = (ROOT / "Scripts/chmisn03cr.lua").read_bytes()
+coop_raw = (ROOT / "Scripts/ch03cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 if b"\r\n" in coop_raw:
     assert coop_raw.count(b"\n") == coop_raw.count(b"\r\n"), "consistent CRLF line endings"
@@ -19,7 +19,7 @@ assert opened == closed and opened, "every CR region opens and closes in order"
 assert set(opened) == {"co-op layer", "co-op runtime", "restored content", "co-op user", "co-op callback", "co-op callbacks"}, opened
 assert "-- CR" not in re.sub(region, "", coop), "CR marker outside a region"
 stripped = re.sub(region, "", coop)
-assert stripped == faithful_text, "chmisn03cr.lua outside the CR regions is not the faithful ch03.lua"
+assert stripped == faithful_text, "ch03cr.lua outside the CR regions is not the faithful ch03.lua"
 
 # (the body's own `howitzerAiRestored` flag is not CR code)
 for word in ("campaignRuntime", "CRCCARuntime", "Restored.", "RESTORED"):
@@ -61,4 +61,4 @@ assert {team for odf, team in builds if "apcamr" not in odf and "cvmufa" not in 
 # (the four commented cvscav builds are the cut content the CR layer restores)
 assert {odf for odf, team in builds if team == "1"} == {'"apcamr"', '"cvmufa"', '"cvslfa"'}, "team-1 builds are the base beacon, factory and armory"
 assert len(re.findall(r"SetPerceivedTeam\([^,]+, 2\)", live_body)) >= 2, "the howitzers are perceived as team 2 (remapped to 5 by the shadow)"
-print("chmisn03cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))
+print("ch03cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))

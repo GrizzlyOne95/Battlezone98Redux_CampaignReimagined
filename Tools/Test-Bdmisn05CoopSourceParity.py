@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Prove Scripts/bdmisn05cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/bd05.lua."""
+"""Prove Scripts/bd05cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/bd05.lua."""
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
 faithful = (ROOT / "Scripts/bd05.lua").read_bytes()
-coop_raw = (ROOT / "Scripts/bdmisn05cr.lua").read_bytes()
+coop_raw = (ROOT / "Scripts/bd05cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
@@ -18,7 +18,7 @@ assert set(opened) == {"co-op layer", "co-op runtime", "restored content", "co-o
                        "co-op callbacks"}, opened
 assert "-- CR" not in re.sub(region, "", coop), "CR marker outside a region"
 stripped = re.sub(region, "", coop)
-assert stripped == faithful_text, "bdmisn05cr.lua outside the CR regions is not the faithful bd05.lua"
+assert stripped == faithful_text, "bd05cr.lua outside the CR regions is not the faithful bd05.lua"
 
 for word in ("campaignRuntime", "CRCCARuntime", "Restored", "RESTORED"):
     assert word not in stripped, "CR code outside a region: " + word
@@ -53,4 +53,4 @@ for name in ("SetAIP", "CameraObject", "Follow", "Defend", "Defend2", "SetIndepe
 live = re.sub(r"--[^\n]*", "", body)  # the commented portal build stays a comment
 assert len(re.findall(r'BuildObject\((?:"\w+"|odf), 2, ', live)) == len(re.findall(r"BuildObject\(", live)), "all body builds are on team 2"
 assert "GetTeamNum(" not in body and "SetPerceivedTeam(" not in body, "the body names no other team"
-print("bdmisn05cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))
+print("bd05cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))

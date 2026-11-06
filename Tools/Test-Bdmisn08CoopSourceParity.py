@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Prove Scripts/bdmisn08cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/bdmisn08.lua."""
+"""Prove Scripts/bd08cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/bdmisn08.lua."""
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
 faithful = (ROOT / "Scripts/bdmisn08.lua").read_bytes()
-coop_raw = (ROOT / "Scripts/bdmisn08cr.lua").read_bytes()
+coop_raw = (ROOT / "Scripts/bd08cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
@@ -17,7 +17,7 @@ assert opened == closed and opened, "every CR region opens and closes in order"
 assert set(opened) == {"co-op layer", "co-op runtime", "restored content", "co-op callback", "co-op callbacks"}, opened
 assert "-- CR" not in re.sub(region, "", coop), "CR marker outside a region"
 stripped = re.sub(region, "", coop)
-assert stripped == faithful_text, "bdmisn08cr.lua outside the CR regions is not the faithful bdmisn08.lua"
+assert stripped == faithful_text, "bd08cr.lua outside the CR regions is not the faithful bdmisn08.lua"
 
 for word in ("campaignRuntime", "CRCCARuntime", "Restored", "RESTORED"):
     assert word not in stripped, "CR code outside a region: " + word
@@ -55,4 +55,4 @@ for name in ("Stop", "GetIn", "RemovePilot", "IsTouching", "IsAudioMessageDone",
 assert re.findall(r'BuildObjectAtPortal\(.*, 2, M\.portal\)', body) and re.findall(r'BuildObject\("cspilo", 2,', body)
 assert "SetPerceivedTeam(M.apc, 0)" in body and "SetPerceivedTeam(M.apc, 2)" in body
 assert "GetTeamNum(h)" in body and "== 1" in body
-print("bdmisn08cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))
+print("bd08cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))

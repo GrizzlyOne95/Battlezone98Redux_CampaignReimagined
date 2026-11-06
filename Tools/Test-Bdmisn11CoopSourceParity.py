@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Prove Scripts/bdmisn11cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/bdmisn11.lua."""
+"""Prove Scripts/bd11cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/bdmisn11.lua."""
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
 faithful = (ROOT / "Scripts/bdmisn11.lua").read_bytes()
-coop_raw = (ROOT / "Scripts/bdmisn11cr.lua").read_bytes()
+coop_raw = (ROOT / "Scripts/bd11cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
@@ -17,7 +17,7 @@ assert opened == closed and opened, "every CR region opens and closes in order"
 assert set(opened) == {"co-op layer", "co-op runtime", "restored content", "co-op callback", "co-op callbacks"}, opened
 assert "-- CR" not in re.sub(region, "", coop), "CR marker outside a region"
 stripped = re.sub(region, "", coop)
-assert stripped == faithful_text, "bdmisn11cr.lua outside the CR regions is not the faithful bdmisn11.lua"
+assert stripped == faithful_text, "bd11cr.lua outside the CR regions is not the faithful bdmisn11.lua"
 
 for word in ("campaignRuntime", "CRCCARuntime", "Restored", "RESTORED"):
     assert word not in stripped, "CR code outside a region: " + word
@@ -56,4 +56,4 @@ assert {team for odf, team in builds if odf in ('"aspilo"', '"apcamr"')} == {"1"
 assert all(team == "2" for odf, team in builds if odf not in ('"aspilo"', '"apcamr"')), "all other builds are the enemy"
 assert "local TEST_EXPLOSION = false" in faithful_text, "the Chinese-user test block is disabled in the DLL"
 assert "GetTeamNum(" not in body, "the body reads no team number back"
-print("bdmisn11cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))
+print("bd11cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))

@@ -77,6 +77,22 @@ def check_engine_filenames(files) -> list[str]:
     return errors
 
 
+def check_mission_stem_length(files) -> list[str]:
+    """Redux's Lua mission loader copies only the first 8 characters of the BZN stem (FUN_005090a0), so a
+    longer stem looks for a truncated script name and the mission's Lua never runs."""
+    scripts = {relative.stem.casefold() for _path, relative in files
+               if relative.parts[:1] == ("Scripts",) and relative.suffix.casefold() == ".lua"}
+    errors: list[str] = []
+    for _path, relative in files:
+        if (relative.parts[:1] == ("Missions",) and relative.suffix.casefold() == ".bzn"
+                and len(relative.stem) > 8 and relative.stem.casefold() in scripts):
+            errors.append(
+                f"mission BZN stem exceeds the engine 8-character limit (Redux copies only the first 8 "
+                f"characters when loading the mission Lua, so {relative.stem}.lua never runs): {relative}"
+            )
+    return errors
+
+
 def check_lua(files) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
@@ -354,6 +370,7 @@ def main() -> int:
     errors.extend(check_openshim_manifest_assets())
     errors.extend(check_case_collisions(files))
     errors.extend(check_engine_filenames(files))
+    errors.extend(check_mission_stem_length(files))
     lua_errors, warnings = check_lua(files)
     errors.extend(lua_errors)
     errors.extend(check_shipping_lock_resolves())

@@ -1,4 +1,4 @@
--- Presentation protocol of the shared CCA runtime, run through the real chmisn05cr.lua guest.
+-- Presentation protocol of the shared CCA runtime, run through the real ch05cr.lua guest.
 -- Hand-built E/A/C packets are delivered to a guest peer: ordering, duplicates, acknowledgements, identity
 -- resolution (labels, gone flags, never-hang guard), the tug film, results, wire limits; then the leader's own stream.
 --   lua5.1 Tools/Test-Chmisn05Presentation.lua

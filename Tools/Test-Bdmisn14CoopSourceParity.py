@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Prove Scripts/bdmisn14cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/bdmisn14.lua."""
+"""Prove Scripts/bd14cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/bdmisn14.lua."""
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
 faithful = (ROOT / "Scripts/bdmisn14.lua").read_bytes()
-coop_raw = (ROOT / "Scripts/bdmisn14cr.lua").read_bytes()
+coop_raw = (ROOT / "Scripts/bd14cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
@@ -17,7 +17,7 @@ assert opened == closed and opened, "every CR region opens and closes in order"
 assert set(opened) == {"co-op layer", "co-op runtime", "restored content", "co-op callback", "co-op callbacks"}, opened
 assert "-- CR" not in re.sub(region, "", coop), "CR marker outside a region"
 stripped = re.sub(region, "", coop)
-assert stripped == faithful_text, "bdmisn14cr.lua outside the CR regions is not the faithful bdmisn14.lua"
+assert stripped == faithful_text, "bd14cr.lua outside the CR regions is not the faithful bdmisn14.lua"
 
 for word in ("campaignRuntime", "CRCCARuntime", "Restored", "RESTORED", "ENEMY_TEAM"):
     assert word not in stripped, "CR code outside a region: " + word
@@ -51,4 +51,4 @@ for name in ("CameraReady", "CameraPath", "CameraObject", "CameraFinish", "Camer
 assert len(re.findall(r'BuildObject\("\w+", 2, ', body)) == len(re.findall(r"BuildObject\(", body)), \
     "every build names the Chinese team 2 literally"
 assert "GetTeamNum(" not in body and "SetPerceivedTeam(" not in body, "the body names no other team"
-print("bdmisn14cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))
+print("bd14cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))

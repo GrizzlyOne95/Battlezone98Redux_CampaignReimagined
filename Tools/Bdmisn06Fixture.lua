@@ -1,10 +1,10 @@
 -- The real co-op registry loads shared Lua helpers through require().
 package.path = "Scripts/?.lua;" .. package.path
 -- Shared mock world for the bdmisn06 suites (Test-Bdmisn06Coop.lua, Test-Bdmisn06Presentation.lua). Each peer runs
--- the complete Scripts/bdmisn06cr.lua in its own Lua 5.1 environment over the real CRCoop registry and the E/A + C
+-- the complete Scripts/bd06cr.lua in its own Lua 5.1 environment over the real CRCoop registry and the E/A + C
 -- presentation transport. The engine, AI and combat are mocks: they verify script decisions, not Redux
 -- native map loading, pathfinding, Lua wire serialization or EXU hooks. Labels and paths are the real
--- Missions/bdmisn06cr.bzn positions (Test-Bdmisn06CoopContract.py checks the names against the map).
+-- Missions/bd06cr.bzn positions (Test-Bdmisn06CoopContract.py checks the names against the map).
 local PeerTransport = dofile("Tools/BZRPeerTransportSim.lua")
 local F = {}
 local W
@@ -457,7 +457,7 @@ function F.makePeer(id, team, network, options)
     end
     modules.CRCCARuntime = setfenv(assert(loadfile("Scripts/CRCCARuntime.lua")),e)()
     if options.faithful then e.CR_TEST_FAITHFUL = true end
-    setfenv(assert(loadfile(options.script or "Scripts/bdmisn06cr.lua")), e)()
+    setfenv(assert(loadfile(options.script or "Scripts/bd06cr.lua")), e)()
     p.chunkCalls = #p.calls -- everything recorded so far ran at chunk load, before Start
     p.env, p.coop, p.runtime, p.modules = e, modules.CRCoop, modules.CRCCARuntime, modules
     e.Start()

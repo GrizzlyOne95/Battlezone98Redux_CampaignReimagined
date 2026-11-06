@@ -84,8 +84,8 @@ Bomber `svhraz`, Walker `svwalk`.
 
 ## Black Dog (Red Odyssey) campaign
 
-Proposed 2026-11-01, awaiting owner review. The Black Dog co-op maps (`bdmisn01cr`
-through `bdmisn15cr`) offer the player's own starting ship class (read from team 1
+Proposed 2026-11-01, awaiting owner review. The Black Dog co-op maps (`bd01cr`
+through `bd15cr`) offer the player's own starting ship class (read from team 1
 in each map) plus at most one light escort. Black Dog craft use the `bv*` ODFs.
 Production menus and mission scripts are unchanged.
 | Mission | VXT choices, in menu order | Basis |
@@ -115,8 +115,8 @@ Devastator `bvrdeva`, Fighter `bvfigha`. Missions 04 (`bsuser` on foot) and
 
 ## CRA (Chinese) campaign
 
-Proposed 2026-11-01, awaiting owner review. The CRA co-op maps (`chmisn01cr`
-through `chmisn08cr`) offer the player's own starting craft (read from team 1 in
+Proposed 2026-11-01, awaiting owner review. The CRA co-op maps (`ch01cr`
+through `ch08cr`) offer the player's own starting craft (read from team 1 in
 each map) plus at most one escort or the mission's briefing craft. CRA craft use
 the `cv*` ODFs; the enemy is the Soviet (CCA) force, authored on team 2 in every
 map and moved to team 5. Production menus and mission scripts are unchanged.

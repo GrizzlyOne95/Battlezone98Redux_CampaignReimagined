@@ -2,8 +2,8 @@
 
 Shared offline / 2-4 player co-op port of the Chinese mission `ch02` (the Red Army base on Ganymede must be defended
 while the engineers work on the Pegasus relic, the Russian raids keep coming, a defecting Russian walker has to be
-brought in, and General Fu's three-APC convoy must reach the hangar alive). One `Missions/chmisn02cr.bzn` and one
-`Scripts/chmisn02cr.lua` serve both modes. Companion to [`Scripts/ch02.lua`](../References/Chinese02Source/README.md)
+brought in, and General Fu's three-APC convoy must reach the hangar alive). One `Missions/ch02cr.bzn` and one
+`Scripts/ch02cr.lua` serve both modes. Companion to [`Scripts/ch02.lua`](../References/Chinese02Source/README.md)
 (the faithful DLL port underneath) and [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern:
 [`BDMISN01_COOP.md`](BDMISN01_COOP.md), [`BDMISN14_COOP.md`](BDMISN14_COOP.md).
 Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
@@ -12,9 +12,9 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/chmisn02cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch02.lua` (`Tools/Test-Chmisn02CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the co-op fixes, the restorations and the Ganymede weather. The body is not edited at all. |
+| `Scripts/ch02cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch02.lua` (`Tools/Test-Chmisn02CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the co-op fixes, the restorations and the Ganymede weather. The body is not edited at all. |
 | `Scripts/CRGanymedeSitesCH02.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather: the generated sites for this map (seven vents, the first beside the armoury) and the shared icy-moon director (no new module). |
-| `Missions/chmisn02cr.{bzn,vxt}`, `chmisn02.{hg2,lgt,mat,trn}`, `Config/chmisn02cr.ini`, `Config/crch.ini` | Map and companions (not part of this change). The enemy was moved from team 2 to team 5 on the map; the guests start at the `coop_spawn1..4` buoys on teams 1-4. |
+| `Missions/ch02cr.{bzn,vxt}`, `chmisn02.{hg2,lgt,mat,trn}`, `Config/ch02cr.ini`, `Config/crch.ini` | Map and companions (not part of this change). The enemy was moved from team 2 to team 5 on the map; the guests start at the `coop_spawn1..4` buoys on teams 1-4. |
 | `Tools/Chmisn02Fixture.lua`, `Test-Chmisn02Coop.lua`, `Test-Chmisn02Presentation.lua`, `Test-Chmisn02CoopSourceParity.py`, `Test-Chmisn02CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/test_ch02.py` still covers the faithful port, unchanged. |
 
 The CR regions, in file order:
@@ -107,7 +107,7 @@ approach near the base, from where it still goes for a live APC.
 The opening shot (`camera_start`, 800 m, 2000, subject the hangar) is driven by `CameraPath` every frame, so the
 runtime's camera stream carries it to every guest; `CameraCancelled` is false in a network game, offline it stays
 skippable. The body ends the shot on `CameraPath`'s return value, so the CR `CameraPath` also ends a network shot at its
-flight time plus a margin (the same fix as `bdmisn01cr`): `1.25 * length / (speed / 100) + 3` seconds from the first call
+flight time plus a margin (the same fix as `bd01cr`): `1.25 * length / (speed / 100) + 3` seconds from the first call
 (16.6 s -> 23.8 s); `Test-Chmisn02CoopContract.py` recomputes the flight time from the map's path. Without a skip the
 native arrival wins well before that. A save/load cannot resume a shot: the first `CameraPath` after a load reports
 arrival, so the body runs its own arrival code (the 2 s pause, then the objective and the clocks).
@@ -175,7 +175,7 @@ cut mission 8). They are slotted in here as **inferences**:
 ## Weather: Ganymede
 
 An icy, airless Jovian moon. `CREuropaWeather` (no new module) with `CRGanymedeSitesCH02`: orbit lighting
-(`Environment.Init{lightingMode="orbit", orbit={period=1800, startHour=-40}}`, as `bdmisn01cr`), the cryovolcanic plume, quake
+(`Environment.Init{lightingMode="orbit", orbit={period=1800, startHour=-40}}`, as `bd01cr`), the cryovolcanic plume, quake
 and Jupiter-surge director, networked through the runtime's ops (`EuropaState`, `EuropaPlume`, `EuropaQuake`,
 `EuropaSurge`): seeded timeline from the host, host-chosen events over the ordered stream, `Save`/`Load` state,
 `AnnounceState`. The generated sites carry seven vents (the first is the geyser beside the armoury, 2954, 98720) and the frost
@@ -201,8 +201,8 @@ Beats (host/offline only, each once, tied to the story; a site list with fewer v
 ```sh
 lua5.1 Tools/Test-Chmisn02Coop.lua            # offline == faithful, 1-4 peers, scaling, 300 m, fallback, cameras, results, restorations, weather
 lua5.1 Tools/Test-Chmisn02Presentation.lua    # E/A/C protocol on a guest
-python Tools/Test-Chmisn02CoopSourceParity.py # chmisn02cr.lua minus CR regions == ch02.lua
-python Tools/Test-Chmisn02CoopContract.py     # labels/paths/teams/flight time in chmisn02cr.bzn (skips with a message if the map is absent; ini/vxt/mpdes only when present)
+python Tools/Test-Chmisn02CoopSourceParity.py # ch02cr.lua minus CR regions == ch02.lua
+python Tools/Test-Chmisn02CoopContract.py     # labels/paths/teams/flight time in ch02cr.bzn (skips with a message if the map is absent; ini/vxt/mpdes only when present)
 python Tools/test_ch02.py                     # the faithful port, unchanged (needs lupa)
 ```
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Prove Scripts/bdmisn13cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/bdmisn13.lua."""
+"""Prove Scripts/bd13cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/bdmisn13.lua."""
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
 faithful = (ROOT / "Scripts/bdmisn13.lua").read_bytes()
-coop_raw = (ROOT / "Scripts/bdmisn13cr.lua").read_bytes()
+coop_raw = (ROOT / "Scripts/bd13cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
@@ -17,7 +17,7 @@ assert opened == closed and opened, "every CR region opens and closes in order"
 assert set(opened) == {"co-op layer", "co-op runtime", "restored content", "co-op callback", "co-op callbacks"}, opened
 assert "-- CR" not in re.sub(region, "", coop), "CR marker outside a region"
 stripped = re.sub(region, "", coop)
-assert stripped == faithful_text, "bdmisn13cr.lua outside the CR regions is not the faithful bdmisn13.lua"
+assert stripped == faithful_text, "bd13cr.lua outside the CR regions is not the faithful bdmisn13.lua"
 
 for word in ("campaignRuntime", "CRCCARuntime", "Restored", "RESTORED"):
     assert word not in stripped, "CR code outside a region: " + word
@@ -54,4 +54,4 @@ for name in ("GetHealth", "GetHandle", "GetTime", "GetScrap", "SetObjectiveOn", 
 assert len(re.findall(r'BuildObject\([^\n]*, 2, ', body)) == 2, "the wave and guard build sites name the authored enemy team 2"
 assert "SetPerceivedTeam" not in body and "BuildObjectAtPortal" not in body, "no portal or disguise in this mission"
 assert "IsRecycledByTeam(h, 1)" in body, "the recycle query asks team 1 only"
-print("bdmisn13cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))
+print("bd13cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))

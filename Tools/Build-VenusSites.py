@@ -19,7 +19,7 @@ BZN object elevations (r = 0.997 with x = col, z = minZ + row).
 
 Usage:
     python Tools/Build-VenusSites.py misn07 [--types 1] [--vent-odf eggeizr1]
-    # Elysium (no sulphur: --types "" writes an empty pool set; the BZN is bdmisn07cr.bzn):
+    # Elysium (no sulphur: --types "" writes an empty pool set; the BZN is bd07cr.bzn):
     python Tools/Build-VenusSites.py bdmisn07 --types "" --module CRElysiumSitesBD07 --consumer CRElysiumWeather
 """
 
@@ -146,7 +146,7 @@ def main() -> int:
     args = ap.parse_args()
 
     name = args.mission
-    bzn_file = ("misn2bcr" if name == "misn02b" else f"{name}cr") + ".bzn"  # CR ships its BZNs with a "cr" suffix
+    bzn_file = ("misn2bcr" if name == "misn02b" else f"{name}cr" if not name.startswith(("bdmisn", "chmisn")) else f"{name[:2]}{name[6:]}cr") + ".bzn"  # CR ships its BZNs with a "cr" suffix
     trn = read_trn(ROOT / "Missions" / f"{name}.trn")
     size = trn["size"]
     min_x, min_z = size.get("MinX", 0.0), size.get("MinZ", 0.0)

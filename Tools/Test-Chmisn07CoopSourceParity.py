@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Prove Scripts/chmisn07cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/ch07.lua."""
+"""Prove Scripts/ch07cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/ch07.lua."""
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
 faithful = (ROOT / "Scripts/ch07.lua").read_bytes()
-coop_raw = (ROOT / "Scripts/chmisn07cr.lua").read_bytes()
+coop_raw = (ROOT / "Scripts/ch07cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
@@ -17,7 +17,7 @@ assert opened == closed and opened, "every CR region opens and closes in order"
 assert opened == ["co-op layer", "co-op runtime", "co-op fixes", "co-op callbacks"], opened
 assert "-- CR" not in re.sub(region, "", coop), "CR marker outside a region"
 stripped = re.sub(region, "", coop)
-assert stripped == faithful_text, "chmisn07cr.lua outside the CR regions is not the faithful ch07.lua"
+assert stripped == faithful_text, "ch07cr.lua outside the CR regions is not the faithful ch07.lua"
 
 for word in ("campaignRuntime", "CRCCARuntime", "Restored", "RESTORED"):
     assert word not in stripped, "CR code outside a region: " + word
@@ -63,4 +63,4 @@ for odf, team in builds:
 assert teams["0"] == {"sspilo"} and teams["1"] == {"apcamr", "cspilo"}, teams
 scaled = set(re.search(r"SCALED_ODFS = \{([^}]*)\}", runtime_region)[1].replace("=", " ").replace("true", " ").replace(",", " ").split())
 assert scaled == {"ssusera", "sssold", "sspilo"}, scaled
-print("chmisn07cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))
+print("ch07cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))

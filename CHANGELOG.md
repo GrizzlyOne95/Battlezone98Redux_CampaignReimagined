@@ -2,25 +2,26 @@
 
 ## Unreleased
 
+- Black Dog and CRA co-op missions renamed from bdmisnNNcr/chmisnNNcr to bdNNcr/chNNcr (BZN, Lua, INI, briefing, VXT and preview files; terrain keeps the stock stem). Redux copies only the first 8 characters of a mission BZN stem when it looks up the mission Lua, so the 10-character names ran no script in game. Saves made for the old names cannot be loaded; career stats keep their old keys. `Validate-CampaignRepository.py` now fails on a shipped mission BZN stem over 8 characters.
 - Single-player campaign presentation: the CR NSDF, CCA, CRA and Black Dog campaign INIs now set the briefing background and text colour, gift images and movies, Black Dog intro voices and per-planet loading screens that stock uses, and NSDF ships a `<stem>.des` briefing for its renamed missions (stock text, edited only where the CR script differs). Multiplayer listings and `.mpdes` blurbs are unchanged.
 - CCA, CRA and Black Dog campaigns: ship a single-player `<stem>.des` briefing for all 31 missions (stock text, edited only where the CR script differs; the renamed `*cr` stems no longer found the stock file) and rewrite the multiplayer `<stem>.mpdes` blurbs to state the objective, roster and solo campaign entry like misn03cr-misn14cr.
 - New installs ship with ODF AI gameplay tuning on (`[SinglePlayer] AiOdfGameplayTuning = 1`). Existing
   `openshim.ini` files are not overwritten; switch it on in Options -> SinglePlayer.
 - Autosave and its notice are now handled by OpenShim; the Lua autosave is removed.
 - CRA (Chinese) co-op campaign listing, maps and weather sites, in progress: a new "CR Chinese" campaign listing and
-  multiplayer entries for `chmisn01cr` through `chmisn08cr` (2-4 players or offline), on co-op maps with the enemy on
+  multiplayer entries for `ch01cr` through `ch08cr` (2-4 players or offline), on co-op maps with the enemy on
   team 5, CRA starting rosters, Ganymede, Elysium and Europa terrain and per-mission weather sites. Mission scripts
   follow. Not yet tested in game.
 - chmisn08 (Stolen Convoy) co-op/weather port: the APC convoy capture and fort assault, with a sticky-by-identity
   "player" rule (whoever captures APC #5 stays the player for the rest of the mission, even after jumping out),
-  reinforcement-wave scaling proportional to player count, and Ganymede weather beats. `Scripts/chmisn08cr.lua`
+  reinforcement-wave scaling proportional to player count, and Ganymede weather beats. `Scripts/ch08cr.lua`
   shadows its natives as chunk globals inside a private `setfenv` sandbox to stay under Lua 5.1's 60-upvalue limit
   while still restoring the real global table for the engine's own entry points (`Docs/CHMISN08_COOP.md`).
 - Port the stock Chinese campaign mission chmisn08 (the fort assault) to Lua as `Scripts/ch08.lua`, faithful to the
   original `Chinese08Mission` logic: APC convoy capture, mag-mine power and comm tower timer, and the timed demolition
   finale. Source parity and behaviour tests are in CI; see `Docs/CH08_LUA_PORT.md`. Single player only.
-- Black Dog co-op campaign: a new "CR Black Dog" campaign listing and multiplayer entries for `bdmisn01cr` through
-  `bdmisn15cr` (2-4 players or offline), on co-op maps with the enemy on team 5, Black Dog starting rosters, Ganymede
+- Black Dog co-op campaign: a new "CR Black Dog" campaign listing and multiplayer entries for `bd01cr` through
+  `bd15cr` (2-4 players or offline), on co-op maps with the enemy on team 5, Black Dog starting rosters, Ganymede
   and Elysium terrain and Ganymede weather. Every mission wraps its faithful port the same way as the CCA campaign:
   scaled waves that arrive out of sight, orders aimed at the nearest human, shared unskippable cutscenes in network
   games and weather that follows the battle. Coherent cut content is restored per mission (each listed in

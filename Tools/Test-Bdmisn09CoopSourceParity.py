@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Prove Scripts/bdmisn09cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/bdmisn09.lua."""
+"""Prove Scripts/bd09cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/bdmisn09.lua."""
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
 faithful = (ROOT / "Scripts/bdmisn09.lua").read_bytes()
-coop_raw = (ROOT / "Scripts/bdmisn09cr.lua").read_bytes()
+coop_raw = (ROOT / "Scripts/bd09cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
@@ -17,7 +17,7 @@ assert opened == closed and opened, "every CR region opens and closes in order"
 assert set(opened) == {"co-op layer", "co-op runtime", "restored content", "co-op callback", "co-op callbacks"}, opened
 assert "-- CR" not in re.sub(region, "", coop), "CR marker outside a region"
 stripped = re.sub(region, "", coop)
-assert stripped == faithful_text, "bdmisn09cr.lua outside the CR regions is not the faithful bdmisn09.lua"
+assert stripped == faithful_text, "bd09cr.lua outside the CR regions is not the faithful bdmisn09.lua"
 
 for word in ("campaignRuntime", "CRCCARuntime", "Restored", "RESTORED"):
     assert word not in stripped, "CR code outside a region: " + word
@@ -50,4 +50,4 @@ assert {team for odf, team in builds if odf != '"apcamr"'} == {"2"}, "all enemy 
 assert {(o, t) for o, t in builds if o == '"apcamr"'} == {('"apcamr"', "1")}, "the nav beacons are the team-1 builds"
 assert "SetPerceivedTeam(M.user, team)" in body and "Perceived(2)" in body and "Perceived(1)" in body
 assert "if team == 2 then team = ENEMY_TEAM end" in cr_text, "the shadow maps the DLL's team 2 to the co-op enemy"
-print("bdmisn09cr parity: %d CR regions; %d shadowed natives; the rest is the faithful port" % (len(opened), len(must_shadow)))
+print("bd09cr parity: %d CR regions; %d shadowed natives; the rest is the faithful port" % (len(opened), len(must_shadow)))

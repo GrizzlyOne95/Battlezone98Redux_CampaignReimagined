@@ -245,7 +245,7 @@ assert [s for s in bd_parser.sections() if s.startswith("MISSION")] == [f"MISSIO
 bd_maps = []
 for index in range(1, 16):
     planet = "elysium" if index in (7, 9, 10, 11) else "ganymede"
-    stem = f"bdmisn{index:02d}cr"
+    stem = f"bd{index:02d}cr"
     section = bd_parser[f"MISSION{index}"]
     filename = section["missionBZN"].strip('"')
     assert filename == f"{stem}.bzn"
@@ -281,7 +281,7 @@ assert_fits_menu_box(bd_des_path)
 assert (ROOT / "Assets" / "Graphics" / "crbd.bmp").read_bytes()[:2] == b"BM"
 
 # Once the Black Dog co-op scripts exist, the lock and the Workshop list must carry the listing.
-if all((ROOT / "Scripts" / f"bdmisn{i:02d}cr.lua").is_file() for i in range(1, 16)):
+if all((ROOT / "Scripts" / f"bd{i:02d}cr.lua").is_file() for i in range(1, 16)):
     for filename in bd_maps:
         assert entries.get("Missions\\" + filename) == filename, f"lock missing {filename}"
         lua_name = str(Path(filename).with_suffix(".lua"))
@@ -308,7 +308,7 @@ ch_sites = {1: "CRGanymedeSitesCH01", 2: "CRGanymedeSitesCH02", 3: "CRGanymedeSi
             5: "CRElysiumSitesCH05", 6: "CRElysiumSitesCH06", 7: "CREuropaSitesCH07", 8: "CRGanymedeSitesCH08"}
 ch_maps = []
 for index in range(1, 9):
-    stem = f"chmisn{index:02d}cr"
+    stem = f"ch{index:02d}cr"
     section = ch_parser[f"MISSION{index}"]
     filename = section["missionBZN"].strip('"')
     assert filename == f"{stem}.bzn"
@@ -343,7 +343,7 @@ assert_fits_menu_box(ch_des_path)
 assert (ROOT / "Assets" / "Graphics" / "crch.bmp").read_bytes()[:2] == b"BM"
 
 # Once the CRA co-op scripts exist, the lock and the Workshop list must carry the listing.
-if all((ROOT / "Scripts" / f"chmisn{i:02d}cr.lua").is_file() for i in range(1, 9)):
+if all((ROOT / "Scripts" / f"ch{i:02d}cr.lua").is_file() for i in range(1, 9)):
     for filename in ch_maps:
         assert entries.get("Missions\\" + filename) == filename, f"lock missing {filename}"
         lua_name = str(Path(filename).with_suffix(".lua"))

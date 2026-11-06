@@ -3,7 +3,7 @@
 Shared offline / 2-4 player co-op port of the Chinese mission `ch05`, a disguise-and-defence mission: the party starts as
 Chinese scavengers disguised as Soviets, collects scrap, trails a Soviet convoy to learn where the Chinese base went, then
 defends the relocated base against seven Soviet waves, a raid every four minutes, paratroopers and an artillery battery.
-One `Missions/chmisn05cr.bzn` and one `Scripts/chmisn05cr.lua` serve both modes. Companion to the faithful port underneath
+One `Missions/ch05cr.bzn` and one `Scripts/ch05cr.lua` serve both modes. Companion to the faithful port underneath
 (`Scripts/ch05.lua`, tested by `Tools/Test-Chinese05Port.py`) and [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared
 runtime). Pattern: [`BDMISN09_COOP.md`](BDMISN09_COOP.md) (a disguise mission with a shared "player"), closest in shape
 [`BDMISN07_COOP.md`](BDMISN07_COOP.md) (Elysium weather, waves, a defended base).
@@ -13,9 +13,9 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/chmisn05cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch05.lua` (`Tools/Test-Chmisn05CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restorations and the callback wrappers. |
+| `Scripts/ch05cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch05.lua` (`Tools/Test-Chmisn05CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restorations and the callback wrappers. |
 | `Scripts/CRElysiumSitesCH05.lua`, `Scripts/CRElysiumWeather.lua` | Elysium weather (the Venus director re-dressed as a blue-grey storm world, generated sites for this map: three geysers, no sulphur). Written separately; not part of this change. |
-| `Missions/chmisn05cr.{bzn,vxt}`, `chmisn05.{hg2,lgt,mat,trn}`, `Config/chmisn05cr.ini` | Map, vehicle list (`cvscav`, `cvtnk`) and multiplayer listing. Not part of this change. |
+| `Missions/ch05cr.{bzn,vxt}`, `chmisn05.{hg2,lgt,mat,trn}`, `Config/ch05cr.ini` | Map, vehicle list (`cvscav`, `cvtnk`) and multiplayer listing. Not part of this change. |
 | `Tools/Chmisn05Fixture.lua`, `Test-Chmisn05Coop.lua`, `Test-Chmisn05Presentation.lua`, `Test-Chmisn05CoopSourceParity.py`, `Test-Chmisn05CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/Test-Chinese05Port.py` still covers the faithful port, unchanged. |
 
 ## Teams and ownership
@@ -100,7 +100,7 @@ film takes the shot up again on the host (`S.doHaulCam`).
 ## Restored content [owner decision 2026-11-01]
 
 Each restoration lives only in the CR layer, applies offline and in co-op, and has a flag (`RESTORED_*` at the top of the
-runtime region of `chmisn05cr.lua`). The original C++ is archived at the end of `Scripts/ch05.lua`.
+runtime region of `ch05cr.lua`). The original C++ is archived at the end of `Scripts/ch05.lua`.
 
 | Restoration | Cut block it comes from | Status |
 | --- | --- | --- |
@@ -176,8 +176,8 @@ Beats (host/offline only, each once, tied to the mission's own moments):
 ```sh
 lua5.1 Tools/Test-Chmisn05Coop.lua            # offline == faithful, 1-4 peers, disguise, scrap gate, film, scaling, 460 m, victory line, results, load, weather
 lua5.1 Tools/Test-Chmisn05Presentation.lua    # the E/A/C protocol through a real guest, then the leader's own stream
-python Tools/Test-Chmisn05CoopSourceParity.py # chmisn05cr.lua minus CR regions == ch05.lua
-python Tools/Test-Chmisn05CoopContract.py     # labels/paths/teams in chmisn05cr.bzn (skips with a message if the map is absent)
+python Tools/Test-Chmisn05CoopSourceParity.py # ch05cr.lua minus CR regions == ch05.lua
+python Tools/Test-Chmisn05CoopContract.py     # labels/paths/teams in ch05cr.bzn (skips with a message if the map is absent)
 python Tools/Test-Chinese05Port.py            # the faithful port, unchanged
 ```
 

@@ -1,4 +1,4 @@
--- Presentation protocol of the shared CCA runtime, run through the real chmisn08cr.lua guest.
+-- Presentation protocol of the shared CCA runtime, run through the real ch08cr.lua guest.
 -- Hand-built E/A/C packets are delivered to a guest peer: ordering, duplicates, acknowledgements, identity
 -- resolution (labels, gone flags, never-hang guard), cameras, weather ops, wire limits, and this mission's
 -- five presentation ops (each targets a single handle, unlike chmisn07's broadcast-to-every-human style).

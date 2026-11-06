@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Prove Scripts/chmisn02cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/ch02.lua."""
+"""Prove Scripts/ch02cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/ch02.lua."""
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
 faithful = (ROOT / "Scripts/ch02.lua").read_bytes()
-coop_raw = (ROOT / "Scripts/chmisn02cr.lua").read_bytes()
+coop_raw = (ROOT / "Scripts/ch02cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 assert coop_raw.count(b"\n") == coop_raw.count(b"\r\n"), "no bare LF in a CRLF file"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
@@ -18,7 +18,7 @@ assert opened == closed and opened, "every CR region opens and closes in order"
 assert opened == ["co-op layer", "co-op runtime", "co-op fixes", "co-op callbacks"], opened
 assert "-- CR" not in re.sub(region, "", coop), "CR marker outside a region"
 stripped = re.sub(region, "", coop)
-assert stripped == faithful_text, "chmisn02cr.lua outside the CR regions is not the faithful ch02.lua"
+assert stripped == faithful_text, "ch02cr.lua outside the CR regions is not the faithful ch02.lua"
 
 for word in ("campaignRuntime", "CRCCARuntime", "Restored", "RESTORED", "ENEMY_TEAM"):
     assert word not in stripped, "CR code outside a region: " + word
@@ -65,4 +65,4 @@ assert others == {("svwalk", "0"), ("cvapcb", "1"), ("cvfighc", "1"), ("cpcamr",
 scaled = set(re.search(r"SCALED_ODFS = \{([^}]*)\}", coop)[1].replace("=", " ").replace("true", " ").replace(",", " ").split())
 assert scaled == enemy, (scaled, enemy)
 assert "team == 2" in coop and "NativeBuildObject(odf, team, where)" in coop, "only team 2 builds become tickets"
-print("chmisn02cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))
+print("ch02cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))

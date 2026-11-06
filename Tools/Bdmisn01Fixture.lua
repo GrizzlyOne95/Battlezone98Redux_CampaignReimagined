@@ -1,10 +1,10 @@
 -- The real co-op registry loads shared Lua helpers through require().
 package.path = "Scripts/?.lua;" .. package.path
 -- Shared mock world for the bdmisn01 suites (Test-Bdmisn01Coop.lua, Test-Bdmisn01Presentation.lua). Each peer runs
--- the complete Scripts/bdmisn01cr.lua in its own Lua 5.1 environment over the real CRCoop registry and the E/A + C
+-- the complete Scripts/bd01cr.lua in its own Lua 5.1 environment over the real CRCoop registry and the E/A + C
 -- presentation transport. The engine, AI and combat are mocks: they verify script decisions, not Redux
 -- native map loading, pathfinding, Lua wire serialization or EXU hooks. Labels and paths are the real
--- Missions/bdmisn01cr.bzn positions (Test-Bdmisn01CoopContract.py checks the names against the map).
+-- Missions/bd01cr.bzn positions (Test-Bdmisn01CoopContract.py checks the names against the map).
 local PeerTransport = dofile("Tools/BZRPeerTransportSim.lua")
 local F = {}
 local W
@@ -20,7 +20,7 @@ F.LABELS = {
     ["coop_spawn3"] = {odf="pspwn_1",team=3,pos={1094.68,1.9,101458},craft=false},
     ["coop_spawn4"] = {odf="pspwn_1",team=4,pos={1119.13,1.9,101464},craft=false},
 }
--- First point of each path in Missions/bdmisn01cr.bzn.
+-- First point of each path in Missions/bd01cr.bzn.
 F.PATHS = {
     ["spawn_nav_beacon"]={1540.52,1,100903},
     ["edge_path"]={374.38,1,102041},
@@ -422,7 +422,7 @@ function F.makePeer(id, team, network, options)
     end
     modules.CRCCARuntime = setfenv(assert(loadfile("Scripts/CRCCARuntime.lua")),e)()
     if options.faithful then e.CR_TEST_FAITHFUL = true end
-    setfenv(assert(loadfile(options.script or "Scripts/bdmisn01cr.lua")), e)()
+    setfenv(assert(loadfile(options.script or "Scripts/bd01cr.lua")), e)()
     p.chunkCalls = #p.calls -- everything recorded so far ran at chunk load, before Start
     p.env, p.coop, p.runtime, p.modules = e, modules.CRCoop, modules.CRCCARuntime, modules
     e.Start()

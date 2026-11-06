@@ -2,8 +2,8 @@
 
 Shared offline / 2-4 player co-op port of the Black Dog mission `bd09`, a disguise mission: the party starts in stolen
 Chinese APCs, one human takes the first of five Chinese tracked tanks, the convoy drives to three nav beacons while the
-party stays inside it, and everyone must reach the Chinese portal. One `Missions/bdmisn09cr.bzn` and one
-`Scripts/bdmisn09cr.lua` serve both modes. Companion to the faithful port underneath (`Scripts/bdmisn09.lua`, tested by
+party stays inside it, and everyone must reach the Chinese portal. One `Missions/bd09cr.bzn` and one
+`Scripts/bd09cr.lua` serve both modes. Companion to the faithful port underneath (`Scripts/bdmisn09.lua`, tested by
 `Tools/Test-BlackDog09.lua`) and [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern:
 [`MISNS2_COOP.md`](MISNS2_COOP.md), closest sibling [`BDMISN02_COOP.md`](BDMISN02_COOP.md).
 Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
@@ -12,9 +12,9 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bdmisn09cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bdmisn09.lua` (`Tools/Test-Bdmisn09CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
+| `Scripts/bd09cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bdmisn09.lua` (`Tools/Test-Bdmisn09CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
 | `Scripts/CRElysiumSitesBD09.lua`, `Scripts/CRElysiumWeather.lua` | Elysium weather (the Venus director re-dressed as a blue-grey storm world, generated sites for this map: two geysers, no sulphur). Written separately; not part of this change. |
-| `Missions/bdmisn09cr.{bzn,vxt}`, `bdmisn09.{hg2,lgt,mat,trn}`, `Config/bdmisn09cr.ini` | Map, vehicle list (`cvapc` only) and multiplayer listing. Not part of this change. |
+| `Missions/bd09cr.{bzn,vxt}`, `bdmisn09.{hg2,lgt,mat,trn}`, `Config/bd09cr.ini` | Map, vehicle list (`cvapc` only) and multiplayer listing. Not part of this change. |
 | `Tools/Bdmisn09Fixture.lua`, `Test-Bdmisn09Coop.lua`, `Test-Bdmisn09CoopSourceParity.py`, `Test-Bdmisn09CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/Test-BlackDog09.lua` still covers the faithful port, unchanged. There is no Presentation test: the mission has no camera. |
 
 ## Teams and ownership
@@ -77,7 +77,7 @@ disarmed tank timer is `-1`. The first ticket would turn it into a unit handle (
 ## The portal
 
 `ActivatePortal` is a local effect of the object, so the CR layer presents it on every peer (`presentationOps.PortalOpen`;
-each peer opens its own copy of the map's `portal`), the same way `bdmisn05cr` does for its pulse. It opens once, when the
+each peer opens its own copy of the map's `portal`), the same way `bd05cr` does for its pulse. It opens once, when the
 nearest human is within 250 m (`bd09008`).
 
 Victory needs **every living human** to have touched the portal: the body's `IsTouching(user, portal)` is true when each has,
@@ -95,7 +95,7 @@ waited for; a respawned human must go through. *Owner question:* if "first throu
 ## Restored content [owner decision 2026-11-01]
 
 Each restoration lives only in the CR layer, applies offline and in co-op, and has a flag (`RESTORED_*` at the top of the
-runtime region of `bdmisn09cr.lua`). The original C++ is in `References/BlackDog09Source/BlackDog09Mission.cpp`; the
+runtime region of `bd09cr.lua`). The original C++ is in `References/BlackDog09Source/BlackDog09Mission.cpp`; the
 faithful port keeps both disabled calls as comments.
 
 | Restoration | Cut block it comes from | Status |
@@ -158,13 +158,13 @@ Beats (host/offline only, each once, tied to the mission's own moments):
 
 ```sh
 lua5.1 Tools/Test-Bdmisn09Coop.lua            # offline == faithful, 1-4 peers, disguise, capture, scaling, 460 m, portal, results, load, weather
-python Tools/Test-Bdmisn09CoopSourceParity.py # bdmisn09cr.lua minus CR regions == bdmisn09.lua
-python Tools/Test-Bdmisn09CoopContract.py     # labels/paths/teams in bdmisn09cr.bzn (skips with a message if the map is absent)
+python Tools/Test-Bdmisn09CoopSourceParity.py # bd09cr.lua minus CR regions == bdmisn09.lua
+python Tools/Test-Bdmisn09CoopContract.py     # labels/paths/teams in bd09cr.bzn (skips with a message if the map is absent)
 lua5.1 Tools/Test-BlackDog09.lua              # the faithful port, unchanged
 ```
 
 The workflow `.github/workflows/campaign-validation.yml` is not edited by this change. The contract test checks
-`Config/bdmisn09cr.ini`, `Config/crbd.ini` and `Missions/bdmisn09cr.vxt` only when they are in the tree and says which it
+`Config/bd09cr.ini`, `Config/crbd.ini` and `Missions/bd09cr.vxt` only when they are in the tree and says which it
 skipped.
 
 ## Inferences and open questions

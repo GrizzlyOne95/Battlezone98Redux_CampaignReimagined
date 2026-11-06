@@ -2,7 +2,7 @@
 
 Shared offline / 2-4 player co-op port of the Black Dog mission `bd03` (a damaged Recycler is escorted to the geyser at
 Nav Delta, a base is set up there, and an APC full of pilots and wounded is brought in from the south past a series of
-Chinese raids and ambushes). One `Missions/bdmisn03cr.bzn` and one `Scripts/bdmisn03cr.lua` serve both modes. Companion
+Chinese raids and ambushes). One `Missions/bd03cr.bzn` and one `Scripts/bd03cr.lua` serve both modes. Companion
 to the faithful DLL port underneath (`Scripts/bd03.lua`, tested by `Tests/test_bd03.lua`) and
 [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern: [`MISNS2_COOP.md`](MISNS2_COOP.md).
 Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
@@ -11,9 +11,9 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bdmisn03cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd03.lua` (`Tools/Test-Bdmisn03CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
+| `Scripts/bd03cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd03.lua` (`Tools/Test-Bdmisn03CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
 | `Scripts/CRGanymedeSitesBD03.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather (the Europa director with the generated sites for this map: two cryovolcanic vents, the geysers `geyser1` and `eggeizr11_geyser`). |
-| `Missions/bdmisn03cr.{bzn,vxt}`, `bdmisn03.{hg2,lgt,mat,trn}`, `Config/bdmisn03cr.ini` | Map, vehicle list and multiplayer listing (not part of this change). The map has **no enemy base**; the Chinese side is a handful of authored cloaked guards plus everything Lua spawns. |
+| `Missions/bd03cr.{bzn,vxt}`, `bdmisn03.{hg2,lgt,mat,trn}`, `Config/bd03cr.ini` | Map, vehicle list and multiplayer listing (not part of this change). The map has **no enemy base**; the Chinese side is a handful of authored cloaked guards plus everything Lua spawns. |
 | `Tools/Bdmisn03Fixture.lua`, `Test-Bdmisn03Coop.lua`, `Test-Bdmisn03Presentation.lua`, `Test-Bdmisn03CoopSourceParity.py`, `Test-Bdmisn03CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tests/test_bd03.lua` still covers the faithful port, unchanged. |
 
 ## Teams and ownership
@@ -94,7 +94,7 @@ removed, the `bd03003` timer armed), and the next phase starts normally.
 ## Restored content [owner decision 2026-11-01]
 
 Cut-content restorations live only in the CR layer, apply offline and in co-op, and each has a flag (`RESTORED_*` at the
-top of the runtime region of `bdmisn03cr.lua`). Each is gated on what `bdmisn03cr.bzn` carries.
+top of the runtime region of `bd03cr.lua`). Each is gated on what `bd03cr.bzn` carries.
 
 | Restoration | Cut block it comes from | Status in this map |
 | --- | --- | --- |
@@ -172,13 +172,13 @@ Beats (host/offline only, each once, tied to the mission's own moments; the dire
 ```sh
 lua5.1 Tools/Test-Bdmisn03Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, fallback, films, results, weather
 lua5.1 Tools/Test-Bdmisn03Presentation.lua    # E/A/C protocol on a guest
-python Tools/Test-Bdmisn03CoopSourceParity.py # bdmisn03cr.lua minus CR regions == bd03.lua
-python Tools/Test-Bdmisn03CoopContract.py     # labels/paths/teams in bdmisn03cr.bzn (skips with a message if the map is absent)
+python Tools/Test-Bdmisn03CoopSourceParity.py # bd03cr.lua minus CR regions == bd03.lua
+python Tools/Test-Bdmisn03CoopContract.py     # labels/paths/teams in bd03cr.bzn (skips with a message if the map is absent)
 lua5.1 Tests/test_bd03.lua                    # the faithful port, unchanged
 ```
 
 The workflow `.github/workflows/campaign-validation.yml` is not edited by this change; the four co-op commands above are
-the step to add. The contract test checks `Config/bdmisn03cr.ini`, `Config/crbd.ini` and `Missions/bdmisn03cr.vxt` only
+the step to add. The contract test checks `Config/bd03cr.ini`, `Config/crbd.ini` and `Missions/bd03cr.vxt` only
 when they are in the tree and says which it skipped.
 
 ## Inferences and open questions

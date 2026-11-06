@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
-"""bdmisn08 co-op map contract: the labels, paths and teams Scripts/bdmisn08cr.lua names exist in Missions/bdmisn08cr.bzn.
+"""bdmisn08 co-op map contract: the labels, paths and teams Scripts/bd08cr.lua names exist in Missions/bd08cr.bzn.
 
-Skipped (exit 0, says so) when Missions/bdmisn08cr.bzn is not in the tree. The multiplayer listing
-(Config/bdmisn08cr.ini), the campaign entry (Config/crbd.ini) and Missions/bdmisn08cr.vxt are checked only when present.
+Skipped (exit 0, says so) when Missions/bd08cr.bzn is not in the tree. The multiplayer listing
+(Config/bd08cr.ini), the campaign entry (Config/crbd.ini) and Missions/bd08cr.vxt are checked only when present.
 """
 from pathlib import Path
 import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-bzn_path = ROOT / "Missions/bdmisn08cr.bzn"
+bzn_path = ROOT / "Missions/bd08cr.bzn"
 if not bzn_path.is_file():
-    print("bdmisn08 co-op contract SKIPPED: Missions/bdmisn08cr.bzn is not present")
+    print("bdmisn08 co-op contract SKIPPED: Missions/bd08cr.bzn is not present")
     sys.exit(0)
 
 text = bzn_path.read_bytes().decode("latin-1").replace("\r\n", "\n")
 assert "TerrainName = bdmisn08\n" in text
-assert "msn_filename = bdmisn08cr.bzn" in text
+assert "msn_filename = bd08cr.bzn" in text
 
 # ---------------------------------------------------------------- objects and teams
 objects, starts = {}, []
@@ -42,7 +42,7 @@ for path in text.split("[AiPath]\n")[1:]:
         paths.append(m[1])
 
 # ---------------------------------------------------------------- the Lua only names real map content
-lua_full = (ROOT / "Scripts/bdmisn08cr.lua").read_text(encoding="utf-8")
+lua_full = (ROOT / "Scripts/bd08cr.lua").read_text(encoding="utf-8")
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
 live = re.sub(region, "", lua_full)
 live = re.sub(r"--\[\[.*?\]\]", "", live, flags=re.S)
@@ -93,25 +93,25 @@ assert shipped == wavs | restored_wavs, "every shipped bd08 voice line is played
 # The debrief .des files (bd08win, bd08lsea..c, bd08lose) ship with the game, not in this tree.
 
 # ---------------------------------------------------------------- the listing files, when present
-ini = ROOT / "Config/bdmisn08cr.ini"
+ini = ROOT / "Config/bd08cr.ini"
 if ini.is_file():
     ini_text = ini.read_text(encoding="utf-8")
     assert 'minPlayers = "2"' in ini_text and 'maxPlayers = "4"' in ini_text
-    print("  Config/bdmisn08cr.ini checked")
+    print("  Config/bd08cr.ini checked")
 else:
-    print("  Config/bdmisn08cr.ini not present: skipped")
+    print("  Config/bd08cr.ini not present: skipped")
 campaign = ROOT / "Config/crbd.ini"
 if campaign.is_file():
-    assert 'missionBZN = "bdmisn08cr.bzn"' in campaign.read_text(encoding="utf-8")
+    assert 'missionBZN = "bd08cr.bzn"' in campaign.read_text(encoding="utf-8")
     print("  Config/crbd.ini checked")
 else:
     print("  Config/crbd.ini not present: skipped")
-vxt = ROOT / "Missions/bdmisn08cr.vxt"
+vxt = ROOT / "Missions/bd08cr.vxt"
 if vxt.is_file():
     assert vxt.read_bytes().strip(), "the vehicle list is not empty"
-    print("  Missions/bdmisn08cr.vxt checked")
+    print("  Missions/bd08cr.vxt checked")
 else:
-    print("  Missions/bdmisn08cr.vxt not present: skipped")
+    print("  Missions/bd08cr.vxt not present: skipped")
 
 # ---------------------------------------------------------------- the doc accounts for every map path and cut block
 doc = (ROOT / "Docs/BDMISN08_COOP.md").read_text(encoding="utf-8")

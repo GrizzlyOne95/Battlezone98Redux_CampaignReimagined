@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
-"""bdmisn02 co-op map contract: the labels, paths and teams Scripts/bdmisn02cr.lua names exist in Missions/bdmisn02cr.bzn.
+"""bdmisn02 co-op map contract: the labels, paths and teams Scripts/bd02cr.lua names exist in Missions/bd02cr.bzn.
 
-Skipped (exit 0, says so) when Missions/bdmisn02cr.bzn is not in the tree. The companion files (Missions/bdmisn02cr.vxt,
-Config/bdmisn02cr.ini, the MISSION2 entry of Config/crbd.ini) are checked only when they are present.
+Skipped (exit 0, says so) when Missions/bd02cr.bzn is not in the tree. The companion files (Missions/bd02cr.vxt,
+Config/bd02cr.ini, the MISSION2 entry of Config/crbd.ini) are checked only when they are present.
 """
 from pathlib import Path
 import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-bzn_path = ROOT / "Missions/bdmisn02cr.bzn"
+bzn_path = ROOT / "Missions/bd02cr.bzn"
 if not bzn_path.is_file():
-    print("bdmisn02 co-op contract SKIPPED: Missions/bdmisn02cr.bzn is not present")
+    print("bdmisn02 co-op contract SKIPPED: Missions/bd02cr.bzn is not present")
     sys.exit(0)
 
 text = bzn_path.read_bytes().decode("latin-1").replace("\r\n", "\n")
 assert "TerrainName = bdmisn02\n" in text and "name = MultSTMission\n" in text
-assert "msn_filename = bdmisn02cr.bzn" in text
+assert "msn_filename = bd02cr.bzn" in text
 
 # ---------------------------------------------------------------- objects and teams
 objects, starts = {}, []
@@ -48,7 +48,7 @@ for path in text.split("[AiPath]\n")[1:]:
 assert re.search(r"\[AOI\]\nundefptr = \w+\nteam \[1\] =\n2\n", text), "the AOI team is documented below if it changes"
 
 # ---------------------------------------------------------------- the Lua only names real map content
-lua_full = (ROOT / "Scripts/bdmisn02cr.lua").read_text(encoding="utf-8")
+lua_full = (ROOT / "Scripts/bd02cr.lua").read_text(encoding="utf-8")
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
 live = re.sub(region, "", lua_full)
 live = re.sub(r"--\[\[.*?\]\]", "", live, flags=re.S)  # the DLL's disabled code stays disabled
@@ -109,21 +109,21 @@ for wav in sorted(wavs):
 assert "bd02lsea.des" in live and 'description == "bd02lsea.des"' in cr_text, "the missing debrief is substituted in the CR layer"
 
 # ---------------------------------------------------------------- companion files, only when present
-vxt = ROOT / "Missions/bdmisn02cr.vxt"
+vxt = ROOT / "Missions/bd02cr.vxt"
 if vxt.is_file():
     allowed = {line.split()[0] for line in vxt.read_text(encoding="latin-1").splitlines() if line.strip()}
     assert allowed and all(odf.startswith("bv") for odf in allowed), "the vehicle list names Black Dog craft: " + str(allowed)
 else:
-    print("note: Missions/bdmisn02cr.vxt not present, vehicle list not checked")
-ini = ROOT / "Config/bdmisn02cr.ini"
+    print("note: Missions/bd02cr.vxt not present, vehicle list not checked")
+ini = ROOT / "Config/bd02cr.ini"
 if ini.is_file():
     body = ini.read_text(encoding="utf-8")
     assert 'mapType = "multiplayer"' in body and 'gameType = "S"' in body and 'maxPlayers = "4"' in body
 else:
-    print("note: Config/bdmisn02cr.ini not present, multiplayer listing not checked")
+    print("note: Config/bd02cr.ini not present, multiplayer listing not checked")
 crbd = ROOT / "Config/crbd.ini"
 if crbd.is_file():
-    assert re.search(r'\[MISSION2\][^\[]*missionBZN = "bdmisn02cr\.bzn"', crbd.read_text(encoding="utf-8")), "crbd.ini MISSION2 points at the co-op map"
+    assert re.search(r'\[MISSION2\][^\[]*missionBZN = "bd02cr\.bzn"', crbd.read_text(encoding="utf-8")), "crbd.ini MISSION2 points at the co-op map"
 else:
     print("note: Config/crbd.ini not present, campaign entry not checked")
 

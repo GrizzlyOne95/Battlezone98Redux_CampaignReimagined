@@ -2,7 +2,7 @@
 
 Shared offline / 2-4 player co-op port of the Black Dog mission `bd01` (deploy the Recycler, investigate the Nav
 Alpha beacon, defend the base against a cloaked ambush and two waves of Chinese fighters and a light tank). One
-`Missions/bdmisn01cr.bzn` and one `Scripts/bdmisn01cr.lua` serve both modes. Companion to
+`Missions/bd01cr.bzn` and one `Scripts/bd01cr.lua` serve both modes. Companion to
 [`Scripts/bd01.lua`](../References/BlackDog01Source/PORT_NOTES.md) (the faithful DLL port underneath) and
 [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime, first used by `misns1..8`). Pattern:
 [`MISNS2_COOP.md`](MISNS2_COOP.md).
@@ -12,9 +12,9 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bdmisn01cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd01.lua` (`Tools/Test-Bdmisn01CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the co-op fixes and the Ganymede weather. |
+| `Scripts/bd01cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd01.lua` (`Tools/Test-Bdmisn01CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the co-op fixes and the Ganymede weather. |
 | `Scripts/CRGanymedeSitesBD01.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather: the generated sites for this map (one vent, the base geyser) and the shared icy-moon director (no new module). |
-| `Missions/bdmisn01cr.{bzn,vxt}`, `bdmisn01.{hg2,lgt,mat,trn}`, `Config/bdmisn01cr.ini` | Map and companions (not part of this change). The map has **no authored enemies**: Lua spawns all of them. |
+| `Missions/bd01cr.{bzn,vxt}`, `bdmisn01.{hg2,lgt,mat,trn}`, `Config/bd01cr.ini` | Map and companions (not part of this change). The map has **no authored enemies**: Lua spawns all of them. |
 | `Tools/Bdmisn01Fixture.lua`, `Test-Bdmisn01Coop.lua`, `Test-Bdmisn01Presentation.lua`, `Test-Bdmisn01CoopSourceParity.py`, `Test-Bdmisn01CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-BlackDog01.lua` / `Test-BlackDog01SourceParity.py` still cover the faithful port, unchanged. |
 
 The CR regions, in file order:
@@ -133,7 +133,7 @@ runs its own arrival code (the opening starts the 90 s deployment clock; the att
 | `scavengers[2]`, `BD01003`, `delayTime3` | members never read | Dead state, kept in the saved table by the port. Nothing to restore. |
 | Scavenger creation / `AddObject` test | `if (!scavengersCreated)` in `AddObject` | The hook body is empty in the source; the mission waits for Recycler deployment instead. Nothing to restore. |
 
-So there is no `RESTORED_*` flag in `bdmisn01cr.lua`. Authored map content the script never uses, documented rather
+So there is no `RESTORED_*` flag in `bd01cr.lua`. Authored map content the script never uses, documented rather
 than guessed:
 
 - `edge_path`: the playable box (the weather reads it as bounds). `outer_limits`: a closed outline of the play area; no
@@ -196,8 +196,8 @@ Beats (host/offline only, each once, tied to the story; a site list without vent
 ```sh
 lua5.1 Tools/Test-Bdmisn01Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, fallback, cameras, results, weather
 lua5.1 Tools/Test-Bdmisn01Presentation.lua    # E/A/C protocol on a guest
-python Tools/Test-Bdmisn01CoopSourceParity.py # bdmisn01cr.lua minus CR regions == bd01.lua
-python Tools/Test-Bdmisn01CoopContract.py     # labels/paths/teams/flight times in bdmisn01cr.bzn (skips with a message if the map is absent; ini/vxt/mpdes only when present)
+python Tools/Test-Bdmisn01CoopSourceParity.py # bd01cr.lua minus CR regions == bd01.lua
+python Tools/Test-Bdmisn01CoopContract.py     # labels/paths/teams/flight times in bd01cr.bzn (skips with a message if the map is absent; ini/vxt/mpdes only when present)
 lua5.1 Tools/Test-BlackDog01.lua && python Tools/Test-BlackDog01SourceParity.py   # the faithful port, unchanged
 ```
 

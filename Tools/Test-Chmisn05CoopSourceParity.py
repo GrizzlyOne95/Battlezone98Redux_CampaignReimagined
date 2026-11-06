@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Prove Scripts/chmisn05cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/ch05.lua."""
+"""Prove Scripts/ch05cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/ch05.lua."""
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
 faithful = (ROOT / "Scripts/ch05.lua").read_bytes()
-coop_raw = (ROOT / "Scripts/chmisn05cr.lua").read_bytes()
+coop_raw = (ROOT / "Scripts/ch05cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
@@ -17,7 +17,7 @@ assert opened == closed and opened, "every CR region opens and closes in order"
 assert set(opened) == {"co-op layer", "co-op runtime", "restored content", "co-op victory", "co-op callbacks"}, opened
 assert "-- CR" not in re.sub(region, "", coop), "CR marker outside a region"
 stripped = re.sub(region, "", coop)
-assert stripped == faithful_text, "chmisn05cr.lua outside the CR regions is not the faithful ch05.lua"
+assert stripped == faithful_text, "ch05cr.lua outside the CR regions is not the faithful ch05.lua"
 
 for word in ("campaignRuntime", "CRCCARuntime", "Restored", "RESTORED"):
     assert word not in stripped, "CR code outside a region: " + word
@@ -73,4 +73,4 @@ assert declared_odfs == set().union(*(scaled[p] for p in declared_paths)), (decl
 for direct in ("enemy_haul", "haul_defend", "artl_1", "artl_2", "artl_defend", "wave_3"):
     assert direct in scaled and direct not in declared_paths, "built directly: " + direct
 assert "SetPerceivedTeam(S.user, 2)" in body and "SetPerceivedTeam(S.user, 1)" in body
-print("chmisn05cr parity: %d CR regions; %d shadowed natives; the rest is the faithful port" % (len(opened), len(must_shadow)))
+print("ch05cr parity: %d CR regions; %d shadowed natives; the rest is the faithful port" % (len(opened), len(must_shadow)))

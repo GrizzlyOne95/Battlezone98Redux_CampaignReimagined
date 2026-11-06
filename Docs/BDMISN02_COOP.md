@@ -3,7 +3,7 @@
 Shared offline / 2-4 player co-op port of the Black Dog mission `bdmisn02` (a freshly landed Black Dog recycler is
 attacked by cloaked Chinese craft: two small waves, a massive attack that forces a retreat, a harassment pair and a
 six-fighter ambush on the way to Nav Alpha, then two bombers that destroy the crippled recycler in a final film).
-One `Missions/bdmisn02cr.bzn` and one `Scripts/bdmisn02cr.lua` serve both modes. Companion to the faithful port
+One `Missions/bd02cr.bzn` and one `Scripts/bd02cr.lua` serve both modes. Companion to the faithful port
 underneath (`Scripts/bd02.lua`, native source in `References/BlackDog02Source/`) and
 [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern: [`MISNS2_COOP.md`](MISNS2_COOP.md).
 Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
@@ -12,9 +12,9 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bdmisn02cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd02.lua` (`Tools/Test-Bdmisn02CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restoration and the co-op fixes. |
+| `Scripts/bd02cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd02.lua` (`Tools/Test-Bdmisn02CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restoration and the co-op fixes. |
 | `Scripts/CRGanymedeSitesBD02.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather: the Jovian-moon director (it was written for Europa and is shared) and the generated sites for this map: **two** geyser vents (`eggeizr10_geyser`, `eggeizr11_geyser`), frost clusters and bounds. No new weather module. |
-| `Missions/bdmisn02cr.{bzn,vxt}`, `bdmisn02.{hg2,lgt,mat,trn}`, `Config/bdmisn02cr.ini` | Map and companions (not part of this change). The map carries the recycler, two Bobcats, a scavenger and the four cloaked turrets (already on team 5); Lua spawns every other enemy. |
+| `Missions/bd02cr.{bzn,vxt}`, `bdmisn02.{hg2,lgt,mat,trn}`, `Config/bd02cr.ini` | Map and companions (not part of this change). The map carries the recycler, two Bobcats, a scavenger and the four cloaked turrets (already on team 5); Lua spawns every other enemy. |
 | `Tools/Bdmisn02Fixture.lua`, `Test-Bdmisn02Coop.lua`, `Test-Bdmisn02Presentation.lua`, `Test-Bdmisn02CoopSourceParity.py`, `Test-Bdmisn02CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Bd02.lua` / `Test-Bd02SourceParity.py` still cover the faithful port, unchanged. |
 
 ## Teams and ownership
@@ -102,7 +102,7 @@ its own `CameraPath` and ends the film itself.
 ## Restored content [owner decision 2026-11-01]
 
 Cut-content restorations live only in the CR layer, apply offline and in co-op, and each has a flag (`RESTORED_*` at
-the top of the runtime region of `bdmisn02cr.lua`). Each is gated on what `bdmisn02cr.bzn` carries.
+the top of the runtime region of `bd02cr.lua`). Each is gated on what `bd02cr.bzn` carries.
 
 | Restoration | Cut block it comes from | Status in this map |
 | --- | --- | --- |
@@ -186,8 +186,8 @@ The director never damages.
 ```sh
 lua5.1 Tools/Test-Bdmisn02Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, fallback, cameras, results, saves, weather
 lua5.1 Tools/Test-Bdmisn02Presentation.lua    # E/A/C protocol on a guest, the leader's full stream
-python Tools/Test-Bdmisn02CoopSourceParity.py # bdmisn02cr.lua minus CR regions == bd02.lua
-python Tools/Test-Bdmisn02CoopContract.py     # labels/paths/teams in bdmisn02cr.bzn (skips with a message if the map is absent;
+python Tools/Test-Bdmisn02CoopSourceParity.py # bd02cr.lua minus CR regions == bd02.lua
+python Tools/Test-Bdmisn02CoopContract.py     # labels/paths/teams in bd02cr.bzn (skips with a message if the map is absent;
                                               # vxt / Config ini / crbd.ini checked only when present)
 lua5.1 Tools/Test-Bd02.lua && python Tools/Test-Bd02SourceParity.py          # the faithful port, unchanged
 ```

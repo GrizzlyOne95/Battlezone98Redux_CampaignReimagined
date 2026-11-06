@@ -1,5 +1,5 @@
 -- Independent Lua peers, real CRCoop registry, lossy presentation simulator, the real Scripts/CRCCARuntime.lua
--- and Scripts/bdmisn15cr.lua. Engine AI, rendering and combat remain mocks. Run from the repository root:
+-- and Scripts/bd15cr.lua. Engine AI, rendering and combat remain mocks. Run from the repository root:
 --   lua5.1 Tools/Test-Bdmisn15Coop.lua
 assert(_VERSION == "Lua 5.1")
 local F = dofile("Tools/Bdmisn15Fixture.lua")
@@ -373,7 +373,7 @@ do -- the mirrors count in the victory gate
     check(m.objective1Complete and F.heardCount(p[1], "bd15007.wav") == 1, "the last mirror down completes it")
 end
 do -- the lines and the objective list can be switched off by their flags (the body is unchanged)
-    local f = io.open("Scripts/bdmisn15cr.lua", "rb"); local text = f:read("*a"); f:close()
+    local f = io.open("Scripts/bd15cr.lua", "rb"); local text = f:read("*a"); f:close()
     check(text:find("local RESTORED_COUNTDOWN_LINES = true", 1, true) and text:find("local RESTORED_SAFE_DISTANCE = true", 1, true),
         "both restorations are behind a flag")
 end

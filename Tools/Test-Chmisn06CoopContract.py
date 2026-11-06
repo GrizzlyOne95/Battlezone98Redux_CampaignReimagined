@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""chmisn06 co-op map contract: the labels, paths and teams Scripts/chmisn06cr.lua names exist in Missions/chmisn06cr.bzn.
+"""chmisn06 co-op map contract: the labels, paths and teams Scripts/ch06cr.lua names exist in Missions/ch06cr.bzn.
 
 The map, its .vxt and the Config ini are checked only when they are in the tree; the script, the sites, the
 subtitles and the doc are always checked.
@@ -11,7 +11,7 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-lua_full = (ROOT / "Scripts/chmisn06cr.lua").read_text(encoding="utf-8")
+lua_full = (ROOT / "Scripts/ch06cr.lua").read_text(encoding="utf-8")
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
 live = re.sub(region, "", lua_full)
 live = re.sub(r"--[^\n]*", "", live)
@@ -60,13 +60,13 @@ assert "`ch06007`" in doc, "the slotted voice line is documented"
 assert (ROOT / "Docs/CCA_COOP_RUNTIME.md").is_file()
 
 # ---------------------------------------------------------------- the map
-bzn_path = ROOT / "Missions/chmisn06cr.bzn"
+bzn_path = ROOT / "Missions/ch06cr.bzn"
 if not bzn_path.is_file():
-    print("chmisn06 co-op contract: map checks SKIPPED, Missions/chmisn06cr.bzn is not present")
+    print("chmisn06 co-op contract: map checks SKIPPED, Missions/ch06cr.bzn is not present")
     sys.exit(0)
 
 text = bzn_path.read_bytes().decode("latin-1").replace("\r\n", "\n")
-assert "TerrainName = chmisn06\n" in text and "msn_filename = chmisn06cr.bzn" in text
+assert "TerrainName = chmisn06\n" in text and "msn_filename = ch06cr.bzn" in text
 
 objects, starts, labels, disguised, craft = {}, [], Counter(), [], {}
 for block in text.split("[GameObject]\n")[1:]:
@@ -161,8 +161,8 @@ for group in ("sw", "nw"):
     assert math.dist(paths[group + "_path"][-1], (base[0], base[2])) < 200, group
 
 # The surrounding companions of a mission entry (checked when present).
-vxt = ROOT / "Missions/chmisn06cr.vxt"
-ini = ROOT / "Config/chmisn06cr.ini"
+vxt = ROOT / "Missions/ch06cr.vxt"
+ini = ROOT / "Config/ch06cr.ini"
 crch = ROOT / "Config/crch.ini"
 if vxt.is_file():
     vxt_bytes = vxt.read_bytes()
@@ -171,7 +171,7 @@ if ini.is_file():
     ini_text = ini.read_text(encoding="utf-8")
     assert 'gameType = "S"' in ini_text and 'minPlayers = "2"' in ini_text and 'maxPlayers = "4"' in ini_text
 if crch.is_file():
-    assert re.search(r'\[MISSION6\][^\[]*missionBZN = "chmisn06cr\.bzn"', crch.read_text(encoding="utf-8")), "campaign entry 6 is this map"
+    assert re.search(r'\[MISSION6\][^\[]*missionBZN = "ch06cr\.bzn"', crch.read_text(encoding="utf-8")), "campaign entry 6 is this map"
 
 # ---------------------------------------------------------------- the doc accounts for every map path
 unused = sorted(set(paths) - used)
