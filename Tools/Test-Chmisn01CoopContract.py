@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""chmisn01 co-op map contract: the labels, paths and teams Scripts/chmisn01cr.lua names exist in Missions/chmisn01cr.bzn.
+"""chmisn01 co-op map contract: the labels, paths and teams Scripts/ch01cr.lua names exist in Missions/ch01cr.bzn.
 
-Skipped (exit 0, says so) when Missions/chmisn01cr.bzn is not in the tree. The vxt, the Config ini files and the
+Skipped (exit 0, says so) when Missions/ch01cr.bzn is not in the tree. The vxt, the Config ini files and the
 mpdes are checked only when present.
 """
 from pathlib import Path
@@ -10,14 +10,14 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-bzn_path = ROOT / "Missions/chmisn01cr.bzn"
+bzn_path = ROOT / "Missions/ch01cr.bzn"
 if not bzn_path.is_file():
-    print("chmisn01 co-op contract SKIPPED: Missions/chmisn01cr.bzn is not present")
+    print("chmisn01 co-op contract SKIPPED: Missions/ch01cr.bzn is not present")
     sys.exit(0)
 
 text = bzn_path.read_bytes().decode("latin-1").replace("\r\n", "\n")
 assert "TerrainName = chmisn01\n" in text and "name = MultSTMission\n" in text
-assert "msn_filename = chmisn01cr.bzn" in text
+assert "msn_filename = ch01cr.bzn" in text
 
 # ---------------------------------------------------------------- objects and teams
 objects, starts, enemy_odfs, start_pos = {}, [], set(), {}
@@ -52,7 +52,7 @@ for path in text.split("[AiPath]\n")[1:]:
         paths[m[1]] = list(zip(xs, zs))
 
 # ---------------------------------------------------------------- the Lua only names real map content
-lua_full = (ROOT / "Scripts/chmisn01cr.lua").read_text(encoding="utf-8")
+lua_full = (ROOT / "Scripts/ch01cr.lua").read_text(encoding="utf-8")
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
 live = re.sub(region, "", lua_full)
 handles = set(re.findall(r'GetHandle\("(\w+)"\)', live))
@@ -144,23 +144,23 @@ assert otfs == {"ch01%03d.otf" % n for n in range(1, 8)}, otfs
 # The debrief .des files (ch01win, ch01lsea..ch01lsee) ship with the game, not in this tree.
 
 # ---------------------------------------------------------------- companions, checked only when present
-ini = ROOT / "Config/chmisn01cr.ini"
+ini = ROOT / "Config/ch01cr.ini"
 if ini.is_file():
     ini_text = ini.read_text(encoding="utf-8")
     assert 'gameType = "S"' in ini_text and 'minPlayers = "2"' in ini_text and 'maxPlayers = "4"' in ini_text
-    print("  Config/chmisn01cr.ini checked")
+    print("  Config/ch01cr.ini checked")
 crch = ROOT / "Config/crch.ini"
 if crch.is_file():
-    assert re.search(r'\[MISSION1\][^\[]*missionBZN = "chmisn01cr\.bzn"', crch.read_text(encoding="utf-8")), "campaign entry 1 is this map"
+    assert re.search(r'\[MISSION1\][^\[]*missionBZN = "ch01cr\.bzn"', crch.read_text(encoding="utf-8")), "campaign entry 1 is this map"
     print("  Config/crch.ini checked")
-vxt = ROOT / "Missions/chmisn01cr.vxt"
+vxt = ROOT / "Missions/ch01cr.vxt"
 if vxt.is_file():
     assert re.search(r"\bcsusera\b", vxt.read_text(encoding="utf-8")), "the vehicle list offers the on-foot Chinese pilot"
-    print("  Missions/chmisn01cr.vxt checked")
-mpdes = ROOT / "chmisn01cr.mpdes"
+    print("  Missions/ch01cr.vxt checked")
+mpdes = ROOT / "ch01cr.mpdes"
 if mpdes.is_file():
     assert "New Kids on the Block" in mpdes.read_text(encoding="utf-8")
-    print("  chmisn01cr.mpdes checked")
+    print("  ch01cr.mpdes checked")
 
 # ---------------------------------------------------------------- the doc accounts for every map path
 doc = (ROOT / "Docs/CHMISN01_COOP.md").read_text(encoding="utf-8")

@@ -2,8 +2,8 @@
 
 Shared offline / 2-4 player co-op port of Black Dog mission 4 (a disguise mission on Ganymede: the Black Dog pilots
 walk in, commandeer a Chinese scavenger, snoop around the Chinese base, lift an alien data fragment with the base's
-own hauler and bring it back to a drop zone through a Chinese strike). One `Missions/bdmisn04cr.bzn` and one
-`Scripts/bdmisn04cr.lua` serve both modes. Companion to the faithful DLL port underneath (`Scripts/bd04.lua`,
+own hauler and bring it back to a drop zone through a Chinese strike). One `Missions/bd04cr.bzn` and one
+`Scripts/bd04cr.lua` serve both modes. Companion to the faithful DLL port underneath (`Scripts/bd04.lua`,
 [`References/BlackDog04Source/`](../References/BlackDog04Source/README.md)) and to
 [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern: [`MISNS2_COOP.md`](MISNS2_COOP.md).
 Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
@@ -12,9 +12,9 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bdmisn04cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd04.lua` (`Tools/Test-Bdmisn04CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the restorations. |
+| `Scripts/bd04cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd04.lua` (`Tools/Test-Bdmisn04CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the restorations. |
 | `Scripts/CREuropaWeather.lua`, `Scripts/CRGanymedeSitesBD04.lua` | The Ganymede weather (the Europa director, no new module) and the generated sites for this map. The generated vent list is **empty** (no `eggeizr1` geysers in `bdmisn04`). |
-| `Missions/bdmisn04cr.{bzn,vxt}`, `bdmisn04.{hg2,lgt,mat,trn}` | Map and companions (not part of this change). Every co-op player starts as the on-foot pilot `bsuser` (the `.vxt` is `bsuser ,`; the map start `asuser1_person` is the same). The Chinese side is team 5, the map's own enemy team 2 having been moved. |
+| `Missions/bd04cr.{bzn,vxt}`, `bdmisn04.{hg2,lgt,mat,trn}` | Map and companions (not part of this change). Every co-op player starts as the on-foot pilot `bsuser` (the `.vxt` is `bsuser ,`; the map start `asuser1_person` is the same). The Chinese side is team 5, the map's own enemy team 2 having been moved. |
 | `Tools/Bdmisn04Fixture.lua`, `Test-Bdmisn04Coop.lua`, `Test-Bdmisn04Presentation.lua`, `Test-Bdmisn04CoopSourceParity.py`, `Test-Bdmisn04CoopContract.py` | Multi-peer fixture and tests (real map coordinates, the real `base_limit` polygon). `Test-BlackDog04.lua` / `Test-BlackDog04SourceParity.py` still cover the faithful port, unchanged. |
 
 ## Teams and ownership
@@ -117,7 +117,7 @@ then reports arrival until the body ends it by its own timer, and the films are 
 ## Restored content [owner decision 2026-11-01]
 
 Cut-content restorations live only in the CR layer, apply offline and in co-op, and each has a flag (`RESTORED_*` at the top of the runtime
-region of `bdmisn04cr.lua`).
+region of `bd04cr.lua`).
 
 | Restoration | Cut block it comes from | Status in this map |
 | --- | --- | --- |
@@ -179,12 +179,12 @@ stronger quake; the strike (bombers, Drop Zone, Chinese fleet) -> level 4, quake
 ```sh
 lua5.1 Tools/Test-Bdmisn04Coop.lua            # offline == faithful, 1-4 peers, disguise, focus, relay, timer, scaling, 460 m, saves, weather
 lua5.1 Tools/Test-Bdmisn04Presentation.lua    # E/A/C protocol and this mission's four ops on a guest
-python Tools/Test-Bdmisn04CoopSourceParity.py # bdmisn04cr.lua minus CR regions == bd04.lua
-python Tools/Test-Bdmisn04CoopContract.py     # labels/paths/teams/start file in bdmisn04cr.bzn (skips with a message if the map is absent)
+python Tools/Test-Bdmisn04CoopSourceParity.py # bd04cr.lua minus CR regions == bd04.lua
+python Tools/Test-Bdmisn04CoopContract.py     # labels/paths/teams/start file in bd04cr.bzn (skips with a message if the map is absent)
 lua5.1 Tools/Test-BlackDog04.lua && python Tools/Test-BlackDog04SourceParity.py   # the faithful port, unchanged
 ```
 
-The contract test checks `Missions/bdmisn04cr.vxt` and the `.mpdes` only when they are present.
+The contract test checks `Missions/bd04cr.vxt` and the `.mpdes` only when they are present.
 
 ## Inferences and open questions
 

@@ -66,17 +66,17 @@ TARGETS = {
                "basenav", "avrecy2_recycler"],
     # bdmisn04: the portal every peer opens and closes by label (BD4Portal) and the scav to commandeer
     # (the HUD target every human gets by label, BD4Target).
-    "bdmisn04cr": ["portal", "scav_3"],
+    "bd04cr": ["portal", "scav_3"],
     # bdmisn05/06/08/09/12: the portal every peer animates through a presentation op.
-    "bdmisn05cr": ["portal"],
-    "bdmisn06cr": ["portal"],
-    "bdmisn08cr": ["portal"],
-    "bdmisn09cr": ["portal"],
-    "bdmisn12cr": ["portal"],
+    "bd05cr": ["portal"],
+    "bd06cr": ["portal"],
+    "bd08cr": ["portal"],
+    "bd09cr": ["portal"],
+    "bd12cr": ["portal"],
 }
 # Labels that are also an authored PATH name in the BZN legitimately occur twice (a (mission, label)
 # pair allows it on one map only).
-PATH_NAMES = {"launch_pad", ("bdmisn05cr", "portal")}
+PATH_NAMES = {"launch_pad", ("bd05cr", "portal")}
 # A label that is also its own ODF class name appears once as PrjID and once as the label;
 # exactly one of the two may be a `label =` line.
 ODF_NAMED = {"svmuf"}
@@ -162,4 +162,4 @@ def check_campaign(title, missions, script_for, cut_missing, prefixes):
 
 
 check_campaign("CCA", [f"misns{n}" for n in range(1, 9)], lambda m: m, CCA_CUT_MISSING, {})
-check_campaign("CRA", [f"chmisn{n:02d}" for n in range(1, 9)], lambda m: "ch" + m[6:], CH_CUT_MISSING, CH_PREFIXES)
+check_campaign("CRA", [f"ch{n:02d}" for n in range(1, 9)], lambda m: m, CH_CUT_MISSING, CH_PREFIXES)

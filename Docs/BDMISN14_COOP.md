@@ -2,8 +2,8 @@
 
 Shared offline / 2-4 player co-op port of the Black Dog mission `bd14` (the last Chinese base on Ganymede that can build a
 portal is mined and ringed with gun towers; a Chinese APC with the portal technology is on its way and must be stopped
-before it reaches the base; then the Chinese Recycler must die). One `Missions/bdmisn14cr.bzn` and one
-`Scripts/bdmisn14cr.lua` serve both modes. Companion to the faithful DLL port underneath (`Scripts/bdmisn14.lua`, see
+before it reaches the base; then the Chinese Recycler must die). One `Missions/bd14cr.bzn` and one
+`Scripts/bd14cr.lua` serve both modes. Companion to the faithful DLL port underneath (`Scripts/bdmisn14.lua`, see
 [`BLACKDOG14_LUA_PORT.md`](BLACKDOG14_LUA_PORT.md), tested by `Tests/test_bdmisn14.lua`) and
 [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern: [`MISNS2_COOP.md`](MISNS2_COOP.md) and
 [`BDMISN08_COOP.md`](BDMISN08_COOP.md).
@@ -13,9 +13,9 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bdmisn14cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bdmisn14.lua` (`Tools/Test-Bdmisn14CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
+| `Scripts/bd14cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bdmisn14.lua` (`Tools/Test-Bdmisn14CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
 | `Scripts/CRGanymedeSitesBD14.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather (the Europa director with the generated sites for this map: five cryovolcanic vents, two of them the geysers `eggeizr13_geyser` and `eggeizr15_geyser` under the Chinese factory and Recycler). |
-| `Missions/bdmisn14cr.{bzn,vxt}`, `bdmisn14.{hg2,lgt,mat,trn}`, `Config/bdmisn14cr.ini` | Map, vehicle list and multiplayer listing (not part of this change). The map carries the Black Dog base, the Chinese base with its towers, mines and howitzers, and nothing that is scripted: every attacker is made by Lua. |
+| `Missions/bd14cr.{bzn,vxt}`, `bdmisn14.{hg2,lgt,mat,trn}`, `Config/bd14cr.ini` | Map, vehicle list and multiplayer listing (not part of this change). The map carries the Black Dog base, the Chinese base with its towers, mines and howitzers, and nothing that is scripted: every attacker is made by Lua. |
 | `Tools/Bdmisn14Fixture.lua`, `Test-Bdmisn14Coop.lua`, `Test-Bdmisn14CoopSourceParity.py`, `Test-Bdmisn14CoopContract.py` | Multi-peer fixture and tests (real map coordinates). The mission has **no cameras**, so there is no Presentation suite. `Tests/test_bdmisn14.lua` still covers the faithful port, unchanged. |
 
 ## Teams and ownership
@@ -110,7 +110,7 @@ None. The DLL declares `cameraReady`/`cameraComplete` and never uses them; the C
 ## Restored content [owner decision 2026-11-01]
 
 Cut-content restorations live only in the CR layer, apply offline and in co-op, and each has a flag (`RESTORED_*` at the
-top of the runtime region of `bdmisn14cr.lua`). Each is gated on what `bdmisn14cr.bzn` carries.
+top of the runtime region of `bd14cr.lua`). Each is gated on what `bd14cr.bzn` carries.
 
 | Restoration | Cut block it comes from | Status in this map |
 | --- | --- | --- |
@@ -170,7 +170,7 @@ The unused shipped debrief `bd14lose.des` is the out-of-lives failure.
 ## Weather: Ganymede
 
 `Environment.Init` in `orbit` mode (the sun's real path, a short eclipse, Jupiter-shine at night: the same options as
-`bdmisn03cr`..`bdmisn12cr`) plus `CREuropaWeather` with `CRGanymedeSitesBD14`, networked through the runtime (seeded
+`bd03cr`..`bd12cr`) plus `CREuropaWeather` with `CRGanymedeSitesBD14`, networked through the runtime (seeded
 timeline from the host, host-chosen plumes/quakes/surges over the ordered stream as
 `EuropaState`/`EuropaPlume`/`EuropaQuake`/`EuropaSurge`, `Save`/`Load` state, `AnnounceState`). No new weather module:
 Ganymede reuses the Europa director for an icy, airless Jovian moon. `Environment.BindWeatherSensors("Ganymede", ...)` is
@@ -197,13 +197,13 @@ Beats (host/offline only, each once, tied to the mission's own moments; the dire
 
 ```sh
 lua5.1 Tools/Test-Bdmisn14Coop.lua            # offline == faithful, 1-4 peers, scaling, 120 m, fallback, results, load, weather
-python Tools/Test-Bdmisn14CoopSourceParity.py # bdmisn14cr.lua minus CR regions == bdmisn14.lua
-python Tools/Test-Bdmisn14CoopContract.py     # labels/paths/teams in bdmisn14cr.bzn (skips with a message if the map is absent)
+python Tools/Test-Bdmisn14CoopSourceParity.py # bd14cr.lua minus CR regions == bdmisn14.lua
+python Tools/Test-Bdmisn14CoopContract.py     # labels/paths/teams in bd14cr.bzn (skips with a message if the map is absent)
 lua5.1 Tests/test_bdmisn14.lua                # the faithful port, unchanged
 ```
 
 The workflow `.github/workflows/campaign-validation.yml` is not edited by this change; the three co-op commands above are
-the step to add. The contract test checks `Config/bdmisn14cr.ini` and `Missions/bdmisn14cr.vxt` only when they are in the
+the step to add. The contract test checks `Config/bd14cr.ini` and `Missions/bd14cr.vxt` only when they are in the
 tree.
 
 ## Inferences and open questions

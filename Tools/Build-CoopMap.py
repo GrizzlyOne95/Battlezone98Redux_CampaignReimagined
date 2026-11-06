@@ -263,6 +263,13 @@ def strip_unnamed_paths(tail: str) -> tuple[str, int, int]:
     return head + "".join("[AiPath]\n" + p for p in kept), len(kept), removed
 
 
+def cr_stem(mission: str) -> str:
+    """Shipped stem: <stock>cr, except bdmisnNN/chmisnNN -> bdNNcr/chNNcr (the engine copies only 8 characters of the stem)."""
+    if mission.startswith(("bdmisn", "chmisn")):
+        return f"{mission[:2]}{mission[6:]}cr"
+    return f"{mission}cr"
+
+
 def read_source(source: Path | None, mission: str, toolbox: Path) -> bytes:
     if source:
         return source.read_bytes()
@@ -325,8 +332,8 @@ def build(text: str, mission: str) -> str:
     # CR ships these as <stem>cr.bzn so saves never match the stock campaign table;
     # the header names the BZN (and so the Lua) a load runs. misn15/16 keep stock names.
     if mission not in ("misn15", "misn16"):
-        header = header.replace(f"msn_filename = {mission}.bzn\n", f"msn_filename = {mission}cr.bzn\n")
-        if f"msn_filename = {mission}cr.bzn\n" not in header:
+        header = header.replace(f"msn_filename = {mission}.bzn\n", f"msn_filename = {cr_stem(mission)}.bzn\n")
+        if f"msn_filename = {cr_stem(mission)}.bzn\n" not in header:
             raise SystemExit("msn_filename not rewritten")
 
     removed = 0
@@ -460,7 +467,7 @@ def main() -> int:
     parser.add_argument("--toolbox", type=Path, default=DEFAULT_TOOLBOX)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    output = args.output or REPO / "Missions" / f"{args.mission}cr.bzn"
+    output = args.output or REPO / "Missions" / f"{cr_stem(args.mission)}.bzn"
     text = build(convert(read_source(args.source, args.mission, args.toolbox), args.toolbox), args.mission)
     if args.mission == 'misn06':
         spec = importlib.util.spec_from_file_location('marsrocket', REPO/'Tools/Add-Misn06Rocket.py')

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""bdmisn04 co-op map contract: the labels, paths and teams Scripts/bdmisn04cr.lua names exist in Missions/bdmisn04cr.bzn.
+"""bdmisn04 co-op map contract: the labels, paths and teams Scripts/bd04cr.lua names exist in Missions/bd04cr.bzn.
 
-Skipped (exit 0, says so) when Missions/bdmisn04cr.bzn is not in the tree. The start file Missions/bdmisn04cr.vxt is
+Skipped (exit 0, says so) when Missions/bd04cr.bzn is not in the tree. The start file Missions/bd04cr.vxt is
 checked only when present (it ships with the map); so is the generated Ganymede site table's vent count.
 """
 from pathlib import Path
@@ -9,14 +9,14 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-bzn_path = ROOT / "Missions/bdmisn04cr.bzn"
+bzn_path = ROOT / "Missions/bd04cr.bzn"
 if not bzn_path.is_file():
-    print("bdmisn04 co-op contract SKIPPED: Missions/bdmisn04cr.bzn is not present")
+    print("bdmisn04 co-op contract SKIPPED: Missions/bd04cr.bzn is not present")
     sys.exit(0)
 
 text = bzn_path.read_bytes().decode("latin-1").replace("\r\n", "\n")
 assert "TerrainName = bdmisn04\n" in text and "name = MultSTMission\n" in text
-assert "msn_filename = bdmisn04cr.bzn" in text
+assert "msn_filename = bd04cr.bzn" in text
 
 # ---------------------------------------------------------------- objects and teams
 objects, starts, user = {}, [], None
@@ -45,7 +45,7 @@ for path in text.split("[AiPath]\n")[1:]:
         paths.append(m[1])
 
 # ---------------------------------------------------------------- the Lua only names real map content
-lua_full = (ROOT / "Scripts/bdmisn04cr.lua").read_text(encoding="utf-8")
+lua_full = (ROOT / "Scripts/bd04cr.lua").read_text(encoding="utf-8")
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
 live = re.sub(region, "", lua_full)
 live = re.sub(r"(?m)--[^\n]*", "", live)  # the DLL's disabled lines stay disabled
@@ -91,14 +91,14 @@ no_vents = vents is not None and not vents[1].strip()
 assert '#europa.GetVentSites() > 0' in cr_text, "plumes are only triggered when the site table has vents"
 
 # The start file: every co-op player starts as the on-foot pilot (the disguise mission); checked when present.
-vxt = ROOT / "Missions/bdmisn04cr.vxt"
+vxt = ROOT / "Missions/bd04cr.vxt"
 if vxt.is_file():
     rows = [line.split(None, 3) for line in vxt.read_text().splitlines() if line.strip()]
     assert len(rows) == 1 and len(rows[0]) == 4 and rows[0][0] == "bsuser", "native four-field list starts every co-op player as bsuser"
     vxt_note = "start file checked"
 else:
     vxt_note = "start file absent, not checked"
-mpdes = ROOT / "bdmisn04cr.mpdes"
+mpdes = ROOT / "bd04cr.mpdes"
 if mpdes.is_file():
     assert "Wolf in Sheep" in mpdes.read_text(encoding="utf-8", errors="replace")
 

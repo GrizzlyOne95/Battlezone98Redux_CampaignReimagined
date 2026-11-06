@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Prove Scripts/bdmisn12cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/bdmisn12.lua."""
+"""Prove Scripts/bd12cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/bdmisn12.lua."""
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
 faithful = (ROOT / "Scripts/bdmisn12.lua").read_bytes()
-coop_raw = (ROOT / "Scripts/bdmisn12cr.lua").read_bytes()
+coop_raw = (ROOT / "Scripts/bd12cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
@@ -17,7 +17,7 @@ assert opened == closed and opened, "every CR region opens and closes in order"
 assert set(opened) == {"co-op layer", "co-op runtime", "restored content", "co-op callback", "co-op callbacks"}, opened
 assert "-- CR" not in re.sub(region, "", coop), "CR marker outside a region"
 stripped = re.sub(region, "", coop)
-assert stripped == faithful_text, "bdmisn12cr.lua outside the CR regions is not the faithful bdmisn12.lua"
+assert stripped == faithful_text, "bd12cr.lua outside the CR regions is not the faithful bdmisn12.lua"
 
 for word in ("campaignRuntime", "CRCCARuntime", "Restored", "RESTORED"):
     assert word not in stripped, "CR code outside a region: " + word
@@ -54,4 +54,4 @@ builds = re.findall(r'BuildObject\(("\w+"), (\d), ', live)
 assert builds and {team for _, team in builds} == {"2"}, "all body builds are on team 2 (TRO 1.3 has no scrap spawns)"
 assert re.findall(r'BuildAtPortal\("\w+", (\d), ', live) == ["1", "1", "1", "1"], "reinforcements are team 1"
 assert "GetTeamNum(" not in body and "SetPerceivedTeam(" not in body, "the body names no other team"
-print("bdmisn12cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))
+print("bd12cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))

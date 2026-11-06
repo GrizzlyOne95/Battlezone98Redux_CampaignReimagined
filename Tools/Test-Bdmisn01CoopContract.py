@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""bdmisn01 co-op map contract: the labels, paths and teams Scripts/bdmisn01cr.lua names exist in Missions/bdmisn01cr.bzn.
+"""bdmisn01 co-op map contract: the labels, paths and teams Scripts/bd01cr.lua names exist in Missions/bd01cr.bzn.
 
-Skipped (exit 0, says so) when Missions/bdmisn01cr.bzn is not in the tree. The vxt, the Config ini files and the
+Skipped (exit 0, says so) when Missions/bd01cr.bzn is not in the tree. The vxt, the Config ini files and the
 mpdes are checked only when present.
 """
 from pathlib import Path
@@ -10,14 +10,14 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-bzn_path = ROOT / "Missions/bdmisn01cr.bzn"
+bzn_path = ROOT / "Missions/bd01cr.bzn"
 if not bzn_path.is_file():
-    print("bdmisn01 co-op contract SKIPPED: Missions/bdmisn01cr.bzn is not present")
+    print("bdmisn01 co-op contract SKIPPED: Missions/bd01cr.bzn is not present")
     sys.exit(0)
 
 text = bzn_path.read_bytes().decode("latin-1").replace("\r\n", "\n")
 assert "TerrainName = bdmisn01\n" in text and "name = MultSTMission\n" in text
-assert "msn_filename = bdmisn01cr.bzn" in text
+assert "msn_filename = bd01cr.bzn" in text
 
 # ---------------------------------------------------------------- objects and teams
 objects, starts = {}, []
@@ -48,7 +48,7 @@ for path in text.split("[AiPath]\n")[1:]:
         paths[m[1]] = list(zip(xs, zs))
 
 # ---------------------------------------------------------------- the Lua only names real map content
-lua_full = (ROOT / "Scripts/bdmisn01cr.lua").read_text(encoding="utf-8")
+lua_full = (ROOT / "Scripts/bd01cr.lua").read_text(encoding="utf-8")
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
 live = re.sub(region, "", lua_full)
 handles = set(re.findall(r'GetHandle\("(\w+)"\)', live))
@@ -122,23 +122,23 @@ assert {w.lower() for w in wavs} == {"bd010%02d.wav" % n for n in range(1, 10)},
 # The debrief .des files (bd01win, bd01lsea, bd01lseb, bd01lsec) ship with the game, not in this tree.
 
 # ---------------------------------------------------------------- companions, checked only when present
-ini = ROOT / "Config/bdmisn01cr.ini"
+ini = ROOT / "Config/bd01cr.ini"
 if ini.is_file():
     ini_text = ini.read_text(encoding="utf-8")
     assert 'gameType = "S"' in ini_text and 'minPlayers = "2"' in ini_text and 'maxPlayers = "4"' in ini_text
-    print("  Config/bdmisn01cr.ini checked")
+    print("  Config/bd01cr.ini checked")
 crbd = ROOT / "Config/crbd.ini"
 if crbd.is_file():
-    assert re.search(r'\[MISSION1\][^\[]*missionBZN = "bdmisn01cr\.bzn"', crbd.read_text(encoding="utf-8")), "campaign entry 1 is this map"
+    assert re.search(r'\[MISSION1\][^\[]*missionBZN = "bd01cr\.bzn"', crbd.read_text(encoding="utf-8")), "campaign entry 1 is this map"
     print("  Config/crbd.ini checked")
-vxt = ROOT / "Missions/bdmisn01cr.vxt"
+vxt = ROOT / "Missions/bd01cr.vxt"
 if vxt.is_file():
     assert re.search(r"\bbvtank\b", vxt.read_text(encoding="utf-8")), "the vehicle list offers the Grizzly"
-    print("  Missions/bdmisn01cr.vxt checked")
-mpdes = ROOT / "bdmisn01cr.mpdes"
+    print("  Missions/bd01cr.vxt checked")
+mpdes = ROOT / "bd01cr.mpdes"
 if mpdes.is_file():
     assert "Close Target Wrecky" in mpdes.read_text(encoding="utf-8")
-    print("  bdmisn01cr.mpdes checked")
+    print("  bd01cr.mpdes checked")
 
 # ---------------------------------------------------------------- the doc accounts for every map path
 doc = (ROOT / "Docs/BDMISN01_COOP.md").read_text(encoding="utf-8")

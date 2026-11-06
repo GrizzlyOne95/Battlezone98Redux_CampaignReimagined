@@ -3,7 +3,7 @@
 Shared offline / 2-4 player co-op port of Chinese mission 7 (a disguise-and-ambush mission on Europa: a Chinese sniper
 slips into a Soviet comm tower in a Russian uniform, learns which bridge the convoy will use, detonates the crates at
 the bridge, finds the APC that carries the relic, shoots it, and walks back to the drop zone through the Soviet
-reinforcements). One `Missions/chmisn07cr.bzn` and one `Scripts/chmisn07cr.lua` serve both modes. Companion to the
+reinforcements). One `Missions/ch07cr.bzn` and one `Scripts/ch07cr.lua` serve both modes. Companion to the
 faithful port underneath (`Scripts/ch07.lua`, [`References/Chinese07Source/`](../References/Chinese07Source/)) and to
 [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern: [`BDMISN04_COOP.md`](BDMISN04_COOP.md) (the
 other disguise mission). Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
@@ -12,9 +12,9 @@ other disguise mission). Status: **host-tested only**; nothing here has run in t
 
 | File | Role |
 | --- | --- |
-| `Scripts/chmisn07cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch07.lua` (`Tools/Test-Chmisn07CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the co-op fixes. |
+| `Scripts/ch07cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch07.lua` (`Tools/Test-Chmisn07CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the co-op fixes. |
 | `Scripts/CREuropaWeather.lua`, `Scripts/CREuropaSitesCH07.lua` | The Europa weather and the generated sites for this map. The generated vent list is **empty** (no geysers in `chmisn07`). |
-| `Missions/chmisn07cr.{bzn,vxt}`, `chmisn07.{hg2,lgt,mat,trn}` | Map and companions (not part of this change). The enemy team 2 was moved to team 5; guests are teams 2-4 at the `coop_spawn1`..`coop_spawn4` buoys; every co-op player starts as the on-foot sniper `ssuserb`. |
+| `Missions/ch07cr.{bzn,vxt}`, `chmisn07.{hg2,lgt,mat,trn}` | Map and companions (not part of this change). The enemy team 2 was moved to team 5; guests are teams 2-4 at the `coop_spawn1`..`coop_spawn4` buoys; every co-op player starts as the on-foot sniper `ssuserb`. |
 | `Tools/Chmisn07Fixture.lua`, `Test-Chmisn07Coop.lua`, `Test-Chmisn07Presentation.lua`, `Test-Chmisn07CoopSourceParity.py`, `Test-Chmisn07CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Chinese07.lua` still covers the faithful port, unchanged. |
 
 ## Teams and ownership
@@ -155,12 +155,12 @@ The director never damages.
 ```sh
 lua5.1 Tools/Test-Chmisn07Coop.lua            # offline == faithful, 1-4 peers, disguise (team 5), scaling, 460 m, pickups, convoy, win/loss, saves, weather
 lua5.1 Tools/Test-Chmisn07Presentation.lua    # E/A/C protocol and this mission's five ops on a guest
-python Tools/Test-Chmisn07CoopSourceParity.py # chmisn07cr.lua minus CR regions == ch07.lua
-python Tools/Test-Chmisn07CoopContract.py     # labels/paths/teams/start file in chmisn07cr.bzn (skips with a message if the map is absent)
+python Tools/Test-Chmisn07CoopSourceParity.py # ch07cr.lua minus CR regions == ch07.lua
+python Tools/Test-Chmisn07CoopContract.py     # labels/paths/teams/start file in ch07cr.bzn (skips with a message if the map is absent)
 lua5.1 Tools/Test-Chinese07.lua               # the faithful port, unchanged
 ```
 
-The contract test checks `Missions/chmisn07cr.vxt` and `Config/chmisn07cr.ini` only when they are present.
+The contract test checks `Missions/ch07cr.vxt` and `Config/ch07cr.ini` only when they are present.
 
 ## Inferences and open questions
 

@@ -75,7 +75,7 @@ def fetch_sources(args) -> dict[str, bytes]:
     if args.source_dir:
         folder = Path(args.source_dir)
         # A Missions/ folder holds the co-op BZN as <stem>cr.bzn; a stock folder holds <stem>.bzn.
-        return {n: next(p for p in (folder / n.replace(".bzn", "cr.bzn"), folder / n) if p.is_file()).read_bytes() for n in names}
+        return {n: next(p for p in (folder / (n[:2] + n[6:] if n.startswith(("bdmisn", "chmisn")) else n).replace(".bzn", "cr.bzn"), folder / n) if p.is_file()).read_bytes() for n in names}
     sys.path.insert(0, str(args.toolbox))
     from battlezone.archives.zfs import ZFSArchive  # noqa: E402
 

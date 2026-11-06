@@ -65,8 +65,8 @@ queue. Never force-kill the game or start over an existing game.
 
 ### Campaign co-op smoke batch (CCA / Black Dog / Chinese)
 
-The 31 co-op wrappers (`misns1cr`-`misns8cr`, `bdmisn01cr`-`bdmisn15cr`,
-`chmisn01cr`-`chmisn08cr`) have no progression scenarios yet. `-SmokeFallback`
+The 31 co-op wrappers (`misns1cr`-`misns8cr`, `bd01cr`-`bd15cr`,
+`ch01cr`-`ch08cr`) have no progression scenarios yet. `-SmokeFallback`
 runs the harness's generic `coop-smoke` for them (load, authority, roster,
 45 s of synced play). It also writes any missing `listings/<map>/<map>.ini` from
 the staged ini with the `"! "` title prefix. Stage the content with
@@ -94,7 +94,7 @@ during the run). A PASS that left any dump is reported as `PASS-WITH-DUMPS`.
    listing sorts first on this install.
 
    ```powershell
-   .\Tools\Run-CoopFourQualification.ps1 -SmokeFallback -Missions bdmisn01cr `
+   .\Tools\Run-CoopFourQualification.ps1 -SmokeFallback -Missions bd01cr `
      -HarnessRepo <HarnessRepo> -CampaignContent <CR-checkout>\Local\Workshop\content `
      -BZRCoopRoot <runtime-root>
    ```
@@ -103,7 +103,7 @@ during the run). A PASS that left any dump is reported as `PASS-WITH-DUMPS`.
    about 2-3 hours:
 
    ```powershell
-   $m = @(1..8 | % { "misns${_}cr" }) + @(1..15 | % { 'bdmisn{0:d2}cr' -f $_ }) + @(1..8 | % { 'chmisn{0:d2}cr' -f $_ })
+   $m = @(1..8 | % { "misns${_}cr" }) + @(1..15 | % { 'bd{0:d2}cr' -f $_ }) + @(1..8 | % { 'ch{0:d2}cr' -f $_ })
    .\Tools\Run-CoopFourQualification.ps1 -SmokeFallback -Missions $m `
      -HarnessRepo <HarnessRepo> -CampaignContent <CR-checkout>\Local\Workshop\content `
      -BZRCoopRoot <runtime-root>

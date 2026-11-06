@@ -2,8 +2,8 @@
 
 Shared offline / 2-4 player co-op port of the Black Dog mission `bd06` (a diversion draws the Chinese fighters off, the
 Chinese outpost beside the Pegasus portal is razed within 11 minutes, a Recycler arrives to build an APC, and the APC
-reprograms the portal while the Chinese counter-attack through it). One `Missions/bdmisn06cr.bzn` and one
-`Scripts/bdmisn06cr.lua` serve both modes. Companion to the faithful DLL port underneath (`Scripts/bd06.lua`, see
+reprograms the portal while the Chinese counter-attack through it). One `Missions/bd06cr.bzn` and one
+`Scripts/bd06cr.lua` serve both modes. Companion to the faithful DLL port underneath (`Scripts/bd06.lua`, see
 [`BD06_LUA_PORT.md`](BD06_LUA_PORT.md), tested by `Tools/Test-BlackDog06.lua`) and
 [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern: [`MISNS2_COOP.md`](MISNS2_COOP.md).
 Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
@@ -12,9 +12,9 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bdmisn06cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd06.lua` (`Tools/Test-Bdmisn06CoopSourceParity.py`); the body is never edited, the callbacks are wrapped in the last region. Holds the runtime CONFIG, the native shadows, the restorations and the weather beats. |
+| `Scripts/bd06cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd06.lua` (`Tools/Test-Bdmisn06CoopSourceParity.py`); the body is never edited, the callbacks are wrapped in the last region. Holds the runtime CONFIG, the native shadows, the restorations and the weather beats. |
 | `Scripts/CRGanymedeSitesBD06.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather (the Europa director with the generated sites for this map: four cryovolcanic vents). |
-| `Missions/bdmisn06cr.{bzn,vxt}`, `bdmisn06.{hg2,lgt,mat,trn}`, `Config/bdmisn06cr.ini` | Map, vehicle list and multiplayer listing (not part of this change). The map carries the whole Chinese outpost and the ten diversion fighters; everything else the Chinese have is spawned by Lua. |
+| `Missions/bd06cr.{bzn,vxt}`, `bdmisn06.{hg2,lgt,mat,trn}`, `Config/bd06cr.ini` | Map, vehicle list and multiplayer listing (not part of this change). The map carries the whole Chinese outpost and the ten diversion fighters; everything else the Chinese have is spawned by Lua. |
 | `Tools/Bdmisn06Fixture.lua`, `Test-Bdmisn06Coop.lua`, `Test-Bdmisn06Presentation.lua`, `Test-Bdmisn06CoopSourceParity.py`, `Test-Bdmisn06CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/Test-BlackDog06.lua` still covers the faithful port, unchanged. |
 
 ## Teams and ownership
@@ -101,7 +101,7 @@ shot as usual.
 ## Restored content [owner decision 2026-11-01]
 
 Cut-content restorations live only in the CR layer, apply offline and in co-op, and each has a flag (`RESTORED_*` at the top
-of the runtime region of `bdmisn06cr.lua`).
+of the runtime region of `bd06cr.lua`).
 
 | Restoration | Cut block it comes from | Behaviour |
 | --- | --- | --- |
@@ -182,13 +182,13 @@ Beats (host/offline only, each once, tied to the mission's own moments; the dire
 ```sh
 lua5.1 Tools/Test-Bdmisn06Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, fallback, portal, films, timer, results, weather
 lua5.1 Tools/Test-Bdmisn06Presentation.lua    # E/A/C protocol on a guest
-python Tools/Test-Bdmisn06CoopSourceParity.py # bdmisn06cr.lua minus CR regions == bd06.lua
-python Tools/Test-Bdmisn06CoopContract.py     # labels/paths/teams in bdmisn06cr.bzn (skips with a message if the map is absent)
+python Tools/Test-Bdmisn06CoopSourceParity.py # bd06cr.lua minus CR regions == bd06.lua
+python Tools/Test-Bdmisn06CoopContract.py     # labels/paths/teams in bd06cr.bzn (skips with a message if the map is absent)
 lua5.1 Tools/Test-BlackDog06.lua              # the faithful port, unchanged
 ```
 
 The workflow `.github/workflows/campaign-validation.yml` is not edited by this change; the four co-op commands above are the
-step to add. The contract test checks `Config/bdmisn06cr.ini`, `Config/crbd.ini` and `Missions/bdmisn06cr.vxt` only when
+step to add. The contract test checks `Config/bd06cr.ini`, `Config/crbd.ini` and `Missions/bd06cr.vxt` only when
 they are in the tree and says which it skipped.
 
 ## Inferences and open questions

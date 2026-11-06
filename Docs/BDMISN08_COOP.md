@@ -2,7 +2,7 @@
 
 Shared offline / 2-4 player co-op port of the Black Dog mission `bd08` (the Chinese power up a portal near the Black Dog
 base, wave after wave comes through, an APC with an engineering team follows, the engineers reprogram the portal, and
-the player must take their APC when they are done). One `Missions/bdmisn08cr.bzn` and one `Scripts/bdmisn08cr.lua`
+the player must take their APC when they are done). One `Missions/bd08cr.bzn` and one `Scripts/bd08cr.lua`
 serve both modes. Companion to the faithful DLL port underneath (`Scripts/bdmisn08.lua`, tested by
 `Tools/Test-BlackDog08.lua`) and [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern:
 [`MISNS2_COOP.md`](MISNS2_COOP.md) and [`BDMISN03_COOP.md`](BDMISN03_COOP.md).
@@ -12,9 +12,9 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bdmisn08cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bdmisn08.lua` (`Tools/Test-Bdmisn08CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
+| `Scripts/bd08cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bdmisn08.lua` (`Tools/Test-Bdmisn08CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
 | `Scripts/CRGanymedeSitesBD08.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather (the Europa director with the generated sites for this map: three cryovolcanic vents, the geysers `eggeizr17_geyser`, `eggeizr18_geyser`, `eggeizr19_geyser` of the Black Dog base). |
-| `Missions/bdmisn08cr.{bzn,vxt}`, `bdmisn08.{hg2,lgt,mat,trn}`, `Config/bdmisn08cr.ini` | Map, vehicle list and multiplayer listing (not part of this change). The map has the Chinese portal (`cbport` on team 5) and no other enemy: every attacker is made by Lua. |
+| `Missions/bd08cr.{bzn,vxt}`, `bdmisn08.{hg2,lgt,mat,trn}`, `Config/bd08cr.ini` | Map, vehicle list and multiplayer listing (not part of this change). The map has the Chinese portal (`cbport` on team 5) and no other enemy: every attacker is made by Lua. |
 | `Tools/Bdmisn08Fixture.lua`, `Test-Bdmisn08Coop.lua`, `Test-Bdmisn08Presentation.lua`, `Test-Bdmisn08CoopSourceParity.py`, `Test-Bdmisn08CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/Test-BlackDog08.lua` still covers the faithful port, unchanged. |
 
 ## Teams and ownership
@@ -111,7 +111,7 @@ layer samples the cancel when each shot begins and counts only one that rises af
 ## Restored content [owner decision 2026-11-01]
 
 Cut-content restorations live only in the CR layer, apply offline and in co-op, and each has a flag (`RESTORED_*` at the
-top of the runtime region of `bdmisn08cr.lua`).
+top of the runtime region of `bd08cr.lua`).
 
 | Restoration | Cut block it comes from | Status in this map |
 | --- | --- | --- |
@@ -174,7 +174,7 @@ the script (body plus CR layer) names exactly the lines the repo has transcripts
 ## Weather: Ganymede
 
 `Environment.Init` in `orbit` mode (the sun's real path, a short eclipse, Jupiter-shine at night: the same options as
-`misn12cr` and `bdmisn03cr`) plus `CREuropaWeather` with `CRGanymedeSitesBD08`, networked through the runtime (seeded
+`misn12cr` and `bd03cr`) plus `CREuropaWeather` with `CRGanymedeSitesBD08`, networked through the runtime (seeded
 timeline from the host, host-chosen plumes/quakes/surges over the ordered stream as
 `EuropaState`/`EuropaPlume`/`EuropaQuake`/`EuropaSurge`, `Save`/`Load` state, `AnnounceState`). No new weather module:
 Ganymede reuses the Europa director for an icy, airless Jovian moon. `Environment.BindWeatherSensors("Ganymede", ...)` is
@@ -197,14 +197,14 @@ Beats (host/offline only, each once, tied to the mission's own moments; the dire
 ```sh
 lua5.1 Tools/Test-Bdmisn08Coop.lua            # offline == faithful, 1-4 peers, scaling, films, captures, results, weather
 lua5.1 Tools/Test-Bdmisn08Presentation.lua    # E/A/C protocol on a guest
-python Tools/Test-Bdmisn08CoopSourceParity.py # bdmisn08cr.lua minus CR regions == bdmisn08.lua
-python Tools/Test-Bdmisn08CoopContract.py     # labels/paths/teams in bdmisn08cr.bzn (skips with a message if the map is absent)
+python Tools/Test-Bdmisn08CoopSourceParity.py # bd08cr.lua minus CR regions == bdmisn08.lua
+python Tools/Test-Bdmisn08CoopContract.py     # labels/paths/teams in bd08cr.bzn (skips with a message if the map is absent)
 lua5.1 Tools/Test-BlackDog08.lua              # the faithful port, unchanged
 python Tools/Test-BlackDog08SourceParity.py   # the faithful port against the C++ reference
 ```
 
 The workflow `.github/workflows/campaign-validation.yml` is not edited by this change; the four co-op commands above are
-the step to add. The contract test checks `Config/bdmisn08cr.ini`, `Config/crbd.ini` and `Missions/bdmisn08cr.vxt` only
+the step to add. The contract test checks `Config/bd08cr.ini`, `Config/crbd.ini` and `Missions/bd08cr.vxt` only
 when they are in the tree and says which it skipped.
 
 ## Inferences and open questions

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""chmisn04 co-op map contract: the labels, paths and teams Scripts/chmisn04cr.lua names exist in Missions/chmisn04cr.bzn.
+"""chmisn04 co-op map contract: the labels, paths and teams Scripts/ch04cr.lua names exist in Missions/ch04cr.bzn.
 
-Skipped (exit 0, says so) when Missions/chmisn04cr.bzn is not in the tree. The start file, the Config ini files and the
+Skipped (exit 0, says so) when Missions/ch04cr.bzn is not in the tree. The start file, the Config ini files and the
 mpdes are checked only when present.
 """
 from pathlib import Path
@@ -10,14 +10,14 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-bzn_path = ROOT / "Missions/chmisn04cr.bzn"
+bzn_path = ROOT / "Missions/ch04cr.bzn"
 if not bzn_path.is_file():
-    print("chmisn04 co-op contract SKIPPED: Missions/chmisn04cr.bzn is not present")
+    print("chmisn04 co-op contract SKIPPED: Missions/ch04cr.bzn is not present")
     sys.exit(0)
 
 text = bzn_path.read_bytes().decode("latin-1").replace("\r\n", "\n")
 assert "TerrainName = chmisn04\n" in text and "name = MultSTMission\n" in text
-assert "msn_filename = chmisn04cr.bzn" in text
+assert "msn_filename = ch04cr.bzn" in text
 
 # ---------------------------------------------------------------- objects and teams
 objects, starts, user = {}, [], None
@@ -55,7 +55,7 @@ for path in text.split("[AiPath]\n")[1:]:
         paths[m[1]] = list(zip(xs, zs))
 
 # ---------------------------------------------------------------- the Lua only names real map content
-lua_full = (ROOT / "Scripts/chmisn04cr.lua").read_text(encoding="utf-8")
+lua_full = (ROOT / "Scripts/ch04cr.lua").read_text(encoding="utf-8")
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
 live = re.sub(region, "", lua_full)
 live = re.sub(r"(?m)--[^\n]*", "", live)  # the DLL's disabled lines stay disabled
@@ -155,22 +155,22 @@ for des in ("ch04lsea.des", "ch04lseb.des", "ch04win.des"):
     assert '"%s"' % des in live, des
 
 # ---------------------------------------------------------------- companions, checked only when present
-vxt = ROOT / "Missions/chmisn04cr.vxt"
+vxt = ROOT / "Missions/ch04cr.vxt"
 if vxt.is_file():
     rows = [line.split(None, 3) for line in vxt.read_text().splitlines() if line.strip()]
     assert all(len(row) == 4 for row in rows), "native vehicle rows require ODF, description, animation and display name"
     assert rows and all(row[0].startswith("cv") for row in rows), "the start file offers Chinese craft"
-    print("  Missions/chmisn04cr.vxt checked")
-ini = ROOT / "Config/chmisn04cr.ini"
+    print("  Missions/ch04cr.vxt checked")
+ini = ROOT / "Config/ch04cr.ini"
 if ini.is_file():
     ini_text = ini.read_text(encoding="utf-8")
     assert 'gameType = "S"' in ini_text and 'minPlayers = "2"' in ini_text and 'maxPlayers = "4"' in ini_text
-    print("  Config/chmisn04cr.ini checked")
+    print("  Config/ch04cr.ini checked")
 crch = ROOT / "Config/crch.ini"
 if crch.is_file():
-    assert re.search(r'\[MISSION4\][^\[]*missionBZN = "chmisn04cr\.bzn"', crch.read_text(encoding="utf-8")), "campaign entry 4 is this map"
+    assert re.search(r'\[MISSION4\][^\[]*missionBZN = "ch04cr\.bzn"', crch.read_text(encoding="utf-8")), "campaign entry 4 is this map"
     print("  Config/crch.ini checked")
-mpdes = ROOT / "chmisn04cr.mpdes"
+mpdes = ROOT / "ch04cr.mpdes"
 if mpdes.is_file():
     assert "From Out There Somewhere" in mpdes.read_text(encoding="utf-8")
 

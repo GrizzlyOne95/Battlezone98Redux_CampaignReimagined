@@ -1,4 +1,4 @@
--- Offline difficulty in Scripts/CRCCARuntime.lua, driven through the real Scripts/bdmisn01cr.lua and
+-- Offline difficulty in Scripts/CRCCARuntime.lua, driven through the real Scripts/bd01cr.lua and
 -- Scripts/DiffUtils.lua: harder settings add scaled enemies and enemy scrap, easier ones add player scrap,
 -- and a network game ignores the setting. Run from the repository root:
 --   lua5.1 Tools/Test-CRCCARuntimeDifficulty.lua

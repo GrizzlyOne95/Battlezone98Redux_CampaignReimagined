@@ -1,10 +1,10 @@
 -- The real co-op registry loads shared Lua helpers through require().
 package.path = "Scripts/?.lua;" .. package.path
 -- Shared mock world for the bdmisn15 suites (Test-Bdmisn15Coop.lua, Test-Bdmisn15Presentation.lua). Each peer runs
--- the complete Scripts/bdmisn15cr.lua in its own Lua 5.1 environment over the real CRCoop registry and the E/A + C
+-- the complete Scripts/bd15cr.lua in its own Lua 5.1 environment over the real CRCoop registry and the E/A + C
 -- presentation transport. The engine, AI and combat are mocks: they verify script decisions, not Redux
 -- native map loading, pathfinding, Lua wire serialization or EXU hooks. Labels and paths are the real
--- Missions/bdmisn15cr.bzn positions (Test-Bdmisn15CoopContract.py checks the names against the map).
+-- Missions/bd15cr.bzn positions (Test-Bdmisn15CoopContract.py checks the names against the map).
 local PeerTransport = dofile("Tools/BZRPeerTransportSim.lua")
 local F = {}
 local W
@@ -24,7 +24,7 @@ F.LABELS = {
     ["coop_spawn3"] = {odf="pspwn_1",team=3,pos={2373.61,25,99048.6},craft=false},
     ["coop_spawn4"] = {odf="pspwn_1",team=4,pos={2392.17,25,99031.9},craft=false},
 }
--- First point of each path the body (or the CR layer) names; the real map is Missions/bdmisn15cr.bzn.
+-- First point of each path the body (or the CR layer) names; the real map is Missions/bd15cr.bzn.
 F.PATHS = {
     ["spawn_east_wave"]={4494.43,40,100031}, ["path_east_wave"]={4408.8,40,100028},
     ["spawn_west_wave"]={976.16,40,100166}, ["path_west_wave"]={1037.6,40,100110},
@@ -426,7 +426,7 @@ function F.makePeer(id, team, network, options)
     end
     modules.CRCCARuntime = setfenv(assert(loadfile("Scripts/CRCCARuntime.lua")),e)()
     if options.faithful then e.CR_TEST_FAITHFUL = true end
-    setfenv(assert(loadfile(options.script or "Scripts/bdmisn15cr.lua")), e)()
+    setfenv(assert(loadfile(options.script or "Scripts/bd15cr.lua")), e)()
     p.chunkCalls = #p.calls -- everything recorded so far ran at chunk load, before Start
     p.env, p.coop, p.runtime, p.modules = e, modules.CRCoop, modules.CRCCARuntime, modules
     e.Start()

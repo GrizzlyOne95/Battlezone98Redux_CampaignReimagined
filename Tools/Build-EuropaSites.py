@@ -81,7 +81,7 @@ def fetch_sources(args) -> dict[str, bytes]:
         folder = Path(args.source_dir)
         for n in names:
             # A Missions/ folder holds the co-op BZN as <stem>cr.bzn; a stock folder holds <stem>.bzn.
-            for p in (folder / n.replace(".bzn", "cr.bzn"), folder / n):
+            for p in (folder / (n[:2] + n[6:] if n.startswith(("bdmisn", "chmisn")) else n).replace(".bzn", "cr.bzn"), folder / n):
                 if p.is_file():
                     found[n] = p.read_bytes()
                     break

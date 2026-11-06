@@ -149,7 +149,7 @@ def main() -> int:
     args = ap.parse_args()
 
     name = args.mission
-    bzn_file = ("misn2bcr" if name == "misn02b" else f"{name}cr") + ".bzn"  # CR ships its BZNs with a "cr" suffix
+    bzn_file = ("misn2bcr" if name == "misn02b" else f"{name}cr" if not name.startswith(("bdmisn", "chmisn")) else f"{name[:2]}{name[6:]}cr") + ".bzn"  # CR ships its BZNs with a "cr" suffix
     folder = Path(args.source_dir)
     trn = read_trn(folder / f"{name}.trn")
     grid = read_hg2(folder / f"{name}.hg2")

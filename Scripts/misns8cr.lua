@@ -187,6 +187,7 @@ local RESTORED_VOICE_LINES = true -- unused shipped lines misns806, misns809, mi
 local ENEMY_SCRAP_PER_GUEST = 10
 local Restored
 local skyBound = false
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "misns8", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "svrecycle" },

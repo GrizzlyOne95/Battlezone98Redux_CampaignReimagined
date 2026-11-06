@@ -2,8 +2,8 @@
 
 Shared offline / 2-4 player co-op port of the Chinese (CRA) mission `ch01`: infiltrate the CCA hangar, destroy the comm
 array, take delivery of a Recycler, snipe the CCA tug and drive it back, then bring it into the CCA base disguised under
-an escort, load the relic and run to the safe distance before the device goes off. One `Missions/chmisn01cr.bzn` and one
-`Scripts/chmisn01cr.lua` serve both modes. Companion to [`Scripts/ch01.lua`](../References/Chinese01Source/README.md) (the
+an escort, load the relic and run to the safe distance before the device goes off. One `Missions/ch01cr.bzn` and one
+`Scripts/ch01cr.lua` serve both modes. Companion to [`Scripts/ch01.lua`](../References/Chinese01Source/README.md) (the
 faithful DLL port underneath) and [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern:
 [`BDMISN01_COOP.md`](BDMISN01_COOP.md), with the disguise handling of [`BDMISN04_COOP.md`](BDMISN04_COOP.md).
 Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
@@ -12,9 +12,9 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/chmisn01cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch01.lua` (`Tools/Test-Chmisn01CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the co-op state, the restorations and the Ganymede weather. |
+| `Scripts/ch01cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch01.lua` (`Tools/Test-Chmisn01CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the co-op state, the restorations and the Ganymede weather. |
 | `Scripts/CRGanymedeSitesCH01.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather: the generated sites for this map (seven geysers) and the shared icy-moon director (no new module). |
-| `Missions/chmisn01cr.{bzn,vxt}`, `chmisn01.{hg2,lgt,mat,trn}`, `Config/chmisn01cr.ini` | Map and companions (not part of this change). The CCA base and its guards are authored on team 5; the Chinese side is only the on-foot player; everything else is built by Lua. |
+| `Missions/ch01cr.{bzn,vxt}`, `chmisn01.{hg2,lgt,mat,trn}`, `Config/ch01cr.ini` | Map and companions (not part of this change). The CCA base and its guards are authored on team 5; the Chinese side is only the on-foot player; everything else is built by Lua. |
 | `Tools/Chmisn01Fixture.lua`, `Test-Chmisn01Coop.lua`, `Test-Chmisn01Presentation.lua`, `Test-Chmisn01CoopSourceParity.py`, `Test-Chmisn01CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Chinese01.lua` still covers the faithful port, unchanged. |
 
 The CR regions, in file order:
@@ -213,8 +213,8 @@ Beats (host/offline only, each once, tied to the story; a site list with fewer v
 ```sh
 lua5.1 Tools/Test-Chmisn01Coop.lua            # offline == faithful (6 outcomes), 1-4 peers, scaling, 460 m, fallback, cover, cameras, results, loads, weather
 lua5.1 Tools/Test-Chmisn01Presentation.lua    # E/A/C protocol on a guest, the mission's local ops
-python Tools/Test-Chmisn01CoopSourceParity.py # chmisn01cr.lua minus CR regions == ch01.lua
-python Tools/Test-Chmisn01CoopContract.py     # labels/paths/teams/vents/subtitles in chmisn01cr.bzn (skips with a message if the map is absent; ini/vxt/mpdes only when present)
+python Tools/Test-Chmisn01CoopSourceParity.py # ch01cr.lua minus CR regions == ch01.lua
+python Tools/Test-Chmisn01CoopContract.py     # labels/paths/teams/vents/subtitles in ch01cr.bzn (skips with a message if the map is absent; ini/vxt/mpdes only when present)
 lua5.1 Tools/Test-Chinese01.lua               # the faithful port, unchanged
 ```
 

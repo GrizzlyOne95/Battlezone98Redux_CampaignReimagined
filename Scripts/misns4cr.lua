@@ -39,6 +39,7 @@ local RESTORED_RAIDER_LTNK, RESTORED_BRIDGE_HRAZ, RESTORED_NORTH_TANK = true, tr
 local RESTORED_VOICE_LINES = true -- unused shipped lines misns404, misns407, misns408 (Docs/MISNS4_COOP.md)
 local SCRAP_PER_GUEST = 10
 local Restored = {}
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "misns4", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "svrecy0_recycler" },

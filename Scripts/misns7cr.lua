@@ -239,6 +239,7 @@ local GUEST_SCRAP = 10          -- extra starting scrap on the shared team 1 per
 local ENGINEER_GUARD = 75.0     -- seconds after which a dead or missing engineer's cutscene is completed by the CR layer
 local ENGINEER_STUCK = 180.0    -- seconds after which even a living (stuck) engineer's cutscene is completed
 local Restored
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "misns7", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "svapc" },

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""chmisn08 co-op map contract: the labels, paths and teams Scripts/chmisn08cr.lua names exist in Missions/chmisn08cr.bzn.
+"""chmisn08 co-op map contract: the labels, paths and teams Scripts/ch08cr.lua names exist in Missions/ch08cr.bzn.
 
-Skipped (exit 0, says so) when Missions/chmisn08cr.bzn is not in the tree. The vxt and the Config ini files are
+Skipped (exit 0, says so) when Missions/ch08cr.bzn is not in the tree. The vxt and the Config ini files are
 checked only when present.
 """
 from pathlib import Path
@@ -9,14 +9,14 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-bzn_path = ROOT / "Missions/chmisn08cr.bzn"
+bzn_path = ROOT / "Missions/ch08cr.bzn"
 if not bzn_path.is_file():
-    print("chmisn08 co-op contract SKIPPED: Missions/chmisn08cr.bzn is not present")
+    print("chmisn08 co-op contract SKIPPED: Missions/ch08cr.bzn is not present")
     sys.exit(0)
 
 text = bzn_path.read_bytes().decode("latin-1").replace("\r\n", "\n")
 assert "TerrainName = chmisn08\n" in text
-assert "msn_filename = chmisn08cr.bzn" in text
+assert "msn_filename = ch08cr.bzn" in text
 
 # ---------------------------------------------------------------- objects and teams
 objects, starts, buoys = {}, [], set()
@@ -49,7 +49,7 @@ for path in text.split("[AiPath]\n")[1:]:
         paths[m[1]] = list(zip(xs, zs))
 
 # ---------------------------------------------------------------- the Lua only names real map content
-lua_full = (ROOT / "Scripts/chmisn08cr.lua").read_text(encoding="utf-8")
+lua_full = (ROOT / "Scripts/ch08cr.lua").read_text(encoding="utf-8")
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
 live = re.sub(region, "", lua_full).split("--[=[", 1)[0]  # the cut-content archive is a comment
 handles = set(re.findall(r'GetHandle\("(\w+)"\)', live))
@@ -104,15 +104,15 @@ shipped = set(re.findall(r"^(ch08\d+)\.wav,", durations, re.M))
 assert shipped == {w[:-4] for w in wavs}, "no shipped ch08 voice line is left unplayed: " + str(shipped ^ {w[:-4] for w in wavs})
 
 # ---------------------------------------------------------------- companions, checked only when present
-ini = ROOT / "Config/chmisn08cr.ini"
+ini = ROOT / "Config/ch08cr.ini"
 if ini.is_file():
     ini_text = ini.read_text(encoding="utf-8")
     assert 'gameType = "S"' in ini_text and 'minPlayers = "2"' in ini_text and 'maxPlayers = "4"' in ini_text
-    print("  Config/chmisn08cr.ini checked")
-vxt = ROOT / "Missions/chmisn08cr.vxt"
+    print("  Config/ch08cr.ini checked")
+vxt = ROOT / "Missions/ch08cr.vxt"
 if vxt.is_file():
     assert re.search(r"\bcvtnk\b", vxt.read_text(encoding="utf-8")), "the vehicle list offers the convoy tank"
-    print("  Missions/chmisn08cr.vxt checked")
+    print("  Missions/ch08cr.vxt checked")
 
 # ---------------------------------------------------------------- the doc accounts for every map path and loose object
 doc = (ROOT / "Docs/CHMISN08_COOP.md").read_text(encoding="utf-8")

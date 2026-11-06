@@ -9,7 +9,7 @@ local PeerTransport = dofile("Tools/BZRPeerTransportSim.lua")
 local F = {}
 local W
 -- The engine basename limit applies to string literals; the script name is split like the other suites do.
-F.SCRIPT = "Scripts/bdmisn" .. "13cr.lua"
+F.SCRIPT = "Scripts/bd13cr.lua"
 F.FAITHFUL = "Scripts/bdmisn13.lua"
 
 F.LABELS = {

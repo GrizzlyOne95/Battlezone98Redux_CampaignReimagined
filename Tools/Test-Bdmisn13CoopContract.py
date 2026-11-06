@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""bdmisn13 co-op map contract: the labels, paths and teams Scripts/bdmisn13cr.lua names exist in Missions/bdmisn13cr.bzn.
+"""bdmisn13 co-op map contract: the labels, paths and teams Scripts/bd13cr.lua names exist in Missions/bd13cr.bzn.
 
-Skipped (exit 0, says so) when Missions/bdmisn13cr.bzn is not in the tree. The multiplayer listing
-(Config/bdmisn13cr.ini), the campaign entry (Config/crbd.ini) and Missions/bdmisn13cr.vxt are checked only when present.
+Skipped (exit 0, says so) when Missions/bd13cr.bzn is not in the tree. The multiplayer listing
+(Config/bd13cr.ini), the campaign entry (Config/crbd.ini) and Missions/bd13cr.vxt are checked only when present.
 """
 from pathlib import Path
 import math
@@ -10,14 +10,14 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-bzn_path = ROOT / "Missions/bdmisn13cr.bzn"
+bzn_path = ROOT / "Missions/bd13cr.bzn"
 if not bzn_path.is_file():
-    print("bdmisn13 co-op contract SKIPPED: Missions/bdmisn13cr.bzn is not present")
+    print("bdmisn13 co-op contract SKIPPED: Missions/bd13cr.bzn is not present")
     sys.exit(0)
 
 text = bzn_path.read_bytes().decode("latin-1").replace("\r\n", "\n")
 assert "TerrainName = bdmisn13\n" in text
-assert "msn_filename = bdmisn13cr.bzn" in text
+assert "msn_filename = bd13cr.bzn" in text
 assert "name = MultSTMission" in text, "the map class restarts the cockpit timer upward: the CR layer counts the 45 minutes"
 
 # ---------------------------------------------------------------- objects and teams
@@ -54,7 +54,7 @@ for path in text.split("[AiPath]\n")[1:]:
         points.setdefault(m[1], [(float(a), float(b)) for a, b in found])
 
 # ---------------------------------------------------------------- the Lua only names real map content
-lua_full = (ROOT / "Scripts/bdmisn13cr.lua").read_text(encoding="utf-8")
+lua_full = (ROOT / "Scripts/bd13cr.lua").read_text(encoding="utf-8")
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
 live = re.sub(region, "", lua_full)
 live = re.sub(r"--\[\[.*?\]\]", "", live, flags=re.S)
@@ -119,25 +119,25 @@ des = set(re.findall(r'"(bd13\w+\.des)"', live))
 assert des == {"bd13win.des", "bd13lsea.des", "bd13lseb.des", "bd13lsec.des", "bd13lsed.des"}, des
 
 # ---------------------------------------------------------------- the listing files, when present
-ini = ROOT / "Config/bdmisn13cr.ini"
+ini = ROOT / "Config/bd13cr.ini"
 if ini.is_file():
     ini_text = ini.read_text(encoding="utf-8")
     assert 'minPlayers = "2"' in ini_text and 'maxPlayers = "4"' in ini_text
-    print("  Config/bdmisn13cr.ini checked")
+    print("  Config/bd13cr.ini checked")
 else:
-    print("  Config/bdmisn13cr.ini not present: skipped")
+    print("  Config/bd13cr.ini not present: skipped")
 campaign = ROOT / "Config/crbd.ini"
 if campaign.is_file():
-    assert 'missionBZN = "bdmisn13cr.bzn"' in campaign.read_text(encoding="utf-8")
+    assert 'missionBZN = "bd13cr.bzn"' in campaign.read_text(encoding="utf-8")
     print("  Config/crbd.ini checked")
 else:
     print("  Config/crbd.ini not present: skipped")
-vxt = ROOT / "Missions/bdmisn13cr.vxt"
+vxt = ROOT / "Missions/bd13cr.vxt"
 if vxt.is_file():
     assert vxt.read_bytes().strip(), "the vehicle list is not empty"
-    print("  Missions/bdmisn13cr.vxt checked")
+    print("  Missions/bd13cr.vxt checked")
 else:
-    print("  Missions/bdmisn13cr.vxt not present: skipped")
+    print("  Missions/bd13cr.vxt not present: skipped")
 
 # ---------------------------------------------------------------- the doc accounts for every map path and cut block
 doc = (ROOT / "Docs/BDMISN13_COOP.md").read_text(encoding="utf-8")

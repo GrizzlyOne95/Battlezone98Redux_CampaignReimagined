@@ -3,7 +3,7 @@
 Shared offline / 2-4 player co-op port of Chinese mission 8 (an APC convoy rolls from the landing point to a Soviet
 fort; the player captures APC #5, rides the convoy to the fort gate, jumps out disguised as a Soviet before the
 convoy detonates a decoy wrecker, then demolishes the fort's power plants, comm towers and ten timed charges). One
-`Missions/chmisn08cr.bzn` and one `Scripts/chmisn08cr.lua` serve both modes. Companion to the faithful port underneath
+`Missions/ch08cr.bzn` and one `Scripts/ch08cr.lua` serve both modes. Companion to the faithful port underneath
 (`Scripts/ch08.lua`, [`Docs/CH08_LUA_PORT.md`](CH08_LUA_PORT.md), [`References/Chinese08Source/`](../References/Chinese08Source/))
 and to [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern: [`CHMISN07_COOP.md`](CHMISN07_COOP.md).
 Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
@@ -12,9 +12,9 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/chmisn08cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch08.lua` (`Tools/Test-Chmisn08CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the co-op fixes. |
+| `Scripts/ch08cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch08.lua` (`Tools/Test-Chmisn08CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the co-op fixes. |
 | `Scripts/CREuropaWeather.lua`, `Scripts/CRGanymedeSitesCH08.lua` | The Europa-family weather director (reused for Ganymede, `misn01`'s planet) and the generated sites for this map. The generated vent list is **not empty** (18 geysers), unlike chmisn07's Europa map. |
-| `Missions/chmisn08cr.{bzn,vxt}`, `chmisn08.{hg2,lgt,mat,trn}` | Map and companions (not part of this change). The enemy team 2 was moved to team 5; guests are teams 2-4 at the `coop_spawn1`..`coop_spawn4` buoys; every co-op player starts in the convoy tank `cvtnk`. |
+| `Missions/ch08cr.{bzn,vxt}`, `chmisn08.{hg2,lgt,mat,trn}` | Map and companions (not part of this change). The enemy team 2 was moved to team 5; guests are teams 2-4 at the `coop_spawn1`..`coop_spawn4` buoys; every co-op player starts in the convoy tank `cvtnk`. |
 | `Tools/Chmisn08Fixture.lua`, `Test-Chmisn08Coop.lua`, `Test-Chmisn08Presentation.lua`, `Test-Chmisn08CoopSourceParity.py`, `Test-Chmisn08CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Chinese08.lua` still covers the faithful port, unchanged. |
 
 ## Teams and ownership
@@ -203,12 +203,12 @@ damages.
 ```sh
 lua5.1 Tools/Test-Chmisn08Coop.lua            # offline == faithful, 1-4 peers, sticky driver, scaling, convoy fails, cockpit timer, out-of-lives, saves, weather
 lua5.1 Tools/Test-Chmisn08Presentation.lua    # E/A/C protocol and this mission's five per-handle ops on a guest
-python Tools/Test-Chmisn08CoopSourceParity.py # chmisn08cr.lua minus CR regions == ch08.lua
-python Tools/Test-Chmisn08CoopContract.py     # labels/paths/teams/start file in chmisn08cr.bzn (skips with a message if the map is absent)
+python Tools/Test-Chmisn08CoopSourceParity.py # ch08cr.lua minus CR regions == ch08.lua
+python Tools/Test-Chmisn08CoopContract.py     # labels/paths/teams/start file in ch08cr.bzn (skips with a message if the map is absent)
 lua5.1 Tools/Test-Chinese08.lua               # the faithful port, unchanged
 ```
 
-The contract test checks `Missions/chmisn08cr.vxt` and `Config/chmisn08cr.ini` only when they are present.
+The contract test checks `Missions/ch08cr.vxt` and `Config/ch08cr.ini` only when they are present.
 
 ## Inferences and open questions
 

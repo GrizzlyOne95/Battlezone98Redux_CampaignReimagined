@@ -2,8 +2,8 @@
 
 Shared offline / 2-4 player co-op port of the Black Dog mission `bd13` (the Chinese are collecting scrap to build a new
 Pegasus portal; the Black Dogs must recycle all six Chinese scrap silos with a construction rig inside 45 minutes without
-destroying one or touching the Chinese base, then destroy the Chinese recycler). One `Missions/bdmisn13cr.bzn` and one
-`Scripts/bdmisn13cr.lua` serve both modes. Companion to the faithful DLL port underneath (`Scripts/bdmisn13.lua`, tested by
+destroying one or touching the Chinese base, then destroy the Chinese recycler). One `Missions/bd13cr.bzn` and one
+`Scripts/bd13cr.lua` serve both modes. Companion to the faithful DLL port underneath (`Scripts/bdmisn13.lua`, tested by
 `Tools/test_bdmisn13.py`) and [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern:
 [`MISNS2_COOP.md`](MISNS2_COOP.md), [`BDMISN05_COOP.md`](BDMISN05_COOP.md) and [`BDMISN08_COOP.md`](BDMISN08_COOP.md).
 Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
@@ -12,9 +12,9 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bdmisn13cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bdmisn13.lua` (`Tools/Test-Bdmisn13CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
+| `Scripts/bd13cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bdmisn13.lua` (`Tools/Test-Bdmisn13CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
 | `Scripts/CRGanymedeSitesBD13.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather (the Europa director with the generated sites for this map: fifteen cryovolcanic vents, the geysers of the Black Dog base, the Chinese base and the scrap fields). |
-| `Missions/bdmisn13cr.{bzn,vxt}`, `bdmisn13.{hg2,lgt,mat,trn}`, `Config/bdmisn13cr.ini` | Map, vehicle list and multiplayer listing (not part of this change). The map has the whole Chinese base on team 5 (recycler, six silos, towers, turrets, walkers, scavengers, mines) and the Black Dog base on team 1 (recycler, construction rig, silos, wingmen). |
+| `Missions/bd13cr.{bzn,vxt}`, `bdmisn13.{hg2,lgt,mat,trn}`, `Config/bd13cr.ini` | Map, vehicle list and multiplayer listing (not part of this change). The map has the whole Chinese base on team 5 (recycler, six silos, towers, turrets, walkers, scavengers, mines) and the Black Dog base on team 1 (recycler, construction rig, silos, wingmen). |
 | `Tools/Bdmisn13Fixture.lua`, `Test-Bdmisn13Coop.lua`, `Test-Bdmisn13Presentation.lua`, `Test-Bdmisn13CoopSourceParity.py`, `Test-Bdmisn13CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/test_bdmisn13.py` still covers the faithful port, unchanged. |
 
 ## Teams and ownership
@@ -78,7 +78,7 @@ Scaled spawns: every Chinese craft the body builds, the 24 guards and the 28 wav
   `bd13004` -> `bd13lseb.des`; a silo dies without being recycled -> `bd13lsec.des` (now with `bd13006`, below); the Chinese
   recycler takes any damage before the silos are held -> `bd13lsed.des` (now with `bd13007`, below).
 - Out of lives (every human out): the runtime's generic failure. The game ships no `bd13lose.des`, so no `failDes` is set
-  (the same choice as `bdmisn05cr`). Leader departs: every guest fails.
+  (the same choice as `bd05cr`). Leader departs: every guest fails.
 - The 45-minute countdown is shown on every peer (`Present("StartCockpitTimer")`); see the stock bug below for who counts it.
 
 ### Stock behavior kept
@@ -106,7 +106,7 @@ still latched when the shot opens is not a skip of this shot: it is sampled in t
 ## Restored content [owner decision 2026-11-01]
 
 Cut-content restorations live only in the CR layer, apply offline and in co-op, and each has a flag (`RESTORED_*` at the top of
-the runtime region of `bdmisn13cr.lua`). The DLL has no commented-out executable code; the cut content is two recorded voice
+the runtime region of `bd13cr.lua`). The DLL has no commented-out executable code; the cut content is two recorded voice
 lines that no line of `BlackDog13Mission.cpp` plays.
 
 | Restoration | Cut block it comes from | Status in this map |
@@ -145,7 +145,7 @@ asserts the script (body plus CR layer) names exactly the lines the repo has tra
   offline on the same map (the faithful test shows the stock behaviour with the engine timer stuck). The CR layer shadows
   `StartCockpitTimer` / `GetCockpitTimer` / `HideCockpitTimer`: the host counts the 2700 s itself (saved with the mission
   state), shows the same timer on every peer, and hides it when the silos are held. If the engine HUD keeps counting upward
-  the number on screen is wrong while the logic is right (same caveat as `bdmisn04cr`).
+  the number on screen is wrong while the logic is right (same caveat as `bd04cr`).
 - **The enemy team 2**: `BuildObject(..., 2, ...)` maps to team 5 (nothing is built on team 2, a human slot in co-op).
 - **A host skip hangs the shared shot**: see above.
 - **Setup publishes before the presentation resets**: the runtime's `Start()` clears the presentation stream, so the CR callback
@@ -168,7 +168,7 @@ asserts the script (body plus CR layer) names exactly the lines the repo has tra
 ## Weather: Ganymede
 
 `Environment.Init` in `orbit` mode (the sun's real path, a short eclipse, Jupiter-shine at night: the same options as
-`bdmisn05cr`/`bdmisn08cr`) plus `CREuropaWeather` with `CRGanymedeSitesBD13`, networked through the runtime (seeded timeline
+`bd05cr`/`bd08cr`) plus `CREuropaWeather` with `CRGanymedeSitesBD13`, networked through the runtime (seeded timeline
 from the host, host-chosen plumes/quakes/surges over the ordered stream as `EuropaState`/`EuropaPlume`/`EuropaQuake`/
 `EuropaSurge`, `Save`/`Load` state, `AnnounceState`). No new weather module: Ganymede reuses the Europa director for an icy,
 airless Jovian moon. `Environment.BindWeatherSensors("Ganymede", ...)` is registered once per start from the runtime's update
@@ -195,13 +195,13 @@ Beats (host/offline only, each once, tied to the mission's own moments; the dire
 ```sh
 lua5.1 Tools/Test-Bdmisn13Coop.lua            # offline == faithful, 1-4 peers, scaling, intro, recycling, timer, results, voice lines, loads, weather
 lua5.1 Tools/Test-Bdmisn13Presentation.lua    # E/A/C protocol on a guest
-python Tools/Test-Bdmisn13CoopSourceParity.py # bdmisn13cr.lua minus CR regions == bdmisn13.lua
-python Tools/Test-Bdmisn13CoopContract.py     # labels/paths/teams in bdmisn13cr.bzn (skips with a message if the map is absent)
+python Tools/Test-Bdmisn13CoopSourceParity.py # bd13cr.lua minus CR regions == bdmisn13.lua
+python Tools/Test-Bdmisn13CoopContract.py     # labels/paths/teams in bd13cr.bzn (skips with a message if the map is absent)
 python Tools/test_bdmisn13.py                 # the faithful port (needs lupa), unchanged
 ```
 
 The workflow `.github/workflows/campaign-validation.yml` is not edited by this change; the four co-op commands above are the
-steps to add. The contract test checks `Config/bdmisn13cr.ini`, `Config/crbd.ini` and `Missions/bdmisn13cr.vxt` only when they
+steps to add. The contract test checks `Config/bd13cr.ini`, `Config/crbd.ini` and `Missions/bd13cr.vxt` only when they
 are in the tree and says which it skipped.
 
 ## Inferences and open questions

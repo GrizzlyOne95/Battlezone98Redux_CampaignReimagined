@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Prove Scripts/chmisn01cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/ch01.lua."""
+"""Prove Scripts/ch01cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/ch01.lua."""
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
 faithful = (ROOT / "Scripts/ch01.lua").read_bytes()
-coop_raw = (ROOT / "Scripts/chmisn01cr.lua").read_bytes()
+coop_raw = (ROOT / "Scripts/ch01cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
@@ -17,7 +17,7 @@ assert opened == closed and opened, "every CR region opens and closes in order"
 assert set(opened) == {"co-op layer", "co-op runtime", "co-op fixes", "restored content", "co-op callbacks"}, opened
 assert "-- CR" not in re.sub(region, "", coop), "CR marker outside a region"
 stripped = re.sub(region, "", coop)
-assert stripped == faithful_text, "chmisn01cr.lua outside the CR regions is not the faithful ch01.lua"
+assert stripped == faithful_text, "ch01cr.lua outside the CR regions is not the faithful ch01.lua"
 
 for word in ("campaignRuntime", "CRCCARuntime", "Restored", "RESTORED", "ENEMY_TEAM"):
     assert word not in stripped, "CR code outside a region: " + word
@@ -73,4 +73,4 @@ assert '"spawn_explosion1"' in body and 'where = "relic_loc"' in body
 # The body's literal enemy team 2 is only compared in the tug test; the shadow answers it.
 assert re.findall(r"GetTeamNum\([^)]*\) == (\d)", body) == ["2"] and "if team == ENEMY_TEAM then return 2 end" in coop
 assert "SetPerceivedTeam(M.user, 2)" in body and "if team == 2 then team = ENEMY_TEAM end" in coop
-print("chmisn01cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))
+print("ch01cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))

@@ -3,7 +3,7 @@
 Shared offline / 2-4 player co-op port of the Chinese (CRA) mission `ch06` on Elysium: the Chinese strike force is told
 to find and destroy a large Soviet (CCA) base; "allied" reinforcements arrive on the third minute and turn out to be
 Soviets in disguise; Soviet raiders harass the Chinese base for as long as the Soviet long-range power towers stand;
-the mission ends when every Soviet object is dead. One `Missions/chmisn06cr.bzn` and one `Scripts/chmisn06cr.lua`
+the mission ends when every Soviet object is dead. One `Missions/ch06cr.bzn` and one `Scripts/ch06cr.lua`
 serve both modes. Companion to the faithful DLL port underneath (`Scripts/ch06.lua`, notes in
 `References/Chinese06Source/README.md`, tested by `Tools/test_ch06.py`) and
 [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern: [`BDMISN07_COOP.md`](BDMISN07_COOP.md).
@@ -13,9 +13,9 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/chmisn06cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch06.lua` (`Tools/Test-Chmisn06CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the weather beats and the restorations. |
+| `Scripts/ch06cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch06.lua` (`Tools/Test-Chmisn06CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the weather beats and the restorations. |
 | `Scripts/CRElysiumSitesCH06.lua`, `Scripts/CRElysiumWeather.lua` | Elysium weather (the Venus engine in its Earth-like storm dress) and the generated sites for this map (ten geysers, the playable bounds; Elysium switches vents and sulphur off, so only the bounds are used). |
-| `Missions/chmisn06cr.{bzn,vxt}`, `chmisn06.{hg2,lgt,mat,trn}`, `Config/chmisn06cr.ini`, `Config/crch.ini` (MISSION6) | Map and companions (not part of this change). The Soviets are on team 5, the guests start at `coop_spawn1..4` (teams 1-4). |
+| `Missions/ch06cr.{bzn,vxt}`, `chmisn06.{hg2,lgt,mat,trn}`, `Config/ch06cr.ini`, `Config/crch.ini` (MISSION6) | Map and companions (not part of this change). The Soviets are on team 5, the guests start at `coop_spawn1..4` (teams 1-4). |
 | `Tools/Chmisn06Fixture.lua`, `Test-Chmisn06Coop.lua`, `Test-Chmisn06Presentation.lua`, `Test-Chmisn06CoopSourceParity.py`, `Test-Chmisn06CoopContract.py` | Multi-peer fixture and tests (real map coordinates). |
 
 The CR regions, in file order:
@@ -113,7 +113,7 @@ patrols, and a Load, which resets the presentation and drops the objective, repu
 ## Restored content [owner decision 2026-11-01]
 
 Cut-content restorations live only in the CR layer, apply offline and in co-op, and sit behind `RESTORED_*` flags (top of
-the runtime region of `chmisn06cr.lua`). The C++ (`References/Chinese06Source/Chinese06Mission.cpp`) has one disabled
+the runtime region of `ch06cr.lua`). The C++ (`References/Chinese06Source/Chinese06Mission.cpp`) has one disabled
 code line: `//BuildObject("cvtnk", 1, user);`, a debug spawn at the player's feet in the first frame. It is not restored
 (a free tank for every start would be a balance change, not a recovered feature) and stays a comment in the port. The
 rest of the restorations come from authored map content and an unplayed voice line.
@@ -182,7 +182,7 @@ would resolve to one of each, which is why the restorations walk the object list
 ## Weather: Elysium
 
 Elysium, the Earth-like world under a blue-grey overcast: the existing `CRElysiumWeather` director (the Venus engine
-re-dressed) with the generated `CRElysiumSitesCH06` sites, networked exactly as Venus in `misns2cr` and `bdmisn07cr`
+re-dressed) with the generated `CRElysiumSitesCH06` sites, networked exactly as Venus in `misns2cr` and `bd07cr`
 (seeded timeline from the host, host-chosen strikes over the ordered stream with the ops `VenusState`, `VenusStrike`,
 `VenusErupt`, `VenusFog`, `Save`/`Load` state, `AnnounceState`). Lighting is the runtime default (subtle). If the weather
 module or the sites module is missing, or any weather call errors, the mission runs without weather and logs once. The
@@ -204,8 +204,8 @@ The severe rung (5) is not used: its visibility and radar penalty would last the
 ```sh
 lua5.1 Tools/Test-Chmisn06Coop.lua            # offline == faithful, 1-4 peers, convoy and betrayal, wave and raid scaling, 460 m, fallback, idle attackers, restorations, results, weather
 lua5.1 Tools/Test-Chmisn06Presentation.lua    # E/A/C protocol on a guest
-python Tools/Test-Chmisn06CoopSourceParity.py # chmisn06cr.lua minus CR regions == ch06.lua
-python Tools/Test-Chmisn06CoopContract.py     # labels/paths/teams/entries in chmisn06cr.bzn (map checks skip with a message if the map is absent)
+python Tools/Test-Chmisn06CoopSourceParity.py # ch06cr.lua minus CR regions == ch06.lua
+python Tools/Test-Chmisn06CoopContract.py     # labels/paths/teams/entries in ch06cr.bzn (map checks skip with a message if the map is absent)
 python Tools/test_ch06.py                     # the faithful port, unchanged
 ```
 
@@ -215,7 +215,7 @@ python Tools/test_ch06.py                     # the faithful port, unchanged
   parked is not in the source. Their routes end at the Chinese base, so a one-shot sweep to the base was chosen.
 - `ch06007` as the debrief and the 13 s delay are inferences from the text and the line length.
 - Revealing the stolen factory and the plants with `ch06006` is an inference from the line and the authored disguise.
-- Scaling is per (frame, entry path), a CR inference (the same rule as `bdmisn07cr`); `liveCap = 24` is a guess.
+- Scaling is per (frame, entry path), a CR inference (the same rule as `bd07cr`); `liveCap = 24` is a guess.
 - The convoy is not concealed: a human within 460 m of the chosen `ran_N` (mainly `ran_3`, 550 m east of the Soviet
   base) would see 12 craft arrive. Choosing the entry is the body's random draw, which the CR layer does not override.
 - A fallen-back raid drives to `activate_2` (the Chinese base) instead of the route start; the base is the raids'

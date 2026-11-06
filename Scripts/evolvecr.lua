@@ -66,6 +66,7 @@ local scaledSeenThisFrame = {}
 -- cover_1..4 "csuserb" items are a different odf and so are never scaled (owner decision).
 local SCALED_ODFS = { cspilo = true, cssolda = true, cssold = true, cvfigh = true, cvltnk = true,
     cvtnk = true, cvhraz = true, cvwalk = true, cvhtnk = true }
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     -- Standard CR co-op layout: humans on teams 1-4, the runtime-built attackers (map team 2) on team 5.
     id = "evolvecr", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,

@@ -8,8 +8,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MISSIONS = ([f"misns{i}cr" for i in range(1, 9)]
-            + [f"bdmisn{i:02d}cr" for i in range(1, 16)]
-            + [f"chmisn{i:02d}cr" for i in range(1, 9)])
+            + [f"bd{i:02d}cr" for i in range(1, 16)]
+            + [f"ch{i:02d}cr" for i in range(1, 9)])
 
 for mission in MISSIONS:
     path = ROOT / "Missions" / f"{mission}.vxt"
@@ -22,8 +22,8 @@ for mission in MISSIONS:
         assert len(row) == 4, f"{path.name}: native parser needs four fields: {row!r}"
         assert all(token and token != "," for token in row), f"{path.name}: incomplete menu entry: {row!r}"
         assert len(row[0]) <= 8 and (ROOT / "ODF" / f"{row[0]}.odf").is_file(), f"{path.name}: unknown starting ODF {row[0]}"
-    if mission in {"bdmisn04cr", "chmisn01cr", "chmisn07cr"}:
-        expected = {"bdmisn04cr": "bsuser", "chmisn01cr": "csusera", "chmisn07cr": "ssuserb"}[mission]
+    if mission in {"bd04cr", "ch01cr", "ch07cr"}:
+        expected = {"bd04cr": "bsuser", "ch01cr": "csusera", "ch07cr": "ssuserb"}[mission]
         assert len(rows) == 1 and rows[0][0] == expected, f"{path.name}: preserve the on-foot mission start"
 
 print(f"Native four-field vehicle lists passed for all {len(MISSIONS)} campaign co-op missions")

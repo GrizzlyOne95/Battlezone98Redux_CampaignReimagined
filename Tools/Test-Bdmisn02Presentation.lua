@@ -1,4 +1,4 @@
--- Presentation protocol of the shared CCA runtime, run through the real bdmisn02cr.lua guest.
+-- Presentation protocol of the shared CCA runtime, run through the real bd02cr.lua guest.
 -- Hand-built E/A/C packets are delivered to a guest peer: ordering, duplicates, acknowledgements, identity
 -- resolution (labels, gone flags, never-hang guard), cameras, weather ops, wire limits.
 --   lua5.1 Tools/Test-Bdmisn02Presentation.lua

@@ -2,7 +2,7 @@
 
 Shared offline / 2-4 player co-op port of Chinese mission 4 (a stealth raid on Ganymede: the Chinese Major's fighter
 follows six safe nav beacons through a Soviet minefield, slips cloaked into the Soviet scrap silo, identifies it, and
-retreats through the portal as the base is overrun). One `Missions/chmisn04cr.bzn` and one `Scripts/chmisn04cr.lua` serve
+retreats through the portal as the base is overrun). One `Missions/ch04cr.bzn` and one `Scripts/ch04cr.lua` serve
 both modes. Companion to the faithful DLL port underneath (`Scripts/ch04.lua`, [`CH04_LUA_PORT.md`](CH04_LUA_PORT.md),
 [`References/Chinese04Source/`](../References/Chinese04Source/)) and to [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared
 runtime). Pattern: [`BDMISN04_COOP.md`](BDMISN04_COOP.md), [`BDMISN09_COOP.md`](BDMISN09_COOP.md).
@@ -12,9 +12,9 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/chmisn04cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch04.lua` (`Tools/Test-Chmisn04CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the restorations. |
+| `Scripts/ch04cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch04.lua` (`Tools/Test-Chmisn04CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the restorations. |
 | `Scripts/CREuropaWeather.lua`, `Scripts/CRGanymedeSitesCH04.lua` | The Ganymede weather (the Europa director, no new module) and the generated sites for this map (two vents: the base geyser beside the portal and the Soviet geyser beside their factory). |
-| `Missions/chmisn04cr.{bzn,vxt}`, `chmisn04.{hg2,lgt,mat,trn}` | Map and companions (not part of this change). The start file offers the upgraded fighter `cvfighe` and the tank `cvtnk` ([`COOP_STARTING_UNITS.md`](COOP_STARTING_UNITS.md)); the map start is the host's `cvfighe` (`player`). The Soviet side is team 5, the map's own enemy team 2 having been moved. |
+| `Missions/ch04cr.{bzn,vxt}`, `chmisn04.{hg2,lgt,mat,trn}` | Map and companions (not part of this change). The start file offers the upgraded fighter `cvfighe` and the tank `cvtnk` ([`COOP_STARTING_UNITS.md`](COOP_STARTING_UNITS.md)); the map start is the host's `cvfighe` (`player`). The Soviet side is team 5, the map's own enemy team 2 having been moved. |
 | `Tools/Chmisn04Fixture.lua`, `Test-Chmisn04Coop.lua`, `Test-Chmisn04Presentation.lua`, `Test-Chmisn04CoopSourceParity.py`, `Test-Chmisn04CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Chinese04.lua` / `Test-Chinese04SourceParity.py` still cover the faithful port, unchanged. |
 
 ## Teams and ownership
@@ -32,7 +32,7 @@ enemy's scrap) and `SetPilot(1, 10)` goes to every human team. Respawn rally poi
 ## Humans as the player
 
 The DLL keeps **one** handle for "the player" (`M.user`) and reads it in a dozen places. In the CR layer `GetPlayerHandle()` is the
-runtime's token for the humans (as in `bdmisn09cr`; offline too, where the humans are the one player), valid while any human lives.
+runtime's token for the humans (as in `bd09cr`; offline too, where the humans are the one player), valid while any human lives.
 Each use of the token then means what keeps a stealth mission fair for several humans, without an edit of the body:
 
 | Body call on the player | Co-op meaning |
@@ -45,7 +45,7 @@ Each use of the token then means what keeps a stealth mission fair for several h
 | `RestoreHealth(user)` | every human (`AddHealth(token)`). |
 | `Attack(unit, user)` | the human **nearest to that unit**. A unit still waiting for a concealed entry keeps the order; it is aimed the moment it exists. |
 | `SetUserTarget(nav)` | the local target of the host and a replicated objective marker for every human (the previous marker goes out). |
-| `IsInfo(GetOdf(silo))` | the local info panel: a guest's inspection reaches the host as a short `I` packet every 0.25 s while the panel shows `sbsiloa`; the host honours a report for one second (the `bdmisn04cr` / `misn08cr` pattern). |
+| `IsInfo(GetOdf(silo))` | the local info panel: a guest's inspection reaches the host as a short `I` packet every 0.25 s while the panel shows `sbsiloa`; the host honours a report for one second (the `bd04cr` / `misn08cr` pattern). |
 
 The player-handle-change logic of the body (`user ~= olduser`: decloak the abandoned ship, retarget the attack groups) cannot fire with
 a token. The CR layer keeps its intent where it matters: whenever the **set of human craft changes** while the base is alarmed (a human
@@ -112,7 +112,7 @@ then report arrival at once, the end film opens a fresh camera and runs again fr
 ## Restored content [owner decision 2026-11-01]
 
 Cut-content restorations live only in the CR layer, apply offline and in co-op, and each has a flag (`RESTORED_*` at the top of the runtime region of
-`chmisn04cr.lua`).
+`ch04cr.lua`).
 
 | Restoration | Cut block it comes from | Status in this map |
 | --- | --- | --- |
@@ -174,12 +174,12 @@ The director never damages.
 ```sh
 lua5.1 Tools/Test-Chmisn04Coop.lua            # offline == faithful, 1-4 peers, stealth rules, relay, timer, scaling, 460 m, retreat, end film, saves, weather
 lua5.1 Tools/Test-Chmisn04Presentation.lua    # E/A/C protocol and this mission's four ops on a guest
-python Tools/Test-Chmisn04CoopSourceParity.py # chmisn04cr.lua minus CR regions == ch04.lua
-python Tools/Test-Chmisn04CoopContract.py     # labels/paths/teams/start file in chmisn04cr.bzn (skips with a message if the map is absent)
+python Tools/Test-Chmisn04CoopSourceParity.py # ch04cr.lua minus CR regions == ch04.lua
+python Tools/Test-Chmisn04CoopContract.py     # labels/paths/teams/start file in ch04cr.bzn (skips with a message if the map is absent)
 lua5.1 Tools/Test-Chinese04.lua && python Tools/Test-Chinese04SourceParity.py   # the faithful port, unchanged
 ```
 
-The contract test checks `Missions/chmisn04cr.vxt`, `Config/chmisn04cr.ini`, `Config/crch.ini` and the `.mpdes` only when they are present.
+The contract test checks `Missions/ch04cr.vxt`, `Config/ch04cr.ini`, `Config/crch.ini` and the `.mpdes` only when they are present.
 
 ## Inferences and open questions
 

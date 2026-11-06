@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Prove Scripts/chmisn08cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/ch08.lua."""
+"""Prove Scripts/ch08cr.lua minus its marked Campaign Reimagined regions is exactly Scripts/ch08.lua."""
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
 faithful = (ROOT / "Scripts/ch08.lua").read_bytes()
-coop_raw = (ROOT / "Scripts/chmisn08cr.lua").read_bytes()
+coop_raw = (ROOT / "Scripts/ch08cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
@@ -17,7 +17,7 @@ assert opened == closed and opened, "every CR region opens and closes in order"
 assert opened == ["co-op layer", "co-op runtime", "co-op fixes", "co-op callbacks"], opened
 assert "-- CR" not in re.sub(region, "", coop), "CR marker outside a region"
 stripped = re.sub(region, "", coop)
-assert stripped == faithful_text, "chmisn08cr.lua outside the CR regions is not the faithful ch08.lua"
+assert stripped == faithful_text, "ch08cr.lua outside the CR regions is not the faithful ch08.lua"
 
 for word in ("campaignRuntime", "CRCCARuntime", "Restored", "RESTORED", "MissionEnv", "setfenv"):
     assert word not in stripped, "CR code outside a region: " + word
@@ -41,7 +41,7 @@ assert callbacks.index("setfenv(1, RealEnv)") < callbacks.index("function Start(
 body = faithful_text
 body_calls = set(re.findall(r"\b([A-Z]\w+)\(", body))
 runtime_region = coop.split("-- CR co-op runtime >>", 1)[1].split("-- CR co-op runtime <<", 1)[0]
-# chmisn08cr.lua shadows natives as chunk GLOBALS (not locals): Update() alone needs 37 MS_* constants plus M
+# ch08cr.lua shadows natives as chunk GLOBALS (not locals): Update() alone needs 37 MS_* constants plus M
 # as upvalues, leaving no room under Lua 5.1's 60-upvalue limit for ~25 shadowed natives too (see the runtime
 # region's own comment). Two styles appear: `Name = campaignRuntime and ... or Name` and a plain `function
 # Name(...)` redefinition (SetPilot, IsAudioMessageDone) that branches on `campaignRuntime` internally.
@@ -81,5 +81,5 @@ scaled_paths = set(re.search(r"SCALED_PATHS = \{([^}]*)\}", runtime_region)[1]
                     .replace("=", " ").replace("true", " ").replace(",", " ").split())
 assert scaled_paths == {"wave_1", "wave_2", "wave_3", "wave_4", "wave_5", "wave_6"}, scaled_paths
 
-print("chmisn08cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port"
+print("ch08cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port"
       % (len(opened), len(shadowed)))
