@@ -53,6 +53,7 @@ local RESTORED_VOICE_LINES = true
 local Restored
 -- Every Chinese combat craft of the five waves becomes a concealed, head-count-scaled ticket.
 local SCALED_ODFS = { cvfigh = true, cvltnk = true, cvtnk = true, cvhraz = true, cvwalk = true, cvartl = true }
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "bdmisn05", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "recycler" }, -- the shared Black Dog base is the recycler

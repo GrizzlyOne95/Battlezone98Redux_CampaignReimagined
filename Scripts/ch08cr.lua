@@ -77,6 +77,7 @@ local SCALED_PATHS = {
 -- (where), calling campaignRuntime.Spawn only for the wave paths above. A direct (non-wave) team-2 build
 -- therefore never reaches campaignRuntime.Spawn's own team-2 -> team-5 remap, so it is repeated here.
 local DIRECT_ENEMY_TEAM = 5
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "ch08cr", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "coop_spawn1" }, -- respawn at the co-op start buoys

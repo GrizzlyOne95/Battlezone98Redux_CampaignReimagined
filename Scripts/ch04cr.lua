@@ -52,6 +52,7 @@ local remoteInfo = {}
 -- time plus a margin: a skip releases only the skipper's own native camera. CAMERA_ETA is path length / (speed / 100)
 -- in seconds (Tools/Test-Chmisn04CoopContract.py recomputes it from the map).
 local CAMERA_ETA = { camera_start = 18.67, auto_end = 1.67 } -- auto_end flies at 4500 (TRO 1.3)
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "ch04cr", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "factory" }, -- respawn at the shared base: the Chinese factory beside the portal

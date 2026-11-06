@@ -39,6 +39,7 @@ local ENEMY_TEAM = 5 -- the body says team 2; team 2 is a human slot in co-op
 -- head-count-scaled ticket. The convoy (team 1), its escorts and the defecting walker (team 0) are built straight.
 local SCALED_ODFS = { svfigh = true, svtank = true, svwalk = true, svhraz = true, svartl = true, svltnk = true,
     svrckt = true }
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "ch02cr", leaderTeam = 1, enemyTeam = ENEMY_TEAM, mapEnemyTeam = 2,
     rallyPoints = { [0] = "recycler" }, -- respawn at the shared Chinese base

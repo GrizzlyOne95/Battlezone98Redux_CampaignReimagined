@@ -48,6 +48,7 @@ local Restored
 local SCALED_ODFS = { cvfigh = true, cvtnk = true, cvrckt = true, cvartl = true }
 local NativeBuildObjectAtPortal, NativePortalOut, NativeActivatePortal, NativeDeactivatePortal =
     BuildObjectAtPortal, PortalOut, ActivatePortal, DeactivatePortal
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "bdmisn06", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "backup_1" }, -- the Black Dog start: no base exists until the recycler deploys late

@@ -59,6 +59,7 @@ local SCALED_ODFS = { cvfigh = true, cvltnk = true, cvtnk = true, cvhtnk = true,
 local GOAL_VENTS = { [0] = "eggeizr15_geyser", [1] = "eggeizr14_geyser", [2] = "eggeizr13_geyser" }
 -- The vents next to the Black Dog base answer the loss of a shield or power generator pair.
 local BASE_VENTS = { [0] = "eggeizr11_geyser", "eggeizr10_geyser", "eggeizr11_geyser", "eggeizr10_geyser" }
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "bdmisn12", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "portal" }, -- the shared Black Dog base is the portal compound

@@ -50,6 +50,7 @@ local SCALED_ODFS = { cvfigh = true, cvhraz = true, cvhtnk = true, cvltnk = true
     cvtnkc = true, cvturr = true }
 -- The geysers under the Chinese base: the factory sits on eggeizr13, the recycler on eggeizr15.
 local FACTORY_VENT, RECYCLER_VENT = "eggeizr13_geyser", "eggeizr15_geyser"
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "bdmisn14", leaderTeam = 1, enemyTeam = ENEMY_TEAM, mapEnemyTeam = 2,
     rallyPoints = { [0] = "recycler" }, -- the shared Black Dog base is the recycler

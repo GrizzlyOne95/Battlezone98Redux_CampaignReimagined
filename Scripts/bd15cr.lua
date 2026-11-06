@@ -54,6 +54,7 @@ local Restored
 local SCALED_ODFS = { cvfigh = true, cvltnk = true, cvtnk = true, cvapc = true, cvhtnk = true, cvhraz = true,
     cvhaul = true }
 local NativeColorFade, NativeMakeExplosion, NativeGetCockpitTimer = ColorFade, MakeExplosion, GetCockpitTimer
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "bdmisn15", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "bvslfd0_armory" }, -- the shared Black Dog base is the authored armory

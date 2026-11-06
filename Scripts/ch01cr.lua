@@ -47,6 +47,7 @@ local SCALED_ODFS = { svfigh = true, svtank = true, svltnk = true, svhraz = true
 local INFO_ODFS = { sbhanga = true }
 local remoteInfo = {}
 local CONVOY_RADIUS = 100 -- every human must stay this close to the escorted one to share its cover
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "ch01cr", leaderTeam = 1, enemyTeam = ENEMY_TEAM, mapEnemyTeam = 2,
     rallyPoints = { [0] = "recycler" }, -- respawn at the Chinese beachhead where the Recycler is delivered

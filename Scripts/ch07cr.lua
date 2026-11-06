@@ -76,6 +76,7 @@ local Restored = {}
 local SCALED_ODFS = { ssusera = true, sssold = true, sspilo = true }
 -- CAMERA_ETA is path length / (speed / 100) in seconds (the contract test recomputes it from the map).
 local CAMERA_ETA = { cin_start = 23.4, cin_north = 29.0, cin_east = 27.9 }
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "ch07cr", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "coop_spawn1" }, -- respawn at the landing point

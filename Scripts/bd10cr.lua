@@ -53,6 +53,7 @@ local RESTORED_FACTORY_OBJECTIVES = true
 local Restored
 -- Every Chinese combat craft of the eight ambushes becomes a concealed, head-count-scaled ticket.
 local SCALED_ODFS = { cvfigh = true, cvltnk = true, cvtnk = true, cvwalk = true, cvhtnk = true }
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "bdmisn10", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "backup" }, -- no base exists: respawn at the Black Dog drop zone

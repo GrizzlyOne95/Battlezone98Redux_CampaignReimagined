@@ -44,6 +44,7 @@ local Restored
 -- The harassment raiders (3 fighters + 2 light tanks every five minutes) are the only craft the body builds: they
 -- become concealed, head-count-scaled tickets. The two map waves and the whole Chinese base are authored.
 local SCALED_ODFS = { cvfigh = true, cvltnk = true }
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "bdmisn07", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "recycler" }, -- the shared Black Dog base is the recycler

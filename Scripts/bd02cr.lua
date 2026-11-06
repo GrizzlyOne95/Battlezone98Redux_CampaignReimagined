@@ -66,6 +66,7 @@ local STAGE_PATHS = {
     spawn_enemy_scout1 = true, spawn_enemy_scout2 = true, spawn_enemy_scout3 = true, spawn_enemy_scout4 = true,
     spawn_enemy_ltnk = true, spawn_enemy_ltnk2 = true, spawn_enemy_tank = true, spawn_enemy_tank2 = true,
 }
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "bd02cr", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "recycler" }, -- the shared base is the recycler

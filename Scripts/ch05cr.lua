@@ -24,6 +24,7 @@ local Restored = {}
 -- scale: the tug and its escort, the artillery group, the paratroopers and the daywreckers are built directly.
 local SCALED_ODFS = { svwalk = true, svhraz = true, svtank = true, svltnk = true, svfigh = true, svrckt = true, svapc = true }
 local SCALED_PATHS = { wave_1 = true, wave_2 = true, wave_4 = true, wave_5 = true, wave_6 = true, wave_7 = true, annoy_1 = true }
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return S end, {
     id = "ch05cr", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "recycler" }, -- respawn at the shared base (the recycler travels with the convoy)

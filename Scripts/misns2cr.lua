@@ -361,6 +361,7 @@ local RESTORED_OPENING_FILM, RESTORED_WAVE1_RAZ, RESTORED_CUTOFF, RESTORED_NET1,
 local Restored
 -- The three enemy craft the waves are made of become concealed, head-count-scaled tickets.
 local SCALED_ODFS = { bvtank = true, bvraz = true, bvartl = true }
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "misns2", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "svapc0_apc" }, -- no base in this mission: respawn with the convoy

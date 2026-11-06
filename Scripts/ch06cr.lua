@@ -58,6 +58,7 @@ local Restored
 -- is the story and is built where the body says; the Soviet base is authored.
 local SCALED_ODFS = { svfigh = true, svltnk = true, svtank = true, svhraz = true }
 local ENEMY_TEAM = 5
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "chmisn06", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "avrecy2_recycler" }, -- the shared Chinese base is the recycler

@@ -58,6 +58,7 @@ local Restored = {}
 -- Every Chinese combat craft of the four waves and the six silo guards is a concealed, head-count-scaled ticket.
 local SCALED_ODFS = { cvfigh = true, cvltnk = true, cvtnk = true, cvrckt = true, cvhraz = true, cvhtnk = true }
 local sensorsBound = false
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "bdmisn13", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "recycler" }, -- the shared base is wherever the recycler is

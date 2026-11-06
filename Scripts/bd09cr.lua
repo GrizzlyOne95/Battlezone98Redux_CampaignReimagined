@@ -46,6 +46,7 @@ local ENEMY_TEAM = 5
 -- Every Chinese combat craft the mission builds is a concealed, head-count-scaled ticket. The Black Dog nav
 -- beacons (apcamr, team 1) are built directly.
 local SCALED_ODFS = { cvfigh = true, cvltnk = true, cvhtnk = true, cvrckt = true, cvtnk = true }
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "bd09cr", leaderTeam = 1, enemyTeam = ENEMY_TEAM, mapEnemyTeam = 2,
     rallyPoints = { [0] = "cvtnk1" }, -- no base in this mission: respawn with the convoy

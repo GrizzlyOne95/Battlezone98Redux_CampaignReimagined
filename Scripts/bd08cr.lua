@@ -47,6 +47,7 @@ local Restored = {}
 -- staged, visible event, so they are not concealed tickets: the extras are staggered at the portal instead.
 local SCALED_ODFS = { cvtnk = true, cvltnk = true, cvfigh = true, cvrckt = true, cvhraz = true }
 local sensorsBound = false
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "bdmisn08", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "recycler" }, -- the shared base is wherever the recycler is

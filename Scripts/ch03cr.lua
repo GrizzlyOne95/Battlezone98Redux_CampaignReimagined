@@ -63,6 +63,7 @@ local Restored
 -- directly: the body keeps their handles from the first frame (turn-around, general, base_fail).
 local SCALED_ODFS = { svtank = true, svhraz = true, svfigh = true }
 local NativeMakeExplosion, NativeGetCockpitTimer = MakeExplosion, GetCockpitTimer
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "ch03cr", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "won_mission" }, -- respawn at the starting base

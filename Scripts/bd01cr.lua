@@ -53,6 +53,7 @@ local Restored = {}
 -- The attack waves become concealed, head-count-scaled tickets. The cloaked ambush pair and the first wave-1
 -- pair (the attack camera's subject) are built directly, see BuildObject below.
 local SCALED_ODFS = { cvfigh = true, cvltnk = true }
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "bd01cr", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "recycler" }, -- respawn at the shared base

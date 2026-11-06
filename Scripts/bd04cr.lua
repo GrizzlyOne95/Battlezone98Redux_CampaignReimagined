@@ -52,6 +52,7 @@ local SCALED_ODFS = { cvfigh = true, cvfighg = true, cvtnk = true }
 -- IsInfo is local UI state: guests report it to the host (Restored.RelayInfo), the host keeps it for a second.
 local INFO_PREFIXES = { cbport = true, obdataa = true }
 local remoteInfo = {}
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "bdmisn04", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "pilot" }, -- no base in this mission: respawn at the crater rim where everyone starts

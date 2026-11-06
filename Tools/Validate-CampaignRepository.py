@@ -93,6 +93,30 @@ def check_mission_stem_length(files) -> list[str]:
     return errors
 
 
+def check_mission_require_length(files) -> list[str]:
+    """A mission chunk has no mod directory on package.path, and the asset searcher cuts a module name to 11
+    characters, so a longer name is unreachable until RequireFix.Initialize has added the mod's paths."""
+    missions = {relative.stem.casefold() for _path, relative in files
+                if relative.parts[:1] == ("Missions",) and relative.suffix.casefold() == ".bzn"}
+    errors: list[str] = []
+    for path, relative in files:
+        if (relative.parts[:1] != ("Scripts",) or relative.suffix.casefold() != ".lua"
+                or relative.stem.casefold() not in missions):
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        found = re.search(r'RequireFix"?\)?\s*\.\s*Initialize', text)
+        fix = found.start() if found else -1
+        for match in re.finditer(r"""^[^-\r\n]*?\brequire\s*\(?\s*["']([\w.]+)["']""", text, re.MULTILINE):
+            name = match.group(1)
+            if len(name) > 11 and (fix < 0 or match.start() < fix):
+                errors.append(
+                    f"mission Lua requires '{name}' (over the 11-character asset limit) before "
+                    f"RequireFix.Initialize: {relative}"
+                )
+                break
+    return errors
+
+
 def check_lua(files) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
@@ -371,6 +395,7 @@ def main() -> int:
     errors.extend(check_case_collisions(files))
     errors.extend(check_engine_filenames(files))
     errors.extend(check_mission_stem_length(files))
+    errors.extend(check_mission_require_length(files))
     lua_errors, warnings = check_lua(files)
     errors.extend(lua_errors)
     errors.extend(check_shipping_lock_resolves())

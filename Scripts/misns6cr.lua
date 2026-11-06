@@ -33,6 +33,7 @@ local M = NewState()
 -- covers a single unused shipped voice line.
 local RESTORED_VOICE_LINES = true -- unused shipped line misns606 (Docs/MISNS6_COOP.md)
 local Restored = {}
+if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "misns6", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "svrecy0_recycler" },
