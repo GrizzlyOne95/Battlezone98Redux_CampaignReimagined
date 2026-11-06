@@ -302,16 +302,17 @@ Pick the unused retrospective line; for example misn13 uses `misn1305`, misn12 `
 
 - New shipped files need `Manage-CampaignFiles.ps1 -bless`; **read the printed list and review the lock
   diff**. A stale lock fails Workshop staging as "missing required file", not as "lock is stale".
-- Bless writes the lock without a BOM on either PowerShell (a BOM breaks the Python validators and CI). Keep
-  the lock **LF**. Bless writes CRLF and may re-sort: fix to LF in place.
+- Bless output is stable: the same membership gives the same bytes on PowerShell 5.1 and 7, with no BOM (a BOM
+  breaks the Python validators and CI), LF endings, and `json.dumps(indent=2)` layout, so a bless diff shows only
+  the entries that changed.
 - A known cause of red CI is fixed in the same workstream or ticketed, not only documented here. A BOM on
   the lock broke CI, so the Python lock readers use `encoding='utf-8-sig'`.
-- **Never re-sort the lock.** It is not globally sorted. To add entries without blessing, insert them in
-  place beside their neighbours and bump the count; `Validate-CampaignRepository.py` confirms.
+- The lock is sorted by lowercased `source`, compared ordinally. Bless applies this order. To add entries without
+  blessing, insert them at their sorted position and bump the count; `Validate-CampaignRepository.py` confirms.
 - Bless scans the **working tree including gitignored files**: move stray files (`luac.out`,
   `.claude/handoffs`, other branches' artifacts) aside first, then restore.
-- Merge conflicts in the lock: resolve by 3-way membership union (theirs in order, plus our additions
-  inserted after their predecessor), then run Validate; do not re-bless to resolve.
+- Merge conflicts in the lock: resolve by 3-way membership union (theirs, plus our additions
+  at their sorted position), then run Validate; do not re-bless to resolve.
 - Renderer payloads ship as `.payload` files (OpenShim 1.0.0.51+ reads them). Chunk meshes ship from
   `Assets/chunkMeshes_capped`; `Assets/chunkMeshes` still supplies 21 companion files the lock ships, so
   deleting that directory makes `-verify` report `LOCKED BUT ABSENT`.
@@ -765,7 +766,7 @@ Never by focus or `SendInput` unless the owner says the PC is free. The scenario
    sibling repos. Only `-refresh-natives` rewrites those files (from `BZR_OPENSHIM_REPO`/`BZR_EXU_REPO`/
    `BZR_BZFILE_REPO` builds, and re-pins `OPENSHIM_PIN.txt`); review and commit its result together.
    After any deploy, follow with `-verify` (pipe its long MISSING list through `Select-Object -First 12`).
-3. **Never re-sort `Shipping/shipping.lock.json`**; keep it LF; see 3.8.
+3. **Never reformat `Shipping/shipping.lock.json` by hand**; keep it LF and sorted; see 3.8.
 4. **No merges, releases/tags, Workshop uploads or other public publication without explicit owner
    instruction** (a per-batch "merge as you go" granted in the current session counts, and only for that
    scope). When merging: CI green, mergeable, `gh pr merge --merge`.
