@@ -2384,7 +2384,12 @@ function Invoke-BlessShipping {
         return $false
     }
 
-    $ordered = @($entries.Keys | Sort-Object | ForEach-Object {
+    # Lowercased ordinal: Sort-Object follows the host's culture and PowerShell
+    # edition, and the Python tools that insert lock entries compare .lower().
+    $orderedSources = [string[]]@($entries.Keys)
+    $sortKeys = [string[]]@($orderedSources | ForEach-Object { $_.ToLowerInvariant() })
+    [Array]::Sort($sortKeys, $orderedSources, [StringComparer]::Ordinal)
+    $ordered = @($orderedSources | ForEach-Object {
         [pscustomobject]@{ source = $_; runtime = $entries[$_] }
     })
 
@@ -2432,14 +2437,18 @@ function Invoke-BlessShipping {
         New-Item -ItemType Directory -Force -Path $lockDir | Out-Null
     }
 
-    $payload = [ordered]@{
-        comment   = "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless."
-        generated = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ssK")
-        count     = $ordered.Count
-        files     = $ordered
-    }
+    # Written by hand, not ConvertTo-Json: its layout differs between PowerShell
+    # 5.1 and 7, and each switch rewrote every line of the lock. This matches
+    # json.dumps(indent=2), which Tools/Apply-ActMaps.py and Build-TerrainShape.py use.
+    $jsonString = { param($value) '"' + $value.Replace('\', '\\').Replace('"', '\"') + '"' }
+    $comment = "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless."
+    $fileBlocks = @($ordered | ForEach-Object {
+        "    {`n      `"source`": $(& $jsonString $_.source),`n      `"runtime`": $(& $jsonString $_.runtime)`n    }"
+    })
+    $lockText = "{`n  `"comment`": $(& $jsonString $comment),`n  `"count`": $($ordered.Count),`n  `"files`": [`n" +
+        ($fileBlocks -join ",`n") + "`n  ]`n}`n"
     # No BOM: the Python validators read this with json.loads(read_text()).
-    [System.IO.File]::WriteAllText($lockPath, (($payload | ConvertTo-Json -Depth 4) + "`n"), [System.Text.UTF8Encoding]::new($false))
+    [System.IO.File]::WriteAllText($lockPath, $lockText, [System.Text.UTF8Encoding]::new($false))
 
     if ($previous) {
         $before = [System.Collections.Generic.HashSet[string]]::new([string[]]@($previous.BySource.Keys))
