@@ -439,7 +439,7 @@ do -- the engineers' APC escaping through the portal is not a shot-down APC
     check(F.last(p[1], "FailMission")[3] == "bd08lsea.des" and m.apc == nil, "the APC is gone and the base debrief is shown")
 end
 do -- the restoration can be switched off
-    local f = assert(io.open("Scripts/bdmisn" .. "08cr.lua", "rb")); local source = f:read("*a"); f:close()
+    local f = assert(io.open(F.SCRIPT, "rb")); local source = f:read("*a"); f:close()
     check(source:find("local RESTORED_APC_LOSS_VOICE = true", 1, true), "the restoration has its flag")
     source = source:gsub("local RESTORED_APC_LOSS_VOICE = true", "local RESTORED_APC_LOSS_VOICE = false", 1)
     local saved = F.SCRIPT

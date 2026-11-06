@@ -414,7 +414,7 @@ do -- recycled in time: the deadline passes harmlessly
     check(F.count(p[1], "FailMission") == 0 and F.heardCount(p[1], "bd13005.wav") == 0, "an all-recycled field never meets the deadline")
 end
 for _, flag in ipairs({ "RESTORED_SILO_LOSS_VOICE", "RESTORED_EARLY_STRIKE_VOICE" }) do -- the restorations can be switched off
-    local f = assert(io.open("Scripts/bdmisn" .. "13cr.lua", "rb")); local source = f:read("*a"); f:close()
+    local f = assert(io.open(F.SCRIPT, "rb")); local source = f:read("*a"); f:close()
     check(source:find("local " .. flag .. " = true", 1, true), "the restoration has its flag: " .. flag)
     source = source:gsub("local " .. flag .. " = true", "local " .. flag .. " = false", 1)
     local saved = F.SCRIPT
