@@ -85,6 +85,7 @@ $RunStartUtc = $RunStart.ToUniversalTime()
 # ------------------------------------------------------------------- state ---
 $Steps = New-Object System.Collections.Generic.List[object]
 $Anoms = New-Object System.Collections.Generic.List[object]
+$script:Restores = 0
 $Snaps = New-Object System.Collections.Generic.List[object]
 $MonitorCsv = Join-Path $RunDir 'monitor.csv'
 'ts,phase,step,alive,responding,ping_ms,private_mb,ws_mb,handles,gdi,user,threads,cpu_s' | Set-Content $MonitorCsv
@@ -133,6 +134,10 @@ function Tick([switch]$Force) {
     $p = Get-Process -Id $script:GamePid -ErrorAction SilentlyContinue
     if (-not $p) { "$($now.ToString('HH:mm:ss.fff')),$script:Phase,$script:StepName,0,,,,,,,," | Add-Content $MonitorCsv; return }
     if ($script:Hwnd -eq [IntPtr]::Zero) { $script:Hwnd = [RS.Native]::MainWindow([uint32]$script:GamePid) }
+    if ([RS.Native]::RestoreIfMinimized($script:Hwnd)) {
+        # Usually the desktop (another game, Win+D) minimized the test window; noted, not failed.
+        $script:Restores++; Write-Host "  NOTE: game window was minimized during $script:StepName; restored without focus" -ForegroundColor Yellow
+    }
     $ping = -1; $resp = 0
     if ($script:Hwnd -ne [IntPtr]::Zero) { $ping = [RS.Native]::Ping($script:Hwnd, 3000); $resp = [int]($ping -ge 0) }
     $p.Refresh()
@@ -737,6 +742,7 @@ if ($FatalError) { W; W "**Run aborted:** $FatalError" }
 W; W '## Candidate'; W
 foreach ($k in $Identity.Keys) { W "- $k`: $($Identity[$k])" }
 W "- Settings restored byte-exact: $SettingsOk"; W "- Game exit code (main run): $script:ExitCode"
+W "- Game window found minimized and restored (not a failure): $script:Restores time(s)"
 W; W '| Installed binary | sha256 (12) | Bin\ in checkout |'; W '|---|---|---|'
 foreach ($k in $DllSet.Keys) { $leaf = Split-Path $DllSet[$k] -Leaf; $bn = if ($BinHashes.Contains($leaf)) { $BinHashes[$leaf].Substring(0, 12) } else { '' }; W "| $k | $($DllAfter[$k].Substring(0,[math]::Min(12,$DllAfter[$k].Length))) | $bn |" }
 W; W '## Anomalies'; W

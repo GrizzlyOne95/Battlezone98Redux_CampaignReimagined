@@ -21,6 +21,8 @@ public static class Native {
     [DllImport("user32.dll")] static extern bool PrintWindow(IntPtr h, IntPtr hdc, uint flags);
     [DllImport("user32.dll")] static extern bool PostMessage(IntPtr h, uint msg, IntPtr w, IntPtr l);
     [DllImport("user32.dll")] static extern bool IsHungAppWindow(IntPtr h);
+    [DllImport("user32.dll")] static extern bool IsIconic(IntPtr h);
+    [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr h, int cmd);
     [DllImport("user32.dll")] static extern IntPtr SendMessageTimeout(IntPtr h, uint m, IntPtr w, IntPtr l, uint f, uint t, out IntPtr r);
     [DllImport("user32.dll")] static extern uint GetGuiResources(IntPtr h, uint f);
     [DllImport("kernel32.dll")] static extern IntPtr OpenProcess(uint a, bool b, int pid);
@@ -40,6 +42,11 @@ public static class Native {
         return found;
     }
     public static bool Hung(IntPtr h) { return IsHungAppWindow(h); }
+    // A minimized game stops simulating (no ESC, 1x1 captures). SW_SHOWNOACTIVATE restores it without taking focus.
+    public static bool RestoreIfMinimized(IntPtr h) {
+        if (h == IntPtr.Zero || !IsIconic(h)) return false;
+        ShowWindow(h, 4); return true;
+    }
     // -1 = no answer within timeoutMs, else round-trip ms.
     public static int Ping(IntPtr h, uint timeoutMs) {
         var sw = System.Diagnostics.Stopwatch.StartNew(); IntPtr r;
