@@ -88,7 +88,7 @@ public static class Launcher {
     public static int Start(string exe, string cwd) {
         var si = new STARTUPINFO(); si.cb = Marshal.SizeOf(typeof(STARTUPINFO)); si.dwFlags = 1; si.wShowWindow = 4;
         PI pi;
-        if (!CreateProcessW(exe, "\"" + exe + "\"", IntPtr.Zero, IntPtr.Zero, false, 0, IntPtr.Zero, cwd, ref si, out pi))
+        if (!CreateProcessW(exe, "\"" + exe + "\" /nointro", IntPtr.Zero, IntPtr.Zero, false, 0, IntPtr.Zero, cwd, ref si, out pi))
             throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
         CloseHandle(pi.hThread); CloseHandle(pi.hProcess); return pi.dwProcessId;
     }

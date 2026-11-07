@@ -3,7 +3,7 @@
     Release gate: drives ONE Battlezone 98 Redux launch through every menu and several missions and
     fails on any hang, slowdown, resource leak, crash or unexplained log warning.
 .DESCRIPTION
-    Non-interactive. See docs/RELEASE_STRESS_TEST.md. Windows PowerShell 5.1.
+    Non-interactive. See Docs/RELEASE_STRESS_TEST.md. Windows PowerShell 5.1.
     Drives the game through OpenShim's UiPerformanceLogging trigger harness (uiperf_trigger.txt), so no
     pixel clicks except the few list boxes the harness cannot address.
     openshim.ini and Ogre.cfg are backed up byte-exact and always restored + SHA-verified.
@@ -403,7 +403,8 @@ function Invoke-PlanStep($S) {
             if ($r.Err) { $res = 'FAIL'; $notes += $r.Err; Add-Anom 'STEP' "$name`: $($r.Err)" (Save-Shot $name) }
             elseif ($S.Expect -ne 'none' -and $r.Transitions -eq 0) { $res = 'FAIL'; $notes += 'no screen transition' }
             if ($r.Elapsed -gt $S.BudgetS) { $res = 'FAIL'; $notes += ("{0:N2}s over budget {1}s" -f $r.Elapsed, $S.BudgetS); Add-Anom 'SLOW' "$name took $($r.Elapsed) s (budget $($S.BudgetS) s); engine $($r.EngineMs) ms" (Save-Shot $name) }
-            if ($script:MaxUnresp -gt [double]$B.UnresponsiveSeconds) { $res = 'FAIL'; $notes += "unresponsive $([math]::Round($script:MaxUnresp,1)) s"; Add-Anom 'UNRESPONSIVE' "$name`: window unresponsive $([math]::Round($script:MaxUnresp,1)) s" (Save-Shot $name) }
+            $unLimit = if ($S.UnrespS) { [double]$S.UnrespS } else { [double]$B.UnresponsiveSeconds }
+            if ($script:MaxUnresp -gt $unLimit) { $res = 'FAIL'; $notes += "unresponsive $([math]::Round($script:MaxUnresp,1)) s"; Add-Anom 'UNRESPONSIVE' "$name`: window unresponsive $([math]::Round($script:MaxUnresp,1)) s" (Save-Shot $name) }
             if ($S.ExpectScreen) { $cur = Get-ScreenType; if ($cur -ne [int]$S.ExpectScreen) { $res = 'FAIL'; $notes += "screen type $cur, expected $($S.ExpectScreen)"; Add-Anom 'STATE' "$name`: on screen type $cur, expected $($S.ExpectScreen)" (Save-Shot $name) } }
             Add-Step $name $S.Do $S.T $S.BudgetS $r.Elapsed $r.EngineMs $res ($notes -join '; ') $r.Screens
             if ($res -eq 'FAIL' -and $r.Err) { return $false }

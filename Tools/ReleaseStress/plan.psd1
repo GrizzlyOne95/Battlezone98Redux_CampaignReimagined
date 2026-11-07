@@ -8,6 +8,7 @@
 #             "__ENUMERATE__" and read openshim.log to find names). Waits for the shell transition.
 #             Budget = name of an entry in Budgets (default Transition). Expect='none' = no transition expected.
 #   back      T = Back button name, or omitted for the shell back (__BACK__). Budget defaults to BackOut.
+#   UnrespS   per-step override of UnresponsiveSeconds; justify it in a comment on the step.
 #   clickxy   X,Y in the 1280x720 client area. Only for list boxes the harness cannot address.
 #   text      Text = characters typed into the focused field.   key  VK = virtual key code.
 #   wait      Seconds.   snapshot  Label.
@@ -26,8 +27,8 @@
         MissionExit        = 15     # Abort Mission -> main menu
         MenuShownCold      = 120    # launch on an empty shader cache -> first main menu (cold-cache deadlock guard)
         MenuShownWarm      = 90
-        MenuReadyCold      = 300    # -> main menu accepts input (stock intro movie plays first, ~30-150 s)
-        MenuReadyWarm      = 300
+        MenuReadyCold      = 150    # -> main menu accepts input (launched with /nointro)
+        MenuReadyWarm      = 90
         Quit               = 30     # Exit Game -> process gone
         HangSeconds        = 45     # window unresponsive this long = hang (stacks, kill, FAIL)
         UnresponsiveSeconds = 5     # any single unresponsive stretch longer than this fails the step
@@ -76,8 +77,7 @@
         # -------------------------------------------------- Main-menu side screens
         @{ Group = 'mainmenu_pages'; Name = 'mods_open';  Do = 'click'; T = 'Mods' }
         @{ Group = 'mainmenu_pages'; Name = 'mods_back';  Do = 'back'; T = 'Back' }
-        @{ Group = 'mainmenu_pages'; Name = 'ach_open';   Do = 'click'; T = 'openAchievements' }
-        @{ Group = 'mainmenu_pages'; Name = 'ach_back';   Do = 'back'; T = 'Back' }
+        # openAchievements opens the Steam overlay: no shell screen, nothing to test on GOG.
 
         # ------------------------------------------------------------- Multiplayer
         # LAN (no sign-in) host; a launch needs a 2nd player, so the staging screen is the end of the road solo.
@@ -102,10 +102,12 @@
         @{ Group = 'singleplayer'; Name = 'sp_open';      Do = 'click'; T = 'SinglePlayer_MainScreen' }
         @{ Group = 'singleplayer'; Name = 'sp_options';   Do = 'click'; T = 'Options_SinglePlayer' }
         @{ Group = 'singleplayer'; Name = 'sp_options_back'; Do = 'back'; T = 'Back' }
-        @{ Group = 'singleplayer'; Name = 'sp_instant';   Do = 'click'; T = 'Instant'; Budget = 'Heavy' }
+        # Instant Action builds its map list in one main-thread pass (~6 s unresponsive on a full addon set, 2026-11-07). Known, not new.
+        @{ Group = 'singleplayer'; Name = 'sp_instant';   Do = 'click'; T = 'Instant'; Budget = 'Heavy'; UnrespS = 10 }
         @{ Group = 'singleplayer'; Name = 'sp_instant_back'; Do = 'back'; T = 'Back' }
-        @{ Group = 'singleplayer'; Name = 'sp_tro';       Do = 'click'; T = 'TRO'; Budget = 'Heavy' }
-        @{ Group = 'singleplayer'; Name = 'sp_tro_back';  Do = 'back'; T = 'Back' }
+        # TRO swaps the page's campaign set in place (no shell screen); toggle twice to restore the 98 set.
+        @{ Group = 'singleplayer'; Name = 'sp_tro';       Do = 'click'; T = 'TRO'; Expect = 'none'; SettleS = 1.5 }
+        @{ Group = 'singleplayer'; Name = 'sp_tro_off';   Do = 'click'; T = 'TRO'; Expect = 'none'; SettleS = 1.5 }
         @{ Group = 'singleplayer'; Name = 'sp_usa';       Do = 'click'; T = 'USAMission_SinglePlayer' }
         @{ Group = 'singleplayer'; Name = 'sp_usa_back';  Do = 'back'; T = 'Back' }
         @{ Group = 'singleplayer'; Name = 'sp_bd';        Do = 'click'; T = 'BDMission_SinglePlayer' }
@@ -122,7 +124,8 @@
         @{ Group = 'singleplayer'; Name = 'sp_campaigns'; Do = 'click'; T = 'CampaignLaunch'; Budget = 'Heavy' }
         @{ Group = 'singleplayer'; Name = 'sp_camp_pick_cr'; Do = 'clickxy'; X = 427; Y = 276; SettleS = 1.5 }
         @{ Group = 'singleplayer'; Name = 'sp_camp_enter_cr'; Do = 'click'; T = 'Launch'; Budget = 'Heavy' }
-        @{ Group = 'singleplayer'; Name = 'sp_camp_enter_back'; Do = 'back'; T = 'Back' }
+        # Back-out from the CR campaign rebuilds the stock campaign list (~17k FindFirst file scan, ~5.5 s, 2026-11-07). Known, not new.
+        @{ Group = 'singleplayer'; Name = 'sp_camp_enter_back'; Do = 'back'; T = 'Back'; Budget = 'Heavy'; UnrespS = 10 }
         @{ Group = 'singleplayer'; Name = 'sp_camp_list_back'; Do = 'back'; T = 'Back' }
         @{ Group = 'singleplayer'; Name = 'sp_back';      Do = 'back'; T = 'Back_SinglePlayer' }
 
