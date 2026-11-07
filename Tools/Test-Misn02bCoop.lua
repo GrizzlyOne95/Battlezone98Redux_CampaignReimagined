@@ -282,8 +282,8 @@ check(not host.pilotOptions.shouldManageHandle(clients[1].player), "pilot mode c
 clients[1].skip = true; host.skip = true; tick(0.1); settle()
 check(host.state.camera1 and count(clients[1], "CameraFinish") > 0, "local skip advanced shared intro")
 host.audioDone = true; tick(0.1); settle()
-check(not host.state.camera3 and host.state.initialObjectiveCompleted, "shared intro/vehicle gate stuck")
-for _, c in ipairs(clients) do check(count(c, "Play") == 2 and count(c, "UpdateObjective") == 1, "post-intro HUD/audio missing") end
+check(not host.state.camera3, "shared intro gate stuck")
+for _, c in ipairs(clients) do check(count(c, "Play") == 2 and count(c, "AddObjective") >= 1 and count(c, "UpdateObjective") == 0, "post-intro HUD/audio missing, or the objective turned green before the scavenger (stock never does)") end
 
 -- Build the first scavenger, activate the staged enemy, retreat and rescue.
 local scav = host.env.BuildObject("avscav", 1, "start")
