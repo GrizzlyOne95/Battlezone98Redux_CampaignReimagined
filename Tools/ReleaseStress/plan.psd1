@@ -24,8 +24,10 @@
         BackOut            = 1.0    # backing out of a screen (campaign back-out took 23 s before a fix)
         MissionLoad        = 60     # Launch -> first frame
         MissionExit        = 15     # Abort Mission -> main menu
-        MenuReadyCold      = 180    # launch on an empty shader cache -> usable main menu
-        MenuReadyWarm      = 150
+        MenuShownCold      = 120    # launch on an empty shader cache -> first main menu (cold-cache deadlock guard)
+        MenuShownWarm      = 90
+        MenuReadyCold      = 300    # -> main menu accepts input (stock intro movie plays first, ~30-150 s)
+        MenuReadyWarm      = 300
         Quit               = 30     # Exit Game -> process gone
         HangSeconds        = 45     # window unresponsive this long = hang (stacks, kill, FAIL)
         UnresponsiveSeconds = 5     # any single unresponsive stretch longer than this fails the step
@@ -51,31 +53,31 @@
         @{ Group = 'options'; Name = 'opt_input_back'; Do = 'back'; T = 'Back' }
         @{ Group = 'options'; Name = 'osh_open';   Do = 'click'; T = 'OpenShimSettingsMenuButton' }
         @{ Group = 'options'; Name = 'osh_video';    Do = 'click'; T = 'OpenShimHub_Video' }
-        @{ Group = 'options'; Name = 'osh_video_back';    Do = 'back' }
+        @{ Group = 'options'; Name = 'osh_video_back';    Do = 'back'; T = 'OpenShimCategory_Back' }
         @{ Group = 'options'; Name = 'osh_lighting'; Do = 'click'; T = 'OpenShimHub_Lighting' }
-        @{ Group = 'options'; Name = 'osh_lighting_back'; Do = 'back' }
+        @{ Group = 'options'; Name = 'osh_lighting_back'; Do = 'back'; T = 'OpenShimCategory_Back' }
         @{ Group = 'options'; Name = 'osh_audio';    Do = 'click'; T = 'OpenShimHub_Audio' }
-        @{ Group = 'options'; Name = 'osh_audio_back';    Do = 'back' }
+        @{ Group = 'options'; Name = 'osh_audio_back';    Do = 'back'; T = 'OpenShimCategory_Back' }
         @{ Group = 'options'; Name = 'osh_hud';      Do = 'click'; T = 'OpenShimHub_HUD' }
-        @{ Group = 'options'; Name = 'osh_hud_back';      Do = 'back' }
+        @{ Group = 'options'; Name = 'osh_hud_back';      Do = 'back'; T = 'OpenShimCategory_Back' }
         @{ Group = 'options'; Name = 'osh_controls'; Do = 'click'; T = 'OpenShimHub_Controls' }
-        @{ Group = 'options'; Name = 'osh_controls_back'; Do = 'back' }
+        @{ Group = 'options'; Name = 'osh_controls_back'; Do = 'back'; T = 'OpenShimCategory_Back' }
         @{ Group = 'options'; Name = 'osh_gameplay'; Do = 'click'; T = 'OpenShimHub_Gameplay' }
-        @{ Group = 'options'; Name = 'osh_gameplay_back'; Do = 'back' }
+        @{ Group = 'options'; Name = 'osh_gameplay_back'; Do = 'back'; T = 'OpenShimCategory_Back' }
         @{ Group = 'options'; Name = 'osh_fixes';    Do = 'click'; T = 'OpenShimHub_Fixes' }
-        @{ Group = 'options'; Name = 'osh_fixes_back';    Do = 'back' }
+        @{ Group = 'options'; Name = 'osh_fixes_back';    Do = 'back'; T = 'OpenShimCategory_Back' }
         @{ Group = 'options'; Name = 'osh_network';  Do = 'click'; T = 'OpenShimHub_Network' }
-        @{ Group = 'options'; Name = 'osh_network_back';  Do = 'back' }
+        @{ Group = 'options'; Name = 'osh_network_back';  Do = 'back'; T = 'OpenShimCategory_Back' }
         @{ Group = 'options'; Name = 'osh_system';   Do = 'click'; T = 'OpenShimHub_System' }
-        @{ Group = 'options'; Name = 'osh_system_back';   Do = 'back' }
+        @{ Group = 'options'; Name = 'osh_system_back';   Do = 'back'; T = 'OpenShimCategory_Back' }
         @{ Group = 'options'; Name = 'osh_hub_back'; Do = 'back'; T = 'OpenShimHub_Back' }
         @{ Group = 'options'; Name = 'opt_close';  Do = 'back'; T = 'Back' }
 
         # -------------------------------------------------- Main-menu side screens
         @{ Group = 'mainmenu_pages'; Name = 'mods_open';  Do = 'click'; T = 'Mods' }
-        @{ Group = 'mainmenu_pages'; Name = 'mods_back';  Do = 'back' }
+        @{ Group = 'mainmenu_pages'; Name = 'mods_back';  Do = 'back'; T = 'Back' }
         @{ Group = 'mainmenu_pages'; Name = 'ach_open';   Do = 'click'; T = 'openAchievements' }
-        @{ Group = 'mainmenu_pages'; Name = 'ach_back';   Do = 'back' }
+        @{ Group = 'mainmenu_pages'; Name = 'ach_back';   Do = 'back'; T = 'Back' }
 
         # ------------------------------------------------------------- Multiplayer
         # LAN (no sign-in) host; a launch needs a 2nd player, so the staging screen is the end of the road solo.
@@ -101,21 +103,21 @@
         @{ Group = 'singleplayer'; Name = 'sp_options';   Do = 'click'; T = 'Options_SinglePlayer' }
         @{ Group = 'singleplayer'; Name = 'sp_options_back'; Do = 'back'; T = 'Back' }
         @{ Group = 'singleplayer'; Name = 'sp_instant';   Do = 'click'; T = 'Instant'; Budget = 'Heavy' }
-        @{ Group = 'singleplayer'; Name = 'sp_instant_back'; Do = 'back' }
+        @{ Group = 'singleplayer'; Name = 'sp_instant_back'; Do = 'back'; T = 'Back' }
         @{ Group = 'singleplayer'; Name = 'sp_tro';       Do = 'click'; T = 'TRO'; Budget = 'Heavy' }
-        @{ Group = 'singleplayer'; Name = 'sp_tro_back';  Do = 'back' }
+        @{ Group = 'singleplayer'; Name = 'sp_tro_back';  Do = 'back'; T = 'Back' }
         @{ Group = 'singleplayer'; Name = 'sp_usa';       Do = 'click'; T = 'USAMission_SinglePlayer' }
-        @{ Group = 'singleplayer'; Name = 'sp_usa_back';  Do = 'back' }
+        @{ Group = 'singleplayer'; Name = 'sp_usa_back';  Do = 'back'; T = 'Back' }
         @{ Group = 'singleplayer'; Name = 'sp_bd';        Do = 'click'; T = 'BDMission_SinglePlayer' }
-        @{ Group = 'singleplayer'; Name = 'sp_bd_back';   Do = 'back' }
+        @{ Group = 'singleplayer'; Name = 'sp_bd_back';   Do = 'back'; T = 'Back' }
         @{ Group = 'singleplayer'; Name = 'sp_ussr';      Do = 'click'; T = 'USSRMission_SinglePlayer' }
-        @{ Group = 'singleplayer'; Name = 'sp_ussr_back'; Do = 'back' }
+        @{ Group = 'singleplayer'; Name = 'sp_ussr_back'; Do = 'back'; T = 'Back' }
         @{ Group = 'singleplayer'; Name = 'sp_ch';        Do = 'click'; T = 'CHMission_SinglePlayer' }
-        @{ Group = 'singleplayer'; Name = 'sp_ch_back';   Do = 'back' }
+        @{ Group = 'singleplayer'; Name = 'sp_ch_back';   Do = 'back'; T = 'Back' }
         @{ Group = 'singleplayer'; Name = 'sp_training';  Do = 'click'; T = 'trainingMission_SinglePlayer' }
-        @{ Group = 'singleplayer'; Name = 'sp_training_back'; Do = 'back' }
+        @{ Group = 'singleplayer'; Name = 'sp_training_back'; Do = 'back'; T = 'Back' }
         @{ Group = 'singleplayer'; Name = 'sp_load';      Do = 'click'; T = 'LoadMission_SinglePlayer' }
-        @{ Group = 'singleplayer'; Name = 'sp_load_back'; Do = 'back' }
+        @{ Group = 'singleplayer'; Name = 'sp_load_back'; Do = 'back'; T = 'Back' }
         # Custom Campaign list > Campaign Reimagined > enter, then back out twice (23 s back-out regression guard)
         @{ Group = 'singleplayer'; Name = 'sp_campaigns'; Do = 'click'; T = 'CampaignLaunch'; Budget = 'Heavy' }
         @{ Group = 'singleplayer'; Name = 'sp_camp_pick_cr'; Do = 'clickxy'; X = 427; Y = 276; SettleS = 1.5 }

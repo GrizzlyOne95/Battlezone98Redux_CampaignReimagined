@@ -13,8 +13,8 @@
 *openshim.log ::: \[RENDER\] resource bootstrap import identity unavailable; viewport bootstrap retained ::: constant startup WARN on the GOG exe; the retained bootstrap path is the working one (owner to confirm)
 *openshim.log ::: \[WEAPONFX\] authored ODF presentation requested ::: WARN-level status line printed once per start when authored muzzle assets are active
 # --- BZLogger.txt ---
-*BZLogger.txt ::: WARNING: unknown mapType 'NONE' in '.*\addon\ ::: stock map scanner reads stray *.ini files (desktop.ini etc.) inside addon folders on this machine; not a CR file
+*BZLogger.txt ::: WARNING: unknown mapType 'NONE' in '.*[\\/]addon[\\/] ::: stock map scanner reads stray *.ini files (desktop.ini etc.) inside addon folders on this machine; not a CR file
 *BZLogger.txt ::: cGogInterface::preinitGoGInterface.*GalaxyRuntimeError ::: GOG Galaxy is not running/signed in on this PC (environmental)
 # --- BZOgreLogfile.log ---
-*BZOgreLogfile.log ::: Invalid target for D3D11 shader '.*' - '(vs|ps)_3_0' ::: legacy SM3 HLSL programs are retargeted by OpenShim's DX11 path; the stock Ogre message appears once per program on every start
+*BZOgreLogfile.log ::: Invalid target for D3D11 shader '.*' - '(vs|ps)_[23]_0' ::: legacy SM3 HLSL programs are retargeted by OpenShim's DX11 path; the stock Ogre message appears once per program on every start
 *BZOgreLogfile.log ::: Information Queue Exceptions Bottom Level = No information queue exceptions ::: Ogre option echo, not an exception

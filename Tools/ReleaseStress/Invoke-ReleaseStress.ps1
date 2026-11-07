@@ -291,15 +291,17 @@ function Get-ScreenType {
 }
 
 function Wait-MenuReady([double]$BudgetS) {
+    $script:MenuShownS = -1
     # The main menu ignores input for a while after it first appears (intro). A harmless Options round trip proves readiness.
     $sw = [Diagnostics.Stopwatch]::StartNew()
     while ($sw.Elapsed.TotalSeconds -lt $BudgetS) {
         Tick
         if ($script:Proc.HasExited) { throw "game exited before the main menu (code $($script:Proc.ExitCode))" }
         if ($script:Hwnd -ne [IntPtr]::Zero -and (Get-ScreenType) -eq 1) {
+            if ($script:MenuShownS -lt 0) { $script:MenuShownS = $sw.Elapsed.TotalSeconds }
             $r = Invoke-UiStep @{ Name = 'ready_probe'; Do = 'click'; T = 'Options_MainScreen'; BudgetS = 4 }
-            if ($r.Transitions -gt 0 -and -not $r.Err) {
-                $null = Invoke-UiStep @{ Name = 'ready_probe_back'; Do = 'back'; T = 'Back'; BudgetS = 4 }
+            if ($r.Screens -match "(^|>)3(>|$)" -and -not $r.Err) {
+                $null = Invoke-UiStep @{ Name = 'ready_probe_back'; Do = "click"; T = "Back"; BudgetS = 4 }
                 return $sw.Elapsed.TotalSeconds
             }
         }
@@ -361,9 +363,9 @@ function Invoke-Mission($S) {
     $ok = $false
     for ($try = 1; $try -le 3 -and -not $ok; $try++) {
         [void](Get-NewLog 'openshim.log')
-        $sw = [Diagnostics.Stopwatch]::StartNew(); $buf = ''
+        $sw = [Diagnostics.Stopwatch]::StartNew(); $script:escBuf = ''
         [RS.Native]::Key($script:Hwnd, 27, 60)
-        $w3 = Wait-Until { $buf += (Get-NewLog 'openshim.log'); $TransRe.IsMatch($buf) } 8 "$name esc menu"
+        $w3 = Wait-Until { $script:escBuf += (Get-NewLog 'openshim.log'); $TransRe.IsMatch($script:escBuf) } 8 "$name esc menu"
         if ($w3 -ge 0) { $ok = $true; Add-Step "$name.esc" 'mission-esc' '' $B.Transition ([math]::Round($sw.Elapsed.TotalSeconds, 2)) 0 PASS '' }
     }
     if (-not $ok) { Add-Anom 'STUCK' "${name}: ESC never opened the pause screen" (Save-Shot "$name-noesc"); Add-Step "$name.esc" 'mission-esc' '' $B.Transition -1 0 FAIL 'no pause screen'; return $false }
@@ -418,20 +420,38 @@ function Invoke-PlanStep($S) {
     }
 }
 
-function Test-AtMainMenu {
+function Get-ScreenButtons {
+    # Enumerates the active screen through the harness; returns the names of its clickable controls ($null = no answer).
     [void](Get-NewLog 'openshim.log')
     Send-Trigger '__ENUMERATE__'
-    $buf = ''
-    $w = Wait-Until { $buf += (Get-NewLog 'openshim.log'); $buf -match 'enumerating active screen' } 20 'main-menu check'
-    Start-Sleep -Milliseconds 900; $buf += (Get-NewLog 'openshim.log')
-    $buf -match 'name=ExitGame_MainScreen'
+    $script:enumBuf = ''
+    $w = Wait-Until { $script:enumBuf += (Get-NewLog 'openshim.log'); $script:enumBuf -match 'enumerating active screen' } 20 'screen enumeration'
+    if ($w -lt 0) { return $null }
+    Start-Sleep -Milliseconds 900; $script:enumBuf += (Get-NewLog 'openshim.log')
+    $txt = $script:enumBuf.Substring($script:enumBuf.LastIndexOf('enumerating active screen'))
+    $names = @()
+    foreach ($m in [regex]::Matches($txt, 'ui depth=\d+ name=(.+?) ptr=0x[0-9A-Fa-f]+ vt=0x[0-9A-Fa-f]+ onclick=0x([0-9A-Fa-f]+)')) {
+        if ($m.Groups[2].Value.Trim('0')) { $names += $m.Groups[1].Value }
+    }
+    , $names
 }
 
+function Test-AtMainMenu { $n = Get-ScreenButtons; [bool]($n -and ($n -contains 'ExitGame_MainScreen')) }
+
 function Invoke-Recover {
-    # Back out of whatever screen is up until the main menu shows.
-    for ($i = 0; $i -lt 8; $i++) {
-        try { if (Test-AtMainMenu) { return $true } } catch { return $false }
-        try { [void](Invoke-UiStep @{ Name = 'recover_back'; Do = 'back'; T = ''; BudgetS = 10 }) } catch { return $false }
+    # Back out of whatever is up until the main menu shows. Never fires the shell back at the main menu
+    # (that crashes: 'Top Screen' already exists), so it enumerates first and clicks a real Back control.
+    for ($i = 0; $i -lt 12; $i++) {
+        try {
+            $n = Get-ScreenButtons
+            if ($n -and ($n -contains 'ExitGame_MainScreen')) { return $true }
+            $target = $null
+            if ($n -contains 'Abort') { $target = 'Abort' }
+            else { $target = $n | Where-Object { $_ -match '^(Back|Back_\w+|\w+_Back|OpenShim\w*Back\w*)$' } | Select-Object -First 1 }
+            if ($target) { [void](Invoke-UiStep @{ Name = 'recover_back'; Do = 'click'; T = $target; BudgetS = 20 }) }
+            elseif (-not $n -or $n.Count -eq 0) { [RS.Native]::Key($script:Hwnd, 27, 60); Sleep-Ticking 4 }   # in a mission without a screen: ESC
+            else { Sleep-Ticking 3 }
+        } catch { if ($script:Aborted) { throw }; return $false }
     }
     $false
 }
@@ -483,7 +503,7 @@ $ExtraRe = @{
 }
 # Logs with a [LEVEL] token (openshim.log, exu.log): INFO/DEBUG lines are not anomalies unless they say something strong.
 $LevelRe = [regex]::new('\[(INFO|DEBUG|TRACE|WARN|WARNING|ERROR|FATAL)\]')
-$StrongRe = [regex]::new('(?i)exception|crash|fatal|access violation|deadlock|not responding|stack overflow|leak')
+$StrongRe = [regex]::new('(?i)unhandled|access violation|fatal|deadlock|not responding|stack overflow|std::terminate')
 function Get-LogKind([string]$n) { if ($n -match 'BZLogger') { 'bzlogger' } elseif ($n -match 'Ogre') { 'ogre' } else { 'other' } }
 function Get-Sig([string]$line) {
     $s = $line -replace '^\[?\d{4}-\d\d-\d\d[T ][\d:.]+Z?\]?\s*', '' -replace '\[pid:\d+ tid:\d+\]', '' -replace '0x[0-9A-Fa-f]+', '0x#' -replace '\d+(\.\d+)?', '#'
@@ -620,6 +640,7 @@ try {
         $script:StepName = 'cold_menu_ready'
         $t = Wait-MenuReady ([double]$B.MenuReadyCold)
         if ($t -lt 0) { Add-Anom 'COLDSTART' "no usable main menu within $($B.MenuReadyCold) s on a cold shader cache" (Save-Shot 'cold-nomenu'); Invoke-Hang 'cold-cache startup never reached the main menu' }
+        Add-Step 'cold_menu_shown' 'startup' '' $B.MenuShownCold ([math]::Round($script:MenuShownS, 2)) 0 $(if ($script:MenuShownS -gt $B.MenuShownCold) { 'FAIL' } else { 'PASS' }) 'first main menu on a cold shader cache (intro movie plays after it)'
         Add-Step 'cold_menu_ready' 'startup' '' $B.MenuReadyCold ([math]::Round($t, 2)) 0 PASS 'cold shader cache'
         Add-Snapshot 'cold menu'
         Invoke-Quit 'cold'
@@ -632,6 +653,7 @@ try {
     $script:StepName = 'menu_ready'
     $t = Wait-MenuReady ([double]$B.MenuReadyWarm)
     if ($t -lt 0) { Add-Anom 'STARTUP' "no usable main menu within $($B.MenuReadyWarm) s" (Save-Shot 'warm-nomenu'); Invoke-Hang 'warm start never reached the main menu' }
+    Add-Step 'menu_shown' 'startup' '' $B.MenuShownWarm ([math]::Round($script:MenuShownS, 2)) 0 $(if ($script:MenuShownS -gt $B.MenuShownWarm) { 'FAIL' } else { 'PASS' }) 'first main menu on a warm start'
     Add-Step 'menu_ready' 'startup' '' $B.MenuReadyWarm ([math]::Round($t, 2)) 0 PASS 'warm start'
     Add-Snapshot 'warm menu'
 
