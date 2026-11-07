@@ -663,7 +663,7 @@ local function PressPathFighters()
         if not IsAlive(h) or GetTeamNum(h) ~= ENEMY_TEAM then
             table.remove(list, i)
         elseif now >= entry.after and GetCurrentCommand(h) == AiCommand.NONE then
-            local target = (IsAlive(M.bscav) and M.bscav) or (IsAlive(M.scav2) and M.scav2) or nil
+            local target = (IsAlive(M.scav2) and M.scav2) or (IsAlive(M.bscav) and M.bscav) or nil
             if target then Attack(h, target) end
             table.remove(list, i)
         end
