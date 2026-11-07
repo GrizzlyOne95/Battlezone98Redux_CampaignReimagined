@@ -1,4 +1,5 @@
 [GameObjectClass]
+baseName = "avturr"
 classLabel = "turrettank"
 scrapCost = 6
 scrapValue = 4
