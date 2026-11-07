@@ -71,7 +71,8 @@ if (Test-Path -LiteralPath $PendingFile) {
 if ($Restore) { Write-Host 'Restore complete.'; return }
 
 # ----------------------------------------------------------------- preflight --
-if (@(Get-Process -Name battlezone98redux -ErrorAction SilentlyContinue).Count) { throw 'battlezone98redux.exe is already running; refusing to start.' }
+# Only a copy running from this install blocks the run; another install (e.g. Steam) may run alongside.
+if (@(Get-Process -Name battlezone98redux -ErrorAction SilentlyContinue | Where-Object { $_.Path -and ($_.Path -ieq $Exe) }).Count) { throw "battlezone98redux.exe is already running from $GameDir; refusing to start." }
 if (-not (Test-Path -LiteralPath $Exe)) { throw "Game not found: $Exe" }
 $PlanData = Import-PowerShellDataFile -LiteralPath $Plan
 $B = $PlanData.Budgets
