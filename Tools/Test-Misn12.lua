@@ -120,6 +120,7 @@ local modules = {
     -- The real module plays through AudioMessage and returns its handle.
     ScriptSubtitles = {Play = function(file) return AudioMessage(file) end,
         Queue = function(file) return AudioMessage(file) end, Stop = noop, Update = noop, Initialize = noop},
+    CRTeamSkins = {Reset = noop, Update = noop},
     CREuropaSites12 = {mission = "misn12"},
     CREuropaWeather = {Seed = 1, Init = noop, Update = noop, Shutdown = noop, OnObjectCreated = noop,
         Save = function() return {tag = "weather"} end, Load = noop, AnnounceState = noop,
