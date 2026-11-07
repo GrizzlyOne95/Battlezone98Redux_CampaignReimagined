@@ -1,7 +1,82 @@
 [GameObjectClass]
-baseName = "avturr"
 classLabel = "turrettank"
+scrapCost = 6
+scrapValue = 4
+buildTime = 7.0
+maxHealth = 2200
+maxAmmo = 2000
+unitName = "Turret"
+aiName = "TurretTankFriend"
+aiName2 = "TurretTankEnemy"
 retargetPeriodAI = 0.20
+heatSignature = 0.1
+imageSignature = 2.0
+radarSignature = 0.1
+weaponHard1 = "GC1"
+weaponName1 = "gtminig"
+weaponHard2 = "GC2"
+weaponName2 = ""
 
 [CraftClass]
+// CR CRAFT FLASH OFFSET BEGIN
+// Flash point from the hardpoint (right up forward, metres: barrel tip, or 0 0 0 at
+// a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
+// Regenerate: Tools/Build-WeaponFlashes.py --measure
+flashOffset1 = "0.69 0.38 0.27"
+// CR CRAFT FLASH OFFSET END
+// CR CRAFT RECOIL BEGIN
+// Reviewed independent gun pieces; preserve aiming and deployment parents.
+// Regenerate: python Tools/Build-CombatPresentation.py
+recoilName1 = "aDE11blc"
+recoilDistance1 = 0.08
+recoilReturn1 = 0.8
+recoilKick1 = 0.25
+// CR CRAFT RECOIL END
+rangeScan = 229.99999999999997
 periodScan = 0.0
+velocJam = 1.0
+selectGoMsg = "avturrvb.wav"
+selectAttackMsg = "avturrvc.wav"
+selectDeployMsg = "avturrv0.wav"
+selectOtherMsg = "avturrve.wav"
+goMsg = "avturrv1.wav"
+followMeMsg = "avturrv8.wav"
+reloadMsg = "avturrvg.wav"
+repairMsg = "avturrvh.wav"
+rescueMsg = "avturrvj.wav"
+recycleMsg = "avturrvf.wav"
+otherMsg = "avturrvd.wav"
+deployedMsg = "avturrv6.wav"
+killedMsg = "avturrv3.wav"
+diedMsg = "abetty2.wav"
+
+[HoverCraftClass]
+setAltitude = 0.5
+accelDragStop = 4.0
+accelDragFull = 1.0
+alphaTrack = 10.0
+alphaDamp = 3.0
+pitchPitch = 0.5
+pitchThrust = 0.1
+rollStrafe = 0.1
+rollSteer = 0.1
+velocForward = 15.0
+velocReverse = 15.0
+velocStrafe = 15.0
+accelThrust = 50.0
+accelBrake = 50.0
+omegaSpin = 3.5
+omegaTurn = 1.5
+alphaSteer = 5.0
+accelJump = 0.0
+soundThrust = "avturre6.wav"
+soundSteer = "avturre8.wav"
+soundDeploy = "avturre4.wav"
+soundUndeploy = "avturre5.wav"
+
+[TurretTankClass]
+omegaTurret = 2.0
+alphaTurret = 5.0
+timeDeploy = 8.0
+timeUndeploy = 0.7
+
