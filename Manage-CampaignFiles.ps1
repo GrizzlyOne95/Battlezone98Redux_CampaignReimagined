@@ -2252,11 +2252,12 @@ function Get-ReleaseGateStatus {
     if ($pass.cr_head -ne $head) {
         # A later commit (the PR merge, a CHANGELOG line, docs) keeps the pass only if every path it
         # touches is on this allow-list of files that never ship. Anything else needs a new run.
+        # Docs\openshim_support_* is the exception: Workshop staging ships it.
         $changed = @(& git -C $RepoRoot -c core.quotepath=false diff --no-renames --name-only "$($pass.cr_head)" $head 2>$null)
         if ($LASTEXITCODE -ne 0) {
             return [pscustomobject]@{ Ok = $false; Reason = "last pass was for commit $($pass.cr_head), which git cannot diff against HEAD $head" }
         }
-        $shipped = @($changed | Where-Object { $_ -and $_ -notmatch '^(Docs|docs|\.github)/' -and $_ -notmatch '^[^/]+\.md$' })
+        $shipped = @($changed | Where-Object { $_ -and (($_ -notmatch '^(Docs|docs|\.github)/' -and $_ -notmatch '^[^/]+\.md$') -or $_ -match '^Docs/openshim_support_') })
         if ($shipped.Count -gt 0) {
             return [pscustomobject]@{ Ok = $false; Reason = "files outside Docs\ and *.md changed since the passing run on $($pass.cr_head): $(($shipped | Select-Object -First 5) -join ', ')" }
         }
