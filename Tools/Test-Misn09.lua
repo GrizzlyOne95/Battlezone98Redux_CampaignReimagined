@@ -59,6 +59,7 @@ end
 local function noop() end
 local pda = {Initialize = 0, UpdateInputs = 0, UpdateHeadlights = 0, OnObjectCreated = 0}
 local modules = {
+    CRTeamSkins = {Reset = noop, Update = noop},
     PersistentConfig = {
         Initialize = function() pda.Initialize = pda.Initialize + 1 end,
         UpdateInputs = function() pda.UpdateInputs = pda.UpdateInputs + 1 end,
