@@ -26,6 +26,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $OnlyPhases = @($OnlyPhases | ForEach-Object { $_ -split ',' } | Where-Object { $_ })
+$CustomPlan = [bool]$Plan
 if (-not $Plan) { $Plan = Join-Path $PSScriptRoot 'plan.psd1' }
 . (Join-Path $PSScriptRoot 'ReleaseStress.Lib.ps1')
 
@@ -337,17 +338,20 @@ function Invoke-Mission($S) {
     $t0 = Get-Date
     Send-Trigger ($(if ($S.T) { $S.T } else { 'Launch' }))
     $script:bzAll = ''; $script:osAll = ''; $script:b4 = ''
-    $w = Wait-Until { $script:bzAll += (Get-NewLog 'BZLogger.txt'); $script:osAll += (Get-NewLog 'openshim.log'); $script:bzAll -match 'Starting Game Simulator' } ($loadBudget * 2) "$name sim start"
-    if ($w -lt 0) { Add-Anom 'TIMEOUT' "${name}: simulator never started"; Add-Step $name 'mission' '' $loadBudget -1 0 'FAIL' 'sim never started'; return $false }
+    $w = Wait-Until { $script:bzAll += (Get-NewLog 'BZLogger.txt'); $script:osAll += (Get-NewLog 'openshim.log'); $script:bzAll -match 'Sim Startup: Post Load after' } ($loadBudget * 2) "$name load finished"
+    # 'Post Load' is the end of the loading screen; 'Starting Game Simulator' / 'Mission Load after' come
+    # before terrain and object loading (88 s apart on a cold planet), and the trigger harness answers
+    # during the loading screen, so neither marks "in game".
+    if ($w -lt 0) { Add-Anom 'TIMEOUT' "${name}: mission load never finished"; Add-Step $name 'mission' '' $loadBudget -1 0 'FAIL' 'load never finished'; return $false }
     # Liveness probe: the trigger is delivered by the main loop, so delivery = first frame after load.
     Send-Trigger '__ENUMERATE__'
     $w2 = Wait-Until { $script:osAll += (Get-NewLog 'openshim.log'); $script:bzAll += (Get-NewLog 'BZLogger.txt'); $script:osAll -match 'trigger=__ENUMERATE__ detected' } ($loadBudget * 2) "$name main loop after load"
     $loadS = ((Get-Date) - $t0).TotalSeconds
     $loadUnresp = $script:MaxUnresp
-    $loadMs = if ($script:bzAll -match 'Mission Load after (\d+) ms') { [int]$Matches[1] } else { -1 }
+    $loadMs = if ($script:bzAll -match 'Post Load after (\d+) ms') { [int]$Matches[1] } else { -1 }
     if ($w2 -lt 0) { Add-Anom 'TIMEOUT' "${name}: main loop never resumed after load"; Add-Step $name 'mission' '' $loadBudget -1 0 'FAIL' 'load never finished'; return $false }
     if ($loadS -gt $loadBudget) { $fail = $true; $note += ("load {0:N1}s > budget {1}s" -f $loadS, $loadBudget) }
-    Add-Step "$name.load" 'mission-load' '' $loadBudget ([math]::Round($loadS, 2)) $loadMs $(if ($loadS -gt $loadBudget) { 'FAIL' } else { 'PASS' }) ("sim 'Mission Load after' {0} ms; max unresponsive {1:N1}s" -f $loadMs, $loadUnresp)
+    Add-Step "$name.load" 'mission-load' '' $loadBudget ([math]::Round($loadS, 2)) $loadMs $(if ($loadS -gt $loadBudget) { 'FAIL' } else { 'PASS' }) ("sim 'Post Load after' {0} ms; max unresponsive {1:N1}s" -f $loadMs, $loadUnresp)
     # Play
     $script:MaxUnresp = 0.0; $script:MaxPing = 0
     $pc0 = $script:LastSample
@@ -617,6 +621,9 @@ try {
         $SavedEnv[$e.Key] = [Environment]::GetEnvironmentVariable($e.Key, 'Process'); [Environment]::SetEnvironmentVariable($e.Key, $e.Value, 'Process')
     }
 
+    # A new run supersedes any earlier pass: only a PASS from this run may re-create it.
+    Remove-Item -LiteralPath (Join-Path $LocalRoot 'last-pass.json') -ErrorAction SilentlyContinue
+
     # ---- preflight: the install must BE the candidate
     $script:Phase = 'preflight'; $script:StepName = 'candidate'
     foreach ($n in $BinHashes.Keys) {
@@ -709,6 +716,7 @@ $DllChanged = @($DllSet.Keys | Where-Object { $DllBefore[$_] -ne $DllAfter[$_] }
 if ($DllChanged.Count) { Add-Anom 'DLLCHANGED' "installed DLL hashes changed during the run: $($DllChanged -join ', ')" }
 if (-not $SettingsOk) { Add-Anom 'SETTINGS' 'openshim.ini / Ogre.cfg were NOT restored byte-exact' }
 if ($FatalError) { Add-Anom 'ABORT' $FatalError }
+if ($CustomPlan -or $PSBoundParameters.ContainsKey('GameDir')) { Add-Anom 'PARTIAL' 'custom -Plan or -GameDir: this run cannot qualify a release' }
 if ($SkipCold -or $OnlyPhases.Count -or $MissionSeconds -gt 0) { Add-Anom 'PARTIAL' 'debug switches used (-SkipCold / -OnlyPhases / -MissionSeconds): this run cannot qualify a release' }
 foreach ($u in $LogUnknown) { Add-Anom 'LOG' ("{0}: {1} x {2}" -f $u.Log, $u.Count, $u.Sample.Substring(0, [math]::Min(200, $u.Sample.Length))) '' }
 $growth = Test-Growth

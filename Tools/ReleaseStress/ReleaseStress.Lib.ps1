@@ -151,7 +151,9 @@ function Read-LogFrom([string]$Path, [long]$Offset) {
         [void]$fs.Seek($Offset, 'Begin')
         $buf = New-Object byte[] ($fs.Length - $Offset)
         $n = $fs.Read($buf, 0, $buf.Length)
-        @{ Text = $script:Latin1.GetString($buf, 0, $n); Length = $fs.Length }
+        # Offset + bytes read, never $fs.Length: the game may append between the read and that call,
+        # and those lines would be skipped for good (a missed trigger/transition line).
+        @{ Text = $script:Latin1.GetString($buf, 0, $n); Length = $Offset + $n }
     } finally { $fs.Dispose() }
 }
 

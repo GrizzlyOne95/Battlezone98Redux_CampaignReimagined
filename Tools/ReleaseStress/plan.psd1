@@ -156,7 +156,8 @@
         # 5. Instant Action
         @{ Group = 'mission_instant'; Name = 'mi_sp';   Do = 'click'; T = 'SinglePlayer_MainScreen' }
         @{ Group = 'mission_instant'; Name = 'mi_instant'; Do = 'click'; T = 'Instant'; Budget = 'Heavy' }
-        @{ Group = 'mission_instant'; Name = 'mi_pick'; Do = 'clickxy'; X = 430; Y = 180; SettleS = 1.5 }
+        # Row 1 (y 180) is the CR setup map, which ends at once on a debrief; row 2 is a real IA map.
+        @{ Group = 'mission_instant'; Name = 'mi_pick'; Do = 'clickxy'; X = 430; Y = 191; SettleS = 1.5 }
         @{ Group = 'mission_instant'; Name = 'mission_instant'; Do = 'mission'; T = 'Launch' }
     )
 }

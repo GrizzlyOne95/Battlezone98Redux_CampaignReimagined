@@ -6,7 +6,7 @@
 # exu.log) are not scanned unless they say exception/crash/fatal/leak/deadlock, so they need no entry.
 #
 # --- openshim.log ---
-*openshim.log ::: \[DX11COMPAT\] instantiation failed material=\S.*path=family-remap action=stock-fallback ::: UI materials (stock .png/.ogv screens, bzfont, OpenShim's own osh_* pages) are excluded from DX11 instantiation and use the stock path; pre-existing on every build
+*openshim.log ::: \[DX11COMPAT\] instantiation failed material=(\S+\.(png|ogv|bmp|dds|tga|jpg)|bzfont|osh_\S+|Battlezone)\b.*path=family-remap action=stock-fallback ::: UI materials (stock .png/.ogv screens, bzfont, OpenShim's own osh_* pages) are excluded from DX11 instantiation and use the stock path; pre-existing on every build
 *openshim.log ::: \[DX11COMPAT\] material=\S+\.ogv unsupported custom programs ::: intro/menu video materials use a UI program DX11 skips; pre-existing
 *openshim.log ::: \[uiperf-hooks\] Frontend drilldown hooks skipped: UiPerf code addresses are not bound ::: the UI-performance drilldown (a diagnostic) cannot bind on the GOG exe; harness trigger path is separate and works
 *openshim.log ::: \[resolve\] \[ADDR\] UiPerf drilldown and modable hooks stands down ::: same diagnostic drilldown stand-down (guard bytes differ on this exe)
@@ -14,10 +14,14 @@
 *openshim.log ::: \[WEAPONFX\] authored ODF presentation requested ::: WARN-level status line printed once per start when authored muzzle assets are active
 *openshim.log ::: \[DX11COMPAT\] material=(scope|Ogre/DepthShadowmap/Caster/Float) unsupported custom programs .*action=skip ::: stock scope / Ogre shadow-caster materials keep their own programs (compat leaves them unchanged); stock content, pre-existing
 *openshim.log ::: \[DX11COMPAT\] material=CRWX_CockpitGlass unsupported custom programs .*action=skip ::: the base CRWX_CockpitGlass is a draw-nothing placeholder (Materials/crwx_cockpitglass.material); CRWetGlass.lua swaps in the W<a>C<b> variants
+*openshim.log ::: \[DX11COMPAT\] material=\S+ unsupported custom programs vs=(CR\w*|CRWX_\w+|OpenShim/TerrainNativeHD/[0-9a-f]+) ps=\S+ action=skip ::: the DX11 legacy guard reports a material whose own CR/OpenShim HLSL programs it leaves unchanged; once per material, 44-80 per mission in every run since 2026-10-14 (BZRCoop logs), these render
+*openshim.log ::: \[odf\] remap gsplint\.odf:\d+ \[SprayBomb\] -> \[SprayBombClass\] ::: OpenShim's ODF loader fixes the stock gsplint class name; the WARN is its own fix notice
+*openshim.log ::: \[GPUSKIN\] \d+ surface-variant change\(s\) expired unapplied \(entity never converted\) ::: a skin change for an entity that stayed CPU-skinned or died before conversion; no visible effect
 # --- crc32host.log ---
 *crc32host.log ::: ^(gmsslmin|netveh1)\.odf not found ::: the engine's MP CRC table lists two stock ODF names that no stock or CR archive ships
 # --- BZLogger.txt ---
-*BZLogger.txt ::: WARNING: unknown mapType 'NONE' in '.*[\\/]addon[\\/] ::: stock map scanner reads stray *.ini files (desktop.ini etc.) inside addon folders on this machine; not a CR file
+*BZLogger.txt ::: Game stopped due to abort button ::: the harness leaves every mission through ESC > Abort Mission
+*BZLogger.txt ::: WARNING: unknown mapType 'NONE' in '.*[\\/]addon[\\/][^']*\.ini' ::: stock map scanner reads stray *.ini files (desktop.ini etc.) inside addon folders on this machine; not a CR file
 *BZLogger.txt ::: cGogInterface::preinitGoGInterface.*GalaxyRuntimeError ::: GOG Galaxy is not running/signed in on this PC (environmental)
 # --- BZOgreLogfile.log ---
 *BZOgreLogfile.log ::: Invalid target for D3D11 shader '.*' - '(vs|ps)_[23]_0' ::: legacy SM3 HLSL programs are retargeted by OpenShim's DX11 path; the stock Ogre message appears once per program on every start

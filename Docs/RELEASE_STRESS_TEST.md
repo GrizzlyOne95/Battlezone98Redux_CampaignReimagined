@@ -2,7 +2,7 @@
 
 A player who plays many modes in one game launch must hit no bug, hang, slowdown or leak.
 `Tools\ReleaseStress\Invoke-ReleaseStress.ps1` checks that on the installed candidate. **Every new
-Workshop release needs a passing run on the exact candidate** (same commit, same `Bin\` hashes).
+Workshop release needs a passing run on the exact candidate** (same shipped files and `Bin\` hashes; later commits may touch only `Docs/`, `docs/`, `.github/` and root `*.md` files).
 `Manage-CampaignFiles.ps1 -workshop-upload` refuses without one. Only a hotfix may skip it, with a
 recorded reason.
 

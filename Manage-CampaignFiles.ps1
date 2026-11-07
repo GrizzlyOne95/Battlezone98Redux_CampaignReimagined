@@ -2237,7 +2237,8 @@ function Initialize-WorkshopAuth {
 #
 # Every Workshop release needs a passing Tools\ReleaseStress\Invoke-ReleaseStress.ps1 run on the exact
 # candidate. A PASS writes Local\ReleaseStress\last-pass.json (HEAD + Bin\ hashes); the upload refuses
-# unless that record matches this checkout, or the caller passes -hotfix "<reason>" (recorded).
+# unless that record matches this checkout (later commits may touch only non-shipping files), or the
+# caller passes -hotfix "<reason>" (recorded).
 function Get-ReleaseGateStatus {
     $passFile = Join-Path $RepoRoot "Local\ReleaseStress\last-pass.json"
     if (-not (Test-Path -LiteralPath $passFile)) {
@@ -2247,11 +2248,27 @@ function Get-ReleaseGateStatus {
     catch { return [pscustomobject]@{ Ok = $false; Reason = "last-pass.json is unreadable: $($_.Exception.Message)" } }
 
     $head = (& git -C $RepoRoot rev-parse HEAD 2>$null | Out-String).Trim()
-    if (-not $head -or $pass.cr_head -ne $head) {
-        return [pscustomobject]@{ Ok = $false; Reason = "last pass was for commit $($pass.cr_head), HEAD is $head" }
+    if (-not $head) { return [pscustomobject]@{ Ok = $false; Reason = "git rev-parse HEAD failed" } }
+    if ($pass.cr_head -ne $head) {
+        # A later commit (the PR merge, a CHANGELOG line, docs) keeps the pass only if every path it
+        # touches is on this allow-list of files that never ship. Anything else needs a new run.
+        $changed = @(& git -C $RepoRoot -c core.quotepath=false diff --no-renames --name-only "$($pass.cr_head)" $head 2>$null)
+        if ($LASTEXITCODE -ne 0) {
+            return [pscustomobject]@{ Ok = $false; Reason = "last pass was for commit $($pass.cr_head), which git cannot diff against HEAD $head" }
+        }
+        $shipped = @($changed | Where-Object { $_ -and $_ -notmatch '^(Docs|docs|\.github)/' -and $_ -notmatch '^[^/]+\.md$' })
+        if ($shipped.Count -gt 0) {
+            return [pscustomobject]@{ Ok = $false; Reason = "files outside Docs\ and *.md changed since the passing run on $($pass.cr_head): $(($shipped | Select-Object -First 5) -join ', ')" }
+        }
     }
     if (@(& git -C $RepoRoot status --porcelain --untracked-files=no 2>$null).Count -gt 0) {
         return [pscustomobject]@{ Ok = $false; Reason = "tracked files changed since HEAD $head; the pass covers only the committed candidate" }
+    }
+    if (Test-Path -LiteralPath (Join-Path $RepoRoot "Local\ReleaseStress\pending-restore.json")) {
+        return [pscustomobject]@{ Ok = $false; Reason = "a stress run left its test settings in place; run Invoke-ReleaseStress.ps1 -Restore first" }
+    }
+    if (-not $pass.bin_hashes -or @($pass.bin_hashes.PSObject.Properties).Count -eq 0) {
+        return [pscustomobject]@{ Ok = $false; Reason = "last-pass.json has no Bin\ hashes" }
     }
     foreach ($entry in $pass.bin_hashes.PSObject.Properties) {
         $file = Join-Path $RepoRoot "Bin\$($entry.Name)"
