@@ -2233,6 +2233,55 @@ function Initialize-WorkshopAuth {
     }
 }
 
+# ------------------------------------------------------- release stress gate --
+#
+# Every Workshop release needs a passing Tools\ReleaseStress\Invoke-ReleaseStress.ps1 run on the exact
+# candidate. A PASS writes Local\ReleaseStress\last-pass.json (HEAD + Bin\ hashes); the upload refuses
+# unless that record matches this checkout, or the caller passes -hotfix "<reason>" (recorded).
+function Get-ReleaseGateStatus {
+    $passFile = Join-Path $RepoRoot "Local\ReleaseStress\last-pass.json"
+    if (-not (Test-Path -LiteralPath $passFile)) {
+        return [pscustomobject]@{ Ok = $false; Reason = "no passing release stress run recorded ($passFile)" }
+    }
+    try { $pass = Get-Content -LiteralPath $passFile -Raw | ConvertFrom-Json }
+    catch { return [pscustomobject]@{ Ok = $false; Reason = "last-pass.json is unreadable: $($_.Exception.Message)" } }
+
+    $head = (& git -C $RepoRoot rev-parse HEAD 2>$null | Out-String).Trim()
+    if (-not $head -or $pass.cr_head -ne $head) {
+        return [pscustomobject]@{ Ok = $false; Reason = "last pass was for commit $($pass.cr_head), HEAD is $head" }
+    }
+    if (@(& git -C $RepoRoot status --porcelain --untracked-files=no 2>$null).Count -gt 0) {
+        return [pscustomobject]@{ Ok = $false; Reason = "tracked files changed since HEAD $head; the pass covers only the committed candidate" }
+    }
+    foreach ($entry in $pass.bin_hashes.PSObject.Properties) {
+        $file = Join-Path $RepoRoot "Bin\$($entry.Name)"
+        $now = if (Test-Path -LiteralPath $file) { (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash } else { "MISSING" }
+        if ($now -ne $entry.Value) {
+            return [pscustomobject]@{ Ok = $false; Reason = "Bin\$($entry.Name) changed since the passing run" }
+        }
+    }
+    [pscustomobject]@{ Ok = $true; Reason = "passed $($pass.timestamp) on $head ($($pass.report))" }
+}
+
+function Confirm-ReleaseGate {
+    param([string]$Message)
+    $gate = Get-ReleaseGateStatus
+    if ($gate.Ok) {
+        Write-Host "Release stress gate: $($gate.Reason)" -ForegroundColor Green
+        return $Message
+    }
+    if (-not $script:HotfixReason) {
+        throw ("Release stress gate: $($gate.Reason). Run Tools\ReleaseStress\Invoke-ReleaseStress.ps1 on this " +
+            "exact commit and fix what it finds, or, for a hotfix, pass -hotfix `"<reason>`" (docs\RELEASE_STRESS_TEST.md).")
+    }
+    Write-Host "HOTFIX override: release stress test skipped. Reason: $script:HotfixReason" -ForegroundColor Yellow
+    Write-Host "  (gate said: $($gate.Reason))" -ForegroundColor DarkGray
+    New-Item -ItemType Directory -Force -Path $WorkshopLocalRoot | Out-Null
+    [ordered]@{ when = (Get-Date).ToString("o"); head = (& git -C $RepoRoot rev-parse HEAD 2>$null | Out-String).Trim(); hotfix_reason = $script:HotfixReason; gate = $gate.Reason } |
+        ConvertTo-Json | Set-Content -LiteralPath (Join-Path $WorkshopLocalRoot "release_gate_override.json") -Encoding UTF8
+    return "$Message [HOTFIX, release stress test skipped: $script:HotfixReason]"
+}
+
 function Build-WorkshopPackage {
     param(
         [string]$Message,
@@ -2241,6 +2290,10 @@ function Build-WorkshopPackage {
 
     $cfg = Get-PublishConfig
     if (-not $cfg) { return }
+
+    $gate = Get-ReleaseGateStatus
+    if ($gate.Ok) { Write-Host "Release stress gate: $($gate.Reason)" -ForegroundColor Green }
+    else { Write-Host "Release stress gate would BLOCK -workshop-upload: $($gate.Reason)" -ForegroundColor Yellow }
     if (-not $Message) {
         $Message = "Campaign Reimagined update " + (Get-Date -Format "yyyy-MM-dd HH:mm")
     }
@@ -2289,6 +2342,8 @@ function Publish-All {
     if (-not $Message) {
         $Message = "Campaign Reimagined update " + (Get-Date -Format "yyyy-MM-dd HH:mm")
     }
+
+    $Message = Confirm-ReleaseGate -Message $Message
 
     if (-not $UseSteamCmd) {
         # Fail before staging, not after it, when the upload cannot happen.
@@ -2648,8 +2703,17 @@ $KnownActions = @(
 # -steamcmd is a modifier for the Workshop actions, not an action: it may
 # appear anywhere after the action and is never part of the change note.
 $UseSteamCmd = $args -contains "-steamcmd"
+# -hotfix "<reason>" skips the release stress gate for a hotfix; the reason is recorded.
+$script:HotfixReason = $null
+$hotfixIndex = [array]::IndexOf(@($args | ForEach-Object { "$_".ToLowerInvariant() }), "-hotfix")
+if ($hotfixIndex -ge 0) {
+    if ($hotfixIndex + 1 -ge $args.Count -or -not "$($args[$hotfixIndex + 1])".Trim()) { Write-Host "-hotfix needs a reason: -hotfix `"<why the stress test is skipped>`"" -ForegroundColor Red; exit 2 }
+    $script:HotfixReason = "$($args[$hotfixIndex + 1])".Trim()
+}
 function Get-WorkshopChangeNoteFromArgs($actionArgs) {
     $rest = @($actionArgs | Select-Object -Skip 1 | Where-Object { $_ -ne "-steamcmd" })
+    $hf = [array]::IndexOf(@($rest | ForEach-Object { "$_".ToLowerInvariant() }), "-hotfix")
+    if ($hf -ge 0) { $rest = @(for ($i = 0; $i -lt $rest.Count; $i++) { if ($i -ne $hf -and $i -ne ($hf + 1)) { $rest[$i] } }) }
     if ($rest.Count -eq 0) { return $null }
     return ($rest -join " ")
 }
