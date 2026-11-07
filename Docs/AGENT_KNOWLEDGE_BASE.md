@@ -1683,3 +1683,22 @@ to the ordinary GOG development mod.
   history available; do not repin generated assets by rerunning initialization.
   New keys for sustained spin and craft casing ports require companion OpenShim
   PR 698; authored content alone does not refresh CR's committed native payload.
+
+### Co-op team skins (2026-11-07)
+
+- `Scripts/CRTeamSkins.lua` recolours co-op craft per peer, locally, with no
+  network traffic. Team 1 keeps stock paint, the host's own ship gets camo, and
+  guest teams 2/3/4 get red/blue/gold. Single-player is untouched.
+- Carrier: a `teamPaint` float4 uniform (default 0) set per clone with
+  `exu.SetMaterialShaderVector`. Never use pass specular: the en-high wrapper's
+  `derived_light_specular_colour_array` multiplies it into highlights. Alpha <= 1.5 is off;
+  rgb 0 with alpha 2 + brightness is camo; rgb = tint with alpha 2 is a solid
+  tint. Mask `crteam_<diffuse>.dds` holds the camo in RGB and the paint weight in
+  A. Only en-high tiers apply it.
+- A teamPaint wrapper change must ship together with its OpenShim hlsl payload.
+  Update `Scripts/OpenShimManifest.lua` hashes with `Get-OpenShimAssetSet` (do not
+  run `-refresh-natives` unless the DLLs should be re-pinned).
+- Colour-space guard: each new `srgb_to_linear` target must be a plain decode
+  that is listed in `$familyScopedDecodeOwners` in `Tools/Validate-DX11Shaders.ps1`.
+- Craft wearing another module's clone (CRSurfaceEffects frost etc.) are skipped
+  until that clone ends.

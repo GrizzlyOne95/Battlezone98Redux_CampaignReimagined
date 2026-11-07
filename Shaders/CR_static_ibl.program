@@ -13,7 +13,7 @@ fragment_program CR_BaseIBLHighNoShadow_fragmentHLSL4 hlsl
     source openshim_enhanced_base-sm4.hlsl
     target ps_4_0
     entry_point base_fragment
-    preprocessor_defines MAX_LIGHTS=24,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,ACT_MAP_ENABLED,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1
+    preprocessor_defines MAX_LIGHTS=24,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,ACT_MAP_ENABLED,TEAM_PAINT_ENABLED,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1
 
     default_params
     {
@@ -28,6 +28,8 @@ fragment_program CR_BaseIBLHighNoShadow_fragmentHLSL4 hlsl
         param_named surfaceMuzzle1 float4 0 0 0 0
 
         param_named_auto inverseViewMatrix inverse_view_matrix
+        // Co-op team paint (TEAM_PAINT_ENABLED): set per clone by CRTeamSkins.lua, a > 1.5 = on.
+        param_named teamPaint float4 0 0 0 0
     }
 }
 
@@ -36,7 +38,7 @@ fragment_program CR_BaseIBLHighShadow_fragmentHLSL4 hlsl
     source openshim_enhanced_base-sm4.hlsl
     target ps_4_0
     entry_point base_fragment
-    preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=4,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,ACT_MAP_ENABLED,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1
+    preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PCF_SIZE=4,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,ACT_MAP_ENABLED,TEAM_PAINT_ENABLED,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1
 
     default_params
     {
@@ -51,6 +53,8 @@ fragment_program CR_BaseIBLHighShadow_fragmentHLSL4 hlsl
         param_named surfaceMuzzle1 float4 0 0 0 0
 
         param_named_auto inverseViewMatrix inverse_view_matrix
+        // Co-op team paint (TEAM_PAINT_ENABLED): set per clone by CRTeamSkins.lua, a > 1.5 = on.
+        param_named teamPaint float4 0 0 0 0
     }
 }
 
@@ -59,7 +63,7 @@ fragment_program CR_BaseIBLHighPSSM_fragmentHLSL4 hlsl
     source openshim_enhanced_base-sm4.hlsl
     target ps_4_0
     entry_point base_fragment
-    preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=4,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,ACT_MAP_ENABLED,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1,OSE_ENHANCED_PSSM_V2=1
+    preprocessor_defines MAX_LIGHTS=24,SHADOWRECEIVER,PSSM_ENABLED,PCF_SIZE=4,NORMALMAP_ENABLED,SPECULARMAP_ENABLED,EMISSIVEMAP_ENABLED,ENHANCED_MODE,IBL_ENABLED,ACT_MAP_ENABLED,TEAM_PAINT_ENABLED,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1,OSE_ENHANCED_PSSM_V2=1
 
     default_params
     {
@@ -74,6 +78,8 @@ fragment_program CR_BaseIBLHighPSSM_fragmentHLSL4 hlsl
         param_named surfaceMuzzle1 float4 0 0 0 0
 
         param_named_auto inverseViewMatrix inverse_view_matrix
+        // Co-op team paint (TEAM_PAINT_ENABLED): set per clone by CRTeamSkins.lua, a > 1.5 = on.
+        param_named teamPaint float4 0 0 0 0
     }
 }
 
