@@ -154,7 +154,7 @@ without the other.
    (about 25 minutes, unattended). Every Workshop release needs a passing run on the exact
    candidate: `-workshop-upload` refuses unless `Local\ReleaseStress\last-pass.json` matches HEAD
    and `Bin\`. Only a hotfix may skip it, with `-hotfix "<reason>"` (recorded in the change
-   note). See `docs/RELEASE_STRESS_TEST.md`.
+   note). See `Docs/RELEASE_STRESS_TEST.md`.
 2. Update `CHANGELOG.md` for player-facing changes included in the candidate.
 3. Review `docs/workshop_description.bbcode` against the live Steam
    description. The default upload never sends the description: it is edited

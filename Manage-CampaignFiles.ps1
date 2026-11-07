@@ -2272,7 +2272,7 @@ function Confirm-ReleaseGate {
     }
     if (-not $script:HotfixReason) {
         throw ("Release stress gate: $($gate.Reason). Run Tools\ReleaseStress\Invoke-ReleaseStress.ps1 on this " +
-            "exact commit and fix what it finds, or, for a hotfix, pass -hotfix `"<reason>`" (docs\RELEASE_STRESS_TEST.md).")
+            "exact commit and fix what it finds, or, for a hotfix, pass -hotfix `"<reason>`" (Docs\RELEASE_STRESS_TEST.md).")
     }
     Write-Host "HOTFIX override: release stress test skipped. Reason: $script:HotfixReason" -ForegroundColor Yellow
     Write-Host "  (gate said: $($gate.Reason))" -ForegroundColor DarkGray
