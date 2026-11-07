@@ -118,9 +118,17 @@ $universalDecodeTargets = @('diffuseTex.rgb', 'emissiveTex', 'authoredFog')
 # 'puddleSky' is the terrain puddle reflection's sky colour (OpenShim #626): it is
 # saturate(fogColour), the same authored display colour as skyLinear, so it decodes
 # for the same reason. Only terrain has puddles.
+#
+# 'teamCamo' and 'teamTint' are the co-op team paint (TEAM_PAINT_ENABLED,
+# Scripts/CRTeamSkins.lua): the camo pattern from teamMap.rgb and the solid paint
+# colour from the pass specular. Both replace diffuseTex.rgb (already decoded), so
+# they are authored display colour and decode for the same reason. Only the base
+# shader paints units.
 $familyScopedDecodeOwners = @{
     'vertexTint' = 'openshim_enhanced_terrain-sm4.hlsl'
     'skyLinear'  = 'openshim_enhanced_base-sm4.hlsl'
+    'teamCamo'   = 'openshim_enhanced_base-sm4.hlsl'
+    'teamTint'   = 'openshim_enhanced_base-sm4.hlsl'
     'iceNear'    = 'openshim_enhanced_terrain-sm4.hlsl'
     'puddleSky'  = 'openshim_enhanced_terrain-sm4.hlsl'
 }

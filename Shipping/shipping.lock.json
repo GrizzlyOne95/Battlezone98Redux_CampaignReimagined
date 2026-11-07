@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5222,
+  "count": 5297,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -4859,6 +4859,10 @@
       "runtime": "cr_spore.dds"
     },
     {
+      "source": "Assets\\Textures\\cr_team_off.dds",
+      "runtime": "cr_team_off.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr_terrain_shape_none.dds",
       "runtime": "cr_terrain_shape_none.dds"
     },
@@ -5249,6 +5253,294 @@
     {
       "source": "Assets\\Textures\\crstns_e.dds",
       "runtime": "crstns_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avapc_d.dds",
+      "runtime": "crteam_avapc_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avartl_d.dds",
+      "runtime": "crteam_avartl_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avcnst_d.dds",
+      "runtime": "crteam_avcnst_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avfigh_d.dds",
+      "runtime": "crteam_avfigh_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avhaul_d.dds",
+      "runtime": "crteam_avhaul_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avhraz_d.dds",
+      "runtime": "crteam_avhraz_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avland_d.dds",
+      "runtime": "crteam_avland_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avltnk_d.dds",
+      "runtime": "crteam_avltnk_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avmine_d.dds",
+      "runtime": "crteam_avmine_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avmuf_d.dds",
+      "runtime": "crteam_avmuf_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avrckt_d.dds",
+      "runtime": "crteam_avrckt_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avrecy_d.dds",
+      "runtime": "crteam_avrecy_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avsav2_d.dds",
+      "runtime": "crteam_avsav2_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avsav_d.dds",
+      "runtime": "crteam_avsav_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avscav_d.dds",
+      "runtime": "crteam_avscav_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avslf_d.dds",
+      "runtime": "crteam_avslf_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avtank_d.dds",
+      "runtime": "crteam_avtank_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avtest_d.dds",
+      "runtime": "crteam_avtest_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avturr_d.dds",
+      "runtime": "crteam_avturr_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avwalk_d.dds",
+      "runtime": "crteam_avwalk_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvapc_d.dds",
+      "runtime": "crteam_bvapc_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvartl_d.dds",
+      "runtime": "crteam_bvartl_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvcnst_d.dds",
+      "runtime": "crteam_bvcnst_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvhaul_d.dds",
+      "runtime": "crteam_bvhaul_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvhraz_d.dds",
+      "runtime": "crteam_bvhraz_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvltnk_d.dds",
+      "runtime": "crteam_bvltnk_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvmine_d.dds",
+      "runtime": "crteam_bvmine_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvmru_d.dds",
+      "runtime": "crteam_bvmru_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvmuf_d.dds",
+      "runtime": "crteam_bvmuf_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvraz_d.dds",
+      "runtime": "crteam_bvraz_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvrckt_d.dds",
+      "runtime": "crteam_bvrckt_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvrdev_d.dds",
+      "runtime": "crteam_bvrdev_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvrecy_d.dds",
+      "runtime": "crteam_bvrecy_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvscav_d.dds",
+      "runtime": "crteam_bvscav_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvslf_d.dds",
+      "runtime": "crteam_bvslf_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvtank_d.dds",
+      "runtime": "crteam_bvtank_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvturr_d.dds",
+      "runtime": "crteam_bvturr_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvwalk_d.dds",
+      "runtime": "crteam_bvwalk_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvapc_d.dds",
+      "runtime": "crteam_cvapc_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvartl_d.dds",
+      "runtime": "crteam_cvartl_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvcnst_d.dds",
+      "runtime": "crteam_cvcnst_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvfigh_d.dds",
+      "runtime": "crteam_cvfigh_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvhaul_d.dds",
+      "runtime": "crteam_cvhaul_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvhraz_d.dds",
+      "runtime": "crteam_cvhraz_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvhtnk_d.dds",
+      "runtime": "crteam_cvhtnk_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvltnk_d.dds",
+      "runtime": "crteam_cvltnk_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvmine_d.dds",
+      "runtime": "crteam_cvmine_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvmuf_d.dds",
+      "runtime": "crteam_cvmuf_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvrckt_d.dds",
+      "runtime": "crteam_cvrckt_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvrecy_d.dds",
+      "runtime": "crteam_cvrecy_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvscav_d.dds",
+      "runtime": "crteam_cvscav_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvslf_d.dds",
+      "runtime": "crteam_cvslf_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvtnk_d.dds",
+      "runtime": "crteam_cvtnk_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvturr_d.dds",
+      "runtime": "crteam_cvturr_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvwalk_d.dds",
+      "runtime": "crteam_cvwalk_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svapc_d.dds",
+      "runtime": "crteam_svapc_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svartl_d.dds",
+      "runtime": "crteam_svartl_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svcnst_d.dds",
+      "runtime": "crteam_svcnst_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svfigh_d.dds",
+      "runtime": "crteam_svfigh_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svhaul_d.dds",
+      "runtime": "crteam_svhaul_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svhraz_d.dds",
+      "runtime": "crteam_svhraz_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svltnk_d.dds",
+      "runtime": "crteam_svltnk_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svmine_d.dds",
+      "runtime": "crteam_svmine_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svmuf_d.dds",
+      "runtime": "crteam_svmuf_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svrckt_d.dds",
+      "runtime": "crteam_svrckt_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svrecy_d.dds",
+      "runtime": "crteam_svrecy_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svsav_d.dds",
+      "runtime": "crteam_svsav_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svscav_d.dds",
+      "runtime": "crteam_svscav_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svslf_d.dds",
+      "runtime": "crteam_svslf_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svtank_d.dds",
+      "runtime": "crteam_svtank_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svturr_d.dds",
+      "runtime": "crteam_svturr_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svwalk_d.dds",
+      "runtime": "crteam_svwalk_d.dds"
     },
     {
       "source": "Assets\\Textures\\CRV_avltnkHullPaint_ACT.dds",
@@ -10085,6 +10377,10 @@
     {
       "source": "Materials\\CR_svwalk_cockpit.material",
       "runtime": "CR_svwalk_cockpit.material"
+    },
+    {
+      "source": "Materials\\CR_TeamSkins.material",
+      "runtime": "CR_TeamSkins.material"
     },
     {
       "source": "Materials\\CR_texture_revamp.material",
@@ -16809,6 +17105,10 @@
     {
       "source": "Scripts\\CRSurfaceEffects.lua",
       "runtime": "CRSurfaceEffects.lua"
+    },
+    {
+      "source": "Scripts\\CRTeamSkins.lua",
+      "runtime": "CRTeamSkins.lua"
     },
     {
       "source": "Scripts\\CRTerrainShape.lua",

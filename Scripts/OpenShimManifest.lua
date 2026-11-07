@@ -17,7 +17,7 @@ return {
         helper = { source = "bzfile_replace_helper.exe", sha256 = "0698c9b868450eb8bf3d4ecad2f4e46852f54b777baca2525a5ff6df5d349a0d", size = 271360 },
     },
     assetSets = {
-        renderer = { source = "openshim\\renderer\\enhanced", destination = "openshim\\renderer\\enhanced", sha256 = "7641b9ed65034013af4ee949708eb86c3cd6f91a4f4e304c1b66a95412a20288", files = 46 },
+        renderer = { source = "openshim\\renderer\\enhanced", destination = "openshim\\renderer\\enhanced", sha256 = "c24263c0851093b7335f120791ea58a8b3b47958e045be6a9b49e3b182ea4cab", files = 46 },
         customWidgets = { source = "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets", destination = "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets", sha256 = "c0d82bd027cc0662f9463758ce8775664494a6ba83b011dd490756fac41d9cbb", files = 22 },
     },
     assetFiles = {
@@ -25,7 +25,7 @@ return {
         { set = "renderer", path = "openshim_dx11_fixedfunc.program", sha256 = "079b9b0606becbb3a416d5079484dc064e9b1fbea90291ae813eece08289a5c8", size = 18329 },
         { set = "renderer", path = "openshim_enhanced_base-fragment.glsl", sha256 = "a6ed270c27a711f91aad79d7dca219cfb09ea8f306015d9b84e4511e3dd10996", size = 14464 },
         { set = "renderer", path = "openshim_enhanced_base-sm3.hlsl", sha256 = "120759772caa534a34292fb6ee7d7abc6824c527ed03511f61167c1f45a8f253", size = 17635 },
-        { set = "renderer", path = "openshim_enhanced_base-sm4.hlsl", sha256 = "1536010876030c43d7d155ea201c99f47e9af7015075a0979a3731398454f0d8", size = 73482 },
+        { set = "renderer", path = "openshim_enhanced_base-sm4.hlsl", sha256 = "1e27487960b9772054ab36a2efb7113f3c9193fce0d5721fa9fc4932df1891e8", size = 75629 },
         { set = "renderer", path = "openshim_enhanced_base-vertex.glsl", sha256 = "20d4f4e7b753f43c35e28e6fc599a05d04972c8880c66ec0f2843e661debe71a", size = 3141 },
         { set = "renderer", path = "openshim_enhanced_base.program", sha256 = "c2b8c778edf6ff5cc9e2af9d99765e19311999a9d17b6cacf266cdcb539460c0", size = 102878 },
         { set = "renderer", path = "openshim_enhanced_terrain-fragment.glsl", sha256 = "c125e0afb274cf0d13fb0823b3e915d36214bc4d608c9a684f29505565a5ec80", size = 15263 },

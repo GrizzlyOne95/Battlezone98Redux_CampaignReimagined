@@ -12,6 +12,7 @@
 -- and has a small payload budget.
 local CRCoop = {}
 local comms, respawn
+local teamSkins = require("CRTeamSkins")
 
 -- Lives per player online, counted by CRCoopRespawn. When any player runs out
 -- the mission fails for everyone (options.onOutOfLives on the host). Native
@@ -163,6 +164,7 @@ function CRCoop.GetNetworkDiagnostics() return diagnostics.Snapshot() end
 function CRCoop.Initialize(options)
     initialized = false
     diagnostics.Reset()
+    teamSkins.Reset()
     scoreboardDefaultApplied, killNoticeDefaultApplied = false, false
     options = options or {}
 
@@ -542,6 +544,7 @@ function CRCoop.Update()
     end
     if comms then comms.Update() end
     if respawn then respawn.Update() end
+    teamSkins.Update(CRCoop)  -- co-op only: host ship camo, guest team tints
     if outOfLivesLocal and not CRCoop.IsCampaignLeader() and IsNetworkGame() and type(Send) == "function" then
         local t = type(GetTime) == "function" and GetTime() or 0.0
         if t >= nextOutOfLivesSend then

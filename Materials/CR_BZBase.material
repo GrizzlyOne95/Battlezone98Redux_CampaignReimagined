@@ -1423,6 +1423,14 @@ material CR_BZBase
 				texture_alias ACTMap
 				texture cr_act_neutral.dds 2d
 			}
+
+			// Co-op team paint mask (TEAM_PAINT_ENABLED): RGB camo, A weight.
+			// Must stay right after actMap. Black default = never painted.
+			texture_unit teamMap
+			{
+				texture_alias TeamMask
+				texture cr_team_off.dds 2d
+			}
 		}
 	}
 
@@ -1465,6 +1473,14 @@ material CR_BZBase
 			{
 				texture_alias ACTMap
 				texture cr_act_neutral.dds 2d
+			}
+
+			// Co-op team paint mask (TEAM_PAINT_ENABLED): RGB camo, A weight.
+			// Must stay right after actMap. Black default = never painted.
+			texture_unit teamMap
+			{
+				texture_alias TeamMask
+				texture cr_team_off.dds 2d
 			}
 		}
 	}
@@ -1531,6 +1547,14 @@ material CR_BZBase
 				texture_alias ACTMap
 				texture cr_act_neutral.dds 2d
 			}
+
+			// Co-op team paint mask (TEAM_PAINT_ENABLED): RGB camo, A weight.
+			// Must stay right after actMap. Black default = never painted.
+			texture_unit teamMap
+			{
+				texture_alias TeamMask
+				texture cr_team_off.dds 2d
+			}
 		}
 	}
 
@@ -1595,6 +1619,14 @@ material CR_BZBase
 			{
 				texture_alias ACTMap
 				texture cr_act_neutral.dds 2d
+			}
+
+			// Co-op team paint mask (TEAM_PAINT_ENABLED): RGB camo, A weight.
+			// Must stay right after actMap. Black default = never painted.
+			texture_unit teamMap
+			{
+				texture_alias TeamMask
+				texture cr_team_off.dds 2d
 			}
 		}
 	}
@@ -2442,6 +2474,14 @@ material CR_BZBaseCockpit
 				texture_alias ACTMap
 				texture cr_act_neutral.dds 2d
 			}
+
+			// Co-op team paint mask (TEAM_PAINT_ENABLED): RGB camo, A weight.
+			// Must stay right after actMap. Black default = never painted.
+			texture_unit teamMap
+			{
+				texture_alias TeamMask
+				texture cr_team_off.dds 2d
+			}
 		}
 	}
 
@@ -2482,6 +2522,14 @@ material CR_BZBaseCockpit
 				texture_alias ACTMap
 				texture cr_act_neutral.dds 2d
 			}
+
+			// Co-op team paint mask (TEAM_PAINT_ENABLED): RGB camo, A weight.
+			// Must stay right after actMap. Black default = never painted.
+			texture_unit teamMap
+			{
+				texture_alias TeamMask
+				texture cr_team_off.dds 2d
+			}
 		}
 	}
 
@@ -2521,6 +2569,14 @@ material CR_BZBaseCockpit
 			{
 				texture_alias ACTMap
 				texture cr_act_neutral.dds 2d
+			}
+
+			// Co-op team paint mask (TEAM_PAINT_ENABLED): RGB camo, A weight.
+			// Must stay right after actMap. Black default = never painted.
+			texture_unit teamMap
+			{
+				texture_alias TeamMask
+				texture cr_team_off.dds 2d
 			}
 		}
 	}
