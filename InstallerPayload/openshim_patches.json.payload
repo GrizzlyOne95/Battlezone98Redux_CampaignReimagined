@@ -9,6 +9,16 @@
   },
   "patches": [
     {
+      "name": "Campaign Manifest ID",
+      "pattern": "8D 95 98 E9 FF FF 52 8D 8D 98 E6 FF FF E8 ?? ?? ?? ?? 8D 85 B0 E9 FF FF 50 8D 8D B0 E6 FF FF",
+      "offset": 14,
+      "expected_size": 4,
+      "fallback": "0x0076D194",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "GOG 2.2.301 custom campaign parser (missionBZN string xref). The guarded assignment copies the directory identity into campaign metadata +0x34 before using that string as the mission registry key. EBP-0x410 contains the terminated current INI path. Full surrounding frame operands are pinned; absent campaignID calls the original assignment. Steam shares the GOG code once SteamStub unpacks; the scan, require_unique and the thunk's byte checks fail closed on any other layout. Live-tested on GOG only."
+    },
+    {
       "name": "Map Description Bounds Guard",
       "pattern": "81 BD 54 F6 FF FF 60 09 00 00 76 0A C7 85 54 F6 FF FF 60 09 00 00 8D 55 C0 52 E8 ?? ?? ?? ?? 83 C4 04 89 85 44 F6 FF FF",
       "offset": 0,
@@ -401,6 +411,24 @@
       "identity": "`push \"Modable\"` (literal 0x00892AE8) at 0x0076ADBF opening the clear+initialise block of the list mount setter 0x0076AB20 on GOG Redux 2.2.301 (SHA-256 8d71f56c...3377413): call [0x0086990C] OgreMain ResourceGroupManager::clearResourceGroup at +0x1D, call [0x00869910] initialiseResourceGroup at +0x52, skip target call 0x00434440 at +0x67; SEH state 0 at both ends. The detour verifies both IAT slots by import name and the literal at patch time. The pattern carries the setter's tail because without it the identical block of the campaign mount setter 0x0076B350 (0x0076B6E4) also matches. Single match (scan 2026-10-20)."
     },
     {
+      "name": "Deferred Modable Rebuild Campaign Store",
+      "pattern": "0F B6 C0 85 C0 74 05 E9 ?? ?? ?? ?? 8B 8D E4 FE FF FF C7 81 8C 00 00 00 00 00 00 00 8B 55 08 83 C2 7C 52",
+      "offset": 18,
+      "expected_size": 10,
+      "fallback": "0x0076AEDC",
+      "require_unique": true,
+      "identity": "Mode store `mov dword [ecx+8Ch],0` at 0x0076AEDC in the campaign mount setter B 0x0076AE60 on GOG Redux 2.2.301 (SHA-256 8d71f56c...3377413), after its same-mode-and-same-path guard (mode compare, then call 0x00427310 on [this+0x90] and the new path); ECX is `this` (loaded from [ebp-11Ch] just before). B has two callers: the screen factory 0x007C7AD0 case 0x25 (campaign Launch -> briefing screen, call 0x007C7FF6) and the mission mount 0x0076E6C0 (call 0x0076E9E3). The detour records the mode being replaced and replays the store. Single match (exe scan 2026-11-07)."
+    },
+    {
+      "name": "Deferred Modable Rebuild Campaign Gate",
+      "pattern": "68 ?? ?? ?? ?? 8D 8D 48 FF FF FF E8 ?? ?? ?? ?? C6 45 FC 0B 8D 95 48 FF FF FF 52 FF 15 ?? ?? ?? ?? 8B C8 FF 15 ?? ?? ?? ?? C6 45 FC 07 8D 8D 48 FF FF FF E8 ?? ?? ?? ?? 68 ?? ?? ?? ?? 8D 8D 60 FF FF FF E8 ?? ?? ?? ?? C6 45 FC 0C 8D 85 60 FF FF FF 50 FF 15 ?? ?? ?? ?? 8B C8 FF 15 ?? ?? ?? ?? C6 45 FC 07 8D 8D 60 FF FF FF E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? C6 45 FC",
+      "offset": 0,
+      "expected_size": 5,
+      "fallback": "0x0076B29A",
+      "require_unique": true,
+      "identity": "`push \"Modable\"` (literal 0x00892AE8) at 0x0076B29A opening the clear+initialise block of the campaign mount setter B 0x0076AE60 on GOG Redux 2.2.301 (SHA-256 8d71f56c...3377413): call [0x0086990C] OgreMain ResourceGroupManager::clearResourceGroup at +0x23, call [0x00869910] initialiseResourceGroup at +0x5B, skip target call 0x00434440 (post-rebuild reload) at +0x70; string ctor call at +0x0B, getSingleton at +0x1B, string dtor call at +0x33; SEH state byte [ebp-4] is 7 at both ends and the two string temporaries are built and destroyed inside, so the jump is stack-neutral. The pattern carries the tail past the post call (C6 45 FC) because the identical block of setter A 0x0076A600 (0x0076AA53) otherwise also matches. Single match (exe scan 2026-11-07)."
+    },
+    {
       "name": "Deferred Modable Rebuild Mission Mount Call",
       "pattern": "E8 ?? ?? ?? ?? 83 3D ?? ?? ?? ?? 00 74 13 8B 45 0C 50 8B 4D 08 51 8B 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 5D C3",
       "offset": 29,
@@ -504,6 +532,16 @@
     }
   ],
   "resolves": [
+    {
+      "name": "Campaign Manifest ID String Assignment",
+      "pattern": "8D 95 98 E9 FF FF 52 8D 8D 98 E6 FF FF E8 ?? ?? ?? ?? 8D 85 B0 E9 FF FF 50 8D 8D B0 E6 FF FF",
+      "offset": 13,
+      "mode": "rel32_target",
+      "fallback": "0x0041F710",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "Original std::string copy assignment reached by the campaign identity CALL. Independent identity: campaign-only branch copies the path-derived identity into metadata +0x34 and then passes that field to mission insertion; this resolve preserves the original ABI and engine CRT ownership."
+    },
     {
       "name": "MouseReadChannels::TimeStepCall",
       "pattern": "E8 ?? ?? ?? ?? D9 5D F4 F3 0F 10 45 F4 F3 0F 58 05 ?? ?? ?? ?? F3 0F 11 05 ?? ?? ?? ?? F3 0F 10 05 ?? ?? ?? ?? 0F 2F 05 ?? ?? ?? ?? 76 07 33 C0 E9 ?? ?? ?? ?? A1 ?? ?? ?? ?? 8B 48 38",
@@ -2865,7 +2903,7 @@
       "name": "AutoSaveNoticeHudGauge",
       "address": "0x005C6F70",
       "expected": "55 8B EC 83 EC 74 A1 00 70 8E 00",
-      "identity": "Scrap/pilot gauge draw FUN_005c6f70, void(ECX unused), run once per gameplay HUD frame from the HUD draw (its callers sit inside the HUD pass, which is why 0x02BF041C/0x02BF0420 hold the HUD scale there). The autosave notice detours its first six bytes (push ebp; mov ebp,esp; sub esp,0x74) and draws after the original returns."
+      "identity": "Scrap/pilot gauge draw FUN_005c6f70, void(ECX unused), run once per gameplay HUD frame from the HUD draw (its callers sit inside the HUD pass, which is why 0x02BF041C/0x02BF0420 hold the HUD scale there). The shared HUD gauge overlay (hud_gauge_overlay.cpp) detours its first six bytes (push ebp; mov ebp,esp; sub esp,0x74) and runs the autosave notice and kill ticker painters after the original returns."
     },
     {
       "name": "HudSpriteZ",
@@ -5944,12 +5982,12 @@
     {
       "name": "UI Render Exception Fail-Soft",
       "pattern": "6A 01 E8 ?? ?? ?? ?? 83 C4 04 85 C0 75 2D E8 ?? ?? ?? ?? 83 F8 09 74 17 68 DC 07 8A 00",
-      "offset": 12,
-      "expected_size": 1,
-      "fallback": "0x007C734C",
-      "expected_original": "75",
+      "offset": 0,
+      "expected_size": 2,
+      "fallback": "0x007C7340",
+      "expected_original": "6A 01",
       "require_unique": true,
-      "identity": "The catch funclet Catch_007c7340 of the UI render-frame function at 0x007C7070 in GOG battlezone98redux.exe SHA256 8D71F56C1314E69A8AD38F4EEAF20A8FF825965A84CF196E5F77EA4CC3377413. That function wraps Ogre::Root::renderOneFrame; the catch calls the quality ladder at 0x007AE480 and, when it returns 0 (nothing left to lower), logs 'Closing application due to complete render failure' and sets the exit state (0x00434170(9)); otherwise it logs 'Ogre Rendering Exception Seen from UI' and resumes. The in-game Lua error alert (and every other UI-frame view) runs through it, so any Ogre exception thrown while it renders the scene, such as the per-frame shaderless-draw exception D3D11 raises for a fixed-function material, kills the application after two frames. The ordinary in-game render path only logs the same exception. The patch turns the JNE at 0x007C734C into JMP so the exhausted-ladder branch is never taken: the exception is logged and the frame is dropped, as in gameplay. See Docs/UI_RENDER_EXCEPTION_FAILSOFT.md."
+      "identity": "The catch funclet Catch_007c7340 of the UI render-frame function at 0x007C7070 in GOG battlezone98redux.exe SHA256 8D71F56C1314E69A8AD38F4EEAF20A8FF825965A84CF196E5F77EA4CC3377413. That function wraps Ogre::Root::renderOneFrame; the catch calls the quality ladder at 0x007AE480 and, when it returns 0 (nothing left to lower), logs 'Closing application due to complete render failure' and sets the exit state (0x00434170(9)); otherwise it logs 'Ogre Rendering Exception Seen from UI' and resumes. The in-game Lua error alert (and every other UI-frame view) runs through it, so any Ogre exception thrown while it renders the scene, such as the per-frame shaderless-draw exception D3D11 raises for a fixed-function material, kills the application after two frames. The ladder also calls 0x007AE5B0, which repopulates the options screen through DAT_009455A4, a pointer set once and never cleared, so after options has been opened any such exception faults at 0x007C3B6F. The ordinary in-game render path only logs the same exception. The patch writes JMP 0x007C737B (EB 39) at the funclet entry, skipping the ladder call for its log-and-continue branch: the exception is logged and the frame is dropped, as in gameplay. See Docs/UI_RENDER_EXCEPTION_FAILSOFT.md."
     },
     {
       "name": "Artillery Weapon Mask Select Hook",
