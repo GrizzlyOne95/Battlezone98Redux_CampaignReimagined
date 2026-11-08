@@ -6,6 +6,9 @@
 # exu.log) are not scanned unless they say exception/crash/fatal/leak/deadlock, so they need no entry.
 #
 # --- openshim.log ---
+*openshim.log ::: \[DX11COMPAT\] instantiation failed material=(HUDcomb[a-z]|reticle\d*|OpenShim/ReticleFx/\d+|sprite_[an]|target|LoadingScreen [^ ]+\.(png|jpg|dds|tga)) path=family-remap action=stock-fallback ::: HUD/sprite/loading-screen materials are declined as excluded-class (dx11_legacy_material_compat.cpp kExcluded) and keep stock UI programs
+*openshim.log ::: \[DX11COMPAT\] material=(QueryArea|QueryVisible) unsupported custom programs vs=Occlusion_vertex ps=Occlusion_fragment action=skip ::: colour_write-off occlusion-query materials left unchanged
+*openshim.log ::: [DX11COMPAT] material=MN_DETAIL_ATLAS unsupported custom programs vs=TerrainGlow_vertex ps=TerrainGlow_fragment action=skip ::: terrain glow-scheme technique has no DX11 form and stays stock; the base terrain technique is unaffected
 *openshim.log ::: \[DX11COMPAT\] instantiation failed material=(\S+\.(png|ogv|bmp|dds|tga|jpg)|bzfont|osh_\S+|Battlezone)\b.*path=family-remap action=stock-fallback ::: UI materials (stock .png/.ogv screens, bzfont, OpenShim's own osh_* pages) are excluded from DX11 instantiation and use the stock path; pre-existing on every build
 *openshim.log ::: \[DX11COMPAT\] material=\S+\.ogv unsupported custom programs ::: intro/menu video materials use a UI program DX11 skips; pre-existing
 *openshim.log ::: \[uiperf-hooks\] Frontend drilldown hooks skipped: UiPerf code addresses are not bound ::: the UI-performance drilldown (a diagnostic) cannot bind on the GOG exe; harness trigger path is separate and works
@@ -20,9 +23,14 @@
 # --- crc32host.log ---
 *crc32host.log ::: ^(gmsslmin|netveh1)\.odf not found ::: the engine's MP CRC table lists two stock ODF names that no stock or CR archive ships
 # --- BZLogger.txt ---
+*BZLogger.txt ::: Couldn't find file "call2arm\.des" ::: third-party Legacy Instant Action map call2arm ships no .des; not a CR file
 *BZLogger.txt ::: Game stopped due to abort button ::: the harness leaves every mission through ESC > Abort Mission
 *BZLogger.txt ::: WARNING: unknown mapType 'NONE' in '.*[\\/]addon[\\/][^']*\.ini' ::: stock map scanner reads stray *.ini files (desktop.ini etc.) inside addon folders on this machine; not a CR file
 *BZLogger.txt ::: cGogInterface::preinitGoGInterface.*GalaxyRuntimeError ::: GOG Galaxy is not running/signed in on this PC (environmental)
 # --- BZOgreLogfile.log ---
+*BZOgreLogfile.log ::: WARNING: (native/v4/[0-9a-f]+/cgt11\w+\.mesh|sbsilo\.mesh|casings/v1/openshim_casing\.mesh) is an older format \(\[MeshSerializer_v1\.8\]\) ::: OpenShim chunk cache writes v1.8 by design (native_chunk_mesh.cpp); stock sbsilo is v1.8
+*BZOgreLogfile.log ::: WARNING: the mesh 'cblpad\.mesh' includes vertices without bone assignments ::: 4 of ~4000 vertices unweighted in the stock TRO mesh and the CR copy alike
 *BZOgreLogfile.log ::: Invalid target for D3D11 shader '.*' - '(vs|ps)_[23]_0' ::: legacy SM3 HLSL programs are retargeted by OpenShim's DX11 path; the stock Ogre message appears once per program on every start
 *BZOgreLogfile.log ::: Information Queue Exceptions Bottom Level = No information queue exceptions ::: Ogre option echo, not an exception
+# --- exu.log ---
+*exu.log ::: \[EXU::Overlay\] native font group reset font=CRBZoneOverlayFont group=EXUOverlayFontRuntime reason=current-manager-missing-font ::: recoverable: font script is re-parsed right after (hasFont=1)
