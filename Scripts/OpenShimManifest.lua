@@ -2,14 +2,14 @@
 -- Do not edit payload metadata by hand.
 return {
     formatVersion = 3,
-    version = "1.0.0.71",
-    sha256 = "fcab843976ba36499601ef59ff17dd39013da2f1cdb1c30eace02f784d69fe7d",
+    version = "1.0.0.72",
+    sha256 = "b8e93faa4480d830948a565a925a1ef1096ed0b1f4c33761d9b153f66d21091b",
     size = 131072,
     architecture = "x86",
     payloads = {
-        winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "fcab843976ba36499601ef59ff17dd39013da2f1cdb1c30eace02f784d69fe7d", size = 131072, version = "1.0.0.71", architecture = "x86" },
-        loader = { source = "bzloader.dll", destination = "bzloader.dll", sha256 = "44908678f741a110f058a2e396570ec7cb316eb8d6bbc3d99be4dedbde2b185c", size = 46080, version = "1.0.0.71", architecture = "x86" },
-        plugin = { source = "openshim.dll", destination = "plugins\\openshim.dll", sha256 = "bc839469a26416b5acc0534709ed9eb028bf0fb7b39f6d4ff6fbb4bb8f42df9d", size = 4970496, version = "1.0.0.71", architecture = "x86" },
+        winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "b8e93faa4480d830948a565a925a1ef1096ed0b1f4c33761d9b153f66d21091b", size = 131072, version = "1.0.0.72", architecture = "x86" },
+        loader = { source = "bzloader.dll", destination = "bzloader.dll", sha256 = "3a9a221aa2b5c816c9b154ea4ca74c30a2f983d8c2615469d6ffa1dcb41db264", size = 46080, version = "1.0.0.72", architecture = "x86" },
+        plugin = { source = "openshim.dll", destination = "plugins\\openshim.dll", sha256 = "d861c22a2c0b5167bea38b41763313306219f4c593f53e8ad497480f9a866da0", size = 4973568, version = "1.0.0.72", architecture = "x86" },
         network = { source = "openshim_net.ini.payload", destination = "net.ini", sha256 = "0652de345316d9cda4dd43ce6a26367bd3e99ec21b33a783e0960dbab599c97e", size = 14239 },
         patches = { source = "openshim_patches.json.payload", destination = "scripts\\patches.json", sha256 = "5263ee6e1e8d2bc314368e0aa6d40c7ec3e1f9e76fcda3f4d50daab44af8d77d", size = 380566 },
         playerConfig = { source = "openshim.ini.payload", destination = "openshim.ini", sha256 = "45ac95fab1a9bfa73d7e5d1534e47c477ec6079fb7c2f606ea9ad17275a7dbb0", size = 43131, overwrite = false },
@@ -17,12 +17,13 @@ return {
         helper = { source = "bzfile_replace_helper.exe", sha256 = "0698c9b868450eb8bf3d4ecad2f4e46852f54b777baca2525a5ff6df5d349a0d", size = 271360 },
     },
     assetSets = {
-        renderer = { source = "openshim\\renderer\\enhanced", destination = "openshim\\renderer\\enhanced", sha256 = "c24263c0851093b7335f120791ea58a8b3b47958e045be6a9b49e3b182ea4cab", files = 46 },
+        renderer = { source = "openshim\\renderer\\enhanced", destination = "openshim\\renderer\\enhanced", sha256 = "b4b75ac9bfd86fe63383bc2c110251c05ed8d08a10318739d0a7873b16121cba", files = 47 },
         customWidgets = { source = "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets", destination = "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets", sha256 = "c0d82bd027cc0662f9463758ce8775664494a6ba83b011dd490756fac41d9cbb", files = 22 },
     },
     assetFiles = {
         { set = "renderer", path = "openshim_dx11_fixedfunc-sm4.hlsl", sha256 = "602f33c1293e5757cc5869d6ecb5c4b11c6c66f59a766508b3fd7fc6ad7e73b4", size = 15129 },
         { set = "renderer", path = "openshim_dx11_fixedfunc.program", sha256 = "079b9b0606becbb3a416d5079484dc064e9b1fbea90291ae813eece08289a5c8", size = 18329 },
+        { set = "renderer", path = "openshim_dxbc_seed.pack", sha256 = "7928ab06624c3024dc9a15b2c34ac1875fe758527c8f3de0284e8240897cd10c", size = 4244232 },
         { set = "renderer", path = "openshim_enhanced_base-fragment.glsl", sha256 = "a6ed270c27a711f91aad79d7dca219cfb09ea8f306015d9b84e4511e3dd10996", size = 14464 },
         { set = "renderer", path = "openshim_enhanced_base-sm3.hlsl", sha256 = "120759772caa534a34292fb6ee7d7abc6824c527ed03511f61167c1f45a8f253", size = 17635 },
         { set = "renderer", path = "openshim_enhanced_base-sm4.hlsl", sha256 = "1e27487960b9772054ab36a2efb7113f3c9193fce0d5721fa9fc4932df1891e8", size = 75629 },
