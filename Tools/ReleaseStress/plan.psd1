@@ -96,6 +96,8 @@
         @{ Group = 'multiplayer'; Name = 'mp_lan_again';  Do = 'click'; T = 'OpenShimPreLobby_LocalTools' }
         @{ Group = 'multiplayer'; Name = 'mp_host_stop';  Do = 'click'; T = 'OpenShimLAN_Stop'; Expect = 'none'; SettleS = 2 }
         @{ Group = 'multiplayer'; Name = 'mp_lan_back';   Do = 'back'; T = 'OpenShimLAN_Back' }
+        # Stopping the LAN host keeps Network/Server=LAN by design, so the lobby socket would retry the dead host every 7 s for the rest of the run.
+        @{ Group = 'multiplayer'; Name = 'mp_server_rebellion'; Do = 'click'; T = 'OpenShimPreLobby_ServerRebellion'; Expect = 'none'; SettleS = 1 }
         @{ Group = 'multiplayer'; Name = 'mp_prelobby_back'; Do = 'back'; T = 'OpenShimPreLobby_Back'; Budget = 'Transition' }
 
         # ------------------------------------------------------------ Single Player
