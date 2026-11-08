@@ -45,7 +45,7 @@ material CRSKYMA.MAP
 			}
 			texture_unit 3
 			{
-				texture crsky_milkyway.png
+				texture crsky_milkyway.dds
 				tex_address_mode wrap clamp
 				filtering trilinear
 			}

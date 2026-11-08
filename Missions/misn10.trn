@@ -164,67 +164,25 @@ Azimuth23   = 360
 Elevation23 = 5
 Roll16      = 180
 
-Texture24   = crmeteor.map
-Color24     = "255 252 246 255"
-Size24      = 360
-Azimuth24   = 15
-Elevation24 = 25
-Roll24      = 30
+Texture24   = crjovian.map
+Size24      = 394
+Azimuth24   = 120
+Elevation24 = 32
 
-Texture25   = crmeteor.map
-Color25     = "250 255 250 255"
-Size25      = 440
-Azimuth25   = 80
-Elevation25 = 12
-Roll25      = 110
+Texture25   = creuropa.map
+Size25      = 33
+Azimuth25   = 210
+Elevation25 = 47
 
-Texture26   = crmeteor.map
-Color26     = "255 248 240 255"
-Size26      = 400
-Azimuth26   = 135
-Elevation26 = 40
-Roll26      = 200
+Texture26   = crganyme.map
+Size26      = 24
+Azimuth26   = 246
+Elevation26 = 27
 
-Texture27   = crmeteor.map
-Color27     = "246 252 255 255"
-Size27      = 520
-Azimuth27   = 205
-Elevation27 = 18
-Roll27      = 290
-
-Texture28   = crmeteor.map
-Color28     = "255 255 244 255"
-Size28      = 380
-Azimuth28   = 265
-Elevation28 = 50
-Roll28      = 60
-
-Texture29   = crmeteor.map
-Color29     = "252 246 255 255"
-Size29      = 480
-Azimuth29   = 325
-Elevation29 = 12
-Roll29      = 150
-
-Texture30   = crjovian.map
-Size30      = 394
-Azimuth30   = 120
-Elevation30 = 32
-
-Texture31   = creuropa.map
-Size31      = 33
-Azimuth31   = 210
-Elevation31 = 47
-
-Texture32   = crganyme.map
-Size32      = 24
-Azimuth32   = 246
-Elevation32 = 27
-
-Texture33   = crcallis.map
-Size33      = 12
-Azimuth33   = 150
-Elevation33 = 47
+Texture27   = crcallis.map
+Size27      = 12
+Azimuth27   = 150
+Elevation27 = 47
 
 [Color]
 Palette=io.ACT

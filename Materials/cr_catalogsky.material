@@ -34,7 +34,7 @@ material CR_Sky/CatalogStars
 			}
 			texture_unit 1
 			{
-				texture crsky_milkyway.png
+				texture crsky_milkyway.dds
 				tex_address_mode wrap clamp
 				filtering trilinear
 			}
@@ -77,7 +77,7 @@ material CR_Sky/IoStars
 			}
 			texture_unit 1
 			{
-				texture crsky_milkyway.png
+				texture crsky_milkyway.dds
 				tex_address_mode wrap clamp
 				filtering trilinear
 			}
