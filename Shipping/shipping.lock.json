@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5297,
+  "count": 5298,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -16353,6 +16353,10 @@
     {
       "source": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program.payload",
       "runtime": "openshim\\renderer\\enhanced\\openshim_dx11_fixedfunc.program.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_dxbc_seed.pack.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_dxbc_seed.pack.payload"
     },
     {
       "source": "openshim\\renderer\\enhanced\\openshim_enhanced_base-fragment.glsl.payload",
