@@ -36,5 +36,6 @@
 *BZOgreLogfile.log ::: WARNING: the mesh 'cblpad\.mesh' includes vertices without bone assignments ::: 4 of ~4000 vertices unweighted in the stock TRO mesh and the CR copy alike
 *BZOgreLogfile.log ::: Invalid target for D3D11 shader '.*' - '(vs|ps)_[23]_0' ::: legacy SM3 HLSL programs are retargeted by OpenShim's DX11 path; the stock Ogre message appears once per program on every start
 *BZOgreLogfile.log ::: Information Queue Exceptions Bottom Level = No information queue exceptions ::: Ogre option echo, not an exception
+*openshim*.log ::: \[OgreProfile\] deferred Mesh::softwareVertexBlend entry observer target=0x[0-9A-F]+ suspendReady=no error=5 blockingThread=0 blockingEip=0x0+ bytesStillMatch=yes ::: thread-suspend race (ERROR_ACCESS_DENIED on a starting/exiting thread); bytes untouched, retry flag set and the observer installs on the next pass (patch_scopes.inl:233). Downgrade to Info in the next shim release
 # --- exu.log ---
 *exu.log ::: \[EXU::Overlay\] native font group reset font=CRBZoneOverlayFont group=EXUOverlayFontRuntime reason=current-manager-missing-font ::: recoverable: font script is re-parsed right after (hasFont=1)
