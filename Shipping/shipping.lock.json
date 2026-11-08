@@ -5183,8 +5183,8 @@
       "runtime": "crsky_mars_clouds.png"
     },
     {
-      "source": "Assets\\Textures\\crsky_milkyway.png",
-      "runtime": "crsky_milkyway.png"
+      "source": "Assets\\Textures\\crsky_milkyway.dds",
+      "runtime": "crsky_milkyway.dds"
     },
     {
       "source": "Assets\\Textures\\crsky_saturn.png",

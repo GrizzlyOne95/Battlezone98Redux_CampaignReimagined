@@ -18,8 +18,9 @@ that contributes most to it.
 
 Sources (not stored in the repository):
   --bsc5      Yale Bright Star Catalogue binary (tdc-www.harvard.edu/catalogs/BSC5)
-  --milkyway  NASA/GSFC SVS Deep Star Maps 2020 milkyway_2020_4k (svs.gsfc.nasa.gov/4851),
-              converted to a 16-bit PNG or float .npy, equatorial J2000
+  --milkyway  NASA/GSFC SVS Deep Star Maps 2020 milkyway_2020_8k (svs.gsfc.nasa.gov/4851),
+              converted to a 16-bit PNG or float .npy, equatorial J2000. The 8k EXR is two
+              stops darker than the 4k one, hence the default exposure 4.
   --random N  placeholder field for plumbing tests
 """
 import argparse
@@ -29,6 +30,8 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image
+
+from bcdds import save_bc
 
 ROOT = Path(__file__).resolve().parent.parent
 CELLS = 512
@@ -147,8 +150,8 @@ def main():
     group.add_argument("--bsc5", type=Path)
     group.add_argument("--random", type=int)
     parser.add_argument("--milkyway", type=Path)
-    parser.add_argument("--milkyway-width", type=int, default=2048)
-    parser.add_argument("--milkyway-exposure", type=float, default=1.0)
+    parser.add_argument("--milkyway-width", type=int, default=8192)
+    parser.add_argument("--milkyway-exposure", type=float, default=4.0)
     parser.add_argument("--out", type=Path, default=ROOT / "Assets/Textures")
     args = parser.parse_args()
 
@@ -158,9 +161,11 @@ def main():
     used = int((index[..., 2] > 0).sum())
     print(f"crsky_stars.png: {len(stars)} stars, {used} cells used")
     if args.milkyway:
-        bake_milkyway(args.milkyway, args.milkyway_width, args.milkyway_exposure).save(
-            args.out / "crsky_milkyway.png", optimize=True)
-        print("crsky_milkyway.png written")
+        # BC1 with a full offline mip chain: 8k uncompressed would cost ~170 MB of video memory,
+        # and the DX11 renderer cannot generate mips for compressed textures.
+        save_bc(bake_milkyway(args.milkyway, args.milkyway_width, args.milkyway_exposure),
+                args.out / "crsky_milkyway.dds")
+        print("crsky_milkyway.dds written")
 
 
 if __name__ == "__main__":

@@ -29,11 +29,12 @@ Telescope Data Center, <http://tdc-www.harvard.edu/catalogs/bsc5.html>.
 Milky Way background: NASA/Goddard Space Flight Center Scientific Visualization Studio.
 Gaia DR2: ESA/Gaia/DPAC.
 
-- Source: SVS 4851, "Deep Star Maps 2020", `milkyway_2020_4k.exr` (celestial coordinates,
+- Source: SVS 4851, "Deep Star Maps 2020", `milkyway_2020_8k.exr` (celestial coordinates,
   plate carree, RA 0h at the centre increasing to the left, bright Hipparcos/Tycho stars omitted),
   <https://svs.gsfc.nasa.gov/4851>. Credit given as the page requests.
-- Used as: `Assets/Textures/crsky_milkyway.png`: box-filtered to 2048x1024, sRGB-encoded at
-  exposure 1 by `Tools/Build-CatalogSky.py --milkyway` after converting the EXR to a float
+- Used as: `Assets/Textures/crsky_milkyway.dds`: 8192x4096 BC1 with a full mip chain,
+  sRGB-encoded at exposure 4 (the 8k EXR is two stops darker than the 4k one) by
+  `Tools/Build-CatalogSky.py --milkyway` after converting the EXR to a float
   `.npy` (Blender's bundled Python reads EXR). The material's `milkyParams` (-1, 0.5) encode
   the map's RA direction and origin.
 - Neither source file is stored in the repository.
