@@ -152,7 +152,8 @@ local function makePeer(id, team, network)
             record(n, ...)
         end
     end
-    e.AiCommand = { UNDEPLOY = 21 }
+    e.AiCommand = { NONE = 0, UNDEPLOY = 21 }
+    e.GetCurrentCommand = function() return e.AiCommand.NONE end
     local function noop() end
     local aiTeam = { SetConfig = noop }
     local ai = { ResetObjectCacheTracking = noop, TrackWorldObject = noop, RefreshObjectCache = noop,

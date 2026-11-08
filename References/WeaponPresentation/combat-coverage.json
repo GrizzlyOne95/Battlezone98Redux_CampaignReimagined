@@ -1,9 +1,9 @@
 {
   "totals": {
-    "slots": 267,
-    "recoil_slots": 197,
-    "flash_slots": 188,
-    "casing_slots": 114
+    "slots": 268,
+    "recoil_slots": 198,
+    "flash_slots": 189,
+    "casing_slots": 115
   },
   "units": {
     "abtowe": {
@@ -850,6 +850,29 @@
           "flash_offset": [
             0.83,
             0.39,
+            0.27
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Existing gun piece"
+    },
+    "avtur2b": {
+      "name": "Turret",
+      "model": "avturr",
+      "slots": {
+        "1": {
+          "weapon": "gtminig",
+          "hardpoint": "GC1",
+          "recoil_node": "aDE11blc",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.69,
+            0.38,
             0.27
           ],
           "flash_status": "fitted; live validation pending",
