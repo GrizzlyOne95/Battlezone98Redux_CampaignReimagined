@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- OpenShim 1.0.0.73: ships a precompiled DX11 shader seed, so the first launch after install or update no longer compiles terrain shaders on load; the multiplayer staging room no longer stalls (8 s, previously 19-31 s); terrain seam blending now applies to the mission being loaded, never the previous one, and HD terrain tiles load on maps whose shader scan used to decline them.
+- OpenShim 1.0.0.72: campaign-folder mounting is deferred until a campaign is picked, so menus open faster.
+- OpenShim 1.0.0.71: unused-quality-tier shader techniques are pruned at load (MP game room 19-31 s -> 6 s).
+
 - OpenShim 1.0.0.70: cold-cache terrain shader compiles are 4-5x faster; the first load of a CR mission after an update or driver change no longer stalls for minutes (Black Dog cold load 105 s -> 29 s on GOG).
 - OpenShim 1.0.0.69: terrain on missions whose HD paint map finishes late no longer renders flat grey (tessellation now waits for the paint map). Release stress harness: waits for the real mission load end, no longer drops log lines written mid-read, picks a real Instant Action map, and the upload gate refuses a pass with pending test settings or no `Bin\` hashes; only docs may change after the pass.
 - Black Dog and CRA co-op missions renamed from bdmisnNNcr/chmisnNNcr to bdNNcr/chNNcr (BZN, Lua, INI, briefing, VXT and preview files; terrain keeps the stock stem). Redux copies only the first 8 characters of a mission BZN stem when it looks up the mission Lua, so the 10-character names ran no script in game. Saves made for the old names cannot be loaded; career stats keep their old keys. `Validate-CampaignRepository.py` now fails on a shipped mission BZN stem over 8 characters. Co-op-capable mission scripts now call `RequireFix.Initialize` before requiring `CRCCARuntime`: a mission chunk has no mod directory on `package.path` and the asset searcher cuts module names to 11 characters, so that require failed and the script died before removing the MultST spawn buoys. The validator flags a long require with no fix ahead of it.
