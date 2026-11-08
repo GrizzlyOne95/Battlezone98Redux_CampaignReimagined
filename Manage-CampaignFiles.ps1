@@ -865,7 +865,9 @@ function Update-OpenShimManifest {
     if (-not (Test-Path -LiteralPath $uiSourceDir)) {
         throw "Cannot generate OpenShim suite manifest because '$uiSourceDir' does not exist."
     }
-    $uiFileNames = [string[]]@(Get-ChildItem -LiteralPath $uiSourceDir -File -Filter *.png |
+    # *.ogv: the TRO main-menu banner movie (odyssey.ogv) lives beside the images.
+    $uiFileNames = [string[]]@(Get-ChildItem -LiteralPath $uiSourceDir -File |
+        Where-Object { $_.Extension -in '.png', '.ogv' } |
         ForEach-Object { $_.Name })
     [System.Array]::Sort($uiFileNames, [System.StringComparer]::Ordinal)
     foreach ($uiBaseName in $uiBaseNames) {
@@ -1612,6 +1614,7 @@ function Build-WorkshopContent {
         "BZ_ASSETS_CORE\common\ui\CustomWidgets\uiplate.png",
         "BZ_ASSETS_CORE\common\ui\CustomWidgets\uibtn.png",
         "BZ_ASSETS_CORE\common\ui\CustomWidgets\uibtnhv.png",
+        "BZ_ASSETS_CORE\common\ui\CustomWidgets\odyssey.ogv",
         "crcampgn.ini",
         "crcampgn.des",
         "campaignReimagined.jpg",

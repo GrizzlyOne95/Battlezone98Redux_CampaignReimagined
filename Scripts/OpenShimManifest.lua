@@ -18,7 +18,7 @@ return {
     },
     assetSets = {
         renderer = { source = "openshim\\renderer\\enhanced", destination = "openshim\\renderer\\enhanced", sha256 = "b4b75ac9bfd86fe63383bc2c110251c05ed8d08a10318739d0a7873b16121cba", files = 47 },
-        customWidgets = { source = "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets", destination = "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets", sha256 = "5fdf5ac54d15c8833d2e654bdd52ceb61fe4e7002a0fb46daeffb78179366153", files = 22 },
+        customWidgets = { source = "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets", destination = "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets", sha256 = "c76e995f682dcfc2ae15674deb5d2d0eb1ac0073485998dbbca9065121e1a862", files = 23 },
     },
     assetFiles = {
         { set = "renderer", path = "openshim_dx11_fixedfunc-sm4.hlsl", sha256 = "602f33c1293e5757cc5869d6ecb5c4b11c6c66f59a766508b3fd7fc6ad7e73b4", size = 15129 },
@@ -68,6 +68,7 @@ return {
         { set = "renderer", path = "openshim_surface_reactions.hlsl", sha256 = "32d5f7611203530f98322fb0d9de02fe330178b253e1abb374900b32bd24a75a", size = 19122 },
         { set = "renderer", path = "openshim_terrain_tessellation_test.hlsl", sha256 = "2ab9687e5cbae94255a6aea507f7b8293db7e6840e0264fc85bdabd56c95fc6e", size = 22092 },
         { set = "renderer", path = "resources.version", sha256 = "ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d", size = 1 },
+        { set = "customWidgets", path = "odyssey.ogv", sha256 = "8f974ce2450f302e60c52c6c21b7ee1898e0773edc3ea305d3ddaa1a6bce142b", size = 1856210 },
         { set = "customWidgets", path = "osh_career_center.png", sha256 = "69240a42a2302170caab842088922c299c9f56bacd97bf0b6f57c50283de1f7c", size = 46453 },
         { set = "customWidgets", path = "osh_category_center.png", sha256 = "28c840734bd8bb46e8699df0b594564f1cea571ee86b547994682171ef69bb4d", size = 46204 },
         { set = "customWidgets", path = "osh_hub_center.png", sha256 = "df08d8e6e241fedb9af63b31dbc9bcea730756d57a05ed532822e5c7adfbf2a7", size = 48177 },
