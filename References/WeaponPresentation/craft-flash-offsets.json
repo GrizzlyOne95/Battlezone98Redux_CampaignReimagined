@@ -479,6 +479,23 @@
         }
       }
     },
+    "avtur2b": {
+      "model": "avturr",
+      "slots": {
+        "1": {
+          "weapon": "gtminig",
+          "offset": [
+            0.69,
+            0.38,
+            0.27
+          ],
+          "hardpoint": "aDE11gc1",
+          "barrel": "aDE11blc",
+          "vertices": 116,
+          "reviewed_barrel": true
+        }
+      }
+    },
     "avturr": {
       "model": "avturr",
       "slots": {
