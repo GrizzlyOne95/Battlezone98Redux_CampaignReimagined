@@ -639,9 +639,36 @@ local function NewMissionState()
         overlayResetPending = false,
         initialObjectiveCompleted = false,
         stagedFighters = {},
+        pathFighters = {},
     }
 end
 M = NewMissionState()
+
+-- patrol1 and patrol2 end 300+ metres short of the scavenger and the
+-- players, so a fighter that only had a Goto parked there out of range. Each
+-- one sent along a path presses on to the scavenger once the path is done.
+local function SendFighterAlongPath(h, path)
+    Goto(h, path)
+    M.pathFighters = M.pathFighters or {}
+    M.pathFighters[#M.pathFighters + 1] = { h = h, after = GetTime() + 2.0 }
+end
+
+local function PressPathFighters()
+    local list = M.pathFighters
+    if not list or #list == 0 then return end
+    local now = GetTime()
+    for i = #list, 1, -1 do
+        local entry = list[i]
+        local h = entry.h
+        if not IsAlive(h) or GetTeamNum(h) ~= ENEMY_TEAM then
+            table.remove(list, i)
+        elseif now >= entry.after and GetCurrentCommand(h) == AiCommand.NONE then
+            local target = (IsAlive(M.scav2) and M.scav2) or (IsAlive(M.bscav) and M.bscav) or nil
+            if target then Attack(h, target) end
+            table.remove(list, i)
+        end
+    end
+end
 
 local function OrderActivatedFighter(h)
     if not h or not IsAlive(h) then return end
@@ -649,12 +676,12 @@ local function OrderActivatedFighter(h)
         M.found2 = true
         M.bscout = h
         if SetLabel then SetLabel(M.bscout, LABEL_BSCOUT) end
-        Goto(M.bscout, "patrol1")
+        SendFighterAlongPath(M.bscout, "patrol1")
         SetObjectiveOn(M.bscout)
     elseif IsAlive(M.bscav) and IsAlive(M.bgoal) and GetDistance(M.bscav, M.bgoal) < 200.0 then
         Attack(h, M.bscav)
     else
-        Goto(h, "patrol2")
+        SendFighterAlongPath(h, "patrol2")
     end
 end
 
@@ -1159,6 +1186,7 @@ function Update()
     if not CRCoop.IsAuthority() then return end
     PlayerPilotMode.Update()
     aiCore.Update()
+    PressPathFighters()
 
     -- Holographic Bio Logic
     if (M.camera1 or M.camera2 or M.camera3) and GetTime() >= M.bio_timer then
