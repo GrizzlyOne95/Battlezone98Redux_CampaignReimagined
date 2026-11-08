@@ -1359,15 +1359,6 @@ function Update()
         end
     end
 
-    -- The stock objective starts white and completes when the player enters a
-    -- vehicle. Keep the later ClearObjectives transition unchanged.
-    if M.start_done and not M.camera1 and not M.camera2 and not M.camera3
-        and not M.message2 and not M.initialObjectiveCompleted
-        and CRCoop.AllPlayersSatisfy(function(h) return IsAlive(h) and not IsPerson(h) end) then
-        UpdateObjective("misn02b1.otf", "green")
-        M.initialObjectiveCompleted = true
-    end
-
     -- Patrol 1 Logic
     if not M.patrol1 and M.found and IsAlive(M.bhandle) and IsAlive(M.bscav) and GetDistance(M.bhandle, M.bscav) < 75.0 then
         if ActivateStagedFighters() == 0 then
