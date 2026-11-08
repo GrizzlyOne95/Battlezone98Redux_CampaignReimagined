@@ -8,7 +8,8 @@
 # --- openshim.log ---
 *openshim.log ::: \[DX11COMPAT\] instantiation failed material=(HUDcomb[a-z]|reticle\d*|OpenShim/ReticleFx/\d+|sprite_[an]|target|LoadingScreen [^ ]+\.(png|jpg|dds|tga)) path=family-remap action=stock-fallback ::: HUD/sprite/loading-screen materials are declined as excluded-class (dx11_legacy_material_compat.cpp kExcluded) and keep stock UI programs
 *openshim.log ::: \[DX11COMPAT\] material=(QueryArea|QueryVisible) unsupported custom programs vs=Occlusion_vertex ps=Occlusion_fragment action=skip ::: colour_write-off occlusion-query materials left unchanged
-*openshim.log ::: [DX11COMPAT] material=MN_DETAIL_ATLAS unsupported custom programs vs=TerrainGlow_vertex ps=TerrainGlow_fragment action=skip ::: terrain glow-scheme technique has no DX11 form and stays stock; the base terrain technique is unaffected
+*openshim.log ::: \[DX11COMPAT\] material=MN_DETAIL_ATLAS unsupported custom programs vs=TerrainGlow_vertex ps=TerrainGlow_fragment action=skip ::: terrain glow-scheme technique has no DX11 form and stays stock; the base terrain technique is unaffected
+*openshim.log ::: \[TERRAIN-HD\] native tiles declined: paint pack has no map entry for this mission: actual=.*"terrainFingerprint":"9f9ca8fd4da71650" ::: call2arm (Legacy Instant Action, the gates IA map) is not a CR mission, so the multi-map paint pack has no entry; pinned to its terrain fingerprint so a CR map that loses its entry still fails
 *openshim.log ::: \[DX11COMPAT\] instantiation failed material=(\S+\.(png|ogv|bmp|dds|tga|jpg)|bzfont|osh_\S+|Battlezone)\b.*path=family-remap action=stock-fallback ::: UI materials (stock .png/.ogv screens, bzfont, OpenShim's own osh_* pages) are excluded from DX11 instantiation and use the stock path; pre-existing on every build
 *openshim.log ::: \[DX11COMPAT\] material=\S+\.ogv unsupported custom programs ::: intro/menu video materials use a UI program DX11 skips; pre-existing
 *openshim.log ::: \[uiperf-hooks\] Frontend drilldown hooks skipped: UiPerf code addresses are not bound ::: the UI-performance drilldown (a diagnostic) cannot bind on the GOG exe; harness trigger path is separate and works
@@ -27,6 +28,8 @@
 *BZLogger.txt ::: Game stopped due to abort button ::: the harness leaves every mission through ESC > Abort Mission
 *BZLogger.txt ::: WARNING: unknown mapType 'NONE' in '.*[\\/]addon[\\/][^']*\.ini' ::: stock map scanner reads stray *.ini files (desktop.ini etc.) inside addon folders on this machine; not a CR file
 *BZLogger.txt ::: cGogInterface::preinitGoGInterface.*GalaxyRuntimeError ::: GOG Galaxy is not running/signed in on this PC (environmental)
+*BZLogger.txt ::: BZRNetInterface reset active_con due to websocket connection (setup failure|close).*(Underlying Transport Error|Timer Expired) ::: GOG copy is not signed in to the lobby on this PC (same cause as the GalaxyRuntimeError line); seen ~55x in every gate run, and mp_staging still has its own timing budget
+*BZLogger.txt ::: Frame Rate Dropped Lower Than 20 ::: engine prints this on mission-load hitches; load/play stalls are gated by the harness timing and max-unresponsive budgets, not this line
 # --- BZOgreLogfile.log ---
 *BZOgreLogfile.log ::: WARNING: (native/v4/[0-9a-f]+/cgt11\w+\.mesh|sbsilo\.mesh|casings/v1/openshim_casing\.mesh) is an older format \(\[MeshSerializer_v1\.8\]\) ::: OpenShim chunk cache writes v1.8 by design (native_chunk_mesh.cpp); stock sbsilo is v1.8
 *BZOgreLogfile.log ::: WARNING: the mesh 'cblpad\.mesh' includes vertices without bone assignments ::: 4 of ~4000 vertices unweighted in the stock TRO mesh and the CR copy alike
