@@ -6,7 +6,7 @@
     "skeletonSha256": "20d755d8a26a5e185bca18cb949855773647da50c3fd52947867ee0ce1d8a8da"
   },
   "outputs": {
-    "Assets/Models/bvltnk_cockpit.mesh": "a79cbe7d2401b3a15cb28ff72cd65c988a9ccf7b720294ed4f0d56c49118999c",
+    "Assets/Models/bvltnk_cockpit.mesh": "dd12f76be5198d8c90529caeb93212bed2f548c5a7e854ce632c09cedbbe9a53",
     "Assets/Models/bvltnk_cockpit.skeleton": "20d755d8a26a5e185bca18cb949855773647da50c3fd52947867ee0ce1d8a8da",
     "Materials/CR_bvltnk_cockpit.material": "f4c6e52f44b9476d5a228e00f7f594e1ddf69eb8f5d779f5c865bfbe9cfc953a",
     "Assets/ModelFixes/bvltnk.mesh": "4f08b1ac2d6af6c43a946e29aa1373ae7a75ed0f853dfd30226199f0649dd0ce"
@@ -16,7 +16,7 @@
     "faction": "bdog",
     "pov": "bln11pov",
     "povPosition": [
-      0.0997999981045723,
+      -0.0997999981045723,
       1.46069997549057,
       0.1421000063419342
     ],
@@ -1283,14 +1283,14 @@
     ]
   },
   "glass": {
-    "openFraction": 0.4122042341220423,
+    "openFraction": 0.40190195856447414,
     "depth": [
-      0.6820776149514907,
-      2.550659327155396
+      0.682692132403949,
+      2.5648561526492877
     ],
     "bone": "bln21bdb",
-    "vertices": 571,
-    "triangles": 998
+    "vertices": 559,
+    "triangles": 974
   },
   "triangles": {
     "CRV/BDogScoutCockpit": 2248,
