@@ -11,6 +11,16 @@ CONFIG={
     'nsdf':dict(base='avfigh',shell='ara21bda',material='CRV/NSDFScoutCockpit',nose='CRV/NSDFScoutNose',stem='crvascp',noseBone=2,cockpitBatch=2,front=1.03,eye=[-.004399999976158142,1.467507004737854,.7488619983196259]),
     'bdog':dict(base='bvraz',shell='bra21bda',material='CRV/BDogScoutCockpit',nose='CRV/BDogScoutNose',stem='crvbscp',noseBone=1,cockpitBatch=1,front=.91,eye=[-.004399999976158142,1.467507004737854,.8566620051860809])}
 
+# Largest nose roll: full strafe with rollStrafRotator[1]=0.4 (all_decompiled.c:195005),
+# x3 per HoverCraft::UpdateGimbals (:193638). When the engine picks index 1 is UNVERIFIED.
+ROLL_DEG=23.6
+
+
+def roll_matrix(axis,angle):
+    k=np.array([[0,-axis[2],axis[1]],[axis[2],0,-axis[0]],[-axis[1],axis[0],0]])
+    return np.eye(3)+np.sin(angle)*k+(1-np.cos(angle))*k@k
+
+
 def convex_hull(points):
     """Counter-clockwise 2-D hull (monotone chain)."""
     pts=sorted(set(map(tuple,np.round(points,6))))
@@ -112,7 +122,12 @@ def geometry(source,skeleton_path,faction):
     # would read as hollow. Close it with the static hull bulkhead the nose rolls
     # against (as Total Command's scout does), its armour lip proud of the rim so
     # the tub reads as continuing into the main hull.
-    local=(positions-origin)@R;zmin=local[:,2].min();hull=convex_hull(local[local[:,2]<zmin+.03][:,:2]);hull=hull.mean(0)+(hull-hull.mean(0))*1.01;lo,hi=hull.min(0),hull.max(0)
+    # The engine rolls the nose about its bone z (all_decompiled.c:193638-193641), up to
+    # ROLL_DEG at full strafe, so the bulkhead covers the rim swept through that roll.
+    local=(positions-origin)@R;zmin=local[:,2].min();rear=local[local[:,2]<zmin+.03]
+    bone_origin,bone_basis=world[cfg['noseBone']];pivot=(bone_origin-origin)@R;axis=R.T@bone_basis[:,2];axis/=np.linalg.norm(axis)
+    swept=np.concatenate([(rear-pivot)@roll_matrix(axis,a).T+pivot for a in np.radians(np.linspace(-ROLL_DEG,ROLL_DEG,25))])
+    hull=convex_hull(swept[:,:2]);hull=hull.mean(0)+(hull-hull.mean(0))*1.01;lo,hi=hull.min(0),hull.max(0)
     cap_start=len(rows);x0,y0,x1,y1=CHARTS['armor']
     for x,y in hull:rows.append([*(origin+R@np.array([x,y,zmin-.008])),*(R@np.array([0.,0,-1])),x0+(x1-x0)*(x-lo[0])/(hi[0]-lo[0]),y0+(y1-y0)*(y-lo[1])/(hi[1]-lo[1])])
     for i in range(1,len(hull)-1):indices.extend([cap_start,cap_start+i+1,cap_start+i])
