@@ -39,6 +39,18 @@ CR_PLANET_VIDEO = {'moon': 'crmoon.ogv', 'mars': 'crmars.ogv', 'venus': 'crvenus
 def assert_planet(section, world):
     assert section["planet"].strip('"') == "custom"
     assert section["planetDisplay"].strip('"') == CR_PLANET_VIDEO[world]
+    assert_planet_desc(section)
+
+def assert_planet_desc(section):
+    # A custom planet reads its briefing blurb from the planetDesc key (not planetDisplay);
+    # without it the engine looks up ".des" and the panel says "NO DESCRIPTION".
+    clip = section["planetDisplay"].strip('"')
+    assert section.get("planetDesc", "").strip('"') == clip.rsplit(".", 1)[0] + ".des", f"planetDesc must name the .des for {clip}"
+
+# Every custom planet's blurb file must ship.
+for clip in CR_PLANET_VIDEO.values():
+    des = ROOT / "Text" / (clip.rsplit(".", 1)[0] + ".des")
+    assert des.is_file(), f"{des.name} is missing: the briefing would show NO DESCRIPTION"
 
 mod_parser = configparser.ConfigParser()
 mod_parser.optionxform = str
@@ -57,6 +69,7 @@ for section, filename in zip(mission_sections, campaign_maps):
     assert mod_parser[section]["missionName"].strip('"')
     assert mod_parser[section]["planet"].strip('"') == "custom"
     assert mod_parser[section]["planetDisplay"].strip('"') in {CR_PLANET_VIDEO[w] for w in ("moon", "mars", "venus", "io", "europa", "titan", "achilles")}
+    assert_planet_desc(mod_parser[section])
     path = ROOT / "Missions" / filename
     assert path.is_file(), f"campaign must use a CR map: {filename}"
     mission_class = "MultSTMission"
