@@ -17,7 +17,7 @@ def sha(p):
     b=base_asset_path(p).read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if p.suffix=='.material' else b).hexdigest()
 spec=importlib.util.spec_from_file_location('build_combat',ROOT/'Tools/Build-CombatCockpits.py');build=importlib.util.module_from_spec(spec);spec.loader.exec_module(build)
 members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
-eyes={'cvturr':[0,3.620931014418602,1.0216540098190308],'svfigh':[0,1.492648959159851,.9383049756288528],'svltnk':[.002672000089660287,2.4873430132865906,-.7983300685882568],'avhraz':[.0007450000266544521,2.3997009992599487,2.301424026489258],'bvhraz':[.0007450000266544521,2.3997009992599487,2.301424026489258]};report={}
+eyes={'cvturr':[0,3.620931014418602,1.0216540098190308],'svfigh':[0,1.2726489901542664,-.5616949945688248],'svltnk':[.002672000089660287,2.4873430132865906,-.7983300685882568],'avhraz':[.0007450000266544521,2.3997009992599487,2.301424026489258],'bvhraz':[.0007450000266544521,2.3997009992599487,2.301424026489258]};report={}
 for base,cfg in cp.CONFIG.items():
     receipt=json.loads((REF/base/'build.json').read_text());meta=receipt['alignment'];source=ROOT/'Assets/ModelFixes'/(base+'.mesh');skel=ROOT/'Assets/Models'/(base+'_cockpit.skeleton')
     check(sha(source)==receipt['sources']['exteriorSha256'],'exterior/fallback byte-exact')
@@ -37,7 +37,14 @@ for base,cfg in cp.CONFIG.items():
         check(np.isfinite(np.column_stack([p,n,uv,t])).all(),'finite vertex data')
         check(np.allclose(np.linalg.norm(n,axis=1),1,atol=.003),'unit normals')
         check(np.allclose(np.linalg.norm(t,axis=1),1,atol=.003) and abs((n*t).sum(1)).max()<.003,'orthonormal tangent basis')
-        weights=list(sub.bone_assignments());check(len(weights)==len(p) and all(a.bone_index==shell.handle and a.weight==1 for a in weights),'single stable-shell skinning')
+        # Shell everywhere, except declared animated exterior pieces on their own bone.
+        want=np.full(len(p),shell.handle);by_name={b.name:b.handle for b in s.bones()}
+        if sub.material_name=='CRV/'+base+'CombatExterior':
+            # The receipt must declare exactly the configured animated bones,
+            # so dropping 'animated' (or a stray entry) cannot pass as all-shell.
+            check([e['bone'] for e in meta.get('exteriorSkin',[])]==list(cfg.get('animated',())),'exteriorSkin matches configured animated bones')
+            for entry in meta.get('exteriorSkin',[]):a,b=entry['vertices'];check(b<=len(p) and entry['bone'] in by_name,'animated piece '+entry['bone']);want[a:b]=by_name[entry['bone']]
+        weights=list(sub.bone_assignments());check(len(weights)==len(p) and all(a.bone_index==want[a.vertex_index] and a.weight==1 for a in weights),'single rigid skinning (shell or declared animated bone)')
         tri=p[sub.index_array.reshape(-1,3)];check((np.linalg.norm(np.cross(tri[:,1]-tri[:,0],tri[:,2]-tri[:,0]),axis=1)>1e-10).all(),'nondegenerate triangles '+base+' / '+sub.material_name)
         if sub.material_name!='CRWX_CockpitGlass':
             ranges[sub.material_name]=(cursor,cursor+len(tri));cursor+=len(tri);opaque.append(tri)
@@ -55,12 +62,15 @@ for base,cfg in cp.CONFIG.items():
     # actual vehicle identity, original UVs, rigid scale and transformed normals.
     body=cp.shared.read_mesh(base_asset_path(source)).submesh_list[0];ext=m.submesh_list[2];extdata=np.column_stack([cp.shared.values(ext.vertex_data,sem) for sem in (cp.shared.om.VES.POSITION,cp.shared.om.VES.NORMAL,cp.shared.om.VES.TEXTURE_COORDINATES,cp.shared.om.VES.TANGENT)]);offset=0
     for piece in meta['exteriorPieces']:
-        mask=np.zeros(len(body.index_array)//3,bool);mask[piece['sourceIndices']]=True;raw,ix,_=cp.tank.source_part(body,mask);T=np.array(piece['transform']);data=extdata[offset:offset+len(raw)];offset+=len(raw)
+        mask=np.zeros(len(body.index_array)//3,bool);mask[piece['sourceIndices']]=True;raw,ix,_=cp.tank.source_part(body,mask);T=np.array(piece['transform']);data=extdata[offset:offset+len(raw)];offset+=len(raw)+piece.get('uvRemapVertices',0)  # remapped copies follow the source vertices
         check(np.allclose(T[:3,:3].T@T[:3,:3],np.eye(3),atol=1e-7) and abs(np.linalg.det(T[:3,:3])-1)<1e-7,'no scale/shear/mirroring of exterior piece')
         check(np.allclose(data[:,:3],raw[:,:3]@T[:3,:3].T+T[:3,3],atol=1e-6),'actual vehicle surface positions, rigid fit only')
         check(np.array_equal(data[:,6:8],raw[:,6:8]),'original exterior UVs')
         check(np.allclose(data[:,3:6],raw[:,3:6]@T[:3,:3].T,atol=1e-6),'normals follow piece rotation')
-        check(0<len(ix)//3<3000,'bounded exterior group, not whole exterior')
+        # Only the svfigh ROR nose (whole moving bone, 4615 tris) may exceed half; the
+        # whole vehicle is not.
+        limit=len(body.index_array)//3 if base=='svfigh' and piece['label']=='animated SFL11ROR' else len(body.index_array)//3//2
+        check(0<len(ix)//3<limit,'bounded exterior group, not whole exterior')
         if base=='cvturr' or (base=='svltnk' and piece['bones']==[2]):check(np.allclose(T,np.eye(4),atol=1e-8),'gun assemblies retain actual position relative to POV')
         if base=='svltnk' and 'original red gun housing' in piece['label']:
             check(np.allclose(T,np.eye(4),atol=1e-8),'stock red casing stays aligned with native barrels')

@@ -105,7 +105,7 @@ def render(model,record):
         sc.render.filepath=str(out/(model+'-cockpit.jpg'));bpy.ops.render.render(write_still=True)
         camera(xyz(pos),Vector(),basis=M@Matrix.Rotation(math.radians(-25),4,'X'))
         sc.render.filepath=str(out/(model+'-cockpit-down.jpg'));bpy.ops.render.render(write_still=True)
-        (out/(model+'-camera.json')).write_text(json.dumps({'eye':eye.name,'position':pos,'basis':R.tolist(),'vertical_fov_degrees':64,'aspect':[960,540],'source':'unchanged eye position; native VDF local POV rotation'},indent=2)+'\n')
+        (out/(model+'-camera.json')).write_text(json.dumps({'eye':eye.name,'position':pos,'basis':R.tolist(),'vertical_fov_degrees':64,'aspect':[960,540],'source':('CR eyeoverrides position' if model in __import__('eyeoverrides').EYES else 'unchanged eye position')+'; native VDF local POV rotation'},indent=2)+'\n')
 
 if __name__=='__main__':
     args=sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else []

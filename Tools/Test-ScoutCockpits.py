@@ -37,7 +37,8 @@ for faction,cfg in cp.CONFIG.items():
         check(np.allclose(np.linalg.norm(n,axis=1),1,atol=.003),'unit normals')
         check(np.allclose(np.linalg.norm(t,axis=1),1,atol=.003),'unit tangents')
         check(np.abs((n*t).sum(1)).max()<.003,'orthogonal tangent basis')
-        weights=list(sub.bone_assignments());check(len(weights)==len(p) and all(a.bone_index==shell.handle and a.weight==1 for a in weights),'every vertex skinned to stable shell')
+        bone=np.full(len(p),cfg['noseBone'] if sub.material_name==cfg['nose'] else shell.handle)
+        weights=list(sub.bone_assignments());check(len(weights)==len(p) and all(a.bone_index==bone[a.vertex_index] and a.weight==1 for a in weights),'interior/glass/hull bulkhead on stable shell; nose whole on the moving rof bone')
         tri=p[sub.index_array.reshape(-1,3)];check((np.linalg.norm(np.cross(tri[:,1]-tri[:,0],tri[:,2]-tri[:,0]),axis=1)>1e-10).all(),'no degenerate triangles')
         if sub.material_name!='CRWX_CockpitGlass':
             check(uv.min()>=0 and uv.max()<=1,'opaque UV range')
@@ -53,13 +54,38 @@ for faction,cfg in cp.CONFIG.items():
         distance,_=cg.cast(origin,rays(np.arange(-180,180,10),pitch),tri[:,0],tri[:,1],tri[:,2]);check(np.isfinite(distance).all(),'closed '+label)
     distance,_=cg.cast(origin,rays(np.array([180]),0),tri[:,0],tri[:,1],tri[:,2]);check(np.isfinite(distance).all(),'closed rear')
     check(receipt['alignment']['innerShell']['boundaryLoops']==1,'only deliberate canopy opening')
-    directions=np.concatenate([rays(np.arange(-35,36,1),pitch) for pitch in range(-31,0)])
-    dist,hit=cg.cast(origin,directions,tri[:,0],tri[:,1],tri[:,2]);hits=np.isfinite(dist)&(hit>=nose_first)&(hit<nose_last);nose_visible[faction]=int(hits.sum());check(hits.any(),'original nose visible in actual forward FOV')
+    # In game the camera is the CR-raised POV (eyeoverrides), 0.35 m above the stock eye the tub is fitted to.
+    import eyeoverrides;bone,pos=eyeoverrides.EYES[base];stock=__import__('weaponrigs').read_skeleton(skelpath.read_bytes()).bone(bone).position;game=origin+R@(np.array(pos)-np.array(stock))
+    check(bone==eye.name and np.allclose(R.T@(game-origin),[0,.35,0],atol=1e-4),'in-game POV raised 0.35 m straight up')
+    directions=np.concatenate([rays(np.arange(-35,35.5,.5),pitch) for pitch in np.arange(-31,0,.5)])
+    dist,hit=cg.cast(game,directions,tri[:,0],tri[:,1],tri[:,2]);hits=np.isfinite(dist)&(hit>=nose_first)&(hit<nose_last);nose_visible[faction]=int(hits.sum());check(hits.sum()>=25,'nose crescent visible over the hull bulkhead from the in-game eye: %d samples'%hits.sum())
+    local={x.material_name:(cp.shared.values(x.vertex_data,cp.shared.om.VES.POSITION)-origin)@R for x in mesh.submesh_list};cap=receipt['alignment']['noseCap'];tub=np.delete(local[cfg['material']],np.s_[cap['firstVertex']:cap['firstVertex']+cap['vertices']],0)
+    check(local[cfg['nose']][:,2].min()>tub[:,2].max(),'nose entirely ahead of the built tub')
+    # Open nose rear closed: the cap lies behind the nose and spans its whole rear
+    # rim, and every eye ray through the cap's area stops at the cap or the tub.
+    capv=local[cfg['material']][cap['firstVertex']:cap['firstVertex']+cap['vertices']];nose=local[cfg['nose']];rear=nose[nose[:,2]<nose[:,2].min()+.03]
+    check(capv[:,2].max()<nose[:,2].min(),'nose cap just behind the nose')
+    inside=lambda q:all((b[0]-a[0])*(q[1]-a[1])-(b[1]-a[1])*(q[0]-a[0])>=-1e-6 for a,b in zip(capv[:,:2],np.roll(capv[:,:2],-1,0)))
+    # The engine rolls the nose about its bone z (all_decompiled.c:193638-193641) up to
+    # cp.ROLL_DEG; the static cap must cover the rim at every roll, not just at rest.
+    bone_origin,bone_basis=world[cfg['noseBone']];pivot=(bone_origin-origin)@R;axis=R.T@bone_basis[:,2]
+    check(np.allclose(axis,[0,0,1],atol=1e-4),'nose rolls about the cockpit forward axis')
+    rolled=[(rear-pivot)@cp.roll_matrix(axis,a).T+pivot for a in np.radians(np.linspace(-cp.ROLL_DEG,cp.ROLL_DEG,49))]
+    check(cp.ROLL_DEG>=5.74 and all(inside(q) for r in rolled for q in r[:,:2]),'nose cap covers the rear rim at every roll to +-%.1f deg'%cp.ROLL_DEG)
+    cap_last=len(mesh.submesh_list[0].index_array)//3;cap_first=cap_last-cap['triangles'];u,v=np.meshgrid(np.linspace(.05,.95,12),np.linspace(.05,.95,12));grid=capv[:,:2].min(0)+np.column_stack([u.ravel(),v.ravel()])*(capv[:,:2].max(0)-capv[:,:2].min(0))
+    # From the stock eye the tub was fitted to, and the raised in-game eye, the tub sill
+    # hides most of the bulkhead. Neither eye may ever see into the open nose.
+    pts=np.array([[x,y,capv[0,2]] for x,y in grid if inside((x,y))])
+    for name,eyepos in (('stock',origin),('in-game',game)):
+        targets=pts-R.T@(eyepos-origin);dirs=targets/np.linalg.norm(targets,axis=1)[:,None];dist,hit=cg.cast(eyepos,dirs@R.T,tri[:,0],tri[:,1],tri[:,2])
+        nose_hits=((hit>=nose_first)&(hit<nose_last)).sum();cap_hits=((hit>=cap_first)&(hit<cap_last)).sum()
+        check(len(targets)>40 and np.isfinite(dist).all() and nose_hits==0 and cap_hits>0,'open nose rear never visible from the %s eye: %d nose, %d/%d cap'%(name,nose_hits,cap_hits,len(targets)))
     parts,*_=cp.geometry(base_asset_path(source),skelpath,faction);authored[faction]=parts[cfg['material']][0]
     check(np.array_equal(cp.shared.values(mesh.submesh_list[1].vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),parts[cfg['nose']][0][:,6:8]),'stock nose UVs retained')
     check(receipt['alignment']['noseTriangles']==738 and len(mesh.submesh_list[1].index_array)//3==738,'only complete original nose, not whole hull/hardpoint cubes')
     raw=cp.shared.read_mesh(base_asset_path(source)).submesh_list[0];rawp=cp.shared.values(raw.vertex_data,cp.shared.om.VES.POSITION);q=rawp[raw.index_array.reshape(-1,3)[receipt['alignment']['noseSourceIndices']]];fitted=parts[cfg['nose']][0][:,:3][parts[cfg['nose']][1].reshape(-1,3)]
     check(np.allclose(np.linalg.norm(np.roll(q,-1,axis=1)-q,axis=2),np.linalg.norm(np.roll(fitted,-1,axis=1)-fitted,axis=2),atol=1e-6),'nose shape/scale preserved')
+    check(np.allclose(np.unique(q.reshape(-1,3),axis=0),np.unique(fitted.reshape(-1,3),axis=0),atol=1e-6),'nose at native exterior position (engine-posed rof, no art fit)')
     check(receipt['glass']['bone'].lower()==cfg['shell'] and receipt['glass']['vertices']>0,'weather glass refitted')
     src=cg.Sources(game=str(ROOT/'Local/no-game'),cr=str(ROOT));path,kind,_=cg.cockpit_mesh(src,base);check(kind=='separate' and Path(path).name==base+'_cockpit.mesh','first-person resource selected')
     d,e,mask=build.textures(faction);check(np.array_equal(np.array(mask),np.array(Image.open(ref/'optical-mask.png'))),'physical source mask reproduces')
@@ -86,5 +112,5 @@ for faction in cp.CONFIG:
     x0,y0,x1,y1=np.array(cp.CHARTS['armor'])*1024;region=diffuse[faction][int(y0)+5:int(y1)-5,int(x0)+5:int(x1)-5].mean((0,1))
     check(region[1]>region[0]*1.08 and region[2]>region[0]*1.08 if faction=='nsdf' else region.max()-region.min()<22,'stock-grounded faction structural palette: '+faction)
 origins={f:np.array(c['eye']) for f,c in cp.CONFIG.items()}
-check(np.allclose(authored['nsdf'][:,:3]-origins['nsdf'],authored['bdog'][:,:3]-origins['bdog'],atol=2e-7),'common Razor shell fitted independently to each faction eye')
+check(np.allclose(authored['nsdf'][:,:2]-origins['nsdf'][:2],authored['bdog'][:,:2]-origins['bdog'][:2],atol=2e-7),'common Razor shell fitted to each faction eye (depth fitted to its nose root)')
 print('Scout cockpit pair:',count,'checks passed; source-nose samples',nose_visible)

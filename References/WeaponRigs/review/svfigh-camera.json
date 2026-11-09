@@ -2,8 +2,8 @@
   "eye": "SFL11POV",
   "position": [
     0.0,
-    1.492648959159851,
-    0.9383049756288528
+    1.2726489901542664,
+    -0.5616949945688248
   ],
   "basis": [
     [
@@ -27,5 +27,5 @@
     960,
     540
   ],
-  "source": "unchanged eye position; native VDF local POV rotation"
+  "source": "CR eyeoverrides position; native VDF local POV rotation"
 }

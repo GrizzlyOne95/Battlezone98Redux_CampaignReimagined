@@ -5,6 +5,7 @@ import numpy as np
 from PIL import Image
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from bcdds import save_bc
+from weaponrigs import base_asset_path
 import scoutcockpits as cp
 ROOT=Path(__file__).resolve().parents[1];REF=ROOT/'References/ScoutCockpits'
 def sha(p):
@@ -42,9 +43,9 @@ def textures(faction):
 def build(game):
     receipts={}
     for faction,cfg in cp.CONFIG.items():
-        base=cfg['base'];ref=REF/faction;source=ROOT/'Assets/ModelFixes'/(base+'.mesh');skel=Path(game)/'BZ_ASSETS/common/models'/(base+'.skeleton')
+        base=cfg['base'];ref=REF/faction;source=base_asset_path(ROOT/'Assets/ModelFixes'/(base+'.mesh'));skel=Path(game)/'BZ_ASSETS/common/models'/(base+'.skeleton')
         parts,s,world,eye,shell,meta=cp.geometry(source,skel,faction)
-        model,glass=cp.shared.mesh_bytes(parts,s,world,eye,shell,skeleton_name=base+'_cockpit.skeleton');outputs={}
+        model,glass=cp.shared.mesh_bytes(parts,s,world,eye,shell,skeleton_name=base+'_cockpit.skeleton',part_bones=cp.bones(parts,cfg,shell,meta));outputs={}
         for path,content in [(ROOT/'Assets/Models'/(base+'_cockpit.mesh'),model),(ROOT/'Assets/Models'/(base+'_cockpit.skeleton'),skel.read_bytes())]:path.write_bytes(content);outputs[path.relative_to(ROOT).as_posix()]=sha(path)
         d,e,mask=textures(faction)
         for channel,im in [('d',d),('e',e)]:
@@ -56,9 +57,10 @@ def build(game):
 material {cfg['material']} : CR_BZBaseCockpit
 {{
     set_texture_alias DiffuseMap {cfg['stem']}_d.dds
-    set_texture_alias NormalMap flat_N.dds
+    set_texture_alias NormalMap {cfg['stem']}_N.dds
     set_texture_alias SpecularMap crvcca_patch_s.dds
     set_texture_alias EmissiveMap {cfg['stem']}_e.dds
+    set_texture_alias ACTMap {cfg['material'].replace('/','_')}_ACT.dds
 }}
 
 material {cfg['nose']} : CR_BZBaseCockpit

@@ -118,8 +118,10 @@ def geometry(source,skeleton_path):
 
 def pub(x):return np.array(x).tolist()
 
-def mesh_bytes(parts,skeleton,world,eye,shell,skeleton_name='bvrdev_cockpit.skeleton',glass_parts=None):
-    mesh=om.Mesh();mesh.skeleton_name=skeleton_name
+def mesh_bytes(parts,skeleton,world,eye,shell,skeleton_name='bvrdev_cockpit.skeleton',glass_parts=None,part_bones=None,empty_name_table=False):
+    # empty_name_table reproduces outputs written before the serializer
+    # stopped emitting an empty submesh name table (combat cockpits).
+    mesh=om.Mesh();mesh.skeleton_name=skeleton_name;mesh.write_empty_name_table=empty_name_table
     def add(name,data,index):
         if data.shape[1]==8:
             # Positive/negative UV axes both get a matching orthogonal tangent.
@@ -135,7 +137,9 @@ def mesh_bytes(parts,skeleton,world,eye,shell,skeleton_name='bvrdev_cockpit.skel
         sub=mesh.create_submesh();sub.material_name=name;sub.index_count=len(index);sub.indices_32_bit=False;sub.set_index_buffer(index.astype('<u2').tobytes());vd=sub.create_vertex_data(len(data))
         # Skinned: stock two-stream layout, or the batch draws flat (ogrelayout.py).
         ogrelayout.fill_vertex_data(vd,data)
-        for i in range(len(data)):sub.create_bone_assignment(i,shell.handle,1.)
+        # part_bones optionally maps a submesh to one bone handle per vertex.
+        handles=(part_bones or {}).get(name,np.full(len(data),shell.handle));assert len(handles)==len(data)
+        for i in range(len(data)):sub.create_bone_assignment(i,int(handles[i]),1.)
         return sub
     for name,(data,index) in parts.items():add(name,data,index)
     # Reuse the established bounded ray-grid fit, not its legacy file parser.
