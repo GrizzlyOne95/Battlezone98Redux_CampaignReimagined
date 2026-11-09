@@ -6,7 +6,7 @@
     "skeletonSha256": "d38714d9f745c798088644ec7cd380f70882271473c6d5e900727285283c4329"
   },
   "outputs": {
-    "Assets/Models/svfigh_cockpit.mesh": "b7e04db3c6821a67f1fbd34a620661e9e0c3f86cd6409c65547183aea82bc2a9",
+    "Assets/Models/svfigh_cockpit.mesh": "6925e529219099b749d52979dbf13cbd0572d85ff146c1127dbaf2492277e55d",
     "Assets/Models/svfigh_cockpit.skeleton": "d38714d9f745c798088644ec7cd380f70882271473c6d5e900727285283c4329",
     "Materials/CR_svfigh_cockpit.material": "16fa5275d68e75271226e024875a5b657b1fb935dad97b71657de0d4f1f2b559"
   },

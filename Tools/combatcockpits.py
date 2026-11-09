@@ -221,12 +221,14 @@ def geometry(source,skelpath,base,game,root):
             # The stock hull buries this piece's rear bulkhead, so its atlas cell
             # is black; from the canopy eye it reads as a black hole. Map the
             # flat rear faces (on their own copied vertices) to a plain panel.
-            t=ix.reshape(-1,3);loc=(data[:,:3]-origin)@R;n=np.cross(loc[t[:,1]]-loc[t[:,0]],loc[t[:,2]]-loc[t[:,0]]);n/=np.linalg.norm(n,axis=1)[:,None]
+            t=ix.reshape(-1,3).astype(np.int64);loc=(data[:,:3]-origin)@R;n=np.cross(loc[t[:,1]]-loc[t[:,0]],loc[t[:,2]]-loc[t[:,0]]);n/=np.linalg.norm(n,axis=1)[:,None]
             rear=(n[:,2]<-.95)&(loc[t][:,:,2].max(1)<loc[:,2].min()+.01);assert rear.any(),label
             old=np.unique(t[rear]);new=len(data)+np.arange(len(old));t[rear]=new[np.searchsorted(old,t[rear])];copy=data[old].copy()
             lo,hi=loc[old].min(0),loc[old].max(0);u0,v0,u1,v1=bulkhead;f=(loc[old,:2]-lo[:2])/(hi[:2]-lo[:2])
-            copy[:,6]=u0+f[:,0]*(u1-u0);copy[:,7]=v1-f[:,1]*(v1-v0);data=np.vstack([data,copy]).astype('<f4');ix=t.reshape(-1).astype('<u2');remapped=len(copy)
-        start=sum(len(x) for x in exterior)
+            # Flat panel: face normal (eye -z) and tangent along +u (eye +x), not
+            # the smoothed side-wall basis of the old black cell.
+            copy[:,6]=u0+f[:,0]*(u1-u0);copy[:,7]=v1-f[:,1]*(v1-v0);copy[:,3:6]=-R[:,2];copy[:,8:11]=R[:,0];data=np.vstack([data,copy]).astype('<f4');ix=t.reshape(-1).astype('<u2');remapped=len(copy)
+        start=sum(len(x) for x in exterior);assert start+len(data)<65536,'16-bit exterior indices'
         # bone=None freezes the piece to the shell. A named bone skins the
         # piece to the same-named cockpit bone, which the engine poses from the
         # VDF GEO each frame (hover gimbals, types 66/67). Only a translation is
