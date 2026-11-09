@@ -240,10 +240,10 @@ def geometry(source,skelpath,base,game,root):
         # The deck between canopy and nose belongs to the body (SFL11BDA),
         # which is rigid with the eye, so faces turned away from the eye can
         # never be seen. Ogre culls clockwise by default, so visible faces have
-        # n.(eye-a) > 0 (rays from outside the stock hull hit those first). Keep only the strip ahead of and below the eye.
+        # n.(eye-a) > 0 (rays from outside the stock hull hit those first). Keep only the strip ahead of and wholly below the eye (the canopy spine would block the aim corridor).
         handles={b.name:b.handle for b in s.bones()}
         local=(q-origin)@R;facing=np.einsum('ij,ij->i',np.cross(q[:,1]-q[:,0],q[:,2]-q[:,0]),origin-q[:,0])>0
-        deck=facing&(local[:,:,2].min(1)>.3)&(local[:,:,1].mean(1)<0)
+        deck=facing&(local[:,:,2].min(1)>.3)&(local[:,:,1].max(1)<-.02)
         piece('native BDA deck ahead of canopy (eye-facing)',[handles['SFL11BDA']],deck)
         # The nose (ROR, VDF class 66) is the hover gimbal and the nacelles
         # (class 67) hang from it, so all three move: keep them whole, at
