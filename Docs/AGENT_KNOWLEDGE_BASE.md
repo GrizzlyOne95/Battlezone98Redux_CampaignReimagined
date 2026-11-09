@@ -979,6 +979,11 @@ Each bullet: the pitfall, the one-line why, and where to read more.
 - `GetPosition` returns a `VECTOR_3D` userdata. A `type(p) == "table"` check silently discards every position
   (it hid all position-driven Titan effects until the first live run); mock positions as userdata in tests.
 - A match on bytes proves an address, not identity: byte match plus semantic corroboration, always.
+- Redux takes the cockpit camera from the skeleton POV bone, not the VDF eyepoint (confirmed live 2026-11-09;
+  1.5 reads the VDF: `BZ1/1.5/all_decompiled.c:152449`). To move an eye, patch only that bone, through
+  `Tools/eyeoverrides.py`. Animated cockpits take two stages: build and push the pre-rig mesh, pin it in
+  `References/WeaponRigs/models.json` `stage_revisions`, then re-rig. That file's `cockpit_lo`/`cockpit_hi`
+  boxes are hand-maintained; when a re-rig reports 0 cockpit recoil triangles, those boxes are stale.
 
 ### 8.6 Process
 
