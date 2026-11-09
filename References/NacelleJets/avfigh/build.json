@@ -48,7 +48,7 @@
     77.0,
     76.0
   ],
-  "paintSource": "Assets\\Textures\\avfigh_D.dds",
+  "paintSource": "Assets/Textures/avfigh_D.dds",
   "housing": {
     "vertices": 629,
     "triangles": 508,

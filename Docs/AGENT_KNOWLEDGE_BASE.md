@@ -1738,4 +1738,5 @@ to the ordinary GOG development mod.
 - `Manage-CampaignFiles.ps1 -bless` adds every unblessed tracked file, not only yours.
   Review the lock diff and keep only the task's entries.
 - `avfigh00` carried stock Redux's one-off `$ambient "0.2 0.2 0.2"` (279 of 281 stock
-  materials use `1 1 1`); it is now `1 1 1` like the other units.
+  materials use `1 1 1`); it is now `1 1 1` like the other units. The Livewire
+  `SX_tint_*` materials (`Materials/sxtint.material`) inherit it, so they brighten too.

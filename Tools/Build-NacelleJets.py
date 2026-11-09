@@ -111,7 +111,7 @@ def solid_config(shape, emit, fit):
     out = dict(shape, emit=emit, underside=fit)
     for part, keys in (('bell', ('top', 'lip')), ('bore', ('roof',)), ('groove', ('y0', 'y1'))):
         out[part] = dict(shape[part], **{k: emit[1] + shape[part][k] for k in keys})
-    bell, groove = out['bell'], out['groove']
+    groove = out['groove']
     out['groove']['rIn'] = bell_radius(out, (groove['y0'] + groove['y1']) / 2) - groove['depth']
     return out
 
@@ -352,7 +352,6 @@ def preview_mesh(mesh, material, rows, index, bones, dest):
     assert [(s.material_name, s.vertex_data.vertex_count) for s in check.submesh_list] == before + [(material, len(data))]
     assert sorted((a.vertex_index, a.bone_index) for a in new.bone_assignments()) == list(zip(range(len(data)), owner.tolist()))
     assert np.allclose(shared.values(new.vertex_data, VES.POSITION), data[:, :3])
-    return data, faces
 
 
 def blender(script, *args):
@@ -386,26 +385,22 @@ def build(unit, render, shipped=False):
     data = np.load(work / 'solid.npz'); tris = data['tris']
     tri = data['positions'][tris]; normal = data['normals'][tris]; uv = data['uvs'][tris] * (1, -1) + (0, 1)  # Ogre v runs down
     tag = tag_faces(tri, solid); paint, source = paint_colour(mesh)
-    images, zone = textures(unit, tri, uv, tag, solid, cfg['stripe'], paint, faction)
+    images, _ = textures(unit, tri, uv, tag, solid, cfg['stripe'], paint, faction)
     for key, image in images.items():
         save_bc(image, work / f'{material}_{key}.dds'); image.save(work / f'{material}_{key}.png')
     (work / (material + '.material')).write_text('\n'.join(['import * from "CR_BZBase.material"', ''] + material_block(material)), newline='\n')
     rows, index = vertex_rows(tri, normal, uv)
-    vertices, faces = preview_mesh(mesh, material, rows, index, [j['bone'] for j in jets], work / (unit + '.mesh'))
-    stage = ship(unit, material, work) if shipped else None
+    preview_mesh(mesh, material, rows, index, [j['bone'] for j in jets], work / (unit + '.mesh'))
     receipt = dict(unit=unit, faction=cfg['faction'], material=material, emitters=jets, flameDirection=[0, -1, 0], baseRevision=revision,
                    wingUnderside=dict(heightAtEmit=fit[0], slopePerMetreOfChord=fit[1], maxError=error), paint=paint,
-                   paintSource=str(source.relative_to(ROOT) if source.is_relative_to(ROOT) else source.name),
+                   paintSource=source.relative_to(ROOT).as_posix() if source.is_relative_to(ROOT) else source.name,
                    housing=dict(vertices=len(rows), triangles=len(index), zones={n: int((tag == v).sum()) for n, v in
                                 (('paint', PAINT), ('bell', BELL), ('lip', LIP), ('groove', GROOVE), ('bore', BORE), ('throat', THROAT), ('vent', VENT))}),
                    shape=cfg['shape'], stripe=cfg['stripe'])
-    record = ROOT / 'References/NacelleJets' / unit / 'build.json'
-    # sha256 of the pre-rig Assets/ModelFixes mesh as shipped; a preview run keeps the last shipped value.
-    stage = stage or (json.loads(record.read_text()).get('stageMesh') if record.exists() else None)
-    if stage:
-        receipt['stageMesh'] = stage
-    (ROOT / 'References/NacelleJets' / unit).mkdir(exist_ok=True)
-    (ROOT / 'References/NacelleJets' / unit / 'build.json').write_text(json.dumps(receipt, indent=2) + '\n', newline='\n')
+    if shipped:  # a preview run leaves the tracked receipt alone
+        receipt['stageMesh'] = ship(unit, material, work)  # sha256 of the pre-rig Assets/ModelFixes mesh
+        record = ROOT / 'References/NacelleJets' / unit / 'build.json'; record.parent.mkdir(exist_ok=True)
+        record.write_text(json.dumps(receipt, indent=2) + '\n', newline='\n')
     print(unit, 'housing', len(rows), 'vertices', len(index), 'triangles each; paint', [round(c) for c in paint], 'underside fit error %.3f' % error)
     if not render:
         return

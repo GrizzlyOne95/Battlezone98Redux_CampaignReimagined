@@ -53,12 +53,13 @@ only shows above 10% throttle. Under co-op team colours only the hull paint is r
 
 The tool always starts from the unit's pre-rig mesh at `source_revision` in
 `References/WeaponRigs/models.json`, so it can be re-run at any time. Preview output goes
-to `Local/NacelleJets/<unit>`; review sheets go to `review/`.
+to `Local/NacelleJets/<unit>`; review sheets go to `review/`. Only `--ship` writes the receipt.
 
 Shipping a unit, in order:
 
 1. `--ship`, then commit the pre-rig `Assets/ModelFixes/<unit>.mesh`, the four textures,
-   the material block and the receipt. Push.
+   the material block and the receipt. Push. `--ship` replaces the rigged shipped mesh
+   with the unrigged stage, so do not stop before step 2.
 2. Put that commit in `models.json` `stage_revisions` for the mesh, then run
    `python Tools/Build-WeaponRigs.py --models <unit>`.
 3. `python Tools/Build-TeamSkins.py --write` (adds `<unit>_nacjet_tm` and its mask).
