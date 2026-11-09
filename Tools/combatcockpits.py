@@ -229,8 +229,10 @@ def geometry(source,skelpath,base,game,root):
         for sign,bone in [(1,4),(-1,7)]:piece('native '+str(sign)+' high/low gun pod',[bone],np.ones(len(tri),bool))
     elif role=='fighter':
         # Native front body, unmoved: from the real canopy eye it sits low and
-        # centred over the nose, leaving the aim corridor clear.
-        piece('native ROR front body',[4],np.ones(len(tri),bool))
+        # centred over the nose, leaving the aim corridor clear. It is rigid
+        # with the eye, so faces turned away from the eye can never be seen.
+        facing=np.einsum('ij,ij->i',np.cross(q[:,1]-q[:,0],q[:,2]-q[:,0]),origin-q[:,0])>0
+        piece('native ROR front body (eye-facing)',[4],facing)
         # LOD1 nacelles at native positions, animated by the hover gimbals;
         # from the real eye they show at the screen edges.
         handles={b.name:b.handle for b in s.bones()}
