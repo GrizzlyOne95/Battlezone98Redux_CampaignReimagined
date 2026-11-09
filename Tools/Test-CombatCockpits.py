@@ -40,6 +40,9 @@ for base,cfg in cp.CONFIG.items():
         # Shell everywhere, except declared animated exterior pieces on their own bone.
         want=np.full(len(p),shell.handle);by_name={b.name:b.handle for b in s.bones()}
         if sub.material_name=='CRV/'+base+'CombatExterior':
+            # The receipt must declare exactly the configured animated bones,
+            # so dropping 'animated' (or a stray entry) cannot pass as all-shell.
+            check([e['bone'] for e in meta.get('exteriorSkin',[])]==list(cfg.get('animated',())),'exteriorSkin matches configured animated bones')
             for entry in meta.get('exteriorSkin',[]):a,b=entry['vertices'];check(b<=len(p) and entry['bone'] in by_name,'animated piece '+entry['bone']);want[a:b]=by_name[entry['bone']]
         weights=list(sub.bone_assignments());check(len(weights)==len(p) and all(a.bone_index==want[a.vertex_index] and a.weight==1 for a in weights),'single rigid skinning (shell or declared animated bone)')
         tri=p[sub.index_array.reshape(-1,3)];check((np.linalg.norm(np.cross(tri[:,1]-tri[:,0],tri[:,2]-tri[:,0]),axis=1)>1e-10).all(),'nondegenerate triangles '+base+' / '+sub.material_name)
