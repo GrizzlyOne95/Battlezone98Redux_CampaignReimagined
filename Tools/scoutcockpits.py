@@ -11,9 +11,11 @@ CONFIG={
     'nsdf':dict(base='avfigh',shell='ara21bda',material='CRV/NSDFScoutCockpit',nose='CRV/NSDFScoutNose',stem='crvascp',noseBone=2,cockpitBatch=2,front=1.03,eye=[-.004399999976158142,1.467507004737854,.7488619983196259]),
     'bdog':dict(base='bvraz',shell='bra21bda',material='CRV/BDogScoutCockpit',nose='CRV/BDogScoutNose',stem='crvbscp',noseBone=1,cockpitBatch=1,front=.91,eye=[-.004399999976158142,1.467507004737854,.8566620051860809])}
 
-# Largest nose roll: full strafe with rollStrafRotator[1]=0.4 (all_decompiled.c:195005),
-# x3 per HoverCraft::UpdateGimbals (:193638). When the engine picks index 1 is UNVERIFIED.
-ROLL_DEG=23.6
+# Nose roll at full strafe in the normal mode: rollStrafRotator[0]=0.1 (all_decompiled.c:194995),
+# x3 per HoverCraft::UpdateGimbals (:193638) -> 5.74 deg. Index 1 (0.4, :195005; 23.6 deg) is
+# picked by a unit flag (:193628); ODF\svhaul.odf:51-52 names the pair Run/Jump, so it is likely
+# the jump mode (UNVERIFIED). Covering 23.6 thinned the visible crescent; the user chose the look.
+ROLL_DEG=5.74
 
 
 def roll_matrix(axis,angle):

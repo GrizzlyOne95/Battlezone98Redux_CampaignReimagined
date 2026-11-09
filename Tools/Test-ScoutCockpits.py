@@ -71,7 +71,7 @@ for faction,cfg in cp.CONFIG.items():
     bone_origin,bone_basis=world[cfg['noseBone']];pivot=(bone_origin-origin)@R;axis=R.T@bone_basis[:,2]
     check(np.allclose(axis,[0,0,1],atol=1e-4),'nose rolls about the cockpit forward axis')
     rolled=[(rear-pivot)@cp.roll_matrix(axis,a).T+pivot for a in np.radians(np.linspace(-cp.ROLL_DEG,cp.ROLL_DEG,49))]
-    check(cp.ROLL_DEG>=23.6 and all(inside(q) for r in rolled for q in r[:,:2]),'nose cap covers the rear rim at every roll to +-%.1f deg'%cp.ROLL_DEG)
+    check(cp.ROLL_DEG>=5.74 and all(inside(q) for r in rolled for q in r[:,:2]),'nose cap covers the rear rim at every roll to +-%.1f deg'%cp.ROLL_DEG)
     cap_last=len(mesh.submesh_list[0].index_array)//3;cap_first=cap_last-cap['triangles'];u,v=np.meshgrid(np.linspace(.05,.95,12),np.linspace(.05,.95,12));grid=capv[:,:2].min(0)+np.column_stack([u.ravel(),v.ravel()])*(capv[:,:2].max(0)-capv[:,:2].min(0))
     # From the stock eye the tub was fitted to, and the raised in-game eye, the tub sill
     # hides most of the bulkhead. Neither eye may ever see into the open nose.

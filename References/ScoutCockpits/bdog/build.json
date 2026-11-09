@@ -14,7 +14,7 @@
     "skeletonSha256": "ec1dbc02748d5ba4f576ca6c732551df3e6a73b9ad508a4e745ea415add93cc7"
   },
   "outputs": {
-    "Assets/Models/bvraz_cockpit.mesh": "6a80c78ffcc560bce6730024467aacf46d7ac3b55a5562c66ec97356e042947e",
+    "Assets/Models/bvraz_cockpit.mesh": "3f84b16351aa47f373774d96ee7f2bb66cfb9947f50583f03653a404287074ec",
     "Assets/Models/bvraz_cockpit.skeleton": "ec1dbc02748d5ba4f576ca6c732551df3e6a73b9ad508a4e745ea415add93cc7",
     "Assets/Textures/crvbscp_d.dds": "c2db5d269e0887791551c2ae7b92861ababd28cf3ec3b603d7926abe276b072f",
     "Assets/Textures/crvbscp_e.dds": "623acd56e9995b5b03cf33becd39fef2ac512fab29c4b7dc8a708cda0d559d76",
@@ -795,8 +795,8 @@
     "tubFront": 0.91,
     "noseCap": {
       "firstVertex": 1197,
-      "vertices": 73,
-      "triangles": 71
+      "vertices": 154,
+      "triangles": 152
     },
     "rim": [
       [
@@ -852,17 +852,17 @@
     }
   },
   "glass": {
-    "openFraction": 0.46326276463262767,
+    "openFraction": 0.4656402128382203,
     "depth": [
-      0.6830730061864554,
-      1.1900446365249966
+      0.682993015502626,
+      1.1893955799817393
     ],
     "bone": "bra21bda",
-    "vertices": 619,
-    "triangles": 1116
+    "vertices": 621,
+    "triangles": 1120
   },
   "triangles": {
-    "CRV/BDogScoutCockpit": 764,
+    "CRV/BDogScoutCockpit": 845,
     "CRV/BDogScoutNose": 738
   }
 }
