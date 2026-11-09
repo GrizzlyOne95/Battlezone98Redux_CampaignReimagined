@@ -2689,7 +2689,7 @@
       }
     ],
     "cockpit_source": {
-      "mesh": "38f6d2007dcd3a783bb70087ce73845eefed194363d4d6ee80e55077ba444b64",
+      "mesh": "24ba49a14bb1f25d67e13265b2a006f8b765ada4f9c7a9e3eb3adcde551f364c",
       "skeleton": "bbacefcf8d0c047eb82842e447a658c357240003f5404d460443a7871df7a460",
       "bind_poses": {
         "avfigh": [
@@ -2993,7 +2993,7 @@
     "outputs": {
       "Assets/Models/avfigh_recoil.skeleton": "bc247f1d72afbe38c73883a9607b2d8cb14c874f7160edb291ebb7fa1b8bd20b",
       "Assets/ModelFixes/avfigh.mesh": "b35c36e0035614cd559e88dc74ccacb7e8a54011a8e8c321f62417eaf9ab4b37",
-      "Assets/Models/avfigh_cockpit.mesh": "70d0a14b7e8b873f626506c53d041b1cc35560795509a3006933c81f0ffea26b",
+      "Assets/Models/avfigh_cockpit.mesh": "a6ab5ffd7237d385aa4ba5e26da349825b8a5d51289a240e68746989f0f57b53",
       "Assets/Models/avfigh_cockpit_recoil.skeleton": "106c2cb80c9d502f9241105e2a695881631cb39c00cc78c04d640579fbbdd59f"
     }
   },
@@ -3212,7 +3212,7 @@
       }
     ],
     "cockpit_source": {
-      "mesh": "89fef9223a122d9cf0a64d3da08c29abe7ae94dc63e600e3ad24d481ad145b27",
+      "mesh": "e04bc2740e8eea486a297a603795f4cf99ea0ea5f668409a2ca83015f6d70d4e",
       "skeleton": "ec1dbc02748d5ba4f576ca6c732551df3e6a73b9ad508a4e745ea415add93cc7",
       "bind_poses": {
         "bRA11BDA": [
@@ -3464,7 +3464,7 @@
     "outputs": {
       "Assets/Models/bvraz_recoil.skeleton": "3fa5ae7aa1f451c8f1eba5e5d8cb7c261a46947efc563c6adaba601e0ea65f63",
       "Assets/ModelFixes/bvraz.mesh": "44fb28ee1415f0e323da56c752260a9be29e9bc0b8ba65c31b4e40cdc0b5e18e",
-      "Assets/Models/bvraz_cockpit.mesh": "afd9a3d0262fda358a70a9d822638f5603584898eeb1acbfcbd923027501fef3",
+      "Assets/Models/bvraz_cockpit.mesh": "fe792ffe1f833cdbf46798fe486c9a36183b39faa4a546117dada32988b82ae3",
       "Assets/Models/bvraz_cockpit_recoil.skeleton": "50709e94f692eb01d89c4541e38d003131e041d23f89723535eff602eca3750e"
     }
   },
