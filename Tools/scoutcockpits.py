@@ -116,6 +116,6 @@ def geometry(source,skeleton_path,faction):
     cap_start=len(rows);x0,y0,x1,y1=CHARTS['armor']
     for x,y in hull:rows.append([*(origin+R@np.array([x,y,zmin-.008])),*(R@np.array([0.,0,-1])),x0+(x1-x0)*(x-lo[0])/(hi[0]-lo[0]),y0+(y1-y0)*(y-lo[1])/(hi[1]-lo[1])])
     for i in range(1,len(hull)-1):indices.extend([cap_start,cap_start+i+1,cap_start+i])
-    parts[cfg['material']]=(np.array(rows,dtype='<f4'),np.array(indices,dtype='<u2'))
+    parts={cfg['material']:(np.array(rows,dtype='<f4'),np.array(indices,dtype='<u2')),cfg['nose']:parts[cfg['nose']]}
     meta=dict(faction=faction,base=cfg['base'],pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,noseTriangles=len(selected),noseBone=cfg['noseBone'],noseSourceIndices=np.flatnonzero(keep).tolist(),nosePlacement='native',noseSkin=cfg['noseBone'],tubFront=cfg['front'],noseCap=dict(firstVertex=cap_start,vertices=len(hull),triangles=len(hull)-2),rim=np.array(rim).tolist(),innerShell=dict(triangles=len(tris),boundaryEdges=len(boundary),boundaryLoops=1))
     return parts,skeleton,world,eye,shell,meta
