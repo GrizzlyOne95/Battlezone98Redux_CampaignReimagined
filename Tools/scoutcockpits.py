@@ -15,6 +15,8 @@ CONFIG={
 # x3 per HoverCraft::UpdateGimbals (:193638) -> 5.74 deg. Index 1 (0.4, :195005; 23.6 deg) is
 # picked by a unit flag (:193628); ODF\svhaul.odf:51-52 names the pair Run/Jump, so it is likely
 # the jump mode (UNVERIFIED). Covering 23.6 thinned the visible crescent; the user chose the look.
+# Live check (EXU SetPlayerInputs strafe +/-1, ground hover): the nose rolled ~15-20 deg on screen
+# (by eye), more than the 5.74 steady-state reading, yet no open rear showed in either scout.
 ROLL_DEG=5.74
 
 
