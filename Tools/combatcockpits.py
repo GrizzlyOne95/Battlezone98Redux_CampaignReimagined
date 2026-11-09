@@ -18,7 +18,7 @@ ART_ASPECT={
  'bdog':{'console':1218/279,'switch':596/476,'service':588/476}}
 CONFIG={
  'cvturr':dict(faction='cra',role='turret',shell='CAD21BDA',batch=1,material='CRV/CVBomberCockpit',charts=CRA_CHARTS,stock='cvturr01',exterior='cvturr',width=.86,lip=-.40,front=1.10,roof=.66,back=-.64),
- 'svfigh':dict(faction='cca',role='fighter',shell='SFL21bda',batch=2,material='CRV/CCAMechanicalCockpit',charts=CCA_CHARTS,stock='svfigh01',exterior='svfigh00',animated=('SFL11NFL','SFL11NFR'),width=.72,lip=-.38,front=1.07,roof=.54,back=-.54),
+ 'svfigh':dict(faction='cca',role='fighter',shell='SFL21bda',batch=2,material='CRV/CCAMechanicalCockpit',charts=CCA_CHARTS,stock='svfigh01',exterior='svfigh00',animated=('SFL11ROR','SFL11NFL','SFL11NFR'),width=.72,lip=-.38,front=1.07,roof=.54,back=-.54),
  'svltnk':dict(faction='cca',role='lighttank',shell='slt21ckp',batch=2,material='CRV/CCAMechanicalCockpit',charts=CCA_CHARTS,stock='svltnk01',exterior='svltnk00',width=.78,lip=-.44,front=1.34,roof=.59,back=-.60),
  'avhraz':dict(faction='nsdf',role='bomber',shell='ahr21bda',batch=2,material='CRV/NSDFScoutCockpit',charts=scout.CHARTS,stock='avhraz01',exterior='avhraz00',width=.98,lip=-.48,front=1.37,roof=.76,back=-.72),
  'bvhraz':dict(faction='bdog',role='bomber',shell='bhr21bda',batch=2,material='CRV/BDogScoutCockpit',charts=scout.CHARTS,stock='bvhraz01',exterior='bvhraz00',width=.98,lip=-.48,front=1.37,roof=.76,back=-.72)}
@@ -228,14 +228,18 @@ def geometry(source,skelpath,base,game,root):
         # the complete pod geometry at native coordinates, not on the sill.
         for sign,bone in [(1,4),(-1,7)]:piece('native '+str(sign)+' high/low gun pod',[bone],np.ones(len(tri),bool))
     elif role=='fighter':
-        # Native front body, unmoved: from the real canopy eye it sits low and
-        # centred over the nose, leaving the aim corridor clear. It is rigid
-        # with the eye, so faces turned away from the eye can never be seen.
-        facing=np.einsum('ij,ij->i',np.cross(q[:,1]-q[:,0],q[:,2]-q[:,0]),origin-q[:,0])>0
-        piece('native ROR front body (eye-facing)',[4],facing)
-        # LOD1 nacelles at native positions, animated by the hover gimbals;
-        # from the real eye they show at the screen edges.
+        # The deck between canopy and nose belongs to the body (SFL11BDA),
+        # which is rigid with the eye, so faces turned away from the eye can
+        # never be seen (Ogre winding: visible faces have n.(eye-a) < 0, checked
+        # by ray cast). Keep only the strip ahead of and below the eye.
         handles={b.name:b.handle for b in s.bones()}
+        local=(q-origin)@R;facing=np.einsum('ij,ij->i',np.cross(q[:,1]-q[:,0],q[:,2]-q[:,0]),origin-q[:,0])<0
+        deck=facing&(local[:,:,2].min(1)>.3)&(local[:,:,1].mean(1)<0)
+        piece('native BDA deck ahead of canopy (eye-facing)',[handles['SFL11BDA']],deck)
+        # The nose (ROR, VDF class 66) is the hover gimbal and the nacelles
+        # (class 67) hang from it, so all three move: keep them whole, at
+        # native positions, on their own bones. From the real eye the nose
+        # sits low and centred; the nacelles show at the screen edges.
         for name in cfg.get('animated',()):piece('animated '+name,[handles[name]],np.ones(len(tri),bool),bone=name,offset=cfg.get('animatedOffset',(0,0,0)))
     elif role=='lighttank':
         piece('Stoli front glacis',[1],q[:,:,2].min(1)>2.50,-8,-.56,1.55)
