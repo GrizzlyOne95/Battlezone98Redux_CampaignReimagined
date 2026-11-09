@@ -5,9 +5,9 @@
     "skeletonSha256": "4043ddea5148c1171f5b9aea8cf9c6d3786515cd92f102e3b3e2f891f3f7241e"
   },
   "outputs": {
-    "Assets/Models/bvtank_cockpit.mesh": "e68d05bca8058f79e69169d6a23a521ba61e847f7eb954513e7557da3918ce44",
+    "Assets/Models/bvtank_cockpit.mesh": "4f0ea88ccee0b916735a1046b194833d5cb02c21f87c513959d17b5e3d75dc38",
     "Assets/Models/bvtank_cockpit.skeleton": "4043ddea5148c1171f5b9aea8cf9c6d3786515cd92f102e3b3e2f891f3f7241e",
-    "Materials/CR_bvtank_cockpit.material": "66e37d1da8dbea150049e5c101cd62e73a5547403308ed86707ccd77d5922b32"
+    "Materials/CR_bvtank_cockpit.material": "1e48446b980c3283fe22b8c7638139aa16dd74825f729df018567f745c45829c"
   },
   "alignment": {
     "faction": "bdog",
@@ -683,8 +683,8 @@
     ],
     "apronOffset": [
       0.0,
-      -1.2975373310393632,
-      1.313116856109587
+      -1.3727348186332284,
+      1.2883728450453886
     ],
     "apronTriangles": 448,
     "innerShell": {
@@ -708,15 +708,15 @@
       ],
       [
         0.0,
-        0.9271838545667874,
-        0.374606593415912,
-        -1.6185844020053508
+        0.9659258262890683,
+        0.25881904510252074,
+        -1.6148430511073366
       ],
       [
         0.0,
-        -0.374606593415912,
-        0.9271838545667874,
-        1.8614728578560107
+        -0.25881904510252074,
+        0.9659258262890683,
+        1.6493782425055645
       ],
       [
         0.0,
@@ -725,7 +725,7 @@
         1.0
       ]
     ],
-    "apronPitchDegrees": -22.0,
+    "apronPitchDegrees": -15.0,
     "apronPivotModel": [
       0.0,
       1.25,
@@ -734,14 +734,14 @@
     "gunWeightSha256": "d70e1032cca3cf90b308d72698310662f11b3f4c74ab2a24cd83d00e609c1097"
   },
   "glass": {
-    "openFraction": 0.26457602173666933,
+    "openFraction": 0.27182157817276126,
     "depth": [
-      0.8276449373614619,
-      2.391659937957901
+      0.8276370744116711,
+      2.737299920782019
     ],
     "bone": "bgr21bda",
-    "vertices": 408,
-    "triangles": 686
+    "vertices": 415,
+    "triangles": 702
   },
   "triangles": {
     "bvtank01": 68,
