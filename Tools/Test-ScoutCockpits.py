@@ -55,7 +55,7 @@ for faction,cfg in cp.CONFIG.items():
     check(receipt['alignment']['innerShell']['boundaryLoops']==1,'only deliberate canopy opening')
     directions=np.concatenate([rays(np.arange(-35,36,1),pitch) for pitch in range(-31,0)])
     dist,hit=cg.cast(origin,directions,tri[:,0],tri[:,1],tri[:,2]);hits=np.isfinite(dist)&(hit>=nose_first)&(hit<nose_last);nose_visible[faction]=int(hits.sum());check(hits.sum()>=200,'original nose clearly visible past the notched sill')
-    check((((cp.shared.values(mesh.submesh_list[1].vertex_data,cp.shared.om.VES.POSITION)-origin)@R)[:,2]>cfg['front']).all(),'nose entirely ahead of the tub front wall')
+    local={x.material_name:(cp.shared.values(x.vertex_data,cp.shared.om.VES.POSITION)-origin)@R for x in mesh.submesh_list};check(local[cfg['nose']][:,2].min()>local[cfg['material']][:,2].max(),'nose entirely ahead of the built tub')
     parts,*_=cp.geometry(base_asset_path(source),skelpath,faction);authored[faction]=parts[cfg['material']][0]
     check(np.array_equal(cp.shared.values(mesh.submesh_list[1].vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),parts[cfg['nose']][0][:,6:8]),'stock nose UVs retained')
     check(receipt['alignment']['noseTriangles']==738 and len(mesh.submesh_list[1].index_array)//3==738,'only complete original nose, not whole hull/hardpoint cubes')

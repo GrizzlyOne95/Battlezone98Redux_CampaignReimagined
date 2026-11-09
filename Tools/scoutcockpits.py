@@ -14,7 +14,7 @@ CONFIG={
 def geometry(source,skeleton_path,faction):
     cfg=CONFIG[faction];skeleton,world,eye,shell=shared.rig(skeleton_path,cfg['shell']);origin,R=world[eye.handle];rows=[];indices=[]
     # The tub front sits just behind this faction's native nose root (Black Dog's
-    # starts 0.11 m nearer the eye), so the forward half is scaled in depth to it.
+    # starts 0.12 m nearer the eye), so the forward half is scaled in depth to it.
     k=(cfg['front']-.17)/(1.03-.17)
     def face(points,chart='trim',hint=None,uvs=None):
         p=np.array(points,float);p[:,2]=np.where(p[:,2]>.17,.17+(p[:,2]-.17)*k,p[:,2]);normal=np.cross(p[1]-p[0],p[2]-p[0]);normal/=np.linalg.norm(normal)
