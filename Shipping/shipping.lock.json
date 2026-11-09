@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5326,
+  "count": 5343,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -6823,6 +6823,18 @@
       "runtime": "openshim_elysium_auto_layer7_n.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_elysium_auto_sammy__1_control.png",
+      "runtime": "openshim_elysium_auto_sammy__1_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_sammy__1_control2.png",
+      "runtime": "openshim_elysium_auto_sammy__1_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_europa_auto_chmisn07_control.png",
+      "runtime": "openshim_europa_auto_chmisn07_control.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_europa_auto_layer0.png",
       "runtime": "openshim_europa_auto_layer0.png"
     },
@@ -7127,6 +7139,14 @@
       "runtime": "openshim_io_auto_misn11_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_io_auto_misns3_control.png",
+      "runtime": "openshim_io_auto_misns3_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_io_auto_misns3_stock_control.png",
+      "runtime": "openshim_io_auto_misns3_stock_control.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_io_auto_misns4_control.png",
       "runtime": "openshim_io_auto_misns4_control.png"
     },
@@ -7319,6 +7339,38 @@
       "runtime": "openshim_titan_auto_misn16b_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns5_control.png",
+      "runtime": "openshim_titan_auto_misns5_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns5_stock_control.png",
+      "runtime": "openshim_titan_auto_misns5_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns6_control.png",
+      "runtime": "openshim_titan_auto_misns6_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns6_stock_control.png",
+      "runtime": "openshim_titan_auto_misns6_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns7_control.png",
+      "runtime": "openshim_titan_auto_misns7_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns7_stock_control.png",
+      "runtime": "openshim_titan_auto_misns7_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns8_control.png",
+      "runtime": "openshim_titan_auto_misns8_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns8_stock_control.png",
+      "runtime": "openshim_titan_auto_misns8_stock_control.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_venus_auto_layer0.png",
       "runtime": "openshim_venus_auto_layer0.png"
     },
@@ -7373,6 +7425,22 @@
     {
       "source": "Assets\\Textures\\openshim_venus_auto_misn09_stock_control.png",
       "runtime": "openshim_venus_auto_misn09_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns1_control.png",
+      "runtime": "openshim_venus_auto_misns1_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns1_stock_control.png",
+      "runtime": "openshim_venus_auto_misns1_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns2_control.png",
+      "runtime": "openshim_venus_auto_misns2_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns2_stock_control.png",
+      "runtime": "openshim_venus_auto_misns2_stock_control.png"
     },
     {
       "source": "Assets\\Textures\\ordnanceTextured_ACT.dds",

@@ -219,6 +219,46 @@
               3190.0
             ],
             "control": "openshim_venus_auto_misn09_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "0c50d6823f069326",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_venus_auto_misns1_control.png"
+          },
+          {
+            "terrainFingerprint": "016d2fec6476500a",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_venus_auto_misns1_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "0bd46b5f9b6d1106",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_venus_auto_misns2_control.png"
+          },
+          {
+            "terrainFingerprint": "4830c19f61d30220",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_venus_auto_misns2_stock_control.png"
           }
         ],
         "detile": [
@@ -479,6 +519,26 @@
               3190.0
             ],
             "control": "openshim_io_auto_misns4_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "cd30e736082dfec5",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_io_auto_misns3_control.png"
+          },
+          {
+            "terrainFingerprint": "c3da7fa2475e1f5e",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_io_auto_misns3_stock_control.png"
           }
         ],
         "detile": [
@@ -573,6 +633,16 @@
               3190.0
             ],
             "control": "openshim_europa_auto_misn13_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "3798161283f33625",
+            "boundsMeters": [
+              -2550.0,
+              -2570.0,
+              2570.0,
+              2550.0
+            ],
+            "control": "openshim_europa_auto_chmisn07_control.png"
           }
         ],
         "detile": [
@@ -715,6 +785,86 @@
               3190.0
             ],
             "control": "openshim_titan_auto_misn16b_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "1b74fa99c2dd83b5",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misns5_control.png"
+          },
+          {
+            "terrainFingerprint": "49a2f27eaa377ce9",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misns5_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "68e624ac666edfd9",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misns6_control.png"
+          },
+          {
+            "terrainFingerprint": "2b5c882b45430fed",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misns6_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "fd598c4fa0943854",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misns7_control.png"
+          },
+          {
+            "terrainFingerprint": "8449ef029f2880e4",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misns7_stock_control.png"
+          },
+          {
+            "terrainFingerprint": "5fab8b4195da7a3e",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misns8_control.png"
+          },
+          {
+            "terrainFingerprint": "ed8835aba182ff00",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_titan_auto_misns8_stock_control.png"
           }
         ],
         "detile": [
@@ -1263,6 +1413,17 @@
             ],
             "control": "openshim_elysium_auto_chmisn06_control.png",
             "control2": "openshim_elysium_auto_chmisn06_control2.png"
+          },
+          {
+            "terrainFingerprint": "60d1036af24e4784",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_elysium_auto_sammy__1_control.png",
+            "control2": "openshim_elysium_auto_sammy__1_control2.png"
           }
         ],
         "detile": [
