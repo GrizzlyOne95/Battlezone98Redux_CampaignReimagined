@@ -52,7 +52,7 @@ material avfigh00_tm : CR_BZBase
 	set_texture_alias EmissiveMap avfigh_E.dds
 	set_texture_alias ACTMap avfigh00_ACT.dds
 	set $diffuse "1 1 1"
-	set $ambient "0.2 0.2 0.2"
+	set $ambient "1 1 1"
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set $glow "1 1 1"
