@@ -1,5 +1,8 @@
 {
   "source_revision": "f09fec92f1d6da20facde0d095c45f19a913c866",
+  "stage_revisions": {
+    "Assets/Models/svtank_cockpit.mesh": "0b0da4a3321939eaa1205624647f0029aa5ef5c9"
+  },
   "models": {
     "avfigh": {
       "channels": [

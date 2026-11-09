@@ -11635,7 +11635,7 @@
       }
     ],
     "cockpit_source": {
-      "mesh": "5a0766016239a032af5990c24e7a6b227fa1132f2e7692147265506a8167011a",
+      "mesh": "161616325e6c85150abed3e64d8736ccb3b816f28ebb6a3bd18529ee29616c29",
       "skeleton": "e687e51928b6b9126c01881690e6122562844942ae3ddd4d94c13c6288558e50",
       "bind_poses": {
         "svtank": [
@@ -12071,7 +12071,7 @@
     "outputs": {
       "Assets/Models/svtank_recoil.skeleton": "b37e206edb4b951c415ef303a7e7330abe1c231507f89610876c35fa9297129e",
       "Assets/ModelFixes/svtank.mesh": "16d68a2380253764e5695e67d92fd316c38500bd7d967feb7d4cc605a8bf80e0",
-      "Assets/Models/svtank_cockpit.mesh": "16f6b1fc5b7b7245bbdb7b2b611dc82bb7c4854b64e096e9196717b6ba4f0e13",
+      "Assets/Models/svtank_cockpit.mesh": "35873345f7c4d7e49153f3f930bc87d77ab02c2811052bd96f3d71001a78a2f9",
       "Assets/Models/svtank_cockpit_recoil.skeleton": "58445c7edcca21edd42cbcb5166b1e84d31cb44be4b86b9e13a98e980dda866a"
     }
   },
