@@ -73,7 +73,6 @@ rescueMsg = "cvturrvj.wav"
 recycleMsg = "cvturrvf.wav"
 otherMsg = "cvturrvd.wav"
 deployedMsg = "cvturrv6.wav"
-killedMsg = "cvturrv3.wav"
 diedMsg = "abetty2.wav"
 
 [HoverCraftClass]

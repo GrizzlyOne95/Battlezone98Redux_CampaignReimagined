@@ -27,7 +27,7 @@ followMsg = "svmufv4.wav"
 reloadMsg = "svmufv1.wav"
 rescueMsg = "svmufv2.wav"
 recycleMsg = "svmufv6.wav"
-deployedMsg = "svmufvf.wav"
+deployedMsg = "svmufvg.wav"
 packedMsg = "svmufvb.wav"
 diedMsg = "sbetty3.wav"
 
