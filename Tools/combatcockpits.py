@@ -18,7 +18,7 @@ ART_ASPECT={
  'bdog':{'console':1218/279,'switch':596/476,'service':588/476}}
 CONFIG={
  'cvturr':dict(faction='cra',role='turret',shell='CAD21BDA',batch=1,material='CRV/CVBomberCockpit',charts=CRA_CHARTS,stock='cvturr01',exterior='cvturr',width=.86,lip=-.40,front=1.10,roof=.66,back=-.64),
- 'svfigh':dict(faction='cca',role='fighter',shell='SFL21bda',batch=2,material='CRV/CCAMechanicalCockpit',charts=CCA_CHARTS,stock='svfigh01',exterior='svfigh00',animated=('SFL11NFL','SFL11NFR'),animatedOffset=(0,.5,2.0),width=.72,lip=-.38,front=1.07,roof=.54,back=-.54),
+ 'svfigh':dict(faction='cca',role='fighter',shell='SFL21bda',batch=2,material='CRV/CCAMechanicalCockpit',charts=CCA_CHARTS,stock='svfigh01',exterior='svfigh00',animated=('SFL11NFL','SFL11NFR'),width=.72,lip=-.38,front=1.07,roof=.54,back=-.54),
  'svltnk':dict(faction='cca',role='lighttank',shell='slt21ckp',batch=2,material='CRV/CCAMechanicalCockpit',charts=CCA_CHARTS,stock='svltnk01',exterior='svltnk00',width=.78,lip=-.44,front=1.34,roof=.59,back=-.60),
  'avhraz':dict(faction='nsdf',role='bomber',shell='ahr21bda',batch=2,material='CRV/NSDFScoutCockpit',charts=scout.CHARTS,stock='avhraz01',exterior='avhraz00',width=.98,lip=-.48,front=1.37,roof=.76,back=-.72),
  'bvhraz':dict(faction='bdog',role='bomber',shell='bhr21bda',batch=2,material='CRV/BDogScoutCockpit',charts=scout.CHARTS,stock='bvhraz01',exterior='bvhraz00',width=.98,lip=-.48,front=1.37,roof=.76,back=-.72)}
@@ -228,10 +228,11 @@ def geometry(source,skelpath,base,game,root):
         # the complete pod geometry at native coordinates, not on the sill.
         for sign,bone in [(1,4),(-1,7)]:piece('native '+str(sign)+' high/low gun pod',[bone],np.ones(len(tri),bool))
     elif role=='fighter':
-        piece('Flanker gun/fuselage nose',[4],q[:,:,2].min(1)>1.50,-10,-.47,1.18)
-        # LOD1 nacelles, animated by the hover gimbals. Native positions sit
-        # 64-120 degrees off the nose, outside the view, so they are moved
-        # forward and up (eye frame) to show at the screen edges.
+        # Native front body, unmoved: from the real canopy eye it sits low and
+        # centred over the nose, leaving the aim corridor clear.
+        piece('native ROR front body',[4],np.ones(len(tri),bool))
+        # LOD1 nacelles at native positions, animated by the hover gimbals;
+        # from the real eye they show at the screen edges.
         handles={b.name:b.handle for b in s.bones()}
         for name in cfg.get('animated',()):piece('animated '+name,[handles[name]],np.ones(len(tri),bool),bone=name,offset=cfg.get('animatedOffset',(0,0,0)))
     elif role=='lighttank':
