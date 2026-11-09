@@ -7,7 +7,7 @@
     "armFixtureSha256": "891447b5683b2d7b4674d1b48ae9d2092094b0865017b14861e17539aef0c67d"
   },
   "outputs": {
-    "Assets/ModelFixes/avwalk_c.mesh": "7a96c2f76dabe13b191ebdce63b29093908484c352d3161b96235f51201c53a4",
+    "Assets/ModelFixes/avwalk_c.mesh": "a615eac66d29850a2d3774d2324c5d3c8986fd9a179fc31dddef367fa05abbf0",
     "Materials/CR_avwalk_cockpit.material": "e660b741921c25c5b7e4c60d16dcff4f808a568042947e3a5c505d0d5aca921f"
   },
   "alignment": {
@@ -15,7 +15,7 @@
     "faction": "nsdf",
     "pov": "AGe11POV",
     "povPosition": [
-      0.06509999930858612,
+      -0.06509999930858612,
       9.199999809265137,
       -0.2865999937057495
     ],
@@ -4423,8 +4423,8 @@
   "glass": {
     "openFraction": 0.48443337484433374,
     "depth": [
-      0.9280389269484774,
-      1.6524824315210087
+      0.928038978789471,
+      1.6524825041888307
     ],
     "bone": "age21hed",
     "vertices": 611,

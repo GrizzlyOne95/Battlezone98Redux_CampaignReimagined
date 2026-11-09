@@ -34,7 +34,7 @@ for base,cfg in cp.CONFIG.items():
         check(members.get(path)==Path(path).name,'case-correct shipping member '+path)
     skeleton,world,eye,shell=cp.shared.rig(rig,cfg['shell']);origin=np.array(meta['povPosition']);R=np.array(meta['povBasis'])
     check(eye.name=='AGe11POV' and eye.handle==11 and eye.parent is None,'actual waist-height POV bone')
-    check(np.allclose(origin,[.06509999930858612,9.199999809265137,-.2865999937057495],atol=1e-9),'unchanged actual eye position')
+    check(np.allclose(origin,[-.06509999930858612,9.199999809265137,-.2865999937057495],atol=1e-9),'unchanged actual eye position')
     check(np.allclose(R,np.eye(3),atol=1e-9),'native rest eye orientation, not bind approximation')
     check(len(list(skeleton.bones()))==26 and shell.handle==12 and shell.parent is None,'preserved 26-bone rig and independent shell')
     check(np.allclose(walkerpose.world(skeleton,meta['nativeBoneRotations'])[eye.handle][:3,:3],R),'native camera rotation agrees with pose utility')
@@ -42,6 +42,8 @@ for base,cfg in cp.CONFIG.items():
     mesh=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/ModelFixes'/(base+'_c.mesh')))
     check(mesh.skeleton_name==base+'_c.skeleton','native fixed-table rig resource name')
     check([sub.material_name for sub in mesh.submesh_list]==[cfg['material'],'CRWX_CockpitGlass','CRV/'+base+'GunArms','CRV/'+base+'JointBacks'],'only deliberate interior, glass, source arms and socket backs')
+    cabin=data(mesh.submesh_list[0])[:,:3]
+    check(abs(cabin[:,0].mean()-origin[0])<.05,'cabin centred on the raw-X eye, not mirrored '+base)
     posed=[];tags=[]
     for sub in mesh.submesh_list:
         d=data(sub);p,n,uv,t=d[:,:3],d[:,3:6],d[:,6:8],d[:,8:11]

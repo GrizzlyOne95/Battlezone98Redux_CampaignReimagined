@@ -28,7 +28,7 @@ The button boxes are fixed 2560x1440 coordinates in `STEPS` inside that script.
 [/list]
 
 [b]2. Where the campaign is[/b]
-Open [b]Single Player > Custom Campaign[/b] (top right), select [b]Campaign Reimagined[/b] and press [b]Launch[/b].
+Open [b]Single Player > Custom Campaign[/b] (top right), select [b]CR: NSDF[/b] (or another CR: campaign) and press [b]Launch[/b].
 [img]URL_STEP4[/img]
 [img]URL_STEP5[/img]
 ```

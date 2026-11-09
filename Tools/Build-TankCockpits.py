@@ -3,12 +3,15 @@ from pathlib import Path
 import argparse,hashlib,json,sys
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import tankcockpits as cp
+from weaponrigs import base_asset_path
 ROOT=Path(__file__).resolve().parents[1];REF=ROOT/'References/TankCockpits'
 def sha(p):
     b=p.read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if p.suffix=='.material' else b).hexdigest()
-def build(game):
+def build(game,factions=()):
     for faction,cfg in cp.CONFIG.items():
-        base=cfg['base'];source=ROOT/'Assets/ModelFixes'/(base+'.mesh');skel=next((game/'BZ_ASSETS/common/models').rglob(base+'.skeleton'));ref=REF/faction;ref.mkdir(parents=True,exist_ok=True)
+        if factions and faction not in factions:continue
+        # The weapon-rig stage rewrites the exterior in place; build from its pinned pre-rig input.
+        base=cfg['base'];source=base_asset_path(ROOT/'Assets/ModelFixes'/(base+'.mesh'));skel=next((game/'BZ_ASSETS/common/models').rglob(base+'.skeleton'));ref=REF/faction;ref.mkdir(parents=True,exist_ok=True)
         parts,s,w,eye,shell,meta=cp.geometry(source,skel,faction,game,ROOT);mesh,glass=cp.compile_mesh(parts,s,w,eye,shell,base,meta);outputs={}
         for path,content in [(ROOT/'Assets/Models'/(base+'_cockpit.mesh'),mesh),(ROOT/'Assets/Models'/(base+'_cockpit.skeleton'),skel.read_bytes())]:path.write_bytes(content);outputs[path.relative_to(ROOT).as_posix()]=sha(path)
         original=(ROOT/'Materials'/(base+'.material')).read_text();import re
@@ -23,4 +26,4 @@ def build(game):
         receipt=dict(schema=1,sources=dict(exteriorSha256=sha(source),skeletonSha256=sha(skel)),outputs=outputs,alignment=meta,glass=glass,triangles={name:len(ix)//3 for name,(v,ix) in parts.items()},atlasPolicy='Reuse original and accepted faction atlases; no duplicate DDS')
         (ref/'build.json').write_text(json.dumps(receipt,indent=2)+'\n',newline='\n');print(faction,receipt['triangles'],meta['povPosition'],glass,flush=True)
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('--game',type=Path,default=Path(r'C:/Program Files (x86)/GOG Galaxy/Games/Battlezone 98 Redux'));build(parser.parse_args().game)
+    parser=argparse.ArgumentParser();parser.add_argument('--game',type=Path,default=Path(r'C:/Program Files (x86)/GOG Galaxy/Games/Battlezone 98 Redux'));parser.add_argument('--factions',nargs='*',default=());a=parser.parse_args();build(a.game,a.factions)

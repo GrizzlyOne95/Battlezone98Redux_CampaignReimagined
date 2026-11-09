@@ -567,6 +567,14 @@ The full local-server and 2-4 client recipe is in 5.5.
 - **Read an OpenShim log line's numbers, not its wording.** On 2026-11-04 the terrain-paint lines said
   "four-layer" while `slices=18` (eight layers) was active; the wording was stale text. Trust the logged
   values (`slices=`, counts) over the prose.
+- **HD paint covers a terrain stem, not a world.** OpenShim picks a paint map by the mission's
+  `terrainFingerprint` + `boundsMeters`. A mission whose `TerrainName` stem is missing from OpenShim
+  `scripts/terrain-packs/build-world-packs.sh` `MAPS` has no paint map: it logs
+  `native tiles declined: paint pack has no map entry for this mission` and shows the stock atlas. To add a
+  stem, add it to `MAPS`, rebuild only that world, and append only the new `maps` entries and PNGs to
+  `Config/cr_terrain_hd.json`. Do not run `Merge-TerrainPaintPacks.py` over a binding that has been tuned
+  since: it replaces the whole binding. A map that exists only in `tro_cam.zfs` needs its HG2 extracted to `TRO_DIR`; `sammy__1` has none there,
+  so only CR's copy is built. (Soviet, ch07cr and evolvecr maps, 2026-11-08.)
 
 ### 5.5 Local server and multi-player co-op testing
 

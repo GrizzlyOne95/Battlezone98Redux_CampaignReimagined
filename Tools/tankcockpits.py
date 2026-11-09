@@ -22,6 +22,11 @@ def native_eye(world,eye,game,base,root):
     world[eye.handle]=(world[eye.handle][0],parent_r@local)
     return raw
 
+def raw_world(world):
+    """shared.rig reads skeletons through the toolkit serializer, which negates X; mesh data keeps raw Ogre X.
+    Without this an off-centre eye (CZar, raw x=+0.276) builds the whole cabin mirrored onto the other side."""
+    M=np.diag([-1.,1.,1.]);return {h:(M@p,M@r@M) for h,(p,r) in world.items()}
+
 def source_part(sub,mask=None):
     vd=sub.vertex_data;p=shared.values(vd,shared.om.VES.POSITION);n=shared.values(vd,shared.om.VES.NORMAL);uv=shared.values(vd,shared.om.VES.TEXTURE_COORDINATES)
     t=shared.values(vd,shared.om.VES.TANGENT)[:,:3] if vd.vertex_declaration.find_by_semantic(shared.om.VES.TANGENT) else np.zeros_like(n)
@@ -32,7 +37,7 @@ def source_part(sub,mask=None):
     return np.column_stack([p[used],n,uv[used],t]).astype('<f4'),remap.astype('<u2').reshape(-1),used
 
 def geometry(source,skelpath,faction,game,root):
-    cfg=CONFIG[faction];s,w,eye,shell=shared.rig(skelpath,cfg['shell']);native=native_eye(w,eye,game,cfg['base'],root);origin,R=w[eye.handle]
+    cfg=CONFIG[faction];s,w,eye,shell=shared.rig(skelpath,cfg['shell']);native=native_eye(w,eye,game,cfg['base'],root);w=raw_world(w);origin,R=w[eye.handle]
     mesh=shared.read_mesh(source);rows=[];ix=[];liner=[];parts={};panels=[]
     def face(points,chart='trim',hint=None,rect=None,uvs=None):
         p=np.array(points,float);n=np.cross(p[1]-p[0],p[2]-p[0]);n/=np.linalg.norm(n);hint=-p.mean(0) if hint is None else np.array(hint)

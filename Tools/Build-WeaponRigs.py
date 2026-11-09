@@ -11,7 +11,8 @@ ROOT=wr.ROOT;REF=ROOT/'References/WeaponRigs';CONFIG=REF/'models.json'
 
 def baseline(path,revision):
     if path.is_relative_to(ROOT):
-        proc=subprocess.run(['git','show',revision+':'+path.relative_to(ROOT).as_posix()],capture_output=True)
+        key=path.relative_to(ROOT).as_posix();revision=wr.stage_revision(key,revision)
+        proc=subprocess.run(['git','show',revision+':'+key],capture_output=True)
         if proc.returncode==0:return proc.stdout
     return path.read_bytes()
 
@@ -232,7 +233,8 @@ def make_config():
         cockpit_overrides(model,channels,src,revision)
         models[model]={'channels':channels}
     REF.mkdir(parents=True,exist_ok=True)
-    CONFIG.write_text(json.dumps({'source_revision':revision,'models':models,'excluded':'svsav; svmine has only utility deployment, no firearm barrel'},indent=2)+'\n')
+    stages=json.loads(CONFIG.read_text()).get('stage_revisions',{}) if CONFIG.exists() else {}
+    CONFIG.write_text(json.dumps({'source_revision':revision,**({'stage_revisions':stages} if stages else {}),'models':models,'excluded':'svsav; svmine has only utility deployment, no firearm barrel'},indent=2)+'\n')
 
 def build(selected):
     cfg=json.loads(CONFIG.read_text());src=cg.Sources(str(wr.GAME),str(ROOT))

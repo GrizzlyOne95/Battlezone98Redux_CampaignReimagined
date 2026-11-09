@@ -14,7 +14,7 @@ def check(ok,message):
 def sha(p):
     b=base_asset_path(p).read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if p.suffix=='.material' else b).hexdigest()
 members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
-eyes={'nsdf':[0,1.4254159927368164,1.229254961013794],'bdog':[0,.6254140138626099,1.2293000221252441],'cca':[-.27610001154243946,1.9194999933242798,.3680000305175781],'cra':[0,1.7300000190734863,3.5074000358581543]}
+eyes={'nsdf':[0,1.4254159927368164,1.229254961013794],'bdog':[0,.6254140138626099,1.2293000221252441],'cca':[.27610001154243946,1.9194999933242798,.3680000305175781],'cra':[0,1.7300000190734863,3.5074000358581543]}
 report={}
 for faction,cfg in cp.CONFIG.items():
     base=cfg['base'];receipt=json.loads((REF/faction/'build.json').read_text());meta=receipt['alignment'];source=ROOT/'Assets/ModelFixes'/(base+'.mesh');skel=ROOT/'Assets/Models'/(base+'_cockpit.skeleton')
@@ -23,11 +23,14 @@ for faction,cfg in cp.CONFIG.items():
         check(members.get(relative)==Path(relative).name,'shipping member '+relative)
     check(sha(source)==receipt['sources']['exteriorSha256'],'exterior/fallback unchanged')
     check(sha(skel)==receipt['sources']['skeletonSha256'],'stock skeleton bytes retained')
-    s,w,eye,shell=cp.shared.rig(skel,cfg['shell']);origin,bindR=w[eye.handle];R=np.array(meta['povBasis'])
+    s,w,eye,shell=cp.shared.rig(skel,cfg['shell']);w=cp.raw_world(w);origin,bindR=w[eye.handle];R=np.array(meta['povBasis'])
     check(np.allclose(origin,eyes[faction],atol=1e-8),'exact individual eye position')
     check(np.allclose(R,np.eye(3),atol=2e-5),'native VDF rest POV basis')
     if faction=='cca':check(not np.allclose(bindR,R),'CCA native versus bind orientation fixture is meaningful')
     mesh=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/Models'/(base+'_cockpit.mesh')));check(mesh.skeleton_name==base+'_cockpit.skeleton','namespaced rig reference')
+    if faction=='cca': # only off-centre eye; mirroring is invisible at x=0
+      cabin=next(cp.shared.values(sub.vertex_data,cp.shared.om.VES.POSITION) for sub in mesh.submesh_list if sub.material_name=='CRV/SharedCockpitLiner')
+      check(abs(cabin[:,0].mean()-origin[0])<.05,'cabin liner centred on the raw-X eye, not mirrored')
     check(len(mesh.submesh_list)==5,'bounded material batch count')
     opaque=[];ranges={};cursor=0
     for sub in mesh.submesh_list:

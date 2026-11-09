@@ -10,9 +10,9 @@ This project is **not affiliated with or supported by Rebellion**.
 
 - The **source tree** contains 17 NSDF campaign entries, from `misn02b` (Red Arrival) through `misn18` (The Ultimate Quake), plus other mission ports and supporting systems. These are not all at the same level of completion or testing.
 - Later missions include experimental implementations: `misn16` and `misn17` remain prototypes, and `misn18` has limited DX11 one-/two-client live test coverage. Its offline, four-player, and DX9 paths are not fully qualified.
-- A **Black Dog (Red Odyssey) co-op campaign** ("CR Black Dog", `bd01cr`–`bd15cr`) has its listing and co-op maps in place, but no mission scripts yet; none of it has been tested in game.
-- A **CRA (Chinese) co-op campaign** ("CR Chinese", `ch01cr`–`ch08cr`) has its listing, co-op maps and weather sites in place, but no co-op mission scripts yet; none of it has been tested in game.
-- A **CCA (Soviet) co-op campaign** ("CR Soviet", `misns1cr`–`misns8cr`) is in progress. Its co-op layer is described in [Docs/CCA_COOP_RUNTIME.md](Docs/CCA_COOP_RUNTIME.md); none of it has been tested in game yet.
+- A **Black Dog (Red Odyssey) co-op campaign** ("CR: Black Dog", `bd01cr`–`bd15cr`) has its listing and co-op maps in place, but no mission scripts yet; none of it has been tested in game.
+- A **CRA (Chinese) co-op campaign** ("CR: Chinese (CRA)", `ch01cr`–`ch08cr`) has its listing, co-op maps and weather sites in place, but no co-op mission scripts yet; none of it has been tested in game.
+- A **CCA (Soviet) co-op campaign** ("CR: Soviet (CCA)", `misns1cr`–`misns8cr`) is in progress. Its co-op layer is described in [Docs/CCA_COOP_RUNTIME.md](Docs/CCA_COOP_RUNTIME.md); none of it has been tested in game yet.
 - **Source-tree content is not necessarily in the current Steam Workshop download.** Consult the [Workshop item](https://steamcommunity.com/sharedfiles/filedetails/?id=3686673790) and its change notes for the last published build.
 - Native components target the 32-bit Windows executable of Battlezone 98 Redux **2.2.301**. Windows Steam/GOG and Linux Steam/GOG via Proton or compatible Wine are the maintained compatibility targets, not a guarantee that every experimental feature has passed all four configurations. See the [platform policy](Docs/BZR_PLATFORM_COMPATIBILITY.md).
 
@@ -37,7 +37,7 @@ Optional [HD terrain packs](Docs/HD_TERRAIN_PACKS.md) are **development/experime
 1. [Subscribe to Campaign Reimagined](https://steamcommunity.com/sharedfiles/filedetails/?id=3686673790) and let Steam download it. Do **not** enable the item globally in the Mods menu.
 2. Install the native patch using either the [OpenShimSetup.exe release installer](https://github.com/GrizzlyOne95/Battlezone98Redux_Shim/releases/latest/download/OpenShimSetup.exe) on Windows **or** **Single Player > Instant Action > ! SETUP / REPAIR - Open Community Patch** in-game.
 3. **Exit Battlezone completely** after in-game setup so the verified native replacement can finish. Relaunch the game.
-4. Open **Single Player > Custom Campaign > Campaign Reimagined** and select an entry included in your installed Workshop version.
+4. Open **Single Player > Custom Campaign > CR: NSDF** and select an entry included in your installed Workshop version.
 
 The native suite installs game-root `winmm.dll` and `bzloader.dll`, `plugins/openshim.dll`, and matching configuration, patches, and resources. Existing player `openshim.ini` settings are preserved. Copying `winmm.dll` alone is **not** a complete installation. The setup mission can be rerun for verification or repair.
 

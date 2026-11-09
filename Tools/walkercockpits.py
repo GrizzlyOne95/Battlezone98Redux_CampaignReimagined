@@ -37,7 +37,7 @@ def ray_frame(axis):
     z=np.array(axis)/np.linalg.norm(axis);x=np.cross([0.,1.,0.],z);x/=np.linalg.norm(x);return np.column_stack([x,np.cross(z,x),z])
 
 def geometry(fullpath,fullskel,skelpath,base,game,root):
-    cfg=CONFIG[base];s,w,eye,shell=shared.rig(skelpath,cfg['shell']);native=tank.native_eye(w,eye,game,base,root);origin,R=w[eye.handle]
+    cfg=CONFIG[base];s,w,eye,shell=shared.rig(skelpath,cfg['shell']);native=tank.native_eye(w,eye,game,base,root);w=tank.raw_world(w);origin,R=w[eye.handle]
     h=hardware.Hardware(origin,R,scout.CHARTS,hardware.ART_ASPECT[cfg['faction']])
     # A broad industrial command station, not a scout canopy: split low banks
     # leave the central sightline and waist-height gun-arm side windows open.

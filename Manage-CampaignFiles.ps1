@@ -1326,6 +1326,8 @@ function Get-TargetSubfolder($fileName) {
         ".bmp" { return "Assets" }
         ".png" { return "Assets" }
         ".wav" { return "Assets/Audio" }
+        ".ogv" { return "Assets/Movies" }
+        ".pvi" { return "Assets/Movies" }
         ".lgt" { return "Local/Missions" }
         ".trn" { return "Local/Missions" }
         ".hg2" { return "Local/Missions" }

@@ -34,10 +34,28 @@ assert setup_name == '"! SETUP / REPAIR - Open Community Patch"'
 assert setup_name.startswith('"!'), "setup entry must retain the first-sort ! prefix"
 assert parser["WORKSHOP"]["mapType"] == '"instant_action"'
 
+# CR missions use custom planets: the HD clip plus its .pvi timing sidecar.
+CR_PLANET_VIDEO = {'moon': 'crmoon.ogv', 'mars': 'crmars.ogv', 'venus': 'crvenus.ogv', 'io': 'crio.ogv', 'europa': 'creuropa.ogv', 'titan': 'crtitan.ogv', 'ganymede': 'crganym.ogv', 'achilles': 'crachil.ogv', 'elysium': 'crelys.ogv'}
+def assert_planet(section, world):
+    assert section["planet"].strip('"') == "custom"
+    assert section["planetDisplay"].strip('"') == CR_PLANET_VIDEO[world]
+    assert_planet_desc(section)
+
+def assert_planet_desc(section):
+    # A custom planet reads its briefing blurb from the planetDesc key (not planetDisplay);
+    # without it the engine looks up ".des" and the panel says "NO DESCRIPTION".
+    clip = section["planetDisplay"].strip('"')
+    assert section.get("planetDesc", "").strip('"') == clip.rsplit(".", 1)[0] + ".des", f"planetDesc must name the .des for {clip}"
+
+# Every custom planet's blurb file must ship.
+for clip in CR_PLANET_VIDEO.values():
+    des = ROOT / "Text" / (clip.rsplit(".", 1)[0] + ".des")
+    assert des.is_file(), f"{des.name} is missing: the briefing would show NO DESCRIPTION"
+
 mod_parser = configparser.ConfigParser()
 mod_parser.optionxform = str
 mod_parser.read(mod_ini_path, encoding="utf-8")
-assert mod_parser["DESCRIPTION"]["missionName"] == '"Campaign Reimagined"'
+assert mod_parser["DESCRIPTION"]["missionName"] == '"CR: NSDF"'
 assert mod_parser["WORKSHOP"]["mapType"] == '"campaign"'
 
 # Campaign progression must use the shipped Lua-backed rewrites, with setup
@@ -49,7 +67,9 @@ campaign_maps = [mod_parser[section]["missionBZN"].strip('"') for section in mis
 assert campaign_maps == ["misn2bcr.bzn", "misn03cr.bzn", "misn04cr.bzn", "misn05cr.bzn", "misn06cr.bzn", "misn07cr.bzn", "misn08cr.bzn", "misn09cr.bzn", "misn10cr.bzn", "misn11cr.bzn", "misn12cr.bzn", "misn13cr.bzn", "misn14cr.bzn", "misn15.bzn", "misn16.bzn", "misn17cr.bzn", "misn18cr.bzn"]
 for section, filename in zip(mission_sections, campaign_maps):
     assert mod_parser[section]["missionName"].strip('"')
-    assert mod_parser[section]["planet"].strip('"') in {"moon", "mars", "venus", "io", "europa", "titan"}
+    assert mod_parser[section]["planet"].strip('"') == "custom"
+    assert mod_parser[section]["planetDisplay"].strip('"') in {CR_PLANET_VIDEO[w] for w in ("moon", "mars", "venus", "io", "europa", "titan", "achilles")}
+    assert_planet_desc(mod_parser[section])
     path = ROOT / "Missions" / filename
     assert path.is_file(), f"campaign must use a CR map: {filename}"
     mission_class = "MultSTMission"
@@ -184,7 +204,7 @@ cca_parser = configparser.ConfigParser()
 cca_parser.optionxform = str
 cca_parser.read(cca_ini_path, encoding="utf-8")
 assert len(cca_ini_path.stem) <= 16 and len(cca_des_path.stem) <= 16
-assert cca_parser["DESCRIPTION"]["missionName"] == '"CR Soviet"'
+assert cca_parser["DESCRIPTION"]["missionName"] == '"CR: Soviet (CCA)"'
 assert cca_parser["WORKSHOP"]["mapType"] == '"campaign"'
 assert [s for s in cca_parser.sections() if s.startswith("MISSION")] == [f"MISSION{i}" for i in range(1, 9)]
 cca_planets = ["venus", "venus", "io", "io", "titan", "titan", "titan", "titan"]
@@ -194,7 +214,7 @@ for index, planet in enumerate(cca_planets, start=1):
     filename = section["missionBZN"].strip('"')
     assert filename == f"misns{index}cr.bzn"
     assert section["missionName"].strip('"')
-    assert section["planet"].strip('"') == planet
+    assert_planet(section, planet)
     cca_maps.append(filename)
     stem = f"misns{index}cr"
     bzn_text = (ROOT / "Missions" / filename).read_text(encoding="utf-8")
@@ -239,7 +259,7 @@ bd_parser = configparser.ConfigParser()
 bd_parser.optionxform = str
 bd_parser.read(bd_ini_path, encoding="utf-8")
 assert len(bd_ini_path.stem) <= 16 and len(bd_des_path.stem) <= 16
-assert bd_parser["DESCRIPTION"]["missionName"] == '"CR Black Dog"'
+assert bd_parser["DESCRIPTION"]["missionName"] == '"CR: Black Dog"'
 assert bd_parser["WORKSHOP"]["mapType"] == '"campaign"'
 assert [s for s in bd_parser.sections() if s.startswith("MISSION")] == [f"MISSION{i}" for i in range(1, 16)]
 bd_maps = []
@@ -250,7 +270,7 @@ for index in range(1, 16):
     filename = section["missionBZN"].strip('"')
     assert filename == f"{stem}.bzn"
     assert section["missionName"].strip('"')
-    assert section["planet"].strip('"') == planet
+    assert_planet(section, planet)
     bd_maps.append(filename)
     bzn_text = (ROOT / "Missions" / filename).read_text(encoding="utf-8")
     assert "name = MultSTMission\n" in bzn_text
@@ -300,7 +320,7 @@ ch_parser = configparser.ConfigParser()
 ch_parser.optionxform = str
 ch_parser.read(ch_ini_path, encoding="utf-8")
 assert len(ch_ini_path.stem) <= 16 and len(ch_des_path.stem) <= 16
-assert ch_parser["DESCRIPTION"]["missionName"] == '"CR Chinese"'
+assert ch_parser["DESCRIPTION"]["missionName"] == '"CR: Chinese (CRA)"'
 assert ch_parser["WORKSHOP"]["mapType"] == '"campaign"'
 assert [s for s in ch_parser.sections() if s.startswith("MISSION")] == [f"MISSION{i}" for i in range(1, 9)]
 ch_planets = {1: "ganymede", 2: "ganymede", 3: "ganymede", 4: "ganymede", 5: "elysium", 6: "elysium", 7: "europa", 8: "ganymede"}
@@ -313,7 +333,7 @@ for index in range(1, 9):
     filename = section["missionBZN"].strip('"')
     assert filename == f"{stem}.bzn"
     assert section["missionName"].strip('"')
-    assert section["planet"].strip('"') == ch_planets[index]
+    assert_planet(section, ch_planets[index])
     ch_maps.append(filename)
     bzn_text = (ROOT / "Missions" / filename).read_text(encoding="utf-8")
     assert "name = MultSTMission\n" in bzn_text

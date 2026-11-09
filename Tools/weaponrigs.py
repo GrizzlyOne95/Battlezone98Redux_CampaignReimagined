@@ -17,6 +17,12 @@ GAME=Path(r'C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux')
 spec=importlib.util.spec_from_file_location('flash_rig',ROOT/'Tools/Build-WeaponFlashes.py')
 flash=importlib.util.module_from_spec(spec);spec.loader.exec_module(flash)
 
+def stage_revision(key,default):
+    """Pre-rig stage revision for one repo path: models.json source_revision unless
+    stage_revisions pins a later authored pre-rig file (e.g. a rebuilt cockpit)."""
+    config=ROOT/'References/WeaponRigs/models.json'
+    return json.loads(config.read_text()).get('stage_revisions',{}).get(key,default) if config.exists() else default
+
 def base_asset_path(path):
     """Explicit pre-recoil stage input for the original cockpit-builder tests.
 
@@ -28,7 +34,7 @@ def base_asset_path(path):
     if not receipt.exists() or not config.exists() or not path.is_relative_to(ROOT):return path
     key=path.relative_to(ROOT).as_posix();records=json.loads(receipt.read_text())
     if not any(key in r.get('outputs',{}) for r in records.values()):return path
-    revision=json.loads(config.read_text())['source_revision']
+    revision=stage_revision(key,json.loads(config.read_text())['source_revision'])
     proc=subprocess.run(['git','show',revision+':'+key],cwd=ROOT,capture_output=True)
     if proc.returncode:return path # new helper skeletons have no pre-rig stage
     target=ROOT/'Local/WeaponRigBase'/revision/key;target.parent.mkdir(parents=True,exist_ok=True)

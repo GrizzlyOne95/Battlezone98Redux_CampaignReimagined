@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5309,
+  "count": 5353,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -3735,6 +3735,78 @@
       "runtime": "ubtart.skeleton"
     },
     {
+      "source": "Assets\\Movies\\crachil.ogv",
+      "runtime": "crachil.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crachil.pvi",
+      "runtime": "crachil.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\crelys.ogv",
+      "runtime": "crelys.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crelys.pvi",
+      "runtime": "crelys.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\creuropa.ogv",
+      "runtime": "creuropa.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\creuropa.pvi",
+      "runtime": "creuropa.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\crganym.ogv",
+      "runtime": "crganym.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crganym.pvi",
+      "runtime": "crganym.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\crio.ogv",
+      "runtime": "crio.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crio.pvi",
+      "runtime": "crio.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\crmars.ogv",
+      "runtime": "crmars.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crmars.pvi",
+      "runtime": "crmars.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\crmoon.ogv",
+      "runtime": "crmoon.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crmoon.pvi",
+      "runtime": "crmoon.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\crtitan.ogv",
+      "runtime": "crtitan.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crtitan.pvi",
+      "runtime": "crtitan.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\crvenus.ogv",
+      "runtime": "crvenus.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crvenus.pvi",
+      "runtime": "crvenus.pvi"
+    },
+    {
       "source": "Assets\\Sounds\\atlas.wav",
       "runtime": "atlas.wav"
     },
@@ -6771,6 +6843,18 @@
       "runtime": "openshim_elysium_auto_layer7_n.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_elysium_auto_sammy__1_control.png",
+      "runtime": "openshim_elysium_auto_sammy__1_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_elysium_auto_sammy__1_control2.png",
+      "runtime": "openshim_elysium_auto_sammy__1_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_europa_auto_chmisn07_control.png",
+      "runtime": "openshim_europa_auto_chmisn07_control.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_europa_auto_layer0.png",
       "runtime": "openshim_europa_auto_layer0.png"
     },
@@ -7075,6 +7159,14 @@
       "runtime": "openshim_io_auto_misn11_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_io_auto_misns3_control.png",
+      "runtime": "openshim_io_auto_misns3_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_io_auto_misns3_stock_control.png",
+      "runtime": "openshim_io_auto_misns3_stock_control.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_io_auto_misns4_control.png",
       "runtime": "openshim_io_auto_misns4_control.png"
     },
@@ -7267,6 +7359,38 @@
       "runtime": "openshim_titan_auto_misn16b_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns5_control.png",
+      "runtime": "openshim_titan_auto_misns5_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns5_stock_control.png",
+      "runtime": "openshim_titan_auto_misns5_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns6_control.png",
+      "runtime": "openshim_titan_auto_misns6_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns6_stock_control.png",
+      "runtime": "openshim_titan_auto_misns6_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns7_control.png",
+      "runtime": "openshim_titan_auto_misns7_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns7_stock_control.png",
+      "runtime": "openshim_titan_auto_misns7_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns8_control.png",
+      "runtime": "openshim_titan_auto_misns8_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns8_stock_control.png",
+      "runtime": "openshim_titan_auto_misns8_stock_control.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_venus_auto_layer0.png",
       "runtime": "openshim_venus_auto_layer0.png"
     },
@@ -7321,6 +7445,22 @@
     {
       "source": "Assets\\Textures\\openshim_venus_auto_misn09_stock_control.png",
       "runtime": "openshim_venus_auto_misn09_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns1_control.png",
+      "runtime": "openshim_venus_auto_misns1_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns1_stock_control.png",
+      "runtime": "openshim_venus_auto_misns1_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns2_control.png",
+      "runtime": "openshim_venus_auto_misns2_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns2_stock_control.png",
+      "runtime": "openshim_venus_auto_misns2_stock_control.png"
     },
     {
       "source": "Assets\\Textures\\ordnanceTextured_ACT.dds",
@@ -18861,6 +19001,42 @@
     {
       "source": "Text\\ch08009.txt",
       "runtime": "ch08009.txt"
+    },
+    {
+      "source": "Text\\crachil.des",
+      "runtime": "crachil.des"
+    },
+    {
+      "source": "Text\\crelys.des",
+      "runtime": "crelys.des"
+    },
+    {
+      "source": "Text\\creuropa.des",
+      "runtime": "creuropa.des"
+    },
+    {
+      "source": "Text\\crganym.des",
+      "runtime": "crganym.des"
+    },
+    {
+      "source": "Text\\crio.des",
+      "runtime": "crio.des"
+    },
+    {
+      "source": "Text\\crmars.des",
+      "runtime": "crmars.des"
+    },
+    {
+      "source": "Text\\crmoon.des",
+      "runtime": "crmoon.des"
+    },
+    {
+      "source": "Text\\crtitan.des",
+      "runtime": "crtitan.des"
+    },
+    {
+      "source": "Text\\crvenus.des",
+      "runtime": "crvenus.des"
     },
     {
       "source": "Text\\do_not_delete.txt",
