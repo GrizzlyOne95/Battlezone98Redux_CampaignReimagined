@@ -11,7 +11,7 @@ return {
         loader = { source = "bzloader.dll", destination = "bzloader.dll", sha256 = "909c4b3c71989e8771bbd37a614276356e8f878db97914776d7a1e6ae504fe3f", size = 46080, version = "1.0.0.74", architecture = "x86" },
         plugin = { source = "openshim.dll", destination = "plugins\\openshim.dll", sha256 = "3c48cd24ee1746853b73fb2d359f45d74634bca2c72d166ccd38b252c3f6ad16", size = 5120000, version = "1.0.0.74", architecture = "x86" },
         network = { source = "openshim_net.ini.payload", destination = "net.ini", sha256 = "a527e8229fe90431dd7d78d739365ebdf37257ef43b402e514967962594feed6", size = 14684 },
-        patches = { source = "openshim_patches.json.payload", destination = "scripts\\patches.json", sha256 = "b8364ec672e6d2ab7018fdaeb9cde3365e824e363edb1a189a0f99cbd91502ff", size = 409453 },
+        patches = { source = "openshim_patches.json.payload", destination = "scripts\\patches.json", sha256 = "fc60f541c8ae1ef5a4aa7847428637e45f81db585be92a7cdade00355519da8d", size = 409406 },
         playerConfig = { source = "openshim.ini.payload", destination = "openshim.ini", sha256 = "4cb549af0a3e4b6a2a26a8d1202e1709783bba21d536999a6b626c1f6987e673", size = 44564, overwrite = false },
         assetManifest = { source = "OpenShimAssets.ini.payload", destination = "openshim\\OpenShimAssets.ini", sha256 = "f60b0e8d8be42ad7a157588f165b19d0c9634c14f58e660a28a816a0628aff75", size = 1278 },
         helper = { source = "bzfile_replace_helper.exe", sha256 = "0698c9b868450eb8bf3d4ecad2f4e46852f54b777baca2525a5ff6df5d349a0d", size = 271360 },

@@ -1,0 +1,4 @@
+[PlanetVideo]
+LoopStartSeconds = 5.0667
+IntroSound = "mspin.wav"
+StartAtLoop = 0

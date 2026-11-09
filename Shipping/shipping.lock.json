@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5316,
+  "count": 5334,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -3733,6 +3733,78 @@
     {
       "source": "Assets\\Models\\ubtart.skeleton",
       "runtime": "ubtart.skeleton"
+    },
+    {
+      "source": "Assets\\Movies\\crachil.ogv",
+      "runtime": "crachil.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crachil.pvi",
+      "runtime": "crachil.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\crelys.ogv",
+      "runtime": "crelys.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crelys.pvi",
+      "runtime": "crelys.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\creuropa.ogv",
+      "runtime": "creuropa.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\creuropa.pvi",
+      "runtime": "creuropa.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\crganym.ogv",
+      "runtime": "crganym.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crganym.pvi",
+      "runtime": "crganym.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\crio.ogv",
+      "runtime": "crio.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crio.pvi",
+      "runtime": "crio.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\crmars.ogv",
+      "runtime": "crmars.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crmars.pvi",
+      "runtime": "crmars.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\crmoon.ogv",
+      "runtime": "crmoon.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crmoon.pvi",
+      "runtime": "crmoon.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\crtitan.ogv",
+      "runtime": "crtitan.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crtitan.pvi",
+      "runtime": "crtitan.pvi"
+    },
+    {
+      "source": "Assets\\Movies\\crvenus.ogv",
+      "runtime": "crvenus.ogv"
+    },
+    {
+      "source": "Assets\\Movies\\crvenus.pvi",
+      "runtime": "crvenus.pvi"
     },
     {
       "source": "Assets\\Sounds\\atlas.wav",

@@ -104,7 +104,7 @@ INSTALLATION
    Setup installs winmm.dll and bzloader.dll at the game root and
    plugins\openshim.dll together, plus the matching patch table/network profile;
    it preserves player openshim.ini. Copying winmm.dll alone is insufficient.
-5. Play via Single Player > Custom Campaign > Campaign Reimagined. The campaign
+5. Play via Single Player > Custom Campaign > CR: NSDF. The campaign
    contains the current early NSDF rewrites (Red Arrival through An Unexpected
    Connection). No global Mods activation is needed. CR content is scoped to
    its selected campaign/setup mission; installed OpenShim engine fixes remain
