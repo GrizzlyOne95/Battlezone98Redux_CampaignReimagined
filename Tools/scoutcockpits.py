@@ -11,6 +11,21 @@ CONFIG={
     'nsdf':dict(base='avfigh',shell='ara21bda',material='CRV/NSDFScoutCockpit',nose='CRV/NSDFScoutNose',stem='crvascp',noseBone=2,cockpitBatch=2,front=1.03,eye=[-.004399999976158142,1.467507004737854,.7488619983196259]),
     'bdog':dict(base='bvraz',shell='bra21bda',material='CRV/BDogScoutCockpit',nose='CRV/BDogScoutNose',stem='crvbscp',noseBone=1,cockpitBatch=1,front=.91,eye=[-.004399999976158142,1.467507004737854,.8566620051860809])}
 
+def convex_hull(points):
+    """Counter-clockwise 2-D hull (monotone chain)."""
+    pts=sorted(set(map(tuple,np.round(points,6))))
+    def half(seq):
+        out=[]
+        for q in seq:
+            while len(out)>1 and (out[-1][0]-out[-2][0])*(q[1]-out[-2][1])-(out[-1][1]-out[-2][1])*(q[0]-out[-2][0])<=0:out.pop()
+            out.append(q)
+        return out[:-1]
+    return np.array(half(pts)+half(pts[::-1]))
+
+def bones(parts,cfg,shell,meta):
+    """Per-vertex bones: shell for the interior and hull bulkhead, rof bone for the nose."""
+    return {cfg['material']:np.full(len(parts[cfg['material']][0]),shell.handle),cfg['nose']:np.full(len(parts[cfg['nose']][0]),cfg['noseBone'])}
+
 def geometry(source,skeleton_path,faction):
     cfg=CONFIG[faction];skeleton,world,eye,shell=shared.rig(skeleton_path,cfg['shell']);origin,R=world[eye.handle];rows=[];indices=[]
     # The tub front sits just behind this faction's native nose root (Black Dog's
@@ -82,7 +97,7 @@ def geometry(source,skeleton_path,faction):
         p=todo.pop()
         if p not in seen:seen.add(p);todo.extend(adj[p]-seen)
     assert len(seen)==len(adj),'unintended separate shell opening'
-    parts={cfg['material']:(np.array(rows,dtype='<f4'),np.array(indices,dtype='<u2'))}
+    parts={}
     # The entire original ROF nose piece (VDF class 66, rolled by the engine
     # every frame) at its native position, skinned whole to its own bone so
     # it moves as the exterior does. Preserve source UVs, normals and shape.
@@ -93,5 +108,14 @@ def geometry(source,skeleton_path,faction):
     normal=n[used];t=shared.values(vd,shared.om.VES.TANGENT)[used,:3].copy();t-=normal*(t*normal).sum(1)[:,None]
     for i in np.flatnonzero(np.linalg.norm(t,axis=1)<1e-8):t[i]=np.cross(np.eye(3)[np.argmin(np.abs(normal[i]))],normal[i])
     t/=np.linalg.norm(t,axis=1)[:,None];parts[cfg['nose']]=(np.column_stack([positions,normal,uv[used],t]).astype('<f4'),remap.astype('<u2').reshape(-1));assert len(selected)>100
-    meta=dict(faction=faction,base=cfg['base'],pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,noseTriangles=len(selected),noseBone=cfg['noseBone'],noseSourceIndices=np.flatnonzero(keep).tolist(),nosePlacement='native',noseSkin=cfg['noseBone'],tubFront=cfg['front'],rim=np.array(rim).tolist(),innerShell=dict(triangles=len(tris),boundaryEdges=len(boundary),boundaryLoops=1))
+    # On the exterior the nose's open rear is buried in the hull; from the eye it
+    # would read as hollow. Close it with the static hull bulkhead the nose rolls
+    # against (as Total Command's scout does), its armour lip proud of the rim so
+    # the tub reads as continuing into the main hull.
+    local=(positions-origin)@R;zmin=local[:,2].min();hull=convex_hull(local[local[:,2]<zmin+.03][:,:2]);hull=hull.mean(0)+(hull-hull.mean(0))*1.01;lo,hi=hull.min(0),hull.max(0)
+    cap_start=len(rows);x0,y0,x1,y1=CHARTS['armor']
+    for x,y in hull:rows.append([*(origin+R@np.array([x,y,zmin-.008])),*(R@np.array([0.,0,-1])),x0+(x1-x0)*(x-lo[0])/(hi[0]-lo[0]),y0+(y1-y0)*(y-lo[1])/(hi[1]-lo[1])])
+    for i in range(1,len(hull)-1):indices.extend([cap_start,cap_start+i+1,cap_start+i])
+    parts[cfg['material']]=(np.array(rows,dtype='<f4'),np.array(indices,dtype='<u2'))
+    meta=dict(faction=faction,base=cfg['base'],pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,noseTriangles=len(selected),noseBone=cfg['noseBone'],noseSourceIndices=np.flatnonzero(keep).tolist(),nosePlacement='native',noseSkin=cfg['noseBone'],tubFront=cfg['front'],noseCap=dict(firstVertex=cap_start,vertices=len(hull),triangles=len(hull)-2),rim=np.array(rim).tolist(),innerShell=dict(triangles=len(tris),boundaryEdges=len(boundary),boundaryLoops=1))
     return parts,skeleton,world,eye,shell,meta

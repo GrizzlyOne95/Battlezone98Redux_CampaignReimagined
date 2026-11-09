@@ -37,7 +37,8 @@ for faction,cfg in cp.CONFIG.items():
         check(np.allclose(np.linalg.norm(n,axis=1),1,atol=.003),'unit normals')
         check(np.allclose(np.linalg.norm(t,axis=1),1,atol=.003),'unit tangents')
         check(np.abs((n*t).sum(1)).max()<.003,'orthogonal tangent basis')
-        weights=list(sub.bone_assignments());bone=cfg['noseBone'] if sub.material_name==cfg['nose'] else shell.handle;check(len(weights)==len(p) and all(a.bone_index==bone and a.weight==1 for a in weights),'interior/glass on stable shell; nose whole on its moving rof bone')
+        bone=np.full(len(p),cfg['noseBone'] if sub.material_name==cfg['nose'] else shell.handle)
+        weights=list(sub.bone_assignments());check(len(weights)==len(p) and all(a.bone_index==bone[a.vertex_index] and a.weight==1 for a in weights),'interior/glass/hull bulkhead on stable shell; nose whole on the moving rof bone')
         tri=p[sub.index_array.reshape(-1,3)];check((np.linalg.norm(np.cross(tri[:,1]-tri[:,0],tri[:,2]-tri[:,0]),axis=1)>1e-10).all(),'no degenerate triangles')
         if sub.material_name!='CRWX_CockpitGlass':
             check(uv.min()>=0 and uv.max()<=1,'opaque UV range')
@@ -55,7 +56,17 @@ for faction,cfg in cp.CONFIG.items():
     check(receipt['alignment']['innerShell']['boundaryLoops']==1,'only deliberate canopy opening')
     directions=np.concatenate([rays(np.arange(-35,36,1),pitch) for pitch in range(-31,0)])
     dist,hit=cg.cast(origin,directions,tri[:,0],tri[:,1],tri[:,2]);hits=np.isfinite(dist)&(hit>=nose_first)&(hit<nose_last);nose_visible[faction]=int(hits.sum());check(hits.sum()>=200,'original nose clearly visible past the notched sill')
-    local={x.material_name:(cp.shared.values(x.vertex_data,cp.shared.om.VES.POSITION)-origin)@R for x in mesh.submesh_list};check(local[cfg['nose']][:,2].min()>local[cfg['material']][:,2].max(),'nose entirely ahead of the built tub')
+    local={x.material_name:(cp.shared.values(x.vertex_data,cp.shared.om.VES.POSITION)-origin)@R for x in mesh.submesh_list};cap=receipt['alignment']['noseCap'];tub=np.delete(local[cfg['material']],np.s_[cap['firstVertex']:cap['firstVertex']+cap['vertices']],0)
+    check(local[cfg['nose']][:,2].min()>tub[:,2].max(),'nose entirely ahead of the built tub')
+    # Open nose rear closed: the cap lies behind the nose and spans its whole rear
+    # rim, and every eye ray through the cap's area stops at the cap or the tub.
+    capv=local[cfg['material']][cap['firstVertex']:cap['firstVertex']+cap['vertices']];nose=local[cfg['nose']];rear=nose[nose[:,2]<nose[:,2].min()+.03]
+    check(capv[:,2].max()<nose[:,2].min(),'nose cap just behind the nose')
+    inside=lambda q:all((b[0]-a[0])*(q[1]-a[1])-(b[1]-a[1])*(q[0]-a[0])>=-1e-6 for a,b in zip(capv[:,:2],np.roll(capv[:,:2],-1,0)))
+    check(all(inside(q) for q in rear[:,:2]),'nose cap covers the whole rear rim')
+    cap_last=len(mesh.submesh_list[0].index_array)//3;cap_first=cap_last-cap['triangles'];u,v=np.meshgrid(np.linspace(.05,.95,12),np.linspace(.05,.95,12));grid=capv[:,:2].min(0)+np.column_stack([u.ravel(),v.ravel()])*(capv[:,:2].max(0)-capv[:,:2].min(0))
+    targets=np.array([[x,y,capv[0,2]] for x,y in grid if inside((x,y))]);dirs=targets/np.linalg.norm(targets,axis=1)[:,None];dist,hit=cg.cast(origin,dirs@R.T,tri[:,0],tri[:,1],tri[:,2])
+    check(len(targets)>40 and np.isfinite(dist).all() and not ((hit>=nose_first)&(hit<nose_last)).any() and ((hit>=cap_first)&(hit<cap_last)).sum()>=len(targets)//4,'open nose rear never visible from the eye')
     parts,*_=cp.geometry(base_asset_path(source),skelpath,faction);authored[faction]=parts[cfg['material']][0]
     check(np.array_equal(cp.shared.values(mesh.submesh_list[1].vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),parts[cfg['nose']][0][:,6:8]),'stock nose UVs retained')
     check(receipt['alignment']['noseTriangles']==738 and len(mesh.submesh_list[1].index_array)//3==738,'only complete original nose, not whole hull/hardpoint cubes')

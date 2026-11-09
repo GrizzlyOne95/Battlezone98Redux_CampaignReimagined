@@ -45,7 +45,7 @@ def build(game):
     for faction,cfg in cp.CONFIG.items():
         base=cfg['base'];ref=REF/faction;source=base_asset_path(ROOT/'Assets/ModelFixes'/(base+'.mesh'));skel=Path(game)/'BZ_ASSETS/common/models'/(base+'.skeleton')
         parts,s,world,eye,shell,meta=cp.geometry(source,skel,faction)
-        nose=parts[cfg['nose']][0];model,glass=cp.shared.mesh_bytes(parts,s,world,eye,shell,skeleton_name=base+'_cockpit.skeleton',part_bones={cfg['nose']:np.full(len(nose),cfg['noseBone'])});outputs={}
+        model,glass=cp.shared.mesh_bytes(parts,s,world,eye,shell,skeleton_name=base+'_cockpit.skeleton',part_bones=cp.bones(parts,cfg,shell,meta));outputs={}
         for path,content in [(ROOT/'Assets/Models'/(base+'_cockpit.mesh'),model),(ROOT/'Assets/Models'/(base+'_cockpit.skeleton'),skel.read_bytes())]:path.write_bytes(content);outputs[path.relative_to(ROOT).as_posix()]=sha(path)
         d,e,mask=textures(faction)
         for channel,im in [('d',d),('e',e)]:
