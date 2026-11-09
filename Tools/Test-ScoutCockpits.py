@@ -37,7 +37,7 @@ for faction,cfg in cp.CONFIG.items():
         check(np.allclose(np.linalg.norm(n,axis=1),1,atol=.003),'unit normals')
         check(np.allclose(np.linalg.norm(t,axis=1),1,atol=.003),'unit tangents')
         check(np.abs((n*t).sum(1)).max()<.003,'orthogonal tangent basis')
-        weights=list(sub.bone_assignments());check(len(weights)==len(p) and all(a.bone_index==shell.handle and a.weight==1 for a in weights),'every vertex skinned to stable shell')
+        weights=list(sub.bone_assignments());bone=cfg['noseBone'] if sub.material_name==cfg['nose'] else shell.handle;check(len(weights)==len(p) and all(a.bone_index==bone and a.weight==1 for a in weights),'interior/glass on stable shell; nose whole on its moving rof bone')
         tri=p[sub.index_array.reshape(-1,3)];check((np.linalg.norm(np.cross(tri[:,1]-tri[:,0],tri[:,2]-tri[:,0]),axis=1)>1e-10).all(),'no degenerate triangles')
         if sub.material_name!='CRWX_CockpitGlass':
             check(uv.min()>=0 and uv.max()<=1,'opaque UV range')
@@ -60,6 +60,7 @@ for faction,cfg in cp.CONFIG.items():
     check(receipt['alignment']['noseTriangles']==738 and len(mesh.submesh_list[1].index_array)//3==738,'only complete original nose, not whole hull/hardpoint cubes')
     raw=cp.shared.read_mesh(base_asset_path(source)).submesh_list[0];rawp=cp.shared.values(raw.vertex_data,cp.shared.om.VES.POSITION);q=rawp[raw.index_array.reshape(-1,3)[receipt['alignment']['noseSourceIndices']]];fitted=parts[cfg['nose']][0][:,:3][parts[cfg['nose']][1].reshape(-1,3)]
     check(np.allclose(np.linalg.norm(np.roll(q,-1,axis=1)-q,axis=2),np.linalg.norm(np.roll(fitted,-1,axis=1)-fitted,axis=2),atol=1e-6),'nose shape/scale preserved')
+    check(np.allclose(np.unique(q.reshape(-1,3),axis=0),np.unique(fitted.reshape(-1,3),axis=0),atol=1e-6),'nose at native exterior position (engine-posed rof, no art fit)')
     check(receipt['glass']['bone'].lower()==cfg['shell'] and receipt['glass']['vertices']>0,'weather glass refitted')
     src=cg.Sources(game=str(ROOT/'Local/no-game'),cr=str(ROOT));path,kind,_=cg.cockpit_mesh(src,base);check(kind=='separate' and Path(path).name==base+'_cockpit.mesh','first-person resource selected')
     d,e,mask=build.textures(faction);check(np.array_equal(np.array(mask),np.array(Image.open(ref/'optical-mask.png'))),'physical source mask reproduces')

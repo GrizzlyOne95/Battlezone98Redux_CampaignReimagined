@@ -14,7 +14,7 @@
     "skeletonSha256": "ec1dbc02748d5ba4f576ca6c732551df3e6a73b9ad508a4e745ea415add93cc7"
   },
   "outputs": {
-    "Assets/Models/bvraz_cockpit.mesh": "89fef9223a122d9cf0a64d3da08c29abe7ae94dc63e600e3ad24d481ad145b27",
+    "Assets/Models/bvraz_cockpit.mesh": "e04bc2740e8eea486a297a603795f4cf99ea0ea5f668409a2ca83015f6d70d4e",
     "Assets/Models/bvraz_cockpit.skeleton": "ec1dbc02748d5ba4f576ca6c732551df3e6a73b9ad508a4e745ea415add93cc7",
     "Assets/Textures/crvbscp_d.dds": "c2db5d269e0887791551c2ae7b92861ababd28cf3ec3b603d7926abe276b072f",
     "Assets/Textures/crvbscp_e.dds": "623acd56e9995b5b03cf33becd39fef2ac512fab29c4b7dc8a708cda0d559d76",
@@ -790,16 +790,8 @@
       4104,
       4105
     ],
-    "nosePlacement": {
-      "up": 0.1,
-      "forward": 0.15,
-      "pitchDegrees": -14.0,
-      "pivotModel": [
-        0.0,
-        0.7,
-        2.3
-      ]
-    },
+    "nosePlacement": "native",
+    "noseSkin": 1,
     "rim": [
       [
         -0.65,
@@ -849,10 +841,10 @@
     }
   },
   "glass": {
-    "openFraction": 0.4472998981093626,
+    "openFraction": 0.4488848635797577,
     "depth": [
-      0.7020529941808582,
-      1.8275098496970068
+      0.7006310544634595,
+      1.3059953607674806
     ],
     "bone": "bra21bda",
     "vertices": 605,

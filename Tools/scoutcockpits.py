@@ -10,7 +10,6 @@ CHARTS={'console':(.02,.02,.98,.34),'switch':(.02,.38,.48,.64),
 CONFIG={
     'nsdf':dict(base='avfigh',shell='ara21bda',material='CRV/NSDFScoutCockpit',nose='CRV/NSDFScoutNose',stem='crvascp',noseBone=2,cockpitBatch=2,eye=[-.004399999976158142,1.467507004737854,.7488619983196259]),
     'bdog':dict(base='bvraz',shell='bra21bda',material='CRV/BDogScoutCockpit',nose='CRV/BDogScoutNose',stem='crvbscp',noseBone=1,cockpitBatch=1,eye=[-.004399999976158142,1.467507004737854,.8566620051860809])}
-NOSE_FIT=dict(up=.10,forward=.15,pitchDegrees=-14.,pivotModel=[0.,.70,2.30])
 
 def geometry(source,skeleton_path,faction):
     cfg=CONFIG[faction];skeleton,world,eye,shell=shared.rig(skeleton_path,cfg['shell']);origin,R=world[eye.handle];rows=[];indices=[]
@@ -82,17 +81,15 @@ def geometry(source,skeleton_path,faction):
         if p not in seen:seen.add(p);todo.extend(adj[p]-seen)
     assert len(seen)==len(adj),'unintended separate shell opening'
     parts={cfg['material']:(np.array(rows,dtype='<f4'),np.array(indices,dtype='<u2'))}
-    # The entire original ROF nose piece, not a hardpoint cube or a fragile
-    # side-only crop. Preserve source UVs, normals and triangle shape.
+    # The entire original ROF nose piece (VDF class 66, rolled by the engine
+    # every frame) at its native position, skinned whole to its own bone so
+    # it moves as the exterior does. Preserve source UVs, normals and shape.
     body=shared.read_mesh(source).submesh_list[0];vd=body.vertex_data;p=shared.values(vd,shared.om.VES.POSITION);n=shared.values(vd,shared.om.VES.NORMAL);uv=shared.values(vd,shared.om.VES.TEXTURE_COORDINATES);tri=body.index_array.reshape(-1,3);weight=np.zeros(len(p))
     for a in body.bone_assignments():
         if a.bone_index==cfg['noseBone']:weight[a.vertex_index]+=a.weight
-    keep=(weight[tri]>.99).all(1);selected=tri[keep];used,remap=np.unique(selected,return_inverse=True);positions=p[used].copy();local=(positions-origin)@R
-    theta=math.radians(NOSE_FIT['pitchDegrees']);c,s=math.cos(theta),math.sin(theta);rot=np.array([[1.,0,0],[0,c,-s],[0,s,c]])
-    pivot=(np.array(NOSE_FIT['pivotModel'])-origin)@R;local=(local-pivot)@rot.T+pivot
-    local[:,1]+=NOSE_FIT['up'];local[:,2]+=NOSE_FIT['forward'];positions=origin+local@R.T
-    normal=n[used]@R@rot.T@R.T;t=shared.values(vd,shared.om.VES.TANGENT)[used,:3]@R@rot.T@R.T;t-=normal*(t*normal).sum(1)[:,None]
+    keep=(weight[tri]>.99).all(1);selected=tri[keep];used,remap=np.unique(selected,return_inverse=True);positions=p[used]
+    normal=n[used];t=shared.values(vd,shared.om.VES.TANGENT)[used,:3].copy();t-=normal*(t*normal).sum(1)[:,None]
     for i in np.flatnonzero(np.linalg.norm(t,axis=1)<1e-8):t[i]=np.cross(np.eye(3)[np.argmin(np.abs(normal[i]))],normal[i])
     t/=np.linalg.norm(t,axis=1)[:,None];parts[cfg['nose']]=(np.column_stack([positions,normal,uv[used],t]).astype('<f4'),remap.astype('<u2').reshape(-1));assert len(selected)>100
-    meta=dict(faction=faction,base=cfg['base'],pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,noseTriangles=len(selected),noseBone=cfg['noseBone'],noseSourceIndices=np.flatnonzero(keep).tolist(),nosePlacement=NOSE_FIT,rim=np.array(rim).tolist(),innerShell=dict(triangles=len(tris),boundaryEdges=len(boundary),boundaryLoops=1))
+    meta=dict(faction=faction,base=cfg['base'],pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,noseTriangles=len(selected),noseBone=cfg['noseBone'],noseSourceIndices=np.flatnonzero(keep).tolist(),nosePlacement='native',noseSkin=cfg['noseBone'],rim=np.array(rim).tolist(),innerShell=dict(triangles=len(tris),boundaryEdges=len(boundary),boundaryLoops=1))
     return parts,skeleton,world,eye,shell,meta
