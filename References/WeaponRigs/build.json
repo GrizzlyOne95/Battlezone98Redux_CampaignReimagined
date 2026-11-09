@@ -9132,8 +9132,8 @@
         "SFL11POV": [
           [
             0.0,
-            1.492648959159851,
-            0.9383049756288528
+            1.2726489901542664,
+            -0.5616949945688248
           ],
           [
             0.0,
@@ -9336,13 +9336,13 @@
         "hardpoints": [
           "GC1"
         ],
-        "triangles": 799,
-        "cap_triangles": 209,
+        "triangles": 759,
+        "cap_triangles": 183,
         "cockpit": true,
         "helpers": [
           {
-            "bone": "crgun_1_12",
-            "parent": "SFL21bda"
+            "bone": "crgun_1_4",
+            "parent": "SFL11ROR"
           }
         ]
       },
@@ -9350,19 +9350,19 @@
         "hardpoints": [
           "GC2"
         ],
-        "triangles": 798,
-        "cap_triangles": 208,
+        "triangles": 767,
+        "cap_triangles": 191,
         "cockpit": true,
         "helpers": [
           {
-            "bone": "crgun_2_12",
-            "parent": "SFL21bda"
+            "bone": "crgun_2_4",
+            "parent": "SFL11ROR"
           }
         ]
       }
     ],
     "cockpit_source": {
-      "mesh": "d30adea20c43ee3fdb30c50ca955452500832bfa01099a580b641ca84b566010",
+      "mesh": "6925e529219099b749d52979dbf13cbd0572d85ff146c1127dbaf2492277e55d",
       "skeleton": "1ec0ac4acbe9137c4243ea0792aecfb3d76ca32e1f539d6095eeae34b0c2e01c",
       "bind_poses": {
         "SFL11BDA": [
@@ -9394,8 +9394,8 @@
         "SFL11POV": [
           [
             0.0,
-            1.492648959159851,
-            0.9383049756288528
+            1.2726489901542664,
+            -0.5616949945688248
           ],
           [
             0.0,
@@ -9689,10 +9689,10 @@
       }
     },
     "outputs": {
-      "Assets/Models/svfigh_recoil.skeleton": "1b7d91b7a36efc098efbce946567309de694e0814888a8461aaf253ca1fdec70",
+      "Assets/Models/svfigh_recoil.skeleton": "9e2a6c8aa04f83eca93a7d2dfeae0b7f94442ea2171b1c4bffba4e722b0e8b4b",
       "Assets/ModelFixes/svfigh.mesh": "e51bf6bbc2624e5988a58b49e5a69d78880eee4ed0879f610087c6c0ebb6f113",
-      "Assets/Models/svfigh_cockpit.mesh": "13459c513bc8298a2e23b74b2c69e9299c5f29e1b2843c9613614abfffd5e865",
-      "Assets/Models/svfigh_cockpit_recoil.skeleton": "9a4202820b021f4bcb547183402369b84bf30e7fecddc1f08fb312ceb36ba539"
+      "Assets/Models/svfigh_cockpit.mesh": "648a1582293830a381342913c668555d6d0ac86041be6b98d246628cc69e1b92",
+      "Assets/Models/svfigh_cockpit_recoil.skeleton": "9e2a6c8aa04f83eca93a7d2dfeae0b7f94442ea2171b1c4bffba4e722b0e8b4b"
     }
   },
   "svhraz": {

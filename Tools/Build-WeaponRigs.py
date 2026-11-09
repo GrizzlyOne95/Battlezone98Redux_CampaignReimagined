@@ -4,6 +4,7 @@ import argparse, copy, dataclasses, hashlib, json, re, subprocess, sys
 import numpy as np
 import weaponrigs as wr
 import cockpitglass as cg
+import eyeoverrides
 import ogrelayout
 from bzmodellibs import legacy
 
@@ -48,7 +49,7 @@ def repair_hierarchy(model,skel):
 def load(path,src,revision):
     raw=baseline(path,revision);mesh=wr.ogre.read_mesh(raw)
     sp=Path(src.model(mesh.skeleton)[0]);sraw=baseline(sp,revision)
-    skel=wr.read_skeleton(sraw)
+    skel=wr.read_skeleton(eyeoverrides.patch_skeleton(sp.stem.split('_')[0],sraw))
     evidence={'mesh':hashlib.sha256(raw).hexdigest(),'skeleton':hashlib.sha256(sraw).hexdigest(),
         'bind_poses':{b.name:wr.flash.bone_world(skel,b.handle) for b in skel.bones},
         'animations':{a.name:hashlib.sha256(json.dumps(dataclasses.asdict(a),sort_keys=True).encode()).hexdigest() for a in skel.animations}}
