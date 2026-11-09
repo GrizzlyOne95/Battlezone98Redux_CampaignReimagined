@@ -37,7 +37,11 @@ for base,cfg in cp.CONFIG.items():
         check(np.isfinite(np.column_stack([p,n,uv,t])).all(),'finite vertex data')
         check(np.allclose(np.linalg.norm(n,axis=1),1,atol=.003),'unit normals')
         check(np.allclose(np.linalg.norm(t,axis=1),1,atol=.003) and abs((n*t).sum(1)).max()<.003,'orthonormal tangent basis')
-        weights=list(sub.bone_assignments());check(len(weights)==len(p) and all(a.bone_index==shell.handle and a.weight==1 for a in weights),'single stable-shell skinning')
+        # Shell everywhere, except declared animated exterior pieces on their own bone.
+        want=np.full(len(p),shell.handle);by_name={b.name:b.handle for b in s.bones()}
+        if sub.material_name=='CRV/'+base+'CombatExterior':
+            for entry in meta.get('exteriorSkin',[]):a,b=entry['vertices'];check(b<=len(p) and entry['bone'] in by_name,'animated piece '+entry['bone']);want[a:b]=by_name[entry['bone']]
+        weights=list(sub.bone_assignments());check(len(weights)==len(p) and all(a.bone_index==want[a.vertex_index] and a.weight==1 for a in weights),'single rigid skinning (shell or declared animated bone)')
         tri=p[sub.index_array.reshape(-1,3)];check((np.linalg.norm(np.cross(tri[:,1]-tri[:,0],tri[:,2]-tri[:,0]),axis=1)>1e-10).all(),'nondegenerate triangles '+base+' / '+sub.material_name)
         if sub.material_name!='CRWX_CockpitGlass':
             ranges[sub.material_name]=(cursor,cursor+len(tri));cursor+=len(tri);opaque.append(tri)
