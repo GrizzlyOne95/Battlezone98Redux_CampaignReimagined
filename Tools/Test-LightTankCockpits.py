@@ -36,13 +36,15 @@ for base,cfg in cp.CONFIG.items():
     for path,digest in receipt['outputs'].items():
         check(sha(ROOT/path)==digest,'pinned compiled output '+path)
         check(members.get(path)==Path(path).name,'case-correct shipping resource '+path)
-    s,w,eye,shell=cp.shared.rig(skel,cfg['shell']);origin,R=w[eye.handle]
-    check(np.allclose(origin,[.0997999981045723,1.46069997549057,.1421000063419342],atol=1e-9),'actual unchanged POV position')
+    s,w,eye,shell=cp.shared.rig(skel,cfg['shell']);w=cp.tank.raw_world(w);origin,R=w[eye.handle]
+    check(np.allclose(origin,[-.0997999981045723,1.46069997549057,.1421000063419342],atol=1e-9),'actual unchanged POV position')
     check(np.allclose(R,np.eye(3),atol=1e-8) and np.allclose(meta['povBasis'],R),'native/rest eye basis fixture')
     check(meta['shell']==shell.name and meta['shellHandle']==shell.handle,'right stable shell for this faction')
     mesh=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/Models'/(base+'_cockpit.mesh')))
     check(mesh.skeleton_name==base+'_cockpit.skeleton','namespaced rig resource')
     check([sub.material_name for sub in mesh.submesh_list]==[cfg['material'],'CRV/'+base+'OriginalFrame','CRV/'+base+'HullPaint','CRWX_CockpitGlass'],'only intended four batches')
+    cabin=cp.shared.values(mesh.submesh_list[0].vertex_data,cp.shared.om.VES.POSITION)
+    check(abs(cabin[:,0].mean()-origin[0])<.05,'cabin centred on the raw-X eye, not mirrored '+base)
     for sub in mesh.submesh_list:
         p,n,uv,t=[cp.shared.values(sub.vertex_data,sem) for sem in (cp.shared.om.VES.POSITION,cp.shared.om.VES.NORMAL,cp.shared.om.VES.TEXTURE_COORDINATES,cp.shared.om.VES.TANGENT)]
         check(np.isfinite(np.column_stack([p,n,uv,t])).all(),'finite compiled vertices')
