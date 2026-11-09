@@ -14,7 +14,7 @@
     "skeletonSha256": "ec1dbc02748d5ba4f576ca6c732551df3e6a73b9ad508a4e745ea415add93cc7"
   },
   "outputs": {
-    "Assets/Models/bvraz_cockpit.mesh": "e04bc2740e8eea486a297a603795f4cf99ea0ea5f668409a2ca83015f6d70d4e",
+    "Assets/Models/bvraz_cockpit.mesh": "f1081fe2be63a9f8d93ccd336bc52bc8a4237efc8371b3879d22dbd1ac9be796",
     "Assets/Models/bvraz_cockpit.skeleton": "ec1dbc02748d5ba4f576ca6c732551df3e6a73b9ad508a4e745ea415add93cc7",
     "Assets/Textures/crvbscp_d.dds": "c2db5d269e0887791551c2ae7b92861ababd28cf3ec3b603d7926abe276b072f",
     "Assets/Textures/crvbscp_e.dds": "623acd56e9995b5b03cf33becd39fef2ac512fab29c4b7dc8a708cda0d559d76",
@@ -792,6 +792,7 @@
     ],
     "nosePlacement": "native",
     "noseSkin": 1,
+    "tubFront": 0.91,
     "rim": [
       [
         -0.65,
@@ -799,9 +800,14 @@
         1.03
       ],
       [
-        0.0,
-        -0.45,
-        1.25
+        -0.4,
+        -0.6,
+        1.03
+      ],
+      [
+        0.4,
+        -0.6,
+        1.03
       ],
       [
         0.65,
@@ -835,23 +841,23 @@
       ]
     ],
     "innerShell": {
-      "triangles": 36,
-      "boundaryEdges": 14,
+      "triangles": 37,
+      "boundaryEdges": 15,
       "boundaryLoops": 1
     }
   },
   "glass": {
-    "openFraction": 0.4488848635797577,
+    "openFraction": 0.4676780255858712,
     "depth": [
-      0.7006310544634595,
-      1.3059953607674806
+      0.6831058356129562,
+      1.6798668170047226
     ],
     "bone": "bra21bda",
-    "vertices": 605,
-    "triangles": 1092
+    "vertices": 627,
+    "triangles": 1128
   },
   "triangles": {
-    "CRV/BDogScoutCockpit": 680,
+    "CRV/BDogScoutCockpit": 693,
     "CRV/BDogScoutNose": 738
   }
 }

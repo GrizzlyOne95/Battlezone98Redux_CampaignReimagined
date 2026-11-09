@@ -54,7 +54,8 @@ for faction,cfg in cp.CONFIG.items():
     distance,_=cg.cast(origin,rays(np.array([180]),0),tri[:,0],tri[:,1],tri[:,2]);check(np.isfinite(distance).all(),'closed rear')
     check(receipt['alignment']['innerShell']['boundaryLoops']==1,'only deliberate canopy opening')
     directions=np.concatenate([rays(np.arange(-35,36,1),pitch) for pitch in range(-31,0)])
-    dist,hit=cg.cast(origin,directions,tri[:,0],tri[:,1],tri[:,2]);hits=np.isfinite(dist)&(hit>=nose_first)&(hit<nose_last);nose_visible[faction]=int(hits.sum());check(hits.any(),'original nose visible in actual forward FOV')
+    dist,hit=cg.cast(origin,directions,tri[:,0],tri[:,1],tri[:,2]);hits=np.isfinite(dist)&(hit>=nose_first)&(hit<nose_last);nose_visible[faction]=int(hits.sum());check(hits.sum()>=200,'original nose clearly visible past the notched sill')
+    check((((cp.shared.values(mesh.submesh_list[1].vertex_data,cp.shared.om.VES.POSITION)-origin)@R)[:,2]>cfg['front']).all(),'nose entirely ahead of the tub front wall')
     parts,*_=cp.geometry(base_asset_path(source),skelpath,faction);authored[faction]=parts[cfg['material']][0]
     check(np.array_equal(cp.shared.values(mesh.submesh_list[1].vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),parts[cfg['nose']][0][:,6:8]),'stock nose UVs retained')
     check(receipt['alignment']['noseTriangles']==738 and len(mesh.submesh_list[1].index_array)//3==738,'only complete original nose, not whole hull/hardpoint cubes')
@@ -87,5 +88,5 @@ for faction in cp.CONFIG:
     x0,y0,x1,y1=np.array(cp.CHARTS['armor'])*1024;region=diffuse[faction][int(y0)+5:int(y1)-5,int(x0)+5:int(x1)-5].mean((0,1))
     check(region[1]>region[0]*1.08 and region[2]>region[0]*1.08 if faction=='nsdf' else region.max()-region.min()<22,'stock-grounded faction structural palette: '+faction)
 origins={f:np.array(c['eye']) for f,c in cp.CONFIG.items()}
-check(np.allclose(authored['nsdf'][:,:3]-origins['nsdf'],authored['bdog'][:,:3]-origins['bdog'],atol=2e-7),'common Razor shell fitted independently to each faction eye')
+check(np.allclose(authored['nsdf'][:,:2]-origins['nsdf'][:2],authored['bdog'][:,:2]-origins['bdog'][:2],atol=2e-7),'common Razor shell fitted to each faction eye (depth fitted to its nose root)')
 print('Scout cockpit pair:',count,'checks passed; source-nose samples',nose_visible)
