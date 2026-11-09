@@ -40,6 +40,11 @@ def assert_planet(section, world):
     assert section["planet"].strip('"') == "custom"
     assert section["planetDisplay"].strip('"') == CR_PLANET_VIDEO[world]
 
+# A custom planet's briefing blurb is <clip stem>.des; without it the panel says "NO DESCRIPTION".
+for clip in CR_PLANET_VIDEO.values():
+    des = ROOT / "Text" / (clip.rsplit(".", 1)[0] + ".des")
+    assert des.is_file(), f"{des.name} is missing: the briefing would show NO DESCRIPTION"
+
 mod_parser = configparser.ConfigParser()
 mod_parser.optionxform = str
 mod_parser.read(mod_ini_path, encoding="utf-8")

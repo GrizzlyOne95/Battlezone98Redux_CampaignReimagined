@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5317,
+  "count": 5326,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -18893,6 +18893,42 @@
     {
       "source": "Text\\ch08009.txt",
       "runtime": "ch08009.txt"
+    },
+    {
+      "source": "Text\\crachil.des",
+      "runtime": "crachil.des"
+    },
+    {
+      "source": "Text\\crelys.des",
+      "runtime": "crelys.des"
+    },
+    {
+      "source": "Text\\creuropa.des",
+      "runtime": "creuropa.des"
+    },
+    {
+      "source": "Text\\crganym.des",
+      "runtime": "crganym.des"
+    },
+    {
+      "source": "Text\\crio.des",
+      "runtime": "crio.des"
+    },
+    {
+      "source": "Text\\crmars.des",
+      "runtime": "crmars.des"
+    },
+    {
+      "source": "Text\\crmoon.des",
+      "runtime": "crmoon.des"
+    },
+    {
+      "source": "Text\\crtitan.des",
+      "runtime": "crtitan.des"
+    },
+    {
+      "source": "Text\\crvenus.des",
+      "runtime": "crvenus.des"
     },
     {
       "source": "Text\\do_not_delete.txt",
