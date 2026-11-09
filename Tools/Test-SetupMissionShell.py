@@ -35,7 +35,7 @@ assert setup_name.startswith('"!'), "setup entry must retain the first-sort ! pr
 assert parser["WORKSHOP"]["mapType"] == '"instant_action"'
 
 # CR missions use custom planets: the HD clip plus its .pvi timing sidecar.
-CR_PLANET_VIDEO = {'moon': 'crmoon.ogv', 'mars': 'crmars.ogv', 'venus': 'crvenus.ogv', 'io': 'crio.ogv', 'europa': 'creuropa.ogv', 'titan': 'crtitan.ogv', 'ganymede': 'crganym.ogv', 'elysium': 'crelys.ogv'}
+CR_PLANET_VIDEO = {'moon': 'crmoon.ogv', 'mars': 'crmars.ogv', 'venus': 'crvenus.ogv', 'io': 'crio.ogv', 'europa': 'creuropa.ogv', 'titan': 'crtitan.ogv', 'ganymede': 'crganym.ogv', 'achilles': 'crachil.ogv', 'elysium': 'crelys.ogv'}
 def assert_planet(section, world):
     assert section["planet"].strip('"') == "custom"
     assert section["planetDisplay"].strip('"') == CR_PLANET_VIDEO[world]
@@ -56,7 +56,7 @@ assert campaign_maps == ["misn2bcr.bzn", "misn03cr.bzn", "misn04cr.bzn", "misn05
 for section, filename in zip(mission_sections, campaign_maps):
     assert mod_parser[section]["missionName"].strip('"')
     assert mod_parser[section]["planet"].strip('"') == "custom"
-    assert mod_parser[section]["planetDisplay"].strip('"') in {CR_PLANET_VIDEO[w] for w in ("moon", "mars", "venus", "io", "europa", "titan")}
+    assert mod_parser[section]["planetDisplay"].strip('"') in {CR_PLANET_VIDEO[w] for w in ("moon", "mars", "venus", "io", "europa", "titan", "achilles")}
     path = ROOT / "Missions" / filename
     assert path.is_file(), f"campaign must use a CR map: {filename}"
     mission_class = "MultSTMission"

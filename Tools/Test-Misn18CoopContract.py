@@ -88,7 +88,7 @@ assert vxt == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,', ''], 
 for row in vxt[:-1]:
     assert (ROOT / 'ODF' / (row.split()[0] + '.odf')).is_file(), 'starting ship ODF ships: ' + row
 campaign = (ROOT / 'Config/crcampgn.ini').read_text(encoding='utf-8')
-assert re.search(r'\[MISSION17\]\n(?:;[^\n]*\n)?missionName = "The Ultimate Quake"\nmissionBZN = "misn18cr.bzn"\nplanet = "custom"\nplanetDisplay = "crtitan.ogv"\nvoice = "misn1800.wav"',
+assert re.search(r'\[MISSION17\]\n(?:;[^\n]*\n)?missionName = "The Ultimate Quake"\nmissionBZN = "misn18cr.bzn"\nplanet = "custom"\nplanetDisplay = "crachil.ogv"\nvoice = "misn1800.wav"',
                  campaign.replace('\r\n', '\n')), 'campaign entry after MISSION16'
 for line in ('misn1817', 'misn1818', 'misn1800'):
     assert (ROOT / 'Text' / (line + '.txt')).is_file(), 'subtitle: ' + line
