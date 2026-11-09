@@ -34,7 +34,7 @@ class MoonHdTerrain(unittest.TestCase):
         manifest = json.loads((ROOT / "Config/cr_terrain_hd.json").read_text())
         self.assertIn("MN_DETAIL_ATLAS", manifest["materials"])
         binding = manifest["materials"]["MN_DETAIL_ATLAS"]
-        self.assertEqual(binding["sliceCount"], 9)
+        self.assertEqual(binding["sliceCount"], 18)
         self.assertEqual(paint_problems("moon"), [])
         self.assertEqual(read_layout(ROOT / "Config/mn_detail_atlas.csv", "MN00SA0.MAP"),
                          read_layout(ROOT / "Tools/TerrainHD/Moon/layout.csv", "MN00SA0.MAP"))

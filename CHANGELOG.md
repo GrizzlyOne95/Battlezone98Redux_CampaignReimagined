@@ -106,6 +106,11 @@
   Armory or Construction Rig is deployed on the vent; Europa's and Io's existing plumes get the same gate (Venus not
   yet). Visual only: no sim objects, network traffic or random numbers, and no per-mission edits. See
   `Docs/WORLD_GEYSERS.md`.
+- Give Moon, Venus, Io, Europa and Titan a Base pad layer, so the stock base tiles (misn02b and others) show a
+  concrete pad again instead of the surrounding ground. Each world now uses an eight-layer recipe (18 slices),
+  like Mars, Ganymede and Elysium. The pads use the world's own HD base tile art (mn44sa0, ve22sa0, eu44sa0,
+  ti11sa0), chosen to match the stock tile style; Io uses a darkened FreePBR futuristic-panels1 set. The layer 0-3 art,
+  Venus's sulphur and Io's lava are unchanged; the control maps are rebuilt with the pad layer. Moon misn01 and misn02 (CR copies) are now painted too.
 - Move Mars onto the terrain paint binding with an eight-layer recipe (sand, rock, gravel, cracked rock, Base pad, dark
   streaks, pale crust, scree) for misn04 to misn06, replacing the 72 `crhd_mars` DDS tiles.
 - Send the Workshop description with the Steam-client upload when `PublishDescription` is true in

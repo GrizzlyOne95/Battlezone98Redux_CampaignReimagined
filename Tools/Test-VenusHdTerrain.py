@@ -37,7 +37,7 @@ class VenusHdTerrain(unittest.TestCase):
         materials = json.loads((ROOT / "Config/cr_terrain_hd.json").read_text())["materials"]
         self.assertIn("MN_DETAIL_ATLAS", materials)
         binding = materials["VE_DETAIL_ATLAS"]
-        self.assertEqual(binding["sliceCount"], 9)
+        self.assertEqual(binding["sliceCount"], 18)
         self.assertEqual(paint_problems("venus"), [])
         material = (ROOT / "Materials/ve_detail_atlas.material").read_text()
         self.assertIn(f"set_texture_alias DiffuseMap {binding['diffuseResource']}", material)

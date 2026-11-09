@@ -69,6 +69,11 @@ maps); Ganymede (evolve_3, evolve_4, bdmisn01-06, 08, 12-15, chmisn01-04, 08) an
 the shim and renders its stock atlas unpainted; it does not use the removed crhd
 tiles, so nothing goes missing.
 
+On 2026-11-09 Moon, Venus, Io, Europa and Titan moved to eight-layer recipes (18 slices) that add a
+cell-aligned Base pad layer (layer 4) for the stock base tiles. The merge script replaces a whole binding, so
+after it ran, Venus's and Io's `liquid` (padded with zeros for layers 4-7) and `liquidFlow` were restored by hand,
+and the Moon's accepted layer 0-3 PNGs (commit fb4f0994) were kept instead of the rebuilt ones.
+
 Each material retains exact original D/N/S/E resource guards and CSV rectangles.
 Only the active material's arrays are built. The nine packs do not imply nine
 sets of arrays resident at once. The 32-bit process RAM cost is a live measured
