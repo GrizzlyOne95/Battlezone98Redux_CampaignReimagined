@@ -31,6 +31,7 @@
 *BZLogger.txt ::: cGogInterface::preinitGoGInterface.*GalaxyRuntimeError ::: GOG Galaxy is not running/signed in on this PC (environmental)
 *BZLogger.txt ::: BZRNetInterface reset active_con due to websocket connection (setup failure|close).*(Underlying Transport Error|Timer Expired) ::: GOG copy is not signed in to the lobby on this PC (same cause as the GalaxyRuntimeError line); seen ~55x in every gate run, and mp_staging still has its own timing budget
 *BZLogger.txt ::: Frame Rate (Dropped Lower Than|Back Above) \d+ ::: engine prints this on mission-load hitches; load/play stalls are gated by the harness timing and max-unresponsive budgets, not this line
+*BZLogger.txt ::: ^\s*\[[\d-]+ [\d:.]+ "failed"[\d-]+ [\d:.]+ \]=[\d-]+ [\d:.]+ false[\d-]+ [\d:.]+\s*$ ::: a mission's Lua state table dumped to BZLogger (the "failed" key set to false, between delayTime3 and soundHandle), not an error; true or any other text still fails
 # --- BZOgreLogfile.log ---
 *BZOgreLogfile.log ::: WARNING: (native/v4/[0-9a-f]+/cgt11\w+\.mesh|sbsilo\.mesh|casings/v1/openshim_casing\.mesh) is an older format \(\[MeshSerializer_v1\.8\]\) ::: OpenShim chunk cache writes v1.8 by design (native_chunk_mesh.cpp); stock sbsilo is v1.8
 *BZOgreLogfile.log ::: WARNING: the mesh 'cblpad\.mesh' includes vertices without bone assignments ::: 4 of ~4000 vertices unweighted in the stock TRO mesh and the CR copy alike
