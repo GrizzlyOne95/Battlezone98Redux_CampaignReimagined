@@ -13,7 +13,7 @@ CONFIG={
 LAYOUT=dict(role='lighttank',width=.70,lip=-.37,front=.86,roof=.57,back=-.65)
 
 def geometry(source,skelpath,base,game,root):
-    cfg=CONFIG[base];s,w,eye,shell=shared.rig(skelpath,cfg['shell']);native=tank.native_eye(w,eye,game,base,root);origin,R=w[eye.handle]
+    cfg=CONFIG[base];s,w,eye,shell=shared.rig(skelpath,cfg['shell']);native=tank.native_eye(w,eye,game,base,root);w=tank.raw_world(w);origin,R=w[eye.handle]
     h=hardware.Hardware(origin,R,scout.CHARTS,hardware.ART_ASPECT[cfg['faction']])
     # Relocate the old tall side-wall equipment to a low, squat central bank.
     # No new A-pillars: the original painted exterior already frames the view.

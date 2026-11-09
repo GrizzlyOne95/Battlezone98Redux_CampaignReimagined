@@ -50,7 +50,7 @@ def cut_configs(base):
 
 
 def geometry(source,skelpath,base,game,root):
-    cfg=CONFIG[base];s,w,eye,shell=shared.rig(skelpath,cfg['shell']);native=tank.native_eye(w,eye,game,base,root);origin,R=w[eye.handle]
+    cfg=CONFIG[base];s,w,eye,shell=shared.rig(skelpath,cfg['shell']);native=tank.native_eye(w,eye,game,base,root);w=tank.raw_world(w);origin,R=w[eye.handle]
     charts=hardware.CCA_CHARTS if cfg['faction']=='cca' else hardware.CRA_CHARTS
     h=(BomberHardware if base=='svhraz' else hardware.Hardware)(origin,R,charts,hardware.ART_ASPECT[cfg['faction']])
     if base=='svhraz':
