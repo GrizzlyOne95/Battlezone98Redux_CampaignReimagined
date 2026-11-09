@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5343,
+  "count": 5353,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -4275,12 +4275,20 @@
       "runtime": "bbwpow_N.dds"
     },
     {
+      "source": "Assets\\Textures\\bflame.png",
+      "runtime": "bflame.png"
+    },
+    {
       "source": "Assets\\Textures\\boltmine00_ACT.dds",
       "runtime": "boltmine00_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\boltmine00_N.dds",
       "runtime": "boltmine00_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bpuff.png",
+      "runtime": "bpuff.png"
     },
     {
       "source": "Assets\\Textures\\bspilo1_ACT.dds",
@@ -6343,12 +6351,20 @@
       "runtime": "exu_hud_status_plate.png"
     },
     {
+      "source": "Assets\\Textures\\gflame.png",
+      "runtime": "gflame.png"
+    },
+    {
       "source": "Assets\\Textures\\gmine00_ACT.dds",
       "runtime": "gmine00_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\gmine00_N.dds",
       "runtime": "gmine00_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\gpuff.png",
+      "runtime": "gpuff.png"
     },
     {
       "source": "Assets\\Textures\\hbcerb00_ACT.dds",
@@ -6493,6 +6509,10 @@
     {
       "source": "Assets\\Textures\\ma_detail_atlas_shape.dds",
       "runtime": "ma_detail_atlas_shape.dds"
+    },
+    {
+      "source": "Assets\\Textures\\magballs.png",
+      "runtime": "magballs.png"
     },
     {
       "source": "Assets\\Textures\\magpull00_N.dds",
@@ -7515,6 +7535,14 @@
       "runtime": "raintoxc_mask.dds"
     },
     {
+      "source": "Assets\\Textures\\rflame.png",
+      "runtime": "rflame.png"
+    },
+    {
+      "source": "Assets\\Textures\\rpuff.png",
+      "runtime": "rpuff.png"
+    },
+    {
       "source": "Assets\\Textures\\sbbarr_ACT.dds",
       "runtime": "sbbarr_ACT.dds"
     },
@@ -7643,8 +7671,16 @@
       "runtime": "scrapmat_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\shock.png",
+      "runtime": "shock.png"
+    },
+    {
       "source": "Assets\\Textures\\smoke.dds",
       "runtime": "smoke.dds"
+    },
+    {
+      "source": "Assets\\Textures\\smoke.png",
+      "runtime": "smoke.png"
     },
     {
       "source": "Assets\\Textures\\smoke2.dds",
@@ -7653,6 +7689,10 @@
     {
       "source": "Assets\\Textures\\spark2.dds",
       "runtime": "spark2.dds"
+    },
+    {
+      "source": "Assets\\Textures\\sprite_a.png",
+      "runtime": "sprite_a.png"
     },
     {
       "source": "Assets\\Textures\\sspilo2_ACT.dds",
