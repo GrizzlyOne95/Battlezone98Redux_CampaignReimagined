@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Venus HD terrain paint on the Soviet missions misns1cr and misns2cr (CR and stock terrain): these maps had no paint map, so OpenShim kept the stock atlas.
 - OpenShim 1.0.0.74: Steam players can host from their own PC with no port forwarding (Multiplayer > Local host tools > Steam list: On > Start host, over Steam's relay); friends join from a Steam invite or Join Game; opt-in public Steam listing; invites to passworded private lobbies no longer stall; host bans (`/ban`, optional lobby Ban button) persist in `bans.cfg`; Lives: Infinite in MP setup; the TRO main-menu banner plays odyssey.ogv; the Options description box shows its whole text; Options > Graphic Options > Resolution opens a list of resolutions; the Menu Colors page names the failed requirement (usually DirectX 11 not active); switching between DX9 and DX11 keeps the resolution and fullscreen setting (DX11 no longer starts at 1024x768); the installer warns when the x86 VC++ 2015-2022 runtime is missing. Player guide: OpenShim `Docs/PLAYER_CONNECTION_GUIDE.md`.
 - EXU 1.3.2: camera and overlay features use the main viewport instead of the last-drawn one.
 - 8K Milky Way in the Moon, Io, Europa, Ganymede and Mars night skies; no shooting stars on the airless Moon and Io. avtur2b turret muzzle flash offsets corrected.

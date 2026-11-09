@@ -567,6 +567,14 @@ The full local-server and 2-4 client recipe is in 5.5.
 - **Read an OpenShim log line's numbers, not its wording.** On 2026-11-04 the terrain-paint lines said
   "four-layer" while `slices=18` (eight layers) was active; the wording was stale text. Trust the logged
   values (`slices=`, counts) over the prose.
+- **HD paint covers a terrain stem, not a world.** OpenShim picks a paint map by the mission's
+  `terrainFingerprint` + `boundsMeters`. A mission whose `TerrainName` stem is missing from OpenShim
+  `scripts/terrain-packs/build-world-packs.sh` `MAPS` has no paint map: it logs
+  `native tiles declined: paint pack has no map entry for this mission` and shows the stock atlas. To add a
+  stem, add it to `MAPS`, rebuild only that world, and append only the new `maps` entries and PNGs to
+  `Config/cr_terrain_hd.json`. Do not run `Merge-TerrainPaintPacks.py` over a binding that has been tuned
+  since: it replaces the whole binding. (misns1cr/misns2cr, 2026-11-08. That fix left misns3, misns5-8,
+  chmisn07 and sammy__1 uncovered.)
 
 ### 5.5 Local server and multi-player co-op testing
 

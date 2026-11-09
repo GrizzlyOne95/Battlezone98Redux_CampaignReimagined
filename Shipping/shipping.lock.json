@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5299,
+  "count": 5303,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -7301,6 +7301,22 @@
     {
       "source": "Assets\\Textures\\openshim_venus_auto_misn09_stock_control.png",
       "runtime": "openshim_venus_auto_misn09_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns1_control.png",
+      "runtime": "openshim_venus_auto_misns1_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns1_stock_control.png",
+      "runtime": "openshim_venus_auto_misns1_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns2_control.png",
+      "runtime": "openshim_venus_auto_misns2_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns2_stock_control.png",
+      "runtime": "openshim_venus_auto_misns2_stock_control.png"
     },
     {
       "source": "Assets\\Textures\\ordnanceTextured_ACT.dds",
