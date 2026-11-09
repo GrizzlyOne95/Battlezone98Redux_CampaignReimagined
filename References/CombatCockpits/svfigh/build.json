@@ -5,7 +5,7 @@
     "skeletonSha256": "1ec0ac4acbe9137c4243ea0792aecfb3d76ca32e1f539d6095eeae34b0c2e01c"
   },
   "outputs": {
-    "Assets/Models/svfigh_cockpit.mesh": "1ff48f4ccfdbdeea7aeb804f949414327ee63b1fe64e8ed866d247480b80f1e4",
+    "Assets/Models/svfigh_cockpit.mesh": "1a4f14c6f464c2fc7b3f85fafc18adde4bf521c14401c4e01d658bf7e04fe080",
     "Assets/Models/svfigh_cockpit.skeleton": "1ec0ac4acbe9137c4243ea0792aecfb3d76ca32e1f539d6095eeae34b0c2e01c",
     "Materials/CR_svfigh_cockpit.material": "16fa5275d68e75271226e024875a5b657b1fb935dad97b71657de0d4f1f2b559"
   },
@@ -3878,13 +3878,13 @@
             0.0,
             1.0,
             0.0,
-            0.0
+            0.5
           ],
           [
             0.0,
             0.0,
             1.0,
-            0.0
+            2.0
           ],
           [
             0.0,
@@ -4425,13 +4425,13 @@
             0.0,
             1.0,
             0.0,
-            0.0
+            0.5
           ],
           [
             0.0,
             0.0,
             1.0,
-            0.0
+            2.0
           ],
           [
             0.0,
