@@ -2,7 +2,7 @@
   "schema": "bzr-openshim-terrain-hd-v2",
   "materials": {
     "MN_DETAIL_ATLAS": {
-      "sliceCount": 9,
+      "sliceCount": 18,
       "diffuseResource": "moon_atlas_d.dds",
       "fallback": "openshim_moon_auto_layer0.png",
       "tiles": {
@@ -10,11 +10,20 @@
         "1": "openshim_moon_auto_layer1.png",
         "2": "openshim_moon_auto_layer2.png",
         "3": "openshim_moon_auto_layer3.png",
-        "4": "openshim_moon_auto_misn01_stock_control.png",
+        "9": "openshim_moon_auto_layer4.png",
+        "10": "openshim_moon_auto_layer5.png",
+        "11": "openshim_moon_auto_layer6.png",
+        "12": "openshim_moon_auto_layer7.png",
+        "4": "openshim_moon_auto_misn01_control.png",
+        "13": "openshim_moon_auto_misn01_control2.png",
         "5": "openshim_moon_auto_layer0_n.png",
         "6": "openshim_moon_auto_layer1_n.png",
         "7": "openshim_moon_auto_layer2_n.png",
-        "8": "openshim_moon_auto_layer3_n.png"
+        "8": "openshim_moon_auto_layer3_n.png",
+        "14": "openshim_moon_auto_layer4_n.png",
+        "15": "openshim_moon_auto_layer5_n.png",
+        "16": "openshim_moon_auto_layer6_n.png",
+        "17": "openshim_moon_auto_layer7_n.png"
       },
       "paint": {
         "schema": "bzr-openshim-terrain-paint-v1",
@@ -23,9 +32,24 @@
           24,
           16,
           40,
-          40
+          40,
+          20,
+          30,
+          22,
+          14
         ],
         "maps": [
+          {
+            "terrainFingerprint": "4c768770df4151ce",
+            "boundsMeters": [
+              -1910.0,
+              -1930.0,
+              1930.0,
+              1910.0
+            ],
+            "control": "openshim_moon_auto_misn01_control.png",
+            "control2": "openshim_moon_auto_misn01_control2.png"
+          },
           {
             "terrainFingerprint": "0ae4c477b71f039f",
             "boundsMeters": [
@@ -34,7 +58,19 @@
               1930.0,
               1910.0
             ],
-            "control": "openshim_moon_auto_misn01_stock_control.png"
+            "control": "openshim_moon_auto_misn01_stock_control.png",
+            "control2": "openshim_moon_auto_misn01_stock_control2.png"
+          },
+          {
+            "terrainFingerprint": "284225bc823de900",
+            "boundsMeters": [
+              -2550.0,
+              -2570.0,
+              2570.0,
+              2550.0
+            ],
+            "control": "openshim_moon_auto_misn02_control.png",
+            "control2": "openshim_moon_auto_misn02_control2.png"
           },
           {
             "terrainFingerprint": "45adf276da82be72",
@@ -44,7 +80,8 @@
               2570.0,
               2550.0
             ],
-            "control": "openshim_moon_auto_misn02_stock_control.png"
+            "control": "openshim_moon_auto_misn02_stock_control.png",
+            "control2": "openshim_moon_auto_misn02_stock_control2.png"
           },
           {
             "terrainFingerprint": "11b000341eb35573",
@@ -54,7 +91,8 @@
               2570.0,
               2550.0
             ],
-            "control": "openshim_moon_auto_misn02b_control.png"
+            "control": "openshim_moon_auto_misn02b_control.png",
+            "control2": "openshim_moon_auto_misn02b_control2.png"
           },
           {
             "terrainFingerprint": "4e14e2dfdaf49124",
@@ -64,7 +102,8 @@
               2570.0,
               2550.0
             ],
-            "control": "openshim_moon_auto_misn02b_stock_control.png"
+            "control": "openshim_moon_auto_misn02b_stock_control.png",
+            "control2": "openshim_moon_auto_misn02b_stock_control2.png"
           },
           {
             "terrainFingerprint": "63f4006bc3827fad",
@@ -74,7 +113,8 @@
               1930.0,
               1910.0
             ],
-            "control": "openshim_moon_auto_misn03_control.png"
+            "control": "openshim_moon_auto_misn03_control.png",
+            "control2": "openshim_moon_auto_misn03_control2.png"
           },
           {
             "terrainFingerprint": "c4740d36b6ce2c78",
@@ -84,7 +124,8 @@
               1930.0,
               1910.0
             ],
-            "control": "openshim_moon_auto_misn03_stock_control.png"
+            "control": "openshim_moon_auto_misn03_stock_control.png",
+            "control2": "openshim_moon_auto_misn03_stock_control2.png"
           },
           {
             "terrainFingerprint": "e4241c78fc44def5",
@@ -94,14 +135,29 @@
               2570.0,
               2550.0
             ],
-            "control": "openshim_moon_auto_crsetup_control.png"
+            "control": "openshim_moon_auto_crsetup_control.png",
+            "control2": "openshim_moon_auto_crsetup_control2.png"
           }
         ],
         "detile": [
           1,
           1,
           1,
+          1,
+          0,
+          1,
+          1,
           1
+        ],
+        "nearOnly": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
         ],
         "far": [
           5,
@@ -119,7 +175,11 @@
           0.6,
           1.2,
           1.0,
-          1.6
+          1.6,
+          0.1,
+          0.5,
+          0.9,
+          1.0
         ],
         "craters": [
           8,
@@ -131,12 +191,16 @@
           0.6,
           0.0,
           1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
           0.0
         ]
       }
     },
     "VE_DETAIL_ATLAS": {
-      "sliceCount": 9,
+      "sliceCount": 18,
       "diffuseResource": "venus_atlas_d.dds",
       "fallback": "openshim_venus_auto_layer0.png",
       "tiles": {
@@ -144,11 +208,20 @@
         "1": "openshim_venus_auto_layer1.png",
         "2": "openshim_venus_auto_layer2.png",
         "3": "openshim_venus_auto_layer3.png",
+        "9": "openshim_venus_auto_layer4.png",
+        "10": "openshim_venus_auto_layer5.png",
+        "11": "openshim_venus_auto_layer6.png",
+        "12": "openshim_venus_auto_layer7.png",
         "4": "openshim_venus_auto_misn07_control.png",
+        "13": "openshim_venus_auto_misn07_control2.png",
         "5": "openshim_venus_auto_layer0_n.png",
         "6": "openshim_venus_auto_layer1_n.png",
         "7": "openshim_venus_auto_layer2_n.png",
-        "8": "openshim_venus_auto_layer3_n.png"
+        "8": "openshim_venus_auto_layer3_n.png",
+        "14": "openshim_venus_auto_layer4_n.png",
+        "15": "openshim_venus_auto_layer5_n.png",
+        "16": "openshim_venus_auto_layer6_n.png",
+        "17": "openshim_venus_auto_layer7_n.png"
       },
       "paint": {
         "schema": "bzr-openshim-terrain-paint-v1",
@@ -157,7 +230,11 @@
           18,
           16,
           20,
-          40
+          40,
+          20,
+          14,
+          16,
+          10
         ],
         "maps": [
           {
@@ -168,7 +245,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_venus_auto_misn07_control.png"
+            "control": "openshim_venus_auto_misn07_control.png",
+            "control2": "openshim_venus_auto_misn07_control2.png"
           },
           {
             "terrainFingerprint": "b6671b747acc75ba",
@@ -178,7 +256,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_venus_auto_misn07_stock_control.png"
+            "control": "openshim_venus_auto_misn07_stock_control.png",
+            "control2": "openshim_venus_auto_misn07_stock_control2.png"
           },
           {
             "terrainFingerprint": "d2c132545d75be8f",
@@ -188,7 +267,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_venus_auto_misn08_control.png"
+            "control": "openshim_venus_auto_misn08_control.png",
+            "control2": "openshim_venus_auto_misn08_control2.png"
           },
           {
             "terrainFingerprint": "2296f12e2dc04bb2",
@@ -198,7 +278,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_venus_auto_misn08_stock_control.png"
+            "control": "openshim_venus_auto_misn08_stock_control.png",
+            "control2": "openshim_venus_auto_misn08_stock_control2.png"
           },
           {
             "terrainFingerprint": "3ee49e58e8c11f45",
@@ -208,7 +289,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_venus_auto_misn09_control.png"
+            "control": "openshim_venus_auto_misn09_control.png",
+            "control2": "openshim_venus_auto_misn09_control2.png"
           },
           {
             "terrainFingerprint": "c21819c07ec57d1c",
@@ -218,7 +300,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_venus_auto_misn09_stock_control.png"
+            "control": "openshim_venus_auto_misn09_stock_control.png",
+            "control2": "openshim_venus_auto_misn09_stock_control2.png"
           },
           {
             "terrainFingerprint": "0c50d6823f069326",
@@ -228,7 +311,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_venus_auto_misns1_control.png"
+            "control": "openshim_venus_auto_misns1_control.png",
+            "control2": "openshim_venus_auto_misns1_control2.png"
           },
           {
             "terrainFingerprint": "016d2fec6476500a",
@@ -238,7 +322,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_venus_auto_misns1_stock_control.png"
+            "control": "openshim_venus_auto_misns1_stock_control.png",
+            "control2": "openshim_venus_auto_misns1_stock_control2.png"
           },
           {
             "terrainFingerprint": "0bd46b5f9b6d1106",
@@ -248,7 +333,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_venus_auto_misns2_control.png"
+            "control": "openshim_venus_auto_misns2_control.png",
+            "control2": "openshim_venus_auto_misns2_control2.png"
           },
           {
             "terrainFingerprint": "4830c19f61d30220",
@@ -258,14 +344,29 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_venus_auto_misns2_stock_control.png"
+            "control": "openshim_venus_auto_misns2_stock_control.png",
+            "control2": "openshim_venus_auto_misns2_stock_control2.png"
           }
         ],
         "detile": [
           1,
           1,
           1,
+          1,
+          0,
+          1,
+          1,
           1
+        ],
+        "nearOnly": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
         ],
         "far": [
           5,
@@ -283,7 +384,11 @@
           1.2,
           0.15,
           1.0,
-          2.6
+          2.6,
+          0.1,
+          0.5,
+          0.8,
+          0.6
         ],
         "detail": [
           60,
@@ -295,15 +400,33 @@
           0.6,
           0.0,
           0.8,
-          1.0
+          1.0,
+          0.0,
+          0.4,
+          0.6,
+          0.5
         ],
         "parallax": [
           1,
           30,
           12
         ],
-        "liquid": [0, 0.8, 0, 0],
-        "liquidFlow": [0.4, 50, 2.5, 0.2]
+        "liquid": [
+          0,
+          0.8,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "liquidFlow": [
+          0.4,
+          50,
+          2.5,
+          0.2
+        ]
       }
     },
     "MA_DETAIL_ATLAS": {
@@ -436,7 +559,7 @@
       }
     },
     "IO_DETAIL_ATLAS": {
-      "sliceCount": 9,
+      "sliceCount": 18,
       "diffuseResource": "io_atlas_d.dds",
       "fallback": "openshim_io_auto_layer0.png",
       "tiles": {
@@ -444,11 +567,20 @@
         "1": "openshim_io_auto_layer1.png",
         "2": "openshim_io_auto_layer2.png",
         "3": "openshim_io_auto_layer3.png",
+        "9": "openshim_io_auto_layer4.png",
+        "10": "openshim_io_auto_layer5.png",
+        "11": "openshim_io_auto_layer6.png",
+        "12": "openshim_io_auto_layer7.png",
         "4": "openshim_io_auto_misn10_control.png",
+        "13": "openshim_io_auto_misn10_control2.png",
         "5": "openshim_io_auto_layer0_n.png",
         "6": "openshim_io_auto_layer1_n.png",
         "7": "openshim_io_auto_layer2_n.png",
-        "8": "openshim_io_auto_layer3_n.png"
+        "8": "openshim_io_auto_layer3_n.png",
+        "14": "openshim_io_auto_layer4_n.png",
+        "15": "openshim_io_auto_layer5_n.png",
+        "16": "openshim_io_auto_layer6_n.png",
+        "17": "openshim_io_auto_layer7_n.png"
       },
       "paint": {
         "schema": "bzr-openshim-terrain-paint-v1",
@@ -457,7 +589,11 @@
           20,
           18,
           18,
-          20
+          20,
+          20,
+          16,
+          14,
+          10
         ],
         "maps": [
           {
@@ -468,7 +604,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_io_auto_misn10_control.png"
+            "control": "openshim_io_auto_misn10_control.png",
+            "control2": "openshim_io_auto_misn10_control2.png"
           },
           {
             "terrainFingerprint": "064a152ebc9da197",
@@ -478,7 +615,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_io_auto_misn10_stock_control.png"
+            "control": "openshim_io_auto_misn10_stock_control.png",
+            "control2": "openshim_io_auto_misn10_stock_control2.png"
           },
           {
             "terrainFingerprint": "13d07782c2f02faf",
@@ -488,7 +626,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_io_auto_misn11_control.png"
+            "control": "openshim_io_auto_misn11_control.png",
+            "control2": "openshim_io_auto_misn11_control2.png"
           },
           {
             "terrainFingerprint": "6f3bd72a26e5959b",
@@ -498,27 +637,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_io_auto_misn11_stock_control.png"
-          },
-          {
-            "terrainFingerprint": "d6e25d9d88429904",
-            "boundsMeters": [
-              -3190.0,
-              -3210.0,
-              3210.0,
-              3190.0
-            ],
-            "control": "openshim_io_auto_misns4_control.png"
-          },
-          {
-            "terrainFingerprint": "5956950c3c9623f6",
-            "boundsMeters": [
-              -3190.0,
-              -3210.0,
-              3210.0,
-              3190.0
-            ],
-            "control": "openshim_io_auto_misns4_stock_control.png"
+            "control": "openshim_io_auto_misn11_stock_control.png",
+            "control2": "openshim_io_auto_misn11_stock_control2.png"
           },
           {
             "terrainFingerprint": "cd30e736082dfec5",
@@ -528,7 +648,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_io_auto_misns3_control.png"
+            "control": "openshim_io_auto_misns3_control.png",
+            "control2": "openshim_io_auto_misns3_control2.png"
           },
           {
             "terrainFingerprint": "c3da7fa2475e1f5e",
@@ -538,14 +659,51 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_io_auto_misns3_stock_control.png"
+            "control": "openshim_io_auto_misns3_stock_control.png",
+            "control2": "openshim_io_auto_misns3_stock_control2.png"
+          },
+          {
+            "terrainFingerprint": "d6e25d9d88429904",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_io_auto_misns4_control.png",
+            "control2": "openshim_io_auto_misns4_control2.png"
+          },
+          {
+            "terrainFingerprint": "5956950c3c9623f6",
+            "boundsMeters": [
+              -3190.0,
+              -3210.0,
+              3210.0,
+              3190.0
+            ],
+            "control": "openshim_io_auto_misns4_stock_control.png",
+            "control2": "openshim_io_auto_misns4_stock_control2.png"
           }
         ],
         "detile": [
           1,
           1,
           1,
+          1,
+          0,
+          1,
+          1,
           1
+        ],
+        "nearOnly": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
         ],
         "far": [
           5,
@@ -563,14 +721,32 @@
           0.8,
           0.15,
           0.8,
-          1.0
+          1.0,
+          0.1,
+          0.9,
+          1.0,
+          0.6
         ],
-        "liquid": [0, 2.0, 0, 0],
-        "liquidFlow": [0.6, 40, 3, 0.35]
+        "liquid": [
+          0,
+          2.0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "liquidFlow": [
+          0.6,
+          40,
+          3,
+          0.35
+        ]
       }
     },
     "EU_DETAIL_ATLAS": {
-      "sliceCount": 9,
+      "sliceCount": 18,
       "diffuseResource": "europa_atlas_d.dds",
       "fallback": "openshim_europa_auto_layer0.png",
       "tiles": {
@@ -578,11 +754,20 @@
         "1": "openshim_europa_auto_layer1.png",
         "2": "openshim_europa_auto_layer2.png",
         "3": "openshim_europa_auto_layer3.png",
+        "9": "openshim_europa_auto_layer4.png",
+        "10": "openshim_europa_auto_layer5.png",
+        "11": "openshim_europa_auto_layer6.png",
+        "12": "openshim_europa_auto_layer7.png",
         "4": "openshim_europa_auto_misn12_control.png",
+        "13": "openshim_europa_auto_misn12_control2.png",
         "5": "openshim_europa_auto_layer0_n.png",
         "6": "openshim_europa_auto_layer1_n.png",
         "7": "openshim_europa_auto_layer2_n.png",
-        "8": "openshim_europa_auto_layer3_n.png"
+        "8": "openshim_europa_auto_layer3_n.png",
+        "14": "openshim_europa_auto_layer4_n.png",
+        "15": "openshim_europa_auto_layer5_n.png",
+        "16": "openshim_europa_auto_layer6_n.png",
+        "17": "openshim_europa_auto_layer7_n.png"
       },
       "paint": {
         "schema": "bzr-openshim-terrain-paint-v1",
@@ -591,7 +776,11 @@
           24,
           16,
           16,
-          48
+          48,
+          20,
+          18,
+          16,
+          10
         ],
         "maps": [
           {
@@ -602,7 +791,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_europa_auto_misn12_control.png"
+            "control": "openshim_europa_auto_misn12_control.png",
+            "control2": "openshim_europa_auto_misn12_control2.png"
           },
           {
             "terrainFingerprint": "becac6427a58ab6e",
@@ -612,7 +802,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_europa_auto_misn12_stock_control.png"
+            "control": "openshim_europa_auto_misn12_stock_control.png",
+            "control2": "openshim_europa_auto_misn12_stock_control2.png"
           },
           {
             "terrainFingerprint": "f8f8399777baffea",
@@ -622,7 +813,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_europa_auto_misn13_control.png"
+            "control": "openshim_europa_auto_misn13_control.png",
+            "control2": "openshim_europa_auto_misn13_control2.png"
           },
           {
             "terrainFingerprint": "7e9dd58dc80601a6",
@@ -632,7 +824,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_europa_auto_misn13_stock_control.png"
+            "control": "openshim_europa_auto_misn13_stock_control.png",
+            "control2": "openshim_europa_auto_misn13_stock_control2.png"
           },
           {
             "terrainFingerprint": "3798161283f33625",
@@ -642,14 +835,29 @@
               2570.0,
               2550.0
             ],
-            "control": "openshim_europa_auto_chmisn07_control.png"
+            "control": "openshim_europa_auto_chmisn07_control.png",
+            "control2": "openshim_europa_auto_chmisn07_control2.png"
           }
         ],
         "detile": [
           1,
           1,
           1,
+          1,
+          0,
+          1,
+          1,
           1
+        ],
+        "nearOnly": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
         ],
         "far": [
           5,
@@ -667,12 +875,16 @@
           0.4,
           0.3,
           1.0,
-          1.2
+          1.2,
+          0.1,
+          0.4,
+          1.0,
+          0.7
         ]
       }
     },
     "TI_DETAIL_ATLAS": {
-      "sliceCount": 9,
+      "sliceCount": 18,
       "diffuseResource": "titan_atlas_d.dds",
       "fallback": "openshim_titan_auto_layer0.png",
       "tiles": {
@@ -680,11 +892,20 @@
         "1": "openshim_titan_auto_layer1.png",
         "2": "openshim_titan_auto_layer2.png",
         "3": "openshim_titan_auto_layer3.png",
+        "9": "openshim_titan_auto_layer4.png",
+        "10": "openshim_titan_auto_layer5.png",
+        "11": "openshim_titan_auto_layer6.png",
+        "12": "openshim_titan_auto_layer7.png",
         "4": "openshim_titan_auto_misn14_control.png",
+        "13": "openshim_titan_auto_misn14_control2.png",
         "5": "openshim_titan_auto_layer0_n.png",
         "6": "openshim_titan_auto_layer1_n.png",
         "7": "openshim_titan_auto_layer2_n.png",
-        "8": "openshim_titan_auto_layer3_n.png"
+        "8": "openshim_titan_auto_layer3_n.png",
+        "14": "openshim_titan_auto_layer4_n.png",
+        "15": "openshim_titan_auto_layer5_n.png",
+        "16": "openshim_titan_auto_layer6_n.png",
+        "17": "openshim_titan_auto_layer7_n.png"
       },
       "paint": {
         "schema": "bzr-openshim-terrain-paint-v1",
@@ -693,7 +914,11 @@
           20,
           20,
           40,
-          36
+          36,
+          20,
+          18,
+          14,
+          10
         ],
         "maps": [
           {
@@ -704,7 +929,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misn14_control.png"
+            "control": "openshim_titan_auto_misn14_control.png",
+            "control2": "openshim_titan_auto_misn14_control2.png"
           },
           {
             "terrainFingerprint": "bdce4fb1e689b169",
@@ -714,7 +940,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misn14_stock_control.png"
+            "control": "openshim_titan_auto_misn14_stock_control.png",
+            "control2": "openshim_titan_auto_misn14_stock_control2.png"
           },
           {
             "terrainFingerprint": "092514bdd5a255c9",
@@ -724,7 +951,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misn15_control.png"
+            "control": "openshim_titan_auto_misn15_control.png",
+            "control2": "openshim_titan_auto_misn15_control2.png"
           },
           {
             "terrainFingerprint": "9e1f4d6b9543cb1d",
@@ -734,7 +962,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misn15_stock_control.png"
+            "control": "openshim_titan_auto_misn15_stock_control.png",
+            "control2": "openshim_titan_auto_misn15_stock_control2.png"
           },
           {
             "terrainFingerprint": "1d1e0af4edb38b16",
@@ -744,7 +973,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misn16_control.png"
+            "control": "openshim_titan_auto_misn16_control.png",
+            "control2": "openshim_titan_auto_misn16_control2.png"
           },
           {
             "terrainFingerprint": "08adc2abf76fd176",
@@ -754,7 +984,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misn16_stock_control.png"
+            "control": "openshim_titan_auto_misn16_stock_control.png",
+            "control2": "openshim_titan_auto_misn16_stock_control2.png"
           },
           {
             "terrainFingerprint": "787e1d63d79eeb3e",
@@ -764,7 +995,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misn15b_stock_control.png"
+            "control": "openshim_titan_auto_misn15b_stock_control.png",
+            "control2": "openshim_titan_auto_misn15b_stock_control2.png"
           },
           {
             "terrainFingerprint": "a7edee74b712cfd6",
@@ -774,7 +1006,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misn16b_control.png"
+            "control": "openshim_titan_auto_misn16b_control.png",
+            "control2": "openshim_titan_auto_misn16b_control2.png"
           },
           {
             "terrainFingerprint": "deee6ea8f9e3aa7e",
@@ -784,7 +1017,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misn16b_stock_control.png"
+            "control": "openshim_titan_auto_misn16b_stock_control.png",
+            "control2": "openshim_titan_auto_misn16b_stock_control2.png"
           },
           {
             "terrainFingerprint": "1b74fa99c2dd83b5",
@@ -794,7 +1028,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misns5_control.png"
+            "control": "openshim_titan_auto_misns5_control.png",
+            "control2": "openshim_titan_auto_misns5_control2.png"
           },
           {
             "terrainFingerprint": "49a2f27eaa377ce9",
@@ -804,7 +1039,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misns5_stock_control.png"
+            "control": "openshim_titan_auto_misns5_stock_control.png",
+            "control2": "openshim_titan_auto_misns5_stock_control2.png"
           },
           {
             "terrainFingerprint": "68e624ac666edfd9",
@@ -814,7 +1050,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misns6_control.png"
+            "control": "openshim_titan_auto_misns6_control.png",
+            "control2": "openshim_titan_auto_misns6_control2.png"
           },
           {
             "terrainFingerprint": "2b5c882b45430fed",
@@ -824,7 +1061,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misns6_stock_control.png"
+            "control": "openshim_titan_auto_misns6_stock_control.png",
+            "control2": "openshim_titan_auto_misns6_stock_control2.png"
           },
           {
             "terrainFingerprint": "fd598c4fa0943854",
@@ -834,7 +1072,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misns7_control.png"
+            "control": "openshim_titan_auto_misns7_control.png",
+            "control2": "openshim_titan_auto_misns7_control2.png"
           },
           {
             "terrainFingerprint": "8449ef029f2880e4",
@@ -844,7 +1083,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misns7_stock_control.png"
+            "control": "openshim_titan_auto_misns7_stock_control.png",
+            "control2": "openshim_titan_auto_misns7_stock_control2.png"
           },
           {
             "terrainFingerprint": "5fab8b4195da7a3e",
@@ -854,7 +1094,8 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misns8_control.png"
+            "control": "openshim_titan_auto_misns8_control.png",
+            "control2": "openshim_titan_auto_misns8_control2.png"
           },
           {
             "terrainFingerprint": "ed8835aba182ff00",
@@ -864,14 +1105,29 @@
               3210.0,
               3190.0
             ],
-            "control": "openshim_titan_auto_misns8_stock_control.png"
+            "control": "openshim_titan_auto_misns8_stock_control.png",
+            "control2": "openshim_titan_auto_misns8_stock_control2.png"
           }
         ],
         "detile": [
           1,
           1,
           1,
+          1,
+          0,
+          1,
+          1,
           1
+        ],
+        "nearOnly": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
         ],
         "far": [
           5,
@@ -889,7 +1145,11 @@
           0.35,
           1.4,
           0.8,
-          1.2
+          1.2,
+          0.1,
+          0.5,
+          1.0,
+          0.7
         ]
       }
     },
