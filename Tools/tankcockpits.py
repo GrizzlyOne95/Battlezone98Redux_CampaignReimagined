@@ -178,12 +178,16 @@ def geometry(source,skelpath,faction,game,root):
     cut=1.0 if grizzly else cfg['cut'];normal_floor=-1.1 if grizzly else .25
     q=p[tri];mask=(q[:,:,2].min(1)>cut)&(abs(q[:,:,0]).max(1)<2.05)&(n[tri].mean(1)[:,1]>normal_floor)&(bodyweight[tri]>.99).all(1)&~gun
     apron,apronix,used=source_part(body,mask);assert len(apronix)>0,'front hull crop must exist'
-    pitch=(-5. if faction=='nsdf' else -22.) if grizzly else 0.;angle=math.radians(pitch);c,ss=math.cos(angle),math.sin(angle);rotation=np.array([[1.,0,0],[0,c,-ss],[0,ss,c]])
+    # Owner review: both noses read as ramps climbing toward the aim point. Each plate
+    # sits lower with less nose-up pitch (negative lifts the nose), so its far edge drops
+    # further below the eye line (see README) while enough real hull stays visible;
+    # full nose-down pitch hides it behind the console.
+    pitch=(-3. if faction=='nsdf' else -15.) if grizzly else 0.;angle=math.radians(pitch);c,ss=math.cos(angle),math.sin(angle);rotation=np.array([[1.,0,0],[0,c,-ss],[0,ss,c]])
     # NSDF review: the nose read as a narrow wedge, so only its breadth grows.
     spread=1.35 if faction=='nsdf' else 1.;rotation=rotation@np.diag([spread,1.,1.])
     pivot_model=np.array([0.,1.25,1.10]) if grizzly else np.zeros(3);pivot=(pivot_model-origin)@R
     local=((apron[:,:3]-origin)@R-pivot)@rotation.T+pivot
-    top=(-.48 if faction=='nsdf' else -.32) if grizzly else lip-.09
+    top=(-.54 if faction=='nsdf' else -.44) if grizzly else lip-.09
     near=1.10 if grizzly else front+.04
     offset=np.array([0.,top-local[:,1].max(),max(near-local[:,2].min(),0.)]);transform=np.eye(4);transform[:3,:3]=R@rotation@R.T;transform[:3,3]=pivot_model-transform[:3,:3]@pivot_model+R@offset
     apron[:,:3]=apron[:,:3]@transform[:3,:3].T+transform[:3,3]

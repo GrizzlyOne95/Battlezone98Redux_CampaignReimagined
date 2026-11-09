@@ -30,9 +30,12 @@ Each hull apron is a bounded crop of original body-weighted front triangles,
 with original UVs and one rigid fit. Owner follow-up replaces the inadequate
 20-triangle Grizzly strips with the complete 448-triangle front group on each:
 center sloped nose, painted markings, shoulders, bevels and recess walls. The
-NSDF group pitches -5 degrees (owner review: -12 read as nose-up), Black Dog
--22 degrees, about model point `[0, 1.25, 1.10]`, with separate eye-relative
-offsets. NSDF alone widens 1.35x across X (owner review: the nose read as a
+NSDF group pitches -3 degrees, Black Dog -15 degrees, about model point
+`[0, 1.25, 1.10]`, with eye-relative tops of -0.54 and -0.44 m (owner reviews:
+-12/-22 and then -5/-22 still read as a nose-up ramp; levelling fully hides the
+hull behind the console, so the plates were lowered as well). The far edge now
+sits about 21 degrees (NSDF) and 12 degrees (Black Dog) below the eye line, from
+18 and 6.5. NSDF alone widens 1.35x across X (owner review: the nose read as a
 narrow wedge); no other scaling, bending, mirroring, or eye adjustment. The
 coaming extends underneath the rear crop to avoid sky slivers beside the warning
 horns. On NSDF it drops and tapers to stay under the hull shoulders (they
