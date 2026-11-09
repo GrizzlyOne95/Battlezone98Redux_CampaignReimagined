@@ -34,7 +34,6 @@ reloadMsg = "cvminev4.wav"
 rescueMsg = "cvminev5.wav"
 recycleMsg = "cvminev6.wav"
 otherMsg = "cvminevf.wav"
-user2Msg = "cvminevb.wav"
 diedMsg = "abetty2.wav"
 
 [HoverCraftClass]

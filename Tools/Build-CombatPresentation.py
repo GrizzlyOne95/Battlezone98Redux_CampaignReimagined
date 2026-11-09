@@ -53,6 +53,10 @@ def gameplay_digest(parsed):
     for k in list(parsed.get('craftclass', {})):
         if k.startswith(('recoil', 'flashoffset','casingoffset','casingdirection')):
             del parsed['craftclass'][k]
+    # Voice-over message slots (selectGoMsg, killedMsg, ...) are audio, not gameplay.
+    for values in parsed.values():
+        for k in [k for k in values if k.lower().endswith('msg')]:
+            del values[k]
     return hashlib.sha256(json.dumps(parsed, sort_keys=True).encode()).hexdigest()
 
 
