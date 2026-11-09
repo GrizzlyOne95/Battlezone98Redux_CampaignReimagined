@@ -573,8 +573,8 @@ The full local-server and 2-4 client recipe is in 5.5.
   `native tiles declined: paint pack has no map entry for this mission` and shows the stock atlas. To add a
   stem, add it to `MAPS`, rebuild only that world, and append only the new `maps` entries and PNGs to
   `Config/cr_terrain_hd.json`. Do not run `Merge-TerrainPaintPacks.py` over a binding that has been tuned
-  since: it replaces the whole binding. (misns1cr/misns2cr, 2026-11-08. That fix left misns3, misns5-8,
-  chmisn07 and sammy__1 uncovered.)
+  since: it replaces the whole binding. A map that exists only in `tro_cam.zfs` needs its HG2 extracted to `TRO_DIR`; `sammy__1` has none there,
+  so only CR's copy is built. (Soviet, ch07cr and evolvecr maps, 2026-11-08.)
 
 ### 5.5 Local server and multi-player co-op testing
 
