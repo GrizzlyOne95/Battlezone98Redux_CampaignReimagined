@@ -18,7 +18,7 @@ ART_ASPECT={
  'bdog':{'console':1218/279,'switch':596/476,'service':588/476}}
 CONFIG={
  'cvturr':dict(faction='cra',role='turret',shell='CAD21BDA',batch=1,material='CRV/CVBomberCockpit',charts=CRA_CHARTS,stock='cvturr01',exterior='cvturr',width=.86,lip=-.40,front=1.10,roof=.66,back=-.64),
- 'svfigh':dict(faction='cca',role='fighter',shell='SFL21bda',batch=2,material='CRV/CCAMechanicalCockpit',charts=CCA_CHARTS,stock='svfigh01',exterior='svfigh00',width=.72,lip=-.38,front=1.07,roof=.54,back=-.54),
+ 'svfigh':dict(faction='cca',role='fighter',shell='SFL21bda',batch=2,material='CRV/CCAMechanicalCockpit',charts=CCA_CHARTS,stock='svfigh01',exterior='svfigh00',animated=('SFL11NFL','SFL11NFR'),width=.72,lip=-.38,front=1.07,roof=.54,back=-.54),
  'svltnk':dict(faction='cca',role='lighttank',shell='slt21ckp',batch=2,material='CRV/CCAMechanicalCockpit',charts=CCA_CHARTS,stock='svltnk01',exterior='svltnk00',width=.78,lip=-.44,front=1.34,roof=.59,back=-.60),
  'avhraz':dict(faction='nsdf',role='bomber',shell='ahr21bda',batch=2,material='CRV/NSDFScoutCockpit',charts=scout.CHARTS,stock='avhraz01',exterior='avhraz00',width=.98,lip=-.48,front=1.37,roof=.76,back=-.72),
  'bvhraz':dict(faction='bdog',role='bomber',shell='bhr21bda',batch=2,material='CRV/BDogScoutCockpit',charts=scout.CHARTS,stock='bvhraz01',exterior='bvhraz00',width=.98,lip=-.48,front=1.37,roof=.76,back=-.72)}
@@ -187,7 +187,8 @@ def geometry(source,skelpath,base,game,root):
         legacy.face(points)
     parts[cfg['stock']]=legacy.part()
     body=shared.read_mesh(source).submesh_list[0];p=shared.values(body.vertex_data,shared.om.VES.POSITION);tri=body.index_array.reshape(-1,3);q=p[tri];pieces=[];exterior=[];indices=[];weights=list(body.bone_assignments())
-    def piece(label,bones,mask,pitch=0,target_top=None,near=None,inboard=0,cap_rear=False):
+    skin=[]
+    def piece(label,bones,mask,pitch=0,target_top=None,near=None,inboard=0,cap_rear=False,bone=None):
         boneweight=np.zeros(len(p))
         for a in weights:
             if a.bone_index in bones:boneweight[a.vertex_index]+=a.weight
@@ -215,12 +216,21 @@ def geometry(source,skelpath,base,game,root):
                 polygon=np.array([points[key] for key in loop]);localpoly=(polygon-origin)@R
                 assert np.ptp(localpoly[:,2])<1e-4,'only planar rear mount openings are capped'
                 h.face(localpoly,'armor',hint=[0,0,-1]);caps.append(localpoly.tolist())
-        indices.extend((ix+sum(len(x) for x in exterior)).tolist());exterior.append(data);pieces.append(dict(label=label,bones=bones,sourceIndices=np.flatnonzero(keep).tolist(),transform=T.tolist(),triangles=len(ix)//3,rearCaps=caps))
+        start=sum(len(x) for x in exterior)
+        # bone=None freezes the piece to the shell. A named bone keeps the
+        # piece native and skins it to the same-named cockpit bone, which the
+        # engine poses from the VDF GEO each frame (hover gimbals, types 66/67).
+        if bone is not None:assert pitch==0 and target_top is None and near is None and not inboard and np.allclose(T,np.eye(4)),label;skin.append(dict(bone=bone,vertices=[start,start+len(data)]))
+        indices.extend((ix+start).tolist());exterior.append(data);pieces.append(dict(label=label,bones=bones,sourceIndices=np.flatnonzero(keep).tolist(),transform=T.tolist(),triangles=len(ix)//3,rearCaps=caps,skin=bone))
     if role=='turret':
         # Four guns flank the eye: one high and one low on each side. Keep
         # the complete pod geometry at native coordinates, not on the sill.
         for sign,bone in [(1,4),(-1,7)]:piece('native '+str(sign)+' high/low gun pod',[bone],np.ones(len(tri),bool))
-    elif role=='fighter':piece('Flanker gun/fuselage nose',[4],q[:,:,2].min(1)>1.50,-10,-.47,1.18)
+    elif role=='fighter':
+        piece('Flanker gun/fuselage nose',[4],q[:,:,2].min(1)>1.50,-10,-.47,1.18)
+        # LOD1 nacelles at native positions, animated by the hover gimbals.
+        handles={b.name:b.handle for b in s.bones()}
+        for name in cfg.get('animated',()):piece('animated '+name,[handles[name]],np.ones(len(tri),bool),bone=name)
     elif role=='lighttank':
         piece('Stoli front glacis',[1],q[:,:,2].min(1)>2.50,-8,-.56,1.55)
         piece('Stoli side cannon, native position',[2],np.ones(len(tri),bool),cap_rear=True)
@@ -235,5 +245,18 @@ def geometry(source,skelpath,base,game,root):
     else:piece('Thunderbolt sloped bow',[1],q[:,:,2].min(1)>3.25,-16,-.36,1.62)
     parts['CRV/'+base+'CombatExterior']=(np.concatenate(exterior),np.array(indices,dtype='<u2'))
     parts[cfg['material']]=h.part()
-    meta=dict(base=base,role=role,pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,innerShell=topology,rim=rim,panels=h.panels,exteriorPieces=pieces,nativeVdfSha256=__import__('hashlib').sha256(native).hexdigest())
+    meta=dict(base=base,role=role,pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,innerShell=topology,rim=rim,panels=h.panels,exteriorPieces=pieces,exteriorSkin=skin,nativeVdfSha256=__import__('hashlib').sha256(native).hexdigest())
     return parts,s,w,eye,shell,meta
+
+def part_bones(parts,skeleton,shell,meta):
+    """Per-vertex skin handles for the exterior batch: shell, except animated pieces."""
+    if not meta['exteriorSkin']:return None
+    name='CRV/'+meta['base']+'CombatExterior';handles=np.full(len(parts[name][0]),shell.handle);by_name={b.name:b.handle for b in skeleton.bones()}
+    for entry in meta['exteriorSkin']:a,b=entry['vertices'];handles[a:b]=by_name[entry['bone']]
+    return {name:handles}
+def glass_parts(parts,meta):
+    """Glass fitting set: animated pieces move, so they must not shape the shell glass."""
+    if not meta['exteriorSkin']:return None
+    name='CRV/'+meta['base']+'CombatExterior';data,index=parts[name];moving=np.zeros(len(data),bool)
+    for entry in meta['exteriorSkin']:a,b=entry['vertices'];moving[a:b]=True
+    tri=index.reshape(-1,3);return {**parts,name:(data,tri[~moving[tri].any(1)].reshape(-1))}
