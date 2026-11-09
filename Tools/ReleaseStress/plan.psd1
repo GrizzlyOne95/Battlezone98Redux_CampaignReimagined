@@ -122,9 +122,9 @@
         @{ Group = 'singleplayer'; Name = 'sp_training_back'; Do = 'back'; T = 'Back' }
         @{ Group = 'singleplayer'; Name = 'sp_load';      Do = 'click'; T = 'LoadMission_SinglePlayer' }
         @{ Group = 'singleplayer'; Name = 'sp_load_back'; Do = 'back'; T = 'Back' }
-        # Custom Campaign list > Campaign Reimagined > enter, then back out twice (23 s back-out regression guard)
+        # Custom Campaign list > CR: NSDF > enter, then back out twice (23 s back-out regression guard)
         @{ Group = 'singleplayer'; Name = 'sp_campaigns'; Do = 'click'; T = 'CampaignLaunch'; Budget = 'Heavy' }
-        @{ Group = 'singleplayer'; Name = 'sp_camp_pick_cr'; Do = 'clickxy'; X = 427; Y = 276; SettleS = 1.5 }
+        @{ Group = 'singleplayer'; Name = 'sp_camp_pick_cr'; Do = 'clickxy'; X = 427; Y = 263; SettleS = 1.5 }
         @{ Group = 'singleplayer'; Name = 'sp_camp_enter_cr'; Do = 'click'; T = 'Launch'; Budget = 'Heavy' }
         # Back-out from the CR campaign rebuilds the stock campaign list (~17k FindFirst file scan, ~5.5 s, 2026-11-07). Known, not new.
         @{ Group = 'singleplayer'; Name = 'sp_camp_enter_back'; Do = 'back'; T = 'Back'; Budget = 'Heavy'; UnrespS = 10 }
@@ -139,17 +139,17 @@
         # 2. CR campaign, first mission
         @{ Group = 'mission_cr1'; Name = 'mc1_sp';      Do = 'click'; T = 'SinglePlayer_MainScreen' }
         @{ Group = 'mission_cr1'; Name = 'mc1_list';    Do = 'click'; T = 'CampaignLaunch'; Budget = 'Heavy' }
-        @{ Group = 'mission_cr1'; Name = 'mc1_pick';    Do = 'clickxy'; X = 427; Y = 276; SettleS = 1.5 }
+        @{ Group = 'mission_cr1'; Name = 'mc1_pick';    Do = 'clickxy'; X = 427; Y = 263; SettleS = 1.5 }
         @{ Group = 'mission_cr1'; Name = 'mc1_enter';   Do = 'click'; T = 'Launch'; Budget = 'Heavy' }
         @{ Group = 'mission_cr1'; Name = 'mission_cr1'; Do = 'mission'; T = 'Launch' }
         # 3. CR campaign, second mission (MissionpageDn)
         @{ Group = 'mission_cr2'; Name = 'mc2_sp';      Do = 'click'; T = 'SinglePlayer_MainScreen' }
         @{ Group = 'mission_cr2'; Name = 'mc2_list';    Do = 'click'; T = 'CampaignLaunch'; Budget = 'Heavy' }
-        @{ Group = 'mission_cr2'; Name = 'mc2_pick';    Do = 'clickxy'; X = 427; Y = 276; SettleS = 1.5 }
+        @{ Group = 'mission_cr2'; Name = 'mc2_pick';    Do = 'clickxy'; X = 427; Y = 263; SettleS = 1.5 }
         @{ Group = 'mission_cr2'; Name = 'mc2_enter';   Do = 'click'; T = 'Launch'; Budget = 'Heavy' }
         @{ Group = 'mission_cr2'; Name = 'mc2_next';    Do = 'click'; T = 'MissionpageDn'; Expect = 'none'; SettleS = 1.5 }
         @{ Group = 'mission_cr2'; Name = 'mission_cr2'; Do = 'mission'; T = 'Launch' }
-        # 4. CR Black Dog campaign (its missions are the co-op-capable ports, played solo)
+        # 4. CR: Black Dog campaign (its missions are the co-op-capable ports, played solo)
         @{ Group = 'mission_crbd'; Name = 'mb_sp';      Do = 'click'; T = 'SinglePlayer_MainScreen' }
         @{ Group = 'mission_crbd'; Name = 'mb_list';    Do = 'click'; T = 'CampaignLaunch'; Budget = 'Heavy' }
         @{ Group = 'mission_crbd'; Name = 'mb_pick';    Do = 'clickxy'; X = 427; Y = 240; SettleS = 1.5 }

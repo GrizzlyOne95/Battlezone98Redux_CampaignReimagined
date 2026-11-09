@@ -23,8 +23,8 @@ harness cannot address.
    (a cold-cache startup deadlock shipped once), quits. The regenerated cache is kept.
 3. **Main run, ONE launch.** Every Options page and every OpenShim options category, Main-menu pages,
    Multiplayer (LAN host, lobby, staging, ready toggle, stop host), every Single Player submenu, the
-   Custom Campaign list and Campaign Reimagined enter/back-out, then five back-to-back missions
-   (stock campaign, two CR missions, a CR Black Dog co-op-capable mission, Instant Action), each
+   Custom Campaign list and CR: NSDF enter/back-out, then five back-to-back missions
+   (stock campaign, two CR missions, a CR: Black Dog co-op-capable mission, Instant Action), each
    ~60 s, aborted through ESC > Abort Mission, and a clean menu quit (exit code 0).
 4. **Throughout.** A sampler writes private bytes, working set, handles, GDI, USER, threads, CPU and
    window responsiveness every ~1.5 s (`monitor.csv`). A snapshot is taken at every main-menu return.
