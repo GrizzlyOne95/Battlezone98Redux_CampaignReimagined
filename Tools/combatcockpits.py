@@ -216,6 +216,7 @@ def geometry(source,skelpath,base,game,root):
                 polygon=np.array([points[key] for key in loop]);localpoly=(polygon-origin)@R
                 assert np.ptp(localpoly[:,2])<1e-4,'only planar rear mount openings are capped'
                 h.face(localpoly,'armor',hint=[0,0,-1]);caps.append(localpoly.tolist())
+        remapped=0
         if bulkhead is not None:
             # The stock hull buries this piece's rear bulkhead, so its atlas cell
             # is black; from the canopy eye it reads as a black hole. Map the
@@ -224,14 +225,14 @@ def geometry(source,skelpath,base,game,root):
             rear=(n[:,2]<-.95)&(loc[t][:,:,2].max(1)<loc[:,2].min()+.01);assert rear.any(),label
             old=np.unique(t[rear]);new=len(data)+np.arange(len(old));t[rear]=new[np.searchsorted(old,t[rear])];copy=data[old].copy()
             lo,hi=loc[old].min(0),loc[old].max(0);u0,v0,u1,v1=bulkhead;f=(loc[old,:2]-lo[:2])/(hi[:2]-lo[:2])
-            copy[:,6]=u0+f[:,0]*(u1-u0);copy[:,7]=v1-f[:,1]*(v1-v0);data=np.vstack([data,copy]).astype('<f4');ix=t.reshape(-1).astype('<u2')
+            copy[:,6]=u0+f[:,0]*(u1-u0);copy[:,7]=v1-f[:,1]*(v1-v0);data=np.vstack([data,copy]).astype('<f4');ix=t.reshape(-1).astype('<u2');remapped=len(copy)
         start=sum(len(x) for x in exterior)
         # bone=None freezes the piece to the shell. A named bone skins the
         # piece to the same-named cockpit bone, which the engine poses from the
         # VDF GEO each frame (hover gimbals, types 66/67). Only a translation is
         # allowed: the piece then swings about the native pivot.
         if bone is not None:assert pitch==0 and target_top is None and near is None and not inboard and np.allclose(T[:3,:3],np.eye(3)),label;skin.append(dict(bone=bone,vertices=[start,start+len(data)]))
-        indices.extend((ix+start).tolist());exterior.append(data);pieces.append(dict(label=label,bones=bones,sourceIndices=np.flatnonzero(keep).tolist(),transform=T.tolist(),triangles=len(ix)//3,rearCaps=caps,skin=bone))
+        indices.extend((ix+start).tolist());exterior.append(data);pieces.append(dict(label=label,bones=bones,sourceIndices=np.flatnonzero(keep).tolist(),transform=T.tolist(),triangles=len(ix)//3,rearCaps=caps,skin=bone,uvRemapVertices=remapped))
     if role=='turret':
         # Four guns flank the eye: one high and one low on each side. Keep
         # the complete pod geometry at native coordinates, not on the sill.

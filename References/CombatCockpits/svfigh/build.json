@@ -528,7 +528,8 @@
         ],
         "triangles": 60,
         "rearCaps": [],
-        "skin": null
+        "skin": null,
+        "uvRemapVertices": 0
       },
       {
         "label": "animated SFL11ROR",
@@ -5180,7 +5181,8 @@
         ],
         "triangles": 4615,
         "rearCaps": [],
-        "skin": "SFL11ROR"
+        "skin": "SFL11ROR",
+        "uvRemapVertices": 21
       },
       {
         "label": "animated SFL11NFL",
@@ -5727,7 +5729,8 @@
         ],
         "triangles": 510,
         "rearCaps": [],
-        "skin": "SFL11NFL"
+        "skin": "SFL11NFL",
+        "uvRemapVertices": 0
       },
       {
         "label": "animated SFL11NFR",
@@ -6274,7 +6277,8 @@
         ],
         "triangles": 510,
         "rearCaps": [],
-        "skin": "SFL11NFR"
+        "skin": "SFL11NFR",
+        "uvRemapVertices": 0
       }
     ],
     "exteriorSkin": [

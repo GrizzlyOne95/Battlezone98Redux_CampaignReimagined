@@ -62,7 +62,7 @@ for base,cfg in cp.CONFIG.items():
     # actual vehicle identity, original UVs, rigid scale and transformed normals.
     body=cp.shared.read_mesh(base_asset_path(source)).submesh_list[0];ext=m.submesh_list[2];extdata=np.column_stack([cp.shared.values(ext.vertex_data,sem) for sem in (cp.shared.om.VES.POSITION,cp.shared.om.VES.NORMAL,cp.shared.om.VES.TEXTURE_COORDINATES,cp.shared.om.VES.TANGENT)]);offset=0
     for piece in meta['exteriorPieces']:
-        mask=np.zeros(len(body.index_array)//3,bool);mask[piece['sourceIndices']]=True;raw,ix,_=cp.tank.source_part(body,mask);T=np.array(piece['transform']);data=extdata[offset:offset+len(raw)];offset+=len(raw)
+        mask=np.zeros(len(body.index_array)//3,bool);mask[piece['sourceIndices']]=True;raw,ix,_=cp.tank.source_part(body,mask);T=np.array(piece['transform']);data=extdata[offset:offset+len(raw)];offset+=len(raw)+piece.get('uvRemapVertices',0)  # remapped copies follow the source vertices
         check(np.allclose(T[:3,:3].T@T[:3,:3],np.eye(3),atol=1e-7) and abs(np.linalg.det(T[:3,:3])-1)<1e-7,'no scale/shear/mirroring of exterior piece')
         check(np.allclose(data[:,:3],raw[:,:3]@T[:3,:3].T+T[:3,3],atol=1e-6),'actual vehicle surface positions, rigid fit only')
         check(np.array_equal(data[:,6:8],raw[:,6:8]),'original exterior UVs')
