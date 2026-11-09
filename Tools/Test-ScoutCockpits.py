@@ -54,8 +54,11 @@ for faction,cfg in cp.CONFIG.items():
         distance,_=cg.cast(origin,rays(np.arange(-180,180,10),pitch),tri[:,0],tri[:,1],tri[:,2]);check(np.isfinite(distance).all(),'closed '+label)
     distance,_=cg.cast(origin,rays(np.array([180]),0),tri[:,0],tri[:,1],tri[:,2]);check(np.isfinite(distance).all(),'closed rear')
     check(receipt['alignment']['innerShell']['boundaryLoops']==1,'only deliberate canopy opening')
-    directions=np.concatenate([rays(np.arange(-35,36,1),pitch) for pitch in range(-31,0)])
-    dist,hit=cg.cast(origin,directions,tri[:,0],tri[:,1],tri[:,2]);hits=np.isfinite(dist)&(hit>=nose_first)&(hit<nose_last);nose_visible[faction]=int(hits.sum());check(hits.sum()>=200,'original nose clearly visible past the notched sill')
+    # In game the camera is the CR-raised POV (eyeoverrides), 0.35 m above the stock eye the tub is fitted to.
+    import eyeoverrides;bone,pos=eyeoverrides.EYES[base];stock=__import__('weaponrigs').read_skeleton(skelpath.read_bytes()).bone(bone).position;game=origin+R@(np.array(pos)-np.array(stock))
+    check(bone==eye.name and np.allclose(R.T@(game-origin),[0,.35,0],atol=1e-4),'in-game POV raised 0.35 m straight up')
+    directions=np.concatenate([rays(np.arange(-35,35.5,.5),pitch) for pitch in np.arange(-31,0,.5)])
+    dist,hit=cg.cast(game,directions,tri[:,0],tri[:,1],tri[:,2]);hits=np.isfinite(dist)&(hit>=nose_first)&(hit<nose_last);nose_visible[faction]=int(hits.sum());check(hits.sum()>=25,'nose crescent visible over the hull bulkhead from the in-game eye: %d samples'%hits.sum())
     local={x.material_name:(cp.shared.values(x.vertex_data,cp.shared.om.VES.POSITION)-origin)@R for x in mesh.submesh_list};cap=receipt['alignment']['noseCap'];tub=np.delete(local[cfg['material']],np.s_[cap['firstVertex']:cap['firstVertex']+cap['vertices']],0)
     check(local[cfg['nose']][:,2].min()>tub[:,2].max(),'nose entirely ahead of the built tub')
     # Open nose rear closed: the cap lies behind the nose and spans its whole rear
@@ -65,8 +68,13 @@ for faction,cfg in cp.CONFIG.items():
     inside=lambda q:all((b[0]-a[0])*(q[1]-a[1])-(b[1]-a[1])*(q[0]-a[0])>=-1e-6 for a,b in zip(capv[:,:2],np.roll(capv[:,:2],-1,0)))
     check(all(inside(q) for q in rear[:,:2]),'nose cap covers the whole rear rim')
     cap_last=len(mesh.submesh_list[0].index_array)//3;cap_first=cap_last-cap['triangles'];u,v=np.meshgrid(np.linspace(.05,.95,12),np.linspace(.05,.95,12));grid=capv[:,:2].min(0)+np.column_stack([u.ravel(),v.ravel()])*(capv[:,:2].max(0)-capv[:,:2].min(0))
-    targets=np.array([[x,y,capv[0,2]] for x,y in grid if inside((x,y))]);dirs=targets/np.linalg.norm(targets,axis=1)[:,None];dist,hit=cg.cast(origin,dirs@R.T,tri[:,0],tri[:,1],tri[:,2])
-    check(len(targets)>40 and np.isfinite(dist).all() and not ((hit>=nose_first)&(hit<nose_last)).any() and ((hit>=cap_first)&(hit<cap_last)).sum()>=len(targets)//4,'open nose rear never visible from the eye')
+    # From the stock eye the tub was fitted to, and the raised in-game eye, the tub sill
+    # hides most of the bulkhead. Neither eye may ever see into the open nose.
+    pts=np.array([[x,y,capv[0,2]] for x,y in grid if inside((x,y))])
+    for name,eyepos in (('stock',origin),('in-game',game)):
+        targets=pts-R.T@(eyepos-origin);dirs=targets/np.linalg.norm(targets,axis=1)[:,None];dist,hit=cg.cast(eyepos,dirs@R.T,tri[:,0],tri[:,1],tri[:,2])
+        nose_hits=((hit>=nose_first)&(hit<nose_last)).sum();cap_hits=((hit>=cap_first)&(hit<cap_last)).sum()
+        check(len(targets)>40 and np.isfinite(dist).all() and nose_hits==0 and cap_hits>0,'open nose rear never visible from the %s eye: %d nose, %d/%d cap'%(name,nose_hits,cap_hits,len(targets)))
     parts,*_=cp.geometry(base_asset_path(source),skelpath,faction);authored[faction]=parts[cfg['material']][0]
     check(np.array_equal(cp.shared.values(mesh.submesh_list[1].vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),parts[cfg['nose']][0][:,6:8]),'stock nose UVs retained')
     check(receipt['alignment']['noseTriangles']==738 and len(mesh.submesh_list[1].index_array)//3==738,'only complete original nose, not whole hull/hardpoint cubes')

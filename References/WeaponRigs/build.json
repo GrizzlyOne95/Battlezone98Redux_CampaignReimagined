@@ -2573,7 +2573,7 @@
         "ARA11POV": [
           [
             0.004399999976158142,
-            1.467507004737854,
+            1.8175069689750671,
             0.7488619983196259
           ],
           [
@@ -2689,7 +2689,7 @@
       }
     ],
     "cockpit_source": {
-      "mesh": "44cadc52621a6ab9a24347220bb9e52de7a2d15a5b79fb3f24e33e4cc517ef61",
+      "mesh": "0db29d56dfe6d9c4b5126d3618d528e1fccf59afb674c1d3c362900f6fa73630",
       "skeleton": "bbacefcf8d0c047eb82842e447a658c357240003f5404d460443a7871df7a460",
       "bind_poses": {
         "avfigh": [
@@ -2838,7 +2838,7 @@
         "ARA11POV": [
           [
             0.004399999976158142,
-            1.467507004737854,
+            1.8175069689750671,
             0.7488619983196259
           ],
           [
@@ -2991,10 +2991,10 @@
       }
     },
     "outputs": {
-      "Assets/Models/avfigh_recoil.skeleton": "bc247f1d72afbe38c73883a9607b2d8cb14c874f7160edb291ebb7fa1b8bd20b",
+      "Assets/Models/avfigh_recoil.skeleton": "68dec243f7cf3d95e5e50f0f3282f08aa2ea311d0c26d4f6c4134f4a3d17f9e2",
       "Assets/ModelFixes/avfigh.mesh": "b35c36e0035614cd559e88dc74ccacb7e8a54011a8e8c321f62417eaf9ab4b37",
-      "Assets/Models/avfigh_cockpit.mesh": "5f3ca8eacaa91cd7b3499ecbf6416ebc261c4464e582464e1eeac0238607f417",
-      "Assets/Models/avfigh_cockpit_recoil.skeleton": "106c2cb80c9d502f9241105e2a695881631cb39c00cc78c04d640579fbbdd59f"
+      "Assets/Models/avfigh_cockpit.mesh": "2a518f7ca56db1f49ba16b86422fab36f2725d87422f1db58c68308dee957dc6",
+      "Assets/Models/avfigh_cockpit_recoil.skeleton": "17554d86b2b877e6ce779091c188a451bcea33c32bb7f6ae60bec3140db3726a"
     }
   },
   "bvraz": {
@@ -3135,7 +3135,7 @@
         "bRA11POV": [
           [
             0.004399999976158142,
-            1.467507004737854,
+            1.8175069689750671,
             0.8566620051860809
           ],
           [
@@ -3212,7 +3212,7 @@
       }
     ],
     "cockpit_source": {
-      "mesh": "f1081fe2be63a9f8d93ccd336bc52bc8a4237efc8371b3879d22dbd1ac9be796",
+      "mesh": "5b450dab6a51623650baf70388cdd1c9effdf7200e07220b930aca4355a6bed0",
       "skeleton": "ec1dbc02748d5ba4f576ca6c732551df3e6a73b9ad508a4e745ea415add93cc7",
       "bind_poses": {
         "bRA11BDA": [
@@ -3348,7 +3348,7 @@
         "bRA11POV": [
           [
             0.004399999976158142,
-            1.467507004737854,
+            1.8175069689750671,
             0.8566620051860809
           ],
           [
@@ -3462,10 +3462,10 @@
       }
     },
     "outputs": {
-      "Assets/Models/bvraz_recoil.skeleton": "3fa5ae7aa1f451c8f1eba5e5d8cb7c261a46947efc563c6adaba601e0ea65f63",
+      "Assets/Models/bvraz_recoil.skeleton": "089c4d371310b5654c2d474000d996408a5a54a5f98530ec64da4eb77d78e45c",
       "Assets/ModelFixes/bvraz.mesh": "44fb28ee1415f0e323da56c752260a9be29e9bc0b8ba65c31b4e40cdc0b5e18e",
-      "Assets/Models/bvraz_cockpit.mesh": "3c62600ad8457e32b3b1af4fb053d2f232bfd5070f1a6ec36881a84e23babcaa",
-      "Assets/Models/bvraz_cockpit_recoil.skeleton": "50709e94f692eb01d89c4541e38d003131e041d23f89723535eff602eca3750e"
+      "Assets/Models/bvraz_cockpit.mesh": "c3aa22bc95bd3b8922b86b31b8dbcab1cacff74b6041fa599687a9c376d26c97",
+      "Assets/Models/bvraz_cockpit_recoil.skeleton": "7c13dc1fbc4cf02965860a0700b07a5bd051e0ebae31a383f6e29b408381c6f5"
     }
   },
   "bvrckt": {

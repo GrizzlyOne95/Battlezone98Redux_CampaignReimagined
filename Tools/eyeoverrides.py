@@ -13,6 +13,9 @@ import weaponrigs as wr
 EYES = {
     # Back to the sloped canopy windows on the spine: 0.22 m lower, 1.5 m back from stock.
     'svfigh': ('SFL11POV', (0.0, 0.61, -0.35)),
+    # Scouts: 0.35 m up, so the rolling ROF nose reads over its hull bulkhead.
+    'avfigh': ('ARA11POV', (0.0044, 1.15, 0.5)),
+    'bvraz': ('bRA11POV', (0.0044, 1.15, 0.6078)),
 }
 
 
