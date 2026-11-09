@@ -67,7 +67,9 @@ for base,cfg in cp.CONFIG.items():
         check(np.allclose(data[:,:3],raw[:,:3]@T[:3,:3].T+T[:3,3],atol=1e-6),'actual vehicle surface positions, rigid fit only')
         check(np.array_equal(data[:,6:8],raw[:,6:8]),'original exterior UVs')
         check(np.allclose(data[:,3:6],raw[:,3:6]@T[:3,:3].T,atol=1e-6),'normals follow piece rotation')
-        check(0<len(ix)//3<3000,'bounded exterior group, not whole exterior')
+        # A whole moving bone (svfigh ROR nose, 4615 tris) is allowed; the
+        # whole vehicle is not.
+        check(0<len(ix)//3<len(body.index_array)//3//2 or len(piece['bones'])==1 and 0<len(ix)//3<len(body.index_array)//3,'bounded exterior group, not whole exterior')
         if base=='cvturr' or (base=='svltnk' and piece['bones']==[2]):check(np.allclose(T,np.eye(4),atol=1e-8),'gun assemblies retain actual position relative to POV')
         if base=='svltnk' and 'original red gun housing' in piece['label']:
             check(np.allclose(T,np.eye(4),atol=1e-8),'stock red casing stays aligned with native barrels')
