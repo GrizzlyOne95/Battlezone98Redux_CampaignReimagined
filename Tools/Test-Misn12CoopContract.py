@@ -82,7 +82,7 @@ campaign = (root / 'Config/crcampgn.ini').read_text()
 assert re.search(r'missionBZN = "misn12cr.bzn"', campaign), 'Campaign must launch the shared BZN'
 section = re.search(r'\[MISSION11\]\n((?:[^\[\n][^\n]*\n)+)', campaign.replace('\r\n', '\n'))[1]
 assert 'voice = "misn1227.wav"' in section, 'the campaign retrospective is the previously unused misn1227 line'
-assert 'planet = "europa"' in section
+assert 'planet = "custom"\nplanetDisplay = "creuropa.ogv"' in section
 
 raw_lua = (root / 'Scripts/misn12cr.lua').read_text().replace('\r\n', '\n')
 lua = re.sub(r'--\[(=*)\[.*?\]\1\]', '', raw_lua, flags=re.S)

@@ -69,7 +69,7 @@ des = (root / 'misn14cr.mpdes').read_text()
 assert len(des.strip()) <= 300 and 'Texas' in des and 'Utah' not in des, 'the briefing names the Recycler Texas'
 campaign = (root / 'Config/crcampgn.ini').read_text().replace('\r\n', '\n')
 section = re.search(r'\[MISSION13\]\n((?:[^\[\n][^\n]*\n)+)', campaign)[1]
-assert 'missionBZN = "misn14cr.bzn"' in section and 'planet = "titan"' in section
+assert 'missionBZN = "misn14cr.bzn"' in section and 'planet = "custom"\nplanetDisplay = "crtitan.ogv"' in section
 assert 'voice = "misn1422.wav"' in section, 'the Grizzly One retrospective (exe-hardcoded misn1422)'
 
 # The commandable NSDF Fury: a full ODF (Redux has no ODF inheritance) on the stock avsav mesh.
