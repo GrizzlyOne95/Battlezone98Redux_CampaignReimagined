@@ -8,8 +8,8 @@
     "Assets/ModelFixes/avwalk_c.mesh": "0282c78c97f7398abf545b392f2f4bea1a2726a6",
     "Assets/ModelFixes/bvwalk_c.mesh": "0282c78c97f7398abf545b392f2f4bea1a2726a6",
     "Assets/Models/svfigh_cockpit.mesh": "829fd9b9a4a3141b8cce851359b85504cf75174d",
-    "Assets/Models/avfigh_cockpit.mesh": "852ab5b9d3fce302d51c51afd6d1c32ba7974963",
-    "Assets/Models/bvraz_cockpit.mesh": "852ab5b9d3fce302d51c51afd6d1c32ba7974963"
+    "Assets/Models/avfigh_cockpit.mesh": "a13ed92c4b939f416c1623f5a4a4bb3db25a8432",
+    "Assets/Models/bvraz_cockpit.mesh": "a13ed92c4b939f416c1623f5a4a4bb3db25a8432"
   },
   "models": {
     "avfigh": {
