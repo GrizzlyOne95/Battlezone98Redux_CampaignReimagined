@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5353,
+  "count": 5354,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -8061,6 +8061,10 @@
     {
       "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\odyssey.ogv",
       "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\odyssey.ogv"
+    },
+    {
+      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_bans_center.png",
+      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_bans_center.png"
     },
     {
       "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_career_center.png",
