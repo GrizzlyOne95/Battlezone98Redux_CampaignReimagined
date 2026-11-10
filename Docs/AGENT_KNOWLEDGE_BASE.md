@@ -1740,3 +1740,21 @@ to the ordinary GOG development mod.
 - `avfigh00` carried stock Redux's one-off `$ambient "0.2 0.2 0.2"` (279 of 281 stock
   materials use `1 1 1`); it is now `1 1 1` like the other units. The Livewire
   `SX_tint_*` materials (`Materials/sxtint.material`) inherit it, so they brighten too.
+
+### Enhanced light budget and recovered archive work (2026-11-10)
+
+- Enhanced High already evaluates 24 lights per pass with no `max_lights` directive.
+  Ogre's pass default of 8 means "no cap" (`SceneManager::renderSingleObject` hands the
+  whole light list to a pass whose `max_lights` equals 8), and the selected
+  `CR_*IBLHigh*` fragment programs loop to `MAX_LIGHTS=24`. Do not add `max_lights 24`
+  wrappers: they only add a list copy. A `max_lights` below 24 would drop lights.
+  `Tools/Test-EnhancedLightBudget.ps1` guards the program selection and the 24-entry
+  arrays. No live scene with more than 24 candidate lights has been checked.
+- Work that only exists on an `archive/` branch never shipped. Before porting it, check
+  whether main already has the behaviour by another route; the archived light-budget
+  commit (22b313ab) asserted wrappers that main does not need.
+- `Scripts/OpenShimManifest.lua` hashes the working-tree bytes of `InstallerPayload/*.payload`
+  on the Windows machine that ran `-refresh-natives`, which are CRLF. Those files are
+  `-text` and stored as CRLF so every checkout matches the manifest. Any new file the
+  manifest hashes needs a `-text` rule in the same commit; check with
+  `git ls-files --eol <path>` (index and working tree must show the same line endings).

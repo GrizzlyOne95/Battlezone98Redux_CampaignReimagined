@@ -77,6 +77,9 @@ References/TextureRevamp/integration/original/*.odf -text whitespace=-blank-at-e
 
 # OpenShim-owned files are hash-pinned in Scripts/OpenShimManifest.lua: store exact bytes, no EOL conversion.
 openshim/** -text
+# The manifest hashes these as CRLF (generated from a Windows working copy), so the
+# blobs hold those exact bytes; an LF checkout would fail the installer's hash check.
+InstallerPayload/*.payload -text
 BZ_ASSETS_CORE/common/ui/CustomWidgets/*.png -text
 # Test-Chmisn02/06CoopSourceParity.py require these ports to stay CRLF on every checkout.
 Scripts/ch02.lua -text
