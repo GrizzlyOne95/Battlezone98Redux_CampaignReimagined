@@ -660,6 +660,20 @@ material bvrdev_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_bvrdev_d.dds
 }
 
+material bvrdev_hpmount_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap bvrdev_hpmount_D.dds
+	set_texture_alias NormalMap bvrdev_hpmount_N.dds
+	set_texture_alias SpecularMap bvrdev_hpmount_S.dds
+	set_texture_alias EmissiveMap bvrdev_hpmount_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_bvrdev_hpmount_d.dds
+}
+
 material bvrecy00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap bvrecy_D.dds

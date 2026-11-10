@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5555,
+  "count": 5560,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -4751,6 +4751,22 @@
       "runtime": "bvrdev_d.dds"
     },
     {
+      "source": "Assets\\Textures\\bvrdev_hpmount_D.dds",
+      "runtime": "bvrdev_hpmount_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrdev_hpmount_E.dds",
+      "runtime": "bvrdev_hpmount_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrdev_hpmount_N.dds",
+      "runtime": "bvrdev_hpmount_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrdev_hpmount_S.dds",
+      "runtime": "bvrdev_hpmount_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\bvrecy00_ACT.dds",
       "runtime": "bvrecy00_ACT.dds"
     },
@@ -5909,6 +5925,10 @@
     {
       "source": "Assets\\Textures\\crteam_bvrdev_d.dds",
       "runtime": "crteam_bvrdev_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvrdev_hpmount_d.dds",
+      "runtime": "crteam_bvrdev_hpmount_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_bvrecy_d.dds",
