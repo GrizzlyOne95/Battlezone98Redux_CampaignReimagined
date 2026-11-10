@@ -24,12 +24,16 @@ When the Redux models (mesh + skeleton) are available (--game, default the GOG i
 moving part must name a skeleton bone, with vertices unless it is a hardpoint (gs*/hp*). Static
 stock tracks without a bone (svrecy's gs1/gs2, the tugs' _COL) are only noted. Without the game
 files that check is skipped (CI has none).
+Flame parts: every class 75 part a References/NacelleJets/<unit>/build.json records is in the
+shipped VDF with its recorded parent and matrix, listed nacelles are class 67, and in any shipped
+VDF with a class 75 part every class 67 nacelle has its own class 75 child.
 
   python Tools/Test-UnitAnimSlots.py [--game <Redux dir>]
 """
 import argparse
 import importlib.util
 import io
+import json
 import math
 import os
 import sys
@@ -112,6 +116,67 @@ def bones_with_vertices(game, model):
         if vba.bone_index in by_handle:
             counts[by_handle[vba.bone_index]] += 1
     return counts
+
+
+def check_flames(err):
+    """Flame parts (Build-UnitAnimSlots applies References/NacelleJets/<unit>/build.json):
+    every recorded class 75 part is in the shipped VDF under its recorded nacelle with the
+    recorded matrix, every listed nacelle is class 67, and in every shipped VDF with any class
+    75 part each class 67 nacelle has a class 75 child (one class 75 part turns off every
+    automatic under-nacelle flame, so a nacelle without its own would go dark). Returns the
+    number of files checked."""
+    vdfs = {}
+
+    def vdf(unit):
+        if unit not in vdfs:
+            path = os.path.join(FIXES, unit + ".vdf")
+            vdfs[unit] = (bzmodellibs.bwd2_serializer.VDFSerializer(io.BytesIO(open(path, "rb").read())).read()
+                          if os.path.exists(path) else None)
+        return vdfs[unit]
+
+    base = os.path.join(ROOT, "References", "NacelleJets")
+    for unit in sorted(os.listdir(base)):
+        path = os.path.join(base, unit, "build.json")
+        if not os.path.exists(path):
+            continue
+        r = json.load(open(path))
+        parts, nacelles = r.get("vdfParts") or [], r.get("nacelles") or []
+        if not (parts or nacelles):
+            continue
+        name = unit + ".vdf"
+        v = vdf(unit)
+        if v is None:
+            err(name, "receipt records flame parts but Assets/ModelFixes has no %s" % name)
+            continue
+        objs = {o.name: o for o in v.primary_objects()}
+        for n in nacelles:
+            if n not in objs or objs[n].class_id != 67:
+                err(name, "%s should be a class 67 nacelle" % n)
+        for p in parts:
+            o = objs.get(p["name"])
+            if o is None:
+                err(name, "recorded flame part %s missing" % p["name"])
+                continue
+            if o.class_id != 75 or o.parent_name() != p["parent"]:
+                err(name, "%s is class %d under %s, recorded 75 under %s" % (p["name"], o.class_id, o.parent_name(), p["parent"]))
+            t = o.transform
+            have = (t.rx, t.ry, t.rz, t.ux, t.uy, t.uz, t.fx, t.fy, t.fz, t.px, t.py, t.pz)
+            if max(abs(a - b) for a, b in zip(have, p["matrix"])) > 1e-5:
+                err(name, "%s matrix differs from the receipt" % p["name"])
+    checked = 0
+    for f in sorted(os.listdir(FIXES)):
+        if not f.lower().endswith(".vdf"):
+            continue
+        v = vdf(f[:-4])
+        objs = list(v.primary_objects())
+        if not any(o.class_id == 75 for o in objs):
+            continue
+        checked += 1
+        lit = {o.parent_name() for o in objs if o.class_id == 75}
+        for o in objs:
+            if o.class_id == 67 and o.name not in lit:
+                err(f, "nacelle %s has no class 75 flame part (the file's other class 75 parts turn off its automatic flame)" % o.name)
+    return checked
 
 
 def main():
@@ -261,11 +326,13 @@ def main():
                 if x["looping"] and x["kind"] in A.BLOCKING:
                     err(name, "audit %s el%d %s frame %d %.3f %s" % (x["kind"], x["element"], x["part"], x["frame"], x["magnitude"], x["unit"]))
 
+    flame_files = check_flames(err)
+
     if not have_game:
         print("note: no Redux install at %s; skeleton/vertex checks skipped" % args.game)
     for e in errors:
         print("FAIL", e)
-    print("%d files, %d failures" % (len(FILES) + len(TUGS), len(errors)))
+    print("%d files, %d with flame parts, %d failures" % (len(FILES) + len(TUGS), flame_files, len(errors)))
     sys.exit(1 if errors else 0)
 
 

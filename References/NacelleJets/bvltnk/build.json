@@ -1,0 +1,308 @@
+{
+  "unit": "bvltnk",
+  "faction": "blackdogs",
+  "material": "bvltnk_nacjet",
+  "emitters": [
+    {
+      "part": "bln11nrl",
+      "bone": 11,
+      "pivot": [
+        1.7199000120162964,
+        0.9395999778062105,
+        -1.736899971961975
+      ],
+      "emit": [
+        1.7199000120162964,
+        0.6608030200004578,
+        -1.736899971961975
+      ],
+      "estimate": "GEO file missing: emit height taken from the lowest mesh vertex the nacelle bone owns"
+    },
+    {
+      "part": "bln11nrr",
+      "bone": 12,
+      "pivot": [
+        -1.7199000120162964,
+        0.9395999778062105,
+        -1.736899971961975
+      ],
+      "emit": [
+        -1.7199000120162964,
+        0.6608030200004578,
+        -1.736899971961975
+      ],
+      "estimate": "GEO file missing: emit height taken from the lowest mesh vertex the nacelle bone owns"
+    }
+  ],
+  "flameDirection": "-y of each emitter frame",
+  "baseRevision": "f09fec92f1d6da20facde0d095c45f19a913c866",
+  "wingUnderside": {
+    "heightAtEmit": 0.7413906085588312,
+    "slopePerMetreOfChord": -0.21703252021053254,
+    "maxError": 0.0008419267791043294
+  },
+  "paint": [
+    13.0,
+    13.0,
+    13.0
+  ],
+  "paintSource": "bvltnk_D.dds",
+  "housing": {
+    "vertices": 786,
+    "triangles": 530,
+    "zones": {
+      "paint": 135,
+      "bell": 96,
+      "lip": 43,
+      "groove": 123,
+      "bore": 43,
+      "throat": 18,
+      "vent": 72
+    }
+  },
+  "shape": {
+    "sides": 20,
+    "flat": 0.86,
+    "smoothAngle": 35,
+    "bury": 0.06,
+    "chamfer": 0.045,
+    "sections": [
+      [
+        0.282,
+        0.09,
+        0.015
+      ],
+      [
+        0.222,
+        0.21,
+        0.07
+      ],
+      [
+        0.144,
+        0.3,
+        0.12
+      ],
+      [
+        0.126,
+        0.3,
+        0.12
+      ],
+      [
+        0.084,
+        0.3,
+        0.12
+      ],
+      [
+        -0.12,
+        0.3,
+        0.12
+      ],
+      [
+        -0.198,
+        0.21,
+        0.08
+      ],
+      [
+        -0.264,
+        0.08,
+        0.015
+      ]
+    ],
+    "vent": {
+      "drop": 0.04,
+      "halfWidth": 0.3,
+      "depth": 0.02,
+      "height": 0.03,
+      "length": 0.085,
+      "z": [
+        -0.078,
+        -0.018,
+        0.042
+      ]
+    },
+    "scale": 1.0,
+    "length": 0.6,
+    "over": {
+      "offset": [
+        0.0,
+        -0.1
+      ]
+    },
+    "auto": true,
+    "stripe": [
+      0.084,
+      0.126
+    ],
+    "bell": {
+      "top": 0.0,
+      "lip": -0.15,
+      "rTop": 0.25,
+      "rLip": 0.235
+    },
+    "bore": {
+      "roof": 0.03,
+      "rRoof": 0.15,
+      "rMouth": 0.205
+    },
+    "groove": {
+      "y0": -0.132,
+      "y1": -0.12,
+      "depth": 0.008,
+      "rOut": 0.28
+    },
+    "offset": [
+      0.0,
+      -0.1
+    ]
+  },
+  "stripe": [
+    0.084,
+    0.126
+  ],
+  "notes": [
+    "bln11nrl: GEO file missing: emit height taken from the lowest mesh vertex the nacelle bone owns",
+    "bln11nrr: GEO file missing: emit height taken from the lowest mesh vertex the nacelle bone owns",
+    "bln11nrl: pod slid (+0.00, -0.10) m along the seat, because as configured: AssertionError: ('vent00', 'left the solid non-manifold')",
+    "bln11nrl: emit point hangs 0.08 m below the skin; the pod is deepened to carry the nozzle there",
+    "bln11nrl: pod body offset (0.0, -0.1) m (x, z) from the emit point to reach solid skin"
+  ],
+  "housings": [
+    {
+      "vertices": 786,
+      "triangles": 530,
+      "zones": {
+        "paint": 135,
+        "bell": 96,
+        "lip": 43,
+        "groove": 123,
+        "bore": 43,
+        "throat": 18,
+        "vent": 72
+      },
+      "parts": [
+        "bln11nrl",
+        "bln11nrr"
+      ],
+      "mirrored": [
+        false,
+        true
+      ],
+      "underside": [
+        0.7413906085588312,
+        -0.21703252021053254,
+        0.019630794111785387
+      ],
+      "maxError": 0.0008419267791043294,
+      "seated": {
+        "cover": 1.0,
+        "pokes": 0.0,
+        "spread": 0.0012680050225912787,
+        "gap": 0.08058758855837345,
+        "inside": 0.00333006316840756,
+        "depthScale": 1.4493137643898417
+      },
+      "shape": {
+        "sides": 20,
+        "flat": 0.86,
+        "smoothAngle": 35,
+        "bury": 0.06,
+        "chamfer": 0.045,
+        "sections": [
+          [
+            0.282,
+            0.09,
+            0.015
+          ],
+          [
+            0.222,
+            0.21,
+            0.07
+          ],
+          [
+            0.144,
+            0.3,
+            0.12
+          ],
+          [
+            0.126,
+            0.3,
+            0.12
+          ],
+          [
+            0.084,
+            0.3,
+            0.12
+          ],
+          [
+            -0.12,
+            0.3,
+            0.12
+          ],
+          [
+            -0.198,
+            0.21,
+            0.08
+          ],
+          [
+            -0.264,
+            0.08,
+            0.015
+          ]
+        ],
+        "vent": {
+          "drop": 0.04,
+          "halfWidth": 0.3,
+          "depth": 0.02,
+          "height": 0.03,
+          "length": 0.085,
+          "z": [
+            -0.078,
+            -0.018,
+            0.042
+          ]
+        },
+        "scale": 1.0,
+        "length": 0.6,
+        "over": {
+          "offset": [
+            0.0,
+            -0.1
+          ]
+        },
+        "auto": true,
+        "stripe": [
+          0.084,
+          0.126
+        ],
+        "bell": {
+          "top": 0.0,
+          "lip": -0.15,
+          "rTop": 0.25,
+          "rLip": 0.235
+        },
+        "bore": {
+          "roof": 0.03,
+          "rRoof": 0.15,
+          "rMouth": 0.205
+        },
+        "groove": {
+          "y0": -0.132,
+          "y1": -0.12,
+          "depth": 0.008,
+          "rOut": 0.28
+        },
+        "offset": [
+          0.0,
+          -0.1
+        ]
+      },
+      "paint": [
+        13.0,
+        13.0,
+        13.0
+      ],
+      "adjusted": "pod slid (+0.00, -0.10) m along the seat, because as configured: AssertionError: ('vent00', 'left the solid non-manifold')"
+    }
+  ],
+  "stageMesh": "bb566fdae89da527cdd1d181c5e26d8299e872ad9f7da9500bc92a89bb79e2e7"
+}

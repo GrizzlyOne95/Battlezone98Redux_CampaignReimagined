@@ -53,15 +53,22 @@ only shows above 10% throttle. Under co-op team colours only the hull paint is r
 
 The tool always starts from the unit's pre-rig mesh at `source_revision` in
 `References/WeaponRigs/models.json`, so it can be re-run at any time. Preview output goes
-to `Local/NacelleJets/<unit>`; review sheets go to `review/`. Only `--ship` writes the receipt.
+to `Local/NacelleJets/<unit>` (with a `preview.json` receipt); review sheets go to `review/`
+only with `--ship`, and to the git-ignored `Local/NacelleJets/review-rollout/` otherwise.
+Only `--ship` writes the tracked receipt. `--contact` composes one sheet per faction from
+finished preview renders.
 
 Shipping a unit, in order:
 
 1. `--ship`, then commit the pre-rig `Assets/ModelFixes/<unit>.mesh`, the four textures,
    the material block and the receipt. Push. `--ship` replaces the rigged shipped mesh
-   with the unrigged stage, so do not stop before step 2.
-2. Put that commit in `models.json` `stage_revisions` for the mesh, then run
-   `python Tools/Build-WeaponRigs.py --models <unit>`.
+   with the unrigged stage, so do not stop before step 2. A `housing=False` unit writes
+   only the receipt (its mesh is unchanged).
+2. If the receipt has `vdfParts`: `python Tools/Build-UnitAnimSlots.py --stock-dir
+   "<Redux>/StockODFFiles" <unit>.vdf`. Then put the step 1 commit in `models.json`
+   `stage_revisions` for the mesh (rigged units only), and run
+   `python Tools/Build-WeaponRigs.py --models <unit>` for every rigged unit whose mesh or
+   VDF changed (the rig reads the shipped VDF).
 3. `python Tools/Build-TeamSkins.py --write` (adds `<unit>_nacjet_tm` and its mask).
 4. If the unit has a generated cockpit (the scouts do), its receipt hashes the pre-rig
    exterior: run `python Tools/Build-ScoutCockpits.py`, then re-run step 2 for every unit
@@ -69,16 +76,81 @@ Shipping a unit, in order:
    `exteriorSha256` in the receipt should end up changed.
 5. `Manage-CampaignFiles.ps1 -bless` and keep only this unit's new lock entries.
 6. Run `Tools/Test-WeaponRigs.py`, `Tools/Test-ScoutCockpits.py`,
-   `Tools/Test-CombatPresentation.py`.
+   `Tools/Test-CombatPresentation.py`, `Tools/Test-UnitAnimSlots.py`.
 
 The pinned stage commit must stay reachable from `main`: merge the pull request with a
 merge commit, not a squash.
 
 ## Adding a unit
 
-Add an entry to `CONFIG` in `Tools/Build-NacelleJets.py` (faction, shape, stripe). The unit
-needs class 67 nacelles and no class 75 part; a craft that carries its own class 75 part
-emits from that part instead, and this tool does not handle it.
+Add an entry to `CONFIG` in `Tools/Build-NacelleJets.py`: `unit(faction, scale, length,
+also=..., offset=...)`. `scale` sizes the whole shape family (the engine draws every unit's
+flame the same size, so 0.8-1.5 covers the fleet); `length` stretches the pod along the
+chord; `offset=(dx, dz)` moves the pod body off the emit point to reach solid skin (the
+nozzle stays on the emit point); `also=((part-name regex, fitted(...)),)` gives a nacelle
+its own shape (avartl's rear pod). Emitters that seat alike share one solid; the others
+carry rigid copies (mirrored across x when needed), each bound to its own bone.
+
+Emit points come from class 67 nacelles (nacelle up axis x GEO bbox min y; a missing GEO is
+estimated from the lowest mesh vertex the bone owns and flagged) or, when the VDF authors
+them, from each class 75 part (its position, flame along its front axis; BZ 1.5 decompile
+`all_decompiled.c` 255588-255605 and 193702-193706, UNVERIFIED against the Redux renderer).
+An emitter whose flame runs into mesh 0.05-0.5 m ahead sits in modelled geometry and gets
+no housing; `housing=False` records a unit's emit points and renders an emit sheet only
+(bvrdev). Class 76 is smoke only.
+
+`shift=((part-name regex, move),)` builds at an approved new emit point: metres along the
+flame axis (positive = up, against the flame), an (x, y, z) build-frame vector, `'skin'`
+(up or down to the seat skin) or `'relocate'`: the build moves the flame off the bbox-rule
+point to the nearest flat, solid spot on the same nacelle skin (within 0.8 m, mirrored
+left/right when the twin seats alike) and builds the housing there with the nozzle on the
+new point. Use it where the stock point lands on a joint between parts or forces a stalk,
+overhang or offset nozzle. `ports=True` with `housing=False` (avartl, bvartl, avapc, bvapc)
+instead finds the glowing exhaust ports a nacelle already models (emissive texels linked
+within 5 cm, elongated patches split in two, patches under 15 samples dropped) and proposes
+each flame into the largest downward-facing one, along its normal.
+
+`conform=True` (avhraz, bvhraz, svltnk) is for skins too stepped or curved for a flat seat:
+the seat plane is lowered to the lowest skin point, and the pod roof follows a 2 cm height
+grid of that skin (window maximum, never below the plane) instead of a flat top, with the
+roof edge buried into the hull. Nozzle, ring, glow and paint are unchanged; units without
+the flag build exactly as before.
+
+This tool does not write the VDF. Each moved emitter carries `emitShift` (stock point, moved
+point, delta, flame direction, reason) in `preview.json`, and the unit carries `vdfParts`:
+one class 75 part per emitter, parented to its nacelle, with its local `matrix` in the VDF
+layout (rows right, up, front, then position; the flame runs along front). A class 75 part
+draws the flame from its own position along its front axis, and one authored class 75 part
+suppresses every automatic under-nacelle emitter (BZ 1.5 decompile `all_decompiled.c`
+193462-193491; throttle scaling needs a nacelle parent, 193771-193776), so unmoved nacelles are recorded too, at their stock points.
+The emit points are always read from the VDF at `source_revision` (or the stock VDF), never
+from the shipped VDF that already carries these parts, so re-runs give the same answer.
+
+`Tools/Build-UnitAnimSlots.py` is the one VDF writer: it reads each shipped `build.json` and
+adds its `vdfParts` to the stock VDF (and makes any `nacelles` it lists class 67), writing
+`Assets/ModelFixes/<unit>.vdf`. `Tools/Test-UnitAnimSlots.py` checks every recorded part is
+there and that no class 67 nacelle in a file with class 75 parts is left without its own.
+`svtank/build.json` is hand-recorded (no CONFIG entry, no mesh change): its stock wing pods
+become nacelles, each with a flame at its rear glow panel, and `ODF/svtank.odf` sets the pod
+pitch (`pitchThrot/SteerNacelleRun 0.10`, `...Jump 0.12`).
+
+The seat is a plane fitted under the pod footprint and raised to the highest skin, so the
+roof is buried everywhere; the pod deepens to carry the nozzle at the emit point. Asserts:
+some skin to seat on (>= 35% of the footprint), roof never exits the far side, every boolean
+leaves one manifold piece. Clip checks against every opaque stock triangle (VDF pose): none
+may pass through the bore or the 0.9 m flame cone below the lip (the nozzle hangs lower when
+skin sits over the bore), and the housing's exposed surface may cross stock mesh only at its
+seat: no crossing more than 0.02 m + 0.03 x scale below the seat plane, however uneven the
+skin is (a band that grew with the unevenness let avhraz's pod cut 0.14 m into its rail).
+When the configured pod clips, the pod is slid along the seat, then scaled down (not
+below 0.8), then turned about the flame axis, with the nozzle kept on the emit point; the first
+variant that passes is used and recorded as `adjusted`. A unit with no passing variant fails
+with the reasons, and leaves no preview. Read the `notes` in `preview.json` before shipping.
+
+Pod paint is the median texel of the downward-facing seat skin under and around the footprint,
+after dropping saturated trim and decals and near-black gaps, taken from the dominant colour only.
+Ring, bore and throat glow follow the faction flame colour (`FACTIONS`): NSDF blue, Black
+Dogs blood red, CCA burnt orange, CRA green.
 
 ## Review sheets (avfigh)
 

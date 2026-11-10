@@ -1,0 +1,558 @@
+{
+  "unit": "bvtank",
+  "faction": "blackdogs",
+  "material": "bvtank_nacjet",
+  "emitters": [
+    {
+      "part": "bgr11nrl",
+      "bone": 7,
+      "pivot": [
+        1.6377999782562256,
+        0.9925140142440796,
+        -1.9009000062942505
+      ],
+      "emit": [
+        1.7377999782562257,
+        0.7004877048723533,
+        -1.9009000062942505
+      ],
+      "emitShift": {
+        "stock": [
+          1.6377710103988647,
+          0.5985690057277679,
+          -1.9009339809417725
+        ],
+        "moved": [
+          1.7377710103988648,
+          0.7004486936323479,
+          -1.9009339809417725
+        ],
+        "delta": [
+          0.10000000000000009,
+          0.10187968790457991,
+          0.0
+        ],
+        "flame": [
+          -0.0,
+          -1.0,
+          -0.0
+        ],
+        "space": "Ogre mesh space in the VDF pose (VDF x = -x), metres",
+        "reason": "stock point does not give a flat, fully covered seat with a clear bore"
+      }
+    },
+    {
+      "part": "bgr11nrr",
+      "bone": 8,
+      "pivot": [
+        -1.6377999782562256,
+        0.9925140142440796,
+        -1.9009000062942505
+      ],
+      "emit": [
+        -1.7377999782562257,
+        0.7004848573713444,
+        -1.9009000062942505
+      ],
+      "emitShift": {
+        "stock": [
+          -1.6377710103988647,
+          0.5985690057277679,
+          -1.9009339809417725
+        ],
+        "moved": [
+          -1.7377710103988648,
+          0.7004458461313389,
+          -1.9009339809417725
+        ],
+        "delta": [
+          -0.10000000000000009,
+          0.10187684040357092,
+          0.0
+        ],
+        "flame": [
+          -0.0,
+          -1.0,
+          -0.0
+        ],
+        "space": "Ogre mesh space in the VDF pose (VDF x = -x), metres",
+        "reason": "stock point does not give a flat, fully covered seat with a clear bore"
+      }
+    }
+  ],
+  "flameDirection": "-y of each emitter frame",
+  "baseRevision": "f09fec92f1d6da20facde0d095c45f19a913c866",
+  "wingUnderside": {
+    "heightAtEmit": 0.7004877048723533,
+    "slopePerMetreOfChord": -0.07893964473950217,
+    "maxError": 0.01881915272795953
+  },
+  "paint": [
+    24.0,
+    22.0,
+    16.0
+  ],
+  "paintSource": "bvtank_D.dds",
+  "housing": {
+    "vertices": 772,
+    "triangles": 512,
+    "zones": {
+      "paint": 137,
+      "bell": 78,
+      "lip": 43,
+      "groove": 121,
+      "bore": 43,
+      "throat": 18,
+      "vent": 72
+    }
+  },
+  "shape": {
+    "sides": 20,
+    "flat": 0.86,
+    "smoothAngle": 35,
+    "bury": 0.06,
+    "chamfer": 0.045,
+    "sections": [
+      [
+        0.376,
+        0.09,
+        0.015
+      ],
+      [
+        0.296,
+        0.21,
+        0.07
+      ],
+      [
+        0.192,
+        0.3,
+        0.12
+      ],
+      [
+        0.168,
+        0.3,
+        0.12
+      ],
+      [
+        0.11200000000000002,
+        0.3,
+        0.12
+      ],
+      [
+        -0.16000000000000003,
+        0.3,
+        0.12
+      ],
+      [
+        -0.264,
+        0.21,
+        0.08
+      ],
+      [
+        -0.35200000000000004,
+        0.08,
+        0.015
+      ]
+    ],
+    "vent": {
+      "drop": 0.04,
+      "halfWidth": 0.3,
+      "depth": 0.02,
+      "height": 0.03,
+      "length": 0.085,
+      "z": [
+        -0.10400000000000001,
+        -0.024,
+        0.05600000000000001
+      ]
+    },
+    "scale": 1.0,
+    "length": 0.8,
+    "over": {},
+    "auto": true,
+    "stripe": [
+      0.11200000000000002,
+      0.168
+    ],
+    "bell": {
+      "top": 0.0,
+      "lip": -0.15,
+      "rTop": 0.25,
+      "rLip": 0.235
+    },
+    "bore": {
+      "roof": 0.03,
+      "rRoof": 0.15,
+      "rMouth": 0.205
+    },
+    "groove": {
+      "y0": -0.132,
+      "y1": -0.12,
+      "depth": 0.008,
+      "rOut": 0.28
+    }
+  },
+  "stripe": [
+    0.11200000000000002,
+    0.168
+  ],
+  "vdfParts": [
+    {
+      "name": "bgr11frl",
+      "klass": 75,
+      "parent": "bgr11nrl",
+      "position": [
+        -0.10000000000000009,
+        -0.29202630937172624,
+        0.0
+      ],
+      "orientation": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0
+        ]
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -1.0,
+        0.0,
+        -0.10000000000000009,
+        -0.29202630937172624,
+        0.0
+      ],
+      "existing": false,
+      "moved": true,
+      "stockPosition": [
+        0.0,
+        -0.39390599727630615,
+        0.0
+      ]
+    },
+    {
+      "name": "bgr11frr",
+      "klass": 75,
+      "parent": "bgr11nrr",
+      "position": [
+        0.10000000000000009,
+        -0.29202915687273523,
+        0.0
+      ],
+      "orientation": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0
+        ]
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -1.0,
+        0.0,
+        0.10000000000000009,
+        -0.29202915687273523,
+        0.0
+      ],
+      "existing": false,
+      "moved": true,
+      "stockPosition": [
+        0.0,
+        -0.39390599727630615,
+        0.0
+      ]
+    }
+  ],
+  "notes": [
+    "bgr11nrl: emit point moved (+0.100, +0.102, +0.000) m from the stock point (1.638, 0.599, -1.901); not yet in the VDF",
+    "bgr11nrr: emit point moved (-0.100, +0.102, +0.000) m from the stock point (-1.638, 0.599, -1.901); not yet in the VDF",
+    "bgr11nrl: no flat, fully covered spot within 0.8 m: seated on the best there is (slightly uneven or overhanging)",
+    "bgr11nrr: no flat, fully covered spot within 0.8 m: seated on the best there is (slightly uneven or overhanging)",
+    "bgr11nrl: the nozzle hangs 0.09 m below the emit point so stock mesh stays out of its throat (skin +0.000 m from the emit point)",
+    "bgr11nrr: the nozzle hangs 0.09 m below the emit point so stock mesh stays out of its throat (skin +0.000 m from the emit point)"
+  ],
+  "housings": [
+    {
+      "vertices": 772,
+      "triangles": 512,
+      "zones": {
+        "paint": 137,
+        "bell": 78,
+        "lip": 43,
+        "groove": 121,
+        "bore": 43,
+        "throat": 18,
+        "vent": 72
+      },
+      "parts": [
+        "bgr11nrl"
+      ],
+      "mirrored": [
+        false
+      ],
+      "underside": [
+        0.7004877048723533,
+        -0.07893964473950217,
+        0.12376618358374389
+      ],
+      "maxError": 0.01881915272795953,
+      "seated": {
+        "cover": 1.0,
+        "pokes": 0.0,
+        "spread": 0.023300712424720316,
+        "gap": 0.0,
+        "inside": 0.08829902391664812,
+        "depthScale": 1.485825199305401
+      },
+      "shape": {
+        "sides": 20,
+        "flat": 0.86,
+        "smoothAngle": 35,
+        "bury": 0.06,
+        "chamfer": 0.045,
+        "sections": [
+          [
+            0.376,
+            0.09,
+            0.015
+          ],
+          [
+            0.296,
+            0.21,
+            0.07
+          ],
+          [
+            0.192,
+            0.3,
+            0.12
+          ],
+          [
+            0.168,
+            0.3,
+            0.12
+          ],
+          [
+            0.11200000000000002,
+            0.3,
+            0.12
+          ],
+          [
+            -0.16000000000000003,
+            0.3,
+            0.12
+          ],
+          [
+            -0.264,
+            0.21,
+            0.08
+          ],
+          [
+            -0.35200000000000004,
+            0.08,
+            0.015
+          ]
+        ],
+        "vent": {
+          "drop": 0.04,
+          "halfWidth": 0.3,
+          "depth": 0.02,
+          "height": 0.03,
+          "length": 0.085,
+          "z": [
+            -0.10400000000000001,
+            -0.024,
+            0.05600000000000001
+          ]
+        },
+        "scale": 1.0,
+        "length": 0.8,
+        "over": {},
+        "auto": true,
+        "stripe": [
+          0.11200000000000002,
+          0.168
+        ],
+        "bell": {
+          "top": 0.0,
+          "lip": -0.15,
+          "rTop": 0.25,
+          "rLip": 0.235
+        },
+        "bore": {
+          "roof": 0.03,
+          "rRoof": 0.15,
+          "rMouth": 0.205
+        },
+        "groove": {
+          "y0": -0.132,
+          "y1": -0.12,
+          "depth": 0.008,
+          "rOut": 0.28
+        }
+      },
+      "paint": [
+        24.0,
+        22.0,
+        16.0
+      ],
+      "adjusted": "no flat, fully covered spot within 0.8 m: seated on the best there is (slightly uneven or overhanging)"
+    },
+    {
+      "vertices": 765,
+      "triangles": 505,
+      "zones": {
+        "paint": 133,
+        "bell": 79,
+        "lip": 42,
+        "groove": 122,
+        "bore": 42,
+        "throat": 18,
+        "vent": 69
+      },
+      "parts": [
+        "bgr11nrr"
+      ],
+      "mirrored": [
+        true
+      ],
+      "underside": [
+        0.7004848573713444,
+        -0.07893974866290009,
+        0.12376590388414885
+      ],
+      "maxError": 0.018819744792398452,
+      "seated": {
+        "cover": 1.0,
+        "pokes": 0.0,
+        "spread": 0.023301832699254788,
+        "gap": 0.0,
+        "inside": 0.08829955717088478,
+        "depthScale": 1.4858296430907065
+      },
+      "shape": {
+        "sides": 20,
+        "flat": 0.86,
+        "smoothAngle": 35,
+        "bury": 0.06,
+        "chamfer": 0.045,
+        "sections": [
+          [
+            0.376,
+            0.09,
+            0.015
+          ],
+          [
+            0.296,
+            0.21,
+            0.07
+          ],
+          [
+            0.192,
+            0.3,
+            0.12
+          ],
+          [
+            0.168,
+            0.3,
+            0.12
+          ],
+          [
+            0.11200000000000002,
+            0.3,
+            0.12
+          ],
+          [
+            -0.16000000000000003,
+            0.3,
+            0.12
+          ],
+          [
+            -0.264,
+            0.21,
+            0.08
+          ],
+          [
+            -0.35200000000000004,
+            0.08,
+            0.015
+          ]
+        ],
+        "vent": {
+          "drop": 0.04,
+          "halfWidth": 0.3,
+          "depth": 0.02,
+          "height": 0.03,
+          "length": 0.085,
+          "z": [
+            -0.10400000000000001,
+            -0.024,
+            0.05600000000000001
+          ]
+        },
+        "scale": 1.0,
+        "length": 0.8,
+        "over": {},
+        "auto": true,
+        "stripe": [
+          0.11200000000000002,
+          0.168
+        ],
+        "bell": {
+          "top": 0.0,
+          "lip": -0.15,
+          "rTop": 0.25,
+          "rLip": 0.235
+        },
+        "bore": {
+          "roof": 0.03,
+          "rRoof": 0.15,
+          "rMouth": 0.205
+        },
+        "groove": {
+          "y0": -0.132,
+          "y1": -0.12,
+          "depth": 0.008,
+          "rOut": 0.28
+        }
+      },
+      "paint": [
+        24.0,
+        22.0,
+        16.0
+      ],
+      "adjusted": "no flat, fully covered spot within 0.8 m: seated on the best there is (slightly uneven or overhanging)"
+    }
+  ],
+  "stageMesh": "4aca0cf093b4e985ca5ac6d11f9a8784e8c746b9158fff8412cc47ee74040840"
+}

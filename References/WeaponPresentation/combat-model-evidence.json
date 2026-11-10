@@ -18,10 +18,10 @@
   "avartl": {
     "mesh_source": "Assets/ModelFixes/avartl.mesh",
     "skeleton_source": null,
-    "native_source": null,
+    "native_source": "Assets/ModelFixes/avartl.vdf",
     "mesh_sha256": "9fe135ecbfd306bbfabd2dfdda00d7df42f954c87f5de85c8b945e1c1b1d5de1",
     "skeleton_sha256": "53e440408fbf94d62e1d34d43e537ce6d5b2d7f003a08ab27d10f33964011c7c",
-    "native_sha256": "d66f1e70b2f192632ac31e52e9e905a4975627bd54b0bb0a861bd65e8feef95a",
+    "native_sha256": "7b8bcae1abad686f07b3b77108a39262578d20dc341fa028578c8c2ff7a1df41",
     "nodes": {
       "aar11bgd": {
         "weighted_vertices": 281,
@@ -52,10 +52,10 @@
   "avhraz": {
     "mesh_source": "Assets/ModelFixes/avhraz.mesh",
     "skeleton_source": null,
-    "native_source": null,
-    "mesh_sha256": "043899767cdfca427f90b8c1730c708961eae07aebd8a92fb3dd8c220b69621d",
+    "native_source": "Assets/ModelFixes/avhraz.vdf",
+    "mesh_sha256": "ff7f45fbf28b2381efb73c22c350747491be98cac8e1ae4b89d6e1e9076cf263",
     "skeleton_sha256": "df84e7b1798bfc4caafa08a085e36c9d990d8bd7b1622a33171353b357a4508b",
-    "native_sha256": "50af17f360715befb4e420133ba417ffcee23111218bfa04d2ec8aee83af3188",
+    "native_sha256": "69d413087add42baaf6d17c1f28311e465bc44a0968ec77bb630597fb0287685",
     "nodes": {
       "ahr11bga": {
         "weighted_vertices": 500,
@@ -74,10 +74,10 @@
   "avtank": {
     "mesh_source": "Assets/ModelFixes/avtank.mesh",
     "skeleton_source": null,
-    "native_source": null,
-    "mesh_sha256": "8bde0ed33f7f4819abed5d5e442ec10fcf37990f02186ff5055d0169411ebbb2",
+    "native_source": "Assets/ModelFixes/avtank.vdf",
+    "mesh_sha256": "97136c7f9a1fbd6c75d94b32e90c76fd568ef9e96f58fcf82a4bfe070744f11b",
     "skeleton_sha256": "00ea42ea2f580a3c982180c93204866d1ccf443f1eba6a62754f70c6069d3acd",
-    "native_sha256": "fb4bdf8c4e8f4ccd3c768417eab9bbafcf076ee8d77f077b9791b69ac23afaaf",
+    "native_sha256": "6b34c1704fa3aa464a9d473a66fbde0df9e66c87dcc58b0c187f065059a050c5",
     "nodes": {
       "AGR11BGA": {
         "weighted_vertices": 113,
@@ -128,10 +128,10 @@
   "bvartl": {
     "mesh_source": "Assets/ModelFixes/bvartl.mesh",
     "skeleton_source": null,
-    "native_source": null,
+    "native_source": "Assets/ModelFixes/bvartl.vdf",
     "mesh_sha256": "e6b1845bf5dc340f7dcc371152574ed87083fe70e30536f242ce6b53ddb233d8",
     "skeleton_sha256": "3b3e2d05696a90b7c6fff26b1797b03737fd24b3c80b7cb2e40628f2b60b0df6",
-    "native_sha256": "a56cf6f2c1471962ab996adae5984098bbd13353a13d0e80de78013558b8b608",
+    "native_sha256": "1c10ef182d415af6d8ebab63e6ebd099476978d981050c6f436d428006d8c06d",
     "nodes": {
       "bar11bgd": {
         "weighted_vertices": 254,
@@ -144,10 +144,10 @@
   "bvhraz": {
     "mesh_source": "Assets/ModelFixes/bvhraz.mesh",
     "skeleton_source": null,
-    "native_source": null,
-    "mesh_sha256": "dcc14a6ab295e88ce2a63c2d39bd8d025d6095c064ead841ecd46984ef023bdd",
+    "native_source": "Assets/ModelFixes/bvhraz.vdf",
+    "mesh_sha256": "5ac037f8f5f6b9bd32f220fdf9ff347b85672a7c4b76c5f7fbfa2cee0dd0d1be",
     "skeleton_sha256": "cab7f4e1495f81324383e22b780c57ff4135dfc9ad8bef15009aed7af74a32ff",
-    "native_sha256": "bebe7e73fec1746f36c9eaf61b61e67aa9d778e24ae60db1ff507f2861ce2f24",
+    "native_sha256": "936e662b92f3d47f80fe3dbddea4b7e01ad60d5d15db50acaf8a50c76269777b",
     "nodes": {
       "bhr11bga": {
         "weighted_vertices": 500,
@@ -166,10 +166,10 @@
   "bvtank": {
     "mesh_source": "Assets/ModelFixes/bvtank.mesh",
     "skeleton_source": null,
-    "native_source": null,
-    "mesh_sha256": "c7c78d6d97366f65fc34b2c19d64f93f0eb84a5ee812f25658c442698b138c68",
+    "native_source": "Assets/ModelFixes/bvtank.vdf",
+    "mesh_sha256": "4aca0cf093b4e985ca5ac6d11f9a8784e8c746b9158fff8412cc47ee74040840",
     "skeleton_sha256": "4043ddea5148c1171f5b9aea8cf9c6d3786515cd92f102e3b3e2f891f3f7241e",
-    "native_sha256": "47ee2ebc9848c572097753eeb645446c15feb9f77dac47b5461469e7e9bfe3d2",
+    "native_sha256": "61b1d3c96107bbda41592d31f4d95fce4c93eb6638a7ce8787b37f11b904ae11",
     "nodes": {
       "bGR11BGA": {
         "weighted_vertices": 113,

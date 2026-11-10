@@ -15,4 +15,16 @@ material avtest00 : CR_BZBase
 }
 
 
+material avtest_nacjet : CR_BZBase
+{
+	set_texture_alias DiffuseMap avtest_nacjet_D.dds
+	set_texture_alias NormalMap avtest_nacjet_N.dds
+	set_texture_alias SpecularMap avtest_nacjet_S.dds
+	set_texture_alias EmissiveMap avtest_nacjet_E.dds
 
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+}
