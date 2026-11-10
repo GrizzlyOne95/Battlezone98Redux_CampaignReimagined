@@ -17,8 +17,8 @@ not a claim that Redux shipped an enabled stock fighter.
 `crfraz` is the independent CR ODF/model name. `cfr11*` names its twelve GEO
 companions, preventing collisions with another add-on's parts. The builder changes
 material/skeleton resource strings and part-name prefixes only. Mesh vertices,
-UVs, normals, skin weights, bounds, collision, hardpoints and native animation
-remain intact. The GEO companions ship alongside the mesh: the legacy engine
+UVs, normals, skin weights, bounds, collision and native animation remain intact;
+the later mount pass (below) moves only GC1/GC2 and appends one mount submesh. The GEO companions ship alongside the mesh: the legacy engine
 still reads them, including during destruction.
 
 The diffuse edit starts from Redux `Hvsav00_d.dds`. The built-in imagegen tool
@@ -35,7 +35,9 @@ preserved standalone port, so rebuilding does not depend on Google Drive.
 Since 10 November 2026, GC1 and GC2 sit on visible wing-top cannon mounts
 (`Tools/Build-HardpointMounts.py`, receipts under `References/HardpointMounts` and
 `References/Hardpoints`). Before, they sat inside the wing slab, firing through its
-leading edge. The mount pass builds from the importer's output at CR commit 2390592b.
+leading edge. The mounts use the `sleek_cannon` piece: a low swept blade fairing
+that flows out of the wing into one slim barrel, in hull paint with a cyan muzzle
+accent taken from the hull's own glow. The mount pass builds from the importer's output at CR commit 2390592b.
 It edits the shipped mesh, VDF and skeleton. A rerun of this importer therefore drops
 the mounts. Both mount builders read the import from git at that base, not the working
 tree. To re-apply:
@@ -86,8 +88,9 @@ production adapter is exercised separately by `Test-FuryRoster.lua`.
 
 ## Validation and limits
 
-`Test-FuryFighterAssets.py` checks provenance, geometry/native byte preservation,
-hardpoints, resource links, ordnance range/damage and shipping membership.
+`Test-FuryFighterAssets.py` checks provenance, geometry/native byte preservation
+(after putting back the receipt's GC1/GC2 values and stripping the one mount
+submesh, every original byte must match), hardpoints, resource links, ordnance range/damage and shipping membership.
 `Test-FuryRoster.lua` exercises the actual Mission 17/18 adapters and persistence.
 Mission 14/15/16 regressions cover the changed composition, guest authority,
 caps, watched entries and the new camera-safety classification.
