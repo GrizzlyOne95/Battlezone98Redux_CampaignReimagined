@@ -27,7 +27,7 @@ CONFIG={
 # (all_decompiled.c:194995 =0.1 rad, :195005 =0.4 rad, chosen by a unit flag at
 # :193627); cover the larger, 22.9 deg, rounded up. Clearance keeps a visible gap.
 NOSE_ROLL_DEG=23.0
-NOSE_CLEARANCE=.025
+NOSE_CLEARANCE=scout.NOSE_CLEARANCE
 
 def _dot(a,b):return np.einsum('...i,...i',a,b)
 def _seg_point(a,b,p):
@@ -67,15 +67,7 @@ def rotor_sweep(moving,static,pivot,axis,degrees,clearance):
             if len(si):np.minimum.at(worst,sj[si],tri_tri(static[sj[si]],M[mi]))
     return worst
 
-def glass_limit(meta):
-    """Pull glass vertices along their eye rays to stay behind the rolling nose (UVs are per ray)."""
-    z=meta.get('noseClearZ')
-    if z is None:return None
-    origin=np.array(meta['povPosition']);R=np.array(meta['povBasis'])
-    def clamp(positions):
-        local=(np.asarray(positions,float)-origin)@R;scale=np.where(local[:,2]>z,z/np.maximum(local[:,2],1e-9),1.)
-        return origin+(local*scale[:,None])@R.T
-    return clamp
+glass_limit=scout.glass_limit
 
 def source_island(points,triangles,eligible,seed):
     """One complete welded source island, including faces split at UV seams."""
