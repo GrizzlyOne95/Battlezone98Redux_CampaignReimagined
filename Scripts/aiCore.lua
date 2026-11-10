@@ -9023,11 +9023,20 @@ function aiCore.Team:HasLiveObjectOfOdf(odf)
     local target = string.lower(utility.CleanString(odf or ""))
     if target == "" then return false end
 
+    -- Cheap paths first: craft from the engine, then the tracked buildings. The cache can lag
+    -- (deploy/undeploy, team change), so only the full-world sweep may answer "missing".
+    local function matches(h)
+        return IsValid(h) and IsAlive(h) and GetTeamNum(h) == self.teamNum
+            and string.lower(utility.CleanString(GetOdf(h) or "")) == target
+    end
+    for h in AllCraft() do
+        if matches(h) then return true end
+    end
+    for _, h in ipairs(aiCore.GetCachedBuildings(self.teamNum)) do
+        if matches(h) then return true end
+    end
     for h in AllObjects() do
-        if IsValid(h) and IsAlive(h) and GetTeamNum(h) == self.teamNum
-            and string.lower(utility.CleanString(GetOdf(h) or "")) == target then
-            return true
-        end
+        if matches(h) then return true end
     end
     return false
 end

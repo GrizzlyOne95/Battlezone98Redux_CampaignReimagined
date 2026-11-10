@@ -12,6 +12,7 @@ AllObjects = function()
     local i = 0
     return function() i = i + 1; return objects[i] end
 end
+AllCraft = AllObjects -- test objects are all craft
 
 -- EXU stub: materials by name, sub-entity material lists per handle.
 local materials = { avtank00 = true, avtank00_tm = true, glass = true, cockpit = true,
