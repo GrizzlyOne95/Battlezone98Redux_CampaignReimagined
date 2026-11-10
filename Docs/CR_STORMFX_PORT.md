@@ -104,16 +104,21 @@ the frame wins), `CRStormFX.Shutdown` calls `CRWetGlass.Stop()`.
 
 `Update(intensity 0..1)`, `Stop()` (hide overlays, put the glass back on the no-op material, forget state; the next
 `Update` rebuilds), `Mode()` (`"shell"` = cockpit glass submesh, `"overlay"` = screen), `SetCrack(level, x, y)`,
-`Splat(amount, x, y, flip)`, `Weather(kind, level)`, `Busy()`, `ClearSplats()`, `ScreenToShell(x, y)`. The crack layer
-is not called by CR yet; splats come from `CRStorm18` and the Mars director. Without EXU, with a stub EXU, or without overlay support it does nothing.
+`Splat(amount, x, y, flip)`, `BloodHit(amount, x, y, flip)`, `Weather(kind, level)`, `Busy()`, `BloodBusy()`,
+`ClearSplats()`, `ClearBlood()`, `ScreenToShell(x, y)`. `BloodHit` is queued for a brief screen splatter when the local
+on-foot pilot is struck; `CRSurfaceEffects` keeps calling `Update(0)` through its fade. Without EXU, with a stub EXU,
+or without overlay support it does nothing.
 
 Two modes:
-- Screen overlay (any craft, F1/F2/F3 views): bead, rivulet, streak, crack and dirt panels with the open mask.
+- Screen overlay (craft F1/F2/F3 views, plus on-foot first-person): bead, rivulet, streak, crack, dirt and pilot blood panels with the open mask. Rain and weather directors continue to drive their existing layers on the pilot view.
 - Cockpit glass (F1 only): needs EXU with `exu.animation.TargetCockpit`, `exu.animation.GetCapabilities().glass`,
   `SetSubEntityRenderQueueGroup`, `SetSubEntityMaterial`, `SetMaterialTextureWindow`, `SetMaterialTexture`,
   `SetMaterialPassColors` (all present in CR `Bin/exu.dll`). The `CRWX_CockpitGlass` sub-entity of the cockpit
   entity is moved to render queue group 90 and given `CRWX_CockpitGlass_W<a>C<b>` (one pass per visible layer).
   A craft whose cockpit mesh has no glass submesh falls back to the overlay.
+
+The on-foot view always uses the screen overlay; pilot blood is not attached to a weapon, body or cockpit mesh. Its
+`crwx_pilotblood.png` texture is drawn through the existing SM4/SM3 wet-glass shader and the fixed-function fallback.
 
 ### Weather layers: snow flakes and dust grit
 

@@ -465,6 +465,67 @@ check(#ov.setLog == 0, "the warm-up happens once")
 glass.Stop()
 
 -- =============================================================================
+-- On foot: rain stays on the screen overlay, a hit splashes blood that fades and clears
+-- =============================================================================
+
+do
+    local craftFn = IsCraft
+    IsCraft = function() return false end
+    IsPerson = function() return true end
+    shell.enabled = true                          -- a cockpit is bindable, but a pilot has no glass
+    run(4, 0)                                     -- build and warm up
+    check(not glass.Busy(), "on foot, the glass starts empty")
+    check(not glass.BloodBusy(), "no blood before a hit")
+
+    run(3, 0.8)
+    check(glass.Mode() == "overlay", "on foot, rain stays on the screen overlay, mode " .. tostring(glass.Mode()))
+    check(#visible("CRWX_WetBeads") > 0, "on foot, rain beads show on the overlay")
+    glass.Weather("snow", 0); glass.Weather("grit", 0); glass.Weather("acid", 0)
+    run(12, 0)                                    -- rain clears
+
+    check(glass.BloodHit(0.75, 0.5, 0.45, false) == true, "BloodHit queues a splash")
+    check(glass.BloodBusy() and glass.Busy(), "a queued splash keeps the glass busy")
+    run(0.3, 0)
+    local blood = visible("CRWX_PilotBlood")
+    check(#blood == 1, "one hit shows one blood panel, saw " .. #blood)
+    check(blood[1] ~= nil and blood[1].step >= 8, "blood shows strongly at first")
+    run(3, 0)
+    check(#visible("CRWX_PilotBlood") == 0, "blood fades within about three seconds")
+    check(not glass.BloodBusy(), "faded blood is no longer busy")
+
+    for _ = 1, 9 do glass.BloodHit(1, 0.5, 0.5, true) end
+    run(0.3, 0)
+    check(#visible("CRWX_PilotBlood") <= 3, "rapid hits reuse at most three panels")
+
+    -- Leaving first person clears it at once.
+    X.GetCameraView = function() return 4 end
+    run(0.1, 0)
+    X.GetCameraView = function() return 1 end
+    check(not glass.BloodBusy(), "a camera change clears the blood")
+    run(0.1, 0)
+    check(#visible("CRWX_PilotBlood") == 0, "and it does not come back")
+
+    -- Entering a craft clears it too.
+    glass.BloodHit(1, 0.5, 0.5, false); run(0.2, 0)
+    IsCraft = craftFn; IsPerson = function() return false end
+    run(0.1, 0)
+    check(not glass.BloodBusy() and #visible("CRWX_PilotBlood") == 0, "entering a craft clears the blood")
+
+    -- ClearBlood and Stop clear it; zero-amount hits are ignored.
+    IsCraft = function() return false end; IsPerson = function() return true end
+    glass.BloodHit(1, 0.5, 0.5, false); run(0.2, 0)
+    glass.ClearBlood()
+    check(not glass.BloodBusy(), "ClearBlood clears the blood")
+    glass.BloodHit(1, 0.5, 0.5, false)
+    check(glass.BloodHit(0, 0.5, 0.5, false) == false, "a zero-amount hit is ignored")
+    glass.Stop()
+    check(not glass.BloodBusy(), "Stop clears queued blood")
+
+    shell.enabled = false
+    IsCraft = craftFn; IsPerson = nil
+end
+
+-- =============================================================================
 -- What ships
 -- =============================================================================
 
@@ -491,7 +552,8 @@ for family in string.gmatch(families, '"(CRWX_[%w]+)"') do
             family .. "_A" .. step .. " is defined")
     end
 end
-check(n == 13, "thirteen overlay families, found " .. n)
+check(n == 14, "fourteen overlay families, found " .. n)
+check(slurp(root .. "/Assets/Textures/crwx_pilotblood.png") ~= nil, "crwx_pilotblood.png ships")
 for tex in string.gmatch(string.match(source, "local LAYER_TEXTURE = (%b{})"), '"(crwx_[%w_]+%.png)"') do
     check(slurp(root .. "/Assets/Textures/" .. tex) ~= nil, tex .. " ships")
 end

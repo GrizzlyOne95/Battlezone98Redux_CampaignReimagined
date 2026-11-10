@@ -91,6 +91,15 @@ Impact dirt on the glass and saving the crack spot are not ported.
 charred layer, surface arcs and emissive visuals still need native visual
 qualification.
 
+When the player is on foot in first-person view, `CRWetGlass` also puts its
+existing rain and weather layers on the screen overlay. A hit on the local
+person queues a dark-red splatter near the centre of the view; three small
+panels allow close hits to overlap, then each fades over about two seconds.
+`CRSurfaceEffects` drives the fade and clears it on a camera change, scene
+reset or shutdown. This is a screen effect using the existing wet-glass shader
+delegates and fallback, separate from the cockpit geometry effects. Native
+visual qualification has not been performed.
+
 Rain reaches every material in one synchronised sweep: shared materials and
 owned clones (towers, hit units) all receive the same swept value, which moves
 at most 0.03 per completed sweep. A few hundred materials therefore wet or dry

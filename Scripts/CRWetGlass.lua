@@ -12,9 +12,9 @@
 -- a streak layer of drops racing up the glass takes over. When the rain stops
 -- the glass dries.
 --
--- Shown only for a craft in a first-person view (F1, F2, F5), never on foot,
--- in the chase/orbit cameras, the satellite view or a menu. Without EXU (or
--- an EXU without overlays) it does nothing.
+-- Shown for a craft in a first-person view (F1, F2, F5), or a pilot on foot in
+-- first person. It stays off in chase/orbit cameras, the satellite view and a
+-- menu. Without EXU (or an EXU without overlays) it does nothing.
 --
 -- Textures and the alpha-stepped materials (crwx_wetglass.material) come from the ISDFC tools/wetglassgen.py.
 -- Drops show only through the canopy glass where the craft has a cockpit
@@ -46,6 +46,8 @@
 --   CRWetGlass.Splat(amount 0..1, x, y, flip) a dirt splat that fades over a few seconds (3 at once)
 --   CRWetGlass.Busy()                        true while either is on the glass: keep calling Update(0)
 --   CRWetGlass.ClearSplats()
+--   CRWetGlass.BloodHit(amount, x, y, flip)   a short screen-space blood splatter for an on-foot hit
+--   CRWetGlass.ClearBlood()
 --
 -- WEATHER LAYERS (not rain). More wrap families on the same glass, driven by weather directors
 -- (CREuropaWeather frost, CRMarsWeather grit) through CRWetGlass.Weather(kind, level 0..1), then Update(0):
@@ -77,12 +79,13 @@ local wetglass = {}
 local STEPS = 16            -- opacity steps in crwx_wetglass.material
 local BEAD_LAYERS = 4
 local RIVULET_LAYERS = 2
+local BLOOD_LAYERS = 3
 local OVERLAY = "crwx_wetglass"
 local Z_ORDER = 5           -- under custom HUD overlays
 local VIEW_OK = { [1] = true, [2] = true, [3] = true } -- cockpit, no cockpit, no HUD
 local FAMILIES = { "CRWX_WetBeads", "CRWX_WetStreak", "CRWX_WetRivulet", "CRWX_WindCrack", "CRWX_WindDirt",
 	"CRWX_WinSnow", "CRWX_WinGrit", "CRWX_AcidBeads", "CRWX_AcidRivulet", "CRWX_AcidStreak", "CRWX_WinEtch",
-	"CRWX_WinFrost", "CRWX_WinIce" }
+	"CRWX_WinFrost", "CRWX_WinIce", "CRWX_PilotBlood" }
 -- Acid rain: the yellow-green variant of each rain family (same alpha, tinted colour).
 local ACID_OF = { CRWX_WetBeads = "CRWX_AcidBeads", CRWX_WetRivulet = "CRWX_AcidRivulet", CRWX_WetStreak = "CRWX_AcidStreak" }
 local ACID_MIN = 0.02          -- Weather("acid") level above which new drops are acid
@@ -143,6 +146,7 @@ local frame, pending = nil, 0
 local lastRun = nil
 local crackWant, crackX, crackY = 0, 0.5, 0.4   -- what the damage caller asked for; applied by run()
 local splats = {}                               -- queued { amount, x, y, flip }
+local bloodHits = {}                            -- queued screen-space splashes from on-foot hits
 local snowWant, gritWant, acidWant = 0, 0, 0    -- Weather() levels 0..1, kept until changed
 local frostWant, frostLevel = 0, 0                  -- Weather("frost") level and the level the glass has eased to
 local etchExposure = 0                              -- 0..1, builds while acidWant > 0 and clears slowly
@@ -216,7 +220,7 @@ local function build()
 	pcall(exu.DestroyOverlay, OVERLAY)
 	if not call("CreateOverlay", OVERLAY) then return false end
 	call("SetOverlayZOrder", OVERLAY, Z_ORDER)
-	local s = { beads = {}, visible = false, streakV = 0, mask = OPEN_MASK, posed = {} }
+	local s = { beads = {}, blood = {}, visible = false, streakV = 0, mask = OPEN_MASK, posed = {} }
 	for k = 1, BEAD_LAYERS do
 		local p = newPanel(OVERLAY .. "_b" .. k, "CRWX_WetBeads")
 		if p == nil then return false end
@@ -263,6 +267,12 @@ local function build()
 	s.etch = newPanel(OVERLAY .. "_e", "CRWX_WinEtch")
 	if s.etch == nil then return false end
 	s.etch.phase = "off"
+	for k = 1, BLOOD_LAYERS do
+		local p = newPanel(OVERLAY .. "_blood" .. k, "CRWX_PilotBlood")
+		if p == nil then return false end
+		p.phase, p.screenOnly = "off", true
+		s.blood[k] = p
+	end
 	return s
 end
 
@@ -305,6 +315,7 @@ local function allLayers()
 	for _, p in ipairs(state.dirt) do list[#list + 1] = p end
 	-- Frost is clamped too but nearly always up on Europa: last, so damage wins the clamp budget.
 	list[#list + 1] = state.frost
+	for _, p in ipairs(state.blood) do list[#list + 1] = p end
 	return list
 end
 
@@ -439,7 +450,7 @@ local function shellApply()
 	local sh = state.shell
 	local wrap, clamped = {}, {}
 	for _, p in ipairs(allLayers()) do
-		if p.on and p.uv then
+		if not p.screenOnly and p.on and p.uv then
 			if CLAMPED[p.family] then clamped[#clamped + 1] = p else wrap[#wrap + 1] = p end
 		end
 	end
@@ -508,9 +519,14 @@ local function show(visible)
 end
 
 local function viewAllowsGlass(player)
-	if not IsCraft(player) then return false end
+	local craft = IsCraft(player) == true
+	local person = type(IsPerson) == "function" and IsPerson(player) == true
+	if not craft and not person then return false end
 	local ok, v = pcall(exu.GetCameraView or function() return 1 end)
-	if ok and type(v) == "number" and not VIEW_OK[v] then return false end
+	if not ok then return false end
+	if person then
+		if v ~= 1 then return false end
+	elseif type(v) == "number" and not VIEW_OK[v] then return false end
 	ok, v = pcall(exu.GetSatState or function() return 0 end)
 	if ok and v == 1 then return false end
 	ok, v = pcall(exu.IsPauseMenuOpen or function() return false end)
@@ -589,6 +605,71 @@ local function damageLayers(ar, dt)
 		end
 	end
 	return any
+end
+
+-- Blood is a screen-only overlay: a compact splat appears near the impact
+-- point, holds briefly, then fades. Three panels allow closely spaced hits to
+-- overlap without leaving a permanent red tint on the view.
+local function bloodLayers(dt)
+	local any = false
+	while #bloodHits > 0 do
+		local hit = table.remove(bloodHits, 1)
+		local p
+		for _, layer in ipairs(state.blood) do
+			if layer.phase == "off" then p = layer; break end
+			if p == nil or layer.alpha < p.alpha then p = layer end
+		end
+		local height = 0.24 + 0.10 * hit.amount
+		local width = height / aspect()
+		local x = clamp(hit.x, width * 0.5, 1 - width * 0.5)
+		local y = clamp(hit.y, height * 0.5, 1 - height * 0.5)
+		local rect = string.format("%.4f %.4f %.4f %.4f", x - width * 0.5, y - height * 0.5, width, height)
+		if p.rect ~= rect then
+			call("SetOverlayPosition", p.name, x - width * 0.5, y - height * 0.5)
+			call("SetOverlayDimensions", p.name, width, height)
+			p.rect = rect
+		end
+		setUV(p, hit.flip and 1 or 0, 0, hit.flip and -1 or 1, 1)
+		p.phase, p.t = "in", 0
+		p.peak, p.hold = 0.50 + 0.35 * hit.amount, 0.15 + 0.12 * hit.amount
+		p.fade = 1.2 + 0.9 * hit.amount
+	end
+	for _, p in ipairs(state.blood) do
+		if p.phase ~= "off" then
+			p.t = p.t + dt
+			local a
+			if p.phase == "in" then
+				a = p.peak * smoothstep(0, 0.05, p.t)
+				if p.t >= 0.05 then p.phase, p.t = "hold", 0 end
+			elseif p.phase == "hold" then
+				a = p.peak
+				if p.t >= p.hold then p.phase, p.t = "out", 0 end
+			else
+				a = p.peak * (1 - smoothstep(0, p.fade, p.t))
+				if p.t >= p.fade then p.phase, a = "off", 0 end
+			end
+			setAlpha(p, a)
+			any = any or p.on == true
+		end
+	end
+	return any
+end
+
+local function clearBlood()
+	-- Runs every frame in a craft or a disallowed view: clear in place, no allocation.
+	for i = #bloodHits, 1, -1 do bloodHits[i] = nil end
+	if not state then return end
+	for _, p in ipairs(state.blood) do
+		if p.phase ~= "off" or p.alpha > 0 then
+			p.phase = "off"
+			setAlpha(p, 0)
+		end
+		if p.rect then
+			call("SetOverlayPosition", p.name, 0, 0)
+			call("SetOverlayDimensions", p.name, 1, 1)
+			p.rect = nil
+		end
+	end
 end
 
 -- Snow flakes: sparse crystals land slowly (fade in over seconds), sit, then melt away (slow
@@ -787,11 +868,14 @@ end
 local function run(intensity, dt)
 	local player = GetPlayerHandle()
 	if not IsValid(player) or not viewAllowsGlass(player) then
+		clearBlood()
 		if mode == "shell" then setMode("overlay") end
 		show(false)
 		return
 	end
-	local onGlass = shellBind(player)
+	local onFoot = type(IsPerson) == "function" and IsPerson(player) == true
+	if not onFoot then clearBlood() end
+	local onGlass = not onFoot and shellBind(player)
 	setMode(onGlass and "shell" or "overlay")
 	if onGlass then show(false) else useMask(player) end
 	local i = clamp(intensity, 0, 1)
@@ -903,13 +987,14 @@ local function run(intensity, dt)
 	if frostLayers(ar, dt) then any = true end
 	if etchLayer(ar) then any = true end
 	if damageLayers(ar, dt) then any = true end
+	if onFoot and bloodLayers(dt) then any = true end
 
 	if onGlass then
 		if not shellApply() then state.shellOk = false end   -- the glass refused: overlay from now on
 		return
 	end
 	if mode == "overlay" and (state.warm == nil or #state.warm > 0) and warmUp() then any = true end
-	poseMask(player)
+	if not onFoot then poseMask(player) end
 	show(any)
 end
 
@@ -931,6 +1016,31 @@ function wetglass.Splat(amount, x, y, flip)
 		flip = flip == true }
 end
 
+--- A brief blood splatter at screen fractions (x, y) for a first-person pilot hit.
+--- Returns false only when the overlay is unavailable; the caller should keep Update running while Busy().
+function wetglass.BloodHit(amount, x, y, flip)
+	if state == false then return false end
+	amount = clamp(tonumber(amount) or 0, 0, 1)
+	if amount <= 0 then return false end
+	if #bloodHits >= 6 then table.remove(bloodHits, 1) end
+	bloodHits[#bloodHits + 1] = { amount = amount, x = clamp(tonumber(x) or 0.5, 0, 1),
+		y = clamp(tonumber(y) or 0.44, 0, 1), flip = flip == true }
+	return true
+end
+
+--- Clears queued and fading on-foot blood splashes, for a camera or vehicle change.
+function wetglass.ClearBlood() clearBlood() end
+
+--- True while an on-foot blood splatter is queued or fading.
+function wetglass.BloodBusy()
+	if state == false then return false end
+	if #bloodHits > 0 then return true end
+	if state then
+		for _, p in ipairs(state.blood) do if p.phase ~= "off" then return true end end
+	end
+	return false
+end
+
 --- Weather layers on the glass: kind "frost" (frost creeping in from the edges plus ice grains, eased slowly),
 --- "snow" (soft flakes that land and melt), "grit" (fine dust specks) or "acid" (yellow-green rain drops plus a
 --- slowly building etch haze), level 0..1. The level stays until changed; 0 lets it fade out. The caller keeps calling
@@ -948,10 +1058,12 @@ end
 function wetglass.Busy()
 	if state == false then return false end
 	if crackWant > 0 or #splats > 0 or snowWant > 0 or gritWant > 0 or frostWant > 0 or acidWant > 0 then return true end
+	if wetglass.BloodBusy() then return true end
 	if etchExposure > 0 or frostLevel > 0 then return true end
 	if state then
 		if state.crack.alpha > 0 then return true end
 		for _, p in ipairs(state.dirt) do if p.phase ~= "off" then return true end end
+		for _, p in ipairs(state.blood) do if p.phase ~= "off" then return true end end
 		for _, p in ipairs(state.snow) do if p.phase ~= "off" then return true end end
 		for _, p in ipairs(state.grit) do if p.on then return true end end
 		if state.frost.on or state.ice.on then return true end
@@ -980,7 +1092,7 @@ end
 
 --- Hides the overlay, puts the glass back on the no-op material and forgets the built state (mission end).
 function wetglass.Stop()
-	if state == nil then return end
+	if state == nil then bloodHits = {}; return end
 	if state and exu then
 		pcall(exu.HideOverlay, OVERLAY)
 		if mode == "shell" and state.shell and state.shell.target then
@@ -990,6 +1102,7 @@ function wetglass.Stop()
 	end
 	state, mode, frame, pending, lastRun = nil, "overlay", nil, 0, nil
 	crackWant, splats = 0, {}
+	bloodHits = {}
 	snowWant, gritWant, acidWant, etchExposure = 0, 0, 0, 0
 	frostWant, frostLevel = 0, 0
 end
