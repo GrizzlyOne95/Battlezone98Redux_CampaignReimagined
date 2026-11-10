@@ -45,8 +45,8 @@ NEUTRAL = dict(paint=(150., 152, 150), faction=dict(stripe=(196, 196, 190), glow
 # on the hull below it along -normal. fire: forward of the piece (made perpendicular to normal).
 # base: the git revision of the unit's mesh before any mount.
 CONFIG = {
-    'avfigh': dict(piece='rocket', part='ARA11Gr1', owner='ARA11BDA', faction='nsdf', scale=.85,
-                   at=(0., .06, 1.3), normal=(0., -1, 0), fire=(0., 0, 1), base='628a1fa1646242e5405ce31f26dbf31f9f955abc'),
+    'avfigh': dict(piece='rocket', part='ARA11Gr1', owner='ARA11rof', faction='nsdf', scale=.85,
+                   at=(.55, .45, 2.4), normal=(0., -1, 0), fire=(0., 0, 1), base='628a1fa1646242e5405ce31f26dbf31f9f955abc'),
     'avhraz': dict(piece='cannon', part='Ahr11Gc1', owner='ahr11bda', faction='nsdf', scale=1.3,
                    at=(-1., 1.5, 2.3), normal=(-.99, 0, .11), fire=(0., 0, 1), base='75fb226a0be4ea9e885c6c055bd1be31753040bd'),
     'bvhraz': dict(piece='cannon', part='bhr11Gc1', owner='bhr11bda', faction='blackdogs', scale=1.3,
@@ -54,9 +54,12 @@ CONFIG = {
     'bvrdev': dict(piece='mortar', part='brd11GM1', owner='brd11bda', faction='blackdogs', scale=1.,
                    at=(.9, 1.36, -.4), normal=(.29, .96, 0), fire=(0., 0, 1), base='f09fec92f1d6da20facde0d095c45f19a913c866'),
 }
-# avfigh carries its pod under the chin: the canopy (glass up to y 2.4 at z 1.0-1.2) blocks any
-# dorsal line of fire. Kit sheet only: the same pod upright on the left wing, a second mounting angle.
-WING = dict(CONFIG['avfigh'], at=(-1.4, .95, -1.45), normal=(-.29, .93, -.23))
+# avfigh carries its pod under the rolling nose (ARA11rof), off the keel: the canopy (glass up to
+# y 2.4 at z 1.0-1.2) blocks any dorsal line of fire, and the nose underside is a V whose keel
+# (y .09-.27) is too low for a pod that hangs .35 m: on the keel or under the body (y .04) the pod
+# would be the lowest point of the craft. Under the chine (y .45) it clears the hull's lowest point.
+# Kit sheet only: the same pod upright on the left wing, a second mounting angle.
+WING = dict(CONFIG['avfigh'], owner='ARA11BDA', at=(-1.4, .95, -1.45), normal=(-.29, .93, -.23))
 
 
 def without_mount(blob, unit):
@@ -146,7 +149,81 @@ def checks(kit, seat, M, scale, hull, glass_hull):
     side = np.cross(fire, M[0]); side = nj.unit_vectors(side)
     blocked = [nj.ahead(glass_hull, muzzle + fire * .01 + o, fire) for o in (0 * side, side * .03, -side * .03, M[0] * .03, -M[0] * .03)]
     assert all(b is None for b in blocked), ('hull or glass in front of the muzzle', blocked)
-    return dict(footprint=len(foot), skinAboveFloor=[float(depth.min()), float(depth.max())], saddleTop=top, muzzle=muzzle.tolist(), fire=fire.tolist())
+    ground = float(to_posed(kit['positions'], seat, M, scale)[:, 1].min() - hull[..., 1].min())
+    assert ground >= -1e-4, ('mount hangs below the hull: it would touch the ground first', round(ground, 4))
+    return dict(footprint=len(foot), skinAboveFloor=[float(depth.min()), float(depth.max())], saddleTop=top, muzzle=muzzle.tolist(), fire=fire.tolist(),
+                groundClearance=round(ground, 4))
+
+
+def roll_check(kit, seat, M, scale, mesh, pose, skeleton, parts, W, owner):
+    """A mount on a rolling part (VDF class 66, the nose; the engine rolls it about its own z,
+    all_decompiled.c:193638-193641) keeps cp.NOSE_CLEARANCE from everything that does not roll
+    with it, glass included, through +-cp.NOSE_ROLL_DEG; returns the gap and the lowest point."""
+    import combatcockpits as cp
+    moving = {owner.name.lower()}
+    while True:
+        more = {p.name.lower() for p in parts if (p.parent or '').lower() in moving} - moving
+        if not more:
+            break
+        moving |= more
+    handles = {b.handle for b in skeleton.bones if b.name.lower() in moving}
+    static = []
+    for sub, (mat, p, n, uv, t) in zip(mesh.submesh_list, nj.posed_parts(mesh, pose)):
+        own = np.full(len(p), -1); w = np.zeros(len(p))
+        for a in sub.bone_assignments():
+            if a.weight > w[a.vertex_index]: w[a.vertex_index] = a.weight; own[a.vertex_index] = a.bone_index
+        static.append(p[t[~np.isin(own[t], list(handles)).any(1)]])
+    static = np.concatenate(static)
+    R, t = W[owner.name.lower()]; pivot = t * S; axis = nj.unit_vectors(R[2] * S)
+    tri = to_posed(kit['tri'].reshape(-1, 3), seat, M, scale).reshape(-1, 3, 3)
+    near = static[np.linalg.norm(static.mean(1) - tri.reshape(-1, 3).mean(0), axis=1) < 2.]
+    angles = np.arange(-cp.NOSE_ROLL_DEG, cp.NOSE_ROLL_DEG + .5, 1.)
+    gap = float(cp.rotor_sweep(tri, near, pivot, axis, angles, .2).min())
+    assert gap >= cp.NOSE_CLEARANCE, ('rolling mount comes within', round(gap, 4), 'of the static hull or glass')
+    k = axis; K = np.array([[0, -k[2], k[1]], [k[2], 0, -k[0]], [-k[1], k[0], 0]])
+    low = min((((tri.reshape(-1, 3) - pivot) @ (np.eye(3) + np.sin(a) * K + (1 - np.cos(a)) * K @ K).T + pivot)[:, 1].min() for a in np.radians(angles)))
+    return dict(degrees=cp.NOSE_ROLL_DEG, staticGap=round(gap, 4), rolledGroundClearance=round(float(low - static[..., 1].min()), 4))
+
+
+def seat_paint(mesh, pose, seat, normal):
+    """Paint and marking colour of the hull skin around the seat (not an atlas-wide average):
+    area-weighted texels of the nearby faces that look along the attach normal. paint is the
+    dominant calm colour; accent the median of the contrasting near-grey marking texels in a
+    wider ring (the hull's own worn white on dark paint, its dark trim on pale paint)."""
+    tris, uvs, paths = [], [], []
+    for mat, p, n, uv, t in nj.posed_parts(mesh, pose):
+        path = nj.texture_path(mat)
+        if path and 'glass' not in mat.lower() and not mat.endswith('_hpmount'):
+            tris.append(p[t]); uvs.append(uv[t]); paths += [path] * len(t)
+    tri, uv, paths = np.concatenate(tris), np.concatenate(uvs), np.array([str(p) for p in paths])
+    c = tri.mean(1); facing = nj.unit_vectors(np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0]))
+    distance = np.linalg.norm(c - seat, axis=1); along = np.abs(facing @ normal)
+    def texels(sel, count=4000):
+        path = max(set(paths[sel]), key=list(paths[sel]).count); sel = sel & (paths == path)
+        image = np.asarray(Image.open(path).convert('RGB'), float); h, w = image.shape[:2]
+        area = np.linalg.norm(np.cross(tri[sel][:, 1] - tri[sel][:, 0], tri[sel][:, 2] - tri[sel][:, 0]), axis=1)
+        pick = np.random.default_rng(1).choice(sel.sum(), count, p=area / area.sum()); weights = np.random.default_rng(2).dirichlet((1, 1, 1), count)
+        s = (weights[..., None] * uv[sel][pick]).sum(1) % 1
+        return image[(s[:, 1] * h).astype(int).clip(0, h - 1), (s[:, 0] * w).astype(int).clip(0, w - 1)], path
+    for radius in (.45, .7, 1.):
+        sel = (distance < radius) & (along > .5)
+        if sel.sum() >= 8:
+            break
+    texel, path = texels(sel)
+    calm = (texel.max(1) - texel.min(1) < 90) & (texel.max(1) > 20)  # not hazard trim or decals, not black gaps
+    body = texel[calm] if calm.sum() >= .2 * len(texel) else texel
+    key = (body // 24).astype(int) @ (1, 16, 256); body = body[key == np.bincount(key).argmax()]
+    paint = np.median(body, 0)
+    ring, _ = texels((distance < 1.6) & (along > .3), 12000)
+    grey = (ring.max(1) - ring.min(1) < 40) & (ring.max(1) > 20)
+    if paint.mean() < 110:  # dark paint: the marking is the hull's own worn pale
+        mark = ring[grey & (ring.mean(1) > max(120., paint.mean() * 1.6))]
+        fallback = np.clip(paint * 1.8, 0, 200)
+    else:  # pale paint: the marking is the hull's own dark trim
+        mark = ring[grey & (ring.mean(1) < paint.mean() * .45)]
+        fallback = paint * .35
+    accent = np.median(mark, 0) if len(mark) >= 40 else fallback
+    return [float(v) for v in paint], [float(v) for v in accent], path, int(len(mark))
 
 
 def textures(name, kit, paint, faction):
@@ -259,9 +336,11 @@ def build(unit, render_sheets, shipping):
     hull = posed_hull(mesh, pose); glass_hull = posed_hull(mesh, pose, glass=True)
     seat, M = place(cfg, hull); scale = cfg['scale']; measured = checks(kit, seat, M, scale, hull, glass_hull)
     bone = next(b for b in skeleton.bones if b.name.lower() == cfg['owner'].lower())
+    if by[cfg['owner'].lower()].klass == 66:
+        measured['roll'] = roll_check(kit, seat, M, scale, mesh, pose, skeleton, parts, W, by[cfg['owner'].lower()])
     D, shift = pose[bone.handle]; (rows, index), posed = mount_rows(kit, seat, M, scale, D, shift)
-    material = unit + '_hpmount'; paint, atlas = nj.paint_colour(mesh, bone.handle)
-    images, zone = textures(unit, kit, paint, nj.FACTIONS[cfg['faction']]); tex = save_textures(images, material, work)
+    material = unit + '_hpmount'; paint, accent, atlas, marks = seat_paint(mesh, pose, seat, M[1])
+    images, zone = textures(unit, kit, paint, dict(nj.FACTIONS[cfg['faction']], stripe=accent)); tex = save_textures(images, material, work)
     (work / (material + '.material')).write_text('\n'.join(['import * from "CR_BZBase.material"', ''] + nj.material_block(material)), newline='\n')
     nj.preview_mesh(mesh, material, rows, index, np.full(len(rows), bone.handle), work / f'{unit}.mesh')
     muzzle = np.array(measured['muzzle']); fire = np.array(measured['fire']); point = muzzle - fire * INSET * scale
@@ -274,7 +353,7 @@ def build(unit, render_sheets, shipping):
                    frame=dict(at=list(cfg['at']), seat=seat.round(6).tolist(), normal=M[1].round(6).tolist(), front=M[2].round(6).tolist(), scale=scale),
                    bury=float(kit['bury']) * scale, muzzle=muzzle.round(6).tolist(), fire=fire.round(6).tolist(), inset=INSET * scale,
                    hardpoint=np.round(point, 6).tolist(), stockHardpoint=np.round(old_hp, 6).tolist(),
-                   paint=[round(c, 1) for c in paint], paintFrom=Path(atlas).name, checks=measured)
+                   paint=[round(c, 1) for c in paint], accent=[round(c, 1) for c in accent], markTexels=marks, paintFrom=Path(atlas).name, checks=measured)
     if shipping:
         receipt['meshSha256'] = nj.ship(unit, material, work)
         RECEIPTS.mkdir(parents=True, exist_ok=True)
@@ -282,7 +361,8 @@ def build(unit, render_sheets, shipping):
         hp_path.write_text(json.dumps(hp_receipt, indent=2) + '\n', newline='\n')
     else:
         (work / 'receipt.json').write_text(json.dumps(receipt, indent=2)); (work / 'hardpoints.json').write_text(json.dumps(hp_receipt, indent=2))
-    print(f"{unit}: {cfg['piece']} {len(kit['tris'])} tris on {receipt['owner']}, seat {seat.round(3)}, muzzle {muzzle.round(3)}, hardpoint moved {np.round(old_hp, 3)} -> {np.round(point, 3)}, paint {np.round(paint)}")
+    print(f"{unit}: {cfg['piece']} {len(kit['tris'])} tris on {receipt['owner']}, seat {seat.round(3)}, muzzle {muzzle.round(3)}, hardpoint moved {np.round(old_hp, 3)} -> {np.round(point, 3)}, "
+          f"paint {np.round(paint)} accent {np.round(accent)} ({marks} marking texels), ground {measured['groundClearance']:+.3f}" + (f", roll {measured['roll']}" if 'roll' in measured else ''))
     if render_sheets:
         review = LOCAL / 'review'; review.mkdir(parents=True, exist_ok=True)
         lo, hi = hull.reshape(-1, 3).min(0), hull.reshape(-1, 3).max(0); centre = (lo + hi) / 2; radius = np.linalg.norm(hi - lo) / 2
@@ -294,13 +374,13 @@ def build(unit, render_sheets, shipping):
         after = render(work, 'after', base + [mount_part(work, 'mount', kit, seat, M, scale, tex)], views, emit=[point], fire=[fire],
                        marks=[dict(at=old_hp, colour=(1, .2, .2), radius=.05)])
         nj.sheet(before + after, ['before: 3/4', 'before: close-up', 'after: 3/4', 'after: close-up'], review / f'{unit}.jpg', 2,
-                 footer=[f"{unit}: {cfg['piece']} on {receipt['owner']} ({len(kit['tris'])} tris), paint sampled {np.round(paint).astype(int).tolist()} from {receipt['paintFrom']}, {cfg['faction']} stripe",
+                 footer=[f"{unit}: {cfg['piece']} on {receipt['owner']} ({len(kit['tris'])} tris), paint {np.round(paint).astype(int).tolist()} and marking {np.round(accent).astype(int).tolist()} sampled beside the seat on {receipt['paintFrom']}; {measured['groundClearance']:+.2f} m above the hull's lowest point",
                          f"{receipt['part']} moved from {np.round(old_hp, 2).tolist()} (white dot) to the muzzle {np.round(point, 2).tolist()} (where the orange fire-direction line starts)"])
     return receipt
 
 
 def kit_sheet():
-    """Each piece alone in neutral grey and both faction paints, and the rocket pod under avfigh's chin
+    """Each piece alone in neutral grey and both faction paints, and the rocket pod under avfigh's nose
     and on its wing root (the same piece and UV layout from a second attach frame)."""
     work = LOCAL / 'kit'; images, captions = [], []
     palettes = [('neutral', NEUTRAL['paint'], NEUTRAL['faction']), ('nsdf', (60., 92, 96), nj.FACTIONS['nsdf']), ('blackdogs', (58., 58, 60), nj.FACTIONS['blackdogs'])]
@@ -319,9 +399,9 @@ def kit_sheet():
     cfg = CONFIG['avfigh']; kit = piece('rocket'); w, mesh, skeleton, parts_, W, by, pose = load('avfigh', cfg)
     hull = posed_hull(mesh, pose); base = hull_parts(mesh, pose, w, 'k')
     tex = {k: str(w / f'avfigh_hpmount_{k}.png') for k in 'DN'}
-    for label, c in (('chin', cfg), ('wing', WING)):
+    for label, c in (('nose', cfg), ('wing', WING)):
         seat, M = place(c, hull); checks(kit, seat, M, c['scale'], hull, posed_hull(mesh, pose, glass=True))
-        side = nj.unit_vectors(np.array((1., -.35, .8) if label == 'chin' else (-1., .5, .8)))
+        side = nj.unit_vectors(np.array((1., -.35, .8) if label == 'nose' else (-1., .5, .8)))
         images += render(w, f'kit_{label}', base + [mount_part(w, f'kit_{label}', kit, seat, M, c['scale'], tex)],
                          [dict(file=label, eye=(seat + side * 3.2).tolist(), target=seat.tolist(), fov=45)])
         captions.append(f'avfigh rocket pod, {label} frame (normal {np.round(M[1], 2).tolist()})')

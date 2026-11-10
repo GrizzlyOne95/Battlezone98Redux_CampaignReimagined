@@ -7,6 +7,7 @@ For each References/HardpointMounts/<unit>.json, through the toolkit serializers
   - the <unit>_hpmount submesh: triangles == the receipt, within the kit cap, closed and manifold
     (welded positions, every edge used by exactly two triangles), every vertex on the owner bone,
   - in the VDF pose the buried saddle lies under the hull skin (rays along +normal hit the hull),
+  - the mount's lowest point is not below the hull's (it never touches the ground first),
   - the hardpoint part: parent == owner, at the receipt point, just inside the muzzle,
   - nothing of the hull or glass lies in front of the muzzle,
   - the four <unit>_hpmount textures and the material block exist.
@@ -65,6 +66,12 @@ def check(receipt):
     misses = sum(nj.ahead(hull, v, normal) is None for v in floor)
     if misses:
         errors.append(f'{misses} saddle floor vertices with no hull above them (a floating corner)')
+
+    ground = float(p[t][..., 1].min() - hull[..., 1].min())
+    if ground < -1e-4:
+        errors.append(f'mount hangs {-ground:.3f} m below the hull: it would touch the ground first')
+    if abs(ground - receipt['checks']['groundClearance']) > 1e-3:
+        errors.append(f"ground clearance {ground:+.4f}, receipt {receipt['checks']['groundClearance']:+.4f}")
 
     if (part.parent or '').lower() != receipt['owner'].lower():
         errors.append(f'{part.name} parent {part.parent}, expected the owner {receipt["owner"]}')
