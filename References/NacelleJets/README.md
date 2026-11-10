@@ -53,7 +53,10 @@ only shows above 10% throttle. Under co-op team colours only the hull paint is r
 
 The tool always starts from the unit's pre-rig mesh at `source_revision` in
 `References/WeaponRigs/models.json`, so it can be re-run at any time. Preview output goes
-to `Local/NacelleJets/<unit>`; review sheets go to `review/`. Only `--ship` writes the receipt.
+to `Local/NacelleJets/<unit>` (with a `preview.json` receipt); review sheets go to `review/`
+for a shipped unit and to the git-ignored `Local/NacelleJets/review-rollout/` for a preview.
+Only `--ship` writes the tracked receipt. `--contact` composes one sheet per faction from
+finished preview renders.
 
 Shipping a unit, in order:
 
@@ -76,9 +79,26 @@ merge commit, not a squash.
 
 ## Adding a unit
 
-Add an entry to `CONFIG` in `Tools/Build-NacelleJets.py` (faction, shape, stripe). The unit
-needs class 67 nacelles and no class 75 part; a craft that carries its own class 75 part
-emits from that part instead, and this tool does not handle it.
+Add an entry to `CONFIG` in `Tools/Build-NacelleJets.py`: `unit(faction, scale, length,
+also=..., offset=...)`. `scale` sizes the whole shape family (the engine draws every unit's
+flame the same size, so 0.8-1.5 covers the fleet); `length` stretches the pod along the
+chord; `offset=(dx, dz)` moves the pod body off the emit point to reach solid skin (the
+nozzle stays on the emit point); `also=((part-name regex, fitted(...)),)` gives a nacelle
+its own shape (avartl's rear pod). Emitters that seat alike share one solid; the others
+carry rigid copies (mirrored across x when needed), each bound to its own bone.
+
+Emit points come from class 67 nacelles (nacelle up axis x GEO bbox min y; a missing GEO is
+estimated from the lowest mesh vertex the bone owns and flagged) or, when the VDF authors
+them, from each class 75 part (its position, flame along its front axis; BZ 1.5 decompile
+`all_decompiled.c` 255588-255605 and 193702-193706, UNVERIFIED against the Redux renderer).
+A class 75 part whose flame runs into mesh within 0.5 m sits in modelled geometry and gets
+no housing (svhaul, bvrdev). Class 76 is smoke only.
+
+The seat is a plane fitted under the pod footprint and raised to the highest skin, so the
+roof is buried everywhere; the pod deepens to carry the nozzle at the emit point. Asserts:
+some skin to seat on (>= 35% of the footprint), roof never exits the far side, every boolean
+leaves one manifold piece. A unit that fails one is reported, not forced through. Read the
+`notes` in `preview.json` (edge overhang, deepened pod, emit inside the skin) before shipping.
 
 ## Review sheets (avfigh)
 
