@@ -2382,7 +2382,7 @@
           "recoil_distance": null,
           "recoil_effective_kick": null,
           "flash_offset": null,
-          "flash_status": "parent cfr11bda is not a barrel node and has no geometry around the hardpoint",
+          "flash_status": "parent cfr11bda is not a barrel node; the hardpoint already sits at the wing-top cannon mount muzzle",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"
@@ -2394,7 +2394,7 @@
           "recoil_distance": null,
           "recoil_effective_kick": null,
           "flash_offset": null,
-          "flash_status": "parent cfr11bdb is not a barrel node and has no geometry around the hardpoint",
+          "flash_status": "parent cfr11bdb is not a barrel node; the hardpoint already sits at the wing-top cannon mount muzzle",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "accepted-shot path; live validation pending"

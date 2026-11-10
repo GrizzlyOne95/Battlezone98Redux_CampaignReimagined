@@ -1278,7 +1278,7 @@
     },
     "crfraz": {
       "category": "Emitter/asset decision",
-      "action": "No independent conventional barrel found for the active weapon. These hull/emitter-driven special units need a deliberate emitter-core/lens mechanism or an authored energy pulse. If mechanical motion is desired, isolate/add a small local piece; do not recoil the complete Fury/special-unit hull or satellite structure.",
+      "action": "GC1/GC2 sit at the muzzles of static wing-top cannon mounts (Build-HardpointMounts, 2026-11-10). The mounts are welded to the wings and get no recoil; do not recoil the complete Fury hull or wings.",
       "bindings": {}
     },
     "cvartl": {

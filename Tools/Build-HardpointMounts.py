@@ -373,7 +373,7 @@ def save_textures(images, material, work):
 def hardpoint_entry(unit, cfg, by, W, point, receipt=None):
     """References/Hardpoints part: the hardpoint at point (Ogre, VDF pose), parented to the
     owner, keeping the part's world orientation (local = world @ owner^T: identity under an
-    identity owner; crfraz's cfr11bdb is yawed 180 deg and GC2 carries the same yaw, so an identity
+    identity owner; crfraz's cfr11bdb is yawed 180 deg and GC2's local yaw cancels it, so an identity
     local would fire it backwards)."""
     part, owner = by[cfg['part'].lower()], by[cfg['owner'].lower()]
     Rp, tp = W[owner.name.lower()]; t = (np.array(point) * S - tp) @ Rp.T

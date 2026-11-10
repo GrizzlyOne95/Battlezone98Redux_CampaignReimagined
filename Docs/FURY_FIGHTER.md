@@ -37,8 +37,13 @@ Since 10 November 2026, GC1 and GC2 sit on visible wing-top cannon mounts
 `References/Hardpoints`). Before, they sat inside the wing slab, firing through its
 leading edge. The mount pass builds from the importer's output at CR commit 2390592b.
 It edits the shipped mesh, VDF and skeleton. A rerun of this importer therefore drops
-the mounts. Re-apply them with:
+the mounts. Both mount builders read the import from git at that base, not the working
+tree. To re-apply:
 
+0. Commit the new import, then set its commit as the base in three places: the
+   `crfraz` CONFIG `base` in `Build-HardpointMounts.py`, `"base"` in
+   `References/Hardpoints/crfraz.json`, and the `crfraz.skeleton` SKELETONS entry in
+   `Build-UnitAnimSlots.py`.
 1. `python Tools/Build-HardpointMounts.py --units crfraz --ship`
 2. `python Tools/Build-UnitAnimSlots.py --stock-dir <StockODFFiles> crfraz.vdf crfraz.skeleton`
 
