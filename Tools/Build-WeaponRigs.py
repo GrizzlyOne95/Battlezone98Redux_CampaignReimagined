@@ -271,9 +271,12 @@ def build(selected):
         sp=ROOT/'Assets/Models'/(model+'_recoil.skeleton');target=ROOT/'Assets/ModelFixes'/(model+'.mesh')
         outputs={};mesh.skeleton=sp.name;target.write_bytes(ogrelayout.convert(wr.ogre.write_mesh(mesh))[0]);sp.write_bytes(wr.write_skeleton(skel))
         for path in (sp,target):outputs[path.relative_to(ROOT).as_posix()]=hashlib.sha256(path.read_bytes()).hexdigest()
-        cp,kind,_=cg.cockpit_mesh(src,model);cp_proof=[]
+        cp,kind,_=cg.cockpit_mesh(src,model);cp_proof=[];cp_hardpoints={}
         if cp and Path(cp)!=mp:
             cpm,cps,csource=load(Path(cp),src,cfg['source_revision']);cpchannels=copy.deepcopy(entry['channels'])
+            # Moved hardpoints take the same receipt poses in the cockpit
+            # skeleton, so first-person muzzles match the world rig.
+            cp_hardpoints=hardpoint_bones(model,cpm,cps)
             cp_proof=wr.channels_mesh(cpm,cps,cpchannels,True)
             cpsp=ROOT/'Assets/Models'/(model+'_cockpit_recoil.skeleton')
             cpp=Path(cp) if Path(cp).is_relative_to(ROOT) else ROOT/'Assets/Models'/Path(cp).name
@@ -281,7 +284,7 @@ def build(selected):
             for path in (cpp,cpsp):outputs[path.relative_to(ROOT).as_posix()]=hashlib.sha256(path.read_bytes()).hexdigest()
         fit=fit_effects(model,mesh,skel,channels,proof,entry.get('ports_only',()))
         receipts[model]={'source':source,'world':proof,'cockpit':cp_proof,'cockpit_source':csource if cp_proof else None,
-                         'cockpit_kind':kind,'bindings':fit,'outputs':outputs,**({'hardpoints':hardpoints} if hardpoints else {})}
+                         'cockpit_kind':kind,'bindings':fit,'outputs':outputs,**({'hardpoints':hardpoints} if hardpoints else {}),**({'cockpit_hardpoints':cp_hardpoints} if cp_hardpoints else {})}
         receipt_path.write_text(json.dumps(receipts,indent=2)+'\n')
         print(model,[(p['triangles'],p['cap_triangles']) for p in proof],'cockpit',[(p['triangles'],p['cap_triangles']) for p in cp_proof],flush=True)
     (REF/'build.json').write_text(json.dumps(receipts,indent=2)+'\n')

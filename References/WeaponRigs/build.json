@@ -9496,7 +9496,7 @@
       }
     ],
     "cockpit_source": {
-      "mesh": "ab8d6881497ac8dbfa8ea634d0b37b1332a72fe07fef7e64536bbd043c7c7ce5",
+      "mesh": "cf4e39fe3888c46992734ca182ba28bba11ef8e5e191d92e577d594b292e4953",
       "skeleton": "1ec0ac4acbe9137c4243ea0792aecfb3d76ca32e1f539d6095eeae34b0c2e01c",
       "bind_poses": {
         "SFL11BDA": [
@@ -9703,7 +9703,7 @@
         "animation": "cr_fire_1",
         "node": "",
         "spin": false,
-        "distance": 0.025,
+        "distance": 0.08,
         "return": 2.0,
         "kick_without_weapon": 0.25,
         "flash_offset": [
@@ -9745,7 +9745,7 @@
         "animation": "cr_fire_2",
         "node": "",
         "spin": false,
-        "distance": 0.025,
+        "distance": 0.08,
         "return": 2.0,
         "kick_without_weapon": 0.25,
         "flash_offset": [
@@ -9823,12 +9823,28 @@
       }
     },
     "outputs": {
-      "Assets/Models/svfigh_recoil.skeleton": "7b2ddff7343e8ebb7b74beed0a6f4ecaf4ec077a7bd03b6196e01857b30d10b2",
+      "Assets/Models/svfigh_recoil.skeleton": "08b7471946a0b3348f91236f7737f07a467b87e05891d1a4f086ddcc22b69d32",
       "Assets/ModelFixes/svfigh.mesh": "6e8f85b1facce7d6e74a5192cda0263e658085251f002c38146ba0a8846f89dc",
-      "Assets/Models/svfigh_cockpit.mesh": "1e5ed2ab851101e539e65439569b975b3b3319118455630587d57ecbab0be9c5",
-      "Assets/Models/svfigh_cockpit_recoil.skeleton": "9e2a6c8aa04f83eca93a7d2dfeae0b7f94442ea2171b1c4bffba4e722b0e8b4b"
+      "Assets/Models/svfigh_cockpit.mesh": "cc6d1903605d6f313af61fb35405f2cc146abc4d9251c673ba620980b2bc2f72",
+      "Assets/Models/svfigh_cockpit_recoil.skeleton": "08b7471946a0b3348f91236f7737f07a467b87e05891d1a4f086ddcc22b69d32"
     },
     "hardpoints": {
+      "SFL11GR1": {
+        "parent": "SFL11ROR",
+        "position": [
+          0.0,
+          0.186096,
+          1.958691
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
+    },
+    "cockpit_hardpoints": {
       "SFL11GR1": {
         "parent": "SFL11ROR",
         "position": [
