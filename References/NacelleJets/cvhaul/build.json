@@ -1,0 +1,57 @@
+{
+  "unit": "cvhaul",
+  "faction": "cra",
+  "housings": [],
+  "notes": [
+    "Flameless-jets pass, hand-recorded via the flameless scratch tools (no Build-NacelleJets CONFIG entry, no mesh change). The stock side booms COX11NRL/COX11NRR are separate pods joined to the body by a strut, so they become class 67 nacelles. Each carries one class 75 flame in its rear ducted fan: duct centre measured from the -Z-facing fan faces of the posed Assets/ModelFixes mesh (x +-2.29, y 1.94, fan face z -5.21), flame placed at z -5.25 along -Z. Positions are local to the pod in the VDF frame.",
+    "ODF/cvhaul.odf and cvhaula.odf [HoverCraftClass] carry pitchThrot/SteerNacelleRun and Jump 0.05: a utility tug, so the pods only nod."
+  ],
+  "nacelles": [
+    "COX11NRL",
+    "COX11NRR"
+  ],
+  "vdfParts": [
+    {
+      "name": "COX11FRL",
+      "klass": 75,
+      "parent": "COX11NRL",
+      "matrix": [
+        -1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0,
+        -0.0924,
+        -0.001,
+        -5.0676
+      ],
+      "existing": false,
+      "moved": true
+    },
+    {
+      "name": "COX11FRR",
+      "klass": 75,
+      "parent": "COX11NRR",
+      "matrix": [
+        -1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0,
+        0.0933,
+        -0.0011,
+        -5.0676
+      ],
+      "existing": false,
+      "moved": true
+    }
+  ]
+}

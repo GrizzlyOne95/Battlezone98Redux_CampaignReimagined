@@ -1,0 +1,59 @@
+{
+  "unit": "cvhtnk",
+  "faction": "cra",
+  "housings": [],
+  "notes": [
+    "Flameless-jets pass, hand-recorded via the flameless scratch tools (no Build-NacelleJets CONFIG entry, no mesh change). The wing pods CEM11WGL/CEM11WGR (mesh bones CEM11WGL0/WGR1) are separate parts off the body, so they become class 67 nacelles. Each carries one class 75 flame at the ribbed rear nozzle: -Z faces of the posed Assets/ModelFixes mesh span x +-3.08..3.73, y 0.37..1.96, z -3.9..-4.25; flame at (x +-3.40, y 1.10, z -4.10), pointing -Z. Positions are local to the pod in the VDF frame.",
+    "The body's three lit rear panels are part of CEM11BDA and are left unflamed (no carrier).",
+    "The missile and shield hardpoints CEM11GM1/GM2/GS1/GS2 sit on the pods but are parented to CEM11BDA, so the pods must not pitch: ODF/cvhtnk.odf and its baseName variants cvhmpa/cvhmpb carry all four pitch*Nacelle* keys at 0. With zero gains only the restoring term drives the gimbal (1.5 decompile all_decompiled.c 193665-193668), so the pods stay flat while the flames still scale with throttle (class 67 parent, 193771-193776).",
+    "No hardpoint receipt exists for cvhtnk; smoke CEM11SML/SMR stay on the pods."
+  ],
+  "nacelles": [
+    "CEM11WGL",
+    "CEM11WGR"
+  ],
+  "vdfParts": [
+    {
+      "name": "CEM11FRL",
+      "klass": 75,
+      "parent": "CEM11WGL",
+      "matrix": [
+        -1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0,
+        0.1517,
+        -0.3864,
+        -1.7471
+      ],
+      "existing": false,
+      "moved": true
+    },
+    {
+      "name": "CEM11FRR",
+      "klass": 75,
+      "parent": "CEM11WGR",
+      "matrix": [
+        -1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0,
+        -0.1517,
+        -0.3864,
+        -1.7471
+      ],
+      "existing": false,
+      "moved": true
+    }
+  ]
+}
