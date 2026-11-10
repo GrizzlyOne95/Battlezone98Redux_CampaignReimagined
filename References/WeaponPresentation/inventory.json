@@ -229,11 +229,11 @@
       "odf": "gatsbv2",
       "class": "cannon",
       "name": "AT-Stabber",
-      "ordnance": "oatsbv2",
+      "ordnance": "rocket",
       "parent": "",
       "scope": "CR",
       "category": "CANN",
-      "delay": "0.3",
+      "delay": "0.6",
       "producer": "cannon factory",
       "flash_profile": "atstab",
       "flash_decision": "authored flash",
@@ -799,11 +799,11 @@
       "odf": "gmgasv3",
       "class": "machinegun",
       "name": "Minigun",
-      "ordnance": "omgasv3",
+      "ordnance": "bullet1a",
       "parent": "gminigun",
       "scope": "CR",
       "category": "CANN",
-      "delay": "0.40",
+      "delay": "1.2",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "minigun",
       "flash_decision": "authored flash",
@@ -814,11 +814,26 @@
       "odf": "gmgnbv4",
       "class": "machinegun",
       "name": "Minigun",
-      "ordnance": "omgnbv4",
+      "ordnance": "bullet1",
       "parent": "",
       "scope": "CR",
       "category": "CANN",
-      "delay": "0.20",
+      "delay": "0.8",
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "minigun",
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    {
+      "odf": "gmgrcv1",
+      "class": "machinegun",
+      "name": "Minigun",
+      "ordnance": "bullet1g",
+      "parent": "",
+      "scope": "CR",
+      "category": "CANN",
+      "delay": "0.1",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "minigun",
       "flash_decision": "authored flash",
@@ -1204,11 +1219,11 @@
       "odf": "gspbcv2",
       "class": "cannon",
       "name": "SP-Stabber",
-      "ordnance": "ospbcv2",
+      "ordnance": "rocket3b",
       "parent": "gatstab",
       "scope": "CR",
       "category": "CANN",
-      "delay": "0.6",
+      "delay": "1.2",
       "producer": "cannon factory",
       "flash_profile": "spstab",
       "flash_decision": "authored flash",
@@ -1219,11 +1234,11 @@
       "odf": "gspccv4",
       "class": "cannon",
       "name": "SP-Stabber",
-      "ordnance": "ospccv4",
+      "ordnance": "rocket3c",
       "parent": "gatstab",
       "scope": "CR",
       "category": "CANN",
-      "delay": "0.8",
+      "delay": "3.2",
       "producer": "cannon factory",
       "flash_profile": "spstab",
       "flash_decision": "authored flash",
@@ -1294,11 +1309,11 @@
       "odf": "gspssv3",
       "class": "cannon",
       "name": "SP-Stabber",
-      "ordnance": "ospssv3",
+      "ordnance": "rocket3",
       "parent": "gatstab",
       "scope": "CR",
       "category": "CANN",
-      "delay": "0.6",
+      "delay": "1.8",
       "producer": "cannon factory",
       "flash_profile": "spstab",
       "flash_decision": "authored flash",
@@ -1459,11 +1474,11 @@
       "odf": "gtmgav2",
       "class": "machinegun",
       "name": "Minigun",
-      "ordnance": "otmgav2",
+      "ordnance": "bullet5",
       "parent": "",
       "scope": "CR",
       "category": "CANN",
-      "delay": "0.20",
+      "delay": "0.4",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "minigun",
       "flash_decision": "authored flash",
@@ -1474,11 +1489,11 @@
       "odf": "gtmgav4",
       "class": "machinegun",
       "name": "Minigun",
-      "ordnance": "otmgav4",
+      "ordnance": "bullet5",
       "parent": "",
       "scope": "CR",
       "category": "CANN",
-      "delay": "0.20",
+      "delay": "0.8",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "minigun",
       "flash_decision": "authored flash",
@@ -1489,11 +1504,11 @@
       "odf": "gtmgbv4",
       "class": "machinegun",
       "name": "Minigun",
-      "ordnance": "otmgbv4",
+      "ordnance": "bullet5",
       "parent": "",
       "scope": "CR",
       "category": "CANN",
-      "delay": "0.20",
+      "delay": "0.8",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "minigun",
       "flash_decision": "authored flash",
@@ -1561,14 +1576,29 @@
       "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     {
-      "odf": "gtmssv3",
+      "odf": "gtmssv15",
       "class": "machinegun",
       "name": "Chaingun",
-      "ordnance": "otmssv3",
+      "ordnance": "bullet6",
       "parent": "",
       "scope": "CR",
       "category": "CANN",
-      "delay": "0.30",
+      "delay": "0.45",
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "chaingun",
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    {
+      "odf": "gtmssv3",
+      "class": "machinegun",
+      "name": "Chaingun",
+      "ordnance": "bullet6",
+      "parent": "",
+      "scope": "CR",
+      "category": "CANN",
+      "delay": "0.9",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "chaingun",
       "flash_decision": "authored flash",
@@ -7199,7 +7229,7 @@
       "slots": [
         {
           "slot": 1,
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "hardpoint": "GC1",
           "muzzle_nodes": [
             "CAD11GC1"
@@ -7213,7 +7243,7 @@
         },
         {
           "slot": 2,
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "hardpoint": "GC2",
           "muzzle_nodes": [
             "CAD11GC2"
@@ -7227,7 +7257,7 @@
         },
         {
           "slot": 3,
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "hardpoint": "GC3",
           "muzzle_nodes": [
             "CAD11GC3"
@@ -7241,7 +7271,7 @@
         },
         {
           "slot": 4,
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "hardpoint": "GC4",
           "muzzle_nodes": [
             "CAD11GC4"
@@ -10063,7 +10093,7 @@
       "slots": [
         {
           "slot": 1,
-          "weapon": "gtminis",
+          "weapon": "gtmssv15",
           "hardpoint": "GC1",
           "muzzle_nodes": [
             "STU11GC1"
@@ -10083,7 +10113,7 @@
         },
         {
           "slot": 2,
-          "weapon": "gtminis",
+          "weapon": "gtmssv15",
           "hardpoint": "GC2",
           "muzzle_nodes": [
             "STU11Gc2"
@@ -10094,6 +10124,26 @@
           "recoil_candidates": [
             {
               "node": "STU11BGB",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": 0.09
+            }
+          ],
+          "cockpit_muzzle_nodes": [],
+          "plan": "dedicated barrel slide candidate"
+        },
+        {
+          "slot": 3,
+          "weapon": "gtmssv15",
+          "hardpoint": "GC3",
+          "muzzle_nodes": [
+            "STU11GC3"
+          ],
+          "parents": [
+            "STU11BGA"
+          ],
+          "recoil_candidates": [
+            {
+              "node": "STU11BGA",
               "translation_animated": false,
               "barrel_forward_tip_estimate": 0.09
             }

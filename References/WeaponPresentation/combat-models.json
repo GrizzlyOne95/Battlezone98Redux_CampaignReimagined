@@ -536,7 +536,7 @@
     },
     "avturr": {
       "category": "Existing gun piece",
-      "action": "Independent barrel tubes aDE11blc/bld/ble/blf, each 116 vertices / 190 triangles. GC1 uses blc; GC2 uses blf. These names are not BG*, so the old heuristic missed them. Static translations allow a node-slide candidate without cutting geometry. Keep the animated deploy base and aiming parents; choose whether a whole barrel cluster or only fired tube should react. Miniguns require a craft kick override.",
+      "action": "Independent barrel tubes aDE11blc/bld/ble/blf, each 116 vertices / 190 triangles. GC1 uses blc, GC2 blf, GC3 bld, GC4 ble (one tube per hardpoint). These names are not BG*, so the old heuristic missed them. Static translations allow a node-slide candidate without cutting geometry. Keep the animated deploy base and aiming parents; choose whether a whole barrel cluster or only fired tube should react. Miniguns require a craft kick override.",
       "bindings": {
         "GC1": {
           "node": "aDE11blc",
@@ -546,6 +546,18 @@
         },
         "GC2": {
           "node": "aDE11blf",
+          "distance": 0.08,
+          "return": 0.8,
+          "kick_without_weapon": 0.25
+        },
+        "GC3": {
+          "node": "aDE11bld",
+          "distance": 0.08,
+          "return": 0.8,
+          "kick_without_weapon": 0.25
+        },
+        "GC4": {
+          "node": "aDE11ble",
           "distance": 0.08,
           "return": 0.8,
           "kick_without_weapon": 0.25
@@ -1116,7 +1128,7 @@
     },
     "bvturr": {
       "category": "Existing gun piece",
-      "action": "Independent bDE11blc/bld/ble/blf tubes; GC1 uses blc, GC2 uses blf. Same static tube/deploy hierarchy as NSDF turret. No split needed for an individual tube; configure kick for machinegun variants and per-slot behavior for AT-Stabber variants.",
+      "action": "Independent bDE11blc/bld/ble/blf tubes; GC1 uses blc, GC2 blf, GC3 bld, GC4 ble (one tube per hardpoint). Same static tube/deploy hierarchy as NSDF turret. No split needed for an individual tube; configure kick for machinegun variants and per-slot behavior for AT-Stabber variants.",
       "bindings": {
         "GC1": {
           "node": "bDE11blc",
@@ -1126,6 +1138,18 @@
         },
         "GC2": {
           "node": "bDE11blf",
+          "distance": 0.08,
+          "return": 0.8,
+          "kick_without_weapon": 0.25
+        },
+        "GC3": {
+          "node": "bDE11bld",
+          "distance": 0.08,
+          "return": 0.8,
+          "kick_without_weapon": 0.25
+        },
+        "GC4": {
+          "node": "bDE11ble",
           "distance": 0.08,
           "return": 0.8,
           "kick_without_weapon": 0.25

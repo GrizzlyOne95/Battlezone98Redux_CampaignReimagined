@@ -1,5 +1,5 @@
-// CR turret barrel variant: gtminis with 1/3 damage per barrel (ordnance otmssv3)
-// Made by the hardpoint pass; re-derive it if the base ODF changes.
+// CR turret barrel variant: gtminis firing in turn across 3 barrels (stock turret had 1)
+// shotAlternate rotates the 3 slots; shotDelay 0.3 x 3/1 = 0.9 keeps shots/s and ammo/s stock.
 [WeaponClass]
 // CR WEAPON FLASH BEGIN
 // Authored chaingun: shape/colour/timing in References/WeaponPresentation/profiles.json.
@@ -16,7 +16,8 @@ flashOffset = "0 0 0"
 casingType = "small"
 // CR WEAPON CASING END
 classLabel = "machinegun"
-ordName = "otmssv3"
+ordName = "bullet6"
+shotAlternate = 1
 wpnName = "Chaingun"
 fireSound = "gmsov00.wav"
 wpnReticle = "gminigun"
@@ -24,4 +25,4 @@ wpnPriority = 1
 wpnCategory = "CANN"
 
 [CannonClass]
-shotDelay = 0.30
+shotDelay = 0.9

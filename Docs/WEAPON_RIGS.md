@@ -18,7 +18,7 @@ Gun regions retain source surfaces, materials and UVs. New moving boundaries are
 | `bvltnk` | Small upper gun plus launcher bell, using the Black Dog source geometry. | 1 / 2 |
 | `bvraz` | Paired visible side-rail gun tips; mirrored outward casing paths. | 0 / 2 |
 | `bvrckt` | Paired launcher outlet sections; cockpit cabin stays fixed. | In-mesh cabin / no separate gun copy |
-| `bvrdev` | Forward gun tip and secondary launcher outlet; preserve the existing atlas. | 1 / 2 |
+| `bvrdev` | Forward gun tip and secondary launcher outlet; preserve the existing atlas. | 0 / 1 |
 | `bvwalk` | Independent left/right gun sections beneath their original arm drivers. | 2 / 2 |
 | `cblasr` | Emitter tip split from tower; restore missing native aiming hierarchy in the rendered rig. | Building; no cockpit gun copy |
 | `cvartl` | Four forward tube sections with separate clips; existing single equipped hardpoint selects its own channel. | In-mesh cabin / no separate gun copy |
@@ -34,8 +34,8 @@ Gun regions retain source surfaces, materials and UVs. New moving boundaries are
 | `svhraz` | Two large round forward apertures, selected by disconnected source component before cutting; fixed housing. | 0 / 2 |
 | `svltnk` | Forward cannon section with the cannon/launcher alias bound to the same clip. | 1 / 1 |
 | `svrckt` | Paired forward launcher outlet sections; cockpit cabin stays fixed. | In-mesh cabin / no separate gun copy |
-| `svtank` | Primary cannon and secondary tip; preserve the art-fitted cockpit primary gun and source UVs. | 1 / 2 |
-| `svturr` | Two gun sections; restore native alias parents while preserving existing world bind poses. | 0 / 2 |
+| `svtank` | Primary cannon and secondary tip; preserve the art-fitted cockpit primary gun and source UVs. | 1 / 1 |
+| `svturr` | Three gun sections (GC1-GC3); restore native alias parents while preserving existing world bind poses. | 0 / 3 |
 | `svwalk` | Paired groups of small forward head-aperture sections; retain the original head driver. | 0 / 2 |
 
 A zero cockpit count means that resource contains no selected gun surface; the cabin, nose or frame is not moved just to create recoil. In-mesh rocket/artillery cockpits contain cabin/glass surfaces rather than duplicate guns. Guns outside the forward cockpit FOV still receive tracks when they are present in the resource.

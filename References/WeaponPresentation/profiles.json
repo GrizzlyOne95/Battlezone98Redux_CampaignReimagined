@@ -804,6 +804,12 @@
         "For CR regeneration, set this weapon casing_mesh in References/WeaponPresentation/profiles.json."
       ]
     },
+    "gmgrcv1": {
+      "profile": "minigun",
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
     "gminigna": {
       "profile": "minigun",
       "decision": "authored flash",
@@ -1104,6 +1110,12 @@
       "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     "gtminisa": {
+      "profile": "chaingun",
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    "gtmssv15": {
       "profile": "chaingun",
       "decision": "authored flash",
       "casing_type": "small",

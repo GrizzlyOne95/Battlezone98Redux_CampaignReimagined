@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5555,
+  "count": 5538,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -15719,6 +15719,10 @@
       "runtime": "gmgnbv4.odf"
     },
     {
+      "source": "ODF\\gmgrcv1.odf",
+      "runtime": "gmgrcv1.odf"
+    },
+    {
       "source": "ODF\\gminigna.odf",
       "runtime": "gminigna.odf"
     },
@@ -15913,6 +15917,10 @@
     {
       "source": "ODF\\gtminisa.odf",
       "runtime": "gtminisa.odf"
+    },
+    {
+      "source": "ODF\\gtmssv15.odf",
+      "runtime": "gtmssv15.odf"
     },
     {
       "source": "ODF\\gtmssv3.odf",
@@ -16141,46 +16149,6 @@
     {
       "source": "ODF\\naptsmok.odf",
       "runtime": "naptsmok.odf"
-    },
-    {
-      "source": "ODF\\oatsbv2.odf",
-      "runtime": "oatsbv2.odf"
-    },
-    {
-      "source": "ODF\\omgasv3.odf",
-      "runtime": "omgasv3.odf"
-    },
-    {
-      "source": "ODF\\omgnbv4.odf",
-      "runtime": "omgnbv4.odf"
-    },
-    {
-      "source": "ODF\\ospbcv2.odf",
-      "runtime": "ospbcv2.odf"
-    },
-    {
-      "source": "ODF\\ospccv4.odf",
-      "runtime": "ospccv4.odf"
-    },
-    {
-      "source": "ODF\\ospssv3.odf",
-      "runtime": "ospssv3.odf"
-    },
-    {
-      "source": "ODF\\otmgav2.odf",
-      "runtime": "otmgav2.odf"
-    },
-    {
-      "source": "ODF\\otmgav4.odf",
-      "runtime": "otmgav4.odf"
-    },
-    {
-      "source": "ODF\\otmgbv4.odf",
-      "runtime": "otmgbv4.odf"
-    },
-    {
-      "source": "ODF\\otmssv3.odf",
-      "runtime": "otmssv3.odf"
     },
     {
       "source": "ODF\\repamina.odf",
@@ -17265,42 +17233,6 @@
     {
       "source": "ODF\\xlitbl4h.odf",
       "runtime": "xlitbl4h.odf"
-    },
-    {
-      "source": "ODF\\xmslbld2.odf",
-      "runtime": "xmslbld2.odf"
-    },
-    {
-      "source": "ODF\\xmslbld3.odf",
-      "runtime": "xmslbld3.odf"
-    },
-    {
-      "source": "ODF\\xmslbld4.odf",
-      "runtime": "xmslbld4.odf"
-    },
-    {
-      "source": "ODF\\xmslcar2.odf",
-      "runtime": "xmslcar2.odf"
-    },
-    {
-      "source": "ODF\\xmslcar3.odf",
-      "runtime": "xmslcar3.odf"
-    },
-    {
-      "source": "ODF\\xmslcar4.odf",
-      "runtime": "xmslcar4.odf"
-    },
-    {
-      "source": "ODF\\xmslgnd2.odf",
-      "runtime": "xmslgnd2.odf"
-    },
-    {
-      "source": "ODF\\xmslgnd3.odf",
-      "runtime": "xmslgnd3.odf"
-    },
-    {
-      "source": "ODF\\xmslgnd4.odf",
-      "runtime": "xmslgnd4.odf"
     },
     {
       "source": "ODF\\xplnxpl.odf",

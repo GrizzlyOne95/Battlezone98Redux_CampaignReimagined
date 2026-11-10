@@ -106,6 +106,18 @@
         "static_native_translation": true,
         "rigid_weights": true,
         "mixed_owner_triangles": 0
+      },
+      "aDE11bld": {
+        "weighted_vertices": 116,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      },
+      "aDE11ble": {
+        "weighted_vertices": 116,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
       }
     }
   },
@@ -194,6 +206,18 @@
         "mixed_owner_triangles": 0
       },
       "bDE11blf": {
+        "weighted_vertices": 116,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      },
+      "bDE11bld": {
+        "weighted_vertices": 116,
+        "static_native_translation": true,
+        "rigid_weights": true,
+        "mixed_owner_triangles": 0
+      },
+      "bDE11ble": {
         "weighted_vertices": 116,
         "static_native_translation": true,
         "rigid_weights": true,

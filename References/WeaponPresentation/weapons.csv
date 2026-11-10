@@ -14,7 +14,7 @@ cvwo003,mortar,Howitzer,cvwo004,ghartill,CR override,MORT,2.5,cannon factory,mor
 ga7stab,cannon,AT-Stabber,charge6,gatstab,CR override,CANN,6.0,cannon factory,atstab,authored flash,medium,Ballistic medium brass; local cosmetic only.
 gammo,dispenser,Ammo,,,CR override,SPEC,,other producer pending,,supply dispenser,none,"Energy, launcher, explosive or utility: no ejected brass."
 gammoa,dispenser,Ammo,,gammo,CR override,SPEC,,other producer pending,,supply dispenser,none,"Energy, launcher, explosive or utility: no ejected brass."
-gatsbv2,cannon,AT-Stabber,oatsbv2,,CR,CANN,0.3,cannon factory,atstab,authored flash,medium,Ballistic medium brass; local cosmetic only.
+gatsbv2,cannon,AT-Stabber,rocket,,CR,CANN,0.6,cannon factory,atstab,authored flash,medium,Ballistic medium brass; local cosmetic only.
 gatstab,cannon,AT-Stabber,rocket,,CR override,CANN,0.3,cannon factory,atstab,authored flash,medium,Ballistic medium brass; local cosmetic only.
 gatstaba,cannon,AT-Stabber,rocketa,gatstab,CR override,CANN,0.7,cannon factory,atstab,authored flash,medium,Ballistic medium brass; local cosmetic only.
 gatstabh,cannon,AT-Stabber,rocketh,,CR,CANN,0.3,cannon factory,atstab,authored flash,medium,Ballistic medium brass; local cosmetic only.
@@ -52,8 +52,9 @@ gmboltg,beamgun,Bolt Buddy,mboltg,,CR override,CANN,,other producer pending,arcg
 gmboltr,beamgun,Bolt Buddy,mboltr,,CR override,CANN,,other producer pending,arcred,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
 gmcurmin,dispenser,M-Curtain,,,CR override,SPEC,,other producer pending,,mine deployment,none,"Energy, launcher, explosive or utility: no ejected brass."
 gmdmgun,detonator,MDM Mortar,bouncebm,,CR override,MORT,2.0,other producer pending,mortar,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
-gmgasv3,machinegun,Minigun,omgasv3,gminigun,CR,CANN,0.40,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
-gmgnbv4,machinegun,Minigun,omgnbv4,,CR,CANN,0.20,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
+gmgasv3,machinegun,Minigun,bullet1a,gminigun,CR,CANN,1.2,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
+gmgnbv4,machinegun,Minigun,bullet1,,CR,CANN,0.8,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
+gmgrcv1,machinegun,Minigun,bullet1g,,CR,CANN,0.1,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
 gminigna,machinegun,Minigun,bullet1a,gminigun,CR override,CANN,0.40,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
 gminignb,machinegun,Minigun,bullet1b,gminigun,CR override,CANN,0.40,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
 gminignc,machinegun,Minigun,bullet1a,gminigun,CR override,CANN,0.15,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
@@ -79,13 +80,13 @@ gshunt,cannon,CCA Hunter Rocket,shunter,,CR,ROCK,1.50,cannon factory,rocket,auth
 gsitecam,terrainexpose,SITE Camera,NULL,,CR override,SPEC,,other producer pending,,camera device,none,"Energy, launcher, explosive or utility: no ejected brass."
 gsmort,mortar,CCA Siege Mortar,sgrenade,,CR,MORT,2.60,cannon factory,mortar,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
 gsnipe,snipergun,Sniper Rifle,snipe,,CR override,CANN,1.0,cannon factory,sniper,authored flash,small,Ballistic small brass; local cosmetic only.
-gspbcv2,cannon,SP-Stabber,ospbcv2,gatstab,CR,CANN,0.6,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
-gspccv4,cannon,SP-Stabber,ospccv4,gatstab,CR,CANN,0.8,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
+gspbcv2,cannon,SP-Stabber,rocket3b,gatstab,CR,CANN,1.2,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
+gspccv4,cannon,SP-Stabber,rocket3c,gatstab,CR,CANN,3.2,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
 gsplint,mortar,Splinter,splintbm,,CR override,MORT,3.0,cannon factory,mortar,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
 gsplinta,mortar,Splinter,splntbma,,CR override,MORT,2.0,cannon factory,mortar,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
 gsplintg,mortar,Splinter,splintbg,,CR override,MORT,3.0,cannon factory,mortar,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
 gsplintr,mortar,Splinter,splintbr,,CR override,MORT,3.0,cannon factory,mortar,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
-gspssv3,cannon,SP-Stabber,ospssv3,gatstab,CR,CANN,0.6,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
+gspssv3,cannon,SP-Stabber,rocket3,gatstab,CR,CANN,1.8,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
 gspstab,cannon,SP-Stabber,rocket3,gatstab,CR override,CANN,0.6,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
 gspstaba,cannon,CP-Stabber,rocket3a,gatstab,CR override,CANN,1.5,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
 gspstabb,cannon,SP-Stabber,rocket3b,gatstab,CR override,CANN,0.6,cannon factory,spstab,authored flash,large,Ballistic large brass; local cosmetic only.
@@ -96,14 +97,15 @@ gsrkbomb,cannon,CCA Saturation Rocket,srktbom,,CR,ROCK,2.70,cannon factory,rocke
 gstlock,cannon,CCA Steering Lock,stlock,,CR,SPEC,1.50,cannon factory,,"control projectile, keep existing effect",none,"Energy, launcher, explosive or utility: no ejected brass."
 gtaggun,targeting,TAG Cannon,swarmer,,CR override,ROCK,,other producer pending,rocket,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
 gtechno,machinegun,RAVE GUN!,plasma,,CR override,CANN,0.4,machinegun factory (companion OpenShim change; live pending),plasmablue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
-gtmgav2,machinegun,Minigun,otmgav2,,CR,CANN,0.20,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
-gtmgav4,machinegun,Minigun,otmgav4,,CR,CANN,0.20,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
-gtmgbv4,machinegun,Minigun,otmgbv4,,CR,CANN,0.20,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
+gtmgav2,machinegun,Minigun,bullet5,,CR,CANN,0.4,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
+gtmgav4,machinegun,Minigun,bullet5,,CR,CANN,0.8,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
+gtmgbv4,machinegun,Minigun,bullet5,,CR,CANN,0.8,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
 gtminig,machinegun,Minigun,bullet5,,CR override,CANN,0.20,machinegun factory (companion OpenShim change; live pending),minigun,authored flash,small,Ballistic small brass; local cosmetic only.
 gtminis,machinegun,Chaingun,bullet6,,CR override,CANN,0.30,machinegun factory (companion OpenShim change; live pending),chaingun,authored flash,small,Ballistic small brass; local cosmetic only.
 gtminis2,machinegun,Chaingun,bullet6,,CR,CANN,0.30,machinegun factory (companion OpenShim change; live pending),chaingun,authored flash,small,Ballistic small brass; local cosmetic only.
 gtminisa,machinegun,Chaingun,bullet6a,gtminis,CR override,CANN,0.48,machinegun factory (companion OpenShim change; live pending),chaingun,authored flash,small,Ballistic small brass; local cosmetic only.
-gtmssv3,machinegun,Chaingun,otmssv3,,CR,CANN,0.30,machinegun factory (companion OpenShim change; live pending),chaingun,authored flash,small,Ballistic small brass; local cosmetic only.
+gtmssv15,machinegun,Chaingun,bullet6,,CR,CANN,0.45,machinegun factory (companion OpenShim change; live pending),chaingun,authored flash,small,Ballistic small brass; local cosmetic only.
+gtmssv3,machinegun,Chaingun,bullet6,,CR,CANN,0.9,machinegun factory (companion OpenShim change; live pending),chaingun,authored flash,small,Ballistic small brass; local cosmetic only.
 gtsmoke,mortar,Tactical Smoke,tsmkshl,,CR,MORT,4.0,cannon factory,,"smoke launch, keep smoke effect distinct",none,"Energy, launcher, explosive or utility: no ejected brass."
 gwasp,dispenser,WASP,,,CR override,SPEC,,other producer pending,,mine deployment,none,"Energy, launcher, explosive or utility: no ejected brass."
 handgun,cannon,Plasma Rifle,tracer,,CR override,CANN,0.3,cannon factory,plasmablue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."

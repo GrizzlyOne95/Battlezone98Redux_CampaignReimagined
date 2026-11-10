@@ -229,10 +229,10 @@ cvtnkc,Tank,combat carrier,cvtnk,read,1,gspstabb,GC2,CYE11GC2,,CYE11BDA,[],,auth
 cvtnkc,Tank,combat carrier,cvtnk,read,2,gspstabb,GC1,CYE11GC1,,CYE11BDA,[],,author additive recoil parent/clip; preserve aiming and locomotion
 cvtnkd,Tank,combat carrier,cvtnk,read,1,gspstabd,GC2,CYE11GC2,,CYE11BDA,[],,author additive recoil parent/clip; preserve aiming and locomotion
 cvtnkd,Tank,combat carrier,cvtnk,read,2,gspstabd,GC1,CYE11GC1,,CYE11BDA,[],,author additive recoil parent/clip; preserve aiming and locomotion
-cvturr,Turret,combat carrier,cvturr,read,1,gminigrn,GC1,CAD11GC1,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
-cvturr,Turret,combat carrier,cvturr,read,2,gminigrn,GC2,CAD11GC2,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
-cvturr,Turret,combat carrier,cvturr,read,3,gminigrn,GC3,CAD11GC3,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
-cvturr,Turret,combat carrier,cvturr,read,4,gminigrn,GC4,CAD11GC4,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturr,Turret,combat carrier,cvturr,read,1,gmgrcv1,GC1,CAD11GC1,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturr,Turret,combat carrier,cvturr,read,2,gmgrcv1,GC2,CAD11GC2,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturr,Turret,combat carrier,cvturr,read,3,gmgrcv1,GC3,CAD11GC3,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturr,Turret,combat carrier,cvturr,read,4,gmgrcv1,GC4,CAD11GC4,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
 cvturra,Turret,combat carrier,cvturr,read,1,gtminis,GC1,CAD11GC1,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
 cvturra,Turret,combat carrier,cvturr,read,2,gtminis,GC2,CAD11GC2,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
 cvturra,Turret,combat carrier,cvturr,read,3,gtminis,GC3,CAD11GC3,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
@@ -341,8 +341,9 @@ svtk13,Tank,combat carrier,svtank,read,2,gflashgn,GC2,SCZ11GC2,,SCZ11BGB,"[{""no
 svtk13,Tank,combat carrier,svtank,read,3,gquake,GS1,SCZ11GS1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 1.786}]",Take_001,dedicated barrel slide candidate
 svtk13,Tank,combat carrier,svtank,read,4,gnavdrop,GM1,SCZ11GM1,,SCZ11MOR,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 svtnk7,Tank,combat carrier,svtank,read,1,ga7stab,GC1,SCZ11GC1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": -0.0}]",Take_001,dedicated barrel slide candidate
-svtump,Turret,combat carrier,svturr,read,1,gtminis,GC1,STU11GC1,,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
-svtump,Turret,combat carrier,svturr,read,2,gtminis,GC2,STU11Gc2,,STU11BGB,"[{""node"": ""STU11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svtump,Turret,combat carrier,svturr,read,1,gtmssv15,GC1,STU11GC1,,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svtump,Turret,combat carrier,svturr,read,2,gtmssv15,GC2,STU11Gc2,,STU11BGB,"[{""node"": ""STU11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svtump,Turret,combat carrier,svturr,read,3,gtmssv15,GC3,STU11GC3,,STU11BGA,"[{""node"": ""STU11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
 svturr,Turret,combat carrier,svturr,read,1,gtmssv3,GC1,STU11GC1,,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
 svturr,Turret,combat carrier,svturr,read,2,gtmssv3,GC2,STU11Gc2,,STU11BGB,"[{""node"": ""STU11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
 svturr,Turret,combat carrier,svturr,read,3,gtmssv3,GC3,STU11GC3,,STU11BGA,"[{""node"": ""STU11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate

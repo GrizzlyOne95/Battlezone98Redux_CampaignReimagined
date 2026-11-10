@@ -480,22 +480,26 @@
         "3": {
           "weapon": "gtmgav2",
           "offset": [
-            0.0,
-            0.0,
+            -0.04,
+            0.04,
             0.0
           ],
           "hardpoint": "aDE11gc3",
-          "anchor": "hardpoint (parent aDE11bld is not a barrel node)"
+          "barrel": "aDE11bld",
+          "vertices": 116,
+          "reviewed_barrel": true
         },
         "4": {
           "weapon": "gtmgav2",
           "offset": [
-            0.0,
-            0.0,
+            0.04,
+            0.04,
             0.0
           ],
           "hardpoint": "aDE11gc4",
-          "anchor": "hardpoint (parent aDE11ble is not a barrel node)"
+          "barrel": "aDE11ble",
+          "vertices": 116,
+          "reviewed_barrel": true
         }
       }
     },
@@ -529,22 +533,26 @@
         "3": {
           "weapon": "gtmgav4",
           "offset": [
-            0.0,
-            0.0,
+            -0.04,
+            0.04,
             0.0
           ],
           "hardpoint": "aDE11gc3",
-          "anchor": "hardpoint (parent aDE11bld is not a barrel node)"
+          "barrel": "aDE11bld",
+          "vertices": 116,
+          "reviewed_barrel": true
         },
         "4": {
           "weapon": "gtmgav4",
           "offset": [
-            0.0,
-            0.0,
+            0.04,
+            0.04,
             0.0
           ],
           "hardpoint": "aDE11gc4",
-          "anchor": "hardpoint (parent aDE11ble is not a barrel node)"
+          "barrel": "aDE11ble",
+          "vertices": 116,
+          "reviewed_barrel": true
         }
       }
     },
@@ -578,22 +586,26 @@
         "3": {
           "weapon": "gtmgav4",
           "offset": [
-            0.0,
-            0.0,
+            -0.04,
+            0.04,
             0.0
           ],
           "hardpoint": "aDE11gc3",
-          "anchor": "hardpoint (parent aDE11bld is not a barrel node)"
+          "barrel": "aDE11bld",
+          "vertices": 116,
+          "reviewed_barrel": true
         },
         "4": {
           "weapon": "gtmgav4",
           "offset": [
-            0.0,
-            0.0,
+            0.04,
+            0.04,
             0.0
           ],
           "hardpoint": "aDE11gc4",
-          "anchor": "hardpoint (parent aDE11ble is not a barrel node)"
+          "barrel": "aDE11ble",
+          "vertices": 116,
+          "reviewed_barrel": true
         }
       }
     },
@@ -1160,22 +1172,26 @@
         "3": {
           "weapon": "gatsbv2",
           "offset": [
-            0.0,
-            0.0,
+            -0.04,
+            0.04,
             0.0
           ],
           "hardpoint": "bDE11gc3",
-          "anchor": "hardpoint (parent bDE11bld is not a barrel node)"
+          "barrel": "bDE11bld",
+          "vertices": 116,
+          "reviewed_barrel": true
         },
         "4": {
           "weapon": "gatsbv2",
           "offset": [
-            0.0,
-            0.0,
+            0.04,
+            0.04,
             0.0
           ],
           "hardpoint": "bDE11gc4",
-          "anchor": "hardpoint (parent bDE11ble is not a barrel node)"
+          "barrel": "bDE11ble",
+          "vertices": 116,
+          "reviewed_barrel": true
         }
       }
     },
@@ -1209,22 +1225,26 @@
         "3": {
           "weapon": "gmgnbv4",
           "offset": [
-            0.0,
-            0.0,
+            -0.04,
+            0.04,
             0.0
           ],
           "hardpoint": "bDE11gc3",
-          "anchor": "hardpoint (parent bDE11bld is not a barrel node)"
+          "barrel": "bDE11bld",
+          "vertices": 116,
+          "reviewed_barrel": true
         },
         "4": {
           "weapon": "gmgnbv4",
           "offset": [
-            0.0,
-            0.0,
+            0.04,
+            0.04,
             0.0
           ],
           "hardpoint": "bDE11gc4",
-          "anchor": "hardpoint (parent bDE11ble is not a barrel node)"
+          "barrel": "bDE11ble",
+          "vertices": 116,
+          "reviewed_barrel": true
         }
       }
     },
@@ -1258,22 +1278,26 @@
         "3": {
           "weapon": "gtmgbv4",
           "offset": [
-            0.0,
-            0.0,
+            -0.04,
+            0.04,
             0.0
           ],
           "hardpoint": "bDE11gc3",
-          "anchor": "hardpoint (parent bDE11bld is not a barrel node)"
+          "barrel": "bDE11bld",
+          "vertices": 116,
+          "reviewed_barrel": true
         },
         "4": {
           "weapon": "gtmgbv4",
           "offset": [
-            0.0,
-            0.0,
+            0.04,
+            0.04,
             0.0
           ],
           "hardpoint": "bDE11gc4",
-          "anchor": "hardpoint (parent bDE11ble is not a barrel node)"
+          "barrel": "bDE11ble",
+          "vertices": 116,
+          "reviewed_barrel": true
         }
       }
     },
@@ -2211,7 +2235,7 @@
       "model": "cvturr",
       "slots": {
         "1": {
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "offset": [
             -0.003,
             0.0019,
@@ -2222,7 +2246,7 @@
           "reviewed_barrel": true
         },
         "2": {
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "offset": [
             -0.003,
             0.0128,
@@ -2233,7 +2257,7 @@
           "reviewed_barrel": true
         },
         "3": {
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "offset": [
             0.003,
             0.0128,
@@ -2244,7 +2268,7 @@
           "reviewed_barrel": true
         },
         "4": {
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "offset": [
             0.003,
             0.0019,
@@ -3146,7 +3170,7 @@
       "model": "svturr",
       "slots": {
         "1": {
-          "weapon": "gtminis",
+          "weapon": "gtmssv15",
           "offset": [
             -0.0036,
             -0.0013,
@@ -3157,7 +3181,7 @@
           "reviewed_barrel": true
         },
         "2": {
-          "weapon": "gtminis",
+          "weapon": "gtmssv15",
           "offset": [
             -0.0036,
             -0.0013,
@@ -3165,6 +3189,17 @@
           ],
           "hardpoint": "GC2",
           "barrel": "cr_fire_2",
+          "reviewed_barrel": true
+        },
+        "3": {
+          "weapon": "gtmssv15",
+          "offset": [
+            -0.0022,
+            0.0062,
+            0.075
+          ],
+          "hardpoint": "GC3",
+          "barrel": "cr_fire_3",
           "reviewed_barrel": true
         }
       }

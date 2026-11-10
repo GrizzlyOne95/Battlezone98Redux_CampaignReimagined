@@ -1,5 +1,5 @@
-// CR turret barrel variant: gatstab with 1/2 damage per barrel (ordnance oatsbv2)
-// Made by the hardpoint pass; re-derive it if the base ODF changes.
+// CR turret barrel variant: gatstab firing in turn across 4 barrels (stock turret had 2)
+// shotAlternate rotates the 4 slots; shotDelay 0.3 x 4/2 = 0.6 keeps shots/s and ammo/s stock.
 [WeaponClass]
 // CR WEAPON FLASH BEGIN
 // Authored atstab: shape/colour/timing in References/WeaponPresentation/profiles.json.
@@ -21,7 +21,8 @@ casingType = "medium"
 recoilKick = 1.0
 // CR WEAPON RECOIL END
 classLabel = "cannon"
-ordName = "oatsbv2"
+ordName = "rocket"
+shotAlternate = 1
 wpnName = "AT-Stabber"
 fireSound = "gatst00.wav"
 wpnReticle = "gatstab"
@@ -29,5 +30,5 @@ wpnPriority = 3
 wpnCategory = "CANN"
 
 [CannonClass]
-shotDelay = 0.3
+shotDelay = 0.6
 

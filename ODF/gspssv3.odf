@@ -1,5 +1,5 @@
-// CR turret barrel variant: gspstab with 1/3 damage per barrel (ordnance ospssv3)
-// Made by the hardpoint pass; re-derive it if the base ODF changes.
+// CR turret barrel variant: gspstab firing in turn across 3 barrels (stock turret had 1)
+// shotAlternate rotates the 3 slots; shotDelay 0.6 x 3/1 = 1.8 keeps shots/s and ammo/s stock.
 [WeaponClass]
 // CR WEAPON FLASH BEGIN
 // Authored spstab: shape/colour/timing in References/WeaponPresentation/profiles.json.
@@ -22,7 +22,8 @@ recoilKick = 1.0
 // CR WEAPON RECOIL END
 baseName = "gatstab"
 classLabel = "cannon"
-ordName = "ospssv3"
+ordName = "rocket3"
+shotAlternate = 1
 wpnName = "SP-Stabber"
 fireSound = "gmagg06.wav"
 wpnReticle = "gspstab"
@@ -30,5 +31,5 @@ wpnPriority = 5
 wpnCategory = "CANN"
 
 [CannonClass]
-shotDelay = 0.6
+shotDelay = 1.8
 

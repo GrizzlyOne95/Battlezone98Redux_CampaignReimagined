@@ -4,7 +4,7 @@ classLabel = "turrettank"
 scrapCost = 6
 scrapValue = 3
 maxHealth = 2550
-maxAmmo = 1778
+maxAmmo = 2000
 unitName = "Turret"
 aiName = "TurretTankFriend"
 aiName2 = "TurretTankEnemy"
@@ -24,8 +24,8 @@ weaponName4 = "gatsbv2"
 // Regenerate: Tools/Build-WeaponFlashes.py --measure
 flashOffset1 = "-0.04 -0.04 0.00"
 flashOffset2 = "0.04 -0.04 0.00"
-flashOffset3 = "0.00 0.00 0.00"
-flashOffset4 = "0.00 0.00 0.00"
+flashOffset3 = "-0.04 0.04 0.00"
+flashOffset4 = "0.04 0.04 0.00"
 // CR CRAFT FLASH OFFSET END
 // CR CRAFT RECOIL BEGIN
 // Reviewed independent gun pieces; preserve aiming and deployment parents.
@@ -36,6 +36,12 @@ recoilReturn1 = 0.8
 recoilName2 = "bDE11blf"
 recoilDistance2 = 0.08
 recoilReturn2 = 0.8
+recoilName3 = "bDE11bld"
+recoilDistance3 = 0.08
+recoilReturn3 = 0.8
+recoilName4 = "bDE11ble"
+recoilDistance4 = 0.08
+recoilReturn4 = 0.8
 // CR CRAFT RECOIL END
 rangeScan = 250.0
 periodScan = 0.0

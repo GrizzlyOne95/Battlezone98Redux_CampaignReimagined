@@ -333,7 +333,7 @@ def report():
         'svltnk':'Forward cannon section with the cannon/launcher alias bound to the same clip.',
         'svrckt':'Paired forward launcher outlet sections; cockpit cabin stays fixed.',
         'svtank':'Primary cannon and secondary tip; preserve the art-fitted cockpit primary gun and source UVs.',
-        'svturr':'Two gun sections; restore native alias parents while preserving existing world bind poses.',
+        'svturr':'Three gun sections (GC1-GC3); restore native alias parents while preserving existing world bind poses.',
         'svwalk':'Paired groups of small forward head-aperture sections; retain the original head driver.'}
     lines=['# Requested CR weapon model edits', '',
         'Authored source and exported assets, 2026-11-04. **27 model families; not deployed or qualified in native gameplay.**', '',
@@ -361,7 +361,7 @@ def report():
         'Mine, popper, flare, camera and field-device mounts have no firearm barrel to move. Their lack of a recoil binding is intentional. Their per-weapon effect/producer decisions remain in the slot report.', '',
         '## Flash and casing placement', '',
         'Flash offsets are fitted to the exported moving-piece fronts in the native hardpoint-parent frame. Ballistic slots receive fitted local casing offsets and directions. Each port is outside the full world hull with at least 0.25 m surface clearance; the outward ray and eight jitter-cone corner rays clear the hull in the authored rest pose. Paired scout ports point away from the centerline in opposite directions. Energy, rocket and utility weapons retain their no-brass decisions.', '',
-        'All ballistic slots on the requested model families have fitted casing offsets/directions, including the centerline `svfi12` variant that has no visible recoil barrel. Offsets are a static geometry fit. Aiming, recoil, vehicle motion, casing collision and cockpit emission still require native acceptance. The new spin/port keys require OpenShim PR 698; CR shipping binaries are unchanged.', '',
+        'All ballistic slots on the requested model families have fitted casing offsets/directions, including the centerline `svfi12` variant that has no visible recoil barrel. Offsets are a static geometry fit. Aiming, recoil, vehicle motion, casing collision and cockpit emission still require native acceptance. The new spin/port keys require OpenShim PR 698, which `Bin/openshim.dll` now includes.', '',
         '## Evidence and remaining work', '',
         '- `Test-WeaponRigs.py`: six final-asset contracts pass for requested coverage, exported hashes, finite geometry, rigid helper ownership, closed moving surfaces, original bind poses/clips, four-barrel/spin counterparts, port clearance and the reviewed actual gun regions.',
         '- Weapon/flash/casing and combat-presentation suites: fifteen tests pass; all 132 armed ODF gameplay baselines remain unchanged.',

@@ -1,5 +1,5 @@
-// CR turret barrel variant: gtminig with 1/4 damage per barrel (ordnance otmgbv4)
-// Made by the hardpoint pass; re-derive it if the base ODF changes.
+// CR turret barrel variant: gtminig firing in turn across 4 barrels (stock turret had 1)
+// shotAlternate rotates the 4 slots; shotDelay 0.2 x 4/1 = 0.8 keeps shots/s and ammo/s stock.
 [WeaponClass]
 // CR WEAPON FLASH BEGIN
 // Authored minigun: shape/colour/timing in References/WeaponPresentation/profiles.json.
@@ -16,7 +16,8 @@ flashOffset = "0 0 0"
 casingType = "small"
 // CR WEAPON CASING END
 classLabel = "machinegun"
-ordName = "otmgbv4"
+ordName = "bullet5"
+shotAlternate = 1
 wpnName = "Minigun"
 fireSound = "gmini00.wav"
 wpnReticle = "gminigun"
@@ -24,4 +25,4 @@ wpnPriority = 1
 wpnCategory = "CANN"
 
 [CannonClass]
-shotDelay = 0.20
+shotDelay = 0.8

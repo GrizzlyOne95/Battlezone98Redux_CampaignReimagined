@@ -13,13 +13,13 @@ heatSignature = 0.1
 imageSignature = 2.0
 radarSignature = 0.1
 weaponHard1 = "GC1"
-weaponName1 = "gminigrn"
+weaponName1 = "gmgrcv1"
 weaponHard2 = "GC2"
-weaponName2 = "gminigrn"
+weaponName2 = "gmgrcv1"
 weaponHard3 = "GC3"
-weaponName3 = "gminigrn"
+weaponName3 = "gmgrcv1"
 weaponHard4 = "GC4"
-weaponName4 = "gminigrn"
+weaponName4 = "gmgrcv1"
 
 [CraftClass]
 // CR CRAFT FLASH OFFSET BEGIN
