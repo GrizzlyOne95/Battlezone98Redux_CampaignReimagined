@@ -54,7 +54,7 @@ only shows above 10% throttle. Under co-op team colours only the hull paint is r
 The tool always starts from the unit's pre-rig mesh at `source_revision` in
 `References/WeaponRigs/models.json`, so it can be re-run at any time. Preview output goes
 to `Local/NacelleJets/<unit>` (with a `preview.json` receipt); review sheets go to `review/`
-for a shipped unit and to the git-ignored `Local/NacelleJets/review-rollout/` for a preview.
+only with `--ship`, and to the git-ignored `Local/NacelleJets/review-rollout/` otherwise.
 Only `--ship` writes the tracked receipt. `--contact` composes one sheet per faction from
 finished preview renders.
 
@@ -101,9 +101,10 @@ flame axis (positive = up, against the flame), an (x, y, z) build-frame vector, 
 point to the nearest flat, solid spot on the same nacelle skin (within 0.8 m, mirrored
 left/right when the twin seats alike) and builds the housing there with the nozzle on the
 new point. Use it where the stock point lands on a joint between parts or forces a stalk,
-overhang or offset nozzle. `ports=True` with `housing=False` (avartl, bvartl) instead finds
-the glowing exhaust ports a nacelle already models (emissive map) and proposes each flame
-into the largest one, along its normal.
+overhang or offset nozzle. `ports=True` with `housing=False` (avartl, bvartl, avapc, bvapc)
+instead finds the glowing exhaust ports a nacelle already models (emissive texels linked
+within 5 cm, elongated patches split in two, patches under 15 samples dropped) and proposes
+each flame into the largest downward-facing one, along its normal.
 
 The VDF is not changed here. Each moved emitter carries `emitShift` (stock point, moved
 point, delta, flame direction, reason) in `preview.json`, and the unit carries `vdfParts`:
@@ -119,16 +120,18 @@ some skin to seat on (>= 35% of the footprint), roof never exits the far side, e
 leaves one manifold piece. Clip checks against every opaque stock triangle (VDF pose): none
 may pass through the bore or the 0.9 m flame cone below the lip (the nozzle hangs lower when
 skin sits over the bore), and the housing's exposed surface may cross stock mesh only at its
-seat. When the configured pod clips, the pod is slid along the seat, then scaled down (not
+seat: no crossing more than 0.02 m + 0.03 x scale below the seat plane, however uneven the
+skin is (a band that grew with the unevenness let avhraz's pod cut 0.14 m into its rail).
+When the configured pod clips, the pod is slid along the seat, then scaled down (not
 below 0.8), then turned about the flame axis, with the nozzle kept on the emit point; the first
 variant that passes is used and recorded as `adjusted`. A unit with no passing variant fails
 with the reasons, and leaves no preview. Read the `notes` in `preview.json` before shipping.
 
 Pod paint is the median texel of the downward-facing seat skin under and around the footprint,
 after dropping saturated trim and decals and near-black gaps, taken from the dominant colour only.
-Ring, bore and throat glow (fitted shapes; avfigh keeps its shipped maps) follow the faction
-flame colour (`FACTIONS`): NSDF blue, Black Dogs blood red, CCA burnt
-orange, CRA green.
+Ring, bore and throat glow follow the faction flame colour (`FACTIONS`): NSDF blue, Black
+Dogs blood red, CCA burnt orange, CRA green. The shipped avfigh maps still carry the old
+orange bore until avfigh is re-shipped.
 
 ## Review sheets (avfigh)
 

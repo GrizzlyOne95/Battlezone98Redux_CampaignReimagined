@@ -10,8 +10,8 @@ those instead, along each part's front axis (BZ 1.5 decompile; see
 References/NacelleJets/README.md). This tool derives those points from the unit's VDF, GEOs
 and skeleton, builds a housing around each one (Tools/nacellejet_blender.py), paints it in
 the unit's faction colours and writes a preview mesh, textures and material under
-Local/NacelleJets plus review renders (References/NacelleJets/review for shipped units,
-Local/NacelleJets/review-rollout for previews). It always starts from the unit's pre-rig
+Local/NacelleJets plus review renders (References/NacelleJets/review only with --ship,
+Local/NacelleJets/review-rollout otherwise). It always starts from the unit's pre-rig
 mesh (the weapon-rig source revision), so it can be re-run at any time.
 
 --ship installs the result as the unit's pre-rig stage: Assets/ModelFixes/<unit>.mesh, the
@@ -23,6 +23,9 @@ from pathlib import Path
 import argparse, hashlib, io, json, math, os, re, shutil, subprocess, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from scipy.sparse import coo_matrix
+from scipy.sparse.csgraph import connected_components
+from scipy.spatial import cKDTree
 
 ROOT = Path(__file__).resolve().parents[1]; sys.path.insert(0, str(ROOT / 'Tools'))
 import ogrelayout
@@ -94,16 +97,16 @@ CONFIG = {
     'avfigh': dict(faction='nsdf', stripe=(.14, .21), shape=BASE),
     # Fitted shapes. scale ~ flame width (the engine draws every unit's flame the same size)
     # and the room under the nacelle; length stretches the pod along the chord.
-    'avapc': unit('nsdf', 1.3, .8, shift=(('.', 'relocate'),)),
+    'avapc': unit('nsdf', 1.3, .8, housing=False, ports=True, note='no housing: each side pod already models glowing exhaust ports underneath; the flames are proposed into those'),
     'avartl': unit('nsdf', 1.2, housing=False, ports=True, note='no housing: each nacelle already models glowing exhaust ports; the flames are proposed into those'),
     'avltnk': unit('nsdf', 1., .6), 'avmine': unit('nsdf', 1.3), 'avrckt': unit('nsdf', 1.), 'avtank': unit('nsdf', 1., .8, shift=(('.', 'relocate'),)),
     'avhraz': unit('nsdf', .9, .8, shift=(('.', 'relocate'),)), 'avtest': unit('nsdf', .8, shift=(('.', 'relocate'),)),
-    'bvapc': unit('blackdogs', 1.3, .8, shift=(('.', 'relocate'),)),
+    'bvapc': unit('blackdogs', 1.3, .8, housing=False, ports=True, note='no housing: each side pod already models glowing exhaust ports underneath; the flames are proposed into those'),
     'bvartl': unit('blackdogs', 1.2, housing=False, ports=True, note='no housing: each nacelle already models glowing exhaust ports; the flames are proposed into those'),
     'bvltnk': unit('blackdogs', 1., .6), 'bvmine': unit('blackdogs', 1.3), 'bvraz': unit('blackdogs', .9), 'bvrckt': unit('blackdogs', 1.),
     'bvtank': unit('blackdogs', 1., .8, shift=(('.', 'relocate'),)),
     'svapc': unit('cca', 1.3), 'svartl': unit('cca', 1.3, shift=(('.', 'relocate'),)), 'svfigh': unit('cca', 1., shift=(('.', 'relocate'),)),
-    'svhraz': unit('cca', .8, .6, shift=(('.', 'relocate'),)), 'svltnk': unit('cca', .8, .9, shift=(('.', 'relocate'),)),
+    'svhraz': unit('cca', .8, 1.2, shift=(('.', 'relocate'),)), 'svltnk': unit('cca', .8, .9, shift=(('.', 'relocate'),)),
     'svmine': unit('cca', 1.2, shift=(('.', 'relocate'),)), 'svmuf': unit('cca', 1.4, shift=(('.', 'relocate'),)), 'svrckt': unit('cca', 1.1),
     'svrecy': unit('cca', 1.5, shift=(('.', 'relocate'),)), 'svslf': unit('cca', 1.2), 'svscav': unit('cca', 1.3, shift=(('.', 'relocate'),)),
     'cvfigh': unit('cra', .9), 'cvhraz': unit('cra', 1.3), 'cvmine': unit('cra', .9, shift=(('.', 'relocate'),)),
@@ -514,10 +517,9 @@ def textures(unit, tri, uv, tag, cfg, stripe, paint, faction):
     metal = (np.array((60., 63, 68)) * (1 - heat) + np.array((104., 78, 58)) * heat) * (1 + .06 * mottle[..., None])
     depth = np.clip((y - bell['lip']) / (bore['roof'] - bell['lip']), 0, 1)[..., None]  # 1 at the bore roof
     core = np.clip(1 - (lathe_radius(cfg, p) / bore['rRoof']) ** 2 * .7, 0, 1)[..., None]
-    hot = np.array((255., 150, 60)); bore_deep = np.array((84., 44, 24)); throat = np.array((110., 58, 30)) * core; throat_light = hot * (.35 + .65 * core)
-    if cfg.get('auto'):  # the faction's flame colour, a hot core: brighter and less saturated toward the centre
-        hot = glow * 255 / glow.max(); bore_deep = hot * .3; throat = hot * .42 * core
-        throat_light = (hot * (1 - .6 * core ** 2) + 255 * .6 * core ** 2) * (.35 + .65 * core)
+    # the faction's flame colour, a hot core: brighter and less saturated toward the centre
+    hot = glow * 255 / glow.max(); bore_deep = hot * .3; throat = hot * .42 * core
+    throat_light = (hot * (1 - .6 * core ** 2) + 255 * .6 * core ** 2) * (.35 + .65 * core)
     for value, base, shine in ((PAINT, body, 46 + 14 * band), (BELL, metal, 120), (LIP, np.array((118., 114, 106)) * (1 + .08 * mottle[..., None]), 160),
                                (GROOVE, glow * .45, 40), (BORE, np.array((26., 24, 24)) * (1 - depth) + bore_deep * depth, 22),
                                (THROAT, throat, 30), (VENT, np.array((15., 16, 18)) + 0 * body, 10)):
@@ -673,8 +675,9 @@ def check_flame_path(solid, local):
 
 def check_surface(solid, tri, local):
     """The housing's exposed surface may meet stock mesh only where it is seated: no crossing
-    further below the seat plane than the seat skin itself falls."""
-    fit = solid['underside']; ex, _, ez = solid['emit']; band = solid['seated']['spread'] + .02
+    more than a few centimetres below the seat plane. (The band used to grow with the seat's
+    unevenness, so an uneven seat let the pod walls cut 0.14 m into the skin and passed: avhraz.)"""
+    fit = solid['underside']; ex, _, ez = solid['emit']; band = .02 + .03 * solid.get('scale', 1.)
     lo = tri.reshape(-1, 3).min(0) - .005; hi = tri.reshape(-1, 3).max(0) + .005; near = local[(local.max(1) >= lo).all(1) & (local.min(1) <= hi).all(1)]
     edges = lambda v: (v[:, [0, 1, 2]].reshape(-1, 3), v[:, [1, 2, 0]].reshape(-1, 3))
     hit = np.concatenate([crossings(*edges(tri), near), crossings(*edges(near), tri)]) if len(near) else np.zeros((0, 3))
@@ -862,7 +865,16 @@ def blender(script, *args):
 
 def sheet(images, captions, dest, columns, footer=()):
     """Captioned contact sheet of same-sized images, with optional note lines underneath."""
-    font = ImageFont.truetype('arial.ttf', 20); w, h = images[0].size; rows = -(-len(images) // columns)
+    font = ImageFont.truetype('arial.ttf', 20); w, h = images[0].size; rows = -(-len(images) // columns); lines = []
+    for note in footer:  # wrap each note to the sheet width
+        line = ''
+        for word in note.split():
+            if line and font.getlength(line + ' ' + word) > w * columns - 16:
+                lines.append(line); line = '    ' + word
+            else:
+                line = (line + ' ' + word) if line else word
+        lines.append(line)
+    footer = lines
     out = Image.new('RGB', (w * columns, (h + 34) * rows + 28 * len(footer)), (24, 26, 28))
     for i, (image, caption) in enumerate(zip(images, captions)):
         x, y = i % columns * w, i // columns * (h + 34)
@@ -872,10 +884,10 @@ def sheet(images, captions, dest, columns, footer=()):
     out.save(dest, quality=90)
 
 
-def review_dir(unit):
-    """Shipped units keep their sheets in the repository; previews stay local."""
-    shipped = (ROOT / 'References/NacelleJets' / unit / 'build.json').is_file()
-    return ROOT / ('References/NacelleJets/review' if shipped else 'Local/NacelleJets/review-rollout')
+def review_dir(shipping):
+    """A --ship run writes the tracked sheets that match the shipped stage; previews stay local,
+    so a preview of a shipped unit never leaves its tracked sheets out of step."""
+    return ROOT / ('References/NacelleJets/review' if shipping else 'Local/NacelleJets/review-rollout')
 
 
 def emit_shifts(jets):
@@ -936,16 +948,28 @@ def ports(mesh, skeleton, pose):
                 pts.append((b @ tri[i])[lit]); nrm.append((b @ normals[tris[i]])[lit]); own.append(np.full(lit.sum(), owner[tris[i, 0]])); col.append(texel[lit])
         if not pts:
             continue
-        pts, nrm, own, col = map(np.concatenate, (pts, nrm, own, col)); left = np.ones(len(pts), bool)
-        while left.any():
-            seed = np.flatnonzero(left)[0]; member = left & (np.linalg.norm(pts - pts[seed], axis=1) < .3)
-            for _ in range(3):
-                member = left & (np.linalg.norm(pts - pts[member].mean(0), axis=1) < .3); member[seed] = True  # the seed always leaves, so the loop ends
+        pts, nrm, own, col = map(np.concatenate, (pts, nrm, own, col))
+        # one port = one connected lit patch (samples sit ~2 cm apart; a 5 cm link keeps the
+        # unlit rim between neighbouring ports as a gap, so a big port and its small ones stay apart)
+        pairs = cKDTree(pts).query_pairs(.05, output_type='ndarray'); n = len(pts)
+        _, label = connected_components(coo_matrix((np.ones(len(pairs)), (pairs[:, 0], pairs[:, 1])), shape=(n, n)), directed=False)
+        groups = [label == k for k in np.unique(label)]
+        while groups:
+            member = groups.pop()
             if member.sum() >= 15:
+                # two port rings that touch join into one patch: split one that is long in its own plane
+                q = pts[member] - pts[member].mean(0); value, vector = np.linalg.eigh(q.T @ q / len(q))
+                if value[2] > 2.2 * value[1]:
+                    side = q @ vector[:, 2] > 0
+                    for _ in range(5):  # two-means along the long axis
+                        a, b = q[side].mean(0) @ vector[:, 2], q[~side].mean(0) @ vector[:, 2]; side = q @ vector[:, 2] > (a + b) / 2
+                    if side.all() or not side.any():
+                        side[:len(side) // 2] = ~side[:len(side) // 2]
+                    index = np.flatnonzero(member); one = np.zeros_like(member); one[index[side]] = True
+                    groups += [one, member & ~one]; continue
                 c = pts[member].mean(0); bone = int(np.bincount(own[member] + 1).argmax()) - 1
                 out.append(dict(centre=c.tolist(), normal=unit_vectors(nrm[member].mean(0)).tolist(), radius=float(np.percentile(np.linalg.norm(pts[member] - c, axis=1), 95)),
                                 part=skeleton.bones[bone].name if bone >= 0 else None, bone=bone, colour=[round(float(v)) for v in col[member].mean(0)]))
-            left &= ~member
     return out
 
 
@@ -996,17 +1020,20 @@ def emit_only(unit, cfg, mesh, skeleton, jets, pose, work, review, revision, ren
                   dict(file='side', eye=list(middle + (8, -.5, -1.)), target=list(middle), fov=40, marker=True, flame=True, housing=False, markerScale=1.6)]
     views += [dict(file=f'close{n}', eye=list(e + np.array(j['posed']['flame']) * 2.2 + (1.2 if e[0] >= 0 else -1.2, -.9, 0)), target=list(e), fov=30, marker=True, flame=True, housing=False)
               for n, (e, j) in enumerate(zip(points, jets))]
+    if found:  # the same close-ups without the cone, so the port it sits in shows
+        views += [dict(v, file=v['file'].replace('close', 'bare'), flame=False) for v in views if v['file'].startswith('close')]
     (work / 'scene.json').write_text(json.dumps(dict(parts=parts, out=str(work), emit=points.tolist(), flameDir=[j['posed']['flame'] for j in jets], views=views, marks=marks,
                                                      flame=dict(halfWidth=.2, length=.9), size=[960, 600]), indent=1))
     blender('nacellejet_render.py', work / 'scene.json')
     sheet([Image.open(work / (v['file'] + '.png')) for v in views],
           ['Magenta = emit points' + ('; cyan = stock; yellow = ports' if found else ''), 'Flames along each part\'s front axis']
-          + (['From below', 'From the side'] if found else []) + ['%s at (%.3f, %.3f, %.3f)' % (j['part'], *j['posed']['emit']) for j in jets], review / f'{unit}-emit.jpg', 2, notes)
+          + (['From below', 'From the side'] if found else []) + ['%s at (%.3f, %.3f, %.3f)' % (j['part'], *j['posed']['emit']) for j in jets]
+          + (['%s, no flame: the port under the magenta dot' % j['part'] for j in jets] if found else []), review / f'{unit}-emit.jpg', 2, notes)
 
 
 def build(unit, render, shipped=False):
     cfg = CONFIG[unit]; faction = FACTIONS[cfg['faction']]; material = unit + '_nacjet'
-    work = ROOT / 'Local/NacelleJets' / unit; review = review_dir(unit)
+    work = ROOT / 'Local/NacelleJets' / unit; review = review_dir(shipped)
     work.mkdir(parents=True, exist_ok=True); review.mkdir(parents=True, exist_ok=True)
     for stale in (work / 'contact.png', work / 'preview.json'):  # a unit that fails a check leaves no earlier preview behind
         stale.unlink(missing_ok=True)
