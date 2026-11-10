@@ -1873,8 +1873,11 @@ to the ordinary GOG development mod.
   2,000-triangle cap, and a closed manifold submesh.
 - EXACT booleans on lathed bores go non-manifold when the cutter's vertices land on the
   body's edges. Give each lathe its own phase (golden-ratio stagger in `hardpointmount_blender.py`).
-- The hardpoint is written with identity rotation at INSET (0.04 x scale) behind the muzzle.
-  Whether the engine aims shots along the bone or the craft's forward axis is UNVERIFIED.
+- The hardpoint sits at INSET (0.04 x scale) behind the muzzle and keeps its world orientation
+  (local = world @ owner^T). That is identity under an identity owner. Under a yawed owner
+  (crfraz `cfr11bdb`, 180 deg), an identity local would point GC2 backwards, and
+  `Build-UnitAnimSlots` refuses its rotation keys. Whether the engine aims shots along the
+  bone or along the craft's forward axis is UNVERIFIED.
 - Canopy glass counts as hull for line of fire: an avfigh dorsal pod fires into its canopy,
   so the rocket pod sits under the chin.
 - `Build-NacelleJets.py --ship` rebuilds a unit mesh from its own base and drops the mount
@@ -1895,6 +1898,22 @@ to the ordinary GOG development mod.
   combat presentation evidence, and the Red Devil legacy/cockpit tests. The Red Devil tests now
   strip the single trailing `bvrdev_hpmount` submesh and material block through the toolkit
   (`without_mount`, `without_mount_material`) and still compare every original byte.
+- Rollout audit (`Local/HardpointMounts/rollout/candidates.md`): a "no geometry at the
+  hardpoint" flag is not enough. Check the unit's rig channels (`combat-models.json`) and
+  `craft-flash-offsets.json` first. The bvraz cheek barrels are aligned through flashOffset,
+  and the avltnk/bvltnk launchers are native cones; both are false positives.
+- CR-original models (crfraz, imported by `Build-FuryFighter.py`) have no stock VDF or
+  skeleton. Their receipt base is `CR@<rev>`, and `Build-UnitAnimSlots` reads both the VDF and
+  the SKELETONS source (`"CR@<rev>:<path>"`) from git at that revision. Rerunning the importer
+  drops the mounts; `Docs/FURY_FIGHTER.md` lists the re-apply steps.
+- Mirrored pairs use `mirror=dict(part, owner)`. Pass `rollViews` for a rolling owner, so the
+  sheet shows the seat at both roll extremes.
+- Low-poly hulls can leave no triangle beside the seat for the paint sample, so `seat_paint`
+  falls back to the nearest face. The line-of-fire check exempts the unit's own marker.
+- `Build-CombatPresentation.py --verify-models` also rewrites ODF `casingOffset` keys. Revert
+  the ODFs it touched outside your unit.
+- The combat cockpit exterior leaves out the `<unit>_hpmount` submesh (svfigh). A mount on
+  the nose is not drawn in the cockpit view.
 
 ### Emissive pulse through surface clones (2026-11-10)
 
