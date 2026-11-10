@@ -1195,6 +1195,11 @@ def build(unit, render, shipped=False):
         receipt['stageMesh'] = ship(unit, material, work)  # sha256 of the pre-rig Assets/ModelFixes mesh
         record = ROOT / 'References/NacelleJets' / unit / 'build.json'; record.parent.mkdir(exist_ok=True)
         record.write_text(json.dumps(receipt, indent=2) + '\n', newline='\n')
+        if (ROOT / 'References/HardpointMounts' / f'{unit}.json').is_file():  # stage_base predates the mount
+            sys.exit(f'{unit}: the new stage was rebuilt from the pre-mount weapon-rig source revision and has dropped its '
+                     f'hardpoint mount ({unit}_hpmount). Commit this stage, set CONFIG["{unit}"]["base"] in '
+                     f'Tools/Build-HardpointMounts.py to that commit, and re-run '
+                     f'"python Tools/Build-HardpointMounts.py --units {unit} --ship" before the weapon-rig sequence.')
     for note in notes:
         print(unit, 'note:', note)
     if not render:

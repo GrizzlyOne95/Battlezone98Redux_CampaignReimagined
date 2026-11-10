@@ -22,7 +22,8 @@ for name,digest in receipt['outputs'].items():
     p=ROOT/name;actual=hashlib.sha256(p.read_text().encode()).hexdigest() if p.suffix=='.material' else sha(p)
     check(actual==digest,'compiled resource hash: '+name)
 check((ROOT/'Assets/Models/bvrdev_cockpit.skeleton').read_bytes()==(REF/'original/bvrdev.skeleton').read_bytes(),'POV and every original bone/hardpoint unchanged')
-check(base_asset_path(ROOT/'Assets/ModelFixes/bvrdev.mesh').read_bytes()==(REF/'original/bvrdev.mesh').read_bytes(),'exterior and old fallback mesh untouched')
+spec=importlib.util.spec_from_file_location('mounts',ROOT/'Tools/Build-HardpointMounts.py');mounts=importlib.util.module_from_spec(spec);spec.loader.exec_module(mounts)
+check(mounts.without_mount(base_asset_path(ROOT/'Assets/ModelFixes/bvrdev.mesh').read_bytes(),'bvrdev')==(REF/'original/bvrdev.mesh').read_bytes(),'exterior and old fallback mesh untouched apart from the appended hardpoint mount')
 skeleton,world,eye,shell=cp.rig(REF/'original/bvrdev.skeleton');origin,R=world[eye.handle]
 check(eye.name==receipt['alignment']['pov']=='brd11POV','real POV bone authority')
 check(np.allclose(origin,receipt['alignment']['povPosition'],atol=1e-8),'exact eye-frame origin, not bounding-box centering')

@@ -1,0 +1,88 @@
+{
+  "note": "Hardpoint mount (Tools/Build-HardpointMounts.py). Ogre mesh space in the VDF pose (VDF x = -x), metres. The hardpoint sits INSET x scale inside the muzzle, on the fire axis.",
+  "unit": "bvhraz",
+  "piece": "cannon",
+  "part": "bhr11Gc1",
+  "owner": "bhr11bda",
+  "faction": "blackdogs",
+  "base": "75fb226a0be4ea9e885c6c055bd1be31753040bd",
+  "material": "bvhraz_hpmount",
+  "triangles": 1016,
+  "frame": {
+    "at": [
+      -1.0,
+      1.5,
+      2.3
+    ],
+    "seat": [
+      -0.985952,
+      1.5,
+      2.298439
+    ],
+    "normal": [
+      -0.993884,
+      0.0,
+      0.110432
+    ],
+    "front": [
+      0.110432,
+      0.0,
+      0.993884
+    ],
+    "scale": 1.3
+  },
+  "bury": 0.156,
+  "muzzle": [
+    -1.004615,
+    1.5,
+    4.131713
+  ],
+  "fire": [
+    0.110432,
+    0.0,
+    0.993884
+  ],
+  "inset": 0.052000000000000005,
+  "hardpoint": [
+    -1.010357,
+    1.5,
+    4.080031
+  ],
+  "stockHardpoint": [
+    -1.010357,
+    1.5,
+    4.080031
+  ],
+  "paint": [
+    27.0,
+    40.0,
+    38.0
+  ],
+  "accent": [
+    153.0,
+    150.0,
+    134.0
+  ],
+  "markTexels": 292,
+  "paintFrom": "bvhraz_D.dds",
+  "checks": {
+    "footprint": 4,
+    "skinAboveFloor": [
+      0.09950216453357996,
+      0.10062544758169024
+    ],
+    "saddleTop": 0.10399999767541886,
+    "muzzle": [
+      -1.004615044921614,
+      1.5,
+      4.131712888481301
+    ],
+    "fire": [
+      0.11043152607484655,
+      0.0,
+      0.9938837346736189
+    ],
+    "groundClearance": 1.5291
+  },
+  "meshSha256": "73c1d89a398770f54dd177f2d5fc38f0fb3f3b3f6bc59e258020bdc9a81abee9"
+}

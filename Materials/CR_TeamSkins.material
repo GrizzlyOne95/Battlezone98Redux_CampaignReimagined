@@ -73,6 +73,20 @@ material avfigh_nacjet_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_avfigh_nacjet_d.dds
 }
 
+material avfigh_hpmount_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap avfigh_hpmount_D.dds
+	set_texture_alias NormalMap avfigh_hpmount_N.dds
+	set_texture_alias SpecularMap avfigh_hpmount_S.dds
+	set_texture_alias EmissiveMap avfigh_hpmount_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_avfigh_hpmount_d.dds
+}
+
 material avhaul00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap avhaul_D.dds
@@ -113,6 +127,20 @@ material avhraz_nacjet_tm : CR_BZBase
 	set $shininess "127"
 	set $glow "1 1 1"
 	set_texture_alias TeamMask crteam_avhraz_nacjet_d.dds
+}
+
+material avhraz_hpmount_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap avhraz_hpmount_D.dds
+	set_texture_alias NormalMap avhraz_hpmount_N.dds
+	set_texture_alias SpecularMap avhraz_hpmount_S.dds
+	set_texture_alias EmissiveMap avhraz_hpmount_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_avhraz_hpmount_d.dds
 }
 
 material avland00_tm : CR_BZBase
@@ -464,6 +492,20 @@ material bvhraz_nacjet_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_bvhraz_nacjet_d.dds
 }
 
+material bvhraz_hpmount_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap bvhraz_hpmount_D.dds
+	set_texture_alias NormalMap bvhraz_hpmount_N.dds
+	set_texture_alias SpecularMap bvhraz_hpmount_S.dds
+	set_texture_alias EmissiveMap bvhraz_hpmount_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_bvhraz_hpmount_d.dds
+}
+
 material bvltnk00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap bvltnk_D.dds
@@ -616,6 +658,20 @@ material bvrdev_tm : CR_BZBase
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set_texture_alias TeamMask crteam_bvrdev_d.dds
+}
+
+material bvrdev_hpmount_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap bvrdev_hpmount_D.dds
+	set_texture_alias NormalMap bvrdev_hpmount_N.dds
+	set_texture_alias SpecularMap bvrdev_hpmount_S.dds
+	set_texture_alias EmissiveMap bvrdev_hpmount_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_bvrdev_hpmount_d.dds
 }
 
 material bvrecy00_tm : CR_BZBase

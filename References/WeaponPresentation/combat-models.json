@@ -680,7 +680,7 @@
     },
     "bvhraz": {
       "category": "Existing gun piece",
-      "action": "Same separate top-gun layout as NSDF: bhr11bga/bhr11bgb. The default rocket variants use slots 2/3 under the roof; map them explicitly to left/right gun pieces. The bvhraz variant has TAG at GC1 under bga, GM1 utility and Comet at GR1: choose bindings per loadout, not per generic slot index.",
+      "action": "Same separate top-gun layout as NSDF: bhr11bga/bhr11bgb. The default rocket variants use slots 2/3 under the roof; map them explicitly to left/right gun pieces. The bvhraz variant has GM1 utility and Comet at GR1: choose bindings per loadout, not per generic slot index. Its GC1 fires from the static hardpoint-mount cannon on bhr11bda (References/HardpointMounts/bvhraz.json), so GC1 has no recoil binding: it must not kick the top gun.",
       "bindings": {
         "GR1": {
           "node": "bhr11bga",
@@ -690,12 +690,6 @@
         },
         "GR2": {
           "node": "bhr11bgb",
-          "distance": 0.08,
-          "return": 1.6,
-          "kick_without_weapon": 1.0
-        },
-        "GC1": {
-          "node": "bhr11bga",
           "distance": 0.08,
           "return": 1.6,
           "kick_without_weapon": 1.0
@@ -1044,48 +1038,6 @@
             -0.4389,
             0.1736,
             -0.2658
-          ],
-          "casing_direction": [
-            -0.9345,
-            0.3271,
-            -0.1402
-          ],
-          "casing_outward_side": -1,
-          "casing_clearance": 0.2991,
-          "casing_jitter_rays_clear": true,
-          "port_world": [
-            -1.2580873660444618,
-            1.99302470627127,
-            1.5923105017513128
-          ],
-          "direction_world": [
-            -0.9345386270319955,
-            0.32708851946119843,
-            -0.14018079405479933
-          ],
-          "tip_world": [
-            -0.7942014932632446,
-            1.8061000108718872,
-            1.934399962425232
-          ],
-          "cockpit": true
-        },
-        "GM1": {
-          "animation": "cr_fire_2",
-          "node": "",
-          "spin": false,
-          "distance": 0.06,
-          "return": 2.0,
-          "kick_without_weapon": 1.0,
-          "flash_offset": [
-            0.0176,
-            -0.0027,
-            0.0661
-          ],
-          "casing_offset": [
-            -0.4463,
-            0.1842,
-            -0.276
           ],
           "casing_direction": [
             -0.9345,

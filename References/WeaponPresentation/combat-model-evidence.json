@@ -51,11 +51,11 @@
   },
   "avhraz": {
     "mesh_source": "Assets/ModelFixes/avhraz.mesh",
-    "skeleton_source": null,
+    "skeleton_source": "Assets/ModelFixes/avhraz.skeleton",
     "native_source": "Assets/ModelFixes/avhraz.vdf",
-    "mesh_sha256": "ff7f45fbf28b2381efb73c22c350747491be98cac8e1ae4b89d6e1e9076cf263",
-    "skeleton_sha256": "df84e7b1798bfc4caafa08a085e36c9d990d8bd7b1622a33171353b357a4508b",
-    "native_sha256": "69d413087add42baaf6d17c1f28311e465bc44a0968ec77bb630597fb0287685",
+    "mesh_sha256": "fc05eeaf319702bca288e9300abe2d7b9b34ca89dc4149db284135bccd5b561a",
+    "skeleton_sha256": "d4458405622135de37345b655c4258de3ef19550682476675b94279c5228357f",
+    "native_sha256": "15a084f1030d69017b9c19a1f6cfde0273aa0a0837b2367613630d44bc34ee1e",
     "nodes": {
       "ahr11bga": {
         "weighted_vertices": 500,
@@ -155,11 +155,11 @@
   },
   "bvhraz": {
     "mesh_source": "Assets/ModelFixes/bvhraz.mesh",
-    "skeleton_source": null,
+    "skeleton_source": "Assets/ModelFixes/bvhraz.skeleton",
     "native_source": "Assets/ModelFixes/bvhraz.vdf",
-    "mesh_sha256": "5ac037f8f5f6b9bd32f220fdf9ff347b85672a7c4b76c5f7fbfa2cee0dd0d1be",
-    "skeleton_sha256": "cab7f4e1495f81324383e22b780c57ff4135dfc9ad8bef15009aed7af74a32ff",
-    "native_sha256": "936e662b92f3d47f80fe3dbddea4b7e01ad60d5d15db50acaf8a50c76269777b",
+    "mesh_sha256": "73c1d89a398770f54dd177f2d5fc38f0fb3f3b3f6bc59e258020bdc9a81abee9",
+    "skeleton_sha256": "8b73501b176609bb7a6851b64c92b04491d280784c01fd54aebb10892f13d828",
+    "native_sha256": "efd2cdf81f8b64b0e455bd5ff6d2f77dd40aa698b0db7175531ba9b3c1c034a6",
     "nodes": {
       "bhr11bga": {
         "weighted_vertices": 500,

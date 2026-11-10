@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5629,
+  "count": 5651,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -715,6 +715,10 @@
       "runtime": "avhraz.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avhraz.skeleton",
+      "runtime": "avhraz.skeleton"
+    },
+    {
       "source": "Assets\\ModelFixes\\avhraz.vdf",
       "runtime": "avhraz.vdf"
     },
@@ -941,6 +945,10 @@
     {
       "source": "Assets\\ModelFixes\\bvhraz.mesh",
       "runtime": "bvhraz.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvhraz.skeleton",
+      "runtime": "bvhraz.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\bvhraz.vdf",
@@ -4147,6 +4155,22 @@
       "runtime": "avfigh_D.dds"
     },
     {
+      "source": "Assets\\Textures\\avfigh_hpmount_D.dds",
+      "runtime": "avfigh_hpmount_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avfigh_hpmount_E.dds",
+      "runtime": "avfigh_hpmount_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avfigh_hpmount_N.dds",
+      "runtime": "avfigh_hpmount_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avfigh_hpmount_S.dds",
+      "runtime": "avfigh_hpmount_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\avfigh_nacjet_D.dds",
       "runtime": "avfigh_nacjet_D.dds"
     },
@@ -4185,6 +4209,22 @@
     {
       "source": "Assets\\Textures\\avhraz01_ACT.dds",
       "runtime": "avhraz01_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avhraz_hpmount_D.dds",
+      "runtime": "avhraz_hpmount_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avhraz_hpmount_E.dds",
+      "runtime": "avhraz_hpmount_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avhraz_hpmount_N.dds",
+      "runtime": "avhraz_hpmount_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avhraz_hpmount_S.dds",
+      "runtime": "avhraz_hpmount_S.dds"
     },
     {
       "source": "Assets\\Textures\\avhraz_nacjet_D.dds",
@@ -4563,6 +4603,22 @@
       "runtime": "bvhraz01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\bvhraz_hpmount_D.dds",
+      "runtime": "bvhraz_hpmount_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvhraz_hpmount_E.dds",
+      "runtime": "bvhraz_hpmount_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvhraz_hpmount_N.dds",
+      "runtime": "bvhraz_hpmount_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvhraz_hpmount_S.dds",
+      "runtime": "bvhraz_hpmount_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\bvhraz_nacjet_D.dds",
       "runtime": "bvhraz_nacjet_D.dds"
     },
@@ -4693,6 +4749,22 @@
     {
       "source": "Assets\\Textures\\bvrdev_d.dds",
       "runtime": "bvrdev_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrdev_hpmount_D.dds",
+      "runtime": "bvrdev_hpmount_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrdev_hpmount_E.dds",
+      "runtime": "bvrdev_hpmount_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrdev_hpmount_N.dds",
+      "runtime": "bvrdev_hpmount_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrdev_hpmount_S.dds",
+      "runtime": "bvrdev_hpmount_S.dds"
     },
     {
       "source": "Assets\\Textures\\bvrecy00_ACT.dds",
@@ -5683,6 +5755,10 @@
       "runtime": "crteam_avfigh_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_avfigh_hpmount_d.dds",
+      "runtime": "crteam_avfigh_hpmount_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_avfigh_nacjet_d.dds",
       "runtime": "crteam_avfigh_nacjet_d.dds"
     },
@@ -5693,6 +5769,10 @@
     {
       "source": "Assets\\Textures\\crteam_avhraz_d.dds",
       "runtime": "crteam_avhraz_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avhraz_hpmount_d.dds",
+      "runtime": "crteam_avhraz_hpmount_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_avhraz_nacjet_d.dds",
@@ -5795,6 +5875,10 @@
       "runtime": "crteam_bvhraz_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_bvhraz_hpmount_d.dds",
+      "runtime": "crteam_bvhraz_hpmount_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_bvhraz_nacjet_d.dds",
       "runtime": "crteam_bvhraz_nacjet_d.dds"
     },
@@ -5841,6 +5925,10 @@
     {
       "source": "Assets\\Textures\\crteam_bvrdev_d.dds",
       "runtime": "crteam_bvrdev_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvrdev_hpmount_d.dds",
+      "runtime": "crteam_bvrdev_hpmount_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_bvrecy_d.dds",

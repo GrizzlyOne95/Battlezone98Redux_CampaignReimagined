@@ -10,13 +10,14 @@
     "Assets/Models/svfigh_cockpit.mesh": "46c58bb8ca71ea7be4c4022fc54f2fcdc80743f8",
     "Assets/Models/avfigh_cockpit.mesh": "ca785ecdaa325e09d3f204254062959dbb555719",
     "Assets/Models/bvraz_cockpit.mesh": "ca785ecdaa325e09d3f204254062959dbb555719",
-    "Assets/ModelFixes/avfigh.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/avfigh.mesh": "5242585dbc705f1f2492864594a2892a92692c23",
     "Assets/ModelFixes/avltnk.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
     "Assets/ModelFixes/avrckt.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
     "Assets/ModelFixes/avtest.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
     "Assets/ModelFixes/bvltnk.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
     "Assets/ModelFixes/bvraz.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
     "Assets/ModelFixes/bvrckt.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/bvrdev.mesh": "807bdc8649720fdd3f53bef3fbba82e1bac932cb",
     "Assets/ModelFixes/cvfigh.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
     "Assets/ModelFixes/cvhraz.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
     "Assets/ModelFixes/svartl.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
@@ -513,8 +514,7 @@
         {
           "hardpoints": [
             "GC1",
-            "GR1",
-            "GM1"
+            "GR1"
           ],
           "parent": "brd11tur",
           "bones": [

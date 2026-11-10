@@ -1863,6 +1863,39 @@ to the ordinary GOG development mod.
   If membership did not change, `git checkout -- Shipping/shipping.lock.json`.
 - Commit with `git commit -F <file>` from PowerShell; multi-line `-m` strings get mangled.
 
+### Hardpoint mount kit (2026-11-10)
+
+- `Tools/Build-HardpointMounts.py` (Blender side `Tools/hardpointmount_blender.py`) seats one
+  of three kit pieces (rocket, cannon, mortar) per unit, appends a `<unit>_hpmount` submesh,
+  and moves the hardpoint to the piece's muzzle through `References/Hardpoints/<unit>.json`.
+  Receipts are in `References/HardpointMounts/`. The build asserts a buried saddle and a clear
+  line of fire; `Tools/Test-HardpointMounts.py` asserts the receipt triangle count, the
+  2,000-triangle cap, and a closed manifold submesh.
+- EXACT booleans on lathed bores go non-manifold when the cutter's vertices land on the
+  body's edges. Give each lathe its own phase (golden-ratio stagger in `hardpointmount_blender.py`).
+- The hardpoint is written with identity rotation at INSET (0.04 x scale) behind the muzzle.
+  Whether the engine aims shots along the bone or the craft's forward axis is UNVERIFIED.
+- Canopy glass counts as hull for line of fire: an avfigh dorsal pod fires into its canopy,
+  so the rocket pod sits under the chin.
+- `Build-NacelleJets.py --ship` rebuilds a unit mesh from its own base and drops the mount
+  submesh (avhraz, bvhraz). Re-run `Build-HardpointMounts.py` after any nacelle ship.
+- The offline renderer shows the mount marker in white, not the paint colour; that is a
+  review-render artefact, not the shipped texture.
+- `Build-UnitAnimSlots.py` SKELETONS needs a `References/Hardpoints/<unit>.json` receipt for
+  every unit it lists, or it crashes.
+- .NET calls from Python (`[IO.File]`, `System.IO`) resolve relative paths against the
+  process cwd, not PowerShell's location. Pass absolute paths when the cwd is another worktree.
+- Never run `Build-WeaponRigs.py --sync`: it rewrites `combat-models.json` bindings for every
+  rig model from `build.json` and drops hand-set keys (svtank `"machinegun_kick": false`).
+  Removing a rig channel means hand-editing only that unit's binding.
+- `Build-ScoutCockpits.py` rewrites the unrelated `bvraz_cockpit.mesh` with 7 bytes of
+  serializer drift and some files with line-ending-only changes. Revert those, never commit them.
+- A changed exterior mesh needs re-pins in every contract that hashes it: Build-CombatCockpits
+  (`exteriorSha256`/`nativeVdfSha256`), the scout cockpit exterior pin, `--verify-models`
+  combat presentation evidence, and the Red Devil legacy/cockpit tests. The Red Devil tests now
+  strip the single trailing `bvrdev_hpmount` submesh and material block through the toolkit
+  (`without_mount`, `without_mount_material`) and still compare every original byte.
+
 ### Emissive pulse through surface clones (2026-11-10)
 
 - `CRSurfaceEffects` draws craft and towers with per-object `exu_surface_cr_<id>_<index>`

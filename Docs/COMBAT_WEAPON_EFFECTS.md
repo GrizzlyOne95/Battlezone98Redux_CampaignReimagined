@@ -2,7 +2,7 @@
 
 Weapon-rig update, 2026-11-04. Generated from CR source, reviewed model policy and fitted flash data. See [the model-edit report](WEAPON_RIGS.md) for the requested 27-model pass and exported previews.
 
-**133 armed ODFs / 50 models / 298 equipped slots.** Authored recoil: 226 slots; fitted flash offsets: 219 slots; ballistic casing selections: 145 slots.
+**133 armed ODFs / 50 models / 298 equipped slots.** Authored recoil: 225 slots; fitted flash offsets: 219 slots; ballistic casing selections: 145 slots.
 
 Scope: CR vehicle/building definitions, including mission variants and utility carriers. People retain per-weapon effects; armories supply weapons. This source-only count excludes stock-only aliases from the earlier 139-definition/52-model audit.
 
@@ -72,7 +72,7 @@ Scope: CR vehicle/building definitions, including mission variants and utility c
 | `avturr` | `avtump`, `avtur2b`, `avturr` | Independent barrel tubes aDE11blc/bld/ble/blf, each 116 vertices / 190 triangles. GC1 uses blc, GC2 blf, GC3 bld, GC4 ble (one tube per hardpoint). These names are not BG*, so the old heuristic missed them. Static translations allow a node-slide candidate without cutting geometry. Keep the animated deploy base and aiming parents; choose whether a whole barrel cluster or only fired tube should react. Miniguns require a craft kick override. |
 | `bbtowe` | `bbtowe` | Use agn11bgb: 38 vertices / 34 triangles, rigid weight 1.0, native node and static local translation. GC1 is its child. No geometry split needed; tune short tip travel. Preserve ty1/tx1 aim parents. |
 | `bvartl` | `bvartl` | bar11bgd is the default GM1 barrel; the model also has the other separate barrel pieces. No split needed for its existing barrel; preserve deployment and use mortar kick opt-in. |
-| `bvhraz` | `bv0002`, `bvhraz`, `bvhraza` | Same separate top-gun layout as NSDF: bhr11bga/bhr11bgb. The default rocket variants use slots 2/3 under the roof; map them explicitly to left/right gun pieces. The bvhraz variant has TAG at GC1 under bga, GM1 utility and Comet at GR1: choose bindings per loadout, not per generic slot index. |
+| `bvhraz` | `bv0002`, `bvhraz`, `bvhraza` | Same separate top-gun layout as NSDF: bhr11bga/bhr11bgb. The default rocket variants use slots 2/3 under the roof; map them explicitly to left/right gun pieces. The bvhraz variant has GM1 utility and Comet at GR1: choose bindings per loadout, not per generic slot index. Its GC1 fires from the static hardpoint-mount cannon on bhr11bda (References/HardpointMounts/bvhraz.json), so GC1 has no recoil binding: it must not kick the top gun. |
 | `bvtank` | `bvtank`, `bvtanka` | Existing bGR11BGA cannon binding. GM1 is under the hull and must not blindly reuse the cannon barrel merely because it is spatially nearby. |
 | `bvturr` | `bvtump`, `bvtur8`, `bvturr` | Independent bDE11blc/bld/ble/blf tubes; GC1 uses blc, GC2 blf, GC3 bld, GC4 ble (one tube per hardpoint). Same static tube/deploy hierarchy as NSDF turret. No split needed for an individual tube; configure kick for machinegun variants and per-slot behavior for AT-Stabber variants. |
 | `cbtowe` | `cbtowe`, `cbtoweb`, `cbtowed`, `cbtowef` | cgt11tx1 owns only the long narrow cannon tube: 444 vertices / 648 triangles, approximately 0.70 x 0.70 x 5.65 m. It is a static native node beneath yaw and owns GC1. Recoil can translate this aimed tube while retaining live orientation. No mesh split needed to move the whole tube; splitting is optional if only its end sleeve should telescope. |
@@ -157,7 +157,7 @@ Scope: CR vehicle/building definitions, including mission variants and utility c
 | `bvfigh` | 3: `gshadow` | `` | 0.00 0.00 0.00 | none | native firing producer pending |
 | `bvfigha` | 1: `gminigun` | `animation:cr_fire_1` | -0.02 -0.24 -1.41 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `bvfigha` | 2: `gminigun` | `animation:cr_fire_2` | 0.03 -0.25 -1.41 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
-| `bvhraz` | 1: `gtaggun` | `bhr11bga` | pending / omitted | none | native firing producer pending; visible tip is -2.03 m from the hardpoint (under -0.1 m) |
+| `bvhraz` | 1: `gtaggun` | `` | pending / omitted | none | native firing producer pending; visible tip is -2.03 m from the hardpoint (under -0.1 m) |
 | `bvhraz` | 2: `gsandbag` | `` | pending / omitted | none | accepted-shot path; live validation pending; anchoring device |
 | `bvhraz` | 3: `gcomet` | `bhr11bga` | 0.03 -0.01 1.32 | none | native firing producer pending |
 | `bvhraza` | 2: `grktbomb` | `bhr11bga` | 0.03 -0.01 1.32 | none | accepted-shot path; live validation pending |
