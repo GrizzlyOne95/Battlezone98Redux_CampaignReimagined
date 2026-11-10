@@ -57,14 +57,14 @@
           "return": 2.0,
           "kick_without_weapon": 0.25,
           "flash_offset": [
-            -0.0235,
-            -0.2438,
-            -1.4077
+            -0.0255,
+            0.08,
+            0.048
           ],
           "casing_offset": [
-            0.2799,
-            -0.1288,
-            -1.6555
+            0.2779,
+            0.1951,
+            -0.1999
           ],
           "casing_direction": [
             0.9345,
@@ -99,14 +99,14 @@
           "return": 2.0,
           "kick_without_weapon": 0.25,
           "flash_offset": [
-            0.0274,
-            -0.2453,
-            -1.4118
+            0.0265,
+            0.08,
+            0.048
           ],
           "casing_offset": [
-            -0.289,
-            -0.1302,
-            -1.6597
+            -0.2899,
+            0.1951,
+            -0.1999
           ],
           "casing_direction": [
             -0.9345,
@@ -536,7 +536,7 @@
     },
     "avturr": {
       "category": "Existing gun piece",
-      "action": "Independent barrel tubes aDE11blc/bld/ble/blf, each 116 vertices / 190 triangles. GC1 uses blc; GC2 uses blf. These names are not BG*, so the old heuristic missed them. Static translations allow a node-slide candidate without cutting geometry. Keep the animated deploy base and aiming parents; choose whether a whole barrel cluster or only fired tube should react. Miniguns require a craft kick override.",
+      "action": "Independent barrel tubes aDE11blc/bld/ble/blf, each 116 vertices / 190 triangles. GC1 uses blc, GC2 blf, GC3 bld, GC4 ble (one tube per hardpoint). These names are not BG*, so the old heuristic missed them. Static translations allow a node-slide candidate without cutting geometry. Keep the animated deploy base and aiming parents; choose whether a whole barrel cluster or only fired tube should react. Miniguns require a craft kick override.",
       "bindings": {
         "GC1": {
           "node": "aDE11blc",
@@ -546,6 +546,18 @@
         },
         "GC2": {
           "node": "aDE11blf",
+          "distance": 0.08,
+          "return": 0.8,
+          "kick_without_weapon": 0.25
+        },
+        "GC3": {
+          "node": "aDE11bld",
+          "distance": 0.08,
+          "return": 0.8,
+          "kick_without_weapon": 0.25
+        },
+        "GC4": {
+          "node": "aDE11ble",
           "distance": 0.08,
           "return": 0.8,
           "kick_without_weapon": 0.25
@@ -972,47 +984,47 @@
     },
     "bvrdev": {
       "category": "Authored closed gun rigs",
-      "action": "Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
       "bindings": {
         "GC1": {
-          "animation": "cr_fire_1",
+          "animation": "cr_fire_2",
           "node": "",
           "spin": false,
           "distance": 0.06,
           "return": 2.0,
           "kick_without_weapon": 1.0,
           "flash_offset": [
-            -0.1542,
-            -0.2,
-            0.7547
+            0.0018,
+            0.0161,
+            -0.0036
           ],
           "casing_offset": [
-            0.3364,
-            0.1378,
-            -0.2505
+            -0.4621,
+            0.203,
+            -0.3457
           ],
           "casing_direction": [
-            0.9345,
+            -0.9345,
             0.3271,
             -0.1402
           ],
-          "casing_outward_side": 1,
-          "casing_clearance": 0.3366,
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2991,
           "casing_jitter_rays_clear": true,
           "port_world": [
-            1.1967418972361876,
-            0.8720488445260205,
-            3.0319438668532848
+            -1.2580873660444618,
+            1.99302470627127,
+            1.5923105017513128
           ],
           "direction_world": [
-            0.9345386270319955,
+            -0.9345386270319955,
             0.32708851946119843,
             -0.14018079405479933
           ],
           "tip_world": [
-            0.7060787975788116,
-            0.534296989440918,
-            4.03715705871582
+            -0.7942014932632446,
+            1.8061000108718872,
+            1.934399962425232
           ],
           "cockpit": true
         },
@@ -1116,7 +1128,7 @@
     },
     "bvturr": {
       "category": "Existing gun piece",
-      "action": "Independent bDE11blc/bld/ble/blf tubes; GC1 uses blc, GC2 uses blf. Same static tube/deploy hierarchy as NSDF turret. No split needed for an individual tube; configure kick for machinegun variants and per-slot behavior for AT-Stabber variants.",
+      "action": "Independent bDE11blc/bld/ble/blf tubes; GC1 uses blc, GC2 blf, GC3 bld, GC4 ble (one tube per hardpoint). Same static tube/deploy hierarchy as NSDF turret. No split needed for an individual tube; configure kick for machinegun variants and per-slot behavior for AT-Stabber variants.",
       "bindings": {
         "GC1": {
           "node": "bDE11blc",
@@ -1126,6 +1138,18 @@
         },
         "GC2": {
           "node": "bDE11blf",
+          "distance": 0.08,
+          "return": 0.8,
+          "kick_without_weapon": 0.25
+        },
+        "GC3": {
+          "node": "bDE11bld",
+          "distance": 0.08,
+          "return": 0.8,
+          "kick_without_weapon": 0.25
+        },
+        "GC4": {
+          "node": "bDE11ble",
           "distance": 0.08,
           "return": 0.8,
           "kick_without_weapon": 0.25
@@ -1234,14 +1258,14 @@
           "return": 2.0,
           "kick_without_weapon": 1.0,
           "flash_offset": [
-            0.0358,
-            0.0632,
-            0.2901
+            -0.004,
+            0.0027,
+            0.004
           ],
           "casing_offset": [
-            1.0674,
-            0.3936,
-            -0.3601
+            1.0275,
+            0.3331,
+            -0.6462
           ],
           "casing_direction": [
             0.9345,
@@ -2038,12 +2062,12 @@
           "flash_offset": [
             -0.003,
             0.0019,
-            0.2661
+            -0.0006
           ],
           "casing_offset": [
             0.3373,
             0.1381,
-            -0.2506
+            -0.5173
           ],
           "casing_direction": [
             0.9345,
@@ -2080,12 +2104,12 @@
           "flash_offset": [
             -0.003,
             0.0128,
-            0.2661
+            -0.0006
           ],
           "casing_offset": [
             0.3442,
             0.1405,
-            -0.2516
+            -0.5183
           ],
           "casing_direction": [
             0.9345,
@@ -2122,12 +2146,12 @@
           "flash_offset": [
             0.003,
             0.0128,
-            0.2661
+            -0.0006
           ],
           "casing_offset": [
-            -0.3442,
+            -0.3441,
             0.1405,
-            -0.2516
+            -0.5183
           ],
           "casing_direction": [
             -0.9345,
@@ -2164,12 +2188,12 @@
           "flash_offset": [
             0.003,
             0.0019,
-            0.2661
+            -0.0006
           ],
           "casing_offset": [
             -0.3373,
             0.1381,
-            -0.2506
+            -0.5173
           ],
           "casing_direction": [
             -0.9345,
@@ -2499,14 +2523,14 @@
           "return": 2.0,
           "kick_without_weapon": 1.0,
           "flash_offset": [
-            -0.0115,
-            0.0603,
-            1.028
+            0.0359,
+            -0.0185,
+            -0.0021
           ],
           "casing_offset": [
-            -0.6203,
-            0.2371,
-            -0.293
+            -0.5729,
+            0.1584,
+            -1.3231
           ],
           "casing_direction": [
             -0.9345,
@@ -2594,14 +2618,14 @@
           "return": 2.0,
           "kick_without_weapon": 1.0,
           "flash_offset": [
-            0.0,
-            -0.2635,
-            1.4623
+            -0.0681,
+            -0.1595,
+            0.1136
           ],
           "casing_offset": [
-            -1.1152,
-            0.4103,
-            -0.3673
+            -1.1833,
+            0.5143,
+            -1.7159
           ],
           "casing_direction": [
             -0.9345,
@@ -2636,14 +2660,14 @@
           "return": 2.0,
           "kick_without_weapon": 1.0,
           "flash_offset": [
-            -0.0,
-            -0.2629,
-            1.4622
+            0.0679,
+            -0.1601,
+            0.1142
           ],
           "casing_offset": [
-            1.1155,
-            0.4104,
-            -0.3673
+            1.1834,
+            0.5132,
+            -1.7152
           ],
           "casing_direction": [
             0.9345,
@@ -2689,14 +2713,14 @@
           "return": 2.0,
           "kick_without_weapon": 1.0,
           "flash_offset": [
-            -0.0029,
-            -0.0042,
-            3.4192
+            0.0395,
+            -0.0024,
+            -0.0003
           ],
           "casing_offset": [
-            -0.6001,
-            0.23,
-            -0.29
+            -0.5577,
+            0.2318,
+            -3.7095
           ],
           "casing_direction": [
             -0.9345,
@@ -2724,44 +2748,45 @@
           "cockpit": true
         },
         "GC2": {
-          "animation": "cr_fire_2",
+          "animation": "cr_fire_1",
           "node": "",
           "spin": false,
-          "distance": 0.03,
+          "distance": 0.2,
           "return": 2.0,
           "kick_without_weapon": 1.0,
+          "machinegun_kick": false,
           "flash_offset": [
-            0.0875,
-            -0.16,
-            1.901
+            -0.0405,
+            -0.0024,
+            -0.0003
           ],
           "casing_offset": [
-            0.9369,
-            0.3479,
-            -0.3405
+            -0.6377,
+            0.2318,
+            -3.7095
           ],
           "casing_direction": [
-            0.9345,
+            -0.9345,
             0.3271,
             -0.1402
           ],
-          "casing_outward_side": 1,
-          "casing_clearance": 0.3416,
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2944,
           "casing_jitter_rays_clear": true,
           "port_world": [
-            0.9719901719884644,
-            2.596678336005042,
-            -1.0880542262710118
+            -0.8480728365298271,
+            2.442226496390028,
+            0.7761911788423932
           ],
           "direction_world": [
-            0.9345386270319955,
+            -0.9345386270319955,
             0.32708851946119843,
             -0.14018079405479933
           ],
           "tip_world": [
-            0.1226188912987709,
-            2.0887720584869385,
-            1.153461217880249
+            -0.2508680000901222,
+            2.208000063896179,
+            4.4854350090026855
           ],
           "cockpit": true
         }
@@ -2851,6 +2876,48 @@
           "tip_world": [
             1.5720829963684082,
             4.5498130321502686,
+            1.2900350093841553
+          ],
+          "cockpit": true
+        },
+        "GC3": {
+          "animation": "cr_fire_3",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0022,
+            0.0062,
+            0.075
+          ],
+          "casing_offset": [
+            0.4172,
+            0.1728,
+            -0.1878
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.318,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            1.4097719626059448,
+            4.136820740973017,
+            1.0272003853853002
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.9903975129127502,
+            3.9702064990997314,
             1.2900350093841553
           ],
           "cockpit": true

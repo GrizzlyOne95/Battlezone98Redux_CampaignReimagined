@@ -49,6 +49,15 @@ Edits:
                  under-nacelle flame (BZ 1.5 decompile all_decompiled.c 193462-193491;
                  throttle scaling needs a nacelle parent, 193771-193776; UNVERIFIED in the Redux exe), so every nacelle is recorded. A
                  file with flame parts is written whole by the toolkit, not ANIM-spliced.
+  svturr         fold helper (Issue #42): GEO STU11fld under STU11ty1 with tx1's rest record
+                 and deploy track, class 60, listed before STU11POV, which moves under it, so
+                 the deployed eye follows the fold but not the tx1 pitch servo.
+  hardpoints     every unit with a References/Hardpoints/<unit>.json gets its weapon
+                 hardpoints (class 71-74) moved, re-parented or added with the recorded parent
+                 and local matrix. Weapons find a hardpoint by name[5:8], depth-first, and a
+                 missing one only logs (BZ 1.5 decompile all_decompiled.c 187157-187191,
+                 187175; UNVERIFIED in the Redux exe). Stock tracks on these parts only hold
+                 the rest position, so their position keys follow the move.
 
   python Tools/Build-UnitAnimSlots.py --stock-dir <dir with stock .vdf> [--game <Redux>] [--check]
 
@@ -71,6 +80,7 @@ OUT = os.path.join(ROOT, "Assets", "ModelFixes")
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bzmodellibs  # noqa: E402
+import hardpointbones as hpbones  # noqa: E402
 
 SER = bzmodellibs.bwd2_serializer
 BWD2 = bzmodellibs.bwd2
@@ -504,6 +514,45 @@ def build_svcnst(m):
     idle(m, 119, {"scv11twr": Y(25)})
 
 
+def move_last_before(bwd, before):
+    """Move the record just appended (last in every LOD/rep list) to `before`'s index, so the
+    engine, which resolves parents in list order, sees it ahead of that part."""
+    at = bwd.get_object_by_name(before).index
+    for reps in bwd.object_list:
+        for objs in reps:
+            objs.insert(at, objs.pop())
+            for i, o in enumerate(objs):
+                o.index = i
+
+
+def build_svturr(m):
+    """Fold helper (Issue #42): GEO STU11fld under STU11ty1 with STU11tx1's rest record and a
+    copy of tx1's deploy track, class 60 so TurretTank never servos it, listed before STU11POV,
+    which is re-parented to it with its stock local. Deployed, the eye then follows ty1 and the
+    fold but not the tx1 pitch servo."""
+    b = m.bwd
+    tx1, pov = m.geo("STU11tx1"), m.geo("STU11POV")
+    n = b.append_object("STU11fld", b.get_object_by_name("STU11ty1"))
+    move_last_before(b, "STU11POV")
+    for o in b.all_geo_objects(raw=True):
+        if o.index == n.index and o is not n:
+            o.make_null(class_id=BWD2.ClassID.VEHICLE_GEOMETRY)
+    n.raw_strings = {}
+    n.transform = BWD2.Transform(*tx1.transform.to_rufp_xyz())
+    n.class_id, n.object_flags, n.ddr, n.time = BWD2.ClassID.VEHICLE_GEOMETRY, 0, tx1.ddr, 0.0
+    n.center_pos, n.half_size, n.radius = pov.center_pos, pov.half_size, pov.radius
+    n.target = SP.Vector3(tx1.target.x, tx1.target.y, tx1.target.z)
+    pov.parent = pov.parentname = "STU11fld"
+    src = m.tracks["STU11tx1"]
+    mesh = b.anim_obj.create_animation_mesh("STU11fld")
+    mesh.frame_transform = SP.Transform(*src["mesh"].frame_transform.to_rufp_xyz())
+    m.order.append("STU11fld")
+    m.tracks["STU11fld"] = dict(mesh=mesh, rot=list(src["rot"]), scl=list(src["scl"]), pos=list(src["pos"]))
+    for e in b.anim_obj.animation_map.values():  # both deploy elements drive the new track
+        e.mesh_index_list[len(m.order) - 1] = 1
+    m.renamed = True
+
+
 BUILDS = {
     "avmuf.vdf": lambda m: fix_muf(m, "AMU11"),
     "bvmuf.vdf": lambda m: fix_muf(m, "BMU11"),
@@ -522,6 +571,7 @@ BUILDS = {
     "cvcnst.vdf": lambda m: idle(m, 119, {"CCN11BDC": Y(20)}),
     "svcnst.vdf": build_svcnst,
     "cvslf.vdf": build_cvslf,
+    "svturr.vdf": build_svturr,
 }
 
 
@@ -542,9 +592,49 @@ def add_vdf_bone(stock_dir, vdf, part):
     return edit
 
 
-# shipped skeleton: (stock path under BZ_ASSETS/common/models, stock_dir -> edit(skeleton))
+def hardpoint_skeleton(unit):
+    """A skeleton edit hanging each References/Hardpoints receipt part's bone from its owner at the
+    receipt pose (Tools/hardpointbones.py); a moved bone must be unanimated. The toolkit serializer
+    reads and writes bones in the native frame (x mirrored against the raw Ogre values poses() uses),
+    so poses are mirrored on the way in and out."""
+    from scipy.spatial.transform import Rotation
+
+    def mirror_quat(q):
+        m = hpbones.MIRROR
+        return tuple(Rotation.from_matrix(m @ Rotation.from_quat(q).as_matrix() @ m).as_quat())
+
+    def edit(stock_dir):
+        def apply(sk):
+            def old(name):
+                b = sk.get_bone_by_name(name) if sk.bone_name_exists(name) else None
+                return None if b is None else mirror_quat(
+                    (b.orientation.x, b.orientation.y, b.orientation.z, b.orientation.w))
+            r = hpbones.receipt(unit)
+            for name, owner, pos, q, new in hpbones.poses(r, old, stock_dir=stock_dir):
+                o = sk.get_bone_by_name(owner) if sk.bone_name_exists(owner) else None
+                if o is None:
+                    raise ValueError("%s: no owner bone %s for %s" % (unit, owner, name))
+                pos = tuple(float(v) for v in hpbones.MIRROR @ pos)
+                q = mirror_quat(q)
+                ori = SP.Quaternion(q[3], q[0], q[1], q[2])
+                if new:
+                    b = sk.create_bone(name, max(b.handle for b in sk.bones()) + 1, pos=SP.Vector3(*pos), ori=ori)
+                else:
+                    b = sk.get_bone_by_name(name)
+                    if any(t.target_bone is b for a in sk.animations() for t in a.tracks()):
+                        raise ValueError("%s: %s is animated; not moving it" % (unit, name))
+                    b.position, b.orientation = SP.Vector3(*pos), ori
+                sk.parent_bone(b, o)
+        return apply
+    return edit
+
+
+# shipped skeleton: (stock path under BZ_ASSETS/common/models, stock_dir -> edit(skeleton)).
+# avtank/bvtank/avturr/bvturr: CR meshes that keep the stock skeleton (the rigged models'
+# _recoil skeletons get the same bone edit in Tools/Build-WeaponRigs.py).
 SKELETONS = {
     "cvhaul.skeleton": ("TRO/cvhaul.skeleton", lambda d: add_vdf_bone(d, "cvhaul.vdf", "COX11GS1")),
+    **{u + ".skeleton": (u + ".skeleton", hardpoint_skeleton(u)) for u in ("avtank", "bvtank", "avturr", "bvturr")},
 }
 
 
@@ -604,6 +694,106 @@ def apply_flames(bwd, receipt, name):
             o.transform = BWD2.Transform(*(float(v) for v in p["matrix"]))
 
 
+HARDPOINTS = os.path.join(ROOT, "References", "Hardpoints")
+HARDPOINT_CLASSES = (71, 72, 73, 74)  # GC cannon, GR rocket, GM mortar, GS special
+
+
+def hardpoint_receipt(unit):
+    """A unit's hardpoint-alignment receipt (`parts`: weapon hardpoints to move, re-parent or
+    add), or None."""
+    path = os.path.join(HARDPOINTS, unit + ".json")
+    if not os.path.exists(path):
+        return None
+    r = json.load(open(path))
+    return r if r.get("parts") else None
+
+
+def hardpoint_builds():
+    if not os.path.isdir(HARDPOINTS):
+        return set()
+    return {os.path.splitext(f)[0] + ".vdf" for f in os.listdir(HARDPOINTS)
+            if f.endswith(".json") and hardpoint_receipt(os.path.splitext(f)[0])}
+
+
+def _close(a, b, tol=1e-4):
+    return all(abs(x - y) <= tol for x, y in zip(a, b))
+
+
+def apply_hardpoints(bwd, receipt, name, tracks=None):
+    """Set each receipt part (class 71-74) to its recorded parent and 12-float native matrix.
+    An existing part keeps its records in every LOD/rep slot; a new one is appended under its
+    parent (one record, nulled in the other slots, as apply_flames does) with its size fields
+    copied from the `like` part. The engine resolves parents in list order, so a parent must sit
+    before its part. A stock ANIM track on a moved part only holds the rest position (constant
+    position keys, no rotation keys), so its keys and frame transform follow the new matrix; a
+    track that animates the part is refused. `tracks` is a Model's track dict (None: edit the
+    ANIM keyframes in place)."""
+    anim = bwd.anim_obj
+    for p in receipt["parts"]:
+        if p["klass"] not in HARDPOINT_CLASSES or len(p["matrix"]) != 12:
+            raise ValueError("%s: %s is not a class 71-74 part with a 12-float matrix" % (name, p["name"]))
+        if p["parent"] != p["owner"]:
+            raise ValueError("%s: %s hangs from %s, but its weapon geometry belongs to %s"
+                             % (name, p["name"], p["parent"], p["owner"]))
+        parent =bwd.get_object_by_name(p["parent"])
+        if parent is None or not parent.is_primary():
+            raise ValueError("%s: no parent %r for %s" % (name, p["parent"], p["name"]))
+        recs = [o for o in bwd.all_geo_objects(raw=True) if o.name == p["name"]]
+        if p["existing"]:
+            if not recs:
+                raise ValueError("%s: recorded existing part %r is missing" % (name, p["name"]))
+            if any(o.class_id != p["klass"] for o in recs):
+                raise ValueError("%s: %s is not class %d" % (name, p["name"], p["klass"]))
+        else:
+            if recs:
+                raise ValueError("%s: new part %r already exists" % (name, p["name"]))
+            like = bwd.get_object_by_name(p["like"])
+            if like is None or like.class_id != p["klass"]:
+                raise ValueError("%s: no class %d part %r to copy for %s" % (name, p["klass"], p.get("like"), p["name"]))
+            n = bwd.append_object(p["name"], parent)
+            for o in bwd.all_geo_objects(raw=True):
+                if o.index == n.index and o is not n:
+                    o.make_null()
+            n.raw_strings = {}
+            n.class_id, n.object_flags, n.ddr, n.time = like.class_id, like.object_flags, like.ddr, 0.0
+            n.center_pos, n.half_size, n.radius = like.center_pos, like.half_size, like.radius
+            n.target = SP.Vector3(like.target.x, like.target.y, like.target.z)
+            recs = [n]
+        if parent.index >= recs[0].index:
+            raise ValueError("%s: parent %s (#%d) must precede %s (#%d)"
+                             % (name, p["parent"], parent.index, p["name"], recs[0].index))
+        old = recs[0].transform
+        old_pos = (old.px, old.py, old.pz)
+        new = BWD2.Transform(*(float(v) for v in p["matrix"]))
+        for o in recs:
+            o.parent = o.parentname = p["parent"]
+            o.transform = BWD2.Transform(*(float(v) for v in p["matrix"]))
+        if anim is None or p["name"] not in anim.mesh_map:
+            continue
+        mesh = anim.mesh_map[p["name"]]
+        rq = hamilton_from_columns(*(p["matrix"][i:i + 3] for i in (0, 3, 6)))
+        if tracks is not None:
+            tr = tracks[p["name"]]
+            rot, pos = tr["rot"], tr["pos"]
+            rot_q = [q for _, q in rot]
+            pos_v = [v for _, v in pos]
+        else:
+            rot_q = [(k.orientation.w, k.orientation.x, k.orientation.y, k.orientation.z)
+                     for k in anim.slice_mesh_orientation_keyframes(mesh)]
+            pos_v = [(k.position.x, k.position.y, k.position.z) for k in anim.slice_mesh_position_keyframes(mesh)]
+        if rot_q and not all(_close(q, qconj(rq)) or _close(q, tuple(-c for c in qconj(rq))) for q in rot_q):
+            raise ValueError("%s: %s has rotation keys off its new rest; not a rest-only track" % (name, p["name"]))
+        if not all(_close(v, old_pos) for v in pos_v):
+            raise ValueError("%s: %s position keys move the part; not a rest-only track" % (name, p["name"]))
+        np_ = (new.px, new.py, new.pz)
+        if tracks is not None:
+            tr["pos"] = [(f, np_) for f, _ in pos]
+        else:
+            for k in anim.slice_mesh_position_keyframes(mesh):
+                k.position = SP.Vector3(*np_)
+        mesh.frame_transform = SP.Transform(*new.to_rufp_xyz())
+
+
 def build(stock_dir, name, game=DEFAULT_GAME):
     if name in SKELETONS:
         rel, edit = SKELETONS[name]
@@ -613,13 +803,18 @@ def build(stock_dir, name, game=DEFAULT_GAME):
         out = io.BytesIO()
         SKS.SkeletonSerializer(out).write(sk)
         return out.getvalue()
-    flames = flame_receipt(os.path.splitext(name)[0])
+    unit = os.path.splitext(name)[0]
+    flames, hardpoints = flame_receipt(unit), hardpoint_receipt(unit)
     if name not in BUILDS:
-        if flames is None:
-            raise SystemExit(f"{name}: no BUILDS entry and no NacelleJets flame receipt")
-        # Flame parts only: no ANIM edit, so no Model (it would add an empty ANIM chunk).
+        if flames is None and hardpoints is None:
+            raise SystemExit(f"{name}: no BUILDS entry, NacelleJets flame receipt or Hardpoints receipt")
+        # Receipt parts only: no Model (it would add an empty ANIM chunk to a VDF without one);
+        # rest-only hardpoint tracks are edited in place.
         bwd = SER.VDFSerializer(io.BytesIO(open(os.path.join(stock_dir, name), "rb").read())).read()
-        apply_flames(bwd, flames, name)
+        if flames:
+            apply_flames(bwd, flames, name)
+        if hardpoints:
+            apply_hardpoints(bwd, hardpoints, name)
         out = io.BytesIO()
         SER.VDFSerializer(out).write(bwd)
         return out.getvalue()
@@ -628,6 +823,9 @@ def build(stock_dir, name, game=DEFAULT_GAME):
     if flames:
         apply_flames(m.bwd, flames, name)
         m.renamed = True  # VGEO changed: write the whole file, not an ANIM splice
+    if hardpoints:
+        apply_hardpoints(m.bwd, hardpoints, name, m.tracks)
+        m.renamed = True
     return m.to_bytes()
 
 
@@ -639,7 +837,7 @@ def main():
     ap.add_argument("only", nargs="*", help="build only these files")
     args = ap.parse_args()
     bad = 0
-    for name in args.only or sorted(set(BUILDS) | flame_builds()) + sorted(SKELETONS):
+    for name in args.only or sorted(set(BUILDS) | flame_builds() | hardpoint_builds()) + sorted(SKELETONS):
         data = build(args.stock_dir, name, args.game)
         out = os.path.join(OUT, name)
         if args.check:

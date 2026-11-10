@@ -226,6 +226,21 @@
       "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
+      "odf": "gatsbv2",
+      "class": "cannon",
+      "name": "AT-Stabber",
+      "ordnance": "rocket",
+      "parent": "",
+      "scope": "CR",
+      "category": "CANN",
+      "delay": "0.6",
+      "producer": "cannon factory",
+      "flash_profile": "atstab",
+      "flash_decision": "authored flash",
+      "casing_type": "medium",
+      "casing_decision": "Ballistic medium brass; local cosmetic only."
+    },
+    {
       "odf": "gatstab",
       "class": "cannon",
       "name": "AT-Stabber",
@@ -781,6 +796,51 @@
       "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
+      "odf": "gmgasv3",
+      "class": "machinegun",
+      "name": "Minigun",
+      "ordnance": "bullet1a",
+      "parent": "gminigun",
+      "scope": "CR",
+      "category": "CANN",
+      "delay": "1.2",
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "minigun",
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    {
+      "odf": "gmgnbv4",
+      "class": "machinegun",
+      "name": "Minigun",
+      "ordnance": "bullet1",
+      "parent": "",
+      "scope": "CR",
+      "category": "CANN",
+      "delay": "0.8",
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "minigun",
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    {
+      "odf": "gmgrcv1",
+      "class": "machinegun",
+      "name": "Minigun",
+      "ordnance": "bullet1g",
+      "parent": "",
+      "scope": "CR",
+      "category": "CANN",
+      "delay": "0.1",
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "minigun",
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    {
       "odf": "gminigna",
       "class": "machinegun",
       "name": "Minigun",
@@ -1156,6 +1216,36 @@
       "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     {
+      "odf": "gspbcv2",
+      "class": "cannon",
+      "name": "SP-Stabber",
+      "ordnance": "rocket3b",
+      "parent": "gatstab",
+      "scope": "CR",
+      "category": "CANN",
+      "delay": "1.2",
+      "producer": "cannon factory",
+      "flash_profile": "spstab",
+      "flash_decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
+    },
+    {
+      "odf": "gspccv4",
+      "class": "cannon",
+      "name": "SP-Stabber",
+      "ordnance": "rocket3c",
+      "parent": "gatstab",
+      "scope": "CR",
+      "category": "CANN",
+      "delay": "3.2",
+      "producer": "cannon factory",
+      "flash_profile": "spstab",
+      "flash_decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
+    },
+    {
       "odf": "gsplint",
       "class": "mortar",
       "name": "Splinter",
@@ -1214,6 +1304,21 @@
       "flash_decision": "authored flash",
       "casing_type": "none",
       "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
+    },
+    {
+      "odf": "gspssv3",
+      "class": "cannon",
+      "name": "SP-Stabber",
+      "ordnance": "rocket3",
+      "parent": "gatstab",
+      "scope": "CR",
+      "category": "CANN",
+      "delay": "1.8",
+      "producer": "cannon factory",
+      "flash_profile": "spstab",
+      "flash_decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     {
       "odf": "gspstab",
@@ -1366,6 +1471,51 @@
       "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
+      "odf": "gtmgav2",
+      "class": "machinegun",
+      "name": "Minigun",
+      "ordnance": "bullet5",
+      "parent": "",
+      "scope": "CR",
+      "category": "CANN",
+      "delay": "0.4",
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "minigun",
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    {
+      "odf": "gtmgav4",
+      "class": "machinegun",
+      "name": "Minigun",
+      "ordnance": "bullet5",
+      "parent": "",
+      "scope": "CR",
+      "category": "CANN",
+      "delay": "0.8",
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "minigun",
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    {
+      "odf": "gtmgbv4",
+      "class": "machinegun",
+      "name": "Minigun",
+      "ordnance": "bullet5",
+      "parent": "",
+      "scope": "CR",
+      "category": "CANN",
+      "delay": "0.8",
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "minigun",
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    {
       "odf": "gtminig",
       "class": "machinegun",
       "name": "Minigun",
@@ -1419,6 +1569,36 @@
       "scope": "CR override",
       "category": "CANN",
       "delay": "0.48",
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "chaingun",
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    {
+      "odf": "gtmssv15",
+      "class": "machinegun",
+      "name": "Chaingun",
+      "ordnance": "bullet6",
+      "parent": "",
+      "scope": "CR",
+      "category": "CANN",
+      "delay": "0.45",
+      "producer": "machinegun factory (companion OpenShim change; live pending)",
+      "flash_profile": "chaingun",
+      "flash_decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    {
+      "odf": "gtmssv3",
+      "class": "machinegun",
+      "name": "Chaingun",
+      "ordnance": "bullet6",
+      "parent": "",
+      "scope": "CR",
+      "category": "CANN",
+      "delay": "0.9",
       "producer": "machinegun factory (companion OpenShim change; live pending)",
       "flash_profile": "chaingun",
       "flash_decision": "authored flash",
@@ -2277,7 +2457,7 @@
             {
               "node": "AGR11BGA",
               "translation_animated": false,
-              "barrel_forward_tip_estimate": 2.412
+              "barrel_forward_tip_estimate": 0.004
             }
           ],
           "cockpit_muzzle_nodes": [],
@@ -2291,11 +2471,17 @@
             "AGR11Gc2"
           ],
           "parents": [
-            "AGR11BDA"
+            "AGR11BGA"
           ],
-          "recoil_candidates": [],
+          "recoil_candidates": [
+            {
+              "node": "AGR11BGA",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": 0.004
+            }
+          ],
           "cockpit_muzzle_nodes": [],
-          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+          "plan": "dedicated barrel slide candidate"
         },
         {
           "slot": 3,
@@ -2345,7 +2531,7 @@
             "ARA11Gc1"
           ],
           "parents": [
-            "ARA11rof"
+            "ARA11BDA"
           ],
           "recoil_candidates": [],
           "cockpit_muzzle_nodes": [],
@@ -2359,7 +2545,7 @@
             "ARA11Gc2"
           ],
           "parents": [
-            "ARA11rof"
+            "ARA11BDA"
           ],
           "recoil_candidates": [],
           "cockpit_muzzle_nodes": [],
@@ -2385,7 +2571,7 @@
             "ARA11Gc1"
           ],
           "parents": [
-            "ARA11rof"
+            "ARA11BDA"
           ],
           "recoil_candidates": [],
           "cockpit_muzzle_nodes": [],
@@ -2399,7 +2585,7 @@
             "ARA11Gc2"
           ],
           "parents": [
-            "ARA11rof"
+            "ARA11BDA"
           ],
           "recoil_candidates": [],
           "cockpit_muzzle_nodes": [],
@@ -2673,6 +2859,46 @@
       ]
     },
     {
+      "odf": "avpsav",
+      "name": "Fury - SAV Test",
+      "class": "sav",
+      "scope": "CR",
+      "model": "avsav",
+      "model_status": "read",
+      "role": "combat carrier",
+      "ogre_clips": [],
+      "slots": [
+        {
+          "slot": 1,
+          "weapon": "gbolt",
+          "hardpoint": "GC1",
+          "muzzle_nodes": [
+            "nsv11GC1"
+          ],
+          "parents": [
+            "nvs11bda"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 2,
+          "weapon": "gwasp",
+          "hardpoint": "GR1",
+          "muzzle_nodes": [
+            "nsv11GR1"
+          ],
+          "parents": [
+            "nvs11bda"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        }
+      ]
+    },
+    {
       "odf": "avrckt",
       "name": "Rocket Tank",
       "class": "wingman",
@@ -2719,6 +2945,46 @@
           ],
           "parents": [
             "art11bda"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        }
+      ]
+    },
+    {
+      "odf": "avrsav",
+      "name": "Fury - Pickup Test",
+      "class": "sav",
+      "scope": "CR",
+      "model": "avsav",
+      "model_status": "read",
+      "role": "combat carrier",
+      "ogre_clips": [],
+      "slots": [
+        {
+          "slot": 1,
+          "weapon": "gbolt",
+          "hardpoint": "GC1",
+          "muzzle_nodes": [
+            "nsv11GC1"
+          ],
+          "parents": [
+            "nvs11bda"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 2,
+          "weapon": "gwasp",
+          "hardpoint": "GR1",
+          "muzzle_nodes": [
+            "nsv11GR1"
+          ],
+          "parents": [
+            "nvs11bda"
           ],
           "recoil_candidates": [],
           "cockpit_muzzle_nodes": [],
@@ -2976,7 +3242,7 @@
             {
               "node": "AGR11BGA",
               "translation_animated": false,
-              "barrel_forward_tip_estimate": 2.412
+              "barrel_forward_tip_estimate": 0.004
             }
           ],
           "cockpit_muzzle_nodes": [],
@@ -2990,11 +3256,17 @@
             "AGR11Gc2"
           ],
           "parents": [
-            "AGR11BDA"
+            "AGR11BGA"
           ],
-          "recoil_candidates": [],
+          "recoil_candidates": [
+            {
+              "node": "AGR11BGA",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": 0.004
+            }
+          ],
           "cockpit_muzzle_nodes": [],
-          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+          "plan": "dedicated barrel slide candidate"
         },
         {
           "slot": 3,
@@ -3041,7 +3313,7 @@
             {
               "node": "AGR11BGA",
               "translation_animated": false,
-              "barrel_forward_tip_estimate": 2.412
+              "barrel_forward_tip_estimate": 0.004
             }
           ],
           "cockpit_muzzle_nodes": [],
@@ -3055,11 +3327,17 @@
             "AGR11Gc2"
           ],
           "parents": [
-            "AGR11BDA"
+            "AGR11BGA"
           ],
-          "recoil_candidates": [],
+          "recoil_candidates": [
+            {
+              "node": "AGR11BGA",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": 0.004
+            }
+          ],
           "cockpit_muzzle_nodes": [],
-          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+          "plan": "dedicated barrel slide candidate"
         },
         {
           "slot": 3,
@@ -3205,7 +3483,7 @@
       "slots": [
         {
           "slot": 1,
-          "weapon": "gtminig",
+          "weapon": "gtmgav2",
           "hardpoint": "GC1",
           "muzzle_nodes": [
             "aDE11gc1"
@@ -3219,13 +3497,114 @@
         },
         {
           "slot": 2,
-          "weapon": "gtminig",
+          "weapon": "gtmgav2",
           "hardpoint": "GC2",
           "muzzle_nodes": [
             "aDE11gc2"
           ],
           "parents": [
             "aDE11blf"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 3,
+          "weapon": "gtmgav2",
+          "hardpoint": "GC3",
+          "muzzle_nodes": [
+            "aDE11gc3"
+          ],
+          "parents": [
+            "aDE11bld"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 4,
+          "weapon": "gtmgav2",
+          "hardpoint": "GC4",
+          "muzzle_nodes": [
+            "aDE11gc4"
+          ],
+          "parents": [
+            "aDE11ble"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        }
+      ]
+    },
+    {
+      "odf": "avtur2b",
+      "name": "Turret",
+      "class": "turrettank",
+      "scope": "CR",
+      "model": "avturr",
+      "model_status": "read",
+      "role": "combat carrier",
+      "ogre_clips": [
+        {
+          "name": "Take_001",
+          "seconds": 3.3333330154418945
+        }
+      ],
+      "slots": [
+        {
+          "slot": 1,
+          "weapon": "gtmgav4",
+          "hardpoint": "GC1",
+          "muzzle_nodes": [
+            "aDE11gc1"
+          ],
+          "parents": [
+            "aDE11blc"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 2,
+          "weapon": "gtmgav4",
+          "hardpoint": "GC2",
+          "muzzle_nodes": [
+            "aDE11gc2"
+          ],
+          "parents": [
+            "aDE11blf"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 3,
+          "weapon": "gtmgav4",
+          "hardpoint": "GC3",
+          "muzzle_nodes": [
+            "aDE11gc3"
+          ],
+          "parents": [
+            "aDE11bld"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 4,
+          "weapon": "gtmgav4",
+          "hardpoint": "GC4",
+          "muzzle_nodes": [
+            "aDE11gc4"
+          ],
+          "parents": [
+            "aDE11ble"
           ],
           "recoil_candidates": [],
           "cockpit_muzzle_nodes": [],
@@ -3250,13 +3629,55 @@
       "slots": [
         {
           "slot": 1,
-          "weapon": "gtminig",
+          "weapon": "gtmgav4",
           "hardpoint": "GC1",
           "muzzle_nodes": [
             "aDE11gc1"
           ],
           "parents": [
             "aDE11blc"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 2,
+          "weapon": "gtmgav4",
+          "hardpoint": "GC2",
+          "muzzle_nodes": [
+            "aDE11gc2"
+          ],
+          "parents": [
+            "aDE11blf"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 3,
+          "weapon": "gtmgav4",
+          "hardpoint": "GC3",
+          "muzzle_nodes": [
+            "aDE11gc3"
+          ],
+          "parents": [
+            "aDE11bld"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 4,
+          "weapon": "gtmgav4",
+          "hardpoint": "GC4",
+          "muzzle_nodes": [
+            "aDE11gc4"
+          ],
+          "parents": [
+            "aDE11ble"
           ],
           "recoil_candidates": [],
           "cockpit_muzzle_nodes": [],
@@ -4636,7 +5057,7 @@
             {
               "node": "bGR11BGA",
               "translation_animated": false,
-              "barrel_forward_tip_estimate": 2.412
+              "barrel_forward_tip_estimate": 0.004
             }
           ],
           "cockpit_muzzle_nodes": [],
@@ -4696,7 +5117,7 @@
             {
               "node": "bGR11BGA",
               "translation_animated": false,
-              "barrel_forward_tip_estimate": 2.412
+              "barrel_forward_tip_estimate": 0.004
             }
           ],
           "cockpit_muzzle_nodes": [],
@@ -4749,7 +5170,7 @@
       "slots": [
         {
           "slot": 1,
-          "weapon": "gatstab",
+          "weapon": "gatsbv2",
           "hardpoint": "GC1",
           "muzzle_nodes": [
             "bDE11gc1"
@@ -4763,13 +5184,41 @@
         },
         {
           "slot": 2,
-          "weapon": "gatstab",
+          "weapon": "gatsbv2",
           "hardpoint": "GC2",
           "muzzle_nodes": [
             "bDE11gc2"
           ],
           "parents": [
             "bDE11blf"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 3,
+          "weapon": "gatsbv2",
+          "hardpoint": "GC3",
+          "muzzle_nodes": [
+            "bDE11gc3"
+          ],
+          "parents": [
+            "bDE11bld"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 4,
+          "weapon": "gatsbv2",
+          "hardpoint": "GC4",
+          "muzzle_nodes": [
+            "bDE11gc4"
+          ],
+          "parents": [
+            "bDE11ble"
           ],
           "recoil_candidates": [],
           "cockpit_muzzle_nodes": [],
@@ -4794,13 +5243,55 @@
       "slots": [
         {
           "slot": 1,
-          "weapon": "gminigun",
+          "weapon": "gmgnbv4",
           "hardpoint": "GC1",
           "muzzle_nodes": [
             "bDE11gc1"
           ],
           "parents": [
             "bDE11blc"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 2,
+          "weapon": "gmgnbv4",
+          "hardpoint": "GC2",
+          "muzzle_nodes": [
+            "bDE11gc2"
+          ],
+          "parents": [
+            "bDE11blf"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 3,
+          "weapon": "gmgnbv4",
+          "hardpoint": "GC3",
+          "muzzle_nodes": [
+            "bDE11gc3"
+          ],
+          "parents": [
+            "bDE11bld"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 4,
+          "weapon": "gmgnbv4",
+          "hardpoint": "GC4",
+          "muzzle_nodes": [
+            "bDE11gc4"
+          ],
+          "parents": [
+            "bDE11ble"
           ],
           "recoil_candidates": [],
           "cockpit_muzzle_nodes": [],
@@ -4825,13 +5316,55 @@
       "slots": [
         {
           "slot": 1,
-          "weapon": "gtminig",
+          "weapon": "gtmgbv4",
           "hardpoint": "GC1",
           "muzzle_nodes": [
             "bDE11gc1"
           ],
           "parents": [
             "bDE11blc"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 2,
+          "weapon": "gtmgbv4",
+          "hardpoint": "GC2",
+          "muzzle_nodes": [
+            "bDE11gc2"
+          ],
+          "parents": [
+            "bDE11blf"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 3,
+          "weapon": "gtmgbv4",
+          "hardpoint": "GC3",
+          "muzzle_nodes": [
+            "bDE11gc3"
+          ],
+          "parents": [
+            "bDE11bld"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 4,
+          "weapon": "gtmgbv4",
+          "hardpoint": "GC4",
+          "muzzle_nodes": [
+            "bDE11gc4"
+          ],
+          "parents": [
+            "bDE11ble"
           ],
           "recoil_candidates": [],
           "cockpit_muzzle_nodes": [],
@@ -6696,7 +7229,7 @@
       "slots": [
         {
           "slot": 1,
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "hardpoint": "GC1",
           "muzzle_nodes": [
             "CAD11GC1"
@@ -6710,7 +7243,7 @@
         },
         {
           "slot": 2,
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "hardpoint": "GC2",
           "muzzle_nodes": [
             "CAD11GC2"
@@ -6724,7 +7257,7 @@
         },
         {
           "slot": 3,
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "hardpoint": "GC3",
           "muzzle_nodes": [
             "CAD11GC3"
@@ -6738,7 +7271,7 @@
         },
         {
           "slot": 4,
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "hardpoint": "GC4",
           "muzzle_nodes": [
             "CAD11GC4"
@@ -6832,7 +7365,7 @@
       "slots": [
         {
           "slot": 1,
-          "weapon": "gspstabb",
+          "weapon": "gspbcv2",
           "hardpoint": "GC1",
           "muzzle_nodes": [
             "CAD11GC1"
@@ -6845,11 +7378,39 @@
           "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
         },
         {
+          "slot": 2,
+          "weapon": "gspbcv2",
+          "hardpoint": "GC2",
+          "muzzle_nodes": [
+            "CAD11GC2"
+          ],
+          "parents": [
+            "CAD11TX1"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
           "slot": 3,
-          "weapon": "gspstabb",
+          "weapon": "gspbcv2",
           "hardpoint": "GC3",
           "muzzle_nodes": [
             "CAD11GC3"
+          ],
+          "parents": [
+            "CAD11TX2"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 4,
+          "weapon": "gspbcv2",
+          "hardpoint": "GC4",
+          "muzzle_nodes": [
+            "CAD11GC4"
           ],
           "parents": [
             "CAD11TX2"
@@ -6872,13 +7433,55 @@
       "slots": [
         {
           "slot": 1,
-          "weapon": "gspstabc",
+          "weapon": "gspccv4",
           "hardpoint": "GC1",
           "muzzle_nodes": [
             "CAD11GC1"
           ],
           "parents": [
             "CAD11TX1"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 2,
+          "weapon": "gspccv4",
+          "hardpoint": "GC2",
+          "muzzle_nodes": [
+            "CAD11GC2"
+          ],
+          "parents": [
+            "CAD11TX1"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 3,
+          "weapon": "gspccv4",
+          "hardpoint": "GC3",
+          "muzzle_nodes": [
+            "CAD11GC3"
+          ],
+          "parents": [
+            "CAD11TX2"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 4,
+          "weapon": "gspccv4",
+          "hardpoint": "GC4",
+          "muzzle_nodes": [
+            "CAD11GC4"
+          ],
+          "parents": [
+            "CAD11TX2"
           ],
           "recoil_candidates": [],
           "cockpit_muzzle_nodes": [],
@@ -7089,7 +7692,7 @@
             {
               "node": "AGR11BGA",
               "translation_animated": false,
-              "barrel_forward_tip_estimate": 2.412
+              "barrel_forward_tip_estimate": 0.004
             }
           ],
           "cockpit_muzzle_nodes": [],
@@ -7103,11 +7706,17 @@
             "AGR11Gc2"
           ],
           "parents": [
-            "AGR11BDA"
+            "AGR11BGA"
           ],
-          "recoil_candidates": [],
+          "recoil_candidates": [
+            {
+              "node": "AGR11BGA",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": 0.004
+            }
+          ],
           "cockpit_muzzle_nodes": [],
-          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+          "plan": "dedicated barrel slide candidate"
         },
         {
           "slot": 3,
@@ -7236,7 +7845,7 @@
             {
               "node": "SCZ11BGB",
               "translation_animated": false,
-              "barrel_forward_tip_estimate": 3.419
+              "barrel_forward_tip_estimate": -0.0
             }
           ],
           "cockpit_muzzle_nodes": [],
@@ -7250,11 +7859,17 @@
             "SCZ11GC2"
           ],
           "parents": [
-            "scz11bda"
+            "SCZ11BGB"
           ],
-          "recoil_candidates": [],
+          "recoil_candidates": [
+            {
+              "node": "SCZ11BGB",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": -0.0
+            }
+          ],
           "cockpit_muzzle_nodes": [],
-          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+          "plan": "dedicated barrel slide candidate"
         },
         {
           "slot": 4,
@@ -9117,7 +9732,7 @@
             {
               "node": "SCZ11BGB",
               "translation_animated": false,
-              "barrel_forward_tip_estimate": 3.419
+              "barrel_forward_tip_estimate": -0.0
             }
           ],
           "cockpit_muzzle_nodes": [],
@@ -9131,11 +9746,17 @@
             "SCZ11GC2"
           ],
           "parents": [
-            "scz11bda"
+            "SCZ11BGB"
           ],
-          "recoil_candidates": [],
+          "recoil_candidates": [
+            {
+              "node": "SCZ11BGB",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": -0.0
+            }
+          ],
           "cockpit_muzzle_nodes": [],
-          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+          "plan": "dedicated barrel slide candidate"
         },
         {
           "slot": 4,
@@ -9188,7 +9809,7 @@
             {
               "node": "SCZ11BGB",
               "translation_animated": false,
-              "barrel_forward_tip_estimate": 3.419
+              "barrel_forward_tip_estimate": -0.0
             }
           ],
           "cockpit_muzzle_nodes": [],
@@ -9202,11 +9823,17 @@
             "SCZ11GC2"
           ],
           "parents": [
-            "scz11bda"
+            "SCZ11BGB"
           ],
-          "recoil_candidates": [],
+          "recoil_candidates": [
+            {
+              "node": "SCZ11BGB",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": -0.0
+            }
+          ],
           "cockpit_muzzle_nodes": [],
-          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+          "plan": "dedicated barrel slide candidate"
         },
         {
           "slot": 4,
@@ -9259,7 +9886,7 @@
             {
               "node": "SCZ11BGB",
               "translation_animated": false,
-              "barrel_forward_tip_estimate": 3.419
+              "barrel_forward_tip_estimate": -0.0
             }
           ],
           "cockpit_muzzle_nodes": [],
@@ -9273,11 +9900,17 @@
             "SCZ11GC2"
           ],
           "parents": [
-            "scz11bda"
+            "SCZ11BGB"
           ],
-          "recoil_candidates": [],
+          "recoil_candidates": [
+            {
+              "node": "SCZ11BGB",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": -0.0
+            }
+          ],
           "cockpit_muzzle_nodes": [],
-          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+          "plan": "dedicated barrel slide candidate"
         },
         {
           "slot": 3,
@@ -9344,7 +9977,7 @@
             {
               "node": "SCZ11BGB",
               "translation_animated": false,
-              "barrel_forward_tip_estimate": 3.419
+              "barrel_forward_tip_estimate": -0.0
             }
           ],
           "cockpit_muzzle_nodes": [],
@@ -9358,11 +9991,17 @@
             "SCZ11GC2"
           ],
           "parents": [
-            "scz11bda"
+            "SCZ11BGB"
           ],
-          "recoil_candidates": [],
+          "recoil_candidates": [
+            {
+              "node": "SCZ11BGB",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": -0.0
+            }
+          ],
           "cockpit_muzzle_nodes": [],
-          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+          "plan": "dedicated barrel slide candidate"
         },
         {
           "slot": 3,
@@ -9429,7 +10068,7 @@
             {
               "node": "SCZ11BGB",
               "translation_animated": false,
-              "barrel_forward_tip_estimate": 3.419
+              "barrel_forward_tip_estimate": -0.0
             }
           ],
           "cockpit_muzzle_nodes": [],
@@ -9454,7 +10093,7 @@
       "slots": [
         {
           "slot": 1,
-          "weapon": "gtminis",
+          "weapon": "gtmssv15",
           "hardpoint": "GC1",
           "muzzle_nodes": [
             "STU11GC1"
@@ -9474,7 +10113,7 @@
         },
         {
           "slot": 2,
-          "weapon": "gtminis",
+          "weapon": "gtmssv15",
           "hardpoint": "GC2",
           "muzzle_nodes": [
             "STU11Gc2"
@@ -9485,6 +10124,26 @@
           "recoil_candidates": [
             {
               "node": "STU11BGB",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": 0.09
+            }
+          ],
+          "cockpit_muzzle_nodes": [],
+          "plan": "dedicated barrel slide candidate"
+        },
+        {
+          "slot": 3,
+          "weapon": "gtmssv15",
+          "hardpoint": "GC3",
+          "muzzle_nodes": [
+            "STU11GC3"
+          ],
+          "parents": [
+            "STU11BGA"
+          ],
+          "recoil_candidates": [
+            {
+              "node": "STU11BGA",
               "translation_animated": false,
               "barrel_forward_tip_estimate": 0.09
             }
@@ -9511,7 +10170,7 @@
       "slots": [
         {
           "slot": 1,
-          "weapon": "gtminis",
+          "weapon": "gtmssv3",
           "hardpoint": "GC1",
           "muzzle_nodes": [
             "STU11GC1"
@@ -9522,6 +10181,46 @@
           "recoil_candidates": [
             {
               "node": "STU11BGC",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": 0.09
+            }
+          ],
+          "cockpit_muzzle_nodes": [],
+          "plan": "dedicated barrel slide candidate"
+        },
+        {
+          "slot": 2,
+          "weapon": "gtmssv3",
+          "hardpoint": "GC2",
+          "muzzle_nodes": [
+            "STU11Gc2"
+          ],
+          "parents": [
+            "STU11BGB"
+          ],
+          "recoil_candidates": [
+            {
+              "node": "STU11BGB",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": 0.09
+            }
+          ],
+          "cockpit_muzzle_nodes": [],
+          "plan": "dedicated barrel slide candidate"
+        },
+        {
+          "slot": 3,
+          "weapon": "gtmssv3",
+          "hardpoint": "GC3",
+          "muzzle_nodes": [
+            "STU11GC3"
+          ],
+          "parents": [
+            "STU11BGA"
+          ],
+          "recoil_candidates": [
+            {
+              "node": "STU11BGA",
               "translation_animated": false,
               "barrel_forward_tip_estimate": 0.09
             }
@@ -9548,7 +10247,7 @@
       "slots": [
         {
           "slot": 1,
-          "weapon": "gspstab",
+          "weapon": "gspssv3",
           "hardpoint": "GC1",
           "muzzle_nodes": [
             "STU11GC1"
@@ -9559,6 +10258,46 @@
           "recoil_candidates": [
             {
               "node": "STU11BGC",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": 0.09
+            }
+          ],
+          "cockpit_muzzle_nodes": [],
+          "plan": "dedicated barrel slide candidate"
+        },
+        {
+          "slot": 2,
+          "weapon": "gspssv3",
+          "hardpoint": "GC2",
+          "muzzle_nodes": [
+            "STU11Gc2"
+          ],
+          "parents": [
+            "STU11BGB"
+          ],
+          "recoil_candidates": [
+            {
+              "node": "STU11BGB",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": 0.09
+            }
+          ],
+          "cockpit_muzzle_nodes": [],
+          "plan": "dedicated barrel slide candidate"
+        },
+        {
+          "slot": 3,
+          "weapon": "gspssv3",
+          "hardpoint": "GC3",
+          "muzzle_nodes": [
+            "STU11GC3"
+          ],
+          "parents": [
+            "STU11BGA"
+          ],
+          "recoil_candidates": [
+            {
+              "node": "STU11BGA",
               "translation_animated": false,
               "barrel_forward_tip_estimate": 0.09
             }
@@ -9585,7 +10324,7 @@
       "slots": [
         {
           "slot": 1,
-          "weapon": "gspstab",
+          "weapon": "gspssv3",
           "hardpoint": "GC1",
           "muzzle_nodes": [
             "STU11GC1"
@@ -9596,6 +10335,46 @@
           "recoil_candidates": [
             {
               "node": "STU11BGC",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": 0.09
+            }
+          ],
+          "cockpit_muzzle_nodes": [],
+          "plan": "dedicated barrel slide candidate"
+        },
+        {
+          "slot": 2,
+          "weapon": "gspssv3",
+          "hardpoint": "GC2",
+          "muzzle_nodes": [
+            "STU11Gc2"
+          ],
+          "parents": [
+            "STU11BGB"
+          ],
+          "recoil_candidates": [
+            {
+              "node": "STU11BGB",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": 0.09
+            }
+          ],
+          "cockpit_muzzle_nodes": [],
+          "plan": "dedicated barrel slide candidate"
+        },
+        {
+          "slot": 3,
+          "weapon": "gspssv3",
+          "hardpoint": "GC3",
+          "muzzle_nodes": [
+            "STU11GC3"
+          ],
+          "parents": [
+            "STU11BGA"
+          ],
+          "recoil_candidates": [
+            {
+              "node": "STU11BGA",
               "translation_animated": false,
               "barrel_forward_tip_estimate": 0.09
             }
@@ -9622,7 +10401,7 @@
       "slots": [
         {
           "slot": 1,
-          "weapon": "gminigna",
+          "weapon": "gmgasv3",
           "hardpoint": "GC1",
           "muzzle_nodes": [
             "STU11GC1"
@@ -9633,6 +10412,46 @@
           "recoil_candidates": [
             {
               "node": "STU11BGC",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": 0.09
+            }
+          ],
+          "cockpit_muzzle_nodes": [],
+          "plan": "dedicated barrel slide candidate"
+        },
+        {
+          "slot": 2,
+          "weapon": "gmgasv3",
+          "hardpoint": "GC2",
+          "muzzle_nodes": [
+            "STU11Gc2"
+          ],
+          "parents": [
+            "STU11BGB"
+          ],
+          "recoil_candidates": [
+            {
+              "node": "STU11BGB",
+              "translation_animated": false,
+              "barrel_forward_tip_estimate": 0.09
+            }
+          ],
+          "cockpit_muzzle_nodes": [],
+          "plan": "dedicated barrel slide candidate"
+        },
+        {
+          "slot": 3,
+          "weapon": "gmgasv3",
+          "hardpoint": "GC3",
+          "muzzle_nodes": [
+            "STU11GC3"
+          ],
+          "parents": [
+            "STU11BGA"
+          ],
+          "recoil_candidates": [
+            {
+              "node": "STU11BGA",
               "translation_animated": false,
               "barrel_forward_tip_estimate": 0.09
             }

@@ -1,0 +1,51 @@
+{
+  "note": "Hardpoint alignment (Tools/Build-UnitAnimSlots.py apply_hardpoints). owner = the VDF part that carries the weapon geometry; parent must equal it (Tools/Test-UnitAnimSlots.py).",
+  "model": "svrckt",
+  "base": "stock",
+  "parts": [
+    {
+      "name": "srt11GR1",
+      "klass": 72,
+      "existing": true,
+      "was": "srt11bda",
+      "owner": "srt11bda",
+      "parent": "srt11bda",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.9059,
+        -0.4236,
+        0.0,
+        0.4236,
+        0.9059,
+        0.647,
+        0.15862,
+        4.284988
+      ]
+    },
+    {
+      "name": "srt11Gr2",
+      "klass": 72,
+      "existing": true,
+      "was": "srt11bda",
+      "owner": "srt11bda",
+      "parent": "srt11bda",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.9059,
+        -0.4236,
+        0.0,
+        0.4236,
+        0.9059,
+        -0.647,
+        0.15862,
+        4.284988
+      ]
+    }
+  ]
+}

@@ -7,6 +7,7 @@ from pathlib import Path
 import dataclasses, hashlib, json, sys, unittest
 import numpy as np
 import weaponrigs as wr
+import hardpointbones as hpbones
 import ogrelayout
 
 ROOT=wr.ROOT;REF=ROOT/'References/WeaponRigs'
@@ -55,10 +56,21 @@ class WeaponRigTests(unittest.TestCase):
         for model,record in self.records.items():
             pairs=[(ROOT/'Assets/Models'/(model+'_recoil.skeleton'),record['source'])]
             if record.get('cockpit_source'):pairs.append((ROOT/'Assets/Models'/(model+'_cockpit_recoil.skeleton'),record['cockpit_source']))
+            moved=record.get('hardpoints',{})
+            receipt=hpbones.receipt(model)
+            self.assertEqual(set(moved),{p['name'] for p in receipt['parts']} if receipt else set(),model)
             for path,source in pairs:
                 skel=wr.read_skeleton(path)
                 self.assertTrue(set(source['animations']) <= {a.name for a in skel.animations})
+                if path.name==model+'_recoil.skeleton':
+                    for part in receipt['parts'] if receipt else ():
+                        name=part['name'];bone=skel.bone(name);pose=moved[name]
+                        self.assertEqual(skel.bones[bone.parent].name,part['owner'],f'{model}/{name} owner')
+                        self.assertTrue(np.allclose(bone.position,hpbones.MIRROR@np.asarray(part['matrix'][9:12]),atol=2e-5),f'{model}/{name} receipt position')
+                        self.assertTrue(np.allclose(bone.orientation,pose['orientation'],atol=2e-5),f'{model}/{name} receipt rotation')
+                        self.assertFalse(any(t.bone==bone.handle for a in skel.animations for t in a.tracks),f'{model}/{name} animated')
                 for name,(position,rotation) in source['bind_poses'].items():
+                    if name in moved and path.name==model+'_recoil.skeleton':continue
                     bone=skel.bone(name);self.assertIsNotNone(bone)
                     p,q=wr.flash.bone_world(skel,bone.handle)
                     self.assertTrue(np.allclose(p,position,atol=2e-5),f'{model}/{name} bind moved')

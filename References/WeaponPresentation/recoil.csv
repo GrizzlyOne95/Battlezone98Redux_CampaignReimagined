@@ -13,14 +13,14 @@ avartl,Howitzer,combat carrier,avartl,read,2,ghartill,GM2,aar11gm2,,aar11bgc,"[{
 avartl,Howitzer,combat carrier,avartl,read,3,ghartill,GM3,aar11gm3,,aar11bgb,"[{""node"": ""aar11bgb"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.656}]",Take_001,dedicated barrel slide candidate
 avartl,Howitzer,combat carrier,avartl,read,4,ghartill,GM4,aar11gm4,,aar11bga,"[{""node"": ""aar11bga"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.719}]",Take_001,dedicated barrel slide candidate
 avartla,Howitzer,combat carrier,avartl,read,1,gpopguna,GM1,aar11gm1,,aar11bgd,"[{""node"": ""aar11bgd"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.688}]",Take_001,dedicated barrel slide candidate
-avdemo,Tank,combat carrier,avtank,read,1,gatstab,GC1,AGR11GC1,,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 2.412}]",Take_001,dedicated barrel slide candidate
-avdemo,Tank,combat carrier,avtank,read,2,gminigun,GC2,AGR11Gc2,,AGR11BDA,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avdemo,Tank,combat carrier,avtank,read,1,gatstab,GC1,AGR11GC1,,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.004}]",Take_001,dedicated barrel slide candidate
+avdemo,Tank,combat carrier,avtank,read,2,gminigun,GC2,AGR11Gc2,,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.004}]",Take_001,dedicated barrel slide candidate
 avdemo,Tank,combat carrier,avtank,read,3,gquake,GS1,AGR11GS1,,AGR11TUR,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 avdemo,Tank,combat carrier,avtank,read,4,gmdmgun,GM1,AGR11GM1,,AGR11BDA,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
-avfigh,Scout,combat carrier,avfigh,read,1,gminigun,GC1,ARA11Gc1,,ARA11rof,[],,author additive recoil parent/clip; preserve aiming and locomotion
-avfigh,Scout,combat carrier,avfigh,read,2,gminigun,GC2,ARA11Gc2,,ARA11rof,[],,author additive recoil parent/clip; preserve aiming and locomotion
-avfimp,Scout,combat carrier,avfigh,read,1,gminigun,GC1,ARA11Gc1,,ARA11rof,[],,author additive recoil parent/clip; preserve aiming and locomotion
-avfimp,Scout,combat carrier,avfigh,read,2,gminigun,GC2,ARA11Gc2,,ARA11rof,[],,author additive recoil parent/clip; preserve aiming and locomotion
+avfigh,Scout,combat carrier,avfigh,read,1,gminigun,GC1,ARA11Gc1,,ARA11BDA,[],,author additive recoil parent/clip; preserve aiming and locomotion
+avfigh,Scout,combat carrier,avfigh,read,2,gminigun,GC2,ARA11Gc2,,ARA11BDA,[],,author additive recoil parent/clip; preserve aiming and locomotion
+avfimp,Scout,combat carrier,avfigh,read,1,gminigun,GC1,ARA11Gc1,,ARA11BDA,[],,author additive recoil parent/clip; preserve aiming and locomotion
+avfimp,Scout,combat carrier,avfigh,read,2,gminigun,GC2,ARA11Gc2,,ARA11BDA,[],,author additive recoil parent/clip; preserve aiming and locomotion
 avhraz,Bomber,combat carrier,avhraz,read,2,grktbomb,GR1,Ahr11GR1,,ahr11rof,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 avhraz,Bomber,combat carrier,avhraz,read,3,grktbomb,GR2,Ahr11GR2,,ahr11rof,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 avhrmp,Bomber,combat carrier,avhraz,read,2,grktbomb,GR1,Ahr11GR1,,ahr11rof,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
@@ -33,9 +33,13 @@ avltnk,Light Tank,combat carrier,avltnk,read,1,gminigun,GC1,aln11gc1,,aln11bda,[
 avltnk,Light Tank,combat carrier,avltnk,read,2,ghornet,GR1,art11gr1,,aln11bdc,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 avltnk,Light Tank,combat carrier,avltnk,read,3,gflare,GS1,aln11gs1,,aln11bda,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 avmine,Minelayer,combat carrier,avmine,read,1,gproxmin,GS1,AMI11GS1,,AMI11BDA,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avpsav,Fury - SAV Test,combat carrier,avsav,read,1,gbolt,GC1,nsv11GC1,,nvs11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
+avpsav,Fury - SAV Test,combat carrier,avsav,read,2,gwasp,GR1,nsv11GR1,,nvs11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
 avrckt,Rocket Tank,combat carrier,avrckt,read,1,gshadow,GR1,art11gr1,,art11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
 avrckt,Rocket Tank,combat carrier,avrckt,read,2,ghornet,GR2,art11gr2,,art11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
 avrckt,Rocket Tank,combat carrier,avrckt,read,4,gproxmin,GS1,art11gs1,,art11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
+avrsav,Fury - Pickup Test,combat carrier,avsav,read,1,gbolt,GC1,nsv11GC1,,nvs11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
+avrsav,Fury - Pickup Test,combat carrier,avsav,read,2,gwasp,GR1,nsv11GR1,,nvs11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
 avsav,Fury,combat carrier,avsav,read,1,gbolt,GC1,nsv11GC1,,nvs11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
 avsav,Fury,combat carrier,avsav,read,2,gwasp,GR1,nsv11GR1,,nvs11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
 avsav14,Fury,combat carrier,avsav,read,1,gbolt,GC1,nsv11GC1,,nvs11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
@@ -44,20 +48,29 @@ avsl8,Armory,weapon supplier; not a firing unit,avslf,read,1,gobject,gs2,ASL11GS
 avslf,Armory,weapon supplier; not a firing unit,avslf,read,1,gobject,gs2,ASL11GS2,,ASL11ARM,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 avslf5,Armory,weapon supplier; not a firing unit,avslf,read,1,gobject,gs2,ASL11GS2,,ASL11ARM,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 avslf6,Armory,weapon supplier; not a firing unit,avslf,read,1,gobject,gs2,ASL11GS2,,ASL11ARM,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
-avtamp,Tank,combat carrier,avtank,read,1,gatstab,GC1,AGR11GC1,,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 2.412}]",Take_001,dedicated barrel slide candidate
-avtamp,Tank,combat carrier,avtank,read,2,gmaggun,GC2,AGR11Gc2,,AGR11BDA,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avtamp,Tank,combat carrier,avtank,read,1,gatstab,GC1,AGR11GC1,,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.004}]",Take_001,dedicated barrel slide candidate
+avtamp,Tank,combat carrier,avtank,read,2,gmaggun,GC2,AGR11Gc2,,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.004}]",Take_001,dedicated barrel slide candidate
 avtamp,Tank,combat carrier,avtank,read,3,gredfld,GS1,AGR11GS1,,AGR11TUR,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
-avtank,Tank,combat carrier,avtank,read,1,gatstab,GC1,AGR11GC1,,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 2.412}]",Take_001,dedicated barrel slide candidate
-avtank,Tank,combat carrier,avtank,read,2,gminigun,GC2,AGR11Gc2,,AGR11BDA,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avtank,Tank,combat carrier,avtank,read,1,gatstab,GC1,AGR11GC1,,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.004}]",Take_001,dedicated barrel slide candidate
+avtank,Tank,combat carrier,avtank,read,2,gminigun,GC2,AGR11Gc2,,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.004}]",Take_001,dedicated barrel slide candidate
 avtank,Tank,combat carrier,avtank,read,3,gquake,GS1,AGR11GS1,,AGR11TUR,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 avtank,Tank,combat carrier,avtank,read,4,gmdmgun,GM1,AGR11GM1,,AGR11BDA,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 avtest,Drone,combat carrier,avtest,read,1,gdummy,GC1,aVT11gc1,,aVT11bgA,"[{""node"": ""aVT11bgA"", ""translation_animated"": true, ""barrel_forward_tip_estimate"": 3.312}]",Take_001,dedicated barrel slide candidate
 avtest,Drone,combat carrier,avtest,read,2,gdummy,GC2,aVT11gc2,,aVT11bgb,"[{""node"": ""aVT11bgb"", ""translation_animated"": true, ""barrel_forward_tip_estimate"": 3.312}]",Take_001,dedicated barrel slide candidate
 avtest,Drone,combat carrier,avtest,read,3,gdummy,GM1,aVT11gm1,,aVT11bgA,"[{""node"": ""aVT11bgA"", ""translation_animated"": true, ""barrel_forward_tip_estimate"": 3.29}]",Take_001,dedicated barrel slide candidate
 avtest,Drone,combat carrier,avtest,read,4,gdummy,GM2,aVT11gm2,,aVT11bgb,"[{""node"": ""aVT11bgb"", ""translation_animated"": true, ""barrel_forward_tip_estimate"": 3.312}]",Take_001,dedicated barrel slide candidate
-avtump,Turret,combat carrier,avturr,read,1,gtminig,GC1,aDE11gc1,,aDE11blc,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
-avtump,Turret,combat carrier,avturr,read,2,gtminig,GC2,aDE11gc2,,aDE11blf,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
-avturr,Turret,combat carrier,avturr,read,1,gtminig,GC1,aDE11gc1,,aDE11blc,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avtump,Turret,combat carrier,avturr,read,1,gtmgav2,GC1,aDE11gc1,,aDE11blc,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avtump,Turret,combat carrier,avturr,read,2,gtmgav2,GC2,aDE11gc2,,aDE11blf,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avtump,Turret,combat carrier,avturr,read,3,gtmgav2,GC3,aDE11gc3,,aDE11bld,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avtump,Turret,combat carrier,avturr,read,4,gtmgav2,GC4,aDE11gc4,,aDE11ble,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avtur2b,Turret,combat carrier,avturr,read,1,gtmgav4,GC1,aDE11gc1,,aDE11blc,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avtur2b,Turret,combat carrier,avturr,read,2,gtmgav4,GC2,aDE11gc2,,aDE11blf,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avtur2b,Turret,combat carrier,avturr,read,3,gtmgav4,GC3,aDE11gc3,,aDE11bld,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avtur2b,Turret,combat carrier,avturr,read,4,gtmgav4,GC4,aDE11gc4,,aDE11ble,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avturr,Turret,combat carrier,avturr,read,1,gtmgav4,GC1,aDE11gc1,,aDE11blc,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avturr,Turret,combat carrier,avturr,read,2,gtmgav4,GC2,aDE11gc2,,aDE11blf,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avturr,Turret,combat carrier,avturr,read,3,gtmgav4,GC3,aDE11gc3,,aDE11bld,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+avturr,Turret,combat carrier,avturr,read,4,gtmgav4,GC4,aDE11gc4,,aDE11ble,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 avwalk,Walker,combat carrier,avwalk,read,1,gatstaba,GC1,AGe11GC1,,age11tx2,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 avwalk,Walker,combat carrier,avwalk,read,2,gatstaba,GC2,AGe11GC2,,age11tx1,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 avwalk,Walker,combat carrier,avwalk,read,3,gpopgun,GM1,AGe11GM1,,age11ty1,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
@@ -112,16 +125,24 @@ bvslfa,Armory,weapon supplier; not a firing unit,bvslf,read,1,gobject,ARM,BSL11A
 bvslfb,Armory,weapon supplier; not a firing unit,bvslf,read,1,gobject,ARM,BSL11ARM,,BSL11BAS,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 bvslfc,Armory,weapon supplier; not a firing unit,bvslf,read,1,gobject,ARM,BSL11ARM,,BSL11BAS,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 bvslfd,Armory,weapon supplier; not a firing unit,bvslf,read,1,gobject,ARM,BSL11ARM,,BSL11BAS,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
-bvtank,Tank,combat carrier,bvtank,read,1,gspstab,GC1,bGR11GC1,,bGR11BGA,"[{""node"": ""bGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 2.412}]",,dedicated barrel slide candidate
+bvtank,Tank,combat carrier,bvtank,read,1,gspstab,GC1,bGR11GC1,,bGR11BGA,"[{""node"": ""bGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.004}]",,dedicated barrel slide candidate
 bvtank,Tank,combat carrier,bvtank,read,3,gmortar,GM1,bGR11GM1,,bGR11BDA,[],,author additive recoil parent/clip; preserve aiming and locomotion
 bvtank,Tank,combat carrier,bvtank,read,4,gproxmin,GS1,bGR11GS1,,bGR11TUR,[],,author additive recoil parent/clip; preserve aiming and locomotion
-bvtanka,Tank,combat carrier,bvtank,read,1,gspstab,GC1,bGR11GC1,,bGR11BGA,"[{""node"": ""bGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 2.412}]",,dedicated barrel slide candidate
+bvtanka,Tank,combat carrier,bvtank,read,1,gspstab,GC1,bGR11GC1,,bGR11BGA,"[{""node"": ""bGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.004}]",,dedicated barrel slide candidate
 bvtanka,Tank,combat carrier,bvtank,read,3,gpopgun,GM1,bGR11GM1,,bGR11BDA,[],,author additive recoil parent/clip; preserve aiming and locomotion
 bvtanka,Tank,combat carrier,bvtank,read,4,gproxmin,GS1,bGR11GS1,,bGR11TUR,[],,author additive recoil parent/clip; preserve aiming and locomotion
-bvtump,Turret,combat carrier,bvturr,read,1,gatstab,GC1,bDE11gc1,,bDE11blc,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
-bvtump,Turret,combat carrier,bvturr,read,2,gatstab,GC2,bDE11gc2,,bDE11blf,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
-bvtur8,Turret,combat carrier,bvturr,read,1,gminigun,GC1,bDE11gc1,,bDE11blc,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
-bvturr,Turret,combat carrier,bvturr,read,1,gtminig,GC1,bDE11gc1,,bDE11blc,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+bvtump,Turret,combat carrier,bvturr,read,1,gatsbv2,GC1,bDE11gc1,,bDE11blc,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+bvtump,Turret,combat carrier,bvturr,read,2,gatsbv2,GC2,bDE11gc2,,bDE11blf,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+bvtump,Turret,combat carrier,bvturr,read,3,gatsbv2,GC3,bDE11gc3,,bDE11bld,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+bvtump,Turret,combat carrier,bvturr,read,4,gatsbv2,GC4,bDE11gc4,,bDE11ble,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+bvtur8,Turret,combat carrier,bvturr,read,1,gmgnbv4,GC1,bDE11gc1,,bDE11blc,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+bvtur8,Turret,combat carrier,bvturr,read,2,gmgnbv4,GC2,bDE11gc2,,bDE11blf,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+bvtur8,Turret,combat carrier,bvturr,read,3,gmgnbv4,GC3,bDE11gc3,,bDE11bld,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+bvtur8,Turret,combat carrier,bvturr,read,4,gmgnbv4,GC4,bDE11gc4,,bDE11ble,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+bvturr,Turret,combat carrier,bvturr,read,1,gtmgbv4,GC1,bDE11gc1,,bDE11blc,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+bvturr,Turret,combat carrier,bvturr,read,2,gtmgbv4,GC2,bDE11gc2,,bDE11blf,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+bvturr,Turret,combat carrier,bvturr,read,3,gtmgbv4,GC3,bDE11gc3,,bDE11bld,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+bvturr,Turret,combat carrier,bvturr,read,4,gtmgbv4,GC4,bDE11gc4,,bDE11ble,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 bvwalk,Walker,combat carrier,bvwalk,read,1,gspstab,GC1,AGe11GC1,,age11tx2,[],,author additive recoil parent/clip; preserve aiming and locomotion
 bvwalk,Walker,combat carrier,bvwalk,read,2,gspstab,GC2,AGe11GC2,,age11tx1,[],,author additive recoil parent/clip; preserve aiming and locomotion
 cblasr,Gun Tower,combat carrier,cblasr,read,1,gspstaba,GC1,clz11gc1,,clz11bdd,[],,author additive recoil parent/clip; preserve aiming and locomotion
@@ -208,17 +229,22 @@ cvtnkc,Tank,combat carrier,cvtnk,read,1,gspstabb,GC2,CYE11GC2,,CYE11BDA,[],,auth
 cvtnkc,Tank,combat carrier,cvtnk,read,2,gspstabb,GC1,CYE11GC1,,CYE11BDA,[],,author additive recoil parent/clip; preserve aiming and locomotion
 cvtnkd,Tank,combat carrier,cvtnk,read,1,gspstabd,GC2,CYE11GC2,,CYE11BDA,[],,author additive recoil parent/clip; preserve aiming and locomotion
 cvtnkd,Tank,combat carrier,cvtnk,read,2,gspstabd,GC1,CYE11GC1,,CYE11BDA,[],,author additive recoil parent/clip; preserve aiming and locomotion
-cvturr,Turret,combat carrier,cvturr,read,1,gminigrn,GC1,CAD11GC1,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
-cvturr,Turret,combat carrier,cvturr,read,2,gminigrn,GC2,CAD11GC2,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
-cvturr,Turret,combat carrier,cvturr,read,3,gminigrn,GC3,CAD11GC3,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
-cvturr,Turret,combat carrier,cvturr,read,4,gminigrn,GC4,CAD11GC4,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturr,Turret,combat carrier,cvturr,read,1,gmgrcv1,GC1,CAD11GC1,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturr,Turret,combat carrier,cvturr,read,2,gmgrcv1,GC2,CAD11GC2,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturr,Turret,combat carrier,cvturr,read,3,gmgrcv1,GC3,CAD11GC3,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturr,Turret,combat carrier,cvturr,read,4,gmgrcv1,GC4,CAD11GC4,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
 cvturra,Turret,combat carrier,cvturr,read,1,gtminis,GC1,CAD11GC1,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
 cvturra,Turret,combat carrier,cvturr,read,2,gtminis,GC2,CAD11GC2,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
 cvturra,Turret,combat carrier,cvturr,read,3,gtminis,GC3,CAD11GC3,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
 cvturra,Turret,combat carrier,cvturr,read,4,gsandbag,GC4,CAD11GC4,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
-cvturrb,Turret,combat carrier,cvturr,read,1,gspstabb,GC1,CAD11GC1,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
-cvturrb,Turret,combat carrier,cvturr,read,3,gspstabb,GC3,CAD11GC3,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
-cvturrc,Turret,combat carrier,cvturr,read,1,gspstabc,GC1,CAD11GC1,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturrb,Turret,combat carrier,cvturr,read,1,gspbcv2,GC1,CAD11GC1,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturrb,Turret,combat carrier,cvturr,read,2,gspbcv2,GC2,CAD11GC2,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturrb,Turret,combat carrier,cvturr,read,3,gspbcv2,GC3,CAD11GC3,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturrb,Turret,combat carrier,cvturr,read,4,gspbcv2,GC4,CAD11GC4,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturrc,Turret,combat carrier,cvturr,read,1,gspccv4,GC1,CAD11GC1,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturrc,Turret,combat carrier,cvturr,read,2,gspccv4,GC2,CAD11GC2,,CAD11TX1,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturrc,Turret,combat carrier,cvturr,read,3,gspccv4,GC3,CAD11GC3,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
+cvturrc,Turret,combat carrier,cvturr,read,4,gspccv4,GC4,CAD11GC4,,CAD11TX2,[],,author additive recoil parent/clip; preserve aiming and locomotion
 cvwalk,Walker,combat carrier,cvwalk,read,1,gblastg,GC1,agr11gc1,,cvw11hed,[],,author additive recoil parent/clip; preserve aiming and locomotion
 cvwalk,Walker,combat carrier,cvwalk,read,2,gblastg,GC2,agr11gc2,,cvw11hed,[],,author additive recoil parent/clip; preserve aiming and locomotion
 cvwalk,Walker,combat carrier,cvwalk,read,3,gpopgun,GM1,cvw11GM1,,cvw11sup,[],,author additive recoil parent/clip; preserve aiming and locomotion
@@ -228,16 +254,16 @@ hvsat,Fury,combat carrier,hvsat,read,1,gbolt,GC1,hat11GC1,,hat11bda,[],,author a
 hvsat,Fury,combat carrier,hvsat,read,2,gwasp,GR1,hat11GR1,,hat11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
 hvsav,Fury,combat carrier,hvsav,read,1,gbolt,GC1,nsv11GC1,,nvs11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
 hvsav,Fury,combat carrier,hvsav,read,2,gwasp,GR1,nsv11GR1,,nvs11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
-player,Tank,combat carrier,avtank,read,1,gatstab,GC1,AGR11GC1,,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 2.412}]",Take_001,dedicated barrel slide candidate
-player,Tank,combat carrier,avtank,read,2,gminigun,GC2,AGR11Gc2,,AGR11BDA,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+player,Tank,combat carrier,avtank,read,1,gatstab,GC1,AGR11GC1,,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.004}]",Take_001,dedicated barrel slide candidate
+player,Tank,combat carrier,avtank,read,2,gminigun,GC2,AGR11Gc2,,AGR11BGA,"[{""node"": ""AGR11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.004}]",Take_001,dedicated barrel slide candidate
 player,Tank,combat carrier,avtank,read,3,gquake,GS1,AGR11GS1,,AGR11TUR,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 player,Tank,combat carrier,avtank,read,4,gmdmgun,GM1,AGR11GM1,,AGR11BDA,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 playrt,Rocket Tank,combat carrier,avrckt,read,1,gshadow,GR1,art11gr1,,art11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
 playrt,Rocket Tank,combat carrier,avrckt,read,2,ghornet,GR2,art11gr2,,art11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
 playrt,Rocket Tank,combat carrier,avrckt,read,3,gsandbag,GM1,art11gm1,,art11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
 playrt,Rocket Tank,combat carrier,avrckt,read,4,gmitsmin,GS1,art11gs1,,art11bda,[],,author additive recoil parent/clip; preserve aiming and locomotion
-playsv,Tank,combat carrier,svtank,read,1,gatstab,GC1,SCZ11GC1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.419}]",Take_001,dedicated barrel slide candidate
-playsv,Tank,combat carrier,svtank,read,2,gminisov,GC2,SCZ11GC2,,scz11bda,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+playsv,Tank,combat carrier,svtank,read,1,gatstab,GC1,SCZ11GC1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": -0.0}]",Take_001,dedicated barrel slide candidate
+playsv,Tank,combat carrier,svtank,read,2,gminisov,GC2,SCZ11GC2,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": -0.0}]",Take_001,dedicated barrel slide candidate
 playsv,Tank,combat carrier,svtank,read,4,gquake,GS1,SCZ11GS1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 1.786}]",Take_001,dedicated barrel slide candidate
 savs8,Fury,combat carrier,svsav,read,1,gbolt,GC1,ssv11GC1,,ssv11bda,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 savs8,Fury,combat carrier,svsav,read,2,gwasp,GR1,ssv11GR1,,ssv11bda,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
@@ -300,27 +326,36 @@ svrckt,Rocket Tank,combat carrier,svrckt,read,4,gbetmin,GS1,srt11GS1,,srt11bda,[
 svsav,Fury,combat carrier,svsav,read,1,gbolt,GC1,ssv11GC1,,ssv11bda,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 svsav,Fury,combat carrier,svsav,read,2,gwasp,GR1,ssv11GR1,,ssv11bda,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 svslf,Armory,weapon supplier; not a firing unit,svslf,read,1,gobject,gs2,slf11GS2,,slf11arm,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
-svtank,Tank,combat carrier,svtank,read,1,gsatstab,GC1,SCZ11GC1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.419}]",Take_001,dedicated barrel slide candidate
-svtank,Tank,combat carrier,svtank,read,2,gminisov,GC2,SCZ11GC2,,scz11bda,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+svtank,Tank,combat carrier,svtank,read,1,gsatstab,GC1,SCZ11GC1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": -0.0}]",Take_001,dedicated barrel slide candidate
+svtank,Tank,combat carrier,svtank,read,2,gminisov,GC2,SCZ11GC2,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": -0.0}]",Take_001,dedicated barrel slide candidate
 svtank,Tank,combat carrier,svtank,read,4,gquake,GS1,SCZ11GS1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 1.786}]",Take_001,dedicated barrel slide candidate
-svtanka,Tank,combat carrier,svtank,read,1,gsatstab,GC1,SCZ11GC1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.419}]",Take_001,dedicated barrel slide candidate
-svtanka,Tank,combat carrier,svtank,read,2,gminisov,GC2,SCZ11GC2,,scz11bda,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+svtanka,Tank,combat carrier,svtank,read,1,gsatstab,GC1,SCZ11GC1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": -0.0}]",Take_001,dedicated barrel slide candidate
+svtanka,Tank,combat carrier,svtank,read,2,gminisov,GC2,SCZ11GC2,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": -0.0}]",Take_001,dedicated barrel slide candidate
 svtanka,Tank,combat carrier,svtank,read,4,gquake,GS1,SCZ11GS1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 1.786}]",Take_001,dedicated barrel slide candidate
-svtas8,Tank,combat carrier,svtank,read,1,gatstab,GC1,SCZ11GC1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.419}]",Take_001,dedicated barrel slide candidate
-svtas8,Tank,combat carrier,svtank,read,2,gflashgn,GC2,SCZ11GC2,,scz11bda,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+svtas8,Tank,combat carrier,svtank,read,1,gatstab,GC1,SCZ11GC1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": -0.0}]",Take_001,dedicated barrel slide candidate
+svtas8,Tank,combat carrier,svtank,read,2,gflashgn,GC2,SCZ11GC2,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": -0.0}]",Take_001,dedicated barrel slide candidate
 svtas8,Tank,combat carrier,svtank,read,3,gquake,GS1,SCZ11GS1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 1.786}]",Take_001,dedicated barrel slide candidate
 svtas8,Tank,combat carrier,svtank,read,4,gnavdrop,GM1,SCZ11GM1,,SCZ11MOR,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
-svtk13,Tank,combat carrier,svtank,read,1,gspstab,GC1,SCZ11GC1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.419}]",Take_001,dedicated barrel slide candidate
-svtk13,Tank,combat carrier,svtank,read,2,gflashgn,GC2,SCZ11GC2,,scz11bda,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+svtk13,Tank,combat carrier,svtank,read,1,gspstab,GC1,SCZ11GC1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": -0.0}]",Take_001,dedicated barrel slide candidate
+svtk13,Tank,combat carrier,svtank,read,2,gflashgn,GC2,SCZ11GC2,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": -0.0}]",Take_001,dedicated barrel slide candidate
 svtk13,Tank,combat carrier,svtank,read,3,gquake,GS1,SCZ11GS1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 1.786}]",Take_001,dedicated barrel slide candidate
 svtk13,Tank,combat carrier,svtank,read,4,gnavdrop,GM1,SCZ11GM1,,SCZ11MOR,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
-svtnk7,Tank,combat carrier,svtank,read,1,ga7stab,GC1,SCZ11GC1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 3.419}]",Take_001,dedicated barrel slide candidate
-svtump,Turret,combat carrier,svturr,read,1,gtminis,GC1,STU11GC1,,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
-svtump,Turret,combat carrier,svturr,read,2,gtminis,GC2,STU11Gc2,,STU11BGB,"[{""node"": ""STU11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
-svturr,Turret,combat carrier,svturr,read,1,gtminis,GC1,STU11GC1,,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
-svturra,Turret,combat carrier,svturr,read,1,gspstab,GC1,STU11GC1,,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
-svturrb,Turret,combat carrier,svturr,read,1,gspstab,GC1,STU11GC1,,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
-svturrc,Turret,combat carrier,svturr,read,1,gminigna,GC1,STU11GC1,,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svtnk7,Tank,combat carrier,svtank,read,1,ga7stab,GC1,SCZ11GC1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": -0.0}]",Take_001,dedicated barrel slide candidate
+svtump,Turret,combat carrier,svturr,read,1,gtmssv15,GC1,STU11GC1,,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svtump,Turret,combat carrier,svturr,read,2,gtmssv15,GC2,STU11Gc2,,STU11BGB,"[{""node"": ""STU11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svtump,Turret,combat carrier,svturr,read,3,gtmssv15,GC3,STU11GC3,,STU11BGA,"[{""node"": ""STU11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svturr,Turret,combat carrier,svturr,read,1,gtmssv3,GC1,STU11GC1,,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svturr,Turret,combat carrier,svturr,read,2,gtmssv3,GC2,STU11Gc2,,STU11BGB,"[{""node"": ""STU11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svturr,Turret,combat carrier,svturr,read,3,gtmssv3,GC3,STU11GC3,,STU11BGA,"[{""node"": ""STU11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svturra,Turret,combat carrier,svturr,read,1,gspssv3,GC1,STU11GC1,,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svturra,Turret,combat carrier,svturr,read,2,gspssv3,GC2,STU11Gc2,,STU11BGB,"[{""node"": ""STU11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svturra,Turret,combat carrier,svturr,read,3,gspssv3,GC3,STU11GC3,,STU11BGA,"[{""node"": ""STU11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svturrb,Turret,combat carrier,svturr,read,1,gspssv3,GC1,STU11GC1,,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svturrb,Turret,combat carrier,svturr,read,2,gspssv3,GC2,STU11Gc2,,STU11BGB,"[{""node"": ""STU11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svturrb,Turret,combat carrier,svturr,read,3,gspssv3,GC3,STU11GC3,,STU11BGA,"[{""node"": ""STU11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svturrc,Turret,combat carrier,svturr,read,1,gmgasv3,GC1,STU11GC1,,STU11BGC,"[{""node"": ""STU11BGC"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svturrc,Turret,combat carrier,svturr,read,2,gmgasv3,GC2,STU11Gc2,,STU11BGB,"[{""node"": ""STU11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
+svturrc,Turret,combat carrier,svturr,read,3,gmgasv3,GC3,STU11GC3,,STU11BGA,"[{""node"": ""STU11BGA"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 0.09}]",Take_001,dedicated barrel slide candidate
 svwalk,Walker,combat carrier,svwalk,read,1,gblast,GC1,agr11gc1,,svw11hed,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 svwalk,Walker,combat carrier,svwalk,read,2,gblast,GC2,agr11gc2,,svw11hed,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 svwalk,Walker,combat carrier,svwalk,read,3,gpopgun,GM1,svw11GM1,,svw11sup,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion

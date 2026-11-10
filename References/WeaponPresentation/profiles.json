@@ -553,6 +553,12 @@
       "casing_type": "none",
       "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
+    "gatsbv2": {
+      "profile": "atstab",
+      "decision": "authored flash",
+      "casing_type": "medium",
+      "casing_decision": "Ballistic medium brass; local cosmetic only."
+    },
     "gatstab": {
       "profile": "atstab",
       "decision": "authored flash",
@@ -775,6 +781,35 @@
       "casing_type": "none",
       "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
+    "gmgasv3": {
+      "profile": "minigun",
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    "gmgnbv4": {
+      "profile": "minigun",
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only.",
+      "casing_notes": [
+        "Optional custom ejected-brass mesh (OpenShim exact-GOG ODF scope; ShellCasings ON):",
+        "casingMesh = \"mymod_brass.mesh\"",
+        "Uncomment above after shipping that Ogre .mesh and its materials/textures in the mod.",
+        "Use a rigid case centred at 0, unit length 1 along local +Z, base -0.5 / mouth +0.5.",
+        "casingType scales the whole mesh: small 0.12, medium 0.24, large 0.40; none disables.",
+        "Missing/empty casingMesh tries gminigun_casing.mesh, then the generated default.",
+        "An explicit missing/invalid casingMesh suppresses the casing; names are case-sensitive.",
+        "Existing per-weapon mesh materials are used; this does not change flashMesh.",
+        "For CR regeneration, set this weapon casing_mesh in References/WeaponPresentation/profiles.json."
+      ]
+    },
+    "gmgrcv1": {
+      "profile": "minigun",
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
     "gminigna": {
       "profile": "minigun",
       "decision": "authored flash",
@@ -936,6 +971,18 @@
       "casing_type": "small",
       "casing_decision": "Ballistic small brass; local cosmetic only."
     },
+    "gspbcv2": {
+      "profile": "spstab",
+      "decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
+    },
+    "gspccv4": {
+      "profile": "spstab",
+      "decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
+    },
     "gsplint": {
       "profile": "mortar",
       "decision": "authored flash",
@@ -959,6 +1006,12 @@
       "decision": "authored flash",
       "casing_type": "none",
       "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
+    },
+    "gspssv3": {
+      "profile": "spstab",
+      "decision": "authored flash",
+      "casing_type": "large",
+      "casing_decision": "Ballistic large brass; local cosmetic only."
     },
     "gspstab": {
       "profile": "spstab",
@@ -1020,6 +1073,24 @@
       "casing_type": "none",
       "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
+    "gtmgav2": {
+      "profile": "minigun",
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    "gtmgav4": {
+      "profile": "minigun",
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    "gtmgbv4": {
+      "profile": "minigun",
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
     "gtminig": {
       "profile": "minigun",
       "decision": "authored flash",
@@ -1039,6 +1110,18 @@
       "casing_decision": "Ballistic small brass; local cosmetic only."
     },
     "gtminisa": {
+      "profile": "chaingun",
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    "gtmssv15": {
+      "profile": "chaingun",
+      "decision": "authored flash",
+      "casing_type": "small",
+      "casing_decision": "Ballistic small brass; local cosmetic only."
+    },
+    "gtmssv3": {
       "profile": "chaingun",
       "decision": "authored flash",
       "casing_type": "small",
