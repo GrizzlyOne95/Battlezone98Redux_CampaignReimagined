@@ -27,6 +27,22 @@ def under(x, z):
     return cfg['underside'][0] + cfg['underside'][1] * (z - EZ) + SIDE * (x - EX)
 
 
+ROOF = np.array(cfg['roof']['h']) if 'roof' in cfg else None
+
+
+def roof(x, z):
+    """Conformal roof: skin height grid measured by the build tool (bilinear, clamped at its edges)."""
+    R = cfg['roof']; g = R['step']
+    fx = min(max((x - R['x0']) / g, 0), ROOF.shape[0] - 1); fz = min(max((z - R['z0']) / g, 0), ROOF.shape[1] - 1)
+    i = min(int(fx), ROOF.shape[0] - 2); j = min(int(fz), ROOF.shape[1] - 2); t = fx - i; u = fz - j
+    return float(ROOF[i, j] * (1 - t) * (1 - u) + ROOF[i + 1, j] * t * (1 - u) + ROOF[i, j + 1] * (1 - t) * u + ROOF[i + 1, j + 1] * t * u)
+
+
+def top(x, z):
+    """Height the buried roof is measured from: the conformal skin grid, else the seat plane."""
+    return roof(x, z) if ROOF is not None else under(x, z)
+
+
 def stats(o):
     bm = bmesh.new(); bm.from_mesh(o.data)
     out = (all(e.is_manifold for e in bm.edges) and len(bm.edges) > 0, bm.calc_volume(signed=False), len(bm.faces))
@@ -88,7 +104,32 @@ def lathe(name, profile, phase=0.0):
     return solid(name, verts, faces)
 
 
+def conform_pod():
+    """The pod with a conformal roof: sections every cfg['along'] metres along the chord (depth and
+    half-width interpolated between the shape's sections), each with cfg['across'] roof vertices
+    on the skin grid plus bury, over the same four lower corners as the flat pod."""
+    sections = cfg['sections']; rings = [sections[0]]
+    for (z0, a0, d0), (z1, a1, d1) in zip(sections, sections[1:]):
+        n = max(1, math.ceil(abs(z1 - z0) / cfg['along'] - 1e-9))
+        rings += [(z0 + (z1 - z0) * k / n, a0 + (a1 - a0) * k / n, d0 + (d1 - d0) * k / n) for k in range(1, n + 1)]
+    m = cfg['across']; K = m + 4; verts = []
+    for z, a, d in rings:
+        zz = EZ + z + OZ; cx = EX + OX; lift = min(cfg['chamfer'], d * .5); b = a * cfg['flat']
+        for i in range(m):
+            x = cx - a + 2 * a * i / (m - 1); verts.append((x, roof(x, zz) + cfg['bury'], zz))
+        for x, h in ((cx + a, lift - d), (cx + b, -d), (cx - b, -d), (cx - a, lift - d)):
+            verts.append((x, under(x, zz) + h, zz))
+    n = len(rings); faces = [list(range(K)), list(range(K * n - K, K * n))]
+    for s in range(n - 1):
+        for i in range(K):
+            j = (i + 1) % K
+            faces.append([K * s + i, K * s + j, K * s + K + j, K * s + K + i])
+    return solid('pod', verts, faces)
+
+
 def pod():
+    if ROOF is not None:
+        return conform_pod()
     verts = []
     for z, a, d in cfg['sections']:
         zz = EZ + z + OZ; cx = EX + OX; lift = min(cfg['chamfer'], d * .5); b = a * cfg['flat']
@@ -150,7 +191,7 @@ ok, volume, faces = stats(body); assert ok, 'cleanup left the solid non-manifold
 print('nacelle jet cleanup: faces %d -> %d, volume %.5f' % (count, faces, volume))
 # Faces wholly inside the wing are never seen; they only existed to keep the booleans closed.
 bm = bmesh.new(); bm.from_mesh(body.data)
-buried = [f for f in bm.faces if all(v.co.y > under(v.co.x, v.co.z) + cfg['bury'] * .5 for v in f.verts)] if cfg.get('dropBuried', True) else []
+buried = [f for f in bm.faces if all(v.co.y > top(v.co.x, v.co.z) + cfg['bury'] * .5 for v in f.verts)] if cfg.get('dropBuried', True) else []
 bmesh.ops.delete(bm, geom=buried, context='FACES')
 bm.to_mesh(body.data); bm.free(); body.data.update()
 

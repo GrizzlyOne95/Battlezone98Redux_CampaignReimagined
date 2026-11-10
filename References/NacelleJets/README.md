@@ -106,6 +106,12 @@ instead finds the glowing exhaust ports a nacelle already models (emissive texel
 within 5 cm, elongated patches split in two, patches under 15 samples dropped) and proposes
 each flame into the largest downward-facing one, along its normal.
 
+`conform=True` (avhraz, bvhraz, svltnk) is for skins too stepped or curved for a flat seat:
+the seat plane is lowered to the lowest skin point, and the pod roof follows a 2 cm height
+grid of that skin (window maximum, never below the plane) instead of a flat top, with the
+roof edge buried into the hull. Nozzle, ring, glow and paint are unchanged; units without
+the flag build exactly as before.
+
 The VDF is not changed here. Each moved emitter carries `emitShift` (stock point, moved
 point, delta, flame direction, reason) in `preview.json`, and the unit carries `vdfParts`:
 one class 75 part per emitter, parented to its nacelle, with its local `matrix` in the VDF

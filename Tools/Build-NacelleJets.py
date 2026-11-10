@@ -100,13 +100,15 @@ CONFIG = {
     'avapc': unit('nsdf', 1.3, .8, housing=False, ports=True, note='no housing: each side pod already models glowing exhaust ports underneath; the flames are proposed into those'),
     'avartl': unit('nsdf', 1.2, housing=False, ports=True, note='no housing: each nacelle already models glowing exhaust ports; the flames are proposed into those'),
     'avltnk': unit('nsdf', 1., .6), 'avmine': unit('nsdf', 1.3), 'avrckt': unit('nsdf', 1.), 'avtank': unit('nsdf', 1., .8, shift=(('.', 'relocate'),)),
-    'avhraz': unit('nsdf', .9, .8, shift=(('.', 'relocate'),)), 'avtest': unit('nsdf', .8, shift=(('.', 'relocate'),)),
+    # conform=True: the pod roof follows uneven skin (conform_underside) where no flat seat clears it.
+    'avhraz': unit('nsdf', .9, .8, shift=(('.', 'relocate'),), conform=True), 'avtest': unit('nsdf', .8, shift=(('.', 'relocate'),)),
     'bvapc': unit('blackdogs', 1.3, .8, housing=False, ports=True, note='no housing: each side pod already models glowing exhaust ports underneath; the flames are proposed into those'),
     'bvartl': unit('blackdogs', 1.2, housing=False, ports=True, note='no housing: each nacelle already models glowing exhaust ports; the flames are proposed into those'),
     'bvltnk': unit('blackdogs', 1., .6), 'bvmine': unit('blackdogs', 1.3), 'bvraz': unit('blackdogs', .9), 'bvrckt': unit('blackdogs', 1.),
     'bvtank': unit('blackdogs', 1., .8, shift=(('.', 'relocate'),)),
+    'bvhraz': unit('blackdogs', .9, .8, shift=(('.', 'relocate'),), conform=True),  # the avhraz mesh with Black Dog bones
     'svapc': unit('cca', 1.3), 'svartl': unit('cca', 1.3, shift=(('.', 'relocate'),)), 'svfigh': unit('cca', 1., shift=(('.', 'relocate'),)),
-    'svhraz': unit('cca', .8, 1.2, shift=(('.', 'relocate'),)), 'svltnk': unit('cca', .8, .9, shift=(('.', 'relocate'),)),
+    'svhraz': unit('cca', .8, 1.2, shift=(('.', 'relocate'),)), 'svltnk': unit('cca', .8, .9, shift=(('.', 'relocate'),), conform=True),
     'svmine': unit('cca', 1.2, shift=(('.', 'relocate'),)), 'svmuf': unit('cca', 1.4, shift=(('.', 'relocate'),)), 'svrckt': unit('cca', 1.1),
     'svrecy': unit('cca', 1.5, shift=(('.', 'relocate'),)), 'svslf': unit('cca', 1.2), 'svscav': unit('cca', 1.3, shift=(('.', 'relocate'),)),
     'cvfigh': unit('cra', .9), 'cvhraz': unit('cra', 1.3), 'cvmine': unit('cra', .9, shift=(('.', 'relocate'),)),
@@ -270,11 +272,12 @@ def instance(rows, jet, centre, mirror):
     return out
 
 
-def underside(tri, emit, shape, plane=None):
+def underside(tri, emit, shape, plane=None, roof=None):
     """Least-squares height of the wing underside over the pod footprint: along the chord, and
     across it too for a fitted shape. Returns the fit, its worst error and the seat: share of
     the footprint with skin above it, and share where the buried roof would come out of the
-    far side. With plane, measures against that fit instead."""
+    far side. With plane, measures against that fit instead. A conform shape seats on the lowest
+    skin and builds its roof from the skin heights instead (conform_underside)."""
     a, b, c = tri[:, 0], tri[:, 1], tri[:, 2]
     d = (b[:, 2] - c[:, 2]) * (a[:, 0] - c[:, 0]) + (c[:, 0] - b[:, 0]) * (a[:, 2] - c[:, 2])
     ok = np.abs(d) > 1e-12; d = np.where(ok, d, 1); ox, oz = shape.get('offset', (0., 0.)); auto = shape.get('auto')
@@ -300,6 +303,8 @@ def underside(tri, emit, shape, plane=None):
     rows = [row for row in grid.values() if row]
     assert len(rows) > 3, 'no skin above the pod footprint to seat the housing on'
     rows = np.array(rows); A = np.c_[np.ones(len(rows)), rows[:, 0], rows[:, 2]][:, :3 if auto else 2]
+    if shape.get('conform'):
+        return conform_underside(tri, emit, shape, rows, A, total, plane, roof)
     fit = np.array(plane) if plane is not None else np.linalg.lstsq(A, rows[:, 1], rcond=None)[0]
     error = float(np.abs(rows[:, 1] - A @ fit).max())
     if auto and plane is not None:  # against a seated plane only skin above it (the roof would float) counts
@@ -316,6 +321,74 @@ def underside(tri, emit, shape, plane=None):
     return [float(f) for f in fit], error, seat
 
 
+ROOF_STEP, ROOF_ALONG = .02, .04  # conformal roof: skin sampling step; pod section spacing along the chord
+
+
+def roof_across(shape):
+    """Roof vertices across a conformal pod section (about 4 cm apart at the widest section)."""
+    return max(3, math.ceil(2 * max(s[1] for s in shape['sections']) / .04) + 1)
+
+
+def roof_at(roof, x, z):
+    """Bilinear height of a conformal roof grid (absolute build frame) at x, z; clamped at its edges."""
+    h = np.asarray(roof['h']); g = roof['step']
+    fx = np.clip((np.asarray(x, float) - roof['x0']) / g, 0, h.shape[0] - 1); fz = np.clip((np.asarray(z, float) - roof['z0']) / g, 0, h.shape[1] - 1)
+    i = np.minimum(fx.astype(int), h.shape[0] - 2); j = np.minimum(fz.astype(int), h.shape[1] - 2); t = fx - i; u = fz - j
+    return h[i, j] * (1 - t) * (1 - u) + h[i + 1, j] * t * (1 - u) + h[i, j + 1] * (1 - t) * u + h[i + 1, j + 1] * t * u
+
+
+def skin_columns(tri, xs, zs):
+    """Lowest skin height and the next surface above it (more than 1 cm higher) over every
+    (x, z) grid point; NaN / inf where there is none."""
+    X, Z = np.meshgrid(xs, zs, indexing='ij'); low = np.full(X.shape, np.nan); above = np.full(X.shape, np.inf)
+    keep = (tri[:, :, 0].max(1) >= xs[0]) & (tri[:, :, 0].min(1) <= xs[-1]) & (tri[:, :, 2].max(1) >= zs[0]) & (tri[:, :, 2].min(1) <= zs[-1])
+    a, b, c = tri[keep, 0], tri[keep, 1], tri[keep, 2]
+    d = (b[:, 2] - c[:, 2]) * (a[:, 0] - c[:, 0]) + (c[:, 0] - b[:, 0]) * (a[:, 2] - c[:, 2]); ok = np.abs(d) > 1e-12; d = np.where(ok, d, 1)
+    for i, x in enumerate(xs):
+        z = zs[:, None]
+        u = ((b[:, 2] - c[:, 2]) * (x - c[:, 0]) + (c[:, 0] - b[:, 0]) * (z - c[:, 2])) / d
+        v = ((c[:, 2] - a[:, 2]) * (x - c[:, 0]) + (a[:, 0] - c[:, 0]) * (z - c[:, 2])) / d
+        hit = ok & (u >= 0) & (v >= 0) & (u + v <= 1); y = np.where(hit, u * a[:, 1] + v * b[:, 1] + (1 - u - v) * c[:, 1], np.inf)
+        y0 = y.min(1); low[i] = np.where(np.isfinite(y0), y0, np.nan)
+        above[i] = np.where(y > y0[:, None] + .01, y, np.inf).min(1)
+    return low, above
+
+
+def conform_underside(tri, emit, shape, rows, A, total, plane, roof):
+    """The conformal seat (opt-in shape key conform, for skin too uneven for one flat seat): the
+    seat plane follows the chord and lies at or under the lowest skin over the footprint, and the
+    pod roof is a height grid that follows the skin (the window maximum of the lowest skin over a
+    roof-vertex spacing, so the roof between its vertices stays buried too) plus bury. Everything
+    the pod meets is then above its seat plane. With plane and roof, measures against those."""
+    assert shape.get('auto'), 'conform needs an auto shape (three-column seat fit)'
+    if plane is None:
+        fit = np.r_[np.linalg.lstsq(A[:, :2], rows[:, 1], rcond=None)[0], 0.]
+        fit[0] -= (A @ fit - rows[:, 1]).max()
+    else:
+        fit = np.array(plane, float)
+    error = float((A @ fit - rows[:, 1]).max())  # skin under the seat plane: 0 when seated on it
+    g = ROOF_STEP; ox, oz = shape.get('offset', (0., 0.)); half = max(s[1] for s in shape['sections']); zs = [s[0] for s in shape['sections']]
+    w = max(2 * half / (roof_across(shape) - 1), ROOF_ALONG) + g; r = math.ceil(w / g - 1e-9)
+    xs = emit[0] + ox + np.arange(-half - w, half + w + 1e-6, g); zz = emit[2] + oz + np.arange(min(zs) - w, max(zs) + w + 1e-6, g)
+    low, above = skin_columns(tri, xs, zz); X, Z = np.meshgrid(xs, zz, indexing='ij'); under = fit[0] + fit[1] * (Z - emit[2]) + fit[2] * (X - emit[0])
+    if roof is None:
+        pad = np.pad(np.where(np.isnan(low), -np.inf, low), r, constant_values=-np.inf); top = np.full(low.shape, -np.inf)
+        for di in range(2 * r + 1):
+            for dj in range(2 * r + 1):
+                top = np.maximum(top, pad[di:di + low.shape[0], dj:dj + low.shape[1]])
+        roof = dict(x0=float(xs[0]), z0=float(zz[0]), step=g, h=np.maximum(top, under).tolist())
+    outline = sorted((s[0], s[1]) for s in shape['sections'])
+    inside = (np.abs(X - emit[0] - ox) <= np.interp(Z - emit[2] - oz, *zip(*outline), left=-1, right=-1))
+    pokes = float((inside & (roof_at(roof, X, Z) + shape['bury'] > above - .003)).sum() / max(inside.sum(), 1))
+    # roofGap: skin above the buried roof (a reused twin roof on a skin that rises higher here); 0 when buried
+    lift = np.where(inside & ~np.isnan(low), np.nan_to_num(low, nan=-np.inf) - roof_at(roof, X, Z) - shape['bury'], -np.inf)
+    seat = dict(cover=len(rows) / total, pokes=pokes, spread=float((rows[:, 1] - A @ fit).max()), roofGap=float(max(lift.max(), 0.)), roof=roof)
+    if plane is None:
+        assert seat['cover'] >= .35, ('too little skin above the pod footprint to seat on', {k: v for k, v in seat.items() if k != 'roof'})
+        assert pokes == 0, ('the buried pod roof would come out of the far side of the wing', {k: v for k, v in seat.items() if k != 'roof'})
+    return [float(f) for f in fit], error, seat
+
+
 def solid_config(shape, emit, fit, seat, low=None):
     """Absolute dimensions for the Blender step and for the face tagging."""
     out = dict(shape, emit=emit, underside=fit)
@@ -328,7 +401,9 @@ def solid_config(shape, emit, fit, seat, low=None):
         k = (fit[0] - datum + .09 * s) / (.12 * s)
         out.update(emit=[emit[0], datum, emit[2]], sections=[(z, a, d * k) for z, a, d in shape['sections']],
                    vent=dict(shape['vent'], drop=shape['vent']['drop'] * min(k, 1), height=shape['vent']['height'] * min(k, 1)),
-                   dropBuried=seat['cover'] > .999, seated=dict(seat, gap=gap, inside=emit[1] - datum, depthScale=k))
+                   dropBuried=seat['cover'] > .999, seated=dict({n: v for n, v in seat.items() if n != 'roof'}, gap=gap, inside=emit[1] - datum, depthScale=k))
+        if 'roof' in seat:  # conformal roof: the skin height grid, and how finely the pod follows it
+            out.update(roof=seat['roof'], across=roof_across(shape), along=ROOF_ALONG)
         emit = out['emit']
     for part, keys in (('bell', ('top', 'lip')), ('bore', ('roof',)), ('groove', ('y0', 'y1'))):
         out[part] = dict(shape[part], **{k: emit[1] + shape[part][k] for k in keys})
@@ -699,13 +774,13 @@ def seat(jet, shape, yaw, mesh, stock, work, n, like=None, slide=None, dry=False
         trial['emit'] = (np.array(jet['emit']) + axes @ np.array((slide[0] * (-1. if jet['emit'][0] < -1e-3 else 1.), 0, slide[1]))).tolist()
     centre = np.array(like['centre']) if like else np.array(trial['emit']) * flip
     skin = to_build(hull(mesh, jet.get('skin', jet['bone']))[0], trial, centre, mirror)
-    fit, error, how = underside(skin, centre, shape, like and like['fit'])
+    fit, error, how = underside(skin, centre, shape, like and like['fit'], like and like['solid'].get('roof'))
     rise = like['rise'] if like else fit[0] - centre[1] if jet.get('toSkin') else 0.
     if jet.get('toSkin'):  # the approved move to the skin: the housing is built at the moved point
         trial['emit'] = (np.array(trial['emit']) + axes[:, 1] * rise).tolist(); centre = centre + (0, 0 if like else rise, 0)
     place(trial); local = stock_local(stock, trial, centre, mirror); low = bore_low(local, centre, shape, fit, how['spread'])
     if like:
-        assert error < shape['bury'] * .5 and abs(how['cover'] - like['seat']['cover']) < .08 and not how['pokes'], 'seats differently'
+        assert error < shape['bury'] * .5 and abs(how['cover'] - like['seat']['cover']) < .08 and not how['pokes'] and not how.get('roofGap'), 'seats differently'
         assert low is None or low - .04 * s >= like['solid']['emit'][1] - 1e-6, 'stock mesh over the bore sits lower here'
         check_flame_path(like['solid'], local); check_surface(like['solid'], like['tri'], local)
         return trial, mirror
@@ -760,7 +835,8 @@ def relocate(jet, shape, mesh, stock, work, n):
                     if not dx and not dz:
                         failures.append(('at the stock point', problem.args[0]))
                     continue
-                flat = 0 if how['cover'] > .999 and how['spread'] <= .05 * s and how['inside'] <= .08 * s else 1 if how['cover'] >= .95 and how['spread'] <= .1 * s and how['inside'] <= .15 * s else 2
+                spread = 0 if shape.get('conform') else how['spread']  # a conformal roof follows uneven skin
+                flat = 0 if how['cover'] > .999 and spread <= .05 * s and how['inside'] <= .08 * s else 1 if how['cover'] >= .95 and spread <= .1 * s and how['inside'] <= .15 * s else 2
                 found.append((flat, math.hypot(dx, dz), float(dx), float(dz), how))
     for flat, far, dx, dz, how in sorted(found, key=lambda f: f[1] + (0, .35, 1.)[f[0]])[:10]:  # nearest first; a flat seat is worth 0.35 m
         try:
@@ -804,10 +880,10 @@ def group(cfg, jets, mesh, pose, work):
             mirror = jet['emit'][0] * h['centre'][0] < 0
             if h['shape'] is shape:
                 try:
-                    _, error, seat_ = underside(to_build(skin, jet, h['centre'], mirror), h['centre'], shape, h['fit'])
+                    _, error, seat_ = underside(to_build(skin, jet, h['centre'], mirror), h['centre'], shape, h['fit'], h['seat'].get('roof'))
                 except AssertionError:
                     continue
-                if error < shape['bury'] * .5 and abs(seat_['cover'] - h['seat']['cover']) < .08 and not seat_['pokes']:
+                if error < shape['bury'] * .5 and abs(seat_['cover'] - h['seat']['cover']) < .08 and not seat_['pokes'] and not seat_.get('roofGap'):
                     h['jets'].append((jet, mirror)); break
         else:  # its own solid, built on the +X side so one CONFIG offset serves both sides
             mirror = jet['emit'][0] < -1e-3; centre = np.array(jet['emit']) * ((-1., 1, 1) if mirror else (1., 1, 1))
