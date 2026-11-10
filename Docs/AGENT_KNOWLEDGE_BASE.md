@@ -1972,8 +1972,12 @@ to the ordinary GOG development mod.
   when it is missing.
 - `Build-WeaponRigs.py` used to apply hardpoint receipt poses to the world skeleton
   only, which left first-person GR1 at the stock spot. It now poses the cockpit
-  skeleton too, under the receipt key `cockpit_hardpoints`. This takes effect only when
-  a model is re-rigged; only svfigh has been.
+  skeleton too (receipt key `cockpit_hardpoints`), but only for models that set
+  `"cockpit_hardpoints": true` in `models.json` (svfigh). Doing it for every model
+  crashed svturr, whose `svturr_c` has no owner bone. It would also have moved the
+  first-person hardpoints of 6 other models without anyone reviewing the change.
+  Before opting a model in, check that its cockpit owner bones have the exterior's
+  world pose.
 - A recoil travel of 2.5 cm reads as static on the exterior. svfigh GC1/GC2 now use 8 cm
   (`models.json` distance 0.08).
 - The svfigh cannon tips are in the cockpit mesh, but the eye cannot see them: 0 of
