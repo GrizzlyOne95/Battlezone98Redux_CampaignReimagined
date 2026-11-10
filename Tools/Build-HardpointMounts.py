@@ -45,8 +45,9 @@ NEUTRAL = dict(paint=(150., 152, 150), faction=dict(stripe=(196, 196, 190), glow
 # on the hull below it along -normal. fire: forward of the piece (made perpendicular to normal).
 # base: the git revision of the unit's mesh before any mount.
 CONFIG = {
-    'avfigh': dict(piece='rocket', part='ARA11Gr1', owner='ARA11rof', faction='nsdf', scale=.85,
-                   at=(.55, .45, 2.4), normal=(0., -1, 0), fire=(0., 0, 1), base='628a1fa1646242e5405ce31f26dbf31f9f955abc'),
+    'avfigh': dict(piece='rocket', part='ARA11Gr1', owner='ARA11BDA', faction='nsdf', scale=.6,
+                   at=(.46, .29, 1.4), normal=(.58, -.82, 0), fire=(0., 0, 1), fireThrough=('ARA11rof',),
+                   base='628a1fa1646242e5405ce31f26dbf31f9f955abc'),
     'avhraz': dict(piece='cannon', part='Ahr11Gc1', owner='ahr11bda', faction='nsdf', scale=1.3,
                    at=(-1., 1.5, 2.3), normal=(-.99, 0, .11), fire=(0., 0, 1), base='75fb226a0be4ea9e885c6c055bd1be31753040bd'),
     'bvhraz': dict(piece='cannon', part='bhr11Gc1', owner='bhr11bda', faction='blackdogs', scale=1.3,
@@ -54,12 +55,14 @@ CONFIG = {
     'bvrdev': dict(piece='mortar', part='brd11GM1', owner='brd11bda', faction='blackdogs', scale=1.,
                    at=(.9, 1.36, -.4), normal=(.29, .96, 0), fire=(0., 0, 1), base='f09fec92f1d6da20facde0d095c45f19a913c866'),
 }
-# avfigh carries its pod under the rolling nose (ARA11rof), off the keel: the canopy (glass up to
-# y 2.4 at z 1.0-1.2) blocks any dorsal line of fire, and the nose underside is a V whose keel
-# (y .09-.27) is too low for a pod that hangs .35 m: on the keel or under the body (y .04) the pod
-# would be the lowest point of the craft. Under the chine (y .45) it clears the hull's lowest point.
+# avfigh carries its pod on the main body (ARA11BDA), on the +x lower sloped side facet (normal
+# (.58, -.82, 0)) behind the rolling nose, so it does not roll with the nose (owner's call). Scale .6
+# is the largest that keeps the pod above the hull's lowest point there with a muzzle low enough
+# (y .19) to fire under the nose. fireThrough: the nose (class 66, +-23 deg) still dips into the
+# pod's line of fire at -23..-18 deg (recorded as checks.parts.lineOfFireCrossedBy); no seat on this
+# facet clears it at all angles and the ground at once. Stock Gc1's own line already crosses the nose at rest.
 # Kit sheet only: the same pod upright on the left wing, a second mounting angle.
-WING = dict(CONFIG['avfigh'], owner='ARA11BDA', at=(-1.4, .95, -1.45), normal=(-.29, .93, -.23))
+WING = dict(CONFIG['avfigh'], scale=.85, at=(-1.4, .95, -1.45), normal=(-.29, .93, -.23))
 
 
 def without_mount(blob, unit):
@@ -155,34 +158,108 @@ def checks(kit, seat, M, scale, hull, glass_hull):
                 groundClearance=round(ground, 4))
 
 
-def roll_check(kit, seat, M, scale, mesh, pose, skeleton, parts, W, owner):
-    """A mount on a rolling part (VDF class 66, the nose; the engine rolls it about its own z,
-    all_decompiled.c:193638-193641) keeps cp.NOSE_CLEARANCE from everything that does not roll
-    with it, glass included, through +-cp.NOSE_ROLL_DEG; returns the gap and the lowest point."""
-    import combatcockpits as cp
-    moving = {owner.name.lower()}
-    while True:
-        more = {p.name.lower() for p in parts if (p.parent or '').lower() in moving} - moving
-        if not more:
-            break
-        moving |= more
-    handles = {b.handle for b in skeleton.bones if b.name.lower() in moving}
-    static = []
+# Gimbal parts the engine moves (HoverCraft::UpdateGimbals, BZ1 1.5 all_decompiled.c:193563):
+# class 66 rolls about its own z (:193638-193641), 67 pitches about its own x (:193659-193676),
+# 68 rolls about its own z (:193688-193690). Every sweep uses +-cp.NOSE_ROLL_DEG (:194995/:195005);
+# that is the 66 nose roll, the 67/68 amplitude is UNVERIFIED (same envelope assumed).
+GIMBAL_AXIS = {66: 2, 67: 0, 68: 2}
+# Another weapon's line of fire: forward rays from its hardpoint and 6 cm around it (a barrel's width).
+GUN_RAYS = [np.array(o) for o in ((0, 0, 0.), (.06, 0, 0), (-.06, 0, 0), (0, .06, 0), (0, -.06, 0))]
+
+
+def part_triangles(mesh, pose, skeleton, parts, skip=None):
+    """Posed triangles (glass included) per VDF part name (lower case): a triangle goes to the
+    dominant bone of its first vertex, and a bone that is not a VDF part to its nearest VDF ancestor."""
+    names = {p.name.lower() for p in parts}; bones = {b.handle: b for b in skeleton.bones}
+    def part_of(h):
+        b = bones[h]
+        while b.name.lower() not in names and b.parent is not None:
+            b = bones[b.parent]
+        return b.name.lower()
+    out = {}
     for sub, (mat, p, n, uv, t) in zip(mesh.submesh_list, nj.posed_parts(mesh, pose)):
+        if mat == skip:
+            continue
         own = np.full(len(p), -1); w = np.zeros(len(p))
         for a in sub.bone_assignments():
             if a.weight > w[a.vertex_index]: w[a.vertex_index] = a.weight; own[a.vertex_index] = a.bone_index
-        static.append(p[t[~np.isin(own[t], list(handles)).any(1)]])
-    static = np.concatenate(static)
-    R, t = W[owner.name.lower()]; pivot = t * S; axis = nj.unit_vectors(R[2] * S)
-    tri = to_posed(kit['tri'].reshape(-1, 3), seat, M, scale).reshape(-1, 3, 3)
-    near = static[np.linalg.norm(static.mean(1) - tri.reshape(-1, 3).mean(0), axis=1) < 2.]
-    angles = np.arange(-cp.NOSE_ROLL_DEG, cp.NOSE_ROLL_DEG + .5, 1.)
-    gap = float(cp.rotor_sweep(tri, near, pivot, axis, angles, .2).min())
-    assert gap >= cp.NOSE_CLEARANCE, ('rolling mount comes within', round(gap, 4), 'of the static hull or glass')
-    k = axis; K = np.array([[0, -k[2], k[1]], [k[2], 0, -k[0]], [-k[1], k[0], 0]])
-    low = min((((tri.reshape(-1, 3) - pivot) @ (np.eye(3) + np.sin(a) * K + (1 - np.cos(a)) * K @ K).T + pivot)[:, 1].min() for a in np.radians(angles)))
-    return dict(degrees=cp.NOSE_ROLL_DEG, staticGap=round(gap, 4), rolledGroundClearance=round(float(low - static[..., 1].min()), 4))
+        for h in np.unique(own[t[:, 0]]):
+            out.setdefault(part_of(int(h)), []).append(p[t[own[t[:, 0]] == h]])
+    return {k: np.concatenate(v) for k, v in out.items()}
+
+
+def _rotation(axis, degrees):
+    k = nj.unit_vectors(np.asarray(axis, float)); K = np.array([[0, -k[2], k[1]], [k[2], 0, -k[0]], [-k[1], k[0], 0]]); a = math.radians(degrees)
+    return np.eye(3) + math.sin(a) * K + (1 - math.cos(a)) * K @ K
+
+
+def part_clearance(mount, groups, parts, W, owner, seat, normal, saddle_top, muzzle, fire, own_part, fire_through=()):
+    """The mount (posed triangles) against every other part of the unit:
+      - at rest it touches no triangle of a part other than its owner,
+      - above its saddle (beyond the buried root) it touches no triangle of its owner,
+      - it is not in the forward line of fire of the unit's other weapon hardpoints (G?n parts),
+      - for each gimbal part (66/67/68) and its children, swept through +-cp.NOSE_ROLL_DEG:
+        when the mount rides on it, the mount keeps cp.NOSE_CLEARANCE from all that does not move
+        with it; otherwise that part keeps cp.NOSE_CLEARANCE from the mount and stays out of the
+        mount's line of fire (5 rays) at every angle, unless the gimbal is in fire_through (the
+        angles that cross it are still recorded).
+    Returns (measurements, errors)."""
+    import combatcockpits as cp, re
+    owner = owner.lower(); errors = []; centre = mount.reshape(-1, 3).mean(0)
+    guns = {}
+    for p in parts:
+        if re.search(r'g[a-z]\d$', p.name.lower()) and p.name.lower() != own_part.lower():
+            hits = [nj.ahead(mount, W[p.name.lower()][1] * S + o, np.array((0, 0, 1.))) for o in GUN_RAYS]
+            hits = [h for h in hits if h is not None]; d = min(hits) if hits else None
+            guns[p.name] = None if d is None else round(float(d), 4)
+            if d is not None:
+                errors.append(f'mount sits in the line of fire of {p.name}, {d:.3f} m ahead')
+    reach = np.linalg.norm(mount.reshape(-1, 3) - centre, axis=1).max()
+    near = lambda tris, pad: tris[np.linalg.norm(tris.mean(1) - centre, axis=1) < reach + pad]
+    rest = {}
+    for name, tris in sorted(groups.items()):
+        if name == owner or not len(near(tris, .5)):
+            continue
+        rest[name] = round(float(cp.rotor_sweep(mount, near(tris, .5), np.zeros(3), (0, 0, 1.), [0.], .3).min()), 4)
+        if rest[name] <= 0:
+            errors.append(f'mount intersects {name} at rest')
+    h = (mount - seat) @ normal; upper = mount[h.min(1) > saddle_top]
+    body = float(cp.rotor_sweep(upper, near(groups.get(owner, np.zeros((0, 3, 3))), .5), np.zeros(3), (0, 0, 1.), [0.], .3).min()) if len(upper) else .3
+    if body <= 0:
+        errors.append(f'mount body (above its saddle) intersects its owner {owner}')
+    angles = np.arange(-cp.NOSE_ROLL_DEG, cp.NOSE_ROLL_DEG + .5, 1.); sweep = {}; blocked = {}; low = None
+    fire = nj.unit_vectors(np.asarray(fire, float)); side = nj.unit_vectors(np.cross(fire, normal)); up = nj.unit_vectors(np.cross(side, fire))
+    rays = [np.asarray(muzzle) + fire * .01 + o for o in (0 * side, side * .03, -side * .03, up * .03, -up * .03)]
+    for gimbal in (p for p in parts if p.klass in GIMBAL_AXIS):
+        moving = {gimbal.name.lower()}
+        while True:
+            more = {p.name.lower() for p in parts if (p.parent or '').lower() in moving} - moving
+            if not more:
+                break
+            moving |= more
+        R, t = W[gimbal.name.lower()]; pivot = t * S; axis = nj.unit_vectors(R[GIMBAL_AXIS[gimbal.klass]] * S)
+        if owner in moving:
+            static = np.concatenate([v for k, v in groups.items() if k not in moving]); static = near(static, 1.)
+            gap = float(cp.rotor_sweep(mount, static, pivot, axis, angles, .2).min()) if len(static) else .2
+            ground = min(float(((mount.reshape(-1, 3) - pivot) @ _rotation(axis, a).T + pivot)[:, 1].min()) for a in angles)
+            low = round(ground - min(float(v[..., 1].min()) for v in groups.values()), 4)
+        else:
+            tris = np.concatenate([groups[k] for k in moving if k in groups])
+            swing = 2 * math.sin(math.radians(cp.NOSE_ROLL_DEG) / 2) * np.linalg.norm(np.cross(tris.mean(1) - pivot, axis), axis=1)
+            tris = tris[np.linalg.norm(tris.mean(1) - centre, axis=1) - swing < reach + 1.]
+            gap = float(cp.rotor_sweep(tris, mount, pivot, axis, angles, .2).min()) if len(tris) else .2
+            crossed = [float(a) for a in angles if len(tris) and any(nj.ahead((tris - pivot) @ _rotation(axis, a).T + pivot, r, fire) is not None for r in rays)]
+            if crossed:
+                blocked[gimbal.name] = [min(crossed), max(crossed), len(crossed)]
+                if gimbal.name.lower() not in {f.lower() for f in fire_through}:
+                    errors.append(f'{gimbal.name} (class {gimbal.klass}) crosses the line of fire at {len(crossed)} angles, {min(crossed):+.0f}..{max(crossed):+.0f} deg')
+        sweep[gimbal.name] = round(gap, 4)
+        if gap < cp.NOSE_CLEARANCE:
+            errors.append(f'{gimbal.name} (class {gimbal.klass}) sweep: mount within {gap:.4f} m (need {cp.NOSE_CLEARANCE})')
+    out = dict(restGap=rest, ownerBodyGap=round(body, 4), gunLines=guns, sweepDegrees=cp.NOSE_ROLL_DEG, sweepGap=sweep, lineOfFireCrossedBy=blocked)
+    if low is not None:
+        out['rolledGroundClearance'] = low
+    return out, errors
 
 
 def seat_paint(mesh, pose, seat, normal):
@@ -315,11 +392,32 @@ def render(work, tag, parts, views, emit=(), fire=(), marks=()):
     return [Image.open(work / tag / (v['file'] + '.png')) for v in views]
 
 
-def hull_parts(mesh, pose, work, tag):
+def gimbal_roll(skeleton, parts, W, name, degrees):
+    """(bone handles moving with gimbal part `name` and its children, pivot, rotation) for hull_parts."""
+    moving = {name.lower()}
+    while more := {p.name.lower() for p in parts if (p.parent or '').lower() in moving} - moving:
+        moving |= more
+    names = {p.name.lower() for p in parts}; bones = {b.handle: b for b in skeleton.bones}
+    def part_of(b):
+        while b.name.lower() not in names and b.parent is not None:
+            b = bones[b.parent]
+        return b.name.lower()
+    gimbal = next(p for p in parts if p.name.lower() == name.lower()); R, t = W[name.lower()]
+    axis = nj.unit_vectors(R[GIMBAL_AXIS[gimbal.klass]] * S)
+    return {h for h, b in bones.items() if part_of(b) in moving}, t * S, _rotation(axis, degrees)
+
+
+def hull_parts(mesh, pose, work, tag, roll=None):
     out = []
-    for i, (mat, p, n, uv, t) in enumerate(nj.posed_parts(mesh, pose)):
+    for i, (sub, (mat, p, n, uv, t)) in enumerate(zip(mesh.submesh_list, nj.posed_parts(mesh, pose))):
         if 'glass' in mat.lower() or mat.endswith('_hpmount'):
             continue
+        if roll:
+            handles, pivot, R = roll; own = np.full(len(p), -1); w = np.zeros(len(p))
+            for a in sub.bone_assignments():
+                if a.weight > w[a.vertex_index]: w[a.vertex_index] = a.weight; own[a.vertex_index] = a.bone_index
+            moves = np.isin(own, list(handles)); p = p.copy(); n = n.copy()
+            p[moves] = (p[moves] - pivot) @ R.T + pivot; n[moves] = n[moves] @ R.T
         np.savez(work / f'{tag}{i}.npz', positions=p, normals=n, uvs=uv, tris=t); tex = nj.texture_path(mat)
         out.append(dict(mesh=str(work / f'{tag}{i}.npz'), housing=False, diffuse=str(tex) if tex else None))
     return out
@@ -336,8 +434,10 @@ def build(unit, render_sheets, shipping):
     hull = posed_hull(mesh, pose); glass_hull = posed_hull(mesh, pose, glass=True)
     seat, M = place(cfg, hull); scale = cfg['scale']; measured = checks(kit, seat, M, scale, hull, glass_hull)
     bone = next(b for b in skeleton.bones if b.name.lower() == cfg['owner'].lower())
-    if by[cfg['owner'].lower()].klass == 66:
-        measured['roll'] = roll_check(kit, seat, M, scale, mesh, pose, skeleton, parts, W, by[cfg['owner'].lower()])
+    mount_tris = to_posed(kit['tri'].reshape(-1, 3), seat, M, scale).reshape(-1, 3, 3)
+    measured['parts'], clash = part_clearance(mount_tris, part_triangles(mesh, pose, skeleton, parts), parts, W, cfg['owner'], seat, M[1],
+                                              measured['saddleTop'], measured['muzzle'], measured['fire'], cfg['part'], cfg.get('fireThrough', ()))
+    assert not clash, (unit, clash)
     D, shift = pose[bone.handle]; (rows, index), posed = mount_rows(kit, seat, M, scale, D, shift)
     material = unit + '_hpmount'; paint, accent, atlas, marks = seat_paint(mesh, pose, seat, M[1])
     images, zone = textures(unit, kit, paint, dict(nj.FACTIONS[cfg['faction']], stripe=accent)); tex = save_textures(images, material, work)
@@ -345,11 +445,12 @@ def build(unit, render_sheets, shipping):
     nj.preview_mesh(mesh, material, rows, index, np.full(len(rows), bone.handle), work / f'{unit}.mesh')
     muzzle = np.array(measured['muzzle']); fire = np.array(measured['fire']); point = muzzle - fire * INSET * scale
     hp_path, hp_receipt = hardpoint_entry(unit, cfg, by, W, point)
-    old_hp = (W[cfg['part'].lower()][1] * S).tolist()
+    shipped = RECEIPTS / f'{unit}.json'  # the shipped VDF already carries an earlier mount's hardpoint: keep the stock point
+    old_hp = json.loads(shipped.read_text())['stockHardpoint'] if shipped.exists() else (W[cfg['part'].lower()][1] * S).tolist()
     receipt = dict(note='Hardpoint mount (Tools/Build-HardpointMounts.py). Ogre mesh space in the VDF pose (VDF x = -x), metres. '
                         'The hardpoint sits INSET x scale inside the muzzle, on the fire axis.',
                    unit=unit, piece=cfg['piece'], part=by[cfg['part'].lower()].name, owner=by[cfg['owner'].lower()].name,
-                   faction=cfg['faction'], base=cfg['base'], material=material, triangles=int(len(kit['tris'])),
+                   faction=cfg['faction'], base=cfg['base'], material=material, triangles=int(len(kit['tris'])), fireThrough=list(cfg.get('fireThrough', ())),
                    frame=dict(at=list(cfg['at']), seat=seat.round(6).tolist(), normal=M[1].round(6).tolist(), front=M[2].round(6).tolist(), scale=scale),
                    bury=float(kit['bury']) * scale, muzzle=muzzle.round(6).tolist(), fire=fire.round(6).tolist(), inset=INSET * scale,
                    hardpoint=np.round(point, 6).tolist(), stockHardpoint=np.round(old_hp, 6).tolist(),
@@ -362,7 +463,7 @@ def build(unit, render_sheets, shipping):
     else:
         (work / 'receipt.json').write_text(json.dumps(receipt, indent=2)); (work / 'hardpoints.json').write_text(json.dumps(hp_receipt, indent=2))
     print(f"{unit}: {cfg['piece']} {len(kit['tris'])} tris on {receipt['owner']}, seat {seat.round(3)}, muzzle {muzzle.round(3)}, hardpoint moved {np.round(old_hp, 3)} -> {np.round(point, 3)}, "
-          f"paint {np.round(paint)} accent {np.round(accent)} ({marks} marking texels), ground {measured['groundClearance']:+.3f}" + (f", roll {measured['roll']}" if 'roll' in measured else ''))
+          f"paint {np.round(paint)} accent {np.round(accent)} ({marks} marking texels), ground {measured['groundClearance']:+.3f}" + f", parts {measured['parts']}")
     if render_sheets:
         review = LOCAL / 'review'; review.mkdir(parents=True, exist_ok=True)
         lo, hi = hull.reshape(-1, 3).min(0), hull.reshape(-1, 3).max(0); centre = (lo + hi) / 2; radius = np.linalg.norm(hi - lo) / 2
@@ -371,16 +472,24 @@ def build(unit, render_sheets, shipping):
         views = views_for(centre, radius, middle.tolist(), fire, M[1], reach)
         base = hull_parts(mesh, pose, work, 'h')
         before = render(work, 'before', base, views, marks=[dict(at=old_hp, colour=(1, .2, .2), radius=.07)])
-        after = render(work, 'after', base + [mount_part(work, 'mount', kit, seat, M, scale, tex)], views, emit=[point], fire=[fire],
-                       marks=[dict(at=old_hp, colour=(1, .2, .2), radius=.05)])
-        nj.sheet(before + after, ['before: 3/4', 'before: close-up', 'after: 3/4', 'after: close-up'], review / f'{unit}.jpg', 2,
+        pod = mount_part(work, 'mount', kit, seat, M, scale, tex)
+        after = render(work, 'after', base + [pod], views, emit=[point], fire=[fire], marks=[dict(at=old_hp, colour=(1, .2, .2), radius=.05)])
+        rolled, captions = [], []; target = np.array(views[1]['target'])
+        wide = [dict(views[1], file='wide', eye=(target + (np.array(views[1]['eye']) - target) * 1.7 + (0, 0, .4)).tolist(), target=(target + (0, 0, .4)).tolist())]
+        for gimbal in measured['parts']['lineOfFireCrossedBy']:  # the gimbal next to the line of fire, at both ends of its sweep
+            for a in (-measured['parts']['sweepDegrees'], measured['parts']['sweepDegrees']):
+                shot = hull_parts(mesh, pose, work, f'r{a:+.0f}_', roll=gimbal_roll(skeleton, parts, W, gimbal, a))
+                rolled += render(work, f'rolled{a:+.0f}', shot + [pod], wide, emit=[point], fire=[fire])
+                captions.append(f'after: seat and {gimbal} rolled to {a:+.0f} deg')
+        nj.sheet(before + after + rolled, ['before: 3/4', 'before: close-up', 'after: 3/4', 'after: close-up'] + captions, review / f'{unit}.jpg', 2,
                  footer=[f"{unit}: {cfg['piece']} on {receipt['owner']} ({len(kit['tris'])} tris), paint {np.round(paint).astype(int).tolist()} and marking {np.round(accent).astype(int).tolist()} sampled beside the seat on {receipt['paintFrom']}; {measured['groundClearance']:+.2f} m above the hull's lowest point",
-                         f"{receipt['part']} moved from {np.round(old_hp, 2).tolist()} (white dot) to the muzzle {np.round(point, 2).tolist()} (where the orange fire-direction line starts)"])
+                         f"{receipt['part']} moved from {np.round(old_hp, 2).tolist()} (white dot) to the muzzle {np.round(point, 2).tolist()} (where the orange fire-direction line starts)",
+                         f"gimbal sweep +-{measured['parts']['sweepDegrees']} deg, nearest gap {measured['parts']['sweepGap']}; line of fire crossed by {measured['parts']['lineOfFireCrossedBy'] or 'nothing'} ([first, last angle, count])"])
     return receipt
 
 
 def kit_sheet():
-    """Each piece alone in neutral grey and both faction paints, and the rocket pod under avfigh's nose
+    """Each piece alone in neutral grey and both faction paints, and the rocket pod on avfigh's lower side facet
     and on its wing root (the same piece and UV layout from a second attach frame)."""
     work = LOCAL / 'kit'; images, captions = [], []
     palettes = [('neutral', NEUTRAL['paint'], NEUTRAL['faction']), ('nsdf', (60., 92, 96), nj.FACTIONS['nsdf']), ('blackdogs', (58., 58, 60), nj.FACTIONS['blackdogs'])]
@@ -399,9 +508,9 @@ def kit_sheet():
     cfg = CONFIG['avfigh']; kit = piece('rocket'); w, mesh, skeleton, parts_, W, by, pose = load('avfigh', cfg)
     hull = posed_hull(mesh, pose); base = hull_parts(mesh, pose, w, 'k')
     tex = {k: str(w / f'avfigh_hpmount_{k}.png') for k in 'DN'}
-    for label, c in (('nose', cfg), ('wing', WING)):
+    for label, c in (('side', cfg), ('wing', WING)):
         seat, M = place(c, hull); checks(kit, seat, M, c['scale'], hull, posed_hull(mesh, pose, glass=True))
-        side = nj.unit_vectors(np.array((1., -.35, .8) if label == 'nose' else (-1., .5, .8)))
+        side = nj.unit_vectors(np.array((1., -.35, .8) if label == 'side' else (-1., .5, .8)))
         images += render(w, f'kit_{label}', base + [mount_part(w, f'kit_{label}', kit, seat, M, c['scale'], tex)],
                          [dict(file=label, eye=(seat + side * 3.2).tolist(), target=seat.tolist(), fov=45)])
         captions.append(f'avfigh rocket pod, {label} frame (normal {np.round(M[1], 2).tolist()})')

@@ -10,6 +10,10 @@ For each References/HardpointMounts/<unit>.json, through the toolkit serializers
   - the mount's lowest point is not below the hull's (it never touches the ground first),
   - the hardpoint part: parent == owner, at the receipt point, just inside the muzzle,
   - nothing of the hull or glass lies in front of the muzzle,
+  - bm.part_clearance: the mount touches no other VDF part at rest and its owner only with its
+    buried saddle, stays out of the other guns' lines of fire, and keeps clear of every gimbal
+    part (66/67/68) swept through +-23 deg, which also stays out of the mount's line of fire
+    (unless the receipt's fireThrough names it),
   - the four <unit>_hpmount textures and the material block exist.
 """
 from pathlib import Path
@@ -84,6 +88,11 @@ def check(receipt):
     blocked = [o for o in (0 * side, side * .03, -side * .03, up * .03, -up * .03) if nj.ahead(glass_hull, muzzle + fire * .01 + o, fire) is not None]
     if blocked:
         errors.append(f'{len(blocked)} of 5 line-of-fire rays hit the hull or glass')
+
+    groups = bm.part_triangles(mesh, pose, skeleton, parts, skip=material)
+    _, clash = bm.part_clearance(p[t], groups, parts, W, receipt['owner'], seat, normal, receipt['checks']['saddleTop'], muzzle, fire,
+                                 receipt['part'], receipt.get('fireThrough', ()))
+    errors += clash
 
     for k in 'DNSE':
         if not (ROOT / f'Assets/Textures/{material}_{k}.dds').is_file():
