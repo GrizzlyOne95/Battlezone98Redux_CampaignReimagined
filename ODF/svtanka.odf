@@ -38,9 +38,6 @@ recoilPlaybackRate1 = 1.0
 recoilCockpit1 = true
 casingOffset1 = "-0.5577 0.2318 -3.7095"
 casingDirection1 = "-0.9345 0.3271 -0.1402"
-recoilAnimation2 = "cr_fire_1"
-recoilPlaybackRate2 = 1.0
-recoilCockpit2 = true
 casingOffset2 = "-0.6377 0.2318 -3.7095"
 casingDirection2 = "-0.9345 0.3271 -0.1402"
 // CR CRAFT RECOIL END

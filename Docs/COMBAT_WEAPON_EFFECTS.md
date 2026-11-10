@@ -2,7 +2,7 @@
 
 Weapon-rig update, 2026-11-04. Generated from CR source, reviewed model policy and fitted flash data. See [the model-edit report](WEAPON_RIGS.md) for the requested 27-model pass and exported previews.
 
-**133 armed ODFs / 50 models / 298 equipped slots.** Authored recoil: 228 slots; fitted flash offsets: 219 slots; ballistic casing selections: 145 slots.
+**133 armed ODFs / 50 models / 298 equipped slots.** Authored recoil: 226 slots; fitted flash offsets: 219 slots; ballistic casing selections: 145 slots.
 
 Scope: CR vehicle/building definitions, including mission variants and utility carriers. People retain per-weapon effects; armories supply weapons. This source-only count excludes stock-only aliases from the earlier 139-definition/52-model audit.
 
@@ -344,10 +344,10 @@ Scope: CR vehicle/building definitions, including mission variants and utility c
 | `svsav` | 1: `gbolt` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent ssv11bda is not a barrel node and the hardpoint is 17.29 m ahead of its front geometry |
 | `svsav` | 2: `gwasp` | `` | pending / omitted | none | native firing producer pending; mine deployment |
 | `svtank` | 1: `gsatstab` | `animation:cr_fire_1` | 0.04 -0.00 -0.00 | none | accepted-shot path; live validation pending |
-| `svtank` | 2: `gminisov` | `animation:cr_fire_1` | -0.04 -0.00 -0.00 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svtank` | 2: `gminisov` | `` | -0.04 -0.00 -0.00 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `svtank` | 4: `gquake` | `` | pending / omitted | none | accepted-shot path; live validation pending; ground-contact seismic emitter |
 | `svtanka` | 1: `gsatstab` | `animation:cr_fire_1` | 0.04 -0.00 -0.00 | none | accepted-shot path; live validation pending |
-| `svtanka` | 2: `gminisov` | `animation:cr_fire_1` | -0.04 -0.00 -0.00 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svtanka` | 2: `gminisov` | `` | -0.04 -0.00 -0.00 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `svtanka` | 4: `gquake` | `` | pending / omitted | none | accepted-shot path; live validation pending; ground-contact seismic emitter |
 | `svtas8` | 1: `gatstab` | `animation:cr_fire_1` | 0.04 -0.00 -0.00 | medium | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `svtas8` | 2: `gflashgn` | `animation:cr_fire_1` | -0.04 -0.00 -0.00 | none | native firing producer pending |

@@ -1,7 +1,7 @@
 {
   "totals": {
     "slots": 298,
-    "recoil_slots": 228,
+    "recoil_slots": 226,
     "flash_slots": 219,
     "casing_slots": 145
   },
@@ -4749,9 +4749,9 @@
         "2": {
           "weapon": "gminisov",
           "hardpoint": "GC2",
-          "recoil_node": "animation:cr_fire_1",
-          "recoil_distance": 0.2,
-          "recoil_effective_kick": 0.0,
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
           "flash_offset": [
             -0.0405,
             -0.0024,
@@ -4800,9 +4800,9 @@
         "2": {
           "weapon": "gminisov",
           "hardpoint": "GC2",
-          "recoil_node": "animation:cr_fire_1",
-          "recoil_distance": 0.2,
-          "recoil_effective_kick": 0.0,
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
           "flash_offset": [
             -0.0405,
             -0.0024,
