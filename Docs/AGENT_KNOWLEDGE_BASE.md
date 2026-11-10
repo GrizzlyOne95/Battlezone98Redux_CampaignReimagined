@@ -1940,3 +1940,28 @@ to the ordinary GOG development mod.
   failed with 22 glass triangles too close. cvfigh has no rotor.
 - svfigh's eye-facing BDA deck mask drops the stock rails and slats (|x| .14-.5 m): the
   owner read them as bars and corner wedges over the tub's front wall.
+
+### Flameless hover units: pod flames (2026-11-10)
+
+- Pass over the flameless hover units: only cvhaul (boom ducts COX11NRL/NRR), cvrckt (rear
+  frame pods CDR11NFL/NFR) and cvhtnk (wing pods CEM11WGL/WGR) have a separate pod part with
+  an aft port. Each is a hand-recorded `References/NacelleJets/<unit>/build.json` (no mesh
+  change) built by `Build-UnitAnimSlots.py`. cvapc, cvltnk, cvslf, cvcnst, cvmuf, svcnst,
+  avcnst and bvcnst exhaust only through body panels; cvtnk and cvscav only have class 68
+  fins (cvtnk also a class 66 rotor). The engine already animates those fins and the rotor,
+  so they cannot become nacelles. All are left flameless until a class 67 carrier can be
+  added (`apply_flames` only reclassifies existing parts; whether a part with no geometry
+  works as a nacelle is UNVERIFIED).
+- Before pitching a pod, check what it carries: cvhtnk's missile and shield hardpoints sit on
+  the pods but are parented to the body, so its ODFs set all four pitch gains to 0. With zero
+  gains the gimbal only restores to flat (1.5 `all_decompiled.c` 193665-193668; that the
+  remaining term settles at 0 is UNVERIFIED until seen in game), and the flames still scale
+  with throttle. Do not raise cvhtnk's gains later without re-skinning: its pod geometry is on
+  bones CEM11WGL0/CEM11WGR1, not on the nacelle bones CEM11WGL/WGR (3 vertices each), so the
+  flames would probably tilt while the visible pods stay still (UNVERIFIED).
+- ODF pitch keys were also copied into the `baseName` variants (cvhaula; cvhmpa/cvhmpb); svtank's
+  variants rely on inheritance instead, so the copy is for clarity, not a requirement. Every
+  armed unit or variant that gets them needs its gameplay baseline re-pinned.
+- A unit with no `Assets/ModelFixes/<unit>.vdf` gets a new shipped file, which needs `-bless`.
+  `Shaders/CR_cockpit_damage-sm4.hlsl` is tracked on main but unblessed; park it during the
+  bless.

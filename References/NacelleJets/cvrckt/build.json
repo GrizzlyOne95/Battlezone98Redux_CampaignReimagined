@@ -1,0 +1,59 @@
+{
+  "unit": "cvrckt",
+  "faction": "cra",
+  "housings": [],
+  "notes": [
+    "Flameless-jets pass, hand-recorded via the flameless scratch tools (no Build-NacelleJets CONFIG entry, no mesh change). The rear frame pods CDR11NFL/CDR11NFR are separate parts hung off the body at their front edge, so they become class 67 nacelles. Each carries one class 75 flame at its glowing exhaust panel: panel centre (x +-2.09, y 1.49, z -3.62, sampled from the posed Assets/ModelFixes mesh and the stock emissive) moved 0.03 m inside, flame along the panel normal (+-0.77, 0, -0.63: aft and inboard, the way the yawed frame points). Positions are local to the pod in the VDF frame.",
+    "The two body fans at the rear centre are part of CDR11BDA and are left unflamed (no carrier: YAGNI, and a flame there would not pitch).",
+    "ODF/cvrckt.odf [HoverCraftClass] carries pitchThrot/SteerNacelleRun 0.10 and Jump 0.12, as svtank.",
+    "The hardpoint receipt References/Hardpoints/cvrckt.json is applied by the same build and is unchanged."
+  ],
+  "nacelles": [
+    "CDR11NFL",
+    "CDR11NFR"
+  ],
+  "vdfParts": [
+    {
+      "name": "CDR11FRL",
+      "klass": 75,
+      "parent": "CDR11NFL",
+      "matrix": [
+        -0.6332,
+        0.0,
+        -0.774,
+        0.0,
+        1.0,
+        0.0,
+        0.774,
+        0.0,
+        -0.6332,
+        -1.3048,
+        -0.0036,
+        -1.2973
+      ],
+      "existing": false,
+      "moved": true
+    },
+    {
+      "name": "CDR11FRR",
+      "klass": 75,
+      "parent": "CDR11NFR",
+      "matrix": [
+        -0.6332,
+        0.0,
+        0.774,
+        0.0,
+        1.0,
+        0.0,
+        -0.774,
+        0.0,
+        -0.6332,
+        1.3048,
+        -0.0036,
+        -1.2973
+      ],
+      "existing": false,
+      "moved": true
+    }
+  ]
+}

@@ -85,4 +85,9 @@ alphaSteer = 3.75
 accelJump = 0.0
 soundThrust = "avtanke0.wav"
 soundTurbo = "avtanke3.wav"
+// wing pods CEM11WGL/WGR are class 67 nacelles (cvhtnk.vdf) carrying BDA-parented hardpoints: zero gain keeps them flat
+pitchThrotNacelleRun = 0
+pitchThrotNacelleJump = 0
+pitchSteerNacelleRun = 0
+pitchSteerNacelleJump = 0
 
