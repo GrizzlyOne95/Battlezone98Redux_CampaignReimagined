@@ -1833,3 +1833,20 @@ to the ordinary GOG development mod.
 - Measure a craft's lights with a tank-local mask and a fixed camera with the heading
   pinned. A full-frame brightness mask is dominated by sky, terrain and camera drift and
   does not track the pulse.
+
+### svfigh rolling-nose clearance (2026-11-10)
+
+- An animated cockpit's static tub must stay out of the volume its rotor sweeps, not
+  only its rest pose. The svfigh nose `SFL11ROR` (VDF class 66) rolls about the eye's z
+  axis while strafing (decompile `BZ1/1.5/all_decompiled.c` 193638-193651; gains 0.1 or
+  0.4 rad at 194995/195005, chosen at 193627). A roll keeps z, so keeping every static
+  vertex behind the nose's rear bulkhead (z <= rotor zmin - clearance) is enough.
+  `combatcockpits.py` records it as `noseClearZ`, asserts it for tub and stock strips,
+  and clamps the front glass along the eye rays (`glass_limit`).
+- `Test-CombatCockpits.py` sweeps each animated combat cockpit's rotor subtree through
+  +-23 deg against every static triangle: tub, stock strips and glass need 2.5 cm; the
+  static exterior must not intersect. The old svfigh mesh failed with 70 intersecting
+  triangles at rest.
+- The scout cockpits (avfigh, bvraz) keep the opaque tub 0.8 cm behind the nose by
+  design, but their weather glass still pokes into the nose at rest. cvfigh has no
+  rotor. Use `glass_limit` if the scout glass is ever fixed.
