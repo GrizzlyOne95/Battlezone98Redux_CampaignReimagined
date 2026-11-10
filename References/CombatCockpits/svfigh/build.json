@@ -6,7 +6,7 @@
     "skeletonSha256": "d38714d9f745c798088644ec7cd380f70882271473c6d5e900727285283c4329"
   },
   "outputs": {
-    "Assets/Models/svfigh_cockpit.mesh": "83669da49322047a97d1a8a1465ac9d66cbc3c3030fc34a6ae0e27ea185e60ab",
+    "Assets/Models/svfigh_cockpit.mesh": "ab8d6881497ac8dbfa8ea634d0b37b1332a72fe07fef7e64536bbd043c7c7ce5",
     "Assets/Models/svfigh_cockpit.skeleton": "d38714d9f745c798088644ec7cd380f70882271473c6d5e900727285283c4329",
     "Materials/CR_svfigh_cockpit.material": "16fa5275d68e75271226e024875a5b657b1fb935dad97b71657de0d4f1f2b559"
   },
@@ -439,63 +439,25 @@
           0
         ],
         "sourceIndices": [
-          65,
-          66,
-          67,
-          68,
           84,
           85,
           87,
           88,
           89,
           90,
-          97,
-          98,
-          133,
-          134,
-          137,
-          138,
-          147,
-          148,
           294,
           295,
-          436,
-          437,
-          463,
           706,
           707,
           719,
-          729,
-          730,
-          731,
-          732,
-          799,
-          800,
-          801,
-          802,
           818,
           819,
           821,
           822,
           823,
           824,
-          1063,
-          1064,
-          1099,
-          1100,
-          1103,
-          1104,
-          1113,
-          1114,
-          1153,
-          1179,
-          1180,
           1197,
           1198,
-          1230,
-          1231,
-          1232,
-          1233,
           1243,
           1255,
           1256
@@ -526,7 +488,7 @@
             1.0
           ]
         ],
-        "triangles": 60,
+        "triangles": 22,
         "rearCaps": [],
         "skin": null,
         "uvRemapVertices": 0
@@ -6285,22 +6247,22 @@
       {
         "bone": "SFL11ROR",
         "vertices": [
-          83,
-          3352
+          27,
+          3296
         ]
       },
       {
         "bone": "SFL11NFL",
         "vertices": [
-          3352,
-          3703
+          3296,
+          3647
         ]
       },
       {
         "bone": "SFL11NFR",
         "vertices": [
-          3703,
-          4054
+          3647,
+          3998
         ]
       }
     ],
@@ -6308,10 +6270,10 @@
     "noseClearZ": 1.1259630233049394
   },
   "glass": {
-    "openFraction": 0.44526208536171175,
+    "openFraction": 0.4488848635797577,
     "depth": [
-      0.6466753889194612,
-      1.2754067170357466
+      0.6483427646930431,
+      1.3286582010624537
     ],
     "bone": "SFL21bda",
     "vertices": 592,
@@ -6320,6 +6282,6 @@
   "triangles": {
     "CRV/CCAMechanicalCockpit": 2452,
     "svfigh01": 4,
-    "CRV/svfighCombatExterior": 5695
+    "CRV/svfighCombatExterior": 5657
   }
 }

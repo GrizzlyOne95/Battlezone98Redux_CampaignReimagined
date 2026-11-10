@@ -309,6 +309,11 @@ def geometry(source,skelpath,base,game,root):
         handles={b.name:b.handle for b in s.bones()}
         local=(q-origin)@R;facing=np.einsum('ij,ij->i',np.cross(q[:,1]-q[:,0],q[:,2]-q[:,0]),origin-q[:,0])>0
         deck=facing&(local[:,:,2].min(1)>.3)&(local[:,:,1].max(1)<-.02)
+        # Owner review: the stock deck rails (|x| .15-.24 m, z .31-.95) and slats
+        # (|x| .24-.49 m, z .92-1.04) read as bars sticking out at the pilot over the
+        # front wall, with their low ends as wedges at its corners. Hide them from the
+        # cockpit view only; the centre strip and outboard edges stay.
+        ax=np.abs(local[:,:,0]);deck&=~((ax.min(1)>.14)&(ax.max(1)<.5))
         piece('native BDA deck ahead of canopy (eye-facing)',[handles['SFL11BDA']],deck)
         # The nose (ROR, VDF class 66) is the hover gimbal and the nacelles
         # (class 67) hang from it, so all three move: keep them whole, at
