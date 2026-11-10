@@ -966,8 +966,9 @@ Each bullet: the pitfall, the one-line why, and where to read more.
   first and compiles with no techniques), and `Assets/Textures/cr_exhaust_cca.png` /
   `cr_exhaust_blackdog.png`. They went missing because they only ever lived on an unmerged branch that was
   archived (`archive/migration-2026-09-22/interactive-fog-wakes`); when a native feature needs CR assets by
-  name, check they are on `main`. The two PNGs are still the archived 128x128 art, not the 512x512 that
-  `Tools/Build-HiResSprites.py` made for r/g/b flame.
+  name, check they are on `main`. Both PNGs are 512x512, built by `Tools/Build-HiResSprites.py` like r/g/b flame: stock
+  `rflame` alpha (the archived 128x128 art had it texel for texel) coloured with the archived art's
+  alpha->RGB ramp, kept as `FACTION_FLAMES` knots in the tool. Change a faction colour there, not in the PNG.
 
 ### 8.5 Live testing
 
