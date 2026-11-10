@@ -1,0 +1,81 @@
+{
+  "note": "Hardpoint mount (Tools/Build-HardpointMounts.py). Ogre mesh space in the VDF pose (VDF x = -x), metres. The hardpoint sits INSET x scale inside the muzzle, on the fire axis.",
+  "unit": "bvrdev",
+  "piece": "mortar",
+  "part": "brd11GM1",
+  "owner": "brd11bda",
+  "faction": "blackdogs",
+  "base": "f09fec92f1d6da20facde0d095c45f19a913c866",
+  "material": "bvrdev_hpmount",
+  "triangles": 1234,
+  "frame": {
+    "at": [
+      0.9,
+      1.36,
+      -0.4
+    ],
+    "seat": [
+      0.900751,
+      1.362486,
+      -0.4
+    ],
+    "normal": [
+      0.289177,
+      0.957276,
+      0.0
+    ],
+    "front": [
+      0.0,
+      0.0,
+      1.0
+    ],
+    "scale": 1.0
+  },
+  "bury": 0.12,
+  "muzzle": [
+    1.05855,
+    1.884854,
+    -0.04762
+  ],
+  "fire": [
+    0.185879,
+    0.615325,
+    0.766044
+  ],
+  "inset": 0.04,
+  "hardpoint": [
+    1.051115,
+    1.860241,
+    -0.078261
+  ],
+  "stockHardpoint": [
+    -0.811752,
+    1.808842,
+    1.868312
+  ],
+  "paint": [
+    74.0,
+    24.0,
+    18.0
+  ],
+  "paintFrom": "bvrdev_D.dds",
+  "checks": {
+    "footprint": 24,
+    "skinAboveFloor": [
+      0.07326772620357826,
+      0.19364124551517256
+    ],
+    "saddleTop": 0.10999999940395355,
+    "muzzle": [
+      1.0585497945406062,
+      1.8848544922723518,
+      -0.04761955616527014
+    ],
+    "fire": [
+      0.1858794032686686,
+      0.6153249211652478,
+      0.766044443118978
+    ]
+  },
+  "meshSha256": "64c550ae01696ad66d0370f983eac321763e10929634490d36ec103d871f94fb"
+}

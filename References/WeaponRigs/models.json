@@ -513,8 +513,7 @@
         {
           "hardpoints": [
             "GC1",
-            "GR1",
-            "GM1"
+            "GR1"
           ],
           "parent": "brd11tur",
           "bones": [
