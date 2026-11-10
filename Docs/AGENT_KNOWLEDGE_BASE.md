@@ -957,6 +957,13 @@ Each bullet: the pitfall, the one-line why, and where to read more.
   in lockstep. `time_0_x 3600` with periods that divide 3600 (meteor slot 25 s, satellite cycle 300 s)
   so the wrap is invisible. Pass emissive x enables, y forces every slot (testing only);
   `openshim.ini [Display] SkyEvents=0` switches both off through `RuntimeEnhancements.SetSkyEventsEnabled`.
+- **No terrain master light on the first mission update (2026-11-10, misn2bcr sun flip):** at `Init`
+  (game time 0.004) `exu.GetSunDirection`/`GetSunDiffuse` return nil, `GetSunPowerScale`/
+  `GetSunShadowFarDistance` return 0, ambient reads 0,0,0, and `SetSunDirection` is silently dropped;
+  the light exists by about t=0.4-0.7 s. A `nativeBaseline` capture taken at Init kept the default sun
+  direction, and the next drift write (t=7.15 s live) swung the map's light to it in one frame.
+  `Environment` now defers the whole capture (`NativeBaselinePending`) and writes nothing until the
+  direction can be read (3 s give-up). Any other "read native state at Init" code has the same trap.
 - Faction engine flames (2026-11-09): OpenShim colours jet flames per faction by looking sprite names up
   **by name**: `exhaust_o.0` for CCA burnt orange (ODF prefix `s`), `exhaust_bd.0` for Black Dog blood red
   (`b`). CR must ship all three parts or `openshim.log` says `orange=no blackdog=no` and those craft fall
@@ -994,6 +1001,9 @@ Each bullet: the pitfall, the one-line why, and where to read more.
 - `GetPosition` returns a `VECTOR_3D` userdata. A `type(p) == "table"` check silently discards every position
   (it hid all position-driven Titan effects until the first live run); mock positions as userdata in tests.
 - A match on bytes proves an address, not identity: byte match plus semantic corroboration, always.
+- `OPENSHIM_FRAME_CAPTURE` is read into a 4096-char buffer: a longer frame list silently captures
+  nothing. Use a step (every 6th frame covers 100-4400). The runtime DLL is `plugins\openshim.dll`.
+  Frames count from the first shell screen at about 60 fps; openshim.log is UTC, BZLogger local time.
 - Redux takes the cockpit camera from the skeleton POV bone, not the VDF eyepoint (confirmed live 2026-11-09;
   1.5 reads the VDF: `BZ1/1.5/all_decompiled.c:152449`). To move an eye, patch only that bone, through
   `Tools/eyeoverrides.py`. Animated cockpits take two stages: build and push the pre-rig mesh, pin it in
