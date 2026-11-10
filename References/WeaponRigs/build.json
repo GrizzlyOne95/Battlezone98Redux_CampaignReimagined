@@ -2424,7 +2424,7 @@
   },
   "avfigh": {
     "source": {
-      "mesh": "11664dc096f2d5fee14c15e2b6abcb9f5fdc46c985cd8d4f4022581150be8847",
+      "mesh": "7e944da6ad7d30cae7a08444829b2b3cca065abe54219af56abc110788d7d3f8",
       "skeleton": "bbacefcf8d0c047eb82842e447a658c357240003f5404d460443a7871df7a460",
       "bind_poses": {
         "avfigh": [
@@ -2991,8 +2991,8 @@
       }
     },
     "outputs": {
-      "Assets/Models/avfigh_recoil.skeleton": "a1ff057146d1bda8196f4b72da1a189ad0e939a466f63ad9b7893ca6c874ec3b",
-      "Assets/ModelFixes/avfigh.mesh": "39d574926eea6519a9836fa7240f1dd7fb4014ad6955b9ca39ee94e9ffd5aebf",
+      "Assets/Models/avfigh_recoil.skeleton": "37cc061177874a3eb3fda1c452fa936eb4aec8d84e19f78dcc2b21d9f762d773",
+      "Assets/ModelFixes/avfigh.mesh": "9e6c1116fc2aff3cabdbaf7221d745a02cb8a504dae898588fd1784a3c1fc815",
       "Assets/Models/avfigh_cockpit.mesh": "62cb76fb29558ddb6edcc81950dbc84d6f2312455eda2ed1181991f4df735fc8",
       "Assets/Models/avfigh_cockpit_recoil.skeleton": "17554d86b2b877e6ce779091c188a451bcea33c32bb7f6ae60bec3140db3726a"
     },
@@ -3017,6 +3017,20 @@
           -0.556,
           -0.242505,
           0.908156
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "ARA11Gr1": {
+        "parent": "ARA11BDA",
+        "position": [
+          0.0,
+          -0.816143,
+          1.382638
         ],
         "orientation": [
           0.0,

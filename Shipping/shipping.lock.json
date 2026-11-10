@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5550,
+  "count": 5555,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -4155,6 +4155,22 @@
       "runtime": "avfigh_D.dds"
     },
     {
+      "source": "Assets\\Textures\\avfigh_hpmount_D.dds",
+      "runtime": "avfigh_hpmount_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avfigh_hpmount_E.dds",
+      "runtime": "avfigh_hpmount_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avfigh_hpmount_N.dds",
+      "runtime": "avfigh_hpmount_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avfigh_hpmount_S.dds",
+      "runtime": "avfigh_hpmount_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\avfigh_nacjet_D.dds",
       "runtime": "avfigh_nacjet_D.dds"
     },
@@ -5721,6 +5737,10 @@
     {
       "source": "Assets\\Textures\\crteam_avfigh_d.dds",
       "runtime": "crteam_avfigh_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avfigh_hpmount_d.dds",
+      "runtime": "crteam_avfigh_hpmount_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_avfigh_nacjet_d.dds",
