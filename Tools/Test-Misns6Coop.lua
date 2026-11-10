@@ -45,7 +45,7 @@ local function guestsPassive(p)
 end
 local function miners(peer)
     local out = {}
-    for _, b in ipairs(F.builds(peer, 0, "avmine")) do out[#out + 1] = b.h end
+    for _, b in ipairs(F.builds(peer, 0, "bvmine")) do out[#out + 1] = b.h end
     return out
 end
 local function countGoto(peer, path)
@@ -93,7 +93,7 @@ do
 end
 local layers = miners(p[1])
 check(#layers == 3, "three mine layers are built")
-for _, b in ipairs(F.builds(p[1], 0, "avmine")) do check(b.team == 5, "mine layers are on team 5, not 2") end
+for _, b in ipairs(F.builds(p[1], 0, "bvmine")) do check(b.team == 5, "mine layers are on team 5, not 2") end
 check(m.miners[1] and m.miners[2] and m.miners[3], "three miner handles registered")
 check(m.miners[1] ~= m.miners[2] and m.miners[1] ~= m.miners[3] and m.miners[2] ~= m.miners[3], "the three miner handles are distinct")
 for _, h in ipairs(layers) do

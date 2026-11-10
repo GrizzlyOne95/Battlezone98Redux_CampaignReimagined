@@ -2424,7 +2424,7 @@
   },
   "avfigh": {
     "source": {
-      "mesh": "4fb59ae5f8d462ef8ab01a1bb7af858dbfe2364f6069dc19dc27ecce1586af53",
+      "mesh": "11664dc096f2d5fee14c15e2b6abcb9f5fdc46c985cd8d4f4022581150be8847",
       "skeleton": "bbacefcf8d0c047eb82842e447a658c357240003f5404d460443a7871df7a460",
       "bind_poses": {
         "avfigh": [
@@ -2992,7 +2992,7 @@
     },
     "outputs": {
       "Assets/Models/avfigh_recoil.skeleton": "68dec243f7cf3d95e5e50f0f3282f08aa2ea311d0c26d4f6c4134f4a3d17f9e2",
-      "Assets/ModelFixes/avfigh.mesh": "b35c36e0035614cd559e88dc74ccacb7e8a54011a8e8c321f62417eaf9ab4b37",
+      "Assets/ModelFixes/avfigh.mesh": "39d574926eea6519a9836fa7240f1dd7fb4014ad6955b9ca39ee94e9ffd5aebf",
       "Assets/Models/avfigh_cockpit.mesh": "62cb76fb29558ddb6edcc81950dbc84d6f2312455eda2ed1181991f4df735fc8",
       "Assets/Models/avfigh_cockpit_recoil.skeleton": "17554d86b2b877e6ce779091c188a451bcea33c32bb7f6ae60bec3140db3726a"
     }

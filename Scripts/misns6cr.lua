@@ -35,7 +35,7 @@ local RESTORED_VOICE_LINES = true -- unused shipped line misns606 (Docs/MISNS6_C
 local Restored = {}
 if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
-    id = "misns6", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
+    id = "misns6", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2, blackDogUnits = true,
     rallyPoints = { [0] = "svrecy0_recycler" },
     -- The two Black Dog raiders and the silo counter-attack are the scaled spawns; the mines never are.
     scaledOdfs = { bvraz = true, bvltnk = true, bvtank = true, bvrckt = true },
@@ -63,6 +63,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
         end },
 })
 local BuildObject = campaignRuntime and campaignRuntime.Spawn or BuildObject
+local IsOdf = campaignRuntime and campaignRuntime.IsOdf or IsOdf
 local IsAlive = campaignRuntime and campaignRuntime.IsAlive or IsAlive
 local SetScrap = campaignRuntime and campaignRuntime.SetScrap or SetScrap
 local SetAIP = campaignRuntime and campaignRuntime.SetAIP or SetAIP

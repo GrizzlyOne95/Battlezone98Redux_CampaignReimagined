@@ -14,7 +14,8 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 | File | Role |
 | --- | --- |
 | `Scripts/misns8cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns8.lua` (`Tools/Test-Misns8CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restoration and the Titan weather beats. |
-| `Scripts/CRCCARuntime.lua` | Shared co-op runtime (unchanged). |
+| `Scripts/CRCCARuntime.lua` | Shared co-op runtime, including the CCA mission's NSDF-to-Black-Dog ODF remap. |
+| `ODF/crns8.aip` | Black Dog variant of stock `misns8.aip`; its constructor build slot uses `bvcnst`. |
 | `Scripts/CRTitanWeather.lua`, `Scripts/CRTitanSitesS8.lua` | Titan weather and the generated sites for this map (the sites table has no pools and an empty wet mask; the weather runs without them). |
 | `Missions/misns8cr.{bzn,vxt}`, `misns8.{hg2,lgt,mat,trn}` | Map and companions (built by `Tools/Build-CoopMap.py`, not part of this change). |
 | `Tools/Misns8Fixture.lua`, `Tools/Test-Misns8Coop.lua`, `Tools/Test-Misns8CoopSourceParity.py`, `Tools/Test-Misns8CoopContract.py` | Multi-peer fixture and tests. There is no presentation test: the mission has no cameras. |
@@ -24,12 +25,12 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 | Team | Use |
 | --- | --- |
 | 1-4 | Humans (host on 1). The authored CCA Recycler (`svrecycle`) and Factory (`svmuf`), the nav beacons (`cam`, `basecam`, the restored Choke Point beacon) and Romeski (`svtank`) stay on team 1: shared, host-run. Extra starting recyclers are disabled. |
-| 5 | The Black Dogs (the authored team 2: `avrecycle`, `avmuf`, `powerplant1/2`, `basetower1/2`, and everything the AI builds). The body still says team 2; the CR layer maps it to 5 for every call that names it (below). |
+| 5 | The Black Dogs (the authored team 2: labels `avrecycle` and `avmuf` now use ODFs `bvrecy` and `bvmuf`, plus the powerplants, base towers, and everything the AI builds). The body still says team 2; the CR layer maps it to 5 for every call that names it (below). |
 | 7 | Support (allied to humans; unused here). |
 
 Only the authority (host, or the offline player) runs the body; guests only present and run weather. `SetAIControl(5,
-true)` runs once at chunk load; `SetAIP` is called only from the body's `Update`, always with team 5 (`misns8.aip`,
-`misns8a/b/c/d/f/g.aip`).
+true)` runs once at chunk load; `SetAIP` is called only from the body's `Update`, always with team 5 (`crns8.aip` for
+`misns8.aip`, then `misns8a/b/c/d/f/g.aip`).
 
 Calls the body makes with a literal enemy team 2 that the CR layer remaps to team 5: `SetScrap(2, 40)`,
 `SetPilot(2, 60)`, `GetScrap(2)` (about ten reads), `AddScrap(2, ...)` (including the `AddScrap(2, 2)` trickle),
@@ -53,7 +54,7 @@ suite asserts every `CountUnitsNearObject` is for team 5.
 ## Scaling and concealed arrivals [owner rules, mission decisions]
 
 Scaled/concealed ODFs (`scaledOdfs`): `bvtavk` (the retaliation tanks), and, concealed only, `bvsca8` (scavengers),
-`bvra8` (the scout), `avart8` (the popper artillery). They become tickets: the body gets a negative request id and the
+`bvra8` (the scout), and `bvartl` (the Black Dog artillery replacing the body's `avart8` request). They become tickets: the body gets a negative request id and the
 unit is built on the next frame with its orders replayed. Everything else is built directly: the replacement factory
 (`bvmuf`; the body queries it with `IsDeployed`/`Pickup` and it is the AI's producer), Romeski, the nav beacons and the
 hostile `savs8` built in place of a SAV.
@@ -166,7 +167,8 @@ lua5.1 Tools/Test-Misns8.lua && python Tools/Test-Misns8SourceParity.py   # the 
   an outpost instead of the base (they then path to scrap on their own).
 - The replacement factory (`american_spawn`), Romeski (`romeski_spawn`, beside the Black Dog base) and the beacons can
   appear in front of a human (they are not ticketed).
-- The `misns8*.aip` plans must work for team 5 (they are looked up by name; unverified in the tree, as for misns1).
+- The `misns8.aip` stock plan's NSDF constructor slot is replaced by `crns8.aip` using `bvcnst`; the installed
+  `misns8a` through `misns8g` plans already use Black Dog units.
 - Romeski's payback `Attack` is dropped if no human has a ship at that moment (the nearest-human lookup returns nothing,
   `Scripts/misns8cr.lua` `Attack` shadow), so that payback order is lost. Known risk; no code change.
 - Romeski's revenge and the SAV swap act on the nearest human/any human's tanks; whether that feels right with four

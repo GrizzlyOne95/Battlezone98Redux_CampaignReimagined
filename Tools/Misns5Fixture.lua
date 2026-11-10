@@ -32,7 +32,7 @@ F.PATHS = {
     ["edge_path"] = {1664,33,100427},
 }
 F.FAR = 50000
-local CRAFT = {avtank=true,avfigh=true,avscav=true,avturr=true,avwalk=true,avartl=true,avapc=true,avrecy=true,bvtank=true,bvltnk=true,bvhraz=true,svtank=true,svfigh=true,svscav=true,svturr=true,svwalk=true}
+local CRAFT = {bvraz=true,bvscav=true,bvturr=true,bvwalk=true,bvartl=true,bvapc=true,bvrecy=true,avtank=true,avfigh=true,avscav=true,avturr=true,avwalk=true,avartl=true,avapc=true,avrecy=true,bvtank=true,bvltnk=true,bvhraz=true,svtank=true,svfigh=true,svscav=true,svturr=true,svwalk=true}
 local function vec(t) return {x = t[1], y = t[2], z = t[3]} end
 local function newObject(handle, odf, team, pos, craft)
     W.objects[handle] = {alive = true, odf = odf, team = team, health = 1, pos = vec(pos or {F.FAR, 6, F.FAR}),

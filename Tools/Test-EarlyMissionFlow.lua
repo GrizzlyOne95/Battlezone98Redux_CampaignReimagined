@@ -365,7 +365,7 @@ for _, scenario in ipairs({ "clean", "damaged" }) do
 end
 
 -- CR restored VO: misn03 0309 reminder only while no player is near a transport, max twice.
-local reminder = compile(between("03", "    -- CR restored VO: misn0309.wav", "    if M.recycler_follow_transport and not M.third_objective and"))
+local reminder = compile(between("03", "    -- CR restored VO: misn0309.wav", "    -- Recycler evacuation orders (pack, wait, then follow)."))
 local function reminderState()
     return { remove_props = true, transport_reminders = 0, transport_reminder_time = 99999.0,
         rescue1 = "t1", rescue2 = "t2", aud306 = "a306" }

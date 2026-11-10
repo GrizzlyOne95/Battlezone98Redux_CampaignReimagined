@@ -173,7 +173,7 @@ local RESTORED_CINEMATIC, RESTORED_ESCORTS, RESTORED_CAVALRY, RESTORED_DISPATCH 
 local Restored
 if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
-    id = "misns1", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
+    id = "misns1", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2, blackDogUnits = true,
     rallyPoints = { [0] = "svrecy2_recycler" },
     -- Factory reinforcements and the cavalry wave are the scaled spawns; scavengers and turrets are not.
     scaledOdfs = { avfigh = true, avtank = true },

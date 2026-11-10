@@ -49,6 +49,14 @@ distributed before defense presentation. Native multiplayer locks difficulty to
 Very Hard; EXU's `SetDifficulty` does not override that lock. Offline autosave
 and Save/Load remain.
 
+The host re-issues the three garrison foot soldiers' orders (one on the
+`footpatrol` loop, two guarding `solar1`/`solar2`, priority 1) at most once a
+second when they are dropped, never while the soldier is fighting a live target.
+During evacuation the Recycler is told to pack, gets four seconds after
+`IsDeployed` clears so Follow cannot cancel the transition, then follows
+Transport 2 and later the launch pad; that order is polled once a second.
+Both behaviours are the same offline and are not yet checked in game.
+
 Mission HUD objectives, dynamic markers/names, target cues, dialogue, queued
 warnings, custom maximum-health values, prop removal and results use `E` events with monotonically increasing
 sequence numbers and cumulative `A` acknowledgements. Up to eight individual

@@ -5,13 +5,14 @@
 (`Tools/Test-Misns5CoopSourceParity.py`). The runtime contract is `Docs/CCA_COOP_RUNTIME.md`; the template is
 `Docs/MISNS1_COOP.md`. The map is `Missions/misns5cr.bzn` (terrain `misns5`); weather is Titan
 (`CRTitanWeather`, sites `Scripts/CRTitanSitesS5.lua`, 25 pool anchors, generated).
+The authored NSDF turret in the map now uses the matching Black Dog ODF; its map label is preserved.
 
 ## Teams
 
 | Team | Role |
 | --- | --- |
 | 1-4 | Humans (host/leader = team 1). The Soviet base (recycler, factory, depot, plants, towers) is team 1 and shared. |
-| 5 | The Americans (the DLL's team 2). The body still says 2; the CR layer maps it. |
+| 5 | The Black Dogs (the DLL's team 2). The body still says 2; the CR layer maps it. |
 
 Mapped in the CR layer: `BuildObject(..., 2, ...)` (runtime `Spawn`), `SetAIP` (always team 5), `SetPilot(2, 30)` and
 `AddScrap(2, ...)` (local wrappers), and the body's `GetTeamNum(h) ~= 2` filter in `AddObject` (a local wrapper
@@ -20,7 +21,8 @@ reports team 5 as 2 to the body only). `SetAIControl(5, true)` runs once by the 
 ## Scaled
 
 `BeginEvent()` precedes the first scaled spawn of each event; the extras are `min(floor(humans/2), 2)` units of the
-same kind, same entry and same orders. `liveCap` 12 drops only extras. Scaled ODFs: `avfigh`, `avapc`, `bvltnk`,
+same kind, same entry and same orders. `liveCap` 12 drops only extras. The runtime resolves NSDF `avfigh` and `avapc`
+requests to Black Dog `bvraz` and `bvapc`; `bvltnk` is already Black Dog.
 `bvhraz`.
 
 | Event | Spawn | Scaled |
@@ -98,7 +100,7 @@ mission. Beats (authority only, once each, saved in `M.crcca`):
 ## Live-test checklist (not covered by the mocks)
 
 1. Host + 1-3 guests: the opening shot plays for all, no skip, objectives appear for all together.
-2. `crns5.aip` (stock `misns5.aip` with `bvturr`) actually builds and sends Black Dog units for team 5.
+2. `crns5.aip` (stock `misns5.aip` with Black Dog build and building-match entries) actually builds and sends Black Dog units for team 5.
 3. The commander walker, chaff fighters and waves route to the player recycler; guests never see double orders.
 4. APC strike and waves arrive from `spawn5`/`spawn6` (not from inside the base); with 4 players they bring
    2 extra units; the live cap does not stall late waves.

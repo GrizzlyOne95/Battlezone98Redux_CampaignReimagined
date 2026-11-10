@@ -1736,3 +1736,22 @@ to the ordinary GOG development mod.
   that is listed in `$familyScopedDecodeOwners` in `Tools/Validate-DX11Shaders.ps1`.
 - Craft wearing another module's clone (CRSurfaceEffects frost etc.) are skipped
   until that clone ends.
+
+### Thruster housings and pre-rig stage changes (2026-11-09)
+
+- Stock hover craft with class 67 nacelles and no class 75 part get an engine-made flame
+  emitter under each nacelle, at the bottom of the nacelle bounding box, pointing along the
+  nacelle's local -Y. `References/NacelleJets/README.md` cites the BZ 1.5 decompile lines;
+  the Redux exe is not decompile-checked (owner confirmed the location by eye).
+- `Tools/Build-NacelleJets.py --ship` appends a `<unit>_nacjet` submesh bound rigidly to
+  the nacelle bones. Add geometry as a new last submesh: runtime consumers find submeshes
+  by material name, and the stock submeshes stay byte-identical.
+- Changing a pre-rig `Assets/ModelFixes/<unit>.mesh` stage also invalidates
+  `exteriorSha256` in that unit's cockpit receipt (`References/ScoutCockpits/*/build.json`).
+  Re-run `Tools/Build-ScoutCockpits.py`, then `Tools/Build-WeaponRigs.py` for every unit it
+  rewrote: the cockpit builder leaves pre-rig cockpit meshes in the working tree.
+- `Manage-CampaignFiles.ps1 -bless` adds every unblessed tracked file, not only yours.
+  Review the lock diff and keep only the task's entries.
+- `avfigh00` carried stock Redux's one-off `$ambient "0.2 0.2 0.2"` (279 of 281 stock
+  materials use `1 1 1`); it is now `1 1 1` like the other units. The Livewire
+  `SX_tint_*` materials (`Materials/sxtint.material`) inherit it, so they brighten too.

@@ -53,9 +53,9 @@ assert objects["sbhang0_repairdepot"][1] == 1
 for label in ("sblpow2_powerplant", "sblpow3_powerplant", "sblpow4_powerplant"):
     assert objects[label] == ("sblpow", 1), label
 assert objects["eggeizr11_geyser"][0] == "eggeizr1" and objects["eggeizr12_geyser"][0] == "eggeizr1"
-assert objects["avturr0_turrettank"] == ("avturr", 5), "the authored enemy is the CCA on team 5"
+assert objects["avturr0_turrettank"] == ("bvturr", 5), "the authored enemy is the CCA on team 5"
 assert not any(team == 2 for _, team in objects.values()), "nothing is left on the authored team 2"
-assert "avtank" not in {odf for odf, _ in objects.values()}
+assert "bvtank" not in {odf for odf, _ in objects.values()}
 
 # ---------------------------------------------------------------- the runtime configuration only names real content
 config = lua_full.split("require(\"CRCCARuntime\").Create", 1)[1].split("local RESTORED =", 1)[0]
