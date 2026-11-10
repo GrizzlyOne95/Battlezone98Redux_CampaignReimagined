@@ -14,7 +14,7 @@
     "skeletonSha256": "ec1dbc02748d5ba4f576ca6c732551df3e6a73b9ad508a4e745ea415add93cc7"
   },
   "outputs": {
-    "Assets/Models/bvraz_cockpit.mesh": "3f84b16351aa47f373774d96ee7f2bb66cfb9947f50583f03653a404287074ec",
+    "Assets/Models/bvraz_cockpit.mesh": "06baf598321ede7b5134bfa7056e7c557bb9c54a4f8df8b5aab44eba65bc55a4",
     "Assets/Models/bvraz_cockpit.skeleton": "ec1dbc02748d5ba4f576ca6c732551df3e6a73b9ad508a4e745ea415add93cc7",
     "Assets/Textures/crvbscp_d.dds": "c2db5d269e0887791551c2ae7b92861ababd28cf3ec3b603d7926abe276b072f",
     "Assets/Textures/crvbscp_e.dds": "623acd56e9995b5b03cf33becd39fef2ac512fab29c4b7dc8a708cda0d559d76",
@@ -793,6 +793,7 @@
     "nosePlacement": "native",
     "noseSkin": 1,
     "tubFront": 0.91,
+    "noseClearZ": 0.9376380503177643,
     "noseCap": {
       "firstVertex": 1197,
       "vertices": 154,
