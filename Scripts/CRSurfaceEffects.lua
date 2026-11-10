@@ -304,6 +304,68 @@ local function write(slot, name, a, b, c, d)
     if finite(changed) and changed > 0 then slot.values[name] = {a,b,c,d} end
 end
 
+-- Scorch is a second pass on the cockpit's own UV-mapped geometry, not a
+-- screen-space layer. Keep the alpha smooth between half and 10% hull, then
+-- quantize it so we only touch the cloned material when the visible step moves.
+local function writeCockpitChar(slot, damage)
+    local t = clamp((damage - 0.50) / 0.40, 0, 1)
+    t = t * t * (3 - 2 * t)
+    local step = math.floor((t * 0.78) * 32 + 0.5)
+    if slot.charredStep == step or slot.charredStep == -1 then return end
+    if step == 0 and slot.charredStep == nil then slot.charredStep = 0; return end
+    local result = call(exu.SetMaterialPassColors, slot.assigned,
+        { diffuse = { 1, 1, 1, step / 32 } }, -1, 1)
+    if result == true then slot.charredStep = step
+    else slot.charredStep = -1 end
+end
+
+local function sparkHash(beat, seed, salt)
+    local n = (beat * 73 + seed * 193 + salt * 389) % 1000033
+    n = (n * 37 + seed * 17 + salt * 31) % 1000033
+    return n / 1000033
+end
+
+local function setCockpitSpark(slot, value)
+    local changed = call(exu.SetMaterialShaderVector, slot.assigned, "surfaceSpark",
+        value[1], value[2], value[3], value[4])
+    if finite(changed) and changed > 0 then
+        slot.values.surfaceSpark = value
+        slot.sparkFailures = 0
+    else
+        slot.sparkFailures = (slot.sparkFailures or 0) + 1
+        if slot.sparkFailures >= 3 then slot.sparkUnsupported = true
+        else slot.sparkRetry = S.Clock + 0.5 end
+    end
+end
+
+local function writeCockpitSpark(slot, r)
+    if slot.sparkUnsupported or S.Clock < (slot.sparkRetry or 0) then return end
+    local damage = r.damage or 0
+    local intensity = clamp((damage - 0.56) / 0.34, 0, 1)
+    intensity = intensity * intensity * (3 - 2 * intensity)
+    local old = slot.values.surfaceSpark
+    if intensity <= 0 then
+        if old == nil then slot.values.surfaceSpark = { 0, 0, 0, 0 }; return end
+        if old[1] <= 0.001 then return end
+        setCockpitSpark(slot, { 0, 0, 0, 0 })
+        return
+    end
+
+    local beatPosition = S.Clock * 2.4
+    local beat = math.floor(beatPosition)
+    local phase = beatPosition - beat
+    local seed = (r.id * 37 + slot.index * 101) % 1000033
+    local event = sparkHash(beat, seed, 1) < intensity * 0.32
+    local start = sparkHash(beat, seed, 4) * 0.65
+    local elapsed = phase - start
+    local pulse = event and elapsed > 0 and elapsed < 0.22 and math.sin(math.pi * elapsed / 0.22) or 0
+    local value = { intensity * pulse, math.floor(sparkHash(beat, seed, 2) * 12),
+        math.floor(sparkHash(beat, seed, 3) * 8), sparkHash(beat, seed, 5) }
+    if old and math.abs(old[1]-value[1]) < 0.01 and old[2] == value[2] and
+        old[3] == value[3] and math.abs(old[4]-value[4]) < 0.001 then return end
+    setCockpitSpark(slot, value)
+end
+
 local function release(r)
     for _, slot in ipairs(r.slots or {}) do
         -- Another owner (team colour, model replacement, etc.) wins. Never
@@ -507,6 +569,7 @@ end
 -- emission (surfaceState.w, the same channel that powers a tower off) for a
 -- moment: it eases down in about a tenth of a second and back over about a
 -- second. Repair, a new craft and the first sample never trigger it.
+local cockpitStage
 local function brownout(r, health, dt)
     local drop = finite(r.lastHull) and r.lastHull-health or 0
     if drop >= S.BrownoutDrop and S.Clock >= (r.brownReady or 0) then
@@ -530,7 +593,10 @@ local function updateRecord(r, dt)
         r.health = health
         local desired = r.cockpit and (1-health) or 0
         r.damage = desired + (r.damage-desired)*math.exp(-dt*5)
-        if r.cockpit then brownout(r, health, dt) end
+        if r.cockpit then
+            cockpitStage(r, health)
+            brownout(r, health, dt)
+        end
     end
     if r.tower then
         local powered = call(exu.IsGunTowerPowered, r.handle)
@@ -588,10 +654,17 @@ local function updateRecord(r, dt)
             wanted = slot.off or slot.normal
         end
         if slot.assigned ~= wanted and call(exu.SetSurfaceMaterial,target(r),slot.index,wanted) == true then
-            slot.assigned = wanted; slot.values = {}
+            slot.assigned = wanted; slot.values = {}; slot.charredStep = nil
+            slot.sparkUnsupported = nil; slot.sparkFailures = nil; slot.sparkRetry = nil
         end
         write(slot,"surfaceState", r.cockpit and 0 or S.SweepWet, r.damage, peak, r.cockpit and (r.brown or 0) or (r.powerOff and 1 or 0))
-        write(slot,"surfaceMode",0,r.cockpit and 1 or 0,r.cockpit and S.Clock or 0,0)
+        if r.cockpit then
+            writeCockpitChar(slot, r.damage)
+            writeCockpitSpark(slot, r)
+        end
+        -- Critical cockpit lighting shares the 25% enter / 30% clear stage.
+        write(slot,"surfaceMode",0,r.cockpit and 1 or 0,r.cockpit and S.Clock or 0,
+            r.cockpit and r.stage == 2 and 1 or 0)
         local a,b = hit0 and hit0.anchor or empty,hit1 and hit1.anchor or empty
         write(slot,"surfaceImpact0",a[1],a[2],a[3],a[4]); write(slot,"surfaceImpact1",b[1],b[2],b[3],b[4])
         write(slot,"surfaceImpactWeights",hit0 and clamp((hit0.untilTime-S.Clock)/4,0,1) or 0,
@@ -651,16 +724,21 @@ local function driveGlass()
     if S.crackLevel <= 0 and call(g.Busy) ~= true then S.glassOn = false end
 end
 
-local function cockpitGlass(r)
-    if not r or not finite(r.health) then setCrack(0); return end
-    local hp, st, stage = r.health, S.CrackStages, r.stage
+cockpitStage = function(r, hp)
+    local st, stage = S.CrackStages, r.stage
     if stage == nil then stage = hp < st[2].enter and 2 or hp < st[1].enter and 1 or 0
     elseif stage < 2 and hp < st[2].enter then stage = 2
     elseif stage < 1 and hp < st[1].enter then stage = 1
     elseif stage == 2 and hp > st[2].leave then stage = hp > st[1].leave and 0 or 1
     elseif stage == 1 and hp > st[1].leave then stage = 0 end
     r.stage = stage
-    setCrack(stage > 0 and st[stage].level or 0, crackSpot(r.handle))
+    return stage
+end
+
+local function cockpitGlass(r)
+    if not r or not finite(r.health) then setCrack(0); return end
+    local stage = cockpitStage(r, r.health)
+    setCrack(stage > 0 and S.CrackStages[stage].level or 0, crackSpot(r.handle))
 end
 
 local function cockpit()
