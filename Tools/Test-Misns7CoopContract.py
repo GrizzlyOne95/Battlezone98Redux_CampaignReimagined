@@ -59,7 +59,7 @@ assert used <= set(paths), "every path the body names exists: " + str(used - set
 assert cr_used <= set(paths), "every path the CR layer names exists: " + str(cr_used - set(paths))
 assert {"power2_spot", "tower3_spot"} <= cr_used, "the expansion restoration names its two shipped paths"
 assert objects["avrecycle"] == ("bvrecy", 5) and objects["jail"] == ("abbar7", 5) and objects["svapc"] == ("svap7", 1)
-assert objects["svmuf"][0] == "svmuf" and objects["svrecycle"][0] == "svrecy" and objects["rig"] == ("avcnst", 5)
+assert objects["svmuf"][0] == "svmuf" and objects["svrecycle"][0] == "svrecy" and objects["rig"] == ("bvcnst", 5)
 assert objects["avsilo"] == ("absilo", 5) and objects["geyser3"][0] == "eggeizr1", "restored retreat target exists"
 
 # ---------------------------------------------------------------- the runtime configuration only names real content

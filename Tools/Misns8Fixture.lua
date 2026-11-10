@@ -85,7 +85,7 @@ F.PATHS = {
     ["edge_path"] = {1054,155,100982},
 }
 F.FAR = 50000
-local CRAFT = {bvtavk=true,bvsca8=true,bvra8=true,avart8=true,bvmuf=true,bvrec8=true,avcns8=true,bvtur8=true,bvhraz=true,
+local CRAFT = {bvartl=true,bvcnst=true,bvtavk=true,bvsca8=true,bvra8=true,avart8=true,bvmuf=true,bvrec8=true,avcns8=true,bvtur8=true,bvhraz=true,
     bvapc=true,bvwalk=true,savtnk=true,savs8=true,svtank=true,playsv=true,svrecy=true,savmf=true}
 local function vec(t) return {x = t[1], y = t[2], z = t[3]} end
 local function newObject(handle, odf, team, pos, craft)

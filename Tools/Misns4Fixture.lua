@@ -30,7 +30,7 @@ F.PATHS = {
     ["counter"] = {2238.61,155,98114.8},
 }
 F.FAR = 50000
-local CRAFT = {avtank=true,avfigh=true,avscav=true,avturr=true,avltnk=true,avrckt=true,avhraz=true,avrecy=true,svhaul=true,svcnst=true,svtank=true,svfigh=true,svturr=true,svwalk=true}
+local CRAFT = {bvtank=true,bvraz=true,bvscav=true,bvturr=true,bvltnk=true,bvrckt=true,bvhraz=true,bvrecy=true,avtank=true,avfigh=true,avscav=true,avturr=true,avltnk=true,avrckt=true,avhraz=true,avrecy=true,svhaul=true,svcnst=true,svtank=true,svfigh=true,svturr=true,svwalk=true}
 local function vec(t) return {x = t[1], y = t[2], z = t[3]} end
 local function newObject(handle, odf, team, pos, craft)
     W.objects[handle] = {alive = true, odf = odf, team = team, health = 1, pos = vec(pos or {F.FAR, 6, F.FAR}),

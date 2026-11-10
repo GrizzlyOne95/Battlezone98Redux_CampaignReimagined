@@ -44,7 +44,7 @@ assert not missing, "shadowed but never called by the body: " + str(missing)
 for name in natives:
     assert name in shadowed, "the body calls it, the layer must shadow it: " + name
 for name in shadowed:
-    assert name in natives or name == "IsValid", "unexpected shadow: " + name
+    assert name in natives or name in ("IsValid", "IsOdf"), "unexpected shadow: " + name
 assert "IsValid(" in body, "IsValid is shadowed for the PLAYERS token the body tests"
 # Literal enemy team 2 in the body: every site is covered by the Spawn / GetTeamNum maps.
 for site in re.findall(r"[^\n]*\b2\b[^\n]*", body):
