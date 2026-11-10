@@ -728,6 +728,15 @@ local function ApplyStateVisuals(state)
     DebugVisualLog("apply-done " .. DescribeHandle(state.handle) .. string.format(" visualMode=%s allApplied=%s", tostring(state.visualMode), tostring(allApplied)))
 end
 
+local function WritePulseColors(materialName, colors)
+    local ok, result = pcall(exu.SetMaterialPassColors, materialName, colors, -1, -1,
+        RuntimeEnhancements.ResourceGroup, true)
+    if not ok or result == false then
+        pcall(exu.SetMaterialPassColors, materialName, colors, 0, 0,
+            RuntimeEnhancements.ResourceGroup)
+    end
+end
+
 local function ApplyEmissivePulse(now, force)
     if not exu.SetMaterialPassColors then
         return
@@ -757,11 +766,11 @@ local function ApplyEmissivePulse(now, force)
             emissive.b = Clamp01((tonumber(baseEmissive.b) or 0.0) * factor)
             local colors = { emissive = emissive }
 
-            local ok, result = pcall(exu.SetMaterialPassColors, materialName, colors, -1, -1,
-                RuntimeEnhancements.ResourceGroup, true)
-            if not ok or result == false then
-                pcall(exu.SetMaterialPassColors, materialName, colors, 0, 0,
-                    RuntimeEnhancements.ResourceGroup)
+            WritePulseColors(materialName, colors)
+            -- CRSurfaceEffects draws per-object clones of this material; a clone
+            -- copied the source once, so each pulse step must reach it too.
+            for _, cloneName in ipairs(SurfaceEffects.LiveClones(materialName) or {}) do
+                WritePulseColors(cloneName, colors)
             end
         end
     end

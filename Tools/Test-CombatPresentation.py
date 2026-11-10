@@ -54,6 +54,9 @@ class CombatPresentationTests(unittest.TestCase):
         # svtank's coax chaingun shares the cannon barrel: only cannon-type weapons kick it.
         for name in ('svtank','svtanka'):
             self.assertNotIn('recoilkick2',self.docs[name]['craftclass'])
+            for key in ('recoilanimation2','recoilplaybackrate2','recoilcockpit2'):
+                self.assertNotIn(key,self.docs[name]['craftclass'])
+            self.assertIn('casingoffset2',self.docs[name]['craftclass'])
             self.assertNotIn('recoilkick',self.docs[self.docs[name]['gameobjectclass']['weaponname2'].lower()]['weaponclass'])
         # An artillery utility or missing weapon cannot inherit an arbitrary barrel kick.
         self.assertNotIn('recoilname1',self.docs['avartla']['craftclass'])
