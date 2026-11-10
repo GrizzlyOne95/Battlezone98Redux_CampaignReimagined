@@ -5,6 +5,7 @@ import numpy as np
 import weaponrigs as wr
 import cockpitglass as cg
 import eyeoverrides
+import hardpointbones as hpbones
 import ogrelayout
 from bzmodellibs import legacy
 
@@ -45,6 +46,27 @@ def repair_hierarchy(model,skel):
             rotation=mirror@np.asarray(part.matrix[:9]).reshape(3,3).T@mirror
             position=tuple(mirror@np.asarray(part.matrix[9:12]))
             skel.bones.append(wr.Bone(part.name,max(b.handle for b in skel.bones)+1,position,tuple(Rotation.from_matrix(rotation).as_quat()),parent=parent.handle))
+
+def hardpoint_bones(model,mesh,skel):
+    """Hang each References/Hardpoints receipt part's bone from its owner at the receipt pose
+    (Tools/hardpointbones.py). A moved bone must be unanimated; vertices skinned to it (cvturr's
+    stock hardpoint markers) move to its old parent, which carries them identically."""
+    r=hpbones.receipt(model)
+    if r is None:return {}
+    def old(name):
+        b=skel.bone(name);return None if b is None else tuple(b.orientation)
+    done={}
+    for name,owner,pos,quat,new in hpbones.poses(r,old,wr.GAME):
+        o=skel.bone(owner);assert o is not None,(model,name,'no owner bone',owner)
+        if new:
+            skel.bones.append(wr.Bone(name,max(b.handle for b in skel.bones)+1,pos,quat,parent=o.handle))
+        else:
+            b=skel.bone(name);assert not any(t.bone==b.handle for a in skel.animations for t in a.tracks),(model,name,'animated')
+            for sub in [mesh,*mesh.submeshes]:
+                if sub.bone_assignments:sub.bone_assignments=[(i,b.parent if j==b.handle else j,w) for i,j,w in sub.bone_assignments]
+            b.parent,b.position,b.orientation=o.handle,pos,quat
+        done[name]={'parent':owner,'position':list(pos),'orientation':list(quat)}
+    return done
 
 def load(path,src,revision):
     raw=baseline(path,revision);mesh=wr.ogre.read_mesh(raw)
@@ -243,7 +265,7 @@ def build(selected):
     for model,entry in cfg['models'].items():
         if selected and model not in selected:continue
         mp=Path(src.model(model+'.mesh')[0]);mesh,skel,source=load(mp,src,cfg['source_revision'])
-        repair_hierarchy(model,skel)
+        repair_hierarchy(model,skel);hardpoints=hardpoint_bones(model,mesh,skel)
         channels=copy.deepcopy(entry['channels']);proof=wr.channels_mesh(mesh,skel,channels)
         assert all(p['triangles'] for p in proof),(model,'empty world gun selection',proof)
         sp=ROOT/'Assets/Models'/(model+'_recoil.skeleton');target=ROOT/'Assets/ModelFixes'/(model+'.mesh')
@@ -259,7 +281,7 @@ def build(selected):
             for path in (cpp,cpsp):outputs[path.relative_to(ROOT).as_posix()]=hashlib.sha256(path.read_bytes()).hexdigest()
         fit=fit_effects(model,mesh,skel,channels,proof,entry.get('ports_only',()))
         receipts[model]={'source':source,'world':proof,'cockpit':cp_proof,'cockpit_source':csource if cp_proof else None,
-                         'cockpit_kind':kind,'bindings':fit,'outputs':outputs}
+                         'cockpit_kind':kind,'bindings':fit,'outputs':outputs,**({'hardpoints':hardpoints} if hardpoints else {})}
         receipt_path.write_text(json.dumps(receipts,indent=2)+'\n')
         print(model,[(p['triangles'],p['cap_triangles']) for p in proof],'cockpit',[(p['triangles'],p['cap_triangles']) for p in cp_proof],flush=True)
     (REF/'build.json').write_text(json.dumps(receipts,indent=2)+'\n')

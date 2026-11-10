@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5522,
+  "count": 5526,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -771,6 +771,10 @@
       "runtime": "avtank.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avtank.skeleton",
+      "runtime": "avtank.skeleton"
+    },
+    {
       "source": "Assets\\ModelFixes\\avtank.vdf",
       "runtime": "avtank.vdf"
     },
@@ -785,6 +789,10 @@
     {
       "source": "Assets\\ModelFixes\\avturr.mesh",
       "runtime": "avturr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avturr.skeleton",
+      "runtime": "avturr.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\avturr.vdf",
@@ -1003,12 +1011,20 @@
       "runtime": "bvtank.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvtank.skeleton",
+      "runtime": "bvtank.skeleton"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvtank.vdf",
       "runtime": "bvtank.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvturr.mesh",
       "runtime": "bvturr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvturr.skeleton",
+      "runtime": "bvturr.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\bvturr.vdf",

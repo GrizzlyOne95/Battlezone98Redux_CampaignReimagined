@@ -80,6 +80,7 @@ OUT = os.path.join(ROOT, "Assets", "ModelFixes")
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bzmodellibs  # noqa: E402
+import hardpointbones as hpbones  # noqa: E402
 
 SER = bzmodellibs.bwd2_serializer
 BWD2 = bzmodellibs.bwd2
@@ -591,9 +592,49 @@ def add_vdf_bone(stock_dir, vdf, part):
     return edit
 
 
-# shipped skeleton: (stock path under BZ_ASSETS/common/models, stock_dir -> edit(skeleton))
+def hardpoint_skeleton(unit):
+    """A skeleton edit hanging each References/Hardpoints receipt part's bone from its owner at the
+    receipt pose (Tools/hardpointbones.py); a moved bone must be unanimated. The toolkit serializer
+    reads and writes bones in the native frame (x mirrored against the raw Ogre values poses() uses),
+    so poses are mirrored on the way in and out."""
+    from scipy.spatial.transform import Rotation
+
+    def mirror_quat(q):
+        m = hpbones.MIRROR
+        return tuple(Rotation.from_matrix(m @ Rotation.from_quat(q).as_matrix() @ m).as_quat())
+
+    def edit(stock_dir):
+        def apply(sk):
+            def old(name):
+                b = sk.get_bone_by_name(name) if sk.bone_name_exists(name) else None
+                return None if b is None else mirror_quat(
+                    (b.orientation.x, b.orientation.y, b.orientation.z, b.orientation.w))
+            r = hpbones.receipt(unit)
+            for name, owner, pos, q, new in hpbones.poses(r, old, stock_dir=stock_dir):
+                o = sk.get_bone_by_name(owner) if sk.bone_name_exists(owner) else None
+                if o is None:
+                    raise ValueError("%s: no owner bone %s for %s" % (unit, owner, name))
+                pos = tuple(float(v) for v in hpbones.MIRROR @ pos)
+                q = mirror_quat(q)
+                ori = SP.Quaternion(q[3], q[0], q[1], q[2])
+                if new:
+                    b = sk.create_bone(name, max(b.handle for b in sk.bones()) + 1, pos=SP.Vector3(*pos), ori=ori)
+                else:
+                    b = sk.get_bone_by_name(name)
+                    if any(t.target_bone is b for a in sk.animations() for t in a.tracks()):
+                        raise ValueError("%s: %s is animated; not moving it" % (unit, name))
+                    b.position, b.orientation = SP.Vector3(*pos), ori
+                sk.parent_bone(b, o)
+        return apply
+    return edit
+
+
+# shipped skeleton: (stock path under BZ_ASSETS/common/models, stock_dir -> edit(skeleton)).
+# avtank/bvtank/avturr/bvturr: CR meshes that keep the stock skeleton (the rigged models'
+# _recoil skeletons get the same bone edit in Tools/Build-WeaponRigs.py).
 SKELETONS = {
     "cvhaul.skeleton": ("TRO/cvhaul.skeleton", lambda d: add_vdf_bone(d, "cvhaul.vdf", "COX11GS1")),
+    **{u + ".skeleton": (u + ".skeleton", hardpoint_skeleton(u)) for u in ("avtank", "bvtank", "avturr", "bvturr")},
 }
 
 
