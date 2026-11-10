@@ -1,6 +1,6 @@
 # Mission 05 offline and co-op
 
-Owner lore amendment (2026-10-17): the 23 Mars mines now use the independent
+Owner lore amendment (2026-10-17): the Mars mines (24 since `path_24` was armed) now use the independent
 Olympian `cromine` with fresh bronze/amber textures and a weaker focused arc.
 Later Fury minefields use `crfmine`; see [mine variants](BOLT_MINE_VARIANTS.md).
 
@@ -18,7 +18,7 @@ players beside the authored start, and EXU suppresses extra starting recyclers.
 The starts are spaced 25 m apart (75 m from team 1 to team 4), with zero
 motion on the buoy records. Each owner reserves enough native resource capacity
 before receiving starting resources; guests have no recycler capacity otherwise.
-CCA uses team 5, the 23 clearable mines use team 6, and the seven-tank friendly
+CCA uses team 5, the 24 clearable mines use team 6, and the seven-tank friendly
 ending fleet uses team 7. These reservations apply offline as well.
 
 Only the campaign leader runs AI, spawns, orders, timers and victory/loss gates.
@@ -43,6 +43,15 @@ their positions; genuine path names retain `GetPosition(path)` behavior.
 The authored deployment, randomized wave order, defense orders, reinforcement
 waves, surviving-attacker victory gate and both failure debriefs remain.
 Single-player save/load code and the inactive original-source ledger remain.
+
+CR deltas recovered from the pre-co-op script (2026-11-10, not yet checked in
+game), identical offline and in co-op because the leader runs them:
+
+- The minefield also arms the authored `path_24` (24 mines; the DLL armed
+  `path_1` to `path_23`).
+- Deployment waves 3 and 4 split their patrol between `attackpatrol1` and the
+  authored, previously unused `attackpatrol2`. Waves 1 and 2 keep `attackpatrol1`.
+- Lemnos gets an objective marker with the `misn0506` orders.
 
 ## Focused checks
 

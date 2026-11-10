@@ -144,7 +144,7 @@ for n = 1, 4 do
     local wave = builtAt(q[1], SPAWN)
     check(m2.bdspawned and #wave == 5 + EXTRAS[n], n .. " human(s): 5 defenders + " .. EXTRAS[n] .. " extras, got " .. #wave)
     allSafe(q, wave)
-    local tanks, fighters = builtAt(q[1], SPAWN, 0, "avtank"), builtAt(q[1], SPAWN, 0, "avfigh")
+    local tanks, fighters = builtAt(q[1], SPAWN, 0, "bvtank"), builtAt(q[1], SPAWN, 0, "bvraz")
     check(#tanks == 3 + EXTRAS[n] and #fighters == 2, "extras mirror the first unit (a tank): " .. #tanks .. "/" .. #fighters)
     for _, b in ipairs(wave) do check(b.team == 5, "defenders are team 5") end
     local attackers = {}

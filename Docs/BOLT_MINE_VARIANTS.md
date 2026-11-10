@@ -35,8 +35,8 @@ Source PNGs, prompts and stock hashes are under `References/BoltMines`.
 
 ## Mission selection
 
-- Mission 05: all 23 scripted Mars volcano mines use `cromine`, preserving the
-  original positions, hostile team, detection radius and clearance behavior.
+- Mission 05: all 24 scripted Mars volcano mines use `cromine`, preserving the
+  23 original positions (plus the authored `path_24`), hostile team, detection radius and clearance behavior.
 - Mission 15: all forty mines in the Tartarus response use `crfmine`.
 - Mission 16: all six authored mines are swapped in the BZN to `crfmine`; their
   original labels and placement stay intact. The scene builder makes the same

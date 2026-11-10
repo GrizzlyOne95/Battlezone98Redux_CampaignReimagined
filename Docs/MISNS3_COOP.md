@@ -12,9 +12,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 | File | Role |
 | --- | --- |
 | `Scripts/misns3cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns3.lua` (`Tools/Test-Misns3CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the stock fixes. |
-| `Scripts/CRCCARuntime.lua` | Shared co-op runtime (unchanged by this port). |
+| `Scripts/CRCCARuntime.lua` | Shared co-op runtime, including the CCA mission's NSDF-to-Black-Dog ODF remap. |
 | `Scripts/CRIoWeather.lua`, `Scripts/CRIoSitesS3.lua` | Io weather and the generated lava-pool / vent sites for this map (341 pools, the two geysers). |
-| `Missions/misns3cr.{bzn,vxt}`, `misns3.{hg2,lgt,mat,trn}` | Map and companions (built by `Tools/Build-CoopMap.py`, not part of this change). |
+| `Missions/misns3cr.bzn` | Map roster; authored NSDF vehicles are switched to Black Dog ODFs while their labels stay intact. |
+| `Missions/misns3cr.vxt`, `misns3.{hg2,lgt,mat,trn}` | Terrain and map companions. |
 | `Tools/Misns3Fixture.lua`, `Test-Misns3Coop.lua`, `Test-Misns3CoopSourceParity.py`, `Test-Misns3CoopContract.py` | Multi-peer fixture and tests. `Test-Misns3.lua` / `Test-Misns3SourceParity.py` still cover the faithful port, unchanged. |
 
 No cameras: this mission has no cutscene, so there is no `Test-Misns3Presentation.lua` and `holdCamera` is off.
@@ -51,7 +52,8 @@ The body keeps `GetPlayerHandle()` in `M.player` and measures every trigger from
 
 ## Scaling and concealed arrivals [owner rules, mission decisions]
 
-Scaled ODFs: `avtank`, `avfigh` (defenders, retreat groups, escorts) and `bvraz` (patrol). They become tickets and are
+The CCA runtime resolves the mission's NSDF `av*` requests to Black Dog units. Scaled requests `avtank` and `avfigh`
+become `bvtank` and `bvraz` tickets (defenders, retreat groups, escorts); the patrol already uses `bvraz`. They are
 built by the runtime at the authored entry only when no human is within 460 m. Otherwise the runtime first tries the
 other authored approach points (`FALLBACK_ENTRIES` / `Entry()` in `CRCCARuntime.lua`) and only waits when none of them
 is safe (saved in `M.crcca`, so save/load neither loses nor duplicates it). Mines (`proxmine`) pass straight through: they are static

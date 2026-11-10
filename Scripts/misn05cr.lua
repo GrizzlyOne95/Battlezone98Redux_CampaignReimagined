@@ -880,7 +880,9 @@ function Start()
         SetupAI()
         if not CRCoop.IsNetworkGame() then aiCore.Bootstrap() end
         -- Preserve the clearable field; reserve separate hostile and support teams.
-        for i = 1, 23 do
+        -- The map authors 24 mine points; the DLL armed only path_1..path_23.
+        -- CR also arms path_24, in the eastern field 384 m from path_4.
+        for i = 1, 24 do
             local pathName = "path_" .. i
             BuildObject("cromine", MINE_TEAM, pathName)
         end
@@ -1330,12 +1332,15 @@ function Update()
         M.w3u3 = SpawnScriptedEnemy("svfigh", M.svrec, true, true)
         M.w3u4 = SpawnScriptedEnemy("svfigh", M.svrec, true, true)
         M.sent3Done = true
+        -- CR: attackpatrol2 is authored in the map (32 points, western side) but
+        -- the DLL never used it. Waves 3 and 4 split their sweep across both
+        -- routes; wave times, units and the wave 1/2 patrol path stay.
         Patrol(M.w3u3, "attackpatrol1", 1)
-        Patrol(M.w3u4, "attackpatrol1", 1)
+        Patrol(M.w3u4, "attackpatrol2", 1)
 
         for i = 1, DiffUtils.ScaleEnemy(2) - 2 do
             local h = SpawnScriptedEnemy("svfigh", M.svrec, true, true)
-            Patrol(h, "attackpatrol1", 1)
+            Patrol(h, (i % 2 == 0) and "attackpatrol1" or "attackpatrol2", 1)
             SetIndependence(h, 1)
         end
     end
@@ -1348,12 +1353,12 @@ function Update()
         M.w4u3 = SpawnScriptedEnemy(type4, M.svrec, true, true)
         M.w4u4 = SpawnScriptedEnemy(type4, M.svrec, true, true)
         M.sent4Done = true
-        Patrol(M.w4u3, "attackpatrol1", 1)
+        Patrol(M.w4u3, "attackpatrol2", 1)
         Patrol(M.w4u4, "attackpatrol1", 1)
 
         for i = 1, DiffUtils.ScaleEnemy(2) - 2 do
             local h = SpawnScriptedEnemy(type4, M.svrec, true, true)
-            Patrol(h, "attackpatrol1", 1)
+            Patrol(h, (i % 2 == 0) and "attackpatrol2" or "attackpatrol1", 1)
             SetIndependence(h, 1)
         end
     end
@@ -1371,6 +1376,8 @@ function Update()
     if (not M.neworders) and (M.readtime < GetTime()) then
         M.neworders = true
         subtit.Play("misn0506.wav")
+        -- CR: mark the factory the new orders tell the players to defend.
+        SetObjectiveOn(M.lemnos)
         M.newobjective = true
     end
 

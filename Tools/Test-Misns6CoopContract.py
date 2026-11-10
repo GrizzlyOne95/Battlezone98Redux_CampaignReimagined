@@ -87,7 +87,7 @@ assert scaled <= spawned and "avmine" not in scaled, "scaled ODFs are enemy raid
 assert 'local AIP = { ["misns6.aip"] = "crns6.aip" }' in lua_full, "stock svturr AIP is mapped to crns6.aip"
 aip = (ROOT / "ODF/crns6.aip").read_text(encoding="utf-8", errors="replace")
 items = re.findall(r'(?m)^\s*\d+,\s*"(\w+)"', aip)
-assert items and all(i.startswith("av") for i in items), "every build item of crns6.aip is American: " + str(items)
+assert items and all(i.startswith("bv") for i in items), "every build item of crns6.aip is Black Dog: " + str(items)
 
 # ---------------------------------------------------------------- the doc accounts for every authored path
 doc = (ROOT / "Docs/MISNS6_COOP.md").read_text(encoding="utf-8")

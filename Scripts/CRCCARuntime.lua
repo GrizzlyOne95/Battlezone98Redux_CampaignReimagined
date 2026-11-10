@@ -27,6 +27,36 @@ function Runtime.Create(getState, config)
 config = config or {}
 local ID = config.id or "cca"
 local M = getState()
+-- The CCA campaign uses Black Dog vehicles for the opposing force. Keep the faithful mission bodies readable
+-- against their source ports, and resolve their original American ODF names at the runtime boundary.
+local BLACK_DOG_ODFS = {
+    avapc = "bvapc",
+    avart8 = "bvartl",
+    avartl = "bvartl",
+    avcnst = "bvcnst",
+    avcns7 = "bvcnst",
+    avcns8 = "bvcnst",
+    avfigh = "bvraz",
+    avhraz = "bvhraz",
+    avltnk = "bvltnk",
+    avmine = "bvmine",
+    avmuf = "bvmuf",
+    avrecy = "bvrecy",
+    avrckt = "bvrckt",
+    avscav = "bvscav",
+    avslf = "bvslf",
+    avtank = "bvtank",
+    avturr = "bvturr",
+    avwalk = "bvwalk",
+}
+local ODF_REMAP = config.blackDogUnits and BLACK_DOG_ODFS or {}
+local function MapOdf(odf)
+    if type(odf) ~= "string" then return odf end
+    local suffix = string.sub(odf, -4) == ".odf" and ".odf" or ""
+    local name = suffix ~= "" and string.sub(odf, 1, -5) or odf
+    local replacement = ODF_REMAP[name]
+    return replacement and (replacement .. suffix) or odf
+end
 local LEADER_TEAM = config.leaderTeam or 1
 local ENEMY_TEAM = config.enemyTeam or 5
 local MAP_ENEMY_TEAM = config.mapEnemyTeam or 2
@@ -766,8 +796,10 @@ end
 function R.Spawn(odf, team, where, lift)
     local s = State()
     if not CRCoop.IsAuthority() then return nil end
+    local requestedOdf = odf
+    odf = MapOdf(odf)
     if team == MAP_ENEMY_TEAM then team = ENEMY_TEAM end
-    if not SCALED[odf] then return BuildObject(odf, team, Aloft(where, lift)) end
+    if not SCALED[requestedOdf] and not SCALED[odf] then return BuildObject(odf, team, Aloft(where, lift)) end
     if Ended() then return nil end
     s.serial = s.serial + 1
     local id = s.serial
@@ -1033,6 +1065,8 @@ end
 
 R.Coop, R.Exu, R.Native, R.Weather = CRCoop, exu, native, Weather
 R.State = State
+R.MapOdf = MapOdf
+function R.IsOdf(handle, odf) return IsOdf(handle, MapOdf(odf)) end
 R.Present = Present
 R.AudioMessage, R.StopAudioMessage = AudioMessage, StopAudioMessage
 R.CameraReady, R.CameraPath, R.CameraObject = CameraReady, CameraPath, CameraObject

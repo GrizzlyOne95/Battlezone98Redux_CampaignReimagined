@@ -81,7 +81,7 @@ do
     local lost = outcomes({}, scenarios.lose)
     check(lost == "FailMission:misns4l1.des", "offline defeat: " .. lost)
     -- offline there are no extras: the faithful counts
-    check(#builtAt(peer, "spawn4", "avfigh") == 3 and #builtAt(peer, "sbridge", "avtank") == 2, "offline builds the faithful counts")
+    check(#builtAt(peer, "spawn4", "bvraz") == 3 and #builtAt(peer, "sbridge", "bvtank") == 2, "offline builds the faithful counts")
 end
 
 -- ------------------------------------------------------------------ opening, ownership, teams, scrap
@@ -109,7 +109,7 @@ for i = 1, 4 do
     check(F.count(p[i], "SetObjectiveName") >= 1 and F.last(p[i], "SetObjectiveName")[3] == "Bridge", "the Bridge pod is named on peer " .. i)
 end
 for _, b in ipairs(F.builds(p[1])) do check(b.team == 1 or b.team == 5, "builds are on team 1 or 5") end
-check(#builtAt(p[1], "spawn2", "avartl") == 1 and #builtAt(p[1], "tower1", "abtowe") == 1 and #builtAt(p[1], "power2", "ablpow") == 1,
+check(#builtAt(p[1], "spawn2", "bvartl") == 1 and #builtAt(p[1], "tower1", "abtowe") == 1 and #builtAt(p[1], "power2", "ablpow") == 1,
     "the opening structures are built (towers, power, howitzer)")
 check(#builtAt(p[1], "svcnst", "svcnst") == 1 and #builtAt(p[1], "camerapt", "spcamr") == 1, "the Soviet constructor and the Bridge pod")
 for _, b in ipairs(F.builds(p[1], 0, "abtowe")) do check(b.team == 5, "enemy structures are team 5") end
@@ -117,9 +117,9 @@ guestsPassive(p)
 -- reminder fighter, raiders (+ extras), restored light tank
 F.run(40)
 check(F.alive(m.cam1), "pod alive")
-local figh = builtAt(p[1], "spawn4", "avfigh")
+local figh = builtAt(p[1], "spawn4", "bvraz")
 check(#figh == 1 + 2 + expectedExtras(4), "wakeup fighter + two raiders + 2 extras at spawn4: " .. #figh)
-check(#builtAt(p[1], "spawn4", "avltnk") == 1, "restored light tank rides with the raiders")
+check(#builtAt(p[1], "spawn4", "bvltnk") == 1, "restored light tank rides with the raiders")
 local wake = 0
 for _, c in ipairs(F.callsOf(p[1], "Goto")) do if c[3] == "wakeup" then wake = wake + 1 end end
 check(wake == 1, "only the reminder fighter is sent down the wakeup path")
@@ -128,9 +128,9 @@ allSafe(p, figh)
 guestsPassive(p)
 -- bridge guard at 100 s
 F.run(65)
-local tanks = builtAt(p[1], "sbridge", "avtank")
+local tanks = builtAt(p[1], "sbridge", "bvtank")
 check(#tanks == 2 + expectedExtras(4), "bridge guard: two tanks + 2 extras, got " .. #tanks)
-check(#builtAt(p[1], "sbridge", "avhraz") == 2, "bridge guard howitzer + the restored second howitzer")
+check(#builtAt(p[1], "sbridge", "bvhraz") == 2, "bridge guard howitzer + the restored second howitzer")
 check(type(m.t1) == "string" and type(m.b1) == "string" and type(m.b2) == "string", "tickets resolved to real handles")
 allSafe(p, tanks)
 
@@ -141,8 +141,8 @@ local expectedRockets = { 4, 5, 5, 6 }
 for n = 1, 4 do
     local w2, q, m2 = setup(n)
     F.run(110)
-    check(#builtAt(q[1], "spawn4", "avfigh") == expectedFigh[n], n .. " human(s): fighters at spawn4 = " .. expectedFigh[n])
-    check(#builtAt(q[1], "sbridge", "avtank") == expectedTanks[n], n .. " human(s): bridge tanks = " .. expectedTanks[n])
+    check(#builtAt(q[1], "spawn4", "bvraz") == expectedFigh[n], n .. " human(s): fighters at spawn4 = " .. expectedFigh[n])
+    check(#builtAt(q[1], "sbridge", "bvtank") == expectedTanks[n], n .. " human(s): bridge tanks = " .. expectedTanks[n])
     -- counterattack on the third hauler's deadline
     toConvoy(3)
     -- the live cap is tested separately: clear the field so each event is measured on its own
@@ -150,14 +150,14 @@ for n = 1, 4 do
     F.run(1)
     F.nearTo(q[1].player, "sbridge", 100, 0); F.run(3)
     check(m2.north_bridge, "approach starts the north force")
-    local north = builtAt(q[1], "spawn3", "avltnk")
+    local north = builtAt(q[1], "spawn3", "bvltnk")
     check(#north == 1 + expectedExtras(n), "north force: light tank + extras, got " .. #north)
-    for _, odf in ipairs({"avturr", "avscav", "avrecy"}) do check(#builtAt(q[1], "spawn3", odf) == 1, "one " .. odf .. " at spawn3") end
-    check(#builtAt(q[1], "spawn3", "avtank") == 1, "restored north tank")
+    for _, odf in ipairs({"bvturr", "bvscav", "bvrecy"}) do check(#builtAt(q[1], "spawn3", odf) == 1, "one " .. odf .. " at spawn3") end
+    check(#builtAt(q[1], "spawn3", "bvtank") == 1, "restored north tank")
     for _, o in pairs(F.world().objects) do if o.team == 5 and o.craft and o.alive then o.alive = false end end
     F.run(1)
     F.nearTo(haulers(q[1])[3].h, "warn1", 50, 0); F.run(3)
-    local rockets = builtAt(q[1], "counter", "avrckt")
+    local rockets = builtAt(q[1], "counter", "bvrckt")
     check(#rockets == expectedRockets[n], n .. " human(s): counter rockets = " .. expectedRockets[n] .. ", got " .. #rockets)
     allSafe(q, rockets)
     local routed = 0
@@ -177,11 +177,11 @@ do
     check(m2.north_bridge, "any human near the bridge starts the north force")
     local north = {}
     for _, b in ipairs(F.builds(q[1])) do
-        if b.odf == "avltnk" or b.odf == "avturr" or b.odf == "avscav" or b.odf == "avrecy" then north[#north + 1] = b end
+        if b.odf == "bvltnk" or b.odf == "bvturr" or b.odf == "bvscav" or b.odf == "bvrecy" then north[#north + 1] = b end
     end
-    check(#builtAt(q[1], "spawn3", "avltnk") == 0, "a watched spawn3 never pops units in beside a human")
+    check(#builtAt(q[1], "spawn3", "bvltnk") == 0, "a watched spawn3 never pops units in beside a human")
     allSafe(q, north)
-    check(#builtAt(q[1], "spawn4", "avltnk") >= 2 and #builtAt(q[1], "spawn4", "avrecy") == 1, "they fall back to another authored approach")
+    check(#builtAt(q[1], "spawn4", "bvltnk") >= 2 and #builtAt(q[1], "spawn4", "bvrecy") == 1, "they fall back to another authored approach")
     -- save/load keeps what is pending
     F.nearTo(q[3].player, "spawn4", 100, 0)
     F.nearTo(q[4].player, "counter", 100, 0)
@@ -207,15 +207,15 @@ do
     F.nearTo(haulers(q[1])[3].h, "warn1", 10, 0)
     F.run(4)
     check(m2.counter and type(m2.counter1) == "number" and m2.counter1 < 0, "the body holds tickets while every entrance is watched")
-    check(#builtAt(q[1], "counter", "avrckt") == 0 and #builtAt(q[1], "spawn3", "avrckt") == 0, "no rocket is built beside a human")
+    check(#builtAt(q[1], "counter", "bvrckt") == 0 and #builtAt(q[1], "spawn3", "bvrckt") == 0, "no rocket is built beside a human")
     local pending = m2.crcca.serial
     for _, r in ipairs(q) do r.env.Load(r.env.Save()) end
     F.connect(); F.run(3)
-    check(m2.crcca.serial == pending and #builtAt(q[1], "counter", "avrckt") == 0, "save/load keeps the pending wave without duplicating it")
+    check(m2.crcca.serial == pending and #builtAt(q[1], "counter", "bvrckt") == 0, "save/load keeps the pending wave without duplicating it")
     for i = 1, 3 do F.place(q[i].player, 20 * i, 40) end
     F.run(6)
     local total = 0
-    for _, where in ipairs({"counter", "spawn3", "spawn4"}) do total = total + #builtAt(q[1], where, "avrckt") end
+    for _, where in ipairs({"counter", "spawn3", "spawn4"}) do total = total + #builtAt(q[1], where, "bvrckt") end
     check(total == 6, "the whole wave is built exactly once, got " .. total)
     check(type(m2.counter1) == "string", "tickets resolve to real units")
 end
@@ -225,7 +225,7 @@ do
     m2.crcca.live = {}
     for i = 1, 12 do m2.crcca.live[i] = F.spawn("avtank", 5, 9000 + i, 9000) end
     F.run(40)
-    check(#builtAt(q[1], "spawn4", "avfigh") == 3, "at the live cap the raiders keep their primaries and drop the extras: " .. #builtAt(q[1], "spawn4", "avfigh"))
+    check(#builtAt(q[1], "spawn4", "bvraz") == 3, "at the live cap the raiders keep their primaries and drop the extras: " .. #builtAt(q[1], "spawn4", "bvraz"))
 end
 
 -- ------------------------------------------------------------------ the convoy: shared orders and markers
@@ -364,7 +364,7 @@ do
     local w2, q, m2 = setup(2, { setup = function(world) world.missingPaths = { spawn3 = true } end })
     F.run(110)
     F.nearTo(q[1].player, "sbridge", 100, 0); F.run(3)
-    check(#builtAt(q[1], "spawn3", "avtank") == 0, "a map without the path skips the restored tank")
+    check(#builtAt(q[1], "spawn3", "bvtank") == 0, "a map without the path skips the restored tank")
 end
 
 -- ------------------------------------------------------------------ weather: absent, present, broken

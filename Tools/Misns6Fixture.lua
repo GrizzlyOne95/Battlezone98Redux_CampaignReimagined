@@ -34,7 +34,7 @@ F.PATHS = {
     counter_attack={2347,38,101688}, counter_attack_path={2357,38,101579},
 }
 F.FAR = 50000
-local CRAFT = {avtank=true,avfigh=true,avscav=true,avturr=true,avmine=true,bvraz=true,bvltnk=true,bvtank=true,bvrckt=true,bvturr=true,svtank=true,svfigh=true,svturr=true,svwalk=true}
+local CRAFT = {bvscav=true,bvmine=true,avtank=true,avfigh=true,avscav=true,avturr=true,avmine=true,bvraz=true,bvltnk=true,bvtank=true,bvrckt=true,bvturr=true,svtank=true,svfigh=true,svturr=true,svwalk=true}
 local function vec(t) return {x = t[1], y = t[2], z = t[3]} end
 local function newObject(handle, odf, team, pos, craft)
     W.objects[handle] = {alive = true, odf = odf, team = team, health = 1, pos = vec(pos or {F.FAR, 6, F.FAR}),
