@@ -1112,9 +1112,9 @@ local function UpdateRecyclerEvacuation()
         if command ~= AiCommand.UNDEPLOY then
             SetCommand(M.avrecycler, AiCommand.UNDEPLOY, 1)
         end
-        if (M.recycler_pack_wait_until or 0) <= now then
-            M.recycler_pack_wait_until = now + 4.0
-        end
+        -- Restart the wait on every deployed poll, so it always runs from the
+        -- last time the Recycler was seen deployed, however long packing takes.
+        M.recycler_pack_wait_until = now + 4.0
 
         if M.recycler_follow_launch then
             M.recycler_pack_launch_issued = true

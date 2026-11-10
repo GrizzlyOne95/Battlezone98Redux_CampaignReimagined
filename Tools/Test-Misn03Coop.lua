@@ -583,7 +583,9 @@ check(last(garrison, "SetCommand")[2] == recycler and last(garrison, "SetCommand
     "a deployed Recycler is told to pack first")
 check(ordered("Follow", recycler, "launch_pad") == 0, "Follow must not cancel the pack order")
 local packs = count(garrison, "SetCommand")
-for i = 1, 15 do tick(0.1) end
+-- Stay deployed ~3.5 s: a wait measured from the first pack order would nearly
+-- have expired, so Follow would fire as soon as the Recycler finished packing.
+for i = 1, 34 do tick(0.1) end
 check(count(garrison, "SetCommand") == packs, "the pack order is not repeated while it is still current")
 objects[recycler].deployed = false
 for i = 1, 15 do tick(0.1) end
