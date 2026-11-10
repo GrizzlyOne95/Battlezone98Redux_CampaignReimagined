@@ -2,7 +2,7 @@
 
     blender -b --python Tools/hardpointmount_blender.py -- piece out.npz
 
-piece is rocket, cannon or mortar. The frame is the attach frame: x right, y the surface normal
+piece is rocket, cannon, mortar or sleek_cannon. The frame is the attach frame: x right, y the surface normal
 (out of the hull), z along the surface toward the front; the saddle sits on y = 0 and runs BURY
 below it, the part that is buried in the host hull. Every piece is built once, here, so its UV
 layout is shared by every unit that carries it; the build tool only moves and scales it.
@@ -181,6 +181,49 @@ def cannon():
     return body, (0., y, 1.40), (0., 0., 1.)
 
 
+# sleek_cannon blade: (z, half-width at the hull, height of the spine), tail to nose. Each section
+# is BLADE (x / half-width, y / height) on each side of a single spine vertex: a flared root that
+# runs tangent into the hull, then a narrow, sharp-ridged blade. Walls drop straight to -BURY.
+BLADE_SECTIONS = [(-.70, .030, .040), (-.58, .060, .060), (-.40, .100, .105), (-.15, .130, .155),
+                  (.10, .130, .180), (.32, .105, .165), (.48, .075, .130), (.62, .035, .060)]
+BLADE = [(1., 0.), (.80, .06), (.64, .16), (.50, .32), (.36, .52), (.22, .72), (.10, .88)]
+ROOT_BAND = .03  # blade faces wholly below this height are the saddle zone: the root band the checks measure
+
+
+def blade_x(z, y):
+    """Half-width of the blade surface at (z, height y)."""
+    zs, ws, hs = zip(*BLADE_SECTIONS); w, h = np.interp(z, zs, ws), np.interp(z, zs, hs)
+    a, b = zip(*BLADE)
+    return w * np.interp(y / h, b, a)
+
+
+def sleek_cannon():
+    """A low swept blade that grows out of the wing surface and narrows into a slim barrel; no
+    collars, housing or bracket. Glow slots are cut into each flank, a glow ring into the muzzle."""
+    rings = []
+    for z, w, h in BLADE_SECTIONS:
+        right = [(w * a, h * b, z) for a, b in BLADE]
+        rings.append([(w, -BURY, z)] + right + [(0., h, z)] + [(-x, y, z) for x, y, _ in reversed(right)] + [(-w, -BURY, z)])
+    body = loft('blade', rings, 'paint')
+    me = body.data  # the root band (and the buried walls and floor under it) is the saddle
+    for p in me.polygons:
+        if max(me.vertices[i].co.y for i in p.vertices) <= ROOT_BAND + 1e-6:
+            p.material_index = ZONES.index('saddle')
+    y = .085  # barrel axis height
+    boolean(body, lathe('shroud', [(0, -.25), (.030, -.12), (.046, .02), (.052, .16), (.047, .40), (.038, .62), (.034, .76), (.030, .79), (0, .79)],
+                        (0, y, 0), (0, 0, 1), 'paint'), 'UNION')
+    boolean(body, lathe('barrel', [(0, .70), (.0275, .70), (.0245, 1.27), (.020, 1.30), (0, 1.30)], (0, y, 0), (0, 0, 1), 'metal'), 'UNION')
+    boolean(body, lathe('bore', [(0, .95), (.015, .95), (.015, 1.40), (0, 1.40)], (0, y, 0), (0, 0, 1), 'bore'), 'DIFFERENCE')
+    boolean(body, lathe('glowring', [(.0205, 1.17), (.035, 1.17), (.035, 1.19), (.0205, 1.19)], (0, y, 0), (0, 0, 1), 'accent'), 'DIFFERENCE')
+    for side in (-1, 1):  # a tapered glow slot along each flank, cut .012 deep into the blade's own surface
+        sections = []
+        for z, height, half in ((-.42, .046, .002), (-.34, .052, .008), (.06, .068, .008), (.14, .072, .002)):
+            inner = blade_x(z, height) - .012
+            sections.append((z, side * (inner + .06), height, .06, half, half * .4))
+        boolean(body, prism('slot%d' % (side + 1), sections, 'accent'), 'DIFFERENCE')
+    return body, (0., y, 1.30), (0., 0., 1.)
+
+
 ELEVATION = 40.
 
 
@@ -200,7 +243,7 @@ def mortar():
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 MATERIALS = {z: bpy.data.materials.new(z) for z in ZONES}
-body, muzzle, fire = dict(rocket=rocket, cannon=cannon, mortar=mortar)[PIECE]()
+body, muzzle, fire = dict(rocket=rocket, cannon=cannon, mortar=mortar, sleek_cannon=sleek_cannon)[PIECE]()
 
 # The booleans leave fans of coplanar slivers: merge each flat region (per zone) and split it again cleanly.
 bm = bmesh.new(); bm.from_mesh(body.data); count = len(bm.faces)

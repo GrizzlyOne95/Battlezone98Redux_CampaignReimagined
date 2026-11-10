@@ -3,7 +3,8 @@ from pathlib import Path
 from hashlib import sha256
 import io,json,re,struct,sys
 sys.path.insert(0,str(Path(__file__).resolve().parent))
-from bzmodellibs import bwd2_serializer,ogremesh_serializer
+import importlib.util
+from bzmodellibs import bwd2_serializer,ogremesh_serializer,ogreskeleton_serializer
 from bcdds import bc_dds_problem
 ROOT=Path(__file__).resolve().parents[1]
 ORIGINAL=ROOT/'References/FuryFighter/original'
@@ -19,18 +20,52 @@ manifest=json.loads((ORIGINAL.parent/'provenance.json').read_text())
 for name,digest in manifest['original_sha256'].items():
     check(sha256(files[name.lower()].read_bytes()).hexdigest()==digest,'source asset provenance '+name)
 check('ISDF' not in manifest['source_folder'],'owner-selected standalone source')
-for old,new in [('hvraz.vdf','crfraz.vdf'),('hvraz.skeleton','crfraz.skeleton')]:
-    check(namespaced(files[old].read_bytes())==(ASSETS/new).read_bytes(),'native collision/animation bytes unchanged except part namespace')
+# The wing cannons (Tools/Build-HardpointMounts.py) move cfr11GC1/GC2 to their muzzles
+# (References/Hardpoints/crfraz.json, applied by Tools/Build-UnitAnimSlots.py). Those parts must
+# sit exactly at the receipt; putting the original values back must give every original byte.
+hp={p['name']:p for p in json.loads((ROOT/'References/Hardpoints/crfraz.json').read_text())['parts']}
+check(sorted(hp)==['cfr11GC1','cfr11GC2'] and all(p['existing'] and p['parent']==p['owner'] for p in hp.values()),'hardpoint receipt moves only the two existing wing cannon parts')
+near=lambda a,b:len(a)==len(b) and all(abs(x-y)<=1e-5 for x,y in zip(a,b))
+M12=lambda t:[t.rx,t.ry,t.rz,t.ux,t.uy,t.uz,t.fx,t.fy,t.fz,t.px,t.py,t.pz]
+original=namespaced(files['hvraz.vdf'].read_bytes())
+old=bwd2_serializer.VDFSerializer(io.BytesIO(original)).read();new=bwd2_serializer.VDFSerializer(io.BytesIO((ASSETS/'crfraz.vdf').read_bytes())).read()
+olds=list(old.all_geo_objects(raw=True));news=list(new.all_geo_objects(raw=True))
+check(olds and [o.name for o in olds]==[o.name for o in news],'VDF part records unchanged')
+seen=[]
+for o,n in zip(olds,news):
+    if n.name in hp:
+        check(n.parent_name()==hp[n.name]['parent'] and near(M12(n.transform),hp[n.name]['matrix']),'VDF hardpoint at its receipt: '+n.name)
+        n.transform=o.transform;seen.append(n.name)
+check(sorted(set(seen))==sorted(hp),'every receipt hardpoint has VDF records')
+for name,p in hp.items():
+    m,m0=new.anim_obj.mesh_map[name],old.anim_obj.mesh_map[name]
+    keys=list(new.anim_obj.slice_mesh_position_keyframes(m));keys0=list(old.anim_obj.slice_mesh_position_keyframes(m0))
+    check(keys and len(keys)==len(keys0) and all(near([k.position.x,k.position.y,k.position.z],p['matrix'][9:]) for k in keys) and near(M12(m.frame_transform),p['matrix']),'rest-only ANIM track follows the receipt: '+name)
+    for k,k0 in zip(keys,keys0):k.position=k0.position
+    m.frame_transform=m0.frame_transform
+out=io.BytesIO();bwd2_serializer.VDFSerializer(out).write(new)
+check(out.getvalue()==original,'native collision/animation bytes unchanged except part namespace and the receipt hardpoints')
+original=namespaced(files['hvraz.skeleton'].read_bytes())
+old=ogreskeleton_serializer.SkeletonSerializer(io.BytesIO(original)).read();new=ogreskeleton_serializer.SkeletonSerializer(io.BytesIO((ASSETS/'crfraz.skeleton').read_bytes())).read()
+for name,p in hp.items():
+    b,b0=new.get_bone_by_name(name),old.get_bone_by_name(name)
+    check(near([b.position.x,b.position.y,b.position.z],p['matrix'][9:]) and vars(b.orientation)==vars(b0.orientation),'skeleton hardpoint bone at its receipt: '+name)
+    b.position=b0.position
+out=io.BytesIO();ogreskeleton_serializer.SkeletonSerializer(out).write(new)
+check(out.getvalue()==original,'skeleton bytes unchanged except part namespace and the receipt hardpoint bones')
 for key,path in files.items():
     if key.endswith('.geo'):
         check(namespaced(path.read_bytes())==(ASSETS/('cfr11'+key[5:])).read_bytes(),'every legacy GEO companion is present and geometry unchanged: '+key)
 vdf=bwd2_serializer.VDFSerializer(io.BytesIO((ASSETS/'crfraz.vdf').read_bytes())).read()
 check(vdf.objcount==12,'complete 12-part VDF')
 parts={o.name for o in vdf.primary_objects()}
-for hp in ('cfr11GC1','cfr11GC2'):
-    check(hp in parts,'original weapon hardpoint survives: '+hp)
+for gc in ('cfr11GC1','cfr11GC2'):
+    check(gc in parts,'original weapon hardpoint survives: '+gc)
 def read_mesh(data):return ogremesh_serializer.MeshSerializer(io.BytesIO(data)).read()
-old=read_mesh(files['hvraz.mesh'].read_bytes());new=read_mesh((ASSETS/'crfraz.mesh').read_bytes())
+# The mesh carries exactly one trailing crfraz_hpmount submesh (the wing cannons); without it every
+# original submesh, bound and name must be unchanged.
+spec=importlib.util.spec_from_file_location('mounts',ROOT/'Tools/Build-HardpointMounts.py');mounts=importlib.util.module_from_spec(spec);spec.loader.exec_module(mounts)
+old=read_mesh(files['hvraz.mesh'].read_bytes());new=read_mesh(mounts.without_mount((ASSETS/'crfraz.mesh').read_bytes(),'crfraz'))
 check((old.skeleton_name is None)==(new.skeleton_name is None) and len(old.submesh_list)==len(new.submesh_list),'skeletal flag and submesh count preserved')
 check(new.skeleton_name=='crfraz.skeleton','only intended skeleton resource is selected')
 for so,sn in zip(old.submesh_list,new.submesh_list):

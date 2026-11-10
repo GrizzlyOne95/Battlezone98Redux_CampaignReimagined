@@ -56,7 +56,7 @@ CONFIG = {
                    at=(.9, 1.36, -.4), normal=(.29, .96, 0), fire=(0., 0, 1), base='f09fec92f1d6da20facde0d095c45f19a913c866'),
     'svfigh': dict(piece='rocket', part='SFL11GR1', owner='SFL11ROR', faction='cca', scale=.5, rollViews=('SFL11ROR',),
                    at=(0., .8, 2.35), normal=(0, .96, .27), fire=(0., 0, 1), base='628a1fa1646242e5405ce31f26dbf31f9f955abc'),
-    'crfraz': dict(piece='cannon', part='cfr11GC1', owner='cfr11bda', faction='cra', scale=1.2, mirror=dict(part='cfr11GC2', owner='cfr11bdb'), rollViews=('cfr11ror',),
+    'crfraz': dict(piece='sleek_cannon', part='cfr11GC1', owner='cfr11bda', faction='cra', scale=1.2, mirror=dict(part='cfr11GC2', owner='cfr11bdb'), rollViews=('cfr11ror',),
                    at=(2.2, 1.9, -1.0), normal=(.27, .95, .17), fire=(0., 0, 1), base='2390592bf72b8654606665f4b837e34818162fea'),
 }
 # avfigh carries its pod on the main body (ARA11BDA), on the +x lower sloped side facet (normal
@@ -67,8 +67,9 @@ CONFIG = {
 # facet clears it at all angles and the ground at once. Stock Gc1's own line already crosses the nose at rest.
 # crfraz (CR-original Fury port, receipt base CR@2390592b): stock GC1/GC2 sit inside the wing slab
 # near the tips, firing through the swept leading edge. A cannon each on the wing top, inboard of
-# the tip (mirrored pair on cfr11bda / cfr11bdb, children of the rolling cfr11ror); scale 1.2 keeps
-# the barrel stout on the 6 m wing without overhanging the leading edge.
+# the tip (mirrored pair on cfr11bda / cfr11bdb, children of the rolling cfr11ror). The piece is the
+# sleek_cannon (owner's call: no collars or housing): a swept blade growing out of the flat wing
+# top into a slim barrel, painted in the hull's dark with its cyan glow (hull_glow) in the slots.
 # Kit sheet only: the same pod upright on the left wing, a second mounting angle.
 WING = dict(CONFIG['avfigh'], scale=.85, at=(-1.4, .95, -1.45), normal=(-.29, .93, -.23))
 
@@ -322,9 +323,24 @@ def seat_paint(mesh, pose, seat, normal):
     return [float(v) for v in paint], [float(v) for v in accent], path, int(len(mark))
 
 
-def textures(name, kit, paint, faction):
+def hull_glow(atlas):
+    """The hull's own glow colour: the dominant hue among its bright, saturated texels (crfraz:
+    the cyan pods), the median of the brighter half of that hue."""
+    image = np.asarray(Image.open(atlas).convert('RGB'), float).reshape(-1, 3)
+    lit = image[(image.max(1) - image.min(1) > 80) & (image.max(1) > 120)]
+    assert len(lit) > 500, (atlas, 'no glow texels on the hull atlas')
+    hue = np.argmax(lit, 1) * 3 + np.argmin(lit, 1); lit = lit[hue == np.bincount(hue).argmax()]
+    lit = lit[lit.sum(1) >= np.median(lit.sum(1))]
+    return [float(v) for v in np.median(lit, 0)]
+
+
+def textures(name, kit, paint, faction, sleek=False):
     """D/N/S/E for one piece in one palette. Lines follow the piece's own creases and zone
-    borders, in its own frame (nj.mesh_edges); noise is seeded by name."""
+    borders, in its own frame (nj.mesh_edges); noise is seeded by name.
+
+    sleek (the sleek_cannon): all hull colours, no rivets; the root band only a shade darker than
+    the paint, gunmetal from the paint, faint edge wear in a lighter paint (no pale chips), and the
+    accent zone (glow slots and muzzle ring) in faction['glow'], lit in the emissive map."""
     tri, uv, tag = kit['tri'], kit['uv'], kit['zone']; SIZE = nj.SIZE
     face, weight = nj.raster(uv); filled = face >= 0; zone = np.where(filled, tag[np.where(filled, face, 0)], -1)
     rng = np.random.default_rng(int(hashlib.sha256(name.encode()).hexdigest()[:8], 16))
@@ -340,7 +356,7 @@ def textures(name, kit, paint, faction):
             ImageDraw.Draw(wear).line([tuple(a), tuple(b)], fill=255, width=int(2.6 * k))
         pa, pb, pc = (tri[fi][(corner + j) % 3] for j in range(3)); length = np.linalg.norm(pb - pa)
         height = np.linalg.norm(np.cross(pb - pa, pc - pa)) / max(length, 1e-9)
-        if tag[fi] == PAINT and convex and not border and length > .12 and height > .04:
+        if not sleek and tag[fi] == PAINT and convex and not border and length > .12 and height > .04:
             inset, count = .016 / height, int(length / .06)
             for s in (np.arange(count) + .5) / count:
                 q = (a * (1 - s) + b * s) * (1 - inset) + c * inset; r = 1.5 * k
@@ -350,16 +366,25 @@ def textures(name, kit, paint, faction):
     grime = nj.blurred(seam, 5); chipped = np.clip(nj.blurred(wear, 1.2) * (1.1 + .9 * mottle) - .25, 0, 1)
     paint = np.array(paint, float); body = paint * (1 + .07 * blotch[..., None] + .04 * mottle[..., None])
     colour = np.zeros((SIZE, SIZE, 3)); spec = np.zeros((SIZE, SIZE))
-    for value, base, shine in ((PAINT, body, 46), (SADDLE, body * .78, 36), (METAL, np.array((68., 71, 76)) * (1 + .06 * mottle[..., None]), 120),
-                               (BORE, np.array((22., 21, 22)) + 0 * body, 14), (ACCENT, np.array(faction['stripe'], float) * (1 + .05 * mottle[..., None]), 60)):
+    if sleek:
+        glow = np.array(faction['glow'], float); gunmetal = np.clip(paint * 1.35 + (6, 10, 16), 0, 255)
+        zones = ((PAINT, body, 70), (SADDLE, body * .9, 50), (METAL, gunmetal * (1 + .06 * mottle[..., None]), 120),
+                 (BORE, np.array((14., 14, 16)) + 0 * body, 10), (ACCENT, glow * .85 + 0 * body, 60))
+        worn_zones, worn_colour = (PAINT, SADDLE), np.clip(paint * 2., 0, 255); chipped = chipped * .5
+    else:
+        zones = ((PAINT, body, 46), (SADDLE, body * .78, 36), (METAL, np.array((68., 71, 76)) * (1 + .06 * mottle[..., None]), 120),
+                 (BORE, np.array((22., 21, 22)) + 0 * body, 14), (ACCENT, np.array(faction['stripe'], float) * (1 + .05 * mottle[..., None]), 60))
+        worn_zones, worn_colour = (PAINT, SADDLE, ACCENT), np.array((148., 150, 146))
+    for value, base, shine in zones:
         mask = zone == value; colour[mask] = np.broadcast_to(base, colour.shape)[mask]; spec[mask] = np.broadcast_to(shine, spec.shape)[mask]
-    worn = (chipped * np.isin(zone, (PAINT, SADDLE, ACCENT)))[..., None]
-    colour = colour * (1 - worn) + np.array((148., 150, 146)) * worn
+    worn = (chipped * np.isin(zone, worn_zones))[..., None]
+    colour = colour * (1 - worn) + worn_colour * worn
     colour *= ((1 - .5 * grime) * (1 - .7 * seam))[..., None] * (1 - .35 * rivet[..., None]) * (1 + .03 * grain[..., None])
     spec = (spec + 90 * worn[..., 0]) * (1 - .6 * seam)
     height = nj.blurred(rivet, .8) * .7 - nj.blurred(seam, .9)
     gy, gx = np.gradient(height); n = nj.unit_vectors(np.dstack([-gx * 3.5, -gy * 3.5, np.ones_like(gx)]))
-    images = dict(D=colour, N=(n * .5 + .5) * 255, S=np.repeat(spec[..., None], 3, 2), E=np.zeros((SIZE, SIZE, 3)))
+    emit = (np.array(faction['glow'], float) * (zone == ACCENT)[..., None]) if sleek else np.zeros((SIZE, SIZE, 3))
+    images = dict(D=colour, N=(n * .5 + .5) * 255, S=np.repeat(spec[..., None], 3, 2), E=emit)
     return {key: Image.fromarray(np.uint8(np.clip(nj.padded(v, filled), 0, 255))) for key, v in images.items()}, zone
 
 
@@ -478,7 +503,11 @@ def build(unit, render_sheets, shipping):
     rows = np.concatenate([s['rows'] for s in sides]); index = np.concatenate([s['index'] + sum(len(o['rows']) for o in sides[:i]) for i, s in enumerate(sides)])
     owners = np.concatenate([np.full(len(s['rows']), s['bone'].handle) for s in sides])
     material = unit + '_hpmount'; paint, accent, atlas, marks = seat_paint(mesh, pose, seat, M[1])
-    images, zone = textures(unit, kit, paint, dict(nj.FACTIONS[cfg['faction']], stripe=accent)); tex = save_textures(images, material, work)
+    sleek = cfg['piece'] == 'sleek_cannon'
+    if sleek:  # the accent is the hull's own glow, not its pale marking
+        accent = hull_glow(atlas)
+    images, zone = textures(unit, kit, paint, dict(nj.FACTIONS[cfg['faction']], stripe=accent, glow=accent if sleek else nj.FACTIONS[cfg['faction']]['glow']), sleek)
+    tex = save_textures(images, material, work)
     (work / (material + '.material')).write_text('\n'.join(['import * from "CR_BZBase.material"', ''] + nj.material_block(material)), newline='\n')
     nj.preview_mesh(mesh, material, rows, index, owners, work / f'{unit}.mesh')
     shipped = RECEIPTS / f'{unit}.json'  # the shipped VDF already carries an earlier mount's hardpoint: keep the stock point

@@ -1920,6 +1920,24 @@ to the ordinary GOG development mod.
   the ODFs it touched outside your unit.
 - The combat cockpit exterior leaves out the `<unit>_hpmount` submesh (svfigh). A mount on
   the nose is not drawn in the cockpit view.
+- `sleek_cannon` (crfraz): a fourth kit piece, a swept blade fairing lofted from `BLADE_SECTIONS`
+  into one slim barrel, with no collar or bracket. Its walls drop straight to -BURY, and
+  every blade face wholly below `ROOT_BAND` (0.03) is tagged saddle, so the flared root
+  runs tangent into the wing and the saddle checks measure that band. It uses the same place/mirror/UV/paint path, so the existing
+  muzzle, ground, part_clearance (with the cfr11ror sweep) and line-of-fire checks cover it.
+  It has 1,144 tris per side; the kit cannon had 1,016.
+- `textures(..., sleek=True)` drops the rivets and takes every zone colour from the hull.
+  `hull_glow(atlas)` picks the dominant saturated hue of the hull atlas (crfraz: cyan) for
+  the muzzle accent, and E is lit only on accent texels. No cream.
+- A test that pins a model "byte-identical except the mount" should restore and compare, not
+  skip bytes. In `Test-FuryFighterAssets.py`:
+  1. Read the VDF and skeleton through the toolkit.
+  2. Assert each GC record, ANIM rest key, frame_transform and bone position equals the
+     `References/Hardpoints` receipt.
+  3. Put the original values back.
+  4. Re-serialize and require exact equality with the namespaced original.
+  The toolkit round-trips both formats byte-exact, so nothing else can change unseen. The
+  mesh side strips the one trailing mount submesh with `without_mount`.
 
 ### Emissive pulse through surface clones (2026-11-10)
 
