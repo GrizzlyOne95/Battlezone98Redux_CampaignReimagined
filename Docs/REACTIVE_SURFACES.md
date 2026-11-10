@@ -81,11 +81,11 @@ material clones receive it: opacity ramps smoothly from zero below 50% hull to
 0.78 by 10%, and fades back on repair. This is a material overlay on the 3D
 cockpit geometry, separate from `CRWetGlass` and its screen fallback.
 Below 44% hull, the same mesh pass can draw brief blue-white arcs that jump
-between UV cells. The Direct3D 11 Enhanced path uses a small cockpit-specific
-fragment shader; other renderer delegates keep the charred layer and omit the
-arcs. EXU Ogre particles are reserved for sparks that should fly freely: their
-attachments follow the camera, vehicle or a bone, not an individual cockpit
-submesh.
+between UV cells. The Direct3D 11 Enhanced path uses the dedicated
+`CR_cockpit_damage-sm4.hlsl` fragment shader; other renderer delegates keep the
+charred layer and omit the arcs. EXU Ogre particles are reserved for sparks that
+should fly freely: their attachments follow the camera, vehicle or a bone, not
+an individual cockpit submesh.
 Impact dirt on the glass and saving the crack spot are not ported.
 `Tools/Test-CockpitGlassDamage.lua` covers the Lua crack and brownout path; the
 charred layer, surface arcs and emissive visuals still need native visual

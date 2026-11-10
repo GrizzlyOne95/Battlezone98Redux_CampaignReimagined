@@ -56,14 +56,14 @@ fragment_program CR_Textured_fragmentHLSL4Enhanced hlsl
     }
 }
 
-// Cockpit sparks stay on the UV-mapped second pass. Non-DX11 delegates retain
-// the charred overlay and silently omit the procedural arc pixels.
+// Dedicated DX11 fragment shader for the cockpit char/spark material pass.
+// Other delegates retain the charred overlay and omit the procedural arcs.
 fragment_program CR_CockpitSpark_fragmentHLSL4 hlsl
 {
-    source CR_textured-sm4.hlsl
+    source CR_cockpit_damage-sm4.hlsl
     target ps_4_0
-    entry_point textured_fragment
-    preprocessor_defines COCKPIT_SPARK_PASS,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1
+    entry_point cockpit_damage_fragment
+    preprocessor_defines OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1
     default_params
     {
         param_named surfaceSpark float4 0 0 0 0
