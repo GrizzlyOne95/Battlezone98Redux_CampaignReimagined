@@ -172,6 +172,8 @@ def part_triangles(mesh, pose, skeleton, parts, skip=None):
     dominant bone of its first vertex, and a bone that is not a VDF part to its nearest VDF ancestor."""
     names = {p.name.lower() for p in parts}; bones = {b.handle: b for b in skeleton.bones}
     def part_of(h):
+        if h not in bones:  # no bone assignment: static, checked at rest only
+            return '(unbound)'
         b = bones[h]
         while b.name.lower() not in names and b.parent is not None:
             b = bones[b.parent]
@@ -215,7 +217,8 @@ def part_clearance(mount, groups, parts, W, owner, seat, normal, saddle_top, muz
             if d is not None:
                 errors.append(f'mount sits in the line of fire of {p.name}, {d:.3f} m ahead')
     reach = np.linalg.norm(mount.reshape(-1, 3) - centre, axis=1).max()
-    near = lambda tris, pad: tris[np.linalg.norm(tris.mean(1) - centre, axis=1) < reach + pad]
+    span = lambda tris: np.linalg.norm(tris - tris.mean(1, keepdims=True), axis=2).max(1)  # a big panel's edge can touch the mount far from its centroid
+    near = lambda tris, pad: tris[np.linalg.norm(tris.mean(1) - centre, axis=1) - span(tris) < reach + pad]
     rest = {}
     for name, tris in sorted(groups.items()):
         if name == owner or not len(near(tris, .5)):
@@ -224,7 +227,8 @@ def part_clearance(mount, groups, parts, W, owner, seat, normal, saddle_top, muz
         if rest[name] <= 0:
             errors.append(f'mount intersects {name} at rest')
     h = (mount - seat) @ normal; upper = mount[h.min(1) > saddle_top]
-    body = float(cp.rotor_sweep(upper, near(groups.get(owner, np.zeros((0, 3, 3))), .5), np.zeros(3), (0, 0, 1.), [0.], .3).min()) if len(upper) else .3
+    hull = near(groups.get(owner, np.zeros((0, 3, 3))), .5)
+    body = float(cp.rotor_sweep(upper, hull, np.zeros(3), (0, 0, 1.), [0.], .3).min()) if len(upper) and len(hull) else .3
     if body <= 0:
         errors.append(f'mount body (above its saddle) intersects its owner {owner}')
     angles = np.arange(-cp.NOSE_ROLL_DEG, cp.NOSE_ROLL_DEG + .5, 1.); sweep = {}; blocked = {}; low = None
@@ -239,16 +243,17 @@ def part_clearance(mount, groups, parts, W, owner, seat, normal, saddle_top, muz
             moving |= more
         R, t = W[gimbal.name.lower()]; pivot = t * S; axis = nj.unit_vectors(R[GIMBAL_AXIS[gimbal.klass]] * S)
         if owner in moving:
-            static = np.concatenate([v for k, v in groups.items() if k not in moving]); static = near(static, 1.)
+            static = near(np.concatenate([v for k, v in groups.items() if k not in moving] + [np.zeros((0, 3, 3))]), 1.)
             gap = float(cp.rotor_sweep(mount, static, pivot, axis, angles, .2).min()) if len(static) else .2
             ground = min(float(((mount.reshape(-1, 3) - pivot) @ _rotation(axis, a).T + pivot)[:, 1].min()) for a in angles)
             low = round(ground - min(float(v[..., 1].min()) for v in groups.values()), 4)
         else:
-            tris = np.concatenate([groups[k] for k in moving if k in groups])
-            swing = 2 * math.sin(math.radians(cp.NOSE_ROLL_DEG) / 2) * np.linalg.norm(np.cross(tris.mean(1) - pivot, axis), axis=1)
-            tris = tris[np.linalg.norm(tris.mean(1) - centre, axis=1) - swing < reach + 1.]
+            every = np.concatenate([groups[k] for k in moving if k in groups] + [np.zeros((0, 3, 3))])
+            swing = 2 * math.sin(math.radians(cp.NOSE_ROLL_DEG) / 2) * np.linalg.norm(np.cross(every.mean(1) - pivot, axis), axis=1)
+            tris = every[np.linalg.norm(every.mean(1) - centre, axis=1) - swing - span(every) < reach + 1.]
             gap = float(cp.rotor_sweep(tris, mount, pivot, axis, angles, .2).min()) if len(tris) else .2
-            crossed = [float(a) for a in angles if len(tris) and any(nj.ahead((tris - pivot) @ _rotation(axis, a).T + pivot, r, fire) is not None for r in rays)]
+            # the line of fire is tested against the whole swept part, however far ahead it is
+            crossed = [float(a) for a in angles if len(every) and any(nj.ahead((every - pivot) @ _rotation(axis, a).T + pivot, r, fire) is not None for r in rays)]
             if crossed:
                 blocked[gimbal.name] = [min(crossed), max(crossed), len(crossed)]
                 if gimbal.name.lower() not in {f.lower() for f in fire_through}:
