@@ -4,6 +4,10 @@
 A mission keeps its faithful DLL port byte-for-byte and adds `-- CR ... >>` / `<<` regions (the source-parity test
 strips them and demands the original). The pattern is `Scripts/misns1cr.lua` (first user); copy it:
 
+The eight Soviet CCA missions opt into `blackDogUnits`. Their original NSDF ODF requests resolve to matching Black Dog
+ODFs for scripted spawns and `IsOdf` checks; authored map labels stay unchanged so mission logic and save states still
+find the same objects. The map files use Black Dog ODFs directly.
+
 1. Chunk-root region, after `M = NewState()` and before the helper locals:
    `local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, CONFIG)`
    then `local X = campaignRuntime and campaignRuntime.X or X` for every native the body calls (list below).
@@ -29,6 +33,7 @@ cutscenes are shared and unskippable in a network game; every optional subsystem
 | `leaderTeam` | 1 | The host's team (also the shared-scrap team). |
 | `enemyTeam` | 5 | The co-op enemy. `SetAIControl(enemyTeam, true)` at chunk load; `SetAIP` always uses it. |
 | `mapEnemyTeam` | 2 | The team the faithful body still says; mapped to `enemyTeam` in `Spawn`, `SetScrap`, `SetAIP`. |
+| `blackDogUnits` | `false` | Resolve the CCA missions' original NSDF ODF names to their Black Dog equivalents for spawns and class checks. |
 | `supportTeam` | 7 | Allied to humans. |
 | `hostileTeams` | `{enemyTeam}` | Teams un-allied from the humans. |
 | `rallyPoints` | nil | `{[0]="label"}` for the respawn service (the shared base). |
@@ -53,7 +58,7 @@ cutscenes are shared and unskippable in a network game; every optional subsystem
 
 ## API (`R`)
 
-Natives to shadow: `Spawn` (for `BuildObject`), `IsValid`, `IsAlive`, `GetDistance`, `GetNearestEnemy` (tickets are
+Natives to shadow: `Spawn` (for `BuildObject`), `IsOdf` (through `MapOdf`), `IsValid`, `IsAlive`, `GetDistance`, `GetNearestEnemy` (tickets are
 valid, alive and infinitely far), `SetScrap`, `SetAIP`, the order names, `AudioMessage`, `StopAudioMessage`,
 `CameraReady/Path/Object/Finish/Cancelled`, `ClearObjectives/AddObjective/UpdateObjective`,
 `SetObjectiveName/On/Off`, `RemoveObject`, `SucceedMission`, `FailMission`.
@@ -62,7 +67,7 @@ valid, alive and infinitely far), `SetScrap`, `SetAIP`, the order names, `AudioM
 replicates). Also: `BeginEvent()`, `WrapDistance(original)`, `GetPlayerHandle()` (the `PLAYERS` token, also `R.PLAYERS`),
 `PathExists(name)`, `HumanCount()`, `State()` (the saved `M.crcca` table; keep restoration state in `State().r`),
 `Present(op, ...)`, `Start/Update/AfterUpdate/Save/Load/AddObject/CreatePlayer/AddPlayer/DeletePlayer/Receive`,
-and `Coop/Exu/Native/Weather`.
+and `Coop/Exu/Native/Weather`. `R.MapOdf(name)` is the mission-scoped unit-name resolver used by `Spawn` and `R.IsOdf`.
 
 Single-player difficulty (co-op locks it, so a network game ignores it): when `DiffUtils` loads, each scaled spawn
 on the enemy team gets `enemy - 1` extras on average (Hard 0.5, randomly rounded; Very Hard 1), queued and capped like
