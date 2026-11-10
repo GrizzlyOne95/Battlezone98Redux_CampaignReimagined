@@ -98,7 +98,13 @@ PersistentConfig.DefaultSettings = {
     TeamColorPreset = 1,            -- 1=Default 2+=runtime team 1 tint presets
     ScrapPilotHudLayout = 1,        -- 1=Stock 2=Legacy
     RadarSizeScale = 1.00,          -- Independent radar size scale
-    DynamicFactionFlameColors = true, -- Team flame colors from faction nation codes
+    -- Superseded by OpenShim's per-craft faction flames ([Display] JetFlames).
+    -- This layer colours a whole TEAM from its nation code and has no Black Dog
+    -- or orange at all -- it maps 'b' to blue -- and because OpenShim yields to
+    -- an explicit EXU team colour, leaving it on silently suppressed the newer
+    -- per-craft routing entirely. Off means EXU holds no opinion and OpenShim
+    -- decides; missions can still set a team colour deliberately via exu.
+    DynamicFactionFlameColors = false, -- Legacy per-team flame colours (EXU)
 }
 
 PersistentConfig.Settings = DeepCopy(PersistentConfig.DefaultSettings)
@@ -4013,7 +4019,11 @@ function PersistentConfig._SyncTeamColorSettings(force, reason)
         PersistentConfig._AppliedTeamColorSignature = nil
     end
 
-    local needsRebuild = force or applied or (actualProfileAfter ~= actualProfileBefore)
+    -- A forced verification is not itself a visual change. Rebuilding cloned
+    -- materials every time ApplySettings() runs caused visible world-lighting
+    -- flashes on player craft transitions even when the profile was already
+    -- correct.
+    local needsRebuild = applied or (actualProfileAfter ~= actualProfileBefore)
     if needsRebuild
         and RuntimeEnhancements
         and type(RuntimeEnhancements.RebuildVisuals) == "function"
@@ -4023,8 +4033,6 @@ function PersistentConfig._SyncTeamColorSettings(force, reason)
             rebuildReason = tostring(rebuildReason) .. "+apply"
         elseif actualProfileAfter ~= actualProfileBefore then
             rebuildReason = tostring(rebuildReason) .. "+runtime"
-        elseif force then
-            rebuildReason = tostring(rebuildReason) .. "+force"
         end
         PersistentConfig._LogTeamColorSync(string.format(
             "rebuild reason=%s requested=%s actual=%s verified=%s",
@@ -5248,18 +5256,6 @@ function PersistentConfig._SettingsActions.AdjustRadarSizeScale(delta)
     return true
 end
 
-function PersistentConfig._SettingsActions.SetDynamicFactionFlameColorsEnabled(enabled)
-    local value = not not enabled
-    if PersistentConfig.Settings.DynamicFactionFlameColors == value then
-        return false
-    end
-
-    PersistentConfig.Settings.DynamicFactionFlameColors = value
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyFactionFlames = true })
-    ShowSettingsFeedback("Faction Flames: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
-    return true
-end
-
 function PersistentConfig._SettingsActions.CycleTeamColor(delta)
     local nextIndex = CycleIndex(
         PersistentConfig.Settings.TeamColorPreset,
@@ -5637,7 +5633,10 @@ function PersistentConfig.LoadConfig()
                 elseif key == "RadarSizeScale" then
                     PersistentConfig.Settings.RadarSizeScale = tonumber(val) or 1.0
                 elseif key == "DynamicFactionFlameColors" then
-                    PersistentConfig.Settings.DynamicFactionFlameColors = (val == "true")
+                    -- Legacy key, no longer persisted. Old installs saved `true`
+                    -- (the former default), which would keep overriding
+                    -- OpenShim's per-craft faction flames. Ignore it; the next
+                    -- save drops the line.
                 elseif key == "UnitPreset" then
                     local unitOdf, slotIndex, powerupOdf = string.match(val, "([^|]+)|([^|]+)|(.+)")
                     local unitKey = string.lower(CleanString(unitOdf or ""))
@@ -5774,7 +5773,6 @@ function PersistentConfig.SaveConfig()
         f:Writeln("TeamColorPreset=" .. tostring(PersistentConfig.Settings.TeamColorPreset))
         f:Writeln("ScrapPilotHudLayout=" .. tostring(PersistentConfig.Settings.ScrapPilotHudLayout))
         f:Writeln("RadarSizeScale=" .. tostring(PersistentConfig.Settings.RadarSizeScale))
-        f:Writeln("DynamicFactionFlameColors=" .. tostring(PersistentConfig.Settings.DynamicFactionFlameColors))
         for unitKey, preset in pairs(PersistentConfig.UnitPresets) do
             for slotIndex = 1, 5 do
                 local powerupOdf = preset[slotIndex]
@@ -6163,7 +6161,12 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     end
     if now >= (InputState.nextFactionFlameRefresh or 0.0) then
         InputState.nextFactionFlameRefresh = now + 1.0
-        PersistentConfig._ApplyDynamicFactionFlameColors()
+        -- Off (the default): ApplySettings already cleared every EXU team
+        -- colour once; do not keep clearing, or a mission's deliberate
+        -- exu.SetTeamEngineFlameColor would be wiped every second.
+        if PersistentConfig.Settings.DynamicFactionFlameColors then
+            PersistentConfig._ApplyDynamicFactionFlameColors()
+        end
         -- Cheap native drift repair: no-ops unless a rebuilt viewport (satellite
         -- view, sniper scope, resolution change) lost the enhanced/retro scheme.
         if exu and type(exu.EnforceLightingMode) == "function" then

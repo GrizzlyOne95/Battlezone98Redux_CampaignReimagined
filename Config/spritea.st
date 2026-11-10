@@ -880,3 +880,19 @@
 "button_analog_base"               Hudcombi            40   364   270   266  1024  1024 0x00000000
 "button_tap_here"                  Hudcombi           310   335   100   235  1024  1024 0x00000000
 "button_area_square"               Hudcombi           675   340   320   320  1024  1024 0x00000000
+
+# --- Campaign Reimagined additions ---
+# APPEND ONLY. Sprite handles are row indices plus a fixed base, so any
+# insertion above this point renumbers every sprite that follows.
+
+# Burnt Orange Exhaust Flame (CCA) -- OpenShim resolves "exhaust_o.0" by name
+"exhaust_o.0"                      oflame               0     0   128    23   128   128 0x00000010
+"exhaust_o.1"                      oflame               0    23   128    23   128   128 0x00000010
+"exhaust_o.2"                      oflame               0    46   128    23   128   128 0x00000010
+"exhaust_o.3"                      oflame               0    69   128    23   128   128 0x00000010
+
+# Blood Red Exhaust Flame (Black Dog) -- OpenShim resolves "exhaust_bd.0" by name
+"exhaust_bd.0"                     bdflame              0     0   128    23   128   128 0x00000010
+"exhaust_bd.1"                     bdflame              0    23   128    23   128   128 0x00000010
+"exhaust_bd.2"                     bdflame              0    46   128    23   128   128 0x00000010
+"exhaust_bd.3"                     bdflame              0    69   128    23   128   128 0x00000010
