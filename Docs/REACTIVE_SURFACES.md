@@ -71,8 +71,25 @@ controller keeps calling `CRWetGlass.Update(0)` until it has faded. A real hull
 loss of 5% or more in one tick also dims the cockpit emission briefly through
 `surfaceState.w` (eased down in about 0.1 s, back over about a second, at most
 60%, 0.4 s cooldown). Repair, boarding and the first sample never trigger it.
+The owned cockpit glow pass now starts health-scaled flickering below 50% hull.
+Below 25% (clearing above 30%) it cycles through short blackouts and brief red
+alarm flashes on the player's cockpit emissives; the hit-triggered brownout
+continues on its existing channel. The charred layer is a translucent second
+pass on the Enhanced cockpit submesh UVs, using the tileable
+`cr_cockpit_charred.png` soot/singe map. Only the player's owned F1 cockpit
+material clones receive it: opacity ramps smoothly from zero below 50% hull to
+0.78 by 10%, and fades back on repair. This is a material overlay on the 3D
+cockpit geometry, separate from `CRWetGlass` and its screen fallback.
+Below 44% hull, the same mesh pass can draw brief blue-white arcs that jump
+between UV cells. The Direct3D 11 Enhanced path uses the dedicated
+`CR_cockpit_damage-sm4.hlsl` fragment shader; other renderer delegates keep the
+charred layer and omit the arcs. EXU Ogre particles are reserved for sparks that
+should fly freely: their attachments follow the camera, vehicle or a bone, not
+an individual cockpit submesh.
 Impact dirt on the glass and saving the crack spot are not ported.
-`Tools/Test-CockpitGlassDamage.lua` covers this.
+`Tools/Test-CockpitGlassDamage.lua` covers the Lua crack and brownout path; the
+charred layer, surface arcs and emissive visuals still need native visual
+qualification.
 
 Rain reaches every material in one synchronised sweep: shared materials and
 owned clones (towers, hit units) all receive the same swept value, which moves

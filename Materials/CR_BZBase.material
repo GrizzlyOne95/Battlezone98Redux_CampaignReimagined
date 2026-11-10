@@ -2367,6 +2367,31 @@ material CR_BZBase
 	}
 }
 
+// Health-driven scorch overlay on cockpit submesh UVs. CRSurfaceEffects sets
+// pass diffuse alpha on owned player-cockpit clones; zero is invisible by default.
+abstract pass CRPassCockpitCharred
+{
+	lighting off
+	depth_check on
+	depth_write off
+	scene_blend alpha_blend
+	diffuse 1 1 1 0
+	emissive 1 1 1
+
+	vertex_program_ref CR_Textured_vertex
+	{
+	}
+	fragment_program_ref CR_CockpitSpark_fragment
+	{
+	}
+
+	texture_unit diffuseMap
+	{
+		texture cr_cockpit_charred.png
+		tex_address_mode wrap
+	}
+}
+
 material CR_BZBaseCockpit
 {
 	receive_shadows off
@@ -2521,6 +2546,10 @@ material CR_BZBaseCockpit
 				texture cr_team_off.dds 2d
 			}
 		}
+
+		pass : CRPassCockpitCharred
+		{
+		}
 	}
 
 	technique
@@ -2569,6 +2598,10 @@ material CR_BZBaseCockpit
 				texture_alias TeamMask
 				texture cr_team_off.dds 2d
 			}
+		}
+
+		pass : CRPassCockpitCharred
+		{
 		}
 	}
 
@@ -2619,6 +2652,10 @@ material CR_BZBaseCockpit
 				texture cr_team_off.dds 2d
 			}
 		}
+
+		pass : CRPassCockpitCharred
+		{
+		}
 	}
 
 	technique
@@ -2630,6 +2667,10 @@ material CR_BZBaseCockpit
 			fragment_program_ref CR_ShimOrStock_BaseENMediumNoShadow_fragment
 			{
 			}
+		}
+
+		pass : CRPassCockpitCharred
+		{
 		}
 	}
 
@@ -2643,6 +2684,10 @@ material CR_BZBaseCockpit
 			{
 			}
 		}
+
+		pass : CRPassCockpitCharred
+		{
+		}
 	}
 
 	technique
@@ -2654,6 +2699,10 @@ material CR_BZBaseCockpit
 			fragment_program_ref CR_ShimOrStock_BaseENMediumNoShadow_fragment
 			{
 			}
+		}
+
+		pass : CRPassCockpitCharred
+		{
 		}
 	}
 
@@ -2667,6 +2716,10 @@ material CR_BZBaseCockpit
 			{
 			}
 		}
+
+		pass : CRPassCockpitCharred
+		{
+		}
 	}
 
 	technique
@@ -2678,6 +2731,10 @@ material CR_BZBaseCockpit
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
+		}
+
+		pass : CRPassCockpitCharred
+		{
 		}
 	}
 
@@ -2691,6 +2748,10 @@ material CR_BZBaseCockpit
 			{
 			}
 		}
+
+		pass : CRPassCockpitCharred
+		{
+		}
 	}
 
 	technique
@@ -2702,6 +2763,10 @@ material CR_BZBaseCockpit
 			fragment_program_ref CR_ShimOrStock_BaseENLowestNoShadow_fragment
 			{
 			}
+		}
+
+		pass : CRPassCockpitCharred
+		{
 		}
 	}
 
@@ -2715,6 +2780,10 @@ material CR_BZBaseCockpit
 			{
 			}
 		}
+
+		pass : CRPassCockpitCharred
+		{
+		}
 	}
 
 	technique
@@ -2726,6 +2795,10 @@ material CR_BZBaseCockpit
 			fragment_program_ref CR_ShimOrStock_BaseENLowestNoShadow_fragment
 			{
 			}
+		}
+
+		pass : CRPassCockpitCharred
+		{
 		}
 	}
 
