@@ -101,6 +101,20 @@ material avhraz00_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_avhraz_d.dds
 }
 
+material avhraz_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap avhraz_nacjet_D.dds
+	set_texture_alias NormalMap avhraz_nacjet_N.dds
+	set_texture_alias SpecularMap avhraz_nacjet_S.dds
+	set_texture_alias EmissiveMap avhraz_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_avhraz_nacjet_d.dds
+}
+
 material avland00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap avland_D.dds
@@ -130,6 +144,20 @@ material avltnk00_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_avltnk_d.dds
 }
 
+material avltnk_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap avltnk_nacjet_D.dds
+	set_texture_alias NormalMap avltnk_nacjet_N.dds
+	set_texture_alias SpecularMap avltnk_nacjet_S.dds
+	set_texture_alias EmissiveMap avltnk_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_avltnk_nacjet_d.dds
+}
+
 material avmine00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap avmine_D.dds
@@ -142,6 +170,20 @@ material avmine00_tm : CR_BZBase
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set_texture_alias TeamMask crteam_avmine_d.dds
+}
+
+material avmine_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap avmine_nacjet_D.dds
+	set_texture_alias NormalMap avmine_nacjet_N.dds
+	set_texture_alias SpecularMap avmine_nacjet_S.dds
+	set_texture_alias EmissiveMap avmine_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_avmine_nacjet_d.dds
 }
 
 material avmuf00_tm : CR_BZBase
@@ -170,6 +212,20 @@ material avrckt00_tm : CR_BZBase
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set_texture_alias TeamMask crteam_avrckt_d.dds
+}
+
+material avrckt_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap avrckt_nacjet_D.dds
+	set_texture_alias NormalMap avrckt_nacjet_N.dds
+	set_texture_alias SpecularMap avrckt_nacjet_S.dds
+	set_texture_alias EmissiveMap avrckt_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_avrckt_nacjet_d.dds
 }
 
 material avrecy00_tm : CR_BZBase
@@ -254,6 +310,20 @@ material avtank00_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_avtank_d.dds
 }
 
+material avtank_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap avtank_nacjet_D.dds
+	set_texture_alias NormalMap avtank_nacjet_N.dds
+	set_texture_alias SpecularMap avtank_nacjet_S.dds
+	set_texture_alias EmissiveMap avtank_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_avtank_nacjet_d.dds
+}
+
 material avtest00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap avtest_D.dds
@@ -266,6 +336,20 @@ material avtest00_tm : CR_BZBase
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set_texture_alias TeamMask crteam_avtest_d.dds
+}
+
+material avtest_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap avtest_nacjet_D.dds
+	set_texture_alias NormalMap avtest_nacjet_N.dds
+	set_texture_alias SpecularMap avtest_nacjet_S.dds
+	set_texture_alias EmissiveMap avtest_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_avtest_nacjet_d.dds
 }
 
 material avturr00_tm : CR_BZBase
@@ -366,6 +450,20 @@ material bvhraz00_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_bvhraz_d.dds
 }
 
+material bvhraz_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap bvhraz_nacjet_D.dds
+	set_texture_alias NormalMap bvhraz_nacjet_N.dds
+	set_texture_alias SpecularMap bvhraz_nacjet_S.dds
+	set_texture_alias EmissiveMap bvhraz_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_bvhraz_nacjet_d.dds
+}
+
 material bvltnk00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap bvltnk_D.dds
@@ -380,6 +478,20 @@ material bvltnk00_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_bvltnk_d.dds
 }
 
+material bvltnk_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap bvltnk_nacjet_D.dds
+	set_texture_alias NormalMap bvltnk_nacjet_N.dds
+	set_texture_alias SpecularMap bvltnk_nacjet_S.dds
+	set_texture_alias EmissiveMap bvltnk_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_bvltnk_nacjet_d.dds
+}
+
 material bvmine00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap bvmine_D.dds
@@ -392,6 +504,20 @@ material bvmine00_tm : CR_BZBase
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set_texture_alias TeamMask crteam_bvmine_d.dds
+}
+
+material bvmine_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap bvmine_nacjet_D.dds
+	set_texture_alias NormalMap bvmine_nacjet_N.dds
+	set_texture_alias SpecularMap bvmine_nacjet_S.dds
+	set_texture_alias EmissiveMap bvmine_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_bvmine_nacjet_d.dds
 }
 
 material BVMRU_tm : CR_BZBase
@@ -436,6 +562,20 @@ material bvraz00_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_bvraz_d.dds
 }
 
+material bvraz_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap bvraz_nacjet_D.dds
+	set_texture_alias NormalMap bvraz_nacjet_N.dds
+	set_texture_alias SpecularMap bvraz_nacjet_S.dds
+	set_texture_alias EmissiveMap bvraz_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_bvraz_nacjet_d.dds
+}
+
 material bvrckt00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap bvrckt_D.dds
@@ -448,6 +588,20 @@ material bvrckt00_tm : CR_BZBase
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set_texture_alias TeamMask crteam_bvrckt_d.dds
+}
+
+material bvrckt_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap bvrckt_nacjet_D.dds
+	set_texture_alias NormalMap bvrckt_nacjet_N.dds
+	set_texture_alias SpecularMap bvrckt_nacjet_S.dds
+	set_texture_alias EmissiveMap bvrckt_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_bvrckt_nacjet_d.dds
 }
 
 material bvrdev_tm : CR_BZBase
@@ -518,6 +672,20 @@ material bvtank00_tm : CR_BZBase
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set_texture_alias TeamMask crteam_bvtank_d.dds
+}
+
+material bvtank_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap bvtank_nacjet_D.dds
+	set_texture_alias NormalMap bvtank_nacjet_N.dds
+	set_texture_alias SpecularMap bvtank_nacjet_S.dds
+	set_texture_alias EmissiveMap bvtank_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_bvtank_nacjet_d.dds
 }
 
 material bvturr00_tm : CR_BZBase
@@ -617,6 +785,20 @@ material cvfigh_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_cvfigh_d.dds
 }
 
+material cvfigh_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap cvfigh_nacjet_D.dds
+	set_texture_alias NormalMap cvfigh_nacjet_N.dds
+	set_texture_alias SpecularMap cvfigh_nacjet_S.dds
+	set_texture_alias EmissiveMap cvfigh_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_cvfigh_nacjet_d.dds
+}
+
 material cvhaul_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap cvhaul_d.dds
@@ -643,6 +825,20 @@ material cvhraz_tm : CR_BZBase
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set_texture_alias TeamMask crteam_cvhraz_d.dds
+}
+
+material cvhraz_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap cvhraz_nacjet_D.dds
+	set_texture_alias NormalMap cvhraz_nacjet_N.dds
+	set_texture_alias SpecularMap cvhraz_nacjet_S.dds
+	set_texture_alias EmissiveMap cvhraz_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_cvhraz_nacjet_d.dds
 }
 
 material cvhtnk_tm : CR_BZBase
@@ -685,6 +881,20 @@ material cvmine_tm : CR_BZBase
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set_texture_alias TeamMask crteam_cvmine_d.dds
+}
+
+material cvmine_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap cvmine_nacjet_D.dds
+	set_texture_alias NormalMap cvmine_nacjet_N.dds
+	set_texture_alias SpecularMap cvmine_nacjet_S.dds
+	set_texture_alias EmissiveMap cvmine_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_cvmine_nacjet_d.dds
 }
 
 material cvmuf_tm : CR_BZBase
@@ -814,6 +1024,20 @@ material svapc00_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_svapc_d.dds
 }
 
+material svapc_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap svapc_nacjet_D.dds
+	set_texture_alias NormalMap svapc_nacjet_N.dds
+	set_texture_alias SpecularMap svapc_nacjet_S.dds
+	set_texture_alias EmissiveMap svapc_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_svapc_nacjet_d.dds
+}
+
 material svartl00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap svartl_d.dds
@@ -826,6 +1050,20 @@ material svartl00_tm : CR_BZBase
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set_texture_alias TeamMask crteam_svartl_d.dds
+}
+
+material svartl_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap svartl_nacjet_D.dds
+	set_texture_alias NormalMap svartl_nacjet_N.dds
+	set_texture_alias SpecularMap svartl_nacjet_S.dds
+	set_texture_alias EmissiveMap svartl_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_svartl_nacjet_d.dds
 }
 
 material svcnst00_tm : CR_BZBase
@@ -856,6 +1094,20 @@ material svfigh00_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_svfigh_d.dds
 }
 
+material svfigh_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap svfigh_nacjet_D.dds
+	set_texture_alias NormalMap svfigh_nacjet_N.dds
+	set_texture_alias SpecularMap svfigh_nacjet_S.dds
+	set_texture_alias EmissiveMap svfigh_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_svfigh_nacjet_d.dds
+}
+
 material svhaul00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap svhaul_d.dds
@@ -868,6 +1120,20 @@ material svhaul00_tm : CR_BZBase
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set_texture_alias TeamMask crteam_svhaul_d.dds
+}
+
+material svhaul_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap svhaul_nacjet_D.dds
+	set_texture_alias NormalMap svhaul_nacjet_N.dds
+	set_texture_alias SpecularMap svhaul_nacjet_S.dds
+	set_texture_alias EmissiveMap svhaul_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_svhaul_nacjet_d.dds
 }
 
 material svhraz00_tm : CR_BZBase
@@ -884,6 +1150,20 @@ material svhraz00_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_svhraz_d.dds
 }
 
+material svhraz_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap svhraz_nacjet_D.dds
+	set_texture_alias NormalMap svhraz_nacjet_N.dds
+	set_texture_alias SpecularMap svhraz_nacjet_S.dds
+	set_texture_alias EmissiveMap svhraz_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_svhraz_nacjet_d.dds
+}
+
 material svltnk00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap svltnk_d.dds
@@ -896,6 +1176,20 @@ material svltnk00_tm : CR_BZBase
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set_texture_alias TeamMask crteam_svltnk_d.dds
+}
+
+material svltnk_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap svltnk_nacjet_D.dds
+	set_texture_alias NormalMap svltnk_nacjet_N.dds
+	set_texture_alias SpecularMap svltnk_nacjet_S.dds
+	set_texture_alias EmissiveMap svltnk_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_svltnk_nacjet_d.dds
 }
 
 material svmine00_tm : CR_BZBase
@@ -912,6 +1206,20 @@ material svmine00_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_svmine_d.dds
 }
 
+material svmine_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap svmine_nacjet_D.dds
+	set_texture_alias NormalMap svmine_nacjet_N.dds
+	set_texture_alias SpecularMap svmine_nacjet_S.dds
+	set_texture_alias EmissiveMap svmine_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_svmine_nacjet_d.dds
+}
+
 material svmuf00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap svmuf_d.dds
@@ -924,6 +1232,20 @@ material svmuf00_tm : CR_BZBase
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set_texture_alias TeamMask crteam_svmuf_d.dds
+}
+
+material svmuf_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap svmuf_nacjet_D.dds
+	set_texture_alias NormalMap svmuf_nacjet_N.dds
+	set_texture_alias SpecularMap svmuf_nacjet_S.dds
+	set_texture_alias EmissiveMap svmuf_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_svmuf_nacjet_d.dds
 }
 
 material svrckt00_tm : CR_BZBase
@@ -940,6 +1262,20 @@ material svrckt00_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_svrckt_d.dds
 }
 
+material svrckt_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap svrckt_nacjet_D.dds
+	set_texture_alias NormalMap svrckt_nacjet_N.dds
+	set_texture_alias SpecularMap svrckt_nacjet_S.dds
+	set_texture_alias EmissiveMap svrckt_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_svrckt_nacjet_d.dds
+}
+
 material svrecy00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap svrecy_d.dds
@@ -952,6 +1288,20 @@ material svrecy00_tm : CR_BZBase
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set_texture_alias TeamMask crteam_svrecy_d.dds
+}
+
+material svrecy_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap svrecy_nacjet_D.dds
+	set_texture_alias NormalMap svrecy_nacjet_N.dds
+	set_texture_alias SpecularMap svrecy_nacjet_S.dds
+	set_texture_alias EmissiveMap svrecy_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_svrecy_nacjet_d.dds
 }
 
 material svsav_tm : CR_BZBase
@@ -982,6 +1332,20 @@ material svscav00_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_svscav_d.dds
 }
 
+material svscav_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap svscav_nacjet_D.dds
+	set_texture_alias NormalMap svscav_nacjet_N.dds
+	set_texture_alias SpecularMap svscav_nacjet_S.dds
+	set_texture_alias EmissiveMap svscav_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_svscav_nacjet_d.dds
+}
+
 material svslf00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap svslf_d.dds
@@ -994,6 +1358,20 @@ material svslf00_tm : CR_BZBase
 	set $specular ".7 .7 .7"
 	set $shininess "127"
 	set_texture_alias TeamMask crteam_svslf_d.dds
+}
+
+material svslf_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap svslf_nacjet_D.dds
+	set_texture_alias NormalMap svslf_nacjet_N.dds
+	set_texture_alias SpecularMap svslf_nacjet_S.dds
+	set_texture_alias EmissiveMap svslf_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_svslf_nacjet_d.dds
 }
 
 material svtank00_tm : CR_BZBase

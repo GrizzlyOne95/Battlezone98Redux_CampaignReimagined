@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "sources": {
-    "exteriorSha256": "8bde0ed33f7f4819abed5d5e442ec10fcf37990f02186ff5055d0169411ebbb2",
+    "exteriorSha256": "97136c7f9a1fbd6c75d94b32e90c76fd568ef9e96f58fcf82a4bfe070744f11b",
     "skeletonSha256": "00ea42ea2f580a3c982180c93204866d1ccf443f1eba6a62754f70c6069d3acd"
   },
   "outputs": {
@@ -698,7 +698,7 @@
       "front": 0.91,
       "roof": 0.62
     },
-    "nativeVdfSha256": "fb4bdf8c4e8f4ccd3c768417eab9bbafcf076ee8d77f077b9791b69ac23afaaf",
+    "nativeVdfSha256": "6b34c1704fa3aa464a9d473a66fbde0df9e66c87dcc58b0c187f065059a050c5",
     "apronTransform": [
       [
         1.35,

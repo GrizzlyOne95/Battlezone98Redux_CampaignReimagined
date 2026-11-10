@@ -30,8 +30,16 @@ material svartl01 : CR_BZBaseCockpit
 }
 
 
+material svartl_nacjet : CR_BZBase
+{
+	set_texture_alias DiffuseMap svartl_nacjet_D.dds
+	set_texture_alias NormalMap svartl_nacjet_N.dds
+	set_texture_alias SpecularMap svartl_nacjet_S.dds
+	set_texture_alias EmissiveMap svartl_nacjet_E.dds
 
-
-
-
-
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+}

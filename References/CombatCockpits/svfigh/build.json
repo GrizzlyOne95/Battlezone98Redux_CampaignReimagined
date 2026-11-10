@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "sources": {
-    "exteriorSha256": "8504cffa1c22ff76013538189ac40c1083fbe90a9908b76487e10fe066849144",
+    "exteriorSha256": "7df70f0af01431b8f66e16a9037bd519fd45b7fbd100d837862a243f90b53260",
     "stockSkeletonSha256": "1ec0ac4acbe9137c4243ea0792aecfb3d76ca32e1f539d6095eeae34b0c2e01c",
     "skeletonSha256": "d38714d9f745c798088644ec7cd380f70882271473c6d5e900727285283c4329"
   },
@@ -6304,7 +6304,7 @@
         ]
       }
     ],
-    "nativeVdfSha256": "ce6dbe71df7efb6fdd007e2ca5810b323777e886fe79d75a1ddc10d66a6750ba"
+    "nativeVdfSha256": "fbca9aec7cc884dbba04ca88b5417bca2fd950d70511f3a83c9a58a6f298906e"
   },
   "glass": {
     "openFraction": 0.4409600362277822,

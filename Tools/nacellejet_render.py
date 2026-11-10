@@ -65,9 +65,11 @@ def add_mesh(name, positions, tris, uvs=None, smooth=0):
     return o
 
 
-def cone(name, top, radius, length, tip, material):
-    """Flame stand-in: starts at the emit point and runs along the part's -Y."""
-    ring = [(top[0] + r * math.cos(a), top[1] - y, top[2] + r * math.sin(a)) for y, r in ((0, radius), (length, tip)) for a in np.linspace(0, 2 * math.pi, 24, endpoint=False)]
+def cone(name, top, axis, radius, length, tip, material):
+    """Flame stand-in: starts at the emit point and runs along the flame direction (mesh space)."""
+    top = np.array(top, float); axis = np.array(axis, float) / np.linalg.norm(axis)
+    u = np.cross(axis, (0, 0, 1) if abs(axis[2]) < .9 else (1, 0, 0)); u /= np.linalg.norm(u); v = np.cross(axis, u)
+    ring = [tuple(top + axis * y + u * r * math.cos(a) + v * r * math.sin(a)) for y, r in ((0, radius), (length, tip)) for a in np.linspace(0, 2 * math.pi, 24, endpoint=False)]
     faces = [(i, (i + 1) % 24, 24 + (i + 1) % 24, 24 + i) for i in range(24)]
     o = add_mesh(name, ring, faces); o.data.materials.append(material)
     return o
@@ -94,10 +96,13 @@ for i, part in enumerate(scene_file['parts']):
 dot = principled('Emit point', (1, 0, 1), emission=(1, 0, 1, 6)); flame = principled('Flame', (1, .45, .08), emission=(1, .4, .06, 4), alpha=.45)
 core = principled('Flame axis', (1, .9, .5), emission=(1, .85, .4, 8))
 markers, flames = [], []
-for e in scene_file['emit']:
+for e, axis in zip(scene_file['emit'], scene_file.get('flameDir') or [(0, -1, 0)] * len(scene_file['emit'])):
     bpy.ops.mesh.primitive_uv_sphere_add(radius=.022, location=xyz(e)); bpy.context.object.data.materials.append(dot); markers.append(bpy.context.object)
     f = scene_file['flame']
-    flames.append(cone('flame', e, f['halfWidth'], f['length'], .03, flame)); flames.append(cone('axis', e, .008, f['length'], .008, core))
+    flames.append(cone('flame', e, axis, f['halfWidth'], f['length'], .03, flame)); flames.append(cone('axis', e, axis, .008, f['length'], .008, core))
+for n, mark in enumerate(scene_file.get('marks', [])):  # reference points: stock emit points, existing ports
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=mark['radius'], location=xyz(mark['at']))
+    bpy.context.object.data.materials.append(principled('Mark %d' % n, mark['colour'], emission=(*mark['colour'], 6))); markers.append(bpy.context.object)
 sun = bpy.data.objects.new('Key', bpy.data.lights.new('Key', 'SUN')); sun.data.energy = 3.2; sun.data.angle = math.radians(25); bpy.context.collection.objects.link(sun)
 fill = bpy.data.objects.new('Fill', bpy.data.lights.new('Fill', 'SUN')); fill.data.energy = 1.1; fill.data.angle = math.radians(60); bpy.context.collection.objects.link(fill)
 camera = bpy.data.objects.new('Review camera', bpy.data.cameras.new('Review camera')); bpy.context.collection.objects.link(camera); sc.camera = camera
@@ -122,7 +127,7 @@ for view in scene_file['views']:
             for poly in o.data.polygons:
                 poly.material_index = int(is_clay)
     for o in markers:
-        o.hide_render = not view['marker']
+        o.hide_render = not view['marker']; o.scale = (view.get('markerScale', 1.),) * 3
     for o in flames:
         o.hide_render = not view['flame']
     sc.render.filepath = str(OUT / (view['file'] + '.png')); bpy.ops.render.render(write_still=True)

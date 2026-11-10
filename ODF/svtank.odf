@@ -96,4 +96,9 @@ alphaSteer = 4.0
 accelJump = 15.0
 soundThrust = "svtanke0.wav"
 soundTurbo = "svtanke3.wav"
+// wing pods are class 67 nacelles (svtank.vdf): gentle pitch; asin(k) nose-down; keep 1.5*Throt+Steer < 1
+pitchThrotNacelleRun = 0.10
+pitchThrotNacelleJump = 0.12
+pitchSteerNacelleRun = 0.10
+pitchSteerNacelleJump = 0.12
 

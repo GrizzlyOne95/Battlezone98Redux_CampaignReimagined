@@ -42,6 +42,13 @@ Edits:
   avrecy, bvrecy (smoke stack SM5 only; side panels hold), svrecy, cvrecy, svmuf, cvmuf, avcnst, bvcnst, cvcnst, svcnst
                  new looping element 4 idle that starts and ends on the deploy end pose.
   cvslf          new one-shot element 4 (Armory: played per launch) arm reach and return.
+  flame parts    every unit with a References/NacelleJets/<unit>/build.json carrying `vdfParts`
+                 (recorded by Tools/Build-NacelleJets.py) or `nacelles` gets those class 75
+                 flame emitters, each under its nacelle with the recorded local matrix, and the
+                 listed parts made class 67. One class 75 part suppresses every automatic
+                 under-nacelle flame (BZ 1.5 decompile all_decompiled.c 193462-193491;
+                 throttle scaling needs a nacelle parent, 193771-193776; UNVERIFIED in the Redux exe), so every nacelle is recorded. A
+                 file with flame parts is written whole by the toolkit, not ANIM-spliced.
 
   python Tools/Build-UnitAnimSlots.py --stock-dir <dir with stock .vdf> [--game <Redux>] [--check]
 
@@ -53,6 +60,7 @@ memory and fails if a shipped file differs. The toolkit is located by Tools/bzmo
 import argparse
 import importlib
 import io
+import json
 import math
 import os
 import sys
@@ -540,6 +548,62 @@ SKELETONS = {
 }
 
 
+NACELLE_JETS = os.path.join(ROOT, "References", "NacelleJets")
+
+
+def flame_receipt(unit):
+    """The thruster-housing receipt's VDF edits for a unit: `vdfParts` (class 75 flame parts,
+    recorded by Tools/Build-NacelleJets.py) and `nacelles` (parts to make class 67), or None."""
+    path = os.path.join(NACELLE_JETS, unit, "build.json")
+    if not os.path.exists(path):
+        return None
+    r = json.load(open(path))
+    if not (r.get("vdfParts") or r.get("nacelles")):
+        return None
+    return r
+
+
+def flame_builds():
+    return {u + ".vdf" for u in os.listdir(NACELLE_JETS) if flame_receipt(u)}
+
+
+def apply_flames(bwd, receipt, name):
+    """Make the receipt's `nacelles` class 67, then set each recorded class 75 part: an existing
+    part takes the recorded matrix, a new one is appended under its nacelle (one record, nulled
+    in the other LOD slots, as the svtank prototype did)."""
+    for part in receipt.get("nacelles", ()):
+        recs = [o for o in bwd.all_geo_objects(raw=True) if o.name == part]
+        if not recs:
+            raise ValueError("%s: no part %r to make a nacelle" % (name, part))
+        for o in recs:
+            o.class_id = BWD2.ClassID.NACELLE_GEOMETRY
+    for p in receipt.get("vdfParts") or ():
+        if p["klass"] != 75 or len(p["matrix"]) != 12:
+            raise ValueError("%s: %s is not a class 75 part with a 12-float matrix" % (name, p["name"]))
+        recs = [o for o in bwd.all_geo_objects(raw=True) if o.name == p["name"]]
+        if p["existing"]:
+            if not recs:
+                raise ValueError("%s: recorded existing part %r is missing" % (name, p["name"]))
+        else:
+            if recs:
+                raise ValueError("%s: new part %r already exists" % (name, p["name"]))
+            parent = bwd.get_object_by_name(p["parent"])
+            if parent is None or not parent.is_primary():
+                raise ValueError("%s: no parent %r for %s" % (name, p["parent"], p["name"]))
+            n = bwd.append_object(p["name"], parent)
+            for o in bwd.all_geo_objects(raw=True):
+                if o.index == n.index and o is not n:
+                    o.make_null()
+            n.class_id = BWD2.ClassID.FLAME_EMITTER
+            n.object_flags = 0
+            n.radius = 0.0
+            recs = [n]
+        for o in recs:
+            if o.parent_name() != p["parent"]:
+                raise ValueError("%s: %s is under %s, recorded %s" % (name, p["name"], o.parent_name(), p["parent"]))
+            o.transform = BWD2.Transform(*(float(v) for v in p["matrix"]))
+
+
 def build(stock_dir, name, game=DEFAULT_GAME):
     if name in SKELETONS:
         rel, edit = SKELETONS[name]
@@ -549,8 +613,21 @@ def build(stock_dir, name, game=DEFAULT_GAME):
         out = io.BytesIO()
         SKS.SkeletonSerializer(out).write(sk)
         return out.getvalue()
+    flames = flame_receipt(os.path.splitext(name)[0])
+    if name not in BUILDS:
+        if flames is None:
+            raise SystemExit(f"{name}: no BUILDS entry and no NacelleJets flame receipt")
+        # Flame parts only: no ANIM edit, so no Model (it would add an empty ANIM chunk).
+        bwd = SER.VDFSerializer(io.BytesIO(open(os.path.join(stock_dir, name), "rb").read())).read()
+        apply_flames(bwd, flames, name)
+        out = io.BytesIO()
+        SER.VDFSerializer(out).write(bwd)
+        return out.getvalue()
     m = Model(os.path.join(stock_dir, name))
     BUILDS[name](m)
+    if flames:
+        apply_flames(m.bwd, flames, name)
+        m.renamed = True  # VGEO changed: write the whole file, not an ANIM splice
     return m.to_bytes()
 
 
@@ -562,7 +639,7 @@ def main():
     ap.add_argument("only", nargs="*", help="build only these files")
     args = ap.parse_args()
     bad = 0
-    for name in args.only or sorted(BUILDS) + sorted(SKELETONS):
+    for name in args.only or sorted(set(BUILDS) | flame_builds()) + sorted(SKELETONS):
         data = build(args.stock_dir, name, args.game)
         out = os.path.join(OUT, name)
         if args.check:

@@ -2,11 +2,13 @@
 
     blender -b --python Tools/nacellejet_blender.py -- config.json out.npz
 
-Builds, in the unit's Ogre mesh space, a faceted fairing pod whose roof is buried in the
+Builds, in the housing's build frame (flame along -Y, chord along Z; the unit's Ogre mesh
+space when the nacelle is not rotated), a faceted fairing pod whose roof is buried in the
 wing, unions the nozzle bell into it, then cuts the bore, a bell groove and the side vents
 as recesses. Every boolean is EXACT, applied one at a time, and must change the solid and
-leave it manifold. Faces left wholly inside the wing are dropped afterwards. Writes
-per-corner positions, split normals and UVs; binary model I/O stays in the build tool.
+leave it manifold and in one piece. Faces left wholly inside the wing are dropped afterwards
+(not when the pod overhangs a wing edge: its roof shows there). Writes per-corner
+positions, split normals and UVs; binary model I/O stays in the build tool.
 """
 import json, math, sys
 import bpy, bmesh
@@ -16,11 +18,29 @@ args = sys.argv[sys.argv.index('--') + 1:]
 cfg = json.loads(open(args[0]).read())
 EX, EY, EZ = cfg['emit']
 N = cfg['sides']
+OX, OZ = cfg.get('offset', (0., 0.))  # pod body offset from the emit point
+SIDE = cfg['underside'][2] if len(cfg['underside']) > 2 else 0.
 
 
-def under(z):
-    """Wing underside height at chord position z (linear fit measured by the build tool)."""
-    return cfg['underside'][0] + cfg['underside'][1] * (z - EZ)
+def under(x, z):
+    """Wing underside height at (x, chord position z): plane fit measured by the build tool."""
+    return cfg['underside'][0] + cfg['underside'][1] * (z - EZ) + SIDE * (x - EX)
+
+
+ROOF = np.array(cfg['roof']['h']) if 'roof' in cfg else None
+
+
+def roof(x, z):
+    """Conformal roof: skin height grid measured by the build tool (bilinear, clamped at its edges)."""
+    R = cfg['roof']; g = R['step']
+    fx = min(max((x - R['x0']) / g, 0), ROOF.shape[0] - 1); fz = min(max((z - R['z0']) / g, 0), ROOF.shape[1] - 1)
+    i = min(int(fx), ROOF.shape[0] - 2); j = min(int(fz), ROOF.shape[1] - 2); t = fx - i; u = fz - j
+    return float(ROOF[i, j] * (1 - t) * (1 - u) + ROOF[i + 1, j] * t * (1 - u) + ROOF[i, j + 1] * (1 - t) * u + ROOF[i + 1, j + 1] * t * u)
+
+
+def top(x, z):
+    """Height the buried roof is measured from: the conformal skin grid, else the seat plane."""
+    return roof(x, z) if ROOF is not None else under(x, z)
 
 
 def stats(o):
@@ -28,6 +48,20 @@ def stats(o):
     out = (all(e.is_manifold for e in bm.edges) and len(bm.edges) > 0, bm.calc_volume(signed=False), len(bm.faces))
     bm.free()
     return out
+
+
+def pieces(o):
+    """Number of disconnected shells."""
+    bm = bmesh.new(); bm.from_mesh(o.data); left = set(bm.verts); count = 0
+    while left:
+        count += 1; stack = [left.pop()]
+        while stack:
+            for e in stack.pop().link_edges:
+                for v in e.verts:
+                    if v in left:
+                        left.discard(v); stack.append(v)
+    bm.free()
+    return count
 
 
 def triangulate(o):
@@ -70,11 +104,37 @@ def lathe(name, profile, phase=0.0):
     return solid(name, verts, faces)
 
 
+def conform_pod():
+    """The pod with a conformal roof: sections every cfg['along'] metres along the chord (depth and
+    half-width interpolated between the shape's sections), each with cfg['across'] roof vertices
+    on the skin grid plus bury, over the same four lower corners as the flat pod."""
+    sections = cfg['sections']; rings = [sections[0]]
+    for (z0, a0, d0), (z1, a1, d1) in zip(sections, sections[1:]):
+        n = max(1, math.ceil(abs(z1 - z0) / cfg['along'] - 1e-9))
+        rings += [(z0 + (z1 - z0) * k / n, a0 + (a1 - a0) * k / n, d0 + (d1 - d0) * k / n) for k in range(1, n + 1)]
+    m = cfg['across']; K = m + 4; verts = []
+    for z, a, d in rings:
+        zz = EZ + z + OZ; cx = EX + OX; lift = min(cfg['chamfer'], d * .5); b = a * cfg['flat']
+        for i in range(m):
+            x = cx - a + 2 * a * i / (m - 1); verts.append((x, roof(x, zz) + cfg['bury'], zz))
+        for x, h in ((cx + a, lift - d), (cx + b, -d), (cx - b, -d), (cx - a, lift - d)):
+            verts.append((x, under(x, zz) + h, zz))
+    n = len(rings); faces = [list(range(K)), list(range(K * n - K, K * n))]
+    for s in range(n - 1):
+        for i in range(K):
+            j = (i + 1) % K
+            faces.append([K * s + i, K * s + j, K * s + K + j, K * s + K + i])
+    return solid('pod', verts, faces)
+
+
 def pod():
+    if ROOF is not None:
+        return conform_pod()
     verts = []
     for z, a, d in cfg['sections']:
-        zz = EZ + z; top = under(zz) + cfg['bury']; yb = under(zz) - d; yc = yb + min(cfg['chamfer'], d * .5); b = a * cfg['flat']
-        verts += [(EX - a, top, zz), (EX + a, top, zz), (EX + a, yc, zz), (EX + b, yb, zz), (EX - b, yb, zz), (EX - a, yc, zz)]
+        zz = EZ + z + OZ; cx = EX + OX; lift = min(cfg['chamfer'], d * .5); b = a * cfg['flat']
+        for x, h in ((cx - a, cfg['bury']), (cx + a, cfg['bury']), (cx + a, lift - d), (cx + b, -d), (cx - b, -d), (cx - a, lift - d)):
+            verts.append((x, under(x, zz) + h, zz))
     n = len(cfg['sections']); faces = [list(range(6)), list(range(6 * n - 6, 6 * n))]
     for s in range(n - 1):
         for i in range(6):
@@ -99,6 +159,7 @@ def boolean(target, cutter, operation):
     after = stats(target)
     assert after[0], (cutter.name, 'left the solid non-manifold')
     assert abs(after[1] - before[1]) > 1e-7 and after[2] != before[2], (cutter.name, 'changed nothing', before, after)
+    assert pieces(target) == 1, (cutter.name, 'left the solid in more than one piece')
     print('boolean', operation, cutter.name, 'volume %.5f -> %.5f' % (before[1], after[1]), 'faces', before[2], '->', after[2])
     bpy.data.objects.remove(cutter)
 
@@ -114,8 +175,8 @@ boolean(body, lathe('groove', [(groove['rIn'], groove['y0']), (groove['rOut'], g
 vent = cfg['vent']
 for side in (-1, 1):
     for i, z in enumerate(vent['z']):
-        zz = EZ + z; yc = under(zz) - vent['drop']; a = vent['halfWidth']
-        x0, x1 = sorted((EX + side * (a - vent['depth']), EX + side * (a + .05)))
+        zz = EZ + z + OZ; a = vent['halfWidth']; yc = under(EX + OX + side * a, zz) - vent['drop']
+        x0, x1 = sorted((EX + OX + side * (a - vent['depth']), EX + OX + side * (a + .05)))
         boolean(body, box('vent%d%d' % (side + 1, i), (x0, yc - vent['height'] / 2, zz - vent['length'] / 2), (x1, yc + vent['height'] / 2, zz + vent['length'] / 2)), 'DIFFERENCE')
 
 # The booleans leave fans of coplanar slivers: merge each flat region and split it again cleanly.
@@ -130,7 +191,7 @@ ok, volume, faces = stats(body); assert ok, 'cleanup left the solid non-manifold
 print('nacelle jet cleanup: faces %d -> %d, volume %.5f' % (count, faces, volume))
 # Faces wholly inside the wing are never seen; they only existed to keep the booleans closed.
 bm = bmesh.new(); bm.from_mesh(body.data)
-buried = [f for f in bm.faces if all(v.co.y > under(v.co.z) + cfg['bury'] * .5 for v in f.verts)]
+buried = [f for f in bm.faces if all(v.co.y > top(v.co.x, v.co.z) + cfg['bury'] * .5 for v in f.verts)] if cfg.get('dropBuried', True) else []
 bmesh.ops.delete(bm, geom=buried, context='FACES')
 bm.to_mesh(body.data); bm.free(); body.data.update()
 
@@ -140,7 +201,9 @@ me.set_sharp_from_angle(angle=math.radians(cfg['smoothAngle']))
 me.uv_layers.new(name='uv')
 bpy.context.view_layer.objects.active = body; body.select_set(True)
 bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')
-bpy.ops.uv.smart_project(angle_limit=math.radians(50), island_margin=0.02)
+# Fitted pods sit on tilted seats: a wide projection group there leans far enough to lay the
+# throat disc over the lip ring in the atlas (ring colour in the bore), so they unwrap in narrow groups.
+bpy.ops.uv.smart_project(angle_limit=math.radians(15 if cfg.get('auto') else 50), island_margin=0.02)
 bpy.ops.object.mode_set(mode='OBJECT')
 me = body.data
 assert all(len(p.vertices) == 3 for p in me.polygons)

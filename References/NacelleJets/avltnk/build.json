@@ -1,0 +1,284 @@
+{
+  "unit": "avltnk",
+  "faction": "nsdf",
+  "material": "avltnk_nacjet",
+  "emitters": [
+    {
+      "part": "aln11nrl",
+      "bone": 9,
+      "pivot": [
+        1.7199000120162964,
+        0.9395999778062105,
+        -1.736899971961975
+      ],
+      "emit": [
+        1.7199000120162964,
+        0.6563159693032503,
+        -1.736899971961975
+      ]
+    },
+    {
+      "part": "aln11nrr",
+      "bone": 10,
+      "pivot": [
+        -1.7199000120162964,
+        0.9395999778062105,
+        -1.736899971961975
+      ],
+      "emit": [
+        -1.7199000120162964,
+        0.6563159693032503,
+        -1.736899971961975
+      ]
+    }
+  ],
+  "flameDirection": "-y of each emitter frame",
+  "baseRevision": "f09fec92f1d6da20facde0d095c45f19a913c866",
+  "wingUnderside": {
+    "heightAtEmit": 0.7413028171158141,
+    "slopePerMetreOfChord": -0.21618383553361825,
+    "maxError": 0.0007504858967877226
+  },
+  "paint": [
+    18.0,
+    26.0,
+    24.0
+  ],
+  "paintSource": "avltnk_D.dds",
+  "housing": {
+    "vertices": 760,
+    "triangles": 514,
+    "zones": {
+      "paint": 122,
+      "bell": 93,
+      "lip": 43,
+      "groove": 123,
+      "bore": 43,
+      "throat": 18,
+      "vent": 72
+    }
+  },
+  "shape": {
+    "sides": 20,
+    "flat": 0.86,
+    "smoothAngle": 35,
+    "bury": 0.06,
+    "chamfer": 0.045,
+    "sections": [
+      [
+        0.282,
+        0.09,
+        0.015
+      ],
+      [
+        0.222,
+        0.21,
+        0.07
+      ],
+      [
+        0.144,
+        0.3,
+        0.12
+      ],
+      [
+        0.126,
+        0.3,
+        0.12
+      ],
+      [
+        0.084,
+        0.3,
+        0.12
+      ],
+      [
+        -0.12,
+        0.3,
+        0.12
+      ],
+      [
+        -0.198,
+        0.21,
+        0.08
+      ],
+      [
+        -0.264,
+        0.08,
+        0.015
+      ]
+    ],
+    "vent": {
+      "drop": 0.04,
+      "halfWidth": 0.3,
+      "depth": 0.02,
+      "height": 0.03,
+      "length": 0.085,
+      "z": [
+        -0.078,
+        -0.018,
+        0.042
+      ]
+    },
+    "scale": 1.0,
+    "length": 0.6,
+    "over": {},
+    "auto": true,
+    "stripe": [
+      0.084,
+      0.126
+    ],
+    "bell": {
+      "top": 0.0,
+      "lip": -0.15,
+      "rTop": 0.25,
+      "rLip": 0.235
+    },
+    "bore": {
+      "roof": 0.03,
+      "rRoof": 0.15,
+      "rMouth": 0.205
+    },
+    "groove": {
+      "y0": -0.132,
+      "y1": -0.12,
+      "depth": 0.008,
+      "rOut": 0.28
+    }
+  },
+  "stripe": [
+    0.084,
+    0.126
+  ],
+  "notes": [
+    "aln11nrl: emit point hangs 0.08 m below the skin; the pod is deepened to carry the nozzle there"
+  ],
+  "housings": [
+    {
+      "vertices": 760,
+      "triangles": 514,
+      "zones": {
+        "paint": 122,
+        "bell": 93,
+        "lip": 43,
+        "groove": 123,
+        "bore": 43,
+        "throat": 18,
+        "vent": 72
+      },
+      "parts": [
+        "aln11nrl",
+        "aln11nrr"
+      ],
+      "mirrored": [
+        false,
+        true
+      ],
+      "underside": [
+        0.7413028171158141,
+        -0.21618383553361825,
+        0.02055795308161975
+      ],
+      "maxError": 0.0007504858967877226,
+      "seated": {
+        "cover": 1.0,
+        "pokes": 0.0,
+        "spread": 0.0009946713440687205,
+        "gap": 0.08498684781256383,
+        "inside": 0.0,
+        "depthScale": 1.4582237317713653
+      },
+      "shape": {
+        "sides": 20,
+        "flat": 0.86,
+        "smoothAngle": 35,
+        "bury": 0.06,
+        "chamfer": 0.045,
+        "sections": [
+          [
+            0.282,
+            0.09,
+            0.015
+          ],
+          [
+            0.222,
+            0.21,
+            0.07
+          ],
+          [
+            0.144,
+            0.3,
+            0.12
+          ],
+          [
+            0.126,
+            0.3,
+            0.12
+          ],
+          [
+            0.084,
+            0.3,
+            0.12
+          ],
+          [
+            -0.12,
+            0.3,
+            0.12
+          ],
+          [
+            -0.198,
+            0.21,
+            0.08
+          ],
+          [
+            -0.264,
+            0.08,
+            0.015
+          ]
+        ],
+        "vent": {
+          "drop": 0.04,
+          "halfWidth": 0.3,
+          "depth": 0.02,
+          "height": 0.03,
+          "length": 0.085,
+          "z": [
+            -0.078,
+            -0.018,
+            0.042
+          ]
+        },
+        "scale": 1.0,
+        "length": 0.6,
+        "over": {},
+        "auto": true,
+        "stripe": [
+          0.084,
+          0.126
+        ],
+        "bell": {
+          "top": 0.0,
+          "lip": -0.15,
+          "rTop": 0.25,
+          "rLip": 0.235
+        },
+        "bore": {
+          "roof": 0.03,
+          "rRoof": 0.15,
+          "rMouth": 0.205
+        },
+        "groove": {
+          "y0": -0.132,
+          "y1": -0.12,
+          "depth": 0.008,
+          "rOut": 0.28
+        }
+      },
+      "paint": [
+        18.0,
+        26.0,
+        24.0
+      ],
+      "adjusted": null
+    }
+  ],
+  "stageMesh": "52281c92228d3e06d81618217b4600b15716353503a66969eda3406863e316b4"
+}

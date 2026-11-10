@@ -10,7 +10,20 @@
     "Assets/Models/svfigh_cockpit.mesh": "829fd9b9a4a3141b8cce851359b85504cf75174d",
     "Assets/Models/avfigh_cockpit.mesh": "233f0e8f101e151065b2f5b6f54da3f9b4a17a82",
     "Assets/Models/bvraz_cockpit.mesh": "233f0e8f101e151065b2f5b6f54da3f9b4a17a82",
-    "Assets/ModelFixes/avfigh.mesh": "8bc471fd8ba99e2f9fdb382144cdd46525bddd27"
+    "Assets/ModelFixes/avfigh.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/avltnk.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/avrckt.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/avtest.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/bvltnk.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/bvraz.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/bvrckt.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/cvfigh.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/cvhraz.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/svartl.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/svfigh.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/svhraz.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/svltnk.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/svrckt.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc"
   },
   "models": {
     "avfigh": {
