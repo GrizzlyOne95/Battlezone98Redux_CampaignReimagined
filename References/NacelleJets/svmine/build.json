@@ -1,0 +1,343 @@
+{
+  "unit": "svmine",
+  "faction": "cca",
+  "material": "svmine_nacjet",
+  "emitters": [
+    {
+      "part": "SMI11NFL",
+      "bone": 7,
+      "pivot": [
+        4.053999990224838,
+        0.319599986076355,
+        1.5117999911308289
+      ],
+      "emit": [
+        4.553999990224838,
+        0.16236914368135089,
+        1.611799991130829
+      ],
+      "emitShift": {
+        "stock": [
+          4.053962051868439,
+          0.04164198040962219,
+          1.5084559321403503
+        ],
+        "moved": [
+          4.553962051868439,
+          0.16244913311463946,
+          1.6084559321403504
+        ],
+        "delta": [
+          0.5,
+          0.12080715270501727,
+          0.10000000000000009
+        ],
+        "flame": [
+          -0.0,
+          -1.0,
+          -0.0
+        ],
+        "space": "Ogre mesh space in the VDF pose (VDF x = -x), metres",
+        "reason": "stock point does not give a flat, fully covered seat with a clear bore"
+      }
+    }
+  ],
+  "flameDirection": "-y of each emitter frame",
+  "baseRevision": "f09fec92f1d6da20facde0d095c45f19a913c866",
+  "wingUnderside": {
+    "heightAtEmit": 0.16236914368135089,
+    "slopePerMetreOfChord": -0.022383408844676968,
+    "maxError": 0.0032120192379108403
+  },
+  "paint": [
+    126.0,
+    125.0,
+    112.0
+  ],
+  "paintSource": "svmine_d.dds",
+  "housing": {
+    "vertices": 814,
+    "triangles": 550,
+    "zones": {
+      "paint": 188,
+      "bell": 78,
+      "lip": 42,
+      "groove": 117,
+      "bore": 42,
+      "throat": 18,
+      "vent": 65
+    }
+  },
+  "shape": {
+    "sides": 20,
+    "flat": 0.86,
+    "smoothAngle": 35,
+    "bury": 0.072,
+    "chamfer": 0.054,
+    "sections": [
+      [
+        0.564,
+        0.108,
+        0.018
+      ],
+      [
+        0.444,
+        0.252,
+        0.084
+      ],
+      [
+        0.288,
+        0.36,
+        0.144
+      ],
+      [
+        0.252,
+        0.36,
+        0.144
+      ],
+      [
+        0.168,
+        0.36,
+        0.144
+      ],
+      [
+        -0.24,
+        0.36,
+        0.144
+      ],
+      [
+        -0.396,
+        0.252,
+        0.096
+      ],
+      [
+        -0.528,
+        0.096,
+        0.018
+      ]
+    ],
+    "vent": {
+      "drop": 0.048,
+      "halfWidth": 0.36,
+      "depth": 0.024,
+      "height": 0.036,
+      "length": 0.10200000000000001,
+      "z": [
+        -0.156,
+        -0.036,
+        0.084
+      ]
+    },
+    "scale": 1.2,
+    "length": 1.0,
+    "over": {},
+    "auto": true,
+    "stripe": [
+      0.168,
+      0.252
+    ],
+    "bell": {
+      "top": 0.0,
+      "lip": -0.18,
+      "rTop": 0.3,
+      "rLip": 0.282
+    },
+    "bore": {
+      "roof": 0.036,
+      "rRoof": 0.18,
+      "rMouth": 0.24599999999999997
+    },
+    "groove": {
+      "y0": -0.1584,
+      "y1": -0.144,
+      "depth": 0.0096,
+      "rOut": 0.336
+    }
+  },
+  "stripe": [
+    0.168,
+    0.252
+  ],
+  "vdfParts": [
+    {
+      "name": "SMI11FFL",
+      "klass": 75,
+      "parent": "SMI11NFL",
+      "position": [
+        -0.5,
+        -0.1572308423950041,
+        0.10000000000000009
+      ],
+      "orientation": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0
+        ]
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -1.0,
+        0.0,
+        -0.5,
+        -0.1572308423950041,
+        0.10000000000000009
+      ],
+      "existing": false,
+      "moved": true,
+      "stockPosition": [
+        0.0,
+        -0.27803799510002136,
+        0.0
+      ]
+    }
+  ],
+  "notes": [
+    "SMI11NFL: emit point moved (+0.500, +0.121, +0.100) m from the stock point (4.054, 0.042, 1.508); not yet in the VDF",
+    "SMI11NFL: the nozzle hangs 0.09 m below the emit point so stock mesh stays out of its throat (skin +0.000 m from the emit point)"
+  ],
+  "housings": [
+    {
+      "vertices": 814,
+      "triangles": 550,
+      "zones": {
+        "paint": 188,
+        "bell": 78,
+        "lip": 42,
+        "groove": 117,
+        "bore": 42,
+        "throat": 18,
+        "vent": 65
+      },
+      "parts": [
+        "SMI11NFL"
+      ],
+      "mirrored": [
+        false
+      ],
+      "underside": [
+        0.16236914368135089,
+        -0.022383408844676968,
+        0.1793023533110801
+      ],
+      "maxError": 0.0032120192379108403,
+      "seated": {
+        "cover": 1.0,
+        "pokes": 0.0,
+        "spread": 0.005304344649867843,
+        "gap": 0.0,
+        "inside": 0.09301467614855922,
+        "depthScale": 1.3959352510316614
+      },
+      "shape": {
+        "sides": 20,
+        "flat": 0.86,
+        "smoothAngle": 35,
+        "bury": 0.072,
+        "chamfer": 0.054,
+        "sections": [
+          [
+            0.564,
+            0.108,
+            0.018
+          ],
+          [
+            0.444,
+            0.252,
+            0.084
+          ],
+          [
+            0.288,
+            0.36,
+            0.144
+          ],
+          [
+            0.252,
+            0.36,
+            0.144
+          ],
+          [
+            0.168,
+            0.36,
+            0.144
+          ],
+          [
+            -0.24,
+            0.36,
+            0.144
+          ],
+          [
+            -0.396,
+            0.252,
+            0.096
+          ],
+          [
+            -0.528,
+            0.096,
+            0.018
+          ]
+        ],
+        "vent": {
+          "drop": 0.048,
+          "halfWidth": 0.36,
+          "depth": 0.024,
+          "height": 0.036,
+          "length": 0.10200000000000001,
+          "z": [
+            -0.156,
+            -0.036,
+            0.084
+          ]
+        },
+        "scale": 1.2,
+        "length": 1.0,
+        "over": {},
+        "auto": true,
+        "stripe": [
+          0.168,
+          0.252
+        ],
+        "bell": {
+          "top": 0.0,
+          "lip": -0.18,
+          "rTop": 0.3,
+          "rLip": 0.282
+        },
+        "bore": {
+          "roof": 0.036,
+          "rRoof": 0.18,
+          "rMouth": 0.24599999999999997
+        },
+        "groove": {
+          "y0": -0.1584,
+          "y1": -0.144,
+          "depth": 0.0096,
+          "rOut": 0.336
+        }
+      },
+      "paint": [
+        126.0,
+        125.0,
+        112.0
+      ],
+      "adjusted": null
+    }
+  ],
+  "stageMesh": "f3e0d82ba02febe0e977e6ec001af5c615c0f7bf1f172cad7b635f670c0a9117"
+}

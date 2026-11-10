@@ -172,6 +172,19 @@ def place(jet):
     return jet
 
 
+def base_vdf(unit):
+    """The VDF the emit points come from: the unit's Assets/ModelFixes VDF at the weapon-rig
+    source revision (its animation fixes), else the stock one. Never the shipped VDF, which
+    already carries the class 75 parts recorded here (Tools/Build-UnitAnimSlots.py adds them)."""
+    revision = json.loads((ROOT / 'References/WeaponRigs/models.json').read_text())['source_revision']
+    proc = subprocess.run(['git', 'show', '--no-textconv', f'{revision}:Assets/ModelFixes/{unit}.vdf'], cwd=ROOT, capture_output=True)
+    if proc.returncode == 0:
+        return proc.stdout
+    data = legacy_port.AssetSource(archives=[wr.GAME / 'bzone.zfs', wr.GAME / 'tro_cam.zfs'])(unit + '.vdf')
+    assert data, (unit, 'has no stock VDF')
+    return data
+
+
 def emitters(unit, skeleton, mesh, shifts=()):
     """Engine flame emit points in Ogre mesh space (skeleton bind pose), and the bind-to-VDF
     pose of every bone. One emitter per class 75 part when the VDF authors any, else one under
@@ -180,7 +193,7 @@ def emitters(unit, skeleton, mesh, shifts=()):
     same point and flame direction in the VDF pose."""
     source = legacy_port.AssetSource(folders=[ROOT / 'Assets/ModelFixes', ROOT / 'Assets/Models'],
                                      archives=[wr.GAME / 'bzone.zfs', wr.GAME / 'tro_cam.zfs'])
-    parts = legacy.read_vdf(source(unit + '.vdf')).band(0); W, by = vdf_world(parts); pose = vdf_pose(skeleton, W)
+    parts = legacy.read_vdf(base_vdf(unit)).band(0); W, by = vdf_world(parts); pose = vdf_pose(skeleton, W)
     authored = [p for p in parts if p.klass == 75]; out = []
     for part in authored or [p for p in parts if p.klass == 67]:
         owner = part; bone = None
@@ -1068,14 +1081,19 @@ def into_ports(jets, found):
     return notes
 
 
-def emit_only(unit, cfg, mesh, skeleton, jets, pose, work, review, revision, render):
-    """A unit that gets no housing: its emit points (and approved moves) on record and on a sheet."""
+def emit_only(unit, cfg, mesh, skeleton, jets, pose, work, review, revision, render, shipped=False):
+    """A unit that gets no housing: its emit points (and approved moves) on record and on a sheet.
+    The mesh is not changed; --ship only writes the tracked receipt, whose vdfParts the VDF builder reads."""
     found = ports(mesh, skeleton, pose) if cfg.get('ports') else []; marks = [dict(at=j['posed']['emit'], colour=(0, .9, 1), radius=.05) for j in jets] if found else []
     extra = into_ports(jets, found) if found else []; marks += [dict(at=q['centre'], colour=(1, 1, 0), radius=.025) for q in found]
     emit_shifts(jets); keep = ('part', 'bone', 'pivot', 'emit', 'axes', 'source', 'rides', 'emitShift')
     notes = [f"{unit}: {cfg['note']}"] + extra + notes_for(jets, [], [])
-    (work / 'preview.json').write_text(json.dumps(dict(unit=unit, faction=cfg['faction'], emitters=[{k: j[k] for k in keep if k in j} for j in jets],
-                                                       baseRevision=revision, housings=[], ports=found, vdfParts=vdf_parts(jets), notes=notes), indent=2) + '\n', newline='\n')
+    receipt = dict(unit=unit, faction=cfg['faction'], emitters=[{k: j[k] for k in keep if k in j} for j in jets],
+                   baseRevision=revision, housings=[], ports=found, vdfParts=vdf_parts(jets), notes=notes)
+    (work / 'preview.json').write_text(json.dumps(receipt, indent=2) + '\n', newline='\n')
+    if shipped:
+        record = ROOT / 'References/NacelleJets' / unit / 'build.json'; record.parent.mkdir(exist_ok=True)
+        record.write_text(json.dumps(receipt, indent=2) + '\n', newline='\n')
     for note in notes:
         print(unit, 'note:', note)
     if not render:
@@ -1116,7 +1134,7 @@ def build(unit, render, shipped=False):
     mesh, skeleton, revision = stage_base(unit, work)
     jets, pose = emitters(unit, skeleton, mesh, cfg.get('shift', ()))
     if cfg.get('housing') is False:
-        return emit_only(unit, cfg, mesh, skeleton, jets, pose, work, review, revision, render)
+        return emit_only(unit, cfg, mesh, skeleton, jets, pose, work, review, revision, render, shipped)
     housings = group(cfg, jets, mesh, pose, work)
     if not housings[0]['shape'].get('auto'):
         paint, source = paint_colour(mesh, housings[0]['jets'][0][0]['bone'])

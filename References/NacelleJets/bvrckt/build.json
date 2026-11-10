@@ -1,0 +1,286 @@
+{
+  "unit": "bvrckt",
+  "faction": "blackdogs",
+  "material": "bvrckt_nacjet",
+  "emitters": [
+    {
+      "part": "brt11nrl",
+      "bone": 7,
+      "pivot": [
+        1.6057779788970947,
+        1.136585995554924,
+        -3.45256707072258
+      ],
+      "emit": [
+        1.6057779788970947,
+        0.9332619905471802,
+        -3.45256707072258
+      ]
+    },
+    {
+      "part": "brt11nrr",
+      "bone": 8,
+      "pivot": [
+        -1.6057779788970947,
+        1.136585995554924,
+        -3.45256707072258
+      ],
+      "emit": [
+        -1.6057779788970947,
+        0.9332619905471802,
+        -3.45256707072258
+      ]
+    }
+  ],
+  "flameDirection": "-y of each emitter frame",
+  "baseRevision": "f09fec92f1d6da20facde0d095c45f19a913c866",
+  "wingUnderside": {
+    "heightAtEmit": 0.9501036256423739,
+    "slopePerMetreOfChord": -0.013638163977311372,
+    "maxError": 0.015141069731907097
+  },
+  "paint": [
+    49.0,
+    64.0,
+    54.0
+  ],
+  "paintSource": "bvrckt_D.dds",
+  "housing": {
+    "vertices": 776,
+    "triangles": 534,
+    "zones": {
+      "paint": 146,
+      "bell": 91,
+      "lip": 41,
+      "groove": 127,
+      "bore": 41,
+      "throat": 18,
+      "vent": 70
+    }
+  },
+  "shape": {
+    "sides": 20,
+    "flat": 0.86,
+    "smoothAngle": 35,
+    "bury": 0.048,
+    "chamfer": 0.036,
+    "sections": [
+      [
+        0.376,
+        0.072,
+        0.012
+      ],
+      [
+        0.296,
+        0.168,
+        0.05600000000000001
+      ],
+      [
+        0.192,
+        0.24,
+        0.096
+      ],
+      [
+        0.168,
+        0.24,
+        0.096
+      ],
+      [
+        0.11200000000000002,
+        0.24,
+        0.096
+      ],
+      [
+        -0.16000000000000003,
+        0.24,
+        0.096
+      ],
+      [
+        -0.264,
+        0.168,
+        0.064
+      ],
+      [
+        -0.35200000000000004,
+        0.064,
+        0.012
+      ]
+    ],
+    "vent": {
+      "drop": 0.032,
+      "halfWidth": 0.24,
+      "depth": 0.016,
+      "height": 0.024,
+      "length": 0.068,
+      "z": [
+        -0.10400000000000001,
+        -0.024,
+        0.05600000000000001
+      ]
+    },
+    "scale": 0.8,
+    "length": 1.0,
+    "over": {},
+    "auto": true,
+    "stripe": [
+      0.11200000000000002,
+      0.168
+    ],
+    "bell": {
+      "top": 0.0,
+      "lip": -0.12,
+      "rTop": 0.2,
+      "rLip": 0.188
+    },
+    "bore": {
+      "roof": 0.024,
+      "rRoof": 0.12,
+      "rMouth": 0.164
+    },
+    "groove": {
+      "y0": -0.10560000000000001,
+      "y1": -0.096,
+      "depth": 0.0064,
+      "rOut": 0.22400000000000003
+    }
+  },
+  "stripe": [
+    0.11200000000000002,
+    0.168
+  ],
+  "notes": [
+    "brt11nrl: scale 1 -> 0.8, because as configured: ('the housing cuts through stock mesh below its seat', {'crossings': 32, 'deepest': 0.128, 'around': [-0.28, -0.02, 0.02]})",
+    "brt11nrl: the nozzle hangs 0.03 m below the emit point so stock mesh stays out of its throat (skin +0.017 m from the emit point)",
+    "brt11nrl: only 94% of the pod footprint has skin above it (edge of the part); the rest of the pod roof shows"
+  ],
+  "housings": [
+    {
+      "vertices": 776,
+      "triangles": 534,
+      "zones": {
+        "paint": 146,
+        "bell": 91,
+        "lip": 41,
+        "groove": 127,
+        "bore": 41,
+        "throat": 18,
+        "vent": 70
+      },
+      "parts": [
+        "brt11nrl",
+        "brt11nrr"
+      ],
+      "mirrored": [
+        false,
+        true
+      ],
+      "underside": [
+        0.9501036256423739,
+        -0.013638163977311372,
+        -0.0003903114681478932
+      ],
+      "maxError": 0.015141069731907097,
+      "seated": {
+        "cover": 0.9426229508196722,
+        "pokes": 0.0,
+        "spread": 0.01967070339755872,
+        "gap": 0.016841635095193763,
+        "inside": 0.03200000000000003,
+        "depthScale": 1.258767032241602
+      },
+      "shape": {
+        "sides": 20,
+        "flat": 0.86,
+        "smoothAngle": 35,
+        "bury": 0.048,
+        "chamfer": 0.036,
+        "sections": [
+          [
+            0.376,
+            0.072,
+            0.012
+          ],
+          [
+            0.296,
+            0.168,
+            0.05600000000000001
+          ],
+          [
+            0.192,
+            0.24,
+            0.096
+          ],
+          [
+            0.168,
+            0.24,
+            0.096
+          ],
+          [
+            0.11200000000000002,
+            0.24,
+            0.096
+          ],
+          [
+            -0.16000000000000003,
+            0.24,
+            0.096
+          ],
+          [
+            -0.264,
+            0.168,
+            0.064
+          ],
+          [
+            -0.35200000000000004,
+            0.064,
+            0.012
+          ]
+        ],
+        "vent": {
+          "drop": 0.032,
+          "halfWidth": 0.24,
+          "depth": 0.016,
+          "height": 0.024,
+          "length": 0.068,
+          "z": [
+            -0.10400000000000001,
+            -0.024,
+            0.05600000000000001
+          ]
+        },
+        "scale": 0.8,
+        "length": 1.0,
+        "over": {},
+        "auto": true,
+        "stripe": [
+          0.11200000000000002,
+          0.168
+        ],
+        "bell": {
+          "top": 0.0,
+          "lip": -0.12,
+          "rTop": 0.2,
+          "rLip": 0.188
+        },
+        "bore": {
+          "roof": 0.024,
+          "rRoof": 0.12,
+          "rMouth": 0.164
+        },
+        "groove": {
+          "y0": -0.10560000000000001,
+          "y1": -0.096,
+          "depth": 0.0064,
+          "rOut": 0.22400000000000003
+        }
+      },
+      "paint": [
+        49.0,
+        64.0,
+        54.0
+      ],
+      "adjusted": "scale 1 -> 0.8, because as configured: ('the housing cuts through stock mesh below its seat', {'crossings': 32, 'deepest': 0.128, 'around': [-0.28, -0.02, 0.02]})"
+    }
+  ],
+  "stageMesh": "4f997222188815dad7c14b101e820b60d5be01f460d0de0e7d1d07f60a901ba6"
+}

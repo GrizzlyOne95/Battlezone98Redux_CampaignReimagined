@@ -30,6 +30,16 @@ material svmine01 : CR_BZBaseCockpit
 }
 
 
+material svmine_nacjet : CR_BZBase
+{
+	set_texture_alias DiffuseMap svmine_nacjet_D.dds
+	set_texture_alias NormalMap svmine_nacjet_N.dds
+	set_texture_alias SpecularMap svmine_nacjet_S.dds
+	set_texture_alias EmissiveMap svmine_nacjet_E.dds
 
-
-
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+}

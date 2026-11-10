@@ -30,3 +30,16 @@ material bvraz01 : CR_BZBaseCockpit
 }
 
 
+material bvraz_nacjet : CR_BZBase
+{
+	set_texture_alias DiffuseMap bvraz_nacjet_D.dds
+	set_texture_alias NormalMap bvraz_nacjet_N.dds
+	set_texture_alias SpecularMap bvraz_nacjet_S.dds
+	set_texture_alias EmissiveMap bvraz_nacjet_E.dds
+
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+}

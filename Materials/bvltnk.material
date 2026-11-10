@@ -30,3 +30,16 @@ material bvltnk01 : CR_BZBaseCockpit
 }
 
 
+material bvltnk_nacjet : CR_BZBase
+{
+	set_texture_alias DiffuseMap bvltnk_nacjet_D.dds
+	set_texture_alias NormalMap bvltnk_nacjet_N.dds
+	set_texture_alias SpecularMap bvltnk_nacjet_S.dds
+	set_texture_alias EmissiveMap bvltnk_nacjet_E.dds
+
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+}
