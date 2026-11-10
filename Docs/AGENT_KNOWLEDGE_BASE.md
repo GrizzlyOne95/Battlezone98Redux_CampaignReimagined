@@ -1848,5 +1848,8 @@ to the ordinary GOG development mod.
   static exterior must not intersect. The old svfigh mesh failed with 70 intersecting
   triangles at rest.
 - The scout cockpits (avfigh, bvraz) keep the opaque tub 0.8 cm behind the nose by
-  design, but their weather glass still pokes into the nose at rest. cvfigh has no
-  rotor. Use `glass_limit` if the scout glass is ever fixed.
+  design. Their weather glass shares `scoutcockpits.glass_limit` (2.5 cm, roll +-5.74 deg,
+  `noseClearZ` in the receipt); `Test-ScoutCockpits.py` sweeps it, and the old meshes
+  failed with 22 glass triangles too close. cvfigh has no rotor.
+- svfigh's eye-facing BDA deck mask drops the stock rails and slats (|x| .14-.5 m): the
+  owner read them as bars and corner wedges over the tub's front wall.
