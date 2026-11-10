@@ -1814,3 +1814,33 @@ to the ordinary GOG development mod.
   `-text` and stored as CRLF so every checkout matches the manifest. Any new file the
   manifest hashes needs a `-text` rule in the same commit; check with
   `git ls-files --eol <path>` (index and working tree must show the same line endings).
+
+### Hardpoint alignment pass (2026-11-10)
+
+- Hardpoint moves go through `References/Hardpoints/<unit>.json` receipts and
+  `Tools/Build-UnitAnimSlots.py` only (the single VDF writer). A receipt part names its
+  `owner`: the body part whose weapon geometry the barrel belongs to, not the part it used
+  to hang from. Make the matching re-parent on the CR skeleton bone too.
+- Rig channels follow hardpoints: after moving a hardpoint on a rigged unit, re-run
+  `Tools/Build-WeaponRigs.py --models <unit>` so flash/recoil/casing offsets match, then
+  `Tools/Build-CombatPresentation.py --verify-models` to re-pin the receipts it checks.
+  `Tools/Test-WeaponPresentation.py` holds literal flash offsets (avtank) that move with them.
+- Extra turret barrels (avturr/bvturr GC3/GC4, svturr GC3) are DPS-neutral: per-barrel
+  damage = base x N / B and ammoCost = max(1, round(cost x N / B)), N = old barrel count,
+  B = new count. `shotAlternate` is read as a bool (WeaponClass+0x78, ctor FUN_00611aa0) but
+  no consumer was traced (UNVERIFIED); 1.5 `Carrier::TriggerSelected` (0041d365) fires all
+  barrels together, so plan for a volley.
+- A pinned rig unit (`stage_revisions` in `References/WeaponRigs/models.json`) builds from
+  its pinned stage commit. That commit must survive the merge: merge the branch with a merge
+  commit, never a squash.
+- Hardpoint audit: read the skeleton the mesh links (`<unit>_recoil.skeleton` on rigged
+  units), not `<unit>.skeleton`, which is the stale stock bind. The audit's barrel-candidate
+  heuristic ignores rig-bone muzzle pieces (svtank brake, avfigh barrel), so a hardpoint at
+  the real muzzle can still read OFFSET; probe the +z axis before "fixing" it. Turrets must be
+  checked in the deployed pose (sequence 0, last frame; 1.5 `TurretTank_Simulate.c:152`).
+- After moving hardpoints, re-run the inventory/audit; old rows describe old positions.
+- A file showing ` M` with an empty `git diff` is a CRLF stat ghost; `git add` it to clear.
+- Before `Manage-CampaignFiles.ps1 -bless`, move unrelated unblessed files aside (this pass:
+  91 `Assets/Textures/openshim_*_auto_*.png`), bless, restore them, and check the count.
+  If membership did not change, `git checkout -- Shipping/shipping.lock.json`.
+- Commit with `git commit -F <file>` from PowerShell; multi-line `-m` strings get mangled.
