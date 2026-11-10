@@ -147,6 +147,9 @@ OwnedObjectReveal = 1
 HowitzerUndeployedRetaliation = 1
 TugCargoPostLoad = 1
 ConstructorRemoteBuild = 1
+; Keep a Daywrecker SeismicWave inside its terrain-delta buffer (stock overruns
+; it and leaves spires/pits). Drops only zero-delta cells; applies online too.
+SeismicWaveExtentClamp = 1
 ; Step the simulation by the measured frame time instead of whole milliseconds
 ; (stock steps 6, 7, 7 ms at 144 fps). Game time is unchanged.
 PreciseTimestep = 1
@@ -160,6 +163,15 @@ MusicSingleFill = 1
 ConstructorRecycleStaleTarget = 1
 ; Defensive crash/stability guard for invalid/non-positive magnet ranges.
 MagnetZeroRangeGuard = 1
+; Mission briefing / archive text is scrolled a page at a time; the page size is
+; measured with a probe that ends in a letter, but pages are drawn with a
+; newline after every line and measure slightly taller. For some box heights a
+; page then shows one line fewer than the scroll step skips (a line vanishes at
+; each page break; a full last page hides its final line). Measures the probe
+; the way the page is drawn. Client-local UI only.
+BriefingPageStride = 1
+; Pilot sniper shot follows the reticle while ejected/tilted; single player only (see openshim.ini.example).
+SniperEjectAimFix = 1
 ; Heap-corruption guard: remote scavenger NetProcess is not a ScavengerProcess.
 ScavengerNetProcessGuard = 1
 ; Stock Lua Formation(unit, leader, priority) reads the leader as an integer and raises
@@ -174,6 +186,19 @@ LuaSendLengthUnsigned = 1
 ; Multiplayer: the launcher's deployed splinter position and any damage kill are
 ; broadcast so every patched peer has the same splinter (needs SplinterUndead).
 SplinterSync = 1
+; Multiplayer "Any Nation" lobby toggle (Battlezone 1.5 parity). The host gets an
+; "Any Nation: On/Off" button in the lobby. ON (default) is the full vehicle
+; pool, as before. OFF restricts the vehicle-select pool to the 1.5 netveh.odf
+; set (27 craft: NSDF 13, CCA 9, Black Dog 5, CRA 0; craft the shipped Redux
+; pool lacks are not added back). The host's choice reaches clients through its
+; own lobby key, "anyNation" ("0" = OFF, "1" or absent = ON), never the
+; positional gameSettings string. The host's choice is kept in multi.ini.
+; Any Nation OFF only restricts players running OpenShim; stock clients still
+; see the full pool. Lobby stays compatible either way.
+; GOG Redux 2.2.301 only; stands down on any other build or byte mismatch.
+; Accepted: boolean. Default: ON (a lobby that never turns Any Nation OFF
+; publishes nothing new). 0 installs nothing.
+AnyNationToggle = 1
 ; Host-called SucceedMission/FailMission ends the mission on patched guests too
 ; (stock has no network message for it; unpatched guests ignore the packet).
 MissionEndSync = 1
@@ -280,6 +305,9 @@ ResolutionDropdown = 1
 ; DX11 windowed only, experimental: present through a flip-model swap chain.
 ; Off, and exclusive fullscreen, keep the stock blit swap chain.
 DxgiFlipModel = 0
+; DX11: fullscreen is a borderless window over the monitor instead of exclusive
+; mode (Alt-Tab without a mode switch). Restart required.
+BorderlessFullscreen = 0
 ; Sun shadow reach in metres, or stock for the stock 128 m clip. Restart required.
 ShadowFarDistance = 256
 
@@ -550,11 +578,19 @@ UiPerformanceLogging = 0
 UiPerformanceVerbose = 0
 TraceDamageReveal = 0
 TracePlayerKills = 0
+TraceKillCredit = 0
 
 [Network]
 ; In-process LAN host and local identities; no Steam/Galaxy sign-in or helper.
 ; Requires an explicit LAN selection and numeric private IPv4. Development opt-in.
 NoAuthLan = 0
+
+; Let .tga files pass the multiplayer mod asset whitelist, so a visual-only
+; (sky/texture) Workshop mod holding .tga files still mounts in a network game.
+; Peers without this setting still reject such a mod, so players can see
+; different visuals; the simulation does not read .tga files.
+; Accepted: 0/1. Default: 1. Restart required after changing.
+AllowTgaInMultiplayerMods = 1
 ; OpenShim's qualified socket layer: winsock hooks, bandwidth governor,
 ; auto-kick relaxation, packet reorder/duplicate mitigation and DSCP marking.
 ; Set to 0 for stock networking -- nothing below in this file's socket layer
@@ -688,6 +724,9 @@ CustomServer =
 ; mute lasts the session; /mute itself works either way, and an existing
 ; mutes.cfg is kept, not deleted.
 PersistentPlayerMute = 1
+; Ignore the free camera key (Shift/Ctrl+F11) in multiplayer so nobody scouts
+; with it. Set to 0 for stock. Enforced by your own game only.
+BlockFreeCamInMultiplayer = 1
 ; Sent only to community (non-official) matchmaking servers, never to
 ; Rebellion's: a per-server key that lets a server recognise you across
 ; sessions. Each server gets a different key, so servers cannot link you. The
@@ -711,12 +750,25 @@ StockFactionSet = as
 ; frame rate. Display only. 0 = stock. Try 100.
 RemoteSmoothingMs = 0
 
+[Mods]
+; Also mount every subfolder of an addon/mods/packaged_mods/Workshop mod folder,
+; not just its top level. Duplicate file names: the shallowest folder wins,
+; then alphabetical order (a warning is logged). In a network game a subfolder is
+; mounted only if every file in it passes the MP asset whitelist. Peers without
+; this setting do not mount the subfolders at all.
+; Accepted: 0/1. Default: 0. Restart required after changing.
+RecurseModSubfolders = 0
+
 [Gameplay]
 AllowNeutralAttackOrders = 0
 
 [Updater]
 ; Stage a newer OpenShim from the Steam Workshop when the main menu first appears (Steam builds, never in multiplayer); it installs when you quit. 0 = manual "Check for Updates" only. Default: 1.
 AutoStage = 1
+
+[Steam]
+; Start the game directly instead of Rebellion's launcher (Steam on Windows only). OpenShim writes Launcher\d3d9.dll while this is 1 and removes it at 0. Hold Shift while launching to see the launcher; the first launch (no Ogre.cfg yet) always shows it. Default: 0.
+SkipRebellionLauncher = 0
 
 [Career]
 ; Career persistence is a feature rather than a crash/bug/netcode fix.
