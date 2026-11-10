@@ -4,13 +4,20 @@
 local E, uniforms = {}, {}
 local health, view, player = 1, 1, 1
 local crackCalls, updates, glassAlpha, glassWant = {}, 0, 0, 0
+local bloodCalls, bloodLeft, bloodClears = {}, 0, 0
 local Glass = {}
 function Glass.SetCrack(level, x, y) crackCalls[#crackCalls + 1] = { level = level, x = x, y = y }; glassWant = level end
 function Glass.Update() updates = updates + 1
+    if bloodLeft > 0 then bloodLeft = bloodLeft - 1 end
     if glassAlpha < glassWant then glassAlpha = math.min(glassWant, glassAlpha + 0.1)
     else glassAlpha = math.max(glassWant, glassAlpha - 0.1) end
 end
 function Glass.Busy() return glassWant > 0 or glassAlpha > 0 end
+function Glass.BloodHit(amount, x, y, flip) bloodCalls[#bloodCalls + 1] = { amount = amount, x = x, y = y }; bloodLeft = 10; return true end
+function Glass.BloodBusy() return bloodLeft > 0 end
+function Glass.ClearBlood() bloodClears = bloodClears + 1; bloodLeft = 0 end
+local onFoot = false
+function IsPerson(h) return onFoot and h == player end
 package.loaded.CRWetGlass = Glass
 package.loaded.exu = E
 package.loaded.CRWeather = { GetSurfaceWetness = function() return 0 end }
@@ -134,6 +141,33 @@ player = 1; ticks(20)
 assert(S.crackSpotCount <= 1, "spot cache bounded, got " .. S.crackSpotCount)
 assert(lastCrack().x == spot.x, "an evicted spot comes back the same (it is a hash)")
 
+-- 13. On foot: only a hit on the local pilot, in first person, splashes blood;
+-- the pilot still gets its hit record; Update runs until the blood fades.
+S.MaxCrackSpots = 8
+player = 1; health = 1; onFoot = true; ticks(40)
+local hitAt = { posit_x = 3, posit_y = 1, posit_z = 5 }
+S.NotifyHit("gspstab", nil, 7, hitAt); ticks(2)
+assert(#bloodCalls == 0, "a hit on another unit does not splash")
+S.records[1].marks = {}
+S.NotifyHit("gspstab", nil, 1, hitAt); ticks(1)
+assert(#bloodCalls == 1, "a hit on the local pilot splashes")
+assert(#S.records[1].marks == 1, "the pilot still gets its hit mark")
+local b = bloodCalls[1]
+assert(b.amount > 0 and b.x >= 0.36 and b.x <= 0.64 and b.y >= 0.34 and b.y <= 0.56, "splash near the view centre")
+u = updates; ticks(5)
+assert(updates - u >= 5, "glass is driven while blood fades")
+ticks(20); u = updates; ticks(5)
+assert(updates == u and not S.bloodOn, "glass work stops once the blood faded")
+view = 4; S.NotifyHit("gspstab", nil, 1, hitAt); ticks(2); view = 1
+assert(#bloodCalls == 1, "no splash outside first person")
+onFoot = false; S.NotifyHit("gspstab", nil, 1, hitAt); ticks(2)
+assert(#bloodCalls == 1, "no splash in a craft")
+onFoot = true; S.NotifyHit("gspstab", nil, 1, hitAt); ticks(1)
+assert(#bloodCalls == 2 and S.bloodOn, "splash again on foot")
+local clears = bloodClears; S.ResetScene()
+assert(bloodClears == clears + 1 and not S.bloodOn, "a scene reset clears the blood")
+onFoot = false; S.Register(1); ticks(20)
+
 -- 12. Without CRWetGlass nothing fails.
 package.loaded.CRWetGlass = nil
 local S2 = assert(loadfile("Scripts/CRSurfaceEffects.lua"))()
@@ -141,4 +175,4 @@ health = 0.2; S2.Register(1)
 for _ = 1, 20 do S2.Update(0.05) end
 assert(S2.crackLevel == 0, "no glass module, no crack state")
 
-print("CockpitGlassDamage: stages, hysteresis, spot, view, brownout, chips, boarding, disable, Enhanced gate, no module PASS")
+print("CockpitGlassDamage: stages, hysteresis, spot, view, brownout, chips, boarding, disable, Enhanced gate, on-foot blood, no module PASS")

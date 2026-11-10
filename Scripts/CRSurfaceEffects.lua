@@ -12,7 +12,7 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     -- Cockpit glass damage (CRWetGlass) and electrical brownout.
     CrackStages = { { enter = 0.50, leave = 0.55, level = 0.35 }, { enter = 0.25, leave = 0.30, level = 0.80 } },
     BrownoutDrop = 0.05, BrownoutHold = 0.12, BrownoutCooldown = 0.4, MaxCrackSpots = 32,
-    crackSpots = {}, crackSpotCount = 0, crackLevel = 0, glassOn = false,
+    crackSpots = {}, crackSpotCount = 0, crackLevel = 0, glassOn = false, bloodOn = false,
     SweepWet = 0, MaxWetStep = 0.03, MaxMaterialBudget = 64, CloneWetBudget = 32,
     sweepLeft = 0, cloneLeft = 0, wetCursor = 1, sweepMoving = false,
     flashCache = {}, flashCacheCount = 0, MaxFlashCache = 512,
@@ -509,10 +509,31 @@ end
 function S.NotifyHit(odf, _, hit, transform) enqueue(S.hits, hit, transform, odf) end
 function S.NotifyShot(odf, shooter, transform) enqueue(S.shots, shooter, transform, odf) end
 
+local glassModule
+local glass
+
+local function pilotBloodSpot(position)
+    local seed = math.floor(math.abs((position.x * 13.17 + position.y * 7.31 + position.z * 3.77) * 37)) % 1000003
+    local x = 0.36 + 0.28 * ((seed * 0.6180339887) % 1)
+    local y = 0.34 + 0.22 * ((seed * 0.7548776662) % 1)
+    return x, y, seed % 2 == 1
+end
+
 local function drain(queue, shot)
     for _ = 1, math.min(2, #queue) do
         local event = table.remove(queue, 1)
         if valid(event.handle) and inRange(event.handle) then
+            local player = call(GetPlayerHandle)
+            -- Blood is additive: the pilot still gets its normal hit marks.
+            -- Only the local player's own pilot, so MP hits on others never splash.
+            if not shot and event.handle == player and call(IsPerson, event.handle) == true
+                and call(exu.GetCameraView) == 1 and call(exu.GetSatState) ~= 1 and call(exu.IsPauseMenuOpen) ~= true then
+                local g = glass()
+                if g and type(g.BloodHit) == "function" then
+                    local x, y, flip = pilotBloodSpot(event.position)
+                    if call(g.BloodHit, 0.75, x, y, flip) == true then S.bloodOn = true end
+                end
+            end
             S.Register(event.handle)
             local r = S.records[event.handle]
             if r then
@@ -683,8 +704,7 @@ end
 -- CRWetGlass draws and fades it (on the fitted cockpit glass in F1, else the
 -- screen overlay); it only needs Update calls while Busy(). Calls are
 -- edge-triggered so a mission's own SetCrack (CRStorm18) is not fought.
-local glassModule
-local function glass()
+glass = function()
     if glassModule == nil then
         local ok, m = pcall(require, "CRWetGlass")
         glassModule = (ok and type(m) == "table" and type(m.SetCrack) == "function" and
@@ -717,11 +737,18 @@ end
 -- Every frame, even while disabled or outside Enhanced, until a cleared crack
 -- has faded: CRWetGlass only animates while someone calls Update.
 local function driveGlass()
-    if not S.glassOn then return end
+    if not S.glassOn and not S.bloodOn then return end
     local g = glass()
-    if not g then S.glassOn = false; return end
+    if not g then S.glassOn, S.bloodOn = false, false; return end
     call(g.Update, 0)
     if S.crackLevel <= 0 and call(g.Busy) ~= true then S.glassOn = false end
+    if S.bloodOn and (type(g.BloodBusy) ~= "function" or call(g.BloodBusy) ~= true) then S.bloodOn = false end
+end
+
+local function clearPilotBlood()
+    S.bloodOn = false
+    local g = glass()
+    if g and type(g.ClearBlood) == "function" then call(g.ClearBlood) end
 end
 
 cockpitStage = function(r, hp)
@@ -905,6 +932,7 @@ function S.ResetScene()
     S.records,S.order,S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{},{},{}
     S.hits,S.shots,S.clones,S.live = {},{},{},{}
     S.cockpit=nil;S.cursor=1;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
+    clearPilotBlood()
     setCrack(0);S.crackSpots,S.crackSpotCount={},0
     S.SweepWet=0;S.sweepLeft=0;S.cloneLeft=0;S.wetCursor=1;S.sweepMoving=false
     clearWash();S.snow=nil;S.dust=nil;S.shapeMaterial=nil;S.cameraMaterial=nil;S.cameraAt=nil
@@ -935,6 +963,7 @@ function S.Suspend()
     S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{}
     S.hits,S.shots,S.clones,S.live = {},{},{},{}
     S.cockpit=nil;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
+    clearPilotBlood()
     clearWash();S.shapeMaterial=nil;S.cameraMaterial=nil;S.cameraAt=nil
     setCrack(0)
     S.SweepWet=0;S.sweepLeft=0;S.cloneLeft=0;S.wetCursor=1;S.sweepMoving=false
