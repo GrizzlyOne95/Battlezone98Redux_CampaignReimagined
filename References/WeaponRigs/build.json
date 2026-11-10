@@ -11744,7 +11744,8 @@
     "world": [
       {
         "hardpoints": [
-          "GC1"
+          "GC1",
+          "GC2"
         ],
         "triangles": 124,
         "cap_triangles": 0,
@@ -11755,26 +11756,13 @@
             "parent": "SCZ11BGB"
           }
         ]
-      },
-      {
-        "hardpoints": [
-          "GC2"
-        ],
-        "triangles": 27,
-        "cap_triangles": 23,
-        "cockpit": false,
-        "helpers": [
-          {
-            "bone": "crgun_2_1",
-            "parent": "scz11bda"
-          }
-        ]
       }
     ],
     "cockpit": [
       {
         "hardpoints": [
-          "GC1"
+          "GC1",
+          "GC2"
         ],
         "triangles": 332,
         "cap_triangles": 12,
@@ -11789,15 +11777,6 @@
             "parent": "SCZ21bga"
           }
         ]
-      },
-      {
-        "hardpoints": [
-          "GC2"
-        ],
-        "triangles": 0,
-        "cap_triangles": 0,
-        "cockpit": true,
-        "helpers": []
       }
     ],
     "cockpit_source": {
@@ -12192,53 +12171,53 @@
         "cockpit": true
       },
       "GC2": {
-        "animation": "cr_fire_2",
+        "animation": "cr_fire_1",
         "node": "",
         "spin": false,
-        "distance": 0.03,
+        "distance": 0.2,
         "return": 2.0,
         "kick_without_weapon": 1.0,
         "flash_offset": [
-          0.333,
-          -0.1216,
-          -3.3322
+          -0.0405,
+          -0.0024,
+          -0.0003
         ],
         "casing_offset": [
-          1.1824,
-          0.3863,
-          -5.5738
+          -0.6377,
+          0.2318,
+          -3.7095
         ],
         "casing_direction": [
-          0.9345,
+          -0.9345,
           0.3271,
           -0.1402
         ],
-        "casing_outward_side": 1,
-        "casing_clearance": 0.3416,
+        "casing_outward_side": -1,
+        "casing_clearance": 0.2944,
         "casing_jitter_rays_clear": true,
         "port_world": [
-          0.9719901719884644,
-          2.596678336005042,
-          -1.0880542262710118
+          -0.8480728365298271,
+          2.442226496390028,
+          0.7761911788423932
         ],
         "direction_world": [
-          0.9345386270319955,
+          -0.9345386270319955,
           0.32708851946119843,
           -0.14018079405479933
         ],
         "tip_world": [
-          0.1226188912987709,
-          2.0887720584869385,
-          1.153461217880249
+          -0.2508680000901222,
+          2.208000063896179,
+          4.4854350090026855
         ],
         "cockpit": true
       }
     },
     "outputs": {
-      "Assets/Models/svtank_recoil.skeleton": "dc297f6f8bdb2def92e94b98c616a4067093970f75eda1663e1227fc15efc0ed",
-      "Assets/ModelFixes/svtank.mesh": "16d68a2380253764e5695e67d92fd316c38500bd7d967feb7d4cc605a8bf80e0",
+      "Assets/Models/svtank_recoil.skeleton": "b0b5e0c699a2f2aa0f4abfbd3d986408e7d5ef7b634c8cc4ba695853a2d27f75",
+      "Assets/ModelFixes/svtank.mesh": "a18c05e67eb727af1b5050ec66c746eb09c94ed3c1122a39c31d0e5b66191b87",
       "Assets/Models/svtank_cockpit.mesh": "35873345f7c4d7e49153f3f930bc87d77ab02c2811052bd96f3d71001a78a2f9",
-      "Assets/Models/svtank_cockpit_recoil.skeleton": "58445c7edcca21edd42cbcb5166b1e84d31cb44be4b86b9e13a98e980dda866a"
+      "Assets/Models/svtank_cockpit_recoil.skeleton": "d9439be43b0e16f596de20c9eef893bf4040113b67aaf029bbe8b6e3ea02734d"
     },
     "hardpoints": {
       "SCZ11GC1": {
@@ -14363,20 +14342,7 @@
     "world": [
       {
         "hardpoints": [
-          "GC1"
-        ],
-        "triangles": 22,
-        "cap_triangles": 22,
-        "cockpit": false,
-        "helpers": [
-          {
-            "bone": "crgun_1_0",
-            "parent": "brd11bda"
-          }
-        ]
-      },
-      {
-        "hardpoints": [
+          "GC1",
           "GR1",
           "GM1"
         ],
@@ -14385,7 +14351,7 @@
         "cockpit": false,
         "helpers": [
           {
-            "bone": "crgun_2_7",
+            "bone": "crgun_1_7",
             "parent": "brd11tur"
           }
         ]
@@ -14394,20 +14360,7 @@
     "cockpit": [
       {
         "hardpoints": [
-          "GC1"
-        ],
-        "triangles": 22,
-        "cap_triangles": 22,
-        "cockpit": true,
-        "helpers": [
-          {
-            "bone": "crgun_1_14",
-            "parent": "brd21BDA"
-          }
-        ]
-      },
-      {
-        "hardpoints": [
+          "GC1",
           "GR1",
           "GM1"
         ],
@@ -14624,44 +14577,44 @@
     "cockpit_kind": "separate",
     "bindings": {
       "GC1": {
-        "animation": "cr_fire_1",
+        "animation": "cr_fire_2",
         "node": "",
         "spin": false,
         "distance": 0.06,
         "return": 2.0,
         "kick_without_weapon": 1.0,
         "flash_offset": [
-          1.5021,
-          -1.2557,
-          2.0992
+          0.0018,
+          0.0161,
+          -0.0036
         ],
         "casing_offset": [
-          1.9927,
-          -0.918,
-          1.0939
+          -0.4621,
+          0.203,
+          -0.3457
         ],
         "casing_direction": [
-          0.9345,
+          -0.9345,
           0.3271,
           -0.1402
         ],
-        "casing_outward_side": 1,
-        "casing_clearance": 0.3366,
+        "casing_outward_side": -1,
+        "casing_clearance": 0.2991,
         "casing_jitter_rays_clear": true,
         "port_world": [
-          1.1967418972361876,
-          0.8720488445260205,
-          3.0319438668532848
+          -1.2580873660444618,
+          1.99302470627127,
+          1.5923105017513128
         ],
         "direction_world": [
-          0.9345386270319955,
+          -0.9345386270319955,
           0.32708851946119843,
           -0.14018079405479933
         ],
         "tip_world": [
-          0.7060787975788116,
-          0.534296989440918,
-          4.03715705871582
+          -0.7942014932632446,
+          1.8061000108718872,
+          1.934399962425232
         ],
         "cockpit": true
       },
@@ -14751,10 +14704,10 @@
       }
     },
     "outputs": {
-      "Assets/Models/bvrdev_recoil.skeleton": "6092c2697812565a069adbd21d4acdda090e4039e14e03814387d409354a9cf0",
-      "Assets/ModelFixes/bvrdev.mesh": "028b86e313bed8abf294385a16b648c2bc33bc5b304587b7d77bc10e5ec1bdf0",
-      "Assets/Models/bvrdev_cockpit.mesh": "859ee99b11736541f703593265de7151bf849c3bda25c902ab74675d5c954087",
-      "Assets/Models/bvrdev_cockpit_recoil.skeleton": "62552f7eb0794d0b5ed384f6ffdd7c59e921a0ab02605ac136700106c9d8076e"
+      "Assets/Models/bvrdev_recoil.skeleton": "d8bec35d4c8044bd907ae672801d2a7af28728fb6d8027685d24a0ab869ca38f",
+      "Assets/ModelFixes/bvrdev.mesh": "c3db2f9f97a2ca6f2d244f733442d24138d4ba13ee8e11c25c207713e166bac1",
+      "Assets/Models/bvrdev_cockpit.mesh": "fb3707b471c0eb2bd453cb761df522ad1287d4291a30c1b2bc0dba3be71e767c",
+      "Assets/Models/bvrdev_cockpit_recoil.skeleton": "3fbc922ebef4ca9b1c9d41ae91d74cd073eb2be33255deb9ea97705b5b143358"
     },
     "hardpoints": {
       "brd11GC1": {

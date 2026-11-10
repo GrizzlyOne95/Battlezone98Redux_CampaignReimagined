@@ -23,7 +23,7 @@ weaponName2 = ""
 // Flash point from the hardpoint (right up forward, metres: barrel tip, or 0 0 0 at
 // a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
 // Regenerate: Tools/Build-WeaponFlashes.py --measure
-flashOffset1 = "0.69 0.38 0.27"
+flashOffset1 = "-0.04 -0.04 0.00"
 // CR CRAFT FLASH OFFSET END
 // CR CRAFT RECOIL BEGIN
 // Reviewed independent gun pieces; preserve aiming and deployment parents.

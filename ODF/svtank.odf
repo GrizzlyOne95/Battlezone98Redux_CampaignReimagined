@@ -27,8 +27,8 @@ weaponMask = 00001
 // Flash point from the hardpoint (right up forward, metres: barrel tip, or 0 0 0 at
 // a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
 // Regenerate: Tools/Build-WeaponFlashes.py --measure
-flashOffset1 = "-0.00 -0.00 3.42"
-flashOffset2 = "0.09 -0.16 1.90"
+flashOffset1 = "0.04 -0.00 -0.00"
+flashOffset2 = "-0.04 -0.00 -0.00"
 // CR CRAFT FLASH OFFSET END
 // CR CRAFT RECOIL BEGIN
 // Reviewed independent gun pieces; preserve aiming and deployment parents.
@@ -36,13 +36,13 @@ flashOffset2 = "0.09 -0.16 1.90"
 recoilAnimation1 = "cr_fire_1"
 recoilPlaybackRate1 = 1.0
 recoilCockpit1 = true
-casingOffset1 = "-0.6001 0.23 -0.29"
+casingOffset1 = "-0.5577 0.2318 -3.7095"
 casingDirection1 = "-0.9345 0.3271 -0.1402"
-recoilAnimation2 = "cr_fire_2"
+recoilAnimation2 = "cr_fire_1"
 recoilPlaybackRate2 = 1.0
 recoilCockpit2 = true
-casingOffset2 = "0.9369 0.3479 -0.3405"
-casingDirection2 = "0.9345 0.3271 -0.1402"
+casingOffset2 = "-0.6377 0.2318 -3.7095"
+casingDirection2 = "-0.9345 0.3271 -0.1402"
 recoilKick2 = 0.25
 // CR CRAFT RECOIL END
 // OpenShim mesh recoil (slot 1 cannon barrel; needs Settings > Video > Muzzle Recoil).

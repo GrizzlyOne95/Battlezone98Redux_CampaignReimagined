@@ -972,47 +972,47 @@
     },
     "bvrdev": {
       "category": "Authored closed gun rigs",
-      "action": "Closed gun sections and EXU world/cockpit clips authored; 1 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
+      "action": "Closed gun sections and EXU world/cockpit clips authored; 0 channels contain cockpit gun geometry. Original drivers, source UVs and closed receiver caps retained. Outboard casing ports are ray-fitted clear of the world hull; requires companion OpenShim spin/port support. Native visual qualification remains pending.",
       "bindings": {
         "GC1": {
-          "animation": "cr_fire_1",
+          "animation": "cr_fire_2",
           "node": "",
           "spin": false,
           "distance": 0.06,
           "return": 2.0,
           "kick_without_weapon": 1.0,
           "flash_offset": [
-            1.5021,
-            -1.2557,
-            2.0992
+            0.0018,
+            0.0161,
+            -0.0036
           ],
           "casing_offset": [
-            1.9927,
-            -0.918,
-            1.0939
+            -0.4621,
+            0.203,
+            -0.3457
           ],
           "casing_direction": [
-            0.9345,
+            -0.9345,
             0.3271,
             -0.1402
           ],
-          "casing_outward_side": 1,
-          "casing_clearance": 0.3366,
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2991,
           "casing_jitter_rays_clear": true,
           "port_world": [
-            1.1967418972361876,
-            0.8720488445260205,
-            3.0319438668532848
+            -1.2580873660444618,
+            1.99302470627127,
+            1.5923105017513128
           ],
           "direction_world": [
-            0.9345386270319955,
+            -0.9345386270319955,
             0.32708851946119843,
             -0.14018079405479933
           ],
           "tip_world": [
-            0.7060787975788116,
-            0.534296989440918,
-            4.03715705871582
+            -0.7942014932632446,
+            1.8061000108718872,
+            1.934399962425232
           ],
           "cockpit": true
         },
@@ -2724,44 +2724,44 @@
           "cockpit": true
         },
         "GC2": {
-          "animation": "cr_fire_2",
+          "animation": "cr_fire_1",
           "node": "",
           "spin": false,
-          "distance": 0.03,
+          "distance": 0.2,
           "return": 2.0,
           "kick_without_weapon": 1.0,
           "flash_offset": [
-            0.333,
-            -0.1216,
-            -3.3322
+            -0.0405,
+            -0.0024,
+            -0.0003
           ],
           "casing_offset": [
-            1.1824,
-            0.3863,
-            -5.5738
+            -0.6377,
+            0.2318,
+            -3.7095
           ],
           "casing_direction": [
-            0.9345,
+            -0.9345,
             0.3271,
             -0.1402
           ],
-          "casing_outward_side": 1,
-          "casing_clearance": 0.3416,
+          "casing_outward_side": -1,
+          "casing_clearance": 0.2944,
           "casing_jitter_rays_clear": true,
           "port_world": [
-            0.9719901719884644,
-            2.596678336005042,
-            -1.0880542262710118
+            -0.8480728365298271,
+            2.442226496390028,
+            0.7761911788423932
           ],
           "direction_world": [
-            0.9345386270319955,
+            -0.9345386270319955,
             0.32708851946119843,
             -0.14018079405479933
           ],
           "tip_world": [
-            0.1226188912987709,
-            2.0887720584869385,
-            1.153461217880249
+            -0.2508680000901222,
+            2.208000063896179,
+            4.4854350090026855
           ],
           "cockpit": true
         }
