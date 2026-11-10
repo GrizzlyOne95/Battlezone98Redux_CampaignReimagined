@@ -1959,3 +1959,28 @@ to the ordinary GOG development mod.
   failed with 22 glass triangles too close. cvfigh has no rotor.
 - svfigh's eye-facing BDA deck mask drops the stock rails and slats (|x| .14-.5 m): the
   owner read them as bars and corner wedges over the tub's front wall.
+
+### svfigh tip recoil and cockpit pod (2026-11-10)
+
+- The combat cockpit builder copied only the body batch, so a CR hardpoint mount
+  submesh (`svfigh_hpmount`) never reached first person. `combatcockpits.py` now copies
+  a fighter's `<base>_hpmount` whole, unmoved, as its own batch
+  (`CRV/<base>CombatHpmount`). The batch is rigid on its one owner bone (SFL11ROR, so
+  it rolls with the nose), is kept out of the glass fit, and is recorded as
+  `mountSkin` in the receipt. Its material is hand-added to
+  `Materials/CR_svfigh_cockpit.material`, because the builder only writes that file
+  when it is missing.
+- `Build-WeaponRigs.py` used to apply hardpoint receipt poses to the world skeleton
+  only, which left first-person GR1 at the stock spot. It now poses the cockpit
+  skeleton too, under the receipt key `cockpit_hardpoints`. This takes effect only when
+  a model is re-rigged; only svfigh has been.
+- A recoil travel of 2.5 cm reads as static on the exterior. svfigh GC1/GC2 now use 8 cm
+  (`models.json` distance 0.08).
+- The svfigh cannon tips are in the cockpit mesh, but the eye cannot see them: 0 of
+  5700 direct rays reach them, because the exterior nose and the tub block them. So the
+  tips do not recoil visibly in first person. The pod is visible as a small block on the
+  nose crest. `Test-CombatCockpits.py` checks this with a 0.25 deg ray grid, which gets
+  151 hits.
+- UNVERIFIED (not traced to a decompile line in this pass): that OpenShim plays
+  `cr_fire_N` on the cockpit skeleton when `recoilCockpitN = true`, and that
+  `recoilKick` does not scale the clip's travel.
