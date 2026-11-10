@@ -1255,6 +1255,7 @@
       ]
     },
     "svfigh": {
+      "cockpit_hardpoints": true,
       "channels": [
         {
           "hardpoints": [

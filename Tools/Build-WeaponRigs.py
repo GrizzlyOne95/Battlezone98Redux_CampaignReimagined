@@ -274,9 +274,12 @@ def build(selected):
         cp,kind,_=cg.cockpit_mesh(src,model);cp_proof=[];cp_hardpoints={}
         if cp and Path(cp)!=mp:
             cpm,cps,csource=load(Path(cp),src,cfg['source_revision']);cpchannels=copy.deepcopy(entry['channels'])
-            # Moved hardpoints take the same receipt poses in the cockpit
-            # skeleton, so first-person muzzles match the world rig.
-            cp_hardpoints=hardpoint_bones(model,cpm,cps)
+            # Opt-in per model (models.json "cockpit_hardpoints": true): moved
+            # hardpoints take the same receipt poses in the cockpit skeleton so
+            # first-person muzzles match the world rig. Only valid where the
+            # cockpit skeleton's owner bones match the exterior's world pose;
+            # other cockpits (e.g. svturr_c) lack the owner bones entirely.
+            if entry.get('cockpit_hardpoints'):cp_hardpoints=hardpoint_bones(model,cpm,cps)
             cp_proof=wr.channels_mesh(cpm,cps,cpchannels,True)
             cpsp=ROOT/'Assets/Models'/(model+'_cockpit_recoil.skeleton')
             cpp=Path(cp) if Path(cp).is_relative_to(ROOT) else ROOT/'Assets/Models'/Path(cp).name

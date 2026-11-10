@@ -60,6 +60,8 @@ class WeaponRigTests(unittest.TestCase):
             receipt=hpbones.receipt(model)
             self.assertEqual(set(moved),{p['name'] for p in receipt['parts']} if receipt else set(),model)
             cockpit_moved=record.get('cockpit_hardpoints',{})
+            # Cockpit posing is opt-in per model; the receipt must follow the flag.
+            self.assertEqual(bool(cockpit_moved),bool(self.config['models'][model].get('cockpit_hardpoints')) and bool(moved),model+' cockpit_hardpoints opt-in')
             if cockpit_moved:self.assertEqual(cockpit_moved,moved,model+' cockpit hardpoints match the world rig')
             for path,source in pairs:
                 skel=wr.read_skeleton(path)
