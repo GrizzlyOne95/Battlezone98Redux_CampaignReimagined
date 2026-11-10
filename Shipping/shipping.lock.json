@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5514,
+  "count": 5522,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -699,6 +699,10 @@
       "runtime": "avfigh.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avfigh.vdf",
+      "runtime": "avfigh.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\avhaul.mesh",
       "runtime": "avhaul.mesh"
     },
@@ -781,6 +785,10 @@
     {
       "source": "Assets\\ModelFixes\\avturr.mesh",
       "runtime": "avturr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avturr.vdf",
+      "runtime": "avturr.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\avturr_c.mesh",
@@ -963,6 +971,10 @@
       "runtime": "bvrdev.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvrdev.vdf",
+      "runtime": "bvrdev.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvrecy.mesh",
       "runtime": "bvrecy.mesh"
     },
@@ -997,6 +1009,10 @@
     {
       "source": "Assets\\ModelFixes\\bvturr.mesh",
       "runtime": "bvturr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvturr.vdf",
+      "runtime": "bvturr.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvturr_c.mesh",
@@ -1049,6 +1065,10 @@
     {
       "source": "Assets\\ModelFixes\\cblasr.mesh",
       "runtime": "cblasr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cblasr.vdf",
+      "runtime": "cblasr.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\cblpad.mesh",
@@ -1363,6 +1383,10 @@
       "runtime": "cvrckt.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cvrckt.vdf",
+      "runtime": "cvrckt.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvrecy.mesh",
       "runtime": "cvrecy.mesh"
     },
@@ -1389,6 +1413,10 @@
     {
       "source": "Assets\\ModelFixes\\cvturr.mesh",
       "runtime": "cvturr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvturr.vdf",
+      "runtime": "cvturr.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\cvwalk.mesh",
@@ -1797,6 +1825,10 @@
     {
       "source": "Assets\\ModelFixes\\svrckt.mesh",
       "runtime": "svrckt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svrckt.vdf",
+      "runtime": "svrckt.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\svrecy.mesh",

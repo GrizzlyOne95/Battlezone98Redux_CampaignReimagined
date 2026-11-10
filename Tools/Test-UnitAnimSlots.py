@@ -135,6 +135,7 @@ def check_flames(err):
         return vdfs[unit]
 
     base = os.path.join(ROOT, "References", "NacelleJets")
+    added = set()  # units where CR adds class 75 parts; elsewhere they are stock's own (bvrdev en1-3)
     for unit in sorted(os.listdir(base)):
         path = os.path.join(base, unit, "build.json")
         if not os.path.exists(path):
@@ -143,6 +144,8 @@ def check_flames(err):
         parts, nacelles = r.get("vdfParts") or [], r.get("nacelles") or []
         if not (parts or nacelles):
             continue
+        if parts:
+            added.add(unit)
         name = unit + ".vdf"
         v = vdf(unit)
         if v is None:
@@ -165,7 +168,7 @@ def check_flames(err):
                 err(name, "%s matrix differs from the receipt" % p["name"])
     checked = 0
     for f in sorted(os.listdir(FIXES)):
-        if not f.lower().endswith(".vdf"):
+        if not f.lower().endswith(".vdf") or f[:-4] not in added:
             continue
         v = vdf(f[:-4])
         objs = list(v.primary_objects())
@@ -176,6 +179,61 @@ def check_flames(err):
         for o in objs:
             if o.class_id == 67 and o.name not in lit:
                 err(f, "nacelle %s has no class 75 flame part (the file's other class 75 parts turn off its automatic flame)" % o.name)
+    return checked
+
+
+def check_hardpoints(err):
+    """Hardpoint parts (Build-UnitAnimSlots applies References/Hardpoints/<unit>.json): each
+    recorded part hangs from the part that owns its weapon geometry (`parent` == `owner`, so a
+    turret or barrel weapon follows it and a hull weapon follows nothing that rotates), is in the
+    shipped VDF with the recorded class, parent and matrix, and is the first part a depth-first
+    search on name[5:8] reaches (the engine's lookup: BZ1.5 all_decompiled.c 187157-187191; a
+    second part with the same suffix would shadow it). Returns the number of receipts checked."""
+    base = os.path.join(ROOT, "References", "Hardpoints")
+    if not os.path.isdir(base):
+        return 0
+    checked = 0
+    for f in sorted(os.listdir(base)):
+        if not f.endswith(".json"):
+            continue
+        r = json.load(open(os.path.join(base, f)))
+        name = f[:-5] + ".vdf"
+        path = os.path.join(FIXES, name)
+        if not os.path.exists(path):
+            err(name, "hardpoint receipt but Assets/ModelFixes has no %s" % name)
+            continue
+        checked += 1
+        prim = list(bzmodellibs.bwd2_serializer.VDFSerializer(io.BytesIO(open(path, "rb").read())).read().primary_objects())
+        objs = {o.name: o for o in prim}
+        kids = {}
+        for o in prim:
+            kids.setdefault(o.parent_name() if o.parent_name() in objs and o.parent_name() != o.name else None, []).append(o.name)
+
+        def first(suffix, at=None):
+            for n in kids.get(at, []):
+                if n[5:8].upper() == suffix:
+                    return n
+                hit = first(suffix, n)
+                if hit:
+                    return hit
+            return None
+
+        for p in r.get("parts") or []:
+            if p.get("owner") != p["parent"]:
+                err(name, "%s is parented to %s, but its weapon geometry belongs to %s" % (p["name"], p["parent"], p.get("owner")))
+            o = objs.get(p["name"])
+            if o is None:
+                err(name, "recorded hardpoint %s missing" % p["name"])
+                continue
+            if o.class_id != p["klass"] or o.parent_name() != p["parent"]:
+                err(name, "%s is class %d under %s, recorded %d under %s" % (p["name"], o.class_id, o.parent_name(), p["klass"], p["parent"]))
+            t = o.transform
+            have = (t.rx, t.ry, t.rz, t.ux, t.uy, t.uz, t.fx, t.fy, t.fz, t.px, t.py, t.pz)
+            if max(abs(a - b) for a, b in zip(have, p["matrix"])) > 1e-5:
+                err(name, "%s matrix differs from the receipt" % p["name"])
+            hit = first(p["name"][5:8].upper())
+            if hit != p["name"]:
+                err(name, "a name[5:8] search for %s finds %s" % (p["name"][5:8], hit))
     return checked
 
 
@@ -327,12 +385,14 @@ def main():
                     err(name, "audit %s el%d %s frame %d %.3f %s" % (x["kind"], x["element"], x["part"], x["frame"], x["magnitude"], x["unit"]))
 
     flame_files = check_flames(err)
+    hardpoint_files = check_hardpoints(err)
 
     if not have_game:
         print("note: no Redux install at %s; skeleton/vertex checks skipped" % args.game)
     for e in errors:
         print("FAIL", e)
-    print("%d files, %d with flame parts, %d failures" % (len(FILES) + len(TUGS), flame_files, len(errors)))
+    print("%d files, %d with flame parts, %d hardpoint receipts, %d failures"
+          % (len(FILES) + len(TUGS), flame_files, hardpoint_files, len(errors)))
     sys.exit(1 if errors else 0)
 
 

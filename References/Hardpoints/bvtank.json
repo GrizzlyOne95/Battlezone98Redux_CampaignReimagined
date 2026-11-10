@@ -1,0 +1,51 @@
+{
+  "note": "Hardpoint alignment (Tools/Build-UnitAnimSlots.py apply_hardpoints). owner = the VDF part that carries the weapon geometry; parent must equal it (Tools/Test-UnitAnimSlots.py).",
+  "model": "bvtank",
+  "base": "CR@8a5c2c9a",
+  "parts": [
+    {
+      "name": "bGR11GC1",
+      "klass": 71,
+      "existing": true,
+      "was": "bGR11BGA",
+      "owner": "bGR11BGA",
+      "parent": "bGR11BGA",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0314,
+        0.1285,
+        1.2821
+      ]
+    },
+    {
+      "name": "bGR11Gc2",
+      "klass": 71,
+      "existing": true,
+      "was": "bGR11BDA",
+      "owner": "bGR11BGA",
+      "parent": "bGR11BGA",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        -0.0486,
+        0.1285,
+        1.2821
+      ]
+    }
+  ]
+}
