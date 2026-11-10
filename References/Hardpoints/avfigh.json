@@ -52,8 +52,8 @@
       "klass": 72,
       "existing": true,
       "was": "ARA11rof",
-      "owner": "ARA11rof",
-      "parent": "ARA11rof",
+      "owner": "ARA11BDA",
+      "parent": "ARA11BDA",
       "matrix": [
         1.0,
         0.0,
@@ -64,9 +64,9 @@
         0.0,
         0.0,
         1.0,
-        -0.55,
-        -0.257007,
-        0.907082
+        -0.535978,
+        -0.484925,
+        1.385138
       ]
     }
   ]
