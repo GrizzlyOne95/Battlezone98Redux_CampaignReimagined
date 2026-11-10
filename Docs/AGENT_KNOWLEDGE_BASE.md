@@ -1753,3 +1753,8 @@ to the ordinary GOG development mod.
 - Work that only exists on an `archive/` branch never shipped. Before porting it, check
   whether main already has the behaviour by another route; the archived light-budget
   commit (22b313ab) asserted wrappers that main does not need.
+- `Scripts/OpenShimManifest.lua` hashes the working-tree bytes of `InstallerPayload/*.payload`
+  on the Windows machine that ran `-refresh-natives`, which are CRLF. Those files are
+  `-text` and stored as CRLF so every checkout matches the manifest. Any new file the
+  manifest hashes needs a `-text` rule in the same commit; check with
+  `git ls-files --eol <path>` (index and working tree must show the same line endings).
