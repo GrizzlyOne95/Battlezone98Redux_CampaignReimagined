@@ -630,11 +630,11 @@ def hardpoint_skeleton(unit):
 
 
 # shipped skeleton: (stock path under BZ_ASSETS/common/models, stock_dir -> edit(skeleton)).
-# avtank/bvtank/avturr/bvturr (and avhraz, Tools/Build-HardpointMounts.py): CR meshes that keep the stock skeleton (the rigged models'
+# avtank/bvtank/avturr/bvturr (and avhraz/bvhraz, Tools/Build-HardpointMounts.py): CR meshes that keep the stock skeleton (the rigged models'
 # _recoil skeletons get the same bone edit in Tools/Build-WeaponRigs.py).
 SKELETONS = {
     "cvhaul.skeleton": ("TRO/cvhaul.skeleton", lambda d: add_vdf_bone(d, "cvhaul.vdf", "COX11GS1")),
-    **{u + ".skeleton": (u + ".skeleton", hardpoint_skeleton(u)) for u in ("avtank", "bvtank", "avturr", "bvturr", "avhraz")},
+    **{u + ".skeleton": (u + ".skeleton", hardpoint_skeleton(u)) for u in ("avtank", "bvtank", "avturr", "bvturr", "avhraz", "bvhraz")},
 }
 
 

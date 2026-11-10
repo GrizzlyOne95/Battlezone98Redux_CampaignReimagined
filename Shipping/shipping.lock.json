@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5544,
+  "count": 5550,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -945,6 +945,10 @@
     {
       "source": "Assets\\ModelFixes\\bvhraz.mesh",
       "runtime": "bvhraz.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvhraz.skeleton",
+      "runtime": "bvhraz.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\bvhraz.vdf",
@@ -4583,6 +4587,22 @@
       "runtime": "bvhraz01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\bvhraz_hpmount_D.dds",
+      "runtime": "bvhraz_hpmount_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvhraz_hpmount_E.dds",
+      "runtime": "bvhraz_hpmount_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvhraz_hpmount_N.dds",
+      "runtime": "bvhraz_hpmount_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvhraz_hpmount_S.dds",
+      "runtime": "bvhraz_hpmount_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\bvhraz_nacjet_D.dds",
       "runtime": "bvhraz_nacjet_D.dds"
     },
@@ -5817,6 +5837,10 @@
     {
       "source": "Assets\\Textures\\crteam_bvhraz_d.dds",
       "runtime": "crteam_bvhraz_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvhraz_hpmount_d.dds",
+      "runtime": "crteam_bvhraz_hpmount_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_bvhraz_nacjet_d.dds",
