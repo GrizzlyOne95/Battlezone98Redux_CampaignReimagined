@@ -160,7 +160,9 @@ me.set_sharp_from_angle(angle=math.radians(cfg['smoothAngle']))
 me.uv_layers.new(name='uv')
 bpy.context.view_layer.objects.active = body; body.select_set(True)
 bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')
-bpy.ops.uv.smart_project(angle_limit=math.radians(50), island_margin=0.02)
+# Fitted pods sit on tilted seats: a wide projection group there leans far enough to lay the
+# throat disc over the lip ring in the atlas (ring colour in the bore), so they unwrap in narrow groups.
+bpy.ops.uv.smart_project(angle_limit=math.radians(15 if cfg.get('auto') else 50), island_margin=0.02)
 bpy.ops.object.mode_set(mode='OBJECT')
 me = body.data
 assert all(len(p.vertices) == 3 for p in me.polygons)

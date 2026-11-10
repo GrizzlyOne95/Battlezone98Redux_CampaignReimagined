@@ -91,14 +91,29 @@ Emit points come from class 67 nacelles (nacelle up axis x GEO bbox min y; a mis
 estimated from the lowest mesh vertex the bone owns and flagged) or, when the VDF authors
 them, from each class 75 part (its position, flame along its front axis; BZ 1.5 decompile
 `all_decompiled.c` 255588-255605 and 193702-193706, UNVERIFIED against the Redux renderer).
-A class 75 part whose flame runs into mesh within 0.5 m sits in modelled geometry and gets
-no housing (svhaul, bvrdev). Class 76 is smoke only.
+An emitter whose flame runs into mesh 0.05-0.5 m ahead sits in modelled geometry and gets
+no housing; `housing=False` records a unit's emit points and renders an emit sheet only
+(bvrdev). Class 76 is smoke only.
+
+`shift=((part-name regex, move),)` builds at an approved new emit point: metres along the
+flame axis (positive = up, against the flame), an (x, y, z) build-frame vector, or `'skin'`
+(up or down to the seat skin). The VDF is not changed here: each moved emitter carries
+`emitShift` (stock point, moved point, delta) in `preview.json`.
 
 The seat is a plane fitted under the pod footprint and raised to the highest skin, so the
 roof is buried everywhere; the pod deepens to carry the nozzle at the emit point. Asserts:
 some skin to seat on (>= 35% of the footprint), roof never exits the far side, every boolean
-leaves one manifold piece. A unit that fails one is reported, not forced through. Read the
-`notes` in `preview.json` (edge overhang, deepened pod, emit inside the skin) before shipping.
+leaves one manifold piece. Clip checks against every opaque stock triangle (VDF pose): none
+may pass through the bore or the 0.9 m flame cone below the lip (the nozzle hangs lower when
+skin sits over the bore), and the housing's exposed surface may cross stock mesh only at its
+seat. When the configured pod clips, the pod is slid along the seat, then scaled down (not
+below 0.8), then turned about the flame axis, with the nozzle kept on the emit point; the first
+variant that passes is used and recorded as `adjusted`. A unit with no passing variant fails
+with the reasons, and leaves no preview. Read the `notes` in `preview.json` before shipping.
+
+Pod paint is the median texel of the seat skin under and around the footprint. Ring and bore
+glow follow the faction flame colour (`FACTIONS`): NSDF blue, Black Dogs blood red, CCA burnt
+orange, CRA green.
 
 ## Review sheets (avfigh)
 
