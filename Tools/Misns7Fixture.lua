@@ -54,7 +54,7 @@ F.PATHS = {
 }
 F.FAR = 50000
 F.COUNTS = {} -- CountUnitsNearObject answers by object (reset by F.reset)
-local CRAFT = {bvraz=true,bvscav=true,bvturr=true,bvmuf=true,bvwalk=true,bvtank=true,bvltnk=true,avcns7=true,sssold=true,svscav=true,svturr=true,svmuf=true,svrecy=true,svmine=true}
+local CRAFT = {bvcnst=true,bvraz=true,bvscav=true,bvturr=true,bvmuf=true,bvwalk=true,bvtank=true,bvltnk=true,avcns7=true,sssold=true,svscav=true,svturr=true,svmuf=true,svrecy=true,svmine=true}
 local function vec(t) return {x = t[1], y = t[2], z = t[3]} end
 local function newObject(handle, odf, team, pos, craft)
     W.objects[handle] = {alive = true, odf = odf, team = team, health = 1, pos = vec(pos or {F.FAR, 6, F.FAR}),

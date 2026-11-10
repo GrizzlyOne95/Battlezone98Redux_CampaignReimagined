@@ -37,7 +37,7 @@ local SCRAP_PER_GUEST = 10
 local Restored
 if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
-    id = "misns5", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
+    id = "misns5", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2, blackDogUnits = true,
     rallyPoints = { [0] = "svrecy0_recycler" },
     -- The chaff fighters, the APC strike and the factory waves are the scaled spawns; the artillery, the
     -- commander walker, the enemy recycler with its guards and the scavengers are not.
@@ -81,6 +81,7 @@ local BuildObject = campaignRuntime and function(odf, team, where)
     if odf == "spcamr" and Restored then Restored.Pod(h) end
     return h
 end or BuildObject
+local IsOdf = campaignRuntime and campaignRuntime.IsOdf or IsOdf
 local IsValid = campaignRuntime and campaignRuntime.IsValid or IsValid
 local IsAlive = campaignRuntime and campaignRuntime.IsAlive or IsAlive
 local GetDistance = campaignRuntime and campaignRuntime.GetDistance or GetDistance

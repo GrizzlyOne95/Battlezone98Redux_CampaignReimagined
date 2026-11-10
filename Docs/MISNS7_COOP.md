@@ -2,7 +2,7 @@
 
 Shared offline / 2-4 player co-op port of the Soviet mission `misns7` (take the APC to the northern outpost, destroy
 the Black Dog prison, rescue the engineers, restore the Recycler, the Unit Factory and the supply depot, then destroy
-the NSDF Recycler). One `Missions/misns7cr.bzn` and one `Scripts/misns7cr.lua` serve both modes. Companion to
+the Black Dog Recycler). One `Missions/misns7cr.bzn` and one `Scripts/misns7cr.lua` serve both modes. Companion to
 [`MISNS7_SOURCE_PORT.md`](MISNS7_SOURCE_PORT.md) (the faithful DLL port underneath, `Scripts/misns7.lua`) and
 [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Status: **host-tested only**; nothing here has run
 in the game (see "Live checklist").
@@ -12,12 +12,13 @@ in the game (see "Live checklist").
 | File | Role |
 | --- | --- |
 | `Scripts/misns7cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns7.lua` (`Tools/Test-Misns7CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restorations and the Titan beats. |
-| `Scripts/CRCCARuntime.lua` | Shared co-op runtime (unchanged by this port). |
+| `Scripts/CRCCARuntime.lua` | Shared co-op runtime, including the CCA mission's NSDF-to-Black-Dog ODF remap. |
 | `Scripts/CRTitanWeather.lua`, `Scripts/CRTitanSitesS7.lua` | Titan weather director and the generated sites for this map. The S7 sites tables are EMPTY (no methane pools, no wet mask); the weather still runs (sky and haze ladder, rolls). |
-| `Missions/misns7cr.{bzn,vxt}`, `misns7.{hg2,lgt,mat,trn}` | Map and companions (built by `Tools/Build-CoopMap.py`, not part of this change). |
+| `Missions/misns7cr.bzn` | Map roster; the authored construction rig uses the Black Dog ODF while its label stays intact. |
+| `Missions/misns7cr.vxt`, `misns7.{hg2,lgt,mat,trn}` | Terrain and map companions. |
 | `Tools/Misns7Fixture.lua`, `Test-Misns7Coop.lua`, `Test-Misns7Presentation.lua`, `Test-Misns7CoopSourceParity.py`, `Test-Misns7CoopContract.py` | Multi-peer fixture and tests. `Test-Misns7.lua` / `Test-Misns7SourceParity.py` still cover the faithful port, unchanged. |
 
-One deliberate difference from `misns1cr.lua`: the body's own `AddObject` does real work (it fills the NSDF unit
+One deliberate difference from `misns1cr.lua`: the body's own `AddObject` does real work (it fills the Black Dog unit
 slots), so the wrapper does NOT define a second `AddObject` at the end of the file. The CR layer forwards to the
 runtime from inside the body's `AddObject` (`-- CR co-op callback >>` region) and the file-end region defines only
 `CreatePlayer`, `AddPlayer`, `DeletePlayer` and `Receive`.
@@ -27,7 +28,7 @@ runtime from inside the body's `AddObject` (`-- CR co-op callback >>` region) an
 | Team | Use |
 | --- | --- |
 | 1-4 | Humans (host on 1). The Soviet side the body builds (engineers, the restored Recycler and Factory, the supply cache) is team 1: shared, host-run. Extra starting recyclers are disabled. |
-| 5 | The NSDF (the authored team 2: prison, Recycler, rig, scavengers, towers, fighters). The body still says team 2; the layer maps it to 5 everywhere (below). |
+| 5 | The Black Dogs (the authored team 2: prison, Recycler, rig, scavengers, towers, fighters). The body still says team 2; the layer maps it to 5 everywhere (below). |
 | 7 | Support (nothing uses it in this mission). |
 
 Only the authority (host, or the offline player) runs the body; guests only present. `SetAIControl(5, true)` runs
@@ -49,8 +50,8 @@ Every literal enemy team 2 in the body goes through the layer:
 
 `GetPlayerHandle` returns the token `crcca_players`; `Distance` (the body's helper) is wrapped with the runtime's
 `WrapDistance`, so "the player" is the NEAREST human for every use in this mission: prison found (<150 m), locked
-supply hut (<70 m), NSDF rig removed only when every human is more than 400 m away, rig rebuilt when any human is
-within 400 m of the NSDF Recycler, the silo message (<90 m). `farthestTargets` is empty: no gate here needs every
+supply hut (<70 m), Black Dog rig removed only when every human is more than 400 m away, rig rebuilt when any human is
+within 400 m of the Black Dog Recycler, the silo message (<90 m). `farthestTargets` is empty: no gate here needs every
 human.
 
 `Attack(fighter, player)` cannot take a token: the layer resolves it to the living human nearest `muf_point`
@@ -58,13 +59,13 @@ human.
 
 ## Scaling and concealed arrivals [owner rules, mission decisions]
 
-Scaled spawns: the ODF `bvraz` (`scaledOdfs`): the NSDF fighters. They become *tickets* (negative request ids) built
-by the runtime on the next frame with the body's later orders replayed on them. Scavengers, turrets, the NSDF
+Scaled spawns: the ODF `bvraz` (`scaledOdfs`): the Black Dog fighters. They become *tickets* (negative request ids) built
+by the runtime on the next frame with the body's later orders replayed on them. Scavengers, turrets, the Black Dog
 Factory, the walker, the rig and every Soviet-side build are never scaled; the units the AIPs build are the engine
 AI's own and cannot be scaled.
 
 Five `BeginEvent()` sites (`-- CR co-op scaling >>`), one before each `BuildObject("bvraz", ...)` of the body: the
-three escalation fighters (`nsdf_adjust` path: prison found + 120 s, or an early attack on the NSDF) and the two
+three escalation fighters (`nsdf_adjust` path: prison found + 120 s, or an early attack on the Black Dogs) and the two
 factory fighters. Each event gets `min(floor(humans / 2), 2)` extras of the same kind, entry and orders:
 
 | Humans | Extras per event |
@@ -78,7 +79,7 @@ starting scrap per guest through `AddScrap(1, ...)` on the first frame (the body
 scrap); enemy scrap (team 5) is the body's 40/20.
 
 No pop-in: no scripted fighter is built within 460 m of a human. `muf_point` is 100 m from the prison where the
-players stand, so the authored fallback approaches are used in order: `muf_spawn` (the NSDF's second site), then
+players stand, so the authored fallback approaches are used in order: `muf_spawn` (the Black Dog's second site), then
 `escape` (the far edge). If a human is near all of them the request waits (saved in `M.crcca`: a save/load neither
 loses nor duplicates it). Unscaled builds at `muf_point` (scavengers, the turret, the Factory) are scenery of the
 authored base and pass through.
@@ -87,11 +88,11 @@ authored base and pass through.
 
 In a network game `SetPilot(1, 8)` and `AddPilot(1, +-1)` (humans' team range 1-4) are skipped: CRCoop owns the
 humans' lives (native lives are raised and respawn is shared), and the DLL's engineer bookkeeping would overwrite
-them. Offline the body keeps its pilot arithmetic exactly. The NSDF reserve `SetPilot(2, 40)` is team 5.
+them. Offline the body keeps its pilot arithmetic exactly. The Black Dog reserve `SetPilot(2, 40)` is team 5.
 
 ## Win, loss, ending
 
-- Win: the NSDF Recycler (`avrecycle`) destroyed -> `misns712` -> `SucceedMission(+10 s, "misns7w1.des")` once on
+- Win: the Black Dog Recycler (label `avrecycle`) destroyed -> `misns712` -> `SucceedMission(+10 s, "misns7w1.des")` once on
   every peer (the runtime holds the result until every guest acknowledged the preceding events). The layer latches
   `cr_won`, after which `FailMission` is ignored: nothing can fail a won mission.
 - Loss: all three engineers dead before boarding (`misns711`, `misns7f1.des`); the APC destroyed before either
@@ -116,7 +117,7 @@ Cut-content restorations live only in the CR layer, apply offline and in co-op, 
 | Restoration | Flag | Cut block it comes from | Status |
 | --- | --- | --- | --- |
 | Alternative AIP switch | `RESTORED_PLAN_D` | the commented `plan_d` block after `plan_a`: `if ((plan_a) && (!IsAlive(avrig)) && (!plan_d)) { SetAIP("misns7a.aip"); if both scavengers dead AddScrap(2,20); plan_d = true; }` | Restored on team 5; a rig removed offscreen (`new_rig`) does not count as a dead rig. Uses the AIP the body already loads. |
-| Factory retreat | `RESTORED_MUF_RETREAT` | the commented `muf_redirect` block: an attacked (health < 0.50) NSDF Factory goes to `geyser3` while `M.muf_deployed` is unset (the body sets it only once `avtank1` is alive, so the condition is "no tank built yet", not a deployment check; copied from the cut block) | Restored; `geyser3` ships in the map. Once only. |
+| Factory retreat | `RESTORED_MUF_RETREAT` | the commented `muf_redirect` block: an attacked (health < 0.50) Black Dog Factory goes to `geyser3` while `M.muf_deployed` is unset (the body sets it only once `avtank1` is alive, so the condition is "no tank built yet", not a deployment check; copied from the cut block) | Restored; `geyser3` ships in the map. Once only. |
 | Later power/tower expansion | `RESTORED_EXPANSION` | the commented `b3`/`b4`/`rig_show2`/`rig_show3` block: the rig builds `abwpow` and drops it at `power2_spot`, then builds `abtowe` and drops it at `tower3_spot` | Restored; both paths ship in the map. Runs only once the Soviet Recycler is back (`camera_off_recycle`) and the rig has taken its barracks order (`blah`), so it never competes with the earlier build chain. Reuses the body's own unused state fields (`b3`, `b4`, `rig_show2`, `rig_show3`, `b5_time`..`b7_time`). |
 
 Unused shipped voice lines [owner decision 2026-11-01] (`RESTORED_ENGINEER_LINES`): the wav and `Text/misns7NN.txt` ship in the game but the DLL never plays them. They go through the CR `AudioMessage` (replicated to guests, queued behind a line still playing) and are counted in `M.crcca.r.engLines`, which Save/Load keeps.
@@ -141,7 +142,7 @@ Skipped, with the reason:
 - **Main tower build at start** (`main_tower = BuildObject("abtowe", 2, "main_tower")`): the map already authors the
   `main_tower` object.
 - **Perceived-team reset** (`SetPerceivedTeam(guntower, 1)` after the Recycler delivery): would expose the Soviet
-  towers to the NSDF.
+  towers to the Black Dogs.
 - **Extra objective** (`AddObjective("misns702.otf", WHITE)`) and the commented `CameraFinish`: duplicates of what
   the active code does a few lines later.
 - **Per-engineer pickup lines**: `misns701` and `misns726` are now restored (table above). `misns703` ("we have all
@@ -167,8 +168,8 @@ Skipped, with the reason:
 - The body carries its own documented port fixes (see `MISNS7_SOURCE_PORT.md`).
 
 The `.aip` files (`misns7.aip`, `misns7a.aip`, `misns7b.aip`, `misns7c.aip`) are stock and are not in this tree; the
-layer only issues them with `team = 5`. Unlike `misns1` (whose stock plans build Soviet units) the NSDF plans
-build `bv*` units the NSDF base can produce; this was not verified against the plan files here.
+layer only issues them with `team = 5`. Their build lists use Black Dog `bv*` units, confirmed from the installed
+stock plans.
 
 ## Weather: Titan
 
@@ -185,7 +186,7 @@ Beats (host/offline only, `state` flags of the body):
 | Event | Beat |
 | --- | --- |
 | prison found (`jail_found`) | `Roll(60, 0.7)`: a haze bank rolls over the prison |
-| prison destroyed or NSDF escalates (`jail_dead` / `nsdf_adjust`) | level 3 (drizzle) |
+| prison destroyed or Black Dogs escalate (`jail_dead` / `nsdf_adjust`) | level 3 (drizzle) |
 | Recycler restored (`camera_off_recycle`) | level 2, `Roll(50, 0.6)` |
 | Factory restored (`camera_off_muf`) | level 3 |
 | supply cache delivered (`supplies_spawned`) | `Roll(45, 0.6)` |
@@ -215,7 +216,7 @@ lua5.1 Tools/Test-Misns7.lua && python Tools/Test-Misns7SourceParity.py   # the 
 ## Inferences and open questions
 
 - The fallback approaches (`muf_spawn`, `escape`) are guesses at usable alternative entrances; `muf_spawn` is the
-  NSDF-side site of the Soviet Factory (`svmuf`), so fighters arriving from there pass the player's own Factory.
+  Black Dog-side site of the Soviet Factory (`svmuf`), so fighters arriving from there pass the player's own Factory.
 - The 75 s (dead engineer) / 180 s (stuck live engineer) guard and the nearest-human `Attack` target are CR inferences.
 - The held prison shot (`holdCamera`) is a CR inference; `CameraObject` is a one-shot in the DLL.
 - Rescued engineers are narrative in co-op: the shared base gets no extra pilots.
@@ -231,8 +232,8 @@ lua5.1 Tools/Test-Misns7.lua && python Tools/Test-Misns7SourceParity.py   # the 
 3. Prison destroyed: every peer sees the same geyser shot; three engineers board the APC (any human may drive it).
 4. All three deliveries: shared shot, engineer walks out, building restored; a killed engineer ends the shot after
    75 s, a stuck live one after 180 s; the supply cache appears 15 s after the shed opens.
-5. NSDF rig/barracks/turret behaviour with several humans; restored factory retreat, plan_d AIP and the late
+5. Black Dog rig/barracks/turret behaviour with several humans; restored factory retreat, plan_d AIP and the late
    power/tower build (do they make the mission too hard?).
-6. `misns7*.aip` actually build and send NSDF units for team 5.
+6. `misns7*.aip` build and send Black Dog units for team 5.
 7. Titan sky renders on guests with the empty sites file; no weather error in the log.
-8. Win (NSDF Recycler) and both losses end on every peer once; out-of-lives and leader-leaves paths.
+8. Win (Black Dog Recycler) and both losses end on every peer once; out-of-lives and leader-leaves paths.

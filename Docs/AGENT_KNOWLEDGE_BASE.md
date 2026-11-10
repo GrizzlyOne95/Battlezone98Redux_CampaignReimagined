@@ -957,6 +957,28 @@ Each bullet: the pitfall, the one-line why, and where to read more.
   in lockstep. `time_0_x 3600` with periods that divide 3600 (meteor slot 25 s, satellite cycle 300 s)
   so the wrap is invisible. Pass emissive x enables, y forces every slot (testing only);
   `openshim.ini [Display] SkyEvents=0` switches both off through `RuntimeEnhancements.SetSkyEventsEnabled`.
+- **No terrain master light on the first mission update (2026-11-10, misn2bcr sun flip):** at `Init`
+  (game time 0.004) `exu.GetSunDirection`/`GetSunDiffuse` return nil, `GetSunPowerScale`/
+  `GetSunShadowFarDistance` return 0, ambient reads 0,0,0, and `SetSunDirection` is silently dropped;
+  the light exists by about t=0.4-0.7 s. A `nativeBaseline` capture taken at Init kept the default sun
+  direction, and the next drift write (t=7.15 s live) swung the map's light to it in one frame.
+  `Environment` now defers the whole capture (`NativeBaselinePending`) and writes nothing until the
+  direction can be read (3 s give-up). Any other "read native state at Init" code has the same trap.
+- Faction engine flames (2026-11-09): OpenShim colours jet flames per faction by looking sprite names up
+  **by name**: `exhaust_o.0` for CCA burnt orange (ODF prefix `s`), `exhaust_bd.0` for Black Dog blood red
+  (`b`). CR must ship all three parts or `openshim.log` says `orange=no blackdog=no` and those craft fall
+  back to the stock flame: the eight append-only rows at the end of `Config/spritea.st` (sprite handles are
+  row indices, never insert above them), the `oflame` / `bdflame` materials in `Materials/sprites.material`
+  (keep them in that file, beside their `BZSprite/AdditiveFirstMip` parent; a separate `.material` parses
+  first and compiles with no techniques), and `Assets/Textures/cr_exhaust_cca.png` /
+  `cr_exhaust_blackdog.png`. They went missing because they only ever lived on an unmerged branch that was
+  archived (`archive/migration-2026-09-22/interactive-fog-wakes`); when a native feature needs CR assets by
+  name, check they are on `main`. Both PNGs are 512x512, built by `Tools/Build-HiResSprites.py` like r/g/b flame: stock
+  `rflame` alpha (the archived 128x128 art had it texel for texel) coloured with the archived art's
+  alpha->RGB ramp, kept as `FACTION_FLAMES` knots in the tool. Change a faction colour there, not in the PNG.
+  EXU-priority trap: an `exu.SetTeamEngineFlameColor` team colour outranks OpenShim's per-craft routing, so
+  `PersistentConfig`'s legacy `DynamicFactionFlameColors` layer stays off (saved `true` values are ignored and
+  team colours cleared on apply); confirm with `openshim.ini` `TraceJetFlames = 1` that route lines say `exuColor=0` (0 = no EXU colour).
 
 ### 8.5 Live testing
 
@@ -979,6 +1001,9 @@ Each bullet: the pitfall, the one-line why, and where to read more.
 - `GetPosition` returns a `VECTOR_3D` userdata. A `type(p) == "table"` check silently discards every position
   (it hid all position-driven Titan effects until the first live run); mock positions as userdata in tests.
 - A match on bytes proves an address, not identity: byte match plus semantic corroboration, always.
+- `OPENSHIM_FRAME_CAPTURE` is read into a 4096-char buffer: a longer frame list silently captures
+  nothing. Use a step (every 6th frame covers 100-4400). The runtime DLL is `plugins\openshim.dll`.
+  Frames count from the first shell screen at about 60 fps; openshim.log is UTC, BZLogger local time.
 - Redux takes the cockpit camera from the skeleton POV bone, not the VDF eyepoint (confirmed live 2026-11-09;
   1.5 reads the VDF: `BZ1/1.5/all_decompiled.c:152449`). To move an eye, patch only that bone, through
   `Tools/eyeoverrides.py`. Animated cockpits take two stages: build and push the pre-rig mesh, pin it in
@@ -1740,3 +1765,21 @@ to the ordinary GOG development mod.
 - `avfigh00` carried stock Redux's one-off `$ambient "0.2 0.2 0.2"` (279 of 281 stock
   materials use `1 1 1`); it is now `1 1 1` like the other units. The Livewire
   `SX_tint_*` materials (`Materials/sxtint.material`) inherit it, so they brighten too.
+
+### Enhanced light budget and recovered archive work (2026-11-10)
+
+- Enhanced High already evaluates 24 lights per pass with no `max_lights` directive.
+  Ogre's pass default of 8 means "no cap" (`SceneManager::renderSingleObject` hands the
+  whole light list to a pass whose `max_lights` equals 8), and the selected
+  `CR_*IBLHigh*` fragment programs loop to `MAX_LIGHTS=24`. Do not add `max_lights 24`
+  wrappers: they only add a list copy. A `max_lights` below 24 would drop lights.
+  `Tools/Test-EnhancedLightBudget.ps1` guards the program selection and the 24-entry
+  arrays. No live scene with more than 24 candidate lights has been checked.
+- Work that only exists on an `archive/` branch never shipped. Before porting it, check
+  whether main already has the behaviour by another route; the archived light-budget
+  commit (22b313ab) asserted wrappers that main does not need.
+- `Scripts/OpenShimManifest.lua` hashes the working-tree bytes of `InstallerPayload/*.payload`
+  on the Windows machine that ran `-refresh-natives`, which are CRLF. Those files are
+  `-text` and stored as CRLF so every checkout matches the manifest. Any new file the
+  manifest hashes needs a `-text` rule in the same commit; check with
+  `git ls-files --eol <path>` (index and working tree must show the same line endings).

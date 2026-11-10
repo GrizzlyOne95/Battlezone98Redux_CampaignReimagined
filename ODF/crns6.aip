@@ -1,5 +1,4 @@
-// Campaign Reimagined: stock misns6.aip with its one Soviet build item (svturr) switched to
-// avturr. The American base cannot build Soviet turrets, so the stock priority-15 item never completed.
+// Campaign Reimagined: Black Dog version of stock misns6.aip. All opposing force entries use BDog units.
 /*****************************************************************************
 
   Default.AIP
@@ -89,10 +88,10 @@ ACCOUNT Slush[MAX_ACCOUNT_LENGTH];
 
 //  Priority     Item Name              Build Type              Build Amount
 //--------------------------------------------------------------------
-        20,     "avrecy",       NUMBER_TO_HAVE,         1;
-        19,     "avscav",       NUMBER_TO_HAVE,         3;
-        18,     "avmuf",        NUMBER_TO_HAVE,         1;
-        17,     "avslf",        NUMBER_TO_HAVE,         1;
+        20,     "bvrecy",       NUMBER_TO_HAVE,         1;
+        19,     "bvscav",       NUMBER_TO_HAVE,         3;
+        18,     "bvmuf",        NUMBER_TO_HAVE,         1;
+        17,     "bvslf",        NUMBER_TO_HAVE,         1;
 
 #END_DATA
 
@@ -109,9 +108,9 @@ ACCOUNT Defense[MAX_ACCOUNT_LENGTH];
 
 //  Priority     Item Name              Build Type              Build Amount
 //--------------------------------------------------------------------
-	15,		"avturr",	NUMBER_TO_HAVE,		5;
-        14,             "avfigh",       NUMBER_TO_HAVE,        4;
-                14,             "avtank",       NUMBER_TO_HAVE,                 4;
+	15,		"bvturr",	NUMBER_TO_HAVE,		5;
+        14,             "bvraz",       NUMBER_TO_HAVE,        4;
+                14,             "bvtank",       NUMBER_TO_HAVE,                 4;
 
 #END_DATA
 
@@ -126,8 +125,8 @@ ACCOUNT Offense[MAX_ACCOUNT_LENGTH];
 
 //  Priority     Item Name              Build Type              Build Amount
 //--------------------------------------------------------------------
-        10,             "avfigh",       RATIO_TO_BUILD,         4;
-        10,             "avturr",       RATIO_TO_BUILD,         2;
+        10,             "bvraz",       RATIO_TO_BUILD,         4;
+        10,             "bvturr",       RATIO_TO_BUILD,         2;
 
 #END_DATA
 
@@ -153,10 +152,10 @@ FORCE_MATCHING My_Matchings[MAX_FORCE_MATCHING];
    "svtank".	1.5;
 
 
-   "avfigh",        2.0;
-   "avturr",	1.0;
-   "avscav",       0.2;
-	"avtank",	2.0;
+   "bvraz",        2.0;
+   "bvturr",	1.0;
+   "bvscav",       0.2;
+	"bvtank",	2.0;
 
 #END_DATA
 
@@ -166,8 +165,8 @@ BUILDING_MATCHING My_Building_Matchings[MAX_BUILDINGS];
 
 // Building Name                   Multiplier         Where to Build
 //------------------------------------------------------------------
-   "avmuf",                           2.00,              CENTER_OF_BASE;
-   "avrecy",                          2.00,              CENTER_OF_BASE;
+   "bvmuf",                           2.00,              CENTER_OF_BASE;
+   "bvrecy",                          2.00,              CENTER_OF_BASE;
 	"abcafe",							3.00,			CENTER_OF_BASE;
 	"ablpow",							2.00,			CENTER_OF_BASE;
 	"absilo",							2.00,			CENTER_OF_BASE;	

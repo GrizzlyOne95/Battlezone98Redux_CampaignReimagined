@@ -48,6 +48,12 @@ lua = re.sub(r'--\[(=*)\[.*?\]\1\]', '', lua, flags=re.S)
 assert 'local LEADER_TEAM, ENEMY_TEAM, MINE_TEAM, SUPPORT_TEAM = 1, 5, 6, 7' in lua
 assert 'pcall(BuildObject, odf, ENEMY_TEAM, spawn)' in lua
 assert 'BuildObject("cromine", MINE_TEAM, pathName)' in lua
+# Every mine point and both sweep routes the script names must be authored in the map.
+mine_count = int(re.search(r'for i = 1, (\d+) do\n\s*local pathName = "path_" \.\. i', lua)[1])
+assert mine_count == 24
+for path in [f'path_{i}' for i in range(1, mine_count + 1)] + ['attackpatrol1', 'attackpatrol2']:
+    assert bzn.count(f'\nlabel = {path}\n') == 1, f'{path} must be authored exactly once in misn05cr.bzn'
+assert 'Patrol(M.w3u4, "attackpatrol2", 1)' in lua and 'Patrol(M.w4u3, "attackpatrol2", 1)' in lua
 assert 'BuildObject("avtank", SUPPORT_TEAM, spawnPos)' in lua
 assert not re.search(r'BuildObject\([^\n]*,\s*[234]\s*,', lua)
 assert 'aiCore.SetStrategyFromAip("misn05.aip", ENEMY_TEAM)' in lua

@@ -135,7 +135,21 @@ local function makePeer(id, team, network)
         local n = name
         e[n] = function(...) record(n, ...) end
     end
-    e.AiCommand = { UNDEPLOY = 21 }
+    e.AiCommand = { UNDEPLOY = 21, ATTACK = 4, DEFEND = 5, FOLLOW = 7, PATROL = 9 }
+    -- Orders also become the unit's current command, so re-issue logic can read it back.
+    for name, command in pairs({ Attack = e.AiCommand.ATTACK, Defend2 = e.AiCommand.DEFEND,
+        Follow = e.AiCommand.FOLLOW, Patrol = e.AiCommand.PATROL }) do
+        e[name] = function(h, who, ...)
+            record(name, h, who, ...)
+            if objects[h] then objects[h].command, objects[h].who = command, who end
+        end
+    end
+    e.SetCommand = function(h, command, ...)
+        record("SetCommand", h, command, ...)
+        if objects[h] then objects[h].command, objects[h].who = command, nil end
+    end
+    e.GetCurrentCommand = function(h) return objects[h] and objects[h].command or 0 end
+    e.GetCurrentWho = function(h) return objects[h] and objects[h].who end
     local function noop() end
     local aiTeam = { SetConfig = noop }
     local ai = { Factions = { NSDF = 1, CCA = 2 }, Bootstrap = noop,
@@ -536,4 +550,49 @@ client.env.DeletePlayer(10, "Host", 1)
 client.hosting = true
 client.env.Update()
 check(not client.coop.IsAuthority() and count(client, "FailMission") == 1, "host migration inherited authority or left mission running")
+
+-- Garrison soldiers keep their orders; the evacuating Recycler packs, waits, then follows.
+reset()
+local garrison = makePeer(10, 1, false)
+for i = 1, 100 do tick(0.1) end
+local soldiers = garrison.state.patrol_soldiers
+check(soldiers[1] and soldiers[2] and soldiers[3], "the three garrison soldiers did not spawn")
+local function ordered(name, h, who)
+    local n = 0
+    for _, c in ipairs(garrison.calls) do
+        if c[1] == name and c[2] == h and c[3] == who and c[4] == 1 then n = n + 1 end
+    end
+    return n
+end
+check(ordered("Patrol", soldiers[1], "footpatrol") == 1, "soldier 1 patrols footpatrol once while the order holds")
+check(ordered("Defend2", soldiers[2], "solar1") == 1 and ordered("Defend2", soldiers[3], "solar2") == 1,
+    "soldiers 2 and 3 guard the primary arrays at priority 1")
+objects[soldiers[1]].command, objects[soldiers[2]].command = 0, 0
+for i = 1, 15 do tick(0.1) end
+check(ordered("Patrol", soldiers[1], "footpatrol") == 2 and ordered("Defend2", soldiers[2], "solar1") == 2,
+    "dropped garrison orders are re-issued")
+objects[soldiers[1]].command, objects[soldiers[1]].who = garrison.env.AiCommand.ATTACK, "svfigh1"
+for i = 1, 15 do tick(0.1) end
+check(ordered("Patrol", soldiers[1], "footpatrol") == 2, "a soldier fighting a live target is left alone")
+
+local recycler = "avrec3-1_recycler"
+objects[recycler].deployed = true
+garrison.state.recycler_follow_launch = true
+tick(0.1)
+check(last(garrison, "SetCommand")[2] == recycler and last(garrison, "SetCommand")[3] == garrison.env.AiCommand.UNDEPLOY,
+    "a deployed Recycler is told to pack first")
+check(ordered("Follow", recycler, "launch_pad") == 0, "Follow must not cancel the pack order")
+local packs = count(garrison, "SetCommand")
+-- Stay deployed ~3.5 s: a wait measured from the first pack order would nearly
+-- have expired, so Follow would fire as soon as the Recycler finished packing.
+for i = 1, 34 do tick(0.1) end
+check(count(garrison, "SetCommand") == packs, "the pack order is not repeated while it is still current")
+objects[recycler].deployed = false
+for i = 1, 15 do tick(0.1) end
+check(ordered("Follow", recycler, "launch_pad") == 0, "Follow waits for the pack transition to finish")
+for i = 1, 40 do tick(0.1) end
+check(ordered("Follow", recycler, "launch_pad") == 1, "the packed Recycler follows the launch pad exactly once")
+objects[recycler].command = 0
+for i = 1, 15 do tick(0.1) end
+check(ordered("Follow", recycler, "launch_pad") == 2, "a dropped evacuation order is re-issued")
 print("misn03 co-op: " .. checks .. " complete-script Lua 5.1 checks passed")

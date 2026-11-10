@@ -42,7 +42,7 @@ for path in text.split("[AiPath]\n")[1:]:
 assert not any(team == 2 for _, team in objects.values()), "nothing is left on the authored team 2"
 assert not any(o == "svhaul" for o, _ in objects.values()), "the convoy is scripted, never authored (AddObject must not pre-register)"
 assert objects["svrecy0_recycler"] == ("svrecy", 1)
-assert objects["avartl0_howitzer"] == ("avartl", 5), "the authored howitzer is CCA team 5"
+assert objects["avartl0_howitzer"] == ("bvartl", 5), "the authored howitzer is CCA team 5"
 
 # ---------------------------------------------------------------- the Lua only names real map content
 lua_full = (ROOT / "Scripts/misns4cr.lua").read_text(encoding="utf-8")
@@ -80,7 +80,7 @@ assert scaled <= built_enemy, "every scaled ODF is one the mission builds on the
 assert 'local AIP = { ["misns4.aip"] = "crns4.aip" }' in lua_full, "the AIP substitution is present"
 aip = (ROOT / "ODF/crns4.aip").read_text(encoding="utf-8", errors="replace")
 items = re.findall(r'(?m)^\s*\d+,\s*"(\w+)"', aip)
-assert items and all(i.startswith("av") for i in items), "crns4.aip builds only American items: " + str([i for i in items if not i.startswith("av")])
+assert items and all(i.startswith("bv") for i in items), "crns4.aip builds only Black Dog items: " + str([i for i in items if not i.startswith("bv")])
 
 # ---------------------------------------------------------------- weather sites belong to this map
 assert 'sites = "CRIoSitesS4"' in config and 'module = "CRIoWeather"' in config

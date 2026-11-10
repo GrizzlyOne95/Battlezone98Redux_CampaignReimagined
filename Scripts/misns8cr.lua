@@ -189,7 +189,7 @@ local Restored
 local skyBound = false
 if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
-    id = "misns8", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
+    id = "misns8", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2, blackDogUnits = true,
     rallyPoints = { [0] = "svrecycle" },
     -- The scripted Black Dog units are scaled/concealed; the replacement factory (it is the AI's producer,
     -- queried through IsDeployed/Pickup), Romeski, the nav beacons and the SAV swaps are built directly.
@@ -235,6 +235,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
 })
 local RESTORED = campaignRuntime ~= nil and campaignRuntime ~= false
 local BuildObject = campaignRuntime and campaignRuntime.Spawn or BuildObject
+local IsOdf = campaignRuntime and campaignRuntime.IsOdf or IsOdf
 local IsValid = campaignRuntime and campaignRuntime.IsValid or IsValid
 local IsAlive = campaignRuntime and campaignRuntime.IsAlive or IsAlive
 local GetDistance = campaignRuntime and campaignRuntime.GetDistance or GetDistance
@@ -310,6 +311,13 @@ if campaignRuntime then
         if IsHumanShip(h) then return end
         return removeObject(h)
     end
+end
+
+-- The stock misns8 AIP asks the Black Dog base for an NSDF constructor. Keep the plan, but use the BDog rig.
+local NativeSetAIP = SetAIP
+SetAIP = function(name, ...)
+    if name == "misns8.aip" then name = "crns8.aip" end
+    return NativeSetAIP(name, ...)
 end
 local GetPlayerHandle = campaignRuntime and campaignRuntime.GetPlayerHandle or GetPlayerHandle
 -- CR co-op runtime <<

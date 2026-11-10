@@ -52,7 +52,7 @@ end
 local function clearField()
     local w = F.world()
     for _, o in pairs(w.objects) do
-        if o.team == 5 and (o.odf == "avfigh" or o.odf == "avapc" or o.odf == "bvhraz" or o.odf == "bvltnk") then o.alive = false end
+        if o.team == 5 and (o.odf == "bvraz" or o.odf == "bvapc" or o.odf == "bvhraz" or o.odf == "bvltnk") then o.alive = false end
     end
 end
 -- Drives the mission to its final phase (commander dead, three waves) and returns the mission table.
@@ -106,7 +106,7 @@ check(F.count(p[1], "SetAIControl", 5) == 1 and F.count(p[1], "SetAIControl", 2)
 check(F.index(p[1], "SetAIControl") <= p[1].chunkCalls, "SetAIControl runs at chunk root, before Start")
 check(F.count(p[1], "AddScrap", 1) == 1 and F.last(p[1], "AddScrap")[3] == 40, "10 starting scrap + 10 per guest on the shared team: " .. tostring(F.last(p[1], "AddScrap") and F.last(p[1], "AddScrap")[3]))
 check(F.count(p[1], "AddScrap", 2) == 0, "no scrap for the authored team 2")
-local arty = F.builds(p[1], 0, "avartl")
+local arty = F.builds(p[1], 0, "bvartl")
 check(#arty == 2 and arty[1].team == 5 and arty[2].team == 5, "both artillery pieces are on team 5")
 for i = 1, 4 do
     check(F.count(p[i], "DisableStartingRecycler") == 1, "extra starting recyclers disabled on peer " .. i)
@@ -150,7 +150,7 @@ for n = 1, 4 do
     local w2, q, m2 = setup(n, {})
     F.runUntil(function() return m2.h1 ~= nil and type(m2.h1) == "string" end, 200)
     F.run(2)
-    local apcs = builtAt(q[1], "spawn6", 0, "avapc")
+    local apcs = builtAt(q[1], "spawn6", 0, "bvapc")
     check(#apcs == 2 + extras, n .. " human(s): two APCs plus " .. extras .. " extras, got " .. #apcs)
     allSafe(q, apcs)
     for _, b in ipairs(apcs) do check(b.team == 5, "APCs are team 5") end
@@ -160,9 +160,9 @@ for n = 1, 4 do
     check(type(m2.killme) == "string" and F.team(m2.killme) == 5 and F.alive(m2.killme), "the enemy recycler is a single real team-5 unit")
     check(#builtAt(q[1], "spawn7", 0, "bvtank") == 2 and #F.callsOf(q[1], "Defend2") == 2, "two recycler guards, never scaled")
     -- the first chaff fighters (180 s after the opening): one plus extras, same entry
-    F.runUntil(function() return F.count(q[1], "BuildObject") > 0 and #builtAt(q[1], "spawn5", 0, "avfigh") > 0 end, 400)
+    F.runUntil(function() return F.count(q[1], "BuildObject") > 0 and #builtAt(q[1], "spawn5", 0, "bvraz") > 0 end, 400)
     F.run(2)
-    local fighters = builtAt(q[1], "spawn5", 0, "avfigh")
+    local fighters = builtAt(q[1], "spawn5", 0, "bvraz")
     check(#fighters == 1 + extras, n .. " human(s): chaff fighters " .. #fighters)
     allSafe(q, fighters)
     local routed = 0
@@ -202,8 +202,8 @@ end
 F.runUntil(function() return w.now >= m.wave - 1 end, 400); clearField()
 F.runUntil(function() return m.last_phase end, 400); F.run(3)
 check(#builtAt(p[1], "spawn5", 0, "bvltnk") == 10, "wave three adds three light tanks + extras, got " .. #builtAt(p[1], "spawn5", 0, "bvltnk"))
-check(#builtAt(p[1], "spawn7", 0, "avscav") == 2, "two enemy scavengers (never scaled)")
-check(F.team(builtAt(p[1], "spawn7", 0, "avscav")[1].h) == 5, "scavengers are team 5")
+check(#builtAt(p[1], "spawn7", 0, "bvscav") == 2, "two enemy scavengers (never scaled)")
+check(F.team(builtAt(p[1], "spawn7", 0, "bvscav")[1].h) == 5, "scavengers are team 5")
 do
     local aip = F.callsOf(p[1], "SetAIP")
     check(#aip == 1 and aip[1][2] == "crns5.aip" and aip[1][3] == 5, "misns5.aip is replaced by the Black Dog crns5.aip for team 5, once")
@@ -259,10 +259,10 @@ do
     local w2, q, m2 = setup(4, {})
     -- the APC strike's entrance is watched: spawn6 defers to the next authored approach (spawn5)
     F.nearTo(q[2].player, "spawn6", 100, 0)
-    F.runUntil(function() return #F.builds(q[1], 0, "avapc") > 0 end, 200)
+    F.runUntil(function() return #F.builds(q[1], 0, "bvapc") > 0 end, 200)
     F.run(2)
-    local apcs = F.builds(q[1], 0, "avapc")
-    check(#apcs == 4 and #builtAt(q[1], "spawn6", 0, "avapc") == 0, "a watched spawn6 falls back to another authored approach")
+    local apcs = F.builds(q[1], 0, "bvapc")
+    check(#apcs == 4 and #builtAt(q[1], "spawn6", 0, "bvapc") == 0, "a watched spawn6 falls back to another authored approach")
     allSafe(q, apcs)
 end
 do
@@ -273,15 +273,15 @@ do
     F.nearTo(q[4].player, "edge_path", 100, 0)
     F.runUntil(function() return m2.apc_wave >= 99999 end, 200)
     F.run(2)
-    check(#F.builds(q[1], 0, "avapc") == 0, "every entrance watched: the strike waits")
+    check(#F.builds(q[1], 0, "bvapc") == 0, "every entrance watched: the strike waits")
     check(type(m2.h1) == "number" and m2.h1 < 0, "the body holds tickets while the strike waits")
     local pending = m2.crcca.serial
     for _, r in ipairs(q) do r.env.Load(r.env.Save()) end
     F.connect(); F.run(3)
-    check(m2.crcca.serial == pending and #F.builds(q[1], 0, "avapc") == 0, "save/load keeps the pending strike without duplicating it")
+    check(m2.crcca.serial == pending and #F.builds(q[1], 0, "bvapc") == 0, "save/load keeps the pending strike without duplicating it")
     for i, r in ipairs(q) do F.place(r.player, 20 * i, 40) end
     F.run(4)
-    check(#F.builds(q[1], 0, "avapc") == 4, "the whole strike is built exactly once, got " .. #F.builds(q[1], 0, "avapc"))
+    check(#F.builds(q[1], 0, "bvapc") == 4, "the whole strike is built exactly once, got " .. #F.builds(q[1], 0, "bvapc"))
     check(type(m2.h1) == "string", "tickets resolve to real units")
 end
 do -- live cap: extras are the only requests dropped
@@ -289,7 +289,7 @@ do -- live cap: extras are the only requests dropped
     m2.crcca.live = {}
     for i = 1, 12 do m2.crcca.live[i] = F.spawn("avtank", 5, 9000 + i, 9000) end
     F.runUntil(function() return type(m2.h1) == "string" end, 200); F.run(2)
-    check(#builtAt(q[1], "spawn6", 0, "avapc") == 2, "at the live cap the strike keeps its primaries and drops the extras")
+    check(#builtAt(q[1], "spawn6", 0, "bvapc") == 2, "at the live cap the strike keeps its primaries and drops the extras")
 end
 
 -- ------------------------------------------------------------------ saves

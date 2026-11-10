@@ -5,11 +5,13 @@ on:
     paths:
       - 'Shaders/**'
       - 'Materials/**'
+      - 'openshim/renderer/enhanced/**'
       - 'Tools/Validate-DX11Shaders.ps1'
       - 'Tools/Test-DX11ShaderValidator.ps1'
       - 'Tools/Test-OverlayPanelInputs.ps1'
       - 'Tools/Test-MethaneShader.ps1'
       - 'Tools/Test-EnhancedPssmV2.ps1'
+      - 'Tools/Test-EnhancedLightBudget.ps1'
       - 'Tools/Set-EnhancedPssmVersion.ps1'
       - 'Tools/Compare-DX11ShaderBinaries.ps1'
       - 'Docs/DX11_COLOR_SPACE_AUDIT.md'
@@ -69,6 +71,12 @@ jobs:
       - name: Validate Enhanced PSSM v2 math, isolation, and cost
         shell: powershell
         run: .\Tools\Test-EnhancedPssmV2.ps1
+
+      # The 24-light Enhanced High budget is carried by which programs the
+      # materials select, so a material edit can silently drop it to 8.
+      - name: Validate the Enhanced High 24-light budget
+        shell: powershell
+        run: .\Tools\Test-EnhancedLightBudget.ps1
 
       # Enhanced-only work must leave Default and Retro bytecode untouched.
       # Bit-identical DXBC is a stronger statement than any visual check.

@@ -11,6 +11,9 @@ Per texture:
   shock              cell-local smooth upscale (stock is a plain gradient).
   r/g/b flame        cell-local smooth upscale plus flow-aligned streaks; colour
                      from the stock palette.
+  faction flames     cr_exhaust_cca / cr_exhaust_blackdog: the rflame rebuild
+                     (their archived 128 px art had stock rflame's alpha, texel
+                     for texel) coloured with that art's own alpha->RGB ramp.
   magballs           radial glow rebuild plus crisp spikes redrawn at the angles,
                      lengths and strengths of the stock cell's own spikes.
 Paletted cells are rescaled to the stock cell's mean alpha, so in-game brightness
@@ -28,9 +31,21 @@ REPO = os.path.dirname(HERE)
 GOG = r"C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux"
 
 PALETTED = {"rpuff", "gpuff", "bpuff", "smoke", "shock", "rflame", "gflame", "bflame"}
-MATERIAL_TEXTURE = {"crsun": "sprite_a"}  # CR's sun material samples sprite_a.png
+# spritea.st material -> texture file, where the two names differ.
+MATERIAL_TEXTURE = {"crsun": "sprite_a", "oflame": "cr_exhaust_cca", "bdflame": "cr_exhaust_blackdog"}
 TEXTURES = ["sprite_a", "rpuff", "gpuff", "bpuff", "smoke", "shock", "magballs",
-            "rflame", "gflame", "bflame"]
+            "rflame", "gflame", "bflame", "cr_exhaust_cca", "cr_exhaust_blackdog"]
+# CR's faction flames have no stock sheet. Their alpha comes from stock rflame
+# and their colour from these (alpha, R, G, B) knots, which reproduce the
+# archived 128 px art's alpha->RGB ramp to within 1/255 (commit 8b174ed4).
+FACTION_FLAMES = {
+    "cr_exhaust_cca": [(0, 255, 30, 0), (79, 255, 75, 4), (142, 255, 111, 16), (191, 255, 140, 30),
+                       (224, 255, 178, 73), (225, 255, 179, 77), (244, 255, 223, 171),
+                       (246, 255, 229, 184), (255, 255, 255, 255)],
+    "cr_exhaust_blackdog": [(0, 96, 0, 6), (74, 148, 0, 21), (116, 177, 0, 32), (171, 213, 13, 42),
+                            (213, 254, 35, 56), (215, 255, 39, 58), (242, 255, 139, 139),
+                            (255, 255, 255, 255)],
+}
 
 
 def load(path):
@@ -58,6 +73,12 @@ def palette(img):
     vals = np.array([a[al == k, :3].mean(0) for k in keys])
     x = np.arange(256)
     return np.stack([np.interp(x, keys, vals[:, c]) for c in range(3)], -1)
+
+
+def knot_palette(knots):
+    """alpha->RGB lookup from (alpha, R, G, B) knots."""
+    k = np.array(knots, float)
+    return np.stack([np.interp(np.arange(256), k[:, 0], k[:, c]) for c in (1, 2, 3)], -1)
 
 
 def apply_palette(alpha, lut):
@@ -230,7 +251,8 @@ def build_shock(stock, cells, lut):
 def build_flame(stock, cells, tex, lut):
     out = np.zeros((stock.shape[0] * N, stock.shape[1] * N, 4))
     upscale_rest(stock, out, cells)
-    rng = np.random.default_rng({"rflame": 31, "gflame": 32, "bflame": 33}[tex])
+    rng = np.random.default_rng({"rflame": 31, "gflame": 32, "bflame": 33,
+                                 "cr_exhaust_cca": 34, "cr_exhaust_blackdog": 35}[tex])
     for name, u, v, w, h in cells:
         ref = stock[v:v + h, u:u + w, 3]
         a = np.clip(smooth_up(ref), 0, 255)
@@ -268,17 +290,20 @@ def main():
     ap.add_argument("--only", nargs="*", default=TEXTURES)
     args = ap.parse_args()
     for tex in args.only:
-        stock = load(os.path.join(args.stock, tex + ".png"))
+        stock = load(os.path.join(args.stock, ("rflame" if tex in FACTION_FLAMES else tex) + ".png"))
         cells = cells_for(args.st, tex)
         assert cells, f"no spritea.st rows for {tex}"
-        lut = palette(stock) if tex in PALETTED else None
+        if tex in FACTION_FLAMES:
+            lut = knot_palette(FACTION_FLAMES[tex])
+        else:
+            lut = palette(stock) if tex in PALETTED else None
         if tex == "sprite_a":
             out = build_sprite_a(stock, cells)
         elif tex.endswith("puff") or tex == "smoke":
             out = build_puff(stock, cells, tex, lut)
         elif tex == "shock":
             out = build_shock(stock, cells, lut)
-        elif tex.endswith("flame"):
+        elif tex.endswith("flame") or tex in FACTION_FLAMES:
             out = build_flame(stock, cells, tex, lut)
         else:
             out = build_magballs(stock, cells)

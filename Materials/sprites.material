@@ -412,6 +412,23 @@ material bflame : BZSprite/AdditiveFirstMip
 	set_texture_alias DiffuseMap bflame.png
 }
 
+// Burnt Orange Exhaust Flame (CCA) and Blood Red Exhaust Flame (Black Dog).
+// Stock ships only rflame/gflame/bflame. OpenShim's faction engine flames look
+// these up through the "exhaust_o.*" and "exhaust_bd.*" rows appended to
+// spritea.st, so the rows, these materials and both textures ship together.
+// Keep them in this file: a separate .material is parsed before this one,
+// cannot resolve BZSprite/AdditiveFirstMip, and compiles with no techniques
+// (D3D11 then throws RenderingAPIException on every flame draw).
+material oflame : BZSprite/AdditiveFirstMip
+{
+	set_texture_alias DiffuseMap cr_exhaust_cca.png
+}
+
+material bdflame : BZSprite/AdditiveFirstMip
+{
+	set_texture_alias DiffuseMap cr_exhaust_blackdog.png
+}
+
 // Plasma Ball
 material magballs : BZSprite/Additive
 {

@@ -66,7 +66,7 @@ local M = NewState()
 local Restored
 if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
-    id = "misns3", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
+    id = "misns3", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2, blackDogUnits = true,
     rallyPoints = { [0] = "basenav" },
     -- The Black Dog defender waves, the retreating groups and their escorts, and the patrol are the scaled spawns.
     -- Mines are static hazards that appear on approach by design: they pass straight through.

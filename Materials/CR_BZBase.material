@@ -1391,6 +1391,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeENHighPSSMV2
 		{
+			emissive 1 1 1
 			fragment_program_ref CR_BaseIBLHighPSSM_fragment
 			{
 			}
@@ -1442,6 +1443,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeHighPSSM
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_BaseIBLHighPSSM_fragment
 			{
 			}
@@ -1491,6 +1493,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeMediumNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENMediumNoShadow_fragment
 			{
 			}
@@ -1503,6 +1506,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1515,6 +1519,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeHigh
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_BaseIBLHighShadow_fragment
 			{
 			}
@@ -1564,6 +1569,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeMediumNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENMediumNoShadow_fragment
 			{
 			}
@@ -1576,6 +1582,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1588,6 +1595,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeHighNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_BaseIBLHighNoShadow_fragment
 			{
 			}
@@ -1637,6 +1645,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeMediumNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENMediumNoShadow_fragment
 			{
 			}
@@ -1649,6 +1658,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1661,6 +1671,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeMediumPSSM
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENMediumPSSM_fragment
 			{
 			}
@@ -1673,6 +1684,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1685,6 +1697,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1697,6 +1710,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeMedium
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENMediumShadow_fragment
 			{
 			}
@@ -1709,6 +1723,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1721,6 +1736,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1733,6 +1749,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeMediumNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENMediumNoShadow_fragment
 			{
 			}
@@ -1745,6 +1762,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1757,6 +1775,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1769,6 +1788,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeLowPSSM
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowPSSM_fragment
 			{
 			}
@@ -1781,6 +1801,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1793,6 +1814,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1805,6 +1827,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeLow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowShadow_fragment
 			{
 			}
@@ -1817,6 +1840,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1829,6 +1853,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1841,6 +1866,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1853,6 +1879,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1865,6 +1892,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -1877,6 +1905,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeLowestPSSM
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowestPSSM_fragment
 			{
 			}
@@ -1889,6 +1918,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowestNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowestNoShadow_fragment
 			{
 			}
@@ -1901,6 +1931,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowestNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowestNoShadow_fragment
 			{
 			}
@@ -1913,6 +1944,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeLowest
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowestShadow_fragment
 			{
 			}
@@ -1925,6 +1957,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowestNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowestNoShadow_fragment
 			{
 			}
@@ -1937,6 +1970,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowestNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowestNoShadow_fragment
 			{
 			}
@@ -1949,6 +1983,7 @@ material CR_BZBase
         lod_index 0
 		pass : BZPassSchemeLowestNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowestNoShadow_fragment
 			{
 			}
@@ -1961,6 +1996,7 @@ material CR_BZBase
         lod_index 1
 		pass : BZPassSchemeLowestNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowestNoShadow_fragment
 			{
 			}
@@ -1973,6 +2009,7 @@ material CR_BZBase
         lod_index 2
 		pass : BZPassSchemeLowestNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowestNoShadow_fragment
 			{
 			}
@@ -2442,6 +2479,7 @@ material CR_BZBaseCockpit
         scheme en-high-pssm
 		pass : BZPassSchemeHighNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_BaseIBLHighNoShadow_fragment
 			{
 			}
@@ -2490,6 +2528,7 @@ material CR_BZBaseCockpit
         scheme en-high
 		pass : BZPassSchemeHighNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_BaseIBLHighNoShadow_fragment
 			{
 			}
@@ -2538,6 +2577,7 @@ material CR_BZBaseCockpit
         scheme en-high-noshadow
 		pass : BZPassSchemeHighNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_BaseIBLHighNoShadow_fragment
 			{
 			}
@@ -2586,6 +2626,7 @@ material CR_BZBaseCockpit
         scheme en-medium-pssm
 		pass : BZPassSchemeMediumNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENMediumNoShadow_fragment
 			{
 			}
@@ -2597,6 +2638,7 @@ material CR_BZBaseCockpit
         scheme en-medium
 		pass : BZPassSchemeMediumNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENMediumNoShadow_fragment
 			{
 			}
@@ -2608,6 +2650,7 @@ material CR_BZBaseCockpit
         scheme en-medium-noshadow
 		pass : BZPassSchemeMediumNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENMediumNoShadow_fragment
 			{
 			}
@@ -2619,6 +2662,7 @@ material CR_BZBaseCockpit
         scheme en-low-pssm
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -2630,6 +2674,7 @@ material CR_BZBaseCockpit
         scheme en-low
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -2641,6 +2686,7 @@ material CR_BZBaseCockpit
         scheme en-low-noshadow
 		pass : BZPassSchemeLowNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowNoShadow_fragment
 			{
 			}
@@ -2652,6 +2698,7 @@ material CR_BZBaseCockpit
         scheme en-lowest-pssm
 		pass : BZPassSchemeLowestNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowestNoShadow_fragment
 			{
 			}
@@ -2663,6 +2710,7 @@ material CR_BZBaseCockpit
         scheme en-lowest
 		pass : BZPassSchemeLowestNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowestNoShadow_fragment
 			{
 			}
@@ -2674,6 +2722,7 @@ material CR_BZBaseCockpit
         scheme en-lowest-noshadow
 		pass : BZPassSchemeLowestNoShadow
  		{
+			emissive 1 1 1
 			fragment_program_ref CR_ShimOrStock_BaseENLowestNoShadow_fragment
 			{
 			}

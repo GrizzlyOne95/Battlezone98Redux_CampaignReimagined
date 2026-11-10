@@ -30,7 +30,8 @@ the actual mission. That dispatch stub is included in the source archive.
 | misn04 | Misn04Mission.cpp | Relic search/discovery/recon; all four relic camera/patrol variants; survey and guard forces; tug acquisition/delivery; CCA theft and failure film; search warnings; five base waves and arrival/death messages; CCA-base clear and retreat branches; relic/recycler losses; audio-delayed closing film. |
 | misn05 | Misn05Mission.cpp | Random harassment; approach/recon/order delays; all four shuffled deployment waves; turret-to-patrol transitions; base attack; final razor approach; proximity attack/warning; four supplemental waves; CCA-recycler destruction branch; residual attacker checks; recycler/factory losses; victory sequence. |
 
-The 23 `path_1` through `path_23` mines are still represented by the Lua loop.
+The 23 `path_1` through `path_23` mines are still represented by the Lua loop
+(CR has since also armed the authored `path_24`, for 24).
 Its persistent static minefield replaces the DLL's proximity-based build/remove
 system intentionally; the complete original implementation is archived. Dynamic
 path generation in misn04 likewise covers the native numbered relic paths and
@@ -112,7 +113,7 @@ mocked engine calls, and all four complete scripts compile under Lua 5.1.
 Python passes **501 source preservation/coverage checks**: exact archive hashes,
 all 277 original comment tokens and their line references, named phases, active
 audio/objective/debrief/AIP references with the explicit intro exception, all
-23 static mine locations, the camera name mapping, and the replaced native
+24 static mine locations, the camera name mapping, and the replaced native
 escort block with current QOL orders. The workflow runs both
 new suites alongside existing repository checks. The validator now recognizes
 Lua long-comment delimiters with equals signs, so inactive C++ is excluded from
