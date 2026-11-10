@@ -5,6 +5,7 @@ on:
     paths:
       - 'Shaders/**'
       - 'Materials/**'
+      - 'openshim/renderer/enhanced/**'
       - 'Tools/Validate-DX11Shaders.ps1'
       - 'Tools/Test-DX11ShaderValidator.ps1'
       - 'Tools/Test-OverlayPanelInputs.ps1'
