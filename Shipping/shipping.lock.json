@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5538,
+  "count": 5544,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -713,6 +713,10 @@
     {
       "source": "Assets\\ModelFixes\\avhraz.mesh",
       "runtime": "avhraz.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avhraz.skeleton",
+      "runtime": "avhraz.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\avhraz.vdf",
@@ -4187,6 +4191,22 @@
       "runtime": "avhraz01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\avhraz_hpmount_D.dds",
+      "runtime": "avhraz_hpmount_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avhraz_hpmount_E.dds",
+      "runtime": "avhraz_hpmount_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avhraz_hpmount_N.dds",
+      "runtime": "avhraz_hpmount_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avhraz_hpmount_S.dds",
+      "runtime": "avhraz_hpmount_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\avhraz_nacjet_D.dds",
       "runtime": "avhraz_nacjet_D.dds"
     },
@@ -5693,6 +5713,10 @@
     {
       "source": "Assets\\Textures\\crteam_avhraz_d.dds",
       "runtime": "crteam_avhraz_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avhraz_hpmount_d.dds",
+      "runtime": "crteam_avhraz_hpmount_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_avhraz_nacjet_d.dds",
