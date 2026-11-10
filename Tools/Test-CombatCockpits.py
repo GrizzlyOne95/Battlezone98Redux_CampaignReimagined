@@ -57,6 +57,23 @@ for base,cfg in cp.CONFIG.items():
     for pitch,label in [(-80,'floor'),(85,'roof')]:check(np.isfinite(cast(np.arange(-180,180,10),pitch)[0]).all(),'closed '+label)
     check(np.isfinite(cast([180],0)[0]).all(),'closed rear')
     check(meta['innerShell']['boundaryLoops']==1,'only one intentional inner-shell opening')
+    if cfg.get('animated'):
+        # The rolling nose (first animated bone, VDF class 66) and everything
+        # hung from it must never cut static tub, strips or glass, at any roll.
+        names={b.handle:b for b in s.bones()};rotor=next(b for b in s.bones() if b.name==cfg['animated'][0])
+        def under(handle):
+            b=names[handle]
+            while b is not None and b is not rotor:b=b.parent
+            return b is rotor
+        moving=[];static={}
+        for sub in m.submesh_list:
+            p=(cp.shared.values(sub.vertex_data,cp.shared.om.VES.POSITION)-origin)@R;bone=np.zeros(len(p),int)
+            for a in sub.bone_assignments():bone[a.vertex_index]=a.bone_index
+            t=sub.index_array.reshape(-1,3);mov=np.array([under(h) for h in bone])[t].all(1);moving.append(p[t[mov]]);static[sub.material_name]=p[t[~mov]]
+        moving=np.concatenate(moving);pivot=(w[rotor.handle][0]-origin)@R;axis=R.T@w[rotor.handle][1][:,2]
+        for name,need in [(cfg['material'],cp.NOSE_CLEARANCE),(cfg['stock'],cp.NOSE_CLEARANCE),('CRWX_CockpitGlass',cp.NOSE_CLEARANCE),('CRV/'+base+'CombatExterior',1e-6)]:
+            gap=cp.rotor_sweep(moving,static[name],pivot,axis,np.arange(-cp.NOSE_ROLL_DEG,cp.NOSE_ROLL_DEG+.5,1.),need)
+            check(gap.min()>=need,f'{base} {name}: rolling nose keeps {need} m clear (closest {gap.min():.4f}, {int((gap<need).sum())} tris)')
     check(receipt['glass']['vertices']>0 and receipt['glass']['bone'].lower()==cfg['shell'].lower(),'weather glass refitted')
     # Reconstruct selected native pieces from the immutable source, proving
     # actual vehicle identity, original UVs, rigid scale and transformed normals.
