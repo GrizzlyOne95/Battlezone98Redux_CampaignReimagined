@@ -1814,3 +1814,22 @@ to the ordinary GOG development mod.
   `-text` and stored as CRLF so every checkout matches the manifest. Any new file the
   manifest hashes needs a `-text` rule in the same commit; check with
   `git ls-files --eol <path>` (index and working tree must show the same line endings).
+
+### Emissive pulse through surface clones (2026-11-10)
+
+- `CRSurfaceEffects` draws craft and towers with per-object `exu_surface_cr_<id>_<index>`
+  clones. `exu.CloneSurfaceMaterial` copies the source once, so a later write to the
+  source material alone is invisible on those objects. The RuntimeEnhancements emissive
+  pulse wrote only its `campaignReimagined_rt_*` sources and so never showed. Any module
+  that keeps rewriting a material an object may wear must also write
+  `CRSurfaceEffects.LiveClones(source)` (normal clones only; the `_off` clone's emission
+  is scaled to zero). A one-off write before the clone exists (CRTeamSkins `@crteam_`,
+  RuntimeEnhancements `EnsureMaterialVariant`) is copied and needs nothing.
+  `Tools/Test-EmissivePulse.lua` guards the pulse write-through and release.
+- A live test driver that replaces `crsetup.lua` also skips the OpenShim installer, and
+  the installer swaps natives only after the game exits. Testing a re-pin needs two
+  launches: one with the stock `crsetup.lua` to install, then the test launch. Check the
+  game root's natives against `Scripts/OpenShimManifest.lua` before trusting the result.
+- Measure a craft's lights with a tank-local mask and a fixed camera with the heading
+  pinned. A full-frame brightness mask is dominated by sky, terrain and camera drift and
+  does not track the pulse.

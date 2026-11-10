@@ -7,6 +7,8 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     records = {}, order = {}, cursor = 1, materials = {}, materialOrder = {}, materialCursor = 1,
     hits = {}, shots = {}, active = {}, activeSet = {}, activeCursor = 1,
     clones = {}, nextId = 0, timer = 0, bindCursor = 1, started = false, gen = 0,
+    -- source material -> {clone name = true} for bound normal clones (see S.LiveClones)
+    live = {},
     -- Cockpit glass damage (CRWetGlass) and electrical brownout.
     CrackStages = { { enter = 0.50, leave = 0.55, level = 0.35 }, { enter = 0.25, leave = 0.30, level = 0.80 } },
     BrownoutDrop = 0.05, BrownoutHold = 0.12, BrownoutCooldown = 0.4, MaxCrackSpots = 32,
@@ -312,6 +314,11 @@ local function release(r)
         for _, name in ipairs({slot.normal, slot.off}) do
             if name then call(exu.ReleaseSurfaceMaterial, name); S.clones[name] = nil end
         end
+        local set = S.live[slot.source]
+        if set then
+            set[slot.normal] = nil
+            if next(set) == nil then S.live[slot.source] = nil end
+        end
     end
     r.slots, r.count, r.bindIndex = {}, nil, 0
 end
@@ -403,6 +410,21 @@ local function bindOne(r)
     end
     local slot = {index = index, source = source, normal = name, assigned = name, values = {}}
     r.slots[#r.slots + 1] = slot; r.bindIndex = index + 1
+    local set = S.live[source]
+    if not set then set = {}; S.live[source] = set end
+    set[name] = true
+end
+
+-- Clone names currently drawn in place of `source` (normal clones only: the
+-- powered-off clone has a black EmissiveMap and its emission is scaled to 0).
+-- A clone copies its source once, so a later write to the source alone (such
+-- as the RuntimeEnhancements emissive pulse) must be repeated on these.
+function S.LiveClones(source)
+    local set = S.live[source]
+    if not set then return nil end
+    local names = {}
+    for name in pairs(set) do names[#names + 1] = name end
+    return names
 end
 
 local function radiusMark(position, radius)
@@ -803,7 +825,7 @@ function S.ResetScene()
         if state.shaped then writeShape(name,NoShape) end
     end
     S.records,S.order,S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{},{},{}
-    S.hits,S.shots,S.clones = {},{},{}
+    S.hits,S.shots,S.clones,S.live = {},{},{},{}
     S.cockpit=nil;S.cursor=1;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
     setCrack(0);S.crackSpots,S.crackSpotCount={},0
     S.SweepWet=0;S.sweepLeft=0;S.cloneLeft=0;S.wetCursor=1;S.sweepMoving=false
@@ -833,7 +855,7 @@ function S.Suspend()
         if state.shaped then writeShape(name,NoShape) end
     end
     S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{}
-    S.hits,S.shots,S.clones = {},{},{}
+    S.hits,S.shots,S.clones,S.live = {},{},{},{}
     S.cockpit=nil;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
     clearWash();S.shapeMaterial=nil;S.cameraMaterial=nil;S.cameraAt=nil
     setCrack(0)
