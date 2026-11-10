@@ -6,9 +6,9 @@
     "skeletonSha256": "d38714d9f745c798088644ec7cd380f70882271473c6d5e900727285283c4329"
   },
   "outputs": {
-    "Assets/Models/svfigh_cockpit.mesh": "ab8d6881497ac8dbfa8ea634d0b37b1332a72fe07fef7e64536bbd043c7c7ce5",
+    "Assets/Models/svfigh_cockpit.mesh": "cf4e39fe3888c46992734ca182ba28bba11ef8e5e191d92e577d594b292e4953",
     "Assets/Models/svfigh_cockpit.skeleton": "d38714d9f745c798088644ec7cd380f70882271473c6d5e900727285283c4329",
-    "Materials/CR_svfigh_cockpit.material": "16fa5275d68e75271226e024875a5b657b1fb935dad97b71657de0d4f1f2b559"
+    "Materials/CR_svfigh_cockpit.material": "9ed68ec7f27f701d3bf21f53d7e4fad66321a6fff781f614602bc660b60ab968"
   },
   "alignment": {
     "base": "svfigh",
@@ -6266,7 +6266,12 @@
         ]
       }
     ],
-    "nativeVdfSha256": "fbca9aec7cc884dbba04ca88b5417bca2fd950d70511f3a83c9a58a6f298906e",
+    "mountSkin": {
+      "material": "CRV/svfighCombatHpmount",
+      "bone": "SFL11ROR",
+      "triangles": 1540
+    },
+    "nativeVdfSha256": "1d230d2b8f834eccb6abfa93f8e8f44c2b3001791a573cb85975418c79a30cf1",
     "noseClearZ": 1.1259630233049394
   },
   "glass": {
@@ -6282,6 +6287,7 @@
   "triangles": {
     "CRV/CCAMechanicalCockpit": 2452,
     "svfigh01": 4,
-    "CRV/svfighCombatExterior": 5657
+    "CRV/svfighCombatExterior": 5657,
+    "CRV/svfighCombatHpmount": 1540
   }
 }
