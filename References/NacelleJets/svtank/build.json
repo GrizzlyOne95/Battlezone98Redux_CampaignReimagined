@@ -1,0 +1,32 @@
+{
+  "unit": "svtank",
+  "faction": "cca",
+  "housings": [],
+  "notes": [
+    "Pod prototype, hand-recorded (no Build-NacelleJets CONFIG entry, no mesh change). The stock wing pods scz11wgl/scz11wgr become class 67 nacelles so the engine pitches them; each carries one class 75 flame at its rear glow panel: panel centre (sampled from the posed stock mesh) moved 0.03 m inside along the pod's local +Z, flame along local -Z (front axis (0,0,-1)). Derived by Local/NacelleJets/noflame/build_vdf.py and approved in game from the dev mod copy; positions are local to the pod in the stock VDF frame.",
+    "ODF/svtank.odf [HoverCraftClass] carries pitchThrot/SteerNacelleRun 0.10 and Jump 0.12 so the pods pitch gently.",
+    "The earlier scz11nrl.geo/scz11nrr.geo dummies are not used."
+  ],
+  "nacelles": [
+    "scz11wgl",
+    "scz11wgr"
+  ],
+  "vdfParts": [
+    {
+      "name": "SCZ11FLL",
+      "klass": 75,
+      "parent": "scz11wgl",
+      "matrix": [-1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0, -0.7495439052581787, -0.00518604414537549, -2.7015740871429443],
+      "existing": false,
+      "moved": true
+    },
+    {
+      "name": "SCZ11FLR",
+      "klass": 75,
+      "parent": "scz11wgr",
+      "matrix": [-1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0, 0.7625440955162048, -0.004186043981462717, -2.7505738735198975],
+      "existing": false,
+      "moved": true
+    }
+  ]
+}

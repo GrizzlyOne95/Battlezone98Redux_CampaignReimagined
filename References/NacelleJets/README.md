@@ -62,9 +62,13 @@ Shipping a unit, in order:
 
 1. `--ship`, then commit the pre-rig `Assets/ModelFixes/<unit>.mesh`, the four textures,
    the material block and the receipt. Push. `--ship` replaces the rigged shipped mesh
-   with the unrigged stage, so do not stop before step 2.
-2. Put that commit in `models.json` `stage_revisions` for the mesh, then run
-   `python Tools/Build-WeaponRigs.py --models <unit>`.
+   with the unrigged stage, so do not stop before step 2. A `housing=False` unit writes
+   only the receipt (its mesh is unchanged).
+2. If the receipt has `vdfParts`: `python Tools/Build-UnitAnimSlots.py --stock-dir
+   "<Redux>/StockODFFiles" <unit>.vdf`. Then put the step 1 commit in `models.json`
+   `stage_revisions` for the mesh (rigged units only), and run
+   `python Tools/Build-WeaponRigs.py --models <unit>` for every rigged unit whose mesh or
+   VDF changed (the rig reads the shipped VDF).
 3. `python Tools/Build-TeamSkins.py --write` (adds `<unit>_nacjet_tm` and its mask).
 4. If the unit has a generated cockpit (the scouts do), its receipt hashes the pre-rig
    exterior: run `python Tools/Build-ScoutCockpits.py`, then re-run step 2 for every unit
@@ -72,7 +76,7 @@ Shipping a unit, in order:
    `exteriorSha256` in the receipt should end up changed.
 5. `Manage-CampaignFiles.ps1 -bless` and keep only this unit's new lock entries.
 6. Run `Tools/Test-WeaponRigs.py`, `Tools/Test-ScoutCockpits.py`,
-   `Tools/Test-CombatPresentation.py`.
+   `Tools/Test-CombatPresentation.py`, `Tools/Test-UnitAnimSlots.py`.
 
 The pinned stage commit must stay reachable from `main`: merge the pull request with a
 merge commit, not a squash.
@@ -112,13 +116,23 @@ grid of that skin (window maximum, never below the plane) instead of a flat top,
 roof edge buried into the hull. Nozzle, ring, glow and paint are unchanged; units without
 the flag build exactly as before.
 
-The VDF is not changed here. Each moved emitter carries `emitShift` (stock point, moved
+This tool does not write the VDF. Each moved emitter carries `emitShift` (stock point, moved
 point, delta, flame direction, reason) in `preview.json`, and the unit carries `vdfParts`:
 one class 75 part per emitter, parented to its nacelle, with its local `matrix` in the VDF
 layout (rows right, up, front, then position; the flame runs along front). A class 75 part
 draws the flame from its own position along its front axis, and one authored class 75 part
 suppresses every automatic under-nacelle emitter (BZ 1.5 decompile `all_decompiled.c`
 193458-193491, 193771-193821), so unmoved nacelles are recorded too, at their stock points.
+The emit points are always read from the VDF at `source_revision` (or the stock VDF), never
+from the shipped VDF that already carries these parts, so re-runs give the same answer.
+
+`Tools/Build-UnitAnimSlots.py` is the one VDF writer: it reads each shipped `build.json` and
+adds its `vdfParts` to the stock VDF (and makes any `nacelles` it lists class 67), writing
+`Assets/ModelFixes/<unit>.vdf`. `Tools/Test-UnitAnimSlots.py` checks every recorded part is
+there and that no class 67 nacelle in a file with class 75 parts is left without its own.
+`svtank/build.json` is hand-recorded (no CONFIG entry, no mesh change): its stock wing pods
+become nacelles, each with a flame at its rear glow panel, and `ODF/svtank.odf` sets the pod
+pitch (`pitchThrot/SteerNacelleRun 0.10`, `...Jump 0.12`).
 
 The seat is a plane fitted under the pod footprint and raised to the highest skin, so the
 roof is buried everywhere; the pod deepens to carry the nozzle at the emit point. Asserts:
@@ -136,8 +150,7 @@ with the reasons, and leaves no preview. Read the `notes` in `preview.json` befo
 Pod paint is the median texel of the downward-facing seat skin under and around the footprint,
 after dropping saturated trim and decals and near-black gaps, taken from the dominant colour only.
 Ring, bore and throat glow follow the faction flame colour (`FACTIONS`): NSDF blue, Black
-Dogs blood red, CCA burnt orange, CRA green. The shipped avfigh maps still carry the old
-orange bore until avfigh is re-shipped.
+Dogs blood red, CCA burnt orange, CRA green.
 
 ## Review sheets (avfigh)
 
