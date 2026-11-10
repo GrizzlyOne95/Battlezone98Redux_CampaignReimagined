@@ -100,6 +100,9 @@ for e, axis in zip(scene_file['emit'], scene_file.get('flameDir') or [(0, -1, 0)
     bpy.ops.mesh.primitive_uv_sphere_add(radius=.022, location=xyz(e)); bpy.context.object.data.materials.append(dot); markers.append(bpy.context.object)
     f = scene_file['flame']
     flames.append(cone('flame', e, axis, f['halfWidth'], f['length'], .03, flame)); flames.append(cone('axis', e, axis, .008, f['length'], .008, core))
+for n, mark in enumerate(scene_file.get('marks', [])):  # reference points: stock emit points, existing ports
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=mark['radius'], location=xyz(mark['at']))
+    bpy.context.object.data.materials.append(principled('Mark %d' % n, mark['colour'], emission=(*mark['colour'], 6))); markers.append(bpy.context.object)
 sun = bpy.data.objects.new('Key', bpy.data.lights.new('Key', 'SUN')); sun.data.energy = 3.2; sun.data.angle = math.radians(25); bpy.context.collection.objects.link(sun)
 fill = bpy.data.objects.new('Fill', bpy.data.lights.new('Fill', 'SUN')); fill.data.energy = 1.1; fill.data.angle = math.radians(60); bpy.context.collection.objects.link(fill)
 camera = bpy.data.objects.new('Review camera', bpy.data.cameras.new('Review camera')); bpy.context.collection.objects.link(camera); sc.camera = camera

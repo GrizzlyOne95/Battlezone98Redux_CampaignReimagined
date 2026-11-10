@@ -72,37 +72,45 @@ def fitted(scale, length=1., **over):
     return dict(shape, **over)
 
 
-def unit(faction, scale, length=1., also=(), shift=(), housing=True, note=None, **over):
+def unit(faction, scale, length=1., also=(), shift=(), housing=True, note=None, ports=False, **over):
     """CONFIG entry. also: ((part-name regex, shape), ...) for nacelles that need their own shape.
     shift: ((part-name regex, move), ...) approved emit-point moves, built at the moved point and
     recorded as emitShift for the VDF change: metres along the emitter's up axis (against the
     flame), an (x, y, z) vector in its frame, 'skin' (up or down to just under the seat skin) or
-    'nacelle' (a class 75 part moved to the class 67 rule point of the nacelle it rides).
-    housing=False: record the emit points and the sheet only."""
-    return dict(faction=faction, shape=fitted(scale, length, **over), also=also, shift=shift, housing=housing, note=note)
+    'nacelle' (a class 75 part moved to the class 67 rule point of the nacelle it rides), or
+    'relocate': the flame leaves the bbox-rule point for the nearest flat, solid spot on the same
+    nacelle skin where a housing seats cleanly with its nozzle on the new emit point (found by
+    the build, mirrored left/right). A moved flame needs a class 75 part parented to the nacelle
+    (it draws from its own position along its front axis, and one authored class 75 part
+    suppresses every automatic under-nacelle emitter: BZ 1.5 decompile all_decompiled.c
+    193458-193491, 193771-193821), so the build records one for every nacelle as vdfParts.
+    housing=False: record the emit points and the sheet only. ports=True (with housing=False): the
+    nacelles already model glowing exhaust ports; find them in the emissive map and propose
+    moving each flame into the largest port its own nacelle carries, along the port's normal."""
+    return dict(faction=faction, shape=fitted(scale, length, **over), also=also, shift=shift, housing=housing, note=note, ports=ports)
 
 
 CONFIG = {
     'avfigh': dict(faction='nsdf', stripe=(.14, .21), shape=BASE),
     # Fitted shapes. scale ~ flame width (the engine draws every unit's flame the same size)
     # and the room under the nacelle; length stretches the pod along the chord.
-    'avapc': unit('nsdf', 1.3, .8, offset=(0, .35), shift=(('.', .79),)),
-    'avartl': unit('nsdf', 1.2, also=(('nrl$', fitted(.9, .6, offset=(0, -.18))),), shift=(('nf[lr]$', 'skin'),)),
-    'avltnk': unit('nsdf', 1., .6), 'avmine': unit('nsdf', 1.3), 'avrckt': unit('nsdf', 1.), 'avtank': unit('nsdf', 1., .8),
-    'avhraz': unit('nsdf', .9, .8), 'avtest': unit('nsdf', .8, shift=(('.', -.03),)),
-    'bvapc': unit('blackdogs', 1.3, .8, offset=(0, .35), shift=(('.', .79),)),
-    'bvartl': unit('blackdogs', 1.2, also=(('nrl$', fitted(.9, .6, offset=(0, -.18))),), shift=(('nf[lr]$', 'skin'),)),
+    'avapc': unit('nsdf', 1.3, .8, shift=(('.', 'relocate'),)),
+    'avartl': unit('nsdf', 1.2, housing=False, ports=True, note='no housing: each nacelle already models glowing exhaust ports; the flames are proposed into those'),
+    'avltnk': unit('nsdf', 1., .6), 'avmine': unit('nsdf', 1.3), 'avrckt': unit('nsdf', 1.), 'avtank': unit('nsdf', 1., .8, shift=(('.', 'relocate'),)),
+    'avhraz': unit('nsdf', .9, .8, shift=(('.', 'relocate'),)), 'avtest': unit('nsdf', .8, shift=(('.', 'relocate'),)),
+    'bvapc': unit('blackdogs', 1.3, .8, shift=(('.', 'relocate'),)),
+    'bvartl': unit('blackdogs', 1.2, housing=False, ports=True, note='no housing: each nacelle already models glowing exhaust ports; the flames are proposed into those'),
     'bvltnk': unit('blackdogs', 1., .6), 'bvmine': unit('blackdogs', 1.3), 'bvraz': unit('blackdogs', .9), 'bvrckt': unit('blackdogs', 1.),
-    'bvtank': unit('blackdogs', 1., .8),
-    'svapc': unit('cca', 1.3), 'svartl': unit('cca', 1.3, offset=(.25, 0), shift=(('.', 'skin'),)), 'svfigh': unit('cca', 1., offset=(.2, 0)),
-    'svhraz': unit('cca', .8, .6, offset=(.15, 0)), 'svltnk': unit('cca', .8, .9, offset=(-.12, 0), shift=(('.', 'skin'),)),
-    'svmine': unit('cca', 1.2, offset=(.2, 0)), 'svmuf': unit('cca', 1.4, offset=(.2, 0)), 'svrckt': unit('cca', 1.1),
-    'svrecy': unit('cca', 1.5, shift=(('.', 'skin'),)), 'svslf': unit('cca', 1.2), 'svscav': unit('cca', 1.3, shift=(('.', -.03),)),
-    'cvfigh': unit('cra', .9), 'cvhraz': unit('cra', 1.3), 'cvmine': unit('cra', .9, shift=(('.', 'skin'),)),
+    'bvtank': unit('blackdogs', 1., .8, shift=(('.', 'relocate'),)),
+    'svapc': unit('cca', 1.3), 'svartl': unit('cca', 1.3, shift=(('.', 'relocate'),)), 'svfigh': unit('cca', 1., shift=(('.', 'relocate'),)),
+    'svhraz': unit('cca', .8, .6, shift=(('.', 'relocate'),)), 'svltnk': unit('cca', .8, .9, shift=(('.', 'relocate'),)),
+    'svmine': unit('cca', 1.2, shift=(('.', 'relocate'),)), 'svmuf': unit('cca', 1.4, shift=(('.', 'relocate'),)), 'svrckt': unit('cca', 1.1),
+    'svrecy': unit('cca', 1.5, shift=(('.', 'relocate'),)), 'svslf': unit('cca', 1.2), 'svscav': unit('cca', 1.3, shift=(('.', 'relocate'),)),
+    'cvfigh': unit('cra', .9), 'cvhraz': unit('cra', 1.3), 'cvmine': unit('cra', .9, shift=(('.', 'relocate'),)),
     # Units that author class 75 flame parts.
     'bvrdev': unit('blackdogs', .9, housing=False, shift=(('en1$', -.2),),
                    note='no housing: all three class 75 parts fire through nozzles modelled on the rear body'),
-    'svhaul': unit('cca', 1.2, shift=(('.', 'skin'),)),
+    'svhaul': unit('cca', 1.2, shift=(('.', 'relocate'),)),
 }
 
 def unit_vectors(v):
@@ -208,13 +216,15 @@ def emitters(unit, skeleton, mesh, shifts=()):
         move = next((value for pattern, value in shifts if re.search(pattern, part.name, re.I)), None)
         if move is not None:  # an approved move: build there, keep the stock point for the record
             jet['stockEmit'] = jet['emit']; Q = np.array(jet.get('axes', np.eye(3)))
-            if move == 'skin':
-                jet['toSkin'] = True
+            if move in ('skin', 'relocate'):
+                jet['toSkin'] = True; jet['relocate'] = move == 'relocate'
             elif move == 'nacelle':
                 assert owner.klass == 67, (part.name, 'does not ride a class 67 nacelle')
                 jet.pop('axes', None); under_nacelle(owner.name)
             else:
                 jet['emit'] = (np.array(jet['emit']) + Q @ np.array(move if np.ndim(move) else (0, move, 0), float)).tolist()
+        nacelle = by[part.parent.lower()] if authored else part  # the part a class 75 flame part hangs from
+        jet['_vdf'] = dict(parent=nacelle.name, frame=W[nacelle.name.lower()], existing=part.name if authored else None, names={p.name.lower() for p in parts})
         jet['_pose'] = (D, shift); out.append(place(jet))
     assert out, 'no class 67 nacelle and no class 75 flame emitter: the engine draws no flame'
     return sorted(out, key=lambda e: -e['emit'][0]), pose  # +X first: the solid is built there
@@ -425,9 +435,10 @@ def seat_paint(mesh, jet, centre, mirror, shape, fit):
     ox, oz = shape.get('offset', (0., 0.)); half = max(s[1] for s in shape['sections']); zs = [s[0] for s in shape['sections']]
     plane = fit[0] + fit[1] * (c[:, 2] - centre[2]) + fit[2] * (c[:, 0] - centre[0])
     normal = unit_vectors(np.cross(local[:, 1] - local[:, 0], local[:, 2] - local[:, 0]))
+    whole = hull(mesh)[0]; normal *= np.sign(np.einsum('ij,ij->', whole[:, 0], np.cross(whole[:, 1], whole[:, 2]))) * (-1 if mirror else 1)  # outward
     for grow in (2.5, 4.):
         sel = ((np.abs(c[:, 0] - centre[0] - ox) < half * grow) & (c[:, 2] - centre[2] - oz > min(zs) * grow) & (c[:, 2] - centre[2] - oz < max(zs) * grow)
-               & (np.abs(c[:, 1] - plane) < .12 * grow) & (np.abs(normal[:, 1]) > .3))
+               & (np.abs(c[:, 1] - plane) < .12 * grow) & (normal[:, 1] < -.3))  # the skin seen from below, not inner faces
         if sel.sum() >= 4:
             break
     else:
@@ -439,6 +450,10 @@ def seat_paint(mesh, jet, centre, mirror, shape, fit):
     pick = np.random.default_rng(1).choice(sel.sum(), 4000, p=area / area.sum()); weights = np.random.default_rng(2).dirichlet((1, 1, 1), 4000)
     sample = (weights[..., None] * uv[sel][pick]).sum(1) % 1
     texel = image[(sample[:, 1] * h).astype(int).clip(0, h - 1), (sample[:, 0] * w).astype(int).clip(0, w - 1)]
+    calm = (texel.max(1) - texel.min(1) < 90) & (texel.max(1) > 45)  # hazard trim and decals (avhraz's yellow rail) are saturated, gaps and baked shadow near black; hull paint is neither
+    if calm.sum() >= .2 * len(texel):
+        texel = texel[calm]
+    key = (texel // 40).astype(int) @ (1, 8, 64); texel = texel[key == np.bincount(key).argmax()]  # the dominant colour, not a blend of two paints
     return [float(v) for v in np.median(texel, 0)], path  # the median: decals and panel lines are the minority
 
 
@@ -499,14 +514,17 @@ def textures(unit, tri, uv, tag, cfg, stripe, paint, faction):
     metal = (np.array((60., 63, 68)) * (1 - heat) + np.array((104., 78, 58)) * heat) * (1 + .06 * mottle[..., None])
     depth = np.clip((y - bell['lip']) / (bore['roof'] - bell['lip']), 0, 1)[..., None]  # 1 at the bore roof
     core = np.clip(1 - (lathe_radius(cfg, p) / bore['rRoof']) ** 2 * .7, 0, 1)[..., None]
-    hot = np.array((255., 150, 60))
+    hot = np.array((255., 150, 60)); bore_deep = np.array((84., 44, 24)); throat = np.array((110., 58, 30)) * core; throat_light = hot * (.35 + .65 * core)
+    if cfg.get('auto'):  # the faction's flame colour, a hot core: brighter and less saturated toward the centre
+        hot = glow * 255 / glow.max(); bore_deep = hot * .3; throat = hot * .42 * core
+        throat_light = (hot * (1 - .6 * core ** 2) + 255 * .6 * core ** 2) * (.35 + .65 * core)
     for value, base, shine in ((PAINT, body, 46 + 14 * band), (BELL, metal, 120), (LIP, np.array((118., 114, 106)) * (1 + .08 * mottle[..., None]), 160),
-                               (GROOVE, glow * .45, 40), (BORE, np.array((26., 24, 24)) * (1 - depth) + np.array((84., 44, 24)) * depth, 22),
-                               (THROAT, np.array((110., 58, 30)) * core, 30), (VENT, np.array((15., 16, 18)) + 0 * body, 10)):
+                               (GROOVE, glow * .45, 40), (BORE, np.array((26., 24, 24)) * (1 - depth) + bore_deep * depth, 22),
+                               (THROAT, throat, 30), (VENT, np.array((15., 16, 18)) + 0 * body, 10)):
         mask = zone == value; colour[mask] = np.broadcast_to(base, colour.shape)[mask]; spec[mask] = np.broadcast_to(shine, spec.shape)[mask]
     emissive[zone == GROOVE] = glow * .95
     emissive[zone == BORE] = (hot * .45 * depth ** 2.5)[zone == BORE]
-    emissive[zone == THROAT] = (hot * (.35 + .65 * core))[zone == THROAT]
+    emissive[zone == THROAT] = np.broadcast_to(throat_light, emissive.shape)[zone == THROAT]
     worn = (chipped * np.isin(zone, (PAINT, BELL, LIP)))[..., None]
     colour = colour * (1 - worn) + np.where((zone == PAINT)[..., None], bare, colour * 1.7) * worn
     lit = (zone == GROOVE) | (zone == THROAT)
@@ -665,7 +683,7 @@ def check_surface(solid, tri, local):
                             around=[round(float(v), 2) for v in (hit[clip].mean(0) - (ex, solid['emit'][1], ez))]))
 
 
-def seat(jet, shape, yaw, mesh, stock, work, n, like=None):
+def seat(jet, shape, yaw, mesh, stock, work, n, like=None, slide=None, dry=False):
     """One attempt at seating a housing of this shape on jet (rotated yaw degrees about the
     flame axis), or at carrying the solid of housing `like`. Raises AssertionError when the
     seat, the flame path or the exposed surface fails a check."""
@@ -673,12 +691,15 @@ def seat(jet, shape, yaw, mesh, stock, work, n, like=None):
     flip = np.array((-1., 1, 1) if mirror else (1., 1, 1)); axes = np.array(jet.get('axes', np.eye(3)))
     if yaw:
         axes = axes @ yaw_matrix(-yaw if mirror else yaw); trial.update(axes=axes.tolist(), yaw=-yaw if mirror else yaw)
-    centre = np.array(like['centre']) if like else np.array(jet['emit']) * flip
+    slide = like.get('slide') if like else slide
+    if slide:  # a relocated emit point: (outboard, nose) metres along the seat from the stock point
+        trial['emit'] = (np.array(jet['emit']) + axes @ np.array((slide[0] * (-1. if jet['emit'][0] < -1e-3 else 1.), 0, slide[1]))).tolist()
+    centre = np.array(like['centre']) if like else np.array(trial['emit']) * flip
     skin = to_build(hull(mesh, jet.get('skin', jet['bone']))[0], trial, centre, mirror)
     fit, error, how = underside(skin, centre, shape, like and like['fit'])
     rise = like['rise'] if like else fit[0] - centre[1] if jet.get('toSkin') else 0.
     if jet.get('toSkin'):  # the approved move to the skin: the housing is built at the moved point
-        trial['emit'] = (np.array(jet['emit']) + axes[:, 1] * rise).tolist(); centre = centre + (0, 0 if like else rise, 0)
+        trial['emit'] = (np.array(trial['emit']) + axes[:, 1] * rise).tolist(); centre = centre + (0, 0 if like else rise, 0)
     place(trial); local = stock_local(stock, trial, centre, mirror); low = bore_low(local, centre, shape, fit, how['spread'])
     if like:
         assert error < shape['bury'] * .5 and abs(how['cover'] - like['seat']['cover']) < .08 and not how['pokes'], 'seats differently'
@@ -686,11 +707,13 @@ def seat(jet, shape, yaw, mesh, stock, work, n, like=None):
         check_flame_path(like['solid'], local); check_surface(like['solid'], like['tri'], local)
         return trial, mirror
     solid = solid_config(shape, centre.tolist(), fit, how, low); check_flame_path(solid, local)
+    if dry:
+        return solid['seated']
     name = 'solid%d' % n; (work / (name + '.json')).write_text(json.dumps(solid, indent=1))
     log = blender('nacellejet_blender.py', work / (name + '.json'), work / (name + '.npz')); npz = np.load(work / (name + '.npz'))
     check_surface(solid, npz['positions'][npz['tris']], local)
     return dict(base=shape, shape=shape, jets=[(trial, mirror)], centre=centre.tolist(), fit=fit, error=error, seat=how, solid=solid, name=name,
-                tri=npz['positions'][npz['tris']], log=log, yaw=yaw, rise=rise)
+                tri=npz['positions'][npz['tris']], log=log, yaw=yaw, rise=rise, slide=slide)
 
 
 def fit_housing(jet, shape, mesh, stock, work, n):
@@ -698,6 +721,8 @@ def fit_housing(jet, shape, mesh, stock, work, n):
     the seat, then scaled down, then turned about the flame axis; the nozzle stays centred on
     the emit point throughout. The first variant that passes every check is used."""
     s = shape['scale']; ox, oz = shape.get('offset', (0., 0.)); vary = lambda **k: fitted(k.get('scale', s), shape['length'], **dict(shape['over'], **{n: v for n, v in k.items() if n != 'scale'}))
+    if jet.get('relocate'):
+        return relocate(jet, vary(offset=(0., 0.)) if (ox or oz) else shape, mesh, stock, work, n)
     tries = [(shape, 0, None)]
     tries += [(vary(offset=(round(ox + dx * s, 3), round(oz + dz * s, 3))), 0, 'pod slid (%+.2f, %+.2f) m along the seat' % (dx * s, dz * s))
               for step in (.1, .2) for dx, dz in ((step, 0), (-step, 0), (0, step), (0, -step))]
@@ -716,6 +741,38 @@ def fit_housing(jet, shape, mesh, stock, work, n):
     raise AssertionError((jet['part'], 'no housing clears the stock mesh here', failures[0], '%d variants tried' % len(tries), failures[1:]))
 
 
+def relocate(jet, shape, mesh, stock, work, n):
+    """Seat a housing at the nearest spot on the nacelle skin that is flat and solid enough for
+    it: the whole footprint covered, the skin within a few centimetres of the seat plane and
+    nothing over the bore, so the nozzle sits centred on the new emit point right under the
+    skin. Spots are tried nearest first, a slightly uneven one counting as 0.35 m further away
+    and a poor one as 1 m."""
+    s = shape['scale']; found = []; failures = []
+    for dx in np.arange(-8, 9) * .1:
+        for dz in np.arange(-8, 9) * .1:
+            if math.hypot(dx, dz) <= .801:
+                try:
+                    how = seat(jet, shape, 0, mesh, stock, work, n, slide=(float(dx), float(dz)), dry=True)
+                except AssertionError as problem:
+                    if not dx and not dz:
+                        failures.append(('at the stock point', problem.args[0]))
+                    continue
+                flat = 0 if how['cover'] > .999 and how['spread'] <= .05 * s and how['inside'] <= .08 * s else 1 if how['cover'] >= .95 and how['spread'] <= .1 * s and how['inside'] <= .15 * s else 2
+                found.append((flat, math.hypot(dx, dz), float(dx), float(dz), how))
+    for flat, far, dx, dz, how in sorted(found, key=lambda f: f[1] + (0, .35, 1.)[f[0]])[:10]:  # nearest first; a flat seat is worth 0.35 m
+        try:
+            h = seat(jet, shape, 0, mesh, stock, work, n, slide=(dx, dz))
+        except (AssertionError, SystemExit) as problem:
+            failures.append(('%+.1f, %+.1f' % (dx, dz), problem.args[0] if problem.args and not isinstance(problem.args[0], str) else ([line for line in str(problem).splitlines() if 'AssertionError' in line] or [str(problem)[-200:]])[-1])); continue
+        h['base'] = jet['_base']; trial, mirror = h['jets'][0]; jet.update(trial); h['jets'][0] = (jet, mirror)
+        if flat:
+            h['adjusted'] = 'no flat, fully covered spot within 0.8 m: seated on the best there is (%s)' % ('slightly uneven or overhanging' if flat == 1 else 'uneven skin, deep nozzle')
+        jet['reason'] = ('stock point: ' + str(failures[0][1])[:160]) if failures and failures[0][0] == 'at the stock point' else \
+            'stays over the stock point (nothing nearer seats better); moved onto the skin only' if not far else 'stock point does not give a flat, fully covered seat with a clear bore'
+        return h
+    raise AssertionError((jet['part'], 'no spot on this nacelle within 0.8 m seats a housing that clears the stock mesh', failures[:6]))
+
+
 def group(cfg, jets, mesh, pose, work):
     """Housings to build: emitters that seat alike (same shape, same skin under the pod, as it
     is or mirrored, the same clearances) share one solid; the first of each group is the one
@@ -728,6 +785,7 @@ def group(cfg, jets, mesh, pose, work):
             jet['skipped'] = f'sits in modelled geometry: mesh {blocked:.3f} m along the flame, no housing'; continue
         shape = next((s for pattern, s in cfg.get('also', ()) if re.search(pattern, jet['part'], re.I)), cfg['shape'])
         if shape.get('auto'):
+            jet['_base'] = shape
             for h in out:
                 if h['base'] is shape:
                     try:
@@ -825,15 +883,99 @@ def emit_shifts(jets):
     for j in jets:
         if 'stockEmit' in j:
             D, shift = j['_pose']; a = D @ np.array(j['stockEmit']) + shift; b = np.array(j['posed']['emit'])
-            j['emitShift'] = dict(stock=a.tolist(), moved=b.tolist(), delta=(b - a).tolist(), space='Ogre mesh space in the VDF pose (VDF x = -x), metres')
+            j['emitShift'] = dict(stock=a.tolist(), moved=b.tolist(), delta=(b - a).tolist(), flame=j['posed']['flame'], space='Ogre mesh space in the VDF pose (VDF x = -x), metres')
+            if 'stockFlame' in j:
+                j['emitShift']['stockFlame'] = j['stockFlame']
+            if j.get('reason'):
+                j['emitShift']['reason'] = j['reason']
 
 
-def emit_only(unit, cfg, mesh, jets, pose, work, review, revision, render):
+def vdf_parts(jets):
+    """The class 75 flame parts the VDF needs once any emit point has moved: one per emitter,
+    parented to its nacelle (an authored class 75 part suppresses every automatic emitter, so the
+    unmoved ones are recorded too, at their stock points). matrix is the part's local transform
+    in the VDF's own layout (rows right, up, front, then the position; world = local @ parent);
+    the flame runs along front."""
+    if not any('emitShift' in j for j in jets):
+        return None
+    out = []; taken = set(jets[0]['_vdf']['names'])
+    for j in jets:
+        v = j['_vdf']; Rp, tp = v['frame']; Q = np.array(j['posed']['axes']); front = -Q[:, 1]; up = Q[:, 2]
+        Rc = ((np.c_[np.cross(up, front), up, front] * S[:, None]) * S[None, :]).T; local = (np.array(j['posed']['emit']) * S - tp) @ Rp.T
+        name = v['existing']
+        if name is None:
+            n = v['parent']; f = 'F' if n[:5].isupper() else 'f'; name = (n[:5] + f + n[-2:])[:8]; k = 0
+            while name.lower() in taken:  # two nacelles alike in their first five and last two letters
+                name = (n[:5] + f + n[-2:])[:7] + str(k); k += 1
+            taken.add(name.lower())
+        part = dict(name=name, klass=75, parent=v['parent'], position=local.tolist(), orientation=(Rc @ Rp.T).tolist(),
+                    matrix=(Rc @ Rp.T).ravel().tolist() + local.tolist(), existing=v['existing'] is not None, moved='emitShift' in j)
+        if 'emitShift' in j:
+            D, shift = j['_pose']; part['stockPosition'] = (((D @ np.array(j['stockEmit']) + shift) * S - tp) @ Rp.T).tolist()
+        out.append(part)
+    return out
+
+
+def ports(mesh, skeleton, pose):
+    """Glowing ports the model already carries: blobs of lit texels in each submesh's emissive
+    map, located on the mesh in the VDF pose (centre, outward normal, radius, owning part)."""
+    out = []; rng = np.random.default_rng(0)
+    for sub, (name, positions, normals, uvs, tris) in zip(mesh.submesh_list, posed_parts(mesh, pose)):
+        diffuse = texture_path(name); glow = diffuse and Path(str(diffuse).replace('_D.', '_E.').replace('DIFF', 'EMIS'))
+        if not glow or not glow.is_file() or 'glass' in name.lower():
+            continue
+        image = np.asarray(Image.open(glow).convert('RGB'), float); h, w = image.shape[:2]; owner = np.full(len(positions), -1); weight = np.zeros(len(positions))
+        for a in sub.bone_assignments():
+            if a.weight > weight[a.vertex_index]:
+                weight[a.vertex_index] = a.weight; owner[a.vertex_index] = a.bone_index
+        tri = positions[tris]; area = np.linalg.norm(np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0]), axis=1) / 2; pts, nrm, own, col = [], [], [], []
+        for i in range(len(tris)):
+            b = rng.dirichlet((1, 1, 1), int(min(400, max(6, area[i] / .0004)))); uv = (b @ uvs[tris[i]]) % 1
+            texel = image[(uv[:, 1] * h).astype(int).clip(0, h - 1), (uv[:, 0] * w).astype(int).clip(0, w - 1)]; lit = texel.max(1) > 150
+            if lit.any():
+                pts.append((b @ tri[i])[lit]); nrm.append((b @ normals[tris[i]])[lit]); own.append(np.full(lit.sum(), owner[tris[i, 0]])); col.append(texel[lit])
+        if not pts:
+            continue
+        pts, nrm, own, col = map(np.concatenate, (pts, nrm, own, col)); left = np.ones(len(pts), bool)
+        while left.any():
+            seed = np.flatnonzero(left)[0]; member = left & (np.linalg.norm(pts - pts[seed], axis=1) < .3)
+            for _ in range(3):
+                member = left & (np.linalg.norm(pts - pts[member].mean(0), axis=1) < .3); member[seed] = True  # the seed always leaves, so the loop ends
+            if member.sum() >= 15:
+                c = pts[member].mean(0); bone = int(np.bincount(own[member] + 1).argmax()) - 1
+                out.append(dict(centre=c.tolist(), normal=unit_vectors(nrm[member].mean(0)).tolist(), radius=float(np.percentile(np.linalg.norm(pts[member] - c, axis=1), 95)),
+                                part=skeleton.bones[bone].name if bone >= 0 else None, bone=bone, colour=[round(float(v)) for v in col[member].mean(0)]))
+            left &= ~member
+    return out
+
+
+def into_ports(jets, found):
+    """Propose each flame into the largest glowing port its own nacelle carries, along the port's normal."""
+    notes = []
+    for j in jets:
+        mine = sorted((p for p in found if p['bone'] == j.get('skin', j['bone']) and p['normal'][1] < .3), key=lambda p: -p['radius'])  # a lit patch facing up is a marking, not an exhaust
+        if not mine:
+            notes.append(f"{j['part']}: its nacelle carries no glowing port; the flame stays at the stock point, on bare mesh"); continue
+        port = mine[0]; n = np.array(port['normal']); D, shift = j['_pose']; y = -n; up = np.array((0., 0, 1) if abs(n[1]) > .9 else (0., 1, 0))
+        z = unit_vectors(up - (up @ y) * y); Q = np.c_[np.cross(y, z), y, z]; below = math.degrees(math.asin(max(-1., min(1., -n[1]))))
+        j['stockEmit'] = j['emit']; j['stockFlame'] = j['posed']['flame']; j.update(emit=(D.T @ (np.array(port['centre']) - shift)).tolist(), axes=(D.T @ Q).tolist()); place(j)
+        j['reason'] = 'into the largest of the %d glowing ports modelled on this nacelle (radius %.2f m)' % (len(mine), port['radius'])
+        facing = 'aft' if n[2] < -.5 else 'forward' if n[2] > .5 else 'down' if n[1] < -.5 else 'sideways or up'
+        notes.append(f"{j['part']}: {len(mine)} glowing ports on this nacelle ({', '.join('r %.2f' % p['radius'] for p in mine)}), facing {facing}, {below:.0f} degrees below horizontal; "
+                     + 'they are on the engine nacelle, not on a weapon part, so they read as thruster exhausts. '
+                     + ('The proposed flame leaves along the port normal, so it points aft, not down: right for an exhaust, but it is no longer a hover jet under the craft.' if below < 30 else
+                        'The proposed flame leaves along the port normal, down and aft.' if below < 70 else 'The proposed flame leaves straight down.'))
+    return notes
+
+
+def emit_only(unit, cfg, mesh, skeleton, jets, pose, work, review, revision, render):
     """A unit that gets no housing: its emit points (and approved moves) on record and on a sheet."""
+    found = ports(mesh, skeleton, pose) if cfg.get('ports') else []; marks = [dict(at=j['posed']['emit'], colour=(0, .9, 1), radius=.05) for j in jets] if found else []
+    extra = into_ports(jets, found) if found else []; marks += [dict(at=q['centre'], colour=(1, 1, 0), radius=.025) for q in found]
     emit_shifts(jets); keep = ('part', 'bone', 'pivot', 'emit', 'axes', 'source', 'rides', 'emitShift')
-    notes = [f"{unit}: {cfg['note']}"] + notes_for(jets, [], [])
+    notes = [f"{unit}: {cfg['note']}"] + extra + notes_for(jets, [], [])
     (work / 'preview.json').write_text(json.dumps(dict(unit=unit, faction=cfg['faction'], emitters=[{k: j[k] for k in keep if k in j} for j in jets],
-                                                       baseRevision=revision, housings=[], notes=notes), indent=2) + '\n', newline='\n')
+                                                       baseRevision=revision, housings=[], ports=found, vdfParts=vdf_parts(jets), notes=notes), indent=2) + '\n', newline='\n')
     for note in notes:
         print(unit, 'note:', note)
     if not render:
@@ -849,14 +991,17 @@ def emit_only(unit, cfg, mesh, jets, pose, work, review, revision, render):
     points = np.array([j['posed']['emit'] for j in jets]); middle = points.mean(0); flame = unit_vectors(np.array([j['posed']['flame'] for j in jets]).mean(0))
     views = [dict(file='emit-below', eye=list(middle + flame * 5 + (0, -1.5, 0)), target=list(middle), fov=40, marker=True, flame=False, housing=False, markerScale=1.6),
              dict(file='craft', eye=list(middle + flame * 5 + (3, -1.5, 0)), target=list(middle), fov=40, marker=True, flame=True, housing=False, markerScale=1.6)]
-    views += [dict(file=f'close{n}', eye=list(e + flame * 2.2 + (1.2 if e[0] >= 0 else -1.2, -.9, 0)), target=list(e), fov=30, marker=True, flame=True, housing=False)
-              for n, e in enumerate(points)]
-    (work / 'scene.json').write_text(json.dumps(dict(parts=parts, out=str(work), emit=points.tolist(), flameDir=[j['posed']['flame'] for j in jets], views=views,
+    if found:
+        views += [dict(file='under', eye=list(middle + (0, -7, -1.5)), target=list(middle), fov=40, marker=True, flame=True, housing=False, markerScale=1.6),
+                  dict(file='side', eye=list(middle + (8, -.5, -1.)), target=list(middle), fov=40, marker=True, flame=True, housing=False, markerScale=1.6)]
+    views += [dict(file=f'close{n}', eye=list(e + np.array(j['posed']['flame']) * 2.2 + (1.2 if e[0] >= 0 else -1.2, -.9, 0)), target=list(e), fov=30, marker=True, flame=True, housing=False)
+              for n, (e, j) in enumerate(zip(points, jets))]
+    (work / 'scene.json').write_text(json.dumps(dict(parts=parts, out=str(work), emit=points.tolist(), flameDir=[j['posed']['flame'] for j in jets], views=views, marks=marks,
                                                      flame=dict(halfWidth=.2, length=.9), size=[960, 600]), indent=1))
     blender('nacellejet_render.py', work / 'scene.json')
     sheet([Image.open(work / (v['file'] + '.png')) for v in views],
-          ['Stock mesh: magenta = flame emit points (after approved moves)', 'Flames along each part\'s front axis']
-          + ['%s at (%.3f, %.3f, %.3f)' % (j['part'], *j['posed']['emit']) for j in jets], review / f'{unit}-emit.jpg', 2, notes)
+          ['Magenta = emit points' + ('; cyan = stock; yellow = ports' if found else ''), 'Flames along each part\'s front axis']
+          + (['From below', 'From the side'] if found else []) + ['%s at (%.3f, %.3f, %.3f)' % (j['part'], *j['posed']['emit']) for j in jets], review / f'{unit}-emit.jpg', 2, notes)
 
 
 def build(unit, render, shipped=False):
@@ -868,7 +1013,7 @@ def build(unit, render, shipped=False):
     mesh, skeleton, revision = stage_base(unit, work)
     jets, pose = emitters(unit, skeleton, mesh, cfg.get('shift', ()))
     if cfg.get('housing') is False:
-        return emit_only(unit, cfg, mesh, jets, pose, work, review, revision, render)
+        return emit_only(unit, cfg, mesh, skeleton, jets, pose, work, review, revision, render)
     housings = group(cfg, jets, mesh, pose, work)
     if not housings[0]['shape'].get('auto'):
         paint, source = paint_colour(mesh, housings[0]['jets'][0][0]['bone'])
@@ -915,6 +1060,9 @@ def build(unit, render, shipped=False):
                    paintSource=source.relative_to(ROOT).as_posix() if source.is_relative_to(ROOT) else source.name,
                    housing=counts[0], shape=first['shape'], stripe=cfg.get('stripe') or first['shape']['stripe'])
     notes = notes_for(jets, housings, solids)
+    parts = vdf_parts(jets)
+    if parts:
+        receipt['vdfParts'] = parts
     if first['shape'].get('auto'):  # fitted shapes: how each solid seats, and who carries it
         receipt.update(flameDirection='-y of each emitter frame', notes=notes, housings=[
             dict(counts[n], parts=[j['part'] for j, _ in h['jets']], mirrored=[m for _, m in h['jets']], underside=h['fit'], maxError=h['error'],

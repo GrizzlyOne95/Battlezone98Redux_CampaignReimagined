@@ -96,9 +96,22 @@ no housing; `housing=False` records a unit's emit points and renders an emit she
 (bvrdev). Class 76 is smoke only.
 
 `shift=((part-name regex, move),)` builds at an approved new emit point: metres along the
-flame axis (positive = up, against the flame), an (x, y, z) build-frame vector, or `'skin'`
-(up or down to the seat skin). The VDF is not changed here: each moved emitter carries
-`emitShift` (stock point, moved point, delta) in `preview.json`.
+flame axis (positive = up, against the flame), an (x, y, z) build-frame vector, `'skin'`
+(up or down to the seat skin) or `'relocate'`: the build moves the flame off the bbox-rule
+point to the nearest flat, solid spot on the same nacelle skin (within 0.8 m, mirrored
+left/right when the twin seats alike) and builds the housing there with the nozzle on the
+new point. Use it where the stock point lands on a joint between parts or forces a stalk,
+overhang or offset nozzle. `ports=True` with `housing=False` (avartl, bvartl) instead finds
+the glowing exhaust ports a nacelle already models (emissive map) and proposes each flame
+into the largest one, along its normal.
+
+The VDF is not changed here. Each moved emitter carries `emitShift` (stock point, moved
+point, delta, flame direction, reason) in `preview.json`, and the unit carries `vdfParts`:
+one class 75 part per emitter, parented to its nacelle, with its local `matrix` in the VDF
+layout (rows right, up, front, then position; the flame runs along front). A class 75 part
+draws the flame from its own position along its front axis, and one authored class 75 part
+suppresses every automatic under-nacelle emitter (BZ 1.5 decompile `all_decompiled.c`
+193458-193491, 193771-193821), so unmoved nacelles are recorded too, at their stock points.
 
 The seat is a plane fitted under the pod footprint and raised to the highest skin, so the
 roof is buried everywhere; the pod deepens to carry the nozzle at the emit point. Asserts:
@@ -111,8 +124,10 @@ below 0.8), then turned about the flame axis, with the nozzle kept on the emit p
 variant that passes is used and recorded as `adjusted`. A unit with no passing variant fails
 with the reasons, and leaves no preview. Read the `notes` in `preview.json` before shipping.
 
-Pod paint is the median texel of the seat skin under and around the footprint. Ring and bore
-glow follow the faction flame colour (`FACTIONS`): NSDF blue, Black Dogs blood red, CCA burnt
+Pod paint is the median texel of the downward-facing seat skin under and around the footprint,
+after dropping saturated trim and decals and near-black gaps, taken from the dominant colour only.
+Ring, bore and throat glow (fitted shapes; avfigh keeps its shipped maps) follow the faction
+flame colour (`FACTIONS`): NSDF blue, Black Dogs blood red, CCA burnt
 orange, CRA green.
 
 ## Review sheets (avfigh)
