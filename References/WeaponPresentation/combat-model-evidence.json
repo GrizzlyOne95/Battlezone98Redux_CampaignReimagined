@@ -73,11 +73,11 @@
   },
   "avtank": {
     "mesh_source": "Assets/ModelFixes/avtank.mesh",
-    "skeleton_source": null,
+    "skeleton_source": "Assets/ModelFixes/avtank.skeleton",
     "native_source": "Assets/ModelFixes/avtank.vdf",
     "mesh_sha256": "97136c7f9a1fbd6c75d94b32e90c76fd568ef9e96f58fcf82a4bfe070744f11b",
-    "skeleton_sha256": "00ea42ea2f580a3c982180c93204866d1ccf443f1eba6a62754f70c6069d3acd",
-    "native_sha256": "6b34c1704fa3aa464a9d473a66fbde0df9e66c87dcc58b0c187f065059a050c5",
+    "skeleton_sha256": "ef07c15aa731862c049fab32fe23cf8acb4f9a32c71ba4a3efe0084e90fc2106",
+    "native_sha256": "07664f2c02345e3eafa433d0e4b17035b1bded5e789256babf5e9898d591aee4",
     "nodes": {
       "AGR11BGA": {
         "weighted_vertices": 113,
@@ -89,11 +89,11 @@
   },
   "avturr": {
     "mesh_source": "Assets/ModelFixes/avturr.mesh",
-    "skeleton_source": null,
-    "native_source": null,
+    "skeleton_source": "Assets/ModelFixes/avturr.skeleton",
+    "native_source": "Assets/ModelFixes/avturr.vdf",
     "mesh_sha256": "8a10d78154e8afc2a53cb77980efd123e7fbc993275f408286acaafd1fea604b",
-    "skeleton_sha256": "9111593060527d24c33c812e7395ef44dc2b4356dfbf474689bc88a5598af921",
-    "native_sha256": "b4f8dcfdbc463c831a1745355c84c1bb61b59e1ee38691c5946c7303c1d132c5",
+    "skeleton_sha256": "9661a7fd935c9bfab94358b085466e7c5b65b976c84e234396610d49717d95e7",
+    "native_sha256": "3d4b0b0c5d93f7ae30218685a161f0b4d7d9574d4c439665ef7a4535839edebd",
     "nodes": {
       "aDE11blc": {
         "weighted_vertices": 116,
@@ -165,11 +165,11 @@
   },
   "bvtank": {
     "mesh_source": "Assets/ModelFixes/bvtank.mesh",
-    "skeleton_source": null,
+    "skeleton_source": "Assets/ModelFixes/bvtank.skeleton",
     "native_source": "Assets/ModelFixes/bvtank.vdf",
     "mesh_sha256": "4aca0cf093b4e985ca5ac6d11f9a8784e8c746b9158fff8412cc47ee74040840",
-    "skeleton_sha256": "4043ddea5148c1171f5b9aea8cf9c6d3786515cd92f102e3b3e2f891f3f7241e",
-    "native_sha256": "61b1d3c96107bbda41592d31f4d95fce4c93eb6638a7ce8787b37f11b904ae11",
+    "skeleton_sha256": "59f7b9bc8237b2b588ca481259865b626c1ade7aa199b93befcb23ae4a04f83d",
+    "native_sha256": "ae5042eefb10a275c8f4239eb315421c9b594dceb4b76ed71ba1565f65751948",
     "nodes": {
       "bGR11BGA": {
         "weighted_vertices": 113,
@@ -181,11 +181,11 @@
   },
   "bvturr": {
     "mesh_source": "Assets/ModelFixes/bvturr.mesh",
-    "skeleton_source": null,
-    "native_source": null,
+    "skeleton_source": "Assets/ModelFixes/bvturr.skeleton",
+    "native_source": "Assets/ModelFixes/bvturr.vdf",
     "mesh_sha256": "737045570ad53e1f3ca88a4f6081d4d936fe84b9e91a4e407900cf24c5d1a8c9",
-    "skeleton_sha256": "d9d15305f5678eaf80d4b8fa4c3ef6d298d31160d1be399068f1f0908e6ac745",
-    "native_sha256": "b23b9cbc46ea291187ebcc049b4017644f7ec4257633850f6bdfe7e83c9ebd6b",
+    "skeleton_sha256": "d51f725c325d6fbb60b2b9c3dbf741fa8de8e378a60d4293459b6ab97979fb02",
+    "native_sha256": "e9fed9b1292a9cbd857069f3eb855c577311b8ea0990215a6d359a7db4723066",
     "nodes": {
       "bDE11blc": {
         "weighted_vertices": 116,

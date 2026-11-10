@@ -2,7 +2,7 @@
 
 Weapon-rig update, 2026-11-04. Generated from CR source, reviewed model policy and fitted flash data. See [the model-edit report](WEAPON_RIGS.md) for the requested 27-model pass and exported previews.
 
-**133 armed ODFs / 50 models / 268 equipped slots.** Authored recoil: 198 slots; fitted flash offsets: 189 slots; ballistic casing selections: 115 slots.
+**133 armed ODFs / 50 models / 297 equipped slots.** Authored recoil: 215 slots; fitted flash offsets: 218 slots; ballistic casing selections: 144 slots.
 
 Scope: CR vehicle/building definitions, including mission variants and utility carriers. People retain per-weapon effects; armories supply weapons. This source-only count excludes stock-only aliases from the earlier 139-definition/52-model audit.
 
@@ -131,10 +131,18 @@ Scope: CR vehicle/building definitions, including mission variants and utility c
 | `avtest` | 2: `gdummy` | `animation:cr_fire_2` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
 | `avtest` | 3: `gdummy` | `animation:cr_fire_1` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
 | `avtest` | 4: `gdummy` | `animation:cr_fire_2` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |
-| `avtump` | 1: `gtminig` | `aDE11blc` | -0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
-| `avtump` | 2: `gtminig` | `aDE11blf` | 0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
-| `avtur2b` | 1: `gtminig` | `aDE11blc` | -0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
-| `avturr` | 1: `gtminig` | `aDE11blc` | -0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avtump` | 1: `gtmgav2` | `aDE11blc` | -0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avtump` | 2: `gtmgav2` | `aDE11blf` | 0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avtump` | 3: `gtmgav2` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avtump` | 4: `gtmgav2` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avtur2b` | 1: `gtmgav4` | `aDE11blc` | -0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avtur2b` | 2: `gtmgav4` | `aDE11blf` | 0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avtur2b` | 3: `gtmgav4` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avtur2b` | 4: `gtmgav4` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avturr` | 1: `gtmgav4` | `aDE11blc` | -0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avturr` | 2: `gtmgav4` | `aDE11blf` | 0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avturr` | 3: `gtmgav4` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `avturr` | 4: `gtmgav4` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
 | `avwalk` | 1: `gatstaba` | `animation:cr_fire_1` | 0.12 0.07 0.84 | medium | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `avwalk` | 2: `gatstaba` | `animation:cr_fire_2` | -0.10 0.12 0.81 | medium | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `avwalk` | 3: `gpopgun` | `` | pending / omitted | none | native firing producer pending; parent age11ty1 is not a barrel node and the hardpoint is 0.49 m behind its front geometry |
@@ -183,10 +191,18 @@ Scope: CR vehicle/building definitions, including mission variants and utility c
 | `bvtanka` | 1: `gspstab` | `bGR11BGA` | 0.04 0.00 0.00 | large | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
 | `bvtanka` | 3: `gpopgun` | `` | pending / omitted | none | native firing producer pending; parent bGR11BDA is not a barrel node and has no geometry around the hardpoint |
 | `bvtanka` | 4: `gproxmin` | `` | pending / omitted | none | native firing producer pending; mine deployment |
-| `bvtump` | 1: `gatstab` | `bDE11blc` | -0.04 -0.04 0.00 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
-| `bvtump` | 2: `gatstab` | `bDE11blf` | 0.04 -0.04 0.00 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
-| `bvtur8` | 1: `gminigun` | `bDE11blc` | -0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
-| `bvturr` | 1: `gtminig` | `bDE11blc` | -0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvtump` | 1: `gatsbv2` | `bDE11blc` | -0.04 -0.04 0.00 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvtump` | 2: `gatsbv2` | `bDE11blf` | 0.04 -0.04 0.00 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvtump` | 3: `gatsbv2` | `` | 0.00 0.00 0.00 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvtump` | 4: `gatsbv2` | `` | 0.00 0.00 0.00 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvtur8` | 1: `gmgnbv4` | `bDE11blc` | -0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvtur8` | 2: `gmgnbv4` | `bDE11blf` | 0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvtur8` | 3: `gmgnbv4` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvtur8` | 4: `gmgnbv4` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvturr` | 1: `gtmgbv4` | `bDE11blc` | -0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvturr` | 2: `gtmgbv4` | `bDE11blf` | 0.04 -0.04 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvturr` | 3: `gtmgbv4` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
+| `bvturr` | 4: `gtmgbv4` | `` | 0.00 0.00 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
 | `bvwalk` | 1: `gspstab` | `animation:cr_fire_1` | 0.12 0.07 0.84 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `bvwalk` | 2: `gspstab` | `animation:cr_fire_2` | -0.10 0.12 0.81 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `cblasr` | 1: `gspstaba` | `animation:cr_fire_1` | -0.00 0.00 0.00 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
@@ -268,9 +284,14 @@ Scope: CR vehicle/building definitions, including mission variants and utility c
 | `cvturra` | 2: `gtminis` | `animation:cr_fire_2` | -0.00 0.01 -0.00 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `cvturra` | 3: `gtminis` | `animation:cr_fire_3` | 0.00 0.01 -0.00 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `cvturra` | 4: `gsandbag` | `animation:cr_fire_4` | pending / omitted | none | accepted-shot path; live validation pending; anchoring device |
-| `cvturrb` | 1: `gspstabb` | `animation:cr_fire_1` | -0.00 0.00 -0.00 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
-| `cvturrb` | 3: `gspstabb` | `animation:cr_fire_3` | 0.00 0.01 -0.00 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
-| `cvturrc` | 1: `gspstabc` | `animation:cr_fire_1` | -0.00 0.00 -0.00 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturrb` | 1: `gspbcv2` | `animation:cr_fire_1` | -0.00 0.00 -0.00 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturrb` | 2: `gspbcv2` | `animation:cr_fire_2` | -0.00 0.01 -0.00 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturrb` | 3: `gspbcv2` | `animation:cr_fire_3` | 0.00 0.01 -0.00 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturrb` | 4: `gspbcv2` | `animation:cr_fire_4` | 0.00 0.00 -0.00 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturrc` | 1: `gspccv4` | `animation:cr_fire_1` | -0.00 0.00 -0.00 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturrc` | 2: `gspccv4` | `animation:cr_fire_2` | -0.00 0.01 -0.00 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturrc` | 3: `gspccv4` | `animation:cr_fire_3` | 0.00 0.01 -0.00 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `cvturrc` | 4: `gspccv4` | `animation:cr_fire_4` | 0.00 0.00 -0.00 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `cvwalk` | 1: `gblastg` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent cvw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry |
 | `cvwalk` | 2: `gblastg` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent cvw11hed is not a barrel node and the hardpoint is 0.97 m behind its front geometry |
 | `cvwalk` | 3: `gpopgun` | `` | pending / omitted | none | native firing producer pending; parent cvw11sup is not a barrel node and has no geometry around the hardpoint |
@@ -339,10 +360,18 @@ Scope: CR vehicle/building definitions, including mission variants and utility c
 | `svtnk7` | 1: `ga7stab` | `animation:cr_fire_1` | 0.04 -0.00 -0.00 | medium | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `svtump` | 1: `gtminis` | `animation:cr_fire_1` | -0.00 -0.00 0.07 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `svtump` | 2: `gtminis` | `animation:cr_fire_2` | -0.00 -0.00 0.07 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
-| `svturr` | 1: `gtminis` | `animation:cr_fire_1` | -0.00 -0.00 0.07 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
-| `svturra` | 1: `gspstab` | `animation:cr_fire_1` | -0.00 -0.00 0.07 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
-| `svturrb` | 1: `gspstab` | `animation:cr_fire_1` | -0.00 -0.00 0.07 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
-| `svturrc` | 1: `gminigna` | `animation:cr_fire_1` | -0.00 -0.00 0.07 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturr` | 1: `gtmssv3` | `animation:cr_fire_1` | -0.00 -0.00 0.07 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturr` | 2: `gtmssv3` | `animation:cr_fire_2` | -0.00 -0.00 0.07 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturr` | 3: `gtmssv3` | `animation:cr_fire_3` | -0.00 0.01 0.07 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturra` | 1: `gspssv3` | `animation:cr_fire_1` | -0.00 -0.00 0.07 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturra` | 2: `gspssv3` | `animation:cr_fire_2` | -0.00 -0.00 0.07 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturra` | 3: `gspssv3` | `animation:cr_fire_3` | -0.00 0.01 0.07 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturrb` | 1: `gspssv3` | `animation:cr_fire_1` | -0.00 -0.00 0.07 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturrb` | 2: `gspssv3` | `animation:cr_fire_2` | -0.00 -0.00 0.07 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturrb` | 3: `gspssv3` | `animation:cr_fire_3` | -0.00 0.01 0.07 | large | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturrc` | 1: `gmgasv3` | `animation:cr_fire_1` | -0.00 -0.00 0.07 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturrc` | 2: `gmgasv3` | `animation:cr_fire_2` | -0.00 -0.00 0.07 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
+| `svturrc` | 3: `gmgasv3` | `animation:cr_fire_3` | -0.00 0.01 0.07 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
 | `svwalk` | 1: `gblast` | `animation:cr_fire_1` | 0.21 -0.65 0.47 | none | accepted-shot path; live validation pending |
 | `svwalk` | 2: `gblast` | `animation:cr_fire_2` | -0.10 -0.73 0.66 | none | accepted-shot path; live validation pending |
 | `svwalk` | 3: `gpopgun` | `` | pending / omitted | none | native firing producer pending; parent svw11sup is not a barrel node and has no geometry around the hardpoint |

@@ -2854,6 +2854,48 @@
             1.2900350093841553
           ],
           "cockpit": true
+        },
+        "GC3": {
+          "animation": "cr_fire_3",
+          "node": "",
+          "spin": false,
+          "distance": 0.06,
+          "return": 2.0,
+          "kick_without_weapon": 1.0,
+          "flash_offset": [
+            -0.0022,
+            0.0062,
+            0.075
+          ],
+          "casing_offset": [
+            0.4172,
+            0.1728,
+            -0.1878
+          ],
+          "casing_direction": [
+            0.9345,
+            0.3271,
+            -0.1402
+          ],
+          "casing_outward_side": 1,
+          "casing_clearance": 0.318,
+          "casing_jitter_rays_clear": true,
+          "port_world": [
+            1.4097719626059448,
+            4.136820740973017,
+            1.0272003853853002
+          ],
+          "direction_world": [
+            0.9345386270319955,
+            0.32708851946119843,
+            -0.14018079405479933
+          ],
+          "tip_world": [
+            0.9903975129127502,
+            3.9702064990997314,
+            1.2900350093841553
+          ],
+          "cockpit": true
         }
       }
     },

@@ -83,8 +83,10 @@ class WeaponContentTests(unittest.TestCase):
             self.assertEqual(text.count(builder.CRAFT_BEGIN),1 if expected else 0)
             written+=len(expected)
         self.assertGreater(written,0)
-        # The live-fitted avtank barrel tip must be reproduced from the mesh.
-        self.assertEqual(inventory.parse((ROOT/'ODF/avtank.odf').read_text())['craftclass']['flashoffset1'],'0.20 0.10 2.41')
+        # The live-fitted avtank barrel tip must be reproduced from the mesh. GC1 sits at the
+        # muzzle face since the hardpoint pass (References/Hardpoints/avtank.json), so the tip
+        # is 0.04 m across from it (was 0.20 0.10 2.41 from the old turret-root hardpoint).
+        self.assertEqual(inventory.parse((ROOT/'ODF/avtank.odf').read_text())['craftclass']['flashoffset1'],'0.04 0.00 0.00')
         # Weapons keep their natural zero offset; a craft key never lands on a non-flash slot.
         for craft in data:
             game=inventory.parse((ROOT/'ODF'/(craft+'.odf')).read_text())

@@ -4,7 +4,7 @@ scrapCost = 6
 scrapValue = 4
 buildTime = 7.0
 maxHealth = 2750
-maxAmmo = 2000
+maxAmmo = 3000
 unitName = "Turret"
 aiName = "TurretTankFriend"
 aiName2 = "TurretTankEnemy"
@@ -13,9 +13,11 @@ heatSignature = 0.1
 imageSignature = 2.0
 radarSignature = 0.1
 weaponHard1 = "GC1"
-weaponName1 = "gtminis"
+weaponName1 = "gtmssv3"
 weaponHard2 = "GC2"
-weaponName2 = ""
+weaponName2 = "gtmssv3"
+weaponHard3 = "GC3"
+weaponName3 = "gtmssv3"
 
 [CraftClass]
 // CR CRAFT FLASH OFFSET BEGIN
@@ -23,6 +25,8 @@ weaponName2 = ""
 // a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
 // Regenerate: Tools/Build-WeaponFlashes.py --measure
 flashOffset1 = "-0.00 -0.00 0.07"
+flashOffset2 = "-0.00 -0.00 0.07"
+flashOffset3 = "-0.00 0.01 0.07"
 // CR CRAFT FLASH OFFSET END
 // CR CRAFT RECOIL BEGIN
 // Reviewed independent gun pieces; preserve aiming and deployment parents.
@@ -33,6 +37,18 @@ recoilCockpit1 = true
 casingOffset1 = "1.1538 0.4236 -0.2985"
 casingDirection1 = "0.9345 0.3271 -0.1402"
 recoilKick1 = 0.25
+recoilAnimation2 = "cr_fire_2"
+recoilPlaybackRate2 = 1.0
+recoilCockpit2 = true
+casingOffset2 = "0.6027 0.2307 -0.2158"
+casingDirection2 = "0.9345 0.3271 -0.1402"
+recoilKick2 = 0.25
+recoilAnimation3 = "cr_fire_3"
+recoilPlaybackRate3 = 1.0
+recoilCockpit3 = true
+casingOffset3 = "0.4172 0.1728 -0.1878"
+casingDirection3 = "0.9345 0.3271 -0.1402"
+recoilKick3 = 0.25
 // CR CRAFT RECOIL END
 rangeScan = 200.0
 periodScan = 0.0

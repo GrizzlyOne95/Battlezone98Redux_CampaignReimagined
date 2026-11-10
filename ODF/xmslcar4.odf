@@ -1,0 +1,51 @@
+// CR turret barrel variant: xmslcar with splash damage x1/4
+// Made by the hardpoint pass; re-derive it if the base ODF changes.
+[ExplosionClass]
+classLabel = "explosion"
+
+//frameName = "rpuff.0"
+//frameCount = 16
+//frameDelay = 0.05
+//explRadius = 2.0
+explSound = "xsv2.wav"
+damageRadius = 5.0
+damageBallistic = 0
+damageConcussion = 12.5
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 7
+
+particleClass1 = "xmslbld.core"
+particleCount1 = 1
+particleVeloc1 = "0.0 0.0 0.0"
+
+particleClass2 = "xmslbld.spark"
+particleCount2 = 10
+particleVeloc2 = "5.0 10.0 5.0"
+particleBias2 = "0.0 5.0 0.0"
+
+particleClass3 = "xmslbld.chunk"
+particleCount3 = 6
+particleVeloc3 = "5.0 5.0 5.0"
+particleBias3 = "0.0 5.0 0.0"
+
+particleClass4 = "xmslbld.flame"
+particleCount4 = 1
+particleVeloc4 = "0.5 5.0 0.5"
+particleBias4 = "0.0 2.0 0.0"
+
+particleClass5 = "xmslbld.smoke"
+particleCount5 = 5
+particleVeloc5 = "5.0 3.0 3.0"
+particleBias5 = "2.0 0.0 0.0"
+
+particleClass6 = "xmslbld.light"
+particleCount6 = 1
+particleVeloc6 = "0.0 1.0 0.0"
+particleBias6 = "0.0 1.0 0.0"
+
+particleClass7 = "xmslgnd.sphere"
+particleCount7 = 1
+particleVeloc7 = "0.0 0.0 0.0"
+

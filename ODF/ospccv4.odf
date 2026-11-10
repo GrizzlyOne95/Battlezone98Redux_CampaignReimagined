@@ -1,0 +1,29 @@
+// CR turret barrel variant: rocket3c with damage x1/4, ammoCost 12->3
+// Made by the hardpoint pass; re-derive it if the base ODF changes.
+[OrdnanceClass]
+classLabel = "rocket"
+
+shotGeometry = "gspst00.geo"
+shotSound = "Ordin_b.wav"
+
+xplGround = "xmslgnd4"
+xplVehicle = "xmslcar4"
+xplBuilding = "xmslbld4"
+
+renderName = "rocket3b.Light"
+
+ammoCost = 3
+lifeSpan = 1.5
+shotSpeed = 120.0
+damageBallistic = 22.5
+damageConcussion = 10
+damageFlame = 0
+damageImpact = 0
+
+[RocketClass]
+flameLength = 0.3
+smokeRadius = 0.5
+smokeDelay = 0.015
+smokePause = 0.005
+smokeTexture = "gpuff.0"
+smokeFrames = 16

@@ -12535,6 +12535,20 @@
             "parent": "STU11BGCB"
           }
         ]
+      },
+      {
+        "hardpoints": [
+          "GC3"
+        ],
+        "triangles": 446,
+        "cap_triangles": 42,
+        "cockpit": false,
+        "helpers": [
+          {
+            "bone": "crgun_3_5",
+            "parent": "STU11BGCA"
+          }
+        ]
       }
     ],
     "cockpit": [
@@ -12550,6 +12564,15 @@
       {
         "hardpoints": [
           "GC2"
+        ],
+        "triangles": 0,
+        "cap_triangles": 0,
+        "cockpit": true,
+        "helpers": []
+      },
+      {
+        "hardpoints": [
+          "GC3"
         ],
         "triangles": 0,
         "cap_triangles": 0,
@@ -12909,13 +12932,55 @@
           1.2900350093841553
         ],
         "cockpit": true
+      },
+      "GC3": {
+        "animation": "cr_fire_3",
+        "node": "",
+        "spin": false,
+        "distance": 0.06,
+        "return": 2.0,
+        "kick_without_weapon": 1.0,
+        "flash_offset": [
+          -0.0022,
+          0.0062,
+          0.075
+        ],
+        "casing_offset": [
+          0.4172,
+          0.1728,
+          -0.1878
+        ],
+        "casing_direction": [
+          0.9345,
+          0.3271,
+          -0.1402
+        ],
+        "casing_outward_side": 1,
+        "casing_clearance": 0.318,
+        "casing_jitter_rays_clear": true,
+        "port_world": [
+          1.4097719626059448,
+          4.136820740973017,
+          1.0272003853853002
+        ],
+        "direction_world": [
+          0.9345386270319955,
+          0.32708851946119843,
+          -0.14018079405479933
+        ],
+        "tip_world": [
+          0.9903975129127502,
+          3.9702064990997314,
+          1.2900350093841553
+        ],
+        "cockpit": true
       }
     },
     "outputs": {
-      "Assets/Models/svturr_recoil.skeleton": "76ba6ec9c6810ead22910def34f0a7db8804fefbd8dcb3fd42aa4904233f22e0",
-      "Assets/ModelFixes/svturr.mesh": "51aae1a91ffe3883feb9fca22d443a20dab808b6be9a01c95accdeec7aca9cd6",
+      "Assets/Models/svturr_recoil.skeleton": "6f8ea4aa119e4945172e8a97080e97513d60eaaeb0aff7c60ef4d2450f905e80",
+      "Assets/ModelFixes/svturr.mesh": "15258a6609e99b33793e971ef360f3f1623c30ba73efbc7d76308b6a57477407",
       "Assets/ModelFixes/svturr_c.mesh": "0196dcfff6b6cef3b07c58a4b0c61d2856ca62cd7c9b953869bb943dfcc42500",
-      "Assets/Models/svturr_cockpit_recoil.skeleton": "532bbf637a6c06d087935a3409ca7c40e27e6690c989d88f1dc4af1f3a099afb"
+      "Assets/Models/svturr_cockpit_recoil.skeleton": "ae3b6ac5f153f3539564e461bbbb459fd8c4ce90ada10e0420251922a468d924"
     },
     "hardpoints": {
       "STU11GC3": {
