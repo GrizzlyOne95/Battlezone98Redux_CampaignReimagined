@@ -46,8 +46,8 @@ Edits:
                  (recorded by Tools/Build-NacelleJets.py) or `nacelles` gets those class 75
                  flame emitters, each under its nacelle with the recorded local matrix, and the
                  listed parts made class 67. One class 75 part suppresses every automatic
-                 under-nacelle flame (BZ 1.5 decompile all_decompiled.c 193458-193491,
-                 193771-193821; UNVERIFIED in the Redux exe), so every nacelle is recorded. A
+                 under-nacelle flame (BZ 1.5 decompile all_decompiled.c 193462-193491;
+                 throttle scaling needs a nacelle parent, 193771-193776; UNVERIFIED in the Redux exe), so every nacelle is recorded. A
                  file with flame parts is written whole by the toolkit, not ANIM-spliced.
 
   python Tools/Build-UnitAnimSlots.py --stock-dir <dir with stock .vdf> [--game <Redux>] [--check]
@@ -615,6 +615,8 @@ def build(stock_dir, name, game=DEFAULT_GAME):
         return out.getvalue()
     flames = flame_receipt(os.path.splitext(name)[0])
     if name not in BUILDS:
+        if flames is None:
+            raise SystemExit(f"{name}: no BUILDS entry and no NacelleJets flame receipt")
         # Flame parts only: no ANIM edit, so no Model (it would add an empty ANIM chunk).
         bwd = SER.VDFSerializer(io.BytesIO(open(os.path.join(stock_dir, name), "rb").read())).read()
         apply_flames(bwd, flames, name)

@@ -86,7 +86,7 @@ def unit(faction, scale, length=1., also=(), shift=(), housing=True, note=None, 
     the build, mirrored left/right). A moved flame needs a class 75 part parented to the nacelle
     (it draws from its own position along its front axis, and one authored class 75 part
     suppresses every automatic under-nacelle emitter: BZ 1.5 decompile all_decompiled.c
-    193458-193491, 193771-193821), so the build records one for every nacelle as vdfParts.
+    193462-193491; throttle scaling needs a nacelle parent, 193771-193776), so the build records one for every nacelle as vdfParts.
     housing=False: record the emit points and the sheet only. ports=True (with housing=False): the
     nacelles already model glowing exhaust ports; find them in the emissive map and propose
     moving each flame into the largest port its own nacelle carries, along the port's normal."""
@@ -177,6 +177,8 @@ def base_vdf(unit):
     source revision (its animation fixes), else the stock one. Never the shipped VDF, which
     already carries the class 75 parts recorded here (Tools/Build-UnitAnimSlots.py adds them)."""
     revision = json.loads((ROOT / 'References/WeaponRigs/models.json').read_text())['source_revision']
+    # A missing revision (shallow clone, bad pin) must fail, not fall back to stock emit points.
+    subprocess.run(['git', 'rev-parse', '--verify', '--quiet', revision + '^{commit}'], cwd=ROOT, capture_output=True, check=True)
     proc = subprocess.run(['git', 'show', '--no-textconv', f'{revision}:Assets/ModelFixes/{unit}.vdf'], cwd=ROOT, capture_output=True)
     if proc.returncode == 0:
         return proc.stdout

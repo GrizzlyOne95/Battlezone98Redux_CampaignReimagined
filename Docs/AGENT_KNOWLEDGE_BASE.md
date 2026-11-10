@@ -1771,8 +1771,12 @@ to the ordinary GOG development mod.
   stock VDF. Do not write VDFs anywhere else. `Tools/Test-UnitAnimSlots.py` checks every
   recorded part and fails a file whose class 75 parts leave a class 67 nacelle unflamed.
 - One class 75 part in a VDF turns off every engine-made class 67 emitter (BZ 1.5 decompile
-  `all_decompiled.c` 193771-193821; auto emitters 193458-193491). A class 75 part flames
-  along its own front axis (255588-255605). So moving one flame means recording all of them.
+  `all_decompiled.c` 193462-193473: class 0x4b parts are counted and auto emitters are made
+  only when the count is 0; creation 193473-193491). A class 75 part flames along its own
+  front axis (255588-255605). So moving one flame means recording all of them.
+- A class 75 flame scales with throttle only when its parent is a class 67 nacelle; any other
+  parent gets a constant 0.2 or 0, depending on a flag (193771-193776). So every flame part
+  must sit under a nacelle.
   The Redux exe is not decompile-checked (UNVERIFIED there).
 - svtank pod prototype: wing pods `scz11wgl/r` are class 67 with `SCZ11FLL/R` flames (front
   -Z); ODF nacelle pitch 0.10 run / 0.12 jump. Feel is UNVERIFIED in game. A deliberate ODF

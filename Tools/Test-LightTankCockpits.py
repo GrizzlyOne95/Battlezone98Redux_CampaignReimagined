@@ -25,7 +25,7 @@ def housing(base):
 
 def committed_sha(revision,path):
     import subprocess
-    return hashlib.sha256(subprocess.run(['git','show',revision+':'+path],cwd=ROOT,capture_output=True,check=True).stdout).hexdigest()
+    return hashlib.sha256(subprocess.run(['git','show','--no-textconv',revision+':'+path],cwd=ROOT,capture_output=True,check=True).stdout).hexdigest()
 
 def shell_triangles(mesh,handle):
     result=[]

@@ -122,7 +122,7 @@ one class 75 part per emitter, parented to its nacelle, with its local `matrix` 
 layout (rows right, up, front, then position; the flame runs along front). A class 75 part
 draws the flame from its own position along its front axis, and one authored class 75 part
 suppresses every automatic under-nacelle emitter (BZ 1.5 decompile `all_decompiled.c`
-193458-193491, 193771-193821), so unmoved nacelles are recorded too, at their stock points.
+193462-193491; throttle scaling needs a nacelle parent, 193771-193776), so unmoved nacelles are recorded too, at their stock points.
 The emit points are always read from the VDF at `source_revision` (or the stock VDF), never
 from the shipped VDF that already carries these parts, so re-runs give the same answer.
 
