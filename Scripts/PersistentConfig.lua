@@ -5256,18 +5256,6 @@ function PersistentConfig._SettingsActions.AdjustRadarSizeScale(delta)
     return true
 end
 
-function PersistentConfig._SettingsActions.SetDynamicFactionFlameColorsEnabled(enabled)
-    local value = not not enabled
-    if PersistentConfig.Settings.DynamicFactionFlameColors == value then
-        return false
-    end
-
-    PersistentConfig.Settings.DynamicFactionFlameColors = value
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyFactionFlames = true })
-    ShowSettingsFeedback("Faction Flames: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
-    return true
-end
-
 function PersistentConfig._SettingsActions.CycleTeamColor(delta)
     local nextIndex = CycleIndex(
         PersistentConfig.Settings.TeamColorPreset,

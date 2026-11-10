@@ -971,7 +971,7 @@ Each bullet: the pitfall, the one-line why, and where to read more.
   alpha->RGB ramp, kept as `FACTION_FLAMES` knots in the tool. Change a faction colour there, not in the PNG.
   EXU-priority trap: an `exu.SetTeamEngineFlameColor` team colour outranks OpenShim's per-craft routing, so
   `PersistentConfig`'s legacy `DynamicFactionFlameColors` layer stays off (saved `true` values are ignored and
-  team colours cleared on apply); confirm with `OPENSHIM_TRACE_JET_FLAMES=1` that route lines say `exuColor=default`.
+  team colours cleared on apply); confirm with `openshim.ini` `TraceJetFlames = 1` that route lines say `exuColor=0` (0 = no EXU colour).
 
 ### 8.5 Live testing
 
