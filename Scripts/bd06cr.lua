@@ -534,11 +534,10 @@ function Update(dt)
 
     if not M.portalours and M.recycler ~= nil then
         -- Count ALL bvapc objects, as the native cfg comparison does. Do not
-        -- impose an invented team filter. AllCraft is stock (not the broken
-        -- ObjectiveObjects iterator) and skips scrap. Player-built APCs must
-        -- also be detected.
+        -- impose an invented team filter. AllObjects is stock (not the broken
+        -- ObjectiveObjects iterator). Player-built APCs must also be detected.
         local apclist = 0
-        for apc in AllCraft() do
+        for apc in AllObjects() do
             if Valid(apc) and IsOdf(apc, "bvapc") then
                 if GetDistance(apc, "apc_in") < 100 then
                     Order(Goto, apc, "apc_in")
