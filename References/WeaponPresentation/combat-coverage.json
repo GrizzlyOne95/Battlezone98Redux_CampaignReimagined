@@ -4751,7 +4751,7 @@
           "hardpoint": "GC2",
           "recoil_node": "animation:cr_fire_1",
           "recoil_distance": 0.2,
-          "recoil_effective_kick": 0.25,
+          "recoil_effective_kick": 0.0,
           "flash_offset": [
             -0.0405,
             -0.0024,
@@ -4802,7 +4802,7 @@
           "hardpoint": "GC2",
           "recoil_node": "animation:cr_fire_1",
           "recoil_distance": 0.2,
-          "recoil_effective_kick": 0.25,
+          "recoil_effective_kick": 0.0,
           "flash_offset": [
             -0.0405,
             -0.0024,

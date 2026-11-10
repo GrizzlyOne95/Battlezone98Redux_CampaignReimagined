@@ -118,7 +118,8 @@ class WeaponContentTests(unittest.TestCase):
         combat=load('combat','Build-CombatPresentation.py')
         docs=combat.documents()
         policy=json.loads((ROOT/'References/WeaponPresentation/combat-models.json').read_text())
-        crafts={name for name,unit in combat.armed_units(docs).items()
+        armed=combat.armed_units(docs)
+        crafts={name for name,unit in armed.items()
                 if combat.selected_bindings(unit,docs,policy,config['weapons'])}
         found=set()
         for path in sorted((ROOT/'ODF').glob('*.odf')):
@@ -131,8 +132,15 @@ class WeaponContentTests(unittest.TestCase):
                 with self.subTest(craft=path.stem,slot=n):
                     weapon=parsed['gameobjectclass']['weaponname'+n].lower()
                     kick=craft.get('recoilkick'+n)
+                    wclass=inventory.parse((ROOT/'ODF'/(weapon+'.odf')).read_text()).get('weaponclass',{})
                     if kick is None:
-                        kick=inventory.parse((ROOT/'ODF'/(weapon+'.odf')).read_text()).get('weaponclass',{}).get('recoilkick')
+                        kick=wclass.get('recoilkick')
+                    unit=armed.get(path.stem.lower())
+                    slot=unit and unit['slots'].get(n)
+                    binding=slot and policy['models'][unit['model']]['bindings'].get(slot['hardpoint'].upper(),{})
+                    if binding and binding.get('machinegun_kick') is False and wclass.get('classlabel')=='machinegun':
+                        # Reviewed opt-out: a coax chaingun leaves the cannon barrel still.
+                        self.assertIsNone(kick); continue
                     self.assertGreater(float(kick or 0),0,'recoil slot default weapon has a positive kick')
                     self.assertLessEqual(float(kick),4.0)
         self.assertEqual(found,crafts)

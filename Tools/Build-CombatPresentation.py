@@ -70,7 +70,11 @@ def selected_bindings(unit, docs, policy, choices):
         binding = policy['models'][unit['model']]['bindings'].get(slot['hardpoint'].upper())
         if binding:
             selected[n] = dict(binding)
+            # machinegun_kick false: a chaingun on a cannon barrel keeps its own (zero) kick,
+            # so only cannon-type weapons fired from that slot move the barrel.
+            mg_kick = binding.get('machinegun_kick', True)
             selected[n]['kick'] = (None if float(weapon.get('recoilkick', 0)) > 0 else
+                                   None if weapon.get('classlabel') == 'machinegun' and not mg_kick else
                                    .25 if weapon.get('classlabel') == 'machinegun' else binding['kick_without_weapon'])
     return selected
 

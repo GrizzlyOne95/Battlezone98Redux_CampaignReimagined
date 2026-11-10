@@ -2730,6 +2730,7 @@
           "distance": 0.2,
           "return": 2.0,
           "kick_without_weapon": 1.0,
+          "machinegun_kick": false,
           "flash_offset": [
             -0.0405,
             -0.0024,

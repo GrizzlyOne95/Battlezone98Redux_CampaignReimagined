@@ -43,7 +43,6 @@ recoilPlaybackRate2 = 1.0
 recoilCockpit2 = true
 casingOffset2 = "-0.6377 0.2318 -3.7095"
 casingDirection2 = "-0.9345 0.3271 -0.1402"
-recoilKick2 = 0.25
 // CR CRAFT RECOIL END
 // OpenShim mesh recoil (slot 1 cannon barrel; needs Settings > Video > Muzzle Recoil).
 // Node SCZ11BGB is the dedicated barrel under the turret (per VDF); metres, m/s.
