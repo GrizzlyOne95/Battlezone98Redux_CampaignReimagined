@@ -40,7 +40,7 @@ local function world(palette, horizon)
         return modules[name]
     end
     w.E=e.require('Environment'); w.W=e.require('CRWeather'); w.P=e.require('CRWeatherPresets')
-    w.e,w.trn=e,trn
+    w.e,w.trn,w.exu=e,trn,exu
     return w
 end
 
@@ -66,6 +66,35 @@ w.E.Update(0)
 check(#w.writes==writeCount,'identical live frame avoids redundant renderer writes')
 w.E.InvalidateRenderer(); w.E.Update(0)
 check(#w.writes>writeCount,'same-time load reapplies light/fog after renderer reconstruction')
+
+-- The terrain master light appears after the first mission update: until then
+-- the native reads are nil/zero. The baseline must wait for it rather than
+-- keep defaults that land seconds later as a visible sun flip (misn2bcr).
+w=world('moon.act',250)
+local liveDirection, liveDiffuse, livePower = w.exu.GetSunDirection, w.exu.GetSunDiffuse, w.exu.GetSunPowerScale
+w.exu.GetSunDirection=function() return nil end
+w.exu.GetSunDiffuse=function() return nil end
+w.exu.GetSunPowerScale=function() return 0 end
+w.E.Init({lightingMode='subtle',nativeBaseline=true,subtleSunAngle=4})
+w.E.Update(0)
+check(#w.writes==0,'no renderer writes before the master light exists')
+w.exu.GetSunDirection, w.exu.GetSunDiffuse, w.exu.GetSunPowerScale = liveDirection, liveDiffuse, livePower
+w.time=0.4; w.E.Update(0.4)
+check(w.E.NativeBaselinePending==nil,'baseline captured once the master light exists')
+check(near(w.SetSunDiffuse[1],0.88) and near(w.SetSunPowerScale[1],1),'late capture keeps native diffuse and power')
+local dx,dy,dz=w.SetOgreSunDirection[1],w.SetOgreSunDirection[2],w.SetOgreSunDirection[3]
+local nl=math.sqrt(0.5*0.5+0.8*0.8+0.3*0.3)
+check((dx*0.5-dy*0.8+dz*0.3)/nl > 0.99,'first sun write follows the map light, not the default')
+w=world('moon.act',250)
+w.exu.GetSunDirection=function() return nil end
+w.E.Init({lightingMode='subtle',nativeBaseline=true})
+w.time=3.5; w.E.Update(0)
+check(w.E.NativeBaselinePending==nil and #w.writes>0,'missing master light gives up after 3 s and still lights the map')
+w=world('moon.act',250)
+w.exu.GetSunDirection=nil
+w.E.Init({lightingMode='subtle',nativeBaseline=true})
+w.E.Update(0)
+check(w.E.NativeBaselinePending==nil and #w.writes>0,'an EXU without GetSunDirection is not waited on')
 
 -- Lunar night: the sun sits below the horizon for the sky, the Earth lights
 -- the scene, and the airless horizon keeps its range in the dark.

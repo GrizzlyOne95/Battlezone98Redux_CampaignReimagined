@@ -1270,6 +1270,29 @@ end
 -- Initialization
 -- =============================================================================
 
+-- Reads the map's authored light for nativeBaseline missions. The terrain
+-- master light is created after the first mission update; until then
+-- GetSunDirection is nil and the colour/power reads are nil or zero, so the
+-- whole capture waits for it unless `force` is set.
+local function CaptureNativeBaseline(baseAmbient, baseDiffuse, baseSpecular, force)
+    local direction = NativeValue("GetSunDirection")
+    if not direction and not force then
+        return false
+    end
+    Environment.DayAmbient = NativeValue("GetAmbientLight") or NativeValue("GetSunAmbient") or baseAmbient
+    Environment.DayDiffuse = NativeValue("GetSunDiffuse") or baseDiffuse
+    Environment.DaySpecular = NativeValue("GetSunSpecular") or baseSpecular
+    if direction then
+        Environment.DaySunDirection = NormalizeDirection({ x = direction.x, y = direction.y, z = direction.z })
+        Environment.DaySunPowerScale = NativeValue("GetSunPowerScale") or Environment.DaySunPowerScale
+        Environment.StableShadowFarDistance = NativeValue("GetSunShadowFarDistance") or Environment.StableShadowFarDistance
+    end
+    if Environment.NightBodyLight then
+        Environment.NightSunPowerScale = Environment.DaySunPowerScale
+    end
+    return true
+end
+
 -- Save loading rebuilds the renderer while a mission can retain its Lua state.
 -- Reapply even an identical computed frame after particles/scene are rebuilt.
 function Environment.InvalidateRenderer()
@@ -1396,18 +1419,22 @@ function Environment.Init(options)
     Environment.ArtSkyOwned = WorldArt.InitializeSky(exu,Environment.ArtWorld)
     Environment.WorldPreset, Environment.WorldPalette = DetectWorldPreset(trnFilename, trn)
     ApplyWorldPreset(Environment.WorldPreset, baseAmbient, baseDiffuse, baseSpecular, baseFog)
+    Environment.NativeBaselinePending = nil
     if options.nativeBaseline then
         -- Moon 02b/03 and Venus retain the map's authored light and atmosphere.
-        Environment.DayAmbient = NativeValue("GetAmbientLight") or NativeValue("GetSunAmbient") or baseAmbient
-        Environment.DayDiffuse = NativeValue("GetSunDiffuse") or baseDiffuse
-        Environment.DaySpecular = NativeValue("GetSunSpecular") or baseSpecular
-        local direction = NativeValue("GetSunDirection")
-        if direction then
-            Environment.DaySunDirection = { x = direction.x, y = direction.y, z = direction.z }
-        end
-        Environment.DaySunPowerScale = NativeValue("GetSunPowerScale") or Environment.DaySunPowerScale
-        Environment.StableShadowFarDistance = NativeValue("GetSunShadowFarDistance") or Environment.StableShadowFarDistance
         Environment.DayFog = CopyFog(baseFog)
+        -- An EXU without the getter can never answer, so do not wait for it.
+        local canReadSun = type(exu.GetSunDirection) == "function"
+        if not CaptureNativeBaseline(baseAmbient, baseDiffuse, baseSpecular, not canReadSun) then
+            -- The terrain master light does not exist yet on the first update:
+            -- every read is nil/0 and every sun write is dropped natively. Hold
+            -- all writes until it exists (see Environment.Update), or the
+            -- default direction lands seconds later as a visible sun flip.
+            Environment.NativeBaselinePending = {
+                ambient = baseAmbient, diffuse = baseDiffuse, specular = baseSpecular,
+                giveUpAt = GetTime() + 3.0,
+            }
+        end
     end
     if Environment.LightingMode == "night" or Environment.LightingMode == "orbit" then
         -- The night light comes from the world's shining body (the Earth over
@@ -1465,6 +1492,19 @@ end
 function Environment.Update(timestep)
     if not Environment.Initialized then
         Environment.Init()
+    end
+
+    local pending = Environment.NativeBaselinePending
+    if pending then
+        -- Write nothing until the map's own light can be read; the scene keeps
+        -- its authored light meanwhile, so nothing visible changes later. Sky
+        -- domes and weather modifiers wait too (about 0.4 s live): fed now,
+        -- they would take the default sun and jump with it.
+        if not CaptureNativeBaseline(pending.ambient, pending.diffuse, pending.specular, GetTime() >= pending.giveUpAt) then
+            return
+        end
+        Environment.NativeBaselinePending = nil
+        Environment.InvalidateRenderer()
     end
 
     timestep = tonumber(timestep) or 0.0
