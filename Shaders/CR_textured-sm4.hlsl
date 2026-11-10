@@ -99,11 +99,23 @@ void textured_fragment(
 	oColor = diffuseTex * diffuseColor;
 	oColor.rgb *= materialEmissive.rgb;
 #ifdef ENHANCED_MODE
-	// Enhanced only (Default/Retro DXBC must stay identical): match the lit
-	// cockpit warning pulse and tower power state.
-	float warning = saturate(surfaceState.y) * saturate(surfaceMode.y);
-	float pulse = 0.5 + 0.5 * sin(surfaceMode.z * 7.0);
-	oColor.rgb *= (1.0-saturate(surfaceState.w)) * (1.0-warning*(0.12+pulse*0.58));
+	// Enhanced only (Default/Retro DXBC must stay identical): begin cockpit
+	// warning flicker below half hull, then cycle a critical blackout and brief
+	// red alarm flash below the 25% health stage. surfaceMode.w is critical;
+	// surfaceState.w remains the separate hit-triggered brownout.
+	float damage = saturate(surfaceState.y);
+	float warning = smoothstep(0.50, 0.80, damage) * saturate(surfaceMode.y);
+	float critical = saturate(surfaceMode.w);
+	float pulse = 0.5 + 0.5 * sin(surfaceMode.z * lerp(7.0, 12.0, critical));
+	float brownout = saturate(surfaceState.w);
+	float flicker = warning * (0.12 + pulse * 0.58);
+	float blackout = critical * (1.0 - smoothstep(0.30, 0.52, pulse));
+	float3 unpoweredGlow = oColor.rgb;
+	float glowPeak = max(unpoweredGlow.r, max(unpoweredGlow.g, unpoweredGlow.b));
+	oColor.rgb *= (1.0 - brownout) * (1.0 - flicker) * (1.0 - blackout);
+	float alarmFlash = critical * smoothstep(0.75, 0.95, pulse);
+	float3 warningRed = float3(glowPeak * 1.25, glowPeak * 0.08, glowPeak * 0.025);
+	oColor.rgb = lerp(oColor.rgb, warningRed, alarmFlash);
 #endif
 
 	// Before fog and before any depth write: a discarded pixel must not reach

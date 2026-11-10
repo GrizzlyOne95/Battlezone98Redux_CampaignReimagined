@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Generate the cockpit-glass weather layers (frost and ice grains on Europa, dust grit on Mars, acid rain on Venus;
-the snow flake layer stays available).
+"""Generate the cockpit-glass weather and on-foot pilot-hit layers (frost and ice grains on Europa, dust grit on Mars,
+acid rain on Venus, plus blood splatter; the snow flake layer stays available).
 
     python Tools/Generate-GlassWeatherAssets.py            # write every asset
     python Tools/Generate-GlassWeatherAssets.py --check    # exit 1 if a checked-in asset differs
@@ -27,8 +27,10 @@ CRWetGlass.lua draws these two families beside the rain layers (see CRWetGlass.W
         pits and short ice scratch marks, pale blue-white and crisp.
   Assets/Textures/crwx_winetch.png   1024 x 1024 tileable etched-glass haze: a very faint pale
         yellow-green film with fine pits clustered in patches. Builds over long acid exposure.
+  Assets/Textures/crwx_pilotblood.png   512 x 512 non-tileable dark-red impact splatter with clear margins, shown briefly
+        on the screen after a first-person pilot is hit.
   Materials/crwx_glassweather.material   CRWX_WinSnow_A1..A16, CRWX_WinGrit_A1..A16, CRWX_WinFrost_A1..A16, CRWX_WinIce_A1..A16, the three
-        CRWX_Acid* rain families and CRWX_WinEtch_A1..A16, the overlay (F2/F3) materials, the
+        CRWX_Acid* rain families, CRWX_WinEtch_A1..A16 and CRWX_PilotBlood_A1..A16, the overlay materials, the
         same shape as the wrap families in crwx_wetglass.material.
         The cockpit-glass (F1) passes need no material of their own: CRWetGlass points a pass of
         CRWX_CockpitGlass_W<a>C<b> at the texture.
@@ -53,7 +55,8 @@ STEPS = 16
 FAMILIES = (("CRWX_WinSnow", "crwx_winsnow.png"), ("CRWX_WinGrit", "crwx_wingrit.png"),
             ("CRWX_AcidBeads", "crwx_acidbeads.png"), ("CRWX_AcidRivulet", "crwx_acidrivulet.png"),
             ("CRWX_AcidStreak", "crwx_acidstreak.png"), ("CRWX_WinEtch", "crwx_winetch.png"),
-            ("CRWX_WinFrost", "crwx_winfrost.png"), ("CRWX_WinIce", "crwx_winice.png"))
+            ("CRWX_WinFrost", "crwx_winfrost.png"), ("CRWX_WinIce", "crwx_winice.png"),
+            ("CRWX_PilotBlood", "crwx_pilotblood.png"))
 # Acid rain textures: (rain texture, acid texture). Same alpha, new colour.
 ACID_SOURCES = (("crwx_wetbeads.png", "crwx_acidbeads.png"), ("crwx_wetrivulet.png", "crwx_acidrivulet.png"),
                 ("crwx_wetstreak.png", "crwx_acidstreak.png"))
@@ -284,12 +287,64 @@ def build_ice():
     return out
 
 
+def build_pilot_blood():
+    """A compact, irregular dark-red impact splash with radial drops and clear margins."""
+    size, ss = 512, 3
+    rng = np.random.default_rng(2179)
+    img = Image.new("RGBA", (size * ss, size * ss), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    def scaled(points):
+        return [(int(x * ss), int(y * ss)) for x, y in points]
+
+    # Uneven central mass, with a few lobes so it reads as splatter instead of
+    # a smooth circular vignette.
+    contour = []
+    for i in range(56):
+        angle = 2 * math.pi * i / 56
+        radius = 96 + 13 * math.sin(5 * angle + 0.4) + 8 * math.sin(11 * angle) + rng.uniform(-13, 12)
+        contour.append((size / 2 + math.cos(angle) * radius, size / 2 + math.sin(angle) * radius * 0.86))
+    draw.polygon(scaled(contour), fill=(94, 7, 18, 178))
+
+    # Broken radial streaks, aimed away from the impact centre.
+    for _ in range(17):
+        angle = float(rng.uniform(0, 2 * math.pi))
+        start, end = float(rng.uniform(38, 72)), float(rng.uniform(105, 185))
+        bend, width = float(rng.normal(0, 0.09)), float(rng.uniform(2.5, 7.5))
+        x0, y0 = size / 2 + math.cos(angle) * start, size / 2 + math.sin(angle) * start * 0.86
+        x1, y1 = size / 2 + math.cos(angle + bend) * end, size / 2 + math.sin(angle + bend) * end * 0.86
+        color = (112, 9, 22, int(rng.uniform(105, 185)))
+        draw.line(scaled([(x0, y0), (x1, y1)]), fill=color, width=max(1, int(width * ss)))
+        draw.ellipse((int((x1-width) * ss), int((y1-width) * ss), int((x1+width) * ss), int((y1+width) * ss)), fill=color)
+
+    # A darker core and small satellites make the centre read at low opacity.
+    draw.ellipse((int((size/2-43) * ss), int((size/2-36) * ss), int((size/2+43) * ss), int((size/2+36) * ss)),
+                 fill=(67, 5, 13, 150))
+    for _ in range(36):
+        angle, distance = float(rng.uniform(0, 2 * math.pi)), float(rng.uniform(78, 220))
+        x = size / 2 + math.cos(angle) * distance
+        y = size / 2 + math.sin(angle) * distance * 0.86
+        radius = float(rng.choice([2.0, 3.0, 4.5, 6.5, 9.0], p=[0.18, 0.30, 0.28, 0.18, 0.06]))
+        color = (104, 8, 20, int(rng.uniform(120, 220)))
+        if rng.random() < 0.4:
+            draw.line(scaled([(x, y), (x + math.cos(angle) * radius * 1.8,
+                                         y + math.sin(angle) * radius * 1.8)]),
+                      fill=color, width=max(1, int(radius * ss)))
+        draw.ellipse((int((x-radius) * ss), int((y-radius*0.8) * ss),
+                      int((x+radius) * ss), int((y+radius*0.8) * ss)), fill=color)
+
+    img = img.resize((size, size), Image.Resampling.LANCZOS)
+    return np.asarray(img, dtype=np.uint8)
+
+
 def block(family, tex, n):
-    opacity = n / STEPS
+    # A1 is exercised once during EXU overlay warm-up; keep it fully invisible
+    # so loading this non-tileable blood texture never flashes on screen.
+    opacity = 0.0 if family == "CRWX_PilotBlood" and n == 1 else n / STEPS
     unit = ("\t\t\ttexture_unit\n\t\t\t{\n\t\t\t\ttexture %s\n\t\t\t\tfiltering linear linear linear\n%s\t\t\t}\n")
     mask = "\t\t\ttexture_unit\n\t\t\t{\n\t\t\t\ttexture crwx_wetmask_open.png\n\t\t\t\ttex_address_mode clamp\n\t\t\t\tfiltering linear linear none\n\t\t\t}\n"
     common = "\t\t\tscene_blend alpha_blend\n\t\t\tdepth_check off\n\t\t\tdepth_write off\n\t\t\tcull_hardware none\n\t\t\tcull_software none\n"
-    clamp = "\t\t\t\ttex_address_mode clamp\n" if family == "CRWX_WinFrost" else ""  # frost maps once, never tiles
+    clamp = "\t\t\t\ttex_address_mode clamp\n" if family in ("CRWX_WinFrost", "CRWX_PilotBlood") else ""  # these maps draw once, never tile
     s = "material %s_A%d\n{\n" % (family, n)
     s += "\t// Masked to the cockpit glass (crwx_wetglass.hlsl): SM4 for DX11, SM3 for\n"
     s += "\t// DX9. CRWetGlass.lua swaps texture unit 1 of both for the craft's mask.\n"
@@ -307,9 +362,9 @@ def block(family, tex, n):
 
 def build_material():
     head = ("// Generated by Tools/Generate-GlassWeatherAssets.py -- edit the generator, not this file.\n"
-            "// Cockpit-glass weather layers drawn by CRWetGlass.lua on the screen overlay (F2/F3): snow flakes,\n"
-            "// frost and ice grains (Europa), dust grit (Mars), acid rain and etch (Venus). A<n> is opacity n/16. Same shape as the wrap families of\n"
-            "// crwx_wetglass.material; the cockpit glass (F1) draws the same textures through\n"
+            "// Cockpit-glass weather and on-foot pilot hit layers drawn by CRWetGlass.lua on the screen overlay: snow flakes,\n"
+            "// frost and ice grains (Europa), dust grit (Mars), acid rain and etch (Venus), and blood splatter. A<n> is opacity n/16.\n"
+            "// These share the shader program with crwx_wetglass.material; cockpit glass (F1) draws its textures through\n"
             "// CRWX_CockpitGlass_W<a>C<b> passes.\n\n")
     body = "".join(block(f, t, n) for f, t in FAMILIES for n in range(1, STEPS + 1))
     return (head + body).rstrip("\n") + "\n"
@@ -331,6 +386,7 @@ def main():
                os.path.join(TEX, "crwx_winetch.png"): png_bytes(build_etch()),
                os.path.join(TEX, "crwx_winfrost.png"): png_bytes(build_frost()),
                os.path.join(TEX, "crwx_winice.png"): png_bytes(build_ice()),
+               os.path.join(TEX, "crwx_pilotblood.png"): png_bytes(build_pilot_blood()),
                MAT: build_material().replace("\n", "\r\n").encode("ascii")}
     for rain, acid in ACID_SOURCES:
         outputs[os.path.join(TEX, acid)] = png_bytes(build_acid(os.path.join(TEX, rain)))

@@ -12,7 +12,7 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     -- Cockpit glass damage (CRWetGlass) and electrical brownout.
     CrackStages = { { enter = 0.50, leave = 0.55, level = 0.35 }, { enter = 0.25, leave = 0.30, level = 0.80 } },
     BrownoutDrop = 0.05, BrownoutHold = 0.12, BrownoutCooldown = 0.4, MaxCrackSpots = 32,
-    crackSpots = {}, crackSpotCount = 0, crackLevel = 0, glassOn = false,
+    crackSpots = {}, crackSpotCount = 0, crackLevel = 0, glassOn = false, bloodOn = false,
     SweepWet = 0, MaxWetStep = 0.03, MaxMaterialBudget = 64, CloneWetBudget = 32,
     sweepLeft = 0, cloneLeft = 0, wetCursor = 1, sweepMoving = false,
     flashCache = {}, flashCacheCount = 0, MaxFlashCache = 512,
@@ -304,6 +304,68 @@ local function write(slot, name, a, b, c, d)
     if finite(changed) and changed > 0 then slot.values[name] = {a,b,c,d} end
 end
 
+-- Scorch is a second pass on the cockpit's own UV-mapped geometry, not a
+-- screen-space layer. Keep the alpha smooth between half and 10% hull, then
+-- quantize it so we only touch the cloned material when the visible step moves.
+local function writeCockpitChar(slot, damage)
+    local t = clamp((damage - 0.50) / 0.40, 0, 1)
+    t = t * t * (3 - 2 * t)
+    local step = math.floor((t * 0.78) * 32 + 0.5)
+    if slot.charredStep == step or slot.charredStep == -1 then return end
+    if step == 0 and slot.charredStep == nil then slot.charredStep = 0; return end
+    local result = call(exu.SetMaterialPassColors, slot.assigned,
+        { diffuse = { 1, 1, 1, step / 32 } }, -1, 1)
+    if result == true then slot.charredStep = step
+    else slot.charredStep = -1 end
+end
+
+local function sparkHash(beat, seed, salt)
+    local n = (beat * 73 + seed * 193 + salt * 389) % 1000033
+    n = (n * 37 + seed * 17 + salt * 31) % 1000033
+    return n / 1000033
+end
+
+local function setCockpitSpark(slot, value)
+    local changed = call(exu.SetMaterialShaderVector, slot.assigned, "surfaceSpark",
+        value[1], value[2], value[3], value[4])
+    if finite(changed) and changed > 0 then
+        slot.values.surfaceSpark = value
+        slot.sparkFailures = 0
+    else
+        slot.sparkFailures = (slot.sparkFailures or 0) + 1
+        if slot.sparkFailures >= 3 then slot.sparkUnsupported = true
+        else slot.sparkRetry = S.Clock + 0.5 end
+    end
+end
+
+local function writeCockpitSpark(slot, r)
+    if slot.sparkUnsupported or S.Clock < (slot.sparkRetry or 0) then return end
+    local damage = r.damage or 0
+    local intensity = clamp((damage - 0.56) / 0.34, 0, 1)
+    intensity = intensity * intensity * (3 - 2 * intensity)
+    local old = slot.values.surfaceSpark
+    if intensity <= 0 then
+        if old == nil then slot.values.surfaceSpark = { 0, 0, 0, 0 }; return end
+        if old[1] <= 0.001 then return end
+        setCockpitSpark(slot, { 0, 0, 0, 0 })
+        return
+    end
+
+    local beatPosition = S.Clock * 2.4
+    local beat = math.floor(beatPosition)
+    local phase = beatPosition - beat
+    local seed = (r.id * 37 + slot.index * 101) % 1000033
+    local event = sparkHash(beat, seed, 1) < intensity * 0.32
+    local start = sparkHash(beat, seed, 4) * 0.65
+    local elapsed = phase - start
+    local pulse = event and elapsed > 0 and elapsed < 0.22 and math.sin(math.pi * elapsed / 0.22) or 0
+    local value = { intensity * pulse, math.floor(sparkHash(beat, seed, 2) * 12),
+        math.floor(sparkHash(beat, seed, 3) * 8), sparkHash(beat, seed, 5) }
+    if old and math.abs(old[1]-value[1]) < 0.01 and old[2] == value[2] and
+        old[3] == value[3] and math.abs(old[4]-value[4]) < 0.001 then return end
+    setCockpitSpark(slot, value)
+end
+
 local function release(r)
     for _, slot in ipairs(r.slots or {}) do
         -- Another owner (team colour, model replacement, etc.) wins. Never
@@ -447,10 +509,31 @@ end
 function S.NotifyHit(odf, _, hit, transform) enqueue(S.hits, hit, transform, odf) end
 function S.NotifyShot(odf, shooter, transform) enqueue(S.shots, shooter, transform, odf) end
 
+local glassModule
+local glass
+
+local function pilotBloodSpot(position)
+    local seed = math.floor(math.abs((position.x * 13.17 + position.y * 7.31 + position.z * 3.77) * 37)) % 1000003
+    local x = 0.36 + 0.28 * ((seed * 0.6180339887) % 1)
+    local y = 0.34 + 0.22 * ((seed * 0.7548776662) % 1)
+    return x, y, seed % 2 == 1
+end
+
 local function drain(queue, shot)
     for _ = 1, math.min(2, #queue) do
         local event = table.remove(queue, 1)
         if valid(event.handle) and inRange(event.handle) then
+            local player = call(GetPlayerHandle)
+            -- Blood is additive: the pilot still gets its normal hit marks.
+            -- Only the local player's own pilot, so MP hits on others never splash.
+            if not shot and event.handle == player and call(IsPerson, event.handle) == true
+                and call(exu.GetCameraView) == 1 and call(exu.GetSatState) ~= 1 and call(exu.IsPauseMenuOpen) ~= true then
+                local g = glass()
+                if g and type(g.BloodHit) == "function" then
+                    local x, y, flip = pilotBloodSpot(event.position)
+                    if call(g.BloodHit, 0.75, x, y, flip) == true then S.bloodOn = true end
+                end
+            end
             S.Register(event.handle)
             local r = S.records[event.handle]
             if r then
@@ -507,6 +590,7 @@ end
 -- emission (surfaceState.w, the same channel that powers a tower off) for a
 -- moment: it eases down in about a tenth of a second and back over about a
 -- second. Repair, a new craft and the first sample never trigger it.
+local cockpitStage
 local function brownout(r, health, dt)
     local drop = finite(r.lastHull) and r.lastHull-health or 0
     if drop >= S.BrownoutDrop and S.Clock >= (r.brownReady or 0) then
@@ -530,7 +614,10 @@ local function updateRecord(r, dt)
         r.health = health
         local desired = r.cockpit and (1-health) or 0
         r.damage = desired + (r.damage-desired)*math.exp(-dt*5)
-        if r.cockpit then brownout(r, health, dt) end
+        if r.cockpit then
+            cockpitStage(r, health)
+            brownout(r, health, dt)
+        end
     end
     if r.tower then
         local powered = call(exu.IsGunTowerPowered, r.handle)
@@ -588,10 +675,17 @@ local function updateRecord(r, dt)
             wanted = slot.off or slot.normal
         end
         if slot.assigned ~= wanted and call(exu.SetSurfaceMaterial,target(r),slot.index,wanted) == true then
-            slot.assigned = wanted; slot.values = {}
+            slot.assigned = wanted; slot.values = {}; slot.charredStep = nil
+            slot.sparkUnsupported = nil; slot.sparkFailures = nil; slot.sparkRetry = nil
         end
         write(slot,"surfaceState", r.cockpit and 0 or S.SweepWet, r.damage, peak, r.cockpit and (r.brown or 0) or (r.powerOff and 1 or 0))
-        write(slot,"surfaceMode",0,r.cockpit and 1 or 0,r.cockpit and S.Clock or 0,0)
+        if r.cockpit then
+            writeCockpitChar(slot, r.damage)
+            writeCockpitSpark(slot, r)
+        end
+        -- Critical cockpit lighting shares the 25% enter / 30% clear stage.
+        write(slot,"surfaceMode",0,r.cockpit and 1 or 0,r.cockpit and S.Clock or 0,
+            r.cockpit and r.stage == 2 and 1 or 0)
         local a,b = hit0 and hit0.anchor or empty,hit1 and hit1.anchor or empty
         write(slot,"surfaceImpact0",a[1],a[2],a[3],a[4]); write(slot,"surfaceImpact1",b[1],b[2],b[3],b[4])
         write(slot,"surfaceImpactWeights",hit0 and clamp((hit0.untilTime-S.Clock)/4,0,1) or 0,
@@ -610,8 +704,7 @@ end
 -- CRWetGlass draws and fades it (on the fitted cockpit glass in F1, else the
 -- screen overlay); it only needs Update calls while Busy(). Calls are
 -- edge-triggered so a mission's own SetCrack (CRStorm18) is not fought.
-local glassModule
-local function glass()
+glass = function()
     if glassModule == nil then
         local ok, m = pcall(require, "CRWetGlass")
         glassModule = (ok and type(m) == "table" and type(m.SetCrack) == "function" and
@@ -644,23 +737,35 @@ end
 -- Every frame, even while disabled or outside Enhanced, until a cleared crack
 -- has faded: CRWetGlass only animates while someone calls Update.
 local function driveGlass()
-    if not S.glassOn then return end
+    if not S.glassOn and not S.bloodOn then return end
     local g = glass()
-    if not g then S.glassOn = false; return end
+    if not g then S.glassOn, S.bloodOn = false, false; return end
     call(g.Update, 0)
     if S.crackLevel <= 0 and call(g.Busy) ~= true then S.glassOn = false end
+    if S.bloodOn and (type(g.BloodBusy) ~= "function" or call(g.BloodBusy) ~= true) then S.bloodOn = false end
 end
 
-local function cockpitGlass(r)
-    if not r or not finite(r.health) then setCrack(0); return end
-    local hp, st, stage = r.health, S.CrackStages, r.stage
+local function clearPilotBlood()
+    S.bloodOn = false
+    local g = glass()
+    if g and type(g.ClearBlood) == "function" then call(g.ClearBlood) end
+end
+
+cockpitStage = function(r, hp)
+    local st, stage = S.CrackStages, r.stage
     if stage == nil then stage = hp < st[2].enter and 2 or hp < st[1].enter and 1 or 0
     elseif stage < 2 and hp < st[2].enter then stage = 2
     elseif stage < 1 and hp < st[1].enter then stage = 1
     elseif stage == 2 and hp > st[2].leave then stage = hp > st[1].leave and 0 or 1
     elseif stage == 1 and hp > st[1].leave then stage = 0 end
     r.stage = stage
-    setCrack(stage > 0 and st[stage].level or 0, crackSpot(r.handle))
+    return stage
+end
+
+local function cockpitGlass(r)
+    if not r or not finite(r.health) then setCrack(0); return end
+    local stage = cockpitStage(r, r.health)
+    setCrack(stage > 0 and S.CrackStages[stage].level or 0, crackSpot(r.handle))
 end
 
 local function cockpit()
@@ -827,6 +932,7 @@ function S.ResetScene()
     S.records,S.order,S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{},{},{}
     S.hits,S.shots,S.clones,S.live = {},{},{},{}
     S.cockpit=nil;S.cursor=1;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
+    clearPilotBlood()
     setCrack(0);S.crackSpots,S.crackSpotCount={},0
     S.SweepWet=0;S.sweepLeft=0;S.cloneLeft=0;S.wetCursor=1;S.sweepMoving=false
     clearWash();S.snow=nil;S.dust=nil;S.shapeMaterial=nil;S.cameraMaterial=nil;S.cameraAt=nil
@@ -857,6 +963,7 @@ function S.Suspend()
     S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{}
     S.hits,S.shots,S.clones,S.live = {},{},{},{}
     S.cockpit=nil;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
+    clearPilotBlood()
     clearWash();S.shapeMaterial=nil;S.cameraMaterial=nil;S.cameraAt=nil
     setCrack(0)
     S.SweepWet=0;S.sweepLeft=0;S.cloneLeft=0;S.wetCursor=1;S.sweepMoving=false

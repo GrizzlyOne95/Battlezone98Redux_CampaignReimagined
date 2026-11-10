@@ -106,6 +106,12 @@ jobs:
       - name: Validate hardpoint mounts
         run: python Tools/Test-HardpointMounts.py
 
+      - name: Test emissive pulse reaches live surface clones
+        run: lua5.1 Tools/Test-EmissivePulse.lua
+
+      - name: Validate combat cockpits
+        run: python Tools/Test-CombatCockpits.py
+
       - name: Validate texture revamp and Olympian interior contracts
         run: |
           python Tools/Test-TextureRevamp.py
