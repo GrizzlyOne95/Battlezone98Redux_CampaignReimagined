@@ -489,6 +489,12 @@ suites (misn06-08 at one point, weather suites for a long time) existed but were
 regression reached `main` green. Test mocks use `x/y/z` position keys (helper `nearTo(h, label, dx, dz)`
 in the misn13 suite). A test that never failed is not proof: verify it fails when the fix is disabled.
 
+Modules that route every engine and module call through a `pcall` wrapper (`call()` in
+`CRSurfaceEffects.lua`) also swallow errors raised inside a test's stubs. A stub that reads a `local`
+declared after the stub function sees a nil global and fails silently on every call, and the suite
+still passes. Declare stub state before the stub functions, and assert a stub side effect such as a
+counter going down, not only that the stub was called.
+
 CI (`campaign-validation.yml`) runs on PRs and pushes to `main`: Validate, port suites, co-op suites,
 weather, aiCore, transcripts, strict Lua 5.1 compile of changed files. Branch protection requires an
 up-to-date head: merge `origin/main` into the branch, push, wait for CI, then merge.
