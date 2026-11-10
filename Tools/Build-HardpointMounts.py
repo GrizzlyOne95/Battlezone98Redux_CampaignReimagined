@@ -54,6 +54,8 @@ CONFIG = {
                    at=(-1., 1.5, 2.3), normal=(-.99, 0, .11), fire=(0., 0, 1), base='75fb226a0be4ea9e885c6c055bd1be31753040bd'),
     'bvrdev': dict(piece='mortar', part='brd11GM1', owner='brd11bda', faction='blackdogs', scale=1.,
                    at=(.9, 1.36, -.4), normal=(.29, .96, 0), fire=(0., 0, 1), base='f09fec92f1d6da20facde0d095c45f19a913c866'),
+    'svfigh': dict(piece='rocket', part='SFL11GR1', owner='SFL11ROR', faction='cca', scale=.5, rollViews=('SFL11ROR',),
+                   at=(0., .8, 2.35), normal=(0, .96, .27), fire=(0., 0, 1), base='628a1fa1646242e5405ce31f26dbf31f9f955abc'),
 }
 # avfigh carries its pod on the main body (ARA11BDA), on the +x lower sloped side facet (normal
 # (.58, -.82, 0)) behind the rolling nose, so it does not roll with the nose (owner's call). Scale .6
@@ -107,7 +109,8 @@ def load(unit, cfg):
     sk = next((f / mesh.skeleton_name for f in folders if (f / mesh.skeleton_name).is_file()), None)
     sk = sk or next(p for p in folders[2].rglob('*.skeleton') if p.name.lower() == mesh.skeleton_name.lower())
     skeleton = wr.read_skeleton(sk)
-    parts = legacy.read_vdf((ROOT / f'Assets/ModelFixes/{unit}.vdf').read_bytes()).band(0)
+    vdf = ROOT / f'Assets/ModelFixes/{unit}.vdf'  # no CR VDF yet: the stock one (Build-UnitAnimSlots makes the override)
+    parts = legacy.read_vdf((vdf if vdf.exists() else wr.GAME / 'StockODFFiles' / f'{unit}.vdf').read_bytes()).band(0)
     W, by = nj.vdf_world(parts)
     return work, mesh, skeleton, parts, W, by, nj.vdf_pose(skeleton, W)
 
@@ -221,7 +224,7 @@ def part_clearance(mount, groups, parts, W, owner, seat, normal, saddle_top, muz
     near = lambda tris, pad: tris[np.linalg.norm(tris.mean(1) - centre, axis=1) - span(tris) < reach + pad]
     rest = {}
     for name, tris in sorted(groups.items()):
-        if name == owner or not len(near(tris, .5)):
+        if name in (owner, own_part.lower()) or not len(near(tris, .5)):  # own_part: the stock hardpoint's marker box, which the mount replaces
             continue
         rest[name] = round(float(cp.rotor_sweep(mount, near(tris, .5), np.zeros(3), (0, 0, 1.), [0.], .3).min()), 4)
         if rest[name] <= 0:
@@ -356,13 +359,13 @@ def save_textures(images, material, work):
     return paths
 
 
-def hardpoint_entry(unit, cfg, by, W, point):
+def hardpoint_entry(unit, cfg, by, W, point, receipt=None):
     """References/Hardpoints part: the hardpoint at point (Ogre, VDF pose), parented to the
     owner with the owner's own orientation (stock hardpoints carry an identity rotation)."""
     part, owner = by[cfg['part'].lower()], by[cfg['owner'].lower()]
     Rp, tp = W[owner.name.lower()]; t = (np.array(point) * S - tp) @ Rp.T
     path = ROOT / 'References/Hardpoints' / f'{unit}.json'
-    receipt = json.loads(path.read_text()) if path.exists() else dict(
+    receipt = receipt or (json.loads(path.read_text()) if path.exists() else None) or dict(
         note='Hardpoint alignment (Tools/Build-UnitAnimSlots.py apply_hardpoints). owner = the VDF part that carries the weapon geometry; parent must equal it (Tools/Test-UnitAnimSlots.py).',
         model=unit, base='stock', parts=[])
     old = next((p for p in receipt['parts'] if p['name'] == part.name), None)
@@ -434,32 +437,59 @@ def mount_part(work, name, kit, seat, M, scale, tex):
     return dict(mesh=str(work / f'{name}.npz'), housing=False, diffuse=str(tex['D']), normal=str(tex['N']))
 
 
-def build(unit, render_sheets, shipping):
-    cfg = CONFIG[unit]; kit = piece(cfg['piece']); work, mesh, skeleton, parts, W, by, pose = load(unit, cfg)
-    hull = posed_hull(mesh, pose); glass_hull = posed_hull(mesh, pose, glass=True)
+def mirrored(cfg):
+    """The second side of a symmetric pair: the attach frame reflected across x = 0 (the piece is
+    left-right symmetric, so the reflected frame is a proper rotation of it, no flipped winding)."""
+    flip = lambda v: (-v[0],) + tuple(v[1:])
+    return dict(cfg, part=cfg['mirror']['part'], owner=cfg['mirror']['owner'], at=flip(cfg['at']), normal=flip(cfg['normal']), fire=flip(cfg['fire']))
+
+
+def side(unit, cfg, kit, mesh, skeleton, parts, W, pose, hull, glass_hull):
+    """One mount of a unit: seat, checks, clearance against the other parts, welded rows."""
     seat, M = place(cfg, hull); scale = cfg['scale']; measured = checks(kit, seat, M, scale, hull, glass_hull)
-    bone = next(b for b in skeleton.bones if b.name.lower() == cfg['owner'].lower())
     mount_tris = to_posed(kit['tri'].reshape(-1, 3), seat, M, scale).reshape(-1, 3, 3)
     measured['parts'], clash = part_clearance(mount_tris, part_triangles(mesh, pose, skeleton, parts), parts, W, cfg['owner'], seat, M[1],
                                               measured['saddleTop'], measured['muzzle'], measured['fire'], cfg['part'], cfg.get('fireThrough', ()))
-    assert not clash, (unit, clash)
+    assert not clash, (unit, cfg['part'], clash)
+    bone = next(b for b in skeleton.bones if b.name.lower() == cfg['owner'].lower())
     D, shift = pose[bone.handle]; (rows, index), posed = mount_rows(kit, seat, M, scale, D, shift)
+    muzzle = np.array(measured['muzzle']); fire = np.array(measured['fire'])
+    return dict(cfg=cfg, seat=seat, M=M, measured=measured, bone=bone, rows=rows, index=index, muzzle=muzzle, fire=fire, point=muzzle - fire * INSET * scale)
+
+
+def build(unit, render_sheets, shipping):
+    cfg = CONFIG[unit]; kit = piece(cfg['piece']); work, mesh, skeleton, parts, W, by, pose = load(unit, cfg)
+    hull = posed_hull(mesh, pose); glass_hull = posed_hull(mesh, pose, glass=True)
+    sides = [side(unit, c, kit, mesh, skeleton, parts, W, pose, hull, glass_hull) for c in [cfg] + ([mirrored(cfg)] if 'mirror' in cfg else [])]
+    first = sides[0]; seat, M, measured, muzzle, fire, point, scale = first['seat'], first['M'], first['measured'], first['muzzle'], first['fire'], first['point'], cfg['scale']
+    rows = np.concatenate([s['rows'] for s in sides]); index = np.concatenate([s['index'] + sum(len(o['rows']) for o in sides[:i]) for i, s in enumerate(sides)])
+    owners = np.concatenate([np.full(len(s['rows']), s['bone'].handle) for s in sides])
     material = unit + '_hpmount'; paint, accent, atlas, marks = seat_paint(mesh, pose, seat, M[1])
     images, zone = textures(unit, kit, paint, dict(nj.FACTIONS[cfg['faction']], stripe=accent)); tex = save_textures(images, material, work)
     (work / (material + '.material')).write_text('\n'.join(['import * from "CR_BZBase.material"', ''] + nj.material_block(material)), newline='\n')
-    nj.preview_mesh(mesh, material, rows, index, np.full(len(rows), bone.handle), work / f'{unit}.mesh')
-    muzzle = np.array(measured['muzzle']); fire = np.array(measured['fire']); point = muzzle - fire * INSET * scale
-    hp_path, hp_receipt = hardpoint_entry(unit, cfg, by, W, point)
+    nj.preview_mesh(mesh, material, rows, index, owners, work / f'{unit}.mesh')
     shipped = RECEIPTS / f'{unit}.json'  # the shipped VDF already carries an earlier mount's hardpoint: keep the stock point
-    old_hp = json.loads(shipped.read_text())['stockHardpoint'] if shipped.exists() else (W[cfg['part'].lower()][1] * S).tolist()
+    shipped = json.loads(shipped.read_text()) if shipped.exists() else None
+    hp_receipt = None
+    for i, s in enumerate(sides):
+        hp_path, hp_receipt = hardpoint_entry(unit, s['cfg'], by, W, s['point'], hp_receipt)
+        old = (shipped if i == 0 else shipped.get('mirror')) if shipped else None
+        s['old'] = old['stockHardpoint'] if old else (W[s['cfg']['part'].lower()][1] * S).tolist()
+    old_hp = first['old']
     receipt = dict(note='Hardpoint mount (Tools/Build-HardpointMounts.py). Ogre mesh space in the VDF pose (VDF x = -x), metres. '
                         'The hardpoint sits INSET x scale inside the muzzle, on the fire axis.',
                    unit=unit, piece=cfg['piece'], part=by[cfg['part'].lower()].name, owner=by[cfg['owner'].lower()].name,
-                   faction=cfg['faction'], base=cfg['base'], material=material, triangles=int(len(kit['tris'])), fireThrough=list(cfg.get('fireThrough', ())),
+                   faction=cfg['faction'], base=cfg['base'], material=material, triangles=int(len(kit['tris'])) * len(sides), fireThrough=list(cfg.get('fireThrough', ())),
                    frame=dict(at=list(cfg['at']), seat=seat.round(6).tolist(), normal=M[1].round(6).tolist(), front=M[2].round(6).tolist(), scale=scale),
                    bury=float(kit['bury']) * scale, muzzle=muzzle.round(6).tolist(), fire=fire.round(6).tolist(), inset=INSET * scale,
                    hardpoint=np.round(point, 6).tolist(), stockHardpoint=np.round(old_hp, 6).tolist(),
                    paint=[round(c, 1) for c in paint], accent=[round(c, 1) for c in accent], markTexels=marks, paintFrom=Path(atlas).name, checks=measured)
+    if len(sides) > 1:  # the mirrored mount: the second half of the submesh's triangles
+        s = sides[1]
+        receipt['mirror'] = dict(part=by[s['cfg']['part'].lower()].name, owner=by[s['cfg']['owner'].lower()].name,
+                                 frame=dict(at=list(s['cfg']['at']), seat=s['seat'].round(6).tolist(), normal=s['M'][1].round(6).tolist(), front=s['M'][2].round(6).tolist(), scale=scale),
+                                 muzzle=s['muzzle'].round(6).tolist(), fire=s['fire'].round(6).tolist(), hardpoint=np.round(s['point'], 6).tolist(),
+                                 stockHardpoint=np.round(s['old'], 6).tolist(), checks=s['measured'])
     if shipping:
         receipt['meshSha256'] = nj.ship(unit, material, work)
         RECEIPTS.mkdir(parents=True, exist_ok=True)
@@ -467,8 +497,10 @@ def build(unit, render_sheets, shipping):
         hp_path.write_text(json.dumps(hp_receipt, indent=2) + '\n', newline='\n')
     else:
         (work / 'receipt.json').write_text(json.dumps(receipt, indent=2)); (work / 'hardpoints.json').write_text(json.dumps(hp_receipt, indent=2))
-    print(f"{unit}: {cfg['piece']} {len(kit['tris'])} tris on {receipt['owner']}, seat {seat.round(3)}, muzzle {muzzle.round(3)}, hardpoint moved {np.round(old_hp, 3)} -> {np.round(point, 3)}, "
-          f"paint {np.round(paint)} accent {np.round(accent)} ({marks} marking texels), ground {measured['groundClearance']:+.3f}" + f", parts {measured['parts']}")
+    for s in sides:
+        print(f"{unit}: {cfg['piece']} {len(kit['tris'])} tris on {s['bone'].name}, seat {s['seat'].round(3)}, muzzle {s['muzzle'].round(3)}, {s['cfg']['part']} moved {np.round(s['old'], 3)} -> {np.round(s['point'], 3)}, "
+              f"ground {s['measured']['groundClearance']:+.3f}, parts {s['measured']['parts']}")
+    print(f"{unit}: paint {np.round(paint)} accent {np.round(accent)} ({marks} marking texels)")
     if render_sheets:
         review = LOCAL / 'review'; review.mkdir(parents=True, exist_ok=True)
         lo, hi = hull.reshape(-1, 3).min(0), hull.reshape(-1, 3).max(0); centre = (lo + hi) / 2; radius = np.linalg.norm(hi - lo) / 2
@@ -476,18 +508,28 @@ def build(unit, render_sheets, shipping):
         reach = np.linalg.norm(kit['positions'].max(0) - kit['positions'].min(0)) / 2 * scale
         views = views_for(centre, radius, middle.tolist(), fire, M[1], reach)
         base = hull_parts(mesh, pose, work, 'h')
-        before = render(work, 'before', base, views, marks=[dict(at=old_hp, colour=(1, .2, .2), radius=.07)])
-        pod = mount_part(work, 'mount', kit, seat, M, scale, tex)
-        after = render(work, 'after', base + [pod], views, emit=[point], fire=[fire], marks=[dict(at=old_hp, colour=(1, .2, .2), radius=.05)])
+        olds = [dict(at=s['old'], colour=(1, .2, .2), radius=.07) for s in sides]
+        before = render(work, 'before', base, views, marks=olds)
+        pods = [mount_part(work, f'mount{i}', kit, s['seat'], s['M'], scale, tex) for i, s in enumerate(sides)]
+        after = render(work, 'after', base + pods, views, emit=[s['point'] for s in sides], fire=[s['fire'] for s in sides], marks=[dict(m, radius=.05) for m in olds])
         rolled, captions = [], []; target = np.array(views[1]['target'])
         wide = [dict(views[1], file='wide', eye=(target + (np.array(views[1]['eye']) - target) * 1.7 + (0, 0, .4)).tolist(), target=(target + (0, 0, .4)).tolist())]
-        for gimbal in measured['parts']['lineOfFireCrossedBy']:  # the gimbal next to the line of fire, at both ends of its sweep
+        rolling = set(measured['parts']['lineOfFireCrossedBy']) | set(cfg.get('rollViews', ()))
+        for gimbal in sorted(rolling):  # the gimbal next to the line of fire (or carrying the mount), at both ends of its sweep
             for a in (-measured['parts']['sweepDegrees'], measured['parts']['sweepDegrees']):
-                shot = hull_parts(mesh, pose, work, f'r{a:+.0f}_', roll=gimbal_roll(skeleton, parts, W, gimbal, a))
-                rolled += render(work, f'rolled{a:+.0f}', shot + [pod], wide, emit=[point], fire=[fire])
+                handles, pivot, R = roll = gimbal_roll(skeleton, parts, W, gimbal, a)
+                shot = hull_parts(mesh, pose, work, f'r{a:+.0f}_', roll=roll)
+                moved = [dict(p) for p in pods]
+                for i, s in enumerate(sides):  # a mount on the rolling part turns with it
+                    if s['bone'].handle in handles:
+                        d = dict(np.load(moved[i]['mesh'])); d['positions'] = (d['positions'] - pivot) @ R.T + pivot; d['normals'] = d['normals'] @ R.T
+                        moved[i]['mesh'] = str(work / f'mount{i}_r{a:+.0f}.npz'); np.savez(moved[i]['mesh'], **d)
+                still = [s for s in sides if s['bone'].handle not in handles]  # fire lines only where the mount did not turn
+                rolled += render(work, f'rolled{a:+.0f}', shot + moved, wide, emit=[s['point'] for s in still], fire=[s['fire'] for s in still])
                 captions.append(f'after: seat and {gimbal} rolled to {a:+.0f} deg')
+        pair = f" and {receipt['mirror']['part']} mirrored" if len(sides) > 1 else ''
         nj.sheet(before + after + rolled, ['before: 3/4', 'before: close-up', 'after: 3/4', 'after: close-up'] + captions, review / f'{unit}.jpg', 2,
-                 footer=[f"{unit}: {cfg['piece']} on {receipt['owner']} ({len(kit['tris'])} tris), paint {np.round(paint).astype(int).tolist()} and marking {np.round(accent).astype(int).tolist()} sampled beside the seat on {receipt['paintFrom']}; {measured['groundClearance']:+.2f} m above the hull's lowest point",
+                 footer=[f"{unit}: {cfg['piece']} on {receipt['owner']} ({len(kit['tris'])} tris{pair}), paint {np.round(paint).astype(int).tolist()} and marking {np.round(accent).astype(int).tolist()} sampled beside the seat on {receipt['paintFrom']}; {measured['groundClearance']:+.2f} m above the hull's lowest point",
                          f"{receipt['part']} moved from {np.round(old_hp, 2).tolist()} (white dot) to the muzzle {np.round(point, 2).tolist()} (where the orange fire-direction line starts)",
                          f"gimbal sweep +-{measured['parts']['sweepDegrees']} deg, nearest gap {measured['parts']['sweepGap']}; line of fire crossed by {measured['parts']['lineOfFireCrossedBy'] or 'nothing'} ([first, last angle, count])"])
     return receipt
