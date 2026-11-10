@@ -680,7 +680,7 @@
     },
     "bvhraz": {
       "category": "Existing gun piece",
-      "action": "Same separate top-gun layout as NSDF: bhr11bga/bhr11bgb. The default rocket variants use slots 2/3 under the roof; map them explicitly to left/right gun pieces. The bvhraz variant has TAG at GC1 under bga, GM1 utility and Comet at GR1: choose bindings per loadout, not per generic slot index.",
+      "action": "Same separate top-gun layout as NSDF: bhr11bga/bhr11bgb. The default rocket variants use slots 2/3 under the roof; map them explicitly to left/right gun pieces. The bvhraz variant has GM1 utility and Comet at GR1: choose bindings per loadout, not per generic slot index. Its GC1 fires from the static hardpoint-mount cannon on bhr11bda (References/HardpointMounts/bvhraz.json), so GC1 has no recoil binding: it must not kick the top gun.",
       "bindings": {
         "GR1": {
           "node": "bhr11bga",
@@ -690,12 +690,6 @@
         },
         "GR2": {
           "node": "bhr11bgb",
-          "distance": 0.08,
-          "return": 1.6,
-          "kick_without_weapon": 1.0
-        },
-        "GC1": {
-          "node": "bhr11bga",
           "distance": 0.08,
           "return": 1.6,
           "kick_without_weapon": 1.0

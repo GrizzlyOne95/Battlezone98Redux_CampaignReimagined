@@ -1,7 +1,7 @@
 {
   "totals": {
     "slots": 298,
-    "recoil_slots": 226,
+    "recoil_slots": 225,
     "flash_slots": 219,
     "casing_slots": 145
   },
@@ -1306,9 +1306,9 @@
         "1": {
           "weapon": "gtaggun",
           "hardpoint": "GC1",
-          "recoil_node": "bhr11bga",
-          "recoil_distance": 0.08,
-          "recoil_effective_kick": 1.0,
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
           "flash_offset": null,
           "flash_status": "visible tip is -2.03 m from the hardpoint (under -0.1 m)",
           "casing_type": "none",
