@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5362,
+  "count": 5514,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -635,8 +635,16 @@
       "runtime": "avapc.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avapc.vdf",
+      "runtime": "avapc.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\avartl.mesh",
       "runtime": "avartl.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avartl.vdf",
+      "runtime": "avartl.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\avartl_c.mesh",
@@ -703,6 +711,10 @@
       "runtime": "avhraz.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avhraz.vdf",
+      "runtime": "avhraz.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\avland.mesh",
       "runtime": "avland.mesh"
     },
@@ -755,8 +767,16 @@
       "runtime": "avtank.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avtank.vdf",
+      "runtime": "avtank.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\avtest.mesh",
       "runtime": "avtest.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avtest.vdf",
+      "runtime": "avtest.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\avturr.mesh",
@@ -871,8 +891,16 @@
       "runtime": "bvapc.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvapc.vdf",
+      "runtime": "bvapc.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvartl.mesh",
       "runtime": "bvartl.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvartl.vdf",
+      "runtime": "bvartl.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvartl_c.mesh",
@@ -897,6 +925,10 @@
     {
       "source": "Assets\\ModelFixes\\bvhraz.mesh",
       "runtime": "bvhraz.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvhraz.vdf",
+      "runtime": "bvhraz.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvltnk.mesh",
@@ -957,6 +989,10 @@
     {
       "source": "Assets\\ModelFixes\\bvtank.mesh",
       "runtime": "bvtank.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvtank.vdf",
+      "runtime": "bvtank.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvturr.mesh",
@@ -1309,6 +1345,10 @@
     {
       "source": "Assets\\ModelFixes\\cvmine.mesh",
       "runtime": "cvmine.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvmine.vdf",
+      "runtime": "cvmine.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\cvmuf.mesh",
@@ -1691,6 +1731,10 @@
       "runtime": "svartl.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\svartl.vdf",
+      "runtime": "svartl.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\svartl_c.mesh",
       "runtime": "svartl_c.mesh"
     },
@@ -1707,6 +1751,10 @@
       "runtime": "svfigh.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\svfigh.vdf",
+      "runtime": "svfigh.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\svhaul.mesh",
       "runtime": "svhaul.mesh"
     },
@@ -1719,12 +1767,24 @@
       "runtime": "svhraz.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\svhraz.vdf",
+      "runtime": "svhraz.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\svltnk.mesh",
       "runtime": "svltnk.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\svltnk.vdf",
+      "runtime": "svltnk.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\svmine.mesh",
       "runtime": "svmine.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svmine.vdf",
+      "runtime": "svmine.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\svmuf.mesh",
@@ -1755,6 +1815,10 @@
       "runtime": "svscav.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\svscav.vdf",
+      "runtime": "svscav.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\svslf.mesh",
       "runtime": "svslf.mesh"
     },
@@ -1765,6 +1829,10 @@
     {
       "source": "Assets\\ModelFixes\\svtank.mesh",
       "runtime": "svtank.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svtank.vdf",
+      "runtime": "svtank.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\svturr.mesh",
@@ -4071,6 +4139,22 @@
       "runtime": "avhraz01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\avhraz_nacjet_D.dds",
+      "runtime": "avhraz_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avhraz_nacjet_E.dds",
+      "runtime": "avhraz_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avhraz_nacjet_N.dds",
+      "runtime": "avhraz_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avhraz_nacjet_S.dds",
+      "runtime": "avhraz_nacjet_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\avland00_ACT.dds",
       "runtime": "avland00_ACT.dds"
     },
@@ -4083,12 +4167,44 @@
       "runtime": "avltnk01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\avltnk_nacjet_D.dds",
+      "runtime": "avltnk_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avltnk_nacjet_E.dds",
+      "runtime": "avltnk_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avltnk_nacjet_N.dds",
+      "runtime": "avltnk_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avltnk_nacjet_S.dds",
+      "runtime": "avltnk_nacjet_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\avmine00_ACT.dds",
       "runtime": "avmine00_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\avmine01_ACT.dds",
       "runtime": "avmine01_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avmine_nacjet_D.dds",
+      "runtime": "avmine_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avmine_nacjet_E.dds",
+      "runtime": "avmine_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avmine_nacjet_N.dds",
+      "runtime": "avmine_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avmine_nacjet_S.dds",
+      "runtime": "avmine_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\avmuf00_ACT.dds",
@@ -4101,6 +4217,22 @@
     {
       "source": "Assets\\Textures\\avrckt01_ACT.dds",
       "runtime": "avrckt01_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avrckt_nacjet_D.dds",
+      "runtime": "avrckt_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avrckt_nacjet_E.dds",
+      "runtime": "avrckt_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avrckt_nacjet_N.dds",
+      "runtime": "avrckt_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avrckt_nacjet_S.dds",
+      "runtime": "avrckt_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\avrecy00_ACT.dds",
@@ -4143,8 +4275,40 @@
       "runtime": "avtank01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\avtank_nacjet_D.dds",
+      "runtime": "avtank_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avtank_nacjet_E.dds",
+      "runtime": "avtank_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avtank_nacjet_N.dds",
+      "runtime": "avtank_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avtank_nacjet_S.dds",
+      "runtime": "avtank_nacjet_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\avtest00_ACT.dds",
       "runtime": "avtest00_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avtest_nacjet_D.dds",
+      "runtime": "avtest_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avtest_nacjet_E.dds",
+      "runtime": "avtest_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avtest_nacjet_N.dds",
+      "runtime": "avtest_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avtest_nacjet_S.dds",
+      "runtime": "avtest_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\avturr00_ACT.dds",
@@ -4351,6 +4515,22 @@
       "runtime": "bvhraz01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\bvhraz_nacjet_D.dds",
+      "runtime": "bvhraz_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvhraz_nacjet_E.dds",
+      "runtime": "bvhraz_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvhraz_nacjet_N.dds",
+      "runtime": "bvhraz_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvhraz_nacjet_S.dds",
+      "runtime": "bvhraz_nacjet_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\bvltnk00_ACT.dds",
       "runtime": "bvltnk00_ACT.dds"
     },
@@ -4359,12 +4539,44 @@
       "runtime": "bvltnk01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\bvltnk_nacjet_D.dds",
+      "runtime": "bvltnk_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvltnk_nacjet_E.dds",
+      "runtime": "bvltnk_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvltnk_nacjet_N.dds",
+      "runtime": "bvltnk_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvltnk_nacjet_S.dds",
+      "runtime": "bvltnk_nacjet_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\bvmine00_ACT.dds",
       "runtime": "bvmine00_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\bvmine01_ACT.dds",
       "runtime": "bvmine01_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvmine_nacjet_D.dds",
+      "runtime": "bvmine_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvmine_nacjet_E.dds",
+      "runtime": "bvmine_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvmine_nacjet_N.dds",
+      "runtime": "bvmine_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvmine_nacjet_S.dds",
+      "runtime": "bvmine_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\BVMRU_ACT.dds",
@@ -4383,12 +4595,44 @@
       "runtime": "bvraz01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\bvraz_nacjet_D.dds",
+      "runtime": "bvraz_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvraz_nacjet_E.dds",
+      "runtime": "bvraz_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvraz_nacjet_N.dds",
+      "runtime": "bvraz_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvraz_nacjet_S.dds",
+      "runtime": "bvraz_nacjet_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\bvrckt00_ACT.dds",
       "runtime": "bvrckt00_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\bvrckt01_ACT.dds",
       "runtime": "bvrckt01_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrckt_nacjet_D.dds",
+      "runtime": "bvrckt_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrckt_nacjet_E.dds",
+      "runtime": "bvrckt_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrckt_nacjet_N.dds",
+      "runtime": "bvrckt_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrckt_nacjet_S.dds",
+      "runtime": "bvrckt_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\bvrdev01_ACT.dds",
@@ -4425,6 +4669,22 @@
     {
       "source": "Assets\\Textures\\bvtank01_ACT.dds",
       "runtime": "bvtank01_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvtank_nacjet_D.dds",
+      "runtime": "bvtank_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvtank_nacjet_E.dds",
+      "runtime": "bvtank_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvtank_nacjet_N.dds",
+      "runtime": "bvtank_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvtank_nacjet_S.dds",
+      "runtime": "bvtank_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\bvturr00_ACT.dds",
@@ -5387,6 +5647,10 @@
       "runtime": "crteam_avhraz_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_avhraz_nacjet_d.dds",
+      "runtime": "crteam_avhraz_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_avland_d.dds",
       "runtime": "crteam_avland_d.dds"
     },
@@ -5395,8 +5659,16 @@
       "runtime": "crteam_avltnk_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_avltnk_nacjet_d.dds",
+      "runtime": "crteam_avltnk_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_avmine_d.dds",
       "runtime": "crteam_avmine_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avmine_nacjet_d.dds",
+      "runtime": "crteam_avmine_nacjet_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_avmuf_d.dds",
@@ -5405,6 +5677,10 @@
     {
       "source": "Assets\\Textures\\crteam_avrckt_d.dds",
       "runtime": "crteam_avrckt_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avrckt_nacjet_d.dds",
+      "runtime": "crteam_avrckt_nacjet_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_avrecy_d.dds",
@@ -5431,8 +5707,16 @@
       "runtime": "crteam_avtank_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_avtank_nacjet_d.dds",
+      "runtime": "crteam_avtank_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_avtest_d.dds",
       "runtime": "crteam_avtest_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avtest_nacjet_d.dds",
+      "runtime": "crteam_avtest_nacjet_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_avturr_d.dds",
@@ -5463,12 +5747,24 @@
       "runtime": "crteam_bvhraz_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_bvhraz_nacjet_d.dds",
+      "runtime": "crteam_bvhraz_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_bvltnk_d.dds",
       "runtime": "crteam_bvltnk_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_bvltnk_nacjet_d.dds",
+      "runtime": "crteam_bvltnk_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_bvmine_d.dds",
       "runtime": "crteam_bvmine_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvmine_nacjet_d.dds",
+      "runtime": "crteam_bvmine_nacjet_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_bvmru_d.dds",
@@ -5483,8 +5779,16 @@
       "runtime": "crteam_bvraz_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_bvraz_nacjet_d.dds",
+      "runtime": "crteam_bvraz_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_bvrckt_d.dds",
       "runtime": "crteam_bvrckt_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvrckt_nacjet_d.dds",
+      "runtime": "crteam_bvrckt_nacjet_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_bvrdev_d.dds",
@@ -5505,6 +5809,10 @@
     {
       "source": "Assets\\Textures\\crteam_bvtank_d.dds",
       "runtime": "crteam_bvtank_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvtank_nacjet_d.dds",
+      "runtime": "crteam_bvtank_nacjet_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_bvturr_d.dds",
@@ -5531,12 +5839,20 @@
       "runtime": "crteam_cvfigh_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_cvfigh_nacjet_d.dds",
+      "runtime": "crteam_cvfigh_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_cvhaul_d.dds",
       "runtime": "crteam_cvhaul_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_cvhraz_d.dds",
       "runtime": "crteam_cvhraz_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvhraz_nacjet_d.dds",
+      "runtime": "crteam_cvhraz_nacjet_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_cvhtnk_d.dds",
@@ -5549,6 +5865,10 @@
     {
       "source": "Assets\\Textures\\crteam_cvmine_d.dds",
       "runtime": "crteam_cvmine_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_cvmine_nacjet_d.dds",
+      "runtime": "crteam_cvmine_nacjet_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_cvmuf_d.dds",
@@ -5587,8 +5907,16 @@
       "runtime": "crteam_svapc_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_svapc_nacjet_d.dds",
+      "runtime": "crteam_svapc_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_svartl_d.dds",
       "runtime": "crteam_svartl_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svartl_nacjet_d.dds",
+      "runtime": "crteam_svartl_nacjet_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_svcnst_d.dds",
@@ -5599,32 +5927,64 @@
       "runtime": "crteam_svfigh_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_svfigh_nacjet_d.dds",
+      "runtime": "crteam_svfigh_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_svhaul_d.dds",
       "runtime": "crteam_svhaul_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svhaul_nacjet_d.dds",
+      "runtime": "crteam_svhaul_nacjet_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_svhraz_d.dds",
       "runtime": "crteam_svhraz_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_svhraz_nacjet_d.dds",
+      "runtime": "crteam_svhraz_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_svltnk_d.dds",
       "runtime": "crteam_svltnk_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svltnk_nacjet_d.dds",
+      "runtime": "crteam_svltnk_nacjet_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_svmine_d.dds",
       "runtime": "crteam_svmine_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_svmine_nacjet_d.dds",
+      "runtime": "crteam_svmine_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_svmuf_d.dds",
       "runtime": "crteam_svmuf_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svmuf_nacjet_d.dds",
+      "runtime": "crteam_svmuf_nacjet_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_svrckt_d.dds",
       "runtime": "crteam_svrckt_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_svrckt_nacjet_d.dds",
+      "runtime": "crteam_svrckt_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_svrecy_d.dds",
       "runtime": "crteam_svrecy_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svrecy_nacjet_d.dds",
+      "runtime": "crteam_svrecy_nacjet_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_svsav_d.dds",
@@ -5635,8 +5995,16 @@
       "runtime": "crteam_svscav_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_svscav_nacjet_d.dds",
+      "runtime": "crteam_svscav_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_svslf_d.dds",
       "runtime": "crteam_svslf_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_svslf_nacjet_d.dds",
+      "runtime": "crteam_svslf_nacjet_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_svtank_d.dds",
@@ -6275,6 +6643,22 @@
       "runtime": "cvfigh_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\cvfigh_nacjet_D.dds",
+      "runtime": "cvfigh_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvfigh_nacjet_E.dds",
+      "runtime": "cvfigh_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvfigh_nacjet_N.dds",
+      "runtime": "cvfigh_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvfigh_nacjet_S.dds",
+      "runtime": "cvfigh_nacjet_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\cvhaul01_ACT.dds",
       "runtime": "cvhaul01_ACT.dds"
     },
@@ -6289,6 +6673,22 @@
     {
       "source": "Assets\\Textures\\cvhraz_ACT.dds",
       "runtime": "cvhraz_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvhraz_nacjet_D.dds",
+      "runtime": "cvhraz_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvhraz_nacjet_E.dds",
+      "runtime": "cvhraz_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvhraz_nacjet_N.dds",
+      "runtime": "cvhraz_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvhraz_nacjet_S.dds",
+      "runtime": "cvhraz_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\cvhtnk01_ACT.dds",
@@ -6313,6 +6713,22 @@
     {
       "source": "Assets\\Textures\\cvmine_ACT.dds",
       "runtime": "cvmine_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvmine_nacjet_D.dds",
+      "runtime": "cvmine_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvmine_nacjet_E.dds",
+      "runtime": "cvmine_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvmine_nacjet_N.dds",
+      "runtime": "cvmine_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvmine_nacjet_S.dds",
+      "runtime": "cvmine_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\cvmuf_ACT.dds",
@@ -7743,12 +8159,44 @@
       "runtime": "svapc01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\svapc_nacjet_D.dds",
+      "runtime": "svapc_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svapc_nacjet_E.dds",
+      "runtime": "svapc_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svapc_nacjet_N.dds",
+      "runtime": "svapc_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svapc_nacjet_S.dds",
+      "runtime": "svapc_nacjet_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\svartl00_ACT.dds",
       "runtime": "svartl00_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\svartl01_ACT.dds",
       "runtime": "svartl01_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svartl_nacjet_D.dds",
+      "runtime": "svartl_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svartl_nacjet_E.dds",
+      "runtime": "svartl_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svartl_nacjet_N.dds",
+      "runtime": "svartl_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svartl_nacjet_S.dds",
+      "runtime": "svartl_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\svcnst00_ACT.dds",
@@ -7763,12 +8211,44 @@
       "runtime": "svfigh01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\svfigh_nacjet_D.dds",
+      "runtime": "svfigh_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svfigh_nacjet_E.dds",
+      "runtime": "svfigh_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svfigh_nacjet_N.dds",
+      "runtime": "svfigh_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svfigh_nacjet_S.dds",
+      "runtime": "svfigh_nacjet_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\svhaul00_ACT.dds",
       "runtime": "svhaul00_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\svhaul01_ACT.dds",
       "runtime": "svhaul01_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svhaul_nacjet_D.dds",
+      "runtime": "svhaul_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svhaul_nacjet_E.dds",
+      "runtime": "svhaul_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svhaul_nacjet_N.dds",
+      "runtime": "svhaul_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svhaul_nacjet_S.dds",
+      "runtime": "svhaul_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\svheadlight00_ACT.dds",
@@ -7791,12 +8271,44 @@
       "runtime": "svhraz01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\svhraz_nacjet_D.dds",
+      "runtime": "svhraz_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svhraz_nacjet_E.dds",
+      "runtime": "svhraz_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svhraz_nacjet_N.dds",
+      "runtime": "svhraz_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svhraz_nacjet_S.dds",
+      "runtime": "svhraz_nacjet_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\svltnk00_ACT.dds",
       "runtime": "svltnk00_ACT.dds"
     },
     {
       "source": "Assets\\Textures\\svltnk01_ACT.dds",
       "runtime": "svltnk01_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svltnk_nacjet_D.dds",
+      "runtime": "svltnk_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svltnk_nacjet_E.dds",
+      "runtime": "svltnk_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svltnk_nacjet_N.dds",
+      "runtime": "svltnk_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svltnk_nacjet_S.dds",
+      "runtime": "svltnk_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\svmine00_ACT.dds",
@@ -7807,8 +8319,40 @@
       "runtime": "svmine01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\svmine_nacjet_D.dds",
+      "runtime": "svmine_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svmine_nacjet_E.dds",
+      "runtime": "svmine_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svmine_nacjet_N.dds",
+      "runtime": "svmine_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svmine_nacjet_S.dds",
+      "runtime": "svmine_nacjet_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\svmuf00_ACT.dds",
       "runtime": "svmuf00_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svmuf_nacjet_D.dds",
+      "runtime": "svmuf_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svmuf_nacjet_E.dds",
+      "runtime": "svmuf_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svmuf_nacjet_N.dds",
+      "runtime": "svmuf_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svmuf_nacjet_S.dds",
+      "runtime": "svmuf_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\svrckt00_ACT.dds",
@@ -7819,8 +8363,40 @@
       "runtime": "svrckt01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\svrckt_nacjet_D.dds",
+      "runtime": "svrckt_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svrckt_nacjet_E.dds",
+      "runtime": "svrckt_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svrckt_nacjet_N.dds",
+      "runtime": "svrckt_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svrckt_nacjet_S.dds",
+      "runtime": "svrckt_nacjet_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\svrecy00_ACT.dds",
       "runtime": "svrecy00_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svrecy_nacjet_D.dds",
+      "runtime": "svrecy_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svrecy_nacjet_E.dds",
+      "runtime": "svrecy_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svrecy_nacjet_N.dds",
+      "runtime": "svrecy_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svrecy_nacjet_S.dds",
+      "runtime": "svrecy_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\svsav_ACT.dds",
@@ -7835,8 +8411,40 @@
       "runtime": "svscav01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\svscav_nacjet_D.dds",
+      "runtime": "svscav_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svscav_nacjet_E.dds",
+      "runtime": "svscav_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svscav_nacjet_N.dds",
+      "runtime": "svscav_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svscav_nacjet_S.dds",
+      "runtime": "svscav_nacjet_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\svslf00_ACT.dds",
       "runtime": "svslf00_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svslf_nacjet_D.dds",
+      "runtime": "svslf_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svslf_nacjet_E.dds",
+      "runtime": "svslf_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svslf_nacjet_N.dds",
+      "runtime": "svslf_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\svslf_nacjet_S.dds",
+      "runtime": "svslf_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\svtank00_ACT.dds",
