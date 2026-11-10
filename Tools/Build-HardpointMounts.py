@@ -56,6 +56,8 @@ CONFIG = {
                    at=(.9, 1.36, -.4), normal=(.29, .96, 0), fire=(0., 0, 1), base='f09fec92f1d6da20facde0d095c45f19a913c866'),
     'svfigh': dict(piece='rocket', part='SFL11GR1', owner='SFL11ROR', faction='cca', scale=.5, rollViews=('SFL11ROR',),
                    at=(0., .8, 2.35), normal=(0, .96, .27), fire=(0., 0, 1), base='628a1fa1646242e5405ce31f26dbf31f9f955abc'),
+    'crfraz': dict(piece='cannon', part='cfr11GC1', owner='cfr11bda', faction='cra', scale=1.2, mirror=dict(part='cfr11GC2', owner='cfr11bdb'),
+                   at=(2.2, 1.9, -1.0), normal=(.27, .95, .17), fire=(0., 0, 1), base='2390592bf72b8654606665f4b837e34818162fea'),
 }
 # avfigh carries its pod on the main body (ARA11BDA), on the +x lower sloped side facet (normal
 # (.58, -.82, 0)) behind the rolling nose, so it does not roll with the nose (owner's call). Scale .6
@@ -290,16 +292,21 @@ def seat_paint(mesh, pose, seat, normal):
         pick = np.random.default_rng(1).choice(sel.sum(), count, p=area / area.sum()); weights = np.random.default_rng(2).dirichlet((1, 1, 1), count)
         s = (weights[..., None] * uv[sel][pick]).sum(1) % 1
         return image[(s[:, 1] * h).astype(int).clip(0, h - 1), (s[:, 0] * w).astype(int).clip(0, w - 1)], path
+    def near(radius, facing_min, least=8):  # low-poly hulls (crfraz): few, large faces whose centres sit far from the seat
+        ok = along > facing_min; sel = ok & (distance < radius)
+        return sel if sel.sum() >= least else ok & (distance <= np.sort(distance[ok])[min(least, ok.sum()) - 1])
     for radius in (.45, .7, 1.):
         sel = (distance < radius) & (along > .5)
         if sel.sum() >= 8:
             break
+    else:
+        sel = near(1., .5)
     texel, path = texels(sel)
     calm = (texel.max(1) - texel.min(1) < 90) & (texel.max(1) > 20)  # not hazard trim or decals, not black gaps
     body = texel[calm] if calm.sum() >= .2 * len(texel) else texel
     key = (body // 24).astype(int) @ (1, 16, 256); body = body[key == np.bincount(key).argmax()]
     paint = np.median(body, 0)
-    ring, _ = texels((distance < 1.6) & (along > .3), 12000)
+    ring, _ = texels(near(1.6, .3), 12000)
     grey = (ring.max(1) - ring.min(1) < 40) & (ring.max(1) > 20)
     if paint.mean() < 110:  # dark paint: the marking is the hull's own worn pale
         mark = ring[grey & (ring.mean(1) > max(120., paint.mean() * 1.6))]
@@ -361,16 +368,18 @@ def save_textures(images, material, work):
 
 def hardpoint_entry(unit, cfg, by, W, point, receipt=None):
     """References/Hardpoints part: the hardpoint at point (Ogre, VDF pose), parented to the
-    owner with the owner's own orientation (stock hardpoints carry an identity rotation)."""
+    owner, keeping the part's world orientation (local = world @ owner^T: identity under an
+    identity owner; crfraz's cfr11bdb is yawed 180 deg and GC2 carries the same yaw, so an identity
+    local would fire it backwards)."""
     part, owner = by[cfg['part'].lower()], by[cfg['owner'].lower()]
     Rp, tp = W[owner.name.lower()]; t = (np.array(point) * S - tp) @ Rp.T
     path = ROOT / 'References/Hardpoints' / f'{unit}.json'
     receipt = receipt or (json.loads(path.read_text()) if path.exists() else None) or dict(
         note='Hardpoint alignment (Tools/Build-UnitAnimSlots.py apply_hardpoints). owner = the VDF part that carries the weapon geometry; parent must equal it (Tools/Test-UnitAnimSlots.py).',
-        model=unit, base='stock', parts=[])
+        model=unit, base='stock' if (wr.GAME / 'StockODFFiles' / f'{unit}.vdf').exists() else 'CR@' + cfg['base'][:8], parts=[])  # CR-original model (crfraz): git base
     old = next((p for p in receipt['parts'] if p['name'] == part.name), None)
     entry = dict(name=part.name, klass=part.klass, existing=True, was=old['was'] if old else part.parent, owner=owner.name, parent=owner.name,
-                 matrix=[1., 0., 0., 0., 1., 0., 0., 0., 1.] +[round(float(v), 6) for v in t])
+                 matrix=[round(float(v), 6) + 0. for v in (W[part.name.lower()][0] @ Rp.T).ravel()] + [round(float(v), 6) for v in t])
     receipt['parts'] = [p for p in receipt['parts'] if p['name'] != part.name] + [entry]
     return path, receipt
 

@@ -32,6 +32,16 @@ experiment using ISDFC's red atlas was discarded and is not part of this feature
 Rebuild with `python Tools/Build-FuryFighter.py`. The default source is the
 preserved standalone port, so rebuilding does not depend on Google Drive.
 
+Since 10 November 2026, GC1 and GC2 sit on visible wing-top cannon mounts
+(`Tools/Build-HardpointMounts.py`, receipts under `References/HardpointMounts` and
+`References/Hardpoints`). Before, they sat inside the wing slab, firing through its
+leading edge. The mount pass builds from the importer's output at CR commit 2390592b.
+It edits the shipped mesh, VDF and skeleton. A rerun of this importer therefore drops
+the mounts. Re-apply them with:
+
+1. `python Tools/Build-HardpointMounts.py --units crfraz --ship`
+2. `python Tools/Build-UnitAnimSlots.py --stock-dir <StockODFFiles> crfraz.vdf crfraz.skeleton`
+
 ## Initial balance
 
 | Attribute | Prototype |
