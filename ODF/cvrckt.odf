@@ -90,4 +90,9 @@ alphaSteer = 6.25
 accelJump = 20.0
 soundThrust = "avrckte0.wav"
 soundTurbo = "avrckte1.wav"
+// rear frame pods CDR11NFL/NFR are class 67 nacelles (cvrckt.vdf): gentle pitch, as svtank
+pitchThrotNacelleRun = 0.10
+pitchThrotNacelleJump = 0.12
+pitchSteerNacelleRun = 0.10
+pitchSteerNacelleJump = 0.12
 
