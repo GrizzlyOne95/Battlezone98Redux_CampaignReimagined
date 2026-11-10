@@ -957,6 +957,17 @@ Each bullet: the pitfall, the one-line why, and where to read more.
   in lockstep. `time_0_x 3600` with periods that divide 3600 (meteor slot 25 s, satellite cycle 300 s)
   so the wrap is invisible. Pass emissive x enables, y forces every slot (testing only);
   `openshim.ini [Display] SkyEvents=0` switches both off through `RuntimeEnhancements.SetSkyEventsEnabled`.
+- Faction engine flames (2026-11-09): OpenShim colours jet flames per faction by looking sprite names up
+  **by name**: `exhaust_o.0` for CCA burnt orange (ODF prefix `s`), `exhaust_bd.0` for Black Dog blood red
+  (`b`). CR must ship all three parts or `openshim.log` says `orange=no blackdog=no` and those craft fall
+  back to the stock flame: the eight append-only rows at the end of `Config/spritea.st` (sprite handles are
+  row indices, never insert above them), the `oflame` / `bdflame` materials in `Materials/sprites.material`
+  (keep them in that file, beside their `BZSprite/AdditiveFirstMip` parent; a separate `.material` parses
+  first and compiles with no techniques), and `Assets/Textures/cr_exhaust_cca.png` /
+  `cr_exhaust_blackdog.png`. They went missing because they only ever lived on an unmerged branch that was
+  archived (`archive/migration-2026-09-22/interactive-fog-wakes`); when a native feature needs CR assets by
+  name, check they are on `main`. The two PNGs are still the archived 128x128 art, not the 512x512 that
+  `Tools/Build-HiResSprites.py` made for r/g/b flame.
 
 ### 8.5 Live testing
 

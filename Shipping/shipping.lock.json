@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5354,
+  "count": 5356,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -4881,6 +4881,14 @@
     {
       "source": "Assets\\Textures\\cr_ember.dds",
       "runtime": "cr_ember.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_exhaust_blackdog.png",
+      "runtime": "cr_exhaust_blackdog.png"
+    },
+    {
+      "source": "Assets\\Textures\\cr_exhaust_cca.png",
+      "runtime": "cr_exhaust_cca.png"
     },
     {
       "source": "Assets\\Textures\\cr_grit.dds",
