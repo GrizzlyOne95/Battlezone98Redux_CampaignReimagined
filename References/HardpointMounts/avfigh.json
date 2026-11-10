@@ -1,0 +1,117 @@
+{
+  "note": "Hardpoint mount (Tools/Build-HardpointMounts.py). Ogre mesh space in the VDF pose (VDF x = -x), metres. The hardpoint sits INSET x scale inside the muzzle, on the fire axis.",
+  "unit": "avfigh",
+  "piece": "rocket",
+  "part": "ARA11Gr1",
+  "owner": "ARA11BDA",
+  "faction": "nsdf",
+  "base": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+  "material": "avfigh_hpmount",
+  "triangles": 1540,
+  "fireThrough": [
+    "ARA11rof"
+  ],
+  "frame": {
+    "at": [
+      0.46,
+      0.29,
+      1.4
+    ],
+    "seat": [
+      0.449359,
+      0.305045,
+      1.4
+    ],
+    "normal": [
+      0.577465,
+      -0.816416,
+      0.0
+    ],
+    "front": [
+      0.0,
+      0.0,
+      1.0
+    ],
+    "scale": 0.6
+  },
+  "bury": 0.072,
+  "muzzle": [
+    0.535978,
+    0.182582,
+    1.658
+  ],
+  "fire": [
+    0.0,
+    0.0,
+    1.0
+  ],
+  "inset": 0.024,
+  "hardpoint": [
+    0.535978,
+    0.182582,
+    1.634
+  ],
+  "stockHardpoint": [
+    -0.0,
+    -0.148636,
+    1.6315
+  ],
+  "paint": [
+    63.0,
+    82.0,
+    79.0
+  ],
+  "accent": [
+    170.0,
+    170.0,
+    165.0
+  ],
+  "markTexels": 1692,
+  "paintFrom": "avfigh_D.dds",
+  "checks": {
+    "footprint": 4,
+    "skinAboveFloor": [
+      0.06945321015865454,
+      0.07408808060023432
+    ],
+    "saddleTop": 0.05400000214576721,
+    "muzzle": [
+      0.5359784201712653,
+      0.1825822335509698,
+      1.658
+    ],
+    "fire": [
+      0.0,
+      0.0,
+      1.0
+    ],
+    "groundClearance": 0.0075,
+    "parts": {
+      "restGap": {
+        "ara11rof": 0.1826,
+        "avfigh": 0.3
+      },
+      "ownerBodyGap": 0.047,
+      "gunLines": {
+        "ARA11Gc1": null,
+        "ARA11Gc2": null,
+        "ARA11Gs1": null
+      },
+      "sweepDegrees": 23.0,
+      "sweepGap": {
+        "ARA11rof": 0.1727,
+        "ARA11ROR": 0.2,
+        "ARA11NRL": 0.2,
+        "ARA11NRR": 0.2
+      },
+      "lineOfFireCrossedBy": {
+        "ARA11rof": [
+          -23.0,
+          -18.0,
+          6
+        ]
+      }
+    }
+  },
+  "meshSha256": "fb4e33681689d7f75bf937eee477b16edefabeb5a7c081c6283b040cedb11f2f"
+}

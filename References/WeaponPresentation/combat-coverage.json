@@ -1,9 +1,9 @@
 {
   "totals": {
-    "slots": 268,
-    "recoil_slots": 198,
-    "flash_slots": 189,
-    "casing_slots": 115
+    "slots": 298,
+    "recoil_slots": 225,
+    "flash_slots": 219,
+    "casing_slots": 145
   },
   "units": {
     "abtowe": {
@@ -153,9 +153,9 @@
           "recoil_distance": 0.3,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.2,
-            0.1,
-            2.41
+            0.04,
+            0.0,
+            0.0
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "medium",
@@ -169,7 +169,7 @@
           "recoil_distance": null,
           "recoil_effective_kick": null,
           "flash_offset": null,
-          "flash_status": "parent AGR11BDA is not a barrel node and the hardpoint is 0.41 m behind its front geometry",
+          "flash_status": "visible tip is -0.00 m from the hardpoint (under 0.1 m)",
           "casing_type": "small",
           "casing_status": "estimated native breech; model port fitting pending",
           "runtime": "accepted-shot path; live validation pending"
@@ -212,9 +212,9 @@
           "recoil_distance": 0.025,
           "recoil_effective_kick": 0.25,
           "flash_offset": [
-            -0.0235,
-            -0.2438,
-            -1.4077
+            -0.0255,
+            0.08,
+            0.048
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -228,9 +228,9 @@
           "recoil_distance": 0.025,
           "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0274,
-            -0.2453,
-            -1.4118
+            0.0265,
+            0.08,
+            0.048
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -251,9 +251,9 @@
           "recoil_distance": 0.025,
           "recoil_effective_kick": 0.25,
           "flash_offset": [
-            -0.0235,
-            -0.2438,
-            -1.4077
+            -0.0255,
+            0.08,
+            0.048
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -267,9 +267,9 @@
           "recoil_distance": 0.025,
           "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.0274,
-            -0.2453,
-            -1.4118
+            0.0265,
+            0.08,
+            0.048
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -671,9 +671,9 @@
           "recoil_distance": 0.3,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.2,
-            0.1,
-            2.41
+            0.04,
+            0.0,
+            0.0
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "medium",
@@ -687,7 +687,7 @@
           "recoil_distance": null,
           "recoil_effective_kick": null,
           "flash_offset": null,
-          "flash_status": "parent AGR11BDA is not a barrel node and the hardpoint is 0.41 m behind its front geometry",
+          "flash_status": "visible tip is -0.00 m from the hardpoint (under 0.1 m)",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
@@ -718,9 +718,9 @@
           "recoil_distance": 0.3,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.2,
-            0.1,
-            2.41
+            0.04,
+            0.0,
+            0.0
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "medium",
@@ -734,7 +734,7 @@
           "recoil_distance": null,
           "recoil_effective_kick": null,
           "flash_offset": null,
-          "flash_status": "parent AGR11BDA is not a barrel node and the hardpoint is 0.41 m behind its front geometry",
+          "flash_status": "visible tip is -0.00 m from the hardpoint (under 0.1 m)",
           "casing_type": "small",
           "casing_status": "estimated native breech; model port fitting pending",
           "runtime": "accepted-shot path; live validation pending"
@@ -826,15 +826,15 @@
       "model": "avturr",
       "slots": {
         "1": {
-          "weapon": "gtminig",
+          "weapon": "gtmgav2",
           "hardpoint": "GC1",
           "recoil_node": "aDE11blc",
           "recoil_distance": 0.08,
           "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.69,
-            0.38,
-            0.27
+            -0.04,
+            -0.04,
+            0.0
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -842,15 +842,47 @@
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
-          "weapon": "gtminig",
+          "weapon": "gtmgav2",
           "hardpoint": "GC2",
           "recoil_node": "aDE11blf",
           "recoil_distance": 0.08,
           "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.83,
-            0.39,
-            0.27
+            0.04,
+            -0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gtmgav2",
+          "hardpoint": "GC3",
+          "recoil_node": "aDE11bld",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.04,
+            0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gtmgav2",
+          "hardpoint": "GC4",
+          "recoil_node": "aDE11ble",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.04,
+            0.04,
+            0.0
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -865,15 +897,63 @@
       "model": "avturr",
       "slots": {
         "1": {
-          "weapon": "gtminig",
+          "weapon": "gtmgav4",
           "hardpoint": "GC1",
           "recoil_node": "aDE11blc",
           "recoil_distance": 0.08,
           "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.69,
-            0.38,
-            0.27
+            -0.04,
+            -0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gtmgav4",
+          "hardpoint": "GC2",
+          "recoil_node": "aDE11blf",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.04,
+            -0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gtmgav4",
+          "hardpoint": "GC3",
+          "recoil_node": "aDE11bld",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.04,
+            0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gtmgav4",
+          "hardpoint": "GC4",
+          "recoil_node": "aDE11ble",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.04,
+            0.04,
+            0.0
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -888,15 +968,63 @@
       "model": "avturr",
       "slots": {
         "1": {
-          "weapon": "gtminig",
+          "weapon": "gtmgav4",
           "hardpoint": "GC1",
           "recoil_node": "aDE11blc",
           "recoil_distance": 0.08,
           "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.69,
-            0.38,
-            0.27
+            -0.04,
+            -0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gtmgav4",
+          "hardpoint": "GC2",
+          "recoil_node": "aDE11blf",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.04,
+            -0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gtmgav4",
+          "hardpoint": "GC3",
+          "recoil_node": "aDE11bld",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.04,
+            0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gtmgav4",
+          "hardpoint": "GC4",
+          "recoil_node": "aDE11ble",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.04,
+            0.04,
+            0.0
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -1178,9 +1306,9 @@
         "1": {
           "weapon": "gtaggun",
           "hardpoint": "GC1",
-          "recoil_node": "bhr11bga",
-          "recoil_distance": 0.08,
-          "recoil_effective_kick": 1.0,
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
           "flash_offset": null,
           "flash_status": "visible tip is -2.03 m from the hardpoint (under -0.1 m)",
           "casing_type": "none",
@@ -1513,13 +1641,13 @@
         "1": {
           "weapon": "gtminig",
           "hardpoint": "GC1",
-          "recoil_node": "animation:cr_fire_1",
+          "recoil_node": "animation:cr_fire_2",
           "recoil_distance": 0.06,
           "recoil_effective_kick": 0.25,
           "flash_offset": [
-            -0.1542,
-            -0.2,
-            0.7547
+            0.0018,
+            0.0161,
+            -0.0036
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -1564,13 +1692,13 @@
         "1": {
           "weapon": "gspstab",
           "hardpoint": "GC1",
-          "recoil_node": "animation:cr_fire_1",
+          "recoil_node": "animation:cr_fire_2",
           "recoil_distance": 0.06,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            -0.1542,
-            -0.2,
-            0.7547
+            0.0018,
+            0.0161,
+            -0.0036
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
@@ -1603,13 +1731,13 @@
         "1": {
           "weapon": "grktbomb",
           "hardpoint": "GC1",
-          "recoil_node": "animation:cr_fire_1",
+          "recoil_node": "animation:cr_fire_2",
           "recoil_distance": 0.06,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            -0.1542,
-            -0.2,
-            0.7547
+            0.0018,
+            0.0161,
+            -0.0036
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -1642,13 +1770,13 @@
         "1": {
           "weapon": "gspstab",
           "hardpoint": "GC1",
-          "recoil_node": "animation:cr_fire_1",
+          "recoil_node": "animation:cr_fire_2",
           "recoil_distance": 0.06,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            -0.1542,
-            -0.2,
-            0.7547
+            0.0018,
+            0.0161,
+            -0.0036
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
@@ -1685,9 +1813,9 @@
           "recoil_distance": 0.3,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.2,
-            0.1,
-            2.41
+            0.04,
+            0.0,
+            0.0
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
@@ -1732,9 +1860,9 @@
           "recoil_distance": 0.3,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.2,
-            0.1,
-            2.41
+            0.04,
+            0.0,
+            0.0
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
@@ -1773,15 +1901,15 @@
       "model": "bvturr",
       "slots": {
         "1": {
-          "weapon": "gatstab",
+          "weapon": "gatsbv2",
           "hardpoint": "GC1",
           "recoil_node": "bDE11blc",
           "recoil_distance": 0.08,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.69,
-            0.38,
-            0.27
+            -0.04,
+            -0.04,
+            0.0
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "medium",
@@ -1789,15 +1917,47 @@
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
-          "weapon": "gatstab",
+          "weapon": "gatsbv2",
           "hardpoint": "GC2",
           "recoil_node": "bDE11blf",
           "recoil_distance": 0.08,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.83,
-            0.39,
-            0.27
+            0.04,
+            -0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gatsbv2",
+          "hardpoint": "GC3",
+          "recoil_node": "bDE11bld",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.04,
+            0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "medium",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gatsbv2",
+          "hardpoint": "GC4",
+          "recoil_node": "bDE11ble",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.04,
+            0.04,
+            0.0
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "medium",
@@ -1812,15 +1972,63 @@
       "model": "bvturr",
       "slots": {
         "1": {
-          "weapon": "gminigun",
+          "weapon": "gmgnbv4",
           "hardpoint": "GC1",
           "recoil_node": "bDE11blc",
           "recoil_distance": 0.08,
           "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.69,
-            0.38,
-            0.27
+            -0.04,
+            -0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gmgnbv4",
+          "hardpoint": "GC2",
+          "recoil_node": "bDE11blf",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.04,
+            -0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gmgnbv4",
+          "hardpoint": "GC3",
+          "recoil_node": "bDE11bld",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.04,
+            0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gmgnbv4",
+          "hardpoint": "GC4",
+          "recoil_node": "bDE11ble",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.04,
+            0.04,
+            0.0
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -1835,15 +2043,63 @@
       "model": "bvturr",
       "slots": {
         "1": {
-          "weapon": "gtminig",
+          "weapon": "gtmgbv4",
           "hardpoint": "GC1",
           "recoil_node": "bDE11blc",
           "recoil_distance": 0.08,
           "recoil_effective_kick": 0.25,
           "flash_offset": [
-            0.69,
-            0.38,
-            0.27
+            -0.04,
+            -0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gtmgbv4",
+          "hardpoint": "GC2",
+          "recoil_node": "bDE11blf",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.04,
+            -0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gtmgbv4",
+          "hardpoint": "GC3",
+          "recoil_node": "bDE11bld",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.04,
+            0.04,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "estimated native breech; model port fitting pending",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gtmgbv4",
+          "hardpoint": "GC4",
+          "recoil_node": "bDE11ble",
+          "recoil_distance": 0.08,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            0.04,
+            0.04,
+            0.0
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -1903,9 +2159,9 @@
           "recoil_distance": 0.07,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0358,
-            0.0632,
-            0.2901
+            -0.004,
+            0.0027,
+            0.004
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
@@ -1949,9 +2205,9 @@
           "recoil_distance": 0.07,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0358,
-            0.0632,
-            0.2901
+            -0.004,
+            0.0027,
+            0.004
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -1995,9 +2251,9 @@
           "recoil_distance": 0.07,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0358,
-            0.0632,
-            0.2901
+            -0.004,
+            0.0027,
+            0.004
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -2041,9 +2297,9 @@
           "recoil_distance": 0.07,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0358,
-            0.0632,
-            0.2901
+            -0.004,
+            0.0027,
+            0.004
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -3264,7 +3520,7 @@
       "model": "cvturr",
       "slots": {
         "1": {
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "hardpoint": "GC1",
           "recoil_node": "animation:cr_fire_1",
           "recoil_distance": 0.06,
@@ -3272,7 +3528,7 @@
           "flash_offset": [
             -0.003,
             0.0019,
-            0.2661
+            -0.0006
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -3280,7 +3536,7 @@
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "hardpoint": "GC2",
           "recoil_node": "animation:cr_fire_2",
           "recoil_distance": 0.06,
@@ -3288,7 +3544,7 @@
           "flash_offset": [
             -0.003,
             0.0128,
-            0.2661
+            -0.0006
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -3296,7 +3552,7 @@
           "runtime": "accepted-shot path; live validation pending"
         },
         "3": {
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "hardpoint": "GC3",
           "recoil_node": "animation:cr_fire_3",
           "recoil_distance": 0.06,
@@ -3304,7 +3560,7 @@
           "flash_offset": [
             0.003,
             0.0128,
-            0.2661
+            -0.0006
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -3312,7 +3568,7 @@
           "runtime": "accepted-shot path; live validation pending"
         },
         "4": {
-          "weapon": "gminigrn",
+          "weapon": "gmgrcv1",
           "hardpoint": "GC4",
           "recoil_node": "animation:cr_fire_4",
           "recoil_distance": 0.06,
@@ -3320,7 +3576,7 @@
           "flash_offset": [
             0.003,
             0.0019,
-            0.2661
+            -0.0006
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -3343,7 +3599,7 @@
           "flash_offset": [
             -0.003,
             0.0019,
-            0.2661
+            -0.0006
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -3359,7 +3615,7 @@
           "flash_offset": [
             -0.003,
             0.0128,
-            0.2661
+            -0.0006
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -3375,7 +3631,7 @@
           "flash_offset": [
             0.003,
             0.0128,
-            0.2661
+            -0.0006
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -3402,7 +3658,7 @@
       "model": "cvturr",
       "slots": {
         "1": {
-          "weapon": "gspstabb",
+          "weapon": "gspbcv2",
           "hardpoint": "GC1",
           "recoil_node": "animation:cr_fire_1",
           "recoil_distance": 0.06,
@@ -3410,7 +3666,23 @@
           "flash_offset": [
             -0.003,
             0.0019,
-            0.2661
+            -0.0006
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "fitted outboard port; companion native runtime required",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gspbcv2",
+          "hardpoint": "GC2",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.003,
+            0.0128,
+            -0.0006
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
@@ -3418,7 +3690,7 @@
           "runtime": "accepted-shot path; live validation pending"
         },
         "3": {
-          "weapon": "gspstabb",
+          "weapon": "gspbcv2",
           "hardpoint": "GC3",
           "recoil_node": "animation:cr_fire_3",
           "recoil_distance": 0.06,
@@ -3426,7 +3698,23 @@
           "flash_offset": [
             0.003,
             0.0128,
-            0.2661
+            -0.0006
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "fitted outboard port; companion native runtime required",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gspbcv2",
+          "hardpoint": "GC4",
+          "recoil_node": "animation:cr_fire_4",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.003,
+            0.0019,
+            -0.0006
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
@@ -3441,7 +3729,7 @@
       "model": "cvturr",
       "slots": {
         "1": {
-          "weapon": "gspstabc",
+          "weapon": "gspccv4",
           "hardpoint": "GC1",
           "recoil_node": "animation:cr_fire_1",
           "recoil_distance": 0.06,
@@ -3449,7 +3737,55 @@
           "flash_offset": [
             -0.003,
             0.0019,
-            0.2661
+            -0.0006
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "fitted outboard port; companion native runtime required",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gspccv4",
+          "hardpoint": "GC2",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.003,
+            0.0128,
+            -0.0006
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "fitted outboard port; companion native runtime required",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gspccv4",
+          "hardpoint": "GC3",
+          "recoil_node": "animation:cr_fire_3",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.003,
+            0.0128,
+            -0.0006
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "fitted outboard port; companion native runtime required",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "4": {
+          "weapon": "gspccv4",
+          "hardpoint": "GC4",
+          "recoil_node": "animation:cr_fire_4",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            0.003,
+            0.0019,
+            -0.0006
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
@@ -4222,9 +4558,9 @@
           "recoil_distance": 0.07,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            -0.0115,
-            0.0603,
-            1.028
+            0.0359,
+            -0.0185,
+            -0.0021
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -4257,9 +4593,9 @@
           "recoil_distance": 0.07,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            -0.0115,
-            0.0603,
-            1.028
+            0.0359,
+            -0.0185,
+            -0.0021
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -4311,9 +4647,9 @@
           "recoil_distance": 0.05,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0,
-            -0.2635,
-            1.4623
+            -0.0681,
+            -0.1595,
+            0.1136
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -4401,9 +4737,9 @@
           "recoil_distance": 0.2,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            -0.0029,
-            -0.0042,
-            3.4192
+            0.0395,
+            -0.0024,
+            -0.0003
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -4413,13 +4749,13 @@
         "2": {
           "weapon": "gminisov",
           "hardpoint": "GC2",
-          "recoil_node": "animation:cr_fire_2",
-          "recoil_distance": 0.03,
-          "recoil_effective_kick": 0.25,
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
           "flash_offset": [
-            0.0875,
-            -0.16,
-            1.901
+            -0.0405,
+            -0.0024,
+            -0.0003
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -4452,9 +4788,9 @@
           "recoil_distance": 0.2,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            -0.0029,
-            -0.0042,
-            3.4192
+            0.0395,
+            -0.0024,
+            -0.0003
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -4464,13 +4800,13 @@
         "2": {
           "weapon": "gminisov",
           "hardpoint": "GC2",
-          "recoil_node": "animation:cr_fire_2",
-          "recoil_distance": 0.03,
-          "recoil_effective_kick": 0.25,
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
           "flash_offset": [
-            0.0875,
-            -0.16,
-            1.901
+            -0.0405,
+            -0.0024,
+            -0.0003
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "small",
@@ -4503,9 +4839,9 @@
           "recoil_distance": 0.2,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            -0.0029,
-            -0.0042,
-            3.4192
+            0.0395,
+            -0.0024,
+            -0.0003
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "medium",
@@ -4515,13 +4851,13 @@
         "2": {
           "weapon": "gflashgn",
           "hardpoint": "GC2",
-          "recoil_node": "animation:cr_fire_2",
-          "recoil_distance": 0.03,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.2,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0875,
-            -0.16,
-            1.901
+            -0.0405,
+            -0.0024,
+            -0.0003
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -4566,9 +4902,9 @@
           "recoil_distance": 0.2,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            -0.0029,
-            -0.0042,
-            3.4192
+            0.0395,
+            -0.0024,
+            -0.0003
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "large",
@@ -4578,13 +4914,13 @@
         "2": {
           "weapon": "gflashgn",
           "hardpoint": "GC2",
-          "recoil_node": "animation:cr_fire_2",
-          "recoil_distance": 0.03,
+          "recoil_node": "animation:cr_fire_1",
+          "recoil_distance": 0.2,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            0.0875,
-            -0.16,
-            1.901
+            -0.0405,
+            -0.0024,
+            -0.0003
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "none",
@@ -4629,9 +4965,9 @@
           "recoil_distance": 0.2,
           "recoil_effective_kick": 1.0,
           "flash_offset": [
-            -0.0029,
-            -0.0042,
-            3.4192
+            0.0395,
+            -0.0024,
+            -0.0003
           ],
           "flash_status": "fitted; live validation pending",
           "casing_type": "medium",
@@ -4646,7 +4982,7 @@
       "model": "svturr",
       "slots": {
         "1": {
-          "weapon": "gtminis",
+          "weapon": "gtmssv15",
           "hardpoint": "GC1",
           "recoil_node": "animation:cr_fire_1",
           "recoil_distance": 0.06,
@@ -4662,7 +4998,7 @@
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
-          "weapon": "gtminis",
+          "weapon": "gtmssv15",
           "hardpoint": "GC2",
           "recoil_node": "animation:cr_fire_2",
           "recoil_distance": 0.06,
@@ -4670,6 +5006,22 @@
           "flash_offset": [
             -0.0036,
             -0.0013,
+            0.075
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "fitted outboard port; companion native runtime required",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gtmssv15",
+          "hardpoint": "GC3",
+          "recoil_node": "animation:cr_fire_3",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.0022,
+            0.0062,
             0.075
           ],
           "flash_status": "fitted; live validation pending",
@@ -4685,7 +5037,7 @@
       "model": "svturr",
       "slots": {
         "1": {
-          "weapon": "gtminis",
+          "weapon": "gtmssv3",
           "hardpoint": "GC1",
           "recoil_node": "animation:cr_fire_1",
           "recoil_distance": 0.06,
@@ -4693,6 +5045,38 @@
           "flash_offset": [
             -0.0036,
             -0.0013,
+            0.075
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "fitted outboard port; companion native runtime required",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gtmssv3",
+          "hardpoint": "GC2",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "fitted outboard port; companion native runtime required",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gtmssv3",
+          "hardpoint": "GC3",
+          "recoil_node": "animation:cr_fire_3",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.0022,
+            0.0062,
             0.075
           ],
           "flash_status": "fitted; live validation pending",
@@ -4708,7 +5092,7 @@
       "model": "svturr",
       "slots": {
         "1": {
-          "weapon": "gspstab",
+          "weapon": "gspssv3",
           "hardpoint": "GC1",
           "recoil_node": "animation:cr_fire_1",
           "recoil_distance": 0.06,
@@ -4716,6 +5100,38 @@
           "flash_offset": [
             -0.0036,
             -0.0013,
+            0.075
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "fitted outboard port; companion native runtime required",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gspssv3",
+          "hardpoint": "GC2",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "fitted outboard port; companion native runtime required",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gspssv3",
+          "hardpoint": "GC3",
+          "recoil_node": "animation:cr_fire_3",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0022,
+            0.0062,
             0.075
           ],
           "flash_status": "fitted; live validation pending",
@@ -4731,7 +5147,7 @@
       "model": "svturr",
       "slots": {
         "1": {
-          "weapon": "gspstab",
+          "weapon": "gspssv3",
           "hardpoint": "GC1",
           "recoil_node": "animation:cr_fire_1",
           "recoil_distance": 0.06,
@@ -4739,6 +5155,38 @@
           "flash_offset": [
             -0.0036,
             -0.0013,
+            0.075
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "fitted outboard port; companion native runtime required",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gspssv3",
+          "hardpoint": "GC2",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "large",
+          "casing_status": "fitted outboard port; companion native runtime required",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gspssv3",
+          "hardpoint": "GC3",
+          "recoil_node": "animation:cr_fire_3",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 1.0,
+          "flash_offset": [
+            -0.0022,
+            0.0062,
             0.075
           ],
           "flash_status": "fitted; live validation pending",
@@ -4754,7 +5202,7 @@
       "model": "svturr",
       "slots": {
         "1": {
-          "weapon": "gminigna",
+          "weapon": "gmgasv3",
           "hardpoint": "GC1",
           "recoil_node": "animation:cr_fire_1",
           "recoil_distance": 0.06,
@@ -4762,6 +5210,38 @@
           "flash_offset": [
             -0.0036,
             -0.0013,
+            0.075
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "fitted outboard port; companion native runtime required",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gmgasv3",
+          "hardpoint": "GC2",
+          "recoil_node": "animation:cr_fire_2",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.0036,
+            -0.0013,
+            0.075
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "small",
+          "casing_status": "fitted outboard port; companion native runtime required",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gmgasv3",
+          "hardpoint": "GC3",
+          "recoil_node": "animation:cr_fire_3",
+          "recoil_distance": 0.06,
+          "recoil_effective_kick": 0.25,
+          "flash_offset": [
+            -0.0022,
+            0.0062,
             0.075
           ],
           "flash_status": "fitted; live validation pending",

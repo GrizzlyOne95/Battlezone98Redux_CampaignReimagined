@@ -1,0 +1,29 @@
+{
+  "note": "Hardpoint alignment (Tools/Build-UnitAnimSlots.py apply_hardpoints). owner = the VDF part that carries the weapon geometry; parent must equal it (Tools/Test-UnitAnimSlots.py).",
+  "model": "svltnk",
+  "base": "CR@8a5c2c9a",
+  "parts": [
+    {
+      "name": "Slt11GC1",
+      "klass": 71,
+      "existing": true,
+      "was": "slt11trt",
+      "owner": "slt11trt",
+      "parent": "slt11trt",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.2427,
+        0.2255,
+        0.5728
+      ]
+    }
+  ]
+}

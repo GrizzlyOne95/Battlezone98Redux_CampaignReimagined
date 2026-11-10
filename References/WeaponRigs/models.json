@@ -7,16 +7,17 @@
     "Assets/Models/bvltnk_cockpit.mesh": "0282c78c97f7398abf545b392f2f4bea1a2726a6",
     "Assets/ModelFixes/avwalk_c.mesh": "0282c78c97f7398abf545b392f2f4bea1a2726a6",
     "Assets/ModelFixes/bvwalk_c.mesh": "0282c78c97f7398abf545b392f2f4bea1a2726a6",
-    "Assets/Models/svfigh_cockpit.mesh": "829fd9b9a4a3141b8cce851359b85504cf75174d",
-    "Assets/Models/avfigh_cockpit.mesh": "233f0e8f101e151065b2f5b6f54da3f9b4a17a82",
-    "Assets/Models/bvraz_cockpit.mesh": "233f0e8f101e151065b2f5b6f54da3f9b4a17a82",
-    "Assets/ModelFixes/avfigh.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/Models/svfigh_cockpit.mesh": "46c58bb8ca71ea7be4c4022fc54f2fcdc80743f8",
+    "Assets/Models/avfigh_cockpit.mesh": "ca785ecdaa325e09d3f204254062959dbb555719",
+    "Assets/Models/bvraz_cockpit.mesh": "ca785ecdaa325e09d3f204254062959dbb555719",
+    "Assets/ModelFixes/avfigh.mesh": "5242585dbc705f1f2492864594a2892a92692c23",
     "Assets/ModelFixes/avltnk.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
     "Assets/ModelFixes/avrckt.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
     "Assets/ModelFixes/avtest.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
     "Assets/ModelFixes/bvltnk.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
     "Assets/ModelFixes/bvraz.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
     "Assets/ModelFixes/bvrckt.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/bvrdev.mesh": "807bdc8649720fdd3f53bef3fbba82e1bac932cb",
     "Assets/ModelFixes/cvfigh.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
     "Assets/ModelFixes/cvhraz.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
     "Assets/ModelFixes/svartl.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
@@ -512,36 +513,8 @@
       "channels": [
         {
           "hardpoints": [
-            "GC1"
-          ],
-          "parent": "brd11bda",
-          "bones": [
-            "brd11bda"
-          ],
-          "pivot": [
-            0.8603079915046692,
-            0.734296977519989,
-            3.2824089527130127
-          ],
-          "lo": [
-            0.6603079915046692,
-            0.5342969775199891,
-            3.487157143117681
-          ],
-          "hi": [
-            1.0603079915046691,
-            0.934296977519989,
-            4.0571571431176805
-          ],
-          "distance": 0.06,
-          "duration": 0.12,
-          "spin": false,
-          "clip": "cr_fire_1"
-        },
-        {
-          "hardpoints": [
-            "GR1",
-            "GM1"
+            "GC1",
+            "GR1"
           ],
           "parent": "brd11tur",
           "bones": [
@@ -1569,7 +1542,8 @@
       "channels": [
         {
           "hardpoints": [
-            "GC1"
+            "GC1",
+            "GC2"
           ],
           "parent": "SCZ11BGB",
           "bones": [
@@ -1612,35 +1586,6 @@
             2.376874492841986,
             1.4966981938534787
           ]
-        },
-        {
-          "hardpoints": [
-            "GC2"
-          ],
-          "parent": "scz11bda",
-          "bones": [
-            "scz11bda"
-          ],
-          "pivot": [
-            0.03511499799787998,
-            2.2487720251083374,
-            -0.7475229501724243
-          ],
-          "lo": [
-            -0.12488500200212002,
-            2.0887720251083373,
-            0.6534611884928623
-          ],
-          "hi": [
-            0.19511499799787999,
-            2.4087720251083375,
-            1.1734611884928623
-          ],
-          "distance": 0.03,
-          "duration": 0.12,
-          "spin": false,
-          "clip": "cr_fire_2",
-          "cockpit_materials": []
         }
       ]
     },
@@ -1701,6 +1646,34 @@
           "duration": 0.12,
           "spin": false,
           "clip": "cr_fire_2"
+        },
+        {
+          "hardpoints": [
+            "GC3"
+          ],
+          "parent": "STU11BGCA",
+          "bones": [
+            "STU11BGCA"
+          ],
+          "pivot": [
+            0.9908744692802429,
+            3.970206618309021,
+            1.2900350093841553
+          ],
+          "lo": [
+            0.7508744692802429,
+            3.730206618309021,
+            0.5900350093841553
+          ],
+          "hi": [
+            1.230874469280243,
+            4.210206618309021,
+            1.3100350093841553
+          ],
+          "distance": 0.06,
+          "duration": 0.12,
+          "spin": false,
+          "clip": "cr_fire_3"
         }
       ]
     },

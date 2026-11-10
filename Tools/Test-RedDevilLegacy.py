@@ -9,6 +9,8 @@ from bcdds import bc_dds_problem
 from bzmodellibs import ogremesh_serializer as oms
 ROOT=Path(__file__).resolve().parents[1];REF=ROOT/'References/RedDevilLegacy';count=0
 spec=importlib.util.spec_from_file_location('combat',ROOT/'Tools/Build-CombatPresentation.py');combat=importlib.util.module_from_spec(spec);spec.loader.exec_module(combat)
+# The hardpoint mount kit appends one bvrdev_hpmount submesh and material block; everything else stays byte-identical.
+spec=importlib.util.spec_from_file_location('mounts',ROOT/'Tools/Build-HardpointMounts.py');mounts=importlib.util.module_from_spec(spec);spec.loader.exec_module(mounts)
 
 def check(ok,message):
     global count
@@ -27,16 +29,16 @@ for name,record in sources.items():
         if record['source'].endswith('.odf'):
             check(combat.gameplay_digest(combat.builder.odf_lines(current))==combat.gameplay_digest(combat.builder.odf_lines(baseline)),'retained gameplay definition: '+record['source'])
         else:
-            check(re.sub(r'(?m)^[ \t]*set_texture_alias ACTMap \S+\n','',current)==baseline,'retained material definition: '+record['source'])
+            check(re.sub(r'(?m)^[ \t]*set_texture_alias ACTMap \S+\n','',mounts.without_mount_material(current,'bvrdev'))==baseline,'retained material definition: '+record['source'])
     else:
         check(sha(path)==record['sha256'],'captured source: '+name)
         if record['source'].startswith('Assets/ModelFixes/'):
-            check((base_asset_path(ROOT/record['source'])).read_bytes()==base_asset_path(path).read_bytes(),'byte-identical cockpit-glass mesh, all UV/rig/geometry data')
+            check(mounts.without_mount(base_asset_path(ROOT/record['source']).read_bytes(),'bvrdev')==base_asset_path(path).read_bytes(),'byte-identical cockpit-glass mesh, all UV/rig/geometry data, plus only the hardpoint mount')
 recipe=json.loads((REF/'recipe.json').read_text());receipt=json.loads((REF/'build.json').read_text())
 master=REF/recipe['master'];target=ROOT/recipe['output']
 check(sha(master)==receipt['masterSha256'],'selected built-in ImageGen master pinned')
 check(sha(target)==receipt['sha256'],'compiled diffuse pinned')
-check(sha(ROOT/recipe['mesh'])==receipt['meshSha256'],'mesh hash retained')
+check(hashlib.sha256(mounts.without_mount(base_asset_path(ROOT/recipe['mesh']).read_bytes(),'bvrdev')).hexdigest()==receipt['meshSha256'],'mesh hash retained under the hardpoint mount')
 check(recipe['output']==receipt['output'],'exact existing diffuse resource reused')
 check(target.stat().st_size==receipt['bytes'],'texture size receipt')
 check(bc_dds_problem(base_asset_path(target).read_bytes(),*recipe['size']) is None,'BC1 legacy header and complete offline mip chain')
@@ -49,7 +51,7 @@ with Image.open(target) as im:
     actual=np.array(im.convert('RGB')).astype(float)
 check(np.abs(actual-expected).mean()<4,'compiled diffuse stays within BC1 error')
 mesh=oms.MeshSerializer(io.BytesIO((base_asset_path(ROOT/recipe['mesh'])).read_bytes())).read()
-check([s.material_name for s in mesh.submesh_list]==['bvrdev','bvrdev01','CRWX_CockpitGlass'],'existing exterior/cockpit/weather-glass submesh bindings')
+check([s.material_name for s in mesh.submesh_list]==['bvrdev','bvrdev01','CRWX_CockpitGlass','bvrdev_hpmount'],'existing exterior/cockpit/weather-glass submesh bindings, then the hardpoint mount')
 check(mesh.skeleton_name=='bvrdev.skeleton','stock skeleton resource identity')
 lock=json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'));members=[r for r in lock['files'] if r['source'].replace('\\','/')==recipe['output']]
 check(len(members)==1 and members[0]['runtime']==target.name,'existing diffuse ships once, no duplicate atlas alias')

@@ -23,6 +23,52 @@ CONFIG={
  'avhraz':dict(faction='nsdf',role='bomber',shell='ahr21bda',batch=2,material='CRV/NSDFScoutCockpit',charts=scout.CHARTS,stock='avhraz01',exterior='avhraz00',width=.98,lip=-.48,front=1.37,roof=.76,back=-.72),
  'bvhraz':dict(faction='bdog',role='bomber',shell='bhr21bda',batch=2,material='CRV/BDogScoutCockpit',charts=scout.CHARTS,stock='bvhraz01',exterior='bvhraz00',width=.98,lip=-.48,front=1.37,roof=.76,back=-.72)}
 
+# Rolling-nose envelope. Steady roll is the strafe gain rollStrafRotator[i]
+# (all_decompiled.c:194995 =0.1 rad, :195005 =0.4 rad, chosen by a unit flag at
+# :193627); cover the larger, 22.9 deg, rounded up. Clearance keeps a visible gap.
+NOSE_ROLL_DEG=23.0
+NOSE_CLEARANCE=scout.NOSE_CLEARANCE
+
+def _dot(a,b):return np.einsum('...i,...i',a,b)
+def _seg_point(a,b,p):
+    d=b-a;t=np.clip(_dot(p-a,d)/np.maximum(_dot(d,d),1e-30),0,1);return np.linalg.norm(a+d*t[...,None]-p,axis=-1)
+def _point_tri(p,t):
+    a,b,c=t[...,0,:],t[...,1,:],t[...,2,:];n=np.cross(b-a,c-a);nn=np.maximum(_dot(n,n),1e-30);dist=_dot(p-a,n)/nn;q=p-n*dist[...,None];inside=np.ones(q.shape[:-1],bool)
+    for u,v in ((a,b),(b,c),(c,a)):inside&=_dot(np.cross(v-u,q-u),n)>=0
+    edge=np.minimum(np.minimum(_seg_point(a,b,p),_seg_point(b,c,p)),_seg_point(c,a,p))
+    return np.where(inside,np.abs(dist)*np.sqrt(nn),edge)
+def _seg_seg(p1,q1,p2,q2):
+    d1=q1-p1;d2=q2-p2;r=p1-p2;a=_dot(d1,d1);e=_dot(d2,d2);f=_dot(d2,r);c=_dot(d1,r);b=_dot(d1,d2);den=a*e-b*b
+    s=np.where(den>1e-20,np.clip((b*f-c*e)/np.where(den>1e-20,den,1),0,1),0);t=(b*s+f)/np.maximum(e,1e-30)
+    s=np.where(t<0,np.clip(-c/np.maximum(a,1e-30),0,1),np.where(t>1,np.clip((b-c)/np.maximum(a,1e-30),0,1),s));t=np.clip(t,0,1)
+    return np.linalg.norm(p1+d1*s[...,None]-(p2+d2*t[...,None]),axis=-1)
+def _seg_crosses(p,q,t):
+    a,b,c=t[...,0,:],t[...,1,:],t[...,2,:];d=q-p;e1=b-a;e2=c-a;h=np.cross(d,e2);det=_dot(e1,h);ok=np.abs(det)>1e-14;inv=1/np.where(ok,det,1);s=p-a
+    u=_dot(s,h)*inv;qq=np.cross(s,e1);v=_dot(d,qq)*inv;w=_dot(e2,qq)*inv
+    return ok&(u>=0)&(v>=0)&(u+v<=1)&(w>=0)&(w<=1)
+def tri_tri(A,B):
+    """Exact distance between broadcast triangle stacks (...,3,3); 0 when they intersect."""
+    d=np.full(np.broadcast_shapes(A.shape,B.shape)[:-2],np.inf);hit=np.zeros(d.shape,bool)
+    for i in range(3):
+        j=(i+1)%3;d=np.minimum(d,_point_tri(A[...,i,:],B));d=np.minimum(d,_point_tri(B[...,i,:],A))
+        hit|=_seg_crosses(A[...,i,:],A[...,j,:],B)|_seg_crosses(B[...,i,:],B[...,j,:],A)
+        for k in range(3):l=(k+1)%3;d=np.minimum(d,_seg_seg(A[...,i,:],A[...,j,:],B[...,k,:],B[...,l,:]))
+    return np.where(hit,0.,d)
+def rotor_sweep(moving,static,pivot,axis,degrees,clearance):
+    """Per static triangle, the least distance (capped at clearance) to the moving
+    triangles rolled about pivot/axis through each angle."""
+    k=np.asarray(axis,float);k/=np.linalg.norm(k);K=np.array([[0,-k[2],k[1]],[k[2],0,-k[0]],[-k[1],k[0],0]])
+    lo=static.min(1)-clearance;hi=static.max(1)+clearance;worst=np.full(len(static),clearance)
+    for deg in degrees:
+        th=math.radians(deg);M=(moving-pivot)@(np.eye(3)+math.sin(th)*K+(1-math.cos(th))*K@K).T+pivot;mlo=M.min(1);mhi=M.max(1)
+        near=np.flatnonzero(((lo<=mhi.max(0))&(hi>=mlo.min(0))).all(1))
+        for c in range(0,len(near),64):
+            sj=near[c:c+64];si,mi=np.nonzero(((lo[sj,None]<=mhi[None])&(hi[sj,None]>=mlo[None])).all(2))
+            if len(si):np.minimum.at(worst,sj[si],tri_tri(static[sj[si]],M[mi]))
+    return worst
+
+glass_limit=scout.glass_limit
+
 def source_island(points,triangles,eligible,seed):
     """One complete welded source island, including faces split at UV seams."""
     indices=np.flatnonzero(eligible);parent={int(i):int(i) for i in indices};at={}
@@ -135,11 +181,15 @@ def geometry(source,skelpath,base,game,root):
             h.beam((sign*.91,.32,.63),(sign*1.00,.38,-.64),.038)
         h.cassette([(-.15,-.71,.64),(.15,-.71,.64),(.13,-.88,.15),(-.13,-.88,.15)],'service',.028)
     elif role=='fighter':
-        rim=[(-.72,-.38,1.07),(0,-.41,1.36),(.72,-.38,1.07),(.81,.16,.66),(.44,.53,.30),(-.44,.53,.30),(-.81,.16,.66)]
+        # The real nose (ROR, VDF class 66) rolls about its own z, which is the
+        # eye's z (HoverCraft::UpdateGimbals, all_decompiled.c:193638-193651),
+        # and its flat rear bulkhead starts at eye z 1.151. A roll keeps z, so
+        # nothing static may reach past that plane less 2.5 cm: the windscreen
+        # tip, the side fairings and the bridge used to sit inside the nose.
+        rim=[(-.72,-.38,front),(0,-.41,front),(.72,-.38,front),(.81,.16,.66),(.44,.53,.30),(-.44,.53,.30),(-.81,.16,.66)]
         h.cassette([(-.55,-.40,1.04),(.55,-.40,1.04),(.49,-.68,.72),(-.49,-.68,.72)],'console',.032)
         for sign in (-1,1):
             h.cassette([(sign*.54,-.48,.72),(sign*.70,-.46,.12),(sign*.65,-.72,-.09),(sign*.47,-.72,.48)],'switch' if sign>0 else 'service',.022)
-            h.fairing((sign*.65,-.47,1.04),(sign*1.04,-.54,1.53),.22,.18)
             h.beam((sign*.81,.16,.66),(sign*.82,.24,-.54),.030)
             # Worn knee armor and foot trays break up the former uninterrupted
             # black liner. Physical ribs/tread retain dark recesses, not glow.
@@ -175,7 +225,9 @@ def geometry(source,skelpath,base,game,root):
         h.beam((sign*width*.63,roof,front*.30),(sign*width*1.08,roof,cfg['back']),.031)
     topology=h.enclosure(cfg)
     # Closed bridge behind the selected exterior cut. No sky crack behind nose.
-    h.fairing((0,lip-.055,front),(0,lip-.18,front+.72),width*2,.12)
+    # The fighter's is only a short sill: its nose rolls just ahead of it.
+    if role=='fighter':h.fairing((0,lip-.055,front),(0,lip-.064,front+.05),width*2,.12)
+    else:h.fairing((0,lip-.055,front),(0,lip-.18,front+.72),width*2,.12)
     parts={cfg['material']:h.part()}
     # Small warning strips reuse the stock cockpit paint, without duplicating
     # its instruments or stretching a single stripe over a whole pillar.
@@ -183,6 +235,8 @@ def geometry(source,skelpath,base,game,root):
     legacy=Hardware(origin,R,{'trim':hazard})
     for sign in (-1,1):
         if role=='bomber':points=[(sign*.963,-.47,1.358),(sign*1.002,-.47,1.358),(sign*1.023,-.16,1.145),(sign*.984,-.16,1.145)]
+        # Fighter strips sit on the eye-facing front wall, not on the bridge.
+        elif role=='fighter':points=[(sign*(width-.12),lip-.03,front-.006),(sign*(width-.055),lip-.03,front-.006),(sign*(width-.055),lip-.26,front-.006),(sign*(width-.12),lip-.26,front-.006)]
         else:points=[(sign*(width-.12),lip-.018,front+.04),(sign*(width-.055),lip-.018,front+.04),(sign*(width-.055),lip-.080,front+.26),(sign*(width-.12),lip-.080,front+.26)]
         legacy.face(points)
     parts[cfg['stock']]=legacy.part()
@@ -247,6 +301,11 @@ def geometry(source,skelpath,base,game,root):
         handles={b.name:b.handle for b in s.bones()}
         local=(q-origin)@R;facing=np.einsum('ij,ij->i',np.cross(q[:,1]-q[:,0],q[:,2]-q[:,0]),origin-q[:,0])>0
         deck=facing&(local[:,:,2].min(1)>.3)&(local[:,:,1].max(1)<-.02)
+        # Owner review: the stock deck rails (|x| .15-.24 m, z .31-.95) and slats
+        # (|x| .24-.49 m, z .92-1.04) read as bars sticking out at the pilot over the
+        # front wall, with their low ends as wedges at its corners. Hide them from the
+        # cockpit view only; the centre strip and outboard edges stay.
+        ax=np.abs(local[:,:,0]);deck&=~((ax.min(1)>.14)&(ax.max(1)<.5))
         piece('native BDA deck ahead of canopy (eye-facing)',[handles['SFL11BDA']],deck)
         # The nose (ROR, VDF class 66) is the hover gimbal and the nacelles
         # (class 67) hang from it, so all three move: keep them whole, at
@@ -268,6 +327,11 @@ def geometry(source,skelpath,base,game,root):
     parts['CRV/'+base+'CombatExterior']=(np.concatenate(exterior),np.array(indices,dtype='<u2'))
     parts[cfg['material']]=h.part()
     meta=dict(base=base,role=role,pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,innerShell=topology,rim=rim,panels=h.panels,exteriorPieces=pieces,exteriorSkin=skin,nativeVdfSha256=__import__('hashlib').sha256(native).hexdigest())
+    if skin:
+        # The rolling nose keeps its eye z, so the static tub must end short of
+        # the nose's rearmost plane (less NOSE_CLEARANCE); glass is clamped to it.
+        a,b=skin[0]['vertices'];nose=np.concatenate(exterior)[a:b,:3];meta['noseClearZ']=float(((nose-origin)@R)[:,2].min()-NOSE_CLEARANCE)
+        for name in (cfg['material'],cfg['stock']):assert (((parts[name][0][:,:3]-origin)@R)[:,2]<=meta['noseClearZ']).all(),name+' reaches into the rolling nose'
     return parts,s,w,eye,shell,meta
 
 def part_bones(parts,skeleton,shell,meta):

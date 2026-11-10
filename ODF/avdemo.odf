@@ -27,7 +27,7 @@ weaponName4 = "gmdmgun"
 // Flash point from the hardpoint (right up forward, metres: barrel tip, or 0 0 0 at
 // a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
 // Regenerate: Tools/Build-WeaponFlashes.py --measure
-flashOffset1 = "0.20 0.10 2.41"
+flashOffset1 = "0.04 0.00 0.00"
 // CR CRAFT FLASH OFFSET END
 // OpenShim mesh recoil (slot 1 cannon barrel; needs Settings > Video > Muzzle Recoil).
 // Node AGR11BGA is the dedicated barrel under the turret (per VDF); metres, m/s.

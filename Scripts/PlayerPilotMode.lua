@@ -356,7 +356,7 @@ local function GetObjectiveUnits(action)
     end
 
     local result = {}
-    for h in AllObjects() do
+    for h in AllCraft() do -- IsObjectiveUnit requires IsCraft
         if IsObjectiveUnit(h) then
             result[#result + 1] = h
         end

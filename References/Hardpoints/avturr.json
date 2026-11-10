@@ -1,0 +1,97 @@
+{
+  "note": "Hardpoint alignment (Tools/Build-UnitAnimSlots.py apply_hardpoints). owner = the VDF part that carries the weapon geometry; parent must equal it (Tools/Test-UnitAnimSlots.py).",
+  "model": "avturr",
+  "base": "stock",
+  "parts": [
+    {
+      "name": "aDE11gc1",
+      "klass": 71,
+      "existing": true,
+      "was": "aDE11blc",
+      "owner": "aDE11blc",
+      "parent": "aDE11blc",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.1466,
+        -0.1468,
+        0.9208
+      ]
+    },
+    {
+      "name": "aDE11gc2",
+      "klass": 71,
+      "existing": true,
+      "was": "aDE11blf",
+      "owner": "aDE11blf",
+      "parent": "aDE11blf",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        -0.1464,
+        -0.1468,
+        0.9208
+      ]
+    },
+    {
+      "name": "aDE11gc3",
+      "klass": 71,
+      "existing": false,
+      "was": null,
+      "owner": "aDE11bld",
+      "parent": "aDE11bld",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.1466,
+        0.1462,
+        0.9208
+      ],
+      "like": "aDE11gc1"
+    },
+    {
+      "name": "aDE11gc4",
+      "klass": 71,
+      "existing": false,
+      "was": null,
+      "owner": "aDE11ble",
+      "parent": "aDE11ble",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        -0.1464,
+        0.1462,
+        0.9208
+      ],
+      "like": "aDE11gc1"
+    }
+  ]
+}

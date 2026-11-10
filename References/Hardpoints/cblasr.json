@@ -1,0 +1,29 @@
+{
+  "note": "Hardpoint alignment (Tools/Build-UnitAnimSlots.py apply_hardpoints). owner = the VDF part that carries the weapon geometry; parent must equal it (Tools/Test-UnitAnimSlots.py).",
+  "model": "cblasr",
+  "base": "stock",
+  "parts": [
+    {
+      "name": "clz11gc1",
+      "klass": 71,
+      "existing": true,
+      "was": "clz11bdd",
+      "owner": "clz11bdd",
+      "parent": "clz11bdd",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        -1.004,
+        10.05,
+        4.0
+      ]
+    }
+  ]
+}

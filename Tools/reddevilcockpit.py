@@ -118,7 +118,9 @@ def geometry(source,skeleton_path):
 
 def pub(x):return np.array(x).tolist()
 
-def mesh_bytes(parts,skeleton,world,eye,shell,skeleton_name='bvrdev_cockpit.skeleton',glass_parts=None,part_bones=None,empty_name_table=False):
+def mesh_bytes(parts,skeleton,world,eye,shell,skeleton_name='bvrdev_cockpit.skeleton',glass_parts=None,part_bones=None,empty_name_table=False,glass_limit=None):
+    # glass_limit optionally maps fitted glass positions (e.g. along their eye
+    # rays, which keeps the per-ray UVs and normals) to clear moving parts.
     # empty_name_table reproduces outputs written before the serializer
     # stopped emitting an empty submesh name table (combat cockpits).
     mesh=om.Mesh();mesh.skeleton_name=skeleton_name;mesh.write_empty_name_table=empty_name_table
@@ -151,6 +153,7 @@ def mesh_bytes(parts,skeleton,world,eye,shell,skeleton_name='bvrdev_cockpit.skel
     adapter=SimpleNamespace(submeshes=[dict(positions=d[:,:3],tris=i.reshape(-1,3),bones=np.full(len(d),shell.handle),material=name) for name,(d,i) in fit_parts.items()])
     skel=SimpleNamespace(names={b.handle:b.name for b in skeleton.bones()},world=world,parent={b.handle:b.parent.handle for b in skeleton.bones() if b.parent is not None})
     fit=cg.make_glass(adapter,skel,{})
+    if glass_limit is not None:fit.positions=glass_limit(fit.positions)
     glass=np.column_stack([fit.positions,fit.normals,fit.uvs]).astype('<f4');add('CRWX_CockpitGlass',glass,fit.tris.reshape(-1))
     points=np.concatenate([d[:,:3] for d,i in parts.values()]+[fit.positions]);lo=points.min(0);hi=points.max(0)
     mesh.aabb=om.AxisAlignedBoundingBox(*lo,*hi);mesh.bound_radius=float(np.linalg.norm(points,axis=1).max())

@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5515,
+  "count": 5652,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -699,6 +699,10 @@
       "runtime": "avfigh.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avfigh.vdf",
+      "runtime": "avfigh.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\avhaul.mesh",
       "runtime": "avhaul.mesh"
     },
@@ -709,6 +713,10 @@
     {
       "source": "Assets\\ModelFixes\\avhraz.mesh",
       "runtime": "avhraz.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avhraz.skeleton",
+      "runtime": "avhraz.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\avhraz.vdf",
@@ -767,6 +775,10 @@
       "runtime": "avtank.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avtank.skeleton",
+      "runtime": "avtank.skeleton"
+    },
+    {
       "source": "Assets\\ModelFixes\\avtank.vdf",
       "runtime": "avtank.vdf"
     },
@@ -781,6 +793,14 @@
     {
       "source": "Assets\\ModelFixes\\avturr.mesh",
       "runtime": "avturr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avturr.skeleton",
+      "runtime": "avturr.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avturr.vdf",
+      "runtime": "avturr.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\avturr_c.mesh",
@@ -927,6 +947,10 @@
       "runtime": "bvhraz.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvhraz.skeleton",
+      "runtime": "bvhraz.skeleton"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvhraz.vdf",
       "runtime": "bvhraz.vdf"
     },
@@ -963,6 +987,10 @@
       "runtime": "bvrdev.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvrdev.vdf",
+      "runtime": "bvrdev.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvrecy.mesh",
       "runtime": "bvrecy.mesh"
     },
@@ -991,12 +1019,24 @@
       "runtime": "bvtank.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvtank.skeleton",
+      "runtime": "bvtank.skeleton"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvtank.vdf",
       "runtime": "bvtank.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvturr.mesh",
       "runtime": "bvturr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvturr.skeleton",
+      "runtime": "bvturr.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvturr.vdf",
+      "runtime": "bvturr.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvturr_c.mesh",
@@ -1049,6 +1089,10 @@
     {
       "source": "Assets\\ModelFixes\\cblasr.mesh",
       "runtime": "cblasr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cblasr.vdf",
+      "runtime": "cblasr.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\cblpad.mesh",
@@ -1363,6 +1407,10 @@
       "runtime": "cvrckt.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cvrckt.vdf",
+      "runtime": "cvrckt.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvrecy.mesh",
       "runtime": "cvrecy.mesh"
     },
@@ -1389,6 +1437,10 @@
     {
       "source": "Assets\\ModelFixes\\cvturr.mesh",
       "runtime": "cvturr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvturr.vdf",
+      "runtime": "cvturr.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\cvwalk.mesh",
@@ -1797,6 +1849,10 @@
     {
       "source": "Assets\\ModelFixes\\svrckt.mesh",
       "runtime": "svrckt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svrckt.vdf",
+      "runtime": "svrckt.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\svrecy.mesh",
@@ -4099,6 +4155,22 @@
       "runtime": "avfigh_D.dds"
     },
     {
+      "source": "Assets\\Textures\\avfigh_hpmount_D.dds",
+      "runtime": "avfigh_hpmount_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avfigh_hpmount_E.dds",
+      "runtime": "avfigh_hpmount_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avfigh_hpmount_N.dds",
+      "runtime": "avfigh_hpmount_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avfigh_hpmount_S.dds",
+      "runtime": "avfigh_hpmount_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\avfigh_nacjet_D.dds",
       "runtime": "avfigh_nacjet_D.dds"
     },
@@ -4137,6 +4209,22 @@
     {
       "source": "Assets\\Textures\\avhraz01_ACT.dds",
       "runtime": "avhraz01_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avhraz_hpmount_D.dds",
+      "runtime": "avhraz_hpmount_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avhraz_hpmount_E.dds",
+      "runtime": "avhraz_hpmount_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avhraz_hpmount_N.dds",
+      "runtime": "avhraz_hpmount_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avhraz_hpmount_S.dds",
+      "runtime": "avhraz_hpmount_S.dds"
     },
     {
       "source": "Assets\\Textures\\avhraz_nacjet_D.dds",
@@ -4515,6 +4603,22 @@
       "runtime": "bvhraz01_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\bvhraz_hpmount_D.dds",
+      "runtime": "bvhraz_hpmount_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvhraz_hpmount_E.dds",
+      "runtime": "bvhraz_hpmount_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvhraz_hpmount_N.dds",
+      "runtime": "bvhraz_hpmount_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvhraz_hpmount_S.dds",
+      "runtime": "bvhraz_hpmount_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\bvhraz_nacjet_D.dds",
       "runtime": "bvhraz_nacjet_D.dds"
     },
@@ -4645,6 +4749,22 @@
     {
       "source": "Assets\\Textures\\bvrdev_d.dds",
       "runtime": "bvrdev_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrdev_hpmount_D.dds",
+      "runtime": "bvrdev_hpmount_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrdev_hpmount_E.dds",
+      "runtime": "bvrdev_hpmount_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrdev_hpmount_N.dds",
+      "runtime": "bvrdev_hpmount_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bvrdev_hpmount_S.dds",
+      "runtime": "bvrdev_hpmount_S.dds"
     },
     {
       "source": "Assets\\Textures\\bvrecy00_ACT.dds",
@@ -5639,6 +5759,10 @@
       "runtime": "crteam_avfigh_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_avfigh_hpmount_d.dds",
+      "runtime": "crteam_avfigh_hpmount_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_avfigh_nacjet_d.dds",
       "runtime": "crteam_avfigh_nacjet_d.dds"
     },
@@ -5649,6 +5773,10 @@
     {
       "source": "Assets\\Textures\\crteam_avhraz_d.dds",
       "runtime": "crteam_avhraz_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avhraz_hpmount_d.dds",
+      "runtime": "crteam_avhraz_hpmount_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_avhraz_nacjet_d.dds",
@@ -5751,6 +5879,10 @@
       "runtime": "crteam_bvhraz_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_bvhraz_hpmount_d.dds",
+      "runtime": "crteam_bvhraz_hpmount_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_bvhraz_nacjet_d.dds",
       "runtime": "crteam_bvhraz_nacjet_d.dds"
     },
@@ -5797,6 +5929,10 @@
     {
       "source": "Assets\\Textures\\crteam_bvrdev_d.dds",
       "runtime": "crteam_bvrdev_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_bvrdev_hpmount_d.dds",
+      "runtime": "crteam_bvrdev_hpmount_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_bvrecy_d.dds",
@@ -7303,6 +7439,10 @@
       "runtime": "openshim_europa_auto_chmisn07_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_europa_auto_chmisn07_control2.png",
+      "runtime": "openshim_europa_auto_chmisn07_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_europa_auto_layer0.png",
       "runtime": "openshim_europa_auto_layer0.png"
     },
@@ -7335,20 +7475,68 @@
       "runtime": "openshim_europa_auto_layer3_n.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_europa_auto_layer4.png",
+      "runtime": "openshim_europa_auto_layer4.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_europa_auto_layer4_n.png",
+      "runtime": "openshim_europa_auto_layer4_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_europa_auto_layer5.png",
+      "runtime": "openshim_europa_auto_layer5.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_europa_auto_layer5_n.png",
+      "runtime": "openshim_europa_auto_layer5_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_europa_auto_layer6.png",
+      "runtime": "openshim_europa_auto_layer6.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_europa_auto_layer6_n.png",
+      "runtime": "openshim_europa_auto_layer6_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_europa_auto_layer7.png",
+      "runtime": "openshim_europa_auto_layer7.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_europa_auto_layer7_n.png",
+      "runtime": "openshim_europa_auto_layer7_n.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_europa_auto_misn12_control.png",
       "runtime": "openshim_europa_auto_misn12_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_europa_auto_misn12_control2.png",
+      "runtime": "openshim_europa_auto_misn12_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_europa_auto_misn12_stock_control.png",
       "runtime": "openshim_europa_auto_misn12_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_europa_auto_misn12_stock_control2.png",
+      "runtime": "openshim_europa_auto_misn12_stock_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_europa_auto_misn13_control.png",
       "runtime": "openshim_europa_auto_misn13_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_europa_auto_misn13_control2.png",
+      "runtime": "openshim_europa_auto_misn13_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_europa_auto_misn13_stock_control.png",
       "runtime": "openshim_europa_auto_misn13_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_europa_auto_misn13_stock_control2.png",
+      "runtime": "openshim_europa_auto_misn13_stock_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_ganymede_auto_bdmisn01_control.png",
@@ -7591,36 +7779,100 @@
       "runtime": "openshim_io_auto_layer3_n.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_io_auto_layer4.png",
+      "runtime": "openshim_io_auto_layer4.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_io_auto_layer4_n.png",
+      "runtime": "openshim_io_auto_layer4_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_io_auto_layer5.png",
+      "runtime": "openshim_io_auto_layer5.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_io_auto_layer5_n.png",
+      "runtime": "openshim_io_auto_layer5_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_io_auto_layer6.png",
+      "runtime": "openshim_io_auto_layer6.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_io_auto_layer6_n.png",
+      "runtime": "openshim_io_auto_layer6_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_io_auto_layer7.png",
+      "runtime": "openshim_io_auto_layer7.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_io_auto_layer7_n.png",
+      "runtime": "openshim_io_auto_layer7_n.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_io_auto_misn10_control.png",
       "runtime": "openshim_io_auto_misn10_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_io_auto_misn10_control2.png",
+      "runtime": "openshim_io_auto_misn10_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_io_auto_misn10_stock_control.png",
       "runtime": "openshim_io_auto_misn10_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_io_auto_misn10_stock_control2.png",
+      "runtime": "openshim_io_auto_misn10_stock_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_io_auto_misn11_control.png",
       "runtime": "openshim_io_auto_misn11_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_io_auto_misn11_control2.png",
+      "runtime": "openshim_io_auto_misn11_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_io_auto_misn11_stock_control.png",
       "runtime": "openshim_io_auto_misn11_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_io_auto_misn11_stock_control2.png",
+      "runtime": "openshim_io_auto_misn11_stock_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_io_auto_misns3_control.png",
       "runtime": "openshim_io_auto_misns3_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_io_auto_misns3_control2.png",
+      "runtime": "openshim_io_auto_misns3_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_io_auto_misns3_stock_control.png",
       "runtime": "openshim_io_auto_misns3_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_io_auto_misns3_stock_control2.png",
+      "runtime": "openshim_io_auto_misns3_stock_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_io_auto_misns4_control.png",
       "runtime": "openshim_io_auto_misns4_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_io_auto_misns4_control2.png",
+      "runtime": "openshim_io_auto_misns4_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_io_auto_misns4_stock_control.png",
       "runtime": "openshim_io_auto_misns4_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_io_auto_misns4_stock_control2.png",
+      "runtime": "openshim_io_auto_misns4_stock_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_mars_auto_layer0.png",
@@ -7683,6 +7935,10 @@
       "runtime": "openshim_moon_auto_crsetup_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_moon_auto_crsetup_control2.png",
+      "runtime": "openshim_moon_auto_crsetup_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_moon_auto_layer0.png",
       "runtime": "openshim_moon_auto_layer0.png"
     },
@@ -7715,28 +7971,100 @@
       "runtime": "openshim_moon_auto_layer3_n.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_moon_auto_layer4.png",
+      "runtime": "openshim_moon_auto_layer4.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_moon_auto_layer4_n.png",
+      "runtime": "openshim_moon_auto_layer4_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_moon_auto_layer5.png",
+      "runtime": "openshim_moon_auto_layer5.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_moon_auto_layer5_n.png",
+      "runtime": "openshim_moon_auto_layer5_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_moon_auto_layer6.png",
+      "runtime": "openshim_moon_auto_layer6.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_moon_auto_layer6_n.png",
+      "runtime": "openshim_moon_auto_layer6_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_moon_auto_layer7.png",
+      "runtime": "openshim_moon_auto_layer7.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_moon_auto_layer7_n.png",
+      "runtime": "openshim_moon_auto_layer7_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_moon_auto_misn01_control.png",
+      "runtime": "openshim_moon_auto_misn01_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_moon_auto_misn01_control2.png",
+      "runtime": "openshim_moon_auto_misn01_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_moon_auto_misn01_stock_control.png",
       "runtime": "openshim_moon_auto_misn01_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_moon_auto_misn01_stock_control2.png",
+      "runtime": "openshim_moon_auto_misn01_stock_control2.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_moon_auto_misn02_control.png",
+      "runtime": "openshim_moon_auto_misn02_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_moon_auto_misn02_control2.png",
+      "runtime": "openshim_moon_auto_misn02_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_moon_auto_misn02_stock_control.png",
       "runtime": "openshim_moon_auto_misn02_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_moon_auto_misn02_stock_control2.png",
+      "runtime": "openshim_moon_auto_misn02_stock_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_moon_auto_misn02b_control.png",
       "runtime": "openshim_moon_auto_misn02b_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_moon_auto_misn02b_control2.png",
+      "runtime": "openshim_moon_auto_misn02b_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_moon_auto_misn02b_stock_control.png",
       "runtime": "openshim_moon_auto_misn02b_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_moon_auto_misn02b_stock_control2.png",
+      "runtime": "openshim_moon_auto_misn02b_stock_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_moon_auto_misn03_control.png",
       "runtime": "openshim_moon_auto_misn03_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_moon_auto_misn03_control2.png",
+      "runtime": "openshim_moon_auto_misn03_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_moon_auto_misn03_stock_control.png",
       "runtime": "openshim_moon_auto_misn03_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_moon_auto_misn03_stock_control2.png",
+      "runtime": "openshim_moon_auto_misn03_stock_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_titan_auto_layer0.png",
@@ -7771,72 +8099,172 @@
       "runtime": "openshim_titan_auto_layer3_n.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_titan_auto_layer4.png",
+      "runtime": "openshim_titan_auto_layer4.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_layer4_n.png",
+      "runtime": "openshim_titan_auto_layer4_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_layer5.png",
+      "runtime": "openshim_titan_auto_layer5.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_layer5_n.png",
+      "runtime": "openshim_titan_auto_layer5_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_layer6.png",
+      "runtime": "openshim_titan_auto_layer6.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_layer6_n.png",
+      "runtime": "openshim_titan_auto_layer6_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_layer7.png",
+      "runtime": "openshim_titan_auto_layer7.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_layer7_n.png",
+      "runtime": "openshim_titan_auto_layer7_n.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_titan_auto_misn14_control.png",
       "runtime": "openshim_titan_auto_misn14_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misn14_control2.png",
+      "runtime": "openshim_titan_auto_misn14_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_titan_auto_misn14_stock_control.png",
       "runtime": "openshim_titan_auto_misn14_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_titan_auto_misn14_stock_control2.png",
+      "runtime": "openshim_titan_auto_misn14_stock_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_titan_auto_misn15_control.png",
       "runtime": "openshim_titan_auto_misn15_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misn15_control2.png",
+      "runtime": "openshim_titan_auto_misn15_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_titan_auto_misn15_stock_control.png",
       "runtime": "openshim_titan_auto_misn15_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_titan_auto_misn15_stock_control2.png",
+      "runtime": "openshim_titan_auto_misn15_stock_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_titan_auto_misn15b_stock_control.png",
       "runtime": "openshim_titan_auto_misn15b_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misn15b_stock_control2.png",
+      "runtime": "openshim_titan_auto_misn15b_stock_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_titan_auto_misn16_control.png",
       "runtime": "openshim_titan_auto_misn16_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_titan_auto_misn16_control2.png",
+      "runtime": "openshim_titan_auto_misn16_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_titan_auto_misn16_stock_control.png",
       "runtime": "openshim_titan_auto_misn16_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misn16_stock_control2.png",
+      "runtime": "openshim_titan_auto_misn16_stock_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_titan_auto_misn16b_control.png",
       "runtime": "openshim_titan_auto_misn16b_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_titan_auto_misn16b_control2.png",
+      "runtime": "openshim_titan_auto_misn16b_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_titan_auto_misn16b_stock_control.png",
       "runtime": "openshim_titan_auto_misn16b_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misn16b_stock_control2.png",
+      "runtime": "openshim_titan_auto_misn16b_stock_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_titan_auto_misns5_control.png",
       "runtime": "openshim_titan_auto_misns5_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns5_control2.png",
+      "runtime": "openshim_titan_auto_misns5_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_titan_auto_misns5_stock_control.png",
       "runtime": "openshim_titan_auto_misns5_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns5_stock_control2.png",
+      "runtime": "openshim_titan_auto_misns5_stock_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_titan_auto_misns6_control.png",
       "runtime": "openshim_titan_auto_misns6_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns6_control2.png",
+      "runtime": "openshim_titan_auto_misns6_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_titan_auto_misns6_stock_control.png",
       "runtime": "openshim_titan_auto_misns6_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns6_stock_control2.png",
+      "runtime": "openshim_titan_auto_misns6_stock_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_titan_auto_misns7_control.png",
       "runtime": "openshim_titan_auto_misns7_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns7_control2.png",
+      "runtime": "openshim_titan_auto_misns7_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_titan_auto_misns7_stock_control.png",
       "runtime": "openshim_titan_auto_misns7_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns7_stock_control2.png",
+      "runtime": "openshim_titan_auto_misns7_stock_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_titan_auto_misns8_control.png",
       "runtime": "openshim_titan_auto_misns8_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns8_control2.png",
+      "runtime": "openshim_titan_auto_misns8_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_titan_auto_misns8_stock_control.png",
       "runtime": "openshim_titan_auto_misns8_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_titan_auto_misns8_stock_control2.png",
+      "runtime": "openshim_titan_auto_misns8_stock_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_venus_auto_layer0.png",
@@ -7871,44 +8299,116 @@
       "runtime": "openshim_venus_auto_layer3_n.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_venus_auto_layer4.png",
+      "runtime": "openshim_venus_auto_layer4.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_layer4_n.png",
+      "runtime": "openshim_venus_auto_layer4_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_layer5.png",
+      "runtime": "openshim_venus_auto_layer5.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_layer5_n.png",
+      "runtime": "openshim_venus_auto_layer5_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_layer6.png",
+      "runtime": "openshim_venus_auto_layer6.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_layer6_n.png",
+      "runtime": "openshim_venus_auto_layer6_n.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_layer7.png",
+      "runtime": "openshim_venus_auto_layer7.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_layer7_n.png",
+      "runtime": "openshim_venus_auto_layer7_n.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_venus_auto_misn07_control.png",
       "runtime": "openshim_venus_auto_misn07_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misn07_control2.png",
+      "runtime": "openshim_venus_auto_misn07_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_venus_auto_misn07_stock_control.png",
       "runtime": "openshim_venus_auto_misn07_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_venus_auto_misn07_stock_control2.png",
+      "runtime": "openshim_venus_auto_misn07_stock_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_venus_auto_misn08_control.png",
       "runtime": "openshim_venus_auto_misn08_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misn08_control2.png",
+      "runtime": "openshim_venus_auto_misn08_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_venus_auto_misn08_stock_control.png",
       "runtime": "openshim_venus_auto_misn08_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_venus_auto_misn08_stock_control2.png",
+      "runtime": "openshim_venus_auto_misn08_stock_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_venus_auto_misn09_control.png",
       "runtime": "openshim_venus_auto_misn09_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misn09_control2.png",
+      "runtime": "openshim_venus_auto_misn09_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_venus_auto_misn09_stock_control.png",
       "runtime": "openshim_venus_auto_misn09_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_venus_auto_misn09_stock_control2.png",
+      "runtime": "openshim_venus_auto_misn09_stock_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_venus_auto_misns1_control.png",
       "runtime": "openshim_venus_auto_misns1_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns1_control2.png",
+      "runtime": "openshim_venus_auto_misns1_control2.png"
     },
     {
       "source": "Assets\\Textures\\openshim_venus_auto_misns1_stock_control.png",
       "runtime": "openshim_venus_auto_misns1_stock_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns1_stock_control2.png",
+      "runtime": "openshim_venus_auto_misns1_stock_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_venus_auto_misns2_control.png",
       "runtime": "openshim_venus_auto_misns2_control.png"
     },
     {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns2_control2.png",
+      "runtime": "openshim_venus_auto_misns2_control2.png"
+    },
+    {
       "source": "Assets\\Textures\\openshim_venus_auto_misns2_stock_control.png",
       "runtime": "openshim_venus_auto_misns2_stock_control.png"
+    },
+    {
+      "source": "Assets\\Textures\\openshim_venus_auto_misns2_stock_control2.png",
+      "runtime": "openshim_venus_auto_misns2_stock_control2.png"
     },
     {
       "source": "Assets\\Textures\\ordnanceTextured_ACT.dds",
@@ -15515,6 +16015,10 @@
       "runtime": "gammoa.odf"
     },
     {
+      "source": "ODF\\gatsbv2.odf",
+      "runtime": "gatsbv2.odf"
+    },
+    {
       "source": "ODF\\gatstab.odf",
       "runtime": "gatstab.odf"
     },
@@ -15663,6 +16167,18 @@
       "runtime": "gmdmgun.odf"
     },
     {
+      "source": "ODF\\gmgasv3.odf",
+      "runtime": "gmgasv3.odf"
+    },
+    {
+      "source": "ODF\\gmgnbv4.odf",
+      "runtime": "gmgnbv4.odf"
+    },
+    {
+      "source": "ODF\\gmgrcv1.odf",
+      "runtime": "gmgrcv1.odf"
+    },
+    {
       "source": "ODF\\gminigna.odf",
       "runtime": "gminigna.odf"
     },
@@ -15763,6 +16279,14 @@
       "runtime": "gsnipe.odf"
     },
     {
+      "source": "ODF\\gspbcv2.odf",
+      "runtime": "gspbcv2.odf"
+    },
+    {
+      "source": "ODF\\gspccv4.odf",
+      "runtime": "gspccv4.odf"
+    },
+    {
       "source": "ODF\\gsplint.odf",
       "runtime": "gsplint.odf"
     },
@@ -15777,6 +16301,10 @@
     {
       "source": "ODF\\gsplintr.odf",
       "runtime": "gsplintr.odf"
+    },
+    {
+      "source": "ODF\\gspssv3.odf",
+      "runtime": "gspssv3.odf"
     },
     {
       "source": "ODF\\gspstab.odf",
@@ -15819,6 +16347,18 @@
       "runtime": "gtechno.odf"
     },
     {
+      "source": "ODF\\gtmgav2.odf",
+      "runtime": "gtmgav2.odf"
+    },
+    {
+      "source": "ODF\\gtmgav4.odf",
+      "runtime": "gtmgav4.odf"
+    },
+    {
+      "source": "ODF\\gtmgbv4.odf",
+      "runtime": "gtmgbv4.odf"
+    },
+    {
       "source": "ODF\\gtminig.odf",
       "runtime": "gtminig.odf"
     },
@@ -15833,6 +16373,14 @@
     {
       "source": "ODF\\gtminisa.odf",
       "runtime": "gtminisa.odf"
+    },
+    {
+      "source": "ODF\\gtmssv15.odf",
+      "runtime": "gtmssv15.odf"
+    },
+    {
+      "source": "ODF\\gtmssv3.odf",
+      "runtime": "gtmssv3.odf"
     },
     {
       "source": "ODF\\gtsmoke.odf",
