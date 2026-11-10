@@ -59,6 +59,26 @@ CONFIG = {
 WING = dict(CONFIG['avfigh'], at=(-1.4, .95, -1.45), normal=(-.29, .93, -.23))
 
 
+def without_mount(blob, unit):
+    """Mesh bytes with the unit's trailing <unit>_hpmount submesh removed (toolkit round trip), so
+    contracts that pin a unit's pre-mount mesh byte-for-byte can still check every original byte."""
+    import io
+    mesh = nj.oms.MeshSerializer(io.BytesIO(blob)).read()
+    names = [s.material_name for s in mesh.submesh_list]
+    assert names.count(f'{unit}_hpmount') == 1 and names[-1] == f'{unit}_hpmount', names
+    mesh.submesh_list.pop()
+    out = io.BytesIO(); nj.oms.MeshSerializer(out).write(mesh)
+    return out.getvalue()
+
+
+def without_mount_material(text, unit):
+    """Material script text with the unit's appended `material <unit>_hpmount` block removed."""
+    import re
+    stripped, n = re.subn(rf'(?m)^material {unit}_hpmount : \S+\n\{{[^{{}}]*\}}\n*', '', text)
+    assert n == 1, f'{unit}_hpmount material block'
+    return stripped
+
+
 def piece(name, cache={}):
     """The kit piece in its own frame (Tools/hardpointmount_blender.py), built once per run."""
     if name not in cache:
