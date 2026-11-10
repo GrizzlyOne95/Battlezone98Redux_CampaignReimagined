@@ -1765,6 +1765,33 @@ to the ordinary GOG development mod.
 - `avfigh00` carried stock Redux's one-off `$ambient "0.2 0.2 0.2"` (279 of 281 stock
   materials use `1 1 1`); it is now `1 1 1` like the other units. The Livewire
   `SX_tint_*` materials (`Materials/sxtint.material`) inherit it, so they brighten too.
+- Flame parts reach the shipped VDFs only through `Tools/Build-UnitAnimSlots.py`: it applies
+  each `References/NacelleJets/<unit>/build.json` `vdfParts` (class 75, under its nacelle;
+  matrix = right, up, front, position) and any listed `nacelles` (class 67) on top of the
+  stock VDF. Do not write VDFs anywhere else. `Tools/Test-UnitAnimSlots.py` checks every
+  recorded part and fails a file whose class 75 parts leave a class 67 nacelle unflamed.
+- One class 75 part in a VDF turns off every engine-made class 67 emitter (BZ 1.5 decompile
+  `all_decompiled.c` 193771-193821; auto emitters 193458-193491). A class 75 part flames
+  along its own front axis (255588-255605). So moving one flame means recording all of them.
+  The Redux exe is not decompile-checked (UNVERIFIED there).
+- svtank pod prototype: wing pods `scz11wgl/r` are class 67 with `SCZ11FLL/R` flames (front
+  -Z); ODF nacelle pitch 0.10 run / 0.12 jump. Feel is UNVERIFIED in game. A deliberate ODF
+  change like this needs its `References/WeaponPresentation/craft-gameplay-baselines.json`
+  entry updated.
+- A housing stage invalidates every receipt that pins that exterior, not only the scout
+  cockpits: `sources.exteriorSha256` in the AVRocket, BomberRocket, CVBomber, CVFighter,
+  Combat and Tank cockpit receipts, and `combat-model-evidence.json`
+  (`Tools/Build-CombatPresentation.py --verify-models`). Combat and Tank builders reproduce
+  their outputs; re-run them, then re-rig. AVRocket, BomberRocket, CVBomber and CVFighter
+  builders no longer reproduce their committed outputs (later hand-tuned normal/ACT
+  aliases), so repin only `exteriorSha256` to the sha of the pinned pre-rig stage
+  (`weaponrigs.base_asset_path`); re-running them regresses those materials.
+- `Build-LightTankCockpits.py` writes `Assets/ModelFixes/{a,b}vltnk.mesh` itself. The housing
+  stage sits on top of that output, so re-running it drops the housings: re-run
+  `Build-NacelleJets.py --ship` and the rig afterwards. `Test-LightTankCockpits.py` checks
+  the housing receipt's `baseRevision` holds the pinned output.
+- `-bless` with unrelated unblessed tracked files present: move them outside the tree, bless,
+  move them back (do not hand-edit `Shipping/shipping.lock.json`).
 
 ### Enhanced light budget and recovered archive work (2026-11-10)
 

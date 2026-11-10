@@ -18,6 +18,15 @@ def sha(path):
     data=base_asset_path(path).read_bytes()
     return hashlib.sha256(data.replace(b'\r\n',b'\n') if path.suffix=='.material' else data).hexdigest()
 
+def housing(base):
+    """Thruster-housing stage (Build-NacelleJets --ship) appended after this builder, or None."""
+    path=ROOT/'References/NacelleJets'/base/'build.json'
+    return json.loads(path.read_text()) if path.exists() else None
+
+def committed_sha(revision,path):
+    import subprocess
+    return hashlib.sha256(subprocess.run(['git','show',revision+':'+path],cwd=ROOT,capture_output=True,check=True).stdout).hexdigest()
+
 def shell_triangles(mesh,handle):
     result=[]
     for sub in mesh.submesh_list:
@@ -33,8 +42,14 @@ for base,cfg in cp.CONFIG.items():
     receipt=json.loads((REF/base/'build.json').read_text());meta=receipt['alignment'];skel=ROOT/'Assets/Models'/(base+'_cockpit.skeleton');source=ROOT/receipt['sources']['baseline'];original=cp.shared.read_mesh(base_asset_path(source))
     check(sha(source)==receipt['sources']['exteriorSha256'],'original source/fallback preserved')
     check(sha(skel)==receipt['sources']['skeletonSha256'],'full stock rig bytes preserved')
+    jets=housing(base)
     for path,digest in receipt['outputs'].items():
-        check(sha(ROOT/path)==digest,'pinned compiled output '+path)
+        if jets and path=='Assets/ModelFixes/'+base+'.mesh':
+            # The housing stage is built on this output: its input is the pinned output, its result is the rig stage.
+            check(committed_sha(jets['baseRevision'],path)==digest,'housing stage built on the pinned output '+path)
+            check(sha(ROOT/path)==jets['stageMesh'],'rig stage is the recorded housing stage '+path)
+        else:
+            check(sha(ROOT/path)==digest,'pinned compiled output '+path)
         check(members.get(path)==Path(path).name,'case-correct shipping resource '+path)
     s,w,eye,shell=cp.shared.rig(skel,cfg['shell']);w=cp.tank.raw_world(w);origin,R=w[eye.handle]
     check(np.allclose(origin,[-.0997999981045723,1.46069997549057,.1421000063419342],atol=1e-9),'actual unchanged POV position')
@@ -64,7 +79,8 @@ for base,cfg in cp.CONFIG.items():
     check(np.array_equal(data[:,6:8],raw[:,6:8]),'original faction framing UVs unchanged')
     check(np.allclose(data[:,3:6],raw[:,3:6],atol=1e-7),'original framing normals unchanged')
     check(np.array_equal(meta['exteriorTransform'],np.eye(4)),'no framing fit, rotation or scale')
-    full=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/ModelFixes'/(base+'.mesh')));check(full.skeleton_name==original.skeleton_name and len(full.submesh_list)==len(original.submesh_list)+1,'full vehicle adds only a paint batch, keeps native rig reference')
+    full=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/ModelFixes'/(base+'.mesh')));extra=1+bool(jets and full.submesh_list[-1].material_name==jets['material'])
+    check(full.skeleton_name==original.skeleton_name and len(full.submesh_list)==len(original.submesh_list)+extra,'full vehicle adds only a paint batch (and the housing batch), keeps native rig reference')
     for a,b in zip(original.submesh_list,full.submesh_list):
         check(a.material_name==b.material_name and np.array_equal(a.index_array,b.index_array),'full vehicle original material and connectivity preserved')
         for sem in (cp.shared.om.VES.POSITION,cp.shared.om.VES.NORMAL,cp.shared.om.VES.TEXTURE_COORDINATES,cp.shared.om.VES.TANGENT):
