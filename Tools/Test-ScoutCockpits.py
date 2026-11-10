@@ -6,6 +6,7 @@ import numpy as np
 from PIL import Image
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import scoutcockpits as cp
+import combatcockpits as combat
 import cockpitglass as cg
 from bcdds import bc_dds_problem
 ROOT=Path(__file__).resolve().parents[1];REF=ROOT/'References/ScoutCockpits';count=0
@@ -72,6 +73,10 @@ for faction,cfg in cp.CONFIG.items():
     check(np.allclose(axis,[0,0,1],atol=1e-4),'nose rolls about the cockpit forward axis')
     rolled=[(rear-pivot)@cp.roll_matrix(axis,a).T+pivot for a in np.radians(np.linspace(-cp.ROLL_DEG,cp.ROLL_DEG,49))]
     check(cp.ROLL_DEG>=5.74 and all(inside(q) for r in rolled for q in r[:,:2]),'nose cap covers the rear rim at every roll to +-%.1f deg'%cp.ROLL_DEG)
+    # The static weather glass must keep NOSE_CLEARANCE from the nose at every roll.
+    subs={x.material_name:x for x in mesh.submesh_list};tris=lambda name:local[name][subs[name].index_array.reshape(-1,3)]
+    gap=combat.rotor_sweep(tris(cfg['nose']),tris('CRWX_CockpitGlass'),pivot,axis,np.linspace(-cp.ROLL_DEG,cp.ROLL_DEG,13),cp.NOSE_CLEARANCE)
+    check((gap>=cp.NOSE_CLEARANCE-1e-4).all(),'weather glass clears the rolling nose by %.3f m to +-%.1f deg: %d glass triangles closer'%(cp.NOSE_CLEARANCE,cp.ROLL_DEG,(gap<cp.NOSE_CLEARANCE-1e-4).sum()))
     cap_last=len(mesh.submesh_list[0].index_array)//3;cap_first=cap_last-cap['triangles'];u,v=np.meshgrid(np.linspace(.05,.95,12),np.linspace(.05,.95,12));grid=capv[:,:2].min(0)+np.column_stack([u.ravel(),v.ravel()])*(capv[:,:2].max(0)-capv[:,:2].min(0))
     # From the stock eye the tub was fitted to, and the raised in-game eye, the tub sill
     # hides most of the bulkhead. Neither eye may ever see into the open nose.

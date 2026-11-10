@@ -49,7 +49,7 @@ def units(game,bases):
         cfg=cp.CONFIG[base];source=base_asset_path(ROOT/'Assets/ModelFixes'/(base+'.mesh'));stock=next((game/'BZ_ASSETS/common/models').rglob(base+'.skeleton'));ref=REF/base;ref.mkdir(exist_ok=True)
         # The cockpit rig is the stock rig, with only a CR-moved POV bone changed (eyeoverrides).
         skel=ROOT/'Assets/Models'/(base+'_cockpit.skeleton');skel.write_bytes(eyeoverrides.patch_skeleton(base,stock.read_bytes()))
-        parts,s,w,eye,shell,meta=cp.geometry(source,skel,base,game,ROOT);model,glass=cp.shared.mesh_bytes(parts,s,w,eye,shell,skeleton_name=base+'_cockpit.skeleton',glass_parts=cp.glass_parts(parts,meta),part_bones=cp.part_bones(parts,s,shell,meta),empty_name_table=True);outputs={}
+        parts,s,w,eye,shell,meta=cp.geometry(source,skel,base,game,ROOT);model,glass=cp.shared.mesh_bytes(parts,s,w,eye,shell,skeleton_name=base+'_cockpit.skeleton',glass_parts=cp.glass_parts(parts,meta),part_bones=cp.part_bones(parts,s,shell,meta),empty_name_table=True,glass_limit=cp.glass_limit(meta));outputs={}
         for path,content in [(ROOT/'Assets/Models'/(base+'_cockpit.mesh'),model),(skel,skel.read_bytes())]:path.write_bytes(content);outputs[path.relative_to(ROOT).as_posix()]=sha(path)
         original=(ROOT/'Materials'/(base+'.material')).read_text();block=re.search(r'material '+re.escape(cfg['exterior'])+r'\s*:[^{]+\{(.*?)\}',original,re.S)[1];aliases=re.findall(r'set_texture_alias\s+(\S+)\s+(\S+)',block)
         material='import * from "CR_BZBase.material"\n\nmaterial CRV/'+base+'CombatExterior : CR_BZBaseCockpit\n{\n'+''.join('    set_texture_alias '+a+' '+b+'\n' for a,b in aliases)+'}\n'
