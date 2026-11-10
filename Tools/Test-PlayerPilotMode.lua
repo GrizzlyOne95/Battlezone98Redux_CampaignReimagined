@@ -32,6 +32,7 @@ GetCommandableAttackPriority = function() return 1 end
 SetCommand = function(h, command, _, target) h.command, h.target = command, target end
 Stop = function(h) h.command, h.target = AiCommand.NONE, nil end
 AllObjects = function() return iterator(worldObjects) end
+AllCraft = AllObjects -- test objects are all craft
 GetDistance = function() return 0 end
 
 local team = {

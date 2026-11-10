@@ -1784,8 +1784,9 @@ local function UpdateLightning()
     if not V.AllowLightning then return end
 
     if V.IsAuthority and V.Synced then
-        if V.Clock >= V.NextPowerScanAt then
-            V.NextPowerScanAt = V.Clock + 5.0
+        -- One scan per init/reseed; later powers arrive via V.OnObjectCreated, dead ones are pruned.
+        if not V.PowersScanned then
+            V.PowersScanned = true
             ScanPowers()
         end
 
@@ -2462,6 +2463,7 @@ function V.Init(options)
     V.NextStrikeAt = 20.0
     V.NextEruptionAt = 35.0
     V.NextPowerScanAt = 0.0
+    V.PowersScanned = false
 
     ApplyRung(V.Level, 0.05)
     CRWeather.SetWindOverride({ x = 0.0, y = -0.1, z = 1.0 }, V.WindSpeed)
@@ -2808,6 +2810,7 @@ function V.Load(state)
     V.HazeLive = {}
     V.Strikes, V.Eruptions, V.Rain, V.Flashes, V.Thunder = {}, {}, nil, {}, {}
     V.Powers = {}
+    V.PowersScanned = false
     V.NextStrikeAt = V.Clock + 20.0
     V.NextEruptionAt = V.Clock + 35.0
     if type(CRWeather.ResetSystems) == "function" then CRWeather.ResetSystems() end

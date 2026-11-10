@@ -44,6 +44,7 @@ local function NewState()
 end
 
 local M = NewState()
+local winScanAt -- throttle for the world scan below (not saved; resets on load)
 -- CR co-op runtime >>
 -- Offline and co-op share this adapter (Scripts/CRCCARuntime.lua); the faithful tests set CR_TEST_FAITHFUL.
 -- Lexical wrappers affect this mission only. Docs/CHMISN06_COOP.md lists every wrapped call and restoration.
@@ -569,7 +570,9 @@ function Update(dt)
         if M.reinfDestroyed then AudioMessage("ch06006.wav") end
     end
 
-    if M.reinfDestroyed and not M.won and not M.lost then
+    if M.reinfDestroyed and not M.won and not M.lost
+        and (winScanAt == nil or GetTime() >= winScanAt or GetTime() < winScanAt - 0.5) then
+        winScanAt = GetTime() + 0.5 -- the full-world scan need not run every frame
         M.won = true
         -- see if everything on the mission is dead
         -- AllObjects maps native GameObject::objectList, including pilots and

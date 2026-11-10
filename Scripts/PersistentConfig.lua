@@ -3753,8 +3753,9 @@ local function RefreshWorldTeamNationCache(force)
     end
 
     local namesByTeam = {}
-    if type(AllObjects) == "function" and type(GetTeamNum) == "function" and type(GetNation) == "function" then
-        for h in AllObjects() do
+    -- Craft only: the nation is used for engine flame colours, and only craft have engines.
+    if type(AllCraft) == "function" and type(GetTeamNum) == "function" and type(GetNation) == "function" then
+        for h in AllCraft() do
             if IsValid(h) then
                 local teamNum = tonumber(GetTeamNum(h))
                 if teamNum and teamNum >= 1 and teamNum <= 15 and not namesByTeam[teamNum] then

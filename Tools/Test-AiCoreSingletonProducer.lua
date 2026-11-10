@@ -78,7 +78,16 @@ GetODFFloat = function(_, _, _, default) return default end
 GetODFBool = function(_, _, _, default) return default end
 GetODFString = function(_, _, _, default) return default end
 ObjectsInRange = function() return function() return nil end end
-AllCraft = function() return function() return nil end end
+AllCraft = function()
+    local index = 0
+    return function()
+        while true do
+            index = index + 1
+            local o = worldObjects[index]
+            if o == nil or o.craft then return o end
+        end
+    end
+end
 AllObjects = function()
     local index = 0
     return function()

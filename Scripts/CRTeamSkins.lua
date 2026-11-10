@@ -118,7 +118,7 @@ local function hostShipOf(coop)
     return ship
 end
 
--- ~1 s sweep over every object: spawns, respawns, team changes (sniped or
+-- ~1 s sweep over every craft: spawns, respawns, team changes (sniped or
 -- hijacked craft), the host changing ships, and engine material resets.
 function T.Update(coop)
     if coop == nil or not coop.IsNetworkGame() then return end
@@ -128,7 +128,7 @@ function T.Update(coop)
     local exu = lib()
     if exu == nil then return end
     local hostShip = hostShipOf(coop)
-    for h in AllObjects() do
+    for h in AllCraft() do  -- craft only: scrap/props/buildings never change team or reset paint
         local skin = skinFor(h, hostShip, coop)
         local key = skin and skin.key or nil
         local rec = tracked[h]
