@@ -56,7 +56,7 @@ CONFIG = {
                    at=(.9, 1.36, -.4), normal=(.29, .96, 0), fire=(0., 0, 1), base='f09fec92f1d6da20facde0d095c45f19a913c866'),
     'svfigh': dict(piece='rocket', part='SFL11GR1', owner='SFL11ROR', faction='cca', scale=.5, rollViews=('SFL11ROR',),
                    at=(0., .8, 2.35), normal=(0, .96, .27), fire=(0., 0, 1), base='628a1fa1646242e5405ce31f26dbf31f9f955abc'),
-    'crfraz': dict(piece='cannon', part='cfr11GC1', owner='cfr11bda', faction='cra', scale=1.2, mirror=dict(part='cfr11GC2', owner='cfr11bdb'),
+    'crfraz': dict(piece='cannon', part='cfr11GC1', owner='cfr11bda', faction='cra', scale=1.2, mirror=dict(part='cfr11GC2', owner='cfr11bdb'), rollViews=('cfr11ror',),
                    at=(2.2, 1.9, -1.0), normal=(.27, .95, .17), fire=(0., 0, 1), base='2390592bf72b8654606665f4b837e34818162fea'),
 }
 # avfigh carries its pod on the main body (ARA11BDA), on the +x lower sloped side facet (normal
@@ -65,6 +65,10 @@ CONFIG = {
 # (y .19) to fire under the nose. fireThrough: the nose (class 66, +-23 deg) still dips into the
 # pod's line of fire at -23..-18 deg (recorded as checks.parts.lineOfFireCrossedBy); no seat on this
 # facet clears it at all angles and the ground at once. Stock Gc1's own line already crosses the nose at rest.
+# crfraz (CR-original Fury port, receipt base CR@2390592b): stock GC1/GC2 sit inside the wing slab
+# near the tips, firing through the swept leading edge. A cannon each on the wing top, inboard of
+# the tip (mirrored pair on cfr11bda / cfr11bdb, children of the rolling cfr11ror); scale 1.2 keeps
+# the barrel stout on the 6 m wing without overhanging the leading edge.
 # Kit sheet only: the same pod upright on the left wing, a second mounting angle.
 WING = dict(CONFIG['avfigh'], scale=.85, at=(-1.4, .95, -1.45), normal=(-.29, .93, -.23))
 
