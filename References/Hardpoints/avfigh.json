@@ -1,0 +1,51 @@
+{
+  "note": "Hardpoint alignment (Tools/Build-UnitAnimSlots.py apply_hardpoints). owner = the VDF part that carries the weapon geometry; parent must equal it (Tools/Test-UnitAnimSlots.py).",
+  "model": "avfigh",
+  "base": "stock",
+  "parts": [
+    {
+      "name": "ARA11Gc1",
+      "klass": 71,
+      "existing": true,
+      "was": "ARA11rof",
+      "owner": "ARA11BDA",
+      "parent": "ARA11BDA",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        -0.568,
+        -0.242505,
+        0.908156
+      ]
+    },
+    {
+      "name": "ARA11Gc2",
+      "klass": 71,
+      "existing": true,
+      "was": "ARA11rof",
+      "owner": "ARA11BDA",
+      "parent": "ARA11BDA",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.556,
+        -0.242505,
+        0.908156
+      ]
+    }
+  ]
+}

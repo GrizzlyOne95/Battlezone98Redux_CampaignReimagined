@@ -1,0 +1,95 @@
+{
+  "note": "Hardpoint alignment (Tools/Build-UnitAnimSlots.py apply_hardpoints). owner = the VDF part that carries the weapon geometry; parent must equal it (Tools/Test-UnitAnimSlots.py).",
+  "model": "cvturr",
+  "base": "stock",
+  "parts": [
+    {
+      "name": "CAD11GC1",
+      "klass": 71,
+      "existing": true,
+      "was": "CAD11TX1",
+      "owner": "CAD11TX1",
+      "parent": "CAD11TX1",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        -1.7028,
+        0.0999,
+        1.4857
+      ]
+    },
+    {
+      "name": "CAD11GC2",
+      "klass": 71,
+      "existing": true,
+      "was": "CAD11TX1",
+      "owner": "CAD11TX1",
+      "parent": "CAD11TX1",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        -1.7028,
+        -0.2458,
+        1.4857
+      ]
+    },
+    {
+      "name": "CAD11GC3",
+      "klass": 71,
+      "existing": true,
+      "was": "CAD11TX2",
+      "owner": "CAD11TX2",
+      "parent": "CAD11TX2",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.071,
+        -0.2458,
+        1.4857
+      ]
+    },
+    {
+      "name": "CAD11GC4",
+      "klass": 71,
+      "existing": true,
+      "was": "CAD11TX2",
+      "owner": "CAD11TX2",
+      "parent": "CAD11TX2",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.071,
+        0.0999,
+        1.4857
+      ]
+    }
+  ]
+}

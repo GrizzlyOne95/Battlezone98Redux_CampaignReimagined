@@ -1,0 +1,97 @@
+{
+  "note": "Hardpoint alignment (Tools/Build-UnitAnimSlots.py apply_hardpoints). owner = the VDF part that carries the weapon geometry; parent must equal it (Tools/Test-UnitAnimSlots.py).",
+  "model": "bvturr",
+  "base": "stock",
+  "parts": [
+    {
+      "name": "bDE11gc1",
+      "klass": 71,
+      "existing": true,
+      "was": "bDE11blc",
+      "owner": "bDE11blc",
+      "parent": "bDE11blc",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.1466,
+        -0.1468,
+        0.9208
+      ]
+    },
+    {
+      "name": "bDE11gc2",
+      "klass": 71,
+      "existing": true,
+      "was": "bDE11blf",
+      "owner": "bDE11blf",
+      "parent": "bDE11blf",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        -0.1464,
+        -0.1468,
+        0.9208
+      ]
+    },
+    {
+      "name": "bDE11gc3",
+      "klass": 71,
+      "existing": false,
+      "was": null,
+      "owner": "bDE11bld",
+      "parent": "bDE11bld",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.1466,
+        0.1462,
+        0.9208
+      ],
+      "like": "bDE11gc1"
+    },
+    {
+      "name": "bDE11gc4",
+      "klass": 71,
+      "existing": false,
+      "was": null,
+      "owner": "bDE11ble",
+      "parent": "bDE11ble",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        -0.1464,
+        0.1462,
+        0.9208
+      ],
+      "like": "bDE11gc1"
+    }
+  ]
+}

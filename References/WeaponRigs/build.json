@@ -2913,14 +2913,14 @@
         "return": 2.0,
         "kick_without_weapon": 0.25,
         "flash_offset": [
-          -0.0235,
-          -0.2438,
-          -1.4077
+          -0.0255,
+          0.08,
+          0.048
         ],
         "casing_offset": [
-          0.2799,
-          -0.1288,
-          -1.6555
+          0.2779,
+          0.1951,
+          -0.1999
         ],
         "casing_direction": [
           0.9345,
@@ -2955,14 +2955,14 @@
         "return": 2.0,
         "kick_without_weapon": 0.25,
         "flash_offset": [
-          0.0274,
-          -0.2453,
-          -1.4118
+          0.0265,
+          0.08,
+          0.048
         ],
         "casing_offset": [
-          -0.289,
-          -0.1302,
-          -1.6597
+          -0.2899,
+          0.1951,
+          -0.1999
         ],
         "casing_direction": [
           -0.9345,
@@ -2991,10 +2991,40 @@
       }
     },
     "outputs": {
-      "Assets/Models/avfigh_recoil.skeleton": "68dec243f7cf3d95e5e50f0f3282f08aa2ea311d0c26d4f6c4134f4a3d17f9e2",
+      "Assets/Models/avfigh_recoil.skeleton": "a1ff057146d1bda8196f4b72da1a189ad0e939a466f63ad9b7893ca6c874ec3b",
       "Assets/ModelFixes/avfigh.mesh": "39d574926eea6519a9836fa7240f1dd7fb4014ad6955b9ca39ee94e9ffd5aebf",
       "Assets/Models/avfigh_cockpit.mesh": "592ab108c0f20b4980254856ec8bfc1116dbf835b0f000c147ee70279ef2857b",
       "Assets/Models/avfigh_cockpit_recoil.skeleton": "17554d86b2b877e6ce779091c188a451bcea33c32bb7f6ae60bec3140db3726a"
+    },
+    "hardpoints": {
+      "ARA11Gc1": {
+        "parent": "ARA11BDA",
+        "position": [
+          0.568,
+          -0.242505,
+          0.908156
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "ARA11Gc2": {
+        "parent": "ARA11BDA",
+        "position": [
+          -0.556,
+          -0.242505,
+          0.908156
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
     }
   },
   "bvraz": {
@@ -4680,14 +4710,14 @@
         "return": 2.0,
         "kick_without_weapon": 1.0,
         "flash_offset": [
-          0.0358,
-          0.0632,
-          0.2901
+          -0.004,
+          0.0027,
+          0.004
         ],
         "casing_offset": [
-          1.0674,
-          0.3936,
-          -0.3601
+          1.0275,
+          0.3331,
+          -0.6462
         ],
         "casing_direction": [
           0.9345,
@@ -4716,8 +4746,24 @@
       }
     },
     "outputs": {
-      "Assets/Models/cblasr_recoil.skeleton": "8ba56155d1ec231bfc63f11576f2ea20b5675ebbb8682396332e721d596ac7a7",
+      "Assets/Models/cblasr_recoil.skeleton": "0466451ce6e072f554aef2365d048d4ab85cbb5797c8a39135f4749705902962",
       "Assets/ModelFixes/cblasr.mesh": "d29062dfc90610557b05c3143f1b61fff1f4126da9ff94650d50b26ad1307004"
+    },
+    "hardpoints": {
+      "clz11gc1": {
+        "parent": "clz11bdd",
+        "position": [
+          1.004,
+          10.05,
+          4.0
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
     }
   },
   "cvartl": {
@@ -7173,10 +7219,26 @@
       }
     },
     "outputs": {
-      "Assets/Models/cvrckt_recoil.skeleton": "e84e0e51d74392483edd06d1660e5d92acf0e3bd2a051fd096b1cbe479c31cc0",
+      "Assets/Models/cvrckt_recoil.skeleton": "bc19399cc7050e255f10855361328e863a3347274a9979f7883fa60191be6723",
       "Assets/ModelFixes/cvrckt.mesh": "0390b6b1c5bda4ace6d4e01f01af7735d753da526af41f5445da1f531e62a6b2",
       "Assets/Models/cvrckt_cockpit.mesh": "a537c75c89848a809748bf573b0ed5185283d8ebbd4f28dcad0eb531e43939a0",
       "Assets/Models/cvrckt_cockpit_recoil.skeleton": "ff5bb8d38ff0290eec0609017e031bcc36382006752026164b293c7f3e2f33bc"
+    },
+    "hardpoints": {
+      "CDR11GS1": {
+        "parent": "CDR11BDA",
+        "position": [
+          -1.994295,
+          1.367225,
+          4.190834
+        ],
+        "orientation": [
+          0.0,
+          1.629206849429444e-07,
+          0.0,
+          0.9999999999999868
+        ]
+      }
     }
   },
   "cvtnk": {
@@ -7891,7 +7953,7 @@
         "hardpoints": [
           "GC1"
         ],
-        "triangles": 76,
+        "triangles": 82,
         "cap_triangles": 20,
         "cockpit": false,
         "helpers": [
@@ -7905,7 +7967,7 @@
         "hardpoints": [
           "GC2"
         ],
-        "triangles": 76,
+        "triangles": 82,
         "cap_triangles": 20,
         "cockpit": false,
         "helpers": [
@@ -7919,7 +7981,7 @@
         "hardpoints": [
           "GC3"
         ],
-        "triangles": 76,
+        "triangles": 82,
         "cap_triangles": 20,
         "cockpit": false,
         "helpers": [
@@ -7933,7 +7995,7 @@
         "hardpoints": [
           "GC4"
         ],
-        "triangles": 76,
+        "triangles": 82,
         "cap_triangles": 20,
         "cockpit": false,
         "helpers": [
@@ -8218,12 +8280,12 @@
         "flash_offset": [
           -0.003,
           0.0019,
-          0.2661
+          -0.0006
         ],
         "casing_offset": [
           0.3373,
           0.1381,
-          -0.2506
+          -0.5173
         ],
         "casing_direction": [
           0.9345,
@@ -8260,12 +8322,12 @@
         "flash_offset": [
           -0.003,
           0.0128,
-          0.2661
+          -0.0006
         ],
         "casing_offset": [
           0.3442,
           0.1405,
-          -0.2516
+          -0.5183
         ],
         "casing_direction": [
           0.9345,
@@ -8302,12 +8364,12 @@
         "flash_offset": [
           0.003,
           0.0128,
-          0.2661
+          -0.0006
         ],
         "casing_offset": [
-          -0.3442,
+          -0.3441,
           0.1405,
-          -0.2516
+          -0.5183
         ],
         "casing_direction": [
           -0.9345,
@@ -8344,12 +8406,12 @@
         "flash_offset": [
           0.003,
           0.0019,
-          0.2661
+          -0.0006
         ],
         "casing_offset": [
           -0.3373,
           0.1381,
-          -0.2506
+          -0.5173
         ],
         "casing_direction": [
           -0.9345,
@@ -8378,10 +8440,68 @@
       }
     },
     "outputs": {
-      "Assets/Models/cvturr_recoil.skeleton": "17e62d0b320d9eacbe533dff8381852dd5124b0be0dd18c5382d788701e1de99",
-      "Assets/ModelFixes/cvturr.mesh": "6a4d9a23c4b4448d47584d0873490f8437ae1dc88c62eb5786874209ab38b858",
+      "Assets/Models/cvturr_recoil.skeleton": "b0ecebc1ac8f136221cdb00b294e27c56ccc24addef9be2da2a1f120657932f1",
+      "Assets/ModelFixes/cvturr.mesh": "286deb3cd3211e40c41eff9478af0792eae068694a664a8d7d6735f6ff56f898",
       "Assets/Models/cvturr_cockpit.mesh": "65a5ebb5c3cd42849a501e71d7941811870ae5cb05be552109f8165f4caa19c4",
       "Assets/Models/cvturr_cockpit_recoil.skeleton": "87deba9e3f7a9394d3db2b69339dce27164a88f083e0c71c75bc51557cae9331"
+    },
+    "hardpoints": {
+      "CAD11GC1": {
+        "parent": "CAD11TX1",
+        "position": [
+          1.7028,
+          0.0999,
+          1.4857
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "CAD11GC2": {
+        "parent": "CAD11TX1",
+        "position": [
+          1.7028,
+          -0.2458,
+          1.4857
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "CAD11GC3": {
+        "parent": "CAD11TX2",
+        "position": [
+          -0.071,
+          -0.2458,
+          1.4857
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "CAD11GC4": {
+        "parent": "CAD11TX2",
+        "position": [
+          -0.071,
+          0.0999,
+          1.4857
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
     }
   },
   "svartl": {
@@ -10827,14 +10947,14 @@
         "return": 2.0,
         "kick_without_weapon": 1.0,
         "flash_offset": [
-          -0.0115,
-          0.0603,
-          1.028
+          0.0359,
+          -0.0185,
+          -0.0021
         ],
         "casing_offset": [
-          -0.6203,
-          0.2371,
-          -0.293
+          -0.5729,
+          0.1584,
+          -1.3231
         ],
         "casing_direction": [
           -0.9345,
@@ -10905,10 +11025,26 @@
       }
     },
     "outputs": {
-      "Assets/Models/svltnk_recoil.skeleton": "ec570b3f03765cbc1269ea98543a3ab2de1b28ed9f77c4a3a35c994aba3521b7",
+      "Assets/Models/svltnk_recoil.skeleton": "fcd5c241ea647f6fa0d55d34812654081c0c26c1e43f5a3ae9754d3d1cac326f",
       "Assets/ModelFixes/svltnk.mesh": "8a6bd6fa3e03c7dd71581b3a5dbb8ca40b1f5a9196e21629341b84458f000a54",
       "Assets/Models/svltnk_cockpit.mesh": "b900556b12c524cee43c8977d32fb076d366088b01ce7d956314b160646cf736",
       "Assets/Models/svltnk_cockpit_recoil.skeleton": "d699c62ac33315979b0919d439c0d41898eb5f0e90de0c259c49c9574a58c2cb"
+    },
+    "hardpoints": {
+      "Slt11GC1": {
+        "parent": "slt11trt",
+        "position": [
+          -0.2427,
+          0.2255,
+          0.5728
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
     }
   },
   "svrckt": {
@@ -11145,14 +11281,14 @@
         "return": 2.0,
         "kick_without_weapon": 1.0,
         "flash_offset": [
-          0.0,
-          -0.2635,
-          1.4623
+          -0.0681,
+          -0.1595,
+          0.1136
         ],
         "casing_offset": [
-          -1.1152,
-          0.4103,
-          -0.3673
+          -1.1833,
+          0.5143,
+          -1.7159
         ],
         "casing_direction": [
           -0.9345,
@@ -11187,14 +11323,14 @@
         "return": 2.0,
         "kick_without_weapon": 1.0,
         "flash_offset": [
-          -0.0,
-          -0.2629,
-          1.4622
+          0.0679,
+          -0.1601,
+          0.1142
         ],
         "casing_offset": [
-          1.1155,
-          0.4104,
-          -0.3673
+          1.1834,
+          0.5132,
+          -1.7152
         ],
         "casing_direction": [
           0.9345,
@@ -11223,8 +11359,38 @@
       }
     },
     "outputs": {
-      "Assets/Models/svrckt_recoil.skeleton": "c804596420e1825dfcfdac8b34a90193b99f6586423233eba73bf1580d1eaa23",
+      "Assets/Models/svrckt_recoil.skeleton": "c31ddc9f4f6098b01a750d10ef07785d7231e1d26c8d7b7ccfa073ff6e195c0f",
       "Assets/ModelFixes/svrckt.mesh": "2592346e87cf9336dba6ebe6b164a19440249c294c044fd4cef1ce381c8663bc"
+    },
+    "hardpoints": {
+      "srt11GR1": {
+        "parent": "srt11bda",
+        "position": [
+          -0.647,
+          0.15862,
+          4.284988
+        ],
+        "orientation": [
+          -0.2169580193963233,
+          0.0,
+          0.0,
+          0.9761809349806134
+        ]
+      },
+      "srt11Gr2": {
+        "parent": "srt11bda",
+        "position": [
+          0.647,
+          0.15862,
+          4.284988
+        ],
+        "orientation": [
+          -0.2169580193963233,
+          0.0,
+          0.0,
+          0.9761809349806134
+        ]
+      }
     }
   },
   "svtank": {
@@ -11578,7 +11744,8 @@
     "world": [
       {
         "hardpoints": [
-          "GC1"
+          "GC1",
+          "GC2"
         ],
         "triangles": 124,
         "cap_triangles": 0,
@@ -11589,26 +11756,13 @@
             "parent": "SCZ11BGB"
           }
         ]
-      },
-      {
-        "hardpoints": [
-          "GC2"
-        ],
-        "triangles": 27,
-        "cap_triangles": 23,
-        "cockpit": false,
-        "helpers": [
-          {
-            "bone": "crgun_2_1",
-            "parent": "scz11bda"
-          }
-        ]
       }
     ],
     "cockpit": [
       {
         "hardpoints": [
-          "GC1"
+          "GC1",
+          "GC2"
         ],
         "triangles": 332,
         "cap_triangles": 12,
@@ -11623,15 +11777,6 @@
             "parent": "SCZ21bga"
           }
         ]
-      },
-      {
-        "hardpoints": [
-          "GC2"
-        ],
-        "triangles": 0,
-        "cap_triangles": 0,
-        "cockpit": true,
-        "helpers": []
       }
     ],
     "cockpit_source": {
@@ -11991,14 +12136,14 @@
         "return": 2.0,
         "kick_without_weapon": 1.0,
         "flash_offset": [
-          -0.0029,
-          -0.0042,
-          3.4192
+          0.0395,
+          -0.0024,
+          -0.0003
         ],
         "casing_offset": [
-          -0.6001,
-          0.23,
-          -0.29
+          -0.5577,
+          0.2318,
+          -3.7095
         ],
         "casing_direction": [
           -0.9345,
@@ -12026,53 +12171,83 @@
         "cockpit": true
       },
       "GC2": {
-        "animation": "cr_fire_2",
+        "animation": "cr_fire_1",
         "node": "",
         "spin": false,
-        "distance": 0.03,
+        "distance": 0.2,
         "return": 2.0,
         "kick_without_weapon": 1.0,
         "flash_offset": [
-          0.0875,
-          -0.16,
-          1.901
+          -0.0405,
+          -0.0024,
+          -0.0003
         ],
         "casing_offset": [
-          0.9369,
-          0.3479,
-          -0.3405
+          -0.6377,
+          0.2318,
+          -3.7095
         ],
         "casing_direction": [
-          0.9345,
+          -0.9345,
           0.3271,
           -0.1402
         ],
-        "casing_outward_side": 1,
-        "casing_clearance": 0.3416,
+        "casing_outward_side": -1,
+        "casing_clearance": 0.2944,
         "casing_jitter_rays_clear": true,
         "port_world": [
-          0.9719901719884644,
-          2.596678336005042,
-          -1.0880542262710118
+          -0.8480728365298271,
+          2.442226496390028,
+          0.7761911788423932
         ],
         "direction_world": [
-          0.9345386270319955,
+          -0.9345386270319955,
           0.32708851946119843,
           -0.14018079405479933
         ],
         "tip_world": [
-          0.1226188912987709,
-          2.0887720584869385,
-          1.153461217880249
+          -0.2508680000901222,
+          2.208000063896179,
+          4.4854350090026855
         ],
         "cockpit": true
       }
     },
     "outputs": {
-      "Assets/Models/svtank_recoil.skeleton": "b37e206edb4b951c415ef303a7e7330abe1c231507f89610876c35fa9297129e",
-      "Assets/ModelFixes/svtank.mesh": "16d68a2380253764e5695e67d92fd316c38500bd7d967feb7d4cc605a8bf80e0",
+      "Assets/Models/svtank_recoil.skeleton": "b0b5e0c699a2f2aa0f4abfbd3d986408e7d5ef7b634c8cc4ba695853a2d27f75",
+      "Assets/ModelFixes/svtank.mesh": "a18c05e67eb727af1b5050ec66c746eb09c94ed3c1122a39c31d0e5b66191b87",
       "Assets/Models/svtank_cockpit.mesh": "35873345f7c4d7e49153f3f930bc87d77ab02c2811052bd96f3d71001a78a2f9",
-      "Assets/Models/svtank_cockpit_recoil.skeleton": "58445c7edcca21edd42cbcb5166b1e84d31cb44be4b86b9e13a98e980dda866a"
+      "Assets/Models/svtank_cockpit_recoil.skeleton": "d9439be43b0e16f596de20c9eef893bf4040113b67aaf029bbe8b6e3ea02734d"
+    },
+    "hardpoints": {
+      "SCZ11GC1": {
+        "parent": "SCZ11BGB",
+        "position": [
+          -0.0395,
+          0.0024,
+          0.4961
+        ],
+        "orientation": [
+          -0.7071066619772458,
+          0.0,
+          0.0,
+          0.7071069003958291
+        ]
+      },
+      "SCZ11GC2": {
+        "parent": "SCZ11BGB",
+        "position": [
+          0.0405,
+          0.0024,
+          0.4961
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
     }
   },
   "svturr": {
@@ -12360,6 +12535,20 @@
             "parent": "STU11BGCB"
           }
         ]
+      },
+      {
+        "hardpoints": [
+          "GC3"
+        ],
+        "triangles": 446,
+        "cap_triangles": 42,
+        "cockpit": false,
+        "helpers": [
+          {
+            "bone": "crgun_3_5",
+            "parent": "STU11BGCA"
+          }
+        ]
       }
     ],
     "cockpit": [
@@ -12375,6 +12564,15 @@
       {
         "hardpoints": [
           "GC2"
+        ],
+        "triangles": 0,
+        "cap_triangles": 0,
+        "cockpit": true,
+        "helpers": []
+      },
+      {
+        "hardpoints": [
+          "GC3"
         ],
         "triangles": 0,
         "cap_triangles": 0,
@@ -12734,13 +12932,71 @@
           1.2900350093841553
         ],
         "cockpit": true
+      },
+      "GC3": {
+        "animation": "cr_fire_3",
+        "node": "",
+        "spin": false,
+        "distance": 0.06,
+        "return": 2.0,
+        "kick_without_weapon": 1.0,
+        "flash_offset": [
+          -0.0022,
+          0.0062,
+          0.075
+        ],
+        "casing_offset": [
+          0.4172,
+          0.1728,
+          -0.1878
+        ],
+        "casing_direction": [
+          0.9345,
+          0.3271,
+          -0.1402
+        ],
+        "casing_outward_side": 1,
+        "casing_clearance": 0.318,
+        "casing_jitter_rays_clear": true,
+        "port_world": [
+          1.4097719626059448,
+          4.136820740973017,
+          1.0272003853853002
+        ],
+        "direction_world": [
+          0.9345386270319955,
+          0.32708851946119843,
+          -0.14018079405479933
+        ],
+        "tip_world": [
+          0.9903975129127502,
+          3.9702064990997314,
+          1.2900350093841553
+        ],
+        "cockpit": true
       }
     },
     "outputs": {
-      "Assets/Models/svturr_recoil.skeleton": "f02aa958614f3062916c2c44d378284ded8042b65e289d872aa6b61abb372ed1",
-      "Assets/ModelFixes/svturr.mesh": "cf76985f4752761cdea09f66d829adb34847971e823ba114a733525b88743d29",
+      "Assets/Models/svturr_recoil.skeleton": "6f8ea4aa119e4945172e8a97080e97513d60eaaeb0aff7c60ef4d2450f905e80",
+      "Assets/ModelFixes/svturr.mesh": "15258a6609e99b33793e971ef360f3f1623c30ba73efbc7d76308b6a57477407",
       "Assets/ModelFixes/svturr_c.mesh": "0196dcfff6b6cef3b07c58a4b0c61d2856ca62cd7c9b953869bb943dfcc42500",
-      "Assets/Models/svturr_cockpit_recoil.skeleton": "532bbf637a6c06d087935a3409ca7c40e27e6690c989d88f1dc4af1f3a099afb"
+      "Assets/Models/svturr_cockpit_recoil.skeleton": "ae3b6ac5f153f3539564e461bbbb459fd8c4ce90ada10e0420251922a468d924"
+    },
+    "hardpoints": {
+      "STU11GC3": {
+        "parent": "STU11BGA",
+        "position": [
+          0.3111,
+          -0.0075,
+          0.3125
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
     }
   },
   "svwalk": {
@@ -14151,20 +14407,7 @@
     "world": [
       {
         "hardpoints": [
-          "GC1"
-        ],
-        "triangles": 22,
-        "cap_triangles": 22,
-        "cockpit": false,
-        "helpers": [
-          {
-            "bone": "crgun_1_0",
-            "parent": "brd11bda"
-          }
-        ]
-      },
-      {
-        "hardpoints": [
+          "GC1",
           "GR1",
           "GM1"
         ],
@@ -14173,7 +14416,7 @@
         "cockpit": false,
         "helpers": [
           {
-            "bone": "crgun_2_7",
+            "bone": "crgun_1_7",
             "parent": "brd11tur"
           }
         ]
@@ -14182,20 +14425,7 @@
     "cockpit": [
       {
         "hardpoints": [
-          "GC1"
-        ],
-        "triangles": 22,
-        "cap_triangles": 22,
-        "cockpit": true,
-        "helpers": [
-          {
-            "bone": "crgun_1_14",
-            "parent": "brd21BDA"
-          }
-        ]
-      },
-      {
-        "hardpoints": [
+          "GC1",
           "GR1",
           "GM1"
         ],
@@ -14412,44 +14642,44 @@
     "cockpit_kind": "separate",
     "bindings": {
       "GC1": {
-        "animation": "cr_fire_1",
+        "animation": "cr_fire_2",
         "node": "",
         "spin": false,
         "distance": 0.06,
         "return": 2.0,
         "kick_without_weapon": 1.0,
         "flash_offset": [
-          -0.1542,
-          -0.2,
-          0.7547
+          0.0018,
+          0.0161,
+          -0.0036
         ],
         "casing_offset": [
-          0.3364,
-          0.1378,
-          -0.2505
+          -0.4621,
+          0.203,
+          -0.3457
         ],
         "casing_direction": [
-          0.9345,
+          -0.9345,
           0.3271,
           -0.1402
         ],
-        "casing_outward_side": 1,
-        "casing_clearance": 0.3366,
+        "casing_outward_side": -1,
+        "casing_clearance": 0.2991,
         "casing_jitter_rays_clear": true,
         "port_world": [
-          1.1967418972361876,
-          0.8720488445260205,
-          3.0319438668532848
+          -1.2580873660444618,
+          1.99302470627127,
+          1.5923105017513128
         ],
         "direction_world": [
-          0.9345386270319955,
+          -0.9345386270319955,
           0.32708851946119843,
           -0.14018079405479933
         ],
         "tip_world": [
-          0.7060787975788116,
-          0.534296989440918,
-          4.03715705871582
+          -0.7942014932632446,
+          1.8061000108718872,
+          1.934399962425232
         ],
         "cockpit": true
       },
@@ -14539,10 +14769,40 @@
       }
     },
     "outputs": {
-      "Assets/Models/bvrdev_recoil.skeleton": "ac8dfc34b97fd7417189cd6e3d8b36d698c428cbce948ae7ded1a3ef32c61096",
-      "Assets/ModelFixes/bvrdev.mesh": "028b86e313bed8abf294385a16b648c2bc33bc5b304587b7d77bc10e5ec1bdf0",
-      "Assets/Models/bvrdev_cockpit.mesh": "859ee99b11736541f703593265de7151bf849c3bda25c902ab74675d5c954087",
-      "Assets/Models/bvrdev_cockpit_recoil.skeleton": "62552f7eb0794d0b5ed384f6ffdd7c59e921a0ab02605ac136700106c9d8076e"
+      "Assets/Models/bvrdev_recoil.skeleton": "d8bec35d4c8044bd907ae672801d2a7af28728fb6d8027685d24a0ab869ca38f",
+      "Assets/ModelFixes/bvrdev.mesh": "c3db2f9f97a2ca6f2d244f733442d24138d4ba13ee8e11c25c207713e166bac1",
+      "Assets/Models/bvrdev_cockpit.mesh": "fb3707b471c0eb2bd453cb761df522ad1287d4291a30c1b2bc0dba3be71e767c",
+      "Assets/Models/bvrdev_cockpit_recoil.skeleton": "3fbc922ebef4ca9b1c9d41ae91d74cd073eb2be33255deb9ea97705b5b143358"
+    },
+    "hardpoints": {
+      "brd11GC1": {
+        "parent": "brd11bda",
+        "position": [
+          -0.796,
+          1.79,
+          1.938
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "brd11GS1": {
+        "parent": "brd11bda",
+        "position": [
+          0.0,
+          0.45,
+          4.2
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
     }
   },
   "cvhraz": {

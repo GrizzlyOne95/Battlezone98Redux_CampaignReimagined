@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5605,
+  "count": 5629,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -699,6 +699,10 @@
       "runtime": "avfigh.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avfigh.vdf",
+      "runtime": "avfigh.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\avhaul.mesh",
       "runtime": "avhaul.mesh"
     },
@@ -767,6 +771,10 @@
       "runtime": "avtank.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\avtank.skeleton",
+      "runtime": "avtank.skeleton"
+    },
+    {
       "source": "Assets\\ModelFixes\\avtank.vdf",
       "runtime": "avtank.vdf"
     },
@@ -781,6 +789,14 @@
     {
       "source": "Assets\\ModelFixes\\avturr.mesh",
       "runtime": "avturr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avturr.skeleton",
+      "runtime": "avturr.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avturr.vdf",
+      "runtime": "avturr.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\avturr_c.mesh",
@@ -963,6 +979,10 @@
       "runtime": "bvrdev.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvrdev.vdf",
+      "runtime": "bvrdev.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvrecy.mesh",
       "runtime": "bvrecy.mesh"
     },
@@ -991,12 +1011,24 @@
       "runtime": "bvtank.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\bvtank.skeleton",
+      "runtime": "bvtank.skeleton"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvtank.vdf",
       "runtime": "bvtank.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvturr.mesh",
       "runtime": "bvturr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvturr.skeleton",
+      "runtime": "bvturr.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvturr.vdf",
+      "runtime": "bvturr.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\bvturr_c.mesh",
@@ -1049,6 +1081,10 @@
     {
       "source": "Assets\\ModelFixes\\cblasr.mesh",
       "runtime": "cblasr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cblasr.vdf",
+      "runtime": "cblasr.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\cblpad.mesh",
@@ -1363,6 +1399,10 @@
       "runtime": "cvrckt.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cvrckt.vdf",
+      "runtime": "cvrckt.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvrecy.mesh",
       "runtime": "cvrecy.mesh"
     },
@@ -1389,6 +1429,10 @@
     {
       "source": "Assets\\ModelFixes\\cvturr.mesh",
       "runtime": "cvturr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvturr.vdf",
+      "runtime": "cvturr.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\cvwalk.mesh",
@@ -1797,6 +1841,10 @@
     {
       "source": "Assets\\ModelFixes\\svrckt.mesh",
       "runtime": "svrckt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svrckt.vdf",
+      "runtime": "svrckt.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\svrecy.mesh",
@@ -15875,6 +15923,10 @@
       "runtime": "gammoa.odf"
     },
     {
+      "source": "ODF\\gatsbv2.odf",
+      "runtime": "gatsbv2.odf"
+    },
+    {
       "source": "ODF\\gatstab.odf",
       "runtime": "gatstab.odf"
     },
@@ -16023,6 +16075,18 @@
       "runtime": "gmdmgun.odf"
     },
     {
+      "source": "ODF\\gmgasv3.odf",
+      "runtime": "gmgasv3.odf"
+    },
+    {
+      "source": "ODF\\gmgnbv4.odf",
+      "runtime": "gmgnbv4.odf"
+    },
+    {
+      "source": "ODF\\gmgrcv1.odf",
+      "runtime": "gmgrcv1.odf"
+    },
+    {
       "source": "ODF\\gminigna.odf",
       "runtime": "gminigna.odf"
     },
@@ -16123,6 +16187,14 @@
       "runtime": "gsnipe.odf"
     },
     {
+      "source": "ODF\\gspbcv2.odf",
+      "runtime": "gspbcv2.odf"
+    },
+    {
+      "source": "ODF\\gspccv4.odf",
+      "runtime": "gspccv4.odf"
+    },
+    {
       "source": "ODF\\gsplint.odf",
       "runtime": "gsplint.odf"
     },
@@ -16137,6 +16209,10 @@
     {
       "source": "ODF\\gsplintr.odf",
       "runtime": "gsplintr.odf"
+    },
+    {
+      "source": "ODF\\gspssv3.odf",
+      "runtime": "gspssv3.odf"
     },
     {
       "source": "ODF\\gspstab.odf",
@@ -16179,6 +16255,18 @@
       "runtime": "gtechno.odf"
     },
     {
+      "source": "ODF\\gtmgav2.odf",
+      "runtime": "gtmgav2.odf"
+    },
+    {
+      "source": "ODF\\gtmgav4.odf",
+      "runtime": "gtmgav4.odf"
+    },
+    {
+      "source": "ODF\\gtmgbv4.odf",
+      "runtime": "gtmgbv4.odf"
+    },
+    {
       "source": "ODF\\gtminig.odf",
       "runtime": "gtminig.odf"
     },
@@ -16193,6 +16281,14 @@
     {
       "source": "ODF\\gtminisa.odf",
       "runtime": "gtminisa.odf"
+    },
+    {
+      "source": "ODF\\gtmssv15.odf",
+      "runtime": "gtmssv15.odf"
+    },
+    {
+      "source": "ODF\\gtmssv3.odf",
+      "runtime": "gtmssv3.odf"
     },
     {
       "source": "ODF\\gtsmoke.odf",

@@ -1,0 +1,30 @@
+// CR turret barrel variant: gminigna firing in turn across 3 barrels (stock turret had 1)
+// shotAlternate rotates the 3 slots; shotDelay 0.4 x 3/1 = 1.2 keeps shots/s and ammo/s stock.
+[WeaponClass]
+// CR WEAPON FLASH BEGIN
+// Authored minigun: shape/colour/timing in References/WeaponPresentation/profiles.json.
+// Requires Muzzle Flashes ON and matching EXU; native SP/build guards remain.
+flashMesh = "crmf_minigun.mesh"
+flashMaterial = "CR/Muzzle/minigun"
+flashDuration = 0.045
+flashScale = 1
+flashEndScale = 0.65
+flashOffset = "0 0 0"
+// CR WEAPON FLASH END
+// CR WEAPON CASING BEGIN
+// Ballistic small brass; local cosmetic only.
+casingType = "small"
+// CR WEAPON CASING END
+baseName = "gminigun"
+classLabel = "machinegun"
+ordName = "bullet1a"
+shotAlternate = 1
+wpnName = "Minigun"
+fireSound = "gmini00.wav"
+wpnReticle = "gminigun"
+wpnPriority = 0
+wpnCategory = "CANN"
+
+[CannonClass]
+shotDelay = 1.2
+
