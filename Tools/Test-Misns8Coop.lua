@@ -91,7 +91,7 @@ do
     for _, c in ipairs(F.callsOf(p[1], "SetScrap")) do scraps[c[2] .. ":" .. c[3]] = true end
     check(scraps["1:55"] and scraps["5:70"] and not scraps["2:40"] and not scraps["2:70"], "shared scrap 25 + 10 per guest, enemy 40 + 10 per guest on team 5")
     check(F.count(p[1], "SetPilot", 5) == 1 and F.count(p[1], "SetPilot", 2) == 0 and F.count(p[1], "SetPilot", 1) == 1, "pilots: humans on 1, Black Dogs on 5")
-    check(F.callsOf(p[1], "SetAIP")[1][2] == "misns8.aip" and F.callsOf(p[1], "SetAIP")[1][3] == 5, "the opening plan is issued for team 5")
+    check(F.callsOf(p[1], "SetAIP")[1][2] == "crns8.aip" and F.callsOf(p[1], "SetAIP")[1][3] == 5, "the opening plan is issued for team 5")
 end
 for i = 1, 4 do
     check(F.count(p[i], "DisableStartingRecycler") == 1, "extra starting recyclers disabled on peer " .. i)

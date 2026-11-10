@@ -1,5 +1,4 @@
-// Campaign Reimagined: stock misns5.aip with its one Soviet build item (svturr) switched to
-// bvturr. The Black Dog base cannot build Soviet turrets, so the stock priority-15 item never completed.
+// Campaign Reimagined: Black Dog version of stock misns5.aip. Its build and building-matching entries use BDog units.
 /*****************************************************************************
 
   Default.AIP
@@ -170,7 +169,7 @@ BUILDING_MATCHING My_Building_Matchings[MAX_BUILDINGS];
 
 // Building Name                   Multiplier         Where to Build
 //------------------------------------------------------------------
-   "avmuf",                           2.00,              CENTER_OF_BASE;
-   "avrecy",                          2.00,              CENTER_OF_BASE;
+   "bvmuf",                           2.00,              CENTER_OF_BASE;
+   "bvrecy",                          2.00,              CENTER_OF_BASE;
 
 #END_DATA

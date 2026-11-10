@@ -47,11 +47,11 @@ used = set(re.findall(r'BuildObject\("\w+", \d, "(\w+)"\)', live))
 used |= set(re.findall(r'(?:Goto|MissionGoto)\([^,]+, "(\w+)"', live))
 used |= set(re.findall(r'MissionDistance\([^,]+, "(\w+)"\)', live))
 assert used <= set(paths), "every path the body names exists: " + str(used - set(paths))
-assert objects["avrecy1_recycler"] == ("avrecy", 5) and objects["svrecy2_recycler"] == ("svrecy", 1)
-assert objects["avmuf1_factory"] == ("avmuf", 5) and objects["absilo1_i76building"] == ("absilo", 5)
+assert objects["avrecy1_recycler"] == ("bvrecy", 5) and objects["svrecy2_recycler"] == ("svrecy", 1)
+assert objects["avmuf1_factory"] == ("bvmuf", 5) and objects["absilo1_i76building"] == ("absilo", 5)
 for label in ("avfigh3_wingman", "avfigh4_wingman", "avfigh5_wingman", "avtank5_wingman", "avtank6_wingman",
               "avtank7_wingman", "avtank8_wingman"):
-    assert objects[label][1] == 5 and objects[label][0] in ("avfigh", "avtank"), "escorts are CCA team 5: " + label
+    assert objects[label][1] == 5 and objects[label][0] in ("bvraz", "bvtank"), "escorts are CCA team 5: " + label
 assert not any(team == 2 for _, team in objects.values()), "nothing is left on the authored team 2"
 
 # ---------------------------------------------------------------- the runtime configuration only names real content
@@ -89,7 +89,7 @@ coop = (ROOT / "Scripts/misns1cr.lua").read_text(encoding="utf-8")
 for stock, plan in (("misn09.aip", "crns1a.aip"), ("misn14.aip", "crns1b.aip")):
     assert '["%s"] = "%s"' % (stock, plan) in coop, "misns1cr maps %s to %s" % (stock, plan)
     builds = re.findall(r'(?m)^\s*\d+,\s*"(\w+)"', (ROOT / "ODF" / plan).read_text(encoding="ascii"))
-    assert builds and all(b.startswith("av") for b in builds), plan + " builds only American units: " + str(builds)
+    assert builds and all(b.startswith("bv") for b in builds), plan + " builds only Black Dog units: " + str(builds)
     assert "`%s`" % plan in doc, "the doc names " + plan
 for src in ("Docs/CCA_COOP_RUNTIME.md",):
     assert (ROOT / src).is_file(), src

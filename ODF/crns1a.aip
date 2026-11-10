@@ -1,6 +1,5 @@
 // Campaign Reimagined: stock misn09.aip with its build items switched from Soviet
-// (sv*) to American (av*) units. misns1 loads misn09.aip for an American base,
-// whose factory cannot build Soviet units, so the stock plan built nothing.
+// (sv*) to Black Dog (bv*) units. The CCA campaign uses Black Dog units for this force.
 /*****************************************************************************
 
   Default.AIP
@@ -119,7 +118,7 @@ ACCOUNT Emergency[MAX_ACCOUNT_LENGTH];
 
 //  Priority     Item Name              Build Type              Build Amount
 //--------------------------------------------------------------------
-	16,		"avscav",		NUMBER_TO_HAVE,			2;
+	16,		"bvscav",		NUMBER_TO_HAVE,			2;
 
 #END_DATA
 
@@ -134,8 +133,8 @@ ACCOUNT Offense[MAX_ACCOUNT_LENGTH];
 
 //  Priority     Item Name              Build Type              Build Amount
 //--------------------------------------------------------------------
-	10,		"avturr",		NUMBER_TO_BUILD,			4;
-	9,		"avfigh",		NUMBER_TO_HAVE,			2;
+	10,		"bvturr",		NUMBER_TO_BUILD,			4;
+	9,		"bvraz",		NUMBER_TO_HAVE,			2;
 
 	
 
@@ -164,13 +163,13 @@ FORCE_MATCHING My_Matchings[MAX_FORCE_MATCHING];
    "svltnk",		1.5;
    "svhraz",		1.5;
    "svwalk",		3.0;	
-   "avfigh",       	0.5;
-   "avturr",		1.0;
-   "avscav",       	0.2;
-   "avtank",		2.0;
-   "avltnk",		1.5;
-   "avwalk",		3.0;
-   "avhraz",		1.5;
+   "bvraz",       	0.5;
+   "bvturr",		1.0;
+   "bvscav",       	0.2;
+   "bvtank",		2.0;
+   "bvltnk",		1.5;
+   "bvwalk",		3.0;
+   "bvhraz",		1.5;
 
 #END_DATA
 
@@ -180,7 +179,7 @@ FORCE_MATCHING My_Matchings[MAX_FORCE_MATCHING];
 
 // Building Name                   Multiplier         Where to Build
 //------------------------------------------------------------------
-  "avmuf",                          2.00,             CENTER_OF_BASE;
-  "avrecy",                         2.00,             CENTER_OF_BASE;
+  "bvmuf",                          2.00,             CENTER_OF_BASE;
+  "bvrecy",                         2.00,             CENTER_OF_BASE;
 
 #END_DATA

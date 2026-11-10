@@ -14,7 +14,8 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 | `Scripts/misns1cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns1.lua` (`Tools/Test-Misns1CoopSourceParity.py`). Holds the mission's runtime CONFIG, the native shadows and the restorations. |
 | `Scripts/CRCCARuntime.lua` | Shared co-op runtime for all eight CCA missions (the generic parts of `CRMisn18.lua`, which is untouched). |
 | `Scripts/CRVenusSitesS1.lua`, `Scripts/CRVenusWeather.lua` | Venus weather and the generated sulphur/vent sites for this map. |
-| `Missions/misns1cr.{bzn,vxt}`, `misns1.{hg2,lgt,mat,trn}` | Map and companions (built by `Tools/Build-CoopMap.py`, not part of this change). |
+| `Missions/misns1cr.bzn` | Map roster; authored NSDF vehicles are switched to Black Dog ODFs while their labels stay intact. |
+| `Missions/misns1cr.vxt`, `misns1.{hg2,lgt,mat,trn}` | Terrain and map companions. |
 | `Tools/Misns1Fixture.lua`, `Test-Misns1Coop.lua`, `Test-Misns1Presentation.lua`, `Test-Misns1CoopSourceParity.py`, `Test-Misns1CoopContract.py` | Multi-peer fixture and tests. `Test-Misns1.lua` / `Test-Misns1SourceParity.py` still cover the faithful port, unchanged. |
 
 ## Teams and ownership
@@ -22,7 +23,7 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 | Team | Use |
 | --- | --- |
 | 1-4 | Humans (host on 1). The authored Soviet recycler (`svrecy2_recycler`) and the units the body builds for the Soviet side (walker, camera pods, two tanks, a fighter, two turrets) stay on team 1: shared, host-run. Extra starting recyclers are disabled. |
-| 5 | The Americans (the authored team 2: Colorado, escorts, factory, silo, towers). The body still says team 2; the runtime maps `BuildObject(..., 2, ...)`, `SetScrap(2, ...)` and `SetAIP(name)` to team 5. |
+| 5 | The Americans in the story (the authored team 2: Colorado, escorts, factory, silo, towers), represented with Black Dog units in CR. The body still says team 2; the runtime maps `BuildObject(..., 2, ...)`, `SetScrap(2, ...)` and `SetAIP(name)` to team 5. |
 | 7 | Support (allied to humans; nothing uses it in this mission). |
 
 Only the authority (host, or the offline player) runs the body; guests only present (`Update` returns before the
@@ -38,7 +39,8 @@ within 200 m of Colorado.
 
 ## Scaling and concealed arrivals [owner rules, mission decisions]
 
-Scaled spawns: the ODFs `avfigh` and `avtank` (`scaledOdfs`). They become *tickets*: the body gets a negative
+Scaled spawns: the source ODF requests `avfigh` and `avtank` resolve to Black Dog `bvraz` and `bvtank` before they
+become *tickets*: the body gets a negative
 request id and the unit is built by the runtime on the next frame, with the body's later orders replayed on it.
 Scavengers (`avscav`), turrets (`avturr`), the walker, pods and all Soviet-side builds are never scaled.
 
@@ -119,10 +121,10 @@ Skipped, with the reason:
   `audioSubstitute` is empty. Which wavs ship in every Redux language archive was not checked from this tree.
 - The enemy base never rebuilt anything (reported by the owner: no AIP activity while the player must destroy the
   base factory). The stock body loads `misn09.aip` and `misn14.aip`, which are Soviet plans: every build item is an
-  `sv*` unit or structure, and the American factory and recycler on this map cannot build those. The CR layer maps
-  them to `ODF/crns1a.aip` and `ODF/crns1b.aip`, byte copies of the stock plans with only the build items switched to
-  their American counterparts (`svscav`->`avscav`, `svturr`->`avturr`, `svfigh`->`avfigh`, `svtank`->`avtank`,
-  `svrecy`/`svmuf`/`svslf`->`avrecy`/`avmuf`/`avslf`). Priorities, counts and the building-match lists are unchanged.
+  `sv*` unit or structure, and the Black Dog factory and recycler cannot build those. The CR layer maps
+  them to `ODF/crns1a.aip` and `ODF/crns1b.aip`, plans whose build items use Black Dog counterparts
+  (`svscav`->`bvscav`, `svturr`->`bvturr`, `svfigh`->`bvraz`, `svtank`->`bvtank`,
+  `svrecy`/`svmuf`/`svslf`->`bvrecy`/`bvmuf`/`bvslf`). Priorities and counts are unchanged; building matches use Black Dog structures.
 - The body already carries its own documented port fixes (see `MISNS1_SOURCE_PORT.md`).
 
 ## Weather: Venus
@@ -168,7 +170,7 @@ The workflow `.github/workflows/campaign-validation.yml` is not yet wired to run
 1. Cavalry arrives out of sight with 2-4 humans; extras follow the same route.
 2. Opening film: guests see the same shots; all cameras balanced afterwards.
 3. Loss shot holds and ends with the result on every peer.
-4. `crns1a.aip` / `crns1b.aip` (the American replacements for `misn09.aip` / `misn14.aip`) actually build and send units for team 5; wave dispatch does not double-order them.
+4. `crns1a.aip` / `crns1b.aip` (the Black Dog replacements for `misn09.aip` / `misn14.aip`) actually build and send units for team 5; wave dispatch does not double-order them.
 5. Walker cut-off still works with several humans (ordering the shared walker).
 6. Venus sky renders on guests; no weather error in the log.
 7. Objective list stable (no flicker) after both outpost structures fall.

@@ -12,9 +12,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 | File | Role |
 | --- | --- |
 | `Scripts/misns4cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns4.lua` (`Tools/Test-Misns4CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restorations and the Io weather beats. |
-| `Scripts/CRCCARuntime.lua` | Shared co-op runtime (unchanged). |
+| `Scripts/CRCCARuntime.lua` | Shared co-op runtime, including the CCA mission's NSDF-to-Black-Dog ODF remap. |
 | `Scripts/CRIoWeather.lua`, `Scripts/CRIoSitesS4.lua` | Io weather and the generated lava pools (338) and vent sites for this map. |
-| `Missions/misns4cr.{bzn,vxt}`, `misns4.{hg2,lgt,mat,trn}` | Map and companions (not part of this change). |
+| `Missions/misns4cr.bzn` | Map roster; authored NSDF vehicles are switched to Black Dog ODFs while their labels stay intact. |
+| `Missions/misns4cr.vxt`, `misns4.{hg2,lgt,mat,trn}` | Terrain and map companions. |
 | `Tools/Misns4Fixture.lua`, `Test-Misns4Coop.lua`, `Test-Misns4CoopSourceParity.py`, `Test-Misns4CoopContract.py` | Multi-peer fixture and tests. `Test-Misns4.lua` / `Test-Misns4SourceParity.py` still cover the faithful port, unchanged. |
 
 No cameras exist in this mission, so there is no presentation test.
@@ -24,7 +25,7 @@ No cameras exist in this mission, so there is no presentation test.
 | Team | Use |
 | --- | --- |
 | 1-4 | Humans (host on 1). The authored recycler, the Bridge pod, the Soviet constructor and the five transports stay on team 1: shared, host-run. |
-| 5 | The CCA (the DLL's team 2: howitzer, towers, power plants, raiders, bridge guard, north force, rocket counterattack). `BuildObject(..., 2, ...)`, `SetAIP(name)` and `SetPilot(2, ...)` are mapped to team 5; the literal 2 never reaches the engine. |
+| 5 | The Black Dogs (the DLL's team 2: howitzer, towers, power plants, raiders, bridge guard, north force, rocket counterattack). `BuildObject(..., 2, ...)`, `SetAIP(name)` and `SetPilot(2, ...)` are mapped to team 5; the literal 2 never reaches the engine. |
 | 7 | Support (allied to humans; unused here). |
 
 Only the authority (host, or the offline player) runs the body; guests only present. `SetAIControl(5, true)` runs
@@ -43,8 +44,9 @@ triggers answer for the NEAREST human: any player within 200 m of `sbridge` spri
 
 ## Scaling and concealed arrivals [owner rules]
 
-Scaled ODFs (become tickets: concealed from humans, mirrored, orders replayed): `avfigh`, `avtank`, `avltnk`,
-`avrckt`, `avturr`, `avscav`, `avrecy`. Structures (`abtowe`, `ablpow`), the authored `avartl`, the restored
+The CCA runtime resolves the mission's NSDF `av*` requests to Black Dog ODFs. Scaled requests (concealed from humans,
+mirrored, orders replayed) include `avfigh`->`bvraz`, `avtank`->`bvtank`, `avltnk`->`bvltnk`, `avrckt`->`bvrckt`,
+`avturr`->`bvturr`, `avscav`->`bvscav`, and `avrecy`->`bvrecy`. Structures (`abtowe`, `ablpow`), the authored `avartl`, the restored
 howitzers (`avhraz`, `b1`/`b2`, not in `scaledOdfs`: built directly, without the 460 m check) and all Soviet-side
 builds (pod, constructor, transports) are built straight away.
 
@@ -124,7 +126,7 @@ Unused shipped voice lines [owner decision 2026-11-01]: the wav and `Text/misns4
 The faithful port already fixes the native defects (null distance operands, the hauler list bound and duplicate
 registration, the unlatched `lost`, the equality win). In the CR layer: (1) `GetPlayerHandle` is a token and
 `GetDistance`/`Distance` answer for all humans (stock reads one player); (2) literal team 2 is mapped to 5; (3) the
-countdown reaches every peer; (4) `FailMission` after a latched win is ignored; (5) `misns4.aip` asks the American base for Soviet `svturr` turrets it cannot build, so the CR layer substitutes `ODF/crns4.aip` (the same plan with `avturr`) for `SetAIP("misns4.aip")`; `Scripts/misns4.lua` is untouched.
+countdown reaches every peer; (4) `FailMission` after a latched win is ignored; (5) `misns4.aip` asks the Black Dog base for Soviet `svturr` turrets it cannot build, so the CR layer substitutes `ODF/crns4.aip` (the same plan with Black Dog unit entries) for `SetAIP("misns4.aip")`; `Scripts/misns4.lua` is untouched.
 
 ## Weather: Io (`CRIoWeather`, sites `CRIoSitesS4`) [owner decision]
 

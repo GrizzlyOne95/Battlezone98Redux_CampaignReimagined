@@ -13,10 +13,11 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 | File | Role |
 | --- | --- |
 | `Scripts/misns6cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns6.lua` (`Tools/Test-Misns6CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the weather beats. |
-| `Scripts/CRCCARuntime.lua` | Shared co-op runtime (untouched). |
+| `Scripts/CRCCARuntime.lua` | Shared co-op runtime, including the CCA mission's NSDF-to-Black-Dog ODF remap. |
 | `Scripts/CRTitanSitesS6.lua`, `Scripts/CRTitanWeather.lua` | Titan weather director and the generated methane-pool sites for this map (160 anchors). |
-| `ODF/crns6.aip` | The stock `misns6.aip` with the `svturr` line set to `avturr` (see stock bugs). |
-| `Missions/misns6cr.{bzn,vxt}`, `misns6.{hg2,lgt,mat,trn}` | Map and companions (built elsewhere). |
+| `ODF/crns6.aip` | The Black Dog version of stock `misns6.aip`; all opposing unit entries use Black Dog ODFs. |
+| `Missions/misns6cr.bzn` | Map roster; authored NSDF vehicles are switched to Black Dog ODFs while their labels stay intact. |
+| `Missions/misns6cr.vxt`, `misns6.{hg2,lgt,mat,trn}` | Terrain and map companions. |
 | `Tools/Misns6Fixture.lua`, `Test-Misns6Coop.lua`, `Test-Misns6CoopSourceParity.py`, `Test-Misns6CoopContract.py` | Multi-peer fixture and tests. `Test-Misns6.lua` / `Test-Misns6SourceParity.py` still cover the faithful port, unchanged. No presentation test: the mission has no cameras and no cutscene. |
 
 ## Teams and ownership
@@ -135,8 +136,8 @@ Unused authored paths: `t1`, `t2`, `t3`, `spawn1`, `check1`, `check2`, `check3`,
 The body already carries its own documented port fixes (uninitialised `closest`, the success latch, distance for
 missing handles). In the CR layer:
 
-- `misns6.aip` asks the American base for Soviet `svturr` turrets it cannot build. `SetAIP` maps it to `ODF/crns6.aip`,
-  the same plan with `avturr`.
+- `misns6.aip` asks the Black Dog base for Soviet `svturr` turrets it cannot build. `SetAIP` maps it to `ODF/crns6.aip`,
+  the Black Dog version of the plan.
 - The body tests `GetTeamNum(h) ~= 2` for the mine layers; with the enemy on team 5 no layer would ever register.
   `GetTeamNum` answers 2 for a team-5 object inside this file.
 - `IsAudioMessageDone(M.audmsg)` is read raw by the win wait. The runtime's `AudioMessage` may return a nil handle and
@@ -154,5 +155,5 @@ missing handles). In the CR layer:
 5. Lose the recycler: `misns6l1.des` after 2 s.
 6. Two to four players: extras per the table, no pop-in, guests never issue orders, leader quit fails guests, save/load keeps timers.
 7. Titan weather: level 2 at start, 3 near the mines/raid, 4 at the silo assault or command centre, 2 after victory.
-8. After 120 s the Black Dog AIP (`crns6.aip`) builds only American units.
+8. After 120 s the Black Dog AIP (`crns6.aip`) builds only Black Dog units.
 9. A dead human's ship pauses the shared mission until respawn (the runtime's session-ready gate); check it feels acceptable.
