@@ -1954,9 +1954,13 @@ to the ordinary GOG development mod.
   works as a nacelle is UNVERIFIED).
 - Before pitching a pod, check what it carries: cvhtnk's missile and shield hardpoints sit on
   the pods but are parented to the body, so its ODFs set all four pitch gains to 0. With zero
-  gains the gimbal only restores to flat (1.5 `all_decompiled.c` 193665-193668), and the
-  flames still scale with throttle.
-- ODF pitch keys also go into the unit's `baseName` variants (cvhaula; cvhmpa/cvhmpb), and every
+  gains the gimbal only restores to flat (1.5 `all_decompiled.c` 193665-193668; that the
+  remaining term settles at 0 is UNVERIFIED until seen in game), and the flames still scale
+  with throttle. Do not raise cvhtnk's gains later without re-skinning: its pod geometry is on
+  bones CEM11WGL0/CEM11WGR1, not on the nacelle bones CEM11WGL/WGR (3 vertices each), so the
+  flames would probably tilt while the visible pods stay still (UNVERIFIED).
+- ODF pitch keys were also copied into the `baseName` variants (cvhaula; cvhmpa/cvhmpb); svtank's
+  variants rely on inheritance instead, so the copy is for clarity, not a requirement. Every
   armed unit or variant that gets them needs its gameplay baseline re-pinned.
 - A unit with no `Assets/ModelFixes/<unit>.vdf` gets a new shipped file, which needs `-bless`.
   `Shaders/CR_cockpit_damage-sm4.hlsl` is tracked on main but unblessed; park it during the
