@@ -111,7 +111,7 @@ for mission, stem in MAPPING.items():
 # phase: reduced/cut units, alternate camera paths, audio, timer edits and the
 # mine-system implementation replaced by the intentional static field in Lua.
 five = active_lua((ROOT / "Scripts/misn05cr.lua").read_text())
-check('"path_" .. i' in five and re.search(r"for i = 1, 23 do", five), "all 23 intentional static mine locations remain")
+check('"path_" .. i' in five and re.search(r"for i = 1, 24 do", five), "all 24 intentional static mine locations remain")
 check('SetLabel(M.cam1, "Volcano")' not in five and five.count('SetObjectiveName(M.cam1, "Volcano")') == 2,
       "camera display name must not replace its map lookup label")
 
