@@ -13,21 +13,23 @@ heatSignature = 0.1
 imageSignature = 2.0
 radarSignature = 0.1
 weaponHard1 = "GC1"
-weaponName1 = "gspstabb"
+weaponName1 = "gspbcv2"
 weaponHard2 = "GC2"
-weaponName2 = ""
+weaponName2 = "gspbcv2"
 weaponHard3 = "GC3"
-weaponName3 = "gspstabb"
+weaponName3 = "gspbcv2"
 weaponHard4 = "GC4"
-weaponName4 = ""
+weaponName4 = "gspbcv2"
 
 [CraftClass]
 // CR CRAFT FLASH OFFSET BEGIN
 // Flash point from the hardpoint (right up forward, metres: barrel tip, or 0 0 0 at
 // a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
 // Regenerate: Tools/Build-WeaponFlashes.py --measure
-flashOffset1 = "-0.00 0.00 0.27"
-flashOffset3 = "0.00 0.01 0.27"
+flashOffset1 = "-0.00 0.00 -0.00"
+flashOffset2 = "-0.00 0.01 -0.00"
+flashOffset3 = "0.00 0.01 -0.00"
+flashOffset4 = "0.00 0.00 -0.00"
 // CR CRAFT FLASH OFFSET END
 // CR CRAFT RECOIL BEGIN
 // Reviewed independent gun pieces; preserve aiming and deployment parents.
@@ -35,13 +37,23 @@ flashOffset3 = "0.00 0.01 0.27"
 recoilAnimation1 = "cr_fire_1"
 recoilPlaybackRate1 = 1.0
 recoilCockpit1 = true
-casingOffset1 = "0.3373 0.1381 -0.2506"
+casingOffset1 = "0.3373 0.1381 -0.5173"
 casingDirection1 = "0.9345 0.3271 -0.1402"
+recoilAnimation2 = "cr_fire_2"
+recoilPlaybackRate2 = 1.0
+recoilCockpit2 = true
+casingOffset2 = "0.3442 0.1405 -0.5183"
+casingDirection2 = "0.9345 0.3271 -0.1402"
 recoilAnimation3 = "cr_fire_3"
 recoilPlaybackRate3 = 1.0
 recoilCockpit3 = true
-casingOffset3 = "-0.3442 0.1405 -0.2516"
+casingOffset3 = "-0.3441 0.1405 -0.5183"
 casingDirection3 = "-0.9345 0.3271 -0.1402"
+recoilAnimation4 = "cr_fire_4"
+recoilPlaybackRate4 = 1.0
+recoilCockpit4 = true
+casingOffset4 = "-0.3373 0.1381 -0.5173"
+casingDirection4 = "-0.9345 0.3271 -0.1402"
 // CR CRAFT RECOIL END
 rangeScan = 180.0
 periodScan = 0.0

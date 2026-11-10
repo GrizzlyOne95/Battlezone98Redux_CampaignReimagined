@@ -29,10 +29,6 @@ flashOffset3 = "0.03 -0.01 1.32"
 // CR CRAFT RECOIL BEGIN
 // Reviewed independent gun pieces; preserve aiming and deployment parents.
 // Regenerate: python Tools/Build-CombatPresentation.py
-recoilName1 = "bhr11bga"
-recoilDistance1 = 0.08
-recoilReturn1 = 1.6
-recoilKick1 = 1.0
 recoilName3 = "bhr11bga"
 recoilDistance3 = 0.08
 recoilReturn3 = 1.6

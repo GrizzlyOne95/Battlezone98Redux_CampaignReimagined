@@ -10,11 +10,11 @@
     1024
   ],
   "sources": {
-    "exteriorSha256": "11664dc096f2d5fee14c15e2b6abcb9f5fdc46c985cd8d4f4022581150be8847",
+    "exteriorSha256": "fb4e33681689d7f75bf937eee477b16edefabeb5a7c081c6283b040cedb11f2f",
     "skeletonSha256": "bbacefcf8d0c047eb82842e447a658c357240003f5404d460443a7871df7a460"
   },
   "outputs": {
-    "Assets/Models/avfigh_cockpit.mesh": "e616d82b915ef3bf212913e013e19129b95bd91d41db6effe94edd55895332e7",
+    "Assets/Models/avfigh_cockpit.mesh": "907345f5fdd84faf66f67b99a2596c22dc9d0f172b5e4727261a8f0e85aa6c54",
     "Assets/Models/avfigh_cockpit.skeleton": "bbacefcf8d0c047eb82842e447a658c357240003f5404d460443a7871df7a460",
     "Assets/Textures/crvascp_d.dds": "d3c2a4e08ede03f9fceb5c555ca7f95602ea38af597e0f68fba04fe7ac300eda",
     "Assets/Textures/crvascp_e.dds": "6fada7a94aa077af90ba84de405dabbdd00ef54d0ef55519db876cf4be1459b1",
@@ -793,6 +793,7 @@
     "nosePlacement": "native",
     "noseSkin": 2,
     "tubFront": 1.03,
+    "noseClearZ": 1.0454380571842194,
     "noseCap": {
       "firstVertex": 1197,
       "vertices": 154,

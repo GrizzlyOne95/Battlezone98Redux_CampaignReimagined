@@ -58,12 +58,14 @@ fragment_program CR_Textured_fragmentHLSL4Enhanced hlsl
 
 // Dedicated DX11 fragment shader for the cockpit char/spark material pass.
 // Other delegates retain the charred overlay and omit the procedural arcs.
+// Enhanced-only: CRPassCockpitCharred is referenced from en-* techniques only.
 fragment_program CR_CockpitSpark_fragmentHLSL4 hlsl
 {
     source CR_cockpit_damage-sm4.hlsl
     target ps_4_0
     entry_point cockpit_damage_fragment
-    preprocessor_defines OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1
+    // ENHANCED_MODE and OSE_* are the validator's Enhanced opt-in markers; this shader does not read them.
+    preprocessor_defines ENHANCED_MODE,OSE_LINEAR_LIGHT=1,OSE_RADIAL_FOG=1
     default_params
     {
         param_named surfaceSpark float4 0 0 0 0

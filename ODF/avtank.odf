@@ -27,7 +27,7 @@ weaponName4 = "gmdmgun"
 // Flash point from the hardpoint (right up forward, metres: barrel tip, or 0 0 0 at
 // a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
 // Regenerate: Tools/Build-WeaponFlashes.py --measure
-flashOffset1 = "0.20 0.10 2.41"
+flashOffset1 = "0.04 0.00 0.00"
 // CR CRAFT FLASH OFFSET END
 // OpenShim muzzle presentation authoring reference (examples stay commented).
 // Experimental exact-GOG 2.2.301 / single-player cannon path, not MP support.
