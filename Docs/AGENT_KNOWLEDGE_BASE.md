@@ -969,6 +969,9 @@ Each bullet: the pitfall, the one-line why, and where to read more.
   name, check they are on `main`. Both PNGs are 512x512, built by `Tools/Build-HiResSprites.py` like r/g/b flame: stock
   `rflame` alpha (the archived 128x128 art had it texel for texel) coloured with the archived art's
   alpha->RGB ramp, kept as `FACTION_FLAMES` knots in the tool. Change a faction colour there, not in the PNG.
+  EXU-priority trap: an `exu.SetTeamEngineFlameColor` team colour outranks OpenShim's per-craft routing, so
+  `PersistentConfig`'s legacy `DynamicFactionFlameColors` layer stays off (saved `true` values are ignored and
+  team colours cleared on apply); confirm with `OPENSHIM_TRACE_JET_FLAMES=1` that route lines say `exuColor=default`.
 
 ### 8.5 Live testing
 
