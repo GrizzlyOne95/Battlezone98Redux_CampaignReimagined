@@ -253,9 +253,11 @@ Grep every ported mission for these before trusting it in MP:
   unit ODFs must exist (unresolved ones are silently skipped). The stock `.aip` files and many `b_misnNN.odf`
   live in Redux's `bzone.zfs`, so they are **not** copied into the mod (the manager has no `.aip`
   classifier).
-- `Scripts/aiCore.lua` (SP-era Lua brain, host-only) **redefines the global `SetAIP`**. In missions that
-  load aiCore, the native AIP is never loaded; pick one brain per mission [owner decisions: misn02b native
-  AIP, misn05 aiCore, misn13 AIP only because aiCore would fight the fixed-outpost win].
+- `Scripts/aiCore.lua` (SP-era Lua brain, host-only) does **not** replace the native `SetAIP` (since commit
+  1b8a3643): it maps a legacy `.aip` name to a Lua strategy through `aiCore.SetStrategyFromAip`, which must
+  never be exported as a global (aiCore.lua:5285-5288). The native AIP and aiCore can run side by side, but
+  still pick deliberately which brain drives a team [owner decisions: misn02b native AIP, misn05 aiCore,
+  misn13 AIP only because aiCore would fight the fixed-outpost win].
 - A craft ODF without `aiName`/`aiName2` builds and looks healthy but has **no AI process**: `CanCommand`
   is false forever and hooks inside the process never run.
 - A missing enemy recycler/factory/scrap means an AIP cannot build (misn02b); script-built forces (Lua
