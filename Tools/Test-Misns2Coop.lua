@@ -248,6 +248,9 @@ for n = 1, 4 do
     local wave = builtAt(p[1], "bdsp5")
     check(#wave == 3 + 2 + extrasFor(n), n .. " human(s): wave 5 = 3 raiders + 2 restored tanks + extras, got " .. #wave)
     check(#builtAt(p[1], "bdsp5", "bvtank") == 2, "the restored tanks")
+    heardAll(p, "misns211.wav")
+    F.run(5)
+    heardAll(p, "misns211.wav") -- still once
     allSafe(p, wave)
 end
 

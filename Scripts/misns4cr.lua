@@ -36,7 +36,7 @@ local M = NewState()
 -- Lexical wrappers affect this mission only. Docs/MISNS4_COOP.md lists every wrapped call and restoration.
 -- Each RESTORED_* flag switches one cut-content restoration off (Docs/MISNS4_COOP.md, "Restored content").
 local RESTORED_RAIDER_LTNK, RESTORED_BRIDGE_HRAZ, RESTORED_NORTH_TANK = true, true, true
-local RESTORED_VOICE_LINES = true -- unused shipped lines misns404, misns407, misns408 (Docs/MISNS4_COOP.md)
+local RESTORED_VOICE_LINES = true -- unused shipped lines misns404, misns406, misns407, misns408 (Docs/MISNS4_COOP.md)
 local SCRAP_PER_GUEST = 10
 local Restored = {}
 if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
@@ -188,6 +188,12 @@ if campaignRuntime then
             if M.north_bridge and not r.l408 then
                 r.l408 = true
                 if not M.bridge_clear then AudioMessage("misns408.wav") end
+            end
+            -- misns406 "This convoy is too insecure." after misns403 on the first hauler lost, while one more loss
+            -- would still fail the mission (not when that loss already failed it).
+            if M.convoy_dead >= 1 and not r.l406 then
+                r.l406 = true
+                if not M.lost and not M.won then AudioMessage("misns406.wav") end
             end
             -- misns407 at the win, during the source's ten-second success delay.
             if M.won and not r.l407 then

@@ -107,6 +107,7 @@ the top of the runtime region of `misns2cr.lua`). Each is gated on what `misns2c
 | Wave-1 raiders (`RESTORED_WAVE1_RAZ`) | `//bd3 = BuildObject ("bvraz", 2, "bdsp1"); //bd4 ...; //Attack (bd3, t3, 1); //Attack (bd4, t3, 1); //SetIndependence (bd3, 1); //SetIndependence (bd4, 1);` | Two more `bvraz` at `bdsp1` attacking APC 3, built in the frame of wave 1. Wave 1's end test still looks only at `bd1`/`bd2`. They retreat through the body's own `bd3`/`bd4` entries. |
 | Cutoff raiders (`RESTORED_CUTOFF`) | `//bdcutoff1..3 = BuildObject("bvraz", 2, "nav5"); //Attack(bdcutoff1, t1); //Attack(bdcutoff2, t2); //Attack(bdcut0ff2, t3);` inside the nav3 (artillery + mines) branch | Three `bvraz` at path `nav5`, built in the frame that branch arms `alerttime` (the only branch that does). The cut third order named the variable `bdcut0ff2` (a typo that never existed); the third raider attacks APC 3. |
 | Wave-5 tanks (`RESTORED_WAVE5_TANKS`) | `//bd25 = BuildObject ("bvtank", 2, "bdsp5"); //bd26 = ...` | Two `bvtank` at `bdsp5`, no orders (as cut), built beside the three raiders. They retreat through the body's `bd25`/`bd26` entries. |
+| Wave-5 warning (`RESTORED_WAVE5_VOICE`) | none: unused shipped line `misns211` ("Commandant, we're picking up some American units on the hill.") [owner decision 2026-11-11] | Plays once (`AudioMessage`, replicated to co-op guests) when wave 5 spawns at `bdsp5`; latched in the runtime state, so Save/Load does not replay it. Redux ships the wav only in `bzone_en/ru.zfs`, so the stock English take ships byte-exact as `Assets/Audio/misns211.wav` (guarded by `Tools/Test-ShippedCutVo.py`). |
 | First camera net (`RESTORED_NET1`) | the commented `nav1 = BuildObject ("apcamr", 2, "bdnet1"); ... nav6 ... "bdnet6"` in the `bdnet4` ambush block | Six enemy `apcamr` pods at `bdnet1`..`bdnet6` in the frame of the ambush, stored in the body's `nav1..nav6` fields. Nothing reads them, so each is built only when no human is within 460 m of its post. |
 
 Skipped, with the reason:
@@ -126,8 +127,9 @@ box), and three paths with no code behind them anywhere: `alt_trigger_wave1`, `a
 `alt_trigger_artillery&mines` (they look like an alternate wave-1 trigger/spawn and an alternate artillery/mine
 trigger for the northern route; the intent is undocumented, so nothing is guessed from them).
 
-Unused shipped voice line `misns211` ("Commandant, we're picking up some American units on the hill.") is audited and
-skipped: nothing in the body marks a moment for it.
+Unused shipped voice line `misns211` ("Commandant, we're picking up some American units on the hill.") was first
+skipped; it is restored as `RESTORED_WAVE5_VOICE` (see "Restored content") [owner decision 2026-11-11]. It plays as
+wave 5 (the last ambush, sprung within 550 m of the launch pad) spawns; the line is a generic sighting warning.
 
 ## Stock bugs and co-op fixes in the CR layer (the faithful body is untouched)
 

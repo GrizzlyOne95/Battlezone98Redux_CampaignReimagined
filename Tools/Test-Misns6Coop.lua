@@ -149,6 +149,44 @@ do
     heardAll(q, "misns606.wav")
 end
 
+-- ------------------------------------------------------------------ restored lines misns607 / misns610 / misns813
+do
+    local w2, q, m2 = setup(3)
+    heardAll(q, "misns607.wav", 0)
+    F.place(q[2].player, 2492, 101645 - 700); F.run(2)
+    heardAll(q, "misns607.wav", 0)
+    F.place(q[2].player, 2492, 101645 - 450); F.run(2)
+    check(not m2.last_objective, "607 fires before the last-objective trigger")
+    heardAll(q, "misns607.wav")
+    heardAll(q, "misns612.wav", 0)
+    F.place(q[2].player, 2492, 101645 - 100); F.run(5)
+    heardAll(q, "misns607.wav")
+    check(m2.last_objective, "the last-objective trigger fired")
+    heardAll(q, "misns612.wav")
+    F.run(5)
+    heardAll(q, "misns612.wav")
+    -- recycler under heavy attack: 610 once, 813 ten seconds later
+    heardAll(q, "misns610.wav", 0)
+    F.setHealth("svrecy0_recycler", 0.6); F.run(2)
+    heardAll(q, "misns610.wav", 0)
+    F.setHealth("svrecy0_recycler", 0.4); F.run(2)
+    heardAll(q, "misns610.wav")
+    heardAll(q, "misns813.wav", 0)
+    F.run(10)
+    heardAll(q, "misns813.wav")
+    F.setHealth("svrecy0_recycler", 0.3); F.run(15)
+    heardAll(q, "misns610.wav"); heardAll(q, "misns813.wav")
+    guestsPassive(q)
+end
+-- 813 is dropped when the recycler dies inside the 10 s gap
+do
+    local w2, q, m2 = setup(2)
+    F.setHealth("svrecy0_recycler", 0.2); F.run(2)
+    heardAll(q, "misns610.wav")
+    F.kill("svrecy0_recycler"); F.run(15)
+    heardAll(q, "misns813.wav", 0)
+end
+
 -- ------------------------------------------------------------------ the miner raid (counter1): scaled by head count
 local expectedRaid = { 2, 3, 3, 4 }
 for n, expect in ipairs(expectedRaid) do
@@ -243,7 +281,11 @@ F.kill(GOAL); F.kill(RECY); F.run(8)
 check(F.count(p[1], "SucceedMission") == 1 and F.count(p[1], "FailMission") == 0, "victory takes precedence over a simultaneous recycler loss")
 -- recycler loss
 w, p, m = setup(3)
+local killedAt = w.now
 F.kill(RECY); F.run(6)
+heardAll(p, "misns611.wav")
+local failAt = F.last(p[1], "FailMission")[2]
+check(failAt - killedAt >= 11.0 and failAt - killedAt < 13.0, "the fail delay lets misns611 finish: " .. tostring(failAt - killedAt))
 for i = 1, 3 do
     check(F.count(p[i], "FailMission") == 1 and F.last(p[i], "FailMission")[3] == "misns6l1.des", "one shared recycler-loss failure on peer " .. i)
     check(F.count(p[i], "SucceedMission") == 0, "no victory after the loss on peer " .. i)

@@ -11,6 +11,8 @@ local function Distance(a,b)
 end
 local function IsOdfBase(h,name) return Valid(h) and (IsOdf(h,name) or IsOdf(h,name..".odf")) end
 local LEADER_TEAM, ENEMY_TEAM, FURY_TEAM, SURVIVOR_TEAM = 1, 5, 6, 7
+-- Unused stock line misn1517 (Collins: "Thank you, Corporal...") closes the Tartarus exchange (Docs/MISN15_COOP.md).
+local RESTORED_TARTARUS_REPLY = true
 -- CR co-op layer >>
 -- EXU Initialization (the co-op layer needs the bundled multiplayer hooks).
 local RequireFix = require("RequireFix")
@@ -847,6 +849,7 @@ local function UpdateTartarus()
     local damaged=s.tartarusHealth and health<s.tartarusHealth
     if Alive(M.tart) and NearAny(M.tart,150) and not s.tartarusWarning then
         s.tartarusWarning=GetTime();AudioMessage("misn1513.wav");AudioMessage("misn1514.wav")
+        if RESTORED_TARTARUS_REPLY then AudioMessage("misn1517.wav") end
     end
     if not s.tartarusAlert then
         if damaged then

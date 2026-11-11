@@ -77,7 +77,10 @@ Reports fire once at upward thresholds; spending does not replay them. Skipped
 lower milestones are not queued after reaching 75. Withdrawal uses `1506/1508`,
 NE reminder `1512`; these English originals are bundled byte-exact (PCM mono,
 22050 Hz, 8 bit). The older cut-VO validator's fixed 11025 Hz assumption was
-extended only for those original formats. Tartarus keeps `1513/1514`; the old
+extended only for those original formats. Tartarus keeps `1513/1514`, and the unused
+stock line `misn1517` (Collins: "Thank you, Corporal. Now, let's get on with the mission.") now
+follows them once (`RESTORED_TARTARUS_REPLY`) [owner decision 2026-11-11]. It ships in the en/de/es/fr/it
+archives, so it is not bundled (pt and ru lack it, as they lack other cut lines). The old
 NE code's inappropriate reuse of `1514` stays removed. Failure uses `1509`.
 
 The native co-op HUD defaults and optional traffic API remain owned by the

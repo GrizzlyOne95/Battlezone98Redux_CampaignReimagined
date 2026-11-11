@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- CR CCA mission 6 plays five more unused stock voice lines: a warning when you first close on the command centre's entrenched turrets, a call to advance when you reach the command centre, an alarm when the recycler drops below half health, a follow-up 10 s later if it still stands, and Karnov's warning when the recycler is lost (the mission now fails 11 s after the loss, not 2 s, so the line finishes).
+- CR CCA mission 4 plays its unused stock warning that the convoy is too insecure after the first transport is lost.
+- CR CCA mission 2 plays its unused stock warning about American units on the hill when wave 5 attacks the launch pad.
+- CR NSDF mission 15: Collins's unused "Thank you, Corporal" line now closes the Tartarus warning.
+- CR CCA mission 3 plays its unused stock warning that an American unit is coming your way when the patrol leaves by the second route, in place of the repeated first-route line.
 - OpenShim e7b20a9aa (still reports 1.0.0.75): on DX11, Options > Graphics > Full Screen offers No / Yes / Borderless (replacing the separate borderless row; DX9 keeps No / Yes); headlights get a Natural beam (`HeadlightBeam = Natural`) and a Headlight Reach row on the Lighting page, with defaults unchanged; pre-launch briefings can have up to nine pages (`<mission>_2.des` to `_9.des`), turned with the arrows or Left/Right and PgUp/PgDn.
 - OpenShim 7c0a0b6d3 (still reports 1.0.0.75): DirectX 11 can run borderless fullscreen (`[Graphics] BorderlessFullscreen`, off by default) and Alt-Enter on DX11 no longer leaves a small borderless window; Emissive Pulse works on Enhanced DX11 again; transparent and fading objects on the DX11 fallback render like stock; Daywrecker seismic spires no longer stretch across the map; the sniper eject aim is fixed (single-player toggle); HD terrain paint shows concrete base pads on the Moon, Venus, Io, Europa and Titan; Options shows the release version; multiplayer hosts can allow any nation, `.tga` files pass the multiplayer mod check, and the free camera (GK9) is blocked in multiplayer; Steam players can skip the Rebellion launcher.
 - EXU (4bc36d1): `exu.SetPlayerInputs` / `exu.ClearPlayerInputs` let a script drive the local player's controls.

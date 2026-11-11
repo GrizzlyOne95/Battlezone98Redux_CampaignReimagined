@@ -304,6 +304,7 @@ do
         check(F.count(q[1], "Goto", b.h) == 1 and F.count(q[1], "SetIndependence", b.h) == 1, "patrol route and independence")
     end
     heardAll(q, "misns219.wav")
+    heardAll(q, "misns311.wav", 0) -- the first route keeps the stock line
     -- a human within 180 m of the patrol sets off the alarm: defenders activate and the patrol attacks
     F.nearTo(q[3].player, m2.pat1, 100, 0); F.run(9)
     heardAll(q, "misns220.wav")
@@ -316,6 +317,8 @@ do -- an allied bomber at the second trigger counts too
     away(q)
     F.nearTo("bomb2", "patroltrig2", 30, 0); F.run(9)
     check(m2.patrolspawned and #builtAt(q[1], "patrolspawn2") == 2, "a wing bomber at patroltrig2 sends the second patrol")
+    heardAll(q, "misns311.wav") -- restored: the second route gets its own warning
+    heardAll(q, "misns219.wav", 0)
 end
 
 -- ------------------------------------------------------------------ the minefields
