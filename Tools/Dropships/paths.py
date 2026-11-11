@@ -3,6 +3,7 @@
 Override with environment variables:
   BZ_DROPSHIPS_LOCAL   output root (default <repo>/Local/dropships; holds out/ and tex/)
   BZ_STOCK_MODELS      folder of stock Redux .mesh files (only used for the cargo-fit proxies in the .blend)
+  BZ_STOCK_TEXTURES    stock Redux texture root (pc/textures; build_*drop.py comparison renders, measure_stock.py)
   BZ_TOOLBOX           Battlezone98_Modding_Toolbox checkout (DDS encoder for texgen_avstock.py)
 """
 import os
@@ -15,4 +16,6 @@ TEX = os.path.join(LOCAL, "tex")
 LAYOUT = os.path.join(HERE, "trim_layout.json")   # tracked: strip/cell layout shared by texgen and shipkit
 STOCK = os.environ.get("BZ_STOCK_MODELS",
                        r"C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux\BZ_ASSETS\common\models")
+STOCK_TEX = os.environ.get("BZ_STOCK_TEXTURES",
+                           r"C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux\BZ_ASSETS\pc\textures")
 TOOLBOX = os.environ.get("BZ_TOOLBOX", os.path.expanduser("~/Documents/GIT/Battlezone98_Modding_Toolbox"))
