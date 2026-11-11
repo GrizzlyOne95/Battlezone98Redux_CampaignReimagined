@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5741,
+  "count": 5743,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -11991,6 +11991,10 @@
       "runtime": "CR_scope.material"
     },
     {
+      "source": "Materials\\CR_ShieldTowerField.material",
+      "runtime": "CR_ShieldTowerField.material"
+    },
+    {
       "source": "Materials\\CR_sky_events.material",
       "runtime": "CR_sky_events.material"
     },
@@ -18797,6 +18801,10 @@
     {
       "source": "Scripts\\crsetup.lua",
       "runtime": "crsetup.lua"
+    },
+    {
+      "source": "Scripts\\CRShieldTowerFX.lua",
+      "runtime": "CRShieldTowerFX.lua"
     },
     {
       "source": "Scripts\\CRSplash.lua",

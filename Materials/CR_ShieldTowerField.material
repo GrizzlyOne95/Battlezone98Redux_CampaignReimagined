@@ -1,0 +1,41 @@
+// Shield tower push-field box (CRShieldTowerFX). Flat translucent colour on a
+// scaled unit cube: no texture, no lighting, no depth write, visible from inside.
+// Yellow = tower unpowered, green = powered.
+
+material CR_ShieldTowerField_Yellow
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			scene_blend alpha_blend
+			depth_write off
+			cull_hardware none
+			cull_software none
+			ambient 1.0 0.85 0.10 0.18
+			diffuse 1.0 0.85 0.10 0.18
+			specular 0 0 0 1 0
+			emissive 1.0 0.85 0.10 0.18
+		}
+	}
+}
+
+material CR_ShieldTowerField_Green
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			scene_blend alpha_blend
+			depth_write off
+			cull_hardware none
+			cull_software none
+			ambient 0.15 1.0 0.25 0.18
+			diffuse 0.15 1.0 0.25 0.18
+			specular 0 0 0 1 0
+			emissive 0.15 1.0 0.25 0.18
+		}
+	}
+}
