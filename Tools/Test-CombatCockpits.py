@@ -30,8 +30,11 @@ for base,cfg in cp.CONFIG.items():
     check(np.allclose(R,np.eye(3),atol=2e-5) and np.allclose(meta['povBasis'],R),'native/rest camera fixture')
     check(shell.handle==meta['shellHandle'] and shell.name==meta['shell'],'correct stable shell')
     m=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/Models'/(base+'_cockpit.mesh')));check(m.skeleton_name==base+'_cockpit.skeleton','separate namespaced rig')
-    mount=meta.get('mountSkin');check((mount is not None)==(base=='svfigh'),'only the svfigh cockpit carries a hardpoint mount')
-    check([sub.material_name for sub in m.submesh_list]==[cfg['material'],cfg['stock'],'CRV/'+base+'CombatExterior',*([mount['material']] if mount else []),'CRWX_CockpitGlass'],'deliberate batches including glass (and the svfigh hardpoint pod)')
+    # The builder copies a CR hardpoint mount only into fighter cockpits whose source has one
+    # (combatcockpits.geometry); the bombers' mounts are only visible clipping through the tub.
+    hpmount=any(sub.material_name==base+'_hpmount' for sub in cp.shared.read_mesh(source).submesh_list)
+    mount=meta.get('mountSkin');check((mount is not None)==(cfg['role']=='fighter' and hpmount),'hardpoint mount batch exactly where the builder rule applies')
+    check([sub.material_name for sub in m.submesh_list]==[cfg['material'],cfg['stock'],'CRV/'+base+'CombatExterior',*([mount['material']] if mount else []),'CRWX_CockpitGlass'],'deliberate batches including glass (and any hardpoint mount)')
     if mount:
         # The CR hardpoint pod (Build-HardpointMounts.py) is copied whole, at its
         # native position with its own UVs, rigid on the nose it is welded to.
@@ -121,12 +124,15 @@ for base,cfg in cp.CONFIG.items():
     for pitch in range(-31,1):
         yaw=np.arange(-45,46);dist,hit=cast(yaw,pitch);visible=(hit>=lo)&(hit<hi)&np.isfinite(dist);hits[0]+=int((visible&(yaw<0)).sum());hits[1]+=int((visible&(yaw>0)).sum())
     if mount:
-        # The pod is small (about 4 x 6 degrees, low and centred): sample it finely.
+        # The pod is small: sample its own angular box from the real eye finely.
         plo,phi=ranges[mount['material']];pod_hits=0
-        for pitch in np.arange(-14,0,.25):
-            yaw=np.arange(-4,4.01,.25);dist,hit=cast(yaw,pitch);pod_hits+=int(((hit>=plo)&(hit<phi)&np.isfinite(dist)).sum())
-        print('svfigh pod rays',pod_hits)
-        check(pod_hits>100,'hardpoint pod visible from the real eye '+str(pod_hits));report['svfighPodVisibility']=pod_hits
+        pm=next(x for x in m.submesh_list if x.material_name==mount['material'])
+        d=(cp.shared.values(pm.vertex_data,cp.shared.om.VES.POSITION)-origin)@R;d/=np.linalg.norm(d,axis=1)[:,None]
+        yaws,pitches=np.degrees(np.arctan2(d[:,0],d[:,2])),np.degrees(np.arcsin(d[:,1]))
+        for pitch in np.arange(np.floor(pitches.min()),pitches.max()+.25,.25):
+            yaw=np.arange(np.floor(yaws.min()),yaws.max()+.25,.25);dist,hit=cast(yaw,pitch);pod_hits+=int(((hit>=plo)&(hit<phi)&np.isfinite(dist)).sum())
+        print(base,'pod rays',pod_hits)
+        check(pod_hits>100,'hardpoint pod visible from the real eye '+str(pod_hits));report[base+'PodVisibility']=pod_hits
     if base=='cvturr':
         # Native gun pods flank the pilot; do not require them to sit artificially
         # on the bottom of a forward render. Both high/low pairs must be visible

@@ -2994,9 +2994,53 @@
       "Assets/Models/avfigh_recoil.skeleton": "6a6954d995373b7120d66cbefdc463188f377975ffbb47ed4504fa6d1e9b4e06",
       "Assets/ModelFixes/avfigh.mesh": "3927bdadca1420e6ab84edbc68dc29c547bb1274d814558dce7d6947b3cd55a0",
       "Assets/Models/avfigh_cockpit.mesh": "592ab108c0f20b4980254856ec8bfc1116dbf835b0f000c147ee70279ef2857b",
-      "Assets/Models/avfigh_cockpit_recoil.skeleton": "17554d86b2b877e6ce779091c188a451bcea33c32bb7f6ae60bec3140db3726a"
+      "Assets/Models/avfigh_cockpit_recoil.skeleton": "0499d6c887b47eda519568bc549d1475e5e26c0f34b6b374d3f8105d72f35e8d"
     },
     "hardpoints": {
+      "ARA11Gc1": {
+        "parent": "ARA11BDA",
+        "position": [
+          0.568,
+          -0.242505,
+          0.908156
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "ARA11Gc2": {
+        "parent": "ARA11BDA",
+        "position": [
+          -0.556,
+          -0.242505,
+          0.908156
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "ARA11Gr1": {
+        "parent": "ARA11BDA",
+        "position": [
+          0.535978,
+          -0.484925,
+          1.385138
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
+    },
+    "cockpit_hardpoints": {
       "ARA11Gc1": {
         "parent": "ARA11BDA",
         "position": [
