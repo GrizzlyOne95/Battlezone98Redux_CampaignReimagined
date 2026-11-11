@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5730,
+  "count": 5731,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -18689,6 +18689,10 @@
     {
       "source": "Scripts\\CRJungleTrees17.lua",
       "runtime": "CRJungleTrees17.lua"
+    },
+    {
+      "source": "Scripts\\CRLockBadge.lua",
+      "runtime": "CRLockBadge.lua"
     },
     {
       "source": "Scripts\\CRMarsWeather.lua",

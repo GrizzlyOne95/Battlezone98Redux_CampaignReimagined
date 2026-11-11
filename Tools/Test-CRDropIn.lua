@@ -104,6 +104,9 @@ local function count(name, odf)
     return n
 end
 local function locked() return next(masks) ~= nil end
+-- the "FIRE CONTROLS LOCKED" overlay (CRLockBadge) as the fake EXU sees it
+local overlay = {}
+local function badge() return overlay.visible == true and overlay.caption == "FIRE CONTROLS LOCKED" end
 
 -- opts: noExu, noShips, network, leader (default true), team (default 1), player (default 3)
 local function reset(opts)
@@ -170,6 +173,18 @@ local function reset(opts)
         GetPlayerControlState = function() return { reason = "multiplayer-unsupported" } end,
         ClearPlayerControlMask = function(owner) masks[owner] = nil end,
     } or nil
+    overlay = {}
+    if exu then
+        for _, f in ipairs({ "CreateOverlayElement", "AddOverlay2D", "SetOverlayZOrder", "SetOverlayMetricsMode",
+            "AddOverlayElementChild", "SetOverlayTextFont", "SetOverlayMaterial", "SetOverlayParameter",
+            "SetOverlayPosition", "SetOverlayDimensions", "SetOverlayTextCharHeight", "SetOverlayTextColor",
+            "ShowOverlayElement", "HideOverlay", "RemoveOverlayElementChild", "DestroyOverlayElement",
+            "RemoveOverlay2D" }) do exu[f] = function() return true end end
+        exu.CreateOverlay = function() overlay.created = true; return true end
+        exu.SetOverlayCaption = function(_, text) overlay.caption = text; return true end
+        exu.ShowOverlay = function() overlay.visible = overlay.created; return true end
+        exu.DestroyOverlay = function() overlay.created, overlay.visible = false, false; return true end
+    end
     local player = opts.player or 3
     local state = {}
     D.Configure({
@@ -221,6 +236,15 @@ do
     check(D.Update(s) == true, "the drop holds the stock start while ships descend")
     check(count("BuildObject", "avdropc") == 2 and count("BuildObject", "apcamr") == 1, "two flying ships, one camera pod")
     check(camera.ready == 1 and masks["mission:test-drop"] == 4095, "camera up and controls locked at once")
+    check(badge(), "the FIRE CONTROLS LOCKED overlay shows while locked")
+    do -- an abort mid-drop must take the badge down with the mask
+        local D2, s2 = reset()
+        D2.Begin(s2, spec()); D2.Update(s2)
+        check(badge(), "badge up before the abort")
+        D2.Abort(s2)
+        check(not locked() and not badge(), "an abort clears the mask and the badge")
+        D, s = reset(); D.Begin(s, spec()); D.Update(s)
+    end
     check(s.crew[1].ship == 2 and s.crew[1].along == 6 and s.crew[1].lat == -7, "the player rides row 1 of the personnel ship")
     check(s.lead.cargo[3].along == 6 and s.lead.cargo[3].lat == 7, "the wingman takes the next lane slot")
     local inFlight, released
@@ -235,6 +259,7 @@ do
     check(released and released >= 16 + 2.5 + 2.6 - 0.05 and released < 16 + 2.5 + 2.6 + 0.2,
         "release follows the second ship's ramps")
     check(not locked() and camera.finish == 1 and count("RemoveObject", "apcamr") == 1, "release: unlock, camera, pod")
+    check(not badge(), "release hides the overlay")
     check(camera.frames > 0, "the shared camera follows the personnel ship")
     for _ = 1, 30 * 120 do
         step(D, s, 1 / 30, function() objects[3].pos = V(objects[3].pos.x, 20, objects[3].pos.z + 0.5) end)
@@ -306,6 +331,7 @@ do
     local D, s = reset({ network = true, leaderSim = true })
     D.Begin(s, spec({ 1, 2, 3, 4 }))
     check(masks["mission:test-drop"] == 4095, "the mask locks the leader in co-op too")
+    check(badge(), "the overlay shows in co-op too")
     local ships, crew, go = 0, 0, 0
     for _, c in ipairs(calls) do
         if c[1] == "present" then
@@ -448,6 +474,7 @@ do
     local D, s = reset({ network = true, leaderSim = true, maskRefuses = true })
     D.Begin(s, spec({ 1, 2, 3, 4 }))
     check(not locked(), "a refused mask leaves nothing set")
+    check(not badge(), "a refused mask shows no overlay: fire is not locked")
     local logged = false
     for _, l in ipairs(log) do if tostring(l):find("control lock unavailable", 1, true) then logged = true end end
     check(logged, "a refused mask is logged")

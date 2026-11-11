@@ -210,6 +210,10 @@ function Drop.Configure(options)
     api = options or {}
 end
 
+-- "FIRE CONTROLS LOCKED" overlay while the mask is held; absent module = no badge
+local badgeOk, Badge = pcall(require, "CRLockBadge")
+if not badgeOk or type(Badge) ~= "table" then Badge = nil end
+
 local function lock(on)
     -- Called in co-op too: each peer locks its own player. An older bundled EXU that refuses multiplayer
     -- returns false, which is logged and pinning stays the hold.
@@ -220,12 +224,15 @@ local function lock(on)
     end
     local owner = api.owner or "mission:dropship"
     if on then
-        if not exu.SetPlayerControlMask(owner, exu.CONTROL.ALL) then
+        if exu.SetPlayerControlMask(owner, exu.CONTROL.ALL) then
+            if Badge then Badge.Show(exu) end
+        else
             local s = exu.GetPlayerControlState and exu.GetPlayerControlState()
             log("control lock unavailable: %s", tostring(s and s.reason))
         end
-    elseif exu.ClearPlayerControlMask then
-        exu.ClearPlayerControlMask(owner)
+    else
+        if exu.ClearPlayerControlMask then exu.ClearPlayerControlMask(owner) end
+        if Badge then Badge.Hide(exu) end
     end
 end
 

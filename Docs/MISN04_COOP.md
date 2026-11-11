@@ -68,6 +68,9 @@ skip touches both ships down at once (the ramps still take 2.6 s). In network ga
 (an older bundled `exu.dll` refuses it, and pinning every frame stays the hold) and `CameraCancelled` is false, so no skip moves the shared timeline; a player's skip only
 drops their own view.
 
+While a peer's mask is actually applied, `CRLockBadge` shows a small amber "FIRE CONTROLS LOCKED" line at the
+bottom centre of that peer's screen; it goes with the mask. A refused mask shows no badge, since fire is not locked.
+
 **Save/load mid-opening** cannot resume it (the ship handles and the cameras are gone): the leader removes every
 dropship and the pod (by ODF only: a saved handle that now names something else is left alone), sets any AI cargo still carried or driving down on its stock spot, and each peer whose craft
 was still carried sets it down past its ramp lip, so nothing is stranded in the air; the stock opening then runs. If
