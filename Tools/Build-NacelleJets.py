@@ -129,6 +129,8 @@ CONFIG = {
     'cvslf': unit('cra', 1.0, .6, carrier=dict(name='CAM11NAC', parent='CAM11BDA', at=((2.1, 2.5),))),
     # cvtnk: on the rear hull beside the tail rotor, inboard of the steering fins (both engine-animated, left alone).
     'cvtnk': unit('cra', .5, .5, conform=True, carrier=dict(name='CYE11NAC', parent='CYE11BDA', at=((1.5, 1.8),))),
+    # cvcnst: low on the tail, either side of the centreline, well behind the deploying arm (BDB-BDE).
+    'cvcnst': unit('cra', .5, .6, conform=True, carrier=dict(name='CCN11NAC', parent='CCN11BDA', at=((.7, 2.2),))),
 }
 
 def unit_vectors(v):
