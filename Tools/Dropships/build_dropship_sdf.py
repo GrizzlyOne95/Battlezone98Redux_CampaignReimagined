@@ -10,7 +10,7 @@ textures, a flat-colour mesh with every UV at 0.5. So the render mesh is the UV-
 from build_dropship's rig()/export_rigged(), turned 180 degrees about up into the porter's frame
 (x,y,z -> -x,y,-z; the model is first turned 180 degrees so its bow faces the legacy front, +Y), its bone indices remapped by name onto the porter skeleton.
 
-Run: blender -b -P build_dropship_sdf.py   -> ../out/sdf/avdropo.{sdf,mesh,skeleton,material} + adr11*.geo
+Run: blender -b -P build_dropship_sdf.py [-- --ship bvdrop]   (AVD_NAME=<name>, AVD_RAMP_DEG=0.001 for "c", AVD_REVERSE=1 for "x") -> ../out/sdf/avdropo.{sdf,mesh,skeleton,material} + adr11*.geo
 """
 import os
 import re
@@ -31,11 +31,14 @@ RAMP_SIGN = float(os.environ.get("AVD_RAMP_SIGN", "1"))   # test hook: build a t
 RAMP_SWING = float(os.environ.get("AVD_RAMP_DEG", "0")) or None  # test hook: animate a smaller swing
 DEST = os.path.join(K.OUT, "sdf")
 # GEO texture names are 8 characters; these map onto the nsdfv atlas in the hand-written .material
-TEXNAME = {"hull": "avdrhull", "hullw": "avdrhulw", "trim": "avdrtrim"}
+_TP = "bvdr" if SHIP == "bvdrop" else "avdr"          # SHIP comes from build_dropship.py (--ship avdrop|bvdrop)
+TEXNAME = {"hull": _TP + "hull", "hullw": _TP + "hulw", "trim": _TP + "trim"}
 OPEN_FRAMES = 30            # 2 s at 15 fps, the stock hangar's rate
 # visual ramp bone -> (static collision slab GEO, swing sign in the SDF frame); bow is +Y here
 RAMPS = {"adr11rmp": ("adr11rpf", 1), "adr11fmp": ("adr11fpf", -1)}
 ANIM_ELEMENTS = [(0, 0, OPEN_FRAMES + 1), (1, OPEN_FRAMES, -(OPEN_FRAMES + 1)), (4, 0, OPEN_FRAMES + 1)]
+if os.environ.get("AVD_REVERSE"):   # the "x" variant: ANIM index 0 runs open -> shut (start 30, length -31)
+    ANIM_ELEMENTS[0] = (0, OPEN_FRAMES, -(OPEN_FRAMES + 1))
 
 
 def split_parts(ob, bones):
