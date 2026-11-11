@@ -1,0 +1,630 @@
+{
+  "unit": "cvtnk",
+  "faction": "cra",
+  "material": "cvtnk_nacjet",
+  "emitters": [
+    {
+      "part": "CYE11NAC+1.50",
+      "bone": 13,
+      "skin": 0,
+      "pivot": [
+        0.0,
+        1.8,
+        -1.874681707665977
+      ],
+      "emit": [
+        1.5,
+        1.8,
+        -1.8633833151761283
+      ],
+      "axes": [
+        [
+          1.0,
+          0.0,
+          -1.2246467991473532e-16
+        ],
+        [
+          -1.2246467991473532e-16,
+          0.0,
+          -1.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "yaw": 180,
+      "source": "carrier",
+      "carrier": "CYE11NAC"
+    },
+    {
+      "part": "CYE11NAC-1.50",
+      "bone": 13,
+      "skin": 0,
+      "pivot": [
+        0.0,
+        1.8,
+        -1.874681707665977
+      ],
+      "emit": [
+        -1.5,
+        1.8,
+        -1.8859801001558256
+      ],
+      "axes": [
+        [
+          -1.0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          1,
+          0
+        ]
+      ],
+      "source": "carrier",
+      "carrier": "CYE11NAC"
+    }
+  ],
+  "flameDirection": "-y of each emitter frame",
+  "baseRevision": "f09fec92f1d6da20facde0d095c45f19a913c866",
+  "wingUnderside": {
+    "heightAtEmit": 1.4382594156143762,
+    "slopePerMetreOfChord": -0.5412784616067114,
+    "maxError": 0.0
+  },
+  "paint": [
+    46.0,
+    52.0,
+    27.0
+  ],
+  "paintSource": "cvtnk_d.dds",
+  "housing": {
+    "vertices": 851,
+    "triangles": 583,
+    "zones": {
+      "paint": 193,
+      "bell": 95,
+      "lip": 45,
+      "groove": 115,
+      "bore": 45,
+      "throat": 18,
+      "vent": 72
+    }
+  },
+  "shape": {
+    "sides": 20,
+    "flat": 0.86,
+    "smoothAngle": 35,
+    "bury": 0.03,
+    "chamfer": 0.0225,
+    "sections": [
+      [
+        0.1175,
+        0.045,
+        0.0075
+      ],
+      [
+        0.0925,
+        0.105,
+        0.035
+      ],
+      [
+        0.06,
+        0.15,
+        0.06
+      ],
+      [
+        0.0525,
+        0.15,
+        0.06
+      ],
+      [
+        0.035,
+        0.15,
+        0.06
+      ],
+      [
+        -0.05,
+        0.15,
+        0.06
+      ],
+      [
+        -0.0825,
+        0.105,
+        0.04
+      ],
+      [
+        -0.11,
+        0.04,
+        0.0075
+      ]
+    ],
+    "vent": {
+      "drop": 0.02,
+      "halfWidth": 0.15,
+      "depth": 0.01,
+      "height": 0.015,
+      "length": 0.0425,
+      "z": [
+        -0.0325,
+        -0.0075,
+        0.0175
+      ]
+    },
+    "scale": 0.5,
+    "length": 0.5,
+    "over": {
+      "conform": true
+    },
+    "auto": true,
+    "stripe": [
+      0.035,
+      0.0525
+    ],
+    "bell": {
+      "top": 0.0,
+      "lip": -0.075,
+      "rTop": 0.125,
+      "rLip": 0.1175
+    },
+    "bore": {
+      "roof": 0.015,
+      "rRoof": 0.075,
+      "rMouth": 0.1025
+    },
+    "groove": {
+      "y0": -0.066,
+      "y1": -0.06,
+      "depth": 0.004,
+      "rOut": 0.14
+    },
+    "conform": true
+  },
+  "stripe": [
+    0.035,
+    0.0525
+  ],
+  "vdfParts": [
+    {
+      "name": "CYE11FAC",
+      "klass": 75,
+      "parent": "CYE11NAC",
+      "position": [
+        -1.5,
+        0.0,
+        0.011298392489848652
+      ],
+      "orientation": [
+        [
+          1.0,
+          1.2246467991473532e-16,
+          0.0
+        ],
+        [
+          1.2246467991473532e-16,
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ]
+      ],
+      "matrix": [
+        1.0,
+        1.2246467991473532e-16,
+        0.0,
+        1.2246467991473532e-16,
+        -1.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0,
+        -1.5,
+        0.0,
+        0.011298392489848652
+      ],
+      "existing": false,
+      "moved": false
+    },
+    {
+      "name": "CYE11FA0",
+      "klass": 75,
+      "parent": "CYE11NAC",
+      "position": [
+        1.5,
+        0.0,
+        -0.011298392489848652
+      ],
+      "orientation": [
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ]
+      ],
+      "matrix": [
+        -1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0,
+        1.5,
+        0.0,
+        -0.011298392489848652
+      ],
+      "existing": false,
+      "moved": false
+    }
+  ],
+  "newNacelles": [
+    {
+      "name": "CYE11NAC",
+      "klass": 67,
+      "parent": "CYE11BDA",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        1.8,
+        -1.874681707665977
+      ],
+      "pivot": [
+        0.0,
+        1.8,
+        -1.874681707665977
+      ],
+      "posedPivot": [
+        0.0,
+        1.8,
+        -1.874681707665977
+      ],
+      "geo": "cye11nac.geo",
+      "bone": {
+        "name": "CYE11NAC",
+        "handle": 13,
+        "parent": "CYE11BDA",
+        "position": [
+          -0.0,
+          1.8,
+          -1.874681707665977
+        ],
+        "orientation": [
+          1.0,
+          0,
+          0,
+          0
+        ]
+      },
+      "gains": {
+        "pitchThrotNacelleRun": 0.05,
+        "pitchSteerNacelleRun": 0.05,
+        "pitchThrotNacelleJump": 0.05,
+        "pitchSteerNacelleJump": 0.05
+      },
+      "skeletonSource": "TRO/cvtnk.skeleton",
+      "skeleton": "cvtnk.skeleton",
+      "center": [
+        -0.012787997722625732,
+        7.450580596923828e-08,
+        0.20209187269210815
+      ],
+      "halfSize": [
+        1.6372119784355164,
+        0.1250002384185791,
+        0.31338995695114136
+      ],
+      "radius": 1.6716163994933997,
+      "triangles": 1177
+    }
+  ],
+  "notes": [
+    "CYE11NAC+1.50: pod turned 180 degrees about the flame axis, because as configured: ('the housing cuts through stock mesh below its seat', {'crossings': 74, 'deepest': 0.087, 'around': [0.07, -0.06, -0.09]})",
+    "CYE11NAC-1.50: pod slid (+0.05, +0.00) m along the seat, because as configured: ('the housing cuts through stock mesh below its seat', {'crossings': 4, 'deepest': 0.042, 'around': [0.07, -0.02, -0.1]})",
+    "CYE11NAC+1.50: class 75 flame part",
+    "CYE11NAC-1.50: class 75 flame part",
+    "CYE11NAC+1.50: the nozzle hangs 0.02 m below the emit point so stock mesh stays out of its throat (skin +0.000 m from the emit point)",
+    "CYE11NAC-1.50: the nozzle hangs 0.02 m below the emit point so stock mesh stays out of its throat (skin +0.000 m from the emit point)",
+    "CYE11NAC-1.50: only 96% of the pod footprint has skin above it (edge of the part); the rest of the pod roof shows",
+    "CYE11NAC-1.50: pod body offset (0.05, 0.0) m (x, z) from the emit point to reach solid skin"
+  ],
+  "housings": [
+    {
+      "vertices": 851,
+      "triangles": 583,
+      "zones": {
+        "paint": 193,
+        "bell": 95,
+        "lip": 45,
+        "groove": 115,
+        "bore": 45,
+        "throat": 18,
+        "vent": 72
+      },
+      "parts": [
+        "CYE11NAC+1.50"
+      ],
+      "mirrored": [
+        false
+      ],
+      "underside": [
+        1.4382594156143762,
+        -0.5412784616067114,
+        0.0
+      ],
+      "maxError": 0.0,
+      "seated": {
+        "cover": 1.0,
+        "pokes": 0.0,
+        "spread": 0.48180476241875647,
+        "roofGap": 0.0,
+        "gap": 0.0,
+        "inside": 0.02499999999999991,
+        "depthScale": 1.1666666666666652
+      },
+      "shape": {
+        "sides": 20,
+        "flat": 0.86,
+        "smoothAngle": 35,
+        "bury": 0.03,
+        "chamfer": 0.0225,
+        "sections": [
+          [
+            0.1175,
+            0.045,
+            0.0075
+          ],
+          [
+            0.0925,
+            0.105,
+            0.035
+          ],
+          [
+            0.06,
+            0.15,
+            0.06
+          ],
+          [
+            0.0525,
+            0.15,
+            0.06
+          ],
+          [
+            0.035,
+            0.15,
+            0.06
+          ],
+          [
+            -0.05,
+            0.15,
+            0.06
+          ],
+          [
+            -0.0825,
+            0.105,
+            0.04
+          ],
+          [
+            -0.11,
+            0.04,
+            0.0075
+          ]
+        ],
+        "vent": {
+          "drop": 0.02,
+          "halfWidth": 0.15,
+          "depth": 0.01,
+          "height": 0.015,
+          "length": 0.0425,
+          "z": [
+            -0.0325,
+            -0.0075,
+            0.0175
+          ]
+        },
+        "scale": 0.5,
+        "length": 0.5,
+        "over": {
+          "conform": true
+        },
+        "auto": true,
+        "stripe": [
+          0.035,
+          0.0525
+        ],
+        "bell": {
+          "top": 0.0,
+          "lip": -0.075,
+          "rTop": 0.125,
+          "rLip": 0.1175
+        },
+        "bore": {
+          "roof": 0.015,
+          "rRoof": 0.075,
+          "rMouth": 0.1025
+        },
+        "groove": {
+          "y0": -0.066,
+          "y1": -0.06,
+          "depth": 0.004,
+          "rOut": 0.14
+        },
+        "conform": true
+      },
+      "paint": [
+        46.0,
+        52.0,
+        27.0
+      ],
+      "adjusted": "pod turned 180 degrees about the flame axis, because as configured: ('the housing cuts through stock mesh below its seat', {'crossings': 74, 'deepest': 0.087, 'around': [0.07, -0.06, -0.09]})"
+    },
+    {
+      "vertices": 861,
+      "triangles": 594,
+      "zones": {
+        "paint": 212,
+        "bell": 97,
+        "lip": 41,
+        "groove": 123,
+        "bore": 41,
+        "throat": 18,
+        "vent": 62
+      },
+      "parts": [
+        "CYE11NAC-1.50"
+      ],
+      "mirrored": [
+        true
+      ],
+      "underside": [
+        1.4062287337043502,
+        0.43503511473661033,
+        0.0
+      ],
+      "maxError": 0.0,
+      "seated": {
+        "cover": 0.9565217391304348,
+        "pokes": 0.0,
+        "spread": 0.46975678548508437,
+        "roofGap": 0.0,
+        "gap": 0.0,
+        "inside": 0.02499999999999991,
+        "depthScale": 1.1666666666666652
+      },
+      "shape": {
+        "sides": 20,
+        "flat": 0.86,
+        "smoothAngle": 35,
+        "bury": 0.03,
+        "chamfer": 0.0225,
+        "sections": [
+          [
+            0.1175,
+            0.045,
+            0.0075
+          ],
+          [
+            0.0925,
+            0.105,
+            0.035
+          ],
+          [
+            0.06,
+            0.15,
+            0.06
+          ],
+          [
+            0.0525,
+            0.15,
+            0.06
+          ],
+          [
+            0.035,
+            0.15,
+            0.06
+          ],
+          [
+            -0.05,
+            0.15,
+            0.06
+          ],
+          [
+            -0.0825,
+            0.105,
+            0.04
+          ],
+          [
+            -0.11,
+            0.04,
+            0.0075
+          ]
+        ],
+        "vent": {
+          "drop": 0.02,
+          "halfWidth": 0.15,
+          "depth": 0.01,
+          "height": 0.015,
+          "length": 0.0425,
+          "z": [
+            -0.0325,
+            -0.0075,
+            0.0175
+          ]
+        },
+        "scale": 0.5,
+        "length": 0.5,
+        "over": {
+          "conform": true,
+          "offset": [
+            0.05,
+            0.0
+          ]
+        },
+        "auto": true,
+        "stripe": [
+          0.035,
+          0.0525
+        ],
+        "bell": {
+          "top": 0.0,
+          "lip": -0.075,
+          "rTop": 0.125,
+          "rLip": 0.1175
+        },
+        "bore": {
+          "roof": 0.015,
+          "rRoof": 0.075,
+          "rMouth": 0.1025
+        },
+        "groove": {
+          "y0": -0.066,
+          "y1": -0.06,
+          "depth": 0.004,
+          "rOut": 0.14
+        },
+        "conform": true,
+        "offset": [
+          0.05,
+          0.0
+        ]
+      },
+      "paint": [
+        51.0,
+        59.0,
+        30.0
+      ],
+      "adjusted": "pod slid (+0.05, +0.00) m along the seat, because as configured: ('the housing cuts through stock mesh below its seat', {'crossings': 4, 'deepest': 0.042, 'around': [0.07, -0.02, -0.1]})"
+    }
+  ],
+  "stageMesh": "6647c3e90f7b7e0abccca98559daaf5119f7cafb86315768b78ac4612e4d9dc6"
+}
