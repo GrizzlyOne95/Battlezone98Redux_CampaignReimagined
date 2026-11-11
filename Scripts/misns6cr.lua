@@ -32,6 +32,8 @@ local M = NewState()
 -- restored in this mission (the doc quotes each cut block and why it stays cut); the one RESTORED_* flag below
 -- covers a single unused shipped voice line.
 local RESTORED_VOICE_LINES = true -- unused shipped line misns606 (Docs/MISNS6_COOP.md)
+local HOWITZER_MARKERS = true -- CR addition: mark a howitzer once a human is within 300 m (Docs/MISNS6_COOP.md)
+local ARTILLERY_BYPASS_PUNISH = true -- CR addition: Black Dogs strike the Recycler if the goal is reached with a howitzer alive
 local Restored = {}
 if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
@@ -181,6 +183,49 @@ if campaignRuntime then
         if r.art1Seen and r.art2Seen and not a1 and not a2 and not M.won and not M.lost and not M.success_scheduled then
             r.l606 = true
             AudioMessage("misns606.wav")
+        end
+    end
+
+    -- CR addition (idea from a Workshop remake, code is our own). Latches live in M.crcca.r like the voice line.
+    local function RestoredState()
+        local s = campaignRuntime.State()
+        s.r = s.r or {}
+        return s.r
+    end
+    local SetObjectiveOff = campaignRuntime.SetObjectiveOff or SetObjectiveOff
+    -- A howitzer gets its objective marker once, the first time any human is within 300 m of it alive;
+    -- the marker goes off once when that howitzer is destroyed.
+    function Restored.Howitzers()
+        if not HOWITZER_MARKERS or not M.start_done then return end
+        local r = RestoredState()
+        local player = GetPlayerHandle()
+        for i = 1, 2 do
+            local h = M["art" .. i]
+            local on, off = "mark" .. i, "markOff" .. i
+            if IsAlive(h) then
+                if not r[on] and Distance(player, h) < 300.0 then
+                    r[on] = true
+                    SetObjectiveOn(h)
+                end
+            elseif r[on] and not r[off] then
+                r[off] = true
+                SetObjectiveOff(h)
+            end
+        end
+    end
+    -- One-shot: the frame the body's last_objective turns true (a human within 300 m of the goal) with a
+    -- howitzer still alive, the Black Dogs send a squad at the CCA Recycler.
+    function Restored.Punish()
+        if not ARTILLERY_BYPASS_PUNISH or not M.start_done or not M.last_objective then return end
+        local r = RestoredState()
+        if r.punished then return end
+        r.punished = true
+        if M.won or M.lost or M.success_scheduled or not IsAlive(M.recy) then return end
+        if not (IsAlive(M.art1) or IsAlive(M.art2)) then return end
+        campaignRuntime.BeginEvent()
+        for _, odf in ipairs({"bvtank", "bvtank", "bvrckt"}) do
+            local h = BuildObject(odf, 2, "counter_attack")
+            Attack(h, M.recy)
         end
     end
 end
@@ -403,7 +448,7 @@ function Update(timestep)
         FailMission(GetTime() + 2.0, "misns6l1.des")
     end
 -- CR restored content >>
-    if campaignRuntime then Restored.Voice() end
+    if campaignRuntime then Restored.Voice(); Restored.Howitzers(); Restored.Punish() end
 -- CR restored content <<
 -- CR co-op callback >>
     if campaignRuntime then campaignRuntime.AfterUpdate() end

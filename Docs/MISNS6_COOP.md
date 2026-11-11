@@ -131,6 +131,13 @@ Unused authored paths: `t1`, `t2`, `t3`, `spawn1`, `check1`, `check2`, `check3`,
 `path6`, `protectme`, `edge_path`, and three unlabeled sowing routes (19, 12 and 10 points, ending at
 `s1`/`s2`/`s3`). The body uses only `m1..m3`, `s1..s3`, `counter1..5`, `counter_attack` and `counter_attack_path`.
 
+## CR additions (not cut content)
+
+Two additions that are not in the shipped mission. The idea came from a Workshop remake; the code is our own. Each sits behind its own flag in `Scripts/misns6cr.lua` (inside the `CR restored content` region), runs on the leader only (after the runtime's authority gate, like the voice line) and keeps its latches in `M.crcca.r` (kept by Save/Load).
+
+- `HOWITZER_MARKERS`: the first time any human is within 300 m of a living howitzer (`art1`, `art2`), `SetObjectiveOn` marks it. Once per howitzer. When a marked howitzer is destroyed the leader calls `SetObjectiveOff` once (a destroyed object has no identity to replicate, so guests skip it; the engine drops a dead object's marker anyway).
+- `ARTILLERY_BYPASS_PUNISH`: the frame the body's `last_objective` turns true (a human within 300 m of the command centre) with at least one howitzer still alive, the Black Dogs send `bvtank`, `bvtank`, `bvrckt` from `counter_attack` to attack the CCA Recycler. One-shot; skipped if the Recycler is gone or the mission is won, lost or scheduled. The spawn is scaled like the silo wave (3 units, plus extras at 2 to 4 humans: 4, 4, 5) and falls back to another authored approach when `counter_attack` is watched (the command centre is inside its no-pop-in radius, so expect `counter3`/`counter4`).
+
 ## Stock bugs fixed in the CR layer (the faithful body is untouched)
 
 The body already carries its own documented port fixes (uninitialised `closest`, the success latch, distance for
@@ -157,3 +164,4 @@ missing handles). In the CR layer:
 7. Titan weather: level 2 at start, 3 near the mines/raid, 4 at the silo assault or command centre, 2 after victory.
 8. After 120 s the Black Dog AIP (`crns6.aip`) builds only Black Dog units.
 9. A dead human's ship pauses the shared mission until respawn (the runtime's session-ready gate); check it feels acceptable.
+10. CR additions: a howitzer gets its marker once when you come within 300 m and loses it when destroyed (check the native `SetObjectiveOff` on a dead handle raises no engine alert). Reach the command centre with a howitzer alive: three Black Dog units arrive from a fallback entry out of sight and attack the Recycler, once. Destroy both howitzers first: nothing arrives.
