@@ -247,10 +247,13 @@ for name,record in receipt['odfs'].items():
     check(record['model'] in receipt['models'],'ODF model resolves')
     shipped(path)
 routes=json.loads((REF/'routes.json').read_text())
+NACELLE_PITCH={('[hovercraftclass]','pitch%snacelle%s'%(a,b)) for a in ('throt','steer') for b in ('run','jump')}
 for route in routes:
     path=ROOT/route['path'];baseline=REF/'menus'/path.name
     check(hashlib.sha256(baseline.read_bytes()).hexdigest()==route['sha256'],'armory baseline pin: '+path.name)
-    old,new=({k:v for k,v in settings(f.read_text()).items() if not k[1].endswith('msg')} for f in (baseline,path)) # voice-over slots are audio, retuned separately
+    # voice-over slots are audio, retuned separately; nacelle pitch gains belong to the
+    # NacelleJets flame housings (pinned in craft-gameplay-baselines.json), not the build menu
+    old,new=({k:v for k,v in settings(f.read_text()).items() if not k[1].endswith('msg') and k not in NACELLE_PITCH} for f in (baseline,path))
     check(old.keys()==new.keys(),'no build slots added/removed')
     for key,value in old.items():
         if re.fullmatch(r'(?:builditem|cannonitem|rocketitem|mortaritem|specialitem)\d+',key[1]) and value in route['sources']:

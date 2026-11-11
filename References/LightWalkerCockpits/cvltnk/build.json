@@ -2,7 +2,7 @@
   "schema": 1,
   "base": "cvltnk",
   "sources": {
-    "exteriorSha256": "0ec42bde5ed477e628299b4177ad259e2354aa5d9e29ade6c8f1e559d6fcf620",
+    "exteriorSha256": "362f15df5a301bf2030f9638e6b5aeef3d1ad5eab2aed8132cd8af9847d8bbe8",
     "fullRigSha256": "61a9e52a0e4d9f661d0e54728a91085a76747c90542d118fb1b3f5d486f81756",
     "cockpitRigSha256": "61a9e52a0e4d9f661d0e54728a91085a76747c90542d118fb1b3f5d486f81756",
     "sourceCockpitSha256": "0ec42bde5ed477e628299b4177ad259e2354aa5d9e29ade6c8f1e559d6fcf620",

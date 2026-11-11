@@ -49,6 +49,11 @@ omegaSpin = 2.5
 omegaTurn = 1.25
 alphaSteer = 6.25
 accelJump = 0.0
+// CR: carrier nacelle CCN11NAC pitch gains (tail emitter housings)
+pitchThrotNacelleRun = 0.05
+pitchThrotNacelleJump = 0.05
+pitchSteerNacelleRun = 0.05
+pitchSteerNacelleJump = 0.05
 
 [ProducerClass]
 buildItem1 = "cbspow"

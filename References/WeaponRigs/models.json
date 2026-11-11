@@ -24,7 +24,11 @@
     "Assets/ModelFixes/svfigh.mesh": "bfc334d8d868d4c5061d53cc1b18bf3fcd280f96",
     "Assets/ModelFixes/svhraz.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
     "Assets/ModelFixes/svltnk.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
-    "Assets/ModelFixes/svrckt.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc"
+    "Assets/ModelFixes/svrckt.mesh": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+    "Assets/ModelFixes/cvltnk.mesh": "f6b3b922861d3fe959f2b25dfc907fb7458b053d",
+    "Assets/ModelFixes/cvltnk.skeleton": "f6b3b922861d3fe959f2b25dfc907fb7458b053d",
+    "Assets/ModelFixes/cvtnk.mesh": "e6784d8a7f7b77f215b71543a33eac71be1fd0e7",
+    "Assets/ModelFixes/cvtnk.skeleton": "e6784d8a7f7b77f215b71543a33eac71be1fd0e7"
   },
   "models": {
     "avfigh": {

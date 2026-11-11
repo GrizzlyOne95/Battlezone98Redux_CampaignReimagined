@@ -1802,6 +1802,20 @@ to the ordinary GOG development mod.
   the housing receipt's `baseRevision` holds the pinned output.
 - `-bless` with unrelated unblessed tracked files present: move them outside the tree, bless,
   move them back (do not hand-edit `Shipping/shipping.lock.json`).
+- Flameless units (no class 67 part to put a flame under) get a `carrier` entry in
+  `Tools/Build-NacelleJets.py` CONFIG: a new class 67 housing part (own bone, GEO, VDF part)
+  under a hull body, with the class 75 flame under it. The receipt lists it in
+  `newNacelles`; `Test-UnitAnimSlots.py` checks the part class, matrix, GEO, flame under it,
+  and that the bone is in both the stage and the recoil skeleton (re-run
+  `Build-WeaponRigs.py --models <unit>` after the stage, or the rigged skeleton lacks it).
+  Never seat a carrier on a class 66 rotor or class 68 fin: the engine animates those.
+- `Build-LightWalkerCockpits.py` no longer reproduces its committed outputs either: repin only
+  its receipt's `exteriorSha256`, as for the AVRocket group above.
+- Choosing a carrier seat: a dry seat grid (ray hit + clearance) passes seats that the
+  `--ship` fit rejects ("housing cuts through stock mesh below its seat", or a vent cut that
+  "changed nothing"). Confirm seats with the full fit before shipping.
+- Commit messages with several lines go through a file (`git commit -F msg.txt`);
+  `-F -` from PowerShell fails.
 
 ### Enhanced light budget and recovered archive work (2026-11-10)
 
@@ -2030,3 +2044,37 @@ to the ordinary GOG development mod.
 - A unit with no `Assets/ModelFixes/<unit>.vdf` gets a new shipped file, which needs `-bless`.
   `Shaders/CR_cockpit_damage-sm4.hlsl` is tracked on main but unblessed; park it during the
   bless.
+
+### Flameless hover units: carrier housings (2026-11-10)
+
+- Superseding the "left flameless" note above: cvltnk, cvmuf, cvslf, cvtnk, cvcnst, cvscav,
+  svcnst, avcnst and bvcnst now carry a `carrier` housing (class 67 part, own GEO and bone,
+  two class 75 flames, ODF pitch gains 0.05). cvapc is still flameless: two seat iterations
+  failed the `--ship` fit. Renders are in `Local/FlamelessJets/housings/`.
+- Seat carriers away from what the engine moves: class 66 rotors spin about their local z
+  (`BZ1/1.5/all_decompiled.c` 193638-193641) and class 68 fins are a spring about local z
+  (193688-193691; `rollSteerFin` defaults to 0.2 at 195006-195007 and 195133-195136). Check
+  the housing against each one's swept volume, not only its rest pose (cvscav's fin clears by
+  only 0.08 m).
+- Constructor turrets are not engine-aimed: FindTurret exists only in TurretCraft
+  (228880-228912) and TurretTank (229934-229965), and ConstructionRig is a Producer (153479).
+  That Producer is not a TurretCraft is inferred (UNVERIFIED). So a class 65 part on a
+  constructor moves only through its VDF animation.
+- A constructor's bind pose can be its deployed pose: avcnst/bvcnst bind the body (bda) at
+  deploy frame 154, turned 90 deg about x, while the VDF record is the packed frame 0. A
+  carrier's `at` is in the VDF pose; `carrier_jets` maps the seat ray, start point and frame
+  through the parent's bind-to-VDF rotation when it is not the identity. The preview's
+  `pivot` is in bind space and `posedPivot` in VDF space: renders of the VDF-pose scene must
+  pivot about `posedPivot`.
+- Deploy and pack clearance: pose every part through its whole animated chain (a child's
+  track on top of each animated ancestor). Posing only one level hides parent motion; on
+  avcnst the nearest part was a nested arm (0.55 m at frame 31).
+- Max nacelle pitch is about 0.125 rad at gains of 0.05 (reading of UpdateGimbals
+  193618-193676; UNVERIFIED in game).
+- `Build-UnitAnimSlots.py` writes both the VDF and the skeleton. Use the skeleton named in
+  the unit's receipt; cvscav ships an uppercase `CVSCAV.skeleton`. Part and bone names must
+  match the stock case exactly in the build scripts (uppercase SCV11 names failed; the stock
+  parts are lowercase). Whether the runtime is case-insensitive is UNVERIFIED.
+- `Tools/Validate-CampaignRepository.py` is Python, not a .ps1.
+- `Test-UnitAnimSlots.py` now also asserts 300-1500 housing triangles per flame and that
+  every carrier flame points rearward (-z) in the composed VDF pose.

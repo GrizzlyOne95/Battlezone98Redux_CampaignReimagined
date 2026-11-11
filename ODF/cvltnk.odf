@@ -84,4 +84,9 @@ alphaSteer = 8.75
 accelJump = 20.0
 soundThrust = "cvfighe0.wav"
 soundTurbo = "cvfighe3.wav"
+// rear pod housings CNA11NAC are a class 67 nacelle (cvltnk.vdf, Build-NacelleJets): pods only nod
+pitchThrotNacelleRun = 0.05
+pitchThrotNacelleJump = 0.05
+pitchSteerNacelleRun = 0.05
+pitchSteerNacelleJump = 0.05
 

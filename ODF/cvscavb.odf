@@ -53,6 +53,11 @@ soundThrust = "cvscave3.wav"
 soundTurbo = "cvscave6.wav"
 soundDeploy = "trdeploy.wav"
 soundUndeploy = "trundepl.wav"
+// CR: rear emitter housings (class 67 CMO11NAC) pitch with throttle/steer
+pitchThrotNacelleRun = 0.05
+pitchThrotNacelleJump = 0.05
+pitchSteerNacelleRun = 0.05
+pitchSteerNacelleJump = 0.05
 
 [ScavengerClass]
 maxScrap = 3

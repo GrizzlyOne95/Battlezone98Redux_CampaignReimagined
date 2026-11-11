@@ -15,9 +15,16 @@ material cvmuf : CR_BZBase
 }
 
 
+material cvmuf_nacjet : CR_BZBase
+{
+	set_texture_alias DiffuseMap cvmuf_nacjet_D.dds
+	set_texture_alias NormalMap cvmuf_nacjet_N.dds
+	set_texture_alias SpecularMap cvmuf_nacjet_S.dds
+	set_texture_alias EmissiveMap cvmuf_nacjet_E.dds
 
-
-
-
-
-
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+}

@@ -6297,8 +6297,8 @@
   },
   "cvltnk": {
     "source": {
-      "mesh": "0ec42bde5ed477e628299b4177ad259e2354aa5d9e29ade6c8f1e559d6fcf620",
-      "skeleton": "61a9e52a0e4d9f661d0e54728a91085a76747c90542d118fb1b3f5d486f81756",
+      "mesh": "362f15df5a301bf2030f9638e6b5aeef3d1ad5eab2aed8132cd8af9847d8bbe8",
+      "skeleton": "1bee72c0b563c8f4b909d911968fe1c5566dcc89c3d168ecd11e6ca5b4e7c003",
       "bind_poses": {
         "CNA11BDA": [
           [
@@ -6435,6 +6435,19 @@
             0.0,
             0.0,
             0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "CNA11NAC": [
+          [
+            0.0,
+            1.0,
+            -3.1089928150177
           ],
           [
             0.0,
@@ -6722,8 +6735,8 @@
       }
     },
     "outputs": {
-      "Assets/Models/cvltnk_recoil.skeleton": "f71aa1539d3d605177587fb466df5854ad8523f6e28945432b7c387099b3e453",
-      "Assets/ModelFixes/cvltnk.mesh": "474592c9dfff975c8e969814063db79da5f4b5a0d2c54091b5855b159eba0a29",
+      "Assets/Models/cvltnk_recoil.skeleton": "610443919ad370f57d7b4e15111ca4ea84fc1e3784cdf0da43ac088f45e4f012",
+      "Assets/ModelFixes/cvltnk.mesh": "0c32af0b1e345621c029fcf86c05ec3a8394e0158253a3bb77b64be03c986cdf",
       "Assets/Models/cvltnk_cockpit.mesh": "1ec913fe2a4053dceb862f23495b460499c6e5b2419f181f97090bf968e4bd91",
       "Assets/Models/cvltnk_cockpit_recoil.skeleton": "25a37b61299ddbe08645da8c691853b331623b225255d0e6bd0751f458d861b2"
     }
@@ -7257,8 +7270,8 @@
   },
   "cvtnk": {
     "source": {
-      "mesh": "39aed073ab49726722e634ea9d43622835516b7677c22a54184330fe40f596e5",
-      "skeleton": "61676c8d88315ed5e4ce95c55a5a5ee32ff614d8780d18e14060396e94fe4d6d",
+      "mesh": "6647c3e90f7b7e0abccca98559daaf5119f7cafb86315768b78ac4612e4d9dc6",
+      "skeleton": "eb99ed56779999a140d07fedd45b983556a78c0245fc5148b8d67b37a0696094",
       "bind_poses": {
         "CYE11BDA": [
           [
@@ -7421,6 +7434,19 @@
             0.0,
             0.0,
             0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "CYE11NAC": [
+          [
+            0.0,
+            1.7999999523162842,
+            -1.8746817111968994
           ],
           [
             0.0,
@@ -7751,8 +7777,8 @@
       }
     },
     "outputs": {
-      "Assets/Models/cvtnk_recoil.skeleton": "fdcdaf768c4236b99ade5e2e31cfacbf5b70501f695b9e51d94a1b77b060fb5e",
-      "Assets/ModelFixes/cvtnk.mesh": "276e2106b09c6dbed4cdb21f8a217c1f414284bbd16ddc60a39e0a388797ef00",
+      "Assets/Models/cvtnk_recoil.skeleton": "cc69909e21b69455ad5ce9358736e2e23ce3c411f5f35b61677e6bd004f89555",
+      "Assets/ModelFixes/cvtnk.mesh": "cf037b4df9e5747d623f17eecae61cd1564f3ddcae886eb7efba5ff0c658b940",
       "Assets/Models/cvtnk_cockpit.mesh": "cfbdb307720f3b5caac30d0ba79bf4b6e2b050573d78d54c8ce0231b008bc0d4",
       "Assets/Models/cvtnk_cockpit_recoil.skeleton": "0345eb4294b1c37ffe76e69768c1c89b9641243c3f699eb7cf5ebe607298309c"
     }

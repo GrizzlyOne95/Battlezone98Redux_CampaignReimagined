@@ -26,7 +26,11 @@ stock tracks without a bone (svrecy's gs1/gs2, the tugs' _COL) are only noted. W
 files that check is skipped (CI has none).
 Flame parts: every class 75 part a References/NacelleJets/<unit>/build.json records is in the
 shipped VDF with its recorded parent and matrix, listed nacelles are class 67, and in any shipped
-VDF with a class 75 part every class 67 nacelle has its own class 75 child.
+VDF with a class 75 part every class 67 nacelle has its own class 75 child. A receipt's
+newNacelles (CR-added housing carriers) are class 67 under their recorded parent and matrix, have
+their GEO in Assets/ModelFixes (300-1500 triangles per flame on average), a recorded flame
+under them that points rearward (-z) in the VDF pose, and their bone (under the recorded
+parent) in the stage skeleton and in Assets/Models/<unit>_recoil.skeleton when the unit is rigged.
 
   python Tools/Test-UnitAnimSlots.py [--game <Redux dir>]
 """
@@ -141,8 +145,8 @@ def check_flames(err):
         if not os.path.exists(path):
             continue
         r = json.load(open(path))
-        parts, nacelles = r.get("vdfParts") or [], r.get("nacelles") or []
-        if not (parts or nacelles):
+        parts, nacelles, new = r.get("vdfParts") or [], r.get("nacelles") or [], r.get("newNacelles") or []
+        if not (parts or nacelles or new):
             continue
         if parts:
             added.add(unit)
@@ -155,6 +159,46 @@ def check_flames(err):
         for n in nacelles:
             if n not in objs or objs[n].class_id != 67:
                 err(name, "%s should be a class 67 nacelle" % n)
+        for n in new:  # carrier housings: a CR-added class 67 part with its own GEO and bone
+            o = objs.get(n["name"])
+            if o is None or o.class_id != 67 or o.parent_name() != n["parent"]:
+                err(name, "new nacelle %s should be class 67 under %s" % (n["name"], n["parent"]))
+            else:
+                t = o.transform
+                have = (t.rx, t.ry, t.rz, t.ux, t.uy, t.uz, t.fx, t.fy, t.fz, t.px, t.py, t.pz)
+                if max(abs(a - b) for a, b in zip(have, n["matrix"])) > 1e-5:
+                    err(name, "new nacelle %s matrix differs from the receipt" % n["name"])
+            flames = [p for p in parts if p["parent"] == n["name"]]
+            geo_path = os.path.join(FIXES, n["geo"])
+            if not os.path.exists(geo_path):
+                err(name, "new nacelle %s has no Assets/ModelFixes/%s" % (n["name"], n["geo"]))
+            elif flames:  # 300-1500 housing triangles per flame on average
+                g = bzmodellibs.geo_serializer.GeoSerializer(io.BytesIO(open(geo_path, "rb").read())).read()
+                each = len(list(g.faces())) / len(flames)
+                if not 300 <= each <= 1500:
+                    err(name, "new nacelle %s housings average %d triangles, want 300-1500" % (n["name"], each))
+            if not flames:
+                err(name, "new nacelle %s has no recorded class 75 flame under it" % n["name"])
+            for p in flames:  # a flame burns along its front axis: it must point rearward (-z) in the VDF pose
+                o = objs.get(p["name"])
+                if o is None:
+                    continue  # reported below
+                front = (o.transform.fx, o.transform.fy, o.transform.fz)
+                o = objs.get(o.parent_name())
+                while o is not None:  # rows are the part's axes in its parent's frame
+                    t = o.transform
+                    front = tuple(front[0] * a + front[1] * b + front[2] * c for a, b, c in zip((t.rx, t.ry, t.rz), (t.ux, t.uy, t.uz), (t.fx, t.fy, t.fz)))
+                    o = objs.get(o.parent_name())
+                if front[2] >-0.5 * math.sqrt(sum(x * x for x in front)):
+                    err(name, "flame %s points %s in the VDF pose, not rearward" % (p["name"], tuple(round(x, 2) for x in front)))
+            b = n["bone"]
+            for sk in (os.path.join(FIXES, n["skeleton"]), os.path.join(ROOT, "Assets", "Models", unit + "_recoil.skeleton")):
+                if not os.path.exists(sk):
+                    continue
+                s = bzmodellibs.ogreskeleton_serializer.SkeletonSerializer(io.BytesIO(open(sk, "rb").read())).read()
+                bone = next((x for x in s.bones() if x.name == b["name"]), None)
+                if bone is None or bone.parent is None or bone.parent.name != b["parent"]:
+                    err(name, "%s lacks bone %s under %s" % (os.path.relpath(sk, ROOT), b["name"], b["parent"]))
         for p in parts:
             o = objs.get(p["name"])
             if o is None:

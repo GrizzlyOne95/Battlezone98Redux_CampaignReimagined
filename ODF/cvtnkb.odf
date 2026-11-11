@@ -79,4 +79,9 @@ alphaSteer = 6.25
 accelJump = 15.0
 soundThrust = "cvtanke0.wav"
 soundTurbo = "cvtanke3.wav"
+// CR: carrier nacelle CYE11NAC pitch gains (rear hull emitter housings)
+pitchThrotNacelleRun = 0.05
+pitchThrotNacelleJump = 0.05
+pitchSteerNacelleRun = 0.05
+pitchSteerNacelleJump = 0.05
 

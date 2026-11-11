@@ -1,0 +1,617 @@
+{
+  "unit": "cvscav",
+  "faction": "cra",
+  "material": "cvscav_nacjet",
+  "emitters": [
+    {
+      "part": "CMO11NAC+0.35",
+      "bone": 10,
+      "skin": 0,
+      "pivot": [
+        0.0,
+        3.05,
+        -1.4982144163334195
+      ],
+      "emit": [
+        0.35,
+        3.05,
+        -1.4982112599538486
+      ],
+      "axes": [
+        [
+          -1.0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          1,
+          0
+        ]
+      ],
+      "source": "carrier",
+      "carrier": "CMO11NAC"
+    },
+    {
+      "part": "CMO11NAC-0.35",
+      "bone": 10,
+      "skin": 0,
+      "pivot": [
+        0.0,
+        3.05,
+        -1.4982144163334195
+      ],
+      "emit": [
+        -0.35,
+        3.05,
+        -1.4982175727129903
+      ],
+      "axes": [
+        [
+          -1.0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          1,
+          0
+        ]
+      ],
+      "source": "carrier",
+      "carrier": "CMO11NAC"
+    }
+  ],
+  "flameDirection": "-y of each emitter frame",
+  "baseRevision": "f09fec92f1d6da20facde0d095c45f19a913c866",
+  "wingUnderside": {
+    "heightAtEmit": 3.000937940968334,
+    "slopePerMetreOfChord": -5.586234169283158,
+    "maxError": 0.0
+  },
+  "paint": [
+    51.0,
+    59.0,
+    32.0
+  ],
+  "paintSource": "cvscav_d.dds",
+  "housing": {
+    "vertices": 805,
+    "triangles": 589,
+    "zones": {
+      "paint": 232,
+      "bell": 84,
+      "lip": 36,
+      "groove": 113,
+      "bore": 44,
+      "throat": 18,
+      "vent": 62
+    }
+  },
+  "shape": {
+    "sides": 20,
+    "flat": 0.86,
+    "smoothAngle": 35,
+    "bury": 0.03,
+    "chamfer": 0.0225,
+    "sections": [
+      [
+        0.094,
+        0.045,
+        0.0075
+      ],
+      [
+        0.074,
+        0.105,
+        0.035
+      ],
+      [
+        0.048,
+        0.15,
+        0.06
+      ],
+      [
+        0.042,
+        0.15,
+        0.06
+      ],
+      [
+        0.028000000000000004,
+        0.15,
+        0.06
+      ],
+      [
+        -0.04000000000000001,
+        0.15,
+        0.06
+      ],
+      [
+        -0.066,
+        0.105,
+        0.04
+      ],
+      [
+        -0.08800000000000001,
+        0.04,
+        0.0075
+      ]
+    ],
+    "vent": {
+      "drop": 0.02,
+      "halfWidth": 0.15,
+      "depth": 0.01,
+      "height": 0.015,
+      "length": 0.0425,
+      "z": [
+        -0.026000000000000002,
+        -0.006,
+        0.014000000000000002
+      ]
+    },
+    "scale": 0.5,
+    "length": 0.4,
+    "over": {
+      "conform": true
+    },
+    "auto": true,
+    "stripe": [
+      0.028000000000000004,
+      0.042
+    ],
+    "bell": {
+      "top": 0.0,
+      "lip": -0.075,
+      "rTop": 0.125,
+      "rLip": 0.1175
+    },
+    "bore": {
+      "roof": 0.015,
+      "rRoof": 0.075,
+      "rMouth": 0.1025
+    },
+    "groove": {
+      "y0": -0.066,
+      "y1": -0.06,
+      "depth": 0.004,
+      "rOut": 0.14
+    },
+    "conform": true
+  },
+  "stripe": [
+    0.028000000000000004,
+    0.042
+  ],
+  "vdfParts": [
+    {
+      "name": "CMO11FAC",
+      "klass": 75,
+      "parent": "CMO11NAC",
+      "position": [
+        -0.35,
+        0.0,
+        3.1563795708233755e-06
+      ],
+      "orientation": [
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ]
+      ],
+      "matrix": [
+        -1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0,
+        -0.35,
+        0.0,
+        3.1563795708233755e-06
+      ],
+      "existing": false,
+      "moved": false
+    },
+    {
+      "name": "CMO11FA0",
+      "klass": 75,
+      "parent": "CMO11NAC",
+      "position": [
+        0.35,
+        0.0,
+        -3.1563795708233755e-06
+      ],
+      "orientation": [
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ]
+      ],
+      "matrix": [
+        -1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0,
+        0.35,
+        0.0,
+        -3.1563795708233755e-06
+      ],
+      "existing": false,
+      "moved": false
+    }
+  ],
+  "newNacelles": [
+    {
+      "name": "CMO11NAC",
+      "klass": 67,
+      "parent": "CMO11BDA",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        3.05,
+        -1.4982144163334195
+      ],
+      "pivot": [
+        0.0,
+        3.05,
+        -1.4982144163334195
+      ],
+      "posedPivot": [
+        0.0,
+        3.05,
+        -1.4982144163334195
+      ],
+      "geo": "cmo11nac.geo",
+      "bone": {
+        "name": "CMO11NAC",
+        "handle": 10,
+        "parent": "CMO11BDA",
+        "position": [
+          -0.0,
+          3.05,
+          -1.4982144163334195
+        ],
+        "orientation": [
+          1.0,
+          0,
+          0,
+          0
+        ]
+      },
+      "gains": {
+        "pitchThrotNacelleRun": 0.05,
+        "pitchSteerNacelleRun": 0.05,
+        "pitchThrotNacelleJump": 0.05,
+        "pitchSteerNacelleJump": 0.05
+      },
+      "skeletonSource": "TRO/cvscav.skeleton",
+      "skeleton": "CVSCAV.skeleton",
+      "center": [
+        0.0,
+        1.9371509552001953e-07,
+        0.11625522375106812
+      ],
+      "halfSize": [
+        0.5,
+        0.125,
+        0.8016769886016846
+      ],
+      "radius": 0.9530535105929077,
+      "triangles": 1188
+    }
+  ],
+  "notes": [
+    "CMO11NAC+0.35: class 75 flame part",
+    "CMO11NAC-0.35: class 75 flame part",
+    "CMO11NAC+0.35: the nozzle hangs 0.37 m below the emit point so stock mesh stays out of its throat (skin +0.000 m from the emit point)",
+    "CMO11NAC-0.35: the nozzle hangs 0.37 m below the emit point so stock mesh stays out of its throat (skin +0.000 m from the emit point)"
+  ],
+  "housings": [
+    {
+      "vertices": 805,
+      "triangles": 589,
+      "zones": {
+        "paint": 232,
+        "bell": 84,
+        "lip": 36,
+        "groove": 113,
+        "bore": 44,
+        "throat": 18,
+        "vent": 62
+      },
+      "parts": [
+        "CMO11NAC+0.35"
+      ],
+      "mirrored": [
+        false
+      ],
+      "underside": [
+        3.000937940968334,
+        -5.586234169283158,
+        0.0
+      ],
+      "maxError": 0.0,
+      "seated": {
+        "cover": 1.0,
+        "pokes": 0.0,
+        "spread": 0.3808195521673703,
+        "roofGap": 0.0,
+        "gap": 0.0,
+        "inside": 0.3722857529919348,
+        "depthScale": 6.954762549865579
+      },
+      "shape": {
+        "sides": 20,
+        "flat": 0.86,
+        "smoothAngle": 35,
+        "bury": 0.03,
+        "chamfer": 0.0225,
+        "sections": [
+          [
+            0.094,
+            0.045,
+            0.0075
+          ],
+          [
+            0.074,
+            0.105,
+            0.035
+          ],
+          [
+            0.048,
+            0.15,
+            0.06
+          ],
+          [
+            0.042,
+            0.15,
+            0.06
+          ],
+          [
+            0.028000000000000004,
+            0.15,
+            0.06
+          ],
+          [
+            -0.04000000000000001,
+            0.15,
+            0.06
+          ],
+          [
+            -0.066,
+            0.105,
+            0.04
+          ],
+          [
+            -0.08800000000000001,
+            0.04,
+            0.0075
+          ]
+        ],
+        "vent": {
+          "drop": 0.02,
+          "halfWidth": 0.15,
+          "depth": 0.01,
+          "height": 0.015,
+          "length": 0.0425,
+          "z": [
+            -0.026000000000000002,
+            -0.006,
+            0.014000000000000002
+          ]
+        },
+        "scale": 0.5,
+        "length": 0.4,
+        "over": {
+          "conform": true
+        },
+        "auto": true,
+        "stripe": [
+          0.028000000000000004,
+          0.042
+        ],
+        "bell": {
+          "top": 0.0,
+          "lip": -0.075,
+          "rTop": 0.125,
+          "rLip": 0.1175
+        },
+        "bore": {
+          "roof": 0.015,
+          "rRoof": 0.075,
+          "rMouth": 0.1025
+        },
+        "groove": {
+          "y0": -0.066,
+          "y1": -0.06,
+          "depth": 0.004,
+          "rOut": 0.14
+        },
+        "conform": true
+      },
+      "paint": [
+        51.0,
+        59.0,
+        32.0
+      ],
+      "adjusted": null
+    },
+    {
+      "vertices": 815,
+      "triangles": 599,
+      "zones": {
+        "paint": 238,
+        "bell": 86,
+        "lip": 36,
+        "groove": 115,
+        "bore": 44,
+        "throat": 18,
+        "vent": 62
+      },
+      "parts": [
+        "CMO11NAC-0.35"
+      ],
+      "mirrored": [
+        true
+      ],
+      "underside": [
+        3.0009316282091922,
+        -5.586132350587329,
+        0.0
+      ],
+      "maxError": 0.0,
+      "seated": {
+        "cover": 1.0,
+        "pokes": 0.0,
+        "spread": 0.3808246431021618,
+        "roofGap": 0.0,
+        "gap": 0.0,
+        "inside": 0.37227944023279314,
+        "depthScale": 6.954657337213219
+      },
+      "shape": {
+        "sides": 20,
+        "flat": 0.86,
+        "smoothAngle": 35,
+        "bury": 0.03,
+        "chamfer": 0.0225,
+        "sections": [
+          [
+            0.094,
+            0.045,
+            0.0075
+          ],
+          [
+            0.074,
+            0.105,
+            0.035
+          ],
+          [
+            0.048,
+            0.15,
+            0.06
+          ],
+          [
+            0.042,
+            0.15,
+            0.06
+          ],
+          [
+            0.028000000000000004,
+            0.15,
+            0.06
+          ],
+          [
+            -0.04000000000000001,
+            0.15,
+            0.06
+          ],
+          [
+            -0.066,
+            0.105,
+            0.04
+          ],
+          [
+            -0.08800000000000001,
+            0.04,
+            0.0075
+          ]
+        ],
+        "vent": {
+          "drop": 0.02,
+          "halfWidth": 0.15,
+          "depth": 0.01,
+          "height": 0.015,
+          "length": 0.0425,
+          "z": [
+            -0.026000000000000002,
+            -0.006,
+            0.014000000000000002
+          ]
+        },
+        "scale": 0.5,
+        "length": 0.4,
+        "over": {
+          "conform": true
+        },
+        "auto": true,
+        "stripe": [
+          0.028000000000000004,
+          0.042
+        ],
+        "bell": {
+          "top": 0.0,
+          "lip": -0.075,
+          "rTop": 0.125,
+          "rLip": 0.1175
+        },
+        "bore": {
+          "roof": 0.015,
+          "rRoof": 0.075,
+          "rMouth": 0.1025
+        },
+        "groove": {
+          "y0": -0.066,
+          "y1": -0.06,
+          "depth": 0.004,
+          "rOut": 0.14
+        },
+        "conform": true
+      },
+      "paint": [
+        49.0,
+        54.0,
+        29.0
+      ],
+      "adjusted": null
+    }
+  ],
+  "stageMesh": "197659bfb05a0bcbe74997b7eff3fda9043808887b28015a21436847898777a2"
+}
