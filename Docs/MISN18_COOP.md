@@ -117,7 +117,7 @@ before lift-off, and craft are pinned with `SetTransform` because floor collisio
 are assigned to ships by team order. Each peer pins only what it owns (its own ship; the leader also the Recycler and
 Factory) and tops its health up every frame; the tornado's gameplay effect is off during `extract` and `ascent`.
 
-**Input lock:** while its own craft is pinned aboard, each peer sets the EXU control mask (`exu.SetPlayerControlMask("mission:misn18drop", exu.CONTROL.ALL)`) so the player cannot fire or act; it is cleared when the ending finishes, on co-op failure and on every Start/load. A refusal (today's network games) or an EXU without the function is logged once and the pinning alone holds the player.
+**Input lock:** while its own craft is pinned aboard, each peer sets the EXU control mask (`exu.SetPlayerControlMask("mission:misn18drop", exu.CONTROL.ALL)`) so the player cannot fire or act; it is cleared when the ending finishes, on co-op failure and on every Start/load. A refusal (today's network games) or an EXU without the function is logged once and the pinning alone holds the player. While the mask is held, `CRLockBadge` shows a small amber FIRE CONTROLS LOCKED line; Start/load tear down any badge an earlier Lua state left on screen.
 
 **Save/load mid-ending** cannot resume it (the dropship handles and the cameras are gone): the leader goes straight
 to success, once, and the dropships built so far stay in the world until the outro. If `CRDrop18` is absent the win
