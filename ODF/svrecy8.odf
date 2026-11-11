@@ -1,5 +1,6 @@
 [GameObjectClass]
 classLabel = "recycler"
+baseName = "svrecy"
 collisionRadius = 8.0
 scrapValue = 6
 scrapCost = 0
