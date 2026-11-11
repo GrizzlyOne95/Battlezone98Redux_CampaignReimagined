@@ -133,6 +133,8 @@ CONFIG = {
     'cvcnst': unit('cra', .5, .6, conform=True, carrier=dict(name='CCN11NAC', parent='CCN11BDA', at=((.7, 2.2),))),
     # cvscav: under the rear rim of the dome, inboard of the engine-rolled wing fins (FNL/FNR, left alone).
     'cvscav': unit('cra', .5, .4, conform=True, carrier=dict(name='CMO11NAC', parent='CMO11BDA', at=((.35, 3.05),))),
+    # svcnst: on the rear side panels of the main body, outboard of the narrower tail box.
+    'svcnst': unit('cca', .5, .5, conform=True, carrier=dict(name='scv11nac', parent='scv11bda', at=((1.15, 1.3),))),
 }
 
 def unit_vectors(v):
