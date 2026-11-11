@@ -95,7 +95,9 @@ objects.newplayer={alive=true,odf="asuser"}; player="newplayer"
 step(clock+0.1)
 check(calls[#calls][1]~=nil,"retarget completes without invalid-handle command")
 local scrap=BuildObject("npscr2",0,"scrap")
+AddObject(scrap) -- the engine announces every new object
 local other=BuildObject("npsca",0,"other")
+AddObject(other)
 step(clock+0.1)
 check(not IsValid(scrap) and IsValid(other),"only native npscr prefix removed")
 reset(); objects.player.alive=false; step(0)
