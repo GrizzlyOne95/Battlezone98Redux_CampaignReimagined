@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5729,
+  "count": 5741,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -14243,6 +14243,10 @@
       "runtime": "abshld.odf"
     },
     {
+      "source": "ODF\\abshtw.odf",
+      "runtime": "abshtw.odf"
+    },
+    {
       "source": "ODF\\absilo.odf",
       "runtime": "absilo.odf"
     },
@@ -14819,6 +14823,38 @@
       "runtime": "avwamp.odf"
     },
     {
+      "source": "ODF\\b_cnavmr.odf",
+      "runtime": "b_cnavmr.odf"
+    },
+    {
+      "source": "ODF\\b_cnavrt.odf",
+      "runtime": "b_cnavrt.odf"
+    },
+    {
+      "source": "ODF\\b_cnbvmr.odf",
+      "runtime": "b_cnbvmr.odf"
+    },
+    {
+      "source": "ODF\\b_cnbvrt.odf",
+      "runtime": "b_cnbvrt.odf"
+    },
+    {
+      "source": "ODF\\b_cncvmr.odf",
+      "runtime": "b_cncvmr.odf"
+    },
+    {
+      "source": "ODF\\b_cncvrt.odf",
+      "runtime": "b_cncvrt.odf"
+    },
+    {
+      "source": "ODF\\b_cnsvmr.odf",
+      "runtime": "b_cnsvmr.odf"
+    },
+    {
+      "source": "ODF\\b_cnsvrt.odf",
+      "runtime": "b_cnsvrt.odf"
+    },
+    {
       "source": "ODF\\b_misn13.odf",
       "runtime": "b_misn13.odf"
     },
@@ -15073,6 +15109,10 @@
     {
       "source": "ODF\\bbshld.odf",
       "runtime": "bbshld.odf"
+    },
+    {
+      "source": "ODF\\bbshtw.odf",
+      "runtime": "bbshtw.odf"
     },
     {
       "source": "ODF\\bbsilo.odf",
@@ -15669,6 +15709,10 @@
     {
       "source": "ODF\\cbshld.odf",
       "runtime": "cbshld.odf"
+    },
+    {
+      "source": "ODF\\cbshtw.odf",
+      "runtime": "cbshtw.odf"
     },
     {
       "source": "ODF\\cbsilo.odf",
@@ -17233,6 +17277,10 @@
     {
       "source": "ODF\\sbshld.odf",
       "runtime": "sbshld.odf"
+    },
+    {
+      "source": "ODF\\sbshtw.odf",
+      "runtime": "sbshtw.odf"
     },
     {
       "source": "ODF\\sbsilo.odf",

@@ -63,4 +63,6 @@ buildItem4 = "sbbarr"
 buildItem5 = "sbsilo"
 buildItem6 = "sbsupp"
 buildItem7 = "sbhang"
+// CR: OpenShim PRODMENU tree (page 2 adds the shield tower); the flat list stays for the AI
+buildMenuRoot = b_cnsvrt
 
