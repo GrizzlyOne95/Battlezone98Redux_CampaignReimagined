@@ -7894,6 +7894,51 @@
       ]
     },
     {
+      "odf": "savfury",
+      "name": "Infected Fury",
+      "class": "sav",
+      "scope": "CR",
+      "model": "savfury",
+      "model_status": "read",
+      "role": "combat carrier",
+      "ogre_clips": [
+        {
+          "name": "Take_001",
+          "seconds": 3.333329916000366
+        }
+      ],
+      "slots": [
+        {
+          "slot": 1,
+          "weapon": "gbolt",
+          "hardpoint": "GC1",
+          "muzzle_nodes": [
+            "csf11GC1"
+          ],
+          "parents": [
+            "csf11bda"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        },
+        {
+          "slot": 2,
+          "weapon": "gwasp",
+          "hardpoint": "GR1",
+          "muzzle_nodes": [
+            "csf11GR1"
+          ],
+          "parents": [
+            "csf11bda"
+          ],
+          "recoil_candidates": [],
+          "cockpit_muzzle_nodes": [],
+          "plan": "author additive recoil parent/clip; preserve aiming and locomotion"
+        }
+      ]
+    },
+    {
       "odf": "savs8",
       "name": "Fury",
       "class": "sav",

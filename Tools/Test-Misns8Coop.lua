@@ -184,10 +184,12 @@ F.run(70)
 key = m.key_tank
 local sav = F.spawn("savtnk", 1, 1900, 100300)
 F.run(2)
-F.nearTo(sav, key, 100, 0); F.run(11) -- sav_check fires: the SAV attacks, the swap builds the hostile twin
+F.nearTo(sav, key, 100, 0); F.run(11) -- sav_check fires: the SAV attacks; the betrayal shot holds the swap 3 s
 check(m.sav_attack and m.sav1_attack, "a SAV that reaches Romeski turns on him")
+F.run(4) -- the swap builds the hostile twin
 local twin
-for _, b in ipairs(F.builds(p[1], 0, "savs8")) do twin = b end
+for _, b in ipairs(F.builds(p[1], 0, "savfury")) do twin = b end
+check(#F.builds(p[1], 0, "savs8") == 0, "the stock savs8 is never built; the infected savfury replaces it")
 check(twin and twin.team == 5 and twin.where == sav, "the hostile SAV is built in place on team 5")
 check(F.count(p[1], "RemoveObject", sav) == 1 and F.count(p[1], "SetIndependence", twin.h) == 1, "the loyal tank is swapped out, the twin is independent")
 w.objects[key].shotBy = twin.h
@@ -230,9 +232,162 @@ w.objects[p[2].player].odf = "savtnk"
 for _, q in ipairs(p) do q.env.AddObject(p[2].player) end
 check(m.sav1 == p[2].player, "the guest's own tank fills a SAV slot")
 m.sav_attack = true
-F.run(2)
+F.run(6)
 check(F.count(p[1], "RemoveObject", p[2].player) == 0 and F.alive(p[2].player), "the human's ship is not removed")
-check(#F.builds(p[1], 0, "savs8") == 1 and m.sav1_swap, "the hostile twin is still built")
+check(#F.builds(p[1], 0, "savfury") == 1 and m.sav1_swap, "the hostile twin is still built")
+
+-- ------------------------------------------------------------------ the betrayal cutscene (presentation only)
+-- Romeski's Furies turn: a shared 11 s shot, the swap 3 s in, the soundtrack ducked on every peer.
+local function betrayal(n, options)
+    local bw, bp, bm = setup(n, options)
+    bw.scrapOf[5] = 5; bw.unitCounts["5:bbtowe"] = 0; bw.unitCounts["5:bbwpow"] = 0
+    F.run(70)
+    local bsavs = {}
+    for i = 1, 2 do bsavs[i] = F.spawn("savtnk", 1, 1900 + 30 * i, 100300) end
+    F.run(2)
+    return bw, bp, bm, bm.key_tank, bsavs
+end
+local function trigger(bw, bp, bm)
+    bm.sav_attack = true
+    F.runUntil(function() return F.count(bp[1], "CameraReady") > 0 end, 5)
+    return bw.now
+end
+local function infected(peer) return F.builds(peer, 0, "savfury") end
+local function callTimes(peer, name, first)
+    local out = {}
+    for _, c in ipairs(F.callsOf(peer, name)) do if first == nil or c[2] == first then out[#out + 1] = c end end
+    return out
+end
+do
+    local bw, bp, bm, bkey, bsavs = betrayal(3, { music = true })
+    local t0 = trigger(bw, bp, bm)
+    local shot = F.last(bp[1], "CameraObject")
+    check(F.count(bp[1], "CameraReady") == 1 and shot[2] == bkey and shot[3] == -2500 and shot[4] == 1200 and shot[5] == -4500
+        and shot[6] == bsavs[1], "shot 1: Romeski's tank, 25 m left, 12 m up, 45 m behind (cm), looking at the SAV column")
+    check(#infected(bp[1]) == 0 and F.count(bp[1], "RemoveObject") == 0, "the swap waits for the parade: nothing built at the start")
+    F.run(2.5)
+    check(#infected(bp[1]) == 0 and F.count(bp[1], "RemoveObject", bsavs[1]) == 0, "still no swap 2.5 s in")
+    F.run(1)
+    local twins = infected(bp[1])
+    check(#twins == 2 and F.count(bp[1], "RemoveObject", bsavs[1]) == 1 and F.count(bp[1], "RemoveObject", bsavs[2]) == 1,
+        "both SAVs swap into savfury")
+    for _, c in ipairs(callTimes(bp[1], "BuildObject")) do
+        if c[3] == "savfury" then check(c.t == t0 + 3, "the swap happens 3 s into the shot") end
+    end
+    local seen = false
+    for _, b in ipairs(twins) do if F.last(bp[1], "CameraObject")[2] == b.h then seen = true end end
+    check(seen and F.last(bp[1], "CameraObject")[6] == F.last(bp[1], "CameraObject")[2], "shot 2 cuts to an infected SAV")
+    check(F.count(bp[1], "CameraFinish") == 0, "the camera is still held after the swap")
+    F.run(8)
+    local finish = callTimes(bp[1], "CameraFinish")
+    check(#finish == 1 and finish[1].t == t0 + 11, "the hard timer releases the camera at 11 s")
+    check(F.count(bp[1], "CameraReady") == 1 and bp[1].camera == 0, "one balanced camera stack")
+    for i = 1, 3 do
+        local q = bp[i]
+        local fades = callTimes(q, "FadeMusic")
+        check(#fades == 2 and fades[1][2] == 0.25 and fades[1][3] == 1.5 and fades[2][2] == 1 and fades[2][3] == 3,
+            "peer " .. i .. " ducks the music to 0.25 over 1.5 s and restores it over 3 s")
+        check(#callTimes(q, "UpdateMusic") >= 40, "peer " .. i .. " advances the fade every update")
+        if i > 1 then check(q.camera == 0 and F.count(q, "CameraReady") >= 1, "guest " .. i .. " saw the shot and released it") end
+    end
+    heardAll(bp, "misns805.wav", 1)
+    heardAll(bp, "misns806.wav", 1)
+    local fadesBefore = #callTimes(bp[1], "FadeMusic")
+    F.run(40)
+    check(F.count(bp[1], "CameraReady") == 1 and #callTimes(bp[1], "FadeMusic") == fadesBefore and #infected(bp[1]) == 2,
+        "the cutscene fires once")
+    for _, q in ipairs(bp) do q.env.Load(q.env.Save()) end
+    F.connect(); F.run(5)
+    check(F.count(bp[1], "CameraReady") == 1 and #infected(bp[1]) == 2, "a load after the shot does not replay it")
+    for i = 2, 3 do check(F.count(bp[i], "BuildObject") == 0 and F.count(bp[i], "Attack") == 0, "guest " .. i .. " builds and orders nothing") end
+end
+-- the stock rules are untouched: it starts only once, on the first frame the swap condition holds
+do
+    local bw, bp, bm = betrayal(1)
+    F.run(3)
+    check(F.count(bp[1], "CameraReady") == 0 and #infected(bp[1]) == 0, "no shot before the betrayal")
+    bm.general_spawn = false -- the swap block needs Romeski's arrival
+    bm.sav_attack = true; F.run(3)
+    check(F.count(bp[1], "CameraReady") == 0, "no shot without the swap condition")
+end
+-- the target dies: the hard cap still always releases the camera and restores the music
+do
+    local bw, bp, bm, bkey, bsavs = betrayal(2, { music = true })
+    local t0 = trigger(bw, bp, bm)
+    F.run(5)
+    for _, b in ipairs(infected(bp[1])) do F.kill(b.h) end
+    F.run(9)
+    local finish = callTimes(bp[1], "CameraFinish")
+    check(#finish == 1 and finish[1].t <= t0 + 11 and bp[1].camera == 0, "the infected SAVs die in shot 2: the camera is still released, once")
+    check(#callTimes(bp[1], "FadeMusic") == 2 and #callTimes(bp[2], "FadeMusic") == 2, "and the music is restored on both peers")
+    check(callTimes(bp[1], "FadeMusic")[2][2] == 1, "restored to full gain")
+end
+do
+    local bw, bp, bm, bkey, bsavs = betrayal(2, { music = true })
+    local t0 = trigger(bw, bp, bm)
+    F.run(1)
+    F.kill(bkey); for _, s in ipairs(bsavs) do F.kill(s) end -- Romeski and the whole column die in shot 1
+    F.run(12)
+    local finish = callTimes(bp[1], "CameraFinish")
+    check(#finish == 1 and finish[1].t <= t0 + 11 and bp[1].camera == 0, "shot 1's subjects die: the camera is still released, once")
+    check(#infected(bp[1]) == 0 and #callTimes(bp[1], "FadeMusic") == 2, "no swap of dead SAVs, and the music comes back")
+end
+-- without EXU (or an EXU without the soundtrack calls) the mission is untouched
+do
+    local bw, bp, bm, bkey, bsavs = betrayal(2)
+    local t0 = trigger(bw, bp, bm)
+    F.run(12)
+    check(F.count(bp[1], "FadeMusic") == 0 and F.count(bp[1], "UpdateMusic") == 0, "no music call without EXU support")
+    check(#infected(bp[1]) == 2 and #callTimes(bp[1], "CameraFinish") == 1, "the shot and the swap run regardless")
+    -- an EXU whose soundtrack calls raise must not break it either
+    local bw2, bp2, bm2 = betrayal(1)
+    bp2[1].modules.exu.FadeMusic = function() error("no soundtrack") end
+    bp2[1].modules.exu.UpdateMusic = function() error("no soundtrack") end
+    trigger(bw2, bp2, bm2); F.run(12)
+    check(#infected(bp2[1]) == 2 and #callTimes(bp2[1], "CameraFinish") == 1, "a failing EXU does not break the mission")
+end
+-- save/load mid-shot: the beat resumes on its own clock and never replays
+do
+    local bw, bp, bm, bkey, bsavs = betrayal(3, { music = true })
+    local t0 = trigger(bw, bp, bm)
+    F.run(1.5)
+    for _, q in ipairs(bp) do q.env.Load(q.env.Save()) end
+    F.connect(); F.run(0.25)
+    local cs = bp[1].env.Save().crcca.r.cs
+    check(cs.t0 == t0 and not cs.swapped, "the saved beat keeps its start time")
+    check(#infected(bp[1]) == 0, "load does not swap early")
+    F.run(1.5)
+    check(#infected(bp[1]) == 2, "the swap still lands 3 s after the beat began")
+    for _, c in ipairs(callTimes(bp[1], "BuildObject")) do
+        if c[3] == "savfury" then check(c.t == t0 + 3, "the swap time did not move after the load") end
+    end
+    F.run(10)
+    local finish = callTimes(bp[1], "CameraFinish")
+    check(finish[#finish].t == t0 + 11 and bp[1].env.Save().crcca.r.cs.done, "the hard timer still ends it at 11 s")
+    check(#infected(bp[1]) == 2 and F.count(bp[1], "RemoveObject", bsavs[1]) == 1, "no second swap")
+    check(F.count(bp[1], "CameraReady") == 2, "the shot is re-armed once after the load, not restarted")
+end
+-- an old save (no beat state) whose swap is already done never starts a shot
+do
+    local bw, bp, bm, bkey, bsavs = betrayal(1)
+    bm.sav1_swap, bm.sav2_swap = true, true
+    bm.sav_attack = true
+    F.run(15)
+    check(F.count(bp[1], "CameraReady") == 0 and #infected(bp[1]) == 0, "an old mid-betrayal save plays no shot")
+end
+-- an offline player's skip releases the camera, but the beat's timing continues
+do
+    local bw, bp, bm, bkey, bsavs = betrayal(1, { music = true })
+    local t0 = trigger(bw, bp, bm)
+    bw.cancel = true
+    F.run(1)
+    bw.cancel = false
+    check(bp[1].camera == 0 and #callTimes(bp[1], "CameraFinish") == 1, "the skip releases the camera")
+    F.run(2.5)
+    check(#infected(bp[1]) == 2, "the swap still lands on time after a skip")
+    F.run(8)
+    check(#callTimes(bp[1], "CameraFinish") == 1 and #callTimes(bp[1], "FadeMusic") == 2, "the end restores the music, with no second release")
+end
 
 -- ------------------------------------------------------------------ victory
 for _, n in ipairs({1, 3}) do

@@ -183,6 +183,8 @@ local M = NewState()
 -- Each RESTORED_* flag switches one cut-content restoration off (Docs/MISNS8_COOP.md, "Restored content").
 local RESTORED_CHOKE_CAM = true
 local RESTORED_VOICE_LINES = true -- unused shipped lines misns806, misns809, misns813 (Docs/MISNS8_COOP.md)
+local RESTORED_INFECTED_SAV = true -- the betrayal swap builds the Fury-blue "savfury", not the stock "savs8"
+local RESTORED_BETRAYAL_CUTSCENE = true -- a short shared shot around the swap, soundtrack ducked (Docs/MISNS8_COOP.md)
 -- Black Dog APCs retarget an enemy craft within this many metres (Docs/MISNS8_COOP.md): 0 disables it.
 local APC_ATTACK_RANGE = 120
 -- Once the Black Dog base breaks (plan_c): a Black Dog counterattack plus a walker strike, and three allied Soviet
@@ -203,6 +205,9 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     fallbackEntries = { "a_post1", "t2post", "t3post", "american_spawn" },
     wonFlags = { "game_over" },
     endedFlags = { "game_over" },
+    holdCamera = true, -- the betrayal shot is one CameraObject per frame; hold it for every peer
+    -- The soundtrack is local to each peer: the duck and the restore run on every peer through the stream.
+    presentationOps = { S8Music = function(mode) Restored.OpMusic(mode) end },
     weather = { module = "CRTitanWeather", sites = "CRTitanSitesS8", ops = { "TitanState", "TitanRoll" },
         startLevel = 2, targetLevel = 2,
         beats = function(titan, state, s)
@@ -231,12 +236,16 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
         end },
     hooks = {
         -- The sky dome follows the haze ladder (the same binding CRMisn15/16 make for Titan).
-        update = function(R)
+        update = function(R, dt)
+            if Restored then Restored.MusicTick(dt) end
             if skyBound or not R.Weather or not R.Weather.module.Initialized then return end
             skyBound = true
             require("Environment").BindWeatherSensors("Titan", R.Weather.module)
         end,
-        load = function() skyBound = false end,
+        load = function()
+            skyBound = false
+            if Restored then Restored.OnLoad() end
+        end,
     },
 })
 local RESTORED = campaignRuntime ~= nil and campaignRuntime ~= false
@@ -258,6 +267,10 @@ local SetObjectiveName = campaignRuntime and campaignRuntime.SetObjectiveName or
 local SetObjectiveOn = campaignRuntime and campaignRuntime.SetObjectiveOn or SetObjectiveOn
 local RemoveObject = campaignRuntime and campaignRuntime.RemoveObject or RemoveObject
 local SucceedMission = campaignRuntime and campaignRuntime.SucceedMission or SucceedMission
+local CameraReady = campaignRuntime and campaignRuntime.CameraReady or CameraReady
+local CameraObject = campaignRuntime and campaignRuntime.CameraObject or CameraObject
+local CameraFinish = campaignRuntime and campaignRuntime.CameraFinish or CameraFinish
+local CameraCancelled = campaignRuntime and campaignRuntime.CameraCancelled or CameraCancelled
 -- Natives the runtime does not own. The body's literal enemy team 2 is the co-op enemy (team 5) in the CR layer:
 -- team 2 is a guest slot. GetScrap/AddScrap/SetPilot/CountUnitsNearObject/SetPerceivedTeam say 2 explicitly.
 local SetScrap = campaignRuntime and function(team, amount)
@@ -485,8 +498,135 @@ if campaignRuntime then
             AllyWave(wave)
         end
     end
+    -- Not cut content: the Furies' betrayal (Docs/MISNS8_COOP.md, "Cutscene"). The swap builds the stock SAV's
+    -- Fury-blue twin, "savfury" (a namespaced copy of svsav). Gameplay is unchanged: only the swap block's
+    -- savN_swap flags are held for BETRAYAL_SWAP_DELAY s so the parade shows first.
+    if RESTORED_INFECTED_SAV then
+        local buildSpawn = BuildObject
+        BuildObject = function(odf, ...)
+            if odf == "savs8" then odf = "savfury" end
+            return buildSpawn(odf, ...)
+        end
+    end
+    local BETRAYAL_SWAP_DELAY = 3.0 -- seconds into the shot before the swap
+    local BETRAYAL_SHOT_SECONDS = 11.0 -- hard cap: the camera is always released and the music restored by then
+    local ROMESKI_SHOT = { -2500, 1200, -4500 } -- cm (right, up, forward) from Romeski, looking at the SAV column
+    local INFECTED_SHOT = { 3500, 1200, 4500 } -- cm from the nearest infected SAV, looking at it
+    local camOn, camDone, ducked = false, false, false -- this peer's camera/music state; a load resets them
+    local musicUntil = nil
+    local function MusicCall(name, ...)
+        -- EXU may be missing or older than the call: the mission never depends on it.
+        local ok, exu = pcall(require, "exu")
+        if ok and type(exu) == "table" and type(exu[name]) == "function" then
+            return pcall(exu[name], ...)
+        end
+        return false
+    end
+    -- Runs on every peer (presentation op). UpdateMusic advances the fades from MusicTick.
+    function Restored.OpMusic(mode)
+        if mode == "duck" then
+            MusicCall("FadeMusic", 0.25, 1.5)
+            musicUntil = math.huge
+        elseif mode == "restore" then
+            MusicCall("FadeMusic", 1, 3)
+            musicUntil = GetTime() + 3.5
+        end
+    end
+    function Restored.MusicTick(dt)
+        if musicUntil == nil then return end
+        MusicCall("UpdateMusic", dt or 0)
+        if musicUntil ~= math.huge and GetTime() >= musicUntil then musicUntil = nil end
+    end
+    -- A load drops the engine camera and the music gain: the saved beat (r.cs) resumes on its own clock and
+    -- this peer re-arms its shot and duck. It is never restarted (r.cs.t0 is kept).
+    function Restored.OnLoad()
+        camOn, camDone, ducked, musicUntil = false, false, false, nil
+    end
+    local function FirstSav()
+        for i = 1, 6 do
+            local h = M["sav" .. i]
+            if Valid(h) then return h end
+        end
+    end
+    local function NearestInfected()
+        local anchor = Valid(M.key_tank) and M.key_tank or GetPlayerHandle()
+        local best, bestDistance
+        for i = 1, 6 do
+            local h = M["badsav" .. i]
+            if Valid(h) and Valid(anchor) then
+                local d = GetDistance(anchor, h)
+                if bestDistance == nil or d < bestDistance then best, bestDistance = h, d end
+            elseif Valid(h) and best == nil then
+                best = h
+            end
+        end
+        return best
+    end
+    local function FinishShot(cs)
+        if cs.done then return end
+        cs.done = true
+        camOn = false
+        CameraFinish() -- idempotent in the runtime: balanced whether or not this peer's shot was skipped
+        runtime.Present("S8Music", "restore")
+    end
+    function Restored.Cutscene(r)
+        if not RESTORED_BETRAYAL_CUTSCENE then return end
+        local cs = r.cs
+        local now = GetTime()
+        if not cs then
+            -- First frame the swap block's condition holds (the faithful test, minus a swap already under way).
+            if M.game_over or not M.general_spawn or not ((not IsAlive(M.key_tank)) or M.sav_attack) then return end
+            local held = {}
+            for i = 1, 6 do
+                if (not M["sav" .. i .. "_swap"]) and IsAlive(M["sav" .. i]) then held[#held + 1] = i end
+            end
+            if #held == 0 then return end
+            for _, i in ipairs(held) do M["sav" .. i .. "_swap"] = true end -- the body skips these until the swap
+            cs = { t0 = now, held = held }
+            r.cs = cs
+            camOn, camDone, ducked = false, false, false
+        end
+        if cs.done then return end
+        local t = now - cs.t0
+        if not cs.swapped and t >= BETRAYAL_SWAP_DELAY then
+            cs.swapped = true
+            for _, i in ipairs(cs.held) do M["sav" .. i .. "_swap"] = false end -- the body swaps them this frame
+        end
+        if t >= BETRAYAL_SHOT_SECONDS then return FinishShot(cs) end
+        if not ducked then
+            ducked = true
+            runtime.Present("S8Music", "duck")
+        end
+        if not camDone then
+            if not camOn then
+                camOn = true
+                CameraReady()
+            elseif CameraCancelled() then
+                camDone, camOn = true, false -- this player's skip releases only their own camera
+                CameraFinish()
+            end
+        end
+        local subject, target, offset
+        if cs.swapped then
+            if not Valid(cs.shot2) then cs.shot2 = NearestInfected() end
+            if Valid(cs.shot2) then
+                subject, target, offset = cs.shot2, cs.shot2, INFECTED_SHOT
+            elseif t > BETRAYAL_SWAP_DELAY + 1.0 then
+                return FinishShot(cs) -- nothing left to look at
+            end
+        else
+            local sav = FirstSav()
+            subject = Valid(M.key_tank) and M.key_tank or sav
+            target = sav or (Valid(M.key_tank) and M.key_tank or nil)
+            offset = ROMESKI_SHOT
+        end
+        if camOn and Valid(subject) and Valid(target) then
+            CameraObject(subject, offset[1], offset[2], offset[3], target)
+        end
+    end
     function Restored.Step()
         if not M.start_done then return end
+        Restored.Cutscene(State())
         Restored.ChokeCam(State())
         Restored.RomeskiDead(State())
         Restored.ApcRetarget(State())

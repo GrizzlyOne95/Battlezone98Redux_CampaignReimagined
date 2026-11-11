@@ -18,7 +18,8 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 | `ODF/crns8.aip` | Black Dog variant of stock `misns8.aip`; its constructor build slot uses `bvcnst`. |
 | `Scripts/CRTitanWeather.lua`, `Scripts/CRTitanSitesS8.lua` | Titan weather and the generated sites for this map (the sites table has no pools and an empty wet mask; the weather runs without them). |
 | `Missions/misns8cr.{bzn,vxt}`, `misns8.{hg2,lgt,mat,trn}` | Map and companions (built by `Tools/Build-CoopMap.py`, not part of this change). |
-| `Tools/Misns8Fixture.lua`, `Tools/Test-Misns8Coop.lua`, `Tools/Test-Misns8CoopSourceParity.py`, `Tools/Test-Misns8CoopContract.py` | Multi-peer fixture and tests. There is no presentation test: the mission has no cameras. |
+| `Tools/Misns8Fixture.lua`, `Tools/Test-Misns8Coop.lua`, `Tools/Test-Misns8CoopSourceParity.py`, `Tools/Test-Misns8CoopContract.py` | Multi-peer fixture and tests. The one camera (the betrayal cutscene, below) is covered by `Test-Misns8Coop.lua` through the real presentation transport; there is no separate presentation test. |
+| `ODF/savfury.odf`, `Assets/ModelFixes/savfury.*` and `csf11*.geo`, `Assets/Textures/savfury_{d,e}.dds`, `Materials/savfury.material`, `Tools/Build-SavFury.py`, `Tools/Test-SavFuryAssets.py` | The infected Fury-blue SAV the betrayal swap builds (see "Betrayal cutscene"). |
 
 ## Teams and ownership
 
@@ -118,6 +119,46 @@ Skipped, with the reason:
 - Audio `misns806`, `misns809` and `misns813` are restored (table above). `misns811` (a variant of `misns818`
   ending "Continue with the operation") is audited and skipped: it duplicates the `misns805`/`misns818` exchange.
 
+## Betrayal cutscene (CR addition, presentation only)
+
+Gameplay is unchanged: the swap block of the faithful body still decides who is swapped, when its condition first
+holds, and what the hostile twins do. The CR layer (`Restored.Cutscene`, in the `-- CR restored content >>` region)
+wraps it in a short shared shot. Switches: `RESTORED_BETRAYAL_CUTSCENE` and `RESTORED_INFECTED_SAV`.
+
+| Beat | Behaviour |
+| --- | --- |
+| Trigger | Leader/authority only, once, the first frame `general_spawn and (sav_attack or not IsAlive(key_tank))` holds and at least one SAV slot is alive and not yet swapped. State is `State().r.cs` (inside `M`, so it saves and an old save without it loads). A save whose swap is already done starts no shot. |
+| Swap delay | The `savN_swap` flags of the alive SAVs are set to true for 3 s (`BETRAYAL_SWAP_DELAY`), so the body skips them; at +3 s they are set back to false and the body swaps in the same frame. Nothing else in the body reads those flags. |
+| Shot 1 (0-3 s) | `CameraObject(key_tank, -2500, 1200, -4500, <first live SAV>)` every frame (offsets are centimetres: 25 m left, 12 m up, 45 m behind Romeski, looking at the SAV column). If Romeski is already dead, the first live SAV is the subject. |
+| Shot 2 (3 s on) | The frame after the swap, the camera cuts to the nearest infected SAV (nearest to Romeski, else to the player): `CameraObject(twin, 3500, 1200, 4500, twin)`. If every twin dies, the shot ends early. |
+| Hard cap | 11 s (`BETRAYAL_SHOT_SECONDS`) after the trigger, from `GetTime()`: `CameraFinish()` and the music restore always run, even when subject and target are gone (`holdCamera` stops re-issuing for an invalid handle, so the timer is the only thing that ends a frozen shot). |
+| Camera | `holdCamera = true` in the runtime CONFIG; `CameraReady/CameraObject/CameraFinish/CameraCancelled` are the runtime's shadows, so guests follow the leader's shot through the existing camera stream. The shot is armed once through a local `camOn` flag, never stacked. Skip behaviour is the runtime's: offline a skip releases the camera but the swap and the 11 s timer continue; in a network game the skip is per player and the shared timing is untouched. No new skip rules. |
+| Music | Presentation op `S8Music` (`config.presentationOps`) runs on every peer: `duck` = `exu.FadeMusic(0.25, 1.5)` at the start, `restore` = `exu.FadeMusic(1, 3)` at the end. `exu.UpdateMusic(dt)` runs once per Update on every peer (the runtime `update` hook) from the first duck until 3.5 s after the restore. Every call is guarded (`type(exu) == "table"` and `type(exu[name]) == "function"`, inside `pcall`): without EXU, or with an EXU lacking the calls, the mission is unchanged. `Bin/exu.dll` carries both names. No `SetTeamColor`, no `IFace_ConsoleCmd`. |
+| Voice | `misns805` / `misns806` (and the other betrayal lines) are untouched and still fire from the body at the swap. |
+| Load | A load keeps `r.cs` (start time included), so the swap still lands 3 s after the beat began and the hard cap is unchanged. Each peer re-arms its camera and duck once (`Restored.OnLoad`). It is never restarted. |
+
+The swap builds `savfury` instead of `savs8`: the `BuildObject` shadow maps that one name (`odf == "savs8"`), so the
+six faithful `BuildObject("savs8", 2, ...)` lines stay byte for byte. `savfury.odf` is stock `savs8.odf` (same stats,
+`classLabel = "sav"`, weapons, sounds) with its own `baseName` and `unitName = "Infected Fury"`. As a new
+CR craft with `gbolt`/`gwasp`, it is registered in `References/WeaponPresentation` the way `svsav` is (clone rows in
+`inventory.json`, `recoil.csv`, `combat-models.json`, `craft-flash-offsets.json` with the same "hull hardpoint, no
+flash" skip, `craft-gameplay-baselines.json`; `combat-coverage.json` and `Docs/COMBAT_WEAPON_EFFECTS.md` come from
+`Tools/Build-CombatPresentation.py`). The weapons keep their stock presentation and the model has no weapon rig.
+
+### savfury art
+
+`Tools/Build-SavFury.py` builds it from stock `svsav` (sources and hashes under `References/SavFury`). Like `crfraz`
+(`Docs/FURY_FIGHTER.md`) and the Fury mine (`Docs/BOLT_MINE_VARIANTS.md`): the VDF, skeleton and seven GEO companions
+change only the part prefix `ssv11` -> `csf11`; the mesh changes only its material and skeleton links (`savfury`,
+`savfury.skeleton`), so geometry, UVs, skinning, collision and animation stay stock. The textures are fresh 1024 BC1
+mipped atlases (`savfury_d.dds`, `savfury_e.dds`) in the svsav UV layout, with the stock normal, specular and `ACT`
+maps reused. The diffuse keeps the stock plate and vent luminance in dark Fury blue; stock lamps and red markings
+become cyan. Panel seams, bevels and contour ribs come from the mesh's own edges (crease, boundary and UV-island
+borders rasterised in UV space); the veins are ridged noise in an island-local frame (the island's own UV axes scaled
+to its world size), never a world-space projection, and branch out of the seams. Tiny islands (pipes, muzzles) get
+fewer veins and no glowing seams. `Tools/Render-SavFuryPreview.py` renders a Blender comparison against stock `svsav`
+(an offline Cycles approximation, not the game's shader). Native rendering of `savfury` is unverified.
+
 ## APC retarget (CR addition, not cut content)
 
 Stock gives the Black Dog APC (`bvapc`) `Attack(avapc1, ccarecycle)`, so it only drives at the
@@ -189,9 +230,10 @@ turrets or rigs: they are produced by the humans and the AIP.
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Misns8Coop.lua            # offline outcome and final voice line match the faithful port, 1-4 peers, team remap, player token, scaling, 460 m, SAV swap, beacon, weather
+lua5.1 Tools/Test-Misns8Coop.lua            # offline outcome and final voice line match the faithful port, 1-4 peers, team remap, player token, scaling, 460 m, SAV swap, betrayal cutscene (once, swap at +3 s, hard cap, music on every peer / without EXU, save/load, skip), beacon, weather
 python Tools/Test-Misns8CoopSourceParity.py # misns8cr.lua minus CR regions == misns8.lua; every body native is shadowed
-python Tools/Test-Misns8CoopContract.py     # labels/paths/teams in misns8cr.bzn, Titan sites, weather API (skips if the map is absent)
+python Tools/Test-Misns8CoopContract.py     # labels/paths/teams in misns8cr.bzn, Titan sites, weather API, cutscene wiring (skips if the map is absent)
+python Tools/Test-SavFuryAssets.py          # savfury: toolkit load, unchanged geometry, textures, ODF stats, shipping
 lua5.1 Tools/Test-Misns8.lua && python Tools/Test-Misns8SourceParity.py   # the faithful port, unchanged
 ```
 
@@ -218,6 +260,10 @@ lua5.1 Tools/Test-Misns8.lua && python Tools/Test-Misns8SourceParity.py   # the 
 4. Plan C does NOT start at once (defence counts are for team 5); it starts when the towers fall and scrap is low.
 5. Romeski arrives, any human within 150 m triggers him; shooting him from a guest makes him attack the nearest human.
 6. SAVs follow him, then turn: loyal tank removed, hostile twin appears; a human piloting a SAV keeps their tank.
+   The betrayal shot: Romeski's tank looking at the SAV column, the swap 3 s in, a cut to the nearest infected SAV
+   (dark Fury blue, cyan veins; no engine alert for `savfury`), the camera released by about 11 s on every peer,
+   the music ducked to a quarter and back (audible), the skip behaving as for other shared shots, and the voice lines
+   `misns805`/`806` unmoved.
 7. The Choke Point beacon drops when the fleeing Recycler passes `dis_geyser2`.
 8. Titan haze/drizzle/shroud follow the beats on host and guests; no weather error in the log.
 9. Victory closes with the right line (803+808 or 814) on every peer and the mission ends once.

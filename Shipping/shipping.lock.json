@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5731,
+  "count": 5745,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -1367,6 +1367,34 @@
       "runtime": "cromine.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\csf11bda.geo",
+      "runtime": "csf11bda.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\csf11gc1.geo",
+      "runtime": "csf11gc1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\csf11gm1.geo",
+      "runtime": "csf11gm1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\csf11gr1.geo",
+      "runtime": "csf11gr1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\csf11gs1.geo",
+      "runtime": "csf11gs1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\csf11lgt.geo",
+      "runtime": "csf11lgt.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\csf11pov.geo",
+      "runtime": "csf11pov.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\cspilo.mesh",
       "runtime": "cspilo.mesh"
     },
@@ -1785,6 +1813,18 @@
     {
       "source": "Assets\\ModelFixes\\pspwn_1.mesh",
       "runtime": "pspwn_1.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\savfury.mesh",
+      "runtime": "savfury.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\savfury.skeleton",
+      "runtime": "savfury.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\savfury.vdf",
+      "runtime": "savfury.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\sbbarr.mesh",
@@ -8767,6 +8807,14 @@
       "runtime": "rpuff.png"
     },
     {
+      "source": "Assets\\Textures\\savfury_d.dds",
+      "runtime": "savfury_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\savfury_e.dds",
+      "runtime": "savfury_e.dds"
+    },
+    {
       "source": "Assets\\Textures\\sbbarr_ACT.dds",
       "runtime": "sbbarr_ACT.dds"
     },
@@ -12529,6 +12577,10 @@
     {
       "source": "Materials\\saturn.material",
       "runtime": "saturn.material"
+    },
+    {
+      "source": "Materials\\savfury.material",
+      "runtime": "savfury.material"
     },
     {
       "source": "Materials\\sbbarr.material",
@@ -17153,6 +17205,10 @@
     {
       "source": "ODF\\satxpl.odf",
       "runtime": "satxpl.odf"
+    },
+    {
+      "source": "ODF\\savfury.odf",
+      "runtime": "savfury.odf"
     },
     {
       "source": "ODF\\sb0002.odf",
