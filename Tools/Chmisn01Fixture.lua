@@ -221,6 +221,8 @@ function F.makePeer(id, team, network, options)
         local pos = F.posOf(h)
         return pos and {x = pos.x, y = pos.y, z = pos.z} or {x = 0, y = 0, z = 0}
     end
+    e.GetVelocity = function(h) return {x = 0, y = 0, z = 0} end
+    e.Stop = function(h, mode) assert(e.IsValid(h), "Stop on an invalid object"); record("Stop", h, mode) end
     e.SetVelocity = function(h,v) assert(e.IsValid(h),"velocity on an invalid object");record("SetVelocity",h,v) end
     e.SetPosition = function(h,pos) assert(e.IsValid(h)); W.objects[h].pos={x=pos.x,y=pos.y,z=pos.z};record("SetPosition",h,pos.y) end
     e.BuildDirectionalMatrix = function(pos, dir) return {x = pos.x, y = pos.y, z = pos.z, dx = dir and dir.x or 0, dz = dir and dir.z or 1} end
@@ -451,6 +453,8 @@ function F.makePeer(id, team, network, options)
         return m
     end
     modules.CRCCARuntime = setfenv(assert(loadfile("Scripts/CRCCARuntime.lua")),e)()
+    -- options.dropIn: the real dropship module (Test-Chmisn01DropIn.lua). Absent by default: the stock Recycler.
+    if options.dropIn then modules.CRDropIn = setfenv(assert(loadfile("Scripts/CRDropIn.lua")), e)() end
     if options.faithful then e.CR_TEST_FAITHFUL = true; p.faithful = true end
     setfenv(assert(loadfile(options.script or "Scripts/ch01cr.lua")), e)()
     p.chunkCalls = #p.calls -- everything recorded so far ran at chunk load, before Start
