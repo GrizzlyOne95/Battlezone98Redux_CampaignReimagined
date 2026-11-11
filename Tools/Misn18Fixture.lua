@@ -422,6 +422,33 @@ function F.makePeer(id, team, network, options)
         service.SetRallyPoints = function(points) p.rally = points; return original(points) end
         return service
     end}
+    -- options.noMask: an old bundled EXU without the control mask. options.maskRefuses: it returns false (network
+    -- games today). Otherwise it records the lock calls.
+    if not options.noMask then
+        modules.exu.CONTROL = {FIRE = 8, WEAPONS = 512, ALL = 4095}
+        modules.exu.SetPlayerControlMask = function(owner, mask)
+            record("SetPlayerControlMask", owner, mask); return not options.maskRefuses
+        end
+        modules.exu.ClearPlayerControlMask = function(owner) record("ClearPlayerControlMask", owner); return true end
+    end
+    -- Overlay fakes for the lock badge: p.badge is true while the badge overlay is shown. options.noOverlay drops them;
+    -- options.staleBadge starts with the overlay still up from an earlier Lua state (a load).
+    if not options.noOverlay then
+        p.badge = options.staleBadge and true or nil
+        local x = modules.exu
+        x.OVERLAY_METRICS = {PIXELS = 1}
+        local ok = function() return true end
+        for _, name in ipairs({"CreateOverlayElement", "AddOverlay2D", "SetOverlayZOrder", "SetOverlayMetricsMode",
+            "AddOverlayElementChild", "SetOverlayTextFont", "SetOverlayMaterial", "SetOverlayParameter",
+            "SetOverlayPosition", "SetOverlayDimensions", "SetOverlayTextCharHeight", "SetOverlayTextColor",
+            "SetOverlayCaption", "ShowOverlayElement", "RemoveOverlayElementChild", "DestroyOverlayElement",
+            "RemoveOverlay2D"}) do x[name] = ok end
+        x.CreateOverlay = function() return true end
+        x.ShowOverlay = function(name) if name == "CR/LockBadge/Overlay" then p.badge = true end return true end
+        x.HideOverlay = function(name) if name == "CR/LockBadge/Overlay" then p.badge = false end return true end
+        x.DestroyOverlay = function(name) if name == "CR/LockBadge/Overlay" then p.badge = false end return true end
+    end
+    modules.CRLockBadge = setfenv(assert(loadfile("Scripts/CRLockBadge.lua")), e)()
     e.package = setmetatable({loaded = {exu = modules.exu}}, {__index = package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
     e.require = function(name)
