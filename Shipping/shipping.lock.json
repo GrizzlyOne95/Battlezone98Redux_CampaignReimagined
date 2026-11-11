@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5729,
+  "count": 5730,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -18521,6 +18521,10 @@
     {
       "source": "Scripts\\CRDrop18.lua",
       "runtime": "CRDrop18.lua"
+    },
+    {
+      "source": "Scripts\\CRDropIn.lua",
+      "runtime": "CRDropIn.lua"
     },
     {
       "source": "Scripts\\CRElysiumSitesBD07.lua",
