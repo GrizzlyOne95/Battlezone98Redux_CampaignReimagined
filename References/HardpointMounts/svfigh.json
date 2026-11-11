@@ -1,0 +1,110 @@
+{
+  "note": "Hardpoint mount (Tools/Build-HardpointMounts.py). Ogre mesh space in the VDF pose (VDF x = -x), metres. The hardpoint sits INSET x scale inside the muzzle, on the fire axis.",
+  "unit": "svfigh",
+  "piece": "rocket",
+  "part": "SFL11GR1",
+  "owner": "SFL11ROR",
+  "faction": "cca",
+  "base": "628a1fa1646242e5405ce31f26dbf31f9f955abc",
+  "material": "svfigh_hpmount",
+  "triangles": 1540,
+  "fireThrough": [],
+  "frame": {
+    "at": [
+      0.0,
+      0.8,
+      2.35
+    ],
+    "seat": [
+      0.0,
+      0.781209,
+      2.344715
+    ],
+    "normal": [
+      0.0,
+      0.962651,
+      0.270746
+    ],
+    "front": [
+      0.0,
+      -0.270746,
+      0.962651
+    ],
+    "scale": 0.5
+  },
+  "bury": 0.06,
+  "muzzle": [
+    0.0,
+    0.843331,
+    2.585528
+  ],
+  "fire": [
+    0.0,
+    -0.270746,
+    0.962651
+  ],
+  "inset": 0.02,
+  "hardpoint": [
+    0.0,
+    0.848745,
+    2.566275
+  ],
+  "stockHardpoint": [
+    0.003737,
+    0.588306,
+    2.758832
+  ],
+  "paint": [
+    183.0,
+    179.0,
+    151.0
+  ],
+  "accent": [
+    43.0,
+    48.0,
+    43.0
+  ],
+  "markTexels": 3247,
+  "paintFrom": "svfigh_d.dds",
+  "checks": {
+    "footprint": 4,
+    "skinAboveFloor": [
+      0.060116925604196896,
+      0.060194136376437134
+    ],
+    "saddleTop": 0.04500000178813934,
+    "muzzle": [
+      0.0,
+      0.8433305255610561,
+      2.585528309051413
+    ],
+    "fire": [
+      0.0,
+      -0.2707455769182841,
+      0.962650940153899
+    ],
+    "groundClearance": 0.7576,
+    "parts": {
+      "restGap": {
+        "sfl11nfl": 0.3,
+        "sfl11nfr": 0.3,
+        "sfl21bda": 0.2087
+      },
+      "ownerBodyGap": 0.0446,
+      "gunLines": {
+        "SFL11GC1": null,
+        "SFL11Gc2": null,
+        "SFL11Gs1": null
+      },
+      "sweepDegrees": 23.0,
+      "sweepGap": {
+        "SFL11ROR": 0.2,
+        "SFL11NFL": 0.2,
+        "SFL11NFR": 0.2
+      },
+      "lineOfFireCrossedBy": {},
+      "rolledGroundClearance": 0.7428
+    }
+  },
+  "meshSha256": "f412aa075c44f3b7004ac2d629b528247b1e32d30a310f0bb1b63463d23418c3"
+}

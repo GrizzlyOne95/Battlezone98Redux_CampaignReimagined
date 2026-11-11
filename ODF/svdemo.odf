@@ -31,7 +31,7 @@ recoilCockpit1 = true
 casingOffset1 = "-0.7184 0.2714 -0.3078"
 casingDirection1 = "-0.9345 0.3271 -0.1402"
 recoilKick1 = 0.25
-casingOffset2 = "1.0287 0.38 -0.3543"
+casingOffset2 = "0.4364 0.1728 -0.2655"
 casingDirection2 = "0.9345 0.3271 -0.1402"
 // CR CRAFT RECOIL END
 rangeScan = 400.0f
