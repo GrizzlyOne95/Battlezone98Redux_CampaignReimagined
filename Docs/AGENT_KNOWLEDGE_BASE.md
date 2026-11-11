@@ -256,6 +256,13 @@ Grep every ported mission for these before trusting it in MP:
 - `Scripts/aiCore.lua` (SP-era Lua brain, host-only) **redefines the global `SetAIP`**. In missions that
   load aiCore, the native AIP is never loaded; pick one brain per mission [owner decisions: misn02b native
   AIP, misn05 aiCore, misn13 AIP only because aiCore would fight the fixed-outpost win].
+- **Combat-only aiCore** (script owns orders/waves/production, aiCore only fights): `aiCore.EnableCombatOnly(team, faction)`
+  once (strategic flags off, special combat on, saved with the team), `aiCore.BootstrapCombatOnly(team)` for units that
+  already exist, `aiCore.AddCombatObject(h)` from `AddObject` (skips non-local and human craft), `aiCore.UpdateCombatOnly()`
+  each frame (never `aiCore.Update()`: it registers human teams, gives rush-aggression orders and creates global managers
+  for every other team; `UpdateCombatOnly` skips all of that). Dynamic mass: `AddSpecialObject` applies it to team-5
+  craft, `FinishPostLoad` to all craft after a load. Never call `aiCore.Bootstrap()` for that team. Host only; save aiCore's data as a trailing `Save` value
+  (pilot: `Scripts/misns5cr.lua`, `Docs/MISNS5_COOP.md`).
 - A craft ODF without `aiName`/`aiName2` builds and looks healthy but has **no AI process**: `CanCommand`
   is false forever and hooks inside the process never run.
 - A missing enemy recycler/factory/scrap means an AIP cannot build (misn02b); script-built forces (Lua

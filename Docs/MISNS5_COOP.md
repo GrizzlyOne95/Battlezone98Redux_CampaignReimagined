@@ -109,6 +109,24 @@ Kept as stock (documented, not changed): the enemy recycler dying before the fin
 opens the final phase (then the win lands immediately); the waves continue past wave 3 during the ten-second result
 delay.
 
+## Combat-only aiCore
+
+The enemy units (real team 5) get aiCore's combat layer (special-combat weapon and cloak managers, sniping, craft
+stealing) and nothing else: `aiCore.EnableCombatOnly(5, CCA)` turns off factories, base, tactical orders, autoManage,
+autoBuild and paratroopers, and `aiCore.AddCombatObject` registers units through `AddSpecialObject` only. The script
+keeps every order and wave, and the native AIP (`SetAIP`) still runs. Host/authority only: the first Update after the
+session is ready calls `EnableCombatOnly` and `BootstrapCombatOnly(5)`, `AddObject` registers later units, and
+`Update` runs `aiCore.UpdateCombatOnly()`. Guests run none of it. Human-occupied and non-local craft are skipped.
+`UpdateCombatOnly` runs only the post-load finish, ordnance hooks, object-cache refresh, ordnance-threat and missile
+tracking, the 60 s state cleanup, `Update` of combat-only teams, and `exu.UpdateCommandReplacements`. It skips
+EnsureHumanTeams, UpdatePlayerRushAggression, SyncPilotPersonTracking, SyncNativeTactics, InstallNativeTargetScoring
+and the global depot/offense managers, so human teams are never registered and no craft gets orders from aiCore. The
+cache still holds every team's objects (`BootstrapCombatOnly` and `AddObject` call `TrackWorldObject`) so target lookups
+see the human team. Pilot specials stay on: team-5 pilot persons can be retasked by sniping and craft stealing.
+Dynamic mass is applied to team-5 craft by `AddSpecialObject`, and `FinishPostLoad` applies it to all craft after a
+load. `Load` re-enables the mode only on the authority. `Save()` returns aiCore's data as a new trailing value; a save
+without it loads and enables the mode on its first Update.
+
 ## Weather (Titan)
 
 `weather = { module = "CRTitanWeather", sites = "CRTitanSitesS5", ops = { "TitanState", "TitanRoll" },
