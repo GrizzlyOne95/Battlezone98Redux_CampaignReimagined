@@ -343,26 +343,67 @@ def _crc(*a):
     return zlib.crc32(repr(a).encode())
 
 
-INT, DARKF, NFLOOR = 100, 101, 102     # pseudo classes used while building UVs
-DARK_UV = (1864 / 2048.0, 6 / 2048.0, 160 / 2048.0)      # (u0, v0, size) of texgen_fac.DARK in tile uv
+INT, NFLOOR = 100, 102                 # pseudo classes used while building UVs
+PAD = 8                                # gutter px round every atlas island (the painter fills it with the island paint)
+BAY_TAGS = ("bayfloor", "baywall", "bayceil", "rampdeck")   # hold interior face groups (texgen_island paints them)
+BAY_SCALE = 0.5                        # texel density factor for the hold interior
+UNDER_SCALE = 0.25                     # texel density factor for undersides (flat near-black paint)
+FINAL_MATS = ("hull", "trim")          # submeshes of the exported ship (hull = unique island atlas)
 
 
-def finish_uv(ob, ship, fac, hold=None, dark=None, cells=False):
-    """Assign UVs and the hull / hullw / trim submesh split to the joined, boolean-cut mesh.
+def inset_poly(pts, d):
+    """Offset a convex 2D polygon inwards by d (line-offset intersection)."""
+    m = len(pts)
+    cx = sum(p[0] for p in pts) / m
+    cy = sum(p[1] for p in pts) / m
+    area = sum(pts[i][0] * pts[(i + 1) % m][1] - pts[(i + 1) % m][0] * pts[i][1] for i in range(m))
+    sgn = 1 if area > 0 else -1
+    lines = []
+    for i in range(m):
+        (ax, ay), (bx, by) = pts[i], pts[(i + 1) % m]
+        dx, dy = bx - ax, by - ay
+        L = math.hypot(dx, dy)
+        nx, ny = -dy / L * sgn, dx / L * sgn
+        lines.append(((ax + nx * d, ay + ny * d), (dx, dy)))
+    out = []
+    for i in range(m):
+        (p, dd), (r, e) = lines[i - 1], lines[i]
+        den = dd[0] * e[1] - dd[1] * e[0]
+        t = ((r[0] - p[0]) * e[1] - (r[1] - p[1]) * e[0]) / den
+        out.append((p[0] + dd[0] * t, p[1] + dd[1] * t))
+    return out
 
-    Faces form islands (same class, connected by an edge, normal within ~10 deg of the island's first face). Each island
-    has its own metric frame: v = world up projected onto the facet (grime runs downward, text stands upright) for
-    walls and slopes, the longest edge for roof/floor facets; u x v = outward normal. Hull islands map K.T_HULL m per
-    tile (avdrop density) from the island corner; with cells=True the corner sits on a random 512 px cell origin, so the
-    cell edge lines fall on the facet edges, otherwise a per-island tile offset is used. Large flat side facets
-    (>= 9 x 6 m) use `hullw` (star + serial at the corner).
-    hold=(x0,x1,y0,y1,z0,z1): hull faces inside this box are the hold interior and use the trim `hangar` strip (u metric,
-    v stretched; the strip only carries features that are constant along v).
-    dark={"under": bool, "groups": (bone prefixes,)}: undersides (normal.z < -0.35), recess walls and listed bone parts
-    are UV'd, scaled to fit, into the flat near-black patch of the hull texture.
-    Glass floors map one window of the glass cell, vent floors the vent strip, nozzle walls the nozzle strip, nozzle
-    floors (radial throat) and lamps their cells; glass/vent/lamp recess walls fall back to hull (dark if dark is set).
-    Returns UV stats."""
+
+def _shelf_pack(items, A):
+    out = {}
+    x = y = rowh = 0
+    for i, w, h in sorted(items, key=lambda r: -r[2]):
+        if w > A or h > A:
+            return None
+        if x + w > A:
+            x, y, rowh = 0, y + rowh, 0
+        if y + h > A:
+            return None
+        out[i] = (x, y)
+        x += w
+        rowh = max(rowh, h)
+    return out
+
+
+def finish_uv(ob, ship, fac, hold=None, classify=None, atlas=4096):
+    """Face-local UVs, a packed unique hull atlas and the hull / trim submesh split.
+
+    Faces form islands: same class and tag (`classify(centre, normal, bone) -> tag`, supplied by the builder: armour,
+    roof, flank, leg, ramp ...), connected by an edge, normal within ~10 deg of the island's first face, so a coplanar
+    group of boolean fragments is one island. Every island gets its own frame, aligned to its longest boundary edge
+    (rotated by multiples of 90 deg so v is as close to world up as possible; roofs and bellies get v toward the bow);
+    u x v = outward normal. Hull islands are packed into one atlas at a metric density (the same for every island, a
+    quarter of it for undersides), so the texture painter can follow each island's real border: texgen_island.py reads
+    `<ship>_islands.json` (written to paths.TEX) and paints inset panel lines, border relief and the tag's markings.
+    hold=(x0,x1,y0,y1,z0,z1): hull faces inside this box are the hold interior and use the trim `hangar` strip.
+    Glass/vent/lamp floors and nozzle walls/floors keep the trim strips and cells; a glass island maps the uniform part
+    of one window over its extent, so the glass fills exactly its recessed faces. Recess walls become tag 'bezel'."""
+    import json
     me = ob.data
     bm = bmesh.new()
     bm.from_mesh(me)
@@ -377,7 +418,7 @@ def finish_uv(ob, ship, fac, hold=None, dark=None, cells=False):
         if o in (GLASS, VENT, LAMP):
             for e in f.edges:
                 if any(g is not f and orig[g.index] == HULL and f.normal.dot(g.normal) < 0.9 for g in e.link_faces):
-                    kinds[f.index] = HULL     # recess wall: plain plating, the floor carries the detail
+                    kinds[f.index] = HULL
                     walls.add(f.index)
                     break
         elif o == NOZZLE:
@@ -385,30 +426,40 @@ def finish_uv(ob, ship, fac, hold=None, dark=None, cells=False):
                        for e in f.edges for g in e.link_faces)
             if not wall:
                 kinds[f.index] = NFLOOR       # throat floor: radial gradient cell
-    legs = set()
-    if dark and dark.get("groups"):
-        dl = bm.verts.layers.deform.active
-        gi = {g.index for g in ob.vertex_groups if g.name.startswith(tuple(dark["groups"]))}
-        if dl and gi:
-            for f in bm.faces:
-                if all(any(k in gi and w > 0.5 for k, w in v[dl].items()) for v in f.verts):
-                    legs.add(f.index)
+            else:
+                kinds[f.index] = HULL         # throat walls: plain dark bezel plating
+                walls.add(f.index)
+    dl = bm.verts.layers.deform.active
+    gname = {g.index: g.name for g in ob.vertex_groups}
+
+    def bone_of(f):
+        v = f.verts[0]
+        if dl and len(v[dl]):
+            return gname[max(v[dl].items(), key=lambda kv: kv[1])[0]]
+        return ""
+
+    tags = {}
     for f in bm.faces:
         if kinds[f.index] != HULL:
             continue
-        if hold:
-            cc = f.calc_center_median()
-            if hold[0] <= cc.x <= hold[1] and hold[2] <= cc.y <= hold[3] and hold[4] <= cc.z <= hold[5]:
-                kinds[f.index] = INT
-                continue
-        if dark and ((dark.get("under") and f.normal.z < -0.35) or f.index in walls or f.index in legs):
-            kinds[f.index] = DARKF
+        cc = f.calc_center_median()
+        if hold and hold[0] <= cc.x <= hold[1] and hold[2] <= cc.y <= hold[3] and hold[4] <= cc.z <= hold[5]:
+            bn = bone_of(f)
+            tags[f.index] = ("rampdeck" if bn.endswith("rmp") else "bayfloor" if f.normal.z > 0.8 else
+                             "bayceil" if f.normal.z < -0.8 else "baywall")
+            continue
+        t = classify(cc, f.normal, bone_of(f)) if classify else "base"
+        if f.index in walls:
+            t = "bezel"
+        elif t == "base" and f.normal.z < -0.35:
+            t = "under"
+        tags[f.index] = t
     seen = [False] * len(kinds)
     islands = []
     for f0 in bm.faces:
         if seen[f0.index]:
             continue
-        k = kinds[f0.index]
+        k, tg = kinds[f0.index], tags.get(f0.index)
         seen[f0.index] = True
         stack, isl = [f0], []
         n0 = f0.normal
@@ -417,104 +468,151 @@ def finish_uv(ob, ship, fac, hold=None, dark=None, cells=False):
             isl.append(g)
             for e in g.edges:
                 for h in e.link_faces:
-                    if not seen[h.index] and kinds[h.index] == k and h.normal.dot(n0) > 0.985:
+                    if (not seen[h.index] and kinds[h.index] == k and tags.get(h.index) == tg
+                            and h.normal.dot(n0) > 0.985):
                         seen[h.index] = True
                         stack.append(h)
-        islands.append((k, isl))
-    Tm = K.T_HULL
-    dens = []
-    counts = {"hull": 0, "hullw": 0, "trim": 0, "dark": 0, "hold": 0, "throat": 0}
+        islands.append(dict(kind=k, tag=tg, faces=isl))
     up = Vector((0, 0, 1))
-    for k, isl in islands:
+    bow = Vector((0, -1, 0))
+    for I in islands:
+        isl = I["faces"]
+        fset = set(g.index for g in isl)
         n = Vector()
         for g in isl:
             n += g.normal * g.calc_area()
         n.normalize()
-        if abs(n.z) < 0.95:
-            v = (up - n * n.dot(up)).normalized()
-            u = v.cross(n)
-        else:
-            best = max((e for g in isl for e in g.edges), key=lambda e: e.calc_length())
-            d = best.verts[1].co - best.verts[0].co
-            u = (d - n * n.dot(d)).normalized()
-            v = n.cross(u)
-        co = {}
-        for g in isl:
-            for lp in g.loops:
-                co[lp] = (lp.vert.co.dot(u), lp.vert.co.dot(v))
+        bedges = [lp for g in isl for lp in g.loops
+                  if len(lp.edge.link_faces) != 2 or any(h.index not in fset for h in lp.edge.link_faces)]
+        pool = [lp.edge for lp in bedges] or [e for g in isl for e in g.edges]
+        best = max(pool, key=lambda e: e.calc_length())
+        d = best.verts[1].co - best.verts[0].co
+        a = (d - n * n.dot(d)).normalized() if (d - n * n.dot(d)).length > 1e-6 else Vector((1, 0, 0))
+        b = n.cross(a)
+        want = up if abs(n.z) < 0.95 else bow
+        cands = [(a, b), (b, -a), (-a, -b), (-b, a)]
+        u, v = max(cands, key=lambda uv: uv[1].dot(want))
+        co = {lp: (lp.vert.co.dot(u), lp.vert.co.dot(v)) for g in isl for lp in g.loops}
         us = [p[0] for p in co.values()]
         vs = [p[1] for p in co.values()]
-        u0, u1, v0, v1 = min(us), max(us), min(vs), max(vs)
-        cen = sum((g.calc_center_median() for g in isl), Vector()) / len(isl)
+        I.update(n=n, u=u, v=v, co=co, u0=min(us), u1=max(us), v0=min(vs), v1=max(vs), bedges=bedges)
+        I["W"], I["H"] = max(I["u1"] - I["u0"], 0.05), max(I["v1"] - I["v0"], 0.05)
+        I["cen"] = sum((g.calc_center_median() for g in isl), Vector()) / len(isl)
+    hulls = [I for I in islands if I["kind"] == HULL]
+    dmax = K.N / K.T_HULL
+    sc = lambda I: UNDER_SCALE if I["tag"] == "under" else (BAY_SCALE if I["tag"] in BAY_TAGS else 1.0)
+    dd, pos, items = 0.0, {}, []
+    if hulls:
+        total = sum(I["W"] * I["H"] * sc(I) ** 2 for I in hulls)
+        dd = min(dmax, math.sqrt(0.5 * atlas * atlas / max(total, 1e-6)))
+        dd = min(dd, (atlas - 2 * PAD - 2) / max(I["W"] * sc(I) for I in hulls))
+        dd = min(dd, (atlas - 2 * PAD - 2) / max(I["H"] * sc(I) for I in hulls))
+        while True:
+            items = [(i, int(math.ceil(I["W"] * dd * sc(I))) + 2 * PAD, int(math.ceil(I["H"] * dd * sc(I))) + 2 * PAD)
+                     for i, I in enumerate(hulls)]
+            pos = _shelf_pack(items, atlas)
+            if pos:
+                break
+            dd *= 0.95
+            if dd < 2.0:
+                raise RuntimeError(f"island atlas does not fit {atlas} px even at 2 px/m")
+    A = float(atlas)
+    for i, I in enumerate(hulls):
+        x0, y0 = pos[i]
+        I["rect"] = (x0, y0, items[i][1], items[i][2])
+        I["dd"] = dd * sc(I)
+    Tm = K.T_HULL
+    counts = {"hull": 0, "trim": 0, "hold": 0, "throat": 0}
+    layout = []
+    for I in islands:
+        k, isl, co = I["kind"], I["faces"], I["co"]
+        u0, v0, u1, v1, W, H = I["u0"], I["v0"], I["u1"], I["v1"], I["W"], I["H"]
+        cen = I["cen"]
         h = _crc(round(cen.x, 1), round(cen.y, 1), round(cen.z, 1), k)
-        H = max(v1 - v0, 0.1)
-        W = max(u1 - u0, 0.1)
         if k == HULL:
-            side = abs(n.x) > 0.7 and abs(n.z) < 0.5 and (u1 - u0) >= 9 and (v1 - v0) >= 6
-            if side:
-                ou = ov = 0.0
-            elif cells:
-                ou, ov = (h % 4) * 0.25, ((h >> 8) % 4) * 0.25
-            else:
-                ou, ov = (h & 0xFFFF) / 65535.0, ((h >> 16) & 0xFFFF) / 65535.0
-            mat = HULLW if side else HULL
-            for lp, (pu, pv) in co.items():
-                lp[uvl].uv = ((pu - u0) / Tm + ou, (pv - v0) / Tm + ov)
-            counts["hullw" if side else "hull"] += len(isl)
-        elif k == DARKF:
-            mat = HULL
-            su, sv, sz = DARK_UV
-            sc = min(1.0 / Tm, (sz * 0.96) / max(W, H))
-            for lp, (pu, pv) in co.items():
-                lp[uvl].uv = (su + 0.002 + (pu - u0) * sc, sv + 0.002 + (pv - v0) * sc)
-            counts["dark"] += len(isl)
+            x0, y0, rw, rh = I["rect"]
+            ddi = I["dd"]
+            px = {lp: (x0 + PAD + (pu - u0) * ddi, y0 + PAD + (v1 - pv) * ddi) for lp, (pu, pv) in co.items()}
+            for lp, (qx, qy) in px.items():
+                lp[uvl].uv = (qx / A, 1.0 - qy / A)
+            mat = 0
+            counts["hull"] += len(isl)
+            segs = []
+            for lp in I["bedges"]:
+                p0, p1 = px[lp], px[lp.link_loop_next]
+                segs.append([round(p0[0], 2), round(p0[1], 2), round(p1[0], 2), round(p1[1], 2)])
+            layout.append(dict(id=len(layout), tag=I["tag"], rect=[x0, y0, rw, rh], pad=PAD, dd=round(ddi, 3),
+                               frame=[round(c, 5) for c in (*I["u"], *I["v"], u0, v1, I["n"].dot(isl[0].verts[0].co))],
+                               W=round(W, 3), H=round(H, 3), n=[round(c, 3) for c in I["n"]],
+                               cen=[round(c, 2) for c in cen],
+                               faces=[[[round(px[lp][0], 2), round(px[lp][1], 2)] for lp in g.loops] for g in isl],
+                               edges=segs))
+            for g in isl:
+                g.material_index = mat
+            continue
+        mat = 1
+        counts["trim"] += len(isl)
+        if k == GLASS:
+            i = K.LAY["cells"].index("glass")
+            ca = K.LAY["strips"]["cells"][0]
+            w = h % 4
+            a0, a1 = (i * 256 + 10 + w * 62 + 14) / K.N, (i * 256 + 10 + w * 62 + 34) / K.N
+            b0, b1 = 1 - (ca + 176) / K.N, 1 - (ca + 84) / K.N
+            f = lambda pu, pv: (a0 + (a1 - a0) * (pu - u0) / W, b0 + (b1 - b0) * (pv - v0) / H)
+        elif k in (LAMP, NFLOOR):
+            cu0, cu1, cv0, cv1 = K.cell_uv("glow" if k == LAMP else "dish")
+            f = lambda pu, pv: (cu0 + (cu1 - cu0) * (pu - u0) / W, cv0 + (cv1 - cv0) * (pv - v0) / H)
+            counts["throat"] += len(isl) if k == NFLOOR else 0
+        elif k == INT:
+            vb, vt = K.strip_v("hangar")
+            f = lambda pu, pv: ((pu - u0) / Tm, vb + (vt - vb) * (pv - v0) / H)
+            counts["hold"] += len(isl)
         else:
-            mat = TRIM
-            counts["trim"] += len(isl)
-            if k == GLASS:
-                i = K.LAY["cells"].index("glass")
-                ca = K.LAY["strips"]["cells"][0]
-                w = h % 4
-                a0, a1 = (i * 256 + 10 + w * 62 + 8) / K.N, (i * 256 + 10 + w * 62 + 42) / K.N
-                b0, b1 = 1 - (ca + 188) / K.N, 1 - (ca + 68) / K.N
-                f = lambda pu, pv: (a0 + (a1 - a0) * (pu - u0) / W, b0 + (b1 - b0) * (pv - v0) / H)
-            elif k in (LAMP, NFLOOR):
-                cu0, cu1, cv0, cv1 = K.cell_uv("glow" if k == LAMP else "dish")
-                f = lambda pu, pv: (cu0 + (cu1 - cu0) * (pu - u0) / W, cv0 + (cv1 - cv0) * (pv - v0) / H)
-                counts["throat"] += len(isl) if k == NFLOOR else 0
-            elif k == INT:
-                vb, vt = K.strip_v("hangar")
-                f = lambda pu, pv: ((pu - u0) / Tm, vb + (vt - vb) * (pv - v0) / H)
-                counts["hold"] += len(isl)
-            else:
-                strip = "nozzle" if k == NOZZLE else "vent"
-                vb, vt = K.strip_v(strip)
-                m = K.N * H / K.strip_px(strip)
-                f = lambda pu, pv: ((pu - u0) / m, vb + (vt - vb) * (pv - v0) / H)
-            for lp, (pu, pv) in co.items():
-                lp[uvl].uv = f(pu, pv)
+            strip = "nozzle" if k == NOZZLE else "vent"
+            vb, vt = K.strip_v(strip)
+            m = K.N * H / K.strip_px(strip)
+            f = lambda pu, pv: ((pu - u0) / m, vb + (vt - vb) * (pv - v0) / H)
+        for lp, (pu, pv) in co.items():
+            lp[uvl].uv = f(pu, pv)
         for g in isl:
             g.material_index = mat
-        if k == HULL:
-            wa = sum(g.calc_area() for g in isl)
-            ua = 0.0
-            for g in isl:
-                p = [lp[uvl].uv for lp in g.loops]
-                ua += abs(sum(p[i].x * p[(i + 1) % len(p)].y - p[(i + 1) % len(p)].x * p[i].y for i in range(len(p)))) / 2
-            if wa > 0.05:
-                dens.append(math.sqrt(ua / wa) * K.N)
     mi = [f.material_index for f in bm.faces]
     bm.to_mesh(me)
     bm.free()
     me.materials.clear()      # clearing the slots resets every face to slot 0, so the indices are restored below
-    for m in K.MATS:
-        me.materials.append(K.make_material(ship, fac, m))
+    for m in FINAL_MATS:
+        try:
+            me.materials.append(K.make_material(ship, fac, m))
+        except RuntimeError:  # first pass: the atlas is not painted yet (the mesh export only needs the names)
+            me.materials.append(bpy.data.materials.get(f"{ship}_{m}") or bpy.data.materials.new(f"{ship}_{m}"))
     me.polygons.foreach_set("material_index", mi)
     for p in me.polygons:
         p.use_smooth = False
-    return dict(islands=len(islands), faces=counts, hull_px_per_m=(round(min(dens), 2), round(float(np.median(dens)), 2),
-                                                                     round(max(dens), 2)) if dens else None,
-                avdrop_px_per_m=round(K.N / Tm, 2))
+    os.makedirs(paths.TEX, exist_ok=True)
+    with open(os.path.join(paths.TEX, ship + "_islands.json"), "w") as fh:
+        json.dump(dict(ship=ship, atlas=atlas, dd=round(dd, 3), islands=layout), fh, separators=(",", ":"))
+    tagc = {}
+    for I in hulls:
+        tagc[I["tag"]] = tagc.get(I["tag"], 0) + len(I["faces"])
+    used = sum(I["rect"][2] * I["rect"][3] for I in hulls) / (atlas * atlas)
+    return dict(islands=len(islands), hull_islands=len(hulls), faces=counts, tags=tagc, atlas=atlas,
+                px_per_m=round(dd, 2), atlas_fill=round(used, 3), avdrop_px_per_m=round(K.N / Tm, 2))
+
+
+def write_material(ship, fac):
+    """<ship>.material for the two submeshes (hull atlas + trim sheet)."""
+    lines = ['import * from "BZBase.material"', ""]
+    for m in FINAL_MATS:
+        d, n, s, e = K.tex_names(fac, m)
+        if m == "hull":
+            e = f"{fac}hull_E"            # per-ship emissive (hold light panels), not the shared capblack_E
+        lines += [f"material {ship}_{m} : BZBase", "{",
+                  f"\tset_texture_alias DiffuseMap {d}.dds", f"\tset_texture_alias NormalMap {n}.dds",
+                  f"\tset_texture_alias SpecularMap {s}.dds", f"\tset_texture_alias EmissiveMap {e}.dds",
+                  "", '\tset $diffuse "1 1 1"', '\tset $ambient "1 1 1"', '\tset $specular ".6 .6 .6"',
+                  '\tset $shininess "64"', "}", ""]
+    with open(os.path.join(OUT, ship + ".material"), "w", newline="\n") as fh:
+        fh.write("\n".join(lines))
 
 
 # ------------------------------------------------------------------ export
@@ -609,7 +707,7 @@ def shoot_from(path, loc, target, lens=60):
     return path
 
 
-def sheet(paths, out, cols=3):
+def sheet(paths, out, cols=4):
     tw, th = 800, 450
     rows = (len(paths) + cols - 1) // cols
     canvas = np.ones((rows * th, cols * tw, 4), np.float32)
@@ -674,11 +772,12 @@ def package(ship, ao, fac, cfg, cargo, open_pose, report):
          stock=(mesh .mesh path, diffuse DDS, (x, y) offset of the stock unit)."""
     import json
     name = ship.name
-    report["uv"] = finish_uv(ship, name, fac, cfg.get("hold"), cfg.get("dark"), cfg.get("cells", False))
+    report["uv"] = finish_uv(ship, name, fac, cfg.get("hold"), cfg.get("classify"), cfg.get("atlas", 4096))
     print("UV", report["uv"])
     export_rigged(ship, ao)
-    K.write_ogre_material(name, fac)
-    json.dump(report, open(os.path.join(OUT, name + "_report.json"), "w"), indent=1, default=float)
+    write_material(name, fac)
+    with open(os.path.join(OUT, name + "_report.json"), "w") as fh:
+        json.dump(report, fh, indent=1, default=float)
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, name + ".blend"))
     if "--norender" in sys.argv:
         return
@@ -700,6 +799,11 @@ def package(ship, ao, fac, cfg, cargo, open_pose, report):
     lo.location = cfg.get("bay_light", (0, 0, 18))
     bpy.context.scene.collection.objects.link(lo)
     shots.append(shoot(o("ramp_open"), tgt, d, dd))
+    if cfg.get("bay_close"):      # close-up looking into the open bay (cargo hidden so the floor reads)
+        for c in cargo:
+            c.hide_render = True
+        bl, bt, bz = cfg["bay_close"]
+        shots.append(shoot_from(o("bay_close"), bl, bt, bz))
     reset_pose(ao)
     bpy.data.objects.remove(lo)
     for c in cargo:
@@ -707,6 +811,8 @@ def package(ship, ao, fac, cfg, cargo, open_pose, report):
     shots.append(shoot_from(o("nose"), *cfg["nose"]))
     sm = cfg["small"]
     shots.append(shoot_from(o("small"), sm[0], sm[1], sm[2]))
+    for nm_, loc_, tgt_, lens_ in cfg.get("extra", []):
+        shots.append(shoot_from(o(nm_), loc_, tgt_, lens_))
     mesh, dds, (sx, sy) = cfg["stock"]
     st = stock_unit(mesh, dds, "stock_" + os.path.basename(mesh)[:-5])
     st.location = (sx, sy, 0)

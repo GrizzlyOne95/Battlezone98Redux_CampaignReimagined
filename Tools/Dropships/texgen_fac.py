@@ -28,18 +28,20 @@ STAR_C = (250, 1800, 90)
 
 
 def digits(d, text, x, y, w, h, t, gap=0.55):
-    """Stencil digits from segments (gaps at the joints, like the stock stencils)."""
+    """Stencil digits from segments (gaps at the joints, like the stock stencils); safe for tiny sizes."""
+    def R(a, b, c, e):
+        d.rectangle((a, b, max(a, c), max(b, e)), fill=255)
     for k, ch in enumerate(text):
         s = SEGS.get(ch, "")
         x0 = x + k * int(w * (1 + gap))
-        g = max(2, t // 4)
-        if "a" in s: d.rectangle((x0 + g, y, x0 + w - g, y + t), fill=255)
-        if "g" in s: d.rectangle((x0 + g, y + h // 2 - t // 2, x0 + w - g, y + h // 2 + t // 2), fill=255)
-        if "d" in s: d.rectangle((x0 + g, y + h - t, x0 + w - g, y + h), fill=255)
-        if "f" in s: d.rectangle((x0, y + g, x0 + t, y + h // 2 - g), fill=255)
-        if "e" in s: d.rectangle((x0, y + h // 2 + g, x0 + t, y + h - g), fill=255)
-        if "b" in s: d.rectangle((x0 + w - t, y + g, x0 + w, y + h // 2 - g), fill=255)
-        if "c" in s: d.rectangle((x0 + w - t, y + h // 2 + g, x0 + w, y + h - g), fill=255)
+        g = max(1, t // 4)
+        if "a" in s: R(x0 + g, y, x0 + w - g, y + t)
+        if "g" in s: R(x0 + g, y + h // 2 - t // 2, x0 + w - g, y + h // 2 + t // 2)
+        if "d" in s: R(x0 + g, y + h - t, x0 + w - g, y + h)
+        if "f" in s: R(x0, y + g, x0 + t, y + h // 2 - g)
+        if "e" in s: R(x0, y + h // 2 + g, x0 + t, y + h - g)
+        if "b" in s: R(x0 + w - t, y + g, x0 + w, y + h // 2 - g)
+        if "c" in s: R(x0 + w - t, y + h // 2 + g, x0 + w, y + h - g)
 
 
 def bolt_pts(x, y, w, h):
@@ -178,7 +180,7 @@ def weather(cv, seed, wp, amount=1.0, emit=None):
     chip = chip.astype(np.float32) * amount
     lip = np.clip(gblur(chip, 1.2) * 2.2 - chip, 0, 1)
     rgb[:] = rgb * (1 - 0.35 * lip[..., None])
-    bare = METAL * (0.8 + 0.3 * np.clip(noise(h, w, 2, seed + 9), -1, 1))[..., None]
+    bare = np.array(wp.get("bare", METAL), np.float32) * (0.8 + 0.3 * np.clip(noise(h, w, 2, seed + 9), -1, 1))[..., None]
     rgb[:] = rgb * (1 - chip[..., None] * 0.85) + bare * chip[..., None] * 0.85
     cv.spec += chip * 90
     scuff = np.clip((noise(h, w, 5, seed + 10) - 0.3) * 3, 0, 1) * cv.paint * 0.45 * amount
@@ -194,7 +196,8 @@ def weather(cv, seed, wp, amount=1.0, emit=None):
             d.line((x, y, x + L * math.cos(a), y + L * math.sin(a)), fill=int(r.uniform(90, 255)), width=1)
         sm = np.asarray(m, np.float32) / 255.0
         sm = np.maximum(sm, np.roll(sm, 1, 0) * 0.35)
-        rgb[:] = rgb * (1 - sm[..., None] * 0.4) + METAL * 1.25 * sm[..., None] * 0.4
+        sa = wp.get("scratch_a", 0.4)
+        rgb[:] = rgb * (1 - sm[..., None] * sa) + np.array(wp.get("scratch_col", METAL * 1.25), np.float32) * sm[..., None] * sa
         cv.spec += sm * 40
     if emit is not None:
         lit = emit.max(-1) > 20
@@ -581,6 +584,8 @@ def trim_sheet(pal, st, wp, seed, prefix):
             shadow = (d2 >= 82) & (d2 <= 92)
             cv.rgb[sl][shadow] *= 0.55
             cv.rgb[sl][(d2 >= 120) & (d2 < 127)] = line
+            cv.rgb[sl][d2 >= 127] = np.array((20, 18, 16), np.float32)     # cell corners (rectangular floors map the whole cell)
+            cv.height[sl][d2 >= 127] = 0.3
             emit[sl][inside] = (gl * (heat ** 1.4 * 0.85)[..., None])[inside]
             cv.height[sl][inside] = (0.8 - 0.55 * (1 - t))[inside]
             cv.dirt[sl] = 0

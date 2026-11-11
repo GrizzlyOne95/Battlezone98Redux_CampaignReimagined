@@ -207,9 +207,34 @@ report = dict(
     booleans=C.LOG)
 print("DIMS", report["overall"], "RAMP", report["ramp"])
 os.makedirs(C.OUT, exist_ok=True)
+def classify(c, n, bone):
+    """Face groups the painter colours by (texgen_island.py): nose armour, nose-slope stripe fan, flanks, roof, legs, ramp."""
+    if bone.startswith(P + "lg"):
+        return "leg"
+    if bone == P + "rmp":
+        return "ramp"
+    if bone.startswith(P + "cl"):
+        return "door"
+    if n.z < -0.8:
+        return "under"
+    if n.z < -0.35:
+        return "skirt"
+    if c.y < -36:
+        return "fan" if n.z > 0.5 else "armor"
+    if abs(n.x) > 0.95 and -36 < c.y < 38 and 4 < c.z < 20:
+        return "flank"
+    if n.z > 0.9:
+        return "roof"
+    return "base"
+
+
 cfg = dict(hold=(-HOLD_HW - 0.05, HOLD_HW + 0.05, HOLD_Y0 - 0.05, HOLD_Y1 + 0.05, ZF - 0.05, ZC + 0.05),
-           dark=dict(under=True, groups=(P + "lg",)), cells=True, ctr=tuple(ctr), dist=290, ramp_view=((0, 30, 8), (0.55, 1.3, 0.42), 190),
-           nose=((-22, -78, 20), (0, -50, 13), 60), small=((24, -45, -9), (18.5, -39, 3.0), 60),
+           classify=classify, atlas=4096, bay_close=((9, 68, 8), (0, 24, 9), 40), ctr=tuple(ctr), dist=290, ramp_view=((0, 30, 8), (0.55, 1.3, 0.42), 190),
+           nose=((-22, -78, 20), (0, -50, 13), 60),
+           extra=[("nose_glass", (-9, -66, 18), (0, -52, 12), 60), ("leg_close", (36, -34, 5), (22, -26, 3.5), 55),
+                  ("fang_close", (32, -66, 8), (18.5, -48, 5), 55), ("rear_doors", (0, 72, 14), (0, 40, 12), 50),
+                  ("flank_close", (46, 6, 12), (18, 6, 12), 50)],
+           small=((24, -45, -9), (18.5, -39, 3.0), 60),
            stock=(os.path.join(paths.STOCK, "svrecy.mesh"),
                   os.path.join(paths.STOCK_TEX, "DIFF", "svrecy_D.dds"),
                   (-62.0, -10.0)),

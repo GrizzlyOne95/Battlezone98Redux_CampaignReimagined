@@ -1,10 +1,11 @@
-"""CRA 'Wedge rocket-lander' dropship `cvdrop`: the approved blockout geometry (unchanged), UV-mapped and textured
-with the `crdv` atlas (texgen_cvstock.py), rigged and exported like build_dropship.py (avdrop).
-Flat cropped-delta arrowhead body; the hold (packed cvrecy + 4 cvtnk in one row) sits in the
-wide aft body. The single wide bow ramp IS the chin glacis (45 deg closed), under a raised
-framed cockpit. Four downward rocket prongs with bell nozzles are the landing legs.
+"""CRA 'Wedge rocket-lander' dropship `cvdrop`, round 3: a heavy angular armoured slab instead of the swept delta.
+Chamfered octagonal-section body (about 45 deg chamfers, 4-6 % of the part size), a short sloped armour-wedge nose with a
+raised lip, a squarer rear, separate swept bevelled wing slabs with engine pods and winglet blocks unioned in with their
+roots buried, recessed roof panel insets, bezelled thrusters. The hold (packed cvrecy + 4 cvtnk in one row), the bow ramp
+(which closes as the 45 deg chin glacis), the bones and the four landing prongs keep their places and sizes; each prong
+now has a 16-sided bevelled rim lip and a recessed bezel ring with the emissive disc set into it.
 Ground z 0, forward -Y, metres.
-Run: python texgen_cvstock.py, then blender -b -P build_cvdrop.py [-- --norender]"""
+Run: blender -b -P build_cvdrop.py -- --norender, python texgen_cvstock.py, blender -b -P build_cvdrop.py"""
 import json
 import math
 import os
@@ -12,7 +13,8 @@ import sys
 sys.dont_write_bytecode = True
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import dropkit as C                                   # noqa: E402
-from dropkit import prof8, box, loft, band, union, cut, recess, solid, prism_yz, VENT, GLASS, NOZZLE, LAMP  # noqa: E402
+from dropkit import prof8, box, loft, band, union, cut, recess, solid, prism_yz, inset_poly  # noqa: E402
+from dropkit import VENT, GLASS, NOZZLE, LAMP         # noqa: E402
 from shipkit import circle                            # noqa: E402
 import paths                                          # noqa: E402
 import bpy                                            # noqa: E402
@@ -36,53 +38,71 @@ WELL_HW = RAMP_W / 2 + 0.3
 yz = lambda v: (v.y, v.z)
 Y_FLOOR0 = (H - n * RAMP_T).y + ((H - n * RAMP_T).z - ZF)          # inner face meets the floor (45 deg)
 Y_CEIL0 = (H - n * RAMP_T).y - (ZC - (H - n * RAMP_T).z)           # inner face meets the ceiling
-
-
-def hexp(hw, ws, zt, ze, zb):
-    """6-point faceted section: sharp lateral edge at (hw, ze), flat top/bottom of half-width ws."""
-    return [(hw, ze), (ws, zt), (-ws, zt), (-hw, ze), (-ws, zb), (ws, zb)]
-
+FOOT_Y = H.y + (H.z - 2.91)                                        # foot of the glacis on the body
 
 C.reset()
 parts = []
-BODY = [(-50, hexp(3, 2, 18.2, 17.6, 17.2)),                 # arrowhead point
-        (-40, hexp(13, 10, 19.0, 17.2, 16.2)),
-        (T.y, hexp(18.0, 16, 19.5, 17.0, T.z)),              # top of the glacis = ramp top edge
-        (H.y + (H.z - 2.91), hexp(23.0, 20, 17.5, 8.0, 2.91)),  # foot of the glacis (on the ramp plane)
-        (22, hexp(37, 20, 17.5, 7.0, 3.0)),                  # full span 74 m
-        (30, hexp(37, 20, 12.5, 6.0, 3.5))]                  # trailing edge
+# ------------------------------------------------------------------ body: octagonal armour slab
+BODY = [(-34.0, prof8(12.0, 17.2, 15.4, 1.0, 0.5)),       # nose face (short blunt wedge)
+        (-33.0, prof8(14.0, 18.6, 15.4, 1.4, 0.6)),       # raised lip shoulder
+        (-31.0, prof8(16.5, 19.0, 15.5, 1.8, 0.8)),
+        (T.y, prof8(19.0, 19.5, T.z, 2.4, 0.8)),          # top of the glacis = ramp top edge
+        (FOOT_Y, prof8(21.5, 19.5, 2.91, 3.6, 3.0)),      # foot of the glacis (on the ramp plane)
+        (10.0, prof8(21.5, 19.5, 3.0, 3.6, 3.0)),
+        (28.5, prof8(21.5, 19.0, 3.0, 3.4, 3.0)),
+        (30.0, prof8(20.0, 18.0, 3.5, 2.0, 1.8))]         # squarer rear with a trailing chamfer
 body = solid(P + "bdy", loft(BODY))
-COCK = [(-44, prof8(3.5, 20.0, 17.5, 1.2, 0.3)),
-        (-38, prof8(6.5, 25.0, 17.5, 2.5, 0.3)),
-        (-27, prof8(7.0, 25.5, 18.0, 2.5, 0.3)),
-        (-20, prof8(5.0, 22.0, 16.8, 1.5, 0.3))]
+COCK = [(-31.0, prof8(4.2, 21.2, 17.5, 1.4, 0.3)),
+        (-27.0, prof8(7.2, 25.0, 17.5, 2.6, 0.3)),
+        (-17.0, prof8(8.0, 25.5, 18.0, 2.6, 0.3)),
+        (-10.0, prof8(6.0, 22.0, 17.0, 1.6, 0.3))]
 union(body, loft(COCK), "cockpit")
+
+
+def wing_plan(sx):
+    return [(17.0 * sx, -16.0), (36.5 * sx, 7.0), (36.5 * sx, 29.0), (17.0 * sx, 29.0)]
+
+
+for sx in (1, -1):
+    plan = wing_plan(sx)
+    # swept bevelled wing slab: 45 deg bevel top and bottom, root buried in the body
+    union(body, loft([(3.5, inset_poly(plan, 1.0)), (4.5, plan), (8.5, plan), (9.5, inset_poly(plan, 1.0))], axis="z"),
+          f"wing{sx:+d}")
+    cx = 29.0 * sx
+    union(body, loft([(9.0, prof8(2.2, 15.2, 8.6, 1.0, 0.6, cx)), (12.0, prof8(3.2, 16.4, 8.6, 1.4, 0.8, cx)),
+                      (28.0, prof8(3.2, 16.4, 8.6, 1.4, 0.8, cx)), (29.6, prof8(2.8, 15.8, 8.8, 1.1, 0.7, cx))]),
+          f"pod{sx:+d}")
+    wx = 35.8 * sx
+    union(body, loft([(10.0, prof8(0.7, 14.0, 8.8, 0.3, 0.3, wx)), (13.0, prof8(0.8, 18.0, 8.8, 0.5, 0.3, wx)),
+                      (26.0, prof8(0.8, 18.0, 8.8, 0.5, 0.3, wx)), (28.5, prof8(0.7, 15.0, 8.8, 0.3, 0.3, wx))]),
+          f"winglet{sx:+d}")
 # hold: aft box (full width) + wedge under the glacis + the ramp well (ramp width)
 cut(body, box((0, (Y_FLOOR0 + HOLD_Y1) / 2, (ZF + ZC) / 2), (2 * HOLD_HW, HOLD_Y1 - Y_FLOOR0, ZC - ZF)), "hold")
 cut(body, prism_yz([(Y_FLOOR0 + 0.5, ZF), (Y_FLOOR0 + 0.5, ZC), (Y_CEIL0, ZC), (Y_FLOOR0, ZF)], -WELL_HW, WELL_HW),
     "hold_glacis_wedge")
 well = [H + n * 1.0 - d * 0.3, T + n * 1.0 + d * 0.3, T - n * 1.3 + d * 0.3, H - n * 1.3 - d * 0.3]
 cut(body, prism_yz([yz(v) for v in well], -WELL_HW, WELL_HW), "ramp_well")
-# main engine nozzles in the trailing face, grooves, vents, lamps
+# main thrusters in the rear slab: one clean recessed frame each, the emissive throat is its floor
 for x in (-11, 0, 11):
-    cut(body, box((x, 29.0, 8.0), (7, 4, 5)), f"aftnozzle{x}", NOZZLE)
-for x in (-10, 10):
-    cut(body, box((x, 3, 17.5), (0.3, 34, 0.7)), f"topgroove_x{x}")
-cut(body, box((0, 4, 17.5), (38, 0.3, 0.7)), "topgroove_y4")
-zt_aft = lambda y: 17.5 - 5.0 * (y - 22) / 8
-for x0, x1 in ((4, 9), (-9, -4)):
-    pts = [Vector((x, y, zt_aft(y))) for x, y in ((x0, 23.5), (x1, 23.5), (x1, 28.5), (x0, 28.5))]
-    cut(body, C.facet_cutter(pts, (0, 26, 8), inset=0.0, depth=0.4), f"aftvent{x0}", VENT)
+    cut(body, box((x, 30.5, 8.0), (7.6, 5.0, 5.2)), f"aftnozzle{x}", NOZZLE)
+# engine-pod thrusters
 for sx in (1, -1):
-    cut(body, box((17 * sx, 30, 6), (1.2, 0.6, 1.2)), f"lamp{sx:+d}", LAMP)
-# CRA unit language (cvrecy/cvmuf/cvtnk): rows of slot grilles and a round hatch, all recessed into the deck
+    cx = 29.0 * sx
+    cut(body, box((cx, 30.4, 12.8), (3.8, 3.6, 2.8)), f"podnozzle{sx:+d}", NOZZLE)
+    cut(body, box((cx, 18.0, 16.4), (2.4, 12.0, 0.5)), f"podpanel{sx:+d}")            # pod top inset panel
+    cut(body, box((26.0 * sx, 1.0, 9.5), (6.0, 8.0, 0.4)), f"wingpanel{sx:+d}")          # wing top inset panel
+# roof: panel insets cut as recesses, deck grooves, slot grilles, round hatch, lamps
+for sx in (1, -1):
+    cut(body, box((9.0 * sx, 7.0, 19.5), (8.0, 11.0, 0.4)), f"roofinset{sx:+d}")
+    cut(body, box((8.0 * sx, 21.0, 19.2), (8.0, 7.0, 0.5)), f"roofinsetaft{sx:+d}")
 for sx in (1, -1):
     for k in range(5):
-        cut(body, box((15.0 * sx, 9.0 + 1.6 * k, 17.5), (6.0, 0.6, 0.8)), f"grille{sx:+d}{k}", VENT)
-cut(body, loft([(17.0, circle(2.6, 13.0, 24, 0)), (18.2, circle(2.6, 13.0, 24, 0))], axis="z"), "hatch")
-# cockpit glazing: recessed panes; the uncut band round each facet is the (later yellow) frame
+        cut(body, box((15.6 * sx, 9.0 + 1.6 * k, 19.5), (3.2, 0.6, 0.8)), f"grille{sx:+d}{k}", VENT)
+    cut(body, box((17.0 * sx, 30, 6), (1.2, 0.6, 1.2)), f"lamp{sx:+d}", LAMP)
+cut(body, loft([(19.0, circle(2.2, 14.0, 24, 0)), (20.2, circle(2.2, 14.0, 24, 0))], axis="z"), "hatch")
+# cockpit glazing: recessed panes; the uncut band round each facet is the bezel lip
 for i, j in ((0, 1), (0, 2), (0, 3), (1, 1), (1, 3)):
-    recess(body, band(COCK, i, j), (0, -32, 20), f"cockpitglass{i}{j}", GLASS, inset=0.45)
+    recess(body, band(COCK, i, j), (0, -24, 21), f"cockpitglass{i}{j}", GLASS, inset=0.45)
 parts.append((P + "bdy", body, (0, 0, 0), None))
 
 # ------------------------------------------------------------------ bow ramp
@@ -95,13 +115,14 @@ for s in (5.0, 11.0):
 parts.append((P + "rmp", ramp, tuple(H), P + "bdy"))
 
 # ------------------------------------------------------------------ rocket prongs = landing legs
+# 16 sides, a chamfered rim lip at the foot, a recessed bezel ring and the emissive throat set into it
 LEGS = [(1, 22.5, -6, 9.0, "lg1"), (1, 30, 24, 8.5, "lg2"), (-1, 22.5, -6, 9.0, "lg3"), (-1, 30, 24, 8.5, "lg4")]
 for sx, x, y, top, nm in LEGS:
     x *= sx
-    leg = solid(P + nm, loft([(0.0, circle(3.2, y, 8, x)), (0.5, circle(3.0, y, 8, x)), (2.4, circle(2.0, y, 8, x)),
-                              (2.8, circle(1.6, y, 8, x)), (3.4, circle(2.4, y, 8, x)), (top, circle(2.4, y, 8, x))],
-                             axis="z"))
-    cut(leg, loft([(-0.5, circle(2.6, y, 8, x)), (2.0, circle(1.2, y, 8, x))], axis="z"), f"bell_{nm}", NOZZLE)
+    prof = [(0.0, 2.7), (0.3, 3.3), (0.9, 3.3), (1.3, 2.9), (2.5, 2.0), (2.9, 1.7), (3.5, 2.4), (top, 2.4)]
+    leg = solid(P + nm, loft([(z, circle(r, y, 16, x)) for z, r in prof], axis="z"))
+    cut(leg, loft([(-0.5, circle(2.3, y, 16, x)), (0.3, circle(2.3, y, 16, x))], axis="z"), f"bezel_{nm}")
+    cut(leg, loft([(-0.5, circle(1.8, y, 16, x)), (1.7, circle(0.9, y, 16, x))], axis="z"), f"bell_{nm}", NOZZLE)
     parts.append((P + nm, leg, (x, y, top), P + "bdy"))
 bone_names = [p[0] for p in parts]
 ship, ao = C.join_parts("cvdrop", parts)
@@ -143,9 +164,58 @@ report = dict(
     booleans=C.LOG)
 print("DIMS", report["overall"], "RAMP", report["ramp"], "HOLD", report["hold"])
 os.makedirs(C.OUT, exist_ok=True)
+
+
+def classify(c, n, bone):
+    """Face groups the painter colours by (texgen_island.py): maroon roof, ochre flanks and wings, olive body, armour nose,
+    the rear slab, legs, ramp. Insignia go only on 'flank' and 'rear' islands."""
+    if bone.startswith(P + "lg"):
+        return "leg"
+    if bone == P + "rmp":
+        return "ramp"
+    if n.z < -0.35:
+        return "under"
+    if n.z > 0.9:
+        if c.z > 18.4:
+            return "roof"
+        if c.z > 10:
+            return "pod"
+        return "wing" if abs(c.x) > 22 else "base"
+    if abs(n.x) > 0.9 and abs(c.x) < 22.5 and c.z > 5:
+        return "flank"
+    if n.y > 0.9 and c.y > 28:
+        return "rear"
+    if c.y < -27:
+        return "armor"
+    if abs(c.x) > 22 and c.z < 10.5:
+        return "wing"
+    return "base"
+
+
+def logo_cams():
+    """Close-up cameras aimed at the insignia the painter placed (it writes cvdrop_logos.json); fixed guesses before that."""
+    p = os.path.join(paths.TEX, "cvdrop_logos.json")
+    if not os.path.exists(p):
+        return [("flank_port", (52, 9, 14), (21.5, 9, 12.7), 50), ("flank_stbd", (-52, 9, 14), (-21.5, 9, 12.7), 50),
+                ("rear_logo", (0, 70, 16), (0, 30, 12), 35)]
+    with open(p) as fh:
+        logos = json.load(fh)
+    out, seen = [], set()
+    for e in logos:
+        nm = "rear_logo" if e["tag"] == "rear" else ("flank_port" if e["side"] > 0 else "flank_stbd")
+        if nm in seen:
+            continue
+        seen.add(nm)
+        pos, nn = Vector(e["pos"]), Vector(e["n"])
+        out.append((nm, tuple(pos + nn * (36 if e["tag"] == "rear" else 22)), tuple(pos), 40))
+    return out
+
+
 cfg = dict(hold=(-HOLD_HW - 0.05, HOLD_HW + 0.05, Y_FLOOR0 - 0.05, HOLD_Y1 + 0.05, ZF - 0.05, ZC + 0.05),
+           classify=classify, atlas=4096, bay_close=((6, -64, 8), (0, -8, 9), 40),
            ctr=tuple(ctr), dist=210, ramp_view=((0, -18, 7), (-0.55, -1.3, 0.42), 135), bay_light=(0, 0, 14),
-           nose=((-16, -64, 30), (0, -36, 21), 60), small=((31, -14, -7), (22.5, -6, 2.0), 60),
+           nose=((-18, -62, 30), (0, -30, 19), 60), small=((31, -14, -7), (22.5, -6, 2.0), 60),
+           extra=logo_cams() + [("thrusters", (8, 50, 6), (0, 30, 8), 55), ("wingtip", (60, 30, 22), (36, 18, 12), 50)],
            stock=(os.path.join(paths.STOCK, "TRO", "cvrecy.mesh"), os.path.join(paths.STOCK_TEX, "TRO", "DIFF", "cvrecy_d.dds"),
                   (-46.0, -28.0)),
            compare_dist=170)

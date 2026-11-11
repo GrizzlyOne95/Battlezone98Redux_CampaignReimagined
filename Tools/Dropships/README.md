@@ -229,53 +229,69 @@ with the boolean log). Bones: CCA `sdr11bdy`, `rmp`, `cl1`, `cl2` (clamshell doo
 
 ## Run order (each ship)
 
+The hull is a unique atlas laid out from the mesh, so the order is: build (layout) -> paint -> build (renders).
+
 ```
-python texgen_svstock.py                                 # CCA atlas -> tex/cdrv*.png + out/cdrv*.dds
-blender -b -P build_svdrop.py [-- --norender]            # svdrop.mesh/.skeleton/.material/.blend, previews, sheet
-python texgen_cvstock.py                                 # CRA atlas -> tex/crdv*.png + out/crdv*.dds
-blender -b -P build_cvdrop.py [-- --norender]
-blender -b -P verify_export.py -- svdrop cvdrop          # reload through the toolkit importer (submeshes, bones, UVs)
-python measure_stock.py                                  # re-measure the stock palette (README table below)
+blender -b -P build_svdrop.py -- --norender               # geometry, UVs, svdrop_islands.json, .mesh/.skeleton/.material
+python texgen_svstock.py                                  # paints the island atlas + trim sheet -> tex/cdrv*.png, out/cdrv*.dds
+blender -b -P build_svdrop.py                             # same export again with the textures, previews, sheet, compare
+(same three steps with build_cvdrop.py / texgen_cvstock.py for the CRA ship)
+blender -b -P verify_export.py -- svdrop cvdrop           # reload through the toolkit importer (submeshes, bones, UVs)
+python measure_stock.py                                   # re-measure the stock palette (README table below)
 ```
 
 Blender 5.2 with `bz98tools` enabled; the texgen scripts need numpy + Pillow and the Modding Toolbox (DDS encoder, `BZ_TOOLBOX`).
 The comparison render needs the stock `svrecy`/`cvrecy` meshes (`BZ_STOCK_MODELS`) and DDS (`BZ_STOCK_TEXTURES`).
-Files: `dropkit.py` (booleans with asserts, recess cutters, rig, UVs, export, previews), `texgen_fac.py` (shared painter),
-`texgen_svstock.py` / `texgen_cvstock.py` (palettes), `build_svdrop.py` / `build_cvdrop.py` (geometry).
+Files: `dropkit.py` (booleans with asserts, recess cutters, rig, island UVs + atlas layout, export, previews),
+`texgen_island.py` (island painter), `texgen_fac.py` (weathering + trim sheet), `texgen_svstock.py` / `texgen_cvstock.py` (palettes),
+`build_svdrop.py` / `build_cvdrop.py` (geometry + face groups).
 
 ## Names (unique; grep over the repo `Assets/` and the stock `BZ_ASSETS*` found no file or material with them)
 
 | Thing | CCA | CRA |
 |---|---|---|
 | Mesh / skeleton / material file | `svdrop` | `cvdrop` |
-| Materials | `svdrop_hull`, `_hullw`, `_trim` | `cvdrop_hull`, `_hullw`, `_trim` |
-| Texture prefix | `cdrvhull`, `cdrvhullw`, `cdrvtrim` (`_D/_N/_S/_E`) | `crdvhull`, `crdvhullw`, `crdvtrim` |
+| Materials | `svdrop_hull` (unique island atlas), `svdrop_trim` | `cvdrop_hull`, `cvdrop_trim` |
+| Texture prefix | `cdrvhull`, `cdrvtrim` (`_D/_N/_S/_E`) | `crdvhull`, `crdvtrim` |
 | Bone prefix | `sdr11` | `cdr11` |
 
 `hull_E` is the stock `capblack_E`, as for avdrop.
 
-## UVs
+## UVs and the island atlas (round 3)
 
-Built after all booleans on the joined mesh (`dropkit.finish_uv`). Faces form islands (connected, normal within about 10 degrees of
-the island's first face). Every island has its own metric frame: v is world up projected onto the facet (grime streaks run
-downward; text stands upright) for walls and slopes, the longest edge for roof and belly facets, and u x v is the outward normal.
-Hull islands map 48 m per 2048 px tile (42.67 px/m, the avdrop density; measured min/median/max over all hull faces
-42.6 / 42.67 / 42.67 px/m, so there is no stretching on any part, including the legs, jets and lamps) from the island corner.
-Large flat side facets (at least 9 x 6 m) use `hullw`: the same plating with a worn star and serial placed at the facet corner.
-Class rules (`dropkit.finish_uv`, parameters `hold`, `dark`, `cells` in the build script's `cfg`):
+Built after all booleans on the joined mesh (`dropkit.finish_uv`).
 
-- **CCA hull** (`cells=True`): the tile is 4 x 4 cells of 512 px (12 m). A facet starts on a random cell origin and each cell has a panel
-  line on its left and bottom edge, so the sparse panel lines fall on the facet's own mesh edges. Every cell is one cream field with at most
-  +-3 % value change and 3 to 5 details. Undersides (normal.z < -0.35), the walls of glass/vent/lamp recesses and the four landing legs
-  (`sdr11lg*` groups) are UV'd, scaled to fit, into a flat near-black patch of the same texture (`texgen_fac.DARK`).
-- **CRA hull**: per-island tile offset, about 17 large paint patches per tile (olive dominant), no dark class.
-- **Hold interior** (hull faces inside the hold box): trim `hangar` strip, u metric, v stretched over the strip. The strip is generated dark
-  plating with plate joints, anti-slip tread ribs and grate slots that all run along v, so the stretch is invisible.
-- **Jets and aft nozzles**: the throat floor maps the `dish` cell, a generated radial bore (dark rim, ring line, ribbed bore, hot
-  centre, depth in the normal map); their walls use the nozzle strip. Glass floors map one window of the glass cell, vent floors the vent
-  strip, lamps the glow cell, all over the island extent.
+- **Islands.** Faces are grouped into islands: connected by an edge, normal within about 10 degrees of the island's first face (a
+  coplanar group of boolean fragments is one island), and the same face-group tag. The builder supplies the tag per face
+  (`classify(centre, normal, bone)` in `build_*drop.py`): CCA `armor` (nose), `fan` (nose slope), `skirt`/`under`, `flank`, `roof`,
+  `door`, `ramp`, `leg`; CRA `roof` (maroon), `flank` (ochre), `wing`, `pod`, `armor`, `rear`, `leg`, `ramp`. Recess walls become `bezel`.
+- **Frame.** Each island has its own frame aligned to its longest boundary edge (rotated by multiples of 90 degrees so v is nearest to
+  world up; roofs and bellies use v toward the bow); u x v is the outward normal, so text is upright and unmirrored.
+- **Atlas.** All hull islands are packed into one 4096 px atlas at a single metric density (CCA about 20.7 px/m, CRA about 25.8 px/m; a
+  quarter of that on undersides, which are flat black), and `<ship>_islands.json` (in `Local/dropships/tex`) records every island's
+  rectangle, face polygons and boundary edges. `texgen_island.py` paints from it, so every texture feature follows the real mesh:
+  border darkening and a highlight along the mesh edge, an inset panel outline a fixed fraction of the island size from the border
+  (parallel to it), an inner grid at a fixed fraction of the island width that stops at the outline, and the markings below.
+- **Glass, vents, nozzles.** Faces are assigned by builder face group, never by a UV rectangle: glass floors map the uniform part of one
+  window of the glass cell over their extent (so the pane fills exactly its recessed faces), vent floors the vent strip, lamps the glow
+  cell, nozzle walls the nozzle strip, and nozzle throat floors the radial `dish` cell.
+- **Hold interior** (hull faces inside the hold box) are atlas islands tagged `bayfloor`, `baywall`, `bayceil`, `rampdeck` at half density: floor and
+  ramp-deck grating, plate seams and wall/ceiling ribs on the face grid, tie-down rings, a 0.5 m hazard edge at the ramp lip, small stencils, ceiling and
+  wall light panels (painted, and dim emissive in `<fac>hull_E`, which has the same UVs as `hull_D`). Texture only; no extra geometry.
+- The painter also writes `<ship>_logos.json` (world positions of the insignia; `build_cvdrop.py` aims its logo close-ups with it).
+- Submeshes are `hull` and `trim` (the old `hullw` is gone; insignia are painted into the islands).
+- Non-planar quads are triangulated before every boolean and every boolean asserts it changed the mesh and left it manifold.
 
-Non-planar quads are triangulated before every boolean (`dropkit.boolean`), and every boolean asserts that it changed the mesh and left it manifold.
+### Markings (per tag; palette share about 60 % base paint, 30-40 % dark armour, accents under 10 %)
+
+| Marking | CCA | CRA |
+|---|---|---|
+| Hazard bands (about 5 % of the face height, diagonal) | chamfer strips, ramp bottom edge, leg bases (yellow/black) | same, ochre/black |
+| Colour band along the flank | dark grey band, red line, yellow hairline | maroon band, yellow line |
+| Stripe fan | red fan on the nose slope | none (maroon roof and spine instead) |
+| Height ticks 1-5 | ramp and clamshell doors | ramp |
+| Insignia | red star + serial on each flank (serial differs per side) | red-star roundel with a yellow ring + serial, flanks and rear slab; sides authored separately, placed at the widest clear point of one flat face (radius at most 24 % of the face's short side, never within 0.3 m of an edge) |
+| Stencil blocks, vent hatches, slabs, rivets | yes | yes |
 
 ## Stock palette measured for the painters (`measure_stock.py`, stock Redux DDS; none of it is copied)
 
@@ -300,15 +316,14 @@ Reading them:
   40 to 60 % of the sheet), thin (about 2 px at 1024) dark outlines round rounded panels, ribbed black vent/intake slabs, rivets,
   red-brown stencil serials (`0-AI8` style), red stars and red lightning bolts, black/white hazard strips, thin red and teal-grey accent
   stripes, amber lamps with a dark rim. Wear is soft: heavy low-frequency grime (std about 33) and streaks, little scratching.
-  Generated as `cdrv`: one cream paint (160,154,136) in large cells, near-black (24,23,21) chassis patch for underside, legs and
-  recesses, 3 px lines on cell edges, sparse black ribbed slabs, grilles, red stencils/stripes/stars/bolts, black/white hazard strips,
-  amber lamps (236,160,24).
+  Generated as `cdrv`: one cream paint (160,154,136) per island (+-3 %), near-black (24-30) armour, skirt and belly, black legs,
+  hazard yellow (206,168,34), red (166,40,34), amber lamps (236,160,24).
 - **CRA**: a charcoal chassis (24 to 57 grey) with patchwork paint panels: olive (79,71,33), mustard (155,128,49)/(167,120,8), brick red
   (73,22,17), worn through to grey metal, with a fine bright scratch layer (grain 7 to 15), larger panels and far fewer edges (1 to 4 per
   256 px versus 12 to 20 for CCA), yellow stars with a red edge and a white-ringed roundel, cyan lamp squares. Generated as `crdv`:
-  olive (82,78,44)/(58,60,34) 54 %, khaki (112,98,52) 10 %, charcoal (56,56,53) 28 % of the patches (stock cvrecy/cvtnk/cvmuf plate
-  medians are 74-82 grey-olive), about 17 patches per tile, no red on the hull (red only in the trim accent band, roundel and star edge),
-  2 px outlines, chips on the panel edges, scratches, cyan lamps (60,210,245).
+  olive (82,78,44) hull with ochre (118,102,50) flanks and wings, maroon (104,38,30) roof, charcoal (56,56,53) patches, red only
+  on the maroon roof/band and roundel star (stock cvrecy/cvtnk/cvmuf plate medians are 74-82 grey-olive), chips on the panel edges,
+  scratches, cyan lamps (60,210,245).
 
 The numbers are palette guidance, not a texel-for-texel match: stock sheets are unwrapped per part, ours are tiled plating.
 
