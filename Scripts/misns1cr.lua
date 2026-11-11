@@ -514,12 +514,12 @@ function Update(dt)
         M.walker1 = BuildObject("svwalk", 1, "spawnwalker1")
         --[=[//walker2 = BuildObject ("svwalk", 1, "spawnwalker2"); ]=]
         --[=[//walker3 = BuildObject ("svwalk", 1, "walkstart3"); ]=]
-        M.walkcam1 = BuildObject("apcamr", 1, "walkcam1")
-        --[=[//walkcam2 = BuildObject ("apcamr", 1, "walkcam2");]=]
-        --[=[//walkcam3 = BuildObject ("apcamr", 1, "walkcam3");]=]
-        M.hidcam1 = BuildObject("apcamr", 1, "hidcamupper")
-        M.hidcam2 = BuildObject("apcamr", 1, "hidcammiddle")
-        M.hidcam3 = BuildObject("apcamr", 1, "hidcamlower")
+        M.walkcam1 = BuildObject("spcamr", 1, "walkcam1")
+        --[=[//walkcam2 = BuildObject ("spcamr", 1, "walkcam2");]=]
+        --[=[//walkcam3 = BuildObject ("spcamr", 1, "walkcam3");]=]
+        M.hidcam1 = BuildObject("spcamr", 1, "hidcamupper")
+        M.hidcam2 = BuildObject("spcamr", 1, "hidcammiddle")
+        M.hidcam3 = BuildObject("spcamr", 1, "hidcamlower")
         M.basecam = GetHandle("apcamr0_camerapod")
         ObjectiveName(M.walkcam1, "Walker Cut Off")
         --[=[//GameObjectHandle :: GetObj(walkcam2) ->SetName ("Middle Pass Exit");]=]

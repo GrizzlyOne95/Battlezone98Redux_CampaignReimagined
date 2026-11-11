@@ -44,7 +44,7 @@ Scaled spawns: all the Chinese craft the body builds: `cvfigh`, `cvltnk`, `cvtnk
 `cssold` soldiers of the aerial drops. They become *tickets*: the body gets a negative request id, the unit is built by
 the runtime on the next frames, and the body's later calls on it (`SetCloaked`, `Attack` the Recycler, `Defend2` an
 attacker) are replayed on it and on its extras (a `Defend2` on an attacker that is itself still a ticket is rewritten to
-the real handle when it is built). Not scaled: the APC pilot (`aspilo`) and the nav beacons (`apcamr`, team 1) and the
+the real handle when it is built). Not scaled: the APC pilot (`aspilo`) and the nav beacons (`bpcamr`, team 1) and the
 authored map content.
 
 Events. The runtime region wraps `BuildObject` once: **a new frame or a new entry path is a new scaling event**, and the

@@ -112,6 +112,7 @@ local function fullRun(options)
 end
 do
     local faithful = fullRun({ faithful = true, script = "Scripts/bdmisn15.lua" })
+    faithful = faithful:gsub("apcamr", "bpcamr") -- intentional CR rename: the nav beacon matches the player faction
     local offline, peer = fullRun({})
     check(faithful == offline and faithful:find("SucceedMission:bd15win.des", 1, true),
         "offline completes like the faithful port:\n" .. faithful .. "\n" .. offline)
@@ -314,7 +315,7 @@ do
         check(p[i].camera == 1, "the finale shot is shared on peer " .. i)
         check(F.last(p[i], "CameraPath")[2] == "camera_finale" and F.last(p[i], "CameraPath")[3] == 2400, "the shot is camera_finale on peer " .. i)
     end
-    local target = F.builds(p[1], 0, "apcamr")
+    local target = F.builds(p[1], 0, "bpcamr")
     check(#target == 1 and target[1].team == 0 and target[1].where == "spawn_explosion1", "one neutral hidden camera target at the blast")
     check(F.count(p[1], "Hide") == 1 and F.count(p[1], "SetMaxHealth") == 1, "the target is hidden and durable")
     F.run(4)

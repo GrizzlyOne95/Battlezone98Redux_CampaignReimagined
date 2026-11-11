@@ -180,7 +180,7 @@ for n = 1, 4 do
         local o = F.callsOf(p[i], "AddObjective")
         check(o[1] and o[1][2] == "ch01001.otf" and o[1][3] == "white", "first objective on peer " .. i)
     end
-    local nav = F.builds(p[1], 0, "apcamr")
+    local nav = F.builds(p[1], 0, "cpcamr")
     check(#nav == 1 and nav[1].team == 1 and nav[1].where == "nav_start", "the CCA Base nav is built once on team 1")
     for i = 1, n do check(F.count(p[i], "SetObjectiveName", m.navStart) == 1, "the nav is named on peer " .. i) end
     if n > 1 then check(p[1].rally and p[1].rally[0] == "recycler", "respawn rally point is the Chinese beachhead") end
@@ -332,7 +332,7 @@ for n = 1, 4 do
     F.nearTo(m.tug, "nav_tug", 0, 0); run(1)
     check(m.tugNearNav, "the tug reaches the nav")
     heardAll(p, "ch01006.wav")
-    local navTug = F.builds(p[1], 0, "apcamr")
+    local navTug = F.builds(p[1], 0, "cpcamr")
     check(#navTug == 2 and navTug[2].where == "nav_tug" and navTug[2].team == 1, "the sniper nav is built on team 1")
     local last = F.last(p[n], "AddObjective")
     check(last[2] == "ch01003.otf" and last[3] == "white", "get the tug home")

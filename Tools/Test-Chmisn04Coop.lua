@@ -250,7 +250,7 @@ for n = 1, 4 do
     check(m.attackedAlready == 0, "no alarm yet")
     local silo = F.callsOf(p[1], "SetObjectiveOn")
     check(#silo >= 1, "the silo is marked")
-    local beacon = F.builds(p[1], 0, "apcamr")
+    local beacon = F.builds(p[1], 0, "cpcamr")
     check(beacon[#beacon].where == "nav_silo", "the restored Silo beacon is built at nav_silo")
     check(F.callsOf(p[1], "SetObjectiveName")[#F.callsOf(p[1], "SetObjectiveName")][3] == "Silo", "and named")
     alarm(w, p, m, p[n].player)
@@ -395,7 +395,7 @@ for n = 1, 4 do
     local w, p, m = setup(n, {})
     toRoute(w, p, m); cloakAll(p); walkNavs(p, m); alarm(w, p, m); inspect(w, p, m); toPortal(w, p, m)
     check(F.count(p[1], "StartCockpitTimer") == 1, "no countdown for the retreat (the 135 s are the body's own)")
-    local beacon = F.builds(p[1], 0, "apcamr")
+    local beacon = F.builds(p[1], 0, "cpcamr")
     check(beacon[#beacon].where == "nav_base", "the extraction nav is built at nav_base")
     if n > 1 then
         -- the retreat is complete only when EVERY human is near the portal

@@ -58,7 +58,7 @@ assert not (optional & set(paths)), "the optional triggers are still absent; upd
 assert used - optional <= set(paths), "every path the body names exists: " + str(used - optional - set(paths))
 assert re.search(r"OPTIONAL_PATHS = \{ minetrig1b = true, minetrig2b = true, minetrig3b = true \}", lua_full)
 assert objects["avrecy1_recycler"] == ("bvrecy", 5)
-assert objects["basenav"][0] == "apcamr" and objects["avrecy"][0] == "spcamr"
+assert objects["basenav"][0] == "spcamr" and objects["avrecy"][0] == "spcamr"
 for label in ("bomb1", "bomb2", "bomb3", "bomb4"):
     assert objects[label] == ("svhraz", 1), "the wing bombers are on the Soviet side: " + label
 assert not any(team == 2 for _, team in objects.values()), "nothing is left on the authored team 2"

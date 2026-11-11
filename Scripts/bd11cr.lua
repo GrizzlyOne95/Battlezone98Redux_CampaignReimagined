@@ -474,13 +474,13 @@ if campaignRuntime then
             AudioMessage("bd11003.wav")
         end
     end
-    -- Cut: `//navEnd = BuildObject("apcamr", 1, "nav_end");` when the evacuation order arrives. The map carries the
+    -- Cut: `//navEnd = BuildObject("bpcamr", 1, "nav_end");` when the evacuation order arrives. The map carries the
     -- path (16 m from the portal): a Portal nav beacon appears with the order.
     function Restored.NavEnd(r)
         if not RESTORED_NAV_END or r.navEndDone or not M.objective2Complete then return end
         if not runtime.PathExists("nav_end") then return end
         r.navEndDone = true
-        local h = BuildObject("apcamr", 1, "nav_end")
+        local h = BuildObject("bpcamr", 1, "nav_end")
         if Valid(h) then
             r.navEnd = h
             SetObjectiveName(h, "Portal")
@@ -551,7 +551,7 @@ function Update(dt)
         -- don't do this part after the first shot
         M.startDone = true
 
-        M.navRecycler = BuildObject("apcamr", 1, "recy_nav")
+        M.navRecycler = BuildObject("bpcamr", 1, "recy_nav")
         if Valid(M.navRecycler) then SetObjectiveName(M.navRecycler, "Recycler") end
 
         --#define TEST_EXPLOSION
@@ -786,7 +786,7 @@ function Update(dt)
         M.objective2Complete = true
 
         -- spawn the nav
-        --navEnd = BuildObject("apcamr", 1, "nav_end");
+        --navEnd = BuildObject("bpcamr", 1, "nav_end");
         AudioMessage("bd11007.wav")
         M.sound8Time = GetTime() + 3.0
     end

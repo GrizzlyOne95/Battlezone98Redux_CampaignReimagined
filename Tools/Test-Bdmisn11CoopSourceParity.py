@@ -8,6 +8,8 @@ faithful = (ROOT / "Scripts/bdmisn11.lua").read_bytes()
 coop_raw = (ROOT / "Scripts/bd11cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
+# Intentional CR rename: the nav beacons match the player faction (Black Dog: apcamr -> bpcamr).
+faithful_text = faithful_text.replace('"apcamr"', '"bpcamr"')
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
 
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
@@ -52,8 +54,8 @@ assert "local function IsAudioMessageDone(message)" in coop and "if handle == ni
 # on team 2 except the player-side ones, and the only other place a team number is named is the dead test block.
 live = re.sub(r"--[^\n]*", "", body)
 builds = re.findall(r'BuildObject\(("\w+"), (\d), ', live)
-assert {team for odf, team in builds if odf in ('"aspilo"', '"apcamr"')} == {"1"}, "the player-side builds are team 1"
-assert all(team == "2" for odf, team in builds if odf not in ('"aspilo"', '"apcamr"')), "all other builds are the enemy"
+assert {team for odf, team in builds if odf in ('"aspilo"', '"bpcamr"')} == {"1"}, "the player-side builds are team 1"
+assert all(team == "2" for odf, team in builds if odf not in ('"aspilo"', '"bpcamr"')), "all other builds are the enemy"
 assert "local TEST_EXPLOSION = false" in faithful_text, "the Chinese-user test block is disabled in the DLL"
 assert "GetTeamNum(" not in body, "the body reads no team number back"
 print("bd11cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))

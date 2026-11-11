@@ -280,7 +280,7 @@ local function FinaleCamera()
     -- so the explosion cannot remove the camera target. No wave/escape gate
     -- depends on it. Runtime QA must verify camera alignment and hidden radar.
     if M.finaleTarget == nil or M.finaleTarget == 0 or not IsValid(M.finaleTarget) then
-        M.finaleTarget = BuildObject("apcamr", 0, "spawn_explosion1")
+        M.finaleTarget = BuildObject("bpcamr", 0, "spawn_explosion1")
         if M.finaleTarget ~= nil and M.finaleTarget ~= 0
             and IsValid(M.finaleTarget) then
             SetMaxHealth(M.finaleTarget, 1000000000)

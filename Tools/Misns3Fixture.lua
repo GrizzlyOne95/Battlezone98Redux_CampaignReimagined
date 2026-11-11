@@ -12,7 +12,7 @@ local W
 F.LABELS = {
     ["avrecy1_recycler"] = {odf="avrecy",team=5,pos={3708,53,100857},craft=true},
     ["avrecy"] = {odf="spcamr",team=1,pos={3854,127,101037},craft=false},
-    ["basenav"] = {odf="apcamr",team=1,pos={1034,54,98573},craft=false},
+    ["basenav"] = {odf="spcamr",team=1,pos={1034,54,98573},craft=false},
     ["bomb1"] = {odf="svhraz",team=1,pos={1187,52,98910},craft=true},
     ["bomb2"] = {odf="svhraz",team=1,pos={1210,52,98930},craft=true},
     ["bomb3"] = {odf="svhraz",team=1,pos={1260,52,98900},craft=true},

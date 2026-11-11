@@ -242,7 +242,7 @@ for n = 1, 4 do
     local removed = {}
     for _, c in ipairs(F.callsOf(p[1], "RemoveObject")) do removed[c[2]] = true end
     for _, b in ipairs(stage) do check(removed[b.h], "the stage unit is removed with the film") end
-    local nav = builtAt(p[1], "spawn_nav_alpha", "apcamr")
+    local nav = builtAt(p[1], "spawn_nav_alpha", "bpcamr")
     check(#nav == 1 and nav[1].team == 1, "Nav Alpha is a team-1 beacon")
     check(F.count(p[1], "SetObjectiveName", m.nav_alpha) == 1, "Nav Alpha is named on every peer's list")
     noEnemyTeamTwo(p[1])

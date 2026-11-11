@@ -10,6 +10,8 @@ assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the 
 if b"\r\n" in coop_raw:
     assert coop_raw.count(b"\n") == coop_raw.count(b"\r\n"), "consistent CRLF line endings"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
+# Intentional CR rename: the nav beacons match the player faction (Chinese: apcamr -> cpcamr).
+faithful_text = faithful_text.replace('"apcamr"', '"cpcamr"')
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
 
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
@@ -57,8 +59,8 @@ for name in ("Goto", "AddScrap", "SetPilotClass", "Stop", "GetHandle", "GetCurHe
 # The enemy's literal team 2 only reaches the engine through the runtime (BuildObject) or the SetPerceivedTeam shadow.
 live_body = "\n".join(line for line in body.split("\n") if not line.lstrip().startswith("--"))
 builds = re.findall(r'BuildObject\(([^,]+), (\d), ', live_body)
-assert {team for odf, team in builds if "apcamr" not in odf and "cvmufa" not in odf and "cvslfa" not in odf} == {"2"}, builds
+assert {team for odf, team in builds if "cpcamr" not in odf and "cvmufa" not in odf and "cvslfa" not in odf} == {"2"}, builds
 # (the four commented cvscav builds are the cut content the CR layer restores)
-assert {odf for odf, team in builds if team == "1"} == {'"apcamr"', '"cvmufa"', '"cvslfa"'}, "team-1 builds are the base beacon, factory and armory"
+assert {odf for odf, team in builds if team == "1"} == {'"cpcamr"', '"cvmufa"', '"cvslfa"'}, "team-1 builds are the base beacon, factory and armory"
 assert len(re.findall(r"SetPerceivedTeam\([^,]+, 2\)", live_body)) >= 2, "the howitzers are perceived as team 2 (remapped to 5 by the shadow)"
 print("ch03cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))

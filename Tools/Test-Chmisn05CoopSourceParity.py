@@ -8,6 +8,8 @@ faithful = (ROOT / "Scripts/ch05.lua").read_bytes()
 coop_raw = (ROOT / "Scripts/ch05cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
+# Intentional CR rename: the nav beacons match the player faction (Chinese: apcamr -> cpcamr).
+faithful_text = faithful_text.replace('"apcamr"', '"cpcamr"')
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
 
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
@@ -58,8 +60,8 @@ teams = {}
 for odf, team, where in builds:
     teams.setdefault(team, set()).add(odf)
 assert set(teams) == {"0", "1", "2"}, teams
-assert teams["0"] == {"cvfigh", "apwrck"} and teams["1"] == {"cvfighh", "apcamr", "cvfigh", "cvmuf", "cvcnst"}, teams
-assert all(odf.startswith(("s", "a")) for odf in teams["2"]) and "apcamr" not in teams["2"], "all enemy builds are Soviet on team 2"
+assert teams["0"] == {"cvfigh", "apwrck"} and teams["1"] == {"cvfighh", "cpcamr", "cvfigh", "cvmuf", "cvcnst"}, teams
+assert all(odf.startswith(("s", "a")) for odf in teams["2"]) and "cpcamr" not in teams["2"], "all enemy builds are Soviet on team 2"
 assert 'team == 2 and 5 or team' in cr_text and "if team == 2 then team = 5 end" in cr_text
 # Scaling: exactly the combat craft built at the six wave entries and the raid, never the escorts or the guns.
 scaled = {}

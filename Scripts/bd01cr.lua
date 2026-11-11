@@ -412,7 +412,7 @@ function Update(dt)
     if not M.beaconSpawned1 then
         -- spawn our beacon
         M.beaconSpawned1 = true
-        M.beacon = BuildObject("apcamr", 1, "spawn_nav_beacon")
+        M.beacon = BuildObject("bpcamr", 1, "spawn_nav_beacon")
         if Valid(M.beacon) then SetObjectiveName(M.beacon, "Nav Alpha") end -- stock SetName alias
         M.badGuy1_ambush = Ambusher()
         M.badGuy2_ambush = Ambusher()

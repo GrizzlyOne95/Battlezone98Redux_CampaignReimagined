@@ -137,6 +137,7 @@ local function fullRun(options)
 end
 do
     local faithful = fullRun({ faithful = true, script = "Scripts/ch06.lua" })
+    faithful = faithful:gsub("apcamr", "cpcamr") -- intentional CR rename: the nav beacon matches the player faction
     local offline, peer = fullRun({})
     check(faithful == offline and faithful:find("SucceedMission:ch06win.des", 1, true) and faithful:find("ch06006.wav", 1, true),
         "offline completes like the faithful port:\n" .. faithful .. "\n" .. offline)
@@ -165,7 +166,7 @@ do
     end
     check(F.count(p[1], "SetObjectiveName") == 1 and F.last(p[1], "SetObjectiveName")[3] == "CCA Base", "the Soviet nav beacon is named")
     for i = 2, 4 do check(F.count(p[i], "SetObjectiveName", F.last(p[1], "SetObjectiveName")[2]) == 1, "the beacon name replicates to guest " .. i) end
-    local beacon = F.builds(p[1], 0, "apcamr")
+    local beacon = F.builds(p[1], 0, "cpcamr")
     check(#beacon == 1 and beacon[1].team == 1 and beacon[1].where == "nav_1", "the nav beacon is a team-1 build at nav_1")
     check(m.crcca and m.crcca.serial == 0, "nothing is ticketed before the convoy")
     guestsPassive(p)

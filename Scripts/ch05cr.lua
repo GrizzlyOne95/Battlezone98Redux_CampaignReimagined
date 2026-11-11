@@ -474,7 +474,7 @@ function Update(timestep)
 
         S.mustStayWithin200MetresOfSilo = true
         --[==[ Cut/debug block from source:
-Handle h = BuildObject("apcamr", 1, "trigger_1");
+Handle h = BuildObject("cpcamr", 1, "trigger_1");
 SetObjectiveOn(h);
 
 wave7Time = GetTime();
@@ -569,7 +569,7 @@ BuildObject("cvtank", 1, user);
         S.sound4 = nil
 
         -- spawn a nav
-        S.nav1 = BuildObject("apcamr", 1, "nav_1")
+        S.nav1 = BuildObject("cpcamr", 1, "nav_1")
         SetName(S.nav1, "Last GPS Fix")
         SetUserTarget(S.nav1)
 
@@ -687,7 +687,7 @@ BuildObject("cvtank", 1, user);
         S.annoy2Time = GetTime() + 4 * 60.0
 
         SetObjectiveOff(S.tug)
-        S.navBase = BuildObject("apcamr", 1, "base_1")
+        S.navBase = BuildObject("cpcamr", 1, "base_1")
         SetName(S.navBase, "Base")
         SetObjectiveOn(S.navBase)
 
@@ -1559,7 +1559,7 @@ void Chinese05Mission::Execute()
 		
 		mustStayWithin200MetresOfSilo = TRUE;
 #if 0
-		Handle h = BuildObject("apcamr", 1, "trigger_1");
+		Handle h = BuildObject("cpcamr", 1, "trigger_1");
 		SetObjectiveOn(h);
 
 		wave7Time = GetTime();		
@@ -1663,7 +1663,7 @@ void Chinese05Mission::Execute()
 		sound4 = NULL;
 
 		// spawn a nav
-		nav1 = BuildObject("apcamr", 1, "nav_1");
+		nav1 = BuildObject("cpcamr", 1, "nav_1");
 		SetName(nav1, "Last GPS Fix");
 		SetUserTarget(nav1);
 		
@@ -1809,7 +1809,7 @@ void Chinese05Mission::Execute()
 		annoy2Time = GetTime() + 4 * 60.0f;
 		
 		SetObjectiveOff(tug);
-		navBase = BuildObject("apcamr", 1, "base_1");
+		navBase = BuildObject("cpcamr", 1, "base_1");
 		SetName(navBase, "Base");
 		SetObjectiveOn(navBase);
 

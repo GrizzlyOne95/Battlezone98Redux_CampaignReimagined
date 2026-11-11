@@ -8,6 +8,8 @@ faithful = (ROOT / "Scripts/ch08.lua").read_bytes()
 coop_raw = (ROOT / "Scripts/ch08cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
+# Intentional CR rename: the nav beacons match the player faction (Chinese: apcamr -> cpcamr).
+faithful_text = faithful_text.replace('"apcamr"', '"cpcamr"')
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
 
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
@@ -69,7 +71,7 @@ teams = {}
 for odf, team in builds:
     teams.setdefault(team, set()).add(odf)
 assert teams["2"] == {"svapc", "svfigh"}, teams
-assert teams["1"] == {"apcamr", "cvrecy", "cvmuf", "cvslf"}, teams
+assert teams["1"] == {"cpcamr", "cvrecy", "cvmuf", "cvslf"}, teams
 wave_builds = set(re.findall(r'Wave\("(\w+)", "wave_\d"', body))
 assert wave_builds == {"svfigh", "svtank", "svwalk"}, wave_builds
 # svfigh is shared between a scaled wave and the two direct, unscaled apc_escort builds, so SCALED_PATHS gates

@@ -53,14 +53,14 @@ suite asserts every `CountUnitsNearObject` is for team 5.
 
 ## Scaling and concealed arrivals [owner rules, mission decisions]
 
-Scaled/concealed ODFs (`scaledOdfs`): `bvtavk` (the retaliation tanks), and, concealed only, `bvsca8` (scavengers),
+Scaled/concealed ODFs (`scaledOdfs`): `bvtank` (the retaliation tanks; stock spelled it `bvtavk`, an ODF that does not exist), and, concealed only, `bvsca8` (scavengers),
 `bvra8` (the scout), and `bvartl` (the Black Dog artillery replacing the body's `avart8` request). They become tickets: the body gets a negative request id and the
 unit is built on the next frame with its orders replayed. Everything else is built directly: the replacement factory
 (`bvmuf`; the body queries it with `IsDeployed`/`Pickup` and it is the AI's producer), Romeski, the nav beacons and the
 hostile `savs8` built in place of a SAV.
 
 The only scripted attack wave is the retaliation squad: when the Black Dog Factory dies mid-convoy the body builds two
-`bvtavk` at `t1post` and sends them against the CCA Recycler. One `BeginEvent()` (a `-- CR co-op scaling >>` region
+`bvtank` at `t1post` and sends them against the CCA Recycler. One `BeginEvent()` (a `-- CR co-op scaling >>` region
 before the first tank) mirrors the first tank with `min(floor(humans/2), 2)` extras of the same kind, entry and orders:
 
 | Humans | Squad |

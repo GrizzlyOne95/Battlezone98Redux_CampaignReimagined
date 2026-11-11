@@ -475,7 +475,7 @@ function Update(dt)
     end
     if M.sound2 ~= nil and IsAudioMessageDone(M.sound2) then
         M.sound2 = nil
-        local h = BuildObject("apcamr", 1, "nav_1")
+        local h = BuildObject("cpcamr", 1, "nav_1")
         SetObjectiveName(h, "CCA Base") -- stock equivalent of native SetName
         M.sound3Time = GetTime() + 15.0
     end
