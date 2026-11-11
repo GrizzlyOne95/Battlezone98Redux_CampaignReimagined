@@ -138,6 +138,7 @@ CONFIG = {
     # avcnst/bvcnst (one mesh layout; the skeleton binds the body deployed, so `at` is in the packed VDF pose):
     # on the upper rear corners of the body, outboard of the tail cylinder's frame.
     'avcnst': unit('nsdf', .5, .5, conform=True, carrier=dict(name='acv11nac', parent='acv11bda', at=((1.8, 4.0),))),
+    'bvcnst': unit('blackdogs', .5, .5, conform=True, carrier=dict(name='bcv11nac', parent='bcv11bda', at=((1.8, 4.0),))),
 }
 
 def unit_vectors(v):
