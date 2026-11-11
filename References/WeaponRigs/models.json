@@ -1549,6 +1549,7 @@
       ]
     },
     "svtank": {
+      "cockpit_hardpoints": true,
       "channels": [
         {
           "hardpoints": [

@@ -12423,9 +12423,39 @@
       "Assets/Models/svtank_recoil.skeleton": "b0b5e0c699a2f2aa0f4abfbd3d986408e7d5ef7b634c8cc4ba695853a2d27f75",
       "Assets/ModelFixes/svtank.mesh": "a18c05e67eb727af1b5050ec66c746eb09c94ed3c1122a39c31d0e5b66191b87",
       "Assets/Models/svtank_cockpit.mesh": "35873345f7c4d7e49153f3f930bc87d77ab02c2811052bd96f3d71001a78a2f9",
-      "Assets/Models/svtank_cockpit_recoil.skeleton": "d9439be43b0e16f596de20c9eef893bf4040113b67aaf029bbe8b6e3ea02734d"
+      "Assets/Models/svtank_cockpit_recoil.skeleton": "01f9415be04f60bfb7d5c8418ffb0822ee3879c964d0160335d1038a877619c2"
     },
     "hardpoints": {
+      "SCZ11GC1": {
+        "parent": "SCZ11BGB",
+        "position": [
+          -0.0395,
+          0.0024,
+          0.4961
+        ],
+        "orientation": [
+          -0.7071066619772458,
+          0.0,
+          0.0,
+          0.7071069003958291
+        ]
+      },
+      "SCZ11GC2": {
+        "parent": "SCZ11BGB",
+        "position": [
+          0.0405,
+          0.0024,
+          0.4961
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
+    },
+    "cockpit_hardpoints": {
       "SCZ11GC1": {
         "parent": "SCZ11BGB",
         "position": [
