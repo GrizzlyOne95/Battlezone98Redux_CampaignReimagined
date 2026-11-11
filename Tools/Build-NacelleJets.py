@@ -32,7 +32,7 @@ import ogrelayout
 import reddevilcockpit as shared
 import weaponrigs as wr
 from bcdds import save_bc
-from bzmodellibs import legacy, legacy_port
+from bzmodellibs import geo, geo_serializer, legacy, legacy_port
 
 om, oms, VES = shared.om, shared.oms, shared.om.VES
 BLENDER = Path(os.environ.get('CR_BLENDER') or r'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe')
@@ -75,7 +75,7 @@ def fitted(scale, length=1., **over):
     return dict(shape, **over)
 
 
-def unit(faction, scale, length=1., also=(), shift=(), housing=True, note=None, ports=False, **over):
+def unit(faction, scale, length=1., also=(), shift=(), housing=True, note=None, ports=False, carrier=None, **over):
     """CONFIG entry. also: ((part-name regex, shape), ...) for nacelles that need their own shape.
     shift: ((part-name regex, move), ...) approved emit-point moves, built at the moved point and
     recorded as emitShift for the VDF change: metres along the emitter's up axis (against the
@@ -89,8 +89,12 @@ def unit(faction, scale, length=1., also=(), shift=(), housing=True, note=None, 
     193462-193491; throttle scaling needs a nacelle parent, 193771-193776), so the build records one for every nacelle as vdfParts.
     housing=False: record the emit points and the sheet only. ports=True (with housing=False): the
     nacelles already model glowing exhaust ports; find them in the emissive map and propose
-    moving each flame into the largest port its own nacelle carries, along the port's normal."""
-    return dict(faction=faction, shape=fitted(scale, length, **over), also=also, shift=shift, housing=housing, note=note, ports=ports)
+    moving each flame into the largest port its own nacelle carries, along the port's normal.
+    carrier=dict(name, parent, at=((x, y), ...), gains=...): a unit with neither a class 67 nor a
+    class 75 part (it draws no flame at all) gets a new class 67 nacelle part `name` under hull
+    part `parent`, with its own bone and GEO, carrying a housing on the rear skin at each Ogre
+    (x, y) of `at`, mirrored to -x (carrier_jets)."""
+    return dict(faction=faction, shape=fitted(scale, length, **over), also=also, shift=shift, housing=housing, note=note, ports=ports, carrier=carrier)
 
 
 CONFIG = {
@@ -116,6 +120,9 @@ CONFIG = {
     'bvrdev': unit('blackdogs', .9, housing=False, shift=(('en1$', -.2),),
                    note='no housing: all three class 75 parts fire through nozzles modelled on the rear body'),
     'svhaul': unit('cca', 1.2, shift=(('.', 'relocate'),)),
+    # Flameless units: no class 67 or 75 part, so a new nacelle part carries rear housings.
+    # cvltnk: on the grey rear plates of the side pods (the chord runs up the plate).
+    'cvltnk': unit('cra', .7, .6, carrier=dict(name='CNA11NAC', parent='CNA11BDA', at=((1.0, 1.0),))),
 }
 
 def unit_vectors(v):
@@ -187,7 +194,72 @@ def base_vdf(unit):
     return data
 
 
-def emitters(unit, skeleton, mesh, shifts=()):
+def carrier_jets(car, parts, W, skeleton, mesh, pose):
+    """A unit with no class 67 and no class 75 part draws no flame (BZ 1.5 decompile
+    all_decompiled.c 193458-193491 places automatic emitters under class 67 parts only). A new
+    class 67 part car['name'] under hull part car['parent'] carries one housing per (x, y) of
+    car['at'] and its -x mirror, seated on the rear skin found by a ray along +z. Each flame gets
+    its own class 75 part under the new nacelle (one class 75 part suppresses the automatic
+    emitter, 193462-193473; throttle scaling needs the class 67 parent, 193771-193776). The new
+    bone (reused when a shipped skeleton already has it) follows the hull's VDF pose."""
+    names = {p.name.lower() for p in parts}; assert car['name'].lower() not in names, (car['name'], 'is already a VDF part')
+    parent = next(b for b in skeleton.bones if b.name.lower() == car['parent'].lower())
+    own = next((b for b in skeleton.bones if b.name.lower() == car['name'].lower()), None)
+    handle = own.handle if own else max(b.handle for b in skeleton.bones) + 1
+    pose[handle] = pose[parent.handle]; whole = hull(mesh)[0]; out = []
+    # Build frame columns: x = -mesh x, y (toward the skin) = +z, z (the pod's chord) = +y; the flame runs along -z.
+    axes = [[-1., 0, 0], [0, 0, 1], [0, 1, 0]]
+    for x, y in car['at']:
+        for sx in (abs(x), -abs(x)):
+            d = ahead(whole, np.array((sx, y, -20.)), np.array((0., 0, 1)))
+            assert d is not None, (car['name'], 'no rear skin at', (sx, y))
+            jet = dict(part='%s%+.2f' % (car['name'], sx), bone=handle, skin=parent.handle, emit=[sx, y, -20. + d - .02], axes=axes,
+                       source='carrier', carrier=car['name'], toSkin=True, relocate=False)
+            jet['_vdf'] = dict(parent=car['name'], frame=None, existing=None, names=names | {car['name'].lower()})
+            jet['_pose'] = pose[handle]; out.append(place(jet))
+    return out
+
+
+def carrier_frames(jets, car, W, skeleton, pose):
+    """Once seated: the new nacelle's pivot (on the centre line, at the mean seated emit point,
+    so a small pitch keeps the housing roots in the skin), its VDF frame and part record, and
+    its bone in the parent's frame (the toolkit serializer's native frame: x mirrored)."""
+    own = [j for j in jets if j.get('carrier')]; Rp, tp = W[car['parent'].lower()]
+    posed = np.mean([j['posed']['emit'] for j in own], 0); posed[0] = 0.; t = posed * S
+    for j in own:
+        j['_vdf']['frame'] = (Rp, t)
+    handle = own[0]['bone']; D, shift = pose[handle]; pivot = np.linalg.solve(D, posed - shift)
+    parent = next(b for b in skeleton.bones if b.name.lower() == car['parent'].lower())
+    pos, q = wr.flash.bone_world(skeleton, parent.handle); local = quat_matrix(q).T @ (pivot - np.array(pos, float))
+    for j in own:
+        j['pivot'] = pivot.tolist()
+    return dict(name=car['name'], klass=67, parent=car['parent'], matrix=np.eye(3).ravel().tolist() + ((t - tp) @ Rp.T).tolist(),
+                pivot=pivot.tolist(), posedPivot=posed.tolist(), geo=car['name'].lower() + '.geo',
+                bone=dict(name=car['name'], handle=handle, parent=parent.name, position=(local * S).tolist(), orientation=[1., 0, 0, 0]),
+                gains=car.get('gains', dict(pitchThrotNacelleRun=.05, pitchSteerNacelleRun=.05, pitchThrotNacelleJump=.05, pitchSteerNacelleJump=.05)))
+
+
+def nacelle_geo(record, data, faces, owner, unit):
+    """The new nacelle's GEO: its housings' triangles in the part's own frame (VDF space: x is
+    the mirrored Ogre x, so the winding flips), and the part's bounding box for the VDF record."""
+    keep = owner[faces].min(1) == record['bone']['handle']; tris = faces[keep]
+    points = (np.array(data[:, :3], float) - record['posedPivot']) * S; points = points.astype('<f4')
+    used = np.unique(tris); remap = np.full(len(points), -1); remap[used] = np.arange(len(used)); points = points[used]; tris = remap[tris][:, ::-1]
+    g = geo.Geo(); g.name = record['name'].lower(); g.vert_count = len(points); g.vertex_pos_buffer = points
+    g.vertex_normal_buffer = (np.array(data[used, 3:6], float) * S).astype('<f4')
+    for i, t in enumerate(tris):
+        q = [points[k].astype('<f8') for k in t]; n = np.cross(q[1] - q[0], q[2] - q[0]); n = n / max(np.linalg.norm(n), 1e-12)
+        face = g.create_face(i); face.color = geo.Color3(255, 255, 255); face.plane = geo.SurfacePlane(geo.Vector3(*(-n)), float(n.dot(q[0])))
+        face.shade_type = face.texture_type = 0; face.texture_name = unit + 'nj.map'
+        for k in t:
+            face.create_face_node(int(k), int(k), geo.UV(float(data[used[k], 6]), float(data[used[k], 7])))
+    raw = io.BytesIO(); geo_serializer.GeoSerializer(raw).write(g)
+    lo, hi = points.min(0).astype(float), points.max(0).astype(float)
+    record.update(center=((lo + hi) / 2).tolist(), halfSize=((hi - lo) / 2).tolist(), radius=float(np.linalg.norm(hi - lo) / 2), triangles=len(tris))
+    return raw.getvalue()
+
+
+def emitters(unit, skeleton, mesh, shifts=(), carrier=None):
     """Engine flame emit points in Ogre mesh space (skeleton bind pose), and the bind-to-VDF
     pose of every bone. One emitter per class 75 part when the VDF authors any, else one under
     every class 67 nacelle. Each carries the bone its housing rides, `axes` (build frame as
@@ -197,6 +269,8 @@ def emitters(unit, skeleton, mesh, shifts=()):
                                      archives=[wr.GAME / 'bzone.zfs', wr.GAME / 'tro_cam.zfs'])
     parts = legacy.read_vdf(base_vdf(unit)).band(0); W, by = vdf_world(parts); pose = vdf_pose(skeleton, W)
     authored = [p for p in parts if p.klass == 75]; out = []
+    if carrier and not authored and not any(p.klass == 67 for p in parts):
+        return sorted(carrier_jets(carrier, parts, W, skeleton, mesh, pose), key=lambda e: -e['emit'][0]), pose
     for part in authored or [p for p in parts if p.klass == 67]:
         owner = part; bone = None
         while bone is None:  # an emitter part without a bone rides its parent's
@@ -999,7 +1073,7 @@ def vdf_parts(jets):
     unmoved ones are recorded too, at their stock points). matrix is the part's local transform
     in the VDF's own layout (rows right, up, front, then the position; world = local @ parent);
     the flame runs along front."""
-    if not any('emitShift' in j for j in jets):
+    if not any('emitShift' in j or j.get('carrier') for j in jets):  # a carrier's flames always need parts
         return None
     out = []; taken = set(jets[0]['_vdf']['names'])
     for j in jets:
@@ -1134,10 +1208,17 @@ def build(unit, render, shipped=False):
     for stale in (work / 'contact.png', work / 'preview.json'):  # a unit that fails a check leaves no earlier preview behind
         stale.unlink(missing_ok=True)
     mesh, skeleton, revision = stage_base(unit, work)
-    jets, pose = emitters(unit, skeleton, mesh, cfg.get('shift', ()))
+    jets, pose = emitters(unit, skeleton, mesh, cfg.get('shift', ()), cfg.get('carrier'))
     if cfg.get('housing') is False:
         return emit_only(unit, cfg, mesh, skeleton, jets, pose, work, review, revision, render, shipped)
     housings = group(cfg, jets, mesh, pose, work)
+    nacelle = None
+    if any(j.get('carrier') for j in jets):
+        assert all(j['bone'] == jets[0]['bone'] for j in jets) and not any('skipped' in j for j in jets), 'every carrier housing rides the new nacelle'
+        W = vdf_world(legacy.read_vdf(base_vdf(unit)).band(0))[0]; nacelle = carrier_frames(jets, cfg['carrier'], W, skeleton, pose)
+        nacelle['skeletonSource'] = next(p for p in (wr.GAME / 'BZ_ASSETS/common/models').rglob('*.skeleton')
+                                         if p.name.lower() == mesh.skeleton_name.lower()).relative_to(wr.GAME / 'BZ_ASSETS/common/models').as_posix()
+        nacelle['skeleton'] = mesh.skeleton_name
     if not housings[0]['shape'].get('auto'):
         paint, source = paint_colour(mesh, housings[0]['jets'][0][0]['bone'])
     cells = math.ceil(math.sqrt(len(housings))); atlas = {}; data, faces, owner, solids, counts = [], [], [], [], []
@@ -1175,7 +1256,11 @@ def build(unit, render, shipped=False):
         save_bc(image, work / f'{material}_{key}.dds'); image.save(work / f'{material}_{key}.png')
     (work / (material + '.material')).write_text('\n'.join(['import * from "CR_BZBase.material"', ''] + material_block(material)), newline='\n')
     preview_mesh(mesh, material, np.concatenate(data), np.concatenate(faces), np.concatenate(owner), work / (unit + '.mesh'))
-    first = housings[0]; keep = ('part', 'bone', 'skin', 'pivot', 'emit', 'axes', 'yaw', 'source', 'rides', 'estimate', 'skipped', 'emitShift')
+    if nacelle:  # the housings in the VDF pose, for the new nacelle's GEO
+        posed = [p for name, p, _, _, _ in posed_parts(shared.read_mesh(work / (unit + '.mesh')), pose) if name == material][0]
+        rows = np.concatenate(data).astype(float); rows[:, :3] = posed; rows[:, 3:6] = rows[:, 3:6] @ pose[nacelle['bone']['handle']][0].T
+        (work / nacelle['geo']).write_bytes(nacelle_geo(nacelle, rows, np.concatenate(faces), np.concatenate(owner), unit))
+    first = housings[0]; keep = ('part', 'bone', 'skin', 'pivot', 'emit', 'axes', 'yaw', 'source', 'carrier', 'rides', 'estimate', 'skipped', 'emitShift')
     paint = first['paint']; emit_shifts(jets)
     receipt = dict(unit=unit, faction=cfg['faction'], material=material, emitters=[{k: j[k] for k in keep if k in j} for j in jets],
                    flameDirection=[0, -1, 0], baseRevision=revision,
@@ -1186,6 +1271,8 @@ def build(unit, render, shipped=False):
     parts = vdf_parts(jets)
     if parts:
         receipt['vdfParts'] = parts
+    if nacelle:  # Tools/Build-UnitAnimSlots.py adds the part and the bone; the ODF carries the gains
+        receipt['newNacelles'] = [nacelle]
     if first['shape'].get('auto'):  # fitted shapes: how each solid seats, and who carries it
         receipt.update(flameDirection='-y of each emitter frame', notes=notes, housings=[
             dict(counts[n], parts=[j['part'] for j, _ in h['jets']], mirrored=[m for _, m in h['jets']], underside=h['fit'], maxError=h['error'],
@@ -1193,6 +1280,8 @@ def build(unit, render, shipped=False):
     (work / 'preview.json').write_text(json.dumps(receipt, indent=2) + '\n', newline='\n')
     if shipped:  # a preview run leaves the tracked receipt alone
         receipt['stageMesh'] = ship(unit, material, work)  # sha256 of the pre-rig Assets/ModelFixes mesh
+        for n in receipt.get('newNacelles', ()):
+            shutil.copyfile(work / n['geo'], ROOT / 'Assets/ModelFixes' / n['geo'])
         record = ROOT / 'References/NacelleJets' / unit / 'build.json'; record.parent.mkdir(exist_ok=True)
         record.write_text(json.dumps(receipt, indent=2) + '\n', newline='\n')
         if (ROOT / 'References/HardpointMounts' / f'{unit}.json').is_file():  # stage_base predates the mount

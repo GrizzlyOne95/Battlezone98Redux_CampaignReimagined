@@ -648,19 +648,73 @@ def flame_receipt(unit):
     if not os.path.exists(path):
         return None
     r = json.load(open(path))
-    if not (r.get("vdfParts") or r.get("nacelles")):
+    if not (r.get("vdfParts") or r.get("nacelles") or r.get("newNacelles")):
         return None
     return r
+
+
+def append_nacelle(bwd, rec, name):
+    """Append a receipt's new class 67 part (`newNacelles`: a flameless unit's rear housings,
+    geometry in Assets/ModelFixes/<geo>) under its parent: one record, nulled in the other
+    LOD slots as the new flame parts are, flags copied from the parent, extents from the GEO."""
+    if rec["klass"] != 67 or len(rec["matrix"]) != 12:
+        raise ValueError("%s: %s is not a class 67 part with a 12-float matrix" % (name, rec["name"]))
+    if any(o.name == rec["name"] for o in bwd.all_geo_objects(raw=True)):
+        raise ValueError("%s: new nacelle %r already exists" % (name, rec["name"]))
+    parent = bwd.get_object_by_name(rec["parent"])
+    if parent is None or not parent.is_primary():
+        raise ValueError("%s: no parent %r for %s" % (name, rec["parent"], rec["name"]))
+    n = bwd.append_object(rec["name"], parent)
+    for o in bwd.all_geo_objects(raw=True):
+        if o.index == n.index and o is not n:
+            o.make_null()
+    n.raw_strings = {}
+    n.class_id, n.object_flags, n.ddr, n.time = BWD2.ClassID.NACELLE_GEOMETRY, parent.object_flags, parent.ddr, 0.0
+    n.center_pos, n.half_size = SP.Vector3(*rec["center"]), SP.Vector3(*rec["halfSize"])
+    n.radius = float(rec["radius"])
+    n.target = SP.Vector3(*rec["center"])
+    if parent.index >= n.index:
+        raise ValueError("%s: parent %s (#%d) must precede %s (#%d)" % (name, rec["parent"], parent.index, rec["name"], n.index))
+    n.transform = BWD2.Transform(*(float(v) for v in rec["matrix"]))
 
 
 def flame_builds():
     return {u + ".vdf" for u in os.listdir(NACELLE_JETS) if flame_receipt(u)}
 
 
+def nacelle_bone(recs):
+    """A skeleton edit adding each new nacelle's bone (receipt `bone`: handle, parent, native-frame
+    position and w,x,y,z orientation) so the stage mesh's housings can ride it."""
+    def edit(stock_dir):
+        def apply(sk):
+            for rec in recs:
+                b = rec["bone"]
+                if sk.bone_name_exists(b["name"]):
+                    raise ValueError("skeleton already has %s" % b["name"])
+                if b["handle"] != max(x.handle for x in sk.bones()) + 1:
+                    raise ValueError("%s: recorded handle %d is not the next free one" % (b["name"], b["handle"]))
+                bone = sk.create_bone(b["name"], b["handle"], pos=SP.Vector3(*b["position"]), ori=SP.Quaternion(*b["orientation"]))
+                sk.parent_bone(bone, sk.get_bone_by_name(b["parent"]))
+        return apply
+    return edit
+
+
+for _u in sorted(os.listdir(NACELLE_JETS)) if os.path.isdir(NACELLE_JETS) else ():
+    _r = flame_receipt(_u)
+    for _sk in {n["skeleton"] for n in (_r or {}).get("newNacelles", ())}:
+        _recs = [n for n in _r["newNacelles"] if n["skeleton"] == _sk]
+        if _sk in SKELETONS:
+            raise SystemExit("%s: a new nacelle bone would replace another skeleton edit" % _sk)
+        SKELETONS[_sk] = (_recs[0]["skeletonSource"], nacelle_bone(_recs))
+
+
 def apply_flames(bwd, receipt, name):
     """Make the receipt's `nacelles` class 67, then set each recorded class 75 part: an existing
     part takes the recorded matrix, a new one is appended under its nacelle (one record, nulled
-    in the other LOD slots, as the svtank prototype did)."""
+    in the other LOD slots, as the svtank prototype did). `newNacelles` are appended first so
+    their flame parts can hang from them."""
+    for rec in receipt.get("newNacelles", ()):
+        append_nacelle(bwd, rec, name)
     for part in receipt.get("nacelles", ()):
         recs = [o for o in bwd.all_geo_objects(raw=True) if o.name == part]
         if not recs:
