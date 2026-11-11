@@ -135,6 +135,9 @@ CONFIG = {
     'cvscav': unit('cra', .5, .4, conform=True, carrier=dict(name='CMO11NAC', parent='CMO11BDA', at=((.35, 3.05),))),
     # svcnst: on the rear side panels of the main body, outboard of the narrower tail box.
     'svcnst': unit('cca', .5, .5, conform=True, carrier=dict(name='scv11nac', parent='scv11bda', at=((1.15, 1.3),))),
+    # avcnst/bvcnst (one mesh layout; the skeleton binds the body deployed, so `at` is in the packed VDF pose):
+    # on the upper rear corners of the body, outboard of the tail cylinder's frame.
+    'avcnst': unit('nsdf', .5, .5, conform=True, carrier=dict(name='acv11nac', parent='acv11bda', at=((1.8, 4.0),))),
 }
 
 def unit_vectors(v):
@@ -220,12 +223,20 @@ def carrier_jets(car, parts, W, skeleton, mesh, pose):
     handle = own.handle if own else max(b.handle for b in skeleton.bones) + 1
     pose[handle] = pose[parent.handle]; whole = hull(mesh)[0]; out = []
     # Build frame columns: x = -mesh x, y (toward the skin) = +z, z (the pod's chord) = +y; the flame runs along -z.
-    axes = [[-1., 0, 0], [0, 0, 1], [0, 1, 0]]
+    # `at` and the ray are in the VDF (driving) pose. A parent whose bind pose differs from it (avcnst/bvcnst: the
+    # skeleton binds the body in its deployed, 90-degree pitched pose; the VDF record is the packed pose = anim
+    # frame 0) gets the ray and frame mapped back into bind space; an unrotated parent keeps the plain mesh ray.
+    D, shift = pose[parent.handle]; turned = not np.allclose(D, np.eye(3), atol=1e-4)
+    axes = np.array([[-1., 0, 0], [0, 0, 1], [0, 1, 0]]); ray = np.array((0., 0, 1))
+    if turned:
+        axes, ray = D.T @ axes, D.T @ ray
+    axes = axes.tolist()
     for x, y in car['at']:
         for sx in (abs(x), -abs(x)):
-            d = ahead(whole, np.array((sx, y, -20.)), np.array((0., 0, 1)))
+            start = D.T @ (np.array((sx, y, -20.)) - shift) if turned else np.array((sx, y, -20.))
+            d = ahead(whole, start, ray)
             assert d is not None, (car['name'], 'no rear skin at', (sx, y))
-            jet = dict(part='%s%+.2f' % (car['name'], sx), bone=handle, skin=parent.handle, emit=[sx, y, -20. + d - .02], axes=axes,
+            jet = dict(part='%s%+.2f' % (car['name'], sx), bone=handle, skin=parent.handle, emit=(start + ray * (d - .02)).tolist() if turned else [sx, y, -20. + d - .02], axes=axes,
                        source='carrier', carrier=car['name'], toSkin=True, relocate=False)
             jet['_vdf'] = dict(parent=car['name'], frame=None, existing=None, names=names | {car['name'].lower()})
             jet['_pose'] = pose[handle]; out.append(place(jet))

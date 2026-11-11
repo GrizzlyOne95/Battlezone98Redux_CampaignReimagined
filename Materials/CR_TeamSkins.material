@@ -44,6 +44,20 @@ material avcnst00_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_avcnst_d.dds
 }
 
+material avcnst_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap avcnst_nacjet_D.dds
+	set_texture_alias NormalMap avcnst_nacjet_N.dds
+	set_texture_alias SpecularMap avcnst_nacjet_S.dds
+	set_texture_alias EmissiveMap avcnst_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_avcnst_nacjet_d.dds
+}
+
 material avfigh00_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap avfigh_D.dds

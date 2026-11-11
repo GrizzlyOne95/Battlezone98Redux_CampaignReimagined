@@ -53,6 +53,11 @@ soundThrust = "avcnste0.wav"
 soundSteer = "avcnste1.wav"
 soundDeploy = "avartle0.wav"
 soundUndeploy = "avartle4.wav"
+// Rear emitter housings (class 67 acv11nac): small pitch with throttle/steer
+pitchThrotNacelleRun = 0.05
+pitchThrotNacelleJump = 0.05
+pitchSteerNacelleRun = 0.05
+pitchSteerNacelleJump = 0.05
 
 [ProducerClass]
 buildItem1 = "abspow"

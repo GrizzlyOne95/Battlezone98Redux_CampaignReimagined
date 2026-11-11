@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5706,
+  "count": 5713,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -543,6 +543,10 @@
       "runtime": "abwpow.sdf"
     },
     {
+      "source": "Assets\\ModelFixes\\acv11nac.geo",
+      "runtime": "acv11nac.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\adr11bdy.geo",
       "runtime": "adr11bdy.geo"
     },
@@ -653,6 +657,10 @@
     {
       "source": "Assets\\ModelFixes\\avcnst.mesh",
       "runtime": "avcnst.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\avcnst.skeleton",
+      "runtime": "avcnst.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\avcnst.vdf",
@@ -4215,6 +4223,22 @@
       "runtime": "avcnst00_ACT.dds"
     },
     {
+      "source": "Assets\\Textures\\avcnst_nacjet_D.dds",
+      "runtime": "avcnst_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avcnst_nacjet_E.dds",
+      "runtime": "avcnst_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avcnst_nacjet_N.dds",
+      "runtime": "avcnst_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\avcnst_nacjet_S.dds",
+      "runtime": "avcnst_nacjet_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\avfigh00_ACT.dds",
       "runtime": "avfigh00_ACT.dds"
     },
@@ -5825,6 +5849,10 @@
     {
       "source": "Assets\\Textures\\crteam_avcnst_d.dds",
       "runtime": "crteam_avcnst_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crteam_avcnst_nacjet_d.dds",
+      "runtime": "crteam_avcnst_nacjet_d.dds"
     },
     {
       "source": "Assets\\Textures\\crteam_avfigh_d.dds",
