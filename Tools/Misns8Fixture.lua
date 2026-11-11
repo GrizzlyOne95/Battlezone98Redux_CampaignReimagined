@@ -366,7 +366,7 @@ function F.makePeer(id, team, network, options)
     for _, name in ipairs({"Defend2", "Follow", "Defend", "Retreat", "Stop", "Goto", "Attack", "SetIndependence", "SetAIP",
         "SetAIControl", "SetObjectiveName", "SetObjectiveOn", "SetObjectiveOff", "ClearObjectives",
         "AddObjective", "UpdateObjective", "Ally", "UnAlly", "DisplayMessage", "FailMission", "SucceedMission",
-        "SetPilot", "AddPilot", "Build", "Dropoff", "Pickup", "StartEarthquake", "UpdateEarthQuake", "StopEarthquake"}) do
+        "SetPilot", "AddPilot", "Build", "Dropoff", "Pickup", "Deploy", "StartEarthquake", "UpdateEarthQuake", "StopEarthquake"}) do
         local n = name
         e[n] = function(...)
             if n == "SetObjectiveOn" or n == "SetObjectiveName" or n == "SetIndependence" or n == "Follow"
@@ -406,7 +406,7 @@ function F.makePeer(id, team, network, options)
     e.GetWhoShotMe = function(h) return W.objects[h] and W.objects[h].shotBy end
     e.Damage = function(h,amount) assert(e.IsValid(h));record("Damage",h,amount);W.objects[h].alive=false end
     e.IsAudioMessageDone = function() return not W.audioBusy end
-    e.AiCommand = {NONE=0,ATTACK=3,DEFEND=16}
+    e.AiCommand = {NONE=0,ATTACK=3,DEFEND=16,GET_RELOAD=11}
     e.GetCurrentWho = function(h) return W.objects[h] and W.objects[h].target end
     local function noop() end
     local modules = {

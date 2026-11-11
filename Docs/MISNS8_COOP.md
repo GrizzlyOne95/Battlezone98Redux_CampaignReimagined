@@ -118,6 +118,19 @@ Skipped, with the reason:
 - Audio `misns806`, `misns809` and `misns813` are restored (table above). `misns811` (a variant of `misns818`
   ending "Continue with the operation") is audited and skipped: it duplicates the `misns805`/`misns818` exchange.
 
+## APC deploy (CR addition, not cut content)
+
+Stock gives the Black Dog APC (`bvapc`) `Attack(avapc1, ccarecycle)`, so it only drives at the
+Recycler and never drops its soldiers on the units around it. The idea comes from a Workshop remake.
+`Restored.TrackApc` (called from `AddObject`) records every `bvapc`; `Restored.ApcDeploy`
+drops dead ones and calls `Deploy` on a team-5 APC whose nearest enemy (`GetNearestEnemy`) is
+within `APC_DEPLOY_RANGE` (100 m), unless its current command is `GET_RELOAD`.
+- One try per APC every 10 s.
+- The leader only.
+- The list lives in `State().r.apcs`, so it survives Save/Load.
+- `APC_DEPLOY_RANGE = 0` turns it off.
+- Not tested in game: whether `Deploy` on a moving, attacking APC unloads at once is unverified.
+
 ## Stock bugs fixed in the CR layer (the faithful body is untouched)
 
 - The `M.user` comparisons and the reversed `Distance(key_tank, M.user)` argument order (see "Humans as one trigger"):

@@ -440,6 +440,29 @@ do
     check(F.count(p[1], "TitanInit") == 2 and F.count(p[1], "WeatherSensors", "Titan") == 2, "the weather and sky binding re-initialise after a load")
     check(F.count(p[1], "TitanLevel") == 3, "saved beats are not replayed after a load")
 end
+do -- CR addition: a Black Dog APC deploys its soldiers on a close enemy, leader only, throttled, Save/Load safe
+    w, p, m = setup(2)
+    local apc = F.spawn("bvapc", 5)
+    F.run(1)
+    check(F.count(p[1], "Deploy") == 0, "an APC with no enemy near does not deploy")
+    F.nearTo(apc, p[2].player, 60, 0); F.run(1)
+    check(F.count(p[1], "Deploy", apc) == 1, "an APC 60 m from a guest deploys")
+    check(F.count(p[2], "Deploy") == 0, "guests never issue Deploy")
+    F.run(5)
+    check(F.count(p[1], "Deploy", apc) == 1, "one try per 10 s")
+    for _, q in ipairs(p) do q.env.Load(q.env.Save()) end
+    F.connect(); F.run(6)
+    check(F.count(p[1], "Deploy", apc) == 2, "the tracked APC survives a Save/Load and retries")
+    w.objects[apc].command = 11; F.run(12)
+    check(F.count(p[1], "Deploy", apc) == 2, "an APC going home to reload is left alone")
+    w.objects[apc].command = 0
+    F.nearTo(apc, p[2].player, 150, 0); F.run(12)
+    check(F.count(p[1], "Deploy", apc) == 2, "an enemy beyond 100 m is ignored")
+    local own = F.spawn("bvapc", 1); F.nearTo(own, apc, 30, 0); F.run(12)
+    check(F.count(p[1], "Deploy", own) == 0, "a human-team APC is never deployed by the script")
+    F.kill(apc); F.run(1)
+    check(#p[1].env.Save().crcca.r.apcs == 1, "dead APCs are dropped")
+end
 do -- sites module missing: no weather, never an error
     w, p, m = setup(2, { weather = { module = function(peer, record) return titan(record)(peer) end } })
     check(F.count(p[1], "TitanInit") == 0 and m.start_done, "module without sites: disabled")

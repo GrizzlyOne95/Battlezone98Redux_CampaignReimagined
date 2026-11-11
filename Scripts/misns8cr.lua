@@ -183,6 +183,8 @@ local M = NewState()
 -- Each RESTORED_* flag switches one cut-content restoration off (Docs/MISNS8_COOP.md, "Restored content").
 local RESTORED_CHOKE_CAM = true
 local RESTORED_VOICE_LINES = true -- unused shipped lines misns806, misns809, misns813 (Docs/MISNS8_COOP.md)
+-- Black Dog APCs drop their soldiers on an enemy within this many metres (Docs/MISNS8_COOP.md): 0 disables it.
+local APC_DEPLOY_RANGE = 100
 -- Extra Black Dog scrap per guest (the enemy economy is the AI's attack wave): 0 disables it.
 local ENEMY_SCRAP_PER_GUEST = 10
 local Restored
@@ -393,10 +395,39 @@ if campaignRuntime then
         r.l813 = true
         AudioMessage("misns813.wav")
     end
+    -- Not cut content: a Workshop-remake idea. Stock APCs only drive at their Attack target (the recycler);
+    -- here an enemy APC with an enemy unit within APC_DEPLOY_RANGE deploys its soldiers, unless it is
+    -- already heading home to reload. One try every APC_DEPLOY_RETRY seconds per APC.
+    local APC_DEPLOY_RETRY = 10
+    function Restored.TrackApc(h)
+        if APC_DEPLOY_RANGE <= 0 or not IsOdf(h, "bvapc") then return end
+        local r = State()
+        r.apcs = r.apcs or {}
+        r.apcs[#r.apcs + 1] = { h = h, next = 0 }
+    end
+    function Restored.ApcDeploy(r)
+        local apcs = r.apcs
+        if not apcs then return end
+        local now = GetTime()
+        local reload = AiCommand and AiCommand.GET_RELOAD or 11
+        for i = #apcs, 1, -1 do
+            local apc = apcs[i]
+            if not IsAlive(apc.h) then
+                table.remove(apcs, i)
+            elseif now >= apc.next and GetTeamNum(apc.h) == 5 and GetCurrentCommand(apc.h) ~= reload then
+                local enemy = runtime.GetNearestEnemy(apc.h)
+                if Valid(enemy) and GetDistance(apc.h, enemy) < APC_DEPLOY_RANGE then
+                    apc.next = now + APC_DEPLOY_RETRY
+                    Deploy(apc.h)
+                end
+            end
+        end
+    end
     function Restored.Step()
         if not M.start_done then return end
         Restored.ChokeCam(State())
         Restored.RomeskiDead(State())
+        Restored.ApcDeploy(State())
     end
 end
 -- CR restored content <<
@@ -431,7 +462,7 @@ end
 
 function AddObject(h)
 -- CR co-op callback >>
-    if campaignRuntime then campaignRuntime.AddObject(h) end
+    if campaignRuntime then campaignRuntime.AddObject(h); Restored.TrackApc(h) end
 -- CR co-op callback <<
     if not Valid(h) then return end
     -- Keep the exact source slot priority and ODF matching (no team filter).
