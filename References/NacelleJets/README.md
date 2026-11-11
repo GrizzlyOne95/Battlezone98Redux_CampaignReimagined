@@ -152,6 +152,17 @@ after dropping saturated trim and decals and near-black gaps, taken from the dom
 Ring, bore and throat glow follow the faction flame colour (`FACTIONS`): NSDF blue, Black
 Dogs blood red, CCA burnt orange, CRA green.
 
+### Units with no nacelle (`carrier`)
+
+A unit whose stock VDF has no class 67 part gets
+`carrier=dict(name=<PART>, parent=<hull body>, at=((x, y), ...))` in its CONFIG entry. Each
+`(x, y)` is mirrored to `-x`; a ray along +Z from the back finds the rear skin to seat on. The
+tool adds a new class 67 part `<PART>` (bone, GEO, VDF part) under `parent`, puts the class 75
+flames under it, and lists it in the receipt's `newNacelles`. Never use a class 66 rotor or
+class 68 fin as the parent or the seat: the engine animates those. The ODF then sets the
+`pitchThrot/SteerNacelleRun/Jump` keys (0 when a pitching housing would cross a hardpoint).
+A dry seat grid can pass seats the ship fit rejects; confirm with the full fit.
+
 ## Review sheets (avfigh)
 
 - `review/avfigh-emit.jpg`: emit points and flame axis against the stock wing and the housing.

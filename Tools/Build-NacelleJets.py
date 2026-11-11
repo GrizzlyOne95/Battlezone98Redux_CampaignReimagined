@@ -123,6 +123,8 @@ CONFIG = {
     # Flameless units: no class 67 or 75 part, so a new nacelle part carries rear housings.
     # cvltnk: on the grey rear plates of the side pods (the chord runs up the plate).
     'cvltnk': unit('cra', .7, .6, carrier=dict(name='CNA11NAC', parent='CNA11BDA', at=((1.0, 1.0),))),
+    # cvmuf: on the red rear shoulders above the fans, clear of the top loading doors LD1/LD2.
+    'cvmuf': unit('cra', 1.2, .6, carrier=dict(name='CMF11NAC', parent='CMF11BDA', at=((3.0, 5.0),))),
 }
 
 def unit_vectors(v):

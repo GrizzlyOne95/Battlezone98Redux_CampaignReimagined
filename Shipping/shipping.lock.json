@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5662,
+  "count": 5669,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -1191,6 +1191,10 @@
       "runtime": "cfr11ror.geo"
     },
     {
+      "source": "Assets\\ModelFixes\\cmf11nac.geo",
+      "runtime": "cmf11nac.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\cna11nac.geo",
       "runtime": "cna11nac.geo"
     },
@@ -1413,6 +1417,10 @@
     {
       "source": "Assets\\ModelFixes\\cvmuf.mesh",
       "runtime": "cvmuf.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvmuf.skeleton",
+      "runtime": "cvmuf.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\cvmuf.vdf",
@@ -6035,6 +6043,10 @@
       "runtime": "crteam_cvmuf_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_cvmuf_nacjet_d.dds",
+      "runtime": "crteam_cvmuf_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_cvrckt_d.dds",
       "runtime": "crteam_cvrckt_d.dds"
     },
@@ -6913,6 +6925,22 @@
     {
       "source": "Assets\\Textures\\cvmuf_ACT.dds",
       "runtime": "cvmuf_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvmuf_nacjet_D.dds",
+      "runtime": "cvmuf_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvmuf_nacjet_E.dds",
+      "runtime": "cvmuf_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvmuf_nacjet_N.dds",
+      "runtime": "cvmuf_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvmuf_nacjet_S.dds",
+      "runtime": "cvmuf_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\cvrckt01_ACT.dds",

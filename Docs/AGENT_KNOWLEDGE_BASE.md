@@ -1802,6 +1802,20 @@ to the ordinary GOG development mod.
   the housing receipt's `baseRevision` holds the pinned output.
 - `-bless` with unrelated unblessed tracked files present: move them outside the tree, bless,
   move them back (do not hand-edit `Shipping/shipping.lock.json`).
+- Flameless units (no class 67 part to put a flame under) get a `carrier` entry in
+  `Tools/Build-NacelleJets.py` CONFIG: a new class 67 housing part (own bone, GEO, VDF part)
+  under a hull body, with the class 75 flame under it. The receipt lists it in
+  `newNacelles`; `Test-UnitAnimSlots.py` checks the part class, matrix, GEO, flame under it,
+  and that the bone is in both the stage and the recoil skeleton (re-run
+  `Build-WeaponRigs.py --models <unit>` after the stage, or the rigged skeleton lacks it).
+  Never seat a carrier on a class 66 rotor or class 68 fin: the engine animates those.
+- `Build-LightWalkerCockpits.py` no longer reproduces its committed outputs either: repin only
+  its receipt's `exteriorSha256`, as for the AVRocket group above.
+- Choosing a carrier seat: a dry seat grid (ray hit + clearance) passes seats that the
+  `--ship` fit rejects ("housing cuts through stock mesh below its seat", or a vent cut that
+  "changed nothing"). Confirm seats with the full fit before shipping.
+- Commit messages with several lines go through a file (`git commit -F msg.txt`);
+  `-F -` from PowerShell fails.
 
 ### Enhanced light budget and recovered archive work (2026-11-10)
 
