@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5669,
+  "count": 5676,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -1067,6 +1067,10 @@
       "runtime": "bvwalk_c.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\cam11nac.geo",
+      "runtime": "cam11nac.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\cbbarr.mesh",
       "runtime": "cbbarr.mesh"
     },
@@ -1449,6 +1453,10 @@
     {
       "source": "Assets\\ModelFixes\\cvslf.mesh",
       "runtime": "cvslf.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvslf.skeleton",
+      "runtime": "cvslf.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\cvslf.vdf",
@@ -6063,6 +6071,10 @@
       "runtime": "crteam_cvslf_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_cvslf_nacjet_d.dds",
+      "runtime": "crteam_cvslf_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_cvtnk_d.dds",
       "runtime": "crteam_cvtnk_d.dds"
     },
@@ -6965,6 +6977,22 @@
     {
       "source": "Assets\\Textures\\cvslf_ACT.dds",
       "runtime": "cvslf_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvslf_nacjet_D.dds",
+      "runtime": "cvslf_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvslf_nacjet_E.dds",
+      "runtime": "cvslf_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvslf_nacjet_N.dds",
+      "runtime": "cvslf_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvslf_nacjet_S.dds",
+      "runtime": "cvslf_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\cvtnk01_ACT.dds",

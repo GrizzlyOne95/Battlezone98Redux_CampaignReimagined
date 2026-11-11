@@ -1,0 +1,608 @@
+{
+  "unit": "cvslf",
+  "faction": "cra",
+  "material": "cvslf_nacjet",
+  "emitters": [
+    {
+      "part": "CAM11NAC+2.10",
+      "bone": 7,
+      "skin": 0,
+      "pivot": [
+        0.0,
+        2.5,
+        -3.7689140839002846
+      ],
+      "emit": [
+        2.1,
+        2.5,
+        -3.80119208667613
+      ],
+      "axes": [
+        [
+          -1.0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          1,
+          0
+        ]
+      ],
+      "source": "carrier",
+      "carrier": "CAM11NAC"
+    },
+    {
+      "part": "CAM11NAC-2.10",
+      "bone": 7,
+      "skin": 0,
+      "pivot": [
+        0.0,
+        2.5,
+        -3.7689140839002846
+      ],
+      "emit": [
+        -2.1,
+        2.5,
+        -3.736636081124439
+      ],
+      "axes": [
+        [
+          -1.0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          1,
+          0
+        ]
+      ],
+      "source": "carrier",
+      "carrier": "CAM11NAC"
+    }
+  ],
+  "flameDirection": "-y of each emitter frame",
+  "baseRevision": "f09fec92f1d6da20facde0d095c45f19a913c866",
+  "wingUnderside": {
+    "heightAtEmit": 2.525623320565769,
+    "slopePerMetreOfChord": -0.0027580913721551256,
+    "maxError": 0.005099251329722776
+  },
+  "paint": [
+    66.0,
+    20.0,
+    0.0
+  ],
+  "paintSource": "cvslf_d.dds",
+  "housing": {
+    "vertices": 768,
+    "triangles": 524,
+    "zones": {
+      "paint": 206,
+      "bell": 59,
+      "lip": 29,
+      "groove": 98,
+      "bore": 42,
+      "throat": 18,
+      "vent": 72
+    }
+  },
+  "shape": {
+    "sides": 20,
+    "flat": 0.86,
+    "smoothAngle": 35,
+    "bury": 0.051,
+    "chamfer": 0.03825,
+    "sections": [
+      [
+        0.23969999999999997,
+        0.0765,
+        0.01275
+      ],
+      [
+        0.1887,
+        0.1785,
+        0.059500000000000004
+      ],
+      [
+        0.12239999999999998,
+        0.255,
+        0.102
+      ],
+      [
+        0.10709999999999999,
+        0.255,
+        0.102
+      ],
+      [
+        0.0714,
+        0.255,
+        0.102
+      ],
+      [
+        -0.10200000000000001,
+        0.255,
+        0.102
+      ],
+      [
+        -0.1683,
+        0.1785,
+        0.068
+      ],
+      [
+        -0.2244,
+        0.068,
+        0.01275
+      ]
+    ],
+    "vent": {
+      "drop": 0.034,
+      "halfWidth": 0.255,
+      "depth": 0.017,
+      "height": 0.0255,
+      "length": 0.07225000000000001,
+      "z": [
+        -0.0663,
+        -0.015299999999999998,
+        0.0357
+      ]
+    },
+    "scale": 0.85,
+    "length": 0.6,
+    "over": {},
+    "auto": true,
+    "stripe": [
+      0.0714,
+      0.10709999999999999
+    ],
+    "bell": {
+      "top": 0.0,
+      "lip": -0.1275,
+      "rTop": 0.2125,
+      "rLip": 0.19974999999999998
+    },
+    "bore": {
+      "roof": 0.0255,
+      "rRoof": 0.1275,
+      "rMouth": 0.17425
+    },
+    "groove": {
+      "y0": -0.11220000000000001,
+      "y1": -0.102,
+      "depth": 0.0068,
+      "rOut": 0.23800000000000002
+    }
+  },
+  "stripe": [
+    0.0714,
+    0.10709999999999999
+  ],
+  "vdfParts": [
+    {
+      "name": "CAM11FAC",
+      "klass": 75,
+      "parent": "CAM11NAC",
+      "position": [
+        -2.1,
+        0.0,
+        -0.03227800277584558
+      ],
+      "orientation": [
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ]
+      ],
+      "matrix": [
+        -1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0,
+        -2.1,
+        0.0,
+        -0.03227800277584558
+      ],
+      "existing": false,
+      "moved": false
+    },
+    {
+      "name": "CAM11FA0",
+      "klass": 75,
+      "parent": "CAM11NAC",
+      "position": [
+        2.1,
+        0.0,
+        0.03227800277584558
+      ],
+      "orientation": [
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ]
+      ],
+      "matrix": [
+        -1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0,
+        2.1,
+        0.0,
+        0.03227800277584558
+      ],
+      "existing": false,
+      "moved": false
+    }
+  ],
+  "newNacelles": [
+    {
+      "name": "CAM11NAC",
+      "klass": 67,
+      "parent": "CAM11BDA",
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        2.5,
+        -3.7689140839002846
+      ],
+      "pivot": [
+        0.0,
+        2.5,
+        -3.7689140839002846
+      ],
+      "posedPivot": [
+        0.0,
+        2.5,
+        -3.7689140839002846
+      ],
+      "geo": "cam11nac.geo",
+      "bone": {
+        "name": "CAM11NAC",
+        "handle": 7,
+        "parent": "CAM11BDA",
+        "position": [
+          -0.0,
+          2.5,
+          -3.7689140839002846
+        ],
+        "orientation": [
+          1.0,
+          0,
+          0,
+          0
+        ]
+      },
+      "gains": {
+        "pitchThrotNacelleRun": 0.05,
+        "pitchSteerNacelleRun": 0.05,
+        "pitchThrotNacelleJump": 0.05,
+        "pitchSteerNacelleJump": 0.05
+      },
+      "skeletonSource": "TRO/cvslf.skeleton",
+      "skeleton": "cvslf.skeleton",
+      "center": [
+        0.0,
+        0.007649898529052734,
+        -0.04995051026344299
+      ],
+      "halfSize": [
+        2.3550000190734863,
+        0.23204994201660156,
+        0.4132506847381592
+      ],
+      "radius": 2.4022173910499,
+      "triangles": 1049
+    }
+  ],
+  "notes": [
+    "CAM11NAC+2.10: scale 1 -> 0.85, because as configured: ('stock mesh passes through the nozzle bore or the flame cone', {'crossings': 6, 'belowLip': [-0.12, -0.11], 'around': [0.14, -0.03, -0.0]})",
+    "CAM11NAC-2.10: scale 1 -> 0.85, because as configured: ('stock mesh passes through the nozzle bore or the flame cone', {'crossings': 6, 'belowLip': [-0.12, -0.11], 'around': [0.14, -0.03, -0.0]})",
+    "CAM11NAC+2.10: class 75 flame part",
+    "CAM11NAC-2.10: class 75 flame part",
+    "CAM11NAC+2.10: the nozzle hangs 0.11 m below the emit point so stock mesh stays out of its throat (skin +0.000 m from the emit point)",
+    "CAM11NAC-2.10: the nozzle hangs 0.11 m below the emit point so stock mesh stays out of its throat (skin +0.000 m from the emit point)"
+  ],
+  "housings": [
+    {
+      "vertices": 768,
+      "triangles": 524,
+      "zones": {
+        "paint": 206,
+        "bell": 59,
+        "lip": 29,
+        "groove": 98,
+        "bore": 42,
+        "throat": 18,
+        "vent": 72
+      },
+      "parts": [
+        "CAM11NAC+2.10"
+      ],
+      "mirrored": [
+        false
+      ],
+      "underside": [
+        2.525623320565769,
+        -0.0027580913721551256,
+        -1.0995193321839165
+      ],
+      "maxError": 0.005099251329722776,
+      "seated": {
+        "cover": 1.0,
+        "pokes": 0.0,
+        "spread": 0.0069009844557546,
+        "gap": 0.0,
+        "inside": 0.11195831780303944,
+        "depthScale": 1.8476305666964654
+      },
+      "shape": {
+        "sides": 20,
+        "flat": 0.86,
+        "smoothAngle": 35,
+        "bury": 0.051,
+        "chamfer": 0.03825,
+        "sections": [
+          [
+            0.23969999999999997,
+            0.0765,
+            0.01275
+          ],
+          [
+            0.1887,
+            0.1785,
+            0.059500000000000004
+          ],
+          [
+            0.12239999999999998,
+            0.255,
+            0.102
+          ],
+          [
+            0.10709999999999999,
+            0.255,
+            0.102
+          ],
+          [
+            0.0714,
+            0.255,
+            0.102
+          ],
+          [
+            -0.10200000000000001,
+            0.255,
+            0.102
+          ],
+          [
+            -0.1683,
+            0.1785,
+            0.068
+          ],
+          [
+            -0.2244,
+            0.068,
+            0.01275
+          ]
+        ],
+        "vent": {
+          "drop": 0.034,
+          "halfWidth": 0.255,
+          "depth": 0.017,
+          "height": 0.0255,
+          "length": 0.07225000000000001,
+          "z": [
+            -0.0663,
+            -0.015299999999999998,
+            0.0357
+          ]
+        },
+        "scale": 0.85,
+        "length": 0.6,
+        "over": {},
+        "auto": true,
+        "stripe": [
+          0.0714,
+          0.10709999999999999
+        ],
+        "bell": {
+          "top": 0.0,
+          "lip": -0.1275,
+          "rTop": 0.2125,
+          "rLip": 0.19974999999999998
+        },
+        "bore": {
+          "roof": 0.0255,
+          "rRoof": 0.1275,
+          "rMouth": 0.17425
+        },
+        "groove": {
+          "y0": -0.11220000000000001,
+          "y1": -0.102,
+          "depth": 0.0068,
+          "rOut": 0.23800000000000002
+        }
+      },
+      "paint": [
+        66.0,
+        20.0,
+        0.0
+      ],
+      "adjusted": "scale 1 -> 0.85, because as configured: ('stock mesh passes through the nozzle bore or the flame cone', {'crossings': 6, 'belowLip': [-0.12, -0.11], 'around': [0.14, -0.03, -0.0]})"
+    },
+    {
+      "vertices": 769,
+      "triangles": 525,
+      "zones": {
+        "paint": 207,
+        "bell": 58,
+        "lip": 30,
+        "groove": 97,
+        "bore": 43,
+        "throat": 18,
+        "vent": 72
+      },
+      "parts": [
+        "CAM11NAC-2.10"
+      ],
+      "mirrored": [
+        true
+      ],
+      "underside": [
+        2.525921848975222,
+        -0.0017413500504466564,
+        -1.0974299823991869
+      ],
+      "maxError": 0.005300456630545902,
+      "seated": {
+        "cover": 1.0,
+        "pokes": 0.0,
+        "spread": 0.0065289339999865525,
+        "gap": 0.0,
+        "inside": 0.1120482522000259,
+        "depthScale": 1.8485122764708424
+      },
+      "shape": {
+        "sides": 20,
+        "flat": 0.86,
+        "smoothAngle": 35,
+        "bury": 0.051,
+        "chamfer": 0.03825,
+        "sections": [
+          [
+            0.23969999999999997,
+            0.0765,
+            0.01275
+          ],
+          [
+            0.1887,
+            0.1785,
+            0.059500000000000004
+          ],
+          [
+            0.12239999999999998,
+            0.255,
+            0.102
+          ],
+          [
+            0.10709999999999999,
+            0.255,
+            0.102
+          ],
+          [
+            0.0714,
+            0.255,
+            0.102
+          ],
+          [
+            -0.10200000000000001,
+            0.255,
+            0.102
+          ],
+          [
+            -0.1683,
+            0.1785,
+            0.068
+          ],
+          [
+            -0.2244,
+            0.068,
+            0.01275
+          ]
+        ],
+        "vent": {
+          "drop": 0.034,
+          "halfWidth": 0.255,
+          "depth": 0.017,
+          "height": 0.0255,
+          "length": 0.07225000000000001,
+          "z": [
+            -0.0663,
+            -0.015299999999999998,
+            0.0357
+          ]
+        },
+        "scale": 0.85,
+        "length": 0.6,
+        "over": {},
+        "auto": true,
+        "stripe": [
+          0.0714,
+          0.10709999999999999
+        ],
+        "bell": {
+          "top": 0.0,
+          "lip": -0.1275,
+          "rTop": 0.2125,
+          "rLip": 0.19974999999999998
+        },
+        "bore": {
+          "roof": 0.0255,
+          "rRoof": 0.1275,
+          "rMouth": 0.17425
+        },
+        "groove": {
+          "y0": -0.11220000000000001,
+          "y1": -0.102,
+          "depth": 0.0068,
+          "rOut": 0.23800000000000002
+        }
+      },
+      "paint": [
+        66.0,
+        20.0,
+        0.0
+      ],
+      "adjusted": "scale 1 -> 0.85, because as configured: ('stock mesh passes through the nozzle bore or the flame cone', {'crossings': 6, 'belowLip': [-0.12, -0.11], 'around': [0.14, -0.03, -0.0]})"
+    }
+  ],
+  "stageMesh": "062395b5d37359a4e5e23eb55aa734d364fbee15a5342bfed0abf0ca1ed4471d"
+}
