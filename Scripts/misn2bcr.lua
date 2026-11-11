@@ -646,11 +646,32 @@ M = NewMissionState()
 
 -- patrol1 and patrol2 end 300+ metres short of the scavenger and the
 -- players, so a fighter that only had a Goto parked there out of range. Each
--- one sent along a path presses on to the scavenger once the path is done.
-local function SendFighterAlongPath(h, path)
+-- one sent along a path presses on once the path is done: the first fighter
+-- (patrol1) hunts, since a fixed target let it miss the players; later ones
+-- attack the scavenger objective. The path counts as done when the Goto has
+-- finished OR the fighter sits near the path's last point, because a finished
+-- Goto does not always read back as AiCommand.NONE.
+local PATH_END_RADIUS = 40.0
+
+local function PathEnd(path)
+    if type(GetPathPointCount) ~= "function" then return nil end
+    local ok, count = pcall(GetPathPointCount, path)
+    if not ok or type(count) ~= "number" or count < 1 then return nil end
+    local okPos, pos = pcall(GetPosition, path, count - 1)
+    if okPos and pos then return pos end
+    return nil
+end
+
+local function SendFighterAlongPath(h, path, hunt)
     Goto(h, path)
     M.pathFighters = M.pathFighters or {}
-    M.pathFighters[#M.pathFighters + 1] = { h = h, after = GetTime() + 2.0 }
+    M.pathFighters[#M.pathFighters + 1] = { h = h, path = path, hunt = hunt or nil, after = GetTime() + 2.0 }
+end
+
+local function PathFighterDone(entry)
+    if GetCurrentCommand(entry.h) == AiCommand.NONE then return true end
+    local finish = entry.path and PathEnd(entry.path)
+    return finish ~= nil and GetDistance(entry.h, finish) < PATH_END_RADIUS
 end
 
 local function PressPathFighters()
@@ -662,9 +683,13 @@ local function PressPathFighters()
         local h = entry.h
         if not IsAlive(h) or GetTeamNum(h) ~= ENEMY_TEAM then
             table.remove(list, i)
-        elseif now >= entry.after and GetCurrentCommand(h) == AiCommand.NONE then
-            local target = (IsAlive(M.scav2) and M.scav2) or (IsAlive(M.bscav) and M.bscav) or nil
-            if target then Attack(h, target) end
+        elseif now >= entry.after and PathFighterDone(entry) then
+            if entry.hunt then
+                Hunt(h)
+            else
+                local target = (IsAlive(M.scav2) and M.scav2) or (IsAlive(M.bscav) and M.bscav) or nil
+                if target then Attack(h, target) else Hunt(h) end
+            end
             table.remove(list, i)
         end
     end
@@ -676,7 +701,7 @@ local function OrderActivatedFighter(h)
         M.found2 = true
         M.bscout = h
         if SetLabel then SetLabel(M.bscout, LABEL_BSCOUT) end
-        SendFighterAlongPath(M.bscout, "patrol1")
+        SendFighterAlongPath(M.bscout, "patrol1", true)
         SetObjectiveOn(M.bscout)
     elseif IsAlive(M.bscav) and IsAlive(M.bgoal) and GetDistance(M.bscav, M.bgoal) < 200.0 then
         Attack(h, M.bscav)

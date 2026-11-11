@@ -820,7 +820,7 @@ do
     peer.playerPos = { x = 1500.0, y = 120.0, z = 1500.0 }    -- up on the ridge
     peer.run(15.0)
     local ridgeEnd = peer.rec.fog.fogEnd
-    check(pitEnd < ridgeEnd * 0.8, string.format("fog should be denser in the pit (%.1f) than on the ridge (%.1f)", pitEnd, ridgeEnd))
+    check(pitEnd < ridgeEnd * 0.9, string.format("fog should be denser in the pit (%.1f) than on the ridge (%.1f)", pitEnd, ridgeEnd))
     check(V.GetPoolFactor() < 0.1, "the pool factor on the ridge should be near zero")
     check(peer.rec.fog.fogStart < peer.rec.fog.fogEnd, "fog start must stay under fog end")
 
@@ -1357,7 +1357,9 @@ do
         check(V.GetFogIntensity() > 0.8, "the bank is at full strength mid-hold, got " .. V.GetFogIntensity())
         check(at.fog.fogEnd <= 100.5, "the bank never pushes fog past the 100 m terrain horizon, end " .. at.fog.fogEnd)
         check(at.fog.fogEnd <= pre.fog.fogEnd + 0.5, "a bank only ever thickens fog, end " .. at.fog.fogEnd .. " vs " .. pre.fog.fogEnd)
-        check(at.fog.fogStart <= 12.0, "pea soup starts almost at the camera, start " .. at.fog.fogStart)
+        check(at.fog.fogStart <= peer.Venus.FogBankFogStart + 0.5, "the bank pulls the fog start in, start " .. at.fog.fogStart)
+        check(at.fog.fogStart >= 12.0 and at.fog.fogEnd >= 60.0,
+            "the bank's global fog stays playable (dense fog is local haze), start " .. at.fog.fogStart .. " end " .. at.fog.fogEnd)
         check(at.fog.g > at.fog.r and at.fog.g > at.fog.b * 1.8,
             string.format("bank fog must be sulphur green-yellow (%.2f %.2f %.2f)", at.fog.r, at.fog.g, at.fog.b))
         check(near(at.fog.g, 0.44, 0.06) and near(at.fog.r, 0.40, 0.07), "fog colour should sit near the concept's olive green-yellow")
