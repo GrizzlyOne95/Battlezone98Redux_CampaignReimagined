@@ -225,16 +225,24 @@ local function CreateAttackerRound()
     end
 end
 function Start() M=NewState() end
-function AddObject(h) end -- Native handler is empty.
+local scrapQueue,scrapSwept={},false
+function AddObject(h)
+    -- Native AddObject is empty; queue scrap for removal in Update.
+    local odf=GetOdf(h)
+    if odf and string.sub(odf,1,5)=="npscr" then scrapQueue[#scrapQueue+1]=h end
+end
 function Save() return M end
 function Load(state) if state then M=state end end
 -- CR co-op callbacks >>
-local NativeStart, NativeSave, NativeLoad = Start, Save, Load
+local NativeStart, NativeSave, NativeLoad, NativeAddObject = Start, Save, Load, AddObject
 function Start()
     NativeStart()
     if campaignRuntime then campaignRuntime.Start() end
 end
-function AddObject(h) if campaignRuntime then return campaignRuntime.AddObject(h) end end
+function AddObject(h)
+    NativeAddObject(h)
+    if campaignRuntime then return campaignRuntime.AddObject(h) end
+end
 function Save()
     local s = NativeSave()
     if campaignRuntime then campaignRuntime.Save() end
@@ -370,15 +378,20 @@ function Update(dt)
             if s.attackplayer then AttackPlayer(M.item[i]) end
         end
     end
-    -- Native repeatedly restarts its object-list iterator after removing scrap.
-    -- Collect first, then remove: no mutation of a live stock Lua iterator.
-    local scrap={}
-    for h in AllObjects() do
-        if Valid(h) and string.sub(GetOdf(h),1,5)=="npscr" then
-            scrap[#scrap+1]=h
+    -- Native deletes all scrap every frame. Do it from the AddObject queue
+    -- instead of walking every object each tick; handles are removed here, not
+    -- inside AddObject. The first Update sweeps once for scrap that pre-existed.
+    if not scrapSwept then
+        scrapSwept=true
+        for h in AllObjects() do
+            if Valid(h) and string.sub(GetOdf(h),1,5)=="npscr" then scrapQueue[#scrapQueue+1]=h end
         end
     end
-    for _,h in ipairs(scrap) do Remove(h) end
+    for i=1,#scrapQueue do
+        local h=scrapQueue[i]
+        scrapQueue[i]=nil
+        if Valid(h) then Remove(h) end
+    end
     if M.user~=M.olduser then
         M.olduser=M.user
         -- Native means 'player handle has ever changed', not IsCraft(user).
