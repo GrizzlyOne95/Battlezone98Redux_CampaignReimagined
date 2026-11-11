@@ -131,6 +131,8 @@ CONFIG = {
     'cvtnk': unit('cra', .5, .5, conform=True, carrier=dict(name='CYE11NAC', parent='CYE11BDA', at=((1.5, 1.8),))),
     # cvcnst: low on the tail, either side of the centreline, well behind the deploying arm (BDB-BDE).
     'cvcnst': unit('cra', .5, .6, conform=True, carrier=dict(name='CCN11NAC', parent='CCN11BDA', at=((.7, 2.2),))),
+    # cvscav: under the rear rim of the dome, inboard of the engine-rolled wing fins (FNL/FNR, left alone).
+    'cvscav': unit('cra', .5, .4, conform=True, carrier=dict(name='CMO11NAC', parent='CMO11BDA', at=((.35, 3.05),))),
 }
 
 def unit_vectors(v):
