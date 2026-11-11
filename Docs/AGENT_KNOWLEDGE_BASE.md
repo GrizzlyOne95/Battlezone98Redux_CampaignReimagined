@@ -2020,6 +2020,25 @@ to the ordinary GOG development mod.
 - UNVERIFIED (not traced to a decompile line in this pass): that OpenShim plays
   `cr_fire_N` on the cockpit skeleton when `recoilCockpitN = true`, and that
   `recoilKick` does not scale the clip's travel.
+
+### Cockpit hardpoint mounts and opt-ins (2026-11-10)
+
+- CR hardpoint mounts in first person: avfigh, avhraz, bvhraz, bvrdev and crfraz were
+  checked by ray-casting from the cockpit eye (0.5 deg grid, glass excluded). None of them
+  gets a mount batch. avhraz/bvhraz (shared mount) reach the eye only as a clip-through in
+  the left tub floor (365 of 3097 rays, 0 through the canopy glass). avfigh's mount also
+  only clips through the floor (179 of 976 rays, 0 through the glass). bvrdev's mount sits
+  behind the pilot (yaw 137-159 deg, 0 rays). crfraz has no CR cockpit mesh. Copying such
+  a mount would add a visible clip, so only a mount seen through the glass qualifies.
+  `Test-CombatCockpits.py` now expects a mount batch exactly when a fighter's source mesh
+  has `<base>_hpmount`.
+- `"cockpit_hardpoints": true` is now set for avfigh, bvrdev, cvrckt, cvturr, svltnk and
+  svtank, as well as svfigh. Gate per model: the cockpit owner bones match the
+  exterior's world pose (all deltas 0 m / 0 deg). Several stock cockpit hardpoints were
+  wrong before this: svtank GC1/GC2 sat 3.4-5.2 m behind the muzzle, svltnk GC1 sat at
+  the barrel root, bvrdev had GC1 and GM1 swapped, and avfigh's guns were at the nose.
+  `Test-WeaponRigs.py` checks that every opted-in model's cockpit hardpoints and owners
+  match the world rig.
 ### Flameless hover units: pod flames (2026-11-10)
 
 - Pass over the flameless hover units: only cvhaul (boom ducts COX11NRL/NRR), cvrckt (rear
