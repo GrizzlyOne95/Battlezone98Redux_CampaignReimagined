@@ -1,0 +1,197 @@
+{
+  "note": "Hardpoint mount (Tools/Build-HardpointMounts.py). Ogre mesh space in the VDF pose (VDF x = -x), metres. The hardpoint sits INSET x scale inside the muzzle, on the fire axis.",
+  "unit": "crfraz",
+  "piece": "sleek_cannon",
+  "part": "cfr11GC1",
+  "owner": "cfr11bda",
+  "faction": "cra",
+  "base": "2390592bf72b8654606665f4b837e34818162fea",
+  "material": "crfraz_hpmount",
+  "triangles": 2288,
+  "fireThrough": [],
+  "frame": {
+    "at": [
+      2.2,
+      1.9,
+      -1.0
+    ],
+    "seat": [
+      2.146972,
+      1.713419,
+      -1.033388
+    ],
+    "normal": [
+      0.269421,
+      0.947964,
+      0.169636
+    ],
+    "front": [
+      -0.046376,
+      -0.163173,
+      0.985507
+    ],
+    "scale": 1.2
+  },
+  "bury": 0.144,
+  "muzzle": [
+    2.102107,
+    1.55556,
+    0.521305
+  ],
+  "fire": [
+    -0.046376,
+    -0.163173,
+    0.985507
+  ],
+  "inset": 0.048,
+  "hardpoint": [
+    2.104333,
+    1.563393,
+    0.474001
+  ],
+  "stockHardpoint": [
+    2.93822,
+    1.483744,
+    -1.97246
+  ],
+  "paint": [
+    35.0,
+    32.0,
+    33.0
+  ],
+  "accent": [
+    5.0,
+    190.0,
+    239.0
+  ],
+  "markTexels": 653,
+  "paintFrom": "crfraz_d.dds",
+  "checks": {
+    "footprint": 16,
+    "skinAboveFloor": [
+      0.14221510682081698,
+      0.1455945245611529
+    ],
+    "saddleTop": 0.034559999406337735,
+    "muzzle": [
+      2.1021066633632275,
+      1.5555604822039464,
+      0.5213052788262733
+    ],
+    "fire": [
+      -0.046375603958701106,
+      -0.16317342133617055,
+      0.9855068431659489
+    ],
+    "groundClearance": 1.3949,
+    "parts": {
+      "restGap": {
+        "cfr11bdb": 0.3,
+        "cfr11bdc": 0.3,
+        "cfr11bdd": 0.3,
+        "cfr11ror": 0.3
+      },
+      "ownerBodyGap": 0.0342,
+      "gunLines": {
+        "cfr11GC2": null,
+        "cfr11GM1": null,
+        "cfr11GR1": null,
+        "cfr11GS1": null
+      },
+      "sweepDegrees": 23.0,
+      "sweepGap": {
+        "cfr11ror": 0.2
+      },
+      "lineOfFireCrossedBy": {},
+      "rolledGroundClearance": 0.562
+    }
+  },
+  "mirror": {
+    "part": "cfr11GC2",
+    "owner": "cfr11bdb",
+    "frame": {
+      "at": [
+        -2.2,
+        1.9,
+        -1.0
+      ],
+      "seat": [
+        -2.146972,
+        1.713419,
+        -1.033388
+      ],
+      "normal": [
+        -0.269421,
+        0.947964,
+        0.169636
+      ],
+      "front": [
+        0.046376,
+        -0.163173,
+        0.985507
+      ],
+      "scale": 1.2
+    },
+    "muzzle": [
+      -2.102107,
+      1.55556,
+      0.521305
+    ],
+    "fire": [
+      0.046376,
+      -0.163173,
+      0.985507
+    ],
+    "hardpoint": [
+      -2.104333,
+      1.563393,
+      0.474001
+    ],
+    "stockHardpoint": [
+      -2.9382,
+      1.483744,
+      -1.972459
+    ],
+    "checks": {
+      "footprint": 16,
+      "skinAboveFloor": [
+        0.1422151068208176,
+        0.14559452456115352
+      ],
+      "saddleTop": 0.034559999406337735,
+      "muzzle": [
+        -2.102106663363227,
+        1.555560482203946,
+        0.5213052788262731
+      ],
+      "fire": [
+        0.046375603958701106,
+        -0.16317342133617055,
+        0.9855068431659489
+      ],
+      "groundClearance": 1.3949,
+      "parts": {
+        "restGap": {
+          "cfr11bda": 0.3,
+          "cfr11bdc": 0.3,
+          "cfr11bdd": 0.3,
+          "cfr11ror": 0.3
+        },
+        "ownerBodyGap": 0.0342,
+        "gunLines": {
+          "cfr11GC1": null,
+          "cfr11GM1": null,
+          "cfr11GR1": null,
+          "cfr11GS1": null
+        },
+        "sweepDegrees": 23.0,
+        "sweepGap": {
+          "cfr11ror": 0.2
+        },
+        "lineOfFireCrossedBy": {},
+        "rolledGroundClearance": 0.562
+      }
+    }
+  },
+  "meshSha256": "afc9e3aae2246e3b78221ed4e376976cd1657a0c26d7e7d59db4daed657533ff"
+}

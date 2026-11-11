@@ -325,8 +325,19 @@ def geometry(source,skelpath,base,game,root):
         piece('Stoli original red gun housing',[1],housing)
     else:piece('Thunderbolt sloped bow',[1],q[:,:,2].min(1)>3.25,-16,-.36,1.62)
     parts['CRV/'+base+'CombatExterior']=(np.concatenate(exterior),np.array(indices,dtype='<u2'))
+    mount=None
+    if role=='fighter':
+        # CR hardpoint mount (Build-HardpointMounts.py): its own atlas, so its
+        # own batch. Copied whole, at its native position, on the nose bone it
+        # is welded to, so it rolls with the nose exactly as on the exterior.
+        sub=next((x for x in shared.read_mesh(source).submesh_list if x.material_name==base+'_hpmount'),None)
+        if sub is not None:
+            owners={a.bone_index for a in sub.bone_assignments() if a.weight>0};names={b.handle:b.name for b in s.bones()}
+            assert len(owners)==1 and all(a.weight>.99 for a in sub.bone_assignments()),'hardpoint mount must be rigid on one bone'
+            data,ix,_=tank.source_part(sub);mount=dict(material='CRV/'+base+'CombatHpmount',bone=names[owners.pop()],triangles=len(ix)//3)
+            parts[mount['material']]=(data,ix)
     parts[cfg['material']]=h.part()
-    meta=dict(base=base,role=role,pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,innerShell=topology,rim=rim,panels=h.panels,exteriorPieces=pieces,exteriorSkin=skin,nativeVdfSha256=__import__('hashlib').sha256(native).hexdigest())
+    meta=dict(base=base,role=role,pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,innerShell=topology,rim=rim,panels=h.panels,exteriorPieces=pieces,exteriorSkin=skin,mountSkin=mount,nativeVdfSha256=__import__('hashlib').sha256(native).hexdigest())
     if skin:
         # The rolling nose keeps its eye z, so the static tub must end short of
         # the nose's rearmost plane (less NOSE_CLEARANCE); glass is clamped to it.
@@ -339,10 +350,14 @@ def part_bones(parts,skeleton,shell,meta):
     if not meta['exteriorSkin']:return None
     name='CRV/'+meta['base']+'CombatExterior';handles=np.full(len(parts[name][0]),shell.handle);by_name={b.name:b.handle for b in skeleton.bones()}
     for entry in meta['exteriorSkin']:a,b=entry['vertices'];handles[a:b]=by_name[entry['bone']]
-    return {name:handles}
+    result={name:handles};mount=meta.get('mountSkin')
+    if mount:result[mount['material']]=np.full(len(parts[mount['material']][0]),by_name[mount['bone']])
+    return result
 def glass_parts(parts,meta):
     """Glass fitting set: animated pieces move, so they must not shape the shell glass."""
     if not meta['exteriorSkin']:return None
     name='CRV/'+meta['base']+'CombatExterior';data,index=parts[name];moving=np.zeros(len(data),bool)
     for entry in meta['exteriorSkin']:a,b=entry['vertices'];moving[a:b]=True
-    tri=index.reshape(-1,3);return {**parts,name:(data,tri[~moving[tri].any(1)].reshape(-1))}
+    tri=index.reshape(-1,3);fit={**parts,name:(data,tri[~moving[tri].any(1)].reshape(-1))}
+    if meta.get('mountSkin'):fit.pop(meta['mountSkin']['material'])
+    return fit

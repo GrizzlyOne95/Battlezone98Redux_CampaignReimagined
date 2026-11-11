@@ -9260,7 +9260,7 @@
   },
   "svfigh": {
     "source": {
-      "mesh": "7df70f0af01431b8f66e16a9037bd519fd45b7fbd100d837862a243f90b53260",
+      "mesh": "f412aa075c44f3b7004ac2d629b528247b1e32d30a310f0bb1b63463d23418c3",
       "skeleton": "1ec0ac4acbe9137c4243ea0792aecfb3d76ca32e1f539d6095eeae34b0c2e01c",
       "bind_poses": {
         "SFL11BDA": [
@@ -9522,7 +9522,7 @@
       }
     ],
     "cockpit_source": {
-      "mesh": "ab8d6881497ac8dbfa8ea634d0b37b1332a72fe07fef7e64536bbd043c7c7ce5",
+      "mesh": "cf4e39fe3888c46992734ca182ba28bba11ef8e5e191d92e577d594b292e4953",
       "skeleton": "1ec0ac4acbe9137c4243ea0792aecfb3d76ca32e1f539d6095eeae34b0c2e01c",
       "bind_poses": {
         "SFL11BDA": [
@@ -9729,7 +9729,7 @@
         "animation": "cr_fire_1",
         "node": "",
         "spin": false,
-        "distance": 0.025,
+        "distance": 0.08,
         "return": 2.0,
         "kick_without_weapon": 0.25,
         "flash_offset": [
@@ -9771,7 +9771,7 @@
         "animation": "cr_fire_2",
         "node": "",
         "spin": false,
-        "distance": 0.025,
+        "distance": 0.08,
         "return": 2.0,
         "kick_without_weapon": 0.25,
         "flash_offset": [
@@ -9817,9 +9817,9 @@
         "return": 2.0,
         "kick_without_weapon": 0.25,
         "casing_offset": [
-          1.0287,
-          0.38,
-          -0.3543
+          0.4364,
+          0.1728,
+          -0.2655
         ],
         "casing_direction": [
           0.9345,
@@ -9827,12 +9827,12 @@
           -0.1402
         ],
         "casing_outward_side": 1,
-        "casing_clearance": 0.2962,
+        "casing_clearance": 0.2656,
         "casing_jitter_rays_clear": true,
         "port_world": [
-          1.0324470888840764,
-          0.9683545036084553,
-          2.4045464602552515
+          0.4364339072216345,
+          1.0214968433767238,
+          2.300830909286666
         ],
         "direction_world": [
           0.9345386270319955,
@@ -9840,19 +9840,51 @@
           -0.14018079405479933
         ],
         "tip_world": [
-          0.003737000050023198,
-          0.5883059725165367,
-          2.7588529735803604
+          0.0,
+          0.8487449758491517,
+          2.566295995369911
         ],
         "cockpit": true,
         "presentation_only": true
       }
     },
     "outputs": {
-      "Assets/Models/svfigh_recoil.skeleton": "9e2a6c8aa04f83eca93a7d2dfeae0b7f94442ea2171b1c4bffba4e722b0e8b4b",
-      "Assets/ModelFixes/svfigh.mesh": "a4f8181b407bccb1ebd7b6e631084bd6c13fe9ac592230cab3fc4554791913fd",
-      "Assets/Models/svfigh_cockpit.mesh": "1e5ed2ab851101e539e65439569b975b3b3319118455630587d57ecbab0be9c5",
-      "Assets/Models/svfigh_cockpit_recoil.skeleton": "9e2a6c8aa04f83eca93a7d2dfeae0b7f94442ea2171b1c4bffba4e722b0e8b4b"
+      "Assets/Models/svfigh_recoil.skeleton": "08b7471946a0b3348f91236f7737f07a467b87e05891d1a4f086ddcc22b69d32",
+      "Assets/ModelFixes/svfigh.mesh": "6e8f85b1facce7d6e74a5192cda0263e658085251f002c38146ba0a8846f89dc",
+      "Assets/Models/svfigh_cockpit.mesh": "cc6d1903605d6f313af61fb35405f2cc146abc4d9251c673ba620980b2bc2f72",
+      "Assets/Models/svfigh_cockpit_recoil.skeleton": "08b7471946a0b3348f91236f7737f07a467b87e05891d1a4f086ddcc22b69d32"
+    },
+    "hardpoints": {
+      "SFL11GR1": {
+        "parent": "SFL11ROR",
+        "position": [
+          0.0,
+          0.186096,
+          1.958691
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
+    },
+    "cockpit_hardpoints": {
+      "SFL11GR1": {
+        "parent": "SFL11ROR",
+        "position": [
+          0.0,
+          0.186096,
+          1.958691
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
     }
   },
   "svhraz": {

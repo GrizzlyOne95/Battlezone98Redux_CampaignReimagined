@@ -635,6 +635,8 @@ def hardpoint_skeleton(unit):
 SKELETONS = {
     "cvhaul.skeleton": ("TRO/cvhaul.skeleton", lambda d: add_vdf_bone(d, "cvhaul.vdf", "COX11GS1")),
     **{u + ".skeleton": (u + ".skeleton", hardpoint_skeleton(u)) for u in ("avtank", "bvtank", "avturr", "bvturr", "avhraz", "bvhraz")},
+    # crfraz: CR-original model (no stock files); VDF and skeleton come from CR at the receipt base.
+    "crfraz.skeleton": ("CR@2390592b:Assets/ModelFixes/crfraz.skeleton", hardpoint_skeleton("crfraz")),
 }
 
 
@@ -848,11 +850,32 @@ def apply_hardpoints(bwd, receipt, name, tracks=None):
         mesh.frame_transform = SP.Transform(*new.to_rufp_xyz())
 
 
+def git_blob(rev, rel):
+    import subprocess
+    return subprocess.run(["git", "-C", ROOT, "show", "--no-textconv", "%s:%s" % (rev, rel)],
+                          capture_output=True, check=True).stdout
+
+
+def source_vdf(stock_dir, name):
+    """The VDF a build starts from: the stock one, or for a CR-original model (no stock file,
+    e.g. crfraz) CR's own file at its hardpoint receipt's CR@<rev> base."""
+    path = os.path.join(stock_dir, name)
+    if os.path.exists(path):
+        return open(path, "rb").read()
+    r = hardpoint_receipt(os.path.splitext(name)[0])
+    if not (r and r["base"].startswith("CR@")):
+        raise FileNotFoundError(path)
+    return git_blob(r["base"][3:], "Assets/ModelFixes/" + name)
+
+
 def build(stock_dir, name, game=DEFAULT_GAME):
     if name in SKELETONS:
         rel, edit = SKELETONS[name]
-        src = os.path.join(game, "BZ_ASSETS", "common", "models", *rel.split("/"))
-        sk = SKS.SkeletonSerializer(io.BytesIO(open(src, "rb").read())).read()
+        if rel.startswith("CR@"):  # CR-original skeleton at a git revision ("CR@<rev>:<path>")
+            raw = git_blob(*rel[3:].split(":", 1))
+        else:
+            raw = open(os.path.join(game, "BZ_ASSETS", "common", "models", *rel.split("/")), "rb").read()
+        sk = SKS.SkeletonSerializer(io.BytesIO(raw)).read()
         edit(stock_dir)(sk)
         out = io.BytesIO()
         SKS.SkeletonSerializer(out).write(sk)
@@ -864,7 +887,7 @@ def build(stock_dir, name, game=DEFAULT_GAME):
             raise SystemExit(f"{name}: no BUILDS entry, NacelleJets flame receipt or Hardpoints receipt")
         # Receipt parts only: no Model (it would add an empty ANIM chunk to a VDF without one);
         # rest-only hardpoint tracks are edited in place.
-        bwd = SER.VDFSerializer(io.BytesIO(open(os.path.join(stock_dir, name), "rb").read())).read()
+        bwd = SER.VDFSerializer(io.BytesIO(source_vdf(stock_dir, name))).read()
         if flames:
             apply_flames(bwd, flames, name)
         if hardpoints:

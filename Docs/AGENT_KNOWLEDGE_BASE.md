@@ -1893,8 +1893,11 @@ to the ordinary GOG development mod.
   2,000-triangle cap, and a closed manifold submesh.
 - EXACT booleans on lathed bores go non-manifold when the cutter's vertices land on the
   body's edges. Give each lathe its own phase (golden-ratio stagger in `hardpointmount_blender.py`).
-- The hardpoint is written with identity rotation at INSET (0.04 x scale) behind the muzzle.
-  Whether the engine aims shots along the bone or the craft's forward axis is UNVERIFIED.
+- The hardpoint sits at INSET (0.04 x scale) behind the muzzle and keeps its world orientation
+  (local = world @ owner^T). That is identity under an identity owner. Under a yawed owner
+  (crfraz `cfr11bdb`, 180 deg), an identity local would point GC2 backwards, and
+  `Build-UnitAnimSlots` refuses its rotation keys. Whether the engine aims shots along the
+  bone or along the craft's forward axis is UNVERIFIED.
 - Canopy glass counts as hull for line of fire: an avfigh dorsal pod fires into its canopy,
   so the rocket pod sits under the chin.
 - `Build-NacelleJets.py --ship` rebuilds a unit mesh from its own base and drops the mount
@@ -1915,6 +1918,40 @@ to the ordinary GOG development mod.
   combat presentation evidence, and the Red Devil legacy/cockpit tests. The Red Devil tests now
   strip the single trailing `bvrdev_hpmount` submesh and material block through the toolkit
   (`without_mount`, `without_mount_material`) and still compare every original byte.
+- Rollout audit (`Local/HardpointMounts/rollout/candidates.md`): a "no geometry at the
+  hardpoint" flag is not enough. Check the unit's rig channels (`combat-models.json`) and
+  `craft-flash-offsets.json` first. The bvraz cheek barrels are aligned through flashOffset,
+  and the avltnk/bvltnk launchers are native cones; both are false positives.
+- CR-original models (crfraz, imported by `Build-FuryFighter.py`) have no stock VDF or
+  skeleton. Their receipt base is `CR@<rev>`, and `Build-UnitAnimSlots` reads both the VDF and
+  the SKELETONS source (`"CR@<rev>:<path>"`) from git at that revision. Rerunning the importer
+  drops the mounts; `Docs/FURY_FIGHTER.md` lists the re-apply steps.
+- Mirrored pairs use `mirror=dict(part, owner)`. Pass `rollViews` for a rolling owner, so the
+  sheet shows the seat at both roll extremes.
+- Low-poly hulls can leave no triangle beside the seat for the paint sample, so `seat_paint`
+  falls back to the nearest face. The line-of-fire check exempts the unit's own marker.
+- `Build-CombatPresentation.py --verify-models` also rewrites ODF `casingOffset` keys. Revert
+  the ODFs it touched outside your unit.
+- The combat cockpit exterior leaves out the `<unit>_hpmount` submesh (svfigh). A mount on
+  the nose is not drawn in the cockpit view.
+- `sleek_cannon` (crfraz): a fourth kit piece, a swept blade fairing lofted from `BLADE_SECTIONS`
+  into one slim barrel, with no collar or bracket. Its walls drop straight to -BURY, and
+  every blade face wholly below `ROOT_BAND` (0.03) is tagged saddle, so the flared root
+  runs tangent into the wing and the saddle checks measure that band. It uses the same place/mirror/UV/paint path, so the existing
+  muzzle, ground, part_clearance (with the cfr11ror sweep) and line-of-fire checks cover it.
+  It has 1,144 tris per side; the kit cannon had 1,016.
+- `textures(..., sleek=True)` drops the rivets and takes every zone colour from the hull.
+  `hull_glow(atlas)` picks the dominant saturated hue of the hull atlas (crfraz: cyan) for
+  the muzzle accent, and E is lit only on accent texels. No cream.
+- A test that pins a model "byte-identical except the mount" should restore and compare, not
+  skip bytes. In `Test-FuryFighterAssets.py`:
+  1. Read the VDF and skeleton through the toolkit.
+  2. Assert each GC record, ANIM rest key, frame_transform and bone position equals the
+     `References/Hardpoints` receipt.
+  3. Put the original values back.
+  4. Re-serialize and require exact equality with the namespaced original.
+  The toolkit round-trips both formats byte-exact, so nothing else can change unseen. The
+  mesh side strips the one trailing mount submesh with `without_mount`.
 
 ### Emissive pulse through surface clones (2026-11-10)
 
@@ -1955,6 +1992,34 @@ to the ordinary GOG development mod.
 - svfigh's eye-facing BDA deck mask drops the stock rails and slats (|x| .14-.5 m): the
   owner read them as bars and corner wedges over the tub's front wall.
 
+### svfigh tip recoil and cockpit pod (2026-11-10)
+
+- The combat cockpit builder copied only the body batch, so a CR hardpoint mount
+  submesh (`svfigh_hpmount`) never reached first person. `combatcockpits.py` now copies
+  a fighter's `<base>_hpmount` whole, unmoved, as its own batch
+  (`CRV/<base>CombatHpmount`). The batch is rigid on its one owner bone (SFL11ROR, so
+  it rolls with the nose), is kept out of the glass fit, and is recorded as
+  `mountSkin` in the receipt. Its material is hand-added to
+  `Materials/CR_svfigh_cockpit.material`, because the builder only writes that file
+  when it is missing.
+- `Build-WeaponRigs.py` used to apply hardpoint receipt poses to the world skeleton
+  only, which left first-person GR1 at the stock spot. It now poses the cockpit
+  skeleton too (receipt key `cockpit_hardpoints`), but only for models that set
+  `"cockpit_hardpoints": true` in `models.json` (svfigh). Doing it for every model
+  crashed svturr, whose `svturr_c` has no owner bone. It would also have moved the
+  first-person hardpoints of 6 other models without anyone reviewing the change.
+  Before opting a model in, check that its cockpit owner bones have the exterior's
+  world pose.
+- A recoil travel of 2.5 cm reads as static on the exterior. svfigh GC1/GC2 now use 8 cm
+  (`models.json` distance 0.08).
+- The svfigh cannon tips are in the cockpit mesh, but the eye cannot see them: 0 of
+  5700 direct rays reach them, because the exterior nose and the tub block them. So the
+  tips do not recoil visibly in first person. The pod is visible as a small block on the
+  nose crest. `Test-CombatCockpits.py` checks this with a 0.25 deg ray grid, which gets
+  151 hits.
+- UNVERIFIED (not traced to a decompile line in this pass): that OpenShim plays
+  `cr_fire_N` on the cockpit skeleton when `recoilCockpitN = true`, and that
+  `recoilKick` does not scale the clip's travel.
 ### Flameless hover units: pod flames (2026-11-10)
 
 - Pass over the flameless hover units: only cvhaul (boom ducts COX11NRL/NRR), cvrckt (rear

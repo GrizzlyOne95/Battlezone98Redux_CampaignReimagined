@@ -59,10 +59,15 @@ class WeaponRigTests(unittest.TestCase):
             moved=record.get('hardpoints',{})
             receipt=hpbones.receipt(model)
             self.assertEqual(set(moved),{p['name'] for p in receipt['parts']} if receipt else set(),model)
+            cockpit_moved=record.get('cockpit_hardpoints',{})
+            # Cockpit posing is opt-in per model; the receipt must follow the flag.
+            self.assertEqual(bool(cockpit_moved),bool(self.config['models'][model].get('cockpit_hardpoints')) and bool(moved),model+' cockpit_hardpoints opt-in')
+            if cockpit_moved:self.assertEqual(cockpit_moved,moved,model+' cockpit hardpoints match the world rig')
             for path,source in pairs:
                 skel=wr.read_skeleton(path)
                 self.assertTrue(set(source['animations']) <= {a.name for a in skel.animations})
-                if path.name==model+'_recoil.skeleton':
+                rehung=path.name==model+'_recoil.skeleton' or (bool(cockpit_moved) and path.name==model+'_cockpit_recoil.skeleton')
+                if rehung:
                     for part in receipt['parts'] if receipt else ():
                         name=part['name'];bone=skel.bone(name);pose=moved[name]
                         self.assertEqual(skel.bones[bone.parent].name,part['owner'],f'{model}/{name} owner')
@@ -70,7 +75,7 @@ class WeaponRigTests(unittest.TestCase):
                         self.assertTrue(np.allclose(bone.orientation,pose['orientation'],atol=2e-5),f'{model}/{name} receipt rotation')
                         self.assertFalse(any(t.bone==bone.handle for a in skel.animations for t in a.tracks),f'{model}/{name} animated')
                 for name,(position,rotation) in source['bind_poses'].items():
-                    if name in moved and path.name==model+'_recoil.skeleton':continue
+                    if name in moved and rehung:continue
                     bone=skel.bone(name);self.assertIsNotNone(bone)
                     p,q=wr.flash.bone_world(skel,bone.handle)
                     self.assertTrue(np.allclose(p,position,atol=2e-5),f'{model}/{name} bind moved')
@@ -134,5 +139,30 @@ class WeaponRigTests(unittest.TestCase):
         a=self.records['svhraz']['bindings']['GR1']['tip_world']
         b=self.records['svhraz']['bindings']['GR2']['tip_world']
         self.assertGreater(abs(a[0]-b[0]),1.0) # Distinct large forward apertures.
+
+    def test_svfigh_cannon_tip_recoil_and_cockpit_pod(self):
+        # Owner review: the black cannon tips must visibly recoil (2.5 cm read as
+        # static), and first person must show the hardpoint rocket pod.
+        odf=(ROOT/'ODF/svfigh.odf').read_text()
+        record=self.records['svfigh']
+        for n,(hard,clip) in enumerate([('GC1','cr_fire_1'),('GC2','cr_fire_2')],1):
+            self.assertIn(f'weaponHard{n} = "{hard}"',odf);self.assertIn(f'recoilAnimation{n} = "{clip}"',odf);self.assertIn(f'recoilCockpit{n} = true',odf)
+            self.assertIn(hard,record['bindings'])
+            for name in ('svfigh_recoil.skeleton','svfigh_cockpit_recoil.skeleton'):
+                skel=wr.read_skeleton(ROOT/'Assets/Models'/name);anim=next(a for a in skel.animations if a.name==clip)
+                self.assertTrue(anim.tracks and all(skel.bones[t.bone].name.startswith('crgun_') for t in anim.tracks),name)
+                travel=max(np.linalg.norm(k.translation) for t in anim.tracks for k in t.keyframes)
+                self.assertGreaterEqual(travel,.07,f'{name}/{clip} tip travel')
+        exterior=wr.ogre.read_mesh((ROOT/'Assets/ModelFixes/svfigh.mesh').read_bytes())
+        cockpit=wr.ogre.read_mesh((ROOT/'Assets/Models/svfigh_cockpit.mesh').read_bytes())
+        skel=wr.read_skeleton(ROOT/'Assets/Models'/cockpit.skeleton)
+        def sub(mesh,material):return next((s for s in mesh.submeshes if s.material==material),None)
+        source=sub(exterior,'svfigh_hpmount');pod=sub(cockpit,'CRV/svfighCombatHpmount')
+        self.assertIsNotNone(pod,'cockpit shows the hardpoint rocket pod')
+        self.assertEqual(len(list(pod.triangles())),len(list(source.triangles())))
+        self.assertTrue(np.allclose(np.asarray(pod.geometry.attribute(1)).min(0),np.asarray(source.geometry.attribute(1)).min(0),atol=1e-5),'pod at its native position')
+        self.assertEqual({skel.bones[b].name for _,b,_ in pod.bone_assignments},{'SFL11ROR'},'pod rolls with the nose')
+        gr1=wr.flash.bone_world(skel,skel.bone('SFL11GR1').handle)[0]
+        self.assertTrue(np.allclose(gr1,[0,.8487,2.5663],atol=1e-3),'first-person GR1 at the pod muzzle')
 
 if __name__=='__main__':unittest.main()

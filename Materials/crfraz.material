@@ -12,3 +12,18 @@ material crfraz : CR_BZBase
     set $shininess "96"
     set $glow "1 1 1"
 }
+
+
+material crfraz_hpmount : CR_BZBase
+{
+	set_texture_alias DiffuseMap crfraz_hpmount_D.dds
+	set_texture_alias NormalMap crfraz_hpmount_N.dds
+	set_texture_alias SpecularMap crfraz_hpmount_S.dds
+	set_texture_alias EmissiveMap crfraz_hpmount_E.dds
+
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+}

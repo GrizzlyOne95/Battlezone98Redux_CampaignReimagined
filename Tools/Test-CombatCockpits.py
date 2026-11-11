@@ -30,7 +30,14 @@ for base,cfg in cp.CONFIG.items():
     check(np.allclose(R,np.eye(3),atol=2e-5) and np.allclose(meta['povBasis'],R),'native/rest camera fixture')
     check(shell.handle==meta['shellHandle'] and shell.name==meta['shell'],'correct stable shell')
     m=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/Models'/(base+'_cockpit.mesh')));check(m.skeleton_name==base+'_cockpit.skeleton','separate namespaced rig')
-    check([sub.material_name for sub in m.submesh_list]==[cfg['material'],cfg['stock'],'CRV/'+base+'CombatExterior','CRWX_CockpitGlass'],'four deliberate batches including glass')
+    mount=meta.get('mountSkin');check((mount is not None)==(base=='svfigh'),'only the svfigh cockpit carries a hardpoint mount')
+    check([sub.material_name for sub in m.submesh_list]==[cfg['material'],cfg['stock'],'CRV/'+base+'CombatExterior',*([mount['material']] if mount else []),'CRWX_CockpitGlass'],'deliberate batches including glass (and the svfigh hardpoint pod)')
+    if mount:
+        # The CR hardpoint pod (Build-HardpointMounts.py) is copied whole, at its
+        # native position with its own UVs, rigid on the nose it is welded to.
+        pod=next(x for x in m.submesh_list if x.material_name==mount['material']);hp=next(x for x in cp.shared.read_mesh(base_asset_path(source)).submesh_list if x.material_name==base+'_hpmount')
+        raw,ix,_=cp.tank.source_part(hp);got=np.column_stack([cp.shared.values(pod.vertex_data,sem) for sem in (cp.shared.om.VES.POSITION,cp.shared.om.VES.NORMAL,cp.shared.om.VES.TEXTURE_COORDINATES)])
+        check(mount['bone']=='SFL11ROR' and np.array_equal(pod.index_array,ix) and np.allclose(got,raw[:,:8],atol=1e-6),'hardpoint pod is the exterior pod, unmoved')
     opaque=[];ranges={};cursor=0
     for sub in m.submesh_list:
         vd=sub.vertex_data;p=cp.shared.values(vd,cp.shared.om.VES.POSITION);n=cp.shared.values(vd,cp.shared.om.VES.NORMAL);uv=cp.shared.values(vd,cp.shared.om.VES.TEXTURE_COORDINATES);t=cp.shared.values(vd,cp.shared.om.VES.TANGENT)
@@ -44,6 +51,7 @@ for base,cfg in cp.CONFIG.items():
             # so dropping 'animated' (or a stray entry) cannot pass as all-shell.
             check([e['bone'] for e in meta.get('exteriorSkin',[])]==list(cfg.get('animated',())),'exteriorSkin matches configured animated bones')
             for entry in meta.get('exteriorSkin',[]):a,b=entry['vertices'];check(b<=len(p) and entry['bone'] in by_name,'animated piece '+entry['bone']);want[a:b]=by_name[entry['bone']]
+        if mount and sub.material_name==mount['material']:want[:]=by_name[mount['bone']]
         weights=list(sub.bone_assignments());check(len(weights)==len(p) and all(a.bone_index==want[a.vertex_index] and a.weight==1 for a in weights),'single rigid skinning (shell or declared animated bone)')
         tri=p[sub.index_array.reshape(-1,3)];check((np.linalg.norm(np.cross(tri[:,1]-tri[:,0],tri[:,2]-tri[:,0]),axis=1)>1e-10).all(),'nondegenerate triangles '+base+' / '+sub.material_name)
         if sub.material_name!='CRWX_CockpitGlass':
@@ -112,6 +120,13 @@ for base,cfg in cp.CONFIG.items():
     hits=[0,0];lo,hi=ranges[ext.material_name]
     for pitch in range(-31,1):
         yaw=np.arange(-45,46);dist,hit=cast(yaw,pitch);visible=(hit>=lo)&(hit<hi)&np.isfinite(dist);hits[0]+=int((visible&(yaw<0)).sum());hits[1]+=int((visible&(yaw>0)).sum())
+    if mount:
+        # The pod is small (about 4 x 6 degrees, low and centred): sample it finely.
+        plo,phi=ranges[mount['material']];pod_hits=0
+        for pitch in np.arange(-14,0,.25):
+            yaw=np.arange(-4,4.01,.25);dist,hit=cast(yaw,pitch);pod_hits+=int(((hit>=plo)&(hit<phi)&np.isfinite(dist)).sum())
+        print('svfigh pod rays',pod_hits)
+        check(pod_hits>100,'hardpoint pod visible from the real eye '+str(pod_hits));report['svfighPodVisibility']=pod_hits
     if base=='cvturr':
         # Native gun pods flank the pilot; do not require them to sit artificially
         # on the bottom of a forward render. Both high/low pairs must be visible

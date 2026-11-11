@@ -1494,11 +1494,11 @@
       "slots": {
         "1": {
           "weapon": "crfpuls",
-          "skip": "parent cfr11bda is not a barrel node and has no geometry around the hardpoint"
+          "skip": "parent cfr11bda is not a barrel node; the hardpoint already sits at the wing-top cannon mount muzzle"
         },
         "2": {
           "weapon": "crfarc",
-          "skip": "parent cfr11bdb is not a barrel node and has no geometry around the hardpoint"
+          "skip": "parent cfr11bdb is not a barrel node; the hardpoint already sits at the wing-top cannon mount muzzle"
         }
       }
     },
