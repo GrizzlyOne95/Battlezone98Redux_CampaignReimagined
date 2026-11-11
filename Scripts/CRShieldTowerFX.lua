@@ -81,7 +81,8 @@ end
 
 local function position(h)
     local ok, p = pcall(GetPosition, h)
-    if ok and type(p) == "table" and p.x then return p.x, p.y or 0.0, p.z or 0.0 end
+    -- GetPosition returns a VECTOR userdata, not a table
+    if ok and p ~= nil and p.x then return p.x, p.y or 0.0, p.z or 0.0 end
     return nil
 end
 
@@ -137,7 +138,7 @@ local function build(tower)
     local box = tower.box
     local size = { x = box.MaxX - box.MinX, y = box.MaxY - box.MinY, z = box.MaxZ - box.MinZ }
     local ok, t = pcall(GetTransform, tower.handle)
-    if not ok or type(t) ~= "table" then return end
+    if not ok or t == nil then return end  -- MAT_3D is userdata
     local lx, ly, lz = (box.MinX + box.MaxX) * 0.5, box.MinY, (box.MinZ + box.MaxZ) * 0.5
     local wx = (t.posit_x or 0) + (t.right_x or 1) * lx + (t.up_x or 0) * ly + (t.front_x or 0) * lz
     local wy = (t.posit_y or 0) + (t.right_y or 0) * lx + (t.up_y or 1) * ly + (t.front_y or 0) * lz
