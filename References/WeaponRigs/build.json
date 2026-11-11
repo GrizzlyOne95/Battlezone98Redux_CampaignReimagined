@@ -8543,9 +8543,67 @@
       "Assets/Models/cvturr_recoil.skeleton": "b0ecebc1ac8f136221cdb00b294e27c56ccc24addef9be2da2a1f120657932f1",
       "Assets/ModelFixes/cvturr.mesh": "286deb3cd3211e40c41eff9478af0792eae068694a664a8d7d6735f6ff56f898",
       "Assets/Models/cvturr_cockpit.mesh": "65a5ebb5c3cd42849a501e71d7941811870ae5cb05be552109f8165f4caa19c4",
-      "Assets/Models/cvturr_cockpit_recoil.skeleton": "87deba9e3f7a9394d3db2b69339dce27164a88f083e0c71c75bc51557cae9331"
+      "Assets/Models/cvturr_cockpit_recoil.skeleton": "8bfbf2d24fa6f863cf616e765662b1053883d231f7be6a2845c4276da70f763c"
     },
     "hardpoints": {
+      "CAD11GC1": {
+        "parent": "CAD11TX1",
+        "position": [
+          1.7028,
+          0.0999,
+          1.4857
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "CAD11GC2": {
+        "parent": "CAD11TX1",
+        "position": [
+          1.7028,
+          -0.2458,
+          1.4857
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "CAD11GC3": {
+        "parent": "CAD11TX2",
+        "position": [
+          -0.071,
+          -0.2458,
+          1.4857
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "CAD11GC4": {
+        "parent": "CAD11TX2",
+        "position": [
+          -0.071,
+          0.0999,
+          1.4857
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
+    },
+    "cockpit_hardpoints": {
       "CAD11GC1": {
         "parent": "CAD11TX1",
         "position": [
