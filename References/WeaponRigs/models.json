@@ -32,6 +32,7 @@
   },
   "models": {
     "avfigh": {
+      "cockpit_hardpoints": true,
       "channels": [
         {
           "hardpoints": [
@@ -514,6 +515,7 @@
       ]
     },
     "bvrdev": {
+      "cockpit_hardpoints": true,
       "channels": [
         {
           "hardpoints": [
@@ -971,6 +973,7 @@
       ]
     },
     "cvrckt": {
+      "cockpit_hardpoints": true,
       "channels": [
         {
           "hardpoints": [
@@ -1110,6 +1113,7 @@
       ]
     },
     "cvturr": {
+      "cockpit_hardpoints": true,
       "channels": [
         {
           "hardpoints": [
@@ -1451,6 +1455,7 @@
       ]
     },
     "svltnk": {
+      "cockpit_hardpoints": true,
       "channels": [
         {
           "hardpoints": [
@@ -1544,6 +1549,7 @@
       ]
     },
     "svtank": {
+      "cockpit_hardpoints": true,
       "channels": [
         {
           "hardpoints": [

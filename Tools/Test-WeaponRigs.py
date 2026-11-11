@@ -165,4 +165,19 @@ class WeaponRigTests(unittest.TestCase):
         gr1=wr.flash.bone_world(skel,skel.bone('SFL11GR1').handle)[0]
         self.assertTrue(np.allclose(gr1,[0,.8487,2.5663],atol=1e-3),'first-person GR1 at the pod muzzle')
 
+    def test_opted_in_cockpit_hardpoints_match_world_rig(self):
+        # models.json "cockpit_hardpoints": true poses the cockpit's receipt hardpoints
+        # exactly where the world rig puts them, so first-person muzzles match.
+        opted=[m for m,e in self.config['models'].items() if e.get('cockpit_hardpoints')]
+        self.assertIn('svfigh',opted)
+        for model in opted:
+            receipt=hpbones.receipt(model);self.assertIsNotNone(receipt,model)
+            world=wr.read_skeleton(ROOT/'Assets/Models'/(model+'_recoil.skeleton'))
+            cockpit=wr.read_skeleton(ROOT/'Assets/Models'/(model+'_cockpit_recoil.skeleton'))
+            for part in receipt['parts']:
+                for name in (part['name'],part['owner']):
+                    a=wr.flash.bone_world(world,world.bone(name).handle);b=wr.flash.bone_world(cockpit,cockpit.bone(name).handle)
+                    self.assertTrue(np.allclose(a[0],b[0],atol=1e-4),f'{model}/{name} first-person position')
+                    self.assertTrue(min(np.abs(np.asarray(a[1])-np.asarray(b[1])).max(),np.abs(np.asarray(a[1])+np.asarray(b[1])).max())<1e-4,f'{model}/{name} first-person rotation')
+
 if __name__=='__main__':unittest.main()
