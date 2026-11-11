@@ -406,7 +406,7 @@ function F.makePeer(id, team, network, options)
     e.GetWhoShotMe = function(h) return W.objects[h] and W.objects[h].shotBy end
     e.Damage = function(h,amount) assert(e.IsValid(h));record("Damage",h,amount);W.objects[h].alive=false end
     e.IsAudioMessageDone = function() return not W.audioBusy end
-    e.AiCommand = {NONE=0,ATTACK=3,DEFEND=16,GET_RELOAD=11}
+    e.AiCommand = {NONE=0,ATTACK=3,DEFEND=16,GET_RELOAD=11,GET_REPAIR=10}
     e.GetCurrentWho = function(h) return W.objects[h] and W.objects[h].target end
     local function noop() end
     local modules = {

@@ -440,27 +440,31 @@ do
     check(F.count(p[1], "TitanInit") == 2 and F.count(p[1], "WeatherSensors", "Titan") == 2, "the weather and sky binding re-initialise after a load")
     check(F.count(p[1], "TitanLevel") == 3, "saved beats are not replayed after a load")
 end
-do -- CR addition: a Black Dog APC deploys its soldiers on a close enemy, leader only, throttled, Save/Load safe
+do -- CR addition: a Black Dog APC attacks a close enemy craft (aiCore APCManager style), leader only, Save/Load safe
     w, p, m = setup(2)
     local apc = F.spawn("bvapc", 5)
-    F.run(1)
-    check(F.count(p[1], "Deploy") == 0, "an APC with no enemy near does not deploy")
-    F.nearTo(apc, p[2].player, 60, 0); F.run(1)
-    check(F.count(p[1], "Deploy", apc) == 1, "an APC 60 m from a guest deploys")
-    check(F.count(p[2], "Deploy") == 0, "guests never issue Deploy")
-    F.run(5)
-    check(F.count(p[1], "Deploy", apc) == 1, "one try per 10 s")
+    w.objects[apc].command = 3; F.run(6)
+    check(F.count(p[1], "Attack", apc) == 0, "an APC already on its run with no enemy near is left alone")
+    w.objects[p[2].player].pos = {x = 5000, y = 0, z = 5000} -- far from both bases
+    F.nearTo(apc, p[2].player, 60, 0); F.run(6)
+    check(F.count(p[1], "Attack", apc) == 1 and F.last(p[1], "Attack")[3] == p[2].player, "an APC 60 m from a guest attacks that guest")
+    check(F.count(p[2], "Attack", apc) == 0, "guests never retarget the APC")
+    w.objects[apc].target = p[2].player; F.run(12)
+    check(F.count(p[1], "Attack", apc) == 1, "an APC already attacking that unit is not re-ordered")
+    w.objects[apc].target = nil
     for _, q in ipairs(p) do q.env.Load(q.env.Save()) end
     F.connect(); F.run(6)
-    check(F.count(p[1], "Deploy", apc) == 2, "the tracked APC survives a Save/Load and retries")
+    check(F.count(p[1], "Attack", apc) == 2 and F.last(p[1], "Attack")[3] == p[2].player, "the tracked APC survives a Save/Load")
     w.objects[apc].command = 11; F.run(12)
-    check(F.count(p[1], "Deploy", apc) == 2, "an APC going home to reload is left alone")
+    check(F.count(p[1], "Attack", apc) == 2, "an APC going home to reload is left alone")
     w.objects[apc].command = 0
-    F.nearTo(apc, p[2].player, 150, 0); F.run(12)
-    check(F.count(p[1], "Deploy", apc) == 2, "an enemy beyond 100 m is ignored")
+    F.nearTo(apc, p[2].player, 200, 0); F.run(6)
+    check(F.count(p[1], "Attack", apc) == 3 and F.last(p[1], "Attack")[3] == m.ccarecycle, "an idle APC with no enemy in 120 m goes back to the recycler")
     local own = F.spawn("bvapc", 1); F.nearTo(own, apc, 30, 0); F.run(12)
-    check(F.count(p[1], "Deploy", own) == 0, "a human-team APC is never deployed by the script")
-    F.kill(apc); F.run(1)
+    check(F.count(p[1], "Attack", own) == 0, "a human-team APC is never ordered by the script")
+    local tank = F.spawn("bvtank", 5); F.nearTo(tank, p[2].player, 60, 0); F.run(12)
+    check(#p[1].env.Save().crcca.r.apcs == 2, "only bvapc is tracked")
+    F.kill(apc); F.run(6)
     check(#p[1].env.Save().crcca.r.apcs == 1, "dead APCs are dropped")
 end
 do -- sites module missing: no weather, never an error
