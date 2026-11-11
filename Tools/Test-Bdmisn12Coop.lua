@@ -360,6 +360,25 @@ do -- shield and power warnings: each once, on every peer
     heardAll(p, "bd12008.wav")
 end
 
+do -- repaired units re-arm their warning above 50 %, not between 25 % and 50 %
+    local w, p, m = setup(3, {})
+    finishIntro(w)
+    local o = F.world().objects
+    o["shield_2"].health = 0.2; F.run(2)
+    heardAll(p, "bd12006.wav")
+    o["shield_2"].health = 0.4; F.run(2); o["shield_2"].health = 0.2; F.run(2)
+    heardAll(p, "bd12006.wav") -- 25-50 % keeps the latch: no second warning
+    o["shield_2"].health = 0.6; F.run(2); o["shield_2"].health = 0.2; F.run(2)
+    heardAll(p, "bd12006.wav", 2) -- repaired above 50 %, then low again: warns again
+    o["power_3"].health = 0.1; F.run(2)
+    heardAll(p, "bd12007.wav")
+    F.kill("power_3"); F.run(3)
+    check(m.healthLow[2], "a dead unit does not clear its latch")
+    m.healthLow[1] = nil; F.run(2) -- an old save without a latch entry loads and runs
+    o["power_2"].health = 0.1; F.run(2)
+    heardAll(p, "bd12006.wav", 3) -- and a nil latch still warns (power_2 shares shield_2's line)
+end
+
 -- ------------------------------------------------------------------ stock bug: a dead target leaves the raiders idle
 do
     local w, p, m = setup(3, {})
