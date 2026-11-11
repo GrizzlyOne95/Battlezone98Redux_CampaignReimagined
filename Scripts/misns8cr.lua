@@ -471,9 +471,9 @@ function AddObject(h)
     if campaignRuntime then campaignRuntime.AddObject(h) end
 -- CR co-op callback <<
     if not Valid(h) then return end
--- CR APC retarget >>
+-- CR restored content >>
     Restored.TrackApc(h)
--- CR APC retarget <<
+-- CR restored content <<
     -- Keep the exact source slot priority and ODF matching (no team filter).
     if M.avturret1 == nil and IsOdf(h, "bvtur8") then
         M.avturret1 = h
