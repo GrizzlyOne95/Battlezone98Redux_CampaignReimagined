@@ -11371,7 +11371,7 @@ size [1] =
 0
 [AiPaths]
 count [1] =
-10
+15
 [AiPath]
 old_ptr = 00D58D30
 size [1] =
@@ -11525,4 +11525,105 @@ points [2] =
 3253.33
   z [1] =
 99040
+pathType = 00000000
+[AiPath]
+old_ptr = 00D59100
+size [1] =
+10
+label = cr_patrol1
+pointCount [1] =
+4
+points [4] =
+  x [1] =
+1900
+  z [1] =
+98850
+  x [1] =
+2010
+  z [1] =
+98900
+  x [1] =
+2000
+  z [1] =
+99050
+  x [1] =
+1880
+  z [1] =
+99020
+pathType = 00000000
+[AiPath]
+old_ptr = 00D59180
+size [1] =
+10
+label = cr_patrol2
+pointCount [1] =
+4
+points [4] =
+  x [1] =
+2150
+  z [1] =
+99150
+  x [1] =
+2250
+  z [1] =
+99250
+  x [1] =
+2180
+  z [1] =
+99350
+  x [1] =
+2080
+  z [1] =
+99280
+pathType = 00000000
+[AiPath]
+old_ptr = 00D59200
+size [1] =
+10
+label = cr_patrol3
+pointCount [1] =
+4
+points [4] =
+  x [1] =
+1780
+  z [1] =
+99200
+  x [1] =
+1860
+  z [1] =
+99300
+  x [1] =
+1760
+  z [1] =
+99350
+  x [1] =
+1700
+  z [1] =
+99260
+pathType = 00000000
+[AiPath]
+old_ptr = 00D59280
+size [1] =
+9
+label = cr_sniper
+pointCount [1] =
+1
+points [1] =
+  x [1] =
+3290
+  z [1] =
+98830
+pathType = 00000000
+[AiPath]
+old_ptr = 00D59300
+size [1] =
+11
+label = cr_howitzer
+pointCount [1] =
+1
+points [1] =
+  x [1] =
+2840
+  z [1] =
+99660
 pathType = 00000000

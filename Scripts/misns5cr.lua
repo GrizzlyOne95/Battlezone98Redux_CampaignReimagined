@@ -144,6 +144,31 @@ if campaignRuntime then
     end
 end
 -- CR restored content <<
+-- CR early ladder >>
+-- Early pressure before the commander walker falls (Docs/MISNS5_COOP.md, "Early ladder"): an APC raid, bombers, then
+-- bomber and howitzer attacks on the player recycler. Black Dog ODFs: bvapc (via avapc), bvhraz (the Bomber),
+-- bvartl (howitzer, deployed), bvtank (patrols), bsheav (the sniper). Authority only: the runtime stops Update on
+-- guests. State lives in M.cr_t0 / M.cr_step, so it saves and loads with the rest of M.
+local CR_LADDER = {
+    { at = 105, apc = 1, entry = "spawn6", target = "muf" },
+    { at = 180, bombers = 2, entry = "spawn5", target = "muf" },
+    { at = 300, bombers = 1, entry = "spawn6", target = "recy", howitzer = true },
+    { at = 600, bombers = 2, entry = "spawn5", target = "recy" },
+    { at = 900, bombers = 3, entry = "spawn6", target = "recy" },
+}
+local function CRLadderStep(step)
+    if campaignRuntime then campaignRuntime.BeginEvent() end
+    local target = step.target == "recy" and M.recy or M.muf
+    if not Valid(target) then target = M.recy end
+    if not Valid(target) then return end
+    for _ = 1, step.apc or 0 do Command(Attack, BuildObject("avapc", 2, step.entry), target) end
+    for _ = 1, step.bombers or 0 do Command(Attack, BuildObject("bvhraz", 2, step.entry), target) end
+    if step.howitzer then
+        local h = BuildObject("bvartl", 2, "cr_howitzer")
+        if Valid(h) then Deploy(h) end
+    end
+end
+-- CR early ladder <<
 
 function Start()
 -- CR co-op callback >>
@@ -270,6 +295,26 @@ function Update(dt)
         M.apc_here = true
         AudioMessage("misns505.wav")
     end
+-- CR early ladder >>
+    if M.start_done and not M.won and not M.lost then
+        if M.cr_t0 == nil and not M.last_phase then
+            -- Opening: three tanks patrol west of the base and one sniper holds the south-east overlook.
+            M.cr_t0 = GetTime()
+            M.cr_step = 1
+            for i = 1, 3 do
+                local h = BuildObject("bvtank", 2, "cr_patrol" .. i)
+                if Valid(h) then Patrol(h, "cr_patrol" .. i, 1) end
+            end
+            BuildObject("bsheav", 2, "cr_sniper")
+        end
+        -- The ladder ends when the final phase opens (the enemy recycler itself exists from the APC strike).
+        local step = CR_LADDER[M.cr_step or 1]
+        if step and not M.last_phase and GetTime() >= M.cr_t0 + step.at then
+            M.cr_step = (M.cr_step or 1) + 1
+            CRLadderStep(step)
+        end
+    end
+-- CR early ladder <<
     if GetTime() > M.chaff then
         -- rand()%4*10.0f: keep the four discrete 50/60/70/80-second gaps.
         M.chaff = GetTime() + 50.0 + math.random(0, 3) * 10.0

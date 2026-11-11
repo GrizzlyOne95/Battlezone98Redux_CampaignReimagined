@@ -47,6 +47,8 @@ assert handles <= set(objects), "every GetHandle label is a map object: " + str(
 used = set(re.findall(r'BuildObject\("\w+", \d, "(\w+)"\)', live))
 used |= set(re.findall(r'CameraPath\("(\w+)"', live))
 assert used <= set(paths), "every path the body names exists: " + str(used - set(paths))
+cr_paths = {"cr_sniper", "cr_howitzer", "cr_patrol1", "cr_patrol2", "cr_patrol3"}
+assert cr_paths <= set(paths) and all(name in lua_full for name in ("cr_sniper", "cr_howitzer", "cr_patrol")), "the early ladder paths exist in the map and the script"
 # the player side is Soviet team 1; the single authored enemy craft is on 5
 assert objects["svrecy0_recycler"] == ("svrecy", 1) and objects["svmuf0_factory"] == ("svmuf", 1)
 assert objects["sbhang0_repairdepot"][1] == 1
