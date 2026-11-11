@@ -209,6 +209,7 @@ function F.makePeer(id, team, network, options)
     end
     e.IsCraft = function(h) return W.objects[h] ~= nil and W.objects[h].craft == true end
     e.GetFront = function(h) return {x = 0, y = 0, z = 1} end
+    e.GetVelocity = function(h) return {x = 0, y = 0, z = 0} end
     e.GetMaxHealth = function(h) return 1 end
     e.SetCurHealth = function(h, v) record("SetCurHealth", h, v) end
     e.StopCockpitTimer = function() record("StopCockpitTimer") end
@@ -393,6 +394,8 @@ function F.makePeer(id, team, network, options)
         return m
     end
     modules.CRCCARuntime = setfenv(assert(loadfile("Scripts/CRCCARuntime.lua")),e)()
+    -- options.dropIn: the real dropship module (Test-Misns1DropIn.lua). Absent by default: the stock start.
+    if options.dropIn then modules.CRDropIn = setfenv(assert(loadfile("Scripts/CRDropIn.lua")), e)() end
     if options.faithful then e.CR_TEST_FAITHFUL = true end
     setfenv(assert(loadfile(options.script or "Scripts/misns1cr.lua")), e)()
     p.chunkCalls = #p.calls -- everything recorded so far ran at chunk load, before Start

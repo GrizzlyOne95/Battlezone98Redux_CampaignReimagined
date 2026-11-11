@@ -95,6 +95,111 @@ do
     check(#one == 1 and near(one[1].lz, 1) and one[1].y == 5, "a single anchor uses the given lateral line")
 end
 
+-- 5. Ship profiles: the default stays avdrop, svdrop and cvdrop carry their build-script numbers.
+do
+    local P = Drop.PROFILES
+    local a = P.avdrop
+    check(Drop.DEFAULT == "avdrop" and Drop.Profile() == a and Drop.Profile({}) == a and Drop.Profile({ prof = "nope" }) == a,
+        "no profile means avdrop")
+    check(a.flying == "avdropc" and a.landed == "avdropo" and a.closing == "avdropx" and a.hinge == 24.0 and a.lip == 40.3
+        and a.floor == 4.5 and a.slope == 0.2925 and a.holdUp == 6.0 and a.exit == 52.0 and a.clearR == 45.0 and a.face == -1
+        and a.gap == Drop.SHIP_GAP and a.rows == Drop.ROWS and a.lanes == Drop.LANES and a.path == Drop.PATH,
+        "the avdrop profile is the module's original constants")
+    check(a.dist[1] == 55 and a.dist[2] == 65 and a.dist[3] == 75 and a.scan.along == 40 and a.scan.lat == 18,
+        "avdrop's site search is unchanged")
+    check(Drop.PROFILE_ORDER[1] == "avdrop" and Drop.IdOf("svdrop") == 2 and Drop.IdOf("cvdrop") == 3 and Drop.IdOf("bvdrop") == 4, "wire ids")
+    local bv = P.bvdrop
+    check(bv.flying == "bvdropc" and bv.landed == "bvdropo" and bv.closing == "bvdropx", "bvdrop has its own ODF set")
+    for k, v in pairs(a) do
+        if k ~= "name" and k ~= "flying" and k ~= "landed" and k ~= "closing" then
+            check(bv[k] == v, "bvdrop shares avdrop's geometry: " .. k)
+        end
+    end
+    for _, name in ipairs(Drop.PROFILE_ORDER) do
+        local p = P[name]
+        check(p.name == name and p.flying == name:gsub("drop$", "dropc") and p.landed == name:gsub("drop$", "dropo")
+            and p.closing == name:gsub("drop$", "dropx"), name .. " ODF names follow the <ship>c/o/x set")
+        check(p.floor == 4.5 and p.holdUp > p.floor and p.slope > 0.29 and p.slope < 0.30, name .. ": 4.5 m deck, 16.3 deg ramp")
+        local reach = p.lip - p.hinge
+        check(near(reach, p.floor / p.slope, 1.3), name .. ": lip is where the 16.3 deg ramp meets the ground (plus 1 m)")
+        check(p.exit > p.lip + 10 and p.clearR > p.lip and p.dist[1] > p.lip + 10, name .. ": exit, clear radius and sites are past the lip")
+        check(near(p.exit - p.lip, 11.7, 1e-6) and near(p.clearR - p.lip, 4.7, 1e-6) and near(p.dist[1] - p.lip, 14.7, 0.4),
+            name .. ": same margins as avdrop")
+        for k = 2, #p.path do check(p.path[k] > p.path[k - 1], name .. ": lane legs ascend") end
+        check(p.path[2] == p.hinge and p.path[4] > p.lip and p.path[#p.path] > p.path[4], name .. ": lane legs cross the hinge and the lip")
+        check(p.gap > 0 and near(p.gap, Drop.SHIP_GAP * p.width / 77.4, 1e-9), name .. ": gap scales with the hull width")
+        check(p.face == (name == "cvdrop" and 1 or -1), name .. ": the bow points away from a stern ramp, toward a bow ramp")
+        -- every slot is inside the hold
+        local n, seen = #p.rows * #p.lanes, {}
+        for j = 1, n do
+            local along, lat = Drop.Slot(j, p)
+            check(along and lat and not seen[along .. ":" .. lat], name .. ": slot " .. j .. " exists and is unique")
+            seen[along .. ":" .. lat] = true
+            check(along < p.hinge - 4 and math.abs(lat) + 4 < p.width / 2, name .. ": slot " .. j .. " is in the hold")
+        end
+        check(Drop.Slot(n + 1, p) == nil and Drop.Slot(0, p) == nil, name .. ": the hold takes " .. n)
+    end
+    check(near(P.svdrop.hinge, 39.1) and near(P.cvdrop.hinge, 16.0) and near(P.svdrop.width, 56.8) and near(P.cvdrop.width, 73.2),
+        "hinge and hull widths are the build reports'")
+    check(near(P.svdrop.lip, 39.1 + 16 * math.cos(math.asin(4.5 / 16)) + 0.94, 0.05), "svdrop lip from the 16 m ramp")
+    check(near(P.cvdrop.lip, 16.0 + 16 * math.cos(math.asin(4.5 / 16)) + 0.94, 0.05), "cvdrop lip from the 16 m ramp")
+    -- svdrop: the recycler sits at the ramp end, the tanks forward of it; each unit clear of the next
+    local sv = P.svdrop
+    local rs = sv.slots.recycler
+    local half = 54.46 / 2
+    check(rs.lat == 0 and rs.along + half <= sv.hinge - 1.1 and rs.along - half > sv.rows[1] + 8.39 / 2 + 1.0,
+        "svdrop: recycler between the ramp and the first tank row")
+    check(sv.rows[#sv.rows] - 8.39 / 2 > -38 and sv.holdUp + 14.64 < 20.5, "svdrop: tanks inside the bulkhead, recycler under the roof")
+    check(5.5 + 8.56 / 2 < 16 and 5.5 - 8.56 / 2 > 0, "svdrop: tank lanes inside the 32 m hold")
+    -- cvdrop: the recycler is nearest the bow ramp, four tanks abreast deeper in
+    local cv = P.cvdrop
+    local cs = cv.slots.recycler
+    check(cs.along + 16.26 / 2 <= 14.3 and cs.along - 16.26 / 2 > cv.rows[1] + 8.63 / 2 + 1.0, "cvdrop: recycler ahead of the tank row")
+    local worst = 0
+    for _, lat in ipairs(cv.lanes) do worst = math.max(worst, math.abs(lat) + 7.73 / 2) end
+    check(worst < 18 and cv.holdUp + 8.34 < 15.5, "cvdrop: four tanks abreast fit the 36 m hold, recycler under the roof")
+    check(cv.lanes[1] > 9 and cv.lanes[2] < -9, "cvdrop: the outer lanes fill first")
+    -- the deck follows each ship's own hinge and lip
+    local flat = function() return 20 end
+    for _, name in ipairs({ "svdrop", "cvdrop" }) do
+        local p = P[name]
+        local fr = { x = 0, z = 0, y = 20, sx = 0, sz = 1, lx = 1, lz = 0, prof = name }
+        local _, inHold = Drop.Deck(fr, p.hinge - 1, 0, flat)
+        local _, mid = Drop.Deck(fr, p.hinge + 8, 0, flat)
+        local _, atLip = Drop.Deck(fr, p.lip, 0, flat)
+        check(near(inHold, 24.5) and near(mid, 24.5 - 8 * p.slope) and near(atLip, 20), name .. ": deck: floor, ramp, ground")
+        local _, hy = Drop.HoldPos(fr, p.rows[1], p.lanes[1], Drop.Touchdown(fr))
+        check(near(hy, 20 + p.holdUp), name .. ": carried craft ride holdUp over the landing spot")
+        local x, _, z = Drop.ExitPos(fr, p.rows[1], p.lanes[1], flat)
+        check(near(z, p.exit) and near(x, p.lanes[1]), name .. ": the first row is set down at the profile's exit")
+    end
+    -- bow first: the approach comes from the side the bow does not point to, and the lift-off noses forward
+    local fa = { x = 0, z = 0, y = 0, sx = 0, sz = 1, lx = 1, lz = 0 }
+    local fc = { x = 0, z = 0, y = 0, sx = 0, sz = 1, lx = 1, lz = 0, prof = "cvdrop" }
+    local _, ba = Drop.Offsets(fa, 0)
+    local _, bc = Drop.Offsets(fc, 0)
+    check(near(ba, Drop.START_BACK) and near(bc, -Drop.START_BACK), "cvdrop comes in the other way round")
+    local _, la = Drop.LiftOffsets(4, fa)
+    local _, lc = Drop.LiftOffsets(4, fc)
+    check(near(la, -9.6) and near(lc, 9.6), "cvdrop lifts off the other way round")
+    -- Sites: profile distances, footprint and the frames carry the profile
+    local bumpy = function(x, z) return 20 + math.sin(x * 0.05) * 3 + math.cos(z * 0.03) * 4 end
+    for _, name in ipairs({ "svdrop", "cvdrop" }) do
+        local p = P[name]
+        local fr, d = Drop.Sites({ { x = 1916, z = 100683 } }, bumpy, nil, nil, p)
+        local ok = false
+        for _, c in ipairs(p.dist) do ok = ok or d == c end
+        check(ok and fr[1].prof == name, name .. ": the site distance is one of the profile's, the frame names the profile")
+        local out = (1916 - fr[1].x) * fr[1].sx + (100683 - fr[1].z) * fr[1].sz
+        check(near(out, d, 1e-6) and d > p.lip + 10, name .. ": the anchor lies past the ramp lip")
+        local two = Drop.Sites({ { x = 1916, z = 100683 }, { x = 1908, z = 100764 } }, bumpy, nil, nil, p)
+        check(math.sqrt((two[1].x - two[2].x) ^ 2 + (two[1].z - two[2].z) ^ 2) > 2 * p.gap - 1, name .. ": two ships stand apart by the profile gap")
+    end
+    local plain = Drop.Sites({ { x = 1916, z = 100683 } }, bumpy)
+    local named = Drop.Sites({ { x = 1916, z = 100683 } }, bumpy, nil, nil, P.avdrop)
+    check(plain[1].x == named[1].x and plain[1].z == named[1].z, "no profile in Sites is avdrop")
+end
+
 -- 4. Runtime against engine mocks.
 local now, objects, nextId, calls, log, masks, camera, owned
 local function dist2(a, b) return math.sqrt((a.x - b.x) ^ 2 + (a.z - b.z) ^ 2) end
@@ -139,6 +244,7 @@ local function reset(opts)
         end
         calls[#calls + 1] = { "SetTransform", objects[h].label or objects[h].odf }
         objects[h].pos = V(m.pos.x, m.pos.y, m.pos.z)
+        objects[h].dir = m.dir
     end
     _G.SetVelocity = function(h, v) objects[h].vel = V(v.x, v.y, v.z) end
     _G.SetCurHealth = function(h, v) objects[h].health = v end
@@ -146,7 +252,9 @@ local function reset(opts)
     _G.BuildObject = function(odf, team, where)
         calls[#calls + 1] = { "BuildObject", odf, team }
         if opts.noShips and odf:find("^avdrop") then return nil end
-        return add(odf, where.pos or where)
+        local id = add(odf, where.pos or where)
+        objects[id].dir = where.dir
+        return id
     end
     _G.RemoveObject = function(h) calls[#calls + 1] = { "RemoveObject", objects[h].odf }; objects[h] = nil end
     _G.Stop = function(h, priority)   -- Stop brakes a hovercraft; the mock simply halts it
@@ -485,6 +593,104 @@ do
     for _, l in ipairs(log) do if tostring(l):find("control lock unavailable", 1, true) then logged = true end end
     check(logged, "a refused mask is logged")
     check(s.phase ~= "done", "the drop goes on without the mask")
+end
+
+-- 4m. svdrop (CCA, stern ramp): the whole opening with the recycler in its named slot and a crew of one.
+local function shipSpec(profile, teams)
+    local pr, pp = objects[1].pos, objects[3].pos
+    return { profile = profile, exclude = { [1] = true, [2] = true, [3] = true, [4] = true }, ships = {
+        { anchor = { x = (pr.x + pp.x) / 2, z = (pr.z + pp.z) / 2 }, delay = 0, crew = teams or { 1 },
+            cargo = { { h = 1, goal = { x = pr.x, z = pr.z }, slot = "recycler" } } },
+    } }
+end
+local function hullDir(odf)
+    for h, o in pairs(objects) do if o.odf == odf then return o.dir end end
+end
+for _, name in ipairs({ "svdrop", "cvdrop" }) do
+    local P = Drop.PROFILES[name]
+    local D, s = reset()
+    check(D.Begin(s, shipSpec(name)) == true, name .. ": the leader begins the drop")
+    check(D.Update(s) == true and count("BuildObject", name .. "c") == 1 and count("BuildObject", "avdropc") == 0,
+        name .. ": one flying ship of the profile's art, holding the stock start")
+    local plan
+    for _, c in ipairs(calls) do if c[1] == "present" and c[2] == "DropShip" then plan = c end end
+    check(#plan == 13 and plan[#plan] == Drop.IdOf(name), name .. ": the DropShip event carries the profile id last")
+    check(s.ships[1].prof == name and s.lead.prof.name == name, name .. ": the leader's plan is the profile's")
+    check(s.lead.cargo[1].along == P.slots.recycler.along and s.lead.cargo[1].lat == 0, name .. ": the recycler takes its named slot")
+    check(s.crew[1].along == P.rows[1] and s.crew[1].lat == P.lanes[1], name .. ": the crew takes the profile's first slot")
+    -- facing: the bow points away from a stern ramp, toward a bow ramp
+    local f = s.ships[1]
+    local d0 = hullDir(name .. "c")
+    check(d0.x == P.face * f.sx and d0.z == P.face * f.sz, name .. ": the hull faces " .. (P.face > 0 and "the exit" or "away from the exit"))
+    local released
+    for _ = 1, 30 * 60 do
+        local hold = step(D, s, 1 / 30)
+        if now > 5 and now < 6 then
+            check(objects[3].pos.y > 100 and near(objects[3].pos.y - objects[1].pos.y, 0, 1e-6), name .. ": cargo and crew ride the ship")
+        end
+        if not hold then released = now; break end
+    end
+    check(released and near(released, 16 + 2.6, 0.2), name .. ": release follows the ramps")
+    check(count("BuildObject", name .. "o") == 1 and hullDir(name .. "o").x == P.face * f.sx, name .. ": landed model faces the same way")
+    for _ = 1, 30 * 120 do
+        step(D, s, 1 / 30, function() objects[3].pos = V(objects[3].pos.x, 20, objects[3].pos.z + 0.5) end)
+        if s.phase == "done" then break end
+    end
+    check(s.phase == "done" and count("BuildObject", name .. "x") == 1, name .. ": the ramps fold and the ship leaves")
+    for _, o in pairs(objects) do check(not o.odf:find("^[asc]vdrop") and o.odf ~= "apcamr", name .. ": no ship left behind") end
+    check(dist2(objects[1].pos, V(1933, 0, 100685)) < 5, name .. ": the recycler parks on its stock spot")
+    local stops = {}
+    for _, c in ipairs(calls) do if c[1] == "Stop" and c[3] == 0 then stops[c[2]] = true end end
+    check(stops["avrecy-1_recycler"], name .. ": the recycler is handed back to its AI")
+    check(not locked(), name .. ": released")
+end
+
+-- 4n. A guest learns the profile from the plan: it pins at the profile's hold height; avdrop plans stay ten numbers.
+do
+    local D, s = reset({ network = true, leader = false, team = 2, player = 5 })
+    owned[5] = true
+    D.Apply(s, "DropShip", 1, 1, 1900, 100600, 20, 0, -1, 1, 0, 0, 9)
+    check(s.ships == nil, "an unknown profile id is rejected")
+    D.Apply(s, "DropShip", 1, 1, 1900, 100600, 20, 0, -1, 1, 0, 0, 1.5)
+    check(s.ships == nil, "a fractional profile id is rejected")
+    D.Apply(s, "DropShip", 1, 1, 1900, 100600, 20, 0, -1, 1, 0, 0, 2)
+    D.Apply(s, "DropCrew", 2, 1, Drop.PROFILES.svdrop.rows[1], Drop.PROFILES.svdrop.lanes[1])
+    D.Apply(s, "DropGo")
+    check(s.go and s.ships[1].prof == "svdrop", "the guest applies the svdrop plan")
+    for _ = 1, 30 * 4 do step(D, s, 1 / 30) end
+    local x, y, z = Drop.HoldPos(s.ships[1], Drop.PROFILES.svdrop.rows[1], Drop.PROFILES.svdrop.lanes[1], now)
+    check(near(objects[5].pos.x, x) and near(objects[5].pos.y, y) and near(objects[5].pos.z, z), "the guest rides the svdrop hold")
+    local up = Drop.Offsets(s.ships[1], now)
+    check(near(y - 20 - up, Drop.PROFILES.svdrop.holdUp), "the guest holds at svdrop's hold height")
+    local D2, s2 = reset({ network = true, leaderSim = true })
+    D2.Begin(s2, spec({ 1, 2 }))
+    for _, c in ipairs(calls) do
+        if c[1] == "present" and c[2] == "DropShip" then check(#c == 12, "an avdrop DropShip event is unchanged on the wire") end
+    end
+    local D3, s3 = reset({ network = true, leaderSim = true })
+    D3.Begin(s3, shipSpec("svdrop", { 1, 2, 3, 4 }))
+    check(s3.crew[4] and s3.crew[4].along == Drop.PROFILES.svdrop.rows[2], "four humans take the two tank rows of the svdrop hold")
+    local D4, s4 = reset({ network = true, leaderSim = true })
+    D4.Begin(s4, shipSpec("cvdrop", { 1, 2, 3, 4 }))
+    local lats = {}
+    for t = 1, 4 do lats[s4.crew[t].lat] = true; check(s4.crew[t].along == Drop.PROFILES.cvdrop.rows[1], "cvdrop crew share one row") end
+    local n = 0; for _ in pairs(lats) do n = n + 1 end
+    check(n == 4, "four humans abreast in the cvdrop hold")
+    local D5, s5 = reset()
+    check(D5.Begin(s5, shipSpec("nosuchdrop")) == false and s5.phase == "done" and count("BuildObject") == 0 and count("present") == 0,
+        "an unknown profile name fails closed")
+end
+
+-- 4o. A recovered svdrop drop removes its own ships by ODF.
+do
+    local D, s = reset()
+    D.Begin(s, shipSpec("svdrop"))
+    for _ = 1, 30 * 4 do step(D, s, 1 / 30) end
+    masks = {}
+    D.OnLoad(s)
+    check(D.Update(s) == false and s.phase == "done", "a loaded svdrop drop finishes")
+    for _, o in pairs(objects) do check(not o.odf:find("^svdrop") and o.odf ~= "apcamr", "no svdrop survives the load") end
+    check(dist2(objects[1].pos, V(1933, 0, 100685)) < 1, "the recycler is set down on its spot")
 end
 
 print(string.format("CRDropIn: %d checks passed", checks))

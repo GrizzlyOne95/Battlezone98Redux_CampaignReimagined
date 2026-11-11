@@ -1,0 +1,27 @@
+import * from "BZBase.material"
+
+material cvdropc_hull : BZBase
+{
+	set_texture_alias DiffuseMap crdvhull_D.dds
+	set_texture_alias NormalMap crdvhull_N.dds
+	set_texture_alias SpecularMap crdvhull_S.dds
+	set_texture_alias EmissiveMap crdvhull_E.dds
+
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".6 .6 .6"
+	set $shininess "64"
+}
+
+material cvdropc_trim : BZBase
+{
+	set_texture_alias DiffuseMap crdvtrim_D.dds
+	set_texture_alias NormalMap crdvtrim_N.dds
+	set_texture_alias SpecularMap crdvtrim_S.dds
+	set_texture_alias EmissiveMap crdvtrim_E.dds
+
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".6 .6 .6"
+	set $shininess "64"
+}

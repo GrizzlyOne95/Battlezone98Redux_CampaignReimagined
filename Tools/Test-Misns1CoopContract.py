@@ -4,6 +4,7 @@
 Skipped (exit 0, says so) when Missions/misns1cr.bzn is not in the tree yet.
 """
 from pathlib import Path
+import json
 import re
 import sys
 
@@ -91,6 +92,31 @@ for stock, plan in (("misn09.aip", "crns1a.aip"), ("misn14.aip", "crns1b.aip")):
     builds = re.findall(r'(?m)^\s*\d+,\s*"(\w+)"', (ROOT / "ODF" / plan).read_text(encoding="ascii"))
     assert builds and all(b.startswith("bv") for b in builds), plan + " builds only Black Dog units: " + str(builds)
     assert "`%s`" % plan in doc, "the doc names " + plan
+# ---------------------------------------------------------------- the dropship opening (Scripts/CRDropIn.lua)
+drop = (ROOT / "Scripts/CRDropIn.lua").read_text(encoding="utf-8")
+drop_code = re.sub(r"--[^\r\n]*", "", drop)
+assert 'pcall(require, "CRDropIn")' in coop and not re.search(r'[^p]require\("CRDropIn"\)', coop), "CRDropIn loads through pcall"
+assert "if okDropIn then DropIn = module else" in coop, "a failed load leaves DropIn nil: the stock start"
+mission_ops = set(re.findall(r'"(Drop\w+)"', re.search(r"for _, op in ipairs\(\{([^}]*)\}\) do\s+dropOps", coop)[1]))
+module_ops = set(re.findall(r"(\w+) = true", re.search(r"Drop\.OPS = \{([^}]*)\}", drop_code)[1]))
+sent_ops = set(re.findall(r'call\("present", "(\w+)"', drop_code))
+assert mission_ops == module_ops == sent_ops == {"DropShip", "DropCrew", "DropGo"}, (mission_ops, module_ops, sent_ops)
+assert "presentationOps = dropOps," in coop, "the drop ops ride the runtime's ordered stream (guests acknowledge them)"
+assert 'profile = "svdrop"' in coop and "svdrop = {" in drop, "the CCA ship profile"
+# the hold gate sits right after the runtime update and returns before the whole stock body
+gate = re.search(r"-- CR co-op callback >>\n    if campaignRuntime then\n(.*?)-- CR co-op callback <<\n", coop, re.S)
+assert gate and "DropStandby(campaignRuntime); return end" in gate[1] and "if M.dropHold then return end" in gate[1], "hold gate"
+assert coop.index("if M.dropHold then return end") < coop.index("if (M.missionstart == false) then"), "the gate is before the stock body"
+# the cargo and the stock player spot are real map objects on the Soviet side
+for label, odf in (("svrecy2_recycler", "svrecy"), ("svtank0_wingman", "svtank")):
+    assert objects.get(label) == (odf, 1), label + " is the stock start: " + str(objects.get(label))
+assert 'GetHandle("svrecy2_recycler")' in coop and 'GetHandle("svtank0_wingman")' in coop
+lock = {e["source"] for e in json.loads((ROOT / "Shipping/shipping.lock.json").read_text(encoding="utf-8-sig"))["files"]}
+for suffix in "cox":
+    for folder, ext in (("ODF", "odf"), ("Materials", "material"), ("Assets\\ModelFixes", "mesh"),
+                        ("Assets\\ModelFixes", "sdf"), ("Assets\\ModelFixes", "skeleton")):
+        rel = "%s\\svdrop%s.%s" % (folder, suffix, ext)
+        assert rel in lock and (ROOT / rel.replace("\\", "/")).is_file(), "the svdrop art ships: " + rel
 for src in ("Docs/CCA_COOP_RUNTIME.md",):
     assert (ROOT / src).is_file(), src
 print("misns1 co-op contract passed: %d objects, %d paths, %d scripted path/label names, %s; %d cut paths absent"

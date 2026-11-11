@@ -1,5 +1,6 @@
--- Dropship insertion: NSDF dropships fly in, land, open their stern ramps, let their cargo out and lift off.
--- Mission-agnostic and co-op safe; misn04's opening is the first user (the misn14 Titan drop is meant to be next).
+-- Dropship insertion: dropships fly in, land, open their ramps, let their cargo out and lift off.
+-- Mission-agnostic and co-op safe; misn04's opening (NSDF avdrop) was the first user, misns1's (CCA svdrop) the second.
+-- The ship is a profile (Drop.PROFILES: ODFs and deck geometry): "avdrop" (default), "svdrop", "cvdrop" (a BOW ramp), "bvdrop".
 --
 -- The mission (the leader) passes the anchors and the cargo: Drop.Begin(state, spec). The plan goes out as numbers
 -- on the mission's ordered event stream (DropShip per ship, DropCrew per human, then DropGo) through api.present,
@@ -12,9 +13,9 @@
 -- (plus a health top-up) is the hold.
 --
 -- Technique and measured numbers come from CR04Drop (misn04's single-player prototype) and its avdtest fixture:
---   * Ship art is the prototype avdrop SDF set: avdropc (ramps shut) flies in; avdropo (its ANIM index 0 swings the
---     ramps open once, when the object is created) is swapped in at touchdown; avdropx (same model, ANIM 0 runs
---     open -> shut) is swapped in before lift-off, so the ramps fold up and the ship flies out.
+--   * Ship art is a <ship>c/o/x SDF set (Drop.PROFILES): avdropc (ramps shut) flies in; avdropo (its ANIM index 0
+--     swings the ramps open once, when the object is created) is swapped in at touchdown; avdropx (same model, ANIM 0
+--     runs open -> shut) is swapped in before lift-off, so the ramps fold up and the ship flies out.
 --   * Floor collision is snapshotted when a building is added, so a landed ship must be a NEW object.
 --   * Units cannot path into the ship's footprint, so cargo is pinned with SetTransform while carried and pushed
 --     down the ramp lanes with SetVelocity once released.
@@ -56,6 +57,66 @@ Drop.ROWS = { 6, -2, -10, -18, -26, -34 }
 Drop.EXIT = 52.0           -- along the lane, where a load puts a still-carried unit down (past the lip)  CR guess
 Drop.PATH = { 12, 24, 32, 40.5, 48 }   -- AI lane legs (metres along), then the unit's own spot
 
+-- Ship profiles. The module constants above are avdrop's; "along" is metres from the hull origin toward the ramp exit
+-- (Drop.At's axis), so a profile only says where its ramp is. Numbers come from the dropship build scripts and their
+-- reports (Tools/Dropships/build_svdrop.py, build_cvdrop.py, Local/dropships/out/<ship>_report.json):
+--   hinge   ramp.hinge (svdrop y 39.1; cvdrop y -16.0, exit side flipped); floor = hold.floor_z 4.5 for all three
+--   slope   tan(ramp.slope_deg = 16.33 deg) = 0.2931 (4.5 m of floor height over a 16 m ramp)
+--   lip     hinge + 16 m * cos(16.33 deg) = hinge + 15.36, plus the 0.94 m avdrop's measured lip sits past that
+--   width   overall.W (avdrop 77.4, svdrop 56.8, cvdrop 73.2); gap scales Drop.SHIP_GAP by it
+--   face    which way the bow points relative to the exit direction: the ramp is at the stern (-1) or the bow (+1)
+-- Derived like avdrop's (hinge 24, lip 40.3): exit = lip + 11.7, clearR = lip + 4.7, path = hinge-12, hinge, hinge+8,
+-- lip+0.2, lip+7.7, dist = lip+14.7 and +10 m steps. CR guess (live tune): holdUp for svdrop (the packed svrecy is 14.64 m
+-- tall under a 16 m hold: 0.7 m over the floor keeps it under the roof), every cargo slot, and the scan extents.
+Drop.DEFAULT = "avdrop"
+Drop.PROFILE_ORDER = { "avdrop", "svdrop", "cvdrop", "bvdrop" }   -- a profile's wire id is its index; avdrop is never sent
+Drop.PROFILES = {
+    avdrop = {
+        name = "avdrop", flying = Drop.FLYING, landed = Drop.LANDED, closing = Drop.CLOSING,
+        hinge = Drop.HINGE, lip = Drop.LIP, floor = Drop.FLOOR, slope = Drop.RAMP_SLOPE, holdUp = Drop.HOLD_UP,
+        exit = Drop.EXIT, clearR = Drop.CLEAR_R, path = Drop.PATH, rows = Drop.ROWS, lanes = Drop.LANES,
+        face = -1, width = 77.4, gap = Drop.SHIP_GAP, dist = { 55, 65, 75 }, scan = { along = 40, lat = 18 },
+    },
+    -- CCA Hind heavy-lifter: stern ramp plus two clamshell doors; hold 32 W x 77 L (y -38 to 39), packed svrecy 28.95 x
+    -- 54.46 x 14.64. The recycler sits at the ramp end (rear face on the closed ramp's inner face, y 37.9, centre
+    -- 37.9 - 27.23 = 10.6) so it drives out first; two rows of two tanks (8.56 x 8.39, x +-5.5) sit forward of it.
+    svdrop = {
+        name = "svdrop", flying = "svdropc", landed = "svdropo", closing = "svdropx",
+        hinge = 39.1, lip = 55.4, floor = 4.5, slope = 0.2931, holdUp = 5.2,
+        exit = 67.1, clearR = 60.1, path = { 27.1, 39.1, 47.1, 55.6, 63.1 }, rows = { -22.3, -31.7 }, lanes = { -5.5, 5.5 },
+        face = -1, width = 56.8, dist = { 70, 80, 90 }, scan = { along = 50, lat = 27 },
+        slots = { recycler = { along = 10.6, lat = 0 } },
+    },
+    -- CRA Wedge rocket-lander: BOW ramp (the 45 degree chin glacis), hold 36 W; hinge at y -16.0, so the exit is the bow.
+    -- Packed cvrecy 13.73 x 16.26 x 8.34 centred 5.17 m toward the ramp; four cvtnk (7.73 x 8.63, x +-4.4, +-13.1) abreast
+    -- 8.77 m deeper. The two outer lanes come first so a crew of one or two is never behind the recycler.
+    cvdrop = {
+        name = "cvdrop", flying = "cvdropc", landed = "cvdropo", closing = "cvdropx",
+        hinge = 16.0, lip = 32.3, floor = 4.5, slope = 0.2931, holdUp = 6.0,
+        exit = 44.0, clearR = 37.0, path = { 4.0, 16.0, 24.0, 32.5, 40.0 }, rows = { -8.77 }, lanes = { 13.1, -13.1, 4.4, -4.4 },
+        face = 1, width = 73.2, dist = { 47, 57, 67 }, scan = { along = 40, lat = 36 },
+        slots = { recycler = { along = 5.17, lat = 0 } },
+    },
+}
+-- Black Dog bvdrop: avdrop's model, rig and animations retextured (bdrv), so every number is avdrop's.
+do
+    local b = {}
+    for k, v in pairs(Drop.PROFILES.avdrop) do b[k] = v end
+    b.name, b.flying, b.landed, b.closing = "bvdrop", "bvdropc", "bvdropo", "bvdropx"
+    Drop.PROFILES.bvdrop = b
+end
+for _, p in pairs(Drop.PROFILES) do p.gap = p.gap or Drop.SHIP_GAP * p.width / Drop.PROFILES.avdrop.width end
+
+-- The wire id of a profile name.
+function Drop.IdOf(name)
+    for id, n in ipairs(Drop.PROFILE_ORDER) do if n == name then return id end end
+end
+
+-- The profile of a ship frame (or of nothing: avdrop).
+function Drop.Profile(ship)
+    return Drop.PROFILES[ship and ship.prof or Drop.DEFAULT] or Drop.PROFILES[Drop.DEFAULT]
+end
+
 local sqrt, max, min, floor = math.sqrt, math.max, math.min, math.floor
 
 -- Pure choreography ----------------------------------------------------------------------------------------------
@@ -63,10 +124,11 @@ local sqrt, max, min, floor = math.sqrt, math.max, math.min, math.floor
 -- delay the seconds after DropGo it starts its descent.
 
 -- The j-th automatic hold slot: front row first, alternating lanes. Returns along, lat (nil when the hold is full).
-function Drop.Slot(j)
-    local row = floor((j - 1) / #Drop.LANES) + 1
-    if j < 1 or row > #Drop.ROWS then return nil end
-    return Drop.ROWS[row], Drop.LANES[(j - 1) % #Drop.LANES + 1]
+function Drop.Slot(j, prof)
+    prof = prof or Drop.Profile()
+    local row = floor((j - 1) / #prof.lanes) + 1
+    if j < 1 or row > #prof.rows then return nil end
+    return prof.rows[row], prof.lanes[(j - 1) % #prof.lanes + 1]
 end
 
 -- Seconds after DropGo that the ship touches down.
@@ -89,12 +151,13 @@ end
 function Drop.Offsets(ship, t)
     local u = min(1, max(0, (t - (ship.delay or 0)) / Drop.FLY_T))
     local k = 1 - u
-    return Drop.START_UP * k * k * k, Drop.START_BACK * k * k
+    -- the ship flies bow first: it comes in from the side its bow does not point to
+    return Drop.START_UP * k * k * k, Drop.START_BACK * k * k * -Drop.Profile(ship).face
 end
 
 -- Height and back-offset a seconds after lift-off.
-function Drop.LiftOffsets(a)
-    return Drop.LIFT_ACCEL * a * a, Drop.LIFT_BACK * a * a
+function Drop.LiftOffsets(a, ship)
+    return Drop.LIFT_ACCEL * a * a, Drop.LIFT_BACK * a * a * -Drop.Profile(ship).face
 end
 
 -- World position of the hull centre at time t.
@@ -112,9 +175,10 @@ end
 
 -- Deck height along a lane: the hold floor to the hinge, then the ramp down to its lip.
 function Drop.Deck(ship, along, lat, ground)
+    local p = Drop.Profile(ship)
     local x, y, z = Drop.At(ship, along, lat, nil, ground)
-    if along <= Drop.HINGE then y = ship.y + Drop.FLOOR
-    elseif along < Drop.LIP then y = max(y, ship.y + Drop.FLOOR - (along - Drop.HINGE) * Drop.RAMP_SLOPE) end
+    if along <= p.hinge then y = ship.y + p.floor
+    elseif along < p.lip then y = max(y, ship.y + p.floor - (along - p.hinge) * p.slope) end
     return x, y, z
 end
 
@@ -124,19 +188,20 @@ function Drop.HoldPos(ship, along, lat, t)
     local up, back = Drop.Offsets(ship, t)
     local x = ship.x + ship.sx * (back + along) + ship.lx * lat
     local z = ship.z + ship.sz * (back + along) + ship.lz * lat
-    return x, ship.y + up + Drop.HOLD_UP, z, ship.sx, ship.sz
+    return x, ship.y + up + Drop.Profile(ship).holdUp, z, ship.sx, ship.sz
 end
 
 -- Where a carried craft is set down when the drop cannot finish (a load mid-drop): out past the lip on its lane,
 -- each row as far behind the first as it rode, so nothing lands on anything else.
 function Drop.ExitPos(ship, along, lat, ground)
-    return Drop.At(ship, Drop.EXIT + (Drop.ROWS[1] - along), lat, nil, ground)
+    local p = Drop.Profile(ship)
+    return Drop.At(ship, p.exit + (p.rows[1] - along), lat, nil, ground)
 end
 
-local function flatness(x, z, sx, sz, lx, lz, ground)
+local function flatness(x, z, sx, sz, lx, lz, ground, scan)
     local lo, hi = 1e9, -1e9
-    for along = -40, 40, 10 do
-        for lat = -18, 18, 9 do
+    for along = -scan.along, scan.along, 10 do
+        for lat = -scan.lat, scan.lat, 9 do
             local h = ground(x + sx * along + lx * lat, z + sz * along + lz * lat)
             lo, hi = min(lo, h), max(hi, h)
         end
@@ -148,8 +213,10 @@ end
 -- cargo drives straight out of the ramp onto its spot. With two anchors the ships stand side by side along the line
 -- between them (CR04Drop's layout); with one, `lateral` ({x, z}, default +x) sets that line. The flattest
 -- unblocked candidate wins; `blocked(x, z)` (optional) vetoes a site. Deterministic: the same inputs give the
--- same plan. Returns the frames (without delay) and the anchor distance d.
-function Drop.Sites(anchors, ground, blocked, lateral)
+-- same plan. Returns the frames (without delay) and the anchor distance d. `prof` is a Drop.PROFILES entry (default
+-- avdrop): it sets the candidate distances, the footprint that is scanned and the side-by-side gap.
+function Drop.Sites(anchors, ground, blocked, lateral, prof)
+    prof = prof or Drop.Profile()
     local n = #anchors
     local lx, lz
     if n >= 2 then lx, lz = anchors[2].x - anchors[1].x, anchors[2].z - anchors[1].z
@@ -159,19 +226,19 @@ function Drop.Sites(anchors, ground, blocked, lateral)
     local best
     for _, sgn in ipairs({ 1, -1 }) do
         local sx, sz = lz * sgn, -lx * sgn
-        for _, d in ipairs({ 55, 65, 75 }) do
+        for _, d in ipairs(prof.dist) do
             for _, slide in ipairs({ -20, 0, 20 }) do
                 local spots = {}
                 for i = 1, n do
                     local a = anchors[i]
                     local side = slide
-                    if n >= 2 then side = (i == 1) and -(Drop.SHIP_GAP - slide) or (Drop.SHIP_GAP + slide) end
+                    if n >= 2 then side = (i == 1) and -(prof.gap - slide) or (prof.gap + slide) end
                     spots[i] = { x = a.x - sx * d + lx * side, z = a.z - sz * d + lz * side }
                 end
                 local score = 0
                 for i = 1, n do
                     local p = spots[i]
-                    score = score + flatness(p.x, p.z, sx, sz, lx, lz, ground)
+                    score = score + flatness(p.x, p.z, sx, sz, lx, lz, ground, prof.scan)
                     if blocked and blocked(p.x, p.z) then score = score + 1000 end
                 end
                 if not best or score < best.score then
@@ -182,7 +249,8 @@ function Drop.Sites(anchors, ground, blocked, lateral)
     end
     local frames = {}
     for i, p in ipairs(best.spots) do
-        frames[i] = { x = p.x, z = p.z, y = ground(p.x, p.z), sx = best.sx, sz = best.sz, lx = lx, lz = lz }
+        frames[i] = { x = p.x, z = p.z, y = ground(p.x, p.z), sx = best.sx, sz = best.sz, lx = lx, lz = lz,
+            prof = prof.name }
     end
     return frames, best.d, best.score
 end
@@ -244,9 +312,10 @@ end
 -- A failed move must not break the opening (CRMisn18 does the same): the pose is simply not applied.
 local function setT(h, m) pcall(SetTransform, h, m) end
 local function matrix(x, y, z, dx, dz) return BuildDirectionalMatrix(V(x, y, z), V(dx, 0, dz)) end
--- The bow (GetFront) faces away from the ramp exit.
+-- The bow (GetFront) faces away from a stern ramp's exit, toward a bow ramp's (Drop.Profile(ship).face).
 local function hullMatrix(ship, up, back)
-    return matrix(ship.x + ship.sx * back, ship.y + up, ship.z + ship.sz * back, -ship.sx, -ship.sz)
+    local face = Drop.Profile(ship).face
+    return matrix(ship.x + ship.sx * back, ship.y + up, ship.z + ship.sz * back, face * ship.sx, face * ship.sz)
 end
 
 -- Hold a carried craft in its slot and keep it whole.
@@ -270,12 +339,18 @@ end
 function Drop.Apply(s, op, ...)
     if type(s) ~= "table" or s.go or s.phase == "done" then return end
     if op == "DropShip" then
-        local i, n, x, z, y, sx, sz, lx, lz, delay = ...
+        -- `id` (optional, absent for avdrop): the profile's index in Drop.PROFILE_ORDER.
+        local i, n, x, z, y, sx, sz, lx, lz, delay, id = ...
         for _, v in ipairs({ i, n, x, z, y, sx, sz, lx, lz, delay }) do if not isNum(v) then return end end
         if i < 1 or i > Drop.MAX_SHIPS or n < 1 or n > Drop.MAX_SHIPS or i ~= floor(i) or n ~= floor(n) then return end
+        local prof
+        if id ~= nil then
+            if not (isNum(id) and id == floor(id) and Drop.PROFILE_ORDER[id]) then return end
+            prof = Drop.PROFILE_ORDER[id]
+        end
         s.n = n
         s.ships = s.ships or {}
-        s.ships[i] = { x = x, z = z, y = y, sx = sx, sz = sz, lx = lx, lz = lz, delay = delay }
+        s.ships[i] = { x = x, z = z, y = y, sx = sx, sz = sz, lx = lx, lz = lz, delay = delay, prof = prof }
     elseif op == "DropCrew" then
         local team, i, along, lat = ...
         if not (isNum(team) and isNum(i) and isNum(along) and isNum(lat)) then return end
@@ -335,6 +410,8 @@ end
 --   focus   = ship index the camera looks at (default the last); team = ship team (default 1)
 --   exclude = { [handle] = true } objects that do not block a site (the cargo itself)
 --   lateral = {x, z} the side-by-side line for a single anchor
+--   profile = a Drop.PROFILES name (default "avdrop"); a cargo entry may name a profile slot instead of along/lat:
+--             { h = recycler, goal = pos, slot = "recycler" }
 -- Returns false (state done, nothing built, nothing sent) when the ships cannot be built.
 function Drop.Begin(s, spec)
     local ok, result = pcall(Drop.BeginPlan, s, spec)
@@ -347,6 +424,12 @@ end
 function Drop.BeginPlan(s, spec)
     local n = #spec.ships
     if n < 1 or n > Drop.MAX_SHIPS or type(api.present) ~= "function" then s.phase = "done"; return false end
+    local prof = Drop.PROFILES[spec.profile or Drop.DEFAULT]
+    if not prof then
+        log("stock opening: unknown ship profile %s", tostring(spec.profile))
+        s.phase = "done"
+        return false
+    end
     -- Validate the plan before anything is built or sent: the leader never sends a plan it then abandons.
     local anchors = {}
     for i = 1, n do
@@ -368,8 +451,8 @@ function Drop.BeginPlan(s, spec)
             return false
         end
     end
-    local frames, d, score = Drop.Sites(anchors, ground, blocked, spec.lateral)
-    local L = { hulls = {}, cargo = {}, d = d, focus = spec.focus or n, team = spec.team or 1 }
+    local frames, d, score = Drop.Sites(anchors, ground, blocked, spec.lateral, prof)
+    local L = { hulls = {}, cargo = {}, d = d, focus = spec.focus or n, team = spec.team or 1, prof = prof }
     s.lead = L -- from here an abort (Drop.Abort) can take back whatever was built
     local crew = {}
     for i = 1, n do
@@ -378,26 +461,28 @@ function Drop.BeginPlan(s, spec)
         local j = 0
         for _, team in ipairs(ship.crew or {}) do
             j = j + 1
-            local along, lat = Drop.Slot(j)
+            local along, lat = Drop.Slot(j, prof)
             if along then crew[#crew + 1] = { team = team, ship = i, along = along, lat = lat }
             else log("hold full: team %d rides nowhere", team) end
         end
         for _, c in ipairs(ship.cargo or {}) do
             local along, lat = c.along, c.lat
-            if not along then j = j + 1; along, lat = Drop.Slot(j) end
+            local named = c.slot and prof.slots and prof.slots[c.slot]
+            if named then along, lat = named.along, named.lat end
+            if not along then j = j + 1; along, lat = Drop.Slot(j, prof) end
             if along and alive(c.h) then
                 L.cargo[#L.cargo + 1] = { h = c.h, ship = i, along = along, lat = lat, goal = c.goal }
             end
         end
         local up, back = Drop.Offsets(frame, 0)
-        local h = BuildObject(Drop.FLYING, L.team, hullMatrix(frame, up, back))
+        local h = BuildObject(prof.flying, L.team, hullMatrix(frame, up, back))
         if not alive(h) then
-            log("stock opening: could not build %s", Drop.FLYING)
+            log("stock opening: could not build %s", prof.flying)
             cleanupLead(L)
             s.lead, s.phase = nil, "done"
             return false
         end
-        L.hulls[i] = { h = h, odf = Drop.FLYING }
+        L.hulls[i] = { h = h, odf = prof.flying }
     end
     for i = 1, n do
         local f = frames[i]
@@ -419,7 +504,11 @@ function Drop.BeginPlan(s, spec)
     L.pod = BuildObject(Drop.POD, 0, V(cx, ground(cx, cz), cz))
     for i = 1, n do
         local f = frames[i]
-        call("present", "DropShip", i, n, f.x, f.z, f.y, f.sx, f.sz, f.lx, f.lz, f.delay)
+        if prof.name == Drop.DEFAULT then
+            call("present", "DropShip", i, n, f.x, f.z, f.y, f.sx, f.sz, f.lx, f.lz, f.delay)
+        else   -- the profile id rides along only when it is not avdrop: avdrop plans are unchanged on the wire
+            call("present", "DropShip", i, n, f.x, f.z, f.y, f.sx, f.sz, f.lx, f.lz, f.delay, Drop.IdOf(prof.name))
+        end
     end
     for _, c in ipairs(crew) do call("present", "DropCrew", c.team, c.ship, c.along, c.lat) end
     call("present", "DropGo", GetTime())
@@ -460,8 +549,9 @@ local function drive(s, c)
     if now - s.releasedAt > Drop.DRIVE_MAX then c.path = nil; Stop(c.h, 0); return end
     local p = GetPosition(c.h)
     local along = (p.x - f.x) * f.sx + (p.z - f.z) * f.sz
-    local legs = #Drop.PATH + 1
-    local function leg(k) return Drop.PATH[k] or s.lead.d end
+    local path = Drop.Profile(f).path
+    local legs = #path + 1
+    local function leg(k) return path[k] or s.lead.d end
     if c.leg <= legs and along >= leg(c.leg) - 2 then c.leg = c.leg + 1 end
     local gx, gz
     if c.leg > legs then
@@ -489,7 +579,8 @@ local function near(h, f)
     if not alive(h) then return false end
     local p = GetPosition(h)
     local dx, dz = p.x - f.x, p.z - f.z
-    return dx * dx + dz * dz < Drop.CLEAR_R * Drop.CLEAR_R
+    local r = Drop.Profile(f).clearR
+    return dx * dx + dz * dz < r * r
 end
 
 local function clear(s, i)
@@ -522,7 +613,7 @@ local function lead(s, t, rel)
         if hull.gone then
             -- nothing left of this ship
         elseif hull.liftAt then
-            local up, back = Drop.LiftOffsets(now - hull.liftAt)
+            local up, back = Drop.LiftOffsets(now - hull.liftAt, ship)
             if alive(hull.h) and up <= Drop.LIFT_GONE then
                 setT(hull.h, hullMatrix(ship, up, back))
             else
@@ -537,8 +628,9 @@ local function lead(s, t, rel)
                 setT(hull.h, hullMatrix(ship, up, back))
             end
         else
-            if hull.odf ~= Drop.LANDED then
-                swap(hull, Drop.LANDED, hullMatrix(ship, 0, 0), L.team, L)
+            local prof = Drop.Profile(ship)
+            if hull.odf ~= prof.landed then
+                swap(hull, prof.landed, hullMatrix(ship, 0, 0), L.team, L)
                 for _, c in ipairs(L.cargo) do
                     if c.ship == i and alive(c.h) then pin(c.h, ship, c.along, c.lat, t); Stop(c.h, 1) end
                 end
@@ -548,8 +640,8 @@ local function lead(s, t, rel)
                 hull.gone = true
             elseif s.released and now - s.releasedAt > Drop.LIFT_AFTER and clear(s, i) then
                 local m = hullMatrix(ship, 0, 0)
-                swap(hull, Drop.CLOSING, m, L.team, L)
-                if not alive(hull.h) then swap(hull, Drop.FLYING, m, L.team, L) end
+                swap(hull, prof.closing, m, L.team, L)
+                if not alive(hull.h) then swap(hull, prof.flying, m, L.team, L) end
                 hull.closeAt = now
                 log("ship %d closing odf=%s", i, tostring(alive(hull.h) and GetOdf(hull.h)))
             end
@@ -581,8 +673,9 @@ function recover(s, why)
     local L = s.lead
     if L and leading() then
         if type(AllObjects) == "function" then
+            local prof = Drop.Profile(s.ships and s.ships[1])
             for h in AllObjects() do
-                if IsOdf(h, Drop.FLYING) or IsOdf(h, Drop.LANDED) or IsOdf(h, Drop.CLOSING) then RemoveObject(h) end
+                if IsOdf(h, prof.flying) or IsOdf(h, prof.landed) or IsOdf(h, prof.closing) then RemoveObject(h) end
             end
         end
         cleanupLead(L, true)

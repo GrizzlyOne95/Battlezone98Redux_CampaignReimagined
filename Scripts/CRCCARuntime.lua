@@ -1071,6 +1071,8 @@ R.Present = Present
 R.AudioMessage, R.StopAudioMessage = AudioMessage, StopAudioMessage
 R.CameraReady, R.CameraPath, R.CameraObject = CameraReady, CameraPath, CameraObject
 R.CameraFinish, R.CameraCancelled = CameraFinish, CameraCancelled
+-- True once an offline skip ended the current shot (CameraObject's SkipCheck or HoldCamera already consumed the native flag).
+function R.CameraSkipped() return cameraSkipped end
 R.SetObjectiveName, R.SetObjectiveOn, R.SetObjectiveOff = SetObjectiveName, SetObjectiveOn, SetObjectiveOff
 R.ClearObjectives, R.AddObjective, R.UpdateObjective, R.RemoveObject = ClearObjectives, AddObjective, UpdateObjective, RemoveObject
 R.SucceedMission, R.FailMission = SucceedMission, FailMission

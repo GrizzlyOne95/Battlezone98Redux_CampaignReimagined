@@ -316,6 +316,9 @@ Pick the unused retrospective line; for example misn13 uses `misn1305`, misn12 `
 - Renderer payloads ship as `.payload` files (OpenShim 1.0.0.51+ reads them). Chunk meshes ship from
   `Assets/chunkMeshes_capped`; `Assets/chunkMeshes` still supplies 21 companion files the lock ships, so
   deleting that directory makes `-verify` report `LOCKED BUT ABSENT`.
+- A bless on a branch whose base lags `main` can also add already-tracked files its lock missed (a stacked branch added
+  `Shaders\CR_cockpit_damage-sm4.hlsl`): read the diff, and keep only your change's entries (remove the others at their
+  sorted position and fix the count) so the PR shows one change.
 - If a bless was done with zero-byte stand-in files, delete them afterwards (`find BZ_ASSETS_CORE openshim
   -size 0`); they are gitignored so `git status` looks clean while Validate reports hash mismatches.
 

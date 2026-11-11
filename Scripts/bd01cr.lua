@@ -54,6 +54,102 @@ local Restored = {}
 -- pair (the attack camera's subject) are built directly, see BuildObject below.
 local SCALED_ODFS = { cvfigh = true, cvltnk = true }
 if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
+-- The dropship opening (Scripts/CRDropIn.lua, Docs/BDMISN01_COOP.md "Dropship opening"), offline and co-op: two Black Dog
+-- dropships (bvdrop) land the Recycler with the two Bobcats and every human's craft at the stock start, and the stock body
+-- waits for it (Update returns before the body, so the Recycler's start path, the briefing and every timer start at the
+-- landing). A missing module or ship art falls back to the stock start. The plan rides the runtime's ordered stream as
+-- the presentation ops below, so a guest without the module still acknowledges them. Natives here are the engine's.
+local DropIn
+if not CR_TEST_FAITHFUL then
+    local okDropIn, module = pcall(require, "CRDropIn")
+    if okDropIn then DropIn = module else print("[bd01] stock opening: CRDropIn unavailable: " .. tostring(module)) end
+end
+local dropOps = {}
+for _, op in ipairs({ "DropShip", "DropCrew", "DropGo" }) do
+    dropOps[op] = function(...)
+        if DropIn then
+            M.dropin = M.dropin or {}
+            DropIn.Apply(M.dropin, op, ...)
+        end
+    end
+end
+local function DropStart(R)
+    if not DropIn then return end
+    DropIn.Configure({
+        present = R.Present, exu = R.Exu, log = print, owner = "mission:bd01-dropship",
+        isNetwork = R.Coop.IsNetworkGame, isLeader = R.Coop.IsAuthority,
+        myTeam = R.Coop.GetLocalTeam, player = R.Native.GetPlayerHandle,
+        forEachHuman = function(fn) R.Coop.ForEachPlayerHandle(function(h) fn(h) end) end,
+        cameraReady = R.CameraReady, cameraObject = R.CameraObject,
+        cameraFinish = R.CameraFinish, cameraCancelled = function() return R.CameraCancelled() or (not R.Coop.IsNetworkGame() and R.CameraSkipped()) end,
+    })
+    DropIn.Reset()
+end
+local function DropFlat(h)
+    local pos = GetPosition(h)
+    return { x = pos.x, z = pos.z }
+end
+-- Leader: true while the stock body must wait. The drop keeps running after the release alongside the mission.
+local function DropUpdate(R)
+    if not DropIn then return false end
+    if not M.dropin then
+        if M.startDone then return false end -- a save from before the opening: the mission is already under way
+        M.dropin = {}
+        local recy, wing1, wing2 = GetHandle("recycler"), GetHandle("wingman1_bobcat"), GetHandle("wingman2_bobcat")
+        -- The stock player spot: the authored user tank. In co-op the humans start elsewhere and it is a plain team 1 tank.
+        local spot = GetHandle("player_grizzly")
+        if not IsValid(spot) then spot = R.Native.GetPlayerHandle() end
+        if not (IsValid(recy) and IsValid(spot)) then
+            print("[bd01] stock opening: recycler or player spot missing")
+            M.dropin.phase = "done"
+            return false
+        end
+        local exclude, humans = { [recy] = true, [spot] = true }, {}
+        R.Coop.ForEachPlayerHandle(function(h) humans[h] = true; exclude[h] = true end)
+        local teams = {}
+        R.Coop.ForEachHumanTeam(function(team) teams[#teams + 1] = team end)
+        table.sort(teams)
+        -- Ship 1 carries the Recycler and the Bobcats to their stock spots; ship 2 the humans (and the stock tank in co-op).
+        local pr = DropFlat(recy)
+        local cx, cz, n = pr.x, pr.z, 1
+        local cargo = { { h = recy, goal = pr, along = 0, lat = -8 } }
+        for i, w in ipairs({ wing1, wing2 }) do
+            if IsValid(w) then
+                exclude[w] = true
+                local pw = DropFlat(w)
+                cx, cz, n = cx + pw.x, cz + pw.z, n + 1
+                cargo[#cargo + 1] = { h = w, goal = pw, along = i == 1 and 2 or -9, lat = 10 }
+            end
+        end
+        local riders = {}
+        local ps = DropFlat(spot)
+        if not humans[spot] then riders[1] = { h = spot, goal = ps } end
+        local begun = pcall(DropIn.Begin, M.dropin, { profile = "bvdrop", exclude = exclude, ships = {
+            { anchor = { x = cx / n, z = cz / n }, delay = 0, cargo = cargo },
+            { anchor = ps, delay = 2.5, crew = teams, cargo = riders },
+        } })
+        if not begun then
+            pcall(DropIn.Abort, M.dropin)
+            M.dropin.phase = "done"
+            return false
+        end
+    end
+    return DropIn.Update(M.dropin)
+end
+-- Every frame the body does not run for this peer: a guest holds its own craft in the hold, and a co-op warn state
+-- (host gone, late joiner, bad team) takes the drop down so no peer stays locked.
+local function DropStandby(R)
+    if not (DropIn and M.dropin) or M.dropin.phase == "done" then return end
+    local coop = R.Coop
+    if coop.IsNetworkGame() then
+        if coop.HasLeaderDeparted() or coop.HasUnsupportedPlayerTeam() or coop.HasLateJoiners() then
+            pcall(DropIn.Abort, M.dropin)
+            return
+        end
+        if not coop.IsSessionReady() then return end
+    end
+    if not coop.IsAuthority() then DropIn.Update(M.dropin) end
+end
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "bd01cr", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2,
     rallyPoints = { [0] = "recycler" }, -- respawn at the shared base
@@ -99,7 +195,14 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
                 europa.SetTargetLevel(1)
             end
         end },
-    hooks = { load = function() Restored.OnLoad() end },
+    presentationOps = dropOps,
+    hooks = {
+        start = function(R) DropStart(R) end,
+        load = function()
+            Restored.OnLoad()
+            if DropIn then DropIn.OnLoad(M.dropin) end
+        end,
+    },
 })
 local NativeBuildObject, NativeSetCloaked, NativeDecloak = BuildObject, SetCloaked, Decloak
 local NativeSetUserTarget, NativeGetNearestUnitOnTeam = SetUserTarget, GetNearestUnitOnTeam
@@ -565,7 +668,11 @@ function AddObject(h)
     if campaignRuntime then return campaignRuntime.AddObject(h) end
 end
 function Update(dt)
-    if campaignRuntime and not campaignRuntime.Update(dt) then return end
+    if campaignRuntime then
+        if not campaignRuntime.Update(dt) then DropStandby(campaignRuntime); return end
+        M.dropHold = DropUpdate(campaignRuntime)
+        if M.dropHold then return end -- the stock opening waits for the landing
+    end
     BodyUpdate(dt)
     if campaignRuntime then campaignRuntime.AfterUpdate() end
 end

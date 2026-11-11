@@ -143,6 +143,25 @@ Cut paths absent from this map: `cinpath3`, `cinpath4`, `geyserpath`, `approach`
 `walkcam3`, `walkstart3`, `spawnwalker3`. Objects: `svtank0_wingman`, the three `avturr*_turrettank`, the towers,
 power plants, scrap and the extra geysers are authored scenery/defences the script does not touch.
 
+## Dropship opening [CR addition, offline and co-op]
+
+The mission opens with one CCA dropship (`svdrop`, the "Hind heavy-lifter": stern ramp behind two clamshell doors, hold 32 m
+wide) landing the Soviet recycler and every human's craft at the stock start, offline and in co-op. The module is
+`Scripts/CRDropIn.lua` with its `svdrop` profile; the mission code is in the `co-op runtime` and `co-op callback` regions of
+`Scripts/misns1cr.lua`, so the faithful body is untouched (`Test-Misns1CoopSourceParity.py`).
+
+| Step | What happens |
+| --- | --- |
+| Hold gate | `Update` returns before the whole stock body while `DropUpdate` says the drop is holding (`M.dropHold`): the briefing (`misns101`), `SetScrap`, the AIP, the convoy and opening-film clocks, the walker and every enemy order start at the landing, not at load. The authored Americans stand idle until then (`SetAIControl(5)` has no AIP). Co-op guests (whose `Update` never reaches the body) run `DropStandby` instead: they pin their own craft, and a departed host, late joiner or bad team takes the drop down so nobody stays locked. |
+| Plan | The leader (once the co-op session is ready) takes the recycler (`svrecy2_recycler`) as cargo in the profile's `recycler` slot and every human team as crew. The anchor is the midpoint of the recycler and the stock player spot (`svtank0_wingman`, the authored user tank). In co-op that tank is a plain team 1 tank, so it rides as a second cargo unit when the hold has a slot. The landing is the flattest unblocked site on the 18 candidates, ship 70-90 m from the anchor, ramp toward it. |
+| Hold layout | Recycler at the ramp end (`along` 10.6, rear face on the closed ramp), so it drives out first; two rows of two tanks forward of it (rows -22.3 and -31.7, lanes +-5.5). The profile numbers and their sources are in the header of `CRDropIn.lua`. |
+| Replication | As misn04: `DropShip` / `DropCrew` / `DropGo` are runtime presentation ops (`presentationOps`), so guests acknowledge them even without the module. The `svdrop` profile rides as an extra trailing id on `DropShip` (avdrop plans stay ten numbers). |
+| Fallbacks | No module, missing ship art, a missing recycler or player spot, a failing start (`pcall` + `Abort`), or an old save of a started mission: the stock opening runs. A save taken mid-drop resolves to the end state on load (ship gone, recycler on its stock spot) and the mission starts. |
+
+Not carried: the walker, camera pods, two tanks, fighter and turrets the body builds later, and the American base.
+Everything marked "CR guess" in `CRDropIn.lua` (the svdrop hold height 5.2 m, the hold slots, the exit and clear radii) needs a live tune,
+and so does the landing site on this map (flatness is only read from the terrain at run time).
+
 ## Tests
 
 ```sh
@@ -150,6 +169,7 @@ lua5.1 Tools/Test-Misns1Coop.lua            # offline == faithful, 1-4 peers, sc
 lua5.1 Tools/Test-Misns1Presentation.lua    # E/A/C protocol on a guest
 python Tools/Test-Misns1CoopSourceParity.py # misns1cr.lua minus CR regions == misns1.lua
 python Tools/Test-Misns1CoopContract.py     # labels/paths/teams in misns1cr.bzn (skips with a message if the map is absent)
+lua5.1 Tools/Test-Misns1DropIn.lua          # the dropship opening: hold gate, nothing enemy before the landing, clocks, co-op, save/load
 lua5.1 Tools/Test-Misns1.lua && python Tools/Test-Misns1SourceParity.py   # the faithful port, unchanged
 ```
 
@@ -167,6 +187,8 @@ The workflow `.github/workflows/campaign-validation.yml` is not yet wired to run
 
 ## Live checklist (unrun)
 
+0. Dropship opening: the svdrop lands on this map (site, ramp collision, clamshell swing sense, recycler clearing the roof at
+   5.2 m hold height), the recycler drives out and the tanks follow, nobody is stuck on the ramp; the briefing and timers start at the landing.
 1. Cavalry arrives out of sight with 2-4 humans; extras follow the same route.
 2. Opening film: guests see the same shots; all cameras balanced afterwards.
 3. Loss shot holds and ends with the result on every peer.
