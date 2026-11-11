@@ -2962,12 +2962,18 @@ local function UpdateDropIn()
             exclude[wing] = true
             riders[1] = { h = wing, goal = FlatSpot(wing) }
         end
-        DropIn.Begin(M.dropin, { exclude = exclude, ships = {
+        local begun, started = pcall(TraceUpdateCall, "misn04.UpdateDropIn DropIn.Begin", DropIn.Begin, M.dropin, { exclude = exclude, ships = {
             { anchor = { x = (pr.x + pf.x) / 2, z = (pr.z + pf.z) / 2 }, delay = 0, cargo = {
                 { h = recy, goal = pr, along = 0, lat = -8 },
                 { h = fact, goal = pf, along = 2, lat = 10 } } },
             { anchor = pp, delay = 2.5, crew = teams, cargo = riders },
         } })
+        if not begun then
+            -- Whatever was built goes; the stock opening runs.
+            pcall(DropIn.Abort, M.dropin)
+            M.dropin.phase = "done"
+            return false
+        end
     end
     return DropIn.Update(M.dropin)
 end
@@ -3250,6 +3256,7 @@ function Update()
             M.coopResult = true
             if localCameraActive then native.CameraFinish() end
             localCameraActive = false
+            if DropIn and M.dropin then pcall(DropIn.Abort, M.dropin) end -- never leave a peer locked
             native.FailMission(GetTime() + 1.0)
             return
         end
@@ -3257,6 +3264,7 @@ function Update()
             if not M.coopRestartWarned then
                 DisplayMessage("Use distinct teams 1-4 and start together. Late join/rejoin requires a mission restart.")
                 M.coopRestartWarned = true
+                if DropIn and M.dropin then pcall(DropIn.Abort, M.dropin) end -- Update stops here: unlock now
             end
             return
         end

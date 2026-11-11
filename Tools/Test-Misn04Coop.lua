@@ -579,9 +579,11 @@ end
 reset(); solo = makePeer(10, 1, false)
 for i = 1, 40 do tick(0.25) end
 solo.cameraUp = false; saved = solo.env.Save(); solo.env.Load(saved, {}, {})
+local soloPins = pinned(solo, solo.player)
 for i = 1, 20 do tick(0.25) end
-check(solo.state.dropin.phase == "done" and solo.state.missionstart and not solo.cameraUp and
-    count(solo, "SetTransform") > 0, "offline load mid-drop")
+check(solo.state.dropin.phase == "done" and solo.state.missionstart and not solo.cameraUp,
+    "offline load mid-drop")
+check(pinned(solo, solo.player) == soloPins + 1, "the offline player was not set down once after load")
 -- No module: the stock start, offline and in co-op (a guest without it still acknowledges the plan).
 reset(); solo = makePeer(10, 1, false, { noDropIn = true }); tick(0.1)
 check(solo.state.missionstart and count(solo, "BuildObject") > 0 and built(solo, "avdropc") == 0,

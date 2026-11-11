@@ -163,7 +163,11 @@ local function reset(opts)
     local D = require("CRDropIn")
     local exu = not opts.noExu and {
         CONTROL = { ALL = 4095 },
-        SetPlayerControlMask = function(owner, mask) masks[owner] = mask; return true end,
+        SetPlayerControlMask = function(owner, mask)
+            if opts.maskRefuses then return false end -- an older bundled EXU refuses multiplayer
+            masks[owner] = mask; return true
+        end,
+        GetPlayerControlState = function() return { reason = "multiplayer-unsupported" } end,
         ClearPlayerControlMask = function(owner) masks[owner] = nil end,
     } or nil
     local player = opts.player or 3
@@ -296,12 +300,12 @@ do
     check(s.phase == "done" and not locked() and camera.ready == 0 and count("present") == 0, "stock opening untouched")
 end
 
--- 4f. Network leader: the plan goes out as numbers, the mask stands down, the camera cannot be skipped
+-- 4f. Network leader: the plan goes out as numbers, the mask locks this peer, the camera cannot be skipped
 --     through the module (the mission's CameraCancelled is false in network games).
 do
     local D, s = reset({ network = true, leaderSim = true })
     D.Begin(s, spec({ 1, 2, 3, 4 }))
-    check(not locked(), "the mask stands down in network games")
+    check(masks["mission:test-drop"] == 4095, "the mask locks the leader in co-op too")
     local ships, crew, go = 0, 0, 0
     for _, c in ipairs(calls) do
         if c[1] == "present" then
@@ -361,6 +365,69 @@ do
     check(s2.phase == "done" and D2.Update(s2) == false, "a plan missing its ships is dropped, not held")
 end
 
+-- 4i. A guest that applies DropGo late joins at the leader's clock; a skewed clock is capped and still drops.
+do
+    local plan = {
+        { "DropShip", 1, 2, 1900, 100600, 20, 0, -1, 1, 0, 0 },
+        { "DropShip", 2, 2, 1910, 100700, 20, 0, -1, 1, 0, 2.5 },
+        { "DropCrew", 2, 2, 6, 7 },
+    }
+    local D, s = reset({ network = true, leader = false, team = 2, player = 5 })
+    owned[5] = true
+    now = 30
+    for _, e in ipairs(plan) do D.Apply(s, unpack(e)) end
+    D.Apply(s, "DropGo", 25)   -- sent 5 s ago: still holding
+    check(s.go and s.t0 == 25, "a slightly late DropGo starts the clock at the leader's elapsed time")
+    D, s = reset({ network = true, leader = false, team = 2, player = 5 })
+    owned[5] = true
+    now = 40
+    for _, e in ipairs(plan) do D.Apply(s, unpack(e)) end
+    D.Apply(s, "DropGo", 10)   -- 30 s by this peer's clock: skew, not a real stall
+    check(s.go and s.phase == "drop" and s.t0 == 40 - 5 and locked(), "a skewed clock is capped at MAX_LATE and still drops")
+end
+
+-- 4j. An invalid plan is rejected before anything is built or sent.
+do
+    local D, s = reset()
+    local bad = spec()
+    bad.ships[2].anchor.x = 0 / 0
+    check(D.Begin(s, bad) == false and s.phase == "done", "a NaN anchor aborts the drop")
+    check(count("present") == 0 and count("BuildObject") == 0 and not locked(), "no Drop event sent, nothing built")
+    D, s = reset()
+    bad = spec()
+    bad.ships[1].delay = "soon"
+    check(D.Begin(s, bad) == false and count("present") == 0, "a non-numeric delay aborts the drop")
+end
+
+-- 4k. A recovered (post-load) drop removes ships only by ODF: a stale saved handle may name anything.
+do
+    local D, s = reset()
+    D.Begin(s, spec())
+    for _ = 1, 30 * 4 do step(D, s, 1 / 30) end
+    local hull1 = s.lead.hulls[1].h
+    s.lead.hulls[1].h = 5      -- stale: now a tank (guest_tank)
+    s.lead.pod = 4             -- stale: now the wingman
+    D.OnLoad(s)
+    D.Update(s)
+    check(objects[5] ~= nil and objects[4] ~= nil, "stale hull and pod handles are not removed")
+    check(objects[hull1] == nil, "the real ship is still removed by the ODF sweep")
+end
+
+-- 4l. A failing SetTransform or BuildObject does not break the opening.
+do
+    local D, s = reset()
+    D.Begin(s, spec())
+    _G.SetTransform = function() error("boom") end
+    local ok = pcall(function() for _ = 1, 30 * 25 do step(D, s, 1 / 30) end end)
+    check(ok and s.released, "SetTransform errors are contained")
+    D, s = reset()
+    local base, built = _G.BuildObject, 0
+    _G.BuildObject = function(...) built = built + 1; if built == 3 then error("no pod") end return base(...) end
+    check(D.Begin(s, spec()) == false and s.phase == "done", "an error while building aborts the drop")
+    for _, o in pairs(objects) do check(not o.odf:find("^avdrop"), "an aborted start leaves no ship behind") end
+    check(count("present") == 0 and not locked(), "an aborted start sends nothing")
+end
+
 -- 4h. Determinism: two runs of the same plan put every carried craft at the same place at the same time.
 do
     local function trace()
@@ -374,6 +441,17 @@ do
         return table.concat(out, ";")
     end
     check(trace() == trace(), "the same plan replays the same poses")
+end
+
+-- 4h. An older bundled EXU refuses the mask in co-op: logged, and the drop still runs pinned.
+do
+    local D, s = reset({ network = true, leaderSim = true, maskRefuses = true })
+    D.Begin(s, spec({ 1, 2, 3, 4 }))
+    check(not locked(), "a refused mask leaves nothing set")
+    local logged = false
+    for _, l in ipairs(log) do if tostring(l):find("control lock unavailable", 1, true) then logged = true end end
+    check(logged, "a refused mask is logged")
+    check(s.phase ~= "done", "the drop goes on without the mask")
 end
 
 print(string.format("CRDropIn: %d checks passed", checks))
