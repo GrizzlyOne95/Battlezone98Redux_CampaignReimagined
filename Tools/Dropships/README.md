@@ -4,14 +4,14 @@ These scripts live in `Tools/Dropships/` (copied from the former untracked `buil
 Generated files are not committed: everything goes to `Local/dropships/{out,tex}` (git-ignored; override the
 root with `BZ_DROPSHIPS_LOCAL`). `paths.py` holds the locations. Other environment variables:
 `BZ_STOCK_MODELS` (stock Redux `.mesh` folder, used only for the cargo-fit proxies in the `.blend`; skipped when
-absent), `BZ_TOOLBOX` (Modding Toolbox checkout, the DDS encoder for `texgen_avstock.py`), `BZ_BLENDER`.
+absent), `BZ_TOOLBOX` (Modding Toolbox checkout, the DDS encoder for `texgen_avstock.py`).
 `trim_layout.json` is tracked data (strip layout) read by `shipkit.py`; `texgen.py` rewrites it.
 Order: `python texgen_avstock.py`, then `blender -b -P build_dropship.py -- --norender`, then
 `blender -b -P build_dropship_sdf.py` (`AVD_NAME=avdropc` for the `avdropc` twin). The BZ98 Blender toolkit
-addon (`bz98tools`) must be enabled in Blender. `export_cr.py` and `texgen.py`/the `ccahull` palettes are
-unused by the dropship path except `texgen.py` as a library. The shipped `avdropx` is `avdropc` with ANIM index 0
+addon (`bz98tools`) must be enabled in Blender. `texgen.py` is used only as a library. The shipped `avdropx` is `avdropc` with ANIM index 0
 reversed (frames 30 to 0); that step is not in these scripts. The `out/` and `tex/` paths named below mean the
-`Local/dropships` ones.
+`Local/dropships` ones (`../out` likewise). `sdf_anim_tools.py`, `to_dds.py` and `export_cr.py`
+belong to the old workspace and are not tracked here. The SDF has 17 parts (bow ramp `adr11fmp` added later).
 
 # avdrop — NSDF dropship (prototype blockout)
 
@@ -21,7 +21,7 @@ four struts plus a centre spine over an underslung octagonal cargo pod. Unseen s
 (the ramp, bay interior, landing gear, engine placement) are invented.
 
 Build: `"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" -b -P build_dropship.py`
-(`-- --norender` skips previews). Outputs in `../out`: `avdrop.mesh` (3 submeshes:
+(`-- --norender` skips previews). Outputs in `Local/dropships/out`: `avdrop.mesh` (3 submeshes:
 `avdrop_hull`, `avdrop_hullw`, `avdrop_trim`, skinned), `avdrop.skeleton`, `avdrop.material`,
 `avdrop.blend`, and these previews: `avdrop_{q34,side,rear,top,low}.png`, `avdrop_cockpit.png`
 and `avdrop_cockpit_front.png` (canopy close-ups), `avdrop_flight.png` (gear up, nacelles
@@ -39,9 +39,7 @@ stencils. The Total Command ISDF dropship and carrier sheets (Steam Workshop
 DXGI 72 BC1 sRGB, which PIL reads after patching the header format to 71) were used as a
 reference for panel density and lamp scale, not copied.
 Regenerate with `python texgen_avstock.py`; that writes only `tex/nsdfv*.png` and
-`out/nsdfv*.dds` and leaves the `nsdf`/`cca` sets alone. Do not use `to_dds.py` for this: it
-reconverts every texture. `export_cr.py`'s TEX map does not list the `nsdfv` textures yet. Add
-them before a CR export.
+`out/nsdfv*.dds` and leaves the `nsdf`/`cca` sets alone.
 
 Cockpit (front concept): a stepped, faceted hexagonal canopy at the bow with glowing glass
 panes, and a lit brow light bar. On each side there is a slanted framed louvre vent with a
@@ -50,8 +48,6 @@ running lights are red to port (+X) and white to starboard. A red beacon sits on
 dorsal hump.
 The exported mesh is in the rest pose (ramp closed, gear down). The blend also holds the
 cargo proxies; these are not exported.
-CR re-export: `blender -b --factory-startup ../out/avdrop.blend -P export_cr.py -- avdrop <crname>`
-(not run).
 
 ## Rig and animation
 
@@ -90,7 +86,7 @@ only. The in-game path is the SDF variant below.
 
 ## SDF variant `avdropo` (landed, both ramps open)
 
-`blender -b -P build_dropship_sdf.py` writes `../out/sdf/`: `avdropo.sdf`, 17 `adr11*.geo`,
+`blender -b -P build_dropship_sdf.py` writes `Local/dropships/out/sdf/`: `avdropo.sdf`, 17 `adr11*.geo`,
 `avdropo.mesh`/`.skeleton`/`.material`, `avdropo.odf`, `avdropo.blend`.
 
 - Each bone above becomes its own GEO (type 61, collision generated, as the stock hangar `abhang`).

@@ -4,7 +4,6 @@ Override with environment variables:
   BZ_DROPSHIPS_LOCAL   output root (default <repo>/Local/dropships; holds out/ and tex/)
   BZ_STOCK_MODELS      folder of stock Redux .mesh files (only used for the cargo-fit proxies in the .blend)
   BZ_TOOLBOX           Battlezone98_Modding_Toolbox checkout (DDS encoder for texgen_avstock.py)
-  BZ_BLENDER           blender.exe used by the README commands (informational)
 """
 import os
 
@@ -17,4 +16,3 @@ LAYOUT = os.path.join(HERE, "trim_layout.json")   # tracked: strip/cell layout s
 STOCK = os.environ.get("BZ_STOCK_MODELS",
                        r"C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux\BZ_ASSETS\common\models")
 TOOLBOX = os.environ.get("BZ_TOOLBOX", os.path.expanduser("~/Documents/GIT/Battlezone98_Modding_Toolbox"))
-BLENDER = os.environ.get("BZ_BLENDER", r"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe")

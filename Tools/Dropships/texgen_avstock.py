@@ -504,6 +504,8 @@ def stock_trim(seed, prefix):
 
 
 def to_dds(paths):
+    if not os.path.isdir(os.path.join(P.TOOLBOX, "bztoolbox")):
+        sys.exit(f"DDS step needs the Battlezone98_Modding_Toolbox checkout; set BZ_TOOLBOX (looked in {P.TOOLBOX}). PNGs are in {P.TEX}.")
     sys.path.insert(0, P.TOOLBOX)
     from bztoolbox.modules.textures import bcpack
     out_dir = P.OUT

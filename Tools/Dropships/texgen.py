@@ -449,7 +449,7 @@ def main():
         finish_maps(wrgb, None, None, emit, p + "hullw")
         trim_sheet(pal, 300 + i, p + "trim")
         print("wrote", fac)
-    with open(paths.LAYOUT, "w") as f:
+    with open(paths.LAYOUT, "w", encoding="utf-8", newline="") as f:
         json.dump({"size": N, "strips": TRIM, "cells": CELLS}, f, indent=1)
 
 
