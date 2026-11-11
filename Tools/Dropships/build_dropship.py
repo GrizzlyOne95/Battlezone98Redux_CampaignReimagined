@@ -26,7 +26,11 @@ BODY_ZB, BODY_ZT = 32.0, 41.0
 NAC_X, NAC_HW = 32.0, 5.5
 RAMP_T = 1.2
 BOW_Y = -24.0
-FAC = "nsdfv"   # stock-vehicle paint (texgen_avstock.py); "nsdf" = capital-ship grey
+SHIP = sys.argv[sys.argv.index("--ship") + 1] if "--ship" in sys.argv[:-1] else "avdrop"   # avdrop (NSDF) or bvdrop (Black Dog retexture)
+if SHIP not in ("avdrop", "bvdrop"):
+    sys.exit(f"--ship must be avdrop or bvdrop, not {SHIP!r}")
+WING_CELL = "dish" if SHIP == "bvdrop" else "star"   # bvdrop: wing-top marking is the secondary stencil, not the flank emblem
+FAC = {"avdrop": "nsdfv", "bvdrop": "bdrv"}[SHIP]   # texture prefix: texgen_avstock.py / texgen_bvstock.py
 RAMP_OPEN = math.degrees(math.asin(BAY_ZF / (BAY_ZC - BAY_ZF))) + 90      # lip touches the ground
 # landing legs, keyed by (side, y): 1/2 port (+X) fore/aft, 3/4 starboard fore/aft
 LEGS = {(1, -18): "adr11lg1", (1, 16): "adr11lg2", (-1, -18): "adr11lg3", (-1, 16): "adr11lg4"}
@@ -247,7 +251,7 @@ def build(name):
     for sg in (1, -1):
         wing(s, 10.5, sg * (NAC_X - NAC_HW + 0.5), (30, 41, 32.5, 2.5), (18, 40, 35, 2), 0)
         s.plate((sg * 19, -6, 40.4), (11, 1.4), "+z", L, depth=0.2)
-        s.plate((sg * 19, 0, 40.6), (8, 8), "+z", ("cell", "star"), depth=0.3)
+        s.plate((sg * 19, 0, 40.6), (8, 8), "+z", ("cell", WING_CELL), depth=0.3)
 
     # ---------------- lift nacelles: tall slabs with hip-roof ends, canted out 7 deg
     for sg in (1, -1):
@@ -279,8 +283,8 @@ def build(name):
 def rig(ob, bones):
     """Armature with one bone per moving part (head = pivot, pointing +Z), rigid weights,
     OGREIDs for the Ogre exporter, and an Armature modifier on the hull."""
-    arm = bpy.data.armatures.new("avdrop_skel")
-    ao = bpy.data.objects.new("avdrop_skel", arm)
+    arm = bpy.data.armatures.new(f"{SHIP}_skel")
+    ao = bpy.data.objects.new(f"{SHIP}_skel", arm)
     bpy.context.scene.collection.objects.link(ao)
     bpy.context.view_layer.objects.active = ao
     bpy.ops.object.mode_set(mode="EDIT")
@@ -377,12 +381,12 @@ def export_rigged(ob, ao):
 
 
 K.setup_scene()
-ob, bones = build("avdrop")
+ob, bones = build(SHIP)
 print("FACES", len(ob.data.polygons), "BONES", len(bones))
 ao = rig(ob, bones)
 make_actions(ao)
 export_rigged(ob, ao)
-K.write_ogre_material("avdrop", FAC)
+K.write_ogre_material(SHIP, FAC)
 
 # ---------------- cargo proxies (blend/preview only, not exported)
 
@@ -459,24 +463,24 @@ if os.path.isdir(STOCK):   # cargo-fit proxies need the stock avrecy/avtank mesh
         t.location = (x, y, BAY_ZF + 0.2)
         cargo.append(t)
 
-bpy.ops.wm.save_as_mainfile(filepath=os.path.join(K.OUT, "avdrop.blend"))
+bpy.ops.wm.save_as_mainfile(filepath=os.path.join(K.OUT, SHIP + ".blend"))
 
 if "--norender" not in sys.argv:
     for o in cargo:
         o.hide_render = True
-    K.render_previews(ob, "avdrop", 230)
+    K.render_previews(ob, SHIP, 230)
     sc = bpy.context.scene
     for vn, loc in (("cockpit", (-14, -62, 44)), ("cockpit_front", (0, -60, 37))):  # bow close-ups
         sc.camera.location = loc
         sc.camera.rotation_euler = (Vector((0, -24, 36)) - Vector(loc)).to_track_quat("-Z", "Y").to_euler()
-        sc.render.filepath = os.path.join(K.OUT, f"avdrop_{vn}.png")
+        sc.render.filepath = os.path.join(K.OUT, f"{SHIP}_{vn}.png")
         bpy.ops.render.render(write_still=True)
     # flight pose: gear up, nacelles tilted, bells gimballed (proves the rig deforms cleanly)
     apply_pose(ao, ANIMS["gear_retract"] + ANIMS["nacelle_tilt"] + ANIMS["vtol_gimbal"])
     cam = sc.camera
     cam.location = (-215, -95, 70)
     cam.rotation_euler = (Vector((0, 0, 22)) - cam.location).to_track_quat("-Z", "Y").to_euler()
-    sc.render.filepath = os.path.join(K.OUT, "avdrop_flight.png")
+    sc.render.filepath = os.path.join(K.OUT, f"{SHIP}_flight.png")
     bpy.ops.render.render(write_still=True)
     reset_pose(ao)
     # bay-open shot: ramp bone lowered, light the hold, look in over the ramp
@@ -492,7 +496,7 @@ if "--norender" not in sys.argv:
     cam = sc.camera
     cam.location = (48, 125, 30)
     cam.rotation_euler = (Vector((0, -2, 10)) - cam.location).to_track_quat("-Z", "Y").to_euler()
-    sc.render.filepath = os.path.join(K.OUT, "avdrop_bayopen.png")
+    sc.render.filepath = os.path.join(K.OUT, f"{SHIP}_bayopen.png")
     bpy.ops.render.render(write_still=True)
     # fit-check plan: bay floor outline (dark) + lowered ramp (light) with the load, orthographic top
     ob.hide_render = lo.hide_render = True
@@ -506,5 +510,5 @@ if "--norender" not in sys.argv:
         sc.collection.objects.link(pb)
     cam.data.type, cam.data.ortho_scale = "ORTHO", 78
     cam.location, cam.rotation_euler = (0, 9, 200), (0, 0, math.radians(90))  # bow left, ramp right
-    sc.render.filepath = os.path.join(K.OUT, "avdrop_bayplan.png")
+    sc.render.filepath = os.path.join(K.OUT, f"{SHIP}_bayplan.png")
     bpy.ops.render.render(write_still=True)

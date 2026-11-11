@@ -34,7 +34,7 @@ for n in names:
     tris = sum(len(o.data.polygons) for o in meshes)
     print(f"VERIFY {n}: submeshes={sub or [o.name for o in meshes]} importer_objects={len(meshes)} tris={tris} "
           f"bones={len(bones)} {bones} uv={uv}")
-    want = sorted([n + "_hull", n + "_trim"])
+    want = sorted([n + "_hull", n + "_trim"]) if n not in ("avdrop", "bvdrop") else sorted([n + "_hull", n + "_hullw", n + "_trim"])
     names_ok = sub == want
     if not names_ok:
         print(f"  FAIL submesh names {sub} != {want}")

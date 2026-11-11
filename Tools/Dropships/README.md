@@ -327,3 +327,54 @@ Reading them:
 
 The numbers are palette guidance, not a texel-for-texel match: stock sheets are unwrapped per part, ours are tiled plating.
 
+
+# bvdrop: Black Dog dropship (avdrop retexture)
+
+`bvdrop` is the avdrop model, rig and UVs unchanged (same 2916 tris, 15 bones, hull/hullw/trim submeshes) with its own `bdrv` atlas and
+`bvdrop_*` materials. `texgen_bvstock.py` reuses the `texgen_avstock.py` painter with the Black Dog palette measured from the stock
+bvrecy, bvmuf, bvtank, bvslf, bvhaul and bvturr DDS (`measure_stock.py` also reads them): weathered blue-teal grey plate (median about
+71,81,74; k-means peaks (47,60,56) and (61,76,71)) over near-black slabs (45 to 90 % of the sheet), red/black hazard panels (the stock
+signature; extra hazard patches and red accent bands), dark red flank panels (`hullw`, stock panel red measured about 88,18,17), and the user's four Black Dog logo images (read at paint time from
+the Google Drive archive via env vars `BZ_BDOG_LOGO` (BdogLogoHD1, pod flanks), `BZ_BDOG_HOUND` (BlackDog-HDLogo, ramp), `BZ_BDOG_STENCIL` (BdogLogoHD2,
+wing tops via `WING_CELL` in `build_dropship.py`) and `BZ_BDOG_HOUND2` (BlackDog-BasedOffOriginal, nacelle sides); circular alpha masks, never copied
+into the repo), a darker hull, heavy grime and
+grain, cyan/yellow/red/green lamps.
+Total Command's bvdropcox renders were only used to judge the dark-armour proportion. Nothing is copied.
+
+```
+python texgen_bvstock.py                                  # -> tex/bdrv*.png, out/bdrv*.dds
+blender -b -P build_dropship.py -- --ship bvdrop          # -> out/bvdrop.mesh/.skeleton/.material/.blend + previews (add --norender to skip)
+blender -b -P verify_export.py -- avdrop bvdrop
+```
+
+`build_dropship.py --ship avdrop|bvdrop` picks the name and texture prefix (default avdrop). Sheet and compare renders are PIL tiles of
+the previews: `out/bvdrop_sheet.png` (q34, side, rear, top, low, cockpit, cockpit_front, flight, bayopen) and `out/bvdrop_compare.png`
+(avdrop on the left, bvdrop on the right; q34, side, rear). The SDF variant (`build_dropship_sdf.py`) was not run for bvdrop.
+
+## SDF variants for svdrop / cvdrop (`svdropc/o/x`, `cvdropc/o/x`)
+
+```
+blender -b -P build_faction_sdf.py -- svdrop      # then cvdrop; needs the painted atlas (texgen_svstock.py / texgen_cvstock.py)
+blender -b -P verify_faction_sdf.py -- svdrop cvdrop
+```
+
+Output in `Local/dropships/out/sdf/`: `<ship>{c,o,x}.{sdf,mesh,skeleton,material}` and one `<part>.geo` per bone plus the ramp
+collision slab (`sdr11rpf` / `cdr11rpf`). `build_faction_sdf.py` runs the ship's own `build_<ship>.py` up to its packaging step,
+UV-maps it with `dropkit.finish_uv`, turns it 180 degrees about Z (bow to +Y, as avdrop), splits it into one GEO per bone and exports
+with the toolkit (`export_scene.sdf`, `auto_port_ogre`). Same recipe as avdrop: GEO type 61, every moving part keyed on every
+frame 0-30, the visual ramp's GEO shrunk to a 0.4 m hinge block, a static slab (top 5 cm over the open deck, 1 m past the lip)
+for the floor, `geo_planes.fix` on every GEO.
+
+| Variant | ANIM index 0 | Use |
+|---|---|---|
+| `c` | frames 0-30, 0.001 degree swing | ramps shut, flown by script |
+| `o` | frames 0-30, full swing | landed: ramps (and svdrop's clamshells) open once on creation |
+| `x` | 30 to 0, full swing | starts open, folds shut once: lift-off |
+
+Open swing in the SDF frame (the Rz(pi) turn flips X rotations, keeps Z): svdrop ramp +106.33 degrees about X, clamshells
+`cl1` -100 and `cl2` +100 about Z; cvdrop bow ramp -61.33 degrees about X (it closes at 45 degrees as the chin glacis).
+The script asserts the open ramp lip is on the ground and the slab deck lies within 0.4 m of the visual deck. Not checked in
+game: the clamshell swing sense (offline it swings outward in the Blender frame; the ramp convention is the one that works for
+avdrop). The `sdr11bdy` GEO has 1138 faces (avdrop's body is a fraction of that): watch collision cost in game.
+Ship numbers for CRDropIn (hinge and lip metres along the exit axis from the model origin): svdrop hinge 39.1, ramp 16 m,
+floor 4.5, slope 16.33 deg; cvdrop hinge 16.0 (bow), same ramp and slope (`svdrop_report.json`, `cvdrop_report.json`).

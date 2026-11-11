@@ -29,6 +29,7 @@ N = T.N
 RUST = np.array((92, 62, 42), np.float32)
 DIRT = np.array((26, 30, 26), np.float32)
 METAL = np.array((112, 120, 114), np.float32)
+HAZ_EXTRA = 0.0     # fraction of plating details forced to hazard patches (texgen_bvstock raises it)
 c = T.col
 
 
@@ -229,6 +230,8 @@ def stock_plating(seed, size=N, details=620):
         tries += 1
         x, y = int(r.integers(M, size - 260)), int(r.integers(M, size - 200))
         k = r.random()
+        if HAZ_EXTRA and r.random() < HAZ_EXTRA:   # extra draw only when enabled, so avdrop's stream is unchanged
+            k = 0.89
         # rough footprint for the overlap test (largest size of each kind)
         fw, fh = (72, 40) if k < 0.66 else (190, 14) if k < 0.74 else (110, 50)
         ox, oy = x // 8, y // 8
