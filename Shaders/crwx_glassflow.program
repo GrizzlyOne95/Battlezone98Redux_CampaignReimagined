@@ -1,0 +1,65 @@
+// Procedural rain flowing over the cockpit glass (crwx_glassflow.hlsl): the last
+// pass of CRWX_CockpitGlass_R_W<a>C<b>. SM4 for DX11, SM3 for DX9; the material's
+// fixed-function technique scrolls a streak texture where neither compiles.
+// CRWetGlass.lua sets airflow, gravity and rainTint each frame and the rain
+// intensity through the pass diffuse alpha.
+
+vertex_program CRWX_GlassFlow_vertex_SM4 hlsl
+{
+	source crwx_glassflow.hlsl
+	target vs_4_0
+	entry_point flow_vertex
+
+	default_params
+	{
+		param_named_auto wvpMat worldviewproj_matrix
+		param_named airflow float4 0 0 0 0
+		param_named gravity float4 0 -1 0 7
+		param_named flowParams float4 0.5 6 25 4
+	}
+}
+
+fragment_program CRWX_GlassFlow_fragment_SM4 hlsl
+{
+	source crwx_glassflow.hlsl
+	target ps_4_0
+	entry_point flow_fragment
+
+	default_params
+	{
+		param_named_auto surfaceDiffuse surface_diffuse_colour
+		param_named_auto time time_0_x 3600
+		param_named rainTint float4 0.78 0.84 0.9 1
+	}
+}
+
+vertex_program CRWX_GlassFlow_vertex_SM3 hlsl
+{
+	source crwx_glassflow.hlsl
+	target vs_3_0
+	entry_point flow_vertex
+	preprocessor_defines SM3=1
+
+	default_params
+	{
+		param_named_auto wvpMat worldviewproj_matrix
+		param_named airflow float4 0 0 0 0
+		param_named gravity float4 0 -1 0 7
+		param_named flowParams float4 0.5 6 25 4
+	}
+}
+
+fragment_program CRWX_GlassFlow_fragment_SM3 hlsl
+{
+	source crwx_glassflow.hlsl
+	target ps_3_0
+	entry_point flow_fragment
+	preprocessor_defines SM3=1
+
+	default_params
+	{
+		param_named_auto surfaceDiffuse surface_diffuse_colour
+		param_named_auto time time_0_x 3600
+		param_named rainTint float4 0.78 0.84 0.9 1
+	}
+}

@@ -428,6 +428,62 @@ for _, tex in pairs(shell.textures) do
 end
 check(sawPlain and not sawAcid, "with acid at 0 the glass passes use the plain rain textures again")
 run(60, 0)
+
+-- Rain running over the glass: with EXU shader values the rain is the last pass of
+-- CRWX_CockpitGlass_R_W<a>C<b>, fed the craft-frame air and gravity, and the bead,
+-- rivulet and streak layers stay off the glass.
+do
+    local vectors = {}
+    X.SetMaterialShaderVector = function(mat, name, x, y, z, w, tech, pass)
+        vectors[mat .. "#" .. pass .. "#" .. name] = { x, y, z, w }
+        return true
+    end
+    -- Flying north (+z) at 50 m/s, level, craft facing north.
+    GetVelocity = function() return { x = 0, y = 0, z = 50 } end
+    GetTransform = function()
+        return { right_x = 1, right_y = 0, right_z = 0, up_x = 0, up_y = 1, up_z = 0,
+            front_x = 0, front_y = 0, front_z = 1, posit_x = 0, posit_y = 0, posit_z = 0 }
+    end
+    shell.textures = {}
+    run(10, 0.8)
+    local wrapN, clampN = string.match(shell.material, "^CRWX_CockpitGlass_R_W(%d+)C(%d+)$")
+    check(wrapN ~= nil, "rain on the glass picks a rain material, got " .. shell.material)
+    local flowPass = wrapN and (tonumber(wrapN) + tonumber(clampN))
+    local rainTex = false
+    for key, tex in pairs(shell.textures) do
+        if string.find(key, "^" .. shell.material .. "#")
+            and (tex == "crwx_wetbeads.png" or tex == "crwx_wetrivulet.png" or tex == "crwx_wetstreak.png") then
+            rainTex = true
+        end
+    end
+    check(not rainTex, "the texture rain layers stay off the glass while the rain pass runs")
+    local col = flowPass and shell.colours[shell.material .. "#" .. flowPass]
+    check(col and math.abs(col.a - 0.8) < 0.04, "the rain pass opacity is the rain level")
+    local air = flowPass and vectors[shell.material .. "#" .. flowPass .. "#airflow"]
+    check(air and math.abs(air[3] + 50) < 0.5 and math.abs(air[1]) < 0.5, "air runs back past the craft at 50 m/s")
+    local down = flowPass and vectors[shell.material .. "#" .. flowPass .. "#gravity"]
+    check(down and math.abs(down[2] + 1) < 0.01 and down[4] > 0, "gravity is down in the craft frame")
+    local tint = flowPass and vectors[shell.material .. "#" .. flowPass .. "#rainTint"]
+    check(tint and tint[3] > tint[2] * 0.9, "plain rain is clear water")
+    -- Nose up 90 degrees: world down is the craft's -front.
+    GetTransform = function()
+        return { right_x = 1, right_y = 0, right_z = 0, up_x = 0, up_y = 0, up_z = -1,
+            front_x = 0, front_y = 1, front_z = 0, posit_x = 0, posit_y = 0, posit_z = 0 }
+    end
+    run(1, 0.8)
+    down = vectors[shell.material .. "#" .. flowPass .. "#gravity"]
+    check(down and math.abs(down[3] + 1) < 0.01, "gravity follows the craft's attitude")
+    glass.Weather("acid", 1.0)
+    run(1, 0.8)
+    tint = vectors[shell.material .. "#" .. flowPass .. "#rainTint"]
+    check(tint and tint[3] < 0.5, "acid rain tints the running water yellow-green")
+    glass.Weather("acid", 0)
+    run(30, 0)
+    check(string.find(shell.material, "_R_") == nil, "with the rain stopped the rain pass leaves the glass")
+    X.SetMaterialShaderVector, GetTransform = nil, nil
+    GetVelocity = function() return { x = 0, y = 0, z = 0 } end
+    run(60, 0)
+end
 glass.Weather("grit", 0.8)
 run(3)
 glass.Stop()
@@ -463,6 +519,73 @@ ov.setLog = {}
 run(2, 0)
 check(#ov.setLog == 0, "the warm-up happens once")
 glass.Stop()
+
+-- =============================================================================
+-- Rain through the flow pass on the screen overlay (F2/F5 in a craft)
+-- =============================================================================
+
+do
+    local vectors = {}
+    X.SetMaterialShaderVector = function(mat, name, x, y, z, w, tech, pass)
+        vectors[mat .. "#" .. pass .. "#" .. name] = { x, y, z, w }
+        return true
+    end
+    GetVelocity = function() return { x = 0, y = 0, z = 50 } end
+    GetTransform = function()
+        return { right_x = 1, right_y = 0, right_z = 0, up_x = 0, up_y = 1, up_z = 0,
+            front_x = 0, front_y = 0, front_z = 1, posit_x = 0, posit_y = 0, posit_z = 0 }
+    end
+    shell.enabled = false
+    ov.setLog = {}
+    local maxShown = 0
+    for _ = 1, math.floor(3 / dt) do
+        now = now + dt; glass.Update(0)
+        local n = 0
+        for _, q in pairs(ov.panels) do if q.visible then n = n + 1 end end
+        maxShown = math.max(maxShown, n)
+    end
+    local flowWarmed = 0
+    for _, e in ipairs(ov.setLog) do if e.material == "CRWX_GlassFlowOverlay" then flowWarmed = flowWarmed + 1 end end
+    check(flowWarmed == 1, "one flow panel is warmed, saw " .. flowWarmed)
+    check(maxShown <= 1, "the flow warm-up shows one panel at a time, saw " .. maxShown)
+
+    run(3, 0.8)
+    local grid, uvs = 0, 0
+    for name, q in pairs(ov.panels) do
+        if string.find(name, "_a%d+$") and q.visible and q.material == "CRWX_GlassFlowOverlay" then
+            grid = grid + 1
+            if q.uv then uvs = uvs + 1 end
+        end
+    end
+    check(grid == 24, "rain shows the 6 x 4 flow grid, saw " .. grid)
+    check(uvs == 24, "every flow panel has view-angle UVs, saw " .. uvs)
+    check(#visible("CRWX_WetBeads") + #visible("CRWX_WetRivulet") + #visible("CRWX_WetStreak") == 0,
+        "the texture rain layers stay off while the flow grid runs")
+    local air = vectors["CRWX_GlassFlowOverlay#0#airflow"]
+    check(air and math.abs(air[3] + 50) < 0.5, "the overlay flow gets the craft-frame air")
+    local down = vectors["CRWX_GlassFlowOverlay#0#gravity"]
+    check(down and math.abs(down[2] + 1) < 0.01, "the overlay flow gets gravity")
+
+    run(12, 0)
+    grid = 0
+    for name, q in pairs(ov.panels) do if string.find(name, "_a%d+$") and q.visible then grid = grid + 1 end end
+    check(grid == 0, "with the rain stopped the flow grid hides, saw " .. grid)
+
+    -- On foot keeps the texture layers.
+    local craftFn = IsCraft
+    IsCraft = function() return false end
+    IsPerson = function() return true end
+    run(3, 0.8)
+    grid = 0
+    for name, q in pairs(ov.panels) do if string.find(name, "_a%d+$") and q.visible then grid = grid + 1 end end
+    check(grid == 0, "on foot the flow grid stays off")
+    check(#visible("CRWX_WetBeads") > 0, "on foot rain beads still show")
+    run(12, 0)
+    IsCraft = craftFn; IsPerson = nil
+    glass.Stop()
+    X.SetMaterialShaderVector, GetTransform = nil, nil
+    GetVelocity = function() return { x = 0, y = 0, z = 0 } end
+end
 
 -- =============================================================================
 -- On foot: rain stays on the screen overlay, a hit splashes blood that fades and clears

@@ -116,6 +116,17 @@ Two modes:
   `SetMaterialPassColors` (all present in CR `Bin/exu.dll`). The `CRWX_CockpitGlass` sub-entity of the cockpit
   entity is moved to render queue group 90 and given `CRWX_CockpitGlass_W<a>C<b>` (one pass per visible layer).
   A craft whose cockpit mesh has no glass submesh falls back to the overlay.
+- Rain on the cockpit glass: while it rains and EXU has `exu.SetMaterialShaderVector`, the glass uses
+  `CRWX_CockpitGlass_R_W<a>C<b>` instead. It has the same layer passes, then one last pass,
+  `Shaders/crwx_glassflow.{hlsl,program}` (`CRWX_GlassFlow_{vertex,fragment}_{SM4,SM3}`). That pass draws procedural
+  beads that cling, then break loose and run along the glass. Each frame `CRWetGlass` sends the pass three values in the craft frame
+  (x right, y up, z front): `airflow` (minus the craft velocity), `gravity` (world down; w = fall speed) and `rainTint`
+  (yellow-green in acid rain). The pass diffuse alpha is the rain level. The glass UVs are eye-frame view angles, so
+  the vertex program rebuilds each view ray from them and projects air and gravity onto a raked windshield: streaks
+  fan out from the travel direction instead of scrolling together, and drops run down when the craft is still. The bead, rivulet and streak texture layers stay off the glass
+  while this pass runs. Technique 2 (fixed function, GL) only scrolls the streak texture. Without
+  `SetMaterialShaderVector` the old `_W<a>C<b>` materials and texture layers are used. The first rain pass logs
+  `CRWetGlass: rain pass <n> on <material>, airflow taken: <bool>`. In a craft's overlay views (F2/F5, or no glass submesh) the same pass runs as `CRWX_GlassFlowOverlay` on a 6x4 grid of `crwx_wetglass_a<k>` panels whose UVs are the view angles at their corners; the texture rain layers fade out while it shows. On foot keeps the texture layers.
 
 The on-foot view always uses the screen overlay; pilot blood is not attached to a weapon, body or cockpit mesh. Its
 `crwx_pilotblood.png` texture is drawn through the existing SM4/SM3 wet-glass shader and the fixed-function fallback.

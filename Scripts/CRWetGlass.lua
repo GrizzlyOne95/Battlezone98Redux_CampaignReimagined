@@ -139,6 +139,16 @@ local LAYER_RGB = { CRWX_WinSnow = 0.92, CRWX_WinFrost = 0.92, CRWX_WinIce = 0.9
 local CLAMPED = { CRWX_WindCrack = true, CRWX_WindDirt = true, CRWX_WinFrost = true }   -- frost maps once: no tiling past its window
 local SHELL_API = { "SetSubEntityRenderQueueGroup", "SetSubEntityMaterial", "SetMaterialTextureWindow",
 	"SetMaterialTexture", "SetMaterialPassColors" }
+-- Rain on the glass runs as its own shader pass (crwx_glassflow.hlsl), the last pass of
+-- GLASS_BASE_R_W<a>C<b>; the bead, rivulet and streak layers then stay off the glass.
+local FLOW_TINT = { 0.78, 0.84, 0.90 }        -- clear water
+local FLOW_ACID_TINT = { 0.75, 0.90, 0.35 }   -- acid
+local FLOW_FALL = 7                           -- rain fall speed, m/s
+-- The screen overlay (F2/F5 in a craft, or a craft without a glass submesh) runs the same
+-- pass on a FLOW_COLS x FLOW_ROWS grid of panels. Each panel's UVs are the view angles at its
+-- corners, so the flow, computed per vertex, follows the view across the screen.
+local FLOW_OVERLAY = "CRWX_GlassFlowOverlay"
+local FLOW_COLS, FLOW_ROWS = 6, 4
 
 local exu = nil
 local state = nil           -- nil = not built yet, false = unavailable
@@ -221,19 +231,36 @@ local function build()
 	if not call("CreateOverlay", OVERLAY) then return false end
 	call("SetOverlayZOrder", OVERLAY, Z_ORDER)
 	local s = { beads = {}, blood = {}, visible = false, streakV = 0, mask = OPEN_MASK, posed = {} }
+	-- The overlay draws its elements in the order they are added: the rain grid goes first,
+	-- under the cracks, dirt and frost, as water on the outside of the glass would. The "_a"
+	-- prefix keeps it first if the elements are ordered by name instead.
+	s.flow = {}
+	if type(exu.SetMaterialShaderVector) == "function" then
+		for k = 1, FLOW_COLS * FLOW_ROWS do
+			local p = newPanel(OVERLAY .. "_a" .. k, FLOW_OVERLAY)
+			if p == nil then return false end
+			p.x0 = ((k - 1) % FLOW_COLS) / FLOW_COLS
+			p.y0 = math.floor((k - 1) / FLOW_COLS) / FLOW_ROWS
+			call("SetOverlayPosition", p.name, p.x0, p.y0)
+			call("SetOverlayDimensions", p.name, 1 / FLOW_COLS, 1 / FLOW_ROWS)
+			s.flow[k] = p
+		end
+		s.flowPass = { passes = {} }
+	end
 	for k = 1, BEAD_LAYERS do
 		local p = newPanel(OVERLAY .. "_b" .. k, "CRWX_WetBeads")
 		if p == nil then return false end
-		p.phase, p.wait = "off", randRange(0, 0.8) * k
+		p.phase, p.wait, p.rain = "off", randRange(0, 0.8) * k, true
 		s.beads[k] = p
 	end
 	s.streak = newPanel(OVERLAY .. "_s", "CRWX_WetStreak")
 	if s.streak == nil then return false end
+	s.streak.rain = true
 	s.rivulets = {}
 	for k = 1, RIVULET_LAYERS do
 		local p = newPanel(OVERLAY .. "_r" .. k, "CRWX_WetRivulet")
 		if p == nil then return false end
-		p.phase, p.wait = "off", randRange(0.5, 2.5) * k
+		p.phase, p.wait, p.rain = "off", randRange(0.5, 2.5) * k, true
 		s.rivulets[k] = p
 	end
 	s.crack = newPanel(OVERLAY .. "_c", "CRWX_WindCrack")
@@ -444,20 +471,69 @@ local function shellBind(player)
 	return true
 end
 
--- Puts the visible layers on the glass: picks CRWX_CockpitGlass_W<a>C<b> and gives each
--- pass its layer's texture, window and opacity. Only what changed touches Ogre.
-local function shellApply()
+-- Feeds the rain pass: its opacity through the pass diffuse alpha, and the air, gravity
+-- and tint its programs read (craft frame: x right, y up, z front). Only changes touch Ogre.
+local function flowApply(sh, mat, pass, player, rain)
+	local f = sh.passes.flow
+	if f == nil then f = {}; sh.passes.flow = f end
+	local step = math.floor(clamp(rain, 0, 1) * SHELL_STEPS + 0.5)
+	if f.step ~= step then
+		pcall(exu.SetMaterialPassColors, mat,
+			{ diffuse = { r = SHELL_RGB, g = SHELL_RGB, b = SHELL_RGB, a = step / SHELL_STEPS } }, -1, pass)
+		f.step = step
+	end
+	local m, vel = GetTransform(player), GetVelocity(player)
+	if m ~= nil and vel ~= nil then
+		-- Air moves past the craft opposite to its velocity.
+		local x = -(vel.x * m.right_x + vel.y * m.right_y + vel.z * m.right_z)
+		local y = -(vel.x * m.up_x + vel.y * m.up_y + vel.z * m.up_z)
+		local z = -(vel.x * m.front_x + vel.y * m.front_y + vel.z * m.front_z)
+		local key = string.format("%.0f %.0f %.0f", x * 2, y * 2, z * 2)
+		if f.air ~= key then
+			local ok, took = pcall(exu.SetMaterialShaderVector, mat, "airflow", x, y, z, 0, -1, pass)
+			if not state.flowLogged then
+				state.flowLogged = true
+				print(string.format("CRWetGlass: rain pass %d on %s, airflow taken: %s", pass, mat, tostring(ok and took)))
+			end
+			f.air = key
+		end
+		-- World down in the craft frame.
+		local gx, gy, gz = -m.right_y, -m.up_y, -m.front_y
+		key = string.format("%.2f %.2f %.2f", gx, gy, gz)
+		if f.down ~= key then
+			pcall(exu.SetMaterialShaderVector, mat, "gravity", gx, gy, gz, FLOW_FALL, -1, pass)
+			f.down = key
+		end
+	end
+	local acid = acidWant > ACID_MIN
+	if f.acid ~= acid then
+		local c = acid and FLOW_ACID_TINT or FLOW_TINT
+		pcall(exu.SetMaterialShaderVector, mat, "rainTint", c[1], c[2], c[3], 1, -1, pass)
+		f.acid = acid
+	end
+end
+
+-- Puts the visible layers on the glass: picks CRWX_CockpitGlass_W<a>C<b> (or, while it
+-- rains and EXU can set shader values, CRWX_CockpitGlass_R_W<a>C<b>, whose last pass is
+-- the rain) and gives each pass its layer's texture, window and opacity. Only what
+-- changed touches Ogre.
+local function shellApply(player, rain)
 	local sh = state.shell
+	local flow = rain > 0.01 and type(exu.SetMaterialShaderVector) == "function"
 	local wrap, clamped = {}, {}
 	for _, p in ipairs(allLayers()) do
-		if not p.screenOnly and p.on and p.uv then
+		if not p.screenOnly and p.on and p.uv and not (flow and p.rain) then
 			if CLAMPED[p.family] then clamped[#clamped + 1] = p else wrap[#wrap + 1] = p end
 		end
 	end
 	while #wrap > MAX_WRAP do table.remove(wrap) end
 	while #clamped > MAX_CLAMP do table.remove(clamped) end
 	local mat = GLASS_BASE
-	if #wrap + #clamped > 0 then mat = string.format("%s_W%dC%d", GLASS_BASE, #wrap, #clamped) end
+	if flow then
+		mat = string.format("%s_R_W%dC%d", GLASS_BASE, #wrap, #clamped)
+	elseif #wrap + #clamped > 0 then
+		mat = string.format("%s_W%dC%d", GLASS_BASE, #wrap, #clamped)
+	end
 	if mat ~= sh.mat then
 		if not pcall(exu.SetSubEntityMaterial, sh.target, sh.index, mat) then return false end
 		sh.mat, sh.passes = mat, {}
@@ -471,7 +547,7 @@ local function shellApply()
 		if was == nil or was.layer ~= p or was.family ~= p.family then
 			was = { layer = p, family = p.family }
 			sh.passes[pass] = was
-			for t = 0, 1 do pcall(exu.SetMaterialTexture, mat, LAYER_TEXTURE[p.family], t, pass, 0) end
+			for t = 0, flow and 2 or 1 do pcall(exu.SetMaterialTexture, mat, LAYER_TEXTURE[p.family], t, pass, 0) end
 		end
 		local uv = p.uv
 		local key = string.format("%.4f %.4f %.4f %.4f", uv[1], uv[2], uv[3], uv[4])
@@ -487,7 +563,36 @@ local function shellApply()
 			was.step = step
 		end
 	end
+	if flow then flowApply(sh, mat, #order, player, rain) end
 	return true
+end
+
+-- Rain on the screen overlay through the same pass: shows the panel grid, with each panel's
+-- corner view angles as its UVs (set again when the FOV or aspect changes), or hides it.
+local function overlayFlow(player, rain, on)
+	local panels = state.flow
+	if on then
+		local key = string.format("%.4f %.4f", screenToShell(0, 0))
+		for _, p in ipairs(panels) do
+			if state.flowUV ~= key then
+				local u0, v0 = screenToShell(p.x0, p.y0)
+				local u1, v1 = screenToShell(p.x0 + 1 / FLOW_COLS, p.y0 + 1 / FLOW_ROWS)
+				call("SetOverlayParameter", p.name, "uv_coords", string.format("%.4f %.4f %.4f %.4f", u0, v0, u1, v1))
+			end
+			if not p.on then
+				call("SetOverlayMaterial", p.name, FLOW_OVERLAY)
+				call("ShowOverlayElement", p.name)
+				p.on = true
+			end
+		end
+		state.flowUV = key
+		flowApply(state.flowPass, FLOW_OVERLAY, 0, player, rain)
+	elseif panels[1] ~= nil and panels[1].on then
+		for _, p in ipairs(panels) do
+			call("HideOverlayElement", p.name)
+			p.on = false
+		end
+	end
 end
 
 -- Switches between the screen overlay and the glass. Leaving the glass puts its
@@ -836,6 +941,8 @@ local WARM_QUIET = 2
 local function warmUp()
 	if state.warm == nil then
 		state.warm = {}
+		-- One flow panel loads the flow material for the whole grid.
+		if state.flow[1] then state.warm[1] = { panel = state.flow[1], material = FLOW_OVERLAY } end
 		for _, p in ipairs(allLayers()) do
 			state.warm[#state.warm + 1] = { panel = p, family = p.family }
 			if ACID_OF[p.family] then          -- the acid variant a rain layer switches to (retint)
@@ -849,6 +956,7 @@ local function warmUp()
 	if w.shown then
 		call("HideOverlayElement", p.name)
 		table.remove(state.warm, 1)
+		if w.material == FLOW_OVERLAY then state.flowWarm, state.flowUV = true, nil end
 		return false
 	end
 	if p.on or p.step > 0 then
@@ -859,7 +967,7 @@ local function warmUp()
 	for _, q in ipairs(allLayers()) do if q.on then n = n + 1 end end
 	if n > WARM_QUIET then return false end
 	call("SetOverlayParameter", p.name, "uv_coords", "0 0 1 1")
-	call("SetOverlayMaterial", p.name, w.family .. "_A1")
+	call("SetOverlayMaterial", p.name, w.material or (w.family .. "_A1"))
 	call("ShowOverlayElement", p.name)
 	w.shown = true
 	return true
@@ -879,6 +987,9 @@ local function run(intensity, dt)
 	setMode(onGlass and "shell" or "overlay")
 	if onGlass then show(false) else useMask(player) end
 	local i = clamp(intensity, 0, 1)
+	-- In a craft the screen overlay rains through the flow pass too, once it is warmed up;
+	-- the bead, rivulet and streak layers then fade out. On foot keeps the texture layers.
+	local oflow = not onGlass and not onFoot and i > 0.01 and state.flowWarm == true
 	local speed = forwardSpeed(player)
 	local blow = smoothstep(14, 40, speed)   -- beads blown off
 	local rush = smoothstep(20, 90, speed)   -- streak speed
@@ -890,6 +1001,7 @@ local function run(intensity, dt)
 
 	-- Beads: land (fade in), sit, run off (fade out while sliding), wait.
 	local peak = (0.35 + 0.45 * i) * (1 - 0.85 * blow)
+	if oflow then peak = 0 end
 	-- Layers on the glass at once: one in a drizzle, three in a downpour.
 	local limit = 1 + math.floor(2 * i + 0.5)
 	local active = 0
@@ -938,6 +1050,7 @@ local function run(intensity, dt)
 	-- pattern for a long spell, then fades and comes back somewhere else, so the
 	-- tracks never read as one texture sliding. Airflow wipes them.
 	local rpeak = (0.45 + 0.50 * i) * (1 - blow)
+	if oflow then rpeak = 0 end
 	for k, p in ipairs(state.rivulets) do
 		if p.phase == "off" then
 			p.wait = p.wait - dt
@@ -973,7 +1086,7 @@ local function run(intensity, dt)
 	-- Streaks: only at speed, scrolling up faster the faster the craft goes.
 	local s = state.streak
 	local sa = (0.30 + 0.70 * i) * blow
-	if i <= 0.01 then sa = 0 end
+	if i <= 0.01 or oflow then sa = 0 end
 	state.streakV = (state.streakV + (0.5 + 1.6 * rush) * dt) % 64
 	if sa > 0 then
 		-- Texture is 256x512: equal texel scale on both axes needs U = 2 * V * aspect.
@@ -988,9 +1101,11 @@ local function run(intensity, dt)
 	if etchLayer(ar) then any = true end
 	if damageLayers(ar, dt) then any = true end
 	if onFoot and bloodLayers(dt) then any = true end
+	overlayFlow(player, i, oflow)
+	if oflow then any = true end
 
 	if onGlass then
-		if not shellApply() then state.shellOk = false end   -- the glass refused: overlay from now on
+		if not shellApply(player, i) then state.shellOk = false end   -- the glass refused: overlay from now on
 		return
 	end
 	if mode == "overlay" and (state.warm == nil or #state.warm > 0) and warmUp() then any = true end
