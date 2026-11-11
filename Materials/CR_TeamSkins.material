@@ -1080,6 +1080,20 @@ material cvtnk_tm : CR_BZBase
 	set_texture_alias TeamMask crteam_cvtnk_d.dds
 }
 
+material cvtnk_nacjet_tm : CR_BZBase
+{
+	set_texture_alias DiffuseMap cvtnk_nacjet_D.dds
+	set_texture_alias NormalMap cvtnk_nacjet_N.dds
+	set_texture_alias SpecularMap cvtnk_nacjet_S.dds
+	set_texture_alias EmissiveMap cvtnk_nacjet_E.dds
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+	set $glow "1 1 1"
+	set_texture_alias TeamMask crteam_cvtnk_nacjet_d.dds
+}
+
 material cvturr_tm : CR_BZBase
 {
 	set_texture_alias DiffuseMap cvturr_d.dds

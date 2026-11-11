@@ -7270,8 +7270,8 @@
   },
   "cvtnk": {
     "source": {
-      "mesh": "39aed073ab49726722e634ea9d43622835516b7677c22a54184330fe40f596e5",
-      "skeleton": "61676c8d88315ed5e4ce95c55a5a5ee32ff614d8780d18e14060396e94fe4d6d",
+      "mesh": "6647c3e90f7b7e0abccca98559daaf5119f7cafb86315768b78ac4612e4d9dc6",
+      "skeleton": "eb99ed56779999a140d07fedd45b983556a78c0245fc5148b8d67b37a0696094",
       "bind_poses": {
         "CYE11BDA": [
           [
@@ -7434,6 +7434,19 @@
             0.0,
             0.0,
             0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "CYE11NAC": [
+          [
+            0.0,
+            1.7999999523162842,
+            -1.8746817111968994
           ],
           [
             0.0,
@@ -7764,8 +7777,8 @@
       }
     },
     "outputs": {
-      "Assets/Models/cvtnk_recoil.skeleton": "fdcdaf768c4236b99ade5e2e31cfacbf5b70501f695b9e51d94a1b77b060fb5e",
-      "Assets/ModelFixes/cvtnk.mesh": "276e2106b09c6dbed4cdb21f8a217c1f414284bbd16ddc60a39e0a388797ef00",
+      "Assets/Models/cvtnk_recoil.skeleton": "cc69909e21b69455ad5ce9358736e2e23ce3c411f5f35b61677e6bd004f89555",
+      "Assets/ModelFixes/cvtnk.mesh": "cf037b4df9e5747d623f17eecae61cd1564f3ddcae886eb7efba5ff0c658b940",
       "Assets/Models/cvtnk_cockpit.mesh": "cfbdb307720f3b5caac30d0ba79bf4b6e2b050573d78d54c8ce0231b008bc0d4",
       "Assets/Models/cvtnk_cockpit_recoil.skeleton": "0345eb4294b1c37ffe76e69768c1c89b9641243c3f699eb7cf5ebe607298309c"
     }

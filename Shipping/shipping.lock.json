@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5676,
+  "count": 5684,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -1467,6 +1467,14 @@
       "runtime": "cvtnk.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\cvtnk.skeleton",
+      "runtime": "cvtnk.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvtnk.vdf",
+      "runtime": "cvtnk.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\cvturr.mesh",
       "runtime": "cvturr.mesh"
     },
@@ -1493,6 +1501,10 @@
     {
       "source": "Assets\\ModelFixes\\cwp11rot.geo",
       "runtime": "cwp11rot.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cye11nac.geo",
+      "runtime": "cye11nac.geo"
     },
     {
       "source": "Assets\\ModelFixes\\eggeizr1.mesh",
@@ -6079,6 +6091,10 @@
       "runtime": "crteam_cvtnk_d.dds"
     },
     {
+      "source": "Assets\\Textures\\crteam_cvtnk_nacjet_d.dds",
+      "runtime": "crteam_cvtnk_nacjet_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\crteam_cvturr_d.dds",
       "runtime": "crteam_cvturr_d.dds"
     },
@@ -7001,6 +7017,22 @@
     {
       "source": "Assets\\Textures\\cvtnk_ACT.dds",
       "runtime": "cvtnk_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvtnk_nacjet_D.dds",
+      "runtime": "cvtnk_nacjet_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvtnk_nacjet_E.dds",
+      "runtime": "cvtnk_nacjet_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvtnk_nacjet_N.dds",
+      "runtime": "cvtnk_nacjet_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cvtnk_nacjet_S.dds",
+      "runtime": "cvtnk_nacjet_S.dds"
     },
     {
       "source": "Assets\\Textures\\cvturr01_ACT.dds",

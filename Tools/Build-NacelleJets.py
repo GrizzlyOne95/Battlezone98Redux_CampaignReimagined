@@ -127,6 +127,8 @@ CONFIG = {
     'cvmuf': unit('cra', 1.2, .6, carrier=dict(name='CMF11NAC', parent='CMF11BDA', at=((3.0, 5.0),))),
     # cvslf: on the rear faces of the red side boxes, outboard of the rear cab, so the flames run past it.
     'cvslf': unit('cra', 1.0, .6, carrier=dict(name='CAM11NAC', parent='CAM11BDA', at=((2.1, 2.5),))),
+    # cvtnk: on the rear hull beside the tail rotor, inboard of the steering fins (both engine-animated, left alone).
+    'cvtnk': unit('cra', .5, .5, conform=True, carrier=dict(name='CYE11NAC', parent='CYE11BDA', at=((1.5, 1.8),))),
 }
 
 def unit_vectors(v):
