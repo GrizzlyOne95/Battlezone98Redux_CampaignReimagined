@@ -313,9 +313,17 @@ local function cleanupLead(L, guard)
     L.pod = nil
 end
 
--- Leader: take back a start that failed: whatever was built goes, nothing is held, the stock opening runs.
+local recover
+
+-- Take back a start that failed, or stop a drop already under way: whatever was built goes, nothing is held, the
+-- stock opening runs. Mid-drop the camera is finished and carried craft are set down, as after a load.
 function Drop.Abort(s)
     if type(s) ~= "table" then return end
+    if s.go and s.phase ~= "done" then
+        if s.lead and s.lead.camera then s.lead.camera = false; call("cameraFinish") end
+        recover(s, "aborted mid-drop")
+        return
+    end
     if s.lead then cleanupLead(s.lead) end
     lock(false)
     s.go, s.phase = false, "done"
@@ -568,7 +576,7 @@ end
 -- A save taken mid-drop: the cameras and the control mask did not survive it and the ship handles cannot be
 -- trusted. Go straight to the end state: ships and pod gone, AI cargo on its spot, this peer's craft (if it was
 -- still carried) set down past the ramp on its lane.
-local function recover(s)
+function recover(s, why)
     s.recover = nil
     local L = s.lead
     if L and leading() then
@@ -597,7 +605,7 @@ local function recover(s)
     end
     lock(false)
     s.released, s.phase = true, "done"
-    log("recovered after load")
+    log(why or "recovered after load")
 end
 
 -- Every peer, every frame. Returns true while the carried craft are still held (the mission's stock opening waits).

@@ -241,8 +241,14 @@ do
         local D2, s2 = reset()
         D2.Begin(s2, spec()); D2.Update(s2)
         check(badge(), "badge up before the abort")
+        for _ = 1, 30 * 5 do step(D2, s2, 1 / 30) end
+        check(objects[3].pos.y > 100, "the player is aloft before the abort")
         D2.Abort(s2)
         check(not locked() and not badge(), "an abort clears the mask and the badge")
+        check(camera.finish == 1, "an abort mid-drop finishes the drop camera")
+        check(objects[3].pos.y < 40 and objects[1].pos.y < 40, "an abort mid-drop sets the carried craft down")
+        for _, o in pairs(objects) do check(not o.odf:find("^avdrop") and o.odf ~= "apcamr", "abort leaves no ship or pod") end
+        check(s2.phase == "done" and D2.Update(s2) == false, "an aborted drop holds nothing")
         D, s = reset(); D.Begin(s, spec()); D.Update(s)
     end
     check(s.crew[1].ship == 2 and s.crew[1].along == 6 and s.crew[1].lat == -7, "the player rides row 1 of the personnel ship")
