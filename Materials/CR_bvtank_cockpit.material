@@ -17,3 +17,11 @@ material CRV/bvtankTankHull : CR_BZBaseCockpit
     set_texture_alias EmissiveMap bvtank_E.dds
     set_texture_alias ACTMap bvtank00_ACT.dds
 }
+
+material CRV/bvtankTankPanels : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap crvbtkp_d.dds
+    set_texture_alias NormalMap crvbtkp_N.dds
+    set_texture_alias SpecularMap crvcca_patch_s.dds
+    set_texture_alias EmissiveMap crvbtkp_e.dds
+}

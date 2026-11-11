@@ -50,12 +50,19 @@ meshes and existing materials are unchanged.
 
 ## Atlas reuse and provenance
 
-**No new DDS or duplicate atlas.** Accepted modular art is reused:
+NSDF and Black Dog use a generated per-unit panel atlas from
+`Tools/tankpanelatlas.py` (armour plate, faction hazard sill bands, recessed pod
+scopes, service grille). The pod, console and switch charts are copied from
+the accepted scout atlas (`crvascp`/`crvbscp`) so the instrument faces keep
+their earlier art; painted dials and toggles were rejected in review:
 
-- NSDF: `../ScoutCockpits/nsdf/atlas-master.png` and `prompt.json`, compiled
-  `crvascp_d/e.dds`; `CRV/NSDFScoutCockpit`.
-- Black Dog: `../ScoutCockpits/bdog/atlas-master.png` and `prompt.json`, compiled
-  `crvbscp_d/e.dds`; `CRV/BDogScoutCockpit`.
+- NSDF: `crvatkp_d/e/N.dds`; `CRV/avtankTankPanels`.
+- Black Dog: `crvbtkp_d/e/N.dds`; `CRV/bvtankTankPanels`.
+
+The stock floor, spine strut and upper bridge stay; only the lower walls and
+sloped sills (`stockReplacedTriangles` in `build.json`) are re-emitted, at the
+same positions, as panels cut on face-local metric cells. The other factions
+reuse accepted modular art:
 - CRA: `../CVBomberCockpit/atlas-master.png` and `prompt.json`, compiled
   `crvchcp_d/e.dds`; only the small mechanical pilot/ordnance charts, not its
   large terrain screen.

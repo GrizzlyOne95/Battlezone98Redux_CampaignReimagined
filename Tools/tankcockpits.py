@@ -3,12 +3,12 @@ from collections import Counter
 import io, math
 import numpy as np
 import reddevilcockpit as shared
-import scoutcockpits, cvhrazcockpit
+import scoutcockpits, cvhrazcockpit, tankpanelatlas
 from bzmodellibs import legacy, legacy_port
 
 CONFIG={
- 'nsdf':dict(base='avtank',shell='agr21bda',batch=2,body=0,bodyBone=2,gun=[18],material='CRV/NSDFScoutCockpit',stock='avtank01',exterior='avtank00',charts=scoutcockpits.CHARTS,width=.98,lip=-.49,front=.91,roof=.62,cut=2.02),
- 'bdog':dict(base='bvtank',shell='bgr21bda',batch=0,body=1,bodyBone=2,gun=[1],material='CRV/BDogScoutCockpit',stock='bvtank01',exterior='bvtank00',charts=scoutcockpits.CHARTS,width=.98,lip=-.35,front=.80,roof=.85,cut=2.02),
+ 'nsdf':dict(base='avtank',shell='agr21bda',batch=2,body=0,bodyBone=2,gun=[18],material='CRV/avtankTankPanels',atlas='crvatkp',stock='avtank01',exterior='avtank00',charts=tankpanelatlas.CHARTS,width=.98,lip=-.49,front=.91,roof=.62,cut=2.02),
+ 'bdog':dict(base='bvtank',shell='bgr21bda',batch=0,body=1,bodyBone=2,gun=[1],material='CRV/bvtankTankPanels',atlas='crvbtkp',stock='bvtank01',exterior='bvtank00',charts=tankpanelatlas.CHARTS,width=.98,lip=-.35,front=.80,roof=.85,cut=2.02),
  'cca':dict(base='svtank',shell='scz21bda',batch=2,body=0,bodyBone=1,gun=[18,19],material='svtank01',stock='svtank01',exterior='svtank00',charts={'console':(.370,.158,.553,.297),'switch':(.207,.006,.350,.298),'service':(.770,.008,.986,.190),'armor':(.635,.06,.739,.23),'frame':(.635,.06,.739,.23),'trim':(.745,.35,.757,.56)},width=.76,lip=-.44,front=1.10,roof=.62,cut=3.9),
  'cra':dict(base='cvtnk',shell='CYE21BDA',batch=1,body=0,bodyBone=0,gun=[11],material='CRV/CVBomberCockpit',stock='cvtnk01',exterior='cvtnk',charts={**cvhrazcockpit.CHARTS,'switch':cvhrazcockpit.CHARTS['pilot'],'service':cvhrazcockpit.CHARTS['ordnance']},width=.34,lip=-.43,front=.69,roof=.30,cut=4.39)}
 
@@ -26,6 +26,22 @@ def raw_world(world):
     """shared.rig reads skeletons through the toolkit serializer, which negates X; mesh data keeps raw Ogre X.
     Without this an off-centre eye (CZar, raw x=+0.276) builds the whole cabin mirrored onto the other side."""
     M=np.diag([-1.,1.,1.]);return {h:(M@p,M@r@M) for h,(p,r) in world.items()}
+
+# Grizzly lower-half stock triangles rebuilt as metric panels (same positions):
+# the outer lower walls and the two sloped sill quads. The stock floor and its
+# spine strut stay: a generated tread plate read flatter than the original.
+GRIZZLY_WALLS=[0,1,17,18,35,36,60,61];GRIZZLY_SILLS=[[26,27],[66,67]]
+
+def clip(poly,k,c,sign):
+    """Sutherland-Hodgman: keep the part of a 2D polygon with sign*(x[k]-c)>=0."""
+    out=[]
+    for i in range(len(poly)):
+        a,b=poly[i],poly[(i+1)%len(poly)];da,db=sign*(a[k]-c),sign*(b[k]-c)
+        if da>=0:out.append(a)
+        if da*db<0:out.append(a+(b-a)*da/(da-db))
+    out=[q for i,q in enumerate(out) if np.linalg.norm(q-out[i-1])>1e-7]
+    out=[q for i,q in enumerate(out) if abs((out[i-1][0]-q[0])*(out[(i+1)%len(out)][1]-q[1])-(out[i-1][1]-q[1])*(out[(i+1)%len(out)][0]-q[0]))>1e-10]
+    return np.array(out) if len(out)>=3 else np.zeros((0,2))
 
 def source_part(sub,mask=None):
     vd=sub.vertex_data;p=shared.values(vd,shared.om.VES.POSITION);n=shared.values(vd,shared.om.VES.NORMAL);uv=shared.values(vd,shared.om.VES.TEXTURE_COORDINATES)
@@ -48,17 +64,46 @@ def geometry(source,skelpath,faction,game,root):
         start=len(rows)
         for v,t in zip(p,uv):rows.append([*(origin+R@v),*(R@n),*t])
         for i in range(1,len(p)-1):ix.extend([start,start+i,start+i+1]);liner.append(faction=='cca' and chart=='trim')
+    def tiled(points,chart,hint=None,u=None,anchor=None):
+        """Clip a planar polygon into metric atlas cells in its own face frame
+        (u along `u` projected onto the face), so seams follow the mesh."""
+        p=np.array(points,float);n=np.cross(p[1]-p[0],p[2]-p[0]);n/=np.linalg.norm(n);hint=-p.mean(0) if hint is None else np.array(hint,float)
+        if np.dot(n,hint)<0:p=p[::-1];n=-n
+        u=np.array([0,0,1.]) if u is None else np.array(u,float);u=u-n*np.dot(u,n)
+        if np.linalg.norm(u)<1e-6:u=np.array([1.,0,0])-n*n[0]
+        u/=np.linalg.norm(u);v=np.cross(n,u);a=np.zeros(3) if anchor is None else np.array(anchor,float);a=a+n*np.dot(p[0]-a,n)
+        st=np.column_stack([(p-a)@u,(p-a)@v]);cu,cv=tankpanelatlas.CELL[chart];x0,y0,x1,y1=cfg['charts'][chart]
+        for i in range(math.floor(st[:,0].min()/cu+1e-9),math.ceil(st[:,0].max()/cu-1e-9)):
+            for j in range(math.floor(st[:,1].min()/cv+1e-9),math.ceil(st[:,1].max()/cv-1e-9)):
+                poly=st
+                for k,c,sg in ((0,i*cu,1),(0,(i+1)*cu,-1),(1,j*cv,1),(1,(j+1)*cv,-1)):
+                    poly=clip(poly,k,c,sg)
+                    if not len(poly):break
+                if not len(poly):continue
+                face([a+q[0]*u+q[1]*v for q in poly],chart,hint=n,uvs=[(x0+(x1-x0)*(q[0]/cu-i),y0+(y1-y0)*(q[1]/cv-j)) for q in poly])
     def beam(a,b,width=.025,chart='frame'):
         a=np.array(a,float);b=np.array(b,float);axis=b-a;axis/=np.linalg.norm(axis);u=np.cross(axis,[0,1,0] if abs(axis[1])<.9 else [1,0,0]);u/=np.linalg.norm(u);v=np.cross(axis,u)
         section=[(-.3,-.5),(.3,-.5),(.5,-.3),(.5,.3),(.3,.5),(-.3,.5),(-.5,.3),(-.5,-.3)]
         ring=[[p+u*x*width+v*y*width for x,y in section] for p in (a,b)];c=(a+b)/2
         for i in range(8):j=(i+1)%8;q=[ring[0][i],ring[1][i],ring[1][j],ring[0][j]];face(q,chart,np.mean(q,0)-c)
         face(ring[0],'trim',-axis);face(ring[1],'trim',axis)
-    def panel(p,chart='switch',rect=None,depth=.012):
+    def panel(p,chart='switch',rect=None,depth=.012,hole=None):
         p=np.array(p,float);c=p.mean(0);n=np.cross(p[1]-p[0],p[2]-p[0]);n/=np.linalg.norm(n)
         if np.dot(n,-c)<0:n=-n
         back=p+n*.003;front=c+(p-c)*.92+n*depth
-        face(front,chart,rect=rect)
+        if hole is None:face(front,chart,rect=rect)
+        else:
+            # Recessed scope: the face is four strips round a real opening and
+            # trim walls step back to the screen; no decal floating on the plate.
+            x0,y0,x1,y1=cfg['charts'][chart] if rect is None else rect;X0,_,X1,_=cfg['charts'][chart]
+            def at(s,t):return (1-t)*((1-s)*front[1]+s*front[0])+t*((1-s)*front[2]+s*front[3])
+            def strip(s0,t0,s1,t1):
+                st=((s1,t0),(s0,t0),(s0,t1),(s1,t1));face([at(*q) for q in st],chart,hint=n,uvs=[(x0+(x1-x0)*a,y0+(y1-y0)*b) for a,b in st])
+            sa,sb=sorted((X0+h*(X1-X0)-x0)/(x1-x0) for h in (hole[0],hole[2]));ta,tb=hole[1],hole[3]
+            strip(0,0,sa,1);strip(sb,0,1,1);strip(sa,0,sb,ta);strip(sa,tb,sb,1)
+            rim=[at(sb,ta),at(sa,ta),at(sa,tb),at(sb,tb)];pit=[q-n*.006 for q in rim];mid=np.mean(pit,0)
+            for i in range(4):j=(i+1)%4;face([rim[i],rim[j],pit[j],pit[i]],'trim',hint=mid-(rim[i]+rim[j])/2)
+            sx0,sy0,sx1,sy1=cfg['charts']['scope'];face(pit,'scope',hint=n,uvs=[(sx1,sy0),(sx0,sy0),(sx0,sy1),(sx1,sy1)])
         for i in range(4):j=(i+1)%4;face([back[i],back[j],front[j],front[i]],'trim',hint=n)
         for i in range(4):beam(front[i],front[(i+1)%4],depth*.65,'frame')
         # Real eight-sided, capped fasteners and inset screw slots, not decals
@@ -76,23 +121,39 @@ def geometry(source,skelpath,faction,game,root):
         # Copy source control quads exactly, including each faction's different
         # eye-relative placement. No imposed scout canopy or raised Black Dog eye.
         points=(stockdata[:,:3]-origin)@R;tri=stockix.reshape(-1,3)
+        # Lower walls keep their exact positions but are re-emitted as armour
+        # panels cut on face-local metric cells.
+        for k in GRIZZLY_WALLS:
+            q=points[tri[k]];tiled(q,'plate',hint=np.cross(q[1]-q[0],q[2]-q[0]))
         for pair,chart in [([4,5],'console'),([28,29],'console'),([26,27],'service'),([66,67],'switch')]:
             q=np.unique(points[tri[pair]].reshape(-1,3),axis=0);c=q.mean(0);n=np.cross(q[1]-q[0],q[2]-q[0]);n/=np.linalg.norm(n);u=q[0]-c;u/=np.linalg.norm(u);v=np.cross(n,u);order=np.argsort(np.arctan2((q-c)@v,(q-c)@u));q=q[order]
+            if pair in GRIZZLY_SILLS:
+                # Faction hazard band along each sill's inner (pod-side) edge, armour
+                # plate behind it, and a narrower cassette on the remaining slope.
+                inner=np.argsort(abs(q[:,0]))[:2];A,B=q[inner[0]],q[inner[1]];up=n*np.sign(np.dot(n,-c))
+                axis=(B-A)/np.linalg.norm(B-A);side=np.cross(up,axis);st=np.column_stack([(q-A)@axis,(q-A)@side])
+                if st[:,1].sum()<0:side=-side;st[:,1]*=-1
+                band,rest=clip(st,1,.06,-1),clip(st,1,.06,1)
+                lift=lambda poly:[A+x*axis+y*side for x,y in poly]
+                tiled(lift(band),'hazard',hint=up,u=axis,anchor=A);tiled(lift(rest),'plate',hint=up,u=axis,anchor=A)
+                q=np.array(lift(rest));assert len(q)==4,'sill remainder is a quad'
+                c=q.mean(0);q=q[np.argsort(np.arctan2((q-c)@v,(q-c)@u))]
             rect=None
             if chart=='console':
+                # Pod fronts keep the stock-grounded button blocks from either end of the console chart.
                 x0,y0,x1,y1=cfg['charts'][chart];rect=(x0,y0,x0+(x1-x0)*.29,y1) if pair[0]==4 else (x0+(x1-x0)*.72,y0,x1,y1)
             panel(q,chart,rect)
         # The characteristic raised left/right instrument pods and central
-        # bridge retain their exact stock positions and warning horns.
+        # bridge retain their exact stock positions and warning horns. One
+        # recessed scope per pod replaces the old uniform lamp grid.
         delta=np.array([0.,0.,0.]) if faction=='nsdf' else np.array([0.,-.633138,-.112862])
         for sign in (-1,1):
             q=np.array([(sign*.12,.959,1.893),(sign*.172,1.030,2.014),(sign*.478,1.030,2.014),(sign*.478,.959,1.893)])+delta-origin
-            # Both pods show the full button block; the right one mirrors the left
-            # (the other chart strip cut its top row and read as sheared).
-            x0,y0,x1,y1=cfg['charts']['console'];rect=(x1,y0,x0+(x1-x0)*.72,y1) if sign>0 else (x0+(x1-x0)*.72,y0,x1,y1)
-            panel(q,'console',rect,depth=.009)
+            x0,y0,x1,y1=cfg['charts']['pod'];panel(q,'pod',(x1,y0,x0,y1) if sign>0 else None,depth=.009,hole=(.10,.08,.40,.92))
         # Central tactile switch unit follows the stepped stock bridge.
         panel([(-.115,-.47 if faction=='nsdf' else -.30,.66 if faction=='nsdf' else .55),(.115,-.47 if faction=='nsdf' else -.30,.66 if faction=='nsdf' else .55),(.115,-.57 if faction=='nsdf' else -.40,.625 if faction=='nsdf' else .515),(-.115,-.57 if faction=='nsdf' else -.40,.625 if faction=='nsdf' else .515)],'switch')
+        replaced=sorted(GRIZZLY_WALLS+sum(GRIZZLY_SILLS,[]));keep=np.ones(len(tri),bool);keep[replaced]=False
+        parts[cfg['stock']]=source_part(stock,keep)[:2]
     elif faction=='cra':
         # Keep original tiny split-console pit, ceiling and yellow braces.
         # Small replacement cassettes fit the original banks; the center stays open.
@@ -146,7 +207,7 @@ def geometry(source,skelpath,faction,game,root):
         rear,taper=(2.55,.72) if faction=='nsdf' else (1.85,1.)
         deck=[(-width,lip,front),(width,lip,front),(width*taper,lip-drop*(rear-front)/(1.85-front),rear),(-width*taper,lip-drop*(rear-front)/(1.85-front),rear)]
     else:deck=[(-width,lip,front),(width,lip,front),(width*.90,lip-.075,front+.35),(-width*.90,lip-.075,front+.35)]
-    face(deck,'armor',hint=[0,1,0]);bottom=np.array(deck)-[0,.07,0];face(bottom,hint=[0,-1,0])
+    (tiled(deck,'plate',hint=[0,1,0]) if faction in ('nsdf','bdog') else face(deck,'armor',hint=[0,1,0]));bottom=np.array(deck)-[0,.07,0];face(bottom,hint=[0,-1,0])
     for i in range(4):j=(i+1)%4;face([deck[i],deck[j],bottom[j],bottom[i]],'frame')
     if faction=='cca':
         for material,mask in [(cfg['material'],~np.array(liner)),('CRV/SharedCockpitLiner',np.array(liner))]:
@@ -205,7 +266,7 @@ def geometry(source,skelpath,faction,game,root):
         floor_y=lip-drop*(zw-front)/(1.85-front)-.03
         for a in range(len(xs)-1):face([(xs[a],floor_y,zw),(xs[a+1],floor_y,zw),(xs[a+1],tops[a+1],zt),(xs[a],tops[a],zt)],'frame',hint=[0,0,-1])
         parts[cfg['material']]=(np.array(rows,dtype='<f4'),np.array(ix,dtype='<u2'))
-    meta=dict(faction=faction,base=cfg['base'],pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,panels=panels,stockCockpitRetained=faction!='cca',stockTriangles=len(stockix)//3,gunWeights=gunweights,gunBones=cfg['gun'],gunOffset=gunoffset.tolist(),apronSourceIndices=np.flatnonzero(mask).tolist(),apronOffset=offset.tolist(),apronTriangles=len(apronix)//3,innerShell=topology,window=dict(width=width,lip=lip,front=front,roof=roof),nativeVdfSha256=__import__('hashlib').sha256(native).hexdigest())
+    meta=dict(faction=faction,base=cfg['base'],pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,panels=panels,stockCockpitRetained=faction!='cca',stockReplacedTriangles=replaced if faction in ('nsdf','bdog') else [],stockTriangles=len(stockix)//3,gunWeights=gunweights,gunBones=cfg['gun'],gunOffset=gunoffset.tolist(),apronSourceIndices=np.flatnonzero(mask).tolist(),apronOffset=offset.tolist(),apronTriangles=len(apronix)//3,innerShell=topology,window=dict(width=width,lip=lip,front=front,roof=roof),nativeVdfSha256=__import__('hashlib').sha256(native).hexdigest())
     if grizzly:meta.update(apronTransform=transform.tolist(),apronPitchDegrees=pitch,apronPivotModel=pivot_model.tolist(),**(dict(apronSpreadX=spread) if spread!=1 else {}))
     return parts,s,w,eye,shell,meta
 

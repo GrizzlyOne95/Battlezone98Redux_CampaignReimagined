@@ -59,9 +59,12 @@ for faction,cfg in cp.CONFIG.items():
     src=cg.Sources(game=str(ROOT/'Local/no-game'),cr=str(ROOT));path,kind,_=cg.cockpit_mesh(src,base);check(kind=='separate' and Path(path).name==base+'_cockpit.mesh','separate first-person resource discovery')
     raw=cp.shared.read_mesh(base_asset_path(source))
     if faction!='cca':
-        stock=raw.submesh_list[cfg['batch']];new=mesh.submesh_list[0]
-        for sem in (cp.shared.om.VES.POSITION,cp.shared.om.VES.TEXTURE_COORDINATES):check(np.array_equal(cp.shared.values(stock.vertex_data,sem),cp.shared.values(new.vertex_data,sem)),'stock layout and UV identity')
-        check(np.array_equal(stock.index_array,new.index_array),'stock shell triangles retained exactly')
+        stock=raw.submesh_list[cfg['batch']];new=mesh.submesh_list[0];replaced=meta.get('stockReplacedTriangles',[])
+        if faction in ('nsdf','bdog'):check(len(replaced)>0,'Grizzly lower walls and sills rebuilt as panels')
+        keep=np.ones(len(stock.index_array)//3,bool);keep[replaced]=False;d,i,_=cp.source_part(stock,keep)
+        check(np.array_equal(cp.shared.values(new.vertex_data,cp.shared.om.VES.POSITION),d[:,:3]),'retained stock triangles keep exact positions')
+        check(np.array_equal(cp.shared.values(new.vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),d[:,6:8]),'retained stock triangles keep exact UVs')
+        check(np.array_equal(i,new.index_array),'every non-replaced stock shell triangle retained')
     gunsub=next(x for x in mesh.submesh_list if x.material_name.endswith('TankGuns'));body=raw.submesh_list[cfg['body']];weights=np.zeros(body.vertex_data.vertex_count)
     for a in body.bone_assignments():
         if a.bone_index in cfg['gun']:weights[a.vertex_index]+=a.weight

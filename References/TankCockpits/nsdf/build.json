@@ -5,9 +5,12 @@
     "skeletonSha256": "00ea42ea2f580a3c982180c93204866d1ccf443f1eba6a62754f70c6069d3acd"
   },
   "outputs": {
-    "Assets/Models/avtank_cockpit.mesh": "2e2fdb82882a1651ab6a8b7d1c509239218c15eeaccadfc785a997e4783803d5",
+    "Assets/Models/avtank_cockpit.mesh": "395b843ec22ec6dc84d421135b2dc1d820057095ae2e85056dd6c52e15617564",
     "Assets/Models/avtank_cockpit.skeleton": "00ea42ea2f580a3c982180c93204866d1ccf443f1eba6a62754f70c6069d3acd",
-    "Materials/CR_avtank_cockpit.material": "c9e2b37fc23efcb238b84b6bc458c36678fb6754ff087ad7d7e683fd45a75512"
+    "Assets/Textures/crvatkp_d.dds": "f63e1616846819f238f86841ddceae8dfd0822f40c855f4cb7201d838f4b2535",
+    "Assets/Textures/crvatkp_e.dds": "3642fb23810cfd8cd9ce7f4f8cecc1e0e6c6288ddb45cbdb5cf0c6e12d974b1e",
+    "Assets/Textures/crvatkp_N.dds": "1206960f6147458498af6e50f81b4593805129257d0268f42be1a2ddf1b2370e",
+    "Materials/CR_avtank_cockpit.material": "2d4d87977196ea3d1e91d4ae52605aa0af5c3a9436e9f6cda9fe5a6df032b96f"
   },
   "alignment": {
     "faction": "nsdf",
@@ -103,14 +106,14 @@
             0.05250203609466553
           ],
           [
-            0.47829899191856384,
-            -0.4667450189590454,
+            0.5298968300281347,
+            -0.4361237338387486,
             0.05250203609466553
           ],
           [
-            0.47829899191856384,
-            -0.4667450189590454,
-            0.6642440557479858
+            0.5298968300281347,
+            -0.4361237338387486,
+            0.6272373269099035
           ]
         ],
         "chart": "service",
@@ -119,9 +122,9 @@
       {
         "points": [
           [
-            -0.47829899191856384,
-            -0.4667450189590454,
-            0.05134105682373047
+            -0.5298968300281347,
+            -0.4361237338387486,
+            0.05147158315840818
           ],
           [
             -0.9372410178184509,
@@ -134,9 +137,9 @@
             0.33508408069610596
           ],
           [
-            -0.47829899191856384,
-            -0.4667450189590454,
-            0.6642440557479858
+            -0.5298968300281347,
+            -0.4361237338387486,
+            0.6272373269099034
           ]
         ],
         "chart": "switch",
@@ -165,7 +168,7 @@
             0.6637450389862061
           ]
         ],
-        "chart": "console",
+        "chart": "pod",
         "depth": 0.009
       },
       {
@@ -191,7 +194,7 @@
             0.6637450389862061
           ]
         ],
-        "chart": "console",
+        "chart": "pod",
         "depth": 0.009
       },
       {
@@ -222,6 +225,20 @@
       }
     ],
     "stockCockpitRetained": true,
+    "stockReplacedTriangles": [
+      0,
+      1,
+      17,
+      18,
+      26,
+      27,
+      35,
+      36,
+      60,
+      61,
+      66,
+      67
+    ],
     "stockTriangles": 68,
     "gunBones": [
       18
@@ -698,7 +715,7 @@
       "front": 0.91,
       "roof": 0.62
     },
-    "nativeVdfSha256": "6b34c1704fa3aa464a9d473a66fbde0df9e66c87dcc58b0c187f065059a050c5",
+    "nativeVdfSha256": "07664f2c02345e3eafa433d0e4b17035b1bded5e789256babf5e9898d591aee4",
     "apronTransform": [
       [
         1.35,
@@ -737,18 +754,18 @@
   "glass": {
     "openFraction": 0.26163251443450697,
     "depth": [
-      0.6980328760495091,
-      2.091693006577366
+      0.698034637673604,
+      2.091701436108382
     ],
     "bone": "agr21bda",
     "vertices": 401,
     "triangles": 676
   },
   "triangles": {
-    "avtank01": 68,
-    "CRV/NSDFScoutCockpit": 1670,
+    "avtank01": 56,
+    "CRV/avtankTankPanels": 1814,
     "CRV/avtankTankGuns": 150,
     "CRV/avtankTankHull": 448
   },
-  "atlasPolicy": "Reuse original and accepted faction atlases; no duplicate DDS"
+  "atlasPolicy": "Generated per-unit panel atlas crvatkp; exterior atlas reused for hull and guns"
 }
