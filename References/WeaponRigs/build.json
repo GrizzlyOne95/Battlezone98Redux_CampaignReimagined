@@ -14844,9 +14844,53 @@
       "Assets/Models/bvrdev_recoil.skeleton": "6bf950bbaba901dde8c3d54277d89e0b75c759e2b193a5ba6b54d6aeb954fe35",
       "Assets/ModelFixes/bvrdev.mesh": "c3d2ff627eda68d5fdc202b6c9b875e5b4b6c4f5595ab36a788749dc6e56c3d0",
       "Assets/Models/bvrdev_cockpit.mesh": "fb3707b471c0eb2bd453cb761df522ad1287d4291a30c1b2bc0dba3be71e767c",
-      "Assets/Models/bvrdev_cockpit_recoil.skeleton": "3fbc922ebef4ca9b1c9d41ae91d74cd073eb2be33255deb9ea97705b5b143358"
+      "Assets/Models/bvrdev_cockpit_recoil.skeleton": "b13e04910cfde96433352b64d6adca3614e4e1e6d24472d8f0ad7ee6bef20fc8"
     },
     "hardpoints": {
+      "brd11GC1": {
+        "parent": "brd11bda",
+        "position": [
+          -0.796,
+          1.79,
+          1.938
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "brd11GS1": {
+        "parent": "brd11bda",
+        "position": [
+          0.0,
+          0.45,
+          4.2
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "brd11GM1": {
+        "parent": "brd11bda",
+        "position": [
+          1.051115,
+          1.860241,
+          -0.078261
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
+    },
+    "cockpit_hardpoints": {
       "brd11GC1": {
         "parent": "brd11bda",
         "position": [

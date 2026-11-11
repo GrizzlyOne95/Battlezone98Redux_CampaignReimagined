@@ -515,6 +515,7 @@
       ]
     },
     "bvrdev": {
+      "cockpit_hardpoints": true,
       "channels": [
         {
           "hardpoints": [
