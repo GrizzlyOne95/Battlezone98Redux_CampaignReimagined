@@ -7293,9 +7293,25 @@
       "Assets/Models/cvrckt_recoil.skeleton": "bc19399cc7050e255f10855361328e863a3347274a9979f7883fa60191be6723",
       "Assets/ModelFixes/cvrckt.mesh": "0390b6b1c5bda4ace6d4e01f01af7735d753da526af41f5445da1f531e62a6b2",
       "Assets/Models/cvrckt_cockpit.mesh": "a537c75c89848a809748bf573b0ed5185283d8ebbd4f28dcad0eb531e43939a0",
-      "Assets/Models/cvrckt_cockpit_recoil.skeleton": "ff5bb8d38ff0290eec0609017e031bcc36382006752026164b293c7f3e2f33bc"
+      "Assets/Models/cvrckt_cockpit_recoil.skeleton": "169555f3cc42971f51727d5be184d41e6c1d59eb00b825054f9d2228fc1743e0"
     },
     "hardpoints": {
+      "CDR11GS1": {
+        "parent": "CDR11BDA",
+        "position": [
+          -1.994295,
+          1.367225,
+          4.190834
+        ],
+        "orientation": [
+          0.0,
+          1.629206849429444e-07,
+          0.0,
+          0.9999999999999868
+        ]
+      }
+    },
+    "cockpit_hardpoints": {
       "CDR11GS1": {
         "parent": "CDR11BDA",
         "position": [

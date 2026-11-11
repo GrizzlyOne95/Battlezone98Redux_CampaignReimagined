@@ -973,6 +973,7 @@
       ]
     },
     "cvrckt": {
+      "cockpit_hardpoints": true,
       "channels": [
         {
           "hardpoints": [
