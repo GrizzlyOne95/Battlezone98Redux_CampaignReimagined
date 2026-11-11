@@ -403,7 +403,7 @@ if campaignRuntime then
         if APC_ATTACK_RANGE <= 0 or not IsOdf(h, "bvapc") then return end
         local r = State()
         r.apcs = r.apcs or {}
-        r.apcs[#r.apcs + 1] = { h = h, next = 0 }
+        r.apcs[#r.apcs + 1] = { h = h, next = GetTime() + APC_RETARGET } -- let the AIP give it a job first
     end
     function Restored.ApcRetarget(r)
         local apcs = r.apcs

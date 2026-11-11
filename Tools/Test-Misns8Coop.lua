@@ -453,7 +453,7 @@ do -- CR addition: a Black Dog APC attacks a close enemy craft (aiCore APCManage
     check(F.count(p[1], "Attack", apc) == 1, "an APC already attacking that unit is not re-ordered")
     w.objects[apc].target = nil
     for _, q in ipairs(p) do q.env.Load(q.env.Save()) end
-    F.connect(); F.run(6)
+    F.connect(); F.run(5) -- one retarget pass (the stub Attack never sets a target)
     check(F.count(p[1], "Attack", apc) == 2 and F.last(p[1], "Attack")[3] == p[2].player, "the tracked APC survives a Save/Load")
     w.objects[apc].command = 11; F.run(12)
     check(F.count(p[1], "Attack", apc) == 2, "an APC going home to reload is left alone")
