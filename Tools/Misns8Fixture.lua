@@ -29,7 +29,7 @@ F.LABELS = {
     ["eggeizr120_geyser"] = {odf="eggeizr1",team=0,pos={2365,113,99978},craft=false},
     ["eggeizr121_geyser"] = {odf="eggeizr1",team=0,pos={2899,128,99808},craft=false},
     ["eggeizr122_geyser"] = {odf="eggeizr1",team=0,pos={2943,123,100103},craft=false},
-    ["svrecycle"] = {odf="svrecy",team=1,pos={1836,16,100340},craft=true},
+    ["svrecycle"] = {odf="svrecy8",team=1,pos={1836,16,100340},craft=true},
     ["svmuf"] = {odf="savmf",team=1,pos={1801,16,100327},craft=true},
     ["temp_geyser"] = {odf="eggeizr1",team=0,pos={2493,43,99364},craft=false},
     ["dis_geyser1"] = {odf="eggeizr1",team=0,pos={3003,43,99445},craft=false},
@@ -86,7 +86,7 @@ F.PATHS = {
 }
 F.FAR = 50000
 local CRAFT = {bvartl=true,bvcnst=true,bvtank=true,bvsca8=true,bvra8=true,avart8=true,bvmuf=true,bvrec8=true,avcns8=true,bvtur8=true,bvhraz=true,
-    bvapc=true,bvwalk=true,savtnk=true,savs8=true,svtank=true,playsv=true,svrecy=true,savmf=true}
+    bvapc=true,bvwalk=true,savtnk=true,savs8=true,svtank=true,playsv=true,svrecy8=true,savmf=true}
 local function vec(t) return {x = t[1], y = t[2], z = t[3]} end
 local function newObject(handle, odf, team, pos, craft)
     W.objects[handle] = {alive = true, odf = odf, team = team, health = 1, pos = vec(pos or {F.FAR, 6, F.FAR}),

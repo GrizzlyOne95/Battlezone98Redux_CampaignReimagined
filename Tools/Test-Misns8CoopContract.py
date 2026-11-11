@@ -57,7 +57,7 @@ assert layer_paths <= set(paths), "every path the CR layer names exists: " + str
 layer_objects = set(re.findall(r'rallyPoints = \{ \[0\] = "(\w+)" \}', layer))
 assert layer_objects <= set(objects), "rally point is a map object"
 assert objects["avrecycle"] == ("bvrec8", 5) and objects["avmuf"] == ("bvmuf", 5)
-assert objects["svrecycle"] == ("svrecy", 1) and objects["svmuf"] == ("savmf", 1)
+assert objects["svrecycle"] == ("svrecy8", 1) and objects["svmuf"] == ("savmf", 1)
 for label in ("powerplant1", "powerplant2", "basetower1", "basetower2"):
     assert objects[label][1] == 5, "the Black Dog base is on team 5: " + label
 assert objects["cam"][1] == 1 and objects["basecam"][1] == 1, "nav beacons belong to the humans' side"

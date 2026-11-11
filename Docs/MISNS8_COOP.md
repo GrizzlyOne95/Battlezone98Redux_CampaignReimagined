@@ -24,7 +24,7 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | Team | Use |
 | --- | --- |
-| 1-4 | Humans (host on 1). The authored CCA Recycler (`svrecycle`) and Factory (`svmuf`), the nav beacons (`cam`, `basecam`, the restored Choke Point beacon) and Romeski (`svtank`) stay on team 1: shared, host-run. Extra starting recyclers are disabled. |
+| 1-4 | Humans (host on 1). The authored CCA Recycler (`svrecycle`, mission-only ODF `svrecy8`: stock `svrecy` with the Fury factory `savmf` as its factory build item, so a rebuilt factory still makes `savtnk`) and Factory (`svmuf`), the nav beacons (`cam`, `basecam`, the restored Choke Point beacon) and Romeski (`svtank`) stay on team 1: shared, host-run. Extra starting recyclers are disabled. |
 | 5 | The Black Dogs (the authored team 2: labels `avrecycle` and `avmuf` now use ODFs `bvrecy` and `bvmuf`, plus the powerplants, base towers, and everything the AI builds). The body still says team 2; the CR layer maps it to 5 for every call that names it (below). |
 | 7 | Support (allied to humans; unused here). |
 
