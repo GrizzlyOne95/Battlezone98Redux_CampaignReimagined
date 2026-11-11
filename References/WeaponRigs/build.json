@@ -11218,9 +11218,25 @@
       "Assets/Models/svltnk_recoil.skeleton": "fcd5c241ea647f6fa0d55d34812654081c0c26c1e43f5a3ae9754d3d1cac326f",
       "Assets/ModelFixes/svltnk.mesh": "8a6bd6fa3e03c7dd71581b3a5dbb8ca40b1f5a9196e21629341b84458f000a54",
       "Assets/Models/svltnk_cockpit.mesh": "b900556b12c524cee43c8977d32fb076d366088b01ce7d956314b160646cf736",
-      "Assets/Models/svltnk_cockpit_recoil.skeleton": "d699c62ac33315979b0919d439c0d41898eb5f0e90de0c259c49c9574a58c2cb"
+      "Assets/Models/svltnk_cockpit_recoil.skeleton": "637d9553a081a88b5f9ae6c3dcce8829f2c6c84b229362c109ba16651ff30a54"
     },
     "hardpoints": {
+      "Slt11GC1": {
+        "parent": "slt11trt",
+        "position": [
+          -0.2427,
+          0.2255,
+          0.5728
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
+    },
+    "cockpit_hardpoints": {
       "Slt11GC1": {
         "parent": "slt11trt",
         "position": [
