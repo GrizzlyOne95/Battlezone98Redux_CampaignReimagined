@@ -141,7 +141,8 @@ function F.heardCount(peer, file)
 end
 
 -- ----------------------------------------------------------------------- peers
--- options: titan = a CRTitanWeather stand-in module (nil: the module is absent)
+-- options: titan = a CRTitanWeather stand-in module (nil: the module is absent);
+-- dropIn = load the real Scripts/CRDropIn.lua (nil: the module is absent and the mission starts as stock)
 function F.makePeer(id, team, network, options)
     options = options or {}
     local p = {id = id, team = team, net = network, hosting = team == 1, calls = {}, player = "player" .. id,
@@ -241,6 +242,7 @@ function F.makePeer(id, team, network, options)
         W.nextObject = W.nextObject + 1
         local h = "built" .. W.nextObject
         local pos = F.posOf(where)
+        if pos.pos then pos = pos.pos end -- a BuildDirectionalMatrix pose
         newObject(h, odf, objectTeam, {pos.x, pos.y, pos.z})
         record("BuildObject", h, odf, objectTeam, where)
         for _, peer in pairs(W.peers) do if peer.env then peer.env.AddObject(h) end end
@@ -267,6 +269,20 @@ function F.makePeer(id, team, network, options)
         record("CameraObject", subject, x, y, z, target)
     end
     e.CameraCancelled = function() return W.cancel end
+    -- The dropship opening (CRDropIn) moves craft with a pose; the mock applies it and records the call.
+    e.BuildDirectionalMatrix = function(pos, dir) return {pos = pos, dir = dir} end
+    e.SetTransform = function(h, m)
+        assert(e.IsValid(h), "SetTransform on a missing object: " .. tostring(h))
+        record("SetTransform", h, m)
+        W.objects[h].pos = {x = m.pos.x, y = m.pos.y, z = m.pos.z}
+    end
+    -- Only the drop's cargo drive sets a velocity; F.tick integrates it until the object is stopped.
+    e.SetVelocity = function(h, v)
+        record("SetVelocity", h, v)
+        if W.objects[h] then W.objects[h].vel = (v.x ~= 0 or v.z ~= 0) and v or nil end
+    end
+    e.GetVelocity = function() return {x = 0, y = 0, z = 0} end
+    e.GetOdf = function(h) return W.objects[h] and W.objects[h].odf end
     e.SetMaxHealth = function(h, v) record("SetMaxHealth", h, v) end
     e.AddHealth = function(h, v) record("AddHealth", h, v) end
     e.Send = function(to, kind, ...)
@@ -301,6 +317,7 @@ function F.makePeer(id, team, network, options)
             if n == "SetIndependence" then
                 assert(W.objects[(...)].odf == "aspilo", "SetIndependence on a non-allowlisted object")
             end
+            if n == "Stop" and W.objects[(...)] then W.objects[(...)].vel = nil end
             record(n, ...)
         end
     end
@@ -314,7 +331,11 @@ function F.makePeer(id, team, network, options)
         },
         RequireFix = {Initialize = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
-            SetLives = function(n) record("SetLives", n) end},
+            SetLives = function(n) record("SetLives", n) end,
+            -- The dropship opening locks its own player through the EXU control mask.
+            CONTROL = {ALL = 0xFFFF},
+            SetPlayerControlMask = function(owner, mask) p.mask = owner; record("SetPlayerControlMask", owner, mask); return true end,
+            ClearPlayerControlMask = function(owner) if p.mask == owner then p.mask = nil end; record("ClearPlayerControlMask", owner) end},
         PersistentConfig = {
             Initialize = function() p.pda.Initialize = p.pda.Initialize + 1 end,
             UpdateInputs = function() p.pda.UpdateInputs = p.pda.UpdateInputs + 1 end,
@@ -326,6 +347,7 @@ function F.makePeer(id, team, network, options)
             Stop = function() record("Stop") end, Update = noop, Initialize = noop},
         CRTitanWeather = options.titan,
     }
+    if options.dropIn then modules.CRDropIn = setfenv(assert(loadfile("Scripts/CRDropIn.lua")), e)() end
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
     modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
     local realRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
@@ -364,6 +386,13 @@ end
 function F.tick(dt)
     dt = dt or 0.25
     W.now = W.now + dt
+    local moved = {}
+    for _, o in pairs(W.objects) do
+        if o.vel and o.alive and not moved[o] then
+            moved[o] = true
+            o.pos = {x = o.pos.x + o.vel.x * dt, y = o.pos.y, z = o.pos.z + o.vel.z * dt}
+        end
+    end
     for _, p in pairs(W.peers) do p.env.Update(dt) end
     W.transport:Step(W.now, false, nil)
 end
