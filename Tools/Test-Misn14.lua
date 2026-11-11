@@ -377,6 +377,14 @@ end
 
 boot({dropIn = true})
 check(not F.heard(host, "misn1401.wav"), "chunk load plays nothing before the drop")
+local function enemyBuilds()
+    local n = 0
+    for _, b in ipairs(F.builds(host, 0)) do
+        if b.team ~= 0 and b.team ~= 1 then n = n + 1 end
+    end
+    return n
+end
+
 F.run(1)
 check(M().dropin and M().dropin.go and M().cr14dropHold, "the drop starts on the first frame and holds the stock opening")
 check(#F.builds(host, 0, "avdropc") == 1 and #F.builds(host, 0, "apcamr") == 1, "one cargo ship and its camera pod")
@@ -384,6 +392,9 @@ check(F.count(host, "CameraReady") == 1 and F.count(host, "CameraObject") > 0 an
     "the drop films the landing, not the stock path")
 check(host.mask == "mission:misn14drop", "the player is locked through the EXU control mask")
 check(not F.heard(host, "misn1401.wav") and M().start_done == false, "the stock opening waits for the ramp")
+check(F.count(host, "SetAIP") == 0 and M().alien_time == 99999.0
+    and #F.builds(host, 0, "avsav14") == 0 and enemyBuilds() == 0,
+    "the CCA plan, the Fury clock and enemy builds wait for the landing")
 check(transforms(host, "avrecy-1_recycler") > 0 and transforms(host, host.player) > 0,
     "the Texas and the player ride in the hold")
 check(dist("avrecy-1_recycler", stockPos()) > 30, "the Texas left its stock spot with the ship")
@@ -401,6 +412,7 @@ check(host.camera == 1, "exactly the stock intro camera is open")
 objective = throughIntro()
 check(objective > releasedAt + 26 and objective < releasedAt + 29, "the stock 12 s + 15 s intro runs after the drop")
 check(F.count(host, "AddObjective", "misn1401.otf") == 1 and host.camera == 0, "stock objective, camera released")
+check(F.count(host, "SetAIP") == 1 and M().alien_time > releasedAt + 420, "the first Fury wave counts from the landing")
 check(F.heardCount(host, "misn1401.wav") == 1, "the briefing plays once")
 F.run(60)
 check(dist("avrecy-1_recycler", stockPos()) < 8, "the Texas is set down at its landing goal")
