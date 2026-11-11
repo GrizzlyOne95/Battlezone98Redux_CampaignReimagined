@@ -14,32 +14,27 @@ local Trees={}
 function Trees.Create(api)
     local sites=require("CRJungle17Sites").trees
     local T={}
-    local culled,nextCull,isSite={},0,nil
-    local function cull()
-        -- Every peer, every tree it can see, preplaced ones included. Keyed by
-        -- handle: a rebuilt tree gets a new handle and needs it again.
-        -- Walk the objects that exist rather than look sites up by label: the
-        -- engine logs and flushes "No object named" for every site that is not
-        -- standing, and at 1,280 lookups a second that was ~2% of a frame.
-        -- A tree is built beyond the fog, so a second's delay never shows.
+    local swept=false
+    local function exuReady()
         local x=rawget(_G,"exu")
-        if type(x)~="table" or type(x.SetEntityRenderingDistance)~="function" then return end
-        if GetTime()<nextCull then return end
-        nextCull=GetTime()+1
-        if not isSite then
-            isSite={}
-            for _,p in ipairs(sites) do isSite[p.label]=true end
-        end
-        local seen={}
+        if type(x)=="table" and type(x.SetEntityRenderingDistance)=="function" then return x end
+    end
+    local function applyDistance(h)
+        local x=exuReady()
+        if x then pcall(x.SetEntityRenderingDistance,h,RENDER_DISTANCE) end
+    end
+    local function cull()
+        -- One sweep, once exu is available, for every tree that already exists
+        -- (preplaced ones, and those restored by a save). Trees this script
+        -- builds are culled right after its own SetLabel, so no per-second scan.
+        -- A rebuilt tree gets a new handle and is handled by the same path.
+        if swept or not exuReady() then return end
+        swept=true
+        local isSite={}
+        for _,p in ipairs(sites) do isSite[p.label]=true end
         for h in AllObjects() do
-            seen[h]=true
-            if not culled[h] then
-                local ok,label=pcall(GetLabel,h)
-                if ok and isSite[label] and pcall(x.SetEntityRenderingDistance,h,RENDER_DISTANCE) then culled[h]=true end
-            end
-        end
-        for h in pairs(culled) do
-            if not seen[h] then culled[h]=nil end
+            local ok,label=pcall(GetLabel,h)
+            if ok and isSite[label] then applyDistance(h) end
         end
     end
     local function nearest(players,p)
@@ -79,6 +74,7 @@ function Trees.Create(api)
                     local h=BuildObject(p.odf,0,SetVector(p.position[1],p.position[2],p.position[3]))
                     if h and IsValid(h) then
                         SetLabel(h,p.label)
+                        applyDistance(h)
                         s.live[i]=true;s.built=s.built+1;built=built+1
                     end
                 end
