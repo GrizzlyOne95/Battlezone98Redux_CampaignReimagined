@@ -8,6 +8,7 @@
 - Cockpits: the CZar cabin is built on the eye's side instead of mirrored; the svfigh nacelle pods animate in view; the avfigh and bvraz scouts show their real nose through a notched sill; the avtank and bvtank front hull plates sit lower and flatter. Scouts get thruster housings under the engine flames.
 - CCA and Black Dog jet flames are orange and blood red again, and higher-resolution sun, ping, puff, smoke, shockwave, plasma and flame sprites ship.
 - CR Soviet (CCA) missions now field Black Dog units instead of NSDF ones.
+- misns8cr: once the Black Dog base breaks, they counterattack your Recycler with Razors and light tanks, then a walker strike about 6 minutes later, while Soviet command sends three allied waves (fighters, tanks, walkers) to guard it. Offline and co-op; not yet tested in game.
 - misns8cr: a Black Dog APC with one of your units within 120 m now attacks it and unloads its soldiers there, instead of only driving at your Recycler. Offline and co-op; not yet tested in game.
 - CR Soviet (CCA) missions: enemy bases are Black Dog buildings too (map structures, the misns6 AIP and the misns4/7/8 build orders), the misns2 enemy camera net uses Black Dog cameras, and misns8's retaliation tanks spawn again (stock asked for a misspelled `bvtavk`). Nav beacons the CR scripts place now match the player's faction: CCA `spcamr`, Black Dog `bpcamr`, Chinese `cpcamr`.
 - Unit voice lines play the line that matches each slot (for example, a walker's death message no longer says "Sasquatch here"), and references to missing voice files are removed.
