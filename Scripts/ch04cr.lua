@@ -72,7 +72,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
         CH4Portal = function(mode) Restored.OpPortal(mode) end,
         CH4Shot = function(path, height, speed) Restored.OpShot(path, height, speed) end,
     },
-    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesCH04", glassFrost = 0.5, startLevel = 1, targetLevel = 1,
+    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesCH04", glassFrost = 0.15, startLevel = 1, targetLevel = 1,
         environment = { lightingMode = "orbit", orbit = { period = 1800, startHour = -40 } },
         ops = { "EuropaState", "EuropaPlume", "EuropaQuake", "EuropaSurge" },
         beats = function(europa, state, s)

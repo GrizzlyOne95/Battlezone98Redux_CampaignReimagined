@@ -72,7 +72,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
         BD15Boom = function(odf, where) if Restored then Restored.Boom(odf, where) end end,
     },
     -- Ganymede: CREuropaWeather over the generated BD15 sites (six geyser vents around the launch site).
-    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD15", glassFrost = 0.5,
+    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD15", glassFrost = 0.15,
         environment = { lightingMode = "orbit", orbit = { period = 1800, startHour = -40 } },
         ops = { "EuropaState", "EuropaPlume", "EuropaQuake", "EuropaSurge" },
         startLevel = 1, targetLevel = 1,

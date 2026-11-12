@@ -84,7 +84,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
         CH03Boom = function(odf, where) if Restored then Restored.Boom(odf, where) end end,
     },
     -- Ganymede: the icy moon of bdmisn01, with the four geysers of the starting base (Docs/CHMISN03_COOP.md).
-    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesCH03", glassFrost = 0.5, startLevel = 1, targetLevel = 1,
+    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesCH03", glassFrost = 0.15, startLevel = 1, targetLevel = 1,
         environment = { lightingMode = "orbit", orbit = { period = 1800, startHour = -40 } },
         ops = { "EuropaState", "EuropaPlume", "EuropaQuake", "EuropaSurge" },
         beats = function(europa, state, s)
