@@ -22,7 +22,12 @@ local CRMarsWeather = require("CRMarsWeather")
 local PlayerPilotMode = require("PlayerPilotMode")
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
-local CR04Drop = require("CR04Drop")
+-- The dropship opening (offline and co-op). A missing module falls back to the stock start.
+local okDropIn, DropIn = pcall(require, "CRDropIn")
+if not okDropIn then
+    print("[misn04] stock opening: CRDropIn unavailable: " .. tostring(DropIn))
+    DropIn = nil
+end
 local CRHoldOrder = require("CRHoldOrder")
 local LEADER_TEAM = 1
 local ENEMY_TEAM = 5
@@ -47,6 +52,7 @@ local native = {
     SucceedMission = SucceedMission, FailMission = FailMission,
     CameraReady = CameraReady, CameraPath = CameraPath,
     CameraFinish = CameraFinish, CameraCancelled = CameraCancelled,
+    CameraObject = CameraObject,
     Play = subtit.Play, Queue = subtit.Queue, Stop = subtit.Stop,
 }
 local events, acknowledgements = {}, {}
@@ -63,8 +69,18 @@ local function FromLeader(from)
     return player and player.team == LEADER_TEAM
 end
 
+-- The dropship opening's plan (CRDropIn): numbers only, applied on every peer. Listed here, not
+-- read from the module, so a guest's stream never stalls on an op it does not know even when
+-- the module failed to load (it then acknowledges and drops them).
+local DROP_OPS = { DropShip = true, DropCrew = true, DropGo = true }
+
 local function ApplyPresentation(op, ...)
-    if op == "Resources" then
+    if DROP_OPS[op] then
+        if DropIn then
+            M.dropin = M.dropin or {}
+            DropIn.Apply(M.dropin, op, ...)
+        end
+    elseif op == "Resources" then
         local team, scrap, pilots = ...
         -- Each human owns their team resources. Do not mutate a remote team.
         if CRCoop.GetLocalTeam() == team then
@@ -180,8 +196,13 @@ local function Present(op, ...)
     return ApplyPresentation(op, ...)
 end
 
+-- Camera frames are tagged: "P" path (path, height, speed, target), "O" object (subject,
+-- x, y, z, target: the dropship opening).
 local function WireCameraFrame(frame)
-    return { frame[1], frame[2], frame[3], WireHandle(frame[4]) }
+    if frame[1] == "O" then
+        return { "O", WireHandle(frame[2]), frame[3], frame[4], frame[5], WireHandle(frame[6]) }
+    end
+    return { frame[1], frame[2], frame[3], frame[4], WireHandle(frame[5]) }
 end
 
 -- A leader-side SetLabel on a spawned object is replicated to every guest, so the label
@@ -233,7 +254,7 @@ local function CameraReady()
     return native.CameraReady()
 end
 local function CameraPath(path, height, speed, target)
-    cameraFrame = { path, height, speed, target }
+    cameraFrame = { "P", path, height, speed, target }
     if CRCoop.IsNetworkGame() and native.CameraCancelled() then
         cameraSkipped = true
         if localCameraActive then native.CameraFinish() end
@@ -243,6 +264,17 @@ local function CameraPath(path, height, speed, target)
         local done = native.CameraPath(path, height, speed, target)
         if not CRCoop.IsNetworkGame() then return done end
     end
+    return false
+end
+local function CameraObject(subject, x, y, z, target)
+    cameraFrame = { "O", subject, x, y, z, target }
+    if CRCoop.IsNetworkGame() and native.CameraCancelled() then
+        -- A player's skip drops only their own view (CameraCancelled below stays false).
+        cameraSkipped = true
+        if localCameraActive then native.CameraFinish() end
+        localCameraActive = false
+    end
+    if not cameraSkipped then return native.CameraObject(subject, x, y, z, target) end
     return false
 end
 local function CameraCancelled()
@@ -294,7 +326,11 @@ local function ResolveCameraHandles(sentSubject, sentTarget)
     end
     local settled = (not needSubject or IsValid(subject) or subjectGone) and (IsValid(target) or targetGone)
     if not settled then
-        if localCameraActive and cameraLast then return true, cameraLast[1], cameraLast[2] end
+        -- Keep the last frame only while its objects still exist (a swapped dropship hull is gone).
+        if localCameraActive and cameraLast and (cameraLast[1] == nil or IsValid(cameraLast[1]))
+            and IsValid(cameraLast[2]) then
+            return true, cameraLast[1], cameraLast[2]
+        end
         if localCameraActive or not cameraGaveUp then
             local now = GetTime()
             if not cameraWaitSince or now < cameraWaitSince then cameraWaitSince = now end
@@ -319,21 +355,20 @@ end
 
 local function UpdateRemoteCamera()
     if not remoteCamera then return end
-    local generation, path, height, speed, target = unpackArgs(remoteCamera)
-    if path == "" or M.coopResult then
+    local cam = remoteCamera
+    if cam.kind == "" or M.coopResult then
         if localCameraActive then native.CameraFinish() end
         localCameraActive = false
         return
     end
-    if generation ~= localCameraGeneration then
-        localCameraGeneration = generation
+    if cam.generation ~= localCameraGeneration then
+        localCameraGeneration = cam.generation
         cameraSkipped = false
         cameraWaitSince, cameraGaveUp, cameraLast = nil, false, nil
     end
     if cameraSkipped then return end
-    local ready, _, resolved = ResolveCameraHandles(nil, target)
+    local ready, subject, target = ResolveCameraHandles(cam.kind == "O" and cam.subject or nil, cam.target)
     if not ready then return end
-    target = resolved
     if not localCameraActive then
         native.CameraReady()
         localCameraActive = true
@@ -343,7 +378,12 @@ local function UpdateRemoteCamera()
         native.CameraFinish()
         return
     end
-    NativeCameraPath(path, height, speed, target)
+    -- Use the resolved objects only: a nil target never falls back to the wire text.
+    if cam.kind == "O" then
+        native.CameraObject(subject, cam.x, cam.y, cam.z, target)
+    else
+        NativeCameraPath(cam.path, cam.height, cam.speed, target)
+    end
 end
 
 local function UpdatePresentationTransport()
@@ -402,17 +442,26 @@ function ReceivePresentationDecoded(from, kind, ...)
     if kind ~= "E" and kind ~= "C" then return false end
     if CRCoop.IsAuthority() or not FromLeader(from) then return true end
     if kind == "C" then
-        local seq, generation, path, height, speed, target = ...
-        if type(seq) == "number" and seq > remoteCameraSerial and type(generation) == "number" and
-            type(path) == "string" and type(height) == "number" and type(speed) == "number" then
-            remoteCameraSerial = seq
-            remoteCamera = { generation, path, height, speed, target }
+        local seq, generation, camKind, a, b, c, d, e = ...
+        if type(seq) == "number" and seq > remoteCameraSerial and type(generation) == "number" then
+            local cam
+            if camKind == "" then
+                cam = { generation = generation, kind = "" }
+            elseif camKind == "P" and type(a) == "string" and type(b) == "number" and type(c) == "number" then
+                cam = { generation = generation, kind = "P", path = a, height = b, speed = c, target = d }
+            elseif camKind == "O" and type(b) == "number" and type(c) == "number" and type(d) == "number" then
+                cam = { generation = generation, kind = "O", subject = a, x = b, y = c, z = d, target = e }
+            end
+            if cam then
+                remoteCameraSerial = seq
+                remoteCamera = cam
+            end
         end
         return true
     end
     local seq, op, ttl = ...
     if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
-    if seq == receivedEvent + 1 and (native[op] or op == "Label" or op == "Resources" or op == "Difficulty" or
+    if seq == receivedEvent + 1 and (native[op] or DROP_OPS[op] or op == "Label" or op == "Resources" or op == "Difficulty" or
         op == "WeatherTarget" or op == "WeatherForce" or op == "WeatherLevel") then
         local args = { select(4, ...) }
         local count = select("#", ...) - 3
@@ -2869,6 +2918,66 @@ local function GetTugRetryDelay()
     return DiffUtils.ScaleTimer(baseDelay)
 end
 
+-- The dropship opening (CRDropIn), offline and co-op. The cargo ship lands the Recycler and the
+-- Factory behind their stock spots; the personnel ship carries every human craft and the wingman
+-- to the stock player spot. The leader plans it once; each peer then holds its own craft.
+local function ConfigureDropIn()
+    if not DropIn then return end
+    DropIn.Configure({
+        present = Present, exu = exu, log = print, owner = "mission:misn04-dropship",
+        isNetwork = CRCoop.IsNetworkGame, isLeader = CRCoop.IsAuthority,
+        myTeam = CRCoop.GetLocalTeam, player = GetPlayerHandle,
+        forEachHuman = function(fn) CRCoop.ForEachPlayerHandle(function(h) fn(h) end) end,
+        cameraReady = CameraReady, cameraObject = CameraObject,
+        cameraFinish = CameraFinish, cameraCancelled = CameraCancelled,
+    })
+end
+
+local function FlatSpot(h)
+    local p = GetPosition(h)
+    return { x = p.x, z = p.z }
+end
+
+-- Leader: true while the stock opening must wait (ships descending, ramps opening).
+local function UpdateDropIn()
+    if not M.dropin then
+        M.dropin = {}
+        local recy, fact = GetHandle("avrecy-1_recycler"), GetHandle("avmuf0_factory")
+        -- The stock player spot; co-op crafts start elsewhere and the stock hover is removed later.
+        local spot = GetHandle("player-1_hover")
+        if not IsValid(spot) then spot = GetPlayerHandle() end
+        if not (IsValid(recy) and IsValid(fact) and IsValid(spot)) then
+            print("[misn04] stock opening: recycler, factory or player missing")
+            M.dropin.phase = "done"
+            return false
+        end
+        local pr, pf, pp = FlatSpot(recy), FlatSpot(fact), FlatSpot(spot)
+        local exclude = { [recy] = true, [fact] = true, [spot] = true }
+        CRCoop.ForEachPlayerHandle(function(h) exclude[h] = true end)
+        local teams = {}
+        CRCoop.ForEachHumanTeam(function(team) teams[#teams + 1] = team end)
+        table.sort(teams)
+        local wing, riders = GetHandle("avfigh0_wingman"), {}
+        if IsValid(wing) then
+            exclude[wing] = true
+            riders[1] = { h = wing, goal = FlatSpot(wing) }
+        end
+        local begun, started = pcall(TraceUpdateCall, "misn04.UpdateDropIn DropIn.Begin", DropIn.Begin, M.dropin, { exclude = exclude, ships = {
+            { anchor = { x = (pr.x + pf.x) / 2, z = (pr.z + pf.z) / 2 }, delay = 0, cargo = {
+                { h = recy, goal = pr, along = 0, lat = -8 },
+                { h = fact, goal = pf, along = 2, lat = 10 } } },
+            { anchor = pp, delay = 2.5, crew = teams, cargo = riders },
+        } })
+        if not begun then
+            -- Whatever was built goes; the stock opening runs.
+            pcall(DropIn.Abort, M.dropin)
+            M.dropin.phase = "done"
+            return false
+        end
+    end
+    return DropIn.Update(M.dropin)
+end
+
 function Start()
     DestroyOverlayDemo()
     M = NewMissionState()
@@ -2888,10 +2997,9 @@ function Start()
     remoteCamera, remoteCameraSerial, localCameraGeneration = nil, 0, 0
     cameraSkipped, localCameraActive = false, false
     RefreshDifficulty()
-    -- Single-player opening: the dropship landing (CR04Drop). Co-op keeps the stock start.
-    CR04Drop.Configure({ exu = exu, log = print, cameraReady = CameraReady,
-        cameraFinish = CameraFinish, cameraCancelled = CameraCancelled })
-    CR04Drop.Reset()
+    -- The dropship opening (CRDropIn), offline and co-op.
+    ConfigureDropIn()
+    if DropIn then DropIn.Reset() end
     if CRCoop.IsAuthority() then
         M.relicstartpos = math.random(0, 3)
         if not CRCoop.IsNetworkGame() then
@@ -3148,6 +3256,7 @@ function Update()
             M.coopResult = true
             if localCameraActive then native.CameraFinish() end
             localCameraActive = false
+            if DropIn and M.dropin then pcall(DropIn.Abort, M.dropin) end -- never leave a peer locked
             native.FailMission(GetTime() + 1.0)
             return
         end
@@ -3155,6 +3264,7 @@ function Update()
             if not M.coopRestartWarned then
                 DisplayMessage("Use distinct teams 1-4 and start together. Late join/rejoin requires a mission restart.")
                 M.coopRestartWarned = true
+                if DropIn and M.dropin then pcall(DropIn.Abort, M.dropin) end -- Update stops here: unlock now
             end
             return
         end
@@ -3164,6 +3274,8 @@ function Update()
         CRCoop.MarkMissionStarted()
         M.coopMissionStarted = true
     end
+    -- Every peer holds its own craft in the dropship hold until the ramps are down.
+    if DropIn and M.dropin and not CRCoop.IsAuthority() then DropIn.Update(M.dropin) end
     if not CRCoop.IsAuthority() then return end
     if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
         BootstrapPreservingScriptedTeam2()
@@ -3171,7 +3283,7 @@ function Update()
     end
     -- The stock opening (and Pilot Mode, which would order the carried recycler) waits while the
     -- dropships descend and open; the landing then keeps running alongside the mission.
-    M.cr04dropHold = not CRCoop.IsNetworkGame() and CR04Drop.Update(M)
+    M.cr04dropHold = DropIn ~= nil and UpdateDropIn()
     if M.cr04dropHold then
         TraceUpdateCall("misn04.Update UpdateWeatherBeats", UpdateWeatherBeats)
         return
@@ -3870,9 +3982,10 @@ end
 function Load(missionData, aiData, pilotModeData)
     DestroyOverlayDemo()
     M = missionData or M
-    CR04Drop.Configure({ exu = exu, log = print, cameraReady = CameraReady,
-        cameraFinish = CameraFinish, cameraCancelled = CameraCancelled })
-    CR04Drop.OnLoad(M)
+    -- A load drops every camera: never pop one that is gone (a leader shot still running reopens).
+    cameraFrame, localCameraActive, cameraSkipped = nil, false, false
+    ConfigureDropIn()
+    if DropIn then DropIn.OnLoad(M.dropin) end
     CRHoldOrder.Load()
     M.playerPilotModeState = pilotModeData or M.playerPilotModeState
     if aiData then
