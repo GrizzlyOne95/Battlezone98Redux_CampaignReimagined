@@ -1,0 +1,29 @@
+[OrdnanceClass]
+classLabel = "rocket"
+
+shotGeometry = "gspst00.geo"
+shotSound = "Ordin_b.wav"
+
+// CR HIT FX begin (was xmslgnd/xmslcar/xmslbld)
+xplGround = "hspstg"
+xplVehicle = "hspstv"
+xplBuilding = "hspstb"
+// CR HIT FX end
+
+renderName = "rocket3b.Light"
+
+ammoCost = 12
+lifeSpan = 1.5
+shotSpeed = 120.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[RocketClass]
+flameLength = 0.3
+smokeRadius = 0.5
+smokeDelay = 0.015
+smokePause = 0.005
+smokeTexture = "gpuff.0"
+smokeFrames = 16

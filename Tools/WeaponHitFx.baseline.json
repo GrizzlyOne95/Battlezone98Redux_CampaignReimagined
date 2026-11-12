@@ -1,0 +1,477 @@
+{
+ "_note": "Gameplay keys of each ordnance's pre-CR-hit-FX explosions (from CR ODF/ or StockODFFiles). Written once by hand-run script; Test-WeaponHitFx.py pins the generated files to it.",
+ "ordnance": {
+  "anchor": [
+   "xbulgnd",
+   "xbulcar",
+   "xbulbld"
+  ],
+  "blast": [
+   "xlasgnd",
+   "xlascar",
+   "xlasbld"
+  ],
+  "blastb": [
+   "xlasgnd",
+   "xlascar",
+   "xlasbld"
+  ],
+  "blastg": [
+   "xlasgnd",
+   "xlascar",
+   "xlasbld"
+  ],
+  "bolt": [
+   "xlgtgnd",
+   "xlgtcar",
+   "xlgtbld"
+  ],
+  "boltg": [
+   "xlgtgndg",
+   "xlgtcarg",
+   "xlgtbldg"
+  ],
+  "boltr": [
+   "xlgtgndr",
+   "xlgtcarr",
+   "xlgtbldr"
+  ],
+  "bouncebm": [
+   "xgasgnd",
+   "xgasxpl",
+   "xgasxpl"
+  ],
+  "bullet1": [
+   "xbulgnd",
+   "xbulcar",
+   "xbulbld"
+  ],
+  "bullet1a": [
+   "xbulgnd",
+   "xbulcar",
+   "xbulbld"
+  ],
+  "bullet1b": [
+   "xbulgnd",
+   "xbulcar",
+   "xbulbld"
+  ],
+  "bullet1g": [
+   "xbulgnd",
+   "xbulcar",
+   "xbulbld"
+  ],
+  "bullet2": [
+   "xbulgnd",
+   "xbulcar",
+   "xbulbld"
+  ],
+  "bullet5": [
+   "xbulgnd",
+   "xbulcar",
+   "xbulbld"
+  ],
+  "bullet6": [
+   "xbulgnd",
+   "xbulcar",
+   "xbulbld"
+  ],
+  "bullet6a": [
+   "xbulgnd",
+   "xbulcar",
+   "xbulbld"
+  ],
+  "charge6": [
+   "xmslgnd",
+   "xmslcar",
+   "xmslbld"
+  ],
+  "cvwo004": [
+   "xgasxpl",
+   "xgasxpl",
+   "xgasxpl"
+  ],
+  "dummy": [
+   "xbulgnd",
+   "xbulcar",
+   "xbulbld"
+  ],
+  "flash": [
+   "xlasgnd",
+   "xlascar",
+   "xlasbld"
+  ],
+  "flashb": [
+   "xlasgnd",
+   "xlascar",
+   "xlasbld"
+  ],
+  "flashch": [
+   "xlasgnd",
+   "xlascar2",
+   "xlasbld"
+  ],
+  "flashg": [
+   "xlasgnd",
+   "xlascar",
+   "xlasbld"
+  ],
+  "grenade": [
+   "xgasgnd",
+   "xgasxpl",
+   "xgasxpl"
+  ],
+  "heatmsl": [
+   "xmslgnd",
+   "xmslcar",
+   "xmslbld"
+  ],
+  "imagemsl": [
+   "xmslgnd",
+   "xmslcar",
+   "xmslbld"
+  ],
+  "mbolt": [
+   "xlgtgnd",
+   "xlgtcar",
+   "xlgtbld"
+  ],
+  "mboltg": [
+   "xlgtgndg",
+   "xlgtcarg",
+   "xlgtbldg"
+  ],
+  "mboltr": [
+   "xlgtgndr",
+   "xlgtcarr",
+   "xlgtbldr"
+  ],
+  "plasma": [
+   "xgasxpl",
+   "xgasxpl",
+   "xgasxpl"
+  ],
+  "popper": [
+   "xmslgnd",
+   "xmslcar",
+   "xmslbld"
+  ],
+  "rocket": [
+   "xmslgnd",
+   "xmslcar",
+   "xmslbld"
+  ],
+  "rocket2": [
+   "xgasxpl",
+   "xgasxpl",
+   "xgasxpl"
+  ],
+  "rocket3": [
+   "xmslgnd",
+   "xmslcar",
+   "xmslbld"
+  ],
+  "rocket3a": [
+   "xpltrsi",
+   "xpltrsg",
+   "xpltrsh"
+  ],
+  "rocket3b": [
+   "xmslgnd",
+   "xmslcar",
+   "xmslbld"
+  ],
+  "rocket3c": [
+   "xmslgnd",
+   "xmslcar",
+   "xmslbld"
+  ],
+  "rocket3d": [
+   "xmslgnd",
+   "xmslcar",
+   "xmslbld"
+  ],
+  "rocketa": [
+   "xmslgnd",
+   "xmslcar",
+   "xmslbld"
+  ],
+  "rocketb3": [
+   "xmslgnd",
+   "xmslcar",
+   "xmslbld"
+  ],
+  "shell": [
+   "xgasgnd",
+   "xgasxpl",
+   "xgasxpl"
+  ],
+  "shella": [
+   "xgasxpl",
+   "xgasxpl",
+   "xgasxpl"
+  ],
+  "snipe": [
+   "xbulgnd",
+   "xbulcar",
+   "xbulbld"
+  ],
+  "splintbg": [
+   "xgasxpl",
+   "xgasxpl",
+   "xgasxpl"
+  ],
+  "splintbm": [
+   "xgasxpl",
+   "xgasxpl",
+   "xgasxpl"
+  ],
+  "splintbr": [
+   "xgasxpl",
+   "xgasxpl",
+   "xgasxpl"
+  ],
+  "splntbma": [
+   "xgasxpl",
+   "xgasxpl",
+   "xgasxpl"
+  ],
+  "swarmer": [
+   "xmslgnd",
+   "xmslcar",
+   "xmslbld"
+  ],
+  "switch": [
+   "xbulgnd",
+   "xbulcar",
+   "xbulbld"
+  ],
+  "tracer": [
+   "xbulgnd",
+   "xbulcar",
+   "xbulbld"
+  ]
+ },
+ "explosions": {
+  "xbulbld": {
+   "classlabel": "explosion",
+   "explsound": "wmgr1.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xbulcar": {
+   "classlabel": "explosion",
+   "explsound": "wmgr1.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xbulgnd": {
+   "classlabel": "groundblast",
+   "explsound": "wmgr2.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xgasgnd": {
+   "classlabel": "explosion",
+   "explsound": "xmv1.wav",
+   "damageradius": "50.0",
+   "damageballistic": "0",
+   "damageconcussion": "50",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xgasxpl": {
+   "classlabel": "explosion",
+   "explsound": "xmv1.wav",
+   "damageradius": "50.0",
+   "damageballistic": "0",
+   "damageconcussion": "50",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xlasbld": {
+   "classlabel": "explosion",
+   "explsound": "xms2.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xlascar": {
+   "classlabel": "explosion",
+   "explsound": "xsv2.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xlascar2": {
+   "classlabel": "explosion",
+   "explsound": "xsv2.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xlasgnd": {
+   "classlabel": "planarexpl",
+   "explsound": "xemt2.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xlgtbld": {
+   "classlabel": "explosion",
+   "explsound": "lhit.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xlgtbldg": {
+   "classlabel": "explosion",
+   "explradius": "2.0",
+   "explsound": "lhit.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xlgtbldr": {
+   "classlabel": "explosion",
+   "explsound": "lhit.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xlgtcar": {
+   "classlabel": "explosion",
+   "explsound": "lhit.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xlgtcarg": {
+   "classlabel": "explosion",
+   "explsound": "lhit.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xlgtcarr": {
+   "classlabel": "explosion",
+   "explradius": "2.0",
+   "explsound": "lhit.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xlgtgnd": {
+   "classlabel": "planarexpl",
+   "explsound": "lhit.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xlgtgndg": {
+   "classlabel": "planarexpl",
+   "explradius": "3.0",
+   "explsound": "lhit.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xlgtgndr": {
+   "classlabel": "planarexpl",
+   "explradius": "3.0",
+   "explsound": "lhit.wav",
+   "damageradius": "0.0",
+   "damageballistic": "0",
+   "damageconcussion": "0",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xmslbld": {
+   "classlabel": "explosion",
+   "explsound": "xms2.wav",
+   "damageradius": "5.0",
+   "damageballistic": "0",
+   "damageconcussion": "50",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xmslcar": {
+   "classlabel": "explosion",
+   "explsound": "xsv2.wav",
+   "damageradius": "5.0",
+   "damageballistic": "0",
+   "damageconcussion": "50",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xmslgnd": {
+   "classlabel": "planarexpl",
+   "explsound": "xemt2.wav",
+   "damageradius": "5.0",
+   "damageballistic": "0",
+   "damageconcussion": "50",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xpltrsg": {
+   "classlabel": "explosion",
+   "explsound": "xsv2.wav",
+   "damageradius": "5.0",
+   "damageballistic": "0",
+   "damageconcussion": "50",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xpltrsh": {
+   "classlabel": "explosion",
+   "explsound": "xms2.wav",
+   "damageradius": "5.0",
+   "damageballistic": "0",
+   "damageconcussion": "50",
+   "damageflame": "0",
+   "damageimpact": "0"
+  },
+  "xpltrsi": {
+   "classlabel": "planarexpl",
+   "explsound": "xemt2.wav",
+   "damageradius": "5.0",
+   "damageballistic": "0",
+   "damageconcussion": "50",
+   "damageflame": "0",
+   "damageimpact": "0"
+  }
+ }
+}

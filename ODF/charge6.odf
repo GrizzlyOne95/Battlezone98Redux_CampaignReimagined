@@ -1,0 +1,48 @@
+[OrdnanceClass]
+classLabel = "flamepuff"
+
+shotGeometry = NULL
+// CR HIT FX begin (was xmslgnd/xmslcar/xmslbld)
+xplGround = "hatstg"
+xplVehicle = "hatstv"
+xplBuilding = "hatstb"
+// CR HIT FX end
+
+renderName = "charge6.render"
+
+ammoCost = 175
+lifeSpan = 2.5
+shotSpeed = 75.0
+damageBallistic = 1450
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[FlamePuffClass]
+flameRadius = 0.0 //3.0
+flameDelay = 1e30
+flameTexture = "plasma.3"
+flameFrames = 1
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "charge6.core"
+renderName2 = "charge6.light"
+
+[Core]
+renderBase = "draw_twirl"
+textureName = "plasma_3.tga"
+textureBlend = "one one modulate"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 255"
+startRadius = 3.0
+finishRadius = 3.0
+rotationRate = 5.0
+
+[Light]
+renderBase = "draw_light"
+startColor = "200 10 200 255"
+finishColor = "200 10 200 255"
+startRadius = 40
+finishRadius = 40

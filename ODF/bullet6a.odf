@@ -1,0 +1,26 @@
+[OrdnanceClass]
+classLabel = "tracer"
+
+shotGeometry = NULL
+// CR HIT FX begin (was xbulgnd/xbulcar/xbulbld)
+xplGround = "hchang"
+xplVehicle = "hchanv"
+xplBuilding = "hchanb"
+// CR HIT FX end
+
+renderName = "bullet2.render"
+
+ammoCost = 1
+lifeSpan = 1.3
+shotSpeed = 120.0
+damageBallistic = 50
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[TracerClass]
+tracerTexture = "bullet_r.0"
+shotColor = 47
+lodShift = 30.0
+tracerLength = 7.0
+tracerRadius = 0.0 //0.1

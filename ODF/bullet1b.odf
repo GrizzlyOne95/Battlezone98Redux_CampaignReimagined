@@ -1,0 +1,26 @@
+[OrdnanceClass] // Not used in TRO, slower speed version of bullet1a.
+classLabel = "tracer"
+
+shotGeometry = NULL
+// CR HIT FX begin (was xbulgnd/xbulcar/xbulbld)
+xplGround = "hminbg"
+xplVehicle = "hminbv"
+xplBuilding = "hminbb"
+// CR HIT FX end
+
+renderName = "bullet1a.render"
+
+ammoCost = 2
+lifeSpan = 3.0
+shotSpeed = 100.0
+damageBallistic = 50
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[TracerClass]
+tracerTexture = "bullet_b.1"
+shotColor = 227
+lodShift = 30.0
+tracerLength = 25.0
+tracerRadius = 0.0 //0.09

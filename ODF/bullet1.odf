@@ -1,0 +1,52 @@
+[OrdnanceClass]
+classLabel = "tracer"
+
+shotGeometry = NULL
+// CR HIT FX begin (was xbulgnd/xbulcar/xbulbld)
+xplGround = "hminig"
+xplVehicle = "hminiv"
+xplBuilding = "hminib"
+// CR HIT FX end
+
+renderName = "bullet1.render"
+
+ammoCost = 2
+lifeSpan = 1.0
+shotSpeed = 120.0
+damageBallistic = 50
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[TracerClass]
+tracerTexture = "bullet_b.1"
+shotColor = 227
+lodShift = 30.0
+tracerLength = 5.0
+tracerRadius = 0.0 //0.09
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "bullet1.core"
+renderName2 = "bullet1.trail"
+
+[Core]
+renderBase = "draw_tracer"
+textureBlend = "one one modulate"
+textureName = "bullet_b1.tga"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 255"
+startRadius = 0.117 //0.09
+finishRadius = 0.117 //0.09
+tracerLength = 6.5 //5.0
+
+[Trail]
+renderBase = "draw_trail"
+textureName = "trail2.tga"
+startColor = "0 127 255 63" 
+finishColor = "0 191 255 0" 
+startRadius = 0.0
+finishRadius = 0.09
+segmentTime = 0.16 //20
+textureRate = 0.25

@@ -1,0 +1,50 @@
+[OrdnanceClass]
+classLabel = "anchor"
+
+shotGeometry = "gsand00.geo"
+shotSound = "anchor.wav"
+
+// CR HIT FX begin (was xbulgnd/xbulcar/xbulbld)
+xplGround = "hsandg"
+xplVehicle = "hsandv"
+xplBuilding = "hsandb"
+// CR HIT FX end
+
+renderName = "anchor.render"
+
+ammoCost = 5
+lifeSpan = 2.0
+shotSpeed = 70.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 10
+
+[RocketClass]
+flameRadius = 0.1
+flameLength = 1.0
+flameTexture = "exhaust_r.0"
+flameFrames = 4
+flareRadius = 0.5
+flareTexture = "flare.0"
+flareFrames = 4
+smokeDevRadial = 0.0
+smokeDevAxial = 0.0
+smokeInherit = 0.2
+smokeRadius = 0.3
+smokeDelay = 0.02
+smokePause = 0.01
+smokeTexture = "particle.0"
+smokeFrames = 16
+
+[AnchorRocketClass]
+accelDrag = 8.0
+alphaDrag = 0.5
+anchorTime = 5.0
+
+[Render]
+renderBase = "draw_light"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 255"
+startRadius = 10 //150.0
+finishRadius = 10 //150.0

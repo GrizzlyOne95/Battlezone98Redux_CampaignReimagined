@@ -2,9 +2,11 @@
 classLabel = "beam"
 
 shotGeometry = NULL
-xplGround = "xlgtgnd"
-xplVehicle = "xlgtcar"
-xplBuilding = "xlgtbld"
+// CR HIT FX begin (was xlgtgnd/xlgtcar/xlgtbld)
+xplGround = "hmbltg"
+xplVehicle = "hmbltv"
+xplBuilding = "hmbltb"
+// CR HIT FX end
 
 renderName = "mbolt.render"
 

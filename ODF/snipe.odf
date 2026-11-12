@@ -1,0 +1,22 @@
+[OrdnanceClass]
+classLabel = "snipershell"
+
+shotGeometry = NULL
+// CR HIT FX begin (was xbulgnd/xbulcar/xbulbld)
+xplGround = "hsnipg"
+xplVehicle = "hsnipv"
+xplBuilding = "hsnipb"
+// CR HIT FX end
+
+ammoCost = 1
+lifeSpan = 0.5
+shotSpeed = 1000.0
+damageBallistic = 25
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[SniperShellClass]
+killRadius = 0.5
+killLength = 10.0
+

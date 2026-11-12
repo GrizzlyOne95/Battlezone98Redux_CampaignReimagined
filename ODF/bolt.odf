@@ -2,9 +2,11 @@
 classLabel = "bolt"
 
 shotGeometry = NULL
-xplGround = "xlgtgnd"
-xplVehicle = "xlgtcar"
-xplBuilding = "xlgtbld"
+// CR HIT FX begin (was xlgtgnd/xlgtcar/xlgtbld)
+xplGround = "hboltg"
+xplVehicle = "hboltv"
+xplBuilding = "hboltb"
+// CR HIT FX end
 
 renderName = "bolt.render"
 

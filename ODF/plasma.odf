@@ -2,9 +2,11 @@
 classLabel = "rocket"
 
 shotGeometry = NULL
-xplGround = "xgasxpl"
-xplVehicle = "xgasxpl"
-xplBuilding = "xgasxpl"
+// CR HIT FX begin (was xgasxpl/xgasxpl/xgasxpl)
+xplGround = "hraveg"
+xplVehicle = "hravev"
+xplBuilding = "hraveb"
+// CR HIT FX end
 
 renderName = "plasma.render"
 

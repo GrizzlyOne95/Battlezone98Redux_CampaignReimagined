@@ -4,9 +4,11 @@ classLabel = "grenade"
 shotGeometry = "ghartl00.geo"
 shotSound = "Ordin_c.wav"
 
-xplGround = "xgasgnd"
-xplVehicle = "xgasxpl"
-xplBuilding = "xgasxpl"
+// CR HIT FX begin (was xgasgnd/xgasxpl/xgasxpl)
+xplGround = "hhowzg"
+xplVehicle = "hhowzv"
+xplBuilding = "hhowzb"
+// CR HIT FX end
 
 renderName = "shell.render"
 
