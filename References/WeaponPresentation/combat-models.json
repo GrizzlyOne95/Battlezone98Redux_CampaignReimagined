@@ -2179,6 +2179,11 @@
       "action": "Two guns share the aiming head. Add independent weighted gun children beneath the head, retaining aim and gait. Current rendered muzzle names also differ from some native model names; fit from the native fired slots and actual visible barrels. Do not translate the entire head.",
       "bindings": {}
     },
+    "hvturr": {
+      "category": "Emitter/asset decision",
+      "action": "Fury Turret (CR original, skinned organic hull): both gbolt hardpoints fire from the glowing eye face on the head (hvt11tx1) with no barrel node. Do not recoil the head or hull; if motion is wanted, author an eye-glow pulse.",
+      "bindings": {}
+    },
     "hvwalk": {
       "category": "Isolate gun geometry",
       "action": "Fury Walker (CR original, procedural organic hull): the gbolt muzzles are moulded into the head (hvw11tx1/tx2) with no separate barrel node. Give each bolt gun a gun-only child before authoring recoil or casing ports.",

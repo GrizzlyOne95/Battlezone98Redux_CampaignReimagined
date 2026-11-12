@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6153,
+  "count": 6195,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -1841,6 +1841,154 @@
     {
       "source": "Assets\\ModelFixes\\hvsrb.mesh",
       "runtime": "hvsrb.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11bda.geo",
+      "runtime": "hvt11bda.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11bdb.geo",
+      "runtime": "hvt11bdb.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11fl1.geo",
+      "runtime": "hvt11fl1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11fl2.geo",
+      "runtime": "hvt11fl2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11fls.geo",
+      "runtime": "hvt11fls.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11fr1.geo",
+      "runtime": "hvt11fr1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11fr2.geo",
+      "runtime": "hvt11fr2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11frs.geo",
+      "runtime": "hvt11frs.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11gc1.geo",
+      "runtime": "hvt11gc1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11gc2.geo",
+      "runtime": "hvt11gc2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11lgt.geo",
+      "runtime": "hvt11lgt.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11pov.geo",
+      "runtime": "hvt11pov.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rb0.geo",
+      "runtime": "hvt11rb0.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rb1.geo",
+      "runtime": "hvt11rb1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rb2.geo",
+      "runtime": "hvt11rb2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rb3.geo",
+      "runtime": "hvt11rb3.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rb4.geo",
+      "runtime": "hvt11rb4.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rb5.geo",
+      "runtime": "hvt11rb5.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rb6.geo",
+      "runtime": "hvt11rb6.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rc1.geo",
+      "runtime": "hvt11rc1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rc2.geo",
+      "runtime": "hvt11rc2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rcs.geo",
+      "runtime": "hvt11rcs.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rt0.geo",
+      "runtime": "hvt11rt0.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rt1.geo",
+      "runtime": "hvt11rt1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rt2.geo",
+      "runtime": "hvt11rt2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rt3.geo",
+      "runtime": "hvt11rt3.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rt4.geo",
+      "runtime": "hvt11rt4.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rt5.geo",
+      "runtime": "hvt11rt5.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11rt6.geo",
+      "runtime": "hvt11rt6.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11tl0.geo",
+      "runtime": "hvt11tl0.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11tl1.geo",
+      "runtime": "hvt11tl1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11tl2.geo",
+      "runtime": "hvt11tl2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11tx1.geo",
+      "runtime": "hvt11tx1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvt11ty1.geo",
+      "runtime": "hvt11ty1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvturr.mesh",
+      "runtime": "hvturr.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvturr.skeleton",
+      "runtime": "hvturr.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvturr.vdf",
+      "runtime": "hvturr.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\hvw11bda.geo",
@@ -7891,6 +8039,18 @@
       "runtime": "hvsav00_N.dds"
     },
     {
+      "source": "Assets\\Textures\\hvturr00_D.dds",
+      "runtime": "hvturr00_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\hvturr00_E.dds",
+      "runtime": "hvturr00_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\hvturr00_S.dds",
+      "runtime": "hvturr00_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\hvwalk00_D.dds",
       "runtime": "hvwalk00_D.dds"
     },
@@ -12975,6 +13135,10 @@
       "runtime": "hvsrb.material"
     },
     {
+      "source": "Materials\\hvturr.material",
+      "runtime": "hvturr.material"
+    },
+    {
       "source": "Materials\\hvwalk.material",
       "runtime": "hvwalk.material"
     },
@@ -18045,6 +18209,10 @@
     {
       "source": "ODF\\htagv.odf",
       "runtime": "htagv.odf"
+    },
+    {
+      "source": "ODF\\hvturr.odf",
+      "runtime": "hvturr.odf"
     },
     {
       "source": "ODF\\hvwalk.odf",

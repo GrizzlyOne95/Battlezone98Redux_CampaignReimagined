@@ -1,0 +1,91 @@
+// Fury Turret: an infected Fury-blue deployable turret (organic hull, scythe legs, roots that dig in on deploy).
+// Model and textures: Documents/BZ_FuryTurret (build.py, verify.py, tex_compose.py).
+// Skinned Ogre mesh (hvturr.mesh/.skeleton) driven by the hvturr.vdf parts; the guns fire from the glowing eye.
+[GameObjectClass]
+classLabel = "turrettank"
+scrapCost = 8
+scrapValue = 5
+buildTime = 9.0
+maxHealth = 3500
+maxAmmo = 2000
+unitName = "Fury Turret"
+aiName = "TurretTankFriend"
+aiName2 = "TurretTankEnemy"
+retargetPeriodAI = 0.5
+heatSignature = 0.1
+imageSignature = 2.0
+radarSignature = 0.1
+weaponHard1 = "GC1"
+weaponName1 = "gbolt"
+weaponHard2 = "GC2"
+weaponName2 = "gbolt"
+// CR DEATH FX BEGIN
+// CCA initial death blast (ODF/xdccai)
+explosionName = "xdccai"
+// CR DEATH FX END
+
+[CraftClass]
+// CR CRAFT FLASH OFFSET BEGIN
+// Flash point from the hardpoint (right up forward, metres: barrel tip, or 0 0 0 at
+// a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
+// Regenerate: Tools/Build-WeaponFlashes.py --measure
+flashOffset1 = "0.00 0.00 0.00"
+flashOffset2 = "0.00 0.00 0.00"
+// CR CRAFT FLASH OFFSET END
+rangeScan = 200.0
+periodScan = 0.0
+velocJam = 1.0
+selectGoMsg = "svturrvb.wav"
+selectAttackMsg = "svturrvc.wav"
+selectDeployMsg = "svturrv0.wav"
+selectOtherMsg = "svturrve.wav"
+goMsg = "svturrv1.wav"
+followMeMsg = "svturrv8.wav"
+reloadMsg = "svturrvg.wav"
+repairMsg = "svturrvh.wav"
+rescueMsg = "svturrvj.wav"
+recycleMsg = "svturrvf.wav"
+otherMsg = "svturrvd.wav"
+deployedMsg = "svturrv6.wav"
+diedMsg = "sbetty2.wav"
+// CR DAMAGE FX BEGIN
+// CCA damage smoke (ODF/dmgcca1-4.odf)
+damageEffect1 = "dmgcca1"
+damageEffect2 = "dmgcca2"
+damageEffect3 = "dmgcca3"
+damageEffect4 = "dmgcca4"
+// CR DAMAGE FX END
+// CR DEATH FX BEGIN
+// CCA death explosions (ODF/xdccas, xdccad, xdccap)
+xplSnipe = "xdccap"
+xplSecondary = "xdccas"
+xplDetonate = "xdccad"
+// CR DEATH FX END
+
+[HoverCraftClass]
+setAltitude = 0.5
+accelDragStop = 4.0
+accelDragFull = 1.0
+alphaTrack = 10.0
+alphaDamp = 3.0
+pitchPitch = 0.5
+pitchThrust = 0.1
+rollStrafe = 0.1
+rollSteer = 0.1
+velocForward = 13.0
+velocReverse = 13.0
+velocStrafe = 13.0
+accelThrust = 50.0
+accelBrake = 50.0
+omegaSpin = 2.8
+omegaTurn = 1.2
+alphaSteer = 4.0
+accelJump = 0.0
+soundThrust = "svturre6.wav"
+soundTurbo = "svturre8.wav"
+
+[TurretTankClass]
+omegaTurret = 2.0
+alphaTurret = 5.0
+timeDeploy = 8.0
+timeUndeploy = 0.7

@@ -2446,6 +2446,31 @@
         }
       }
     },
+    "hvturr": {
+      "model": "hvturr",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "hvt11gc1",
+          "anchor": "hardpoint (parent hvt11tx1 is not a barrel node)"
+        },
+        "2": {
+          "weapon": "gbolt",
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "hvt11gc2",
+          "anchor": "hardpoint (parent hvt11tx1 is not a barrel node)"
+        }
+      }
+    },
     "hvwalk": {
       "model": "hvwalk",
       "slots": {

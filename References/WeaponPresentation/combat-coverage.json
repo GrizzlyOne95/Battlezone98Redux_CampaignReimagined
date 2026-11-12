@@ -1,8 +1,8 @@
 {
   "totals": {
-    "slots": 303,
+    "slots": 305,
     "recoil_slots": 225,
-    "flash_slots": 219,
+    "flash_slots": 221,
     "casing_slots": 145
   },
   "units": {
@@ -3868,6 +3868,45 @@
         }
       },
       "category": "Isolate gun geometry"
+    },
+    "hvturr": {
+      "name": "Fury Turret",
+      "model": "hvturr",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gbolt",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        }
+      },
+      "category": "Emitter/asset decision"
     },
     "hvwalk": {
       "name": "Fury Walker",
