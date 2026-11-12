@@ -5,6 +5,7 @@ import hashlib,importlib.util,json,sys
 import numpy as np
 from PIL import Image
 sys.path.insert(0,str(Path(__file__).resolve().parent))
+from collections import Counter
 import combatcockpits as cp
 import cockpitglass as cg
 from bcdds import bc_dds_problem
@@ -34,7 +35,19 @@ for base,cfg in cp.CONFIG.items():
     # (combatcockpits.geometry); the bombers' mounts are only visible clipping through the tub.
     hpmount=any(sub.material_name==base+'_hpmount' for sub in cp.shared.read_mesh(source).submesh_list)
     mount=meta.get('mountSkin');check((mount is not None)==(cfg['role']=='fighter' and hpmount),'hardpoint mount batch exactly where the builder rule applies')
-    check([sub.material_name for sub in m.submesh_list]==[cfg['material'],cfg['stock'],'CRV/'+base+'CombatExterior',*([mount['material']] if mount else []),'CRWX_CockpitGlass'],'deliberate batches including glass (and any hardpoint mount)')
+    check([sub.material_name for sub in m.submesh_list]==[cfg['material'],cfg['stock'],'CRV/'+base+'CombatExterior',*([mount['material']] if mount else []),*([meta['jetSkin']['material']] if meta.get('jetSkin') else []),'CRWX_CockpitGlass'],'deliberate batches including glass (and any hardpoint mount)')
+    if meta.get('jetSkin'):
+        # Thruster housings: the exterior's own surfaces on the wing bones, closed (top opening capped), whole.
+        jet=next(x for x in m.submesh_list if x.material_name==meta['jetSkin']['material']);src=next(x for x in cp.shared.read_mesh(base_asset_path(source)).submesh_list if x.material_name==base+'_nacjet')
+        jp=cp.shared.values(jet.vertex_data,cp.shared.om.VES.POSITION);jt=jet.index_array.reshape(-1,3);edges=Counter()
+        for tri in jt:
+            k=[tuple(np.rint(jp[i]*10000).astype(np.int64)) for i in tri]
+            for i in range(3):edges[tuple(sorted((k[i],k[(i+1)%3])))]+=1
+        check(all(c==2 for c in edges.values()),'thruster housings closed, no open cut')
+        check(len(jt)==len(src.index_array)//3+meta['jetSkin']['capTriangles'] and np.isfinite(jp).all(),'whole housings plus caps only')
+        sp=cp.shared.values(src.vertex_data,cp.shared.om.VES.POSITION);check(all(np.isclose(sp,q,atol=1e-5).all(1).any() for q in jp[::97]),'housing vertices at native positions')
+        owner={a.vertex_index:a.bone_index for a in jet.bone_assignments()};names={b.name:b.handle for b in s.bones()}
+        check(set(owner.values())=={names['SFL11NFL'],names['SFL11NFR']} and len(owner)==len(jp),'every housing vertex on a wing bone')
     if mount:
         # The CR hardpoint pod (Build-HardpointMounts.py) is copied whole, at its
         # native position with its own UVs, rigid on the nose it is welded to.
@@ -55,6 +68,7 @@ for base,cfg in cp.CONFIG.items():
             check([e['bone'] for e in meta.get('exteriorSkin',[])]==list(cfg.get('animated',())),'exteriorSkin matches configured animated bones')
             for entry in meta.get('exteriorSkin',[]):a,b=entry['vertices'];check(b<=len(p) and entry['bone'] in by_name,'animated piece '+entry['bone']);want[a:b]=by_name[entry['bone']]
         if mount and sub.material_name==mount['material']:want[:]=by_name[mount['bone']]
+        if meta.get('jetSkin') and sub.material_name==meta['jetSkin']['material']:want=np.repeat([k for k,n in meta['jetSkin']['boneRuns']],[n for k,n in meta['jetSkin']['boneRuns']])
         weights=list(sub.bone_assignments());check(len(weights)==len(p) and all(a.bone_index==want[a.vertex_index] and a.weight==1 for a in weights),'single rigid skinning (shell or declared animated bone)')
         tri=p[sub.index_array.reshape(-1,3)];check((np.linalg.norm(np.cross(tri[:,1]-tri[:,0],tri[:,2]-tri[:,0]),axis=1)>1e-10).all(),'nondegenerate triangles '+base+' / '+sub.material_name)
         if sub.material_name!='CRWX_CockpitGlass':
@@ -83,6 +97,7 @@ for base,cfg in cp.CONFIG.items():
             t=sub.index_array.reshape(-1,3);mov=np.array([under(h) for h in bone])[t].all(1);moving.append(p[t[mov]]);static[sub.material_name]=p[t[~mov]]
         moving=np.concatenate(moving);pivot=(w[rotor.handle][0]-origin)@R;axis=R.T@w[rotor.handle][1][:,2]
         for name,need in [(cfg['material'],cp.NOSE_CLEARANCE),(cfg['stock'],cp.NOSE_CLEARANCE),('CRWX_CockpitGlass',cp.NOSE_CLEARANCE),('CRV/'+base+'CombatExterior',1e-6)]:
+            if name=='CRV/'+base+'CombatExterior' and not len(static[name]):continue  # svfigh: no static exterior left once the floating deck strip is dropped
             gap=cp.rotor_sweep(moving,static[name],pivot,axis,np.arange(-cp.NOSE_ROLL_DEG,cp.NOSE_ROLL_DEG+.5,1.),need)
             check(gap.min()>=need,f'{base} {name}: rolling nose keeps {need} m clear (closest {gap.min():.4f}, {int((gap<need).sum())} tris)')
     check(receipt['glass']['vertices']>0 and receipt['glass']['bone'].lower()==cfg['shell'].lower(),'weather glass refitted')

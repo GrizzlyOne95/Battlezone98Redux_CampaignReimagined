@@ -1588,6 +1588,7 @@ end
 --   plumes, iceFall, frostHaze, ventHaze, quakes, randomQuakes, quakeIce,
 --   surges, randomSurges, aurora, episodes, sounds
 --                   sub-system switches
+--   glassFrost      0..1 opacity scale for the cockpit-glass frost (default 1, Europa)
 function V.Init(options)
     if V.Initialized then return end
     options = options or {}
@@ -1604,6 +1605,9 @@ function V.Init(options)
     for key, field in pairs(switches) do
         if options[key] ~= nil then V[field] = options[key] and true or false end
     end
+
+    -- Opacity scale for the cockpit-glass frost (CRWetGlass); Ganymede missions pass less than Europa's 1.
+    V.GlassFrostStrength = Clamp(tonumber(options.glassFrost) or 1.0, 0.0, 1.0)
 
     V.SetNetwork({ send = options.send, authority = options.authority })
 
@@ -1751,7 +1755,7 @@ local function UpdateGlassSnow(dt)
     end
     local step = GLASS_SNOW_RATE * dt
     V.GlassSnow = V.GlassSnow + Clamp(target - V.GlassSnow, -step, step)
-    glass.Weather("frost", V.GlassSnow)
+    glass.Weather("frost", V.GlassSnow, V.GlassFrostStrength)
     if V.GlassSnow > 0.0 or glass.Busy() then glass.Update(0.0) end
 end
 

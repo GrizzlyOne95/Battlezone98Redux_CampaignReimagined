@@ -159,6 +159,7 @@ local splats = {}                               -- queued { amount, x, y, flip }
 local bloodHits = {}                            -- queued screen-space splashes from on-foot hits
 local snowWant, gritWant, acidWant = 0, 0, 0    -- Weather() levels 0..1, kept until changed
 local frostWant, frostLevel = 0, 0                  -- Weather("frost") level and the level the glass has eased to
+local frostStrength = 1                              -- Weather("frost", level, strength): opacity scale for both layers
 local etchExposure = 0                              -- 0..1, builds while acidWant > 0 and clears slowly
 local mode = "overlay"                          -- where the layers draw this frame: "overlay" or "shell"
 
@@ -860,7 +861,7 @@ local function frostLayers(ar, dt)
 	frostLevel = frostLevel + clamp(clamp(frostWant, 0, 1) - frostLevel, -step, step)
 	local f = frostLevel
 	local p = state.frost
-	local a = FROST_PEAK * smoothstep(0, 0.25, f)   -- full by the quiet base level (~0.2)
+	local a = FROST_PEAK * frostStrength * smoothstep(0, 0.25, f)   -- full by the quiet base level (~0.2)
 	if a > 0 then
 		local u0, v0, du, dv = 0, 0, 1, 1
 		if mode == "shell" then
@@ -884,7 +885,7 @@ local function frostLayers(ar, dt)
 	local any = p.on == true
 
 	p = state.ice
-	a = ICE_PEAK * smoothstep(0.45, 1.0, f)
+	a = ICE_PEAK * frostStrength * smoothstep(0.45, 1.0, f)
 	if a > 0 then
 		if p.v == nil then
 			p.v = randRange(0.8, 1.1)
@@ -1158,13 +1159,16 @@ end
 
 --- Weather layers on the glass: kind "frost" (frost creeping in from the edges plus ice grains, eased slowly),
 --- "snow" (soft flakes that land and melt), "grit" (fine dust specks) or "acid" (yellow-green rain drops plus a
---- slowly building etch haze), level 0..1. The level stays until changed; 0 lets it fade out. The caller keeps calling
---- Update (Update(0) when there is no rain) while Busy() is true.
-function wetglass.Weather(kind, level)
+--- slowly building etch haze), level 0..1. The level stays until changed; 0 lets it fade out. For "frost" an
+--- optional strength 0..1 (default 1) scales both layers' opacity, for a world with thinner frost than Europa.
+--- The caller keeps calling Update (Update(0) when there is no rain) while Busy() is true.
+function wetglass.Weather(kind, level, strength)
 	level = clamp(tonumber(level) or 0, 0, 1)
 	if kind == "snow" then snowWant = level
 	elseif kind == "grit" then gritWant = level
-	elseif kind == "frost" then frostWant = level
+	elseif kind == "frost" then
+		frostWant = level
+		frostStrength = clamp(tonumber(strength) or 1, 0, 1)
 	elseif kind == "acid" then acidWant = level end
 end
 
@@ -1219,7 +1223,7 @@ function wetglass.Stop()
 	crackWant, splats = 0, {}
 	bloodHits = {}
 	snowWant, gritWant, acidWant, etchExposure = 0, 0, 0, 0
-	frostWant, frostLevel = 0, 0
+	frostWant, frostLevel, frostStrength = 0, 0, 1
 end
 
 --- Rain on the windshield at intensity 0..1; call every Update.
