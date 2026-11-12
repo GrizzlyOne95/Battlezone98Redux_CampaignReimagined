@@ -1,11 +1,11 @@
-"""Generate the shield-tower field textures: two pre-tinted hex lattices + a shimmer band.
+"""Generate the shield-tower field textures: a pre-tinted hex lattice + a shimmer band.
 
 DX11 constraint: OpenShim's compat path (BZR-OpenShim dx11_legacy_material_compat.cpp,
 IsSupportedTwoStageCombo) only accepts single-pass materials with up to 2 texture units
 using plain colour_op (modulate/add/alpha_blend); multi-pass and colour_op_ex src_manual
 are suppressed. So the colour is baked into the lattice textures (RGB, not greyscale) and
 the band texture carries a floor so the lattice stays visible between sweeps.
-Output in Assets/Textures: cr_shieldfield_hex_amber.dds, cr_shieldfield_hex_green.dds,
+Output in Assets/Textures: cr_shieldfield_hex_green.dds,
 cr_shieldfield_band.dds (BC1 + full mips).
 With --preview DIR, also writes PNG previews into DIR.
 """
@@ -21,7 +21,7 @@ sys.path.insert(0, str(ROOT / 'Tools'))
 from bcdds import save_bc  # noqa: E402
 
 SIZE = 512
-TINTS = {'amber': (1.0, 0.75, 0.2), 'green': (0.25, 1.0, 0.45)}
+TINTS = {'green': (0.25, 1.0, 0.45)}
 BAND_FLOOR = 0.45
 
 

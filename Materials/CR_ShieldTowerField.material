@@ -7,37 +7,7 @@
 // Ogre scale is inverse (0.5 doubles the texture), so 0.1 x 0.0866
 // repeats the tile 10 x 11.55 per face: the tile holds 2 hexes across and its v axis
 // is stretched 1/0.866, so v repeats 1.155x u to keep hexes regular.
-// Yellow = tower unpowered, green = powered.
-
-material CR_ShieldTowerField_Yellow
-{
-	technique
-	{
-		pass
-		{
-			lighting off
-			scene_blend add
-			depth_write off
-			cull_hardware none
-			cull_software none
-			fog_override true
-			// Pre-tinted lattice.
-			texture_unit
-			{
-				texture cr_shieldfield_hex_amber.dds
-				scale 0.1 0.0866
-				colour_op modulate
-			}
-			// Band (with baked floor) scrolling up = shimmer sweeping up the box.
-			texture_unit
-			{
-				texture cr_shieldfield_band.dds
-				scroll_anim 0 -0.08
-				colour_op modulate
-			}
-		}
-	}
-}
+// Drawn only while the tower is powered.
 
 material CR_ShieldTowerField_Green
 {

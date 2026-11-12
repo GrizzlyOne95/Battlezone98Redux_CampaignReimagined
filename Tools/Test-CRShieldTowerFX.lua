@@ -1,7 +1,7 @@
 -- Test-CRShieldTowerFX.lua
 --
 -- Drives the real Scripts/CRShieldTowerFX.lua against stubbed exu/BZ globals:
--- box scale/centre from ODF values, yellow -> green on power change, the
+-- box scale/centre from ODF values, drawn only while powered, the
 -- power-plant fallback range, cleanup on death, and the fallback when
 -- exu.IsPowered is missing. Also checks the five shield tower ODFs carry the
 -- radial push mode and a symmetric box.
@@ -41,15 +41,20 @@ local odfs = {
     ["plantodf.odf"] = {},
 }
 local allies = {}    -- "a:b" -> true
-local rec = { creates = {}, destroys = {} }
+local rec = { creates = {}, destroys = {}, log = {} }
 local poweredAnswer = nil   -- value exu.IsPowered returns
 
 local exu = {}
 exu.CreateStaticGeometry = function(name, mesh, material, instances, options)
     rec.creates[#rec.creates + 1] = { name = name, mesh = mesh, material = material, instances = instances, options = options }
+    rec.log[#rec.log + 1] = { name = name, on = true }
     return { instanceCount = #instances }
 end
-exu.DestroyStaticGeometry = function(name) rec.destroys[#rec.destroys + 1] = name; return true end
+exu.DestroyStaticGeometry = function(name)
+    rec.destroys[#rec.destroys + 1] = name
+    rec.log[#rec.log + 1] = { name = name, on = false }
+    return true
+end
 exu.IsPowered = function() return poweredAnswer end
 package.loaded.exu = exu
 
@@ -90,7 +95,7 @@ local function last() return rec.creates[#rec.creates] end
 
 -- Box scale / centre / material ------------------------------------------------
 add(1, "shtw", "shieldtower", 1, 100, 50, 200, 0)
-poweredAnswer = false
+poweredAnswer = true
 FX.Track(1)   -- as RuntimeEnhancements.OnObjectCreated would
 step(0.1)
 local c = last()
@@ -100,7 +105,7 @@ if c then
     check(c.mesh == "cube_10x10x10.mesh", "wrong mesh " .. tostring(c.mesh))
     check(near(inst.scale.x, 2.4) and near(inst.scale.y, 2.8) and near(inst.scale.z, 1.2), "scale from ODF box")
     check(near(inst.position.x, 102) and near(inst.position.z, 200) and near(inst.position.y, 46), "box centre/floor at tower transform")
-    check(c.material == "CR_ShieldTowerField_Yellow", "unpowered must be yellow")
+    check(c.material == "CR_ShieldTowerField_Green", "powered field uses the green material")
     check(c.name:find("1", 1, true) and c.name:find("CR_ShieldTowerFX_", 1, true), "unique per-handle name")
 end
 
@@ -114,21 +119,24 @@ check(rotated ~= nil and near(rotated.instances[1].position.x, 0) and near(rotat
     "local centre (+2,0) at yaw 90 must map through the tower right vector")
 check(rotated and near(rotated.instances[1].yaw, math.pi / 2), "yaw from tower front")
 
--- Power change switches colour (only on change) ---------------------------------
+-- Power loss hides the field, power return rebuilds it ------------------------------
 objects[2].valid = false
-poweredAnswer = true
-step(0.6)   -- tower 1 re-evaluated: now powered
-check(last().name:find("1$") and last().material == "CR_ShieldTowerField_Green", "unpowered -> powered must rebuild green")
 local n = #rec.creates
 step(0.6); step(0.6)
-check(#rec.creates == n, "no rebuild while the state is unchanged")
+check(#rec.creates == n, "no rebuild while powered")
+local d0 = #rec.destroys
 poweredAnswer = false
 step(0.6)
-check(#rec.creates == n + 1 and last().material == "CR_ShieldTowerField_Yellow", "powered -> unpowered must rebuild yellow")
+check(#rec.destroys == d0 + 1 and rec.destroys[#rec.destroys]:find("1$"), "powered -> unpowered must destroy the field")
+step(0.6); step(0.6)
+check(#rec.creates == n and #rec.destroys == d0 + 1, "nothing drawn or re-destroyed while unpowered")
+poweredAnswer = true
+step(0.6)
+check(#rec.creates == n + 1 and last().name:find("1$"), "unpowered -> powered must rebuild the field")
 
 -- Re-evaluation rate -------------------------------------------------------------
 local calls = 0
-exu.IsPowered = function() calls = calls + 1; return false end
+exu.IsPowered = function() calls = calls + 1; return true end
 local start = clock
 for _ = 1, 60 do step(1 / 60) end
 check(calls <= 3, "power re-evaluated too often: " .. calls .. " calls in " .. (clock - start) .. " s")
@@ -147,31 +155,37 @@ add(10, "shtw", "shieldtower", 1, 0, 0, 0, 0)
 add(11, "plantodf", "powerplant", 1, 190, 0, 0)    -- own plant inside the 200 m default
 add(12, "plantodf", "powerplant", 2, 50, 0, 0)     -- enemy plant: ignored
 FX.Track(10); FX.Track(11); FX.Track(12)
+local function shown(h)
+    local name = "CR_ShieldTowerFX_" .. h
+    local state = false
+    for _, ev in ipairs(rec.log) do if ev.name == name then state = ev.on end end
+    return state
+end
 step(0.6)
-check(last() and last().material == "CR_ShieldTowerField_Green", "own plant at 190 m (default 200) powers it")
+check(shown(10), "own plant at 190 m (default 200) powers it")
 objects[11].x = 210
 step(0.6)
-check(last().material == "CR_ShieldTowerField_Yellow", "own plant at 210 m (default 200) does not; enemy plant never does")
+check(not shown(10), "own plant at 210 m (default 200) does not; enemy plant never does")
 -- the plant range cache is per ODF name: bigplant reads powerRadius 250
 add(13, "bigplant", "powerplant", 1, 240, 0, 0)
 FX.Track(13)
 step(0.6)
-check(last().material == "CR_ShieldTowerField_Green", "plant ODF powerRadius 250 powers a tower at 240 m")
+check(shown(10), "plant ODF powerRadius 250 powers a tower at 240 m")
 objects[13].valid = false
 step(0.6)
-check(last().material == "CR_ShieldTowerField_Yellow", "dead plant no longer powers")
+check(not shown(10), "dead plant no longer powers")
 allies["1:2"] = true
 step(0.6)
-check(last().material == "CR_ShieldTowerField_Green", "allied team plant powers (enemy plant at 50 m became an ally)")
+check(shown(10), "allied team plant powers (enemy plant at 50 m became an ally)")
 
 -- nil answer from exu.IsPowered also falls back ----------------------------------------
 exu.IsPowered = function() return nil end
 allies["1:2"] = nil
 step(0.6)
-check(last().material == "CR_ShieldTowerField_Yellow", "nil from exu.IsPowered uses the fallback")
+check(not shown(10), "nil from exu.IsPowered uses the fallback")
 exu.IsPowered = function() return true end
 step(0.6)
-check(last().material == "CR_ShieldTowerField_Green", "exu.IsPowered true overrides the fallback")
+check(shown(10), "exu.IsPowered true overrides the fallback")
 
 -- Reset destroys every box -----------------------------------------------------------------
 local before = #rec.destroys
@@ -181,7 +195,7 @@ check(#rec.destroys > before and FX.Describe().towers == 0, "Reset destroys all 
 -- One-time scan picks up pre-placed towers --------------------------------------------------
 rec.creates = {}
 add(20, "shtw", "shieldtower", 1, 5, 5, 5, 0)
-exu.IsPowered = function() return false end
+exu.IsPowered = function() return true end
 step(0.6)
 local found = false
 for _, cr in ipairs(rec.creates) do if cr.name:find("20$") then found = true end end

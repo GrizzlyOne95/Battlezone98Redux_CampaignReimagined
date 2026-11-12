@@ -1,6 +1,6 @@
 -- CRShieldTowerFX: a translucent box over every shield tower showing the push field.
 -- Peer-local presentation only: every client reads the same ODF box and draws it,
--- nothing is sent over the network. Yellow = unpowered, green = powered.
+-- nothing is sent over the network. Drawn only while the tower is powered.
 -- Hooked from RuntimeEnhancements (OnObjectCreated / Update / ResetVisualState).
 local okExu, exu = pcall(require, "exu")
 if not okExu then exu = _G.exu end
@@ -9,8 +9,7 @@ local M = {}
 
 M.MESH = "cube_10x10x10.mesh"         -- unit cube (10 m), origin at the centre of the base
 M.MESH_SIZE = 10.0
-M.MATERIAL_OFF = "CR_ShieldTowerField_Yellow"
-M.MATERIAL_ON = "CR_ShieldTowerField_Green"
+M.MATERIAL = "CR_ShieldTowerField_Green"
 M.DEFAULT_POWER_RANGE = 200.0         -- used when a plant ODF has no [PowerPlantClass] powerRadius
 M.POWER_INTERVAL = 0.5                -- seconds between power re-evaluations per tower
 M.RETRY_INTERVAL = 10.0               -- back-off after a failed build (missing API, bad transform)
@@ -145,7 +144,7 @@ local function build(tower)
     local wz = (t.posit_z or 0) + (t.right_z or 0) * lx + (t.up_z or 0) * ly + (t.front_z or 1) * lz
     -- the mesh origin sits at the centre of the cube's base, so wy is the box floor
     local yaw = math.atan2(t.front_x or 0, t.front_z or 1)
-    local material = tower.powered and M.MATERIAL_ON or M.MATERIAL_OFF
+    local material = M.MATERIAL
     local origin = { x = wx, y = wy + size.y * 0.5, z = wz }
     local instances = { { position = { x = wx, y = wy, z = wz }, yaw = yaw,
         scale = { x = size.x / M.MESH_SIZE, y = size.y / M.MESH_SIZE, z = size.z / M.MESH_SIZE } } }
@@ -155,7 +154,6 @@ local function build(tower)
         { origin = origin, regionDimensions = { x = extent, y = extent, z = extent },
           renderingDistance = 0.0, castShadows = false, visible = true })
     tower.built = okCall and info ~= nil and info ~= false
-    tower.builtPowered = tower.powered
 end
 
 function M.Track(h)
@@ -196,9 +194,9 @@ function M.Update()
             towers[h] = nil
         elseif t >= tower.nextCheck then
             tower.nextCheck = t + M.POWER_INTERVAL
-            local powered = isPowered(tower)
-            if not tower.built or powered ~= tower.builtPowered then
-                tower.powered = powered
+            if not isPowered(tower) then
+                destroyGeometry(tower)
+            elseif not tower.built then
                 build(tower)
                 if not tower.built then tower.nextCheck = t + M.RETRY_INTERVAL end
             end
