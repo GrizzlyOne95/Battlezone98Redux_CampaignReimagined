@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5895,
+  "count": 5925,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -5693,6 +5693,30 @@
     {
       "source": "Assets\\Textures\\cr_exhaust_cca.png",
       "runtime": "cr_exhaust_cca.png"
+    },
+    {
+      "source": "Assets\\Textures\\cr_fx_beam.dds",
+      "runtime": "cr_fx_beam.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_fx_dirt.dds",
+      "runtime": "cr_fx_dirt.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_fx_flare.dds",
+      "runtime": "cr_fx_flare.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_fx_plasma.dds",
+      "runtime": "cr_fx_plasma.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_fx_scorch.dds",
+      "runtime": "cr_fx_scorch.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_fx_splash.dds",
+      "runtime": "cr_fx_splash.dds"
     },
     {
       "source": "Assets\\Textures\\cr_grit.dds",
@@ -12339,6 +12363,10 @@
       "runtime": "cr_foliage.particle.payload"
     },
     {
+      "source": "Materials\\CR_fx2.material",
+      "runtime": "CR_fx2.material"
+    },
+    {
       "source": "Materials\\cr_geyser.particle.payload",
       "runtime": "cr_geyser.particle.payload"
     },
@@ -15627,8 +15655,16 @@
       "runtime": "betspray.odf"
     },
     {
+      "source": "ODF\\blastb.odf",
+      "runtime": "blastb.odf"
+    },
+    {
       "source": "ODF\\blasth.odf",
       "runtime": "blasth.odf"
+    },
+    {
+      "source": "ODF\\bolt.odf",
+      "runtime": "bolt.odf"
     },
     {
       "source": "ODF\\bpcamr.odf",
@@ -15665,6 +15701,10 @@
     {
       "source": "ODF\\bsuser.odf",
       "runtime": "bsuser.odf"
+    },
+    {
+      "source": "ODF\\bullet1a.odf",
+      "runtime": "bullet1a.odf"
     },
     {
       "source": "ODF\\bullets.odf",
@@ -16255,6 +16295,14 @@
       "runtime": "ccptesla.odf"
     },
     {
+      "source": "ODF\\charge1.odf",
+      "runtime": "charge1.odf"
+    },
+    {
+      "source": "ODF\\charge2.odf",
+      "runtime": "charge2.odf"
+    },
+    {
       "source": "ODF\\cpcamr.odf",
       "runtime": "cpcamr.odf"
     },
@@ -16839,6 +16887,14 @@
       "runtime": "cvwo004.odf"
     },
     {
+      "source": "ODF\\engsplsh.odf",
+      "runtime": "engsplsh.odf"
+    },
+    {
+      "source": "ODF\\flashb.odf",
+      "runtime": "flashb.odf"
+    },
+    {
       "source": "ODF\\ga7stab.odf",
       "runtime": "ga7stab.odf"
     },
@@ -17235,6 +17291,10 @@
       "runtime": "lgmissl.odf"
     },
     {
+      "source": "ODF\\mbolt.odf",
+      "runtime": "mbolt.odf"
+    },
+    {
       "source": "ODF\\napammo.odf",
       "runtime": "napammo.odf"
     },
@@ -17443,12 +17503,20 @@
       "runtime": "naptsmok.odf"
     },
     {
+      "source": "ODF\\plasma.odf",
+      "runtime": "plasma.odf"
+    },
+    {
       "source": "ODF\\repamina.odf",
       "runtime": "repamina.odf"
     },
     {
       "source": "ODF\\repamine.odf",
       "runtime": "repamine.odf"
+    },
+    {
+      "source": "ODF\\rocket3a.odf",
+      "runtime": "rocket3a.odf"
     },
     {
       "source": "ODF\\rocket3n.odf",
@@ -18499,6 +18567,10 @@
       "runtime": "xbldxpla.odf"
     },
     {
+      "source": "ODF\\xbmbxpl.odf",
+      "runtime": "xbmbxpl.odf"
+    },
+    {
       "source": "ODF\\xboltw1.odf",
       "runtime": "xboltw1.odf"
     },
@@ -18539,6 +18611,14 @@
       "runtime": "xbskyy.odf"
     },
     {
+      "source": "ODF\\xbulbld.odf",
+      "runtime": "xbulbld.odf"
+    },
+    {
+      "source": "ODF\\xbulgnd.odf",
+      "runtime": "xbulgnd.odf"
+    },
+    {
       "source": "ODF\\xcarxpl.odf",
       "runtime": "xcarxpl.odf"
     },
@@ -18575,6 +18655,10 @@
       "runtime": "xlgtcarr.odf"
     },
     {
+      "source": "ODF\\xlgtgnd.odf",
+      "runtime": "xlgtgnd.odf"
+    },
+    {
       "source": "ODF\\xlgtgndg.odf",
       "runtime": "xlgtgndg.odf"
     },
@@ -18595,8 +18679,44 @@
       "runtime": "xlitbl4h.odf"
     },
     {
+      "source": "ODF\\xminxpl.odf",
+      "runtime": "xminxpl.odf"
+    },
+    {
+      "source": "ODF\\xmslbld.odf",
+      "runtime": "xmslbld.odf"
+    },
+    {
+      "source": "ODF\\xmslgnd.odf",
+      "runtime": "xmslgnd.odf"
+    },
+    {
       "source": "ODF\\xplnxpl.odf",
       "runtime": "xplnxpl.odf"
+    },
+    {
+      "source": "ODF\\xpltrsb.odf",
+      "runtime": "xpltrsb.odf"
+    },
+    {
+      "source": "ODF\\xpltrse.odf",
+      "runtime": "xpltrse.odf"
+    },
+    {
+      "source": "ODF\\xpltrsh.odf",
+      "runtime": "xpltrsh.odf"
+    },
+    {
+      "source": "ODF\\xpltrsi.odf",
+      "runtime": "xpltrsi.odf"
+    },
+    {
+      "source": "ODF\\xpltrsk.odf",
+      "runtime": "xpltrsk.odf"
+    },
+    {
+      "source": "ODF\\xpltrsm.odf",
+      "runtime": "xpltrsm.odf"
     },
     {
       "source": "ODF\\xpltrsn.odf",

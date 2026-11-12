@@ -1,0 +1,71 @@
+[OrdnanceClass] // Blue Flash Cannon, created by General BlackDragon
+classLabel = "beam"
+shotGeometry = NULL
+xplGround = "xlasgnd"
+xplVehicle = "xlascar"
+xplBuilding = "xlasbld"
+
+renderName = "flashb.render"
+
+ammoCost = 90
+lifeSpan = 90e-6
+shotSpeed = 1e6
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 600
+damageImpact = 0
+
+[BeamClass]
+//segmentRadius = 0.4 //0.0 //0.4
+//segmentLength = 5.0
+//segmentVariance = 0.0
+//segmentTexture = "beam_b.0"
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 1
+renderName1 = "flashb.beam"
+renderName2 = "flashb.Fringe1"
+renderName3 = "flashb.Fringe2"
+
+[Beam]
+renderBase = "draw_bolt"
+textureName = "cr_fx_beam.dds"
+textureBlend = "one one modulate"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 255"
+startRadius = 0.4
+finishRadius = 0.4
+segmentLength = 5.0
+segmentVariance = "0.0 0.0 0.0"
+textureRate = 0.05
+textureSpeed = -3.0
+animateTime = 0.0 //0.1
+
+[Fringe1]
+renderBase = "draw_bolt"
+textureName = "trail2.tga"
+textureBlend = "one one modulate"
+startColor = "127 255 255 127"
+finishColor = "0 0 255 0"
+startRadius = 0.5
+finishRadius = 0.0
+segmentLength = 3.0
+segmentVariance = "0.6 0.6 0.6"
+animateTime = 0.0
+textureRate = 0.03
+textureSpeed = -3.0
+
+[Fringe2]
+renderBase = "draw_bolt"
+textureName = "trail2.tga"
+textureBlend = "one one modulate"
+startColor = "127 255 255 127"
+finishColor = "0 0 255 0"
+startRadius = 0.5
+finishRadius = 0.0
+segmentLength = 2.5
+segmentVariance = "0.6 0.6 0.6"
+animateTime = 0.0
+textureRate = 0.025
+textureSpeed = -3.0

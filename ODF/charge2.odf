@@ -1,0 +1,34 @@
+[OrdnanceClass]
+classLabel = "flamepuff"
+
+shotGeometry = NULL
+xplGround = "xbulgnd"
+xplVehicle = "xbulcar"
+xplBuilding = "xbulbld"
+
+renderName = "charge2.render"
+
+ammoCost = 5
+lifeSpan = 3.0
+shotSpeed = 100.0
+damageBallistic = 100
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[FlamePuffClass]
+flameRadius = 0.0 //0.7
+flameDelay = 1e30
+flameTexture = "plasma.0"
+flameFrames = 1
+
+
+[Render]
+renderBase = "draw_twirl"
+textureName = "cr_fx_plasma.dds"
+textureBlend = "one one modulate"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 255"
+startRadius = 0.7
+finishRadius = 0.7
+rotationRate = 5.0

@@ -34,7 +34,7 @@ renderName2 = "rocket3a.light"
 
 [Flare]
 renderBase = "draw_sprite"
-textureName = "flarewide.tga"
+textureName = "cr_fx_flare.dds"
 startColor = "255 255 255 127"
 finishColor = "255 255 255 127"
 startRadius = 5.0
