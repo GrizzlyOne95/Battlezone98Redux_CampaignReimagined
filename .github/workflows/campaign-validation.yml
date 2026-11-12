@@ -123,6 +123,7 @@ jobs:
           python Tools/Test-FactionStorage.py
           python Tools/Test-FactionNavPickups.py
           python Tools/Test-FactionDeathExplosions.py
+          python Tools/Test-BulletHitFx.py
           python Tools/Test-FactionPickupIntegration.py
           python Tools/Test-PodUVPrototype.py
 
