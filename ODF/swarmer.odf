@@ -1,7 +1,7 @@
 [OrdnanceClass]
 classLabel = "missile"
 
-shotGeometry = "gtagg01.geo"
+shotGeometry = "crordtag.mesh" //"gtagg01.geo"
 // CR HIT FX begin (was xmslgnd/xmslcar/xmslbld)
 xplGround = "htagg"
 xplVehicle = "htagv"

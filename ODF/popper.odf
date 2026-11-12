@@ -1,7 +1,7 @@
 [OrdnanceClass]
 classLabel = "popper"
 
-shotGeometry = "gatst00.geo"
+shotGeometry = "crordats.mesh" //"gatst00.geo"
 shotSound = "Ordin_c.wav"
 
 // CR HIT FX begin (was xmslgnd/xmslcar/xmslbld)

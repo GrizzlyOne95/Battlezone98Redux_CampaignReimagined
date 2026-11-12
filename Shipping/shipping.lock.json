@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6153,
+  "count": 6165,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -1433,6 +1433,42 @@
     {
       "source": "Assets\\ModelFixes\\cromine.skeleton",
       "runtime": "cromine.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordats.mesh",
+      "runtime": "crordats.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordhow.mesh",
+      "runtime": "crordhow.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordhrn.mesh",
+      "runtime": "crordhrn.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordmdm.mesh",
+      "runtime": "crordmdm.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordmrt.mesh",
+      "runtime": "crordmrt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordrkt.mesh",
+      "runtime": "crordrkt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordshd.mesh",
+      "runtime": "crordshd.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordsps.mesh",
+      "runtime": "crordsps.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordtag.mesh",
+      "runtime": "crordtag.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\csf11bda.geo",
@@ -6149,6 +6185,14 @@
     {
       "source": "Assets\\Textures\\cromine_N.dds",
       "runtime": "cromine_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crord_d.dds",
+      "runtime": "crord_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crord_e.dds",
+      "runtime": "crord_e.dds"
     },
     {
       "source": "Assets\\Textures\\crpkbd0_d.dds",
@@ -12557,6 +12601,10 @@
     {
       "source": "Materials\\cr_muzzle.material",
       "runtime": "cr_muzzle.material"
+    },
+    {
+      "source": "Materials\\CR_Ordnance.material",
+      "runtime": "CR_Ordnance.material"
     },
     {
       "source": "Materials\\CR_overlay.material",
