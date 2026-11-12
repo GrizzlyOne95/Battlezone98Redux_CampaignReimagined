@@ -160,6 +160,7 @@ for n = 1, 4 do
     check(type(m2.killme) == "string" and F.team(m2.killme) == 5 and F.alive(m2.killme), "the enemy recycler is a single real team-5 unit")
     check(#builtAt(q[1], "spawn7", 0, "bvtank") == 2 and #F.callsOf(q[1], "Defend2") == 2, "two recycler guards, never scaled")
     -- the first chaff fighters (180 s after the opening): one plus extras, same entry
+    clearField() -- the early ladder fills the live cap; the mock has no combat to thin it
     F.runUntil(function() return F.count(q[1], "BuildObject") > 0 and #builtAt(q[1], "spawn5", 0, "bvraz") > 0 end, 400)
     F.run(2)
     local fighters = builtAt(q[1], "spawn5", 0, "bvraz")
@@ -377,6 +378,74 @@ for _, mode in ipairs({ "initfail", "updatefail" }) do
     w, p, m = setup(2, { weather = { module = function(peer, record) return titan(record, mode)(peer) end, sites = {} } })
     F.run(3); F.kill(RECY); F.run(12)
     check(F.count(p[1], "FailMission") == 1 and F.count(p[2], "FailMission") == 1, "a failing weather director (" .. mode .. ") never stops the mission")
+end
+
+-- ------------------------------------------------------------------ early ladder, patrols and sniper (CR early ladder)
+do
+    local w2, q, m2 = setup(1, {})
+    local t0 = m2.cr_t0
+    check(t0 ~= nil and m2.cr_step == 1, "the opening stamps the ladder clock once")
+    for i = 1, 3 do
+        local patrol = builtAt(q[1], "cr_patrol" .. i, 0, "bvtank")
+        check(#patrol == 1 and patrol[1].team == 5, "one team-5 tank starts on cr_patrol" .. i)
+        local ordered = 0
+        for _, c in ipairs(F.callsOf(q[1], "Patrol")) do if c[3] == "cr_patrol" .. i then ordered = ordered + 1 end end
+        check(ordered == 1, "that tank patrols cr_patrol" .. i)
+        allSafe(q, patrol)
+    end
+    local sniper = builtAt(q[1], "cr_sniper", 0, "bsheav")
+    check(#sniper == 1 and sniper[1].team == 5, "one team-5 sniper on cr_sniper")
+    allSafe(q, sniper)
+    local function count(where, odf) return #builtAt(q[1], where, 0, odf) end
+    local function stepAt(step, at)
+        F.runUntil(function() return m2.cr_step == step + 1 end, 1000); clearField()
+        check(w2.now - t0 >= at and w2.now - t0 < at + 3, "ladder step " .. step .. " fires " .. at .. " s in, got " .. (w2.now - t0))
+        F.run(2) -- the runtime builds the queued arrivals on the next frames
+    end
+    F.runUntil(function() return w2.now - t0 >= 100 end, 200)
+    local apc0 = count("spawn6", "bvapc")
+    check(apc0 == 2 and m2.cr_step == 1, "the stock APC strike came first; the ladder waits for 105 s")
+    stepAt(1, 105)
+    check(count("spawn6", "bvapc") == apc0 + 1, "the 105 s raid is one APC at spawn6")
+    stepAt(2, 180)
+    check(count("spawn5", "bvhraz") == 2, "bombers at 180 s: two")
+    stepAt(3, 300)
+    check(count("spawn6", "bvhraz") == 1, "one bomber at 300 s")
+    local how = builtAt(q[1], "cr_howitzer", 0, "bvartl")
+    check(#how == 1 and how[1].team == 5 and F.count(q[1], "Deploy") == 1, "a team-5 howitzer deploys at 300 s")
+    local recyAttacks = 0
+    for _, c in ipairs(F.callsOf(q[1], "Attack")) do if c[3] == RECY then recyAttacks = recyAttacks + 1 end end
+    check(recyAttacks == 1, "the 300 s bomber attacks the player recycler")
+    -- A save/load keeps the clock: no patrol is built again and the ladder carries on.
+    for _, r in ipairs(q) do r.env.Load(r.env.Save()) end
+    F.run(2)
+    check(m2.cr_t0 == t0 and count("cr_patrol1", "bvtank") == 1 and count("cr_sniper", "bsheav") == 1, "load never replays the opening")
+    stepAt(4, 600)
+    stepAt(5, 900)
+    check(count("spawn5", "bvhraz") == 4 and count("spawn6", "bvhraz") == 1 + 3, "bombers at 600 s (two) and 900 s (three)")
+    F.run(60)
+    check(m2.cr_step == 6 and count("cr_howitzer", "bvartl") == 1, "the ladder has five rungs")
+    noTeam2(q[1])
+end
+do -- a guest never builds the ladder
+    local w2, q, m2 = setup(2, {})
+    F.run(200)
+    check(m2.cr_step == 3, "the host runs the ladder")
+    check(F.count(q[2], "Patrol") == 0 and F.count(q[2], "Deploy") == 0, "a guest never orders patrols or deploys")
+    guestsPassive(q)
+end
+do -- the final phase stops the ladder
+    local w2, q, m2 = setup(1, {})
+    F.runUntil(function() return m2.cr_step == 2 end, 400)
+    m2.last_phase = true
+    F.run(900)
+    check(m2.cr_step == 2 and #F.builds(q[1], 0, "bvhraz") == 0, "no rung fires once the final phase has begun")
+end
+do -- a lost mission stops it too
+    local w2, q, m2 = setup(1, {})
+    F.run(3); F.kill(RECY); F.run(12)
+    F.run(300) -- stock waves may still arrive in the result delay; the ladder must not
+    check(m2.lost and m2.cr_step == 1 and #F.builds(q[1], 0, "bvhraz") == 0, "no rung fires after the mission ends")
 end
 
 print("misns5 co-op: " .. checks .. " checks passed")
