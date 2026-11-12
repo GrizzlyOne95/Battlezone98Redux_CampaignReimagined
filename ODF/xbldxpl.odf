@@ -1,0 +1,170 @@
+[ExplosionClass]
+classLabel = "explosion"
+
+explRadius = 20.0
+explSound = "xbuild.wav"
+damageRadius = 50.0
+damageBallistic = 0
+damageConcussion = 100
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 9
+
+particleClass1 = "xbldxpl.Flash"
+particleCount1 = 1
+particleVeloc1 = "0.00 0.00 0.00"
+
+particleClass2 = "xbldxpl.Core"
+particleCount2 = 1
+particleVeloc2 = "0.00 2.00 0.00"
+particleBias2 = "0.00 4.00 0.00"
+
+particleClass3 = "xbldxpl.Core2"
+particleCount3 = 1
+particleVeloc3 = "0.00 3.00 0.00"
+particleBias3 = "0.00 6.00 0.00"
+
+particleClass4 = "xbldxpl.Ring"
+particleCount4 = 1
+particleVeloc4 = "0.00 0.00 0.00"
+
+particleClass5 = "xbldxpl.Ember"
+particleCount5 = 6
+particleVeloc5 = "10.00 8.00 10.00"
+particleBias5 = "0.00 4.00 0.00"
+
+particleClass6 = "xbldxpl.Debris"
+particleCount6 = 5
+particleVeloc6 = "8.00 9.00 8.00"
+particleBias6 = "0.00 5.00 0.00"
+
+particleClass7 = "xbldxpl.Smoke"
+particleCount7 = 3
+particleVeloc7 = "4.00 2.00 4.00"
+particleBias7 = "0.00 2.00 0.00"
+
+particleClass8 = "xbldxpl.Wisp"
+particleCount8 = 2
+particleVeloc8 = "3.00 3.00 3.00"
+particleBias8 = "0.00 4.00 0.00"
+
+particleClass9 = "xbldxpl.Light"
+particleCount9 = 1
+particleVeloc9 = "0.00 2.00 0.00"
+particleBias9 = "0.00 5.00 0.00"
+
+[Flash]
+simulateBase = "sim_null"
+lifeTime = 0.30
+renderBase = "draw_sprite"
+textureName = "cr_xpl_flash.dds"
+textureBlend = "one one modulate"
+startColor = "255 240 200 255"
+finishColor = "255 140 40 0"
+startRadius = 16.00
+finishRadius = 32.00
+animateTime = 0.30
+
+[Core]
+simulateBase = "sim_smoke"
+lifeTime = 1.30
+renderBase = "draw_twirl"
+textureName = "cr_xpl_core.dds"
+textureBlend = "one one modulate"
+startColor = "255 235 170 255"
+finishColor = "255 90 15 0"
+startRadius = 8.00
+finishRadius = 24.00
+animateTime = 1.30
+rotationRate = 3.00
+
+[Core2]
+simulateBase = "sim_smoke"
+lifeTime = 1.00
+renderBase = "draw_twirl"
+textureName = "cr_xpl_core2.dds"
+textureBlend = "one one modulate"
+startColor = "255 200 100 230"
+finishColor = "200 50 10 0"
+startRadius = 6.00
+finishRadius = 18.00
+animateTime = 1.00
+rotationRate = -4.00
+
+[Ring]
+simulateBase = "sim_null"
+lifeTime = 0.90
+renderBase = "draw_planar"
+textureName = "cr_xpl_ring.dds"
+textureBlend = "one one modulate"
+startColor = "255 220 160 255"
+finishColor = "255 120 40 0"
+startRadius = 4.00
+finishRadius = 36.00
+animateTime = 0.90
+
+[Ember]
+simulateBase = "sim_ember"
+lifeTime = 2.00
+renderBase = "draw_twirl"
+textureName = "cr_xpl_spark.dds"
+textureBlend = "one one modulate"
+startColor = "255 200 90 255"
+finishColor = "255 60 10 0"
+startRadius = 0.80
+finishRadius = 0.40
+animateTime = 2.00
+rotationRate = 8.00
+
+[Debris]
+simulateBase = "sim_ember"
+lifeTime = 3.00
+renderBase = "draw_twirl"
+textureName = "cr_xpl_debris.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "255 255 255 255"
+finishColor = "120 110 100 0"
+startRadius = 0.80
+finishRadius = 0.80
+animateTime = 3.00
+rotationRate = 6.00
+
+[Smoke]
+simulateBase = "sim_smoke"
+lifeTime = 5.00
+renderBase = "draw_twirl"
+textureName = "cr_xpl_smoke.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "110 105 95 200"
+finishColor = "60 58 55 0"
+startRadius = 5.00
+finishRadius = 14.00
+animateTime = 5.00
+rotationRate = 3.00
+
+[Wisp]
+simulateBase = "sim_smoke"
+lifeTime = 4.50
+renderBase = "draw_twirl"
+textureName = "cr_xpl_wisp.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "140 135 125 150"
+finishColor = "80 78 74 0"
+startRadius = 4.00
+finishRadius = 11.00
+animateTime = 4.50
+rotationRate = 2.00
+
+[Light]
+simulateBase = "sim_smoke"
+lifeTime = 3.00
+renderBase = "draw_light"
+startColor = "255 205 90 255"
+finishColor = "255 90 15 0"
+startRadius = 50.00
+finishRadius = 50.00
+animateTime = 3.00
+attenuateConstant = 0.0
+attenuateLinear = 1.0
+attenuateQuadratic = 0.0
