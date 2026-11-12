@@ -30941,6 +30941,10 @@ material CRWX_GlassFlowOverlay
 			cull_hardware none
 			cull_software none
 			fog_override true
+			texture_unit
+			{
+				texture crwx_wetstreak.png
+			}
 		}
 	}
 	technique
@@ -30961,6 +30965,10 @@ material CRWX_GlassFlowOverlay
 			cull_hardware none
 			cull_software none
 			fog_override true
+			texture_unit
+			{
+				texture crwx_wetstreak.png
+			}
 		}
 	}
 	technique

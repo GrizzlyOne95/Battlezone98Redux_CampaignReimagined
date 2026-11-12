@@ -535,12 +535,17 @@ def material_text():
                 "\t\t\tfog_override true\n\t\t\ttexture_unit\n\t\t\t{\n"
                 "\t\t\t\ttexture crwx_windcrack.png\n\t\t\t}\n\t\t}\n\t}\n")
 
-    def flow_block(sm, depth="on"):
+    def flow_block(sm, depth="on", panel=False):
         if sm:
             head = (f"\t\t\tvertex_program_ref CRWX_GlassFlow_vertex_{sm}\n\t\t\t{{\n\t\t\t}}\n"
                     f"\t\t\tfragment_program_ref CRWX_GlassFlow_fragment_{sm}\n\t\t\t{{\n\t\t\t}}\n"
                     "\t\t\tlighting off\n\t\t\tdiffuse 1 1 1 0\n")
-            unit = ""
+            # An overlay panel builds one UV set per texture unit of its pass. With none, the
+            # panel has no TEXCOORD0 for flow_vertex: DX11 throws "Unable to set D3D11 vertex
+            # declaration" and the aborted frame leaves the pause menu black. The shader never
+            # samples this unit; it only gives the panel its UVs. Glass meshes carry their own.
+            unit = ("\t\t\ttexture_unit\n\t\t\t{\n\t\t\t\ttexture crwx_wetstreak.png\n"
+                    "\t\t\t}\n") if panel else ""
         else:   # fixed function (GL): streaks just scroll up the glass
             head = ("\t\t\tlighting on\n\t\t\tambient 1 1 1\n\t\t\tdiffuse 0.45 0.45 0.45 0\n"
                     "\t\t\tspecular 0 0 0 1\n\t\t\temissive 0.06 0.06 0.06\n")
@@ -587,7 +592,7 @@ def material_text():
             out.append(body)
     body = "material CRWX_GlassFlowOverlay\n{\n"
     for sm in ("SM4", "SM3", None):
-        body += "\ttechnique\n\t{\n" + flow_block(sm, "off") + "\t}\n"
+        body += "\ttechnique\n\t{\n" + flow_block(sm, "off", panel=True) + "\t}\n"
     out.append(body + "}\n")
     return "\n".join(out)
 
