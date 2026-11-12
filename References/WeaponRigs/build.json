@@ -9640,7 +9640,7 @@
       }
     ],
     "cockpit_source": {
-      "mesh": "22af772e9f9fd91dca8c6991a8316395e09b3ab865e803b76f527df4d5996d2b",
+      "mesh": "b7595bb1b885a8aa221fd9b249502bdbb82a1d9a6645eb7580f18ee42dca41d4",
       "skeleton": "1ec0ac4acbe9137c4243ea0792aecfb3d76ca32e1f539d6095eeae34b0c2e01c",
       "bind_poses": {
         "SFL11BDA": [
@@ -9969,7 +9969,7 @@
     "outputs": {
       "Assets/Models/svfigh_recoil.skeleton": "08b7471946a0b3348f91236f7737f07a467b87e05891d1a4f086ddcc22b69d32",
       "Assets/ModelFixes/svfigh.mesh": "6e8f85b1facce7d6e74a5192cda0263e658085251f002c38146ba0a8846f89dc",
-      "Assets/Models/svfigh_cockpit.mesh": "92d647e0e779268b7aa588c9f3d4883b6c9aa98edb225af019134c18de4c161b",
+      "Assets/Models/svfigh_cockpit.mesh": "fa3707635bc41669b17000d893c896d0ad7fb659282dadf60f53661e13d2eea6",
       "Assets/Models/svfigh_cockpit_recoil.skeleton": "08b7471946a0b3348f91236f7737f07a467b87e05891d1a4f086ddcc22b69d32"
     },
     "hardpoints": {
