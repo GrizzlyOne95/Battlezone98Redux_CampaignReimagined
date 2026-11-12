@@ -16,6 +16,13 @@ radarSignature = 1.0
 rangeScan = 287.5
 periodScan = 0.0
 velocJam = 0.0
+// CR DAMAGE FX BEGIN
+// NSDF damage smoke (ODF/dmgnsdf1-4.odf)
+damageEffect1 = "dmgnsdf1"
+damageEffect2 = "dmgnsdf2"
+damageEffect3 = "dmgnsdf3"
+damageEffect4 = "dmgnsdf4"
+// CR DAMAGE FX END
 
 [HoverCraftClass]
 soundThrust = "avlande0.wav"

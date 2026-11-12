@@ -17,6 +17,13 @@ weaponName2 = ""
 rangeScan = 229.99999999999997
 periodScan = 0.0
 velocJam = 1.0
+// CR DAMAGE FX BEGIN
+// NSDF damage smoke (ODF/dmgnsdf1-4.odf)
+damageEffect1 = "dmgnsdf1"
+damageEffect2 = "dmgnsdf2"
+damageEffect3 = "dmgnsdf3"
+damageEffect4 = "dmgnsdf4"
+// CR DAMAGE FX END
 
 [HoverCraftClass]
 setAltitude = 0.5

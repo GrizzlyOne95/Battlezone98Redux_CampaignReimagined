@@ -1,0 +1,21 @@
+// ============================================================
+// CR Black Dog damage, LIGHT stage (dmgbdog1)
+// Look: lean, fast, near-black column from the first stage; crimson sparks (sparks join from stage 2).
+// Budget: ~27 live sprites (optimized dmgvhcl1 is ~40).
+// ============================================================
+
+[Dmgbdog1]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.06
+emitDelayVar = 0.03
+emitVelocity = "0.0 7.0 0.0"
+emitVariance = "1.2 1.2 1.2"
+emitInherit = "0.2 0.2 0.2"
+emitLife = 1.6
+textureName = "smoke2.tga"
+startColor = "95 95 100 36"
+finishColor = "95 95 100 0"
+startRadius = 0.7
+finishRadius = 1.8
+animateTime = 1.6
+rotationRate = 3.0

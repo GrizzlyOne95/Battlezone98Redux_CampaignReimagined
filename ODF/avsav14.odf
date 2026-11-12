@@ -29,6 +29,13 @@ rangeScan = 400.0f
 periodScan = 2.0f
 velocJam = 5.0f
 diedMsg = "abetty3.wav"
+// CR DAMAGE FX BEGIN
+// NSDF damage smoke (ODF/dmgnsdf1-4.odf)
+damageEffect1 = "dmgnsdf1"
+damageEffect2 = "dmgnsdf2"
+damageEffect3 = "dmgnsdf3"
+damageEffect4 = "dmgnsdf4"
+// CR DAMAGE FX END
 
 [HoverCraftClass]
 setAltitude = 5.0

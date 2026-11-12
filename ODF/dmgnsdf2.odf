@@ -1,0 +1,43 @@
+// ============================================================
+// CR NSDF damage, MEDIUM stage (dmgnsdf2)
+// Look: thin cool-grey coolant vapour, cyan-white electrical shorts.
+// Budget: ~43 live sprites (optimized dmgvhcl2 is ~60).
+// ============================================================
+
+[Dmgnsdf2]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "dmgnsdf2.smokeemitter"
+renderName2 = "dmgnsdf2.sparkemitter"
+
+[SmokeEmitter]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.06
+emitDelayVar = 0.03
+emitVelocity = "0.0 5.0 0.0"
+emitVariance = "2.0 2.0 2.0"
+emitInherit = "0.2 0.2 0.2"
+emitLife = 1.8
+textureName = "cr_xpl_wisp.dds"
+startColor = "170 175 185 48"
+finishColor = "170 175 185 0"
+startRadius = 1.0
+finishRadius = 2.4
+animateTime = 1.8
+rotationRate = 2.0
+
+[SparkEmitter]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.06
+emitDelayVar = 0.02
+emitVelocity = "0.0 3.0 0.0"
+emitVariance = "5.0 5.0 5.0"
+emitInherit = "0.5 0.5 0.5"
+emitLife = 0.8
+textureName = "cr_xpl_spark.dds"
+startColor = "200 245 255 255"
+finishColor = "30 140 255 0"
+startRadius = 0.25
+finishRadius = 0.08
+animateTime = 0.8
+rotationRate = 20.0

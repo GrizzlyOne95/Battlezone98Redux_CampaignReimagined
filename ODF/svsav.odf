@@ -20,6 +20,13 @@ rangeScan = 400.0f
 periodScan = 2.0f
 velocJam = 5.0f
 diedMsg = "sbetty3.wav"
+// CR DAMAGE FX BEGIN
+// CCA damage smoke (ODF/dmgcca1-4.odf)
+damageEffect1 = "dmgcca1"
+damageEffect2 = "dmgcca2"
+damageEffect3 = "dmgcca3"
+damageEffect4 = "dmgcca4"
+// CR DAMAGE FX END
 
 [HoverCraftClass]
 setAltitude = 1.0

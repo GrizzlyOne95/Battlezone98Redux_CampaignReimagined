@@ -1,0 +1,21 @@
+// ============================================================
+// CR CCA damage, LIGHT stage (dmgcca1)
+// Look: fat, slow, lingering diesel soot; chunky orange sparks (sparks join from stage 2).
+// Budget: ~30 live sprites (optimized dmgvhcl1 is ~40).
+// ============================================================
+
+[Dmgcca1]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.08
+emitDelayVar = 0.03
+emitVelocity = "0.0 3.0 0.0"
+emitVariance = "2.5 2.5 2.5"
+emitInherit = "0.2 0.2 0.2"
+emitLife = 2.4
+textureName = "smoke2.tga"
+startColor = "200 190 165 40"
+finishColor = "200 190 165 0"
+startRadius = 1.4
+finishRadius = 3.2
+animateTime = 2.4
+rotationRate = 1.0

@@ -1,0 +1,43 @@
+// ============================================================
+// CR CCA damage, MEDIUM stage (dmgcca2)
+// Look: fat, slow, lingering diesel soot; chunky orange sparks.
+// Budget: ~44 live sprites (optimized dmgvhcl2 is ~60).
+// ============================================================
+
+[Dmgcca2]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "dmgcca2.smokeemitter"
+renderName2 = "dmgcca2.sparkemitter"
+
+[SmokeEmitter]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.08
+emitDelayVar = 0.03
+emitVelocity = "0.0 3.0 0.0"
+emitVariance = "2.5 2.5 2.5"
+emitInherit = "0.2 0.2 0.2"
+emitLife = 2.4
+textureName = "cr_xpl_smoke.dds"
+startColor = "150 135 105 56"
+finishColor = "150 135 105 0"
+startRadius = 1.4
+finishRadius = 3.2
+animateTime = 2.4
+rotationRate = 1.0
+
+[SparkEmitter]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.08
+emitDelayVar = 0.02
+emitVelocity = "0.0 2.0 0.0"
+emitVariance = "6.0 6.0 6.0"
+emitInherit = "0.5 0.5 0.5"
+emitLife = 1.1
+textureName = "spark.tga"
+startColor = "255 200 80 255"
+finishColor = "220 70 0 0"
+startRadius = 0.35
+finishRadius = 0.12
+animateTime = 1.1
+rotationRate = 20.0
