@@ -1,0 +1,68 @@
+// Vehicle bullet hit. Particle budget 6 (was 9 via xbulbld refs): flash 1, spark streaks 4, hull fleck 1. No dirt.
+[ExplosionClass]
+classLabel = "explosion"
+
+//frameName = "xbulh.0"
+//frameCount = 5
+//frameDelay = 0.1
+//explRadius = 0.5
+explSound = "wmgr1.wav"
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 3
+
+particleClass1 = "xbulcar.Flash"
+particleCount1 = 1
+particleVeloc1 = "0.0 0.0 0.0"
+
+particleClass2 = "xbulcar.Spark"
+particleCount2 = 4
+particleVeloc2 = "8.0 6.0 8.0"
+particleBias2 = "0.0 1.0 0.0"
+
+particleClass3 = "xbulcar.Fleck"
+particleCount3 = 1
+particleVeloc3 = "3.0 3.0 3.0"
+particleBias3 = "0.0 1.0 0.0"
+
+[Flash]
+simulateBase = "sim_null"
+lifeTime = 0.15
+renderBase = "draw_sprite"
+textureName = "cr_xpl_core.dds"
+textureBlend = "one one modulate"
+startColor = "255 245 220 255"
+finishColor = "200 200 255 0"
+startRadius = 0.2
+finishRadius = 0.45
+animateTime = 0.15
+
+[Spark]
+simulateBase = "sim_ember"
+lifeTime = 0.25
+renderBase = "draw_twirl"
+textureName = "cr_xpl_spark.dds"
+textureBlend = "one one modulate"
+startColor = "255 250 200 255"
+finishColor = "255 200 80 0"
+startRadius = 0.12
+finishRadius = 0.03
+animateTime = 0.25
+rotationRate = 10.0
+
+[Fleck]
+simulateBase = "sim_ember"
+lifeTime = 0.6
+renderBase = "draw_twirl"
+textureName = "cr_xpl_debris.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "40 40 42 255"
+finishColor = "30 30 32 0"
+startRadius = 0.04
+finishRadius = 0.03
+animateTime = 0.6
+rotationRate = 8.0
