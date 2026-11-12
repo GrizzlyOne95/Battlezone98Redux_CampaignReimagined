@@ -428,7 +428,10 @@ local function discover(r)
     end
     r.discover = index
     if index >= count then r.discoverAt = S.Clock + 2 end
-    if r.tower == nil then r.tower = not r.cockpit and call(GetClassLabel, r.handle) == "turret" end
+    if r.tower == nil then
+        local label = not r.cockpit and call(GetClassLabel, r.handle)
+        r.tower = label == "turret" or label == "shieldtower" or label == "commtower"
+    end
     if r.tower then activate(r) end
 end
 
@@ -620,7 +623,10 @@ local function updateRecord(r, dt)
         end
     end
     if r.tower then
-        local powered = call(exu.IsGunTowerPowered, r.handle)
+        -- exu.IsPowered covers gun, shield and comm towers; older EXU builds
+        -- only have the gun tower read.
+        local powered = call(exu.IsPowered, r.handle)
+        if type(powered) ~= "boolean" then powered = call(exu.IsGunTowerPowered, r.handle) end
         if type(powered) == "boolean" then r.powerOff = not powered end
     end
     local anchors, barrels, peak = {}, {}, 0

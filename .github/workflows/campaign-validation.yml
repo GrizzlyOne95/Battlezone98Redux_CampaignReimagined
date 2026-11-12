@@ -370,6 +370,7 @@ jobs:
             "$LUA" Tools/Test-CRFloraDamage.lua
             "$LUA" Tools/Test-CRFloraAdapters.lua
             "$LUA" Tools/Test-CRFloraDamageStress.lua
+          "$LUA" Tools/Test-CRShieldTowerFX.lua Scripts
           # Mission 18 storm: director, tornado, ground, replication, payload lint.
           "$LUA" Tools/Test-CRStorm18.lua
           "$LUA" Tools/Test-CRStorm18Fissures.lua

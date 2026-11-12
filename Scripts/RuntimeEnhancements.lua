@@ -3,6 +3,10 @@ local exu = require("exu")
 local SurfaceEffects = require("CRSurfaceEffects")
 local bzfile = require("bzfile")
 local LogPaths = require("LogPaths")
+-- CR >>
+local okShieldFX, ShieldTowerFX = pcall(require, "CRShieldTowerFX")
+if not okShieldFX then ShieldTowerFX = nil end
+-- CR <<
 
 local DEFAULT_TEAM_PROFILES = {
     [2] = {
@@ -994,6 +998,9 @@ end
 
 function RuntimeEnhancements.ResetVisualState()
     SurfaceEffects.ResetScene()
+    -- CR >>
+    if ShieldTowerFX then pcall(ShieldTowerFX.Reset) end
+    -- CR <<
     for _, state in pairs(RuntimeEnhancements.ObjectStates or {}) do
         if state and state.handle and IsValid(state.handle) and type(state.materials) == "table" then
             for _, material in ipairs(state.materials) do
@@ -1165,6 +1172,9 @@ end
 
 function RuntimeEnhancements.OnObjectCreated(h)
     RuntimeEnhancements.Initialize()
+    -- CR >>
+    if ShieldTowerFX then pcall(ShieldTowerFX.Track, h) end
+    -- CR <<
     if not (RuntimeEnhancements.SupportsDynamicMaterials or RuntimeEnhancements.SupportsAutoLevel) then
         return
     end
@@ -1189,6 +1199,9 @@ function RuntimeEnhancements.Update()
         ApplyEmissivePulse(now, false)
     end
     SurfaceEffects.Update(surfaceDt)
+    -- CR >>
+    if ShieldTowerFX then pcall(ShieldTowerFX.Update) end
+    -- CR <<
 
     if RuntimeEnhancements.StarTwinkleApplied ~= RuntimeEnhancements.StarTwinkleEnabled
         and now >= (RuntimeEnhancements.StarTwinkleRetryAt or 0.0) then
