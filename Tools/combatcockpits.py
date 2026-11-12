@@ -339,8 +339,46 @@ def geometry(source,skelpath,base,game,root):
             assert len(owners)==1 and all(a.weight>.99 for a in sub.bone_assignments()),'hardpoint mount must be rigid on one bone'
             data,ix,_=tank.source_part(sub);mount=dict(material='CRV/'+base+'CombatHpmount',bone=names[owners.pop()],triangles=len(ix)//3)
             parts[mount['material']]=(data,ix)
+    jets=None
+    if role=='fighter':
+        # CR thruster housings (<unit>_nacjet, Build-NacelleJets.py) hang under the wings, on the
+        # wing (class 67) bones. Player report: when strafing lifts a wing the housing shows and
+        # the cockpit had none. Copied whole, at native positions and UVs, each vertex on the
+        # bone it is skinned to on the exterior, so they swing with the wings. The housing is open
+        # only on its top, which is buried in the wing; fan-cap that opening so it is closed.
+        sub=next((x for x in shared.read_mesh(source).submesh_list if x.material_name==base+'_nacjet'),None)
+        if sub is not None:
+            owner={}
+            for a in sub.bone_assignments():
+                assert a.weight>.99 and owner.setdefault(a.vertex_index,a.bone_index)==a.bone_index,'nacelle jet must be rigid per vertex'
+            data,ix,used=tank.source_part(sub);handles=np.array([owner[int(i)] for i in used]);rows=[list(r) for r in data];tris=ix.reshape(-1,3).tolist();ec=Counter();pt={}
+            for t in tris:
+                ks=[tuple(np.rint(data[i,:3]*10000).astype(np.int64)) for i in t]
+                for i in range(3):pt.setdefault(ks[i],t[i]);ec[tuple(sorted((ks[i],ks[(i+1)%3])))]+=1
+            adj={}
+            for a,b in (e for e,c in ec.items() if c==1):adj.setdefault(a,[]).append(b);adj.setdefault(b,[]).append(a)
+            assert all(len(v)==2 for v in adj.values()),'nacelle jet openings must be simple loops'
+            seen=set();capped=0;extra=[]
+            for start in adj:
+                if start in seen:continue
+                loop=[start];seen.add(start);cur=start
+                while True:
+                    nxt=[x for x in adj[cur] if x not in seen]
+                    if not nxt:break
+                    cur=nxt[0];seen.add(cur);loop.append(cur)
+                src=[pt[k] for k in loop];pos=data[src,:3];assert np.ptp(pos[:,1])<.05,'only the buried top opening is capped'
+                base0=len(rows);c=pos.mean(0)
+                for i in src:rows.append([*data[i,:3],0,1,0,*data[i,6:8],1,0,0]);extra.append(handles[src[0]])
+                rows.append([*c,0,1,0,*data[src,6:8].mean(0),1,0,0]);extra.append(handles[src[0]]);ci=len(rows)-1
+                for i in range(len(loop)):
+                    a,b=base0+i,base0+(i+1)%len(loop);tri=[ci,a,b]
+                    if np.cross(np.array(rows[a][:3])-c,np.array(rows[b][:3])-c)[1]<0:tri=[ci,b,a]
+                    tris.append(tri);capped+=1
+            handles=np.concatenate([handles,np.array(extra,int)]) if extra else handles
+            arr=np.array(rows,dtype='<f4');assert len(arr)<65536
+            parts['CRV/'+base+'CombatNacjet']=(arr,np.array(tris,dtype='<u2').reshape(-1));jets=dict(material='CRV/'+base+'CombatNacjet',boneRuns=[[int(k),len(list(g))] for k,g in __import__('itertools').groupby(handles.tolist())],triangles=len(tris),capTriangles=capped)
     parts[cfg['material']]=h.part()
-    meta=dict(base=base,role=role,pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,innerShell=topology,rim=rim,panels=h.panels,exteriorPieces=pieces,exteriorSkin=skin,mountSkin=mount,nativeVdfSha256=__import__('hashlib').sha256(native).hexdigest())
+    meta=dict(base=base,role=role,pov=eye.name,povPosition=origin.tolist(),povBasis=R.tolist(),shell=shell.name,shellHandle=shell.handle,innerShell=topology,rim=rim,panels=h.panels,exteriorPieces=pieces,exteriorSkin=skin,mountSkin=mount,jetSkin=jets,nativeVdfSha256=__import__('hashlib').sha256(native).hexdigest())
     if skin:
         # The rolling nose keeps its eye z, so the static tub must end short of
         # the nose's rearmost plane (less NOSE_CLEARANCE); glass is clamped to it.
@@ -354,6 +392,7 @@ def part_bones(parts,skeleton,shell,meta):
     name='CRV/'+meta['base']+'CombatExterior';handles=np.full(len(parts[name][0]),shell.handle);by_name={b.name:b.handle for b in skeleton.bones()}
     for entry in meta['exteriorSkin']:a,b=entry['vertices'];handles[a:b]=by_name[entry['bone']]
     result={name:handles};mount=meta.get('mountSkin')
+    if meta.get('jetSkin'):result[meta['jetSkin']['material']]=np.repeat([k for k,n in meta['jetSkin']['boneRuns']],[n for k,n in meta['jetSkin']['boneRuns']])
     if mount:result[mount['material']]=np.full(len(parts[mount['material']][0]),by_name[mount['bone']])
     return result
 def glass_parts(parts,meta):
@@ -363,4 +402,5 @@ def glass_parts(parts,meta):
     for entry in meta['exteriorSkin']:a,b=entry['vertices'];moving[a:b]=True
     tri=index.reshape(-1,3);fit={**parts,name:(data,tri[~moving[tri].any(1)].reshape(-1))}
     if meta.get('mountSkin'):fit.pop(meta['mountSkin']['material'])
+    if meta.get('jetSkin'):fit.pop(meta['jetSkin']['material'])
     return fit
