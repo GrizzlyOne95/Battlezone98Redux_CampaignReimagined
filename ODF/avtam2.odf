@@ -13,6 +13,10 @@ aiName2 = "RocketTankEnemy"
 heatSignature = 1.2
 imageSignature = 4.0
 radarSignature = 0.2
+// CR DEATH FX BEGIN
+// NSDF initial death blast (ODF/xdnsdfi)
+explosionName = "xdnsdfi"
+// CR DEATH FX END
 
 [CraftClass]
 rangeScan = 459.99999999999994
@@ -42,6 +46,12 @@ damageEffect2 = "dmgnsdf2"
 damageEffect3 = "dmgnsdf3"
 damageEffect4 = "dmgnsdf4"
 // CR DAMAGE FX END
+// CR DEATH FX BEGIN
+// NSDF death explosions (ODF/xdnsdfs, xdnsdfd, xdnsdfp)
+xplSnipe = "xdnsdfp"
+xplSecondary = "xdnsdfs"
+xplDetonate = "xdnsdfd"
+// CR DEATH FX END
 
 [HoverCraftClass]
 setAltitude = 1.0

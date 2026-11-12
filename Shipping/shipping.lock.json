@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5985,
+  "count": 6001,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -18869,6 +18869,70 @@
     {
       "source": "ODF\\xcarxplb.odf",
       "runtime": "xcarxplb.odf"
+    },
+    {
+      "source": "ODF\\xdbdogd.odf",
+      "runtime": "xdbdogd.odf"
+    },
+    {
+      "source": "ODF\\xdbdogi.odf",
+      "runtime": "xdbdogi.odf"
+    },
+    {
+      "source": "ODF\\xdbdogp.odf",
+      "runtime": "xdbdogp.odf"
+    },
+    {
+      "source": "ODF\\xdbdogs.odf",
+      "runtime": "xdbdogs.odf"
+    },
+    {
+      "source": "ODF\\xdccad.odf",
+      "runtime": "xdccad.odf"
+    },
+    {
+      "source": "ODF\\xdccai.odf",
+      "runtime": "xdccai.odf"
+    },
+    {
+      "source": "ODF\\xdccap.odf",
+      "runtime": "xdccap.odf"
+    },
+    {
+      "source": "ODF\\xdccas.odf",
+      "runtime": "xdccas.odf"
+    },
+    {
+      "source": "ODF\\xdcrad.odf",
+      "runtime": "xdcrad.odf"
+    },
+    {
+      "source": "ODF\\xdcrai.odf",
+      "runtime": "xdcrai.odf"
+    },
+    {
+      "source": "ODF\\xdcrap.odf",
+      "runtime": "xdcrap.odf"
+    },
+    {
+      "source": "ODF\\xdcras.odf",
+      "runtime": "xdcras.odf"
+    },
+    {
+      "source": "ODF\\xdnsdfd.odf",
+      "runtime": "xdnsdfd.odf"
+    },
+    {
+      "source": "ODF\\xdnsdfi.odf",
+      "runtime": "xdnsdfi.odf"
+    },
+    {
+      "source": "ODF\\xdnsdfp.odf",
+      "runtime": "xdnsdfp.odf"
+    },
+    {
+      "source": "ODF\\xdnsdfs.odf",
+      "runtime": "xdnsdfs.odf"
     },
     {
       "source": "ODF\\xgasgnd.odf",

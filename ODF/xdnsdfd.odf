@@ -1,0 +1,123 @@
+// ============================================================
+// CR NSDF death explosion, DETONATE stage (xdnsdfd)
+// Look: cool white-blue flash, cyan-white electrical sparks, grey coolant vapour.
+// Budget: 9 particles (stock xcarxplb is 9), one light. Gameplay fields copied from xcarxplb.
+// ============================================================
+
+[ExplosionClass]
+classLabel = "explosion"
+explRadius = 10.0
+explSound = "xcar.wav"
+damageRadius = 20.0
+damageBallistic = 0
+damageConcussion = 100
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 6
+
+particleClass1 = "xdnsdfd.Flash"
+particleCount1 = 1
+particleVeloc1 = "0.00 0.00 0.00"
+
+particleClass2 = "xdnsdfd.Core"
+particleCount2 = 1
+particleVeloc2 = "0.00 1.00 0.00"
+particleBias2 = "0.00 2.00 0.00"
+
+particleClass3 = "xdnsdfd.Debris"
+particleCount3 = 2
+particleVeloc3 = "6.00 6.00 6.00"
+particleBias3 = "0.00 3.00 0.00"
+
+particleClass4 = "xdnsdfd.Ember"
+particleCount4 = 2
+particleVeloc4 = "5.00 4.00 5.00"
+particleBias4 = "0.00 2.00 0.00"
+
+particleClass5 = "xdnsdfd.Smoke"
+particleCount5 = 2
+particleVeloc5 = "2.00 1.00 2.00"
+particleBias5 = "0.00 1.00 0.00"
+
+particleClass6 = "xdnsdfd.Light"
+particleCount6 = 1
+particleVeloc6 = "0.00 2.00 0.00"
+particleBias6 = "0.00 5.00 0.00"
+
+[Flash]
+simulateBase = "sim_null"
+lifeTime = 0.30
+renderBase = "draw_sprite"
+textureName = "cr_xpl_flash.dds"
+textureBlend = "one one modulate"
+startColor = "235 245 255 255"
+finishColor = "90 170 255 0"
+startRadius = 8.00
+finishRadius = 16.00
+animateTime = 0.30
+
+[Core]
+simulateBase = "sim_smoke"
+lifeTime = 1.10
+renderBase = "draw_twirl"
+textureName = "cr_xpl_core.dds"
+textureBlend = "one one modulate"
+startColor = "205 235 255 255"
+finishColor = "40 120 255 0"
+startRadius = 4.00
+finishRadius = 13.00
+animateTime = 1.10
+rotationRate = 3.00
+
+[Debris]
+simulateBase = "sim_ember"
+lifeTime = 3.00
+renderBase = "draw_twirl"
+textureName = "cr_xpl_debris.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "200 210 225 255"
+finishColor = "100 110 125 0"
+startRadius = 0.80
+finishRadius = 0.80
+animateTime = 3.00
+rotationRate = 6.00
+
+[Ember]
+simulateBase = "sim_ember"
+lifeTime = 1.60
+renderBase = "draw_twirl"
+textureName = "cr_xpl_spark.dds"
+textureBlend = "one one modulate"
+startColor = "200 245 255 255"
+finishColor = "30 140 255 0"
+startRadius = 0.40
+finishRadius = 0.20
+animateTime = 1.60
+rotationRate = 8.00
+
+[Smoke]
+simulateBase = "sim_smoke"
+lifeTime = 3.50
+renderBase = "draw_twirl"
+textureName = "cr_xpl_wisp.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "175 180 190 200"
+finishColor = "90 92 100 0"
+startRadius = 3.00
+finishRadius = 8.00
+animateTime = 3.50
+rotationRate = 3.00
+
+[Light]
+simulateBase = "sim_smoke"
+lifeTime = 0.7
+renderBase = "draw_light"
+startColor = "210 240 255 255"
+finishColor = "90 160 255 0"
+startRadius = 24.00
+finishRadius = 24.00
+animateTime = 0.7
+attenuateConstant = 0.0
+attenuateLinear = 1.0
+attenuateQuadratic = 0.0

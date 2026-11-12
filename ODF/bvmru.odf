@@ -14,6 +14,10 @@ weaponHard1 = "GS1"
 weaponName1 = "grepa"
 weaponHard2 = "GS1"
 weaponName2 = "gammo"
+// CR DEATH FX BEGIN
+// Black Dog initial death blast (ODF/xdbdogi)
+explosionName = "xdbdogi"
+// CR DEATH FX END
 
 [CraftClass]
 rangeScan = 200.0
@@ -41,6 +45,12 @@ damageEffect2 = "dmgbdog2"
 damageEffect3 = "dmgbdog3"
 damageEffect4 = "dmgbdog4"
 // CR DAMAGE FX END
+// CR DEATH FX BEGIN
+// Black Dog death explosions (ODF/xdbdogs, xdbdogd, xdbdogp)
+xplSnipe = "xdbdogp"
+xplSecondary = "xdbdogs"
+xplDetonate = "xdbdogd"
+// CR DEATH FX END
 
 [HoverCraftClass]
 setAltitude = 0.5

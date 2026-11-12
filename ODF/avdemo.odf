@@ -21,6 +21,10 @@ weaponHard3 = "GS1"
 weaponName3 = "gquake"
 weaponHard4 = "GM1"
 weaponName4 = "gmdmgun"
+// CR DEATH FX BEGIN
+// NSDF initial death blast (ODF/xdnsdfi)
+explosionName = "xdnsdfi"
+// CR DEATH FX END
 
 [CraftClass]
 // CR CRAFT FLASH OFFSET BEGIN
@@ -64,6 +68,12 @@ damageEffect2 = "dmgnsdf2"
 damageEffect3 = "dmgnsdf3"
 damageEffect4 = "dmgnsdf4"
 // CR DAMAGE FX END
+// CR DEATH FX BEGIN
+// NSDF death explosions (ODF/xdnsdfs, xdnsdfd, xdnsdfp)
+xplSnipe = "xdnsdfp"
+xplSecondary = "xdnsdfs"
+xplDetonate = "xdnsdfd"
+// CR DEATH FX END
 
 [HoverCraftClass]
 setAltitude = 1.0

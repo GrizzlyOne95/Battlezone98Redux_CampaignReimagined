@@ -18,6 +18,10 @@ weaponHard3 = "GR1"
 weaponName3 = "gcomet"
 weaponHard4 = "GS1"
 weaponName4 = ""
+// CR DEATH FX BEGIN
+// Black Dog initial death blast (ODF/xdbdogi)
+explosionName = "xdbdogi"
+// CR DEATH FX END
 
 [CraftClass]
 // CR CRAFT FLASH OFFSET BEGIN
@@ -62,6 +66,12 @@ damageEffect2 = "dmgbdog2"
 damageEffect3 = "dmgbdog3"
 damageEffect4 = "dmgbdog4"
 // CR DAMAGE FX END
+// CR DEATH FX BEGIN
+// Black Dog death explosions (ODF/xdbdogs, xdbdogd, xdbdogp)
+xplSnipe = "xdbdogp"
+xplSecondary = "xdbdogs"
+xplDetonate = "xdbdogd"
+// CR DEATH FX END
 
 [HoverCraftClass]
 setAltitude = 1.5

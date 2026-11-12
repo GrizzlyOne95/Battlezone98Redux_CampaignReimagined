@@ -19,6 +19,10 @@ weaponName2 = "" //"gblast"
 weaponHard3 = "GM1"
 weaponName3 = "gmdmgun" //"gpopgun"
 weaponMask = 00011
+// CR DEATH FX BEGIN
+// CRA initial death blast (ODF/xdcrai)
+explosionName = "xdcrai"
+// CR DEATH FX END
 
 [CraftClass]
 rangeScan = 225.0
@@ -49,6 +53,12 @@ damageEffect2 = "dmgcra2"
 damageEffect3 = "dmgcra3"
 damageEffect4 = "dmgcra4"
 // CR DAMAGE FX END
+// CR DEATH FX BEGIN
+// CRA death explosions (ODF/xdcras, xdcrad, xdcrap)
+xplSnipe = "xdcrap"
+xplSecondary = "xdcras"
+xplDetonate = "xdcrad"
+// CR DEATH FX END
 
 [WalkerClass]
 alphaDamp = 5.0

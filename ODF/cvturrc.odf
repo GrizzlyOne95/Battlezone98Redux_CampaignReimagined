@@ -20,6 +20,10 @@ weaponHard3 = "GC3"
 weaponName3 = "gspccv4"
 weaponHard4 = "GC4"
 weaponName4 = "gspccv4"
+// CR DEATH FX BEGIN
+// CRA initial death blast (ODF/xdcrai)
+explosionName = "xdcrai"
+// CR DEATH FX END
 
 [CraftClass]
 // CR CRAFT FLASH OFFSET BEGIN
@@ -78,6 +82,12 @@ damageEffect2 = "dmgcra2"
 damageEffect3 = "dmgcra3"
 damageEffect4 = "dmgcra4"
 // CR DAMAGE FX END
+// CR DEATH FX BEGIN
+// CRA death explosions (ODF/xdcras, xdcrad, xdcrap)
+xplSnipe = "xdcrap"
+xplSecondary = "xdcras"
+xplDetonate = "xdcrad"
+// CR DEATH FX END
 
 [HoverCraftClass]
 setAltitude = 0.5
