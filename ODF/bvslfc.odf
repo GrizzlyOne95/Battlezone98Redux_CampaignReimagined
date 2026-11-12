@@ -15,6 +15,10 @@ imageSignature = 1.4
 radarSignature = 0.7
 weaponHard1 = "ARM"
 weaponName1 = "gobject"
+// CR DEATH FX BEGIN
+// Black Dog initial death blast (ODF/xdbdogi)
+explosionName = "xdbdogi"
+// CR DEATH FX END
 
 [CraftClass]
 rangeScan = 500.0
@@ -45,6 +49,12 @@ damageEffect2 = "dmgbdog2"
 damageEffect3 = "dmgbdog3"
 damageEffect4 = "dmgbdog4"
 // CR DAMAGE FX END
+// CR DEATH FX BEGIN
+// Black Dog death explosions (ODF/xdbdogs, xdbdogd, xdbdogp)
+xplSnipe = "xdbdogp"
+xplSecondary = "xdbdogs"
+xplDetonate = "xdbdogd"
+// CR DEATH FX END
 
 [HoverCraftClass]
 setAltitude = 1.5

@@ -12,6 +12,10 @@ aiName2 = "RecyclerEnemy"
 heatSignature = 0.1
 imageSignature = 4.0
 radarSignature = 1.0
+// CR DEATH FX BEGIN
+// NSDF initial death blast (ODF/xdnsdfi)
+explosionName = "xdnsdfi"
+// CR DEATH FX END
 
 [CraftClass]
 rangeScan = 1150.0
@@ -38,6 +42,12 @@ damageEffect2 = "dmgnsdf2"
 damageEffect3 = "dmgnsdf3"
 damageEffect4 = "dmgnsdf4"
 // CR DAMAGE FX END
+// CR DEATH FX BEGIN
+// NSDF death explosions (ODF/xdnsdfs, xdnsdfd, xdnsdfp)
+xplSnipe = "xdnsdfp"
+xplSecondary = "xdnsdfs"
+xplDetonate = "xdnsdfd"
+// CR DEATH FX END
 
 [HoverCraftClass]
 setAltitude = 1.5

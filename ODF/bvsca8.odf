@@ -13,6 +13,10 @@ aiName2 = "ScavengerEnemy"
 heatSignature = 0.13999999999999999
 imageSignature = 1.0499999999999998
 radarSignature = 0.06999999999999999
+// CR DEATH FX BEGIN
+// Black Dog initial death blast (ODF/xdbdogi)
+explosionName = "xdbdogi"
+// CR DEATH FX END
 
 [CraftClass]
 rangeScan = 200.0
@@ -37,6 +41,12 @@ damageEffect2 = "dmgbdog2"
 damageEffect3 = "dmgbdog3"
 damageEffect4 = "dmgbdog4"
 // CR DAMAGE FX END
+// CR DEATH FX BEGIN
+// Black Dog death explosions (ODF/xdbdogs, xdbdogd, xdbdogp)
+xplSnipe = "xdbdogp"
+xplSecondary = "xdbdogs"
+xplDetonate = "xdbdogd"
+// CR DEATH FX END
 
 [HoverCraftClass]
 setAltitude = 0.6
