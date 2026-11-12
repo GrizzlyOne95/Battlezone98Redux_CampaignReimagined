@@ -1,6 +1,6 @@
 {
   "totals": {
-    "slots": 300,
+    "slots": 303,
     "recoil_slots": 225,
     "flash_slots": 219,
     "casing_slots": 145
@@ -3862,6 +3862,49 @@
           "recoil_effective_kick": null,
           "flash_offset": null,
           "flash_status": "parent cvw11sup is not a barrel node and has no geometry around the hardpoint",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Isolate gun geometry"
+    },
+    "hvwalk": {
+      "name": "Fury Walker",
+      "model": "hvwalk",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent hvw11tx2 is not a barrel node and the hardpoint is 7.82 m ahead of its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gbolt",
+          "hardpoint": "GC2",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent hvw11tx1 is not a barrel node and the hardpoint is 7.82 m ahead of its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "3": {
+          "weapon": "gpopgun",
+          "hardpoint": "GM1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent hvw11ty1 is not a barrel node and has no geometry around the hardpoint",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
