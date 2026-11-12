@@ -69,6 +69,7 @@ function F.nearTo(h, target, dx, dz)
     W.objects[h].pos = {x = t.x + (dx or 0), y = t.y, z = t.z + (dz or 0)}
 end
 function F.kill(h) W.objects[h].alive = false end
+function F.setHealth(h, ratio) W.objects[h].health = ratio end
 function F.alive(h) return W.objects[h] ~= nil and W.objects[h].alive end
 function F.team(h) return W.objects[h] and W.objects[h].team end
 function F.spawn(odf, team, x, z)
@@ -196,6 +197,7 @@ function F.makePeer(id, team, network, options)
     e.IsCraft = function(h) return W.objects[h] ~= nil and W.objects[h].craft == true end
     e.GetFront = function(h) return {x = 0, y = 0, z = 1} end
     e.GetMaxHealth = function(h) return 1 end
+    e.GetHealth = function(h) return W.objects[h] and W.objects[h].alive and (W.objects[h].health or 1) or 0 end
     e.SetCurHealth = function(h, v) record("SetCurHealth", h, v) end
     e.StopCockpitTimer = function() record("StopCockpitTimer") end
     e.HideCockpitTimer = function() record("HideCockpitTimer") end

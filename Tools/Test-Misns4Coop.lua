@@ -295,9 +295,11 @@ toConvoy(5)
 hs = haulers(p[1])
 F.kill(hs[1].h); F.run(1)
 heardAll(p, "misns403.wav")
+heardAll(p, "misns406.wav") -- restored unused line: first convoy loss, once
 check(F.count(p[1], "FailMission") == 0, "one loss does not fail")
 F.kill(hs[2].h); F.run(1)
 for i = 1, 4 do heardAll({p[i]}, "misns403.wav", 2) end
+heardAll(p, "misns406.wav") -- still once
 F.run(25)
 for i = 1, 4 do
     check(F.count(p[i], "FailMission") == 1 and F.last(p[i], "FailMission")[3] == "misns4l1.des", "one shared defeat on peer " .. i)

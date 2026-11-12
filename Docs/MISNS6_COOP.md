@@ -107,12 +107,17 @@ the mission. The director runs on the authority and streams `TitanState`/`TitanR
 ## Restored content [owner decision 2026-11-01]
 
 **No cut block is restored.** Each cut or dormant block was checked against the shipped map and the no-pop-in rule;
-none is coherent with both. The only `RESTORED_*` flag, `RESTORED_VOICE_LINES`, covers one unused shipped voice line.
-Unused shipped voice lines [owner decision 2026-11-01]: the wav and `Text/misns6NN.txt` transcript ship in the game but the DLL never plays them. Each plays once through the CR layer (`AudioMessage`: replicated to co-op guests, queued behind a line still playing), is latched in `M.crcca.r` (kept by Save/Load) and sits behind `RESTORED_VOICE_LINES`.
+none is coherent with both. The only `RESTORED_*` flag, `RESTORED_VOICE_LINES`, covers six unused shipped voice lines.
+Unused shipped voice lines [owner decision 2026-11-01; widened 2026-11-11 to 607, 610, 611, 612 and 813]: the wav and `Text/misns6NN.txt` transcript ship in the game but the DLL never plays them. Each plays once through the CR layer (`AudioMessage`: replicated to co-op guests, queued behind a line still playing), is latched in `M.crcca.r` (kept by Save/Load) and sits behind `RESTORED_VOICE_LINES`.
 
 | Line | Transcript | Trigger | Why it fits |
 | --- | --- | --- | --- |
 | `misns606` | "We've cleared the artillery. Continue to push forward." | Both howitzers the body holds (`avartl3_howitzer`, `avartl4_howitzer`, handles `art1`/`art2`) have been seen alive and are now both destroyed; once, not after the mission is won, lost or scheduled | The two howitzers are the artillery that `misns605` points out. |
+| `misns607` | "The Black Dogs are well entrenched ahead. Hide, you dogs!" | A human first comes within 500 m of a live command-centre defender turret (`defender1`/`defender2`, handles `tur3`/`tur4`) before the body's 300 m last-objective trigger; once, not after won, lost or scheduled | The two turrets guard `abcafe8_i76building`; the line warns of the entrenched final defence. |
+| `misns610` | "Our attack outpost is under heavy attack!" | The recycler `svrecy0_recycler` (the loss condition) first drops below half health; once, not after won, lost or scheduled | The recycler is the attack outpost the players must protect. |
+| `misns813` (shipped with mission 8) | "This does not look good, comrades." | 10 s after `misns610`, if the recycler is still alive and the mission is undecided; dropped otherwise | Follow-up pressure line; a stock CCA voice. |
+| `misns611` | "You've lost the Grozny. Pull our forces back. ... I fear what Karnov will do to you ..." (about 10.8 s) | The recycler loss: the body's `FailMission(GetTime() + 2.0, "misns6l1.des")` is shadowed in the CR layer, plays the line and fails 11 s after the loss instead of 2 s, so the line finishes | Its transcript is this mission's loss. |
+| `misns612` | "I recognize this is a good strategic position. Advance our mobile factories. ..." | The body's last-objective trigger first fires (a human within 300 m of the command centre `abcafe8_i76building`); once, not after won, lost or scheduled | Marks the push onto the final objective. |
 
 `misns604` ("The Black Dogs are counterattacking from the southeast.") was considered for the miner-shot raid and
 skipped: in `misns6cr.bzn` the raiders are built at `counter1` (2263, 99498) and `counter2` (1229, 100132) while the
@@ -125,7 +130,7 @@ players start near (2500, 98600) and the minefield is at x 1988-2931, z 99030-99
 | Dormant proximity ambushes `check1..check4` / `counter2..counter5` (two `bvtank` + one `bvturr` when a human comes within 400 m (`counter2`, `counter3`) or 200 m (`counter4`, `counter5`)) | `Misns6Mission.cpp:239-281`; `Setup` never arms the timers and the port keeps them at 99999 | Skipped. The trigger radius is under the 460 m no-pop-in rule, so the units would appear inside view range (or be pushed to a fallback and ambush nobody). The paths `check1..check4`, `counter2..counter5` exist and serve only as fallback entries and the second raider's entry (`counter2`). |
 | `// if (what == CMD_NONE) Attack(friend1, enemy1);` | `Misns6Mission.cpp:184` | Pseudo-code; no behaviour. |
 | Native-only `MineLayerProcess::laying` inspection under `#if 0` | `Misns6Mission.cpp:199-210` | Not scriptable; the port's `GetCurrentCommand == NONE` test stands. |
-| Unreferenced lines `misns604` (wrong direction, see above), `misns607`, `misns608`, `misns610`..`misns613` (audited, skipped; `misns606` is restored) and the `base_suggestion` / `lost_message` / `beacon` state | `Text/misns60{4,6,7,8}.txt`; flags declared, never used | Skipped. No code block triggers them; inventing triggers would be new content. |
+| Unreferenced lines `misns604` (wrong direction, see above), `misns608` (no walkers in `crns6.aip`), `misns613` (audited, skipped; `misns606`, `misns607`, `misns610`, `misns611` and `misns612` are restored) and the `base_suggestion` / `lost_message` / `beacon` state | `Text/misns60{4,8}.txt`, `Text/misns613.txt`; flags declared, never used | Skipped. No code block triggers them; inventing triggers would be new content. |
 
 Unused authored paths: `t1`, `t2`, `t3`, `spawn1`, `check1`, `check2`, `check3`, `check4`, `boundary`, `path_2`,
 `path6`, `protectme`, `edge_path`, and three unlabeled sowing routes (19, 12 and 10 points, ending at

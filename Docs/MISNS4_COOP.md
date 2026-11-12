@@ -105,15 +105,15 @@ Unused shipped voice lines [owner decision 2026-11-01]: the wav and `Text/misns4
 | --- | --- | --- | --- |
 | `misns408` | "That's the bridge ahead." | `north_bridge` (a human within 200 m of `sbridge`), once; skipped if the guard is already cleared that same beat, because `misns405` ("The bridge seems secure...") would play first and contradict it | Names the bridge the convoy is about to reach. |
 | `misns404` | "A transport has cleared the pass." | The first hauler to reach `goal` (`win_count >= 1`), once; not played if the win line is due in the same beat | The natural report for a hauler arriving; later arrivals stay silent, as in the body. |
+| `misns406` | "Comrade, this convoy is too insecure. This will not look good on my report to Karnov." | The first hauler lost, queued after the body's `misns403`; once, and not when that loss already fails the mission or after the win [owner decision 2026-11-11] | One more loss fails the mission, so the line is the warning. |
 | `misns407` | "The transports have cleared the pass. I'm certain CCA Command will be pleased with our work here." | The win (`M.won`), played at once during the source's 10 s `SucceedMission` delay; queues behind `misns404`/`misns403` if one is still playing | The closing line of the mission. |
 
 ### Skipped (documented, not restored)
 
 - **Casualty cinematic and casualty audio**: the `--[[ Another one bites the dust ... ]]` and `--[[ Cineractive on
   neareset guy ... ]]` notes are stubs; there is no implemented cinematic, no camera pod, no path and no audio line
-  for them. The shipped line `misns406` ("this convoy is too insecure") is never called by any block of the
-  source and its trigger is not clear (audited, skipped). `misns404`, `misns407` and `misns408` are restored (see
-  above) with CR-chosen triggers, not DLL ones.
+  for them. `misns404`, `misns406`, `misns407` and `misns408` are restored (see above) with CR-chosen triggers, not
+  DLL ones; `misns406` was first skipped and is now the first-loss warning [owner decision 2026-11-11].
 - **`-- AudioMessage("transport dead..")`** (placeholder; `misns403` already plays) and **`-- AudioMessage()`** at the
   failure (the description carries it).
 - **"Now load an AIP" note** at the north force and **`attack_time` / `first_bridge` / `h1` / `h2`**: unused state.

@@ -358,6 +358,7 @@ Setup()
 -- Each RESTORED_* flag switches one cut-content restoration off (Docs/MISNS2_COOP.md, "Restored content").
 local RESTORED_OPENING_FILM, RESTORED_WAVE1_RAZ, RESTORED_CUTOFF, RESTORED_NET1, RESTORED_WAVE5_TANKS =
     true, true, true, true, true
+local RESTORED_WAVE5_VOICE = true
 local Restored
 -- The three enemy craft the waves are made of become concealed, head-count-scaled tickets.
 local SCALED_ODFS = { bvtank = true, bvraz = true, bvartl = true }
@@ -582,6 +583,11 @@ if campaignRuntime then
             r.wave5tanks = true
             M.bd25 = BuildObject("bvtank", 2, "bdsp5")
             M.bd26 = BuildObject("bvtank", 2, "bdsp5")
+        end
+        -- Unused shipped line misns211 ("American units on the hill") warns of wave 5 as it spawns.
+        if RESTORED_WAVE5_VOICE and M.wave5gone and not r.wave5voice then
+            r.wave5voice = true
+            AudioMessage("misns211.wav")
         end
         -- Cut: the first camera network, nav1..nav6 = BuildObject("bpcamr", 2, "bdnet1".."bdnet6"). Nothing reads
         -- them, so each pod waits until no human is within the safe radius of its post.
