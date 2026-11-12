@@ -73,10 +73,10 @@ finishColor = "153 153 153 0"
 startRadius = 0.3
 finishRadius = 0.9
 animateTime = 0.8 //1.28
-emitDelay = 0.015
+emitDelay = 0.0056
 emitVelocity = "0.0 0.0 -4.0"
 emitVariance = "1.0 1.0 0.5"
-emitLife = 0.8
+emitLife = 0.48
 
 [Smoke2]
 renderBase = "draw_twirl_trail"
@@ -87,10 +87,10 @@ finishColor = "153 153 153 0"
 startRadius = 0.4
 finishRadius = 1.25
 animateTime = 1.28
-emitDelay = 0.013
+emitDelay = 0.0074
 emitVelocity = "0.0 0.0 -8.0"
 emitVariance = "2.0 2.0 0.5"
-emitLife = 1.28
+emitLife = 0.768
 
 //----------------------lights-------------------------\\
 

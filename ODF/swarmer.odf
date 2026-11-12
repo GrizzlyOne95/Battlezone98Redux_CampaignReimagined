@@ -58,13 +58,13 @@ textureName = "flamealpha.tga" //"smokeflame2.tga"
 textureBlend = "srcalpha invsrcalpha modulatealpha"
 startColor = "153 153 153 191"
 finishColor = "153 153 153 0"
-startRadius = 0.3
-finishRadius = 1.0
+startRadius = 0.27
+finishRadius = 0.9
 animateTime = 0.4 //1.28
-emitDelay = 0.01
+emitDelay = 0.0041
 emitVelocity = "0.0 0.0 -4.0"
 emitVariance = "1.0 1.0 0.5"
-emitLife = 0.4
+emitLife = 0.24
 
 [Smoke2]
 renderBase = "draw_twirl_trail"
@@ -72,13 +72,13 @@ textureName = "smoke2.tga"
 textureBlend = "srcalpha invsrcalpha modulatealpha"
 startColor = "153 153 153 191"
 finishColor = "153 153 153 0"
-startRadius = 0.4
-finishRadius = 1.25
+startRadius = 0.361
+finishRadius = 1.125
 animateTime = 0.64
-emitDelay = 0.013
+emitDelay = 0.0054
 emitVelocity = "0.0 0.0 -8.0"
 emitVariance = "2.0 2.0 0.5"
-emitLife = 0.64
+emitLife = 0.384
 
 //----------------------lights-------------------------\\
 
