@@ -571,10 +571,10 @@ function Update(dt)
         end
         -- should we spawn the beacons?
         if M.nav1 == nil and Distance(M.pilot, "nav_1", 0) < 1.0 then
-            M.nav1 = BuildObject("apcamr", 0, "nav_1")
+            M.nav1 = BuildObject("bpcamr", 0, "nav_1")
         end
         if M.nav2 == nil and Distance(M.pilot, "nav_2", 0) < 1.0 then
-            M.nav2 = BuildObject("apcamr", 0, "nav_2")
+            M.nav2 = BuildObject("bpcamr", 0, "nav_2")
             M.cameraCompleteDelay = GetTime() + 2.0
         end
         if CameraCancelled() then
@@ -592,8 +592,8 @@ function Update(dt)
             M.pilot = nil
             if Valid(M.user) then UnHide(M.user) end
             -- if the nav's don't exist, add them
-            if M.nav1 == nil then M.nav1 = BuildObject("apcamr", 0, "nav_1") end
-            if M.nav2 == nil then M.nav2 = BuildObject("apcamr", 0, "nav_2") end
+            if M.nav1 == nil then M.nav1 = BuildObject("bpcamr", 0, "nav_1") end
+            if M.nav2 == nil then M.nav2 = BuildObject("bpcamr", 0, "nav_2") end
             if Valid(M.user) then SetPerceivedTeam(M.user, 2) end
         end
     end
@@ -787,7 +787,7 @@ function Update(dt)
                 AddObjective("bd04003.otf", "white")
                 M.objective3Complete = true
             end
-            M.navBeacon = BuildObject("apcamr", 1, "rv_scout")
+            M.navBeacon = BuildObject("bpcamr", 1, "rv_scout")
             --SetUserTarget(navBeacon);
             -- Native repeatedly overwrites a local h; these escorts receive
             -- no scripted command. Keep their original default AI behavior.
@@ -807,7 +807,7 @@ function Update(dt)
             -- Native assertion: "bomber not created @ bomber_wing_x5_spawn_point".
             Go(h, "trigger_1")
         end
-        M.navBeacon = BuildObject("apcamr", 1, "proposed_end_area")
+        M.navBeacon = BuildObject("bpcamr", 1, "proposed_end_area")
         if Valid(M.navBeacon) then
             SetObjectiveName(M.navBeacon, "Drop Zone") -- native SetName alias
             SetObjectiveOn(M.navBeacon)

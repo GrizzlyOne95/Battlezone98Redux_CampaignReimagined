@@ -8,6 +8,8 @@ faithful = (ROOT / "Scripts/misns4.lua").read_bytes()
 coop_raw = (ROOT / "Scripts/misns4cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
+# Intentional CR rename: the enemy NSDF buildings are Black Dog (abtowe -> bbtowe, ablpow -> bblpow).
+faithful_text = faithful_text.replace('"abtowe"', '"bbtowe"').replace('"ablpow"', '"bblpow"')
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
 
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"

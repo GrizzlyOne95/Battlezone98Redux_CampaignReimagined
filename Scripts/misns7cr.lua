@@ -455,7 +455,7 @@ if campaignRuntime then
         if not RESTORED_EXPANSION or not M.camera_off_recycle or not M.blah then return end
         if not (runtime.PathExists("power2_spot") and runtime.PathExists("tower3_spot")) then return end
         if (IsAlive(M.avrig)) and (not M.main_off) and (not M.maint_off) and (not M.b3) then
-            Build(M.avrig, "abwpow") -- avpower2
+            Build(M.avrig, "bbwpow") -- avpower2
             M.b5_time = GetTime() + 5.0
             M.b3 = true
         end
@@ -468,7 +468,7 @@ if campaignRuntime then
         end
         if (M.rig_show2) and (IsAlive(M.avrig)) and ((IsAlive(M.avpower2)) or (IsAlive(M.avpower1)))
             and (not M.main_off) and (not M.maint_off) and (not M.b4) and (M.b6_time < GetTime()) then
-            Build(M.avrig, "abtowe")
+            Build(M.avrig, "bbtowe")
             M.b7_time = GetTime() + 5.0
             M.b4 = true
         end
@@ -606,17 +606,17 @@ function AddObject(h)
         M.avturr1 = h
     elseif (M.avturr2 == nil) and (IsOdfBase(h,"bvturr")) then
         M.avturr2 = h
-    elseif (not IsAlive(M.main_tower)) and (IsOdfBase(h,"abtowe")) then
+    elseif (not IsAlive(M.main_tower)) and (IsOdfBase(h,"bbtowe")) then
         M.main_tower = h
-    elseif (M.avtower1 == nil) and (IsOdfBase(h,"abtowe")) then
+    elseif (M.avtower1 == nil) and (IsOdfBase(h,"bbtowe")) then
         M.avtower1 = h
-    elseif (M.avtower2 == nil) and (IsOdfBase(h,"abtowe")) then
+    elseif (M.avtower2 == nil) and (IsOdfBase(h,"bbtowe")) then
         M.avtower2 = h
-    elseif (not IsAlive(M.main_power)) and (IsOdfBase(h,"abwpow")) then
+    elseif (not IsAlive(M.main_power)) and (IsOdfBase(h,"bbwpow")) then
         M.main_power = h
-    elseif (M.avpower1 == nil) and (IsOdfBase(h,"abwpow")) then
+    elseif (M.avpower1 == nil) and (IsOdfBase(h,"bbwpow")) then
         M.avpower1 = h
-    elseif (M.avpower2 == nil) and (IsOdfBase(h,"abwpow")) then
+    elseif (M.avpower2 == nil) and (IsOdfBase(h,"bbwpow")) then
         M.avpower2 = h
     elseif (IsAlive(M.svmuf)) and (M.newmuf == nil) and (IsOdfBase(h,"svmuf")) then
         M.newmuf = h
@@ -657,7 +657,7 @@ function Update(dt)
         SetPerceivedTeam(M.guntower2,2)
         SetPerceivedTeam(M.svrecycle,2)
         M.muf_scan_time = GetTime()+ 240.0
-        Build(M.avrig,"abtowe")
+        Build(M.avrig,"bbtowe")
         M.start_done = true
     end
     if M.bturret_time < GetTime() then
@@ -677,7 +677,7 @@ function Update(dt)
     if (M.start_done) and (M.build_scav_time < GetTime()) and (not M.build_scav) then
         M.avscav1 = BuildObject("bvscav",2,"muf_point")
         M.avscav2 = BuildObject("bvscav",2,"muf_point")
-        --		main_tower = BuildObject("abtowe", 2, "main_tower");
+        --		main_tower = BuildObject("bbtowe", 2, "main_tower");
         Goto(M.avscav1,M.fed_up_scrap,0)
         Goto(M.avscav2,M.fed_up_scrap,0)
         M.silo_check = GetTime()+ 10.0
@@ -1426,7 +1426,7 @@ function Update(dt)
     -- this sends the rig to build the third powerplant
     if (M.build_tower1) and (IsAlive(M.avtower1)) and (not M.b1) then
         if IsAlive(M.avrig) then
-            Build(M.avrig,"abwpow")
+            Build(M.avrig,"bbwpow")
             -- this is avpower1
             M.b1_time = GetTime()+ 5.0
             M.b1 = true
@@ -1443,7 +1443,7 @@ function Update(dt)
     -- this sends the rig to build the next guntower
     if (M.build_power1) and (not M.main_off) and (not M.maint_off) and (IsAlive(M.avpower1)) and (not M.b2) then
         if (M.b2_time < GetTime()) and (IsAlive(M.avrig)) then
-            Build(M.avrig,"abtowe")
+            Build(M.avrig,"bbtowe")
             -- this is avtower2
             M.b3_time = GetTime()+ 5.0
             M.b2 = true
@@ -1461,7 +1461,7 @@ function Update(dt)
         RemoveObject(M.avrig)
         --		avrig = BuildObject("avcnst", 2, "barrack_spot");
         --		Defend(avrig);
-        --		Build(avrig, "abbarr");
+        --		Build(avrig, "bbbarr");
         M.rig_check = GetTime()+ 10.0
         --		bm_time = Get_Time() + 5.0f;
         M.new_rig = true
@@ -1471,7 +1471,7 @@ function Update(dt)
         -- this has the rig trying to maintain the main power and guntower
         --[[ && (bm_time < Get_Time())]]
         if (IsAlive(M.avrig)) and (not IsAlive(M.main_power)) and (not M.main_off) then
-            Build(M.avrig,"abwpow")
+            Build(M.avrig,"bbwpow")
             M.bm_time = GetTime()+ 10.0
             --		main_on = false;
             M.main_off = true
@@ -1489,7 +1489,7 @@ function Update(dt)
             M.main_off = false
         end
         if (IsAlive(M.avrig)) and (not IsAlive(M.main_tower)) and (not M.main_off) and (not M.maint_off) then
-            Build(M.avrig,"abtowe")
+            Build(M.avrig,"bbtowe")
             M.bm_time = GetTime()+ 10.0
             --		maint_on = false;
             M.maint_off = true
@@ -1514,7 +1514,7 @@ function Update(dt)
         if Distance(M.user,M.avrecycle)< 400.0 then
             M.avrig = BuildObject("avcns7",2,"barrack_spot")
             Defend(M.avrig)
-            Build(M.avrig,"abbarr")
+            Build(M.avrig,"bbbarr")
             M.rig_check = GetTime()+ 20.0
             M.rig_show = true
         end
@@ -1538,7 +1538,7 @@ function Update(dt)
     --[[	// this tells the rig to build the power plant in the center of the base
 	if ((camera_off_recycle) && (IsAlive(avrig)) && (!main_off) && (!maint_off) && (!b3))
 	{
-		Build(avrig, "abwpow");// this is avpower2
+		Build(avrig, "bbwpow");// this is avpower2
 		b5_time = Get_Time() + 5.0f;
 		b3 = true;
 	}
@@ -1557,7 +1557,7 @@ function Update(dt)
 	if ((rig_show2) && (IsAlive(avrig)) && ((IsAlive(avpower2)) || (IsAlive(avpower1)))
 		&& (!main_off) && (!maint_off) && (!b4) && (b6_time < Get_Time()))
 	{
-		Build(avrig, "abtowe");// this is nothing
+		Build(avrig, "bbtowe");// this is nothing
 		b7_time = Get_Time() + 5.0f;
 		b4 = true;
 	}

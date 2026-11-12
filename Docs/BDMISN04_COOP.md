@@ -75,7 +75,7 @@ goes through it, so there is no per-human teleport to handle.
 
 Scaled spawns: the ODFs `cvfigh`, `cvfighg`, `cvtnk` (every Chinese unit the body sends at the hauler). They become *tickets*: the
 body gets a negative request id and the unit is built by the runtime on the next frames, with the body's later orders replayed
-on it. Not scaled: the two portal fighters of the opening (`BuildObjectAtPortal`, stage props), camera pods (`apcamr`), the
+on it. Not scaled: the two portal fighters of the opening (`BuildObjectAtPortal`, stage props), camera pods (`bpcamr`), the
 intro pilot (`aspilo`), and all Black Dog units (escorts, bombers).
 
 Events. The runtime region wraps `BuildObject` once: **a new frame or a new entry path is a new scaling event**, and the first

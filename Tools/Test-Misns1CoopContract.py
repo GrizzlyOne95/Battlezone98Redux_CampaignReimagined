@@ -48,7 +48,7 @@ used |= set(re.findall(r'(?:Goto|MissionGoto)\([^,]+, "(\w+)"', live))
 used |= set(re.findall(r'MissionDistance\([^,]+, "(\w+)"\)', live))
 assert used <= set(paths), "every path the body names exists: " + str(used - set(paths))
 assert objects["avrecy1_recycler"] == ("bvrecy", 5) and objects["svrecy2_recycler"] == ("svrecy", 1)
-assert objects["avmuf1_factory"] == ("bvmuf", 5) and objects["absilo1_i76building"] == ("absilo", 5)
+assert objects["avmuf1_factory"] == ("bvmuf", 5) and objects["absilo1_i76building"] == ("bbsilo", 5)
 for label in ("avfigh3_wingman", "avfigh4_wingman", "avfigh5_wingman", "avtank5_wingman", "avtank6_wingman",
               "avtank7_wingman", "avtank8_wingman"):
     assert objects[label][1] == 5 and objects[label][0] in ("bvraz", "bvtank"), "escorts are CCA team 5: " + label

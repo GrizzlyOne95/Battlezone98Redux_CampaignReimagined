@@ -265,10 +265,10 @@ function Update(dt)
         StartCockpitTimer(420, 300, 0)
         -- Stock Lua equivalent of GameObjectHandle::GetObj(cam1)->SetName.
         if Valid(M.cam1) then SetObjectiveName(M.cam1, "Bridge") end
-        BuildObject("abtowe", 2, "tower1")
-        BuildObject("abtowe", 2, "tower2")
-        BuildObject("ablpow", 2, "power1")
-        BuildObject("ablpow", 2, "power2")
+        BuildObject("bbtowe", 2, "tower1")
+        BuildObject("bbtowe", 2, "tower2")
+        BuildObject("bblpow", 2, "power1")
+        BuildObject("bblpow", 2, "power2")
         BuildObject("svcnst", 1, "svcnst")
     end
     if GetTime() > M.wakeup_time then

@@ -8,6 +8,8 @@ faithful = (ROOT / "Scripts/ch07.lua").read_bytes()
 coop_raw = (ROOT / "Scripts/ch07cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
+# Intentional CR rename: the nav beacons match the player faction (Chinese: apcamr -> cpcamr).
+faithful_text = faithful_text.replace('"apcamr"', '"cpcamr"')
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
 
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
@@ -60,7 +62,7 @@ builds = re.findall(r'BuildObject\("(\w+)", (\d), ', body)
 teams = {}
 for odf, team in builds:
     teams.setdefault(team, set()).add(odf)
-assert teams["0"] == {"sspilo"} and teams["1"] == {"apcamr", "cspilo"}, teams
+assert teams["0"] == {"sspilo"} and teams["1"] == {"cpcamr", "cspilo"}, teams
 scaled = set(re.search(r"SCALED_ODFS = \{([^}]*)\}", runtime_region)[1].replace("=", " ").replace("true", " ").replace(",", " ").split())
 assert scaled == {"ssusera", "sssold", "sspilo"}, scaled
 print("ch07cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))

@@ -128,7 +128,7 @@ end
 w, p, m = setup(3)
 do
     -- scrap too low and no defences: plan C. Every count/scrap query must be for team 5.
-    w.scrapOf[5] = 5; w.unitCounts["5:abtowe"] = 0; w.unitCounts["5:abwpow"] = 0
+    w.scrapOf[5] = 5; w.unitCounts["5:bbtowe"] = 0; w.unitCounts["5:bbwpow"] = 0
     F.run(70)
     check(m.plan_c and not m.plan_a, "plan C starts from the team-5 queries")
     for _, c in ipairs(F.callsOf(p[1], "CountUnitsNearObject")) do check(c[4] == 5, "CountUnitsNearObject asks about team 5") end
@@ -146,7 +146,7 @@ end
 
 -- ------------------------------------------------------------------ Romeski, the SAVs and "the player"
 w, p, m = setup(3)
-w.scrapOf[5] = 5; w.unitCounts["5:abtowe"] = 0; w.unitCounts["5:abwpow"] = 0
+w.scrapOf[5] = 5; w.unitCounts["5:bbtowe"] = 0; w.unitCounts["5:bbwpow"] = 0
 F.run(70)
 local key = m.key_tank
 check(key ~= nil and m.general_spawn and w.objects[key].odf == "svtank" and w.objects[key].team == 1, "Romeski is built on the humans' team")
@@ -179,7 +179,7 @@ guestsPassive(p)
 
 -- sav_payback branch: a swapped hostile SAV shoots him; he asks the nearest human for help and follows them
 w, p, m = setup(3)
-w.scrapOf[5] = 5; w.unitCounts["5:abtowe"] = 0; w.unitCounts["5:abwpow"] = 0
+w.scrapOf[5] = 5; w.unitCounts["5:bbtowe"] = 0; w.unitCounts["5:bbwpow"] = 0
 F.run(70)
 key = m.key_tank
 local sav = F.spawn("savtnk", 1, 1900, 100300)
@@ -223,7 +223,7 @@ end
 
 -- a human flying a SAV is never deleted by the betrayal swap
 w, p, m = setup(2)
-w.scrapOf[5] = 5; w.unitCounts["5:abtowe"] = 0; w.unitCounts["5:abwpow"] = 0
+w.scrapOf[5] = 5; w.unitCounts["5:bbtowe"] = 0; w.unitCounts["5:bbwpow"] = 0
 F.run(70)
 key = m.key_tank
 w.objects[p[2].player].odf = "savtnk"
@@ -237,7 +237,7 @@ check(#F.builds(p[1], 0, "savs8") == 1 and m.sav1_swap, "the hostile twin is sti
 -- ------------------------------------------------------------------ victory
 for _, n in ipairs({1, 3}) do
     w, p, m = setup(n)
-    w.scrapOf[5] = 5; w.unitCounts["5:abtowe"] = 0; w.unitCounts["5:abwpow"] = 0
+    w.scrapOf[5] = 5; w.unitCounts["5:bbtowe"] = 0; w.unitCounts["5:bbwpow"] = 0
     F.run(70)
     check(F.alive(m.key_tank), "Romeski lives")
     F.kill(REC); F.run(12)
@@ -262,7 +262,7 @@ for n = 1, 4 do
     m.plan_a, m.plan_b, m.convoy_start = false, true, true
     F.kill(MUF); F.run(1)
     F.run(2)
-    local tanks = F.builds(p[1], 0, "bvtavk")
+    local tanks = F.builds(p[1], 0, "bvtank")
     check(#tanks == expected[n], "humans " .. n .. ": retaliation squad of " .. expected[n] .. ", got " .. #tanks)
     allSafe(p, tanks)
     for _, b in ipairs(tanks) do
@@ -278,10 +278,10 @@ do
     w, p, m = setup(4)
     away(p)
     local s = m.crcca
-    for i = 1, 12 do s.live[#s.live + 1] = F.spawn("bvtavk", 5, 2000 + i, 99000) end
+    for i = 1, 12 do s.live[#s.live + 1] = F.spawn("bvtank", 5, 2000 + i, 99000) end
     m.plan_a, m.plan_b, m.convoy_start = false, true, true
     F.kill(MUF); F.run(3)
-    check(#F.builds(p[1], 0, "bvtavk") == 2, "at the cap only the two primaries arrive")
+    check(#F.builds(p[1], 0, "bvtank") == 2, "at the cap only the two primaries arrive")
 end
 -- a human at the post: an authored alternative entry is used, never a pop-in
 do
@@ -289,7 +289,7 @@ do
     F.place(p[2].player, 2017, 99690 + 100) -- standing at t1post
     m.plan_a, m.plan_b, m.convoy_start = false, true, true
     F.kill(MUF); F.run(3)
-    local tanks = F.builds(p[1], 0, "bvtavk")
+    local tanks = F.builds(p[1], 0, "bvtank")
     check(#tanks == 3, "the squad still arrives")
     for _, b in ipairs(tanks) do check(b.where ~= "t1post", "not at the occupied post: " .. tostring(b.where)) end
     allSafe(p, tanks)
@@ -300,40 +300,40 @@ do
     w, p, m = setup(3)
     m.recycle_move = true
     F.nearTo(REC, "dis_geyser2", 300, 0); F.run(2)
-    check(#F.builds(p[1], 0, "apcamr") == 0, "far from dis_geyser2: no beacon")
+    check(#F.builds(p[1], 0, "spcamr") == 0, "far from dis_geyser2: no beacon")
     F.nearTo(REC, "dis_geyser2", 60, 0); F.run(2)
-    local cams = F.builds(p[1], 0, "apcamr")
+    local cams = F.builds(p[1], 0, "spcamr")
     check(#cams == 1 and cams[1].team == 1 and cams[1].where == "last_nav_spawn", "the beacon drops at last_nav_spawn on the humans' team")
     check(m.cam4 == cams[1].h and F.count(p[1], "SetObjectiveName", m.cam4) == 1 and F.last(p[1], "SetObjectiveName")[3] == "Choke Point", "and is named Choke Point")
     check(not F.heard(p[1], "misns802.wav"), "misns802 repeats the retreat call and is not replayed")
     F.run(5)
-    check(#F.builds(p[1], 0, "apcamr") == 1, "once only")
+    check(#F.builds(p[1], 0, "spcamr") == 1, "once only")
     local mark = #p[1].calls
     for _, q in ipairs(p) do q.env.Load(q.env.Save()) end
     F.connect(); F.run(5)
-    check(#F.builds(p[1], mark, "apcamr") == 0, "a load does not rebuild it")
+    check(#F.builds(p[1], mark, "spcamr") == 0, "a load does not rebuild it")
 end
 do -- a recycler that was never seen outside the radius cannot drop the beacon at once
     w, p, m = setup(2)
     m.crcca.r.chokeFar = nil
     m.recycle_move = true
     F.nearTo(REC, "dis_geyser2", 60, 0); F.run(3)
-    check(#F.builds(p[1], 0, "apcamr") == 0 and m.cam4 == nil, "inside the radius from the start: no beacon")
+    check(#F.builds(p[1], 0, "spcamr") == 0 and m.cam4 == nil, "inside the radius from the start: no beacon")
     F.nearTo(REC, "dis_geyser2", 300, 0); F.run(2)
     F.nearTo(REC, "dis_geyser2", 60, 0); F.run(2)
-    check(#F.builds(p[1], 0, "apcamr") == 1 and m.cam4 ~= nil, "once it has been far, coming back inside drops it")
+    check(#F.builds(p[1], 0, "spcamr") == 1 and m.cam4 ~= nil, "once it has been far, coming back inside drops it")
 end
 do -- the map without the beacon path
     w, p, m = setup(2, { setup = function(world) world.missingPaths = { last_nav_spawn = true } end })
     m.recycle_move = true
     F.nearTo(REC, "dis_geyser2", 60, 0); F.run(3)
-    check(#F.builds(p[1], 0, "apcamr") == 0 and m.cam4 == nil, "no beacon path: restoration skipped")
+    check(#F.builds(p[1], 0, "spcamr") == 0 and m.cam4 == nil, "no beacon path: restoration skipped")
 end
 do -- offline too
     w, p, m = setup(1)
     m.recycle_move = true
     F.nearTo(REC, "dis_geyser2", 60, 0); F.run(2)
-    check(#F.builds(p[1], 0, "apcamr") == 1, "the beacon is restored offline as well")
+    check(#F.builds(p[1], 0, "spcamr") == 1, "the beacon is restored offline as well")
 end
 
 -- ------------------------------------------------------------------ distance to "the player"
@@ -352,7 +352,7 @@ do
     m.warning = false; m.muf_warning = 0
     F.place(p[3].player, 1900, 100362)
     F.run(2)
-    check(m.warning and F.heard(p[1], "misns801.wav") and #F.builds(p[1], 0, "apcamr") == 1, "otherwise the Choke Point beacon and objective follow")
+    check(m.warning and F.heard(p[1], "misns801.wav") and #F.builds(p[1], 0, "spcamr") == 1, "otherwise the Choke Point beacon and objective follow")
 end
 
 -- ------------------------------------------------------------------ leader leaves, save/load
@@ -368,7 +368,7 @@ local before = F.count(p[1], "SetScrap")
 for _, q in ipairs(p) do q.env.Load(q.env.Save()) end
 F.connect(); F.run(5)
 check(F.count(p[1], "SetScrap") == before and F.count(p[1], "BuildObject") == 4, "load does not rerun the first frame")
-w.scrapOf[5] = 5; w.unitCounts["5:abtowe"] = 0; w.unitCounts["5:abwpow"] = 0
+w.scrapOf[5] = 5; w.unitCounts["5:bbtowe"] = 0; w.unitCounts["5:bbwpow"] = 0
 F.run(70)
 F.kill(REC); F.run(12)
 for i = 1, 4 do check(F.count(p[i], "SucceedMission") == 1, "the loaded mission still ends once on peer " .. i) end

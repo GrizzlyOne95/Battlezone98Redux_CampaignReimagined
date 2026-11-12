@@ -633,7 +633,7 @@ function Update(dt)
             if Valid(M.enemy_tank1) then RemoveObject(M.enemy_tank1) end
             if Valid(M.enemy_tank2) then RemoveObject(M.enemy_tank2) end
             -- nav alpha (what else could it be???)
-            M.nav_alpha = BuildObject("apcamr", 1, "spawn_nav_alpha")
+            M.nav_alpha = BuildObject("bpcamr", 1, "spawn_nav_alpha")
             if Valid(M.nav_alpha) then SetObjectiveName(M.nav_alpha, "Nav Alpha") end -- native SetName alias
             M.missionState = MS_HARRASDEAD
             M.stateTimer = GetTime() + 4 -- retained even though the source never tests it

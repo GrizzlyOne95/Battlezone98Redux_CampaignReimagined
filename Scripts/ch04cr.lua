@@ -687,11 +687,11 @@ if campaignRuntime then
                 runtime.AddObjective("ch04004.otf", "white")
             end
         end
-        -- Cut: `navPoints[0] = BuildObject("apcamr", 1, "nav_silo"); SetName(navPoints[0], "Silo"); SetUserTarget(navPoints[0]);`
+        -- Cut: `navPoints[0] = BuildObject("cpcamr", 1, "nav_silo"); SetName(navPoints[0], "Silo"); SetUserTarget(navPoints[0]);`
         if RESTORED_SILO_BEACON then
             if state == MS_WAITFORID and not r.siloBeacon and not r.siloBeaconDone and Real(M.target_silo) then
                 r.siloBeaconDone = true
-                local beacon = BuildObject("apcamr", 1, "nav_silo")
+                local beacon = BuildObject("cpcamr", 1, "nav_silo")
                 if Real(beacon) then
                     r.siloBeacon = beacon
                     SetObjectiveName(beacon, "Silo")
@@ -832,7 +832,7 @@ function Update(dt)
                 if Valid(M.target_silo) then SetObjectiveOn(M.target_silo) end
             else
                 M.uptonavpoint = M.uptonavpoint + 1
-                M.navPoints[M.uptonavpoint] = BuildObject("apcamr", 1, "nav_" .. (M.uptonavpoint + 1))
+                M.navPoints[M.uptonavpoint] = BuildObject("cpcamr", 1, "nav_" .. (M.uptonavpoint + 1))
                 if M.uptonavpoint == 5 and Valid(M.navPoints[5]) then
                     SetObjectiveName(M.navPoints[5], "Pit Entrance") -- native SetName alias
                 end
@@ -913,7 +913,7 @@ function Update(dt)
         if Done(M.soundHandle) then
             M.portalTimeOut = GetTime() + 60 * 2 + 15
             -- RemoveObject(navPoints[0]); -- disabled in source
-            M.navPoints[0] = BuildObject("apcamr", 1, "nav_base")
+            M.navPoints[0] = BuildObject("cpcamr", 1, "nav_base")
             Target(M.navPoints[0])
             M.missionState = MS_WAITFORPORTAL
         end

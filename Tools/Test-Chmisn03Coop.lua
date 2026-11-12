@@ -235,7 +235,7 @@ for n = 1, 4 do
     local w, p, m = setup(n, {}, 3)
     reachConvoy(w)
     check(m.objective1Complete and m.generalApc == 3 and m.general == m.apc[3], "the General is APC 3 (north)")
-    local beacon = F.builds(p[1], 0, "apcamr")
+    local beacon = F.builds(p[1], 0, "cpcamr")
     check(#beacon == 1 and beacon[1].team == 1 and beacon[1].where == "nav_base", n .. ": the CCA base beacon is built once on team 1")
     for i = 1, n do
         check(F.count(p[i], "SetObjectiveName", m.nav or beacon[1].h) == 1, "the beacon is named on peer " .. i)
@@ -432,7 +432,7 @@ do
     F.connect(); F.run(3)
     local o = F.callsOf(p[1], "AddObjective")
     check(o[#o][2] == "ch03002.otf" and o[#o][3] == "white", "the escort-phase objectives are shown again after a load")
-    check(F.count(p[1], "SetObjectiveName", m.crcca and F.builds(p[1], 0, "apcamr")[1].h) == 2, "the beacon is named again after a load")
+    check(F.count(p[1], "SetObjectiveName", m.crcca and F.builds(p[1], 0, "cpcamr")[1].h) == 2, "the beacon is named again after a load")
     check(#F.builds(p[1], 0, "svapcr") + #F.builds(p[1], 0, "svapcq") == 6, "a load builds no second convoy")
 end
 

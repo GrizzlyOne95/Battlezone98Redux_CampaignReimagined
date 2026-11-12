@@ -44,7 +44,7 @@ host does, a team-5 enemy near the pass does not.
 
 Scaled spawns: the ODFs `bvtank`, `bvraz`, `bvartl` (the enemy waves). They become *tickets*: the body gets a
 negative request id and the unit is built by the runtime on the next frames, with the body's later orders replayed
-on it (`Follow(bd11, bd9)` is rewritten to the real unit). Not scaled: camera pods (`apcamr`), mines (`proxmine`),
+on it (`Follow(bd11, bd9)` is rewritten to the real unit). Not scaled: camera pods (`bpcamr`), mines (`proxmine`),
 the two patrol fighters (`svfigh`) and the eleven stage-prop tanks of the surrender film.
 
 Events. The body has about twenty spawn sites; instead of marking each with `BeginEvent`, the runtime region wraps

@@ -51,7 +51,7 @@ used |= set(re.findall(r'(?:Goto|Dropoff)\([^,()]+, "(\w+)"', live))
 assert used <= set(paths), "every path the body names exists: " + str(used - set(paths))
 # the CR layer's own names
 layer = "".join(re.findall(region, lua_full))
-layer_paths = set(re.findall(r'(?:PathExists|BuildObject\("apcamr", 1,)\s*\(?"(\w+)"', layer))
+layer_paths = set(re.findall(r'(?:PathExists|BuildObject\("spcamr", 1,)\s*\(?"(\w+)"', layer))
 layer_paths |= set(re.findall(r'"(\w+_?\w*post\w*|american_spawn|last_nav_spawn)"', layer))
 assert layer_paths <= set(paths), "every path the CR layer names exists: " + str(layer_paths - set(paths))
 layer_objects = set(re.findall(r'rallyPoints = \{ \[0\] = "(\w+)" \}', layer))

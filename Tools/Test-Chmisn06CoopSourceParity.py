@@ -9,6 +9,8 @@ coop_raw = (ROOT / "Scripts/ch06cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 assert b"\n" not in faithful.replace(b"\r\n", b"") and b"\n" not in coop_raw.replace(b"\r\n", b""), "no bare LF"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
+# Intentional CR rename: the nav beacons match the player faction (Chinese: apcamr -> cpcamr).
+faithful_text = faithful_text.replace('"apcamr"', '"cpcamr"')
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
 
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
@@ -66,7 +68,7 @@ for name in ("CameraReady", "CameraPath", "CameraFinish", "CameraCancelled", "St
 builds = re.findall(r'BuildObject\(([^,]+), (\d), ', live)
 enemy = {odf for odf, team in builds if team == "2"}
 assert enemy == {'"svfigh"', '"svtank"', "raidUnits[math.random(4)]"}, enemy
-assert sorted(odf for odf, team in builds if team == "1") == ['"apcamr"', "odf"], builds
+assert sorted(odf for odf, team in builds if team == "1") == ['"cpcamr"', "odf"], builds
 raid = set(re.findall(r'"(\w+)"', re.search(r"local raidUnits = \{([^}]*)\}", live)[1]))
 scaled = set(re.findall(r"(\w+) = true", re.search(r"SCALED_ODFS = \{([^}]*)\}", runtime_region)[1]))
 assert scaled == raid == {"svfigh", "svltnk", "svtank", "svhraz"}, (scaled, raid)

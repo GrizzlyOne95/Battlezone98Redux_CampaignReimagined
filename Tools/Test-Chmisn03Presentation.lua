@@ -119,7 +119,7 @@ for i = 1, 6 do F.rearm("howitzer_" .. i) end
 F.run(8)
 local sent = F.callsOf(lead, "Send")
 check(#sent > 3, "the leader streams events and cameras")
-local beacon = F.builds(lead, 0, "apcamr")[1].h
+local beacon = F.builds(lead, 0, "cpcamr")[1].h
 check(lm.objective1Complete and F.count(other, "SetObjectiveName", beacon) == 1, "the named beacon replicates; the fixture asserts every packet string < 128 bytes")
 check(F.count(other, "StopCockpitTimer") == 1 and F.count(other, "StartCockpitTimer") == 1, "the timer follows the host to the guest and stops there")
 for i = 1, 6 do check(F.count(other, "SetObjectiveOn", "howitzer_" .. i) == 1 and F.count(other, "SetObjectiveOff", "howitzer_" .. i) == 1,

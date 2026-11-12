@@ -24,7 +24,7 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 | --- | --- |
 | 1-4 | Humans (host on 1). The authored Black Dog side (the start tank `bvtank11_wingman`, ten wingmen, the armory `bvslfd0_armory`) stays on team 1: shared, host-run. Extra starting recyclers are disabled. |
 | 5 | The Chinese: the launch pad `launch` (the transport), its power plants and turrets, and every attacker. The body still says team 2; the runtime maps `BuildObject(..., 2, ...)` to team 5. |
-| 0 | The neutral, hidden camera target the finale builds (`apcamr`). |
+| 0 | The neutral, hidden camera target the finale builds (`bpcamr`). |
 | 7 | Support (nothing uses it here). |
 
 Only the authority (host, or the offline player) runs the body; guests only present. `SetAIControl(5, true)` runs once
@@ -45,7 +45,7 @@ plays for every peer when **any** human comes within 300 m of the launch site, a
 Scaled spawns: the seven Chinese ODFs the six waves use (`cvfigh`, `cvltnk`, `cvtnk`, `cvapc`, `cvhtnk`, `cvhraz`,
 `cvhaul`). They become *tickets*: the body gets a negative request id, the unit is built by the runtime on the next
 frames, and the body's `Goto` and `SetObjectiveOn` are replayed on it and on its extras. Not scaled: the hidden
-`apcamr` finale camera target (built directly, neutral).
+`bpcamr` finale camera target (built directly, neutral).
 
 Events. A new frame or a new spawn path is a new scaling event: the first unit of each wave is mirrored by
 `min(floor(humans / 2), 2)` extras of the same kind, spawn and orders. There are eight events (west scout, south
@@ -210,7 +210,7 @@ python Tools/test_bdmisn15.py                 # the faithful port, unchanged (ne
 - The safe-distance restoration treats "the nearest human beyond 800 m" as the co-op form of the source's single
   `user` check; the escape objective turning green is an inference from the unused `objective2Complete` flag.
 - The 2 s victory hold is a deviation forced by the restored `bd15009`; it is gone with the flag.
-- The hidden `apcamr` camera target is built by the host and shown to guests by label; whether it stays out of the
+- The hidden `bpcamr` camera target is built by the host and shown to guests by label; whether it stays out of the
   guests' radar and AI targeting is not verified (as in the faithful port's note).
 - The weather level choices are art-direction guesses; the director has no gameplay effect.
 - The out-of-lives path is not exercised by the host tests (the runtime flag `coopFailed` is set by the runtime).

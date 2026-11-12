@@ -310,7 +310,7 @@ do -- expansion: recycler back, rig builds at power2_spot then tower3_spot
     local drop
     for _, c in ipairs(F.callsOf(q[1], "Dropoff")) do if c[3] == "power2_spot" then drop = c end end
     check(drop ~= nil, "Dropoff names power2_spot")
-    F.spawn("abwpow", 5, 1627, 99652)
+    F.spawn("bbwpow", 5, 1627, 99652)
     F.run(6)
     check(m2.b4, "the tower follows the plant")
     F.run(6)

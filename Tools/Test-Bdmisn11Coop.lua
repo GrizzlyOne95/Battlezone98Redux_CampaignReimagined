@@ -111,6 +111,7 @@ local function fullRun(options)
 end
 do
     local faithful = fullRun({ faithful = true, script = "Scripts/bdmisn11.lua" })
+    faithful = faithful:gsub("apcamr", "bpcamr") -- intentional CR rename: the nav beacon matches the player faction
     local offline, peer = fullRun({})
     check(faithful == offline and faithful:find("SucceedMission:bd11win.des", 1, true),
         "offline plays like the faithful port:\n" .. faithful .. "\n" .. offline)
@@ -280,7 +281,7 @@ do
     m.goToPortalTime = w.now + 1
     F.run(3)
     check(m.objective2Complete and F.count(p[1], "AddObjective", "bd11002.otf") >= 1, "the evacuation order turns objective 2 green")
-    local nav = builtAt(p[1], "nav_end", "apcamr")
+    local nav = builtAt(p[1], "nav_end", "bpcamr")
     check(#nav == 1 and F.count(p[1], "SetObjectiveName", nav[1].h) == 1, "restored: the Portal nav beacon appears at nav_end, named once")
     check(F.count(p[1], "BuildObject") > 0 and #builtAt(p[1], "nav_end") == 1, "...and only once")
     heardAll(p, "bd11007.wav")

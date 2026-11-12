@@ -370,7 +370,7 @@ function Update(dt)
     if M.objective1Complete and M.navDelay < GetTime() then
         M.navDelay = DISABLED_TIME
         -- spawn the nav beacon
-        BuildObject("apcamr", 1, "navcam_end")
+        BuildObject("bpcamr", 1, "navcam_end")
         -- start the sound
         M.navSound = AudioMessage("bd10002.wav")
     end

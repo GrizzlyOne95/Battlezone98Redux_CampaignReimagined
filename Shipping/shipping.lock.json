@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5729,
+  "count": 5730,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -15029,6 +15029,10 @@
     {
       "source": "ODF\\baptsmok.odf",
       "runtime": "baptsmok.odf"
+    },
+    {
+      "source": "ODF\\bbbar7.odf",
+      "runtime": "bbbar7.odf"
     },
     {
       "source": "ODF\\bbbarr.odf",

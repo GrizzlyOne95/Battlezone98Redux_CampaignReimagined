@@ -190,7 +190,7 @@ for who = 1, 3 do
     local w, p, m = setup(3, {})
     capture(w, p, m, who)
     check(m.objective1Complete and m.oneOfTheEnemy == false, "human " .. who .. " takes the tank: objective 1 complete")
-    local nav = F.builds(p[1], 0, "apcamr")
+    local nav = F.builds(p[1], 0, "bpcamr")
     check(#nav == 1 and nav[1].team == 1 and nav[1].where == "spawn_beacon1", "the first beacon is a team-1 nav")
     F.run(8)
     for i = 1, 3 do check(F.count(p[i], "SetObjectiveOff", "cvtnk1") == 1, "the marker is lifted on peer " .. i) end
@@ -226,7 +226,7 @@ do
     local w, p, m = setup(3, {})
     capture(w, p, m); F.run(8)
     F.nearTo("cvtnk2", m.beacon1, 10, 0); F.run(1)
-    check(type(m.beacon2) == "string" and F.builds(p[1], 0, "apcamr")[2].where == "spawn_beacon2", "a tank at beacon 1 spawns beacon 2")
+    check(type(m.beacon2) == "string" and F.builds(p[1], 0, "bpcamr")[2].where == "spawn_beacon2", "a tank at beacon 1 spawns beacon 2")
     check(F.heardCount(p[1], "bd09004" .. ".wav") == 0, "no line until a human arrives")
     F.nearTo(p[2].player, m.beacon1, 20, 0); F.run(1)
     heardAll(p, "bd09004" .. ".wav")

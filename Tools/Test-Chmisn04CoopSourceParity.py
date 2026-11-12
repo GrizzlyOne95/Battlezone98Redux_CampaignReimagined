@@ -8,6 +8,8 @@ faithful = (ROOT / "Scripts/ch04.lua").read_bytes()
 coop_raw = (ROOT / "Scripts/ch04cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
+# Intentional CR rename: the nav beacons match the player faction (Chinese: apcamr -> cpcamr).
+faithful_text = faithful_text.replace('"apcamr"', '"cpcamr"')
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
 
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
@@ -55,7 +57,7 @@ for name in ("Retreat", "GetHandle", "GetOdf", "GetTime", "IsAudioMessageDone"):
     assert name in body_calls and name not in shadowed, "stays native: " + name
 # The enemy's literal team 2 only reaches the engine through the runtime (BuildObject) or the direct-path bypass.
 builds = re.findall(r'BuildObject\("(\w+)", (\d), ', body)
-assert {team for odf, team in builds if odf != "apcamr"} == {"2"}, "all enemy builds are on team 2"
-assert {team for odf, team in builds if odf == "apcamr"} == {"1"}, "the nav beacons are on team 1"
+assert {team for odf, team in builds if odf != "cpcamr"} == {"2"}, "all enemy builds are on team 2"
+assert {team for odf, team in builds if odf == "cpcamr"} == {"1"}, "the nav beacons are on team 1"
 assert "team = 2" not in body
 print("ch04cr parity: %d CR regions and %d shadowed natives; the rest is the faithful port" % (len(opened), len(shadowed)))

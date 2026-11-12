@@ -8,6 +8,8 @@ faithful = (ROOT / "Scripts/bd04.lua").read_bytes()
 coop_raw = (ROOT / "Scripts/bd04cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
+# Intentional CR rename: the nav beacons match the player faction (Black Dog: apcamr -> bpcamr).
+faithful_text = faithful_text.replace('"apcamr"', '"bpcamr"')
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
 
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
@@ -55,7 +57,7 @@ for name in ("Goto", "GetDistance", "IsInsideArea", "GetTug", "GetHealth", "GetH
 # The enemy's literal team 2 only reaches the engine through the runtime (BuildObject) or the portal shadow.
 builds = re.findall(r'BuildObject\("(\w+)", (\d), ', body)
 assert {odf for odf, team in builds if team == "2"} == {"cvfighg", "cvfigh", "cvtnk"}, builds
-assert {odf for odf, team in builds if team == "1"} == {"aspilo", "bvfigh", "bvtank", "bvhraza", "apcamr"}, builds
+assert {odf for odf, team in builds if team == "1"} == {"aspilo", "bvfigh", "bvtank", "bvhraza", "bpcamr"}, builds
 assert re.findall(r'BuildObjectAtPortal\("(\w+)", (\d), ', body) == [("cvfigh", "2")], "one portal build, on the enemy team"
 assert re.findall(r"SetPerceivedTeam\((\w+\.\w+), (\d)\)", body) == [("M.user", "2")], "the disguise is the DLL's team 2 on the player"
 scaled = set(re.search(r"SCALED_ODFS = \{([^}]*)\}", coop)[1].replace("=", " ").replace("true", " ").replace(",", " ").split())

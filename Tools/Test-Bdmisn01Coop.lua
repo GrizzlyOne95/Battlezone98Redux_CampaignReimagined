@@ -177,7 +177,7 @@ end
 for n = 1, 4 do
     local w, p, m = setup(n, {})
     reachNav(w)
-    local beacon = F.builds(p[1], 0, "apcamr")
+    local beacon = F.builds(p[1], 0, "bpcamr")
     check(#beacon == 1 and beacon[1].team == 1 and beacon[1].where == "spawn_nav_beacon", "Nav Alpha is built once on team 1")
     local amb = at(F.builds(p[1], 0, "cvfigh"), "spawn_attack_ambush")
     check(#amb == 2, n .. " human(s): the ambush is the two source units, no extras, got " .. #amb)

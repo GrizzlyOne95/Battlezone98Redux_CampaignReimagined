@@ -597,7 +597,7 @@ function Update(dt)
         M.openingSound = nil
 
         -- spawn the nav camera
-        M.navStart = BuildObject("apcamr", 1, "nav_start")
+        M.navStart = BuildObject("cpcamr", 1, "nav_start")
         SetName(M.navStart, "CCA Base")
 
         ClearObjectives()
@@ -843,7 +843,7 @@ function Update(dt)
 
         AudioMessage("ch01006.wav")
 
-        M.navTug = BuildObject("apcamr", 1, "nav_tug")
+        M.navTug = BuildObject("cpcamr", 1, "nav_tug")
 
         -- update objectives
         ClearObjectives()
@@ -996,7 +996,7 @@ function Update(dt)
         AddObjective("ch01004.otf", "green")
         AddObjective("ch01005.otf", "white")
 
-        M.navEnd = BuildObject("apcamr", 1, "nav_end")
+        M.navEnd = BuildObject("cpcamr", 1, "nav_end")
         -- Native assertion: _ASSERTE(navEnd != NULL);
         SetName(M.navEnd, "Safe Distance")
         SetObjectiveOn(M.navEnd)

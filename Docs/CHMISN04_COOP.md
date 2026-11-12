@@ -68,7 +68,7 @@ by design (see "Stealth rules").
 Scaled spawns: the ODFs `svfigha` (chase_1 and chase_3), `svtanka` (chase_2) and `svfigh` (the portal guards): the pursuit. They become *tickets*:
 the body gets a negative request id and the unit is built by the runtime on the next frames, with the body's later orders replayed on it.
 Not scaled: the 25 pilots (`sspilo`), the two scramble fighters (`fighter_1`, `fighter_2`, built directly: a set piece at the silo, same
-`svfigh` ODF as the portal guards), the nav beacons (`apcamr`) and the stand-in craft.
+`svfigh` ODF as the portal guards), the nav beacons (`cpcamr`) and the stand-in craft.
 
 Events: **a new frame or a new entry path is a new scaling event** (the body builds the three chase groups unit by unit, interleaved: an event is the
 first unit of an entry path in a frame), and the first scaled unit of an event is mirrored by `min(floor(humans / 2), 2)` extras of the same kind, entry and orders.

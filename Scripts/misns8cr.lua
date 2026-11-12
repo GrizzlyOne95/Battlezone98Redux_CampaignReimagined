@@ -193,7 +193,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     rallyPoints = { [0] = "svrecycle" },
     -- The scripted Black Dog units are scaled/concealed; the replacement factory (it is the AI's producer,
     -- queried through IsDeployed/Pickup), Romeski, the nav beacons and the SAV swaps are built directly.
-    scaledOdfs = { bvtavk = true, avart8 = true, bvsca8 = true, bvra8 = true },
+    scaledOdfs = { bvtank = true, avart8 = true, bvsca8 = true, bvra8 = true },
     fallbackEntries = { "a_post1", "t2post", "t3post", "american_spawn" },
     wonFlags = { "game_over" },
     endedFlags = { "game_over" },
@@ -353,7 +353,7 @@ if campaignRuntime then
     end
     function Restored.ChokeCam(r)
         -- Cut: if the retreating recycler is within 100 m of dis_geyser2 and the message has not played,
-        -- AudioMessage("misns802.wav"), cam4 = BuildObject("apcamr", 1, "last_nav_spawn") named "Choke Point".
+        -- AudioMessage("misns802.wav"), cam4 = BuildObject("spcamr", 1, "last_nav_spawn") named "Choke Point".
         -- The cut line's guard (recycle_message) is already true by then, so it could never fire; own flag here.
         -- The nav beacon is restored; misns802 is not replayed (misns815/816 already announce the retreat).
         -- The recycler must first have been seen more than 100 m from dis_geyser2 (it starts about 1 km away), so a
@@ -365,7 +365,7 @@ if campaignRuntime then
         if not M.recycle_move then return end
         if r.chokeFar and d < 100.0 then
             r.chokeCam = true
-            M.cam4 = BuildObject("apcamr", 1, "last_nav_spawn")
+            M.cam4 = BuildObject("spcamr", 1, "last_nav_spawn")
             if Valid(M.cam4) then SetObjectiveName(M.cam4, "Choke Point") end
         end
     end
@@ -447,35 +447,35 @@ function AddObject(h)
         M.avrig1 = h
     elseif M.avrig2 == nil and IsOdf(h, "avcns8") then
         M.avrig2 = h
-    elseif M.avtank1 == nil and IsOdf(h, "bvtavk") then
+    elseif M.avtank1 == nil and IsOdf(h, "bvtank") then
         M.avtank1 = h
-    elseif M.avtank2 == nil and IsOdf(h, "bvtavk") then
+    elseif M.avtank2 == nil and IsOdf(h, "bvtank") then
         M.avtank2 = h
-    elseif M.avtank3 == nil and IsOdf(h, "bvtavk") then
+    elseif M.avtank3 == nil and IsOdf(h, "bvtank") then
         M.avtank3 = h
-    elseif M.avtower1 == nil and IsOdf(h, "abtowe") then
+    elseif M.avtower1 == nil and IsOdf(h, "bbtowe") then
         M.avtower1 = h
-    elseif M.avtower2 == nil and IsOdf(h, "abtowe") then
+    elseif M.avtower2 == nil and IsOdf(h, "bbtowe") then
         M.avtower2 = h
-    elseif M.avpower1 == nil and IsOdf(h, "abwpow") then
+    elseif M.avpower1 == nil and IsOdf(h, "bbwpow") then
         M.avpower1 = h
-    elseif M.avpower2 == nil and IsOdf(h, "abwpow") then
+    elseif M.avpower2 == nil and IsOdf(h, "bbwpow") then
         M.avpower2 = h
-    elseif M.avtower3 == nil and IsOdf(h, "abtowe") then
+    elseif M.avtower3 == nil and IsOdf(h, "bbtowe") then
         M.avtower3 = h
-    elseif M.avtower4 == nil and IsOdf(h, "abtowe") then
+    elseif M.avtower4 == nil and IsOdf(h, "bbtowe") then
         M.avtower4 = h
-    elseif M.avpower3 == nil and IsOdf(h, "abwpow") then
+    elseif M.avpower3 == nil and IsOdf(h, "bbwpow") then
         M.avpower3 = h
-    elseif M.avpower4 == nil and IsOdf(h, "abwpow") then
+    elseif M.avpower4 == nil and IsOdf(h, "bbwpow") then
         M.avpower4 = h
-    elseif M.avsilo1 == nil and IsOdf(h, "absilo") then
+    elseif M.avsilo1 == nil and IsOdf(h, "bbsilo") then
         M.avsilo1 = h
-    elseif M.avsilo2 == nil and IsOdf(h, "absilo") then
+    elseif M.avsilo2 == nil and IsOdf(h, "bbsilo") then
         M.avsilo2 = h
-    elseif M.screwtower == nil and IsOdf(h, "abtowe") then
+    elseif M.screwtower == nil and IsOdf(h, "bbtowe") then
         M.screwtower = h
-    elseif M.screwpower == nil and IsOdf(h, "abwpow") then
+    elseif M.screwpower == nil and IsOdf(h, "bbwpow") then
         M.screwpower = h
     elseif M.svpower1 == nil and IsOdf(h, "sbwpow") then
         M.svpower1 = h
@@ -705,8 +705,8 @@ function Update(dt)
     end
     -- this is telling the construction rigs to build gun towers at their base
     if (IsAlive(M.avrig1))  and  (IsAlive(M.avrig2))  and  (not M.rig_prep) then
-        Build(M.avrig1, "abwpow")
-        Build(M.avrig2, "abtowe")
+        Build(M.avrig1, "bbwpow")
+        Build(M.avrig2, "bbtowe")
         M.base_build_time = GetTime() + 10.0
         SetAIP("misns8a.aip")
         -- this buld another turret and HAVE 3 fighters (have 4 scavs)
@@ -746,10 +746,10 @@ function Update(dt)
     if (not M.silo_center_prep)  and  (M.rig_check < GetTime()) then
         M.rig_check2 = GetTime() + 5.0
         if IsAlive(M.avrig1) then
-            Build(M.avrig1, "absilo")
+            Build(M.avrig1, "bbsilo")
         end
         if IsAlive(M.avrig2) then
-            Build(M.avrig2, "absilo")
+            Build(M.avrig2, "bbsilo")
         end
         M.silo_center_prep = true
     end
@@ -796,10 +796,10 @@ function Update(dt)
     end
     if (M.silo1_build)  and  (not M.prep_center_towers)  and  (IsAlive(M.avsilo1)) then
         if IsAlive(M.avrig1) then
-            Build(M.avrig1, "abwpow")
+            Build(M.avrig1, "bbwpow")
         end
         if IsAlive(M.avrig2) then
-            Build(M.avrig2, "abtowe")
+            Build(M.avrig2, "bbtowe")
         end
         SetAIP("misns8b.aip")
         -- this builds another fighter (have 3) (have 4 scavs)
@@ -881,7 +881,7 @@ function Update(dt)
     if (M.tanks_follow)  and  (M.tank_check < GetTime())  and  (not M.tanks_built) then
         M.tank_check = GetTime() + 30.0
         if IsAlive(M.avtank3) then
-            --			tanks = CountUnitsNearObject(avmuf, 4000, 2, "bvtavk");
+            --			tanks = CountUnitsNearObject(avmuf, 4000, 2, "bvtank");
             --
             --			if (tanks > 3)
             --			{
@@ -961,7 +961,7 @@ function Update(dt)
             else
                 if Distance(M.avmuf, M.dis_geyser1) < 100.0 then
                     AudioMessage("misns801.wav")
-                    M.cam3 = BuildObject ("apcamr", 1, "cam_spawn")
+                    M.cam3 = BuildObject ("spcamr", 1, "cam_spawn")
                     if M.cam3~=nil then
                         SetObjectiveName(M.cam3, "Choke Point")
                     end
@@ -992,8 +992,8 @@ function Update(dt)
 -- CR co-op scaling >>
             if campaignRuntime then campaignRuntime.BeginEvent() end
 -- CR co-op scaling <<
-            M.screwu1 = BuildObject("bvtavk", 2, "t1post")
-            M.screwu2 = BuildObject("bvtavk", 2, "t1post")
+            M.screwu1 = BuildObject("bvtank", 2, "t1post")
+            M.screwu2 = BuildObject("bvtank", 2, "t1post")
             if IsAlive(M.ccarecycle) then
                 Attack(M.screwu1, M.ccarecycle)
                 Attack(M.screwu2, M.ccarecycle)
@@ -1032,8 +1032,8 @@ function Update(dt)
     -- this constitutes the situation where plan_c happens
     if (not M.plan_c)  and  (IsAlive(M.avrecycle))  and  (M.defense_check < GetTime()) then
         M.defense_check = GetTime() + 5.0
-        M.defense1 = CountUnitsNearObject(M.avrecycle, 200.0, 2, "abtowe")
-        M.defense2 = CountUnitsNearObject(M.avrecycle, 200.0, 2, "abwpow")
+        M.defense1 = CountUnitsNearObject(M.avrecycle, 200.0, 2, "bbtowe")
+        M.defense2 = CountUnitsNearObject(M.avrecycle, 200.0, 2, "bbwpow")
         M.scrap = GetScrap(2)
         --[=[/*((defense1 == 1) && (defense2 == 1)) || */]=]
         if ((M.defense1 == 0)  or  (M.defense2 == 0))  and  (M.scrap < 10.0) then
@@ -1130,7 +1130,7 @@ function Update(dt)
 		if ((GetDistance(avrecycle, dis_geyser2) < 100.0f) && (!recycle_message))
 		{
 			AudioMessage("misns802.wav");
-			cam4 = BuildObject ("apcamr", 1, "last_nav_spawn");
+			cam4 = BuildObject ("spcamr", 1, "last_nav_spawn");
 			if (cam4!=NULL) GameObjectHandle::GetObj(cam4)->SetName("Choke Point");
 			recycle_message = true;
 		}
@@ -1170,7 +1170,7 @@ function Update(dt)
         else
             if IsAlive(M.avrig1) then
                 --			SetIndependence(avrig2, 1);
-                Build(M.avrig1, "absilo")
+                Build(M.avrig1, "bbsilo")
             end
             if IsAlive(M.avrig2) then
                 --			SetIndependence(avrig2, 1);
@@ -1182,21 +1182,21 @@ function Update(dt)
     if (M.rigs_reordered)  and  (IsAlive(M.avrig1))  and  (M.center_check < GetTime()) then
         if (not M.rebuild1_prep)  and  (not M.rebuild2_prep)  and  (not M.rebuild3_prep) then
             M.center_check = GetTime() + 10.0
-            M.silo1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "absilo")
-            M.power1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "abwpow")
-            M.tower1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "abtowe")
+            M.silo1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "bbsilo")
+            M.power1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "bbwpow")
+            M.tower1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "bbtowe")
             if M.silo1 == 0 then
-                Build(M.avrig1, "absilo")
+                Build(M.avrig1, "bbsilo")
                 M.rebuild_time = GetTime() + 5.0
                 M.rebuild1_prep = true
             else
                 if M.power1 == 0 then
-                    Build(M.avrig1, "abwpow")
+                    Build(M.avrig1, "bbwpow")
                     M.rebuild_time = GetTime() + 5.0
                     M.rebuild2_prep = true
                 else
                     if M.tower1 == 0 then
-                        Build(M.avrig1, "abtowe")
+                        Build(M.avrig1, "bbtowe")
                         M.rebuild_time = GetTime() + 5.0
                         M.rebuild3_prep = true
                     else
@@ -1231,7 +1231,7 @@ function Update(dt)
         end
         if (M.rebuilding1)  and  (M.center_check < GetTime()) then
             M.center_check = GetTime() + 10.0
-            M.silo1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "absilo")
+            M.silo1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "bbsilo")
             -- PORT FIX: native == 1 stalls maintenance if an additional matching
             -- structure is present. >= 1 recognizes the completed build; the
             -- ordinary one-structure case, priorities and timers are unchanged.
@@ -1242,7 +1242,7 @@ function Update(dt)
         end
         if (M.rebuilding2)  and  (M.center_check < GetTime()) then
             M.center_check = GetTime() + 10.0
-            M.power1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "abwpow")
+            M.power1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "bbwpow")
             -- PORT FIX: same exact-count maintenance stall as the silo above.
             -- Accept additional power plants; normal completion timing is unchanged.
             if M.power1 >= 1 then
@@ -1252,7 +1252,7 @@ function Update(dt)
         end
         if (M.rebuilding3)  and  (M.center_check < GetTime()) then
             M.center_check = GetTime() + 10.0
-            M.tower1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "abtowe")
+            M.tower1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "bbtowe")
             -- PORT FIX: accept an existing tower even if another was built nearby.
             -- The original one-tower flow and polling interval are unchanged.
             if M.tower1 >= 1 then
@@ -1264,7 +1264,7 @@ function Update(dt)
     -- this is rig2 code
     if (M.welldone_rig)  and  (IsAlive(M.avrig2)) then
         if not M.maintain then
-            Build(M.avrig2, "absilo")
+            Build(M.avrig2, "bbsilo")
             M.maintain = true
         end
         if (M.alt_check < GetTime())  and  (not M.rig_there) then
@@ -1277,21 +1277,21 @@ function Update(dt)
         if (M.rig_there)  and  (M.alt_check < GetTime()) then
             if (not M.rebuild4_prep)  and  (not M.rebuild5_prep)  and  (not M.rebuild6_prep) then
                 M.alt_check = GetTime() + 10.0
-                M.silo2 = CountUnitsNearObject(M.last_geyser, 400, 2, "absilo")
-                M.power2 = CountUnitsNearObject(M.last_geyser, 400, 2, "abwpow")
-                M.tower2 = CountUnitsNearObject(M.last_geyser, 400, 2, "abtowe")
+                M.silo2 = CountUnitsNearObject(M.last_geyser, 400, 2, "bbsilo")
+                M.power2 = CountUnitsNearObject(M.last_geyser, 400, 2, "bbwpow")
+                M.tower2 = CountUnitsNearObject(M.last_geyser, 400, 2, "bbtowe")
                 if M.silo2 == 0 then
-                    Build(M.avrig2, "absilo")
+                    Build(M.avrig2, "bbsilo")
                     M.rebuild_time2 = GetTime() + 5.0
                     M.rebuild4_prep = true
                 else
                     if M.power2 == 0 then
-                        Build(M.avrig2, "abwpow")
+                        Build(M.avrig2, "bbwpow")
                         M.rebuild_time2 = GetTime() + 5.0
                         M.rebuild5_prep = true
                     else
                         if M.tower2 == 0 then
-                            Build(M.avrig2, "abtowe")
+                            Build(M.avrig2, "bbtowe")
                             M.rebuild_time2 = GetTime() + 5.0
                             M.rebuild6_prep = true
                         else
@@ -1332,7 +1332,7 @@ function Update(dt)
             end
             if (M.rebuilding4)  and  (M.alt_check < GetTime()) then
                 M.alt_check = GetTime() + 10.0
-                M.silo2 = CountUnitsNearObject(M.last_geyser, 400, 2, "absilo")
+                M.silo2 = CountUnitsNearObject(M.last_geyser, 400, 2, "bbsilo")
                 -- PORT FIX: >= 1 avoids the same extra-structure maintenance
                 -- stall at the alternate site, without changing normal timing.
                 if M.silo2 >= 1 then
@@ -1342,7 +1342,7 @@ function Update(dt)
             end
             if (M.rebuilding5)  and  (M.alt_check < GetTime()) then
                 M.alt_check = GetTime() + 10.0
-                M.power2 = CountUnitsNearObject(M.last_geyser, 400, 2, "abwpow")
+                M.power2 = CountUnitsNearObject(M.last_geyser, 400, 2, "bbwpow")
                 -- PORT FIX: accept extra power plants; one-plant flow is unchanged.
                 if M.power2 >= 1 then
                     M.rebuild5_prep = false
@@ -1351,7 +1351,7 @@ function Update(dt)
             end
             if (M.rebuilding6)  and  (M.alt_check < GetTime()) then
                 M.alt_check = GetTime() + 10.0
-                M.tower2 = CountUnitsNearObject(M.last_geyser, 400, 2, "abtowe")
+                M.tower2 = CountUnitsNearObject(M.last_geyser, 400, 2, "bbtowe")
                 -- PORT FIX: accept extra towers; one-tower flow is unchanged.
                 if M.tower2 >= 1 then
                     M.rebuild6_prep = false
