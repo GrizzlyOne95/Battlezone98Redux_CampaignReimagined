@@ -3,7 +3,7 @@
 
 Everything the campaign adds to misn14 (the co-op layer, the team map, the Titan weather hook, the NSDF
 Fury squad, the Fury waves, the surrender additions, the rescue carrier/independence, the restored VO,
-the Fury objective and the rally) lives between exact `-- CR <name> >>` / `-- CR <name> <<` marker lines.
+the Fury objective, the rally and the dropship opening) lives between exact `-- CR <name> >>` / `-- CR <name> <<` marker lines.
 They are stripped (inclusive) so the checks below prove what remains is the DLL port. The substitutions
 outside the markers are intentional divergences (Docs/MISN14_COOP.md); each is asserted explicitly.
 """
@@ -35,7 +35,7 @@ lua_full = (ROOT / "Scripts/misn14cr.lua").read_text(encoding="utf-8").replace("
 
 # ---- strip the CR regions ---------------------------------------------------------------------------
 REGIONS = ("CR PDA", "CR co-op layer", "CR team map", "CR Titan weather hook", "CR rescue", "CR fury squad",
-           "CR fury waves", "CR surrender", "CR cut VO", "CR objectives", "CR rally", "CR difficulty")
+           "CR fury waves", "CR surrender", "CR cut VO", "CR objectives", "CR rally", "CR difficulty", "CR dropship")
 opens = {f"-- {name} >>": name for name in REGIONS}
 closes = {f"-- {name} <<": name for name in REGIONS}
 lines = lua_full.split("\n")

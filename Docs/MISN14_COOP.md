@@ -22,7 +22,7 @@ Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.m
 
 | When | What | Lines |
 |---|---|---|
-| Start | Stock intro (two path shots on the Texas); a dormant NSDF Fury squad stands beside the Texas, locked | 1401 |
+| Start | Dropship landing (below), then the stock intro (two path shots on the Texas); a dormant NSDF Fury squad stands beside the Texas, locked | 1401 |
 | Intro end | Stock objective `misn1401.otf`; beacon 1 15 s later | 1416 |
 | Intro end + 40 s | **Activation scene**: shared object camera on the squad lead, about 15 s | 1402 (Collins), 1423, 1424 (Buzz), queued |
 | Scene end | **Control**: each Fury follows its own human at priority 0, so the player can select and order it; objective "Fury squad online" (green) | |
@@ -34,6 +34,24 @@ Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.m
 | Wave 3, or the Furies break the CCA earlier | CCA surrender | 1404, 1405 |
 | Wave 4 (after rescue 3) | Collins' message and the base shot (only when no human is in a fight) | 1406 |
 | Wave 5 (after rescue 3) | Rescue the CCA scientists; APC within 200 m of the barracks, 15 s, back within 300 m of the Texas wins | 1407-1411 |
+
+## Dropship opening [CR addition, offline and co-op]
+
+The mission opens with one NSDF dropship landing the Texas and every human craft, offline and in co-op. It uses the
+generic `Scripts/CRDropIn.lua` the same way `misn04cr.lua` does (see `MISN04_COOP.md` "Dropship opening" for the
+choreography and its numbers; "CR guess" values there need a live tune). The authored map has no scripted Nav Beta
+handle, so the landing goal is the Texas's own stock spot (`avrecy-1_recycler`, the base the humans start beside):
+the ship lands 55 m behind it, stern toward it, and the Texas drives down the ramp onto that spot. The Texas rides
+centred at the front of the hold (`along -20`), the crew take the two side lanes behind it, one slot per human team.
+The plan is numbers on the ordered presentation stream (`DropShip`/`DropCrew`/`DropGo`, listed statically in
+`CRDrop.ops` so a guest without the module still acknowledges them); every peer pins only its own craft and locks
+itself through the EXU control mask (owner `mission:misn14drop`). While the ship descends and its ramp opens (about
+19 s) the stock opening waits: the briefing (`misn1401.wav`), the `cam_path1`/`cam_path2` flyover, the objective and the
+Fury pad (it is built beside the Texas, so it must not be built while the Texas is in the air) then run unchanged after
+the release. A save/load mid-drop, host departure or a late-join warning ends the drop at once (ships removed, the Texas
+and each carried craft set down, controls returned). Without `CRDropIn`, or without the Texas, the mission logs
+`[misn14] stock opening: ...` and starts as stock. `bdmisn14` (Black Dog) does not share this code: it is a separate
+script with no `cam_path` opening.
 
 ## Team map (owner decision)
 

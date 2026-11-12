@@ -99,7 +99,11 @@ end
 for _, g in ipairs(guests) do
     check(log(g) == hostLog, "guest radio log matches the host")
     check(g.env.Save().coopUnresolved == 0, "guest resolved every marker and camera")
-    check(F.count(g, "print") == 0, "guest logged nothing unresolved")
+    local unresolved = 0
+    for _, c in ipairs(F.callsOf(g, "print")) do
+        if tostring(c[2]):find("unresolved", 1, true) then unresolved = unresolved + 1 end
+    end
+    check(unresolved == 0, "guest logged nothing unresolved")
 end
 
 -- The result: a Texas loss reaches everyone with its debrief.
@@ -108,6 +112,27 @@ F.run(12)
 for _, p in pairs(W.peers) do
     check(F.count(p, "FailMission") == 1 and F.last(p, "FailMission")[3] == "misn14l1.des", "every peer gets the l1 result")
     check(p.camera == 0, "camera stack balanced at the end on peer " .. p.id)
+end
+
+
+-- The dropship opening (CRDropIn): guests film the landing through the shared camera, then the same stock
+-- intro; the radio log stays identical on every peer.
+W = F.reset()
+host = F.makePeer(1, 1, true, {dropIn = true})
+guests = {F.makePeer(2, 2, true, {dropIn = true}), F.makePeer(3, 3, true, {dropIn = true})}
+F.connect()
+F.run(6)
+for _, g in ipairs(guests) do
+    check(F.count(g, "CameraReady") >= 1 and F.count(g, "CameraObject") > 0 and F.count(g, "CameraPath") == 0,
+        "guest films the dropship landing")
+    check(not F.heard(g, "misn1401.wav"), "guest hears no briefing before the ramp is down")
+end
+F.runUntil(function() return M().objective_time ~= nil end, 90)
+F.run(2)
+for _, g in ipairs(guests) do
+    check(F.count(g, "CameraPath", "cam_path1") > 0 and F.heard(g, "misn1401.wav"), "guest films the intro after the drop")
+    check(g.camera == 0 and F.count(g, "AddObjective", "misn1401.otf") == 1, "guest camera released after the intro")
+    check(log(g) == log(host) and g.env.Save().coopUnresolved == 0, "guest radio log matches; every handle resolved")
 end
 
 print(string.format("misn14 presentation: %d checks passed", checks))

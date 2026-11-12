@@ -228,4 +228,71 @@ local guestBeats = 0
 for _, h in ipairs(hooks.guest) do if h[1] == "beat" then guestBeats = guestBeats + 1 end end
 check(guestBeats == 0, "beats are host-only")
 
+-- ------------------------------------------------------------ dropship opening (CRDropIn)
+-- One cargo ship carries every human craft and the Texas; the host owns the ship and the Texas, every peer
+-- holds only its own craft, and the stock opening follows the release on every peer.
+local function pins(peer, h) return F.count(peer, "SetTransform", h) end
+local function shipsAlive()
+    local n = 0
+    for _, o in pairs(W.objects) do
+        if o.alive and (o.odf == "avdropc" or o.odf == "avdropo" or o.odf == "avdropx") then n = n + 1 end
+    end
+    return n
+end
+session(4, {dropIn = true, guest = {dropIn = true}})
+F.run(5)
+check(M().cr14dropHold and #F.builds(host, 0, "avdropc") == 1 and #F.builds(host, 0, "apcamr") == 1,
+    "the host starts one cargo ship and its camera pod")
+check(not F.heard(host, "misn1401.wav") and #F.builds(host, 0, "avsav14") == 0, "the stock opening waits")
+check(pins(host, "avrecy-1_recycler") > 0 and pins(host, host.player) > 0 and host.mask == "mission:misn14drop",
+    "the host holds the Texas and its own craft, locked")
+local lats = {}
+for _, g in ipairs(guests) do
+    local d = g.env.Save().dropin
+    check(d and d.go and d.n == 1 and d.crew[g.team] and d.crew[g.team].ship == 1, "guest " .. g.id .. " has the drop plan")
+    lats[#lats + 1] = tostring(d.crew[g.team].along) .. "/" .. tostring(d.crew[g.team].lat)
+    check(#F.builds(g, 0) == 0 and pins(g, g.player) > 0 and g.mask == "mission:misn14drop",
+        "guest " .. g.id .. " holds only its own craft, locked")
+    check(F.count(g, "CameraObject") > 0 and g.camera == 1, "guest " .. g.id .. " films the shared drop camera")
+    for _, c in ipairs(F.callsOf(g, "SetTransform")) do check(c[2] == g.player, "a guest pinned a craft it does not own") end
+    check(F.count(g, "CameraPath") == 0 and not F.heard(g, "misn1401.wav"), "guest waits for the stock opening")
+end
+lats[#lats + 1] = tostring(M().dropin.crew[1].along) .. "/" .. tostring(M().dropin.crew[1].lat)
+local seen = {}
+for _, key in ipairs(lats) do check(not seen[key], "two humans share a hold slot"); seen[key] = true end
+throughIntro()
+F.run(2)
+for _, g in ipairs(guests) do
+    check(g.env.Save().dropin.released and g.mask == nil, "guest " .. g.id .. " is released and unlocked")
+    check(F.heardCount(g, "misn1401.wav") == 1 and F.count(g, "CameraPath", "cam_path1") > 0,
+        "guest " .. g.id .. " gets the stock briefing and flyover after the drop")
+    check(g.camera == 0 and F.count(g, "AddObjective", "misn1401.otf") == 1, "guest camera released, stock objective shown")
+    check(g.env.Save().coopUnresolved == 0, "guest resolved every drop handle")
+end
+check(host.mask == nil and host.camera == 0 and F.heardCount(host, "misn1401.wav") == 1, "host released, one briefing")
+for _, p in ipairs({host, unpack(guests)}) do F.place(p.player, 2531.6 - 25 * (p.team - 1), 99387.9) end
+F.run(60)
+check(M().dropin.phase == "done" and shipsAlive() == 0, "the ship closes and leaves")
+local goal = F.posOf("avrecy-1_recycler")
+check(math.sqrt((goal.x - 2573.8) ^ 2 + (goal.z - 99396.2) ^ 2) < 8, "the Texas is set down at its landing goal")
+check(#F.builds(host, 0, "avsav14") == 8, "the stock Fury pad (two per human) follows the drop")
+
+-- A guest without CRDropIn still acknowledges the plan: the stream never stalls.
+session(2, {dropIn = true, guest = {}})
+throughIntro()
+check(F.heardCount(guests[1], "misn1401.wav") == 1 and guests[1].env.Save().coopUnresolved == 0
+    and F.count(guests[1], "SetTransform") == 0, "a guest without the module follows the stream and is never moved")
+local said = false
+for _, c in ipairs(F.callsOf(guests[1], "print")) do said = said or tostring(c[2]):find("CRDropIn unavailable", 1, true) ~= nil end
+check(said, "the fallback is logged")
+
+-- Host departure mid-drop unlocks every peer (nobody stays held).
+session(2, {dropIn = true, guest = {dropIn = true}})
+F.run(5)
+check(guests[1].mask == "mission:misn14drop", "the guest is held")
+host.env.DeletePlayer(1, "P1", 1)
+guests[1].env.DeletePlayer(1, "P1", 1)
+F.run(2)
+check(guests[1].mask == nil, "the guest is unlocked when the host leaves")
+
 print(string.format("misn14 co-op: %d checks passed", checks))
