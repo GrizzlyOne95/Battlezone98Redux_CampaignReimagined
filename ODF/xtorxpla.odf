@@ -1,0 +1,100 @@
+[ExplosionClass]
+classLabel = "explosion"
+
+explRadius = 50.0
+explSound = "xbuild.wav"
+damageRadius = 50.0
+damageBallistic = 0
+damageConcussion = 20000
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 5
+
+particleClass1 = "xtorxpla.Flash"
+particleCount1 = 1
+particleVeloc1 = "0.00 0.00 0.00"
+
+particleClass2 = "xtorxpla.Core"
+particleCount2 = 1
+particleVeloc2 = "0.00 5.00 0.00"
+particleBias2 = "0.00 10.00 0.00"
+
+particleClass3 = "xtorxpla.Ember"
+particleCount3 = 4
+particleVeloc3 = "25.00 20.00 25.00"
+particleBias3 = "0.00 10.00 0.00"
+
+particleClass4 = "xtorxpla.Smoke"
+particleCount4 = 2
+particleVeloc4 = "10.00 5.00 10.00"
+particleBias4 = "0.00 5.00 0.00"
+
+particleClass5 = "xtorxpla.Light"
+particleCount5 = 1
+particleVeloc5 = "0.00 2.00 0.00"
+particleBias5 = "0.00 5.00 0.00"
+
+[Flash]
+simulateBase = "sim_null"
+lifeTime = 0.25
+renderBase = "draw_sprite"
+textureName = "cr_xpl_flash.dds"
+textureBlend = "one one modulate"
+startColor = "255 240 200 255"
+finishColor = "255 140 40 0"
+startRadius = 35.00
+finishRadius = 70.00
+animateTime = 0.25
+
+[Core]
+simulateBase = "sim_smoke"
+lifeTime = 1.00
+renderBase = "draw_twirl"
+textureName = "cr_xpl_core.dds"
+textureBlend = "one one modulate"
+startColor = "255 235 170 255"
+finishColor = "255 90 15 0"
+startRadius = 17.50
+finishRadius = 55.00
+animateTime = 1.00
+rotationRate = 3.00
+
+[Ember]
+simulateBase = "sim_ember"
+lifeTime = 1.60
+renderBase = "draw_twirl"
+textureName = "cr_xpl_spark.dds"
+textureBlend = "one one modulate"
+startColor = "255 200 90 255"
+finishColor = "255 60 10 0"
+startRadius = 2.00
+finishRadius = 1.00
+animateTime = 1.60
+rotationRate = 8.00
+
+[Smoke]
+simulateBase = "sim_smoke"
+lifeTime = 3.50
+renderBase = "draw_twirl"
+textureName = "cr_xpl_smoke.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "110 105 95 200"
+finishColor = "60 58 55 0"
+startRadius = 12.50
+finishRadius = 35.00
+animateTime = 3.50
+rotationRate = 3.00
+
+[Light]
+simulateBase = "sim_smoke"
+lifeTime = 1.60
+renderBase = "draw_light"
+startColor = "255 205 90 255"
+finishColor = "255 90 15 0"
+startRadius = 100.00
+finishRadius = 100.00
+animateTime = 1.60
+attenuateConstant = 0.0
+attenuateLinear = 1.0
+attenuateQuadratic = 0.0

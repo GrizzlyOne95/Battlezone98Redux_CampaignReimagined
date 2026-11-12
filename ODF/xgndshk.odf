@@ -1,0 +1,29 @@
+[ExplosionClass]
+classLabel = "planarexpl"
+
+explRadius = 2.0
+explSound = NULL
+damageRadius = 50.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+omegaShake = 5.0
+
+particleTypes = 1
+
+particleClass1 = "xgndshk.Ring"
+particleCount1 = 1
+particleVeloc1 = "0.00 0.00 0.00"
+
+[Ring]
+simulateBase = "sim_null"
+lifeTime = 0.90
+renderBase = "draw_planar"
+textureName = "cr_xpl_ring.dds"
+textureBlend = "one one modulate"
+startColor = "255 230 190 200"
+finishColor = "255 150 60 0"
+startRadius = 2.00
+finishRadius = 30.00
+animateTime = 0.90
