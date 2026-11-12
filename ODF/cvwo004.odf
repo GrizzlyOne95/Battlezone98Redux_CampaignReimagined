@@ -3,9 +3,11 @@ baseName = "shell"
 classLabel = "grenade"
 shotGeometry = "ghartl00.geo"
 shotSound = "Ordin_c.wav"
-xplGround = "xgasxpl"
-xplVehicle = "xgasxpl"
-xplBuilding = "xgasxpl"
+// CR HIT FX begin (was xgasxpl/xgasxpl/xgasxpl)
+xplGround = "hhowzg"
+xplVehicle = "hhowzv"
+xplBuilding = "hhowzb"
+// CR HIT FX end
 ammoCost = 5
 lifeSpan = 60.0
 shotSpeed = 75.0

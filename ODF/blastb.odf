@@ -1,9 +1,11 @@
 [OrdnanceClass] // Blue Blast Cannon, created by General BlackDragon
 classLabel = "bolt"
 shotGeometry = NULL
-xplGround = "xlasgnd"
-xplVehicle = "xlascar"
-xplBuilding = "xlasbld"
+// CR HIT FX begin (was xlasgnd/xlascar/xlasbld)
+xplGround = "hblsbg"
+xplVehicle = "hblsbv"
+xplBuilding = "hblsbb"
+// CR HIT FX end
 
 renderName = "blastb.render"
 

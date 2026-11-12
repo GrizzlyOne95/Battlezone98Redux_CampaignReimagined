@@ -1,9 +1,11 @@
 [OrdnanceClass] // Blue Flash Cannon, created by General BlackDragon
 classLabel = "beam"
 shotGeometry = NULL
-xplGround = "xlasgnd"
-xplVehicle = "xlascar"
-xplBuilding = "xlasbld"
+// CR HIT FX begin (was xlasgnd/xlascar/xlasbld)
+xplGround = "hflsbg"
+xplVehicle = "hflsbv"
+xplBuilding = "hflsbb"
+// CR HIT FX end
 
 renderName = "flashb.render"
 

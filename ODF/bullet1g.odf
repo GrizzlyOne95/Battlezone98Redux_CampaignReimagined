@@ -1,0 +1,52 @@
+[OrdnanceClass] // Green Minigun, created by General BlackDragon
+classLabel = "tracer"
+
+shotGeometry = NULL
+// CR HIT FX begin (was xbulgnd/xbulcar/xbulbld)
+xplGround = "hmingg"
+xplVehicle = "hmingv"
+xplBuilding = "hmingb"
+// CR HIT FX end
+
+renderName = "bullet1g.render"
+
+ammoCost = 1 //2
+lifeSpan = 1.0
+shotSpeed = 120.0
+damageBallistic = 25 //50
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[TracerClass]
+tracerTexture = "bullet_g.0"
+shotColor = 240
+lodShift = 30.0
+tracerLength = 5.0
+tracerRadius = 0.0 //0.09
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "bullet1g.core"
+renderName2 = "bullet1g.trail"
+
+[Core]
+renderBase = "draw_tracer"
+textureBlend = "one one modulate"
+textureName = "bullet_g2.tga"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 255"
+startRadius = 0.117 //0.09
+finishRadius = 0.117 //0.09
+tracerLength = 6.5 //5.0
+
+[Trail]
+renderBase = "draw_trail"
+textureName = "trail2.tga"
+startColor = "127 255 127 63" 
+finishColor = "0 255 0 0" 
+startRadius = 0.09
+finishRadius = 0.0
+segmentTime = 0.16 //20
+textureRate = 0.25

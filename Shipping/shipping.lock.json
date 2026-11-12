@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6002,
+  "count": 6153,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -14951,6 +14951,10 @@
       "runtime": "ammomine.odf"
     },
     {
+      "source": "ODF\\anchor.odf",
+      "runtime": "anchor.odf"
+    },
+    {
       "source": "ODF\\apammo.odf",
       "runtime": "apammo.odf"
     },
@@ -15815,8 +15819,16 @@
       "runtime": "betspray.odf"
     },
     {
+      "source": "ODF\\blast.odf",
+      "runtime": "blast.odf"
+    },
+    {
       "source": "ODF\\blastb.odf",
       "runtime": "blastb.odf"
+    },
+    {
+      "source": "ODF\\blastg.odf",
+      "runtime": "blastg.odf"
     },
     {
       "source": "ODF\\blasth.odf",
@@ -15825,6 +15837,18 @@
     {
       "source": "ODF\\bolt.odf",
       "runtime": "bolt.odf"
+    },
+    {
+      "source": "ODF\\boltg.odf",
+      "runtime": "boltg.odf"
+    },
+    {
+      "source": "ODF\\boltr.odf",
+      "runtime": "boltr.odf"
+    },
+    {
+      "source": "ODF\\bouncebm.odf",
+      "runtime": "bouncebm.odf"
     },
     {
       "source": "ODF\\bpcamr.odf",
@@ -15863,8 +15887,36 @@
       "runtime": "bsuser.odf"
     },
     {
+      "source": "ODF\\bullet1.odf",
+      "runtime": "bullet1.odf"
+    },
+    {
       "source": "ODF\\bullet1a.odf",
       "runtime": "bullet1a.odf"
+    },
+    {
+      "source": "ODF\\bullet1b.odf",
+      "runtime": "bullet1b.odf"
+    },
+    {
+      "source": "ODF\\bullet1g.odf",
+      "runtime": "bullet1g.odf"
+    },
+    {
+      "source": "ODF\\bullet2.odf",
+      "runtime": "bullet2.odf"
+    },
+    {
+      "source": "ODF\\bullet5.odf",
+      "runtime": "bullet5.odf"
+    },
+    {
+      "source": "ODF\\bullet6.odf",
+      "runtime": "bullet6.odf"
+    },
+    {
+      "source": "ODF\\bullet6a.odf",
+      "runtime": "bullet6a.odf"
     },
     {
       "source": "ODF\\bullets.odf",
@@ -16461,6 +16513,10 @@
     {
       "source": "ODF\\charge2.odf",
       "runtime": "charge2.odf"
+    },
+    {
+      "source": "ODF\\charge6.odf",
+      "runtime": "charge6.odf"
     },
     {
       "source": "ODF\\cpcamr.odf",
@@ -17123,12 +17179,28 @@
       "runtime": "dmgvhcl4.odf"
     },
     {
+      "source": "ODF\\dummy.odf",
+      "runtime": "dummy.odf"
+    },
+    {
       "source": "ODF\\engsplsh.odf",
       "runtime": "engsplsh.odf"
     },
     {
+      "source": "ODF\\flash.odf",
+      "runtime": "flash.odf"
+    },
+    {
       "source": "ODF\\flashb.odf",
       "runtime": "flashb.odf"
+    },
+    {
+      "source": "ODF\\flashch.odf",
+      "runtime": "flashch.odf"
+    },
+    {
+      "source": "ODF\\flashg.odf",
+      "runtime": "flashg.odf"
     },
     {
       "source": "ODF\\ga7stab.odf",
@@ -17367,6 +17439,10 @@
       "runtime": "gredfld.odf"
     },
     {
+      "source": "ODF\\grenade.odf",
+      "runtime": "grenade.odf"
+    },
+    {
       "source": "ODF\\grepa.odf",
       "runtime": "grepa.odf"
     },
@@ -17523,8 +17599,460 @@
       "runtime": "handgun.odf"
     },
     {
+      "source": "ODF\\hatstb.odf",
+      "runtime": "hatstb.odf"
+    },
+    {
+      "source": "ODF\\hatstg.odf",
+      "runtime": "hatstg.odf"
+    },
+    {
+      "source": "ODF\\hatstv.odf",
+      "runtime": "hatstv.odf"
+    },
+    {
+      "source": "ODF\\hblsbb.odf",
+      "runtime": "hblsbb.odf"
+    },
+    {
+      "source": "ODF\\hblsbg.odf",
+      "runtime": "hblsbg.odf"
+    },
+    {
+      "source": "ODF\\hblsbv.odf",
+      "runtime": "hblsbv.odf"
+    },
+    {
+      "source": "ODF\\hblsgb.odf",
+      "runtime": "hblsgb.odf"
+    },
+    {
+      "source": "ODF\\hblsgg.odf",
+      "runtime": "hblsgg.odf"
+    },
+    {
+      "source": "ODF\\hblsgv.odf",
+      "runtime": "hblsgv.odf"
+    },
+    {
+      "source": "ODF\\hblstb.odf",
+      "runtime": "hblstb.odf"
+    },
+    {
+      "source": "ODF\\hblstg.odf",
+      "runtime": "hblstg.odf"
+    },
+    {
+      "source": "ODF\\hblstv.odf",
+      "runtime": "hblstv.odf"
+    },
+    {
+      "source": "ODF\\hbolgb.odf",
+      "runtime": "hbolgb.odf"
+    },
+    {
+      "source": "ODF\\hbolgg.odf",
+      "runtime": "hbolgg.odf"
+    },
+    {
+      "source": "ODF\\hbolgv.odf",
+      "runtime": "hbolgv.odf"
+    },
+    {
+      "source": "ODF\\hbolrb.odf",
+      "runtime": "hbolrb.odf"
+    },
+    {
+      "source": "ODF\\hbolrg.odf",
+      "runtime": "hbolrg.odf"
+    },
+    {
+      "source": "ODF\\hbolrv.odf",
+      "runtime": "hbolrv.odf"
+    },
+    {
+      "source": "ODF\\hboltb.odf",
+      "runtime": "hboltb.odf"
+    },
+    {
+      "source": "ODF\\hboltg.odf",
+      "runtime": "hboltg.odf"
+    },
+    {
+      "source": "ODF\\hboltv.odf",
+      "runtime": "hboltv.odf"
+    },
+    {
+      "source": "ODF\\hchanb.odf",
+      "runtime": "hchanb.odf"
+    },
+    {
+      "source": "ODF\\hchang.odf",
+      "runtime": "hchang.odf"
+    },
+    {
+      "source": "ODF\\hchanv.odf",
+      "runtime": "hchanv.odf"
+    },
+    {
+      "source": "ODF\\hcpstb.odf",
+      "runtime": "hcpstb.odf"
+    },
+    {
+      "source": "ODF\\hcpstg.odf",
+      "runtime": "hcpstg.odf"
+    },
+    {
+      "source": "ODF\\hcpstv.odf",
+      "runtime": "hcpstv.odf"
+    },
+    {
+      "source": "ODF\\heatmsl.odf",
+      "runtime": "heatmsl.odf"
+    },
+    {
+      "source": "ODF\\hflsbb.odf",
+      "runtime": "hflsbb.odf"
+    },
+    {
+      "source": "ODF\\hflsbg.odf",
+      "runtime": "hflsbg.odf"
+    },
+    {
+      "source": "ODF\\hflsbv.odf",
+      "runtime": "hflsbv.odf"
+    },
+    {
+      "source": "ODF\\hflsgb.odf",
+      "runtime": "hflsgb.odf"
+    },
+    {
+      "source": "ODF\\hflsgg.odf",
+      "runtime": "hflsgg.odf"
+    },
+    {
+      "source": "ODF\\hflsgv.odf",
+      "runtime": "hflsgv.odf"
+    },
+    {
+      "source": "ODF\\hflshb.odf",
+      "runtime": "hflshb.odf"
+    },
+    {
+      "source": "ODF\\hflshg.odf",
+      "runtime": "hflshg.odf"
+    },
+    {
+      "source": "ODF\\hflshv.odf",
+      "runtime": "hflshv.odf"
+    },
+    {
+      "source": "ODF\\hhornb.odf",
+      "runtime": "hhornb.odf"
+    },
+    {
+      "source": "ODF\\hhorng.odf",
+      "runtime": "hhorng.odf"
+    },
+    {
+      "source": "ODF\\hhornv.odf",
+      "runtime": "hhornv.odf"
+    },
+    {
+      "source": "ODF\\hhowzb.odf",
+      "runtime": "hhowzb.odf"
+    },
+    {
+      "source": "ODF\\hhowzg.odf",
+      "runtime": "hhowzg.odf"
+    },
+    {
+      "source": "ODF\\hhowzv.odf",
+      "runtime": "hhowzv.odf"
+    },
+    {
+      "source": "ODF\\hmasgb.odf",
+      "runtime": "hmasgb.odf"
+    },
+    {
+      "source": "ODF\\hmasgg.odf",
+      "runtime": "hmasgg.odf"
+    },
+    {
+      "source": "ODF\\hmasgv.odf",
+      "runtime": "hmasgv.odf"
+    },
+    {
+      "source": "ODF\\hmblgb.odf",
+      "runtime": "hmblgb.odf"
+    },
+    {
+      "source": "ODF\\hmblgg.odf",
+      "runtime": "hmblgg.odf"
+    },
+    {
+      "source": "ODF\\hmblgv.odf",
+      "runtime": "hmblgv.odf"
+    },
+    {
+      "source": "ODF\\hmblrb.odf",
+      "runtime": "hmblrb.odf"
+    },
+    {
+      "source": "ODF\\hmblrg.odf",
+      "runtime": "hmblrg.odf"
+    },
+    {
+      "source": "ODF\\hmblrv.odf",
+      "runtime": "hmblrv.odf"
+    },
+    {
+      "source": "ODF\\hmbltb.odf",
+      "runtime": "hmbltb.odf"
+    },
+    {
+      "source": "ODF\\hmbltg.odf",
+      "runtime": "hmbltg.odf"
+    },
+    {
+      "source": "ODF\\hmbltv.odf",
+      "runtime": "hmbltv.odf"
+    },
+    {
+      "source": "ODF\\hmdmb.odf",
+      "runtime": "hmdmb.odf"
+    },
+    {
+      "source": "ODF\\hmdmg.odf",
+      "runtime": "hmdmg.odf"
+    },
+    {
+      "source": "ODF\\hmdmv.odf",
+      "runtime": "hmdmv.odf"
+    },
+    {
+      "source": "ODF\\hminbb.odf",
+      "runtime": "hminbb.odf"
+    },
+    {
+      "source": "ODF\\hminbg.odf",
+      "runtime": "hminbg.odf"
+    },
+    {
+      "source": "ODF\\hminbv.odf",
+      "runtime": "hminbv.odf"
+    },
+    {
+      "source": "ODF\\hmingb.odf",
+      "runtime": "hmingb.odf"
+    },
+    {
+      "source": "ODF\\hmingg.odf",
+      "runtime": "hmingg.odf"
+    },
+    {
+      "source": "ODF\\hmingv.odf",
+      "runtime": "hmingv.odf"
+    },
+    {
+      "source": "ODF\\hminib.odf",
+      "runtime": "hminib.odf"
+    },
+    {
+      "source": "ODF\\hminig.odf",
+      "runtime": "hminig.odf"
+    },
+    {
+      "source": "ODF\\hminiv.odf",
+      "runtime": "hminiv.odf"
+    },
+    {
+      "source": "ODF\\hmortb.odf",
+      "runtime": "hmortb.odf"
+    },
+    {
+      "source": "ODF\\hmortg.odf",
+      "runtime": "hmortg.odf"
+    },
+    {
+      "source": "ODF\\hmortv.odf",
+      "runtime": "hmortv.odf"
+    },
+    {
+      "source": "ODF\\hpainb.odf",
+      "runtime": "hpainb.odf"
+    },
+    {
+      "source": "ODF\\hpaing.odf",
+      "runtime": "hpaing.odf"
+    },
+    {
+      "source": "ODF\\hpainv.odf",
+      "runtime": "hpainv.odf"
+    },
+    {
+      "source": "ODF\\hplasb.odf",
+      "runtime": "hplasb.odf"
+    },
+    {
+      "source": "ODF\\hplasg.odf",
+      "runtime": "hplasg.odf"
+    },
+    {
+      "source": "ODF\\hplasv.odf",
+      "runtime": "hplasv.odf"
+    },
+    {
+      "source": "ODF\\hpopb.odf",
+      "runtime": "hpopb.odf"
+    },
+    {
+      "source": "ODF\\hpopg.odf",
+      "runtime": "hpopg.odf"
+    },
+    {
+      "source": "ODF\\hpopv.odf",
+      "runtime": "hpopv.odf"
+    },
+    {
+      "source": "ODF\\hraveb.odf",
+      "runtime": "hraveb.odf"
+    },
+    {
+      "source": "ODF\\hraveg.odf",
+      "runtime": "hraveg.odf"
+    },
+    {
+      "source": "ODF\\hravev.odf",
+      "runtime": "hravev.odf"
+    },
+    {
+      "source": "ODF\\hrktb.odf",
+      "runtime": "hrktb.odf"
+    },
+    {
+      "source": "ODF\\hrktg.odf",
+      "runtime": "hrktg.odf"
+    },
+    {
+      "source": "ODF\\hrktv.odf",
+      "runtime": "hrktv.odf"
+    },
+    {
+      "source": "ODF\\hsandb.odf",
+      "runtime": "hsandb.odf"
+    },
+    {
+      "source": "ODF\\hsandg.odf",
+      "runtime": "hsandg.odf"
+    },
+    {
+      "source": "ODF\\hsandv.odf",
+      "runtime": "hsandv.odf"
+    },
+    {
+      "source": "ODF\\hshadb.odf",
+      "runtime": "hshadb.odf"
+    },
+    {
+      "source": "ODF\\hshadg.odf",
+      "runtime": "hshadg.odf"
+    },
+    {
+      "source": "ODF\\hshadv.odf",
+      "runtime": "hshadv.odf"
+    },
+    {
+      "source": "ODF\\hsnipb.odf",
+      "runtime": "hsnipb.odf"
+    },
+    {
+      "source": "ODF\\hsnipg.odf",
+      "runtime": "hsnipg.odf"
+    },
+    {
+      "source": "ODF\\hsnipv.odf",
+      "runtime": "hsnipv.odf"
+    },
+    {
+      "source": "ODF\\hsplab.odf",
+      "runtime": "hsplab.odf"
+    },
+    {
+      "source": "ODF\\hsplag.odf",
+      "runtime": "hsplag.odf"
+    },
+    {
+      "source": "ODF\\hsplav.odf",
+      "runtime": "hsplav.odf"
+    },
+    {
+      "source": "ODF\\hsplgb.odf",
+      "runtime": "hsplgb.odf"
+    },
+    {
+      "source": "ODF\\hsplgg.odf",
+      "runtime": "hsplgg.odf"
+    },
+    {
+      "source": "ODF\\hsplgv.odf",
+      "runtime": "hsplgv.odf"
+    },
+    {
+      "source": "ODF\\hsplnb.odf",
+      "runtime": "hsplnb.odf"
+    },
+    {
+      "source": "ODF\\hsplng.odf",
+      "runtime": "hsplng.odf"
+    },
+    {
+      "source": "ODF\\hsplnv.odf",
+      "runtime": "hsplnv.odf"
+    },
+    {
+      "source": "ODF\\hsplrb.odf",
+      "runtime": "hsplrb.odf"
+    },
+    {
+      "source": "ODF\\hsplrg.odf",
+      "runtime": "hsplrg.odf"
+    },
+    {
+      "source": "ODF\\hsplrv.odf",
+      "runtime": "hsplrv.odf"
+    },
+    {
+      "source": "ODF\\hspstb.odf",
+      "runtime": "hspstb.odf"
+    },
+    {
+      "source": "ODF\\hspstg.odf",
+      "runtime": "hspstg.odf"
+    },
+    {
+      "source": "ODF\\hspstv.odf",
+      "runtime": "hspstv.odf"
+    },
+    {
+      "source": "ODF\\htagb.odf",
+      "runtime": "htagb.odf"
+    },
+    {
+      "source": "ODF\\htagg.odf",
+      "runtime": "htagg.odf"
+    },
+    {
+      "source": "ODF\\htagv.odf",
+      "runtime": "htagv.odf"
+    },
+    {
       "source": "ODF\\hvwalk.odf",
       "runtime": "hvwalk.odf"
+    },
+    {
+      "source": "ODF\\imagemsl.odf",
+      "runtime": "imagemsl.odf"
     },
     {
       "source": "ODF\\lgmissl.odf",
@@ -17533,6 +18061,14 @@
     {
       "source": "ODF\\mbolt.odf",
       "runtime": "mbolt.odf"
+    },
+    {
+      "source": "ODF\\mboltg.odf",
+      "runtime": "mboltg.odf"
+    },
+    {
+      "source": "ODF\\mboltr.odf",
+      "runtime": "mboltr.odf"
     },
     {
       "source": "ODF\\napammo.odf",
@@ -17747,6 +18283,10 @@
       "runtime": "plasma.odf"
     },
     {
+      "source": "ODF\\popper.odf",
+      "runtime": "popper.odf"
+    },
+    {
       "source": "ODF\\repamina.odf",
       "runtime": "repamina.odf"
     },
@@ -17755,8 +18295,32 @@
       "runtime": "repamine.odf"
     },
     {
+      "source": "ODF\\rocket.odf",
+      "runtime": "rocket.odf"
+    },
+    {
+      "source": "ODF\\rocket2.odf",
+      "runtime": "rocket2.odf"
+    },
+    {
+      "source": "ODF\\rocket3.odf",
+      "runtime": "rocket3.odf"
+    },
+    {
       "source": "ODF\\rocket3a.odf",
       "runtime": "rocket3a.odf"
+    },
+    {
+      "source": "ODF\\rocket3b.odf",
+      "runtime": "rocket3b.odf"
+    },
+    {
+      "source": "ODF\\rocket3c.odf",
+      "runtime": "rocket3c.odf"
+    },
+    {
+      "source": "ODF\\rocket3d.odf",
+      "runtime": "rocket3d.odf"
     },
     {
       "source": "ODF\\rocket3n.odf",
@@ -17765,6 +18329,10 @@
     {
       "source": "ODF\\rocketa.odf",
       "runtime": "rocketa.odf"
+    },
+    {
+      "source": "ODF\\rocketb3.odf",
+      "runtime": "rocketb3.odf"
     },
     {
       "source": "ODF\\rocketh.odf",
@@ -18147,8 +18715,16 @@
       "runtime": "shell.odf"
     },
     {
+      "source": "ODF\\shella.odf",
+      "runtime": "shella.odf"
+    },
+    {
       "source": "ODF\\shunter.odf",
       "runtime": "shunter.odf"
+    },
+    {
+      "source": "ODF\\snipe.odf",
+      "runtime": "snipe.odf"
     },
     {
       "source": "ODF\\spammo.odf",
@@ -18197,6 +18773,22 @@
     {
       "source": "ODF\\splasma.odf",
       "runtime": "splasma.odf"
+    },
+    {
+      "source": "ODF\\splintbg.odf",
+      "runtime": "splintbg.odf"
+    },
+    {
+      "source": "ODF\\splintbm.odf",
+      "runtime": "splintbm.odf"
+    },
+    {
+      "source": "ODF\\splintbr.odf",
+      "runtime": "splintbr.odf"
+    },
+    {
+      "source": "ODF\\splntbma.odf",
+      "runtime": "splntbma.odf"
     },
     {
       "source": "ODF\\spmagg.odf",
@@ -18735,6 +19327,14 @@
       "runtime": "svwatm.odf"
     },
     {
+      "source": "ODF\\swarmer.odf",
+      "runtime": "swarmer.odf"
+    },
+    {
+      "source": "ODF\\switch.odf",
+      "runtime": "switch.odf"
+    },
+    {
       "source": "ODF\\sxanchor.odf",
       "runtime": "sxanchor.odf"
     },
@@ -18757,6 +19357,10 @@
     {
       "source": "ODF\\sxshield.odf",
       "runtime": "sxshield.odf"
+    },
+    {
+      "source": "ODF\\tracer.odf",
+      "runtime": "tracer.odf"
     },
     {
       "source": "ODF\\tsmkdep.odf",

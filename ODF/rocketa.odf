@@ -4,9 +4,11 @@ classLabel = "rocket"
 shotGeometry = "gatst00.geo"
 shotSound = "Ordin_a.wav"
 
-xplGround = "xmslgnd"
-xplVehicle = "xmslcar"
-xplBuilding = "xmslbld"
+// CR HIT FX begin (was xmslgnd/xmslcar/xmslbld)
+xplGround = "hatstg"
+xplVehicle = "hatstv"
+xplBuilding = "hatstb"
+// CR HIT FX end
 
 renderName = "rocket.render"
 

@@ -1,0 +1,37 @@
+[OrdnanceClass] // Blue SP Stab, created by General BlackDragon
+classLabel = "rocket"
+
+shotGeometry = "gspst00.geo"
+shotSound = "Ordin_b.wav"
+
+// CR HIT FX begin (was xmslgnd/xmslcar/xmslbld)
+xplGround = "hspstg"
+xplVehicle = "hspstv"
+xplBuilding = "hspstb"
+// CR HIT FX end
+
+renderName = "rocketb3.Light"
+
+ammoCost = 8
+lifeSpan = 1.5
+shotSpeed = 130.0
+damageBallistic = 200
+damageConcussion = 75
+damageFlame = 0
+damageImpact = 0
+
+[RocketClass]
+flameLength = 0.3
+smokeRadius = 0.5
+smokeDelay = 0.015
+smokePause = 0.005
+smokeTexture = "bpuff.0"
+smokeFrames = 16
+
+
+[Light]
+renderBase = "draw_light"
+startColor = "50 150 255 255"
+finishColor = "50 150 255 255"
+startRadius = 30.0
+finishRadius = 30.0

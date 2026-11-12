@@ -2,9 +2,11 @@
 classLabel = "tracer"
 
 shotGeometry = NULL
-xplGround = "xbulgnd"
-xplVehicle = "xbulcar"
-xplBuilding = "xbulbld"
+// CR HIT FX begin (was xbulgnd/xbulcar/xbulbld)
+xplGround = "hminig"
+xplVehicle = "hminiv"
+xplBuilding = "hminib"
+// CR HIT FX end
 
 renderName = "bullet1a.render"
 

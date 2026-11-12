@@ -1,0 +1,71 @@
+[OrdnanceClass] // Special 150m range version for TRO SP missions. -GBD
+classLabel = "beam"
+shotGeometry = NULL
+// CR HIT FX begin (was xlasgnd/xlascar2/xlasbld)
+xplGround = "hflshg"
+xplVehicle = "hflshv"
+xplBuilding = "hflshb"
+// CR HIT FX end
+
+//renderName = "flash.render"
+
+ammoCost = 150
+lifeSpan = 150e-6
+shotSpeed = 1e6
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 600
+damageImpact = 0
+
+[BeamClass]
+segmentRadius = 0.4 //0.0 //0.4
+segmentLength = 5.0
+segmentVariance = 0.0
+segmentTexture = "beam_r.0"
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 1
+renderName1 = "flash.beam"
+renderName2 = "flash.Fringe1"
+renderName3 = "flash.Fringe2"
+
+[Beam]
+renderBase = "draw_bolt"
+textureName = "beam_r0.tga"
+textureBlend = "one one modulate"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 255"
+startRadius = 0.4
+finishRadius = 0.4
+segmentLength = 5.0
+segmentVariance = "0.0 0.0 0.0"
+textureRate = 0.25
+textureSpeed = -3.0
+animateTime = 0.021 //0.1
+
+[Fringe1]
+renderBase = "draw_bolt"
+textureName = "trail2.tga"
+textureBlend = "one one modulate"
+startColor = "255 200 127 127"
+finishColor = "255 127 0 0"
+startRadius = 0.5
+finishRadius = 0.0
+segmentLength = 3.0
+segmentVariance = "0.6 0.6 0.6"
+animateTime = 0.1
+textureRate = 0.2
+
+[Fringe2]
+renderBase = "draw_bolt"
+textureName = "trail2.tga"
+textureBlend = "one one modulate"
+startColor = "255 200 127 127"
+finishColor = "255 127 0 0"
+startRadius = 0.5
+finishRadius = 0.0
+segmentLength = 2.5
+segmentVariance = "0.6 0.6 0.6"
+animateTime = 0.1
+textureRate = 0.2
