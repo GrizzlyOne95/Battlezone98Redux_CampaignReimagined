@@ -101,7 +101,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
         CH8Perceived = function(h, team) Restored.OpPerceived(h, team) end,
         CH8Boom = function(odf, where) Restored.OpBoom(odf, where) end,
     },
-    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesCH08", startLevel = 1, targetLevel = 1,
+    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesCH08", glassFrost = 0.5, startLevel = 1, targetLevel = 1,
         environment = { lightingMode = "orbit", orbit = { period = 1800, startHour = -40 } },
         ops = { "EuropaState", "EuropaPlume", "EuropaQuake", "EuropaSurge" },
         beats = function(europa, state, s)

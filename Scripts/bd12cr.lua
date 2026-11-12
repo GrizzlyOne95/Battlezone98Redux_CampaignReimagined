@@ -75,7 +75,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     -- The portal's activation is a local effect of the object: every peer applies it to its own copy.
     presentationOps = { BD12Portal = function(mode) Restored.OpPortal(mode) end },
     -- Ganymede: CREuropaWeather over the generated BD12 sites (six geyser vents, three under the Chinese goals).
-    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD12",
+    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD12", glassFrost = 0.5,
         environment = { lightingMode = "orbit", orbit = { period = 1800, startHour = -40 } },
         ops = { "EuropaState", "EuropaPlume", "EuropaQuake", "EuropaSurge" },
         startLevel = 1, targetLevel = 1,
