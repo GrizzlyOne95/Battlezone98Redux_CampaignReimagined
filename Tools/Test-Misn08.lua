@@ -106,7 +106,7 @@ function RemoveObject(h) objects[h] = nil; record("RemoveObject", h) end
 function Damage(h, amount) record("Damage", h, amount); objects[h].alive = false end
 for _, name in ipairs({"SetAIControl", "SetObjectiveOff", "SetObjectiveOn", "SetObjectiveName",
     "SetPilot", "SetAIP", "ClearObjectives", "AddObjective", "Attack", "Goto", "Defend", "SetWeaponMask",
-    "AddHealth", "FailMission", "SucceedMission", "SetPerceivedTeam", "Deploy"}) do
+    "AddHealth", "FailMission", "SucceedMission", "SetPerceivedTeam", "Deploy", "Follow"}) do
     local operation = name
     _G[operation] = function(...) record(operation, ...) end
 end

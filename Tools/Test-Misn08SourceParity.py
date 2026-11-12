@@ -22,7 +22,7 @@ source = raw.decode("utf-8").replace("\r\n", "\n")
 lua = lua_path.read_text(encoding="utf-8").replace("\r\n", "\n")
 
 REGIONS = ("CR PDA", "CR Colorado massacre", "CR restored walker content", "CR relic heal fix", "CR failure VO", "CR team filter",
-           "CR Colorado base", "CR CCA walkers", "CR Venus weather")
+           "CR Colorado base", "CR CCA walkers", "CR CCA wave ladder", "CR Venus weather")
 opens = {f"-- {name} >>": name for name in REGIONS}
 closes = {f"-- {name} <<": name for name in REGIONS}
 lua_lines = lua.split("\n")
@@ -49,7 +49,7 @@ for token in ("UpdateColoradoMassacre", "ColoradoMassacreDone", "ColoradoStrikeU
               "gech3_fallback", "VO_SUBSTITUTE", "misn0823", "misn0824", "AddObjectTeamAllowed", "next_second = 0",
               "next_second2 = 0", "UpdateColoradoBase", "UpdateCcaWalkers", "ColoradoForce", "ColoradoTarget",
               "ColoradoExtraStrike", "COLORADO_ESCORT", "COLORADO_BUILDS", "WALKER_", "cbase", "M.cw", "colorado_cleanup",
-              "colorado_cleaned", "CRVenusWeather", "UpdateVenusBeats", "VenusSites", "venusSeed"):
+              "colorado_cleaned", "UpdateCcaWaveLadder", "LADDER_", "M.cwl", "CRVenusWeather", "UpdateVenusBeats", "VenusSites", "venusSeed"):
     assert token not in lua, "region code outside marker regions: " + token
 
 # Restored/substituted voice lines need their shipped subtitle text (never invent text); 0825 stays unused.
