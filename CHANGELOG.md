@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Re-pinned OpenShim to 34ccf2415: DX11 multi-pass follow-ups (pass-0 ambient floor; multi-pass suppressed when a pass fails). EXU and bzfile unchanged.
 - OpenShim 35513d5bc (still reports 1.0.0.75): shield towers push craft out of a radial bubble and ricochet ordnance; PRODMENU submenus come from ODFs by default and hide the "00" cost; AI no longer stalls building when a producer dies mid-build; DX11 skips shaderless passes instead of crashing and converts multi-pass fixed-function techniques per pass; scrap/gib/casing performance work (pool culling, prewarmed fracture pieces, opt-in scrap draw, shadow and glow distances, fog-distance cull); fracture handles single-GEO models. EXU 0d90f4d: `exu.IsPowered` for gun, comm and shield towers; the player control mask works in network sessions.
 - misns8cr: Romeski's betrayal is now a short shared cutscene (about 11 s). The camera shows Romeski's tank and the SAV column, the SAVs turn 3 seconds in, and it cuts to the nearest infected SAV; the music dips and returns. The turned SAVs are a new Fury-blue "Infected Fury" (`savfury`: same stats as before, dark biomechanical hull with glowing cyan veins). Gameplay is unchanged. Offline and co-op; not yet tested in game.
 - misns8cr: the CCA Recycler now uses a mission-only ODF (`svrecy8`) that builds the Fury factory (`savmf`)
