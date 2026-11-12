@@ -62,8 +62,8 @@ textureName = "cr_fx_scorch.dds"
 textureBlend = "srcalpha invsrcalpha modulatealpha"
 startColor = "0 0 0 192"
 finishColor = "0 0 0 0"
-startRadius = 60.0
-finishRadius = 60.0
+startRadius = 28.0
+finishRadius = 28.0
 animateTime = 10.0
 
 [smokecenter]
