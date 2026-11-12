@@ -83,6 +83,7 @@ for base,cfg in cp.CONFIG.items():
             t=sub.index_array.reshape(-1,3);mov=np.array([under(h) for h in bone])[t].all(1);moving.append(p[t[mov]]);static[sub.material_name]=p[t[~mov]]
         moving=np.concatenate(moving);pivot=(w[rotor.handle][0]-origin)@R;axis=R.T@w[rotor.handle][1][:,2]
         for name,need in [(cfg['material'],cp.NOSE_CLEARANCE),(cfg['stock'],cp.NOSE_CLEARANCE),('CRWX_CockpitGlass',cp.NOSE_CLEARANCE),('CRV/'+base+'CombatExterior',1e-6)]:
+            if not len(static[name]):continue  # svfigh: no static exterior left once the floating deck strip is dropped
             gap=cp.rotor_sweep(moving,static[name],pivot,axis,np.arange(-cp.NOSE_ROLL_DEG,cp.NOSE_ROLL_DEG+.5,1.),need)
             check(gap.min()>=need,f'{base} {name}: rolling nose keeps {need} m clear (closest {gap.min():.4f}, {int((gap<need).sum())} tris)')
     check(receipt['glass']['vertices']>0 and receipt['glass']['bone'].lower()==cfg['shell'].lower(),'weather glass refitted')

@@ -18,7 +18,7 @@ ART_ASPECT={
  'bdog':{'console':1218/279,'switch':596/476,'service':588/476}}
 CONFIG={
  'cvturr':dict(faction='cra',role='turret',shell='CAD21BDA',batch=1,material='CRV/CVBomberCockpit',charts=CRA_CHARTS,stock='cvturr01',exterior='cvturr',width=.86,lip=-.40,front=1.10,roof=.66,back=-.64),
- 'svfigh':dict(faction='cca',role='fighter',shell='SFL21bda',batch=2,material='CRV/CCAMechanicalCockpit',charts=CCA_CHARTS,stock='svfigh01',exterior='svfigh00',animated=('SFL11ROR','SFL11NFL','SFL11NFR'),bulkheadUV={'SFL11ROR':(.234,.164,.354,.208)},width=.72,lip=-.38,front=1.07,roof=.54,back=-.54),
+ 'svfigh':dict(faction='cca',role='fighter',shell='SFL21bda',batch=2,material='CRV/CCAMechanicalCockpit',charts=CCA_CHARTS,stock='svfigh01',exterior='svfigh00',animated=('SFL11ROR','SFL11NFL','SFL11NFR'),bulkheadUV={'SFL11ROR':(12/1024,713/1024,259/1024,792/1024)},width=.72,lip=-.38,front=1.07,roof=.54,back=-.54),
  'svltnk':dict(faction='cca',role='lighttank',shell='slt21ckp',batch=2,material='CRV/CCAMechanicalCockpit',charts=CCA_CHARTS,stock='svltnk01',exterior='svltnk00',width=.78,lip=-.44,front=1.34,roof=.59,back=-.60),
  'avhraz':dict(faction='nsdf',role='bomber',shell='ahr21bda',batch=2,material='CRV/NSDFScoutCockpit',charts=scout.CHARTS,stock='avhraz01',exterior='avhraz00',width=.98,lip=-.48,front=1.37,roof=.76,back=-.72),
  'bvhraz':dict(faction='bdog',role='bomber',shell='bhr21bda',batch=2,material='CRV/BDogScoutCockpit',charts=scout.CHARTS,stock='bvhraz01',exterior='bvhraz00',width=.98,lip=-.48,front=1.37,roof=.76,back=-.72)}
@@ -306,7 +306,10 @@ def geometry(source,skelpath,base,game,root):
         # front wall, with their low ends as wedges at its corners. Hide them from the
         # cockpit view only; the centre strip and outboard edges stay.
         ax=np.abs(local[:,:,0]);deck&=~((ax.min(1)>.14)&(ax.max(1)<.5))
-        piece('native BDA deck ahead of canopy (eye-facing)',[handles['SFL11BDA']],deck)
+        # Player report: what is left of this deck (a 20-triangle centre strip) floats as a
+        # detached sliver on top of the nose, ahead of the canopy frame. The nose bulkhead
+        # and the tub already close that gap, so the strip is dropped unless cfg['deck'] is set.
+        if cfg.get('deck',False):piece('native BDA deck ahead of canopy (eye-facing)',[handles['SFL11BDA']],deck)
         # The nose (ROR, VDF class 66) is the hover gimbal and the nacelles
         # (class 67) hang from it, so all three move: keep them whole, at
         # native positions, on their own bones. From the real eye the nose
