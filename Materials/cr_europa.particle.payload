@@ -136,7 +136,10 @@ particle_system CR/Europa/IceFall
 // =============================================================================
 
 // A flat, very pale sheet that hangs close to the ice and barely drifts (there is
-// no wind; the slow motion is just the DirectionRandomiser).
+// no wind; the slow motion is just the DirectionRandomiser). Flat cards
+// (perpendicular_common, the Moon mist recipe) in a 0.5 m Box lifted to
+// FrostHeight 0.35, so the whole layer stays under 0.6 m: camera-facing 46 m
+// sprites centred 2 m up used to stand a pilot's eyes inside the haze.
 //   emitter 0  Box sheet
 //   affector 0 ColourInterpolator
 //   affector 1 Scaler
@@ -150,7 +153,9 @@ particle_system CR/Europa/FrostHaze
     cull_each           true
     sorted              true
     local_space         false
-    billboard_type      point
+    billboard_type      perpendicular_common
+    common_direction    0 1 0
+    common_up_vector    0 0 1
 
     emitter Box
     {
@@ -164,7 +169,7 @@ particle_system CR/Europa/FrostHaze
         colour_range_start  0.80 0.88 1.00 0.00
         colour_range_end    0.70 0.82 0.98 0.00
         width               90
-        height              5
+        height              0.5
         depth               90
     }
 

@@ -56,6 +56,29 @@ material CR_FX/Grit : BZSprite/AlphaBlend
 	set_texture_alias DiffuseMap cr_grit.dds
 }
 
+// Ground kickup sprites (CRWake): image-generated art supplied by the project author, cut out
+// to alpha and converted by Tools/Build-KickupTextures.py. Regolith, ice and puff are neutral so the
+// particle colour tints them; clod is already brown with grass blades.
+material CR_FX/KickRegolith : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap cr_kick_regolith.dds
+}
+
+material CR_FX/KickIce : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap cr_kick_ice.dds
+}
+
+material CR_FX/KickClod : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap cr_kick_clod.dds
+}
+
+material CR_FX/KickPuff : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap cr_kick_puff.dds
+}
+
 // Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
 // Peak alpha 182: thin enough to layer without stacking into a wall.
 material CR_FX/Haze : BZSprite/AlphaBlend
