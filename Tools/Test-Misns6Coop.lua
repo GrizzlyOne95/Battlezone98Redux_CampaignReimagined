@@ -149,6 +149,114 @@ do
     heardAll(q, "misns606.wav")
 end
 
+-- ------------------------------------------------------------------ CR additions: howitzer markers, bypass punish
+local function onCount(peer, h) return F.count(peer, "SetObjectiveOn", h) end
+local function offCount(peer, h) return F.count(peer, "SetObjectiveOff", h) end
+local function strike(peer, mark)
+    local out = {}
+    for _, b in ipairs(F.builds(peer, mark)) do
+        -- the entry may fall back to another authored approach (the goal is inside the no-pop-in radius of counter_attack)
+        if b.team == 5 and (b.odf == "bvtank" or b.odf == "bvrckt") then out[#out + 1] = b end
+    end
+    return out
+end
+local function recyAttacks(peer)
+    local n = 0
+    for _, c in ipairs(F.callsOf(peer, "Attack")) do if c[3] == RECY then n = n + 1 end end
+    return n
+end
+do -- markers: within 300 m only, once per howitzer, off when it dies, never for a dead one
+    local w2, q, m2 = setup(3)
+    F.run(2)
+    for i = 1, 3 do check(onCount(q[i], ART1) == 0 and onCount(q[i], ART2) == 0, "no howitzer is marked at the start (peer " .. i .. ")") end
+    F.nearTo(q[2].player, ART1, 0, -350); F.run(3)
+    check(onCount(q[1], ART1) == 0, "a human 350 m from a howitzer does not mark it")
+    F.nearTo(q[2].player, ART1, 0, -250); F.run(3)
+    for i = 1, 3 do check(onCount(q[i], ART1) == 1, "a human within 300 m marks the howitzer on peer " .. i) end
+    check(onCount(q[1], ART2) == 0, "the other howitzer stays unmarked")
+    F.run(10)
+    F.nearTo(q[2].player, ART1, 0, -100); F.run(3)
+    check(onCount(q[1], ART1) == 1, "the marker is set once per howitzer")
+    check(offCount(q[1], ART1) == 0, "a live howitzer keeps its marker")
+    F.kill(ART1); F.run(3)
+    check(offCount(q[1], ART1) == 1, "the leader turns the marker off when the howitzer dies")
+    -- a destroyed object has no identity left to replicate: guests skip it (the engine drops a dead object's marker)
+    for i = 1, 3 do check(q[i].env.Save().coopUnresolved == 0, "the off call leaves nothing unresolved on peer " .. i) end
+    F.run(5)
+    check(offCount(q[1], ART1) == 1 and onCount(q[1], ART1) == 1, "the marker is turned off once and not turned on again")
+    check(q[1].env.Save().crcca.r.mark1 and not q[1].env.Save().crcca.r.mark2, "the latches live in the saved runtime state")
+    guestsPassive(q)
+end
+do -- a howitzer that is already dead is never marked
+    local w2, q, m2 = setup(2)
+    F.run(2); F.kill(ART2)
+    F.nearTo(q[2].player, ART2, 0, -100); F.run(3)
+    check(onCount(q[1], ART2) == 0 and offCount(q[1], ART2) == 0, "a dead howitzer is never marked")
+    F.nearTo(q[2].player, ART1, 0, -100); F.run(3)
+    check(onCount(q[1], ART1) == 1, "the live howitzer is still marked")
+end
+-- bypass punish: 3 units plus the co-op extras, aimed at the Recycler
+local expectedPunish = { 3, 4, 4, 5 }
+for n, expect in ipairs(expectedPunish) do
+    local w2, q, m2 = setup(n)
+    F.run(2)
+    local mark = #q[1].calls
+    F.nearTo(q[n].player, GOAL, 0, -250); F.run(8)
+    check(m2.last_objective and not m2.counter_attack, "the goal is reached without the silo wave (" .. n .. ")")
+    local wave = strike(q[1], mark)
+    check(#wave == expect, n .. " human(s): " .. expect .. " punish units, got " .. #wave)
+    local tanks, rockets = 0, 0
+    for _, b in ipairs(wave) do
+        check(b.team == 5, "punish units are Black Dogs on team 5")
+        if b.odf == "bvtank" then tanks = tanks + 1 else rockets = rockets + 1 end
+    end
+    check(tanks >= 2 and rockets >= 1, "the squad is bvtank x2 + bvrckt (plus extras)")
+    allSafe(q, wave)
+    check(recyAttacks(q[1]) == expect, "every punish unit attacks the Recycler (" .. recyAttacks(q[1]) .. ")")
+    F.run(10); F.nearTo(q[n].player, GOAL, 0, 600); F.run(3); F.nearTo(q[n].player, GOAL, 0, -250); F.run(5)
+    check(#strike(q[1], mark) == expect and recyAttacks(q[1]) == expect, "the punish is one-shot")
+    guestsPassive(q)
+end
+do -- no howitzer alive: nothing to punish
+    local w2, q, m2 = setup(2)
+    F.run(2); F.kill(ART1); F.kill(ART2)
+    local mark = #q[1].calls
+    F.nearTo(q[2].player, GOAL, 0, -250); F.run(8)
+    check(m2.last_objective and #strike(q[1], mark) == 0 and recyAttacks(q[1]) == 0, "no punish with both howitzers destroyed")
+end
+do -- one howitzer left still punishes; a lost recycler does not
+    local w2, q, m2 = setup(1)
+    F.run(2); F.kill(ART1)
+    local mark = #q[1].calls
+    F.nearTo(q[1].player, GOAL, 0, -250); F.run(8)
+    check(#strike(q[1], mark) == 3, "one living howitzer is enough to punish")
+    w2, q, m2 = setup(1)
+    F.run(2); F.kill(RECY)
+    mark = #q[1].calls
+    F.nearTo(q[1].player, GOAL, 0, -250); F.run(8)
+    check(#strike(q[1], mark) == 0, "no punish once the Recycler is lost")
+end
+do -- the faithful port (no runtime) never gains the additions
+    local out, peer = outcomes({ faithful = true, script = "Scripts/misns6.lua" }, function(_, pp) F.run(2); F.nearTo(pp[1].player, ART1, 0, -100); F.nearTo(pp[1].player, GOAL, 0, -250); F.run(3) end)
+    check(F.count(peer, "SetObjectiveOn", ART1) == 0 and #strike(peer, 0) == 0, "the faithful port marks no howitzer and punishes nothing")
+end
+do -- save/load keeps the latches: no second marker, no second punish
+    local w2, q, m2 = setup(2)
+    F.run(2)
+    F.nearTo(q[2].player, ART1, 0, -250); F.run(3)
+    local mark = #q[1].calls
+    F.nearTo(q[2].player, GOAL, 0, -250); F.run(8)
+    check(onCount(q[1], ART1) == 1 and #strike(q[1], mark) == 4, "marker and punish happened before the save")
+    for _, peer in ipairs(q) do peer.env.Load(peer.env.Save()) end
+    F.connect(); F.run(5)
+    F.nearTo(q[2].player, ART1, 0, -100); F.run(5)
+    check(onCount(q[1], ART1) == 1, "the load does not mark the howitzer again")
+    check(#strike(q[1], mark) == 4 and recyAttacks(q[1]) == 4, "the load does not punish again")
+    F.kill(ART1); F.run(3)
+    check(offCount(q[1], ART1) == 1, "the loaded latch still turns the marker off once")
+    check(q[1].env.Save().crcca.r.punished, "the punish latch is saved")
+end
+
 -- ------------------------------------------------------------------ the miner raid (counter1): scaled by head count
 local expectedRaid = { 2, 3, 3, 4 }
 for n, expect in ipairs(expectedRaid) do
