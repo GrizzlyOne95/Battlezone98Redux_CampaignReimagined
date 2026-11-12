@@ -1,3 +1,4 @@
+// Ground bullet hit. Particle budget 4 (was 5): flash 1, dirt kicks 2, dust puff 1.
 [ExplosionClass]
 classLabel = "groundblast"
 
@@ -14,45 +15,43 @@ damageImpact = 0
 
 particleTypes = 3
 
-particleClass1 = "xbulgnd.core"
+particleClass1 = "xbulgnd.Flash"
 particleCount1 = 1
 particleVeloc1 = "0.0 0.0 0.0"
 
-particleClass2 = "xbulgnd.chunk"
-particleCount2 = 3
-particleVeloc2 = "5.0 5.0 5.0"
-particleBias2 = "0.0 5.0 0.0"
+particleClass2 = "xbulgnd.Chunk"
+particleCount2 = 2
+particleVeloc2 = "4.0 4.0 4.0"
+particleBias2 = "0.0 4.0 0.0"
 
-particleClass3 = "xbulgnd.puff"
+particleClass3 = "xbulgnd.Puff"
 particleCount3 = 1
 particleVeloc3 = "0.0 0.0 0.0"
 particleBias3 = "0.0 0.5 0.0"
 
-[Core]
+[Flash]
 simulateBase = "sim_null"
-lifeTime = 0.4
+lifeTime = 0.2
 renderBase = "draw_sprite"
-spriteCenter.x = 0.0
-spriteCenter.y = 1.0
-textureName = "ground.tga"
-textureBlend = "srcalpha one modulatealpha"
-startColor = "255 128 64 255"
-finishColor = "255 64 0 0"
-startRadius = 0.15
+textureName = "cr_xpl_flash.dds"
+textureBlend = "one one modulate"
+startColor = "255 190 110 255"
+finishColor = "255 90 30 0"
+startRadius = 0.12
 finishRadius = 0.3
-animateTime = 0.4
+animateTime = 0.2
 
 [Chunk]
 simulateBase = "sim_ember"
-lifeTime = 2.0
+lifeTime = 1.2
 renderBase = "draw_twirl"
 textureName = "cr_fx_dirt.dds"
 textureBlend = "srcalpha invsrcalpha modulatealpha"
 startColor = "64 64 64 255"
 finishColor = "64 64 64 0"
-startRadius = 0.15
-finishRadius = 0.15
-animateTime = 2.0
+startRadius = 0.12
+finishRadius = 0.12
+animateTime = 1.2
 rotationRate = 5.0
 useTerrainColor = true
 
@@ -62,9 +61,9 @@ lifeTime = 1.5
 renderBase = "draw_sprite"
 spriteCenter.x = 0.0
 spriteCenter.y = 1.0
-textureName = "smoke.tga"
+textureName = "cr_xpl_wisp.dds"
 textureBlend = "srcalpha invsrcalpha modulatealpha"
-startColor = "192 192 192 128"
+startColor = "192 192 192 110"
 finishColor = "128 128 128 0"
 startRadius = 0.3
 finishRadius = 1.5
