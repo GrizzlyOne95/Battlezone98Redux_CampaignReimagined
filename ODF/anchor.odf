@@ -1,7 +1,8 @@
 [OrdnanceClass]
 classLabel = "anchor"
 
-shotGeometry = "gsand00.geo"
+// stock shotGeometry: gsand00.geo
+shotGeometry = "crordanc.mesh"
 shotSound = "anchor.wav"
 
 // CR HIT FX begin (was xbulgnd/xbulcar/xbulbld)

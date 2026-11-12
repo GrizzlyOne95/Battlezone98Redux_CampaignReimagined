@@ -1,0 +1,32 @@
+[OrdnanceClass]
+baseName = "rocket"
+classLabel = "rocket"
+// stock shotGeometry: gatst00.geo
+shotGeometry = "crordats.mesh"
+shotSound = "Ordin_c.wav"
+
+xplGround = "xmslgnd"
+xplVehicle = "xmslcar"
+xplBuilding = "xmslbld"
+
+ammoCost = 20
+lifeSpan = 2.0
+shotSpeed = 70.0
+damageBallistic = 0
+damageConcussion = 200
+damageFlame = 0
+damageImpact = 0
+
+[RocketClass]
+flameRadius = 0.2
+flameLength = 3.0
+flameTexture = "exhaust_r.0"
+flameFrames = 4
+flareRadius = 3.0
+flareTexture = "flare.0"
+flareFrames = 4
+smokeRadius = 0.5
+smokeDelay = 0.02
+smokePause = 0.008
+smokeTexture = "rsmoke.0"
+smokeFrames = 16

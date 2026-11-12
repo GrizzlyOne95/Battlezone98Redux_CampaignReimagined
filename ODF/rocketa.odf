@@ -1,7 +1,8 @@
 [OrdnanceClass] // Double ranged AT Stabber.
 classLabel = "rocket"
 
-shotGeometry = "gatst00.geo"
+// stock shotGeometry: gatst00.geo
+shotGeometry = "crordats.mesh"
 shotSound = "Ordin_a.wav"
 
 // CR HIT FX begin (was xmslgnd/xmslcar/xmslbld)

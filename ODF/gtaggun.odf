@@ -32,7 +32,8 @@ lockedReticle = "gtaggun.2"
 
 [OrdnanceClass]
 classLabel = "targeting"
-shotGeometry = "gtagg00.geo"
+// stock shotGeometry: gtagg00.geo
+shotGeometry = "crordtgp.mesh"
 xplGround = "xbulgnd"
 xplVehicle = "xbulcar"
 xplBuilding = "xbulbld"

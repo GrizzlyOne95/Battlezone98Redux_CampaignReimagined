@@ -1,7 +1,8 @@
 [OrdnanceClass]
 classLabel = "grenade"
 
-shotGeometry = "ghartl00.geo"
+// stock shotGeometry: ghartl00.geo
+shotGeometry = "crordmrt.mesh"
 shotSound = "Ordin_c.wav"
 
 // CR HIT FX begin (was xgasgnd/xgasxpl/xgasxpl)
