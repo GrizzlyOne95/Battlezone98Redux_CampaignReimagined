@@ -2,7 +2,7 @@
 
 Weapon-rig update, 2026-11-04. Generated from CR source, reviewed model policy and fitted flash data. See [the model-edit report](WEAPON_RIGS.md) for the requested 27-model pass and exported previews.
 
-**134 armed ODFs / 51 models / 300 equipped slots.** Authored recoil: 225 slots; fitted flash offsets: 219 slots; ballistic casing selections: 145 slots.
+**135 armed ODFs / 52 models / 303 equipped slots.** Authored recoil: 225 slots; fitted flash offsets: 219 slots; ballistic casing selections: 145 slots.
 
 Scope: CR vehicle/building definitions, including mission variants and utility carriers. People retain per-weapon effects; armories supply weapons. This source-only count excludes stock-only aliases from the earlier 139-definition/52-model audit.
 
@@ -27,6 +27,7 @@ Scope: CR vehicle/building definitions, including mission variants and utility c
 | `avsav` | `avpsav`, `avrsav`, `avsav`, `avsav14` | Emitter/asset decision | No independent conventional barrel found for the active weapon. These hull/emitter-driven special units need a deliberate emitter-core/lens mechanism or an authored energy pulse. If mechanical motion is desired, isolate/add a small local piece; do not recoil the complete Fury/special-unit hull or satellite structure. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
 | `crfraz` | `crfraz` | Emitter/asset decision | GC1/GC2 sit at the muzzles of static wing-top cannon mounts (Build-HardpointMounts, 2026-11-10). The mounts are welded to the wings and get no recoil; do not recoil the complete Fury hull or wings. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
 | `cvwalk` | `cvwalk`, `cvwamp` | Isolate gun geometry | Two guns share the aiming head. Add independent weighted gun children beneath the head, retaining aim and gait. Current rendered muzzle names also differ from some native model names; fit from the native fired slots and actual visible barrels. Do not translate the entire head. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
+| `hvwalk` | `hvwalk` | Isolate gun geometry | Fury Walker (CR original, procedural organic hull): the gbolt muzzles are moulded into the head (hvw11tx1/tx2) with no separate barrel node. Give each bolt gun a gun-only child before authoring recoil or casing ports. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
 | `savfury` | `savfury` | Emitter/asset decision | No independent conventional barrel found for the active weapon. These hull/emitter-driven special units need a deliberate emitter-core/lens mechanism or an authored energy pulse. If mechanical motion is desired, isolate/add a small local piece; do not recoil the complete Fury/special-unit hull or satellite structure. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
 | `svsav` | `svsav` | Emitter/asset decision | No independent conventional barrel found for the active weapon. These hull/emitter-driven special units need a deliberate emitter-core/lens mechanism or an authored energy pulse. If mechanical motion is desired, isolate/add a small local piece; do not recoil the complete Fury/special-unit hull or satellite structure. Fit muzzle/emitter markers to the visible apertures; energy/rocket loadouts need no brass port. |
 
@@ -298,6 +299,9 @@ Scope: CR vehicle/building definitions, including mission variants and utility c
 | `cvwalk` | 3: `gpopgun` | `` | pending / omitted | none | native firing producer pending; parent cvw11sup is not a barrel node and has no geometry around the hardpoint |
 | `cvwamp` | 1: `gblast` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent cvw11hed is not a barrel node and the hardpoint is 0.80 m behind its front geometry |
 | `cvwamp` | 3: `gmdmgun` | `` | pending / omitted | none | native firing producer pending; parent cvw11sup is not a barrel node and has no geometry around the hardpoint |
+| `hvwalk` | 1: `gbolt` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent hvw11tx2 is not a barrel node and the hardpoint is 7.82 m ahead of its front geometry |
+| `hvwalk` | 2: `gbolt` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent hvw11tx1 is not a barrel node and the hardpoint is 7.82 m ahead of its front geometry |
+| `hvwalk` | 3: `gpopgun` | `` | pending / omitted | none | native firing producer pending; parent hvw11ty1 is not a barrel node and has no geometry around the hardpoint |
 | `savfury` | 1: `gbolt` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent csf11bda is not a barrel node and the hardpoint is 17.29 m ahead of its front geometry |
 | `savfury` | 2: `gwasp` | `` | pending / omitted | none | native firing producer pending; mine deployment |
 | `sb0002` | 1: `gflashgn` | `sgn11bgb` | -0.02 0.47 3.23 | none | native firing producer pending |
