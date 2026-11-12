@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6165,
+  "count": 6181,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -1435,40 +1435,100 @@
       "runtime": "cromine.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\crordanc.geo",
+      "runtime": "crordanc.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordanc.mesh",
+      "runtime": "crordanc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordats.geo",
+      "runtime": "crordats.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\crordats.mesh",
       "runtime": "crordats.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordhow.geo",
+      "runtime": "crordhow.geo"
     },
     {
       "source": "Assets\\ModelFixes\\crordhow.mesh",
       "runtime": "crordhow.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\crordhrn.geo",
+      "runtime": "crordhrn.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\crordhrn.mesh",
       "runtime": "crordhrn.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordmdm.geo",
+      "runtime": "crordmdm.geo"
     },
     {
       "source": "Assets\\ModelFixes\\crordmdm.mesh",
       "runtime": "crordmdm.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\crordmrt.geo",
+      "runtime": "crordmrt.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\crordmrt.mesh",
       "runtime": "crordmrt.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordrkt.geo",
+      "runtime": "crordrkt.geo"
     },
     {
       "source": "Assets\\ModelFixes\\crordrkt.mesh",
       "runtime": "crordrkt.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\crordshd.geo",
+      "runtime": "crordshd.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\crordshd.mesh",
       "runtime": "crordshd.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordspl.geo",
+      "runtime": "crordspl.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordspl.mesh",
+      "runtime": "crordspl.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordsps.geo",
+      "runtime": "crordsps.geo"
     },
     {
       "source": "Assets\\ModelFixes\\crordsps.mesh",
       "runtime": "crordsps.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\crordtag.geo",
+      "runtime": "crordtag.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\crordtag.mesh",
       "runtime": "crordtag.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordtgp.geo",
+      "runtime": "crordtgp.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\crordtgp.mesh",
+      "runtime": "crordtgp.mesh"
     },
     {
       "source": "Assets\\ModelFixes\\csf11bda.geo",
@@ -18333,6 +18393,10 @@
     {
       "source": "ODF\\popper.odf",
       "runtime": "popper.odf"
+    },
+    {
+      "source": "ODF\\poproc.odf",
+      "runtime": "poproc.odf"
     },
     {
       "source": "ODF\\repamina.odf",

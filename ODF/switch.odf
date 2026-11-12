@@ -1,7 +1,8 @@
 [OrdnanceClass]
 classLabel = "switcher"
 
-shotGeometry = "gsand00.geo"
+// stock shotGeometry: gsand00.geo
+shotGeometry = "crordanc.mesh"
 shotSound = NULL
 
 // CR HIT FX begin (was xbulgnd/xbulcar/xbulbld)

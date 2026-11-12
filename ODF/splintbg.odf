@@ -1,7 +1,8 @@
 [OrdnanceClass] // Green Splinter, created by General BlackDragon
 classLabel = "spraybomb"
 
-shotGeometry = "gsplnt00.geo"
+// stock shotGeometry: gsplnt00.geo
+shotGeometry = "crordspl.mesh"
 shotSound = "Ordin_c.wav"
 
 // CR HIT FX begin (was xgasxpl/xgasxpl/xgasxpl)

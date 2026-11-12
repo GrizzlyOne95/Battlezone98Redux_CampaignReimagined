@@ -117,7 +117,8 @@ def check_mesh(name, info):
     ext = pos.max(0) - pos.min(0)
     length, stock = ext[2], info['stockLength']
     assert 0.75 * stock <= length <= 1.25 * stock, (name, 'length', length, 'stock', stock)
-    assert ext[2] >= ext[0] and ext[2] >= ext[1], (name, 'long axis must be Z')
+    if not info.get('flat'):  # a flat puck (stock gtagg00) is wider than it is long
+        assert ext[2] >= ext[0] and ext[2] >= ext[1], (name, 'long axis must be Z')
     assert abs(pos[:, 2].max() + pos[:, 2].min()) < 1e-3, (name, 'centred on the origin like stock')
     uv = raw[:, 6:8]
     assert uv.min() >= 0 and uv.max() <= 1, (name, 'uv inside the atlas')
@@ -147,18 +148,20 @@ def check_mesh(name, info):
 def main():
     if not require_or_skip('Test-OrdnanceModels'):
         return
-    assert len(STOCK) == 9
+    assert len(STOCK) == 12
+    from bzmodellibs import geo_serializer
     for name in sorted(STOCK):
         n, length, fins = check_mesh(name, STOCK[name])
+        # ODFs name the .mesh directly (a .geo name resolves to the stock round); the .geo twin stays for log hygiene.
+        g = geo_serializer.GeoSerializer(io.BytesIO((ROOT / 'Assets/ModelFixes' / (name + '.geo')).read_bytes())).read()
+        assert g.vert_count > 0 and len(g.face_list) == n, (name, 'geo twin', g.vert_count, len(g.face_list))
         print(f"{name}: {n} tris, length {length:.3f} vs stock {STOCK[name]['stockLength']:.3f}, {fins} fins sunk, closed")
     for name, info in STOCK.items():
         for odf in info['odfs']:
             path = ROOT / 'ODF' / (odf + '.odf')
-            if not path.is_file():
-                continue
+            assert path.is_file(), (odf, 'mapped ODF missing')
             m = re.search(r'^shotGeometry\s*=\s*"([^"]+)"', path.read_text(errors='replace'), re.M)
             assert m and m.group(1) == name + '.mesh', (odf, 'shotGeometry', m and m.group(1))
-            assert (ROOT / 'Assets/ModelFixes' / m.group(1)).is_file(), odf
     for tex in ('crord_d.dds', 'crord_e.dds'):
         assert bc_dds_problem((ROOT / 'Assets/Textures' / tex).read_bytes(), 512, 512) is None, tex
     mat = (ROOT / 'Materials/CR_Ordnance.material').read_text()

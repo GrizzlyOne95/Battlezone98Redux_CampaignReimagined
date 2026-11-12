@@ -1,7 +1,8 @@
 [OrdnanceClass]
 classLabel = "bouncebomb"
 
-shotGeometry = "crordmdm.mesh" //"ghartl00.geo"
+// stock shotGeometry: ghartl00.geo
+shotGeometry = "crordmdm.mesh"
 
 // CR HIT FX begin (was xgasgnd/xgasxpl/xgasxpl)
 xplGround = "hmdmg"

@@ -1,4 +1,4 @@
-"""Modular projectile kit for CR: nine meshes sharing one atlas (crord_d/crord_e) and one material.
+"""Modular projectile kit for CR: twelve meshes sharing one atlas (crord_d/crord_e) and one material.
 
 Every byte of each .mesh is written by BZ98RBlenderToolKit's serializer through
 ``bzstaticmodel.static_mesh_bytes``. Hulls are single revolved profiles (nose,
@@ -269,6 +269,28 @@ def hull_models():
             + body_cyl(0.08, 0.60, r) + body_cyl(0.60, 0.70, r, 'warn')
             + nose_ogive(0.70, 0.32, r, 'olive', n=5, power=1.8))
     models['crordrkt'] = (prof, [('fin', 4, 0, 0.06, 0.30, 0.0, 0.20, 0.10, 0.030, 'finf')])
+
+    # crordanc: grapple dart, emissive seeker tip, 3 swept forward-raked prong blades
+    r = 0.045
+    prof = (base_cap(0.0, 0.03) + taper(0.0, 0.04, 0.03, r, 'gun') + body_cyl(0.04, 0.12, r)
+            + body_cyl(0.12, 0.16, r, 'copper') + body_cyl(0.16, 0.20, r)
+            + taper(0.20, 0.25, r, 0.025, 'gun') + nose_dome(0.25, 0.06, 0.025, 'seekero'))
+    models['crordanc'] = (prof, [('fin', 3, 90, 0.05, 0.15, 0.14, 0.27, 0.065, 0.014, 'finf')])
+
+    # crordtgp: targeting puck, closed back, recessed emissive rim band, emissive lens dome
+    r = 0.15
+    prof = (base_cap(0.0, 0.13) + taper(0.0, 0.015, 0.13, r, 'gun') + body_cyl(0.015, 0.045, r, 'gun')
+            + band(0.045, 0.065, r, -0.01, 'green') + body_cyl(0.065, 0.08, r, 'gun')
+            + taper(0.08, 0.088, r, 0.115, 'olive') + [('olive', [(0.088, 0.115), (0.088, 0.09)])]
+            + nose_dome(0.088, 0.012, 0.09, 'blue'))
+    models['crordtgp'] = (prof, [])
+
+    # crordspl: spiked cluster bomb, needle tail and nose, 4 tapering flat spike blades
+    prof = ([('gun', [(0.0, 0.0), (0.10, 0.035), (0.28, 0.10)]),
+             ('olive', [(0.28, 0.10), (0.33, 0.13)]), ('warn', [(0.33, 0.13), (0.40, 0.14), (0.47, 0.13)]),
+             ('olive', [(0.47, 0.13), (0.52, 0.10)]), ('gun', [(0.52, 0.10), (0.70, 0.035), (0.80, 0.0)])])
+    models['crordspl'] = (prof, [('fin', 4, 45, 0.31, 0.49, 0.38, 0.42, 0.235, 0.03, 'finf')])
+
     return models
 
 
@@ -371,6 +393,35 @@ material crord : CR_BZBase
 '''
 
 
+def geo_bytes(name, rows, idx):
+    """Native .geo twin of the mesh. ODFs name the .geo (as stock ordnance does) and Ogre
+    draws the same-named .mesh; without the .geo the engine logs 'could not add geometry'."""
+    import io
+    from bzmodellibs import geo, geo_serializer
+    rows = np.asarray(rows, dtype='<f8')
+    points = rows[:, :3].astype('<f4')
+    g = geo.Geo()
+    g.name = name
+    g.vert_count = len(points)
+    g.vertex_pos_buffer = points
+    g.vertex_normal_buffer = rows[:, 3:6].astype('<f4')
+    for i in range(0, len(idx), 3):
+        q = [rows[j, :3] for j in idx[i:i + 3]]
+        normal = np.cross(q[1] - q[0], q[2] - q[0])
+        length = np.linalg.norm(normal)
+        normal = normal / length if length > 1e-12 else np.array([0.0, 1.0, 0.0])
+        face = g.create_face(i // 3)
+        face.color = geo.Color3(255, 255, 255)
+        face.plane = geo.SurfacePlane(geo.Vector3(*(-normal)), float(normal.dot(q[0])))
+        face.shade_type = face.texture_type = 0
+        face.texture_name = name + '.map'
+        for j in idx[i:i + 3]:
+            face.create_face_node(j, j, geo.UV(float(rows[j, 6]), float(rows[j, 7])))
+    raw = io.BytesIO()
+    geo_serializer.GeoSerializer(raw).write(g)
+    return raw.getvalue()
+
+
 def main():
     MESH_DIR.mkdir(parents=True, exist_ok=True)
     TEX_DIR.mkdir(parents=True, exist_ok=True)
@@ -378,6 +429,7 @@ def main():
         rows, idx = compose(profile, fins)
         assert len(idx) // 3 <= 400, (name, len(idx) // 3)
         (MESH_DIR / (name + '.mesh')).write_bytes(static_mesh_bytes(MATERIAL, rows, idx))
+        (MESH_DIR / (name + '.geo')).write_bytes(geo_bytes(name, rows, idx))
         print(f'{name}: {len(idx) // 3} tris')
     diff, emis = build_textures()
     save_bc(Image.fromarray(diff, 'RGB'), TEX_DIR / 'crord_d.dds')
