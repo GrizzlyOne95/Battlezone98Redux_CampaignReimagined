@@ -128,8 +128,8 @@ V.ScanColumns          = 64
 V.ScanRows             = 56
 V.ScanBudget           = 160     -- terrain queries per frame while scanning
 V.ScanInset            = 60.0    -- stay this far inside the playable box
-V.PoolFogEndScale      = 0.62    -- fog end distance multiplier at full pool depth
-V.PoolFogStartScale    = 0.55
+V.PoolFogEndScale      = 0.85    -- fog end distance multiplier at full pool depth (keep near the TRN)
+V.PoolFogStartScale    = 0.80
 V.PoolFogTint          = 0.30    -- how far pool fog colour moves toward PoolFogColor
 V.PoolFogColor         = { r = 0.58, g = 0.54, b = 0.15 }
 V.PoolBand             = nil     -- metres over the pool level where it is gone; nil = from terrain
@@ -150,7 +150,7 @@ V.FogBankRollIn        = { 8.0, 14.0 }
 V.FogBankRollOut       = { 10.0, 18.0 }
 V.FogBankPower         = { 0.85, 1.0 }
 V.FogBankFogEnd        = 120.0     -- target fog end (metres), clamped to the horizon
-V.FogBankFogStart      = 4.0       -- fog begins almost at the camera: pea soup
+V.FogBankFogStart      = 18.0      -- global fog stays playable; the dense look is the local haze systems
 V.FogBankColor         = { r = 0.40, g = 0.44, b = 0.17 }   -- sulphur green-yellow
 V.FogBankColorMix      = 0.92
 V.FogBankSunPower      = 0.44      -- the sun is never allowed below this inside a bank

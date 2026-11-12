@@ -1,6 +1,7 @@
 [GameObjectClass]
 baseName = "bvrecy"
 classLabel = "recycler"
+collisionRadius = 10.0
 scrapValue = 10
 scrapCost = 0
 maxHealth = 10200
@@ -42,8 +43,8 @@ pitchThrust = 0.05
 rollStrafe = 0.05
 rollSteer = 0.05
 velocForward = 15.0
-velocReverse = 10.0
-velocStrafe = 10.0
+velocReverse = 15.0
+velocStrafe = 15.0
 accelThrust = 50.0
 accelBrake = 20.0
 omegaSpin = 2.0

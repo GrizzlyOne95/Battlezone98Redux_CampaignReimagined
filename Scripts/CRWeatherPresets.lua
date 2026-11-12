@@ -1355,7 +1355,9 @@ CRWeatherPresets.Presets = {
     -- toward sulphur-green, so a severe storm is dark and sickly between flashes
     -- instead of merely brown. Fog ends are authored for a ~100 unit terrain
     -- horizon (the misn07 TRN); CRWeather clamps them to whatever horizon a map
-    -- really has.
+    -- really has. Calm IS the stock TRN fog (30/100); the storm rungs only dip
+    -- a little below it, so the ground stays playable. Dense fog belongs to the
+    -- localized basin pools and fog-bank haze, not to the global fog.
     --
     -- Acid rain is deliberately NOT in these presets. It is a director-owned layer
     -- so it can follow the continuous severity (and be switched off) instead of
@@ -1438,7 +1440,7 @@ CRWeatherPresets.Presets = {
             },
         },
         sky           = nil,
-        fog           = { r = 0.48, g = 0.36, b = 0.15, fogStart = 26.0, fogEnd = 92.0 },
+        fog           = { r = 0.48, g = 0.36, b = 0.15, fogStart = 28.0, fogEnd = 96.0 },
         ambient       = { r = 0.37, g = 0.28, b = 0.14 },
         diffuse       = { r = 0.50, g = 0.39, b = 0.18 },
         sunPowerScale = 0.34,
@@ -1490,7 +1492,7 @@ CRWeatherPresets.Presets = {
             },
         },
         sky           = nil,
-        fog           = { r = 0.40, g = 0.31, b = 0.13, fogStart = 22.0, fogEnd = 84.0 },
+        fog           = { r = 0.40, g = 0.31, b = 0.13, fogStart = 26.0, fogEnd = 92.0 },
         ambient       = { r = 0.30, g = 0.24, b = 0.12 },
         diffuse       = { r = 0.40, g = 0.32, b = 0.15 },
         sunPowerScale = 0.26,
@@ -1542,7 +1544,7 @@ CRWeatherPresets.Presets = {
             },
         },
         sky           = nil,
-        fog           = { r = 0.30, g = 0.27, b = 0.11, fogStart = 18.0, fogEnd = 72.0 },
+        fog           = { r = 0.30, g = 0.27, b = 0.11, fogStart = 22.0, fogEnd = 86.0 },
         ambient       = { r = 0.22, g = 0.20, b = 0.10 },
         diffuse       = { r = 0.27, g = 0.25, b = 0.12 },
         sunPowerScale = 0.18,
@@ -1594,7 +1596,7 @@ CRWeatherPresets.Presets = {
             },
         },
         sky           = nil,
-        fog           = { r = 0.20, g = 0.22, b = 0.09, fogStart = 12.0, fogEnd = 56.0 },
+        fog           = { r = 0.20, g = 0.22, b = 0.09, fogStart = 18.0, fogEnd = 80.0 },
         ambient       = { r = 0.15, g = 0.17, b = 0.08 },
         diffuse       = { r = 0.18, g = 0.20, b = 0.09 },
         sunPowerScale = 0.12,

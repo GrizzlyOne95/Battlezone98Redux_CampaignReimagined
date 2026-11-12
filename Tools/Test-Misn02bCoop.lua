@@ -139,7 +139,7 @@ local function makePeer(id, team, network)
             end
         end
     end
-    for _, name in ipairs({ "Attack", "Goto", "Retreat", "Follow", "Defend", "Defend2", "Patrol",
+    for _, name in ipairs({ "Attack", "Goto", "Hunt", "Retreat", "Follow", "Defend", "Defend2", "Patrol",
         "AddHealth", "Damage", "SetCommand", "SetCritical", "SetPathLoop", "SetVelocity",
         "SetPosition", "SetLabel", "SetIndependence", "SetAIP", "SetAIControl", "MakeExplosion", "SetWeaponMask", "SetScrap", "SetPilot", "SetObjectiveName", "SetObjectiveOn",
         "SetObjectiveOff", "SetUserTarget", "ClearObjectives", "AddObjective", "UpdateObjective",
@@ -292,6 +292,8 @@ distances["sscr_171_scrap:" .. scav] = 50
 host.audioDone = false; tick(0.1); settle()
 check(host.state.patrol1 and host.state.found2, "staged fighter did not activate")
 check(objects[host.state.bscout].team == 6, "enemy occupies a human team")
+tick(2.5); settle()
+check(last(host, "Hunt") and last(host, "Hunt")[2] == host.state.bscout, "first fighter does not hunt once patrol1 is done")
 distances[scav .. ":sscr_176_scrap"] = 100
 host.shot = 1; tick(0.1); settle()
 check(host.state.message2, "retreat did not trigger")
