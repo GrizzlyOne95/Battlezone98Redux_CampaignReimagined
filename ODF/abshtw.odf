@@ -1,0 +1,27 @@
+[GameObjectClass]
+classLabel = "shieldtower"
+baseName = "abshld"
+scrapCost = 8
+scrapValue = 4
+maxHealth = 30000
+maxAmmo = 0
+unitName = "Shield Tower"
+
+[BuildingClass]
+soundAmbient = "abshlde0.wav"
+
+[ShieldTowerClass]
+shieldMinX = -12.0
+shieldMaxX = 12.0
+shieldMinY = -4.0
+shieldMaxY = 24.0
+shieldMinZ = -12.0
+shieldMaxZ = 12.0
+shieldPushMode = "radial"
+objPush = -160.0
+objDrag = 1.5
+ordPush = -300.0
+ordDrag = 3.0
+teamFilter = "enemies"
+affectAllies = false
+affectEnemies = true

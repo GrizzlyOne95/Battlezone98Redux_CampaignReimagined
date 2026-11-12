@@ -99,6 +99,24 @@ local WALKER_CAP_BASE, WALKER_CAP_PER_PLAYER, WALKER_CAP_MAX = 1, 1, 3
 local WALKER_INTERVAL_S, WALKER_FIRST_DELAY_S, WALKER_RETRY_S, WALKER_ORDER_S = 150.0, 60.0, 15.0, 30.0
 local WALKER_SCRAP_COST = 12
 -- CR CCA walkers <<
+-- CR CCA wave ladder >>
+-- Escalating CCA attack waves (our own code; the idea came from a Workshop remake). After the
+-- CCA recycler spawn, the CCA factory sends a leader plus followers down a flank path
+-- (gech_path1/gech_path2 alternating) on a shrinking interval; later waves hit the player
+-- base. No scrap cost. Set CCA_WAVE_LADDER = false to disable.
+local CCA_WAVE_LADDER = true
+local LADDER_FIRST_DELAY_S, LADDER_INTERVAL_S, LADDER_STEP_S, LADDER_FLOOR_S = 120.0, 160.0, 10.0, 120.0
+local LADDER_RETRY_S, LADDER_ORDER_S, LADDER_PATH_S = 15.0, 30.0, 90.0
+local LADDER_CAP_BASE, LADDER_CAP_PER_PLAYER, LADDER_CAP_MAX = 6, 2, 12
+-- One tier per wave; the last tier repeats.
+local LADDER_TIERS = {
+    { leader = "svtank", follower = "svfigh", count = 1 },
+    { leader = "svtank", follower = "svfigh", count = 2 },
+    { leader = "svltnk", follower = "svtank", count = 2 },
+    { leader = "svhraz", follower = "svtank", count = 2 },
+    { leader = "svhraz", follower = "svtank", count = 3 },
+}
+-- CR CCA wave ladder <<
 
 -- Co-op presentation uses the established misn03/misn05 E/A and C transport.
 -- Only the campaign leader runs the mission body below; HUD/audio/removal/timer/
@@ -888,6 +906,65 @@ local function UpdateCcaWalkers()
 end
 -- CR CCA walkers <<
 
+-- CR CCA wave ladder >>
+local function LadderCap()
+    local humans = CRCoop.ForEachHumanTeam(function() end)
+    return math.min(LADDER_CAP_MAX, LADDER_CAP_BASE + LADDER_CAP_PER_PLAYER * math.max(0, humans - 1))
+end
+
+-- Waves 3, 6, 9... go for the player factory, the rest for the recycler (2/3 weight); falls
+-- back to whichever is alive, then to the nearest player. Deterministic on purpose.
+local function LadderTarget(from, wave)
+    local first, second = M.nsdfrecycle, M.nsdfmuf
+    if wave % 3 == 0 then first, second = second, first end
+    if IsAlive(first) then return first end
+    if IsAlive(second) then return second end
+    return NearestPlayer(from)
+end
+
+local function LadderInterval(wave)
+    local tier = math.min(wave, #LADDER_TIERS)
+    return math.max(LADDER_FLOOR_S, LADDER_INTERVAL_S - LADDER_STEP_S * (tier - 1))
+end
+
+-- Leader-only, called from the same spot as UpdateCcaWalkers.
+local function UpdateCcaWaveLadder()
+    if not CCA_WAVE_LADDER or not M.ccarecycle_spawned or M.game_over then return end
+    local now = GetTime()
+    if M.cwl == nil then M.cwl = { list = {}, next = now + LADDER_FIRST_DELAY_S, order = now + LADDER_FIRST_DELAY_S, n = 0 } end
+    local live = {}
+    for _, entry in ipairs(M.cwl.list) do
+        if IsAlive(entry.h) then live[#live + 1] = entry end
+    end
+    M.cwl.list = live
+    if not IsAlive(M.ccamuf) or M.base_dead then return end
+    if M.cwl.order < now then
+        M.cwl.order = now + LADDER_ORDER_S
+        for _, entry in ipairs(live) do
+            if now - entry.t >= LADDER_PATH_S then Attack(entry.h, LadderTarget(entry.h, entry.w)) end
+        end
+    end
+    if M.cwl.next >= now then return end
+    local wave = M.cwl.n + 1
+    local tier = LADDER_TIERS[math.min(wave, #LADDER_TIERS)]
+    if #live + 1 + tier.count > LadderCap() then
+        M.cwl.next = now + LADDER_RETRY_S
+        return
+    end
+    local path = (wave % 2 == 1) and "gech_path1" or "gech_path2"
+    local leader = BuildObject(tier.leader, ENEMY_TEAM, M.ccamuf)
+    M.cwl.list[#M.cwl.list + 1] = { h = leader, w = wave, t = now }
+    Goto(leader, path)
+    for _ = 1, tier.count do
+        local follower = BuildObject(tier.follower, ENEMY_TEAM, M.ccamuf)
+        M.cwl.list[#M.cwl.list + 1] = { h = follower, w = wave, t = now }
+        Follow(follower, leader)
+    end
+    M.cwl.n = wave
+    M.cwl.next = now + LadderInterval(wave)
+end
+-- CR CCA wave ladder <<
+
 -- CR restored walker content >>
 -- The DLL's disabled third-walker block (translated in place in Update): after the
 -- Colorado, walker 3 follows gech_path2 on to the player base and then attacks it
@@ -1128,6 +1205,9 @@ local function ResetState()
 -- CR CCA walkers >>
         cw = nil,
 -- CR CCA walkers <<
+-- CR CCA wave ladder >>
+        cwl = nil,
+-- CR CCA wave ladder <<
 -- CR restored walker content >>
         gech3_fallback = nil,
 -- CR restored walker content <<
@@ -1411,6 +1491,9 @@ Here is where you put what happens every frame.
 -- CR CCA walkers >>
     UpdateCcaWalkers()
 -- CR CCA walkers <<
+-- CR CCA wave ladder >>
+    UpdateCcaWaveLadder()
+-- CR CCA wave ladder <<
 
     if (not M.start_done) then
         subtit.Play("misn0800.wav") --starts opeing V.O.

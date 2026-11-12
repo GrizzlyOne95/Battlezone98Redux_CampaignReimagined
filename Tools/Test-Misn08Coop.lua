@@ -838,6 +838,150 @@ do
     check(#s.cw.list == 1 and built(host, "svwalk") == 2, "a single human caps production at one walker")
 end
 
+-- ============================================================ 12d2. CCA wave ladder
+local LADDER_ODFS = {svtank = true, svfigh = true, svltnk = true, svhraz = true}
+local LADDER_WAVES = {
+    {"svtank", "svfigh", 1}, {"svtank", "svfigh", 2}, {"svltnk", "svtank", 2}, {"svhraz", "svtank", 2},
+    {"svhraz", "svtank", 3}, {"svhraz", "svtank", 3}, {"svhraz", "svtank", 3},
+}
+local function deepCopy(v)
+    if type(v) ~= "table" then return v end
+    local r = {}
+    for k, x in pairs(v) do r[k] = deepCopy(x) end
+    return r
+end
+local function ladderBuilds(peer, from)
+    local out = {}
+    for i = from, #peer.calls do
+        local c = peer.calls[i]
+        if c[1] == "BuildObject" and c[4] == 5 and LADDER_ODFS[c[3]] then out[#out + 1] = c end
+    end
+    return out
+end
+-- Ticks until the ladder reaches wave n (or limit seconds pass); returns the clock then.
+local function untilWave(s, n, limit)
+    local stop = now + limit
+    while now < stop and not (s.cwl and s.cwl.n >= n) do tick() end
+    return now
+end
+local function killLadder(s) for _, e in ipairs(s.cwl.list) do objects[e.h].alive = false end end
+-- A session that waits for the CCA recycler spawn; returns the baseline call index.
+local function ladderSession(humans)
+    local host, guests = session(true, humans)
+    local s = host.state
+    runTo(285)
+    for _ = 1, 2400 do tick(); if s.colorado_message4 then break end end
+    local base, early = #host.calls + 1, 0
+    for _ = 1, 4000 do
+        tick()
+        if s.ccarecycle_spawned then break end
+        if s.cwl ~= nil then early = early + 1 end
+    end
+    check(s.ccarecycle_spawned and early == 0 and #ladderBuilds(host, base) == 0, "the ladder waits for the CCA recycler spawn")
+    tick()
+    check(s.cwl ~= nil and s.cwl.n == 0, "the ladder arms with the CCA recycler spawn")
+    return host, s, guests, base, now
+end
+do
+    local host, s, guests, base, t0 = ladderSession(4)
+    run(118)
+    check(#ladderBuilds(host, base) == 0, "the first wave waits its delay")
+    local tw = {}
+    for wave = 1, 7 do
+        tw[wave] = untilWave(s, wave, 400)
+        check(s.cwl.n == wave, "wave " .. wave .. " arrives")
+        local spec = LADDER_WAVES[wave]
+        local builds = ladderBuilds(host, base)
+        local first = 0
+        for w = 1, wave - 1 do first = first + 1 + LADDER_WAVES[w][3] end
+        check(#builds == first + 1 + spec[3], "wave " .. wave .. " builds its leader and " .. spec[3] .. " follower(s)")
+        local leader = builds[first + 1]
+        check(leader[3] == spec[1] and leader[4] == 5 and leader[5] == s.ccamuf, "wave " .. wave .. " leader is a CCA " .. spec[1] .. " at the factory")
+        check(objects[leader[2]].team == 5, "wave " .. wave .. " leader is on the CCA team")
+        for i = 1, spec[3] do check(builds[first + 1 + i][3] == spec[2] and builds[first + 1 + i][4] == 5, "wave follower is a CCA " .. spec[2]) end
+        local path = wave % 2 == 1 and "gech_path1" or "gech_path2"
+        local sent, followed = 0, 0
+        for _, c in ipairs(callsOf(host, "Goto")) do if c[2] == leader[2] and c[3] == path then sent = sent + 1 end end
+        for _, c in ipairs(callsOf(host, "Follow")) do if c[3] == leader[2] then followed = followed + 1 end end
+        check(sent == 1, "wave " .. wave .. " leader takes " .. path)
+        check(followed == spec[3], "wave " .. wave .. " followers follow the leader")
+        killLadder(s) -- keep the live cap out of the interval test
+    end
+    check(math.abs(tw[1] - (t0 + 120)) < 1, "the first wave comes about 120 s after the start condition")
+    local expected = {160, 150, 140, 130, 120, 120}
+    for i, gap in ipairs(expected) do
+        check(math.abs((tw[i + 1] - tw[i]) - gap) < 1, "the interval after wave " .. i .. " is " .. gap .. " s")
+    end
+    for _, g in ipairs(guests) do
+        check(#ladderBuilds(g, 1) == 0 and g.state.cwl == nil, "guests never build ladder waves")
+    end
+    -- the CCA factory falling stops the ladder
+    local n, count1 = s.cwl.n, #ladderBuilds(host, base)
+    objects[s.ccamuf].alive = false
+    run(400)
+    check(s.cwl.n == n and #ladderBuilds(host, base) == count1, "no waves once the CCA factory fell")
+end
+do
+    -- the live cap scales with the humans (1 -> 6, 2 -> 8, 4 -> 12); a wave that would pass it is skipped
+    for _, case in ipairs({{1, 2, 6}, {2, 3, 8}, {4, 4, 12}}) do
+        local humans, expectWaves, cap = case[1], case[2], case[3]
+        local host, s = ladderSession(humans)
+        run(1100)
+        check(s.cwl.n == expectWaves, humans .. " human(s): the cap of " .. cap .. " holds the ladder at wave " .. expectWaves)
+        check(#s.cwl.list <= cap, humans .. " human(s): live wave units never exceed " .. cap)
+        for i = 1, 3 do objects[s.cwl.list[i].h].alive = false end
+        run(40)
+        check(s.cwl.n == expectWaves + 1, humans .. " human(s): losses make room for the next wave")
+        check(#s.cwl.list <= cap, humans .. " human(s): the cap still holds after the next wave")
+    end
+    local host, s = ladderSession(2)
+    run(130)
+    check(s.cwl.n == 1, "two humans get the first wave")
+    s.base_dead = true
+    run(500)
+    check(s.cwl.n == 1, "no waves once the CCA base is dead")
+end
+do
+    -- retargeting: the path comes first, then the Utah (waves 3, 6.. go for the factory), then fallbacks
+    local host, s = ladderSession(2)
+    run(125)
+    local wave1 = {}
+    for _, e in ipairs(s.cwl.list) do wave1[#wave1 + 1] = e.h end
+    run(60)
+    local early = 0
+    for _, c in ipairs(callsOf(host, "Attack")) do for _, h in ipairs(wave1) do if c[2] == h then early = early + 1 end end end
+    check(early == 0, "wave units keep their flank path before retargeting")
+    run(60)
+    for _, h in ipairs(wave1) do check(objects[h].attack == "avrecycle", "a wave unit is sent at the Utah") end
+    s.nsdfmuf = spawn("avmu8", 1, 2300, 101100)
+    for _ = 1, 3000 do tick(); if s.cwl.n >= 3 then break end end
+    check(s.cwl.n >= 3, "wave 3 arrives")
+    local w3 = {}
+    for _, e in ipairs(s.cwl.list) do if e.w == 3 then w3[#w3 + 1] = e.h end end
+    run(130)
+    for _, h in ipairs(w3) do check(objects[h].attack == s.nsdfmuf, "wave 3 goes for the player factory") end
+    -- (losing the Utah or factory would end the mission, so the handles are cleared instead)
+    s.nsdfrecycle, s.nsdfmuf = nil, nil
+    run(35)
+    for _, e in ipairs(s.cwl.list) do
+        local target = e.w <= 3 and objects[e.h].attack or false
+        if e.w <= 3 then check(target ~= nil and objects[target] and objects[target].alive and objects[target].team == 1, "with both targets gone a wave unit goes for the nearest player") end
+    end
+end
+do
+    -- Save/Load keeps the ladder
+    local host, s, guests, base = ladderSession(4)
+    untilWave(s, 1, 200)
+    local snap = deepCopy(host.env.Save())
+    host.env.Load(snap)
+    s = host.env.Save()
+    check(s.cwl and s.cwl.n == 1 and #s.cwl.list == 2, "the ladder state survives Save/Load")
+    local t1 = now
+    untilWave(s, 2, 400)
+    check(s.cwl.n == 2 and math.abs((now - t1) - 160) < 2, "the ladder keeps its schedule after Load")
+    check(#ladderBuilds(host, base) == 2 + 3, "no wave is repeated after Load")
+end
+
 -- ============================================================ 12e. Venus weather
 do
     local host, guests = session(true)

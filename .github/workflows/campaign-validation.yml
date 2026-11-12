@@ -61,6 +61,7 @@ jobs:
           python Tools/Test-WeaponPresentation.py
           python Tools/Test-CombatPresentation.py
           python Tools/Test-WeaponRigs.py
+          python Tools/Test-ConstructorBuildMenu.py
 
       - name: Validate HD terrain bundles and normal contracts
         run: |
@@ -83,6 +84,9 @@ jobs:
 
       - name: Validate repository invariants
         run: python Tools/Validate-CampaignRepository.py
+
+      - name: Check shipped scripts only reference shipped repo files
+        run: python Tools/Test-LockedReferences.py
 
       - name: Test optional SAV fixture
         run: lua5.1 Tools/Test-SAVPrototype.lua
@@ -240,6 +244,7 @@ jobs:
           python Tools/Test-Misn04CoopContract.py
           lua5.1 Tools/Test-Misn04Coop.lua
           lua5.1 Tools/Test-CR04Drop.lua
+          lua5.1 Tools/Test-CRDropIn.lua
 
       - name: Test misn10 source-faithful port
         shell: bash
@@ -368,6 +373,7 @@ jobs:
             "$LUA" Tools/Test-CRFloraDamage.lua
             "$LUA" Tools/Test-CRFloraAdapters.lua
             "$LUA" Tools/Test-CRFloraDamageStress.lua
+          "$LUA" Tools/Test-CRShieldTowerFX.lua Scripts
           # Mission 18 storm: director, tornado, ground, replication, payload lint.
           "$LUA" Tools/Test-CRStorm18.lua
           "$LUA" Tools/Test-CRStorm18Fissures.lua
@@ -543,6 +549,7 @@ jobs:
         run: |
           lua5.1 Tools/Test-Misns1Coop.lua
           lua5.1 Tools/Test-Misns1Presentation.lua
+          lua5.1 Tools/Test-Misns1DropIn.lua
           python Tools/Test-Misns1CoopSourceParity.py
           python Tools/Test-Misns1CoopContract.py
       - name: Test misns2 co-op layer, presentation and map contract
@@ -556,6 +563,7 @@ jobs:
           lua5.1 Tools/Test-Misns8Coop.lua
           python Tools/Test-Misns8CoopSourceParity.py
           python Tools/Test-Misns8CoopContract.py
+          python Tools/Test-SavFuryAssets.py
       - name: Test misns7 co-op layer, presentation and map contract
         run: |
           lua5.1 Tools/Test-Misns7Coop.lua
@@ -587,6 +595,7 @@ jobs:
         run: |
           lua5.1 Tools/Test-Bdmisn01Coop.lua
           lua5.1 Tools/Test-Bdmisn01Presentation.lua
+          lua5.1 Tools/Test-Bdmisn01DropIn.lua
           python Tools/Test-Bdmisn01CoopSourceParity.py
           python Tools/Test-Bdmisn01CoopContract.py
       - name: Test bdmisn02 co-op layer, presentation and map contract
@@ -674,6 +683,7 @@ jobs:
         run: |
           lua5.1 Tools/Test-Chmisn01Coop.lua
           lua5.1 Tools/Test-Chmisn01Presentation.lua
+          lua5.1 Tools/Test-Chmisn01DropIn.lua
           python Tools/Test-Chmisn01CoopSourceParity.py
           python Tools/Test-Chmisn01CoopContract.py
       - name: Test chmisn02 co-op layer, presentation and map contract

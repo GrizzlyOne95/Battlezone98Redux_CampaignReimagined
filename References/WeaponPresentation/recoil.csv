@@ -265,6 +265,8 @@ playrt,Rocket Tank,combat carrier,avrckt,read,4,gmitsmin,GS1,art11gs1,,art11bda,
 playsv,Tank,combat carrier,svtank,read,1,gatstab,GC1,SCZ11GC1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": -0.0}]",Take_001,dedicated barrel slide candidate
 playsv,Tank,combat carrier,svtank,read,2,gminisov,GC2,SCZ11GC2,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": -0.0}]",Take_001,dedicated barrel slide candidate
 playsv,Tank,combat carrier,svtank,read,4,gquake,GS1,SCZ11GS1,,SCZ11BGB,"[{""node"": ""SCZ11BGB"", ""translation_animated"": false, ""barrel_forward_tip_estimate"": 1.786}]",Take_001,dedicated barrel slide candidate
+savfury,Infected Fury,combat carrier,savfury,read,1,gbolt,GC1,csf11GC1,,csf11bda,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
+savfury,Infected Fury,combat carrier,savfury,read,2,gwasp,GR1,csf11GR1,,csf11bda,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 savs8,Fury,combat carrier,svsav,read,1,gbolt,GC1,ssv11GC1,,ssv11bda,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 savs8,Fury,combat carrier,svsav,read,2,gwasp,GR1,ssv11GR1,,ssv11bda,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion
 savtnk,Fury,combat carrier,svsav,read,1,gbolt,GC1,ssv11GC1,,ssv11bda,[],Take_001,author additive recoil parent/clip; preserve aiming and locomotion

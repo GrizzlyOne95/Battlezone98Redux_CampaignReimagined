@@ -90,10 +90,14 @@ human parked within 460 m of the camp delays the wave (and the retreat groups) u
 
 ## Restored content [owner decision 2026-11-01]
 
-None. `References/Misns3Source` has no disabled gameplay blocks (`MISNS3_SOURCE_PORT.md`), and the unused native
-state members (`bd6`..`bd12`) carry no behaviour to restore, so there is no `RESTORED_*` flag. The unused shipped
-voice line `misns311` ("Comrade, there is an American unit coming your way...") is audited and skipped: nothing in
-the body marks a moment for it.
+`References/Misns3Source` has no disabled gameplay blocks (`MISNS3_SOURCE_PORT.md`), and the unused native state
+members (`bd6`..`bd12`) carry no behaviour to restore.
+
+| Content | Flag | Behaviour |
+| --- | --- | --- |
+| Second-patrol warning | `RESTORED_PATROL2_VOICE` | Stock plays `misns219` for both patrol routes. When the patrol is built at `patrolspawn2`, the unused shipped line `misns311` ("Comrade, there is an American unit coming your way. You must find a way to avoid detection.") plays instead. The first route keeps `misns219`. |
+
+`misns311` was first audited and skipped; it was restored [owner decision 2026-11-11].
 
 ## Stock bugs fixed in the CR layer (the faithful body is untouched)
 

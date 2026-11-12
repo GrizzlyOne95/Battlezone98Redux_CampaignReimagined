@@ -8,6 +8,8 @@ faithful = (ROOT / "Scripts/bdmisn10.lua").read_bytes()
 coop_raw = (ROOT / "Scripts/bd10cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
+# Intentional CR rename: the nav beacons match the player faction (Black Dog: apcamr -> bpcamr).
+faithful_text = faithful_text.replace('"apcamr"', '"bpcamr"')
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
 
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"

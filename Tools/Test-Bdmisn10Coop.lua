@@ -84,6 +84,7 @@ local function fullRun(options)
 end
 do
     local faithful = fullRun({ faithful = true, script = "Scripts/bdmisn10.lua" })
+    faithful = faithful:gsub("apcamr", "bpcamr") -- intentional CR rename: the nav beacon matches the player faction
     local offline, peer = fullRun({})
     check(faithful == offline and faithful:find("SucceedMission:bd10win.des", 1, true),
         "offline completes like the faithful port:\n" .. faithful .. "\n" .. offline)
@@ -230,9 +231,9 @@ do
     F.kill("destroy_1"); F.kill("destroy_3"); F.kill("destroy_4"); F.kill("destroy_5"); F.kill("destroy_6")
     F.run(1)
     check(m.objective1Complete, "all six targets down completes the objective")
-    check(#F.builds(p[1], 0, "apcamr") == 0, "the nav beacon waits ten seconds")
+    check(#F.builds(p[1], 0, "bpcamr") == 0, "the nav beacon waits ten seconds")
     F.run(11)
-    check(#F.builds(p[1], 0, "apcamr") == 1 and F.builds(p[1], 0, "apcamr")[1].team == 1, "the nav beacon appears on the Black Dog side")
+    check(#F.builds(p[1], 0, "bpcamr") == 1 and F.builds(p[1], 0, "bpcamr")[1].team == 1, "the nav beacon appears on the Black Dog side")
     check(F.heardCount(p[2], "bd10002.wav") == 1, "the drop zone warning plays for every peer")
     F.run(5)
     check(#F.builds(p[1], 0, "bvapc") == 1 and #F.builds(p[1], 0, "cbport") == 1, "the APC and the portal arrive")

@@ -475,7 +475,7 @@ function Update(dt)
         M.objective1Complete = true
         SetObjectiveOff(M.cvtnk1)
         M.sound3Time = now + 5
-        M.beacon1 = BuildObject("apcamr", 1, "spawn_beacon1")
+        M.beacon1 = BuildObject("bpcamr", 1, "spawn_beacon1")
     end
     if M.sound3Time < now and not M.deviateSpawned then
         M.sound3Time = NEVER
@@ -503,7 +503,7 @@ function Update(dt)
     if not M.tankArrived1 and AnyTankNear(M.beacon1) then
         M.tankArrived1 = true
         -- spawn the next beacon
-        M.beacon2 = BuildObject("apcamr", 1, "spawn_beacon2")
+        M.beacon2 = BuildObject("bpcamr", 1, "spawn_beacon2")
     end
     if M.objective1Complete and not M.gotoBeacon2 and not M.deviateSpawned then
         -- has the player arrived?
@@ -517,7 +517,7 @@ function Update(dt)
     if not M.tankArrived2 and AnyTankNear(M.beacon2) then
         M.tankArrived2 = true
         -- spawn the next beacon
-        M.beacon3 = BuildObject("apcamr", 1, "spawn_beacon3")
+        M.beacon3 = BuildObject("bpcamr", 1, "spawn_beacon3")
     end
     if M.objective1Complete and not M.gotoBeacon3 and not M.deviateSpawned then
         -- has the player arrived?

@@ -88,6 +88,17 @@ end
 -- CR PDA <<
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
+-- The dropship opening (CRDropIn, "CR dropship" below). The ops are listed here, not read from the module,
+-- so a guest's stream never stalls on one when the module failed to load (it acknowledges and drops them).
+local CRDrop = { ops = { DropShip = true, DropCrew = true, DropGo = true } }
+do
+    local okDropIn, DropIn = pcall(require, "CRDropIn")
+    if okDropIn then
+        CRDrop.module = DropIn
+    else
+        print("[misn14] stock opening: CRDropIn unavailable: " .. tostring(DropIn))
+    end
+end
 -- CR co-op layer <<
 -- CR team map >>
 -- Humans occupy teams 1-4 in co-op, so every DLL team that is not the player's moves off them:
@@ -262,6 +273,13 @@ local function FromLeader(from)
 end
 
 local function ApplyPresentation(op, ...)
+    if CRDrop.ops[op] then
+        if CRDrop.module then
+            M.dropin = M.dropin or {}
+            CRDrop.module.Apply(M.dropin, op, ...)
+        end
+        return
+    end
     if IsTitanOp(op) then
         -- Weather events carry no handles: never labelled, never waited on.
         return TitanHook("net", op, ...)
@@ -630,7 +648,7 @@ function ReceivePresentationDecoded(from, kind, ...)
     end
     local seq, op, ttl = ...
     if type(seq) ~= "number" or type(op) ~= "string" or type(ttl) ~= "number" then return true end
-    if seq == receivedEvent + 1 and (native[op] or IsTitanOp(op) or op == "Label") then
+    if seq == receivedEvent + 1 and (native[op] or IsTitanOp(op) or CRDrop.ops[op] or op == "Label") then
         local args = { select(4, ...) }
         local count = select("#", ...) - 3
         local apply, unresolved = true, false
@@ -1250,12 +1268,66 @@ local function ApcCamera()
     return not IsAlive(carrier) or CameraCancelled() or GetTime() > M.camera_time
 end
 
+-- CR dropship >>
+-- The dropship opening (CRDropIn), offline and co-op: one NSDF cargo ship carries every human craft and the
+-- Texas down to the Texas's stock spot (the base the authored map starts the player at). The leader plans it
+-- once; each peer then holds its own craft. The stock opening (audio, cam_path flyover, objective) waits.
+function CRDrop.Configure()
+    if not CRDrop.module then return end
+    CRDrop.module.Configure({
+        present = Present, exu = exu, log = print, owner = "mission:misn14drop",
+        isNetwork = CRCoop.IsNetworkGame, isLeader = CRCoop.IsAuthority,
+        myTeam = CRCoop.GetLocalTeam, player = GetPlayerHandle,
+        forEachHuman = function(fn) CRCoop.ForEachPlayerHandle(function(h) fn(h) end) end,
+        cameraReady = CameraReady, cameraObject = CameraObject,
+        cameraFinish = CameraFinish, cameraCancelled = CameraCancelled,
+    })
+end
+
+-- Leader: true while the stock opening must wait (ship descending, ramp opening).
+function CRDrop.Update()
+    local DropIn = CRDrop.module
+    if not M.dropin then
+        M.dropin = {}
+        local recy = GetHandle("avrecy-1_recycler")
+        if not IsValid(recy) then
+            print("[misn14] stock opening: recycler missing")
+            M.dropin.phase = "done"
+            return false
+        end
+        local where = GetPosition(recy)
+        local exclude = { [recy] = true }
+        CRCoop.ForEachPlayerHandle(function(h) exclude[h] = true end)
+        local placeholder = GetHandle("player0_wingman")
+        if IsValid(placeholder) then exclude[placeholder] = true end
+        local teams = {}
+        CRCoop.ForEachHumanTeam(function(team) teams[#teams + 1] = team end)
+        table.sort(teams)
+        local spot = { x = where.x, z = where.z }
+        -- The Texas rides in the front of the hold, centred; the crew take the two lanes behind it.
+        local begun = pcall(DropIn.Begin, M.dropin, { exclude = exclude, ships = {
+            { anchor = spot, delay = 0, crew = teams, cargo = {
+                { h = recy, goal = spot, along = -20, lat = 0 } } },
+        } })
+        if not begun then
+            -- Whatever was built goes; the stock opening runs.
+            pcall(DropIn.Abort, M.dropin)
+            M.dropin.phase = "done"
+            return false
+        end
+    end
+    return DropIn.Update(M.dropin)
+end
+-- CR dropship <<
+
 function Start()
     -- M is initialized at chunk load, before AddObject can discover a map APC.
     -- Do not reset it here and erase objects reported before Start.
 -- CR co-op layer >>
     -- (The DLL port called SetAIControl here; it is a chunk-root call now, see CR team map.)
     InitializeCoop()
+    CRDrop.Configure()
+    if CRDrop.module then CRDrop.module.Reset() end
     subtit.Initialize()
     missionPda.Init()
 -- CR co-op layer <<
@@ -1308,6 +1380,7 @@ function Update(dt)
     if CRCoop.IsNetworkGame() then
         if CRCoop.HasLeaderDeparted() then
             M.coopResult = true
+            if CRDrop.module and M.dropin then pcall(CRDrop.module.Abort, M.dropin) end -- never leave a peer locked
             native.FailMission(GetTime() + 1.0)
             return
         end
@@ -1315,6 +1388,7 @@ function Update(dt)
             if not M.coopRestartWarned then
                 DisplayMessage("Use distinct teams 1-4 and start together. Late join/rejoin requires a mission restart.")
                 M.coopRestartWarned = true
+                if CRDrop.module and M.dropin then pcall(CRDrop.module.Abort, M.dropin) end -- Update stops here
             end
             return
         end
@@ -1326,6 +1400,8 @@ function Update(dt)
     end
     UpdateTitanWeather(dt)
     UpdateRally()
+    -- Every peer holds its own craft in the dropship hold until the ramp is down.
+    if CRDrop.module and M.dropin and not CRCoop.IsAuthority() then CRDrop.module.Update(M.dropin) end
     if not CRCoop.IsAuthority() then return end
     if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
         M.coopBootstrapped = true
@@ -1333,6 +1409,9 @@ function Update(dt)
         local offlinePlayer = GetHandle("player0_wingman")
         if IsValid(offlinePlayer) and not CRCoop.IsHumanCraft(offlinePlayer) then RemoveObject(offlinePlayer) end
     end
+    -- The stock opening waits while the ship descends and opens; the landing then keeps running beside it.
+    M.cr14dropHold = CRDrop.module ~= nil and CRDrop.Update()
+    if M.cr14dropHold then return end
 -- CR co-op layer <<
     -- Original disabled native pointer declaration:
     --GameObject *fcycler,*ecycler;
@@ -1792,4 +1871,10 @@ end
 
 function Load(state)
     M = state
+-- CR dropship >>
+    -- A load drops every camera: never pop one that is gone. A drop in flight resolves to its end state.
+    cameraFrame, localCameraActive, cameraSkipped = nil, false, false
+    CRDrop.Configure()
+    if CRDrop.module then CRDrop.module.OnLoad(M.dropin) end
+-- CR dropship <<
 end

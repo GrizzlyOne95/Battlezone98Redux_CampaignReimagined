@@ -61,7 +61,7 @@ used |= {"s1", "s2", "s3", "m1", "m2", "m3"}
 assert used <= set(paths), "every path the body names exists: " + str(used - set(paths))
 for label in ("svrecy0_recycler", "absilo0_scrapsilo", "avartl3_howitzer", "avartl4_howitzer", "abcafe8_i76building"):
     assert label in objects, label
-assert objects["svrecy0_recycler"] == ("svrecy", 1) and objects["absilo0_scrapsilo"] == ("absilo", 5)
+assert objects["svrecy0_recycler"] == ("svrecy", 1) and objects["absilo0_scrapsilo"] == ("bbsilo", 5)
 for label in ("avturr0_turrettank", "avturr1_turrettank", "defender1", "defender2", "avartl3_howitzer", "avartl4_howitzer"):
     assert objects[label][1] == 5, "the defended guns are Black Dogs on team 5: " + label
 assert not any(team == 2 for _, team in objects.values()), "nothing is left on the authored team 2"

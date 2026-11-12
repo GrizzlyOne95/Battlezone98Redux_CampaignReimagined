@@ -120,6 +120,24 @@ local AddScrap = campaignRuntime and function(team, amount)
     elseif team == 2 then team = 5 end
     return AddScrap(team, amount)
 end or AddScrap
+-- Combat-only aiCore (Docs/MISNS5_COOP.md): the enemy units get aiCore's combat layer (special combat, sniping, craft
+-- stealing) and nothing else; this script keeps every order, wave and the native AIP. Authority only.
+local aiCore = campaignRuntime and require("aiCore")
+local COMBAT_TEAM = 5 -- the real enemy team (the body sees it as 2 through the GetTeamNum shadow)
+local combatReady = false
+local function CombatAuthority()
+    return aiCore and (not campaignRuntime.Coop.IsNetworkGame() or campaignRuntime.Coop.IsAuthority())
+end
+local function CombatUpdate()
+    if not CombatAuthority() then return end
+    if not combatReady then
+        combatReady = true
+        aiCore.EnableCombatOnly(COMBAT_TEAM, aiCore.Factions.CCA)
+        aiCore.BootstrapCombatOnly(COMBAT_TEAM)
+    end
+    -- Pilot specials stay on: pilot persons of team 5 can be retasked by sniping/craft stealing.
+    aiCore.UpdateCombatOnly()
+end
 -- CR co-op runtime <<
 local function Valid(h)
     return h ~= nil and h ~= 0 and IsValid(h)
@@ -144,6 +162,31 @@ if campaignRuntime then
     end
 end
 -- CR restored content <<
+-- CR early ladder >>
+-- Early pressure before the commander walker falls (Docs/MISNS5_COOP.md, "Early ladder"): an APC raid, bombers, then
+-- bomber and howitzer attacks on the player recycler. Black Dog ODFs: bvapc (via avapc), bvhraz (the Bomber),
+-- bvartl (howitzer, deployed), bvtank (patrols), bsheav (the sniper). Authority only: the runtime stops Update on
+-- guests. State lives in M.cr_t0 / M.cr_step, so it saves and loads with the rest of M.
+local CR_LADDER = {
+    { at = 105, apc = 1, entry = "spawn6", target = "muf" },
+    { at = 180, bombers = 2, entry = "spawn5", target = "muf" },
+    { at = 300, bombers = 1, entry = "spawn6", target = "recy", howitzer = true },
+    { at = 600, bombers = 2, entry = "spawn5", target = "recy" },
+    { at = 900, bombers = 3, entry = "spawn6", target = "recy" },
+}
+local function CRLadderStep(step)
+    if campaignRuntime then campaignRuntime.BeginEvent() end
+    local target = step.target == "recy" and M.recy or M.muf
+    if not Valid(target) then target = M.recy end
+    if not Valid(target) then return end
+    for _ = 1, step.apc or 0 do Command(Attack, BuildObject("avapc", 2, step.entry), target) end
+    for _ = 1, step.bombers or 0 do Command(Attack, BuildObject("bvhraz", 2, step.entry), target) end
+    if step.howitzer then
+        local h = BuildObject("bvartl", 2, "cr_howitzer")
+        if Valid(h) then Deploy(h) end
+    end
+end
+-- CR early ladder <<
 
 function Start()
 -- CR co-op callback >>
@@ -160,6 +203,10 @@ function AddObject(h)
         campaignRuntime.AddObject(h)
         -- Only the authority orders units; guests see the replicated objects.
         if not campaignRuntime.Coop.IsAuthority() then return end
+        if combatReady then
+            aiCore.TrackWorldObject(h) -- keeps the target cache complete for every team
+            if GetTeamNum(h) == 2 then aiCore.AddCombatObject(h) end
+        end
     end
 -- CR co-op callback <<
     if not Valid(h) or GetTeamNum(h) ~= 2 then return end
@@ -192,6 +239,7 @@ end)()
 function Update(dt)
 -- CR co-op callback >>
     if campaignRuntime and not campaignRuntime.Update(dt) then return end
+    if campaignRuntime then CombatUpdate() end
 -- CR co-op callback <<
     if not M.start_done then
         M.recy = GetHandle("svrecy0_recycler")
@@ -270,6 +318,26 @@ function Update(dt)
         M.apc_here = true
         AudioMessage("misns505.wav")
     end
+-- CR early ladder >>
+    if M.start_done and not M.won and not M.lost then
+        if M.cr_t0 == nil and not M.last_phase then
+            -- Opening: three tanks patrol west of the base and one sniper holds the south-east overlook.
+            M.cr_t0 = GetTime()
+            M.cr_step = 1
+            for i = 1, 3 do
+                local h = BuildObject("bvtank", 2, "cr_patrol" .. i)
+                if Valid(h) then Patrol(h, "cr_patrol" .. i, 1) end
+            end
+            BuildObject("bsheav", 2, "cr_sniper")
+        end
+        -- The ladder ends when the final phase opens (the enemy recycler itself exists from the APC strike).
+        local step = CR_LADDER[M.cr_step or 1]
+        if step and not M.last_phase and GetTime() >= M.cr_t0 + step.at then
+            M.cr_step = (M.cr_step or 1) + 1
+            CRLadderStep(step)
+        end
+    end
+-- CR early ladder <<
     if GetTime() > M.chaff then
         -- rand()%4*10.0f: keep the four discrete 50/60/70/80-second gaps.
         M.chaff = GetTime() + 50.0 + math.random(0, 3) * 10.0
@@ -377,4 +445,19 @@ function CreatePlayer(id,name,team) if campaignRuntime then return campaignRunti
 function AddPlayer(id,name,team) if campaignRuntime then return campaignRuntime.AddPlayer(id,name,team) end end
 function DeletePlayer(id) if campaignRuntime then return campaignRuntime.DeletePlayer(id) end end
 function Receive(from,kind,...) if campaignRuntime then return campaignRuntime.Receive(from,kind,...) end end
+-- aiCore's state is a new trailing Save value; a save without it loads and enables combat-only mode on the first Update.
+local stockSave, stockLoad = Save, Load
+function Save()
+    local state = stockSave()
+    if combatReady then return state, aiCore.Save() end
+    return state
+end
+function Load(state, aiData)
+    stockLoad(state)
+    combatReady = false
+    if aiCore and aiData ~= nil and CombatAuthority() then
+        aiCore.Load(aiData)
+        combatReady = true
+    end
+end
 -- CR co-op callbacks <<

@@ -517,7 +517,7 @@ function Update(dt)
             AddObjective("ch03001.otf", "green")
             AddObjective("ch03002.otf", "white")
             M.apcSpawnTime = GetTime()
-            local h = BuildObject("apcamr", 1, "nav_base")
+            local h = BuildObject("cpcamr", 1, "nav_base")
             SetObjectiveName(h, "CCA Base") -- stock SetName alias
         end
     end

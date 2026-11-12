@@ -607,7 +607,7 @@ function Update(dt)
     if M.missionState >= MS_SPAWNAPC1 and M.missionState <= MS_WAITFORSCAP
         and M.soundHandle ~= nil and IsAudioMessageDone(M.soundHandle) then
         M.soundHandle = nil
-        local temp = BuildObject("apcamr", 1, "apc_nav")
+        local temp = BuildObject("cpcamr", 1, "apc_nav")
         if Valid(temp) then
             SetName(temp, "APC Convoy")
             SetUserTarget(temp)

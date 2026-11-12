@@ -13,7 +13,7 @@ F.LABELS = {
     ["svrecy2_recycler"] = {odf="svrecy",team=1,pos={0,95,0},craft=true},
     ["eggeizr10_geyser"] = {odf="eggeizr1",team=0,pos={2500,94,0},craft=false},
     ["avmuf1_factory"] = {odf="avmuf",team=5,pos={2600,95,200},craft=true},
-    ["absilo1_i76building"] = {odf="absilo",team=5,pos={2650,95,260},craft=false},
+    ["absilo1_i76building"] = {odf="bbsilo",team=5,pos={2650,95,260},craft=false},
     ["avrecy1_recycler"] = {odf="avrecy",team=5,pos={4000,95,500},craft=true},
     ["avfigh3_wingman"] = {odf="avfigh",team=5,pos={4020,95,520},craft=true},
     ["avfigh4_wingman"] = {odf="avfigh",team=5,pos={4040,95,540},craft=true},
@@ -22,8 +22,8 @@ F.LABELS = {
     ["avtank6_wingman"] = {odf="avtank",team=5,pos={4100,95,600},craft=true},
     ["avtank7_wingman"] = {odf="avtank",team=5,pos={4120,95,620},craft=true},
     ["avtank8_wingman"] = {odf="avtank",team=5,pos={4140,95,640},craft=true},
-    ["ambase"] = {odf="apcamr",team=0,pos={5200,95,900},craft=false},
-    ["apcamr0_camerapod"] = {odf="apcamr",team=1,pos={40,95,10},craft=false},
+    ["ambase"] = {odf="spcamr",team=0,pos={5200,95,900},craft=false},
+    ["apcamr0_camerapod"] = {odf="spcamr",team=1,pos={40,95,10},craft=false},
     ["coop_spawn1"] = {odf="pspwn_1",team=1,pos={20,95,40},craft=false},
     ["coop_spawn2"] = {odf="pspwn_1",team=2,pos={45,95,40},craft=false},
     ["coop_spawn3"] = {odf="pspwn_1",team=3,pos={70,95,40},craft=false},
@@ -209,6 +209,7 @@ function F.makePeer(id, team, network, options)
     end
     e.IsCraft = function(h) return W.objects[h] ~= nil and W.objects[h].craft == true end
     e.GetFront = function(h) return {x = 0, y = 0, z = 1} end
+    e.GetVelocity = function(h) return {x = 0, y = 0, z = 0} end
     e.GetMaxHealth = function(h) return 1 end
     e.SetCurHealth = function(h, v) record("SetCurHealth", h, v) end
     e.StopCockpitTimer = function() record("StopCockpitTimer") end
@@ -393,6 +394,8 @@ function F.makePeer(id, team, network, options)
         return m
     end
     modules.CRCCARuntime = setfenv(assert(loadfile("Scripts/CRCCARuntime.lua")),e)()
+    -- options.dropIn: the real dropship module (Test-Misns1DropIn.lua). Absent by default: the stock start.
+    if options.dropIn then modules.CRDropIn = setfenv(assert(loadfile("Scripts/CRDropIn.lua")), e)() end
     if options.faithful then e.CR_TEST_FAITHFUL = true end
     setfenv(assert(loadfile(options.script or "Scripts/misns1cr.lua")), e)()
     p.chunkCalls = #p.calls -- everything recorded so far ran at chunk load, before Start

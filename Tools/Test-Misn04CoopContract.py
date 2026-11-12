@@ -97,3 +97,37 @@ for source in (r"Config\misn04cr.ini", r"Assets\Graphics\misn04cr.bmp",
     assert len(runtime) <= 16
 
 print("misn04 campaign/MP scaffold and shipping checks passed")
+
+
+# The dropship opening (Scripts/CRDropIn.lua). Its plan travels on the ordered presentation
+# stream; a guest acknowledges an op only if its receive filter knows it, so the ops must be
+# listed statically in the mission (a guest that failed to load the module must not stall).
+drop = (root / "Scripts" / "CRDropIn.lua").read_text(encoding="utf-8")
+drop_code = re.sub(r"--[^\r\n]*", "", drop)
+assert re.search(r'local okDropIn, DropIn = pcall\(require, "CRDropIn"\)', lua), \
+    "the dropship opening must load through pcall (stock start fallback)"
+assert not re.search(r'require\("CR(04Drop|DropIn)"\)', lua), "a hard require would break the fallback"
+assert re.search(r"if not okDropIn then[^\n]*\n[^\n]*\n\s*DropIn = nil", lua), "a failed load must leave DropIn nil"
+assert "M.cr04dropHold = DropIn ~= nil and UpdateDropIn()" in lua, "no module must mean no hold"
+ops = re.search(r"local DROP_OPS = \{([^}]*)\}", lua)
+assert ops, "static drop ops missing"
+mission_ops = set(re.findall(r"(\w+) = true", ops.group(1)))
+module_ops = set(re.findall(r"(\w+) = true", re.search(r"Drop\.OPS = \{([^}]*)\}", drop_code).group(1)))
+sent_ops = set(re.findall(r'call\("present", "(\w+)"', drop_code))
+assert mission_ops == module_ops == sent_ops == {"DropShip", "DropCrew", "DropGo"}, \
+    f"drop ops disagree: mission {mission_ops}, module {module_ops}, sent {sent_ops}"
+assert "native[op] or DROP_OPS[op] or" in lua, "the guest receive filter must accept the drop ops"
+assert re.search(r"if DROP_OPS\[op\] then\s+if DropIn then", lua), "drop ops must apply only through the module"
+# Plan events carry numbers only: no handle may ride them (the leader owns every object it names).
+for op in sent_ops:
+    for args in re.findall(r'call\("present", "' + op + r'"((?:, [\w.]+)*)\)', drop_code):
+        for arg in filter(None, (a.strip() for a in args.split(","))):
+            assert not re.search(r"(^|\.)h$|hull|pod", arg), f"{op} carries an object: {arg}"
+# Per-frame poses are never sent: the module has no transport of its own.
+assert "Send(" not in drop_code, "CRDropIn must not send packets"
+assert entries.get(r"Scripts\CRDropIn.lua") == "CRDropIn.lua", "missing shipping entry: Scripts\\CRDropIn.lua"
+# Camera snapshots are tagged by kind; the opening streams an object camera.
+assert 'cameraFrame = { "O", subject, x, y, z, target }' in lua and 'cameraFrame = { "P", path' in lua
+assert 'camKind == "O"' in lua and 'camKind == "P"' in lua, "guest camera receive must parse tagged frames"
+
+print("misn04 dropship opening contract passed")

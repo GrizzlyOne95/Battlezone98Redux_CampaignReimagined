@@ -183,6 +183,14 @@ local M = NewState()
 -- Each RESTORED_* flag switches one cut-content restoration off (Docs/MISNS8_COOP.md, "Restored content").
 local RESTORED_CHOKE_CAM = true
 local RESTORED_VOICE_LINES = true -- unused shipped lines misns806, misns809, misns813 (Docs/MISNS8_COOP.md)
+local RESTORED_INFECTED_SAV = true -- the betrayal swap builds the Fury-blue "savfury", not the stock "savs8"
+local RESTORED_BETRAYAL_CUTSCENE = true -- a short shared shot around the swap, soundtrack ducked (Docs/MISNS8_COOP.md)
+-- Black Dog APCs retarget an enemy craft within this many metres (Docs/MISNS8_COOP.md): 0 disables it.
+local APC_ATTACK_RANGE = 120
+-- Once the Black Dog base breaks (plan_c): a Black Dog counterattack plus a walker strike, and three allied Soviet
+-- waves that guard the CCA Recycler (Docs/MISNS8_COOP.md). false disables each.
+local BLACK_DOG_COUNTERATTACK = true
+local SOVIET_ALLY_WAVES = true
 -- Extra Black Dog scrap per guest (the enemy economy is the AI's attack wave): 0 disables it.
 local ENEMY_SCRAP_PER_GUEST = 10
 local Restored
@@ -193,10 +201,13 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     rallyPoints = { [0] = "svrecycle" },
     -- The scripted Black Dog units are scaled/concealed; the replacement factory (it is the AI's producer,
     -- queried through IsDeployed/Pickup), Romeski, the nav beacons and the SAV swaps are built directly.
-    scaledOdfs = { bvtavk = true, avart8 = true, bvsca8 = true, bvra8 = true },
+    scaledOdfs = { bvtank = true, avart8 = true, bvsca8 = true, bvra8 = true, bvhraz = true, bvltnk = true, bvwalk = true },
     fallbackEntries = { "a_post1", "t2post", "t3post", "american_spawn" },
     wonFlags = { "game_over" },
     endedFlags = { "game_over" },
+    holdCamera = true, -- the betrayal shot is one CameraObject per frame; hold it for every peer
+    -- The soundtrack is local to each peer: the duck and the restore run on every peer through the stream.
+    presentationOps = { S8Music = function(mode) Restored.OpMusic(mode) end },
     weather = { module = "CRTitanWeather", sites = "CRTitanSitesS8", ops = { "TitanState", "TitanRoll" },
         startLevel = 2, targetLevel = 2,
         beats = function(titan, state, s)
@@ -225,12 +236,16 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
         end },
     hooks = {
         -- The sky dome follows the haze ladder (the same binding CRMisn15/16 make for Titan).
-        update = function(R)
+        update = function(R, dt)
+            if Restored then Restored.MusicTick(dt) end
             if skyBound or not R.Weather or not R.Weather.module.Initialized then return end
             skyBound = true
             require("Environment").BindWeatherSensors("Titan", R.Weather.module)
         end,
-        load = function() skyBound = false end,
+        load = function()
+            skyBound = false
+            if Restored then Restored.OnLoad() end
+        end,
     },
 })
 local RESTORED = campaignRuntime ~= nil and campaignRuntime ~= false
@@ -252,6 +267,10 @@ local SetObjectiveName = campaignRuntime and campaignRuntime.SetObjectiveName or
 local SetObjectiveOn = campaignRuntime and campaignRuntime.SetObjectiveOn or SetObjectiveOn
 local RemoveObject = campaignRuntime and campaignRuntime.RemoveObject or RemoveObject
 local SucceedMission = campaignRuntime and campaignRuntime.SucceedMission or SucceedMission
+local CameraReady = campaignRuntime and campaignRuntime.CameraReady or CameraReady
+local CameraObject = campaignRuntime and campaignRuntime.CameraObject or CameraObject
+local CameraFinish = campaignRuntime and campaignRuntime.CameraFinish or CameraFinish
+local CameraCancelled = campaignRuntime and campaignRuntime.CameraCancelled or CameraCancelled
 -- Natives the runtime does not own. The body's literal enemy team 2 is the co-op enemy (team 5) in the CR layer:
 -- team 2 is a guest slot. GetScrap/AddScrap/SetPilot/CountUnitsNearObject/SetPerceivedTeam say 2 explicitly.
 local SetScrap = campaignRuntime and function(team, amount)
@@ -353,7 +372,7 @@ if campaignRuntime then
     end
     function Restored.ChokeCam(r)
         -- Cut: if the retreating recycler is within 100 m of dis_geyser2 and the message has not played,
-        -- AudioMessage("misns802.wav"), cam4 = BuildObject("apcamr", 1, "last_nav_spawn") named "Choke Point".
+        -- AudioMessage("misns802.wav"), cam4 = BuildObject("spcamr", 1, "last_nav_spawn") named "Choke Point".
         -- The cut line's guard (recycle_message) is already true by then, so it could never fire; own flag here.
         -- The nav beacon is restored; misns802 is not replayed (misns815/816 already announce the retreat).
         -- The recycler must first have been seen more than 100 m from dis_geyser2 (it starts about 1 km away), so a
@@ -365,7 +384,7 @@ if campaignRuntime then
         if not M.recycle_move then return end
         if r.chokeFar and d < 100.0 then
             r.chokeCam = true
-            M.cam4 = BuildObject("apcamr", 1, "last_nav_spawn")
+            M.cam4 = BuildObject("spcamr", 1, "last_nav_spawn")
             if Valid(M.cam4) then SetObjectiveName(M.cam4, "Choke Point") end
         end
     end
@@ -393,10 +412,225 @@ if campaignRuntime then
         r.l813 = true
         AudioMessage("misns813.wav")
     end
+    -- Not cut content: a Workshop-remake idea, done the way aiCore's APCManager does it. Stock APCs only
+    -- attack the recycler; here an enemy APC attacks (drives in and unloads on) the nearest enemy craft
+    -- within APC_ATTACK_RANGE, and an idle one goes back to the recycler. Checked every APC_RETARGET s.
+    local APC_RETARGET = 5
+    function Restored.TrackApc(h)
+        if APC_ATTACK_RANGE <= 0 or not IsOdf(h, "bvapc") then return end
+        local r = State()
+        r.apcs = r.apcs or {}
+        r.apcs[#r.apcs + 1] = { h = h, next = GetTime() + APC_RETARGET } -- let the AIP give it a job first
+    end
+    function Restored.ApcRetarget(r)
+        local apcs = r.apcs
+        if not apcs or not AiCommand then return end
+        local now = GetTime()
+        for i = #apcs, 1, -1 do
+            local apc = apcs[i]
+            local h = apc.h
+            if not IsAlive(h) then
+                table.remove(apcs, i)
+            elseif now >= apc.next and GetTeamNum(h) == 5 then
+                apc.next = now + APC_RETARGET
+                local cmd = GetCurrentCommand(h)
+                if cmd ~= AiCommand.GET_RELOAD and cmd ~= AiCommand.GET_REPAIR then
+                    local enemy = runtime.GetNearestEnemy(h)
+                    if Valid(enemy) and not (IsBuilding and IsBuilding(enemy))
+                        and GetDistance(h, enemy) < APC_ATTACK_RANGE then
+                        if cmd ~= AiCommand.ATTACK or GetCurrentWho(h) ~= enemy then Attack(h, enemy, 1) end
+                    elseif cmd == AiCommand.NONE and IsAlive(M.ccarecycle) then
+                        Attack(h, M.ccarecycle, 1)
+                    end
+                end
+            end
+        end
+    end
+    -- Not cut content: Workshop-remake ideas (Punishing the Black Dogs). The first frame plan_c is set (the Black
+    -- Dog base defences are gone and its Recycler runs), the Black Dogs counterattack the CCA Recycler from their
+    -- base, a walker strike follows WALKER_DELAY s later, and Soviet command sends three allied waves (team 7) in
+    -- from the map edge to guard the CCA Recycler. Black Dog units go through the scaled, concealed spawner.
+    local COUNTER_UNITS = { "bvhraz", "bvhraz", "bvhraz", "bvltnk", "bvltnk", "bvltnk" }
+    local WALKER_UNITS = { "bvwalk", "bvwalk", "bvwalk" }
+    local WALKER_DELAY = 360
+    local ALLY_WAVES = {
+        { at = 60, odf = "svfigh", voice = "misn1606.wav" },
+        { at = 240, odf = "svtank", voice = "misn1607.wav" },
+        { at = 390, odf = "svwalk", voice = "misn1608.wav" },
+    }
+    local ALLY_TEAM = 7
+    local function BlackDogWave(odfs)
+        runtime.BeginEvent()
+        for _, odf in ipairs(odfs) do
+            local h = BuildObject(odf, 5, "american_spawn")
+            if h and IsAlive(M.ccarecycle) then Attack(h, M.ccarecycle, 1) end
+        end
+    end
+    local function AllyWave(wave)
+        local where = runtime.PathExists("edge_path") and "edge_path" or "t3post"
+        local p = GetPosition(where)
+        UnAlly(5, ALLY_TEAM); UnAlly(ALLY_TEAM, 5)
+        AudioMessage(wave.voice)
+        local count = 2 + math.floor(runtime.HumanCount() / 2)
+        for i = 1, count do
+            local at = SetVector(p.x + 15 * (i - 1), 0, p.z)
+            at.y = GetTerrainHeightAndNormal(at)
+            local h = BuildObject(wave.odf, ALLY_TEAM, at)
+            if Valid(h) and IsAlive(M.ccarecycle) then runtime.Defend2(h, M.ccarecycle, 1) end
+        end
+    end
+    function Restored.Breakthrough(r)
+        if not BLACK_DOG_COUNTERATTACK and not SOVIET_ALLY_WAVES then return end
+        if M.game_over then return end
+        local now = GetTime()
+        if not r.broke then
+            if not M.plan_c then return end
+            r.broke, r.allyWave = now, 0
+            if BLACK_DOG_COUNTERATTACK then BlackDogWave(COUNTER_UNITS) end
+        end
+        if BLACK_DOG_COUNTERATTACK and not r.walkers and now >= r.broke + WALKER_DELAY then
+            r.walkers = true
+            if IsAlive(M.avrecycle) then BlackDogWave(WALKER_UNITS) end
+        end
+        local wave = ALLY_WAVES[r.allyWave + 1]
+        if SOVIET_ALLY_WAVES and wave and now >= r.broke + wave.at then
+            r.allyWave = r.allyWave + 1
+            AllyWave(wave)
+        end
+    end
+    -- Not cut content: the Furies' betrayal (Docs/MISNS8_COOP.md, "Cutscene"). The swap builds the stock SAV's
+    -- Fury-blue twin, "savfury" (a namespaced copy of svsav). Gameplay is unchanged: only the swap block's
+    -- savN_swap flags are held for BETRAYAL_SWAP_DELAY s so the parade shows first.
+    if RESTORED_INFECTED_SAV then
+        local buildSpawn = BuildObject
+        BuildObject = function(odf, ...)
+            if odf == "savs8" then odf = "savfury" end
+            return buildSpawn(odf, ...)
+        end
+    end
+    local BETRAYAL_SWAP_DELAY = 3.0 -- seconds into the shot before the swap
+    local BETRAYAL_SHOT_SECONDS = 11.0 -- hard cap: the camera is always released and the music restored by then
+    local ROMESKI_SHOT = { -2500, 1200, -4500 } -- cm (right, up, forward) from Romeski, looking at the SAV column
+    local INFECTED_SHOT = { 3500, 1200, 4500 } -- cm from the nearest infected SAV, looking at it
+    local camOn, camDone, ducked = false, false, false -- this peer's camera/music state; a load resets them
+    local musicUntil = nil
+    local function MusicCall(name, ...)
+        -- EXU may be missing or older than the call: the mission never depends on it.
+        local ok, exu = pcall(require, "exu")
+        if ok and type(exu) == "table" and type(exu[name]) == "function" then
+            return pcall(exu[name], ...)
+        end
+        return false
+    end
+    -- Runs on every peer (presentation op). UpdateMusic advances the fades from MusicTick.
+    function Restored.OpMusic(mode)
+        if mode == "duck" then
+            MusicCall("FadeMusic", 0.25, 1.5)
+            musicUntil = math.huge
+        elseif mode == "restore" then
+            MusicCall("FadeMusic", 1, 3)
+            musicUntil = GetTime() + 3.5
+        end
+    end
+    function Restored.MusicTick(dt)
+        if musicUntil == nil then return end
+        MusicCall("UpdateMusic", dt or 0)
+        if musicUntil ~= math.huge and GetTime() >= musicUntil then musicUntil = nil end
+    end
+    -- A load drops the engine camera and the music gain: the saved beat (r.cs) resumes on its own clock and
+    -- this peer re-arms its shot and duck. It is never restarted (r.cs.t0 is kept).
+    function Restored.OnLoad()
+        camOn, camDone, ducked, musicUntil = false, false, false, nil
+    end
+    local function FirstSav()
+        for i = 1, 6 do
+            local h = M["sav" .. i]
+            if Valid(h) then return h end
+        end
+    end
+    local function NearestInfected()
+        local anchor = Valid(M.key_tank) and M.key_tank or GetPlayerHandle()
+        local best, bestDistance
+        for i = 1, 6 do
+            local h = M["badsav" .. i]
+            if Valid(h) and Valid(anchor) then
+                local d = GetDistance(anchor, h)
+                if bestDistance == nil or d < bestDistance then best, bestDistance = h, d end
+            elseif Valid(h) and best == nil then
+                best = h
+            end
+        end
+        return best
+    end
+    local function FinishShot(cs)
+        if cs.done then return end
+        cs.done = true
+        camOn = false
+        CameraFinish() -- idempotent in the runtime: balanced whether or not this peer's shot was skipped
+        runtime.Present("S8Music", "restore")
+    end
+    function Restored.Cutscene(r)
+        if not RESTORED_BETRAYAL_CUTSCENE then return end
+        local cs = r.cs
+        local now = GetTime()
+        if not cs then
+            -- First frame the swap block's condition holds (the faithful test, minus a swap already under way).
+            if M.game_over or not M.general_spawn or not ((not IsAlive(M.key_tank)) or M.sav_attack) then return end
+            local held = {}
+            for i = 1, 6 do
+                if (not M["sav" .. i .. "_swap"]) and IsAlive(M["sav" .. i]) then held[#held + 1] = i end
+            end
+            if #held == 0 then return end
+            for _, i in ipairs(held) do M["sav" .. i .. "_swap"] = true end -- the body skips these until the swap
+            cs = { t0 = now, held = held }
+            r.cs = cs
+            camOn, camDone, ducked = false, false, false
+        end
+        if cs.done then return end
+        local t = now - cs.t0
+        if not cs.swapped and t >= BETRAYAL_SWAP_DELAY then
+            cs.swapped = true
+            for _, i in ipairs(cs.held) do M["sav" .. i .. "_swap"] = false end -- the body swaps them this frame
+        end
+        if t >= BETRAYAL_SHOT_SECONDS then return FinishShot(cs) end
+        if not ducked then
+            ducked = true
+            runtime.Present("S8Music", "duck")
+        end
+        if not camDone then
+            if not camOn then
+                camOn = true
+                CameraReady()
+            elseif CameraCancelled() then
+                camDone, camOn = true, false -- this player's skip releases only their own camera
+                CameraFinish()
+            end
+        end
+        local subject, target, offset
+        if cs.swapped then
+            if not Valid(cs.shot2) then cs.shot2 = NearestInfected() end
+            if Valid(cs.shot2) then
+                subject, target, offset = cs.shot2, cs.shot2, INFECTED_SHOT
+            elseif t > BETRAYAL_SWAP_DELAY + 1.0 then
+                return FinishShot(cs) -- nothing left to look at
+            end
+        else
+            local sav = FirstSav()
+            subject = Valid(M.key_tank) and M.key_tank or sav
+            target = sav or (Valid(M.key_tank) and M.key_tank or nil)
+            offset = ROMESKI_SHOT
+        end
+        if camOn and Valid(subject) and Valid(target) then
+            CameraObject(subject, offset[1], offset[2], offset[3], target)
+        end
+    end
     function Restored.Step()
         if not M.start_done then return end
+        Restored.Cutscene(State())
         Restored.ChokeCam(State())
         Restored.RomeskiDead(State())
+        Restored.ApcRetarget(State())
+        Restored.Breakthrough(State())
     end
 end
 -- CR restored content <<
@@ -434,6 +668,9 @@ function AddObject(h)
     if campaignRuntime then campaignRuntime.AddObject(h) end
 -- CR co-op callback <<
     if not Valid(h) then return end
+-- CR restored content >>
+    Restored.TrackApc(h)
+-- CR restored content <<
     -- Keep the exact source slot priority and ODF matching (no team filter).
     if M.avturret1 == nil and IsOdf(h, "bvtur8") then
         M.avturret1 = h
@@ -447,35 +684,35 @@ function AddObject(h)
         M.avrig1 = h
     elseif M.avrig2 == nil and IsOdf(h, "avcns8") then
         M.avrig2 = h
-    elseif M.avtank1 == nil and IsOdf(h, "bvtavk") then
+    elseif M.avtank1 == nil and IsOdf(h, "bvtank") then
         M.avtank1 = h
-    elseif M.avtank2 == nil and IsOdf(h, "bvtavk") then
+    elseif M.avtank2 == nil and IsOdf(h, "bvtank") then
         M.avtank2 = h
-    elseif M.avtank3 == nil and IsOdf(h, "bvtavk") then
+    elseif M.avtank3 == nil and IsOdf(h, "bvtank") then
         M.avtank3 = h
-    elseif M.avtower1 == nil and IsOdf(h, "abtowe") then
+    elseif M.avtower1 == nil and IsOdf(h, "bbtowe") then
         M.avtower1 = h
-    elseif M.avtower2 == nil and IsOdf(h, "abtowe") then
+    elseif M.avtower2 == nil and IsOdf(h, "bbtowe") then
         M.avtower2 = h
-    elseif M.avpower1 == nil and IsOdf(h, "abwpow") then
+    elseif M.avpower1 == nil and IsOdf(h, "bbwpow") then
         M.avpower1 = h
-    elseif M.avpower2 == nil and IsOdf(h, "abwpow") then
+    elseif M.avpower2 == nil and IsOdf(h, "bbwpow") then
         M.avpower2 = h
-    elseif M.avtower3 == nil and IsOdf(h, "abtowe") then
+    elseif M.avtower3 == nil and IsOdf(h, "bbtowe") then
         M.avtower3 = h
-    elseif M.avtower4 == nil and IsOdf(h, "abtowe") then
+    elseif M.avtower4 == nil and IsOdf(h, "bbtowe") then
         M.avtower4 = h
-    elseif M.avpower3 == nil and IsOdf(h, "abwpow") then
+    elseif M.avpower3 == nil and IsOdf(h, "bbwpow") then
         M.avpower3 = h
-    elseif M.avpower4 == nil and IsOdf(h, "abwpow") then
+    elseif M.avpower4 == nil and IsOdf(h, "bbwpow") then
         M.avpower4 = h
-    elseif M.avsilo1 == nil and IsOdf(h, "absilo") then
+    elseif M.avsilo1 == nil and IsOdf(h, "bbsilo") then
         M.avsilo1 = h
-    elseif M.avsilo2 == nil and IsOdf(h, "absilo") then
+    elseif M.avsilo2 == nil and IsOdf(h, "bbsilo") then
         M.avsilo2 = h
-    elseif M.screwtower == nil and IsOdf(h, "abtowe") then
+    elseif M.screwtower == nil and IsOdf(h, "bbtowe") then
         M.screwtower = h
-    elseif M.screwpower == nil and IsOdf(h, "abwpow") then
+    elseif M.screwpower == nil and IsOdf(h, "bbwpow") then
         M.screwpower = h
     elseif M.svpower1 == nil and IsOdf(h, "sbwpow") then
         M.svpower1 = h
@@ -705,8 +942,8 @@ function Update(dt)
     end
     -- this is telling the construction rigs to build gun towers at their base
     if (IsAlive(M.avrig1))  and  (IsAlive(M.avrig2))  and  (not M.rig_prep) then
-        Build(M.avrig1, "abwpow")
-        Build(M.avrig2, "abtowe")
+        Build(M.avrig1, "bbwpow")
+        Build(M.avrig2, "bbtowe")
         M.base_build_time = GetTime() + 10.0
         SetAIP("misns8a.aip")
         -- this buld another turret and HAVE 3 fighters (have 4 scavs)
@@ -746,10 +983,10 @@ function Update(dt)
     if (not M.silo_center_prep)  and  (M.rig_check < GetTime()) then
         M.rig_check2 = GetTime() + 5.0
         if IsAlive(M.avrig1) then
-            Build(M.avrig1, "absilo")
+            Build(M.avrig1, "bbsilo")
         end
         if IsAlive(M.avrig2) then
-            Build(M.avrig2, "absilo")
+            Build(M.avrig2, "bbsilo")
         end
         M.silo_center_prep = true
     end
@@ -796,10 +1033,10 @@ function Update(dt)
     end
     if (M.silo1_build)  and  (not M.prep_center_towers)  and  (IsAlive(M.avsilo1)) then
         if IsAlive(M.avrig1) then
-            Build(M.avrig1, "abwpow")
+            Build(M.avrig1, "bbwpow")
         end
         if IsAlive(M.avrig2) then
-            Build(M.avrig2, "abtowe")
+            Build(M.avrig2, "bbtowe")
         end
         SetAIP("misns8b.aip")
         -- this builds another fighter (have 3) (have 4 scavs)
@@ -881,7 +1118,7 @@ function Update(dt)
     if (M.tanks_follow)  and  (M.tank_check < GetTime())  and  (not M.tanks_built) then
         M.tank_check = GetTime() + 30.0
         if IsAlive(M.avtank3) then
-            --			tanks = CountUnitsNearObject(avmuf, 4000, 2, "bvtavk");
+            --			tanks = CountUnitsNearObject(avmuf, 4000, 2, "bvtank");
             --
             --			if (tanks > 3)
             --			{
@@ -961,7 +1198,7 @@ function Update(dt)
             else
                 if Distance(M.avmuf, M.dis_geyser1) < 100.0 then
                     AudioMessage("misns801.wav")
-                    M.cam3 = BuildObject ("apcamr", 1, "cam_spawn")
+                    M.cam3 = BuildObject ("spcamr", 1, "cam_spawn")
                     if M.cam3~=nil then
                         SetObjectiveName(M.cam3, "Choke Point")
                     end
@@ -992,8 +1229,8 @@ function Update(dt)
 -- CR co-op scaling >>
             if campaignRuntime then campaignRuntime.BeginEvent() end
 -- CR co-op scaling <<
-            M.screwu1 = BuildObject("bvtavk", 2, "t1post")
-            M.screwu2 = BuildObject("bvtavk", 2, "t1post")
+            M.screwu1 = BuildObject("bvtank", 2, "t1post")
+            M.screwu2 = BuildObject("bvtank", 2, "t1post")
             if IsAlive(M.ccarecycle) then
                 Attack(M.screwu1, M.ccarecycle)
                 Attack(M.screwu2, M.ccarecycle)
@@ -1032,8 +1269,8 @@ function Update(dt)
     -- this constitutes the situation where plan_c happens
     if (not M.plan_c)  and  (IsAlive(M.avrecycle))  and  (M.defense_check < GetTime()) then
         M.defense_check = GetTime() + 5.0
-        M.defense1 = CountUnitsNearObject(M.avrecycle, 200.0, 2, "abtowe")
-        M.defense2 = CountUnitsNearObject(M.avrecycle, 200.0, 2, "abwpow")
+        M.defense1 = CountUnitsNearObject(M.avrecycle, 200.0, 2, "bbtowe")
+        M.defense2 = CountUnitsNearObject(M.avrecycle, 200.0, 2, "bbwpow")
         M.scrap = GetScrap(2)
         --[=[/*((defense1 == 1) && (defense2 == 1)) || */]=]
         if ((M.defense1 == 0)  or  (M.defense2 == 0))  and  (M.scrap < 10.0) then
@@ -1130,7 +1367,7 @@ function Update(dt)
 		if ((GetDistance(avrecycle, dis_geyser2) < 100.0f) && (!recycle_message))
 		{
 			AudioMessage("misns802.wav");
-			cam4 = BuildObject ("apcamr", 1, "last_nav_spawn");
+			cam4 = BuildObject ("spcamr", 1, "last_nav_spawn");
 			if (cam4!=NULL) GameObjectHandle::GetObj(cam4)->SetName("Choke Point");
 			recycle_message = true;
 		}
@@ -1170,7 +1407,7 @@ function Update(dt)
         else
             if IsAlive(M.avrig1) then
                 --			SetIndependence(avrig2, 1);
-                Build(M.avrig1, "absilo")
+                Build(M.avrig1, "bbsilo")
             end
             if IsAlive(M.avrig2) then
                 --			SetIndependence(avrig2, 1);
@@ -1182,21 +1419,21 @@ function Update(dt)
     if (M.rigs_reordered)  and  (IsAlive(M.avrig1))  and  (M.center_check < GetTime()) then
         if (not M.rebuild1_prep)  and  (not M.rebuild2_prep)  and  (not M.rebuild3_prep) then
             M.center_check = GetTime() + 10.0
-            M.silo1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "absilo")
-            M.power1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "abwpow")
-            M.tower1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "abtowe")
+            M.silo1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "bbsilo")
+            M.power1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "bbwpow")
+            M.tower1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "bbtowe")
             if M.silo1 == 0 then
-                Build(M.avrig1, "absilo")
+                Build(M.avrig1, "bbsilo")
                 M.rebuild_time = GetTime() + 5.0
                 M.rebuild1_prep = true
             else
                 if M.power1 == 0 then
-                    Build(M.avrig1, "abwpow")
+                    Build(M.avrig1, "bbwpow")
                     M.rebuild_time = GetTime() + 5.0
                     M.rebuild2_prep = true
                 else
                     if M.tower1 == 0 then
-                        Build(M.avrig1, "abtowe")
+                        Build(M.avrig1, "bbtowe")
                         M.rebuild_time = GetTime() + 5.0
                         M.rebuild3_prep = true
                     else
@@ -1231,7 +1468,7 @@ function Update(dt)
         end
         if (M.rebuilding1)  and  (M.center_check < GetTime()) then
             M.center_check = GetTime() + 10.0
-            M.silo1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "absilo")
+            M.silo1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "bbsilo")
             -- PORT FIX: native == 1 stalls maintenance if an additional matching
             -- structure is present. >= 1 recognizes the completed build; the
             -- ordinary one-structure case, priorities and timers are unchanged.
@@ -1242,7 +1479,7 @@ function Update(dt)
         end
         if (M.rebuilding2)  and  (M.center_check < GetTime()) then
             M.center_check = GetTime() + 10.0
-            M.power1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "abwpow")
+            M.power1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "bbwpow")
             -- PORT FIX: same exact-count maintenance stall as the silo above.
             -- Accept additional power plants; normal completion timing is unchanged.
             if M.power1 >= 1 then
@@ -1252,7 +1489,7 @@ function Update(dt)
         end
         if (M.rebuilding3)  and  (M.center_check < GetTime()) then
             M.center_check = GetTime() + 10.0
-            M.tower1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "abtowe")
+            M.tower1 = CountUnitsNearObject(M.temp_geyser, 900, 2, "bbtowe")
             -- PORT FIX: accept an existing tower even if another was built nearby.
             -- The original one-tower flow and polling interval are unchanged.
             if M.tower1 >= 1 then
@@ -1264,7 +1501,7 @@ function Update(dt)
     -- this is rig2 code
     if (M.welldone_rig)  and  (IsAlive(M.avrig2)) then
         if not M.maintain then
-            Build(M.avrig2, "absilo")
+            Build(M.avrig2, "bbsilo")
             M.maintain = true
         end
         if (M.alt_check < GetTime())  and  (not M.rig_there) then
@@ -1277,21 +1514,21 @@ function Update(dt)
         if (M.rig_there)  and  (M.alt_check < GetTime()) then
             if (not M.rebuild4_prep)  and  (not M.rebuild5_prep)  and  (not M.rebuild6_prep) then
                 M.alt_check = GetTime() + 10.0
-                M.silo2 = CountUnitsNearObject(M.last_geyser, 400, 2, "absilo")
-                M.power2 = CountUnitsNearObject(M.last_geyser, 400, 2, "abwpow")
-                M.tower2 = CountUnitsNearObject(M.last_geyser, 400, 2, "abtowe")
+                M.silo2 = CountUnitsNearObject(M.last_geyser, 400, 2, "bbsilo")
+                M.power2 = CountUnitsNearObject(M.last_geyser, 400, 2, "bbwpow")
+                M.tower2 = CountUnitsNearObject(M.last_geyser, 400, 2, "bbtowe")
                 if M.silo2 == 0 then
-                    Build(M.avrig2, "absilo")
+                    Build(M.avrig2, "bbsilo")
                     M.rebuild_time2 = GetTime() + 5.0
                     M.rebuild4_prep = true
                 else
                     if M.power2 == 0 then
-                        Build(M.avrig2, "abwpow")
+                        Build(M.avrig2, "bbwpow")
                         M.rebuild_time2 = GetTime() + 5.0
                         M.rebuild5_prep = true
                     else
                         if M.tower2 == 0 then
-                            Build(M.avrig2, "abtowe")
+                            Build(M.avrig2, "bbtowe")
                             M.rebuild_time2 = GetTime() + 5.0
                             M.rebuild6_prep = true
                         else
@@ -1332,7 +1569,7 @@ function Update(dt)
             end
             if (M.rebuilding4)  and  (M.alt_check < GetTime()) then
                 M.alt_check = GetTime() + 10.0
-                M.silo2 = CountUnitsNearObject(M.last_geyser, 400, 2, "absilo")
+                M.silo2 = CountUnitsNearObject(M.last_geyser, 400, 2, "bbsilo")
                 -- PORT FIX: >= 1 avoids the same extra-structure maintenance
                 -- stall at the alternate site, without changing normal timing.
                 if M.silo2 >= 1 then
@@ -1342,7 +1579,7 @@ function Update(dt)
             end
             if (M.rebuilding5)  and  (M.alt_check < GetTime()) then
                 M.alt_check = GetTime() + 10.0
-                M.power2 = CountUnitsNearObject(M.last_geyser, 400, 2, "abwpow")
+                M.power2 = CountUnitsNearObject(M.last_geyser, 400, 2, "bbwpow")
                 -- PORT FIX: accept extra power plants; one-plant flow is unchanged.
                 if M.power2 >= 1 then
                     M.rebuild5_prep = false
@@ -1351,7 +1588,7 @@ function Update(dt)
             end
             if (M.rebuilding6)  and  (M.alt_check < GetTime()) then
                 M.alt_check = GetTime() + 10.0
-                M.tower2 = CountUnitsNearObject(M.last_geyser, 400, 2, "abtowe")
+                M.tower2 = CountUnitsNearObject(M.last_geyser, 400, 2, "bbtowe")
                 -- PORT FIX: accept extra towers; one-tower flow is unchanged.
                 if M.tower2 >= 1 then
                     M.rebuild6_prep = false

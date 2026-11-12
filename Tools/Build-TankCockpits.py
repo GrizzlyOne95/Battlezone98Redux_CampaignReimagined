@@ -2,7 +2,8 @@
 from pathlib import Path
 import argparse,hashlib,json,sys
 sys.path.insert(0,str(Path(__file__).resolve().parent))
-import tankcockpits as cp
+import tankcockpits as cp, tankpanelatlas
+from bcdds import save_bc
 from weaponrigs import base_asset_path
 ROOT=Path(__file__).resolve().parents[1];REF=ROOT/'References/TankCockpits'
 def sha(p):
@@ -21,9 +22,14 @@ def build(game,factions=()):
             material+='material CRV/'+base+'Tank'+role+' : CR_BZBaseCockpit\n{\n'+''.join('    set_texture_alias '+a+' '+b+'\n' for a,b in aliases)+'}\n\n'
         if faction=='cca':
             material+='material CRV/SharedCockpitLiner : CR_BZBaseCockpit\n{\n    set_texture_alias DiffuseMap crvascp_d.dds\n    set_texture_alias NormalMap flat_N.dds\n    set_texture_alias SpecularMap crvcca_patch_s.dds\n    set_texture_alias EmissiveMap crvascp_e.dds\n}\n'
+        if 'atlas' in cfg:
+            # Per-unit generated panel atlas (tread plate, armour, hazard sills, pod scopes).
+            for channel,im in zip(('d','e','N'),tankpanelatlas.images(faction)):
+                path=ROOT/'Assets/Textures'/(cfg['atlas']+'_'+channel+'.dds');save_bc(im,path);outputs[path.relative_to(ROOT).as_posix()]=sha(path)
+            material+=cfg['material'].join(['material ',' : CR_BZBaseCockpit\n{\n'])+''.join('    set_texture_alias '+a+' '+b+'\n' for a,b in (('DiffuseMap',cfg['atlas']+'_d.dds'),('NormalMap',cfg['atlas']+'_N.dds'),('SpecularMap','crvcca_patch_s.dds'),('EmissiveMap',cfg['atlas']+'_e.dds')))+'}\n'
         path=ROOT/'Materials'/('CR_'+base+'_cockpit.material');path.write_text(material.rstrip()+'\n',newline='\n');outputs[path.relative_to(ROOT).as_posix()]=sha(path)
         meta['gunWeightSha256']=hashlib.sha256(json.dumps(meta.pop('gunWeights'),separators=(',',':')).encode()).hexdigest()
-        receipt=dict(schema=1,sources=dict(exteriorSha256=sha(source),skeletonSha256=sha(skel)),outputs=outputs,alignment=meta,glass=glass,triangles={name:len(ix)//3 for name,(v,ix) in parts.items()},atlasPolicy='Reuse original and accepted faction atlases; no duplicate DDS')
+        receipt=dict(schema=1,sources=dict(exteriorSha256=sha(source),skeletonSha256=sha(skel)),outputs=outputs,alignment=meta,glass=glass,triangles={name:len(ix)//3 for name,(v,ix) in parts.items()},atlasPolicy=('Generated per-unit panel atlas '+cfg['atlas']+'; exterior atlas reused for hull and guns') if 'atlas' in cfg else 'Reuse original and accepted faction atlases; no duplicate DDS')
         (ref/'build.json').write_text(json.dumps(receipt,indent=2)+'\n',newline='\n');print(faction,receipt['triangles'],meta['povPosition'],glass,flush=True)
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--game',type=Path,default=Path(r'C:/Program Files (x86)/GOG Galaxy/Games/Battlezone 98 Redux'));parser.add_argument('--factions',nargs='*',default=());a=parser.parse_args();build(a.game,a.factions)

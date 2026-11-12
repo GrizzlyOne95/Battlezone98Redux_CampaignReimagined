@@ -865,6 +865,49 @@ local function MyTeam()
 end
 local function Facing(ship) return SetVector(-ship.sx, 0, -ship.sz) end -- the bow faces away from the ramp exit
 
+-- Every peer locks its own player (an older exu.dll refuses the mask in network games and returns false: logged
+-- once, and the pinning alone holds the player): while
+-- the local craft is pinned aboard and the ending films, the player cannot fire or act. The mask is not saved;
+-- ExtractStop (every Start/load) and every end of the ending release it. ExtractStop forces the release: after a
+-- load this Lua state never locked, but the engine may still hold the mask and the badge overlay.
+local INPUT_OWNER = "mission:misn18drop"
+local inputLocked, inputWarned = false, false
+local badgeOk, Badge = pcall(require, "CRLockBadge") -- "FIRE CONTROLS LOCKED" while the mask holds
+if not badgeOk or type(Badge) ~= "table" then Badge = nil end
+local function LockInput(on, force)
+    if not on and not inputLocked then
+        if force then
+            if exu and exu.ClearPlayerControlMask then exu.ClearPlayerControlMask(INPUT_OWNER) end
+            if Badge then Badge.Hide(exu) end
+        elseif Badge and Badge.IsShown() then
+            Badge.Hide(exu)
+        end
+        return
+    end
+    if not (exu and exu.SetPlayerControlMask) then
+        if on and not inputWarned then
+            inputWarned = true
+            print("misn18: control lock unavailable: no EXU control mask")
+        end
+        inputLocked = false
+        return
+    end
+    if on then
+        if exu.SetPlayerControlMask(INPUT_OWNER, exu.CONTROL.ALL) then
+            inputLocked = true
+            if Badge then Badge.Show(exu) end
+        elseif not inputWarned then
+            inputWarned = true
+            local st = exu.GetPlayerControlState and exu.GetPlayerControlState()
+            print("misn18: control lock unavailable: " .. tostring(st and st.reason))
+        end
+    else
+        inputLocked = false
+        if exu.ClearPlayerControlMask then exu.ClearPlayerControlMask(INPUT_OWNER) end
+        if Badge then Badge.Hide(exu) end
+    end
+end
+
 function ExtractShipEvent(i, n, kind, team, x, z, y, sx, sz)
     if not (Num(i) and Num(n) and Num(kind) and Num(team) and Num(x) and Num(z) and Num(y) and Num(sx) and Num(sz)) then return end
     if i < 1 or i > 5 or n < 1 or n > 5 then return end
@@ -891,6 +934,7 @@ function ExtractGoEvent()
         local ship = X.ships[i]
         if ship.kind == 1 and ship.team == team then
             Cargo(native.GetPlayerHandle(), Drop.SLOTS.human, i)
+            LockInput(true)
         elseif ship.kind == 0 and CRCoop.IsAuthority() then
             Cargo(M.avrec, Drop.SLOTS.recycler, i)
             Cargo(GetHandle("avmuf2_factory"), Drop.SLOTS.factory, i)
@@ -899,6 +943,7 @@ function ExtractGoEvent()
 end
 
 function ExtractStop()
+    LockInput(false, true)
     X.go = false
     X.cargo = {}
 end
@@ -941,6 +986,7 @@ local function FinishExtraction(s)
     s.extractDone = true
     if X.pod and Valid(X.pod) then native.RemoveObject(X.pod) end
     X.pod = nil
+    LockInput(false)
     CameraFinish()
     EndMission("SucceedMission", GetTime() + 2.0, s.ext and s.ext.desc)
 end
@@ -1109,12 +1155,16 @@ function R.Update(dt)
         if CRCoop.HasLeaderDeparted() then
             if not M.coopResult then
                 M.coopResult=true
+                LockInput(false)
                 if localCameraActive then native.CameraFinish();localCameraActive=false end
                 native.FailMission(GetTime()+1)
             end
             return false
         end
-        if CRCoop.HasUnsupportedPlayerTeam() or CRCoop.HasLateJoiners() or not CRCoop.IsSessionReady() then return false end
+        if CRCoop.HasUnsupportedPlayerTeam() or CRCoop.HasLateJoiners() or not CRCoop.IsSessionReady() then
+            LockInput(false) -- the ending stalls here: never leave a player frozen (the pin still holds the craft)
+            return false
+        end
     end
     Environment.Update(dt)
     if not s.started then CRCoop.MarkMissionStarted();s.started=true end

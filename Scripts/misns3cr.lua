@@ -115,6 +115,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     },
 })
 local RESTORED = campaignRuntime ~= nil and campaignRuntime ~= false
+local RESTORED_PATROL2_VOICE = true -- unused stock line misns311 for the second patrol route (Docs/MISNS3_COOP.md)
 local BuildObject = campaignRuntime and campaignRuntime.Spawn or BuildObject
 local IsAlive = campaignRuntime and campaignRuntime.IsAlive or IsAlive
 local GetNearestEnemy = campaignRuntime and campaignRuntime.GetNearestEnemy or GetNearestEnemy
@@ -213,6 +214,23 @@ if RESTORED then
         pcall(function()
             require("Environment").BindWeatherSensors("Io", campaignRuntime.Weather.module)
         end)
+    end
+    if RESTORED_PATROL2_VOICE then
+        -- Stock plays misns219 for both patrol routes. The unused shipped line misns311 ("there is an American
+        -- unit coming your way") replaces it when the patrol leaves from patrolspawn2.
+        local spawn, audio = BuildObject, AudioMessage
+        local patrol2 = false
+        BuildObject = function(odf, team, where, ...)
+            if where == "patrolspawn2" then patrol2 = true end
+            return spawn(odf, team, where, ...)
+        end
+        AudioMessage = function(file, ...)
+            if file == "misns219.wav" and patrol2 then
+                patrol2 = false
+                file = "misns311.wav"
+            end
+            return audio(file, ...)
+        end
     end
 end
 -- CR co-op runtime <<

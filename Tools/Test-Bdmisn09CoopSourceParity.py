@@ -8,6 +8,8 @@ faithful = (ROOT / "Scripts/bdmisn09.lua").read_bytes()
 coop_raw = (ROOT / "Scripts/bd09cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
+# Intentional CR rename: the nav beacons match the player faction (Black Dog: apcamr -> bpcamr).
+faithful_text = faithful_text.replace('"apcamr"', '"bpcamr"')
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
 
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
@@ -46,8 +48,8 @@ for name in ("CameraReady", "CameraPath", "CameraObject", "SetAIP", "Follow", "D
 # The enemy's literal team 2 only reaches the engine through the runtime (BuildObject) or the SetPerceivedTeam shadow.
 builds = re.findall(r"BuildObject\((\"\w+\"|unit\[1\]), (\d), ", body)
 assert len(builds) == len(re.findall(r"BuildObject\(", body)), "every build names an odf and a literal team"
-assert {team for odf, team in builds if odf != '"apcamr"'} == {"2"}, "all enemy builds are on team 2"
-assert {(o, t) for o, t in builds if o == '"apcamr"'} == {('"apcamr"', "1")}, "the nav beacons are the team-1 builds"
+assert {team for odf, team in builds if odf != '"bpcamr"'} == {"2"}, "all enemy builds are on team 2"
+assert {(o, t) for o, t in builds if o == '"bpcamr"'} == {('"bpcamr"', "1")}, "the nav beacons are the team-1 builds"
 assert "SetPerceivedTeam(M.user, team)" in body and "Perceived(2)" in body and "Perceived(1)" in body
 assert "if team == 2 then team = ENEMY_TEAM end" in cr_text, "the shadow maps the DLL's team 2 to the co-op enemy"
 print("bd09cr parity: %d CR regions; %d shadowed natives; the rest is the faithful port" % (len(opened), len(must_shadow)))

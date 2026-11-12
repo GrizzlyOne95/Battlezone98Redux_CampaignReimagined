@@ -358,6 +358,7 @@ Setup()
 -- Each RESTORED_* flag switches one cut-content restoration off (Docs/MISNS2_COOP.md, "Restored content").
 local RESTORED_OPENING_FILM, RESTORED_WAVE1_RAZ, RESTORED_CUTOFF, RESTORED_NET1, RESTORED_WAVE5_TANKS =
     true, true, true, true, true
+local RESTORED_WAVE5_VOICE = true
 local Restored
 -- The three enemy craft the waves are made of become concealed, head-count-scaled tickets.
 local SCALED_ODFS = { bvtank = true, bvraz = true, bvartl = true }
@@ -583,7 +584,12 @@ if campaignRuntime then
             M.bd25 = BuildObject("bvtank", 2, "bdsp5")
             M.bd26 = BuildObject("bvtank", 2, "bdsp5")
         end
-        -- Cut: the first camera network, nav1..nav6 = BuildObject("apcamr", 2, "bdnet1".."bdnet6"). Nothing reads
+        -- Unused shipped line misns211 ("American units on the hill") warns of wave 5 as it spawns.
+        if RESTORED_WAVE5_VOICE and M.wave5gone and not r.wave5voice then
+            r.wave5voice = true
+            AudioMessage("misns211.wav")
+        end
+        -- Cut: the first camera network, nav1..nav6 = BuildObject("bpcamr", 2, "bdnet1".."bdnet6"). Nothing reads
         -- them, so each pod waits until no human is within the safe radius of its post.
         if RESTORED_NET1 and M.camnet1found and not r.net1done then
             r.net1 = r.net1 or {}
@@ -593,7 +599,7 @@ if campaignRuntime then
                 if not r.net1[i] and runtime.PathExists(path) then
                     if Safe(path) then
                         r.net1[i] = true
-                        M["nav" .. i] = BuildObject("apcamr", 2, path)
+                        M["nav" .. i] = BuildObject("bpcamr", 2, path)
                     else
                         remaining = remaining + 1
                     end
@@ -1004,12 +1010,12 @@ function Update(dt)
         M.bdplatoonspawned = true
     end
     if ((Distance(M.player, "bdnet4") < 550.0) and (M.camnet1found == false)) then
---[==[/*nav1 = BuildObject ("apcamr", 2, "bdnet1");
-		nav2 = BuildObject ("apcamr", 2, "bdnet2");
-		nav3 = BuildObject ("apcamr", 2, "bdnet3");
-		nav4 = BuildObject ("apcamr", 2, "bdnet4");
-		nav5 = BuildObject ("apcamr", 2, "bdnet5");
-		nav6 = BuildObject ("apcamr", 2, "bdnet6");*/]==]
+--[==[/*nav1 = BuildObject ("bpcamr", 2, "bdnet1");
+		nav2 = BuildObject ("bpcamr", 2, "bdnet2");
+		nav3 = BuildObject ("bpcamr", 2, "bdnet3");
+		nav4 = BuildObject ("bpcamr", 2, "bdnet4");
+		nav5 = BuildObject ("bpcamr", 2, "bdnet5");
+		nav6 = BuildObject ("bpcamr", 2, "bdnet6");*/]==]
         M.cutoff1 = BuildObject("bvtank", 2, "bdnet4")
         M.cutoff2 = BuildObject("bvtank", 2, "bdnet4")
         M.cutoff3 = BuildObject("bvraz", 2, "bdnet4")
@@ -1052,14 +1058,14 @@ function Update(dt)
     if (((Distance(M.player, "bdnet9") < 410.0)
         or (Distance(M.player, "bdnet12") < 410.0))
         and (M.camnet2found == false)) then
-        M.nav7 = BuildObject("apcamr", 2, "bdnet7")
-        M.nav8 = BuildObject("apcamr", 2, "bdnet8")
-        M.nav9 = BuildObject("apcamr", 2, "bdnet9")
-        M.nav10 = BuildObject("apcamr", 2, "bdnet10")
-        M.nav11 = BuildObject("apcamr", 2, "bdnet11")
-        M.nav12 = BuildObject("apcamr", 2, "bdnet12")
-        M.nav13 = BuildObject("apcamr", 2, "bdnet13")
-        M.nav14 = BuildObject("apcamr", 2, "bdnet14")
+        M.nav7 = BuildObject("bpcamr", 2, "bdnet7")
+        M.nav8 = BuildObject("bpcamr", 2, "bdnet8")
+        M.nav9 = BuildObject("bpcamr", 2, "bdnet9")
+        M.nav10 = BuildObject("bpcamr", 2, "bdnet10")
+        M.nav11 = BuildObject("bpcamr", 2, "bdnet11")
+        M.nav12 = BuildObject("bpcamr", 2, "bdnet12")
+        M.nav13 = BuildObject("bpcamr", 2, "bdnet13")
+        M.nav14 = BuildObject("bpcamr", 2, "bdnet14")
         M.camnet2found = true
         AudioMessage("misns207.wav")
     end

@@ -191,13 +191,32 @@ Beats (host/offline only, each once, tied to the story; a site list without vent
 | Wave 2 with the light tank (`wave2Ready`) | rung 4 |
 | "Pull out" (`bd01004` starts) | release the forced level, back to rung 1 |
 
+## Dropship opening [CR addition, offline and co-op]
+
+The mission opens with two Black Dog dropships (`bvdrop`: avdrop's model, rig and animations, retextured) landing the base and the
+players, in the campaign (`crbd.ini` MISSION1) and in co-op (`Config/bd01cr.ini`). Module: `Scripts/CRDropIn.lua` (profile
+`bvdrop` = avdrop's numbers); mission code in the `co-op runtime` and `co-op callbacks` regions of `Scripts/bd01cr.lua`, so
+`Test-Bdmisn01CoopSourceParity.py` still holds.
+
+| Step | What happens |
+| --- | --- |
+| Hold gate | The wrapped `Update` returns before the stock body while `DropUpdate` holds (`M.dropHold`): the Recycler's and Bobcats' start paths, the briefing (`bd01001`), objectives, scrap and every timer start at the landing. Guests run `DropStandby` (pin their own craft; a departed host, late joiner or bad team takes the drop down so nobody stays locked). |
+| Plan | Ship 1 carries the Recycler (`recycler`, along 0 / lat -8) and both Bobcats (lat 10) to their stock spots; ship 2 (2.5 s behind) every human's craft, plus the authored user tank `player_grizzly` as a rider when it is not a human's craft (co-op). Anchors: the centroid of the Recycler and Bobcats, and the stock player spot. Sites are the flattest unblocked of the candidates, sterns toward the anchors. |
+| Replication | As misn04 and misns1: `DropShip` / `DropCrew` / `DropGo` are runtime presentation ops, so a guest without the module still acknowledges them; the profile id rides as a trailing number on `DropShip`. |
+| Fallbacks | No module, missing ship art, a missing Recycler or player spot, a failing start, or an old save of a started mission: the stock opening runs. A save mid-drop resolves to the end state on load. |
+
+"Players land where the stock mission spawns them" means the stock player spot (offline) and the ship-2 landing site beside it (co-op
+humans start on the four `coop_spawn` buoys, which the drop replaces). Everything marked "CR guess" in `CRDropIn.lua` needs a live
+tune, and so does the landing site on this map.
+
 ## Tests
 
 ```sh
 lua5.1 Tools/Test-Bdmisn01Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, fallback, cameras, results, weather
 lua5.1 Tools/Test-Bdmisn01Presentation.lua    # E/A/C protocol on a guest
 python Tools/Test-Bdmisn01CoopSourceParity.py # bd01cr.lua minus CR regions == bd01.lua
-python Tools/Test-Bdmisn01CoopContract.py     # labels/paths/teams/flight times in bd01cr.bzn (skips with a message if the map is absent; ini/vxt/mpdes only when present)
+python Tools/Test-Bdmisn01CoopContract.py
+lua5.1 Tools/Test-Bdmisn01DropIn.lua      # the dropship opening: hold gate, nothing before the landing, co-op, save/load     # labels/paths/teams/flight times in bd01cr.bzn (skips with a message if the map is absent; ini/vxt/mpdes only when present)
 lua5.1 Tools/Test-BlackDog01.lua && python Tools/Test-BlackDog01SourceParity.py   # the faithful port, unchanged
 ```
 

@@ -17,7 +17,7 @@ local function check(value, message)
     checks = checks + 1
 end
 local now, objects, peers, packets, nextObject = 0, {}, {}, {}, 0
-local labels = { "player-1_hover", "apcamr352_camerapod", "apcamr350_camerapod", "apcamr351_camerapod", "apcamr-1_camerapod", "avrecy-1_recycler", "svrecy-1_recycler", "svmuf-1_factory", "svscav-1_scavenger" }
+local labels = { "player-1_hover", "apcamr352_camerapod", "apcamr350_camerapod", "apcamr351_camerapod", "apcamr-1_camerapod", "avrecy-1_recycler", "svrecy-1_recycler", "svmuf-1_factory", "svscav-1_scavenger", "avmuf0_factory", "avfigh0_wingman" }
 local distances = {}
 local function reset()
     now, objects, peers, packets, nextObject = 0, {}, {}, {}, 0
@@ -40,7 +40,8 @@ end
 local function last(peer, name)
     for i = #peer.calls, 1, -1 do if peer.calls[i][1] == name then return peer.calls[i] end end
 end
-local function makePeer(id, team, network)
+local function makePeer(id, team, network, options)
+    options = options or {}
     local p = { id = id, team = team, net = network, hosting = team == 1,
         calls = {}, difficulty = team == 1 and 3 or 0, player = "player" .. id }
     peers[id] = p
@@ -129,6 +130,14 @@ local function makePeer(id, team, network)
         return h
     end
     e.RemoveObject = function(h) record("RemoveObject", h); if view[h] then view[h].alive = false end end
+    -- The dropship opening moves only objects this machine owns (its own craft; the leader's ships and AI cargo).
+    e.BuildDirectionalMatrix = function(pos, dir) return { pos = pos, dir = dir } end
+    e.SetTransform = function(h, m)
+        check(e.IsValid(h) and e.IsLocal(h), "SetTransform on a remote or missing object: " .. tostring(h))
+        record("SetTransform", h, m)
+    end
+    e.Stop = function(h, how) record("Stop", h, how) end
+    e.CameraObject = function(...) check(p.cameraUp, "camera object without ready"); record("CameraObject", ...) end
     e.CameraCancelled = function() return p.skip == true end
     e.CameraReady = function() check(not p.cameraUp, "camera opened twice"); p.cameraUp = true; record("CameraReady"); p.skip = false end
     e.CameraFinish = function() check(p.cameraUp, "camera finished without an active camera"); p.cameraUp = false; record("CameraFinish") end
@@ -202,9 +211,9 @@ local function makePeer(id, team, network)
         PersistentConfig = { Settings = {}, Initialize = noop, UpdateInputs = noop,
             UpdateHeadlights = noop },
     }
-    -- The single-player dropship opening has its own test (Tools/Test-CR04Drop.lua); co-op must never run it.
-    modules.CR04Drop = { Configure = noop, Reset = noop, OnLoad = noop,
-        Update = function() check(not p.net, "co-op ran the dropship opening"); return false end }
+    -- The real dropship opening (its pure parts have their own test: Tools/Test-CRDropIn.lua). Without it
+    -- (options.noDropIn) require fails and the mission must fall back to the stock start.
+    if not options.noDropIn then modules.CRDropIn = setfenv(assert(loadfile("Scripts/CRDropIn.lua")), e)() end
     -- CRHoldOrder needs the EXU/OpenShim bridges, which this harness does not load.
     modules.CRHoldOrder = { Setup = noop, OnAddObject = noop, Load = noop }
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
@@ -237,6 +246,11 @@ end
 local function settle()
     for i = 1, 30 do tick(0.1) end
 end
+-- The dropship opening holds the stock start until the ramps are down (the last ship lands at
+-- 2.5 + 16 s, the ramps take 2.6 s more).
+local function land()
+    for i = 1, 50 do tick(0.5) end
+end
 local function registerAll()
     for _, p in pairs(peers) do
         for id, other in pairs(peers) do p.env.CreatePlayer(id, "P" .. id, other.team) end
@@ -258,11 +272,16 @@ for _, mode in ipairs({ false, true }) do
     local clients = { makePeer(20, 2, true), makePeer(30, 3, true), makePeer(40, 4, true) }
     registerAll()
     for i = 1, 30 do tick(0.1, not mode or i < 8, function(packet) return i < 8 and (packet.kind == "E" or packet.kind == "A") end) end
-    settle()
+    check(not host.state.missionstart and host.state.cr04dropHold, "stock opening did not wait for the dropships")
+    land(); settle()
     check(host.state.missionstart, "leader opening blocked")
     check(#host.state.scriptedTeam2Handles == 8, "opening defenders not isolated")
     for _, c in ipairs(clients) do
         check(not c.state.missionstart and count(c, "BuildObject") == 0 and count(c, "aiUpdate") == 0, "guest ran simulation")
+        check(c.state.dropin and c.state.dropin.released and c.state.dropin.crew[c.team], "guest missed the drop plan")
+        for _, call in ipairs(c.calls) do
+            if call[1] == "SetTransform" then check(call[2] == c.player, "guest pinned a craft it does not own") end
+        end
         check(count(c, "Play") == 1 and c.difficulty == 3, "opening/difficulty lost or duplicated")
         check(last(c, "SetScrap")[2] == c.team and count(c, "SetScrap") == 1, "resources not owner-local")
         check(count(c, "DisableStartingRecycler") == 1 and last(c, "SetLives")[2] == 999, "native hooks missing")
@@ -323,7 +342,7 @@ reliableSend = false
 -- Destruction must beat both previously latched secure flags.
 for _, loss in ipairs({ { "avrecy-1_recycler", "misn04l3.des" }, { "relic", "misn04l2.des" } }) do
     reset(); local host = makePeer(10, 1, true); local guest = makePeer(20, 2, true)
-    registerAll(); settle()
+    registerAll(); land(); settle()
     host.state.relicsecure, host.state.basesecure = true, true
     objects[loss[1] == "relic" and host.state.relic or loss[1]].alive = false
     tick(0.1); settle(); settle()
@@ -332,7 +351,7 @@ for _, loss in ipairs({ { "avrecy-1_recycler", "misn04l3.des" }, { "relic", "mis
 end
 -- CCA theft retains debrief and a finite online camera even with stuck audio.
 reset(); local host = makePeer(10, 1, true); local guest = makePeer(20, 2, true)
-registerAll(); settle(); discover(host, guest)
+registerAll(); land(); settle(); discover(host, guest)
 host.state.ccatug = now - 1; tick(0.1); settle()
 objects[host.state.svtug].cargo = host.state.relic
 distances[host.state.svtug .. ":svrecy-1_recycler"] = 20
@@ -341,13 +360,16 @@ tick(121); settle(); settle()
 check(count(guest, "FailMission") == 1 and last(guest, "FailMission")[3] == "misn04l1.des", "theft deadline/debrief missing")
 -- Offline retains the campaign cargo job, weather wind, and save rehydration.
 reset(); local solo = makePeer(10, 1, false); tick(0.1)
+check(not solo.state.missionstart and count(solo, "BuildObject") == 3 and count(solo, "CameraReady") == 1,
+    "offline dropship opening missing")
+land()
 check(solo.state.missionstart, "offline startup changed")
 check(solo.weatherOptions.windPush == true and solo.weatherAutomatic, "offline weather changed")
 local saved = solo.env.Save(); solo.env.Load(saved, {}, {}); tick(3)
 check(solo.state.loading_done, "offline save/load failed")
 -- Survey route and the authored missed-investigation failure.
 reset(); host = makePeer(10, 1, true); guest = makePeer(20, 2, true)
-registerAll(); settle(); host.state.fetch = now - 1; tick(0.1); settle()
+registerAll(); land(); settle(); host.state.fetch = now - 1; tick(0.1); settle()
 check(host.state.surveysent and not host.state.cheater and host.state.surv1, "timed survey route missing")
 tick(61); settle(); host.audioDone = true; tick(0.1); settle()
 check(host.state.reconsent and host.state.reliccam, "timed recon marker missing")
@@ -364,8 +386,9 @@ local late = makePeer(30, 3, true)
 for _, p in pairs(peers) do p.env.CreatePlayer(30, "Late", 3) end
 late.env.CreatePlayer(10, "Host", 1); late.env.CreatePlayer(20, "Guest", 2)
 settle(); check(count(host, "BuildObject") == builds and count(host, "DisplayMessage") == 1, "late join progressed")
-for _, p in pairs(peers) do p.env.Start(); p.state = p.env.Save() end
-registerAll(); settle(); settle()
+-- A restart reloads the world: the opening camera (still up mid-drop) does not survive it.
+for _, p in pairs(peers) do p.cameraUp = false; p.env.Start(); p.state = p.env.Save() end
+registerAll(); land(); settle()
 check(host.state.missionstart and not host.coop.HasLateJoiners(), "restart retained old admission state")
 -- A map object the engine cannot carry as a handle goes by "@label" and resolves via the
 -- guest's GetHandle. The wait is relative to the guest's own clock (no leader-clock
@@ -436,7 +459,7 @@ check(loud, "the timeout logs a loud [coop] unresolved line")
 -- Camera snapshots are label-aware and WAIT for the real object; there is no fallback aim.
 local camSerial = 5000
 local function camFrame(generation, target)
-    client.env.Receive(10, "C", camSerial, generation, "camera_path", 175, 850, target)
+    client.env.Receive(10, "C", camSerial, generation, "P", "camera_path", 175, 850, target)
     camSerial = camSerial + 1
     client.env.Update()
 end
@@ -482,4 +505,93 @@ check((client.env.Save().coopUnresolved or 0) == unresolved + 1, "the timeout is
 local logged = false
 for _, line in ipairs(client.printed) do logged = logged or line:find("%[coop%] unresolved") ~= nil end
 check(logged, "the timeout logs a loud [coop] unresolved line")
+
+-- The dropship opening in co-op: the leader owns the ships and the AI cargo; every peer holds only its
+-- own craft; the plan is numbers on the ordered stream; nobody's skip moves the shared timeline.
+local function pinned(peer, h)
+    local n = 0
+    for _, c in ipairs(peer.calls) do if c[1] == "SetTransform" and c[2] == h then n = n + 1 end end
+    return n
+end
+local function built(peer, odf)
+    local n = 0
+    for _, c in ipairs(peer.calls) do if c[1] == "BuildObject" and c[3] == odf then n = n + 1 end end
+    return n
+end
+reset(); host = makePeer(10, 1, true)
+local guests = { makePeer(20, 2, true), makePeer(30, 3, true) }
+registerAll()
+for i = 1, 20 do tick(0.25) end -- 5 s: both ships descending
+check(built(host, "avdropc") == 2 and built(host, "apcamr") == 1 and host.state.cr04dropHold, "leader did not start the drop")
+for _, g in ipairs(guests) do
+    local d = g.state.dropin
+    check(d and d.go and d.n == 2 and d.crew[g.team] and d.crew[g.team].ship == 2, "guest missing the drop plan")
+    check(count(g, "BuildObject") == 0 and pinned(g, g.player) > 0, "guest does not hold its own craft")
+    check(count(g, "CameraObject") > 0, "guest does not see the shared dropship camera")
+end
+local crew = host.state.dropin.crew
+check(crew[1] and crew[2] and crew[3] and crew[1].lat ~= crew[2].lat, "humans share a hold slot")
+check(pinned(host, "avrecy-1_recycler") > 0 and pinned(host, "avmuf0_factory") > 0 and
+    pinned(host, "avfigh0_wingman") > 0 and pinned(host, host.player) > 0, "leader does not hold its cargo")
+-- Skips: the guest drops its own view, the leader's CameraCancelled stays false: no time moves.
+local t0 = host.state.dropin.t0
+guests[1].skip = true; host.skip = true
+for i = 1, 4 do tick(0.25) end
+check(host.state.dropin.t0 == t0 and not host.state.dropin.released and guests[1].state.dropin.t0 ~= nil,
+    "a skip changed the shared drop")
+local held = pinned(guests[1], guests[1].player)
+tick(0.25)
+check(pinned(guests[1], guests[1].player) > held, "a guest's skip released its craft early")
+-- 6 s in: still held, and the stock opening still waits.
+check(not host.state.missionstart and not host.state.dropin.released, "the drop released early")
+for i = 1, 70 do tick(0.25) end -- 23.5 s: past 2.5 + 16 + 2.6
+check(host.state.dropin.released and host.state.missionstart, "the stock opening did not follow the drop")
+check(built(host, "avdropo") == 2, "ships did not land as new objects")
+for _, g in ipairs(guests) do
+    check(g.state.dropin.released and not g.cameraUp, "guest still held or filming after release")
+    held = pinned(g, g.player)
+end
+tick(1)
+for _, g in ipairs(guests) do check(pinned(g, g.player) == held, "guest still pins its craft after release") end
+for i = 1, 120 do tick(0.5) end -- the AI cargo hands back, the ships close and climb out
+check(host.state.dropin.phase == "done" and built(host, "avdropx") == 2, "ships did not close and leave")
+for h, o in pairs(objects) do
+    if o.alive and (o.odf == "avdropc" or o.odf == "avdropo" or o.odf == "avdropx" or o.odf == "apcamr" and tostring(h):find("built")) then
+        check(false, "drop object left behind: " .. tostring(h) .. " " .. o.odf)
+    end
+end
+-- A save/load mid-drop resolves to the end state: ships gone, cargo set down, nothing stranded.
+reset(); host = makePeer(10, 1, true); guest = makePeer(20, 2, true)
+registerAll()
+for i = 1, 40 do tick(0.25) end -- 10 s: still descending
+check(not host.state.dropin.released, "save point is not mid-drop")
+-- A load drops every camera (Docs/BDMISN01_COOP.md "Cinematics"): nothing may pop one afterwards.
+for _, p in pairs(peers) do p.cameraUp = false; local saved = p.env.Save(); p.env.Load(saved, {}, {}) end
+local guestPins = pinned(guest, guest.player)
+for i = 1, 20 do tick(0.25) end
+check(host.state.dropin.phase == "done" and guest.state.dropin.phase == "done", "load left the drop running")
+check(pinned(guest, guest.player) == guestPins + 1, "the guest's craft was not set down once after load")
+check(host.state.missionstart and not host.state.cr04dropHold, "load blocked the stock opening")
+for h, o in pairs(objects) do
+    check(not (o.alive and (o.odf == "avdropc" or o.odf == "avdropo")), "a ship survived the load: " .. tostring(h))
+end
+-- Offline save/load mid-drop.
+reset(); solo = makePeer(10, 1, false)
+for i = 1, 40 do tick(0.25) end
+solo.cameraUp = false; saved = solo.env.Save(); solo.env.Load(saved, {}, {})
+local soloPins = pinned(solo, solo.player)
+for i = 1, 20 do tick(0.25) end
+check(solo.state.dropin.phase == "done" and solo.state.missionstart and not solo.cameraUp,
+    "offline load mid-drop")
+check(pinned(solo, solo.player) == soloPins + 1, "the offline player was not set down once after load")
+-- No module: the stock start, offline and in co-op (a guest without it still acknowledges the plan).
+reset(); solo = makePeer(10, 1, false, { noDropIn = true }); tick(0.1)
+check(solo.state.missionstart and count(solo, "BuildObject") > 0 and built(solo, "avdropc") == 0,
+    "missing CRDropIn did not fall back to the stock start")
+local said = false
+for _, line in ipairs(solo.printed) do said = said or line:find("CRDropIn unavailable") ~= nil end
+check(said, "the fallback is not logged")
+reset(); host = makePeer(10, 1, true); guest = makePeer(20, 2, true, { noDropIn = true })
+registerAll(); land(); settle()
+check(host.state.missionstart and count(guest, "Play") == 1, "a guest without CRDropIn stalled the stream")
 print("misn04 co-op: " .. checks .. " complete-script Lua 5.1 checks passed")

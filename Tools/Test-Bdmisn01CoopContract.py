@@ -153,5 +153,27 @@ for section in ("## Layout", "## Teams and ownership", "## Scaling and concealed
                 "## Weather: Ganymede", "## Tests", "## Inferences and open questions", "## Live checklist"):
     assert section in doc, "doc section missing: " + section
 assert (ROOT / "Docs/CCA_COOP_RUNTIME.md").is_file()
+# ---------------------------------------------------------------- the dropship opening (Scripts/CRDropIn.lua)
+import json
+drop = (ROOT / "Scripts/CRDropIn.lua").read_text(encoding="utf-8")
+drop_code = re.sub(r"--[^\r\n]*", "", drop)
+assert 'pcall(require, "CRDropIn")' in lua_full and not re.search(r'[^p]require\("CRDropIn"\)', lua_full), "CRDropIn loads through pcall"
+assert "if okDropIn then DropIn = module else" in lua_full, "a failed load leaves DropIn nil: the stock start"
+mission_ops = set(re.findall(r'"(Drop\w+)"', re.search(r"for _, op in ipairs\(\{([^}]*)\}\) do\s+dropOps", lua_full)[1]))
+module_ops = set(re.findall(r"(\w+) = true", re.search(r"Drop\.OPS = \{([^}]*)\}", drop_code)[1]))
+sent_ops = set(re.findall(r'call\("present", "(\w+)"', drop_code))
+assert mission_ops == module_ops == sent_ops == {"DropShip", "DropCrew", "DropGo"}, (mission_ops, module_ops, sent_ops)
+assert "presentationOps = dropOps," in lua_full and 'profile = "bvdrop"' in lua_full and "bvdrop = b" in drop
+assert "if campaignRuntime then\n        if not campaignRuntime.Update(dt) then DropStandby(campaignRuntime); return end" in lua_full
+assert "if M.dropHold then return end" in lua_full and lua_full.index("if M.dropHold then return end") < lua_full.index("BodyUpdate(dt)\n    if campaignRuntime then campaignRuntime.AfterUpdate()"), "hold gate before the body"
+for label in ("recycler", "wingman1_bobcat", "wingman2_bobcat", "player_grizzly"):
+    assert label in objects and objects[label][1] == 1, "the stock start object exists on the Black Dog side: " + label
+    assert 'GetHandle("%s")' % label in lua_full
+lock = {e["source"] for e in json.loads((ROOT / "Shipping/shipping.lock.json").read_text(encoding="utf-8-sig"))["files"]}
+for suffix in "cox":
+    for folder, ext in (("ODF", "odf"), ("Materials", "material"), ("Assets\\ModelFixes", "mesh"),
+                        ("Assets\\ModelFixes", "sdf"), ("Assets\\ModelFixes", "skeleton")):
+        rel = "%s\\bvdrop%s.%s" % (folder, suffix, ext)
+        assert rel in lock and (ROOT / rel.replace("\\", "/")).is_file(), "the bvdrop art ships: " + rel
 print("bdmisn01 co-op contract passed: %d objects, %d paths, %d scripted path/label names, Ganymede sites present; %d paths unused (documented)"
       % (len(objects), len(paths), len(used) + len(handles), len(unused)))

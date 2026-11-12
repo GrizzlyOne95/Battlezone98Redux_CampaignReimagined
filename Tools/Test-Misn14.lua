@@ -360,4 +360,87 @@ host.env.Load(saved)
 F.run(80)
 check(M().fury_phase == "losing" or M().fury_phase == "rogue", "the Fury sequence continues after a load")
 
+-- ------------------------------------------------------------ dropship opening (CRDropIn)
+-- One cargo ship lands the Texas and the player at the Texas's stock spot; the stock intro, objective and
+-- Fury sequence then run. The module is absent in the plain fixture (the stock start, checked above).
+local STOCK = F.posOf("avrecy-1_recycler")
+local function stockPos() return {x = STOCK.x, z = STOCK.z} end
+local function dist(h, p) local o = F.posOf(h); return math.sqrt((o.x - p.x) ^ 2 + (o.z - p.z) ^ 2) end
+local function transforms(peer, h) return F.count(peer, "SetTransform", h) end
+local function shipsAlive()
+    local n = 0
+    for _, o in pairs(F.world().objects) do
+        if o.alive and (o.odf == "avdropc" or o.odf == "avdropo" or o.odf == "avdropx") then n = n + 1 end
+    end
+    return n
+end
+
+boot({dropIn = true})
+check(not F.heard(host, "misn1401.wav"), "chunk load plays nothing before the drop")
+local function enemyBuilds()
+    local n = 0
+    for _, b in ipairs(F.builds(host, 0)) do
+        if b.team ~= 0 and b.team ~= 1 then n = n + 1 end
+    end
+    return n
+end
+
+F.run(1)
+check(M().dropin and M().dropin.go and M().cr14dropHold, "the drop starts on the first frame and holds the stock opening")
+check(#F.builds(host, 0, "avdropc") == 1 and #F.builds(host, 0, "apcamr") == 1, "one cargo ship and its camera pod")
+check(F.count(host, "CameraReady") == 1 and F.count(host, "CameraObject") > 0 and F.count(host, "CameraPath") == 0,
+    "the drop films the landing, not the stock path")
+check(host.mask == "mission:misn14drop", "the player is locked through the EXU control mask")
+check(not F.heard(host, "misn1401.wav") and M().start_done == false, "the stock opening waits for the ramp")
+check(F.count(host, "SetAIP") == 0 and M().alien_time == 99999.0
+    and #F.builds(host, 0, "avsav14") == 0 and enemyBuilds() == 0,
+    "the CCA plan, the Fury clock and enemy builds wait for the landing")
+check(transforms(host, "avrecy-1_recycler") > 0 and transforms(host, host.player) > 0,
+    "the Texas and the player ride in the hold")
+check(dist("avrecy-1_recycler", stockPos()) > 30, "the Texas left its stock spot with the ship")
+F.runUntil(function() return M().dropin.released end, 40)
+local releasedAt = W.now
+check(releasedAt > 18 and releasedAt < 20.5, "ramp down 16 s + 2.6 s after the drop started")
+check(host.mask == nil and F.count(host, "ClearPlayerControlMask", "mission:misn14drop") >= 1,
+    "controls return at the release")
+F.place(host.player, 2531.6, 99387.9) -- the player drives off the ramp (the mock does not drive it)
+F.tick()
+check(F.heard(host, "misn1401.wav") and F.count(host, "CameraPath", "cam_path1") >= 1,
+    "the stock briefing and flyover follow the landing")
+check(F.index(host, "CameraPath", "cam_path1") > F.index(host, "ClearPlayerControlMask"), "flyover after the drop")
+check(host.camera == 1, "exactly the stock intro camera is open")
+objective = throughIntro()
+check(objective > releasedAt + 26 and objective < releasedAt + 29, "the stock 12 s + 15 s intro runs after the drop")
+check(F.count(host, "AddObjective", "misn1401.otf") == 1 and host.camera == 0, "stock objective, camera released")
+check(F.count(host, "SetAIP") == 1 and M().alien_time > releasedAt + 420, "the first Fury wave counts from the landing")
+check(F.heardCount(host, "misn1401.wav") == 1, "the briefing plays once")
+F.run(60)
+check(dist("avrecy-1_recycler", stockPos()) < 8, "the Texas is set down at its landing goal")
+check(M().dropin.phase == "done" and shipsAlive() == 0 and #F.builds(host, 0, "avsav14") == 2,
+    "the ship left; the Fury pad still stands beside the Texas")
+for _, b in ipairs(F.builds(host, 0, "avsav14")) do
+    local d = dist(b.h, stockPos())
+    check(d > 40 and d < 140, "the Fury pad is beside the Texas")
+end
+
+-- A save taken mid-drop resolves to the end state (ships gone, Texas and player set down) and the stock start runs.
+boot({dropIn = true})
+F.run(10)
+check(not M().dropin.released and shipsAlive() == 1, "the save point is mid-drop")
+host.camera = 0 -- a load drops every camera
+host.env.Load(host.env.Save())
+F.run(2)
+check(M().dropin.phase == "done" and host.mask == nil and shipsAlive() == 0, "load ends the drop and unlocks")
+check(F.count(host, "CameraPath", "cam_path1") >= 1 and F.heard(host, "misn1401.wav"), "the stock start follows a load")
+check(dist("avrecy-1_recycler", stockPos()) < 2, "load sets the Texas down on its goal")
+F.run(40)
+check(M().objective_time ~= nil and host.camera == 0, "the mission continues after a load")
+
+-- A missing Texas falls back to the stock start.
+boot({dropIn = true})
+F.world().missing["avrecy-1_recycler"] = true
+F.run(1)
+check(M().dropin.phase == "done" and F.heard(host, "misn1401.wav") and shipsAlive() == 0,
+    "no Texas: the stock start")
+
 print(string.format("misn14 offline: %d checks passed", checks))

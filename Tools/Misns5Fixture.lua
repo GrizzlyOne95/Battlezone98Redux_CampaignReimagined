@@ -30,6 +30,8 @@ F.PATHS = {
     ["spawn4"] = {2681.04,33,99885.9}, ["spawn5"] = {1760,33,100131}, ["spawn6"] = {2927.89,33,100411},
     ["spawn7"] = {3161.04,33,100191}, ["camera1"] = {3181.91,33,100099}, ["campath"] = {2639.3,33,99806.6},
     ["edge_path"] = {1664,33,100427},
+    ["cr_patrol1"] = {1900,33,98850}, ["cr_patrol2"] = {2150,33,99150}, ["cr_patrol3"] = {1780,33,99200},
+    ["cr_sniper"] = {3290,33,98830}, ["cr_howitzer"] = {2840,33,99660},
 }
 F.FAR = 50000
 local CRAFT = {bvraz=true,bvscav=true,bvturr=true,bvwalk=true,bvartl=true,bvapc=true,bvrecy=true,avtank=true,avfigh=true,avscav=true,avturr=true,avwalk=true,avartl=true,avapc=true,avrecy=true,bvtank=true,bvltnk=true,bvhraz=true,svtank=true,svfigh=true,svscav=true,svturr=true,svwalk=true}
@@ -308,14 +310,14 @@ function F.makePeer(id, team, network, options)
         record("random", lo, hi)
         return W.chaff
     end}, {__index = math})
-    for _, name in ipairs({"Defend2", "Follow", "Defend", "Retreat", "Stop", "Goto", "Attack", "SetIndependence", "SetAIP",
+    for _, name in ipairs({"Defend2", "Follow", "Defend", "Retreat", "Stop", "Goto", "Attack", "Patrol", "Deploy", "SetIndependence", "SetAIP",
         "SetAIControl", "SetObjectiveName", "SetObjectiveOn", "SetObjectiveOff", "ClearObjectives",
         "AddObjective", "UpdateObjective", "Ally", "UnAlly", "DisplayMessage", "FailMission", "SucceedMission",
         "SetScrap", "AddScrap", "SetPilot", "AddPilot", "StartEarthquake", "UpdateEarthQuake", "StopEarthquake"}) do
         local n = name
         e[n] = function(...)
             if n == "SetObjectiveOn" or n == "SetObjectiveName" or n == "SetIndependence" or n == "Follow"
-                or n == "Attack" or n == "Defend" or n == "Defend2" or n == "Stop" or n == "Goto" or n == "Retreat" then
+                or n == "Attack" or n == "Patrol" or n == "Deploy" or n == "Defend" or n == "Defend2" or n == "Stop" or n == "Goto" or n == "Retreat" then
                 assert(e.IsValid((...)), n .. " used a not-yet-valid handle")
             end
             record(n, ...)
@@ -361,6 +363,17 @@ function F.makePeer(id, team, network, options)
         if options.weather.module then modules.CRTitanWeather = options.weather.module(p, record) end
         if options.weather.sites then modules.CRTitanSitesS5 = options.weather.sites end
     end
+    -- aiCore stand-in: records the combat-only calls (the real module has its own tests, Test-AiCoreHumanTeams.lua).
+    modules.aiCore = {Factions = {NSDF = 1, CCA = 2, CRA = 3, BDOG = 4},
+        EnableCombatOnly = function(team, faction) record("EnableCombatOnly", team, faction) end,
+        BootstrapCombatOnly = function(team) record("BootstrapCombatOnly", team) end,
+        AddCombatObject = function(h) record("AddCombatObject", h) end,
+        AddObject = function(h) record("aiCoreAddObject", h) end,
+        TrackWorldObject = function(h) record("TrackWorldObject", h) end,
+        Update = function() record("aiCoreUpdate") end,
+        UpdateCombatOnly = function() record("aiCoreUpdateCombatOnly") end,
+        Save = function() return {marker = "aiCoreData"} end,
+        Load = function(data) record("aiCoreLoad", data) end}
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
     local realRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoopRespawn = {Create = function(d)

@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5730,
+  "count": 5859,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -197,6 +197,10 @@
     {
       "source": "Assets\\Audio\\misn1709.wav",
       "runtime": "misn1709.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misns211.wav",
+      "runtime": "misns211.wav"
     },
     {
       "source": "Assets\\Graphics\\bd01cr.bmp",
@@ -951,6 +955,42 @@
       "runtime": "bvcnst.vdf"
     },
     {
+      "source": "Assets\\ModelFixes\\bvdropc.mesh",
+      "runtime": "bvdropc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropc.sdf",
+      "runtime": "bvdropc.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropc.skeleton",
+      "runtime": "bvdropc.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropo.mesh",
+      "runtime": "bvdropo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropo.sdf",
+      "runtime": "bvdropo.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropo.skeleton",
+      "runtime": "bvdropo.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropx.mesh",
+      "runtime": "bvdropx.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropx.sdf",
+      "runtime": "bvdropx.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropx.skeleton",
+      "runtime": "bvdropx.skeleton"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvhaul.mesh",
       "runtime": "bvhaul.mesh"
     },
@@ -1167,6 +1207,34 @@
       "runtime": "ccn11nac.geo"
     },
     {
+      "source": "Assets\\ModelFixes\\cdr11bdy.geo",
+      "runtime": "cdr11bdy.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cdr11lg1.geo",
+      "runtime": "cdr11lg1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cdr11lg2.geo",
+      "runtime": "cdr11lg2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cdr11lg3.geo",
+      "runtime": "cdr11lg3.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cdr11lg4.geo",
+      "runtime": "cdr11lg4.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cdr11rmp.geo",
+      "runtime": "cdr11rmp.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cdr11rpf.geo",
+      "runtime": "cdr11rpf.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\cfr11bda.geo",
       "runtime": "cfr11bda.geo"
     },
@@ -1367,6 +1435,34 @@
       "runtime": "cromine.skeleton"
     },
     {
+      "source": "Assets\\ModelFixes\\csf11bda.geo",
+      "runtime": "csf11bda.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\csf11gc1.geo",
+      "runtime": "csf11gc1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\csf11gm1.geo",
+      "runtime": "csf11gm1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\csf11gr1.geo",
+      "runtime": "csf11gr1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\csf11gs1.geo",
+      "runtime": "csf11gs1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\csf11lgt.geo",
+      "runtime": "csf11lgt.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\csf11pov.geo",
+      "runtime": "csf11pov.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\cspilo.mesh",
       "runtime": "cspilo.mesh"
     },
@@ -1397,6 +1493,42 @@
     {
       "source": "Assets\\ModelFixes\\cvcnst.vdf",
       "runtime": "cvcnst.vdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropc.mesh",
+      "runtime": "cvdropc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropc.sdf",
+      "runtime": "cvdropc.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropc.skeleton",
+      "runtime": "cvdropc.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropo.mesh",
+      "runtime": "cvdropo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropo.sdf",
+      "runtime": "cvdropo.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropo.skeleton",
+      "runtime": "cvdropo.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropx.mesh",
+      "runtime": "cvdropx.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropx.sdf",
+      "runtime": "cvdropx.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropx.skeleton",
+      "runtime": "cvdropx.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\cvfigh.mesh",
@@ -1787,6 +1919,18 @@
       "runtime": "pspwn_1.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\savfury.mesh",
+      "runtime": "savfury.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\savfury.skeleton",
+      "runtime": "savfury.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\savfury.vdf",
+      "runtime": "savfury.vdf"
+    },
+    {
       "source": "Assets\\ModelFixes\\sbbarr.mesh",
       "runtime": "sbbarr.mesh"
     },
@@ -1843,6 +1987,42 @@
       "runtime": "scv11nac.geo"
     },
     {
+      "source": "Assets\\ModelFixes\\sdr11bdy.geo",
+      "runtime": "sdr11bdy.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11cl1.geo",
+      "runtime": "sdr11cl1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11cl2.geo",
+      "runtime": "sdr11cl2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11lg1.geo",
+      "runtime": "sdr11lg1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11lg2.geo",
+      "runtime": "sdr11lg2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11lg3.geo",
+      "runtime": "sdr11lg3.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11lg4.geo",
+      "runtime": "sdr11lg4.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11rmp.geo",
+      "runtime": "sdr11rmp.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11rpf.geo",
+      "runtime": "sdr11rpf.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\splintbm.mesh",
       "runtime": "splintbm.mesh"
     },
@@ -1885,6 +2065,42 @@
     {
       "source": "Assets\\ModelFixes\\svcnst.vdf",
       "runtime": "svcnst.vdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropc.mesh",
+      "runtime": "svdropc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropc.sdf",
+      "runtime": "svdropc.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropc.skeleton",
+      "runtime": "svdropc.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropo.mesh",
+      "runtime": "svdropo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropo.sdf",
+      "runtime": "svdropo.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropo.skeleton",
+      "runtime": "svdropo.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropx.mesh",
+      "runtime": "svdropx.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropx.sdf",
+      "runtime": "svdropx.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropx.skeleton",
+      "runtime": "svdropx.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\svfigh.mesh",
@@ -4647,6 +4863,42 @@
       "runtime": "bbwpow_N.dds"
     },
     {
+      "source": "Assets\\Textures\\bdrvhull_D.dds",
+      "runtime": "bdrvhull_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvhull_N.dds",
+      "runtime": "bdrvhull_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvhull_S.dds",
+      "runtime": "bdrvhull_S.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvhullw_D.dds",
+      "runtime": "bdrvhullw_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvhullw_E.dds",
+      "runtime": "bdrvhullw_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvtrim_D.dds",
+      "runtime": "bdrvtrim_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvtrim_E.dds",
+      "runtime": "bdrvtrim_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvtrim_N.dds",
+      "runtime": "bdrvtrim_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvtrim_S.dds",
+      "runtime": "bdrvtrim_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\bflame.png",
       "runtime": "bflame.png"
     },
@@ -5079,6 +5331,38 @@
       "runtime": "cbwpow_N.dds"
     },
     {
+      "source": "Assets\\Textures\\cdrvhull_D.dds",
+      "runtime": "cdrvhull_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cdrvhull_E.dds",
+      "runtime": "cdrvhull_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cdrvhull_N.dds",
+      "runtime": "cdrvhull_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cdrvhull_S.dds",
+      "runtime": "cdrvhull_S.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cdrvtrim_D.dds",
+      "runtime": "cdrvtrim_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cdrvtrim_E.dds",
+      "runtime": "cdrvtrim_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cdrvtrim_N.dds",
+      "runtime": "cdrvtrim_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cdrvtrim_S.dds",
+      "runtime": "cdrvtrim_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\color_ramp_plasma_blue_N.dds",
       "runtime": "color_ramp_plasma_blue_N.dds"
     },
@@ -5447,6 +5731,14 @@
       "runtime": "cr_rainsplash.dds"
     },
     {
+      "source": "Assets\\Textures\\cr_shieldfield_band.dds",
+      "runtime": "cr_shieldfield_band.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_shieldfield_hex_green.dds",
+      "runtime": "cr_shieldfield_hex_green.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr_slopewisp.dds",
       "runtime": "cr_slopewisp.dds"
     },
@@ -5489,6 +5781,38 @@
     {
       "source": "Assets\\Textures\\cramns_ACT.dds",
       "runtime": "cramns_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvhull_D.dds",
+      "runtime": "crdvhull_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvhull_E.dds",
+      "runtime": "crdvhull_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvhull_N.dds",
+      "runtime": "crdvhull_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvhull_S.dds",
+      "runtime": "crdvhull_S.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvtrim_D.dds",
+      "runtime": "crdvtrim_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvtrim_E.dds",
+      "runtime": "crdvtrim_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvtrim_N.dds",
+      "runtime": "crdvtrim_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvtrim_S.dds",
+      "runtime": "crdvtrim_S.dds"
     },
     {
       "source": "Assets\\Textures\\crfmine_d.dds",
@@ -6487,6 +6811,18 @@
       "runtime": "crvascp_N.dds"
     },
     {
+      "source": "Assets\\Textures\\crvatkp_d.dds",
+      "runtime": "crvatkp_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvatkp_e.dds",
+      "runtime": "crvatkp_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvatkp_N.dds",
+      "runtime": "crvatkp_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crvbdhqctrl_d.dds",
       "runtime": "crvbdhqctrl_d.dds"
     },
@@ -6529,6 +6865,18 @@
     {
       "source": "Assets\\Textures\\crvbscp_N.dds",
       "runtime": "crvbscp_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbtkp_d.dds",
+      "runtime": "crvbtkp_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbtkp_e.dds",
+      "runtime": "crvbtkp_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbtkp_N.dds",
+      "runtime": "crvbtkp_N.dds"
     },
     {
       "source": "Assets\\Textures\\crvcca_door_d.dds",
@@ -8765,6 +9113,14 @@
     {
       "source": "Assets\\Textures\\rpuff.png",
       "runtime": "rpuff.png"
+    },
+    {
+      "source": "Assets\\Textures\\savfury_d.dds",
+      "runtime": "savfury_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\savfury_e.dds",
+      "runtime": "savfury_e.dds"
     },
     {
       "source": "Assets\\Textures\\sbbarr_ACT.dds",
@@ -11531,6 +11887,18 @@
       "runtime": "bvcnst.material"
     },
     {
+      "source": "Materials\\bvdropc.material",
+      "runtime": "bvdropc.material"
+    },
+    {
+      "source": "Materials\\bvdropo.material",
+      "runtime": "bvdropo.material"
+    },
+    {
+      "source": "Materials\\bvdropx.material",
+      "runtime": "bvdropx.material"
+    },
+    {
       "source": "Materials\\bvhaul.material",
       "runtime": "bvhaul.material"
     },
@@ -11991,6 +12359,10 @@
       "runtime": "CR_scope.material"
     },
     {
+      "source": "Materials\\CR_ShieldTowerField.material",
+      "runtime": "CR_ShieldTowerField.material"
+    },
+    {
       "source": "Materials\\CR_sky_events.material",
       "runtime": "CR_sky_events.material"
     },
@@ -12141,6 +12513,18 @@
     {
       "source": "Materials\\cvcnst.material",
       "runtime": "cvcnst.material"
+    },
+    {
+      "source": "Materials\\cvdropc.material",
+      "runtime": "cvdropc.material"
+    },
+    {
+      "source": "Materials\\cvdropo.material",
+      "runtime": "cvdropo.material"
+    },
+    {
+      "source": "Materials\\cvdropx.material",
+      "runtime": "cvdropx.material"
     },
     {
       "source": "Materials\\cvfigh.material",
@@ -12531,6 +12915,10 @@
       "runtime": "saturn.material"
     },
     {
+      "source": "Materials\\savfury.material",
+      "runtime": "savfury.material"
+    },
+    {
       "source": "Materials\\sbbarr.material",
       "runtime": "sbbarr.material"
     },
@@ -12637,6 +13025,18 @@
     {
       "source": "Materials\\svcnst.material",
       "runtime": "svcnst.material"
+    },
+    {
+      "source": "Materials\\svdropc.material",
+      "runtime": "svdropc.material"
+    },
+    {
+      "source": "Materials\\svdropo.material",
+      "runtime": "svdropo.material"
+    },
+    {
+      "source": "Materials\\svdropx.material",
+      "runtime": "svdropx.material"
     },
     {
       "source": "Materials\\svfigh.material",
@@ -14243,6 +14643,10 @@
       "runtime": "abshld.odf"
     },
     {
+      "source": "ODF\\abshtw.odf",
+      "runtime": "abshtw.odf"
+    },
+    {
       "source": "ODF\\absilo.odf",
       "runtime": "absilo.odf"
     },
@@ -14819,6 +15223,38 @@
       "runtime": "avwamp.odf"
     },
     {
+      "source": "ODF\\b_cnavmr.odf",
+      "runtime": "b_cnavmr.odf"
+    },
+    {
+      "source": "ODF\\b_cnavrt.odf",
+      "runtime": "b_cnavrt.odf"
+    },
+    {
+      "source": "ODF\\b_cnbvmr.odf",
+      "runtime": "b_cnbvmr.odf"
+    },
+    {
+      "source": "ODF\\b_cnbvrt.odf",
+      "runtime": "b_cnbvrt.odf"
+    },
+    {
+      "source": "ODF\\b_cncvmr.odf",
+      "runtime": "b_cncvmr.odf"
+    },
+    {
+      "source": "ODF\\b_cncvrt.odf",
+      "runtime": "b_cncvrt.odf"
+    },
+    {
+      "source": "ODF\\b_cnsvmr.odf",
+      "runtime": "b_cnsvmr.odf"
+    },
+    {
+      "source": "ODF\\b_cnsvrt.odf",
+      "runtime": "b_cnsvrt.odf"
+    },
+    {
       "source": "ODF\\b_misn13.odf",
       "runtime": "b_misn13.odf"
     },
@@ -15031,6 +15467,10 @@
       "runtime": "baptsmok.odf"
     },
     {
+      "source": "ODF\\bbbar7.odf",
+      "runtime": "bbbar7.odf"
+    },
+    {
       "source": "ODF\\bbbarr.odf",
       "runtime": "bbbarr.odf"
     },
@@ -15073,6 +15513,10 @@
     {
       "source": "ODF\\bbshld.odf",
       "runtime": "bbshld.odf"
+    },
+    {
+      "source": "ODF\\bbshtw.odf",
+      "runtime": "bbshtw.odf"
     },
     {
       "source": "ODF\\bbsilo.odf",
@@ -15197,6 +15641,18 @@
     {
       "source": "ODF\\bvcnst.odf",
       "runtime": "bvcnst.odf"
+    },
+    {
+      "source": "ODF\\bvdropc.odf",
+      "runtime": "bvdropc.odf"
+    },
+    {
+      "source": "ODF\\bvdropo.odf",
+      "runtime": "bvdropo.odf"
+    },
+    {
+      "source": "ODF\\bvdropx.odf",
+      "runtime": "bvdropx.odf"
     },
     {
       "source": "ODF\\bvfigh.odf",
@@ -15671,6 +16127,10 @@
       "runtime": "cbshld.odf"
     },
     {
+      "source": "ODF\\cbshtw.odf",
+      "runtime": "cbshtw.odf"
+    },
+    {
       "source": "ODF\\cbsilo.odf",
       "runtime": "cbsilo.odf"
     },
@@ -16089,6 +16549,18 @@
     {
       "source": "ODF\\cvcnst.odf",
       "runtime": "cvcnst.odf"
+    },
+    {
+      "source": "ODF\\cvdropc.odf",
+      "runtime": "cvdropc.odf"
+    },
+    {
+      "source": "ODF\\cvdropo.odf",
+      "runtime": "cvdropo.odf"
+    },
+    {
+      "source": "ODF\\cvdropx.odf",
+      "runtime": "cvdropx.odf"
     },
     {
       "source": "ODF\\cvfigh.odf",
@@ -17151,6 +17623,10 @@
       "runtime": "satxpl.odf"
     },
     {
+      "source": "ODF\\savfury.odf",
+      "runtime": "savfury.odf"
+    },
+    {
       "source": "ODF\\sb0002.odf",
       "runtime": "sb0002.odf"
     },
@@ -17233,6 +17709,10 @@
     {
       "source": "ODF\\sbshld.odf",
       "runtime": "sbshld.odf"
+    },
+    {
+      "source": "ODF\\sbshtw.odf",
+      "runtime": "sbshtw.odf"
     },
     {
       "source": "ODF\\sbsilo.odf",
@@ -17719,6 +18199,18 @@
       "runtime": "svdemo.odf"
     },
     {
+      "source": "ODF\\svdropc.odf",
+      "runtime": "svdropc.odf"
+    },
+    {
+      "source": "ODF\\svdropo.odf",
+      "runtime": "svdropo.odf"
+    },
+    {
+      "source": "ODF\\svdropx.odf",
+      "runtime": "svdropx.odf"
+    },
+    {
       "source": "ODF\\svfi12.odf",
       "runtime": "svfi12.odf"
     },
@@ -17793,6 +18285,10 @@
     {
       "source": "ODF\\svrecy.odf",
       "runtime": "svrecy.odf"
+    },
+    {
+      "source": "ODF\\svrecy8.odf",
+      "runtime": "svrecy8.odf"
     },
     {
       "source": "ODF\\svremp.odf",
@@ -18523,6 +19019,10 @@
       "runtime": "CRDrop18.lua"
     },
     {
+      "source": "Scripts\\CRDropIn.lua",
+      "runtime": "CRDropIn.lua"
+    },
+    {
       "source": "Scripts\\CRElysiumSitesBD07.lua",
       "runtime": "CRElysiumSitesBD07.lua"
     },
@@ -18687,6 +19187,10 @@
       "runtime": "CRJungleTrees17.lua"
     },
     {
+      "source": "Scripts\\CRLockBadge.lua",
+      "runtime": "CRLockBadge.lua"
+    },
+    {
       "source": "Scripts\\CRMarsWeather.lua",
       "runtime": "CRMarsWeather.lua"
     },
@@ -18749,6 +19253,10 @@
     {
       "source": "Scripts\\crsetup.lua",
       "runtime": "crsetup.lua"
+    },
+    {
+      "source": "Scripts\\CRShieldTowerFX.lua",
+      "runtime": "CRShieldTowerFX.lua"
     },
     {
       "source": "Scripts\\CRSplash.lua",
@@ -19681,6 +20189,14 @@
     {
       "source": "Shaders\\crwx_fixedfunc.program",
       "runtime": "crwx_fixedfunc.program"
+    },
+    {
+      "source": "Shaders\\crwx_glassflow.hlsl",
+      "runtime": "crwx_glassflow.hlsl"
+    },
+    {
+      "source": "Shaders\\crwx_glassflow.program",
+      "runtime": "crwx_glassflow.program"
     },
     {
       "source": "Shaders\\crwx_ogre_particle-sm4.hlsl",

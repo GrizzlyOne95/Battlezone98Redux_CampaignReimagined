@@ -12888,6 +12888,7 @@ function aiCore.ResetTeam(teamNum, faction, configTemplate)
         t.strategy = previous.strategy
         t.baseStrategy = previous.baseStrategy
         t.strategyLocked = previous.strategyLocked
+        t.combatOnly = previous.combatOnly
     end
 
     if producer then producer.ClearTeam(teamNum) end
@@ -13073,6 +13074,93 @@ function aiCore.AddSpecialObject(h)
     end
 
     return true
+end
+
+-- Combat-only mode: a mission scripts an enemy team's orders, waves and production itself, but wants
+-- aiCore's per-unit combat layer (weaponMgr/cloakMgr special combat, pilot behaviour) on its units.
+-- EnableCombatOnly creates (or reuses) the team with every strategic manager off; AddCombatObject then
+-- registers units through AddSpecialObject only. Never call aiCore.Bootstrap() for such a team.
+-- The marking is a field on the Team object, so it survives aiCore.Save/Load.
+local COMBAT_ONLY_OFF = { "manageFactories", "manageBase", "manageTacticalOrders", "autoManage", "autoBuild", "enableParatroopers" }
+
+function aiCore.EnableCombatOnly(teamNum, factionKey)
+    local team = aiCore.ActiveTeams[teamNum] or aiCore.AddTeam(teamNum, factionKey)
+    for _, key in ipairs(COMBAT_ONLY_OFF) do team:SetConfig(key, false) end
+    team:SetConfig("manageSpecialCombat", true)
+    team.combatOnly = true
+    return team
+end
+
+function aiCore.IsCombatOnlyTeam(teamNum)
+    local team = aiCore.ActiveTeams[teamNum]
+    return team ~= nil and team.combatOnly == true
+end
+
+-- Host/authority side only: skips remote objects (IsLocal) and human-occupied craft.
+function aiCore.AddCombatObject(h)
+    if not IsValid(h) or not aiCore.IsCombatOnlyTeam(GetTeamNum(h)) then return false end
+    local isLocal = rawget(_G, "IsLocal")
+    if type(isLocal) == "function" and not isLocal(h) then return false end
+    if aiCore.IsHumanCraft(h) then return false end
+    aiCore.TrackWorldObject(h)
+    return aiCore.AddSpecialObject(h)
+end
+
+-- Registers every existing object of a combat-only team. Unlike Bootstrap it leaves the cache
+-- tracking of other teams alone (no ResetObjectCacheTracking).
+function aiCore.BootstrapCombatOnly(teamNum)
+    if not aiCore.IsCombatOnlyTeam(teamNum) then return end
+    -- Cache every team's objects so target lookups (GetCachedTeamTargets) see the human team.
+    for h in AllObjects() do
+        if IsValid(h) then aiCore.TrackWorldObject(h) end
+    end
+    for h in AllObjects() do
+        if IsValid(h) and GetTeamNum(h) == teamNum then
+            aiCore.AddCombatObject(h)
+        end
+    end
+    aiCore.RefreshObjectCache(true)
+end
+
+-- Per-frame tick for missions that use combat-only teams. Runs only the combat layer: no human-team
+-- registration, rush aggression, pilot tracking, native tactics/scoring sync, or global managers.
+-- Pilot specials (sniping, craft stealing) stay on, so pilot persons can be retasked by them.
+function aiCore.UpdateCombatOnly()
+    local Step = aiCore.SafeStep
+    if aiCore._postLoadPending then
+        aiCore._postLoadPending = false
+        Step("FinishPostLoad", aiCore.FinishPostLoad)
+    end
+    Step("SetupOrdnanceHooks", aiCore.SetupOrdnanceHooks)
+    Step("RefreshObjectCache", aiCore.RefreshObjectCache, false)
+    Step("UpdateTrackedOrdnanceThreats", aiCore.UpdateTrackedOrdnanceThreats)
+    Step("UpdateTrackedMissileAllocations", aiCore.UpdateTrackedMissileAllocations)
+
+    local now = GetTime()
+    if now >= (aiCore._commandStateCleanupTimer or 0.0) then
+        aiCore._commandStateCleanupTimer = now + 60.0
+        for h, _ in pairs(aiCore.CommandState) do
+            if not IsValid(h) then
+                aiCore.CommandState[h] = nil
+            end
+        end
+        for h, _ in pairs(aiCore.CountermeasureState or {}) do
+            if not IsValid(h) then
+                aiCore.CountermeasureState[h] = nil
+            end
+        end
+    end
+
+    for teamNum, team in pairs(aiCore.ActiveTeams) do
+        if team.combatOnly == true then
+            Step("Team " .. tostring(teamNum) .. " Update", team.Update, team)
+        end
+    end
+
+    local exuLib = rawget(_G, "exu")
+    if exuLib and exuLib.UpdateCommandReplacements then
+        Step("UpdateCommandReplacements", exuLib.UpdateCommandReplacements)
+    end
 end
 
 function aiCore.DeleteObject(h)

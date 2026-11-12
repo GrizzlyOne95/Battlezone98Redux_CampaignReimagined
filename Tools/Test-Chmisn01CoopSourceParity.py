@@ -8,6 +8,8 @@ faithful = (ROOT / "Scripts/ch01.lua").read_bytes()
 coop_raw = (ROOT / "Scripts/ch01cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
+# Intentional CR rename: the nav beacons match the player faction (Chinese: apcamr -> cpcamr).
+faithful_text = faithful_text.replace('"apcamr"', '"cpcamr"')
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
 
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
@@ -65,7 +67,7 @@ other = {(odf, team) for odf, team in direct if team != "2"}
 scaled = set(re.search(r"SCALED_ODFS = \{([^}]*)\}", coop)[1].replace("=", " ").replace("true", " ").replace(",", " ").split())
 assert scaled == {"svfigh", "svtank", "svltnk", "svhraz", "svturrb"}, scaled
 assert scaled | {"svhaula", "sspilo", "sssold"} == team2, team2
-assert other == {("apcamr", "1"), ("cvslfb", "1"), ("cvrecyd", "1"), ("svfigh", "1"), ("cvhtnk", "1"), ("obdata", "0")}, other
+assert other == {("cpcamr", "1"), ("cvslfb", "1"), ("cvrecyd", "1"), ("svfigh", "1"), ("cvhtnk", "1"), ("obdata", "0")}, other
 assert "if team ~= 2 then return NativeBuildObject(odf, team, where) end" in coop, "teams other than 2 are built directly"
 # The two map slips in the faithful port that the CR layer corrects.
 assert 'BuildObject("cvrecyd", 1, "recycler")' in body and '"M.recycler"' not in body

@@ -1,0 +1,10 @@
+[Builder]
+buildName = "Buildings"
+buildTeam = 1
+buildItem1 = "abspow"
+buildItem2 = "abtowe"
+buildItem3 = "abcomm"
+buildItem4 = "abbarr"
+buildItem5 = "absilo"
+buildItem6 = "absupp"
+buildItem7 = "b_cnavmr"

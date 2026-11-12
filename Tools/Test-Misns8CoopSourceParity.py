@@ -8,6 +8,10 @@ faithful = (ROOT / "Scripts/misns8.lua").read_bytes()
 coop_raw = (ROOT / "Scripts/misns8cr.lua").read_bytes()
 assert (b"\r\n" in faithful) == (b"\r\n" in coop_raw), "line endings follow the faithful port"
 faithful_text = faithful.decode("utf-8").replace("\r\n", "\n")
+# Intentional CR renames: enemy NSDF buildings became Black Dog ("ab*" -> "bb*"), the nav camera follows
+# the player faction (apcamr -> spcamr), and the stock "bvtavk" typo is fixed to "bvtank".
+faithful_text = re.sub(r'"ab(\w+)"', lambda m: '"bb' + m.group(1) + '"', faithful_text)
+faithful_text = faithful_text.replace('"apcamr"', '"spcamr"').replace('"bvtavk"', '"bvtank"')
 coop = coop_raw.decode("utf-8").replace("\r\n", "\n")
 
 region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
@@ -25,7 +29,7 @@ for word in ("campaignRuntime", "CRCCARuntime", "Restored", "RESTORED"):
 
 # The only edits to the body are the one scaling call and the callback hooks.
 assert coop.count("-- CR co-op scaling >>") == 1, "BeginEvent marks: the retaliation squad (the first tank of the pair)"
-assert re.search(r'-- CR co-op scaling <<\n\s*M\.screwu1 = BuildObject\("bvtavk", 2, "t1post"\)', coop), "BeginEvent precedes the first tank"
+assert re.search(r'-- CR co-op scaling <<\n\s*M\.screwu1 = BuildObject\("bvtank", 2, "t1post"\)', coop), "BeginEvent precedes the first tank"
 for callback in ("campaignRuntime.Start()", "campaignRuntime.Update(dt)", "campaignRuntime.AfterUpdate()",
                  "campaignRuntime.Save()", "campaignRuntime.Load()", "campaignRuntime.AddObject(h)", "Restored.Step(dt)"):
     assert callback in coop, callback

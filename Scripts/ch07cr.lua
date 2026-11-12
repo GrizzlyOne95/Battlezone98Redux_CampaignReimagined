@@ -634,7 +634,7 @@ function Update(dt)
             M.cameraReady[2] = true
             CameraReady()
             M.seqSound = AudioMessage("ch07002.wav")
-            M.navBridge = BuildObject("apcamr", 1, "nav_north")
+            M.navBridge = BuildObject("cpcamr", 1, "nav_north")
             SetName(M.navBridge, "North Bridge")
         end
         local seqDone = false
@@ -662,7 +662,7 @@ function Update(dt)
             M.cameraReady[2] = true
             CameraReady()
             M.seqSound = AudioMessage("ch07003.wav")
-            M.navBridge = BuildObject("apcamr", 1, "nav_east")
+            M.navBridge = BuildObject("cpcamr", 1, "nav_east")
             SetName(M.navBridge, "East Bridge")
         end
         local seqDone = false
@@ -983,7 +983,7 @@ function Update(dt)
         AddObjective("ch07004.otf", "white")
         AudioMessage("ch07008.wav")
         local h
-        h = BuildObject("apcamr", 1, "nav_end")
+        h = BuildObject("cpcamr", 1, "nav_end")
         SetName(h, "Drop Zone")
     end
     if M.objective3Complete then

@@ -1,0 +1,18 @@
+{
+  "source": "Stock Redux svsav (StockODFFiles/svsav.vdf and ssv11*.geo, BZ_ASSETS/common/models/svsav.skeleton and DIFF/EMIS svsav_D/E.dds); the mesh is the CR-shipped Assets/ModelFixes/svsav.mesh (hard-edged normals).",
+  "derivative": "savfury: part-name prefix ssv11 -> csf11 in the VDF, skeleton and GEOs; mesh material/skeleton links renamed; fresh diffuse/emission painted in the svsav UV layout by Tools/Build-SavFury.py. Geometry, UVs, skinning, collision and animation are unchanged.",
+  "original_sha256": {
+    "ssv11bda.geo": "c99c57d686799d96a21f4e0c0082074ffdd3bcb2bcbffd379fb0bbb3053f9a8f",
+    "ssv11gc1.geo": "67d7c84e44c94f604027e62e958511b2eebe16f021b8a20fb776feee72d3721e",
+    "ssv11gm1.geo": "3b0ca5f2f25295ee408dbecc046b181b61fe06677e49f13746b18733eddab4f0",
+    "ssv11gr1.geo": "205312648a61cfaf1dfe9d2271d3dcb0ee7a6aa404d537aadb73c2a3087847c4",
+    "ssv11gs1.geo": "5c934d046280b9cc66acbfdd848a48dec009e4215c4cb6cc0bd291505d887325",
+    "ssv11lgt.geo": "96b1ebd043da163d9a6bd789368002c1576388b62446ad66948a49cdd5fb0cf4",
+    "ssv11pov.geo": "7d82c3c093f80f9011746472c19edc7ca539ea5365c63a825856f448ecdc9877",
+    "svsav.mesh": "0792e2362b7e843586341e190e2f013885f46e116c83ce4e5a6b2f68c478a07f",
+    "svsav.skeleton": "1f3efe07736817dc43a495058fd15931506da8c176d648409bbb40f16b95e8c0",
+    "svsav.vdf": "658a71807af2ab92c541a945fa6c18dc6510e024288771aff77575e517f16fc8",
+    "svsav_D.dds": "33080c536d5039d791981246c39f7d4814cc1b68446cc5bbb0607fa7c7c45d0d",
+    "svsav_E.dds": "a140b42bb034cde7cea7b79e67904c7bebe8ba512234e03c69b90cfe070c0b98"
+  }
+}

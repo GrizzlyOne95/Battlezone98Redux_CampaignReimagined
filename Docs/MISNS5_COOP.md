@@ -43,6 +43,31 @@ The orders of the faithful body (`Goto`, `Attack`, `Defend2`) go through `R.Orde
 and replayed on the real unit and its extras; `AddObject` orders (route to the player recycler) run on the authority
 only.
 
+## Early ladder, patrols and sniper
+
+Inspired by the Workshop remake "cca05r" (ideas only, no code copied). Region `-- CR early ladder >>` in
+`Scripts/misns5cr.lua`; authority only (the runtime stops `Update` on guests). State is `M.cr_t0` (the mission clock
+at the opening) and `M.cr_step` (next rung), saved with `M`; `Load` never replays the opening.
+
+Opening: three `bvtank` patrol the new loops `cr_patrol1`..`cr_patrol3` (west/south-west, 800-1000 m from the base),
+and one `bsheav` (Heavy Infantry, the only Black Dog person with the `gsnipe` rifle) holds `cr_sniper` (south-east).
+
+| Rung (s after the opening) | Spawn | Target |
+| --- | --- | --- |
+| 105 | one `avapc` (runtime: `bvapc`) at `spawn6` | factory |
+| 180 | two `bvhraz` bombers at `spawn5` | factory |
+| 300 | one bomber at `spawn6`, plus a `bvartl` howitzer at `cr_howitzer` that deploys and shells whatever enters its range (no order) | player recycler (bomber) |
+| 600 | two bombers at `spawn5` | player recycler |
+| 900 | three bombers at `spawn6` | player recycler |
+
+The APC and bombers are scaled units (`BeginEvent` before each rung: extras per head count, difficulty extras offline,
+entry fallbacks, live cap). The howitzer, patrol tanks and sniper are not scaled. The ladder stops when the final
+phase opens (`last_phase`) or the mission is won or lost. It does not stop on `killme`: the enemy recycler already
+exists from the 70 s APC strike. No Black Dog bomber-class ODF exists; `bvhraz` (unit name "Bomber") is the one the
+mission's own wave 1 uses. The new paths `cr_patrol1`, `cr_patrol2`, `cr_patrol3`, `cr_sniper` and `cr_howitzer`
+are used only by this region. Their coordinates are hand-picked near the cca05r hints and not checked against the
+terrain in game.
+
 ## Cutscene
 
 The opening is one audio-driven `CameraPath("campath", ..., sbhang0_repairdepot)` shot. In a network game it is
@@ -83,6 +108,24 @@ There are no other cameras, so `Tools/Test-Misns5Presentation.lua` covers the sh
 Kept as stock (documented, not changed): the enemy recycler dying before the final phase does not win until wave 3
 opens the final phase (then the win lands immediately); the waves continue past wave 3 during the ten-second result
 delay.
+
+## Combat-only aiCore
+
+The enemy units (real team 5) get aiCore's combat layer (special-combat weapon and cloak managers, sniping, craft
+stealing) and nothing else: `aiCore.EnableCombatOnly(5, CCA)` turns off factories, base, tactical orders, autoManage,
+autoBuild and paratroopers, and `aiCore.AddCombatObject` registers units through `AddSpecialObject` only. The script
+keeps every order and wave, and the native AIP (`SetAIP`) still runs. Host/authority only: the first Update after the
+session is ready calls `EnableCombatOnly` and `BootstrapCombatOnly(5)`, `AddObject` registers later units, and
+`Update` runs `aiCore.UpdateCombatOnly()`. Guests run none of it. Human-occupied and non-local craft are skipped.
+`UpdateCombatOnly` runs only the post-load finish, ordnance hooks, object-cache refresh, ordnance-threat and missile
+tracking, the 60 s state cleanup, `Update` of combat-only teams, and `exu.UpdateCommandReplacements`. It skips
+EnsureHumanTeams, UpdatePlayerRushAggression, SyncPilotPersonTracking, SyncNativeTactics, InstallNativeTargetScoring
+and the global depot/offense managers, so human teams are never registered and no craft gets orders from aiCore. The
+cache still holds every team's objects (`BootstrapCombatOnly` and `AddObject` call `TrackWorldObject`) so target lookups
+see the human team. Pilot specials stay on: team-5 pilot persons can be retasked by sniping and craft stealing.
+Dynamic mass is applied to team-5 craft by `AddSpecialObject`, and `FinishPostLoad` applies it to all craft after a
+load. `Load` re-enables the mode only on the authority. `Save()` returns aiCore's data as a new trailing value; a save
+without it loads and enables the mode on its first Update.
 
 ## Weather (Titan)
 

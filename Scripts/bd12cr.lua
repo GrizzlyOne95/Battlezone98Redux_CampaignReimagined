@@ -717,6 +717,14 @@ function Update(dt)
             AudioMessage(warnings[i])
         end
     end
+-- CR restored content >>
+    -- Re-arm a low-health warning once the unit is repaired above 50 % (hysteresis; 25-50 % keeps the latch).
+    -- Dead or invalid handles never toggle a latch. Runs on every peer like the warnings above.
+    for i = 0, 3 do
+        if M.healthLow[i] and Valid(M.power[i]) and GetHealth(M.power[i]) > 0.5 then M.healthLow[i] = false end
+        if M.healthLow[4+i] and Valid(M.shields[i]) and GetHealth(M.shields[i]) > 0.5 then M.healthLow[4+i] = false end
+    end
+-- CR restored content <<
 
     -- shields or power dead?
     for i = 0, 3 do

@@ -106,6 +106,18 @@ strips them and proves the DLL body is otherwise unchanged.
   15 s without scrap), at most 1 alive solo +1 per extra human team (max 3), each
   ordered onto the Utah (else the nearest player). Production stops when that factory
   or the CCA base (recycler and factory) is destroyed.
+* **CCA wave ladder** (`CR CCA wave ladder`, a CR addition, not cut content). The idea
+  came from a Workshop remake of this mission; the code is our own. After the CCA recycler
+  spawn the leader builds escalating attack waves at `svmuf`: the first 120 s later, then
+  every 160 s shrinking by 10 s per tier to a 120 s floor. Tiers (the last repeats):
+  `svtank`+1 `svfigh`, `svtank`+2 `svfigh`, `svltnk`+2 `svtank`, `svhraz`+2 `svtank`,
+  `svhraz`+3 `svtank`. The wave leader takes `gech_path1` / `gech_path2` alternately and the
+  followers `Follow` it; after 90 s every 30 s each live wave unit is re-ordered to attack
+  the Utah (waves 3, 6, 9... the player factory), else whichever is alive, else the nearest
+  player (deterministic, no random). No scrap cost. A wave is skipped (retry 15 s) when it
+  would push live wave units past the cap: 6 solo, +2 per extra human team, max 12.
+  Spawning stops when the CCA factory or base falls. Set `CCA_WAVE_LADDER = false` at
+  the top of `misn08cr.lua` to disable it.
 * **Relic and Colorado heal** (`CR relic heal fix`). The DLL initializes
   `next_second` / `next_second2` to the 99999 "never" sentinel, so neither
   500 hp/s heal ever ran. Both are armed at `Start` (due immediately, then each
@@ -186,4 +198,5 @@ Lua-built `avmuf` works, whether a team-7 AIP would have run, the real effect of
 the heal on the relic, and the `IsInfo` relay and label markers in a live
 four-client session. The Venus sky, fog pooling, bolt look, storm pacing against the
 massacre and the sulfur and vent placement on the misn08 terrain are judged live only
-(see `VENUS_WEATHER.md`). Steam and Wine/Proton are unverified.
+(see `VENUS_WEATHER.md`). Steam and Wine/Proton are unverified. The CCA wave ladder
+(waves, flank paths, cap, pacing against the walkers) is mock-tested only: play it in game.

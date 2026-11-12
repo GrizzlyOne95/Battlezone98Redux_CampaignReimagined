@@ -29,20 +29,20 @@ F.LABELS = {
     ["eggeizr120_geyser"] = {odf="eggeizr1",team=0,pos={2365,113,99978},craft=false},
     ["eggeizr121_geyser"] = {odf="eggeizr1",team=0,pos={2899,128,99808},craft=false},
     ["eggeizr122_geyser"] = {odf="eggeizr1",team=0,pos={2943,123,100103},craft=false},
-    ["svrecycle"] = {odf="svrecy",team=1,pos={1836,16,100340},craft=true},
+    ["svrecycle"] = {odf="svrecy8",team=1,pos={1836,16,100340},craft=true},
     ["svmuf"] = {odf="savmf",team=1,pos={1801,16,100327},craft=true},
     ["temp_geyser"] = {odf="eggeizr1",team=0,pos={2493,43,99364},craft=false},
     ["dis_geyser1"] = {odf="eggeizr1",team=0,pos={3003,43,99445},craft=false},
-    ["cam"] = {odf="apcamr",team=1,pos={3079,44,98881},craft=false},
+    ["cam"] = {odf="spcamr",team=1,pos={3079,44,98881},craft=false},
     ["turret_geyser"] = {odf="eggeizr1",team=0,pos={2051,27,99794},craft=false},
     ["av_geyser"] = {odf="eggeizr1",team=0,pos={1874,15,100368},craft=false},
     ["eggeizr12_geyser"] = {odf="eggeizr1",team=0,pos={1810,15,100270},craft=false},
     ["eggeizr13_geyser"] = {odf="eggeizr1",team=0,pos={1870,15,100250},craft=false},
-    ["powerplant1"] = {odf="abwpow",team=5,pos={2996,43,98843},craft=false},
-    ["powerplant2"] = {odf="abwpow",team=5,pos={3023,43,98856},craft=false},
-    ["basetower1"] = {odf="abtowe",team=5,pos={3066,43,98858},craft=false},
-    ["basetower2"] = {odf="abtowe",team=5,pos={2951,43,98820},craft=false},
-    ["basecam"] = {odf="apcamr",team=1,pos={1813,16,100358},craft=false},
+    ["powerplant1"] = {odf="bbwpow",team=5,pos={2996,43,98843},craft=false},
+    ["powerplant2"] = {odf="bbwpow",team=5,pos={3023,43,98856},craft=false},
+    ["basetower1"] = {odf="bbtowe",team=5,pos={3066,43,98858},craft=false},
+    ["basetower2"] = {odf="bbtowe",team=5,pos={2951,43,98820},craft=false},
+    ["basecam"] = {odf="spcamr",team=1,pos={1813,16,100358},craft=false},
     ["avmuf"] = {odf="bvmuf",team=5,pos={3030,44,98906},craft=true},
     ["avrecycle"] = {odf="bvrec8",team=5,pos={2959,44,98868},craft=true},
     ["coop_spawn1"] = {odf="pspwn_1",team=1,pos={1793,16,100362},craft=false},
@@ -85,8 +85,8 @@ F.PATHS = {
     ["edge_path"] = {1054,155,100982},
 }
 F.FAR = 50000
-local CRAFT = {bvartl=true,bvcnst=true,bvtavk=true,bvsca8=true,bvra8=true,avart8=true,bvmuf=true,bvrec8=true,avcns8=true,bvtur8=true,bvhraz=true,
-    bvapc=true,bvwalk=true,savtnk=true,savs8=true,svtank=true,playsv=true,svrecy=true,savmf=true}
+local CRAFT = {bvartl=true,bvcnst=true,bvtank=true,bvsca8=true,bvra8=true,avart8=true,bvmuf=true,bvrec8=true,avcns8=true,bvtur8=true,bvhraz=true,
+    bvapc=true,bvwalk=true,savtnk=true,savs8=true,savfury=true,svtank=true,playsv=true,svrecy8=true,savmf=true}
 local function vec(t) return {x = t[1], y = t[2], z = t[3]} end
 local function newObject(handle, odf, team, pos, craft)
     W.objects[handle] = {alive = true, odf = odf, team = team, health = 1, pos = vec(pos or {F.FAR, 6, F.FAR}),
@@ -366,7 +366,7 @@ function F.makePeer(id, team, network, options)
     for _, name in ipairs({"Defend2", "Follow", "Defend", "Retreat", "Stop", "Goto", "Attack", "SetIndependence", "SetAIP",
         "SetAIControl", "SetObjectiveName", "SetObjectiveOn", "SetObjectiveOff", "ClearObjectives",
         "AddObjective", "UpdateObjective", "Ally", "UnAlly", "DisplayMessage", "FailMission", "SucceedMission",
-        "SetPilot", "AddPilot", "Build", "Dropoff", "Pickup", "StartEarthquake", "UpdateEarthQuake", "StopEarthquake"}) do
+        "SetPilot", "AddPilot", "Build", "Dropoff", "Pickup", "Deploy", "StartEarthquake", "UpdateEarthQuake", "StopEarthquake"}) do
         local n = name
         e[n] = function(...)
             if n == "SetObjectiveOn" or n == "SetObjectiveName" or n == "SetIndependence" or n == "Follow"
@@ -406,7 +406,7 @@ function F.makePeer(id, team, network, options)
     e.GetWhoShotMe = function(h) return W.objects[h] and W.objects[h].shotBy end
     e.Damage = function(h,amount) assert(e.IsValid(h));record("Damage",h,amount);W.objects[h].alive=false end
     e.IsAudioMessageDone = function() return not W.audioBusy end
-    e.AiCommand = {NONE=0,ATTACK=3,DEFEND=16}
+    e.AiCommand = {NONE=0,ATTACK=3,DEFEND=16,GET_RELOAD=11,GET_REPAIR=10}
     e.GetCurrentWho = function(h) return W.objects[h] and W.objects[h].target end
     local function noop() end
     local modules = {
@@ -424,6 +424,11 @@ function F.makePeer(id, team, network, options)
         PersistentConfig = {Initialize=function() record("PdaInitialize") end,
             UpdateInputs=function() record("PdaUpdate") end,UpdateHeadlights=noop},
     }
+    -- options.music: this peer's EXU has the soundtrack fades (FadeMusic/UpdateMusic); absent by default.
+    if options.music then
+        modules.exu.FadeMusic = function(gain, seconds) record("FadeMusic", gain, seconds); return true end
+        modules.exu.UpdateMusic = function(dt) record("UpdateMusic", dt); return true end
+    end
     -- options.weather = { module = fn|nil, sites = table|nil }: CRTitanWeather stand-ins; absent by default.
     if options.weather then
         if options.weather.module then modules.CRTitanWeather = options.weather.module(p, record) end

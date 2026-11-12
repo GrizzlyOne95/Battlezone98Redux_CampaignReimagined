@@ -30,8 +30,10 @@ local M = NewState()
 -- Offline and co-op share this adapter (Scripts/CRCCARuntime.lua); the faithful tests set CR_TEST_FAITHFUL.
 -- Lexical wrappers affect this mission only. Docs/MISNS6_COOP.md lists every wrapped call. No cut content is
 -- restored in this mission (the doc quotes each cut block and why it stays cut); the one RESTORED_* flag below
--- covers a single unused shipped voice line.
-local RESTORED_VOICE_LINES = true -- unused shipped line misns606 (Docs/MISNS6_COOP.md)
+-- covers six unused shipped voice lines.
+local RESTORED_VOICE_LINES = true -- unused shipped lines misns606/607/610/611/612/813 (Docs/MISNS6_COOP.md)
+local HOWITZER_MARKERS = true -- CR addition: mark a howitzer once a human is within 300 m (Docs/MISNS6_COOP.md)
+local ARTILLERY_BYPASS_PUNISH = true -- CR addition: Black Dogs strike the Recycler if the goal is reached with a howitzer alive
 local Restored = {}
 if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
@@ -76,6 +78,18 @@ local AddObjective = campaignRuntime and campaignRuntime.AddObjective or AddObje
 local SetObjectiveOn = campaignRuntime and campaignRuntime.SetObjectiveOn or SetObjectiveOn
 local SucceedMission = campaignRuntime and campaignRuntime.SucceedMission or SucceedMission
 local FailMission = campaignRuntime and campaignRuntime.FailMission or FailMission
+if campaignRuntime and RESTORED_VOICE_LINES then
+    -- Unused shipped line misns611 ("You've lost the Grozny...", about 10.8 s) plays on the recycler loss; the
+    -- stock 2 s fail delay becomes 11 s so the line finishes. The body fails with misns6l1.des only once.
+    local fail = FailMission
+    FailMission = function(when, des)
+        if des == "misns6l1.des" then
+            AudioMessage("misns611.wav")
+            when = when + 9.0
+        end
+        return fail(when, des)
+    end
+end
 local GetPlayerHandle = campaignRuntime and campaignRuntime.GetPlayerHandle or GetPlayerHandle
 -- The body's player handle is the runtime's PLAYERS token. These shadows give it the semantics the body needs:
 -- valid, and a distance origin or target that means "the nearest human" (the body only ever asks nearest;
@@ -166,21 +180,97 @@ local function Distance(from, to, point)
 end
 
 -- CR restored content >>
--- misns606 "We've cleared the artillery. Continue to push forward." once, when both howitzers the body holds
--- (art1, art2) have been seen alive and are now both gone. Not after the mission is won, lost or scheduled.
+-- Each unused shipped line plays once (latched in s.r, kept by Save/Load), never after the mission is won, lost or
+-- scheduled:
+-- misns606 "We've cleared the artillery. Continue to push forward." when both howitzers the body holds (art1, art2)
+--   have been seen alive and are now both gone.
+-- misns607 "The Black Dogs are well entrenched ahead." when a human first comes within 500 m of a live command-centre
+--   defender turret (tur3, tur4), before the body's last-objective trigger has fired.
+-- misns610 "Our attack outpost is under heavy attack!" when the recycler first drops below half health, then
+--   misns813 "This does not look good, comrades." 10 s later if the recycler is still alive.
+-- misns612 "This is a good strategic position. Advance our mobile factories." when the body's last-objective trigger
+--   (a human within 300 m of the command centre) first fires.
+-- misns611 plays on the recycler loss through the FailMission shadow in the runtime region.
 if campaignRuntime then
+    local function Undecided() return not M.won and not M.lost and not M.success_scheduled end
     function Restored.Voice()
         if not RESTORED_VOICE_LINES or not M.start_done then return end
         local s = campaignRuntime.State()
         s.r = s.r or {}
         local r = s.r
-        if r.l606 then return end
-        local a1, a2 = IsAlive(M.art1), IsAlive(M.art2)
-        if a1 then r.art1Seen = true end
-        if a2 then r.art2Seen = true end
-        if r.art1Seen and r.art2Seen and not a1 and not a2 and not M.won and not M.lost and not M.success_scheduled then
-            r.l606 = true
-            AudioMessage("misns606.wav")
+        if not r.l606 then
+            local a1, a2 = IsAlive(M.art1), IsAlive(M.art2)
+            if a1 then r.art1Seen = true end
+            if a2 then r.art2Seen = true end
+            if r.art1Seen and r.art2Seen and not a1 and not a2 and Undecided() then
+                r.l606 = true
+                AudioMessage("misns606.wav")
+            end
+        end
+        if not r.l607 and not M.last_objective and Undecided() then
+            for _, tur in ipairs({M.tur3, M.tur4}) do
+                if IsAlive(tur) and Distance(GetPlayerHandle(), tur) < 500.0 then
+                    r.l607 = true
+                    AudioMessage("misns607.wav")
+                    break
+                end
+            end
+        end
+        if not r.l610 and IsAlive(M.recy) and GetHealth(M.recy) < 0.5 and Undecided() then
+            r.l610 = true
+            r.t813 = GetTime() + 10.0
+            AudioMessage("misns610.wav")
+        end
+        if not r.l612 and M.last_objective and Undecided() then
+            r.l612 = true
+            AudioMessage("misns612.wav")
+        end
+        if r.t813 and GetTime() >= r.t813 then
+            r.t813 = nil
+            if IsAlive(M.recy) and Undecided() then AudioMessage("misns813.wav") end
+        end
+    end
+
+    -- CR addition (idea from a Workshop remake, code is our own). Latches live in M.crcca.r like the voice line.
+    local function RestoredState()
+        local s = campaignRuntime.State()
+        s.r = s.r or {}
+        return s.r
+    end
+    local SetObjectiveOff = campaignRuntime.SetObjectiveOff or SetObjectiveOff
+    -- A howitzer gets its objective marker once, the first time any human is within 300 m of it alive;
+    -- the marker goes off once when that howitzer is destroyed.
+    function Restored.Howitzers()
+        if not HOWITZER_MARKERS or not M.start_done then return end
+        local r = RestoredState()
+        local player = GetPlayerHandle()
+        for i = 1, 2 do
+            local h = M["art" .. i]
+            local on, off = "mark" .. i, "markOff" .. i
+            if IsAlive(h) then
+                if not r[on] and Distance(player, h) < 300.0 then
+                    r[on] = true
+                    SetObjectiveOn(h)
+                end
+            elseif r[on] and not r[off] then
+                r[off] = true
+                SetObjectiveOff(h)
+            end
+        end
+    end
+    -- One-shot: the frame the body's last_objective turns true (a human within 300 m of the goal) with a
+    -- howitzer still alive, the Black Dogs send a squad at the CCA Recycler.
+    function Restored.Punish()
+        if not ARTILLERY_BYPASS_PUNISH or not M.start_done or not M.last_objective then return end
+        local r = RestoredState()
+        if r.punished then return end
+        r.punished = true
+        if M.won or M.lost or M.success_scheduled or not IsAlive(M.recy) then return end
+        if not (IsAlive(M.art1) or IsAlive(M.art2)) then return end
+        campaignRuntime.BeginEvent()
+        for _, odf in ipairs({"bvtank", "bvtank", "bvrckt"}) do
+            local h = BuildObject(odf, 2, "counter_attack")
+            Attack(h, M.recy)
         end
     end
 end
@@ -403,7 +493,7 @@ function Update(timestep)
         FailMission(GetTime() + 2.0, "misns6l1.des")
     end
 -- CR restored content >>
-    if campaignRuntime then Restored.Voice() end
+    if campaignRuntime then Restored.Voice(); Restored.Howitzers(); Restored.Punish() end
 -- CR restored content <<
 -- CR co-op callback >>
     if campaignRuntime then campaignRuntime.AfterUpdate() end

@@ -1,6 +1,6 @@
 {
   "totals": {
-    "slots": 298,
+    "slots": 300,
     "recoil_slots": 225,
     "flash_slots": 219,
     "casing_slots": 145
@@ -3868,6 +3868,37 @@
         }
       },
       "category": "Isolate gun geometry"
+    },
+    "savfury": {
+      "name": "Infected Fury",
+      "model": "savfury",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "hardpoint": "GC1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "parent csf11bda is not a barrel node and the hardpoint is 17.29 m ahead of its front geometry",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "accepted-shot path; live validation pending"
+        },
+        "2": {
+          "weapon": "gwasp",
+          "hardpoint": "GR1",
+          "recoil_node": "",
+          "recoil_distance": null,
+          "recoil_effective_kick": null,
+          "flash_offset": null,
+          "flash_status": "mine deployment",
+          "casing_type": "none",
+          "casing_status": "no brass by weapon design",
+          "runtime": "native firing producer pending"
+        }
+      },
+      "category": "Emitter/asset decision"
     },
     "sb0002": {
       "name": "Gun Tower",

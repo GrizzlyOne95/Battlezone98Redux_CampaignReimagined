@@ -167,8 +167,8 @@ BUILDING_MATCHING My_Building_Matchings[MAX_BUILDINGS];
 //------------------------------------------------------------------
    "bvmuf",                           2.00,              CENTER_OF_BASE;
    "bvrecy",                          2.00,              CENTER_OF_BASE;
-	"abcafe",							3.00,			CENTER_OF_BASE;
-	"ablpow",							2.00,			CENTER_OF_BASE;
-	"absilo",							2.00,			CENTER_OF_BASE;	
+	"bbcafe",							3.00,			CENTER_OF_BASE;
+	"bblpow",							2.00,			CENTER_OF_BASE;
+	"bbsilo",							2.00,			CENTER_OF_BASE;	
 
 #END_DATA

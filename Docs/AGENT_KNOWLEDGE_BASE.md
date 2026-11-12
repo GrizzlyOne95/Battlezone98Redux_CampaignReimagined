@@ -258,6 +258,13 @@ Grep every ported mission for these before trusting it in MP:
   never be exported as a global (aiCore.lua:5285-5288). The native AIP and aiCore can run side by side, but
   still pick deliberately which brain drives a team [owner decisions: misn02b native AIP, misn05 aiCore,
   misn13 AIP only because aiCore would fight the fixed-outpost win].
+- **Combat-only aiCore** (script owns orders/waves/production, aiCore only fights): `aiCore.EnableCombatOnly(team, faction)`
+  once (strategic flags off, special combat on, saved with the team), `aiCore.BootstrapCombatOnly(team)` for units that
+  already exist, `aiCore.AddCombatObject(h)` from `AddObject` (skips non-local and human craft), `aiCore.UpdateCombatOnly()`
+  each frame (never `aiCore.Update()`: it registers human teams, gives rush-aggression orders and creates global managers
+  for every other team; `UpdateCombatOnly` skips all of that). Dynamic mass: `AddSpecialObject` applies it to team-5
+  craft, `FinishPostLoad` to all craft after a load. Never call `aiCore.Bootstrap()` for that team. Host only; save aiCore's data as a trailing `Save` value
+  (pilot: `Scripts/misns5cr.lua`, `Docs/MISNS5_COOP.md`).
 - A craft ODF without `aiName`/`aiName2` builds and looks healthy but has **no AI process**: `CanCommand`
   is false forever and hooks inside the process never run.
 - A missing enemy recycler/factory/scrap means an AIP cannot build (misn02b); script-built forces (Lua
@@ -318,6 +325,9 @@ Pick the unused retrospective line; for example misn13 uses `misn1305`, misn12 `
 - Renderer payloads ship as `.payload` files (OpenShim 1.0.0.51+ reads them). Chunk meshes ship from
   `Assets/chunkMeshes_capped`; `Assets/chunkMeshes` still supplies 21 companion files the lock ships, so
   deleting that directory makes `-verify` report `LOCKED BUT ABSENT`.
+- A bless on a branch whose base lags `main` can also add already-tracked files its lock missed (a stacked branch added
+  `Shaders\CR_cockpit_damage-sm4.hlsl`): read the diff, and keep only your change's entries (remove the others at their
+  sorted position and fix the count) so the PR shows one change.
 - If a bless was done with zero-byte stand-in files, delete them afterwards (`find BZ_ASSETS_CORE openshim
   -size 0`); they are gitignored so `git status` looks clean while Validate reports hash mismatches.
 

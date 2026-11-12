@@ -3,7 +3,7 @@ local E, objects, uniforms, clones = {}, {}, {}, {}
 local calls, wet, view, previousHits = 0, 0, 1, 0
 local rejectShared,sharedCalls=false,0
 for h=1,100 do objects[h]={material="metal",health=1,class="tank",powered=true} end
-objects[2].class="turret"
+objects[2].class="turret";objects[4].class="shieldtower";objects[5].class="commtower"
 package.loaded.exu=E
 package.loaded.CRWeather={GetSurfaceWetness=function() return wet end}
 function IsValid(h) return objects[h]~=nil end
@@ -26,6 +26,8 @@ function E.SetMaterialShaderVector(name,key,...) calls=calls+1;if name=="metal" 
 function E.EntityLocalPoint(_,p) return p end
 function E.GetWeaponMuzzlePosition(_,slot) calls=calls+1; if slot==0 then return SetVector(0,0,0) end end
 function E.IsGunTowerPowered(h) return objects[h].powered end
+-- Newer EXU: shield/comm towers answer here; nil for others falls back to the gun tower read.
+function E.IsPowered(h) local c=objects[h].class;if c=="shieldtower" or c=="commtower" then return objects[h].powered end end
 function E.GetCameraView() return view end
 function E.GetSatState() return 0 end
 function E.SetReactiveChunksEnabled(v) E.chunks=v end
@@ -62,6 +64,16 @@ assert(string.find(objects[2].material,"_off",1,true),"tower power-off variant")
 assert(uniforms[objects[2].material.."EmissiveMap"]=="black.png","glow also disabled")
 objects[2].powered=true;ticks(40)
 assert(not string.find(objects[2].material,"_off",1,true),"power recovery")
+for _,h in ipairs({4,5}) do
+    objects[h].powered=false;ticks(40)
+    assert(string.find(objects[h].material,"_off",1,true),objects[h].class.." power-off variant")
+    assert(uniforms[objects[h].material.."EmissiveMap"]=="black.png",objects[h].class.." glow disabled")
+    objects[h].powered=true;ticks(40)
+    assert(not string.find(objects[h].material,"_off",1,true),objects[h].class.." power recovery")
+end
+objects[6].powered=false;ticks(40)
+assert(not string.find(objects[6].material,"_off",1,true),"non-tower craft never gets the power-off variant")
+objects[6].powered=true
 wet=1;ticks(200);assert(S.Wetness>.97,"rain wets gradually")
 wet=0;ticks(1000);assert(S.Wetness<.01,"drying")
 -- A missing/late-compiled shared shader must not be cached as a successful

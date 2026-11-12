@@ -338,7 +338,7 @@ for n = 1, 4 do
     local builds = F.builds(p[1], 0)
     local seen = {}
     for _, b in ipairs(builds) do seen[b.odf] = b end
-    check(seen.cvmuf and seen.cvcnst and seen.apcamr, "the factory, the constructor and the base nav are built")
+    check(seen.cvmuf and seen.cvcnst and seen.cpcamr, "the factory, the constructor and the base nav are built")
     check(seen.cvmuf.team == 1 and seen.cvcnst.team == 1, "the convoy is team 1")
     check(F.count(p[1], "Follow") == 2, "the escorts follow the factory")
     guestsPassive(p)

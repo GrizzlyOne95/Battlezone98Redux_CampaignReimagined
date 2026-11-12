@@ -26,7 +26,7 @@ and path the script names exists in the stock BZN.
   the eight escort tanks and `walker_1` are removed.
 - Convoy: 30 s later `ch08003.wav`, `svapc` #1 plus two `svfigh` `Defend2`
   escorts, then `svapc` #2..#5 at 5 s intervals, all sent on `apc_path`. When
-  `ch08003.wav` finishes (and the state is still 5..10) an `apcamr` nav "APC
+  `ch08003.wav` finishes (and the state is still 5..10) a `cpcamr` nav "APC
   Convoy" is built at `apc_nav` and targeted.
 - Capture: player in APC #5 (`apc[4]`) within 30 m of the "Base" nav starts a
   5-second delay, 100 scrap, `ch08004.wav`, the objective marker on APC #4

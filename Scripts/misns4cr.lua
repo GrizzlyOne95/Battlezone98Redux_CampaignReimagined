@@ -36,7 +36,7 @@ local M = NewState()
 -- Lexical wrappers affect this mission only. Docs/MISNS4_COOP.md lists every wrapped call and restoration.
 -- Each RESTORED_* flag switches one cut-content restoration off (Docs/MISNS4_COOP.md, "Restored content").
 local RESTORED_RAIDER_LTNK, RESTORED_BRIDGE_HRAZ, RESTORED_NORTH_TANK = true, true, true
-local RESTORED_VOICE_LINES = true -- unused shipped lines misns404, misns407, misns408 (Docs/MISNS4_COOP.md)
+local RESTORED_VOICE_LINES = true -- unused shipped lines misns404, misns406, misns407, misns408 (Docs/MISNS4_COOP.md)
 local SCRAP_PER_GUEST = 10
 local Restored = {}
 if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
@@ -189,6 +189,12 @@ if campaignRuntime then
                 r.l408 = true
                 if not M.bridge_clear then AudioMessage("misns408.wav") end
             end
+            -- misns406 "This convoy is too insecure." after misns403 on the first hauler lost, while one more loss
+            -- would still fail the mission (not when that loss already failed it).
+            if M.convoy_dead >= 1 and not r.l406 then
+                r.l406 = true
+                if not M.lost and not M.won then AudioMessage("misns406.wav") end
+            end
             -- misns407 at the win, during the source's ten-second success delay.
             if M.won and not r.l407 then
                 r.l407 = true
@@ -265,10 +271,10 @@ function Update(dt)
         StartCockpitTimer(420, 300, 0)
         -- Stock Lua equivalent of GameObjectHandle::GetObj(cam1)->SetName.
         if Valid(M.cam1) then SetObjectiveName(M.cam1, "Bridge") end
-        BuildObject("abtowe", 2, "tower1")
-        BuildObject("abtowe", 2, "tower2")
-        BuildObject("ablpow", 2, "power1")
-        BuildObject("ablpow", 2, "power2")
+        BuildObject("bbtowe", 2, "tower1")
+        BuildObject("bbtowe", 2, "tower2")
+        BuildObject("bblpow", 2, "power1")
+        BuildObject("bblpow", 2, "power2")
         BuildObject("svcnst", 1, "svcnst")
     end
     if GetTime() > M.wakeup_time then

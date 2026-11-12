@@ -1,0 +1,51 @@
+{
+ "size": 2048,
+ "strips": {
+  "lights": [
+   0,
+   128
+  ],
+  "redlts": [
+   128,
+   256
+  ],
+  "greeble": [
+   256,
+   512
+  ],
+  "hazard": [
+   512,
+   640
+  ],
+  "vent": [
+   640,
+   768
+  ],
+  "accent": [
+   768,
+   1024
+  ],
+  "nozzle": [
+   1024,
+   1280
+  ],
+  "cells": [
+   1280,
+   1536
+  ],
+  "hangar": [
+   1536,
+   2048
+  ]
+ },
+ "cells": [
+  "star",
+  "roundel",
+  "hatch",
+  "glow",
+  "glass",
+  "number",
+  "chevron",
+  "dish"
+ ]
+}

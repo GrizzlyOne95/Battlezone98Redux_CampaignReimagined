@@ -2446,6 +2446,15 @@
         }
       }
     },
+    "savfury": {
+      "model": "savfury",
+      "slots": {
+        "1": {
+          "weapon": "gbolt",
+          "skip": "parent csf11bda is not a barrel node and the hardpoint is 17.29 m ahead of its front geometry"
+        }
+      }
+    },
     "sb0002": {
       "model": "sbtowe",
       "slots": {

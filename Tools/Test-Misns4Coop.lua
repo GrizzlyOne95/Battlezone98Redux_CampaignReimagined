@@ -109,10 +109,10 @@ for i = 1, 4 do
     check(F.count(p[i], "SetObjectiveName") >= 1 and F.last(p[i], "SetObjectiveName")[3] == "Bridge", "the Bridge pod is named on peer " .. i)
 end
 for _, b in ipairs(F.builds(p[1])) do check(b.team == 1 or b.team == 5, "builds are on team 1 or 5") end
-check(#builtAt(p[1], "spawn2", "bvartl") == 1 and #builtAt(p[1], "tower1", "abtowe") == 1 and #builtAt(p[1], "power2", "ablpow") == 1,
+check(#builtAt(p[1], "spawn2", "bvartl") == 1 and #builtAt(p[1], "tower1", "bbtowe") == 1 and #builtAt(p[1], "power2", "bblpow") == 1,
     "the opening structures are built (towers, power, howitzer)")
 check(#builtAt(p[1], "svcnst", "svcnst") == 1 and #builtAt(p[1], "camerapt", "spcamr") == 1, "the Soviet constructor and the Bridge pod")
-for _, b in ipairs(F.builds(p[1], 0, "abtowe")) do check(b.team == 5, "enemy structures are team 5") end
+for _, b in ipairs(F.builds(p[1], 0, "bbtowe")) do check(b.team == 5, "enemy structures are team 5") end
 guestsPassive(p)
 -- reminder fighter, raiders (+ extras), restored light tank
 F.run(40)
@@ -295,9 +295,11 @@ toConvoy(5)
 hs = haulers(p[1])
 F.kill(hs[1].h); F.run(1)
 heardAll(p, "misns403.wav")
+heardAll(p, "misns406.wav") -- restored unused line: first convoy loss, once
 check(F.count(p[1], "FailMission") == 0, "one loss does not fail")
 F.kill(hs[2].h); F.run(1)
 for i = 1, 4 do heardAll({p[i]}, "misns403.wav", 2) end
+heardAll(p, "misns406.wav") -- still once
 F.run(25)
 for i = 1, 4 do
     check(F.count(p[i], "FailMission") == 1 and F.last(p[i], "FailMission")[3] == "misns4l1.des", "one shared defeat on peer " .. i)

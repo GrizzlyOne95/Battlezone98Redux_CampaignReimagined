@@ -229,14 +229,14 @@ do
     check(#builtAt(p[1], "bdsp4") == 3 + 2, "wave 4 group = 3 + 2 extras")
     allSafe(p, builtAt(p[1], "bdnet4")); allSafe(p, builtAt(p[1], "bdsp4"))
     -- camera net 1: bdnet6 is within 460 m of the human, so that one pod waits; nothing is built in view
-    local pods = F.builds(p[1], 0, "apcamr")
+    local pods = F.builds(p[1], 0, "bpcamr")
     check(#pods == 5, "five of the six restored net-1 pods are built, one waits for the watcher: " .. #pods)
     allSafe(p, pods)
     for _, b in ipairs(pods) do check(b.team == 5 and b.where:match("^bdnet%d$"), "net-1 pods are enemy cameras at bdnet1..6") end
     F.place(p[3].player, 1064, 99463); F.run(2)
-    check(#F.builds(p[1], 0, "apcamr") == 6, "the last pod is built once the watcher leaves")
+    check(#F.builds(p[1], 0, "bpcamr") == 6, "the last pod is built once the watcher leaves")
     F.run(5)
-    check(#F.builds(p[1], 0, "apcamr") == 6, "each pod is built exactly once")
+    check(#F.builds(p[1], 0, "bpcamr") == 6, "each pod is built exactly once")
     check(type(m.nav6) == "string", "the pods fill the body's nav1..nav6 fields")
 end
 
@@ -248,6 +248,9 @@ for n = 1, 4 do
     local wave = builtAt(p[1], "bdsp5")
     check(#wave == 3 + 2 + extrasFor(n), n .. " human(s): wave 5 = 3 raiders + 2 restored tanks + extras, got " .. #wave)
     check(#builtAt(p[1], "bdsp5", "bvtank") == 2, "the restored tanks")
+    heardAll(p, "misns211.wav")
+    F.run(5)
+    heardAll(p, "misns211.wav") -- still once
     allSafe(p, wave)
 end
 
@@ -256,7 +259,7 @@ do
     local w, p, m = setup(3, {})
     F.place(p[2].player, 3002, 98477 - 380); F.run(2)
     check(m.camnet2found, "any human near bdnet9 reveals the second camera net")
-    local pods = F.builds(p[1], 0, "apcamr")
+    local pods = F.builds(p[1], 0, "bpcamr")
     check(#pods == 8 and pods[1].team == 5, "eight enemy camera pods")
     heardAll(p, "misns207.wav")
     F.kill(m.nav7); F.run(2)

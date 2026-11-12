@@ -248,12 +248,21 @@ for name,record in receipt['odfs'].items():
     shipped(path)
 routes=json.loads((REF/'routes.json').read_text())
 NACELLE_PITCH={('[hovercraftclass]','pitch%snacelle%s'%(a,b)) for a in ('throt','steer') for b in ('run','jump')}
+# bvrecy* set collisionRadius like avrecy so the goto arrival radius doesn't fall back to the
+# mesh sphere and loop the geyser deploy (CHANGELOG); only that exact value is tolerated.
+RECYCLER_RADIUS=('[gameobjectclass]','collisionradius')
+# bvrecy* reverse/strafe speeds raised 10 -> 15 to match avrecy (CHANGELOG).
+RECYCLER_SPEEDS=(('[hovercraftclass]','velocreverse'),('[hovercraftclass]','velocstrafe'))
 for route in routes:
     path=ROOT/route['path'];baseline=REF/'menus'/path.name
     check(hashlib.sha256(baseline.read_bytes()).hexdigest()==route['sha256'],'armory baseline pin: '+path.name)
     # voice-over slots are audio, retuned separately; nacelle pitch gains belong to the
     # NacelleJets flame housings (pinned in craft-gameplay-baselines.json), not the build menu
     old,new=({k:v for k,v in settings(f.read_text()).items() if not k[1].endswith('msg') and k not in NACELLE_PITCH} for f in (baseline,path))
+    if path.name.lower().startswith('bvrecy'):
+        check(new.pop(RECYCLER_RADIUS,None)=='10.0' and RECYCLER_RADIUS not in old,'bvrecy geyser-deploy collisionRadius fix present: '+path.name)
+        for key in RECYCLER_SPEEDS:
+            check(new.pop(key,None)=='15.0' and old.pop(key,None)=='10.0','bvrecy '+key[1]+' matches avrecy: '+path.name)
     check(old.keys()==new.keys(),'no build slots added/removed')
     for key,value in old.items():
         if re.fullmatch(r'(?:builditem|cannonitem|rocketitem|mortaritem|specialitem)\d+',key[1]) and value in route['sources']:

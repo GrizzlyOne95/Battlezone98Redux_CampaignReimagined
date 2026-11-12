@@ -51,13 +51,15 @@ used |= set(re.findall(r'(?:Goto|Dropoff)\([^,()]+, "(\w+)"', live))
 assert used <= set(paths), "every path the body names exists: " + str(used - set(paths))
 # the CR layer's own names
 layer = "".join(re.findall(region, lua_full))
-layer_paths = set(re.findall(r'(?:PathExists|BuildObject\("apcamr", 1,)\s*\(?"(\w+)"', layer))
+layer_paths = set(re.findall(r'(?:PathExists|BuildObject\("spcamr", 1,)\s*\(?"(\w+)"', layer))
 layer_paths |= set(re.findall(r'"(\w+_?\w*post\w*|american_spawn|last_nav_spawn)"', layer))
 assert layer_paths <= set(paths), "every path the CR layer names exists: " + str(layer_paths - set(paths))
 layer_objects = set(re.findall(r'rallyPoints = \{ \[0\] = "(\w+)" \}', layer))
 assert layer_objects <= set(objects), "rally point is a map object"
 assert objects["avrecycle"] == ("bvrec8", 5) and objects["avmuf"] == ("bvmuf", 5)
-assert objects["svrecycle"] == ("svrecy", 1) and objects["svmuf"] == ("savmf", 1)
+assert objects["svrecycle"] == ("svrecy8", 1) and objects["svmuf"] == ("savmf", 1)
+# svrecy8 has no VDF of its own; without baseName the engine crashes loading the mission.
+assert 'baseName = "svrecy"' in (ROOT / "ODF" / "svrecy8.odf").read_text(encoding="utf-8")
 for label in ("powerplant1", "powerplant2", "basetower1", "basetower2"):
     assert objects[label][1] == 5, "the Black Dog base is on team 5: " + label
 assert objects["cam"][1] == 1 and objects["basecam"][1] == 1, "nav beacons belong to the humans' side"
@@ -90,5 +92,26 @@ for name in unused:
 for name in ("a_post1", "t2post", "t3post", "last_nav_spawn"):
     assert "`" + name + "`" in doc
 assert (ROOT / "Docs/CCA_COOP_RUNTIME.md").is_file()
+
+# ---------------------------------------------------------------- the betrayal cutscene (presentation only)
+# The shared shot, the swap delay and the soundtrack duck live only in the CR layer; the body stays faithful.
+assert "holdCamera = true" in config, "the betrayal shot is held for every peer"
+assert re.search(r'presentationOps = \{ S8Music = function\(mode\)', config), "the soundtrack duck runs on every peer"
+for call in ("CameraReady", "CameraObject", "CameraFinish", "CameraCancelled"):
+    assert call not in live, "camera native outside the CR layer: " + call
+    assert re.search(r"(?m)^local %s = campaignRuntime and campaignRuntime\.%s or %s$" % (call, call, call), lua_full), "shadowed: " + call
+for forbidden in ("SetTeamColor", "IFace_ConsoleCmd"):
+    assert forbidden not in lua_full, "the cutscene must not use " + forbidden
+cutscene = layer.split("function Restored.Cutscene", 1)[1].split("function Restored.Step", 1)[0]
+assert "BETRAYAL_SWAP_DELAY = 3.0" in layer and "BETRAYAL_SHOT_SECONDS = 11.0" in layer
+assert "FinishShot(cs)" in cutscene and "CameraFinish()" in layer, "the hard timer always releases the camera"
+assert '"FadeMusic", 0.25, 1.5' in layer and '"FadeMusic", 1, 3' in layer and '"UpdateMusic"' in layer
+assert 'type(exu) == "table" and type(exu[name]) == "function"' in layer, "every EXU call is guarded"
+assert 'odf == "savs8" then odf = "savfury"' in layer, "the swap builds the infected SAV"
+for voice in ("misns805.wav", "misns806.wav"):
+    assert voice in lua_full, "the betrayal voice lines stay: " + voice
+exu_dll = (ROOT / "Bin/exu.dll").read_bytes()
+for export in (b"FadeMusic", b"UpdateMusic"):
+    assert export in exu_dll, "the bundled EXU has " + export.decode()
 print("misns8 co-op contract passed: %d objects, %d paths, %d scripted path/label names, %d unused paths documented"
       % (len(objects), len(paths), len(used) + len(handles), len(unused)))

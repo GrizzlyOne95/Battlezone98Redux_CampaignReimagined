@@ -198,6 +198,13 @@ lua5.1 Tools/Test-BlackDog12.lua && python Tools/Test-BlackDog12SourceParity.py 
   re-aimed once (the check runs at most every 20 s).
 - The out-of-lives path is not exercised by the host tests (it is the runtime's own `Failure` callback).
 
+## Warning re-arm after repairs
+
+The shield and power low-health warnings (`bd12005`..`bd12008`, below 25 %) still latch, but the latch clears when the
+unit is repaired above 50 %, so the warning can play again. Between 25 % and 50 % the latch holds; dead or invalid
+handles never clear it. It runs on every peer in a CR region (`restored content`), and `healthLow` already exists in old
+saves. Live health percentages on the shield objectives were not added: the mission has no objective markers or names.
+
 ## Live checklist (unrun)
 
 1. Opening: the same shot around the portal on every peer, cameras balanced, `bd12001` on every peer; a host skip ends
