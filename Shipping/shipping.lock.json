@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5863,
+  "count": 5904,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -5667,6 +5667,18 @@
       "runtime": "cr_ash.dds"
     },
     {
+      "source": "Assets\\Textures\\cr_bioburst.dds",
+      "runtime": "cr_bioburst.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_bioleak.dds",
+      "runtime": "cr_bioleak.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_bloom.dds",
+      "runtime": "cr_bloom.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr_cockpit_charred.png",
       "runtime": "cr_cockpit_charred.png"
     },
@@ -5709,6 +5721,10 @@
     {
       "source": "Assets\\Textures\\cr_iceveil.dds",
       "runtime": "cr_iceveil.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_ion.dds",
+      "runtime": "cr_ion.dds"
     },
     {
       "source": "Assets\\Textures\\cr_kick_clod.dds",
@@ -5771,6 +5787,10 @@
       "runtime": "cr_snow.dds"
     },
     {
+      "source": "Assets\\Textures\\cr_spark.dds",
+      "runtime": "cr_spark.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr_spore.dds",
       "runtime": "cr_spore.dds"
     },
@@ -5793,6 +5813,58 @@
     {
       "source": "Assets\\Textures\\cr_titan16_wet.png",
       "runtime": "cr_titan16_wet.png"
+    },
+    {
+      "source": "Assets\\Textures\\cr_xpl_bluehit.dds",
+      "runtime": "cr_xpl_bluehit.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_xpl_core.dds",
+      "runtime": "cr_xpl_core.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_xpl_core2.dds",
+      "runtime": "cr_xpl_core2.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_xpl_debris.dds",
+      "runtime": "cr_xpl_debris.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_xpl_flame.dds",
+      "runtime": "cr_xpl_flame.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_xpl_flash.dds",
+      "runtime": "cr_xpl_flash.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_xpl_glint.dds",
+      "runtime": "cr_xpl_glint.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_xpl_greenhit.dds",
+      "runtime": "cr_xpl_greenhit.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_xpl_redhit.dds",
+      "runtime": "cr_xpl_redhit.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_xpl_ring.dds",
+      "runtime": "cr_xpl_ring.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_xpl_smoke.dds",
+      "runtime": "cr_xpl_smoke.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_xpl_spark.dds",
+      "runtime": "cr_xpl_spark.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_xpl_wisp.dds",
+      "runtime": "cr_xpl_wisp.dds"
     },
     {
       "source": "Assets\\Textures\\cramns_ACT.dds",
@@ -12291,6 +12363,10 @@
       "runtime": "cr_europa.particle.payload"
     },
     {
+      "source": "Materials\\CR_explosions.material",
+      "runtime": "CR_explosions.material"
+    },
+    {
       "source": "Materials\\cr_foliage.material",
       "runtime": "cr_foliage.material"
     },
@@ -18451,6 +18527,14 @@
       "runtime": "xbio.odf"
     },
     {
+      "source": "ODF\\xbldxpl.odf",
+      "runtime": "xbldxpl.odf"
+    },
+    {
+      "source": "ODF\\xbldxpla.odf",
+      "runtime": "xbldxpla.odf"
+    },
+    {
       "source": "ODF\\xboltw1.odf",
       "runtime": "xboltw1.odf"
     },
@@ -18491,12 +18575,48 @@
       "runtime": "xbskyy.odf"
     },
     {
+      "source": "ODF\\xcarxpl.odf",
+      "runtime": "xcarxpl.odf"
+    },
+    {
+      "source": "ODF\\xcarxpla.odf",
+      "runtime": "xcarxpla.odf"
+    },
+    {
+      "source": "ODF\\xcarxplb.odf",
+      "runtime": "xcarxplb.odf"
+    },
+    {
       "source": "ODF\\xgasgnd.odf",
       "runtime": "xgasgnd.odf"
     },
     {
       "source": "ODF\\xgasxpl.odf",
       "runtime": "xgasxpl.odf"
+    },
+    {
+      "source": "ODF\\xgndshk.odf",
+      "runtime": "xgndshk.odf"
+    },
+    {
+      "source": "ODF\\xlgtbldg.odf",
+      "runtime": "xlgtbldg.odf"
+    },
+    {
+      "source": "ODF\\xlgtcarg.odf",
+      "runtime": "xlgtcarg.odf"
+    },
+    {
+      "source": "ODF\\xlgtcarr.odf",
+      "runtime": "xlgtcarr.odf"
+    },
+    {
+      "source": "ODF\\xlgtgndg.odf",
+      "runtime": "xlgtgndg.odf"
+    },
+    {
+      "source": "ODF\\xlgtgndr.odf",
+      "runtime": "xlgtgndr.odf"
     },
     {
       "source": "ODF\\xlitbl1h.odf",
@@ -18513,6 +18633,30 @@
     {
       "source": "ODF\\xplnxpl.odf",
       "runtime": "xplnxpl.odf"
+    },
+    {
+      "source": "ODF\\xpltrsn.odf",
+      "runtime": "xpltrsn.odf"
+    },
+    {
+      "source": "ODF\\xpltrso.odf",
+      "runtime": "xpltrso.odf"
+    },
+    {
+      "source": "ODF\\xpltrsp.odf",
+      "runtime": "xpltrsp.odf"
+    },
+    {
+      "source": "ODF\\xpltrsq.odf",
+      "runtime": "xpltrsq.odf"
+    },
+    {
+      "source": "ODF\\xpltrsr.odf",
+      "runtime": "xpltrsr.odf"
+    },
+    {
+      "source": "ODF\\xpltrss.odf",
+      "runtime": "xpltrss.odf"
     },
     {
       "source": "ODF\\xpuddle.odf",
@@ -18541,6 +18685,26 @@
     {
       "source": "ODF\\xrainspa.odf",
       "runtime": "xrainspa.odf"
+    },
+    {
+      "source": "ODF\\xsecxpl.odf",
+      "runtime": "xsecxpl.odf"
+    },
+    {
+      "source": "ODF\\xsecxpla.odf",
+      "runtime": "xsecxpla.odf"
+    },
+    {
+      "source": "ODF\\xtorxpl.odf",
+      "runtime": "xtorxpl.odf"
+    },
+    {
+      "source": "ODF\\xtorxpla.odf",
+      "runtime": "xtorxpla.odf"
+    },
+    {
+      "source": "ODF\\xtorxplb.odf",
+      "runtime": "xtorxplb.odf"
     },
     {
       "source": "openshim\\OPENSHIM_PIN.txt",

@@ -1,0 +1,100 @@
+[ExplosionClass]
+classLabel = "explosion"
+
+explRadius = 10.0
+explSound = "xcar.wav"
+damageRadius = 20.0
+damageBallistic = 0
+damageConcussion = 100
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 5
+
+particleClass1 = "xcarxplb.Flash"
+particleCount1 = 1
+particleVeloc1 = "0.00 0.00 0.00"
+
+particleClass2 = "xcarxplb.Core"
+particleCount2 = 1
+particleVeloc2 = "0.00 1.00 0.00"
+particleBias2 = "0.00 2.00 0.00"
+
+particleClass3 = "xcarxplb.Ember"
+particleCount3 = 4
+particleVeloc3 = "5.00 4.00 5.00"
+particleBias3 = "0.00 2.00 0.00"
+
+particleClass4 = "xcarxplb.Smoke"
+particleCount4 = 2
+particleVeloc4 = "2.00 1.00 2.00"
+particleBias4 = "0.00 1.00 0.00"
+
+particleClass5 = "xcarxplb.Light"
+particleCount5 = 1
+particleVeloc5 = "0.00 2.00 0.00"
+particleBias5 = "0.00 5.00 0.00"
+
+[Flash]
+simulateBase = "sim_null"
+lifeTime = 0.25
+renderBase = "draw_sprite"
+textureName = "cr_xpl_flash.dds"
+textureBlend = "one one modulate"
+startColor = "255 240 200 255"
+finishColor = "255 140 40 0"
+startRadius = 7.00
+finishRadius = 14.00
+animateTime = 0.25
+
+[Core]
+simulateBase = "sim_smoke"
+lifeTime = 1.00
+renderBase = "draw_twirl"
+textureName = "cr_xpl_core.dds"
+textureBlend = "one one modulate"
+startColor = "255 235 170 255"
+finishColor = "255 90 15 0"
+startRadius = 3.50
+finishRadius = 11.00
+animateTime = 1.00
+rotationRate = 3.00
+
+[Ember]
+simulateBase = "sim_ember"
+lifeTime = 1.60
+renderBase = "draw_twirl"
+textureName = "cr_xpl_spark.dds"
+textureBlend = "one one modulate"
+startColor = "255 200 90 255"
+finishColor = "255 60 10 0"
+startRadius = 0.40
+finishRadius = 0.20
+animateTime = 1.60
+rotationRate = 8.00
+
+[Smoke]
+simulateBase = "sim_smoke"
+lifeTime = 3.50
+renderBase = "draw_twirl"
+textureName = "cr_xpl_smoke.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "110 105 95 200"
+finishColor = "60 58 55 0"
+startRadius = 2.50
+finishRadius = 7.00
+animateTime = 3.50
+rotationRate = 3.00
+
+[Light]
+simulateBase = "sim_smoke"
+lifeTime = 1.60
+renderBase = "draw_light"
+startColor = "255 205 90 255"
+finishColor = "255 90 15 0"
+startRadius = 20.00
+finishRadius = 20.00
+animateTime = 1.60
+attenuateConstant = 0.0
+attenuateLinear = 1.0
+attenuateQuadratic = 0.0

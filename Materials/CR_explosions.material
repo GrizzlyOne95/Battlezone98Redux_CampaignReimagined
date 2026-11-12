@@ -1,0 +1,67 @@
+import * from "sprites.material"
+
+// Sprite materials for the layered CR explosions (textureName resolves to an Ogre sprite material).
+material cr_xpl_core.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_xpl_core.dds
+}
+
+material cr_xpl_core2.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_xpl_core2.dds
+}
+
+material cr_xpl_flame.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_xpl_flame.dds
+}
+
+material cr_xpl_ring.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_xpl_ring.dds
+}
+
+material cr_xpl_redhit.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_xpl_redhit.dds
+}
+
+material cr_xpl_greenhit.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_xpl_greenhit.dds
+}
+
+material cr_xpl_bluehit.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_xpl_bluehit.dds
+}
+
+material cr_xpl_spark.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_xpl_spark.dds
+}
+
+material cr_xpl_flash.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_xpl_flash.dds
+}
+
+material cr_xpl_glint.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_xpl_glint.dds
+}
+
+material cr_xpl_smoke.dds : BZSprite/AlphaBlend
+{
+    set_texture_alias DiffuseMap cr_xpl_smoke.dds
+}
+
+material cr_xpl_wisp.dds : BZSprite/AlphaBlend
+{
+    set_texture_alias DiffuseMap cr_xpl_wisp.dds
+}
+
+material cr_xpl_debris.dds : BZSprite/AlphaBlend
+{
+    set_texture_alias DiffuseMap cr_xpl_debris.dds
+}
