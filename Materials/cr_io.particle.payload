@@ -25,6 +25,9 @@
 // Lava fog -- a low, red, glowing sheet over the molten pools
 // =============================================================================
 
+// Flat cards (perpendicular_common, the Moon mist recipe) in a 0.5 m Box lifted to 0.35 m: the layer
+// stays under 0.6 m, so it never stands a pilot's eyes inside the fog.
+
 //   emitter 0  Box sheet
 //   affector 0 ColourInterpolator   (fade in over the first fifth, fade out at the end)
 //   affector 1 Scaler
@@ -39,7 +42,9 @@ particle_system CR/Io/LavaFog
     cull_each           true
     sorted              true
     local_space         false
-    billboard_type      point
+    billboard_type      perpendicular_common
+    common_direction    0 1 0
+    common_up_vector    0 0 1
 
     emitter Box
     {
@@ -53,7 +58,7 @@ particle_system CR/Io/LavaFog
         colour_range_start  0.86 0.24 0.07 0.00
         colour_range_end    0.70 0.16 0.05 0.00
         width               110
-        height              6
+        height              0.5
         depth               110
     }
 
