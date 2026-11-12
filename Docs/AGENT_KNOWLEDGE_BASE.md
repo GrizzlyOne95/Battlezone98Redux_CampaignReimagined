@@ -2073,8 +2073,8 @@ to the ordinary GOG development mod.
   variants rely on inheritance instead, so the copy is for clarity, not a requirement. Every
   armed unit or variant that gets them needs its gameplay baseline re-pinned.
 - A unit with no `Assets/ModelFixes/<unit>.vdf` gets a new shipped file, which needs `-bless`.
-  `Shaders/CR_cockpit_damage-sm4.hlsl` is tracked on main but unblessed; park it during the
-  bless.
+- A new file a shipped `.program`/`.material` references must be blessed in the same PR. Never
+  park an unblessed required file during someone else's bless: bless it (a one-line lock PR).
 
 ### Flameless hover units: carrier housings (2026-11-10)
 
