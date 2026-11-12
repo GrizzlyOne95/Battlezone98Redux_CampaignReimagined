@@ -86,7 +86,7 @@ F.PATHS = {
 }
 F.FAR = 50000
 local CRAFT = {bvartl=true,bvcnst=true,bvtank=true,bvsca8=true,bvra8=true,avart8=true,bvmuf=true,bvrec8=true,avcns8=true,bvtur8=true,bvhraz=true,
-    bvapc=true,bvwalk=true,savtnk=true,savs8=true,svtank=true,playsv=true,svrecy8=true,savmf=true}
+    bvapc=true,bvwalk=true,savtnk=true,savs8=true,savfury=true,svtank=true,playsv=true,svrecy8=true,savmf=true}
 local function vec(t) return {x = t[1], y = t[2], z = t[3]} end
 local function newObject(handle, odf, team, pos, craft)
     W.objects[handle] = {alive = true, odf = odf, team = team, health = 1, pos = vec(pos or {F.FAR, 6, F.FAR}),
@@ -424,6 +424,11 @@ function F.makePeer(id, team, network, options)
         PersistentConfig = {Initialize=function() record("PdaInitialize") end,
             UpdateInputs=function() record("PdaUpdate") end,UpdateHeadlights=noop},
     }
+    -- options.music: this peer's EXU has the soundtrack fades (FadeMusic/UpdateMusic); absent by default.
+    if options.music then
+        modules.exu.FadeMusic = function(gain, seconds) record("FadeMusic", gain, seconds); return true end
+        modules.exu.UpdateMusic = function(dt) record("UpdateMusic", dt); return true end
+    end
     -- options.weather = { module = fn|nil, sites = table|nil }: CRTitanWeather stand-ins; absent by default.
     if options.weather then
         if options.weather.module then modules.CRTitanWeather = options.weather.module(p, record) end

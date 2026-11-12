@@ -92,5 +92,26 @@ for name in unused:
 for name in ("a_post1", "t2post", "t3post", "last_nav_spawn"):
     assert "`" + name + "`" in doc
 assert (ROOT / "Docs/CCA_COOP_RUNTIME.md").is_file()
+
+# ---------------------------------------------------------------- the betrayal cutscene (presentation only)
+# The shared shot, the swap delay and the soundtrack duck live only in the CR layer; the body stays faithful.
+assert "holdCamera = true" in config, "the betrayal shot is held for every peer"
+assert re.search(r'presentationOps = \{ S8Music = function\(mode\)', config), "the soundtrack duck runs on every peer"
+for call in ("CameraReady", "CameraObject", "CameraFinish", "CameraCancelled"):
+    assert call not in live, "camera native outside the CR layer: " + call
+    assert re.search(r"(?m)^local %s = campaignRuntime and campaignRuntime\.%s or %s$" % (call, call, call), lua_full), "shadowed: " + call
+for forbidden in ("SetTeamColor", "IFace_ConsoleCmd"):
+    assert forbidden not in lua_full, "the cutscene must not use " + forbidden
+cutscene = layer.split("function Restored.Cutscene", 1)[1].split("function Restored.Step", 1)[0]
+assert "BETRAYAL_SWAP_DELAY = 3.0" in layer and "BETRAYAL_SHOT_SECONDS = 11.0" in layer
+assert "FinishShot(cs)" in cutscene and "CameraFinish()" in layer, "the hard timer always releases the camera"
+assert '"FadeMusic", 0.25, 1.5' in layer and '"FadeMusic", 1, 3' in layer and '"UpdateMusic"' in layer
+assert 'type(exu) == "table" and type(exu[name]) == "function"' in layer, "every EXU call is guarded"
+assert 'odf == "savs8" then odf = "savfury"' in layer, "the swap builds the infected SAV"
+for voice in ("misns805.wav", "misns806.wav"):
+    assert voice in lua_full, "the betrayal voice lines stay: " + voice
+exu_dll = (ROOT / "Bin/exu.dll").read_bytes()
+for export in (b"FadeMusic", b"UpdateMusic"):
+    assert export in exu_dll, "the bundled EXU has " + export.decode()
 print("misns8 co-op contract passed: %d objects, %d paths, %d scripted path/label names, %d unused paths documented"
       % (len(objects), len(paths), len(used) + len(handles), len(unused)))

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- misns8cr: Romeski's betrayal is now a short shared cutscene (about 11 s). The camera shows Romeski's tank and the SAV column, the SAVs turn 3 seconds in, and it cuts to the nearest infected SAV; the music dips and returns. The turned SAVs are a new Fury-blue "Infected Fury" (`savfury`: same stats as before, dark biomechanical hull with glowing cyan veins). Gameplay is unchanged. Offline and co-op; not yet tested in game.
 - misns8cr: the CCA Recycler now uses a mission-only ODF (`svrecy8`) that builds the Fury factory (`savmf`)
   instead of the stock `svmuf`, so a rebuilt factory keeps making Fury tanks (`savtnk`). Not tested in game.
 - OpenShim e7b20a9aa (still reports 1.0.0.75): on DX11, Options > Graphics > Full Screen offers No / Yes / Borderless (replacing the separate borderless row; DX9 keeps No / Yes); headlights get a Natural beam (`HeadlightBeam = Natural`) and a Headlight Reach row on the Lighting page, with defaults unchanged; pre-launch briefings can have up to nine pages (`<mission>_2.des` to `_9.des`), turned with the arrows or Left/Right and PgUp/PgDn.
