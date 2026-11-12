@@ -12,7 +12,7 @@ damageConcussion = 50
 damageFlame = 0
 damageImpact = 0
 
-particleTypes = 13
+particleTypes = 9
 
 particleClass1 = "xgasgnd.smokeemit"
 particleCount1 = 1
@@ -34,49 +34,29 @@ particleCount4 = 1
 particleVeloc4 = "2.25 1.0 -2.25"
 particleBias4 = "3.75 1.0 -3.75"
 
-particleClass5 = "xgasgnd.smokeemit"
+particleClass5 = "xgasgnd.smokecenter"
 particleCount5 = 1
-particleVeloc5 = "0.0 1.0 3.0"
-particleBias5 = "0.0 1.0 5.0"
+particleVeloc5 = "0.0 3.0 0.0"
+particleBias5 = "0.0 5.0 0.0"
 
-particleClass6 = "xgasgnd.smokeemit"
+particleClass6 = "xgasgnd.flamecenter"
 particleCount6 = 1
-particleVeloc6 = "0.0 1.0 -3.0"
-particleBias6 = "0.0 1.0 -5.0"
+particleVeloc6 = "0.0 2.0 0.0"
+particleBias6 = "0.0 4.0 0.0"
 
-particleClass7 = "xgasgnd.smokeemit"
+particleClass7 = "xgasgnd.light"
 particleCount7 = 1
-particleVeloc7 = "3.0 1.0 0.0"
-particleBias7 = "5.0 1.0 0.0"
+particleVeloc7 = "0.0 2.0 0.0"
+particleBias7 = "0.0 5.0 0.0"
 
-particleClass8 = "xgasgnd.smokeemit"
-particleCount8 = 1
-particleVeloc8 = "-3.0 1.0 0.0"
-particleBias8 = "-5.0 1.0 0.0"
+particleClass8 = "xgasgnd.chunk"
+particleCount8 = 10
+particleVeloc8 = "25.0 5.0 25.0"
+particleBias8 = "0.0 10.0 0.0"
 
-particleClass9 = "xgasgnd.smokecenter"
+particleClass9 = "xgasgnd.sphere"
 particleCount9 = 1
-particleVeloc9 = "0.0 3.0 0.0"
-particleBias9 = "0.0 5.0 0.0"
-
-particleClass10 = "xgasgnd.flamecenter"
-particleCount10 = 1
-particleVeloc10 = "0.0 2.0 0.0"
-particleBias10 = "0.0 4.0 0.0"
-
-particleClass11 = "xgasgnd.light"
-particleCount11 = 1
-particleVeloc11 = "0.0 2.0 0.0"
-particleBias11 = "0.0 5.0 0.0"
-
-particleClass12 = "xgasgnd.chunk"
-particleCount12 = 20
-particleVeloc12 = "25.0 5.0 25.0"
-particleBias12 = "0.0 10.0 0.0"
-
-particleClass13 = "xgasgnd.sphere"
-particleCount13 = 1
-particleVeloc13 = "0.0 0.0 0.0"
+particleVeloc9 = "0.0 0.0 0.0"
 
 [Light]
 simulateBase = "sim_smoke"
@@ -158,8 +138,8 @@ finishColor = "31 31 31 0"
 startRadius = 10.0
 finishRadius = 50.0
 animateTime = 0.4
-latitudeBands = 32
-longitudeSegments = 64
+latitudeBands = 12
+longitudeSegments = 24
 InitialPitch = 0.0
 InitialYaw = 0.0
 InitialRoll = 0.0

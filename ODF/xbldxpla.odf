@@ -9,7 +9,7 @@ damageConcussion = 100
 damageFlame = 0
 damageImpact = 0
 
-particleTypes = 9
+particleTypes = 8
 
 particleClass1 = "xbldxpla.Flash"
 particleCount1 = 1
@@ -44,15 +44,10 @@ particleCount7 = 3
 particleVeloc7 = "4.00 2.00 4.00"
 particleBias7 = "0.00 2.00 0.00"
 
-particleClass8 = "xbldxpla.Wisp"
-particleCount8 = 2
-particleVeloc8 = "3.00 3.00 3.00"
-particleBias8 = "0.00 4.00 0.00"
-
-particleClass9 = "xbldxpla.Light"
-particleCount9 = 1
-particleVeloc9 = "0.00 2.00 0.00"
-particleBias9 = "0.00 5.00 0.00"
+particleClass8 = "xbldxpla.Light"
+particleCount8 = 1
+particleVeloc8 = "0.00 2.00 0.00"
+particleBias8 = "0.00 5.00 0.00"
 
 [Flash]
 simulateBase = "sim_null"
@@ -142,19 +137,6 @@ startRadius = 5.00
 finishRadius = 14.00
 animateTime = 5.00
 rotationRate = 3.00
-
-[Wisp]
-simulateBase = "sim_smoke"
-lifeTime = 4.50
-renderBase = "draw_twirl"
-textureName = "cr_xpl_wisp.dds"
-textureBlend = "srcalpha invsrcalpha modulatealpha"
-startColor = "140 135 125 150"
-finishColor = "80 78 74 0"
-startRadius = 4.00
-finishRadius = 11.00
-animateTime = 4.50
-rotationRate = 2.00
 
 [Light]
 simulateBase = "sim_smoke"

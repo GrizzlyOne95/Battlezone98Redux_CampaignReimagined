@@ -44,5 +44,5 @@ finishRadius = 5.0
 renderBase = "draw_light"
 startColor = "150 255 50 255"
 finishColor = "150 255 50 255"
-startRadius = 50.0
-finishRadius = 50.0
+startRadius = 20
+finishRadius = 20

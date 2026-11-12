@@ -88,13 +88,13 @@ rotationRate = 3.00
 
 [Light]
 simulateBase = "sim_smoke"
-lifeTime = 1.60
+lifeTime = 0.6
 renderBase = "draw_light"
 startColor = "255 205 90 255"
 finishColor = "255 90 15 0"
 startRadius = 20.00
 finishRadius = 20.00
-animateTime = 1.60
+animateTime = 0.6
 attenuateConstant = 0.0
 attenuateLinear = 1.0
 attenuateQuadratic = 0.0
