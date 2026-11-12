@@ -1,0 +1,35 @@
+import * from "sprites.material"
+import BZSprite/AdditiveTrail from "BZ2Render.material"
+
+// Sprite materials for the second FX batch (textureName resolves to an Ogre sprite material).
+material cr_fx_plasma.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_fx_plasma.dds
+}
+
+material cr_fx_flare.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_fx_flare.dds
+}
+
+// Beam tile: U runs along the bolt (wraps), V is the cross-section (same layout as beam_b0/beam_b1).
+material cr_fx_beam.dds : BZSprite/AdditiveTrail
+{
+    set_texture_alias DiffuseMap cr_fx_beam.dds
+}
+
+material cr_fx_dirt.dds : BZSprite/AlphaBlend
+{
+    set_texture_alias DiffuseMap cr_fx_dirt.dds
+}
+
+material cr_fx_scorch.dds : BZSprite/AlphaBlend
+{
+    set_texture_alias DiffuseMap cr_fx_scorch.dds
+}
+
+// Water splash: 4x4 atlas, 14 frames; engsplsh.odf names it "cr_fx_splash.0" like stock "splash.0" -> material "splash".
+material cr_fx_splash : BZSprite/AlphaBlend
+{
+    set_texture_alias DiffuseMap cr_fx_splash.dds
+}

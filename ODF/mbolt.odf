@@ -1,0 +1,36 @@
+[OrdnanceClass]
+classLabel = "beam"
+
+shotGeometry = NULL
+xplGround = "xlgtgnd"
+xplVehicle = "xlgtcar"
+xplBuilding = "xlgtbld"
+
+renderName = "mbolt.render"
+
+ammoCost = 0
+lifeSpan = 100e-6
+shotSpeed = 1e6
+damageBallistic = 100
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[BeamClass]
+//segmentRadius = 0.1
+//segmentLength = 1.0
+//segmentVariance = 0.5
+//segmentTexture = "beam_b.1"
+
+[Render]
+renderBase = "draw_bolt"
+textureName = "cr_fx_beam.dds"
+textureBlend = "one one modulate"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 255"
+startRadius = 0.1
+finishRadius = 0.1
+segmentLength = 1.0
+segmentVariance = "0.5 0.5 0.5"
+textureRate = 0.05
+animateTime = 0.0

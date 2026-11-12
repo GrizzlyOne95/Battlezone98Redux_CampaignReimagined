@@ -31,7 +31,7 @@ renderName3 = "srktbom.light"
 
 [Flare]
 renderBase = "draw_twirl"
-textureName = "flare_bz2.tga"
+textureName = "cr_fx_flare.dds"
 textureBlend = "one one modulate"
 startColor = "255 220 100 255"
 finishColor = "255 145 25 180"

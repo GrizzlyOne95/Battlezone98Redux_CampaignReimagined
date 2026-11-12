@@ -23,7 +23,7 @@ renderName2 = "crfp0.trail"
 
 [Core]
 renderBase = "draw_twirl"
-textureName = "plasma_bz2.tga"
+textureName = "cr_fx_plasma.dds"
 textureBlend = "one one modulate"
 startColor = "80 210 255 255"
 finishColor = "30 100 255 180"

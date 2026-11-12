@@ -1,0 +1,5 @@
+[EngineSplash]
+splashTexture = "cr_fx_splash.0"
+splashFrames = 14
+splashVariance = 3
+splashRadius = 1.5
