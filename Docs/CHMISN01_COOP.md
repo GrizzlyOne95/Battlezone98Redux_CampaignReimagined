@@ -208,6 +208,21 @@ Beats (host/offline only, each once, tied to the story; a site list with fewer v
 | The blast (`doingExplosion`) | a plume at the base vent (vent 1), a 5 s quake (0.7), a 6 s surge (1.0) |
 | Victory (`won`) | release the forced level, back to rung 1 |
 
+## Dropship delivery [CR addition, offline and co-op]
+
+When the comm array falls, the Recycler no longer appears: a CRA Wedge dropship (`cvdrop`, profile in `Scripts/CRDropIn.lua`) flies in,
+lands near the `recycler` path point, opens its bow ramp and the Recycler drives out. Mission code is in the `co-op runtime` and
+`co-op callbacks` regions of `Scripts/ch01cr.lua` (the body is untouched, so `Test-Chmisn01CoopSourceParity.py` still holds).
+
+| Step | What happens |
+| --- | --- |
+| Trigger | The body's `BuildObject("cvrecyd", 1, "recycler")` is caught by the BuildObject shadow (`DropRecycler`): the Recycler is built on the path as stock, then `CRDropIn.Begin` carries it in a `cvdrop` (slot `recycler`, goal = the path point). The handle goes back to the body, so `M.recycler`, the deploy/protect objectives, the loss test and the wave-1 timer (from `IsDeployed`) work unchanged. |
+| No hold, no camera, no lock | The mission is mid-fight, so the body keeps running and the drop plays alongside it: no `CameraReady`, no EXU control mask. The beachhead is far from the base the humans are attacking. Audio, scrap and objectives run at the comm array's death as before. |
+| Replication | `DropShip` / `DropGo` are runtime presentation ops (as bd01); the host builds and moves, guests only mirror the plan (no crew, so they pin nothing). A departed host, late joiner or bad team takes the drop down (`DropStandby`). |
+| Fallbacks | No module, missing ship art or a failing start: the Recycler stays on the path as stock. An old save (Recycler already exists) never starts a drop; a save mid-drop resolves on load to the end state (ship gone, Recycler set down on its spot). |
+
+Test: `lua5.1 Tools/Test-Chmisn01DropIn.lua`. The `cvdrop` numbers marked "CR guess" in `CRDropIn.lua` (hold slot, lane, landing distance) and the landing site on this map need a live tune.
+
 ## Tests
 
 ```sh
@@ -215,6 +230,7 @@ lua5.1 Tools/Test-Chmisn01Coop.lua            # offline == faithful (6 outcomes)
 lua5.1 Tools/Test-Chmisn01Presentation.lua    # E/A/C protocol on a guest, the mission's local ops
 python Tools/Test-Chmisn01CoopSourceParity.py # ch01cr.lua minus CR regions == ch01.lua
 python Tools/Test-Chmisn01CoopContract.py     # labels/paths/teams/vents/subtitles in ch01cr.bzn (skips with a message if the map is absent; ini/vxt/mpdes only when present)
+lua5.1 Tools/Test-Chmisn01DropIn.lua         # the Recycler's dropship delivery: trigger, stored handle, wave 1, fallbacks, co-op, save/load
 lua5.1 Tools/Test-Chinese01.lua               # the faithful port, unchanged
 ```
 

@@ -48,6 +48,61 @@ local INFO_ODFS = { sbhanga = true }
 local remoteInfo = {}
 local CONVOY_RADIUS = 100 -- every human must stay this close to the escorted one to share its cover
 if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
+-- The Recycler's dropship delivery (Scripts/CRDropIn.lua, Docs/CHMISN01_COOP.md "Dropship delivery"), offline and co-op:
+-- when the comm array falls the body builds the Recycler at the path "recycler"; the BuildObject shadow below builds it
+-- the same way, rides it in the hold of a CRA cvdrop and lets it drive out, and the body keeps running (the stock
+-- branch stores the handle, the wave-1 timer starts when it deploys). The beachhead is far from the base the humans
+-- are fighting at, so the drop uses no camera and no control lock (no EXU mask, no pod camera). A missing module, a
+-- failing start or an old save (the Recycler already exists) leaves the stock Recycler where it stands. The plan rides
+-- the runtime's ordered stream as the presentation ops below. Natives here are the engine's.
+local DropIn
+if not CR_TEST_FAITHFUL then
+    local okDropIn, module = pcall(require, "CRDropIn")
+    if okDropIn then DropIn = module else print("[ch01] stock Recycler: CRDropIn unavailable: " .. tostring(module)) end
+end
+local dropOps = {}
+for _, op in ipairs({ "DropShip", "DropCrew", "DropGo" }) do
+    dropOps[op] = function(...)
+        if DropIn then
+            M.dropin = M.dropin or {}
+            DropIn.Apply(M.dropin, op, ...)
+        end
+    end
+end
+local function DropStart(R)
+    if not DropIn then return end
+    DropIn.Configure({
+        present = R.Present, log = function(line)
+            if not line:find("control lock unavailable", 1, true) then print(line) end -- no EXU mask is passed on purpose
+        end,
+        owner = "mission:ch01-dropship",
+        isNetwork = R.Coop.IsNetworkGame, isLeader = R.Coop.IsAuthority,
+        myTeam = R.Coop.GetLocalTeam, player = R.Native.GetPlayerHandle,
+        forEachHuman = function(fn) R.Coop.ForEachPlayerHandle(function(h) fn(h) end) end,
+    })
+    DropIn.Reset()
+end
+-- Leader, every frame after the body: the drop plays alongside the mission, nothing waits for it.
+local function DropUpdate()
+    if DropIn and M.dropin and M.dropin.phase ~= "done" then DropIn.Update(M.dropin) end
+end
+-- Every frame the body does not run for this peer: a guest follows the plan, and a co-op warn state (host gone, late
+-- joiner, bad team) takes the drop down.
+local function DropStandby(R)
+    if not (DropIn and M.dropin) or M.dropin.phase == "done" then return end
+    local coop = R.Coop
+    if coop.IsNetworkGame() then
+        if coop.HasLeaderDeparted() or coop.HasUnsupportedPlayerTeam() or coop.HasLateJoiners() then
+            pcall(DropIn.Abort, M.dropin)
+            return
+        end
+        if not coop.IsSessionReady() then return end
+    end
+    if not coop.IsAuthority() then
+        local ok, err = pcall(DropIn.Update, M.dropin)
+        if not ok then print("[ch01] dropship follow failed: " .. tostring(err)); pcall(DropIn.Abort, M.dropin) end
+    end
+end
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "ch01cr", leaderTeam = 1, enemyTeam = ENEMY_TEAM, mapEnemyTeam = 2,
     rallyPoints = { [0] = "recycler" }, -- respawn at the Chinese beachhead where the Recycler is delivered
@@ -65,6 +120,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
         CH1Disguise = function(team) Restored.OpDisguise(team) end,
         CH1Fade = function(...) Restored.OpFade(...) end,
         CH1Blast = function(effect, where) Restored.OpBlast(effect, where) end,
+        DropShip = dropOps.DropShip, DropCrew = dropOps.DropCrew, DropGo = dropOps.DropGo,
     },
     weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesCH01", startLevel = 1, targetLevel = 1,
         environment = { lightingMode = "orbit", orbit = { period = 1800, startHour = -40 } },
@@ -115,14 +171,35 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
             end
         end },
     hooks = {
-        start = function() Restored.OnStart() end,
-        load = function() Restored.OnLoad() end,
+        start = function(R) Restored.OnStart(); DropStart(R) end,
+        load = function()
+            Restored.OnLoad()
+            if DropIn then DropIn.OnLoad(M.dropin) end
+        end,
         update = function(_, _, authority) Restored.OnUpdate(authority) end,
     },
 })
 local NativeBuildObject, NativeGetCockpitTimer, NativeGetTeamNum = BuildObject, GetCockpitTimer, GetTeamNum
 local NativeSetPerceivedTeam, NativeIsFollowing, NativeIsInfo = SetPerceivedTeam, IsFollowing, IsInfo
 local NativeColorFade, NativeMakeExplosion, NativeEnableAllCloaking = ColorFade, MakeExplosion, EnableAllCloaking
+-- The Recycler the body asks for at the path "recycler", delivered by a cvdrop that lands near that spot (the cargo's
+-- goal) and lets it drive out. The Recycler exists from this call (the body stores the handle, the Recycler objectives
+-- and the loss test read it) and is held in the hold until the ramp is down. Any failure leaves it on the path.
+local function DropRecycler(odf, team, where)
+    local recy = NativeBuildObject(odf, team, where)
+    if not (DropIn and recy ~= nil and IsValid(recy)) then return recy end
+    M.dropin = {}
+    local pos = GetPosition(recy)
+    local goal = { x = pos.x, z = pos.z }
+    local ok, begun = pcall(DropIn.Begin, M.dropin, { profile = "cvdrop", exclude = { [recy] = true }, ships = {
+        { anchor = goal, delay = 0, cargo = { { h = recy, goal = goal, slot = "recycler" } } },
+    } })
+    if not (ok and begun) then
+        pcall(DropIn.Abort, M.dropin)
+        M.dropin.phase = "done"
+    end
+    return recy
+end
 -- The body's "player" is the runtime's nearest-human token; the token is valid while any human lives.
 local IsValid = campaignRuntime and function(h)
     if h == campaignRuntime.PLAYERS then return Restored.AnyHuman() end
@@ -179,6 +256,7 @@ end or SetPilot
 -- (team 1 and 0: navs, armoury, Recycler, escorts, decoys, relic) is built directly and never as a ticket.
 local eventFrame, eventWhere
 local BuildObject = campaignRuntime and function(odf, team, where)
+    if odf == "cvrecyd" and team == 1 and where == "recycler" then return DropRecycler(odf, team, where) end
     if team ~= 2 then return NativeBuildObject(odf, team, where) end
     if SCALED_ODFS[odf] then
         local now = GetTime()
@@ -1113,9 +1191,10 @@ function AddObject(h)
     if campaignRuntime then return campaignRuntime.AddObject(h) end
 end
 function Update(dt)
-    if campaignRuntime and not campaignRuntime.Update(dt) then return end
+    if campaignRuntime and not campaignRuntime.Update(dt) then DropStandby(campaignRuntime); return end
     BodyUpdate(dt)
     if campaignRuntime then
+        DropUpdate()
         Restored.Run()
         campaignRuntime.AfterUpdate()
     end
