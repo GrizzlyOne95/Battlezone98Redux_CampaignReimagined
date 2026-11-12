@@ -73,13 +73,13 @@ rotationRate = 18.00
 
 [Light]
 simulateBase = "sim_null"
-lifeTime = 1.6
+lifeTime = 0.4
 renderBase = "draw_light"
 startColor = "200 255 200 255"
 finishColor = "127 255 63 0"
 startRadius = 10.0
 finishRadius = 10.0
-animateTime = 1.6
+animateTime = 0.4
 attenuateConstant = 0.0
 attenuateLinear = 1.0
 attenuateQuadratic = 0.0

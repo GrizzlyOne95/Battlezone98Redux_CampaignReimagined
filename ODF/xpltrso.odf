@@ -9,7 +9,7 @@ damageConcussion = 99999
 damageFlame = 0
 damageImpact = 0
 
-particleTypes = 11
+particleTypes = 10
 
 particleClass1 = "xpltrso.Flash"
 particleCount1 = 1
@@ -39,30 +39,25 @@ particleCount6 = 8
 particleVeloc6 = "80.00 70.00 80.00"
 particleBias6 = "0.00 40.00 0.00"
 
-particleClass7 = "xpltrso.Streak"
+particleClass7 = "xpltrso.Debris"
 particleCount7 = 6
-particleVeloc7 = "100.00 60.00 100.00"
-particleBias7 = "0.00 30.00 0.00"
+particleVeloc7 = "60.00 70.00 60.00"
+particleBias7 = "0.00 40.00 0.00"
 
-particleClass8 = "xpltrso.Debris"
-particleCount8 = 6
-particleVeloc8 = "60.00 70.00 60.00"
-particleBias8 = "0.00 40.00 0.00"
+particleClass8 = "xpltrso.Smoke"
+particleCount8 = 3
+particleVeloc8 = "24.00 12.00 24.00"
+particleBias8 = "0.00 12.00 0.00"
 
-particleClass9 = "xpltrso.Smoke"
+particleClass9 = "xpltrso.Wisp"
 particleCount9 = 3
-particleVeloc9 = "24.00 12.00 24.00"
-particleBias9 = "0.00 12.00 0.00"
+particleVeloc9 = "16.00 20.00 16.00"
+particleBias9 = "0.00 24.00 0.00"
 
-particleClass10 = "xpltrso.Wisp"
-particleCount10 = 3
-particleVeloc10 = "16.00 20.00 16.00"
-particleBias10 = "0.00 24.00 0.00"
-
-particleClass11 = "xpltrso.Light"
-particleCount11 = 1
-particleVeloc11 = "0.00 2.00 0.00"
-particleBias11 = "0.00 5.00 0.00"
+particleClass10 = "xpltrso.Light"
+particleCount10 = 1
+particleVeloc10 = "0.00 2.00 0.00"
+particleBias10 = "0.00 5.00 0.00"
 
 [Flash]
 simulateBase = "sim_null"
@@ -138,19 +133,6 @@ finishColor = "255 60 10 0"
 startRadius = 5.00
 finishRadius = 2.40
 animateTime = 2.50
-rotationRate = 8.00
-
-[Streak]
-simulateBase = "sim_ember"
-lifeTime = 1.40
-renderBase = "draw_twirl"
-textureName = "cr_xpl_spark.dds"
-textureBlend = "one one modulate"
-startColor = "255 230 150 255"
-finishColor = "255 90 20 0"
-startRadius = 4.00
-finishRadius = 2.00
-animateTime = 1.40
 rotationRate = 8.00
 
 [Debris]

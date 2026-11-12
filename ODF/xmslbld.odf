@@ -12,7 +12,7 @@ damageConcussion = 50
 damageFlame = 0
 damageImpact = 0
 
-particleTypes = 7
+particleTypes = 6
 
 particleClass1 = "xmslbld.core"
 particleCount1 = 1
@@ -43,9 +43,6 @@ particleCount6 = 1
 particleVeloc6 = "0.0 1.0 0.0"
 particleBias6 = "0.0 1.0 0.0"
 
-particleClass7 = "xmslgnd.sphere"
-particleCount7 = 1
-particleVeloc7 = "0.0 0.0 0.0"
 
 [Core]
 simulateBase = "sim_null"

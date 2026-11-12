@@ -9,7 +9,7 @@ damageConcussion = 25
 damageFlame = 0
 damageImpact = 0
 
-particleTypes = 4
+particleTypes = 3
 
 particleClass1 = "xsecxpla.Flash"
 particleCount1 = 1
@@ -23,11 +23,6 @@ particleClass3 = "xsecxpla.Ember"
 particleCount3 = 3
 particleVeloc3 = "1.50 1.20 1.50"
 particleBias3 = "0.00 0.60 0.00"
-
-particleClass4 = "xsecxpla.Light"
-particleCount4 = 1
-particleVeloc4 = "0.00 2.00 0.00"
-particleBias4 = "0.00 5.00 0.00"
 
 [Flash]
 simulateBase = "sim_null"
@@ -66,16 +61,3 @@ startRadius = 0.15
 finishRadius = 0.08
 animateTime = 1.00
 rotationRate = 8.00
-
-[Light]
-simulateBase = "sim_smoke"
-lifeTime = 0.80
-renderBase = "draw_light"
-startColor = "255 205 90 255"
-finishColor = "255 90 15 0"
-startRadius = 5.10
-finishRadius = 5.10
-animateTime = 0.80
-attenuateConstant = 0.0
-attenuateLinear = 1.0
-attenuateQuadratic = 0.0
