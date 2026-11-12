@@ -6,9 +6,9 @@
     "skeletonSha256": "d38714d9f745c798088644ec7cd380f70882271473c6d5e900727285283c4329"
   },
   "outputs": {
-    "Assets/Models/svfigh_cockpit.mesh": "cf4e39fe3888c46992734ca182ba28bba11ef8e5e191d92e577d594b292e4953",
+    "Assets/Models/svfigh_cockpit.mesh": "b7595bb1b885a8aa221fd9b249502bdbb82a1d9a6645eb7580f18ee42dca41d4",
     "Assets/Models/svfigh_cockpit.skeleton": "d38714d9f745c798088644ec7cd380f70882271473c6d5e900727285283c4329",
-    "Materials/CR_svfigh_cockpit.material": "9ed68ec7f27f701d3bf21f53d7e4fad66321a6fff781f614602bc660b60ab968"
+    "Materials/CR_svfigh_cockpit.material": "aa5732624219d071c0e72a200ca18613d13f69f7b1a9e67be15874ba9b1fad8c"
   },
   "alignment": {
     "base": "svfigh",
@@ -433,66 +433,6 @@
       }
     ],
     "exteriorPieces": [
-      {
-        "label": "native BDA deck ahead of canopy (eye-facing)",
-        "bones": [
-          0
-        ],
-        "sourceIndices": [
-          84,
-          85,
-          87,
-          88,
-          89,
-          90,
-          294,
-          295,
-          706,
-          707,
-          719,
-          818,
-          819,
-          821,
-          822,
-          823,
-          824,
-          1197,
-          1198,
-          1243,
-          1255,
-          1256
-        ],
-        "transform": [
-          [
-            1.0,
-            0.0,
-            0.0,
-            0.0
-          ],
-          [
-            0.0,
-            1.0,
-            0.0,
-            0.0
-          ],
-          [
-            0.0,
-            0.0,
-            1.0,
-            0.0
-          ],
-          [
-            0.0,
-            0.0,
-            0.0,
-            1.0
-          ]
-        ],
-        "triangles": 22,
-        "rearCaps": [],
-        "skin": null,
-        "uvRemapVertices": 0
-      },
       {
         "label": "animated SFL11ROR",
         "bones": [
@@ -6247,22 +6187,22 @@
       {
         "bone": "SFL11ROR",
         "vertices": [
-          27,
-          3296
+          0,
+          3269
         ]
       },
       {
         "bone": "SFL11NFL",
         "vertices": [
-          3296,
-          3647
+          3269,
+          3620
         ]
       },
       {
         "bone": "SFL11NFR",
         "vertices": [
-          3647,
-          3998
+          3620,
+          3971
         ]
       }
     ],
@@ -6270,6 +6210,29 @@
       "material": "CRV/svfighCombatHpmount",
       "bone": "SFL11ROR",
       "triangles": 1540
+    },
+    "jetSkin": {
+      "material": "CRV/svfighCombatNacjet",
+      "boneRuns": [
+        [
+          9,
+          761
+        ],
+        [
+          10,
+          761
+        ],
+        [
+          9,
+          14
+        ],
+        [
+          10,
+          14
+        ]
+      ],
+      "triangles": 1048,
+      "capTriangles": 26
     },
     "nativeVdfSha256": "1d230d2b8f834eccb6abfa93f8e8f44c2b3001791a573cb85975418c79a30cf1",
     "noseClearZ": 1.1259630233049394
@@ -6287,7 +6250,8 @@
   "triangles": {
     "CRV/CCAMechanicalCockpit": 2452,
     "svfigh01": 4,
-    "CRV/svfighCombatExterior": 5657,
-    "CRV/svfighCombatHpmount": 1540
+    "CRV/svfighCombatExterior": 5635,
+    "CRV/svfighCombatHpmount": 1540,
+    "CRV/svfighCombatNacjet": 1048
   }
 }

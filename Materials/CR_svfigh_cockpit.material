@@ -15,3 +15,11 @@ material CRV/svfighCombatHpmount : CR_BZBaseCockpit
     set_texture_alias SpecularMap svfigh_hpmount_S.dds
     set_texture_alias EmissiveMap svfigh_hpmount_E.dds
 }
+
+material CRV/svfighCombatNacjet : CR_BZBaseCockpit
+{
+    set_texture_alias DiffuseMap svfigh_nacjet_D.dds
+    set_texture_alias NormalMap svfigh_nacjet_N.dds
+    set_texture_alias SpecularMap svfigh_nacjet_S.dds
+    set_texture_alias EmissiveMap svfigh_nacjet_E.dds
+}
