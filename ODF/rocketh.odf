@@ -1,7 +1,8 @@
 [OrdnanceClass]
 classLabel = "bullet" //"rocket"
 
-shotGeometry = "gatst00.geo"
+// stock shotGeometry: gatst00.geo
+shotGeometry = "crordats.mesh"
 shotSound = "Ordin_a.wav"
 
 xplGround = "xmslgnd"

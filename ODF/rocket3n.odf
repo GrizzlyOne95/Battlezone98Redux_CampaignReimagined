@@ -1,7 +1,8 @@
 [OrdnanceClass] // NSDF tower stabber, slightly toned down.
 classLabel = "rocket"
 
-shotGeometry = "gspst00.geo"
+// stock shotGeometry: gspst00.geo
+shotGeometry = "crordsps.mesh"
 shotSound = "Ordin_b.wav"
 
 xplGround = "xmslgnd"
