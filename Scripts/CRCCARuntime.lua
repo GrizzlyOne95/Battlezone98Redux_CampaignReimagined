@@ -931,6 +931,8 @@ local function InitWeather()
         authority = authority,
         seed = s.weatherSeed, -- nil: the leader/offline picks one, guests wait for the host's state
         sites = Weather.sites,
+        -- CREuropaWeather's vehicle wake: Ganymede's sites modules are named CRGanymedeSites*.
+        wakeSurface = w.wakeSurface or ((type(w.sites) == "string" and w.sites:find("^CRGanymedeSites")) and "ganymede" or nil),
         startLevel = w.startLevel or 1,
         targetLevel = w.targetLevel or 2,
         glassFrost = w.glassFrost,

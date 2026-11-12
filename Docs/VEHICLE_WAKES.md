@@ -1,6 +1,6 @@
-# Vehicle wakes (CRWake)
+# Ground kickup (CRWake)
 
-Render-only debris under low, moving craft, shared by every CR weather director.
+Render-only debris under low, moving craft and under pilots on foot, shared by every CR weather director.
 `Scripts/CRWake.lua` is the one implementation; directors own it (`Init` /
 `Update(dt)` / `Stop`) and pass a surface. No gameplay, no networking: each client
 computes its own local view, so co-op needs no replication.
@@ -9,13 +9,44 @@ computes its own local view, so co-op needs no replication.
 | --- | --- | --- |
 | `regolith` | Moon (`CRMoonWeather`, was its hover dust) | `CR/Moon/HoverDust` (cr_moon) |
 | `mars` | `CRMarsWeather` | `CRWake/MarsDust` (cr_wake) |
-| `ice` | `CREuropaWeather` | `CRWake/IceSpray` |
+| `ice` | `CREuropaWeather` (Europa) | `CRWake/IceSpray` |
+| `ganymede` | `CREuropaWeather` on Ganymede (`wakeSurface`) | `CRWake/GanymedeSpray` |
 | `water` + `grass` | `CRJungle17` (Achilles) | `CRWake/WaterSpray` + `CRWake/WaterRing`, `CRWake/GrassBits` |
 | `water` + `mud` | `CRStorm18` (mission 18) | `CRWake/WaterSpray` + `CRWake/WaterRing`, `CRWake/MudClods` |
 | `sulfur` | `CRIoWeather` | `CRWake/SulfurDust` |
 | `ash` | `CRVenusWeather` | `CRWake/AshDust` |
 
 Titan keeps its own methane splash (`CRTitanWeather`); it is not routed through CRWake.
+
+Ganymede missions run `CREuropaWeather`; `CRCCARuntime` passes `wakeSurface = "ganymede"` for any weather whose
+sites module is named `CRGanymedeSites*` (or the mission's `weather.wakeSurface`), otherwise Europa keeps `ice`.
+
+## Physics, aim and pilots
+
+| Surface | g (m/s^2) | Vacuum | Sprite | TTL |
+| --- | --- | --- | --- | --- |
+| `regolith` (Moon) | 1.62 | yes | `CR_FX/KickRegolith` 0.8 m | ballistic |
+| `ganymede` | 1.43 | yes | `CR_FX/KickIce` 0.7 m (dirty dust sheet + bright ice chips) | ballistic |
+| `ice` (Europa) | 1.31 | yes | `CR_FX/KickIce` 0.7 m (whiter) | ballistic |
+| `sulfur` (Io) | 1.80 | yes | `CR_FX/KickRegolith` 0.8 m | ballistic |
+| `mars` | 3.71 | no (thin air, modest billow) | `CR_FX/KickPuff` 0.9 m | template |
+| `ash` (Venus) | 8.87 | no (dense air, drag-softened fall 2.4) | `CR_FX/KickPuff` 1.0 m | template |
+| `grass` / `mud` | 9.81 | no | `CR_FX/KickClod` 0.7 m | template |
+| `water` | 9.81 | no | `CR_FX/RainSplash` 1.1 m (not re-aimed) | template |
+
+- Vacuum templates have no Scaler growth, `LinearForce` = the real g, alpha held until the last 0.6 s (`ColourFader2`),
+  and a `Rotator` with a random start angle. Air templates keep a modest Scaler and a `Rotator`. Keep each
+  template's `LinearForce` equal to the profile's `g` (or its `fall`); the tests check it.
+- Each scan, a tracked mover's emitters are aimed (exu direction / velocity / TTL setters, silent no-ops without the
+  API): emitter 0 (sheet) leaves along `back + up * 0.35` at `clamp(2 + 0.35 v, 2, 12)`, emitter 1 (chips) along
+  `back * 0.6 + up` at `clamp(2.5 + 0.25 v, 2.5, 9)`, +/- 30 %. In a vacuum the TTL is `2 v sin(el) / g` clamped 0.6-4 s
+  (set +/- 20 %). Setters run only after a heading change over ~10 degrees or a speed change of 15 % (min 1 m/s).
+- Pilots on foot (`IsPerson`) use a separate "foot" system mode on every surface: only while moving at 1 m/s or more
+  and within 1.2 m of the terrain (pilot origin height), no idle emission, 12 % of the profile rate, 0.3 m sprites, a 0.5 m emitter, and a
+  launch speed capped so the apex stays under 0.6 m (`sqrt(2 g 0.6)`). The local player's pilot ranks first for the
+  system cap. A pooled system is only reused for the same template and mode.
+- Known limits (Ogre 1.10): one particle size per system (dust and chips share it) and one `Rotator` per system.
+- Sprites are CR's own art (cr_kick_regolith / ice / clod / puff, 256 px DXT5) converted by `Tools/Build-KickupTextures.py`; the clod art is already brown with grass blades, so mud and grass tint it near neutral.
 
 ## Load budget
 
@@ -28,7 +59,7 @@ Titan keeps its own methane splash (`CRTitanWeather`); it is not routed through 
   A water craft's flat ring is an accent that only exists when a slot is spare.
 - A silent system lingers 4 s and is reused by the next craft of the same template before anything is
   created; otherwise destroyed. Emission fades over the outer 35 % of the range and scales with quality.
-- Templates have quotas of 24..72.
+- Templates have quotas of 24..100.
 
 ## Options
 
@@ -56,8 +87,8 @@ the carved bed; pools sit up to 2 m above it).
 
 `CRStorm18Water.WakeSurface(x, z)`: `water` (lift 0.5 m) on a cell of the generated misn18 water mask
 (`CRStorm18Sites.watermask`, same format as above, built by `Tools/Build-Misn18Water.py`), otherwise `mud`, at
-a rate of 0.6 + 0.4 x the storm's mud amount. `CRWake/MudClods` is two emitters of `CR_FX/Grit`: dark wet dirt and
-heavier clods (gravity -9), quota 56, a four-stage ColourInterpolator, silent until driven.
+a rate of 0.6 + 0.4 x the storm's mud amount. `CRWake/MudClods` is two emitters of `CR_FX/KickClod`: dark wet dirt and
+heavier clods (gravity -9.81), quota 56, a four-stage ColourInterpolator, silent until driven.
 See `MISN18_STORM.md` (Water and landscaping).
 
 ## Validation

@@ -4,9 +4,10 @@
 // layers: particle billboards, transient hit states, persistent damage states,
 // and the optional weather skydomes.
 //
-// PLACEHOLDER ART. Every texture reference below points at an asset Campaign
-// Reimagined already ships so the systems render and can be profiled today. The
-// comment above each block names the texture the art pass should supply.
+// PLACEHOLDER ART. Only CR_FX/Debris (unused) still points at a stand-in asset
+// Campaign Reimagined already ships; the comment above its block names the
+// texture the art pass should supply. The other impact billboards use
+// user-supplied art generated for CR.
 // Docs/CR_REACTIVE_PRESENTATION.md carries the same list in one place.
 //
 // Particle billboards inherit BZSprite/AlphaBlend and BZSprite/Additive, which
@@ -36,9 +37,8 @@ material CR_FX/RainSplash : BZSprite/Additive
 	set_texture_alias DiffuseMap cr_rainsplash.dds
 }
 
-// Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
-// A flake silhouette. The particle colour is what makes it white, so the
-// source being an ash flake does not show.
+// User-supplied art, generated for CR (white flake, 256x256 RGBA). The particle
+// colour still tints it. Also used by CREuropa/Snow.
 material CR_FX/Snow : BZSprite/AlphaBlend
 {
 	set_texture_alias DiffuseMap cr_snow.dds
@@ -54,6 +54,29 @@ material CR_FX/Dust : BZSprite/AlphaBlend
 material CR_FX/Grit : BZSprite/AlphaBlend
 {
 	set_texture_alias DiffuseMap cr_grit.dds
+}
+
+// Ground kickup sprites (CRWake): image-generated art supplied by the project author, cut out
+// to alpha and converted by Tools/Build-KickupTextures.py. Regolith, ice and puff are neutral so the
+// particle colour tints them; clod is already brown with grass blades.
+material CR_FX/KickRegolith : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap cr_kick_regolith.dds
+}
+
+material CR_FX/KickIce : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap cr_kick_ice.dds
+}
+
+material CR_FX/KickClod : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap cr_kick_clod.dds
+}
+
+material CR_FX/KickPuff : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap cr_kick_puff.dds
 }
 
 // Kenshi PSO art (SCARaw, CC-BY-SA 4.0) -- see Docs/WEATHER_ART_CREDITS.md
@@ -129,16 +152,17 @@ material CR_FX/Spore : BZSprite/AlphaBlend
 // Impact billboards
 // =============================================================================
 
-// WANTED: cr_spark.png -- short bright metal spark streak, ~32x8.
+// User-supplied art, generated for CR (additive; black field).
+// 32x128 vertical streak for oriented_self particles (tall axis = velocity).
 material CR_FX/Spark : BZSprite/Additive
 {
-	set_texture_alias DiffuseMap bulhit.png
+	set_texture_alias DiffuseMap cr_spark.dds
 }
 
-// WANTED: cr_bloom.png -- hot impact bloom, white core to orange edge, ~64x64.
+// User-supplied art, generated for CR (additive; black field).
 material CR_FX/Bloom : BZSprite/Additive
 {
-	set_texture_alias DiffuseMap blast.png
+	set_texture_alias DiffuseMap cr_bloom.dds
 }
 
 // WANTED: cr_debris.png -- dark debris fleck sheet, ~32x32.
@@ -147,16 +171,16 @@ material CR_FX/Debris : BZSprite/AlphaBlend
 	set_texture_alias DiffuseMap smoke.png
 }
 
-// WANTED: cr_ion.png -- ionised discharge, cyan filaments, ~64x64.
+// User-supplied art, generated for CR (additive; black field).
 material CR_FX/Ion : BZSprite/Additive
 {
-	set_texture_alias DiffuseMap shock.png
+	set_texture_alias DiffuseMap cr_ion.dds
 }
 
-// WANTED: cr_bioburst.png -- biological rupture, cyan-violet, ~64x64.
+// User-supplied art, generated for CR (additive; black field).
 material CR_FX/BioBurst : BZSprite/Additive
 {
-	set_texture_alias DiffuseMap shock.png
+	set_texture_alias DiffuseMap cr_bioburst.dds
 }
 
 // =============================================================================
@@ -186,10 +210,10 @@ material CR_FX/Arc : BZSprite/Additive
 	set_texture_alias DiffuseMap cr_arc.dds
 }
 
-// WANTED: cr_bioleak.png -- luminous plasma leakage, ~64x64.
+// User-supplied art, generated for CR (additive; black field).
 material CR_FX/BioLeak : BZSprite/Additive
 {
-	set_texture_alias DiffuseMap flare.png
+	set_texture_alias DiffuseMap cr_bioleak.dds
 }
 
 // =============================================================================

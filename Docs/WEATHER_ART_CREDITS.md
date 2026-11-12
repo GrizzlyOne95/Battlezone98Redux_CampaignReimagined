@@ -31,7 +31,7 @@ not from editing the art.
 | `cr_grit.dds` | `DesertDetritus01.dds` | granular debris |
 | `cr_iceveil.dds` | `Mist_Cloud_2.dds` | soft cloud veil |
 | `cr_ash.dds` | `Ash_Flakez_Black_01.dds` | the alpha-carrying ash variant |
-| `cr_snow.dds` | `Ash-Flake_Darker.dds` | flake silhouette; particle colour makes it white |
+| `cr_snow.dds` | user-supplied (generated for CR, not a Kenshi file) | white flake, 256×256 RGBA; particle colour tints it |
 | `cr_rain.dds` | `Kenshi_Rain_Basic.dds` | opaque streak, additive by design |
 | `cr_rainsplash.dds` | `Kenshi_Rain_Splash_basepart.dds` | opaque, additive by design |
 | `cr_ember.dds` | `light_point.dds` | soft additive glow point |
@@ -40,6 +40,7 @@ not from editing the art.
 | `cr_smokethin.dds` | `smoke_trans1.dds` | alpha 0-246, wispy; the only alpha-carrying thin smoke in the set |
 | `cr_smokeheavy.dds` | `Mist_Cloud.dds` | alpha 0-254, dense core; reads as SmokeThin getting worse |
 | `cr_arc.dds` | `Lightning_Bolt2.dds` | bright bolt, additive by design |
+| `cr_kick_regolith.dds`, `cr_kick_ice.dds`, `cr_kick_clod.dds`, `cr_kick_puff.dds` | Image-generated sprite art supplied by the project author (cut to alpha from black, converted by `Tools/Build-KickupTextures.py`) | ground-kickup sprites (CRWake), not Kenshi art |
 
 ## Why some are additive
 
