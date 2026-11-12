@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5743,
+  "count": 5746,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -5445,6 +5445,18 @@
     {
       "source": "Assets\\Textures\\cr_rainsplash.dds",
       "runtime": "cr_rainsplash.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_shieldfield_band.dds",
+      "runtime": "cr_shieldfield_band.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_shieldfield_hex_amber.dds",
+      "runtime": "cr_shieldfield_hex_amber.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_shieldfield_hex_green.dds",
+      "runtime": "cr_shieldfield_hex_green.dds"
     },
     {
       "source": "Assets\\Textures\\cr_slopewisp.dds",
