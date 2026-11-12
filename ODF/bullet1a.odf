@@ -1,0 +1,52 @@
+[OrdnanceClass] // Weasle Minigun. First laser-like minigun ever.
+classLabel = "tracer"
+
+shotGeometry = NULL
+xplGround = "xbulgnd"
+xplVehicle = "xbulcar"
+xplBuilding = "xbulbld"
+
+renderName = "bullet1a.render"
+
+ammoCost = 2
+lifeSpan = 150e-6 //300e-6
+shotSpeed = 1e6
+damageBallistic = 50
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[TracerClass]
+tracerTexture = "bullet_b.1"
+shotColor = 227
+lodShift = 30.0
+tracerLength = 25.0
+tracerRadius = 0.0 //0.09
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "bullet1a.core"
+renderName2 = "bullet1a.trail"
+
+[Core]
+renderBase = "draw_bolt"
+textureName = "cr_fx_beam.dds"
+startColor = "255 255 255 127"
+finishColor = "0 127 255 0"
+startRadius = 0.09
+finishRadius = 0.05
+segmentLength = 5.0
+animateTime = 0.05
+textureRate = 0.2
+
+[Trail]
+renderBase = "draw_bolt"
+textureName = "trail2.tga"
+startColor = "63 191 255 63"
+finishColor = "0 127 255 0"
+startRadius = 0.09
+finishRadius = 0.15
+segmentLength = 5.0
+animateTime = 0.16
+textureRate = 0.2

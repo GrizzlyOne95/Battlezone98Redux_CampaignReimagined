@@ -1,0 +1,186 @@
+[ExplosionClass]
+classLabel = "explosion" //"shockblast"
+
+//frameName = "rpuff.0"
+//frameCount = 16
+//frameDelay = 0.05
+//explRadius = 700.0
+explSound = "xmv1.wav"
+damageRadius = 700.0
+damageBallistic = 0
+damageConcussion = 20000
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 14
+
+particleClass1 = "xpltrsm.light"
+particleCount1 = 1
+particleVeloc1 = "0.0 2.0 0.0"
+particleBias1 = "0.0 5.0 0.0"
+
+particleClass2 = "xpltrsm.scorch"
+particleCount2 = 1
+particleVeloc2 = "0.0 0.0 0.0"
+
+particleClass3 = "xpltrsm.smokecenter"
+particleCount3 = 1
+particleVeloc3 = "0.0 5.0 0.0"
+particleBias3 = "0.0 9.0 0.0"
+
+particleClass4 = "xpltrsm.flamecenter"
+particleCount4 = 1
+particleVeloc4 = "0.0 4.0 0.0"
+particleBias4 = "0.0 8.0 0.0"
+
+particleClass5 = "xpltrsm.chunk"
+particleCount5 = 20
+particleVeloc5 = "30.0 8.0 30.0"
+particleBias5 = "0.0 16.0 0.0"
+
+
+particleClass6 = "xpltrsm.smokeemit"
+particleCount6 = 4
+particleVeloc6 = "15.0 2.0 15.0"
+particleBias6 = "15.0 4.0 15.0"
+
+particleClass7 = "xpltrsm.smokeemit"
+particleCount7 = 4
+particleVeloc7 = "-15.0 2.0 -15.0"
+particleBias7 = "-15.0 4.0 -15.0"
+
+particleClass8 = "xpltrsm.smokeemit"
+particleCount8 = 4
+particleVeloc8 = "-15.0 2.0 15.0"
+particleBias8 = "-15.0 4.0 15.0"
+
+particleClass9 = "xpltrsm.smokeemit"
+particleCount9 = 4
+particleVeloc9 = "15.0 2.0 -15.0"
+particleBias9 = "15.0 4.0 -15.0"
+
+particleClass10 = "xpltrsm.smokeemit"
+particleCount10 = 4
+particleVeloc10 = "15.0 2.0 15.0"
+particleBias10 = "0.0 4.0 20.0"
+
+particleClass11 = "xpltrsm.smokeemit"
+particleCount11 = 4
+particleVeloc11 = "-15.0 2.0 -15.0"
+particleBias11 = "0.0 4.0 -20.0"
+
+particleClass12 = "xpltrsm.smokeemit"
+particleCount12 = 4
+particleVeloc12 = "15.0 2.0 -15.0"
+particleBias12 = "20.0 4.0 0.0"
+
+particleClass13 = "xpltrsm.smokeemit"
+particleCount13 = 4
+particleVeloc13 = "-15.0 2.0 15.0"
+particleBias13 = "-20.0 4.0 0.0"
+
+particleClass14 = "xpltrsm.sphere"
+particleCount14 = 1
+particleVeloc14 = "0.0 0.0 0.0"
+
+[Light]
+simulateBase = "sim_smoke"
+lifeTime = 1.6
+renderBase = "draw_light"
+startColor = "255 255 63 1000"
+finishColor = "255 255 255 0"
+startRadius = 700.0
+finishRadius = 700.0
+animateTime = 1.6
+attenuateConstant = 0.0
+attenuateLinear = 1.0
+attenuateQuadratic = 0.0
+
+[Scorch]
+simulateBase = "sim_null"
+lifeTime = 10.0
+renderBase = "draw_planar"
+textureName = "cr_fx_scorch.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "0 0 0 192"
+finishColor = "0 0 0 0"
+startRadius = 100.0
+finishRadius = 100.0
+animateTime = 10.0
+
+[smokeemit]
+simulateBase = "sim_dust"
+lifeTime = 10.0
+renderBase = "draw_twirl"
+textureName = "smoke2.tga"
+//textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "127 127 127 255"
+finishColor = "127 127 127 0"
+startRadius = 10.0
+finishRadius = 25.0
+animateTime = 10.0
+rotationRate = 20
+useTerrainColor = true
+maxCount = 256
+
+[smokecenter]
+simulateBase = "sim_smoke"
+lifeTime = 10.0
+renderBase = "draw_twirl"
+textureName = "smoke.tga"
+//textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "127 127 127 127"
+finishColor = "127 127 127 0"
+startRadius = 30.0
+finishRadius = 60.0
+animateTime = 10.0
+rotationRate = 10
+useTerrainColor = true
+maxCount = 256
+
+[flamecenter]
+simulateBase = "sim_smoke"
+lifeTime = 5.0
+renderBase = "draw_twirl"
+textureName = "flame.tga"
+//textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "255 191 127 255"
+finishColor = "255 127 63 0"
+startRadius = 25.0
+finishRadius = 50.0
+animateTime = 5.0
+rotationRate = 10
+
+[Chunk]
+simulateBase = "sim_ember"
+lifeTime = 2.0
+renderBase = "draw_twirl"
+textureName = "cr_fx_dirt.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "64 64 64 127"
+finishColor = "64 64 64 0"
+startRadius = 1.0
+finishRadius = 1.0
+animateTime = 2.0
+rotationRate = 5.0
+useTerrainColor = true
+
+[Sphere]
+simulateBase = "sim_null"
+lifeTime = 0.8
+renderBase = "draw_sphere"
+textureName = "vsmoke.tga"
+//textureBlend = "one one modulate"
+startColor = "255 255 255 31"
+finishColor = "31 31 31 0"
+startRadius = 100.0
+finishRadius = 700.0
+animateTime = 0.8
+latitudeBands = 32
+longitudeSegments = 64
+InitialPitch = 0.0
+InitialYaw = 0.0
+InitialRoll = 0.0
+AddPitch = 10.0
+AddYaw = 10.0
+AddRoll = 10.0

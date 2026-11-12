@@ -1,0 +1,280 @@
+[ExplosionClass]
+classLabel = "explosion" //"shockblast"
+
+//frameName = "rpuff.0"
+//frameCount = 16
+//frameDelay = 0.05
+explRadius = 10.0
+explSound = "xmv1.wav"
+damageRadius = 100.0
+damageBallistic = 0
+damageConcussion = 600
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 14
+
+particleClass1 = "xminxpl.light"
+particleCount1 = 1
+particleVeloc1 = "0.0 2.0 0.0"
+particleBias1 = "0.0 5.0 0.0"
+
+particleClass2 = "xminxpl.scorch"
+particleCount2 = 1
+particleVeloc2 = "0.0 0.0 0.0"
+
+particleClass3 = "xminxpl.smokecenter"
+particleCount3 = 1
+particleVeloc3 = "0.0 5.0 0.0"
+particleBias3 = "0.0 9.0 0.0"
+
+particleClass4 = "xminxpl.flamecenter"
+particleCount4 = 1
+particleVeloc4 = "0.0 4.0 0.0"
+particleBias4 = "0.0 8.0 0.0"
+
+particleClass5 = "xminxpl.chunk"
+particleCount5 = 20
+particleVeloc5 = "30.0 8.0 30.0"
+particleBias5 = "0.0 16.0 0.0"
+
+
+particleClass6 = "xminxpl.smokeemit"
+particleCount6 = 4
+particleVeloc6 = "15.0 2.0 15.0"
+particleBias6 = "15.0 4.0 15.0"
+
+particleClass7 = "xminxpl.smokeemit"
+particleCount7 = 4
+particleVeloc7 = "-15.0 2.0 -15.0"
+particleBias7 = "-15.0 4.0 -15.0"
+
+particleClass8 = "xminxpl.smokeemit"
+particleCount8 = 4
+particleVeloc8 = "-15.0 2.0 15.0"
+particleBias8 = "-15.0 4.0 15.0"
+
+particleClass9 = "xminxpl.smokeemit"
+particleCount9 = 4
+particleVeloc9 = "15.0 2.0 -15.0"
+particleBias9 = "15.0 4.0 -15.0"
+
+particleClass10 = "xminxpl.smokeemit"
+particleCount10 = 4
+particleVeloc10 = "15.0 2.0 15.0"
+particleBias10 = "0.0 4.0 20.0"
+
+particleClass11 = "xminxpl.smokeemit"
+particleCount11 = 4
+particleVeloc11 = "-15.0 2.0 -15.0"
+particleBias11 = "0.0 4.0 -20.0"
+
+particleClass12 = "xminxpl.smokeemit"
+particleCount12 = 4
+particleVeloc12 = "15.0 2.0 -15.0"
+particleBias12 = "20.0 4.0 0.0"
+
+particleClass13 = "xminxpl.smokeemit"
+particleCount13 = 4
+particleVeloc13 = "-15.0 2.0 15.0"
+particleBias13 = "-20.0 4.0 0.0"
+
+particleClass14 = "xminxpl.sphere"
+particleCount14 = 1
+particleVeloc14 = "0.0 0.0 0.0"
+
+//particleClass1 = "xminxpl.ExplosionCore"
+//particleCount1 = 1
+//particleVeloc1 = "0.0 4.0 0.0"
+//particleBias1 = "0.0 8.0 0.0"
+
+//particleClass2 = "xminxpl.smokeemit"
+//particleCount2 = 2
+//particleVeloc2 = "9.0 2.0 9.0"
+//particleBias2 = "15.0 4.0 15.0"
+
+//particleClass3 = "xminxpl.smokeemit"
+//particleCount3 = 2
+//particleVeloc3 = "-9.0 2.0 -9.0"
+//particleBias3 = "-15.0 4.0 -15.0"
+
+//particleClass4 = "xminxpl.smokeemit"
+//particleCount4 = 2
+//particleVeloc4 = "-9.0 2.0 9.0"
+//particleBias4 = "-15.0 4.0 15.0"
+
+//particleClass5 = "xminxpl.smokeemit"
+//particleCount5 = 2
+//particleVeloc5 = "9.0 2.0 -9.0"
+//particleBias5 = "15.0 4.0 -15.0"
+
+//particleClass6 = "xminxpl.smokeemit"
+//particleCount6 = 2
+//particleVeloc6 = "0.0 2.0 12.0"
+//particleBias6 = "0.0 4.0 20.0"
+
+//particleClass7 = "xminxpl.smokeemit"
+//particleCount7 = 3
+//particleVeloc7 = "0.0 2.0 -12.0"
+//particleBias7 = "0.0 4.0 -20.0"
+
+//particleClass8 = "xminxpl.smokeemit"
+//particleCount8 = 2
+//particleVeloc8 = "12.0 2.0 0.0"
+//particleBias8 = "20.0 4.0 0.0"
+
+//particleClass9 = "xminxpl.smokeemit"
+//particleCount9 = 2
+//particleVeloc9 = "-12.0 2.0 0.0"
+//particleBias9 = "-20.0 4.0 0.0"
+
+
+//particleClass10 = "xminxpl.smokeemit"
+//particleCount10 = 2
+//particleVeloc10 = "7.5 2.0 10.5"
+//particleBias10 = "12.5 4.0 17.5"
+
+//particleClass11 = "xminxpl.smokeemit"
+//particleCount11 = 2
+//particleVeloc11 = "-7.5 2.0 -10.5"
+//particleBias11 = "-12.5 4.0 -17.5"
+
+//particleClass12 = "xminxpl.smokeemit"
+//particleCount12 = 2
+//particleVeloc12 = "-7.5 2.0 10.5"
+//particleBias12 = "-12.5 4.0 17.5"
+
+//particleClass13 = "xminxpl.smokeemit"
+//particleCount13 = 2
+//particleVeloc13 = "7.5 2.0 -10.5"
+//particleBias13 = "12.5 4.0 -17.5"
+
+//particleClass14 = "xminxpl.smokeemit"
+//particleCount14 = 2
+//particleVeloc14 = "10.5 2.0 7.5"
+//particleBias14 = "17.5 4.0 12.5"
+
+//particleClass15 = "xminxpl.smokeemit"
+//particleCount15 = 2
+//particleVeloc15 = "-10.5 2.0 -7.5"
+//particleBias15 = "-17.5 4.0 -12.5"
+
+//particleClass16 = "xminxpl.smokeemit"
+//particleCount16 = 2
+//particleVeloc16 = "-10.5 2.0 7.5"
+//particleBias16 = "-17.5 4.0 12.5"
+
+//particleClass17 = "xminxpl.smokeemit"
+//particleCount17 = 2
+//particleVeloc17 = "10.5 2.0 -7.5"
+//particleBias17 = "17.5 4.0 -12.5"
+
+[ExplosionCore]
+renderBase = "draw_multi"
+renderCount = 4
+renderName1 = "xminxpl.scorch"
+renderName2 = "xminxpl.light"
+renderName3 = "xminxpl.smokecenter"
+renderName4 = "xminxpl.flamecenter"
+
+[Light]
+simulateBase = "sim_smoke"
+lifeTime = 0.8
+renderBase = "draw_light"
+startColor = "255 255 63 1000"
+finishColor = "255 255 255 0"
+startRadius = 100.0
+finishRadius = 100.0
+animateTime = 0.8
+attenuateConstant = 0.0
+attenuateLinear = 1.0
+attenuateQuadratic = 0.0
+
+[Scorch]
+simulateBase = "sim_null"
+lifeTime = 10.0
+renderBase = "draw_planar"
+textureName = "cr_fx_scorch.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "0 0 0 192"
+finishColor = "0 0 0 0"
+startRadius = 20.0
+finishRadius = 20.0
+animateTime = 10.0
+
+[smokeemit]
+simulateBase = "sim_dust"
+lifeTime = 5.0
+renderBase = "draw_twirl"
+textureName = "smoke2.tga"
+//textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "127 127 127 255"
+finishColor = "127 127 127 0"
+startRadius = 5.0
+finishRadius = 10.0
+animateTime = 5.0
+rotationRate = 20
+useTerrainColor = true
+maxCount = 256
+
+[smokecenter]
+simulateBase = "sim_smoke"
+lifeTime = 5.0
+renderBase = "draw_twirl"
+textureName = "smoke.tga"
+//textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "127 127 127 127"
+finishColor = "127 127 127 0"
+startRadius = 10.0
+finishRadius = 25.0
+animateTime = 5.0
+rotationRate = 10
+useTerrainColor = true
+maxCount = 256
+
+[flamecenter]
+simulateBase = "sim_smoke"
+lifeTime = 2.0
+renderBase = "draw_twirl"
+textureName = "flame.tga"
+//textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "255 191 127 255"
+finishColor = "255 127 63 0"
+startRadius = 5.0
+finishRadius = 20.0
+animateTime = 2.0
+rotationRate = 10
+
+[Chunk]
+simulateBase = "sim_ember"
+lifeTime = 2.0
+renderBase = "draw_twirl"
+textureName = "cr_fx_dirt.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "64 64 64 127"
+finishColor = "64 64 64 0"
+startRadius = 1.0
+finishRadius = 1.0
+animateTime = 2.0
+rotationRate = 5.0
+useTerrainColor = true
+
+[Sphere]
+simulateBase = "sim_null"
+lifeTime = 0.4
+renderBase = "draw_sphere"
+textureName = "vsmoke.tga"
+//textureBlend = "one one modulate"
+startColor = "255 255 255 31"
+finishColor = "31 31 31 0"
+startRadius = 10.0
+finishRadius = 100.0
+animateTime = 0.4
+latitudeBands = 32
+longitudeSegments = 64
+InitialPitch = 0.0
+InitialYaw = 0.0
+InitialRoll = 0.0
+AddPitch = 10.0
+AddYaw = 10.0
+AddRoll = 10.0

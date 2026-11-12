@@ -1,0 +1,91 @@
+[ExplosionClass]
+classLabel = "planarexpl"
+
+//frameName = "bpuff.0"
+//frameCount = 16
+//frameDelay = 0.1
+//explRadius = 3.0
+explSound = "lhit.wav"
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 4
+
+particleClass1 = "xlgtgnd.core"
+particleCount1 = 1
+particleVeloc1 = "0.0 0.0 0.0"
+
+particleClass2 = "xlgtgnd.cloud"
+particleCount2 = 1
+particleVeloc2 = "0.0 0.0 0.0"
+
+particleClass3 = "xlgtgnd.scorch"
+particleCount3 = 1
+particleVeloc3 = "0.0 0.0 0.0"
+
+particleClass4 = "xlgtgnd.light"
+particleCount4 = 1
+particleVeloc4 = "0.0 2.0 0.0"
+particleBias4 = "0.0 5.0 0.0"
+
+[Core]
+simulateBase = "sim_null"
+lifeTime = 1.6
+renderBase = "draw_planar"
+textureName = "bpuff_0.tga"
+startColor = "255 255 255 255"
+finishColor = "0 0 255 0"
+startRadius = 3.0
+finishRadius = 1.5
+animateTime = 1.6
+rotationRate = 5.0
+
+[Cloud]
+simulateBase = "sim_dust"
+lifeTime = 2.0
+renderBase = "draw_emit"
+emitName = "xlgtgnd.cloudemit"
+emitDelay = 0.5
+emitVelocity = "0.0 1.5 0.0"
+emitVariance = "0.0 2.0 0.0"
+
+[Cloudemit]
+simulateBase = "sim_smoke"
+lifeTime = 3.0
+renderBase = "draw_twirl"
+textureName = "smoke2.tga"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "63 63 63 127" //64"
+finishColor = "127 127 127 0"
+startRadius = 0.5
+finishRadius = 5.0
+animateTime = 3.0
+useTerrainColor = true
+
+[Scorch]
+simulateBase = "sim_null"
+lifeTime = 10.0
+renderBase = "draw_planar"
+textureName = "cr_fx_scorch.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "0 0 0 192"
+finishColor = "0 0 0 0"
+startRadius = 2.0
+finishRadius = 2.0
+animateTime = 10.0
+
+[Light]
+simulateBase = "sim_smoke"
+lifeTime = 1.6
+renderBase = "draw_light"
+startColor = "127 255 255 255"
+finishColor = "0 127 255 0"
+startRadius = 10.0
+finishRadius = 10.0
+animateTime = 1.6
+attenuateConstant = 0.0
+attenuateLinear = 1.0
+attenuateQuadratic = 0.0

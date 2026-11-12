@@ -1,0 +1,245 @@
+[OrdnanceClass]
+classLabel = "rocket"
+
+shotGeometry = NULL
+xplGround = "xgasxpl"
+xplVehicle = "xgasxpl"
+xplBuilding = "xgasxpl"
+
+renderName = "plasma.render"
+
+ammoCost = 10
+lifeSpan = 3.0
+shotSpeed = 75.0
+damageBallistic = 500
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[RocketClass]
+flareRadius = 0.0 //2.0
+flareTexture = "plasma.0"
+flareFrames = 4
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 8
+renderName1 = "plasma.flare1"
+renderName2 = "plasma.flare2"
+renderName3 = "plasma.flare3"
+renderName4 = "plasma.flare4"
+renderName5 = "plasma.light1"
+renderName6 = "plasma.light2"
+renderName7 = "plasma.light3"
+renderName8 = "plasma.light4"
+
+
+[Flare1]
+StartDelay = 0.0
+simulateBase = "sim_smoke"
+lifeTime = 0.2
+renderBase = "draw_emit"
+emitName = "plasma.flareemit1"
+emitDelay = 0.2
+emitVelocity = "0.0 0.0 0.0"
+emitVariance = "0.0 0.0 0.0"
+emitInherit = "1.0 1.0 1.0"
+
+[Flareemit1]
+simulateBase = "sim_smoke"
+lifeTime = 0.05
+renderBase = "draw_twirl"
+textureName = "cr_fx_plasma.dds"
+textureBlend = "one one modulate"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 255"
+startRadius = 2.0
+finishRadius = 2.0
+animateTime = 0.05
+rotationRate = 5.0
+
+
+
+[Flare2]
+StartDelay = 0.05
+simulateBase = "sim_smoke"
+lifeTime = 0.2
+renderBase = "draw_emit"
+emitName = "plasma.flareemit2"
+emitDelay = 0.2
+emitVelocity = "0.0 0.0 0.0"
+emitVariance = "0.0 0.0 0.0"
+emitInherit = "1.0 1.0 1.0"
+
+[Flareemit2]
+simulateBase = "sim_smoke"
+lifeTime = 0.05
+renderBase = "draw_twirl"
+textureName = "plasma_1.tga"
+textureBlend = "one one modulate"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 255"
+startRadius = 2.0
+finishRadius = 2.0
+animateTime = 0.05
+rotationRate = 5.0
+
+
+
+[Flare3]
+StartDelay = 0.1
+simulateBase = "sim_smoke"
+lifeTime = 0.2
+renderBase = "draw_emit"
+emitName = "plasma.flareemit3"
+emitDelay = 0.2
+emitVelocity = "0.0 0.0 0.0"
+emitVariance = "0.0 0.0 0.0"
+emitInherit = "1.0 1.0 1.0"
+
+[Flareemit3]
+simulateBase = "sim_smoke"
+lifeTime = 0.05
+renderBase = "draw_twirl"
+textureName = "plasma_2.tga"
+textureBlend = "one one modulate"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 255"
+startRadius = 2.0
+finishRadius = 2.0
+animateTime = 0.05
+rotationRate = 5.0
+
+
+
+[Flare4]
+StartDelay = 0.15
+simulateBase = "sim_smoke"
+lifeTime = 0.2
+renderBase = "draw_emit"
+emitName = "plasma.flareemit4"
+emitDelay = 0.2
+emitVelocity = "0.0 0.0 0.0"
+emitVariance = "0.0 0.0 0.0"
+emitInherit = "1.0 1.0 1.0"
+
+[Flareemit4]
+simulateBase = "sim_smoke"
+lifeTime = 0.05
+renderBase = "draw_twirl"
+textureName = "plasma_3.tga"
+textureBlend = "one one modulate"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 255"
+startRadius = 2.0
+finishRadius = 2.0
+animateTime = 0.05
+rotationRate = 5.0
+
+
+//----------------------lights-------------------------\\
+
+[Light1]
+simulateBase = "sim_smoke"
+lifeTime = 0.2
+renderBase = "draw_emit"
+emitName = "plasma.lightemit1"
+emitDelay = 0.2
+emitDelayVar = 0.0
+emitVelocity = "0.0 0.0 0.0"
+emitVariance = "0.0 0.0 0.0"
+emitInherit = "1.0 1.0 1.0"
+
+[Lightemit1]
+simulateBase = "sim_smoke"
+lifeTime = 0.05
+renderBase = "draw_light"
+startColor = "0 100 200 255"
+finishColor = "0 100 200 255"
+startRadius = 28 //35.0
+finishRadius = 28 //35.0
+animateTime = 0.05
+attenuateConstant = 1.0
+attenuateLinear = 0.0
+attenuateQuadratic = 0.0
+
+
+
+[Light2]
+StartDelay = 0.05
+simulateBase = "sim_smoke"
+lifeTime = 0.2
+renderBase = "draw_emit"
+emitName = "plasma.lightemit2"
+emitDelay = 0.2
+emitDelayVar = 0.0
+emitVelocity = "0.0 0.0 0.0"
+emitVariance = "0.0 0.0 0.0"
+emitInherit = "1.0 1.0 1.0"
+
+[Lightemit2]
+simulateBase = "sim_smoke"
+lifeTime = 0.05
+renderBase = "draw_light"
+startColor = "200 80 10 255"
+finishColor = "200 80 10 255"
+startRadius = 28 //35.0
+finishRadius = 28 //35.0
+animateTime = 0.05
+attenuateConstant = 1.0
+attenuateLinear = 0.0
+attenuateQuadratic = 0.0
+
+
+
+[Light3]
+StartDelay = 0.1
+simulateBase = "sim_smoke"
+lifeTime = 0.2
+renderBase = "draw_emit"
+emitName = "plasma.lightemit3"
+emitDelay = 0.2
+emitDelayVar = 0.0
+emitVelocity = "0.0 0.0 0.0"
+emitVariance = "0.0 0.0 0.0"
+emitInherit = "1.0 1.0 1.0"
+
+[Lightemit3]
+simulateBase = "sim_smoke"
+lifeTime = 0.05
+renderBase = "draw_light"
+startColor = "10 255 255 255"
+finishColor = "10 255 255 255"
+startRadius = 28 //35.0
+finishRadius = 28 //35.0
+animateTime = 0.05
+attenuateConstant = 1.0
+attenuateLinear = 0.0
+attenuateQuadratic = 0.0
+
+
+
+[Light4]
+StartDelay = 0.15
+simulateBase = "sim_smoke"
+lifeTime = 0.2
+renderBase = "draw_emit"
+emitName = "plasma.lightemit4"
+emitDelay = 0.2
+emitDelayVar = 0.0
+emitVelocity = "0.0 0.0 0.0"
+emitVariance = "0.0 0.0 0.0"
+emitInherit = "1.0 1.0 1.0"
+
+[Lightemit4]
+simulateBase = "sim_smoke"
+lifeTime = 0.05
+renderBase = "draw_light"
+startColor = "200 10 200 255"
+finishColor = "200 10 200 255"
+startRadius = 28 //35.0
+finishRadius = 28 //35.0
+animateTime = 0.05
+attenuateConstant = 1.0
+attenuateLinear = 0.0
+attenuateQuadratic = 0.0

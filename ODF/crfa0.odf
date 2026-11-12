@@ -24,7 +24,7 @@ segmentTexture = "beam_b.1"
 
 [Render]
 renderBase = "draw_bolt"
-textureName = "beam_b0.tga"
+textureName = "cr_fx_beam.dds"
 textureBlend = "one one modulate"
 startColor = "255 255 255 255"
 finishColor = "255 255 255 255"
