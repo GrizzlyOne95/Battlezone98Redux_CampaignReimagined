@@ -62,7 +62,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     endedFlags = { "won", "lost" },
     -- The body also orders Hunt and SetCloaked on units that may still be tickets.
     orders = { "Goto", "Follow", "Attack", "Defend", "Defend2", "SetIndependence", "Retreat", "Hunt", "SetCloaked" },
-    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD03", glassFrost = 0.5, startLevel = 1, targetLevel = 1,
+    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD03", glassFrost = 0.15, startLevel = 1, targetLevel = 1,
         -- Ganymede under Jupiter: the sun's real path, a short eclipse, Jupiter-shine at night.
         environment = { lightingMode = "orbit", orbit = { period = 1800, startHour = -40 } },
         ops = { "EuropaState", "EuropaPlume", "EuropaQuake", "EuropaSurge" },

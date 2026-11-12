@@ -72,7 +72,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
         if portal ~= nil and IsValid(portal) then PortalIn(portal) end
     end },
     -- Ganymede: CREuropaWeather over the generated BD05 sites (three geyser vents next to the Black Dog base).
-    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD05", glassFrost = 0.5,
+    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD05", glassFrost = 0.15,
         environment = { lightingMode = "orbit", orbit = { period = 1800, startHour = -40 } },
         ops = { "EuropaState", "EuropaPlume", "EuropaQuake", "EuropaSurge" },
         startLevel = 1, targetLevel = 1,
