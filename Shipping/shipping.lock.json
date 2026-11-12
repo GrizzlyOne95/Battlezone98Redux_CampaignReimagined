@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6121,
+  "count": 6153,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -1841,6 +1841,114 @@
     {
       "source": "Assets\\ModelFixes\\hvsrb.mesh",
       "runtime": "hvsrb.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11bda.geo",
+      "runtime": "hvw11bda.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11gc1.geo",
+      "runtime": "hvw11gc1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11gc2.geo",
+      "runtime": "hvw11gc2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11gm1.geo",
+      "runtime": "hvw11gm1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11hed.geo",
+      "runtime": "hvw11hed.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11lcv.geo",
+      "runtime": "hvw11lcv.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11lgt.geo",
+      "runtime": "hvw11lgt.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11lhl.geo",
+      "runtime": "hvw11lhl.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11lsh.geo",
+      "runtime": "hvw11lsh.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11lt1.geo",
+      "runtime": "hvw11lt1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11lt2.geo",
+      "runtime": "hvw11lt2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11lt3.geo",
+      "runtime": "hvw11lt3.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11lth.geo",
+      "runtime": "hvw11lth.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11pov.geo",
+      "runtime": "hvw11pov.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11rcv.geo",
+      "runtime": "hvw11rcv.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11rhl.geo",
+      "runtime": "hvw11rhl.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11rsh.geo",
+      "runtime": "hvw11rsh.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11rt1.geo",
+      "runtime": "hvw11rt1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11rt2.geo",
+      "runtime": "hvw11rt2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11rt3.geo",
+      "runtime": "hvw11rt3.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11rth.geo",
+      "runtime": "hvw11rth.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11tx1.geo",
+      "runtime": "hvw11tx1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11tx2.geo",
+      "runtime": "hvw11tx2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvw11ty1.geo",
+      "runtime": "hvw11ty1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvwalk.mesh",
+      "runtime": "hvwalk.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvwalk.skeleton",
+      "runtime": "hvwalk.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\hvwalk.vdf",
+      "runtime": "hvwalk.vdf"
     },
     {
       "source": "Assets\\ModelFixes\\magpull.mesh",
@@ -7783,6 +7891,18 @@
       "runtime": "hvsav00_N.dds"
     },
     {
+      "source": "Assets\\Textures\\hvwalk00_D.dds",
+      "runtime": "hvwalk00_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\hvwalk00_E.dds",
+      "runtime": "hvwalk00_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\hvwalk00_S.dds",
+      "runtime": "hvwalk00_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\lbolt.dds",
       "runtime": "lbolt.dds"
     },
@@ -12855,6 +12975,10 @@
       "runtime": "hvsrb.material"
     },
     {
+      "source": "Materials\\hvwalk.material",
+      "runtime": "hvwalk.material"
+    },
+    {
       "source": "Materials\\io_detail_atlas.material",
       "runtime": "io_detail_atlas.material"
     },
@@ -17921,6 +18045,10 @@
     {
       "source": "ODF\\htagv.odf",
       "runtime": "htagv.odf"
+    },
+    {
+      "source": "ODF\\hvwalk.odf",
+      "runtime": "hvwalk.odf"
     },
     {
       "source": "ODF\\imagemsl.odf",
