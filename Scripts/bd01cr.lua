@@ -164,7 +164,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     -- Tickets replay these orders on the real unit; the cloak pair goes through the CR globals below so the
     -- replay keeps the native one-argument call.
     orders = { "Attack", "CRSetCloaked", "CRDecloak" },
-    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD01", glassFrost = 0.5, startLevel = 1, targetLevel = 1,
+    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD01", glassFrost = 0.15, startLevel = 1, targetLevel = 1,
         environment = { lightingMode = "orbit", orbit = { period = 1800, startHour = -40 } },
         ops = { "EuropaState", "EuropaPlume", "EuropaQuake", "EuropaSurge" },
         beats = function(europa, state, s)
