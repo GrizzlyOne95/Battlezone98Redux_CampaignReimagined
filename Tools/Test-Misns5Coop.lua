@@ -448,4 +448,44 @@ do -- a lost mission stops it too
     check(m2.lost and m2.cr_step == 1 and #F.builds(q[1], 0, "bvhraz") == 0, "no rung fires after the mission ends")
 end
 
+do -- combat-only aiCore: the host registers the enemy team, a guest does nothing, saves stay compatible
+    local w2, q, m2 = setup(2, {})
+    F.run(3)
+    check(F.count(q[1], "EnableCombatOnly") == 1 and F.count(q[1], "BootstrapCombatOnly") == 1, "the host enables combat-only mode once")
+    local enable = F.callsOf(q[1], "EnableCombatOnly")[1]
+    check(enable[2] == 5 and enable[3] == 2, "combat-only covers the real enemy team 5 as CCA")
+    check(F.count(q[1], "aiCoreUpdateCombatOnly") > 0 and F.count(q[1], "aiCoreUpdate") == 0
+        and F.count(q[1], "aiCoreAddObject") == 0, "the host runs aiCore.UpdateCombatOnly, never Update or AddObject")
+    local mark = #q[1].calls
+    F.run(300)
+    local added = 0
+    for _, c in ipairs(F.callsOf(q[1], "AddCombatObject")) do
+        added = added + 1
+        check(w2.objects[c[2]].team == 5, "only enemy-team units reach AddCombatObject")
+    end
+    check(added > 0, "units built later reach AddCombatObject")
+    check(F.count(q[1], "TrackWorldObject") >= added, "every new object (any team) is cached through TrackWorldObject")
+    for _, name in ipairs({"EnableCombatOnly", "BootstrapCombatOnly", "AddCombatObject", "TrackWorldObject", "aiCoreUpdate", "aiCoreUpdateCombatOnly"}) do
+        check(F.count(q[2], name) == 0, "a guest never runs aiCore: " .. name)
+    end
+    local state, aiData = q[1].env.Save()
+    check(type(aiData) == "table" and aiData.marker == "aiCoreData", "Save returns the aiCore data as a trailing value")
+    check(select("#", q[2].env.Save()) == 1, "a guest saves no aiCore data")
+end
+do -- save compatibility (offline: a co-op reload needs the session to re-form)
+    local w2, q, m2 = setup(1, {})
+    F.run(3)
+    local state, aiData = q[1].env.Save()
+    check(type(aiData) == "table" and aiData.marker == "aiCoreData", "Save returns the aiCore data as a trailing value")
+    local before = F.count(q[1], "aiCoreLoad")
+    q[1].env.Load(state, aiData)
+    check(F.count(q[1], "aiCoreLoad") == before + 1, "Load hands the aiCore data back")
+    F.run(2)
+    check(F.count(q[1], "EnableCombatOnly") == 1, "a load with aiCore data does not re-enable combat-only mode")
+    q[1].env.Load(state)
+    check(F.count(q[1], "aiCoreLoad") == before + 1, "an old save without aiCore data loads without aiCore.Load")
+    F.run(10)
+    check(F.count(q[1], "EnableCombatOnly") == 2 and F.count(q[1], "BootstrapCombatOnly") == 2, "an old save enables combat-only mode on its first Update")
+end
+
 print("misns5 co-op: " .. checks .. " checks passed")

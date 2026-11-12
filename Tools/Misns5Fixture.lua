@@ -363,6 +363,17 @@ function F.makePeer(id, team, network, options)
         if options.weather.module then modules.CRTitanWeather = options.weather.module(p, record) end
         if options.weather.sites then modules.CRTitanSitesS5 = options.weather.sites end
     end
+    -- aiCore stand-in: records the combat-only calls (the real module has its own tests, Test-AiCoreHumanTeams.lua).
+    modules.aiCore = {Factions = {NSDF = 1, CCA = 2, CRA = 3, BDOG = 4},
+        EnableCombatOnly = function(team, faction) record("EnableCombatOnly", team, faction) end,
+        BootstrapCombatOnly = function(team) record("BootstrapCombatOnly", team) end,
+        AddCombatObject = function(h) record("AddCombatObject", h) end,
+        AddObject = function(h) record("aiCoreAddObject", h) end,
+        TrackWorldObject = function(h) record("TrackWorldObject", h) end,
+        Update = function() record("aiCoreUpdate") end,
+        UpdateCombatOnly = function() record("aiCoreUpdateCombatOnly") end,
+        Save = function() return {marker = "aiCoreData"} end,
+        Load = function(data) record("aiCoreLoad", data) end}
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
     local realRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoopRespawn = {Create = function(d)

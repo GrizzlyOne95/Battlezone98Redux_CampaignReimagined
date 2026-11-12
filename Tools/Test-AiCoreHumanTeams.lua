@@ -197,4 +197,80 @@ H.try("guest support", function()
     aiCore.ActiveTeams = {}
 end)
 
+-- Combat-only mode: a scripted enemy team gets the special-combat layer and no strategic manager.
+H.try("combat only", function()
+    H.objects = {}
+    local mine = H.addObject { team = 1, odf = "avtank", class = "wingman", craft = true }
+    local foe = H.addObject { team = 5, odf = "bvtank", class = "wingman", craft = true }
+    local foe2 = H.addObject { team = 5, odf = "bvtank", class = "wingman", craft = true }
+    local remote = H.addObject { team = 5, odf = "bvtank", class = "wingman", craft = true, remote = true }
+    local pilot = H.addObject { team = 5, odf = "bvtank", class = "wingman", craft = true }
+    local building = H.addObject { team = 5, odf = "bbpgen", class = "powerplant", building = true }
+    H.playerHandle = mine
+    IsPlayer = function(h) return h == pilot end
+    IsLocal = function(h) return not h.remote end
+    aiCore.AddTeam(1, 1)
+    check("AddCombatObject ignores a team that is not combat-only", aiCore.AddCombatObject(foe) == false)
+    local team = aiCore.EnableCombatOnly(5, 2)
+    local off = true
+    for _, key in ipairs({ "manageFactories", "manageBase", "manageTacticalOrders", "autoManage", "autoBuild", "enableParatroopers" }) do
+        if team.Config[key] ~= false then off = false end
+    end
+    check("EnableCombatOnly turns the six strategic flags off and keeps special combat on",
+        off and team.Config.manageSpecialCombat == true and team.combatOnly == true and aiCore.IsCombatOnlyTeam(5))
+    check("team 1 keeps its own config and is not combat-only", not aiCore.IsCombatOnlyTeam(1))
+    check("EnableCombatOnly reuses an existing team", aiCore.EnableCombatOnly(5, 2) == team)
+    check("a local enemy unit is registered through AddSpecialObject only",
+        aiCore.AddCombatObject(foe) == true and team.specialTrackedSet[foe] == true and not team.trackedSet[foe])
+    check("team 1, remote and human-occupied craft are skipped",
+        aiCore.AddCombatObject(mine) == false and aiCore.AddCombatObject(remote) == false
+        and aiCore.AddCombatObject(pilot) == false and not team.specialTrackedSet[remote] and not team.specialTrackedSet[pilot])
+    check("a building is not registered", aiCore.AddCombatObject(building) == false)
+    aiCore.BootstrapCombatOnly(5)
+    check("BootstrapCombatOnly registers the rest of the team", team.specialTrackedSet[foe2] == true)
+    check("combat-only units stay out of the managed lists", not team.trackedSet[foe2] and not team.trackedSet[foe])
+    local saved = aiCore.Save()
+    aiCore.ActiveTeams = {}
+    aiCore.Load(saved)
+    check("the combat-only marking survives Save/Load", aiCore.IsCombatOnlyTeam(5) and aiCore.ActiveTeams[5].Config.autoBuild == false)
+    H.objects, H.playerHandle = {}, nil
+    IsPlayer, IsLocal = nil, nil
+    aiCore.ActiveTeams = {}
+end)
+
+-- UpdateCombatOnly: a mission-owned team keeps its orders and aiCore touches nothing else.
+H.try("combat only tick", function()
+    H.objects = {}
+    local foe = H.addObject { team = 5, odf = "bvtank", class = "wingman", craft = true }
+    local human = H.addObject { team = 1, odf = "avtank", class = "wingman", craft = true }
+    H.playerHandle = human
+    coop.network, coop.teams = true, { 1 } -- Update's EnsureHumanTeams would register team 1 here
+    aiCore.ActiveTeams, aiCore.GlobalDepotManagers, aiCore.GlobalOffenseManagers = {}, {}, {}
+    aiCore.ResetObjectCacheTracking()
+    aiCore.EnableCombatOnly(5, 2)
+    aiCore.BootstrapCombatOnly(5)
+    local path = { x = 100, y = 0, z = 100 }
+    SetCommand(foe, AiCommand.GO, 1, nil, path)
+    local before = foe.command
+    local start = H.now
+    local ok = true
+    while H.now < start + 5.0 do
+        H.now = H.now + H.timeStep
+        ok = pcall(aiCore.UpdateCombatOnly) and ok
+    end
+    check("UpdateCombatOnly runs without error over several seconds", ok)
+    check("the scripted command of a combat-only craft is unchanged", foe.command == before and foe.command == AiCommand.GO)
+    check("UpdateCombatOnly does not add the human team", aiCore.ActiveTeams[1] == nil and aiCore.ActiveTeams[5] ~= nil)
+    check("UpdateCombatOnly creates no global depot/offense managers",
+        next(aiCore.GlobalDepotManagers) == nil and next(aiCore.GlobalOffenseManagers) == nil)
+    check("the human craft is in the object cache for target lookups",
+        aiCore.ObjectCache.handleSet[human] == true)
+    local seen = false
+    for _, t in ipairs(aiCore.GetCachedTeamTargets(1)) do if t == human then seen = true end end
+    check("GetCachedTeamTargets sees the human team", seen)
+    H.objects, H.playerHandle = {}, nil
+    coop.network, coop.teams = false, {}
+    aiCore.ActiveTeams = {}
+end)
+
 H.finish("aiCore human-team")

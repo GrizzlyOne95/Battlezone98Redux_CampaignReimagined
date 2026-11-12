@@ -120,6 +120,24 @@ local AddScrap = campaignRuntime and function(team, amount)
     elseif team == 2 then team = 5 end
     return AddScrap(team, amount)
 end or AddScrap
+-- Combat-only aiCore (Docs/MISNS5_COOP.md): the enemy units get aiCore's combat layer (special combat, sniping, craft
+-- stealing) and nothing else; this script keeps every order, wave and the native AIP. Authority only.
+local aiCore = campaignRuntime and require("aiCore")
+local COMBAT_TEAM = 5 -- the real enemy team (the body sees it as 2 through the GetTeamNum shadow)
+local combatReady = false
+local function CombatAuthority()
+    return aiCore and (not campaignRuntime.Coop.IsNetworkGame() or campaignRuntime.Coop.IsAuthority())
+end
+local function CombatUpdate()
+    if not CombatAuthority() then return end
+    if not combatReady then
+        combatReady = true
+        aiCore.EnableCombatOnly(COMBAT_TEAM, aiCore.Factions.CCA)
+        aiCore.BootstrapCombatOnly(COMBAT_TEAM)
+    end
+    -- Pilot specials stay on: pilot persons of team 5 can be retasked by sniping/craft stealing.
+    aiCore.UpdateCombatOnly()
+end
 -- CR co-op runtime <<
 local function Valid(h)
     return h ~= nil and h ~= 0 and IsValid(h)
@@ -185,6 +203,10 @@ function AddObject(h)
         campaignRuntime.AddObject(h)
         -- Only the authority orders units; guests see the replicated objects.
         if not campaignRuntime.Coop.IsAuthority() then return end
+        if combatReady then
+            aiCore.TrackWorldObject(h) -- keeps the target cache complete for every team
+            if GetTeamNum(h) == 2 then aiCore.AddCombatObject(h) end
+        end
     end
 -- CR co-op callback <<
     if not Valid(h) or GetTeamNum(h) ~= 2 then return end
@@ -217,6 +239,7 @@ end)()
 function Update(dt)
 -- CR co-op callback >>
     if campaignRuntime and not campaignRuntime.Update(dt) then return end
+    if campaignRuntime then CombatUpdate() end
 -- CR co-op callback <<
     if not M.start_done then
         M.recy = GetHandle("svrecy0_recycler")
@@ -422,4 +445,19 @@ function CreatePlayer(id,name,team) if campaignRuntime then return campaignRunti
 function AddPlayer(id,name,team) if campaignRuntime then return campaignRuntime.AddPlayer(id,name,team) end end
 function DeletePlayer(id) if campaignRuntime then return campaignRuntime.DeletePlayer(id) end end
 function Receive(from,kind,...) if campaignRuntime then return campaignRuntime.Receive(from,kind,...) end end
+-- aiCore's state is a new trailing Save value; a save without it loads and enables combat-only mode on the first Update.
+local stockSave, stockLoad = Save, Load
+function Save()
+    local state = stockSave()
+    if combatReady then return state, aiCore.Save() end
+    return state
+end
+function Load(state, aiData)
+    stockLoad(state)
+    combatReady = false
+    if aiCore and aiData ~= nil and CombatAuthority() then
+        aiCore.Load(aiData)
+        combatReady = true
+    end
+end
 -- CR co-op callbacks <<
