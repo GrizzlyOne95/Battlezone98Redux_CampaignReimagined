@@ -1,0 +1,12 @@
+import * from "CR_BZBase.material"
+
+material crord : CR_BZBase
+{
+    set_texture_alias DiffuseMap crord_d.dds
+    set_texture_alias EmissiveMap crord_e.dds
+    set $diffuse "1 1 1"
+    set $ambient "1 1 1"
+    set $specular ".35 .35 .35"
+    set $shininess "48"
+    set $glow "1 1 1"
+}

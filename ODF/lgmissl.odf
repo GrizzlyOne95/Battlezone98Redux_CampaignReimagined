@@ -2,7 +2,8 @@
 [OrdnanceClass]
 classLabel = "missile"
 
-shotGeometry = "ghorn00.geo"
+// stock shotGeometry: ghorn00.geo
+shotGeometry = "crordhrn.mesh"
 shotSound = "Ordin_e.wav"
 
 xplGround = "xmslgnd"

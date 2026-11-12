@@ -126,6 +126,7 @@ jobs:
           python Tools/Test-BulletHitFx.py
           python Tools/Test-WeaponHitFx.py
           python Tools/Test-TrailDensity.py
+          python Tools/Test-OrdnanceModels.py
           python Tools/Test-FactionPickupIntegration.py
           python Tools/Test-PodUVPrototype.py
 
