@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5729,
+  "count": 5730,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -19277,6 +19277,10 @@
     {
       "source": "Shaders\\CR_catalogsky.program",
       "runtime": "CR_catalogsky.program"
+    },
+    {
+      "source": "Shaders\\CR_cockpit_damage-sm4.hlsl",
+      "runtime": "CR_cockpit_damage-sm4.hlsl"
     },
     {
       "source": "Shaders\\CR_DepthShadowmap-sm4.hlsl",
