@@ -1,0 +1,105 @@
+// ============================================================
+// CR CCA death explosion, INITIAL stage (xdccai)
+// Look: big orange fireball, fat brown-black diesel soot, chunky orange embers.
+// Budget: 9 particles (stock xcarxpla is 9), one light. Gameplay fields copied from xcarxpla.
+// ============================================================
+
+[ExplosionClass]
+classLabel = "explosion"
+explRadius = 10.0
+explSound = "xcar.wav"
+damageRadius = 20.0
+damageBallistic = 0
+damageConcussion = 100
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 5
+
+particleClass1 = "xdccai.Flash"
+particleCount1 = 1
+particleVeloc1 = "0.00 0.00 0.00"
+
+particleClass2 = "xdccai.Core"
+particleCount2 = 1
+particleVeloc2 = "0.00 1.00 0.00"
+particleBias2 = "0.00 2.00 0.00"
+
+particleClass3 = "xdccai.Ember"
+particleCount3 = 4
+particleVeloc3 = "5.00 4.00 5.00"
+particleBias3 = "0.00 2.00 0.00"
+
+particleClass4 = "xdccai.Smoke"
+particleCount4 = 2
+particleVeloc4 = "2.00 1.00 2.00"
+particleBias4 = "0.00 1.00 0.00"
+
+particleClass5 = "xdccai.Light"
+particleCount5 = 1
+particleVeloc5 = "0.00 2.00 0.00"
+particleBias5 = "0.00 5.00 0.00"
+
+[Flash]
+simulateBase = "sim_null"
+lifeTime = 0.25
+renderBase = "draw_sprite"
+textureName = "cr_xpl_flash.dds"
+textureBlend = "one one modulate"
+startColor = "255 235 175 255"
+finishColor = "255 120 20 0"
+startRadius = 9.10
+finishRadius = 18.20
+animateTime = 0.25
+
+[Core]
+simulateBase = "sim_smoke"
+lifeTime = 1.00
+renderBase = "draw_twirl"
+textureName = "cr_xpl_core.dds"
+textureBlend = "one one modulate"
+startColor = "255 195 95 255"
+finishColor = "230 60 0 0"
+startRadius = 4.55
+finishRadius = 14.30
+animateTime = 1.00
+rotationRate = 3.00
+
+[Ember]
+simulateBase = "sim_ember"
+lifeTime = 1.60
+renderBase = "draw_twirl"
+textureName = "cr_xpl_spark.dds"
+textureBlend = "one one modulate"
+startColor = "255 195 75 255"
+finishColor = "220 70 0 0"
+startRadius = 0.40
+finishRadius = 0.20
+animateTime = 1.60
+rotationRate = 8.00
+
+[Smoke]
+simulateBase = "sim_smoke"
+lifeTime = 3.50
+renderBase = "draw_twirl"
+textureName = "cr_xpl_smoke.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "70 56 40 225"
+finishColor = "30 25 18 0"
+startRadius = 3.25
+finishRadius = 9.10
+animateTime = 3.50
+rotationRate = 3.00
+
+[Light]
+simulateBase = "sim_smoke"
+lifeTime = 0.6
+renderBase = "draw_light"
+startColor = "255 170 90 255"
+finishColor = "255 90 15 0"
+startRadius = 20.00
+finishRadius = 20.00
+animateTime = 0.6
+attenuateConstant = 0.0
+attenuateLinear = 1.0
+attenuateQuadratic = 0.0

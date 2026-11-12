@@ -1,0 +1,69 @@
+// ============================================================
+// CR CRA death explosion, SECONDARY stage (xdcras)
+// Look: yellow-green chemical flash, lime glints, olive soot.
+// Budget: 4 particles (stock xsecxpla is 5). Gameplay fields copied from xsecxpla.
+// ============================================================
+
+[ExplosionClass]
+classLabel = "explosion"
+explRadius = 3.0
+explSound = NULL
+damageRadius = 3.0
+damageBallistic = 0
+damageConcussion = 25
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 3
+
+particleClass1 = "xdcras.Debris"
+particleCount1 = 2
+particleVeloc1 = "3.00 3.00 3.00"
+particleBias1 = "0.00 1.00 0.00"
+
+particleClass2 = "xdcras.Smoke"
+particleCount2 = 1
+particleVeloc2 = "1.00 0.60 1.00"
+particleBias2 = "0.00 0.50 0.00"
+
+particleClass3 = "xdcras.Flash"
+particleCount3 = 1
+particleVeloc3 = "0.00 0.00 0.00"
+
+[Debris]
+simulateBase = "sim_ember"
+lifeTime = 2.00
+renderBase = "draw_twirl"
+textureName = "cr_xpl_debris.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "190 200 150 255"
+finishColor = "90 100 60 0"
+startRadius = 0.50
+finishRadius = 0.50
+animateTime = 2.00
+rotationRate = 6.00
+
+[Smoke]
+simulateBase = "sim_smoke"
+lifeTime = 1.60
+renderBase = "draw_twirl"
+textureName = "cr_xpl_smoke.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "66 74 46 215"
+finishColor = "28 34 18 0"
+startRadius = 0.80
+finishRadius = 2.20
+animateTime = 1.60
+rotationRate = 3.00
+
+[Flash]
+simulateBase = "sim_null"
+lifeTime = 0.18
+renderBase = "draw_sprite"
+textureName = "cr_xpl_flash.dds"
+textureBlend = "one one modulate"
+startColor = "240 255 175 255"
+finishColor = "120 200 0 0"
+startRadius = 1.60
+finishRadius = 3.20
+animateTime = 0.18

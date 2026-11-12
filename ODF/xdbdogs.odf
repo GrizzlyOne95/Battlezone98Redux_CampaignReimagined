@@ -1,0 +1,69 @@
+// ============================================================
+// CR Black Dog death explosion, SECONDARY stage (xdbdogs)
+// Look: tight hot flash, crimson embers, fast near-black column.
+// Budget: 4 particles (stock xsecxpla is 5). Gameplay fields copied from xsecxpla.
+// ============================================================
+
+[ExplosionClass]
+classLabel = "explosion"
+explRadius = 3.0
+explSound = NULL
+damageRadius = 3.0
+damageBallistic = 0
+damageConcussion = 25
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 3
+
+particleClass1 = "xdbdogs.Debris"
+particleCount1 = 2
+particleVeloc1 = "3.00 3.00 3.00"
+particleBias1 = "0.00 1.00 0.00"
+
+particleClass2 = "xdbdogs.Smoke"
+particleCount2 = 1
+particleVeloc2 = "1.00 0.60 1.00"
+particleBias2 = "0.00 0.50 0.00"
+
+particleClass3 = "xdbdogs.Flash"
+particleCount3 = 1
+particleVeloc3 = "0.00 0.00 0.00"
+
+[Debris]
+simulateBase = "sim_ember"
+lifeTime = 2.00
+renderBase = "draw_twirl"
+textureName = "cr_xpl_debris.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "120 110 115 255"
+finishColor = "50 45 48 0"
+startRadius = 0.50
+finishRadius = 0.50
+animateTime = 2.00
+rotationRate = 6.00
+
+[Smoke]
+simulateBase = "sim_smoke"
+lifeTime = 1.60
+renderBase = "draw_twirl"
+textureName = "cr_xpl_smoke.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "32 28 30 230"
+finishColor = "10 8 8 0"
+startRadius = 0.64
+finishRadius = 1.76
+animateTime = 1.60
+rotationRate = 3.00
+
+[Flash]
+simulateBase = "sim_null"
+lifeTime = 0.18
+renderBase = "draw_sprite"
+textureName = "cr_xpl_flash.dds"
+textureBlend = "one one modulate"
+startColor = "255 200 180 255"
+finishColor = "200 20 20 0"
+startRadius = 1.28
+finishRadius = 2.56
+animateTime = 0.18

@@ -14,6 +14,10 @@ imageSignature = 2.0
 radarSignature = 1.0
 weaponHard1 = "gs2"
 weaponName1 = "gobject"
+// CR DEATH FX BEGIN
+// NSDF initial death blast (ODF/xdnsdfi)
+explosionName = "xdnsdfi"
+// CR DEATH FX END
 
 [CraftClass]
 rangeScan = 575.0
@@ -44,6 +48,12 @@ damageEffect2 = "dmgnsdf2"
 damageEffect3 = "dmgnsdf3"
 damageEffect4 = "dmgnsdf4"
 // CR DAMAGE FX END
+// CR DEATH FX BEGIN
+// NSDF death explosions (ODF/xdnsdfs, xdnsdfd, xdnsdfp)
+xplSnipe = "xdnsdfp"
+xplSecondary = "xdnsdfs"
+xplDetonate = "xdnsdfd"
+// CR DEATH FX END
 
 [HoverCraftClass]
 setAltitude = 1.5

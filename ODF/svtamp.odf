@@ -13,6 +13,10 @@ heatSignature = 1.2
 imageSignature = 3.0
 radarSignature = 0.1
 weaponMask = 00001
+// CR DEATH FX BEGIN
+// CCA initial death blast (ODF/xdccai)
+explosionName = "xdccai"
+// CR DEATH FX END
 
 [CraftClass]
 rangeScan = 400.0f
@@ -43,6 +47,12 @@ damageEffect2 = "dmgcca2"
 damageEffect3 = "dmgcca3"
 damageEffect4 = "dmgcca4"
 // CR DAMAGE FX END
+// CR DEATH FX BEGIN
+// CCA death explosions (ODF/xdccas, xdccad, xdccap)
+xplSnipe = "xdccap"
+xplSecondary = "xdccas"
+xplDetonate = "xdccad"
+// CR DEATH FX END
 
 [HoverCraftClass]
 setAltitude = 0.8

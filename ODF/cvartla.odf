@@ -14,6 +14,10 @@ imageSignature = 2.0
 radarSignature = 1.0
 weaponHard1 = "GM1"
 weaponName1 = "cvwo003"
+// CR DEATH FX BEGIN
+// CRA initial death blast (ODF/xdcrai)
+explosionName = "xdcrai"
+// CR DEATH FX END
 
 [CraftClass]
 // CR CRAFT FLASH OFFSET BEGIN
@@ -61,6 +65,12 @@ damageEffect2 = "dmgcra2"
 damageEffect3 = "dmgcra3"
 damageEffect4 = "dmgcra4"
 // CR DAMAGE FX END
+// CR DEATH FX BEGIN
+// CRA death explosions (ODF/xdcras, xdcrad, xdcrap)
+xplSnipe = "xdcrap"
+xplSecondary = "xdcras"
+xplDetonate = "xdcrad"
+// CR DEATH FX END
 
 [HoverCraftClass]
 setAltitude = 1.5

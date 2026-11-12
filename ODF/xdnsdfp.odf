@@ -1,0 +1,71 @@
+// ============================================================
+// CR NSDF death explosion, SNIPE stage (xdnsdfp)
+// Look: cool white-blue flash, cyan-white electrical sparks, grey coolant vapour.
+// Budget: 6 particles (stock xsecxpla is 5 + 2 allowed). Gameplay fields copied from xsecxpla.
+// ============================================================
+
+[ExplosionClass]
+classLabel = "explosion"
+explRadius = 3.0
+explSound = NULL
+damageRadius = 3.0
+damageBallistic = 0
+damageConcussion = 25
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 3
+
+particleClass1 = "xdnsdfp.Shard"
+particleCount1 = 4
+particleVeloc1 = "4.00 3.50 4.00"
+particleBias1 = "0.00 1.50 0.00"
+
+particleClass2 = "xdnsdfp.Mist"
+particleCount2 = 1
+particleVeloc2 = "0.60 0.50 0.60"
+particleBias2 = "0.00 0.40 0.00"
+
+particleClass3 = "xdnsdfp.Spark"
+particleCount3 = 1
+particleVeloc3 = "1.50 1.20 1.50"
+particleBias3 = "0.00 0.60 0.00"
+
+[Shard]
+simulateBase = "sim_ember"
+lifeTime = 0.80
+renderBase = "draw_twirl"
+textureName = "cr_xpl_glint.dds"
+textureBlend = "one one modulate"
+startColor = "215 235 255 255"
+finishColor = "120 160 255 0"
+startRadius = 0.25
+finishRadius = 0.10
+animateTime = 0.80
+rotationRate = 10.00
+
+[Mist]
+simulateBase = "sim_smoke"
+lifeTime = 1.20
+renderBase = "draw_twirl"
+textureName = "cr_xpl_smoke.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "110 10 10 190"
+finishColor = "60 5 5 0"
+startRadius = 0.60
+finishRadius = 1.60
+animateTime = 1.20
+rotationRate = 2.00
+
+[Spark]
+simulateBase = "sim_ember"
+lifeTime = 0.60
+renderBase = "draw_twirl"
+textureName = "cr_xpl_spark.dds"
+textureBlend = "one one modulate"
+startColor = "200 245 255 255"
+finishColor = "30 140 255 0"
+startRadius = 0.15
+finishRadius = 0.06
+animateTime = 0.60
+rotationRate = 8.00
