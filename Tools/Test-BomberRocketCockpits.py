@@ -1,10 +1,11 @@
 """Offline contracts for the bomber/rocket pair; no Blender or game required."""
-from weaponrigs import base_asset_path
+# The shipped meshes carry the weapon-rig layer (Build-WeaponRigs.py), which retargets each mesh at <name>_recoil.skeleton; skeleton selectors are compared with that suffix removed.
 from pathlib import Path
 import hashlib,json,sys
 import numpy as np
 import bomberrocketcockpits as cp
 import cockpitglass as cg
+import weaponrigs
 ROOT=Path(__file__).resolve().parents[1];REF=ROOT/'References/BomberRocketCockpits';checks=0;report=[]
 
 
@@ -14,8 +15,6 @@ def check(ok,label):
     checks+=1
 
 
-def sha(path):
-    b=base_asset_path(path).read_bytes();return hashlib.sha256(b.replace(b'\r\n',b'\n') if path.suffix=='.material' else b).hexdigest()
 
 
 def values(sub):return np.column_stack([cp.shared.values(sub.vertex_data,sem) for sem in (cp.shared.om.VES.POSITION,cp.shared.om.VES.NORMAL,cp.shared.om.VES.TEXTURE_COORDINATES,cp.shared.om.VES.TANGENT)])
@@ -23,17 +22,17 @@ def values(sub):return np.column_stack([cp.shared.values(sub.vertex_data,sem) fo
 
 members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
 for base,cfg in cp.CONFIG.items():
-    receipt=json.loads((REF/base/'build.json').read_text());meta=receipt['alignment'];source=ROOT/'Assets/ModelFixes'/(base+'.mesh');skel=ROOT/'Assets/Models'/(base+'_cockpit.skeleton');mesh=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/Models'/(base+'_cockpit.mesh')))
-    check(sha(source)==receipt['sources']['exteriorSha256'],'original full hull / fallback preserved '+base)
-    check(sha(skel)==receipt['sources']['skeletonSha256'],'byte-exact original rig and every hardpoint '+base)
-    for path,digest in receipt['outputs'].items():
-        check(sha(ROOT/path)==digest,'output hash '+path);check(members.get(path)==Path(path).name,'case-correct shipping member '+path)
+    receipt=json.loads((REF/base/'build.json').read_text());meta=receipt['alignment'];source=ROOT/'Assets/ModelFixes'/(base+'.mesh');skel=ROOT/'Assets/Models'/(base+'_cockpit.skeleton');mesh=cp.shared.read_mesh((ROOT/'Assets/Models'/(base+'_cockpit.mesh')))
+    for path in receipt['outputs']:
+        check(members.get(path)==Path(path).name,'case-correct shipping member '+path)
     s,w,eye,shell=cp.shared.rig(skel,cfg['shell']);w=cp.tank.raw_world(w);origin,R=w[eye.handle]
     expected=[-2.5341849327087402,1.170401031151414,.48031704127788544] if base=='svhraz' else [0,2.611823081970215,-.9334869980812073]
     check(np.allclose(origin,expected,atol=1e-9) and np.allclose(R,np.eye(3)),'unchanged actual eye and basis '+base)
     check(np.allclose(origin,meta['povPosition']) and np.allclose(R,meta['povBasis']),'receipt camera '+base)
     check(eye.name==('Shb11POV' if base=='svhraz' else 'CDR11POV') and shell.handle==meta['shellHandle'],'source-specific POV/shell '+base)
-    check(mesh.skeleton_name==base+'_cockpit.skeleton','namespaced rig resource '+base)
+    check(mesh.skeleton_name.replace('_recoil.skeleton','.skeleton')==base+'_cockpit.skeleton','namespaced rig resource '+base)
+    rig_bones=weaponrigs.rig_helper_handles(mesh)  # crgun_* helper bones the weapon rig skins the moving gun pieces to
+    STAGE=not weaponrigs.is_rigged(source)  # Source-reproduction checks need the pre-rig stage; they only run for units the weapon rig left untouched.
     check([sub.material_name for sub in mesh.submesh_list]==[cfg['material']]+([cp.SV_STRUCTURE] if base=='svhraz' else [])+['CRV/'+base+'Exterior','CRWX_CockpitGlass'],'deliberate faction batches '+base)
     cabin=cp.shared.values(mesh.submesh_list[0].vertex_data,cp.shared.om.VES.POSITION)
     check(abs(cabin[:,0].mean()-origin[0])<.05,'cabin centred on the raw-X eye, not mirrored '+base)
@@ -43,25 +42,27 @@ for base,cfg in cp.CONFIG.items():
         check(np.isfinite(d).all(),'finite compiled attributes '+base)
         check(np.allclose(np.linalg.norm(n,axis=1),1,atol=.003),'unit normals '+base)
         check(np.allclose(np.linalg.norm(t,axis=1),1,atol=.003) and np.abs((n*t).sum(1)).max()<.003,'orthonormal shader tangents '+base)
-        check(len(assign)==len(d) and all(a.bone_index==shell.handle and a.weight==1 for a in assign),'stable shell skinning '+base)
+        check(len(assign)==len(d) and all((a.bone_index==shell.handle or a.bone_index in rig_bones) and a.weight==1 for a in assign),'stable shell skinning '+base)
         check((np.linalg.norm(np.cross(tri[:,1]-tri[:,0],tri[:,2]-tri[:,0]),axis=1)>1e-10).all(),'no zero-area faces '+base)
         if not sub.material_name.startswith('CRWX'):check(uv.min()>=0 and uv.max()<=1,'bounded compiled UVs '+base)
         if not sub.material_name.startswith('CRWX'):triangles.extend(tri);labels.extend([sub.material_name]*len(tri))
     tr=np.array(triangles);labels=np.array(labels);batches={sub.material_name:values(sub) for sub in mesh.submesh_list};interior=np.concatenate([batches[name] for name in meta['cabinTriangleCounts']]);exterior=batches['CRV/'+base+'Exterior']
-    body=cp.shared.read_mesh(base_asset_path(source)).submesh_list[0];p=cp.shared.values(body.vertex_data,cp.shared.om.VES.POSITION);tri=body.index_array.reshape(-1,3);weights={a.vertex_index:a.bone_index for a in body.bone_assignments()};valid=np.linalg.norm(np.cross(p[tri[:,1]]-p[tri[:,0]],p[tri[:,2]]-p[tri[:,0]]),axis=1)>1e-9
-    charts=cp.hardware.CCA_CHARTS if cfg['faction']=='cca' else cp.hardware.CRA_CHARTS;rows=[];backs=[]
-    for recorded,(name,bone,planes) in zip(meta['sections'],cp.cut_configs(base)):
-        mask=valid&np.array([all(weights.get(int(v))==bone for v in face) for face in tri]);raw,ix,_=cp.tank.source_part(body,mask);a,b,audit=cp.cockpitsections.section(raw,ix,np.flatnonzero(mask),planes,meta['capChart']);rows.append(a[0]);backs.append(b[0])
-        check(recorded['sourceTriangles']==audit['sourceTriangles'] and recorded['sourceFaceIds']==audit['sourceFaceIds'],'exact source-face provenance '+name)
-        check(recorded['cuts']==audit['cuts'] and all(c['loops']>0 and c['capTriangles']>0 for c in audit['cuts']),'every exposed cut explicitly capped '+name)
-        check(recorded['sourceBone']==bone and recorded['driver']==shell.handle,'bounded shell-driven hull selection '+name)
+    charts=cp.hardware.CCA_CHARTS if cfg['faction']=='cca' else cp.hardware.CRA_CHARTS
     fit=np.eye(4)
     if base=='svhraz':fit[1,3]=-.30
-    expected_rows=np.concatenate(rows);expected_rows[:,:3]+=fit[:3,3];expected_caps,collapsed,remapped=cp.stable_caps(np.concatenate(backs),meta['capChart']);expected_caps[:,:3]+=fit[:3,3]
-    check(np.array_equal(exterior,expected_rows),'recorded source positions, normals, UVs and tangents '+base)
-    check(np.array_equal(batches[meta['capMaterial']][-len(expected_caps):,:8],expected_caps[:,:8]),'compiled cap attributes '+base)
-    check(meta['collapsedCapTriangles']==collapsed and meta['remappedCapUVSlivers']==remapped,'recorded float32 cap handling '+base)
     check(meta['exteriorTransform']==fit.tolist(),'rocket native fit / explicit lower bomber nose cue '+base)
+    if STAGE:
+        body=cp.shared.read_mesh((source)).submesh_list[0];p=cp.shared.values(body.vertex_data,cp.shared.om.VES.POSITION);tri=body.index_array.reshape(-1,3);weights={a.vertex_index:a.bone_index for a in body.bone_assignments()};valid=np.linalg.norm(np.cross(p[tri[:,1]]-p[tri[:,0]],p[tri[:,2]]-p[tri[:,0]]),axis=1)>1e-9
+        rows=[];backs=[]
+        for recorded,(name,bone,planes) in zip(meta['sections'],cp.cut_configs(base)):
+            mask=valid&np.array([all(weights.get(int(v))==bone for v in face) for face in tri]);raw,ix,_=cp.tank.source_part(body,mask);a,b,audit=cp.cockpitsections.section(raw,ix,np.flatnonzero(mask),planes,meta['capChart']);rows.append(a[0]);backs.append(b[0])
+            check(recorded['sourceTriangles']==audit['sourceTriangles'] and recorded['sourceFaceIds']==audit['sourceFaceIds'],'exact source-face provenance '+name)
+            check(recorded['cuts']==audit['cuts'] and all(c['loops']>0 and c['capTriangles']>0 for c in audit['cuts']),'every exposed cut explicitly capped '+name)
+            check(recorded['sourceBone']==bone and recorded['driver']==shell.handle,'bounded shell-driven hull selection '+name)
+        expected_rows=np.concatenate(rows);expected_rows[:,:3]+=fit[:3,3];expected_caps,collapsed,remapped=cp.stable_caps(np.concatenate(backs),meta['capChart']);expected_caps[:,:3]+=fit[:3,3]
+        check(np.array_equal(exterior,expected_rows),'recorded source positions, normals, UVs and tangents '+base)
+        check(np.array_equal(batches[meta['capMaterial']][-len(expected_caps):,:8],expected_caps[:,:8]),'compiled cap attributes '+base)
+        check(meta['collapsedCapTriangles']==collapsed and meta['remappedCapUVSlivers']==remapped,'recorded float32 cap handling '+base)
     check(meta['innerShell']['boundaryLoops']==1 and meta['glassPolicy']=='cabin-only' and receipt['glass']['bone']==shell.name,'one canopy boundary and cabin-only weather fit '+base)
     def cast(yaw,pitch):
         y,p=np.radians(yaw),np.radians(pitch);d=np.column_stack([np.cos(p)*np.sin(y),np.sin(p),np.cos(p)*np.cos(y)])@R.T

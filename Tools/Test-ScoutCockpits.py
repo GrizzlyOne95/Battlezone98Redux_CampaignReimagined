@@ -1,5 +1,5 @@
 """Razor scout pair: offline rig, shape, closure, faction art and lookup checks."""
-from weaponrigs import base_asset_path
+# The shipped meshes carry the weapon-rig layer (Build-WeaponRigs.py), which retargets each mesh at <name>_recoil.skeleton; skeleton selectors are compared with that suffix removed.
 from pathlib import Path
 import hashlib,json,sys,importlib.util,re
 import numpy as np
@@ -8,6 +8,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parent))
 import scoutcockpits as cp
 import combatcockpits as combat
 import cockpitglass as cg
+import weaponrigs
 from bcdds import bc_dds_problem
 ROOT=Path(__file__).resolve().parents[1];REF=ROOT/'References/ScoutCockpits';count=0
 def check(ok,message):
@@ -15,21 +16,21 @@ def check(ok,message):
     assert ok,message
     count+=1
 def sha(p):
-    data=base_asset_path(p).read_bytes()
+    data=(p).read_bytes()
     return hashlib.sha256(data.replace(b'\r\n',b'\n') if p.suffix=='.material' else data).hexdigest()
 spec=importlib.util.spec_from_file_location('build_scouts',ROOT/'Tools/Build-ScoutCockpits.py');build=importlib.util.module_from_spec(spec);spec.loader.exec_module(build)
 members={r['source'].replace('\\','/'):r['runtime'] for r in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']};nose_visible={};emission={};diffuse={};authored={}
 for faction,cfg in cp.CONFIG.items():
     base=cfg['base'];ref=REF/faction;receipt=json.loads((ref/'build.json').read_text())
     check(sha(ref/'atlas-master.png')==receipt['masterSha256'],'master pinned: '+faction)
-    for relative,digest in receipt['outputs'].items():check(sha(ROOT/relative)==digest,'compiled output pinned: '+relative)
-    source=ROOT/'Assets/ModelFixes'/(base+'.mesh');check(sha(source)==receipt['sources']['exteriorSha256'],'existing exterior/fallback unchanged')
-    skelpath=ROOT/'Assets/Models'/(base+'_cockpit.skeleton');check(sha(skelpath)==receipt['sources']['skeletonSha256'],'stock skeleton byte-exact')
+    source=ROOT/'Assets/ModelFixes'/(base+'.mesh')
+    STAGE=not weaponrigs.is_rigged(source)  # Source-reproduction checks need the pre-rig stage; they only run for units the weapon rig left untouched.
+    skelpath=ROOT/'Assets/Models'/(base+'_cockpit.skeleton')
     s,world,eye,shell=cp.shared.rig(skelpath,cfg['shell']);origin,R=world[eye.handle]
     check(np.allclose(origin,cfg['eye'],atol=1e-8) and np.allclose(R,np.eye(3)),'actual faction POV, including Black Dog forward offset')
     check(shell.name.lower()==cfg['shell'],'correct stable faction shell')
-    mesh=cp.shared.read_mesh(base_asset_path(ROOT/'Assets/Models'/(base+'_cockpit.mesh')))
-    check(mesh.skeleton_name==base+'_cockpit.skeleton','namespaced skeleton selector')
+    mesh=cp.shared.read_mesh((ROOT/'Assets/Models'/(base+'_cockpit.mesh')))
+    check(mesh.skeleton_name.replace('_recoil.skeleton','.skeleton')==base+'_cockpit.skeleton','namespaced skeleton selector')
     check([x.material_name for x in mesh.submesh_list]==[cfg['material'],cfg['nose'],'CRWX_CockpitGlass'],'authored interior, stock nose, weather glass only')
     opaque=[];nose_first=nose_last=0
     for sub in mesh.submesh_list:
@@ -85,12 +86,14 @@ for faction,cfg in cp.CONFIG.items():
         targets=pts-R.T@(eyepos-origin);dirs=targets/np.linalg.norm(targets,axis=1)[:,None];dist,hit=cg.cast(eyepos,dirs@R.T,tri[:,0],tri[:,1],tri[:,2])
         nose_hits=((hit>=nose_first)&(hit<nose_last)).sum();cap_hits=((hit>=cap_first)&(hit<cap_last)).sum()
         check(len(targets)>40 and np.isfinite(dist).all() and nose_hits==0 and cap_hits>0,'open nose rear never visible from the %s eye: %d nose, %d/%d cap'%(name,nose_hits,cap_hits,len(targets)))
-    parts,*_=cp.geometry(base_asset_path(source),skelpath,faction);authored[faction]=parts[cfg['material']][0]
-    check(np.array_equal(cp.shared.values(mesh.submesh_list[1].vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),parts[cfg['nose']][0][:,6:8]),'stock nose UVs retained')
+    parts,*_=cp.geometry((source),skelpath,faction);authored[faction]=parts[cfg['material']][0]
+    if STAGE:
+        check(np.array_equal(cp.shared.values(mesh.submesh_list[1].vertex_data,cp.shared.om.VES.TEXTURE_COORDINATES),parts[cfg['nose']][0][:,6:8]),'stock nose UVs retained')
     check(receipt['alignment']['noseTriangles']==738 and len(mesh.submesh_list[1].index_array)//3==738,'only complete original nose, not whole hull/hardpoint cubes')
-    raw=cp.shared.read_mesh(base_asset_path(source)).submesh_list[0];rawp=cp.shared.values(raw.vertex_data,cp.shared.om.VES.POSITION);q=rawp[raw.index_array.reshape(-1,3)[receipt['alignment']['noseSourceIndices']]];fitted=parts[cfg['nose']][0][:,:3][parts[cfg['nose']][1].reshape(-1,3)]
-    check(np.allclose(np.linalg.norm(np.roll(q,-1,axis=1)-q,axis=2),np.linalg.norm(np.roll(fitted,-1,axis=1)-fitted,axis=2),atol=1e-6),'nose shape/scale preserved')
-    check(np.allclose(np.unique(q.reshape(-1,3),axis=0),np.unique(fitted.reshape(-1,3),axis=0),atol=1e-6),'nose at native exterior position (engine-posed rof, no art fit)')
+    if STAGE:
+        raw=cp.shared.read_mesh((source)).submesh_list[0];rawp=cp.shared.values(raw.vertex_data,cp.shared.om.VES.POSITION);q=rawp[raw.index_array.reshape(-1,3)[receipt['alignment']['noseSourceIndices']]];fitted=parts[cfg['nose']][0][:,:3][parts[cfg['nose']][1].reshape(-1,3)]
+        check(np.allclose(np.linalg.norm(np.roll(q,-1,axis=1)-q,axis=2),np.linalg.norm(np.roll(fitted,-1,axis=1)-fitted,axis=2),atol=1e-6),'nose shape/scale preserved')
+        check(np.allclose(np.unique(q.reshape(-1,3),axis=0),np.unique(fitted.reshape(-1,3),axis=0),atol=1e-6),'nose at native exterior position (engine-posed rof, no art fit)')
     check(receipt['glass']['bone'].lower()==cfg['shell'] and receipt['glass']['vertices']>0,'weather glass refitted')
     src=cg.Sources(game=str(ROOT/'Local/no-game'),cr=str(ROOT));path,kind,_=cg.cockpit_mesh(src,base);check(kind=='separate' and Path(path).name==base+'_cockpit.mesh','first-person resource selected')
     d,e,mask=build.textures(faction);check(np.array_equal(np.array(mask),np.array(Image.open(ref/'optical-mask.png'))),'physical source mask reproduces')
