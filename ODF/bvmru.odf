@@ -34,6 +34,13 @@ recycleMsg = "avminev6.wav"
 otherMsg = "avminevf.wav"
 user2Msg = "avminevb.wav"
 diedMsg = "abetty2.wav"
+// CR DAMAGE FX BEGIN
+// Black Dog damage smoke (ODF/dmgbdog1-4.odf)
+damageEffect1 = "dmgbdog1"
+damageEffect2 = "dmgbdog2"
+damageEffect3 = "dmgbdog3"
+damageEffect4 = "dmgbdog4"
+// CR DAMAGE FX END
 
 [HoverCraftClass]
 setAltitude = 0.5

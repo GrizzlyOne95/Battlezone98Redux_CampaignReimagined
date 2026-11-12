@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5934,
+  "count": 5953,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -16921,6 +16921,82 @@
     {
       "source": "ODF\\cvwo004.odf",
       "runtime": "cvwo004.odf"
+    },
+    {
+      "source": "ODF\\dmgbdog1.odf",
+      "runtime": "dmgbdog1.odf"
+    },
+    {
+      "source": "ODF\\dmgbdog2.odf",
+      "runtime": "dmgbdog2.odf"
+    },
+    {
+      "source": "ODF\\dmgbdog3.odf",
+      "runtime": "dmgbdog3.odf"
+    },
+    {
+      "source": "ODF\\dmgbdog4.odf",
+      "runtime": "dmgbdog4.odf"
+    },
+    {
+      "source": "ODF\\dmgcca1.odf",
+      "runtime": "dmgcca1.odf"
+    },
+    {
+      "source": "ODF\\dmgcca2.odf",
+      "runtime": "dmgcca2.odf"
+    },
+    {
+      "source": "ODF\\dmgcca3.odf",
+      "runtime": "dmgcca3.odf"
+    },
+    {
+      "source": "ODF\\dmgcca4.odf",
+      "runtime": "dmgcca4.odf"
+    },
+    {
+      "source": "ODF\\dmgcra1.odf",
+      "runtime": "dmgcra1.odf"
+    },
+    {
+      "source": "ODF\\dmgcra2.odf",
+      "runtime": "dmgcra2.odf"
+    },
+    {
+      "source": "ODF\\dmgcra3.odf",
+      "runtime": "dmgcra3.odf"
+    },
+    {
+      "source": "ODF\\dmgcra4.odf",
+      "runtime": "dmgcra4.odf"
+    },
+    {
+      "source": "ODF\\dmgnsdf1.odf",
+      "runtime": "dmgnsdf1.odf"
+    },
+    {
+      "source": "ODF\\dmgnsdf2.odf",
+      "runtime": "dmgnsdf2.odf"
+    },
+    {
+      "source": "ODF\\dmgnsdf3.odf",
+      "runtime": "dmgnsdf3.odf"
+    },
+    {
+      "source": "ODF\\dmgnsdf4.odf",
+      "runtime": "dmgnsdf4.odf"
+    },
+    {
+      "source": "ODF\\dmgvhcl2.odf",
+      "runtime": "dmgvhcl2.odf"
+    },
+    {
+      "source": "ODF\\dmgvhcl3.odf",
+      "runtime": "dmgvhcl3.odf"
+    },
+    {
+      "source": "ODF\\dmgvhcl4.odf",
+      "runtime": "dmgvhcl4.odf"
     },
     {
       "source": "ODF\\engsplsh.odf",

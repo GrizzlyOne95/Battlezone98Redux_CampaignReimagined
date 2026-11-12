@@ -1,0 +1,21 @@
+// ============================================================
+// CR CRA damage, LIGHT stage (dmgcra1)
+// Look: pale yellow-green chemical vapour going to olive soot; lime glints (sparks join from stage 2).
+// Budget: ~33 live sprites (optimized dmgvhcl1 is ~40).
+// ============================================================
+
+[Dmgcra1]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.06
+emitDelayVar = 0.03
+emitVelocity = "0.0 4.0 0.0"
+emitVariance = "2.5 2.5 2.5"
+emitInherit = "0.2 0.2 0.2"
+emitLife = 2.0
+textureName = "cr_xpl_wisp.dds"
+startColor = "205 215 175 40"
+finishColor = "205 215 175 0"
+startRadius = 1.0
+finishRadius = 2.6
+animateTime = 2.0
+rotationRate = 1.5

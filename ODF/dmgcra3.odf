@@ -1,0 +1,84 @@
+// ============================================================
+// CR CRA damage, HEAVY stage (dmgcra3)
+// Look: pale yellow-green chemical vapour going to olive soot; lime glints.
+// Budget: ~67 live sprites + one flicker light (optimized dmgvhcl3 is ~74).
+// ============================================================
+
+[Dmgcra3]
+renderBase = "draw_multi"
+renderCount = 4
+renderName1 = "dmgcra3.smokeemitter"
+renderName2 = "dmgcra3.flameemitter"
+renderName3 = "dmgcra3.sparkemitter"
+renderName4 = "dmgcra3.lightemitter"
+
+[SmokeEmitter]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.05
+emitDelayVar = 0.03
+emitVelocity = "0.0 4.0 0.0"
+emitVariance = "2.5 2.5 2.5"
+emitInherit = "0.2 0.2 0.2"
+emitLife = 2.0
+textureName = "smoke2.tga"
+startColor = "62 70 45 64"
+finishColor = "62 70 45 0"
+startRadius = 1.0
+finishRadius = 2.6
+animateTime = 2.0
+rotationRate = 1.5
+
+[FlameEmitter]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.06
+emitDelayVar = 0.02
+emitVelocity = "0.0 5.0 0.0"
+emitVariance = "2.0 2.0 2.0"
+emitInherit = "0.3 0.3 0.3"
+emitLife = 0.7
+textureName = "flame2.tga"
+startColor = "240 255 190 128"
+finishColor = "255 110 0 0"
+startRadius = 0.5
+finishRadius = 0.1
+animateTime = 0.7
+rotationRate = 10.0
+
+[SparkEmitter]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.06
+emitDelayVar = 0.02
+emitVelocity = "0.0 3.0 0.0"
+emitVariance = "4.0 4.0 4.0"
+emitInherit = "0.5 0.5 0.5"
+emitLife = 0.9
+textureName = "cr_xpl_glint.dds"
+startColor = "220 255 140 255"
+finishColor = "60 170 0 0"
+startRadius = 0.3
+finishRadius = 0.1
+animateTime = 0.9
+rotationRate = 20.0
+
+[LightEmitter]
+renderBase = "draw_emit"
+emitName = "dmgcra3.light"
+emitDelay = 0.2
+emitDelayVar = 0.1
+emitVelocity = "0 0 0"
+emitVariance = "0.0 0.0 0.0"
+emitInherit = "1.0 1.0 1.0"
+
+[Light]
+simulateBase = "sim_smoke"
+lifeTime = 0.2
+renderBase = "draw_light"
+startColor = "200 255 150 160"
+finishColor = "190 255 130 110"
+startRadius = 6.0
+finishRadius = 4.5
+animateTime = 0.2
+attenuateConstant = 0.0
+attenuateLinear = 0.0
+attenuateQuadratic = 1.0
+lensFlare = false

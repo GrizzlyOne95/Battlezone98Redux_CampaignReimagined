@@ -59,6 +59,13 @@ recycleMsg = "avwalkv9.wav"
 otherMsg = "avwalkvj.wav"
 killedMsg = "avwalkvm.wav"
 diedMsg = "abetty3.wav"
+// CR DAMAGE FX BEGIN
+// NSDF damage smoke (ODF/dmgnsdf1-4.odf)
+damageEffect1 = "dmgnsdf1"
+damageEffect2 = "dmgnsdf2"
+damageEffect3 = "dmgnsdf3"
+damageEffect4 = "dmgnsdf4"
+// CR DAMAGE FX END
 
 [WalkerClass]
 setAltitude = 0.1

@@ -71,6 +71,13 @@ recycleMsg = "cvturrvf.wav"
 otherMsg = "cvturrvd.wav"
 deployedMsg = "cvturrv6.wav"
 diedMsg = "abetty2.wav"
+// CR DAMAGE FX BEGIN
+// CRA damage smoke (ODF/dmgcra1-4.odf)
+damageEffect1 = "dmgcra1"
+damageEffect2 = "dmgcra2"
+damageEffect3 = "dmgcra3"
+damageEffect4 = "dmgcra4"
+// CR DAMAGE FX END
 
 [HoverCraftClass]
 setAltitude = 0.5

@@ -1,0 +1,43 @@
+// ===================
+// MEDIUM DAMAGE STATE
+// (tan smoke + sparks)
+// CR: flicker light removed (one dynamic light per damaged craft for a cosmetic glint)
+// ===================
+
+[DmgVhcl2]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "DmgVhcl2.smokeemitter"
+renderName2 = "DmgVhcl2.sparkemitter"
+
+[SmokeEmitter]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.05
+emitDelayVar = 0.03
+emitVelocity = "0.0 5.0 0.0"
+emitVariance = "2.0 2.0 2.0"
+emitInherit = "0.2 0.2 0.2"
+emitLife = 2.0
+textureName = "smoke2.tga" //"flame.tga" //"smoke.tga"
+startColor = "238 204 170 32" //64"
+finishColor = "238 204 170 0"
+startRadius = 1.0
+finishRadius = 2.0
+animateTime = 2.0
+rotationRate = 2.0
+
+[SparkEmitter]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.05
+emitDelayVar = 0.02
+emitVelocity = "0.0 3.0 0.0"
+emitVariance = "5.0 5.0 5.0"
+emitInherit = "0.5 0.5 0.5"
+emitLife = 1.0
+textureName = "spark.tga"
+startColor = "255 255 0 255"
+finishColor = "255 0 0 0"
+startRadius = 0.2
+finishRadius = 0.1
+animateTime = 1.0
+rotationRate = 20.0

@@ -56,6 +56,13 @@ otherMsg = "avhrazvi.wav"
 user1Msg = "avhrazv6.wav"
 killedMsg = "avhrazvk.wav"
 diedMsg = "abetty3.wav"
+// CR DAMAGE FX BEGIN
+// NSDF damage smoke (ODF/dmgnsdf1-4.odf)
+damageEffect1 = "dmgnsdf1"
+damageEffect2 = "dmgnsdf2"
+damageEffect3 = "dmgnsdf3"
+damageEffect4 = "dmgnsdf4"
+// CR DAMAGE FX END
 
 [HoverCraftClass]
 setAltitude = 1.5

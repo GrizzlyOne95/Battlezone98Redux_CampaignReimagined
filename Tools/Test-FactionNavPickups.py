@@ -258,7 +258,8 @@ for route in routes:
     check(hashlib.sha256(baseline.read_bytes()).hexdigest()==route['sha256'],'armory baseline pin: '+path.name)
     # voice-over slots are audio, retuned separately; nacelle pitch gains belong to the
     # NacelleJets flame housings (pinned in craft-gameplay-baselines.json), not the build menu
-    old,new=({k:v for k,v in settings(f.read_text()).items() if not k[1].endswith('msg') and k not in NACELLE_PITCH} for f in (baseline,path))
+    # damageEffect slots are faction damage smoke (presentation), set on every craft
+    old,new=({k:v for k,v in settings(f.read_text()).items() if not k[1].endswith('msg') and not k[1].startswith('damageeffect') and k not in NACELLE_PITCH} for f in (baseline,path))
     if path.name.lower().startswith('bvrecy'):
         check(new.pop(RECYCLER_RADIUS,None)=='10.0' and RECYCLER_RADIUS not in old,'bvrecy geyser-deploy collisionRadius fix present: '+path.name)
         for key in RECYCLER_SPEEDS:
