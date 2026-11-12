@@ -46,13 +46,13 @@ textureName = "smoke2.tga"
 textureBlend = "srcalpha invsrcalpha modulatealpha"
 startColor = "105 105 115 120"
 finishColor = "70 70 80 0"
-startRadius = 0.28
-finishRadius = 0.65
+startRadius = 0.168
+finishRadius = 0.39
 animateTime = 0.65
-emitDelay = 0.04
+emitDelay = 0.0073
 emitVelocity = "0.0 0.0 -4.0"
 emitVariance = "0.7 0.7 0.3"
-emitLife = 0.65
+emitLife = 0.39
 
 [Light]
 renderBase = "draw_light"

@@ -1,0 +1,263 @@
+{
+ "note": "Pre-change (git HEAD before the trail smoothing) values per ordnance with draw_twirl_trail emitters: standing sprites, overdraw proxy (sum standing * avgRadius^2) and per-section life and radii.",
+ "ordnance": {
+  "bouncebm": {
+   "standing": 110.0,
+   "overdraw": 36.65,
+   "sections": {
+    "smoke": {
+     "standing": 60.0,
+     "life": 0.6,
+     "r0": 0.3,
+     "r1": 0.6
+    },
+    "smoke2": {
+     "standing": 50.0,
+     "life": 1.0,
+     "r0": 0.4,
+     "r1": 1.0
+    }
+   }
+  },
+  "crfp0": {
+   "standing": 10.0,
+   "overdraw": 0.225,
+   "sections": {
+    "trail": {
+     "standing": 10.0,
+     "life": 0.12,
+     "r0": 0.22,
+     "r1": 0.08
+    }
+   }
+  },
+  "grenade": {
+   "standing": 110.0,
+   "overdraw": 57.725,
+   "sections": {
+    "smoke": {
+     "standing": 60.0,
+     "life": 0.6,
+     "r0": 0.4,
+     "r1": 0.8
+    },
+    "smoke2": {
+     "standing": 50.0,
+     "life": 1.0,
+     "r0": 0.5,
+     "r1": 1.2
+    }
+   }
+  },
+  "heatmsl": {
+   "standing": 85.714,
+   "overdraw": 171.339286,
+   "sections": {
+    "smoke": {
+     "standing": 40.0,
+     "life": 1.0,
+     "r0": 0.75,
+     "r1": 1.5
+    },
+    "smoke2": {
+     "standing": 45.714,
+     "life": 1.28,
+     "r0": 1.25,
+     "r1": 2.0
+    }
+   }
+  },
+  "imagemsl": {
+   "standing": 151.795,
+   "overdraw": 86.215385,
+   "sections": {
+    "smoke": {
+     "standing": 53.333,
+     "life": 0.8,
+     "r0": 0.3,
+     "r1": 0.9
+    },
+    "smoke2": {
+     "standing": 98.462,
+     "life": 1.28,
+     "r0": 0.4,
+     "r1": 1.25
+    }
+   }
+  },
+  "lgmissl": {
+   "standing": 16.25,
+   "overdraw": 3.513656,
+   "sections": {
+    "smoke": {
+     "standing": 16.25,
+     "life": 0.65,
+     "r0": 0.28,
+     "r1": 0.65
+    }
+   }
+  },
+  "popper": {
+   "standing": 80.0,
+   "overdraw": 43.3,
+   "sections": {
+    "smoke": {
+     "standing": 40.0,
+     "life": 0.6,
+     "r0": 0.4,
+     "r1": 0.8
+    },
+    "smoke2": {
+     "standing": 40.0,
+     "life": 1.0,
+     "r0": 0.5,
+     "r1": 1.2
+    }
+   }
+  },
+  "rocket": {
+   "standing": 32.0,
+   "overdraw": 4.5,
+   "sections": {
+    "smoke": {
+     "standing": 32.0,
+     "life": 0.16,
+     "r0": 0.5,
+     "r1": 0.25
+    }
+   }
+  },
+  "rocket2": {
+   "standing": 54.767,
+   "overdraw": 190.668605,
+   "sections": {
+    "smoke": {
+     "standing": 25.0,
+     "life": 1.0,
+     "r0": 0.75,
+     "r1": 2.25
+    },
+    "smoke2": {
+     "standing": 29.767,
+     "life": 1.28,
+     "r0": 1.25,
+     "r1": 3.0
+    }
+   }
+  },
+  "rocketh": {
+   "standing": 32.0,
+   "overdraw": 4.5,
+   "sections": {
+    "smoke": {
+     "standing": 32.0,
+     "life": 0.16,
+     "r0": 0.5,
+     "r1": 0.25
+    }
+   }
+  },
+  "satbolt": {
+   "standing": 30.0,
+   "overdraw": 1.51875,
+   "sections": {
+    "smoke": {
+     "standing": 30.0,
+     "life": 0.12,
+     "r0": 0.3,
+     "r1": 0.15
+    }
+   }
+  },
+  "sgrenade": {
+   "standing": 44.0,
+   "overdraw": 28.16,
+   "sections": {
+    "smoke": {
+     "standing": 44.0,
+     "life": 1.1,
+     "r0": 0.45,
+     "r1": 1.15
+    }
+   }
+  },
+  "shell": {
+   "standing": 50.667,
+   "overdraw": 34.44,
+   "sections": {
+    "smoke": {
+     "standing": 26.667,
+     "life": 0.8,
+     "r0": 0.5,
+     "r1": 1.0
+    },
+    "smoke2": {
+     "standing": 24.0,
+     "life": 1.2,
+     "r0": 0.6,
+     "r1": 1.2
+    }
+   }
+  },
+  "shunter": {
+   "standing": 59.167,
+   "overdraw": 15.659667,
+   "sections": {
+    "flame": {
+     "standing": 29.167,
+     "life": 0.35,
+     "r0": 0.5,
+     "r1": 0.18
+    },
+    "smoke": {
+     "standing": 30.0,
+     "life": 0.9,
+     "r0": 0.38,
+     "r1": 0.9
+    }
+   }
+  },
+  "srktbom": {
+   "standing": 15.714,
+   "overdraw": 6.138393,
+   "sections": {
+    "smoke": {
+     "standing": 15.714,
+     "life": 0.55,
+     "r0": 0.35,
+     "r1": 0.9
+    }
+   }
+  },
+  "swarmer": {
+   "standing": 89.231,
+   "overdraw": 50.407692,
+   "sections": {
+    "smoke": {
+     "standing": 40.0,
+     "life": 0.4,
+     "r0": 0.3,
+     "r1": 1.0
+    },
+    "smoke2": {
+     "standing": 49.231,
+     "life": 0.64,
+     "r0": 0.4,
+     "r1": 1.25
+    }
+   }
+  },
+  "tsmkshl": {
+   "standing": 7.222,
+   "overdraw": 1.805556,
+   "sections": {
+    "smoke": {
+     "standing": 7.222,
+     "life": 0.65,
+     "r0": 0.3,
+     "r1": 0.7
+    }
+   }
+  }
+ }
+}
