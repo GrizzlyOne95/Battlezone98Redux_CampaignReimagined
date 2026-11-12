@@ -155,7 +155,7 @@ V.FrostFallRange       = 380.0
 -- same fallout adds up to GlassFallout to the glass frost level.
 V.GlitterBase          = 0.15
 V.GlassFallout         = 0.5
-V.FrostHeight          = 2.0     -- sheet height above the ground
+V.FrostHeight          = 0.35    -- sheet height above the ground (flat cards, 0.5 m thick: top <= 0.6 m)
 
 -- Plumes.
 V.PlumeMergeRadius     = 45.0
@@ -1583,11 +1583,14 @@ end
 --   send            function(op, ...) -- delivers an EuropaState / EuropaPlume /
 --                   EuropaQuake / EuropaSurge event to every guest (host only)
 --   sites           the generated CREuropaSites table (vents, frost anchors)
+--   wakeSurface     CRWake surface for vehicle/pilot kickup: "ice" (default, Europa) or
+--                   "ganymede" (CRCCARuntime passes it for CRGanymedeSites* modules)
 --   startLevel, targetLevel
 --   enabled, debug, quality, baseSky     passthrough
 --   plumes, iceFall, frostHaze, ventHaze, quakes, randomQuakes, quakeIce,
 --   surges, randomSurges, aurora, episodes, sounds
 --                   sub-system switches
+--   glassFrost      0..1 opacity scale for the cockpit-glass frost (default 1, Europa)
 function V.Init(options)
     if V.Initialized then return end
     options = options or {}
@@ -1605,6 +1608,9 @@ function V.Init(options)
         if options[key] ~= nil then V[field] = options[key] and true or false end
     end
 
+    -- Opacity scale for the cockpit-glass frost (CRWetGlass); Ganymede missions pass less than Europa's 1.
+    V.GlassFrostStrength = Clamp(tonumber(options.glassFrost) or 1.0, 0.0, 1.0)
+
     V.SetNetwork({ send = options.send, authority = options.authority })
 
     V.RegisterPresets()
@@ -1618,7 +1624,7 @@ function V.Init(options)
     -- Vehicle wakes: render-only debris under low, moving craft near the viewer
     -- (shared CRWake module). options.vehicleWakes = false switches them off.
     pcall(Wake.Init, {
-        surface = "ice", enabled = options.vehicleWakes ~= false, quality = options.quality,
+        surface = options.wakeSurface or "ice", enabled = options.vehicleWakes ~= false, quality = options.quality,
         debug = options.debug,
     })
 
@@ -1751,7 +1757,7 @@ local function UpdateGlassSnow(dt)
     end
     local step = GLASS_SNOW_RATE * dt
     V.GlassSnow = V.GlassSnow + Clamp(target - V.GlassSnow, -step, step)
-    glass.Weather("frost", V.GlassSnow)
+    glass.Weather("frost", V.GlassSnow, V.GlassFrostStrength)
     if V.GlassSnow > 0.0 or glass.Busy() then glass.Update(0.0) end
 end
 

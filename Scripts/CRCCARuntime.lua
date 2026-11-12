@@ -112,7 +112,7 @@ local EXTRA_OPS = config.presentationOps or {}
 
 -- ---------------------------------------------------------------- weather (optional, never fatal)
 -- config.weather = { module = "CRVenusWeather", sites = "CRVenusSitesS1", environment = {...},
---   startLevel = 1, targetLevel = 2, ops = {"VenusState",...}, beats = function(W, M, authority) end }
+--   startLevel = 1, targetLevel = 2, glassFrost = 0.5, ops = {"VenusState",...}, beats = function(W, M, authority) end }
 local Weather, weatherFailed = nil, {}
 local WEATHER_OPS = {}
 local weatherStarted, weatherAnnounced, envStarted = false, false, false
@@ -931,8 +931,11 @@ local function InitWeather()
         authority = authority,
         seed = s.weatherSeed, -- nil: the leader/offline picks one, guests wait for the host's state
         sites = Weather.sites,
+        -- CREuropaWeather's vehicle wake: Ganymede's sites modules are named CRGanymedeSites*.
+        wakeSurface = w.wakeSurface or ((type(w.sites) == "string" and w.sites:find("^CRGanymedeSites")) and "ganymede" or nil),
         startLevel = w.startLevel or 1,
         targetLevel = w.targetLevel or 2,
+        glassFrost = w.glassFrost,
         send = net and function(op, ...)
             events[#events + 1] = { op = op, args = { ... }, n = select("#", ...), ttl = RESOLVE_TIMEOUT }
         end or nil,

@@ -905,7 +905,7 @@ end
 
 local function LavaCreate(_, pool)
     local y = TerrainHeight(pool.x, pool.z) or 0.0
-    local name = Fx_Create("lava", "CR/Io/LavaFog", pool.x, y + 2.0, pool.z)
+    local name = Fx_Create("lava", "CR/Io/LavaFog", pool.x, y + 0.35, pool.z)
     if name == nil then return nil end
     Call("SetParticleSystemParticleQuota", name, 70)
     local record = {

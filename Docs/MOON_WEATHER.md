@@ -82,9 +82,9 @@ and at `Time = 900` it fired toward an empty sky at 35 degrees.
 ### 1. Ground mist (pools, from map data)
 
 `CR/Moon/GroundMist`: flat cards (`billboard_type perpendicular_common`, `common_direction 0 1 0`, the
-same trick as `CR/VenusGroundHaze`) from a 44 x 1.3 x 44 Box emitter lifted to `MistHeight` (0.85) above
-the ground, so the sheets spread over 0.2-1.5 above it. Flat cards keep the mist a thin layer instead of a
-column of camera-facing puffs. Cards are 34 units wide, live 18-28 s, drift at 0.04-0.26 units/s, and
+same trick as `CR/VenusGroundHaze`) from a 44 x 0.5 x 44 Box emitter lifted to `MistHeight` (0.35) above
+the ground, so the sheets spread over 0.1-0.6 above it (an on-foot eye, ~1.5, is always above the layer). Flat cards keep the mist a thin layer instead of a
+column of camera-facing puffs. Cards are 34 units wide, live 18-28 s, drift at 0.04-0.12 units/s, and
 fade in and out through a `ColourInterpolator` (peak alpha 0.11).
 
 Pools are streamed like Europa's frost haze: the nearest of `sites.mist.pools` inside `PoolStreamIn` (330)
@@ -151,8 +151,8 @@ Every `HoverInterval` (0.25 s) the director looks at craft within `HoverTrackRan
 tracks the nearest `MaxHoverSystems` (4) that qualify: below `HoverMaxHeight` (7) and moving faster than
 `HoverMinSpeed` (2.5), or (for `HoverIdleGrace` 6 s after they last moved) hovering within
 `HoverIdleMaxHeight` (3) at `HoverIdleShare` of the rate. A craft that has never moved (a gun tower that
-counts as a craft) emits nothing. `CR/Moon/HoverDust` is parked on the ground under each, flat Box, low outward
-cone, 4-8 s lifetime. The player's own craft counts. A craft that stops qualifying goes quiet and loses its
+counts as a craft) emits nothing. `CR/Moon/HoverDust` is parked on the ground under each (now through `CRWake`, see
+`VEHICLE_WAKES.md`: aimed behind the craft, lunar gravity, ballistic lifetime, no growth). The player's own craft counts. A craft that stops qualifying goes quiet and loses its
 system after `HoverLinger` (4 s).
 
 ## Co-op model
@@ -254,9 +254,9 @@ first-person view across level ground, Earth in frame, a rock in the foreground)
    look like thin slivers or vanish at grazing angles, the flat cards are edge-on: switch `CR/Moon/LocalMist` and
    `GroundMist` to `billboard_type point` and reduce `particle_width` / `particle_height` to ~8-10 (puffier, camera
    facing), or raise `MistHeight` a little.
-2. **Height.** The concept has the mist at knee to waist of a soldier. `MistHeight` (0.85) centres the layer; the
-   band is +/- 0.65 (the Box thickness 1.3). Too tall: lower `MistHeight`, and shrink `height 1.3` in the payload.
-   Too low (rocks and tanks stand clear of it): raise `MistHeight` to ~1.2.
+2. **Height.** The mist is ankle to knee on purpose, so it never blocks an on-foot view. `MistHeight` (0.35) centres the
+   layer; the band is +/- 0.25 (the Box thickness 0.5), top 0.6. Keep `MistHeight` + 0.25 at or below 0.6.
+   Too low (rocks and tanks stand clear of it): accept it, or raise `MistHeight` knowing the layer then reaches the eyes.
 3. **Density.** Thin overall: `SetDensity` / `DensityDefault`, then `PoolRate` (1.15) and `LocalRate` (0.8). Too
    heavy: reduce `MistAlphaA` / `MistAlphaB` first (the cards stack), then the rates. Too much like a wall: lower
    `LocalBaseWeight` (0.35) so only low ground carries it.

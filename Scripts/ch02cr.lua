@@ -57,7 +57,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     endedFlags = { "lost", "won" }, -- the result is decided: nothing more is built
     orders = { "Goto", "Attack", "Hunt" }, -- replayed on the real unit when a ticket is built
     -- Ganymede: CREuropaWeather over the generated CH02 sites (seven geyser vents, the first beside the armoury).
-    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesCH02", startLevel = 1, targetLevel = 1,
+    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesCH02", glassFrost = 0.5, startLevel = 1, targetLevel = 1,
         environment = { lightingMode = "orbit", orbit = { period = 1800, startHour = -40 } },
         ops = { "EuropaState", "EuropaPlume", "EuropaQuake", "EuropaSurge" },
         beats = function(europa, state, s)
