@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5747,
+  "count": 5833,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -951,6 +951,42 @@
       "runtime": "bvcnst.vdf"
     },
     {
+      "source": "Assets\\ModelFixes\\bvdropc.mesh",
+      "runtime": "bvdropc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropc.sdf",
+      "runtime": "bvdropc.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropc.skeleton",
+      "runtime": "bvdropc.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropo.mesh",
+      "runtime": "bvdropo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropo.sdf",
+      "runtime": "bvdropo.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropo.skeleton",
+      "runtime": "bvdropo.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropx.mesh",
+      "runtime": "bvdropx.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropx.sdf",
+      "runtime": "bvdropx.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bvdropx.skeleton",
+      "runtime": "bvdropx.skeleton"
+    },
+    {
       "source": "Assets\\ModelFixes\\bvhaul.mesh",
       "runtime": "bvhaul.mesh"
     },
@@ -1165,6 +1201,34 @@
     {
       "source": "Assets\\ModelFixes\\ccn11nac.geo",
       "runtime": "ccn11nac.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cdr11bdy.geo",
+      "runtime": "cdr11bdy.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cdr11lg1.geo",
+      "runtime": "cdr11lg1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cdr11lg2.geo",
+      "runtime": "cdr11lg2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cdr11lg3.geo",
+      "runtime": "cdr11lg3.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cdr11lg4.geo",
+      "runtime": "cdr11lg4.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cdr11rmp.geo",
+      "runtime": "cdr11rmp.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cdr11rpf.geo",
+      "runtime": "cdr11rpf.geo"
     },
     {
       "source": "Assets\\ModelFixes\\cfr11bda.geo",
@@ -1425,6 +1489,42 @@
     {
       "source": "Assets\\ModelFixes\\cvcnst.vdf",
       "runtime": "cvcnst.vdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropc.mesh",
+      "runtime": "cvdropc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropc.sdf",
+      "runtime": "cvdropc.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropc.skeleton",
+      "runtime": "cvdropc.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropo.mesh",
+      "runtime": "cvdropo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropo.sdf",
+      "runtime": "cvdropo.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropo.skeleton",
+      "runtime": "cvdropo.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropx.mesh",
+      "runtime": "cvdropx.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropx.sdf",
+      "runtime": "cvdropx.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\cvdropx.skeleton",
+      "runtime": "cvdropx.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\cvfigh.mesh",
@@ -1883,6 +1983,42 @@
       "runtime": "scv11nac.geo"
     },
     {
+      "source": "Assets\\ModelFixes\\sdr11bdy.geo",
+      "runtime": "sdr11bdy.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11cl1.geo",
+      "runtime": "sdr11cl1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11cl2.geo",
+      "runtime": "sdr11cl2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11lg1.geo",
+      "runtime": "sdr11lg1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11lg2.geo",
+      "runtime": "sdr11lg2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11lg3.geo",
+      "runtime": "sdr11lg3.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11lg4.geo",
+      "runtime": "sdr11lg4.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11rmp.geo",
+      "runtime": "sdr11rmp.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sdr11rpf.geo",
+      "runtime": "sdr11rpf.geo"
+    },
+    {
       "source": "Assets\\ModelFixes\\splintbm.mesh",
       "runtime": "splintbm.mesh"
     },
@@ -1925,6 +2061,42 @@
     {
       "source": "Assets\\ModelFixes\\svcnst.vdf",
       "runtime": "svcnst.vdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropc.mesh",
+      "runtime": "svdropc.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropc.sdf",
+      "runtime": "svdropc.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropc.skeleton",
+      "runtime": "svdropc.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropo.mesh",
+      "runtime": "svdropo.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropo.sdf",
+      "runtime": "svdropo.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropo.skeleton",
+      "runtime": "svdropo.skeleton"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropx.mesh",
+      "runtime": "svdropx.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropx.sdf",
+      "runtime": "svdropx.sdf"
+    },
+    {
+      "source": "Assets\\ModelFixes\\svdropx.skeleton",
+      "runtime": "svdropx.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\svfigh.mesh",
@@ -4687,6 +4859,42 @@
       "runtime": "bbwpow_N.dds"
     },
     {
+      "source": "Assets\\Textures\\bdrvhull_D.dds",
+      "runtime": "bdrvhull_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvhull_N.dds",
+      "runtime": "bdrvhull_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvhull_S.dds",
+      "runtime": "bdrvhull_S.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvhullw_D.dds",
+      "runtime": "bdrvhullw_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvhullw_E.dds",
+      "runtime": "bdrvhullw_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvtrim_D.dds",
+      "runtime": "bdrvtrim_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvtrim_E.dds",
+      "runtime": "bdrvtrim_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvtrim_N.dds",
+      "runtime": "bdrvtrim_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\bdrvtrim_S.dds",
+      "runtime": "bdrvtrim_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\bflame.png",
       "runtime": "bflame.png"
     },
@@ -5119,6 +5327,38 @@
       "runtime": "cbwpow_N.dds"
     },
     {
+      "source": "Assets\\Textures\\cdrvhull_D.dds",
+      "runtime": "cdrvhull_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cdrvhull_E.dds",
+      "runtime": "cdrvhull_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cdrvhull_N.dds",
+      "runtime": "cdrvhull_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cdrvhull_S.dds",
+      "runtime": "cdrvhull_S.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cdrvtrim_D.dds",
+      "runtime": "cdrvtrim_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cdrvtrim_E.dds",
+      "runtime": "cdrvtrim_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cdrvtrim_N.dds",
+      "runtime": "cdrvtrim_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cdrvtrim_S.dds",
+      "runtime": "cdrvtrim_S.dds"
+    },
+    {
       "source": "Assets\\Textures\\color_ramp_plasma_blue_N.dds",
       "runtime": "color_ramp_plasma_blue_N.dds"
     },
@@ -5529,6 +5769,38 @@
     {
       "source": "Assets\\Textures\\cramns_ACT.dds",
       "runtime": "cramns_ACT.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvhull_D.dds",
+      "runtime": "crdvhull_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvhull_E.dds",
+      "runtime": "crdvhull_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvhull_N.dds",
+      "runtime": "crdvhull_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvhull_S.dds",
+      "runtime": "crdvhull_S.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvtrim_D.dds",
+      "runtime": "crdvtrim_D.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvtrim_E.dds",
+      "runtime": "crdvtrim_E.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvtrim_N.dds",
+      "runtime": "crdvtrim_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crdvtrim_S.dds",
+      "runtime": "crdvtrim_S.dds"
     },
     {
       "source": "Assets\\Textures\\crfmine_d.dds",
@@ -11579,6 +11851,18 @@
       "runtime": "bvcnst.material"
     },
     {
+      "source": "Materials\\bvdropc.material",
+      "runtime": "bvdropc.material"
+    },
+    {
+      "source": "Materials\\bvdropo.material",
+      "runtime": "bvdropo.material"
+    },
+    {
+      "source": "Materials\\bvdropx.material",
+      "runtime": "bvdropx.material"
+    },
+    {
       "source": "Materials\\bvhaul.material",
       "runtime": "bvhaul.material"
     },
@@ -12191,6 +12475,18 @@
       "runtime": "cvcnst.material"
     },
     {
+      "source": "Materials\\cvdropc.material",
+      "runtime": "cvdropc.material"
+    },
+    {
+      "source": "Materials\\cvdropo.material",
+      "runtime": "cvdropo.material"
+    },
+    {
+      "source": "Materials\\cvdropx.material",
+      "runtime": "cvdropx.material"
+    },
+    {
       "source": "Materials\\cvfigh.material",
       "runtime": "cvfigh.material"
     },
@@ -12689,6 +12985,18 @@
     {
       "source": "Materials\\svcnst.material",
       "runtime": "svcnst.material"
+    },
+    {
+      "source": "Materials\\svdropc.material",
+      "runtime": "svdropc.material"
+    },
+    {
+      "source": "Materials\\svdropo.material",
+      "runtime": "svdropo.material"
+    },
+    {
+      "source": "Materials\\svdropx.material",
+      "runtime": "svdropx.material"
     },
     {
       "source": "Materials\\svfigh.material",
@@ -15255,6 +15563,18 @@
       "runtime": "bvcnst.odf"
     },
     {
+      "source": "ODF\\bvdropc.odf",
+      "runtime": "bvdropc.odf"
+    },
+    {
+      "source": "ODF\\bvdropo.odf",
+      "runtime": "bvdropo.odf"
+    },
+    {
+      "source": "ODF\\bvdropx.odf",
+      "runtime": "bvdropx.odf"
+    },
+    {
       "source": "ODF\\bvfigh.odf",
       "runtime": "bvfigh.odf"
     },
@@ -16145,6 +16465,18 @@
     {
       "source": "ODF\\cvcnst.odf",
       "runtime": "cvcnst.odf"
+    },
+    {
+      "source": "ODF\\cvdropc.odf",
+      "runtime": "cvdropc.odf"
+    },
+    {
+      "source": "ODF\\cvdropo.odf",
+      "runtime": "cvdropo.odf"
+    },
+    {
+      "source": "ODF\\cvdropx.odf",
+      "runtime": "cvdropx.odf"
     },
     {
       "source": "ODF\\cvfigh.odf",
@@ -17777,6 +18109,18 @@
     {
       "source": "ODF\\svdemo.odf",
       "runtime": "svdemo.odf"
+    },
+    {
+      "source": "ODF\\svdropc.odf",
+      "runtime": "svdropc.odf"
+    },
+    {
+      "source": "ODF\\svdropo.odf",
+      "runtime": "svdropo.odf"
+    },
+    {
+      "source": "ODF\\svdropx.odf",
+      "runtime": "svdropx.odf"
     },
     {
       "source": "ODF\\svfi12.odf",

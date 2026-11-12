@@ -201,6 +201,7 @@ function F.makePeer(id, team, network, options)
     end
     e.IsCraft = function(h) return W.objects[h] ~= nil and W.objects[h].craft == true end
     e.GetFront = function(h) return {x = 0, y = 0, z = 1} end
+    e.GetVelocity = function(h) return {x = 0, y = 0, z = 0} end
     e.GetMaxHealth = function(h) return 1 end
     e.SetCurHealth = function(h, v) record("SetCurHealth", h, v) end
     e.StopCockpitTimer = function() record("StopCockpitTimer") end
@@ -327,11 +328,11 @@ function F.makePeer(id, team, network, options)
     for _, name in ipairs({"Retreat", "Goto", "Attack", "Patrol", "SetPilotClass", "SetAIControl", "SetObjectiveName",
         "SetObjectiveOn", "SetObjectiveOff", "SetUserTarget", "ClearObjectives", "AddObjective", "UpdateObjective", "Ally",
         "UnAlly", "DisplayMessage", "FailMission", "SucceedMission", "SetScrap", "AddScrap", "SetPilot", "AddPilot",
-        "StartEarthquake", "UpdateEarthQuake", "StopEarthquake"}) do
+        "StartEarthquake", "UpdateEarthQuake", "StopEarthquake", "Stop"}) do
         local n = name
         e[n] = function(...)
             if n == "SetObjectiveOn" or n == "SetObjectiveName" or n == "SetUserTarget" or n == "Attack" or n == "Goto"
-                or n == "Retreat" or n == "Patrol" or n == "SetPilotClass" then
+                or n == "Retreat" or n == "Patrol" or n == "SetPilotClass" or n == "Stop" then
                 assert(e.IsValid((...)), n .. " used a not-yet-valid handle")
             end
             record(n, ...)
@@ -421,6 +422,8 @@ function F.makePeer(id, team, network, options)
         modules.DiffUtils = setfenv(assert(loadfile("Scripts/DiffUtils.lua")), e)()
     end
     modules.CRCCARuntime = setfenv(assert(loadfile("Scripts/CRCCARuntime.lua")),e)()
+    -- options.dropIn: the real dropship module (Test-Bdmisn01DropIn.lua). Absent by default: the stock start.
+    if options.dropIn then modules.CRDropIn = setfenv(assert(loadfile("Scripts/CRDropIn.lua")), e)() end
     if options.faithful then e.CR_TEST_FAITHFUL = true end
     setfenv(assert(loadfile(options.script or "Scripts/bd01cr.lua")), e)()
     p.chunkCalls = #p.calls -- everything recorded so far ran at chunk load, before Start

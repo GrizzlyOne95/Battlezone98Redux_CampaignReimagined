@@ -172,6 +172,91 @@ M = NewState()
 local RESTORED_CINEMATIC, RESTORED_ESCORTS, RESTORED_CAVALRY, RESTORED_DISPATCH = true, true, true, true
 local Restored
 if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
+-- The dropship opening (Scripts/CRDropIn.lua, Docs/MISNS1_COOP.md "Dropship opening"), offline and co-op: one CCA svdrop
+-- lands the Soviet recycler and every human's craft at the stock start, and the stock body waits for it (Update returns
+-- before the body, so the briefing, the AIP, every timer and the opening film start at the landing). A missing module or
+-- missing ship art falls back to the stock start. The plan rides the runtime's ordered stream as the presentation ops
+-- below, so a guest without the module still acknowledges them. Natives here are the engine's, not the shadows below.
+local DropIn
+if not CR_TEST_FAITHFUL then
+    local okDropIn, module = pcall(require, "CRDropIn")
+    if okDropIn then DropIn = module else print("[misns1] stock opening: CRDropIn unavailable: " .. tostring(module)) end
+end
+local dropOps = {}
+for _, op in ipairs({ "DropShip", "DropCrew", "DropGo" }) do
+    dropOps[op] = function(...)
+        if DropIn then
+            M.dropin = M.dropin or {}
+            DropIn.Apply(M.dropin, op, ...)
+        end
+    end
+end
+local function DropStart(R)
+    if not DropIn then return end
+    DropIn.Configure({
+        present = R.Present, exu = R.Exu, log = print, owner = "mission:misns1-dropship",
+        isNetwork = R.Coop.IsNetworkGame, isLeader = R.Coop.IsAuthority,
+        myTeam = R.Coop.GetLocalTeam, player = R.Native.GetPlayerHandle,
+        forEachHuman = function(fn) R.Coop.ForEachPlayerHandle(function(h) fn(h) end) end,
+        cameraReady = R.CameraReady, cameraObject = R.CameraObject,
+        cameraFinish = R.CameraFinish, cameraCancelled = function() return R.CameraCancelled() or (not R.Coop.IsNetworkGame() and R.CameraSkipped()) end,
+    })
+    DropIn.Reset()
+end
+local function DropFlat(h)
+    local pos = GetPosition(h)
+    return { x = pos.x, z = pos.z }
+end
+-- Leader: true while the stock body must wait (the ship descending, its ramps opening). The drop keeps running
+-- after the release (cargo driving out, ramps folding, lift-off) alongside the mission.
+local function DropUpdate(R)
+    if not DropIn then return false end
+    if not M.dropin then
+        if M.missionstart then return false end -- a save from before the opening: the mission is already under way
+        M.dropin = {}
+        local recy = GetHandle("svrecy2_recycler")
+        -- The stock player spot: the authored user tank. In co-op the humans start elsewhere and it is a plain team 1 tank.
+        local spot = GetHandle("svtank0_wingman")
+        if not IsValid(spot) then spot = R.Native.GetPlayerHandle() end
+        if not (IsValid(recy) and IsValid(spot)) then
+            print("[misns1] stock opening: recycler or player spot missing")
+            M.dropin.phase = "done"
+            return false
+        end
+        local pr, ps = DropFlat(recy), DropFlat(spot)
+        local exclude, humans = { [recy] = true, [spot] = true }, {}
+        R.Coop.ForEachPlayerHandle(function(h) humans[h] = true; exclude[h] = true end)
+        local teams = {}
+        R.Coop.ForEachHumanTeam(function(team) teams[#teams + 1] = team end)
+        table.sort(teams)
+        local cargo = { { h = recy, goal = pr, slot = "recycler" } }
+        if not humans[spot] then cargo[#cargo + 1] = { h = spot, goal = ps } end
+        local begun = pcall(DropIn.Begin, M.dropin, { profile = "svdrop", exclude = exclude, ships = {
+            { anchor = { x = (pr.x + ps.x) / 2, z = (pr.z + ps.z) / 2 }, delay = 0, crew = teams, cargo = cargo },
+        } })
+        if not begun then
+            -- Whatever was built goes; the stock opening runs.
+            pcall(DropIn.Abort, M.dropin)
+            M.dropin.phase = "done"
+            return false
+        end
+    end
+    return DropIn.Update(M.dropin)
+end
+-- Every frame the body does not run for this peer: a guest holds its own craft in the hold, and a co-op warn state
+-- (host gone, late joiner, bad team) takes the drop down so no peer stays locked.
+local function DropStandby(R)
+    if not (DropIn and M.dropin) or M.dropin.phase == "done" then return end
+    local coop = R.Coop
+    if coop.IsNetworkGame() then
+        if coop.HasLeaderDeparted() or coop.HasUnsupportedPlayerTeam() or coop.HasLateJoiners() then
+            pcall(DropIn.Abort, M.dropin)
+            return
+        end
+        if not coop.IsSessionReady() then return end
+    end
+    if not coop.IsAuthority() then DropIn.Update(M.dropin) end
+end
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "misns1", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2, blackDogUnits = true,
     rallyPoints = { [0] = "svrecy2_recycler" },
@@ -199,9 +284,14 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
                 venus.SetTargetLevel(2)
             end
         end },
+    presentationOps = dropOps,
     hooks = {
+        start = function(R) DropStart(R) end,
         built = function(_, h, request) if Restored then Restored.Built(h, request) end end,
-        load = function() if Restored then Restored.OnLoad() end end,
+        load = function()
+            if Restored then Restored.OnLoad() end
+            if DropIn then DropIn.OnLoad(M.dropin) end
+        end,
     },
 })
 local RESTORED = campaignRuntime ~= nil and campaignRuntime ~= false
@@ -485,7 +575,11 @@ end)()
 
 function Update(dt)
 -- CR co-op callback >>
-    if campaignRuntime and not campaignRuntime.Update(dt) then return end
+    if campaignRuntime then
+        if not campaignRuntime.Update(dt) then DropStandby(campaignRuntime); return end
+        M.dropHold = DropUpdate(campaignRuntime)
+        if M.dropHold then return end -- the stock opening waits for the landing
+    end
 -- CR co-op callback <<
     --[=[/*
 		Here is where you 

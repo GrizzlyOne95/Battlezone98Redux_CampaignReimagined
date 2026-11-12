@@ -63,6 +63,11 @@ it). It replaces the single-player `CR04Drop.lua`, which stays in the tree only 
 | Release (21.1 s) | The camera ends on every peer, the pod goes, offline the EXU control mask clears; every peer stops pinning its craft. The leader pushes the AI cargo down the ramp lanes onto its stock spots (handed back after 40 s at most, a CR guess). The stock opening runs. |
 | Lift-off | 6 s after release, once no cargo and no human craft is within 45 m, each ship is swapped for `avdropx` (ramps fold, 2.4 s) and climbs out at 1.5 m/s^2. |
 
+The ship is a profile (`Drop.PROFILES`: `avdrop` by default, `svdrop`, `cvdrop`): ODF set, hinge, lip, floor, ramp slope, hold slots,
+exit and clear radii, hull width, and which way the bow points (a bow ramp, `cvdrop`, flips the exit). The default is `avdrop`, so this mission
+is unchanged on the wire and in play. A mission picks one with `profile = "svdrop"` in the `Drop.Begin` spec; a cargo entry can name a
+profile slot (`slot = "recycler"`). Non-default profiles add their id as a trailing number on `DropShip`.
+
 Offline the same code runs with one peer; the controls are locked by the EXU mask until the release, and a camera
 skip touches both ships down at once (the ramps still take 2.6 s). In network games each peer masks its own player too
 (an older bundled `exu.dll` refuses it, and pinning every frame stays the hold) and `CameraCancelled` is false, so no skip moves the shared timeline; a player's skip only
