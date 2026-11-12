@@ -51,7 +51,7 @@ def armed_units(docs):
 def gameplay_digest(parsed):
     parsed = {section: dict(values) for section, values in parsed.items()}
     for k in list(parsed.get('craftclass', {})):
-        if k.startswith(('recoil', 'flashoffset','casingoffset','casingdirection')):
+        if k.startswith(('recoil', 'flashoffset','casingoffset','casingdirection','damageeffect')):
             del parsed['craftclass'][k]
     # Voice-over message slots (selectGoMsg, killedMsg, ...) are audio, not gameplay.
     for values in parsed.values():
