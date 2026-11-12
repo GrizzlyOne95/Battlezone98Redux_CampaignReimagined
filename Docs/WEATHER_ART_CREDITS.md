@@ -31,7 +31,7 @@ not from editing the art.
 | `cr_grit.dds` | `DesertDetritus01.dds` | granular debris |
 | `cr_iceveil.dds` | `Mist_Cloud_2.dds` | soft cloud veil |
 | `cr_ash.dds` | `Ash_Flakez_Black_01.dds` | the alpha-carrying ash variant |
-| `cr_snow.dds` | `Ash-Flake_Darker.dds` | flake silhouette; particle colour makes it white |
+| `cr_snow.dds` | user-supplied (generated for CR, not a Kenshi file) | white flake, 256×256 RGBA; particle colour tints it |
 | `cr_rain.dds` | `Kenshi_Rain_Basic.dds` | opaque streak, additive by design |
 | `cr_rainsplash.dds` | `Kenshi_Rain_Splash_basepart.dds` | opaque, additive by design |
 | `cr_ember.dds` | `light_point.dds` | soft additive glow point |
