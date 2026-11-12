@@ -72,7 +72,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     endedFlags = { "won", "lost" },
     -- Ganymede: CREuropaWeather over the generated BD13 sites (fifteen geysers: the Black Dog base, the Chinese base
     -- and the scrap fields between them).
-    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD13", glassFrost = 0.5, startLevel = 1, targetLevel = 1,
+    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD13", glassFrost = 0.15, startLevel = 1, targetLevel = 1,
         -- Ganymede under Jupiter: the sun's real path, a short eclipse, Jupiter-shine at night.
         environment = { lightingMode = "orbit", orbit = { period = 1800, startHour = -40 } },
         ops = { "EuropaState", "EuropaPlume", "EuropaQuake", "EuropaSurge" },

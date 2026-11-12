@@ -54,7 +54,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     failDes = "bd08lose.des", -- out of lives (every human out): the stock generic debrief
     wonFlags = { "won" },
     endedFlags = { "won", "lost" },
-    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD08", glassFrost = 0.5, startLevel = 1, targetLevel = 1,
+    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD08", glassFrost = 0.15, startLevel = 1, targetLevel = 1,
         -- Ganymede under Jupiter: the sun's real path, a short eclipse, Jupiter-shine at night.
         environment = { lightingMode = "orbit", orbit = { period = 1800, startHour = -40 } },
         ops = { "EuropaState", "EuropaPlume", "EuropaQuake", "EuropaSurge" },
