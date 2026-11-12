@@ -594,6 +594,82 @@ do
     check(F.count(p2[1],"SucceedMission")==1 and #hullsOf(p2[1],0,"avdropc")==0,"no dropship module: immediate success")
 end
 
+-- the local player's input is locked (EXU control mask) while pinned aboard, and released with the ending
+do
+    -- Start forces one release (a load may leave the engine holding the mask): count clears after that baseline.
+    local base={}
+    local function clears(q) return F.count(q,"ClearPlayerControlMask")-(base[q] or 0) end
+    local function mark(p2) for _,q in ipairs(p2) do base[q]=F.count(q,"ClearPlayerControlMask") end end
+    local function lockCalls(q) return F.count(q,"SetPlayerControlMask"),clears(q) end
+    for _,n in ipairs({1,2}) do -- 1 = offline, 2 = network: every peer locks its own player
+        local w2,p2,m2=toWin(n)
+        check(F.count(p2[1],"ClearPlayerControlMask")>=1 and F.last(p2[1],"ClearPlayerControlMask")[2]=="mission:misn18drop","Start forces a release")
+        mark(p2)
+        check(lockCalls(p2[1])==0,"no lock before the ending")
+        F.runUntil(function() return m2.missionwon end,60);F.run(Drop.SHOT1/2)
+        for i=1,n do
+            local set,clr=lockCalls(p2[i])
+            check(set==1 and clr==0,"n="..n.." peer "..i.." locked once while held: "..set.."/"..clr)
+            local c=F.last(p2[i],"SetPlayerControlMask")
+            check(c[2]=="mission:misn18drop" and c[3]==4095,"unique owner, full mask")
+            check(p2[i].badge==true,"n="..n.." peer "..i.." badge shown while locked")
+        end
+        F.run(Drop.SHOT2+Drop.Total())
+        for i=1,n do
+            local set,clr=lockCalls(p2[i])
+            check(set==1 and clr>=1,"n="..n.." peer "..i.." cleared on release (a mission end may clear again): "..set.."/"..clr)
+            check(F.last(p2[i],"ClearPlayerControlMask")[2]=="mission:misn18drop","same owner cleared")
+            check(not p2[i].badge,"n="..n.." peer "..i.." badge hidden on release")
+            check(F.count(p2[i],"SucceedMission")==1,"mask lock does not disturb success")
+        end
+    end
+    -- an older exu.dll refuses: no error, the pin carries on, nothing to clear
+    local w2,p2,m2=toWin(2,{maskRefuses=true});mark(p2)
+    F.runUntil(function() return m2.missionwon end,60);F.run(Drop.SHOT1/2)
+    check(clears(p2[1])==0,"refused mask: nothing held, nothing cleared mid-ending")
+    F.run(Drop.SHOT2+Drop.Total())
+    check(F.count(p2[1],"SucceedMission")==1,"refused mask: success")
+    check(not p2[1].badge and not p2[2].badge,"refused mask: no badge")
+    -- an old EXU without the function: no error
+    w2,p2,m2=toWin(1,{noMask=true})
+    F.runUntil(function() return m2.missionwon end,60);F.run(Drop.SHOT2+Drop.Total())
+    check(F.count(p2[1],"SucceedMission")==1,"no EXU mask function: no error, success")
+    -- a load mid-sequence cannot resume the ending: the mask is released and never re-applied
+    w2,p2,m2=toWin(1);mark(p2)
+    F.runUntil(function() return m2.missionwon end,60);F.run(Drop.SHOT1/2)
+    check(F.count(p2[1],"SetPlayerControlMask")==1 and clears(p2[1])==0,"locked mid-ending")
+    p2[1].env.Load(p2[1].env.Save());F.connect();F.run(12)
+    check(clears(p2[1])>=1 and F.count(p2[1],"SetPlayerControlMask")==1,"load mid-ending: cleared, not re-locked")
+    check(not p2[1].badge,"load mid-ending: badge hidden")
+    check(F.count(p2[1],"SucceedMission")==1,"load mid-ending still succeeds")
+    -- a warn state (late joiner) mid-ending stalls the ending: the guest's lock is released, not left frozen
+    w2,p2,m2=toWin(2);mark(p2)
+    F.runUntil(function() return m2.missionwon end,60);F.run(Drop.SHOT1/2)
+    check(F.count(p2[2],"SetPlayerControlMask")==1 and clears(p2[2])==0,"guest locked mid-ending")
+    p2[2].coop.HasLateJoiners=function() return true end;F.run(2)
+    check(clears(p2[2])>=1,"warn state mid-ending releases the guest's lock")
+    check(not p2[2].badge,"warn state: badge hidden")
+    -- the leader departing mid-ending fails the guest and releases its lock
+    w2,p2,m2=toWin(2);mark(p2)
+    F.runUntil(function() return m2.missionwon end,60);F.run(Drop.SHOT1/2)
+    check(p2[2].badge==true,"guest badge up mid-ending")
+    p2[2].coop.HasLeaderDeparted=function() return true end;F.run(2)
+    check(clears(p2[2])>=1 and F.count(p2[2],"FailMission")==1,"leader departed: guest released and failed")
+    check(not p2[2].badge,"leader departed: badge hidden")
+    -- without the choreography module nothing is ever locked
+    w2,p2,m2=toWin(1,{noDrop=true})
+    F.runUntil(function() return m2.missionwon end,60);F.run(14)
+    check(F.count(p2[1],"SetPlayerControlMask")==0,"no dropship module: no lock")
+    check(not p2[1].badge,"no dropship module: no badge")
+    -- no overlay API: the lock still works, nothing shown
+    w2,p2,m2=toWin(1,{noOverlay=true});mark(p2)
+    F.runUntil(function() return m2.missionwon end,60);F.run(Drop.SHOT2+Drop.Total())
+    check(clears(p2[1])==1 and not p2[1].badge,"no overlay API: lock cycles, no badge")
+    -- a fresh Lua state after a load never locked, but the engine may still show the old badge: Start tears it down
+    w2,p2,m2=toWin(1,{staleBadge=true})
+    check(not p2[1].badge,"stale badge from an earlier state: removed at Start")
+end
+
 -- ------------------------------------------------------------------ transport-destroyed shot
 local function shotScenario(storm)
     local w2,p2,m2=setup(4,{storm=storm})
