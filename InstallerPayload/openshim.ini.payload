@@ -48,7 +48,7 @@
 ;   before any future problematic preset can reach users. This policy adjustment
 ;   does not forcibly rewrite existing customized user INIs.
 ; ============================================================================
-; OpenShimPresetRevision = 12
+; OpenShimPresetRevision = 13
 
 [General]
 SoundChannels = 0
@@ -65,9 +65,11 @@ ChunkCacheMaxAgeDays = 30
 ; Person deaths as rigid limb gibs (visual only). An enhancement, so OFF in
 ; this preset; the feature itself defaults ON when the key is absent.
 SkinnedGibs = 0
-SkinnedGibsMax = 160
-SkinnedGibsLinger = 8
+SkinnedGibsMax = 96
+SkinnedGibsLinger = 6
 SkinnedGibsForce = 1.0
+; Gibs past this many metres from the camera are hidden (render only; 0 = off).
+SkinnedGibsDrawDistance = 150
 ; One-piece craft and buildings cut into capped pieces on death (visual
 ; only). An enhancement, so OFF in this preset; the feature itself defaults
 ; ON when the key is absent.
@@ -75,8 +77,10 @@ FractureOnePiece = 0
 ; Brass casings ejected by cannon-like weapons (visual only). An
 ; enhancement, so OFF in this preset and when the key is absent.
 ShellCasings = 0
-ShellCasingsMax = 48
-ShellCasingsLinger = 6
+ShellCasingsMax = 32
+ShellCasingsLinger = 4
+; Casings past this many metres from the camera are hidden (render only; 0 = off).
+ShellCasingsDrawDistance = 70
 ShellCasingsClasses = cannon,mortar,machinegun,snipergun,-gquake,-gsandbag
 
 ; AI path grid follows collision faces for ODFs with pathBlock = "faces"
@@ -147,6 +151,7 @@ OwnedObjectReveal = 1
 HowitzerUndeployedRetaliation = 1
 TugCargoPostLoad = 1
 ConstructorRemoteBuild = 1
+AIConstructionCounterRepair = 0
 ; Keep a Daywrecker SeismicWave inside its terrain-delta buffer (stock overruns
 ; it and leaves spires/pits). Drops only zero-delta cells; applies online too.
 SeismicWaveExtentClamp = 1
@@ -163,6 +168,10 @@ MusicSingleFill = 1
 ConstructorRecycleStaleTarget = 1
 ; Defensive crash/stability guard for invalid/non-positive magnet ranges.
 MagnetZeroRangeGuard = 1
+; Stock ordnance teardown detaches each round's mesh and never destroys it, so
+; every shot fired leaks one Ogre entity for the rest of the mission. Destroys
+; it once the stock teardown has finished. Client-local render state only.
+OrdnanceEntityLeak = 1
 ; Mission briefing / archive text is scrolled a page at a time; the page size is
 ; measured with a probe that ends in a letter, but pages are drawn with a
 ; newline after every line and measure slightly taller. For some box heights a
@@ -221,11 +230,22 @@ UnfocusedMouseRelease = 1
 ; infinite one Redux gives them, so off-screen and distant craft stop being
 ; drawn and shadowed. No gameplay effect.
 RestoreCraftBounds = 1
+; Renderer only: skip drawing objects wholly past full fog. Default off.
+FogDistanceCull = 0
 ; Renderer only: effect-sprite batching CPU savings, pixel-identical output.
 ; Reuse the current DynamicGeometry piece when the depth key matches, and sort
 ; pieces without calling into OgreMain per compare.
 DynamicGeometryPieceReuse = 1
 DynamicGeometryFastSort = 1
+; Renderer only: scrap farther than this many metres from the camera casts no
+; shadow (0 = off, up to 256). Scrap stays visible and collectable.
+ScrapShadowDistance = 0
+; Renderer only: scrap farther than this many metres from the camera is not
+; drawn at all (0 = off, up to 2000). It still exists and can be collected.
+ScrapDrawDistance = 0
+; Renderer only: 0 leaves scrap out of the glow pass (1 = stock glow). Scrap
+; then no longer hides the glow of objects behind it.
+ScrapGlow = 1
 ; Register the frame thread with MMCSS ("Games") and opt out of Windows power
 ; throttling. Scheduling only; no simulation effect.
 ThreadScheduling = 1
@@ -273,8 +293,9 @@ SunRebuildRestore = 1
 ; closed to bounded diagnostics where cached technique instantiation is not
 ; available. See openshim.ini.example.
 DX11LegacyMaterialCompat = 1
-; DX11 shaderless-draw safety guard. Bounds per-draw exception spam into
-; once-only [DX11COMPAT] diagnostics; changes no pixels by itself.
+; DX11 shaderless-draw safety guard. Skips a draw D3D11 would throw on (a pass
+; without both shaders), logs it once ([DX11DRAWGUARD]) and tries one compat
+; conversion at the next frame start. See openshim.ini.example.
 DX11ShaderlessDrawGuard = 1
 ; Aggressive generic fallback for unknown custom shaders. Opt-in only: it
 ; intentionally replaces unknown semantics with a generic approximation.
@@ -534,6 +555,9 @@ TraceSkinnedGibs = 0
 TraceShellCasings = 0
 
 TracePathBlock = 0
+
+; Log AI construction counters ([AIBUILD]): every Begin/End call, a 10 s per-team dump.
+TraceAIBuildLedger = 0
 
 ; Explain a "Not Ready" multiplayer entry on the main menu. The stock shell has
 ; no way to say why: its readiness getter returns only ready/not-ready, so the
