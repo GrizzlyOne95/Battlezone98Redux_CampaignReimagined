@@ -128,7 +128,7 @@ changes, never per instance or per frame.
   recreates the litter.
 - **Leaf litter.** `CRFoliageWind.EnableLitter(points)` bins foliage placements
   into a 32 m grid. `CR/LeafLitter` (`cr_foliage.particle.payload`, sprite
-  `cr_leaf.png` from `Tools/Build-LeafTexture.py`) rides the camera; its rate is
+  `cr_leaf.png`, user-supplied generated art) rides the camera; its rate is
   `rate * density near the camera * wind above minSpeed * gust`, and its
   emitter and LinearForce follow the wind.
 

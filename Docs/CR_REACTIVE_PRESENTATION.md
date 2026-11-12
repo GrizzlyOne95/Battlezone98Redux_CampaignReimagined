@@ -208,10 +208,11 @@ it never gates firing.
 
 ## Asset list
 
-Nothing below blocks the systems from running — every reference currently points
-at an asset Campaign Reimagined already ships, and the material file names the
-substitute in a comment beside each block. This is the list that replaces the
-placeholders.
+Nothing below blocks the systems from running. The five impact billboards
+(`cr_spark`, `cr_bloom`, `cr_ion`, `cr_bioburst`, `cr_bioleak`) now use
+user-supplied art generated for CR, shipped as `.dds` under `Assets/Textures`.
+The remaining rows still reference an asset Campaign Reimagined already ships,
+and the material file names the substitute in a comment beside each block.
 
 ### Particle billboard textures
 
@@ -221,21 +222,21 @@ Small alpha-blended or additive sprites. Power-of-two, alpha channel required.
 | --- | --- | --- | --- |
 | `cr_rain.png` | `CR_FX/Rain` | Soft vertical rain streak, ~16×64 | `white.png` |
 | `cr_splash.png` | `CR_FX/RainSplash` | Small expanding ground splash ring, ~32×32 | `wpuff_0.png` |
-| `cr_snow.png` | `CR_FX/Snow` | Crystalline flake with a bright core, ~32×32 | `wpuff_0.png` |
+| `cr_snow.dds` | `CR_FX/Snow` | White flake, 256×256 | user-supplied (done) |
 | `cr_dust.png` | `CR_FX/Dust` | Soft irregular dust mote, heavy falloff, ~64×64 | `smoke.png` |
 | `cr_grit.png` | `CR_FX/Grit` | Hard sand fleck, near-opaque centre, ~16×16 | `bpuff.png` |
 | `cr_ash.png` | `CR_FX/Ash` | Ragged dark ash flake, ~32×32 | `smoke.png` |
 | `cr_ember.png` | `CR_FX/Ember` | Hot ember point with a bloom halo, ~32×32 | `flare.png` |
 | `cr_spore.png` | `CR_FX/Spore` | Luminous alien spore, soft ring structure, ~64×64 | `flare.png` |
-| `cr_spark.png` | `CR_FX/Spark` | Short bright metal spark streak, ~32×8 | `bulhit.png` |
-| `cr_bloom.png` | `CR_FX/Bloom` | Hot impact bloom, white core to orange edge, ~64×64 | `blast.png` |
+| `cr_spark.dds` | `CR_FX/Spark` | Bright metal spark streak, 32×128 vertical, oriented along velocity | user-supplied (done) |
+| `cr_bloom.dds` | `CR_FX/Bloom` | Hot impact bloom, 128×128 | user-supplied (done) |
 | `cr_debris.png` | `CR_FX/Debris` | Dark debris fleck, ~32×32 | `smoke.png` |
-| `cr_ion.png` | `CR_FX/Ion` | Ionised discharge, cyan filaments, ~64×64 | `shock.png` |
-| `cr_bioburst.png` | `CR_FX/BioBurst` | Biological rupture, cyan-violet, ~64×64 | `shock.png` |
+| `cr_ion.dds` | `CR_FX/Ion` | Ionised discharge, cyan filaments, 128×128 | user-supplied (done) |
+| `cr_bioburst.dds` | `CR_FX/BioBurst` | Biological rupture, cyan-violet, 128×128 | user-supplied (done) |
 | `cr_smoke_thin.png` | `CR_FX/SmokeThin` | Wispy grey smoke puff, ~64×64 | `smoke.png` |
 | `cr_smoke_heavy.png` | `CR_FX/SmokeHeavy` | Dense dark smoke puff, ~128×128 | `smoke.png` |
 | `cr_arc.png` | `CR_FX/Arc` | Electrical arc filament, ~64×32 | `shock.png` |
-| `cr_bioleak.png` | `CR_FX/BioLeak` | Luminous plasma leakage, ~64×64 | `flare.png` |
+| `cr_bioleak.dds` | `CR_FX/BioLeak` | Luminous plasma leakage, 128×128 | user-supplied (done) |
 
 ### Damage-state material sets
 

@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5859,
+  "count": 5864,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -5667,6 +5667,18 @@
       "runtime": "cr_ash.dds"
     },
     {
+      "source": "Assets\\Textures\\cr_bioburst.dds",
+      "runtime": "cr_bioburst.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_bioleak.dds",
+      "runtime": "cr_bioleak.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_bloom.dds",
+      "runtime": "cr_bloom.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr_cockpit_charred.png",
       "runtime": "cr_cockpit_charred.png"
     },
@@ -5711,6 +5723,10 @@
       "runtime": "cr_iceveil.dds"
     },
     {
+      "source": "Assets\\Textures\\cr_ion.dds",
+      "runtime": "cr_ion.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr_leaf.png",
       "runtime": "cr_leaf.png"
     },
@@ -5753,6 +5769,10 @@
     {
       "source": "Assets\\Textures\\cr_snow.dds",
       "runtime": "cr_snow.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_spark.dds",
+      "runtime": "cr_spark.dds"
     },
     {
       "source": "Assets\\Textures\\cr_spore.dds",
