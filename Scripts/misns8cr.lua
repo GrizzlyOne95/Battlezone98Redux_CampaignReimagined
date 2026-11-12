@@ -185,6 +185,10 @@ local RESTORED_CHOKE_CAM = true
 local RESTORED_VOICE_LINES = true -- unused shipped lines misns806, misns809, misns813 (Docs/MISNS8_COOP.md)
 -- Black Dog APCs retarget an enemy craft within this many metres (Docs/MISNS8_COOP.md): 0 disables it.
 local APC_ATTACK_RANGE = 120
+-- Once the Black Dog base breaks (plan_c): a Black Dog counterattack plus a walker strike, and three allied Soviet
+-- waves that guard the CCA Recycler (Docs/MISNS8_COOP.md). false disables each.
+local BLACK_DOG_COUNTERATTACK = true
+local SOVIET_ALLY_WAVES = true
 -- Extra Black Dog scrap per guest (the enemy economy is the AI's attack wave): 0 disables it.
 local ENEMY_SCRAP_PER_GUEST = 10
 local Restored
@@ -195,7 +199,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     rallyPoints = { [0] = "svrecycle" },
     -- The scripted Black Dog units are scaled/concealed; the replacement factory (it is the AI's producer,
     -- queried through IsDeployed/Pickup), Romeski, the nav beacons and the SAV swaps are built directly.
-    scaledOdfs = { bvtank = true, avart8 = true, bvsca8 = true, bvra8 = true },
+    scaledOdfs = { bvtank = true, avart8 = true, bvsca8 = true, bvra8 = true, bvhraz = true, bvltnk = true, bvwalk = true },
     fallbackEntries = { "a_post1", "t2post", "t3post", "american_spawn" },
     wonFlags = { "game_over" },
     endedFlags = { "game_over" },
@@ -429,11 +433,64 @@ if campaignRuntime then
             end
         end
     end
+    -- Not cut content: Workshop-remake ideas (Punishing the Black Dogs). The first frame plan_c is set (the Black
+    -- Dog base defences are gone and its Recycler runs), the Black Dogs counterattack the CCA Recycler from their
+    -- base, a walker strike follows WALKER_DELAY s later, and Soviet command sends three allied waves (team 7) in
+    -- from the map edge to guard the CCA Recycler. Black Dog units go through the scaled, concealed spawner.
+    local COUNTER_UNITS = { "bvhraz", "bvhraz", "bvhraz", "bvltnk", "bvltnk", "bvltnk" }
+    local WALKER_UNITS = { "bvwalk", "bvwalk", "bvwalk" }
+    local WALKER_DELAY = 360
+    local ALLY_WAVES = {
+        { at = 60, odf = "svfigh", voice = "misn1606.wav" },
+        { at = 240, odf = "svtank", voice = "misn1607.wav" },
+        { at = 390, odf = "svwalk", voice = "misn1608.wav" },
+    }
+    local ALLY_TEAM = 7
+    local function BlackDogWave(odfs)
+        runtime.BeginEvent()
+        for _, odf in ipairs(odfs) do
+            local h = BuildObject(odf, 5, "american_spawn")
+            if h and IsAlive(M.ccarecycle) then Attack(h, M.ccarecycle, 1) end
+        end
+    end
+    local function AllyWave(wave)
+        local where = runtime.PathExists("edge_path") and "edge_path" or "t3post"
+        local p = GetPosition(where)
+        UnAlly(5, ALLY_TEAM); UnAlly(ALLY_TEAM, 5)
+        AudioMessage(wave.voice)
+        local count = 2 + math.floor(runtime.HumanCount() / 2)
+        for i = 1, count do
+            local at = SetVector(p.x + 15 * (i - 1), 0, p.z)
+            at.y = GetTerrainHeightAndNormal(at)
+            local h = BuildObject(wave.odf, ALLY_TEAM, at)
+            if Valid(h) and IsAlive(M.ccarecycle) then runtime.Defend2(h, M.ccarecycle, 1) end
+        end
+    end
+    function Restored.Breakthrough(r)
+        if not BLACK_DOG_COUNTERATTACK and not SOVIET_ALLY_WAVES then return end
+        if M.game_over then return end
+        local now = GetTime()
+        if not r.broke then
+            if not M.plan_c then return end
+            r.broke, r.allyWave = now, 0
+            if BLACK_DOG_COUNTERATTACK then BlackDogWave(COUNTER_UNITS) end
+        end
+        if BLACK_DOG_COUNTERATTACK and not r.walkers and now >= r.broke + WALKER_DELAY then
+            r.walkers = true
+            if IsAlive(M.avrecycle) then BlackDogWave(WALKER_UNITS) end
+        end
+        local wave = ALLY_WAVES[r.allyWave + 1]
+        if SOVIET_ALLY_WAVES and wave and now >= r.broke + wave.at then
+            r.allyWave = r.allyWave + 1
+            AllyWave(wave)
+        end
+    end
     function Restored.Step()
         if not M.start_done then return end
         Restored.ChokeCam(State())
         Restored.RomeskiDead(State())
         Restored.ApcRetarget(State())
+        Restored.Breakthrough(State())
     end
 end
 -- CR restored content <<

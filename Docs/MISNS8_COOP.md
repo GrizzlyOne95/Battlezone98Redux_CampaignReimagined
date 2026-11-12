@@ -134,6 +134,26 @@ requiring aiCore, which the CCA ports avoid.
 Team 5 only, the leader only. The list lives in `State().r.apcs`, so it survives Save/Load.
 `APC_ATTACK_RANGE = 0` turns it off. Not tested in game.
 
+## Breakthrough waves (CR addition, not cut content)
+
+Stock goes quiet once the Black Dog base breaks (`M.plan_c`: its defences are gone and its Recycler
+runs). The idea comes from a Workshop remake; the code is CR's own. `Restored.Breakthrough` records the
+first frame of `plan_c` in `State().r.broke`, then:
+- **Counterattack (at once):** 3 `bvhraz` and 3 `bvltnk` from `american_spawn`, each with `Attack` on the CCA Recycler.
+- **Walker strike (+360 s):** 3 `bvwalk`, the same way, only while the Black Dog Recycler lives.
+- **Allied Soviet waves (+60, +240, +390 s):** `svfigh`, `svtank`, `svwalk` on team 7 (the support team,
+  allied with the humans), `2 + floor(humans / 2)` each, from `edge_path` (or `t3post` if that path is
+  missing), with `Defend2` on the CCA Recycler, so they guard rather than steal the kill. Each wave plays a
+  misn16 Soviet reinforcement line (`misn1606`/`1607`/`1608`). The script calls `UnAlly(5, 7)` both ways,
+  because the runtime does not.
+
+Black Dog units go through the scaled spawner: concealed arrivals, co-op extras on the first unit
+(`BeginEvent`), and the runtime's 12-unit live cap. The first `bvhraz`/`bvwalk` the mission sees becomes
+stock's `avbomb1`/`avwalker` when the AIP has not built one yet; stock only re-issues the same `Attack` on
+the CCA Recycler, so that is harmless. Nothing fires after `game_over`. Every wave fires once, and the
+state survives Save/Load. The leader runs it. `BLACK_DOG_COUNTERATTACK` and `SOVIET_ALLY_WAVES` (config, top
+of the script) turn each half off. Not tested in game.
+
 ## Stock bugs fixed in the CR layer (the faithful body is untouched)
 
 - The `M.user` comparisons and the reversed `Distance(key_tank, M.user)` argument order (see "Humans as one trigger"):
@@ -201,3 +221,6 @@ lua5.1 Tools/Test-Misns8.lua && python Tools/Test-Misns8SourceParity.py   # the 
 7. The Choke Point beacon drops when the fleeing Recycler passes `dis_geyser2`.
 8. Titan haze/drizzle/shroud follow the beats on host and guests; no weather error in the log.
 9. Victory closes with the right line (803+808 or 814) on every peer and the mission ends once.
+10. When the Black Dog base breaks: the Razor/light tank counterattack arrives unseen and goes for the CCA
+    Recycler; allied fighters, tanks and walkers enter from the west edge with their radio lines, guard the
+    Recycler and fight the Black Dogs; the walker strike follows about 6 minutes later.

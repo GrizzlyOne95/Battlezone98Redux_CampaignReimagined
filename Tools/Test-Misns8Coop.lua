@@ -477,4 +477,51 @@ for _, mode in ipairs({ "initfail", "updatefail" }) do
     check(F.count(p[1], "SucceedMission") == 1 and F.count(p[2], "SucceedMission") == 1, "a failing weather director (" .. mode .. ") never stops the mission")
 end
 
+do -- CR addition: the breakthrough beat (counterattack, walker strike, allied Soviet waves), leader only, Save/Load safe
+    local function on(team, odf)
+        local out = {}
+        for _, b in ipairs(F.builds(p[1], 0, odf)) do if b.team == team then out[#out + 1] = b end end
+        return out
+    end
+    for n = 1, 2 do
+        w, p, m = setup(n); away(p)
+        local extra = math.floor(n / 2)
+        m.plan_a, m.plan_b, m.plan_c = false, false, true
+        F.run(3)
+        local raz, light = on(5, "bvhraz"), on(5, "bvltnk")
+        check(#raz == 3 + extra and #light == 3, "humans " .. n .. ": counterattack of " .. (3 + extra) .. " Razors and 3 light tanks")
+        allSafe(p, raz); allSafe(p, light)
+        for _, b in ipairs(raz) do
+            check(b.team == 5 and F.count(p[1], "Attack", b.h, "svrecycle") == 1, "the counterattack is team 5 and goes for the CCA Recycler")
+        end
+        check(F.count(p[1], "BuildObject") > 0 and #on(7, "svfigh") == 0, "no allied wave before 60 s")
+        F.run(60)
+        local figh = on(7, "svfigh")
+        check(#figh == 2 + extra, "humans " .. n .. ": " .. (2 + extra) .. " allied fighters")
+        for _, b in ipairs(figh) do
+            check(b.team == 7 and F.count(p[1], "Defend2", b.h, "svrecycle") == 1, "allies are team 7 and guard the CCA Recycler")
+        end
+        check(F.count(p[1], "UnAlly", 5, 7) >= 1 and F.count(p[1], "UnAlly", 7, 5) >= 1, "the Black Dogs and the allies are enemies")
+        heardAll(p, "misn1606.wav")
+        for _, q in ipairs(p) do q.env.Load(q.env.Save()) end
+        F.connect(); F.run(180)
+        check(#on(7, "svtank") == 2 + extra, "the tank wave arrives at 240 s, after a Save/Load")
+        heardAll(p, "misn1607.wav")
+        -- The counterattack is dead by then; alive, it would hold the runtime's live cap and drop the walker extra.
+        for _, b in ipairs(raz) do F.kill(b.h) end
+        for _, b in ipairs(light) do F.kill(b.h) end
+        F.run(120)
+        check(#on(5, "bvwalk") == 3 + extra, "the Black Dog walker strike follows at 360 s")
+        F.run(40)
+        check(#on(7, "svwalk") == 2 + extra, "the allied walker wave arrives at 390 s")
+        heardAll(p, "misn1608.wav")
+        F.run(600)
+        check(#on(7, "svfigh") == 2 + extra and #on(5, "bvhraz") == 3 + extra, "every wave is one-shot")
+        guestsPassive(p)
+    end
+    w, p, m = setup(1); away(p)
+    F.run(30)
+    check(#on(5, "bvhraz") == 0 and #on(7, "svfigh") == 0, "nothing before the Black Dog base breaks")
+end
+
 print("misns8 co-op: " .. checks .. " checks passed")
