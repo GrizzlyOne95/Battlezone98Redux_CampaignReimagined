@@ -24,11 +24,11 @@ def stage_revision(key,default):
     return json.loads(config.read_text()).get('stage_revisions',{}).get(key,default) if config.exists() else default
 
 def base_asset_path(path):
-    """Explicit pre-recoil stage input for the original cockpit-builder tests.
+    """Pre-recoil stage input for the cockpit builders (Build-*.py).
 
-    Those tests pin authored UV/layout fixtures, not the subsequent weapon-rig
-    layer. Test-WeaponRigs independently checks the real final runtime assets.
-    No runtime/authoring reader is redirected by this helper.
+    Builders rebuild from the pre-rig stage in git history. The Test-*.py suites
+    check the shipped files directly and must not use this helper. Raises when the
+    pinned stage revision is missing from history.
     """
     path=Path(path).resolve();receipt=ROOT/'References/WeaponRigs/build.json';config=ROOT/'References/WeaponRigs/models.json'
     if not receipt.exists() or not config.exists() or not path.is_relative_to(ROOT):return path
@@ -36,10 +36,25 @@ def base_asset_path(path):
     if not any(key in r.get('outputs',{}) for r in records.values()):return path
     revision=stage_revision(key,json.loads(config.read_text())['source_revision'])
     proc=subprocess.run(['git','show',revision+':'+key],cwd=ROOT,capture_output=True)
-    if proc.returncode:return path # new helper skeletons have no pre-rig stage
+    if proc.returncode:
+        # Never fall back to the shipped (already rigged) file: a silent fallback hides an orphaned stage commit (e.g. after a squash merge).
+        raise RuntimeError('pre-rig stage %s:%s is not in git history; update stage_revisions in References/WeaponRigs/models.json (%s)'%(revision,key,proc.stderr.decode(errors='replace').strip()))
     target=ROOT/'Local/WeaponRigBase'/revision/key;target.parent.mkdir(parents=True,exist_ok=True)
     if not target.exists() or target.read_bytes()!=proc.stdout:target.write_bytes(proc.stdout)
     return target
+
+def is_rigged(path):
+    """True when the shipped mesh at path carries the weapon-rig layer (it points at a <name>_recoil.skeleton)."""
+    return ogre.read_mesh(Path(path).read_bytes()).skeleton.endswith('_recoil.skeleton')
+
+def rig_helper_parents(mesh):
+    """{handle: parent handle} of the crgun_* helper bones the weapon rig appended to the skeleton a shipped mesh points at."""
+    if not mesh.skeleton_name.endswith('_recoil.skeleton'):return {}
+    return {b.handle:b.parent for b in read_skeleton((ROOT/'Assets/Models'/mesh.skeleton_name).read_bytes()).bones if b.name.startswith('crgun_')}
+
+def rig_helper_handles(mesh):
+    """Bone handles of the crgun_* helpers the weapon rig appended to the skeleton a shipped mesh points at."""
+    return set(rig_helper_parents(mesh))
 
 def attributes(geo):
     columns=[];layout=[];at=0
