@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5850,
+  "count": 5856,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -6807,6 +6807,18 @@
       "runtime": "crvascp_N.dds"
     },
     {
+      "source": "Assets\\Textures\\crvatkp_d.dds",
+      "runtime": "crvatkp_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvatkp_e.dds",
+      "runtime": "crvatkp_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvatkp_N.dds",
+      "runtime": "crvatkp_N.dds"
+    },
+    {
       "source": "Assets\\Textures\\crvbdhqctrl_d.dds",
       "runtime": "crvbdhqctrl_d.dds"
     },
@@ -6849,6 +6861,18 @@
     {
       "source": "Assets\\Textures\\crvbscp_N.dds",
       "runtime": "crvbscp_N.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbtkp_d.dds",
+      "runtime": "crvbtkp_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbtkp_e.dds",
+      "runtime": "crvbtkp_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crvbtkp_N.dds",
+      "runtime": "crvbtkp_N.dds"
     },
     {
       "source": "Assets\\Textures\\crvcca_door_d.dds",

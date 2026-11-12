@@ -5,9 +5,12 @@
     "skeletonSha256": "4043ddea5148c1171f5b9aea8cf9c6d3786515cd92f102e3b3e2f891f3f7241e"
   },
   "outputs": {
-    "Assets/Models/bvtank_cockpit.mesh": "4f0ea88ccee0b916735a1046b194833d5cb02c21f87c513959d17b5e3d75dc38",
+    "Assets/Models/bvtank_cockpit.mesh": "999a0334c4fddc88fa31a9b5f9dcbf3304dec270607b818d2dd3cd987bfbfd47",
     "Assets/Models/bvtank_cockpit.skeleton": "4043ddea5148c1171f5b9aea8cf9c6d3786515cd92f102e3b3e2f891f3f7241e",
-    "Materials/CR_bvtank_cockpit.material": "1e48446b980c3283fe22b8c7638139aa16dd74825f729df018567f745c45829c"
+    "Assets/Textures/crvbtkp_d.dds": "176c8d5b599c3fee1934b38f7eb6ac7656b8674a484799784320bd09d2ca542f",
+    "Assets/Textures/crvbtkp_e.dds": "8ec248a08f83af7c064bbd7710fcca255d4a1551771cd1f7aeded4094a1d3a76",
+    "Assets/Textures/crvbtkp_N.dds": "339ce338f17db42e77f16f81d85e8f1aaed69693dc3308296a5a938e06047b25",
+    "Materials/CR_bvtank_cockpit.material": "aa13b7eae56ab84c86f1883f4734aabdf2a08d9f2a4fe6171231c2faaa3d0b98"
   },
   "alignment": {
     "faction": "bdog",
@@ -94,23 +97,23 @@
         "points": [
           [
             0.9372410178184509,
-            -0.02751600742340088,
+            -0.027516007423400934,
             0.22217798233032227
           ],
           [
             0.9372410178184509,
-            -0.02751600742340088,
+            -0.027516007423400934,
             -0.06040501594543457
           ],
           [
-            0.47829899191856384,
-            -0.2998810112476349,
+            0.5298967815003669,
+            -0.26925964435665545,
             -0.06040501594543457
           ],
           [
-            0.47829899191856384,
-            -0.2998810112476349,
-            0.5513379573822021
+            0.5298967815003669,
+            -0.26925964435665545,
+            0.514331263348949
           ]
         ],
         "chart": "service",
@@ -119,24 +122,24 @@
       {
         "points": [
           [
-            -0.47829899191856384,
-            -0.2998810112476349,
-            -0.06156599521636963
+            -0.5298967815003669,
+            -0.26925964435665545,
+            -0.06143546900445194
           ],
           [
             -0.9372410178184509,
-            -0.02751600742340088,
+            -0.027516007423400934,
             -0.06040501594543457
           ],
           [
             -0.9372410178184509,
-            -0.02751600742340088,
+            -0.027516007423400934,
             0.22217798233032227
           ],
           [
-            -0.47829899191856384,
-            -0.2998810112476349,
-            0.5513379573822021
+            -0.5298967815003669,
+            -0.26925964435665545,
+            0.514331263348949
           ]
         ],
         "chart": "switch",
@@ -165,7 +168,7 @@
             0.5508379778747559
           ]
         ],
-        "chart": "console",
+        "chart": "pod",
         "depth": 0.009
       },
       {
@@ -191,7 +194,7 @@
             0.5508379778747559
           ]
         ],
-        "chart": "console",
+        "chart": "pod",
         "depth": 0.009
       },
       {
@@ -222,6 +225,20 @@
       }
     ],
     "stockCockpitRetained": true,
+    "stockReplacedTriangles": [
+      0,
+      1,
+      17,
+      18,
+      26,
+      27,
+      35,
+      36,
+      60,
+      61,
+      66,
+      67
+    ],
     "stockTriangles": 68,
     "gunBones": [
       1
@@ -698,7 +715,7 @@
       "front": 0.8,
       "roof": 0.85
     },
-    "nativeVdfSha256": "61b1d3c96107bbda41592d31f4d95fce4c93eb6638a7ce8787b37f11b904ae11",
+    "nativeVdfSha256": "ae5042eefb10a275c8f4239eb315421c9b594dceb4b76ed71ba1565f65751948",
     "apronTransform": [
       [
         1.0,
@@ -736,18 +753,18 @@
   "glass": {
     "openFraction": 0.27182157817276126,
     "depth": [
-      0.8276370744116711,
-      2.737299920782019
+      0.8271433258426897,
+      2.7373022390530743
     ],
     "bone": "bgr21bda",
     "vertices": 415,
     "triangles": 702
   },
   "triangles": {
-    "bvtank01": 68,
-    "CRV/BDogScoutCockpit": 1570,
+    "bvtank01": 56,
+    "CRV/bvtankTankPanels": 1726,
     "CRV/bvtankTankGuns": 150,
     "CRV/bvtankTankHull": 448
   },
-  "atlasPolicy": "Reuse original and accepted faction atlases; no duplicate DDS"
+  "atlasPolicy": "Generated per-unit panel atlas crvbtkp; exterior atlas reused for hull and guns"
 }
