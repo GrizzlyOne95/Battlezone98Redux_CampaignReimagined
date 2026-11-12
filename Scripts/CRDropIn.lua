@@ -46,7 +46,6 @@ Drop.LIFT_GONE = 500.0     -- the climbing ship is removed this high
 Drop.CAMERA_OUT = 150.0    -- the camera pod stands this far out from the ships, past the ramps
 Drop.CAMERA_UP = 1800      -- CameraObject offset over the pod (cm)
 Drop.DRIVE_MAX = 40.0      -- s after release an AI unit still pushing down its lane is handed back      CR guess
-Drop.GOAL_T = 15.0         -- s an AI unit off the ramp gets to reach its spot before it is handed back
 Drop.MAX_SHIPS = 2
 Drop.AIM_POD_T = 1.0       -- s the camera looks at the pod after the focus hull is swapped
 Drop.MAX_LATE = 5.0        -- s a guest's DropGo delay is trusted up to (peers share no clock)
@@ -281,6 +280,9 @@ end
 -- "FIRE CONTROLS LOCKED" overlay while the mask is held; absent module = no badge
 local badgeOk, Badge = pcall(require, "CRLockBadge")
 if not badgeOk or type(Badge) ~= "table" then Badge = nil end
+-- Engine jets on the hulls (every peer, presentation only); absent module = no jets
+local fxOk, FX = pcall(require, "CRDropFX")
+if not fxOk or type(FX) ~= "table" then FX = nil end
 
 local function lock(on)
     -- Called in co-op too: each peer locks its own player. An older bundled EXU that refuses multiplayer
@@ -307,6 +309,7 @@ end
 -- Start/restart: the mask is not saved and must not outlive the run that set it.
 function Drop.Reset()
     lock(false)
+    if FX then FX.Reset() end
 end
 
 -- A failed move must not break the opening (CRMisn18 does the same): the pose is simply not applied.
@@ -373,6 +376,7 @@ function Drop.Apply(s, op, ...)
         if isNum(sentAt) and not leading() then late = min(Drop.MAX_LATE, max(0, GetTime() - sentAt)) end
         s.go, s.t0, s.phase = true, GetTime() - late, "drop"
         lock(true)
+        if FX then FX.Watch() end
     end
 end
 
@@ -394,6 +398,7 @@ local recover
 -- stock opening runs. Mid-drop the camera is finished and carried craft are set down, as after a load.
 function Drop.Abort(s)
     if type(s) ~= "table" then return end
+    if FX then FX.Reset() end
     if s.go and s.phase ~= "done" then
         if s.lead and s.lead.camera then s.lead.camera = false; call("cameraFinish") end
         recover(s, "aborted mid-drop")
@@ -541,32 +546,37 @@ local function release(s)
     log("released")
 end
 
--- Push an AI unit down its lane, then onto its own spot, then hand it back to its AI.
+-- Off the ramp the unit's own AI drives it: an order the mission gave it at the landing (bd01's start paths) stands,
+-- else it is sent on to its spot with a plain Goto, so it turns and paths there itself instead of being slid.
+local GUEST_FX_T = 90   -- seconds after release a guest stops waiting on lingering hull jets
+
+local function handBack(c)
+    c.path = nil
+    if not alive(c.h) then return end
+    if type(GetCurrentCommand) == "function" and type(AiCommand) == "table" then
+        local ok, cmd = pcall(GetCurrentCommand, c.h)
+        if ok and cmd ~= nil and cmd ~= AiCommand.NONE and cmd ~= AiCommand.STOP then return end
+    end
+    Stop(c.h, 0)   -- clear the priority-1 ramp pin so the lower-priority Goto is not refused
+    if c.goal then
+        local ok = pcall(Goto, c.h, V(c.goal.x, ground(c.goal.x, c.goal.z), c.goal.z), 0)
+        if ok then return end
+    end
+end
+
+-- Push an AI unit straight down its lane and off the ramp, then hand it back to its AI.
 local function drive(s, c)
     if not alive(c.h) then c.path = nil; return end
     local f = s.ships[c.ship]
-    local now = GetTime()
-    if now - s.releasedAt > Drop.DRIVE_MAX then c.path = nil; Stop(c.h, 0); return end
+    if GetTime() - s.releasedAt > Drop.DRIVE_MAX then handBack(c); return end
     local p = GetPosition(c.h)
     local along = (p.x - f.x) * f.sx + (p.z - f.z) * f.sz
     local path = Drop.Profile(f).path
     local legs = #path + 1
     local function leg(k) return path[k] or s.lead.d end
     if c.leg <= legs and along >= leg(c.leg) - 2 then c.leg = c.leg + 1 end
-    local gx, gz
-    if c.leg > legs then
-        c.goalBy = c.goalBy or now + Drop.GOAL_T   -- give up if the spot is blocked
-        local dx, dz = c.goal and (c.goal.x - p.x) or 0, c.goal and (c.goal.z - p.z) or 0
-        if not c.goal or sqrt(dx * dx + dz * dz) < 4 or now > c.goalBy then
-            c.path = nil
-            Stop(c.h, 0)
-            return
-        end
-        gx, gz = c.goal.x, c.goal.z
-    else
-        local x, _, z = Drop.Deck(f, leg(c.leg), c.lat, ground)
-        gx, gz = x, z
-    end
+    if c.leg > legs then handBack(c); return end
+    local gx, _, gz = Drop.Deck(f, leg(c.leg), c.lat, ground)
     local dx, dz = gx - p.x, gz - p.z
     local len = sqrt(dx * dx + dz * dz)
     if len < 1e-3 then dx, dz = f.sx, f.sz else dx, dz = dx / len, dz / len end
@@ -661,6 +671,7 @@ local function lead(s, t, rel)
         for _, hull in ipairs(L.hulls) do if not hull.gone then return end end
         for _, c in ipairs(L.cargo) do if c.path then return end end
         s.phase = "done"
+        if FX then FX.Reset() end   -- the last hull was removed far overhead: nothing left to fade
         log("done")
     end
 end
@@ -670,6 +681,7 @@ end
 -- still carried) set down past the ramp on its lane.
 function recover(s, why)
     s.recover = nil
+    if FX then FX.Reset() end
     local L = s.lead
     if L and leading() then
         if type(AllObjects) == "function" then
@@ -703,6 +715,7 @@ end
 
 -- Every peer, every frame. Returns true while the carried craft are still held (the mission's stock opening waits).
 function Drop.Update(s)
+    if FX then pcall(FX.Update) end   -- presentation only: an FX error must never abort the drop
     if type(s) ~= "table" or s.phase == "done" then return false end
     if s.recover then recover(s); return false end
     if not s.go then return false end
@@ -722,7 +735,7 @@ function Drop.Update(s)
         release(s)
     end
     if isLead then lead(s, t, rel)
-    elseif s.released then s.phase = "done" end
+    elseif s.released and (not (FX and FX.Busy()) or t > rel + GUEST_FX_T) then s.phase = "done" end   -- a guest keeps updating the jets through lift-off, capped
     return t < rel
 end
 

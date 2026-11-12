@@ -317,10 +317,17 @@ function F.makePeer(id, team, network, options)
             if n == "SetIndependence" then
                 assert(W.objects[(...)].odf == "aspilo", "SetIndependence on a non-allowlisted object")
             end
-            if n == "Stop" and W.objects[(...)] then W.objects[(...)].vel = nil end
+            if n == "Stop" and W.objects[(...)] then W.objects[(...)].vel = nil; W.objects[(...)].command = nil; W.objects[(...)].gotoPoint = nil end
+            if n == "Goto" and W.objects[(...)] and type(select(2, ...)) == "table" then
+                -- mock AI: a point-target Goto is driven by F.tick; a path-name Goto is only recorded
+                W.objects[(...)].gotoPoint = select(2, ...)
+                W.objects[(...)].command = e.AiCommand.GO
+            end
             record(n, ...)
         end
     end
+    e.AiCommand = {NONE = 0, STOP = 1, GO = 3}
+    e.GetCurrentCommand = function(h) return W.objects[h] and W.objects[h].command or 0 end
     local function noop() end
     local modules = {
         Environment = {
@@ -391,6 +398,15 @@ function F.tick(dt)
         if o.vel and o.alive and not moved[o] then
             moved[o] = true
             o.pos = {x = o.pos.x + o.vel.x * dt, y = o.pos.y, z = o.pos.z + o.vel.z * dt}
+        end
+        if o.gotoPoint and o.alive then -- mock AI: drive toward a pending Goto point at 9 m/s, clear it within 2 m
+            local dx, dz = o.gotoPoint.x - o.pos.x, o.gotoPoint.z - o.pos.z
+            local len = math.sqrt(dx * dx + dz * dz)
+            if len < 2 then
+                o.gotoPoint, o.command, o.vel = nil, nil, nil
+            else
+                o.vel = {x = dx / len * 9, y = 0, z = dz / len * 9}
+            end
         end
     end
     for _, p in pairs(W.peers) do p.env.Update(dt) end

@@ -1,0 +1,39 @@
+import * from "sprites.material"
+// Dropship lift jets (Scripts/CRDropFX.lua). Hue lives in the material, like CR06/Exhaust: the
+// emitters stay neutral grey so no renderer channel order can tint them.
+material CRDrop/JetFlame : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap blast.png
+    technique 0
+    {
+        pass 0
+        {
+            diffuse 1 0.66 0.26 1
+        }
+    }
+    technique glow
+    {
+        pass 0
+        {
+            diffuse 0.8 0.46 0.12 1
+        }
+    }
+}
+material CRDrop/JetCore : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap blast.png
+    technique 0
+    {
+        pass 0
+        {
+            diffuse 1 0.93 0.78 1
+        }
+    }
+    technique glow
+    {
+        pass 0
+        {
+            diffuse 0.75 0.6 0.35 1
+        }
+    }
+}

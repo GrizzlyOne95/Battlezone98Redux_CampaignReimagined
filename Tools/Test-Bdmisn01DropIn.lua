@@ -60,6 +60,15 @@ do
     driveOff({ p })
     F.runUntil(function() return F.state(p).dropin.phase == "done" end, 120)
     check(#ships(p, "bvdropx") == 2 and aliveOdf(w, "^bvdrop") == 0, "ramps fold and both ships leave")
+    for _, h in ipairs({ RECY, W1, W2 }) do
+        local ordered
+        for i, c in ipairs(p.calls) do
+            if c[1] == "Goto" and c[2] == h then ordered = i end
+            check(not (ordered and i > ordered and (c[1] == "Stop" or c[1] == "Goto") and c[2] == h),
+                h .. " keeps its stock start-path order off the ramp: nothing stops or re-routes it")
+        end
+        check(ordered, h .. " got its stock order")
+    end
 end
 
 -- ---------------------------------------------------------------- the stock start without the module

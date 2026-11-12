@@ -335,6 +335,10 @@ function F.makePeer(id, team, network, options)
                 or n == "Retreat" or n == "Patrol" or n == "SetPilotClass" or n == "Stop" then
                 assert(e.IsValid((...)), n .. " used a not-yet-valid handle")
             end
+            local o = W.objects[(...)]
+            -- the unit's current order, as GetCurrentCommand reads it (CRDropIn keeps a mission order at hand-back)
+            if o and (n == "Goto" or n == "Attack" or n == "Retreat" or n == "Patrol") then o.command = 3 end
+            if o and n == "Stop" then o.command = 0 end
             record(n, ...)
         end
     end

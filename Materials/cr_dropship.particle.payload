@@ -1,0 +1,102 @@
+// Dropship engine effects (Scripts/CRDropFX.lua): one Jet and one Core per lift nozzle, one Wash
+// per hull. Emission starts at 0; the script sets the rates from the hull's throttle every frame.
+// Neutral emitter RGB: the materials (Materials/cr_dropship.material) supply the hue.
+particle_system CR/Drop/Jet
+{
+    material CRDrop/JetFlame
+    particle_width 2.6
+    particle_height 9
+    quota 60
+    cull_each true
+    sorted false
+    local_space false
+    billboard_type oriented_self
+    emitter Point
+    {
+        angle 6
+        emission_rate 0
+        time_to_live_min 0.2
+        time_to_live_max 0.38
+        direction 0 -1 0
+        velocity_min 40
+        velocity_max 55
+        colour_range_start 1 1 1 0.9
+        colour_range_end 0.7 0.7 0.7 0.7
+    }
+    affector ColourFader
+    {
+        red -1.2
+        green -1.2
+        blue -1.2
+        alpha -2.2
+    }
+    affector Scaler
+    {
+        rate 4
+    }
+}
+particle_system CR/Drop/Core
+{
+    material CRDrop/JetCore
+    particle_width 5
+    particle_height 5
+    quota 12
+    cull_each true
+    sorted false
+    local_space false
+    billboard_type point
+    emitter Point
+    {
+        angle 0
+        emission_rate 0
+        time_to_live_min 0.08
+        time_to_live_max 0.14
+        direction 0 -1 0
+        velocity 0.5
+        colour_range_start 1 1 1 0.85
+        colour_range_end 0.75 0.75 0.75 0.65
+    }
+    affector ColourFader
+    {
+        alpha -6
+    }
+}
+particle_system CR/Drop/Wash
+{
+    material CR_FX/Dust
+    particle_width 9
+    particle_height 5
+    quota 450
+    cull_each true
+    sorted true
+    local_space false
+    billboard_type point
+    emitter Box
+    {
+        width 30
+        height 0.4
+        depth 30
+        angle 85
+        emission_rate 0
+        time_to_live_min 1.6
+        time_to_live_max 2.8
+        direction 0 1 0
+        velocity_min 9
+        velocity_max 20
+        colour_range_start 0.55 0.55 0.55 0.3
+        colour_range_end 0.7 0.7 0.7 0.18
+    }
+    affector LinearForce
+    {
+        force_vector 0 -1.5 0
+        force_application add
+    }
+    affector Scaler
+    {
+        rate 6
+    }
+    affector ColourFader
+    {
+        alpha -0.11
+    }
+}
