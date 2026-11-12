@@ -1,0 +1,84 @@
+// ============================================================
+// CR NSDF damage, HEAVY stage (dmgnsdf3)
+// Look: thin cool-grey coolant vapour, cyan-white electrical shorts.
+// Budget: ~65 live sprites + one flicker light (optimized dmgvhcl3 is ~74).
+// ============================================================
+
+[Dmgnsdf3]
+renderBase = "draw_multi"
+renderCount = 4
+renderName1 = "dmgnsdf3.smokeemitter"
+renderName2 = "dmgnsdf3.flameemitter"
+renderName3 = "dmgnsdf3.sparkemitter"
+renderName4 = "dmgnsdf3.lightemitter"
+
+[SmokeEmitter]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.05
+emitDelayVar = 0.03
+emitVelocity = "0.0 5.0 0.0"
+emitVariance = "2.0 2.0 2.0"
+emitInherit = "0.2 0.2 0.2"
+emitLife = 2.0
+textureName = "smoke2.tga"
+startColor = "70 72 78 64"
+finishColor = "70 72 78 0"
+startRadius = 1.0
+finishRadius = 2.4
+animateTime = 2.0
+rotationRate = 2.0
+
+[FlameEmitter]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.06
+emitDelayVar = 0.02
+emitVelocity = "0.0 5.0 0.0"
+emitVariance = "2.0 2.0 2.0"
+emitInherit = "0.3 0.3 0.3"
+emitLife = 0.7
+textureName = "flame2.tga"
+startColor = "255 255 210 128"
+finishColor = "255 80 0 0"
+startRadius = 0.5
+finishRadius = 0.1
+animateTime = 0.7
+rotationRate = 10.0
+
+[SparkEmitter]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.06
+emitDelayVar = 0.02
+emitVelocity = "0.0 3.0 0.0"
+emitVariance = "5.0 5.0 5.0"
+emitInherit = "0.5 0.5 0.5"
+emitLife = 0.8
+textureName = "cr_xpl_spark.dds"
+startColor = "200 245 255 255"
+finishColor = "30 140 255 0"
+startRadius = 0.25
+finishRadius = 0.08
+animateTime = 0.8
+rotationRate = 20.0
+
+[LightEmitter]
+renderBase = "draw_emit"
+emitName = "dmgnsdf3.light"
+emitDelay = 0.2
+emitDelayVar = 0.1
+emitVelocity = "0 0 0"
+emitVariance = "0.0 0.0 0.0"
+emitInherit = "1.0 1.0 1.0"
+
+[Light]
+simulateBase = "sim_smoke"
+lifeTime = 0.2
+renderBase = "draw_light"
+startColor = "210 240 255 160"
+finishColor = "210 240 255 110"
+startRadius = 6.0
+finishRadius = 4.5
+animateTime = 0.2
+attenuateConstant = 0.0
+attenuateLinear = 0.0
+attenuateQuadratic = 1.0
+lensFlare = false

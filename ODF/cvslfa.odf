@@ -39,6 +39,13 @@ user2Msg = "cvslfvk.wav"
 deployedMsg = "cvslfvp.wav"
 packedMsg = "cvslfvc.wav"
 diedMsg = "abetty1.wav"
+// CR DAMAGE FX BEGIN
+// CRA damage smoke (ODF/dmgcra1-4.odf)
+damageEffect1 = "dmgcra1"
+damageEffect2 = "dmgcra2"
+damageEffect3 = "dmgcra3"
+damageEffect4 = "dmgcra4"
+// CR DAMAGE FX END
 
 [HoverCraftClass]
 setAltitude = 1.5

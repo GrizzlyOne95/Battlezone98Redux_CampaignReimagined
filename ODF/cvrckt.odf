@@ -67,6 +67,13 @@ user1Msg = "cvrcktva.wav"
 killedMsg = "cvrcktv3.wav"
 diedMsg = "abetty3.wav"
 cloakAllowed = "True"
+// CR DAMAGE FX BEGIN
+// CRA damage smoke (ODF/dmgcra1-4.odf)
+damageEffect1 = "dmgcra1"
+damageEffect2 = "dmgcra2"
+damageEffect3 = "dmgcra3"
+damageEffect4 = "dmgcra4"
+// CR DAMAGE FX END
 
 
 [HoverCraftClass]
