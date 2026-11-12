@@ -1,0 +1,81 @@
+[ExplosionClass] // Green Bolt Buddy, created by General BlackDragon
+classLabel = "explosion"
+
+//explRadius = 2.0
+explSound = "lhit.wav"
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 4
+
+particleClass1 = "xlgtcarg.Hit"
+particleCount1 = 1
+particleVeloc1 = "0.00 0.00 0.00"
+
+particleClass2 = "xlgtcarg.Glint"
+particleCount2 = 1
+particleVeloc2 = "0.00 0.00 0.00"
+
+particleClass3 = "xlgtcarg.Spark"
+particleCount3 = 4
+particleVeloc3 = "4.00 4.00 4.00"
+particleBias3 = "0.00 4.00 0.00"
+
+particleClass4 = "xlgtcarg.light"
+particleCount4 = 1
+particleVeloc4 = "0.00 1.00 0.00"
+particleBias4 = "0.00 1.00 0.00"
+
+[Hit]
+simulateBase = "sim_null"
+lifeTime = 0.30
+renderBase = "draw_sprite"
+textureName = "cr_xpl_greenhit.dds"
+textureBlend = "one one modulate"
+startColor = "120 255 120 255"
+finishColor = "30 255 40 0"
+startRadius = 2.00
+finishRadius = 3.60
+animateTime = 0.30
+
+[Glint]
+simulateBase = "sim_null"
+lifeTime = 0.25
+renderBase = "draw_twirl"
+textureName = "cr_xpl_glint.dds"
+textureBlend = "one one modulate"
+startColor = "255 255 255 255"
+finishColor = "30 255 40 0"
+startRadius = 2.80
+finishRadius = 0.80
+animateTime = 0.25
+rotationRate = 8.00
+
+[Spark]
+simulateBase = "sim_ember"
+lifeTime = 0.60
+renderBase = "draw_twirl"
+textureName = "cr_xpl_spark.dds"
+textureBlend = "one one modulate"
+startColor = "120 255 120 255"
+finishColor = "30 255 40 0"
+startRadius = 0.20
+finishRadius = 0.10
+animateTime = 0.60
+rotationRate = 18.00
+
+[Light]
+simulateBase = "sim_smoke"
+lifeTime = 0.8
+renderBase = "draw_light"
+startColor = "200 255 200 255"
+finishColor = "127 255 63 0"
+startRadius = 10.0
+finishRadius = 10.0
+animateTime = 0.8
+attenuateConstant = 0.0
+attenuateLinear = 1.0
+attenuateQuadratic = 0.0
