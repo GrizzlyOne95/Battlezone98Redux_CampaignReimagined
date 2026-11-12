@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 5857,
+  "count": 5859,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -20189,6 +20189,14 @@
     {
       "source": "Shaders\\crwx_fixedfunc.program",
       "runtime": "crwx_fixedfunc.program"
+    },
+    {
+      "source": "Shaders\\crwx_glassflow.hlsl",
+      "runtime": "crwx_glassflow.hlsl"
+    },
+    {
+      "source": "Shaders\\crwx_glassflow.program",
+      "runtime": "crwx_glassflow.program"
     },
     {
       "source": "Shaders\\crwx_ogre_particle-sm4.hlsl",
