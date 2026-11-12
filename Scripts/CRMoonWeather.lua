@@ -116,10 +116,11 @@ V.PoolStreamOut        = 430.0
 V.StreamInterval       = 1.0
 
 -- ---- Ground mist ---------------------------------------------------------------
--- A card is flat and lies at MistHeight (+/- half the template's 1.3 thickness)
--- above the local ground. A soldier is ~2 units tall, so 0.85 centres the layer at
--- about knee-to-waist (0.2 to 1.5). THE FIRST THING TO TUNE LIVE.
-V.MistHeight           = 0.85
+-- A card is flat and lies at MistHeight (+/- half the template's 0.5 thickness)
+-- above the local ground. 0.35 keeps the whole layer at ankle-to-knee (0.1 to 0.6):
+-- an on-foot eye (~1.5) is always above it, so mist never blocks the view.
+-- THE FIRST THING TO TUNE LIVE.  Keep MistHeight + half the thickness <= 0.6.
+V.MistHeight           = 0.35
 V.MistColor            = { r = 0.64, g = 0.72, b = 0.84 }   -- pale grey-blue (Earth-lit)
 V.MistAlphaA           = 0.11    -- peak alpha of a card (body of its life)
 V.MistAlphaB           = 0.09    -- alpha late in its life

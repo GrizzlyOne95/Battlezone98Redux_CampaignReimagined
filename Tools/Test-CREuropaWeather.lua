@@ -1519,6 +1519,21 @@ do
     check(string.find(stripped, "pcall%(StartSound, file, nil,") ~= nil, "the one StartSound call passes no object handle")
 end
 
+do
+    -- Vehicle-wake surface: Europa keeps "ice"; a Ganymede mission passes wakeSurface = "ganymede"
+    -- (CRCCARuntime does for every CRGanymedeSites* module) and gets Ganymede's own kickup template.
+    local europa = Track(NewPeer("wake-europa", NewWorld()))
+    europa.init({})
+    check(europa.loaded["CRWake"] ~= nil and europa.loaded["CRWake"].Surface == "ice", "Europa's vehicle wake surface is ice by default")
+    europa.Eu.Shutdown()
+    local ganymede = Track(NewPeer("wake-ganymede", NewWorld()))
+    ganymede.init({ wakeSurface = "ganymede" })
+    check(ganymede.loaded["CRWake"].Surface == "ganymede", "wakeSurface = ganymede selects Ganymede's wake surface")
+    check(ganymede.loaded["CRWake"].Profiles.ganymede ~= nil and ganymede.loaded["CRWake"].Profiles.ganymede.vacuum == true,
+        "and Ganymede's profile is a vacuum")
+    ganymede.Eu.Shutdown()
+end
+
 -- =============================================================================
 -- Report
 -- =============================================================================

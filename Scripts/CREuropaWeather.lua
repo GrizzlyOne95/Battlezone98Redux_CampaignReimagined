@@ -155,7 +155,7 @@ V.FrostFallRange       = 380.0
 -- same fallout adds up to GlassFallout to the glass frost level.
 V.GlitterBase          = 0.15
 V.GlassFallout         = 0.5
-V.FrostHeight          = 2.0     -- sheet height above the ground
+V.FrostHeight          = 0.35    -- sheet height above the ground (flat cards, 0.5 m thick: top <= 0.6 m)
 
 -- Plumes.
 V.PlumeMergeRadius     = 45.0
@@ -1583,6 +1583,8 @@ end
 --   send            function(op, ...) -- delivers an EuropaState / EuropaPlume /
 --                   EuropaQuake / EuropaSurge event to every guest (host only)
 --   sites           the generated CREuropaSites table (vents, frost anchors)
+--   wakeSurface     CRWake surface for vehicle/pilot kickup: "ice" (default, Europa) or
+--                   "ganymede" (CRCCARuntime passes it for CRGanymedeSites* modules)
 --   startLevel, targetLevel
 --   enabled, debug, quality, baseSky     passthrough
 --   plumes, iceFall, frostHaze, ventHaze, quakes, randomQuakes, quakeIce,
@@ -1622,7 +1624,7 @@ function V.Init(options)
     -- Vehicle wakes: render-only debris under low, moving craft near the viewer
     -- (shared CRWake module). options.vehicleWakes = false switches them off.
     pcall(Wake.Init, {
-        surface = "ice", enabled = options.vehicleWakes ~= false, quality = options.quality,
+        surface = options.wakeSurface or "ice", enabled = options.vehicleWakes ~= false, quality = options.quality,
         debug = options.debug,
     })
 
