@@ -69,7 +69,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
         BD6PortalOff = function() Restored.OpPortal(NativeDeactivatePortal) end,
     },
     -- Ganymede: CREuropaWeather over the generated BD06 sites (four geyser vents; three sit in the Chinese base).
-    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD06",
+    weather = { module = "CREuropaWeather", sites = "CRGanymedeSitesBD06", glassFrost = 0.5,
         environment = { lightingMode = "orbit", orbit = { period = 1800, startHour = -40 } },
         ops = { "EuropaState", "EuropaPlume", "EuropaQuake", "EuropaSurge" },
         startLevel = 1, targetLevel = 1,

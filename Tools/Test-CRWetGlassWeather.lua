@@ -262,6 +262,20 @@ run(100)
 check(#visible("CRWX_WinFrost") == 0 and #visible("CRWX_WinIce") == 0, "frost and ice have cleared well after the level drops")
 check(not glass.Busy(), "cleared glass is idle again")
 check(not ov.overlayShown, "the overlay hides when nothing is on it")
+-- Strength (Ganymede passes 0.5): the same level peaks at half the opacity, and ice follows.
+glass.Weather("frost", 1.0, 0.5)
+local halfFrost, halfIce = 0, 0
+for _ = 1, math.floor(150 / dt) do
+    now = now + dt; glass.Update(0)
+    local f, i = visible("CRWX_WinFrost"), visible("CRWX_WinIce")
+    if #f > 0 then halfFrost = math.max(halfFrost, f[1].step) end
+    if #i > 0 then halfIce = math.max(halfIce, i[1].step) end
+end
+check(halfFrost >= 3 and halfFrost <= math.floor(0.55 * 0.5 * 16 + 0.5), "half-strength frost peaks near 0.28 opacity, step " .. halfFrost)
+check(halfIce <= math.floor(0.45 * 0.5 * 16 + 0.5), "half-strength ice peaks near 0.23 opacity, step " .. halfIce)
+glass.Weather("frost", 0)
+run(100)
+check(not glass.Busy(), "half-strength frost clears too")
 
 -- =============================================================================
 -- Overlay mode: acid rain (drops tinted yellow-green, a slow etch haze)
