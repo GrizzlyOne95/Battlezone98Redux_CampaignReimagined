@@ -251,6 +251,7 @@ jobs:
           lua5.1 Tools/Test-Misn04Coop.lua
           lua5.1 Tools/Test-CR04Drop.lua
           lua5.1 Tools/Test-CRDropIn.lua
+          lua5.1 Tools/Test-CRDropFX.lua
 
       - name: Test misn10 source-faithful port
         shell: bash

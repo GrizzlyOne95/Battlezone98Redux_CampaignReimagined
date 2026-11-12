@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6195,
+  "count": 6198,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -12655,6 +12655,14 @@
       "runtime": "CR_detail_sbsupp.material"
     },
     {
+      "source": "Materials\\cr_dropship.material",
+      "runtime": "cr_dropship.material"
+    },
+    {
+      "source": "Materials\\cr_dropship.particle.payload",
+      "runtime": "cr_dropship.particle.payload"
+    },
+    {
       "source": "Materials\\cr_earth.material",
       "runtime": "cr_earth.material"
     },
@@ -20361,6 +20369,10 @@
     {
       "source": "Scripts\\CRDrop18.lua",
       "runtime": "CRDrop18.lua"
+    },
+    {
+      "source": "Scripts\\CRDropFX.lua",
+      "runtime": "CRDropFX.lua"
     },
     {
       "source": "Scripts\\CRDropIn.lua",

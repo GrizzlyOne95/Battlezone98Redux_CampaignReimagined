@@ -260,6 +260,14 @@ local function reset(opts)
     _G.Stop = function(h, priority)   -- Stop brakes a hovercraft; the mock simply halts it
         calls[#calls + 1] = { "Stop", objects[h].label, priority }
         objects[h].vel = V(0, 0, 0)
+        objects[h].gotoPoint, objects[h].command = nil, nil
+    end
+    -- mock AI: a Goto point-target is driven by step() until the unit is within 2 m
+    _G.AiCommand = { NONE = 0, STOP = 1, GO = 3 }
+    _G.GetCurrentCommand = function(h) return objects[h] and objects[h].command or 0 end
+    _G.Goto = function(h, target, priority)
+        calls[#calls + 1] = { "Goto", objects[h].label, priority, target, #calls + 1 }
+        objects[h].gotoPoint, objects[h].command = V(target.x, target.y, target.z), AiCommand.GO
     end
     _G.GetOdf = function(h) return objects[h].odf end
     _G.IsOdf = function(h, odf) return objects[h].odf == odf end
@@ -333,6 +341,17 @@ local function step(D, s, dt, onTick)
     for _, o in pairs(objects) do
         o.pos = V(o.pos.x + o.vel.x * dt, o.pos.y, o.pos.z + o.vel.z * dt)
     end
+    for _, o in pairs(objects) do
+        if o.gotoPoint then
+            local dx, dz = o.gotoPoint.x - o.pos.x, o.gotoPoint.z - o.pos.z
+            local len = math.sqrt(dx * dx + dz * dz)
+            if len < 2 then
+                o.gotoPoint, o.command, o.vel = nil, nil, V(0, 0, 0)
+            else
+                o.vel = V(dx / len * 9, 0, dz / len * 9)
+            end
+        end
+    end
     if onTick then onTick() end
     return D.Update(s)
 end
@@ -379,10 +398,18 @@ do
         step(D, s, 1 / 30, function() objects[3].pos = V(objects[3].pos.x, 20, objects[3].pos.z + 0.5) end)
         if s.phase == "done" then break end
     end
-    local stops = {}
-    for _, c in ipairs(calls) do if c[1] == "Stop" and c[3] == 0 then stops[c[2]] = true end end
-    check(stops["avrecy-1_recycler"] and stops["avmuf0_factory"] and stops["avfigh0_wingman"],
-        "every AI cargo unit is handed back to its AI")
+    local goals = { ["avrecy-1_recycler"] = V(1933, 0, 100685), ["avmuf0_factory"] = V(1899, 0, 100681),
+        ["avfigh0_wingman"] = V(1915, 0, 100770) }
+    for label, g in pairs(goals) do
+        local at
+        for _, c in ipairs(calls) do
+            if c[1] == "Goto" and c[2] == label and c[3] == 0 and dist2(c[4], g) < 5 then at = c[5]; break end
+        end
+        check(at, label .. " is sent to its spot with a priority 0 Goto")
+        for i, c in ipairs(calls) do
+            check(not (i > at and c[1] == "SetTransform" and c[2] == label), label .. " is not turned or moved after the hand-back")
+        end
+    end
     check(dist2(objects[1].pos, V(1933, 0, 100685)) < 5 and dist2(objects[2].pos, V(1899, 0, 100681)) < 5,
         "recycler and factory park on their stock spots")
     check(objects[1].pos.y < 40, "recycler is back on the ground")
@@ -639,9 +666,14 @@ for _, name in ipairs({ "svdrop", "cvdrop" }) do
     check(s.phase == "done" and count("BuildObject", name .. "x") == 1, name .. ": the ramps fold and the ship leaves")
     for _, o in pairs(objects) do check(not o.odf:find("^[asc]vdrop") and o.odf ~= "apcamr", name .. ": no ship left behind") end
     check(dist2(objects[1].pos, V(1933, 0, 100685)) < 5, name .. ": the recycler parks on its stock spot")
-    local stops = {}
-    for _, c in ipairs(calls) do if c[1] == "Stop" and c[3] == 0 then stops[c[2]] = true end end
-    check(stops["avrecy-1_recycler"], name .. ": the recycler is handed back to its AI")
+    local at
+    for _, c in ipairs(calls) do
+        if c[1] == "Goto" and c[2] == "avrecy-1_recycler" and c[3] == 0 and dist2(c[4], V(1933, 0, 100685)) < 5 then at = c[5]; break end
+    end
+    check(at, name .. ": the recycler is handed back to its AI with a Goto to its spot")
+    for i, c in ipairs(calls) do
+        check(not (i > at and c[1] == "SetTransform" and c[2] == "avrecy-1_recycler"), name .. ": the recycler is not turned after the hand-back")
+    end
     check(not locked(), name .. ": released")
 end
 

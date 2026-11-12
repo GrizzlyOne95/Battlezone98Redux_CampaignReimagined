@@ -116,6 +116,9 @@ end
 -- The extraction ending's choreography (Scripts/CRDrop18.lua). Absent or broken: the win ends the mission at once.
 local okDrop, Drop = pcall(require, "CRDrop18")
 if not okDrop or type(Drop) ~= "table" then Drop = nil end
+-- Engine jets on the extraction hulls (every peer, presentation only). Absent: no jets.
+local okDropFX, DropFX = pcall(require, "CRDropFX")
+if not okDropFX or type(DropFX) ~= "table" then DropFX = nil end
 -- Implemented with the extraction section below; the presentation adapter dispatches to them.
 local ExtractShipEvent, ExtractGoEvent, ExtractStop
 local EXTRACT_OPS = { ExtractShip = true, ExtractGo = true, StopCockpitTimer = true }
@@ -929,6 +932,7 @@ function ExtractGoEvent()
     if X.go or not Drop then return end
     for i = 1, X.n or 0 do if not X.ships[i] then return end end -- incomplete plan: do nothing
     X.go, X.t0, X.cargo = true, GetTime(), {}
+    if DropFX then DropFX.Watch() end
     local team = MyTeam()
     for i = 1, X.n do
         local ship = X.ships[i]
@@ -946,6 +950,7 @@ function ExtractStop()
     LockInput(false, true)
     X.go = false
     X.cargo = {}
+    if DropFX then DropFX.Reset() end
 end
 
 -- Pin this peer's own craft to the ship pose, and keep it whole (nothing may fail the mission now).
@@ -1149,6 +1154,7 @@ function R.Receive(from,kind,...)
 end
 function R.Update(dt)
     local s=State()
+    if DropFX then pcall(DropFX.Update) end -- before any stall return, so jets never freeze mid-burn
     subtit.Update();CRCoop.Update();UpdatePresentationTransport()
     pda.UpdateInputs(localCameraActive);pda.UpdateHeadlights()
     if CRCoop.IsNetworkGame() then
