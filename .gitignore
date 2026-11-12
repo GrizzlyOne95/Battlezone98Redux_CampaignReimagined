@@ -169,6 +169,7 @@
 
 # Blender's authoring helpers import modules beside these build scripts.
 /Tools/__pycache__/
+/Tools/Dropships/__pycache__/
 
 # Ignore system files
 thumbs.db
