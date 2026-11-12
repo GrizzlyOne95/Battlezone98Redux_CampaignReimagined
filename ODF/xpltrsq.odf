@@ -124,7 +124,7 @@ textureBlend = "one one modulate"
 startColor = "255 220 160 255"
 finishColor = "255 120 40 0"
 startRadius = 20.00
-finishRadius = 200.00
+finishRadius = 100.00
 animateTime = 1.00
 
 [Ember]
