@@ -1,5 +1,6 @@
 --**********************************************************************
--- CRWAKE: surface-appropriate debris under low, moving vehicles.
+-- CRWAKE: surface-appropriate ground kickup under low, moving vehicles and
+-- under pilots on foot.
 --
 -- One shared, render-only module. A weather director owns it: it calls
 -- Init() once, Update(dt) from its own Update and Stop() from its Shutdown.
@@ -18,10 +19,21 @@
 --   Wake.Update(dt)               -- seconds; the director's real-clock dt
 --   Wake.Stop()                   -- destroy everything (call from Shutdown)
 --
--- Surfaces: regolith (Moon), mars, ice (Europa), water, grass (Achilles),
--- sulfur (Io), ash (Venus). The regolith surface reuses CR/Moon/HoverDust,
--- which the Moon director has already loaded; every other one lives in
--- cr_wake.particle.payload, loaded here through CRParticleTemplates.
+-- Surfaces: regolith (Moon), mars, ice (Europa), ganymede, water, grass
+-- (Achilles), mud, sulfur (Io), ash (Venus). The regolith surface reuses
+-- CR/Moon/HoverDust, which the Moon director has already loaded; every other
+-- one lives in cr_wake.particle.payload, loaded here through
+-- CRParticleTemplates.
+--
+-- PHYSICS AND AIM. Each profile carries the world's real gravity `g` and
+-- whether it is a `vacuum`. Every mover's emitters are aimed at run time (exu
+-- emitter direction / velocity / time-to-live, no-ops when the API is missing):
+-- the fine sheet leaves low and trails BEHIND the mover, the chips leave higher.
+-- In a vacuum the time-to-live is the ballistic flight time 2*v*sin(el)/g, so a
+-- grain lands as it fades instead of hanging. A pilot on foot ("foot" mode, a
+-- separate system pool entry) emits only while walking close to the ground, has
+-- no idle emission, a small sprite, and a launch speed capped so the apex stays
+-- under FootApex (0.6 m): dust never reaches the eyes of the player it follows.
 --
 -- LOAD BUDGET (the user's hard requirement: only craft the player can see)
 --   * craft are scanned at most 4 times a second, never per frame;
@@ -30,7 +42,8 @@
 --     at, and craft behind the camera are skipped when the camera reports a
 --     facing (CullBehind);
 --   * at most MaxSystems particle systems (default 4, hard max 6) exist at
---     once across ALL surfaces, given to the nearest craft first;
+--     once across ALL surfaces (pilots on foot included), given to the nearest
+--     mover first, the local player's own pilot always first;
 --   * a craft that stops is silenced, lingers, and its system is reused by
 --     the next craft that needs one before anything new is created;
 --   * emission fades with distance and scales with Quality; the templates
@@ -77,20 +90,53 @@ V.IdleGrace       = 6.0      -- ... and only this long after it last moved
 V.Linger          = 4.0      -- a silent system is destroyed after this long
 V.RateOverride    = nil      -- a number replaces every profile's full-speed rate
 
+-- Aiming (see the header). Directions are unit vectors built from `back`, the
+-- horizontal unit vector opposite the velocity.
+V.AimMinTurn      = 0.985    -- cosine: re-aim only after turning more than ~10 degrees ...
+V.AimMinSpeedStep = 0.15     -- ... or after the speed changed by this share (min 1 m/s)
+V.VelocitySpread  = 0.30     -- launch speed range is +/- this share
+V.MinTTL          = 0.6      -- ballistic flight time clamp (vacuum craft, pilots), seconds
+V.MaxTTL          = 4.0
+V.SheetUp         = 0.35     -- sheet direction  = back + up * SheetUp
+V.ChipBack        = 0.6      -- chip direction   = back * ChipBack + up
+
+-- Pilots on foot (every surface).
+V.FootMinSpeed    = 1.0      -- below this a pilot emits nothing (no idle emission)
+V.FootMaxHeight   = 1.2      -- only while this close to the terrain (covers a mid-body origin; the puff itself sits on the terrain)
+V.FootRateShare   = 0.12     -- of the profile rate
+V.FootSize        = 0.3      -- sprite size, metres (0.25 - 0.35)
+V.FootApex        = 0.6      -- no grain rises higher than this above its launch
+V.FootBox         = 0.5      -- emitter Box width/depth around the boots
+V.FootAngle       = 20.0     -- spread, degrees
+
 -- Surface profiles. `shares` are the per-emitter shares of the rate (emitter
 -- index = position - 1). `accent` is an optional flat second system, created
 -- only when a slot is spare. `payload` is the extra payload to load (nil = the
 -- director already loaded it).
+--
+-- `g` is the world's real surface gravity (m/s^2) and `vacuum` is true where
+-- there is no air to billow or hang the dust. `fall` (default g) is the downward
+-- acceleration the TEMPLATE actually applies where it is deliberately softer
+-- than g (light grass bits, ash in dense air); keep it equal to the template's
+-- LinearForce. `aim = false` leaves a template's own emitters alone (water).
 V.Profiles = {
-    regolith = { template = "CR/Moon/HoverDust", shares = { 1.0, 0.35 }, rate = 55.0 },
-    mars     = { template = "CRWake/MarsDust", payload = "cr_wake", shares = { 1.0, 0.45 }, rate = 50.0 },
-    ice      = { template = "CRWake/IceSpray", payload = "cr_wake", shares = { 1.0, 0.40 }, rate = 45.0 },
+    regolith = { template = "CR/Moon/HoverDust", shares = { 1.0, 0.35 }, rate = 30.0, g = 1.62, vacuum = true },
+    ganymede = { template = "CRWake/GanymedeSpray", payload = "cr_wake", shares = { 1.0, 0.45 }, rate = 28.0,
+                 g = 1.43, vacuum = true },
+    ice      = { template = "CRWake/IceSpray", payload = "cr_wake", shares = { 1.0, 0.40 }, rate = 28.0,
+                 g = 1.31, vacuum = true },
+    sulfur   = { template = "CRWake/SulfurDust", payload = "cr_wake", shares = { 1.0, 0.40 }, rate = 28.0,
+                 g = 1.80, vacuum = true },
+    mars     = { template = "CRWake/MarsDust", payload = "cr_wake", shares = { 1.0, 0.45 }, rate = 50.0,
+                 g = 3.71, vacuum = false },
+    ash      = { template = "CRWake/AshDust", payload = "cr_wake", shares = { 1.0, 0.40 }, rate = 50.0,
+                 g = 8.87, vacuum = false, fall = 2.4 },
     water    = { template = "CRWake/WaterSpray", payload = "cr_wake", shares = { 1.0, 0.60 }, rate = 45.0,
-                 accent = "CRWake/WaterRing", accentShare = 0.35 },
-    mud      = { template = "CRWake/MudClods", payload = "cr_wake", shares = { 1.0, 0.50 }, rate = 42.0 },
-    grass    = { template = "CRWake/GrassBits", payload = "cr_wake", shares = { 1.0, 0.40 }, rate = 40.0 },
-    sulfur   = { template = "CRWake/SulfurDust", payload = "cr_wake", shares = { 1.0, 0.40 }, rate = 50.0 },
-    ash      = { template = "CRWake/AshDust", payload = "cr_wake", shares = { 1.0, 0.40 }, rate = 50.0 },
+                 accent = "CRWake/WaterRing", accentShare = 0.35, g = 9.81, vacuum = false, aim = false, fall = 7.0 },
+    mud      = { template = "CRWake/MudClods", payload = "cr_wake", shares = { 1.0, 0.50 }, rate = 42.0,
+                 g = 9.81, vacuum = false },
+    grass    = { template = "CRWake/GrassBits", payload = "cr_wake", shares = { 1.0, 0.40 }, rate = 40.0,
+                 g = 9.81, vacuum = false, fall = 6.0 },
 }
 
 -- =============================================================================
@@ -108,9 +154,10 @@ V.NextScan    = 0.0
 V.ScanId      = 0
 V.Serial      = 0
 V.Count       = 0         -- live particle systems
-V.Sys         = {}        -- name -> { name, template, kind, owner, rate, shares, idleSince, stamp }
+V.Sys         = {}        -- name -> { name, template, kind, mode, profile, owner, rate, shares, idleSince, stamp, aim state }
 V.Craft       = {}        -- handle -> { main = sys, accent = sys }
 V.Moved       = {}        -- handle -> last time it moved faster than MinSpeed
+V.Player      = nil       -- the local player's handle (set by ReadViewpoint)
 V.Stats       = { scans = 0, tracked = 0, created = 0, destroyed = 0, errors = 0, lastSelected = 0 }
 
 -- Scratch, reused every scan so a scan allocates nothing per craft.
@@ -160,6 +207,12 @@ local function ValidHandle(h)
     return true
 end
 
+local function IsPersonHandle(h)
+    if type(IsPerson) ~= "function" then return false end
+    local ok, person = pcall(IsPerson, h)
+    return ok and person and true or false
+end
+
 local function XYZ(h)
     if type(GetPosition) ~= "function" then return nil end
     local ok, p = pcall(GetPosition, h)
@@ -188,6 +241,7 @@ local function ReadViewpoint()
         local ok, h = pcall(GetPlayerHandle)
         if ok and ValidHandle(h) then player = h end
     end
+    V.Player = player
     local px, pz
     if player ~= nil then
         local x, _, z = XYZ(player)
@@ -239,7 +293,7 @@ local function Destroy(s)
     end
 end
 
-local function Create(template, kind, shares, x, y, z)
+local function Create(template, kind, shares, mode, x, y, z)
     if (V.Failures[template] or 0) >= V.MaxFailuresPerTemplate then return nil end
     V.Serial = V.Serial + 1
     local name = "cr_wake_" .. tostring(V.Serial)
@@ -255,8 +309,19 @@ local function Create(template, kind, shares, x, y, z)
     V.Failures[template] = 0
     Call("SetParticleSystemKeepLocalSpace", name, false)
     Call("SetParticleSystemNonVisibleUpdateTimeout", name, 3.0)
-    local s = { name = name, template = template, kind = kind, owner = nil, rate = 0.0,
-                shares = shares, idleSince = nil, stamp = 0 }
+    local s = { name = name, template = template, kind = kind, mode = mode, profile = nil, owner = nil,
+                rate = 0.0, shares = shares, idleSince = nil, stamp = 0 }
+    if mode == "foot" then
+        -- A pilot's system is small and tight around the boots; it keeps these for life
+        -- (a system is only ever reused for the same template AND mode).
+        Call("SetParticleSystemDefaultDimensions", name, V.FootSize, V.FootSize)
+        for i = 0, #shares - 1 do
+            Call("SetParticleEmitterParameter", name, i, "width", V.FootBox)
+            Call("SetParticleEmitterParameter", name, i, "height", 0.1)
+            Call("SetParticleEmitterParameter", name, i, "depth", V.FootBox)
+            Call("SetParticleEmitterAngle", name, i, V.FootAngle)
+        end
+    end
     V.Sys[name] = s
     V.Count = V.Count + 1
     V.Stats.created = V.Stats.created + 1
@@ -267,15 +332,15 @@ end
 -- reused before anything is created, and any of them is sacrificed when the
 -- cap is reached. "Stale" systems (not refreshed by this scan) count as silent:
 -- their craft was not selected. A main system may also take an accent's slot.
-local function Acquire(template, kind, shares, x, y, z)
+local function Acquire(template, kind, shares, mode, x, y, z)
     local best = nil
     for _, s in pairs(V.Sys) do
-        if (s.idleSince ~= nil or s.stamp ~= V.ScanId) and s.template == template then
+        if (s.idleSince ~= nil or s.stamp ~= V.ScanId) and s.template == template and s.mode == mode then
             if best == nil or (s.idleSince or -1.0) < (best.idleSince or -1.0) then best = s end
         end
     end
     if best ~= nil then return best end
-    if V.Count < V.MaxSystems then return Create(template, kind, shares, x, y, z) end
+    if V.Count < V.MaxSystems then return Create(template, kind, shares, mode, x, y, z) end
 
     local idle, stale, accent = nil, nil, nil
     for _, s in pairs(V.Sys) do
@@ -290,7 +355,7 @@ local function Acquire(template, kind, shares, x, y, z)
     local victim = idle or stale or accent
     if victim == nil then return nil end
     Destroy(victim)
-    return Create(template, kind, shares, x, y, z)
+    return Create(template, kind, shares, mode, x, y, z)
 end
 
 local function SetRate(s, rate)
@@ -318,9 +383,58 @@ local function Attach(s, h)
             end
         end
         s.owner = h
+        s.aimSpeed, s.bx, s.bz = nil, nil, nil   -- a new mover: aim from scratch
     end
     s.idleSince = nil
     s.stamp = V.ScanId
+end
+
+-- Aim a mover's two emitters (0 = fine sheet, 1 = chips) by its velocity. Only
+-- called with a live system; throttled to real changes of heading or speed.
+-- Pilots on foot launch both emitters like chips, capped so the apex of the
+-- fastest grain stays under FootApex.
+local function Aim(s, c)
+    local foot = s.mode == "foot"
+    local profile = s.profile
+    if profile == nil or (profile.aim == false and not foot) then return end
+    local speed = c.speed
+    if speed > 0.05 and (foot or speed >= V.MinSpeed) then
+        s.bx, s.bz = -c.vx / speed, -c.vz / speed
+    elseif s.bx == nil then
+        if speed > 0.05 then s.bx, s.bz = -c.vx / speed, -c.vz / speed else s.bx, s.bz = 1.0, 0.0 end
+    end
+    if s.aimSpeed ~= nil then
+        local turned = (s.bx * s.abx) + (s.bz * s.abz) < V.AimMinTurn
+        local stepped = math.abs(speed - s.aimSpeed) > math.max(1.0, V.AimMinSpeedStep * s.aimSpeed)
+        if not (turned or stepped) then return end
+    end
+    s.abx, s.abz, s.aimSpeed = s.bx, s.bz, speed
+
+    local gTtl = foot and (profile.fall or profile.g) or profile.g
+    local ballistic = foot or profile.vacuum
+    for i = 0, #s.shares - 1 do
+        local sheet = (i == 0) and not foot
+        local k, up, v
+        if sheet then
+            k, up = 1.0, V.SheetUp
+            v = Clamp(2.0 + (0.35 * speed), 2.0, 12.0)
+        else
+            k, up = V.ChipBack, 1.0
+            v = Clamp(2.5 + (0.25 * speed), 2.5, 9.0)
+        end
+        if foot then
+            -- apex = (v sin)^2 / 2g <= (vmax)^2 / 2g = FootApex, with vmax the fastest grain
+            local vmax = math.sqrt(2.0 * (profile.fall or profile.g) * V.FootApex)
+            v = math.min(v, vmax / (1.0 + V.VelocitySpread))
+        end
+        local len = math.sqrt((k * k) + (up * up))
+        Call("SetParticleEmitterDirection", s.name, i, Vec(s.bx * k / len, up / len, s.bz * k / len))
+        Call("SetParticleEmitterVelocity", s.name, i, v * (1.0 - V.VelocitySpread), v * (1.0 + V.VelocitySpread))
+        if ballistic then
+            local t = Clamp(2.0 * v * (up / len) / gTtl, V.MinTTL, V.MaxTTL)
+            Call("SetParticleEmitterTimeToLive", s.name, i, t * 0.8, t * 1.2)
+        end
+    end
 end
 
 local function DestroyAll()
@@ -370,8 +484,10 @@ local function Offer(h, d, x, y, z)
     local cap = V.MaxSystems
     local n = V.SelN
     local sel = V.Sel
+    -- The local player's own pilot ranks ahead of every other mover.
+    local key = (h == V.Player) and 0.0 or d
     -- Already holding a full set of nearer craft: nothing to gain.
-    if n >= cap and d >= sel[n].d then return end
+    if n >= cap and key >= sel[n].d then return end
 
     local free = V.Free
     local top = #free
@@ -383,30 +499,42 @@ local function Offer(h, d, x, y, z)
     local okf, vx, vz = pcall(VelFields, vel)
     if not okf or type(vx) ~= "number" or type(vz) ~= "number" then return end
     local speed = math.sqrt((vx * vx) + (vz * vz))
-    if speed >= V.MinSpeed then V.Moved[h] = V.Clock end
+    local person = IsPersonHandle(h)
+    if person then
+        -- On foot: nothing while standing (no idle emission), nothing off the ground.
+        if speed < V.FootMinSpeed then return end
+    else
+        if speed >= V.MinSpeed then V.Moved[h] = V.Clock end
+    end
     local movedAgo = V.Clock - (V.Moved[h] or -1000.0)
     -- A parked craft that has not moved lately costs nothing more.
-    if speed < V.MinSpeed and movedAgo > V.IdleGrace then return end
+    if not person and speed < V.MinSpeed and movedAgo > V.IdleGrace then return end
 
     local ground = TerrainHeight(x, z)
     if ground == nil then return end
     local height = y - ground
-    if height > V.MaxHeight then return end
+    if height > (person and V.FootMaxHeight or V.MaxHeight) then return end
 
     local surface, scale, lift = ResolveSurface(x, z, ground, y)
     local profile = surface and V.Profiles[surface]
     if profile == nil or not V.Avail[surface] then return end
 
     local base = V.RateOverride or profile.rate
-    local rate = RateOf(speed, height, movedAgo, base) * FadeOf(d) * scale
+    local rate
+    if person then
+        rate = base * V.FootRateShare * Clamp(speed / 6.0, 0.25, 1.0) * V.Quality * FadeOf(d) * scale
+    else
+        rate = RateOf(speed, height, movedAgo, base) * FadeOf(d) * scale
+    end
     if rate <= 0.01 then return end
 
     local rec = free[top]
     free[top] = nil
-    rec.h, rec.d, rec.x, rec.z, rec.ground, rec.rate, rec.profile = h, d, x, z, ground + lift, rate, profile
+    rec.h, rec.d, rec.x, rec.z, rec.ground, rec.rate, rec.profile = h, key, x, z, ground + lift, rate, profile
+    rec.vx, rec.vz, rec.speed, rec.mode = vx, vz, speed, person and "foot" or "craft"
 
     local i = n
-    while i >= 1 and sel[i].d > d do i = i - 1 end
+    while i >= 1 and sel[i].d > key do i = i - 1 end
     local pos = i + 1
     if n >= cap then
         local evicted = sel[cap]
@@ -477,7 +605,7 @@ local function Scan()
         local profile = c.profile
         local rec = V.Craft[c.h]
         local s = rec and rec.main
-        if s ~= nil and s.template ~= profile.template then
+        if s ~= nil and (s.template ~= profile.template or s.mode ~= c.mode) then
             -- The surface changed under the craft: let the old one go quiet.
             SetRate(s, 0.0)
             s.idleSince = V.Clock
@@ -487,9 +615,11 @@ local function Scan()
             s = nil
         end
         if s == nil then
-            s = Acquire(profile.template, "main", profile.shares, c.x, c.ground + 0.2, c.z)
+            s = Acquire(profile.template, "main", profile.shares, c.mode, c.x, c.ground + 0.2, c.z)
             if s ~= nil then
                 if V.Craft[c.h] == nil then V.Craft[c.h] = {} end
+                s.profile = profile
+                s.shares = profile.shares
                 Attach(s, c.h)
                 V.Craft[c.h].main = s
                 V.Stats.tracked = V.Stats.tracked + 1
@@ -500,21 +630,22 @@ local function Scan()
         end
         if s ~= nil then
             Call("SetParticleSystemPosition", s.name, Vec(c.x, c.ground + 0.2, c.z))
+            Aim(s, c)
             SetRate(s, c.rate)
         end
         c.main = s
     end
 
-    -- Accents (flat wake rings) only with a spare slot.
+    -- Accents (flat wake rings) only with a spare slot, and never for a pilot on foot.
     for i = 1, V.SelN do
         local c = sel[i]
         local profile = c.profile
         local rec = V.Craft[c.h]
         local a = rec and rec.accent
         if a ~= nil and (a.template ~= profile.accent or c.main == nil) then a = nil end
-        if profile.accent ~= nil and c.main ~= nil then
+        if profile.accent ~= nil and c.main ~= nil and c.mode == "craft" then
             if a == nil and V.Count < V.MaxSystems then
-                a = Create(profile.accent, "accent", ACCENT_SHARES, c.x, c.ground + 0.1, c.z)
+                a = Create(profile.accent, "accent", ACCENT_SHARES, "craft", c.x, c.ground + 0.1, c.z)
                 if a ~= nil then
                     if V.Craft[c.h] == nil then V.Craft[c.h] = {} end
                     Attach(a, c.h)
@@ -601,7 +732,8 @@ local TUNING_KEYS = {
 }
 
 -- options:
---   surface      a surface name, or a resolver function(x, z, ground, y) ->
+--   surface      a surface name (regolith mars ice ganymede water grass mud
+--                sulfur ash), or a resolver function(x, z, ground, y) ->
 --                name [, rateScale]
 --   surfaces     the names a resolver may return (their payloads are loaded)
 --   enabled, debug, quality
@@ -642,7 +774,8 @@ function V.Init(options)
 
     V.Free = {}
     for i = 1, V.MaxSystems + 1 do
-        V.Free[i] = { h = nil, d = 0.0, x = 0.0, z = 0.0, ground = 0.0, rate = 0.0, profile = nil, main = nil }
+        V.Free[i] = { h = nil, d = 0.0, x = 0.0, z = 0.0, ground = 0.0, rate = 0.0, profile = nil, main = nil,
+                      vx = 0.0, vz = 0.0, speed = 0.0, mode = "craft" }
     end
     V.Sel, V.SelN = {}, 0
 

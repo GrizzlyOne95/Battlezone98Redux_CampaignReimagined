@@ -936,10 +936,11 @@ do
     SetPlayer(tune, 2000.0, 98200.0, 2.0)
     tune.Run(3.0)
     local before = tune.Systems("CR/Moon/LocalMist")[1].s.emitterPositions[0].y
+    local oldHeight = tune.Moon.MistHeight
     check(tune.Moon.Tune("MistHeight", 1.6) and not tune.Moon.Tune("NoSuchThing", 1) and not tune.Moon.Tune("MistHeight", "x"),
         "Tune accepts a known number and refuses unknown or mistyped names")
     tune.Run(2.0)
-    check(near(tune.Systems("CR/Moon/LocalMist")[1].s.emitterPositions[0].y, before + 0.75, 1e-6), "a tuned MistHeight moves the layer live")
+    check(near(tune.Systems("CR/Moon/LocalMist")[1].s.emitterPositions[0].y, before + (1.6 - oldHeight), 1e-6), "a tuned MistHeight moves the layer live")
 end
 
 -- =============================================================================

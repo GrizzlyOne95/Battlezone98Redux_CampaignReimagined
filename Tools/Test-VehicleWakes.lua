@@ -13,6 +13,12 @@
 -- and that every template the profiles name exists in cr_wake.particle.payload
 -- on a material that already exists.
 --
+-- Also covers the kickup physics: per-craft emitter aim / velocity / TTL setter
+-- calls (stubbed exu, throttled, no-ops without the API), the ballistic TTL
+-- clamp, pilots on foot (no idle emission, apex cap on every world, small
+-- sprite), pool reuse by template + mode, the player's pilot ranking first,
+-- Ganymede's surface, and the vacuum / air template contracts.
+--
 -- Prints VEHICLE WAKES OK on success; prints each failed expectation and exits
 -- 1 otherwise.
 
@@ -46,7 +52,7 @@ local GROUND = 100.0
 local function NewWorld(options)
     options = options or {}
     local w = { now = 0.0, objects = {}, order = {}, systems = {}, created = 0, destroyed = 0,
-                allCraftCalls = 0, extra = {} }
+                allCraftCalls = 0, extra = {}, aimCalls = 0, persons = {} }
     local env = setmetatable({}, { __index = _G })
     env._G = env
 
@@ -54,7 +60,8 @@ local function NewWorld(options)
     if not options.noExu then
         exu.CreateParticleSystem = function(name, template, position)
             if w.systems[name] ~= nil then return false end
-            w.systems[name] = { template = template, position = position, rates = {}, local_ = nil }
+            w.systems[name] = { template = template, position = position, rates = {}, local_ = nil,
+                                dirs = {}, vel = {}, ttl = {}, params = {} }
             w.created = w.created + 1
             return true
         end
@@ -77,6 +84,33 @@ local function NewWorld(options)
             if w.systems[name] then w.systems[name].rates[i] = r end
             return true
         end
+        if not options.noAim then
+            exu.SetParticleSystemDefaultDimensions = function(name, ww, hh)
+                if w.systems[name] then w.systems[name].dims = { ww, hh } end
+                return true
+            end
+            exu.SetParticleEmitterDirection = function(name, i, d)
+                w.aimCalls = w.aimCalls + 1
+                if w.systems[name] then w.systems[name].dirs[i] = { x = d.x, y = d.y, z = d.z } end
+                return true
+            end
+            exu.SetParticleEmitterVelocity = function(name, i, lo, hi)
+                if w.systems[name] then w.systems[name].vel[i] = { lo, hi } end
+                return true
+            end
+            exu.SetParticleEmitterTimeToLive = function(name, i, lo, hi)
+                if w.systems[name] then w.systems[name].ttl[i] = { lo, hi } end
+                return true
+            end
+            exu.SetParticleEmitterParameter = function(name, i, key, value)
+                if w.systems[name] then w.systems[name].params[key] = value end
+                return true
+            end
+            exu.SetParticleEmitterAngle = function(name, i, a)
+                if w.systems[name] then w.systems[name].angle = a end
+                return true
+            end
+        end
     end
     if options.camera then
         exu.GetCameraTransformMatrix = function()
@@ -90,6 +124,7 @@ local function NewWorld(options)
     env.print = function() end
     env.GetPlayerHandle = function() return "player" end
     env.IsValid = function(h) return h == "player" or w.objects[h] ~= nil end
+    env.IsPerson = function(h) return w.persons[h] == true end
     env.GetPosition = function(h)
         local o = w.objects[h]
         if o then return UD({ x = o.x, y = o.y, z = o.z }) end
@@ -136,6 +171,11 @@ local function NewWorld(options)
         w.objects[name] = { x = x, y = GROUND + (height or 2.0), z = z, vx = vx or 0.0, vz = vz or 0.0 }
         w.order[#w.order + 1] = name
         return name
+    end
+    -- A pilot on foot. `height` is above the terrain (feet).
+    function w.AddPerson(name, x, z, vx, vz, height)
+        w.persons[name] = true
+        return w.Add(name, x, z, vx, vz, height or 0.0)
     end
     function w.Remove(name)
         w.objects[name] = nil
@@ -692,13 +732,13 @@ do
         if mud then
             local _, mudEmitters = mud:gsub("emitter%s+%a+", "")
             check(mudEmitters == 2 and #w.Wake.Profiles.mud.shares == 2, "mud has a dirt emitter and a clod emitter")
-            check(mud:match("material%s+(%S+)") == "CR_FX/Grit", "mud reuses the grit material")
+            check(mud:match("material%s+(%S+)") == "CR_FX/KickClod", "mud uses the clod sprite")
             for i = 0, 3 do check(mud:find("time" .. i, 1, true) and mud:find("colour" .. i, 1, true), "mud states interpolator stage " .. i) end
             local fy = tonumber(mud:match("force_vector%s+%S+%s+(%S+)"))
             local gy = tonumber(declared["CRWake/GrassBits"]:match("force_vector%s+%S+%s+(%S+)"))
-            check(fy and gy and fy < gy, "clods fall harder than grass bits")
+            check(fy and gy and fy < gy, "clods fall harder than grass bits (drag-softened)")
             local r, g, bl = mud:match("colour_range_start%s+(%S+)%s+(%S+)%s+(%S+)")
-            check(tonumber(r) < 0.3 and tonumber(r) > tonumber(bl), "mud is dark brown")
+            check(tonumber(r) <= 0.7 and tonumber(r) >= tonumber(bl), "mud tints the brown clod sprite warm and darker than grass")
             local mudQuota = tonumber(mud:match("quota%s+(%d+)"))
             check(mudQuota and mudQuota <= 72, "mud quota is within the load budget (" .. tostring(mudQuota) .. ")")
         end
@@ -721,6 +761,289 @@ do
         for _ in payload:gmatch("}") do close = close + 1 end
         check(open == close, "payload braces balance (" .. open .. "/" .. close .. ")")
     end
+end
+
+-- =============================================================================
+-- 12. Aim, launch speed and ballistic TTL (stubbed exu)
+-- =============================================================================
+
+local function norm(d) return math.sqrt((d.x * d.x) + (d.y * d.y) + (d.z * d.z)) end
+local function only(w) return w.systems[next(w.systems)] end
+
+do
+    -- Moon craft at 20 m/s along +x: the sheet and chips trail behind (-x), not straight up.
+    local w = NewWorld()
+    w.Wake.Init({ surface = "regolith" })
+    w.Add("c", 30.0, 0.0, 20.0, 0.0)
+    w.Run(1.0)
+    local s = only(w)
+    local d0, d1 = s.dirs[0], s.dirs[1]
+    check(d0 ~= nil and d1 ~= nil, "both emitters are aimed")
+    if d0 and d1 then
+        check(math.abs(norm(d0) - 1.0) < 1e-6 and math.abs(norm(d1) - 1.0) < 1e-6, "directions are unit vectors")
+        check(d0.x < 0 and math.abs(d0.z) < 1e-9 and d0.y > 0, "the sheet leaves up and BACK, opposite the velocity")
+        check(math.abs(d0.y / -d0.x - 0.35) < 1e-6, "sheet = back + up * 0.35")
+        check(math.abs(d1.y / -d1.x - (1.0 / 0.6)) < 1e-6, "chips = back * 0.6 + up")
+        check(d1.y > d0.y, "the chips leave steeper than the sheet")
+    end
+    -- Launch speed: sheet clamp(2 + 0.35 v, 2, 12) = 9, chips clamp(2.5 + 0.25 v, 2.5, 9) = 7.5, +/- 30 %.
+    local v0, v1 = s.vel[0], s.vel[1]
+    check(v0 and math.abs(v0[1] - 6.3) < 1e-6 and math.abs(v0[2] - 11.7) < 1e-6, "sheet speed range is 9 +/- 30 %")
+    check(v1 and math.abs(v1[1] - 5.25) < 1e-6 and math.abs(v1[2] - 9.75) < 1e-6, "chip speed range is 7.5 +/- 30 %")
+    -- Vacuum TTL = 2 v sin(el) / g, set +/- 20 % around it.
+    local sin0 = 0.35 / math.sqrt(1.0 + 0.35 * 0.35)
+    local t0 = 2.0 * 9.0 * sin0 / 1.62
+    check(s.ttl[0] and math.abs(s.ttl[0][1] - 0.8 * t0) < 1e-6 and math.abs(s.ttl[0][2] - 1.2 * t0) < 1e-6,
+        "Moon TTL is the ballistic flight time (" .. tostring(s.ttl[0] and s.ttl[0][1]) .. ")")
+    -- Throttled: steady flight makes no further setter calls; a turn does.
+    local before = w.aimCalls
+    w.Run(2.0)
+    check(w.aimCalls == before, "steady speed and heading re-aim nothing")
+    w.objects.c.vx, w.objects.c.vz = 0.0, 20.0
+    w.Run(1.0)
+    check(w.aimCalls > before, "a turn of 90 degrees re-aims")
+    check(only(w).dirs[0].z < 0 and math.abs(only(w).dirs[0].x) < 1e-9, "the spray now trails behind along -z")
+    w.objects.c.vx, w.objects.c.vz = 0.0, 5.0
+    local steady = w.aimCalls
+    w.Run(1.0)
+    check(w.aimCalls > steady, "a big speed change re-aims")
+    -- Slower than MinSpeed (idle share): the last heading is kept.
+    w.objects.c.vx, w.objects.c.vz = 1.0, 0.0
+    w.Run(1.0)
+    check(only(w).dirs[0].z < 0, "below MinSpeed the previous heading is kept")
+end
+
+do
+    -- Ballistic TTL clamp: very fast Moon craft hit the 4 s ceiling (x 1.2), never beyond.
+    local w = NewWorld()
+    w.Wake.Init({ surface = "regolith" })
+    w.Add("c", 30.0, 0.0, 40.0, 0.0)
+    w.Run(1.0)
+    local s = only(w)
+    check(s.ttl[1] and math.abs(s.ttl[1][1] - 3.2) < 1e-6 and math.abs(s.ttl[1][2] - 4.8) < 1e-6, "TTL is clamped at 4 s")
+    -- Air profiles keep their template TTL: no TTL setter for a vehicle on Mars, but aim and speed are set.
+    local m = NewWorld()
+    m.Wake.Init({ surface = "mars" })
+    m.Add("c", 30.0, 0.0, 20.0, 0.0)
+    m.Run(1.0)
+    local ms = only(m)
+    check(next(ms.ttl) == nil, "an air profile keeps the template TTLs")
+    check(ms.dirs[0] ~= nil and ms.vel[1] ~= nil, "but is still aimed")
+    -- Water keeps its own emitters (aim = false) for a vehicle.
+    local wt = NewWorld()
+    wt.Wake.Init({ surface = "water" })
+    wt.Add("c", 30.0, 0.0, 20.0, 0.0)
+    wt.Run(1.0)
+    check(next(only(wt).dirs) == nil, "a water wake is not re-aimed")
+    -- Without the aim API everything still works (no-ops).
+    local na = NewWorld({ noAim = true })
+    na.Wake.Init({ surface = "regolith" })
+    na.Add("c", 30.0, 0.0, 20.0, 0.0)
+    na.Run(1.0)
+    check(na.Live("CR/Moon/HoverDust") == 1 and #na.Emitting() == 1, "a missing aim API is a no-op, the wake still emits")
+end
+
+-- =============================================================================
+-- 13. Pilots on foot (every world)
+-- =============================================================================
+
+do
+    local WorldG = { regolith = 1.62, ganymede = 1.43, ice = 1.31, sulfur = 1.80, mars = 3.71, ash = 8.87,
+                     water = 9.81, mud = 9.81, grass = 9.81 }
+    local function expectedFall(profile) return profile.fall or profile.g end
+    local names = {}
+    for name in pairs(NewWorld().Wake.Profiles) do names[#names + 1] = name end
+    table.sort(names)
+    check(#names == 9, "nine surfaces: " .. table.concat(names, ","))
+    for _, name in ipairs(names) do
+        local w = NewWorld()
+        local profile = w.Wake.Profiles[name]
+        check(profile.g == WorldG[name], name .. " carries its real gravity (" .. tostring(profile.g) .. ")")
+        check(type(profile.vacuum) == "boolean", name .. " says whether it is a vacuum")
+        w.Wake.Init({ surface = name })
+        -- Standing still: nothing, even right after having walked.
+        w.AddPerson("pilot", 20.0, 0.0, 0.0, 0.0)
+        w.Run(2.0)
+        check(w.created == 0, name .. ": a standing pilot creates nothing (no idle emission)")
+        -- Walking.
+        w.objects.pilot.vx = 5.0
+        w.Run(1.0)
+        check(w.Live() == 1 and #w.Emitting() == 1, name .. ": a walking pilot emits")
+        local s = only(w)
+        check(s.dims ~= nil and s.dims[1] >= 0.25 and s.dims[1] <= 0.35, name .. ": a pilot's sprite is 0.25-0.35 m")
+        check(s.params.width and s.params.width <= 0.6 and s.angle and s.angle <= 25, name .. ": a pilot's emitter is tight")
+        local rateMax = 0
+        for _, r in pairs(s.rates) do rateMax = math.max(rateMax, r) end
+        check(rateMax > 0 and rateMax <= profile.rate * 0.12 + 1e-9, name .. ": pilot rate is 12 % of the profile (" .. rateMax .. ")")
+        -- Apex of the fastest grain of each emitter never exceeds 0.6 m.
+        local g = expectedFall(profile)
+        for i = 0, 1 do
+            local d, v = s.dirs[i], s.vel[i]
+            check(d ~= nil and v ~= nil, name .. ": pilot emitter " .. i .. " is aimed")
+            if d and v then
+                local vy = v[2] * d.y
+                check(vy * vy / (2.0 * g) <= 0.6 + 1e-9, string.format("%s: apex cap on emitter %d (%.3f m)", name, i, vy * vy / (2.0 * g)))
+                check(d.x < 0, name .. ": pilot spray trails behind")
+            end
+            if s.ttl[i] then check(s.ttl[i][1] >= 0.6 * 0.8 - 1e-9 and s.ttl[i][2] <= 4.0 * 1.2 + 1e-9, name .. ": pilot TTL is clamped") end
+        end
+        check(s.ttl[0] ~= nil, name .. ": pilot TTL is ballistic on every world")
+        -- Airborne (above FootMaxHeight) emits nothing.
+        w.objects.pilot.y = GROUND + 2.0
+        w.Run(1.0)
+        check(#w.Emitting() == 0, name .. ": an airborne pilot emits nothing")
+        -- Stopped: silent immediately.
+        w.objects.pilot.y, w.objects.pilot.vx = GROUND, 0.0
+        w.Run(1.0)
+        check(#w.Emitting() == 0, name .. ": a stopped pilot goes silent")
+        w.Wake.Stop()
+    end
+    -- A vehicle on the same world is not a pilot: it keeps the full-size template.
+    local w = NewWorld()
+    w.Wake.Init({ surface = "regolith" })
+    w.Add("c", 30.0, 0.0, 20.0, 0.0)
+    w.Run(1.0)
+    check(only(w).dims == nil, "a vehicle keeps the template sprite size")
+end
+
+do
+    -- Pool reuse needs the same template AND mode.
+    local w = NewWorld()
+    w.Wake.Init({ surface = "regolith" })
+    w.Add("craft", 30.0, 0.0, 20.0, 0.0)
+    w.Run(1.0)
+    check(w.created == 1, "one vehicle system")
+    w.objects.craft.x = 500.0      -- out of range: unselected but valid, so its system idles and lingers
+    w.AddPerson("pilot", 25.0, 0.0, 5.0, 0.0)
+    w.Run(1.0)
+    check(w.created == 2, "a pilot never takes a vehicle's idle system (created " .. w.created .. ")")
+    local feet, craft = 0, 0
+    for _, sy in pairs(w.systems) do if sy.dims then feet = feet + 1 else craft = craft + 1 end end
+    check(feet == 1 and craft == 1, "one foot system and one vehicle system are live")
+    w.Add("craft2", 40.0, 5.0, 20.0, 0.0)
+    w.Run(1.0)
+    check(w.created == 2, "the next vehicle reuses the idle vehicle system (created " .. w.created .. ")")
+    w.objects.pilot.x = 500.0
+    w.Run(0.5)
+    w.AddPerson("pilot2", 22.0, 3.0, 5.0, 0.0)
+    w.Run(1.0)
+    check(w.created == 2, "the next pilot reuses the idle foot system (created " .. w.created .. ")")
+    local sys = nil
+    for _, sy in pairs(w.systems) do if sy.dims then sys = sy end end
+    check(sys ~= nil and sys.dims[1] == 0.3, "and it keeps the pilot size")
+end
+
+do
+    -- Persons count toward the system cap.
+    local w = NewWorld()
+    w.Wake.Init({ surface = "mars", maxSystems = 3 })
+    for i = 1, 3 do w.AddPerson("p" .. i, 10.0 + i, 0.0, 5.0, 0.0) end
+    for i = 1, 3 do w.Add("c" .. i, 60.0 + i, 0.0, 20.0, 0.0) end
+    w.Run(2.0)
+    check(w.Live() <= 3, "pilots and vehicles share the system cap (" .. w.Live() .. ")")
+
+    -- The local player's own pilot outranks nearer vehicles when the camera is elsewhere.
+    local c = NewWorld({ camera = { x = 100.0, z = 0.0, fx = 1.0, fz = 0.0 } })
+    c.Wake.Init({ surface = "regolith", maxSystems = 2, tuning = { cullBehind = false } })
+    c.persons.player = true
+    c.objects.player.y, c.objects.player.vx = GROUND, 5.0
+    c.Add("n1", 98.0, 0.0, 20.0, 0.0)
+    c.Add("n2", 102.0, 0.0, 20.0, 0.0)
+    c.Add("n3", 104.0, 0.0, 20.0, 0.0)
+    c.Run(2.0)
+    local foot = false
+    for _, sy in pairs(c.systems) do if sy.dims then foot = true end end
+    check(foot and c.Live() == 2, "the player's pilot keeps a system ahead of nearer vehicles")
+end
+
+-- =============================================================================
+-- 14. Ganymede and the vacuum / air template contracts
+-- =============================================================================
+
+do
+    local w = NewWorld()
+    w.Wake.Init({ surface = "ganymede" })
+    check(#w.extra == 1 and w.extra[1] == "cr_wake", "ganymede loads the shared payload")
+    w.Add("c", 30.0, 0.0, 12.0, 0.0)
+    w.Run(1.0)
+    check(w.Live("CRWake/GanymedeSpray") == 1 and w.Live("CRWake/IceSpray") == 0, "Ganymede uses its own template")
+    local s = only(w)
+    check(s.ttl[0] ~= nil, "Ganymede is a vacuum: ballistic TTL")
+    local sin0 = 0.35 / math.sqrt(1.0 + 0.35 * 0.35)
+    check(s.ttl[0] and math.abs(s.ttl[0][1] - 0.8 * (2.0 * 6.2 * sin0 / 1.43)) < 1e-6, "using g = 1.43")
+
+    local function readAll(path)
+        local f = io.open(path, "rb")
+        if not f then return nil end
+        local t = f:read("*a")
+        f:close()
+        return t
+    end
+    local runtime = readAll(scriptDir .. "/CRCCARuntime.lua") or ""
+    check(runtime:find("wakeSurface = w.wakeSurface", 1, true) ~= nil and runtime:find("^CRGanymedeSites", 1, true) ~= nil,
+        "CRCCARuntime passes wakeSurface (explicit, or from a CRGanymedeSites* module)")
+    local europa = readAll(scriptDir .. "/CREuropaWeather.lua") or ""
+    check(europa:find('surface = options.wakeSurface or "ice"', 1, true) ~= nil, "CREuropaWeather forwards options.wakeSurface")
+
+    local wake = readAll(scriptDir .. "/../Materials/cr_wake.particle.payload") or ""
+    local moon = readAll(scriptDir .. "/../Materials/cr_moon.particle.payload") or ""
+    local reactive = readAll(scriptDir .. "/../Materials/CR_reactive.material") or ""
+    local bodies = {}
+    for name, body in wake:gmatch("particle_system%s+([^%s{]+)%s*(%b{})") do bodies[name] = body end
+    bodies["CR/Moon/HoverDust"] = moon:match("particle_system%s+CR/Moon/HoverDust%s*(%b{})")
+
+    local kickMaterial = { regolith = "CR_FX/KickRegolith", ganymede = "CR_FX/KickIce", ice = "CR_FX/KickIce",
+                           sulfur = "CR_FX/KickRegolith", mars = "CR_FX/KickPuff", ash = "CR_FX/KickPuff", grass = "CR_FX/KickClod",
+                           mud = "CR_FX/KickClod" }
+    for name, profile in pairs(w.Wake.Profiles) do
+        local body = bodies[profile.template]
+        check(body ~= nil, name .. " template exists")
+        if body then
+            local fy = tonumber(body:match("force_vector%s+%S+%s+(%S+)"))
+            check(fy and math.abs(fy + (profile.fall or profile.g)) < 1e-9, name .. " LinearForce matches its profile gravity (" .. tostring(fy) .. ")")
+            if profile.vacuum then
+                check(not body:find("affector%s+Scaler"), name .. " (vacuum) has no Scaler growth")
+                check(body:find("affector%s+ColourFader2") and body:find("state_change") and body:find("alpha1%s+0%s"),
+                    name .. " (vacuum) holds alpha then fades at the end")
+            end
+            if name ~= "water" then
+                check(body:match("material%s+(%S+)") == kickMaterial[name], name .. " uses " .. tostring(kickMaterial[name]))
+            end
+            if name ~= "water" then
+                check(body:find("affector%s+Rotator") and body:find("rotation_range_end%s+360"), name .. " rotates its sprites randomly")
+                local size = tonumber(body:match("particle_width%s+(%S+)"))
+                check(size and size <= 1.0, name .. " vehicle sprites are small (" .. tostring(size) .. " m)")
+            end
+        end
+    end
+    for _, m in ipairs({ "CR_FX/KickRegolith", "CR_FX/KickIce", "CR_FX/KickClod", "CR_FX/KickPuff" }) do
+        check(reactive:find("material%s+" .. m .. "%s*:%s*BZSprite/AlphaBlend") ~= nil, m .. " is an AlphaBlend sprite material")
+    end
+    for _, tex in ipairs({ "cr_kick_regolith.dds", "cr_kick_ice.dds", "cr_kick_clod.dds", "cr_kick_puff.dds" }) do
+        check(reactive:find(tex, 1, true) ~= nil, tex .. " is named by a material")
+        local f = io.open(scriptDir .. "/../Assets/Textures/" .. tex, "rb")
+        check(f ~= nil, tex .. " ships in Assets/Textures")
+        if f then f:close() end
+    end
+    -- Ganymede: dark dirty dust (emitter 0) and bright ice (emitter 1).
+    local gb = bodies["CRWake/GanymedeSpray"]
+    if gb then
+        local first = gb:match("colour_range_start%s+(%S+)%s+%S+%s+%S+")
+        local second = gb:match("emitter.-emitter.-colour_range_start%s+(%S+)%s+%S+%s+%S+")
+        check(tonumber(first) and tonumber(first) < 0.4, "Ganymede emitter 0 is dark grey-brown")
+        check(tonumber(second) and tonumber(second) > 0.6, "Ganymede emitter 1 is bright blue-white")
+    end
+    -- Moon mist stays below an on-foot eye: top of every layer <= 0.6 m.
+    local moonWeather = readAll(scriptDir .. "/CRMoonWeather.lua") or ""
+    local mistHeight = tonumber(moonWeather:match("V%.MistHeight%s*=%s*([%d%.]+)"))
+    local maxThickness = 0
+    for name in pairs({ ["CR/Moon/GroundMist"] = true, ["CR/Moon/LocalMist"] = true }) do
+        local body = moon:match("particle_system%s+" .. name:gsub("/", "%%/") .. "%s*(%b{})")
+        check(body ~= nil, name .. " exists")
+        for h in (body or ""):gmatch("%sheight%s+([%d%.]+)") do maxThickness = math.max(maxThickness, tonumber(h)) end
+    end
+    check(mistHeight and maxThickness > 0 and mistHeight + maxThickness / 2.0 <= 0.6 + 1e-9,
+        "the Moon's mist top stays at or below 0.6 m (" .. tostring(mistHeight) .. " + " .. maxThickness .. "/2)")
 end
 
 -- =============================================================================
