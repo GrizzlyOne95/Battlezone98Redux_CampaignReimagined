@@ -526,6 +526,21 @@
       "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
     {
+      "odf": "gflance",
+      "class": "cannon",
+      "name": "Plasma Lance",
+      "ordnance": "flance",
+      "parent": "",
+      "scope": "CR",
+      "category": "CANN",
+      "delay": "1.5",
+      "producer": "cannon factory",
+      "flash_profile": "plasmablue",
+      "flash_decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
+    },
+    {
       "odf": "gflare",
       "class": "dispenser",
       "name": "Solar Flare",

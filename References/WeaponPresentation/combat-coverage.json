@@ -3874,7 +3874,7 @@
       "model": "hvturr",
       "slots": {
         "1": {
-          "weapon": "gbolt",
+          "weapon": "gflance",
           "hardpoint": "GC1",
           "recoil_node": "",
           "recoil_distance": null,
@@ -3890,7 +3890,7 @@
           "runtime": "accepted-shot path; live validation pending"
         },
         "2": {
-          "weapon": "gbolt",
+          "weapon": "gflance",
           "hardpoint": "GC2",
           "recoil_node": "",
           "recoil_distance": null,

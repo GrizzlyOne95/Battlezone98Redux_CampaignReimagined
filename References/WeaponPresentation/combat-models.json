@@ -2181,7 +2181,7 @@
     },
     "hvturr": {
       "category": "Emitter/asset decision",
-      "action": "Fury Turret (CR original, skinned organic hull): both gbolt hardpoints fire from the glowing eye face on the head (hvt11tx1) with no barrel node. Do not recoil the head or hull; if motion is wanted, author an eye-glow pulse.",
+      "action": "Fury Turret (CR original, skinned organic hull): both gflance (Plasma Lance) hardpoints fire from the glowing eye face on the head (hvt11tx1) with no barrel node. Do not recoil the head or hull; if motion is wanted, author an eye-glow pulse.",
       "bindings": {}
     },
     "hvwalk": {

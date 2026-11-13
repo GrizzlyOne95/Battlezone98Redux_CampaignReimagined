@@ -34,6 +34,7 @@ gbspstab,cannon,SP-Stabber,rocketb3,gatstab,CR override,CANN,0.6,cannon factory,
 gcomet,radarlauncher,Comet,,,CR override,ROCK,,other producer pending,rocket,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
 gctesla,dispenser,CRA Tesla Field,,,CR,SPEC,,other producer pending,,field deployment,none,"Energy, launcher, explosive or utility: no ejected brass."
 gdummy,machinegun,Paintball,dummy,,CR override,CANN,0.20,machinegun factory (companion OpenShim change; live pending),,paintball/debug effect,none,"Energy, launcher, explosive or utility: no ejected brass."
+gflance,cannon,Plasma Lance,flance,,CR,CANN,1.5,cannon factory,plasmablue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
 gflare,dispenser,Solar Flare,,,CR override,SPEC,,other producer pending,,countermeasure deployment,none,"Energy, launcher, explosive or utility: no ejected brass."
 gflashch,beamgun,Flash Cannon,flashch,,CR override,CANN,,other producer pending,arcred,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
 gflashgb,beamgun,Flash Cannon,flashb,,CR override,CANN,,other producer pending,arcblue,authored flash,none,"Energy, launcher, explosive or utility: no ejected brass."
