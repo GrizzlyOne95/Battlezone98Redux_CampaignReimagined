@@ -47,9 +47,12 @@ def fit(im: Image.Image, pad: int = 6) -> Image.Image:
     return out
 
 
-def atlas_cut(atlas: Image.Image, box) -> Image.Image:
-    """A cutout from a foliage atlas; its own alpha is the shape (largest piece only)."""
+def atlas_cut(atlas: Image.Image, box, layout: int | None = None) -> Image.Image:
+    """A cutout from a foliage atlas; its own alpha is the shape (largest piece only).
+    `layout`: the atlas width the box was measured at (the box scales with the atlas)."""
     from scipy import ndimage
+    if layout:
+        box = tuple(round(v * atlas.width / layout) for v in box)
     a = np.array(atlas.crop(box))
     solid = a[..., 3] > 40
     lab, n = ndimage.label(ndimage.binary_dilation(solid, iterations=2))
@@ -83,8 +86,8 @@ def chip(src: Image.Image, box, seed: int, points: int = 8, roundness: float = 0
 def sprites() -> dict[str, Image.Image]:
     foliage = load("cr17_foliage.dds")     # 2048^2, = ISDFC FoliageAtlas_Mire
     bark = load("cr17_bark.dds")           # = ISDFC motrnk01
-    needles = load("cr17_fbranch1.dds")    # 512^2 fir branch cards
-    gold = load("cr17_fbranch2.dds")       # 512^2 birch branch cards
+    needles = load("cr17_fbranch1.dds")    # fir branch cards (pack layout, 512 or 2048)
+    gold = load("cr17_fbranch2.dds")       # birch branch cards (pack layout, 512 or 2048)
     fir = load("cr17_ftrunk1.dds")         # 1024x2048
     birch = load("cr17_ftrunk2.dds")       # 512x2048
     return {
@@ -93,10 +96,10 @@ def sprites() -> dict[str, Image.Image]:
         "cr17_dkelp": atlas_cut(foliage, (300, 815, 512, 892)),
         "cr17_dbark": chip(bark, (300, 300, 560, 560), seed=11, points=7, elongate=1.5, roundness=0.45),
         # fir: one small needle sprig (lower-left card), fir bark
-        "cr17_dneedl": atlas_cut(needles, (10, 250, 160, 345)),
+        "cr17_dneedl": atlas_cut(needles, (10, 250, 160, 345), layout=512),
         "cr17_dfbark": chip(fir, (380, 900, 640, 1160), seed=21, points=7, elongate=1.6, roundness=0.45),
         # birch: one gold-leaf sprig (top-right card tip), birch bark
-        "cr17_dgleaf": atlas_cut(gold, (420, 30, 505, 100)),
+        "cr17_dgleaf": atlas_cut(gold, (420, 30, 505, 100), layout=512),
         "cr17_dbbark": chip(birch, (130, 900, 390, 1160), seed=22, points=7, elongate=1.6, roundness=0.45),
     }
 
