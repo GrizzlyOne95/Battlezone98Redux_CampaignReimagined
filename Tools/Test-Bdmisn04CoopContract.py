@@ -98,7 +98,7 @@ if vxt.is_file():
     vxt_note = "start file checked"
 else:
     vxt_note = "start file absent, not checked"
-mpdes = ROOT / "bd04cr.mpdes"
+mpdes = ROOT / "Missions/Descriptions/bd04cr.mpdes"
 if mpdes.is_file():
     assert "Wolf in Sheep" in mpdes.read_text(encoding="utf-8", errors="replace")
 

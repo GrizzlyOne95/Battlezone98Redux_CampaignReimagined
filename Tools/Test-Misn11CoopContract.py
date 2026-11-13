@@ -74,7 +74,7 @@ assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
 assert (root / 'Assets/Graphics/misn11cr.bmp').read_bytes()[:2] == b'BM'
 assert (root / 'Missions/misn11cr.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,']
-assert len((root / 'misn11cr.mpdes').read_text().strip()) <= 300
+assert len((root / 'Missions/Descriptions/misn11cr.mpdes').read_text().strip()) <= 300
 campaign = (root / 'Config/crcampgn.ini').read_text()
 assert re.search(r'missionBZN = "misn11cr.bzn"', campaign), 'Campaign must launch the shared BZN'
 section = re.search(r'\[MISSION10\]\n((?:[^\[\n][^\n]*\n)+)', campaign.replace('\r\n', '\n'))[1]
@@ -118,7 +118,7 @@ assert 'edge_path' not in raw_lua, 'edge_path is the play boundary, not a route'
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn11cr.ini', 'Missions/misn11cr.vxt', 'Assets/Graphics/misn11cr.bmp', 'misn11cr.mpdes',
+for source in ['Config/misn11cr.ini', 'Missions/misn11cr.vxt', 'Assets/Graphics/misn11cr.bmp', 'Missions/Descriptions/misn11cr.mpdes',
                'Missions/misn11cr.bzn', 'Missions/misn11.hg2', 'Missions/misn11.trn', 'Missions/misn11.mat',
                'Missions/misn11.lgt', 'Scripts/misn11cr.lua', 'Scripts/CRIoSites11.lua']:
     assert members.get(source) == Path(source).name, 'Map/lobby file must be admitted by the shipping manager: ' + source

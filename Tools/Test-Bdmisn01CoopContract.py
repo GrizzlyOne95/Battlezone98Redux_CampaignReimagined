@@ -135,7 +135,7 @@ vxt = ROOT / "Missions/bd01cr.vxt"
 if vxt.is_file():
     assert re.search(r"\bbvtank\b", vxt.read_text(encoding="utf-8")), "the vehicle list offers the Grizzly"
     print("  Missions/bd01cr.vxt checked")
-mpdes = ROOT / "bd01cr.mpdes"
+mpdes = ROOT / "Missions/Descriptions/bd01cr.mpdes"
 if mpdes.is_file():
     assert "Close Target Wrecky" in mpdes.read_text(encoding="utf-8")
     print("  bd01cr.mpdes checked")

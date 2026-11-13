@@ -161,8 +161,8 @@ pending. One `.bzn` and one `.lua` serve both modes. Use the newest finished mis
    by `086ba03`): `git show ce18e89:Missions/misnNN.hg2`.
 4. **Lua co-op layer** (section 3.2-3.6), marked with `-- CR ... >>` / `<<` regions so the source-parity
    test can strip them and prove the DLL port underneath is unchanged.
-5. **Listing.** `Config/misnNN.ini` (mapType multiplayer, gameType S, 2-4 players), root `misnNN.mpdes` (the MP listing blurb; SP uses the stock `.des`)
-   (<= 300 bytes, CRLF, and it must be allowlisted in `.gitignore`), `Missions/misnNN.vxt`
+5. **Listing.** `Config/misnNN.ini` (mapType multiplayer, gameType S, 2-4 players), `Missions/Descriptions/misnNN.mpdes` (the MP listing blurb; SP uses the stock `.des`)
+   (<= 300 bytes, CRLF), `Missions/misnNN.vxt`
    (approved roster: `Docs/COOP_STARTING_UNITS.md`),
    `Assets/Graphics/misnNN.bmp` (from `Tools/Assets/Make-MissionPreviews.py`), and the `[MISSIONk]` entry in
    `Config/crcampgn.ini` (3.7).
@@ -224,7 +224,7 @@ authority). Frequently needed helpers: `IsAuthority`, `IsCampaignLeader`, `IsHum
   **queues**; `subtit.Play` clears the subtitle sequence, so use `Play` for a block's first line and
   `subtit.Queue` for the rest (both return the native handle).
 - Admission: early Q/K/P handshakes before `CRCoop.Initialize()` are consumed without acknowledgement
-  (`Docs/COOP_ADMISSION_INITIALIZATION_20261009.md`).
+  (`Docs/Archive/COOP_ADMISSION_INITIALIZATION_20261009.md`).
 - Guest-built objects are **not** listed in the host's Lua `AllCraft`; do not assume the host can see
   them.
 

@@ -170,7 +170,7 @@ crch = ROOT / "Config/crch.ini"
 if crch.is_file():
     assert re.search(r'\[MISSION4\][^\[]*missionBZN = "ch04cr\.bzn"', crch.read_text(encoding="utf-8")), "campaign entry 4 is this map"
     print("  Config/crch.ini checked")
-mpdes = ROOT / "ch04cr.mpdes"
+mpdes = ROOT / "Missions/Descriptions/ch04cr.mpdes"
 if mpdes.is_file():
     assert "From Out There Somewhere" in mpdes.read_text(encoding="utf-8")
 

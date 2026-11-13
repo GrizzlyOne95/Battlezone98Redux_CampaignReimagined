@@ -10283,126 +10283,6 @@
       "runtime": "xrainsp.png"
     },
     {
-      "source": "bd01cr.des",
-      "runtime": "bd01cr.des"
-    },
-    {
-      "source": "bd01cr.mpdes",
-      "runtime": "bd01cr.mpdes"
-    },
-    {
-      "source": "bd02cr.des",
-      "runtime": "bd02cr.des"
-    },
-    {
-      "source": "bd02cr.mpdes",
-      "runtime": "bd02cr.mpdes"
-    },
-    {
-      "source": "bd03cr.des",
-      "runtime": "bd03cr.des"
-    },
-    {
-      "source": "bd03cr.mpdes",
-      "runtime": "bd03cr.mpdes"
-    },
-    {
-      "source": "bd04cr.des",
-      "runtime": "bd04cr.des"
-    },
-    {
-      "source": "bd04cr.mpdes",
-      "runtime": "bd04cr.mpdes"
-    },
-    {
-      "source": "bd05cr.des",
-      "runtime": "bd05cr.des"
-    },
-    {
-      "source": "bd05cr.mpdes",
-      "runtime": "bd05cr.mpdes"
-    },
-    {
-      "source": "bd06cr.des",
-      "runtime": "bd06cr.des"
-    },
-    {
-      "source": "bd06cr.mpdes",
-      "runtime": "bd06cr.mpdes"
-    },
-    {
-      "source": "bd07cr.des",
-      "runtime": "bd07cr.des"
-    },
-    {
-      "source": "bd07cr.mpdes",
-      "runtime": "bd07cr.mpdes"
-    },
-    {
-      "source": "bd08cr.des",
-      "runtime": "bd08cr.des"
-    },
-    {
-      "source": "bd08cr.mpdes",
-      "runtime": "bd08cr.mpdes"
-    },
-    {
-      "source": "bd09cr.des",
-      "runtime": "bd09cr.des"
-    },
-    {
-      "source": "bd09cr.mpdes",
-      "runtime": "bd09cr.mpdes"
-    },
-    {
-      "source": "bd10cr.des",
-      "runtime": "bd10cr.des"
-    },
-    {
-      "source": "bd10cr.mpdes",
-      "runtime": "bd10cr.mpdes"
-    },
-    {
-      "source": "bd11cr.des",
-      "runtime": "bd11cr.des"
-    },
-    {
-      "source": "bd11cr.mpdes",
-      "runtime": "bd11cr.mpdes"
-    },
-    {
-      "source": "bd12cr.des",
-      "runtime": "bd12cr.des"
-    },
-    {
-      "source": "bd12cr.mpdes",
-      "runtime": "bd12cr.mpdes"
-    },
-    {
-      "source": "bd13cr.des",
-      "runtime": "bd13cr.des"
-    },
-    {
-      "source": "bd13cr.mpdes",
-      "runtime": "bd13cr.mpdes"
-    },
-    {
-      "source": "bd14cr.des",
-      "runtime": "bd14cr.des"
-    },
-    {
-      "source": "bd14cr.mpdes",
-      "runtime": "bd14cr.mpdes"
-    },
-    {
-      "source": "bd15cr.des",
-      "runtime": "bd15cr.des"
-    },
-    {
-      "source": "bd15cr.mpdes",
-      "runtime": "bd15cr.mpdes"
-    },
-    {
       "source": "Bin\\bzfile.dll",
       "runtime": "bzfile.dll"
     },
@@ -10521,70 +10401,6 @@
     {
       "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uiplate.png",
       "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uiplate.png"
-    },
-    {
-      "source": "ch01cr.des",
-      "runtime": "ch01cr.des"
-    },
-    {
-      "source": "ch01cr.mpdes",
-      "runtime": "ch01cr.mpdes"
-    },
-    {
-      "source": "ch02cr.des",
-      "runtime": "ch02cr.des"
-    },
-    {
-      "source": "ch02cr.mpdes",
-      "runtime": "ch02cr.mpdes"
-    },
-    {
-      "source": "ch03cr.des",
-      "runtime": "ch03cr.des"
-    },
-    {
-      "source": "ch03cr.mpdes",
-      "runtime": "ch03cr.mpdes"
-    },
-    {
-      "source": "ch04cr.des",
-      "runtime": "ch04cr.des"
-    },
-    {
-      "source": "ch04cr.mpdes",
-      "runtime": "ch04cr.mpdes"
-    },
-    {
-      "source": "ch05cr.des",
-      "runtime": "ch05cr.des"
-    },
-    {
-      "source": "ch05cr.mpdes",
-      "runtime": "ch05cr.mpdes"
-    },
-    {
-      "source": "ch06cr.des",
-      "runtime": "ch06cr.des"
-    },
-    {
-      "source": "ch06cr.mpdes",
-      "runtime": "ch06cr.mpdes"
-    },
-    {
-      "source": "ch07cr.des",
-      "runtime": "ch07cr.des"
-    },
-    {
-      "source": "ch07cr.mpdes",
-      "runtime": "ch07cr.mpdes"
-    },
-    {
-      "source": "ch08cr.des",
-      "runtime": "ch08cr.des"
-    },
-    {
-      "source": "ch08cr.mpdes",
-      "runtime": "ch08cr.mpdes"
     },
     {
       "source": "Config\\ac_detail_atlas.csv",
@@ -10853,42 +10669,6 @@
     {
       "source": "Config\\ve_detail_atlas.csv",
       "runtime": "ve_detail_atlas.csv"
-    },
-    {
-      "source": "crbd.des",
-      "runtime": "crbd.des"
-    },
-    {
-      "source": "crcampgn.des",
-      "runtime": "crcampgn.des"
-    },
-    {
-      "source": "crcca.des",
-      "runtime": "crcca.des"
-    },
-    {
-      "source": "crch.des",
-      "runtime": "crch.des"
-    },
-    {
-      "source": "crsetfl.des",
-      "runtime": "crsetfl.des"
-    },
-    {
-      "source": "crsetok.des",
-      "runtime": "crsetok.des"
-    },
-    {
-      "source": "crsetrr.des",
-      "runtime": "crsetrr.des"
-    },
-    {
-      "source": "crsetup.des",
-      "runtime": "crsetup.des"
-    },
-    {
-      "source": "evolvecr.mpdes",
-      "runtime": "evolvecr.mpdes"
     },
     {
       "source": "flags\\flag0010.bmp",
@@ -12109,10 +11889,6 @@
     {
       "source": "flags\\flag0319.bmp",
       "runtime": "flags\\flag0319.bmp"
-    },
-    {
-      "source": "install.des",
-      "runtime": "install.des"
     },
     {
       "source": "install\\install_windows.ps1",
@@ -13755,198 +13531,6 @@
       "runtime": "xrainsp.material"
     },
     {
-      "source": "misn03cr.des",
-      "runtime": "misn03cr.des"
-    },
-    {
-      "source": "misn03cr.mpdes",
-      "runtime": "misn03cr.mpdes"
-    },
-    {
-      "source": "misn04cr.des",
-      "runtime": "misn04cr.des"
-    },
-    {
-      "source": "misn04cr.mpdes",
-      "runtime": "misn04cr.mpdes"
-    },
-    {
-      "source": "misn05cr.des",
-      "runtime": "misn05cr.des"
-    },
-    {
-      "source": "misn05cr.mpdes",
-      "runtime": "misn05cr.mpdes"
-    },
-    {
-      "source": "misn06cr.des",
-      "runtime": "misn06cr.des"
-    },
-    {
-      "source": "misn06cr.mpdes",
-      "runtime": "misn06cr.mpdes"
-    },
-    {
-      "source": "misn07cr.des",
-      "runtime": "misn07cr.des"
-    },
-    {
-      "source": "misn07cr.mpdes",
-      "runtime": "misn07cr.mpdes"
-    },
-    {
-      "source": "misn08cr.des",
-      "runtime": "misn08cr.des"
-    },
-    {
-      "source": "misn08cr.mpdes",
-      "runtime": "misn08cr.mpdes"
-    },
-    {
-      "source": "misn09cr.des",
-      "runtime": "misn09cr.des"
-    },
-    {
-      "source": "misn09cr.mpdes",
-      "runtime": "misn09cr.mpdes"
-    },
-    {
-      "source": "misn10cr.des",
-      "runtime": "misn10cr.des"
-    },
-    {
-      "source": "misn10cr.mpdes",
-      "runtime": "misn10cr.mpdes"
-    },
-    {
-      "source": "misn11cr.des",
-      "runtime": "misn11cr.des"
-    },
-    {
-      "source": "misn11cr.mpdes",
-      "runtime": "misn11cr.mpdes"
-    },
-    {
-      "source": "misn12cr.des",
-      "runtime": "misn12cr.des"
-    },
-    {
-      "source": "misn12cr.mpdes",
-      "runtime": "misn12cr.mpdes"
-    },
-    {
-      "source": "misn13cr.des",
-      "runtime": "misn13cr.des"
-    },
-    {
-      "source": "misn13cr.mpdes",
-      "runtime": "misn13cr.mpdes"
-    },
-    {
-      "source": "misn14cr.des",
-      "runtime": "misn14cr.des"
-    },
-    {
-      "source": "misn14cr.mpdes",
-      "runtime": "misn14cr.mpdes"
-    },
-    {
-      "source": "misn15.mpdes",
-      "runtime": "misn15.mpdes"
-    },
-    {
-      "source": "misn16.mpdes",
-      "runtime": "misn16.mpdes"
-    },
-    {
-      "source": "misn17cr.des",
-      "runtime": "misn17cr.des"
-    },
-    {
-      "source": "misn17cr.mpdes",
-      "runtime": "misn17cr.mpdes"
-    },
-    {
-      "source": "misn18cr.des",
-      "runtime": "misn18cr.des"
-    },
-    {
-      "source": "misn18cr.mpdes",
-      "runtime": "misn18cr.mpdes"
-    },
-    {
-      "source": "misn2bcr.des",
-      "runtime": "misn2bcr.des"
-    },
-    {
-      "source": "misn2bcr.mpdes",
-      "runtime": "misn2bcr.mpdes"
-    },
-    {
-      "source": "misns1cr.des",
-      "runtime": "misns1cr.des"
-    },
-    {
-      "source": "misns1cr.mpdes",
-      "runtime": "misns1cr.mpdes"
-    },
-    {
-      "source": "misns2cr.des",
-      "runtime": "misns2cr.des"
-    },
-    {
-      "source": "misns2cr.mpdes",
-      "runtime": "misns2cr.mpdes"
-    },
-    {
-      "source": "misns3cr.des",
-      "runtime": "misns3cr.des"
-    },
-    {
-      "source": "misns3cr.mpdes",
-      "runtime": "misns3cr.mpdes"
-    },
-    {
-      "source": "misns4cr.des",
-      "runtime": "misns4cr.des"
-    },
-    {
-      "source": "misns4cr.mpdes",
-      "runtime": "misns4cr.mpdes"
-    },
-    {
-      "source": "misns5cr.des",
-      "runtime": "misns5cr.des"
-    },
-    {
-      "source": "misns5cr.mpdes",
-      "runtime": "misns5cr.mpdes"
-    },
-    {
-      "source": "misns6cr.des",
-      "runtime": "misns6cr.des"
-    },
-    {
-      "source": "misns6cr.mpdes",
-      "runtime": "misns6cr.mpdes"
-    },
-    {
-      "source": "misns7cr.des",
-      "runtime": "misns7cr.des"
-    },
-    {
-      "source": "misns7cr.mpdes",
-      "runtime": "misns7cr.mpdes"
-    },
-    {
-      "source": "misns8cr.des",
-      "runtime": "misns8cr.des"
-    },
-    {
-      "source": "misns8cr.mpdes",
-      "runtime": "misns8cr.mpdes"
-    },
-    {
       "source": "Missions\\bd01cr.bzn",
       "runtime": "bd01cr.bzn"
     },
@@ -14521,6 +14105,402 @@
     {
       "source": "Missions\\demo01.hg2",
       "runtime": "demo01.hg2"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd01cr.des",
+      "runtime": "bd01cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd01cr.mpdes",
+      "runtime": "bd01cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd02cr.des",
+      "runtime": "bd02cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd02cr.mpdes",
+      "runtime": "bd02cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd03cr.des",
+      "runtime": "bd03cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd03cr.mpdes",
+      "runtime": "bd03cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd04cr.des",
+      "runtime": "bd04cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd04cr.mpdes",
+      "runtime": "bd04cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd05cr.des",
+      "runtime": "bd05cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd05cr.mpdes",
+      "runtime": "bd05cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd06cr.des",
+      "runtime": "bd06cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd06cr.mpdes",
+      "runtime": "bd06cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd07cr.des",
+      "runtime": "bd07cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd07cr.mpdes",
+      "runtime": "bd07cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd08cr.des",
+      "runtime": "bd08cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd08cr.mpdes",
+      "runtime": "bd08cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd09cr.des",
+      "runtime": "bd09cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd09cr.mpdes",
+      "runtime": "bd09cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd10cr.des",
+      "runtime": "bd10cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd10cr.mpdes",
+      "runtime": "bd10cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd11cr.des",
+      "runtime": "bd11cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd11cr.mpdes",
+      "runtime": "bd11cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd12cr.des",
+      "runtime": "bd12cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd12cr.mpdes",
+      "runtime": "bd12cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd13cr.des",
+      "runtime": "bd13cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd13cr.mpdes",
+      "runtime": "bd13cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd14cr.des",
+      "runtime": "bd14cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd14cr.mpdes",
+      "runtime": "bd14cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd15cr.des",
+      "runtime": "bd15cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\bd15cr.mpdes",
+      "runtime": "bd15cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch01cr.des",
+      "runtime": "ch01cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch01cr.mpdes",
+      "runtime": "ch01cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch02cr.des",
+      "runtime": "ch02cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch02cr.mpdes",
+      "runtime": "ch02cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch03cr.des",
+      "runtime": "ch03cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch03cr.mpdes",
+      "runtime": "ch03cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch04cr.des",
+      "runtime": "ch04cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch04cr.mpdes",
+      "runtime": "ch04cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch05cr.des",
+      "runtime": "ch05cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch05cr.mpdes",
+      "runtime": "ch05cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch06cr.des",
+      "runtime": "ch06cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch06cr.mpdes",
+      "runtime": "ch06cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch07cr.des",
+      "runtime": "ch07cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch07cr.mpdes",
+      "runtime": "ch07cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch08cr.des",
+      "runtime": "ch08cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\ch08cr.mpdes",
+      "runtime": "ch08cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\crbd.des",
+      "runtime": "crbd.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\crcampgn.des",
+      "runtime": "crcampgn.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\crcca.des",
+      "runtime": "crcca.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\crch.des",
+      "runtime": "crch.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\evolvecr.mpdes",
+      "runtime": "evolvecr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn03cr.des",
+      "runtime": "misn03cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn03cr.mpdes",
+      "runtime": "misn03cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn04cr.des",
+      "runtime": "misn04cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn04cr.mpdes",
+      "runtime": "misn04cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn05cr.des",
+      "runtime": "misn05cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn05cr.mpdes",
+      "runtime": "misn05cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn06cr.des",
+      "runtime": "misn06cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn06cr.mpdes",
+      "runtime": "misn06cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn07cr.des",
+      "runtime": "misn07cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn07cr.mpdes",
+      "runtime": "misn07cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn08cr.des",
+      "runtime": "misn08cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn08cr.mpdes",
+      "runtime": "misn08cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn09cr.des",
+      "runtime": "misn09cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn09cr.mpdes",
+      "runtime": "misn09cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn10cr.des",
+      "runtime": "misn10cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn10cr.mpdes",
+      "runtime": "misn10cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn11cr.des",
+      "runtime": "misn11cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn11cr.mpdes",
+      "runtime": "misn11cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn12cr.des",
+      "runtime": "misn12cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn12cr.mpdes",
+      "runtime": "misn12cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn13cr.des",
+      "runtime": "misn13cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn13cr.mpdes",
+      "runtime": "misn13cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn14cr.des",
+      "runtime": "misn14cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn14cr.mpdes",
+      "runtime": "misn14cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn15.mpdes",
+      "runtime": "misn15.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn16.mpdes",
+      "runtime": "misn16.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn17cr.des",
+      "runtime": "misn17cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn17cr.mpdes",
+      "runtime": "misn17cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn18cr.des",
+      "runtime": "misn18cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn18cr.mpdes",
+      "runtime": "misn18cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn2bcr.des",
+      "runtime": "misn2bcr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn2bcr.mpdes",
+      "runtime": "misn2bcr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns1cr.des",
+      "runtime": "misns1cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns1cr.mpdes",
+      "runtime": "misns1cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns2cr.des",
+      "runtime": "misns2cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns2cr.mpdes",
+      "runtime": "misns2cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns3cr.des",
+      "runtime": "misns3cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns3cr.mpdes",
+      "runtime": "misns3cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns4cr.des",
+      "runtime": "misns4cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns4cr.mpdes",
+      "runtime": "misns4cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns5cr.des",
+      "runtime": "misns5cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns5cr.mpdes",
+      "runtime": "misns5cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns6cr.des",
+      "runtime": "misns6cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns6cr.mpdes",
+      "runtime": "misns6cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns7cr.des",
+      "runtime": "misns7cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns7cr.mpdes",
+      "runtime": "misns7cr.mpdes"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns8cr.des",
+      "runtime": "misns8cr.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misns8cr.mpdes",
+      "runtime": "misns8cr.mpdes"
     },
     {
       "source": "Missions\\evolvecr.bzn",
@@ -15185,10 +15165,6 @@
     {
       "source": "Missions\\sxshow.bzn",
       "runtime": "sxshow.bzn"
-    },
-    {
-      "source": "nocopy.des",
-      "runtime": "nocopy.des"
     },
     {
       "source": "ODF\\abbar7.odf",
@@ -21819,10 +21795,6 @@
       "runtime": "exu_hud_tint.program"
     },
     {
-      "source": "staged.des",
-      "runtime": "staged.des"
-    },
-    {
       "source": "Text\\bd01001.txt",
       "runtime": "bd01001.txt"
     },
@@ -24803,6 +24775,38 @@
       "runtime": "ScriptingGuide.txt"
     },
     {
+      "source": "Text\\Shell\\crsetfl.des",
+      "runtime": "crsetfl.des"
+    },
+    {
+      "source": "Text\\Shell\\crsetok.des",
+      "runtime": "crsetok.des"
+    },
+    {
+      "source": "Text\\Shell\\crsetrr.des",
+      "runtime": "crsetrr.des"
+    },
+    {
+      "source": "Text\\Shell\\crsetup.des",
+      "runtime": "crsetup.des"
+    },
+    {
+      "source": "Text\\Shell\\install.des",
+      "runtime": "install.des"
+    },
+    {
+      "source": "Text\\Shell\\nocopy.des",
+      "runtime": "nocopy.des"
+    },
+    {
+      "source": "Text\\Shell\\staged.des",
+      "runtime": "staged.des"
+    },
+    {
+      "source": "Text\\Shell\\update.des",
+      "runtime": "update.des"
+    },
+    {
       "source": "Text\\tran0201.txt",
       "runtime": "tran0201.txt"
     },
@@ -25013,10 +25017,6 @@
     {
       "source": "Text\\tran0425.txt",
       "runtime": "tran0425.txt"
-    },
-    {
-      "source": "update.des",
-      "runtime": "update.des"
     }
   ]
 }

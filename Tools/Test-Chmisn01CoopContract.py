@@ -157,7 +157,7 @@ vxt = ROOT / "Missions/ch01cr.vxt"
 if vxt.is_file():
     assert re.search(r"\bcsusera\b", vxt.read_text(encoding="utf-8")), "the vehicle list offers the on-foot Chinese pilot"
     print("  Missions/ch01cr.vxt checked")
-mpdes = ROOT / "ch01cr.mpdes"
+mpdes = ROOT / "Missions/Descriptions/ch01cr.mpdes"
 if mpdes.is_file():
     assert "New Kids on the Block" in mpdes.read_text(encoding="utf-8")
     print("  ch01cr.mpdes checked")

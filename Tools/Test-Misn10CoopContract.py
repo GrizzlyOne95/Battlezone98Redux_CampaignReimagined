@@ -63,7 +63,7 @@ assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
 assert (root / 'Assets/Graphics/misn10cr.bmp').read_bytes()[:2] == b'BM'
 assert (root / 'Missions/misn10cr.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,', 'avrckt ,', 'avhraz ,', 'avwalk ,']
-assert len((root / 'misn10cr.mpdes').read_text().strip()) <= 300
+assert len((root / 'Missions/Descriptions/misn10cr.mpdes').read_text().strip()) <= 300
 campaign = (root / 'Config/crcampgn.ini').read_text()
 assert re.search(r'missionBZN = "misn10cr.bzn"', campaign), 'Campaign must launch the shared BZN'
 section = re.search(r'\[MISSION9\]\n((?:[^\[\n][^\n]*\n)+)', campaign.replace('\r\n', '\n'))[1]
@@ -124,7 +124,7 @@ assert 'local function AudioMessage(file) return subtit.Play(file) end' in lua
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn10cr.ini', 'Missions/misn10cr.vxt', 'Assets/Graphics/misn10cr.bmp', 'misn10cr.mpdes',
+for source in ['Config/misn10cr.ini', 'Missions/misn10cr.vxt', 'Assets/Graphics/misn10cr.bmp', 'Missions/Descriptions/misn10cr.mpdes',
                'Missions/misn10cr.bzn', 'Missions/misn10.hg2', 'Missions/misn10.trn', 'Missions/misn10.mat',
                'Missions/misn10.lgt', 'Scripts/misn10cr.lua']:
     assert members.get(source) == Path(source).name, 'Map/lobby file must be admitted by the shipping manager: ' + source

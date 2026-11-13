@@ -65,7 +65,7 @@ ini.read(root / 'Config/misn14cr.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
 assert (root / 'Assets/Graphics/misn14cr.bmp').read_bytes()[:2] == b'BM'
-des = (root / 'misn14cr.mpdes').read_text()
+des = (root / 'Missions/Descriptions/misn14cr.mpdes').read_text()
 assert len(des.strip()) <= 300 and 'Texas' in des and 'Utah' not in des, 'the briefing names the Recycler Texas'
 campaign = (root / 'Config/crcampgn.ini').read_text().replace('\r\n', '\n')
 section = re.search(r'\[MISSION13\]\n((?:[^\[\n][^\n]*\n)+)', campaign)[1]
@@ -112,7 +112,7 @@ assert (root / 'Docs/MISN14_COOP.md').is_file()
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn14cr.ini', 'Missions/misn14cr.vxt', 'Assets/Graphics/misn14cr.bmp', 'misn14cr.mpdes',
+for source in ['Config/misn14cr.ini', 'Missions/misn14cr.vxt', 'Assets/Graphics/misn14cr.bmp', 'Missions/Descriptions/misn14cr.mpdes',
                'Missions/misn14cr.bzn', 'Missions/misn14.hg2', 'Missions/misn14.trn', 'Missions/misn14.mat',
                'Missions/misn14.lgt', 'Scripts/misn14cr.lua', 'ODF/avsav14.odf']:
     assert members.get(source) == Path(source).name, 'file must be admitted by the shipping manager: ' + source
