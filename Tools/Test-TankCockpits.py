@@ -13,7 +13,7 @@ def check(ok,message):
     assert ok,message
     checks+=1
 members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
-eyes={'nsdf':[0,1.4254159927368164,1.229254961013794],'bdog':[0,.6254140138626099,1.2293000221252441],'cca':[.42609998770058155,2.100000023841858,2.3000000715255737],'cra':[0,1.7300000190734863,3.5074000358581543]}
+eyes={'nsdf':[0,1.4254159927368164,1.229254961013794],'bdog':[0,.6254140138626099,1.2293000221252441],'cca':[.12000000663101673,1.6200000047683716,3.0999999046325684],'cra':[0,1.7300000190734863,3.5074000358581543]}
 report={}
 for faction,cfg in cp.CONFIG.items():
     base=cfg['base'];receipt=json.loads((REF/faction/'build.json').read_text());meta=receipt['alignment'];source=ROOT/'Assets/ModelFixes'/(base+'.mesh');skel=ROOT/'Assets/Models'/(base+'_cockpit.skeleton')
@@ -28,7 +28,7 @@ for faction,cfg in cp.CONFIG.items():
     STAGE=not weaponrigs.is_rigged(source)  # Source-reproduction checks need the pre-rig stage; they only run for units the weapon rig left untouched.
     if faction=='cca': # only off-centre eye; mirroring is invisible at x=0
       cabin=next(cp.shared.values(sub.vertex_data,cp.shared.om.VES.POSITION) for sub in mesh.submesh_list if sub.material_name==cfg['material'])
-      check(abs(cabin[:,0].mean()-origin[0])<.05,'hatch cupola centred on the raw-X eye, not mirrored')
+      check(abs(cabin[:,0].mean()-origin[0])<.05,'deck hatch centred on the raw-X eye, not mirrored')
     check(len(mesh.submesh_list)==(4 if faction=='cca' else 5),'bounded material batch count')
     opaque=[];ranges={};cursor=0
     for sub in mesh.submesh_list:
@@ -101,12 +101,13 @@ for faction,cfg in cp.CONFIG.items():
         front=cg.cast(origin,dirs,tri[:,0],tri[:,1],tri[:,2])[0];both=cg.cast(origin,dirs,tri[:,0],tri[:,1],tri[:,2],front_only=False)[0]
         check(not (np.isinf(front)&np.isfinite(both)).any(),'no see-through into the hull from the pilot eye')
     if faction=='cca':
-        # Hatch cupola: the real deck nose shows over a low lip at the bottom of the view.
-        lip=cp.CONFIG['cca']['material'];llo,lhi=ranges[lip]
-        for pitch in range(-34,-25):
+        # Deck hatch: the real deck nose fills the low forward view, the hatch console the down-look.
+        cab=cp.CONFIG['cca']['material'];clo,chi=ranges[cab]
+        for pitch in range(-24,-19):
             dist,hit=cast(np.arange(-12,13),pitch);hullhits+=int(((hit>=hlo)&(hit<hhi)&np.isfinite(dist)).sum())
-        check(hullhits>100,'real deck nose visible above the cupola lip')
-        check(all(llo<=h<lhi for h in cast(np.arange(-30,31,10),-38)[1]),'cupola lip frames the bottom edge of the view')
+        check(hullhits>100,'real deck nose visible ahead of the hatch')
+        check(all(clo<=h<chi for h in cast(np.array([-8,-3,3,8]),-40)[1]),'hatch console fills the down-look')
+        check(np.isinf(cast(np.arange(-30,31,5),-15)[0]).all(),'nothing generated rises above the deck line ahead')
     gunhits=0;lo,hi=ranges[gunsub.material_name]
     for pitch in np.arange(-31,32,1):
         dist,hit=cast(np.arange(-45,46,1),pitch);gunhits+=int(((hit>=lo)&(hit<hi)&np.isfinite(dist)).sum())

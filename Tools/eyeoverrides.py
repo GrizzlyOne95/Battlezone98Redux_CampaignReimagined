@@ -16,11 +16,11 @@ EYES = {
     # Scouts: 0.35 m up, so the rolling ROF nose reads over its hull bulkhead.
     'avfigh': ('ARA11POV', (0.0044, 1.15, 0.5)),
     'bvraz': ('bRA11POV', (0.0044, 1.15, 0.6078)),
-    # CZar (owner review, Total Command layout idea): the pilot looks out of a hatch cupola
-    # 0.65 m ahead of the turret face and ~0.4 m above the real front deck, 0.15 m further
-    # from the cannon than stock. The real barrel stays where shots leave it (VDF hardpoint)
-    # and runs alongside the view on the right; the deck nose frames the bottom.
-    'svtank': ('SCZ11POV', (0.4421, 0.771, 1.672)),
+    # CZar (owner review, Total Command layout idea): the pilot's head is in a small hatch on
+    # the deck nose just behind the muzzle, ~0.15 m above the real deck (vehicle 0.12, 1.62, 3.10).
+    # The real barrel stays where shots leave it (VDF hardpoint) and runs overhead; the deck
+    # nose frames the bottom of the view.
+    'svtank': ('SCZ11POV', (0.1360, 0.291, 2.472)),
 }
 
 

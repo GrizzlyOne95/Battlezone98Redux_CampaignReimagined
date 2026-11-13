@@ -5,8 +5,8 @@
     "skeletonSha256": "e687e51928b6b9126c01881690e6122562844942ae3ddd4d94c13c6288558e50"
   },
   "outputs": {
-    "Assets/Models/svtank_cockpit.mesh": "8854ae0487b5baee4033ab621991ab0f6ddc2b7d4c0219c029bdc3815dbe8cfa",
-    "Assets/Models/svtank_cockpit.skeleton": "57b0995128e896ee362cfcb1cd019e1a5cb7d3799aaf6a9a54d2ae56358ca571",
+    "Assets/Models/svtank_cockpit.mesh": "3dbdb13637a68e1850fcadc462b7f9eadb8c0e741a7cf9b7b58a164e0bef9927",
+    "Assets/Models/svtank_cockpit.skeleton": "deb805bcb8e9a2af7b601c958583e2fc28ddfede0221225cdf8749ef076cb6d4",
     "Materials/CR_svtank_cockpit.material": "9c48a1df84b14c88c217520a4cc41b4d1756ecc17020e6496632f5ded79cd264"
   },
   "alignment": {
@@ -14,9 +14,9 @@
     "base": "svtank",
     "pov": "SCZ11POV",
     "povPosition": [
-      0.42609998770058155,
-      2.100000023841858,
-      2.3000000715255737
+      0.12000000663101673,
+      1.6200000047683716,
+      3.0999999046325684
     ],
     "povBasis": [
       [
@@ -148,7 +148,7 @@
       0.0,
       0.0
     ],
-    "apronTriangles": 91,
+    "apronTriangles": 107,
     "innerShell": null,
     "window": {
       "width": 0.76,
@@ -160,19 +160,19 @@
     "gunWeightSha256": "39b475f4f5d578a75dbd77db30d254d0fe9b95381310d0f275ef999946ade9cc"
   },
   "glass": {
-    "openFraction": 0.3851466093060115,
+    "openFraction": 0.5137552360466433,
     "depth": [
-      0.34987363709388486,
-      2.562489541427199
+      0.3533423339430779,
+      1.6437580654750275
     ],
     "bone": "scz21bda",
-    "vertices": 505,
-    "triangles": 912
+    "vertices": 643,
+    "triangles": 1158
   },
   "triangles": {
-    "svtank01": 358,
+    "svtank01": 170,
     "CRV/svtankTankGuns": 396,
-    "CRV/svtankTankHull": 91
+    "CRV/svtankTankHull": 107
   },
   "atlasPolicy": "Reuse original and accepted faction atlases; no duplicate DDS"
 }

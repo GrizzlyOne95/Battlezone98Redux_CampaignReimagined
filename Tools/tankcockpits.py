@@ -178,42 +178,7 @@ def geometry(source,skelpath,faction,game,root):
         for sign in (-1,1):
             panel([(sign*.065,-.229,.365),(sign*.172,-.176,.356),(sign*.264,-.264,.206),(sign*.103,-.347,.222)],'service' if sign>0 else 'switch',depth=.006)
             beam((sign*.30,-.10,.06),(sign*.32,-.33,.66),.012)
-    else:
-        # CCA (owner review; Total Command layout idea, no assets): the pilot looks out of
-        # a hatch cupola just ahead of the turret, over the real front deck, with the real
-        # cannon running alongside. The only added geometry is this closed coaming: a low
-        # front lip frames the bottom of the view and, behind the ~56 deg half-width view,
-        # rises into a hood that closes the rear and roof. Its base follows the deck, buried.
-        body=mesh.submesh_list[cfg['body']];bt=((shared.values(body.vertex_data,shared.om.VES.POSITION)-origin)@R)[body.index_array.reshape(-1,3)]
-        def deck(x,z):
-            d=__import__('cockpitglass').cast(np.array([x,1.5,z]),np.array([[0,-1.,0]]),bt[:,0],bt[:,1],bt[:,2],front_only=False)[0][0]
-            assert np.isfinite(d),'real deck under the cupola';return 1.5-d
-        N=32;ro,ri,hood,lip_y=.36,.32,.30,-.23
-        def top(phi):
-            # Low lip ~35 deg under the reticle (bottom edge of the ~79 deg view), so the real deck
-            # nose shows above it; the hood rises outside the view.
-            a=abs(math.degrees(math.atan2(math.sin(phi),math.cos(phi))));k=min(max((a-60)/17,0),1);k=k*k*(3-2*k)
-            return lip_y+.04*min(a,60)/60+(hood-lip_y-.04)*k
-        ring=[]
-        for i in range(N):
-            phi=2*math.pi*i/N;sx,cz=math.sin(phi),math.cos(phi);y0=min(deck(r*sx,r*cz) for r in (ro,ri))-.03;y1=top(phi)
-            ring.append(([ro*sx,y0,ro*cz],[ro*sx,y1,ro*cz],[ri*sx,y1,ri*cz],[ri*sx,y0,ri*cz]))
-        for i in range(N):
-            A,B=ring[i],ring[(i+1)%N]
-            face([A[0],B[0],B[1],A[1]],'armor',hint=np.array(A[0])*[1,0,1])      # outer wall
-            face([A[1],B[1],B[2],A[2]],'frame',hint=[0,1,0])                      # top cap
-            face([A[2],B[2],B[3],A[3]],'frame',hint=-np.array(A[2])*[1,0,1])     # inner wall
-            face([A[3],B[3],B[0],A[0]],'frame',hint=[0,-1,0])                     # buried base
-        # Hood roof slab over the rear half, its front edge ~77 deg up (out of view).
-        # The roof's front edge is the chord between two ring posts (z ~.07), so it seats on the wall.
-        poly=[np.array(q[1]) for q in ring if q[1][2]<=.075];poly.sort(key=lambda q:-math.atan2(q[0],-q[2]))
-        assert all(abs(q[1]-hood)<1e-9 for q in poly),'hood roof seats on the full-height wall'
-        topp=[np.array(q)+[0,.03,0] for q in poly]
-        face(topp,'armor',hint=[0,1,0]);face(poly,'frame',hint=[0,-1,0])
-        for i in range(len(poly)):j=(i+1)%len(poly);face([poly[i],poly[j],topp[j],topp[i]],'frame',hint=(poly[i]+poly[j])*[1,0,1] if i<len(poly)-1 else [0,0,1])
-        # A closed floor plate under the eye, buried just below the deck.
-        floor=[[ri*math.sin(2*math.pi*i/N),ring[i][3][1]+.01,ri*math.cos(2*math.pi*i/N)] for i in range(N)]
-        face(floor,'frame',hint=[0,1,0])
+    # CCA builds its deck hatch after the real deck crop exists (below).
     # CCA's hatch cupola is closed on its own (above); the others keep the tub and deck slab.
     topology=None;width=cfg['width'];lip=cfg['lip'];front=cfg['front'];roof=cfg['roof']
     if faction!='cca':
@@ -298,6 +263,65 @@ def geometry(source,skelpath,faction,game,root):
     if spread!=1:
         for k in (3,8):apron[:,k:k+3]/=np.linalg.norm(apron[:,k:k+3],axis=1)[:,None]
     parts['CRV/'+cfg['base']+'TankHull']=(apron,apronix)
+    if faction=='cca':
+        # Owner review (Total Command layout idea, no assets): the pilot's head sits in a small
+        # hatch on the deck nose just behind the muzzle, ~15 cm above the deck. The real deck
+        # nose fills the bottom of the view and the real barrel runs overhead. The opening is
+        # clipped out of the real deck crop; a sunk tub holds one console, a thin coaming hides
+        # the cut, and an open hatch lid behind the head closes the rear and roof out of view.
+        x0,x1,z0,z1,bottom,rise,coam=-.28,.28,-.30,.32,-.60,.30,.04
+        hloc=(apron[:,:3]-origin)@R;ht=apronix.reshape(-1,3);T=hloc[ht]
+        def deck(x,z):
+            d=__import__('cockpitglass').cast(np.array([x,.28,z]),np.array([[0,-1.,0]]),T[:,0],T[:,1],T[:,2],front_only=False)[0][0]
+            assert np.isfinite(d),'real deck under the hatch';return .28-d
+        cut_rows=[];cut_ix=[]
+        for t in ht:
+            poly=np.column_stack([hloc[t][:,0],hloc[t][:,2],apron[t]])  # x,z then the full vertex row
+            if poly[:,0].max()<=x0 or poly[:,0].min()>=x1 or poly[:,1].max()<=z0 or poly[:,1].min()>=z1:pieces=[poly]
+            else:
+                mid=clip(clip(poly,0,x0,1),0,x1,-1);pieces=[clip(poly,0,x0,-1),clip(poly,0,x1,1)]
+                if len(mid):pieces+=[clip(mid,1,z0,-1),clip(mid,1,z1,1)]
+            for q in pieces:
+                if len(q)<3:continue
+                start=len(cut_rows);cut_rows.extend(q[:,2:])
+                for i in range(1,len(q)-1):cut_ix.extend([start,start+i,start+i+1])
+        apron=np.array(cut_rows,dtype=float);apron[:,3:6]/=np.linalg.norm(apron[:,3:6],axis=1)[:,None]
+        apron[:,8:11]-=apron[:,3:6]*(apron[:,8:11]*apron[:,3:6]).sum(1)[:,None];apron[:,8:11]/=np.linalg.norm(apron[:,8:11],axis=1)[:,None]
+        apron=apron.astype('<f4');apronix=np.array(cut_ix,dtype='<u2');parts['CRV/'+cfg['base']+'TankHull']=(apron,apronix)
+        # Opening perimeter (front-right, front-left, rear-left, rear-right), sampled so the
+        # coaming follows the real deck; one continuous trim strip runs round it (no repeats).
+        corners=[(x1,z1),(x0,z1),(x0,z0),(x1,z0)];K=6;loop=[]
+        for i in range(4):
+            (ax,az),(bx,bz)=corners[i],corners[(i+1)%4]
+            for k in range(K):f=k/K;loop.append((ax+(bx-ax)*f,az+(bz-az)*f))
+        def out(x,z):return (x+(coam if x>=x1-1e-9 else -coam if x<=x0+1e-9 else 0),z+(coam if z>=z1-1e-9 else -coam if z<=z0+1e-9 else 0))
+        lipy=[deck(x,z)+.03 for x,z in loop];base=[min(deck(x,z),deck(*out(x,z)))-.02 for x,z in loop]
+        tx0,ty0,tx1,ty1=cfg['charts']['trim'];n=len(loop)
+        for i in range(n):
+            j=(i+1)%n;(ax,az),(bx,bz)=loop[i],loop[j];(oax,oaz),(obx,obz)=out(ax,az),out(bx,bz)
+            va,vb=ty0+(ty1-ty0)*i/n,ty0+(ty1-ty0)*(i+1)/n;mid=np.array([(ax+bx)/2,0,(az+bz)/2])
+            face([(oax,base[i],oaz),(obx,base[j],obz),(obx,lipy[j],obz),(oax,lipy[i],oaz)],'trim',hint=mid*[1,0,1],uvs=[(tx0,va),(tx0,vb),(tx0+(tx1-tx0)*.4,vb),(tx0+(tx1-tx0)*.4,va)])
+            face([(oax,lipy[i],oaz),(obx,lipy[j],obz),(bx,lipy[j],bz),(ax,lipy[i],az)],'trim',hint=[0,1,0],uvs=[(tx0+(tx1-tx0)*.4,va),(tx0+(tx1-tx0)*.4,vb),(tx1,vb),(tx1,va)])
+        # Tub walls: one chart per wall, each mapped once (console ahead, switch/service at the
+        # sides, plate behind); the console leans back toward the pilot.
+        inset=.10
+        def lower(x,z):return (x,bottom,z-inset if z>z1-1e-9 else z)
+        for side,chart in enumerate(('console','service','plate','switch')):
+            idx=[side*K+k for k in range(K+1)];cx0,cy0,cx1,cy1=cfg['charts'][chart]
+            for k in range(K):
+                i,j=idx[k],idx[k+1]%n;(ax,az),(bx,bz)=loop[i],loop[j];la,lb=lower(ax,az),lower(bx,bz)
+                ua,ub=cx0+(cx1-cx0)*k/K,cx0+(cx1-cx0)*(k+1)/K
+                face([(ax,lipy[i],az),(bx,lipy[j],bz),lb,la],chart,hint=[-(ax+bx)/2,0,-(az+bz)/2],uvs=[(ua,cy0),(ub,cy0),(ub,cy1),(ua,cy1)])
+        face([lower(*c) for c in corners],'plate',hint=[0,1,0])
+        # Open hatch lid hinged on the rear coaming: its rear plate is the bulkhead behind the
+        # head and its top leaf the roof, front edge ~75 deg up (outside the forward view).
+        def box(a,b,chart):
+            (ax,ay,az),(bx,by,bz)=a,b;c=np.array([(ax+bx)/2,(ay+by)/2,(az+bz)/2])
+            for q in ([(ax,ay,az),(bx,ay,az),(bx,by,az),(ax,by,az)],[(ax,ay,bz),(bx,ay,bz),(bx,by,bz),(ax,by,bz)],[(ax,ay,az),(bx,ay,az),(bx,ay,bz),(ax,ay,bz)],[(ax,by,az),(bx,by,az),(bx,by,bz),(ax,by,bz)],[(ax,ay,az),(ax,by,az),(ax,by,bz),(ax,ay,bz)],[(bx,ay,az),(bx,by,az),(bx,by,bz),(bx,ay,bz)]):
+                face(q,chart,hint=np.mean(q,0)-c)
+        zr=z0-coam;yb=min(lipy[2*K:3*K+1])-.01
+        box((x0-coam,yb,zr),(x1+coam,rise+.03,zr+.03),'armor');box((x0-coam,rise,zr+.03),(x1+coam,rise+.03,.08),'armor')
+        parts[cfg['material']]=(np.array(rows,dtype='<f4'),np.array(ix,dtype='<u2'))
     if faction=='nsdf':
         # The level hull leaves a slit over the coaming; a bulkhead leaning in
         # under the plate's open near edge stops see-through rays.
