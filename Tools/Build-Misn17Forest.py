@@ -15,8 +15,10 @@ where they are, and only what stands on them changes.
   2-5 m wide) and chained, overlapping, along stretches of pool shore, stream
   bank and river: water freezing at its edge, with open bank between stretches.
   Like the rocks they have no collision, so craft drive over them.
-* Explosion: ISDFC's cosmetic xplnxpl (the trees' explosionName) is copied with
-  its smokeb.tga sprite; amb_wind.wav is stock.
+* Explosions: each fir has its own zero-damage hit and death effect
+  (xc17fhit/xc17fdie, birch c17frst4 xc17bhit/xc17bdie), written with their
+  debris sprites by Tools/Build-C17TreeDebris.py. This tool copies ISDFC's
+  smokeb.tga sprite (smoke.dds) they share; amb_wind.wav is stock.
 
 Never writes to ISDFC or the pack. Every SDF, GEO, Ogre mesh and skeleton byte
 comes from the shared libraries (Tools/bzmodellibs.py, Tools/bzstaticmodel.py).
@@ -62,7 +64,7 @@ OLD_ICE = ['c17bice%d' % i for i in range(1, 6)] + ['c17dice%d' % i for i in ran
 SLAB_ASPECT = [.3, .35, .4, .45, .55, .65]
 # Thickness as a share of the half-length: a 12 m shelf is 0.27 m thick, a 4 m one 9 cm.
 SLAB_THICK = .045
-# Sprite for xplnxpl: ISDFC's smokeb.tga, alpha-blended like CR's smokeb2
+# Sprite for xplnxpl and the trees' xc17* explosions: ISDFC's smokeb.tga, alpha-blended like CR's smokeb2
 # because the ODF draws it with srcalpha/invsrcalpha.
 SMOKEB = '''import * from "sprites.material"
 
@@ -337,7 +339,7 @@ BRANCHES = '''material CR17/%s : CR17/CutoutWind
 	set_texture_alias NormalMap cr17_flat.dds
 	set_texture_alias SpecularMap cr17_black.dds
 	set_texture_alias EmissiveMap cr17_black.dds
-	set $cutoutParams "0.45 0.5 0.6 512"
+	set $cutoutParams "0.45 0.5 0.6 2048"
 	set $diffuse "%s"
 	set $specular "0.08 0.08 0.08"
 	set $shininess "16"
@@ -384,11 +386,15 @@ maxHealth = %d
 maxAmmo = 0
 unitName = "%s"
 collisionRadius = %g
-explosionName = "xplnxpl"
+explosionName = "%s"
 [PlantClass]
 isPlant = 1
+hitExplosion = "%s"
 dropScrap = 0
 '''
+# (death, hit) explosions per fir; written by Tools/Build-C17TreeDebris.py
+TREE_FX = {'c17frst4': ('xc17bdie', 'xc17bhit')}
+FIR_FX = ('xc17fdie', 'xc17fhit')
 
 
 def plan_thickness(xz):
@@ -441,7 +447,7 @@ def build(pack, isdfc):
             return image(g, blob, m['normalTexture']['index'])
         return image(g, blob, m['pbrMetallicRoughness'][key]['index'])
 
-    # Textures: branch cards keep their 512 size, trunks theirs, rock normals halve to 512.
+    # Textures: pack sizes here; Build-TextureRevamp then replaces branch cards (2048 RGBA), trunks and rock.
     written = {}
     def put(name, img, fmt, size=None):
         dds(textures / name, img, fmt, size); written[name] = check_not_blank(textures / name)
@@ -505,7 +511,7 @@ def build(pack, isdfc):
                        submesh('CR17/' + branch_mats[bm], bp, bn, buv, bi, 0)])
         ogre.write_mesh(mesh, models / (name + '.mesh'))
         sway.bake(models / (name + '.mesh'), 'tree', 'CR17/' + branch_mats[bm], 'CR17/' + branch_mats[bm], ogre)
-        (ROOT / 'ODF' / (name + '.odf')).write_text(ODF % (name, 2500, 'Fir Tree', max(3, round(r * 1.5, 1))), newline='\n')
+        (ROOT / 'ODF' / (name + '.odf')).write_text(ODF % ((name, 2500, 'Fir Tree', max(3, round(r * 1.5, 1))) + TREE_FX.get(name, FIR_FX)), newline='\n')
         tree_info[name] = {'height': height, 'trunk_radius': round(r, 2), 'scale': round(s, 3),
                            'triangles': (len(bi) + len(ti)) // 3}
 
@@ -554,7 +560,8 @@ def build(pack, isdfc):
         for path in [models / (name + ext) for ext in ('.mesh', '.skeleton', '.sdf')] + [ROOT / 'ODF' / (name + '.odf')]:
             path.unlink(missing_ok=True)
 
-    # xplnxpl: ISDFC's zero-damage green puff, the trees' explosionName.
+    # xplnxpl: ISDFC's zero-damage green puff (the trees' earlier explosionName),
+    # and smoke.dds, the smokeb.tga puff of the xc17* tree explosions.
     (ROOT / 'ODF/xplnxpl.odf').write_bytes(src(isdfc / 'xplnxpl.odf'))
     (textures / 'smoke.dds').write_bytes(src(isdfc / 'smoke.dds')); written['smoke.dds'] = check_not_blank(textures / 'smoke.dds')
     (ROOT / 'Materials/smokeb.material').write_text(SMOKEB, newline='\n')

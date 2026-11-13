@@ -196,9 +196,10 @@ maxHealth = 2500
 maxAmmo = 0
 unitName = "Jungle Tree"
 collisionRadius = 5
-explosionName = "xplnxpl"
+explosionName = "xc17jdie"
 [PlantClass]
 isPlant = 1
+hitExplosion = "xc17jhit"
 dropScrap = 0
 '''%target)
             tree_assets[n]=target
@@ -470,6 +471,11 @@ dropScrap = 0
         'sha256':consumed,'layers':len(layers),'plants':sum(len(l['instances']) for l in layers),'solid_trees':len(trees),'preplaced_trees':len(chosen),
         'height_samples_changed':data['height_samples_changed'],'stream_paths':len(paths),
         'stream_points':len(stream_points),'pool_cells':int(pool_cells.sum())},indent=2)+'\n')
+    # The reviewed HD water master replaces the copied water256 (Tools/Prep-Misn17GenTextures.py).
+    import importlib.util
+    art_spec=importlib.util.spec_from_file_location('cr_texture_art',ROOT/'Tools/Build-TextureRevamp.py')
+    art=importlib.util.module_from_spec(art_spec);art_spec.loader.exec_module(art)
+    art.build(group='water')
     print('Built jungle prototype:',len(layers),'batches,',sum(len(l['instances']) for l in layers),'plants;',data['height_samples_changed'],'channel samples;',
           len(paths),'stream paths,',len(stream_points),'stream points,',int(pool_cells.sum()),'pool cells,',
           sum(p is not None for p in pool_list),'pools')

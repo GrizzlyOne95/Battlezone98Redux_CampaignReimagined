@@ -17,6 +17,38 @@
       "format": "BC1_UNORM",
       "sha256": "2c2564945593d66ace2c46904b5c148e351ab8936c68bc0040221cb9e75c21ef"
     },
+    "cr17_frock.dds": {
+      "size": [
+        2048,
+        2048
+      ],
+      "format": "BC1_UNORM",
+      "sha256": "891b341d4c50fd100a05cfac478d7588e7402be56b3ec44f1834eaa93b069895"
+    },
+    "cr17_frock_n.dds": {
+      "size": [
+        2048,
+        2048
+      ],
+      "format": "BC1_UNORM",
+      "sha256": "ad4306e1b6c731df27aa53085a1fefbc34376e2cae95f76a8f6b6455a5e30f18"
+    },
+    "cr17_frock_s.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "format": "BC1_UNORM",
+      "sha256": "b1fd9e806f1b0b0bacb4f124c6c46458de922d238eadc219ee677897d41f7280"
+    },
+    "cr17_water.dds": {
+      "size": [
+        1024,
+        1024
+      ],
+      "format": "BC1_UNORM",
+      "sha256": "b8e0ab14e9576a6582e75992cc448eb9e40de39a05d0817426a67ea1f7be152a"
+    },
     "abstor_d.dds": {
       "size": [
         1256,
@@ -80,6 +112,22 @@
       ],
       "format": "BC1_UNORM",
       "sha256": "ef87bbc7d8170f712c723ce2bb4604f7191b8b01d759d9381b51f01200220ede"
+    },
+    "cr17_fbranch1.dds": {
+      "size": [
+        2048,
+        2048
+      ],
+      "format": "BC3_UNORM",
+      "sha256": "b9cc5a61c437c6437e4b978cb300ff38a5024cba744befbfb48df1685337751b"
+    },
+    "cr17_fbranch2.dds": {
+      "size": [
+        2048,
+        2048
+      ],
+      "format": "BC3_UNORM",
+      "sha256": "e5bb31c6d5ccf28fcdbe42b54ebb7977a84e4ea1d93c0cb0a1dded8a23176ccb"
     },
     "cr17_ftrunk1_n.dds": {
       "size": [

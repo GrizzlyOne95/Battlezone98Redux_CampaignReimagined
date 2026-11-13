@@ -50,6 +50,7 @@ local leaderDeparted = false
 local missionPhase = 0
 local initialized = false
 local scoreboardDefaultApplied, killNoticeDefaultApplied, laserSightApplied = false, false, false
+local rallyPointsApplied = false
 local onOutOfLives = nil
 local outOfLivesLocal = false     -- this player has no lives left
 local outOfLivesHandled = false   -- host: the mission failure was requested
@@ -166,6 +167,7 @@ function CRCoop.Initialize(options)
     diagnostics.Reset()
     teamSkins.Reset()
     scoreboardDefaultApplied, killNoticeDefaultApplied, laserSightApplied = false, false, false
+    rallyPointsApplied = false
     options = options or {}
 
     if type(options.getLocalPlayerId) == "function" then
@@ -544,6 +546,12 @@ function CRCoop.Update()
             -- script opts in; the mode resets when the mission ends.
             if not laserSightApplied and type(x.SetLaserSightMode) == "function" then
                 laserSightApplied = pcall(x.SetLaserSightMode, 1)
+            end
+            -- Producer rally points are single-player only unless the mission
+            -- opts in; OpenShim clears the opt-in on every mission reset and only
+            -- acts on this machine's own factories (in practice, the host's).
+            if not rallyPointsApplied and type(x.AllowRallyPoints) == "function" then
+                rallyPointsApplied = pcall(x.AllowRallyPoints, true)
             end
         end
     end

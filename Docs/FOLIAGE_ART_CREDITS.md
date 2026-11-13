@@ -40,9 +40,9 @@ changes are:
 
 | CR file | From |
 |---|---|
-| `cr17_fbranch1.dds`, `cr17_fbranch2.dds` | pack branch base colour |
+| `cr17_fbranch1.dds`, `cr17_fbranch2.dds` | owner-generated sprig art refit onto the pack's branch-card layout; see below |
 | `cr17_ftrunk1*.dds`, `cr17_ftrunk2*.dds` | TextureRevamp colour/height masters, based on the pack's original trunk references; see below |
-| `cr17_frock.dds`, `cr17_frock_n.dds`, `cr17_frock_s.dds` | pack rock base colour, normal, roughness |
+| `cr17_frock.dds`, `cr17_frock_n.dds`, `cr17_frock_s.dds` | owner-generated rock surface baked onto the pack rock atlas, pack form shading and normal kept; see below |
 | `c17frst1`-`4` `.mesh/.skeleton/.sdf/.geo` | pack tree meshes |
 | `cr17_frock1`-`9.mesh` | pack rock meshes |
 
@@ -62,7 +62,7 @@ Prompts and source/build receipts are retained. These are authored relief
 approximations, not measured bark scans. See `Docs/TEXTURE_REVAMP.md` for visual
 acceptance and runtime-validation limits.
 
-## Ice slabs and the xplnxpl puff (not from the pack)
+## Ice slabs, tree explosions and their debris (not from the pack)
 
 The shore-ice slabs `cr17_islab1`-`6` are built from the owner's **ISDF
 Chronicles** mod (`GrizzlyOne95/ISDF_Chronicles`): the bergs `baneice2`, `baneice4`,
@@ -71,9 +71,18 @@ Each berg is centred, scaled to a unit half-width and squashed to 15% of it, the
 written as an unskinned mesh with the material `CR17/Ice`. Its UVs, triangles and
 the textures are unchanged.
 
-`ODF/xplnxpl.odf` (the trees' zero-damage explosion) and `Assets/Textures/smoke.dds`
-are unchanged ISDFC copies. `Materials/smokeb.material` is ISDFC's, alpha-blended to
-match the ODF. `amb_wind.wav` is stock. ISDFC was read only, never modified.
+The trees' zero-damage hit and death explosions (`ODF/xc17{j,f,b}{hit,die}.odf`)
+follow ISDFC's `xpltrhit` / `xpltree`, written by `Tools/Build-C17TreeDebris.py`.
+Their debris sprites are cut the ISDFC way from the textures each tree wears:
+`cr17_dleaf`, `cr17_dkelp` and `cr17_dbark` reproduce ISDFC's `pdleafr`, `pdkelp`
+and `pdbark` pixel for pixel (the jungle trees wear the same atlas and bark);
+`cr17_dneedl`/`cr17_dfbark` come from the fir textures and `cr17_dgleaf`/`cr17_dbbark`
+from the birch's, so those carry the pack's CC-BY-4.0 credit above.
+`Assets/Sounds/c17crack.wav` and `c17fell.wav` are ISDFC's `crckt01.wav` and
+`xcollapse.wav`. `Assets/Textures/smoke.dds` (the `smokeb.tga` puff) is an
+unchanged ISDFC copy, and `Materials/smokeb.material` is ISDFC's, alpha-blended to
+match. `ODF/xplnxpl.odf`, the trees' earlier explosion, is still an unchanged ISDFC
+copy. ISDFC was read only, never modified.
 
 ## Achilles flowers, ferns and grasses (botanical plates)
 
@@ -121,3 +130,23 @@ Two more plates were downloaded and checked but are **not used**:
 
 `References/Misn17Flowers/source-assets.json` records the plates, the atlas
 rectangles and the mesh hashes.
+
+### Owner-generated art pass (2026-11-13)
+
+The project owner generated four images with an image model (prompts in
+`References/TextureRevamp/map-prompts.json`, originals in
+`References/TextureRevamp/raw/*_gen.jpg`). `Tools/Prep-Misn17GenTextures.py`
+turns them into TextureRevamp masters; `Tools/Build-TextureRevamp.py` compiles
+them. Meshes and UVs are unchanged.
+
+- **Rock (`cr17_frock*`, 2048^2).** The rock image is made seamless and
+  projected triplanar onto each of the nine shipped rock meshes in object space,
+  written into that rock's own atlas islands. The pack atlas's blurred shading
+  is kept, and the pack normal map gets the new surface detail blended in.
+- **Branch cards (`cr17_fbranch1/2`, 2048^2 RGBA).** Sprigs keyed from the
+  generated sheets are scattered over each pack card's silhouette (sized to the
+  card, pointing out from its spine) above a darkened copy of the pack card, then
+  clipped to the card shape. The bare fir twig card keeps the pack art.
+- **Water (`cr17_water.dds`, 1024^2).** Grey ripple map: the source's lighting
+  gradient is removed and the level matched to the old ISDFC `water256` copy.
+  The Jungle builder now writes it after copying `water256`; misn18 shares it.

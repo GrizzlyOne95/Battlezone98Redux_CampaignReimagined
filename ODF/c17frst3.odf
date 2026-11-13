@@ -7,7 +7,8 @@ maxHealth = 2500
 maxAmmo = 0
 unitName = "Fir Tree"
 collisionRadius = 3.1
-explosionName = "xplnxpl"
+explosionName = "xc17fdie"
 [PlantClass]
 isPlant = 1
+hitExplosion = "xc17fhit"
 dropScrap = 0
