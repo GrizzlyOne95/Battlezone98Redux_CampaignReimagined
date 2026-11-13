@@ -225,6 +225,12 @@ def geometry(source,skelpath,faction,game,root):
     # complete part forward as one rigid piece: just its distal underside peeks
     # below the roof, without touching the aiming corridor or replacing the rig.
     gunoffset=np.array([0.,.02,4.30]) if faction=='cra' else np.zeros(3)
+    # The stock CZar first-person stub (SCZ21BGB/bga) is an exact copy of the
+    # exterior SCZ11BGB barrel tip, 2.68 m back and 0.18 m up. GC1/GC2 sit on
+    # the exterior muzzle in both skeletons, so shots left 13 deg away from the
+    # visible tip. Move the stub rigidly onto the exterior barrel (raw mesh
+    # space, converted to the eye frame the offset is applied in).
+    if faction=='cca':gunoffset=R.T@np.array([0.,-.17608285,2.6831249])
     gunpart[:,:3]+=(R@gunoffset).astype('<f4')
     parts['CRV/'+cfg['base']+'TankGuns']=(gunpart,gunix)
     # Original-painted front glacis, not the whole exterior. Keep triangle
@@ -271,7 +277,11 @@ def geometry(source,skelpath,faction,game,root):
     return parts,s,w,eye,shell,meta
 
 def compile_mesh(parts,s,w,eye,shell,base,meta):
-    raw,glass=shared.mesh_bytes(parts,s,w,eye,shell,skeleton_name=base+'_cockpit.skeleton')
+    # Fit the weather glass to the cabin with the barrel at its source position:
+    # a barrel moved out to the exterior muzzle must not stretch the glass.
+    key='CRV/'+base+'TankGuns';gunpart,gunix=parts[key];source=gunpart.copy()
+    source[:,:3]-=(np.array(meta['povBasis'])@np.array(meta['gunOffset'])).astype('<f4')
+    raw,glass=shared.mesh_bytes(parts,s,w,eye,shell,skeleton_name=base+'_cockpit.skeleton',glass_parts={**parts,key:(source,gunix)})
     mesh=shared.oms.MeshSerializer(io.BytesIO(raw)).read()
     guns=next(sub for sub in mesh.submesh_list if sub.material_name=='CRV/'+base+'TankGuns');guns.clear_bone_assignments()
     for v,b,weight in meta['gunWeights']:guns.create_bone_assignment(v,b,weight)

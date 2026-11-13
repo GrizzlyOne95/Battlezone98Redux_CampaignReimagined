@@ -5,7 +5,7 @@
     "skeletonSha256": "e687e51928b6b9126c01881690e6122562844942ae3ddd4d94c13c6288558e50"
   },
   "outputs": {
-    "Assets/Models/svtank_cockpit.mesh": "161616325e6c85150abed3e64d8736ccb3b816f28ebb6a3bd18529ee29616c29",
+    "Assets/Models/svtank_cockpit.mesh": "5246becd7ddf74b68052e069cf341505078cc1938c0b50273680c53d59fbe741",
     "Assets/Models/svtank_cockpit.skeleton": "e687e51928b6b9126c01881690e6122562844942ae3ddd4d94c13c6288558e50",
     "Materials/CR_svtank_cockpit.material": "b79f956dc2ef9bfc69f35795088a59d02db82c9d93b6407d4034dc82aeefa1d7"
   },
@@ -170,6 +170,7 @@
       }
     ],
     "stockCockpitRetained": false,
+    "stockReplacedTriangles": [],
     "stockTriangles": 124,
     "gunBones": [
       18,
@@ -177,8 +178,8 @@
     ],
     "gunOffset": [
       0.0,
-      0.0,
-      0.0
+      -0.17608285,
+      2.6831249
     ],
     "apronSourceIndices": [
       1387,
@@ -202,14 +203,14 @@
       "front": 1.1,
       "roof": 0.62
     },
-    "nativeVdfSha256": "32137e1d59ff3f00fc42d1fa95ab3bf1e81eba80f3fa94d01f416b3b2e46df84",
+    "nativeVdfSha256": "40735b4d2323b7e11a2a062aac3c20c6eab3dcac6a06a16e1c624a717a812921",
     "gunWeightSha256": "154a0d7baddf9746c7f7f498d35cf11852837ef634e571673442283094dc6c15"
   },
   "glass": {
     "openFraction": 0.39522246122495186,
     "depth": [
-      0.6218025955305537,
-      1.4979451660726264
+      0.6218025948087813,
+      1.4979451983083545
     ],
     "bone": "scz21bda",
     "vertices": 564,
