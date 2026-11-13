@@ -1,0 +1,83 @@
+[ExplosionClass]
+classLabel = "explosion"
+
+particleTypes = 4
+
+particleClass1 = "xc17fdie.core"
+particleCount1 = 1
+particleVeloc1 = "0 0 0"
+particleBias1 = "0 2 0"
+
+particleClass2 = "xc17fdie.leaf"
+particleCount2 = 22
+particleVeloc2 = "12 8 12"
+particleBias2 = "0 9 0"
+
+particleClass3 = "xc17fdie.bark"
+particleCount3 = 12
+particleVeloc3 = "10 6 10"
+particleBias3 = "0 10 0"
+
+particleClass4 = "xc17fdie.spatter"
+particleCount4 = 8
+particleVeloc4 = "14 10 14"
+particleBias4 = "0 4 0"
+
+explSound = "c17fell.wav"
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[core]
+simulateBase = "sim_smoke"
+lifeTime = 2.0
+renderBase = "draw_twirl"
+textureName = "smokeb.tga"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "70 75 55 200"
+finishColor = "70 75 55 0"
+startRadius = 3.0
+finishRadius = 18.0
+animateTime = 2.0
+rotationRate = 1.0
+
+[leaf]
+simulateBase = "sim_ember"
+lifeTime = 4.5
+renderBase = "draw_twirl"
+textureName = "cr17_dneedl.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 0"
+startRadius = 0.9
+finishRadius = 0.81
+animateTime = 4.5
+rotationRate = 4.0
+
+[bark]
+simulateBase = "sim_chunk"
+lifeTime = 3.0
+renderBase = "draw_twirl"
+textureName = "cr17_dfbark.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 0"
+startRadius = 0.45
+finishRadius = 0.405
+animateTime = 3.0
+rotationRate = 12.0
+
+[spatter]
+simulateBase = "sim_ember"
+lifeTime = 2.5
+renderBase = "draw_twirl"
+textureName = "smokeb.tga"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "45 80 35 180"
+finishColor = "45 80 35 0"
+startRadius = 1.0
+finishRadius = 2.5
+animateTime = 2.5
+rotationRate = 1.0

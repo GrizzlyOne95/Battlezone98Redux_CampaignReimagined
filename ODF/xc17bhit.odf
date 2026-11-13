@@ -1,0 +1,65 @@
+[ExplosionClass]
+classLabel = "explosion"
+
+particleTypes = 3
+
+particleClass1 = "xc17bhit.puff"
+particleCount1 = 1
+particleVeloc1 = "0 0 0"
+particleBias1 = "0 1 0"
+
+particleClass2 = "xc17bhit.bark"
+particleCount2 = 4
+particleVeloc2 = "6 5 6"
+particleBias2 = "0 6 0"
+
+particleClass3 = "xc17bhit.leaf"
+particleCount3 = 3
+particleVeloc3 = "5 4 5"
+particleBias3 = "0 5 0"
+
+explSound = "c17crack.wav"
+damageRadius = 0.0
+damageBallistic = 0
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[puff]
+simulateBase = "sim_smoke"
+lifeTime = 0.8
+renderBase = "draw_twirl"
+textureName = "smokeb.tga"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "105 95 60 200"
+finishColor = "105 95 60 0"
+startRadius = 0.6
+finishRadius = 3.0
+animateTime = 0.8
+rotationRate = 1.0
+
+[bark]
+simulateBase = "sim_chunk"
+lifeTime = 1.8
+renderBase = "draw_twirl"
+textureName = "cr17_dbbark.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 0"
+startRadius = 0.3
+finishRadius = 0.27
+animateTime = 1.8
+rotationRate = 14.0
+
+[leaf]
+simulateBase = "sim_ember"
+lifeTime = 3.0
+renderBase = "draw_twirl"
+textureName = "cr17_dgleaf.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "255 255 255 255"
+finishColor = "255 255 255 0"
+startRadius = 0.7
+finishRadius = 0.63
+animateTime = 3.0
+rotationRate = 4.0
