@@ -1,7 +1,7 @@
 {
   "source_revision": "f09fec92f1d6da20facde0d095c45f19a913c866",
   "stage_revisions": {
-    "Assets/Models/svtank_cockpit.mesh": "4c960de96d3047cbe7ff1a8f69810eceec36f0a2",
+    "Assets/Models/svtank_cockpit.mesh": "bbd9c4de990eb13bd4376fc61a3035d71f82ce1a",
     "Assets/Models/svhraz_cockpit.mesh": "0282c78c97f7398abf545b392f2f4bea1a2726a6",
     "Assets/Models/avltnk_cockpit.mesh": "0282c78c97f7398abf545b392f2f4bea1a2726a6",
     "Assets/Models/bvltnk_cockpit.mesh": "0282c78c97f7398abf545b392f2f4bea1a2726a6",
