@@ -203,6 +203,10 @@ function M.Create(d)
             add({ key = "strip", text = "TEAM STRIP " .. (c.TeamStripOn() and "ON" or "OFF"),
                 run = function() c.SetTeamStrip(not c.TeamStripOn()); return true end })
         end
+        if c.SetPartnerBars then
+            add({ key = "bars", text = "PARTNER BARS " .. (c.PartnerBarsOn() and "ON" or "OFF"),
+                run = function() c.SetPartnerBars(not c.PartnerBarsOn()); return true end })
+        end
         return list
     end
     local function current(list)

@@ -52,6 +52,8 @@ function M.Create(d)
     local hostMarker = false
     -- Always-on team status strip (PDA TEAM STRIP row); on by default, display only.
     local teamStrip = true
+    -- Hull/ammo bars over teammates (PDA PARTNER BARS row); on by default, display only.
+    local partnerBars = true
     local function now() return d.time() end
     local function changed() revision = revision + 1 end
     local function valid(h)
@@ -278,6 +280,8 @@ function M.Create(d)
     function service.SetMarkers(on) markers = on == true; nextMarkers = 0; changed() end
     function service.TeamStripOn() return teamStrip end
     function service.SetTeamStrip(on) teamStrip = on == true; changed() end
+    function service.PartnerBarsOn() return partnerBars end
+    function service.SetPartnerBars(on) partnerBars = on == true; changed() end
     function service.HostMarkerOn() return hostMarker end
     function service.SetHostMarker(on) hostMarker = on == true; nextMarkers = 0; changed() end
     -- Short status word for the PDA team list and the HUD markers.

@@ -4778,6 +4778,16 @@ PersistentConfig.CoopTeamStrip = require("CRCoopTeamStrip").Create({
     comms = function() return require("CRCoop").GetComms() end,
     time = function() return GetTime() end,
 })
+PersistentConfig.CoopPartnerBars = require("CRCoopPartnerBars").Create({
+    exu = exu, coop = require("CRCoop"),
+    comms = function() return require("CRCoop").GetComms() end,
+    time = function() return GetTime() end,
+    valid = function(h) return IsValid(h) end,
+    position = function(h) return GetPosition(h) end,
+    health = function(h) return GetHealth(h) end,
+    ammo = function(h) return GetAmmo(h) end,
+    target = function() return GetUserTarget() end,
+})
 PersistentConfig.CoopPingHud = require("CRCoopPingHud").Create({
     comms = function() return require("CRCoop").GetComms() end,
     time = function() return GetTime() end,
@@ -6069,6 +6079,7 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     pcall(HudLayout.Refresh, GetTime(), exu)
     local okBadge, LockBadge = pcall(require, "CRLockBadge")
     if okBadge and type(LockBadge) == "table" and LockBadge.Update then pcall(LockBadge.Update, exu) end
+    pcall(PersistentConfig.CoopPartnerBars.Update, uiInteractionSuppressed)
 
     InputState.SubtitlesPaused = uiInteractionSuppressed
     local scriptSubtitles = GetScriptSubtitles()
@@ -6805,6 +6816,7 @@ function PersistentConfig.Initialize()
     PersistentConfig.CoopPingHud.Destroy()
     PersistentConfig.CoopTeamStrip.Destroy()
     pcall(HudLayout.Reset, exu)
+    PersistentConfig.CoopPartnerBars.Destroy()
     InputState.missionEnded = false
     InputState.missionEndCleanupDone = false
     PersistentConfig.ExperimentalOverlayUseCustomFont = true
@@ -6917,6 +6929,7 @@ function PersistentConfig.Initialize()
         PersistentConfig.CoopPingHud.Destroy()
         PersistentConfig.CoopTeamStrip.Destroy()
         pcall(HudLayout.Reset, exu)
+        PersistentConfig.CoopPartnerBars.Destroy()
         InputState.pdaOverlayRefreshPending = false
         InputState.nextPdaOverlayRefresh = 0.0
         PersistentConfig._DestroyAllPdaOverlays()
