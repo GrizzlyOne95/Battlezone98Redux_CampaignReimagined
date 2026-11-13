@@ -123,6 +123,28 @@ players = { [30] = others[30] }
 for id = 1, 6 do players[id * 100] = { name = "P" .. id, team = 1 } end
 check(#strip.Lines() == 4, "capped at four lines")
 
+-- CRHudLayout: the strip reserves dock left_mid (clear of the command menu) and moves when the resolution changes.
+strip.Destroy()
+local Layout = require("CRHudLayout")
+local rootPos
+exu.SetOverlayPosition = function(n, x, y) if n == "CR/TeamStrip/Root" then rootPos = { x, y } end return true end
+local resW, resH = 1920, 1080
+exu.GetGameResolution = function() return resW, resH end
+active, stripOn = true, true
+Layout.Reset(exu); Layout.Refresh(100, exu)
+tick()
+check(rootPos ~= nil, "strip placed through the layout")
+local _, my, _, mh = Layout.GetKeepOut("command_menu")
+check(my and rootPos[2] >= my + mh, "strip sits below the command menu keep-out")
+local firstY = rootPos[2]
+resW, resH = 1280, 720
+Layout.Refresh(102, exu)
+tick()
+check(rootPos[2] ~= firstY and rootPos[2] < 720, "strip re-placed after a resolution change")
+check(liveCount() == FULL, "re-place leaks no overlay elements")
+strip.Destroy()
+check(Layout.GetReservation("CR/TeamStrip") == nil, "Destroy releases the reservation")
+
 -- PDA row: TEAM STRIP toggles through the comms service.
 local pdaComms = { IsActive = function() return true end, GetPings = function() return {} end,
     GetRequests = function() return {} end, IsOnFoot = function() return false end,
