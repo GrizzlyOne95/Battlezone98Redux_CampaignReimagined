@@ -182,4 +182,22 @@ Coop.Initialize({ getLocalPlayerId=function()return localId end })
 Coop.Update()
 assert(not native.scoreboard and native.boardWrites==2,"new mission did not reset the default")
 package.loaded.exu=nil
+
+-- Laser sight: opt in once per co-op mission, never in solo.
+local laser = { mode = 0, writes = 0 }
+local lx = { SetLaserSightMode = function(m) laser.mode=m; laser.writes=laser.writes+1 end }
+netGame = false
+Coop.Initialize({ getLocalPlayerId = function() return localId end })
+package.loaded.exu = lx
+Coop.Update()
+assert(laser.writes==0,"solo enabled the laser sight")
+netGame = true
+Coop.Initialize({ getLocalPlayerId = function() return localId end })
+Coop.Update(); Coop.Update()
+assert(laser.mode==1 and laser.writes==1,"co-op did not enable the laser sight once")
+laser.mode=0 -- native reset on mission exit
+Coop.Initialize({ getLocalPlayerId = function() return localId end })
+Coop.Update()
+assert(laser.mode==1 and laser.writes==2,"new mission did not re-enable the laser sight")
+package.loaded.exu=nil
 print("CRCoop presentation defaults: solo, late-load, toggle and restart checks passed")
