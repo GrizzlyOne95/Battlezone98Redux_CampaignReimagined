@@ -17,9 +17,10 @@ EYES = {
     'avfigh': ('ARA11POV', (0.0044, 1.15, 0.5)),
     'bvraz': ('bRA11POV', (0.0044, 1.15, 0.6078)),
     # CZar: the stock eye sits 0.28 m under and 0.52 m beside the real cannon, so the barrel
-    # filled the upper right. 0.35 m lower and 0.15 m further from the gun (still 0.9 m under
-    # the hull roof): the real barrel now runs from the top-right corner to its muzzle.
-    'svtank': ('SCZ11POV', (0.4421, 0.2405, -0.26)),
+    # filled the upper right. 0.5 m lower, 0.15 m further from the gun and 0.5 m forward (the
+    # tub moves with it, under the hull deck): the muzzle sits ~8 deg above and ~6 deg right
+    # of the reticle, clear of the aim line, while the real barrel stays where shots leave it.
+    'svtank': ('SCZ11POV', (0.4421, 0.0905, 0.24)),
 }
 
 

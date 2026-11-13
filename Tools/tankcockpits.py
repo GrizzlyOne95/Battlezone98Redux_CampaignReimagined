@@ -237,7 +237,7 @@ def geometry(source,skelpath,faction,game,root):
             recessed([wall(-.47,near),wall(-.47,far),wall(-.80,far),wall(-.80,near)],[(.06,.30,.78,.62,CCA['strip'],1),(.83,.40,.95,.52,CCA['lamp'],0)],enamel,.010)
             # Sill, A-pillar, canopy rail and rear post as one mitred member. The gun
             # side rail runs under the cannon housing as its mount instead of through it.
-            rail=[(sign*.48,.57,.37),(sign*.73,.60,-.40)] if sign>0 else [(-.62,.398,.37),(-.70,.378,-.40)]
+            rail=[(sign*.48,.57,.37),(sign*.73,.60,-.40)] if sign>0 else [(-.62,.569,.37),(-.70,.544,-.40)]
             sweep([(sign*.77,-.30,-.40),(sign*.73,-.29,.93),(sign*.73,.29,.62),*rail],.048)
         # Roof crossbar ends buried 3 cm in the housing's inner flank.
         beam((-.44,.57,.37),(.48,.57,.37),.052)

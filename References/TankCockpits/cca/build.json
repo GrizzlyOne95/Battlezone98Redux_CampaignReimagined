@@ -5,8 +5,8 @@
     "skeletonSha256": "e687e51928b6b9126c01881690e6122562844942ae3ddd4d94c13c6288558e50"
   },
   "outputs": {
-    "Assets/Models/svtank_cockpit.mesh": "f1937230f746ccf4a3ba5cd7b60057e19ea18be509bdf657ca33e3ff48eacea6",
-    "Assets/Models/svtank_cockpit.skeleton": "0644b198d2bc52770b468c4110e1f839bc6dce82d8022d6c849770a9c7d026c6",
+    "Assets/Models/svtank_cockpit.mesh": "81da89597a6782968465000730855cc0d29a6bb4a8b31515c9a3e99446720aef",
+    "Assets/Models/svtank_cockpit.skeleton": "9dee75e41ff95971ecb86beea203d09f7dd00c2f1566ac3e8fa71f414a39106d",
     "Materials/CR_svtank_cockpit.material": "b79f956dc2ef9bfc69f35795088a59d02db82c9d93b6407d4034dc82aeefa1d7"
   },
   "alignment": {
@@ -15,8 +15,8 @@
     "pov": "SCZ11POV",
     "povPosition": [
       0.42609998770058155,
-      1.5694999992847443,
-      0.3680000305175781
+      1.4194999933242798,
+      0.8680000156164169
     ],
     "povBasis": [
       [
@@ -57,7 +57,7 @@
     ],
     "apronOffset": [
       0.0,
-      0.051236988306045506,
+      -0.09876301765441897,
       0.0
     ],
     "apronTriangles": 3,
@@ -76,10 +76,10 @@
     "gunWeightSha256": "39b475f4f5d578a75dbd77db30d254d0fe9b95381310d0f275ef999946ade9cc"
   },
   "glass": {
-    "openFraction": 0.44367711989131664,
+    "openFraction": 0.44356390807200274,
     "depth": [
-      0.7102258848346259,
-      1.2959225614636896
+      0.710593091043636,
+      1.2959248156052756
     ],
     "bone": "scz21bda",
     "vertices": 602,
