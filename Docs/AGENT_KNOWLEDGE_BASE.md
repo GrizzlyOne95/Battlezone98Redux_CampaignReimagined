@@ -1030,7 +1030,7 @@ Each bullet: the pitfall, the one-line why, and where to read more.
 - Shots spawn at the VDF hardpoint part, not at any Ogre mesh or cockpit bone (BZR GOG ghidrecomp corpus,
   `Battlezone_Source/BZ1/Redux/openshim_re_corpus/bzr_gog_best_effort/ghidrecomp/.../decomps/`): the GameObject
   constructor `FUN_004da0b0.c:205` calls `FUN_004d9ca0`, which matches the 3-char hardpoint name against the VDF
-  part tree, and the weapon is built on that part (`FUN_006121c0`, line 212). So a first-person barrel must sit
+  part tree, and the weapon is attached to that part (`FUN_006121c0` called at `FUN_004da0b0.c:212`; logs "no hardpoint named" at :208 when the lookup fails). So a first-person barrel must sit
   where the exterior barrel is; move the eye (`eyeoverrides.py`), never the gun. The CZar (svtank) eye is 0.35 m
   lower and 0.15 m away from the cannon so the real exterior barrel runs from the top-right corner to its muzzle;
   `Test-TankCockpits.py` allows only gun triangles in its aim corridor.
