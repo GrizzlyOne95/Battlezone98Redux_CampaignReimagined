@@ -2,7 +2,7 @@
 from pathlib import Path
 import argparse,hashlib,json,sys
 sys.path.insert(0,str(Path(__file__).resolve().parent))
-import tankcockpits as cp, tankpanelatlas
+import tankcockpits as cp, tankpanelatlas, eyeoverrides
 from bcdds import save_bc
 from weaponrigs import base_asset_path
 ROOT=Path(__file__).resolve().parents[1];REF=ROOT/'References/TankCockpits'
@@ -13,8 +13,10 @@ def build(game,factions=()):
         if factions and faction not in factions:continue
         # The weapon-rig stage rewrites the exterior in place; build from its pinned pre-rig input.
         base=cfg['base'];source=base_asset_path(ROOT/'Assets/ModelFixes'/(base+'.mesh'));skel=next((game/'BZ_ASSETS/common/models').rglob(base+'.skeleton'));ref=REF/faction;ref.mkdir(parents=True,exist_ok=True)
-        parts,s,w,eye,shell,meta=cp.geometry(source,skel,faction,game,ROOT);mesh,glass=cp.compile_mesh(parts,s,w,eye,shell,base,meta);outputs={}
-        for path,content in [(ROOT/'Assets/Models'/(base+'_cockpit.mesh'),mesh),(ROOT/'Assets/Models'/(base+'_cockpit.skeleton'),skel.read_bytes())]:path.write_bytes(content);outputs[path.relative_to(ROOT).as_posix()]=sha(path)
+        # The cabin is built round the CR eye (eyeoverrides), the one the camera uses in game.
+        rig=ROOT/'Assets/Models'/(base+'_cockpit.skeleton');rig.write_bytes(eyeoverrides.patch_skeleton(base,skel.read_bytes()))
+        parts,s,w,eye,shell,meta=cp.geometry(source,rig,faction,game,ROOT);mesh,glass=cp.compile_mesh(parts,s,w,eye,shell,base,meta);outputs={}
+        for path,content in [(ROOT/'Assets/Models'/(base+'_cockpit.mesh'),mesh),(rig,rig.read_bytes())]:path.write_bytes(content);outputs[path.relative_to(ROOT).as_posix()]=sha(path)
         original=(ROOT/'Materials'/(base+'.material')).read_text();import re
         block=re.search(r'material '+re.escape(cfg['exterior'])+r'\s*:[^{]+\{(.*?)\}',original,re.S)[1];aliases=re.findall(r'set_texture_alias\s+(\S+)\s+(\S+)',block)
         material='import * from "CR_BZBase.material"\n\n'

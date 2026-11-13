@@ -16,6 +16,10 @@ EYES = {
     # Scouts: 0.35 m up, so the rolling ROF nose reads over its hull bulkhead.
     'avfigh': ('ARA11POV', (0.0044, 1.15, 0.5)),
     'bvraz': ('bRA11POV', (0.0044, 1.15, 0.6078)),
+    # CZar: the stock eye sits 0.28 m under and 0.52 m beside the real cannon, so the barrel
+    # filled the upper right. 0.35 m lower and 0.15 m further from the gun (still 0.9 m under
+    # the hull roof): the real barrel now runs from the top-right corner to its muzzle.
+    'svtank': ('SCZ11POV', (0.4421, 0.2405, -0.26)),
 }
 
 

@@ -9,8 +9,14 @@ from bzmodellibs import legacy, legacy_port
 CONFIG={
  'nsdf':dict(base='avtank',shell='agr21bda',batch=2,body=0,bodyBone=2,gun=[18],material='CRV/avtankTankPanels',atlas='crvatkp',stock='avtank01',exterior='avtank00',charts=tankpanelatlas.CHARTS,width=.98,lip=-.49,front=.91,roof=.62,cut=2.02),
  'bdog':dict(base='bvtank',shell='bgr21bda',batch=0,body=1,bodyBone=2,gun=[1],material='CRV/bvtankTankPanels',atlas='crvbtkp',stock='bvtank01',exterior='bvtank00',charts=tankpanelatlas.CHARTS,width=.98,lip=-.35,front=.80,roof=.85,cut=2.02),
- 'cca':dict(base='svtank',shell='scz21bda',batch=2,body=0,bodyBone=1,gun=[2,3],gunSource={26:3},material='svtank01',stock='svtank01',exterior='svtank00',charts={'console':(.370,.158,.553,.297),'switch':(.207,.006,.350,.298),'service':(.770,.008,.986,.190),'armor':(.635,.06,.739,.23),'frame':(.635,.06,.739,.23),'trim':(.745,.35,.757,.56)},width=.76,lip=-.44,front=1.10,roof=.62,cut=3.9),
+ 'cca':dict(base='svtank',shell='scz21bda',batch=2,body=0,bodyBone=1,gun=[2,3],gunSource={26:3},material='svtank01',stock='svtank01',exterior='svtank00',charts={'console':(.370,.158,.553,.297),'switch':(.207,.006,.350,.298),'service':(.770,.008,.986,.190),'armor':(.635,.06,.739,.23),'frame':(.635,.06,.739,.23),'trim':(.745,.35,.757,.56),'plate':(.640,.585,.770,.705)},width=.76,lip=-.44,front=1.10,roof=.62,cut=3.9),
  'cra':dict(base='cvtnk',shell='CYE21BDA',batch=1,body=0,bodyBone=0,gun=[11],material='CRV/CVBomberCockpit',stock='cvtnk01',exterior='cvtnk',charts={**cvhrazcockpit.CHARTS,'switch':cvhrazcockpit.CHARTS['pilot'],'service':cvhrazcockpit.CHARTS['ordnance']},width=.34,lip=-.43,front=.69,roof=.30,cut=4.39)}
+
+# Further CCA dash-atlas crops (soviet_units_cockpit; u0,v0,u1,v1 with v from the top).
+CCA=dict(dial=(.364,.427,.555,.630),buttons=(.364,.0,.555,.155),keypad=(.205,.311,.360,.684),
+ red=(.600,.17,.633,.55),hazard=(.015,.0,.18,1.),circuit=(.785,.205,.99,.35),vent=(.205,.689,.360,.98),
+ strip=(.79,.36,.85,.61),lamp=(.866,.244,.915,.266),
+ **{k:CONFIG['cca']['charts'][k] for k in ('console','switch','service')})
 
 def native_eye(world,eye,game,base,root):
     """Native local GEO rotation is authoritative; bind translations stay intact."""
@@ -180,16 +186,62 @@ def geometry(source,skelpath,faction,game,root):
             panel([(sign*.065,-.229,.365),(sign*.172,-.176,.356),(sign*.264,-.264,.206),(sign*.103,-.347,.222)],'service' if sign>0 else 'switch',depth=.006)
             beam((sign*.30,-.10,.06),(sign*.32,-.33,.66),.012)
     else:
-        # CCA keeps its stock white-enamel, black equipment and red seams. The
-        # thin off-centre legacy shell is rebuilt as substantial low control boxes.
+        # CCA keeps its stock white enamel, black equipment and red seams, laid out as
+        # one wide sloped dash bank over a knee wall (layout idea from the Total Command
+        # tank; no assets). Every instrument and hatch is a pit cut into its facet.
+        def recessed(quad,holes,fill,depth=.014):
+            """Plate on a planar quad (screen-left top, screen-right top, screen-right
+            bottom, screen-left bottom) with rectangular pits cut into it. holes are
+            (s0,t0,s1,t1,rect,turn): the pit floor shows rect upright (turn=1: the
+            art rotated a quarter turn). fill(cell,n) emits each plate cell."""
+            q=np.array(quad,float);n=np.cross(q[1]-q[0],q[3]-q[0]);n/=np.linalg.norm(n)
+            if np.dot(n,-q.mean(0))<0:n=-n
+            at=lambda s,t:(1-t)*((1-s)*q[0]+s*q[1])+t*((1-s)*q[3]+s*q[2])
+            S=sorted({0.,1.,*[h[0] for h in holes],*[h[2] for h in holes]});T=sorted({0.,1.,*[h[1] for h in holes],*[h[3] for h in holes]})
+            for s0,s1 in zip(S,S[1:]):
+                for t0,t1 in zip(T,T[1:]):
+                    if not any(h[0]<=s0 and s1<=h[2] and h[1]<=t0 and t1<=h[3] for h in holes):fill([at(s0,t0),at(s1,t0),at(s1,t1),at(s0,t1)],n)
+            for s0,t0,s1,t1,(x0,y0,x1,y1),turn in holes:
+                rim=[at(s0,t0),at(s1,t0),at(s1,t1),at(s0,t1)];pit=[p-n*depth for p in rim];mid=np.mean(pit,0)
+                for i in range(4):j=(i+1)%4;face([rim[i],rim[j],pit[j],pit[i]],'trim',hint=mid-(rim[i]+rim[j])/2)
+                uv=[(x0,y0),(x1,y0),(x1,y1),(x0,y1)] if not turn else [(x1,y0),(x1,y1),(x0,y1),(x0,y0)]
+                face(pit,'plate',hint=n,uvs=uv)
+        def enamel(cell,n):tiled(cell,'plate',hint=n,u=[1,0,0],anchor=[0,0,0])
+        def red(cell,n):
+            # Red seam strips frame the bank top and bottom; the gaps between bays stay enamel.
+            (x0,y0,x1,y1),c=CCA['red'],np.array(cell);along=np.linalg.norm(c[1]-c[0])>=np.linalg.norm(c[3]-c[0])
+            if not along:return enamel(cell,n)
+            face(cell,'plate',hint=n,uvs=[(x0,y0),(x0,y1),(x1,y1),(x1,y0)] if along else [(x0,y0),(x1,y0),(x1,y1),(x0,y1)])
+        down=np.array([0.,-.72,-.693])
+        top_y,top_z=-.33,1.06;dash=[(.74,top_y,top_z),(-.74,top_y,top_z)];dash+= [np.array(dash[1])+down*.32,np.array(dash[0])+down*.32]
+        # Instrument bay widths follow each crop's own aspect (bay height .243 m).
+        bays=[('switch',.126),('console',.32),('dial',.228),('buttons',.30),('keypad',.10)];gap=(1.48-sum(w for _,w in bays))/(len(bays)+1);holes=[];at_s=gap
+        for name,wide in bays:holes.append((at_s/1.48,.12,(at_s+wide)/1.48,.88,CCA[name],0));at_s+=wide+gap
+        recessed(dash,holes,red,.018)
+        # Brow cap and end cheeks close the bank against the tub.
+        face([(.74,top_y,top_z),(-.74,top_y,top_z),(-.74,top_y,cfg['front']),(.74,top_y,cfg['front'])],'armor',hint=[0,1,0])
+        for sign in (-1,1):face([(sign*.74,top_y,top_z),(sign*.74,top_y,cfg['front']),(sign*.74,-.60,cfg['front']),(sign*.74,-.60,.80)],'armor',hint=[-sign,0,0])
+        # Hazard sill along the bank's near edge, cut in square-scale segments.
+        lo=[np.array(dash[3]),np.array(dash[2])];hi=[p+down*.055 for p in lo];x0,y0,x1,y1=CCA['hazard'];k=5
+        for i in range(k):
+            a,b=i/k,(i+1)/k;P=lambda e,f:e[0]+(e[1]-e[0])*f
+            face([P(lo,a),P(lo,b),P(hi,b),P(hi,a)],'plate',uvs=[(x0,y0),(x0,y1),(x1,y1),(x1,y0)])
+        # White enamel knee wall with two dark service hatches.
+        k0=hi[0];k1=hi[1];knee=[k0,k1,(-.55,-1.08,.74),(.55,-1.08,.74)]
+        recessed(knee,[(.10,.22,.44,.80,CCA['circuit'],0),(.56,.22,.90,.80,CCA['vent'],1)],enamel,.02)
         for sign in (-1,1):
-            panel([(sign*.12,-.35,1.05),(sign*.61,-.30,1.03),(sign*.59,-.60,.79),(sign*.12,-.61,.79)],'console',depth=.019)
-            panel([(sign*.58,-.38,.83),(sign*.71,-.25,.55),(sign*.71,-.55,.20),(sign*.56,-.66,.48)],'switch',depth=.016)
-            # Sill, A-pillar, canopy rail and rear post as one mitred member:
-            # separate capped beams crossed each other at the pillar foot.
-            sweep([(sign*.77,-.30,-.40),(sign*.73,-.29,.93),(sign*.73,.29,.62),(sign*.48,.57,.37),(sign*.73,.60,-.40)],.048)
-        beam((-.48,.57,.37),(.48,.57,.37),.052)
-        panel([(-.105,-.40,1.01),(.105,-.40,1.01),(.105,-.59,.81),(-.105,-.59,.81)],'switch',depth=.018)
+            # Side walls: enamel lining just inside the tub, a dark equipment strip and a red lamp.
+            def wall(y,z):return (sign*(.76-.015*(-.44-y)/.386-.018),y,z)
+            # Facing a wall from the cabin, screen-left is -z on the +x wall and +z on the -x wall.
+            near,far=(.08,.72) if sign>0 else (.72,.08)
+            recessed([wall(-.47,near),wall(-.47,far),wall(-.80,far),wall(-.80,near)],[(.06,.30,.78,.62,CCA['strip'],1),(.83,.40,.95,.52,CCA['lamp'],0)],enamel,.010)
+            # Sill, A-pillar, canopy rail and rear post as one mitred member. The gun
+            # side rail runs under the cannon housing as its mount instead of through it.
+            rail=[(sign*.48,.57,.37),(sign*.73,.60,-.40)] if sign>0 else [(-.62,.398,.37),(-.70,.378,-.40)]
+            sweep([(sign*.77,-.30,-.40),(sign*.73,-.29,.93),(sign*.73,.29,.62),*rail],.048)
+        # Roof crossbar ends buried 3 cm in the housing's inner flank.
+        beam((-.44,.57,.37),(.48,.57,.37),.052)
+        tiled([(.47,-1.172,-.30),(-.47,-1.172,-.30),(-.47,-1.172,.70),(.47,-1.172,.70)],'plate',hint=[0,1,0],u=[1,0,0],anchor=[0,0,0])
     # Continuous inner tub behind instruments, with a rear bulkhead and roof.
     # This patch has exactly ONE intentional window boundary, never little holes.
     shellstart=len(ix);width=cfg['width'];lip=cfg['lip'];front=cfg['front'];roof=cfg['roof'];floor=-1.18 if faction!='cra' else -.47;back=-.62 if faction!='cra' else -.22

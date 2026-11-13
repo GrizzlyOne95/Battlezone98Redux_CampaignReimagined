@@ -5,8 +5,8 @@
     "skeletonSha256": "e687e51928b6b9126c01881690e6122562844942ae3ddd4d94c13c6288558e50"
   },
   "outputs": {
-    "Assets/Models/svtank_cockpit.mesh": "082323a401d471a3d19abf2271d4f2fd8b999aaef2818c1fe988c63d499e67bd",
-    "Assets/Models/svtank_cockpit.skeleton": "e687e51928b6b9126c01881690e6122562844942ae3ddd4d94c13c6288558e50",
+    "Assets/Models/svtank_cockpit.mesh": "f1937230f746ccf4a3ba5cd7b60057e19ea18be509bdf657ca33e3ff48eacea6",
+    "Assets/Models/svtank_cockpit.skeleton": "0644b198d2bc52770b468c4110e1f839bc6dce82d8022d6c849770a9c7d026c6",
     "Materials/CR_svtank_cockpit.material": "b79f956dc2ef9bfc69f35795088a59d02db82c9d93b6407d4034dc82aeefa1d7"
   },
   "alignment": {
@@ -14,8 +14,8 @@
     "base": "svtank",
     "pov": "SCZ11POV",
     "povPosition": [
-      0.27610001154243946,
-      1.9194999933242798,
+      0.42609998770058155,
+      1.5694999992847443,
       0.3680000305175781
     ],
     "povBasis": [
@@ -37,138 +37,7 @@
     ],
     "shell": "scz21bda",
     "shellHandle": 15,
-    "panels": [
-      {
-        "points": [
-          [
-            -0.12,
-            -0.35,
-            1.05
-          ],
-          [
-            -0.61,
-            -0.3,
-            1.03
-          ],
-          [
-            -0.59,
-            -0.6,
-            0.79
-          ],
-          [
-            -0.12,
-            -0.61,
-            0.79
-          ]
-        ],
-        "chart": "console",
-        "depth": 0.019
-      },
-      {
-        "points": [
-          [
-            -0.58,
-            -0.38,
-            0.83
-          ],
-          [
-            -0.71,
-            -0.25,
-            0.55
-          ],
-          [
-            -0.71,
-            -0.55,
-            0.2
-          ],
-          [
-            -0.56,
-            -0.66,
-            0.48
-          ]
-        ],
-        "chart": "switch",
-        "depth": 0.016
-      },
-      {
-        "points": [
-          [
-            0.12,
-            -0.35,
-            1.05
-          ],
-          [
-            0.61,
-            -0.3,
-            1.03
-          ],
-          [
-            0.59,
-            -0.6,
-            0.79
-          ],
-          [
-            0.12,
-            -0.61,
-            0.79
-          ]
-        ],
-        "chart": "console",
-        "depth": 0.019
-      },
-      {
-        "points": [
-          [
-            0.58,
-            -0.38,
-            0.83
-          ],
-          [
-            0.71,
-            -0.25,
-            0.55
-          ],
-          [
-            0.71,
-            -0.55,
-            0.2
-          ],
-          [
-            0.56,
-            -0.66,
-            0.48
-          ]
-        ],
-        "chart": "switch",
-        "depth": 0.016
-      },
-      {
-        "points": [
-          [
-            -0.105,
-            -0.4,
-            1.01
-          ],
-          [
-            0.105,
-            -0.4,
-            1.01
-          ],
-          [
-            0.105,
-            -0.59,
-            0.81
-          ],
-          [
-            -0.105,
-            -0.59,
-            0.81
-          ]
-        ],
-        "chart": "switch",
-        "depth": 0.018
-      }
-    ],
+    "panels": [],
     "stockCockpitRetained": false,
     "stockReplacedTriangles": [],
     "stockTriangles": 124,
@@ -188,7 +57,7 @@
     ],
     "apronOffset": [
       0.0,
-      0.40123698234558103,
+      0.051236988306045506,
       0.0
     ],
     "apronTriangles": 3,
@@ -207,18 +76,18 @@
     "gunWeightSha256": "39b475f4f5d578a75dbd77db30d254d0fe9b95381310d0f275ef999946ade9cc"
   },
   "glass": {
-    "openFraction": 0.4418657307822937,
+    "openFraction": 0.44367711989131664,
     "depth": [
-      0.7103620018908703,
-      1.4139647119402547
+      0.7102258848346259,
+      1.2959225614636896
     ],
     "bone": "scz21bda",
-    "vertices": 595,
-    "triangles": 1072
+    "vertices": 602,
+    "triangles": 1080
   },
   "triangles": {
-    "svtank01": 602,
-    "CRV/SharedCockpitLiner": 710,
+    "svtank01": 422,
+    "CRV/SharedCockpitLiner": 158,
     "CRV/svtankTankGuns": 396,
     "CRV/svtankTankHull": 3
   },
