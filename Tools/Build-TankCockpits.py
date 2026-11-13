@@ -22,8 +22,6 @@ def build(game,factions=()):
         material='import * from "CR_BZBase.material"\n\n'
         for role in ('Guns','Hull'):
             material+='material CRV/'+base+'Tank'+role+' : CR_BZBaseCockpit\n{\n'+''.join('    set_texture_alias '+a+' '+b+'\n' for a,b in aliases)+'}\n\n'
-        if faction=='cca':
-            material+='material CRV/SharedCockpitLiner : CR_BZBaseCockpit\n{\n    set_texture_alias DiffuseMap crvascp_d.dds\n    set_texture_alias NormalMap flat_N.dds\n    set_texture_alias SpecularMap crvcca_patch_s.dds\n    set_texture_alias EmissiveMap crvascp_e.dds\n}\n'
         if 'atlas' in cfg:
             # Per-unit generated panel atlas (tread plate, armour, hazard sills, pod scopes).
             for channel,im in zip(('d','e','N'),tankpanelatlas.images(faction)):

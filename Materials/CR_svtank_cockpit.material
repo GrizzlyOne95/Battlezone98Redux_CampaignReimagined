@@ -15,11 +15,3 @@ material CRV/svtankTankHull : CR_BZBaseCockpit
     set_texture_alias SpecularMap svtank_S.dds
     set_texture_alias EmissiveMap svtank_e.dds
 }
-
-material CRV/SharedCockpitLiner : CR_BZBaseCockpit
-{
-    set_texture_alias DiffuseMap crvascp_d.dds
-    set_texture_alias NormalMap crvascp_N.dds
-    set_texture_alias SpecularMap crvcca_patch_s.dds
-    set_texture_alias EmissiveMap crvascp_e.dds
-}

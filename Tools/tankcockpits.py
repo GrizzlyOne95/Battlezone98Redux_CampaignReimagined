@@ -3,20 +3,14 @@ from collections import Counter
 import io, math
 import numpy as np
 import reddevilcockpit as shared
-import scoutcockpits, cvhrazcockpit, tankpanelatlas
+import cvhrazcockpit, tankpanelatlas
 from bzmodellibs import legacy, legacy_port
 
 CONFIG={
  'nsdf':dict(base='avtank',shell='agr21bda',batch=2,body=0,bodyBone=2,gun=[18],material='CRV/avtankTankPanels',atlas='crvatkp',stock='avtank01',exterior='avtank00',charts=tankpanelatlas.CHARTS,width=.98,lip=-.49,front=.91,roof=.62,cut=2.02),
  'bdog':dict(base='bvtank',shell='bgr21bda',batch=0,body=1,bodyBone=2,gun=[1],material='CRV/bvtankTankPanels',atlas='crvbtkp',stock='bvtank01',exterior='bvtank00',charts=tankpanelatlas.CHARTS,width=.98,lip=-.35,front=.80,roof=.85,cut=2.02),
- 'cca':dict(base='svtank',shell='scz21bda',batch=2,body=0,bodyBone=1,gun=[2,3],gunSource={26:3},material='svtank01',stock='svtank01',exterior='svtank00',charts={'console':(.370,.158,.553,.297),'switch':(.207,.006,.350,.298),'service':(.770,.008,.986,.190),'armor':(.635,.06,.739,.23),'frame':(.635,.06,.739,.23),'trim':(.745,.35,.757,.56),'plate':(.640,.585,.770,.705)},width=.76,lip=-.44,front=1.10,roof=.62,cut=3.9),
+ 'cca':dict(base='svtank',shell='scz21bda',batch=2,body=0,bodyBone=1,gun=[2,3],gunSource={26:3},material='svtank01',stock='svtank01',exterior='svtank00',charts={'console':(.370,.158,.553,.297),'switch':(.207,.006,.350,.298),'service':(.770,.008,.986,.190),'armor':(.635,.06,.739,.23),'frame':(.635,.06,.739,.23),'trim':(.745,.35,.757,.56),'plate':(.640,.585,.770,.705)},width=.76,lip=-.44,front=1.10,roof=.62,cut=1.62),
  'cra':dict(base='cvtnk',shell='CYE21BDA',batch=1,body=0,bodyBone=0,gun=[11],material='CRV/CVBomberCockpit',stock='cvtnk01',exterior='cvtnk',charts={**cvhrazcockpit.CHARTS,'switch':cvhrazcockpit.CHARTS['pilot'],'service':cvhrazcockpit.CHARTS['ordnance']},width=.34,lip=-.43,front=.69,roof=.30,cut=4.39)}
-
-# Further CCA dash-atlas crops (soviet_units_cockpit; u0,v0,u1,v1 with v from the top).
-CCA=dict(dial=(.364,.427,.555,.630),buttons=(.364,.0,.555,.155),keypad=(.205,.311,.360,.684),
- red=(.600,.17,.633,.55),hazard=(.015,.0,.18,1.),circuit=(.785,.205,.99,.35),vent=(.205,.689,.360,.98),
- strip=(.79,.36,.85,.61),lamp=(.866,.244,.915,.266),
- **{k:CONFIG['cca']['charts'][k] for k in ('console','switch','service')})
 
 def native_eye(world,eye,game,base,root):
     """Native local GEO rotation is authoritative; bind translations stay intact."""
@@ -60,16 +54,15 @@ def source_part(sub,mask=None):
 
 def geometry(source,skelpath,faction,game,root):
     cfg=CONFIG[faction];s,w,eye,shell=shared.rig(skelpath,cfg['shell']);native=native_eye(w,eye,game,cfg['base'],root);w=raw_world(w);origin,R=w[eye.handle]
-    mesh=shared.read_mesh(source);rows=[];ix=[];liner=[];parts={};panels=[]
+    mesh=shared.read_mesh(source);rows=[];ix=[];parts={};panels=[]
     def face(points,chart='trim',hint=None,rect=None,uvs=None):
         p=np.array(points,float);n=np.cross(p[1]-p[0],p[2]-p[0]);n/=np.linalg.norm(n);hint=-p.mean(0) if hint is None else np.array(hint)
         if np.dot(n,hint)<0:p=p[::-1];n=-n;uvs=None if uvs is None else uvs[::-1]
-        if faction=='cca' and chart=='trim':rect=scoutcockpits.CHARTS['trim']
         x0,y0,x1,y1=cfg['charts'][chart] if rect is None else rect
         uv=uvs if uvs is not None else ([(x1,y0),(x0,y0),(x0,y1),(x1,y1)] if len(p)==4 else [(x0+(x1-x0)*(.5+.5*math.cos(i*2*math.pi/len(p))),y0+(y1-y0)*(.5+.5*math.sin(i*2*math.pi/len(p)))) for i in range(len(p))])
         start=len(rows)
         for v,t in zip(p,uv):rows.append([*(origin+R@v),*(R@n),*t])
-        for i in range(1,len(p)-1):ix.extend([start,start+i,start+i+1]);liner.append(faction=='cca' and chart=='trim')
+        for i in range(1,len(p)-1):ix.extend([start,start+i,start+i+1])
     def tiled(points,chart,hint=None,u=None,anchor=None):
         """Clip a planar polygon into metric atlas cells in its own face frame
         (u along `u` projected onto the face), so seams follow the mesh."""
@@ -186,106 +179,82 @@ def geometry(source,skelpath,faction,game,root):
             panel([(sign*.065,-.229,.365),(sign*.172,-.176,.356),(sign*.264,-.264,.206),(sign*.103,-.347,.222)],'service' if sign>0 else 'switch',depth=.006)
             beam((sign*.30,-.10,.06),(sign*.32,-.33,.66),.012)
     else:
-        # CCA keeps its stock white enamel, black equipment and red seams, laid out as
-        # one wide sloped dash bank over a knee wall (layout idea from the Total Command
-        # tank; no assets). Every instrument and hatch is a pit cut into its facet.
-        def recessed(quad,holes,fill,depth=.014):
-            """Plate on a planar quad (screen-left top, screen-right top, screen-right
-            bottom, screen-left bottom) with rectangular pits cut into it. holes are
-            (s0,t0,s1,t1,rect,turn): the pit floor shows rect upright (turn=1: the
-            art rotated a quarter turn). fill(cell,n) emits each plate cell."""
-            q=np.array(quad,float);n=np.cross(q[1]-q[0],q[3]-q[0]);n/=np.linalg.norm(n)
-            if np.dot(n,-q.mean(0))<0:n=-n
-            at=lambda s,t:(1-t)*((1-s)*q[0]+s*q[1])+t*((1-s)*q[3]+s*q[2])
-            S=sorted({0.,1.,*[h[0] for h in holes],*[h[2] for h in holes]});T=sorted({0.,1.,*[h[1] for h in holes],*[h[3] for h in holes]})
-            for s0,s1 in zip(S,S[1:]):
-                for t0,t1 in zip(T,T[1:]):
-                    if not any(h[0]<=s0 and s1<=h[2] and h[1]<=t0 and t1<=h[3] for h in holes):fill([at(s0,t0),at(s1,t0),at(s1,t1),at(s0,t1)],n)
-            for s0,t0,s1,t1,(x0,y0,x1,y1),turn in holes:
-                rim=[at(s0,t0),at(s1,t0),at(s1,t1),at(s0,t1)];pit=[p-n*depth for p in rim];mid=np.mean(pit,0)
-                for i in range(4):j=(i+1)%4;face([rim[i],rim[j],pit[j],pit[i]],'trim',hint=mid-(rim[i]+rim[j])/2)
-                uv=[(x0,y0),(x1,y0),(x1,y1),(x0,y1)] if not turn else [(x1,y0),(x1,y1),(x0,y1),(x0,y0)]
-                face(pit,'plate',hint=n,uvs=uv)
-        def enamel(cell,n):tiled(cell,'plate',hint=n,u=[1,0,0],anchor=[0,0,0])
-        def red(cell,n):
-            # Red seam strips frame the bank top and bottom; the gaps between bays stay enamel.
-            (x0,y0,x1,y1),c=CCA['red'],np.array(cell);along=np.linalg.norm(c[1]-c[0])>=np.linalg.norm(c[3]-c[0])
-            if not along:return enamel(cell,n)
-            face(cell,'plate',hint=n,uvs=[(x0,y0),(x0,y1),(x1,y1),(x1,y0)] if along else [(x0,y0),(x1,y0),(x1,y1),(x0,y1)])
-        down=np.array([0.,-.72,-.693])
-        top_y,top_z=-.33,1.06;dash=[(.74,top_y,top_z),(-.74,top_y,top_z)];dash+= [np.array(dash[1])+down*.32,np.array(dash[0])+down*.32]
-        # Instrument bay widths follow each crop's own aspect (bay height .243 m).
-        bays=[('switch',.126),('console',.32),('dial',.228),('buttons',.30),('keypad',.10)];gap=(1.48-sum(w for _,w in bays))/(len(bays)+1);holes=[];at_s=gap
-        for name,wide in bays:holes.append((at_s/1.48,.12,(at_s+wide)/1.48,.88,CCA[name],0));at_s+=wide+gap
-        recessed(dash,holes,red,.018)
-        # Brow cap and end cheeks close the bank against the tub.
-        face([(.74,top_y,top_z),(-.74,top_y,top_z),(-.74,top_y,cfg['front']),(.74,top_y,cfg['front'])],'armor',hint=[0,1,0])
-        for sign in (-1,1):face([(sign*.74,top_y,top_z),(sign*.74,top_y,cfg['front']),(sign*.74,-.60,cfg['front']),(sign*.74,-.60,.80)],'armor',hint=[-sign,0,0])
-        # Hazard sill along the bank's near edge, cut in square-scale segments.
-        lo=[np.array(dash[3]),np.array(dash[2])];hi=[p+down*.055 for p in lo];x0,y0,x1,y1=CCA['hazard'];k=5
-        for i in range(k):
-            a,b=i/k,(i+1)/k;P=lambda e,f:e[0]+(e[1]-e[0])*f
-            face([P(lo,a),P(lo,b),P(hi,b),P(hi,a)],'plate',uvs=[(x0,y0),(x0,y1),(x1,y1),(x1,y0)])
-        # White enamel knee wall with two dark service hatches.
-        k0=hi[0];k1=hi[1];knee=[k0,k1,(-.55,-1.08,.74),(.55,-1.08,.74)]
-        recessed(knee,[(.10,.22,.44,.80,CCA['circuit'],0),(.56,.22,.90,.80,CCA['vent'],1)],enamel,.02)
-        for sign in (-1,1):
-            # Side walls: enamel lining just inside the tub, a dark equipment strip and a red lamp.
-            def wall(y,z):return (sign*(.76-.015*(-.44-y)/.386-.018),y,z)
-            # Facing a wall from the cabin, screen-left is -z on the +x wall and +z on the -x wall.
-            near,far=(.08,.72) if sign>0 else (.72,.08)
-            recessed([wall(-.47,near),wall(-.47,far),wall(-.80,far),wall(-.80,near)],[(.06,.30,.78,.62,CCA['strip'],1),(.83,.40,.95,.52,CCA['lamp'],0)],enamel,.010)
-            # Sill, A-pillar, canopy rail and rear post as one mitred member. The gun
-            # side rail runs under the cannon housing as its mount instead of through it.
-            rail=[(sign*.48,.57,.37),(sign*.73,.60,-.40)] if sign>0 else [(-.62,.569,.37),(-.70,.544,-.40)]
-            sweep([(sign*.77,-.30,-.40),(sign*.73,-.29,.93),(sign*.73,.29,.62),*rail],.048)
-        # Roof crossbar ends buried 3 cm in the housing's inner flank.
-        beam((-.44,.57,.37),(.48,.57,.37),.052)
-        tiled([(.47,-1.172,-.30),(-.47,-1.172,-.30),(-.47,-1.172,.70),(.47,-1.172,.70)],'plate',hint=[0,1,0],u=[1,0,0],anchor=[0,0,0])
-    # Continuous inner tub behind instruments, with a rear bulkhead and roof.
-    # This patch has exactly ONE intentional window boundary, never little holes.
-    shellstart=len(ix);width=cfg['width'];lip=cfg['lip'];front=cfg['front'];roof=cfg['roof'];floor=-1.18 if faction!='cra' else -.47;back=-.62 if faction!='cra' else -.22
-    rings=[]
-    for z in (back,front*.30,front):rings.append([(-width,lip,z),(-width*.98,floor*.70,z),(-width*.65,floor,z),(width*.65,floor,z),(width*.98,floor*.70,z),(width,lip,z)])
-    length=np.r_[0,np.cumsum(np.linalg.norm(np.diff(np.array(rings[0]),axis=0),axis=1))];length/=length[-1];tx0,ty0,tx1,ty1=scoutcockpits.CHARTS['trim'] if faction=='cca' else cfg['charts']['trim']
-    def tubuv(i,z):return (tx0+(tx1-tx0)*length[i],ty0+(ty1-ty0)*(z-back)/(front-back))
-    for a,b in zip(rings,rings[1:]):
-        for i in range(5):face([a[i],b[i],b[i+1],a[i+1]],uvs=[tubuv(i,a[i][2]),tubuv(i,b[i][2]),tubuv(i+1,b[i+1][2]),tubuv(i+1,a[i+1][2])])
-    face(rings[-1]);face(rings[0])
-    face([rings[0][0],rings[0][-1],(width,roof,back),(-width,roof,back)])
-    face([(-width,roof,back),(width,roof,back),(width*.68,roof,front*.38),(-width*.68,roof,front*.38)])
-    shellend=len(ix)
-    edges=Counter()
-    for tri in np.array(rows)[:,:3][np.array(ix[shellstart:shellend]).reshape(-1,3)]:
-        keys=[tuple(np.round(p,6)) for p in tri]
-        for i in range(3):edges[tuple(sorted((keys[i],keys[(i+1)%3])))]+=1
-    boundary=[e for e,n in edges.items() if n==1];adj={}
-    for a,b in boundary:adj.setdefault(a,set()).add(b);adj.setdefault(b,set()).add(a)
-    assert max(edges.values())==2 and all(len(v)==2 for v in adj.values())
-    seen=set();todo=[next(iter(adj))]
-    while todo:
-        p=todo.pop()
-        if p not in seen:seen.add(p);todo.extend(adj[p]-seen)
-    assert len(seen)==len(adj),'only one intentional window boundary'
-    topology=dict(triangles=(shellend-shellstart)//3,boundaryEdges=len(boundary),boundaryLoops=1)
-    # A bounded solid coaming joins the lower window to the visible hull apron.
-    # Grizzly's broader nose needs a continuous lower fairing behind the cut
-    # source group; otherwise sky shows through the rear crop beside the horns.
-    if faction in ('nsdf','bdog'):
-        # NSDF drops further so the slab stays under the widened hull shoulders.
-        drop=.30 if faction=='nsdf' else .20
-        rear,taper=(2.55,.72) if faction=='nsdf' else (1.85,1.)
-        deck=[(-width,lip,front),(width,lip,front),(width*taper,lip-drop*(rear-front)/(1.85-front),rear),(-width*taper,lip-drop*(rear-front)/(1.85-front),rear)]
-    else:deck=[(-width,lip,front),(width,lip,front),(width*.90,lip-.075,front+.35),(-width*.90,lip-.075,front+.35)]
-    (tiled(deck,'plate',hint=[0,1,0]) if faction in ('nsdf','bdog') else face(deck,'armor',hint=[0,1,0]));bottom=np.array(deck)-[0,.07,0];face(bottom,hint=[0,-1,0])
-    # CCA's front deck wall would lie exactly on the tub's front bulkhead cap
-    # (z-fighting strips beside the consoles); the bulkhead already closes it.
-    for i in range(1 if faction=='cca' else 0,4):j=(i+1)%4;face([deck[i],deck[j],bottom[j],bottom[i]],'frame')
-    if faction=='cca':
-        for material,mask in [(cfg['material'],~np.array(liner)),('CRV/SharedCockpitLiner',np.array(liner))]:
-            used,remap=np.unique(np.array(ix).reshape(-1,3)[mask],return_inverse=True)
-            parts[material]=(np.array(rows,dtype='<f4')[used],remap.astype('<u2').reshape(-1))
-    else:parts[cfg['material']]=(np.array(rows,dtype='<f4'),np.array(ix,dtype='<u2'))
+        # CCA (owner review; Total Command layout idea, no assets): the pilot looks out of
+        # a hatch cupola just ahead of the turret, over the real front deck, with the real
+        # cannon running alongside. The only added geometry is this closed coaming: a low
+        # front lip frames the bottom of the view and, behind the ~56 deg half-width view,
+        # rises into a hood that closes the rear and roof. Its base follows the deck, buried.
+        body=mesh.submesh_list[cfg['body']];bt=((shared.values(body.vertex_data,shared.om.VES.POSITION)-origin)@R)[body.index_array.reshape(-1,3)]
+        def deck(x,z):
+            d=__import__('cockpitglass').cast(np.array([x,1.5,z]),np.array([[0,-1.,0]]),bt[:,0],bt[:,1],bt[:,2],front_only=False)[0][0]
+            assert np.isfinite(d),'real deck under the cupola';return 1.5-d
+        N=32;ro,ri,hood,lip_y=.36,.32,.30,-.23
+        def top(phi):
+            # Low lip ~35 deg under the reticle (bottom edge of the ~79 deg view), so the real deck
+            # nose shows above it; the hood rises outside the view.
+            a=abs(math.degrees(math.atan2(math.sin(phi),math.cos(phi))));k=min(max((a-60)/17,0),1);k=k*k*(3-2*k)
+            return lip_y+.04*min(a,60)/60+(hood-lip_y-.04)*k
+        ring=[]
+        for i in range(N):
+            phi=2*math.pi*i/N;sx,cz=math.sin(phi),math.cos(phi);y0=min(deck(r*sx,r*cz) for r in (ro,ri))-.03;y1=top(phi)
+            ring.append(([ro*sx,y0,ro*cz],[ro*sx,y1,ro*cz],[ri*sx,y1,ri*cz],[ri*sx,y0,ri*cz]))
+        for i in range(N):
+            A,B=ring[i],ring[(i+1)%N]
+            face([A[0],B[0],B[1],A[1]],'armor',hint=np.array(A[0])*[1,0,1])      # outer wall
+            face([A[1],B[1],B[2],A[2]],'frame',hint=[0,1,0])                      # top cap
+            face([A[2],B[2],B[3],A[3]],'frame',hint=-np.array(A[2])*[1,0,1])     # inner wall
+            face([A[3],B[3],B[0],A[0]],'frame',hint=[0,-1,0])                     # buried base
+        # Hood roof slab over the rear half, its front edge ~77 deg up (out of view).
+        # The roof's front edge is the chord between two ring posts (z ~.07), so it seats on the wall.
+        poly=[np.array(q[1]) for q in ring if q[1][2]<=.075];poly.sort(key=lambda q:-math.atan2(q[0],-q[2]))
+        assert all(abs(q[1]-hood)<1e-9 for q in poly),'hood roof seats on the full-height wall'
+        topp=[np.array(q)+[0,.03,0] for q in poly]
+        face(topp,'armor',hint=[0,1,0]);face(poly,'frame',hint=[0,-1,0])
+        for i in range(len(poly)):j=(i+1)%len(poly);face([poly[i],poly[j],topp[j],topp[i]],'frame',hint=(poly[i]+poly[j])*[1,0,1] if i<len(poly)-1 else [0,0,1])
+        # A closed floor plate under the eye, buried just below the deck.
+        floor=[[ri*math.sin(2*math.pi*i/N),ring[i][3][1]+.01,ri*math.cos(2*math.pi*i/N)] for i in range(N)]
+        face(floor,'frame',hint=[0,1,0])
+    # CCA's hatch cupola is closed on its own (above); the others keep the tub and deck slab.
+    topology=None;width=cfg['width'];lip=cfg['lip'];front=cfg['front'];roof=cfg['roof']
+    if faction!='cca':
+        # Continuous inner tub behind instruments, with a rear bulkhead and roof.
+        # This patch has exactly ONE intentional window boundary, never little holes.
+        shellstart=len(ix);floor=-1.18 if faction!='cra' else -.47;back=-.62 if faction!='cra' else -.22
+        rings=[]
+        for z in (back,front*.30,front):rings.append([(-width,lip,z),(-width*.98,floor*.70,z),(-width*.65,floor,z),(width*.65,floor,z),(width*.98,floor*.70,z),(width,lip,z)])
+        length=np.r_[0,np.cumsum(np.linalg.norm(np.diff(np.array(rings[0]),axis=0),axis=1))];length/=length[-1];tx0,ty0,tx1,ty1=cfg['charts']['trim']
+        def tubuv(i,z):return (tx0+(tx1-tx0)*length[i],ty0+(ty1-ty0)*(z-back)/(front-back))
+        for a,b in zip(rings,rings[1:]):
+            for i in range(5):face([a[i],b[i],b[i+1],a[i+1]],uvs=[tubuv(i,a[i][2]),tubuv(i,b[i][2]),tubuv(i+1,b[i+1][2]),tubuv(i+1,a[i+1][2])])
+        face(rings[-1]);face(rings[0])
+        face([rings[0][0],rings[0][-1],(width,roof,back),(-width,roof,back)])
+        face([(-width,roof,back),(width,roof,back),(width*.68,roof,front*.38),(-width*.68,roof,front*.38)])
+        shellend=len(ix)
+        edges=Counter()
+        for tri in np.array(rows)[:,:3][np.array(ix[shellstart:shellend]).reshape(-1,3)]:
+            keys=[tuple(np.round(p,6)) for p in tri]
+            for i in range(3):edges[tuple(sorted((keys[i],keys[(i+1)%3])))]+=1
+        boundary=[e for e,n in edges.items() if n==1];adj={}
+        for a,b in boundary:adj.setdefault(a,set()).add(b);adj.setdefault(b,set()).add(a)
+        assert max(edges.values())==2 and all(len(v)==2 for v in adj.values())
+        seen=set();todo=[next(iter(adj))]
+        while todo:
+            p=todo.pop()
+            if p not in seen:seen.add(p);todo.extend(adj[p]-seen)
+        assert len(seen)==len(adj),'only one intentional window boundary'
+        topology=dict(triangles=(shellend-shellstart)//3,boundaryEdges=len(boundary),boundaryLoops=1)
+        # A bounded solid coaming joins the lower window to the visible hull apron.
+        # Grizzly's broader nose needs a continuous lower fairing behind the cut
+        # source group; otherwise sky shows through the rear crop beside the horns.
+        if faction in ('nsdf','bdog'):
+            # NSDF drops further so the slab stays under the widened hull shoulders.
+            drop=.30 if faction=='nsdf' else .20
+            rear,taper=(2.55,.72) if faction=='nsdf' else (1.85,1.)
+            deck=[(-width,lip,front),(width,lip,front),(width*taper,lip-drop*(rear-front)/(1.85-front),rear),(-width*taper,lip-drop*(rear-front)/(1.85-front),rear)]
+        else:deck=[(-width,lip,front),(width,lip,front),(width*.90,lip-.075,front+.35),(-width*.90,lip-.075,front+.35)]
+        (tiled(deck,'plate',hint=[0,1,0]) if faction in ('nsdf','bdog') else face(deck,'armor',hint=[0,1,0]));bottom=np.array(deck)-[0,.07,0];face(bottom,hint=[0,-1,0])
+        for i in range(4):j=(i+1)%4;face([deck[i],deck[j],bottom[j],bottom[i]],'frame')
+    parts[cfg['material']]=(np.array(rows,dtype='<f4'),np.array(ix,dtype='<u2'))
     body=mesh.submesh_list[cfg['body']];p=shared.values(body.vertex_data,shared.om.VES.POSITION);n=shared.values(body.vertex_data,shared.om.VES.NORMAL);tri=body.index_array.reshape(-1,3)
     weight=np.zeros(len(p))
     for a in body.bone_assignments():
@@ -322,7 +291,8 @@ def geometry(source,skelpath,faction,game,root):
     local=((apron[:,:3]-origin)@R-pivot)@rotation.T+pivot
     top=(-.54 if faction=='nsdf' else -.44) if grizzly else lip-.09
     near=1.10 if grizzly else front+.04
-    offset=np.array([0.,top-local[:,1].max(),max(near-local[:,2].min(),0.)]);transform=np.eye(4);transform[:3,:3]=R@rotation@R.T;transform[:3,3]=pivot_model-transform[:3,:3]@pivot_model+R@offset
+    # CCA shows the real front deck exactly where the exterior has it, around the cupola.
+    offset=np.zeros(3) if faction=='cca' else np.array([0.,top-local[:,1].max(),max(near-local[:,2].min(),0.)]);transform=np.eye(4);transform[:3,:3]=R@rotation@R.T;transform[:3,3]=pivot_model-transform[:3,:3]@pivot_model+R@offset
     apron[:,:3]=apron[:,:3]@transform[:3,:3].T+transform[:3,3]
     normal=np.linalg.inv(transform[:3,:3]).T if spread!=1 else transform[:3,:3];apron[:,3:6]=apron[:,3:6]@normal.T;apron[:,8:11]=apron[:,8:11]@transform[:3,:3].T
     if spread!=1:
