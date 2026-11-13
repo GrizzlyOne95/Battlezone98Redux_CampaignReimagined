@@ -49,7 +49,7 @@ local missionStarted = false
 local leaderDeparted = false
 local missionPhase = 0
 local initialized = false
-local scoreboardDefaultApplied, killNoticeDefaultApplied = false, false
+local scoreboardDefaultApplied, killNoticeDefaultApplied, laserSightApplied = false, false, false
 local onOutOfLives = nil
 local outOfLivesLocal = false     -- this player has no lives left
 local outOfLivesHandled = false   -- host: the mission failure was requested
@@ -165,7 +165,7 @@ function CRCoop.Initialize(options)
     initialized = false
     diagnostics.Reset()
     teamSkins.Reset()
-    scoreboardDefaultApplied, killNoticeDefaultApplied = false, false
+    scoreboardDefaultApplied, killNoticeDefaultApplied, laserSightApplied = false, false, false
     options = options or {}
 
     if type(options.getLocalPlayerId) == "function" then
@@ -539,6 +539,11 @@ function CRCoop.Update()
             if not killNoticeDefaultApplied and type(x.SetShowKillMessages) == "function" then
                 local ok, applied = pcall(x.SetShowKillMessages, false)
                 killNoticeDefaultApplied = ok and applied == true
+            end
+            -- OpenShim keeps the laser sight off in network games unless a
+            -- script opts in; the mode resets when the mission ends.
+            if not laserSightApplied and type(x.SetLaserSightMode) == "function" then
+                laserSightApplied = pcall(x.SetLaserSightMode, 1)
             end
         end
     end
