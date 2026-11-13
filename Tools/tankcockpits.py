@@ -290,7 +290,7 @@ def geometry(source,skelpath,faction,game,root):
         apron=apron.astype('<f4');apronix=np.array(cut_ix,dtype='<u2');parts['CRV/'+cfg['base']+'TankHull']=(apron,apronix)
         # Opening perimeter (front-right, front-left, rear-left, rear-right), sampled so the
         # coaming follows the real deck; one continuous trim strip runs round it (no repeats).
-        corners=[(x1,z1),(x0,z1),(x0,z0),(x1,z0)];K=6;loop=[]
+        corners=[(x1,z1),(x0,z1),(x0,z0),(x1,z0)];K=6;loop=[];assert K%2==0,'mosaic cells split walls at s=.5'
         for i in range(4):
             (ax,az),(bx,bz)=corners[i],corners[(i+1)%4]
             for k in range(K):f=k/K;loop.append((ax+(bx-ax)*f,az+(bz-az)*f))
@@ -307,7 +307,7 @@ def geometry(source,skelpath,faction,game,root):
         # read as blurry); no module repeats. Cells are (s0,s1,t0,t1) along the wall / down it,
         # rects in atlas pixels. The console leans back toward the pilot; the rear is behind the head.
         inset=.10
-        def lower(x,z):return (x,bottom,z-inset if z>z1-1e-9 else z)
+        def lower(x,z):return (x,bottom,z-inset*(z-z0)/(z1-z0))  # front leans back; side walls follow linearly
         MOSAIC=(
             [((0,.5,0,.5),(378,2,566,152)),((.5,1,0,.5),(379,162,566,305)),((0,.5,.5,1),(378,312,566,436)),((.5,1,.5,1),(378,440,566,652))],
             [((0,.5,0,1),(210,4,362,306)),((.5,1,0,1),(210,318,366,704))],

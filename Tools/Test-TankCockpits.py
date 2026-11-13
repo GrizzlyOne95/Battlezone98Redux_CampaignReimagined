@@ -103,11 +103,12 @@ for faction,cfg in cp.CONFIG.items():
     if faction=='cca':
         # Deck hatch: the real deck nose fills the low forward view, the hatch console the down-look.
         cab=cp.CONFIG['cca']['material'];clo,chi=ranges[cab]
-        for pitch in range(-24,-19):
-            dist,hit=cast(np.arange(-12,13),pitch);hullhits+=int(((hit>=hlo)&(hit<hhi)&np.isfinite(dist)).sum())
-        check(hullhits>100,'real deck nose visible ahead of the hatch')
+        for pitch in range(-28,-19):
+            dist,hit=cast(np.arange(-20,21),pitch);hullhits+=int(((hit>=hlo)&(hit<hhi)&np.isfinite(dist)).sum())
+        check(hullhits>280,'real deck nose visible ahead of the hatch')
         check(all(clo<=h<chi for h in cast(np.array([-8,-3,3,8]),-40)[1]),'hatch console fills the down-look')
-        check(np.isinf(cast(np.arange(-30,31,5),-15)[0]).all(),'nothing generated rises above the deck line ahead')
+        above=[(pitch,int(y)) for pitch in range(-24,1,3) for y,h in zip(np.arange(-30,31,5),cast(np.arange(-30,31,5),pitch)[1]) if clo<=h<chi]
+        check(not above,'hatch coaming stays below the forward sightline (no cabin geometry above -24 deg within 30 deg of ahead; the lip grazes -26 at the sides)')
     gunhits=0;lo,hi=ranges[gunsub.material_name]
     for pitch in np.arange(-31,32,1):
         dist,hit=cast(np.arange(-45,46,1),pitch);gunhits+=int(((hit>=lo)&(hit<hi)&np.isfinite(dist)).sum())
