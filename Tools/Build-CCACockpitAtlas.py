@@ -2,8 +2,9 @@
 
 The stock soviet_units_cockpit atlas is shared by every CCA cockpit, and their UVs
 sample all of it (wrapping past 0..1), so the new sheet keeps the stock module
-layout: each stock box gets a crop of one generated panel, cover-fitted with its
-aspect ratio kept (dials stay round). Normal, specular and emissive maps are
+layout: each stock box (and, at their measured world size, svtank's tub cells) is
+packed with rows of whole instrument modules framed by their own panel steel, so
+no gauge is sliced and dials stay round. Normal, specular and emissive maps are
 derived from the diffuse. Units opt in by pointing their *01 material at
 crcca_cockpit_*; the stock atlas stays untouched.
 
@@ -20,65 +21,48 @@ SRC = ROOT / 'References/TankCockpits/cca/atlas-src'
 OUT = ROOT / 'Assets/Textures'
 SIZE = 2048            # diffuse/normal/specular; boxes below are in stock 1024 px
 K = SIZE / 1024
-SEAM = 2               # panel-gap line width at SIZE
 
-# Panel modules cut from the generated masters (master, crop x0, y0, x1, y1).
-POOL = [
-    ('keypad', 1250, 330, 2280, 1135),
-    ('racks', 60, 60, 600, 1070),
-    ('lamps', 1480, 120, 2370, 1340),
-    ('plate', 120, 380, 660, 1100),      # gauge + nameplate
-    ('dial', 1330, 230, 2330, 1270),
-    ('circuit', 1600, 150, 2620, 1410),
-    ('switches', 360, 130, 1060, 1450),
-    ('plate', 2200, 380, 2700, 1060),    # side column: toggle, knob
-    ('racks', 1880, 120, 2560, 1450),
-    ('pod', 1580, 600, 1925, 1440),
-    ('plate', 680, 380, 1260, 1150),     # twin toggles
-    ('racks', 1000, 280, 1640, 1460),
-    ('plate', 1300, 120, 2200, 1000),    # welded plate, red stripe
-    ('circuit', 2200, 150, 2560, 1410),
-    ('plate', 700, 1130, 1260, 1440),    # hazard bracket
+# Whole instruments cut from the generated masters (master, x0, y0, x1, y1): each crop
+# holds one complete gauge, lamp cluster, switch bank or rack unit with its bezel, so
+# nothing is ever sliced. Each cell shows a module framed by its own panel steel.
+MODULES = [
+    ('dial', 1340, 170, 2350, 1180), ('dial', 2330, 210, 2570, 460), ('dial', 2350, 780, 2560, 990),
+    ('dial', 1070, 320, 1310, 560), ('dial', 430, 300, 1020, 580), ('dial', 380, 980, 880, 1180),
+    ('plate', 300, 460, 650, 820), ('plate', 1300, 110, 2220, 1400), ('plate', 2320, 520, 2570, 950),
+    ('plate', 740, 830, 1200, 1140),
+    ('keypad', 1390, 380, 2210, 1170), ('keypad', 270, 660, 650, 1040), ('keypad', 270, 260, 640, 600),
+    ('keypad', 690, 260, 1270, 570),
+    ('lamps', 1520, 170, 2400, 1100), ('lamps', 310, 520, 790, 1000), ('lamps', 1350, 560, 1510, 900),
+    ('lamps', 770, 960, 1000, 1190),
+    ('switches', 1220, 460, 2570, 1040), ('switches', 740, 370, 1090, 720), ('switches', 2240, 150, 2530, 440),
+    ('racks', 90, 80, 480, 1450), ('racks', 490, 80, 870, 1450), ('racks', 990, 80, 1760, 500),
+    ('racks', 990, 890, 1760, 1250), ('racks', 1880, 80, 2670, 480), ('racks', 1880, 480, 2670, 1020),
+    ('racks', 1880, 1020, 2670, 1420),
+    ('circuit', 1590, 160, 2620, 1400), ('circuit', 250, 580, 610, 940), ('circuit', 970, 330, 1190, 1090),
+    ('pod', 360, 240, 750, 620), ('pod', 1540, 580, 2580, 1380), ('pod', 390, 1020, 990, 1220),
+    ('dial', 1520, 1250, 2180, 1440),    # hazard bracket
 ]
-_next = [0]
+RECESS = (.07, .075, .08)
+ROW = .11          # target panel row height (m)
+PPM = 1600         # compose resolution (px/m) before fitting a region's atlas rect
+STOCK_PPM = 600    # assumed px/m of the stock 1024 boxes (units without measured cells)
 
-
-def grid(box, cols, rows):
-    """Split a stock box into cols x rows small panels, taking successive POOL
-    modules (flipped on later passes), so each UV island reads as a dense bank
-    of instruments instead of one oversized module. Mesh UVs are untouched."""
-    x0, y0, x1, y1 = box
-    xs = [round(x0 + (x1 - x0) * i / cols) for i in range(cols + 1)]
-    ys = [round(y0 + (y1 - y0) * j / rows) for j in range(rows + 1)]
-    out = []
-    for j in range(rows):
-        for i in range(cols):
-            k = _next[0]; _next[0] += 1
-            flip = (None, 'h', None, 'v')[(k // len(POOL)) % 4]
-            out.append(((xs[i], ys[j], xs[i + 1], ys[j + 1]), POOL[k % len(POOL)] + (flip,)))
-    return out
-
-
-# box (x0, y0, x1, y1) in the stock 1024 atlas -> (master, crop, flip). The stock
-# module boxes are kept (every CCA cockpit's UVs sample them); each is filled with
-# a grid of small panels.
-LAYOUT = [
-    ((0, 0, 205, 1024),    ('hazard', 150, 150, 580, 1390, None)),
-    *grid((205, 0, 372, 312), 2, 3),
-    *grid((205, 318, 372, 704), 2, 3),
-    *grid((205, 708, 372, 1016), 2, 3),
-    *grid((372, 0, 570, 155), 2, 2),
-    *grid((372, 160, 570, 430), 2, 3),
-    *grid((372, 436, 570, 645), 2, 2),
-    *grid((372, 645, 570, 1016), 2, 4),
-    *grid((575, 0, 770, 341), 2, 3),
-    *grid((575, 341, 770, 682), 2, 3),
-    *grid((575, 682, 770, 1024), 2, 3),
-    *grid((775, 0, 1024, 318), 3, 3),
-    *grid((775, 318, 1024, 635), 3, 3),
-    *grid((775, 635, 930, 1016), 2, 4),
-    *grid((930, 635, 1024, 1016), 1, 4),
-]
+# Stock 1024 atlas boxes (every CCA cockpit's UVs sample them): packed generically.
+BOXES = [(205, 0, 372, 312), (205, 318, 372, 704), (205, 708, 372, 1016), (372, 0, 570, 155),
+         (372, 160, 570, 430), (372, 436, 570, 645), (372, 645, 570, 1016), (575, 0, 770, 341),
+         (575, 341, 770, 682), (575, 682, 770, 1024), (775, 0, 1024, 318), (775, 318, 1024, 635),
+         (775, 635, 930, 1016), (930, 635, 1024, 1016)]
+HAZARD = ((0, 0, 205, 1024), ('hazard', 150, 150, 580, 1390))
+# svtank's tub cells (Tools/tankcockpits.py CCA MOSAIC and charts), stock 1024 px, with
+# their world size (m): packed over the boxes so its walls show whole instruments at
+# their true aspect. 'armor' (lid/frame) gets plain welded plate.
+SVTANK = [((378, 2, 566, 152), (.27, .20)), ((379, 162, 566, 305), (.27, .20)),
+          ((378, 312, 566, 436), (.27, .20)), ((378, 440, 566, 652), (.27, .20)),
+          ((210, 4, 362, 306), (.27, .45)), ((210, 318, 366, 704), (.27, .55)),
+          ((210, 708, 366, 1016), (.27, .48)), ((778, 640, 928, 1016), (.27, .43)),
+          ((655, 599, 788, 722), (.54, .57))]
+STEEL = ('plate', 1560, 160, 1880, 440)    # bare welded steel behind each module
+ARMOR = ((650, 61, 757, 236), ('plate', 1300, 110, 2220, 1400))
 # Emissive: only lamp glass glows. Marked in master px so the glow follows each
 # lamp module wherever the grid places it: circles (cx, cy, r), squares (cx, cy, half).
 GLOW = {'lamps': {'circles': [(1759, 439, 121), (2163, 439, 121), (1759, 866, 121), (2163, 866, 121)]},
@@ -105,27 +89,89 @@ def cover(img, w, h):
     return img.crop((x, y, x + w, y + h))
 
 
+class Packer:
+    """Fills a region with rows of whole modules, each picked (unused first) for the
+    closest aspect to its cell, framed by their own panel steel, with dark recess seams."""
+    def __init__(self, masters):
+        self.masters, self.cache, self.masks, self.used = masters, {}, {}, set()
+
+    def src(self, name):
+        if name not in self.cache:
+            self.cache[name] = Image.open(SRC / self.masters[name]['file']).convert('RGB')
+            if name in GLOW: self.masks[name] = glow_mask(name, self.cache[name].size)
+        return self.cache[name], self.masks.get(name)
+
+    def pick(self, aspect, peek=False):
+        if len(self.used) == len(MODULES): self.used.clear()
+        free = [i for i in range(len(MODULES)) if i not in self.used]
+        err = lambda i: abs(np.log((MODULES[i][3] - MODULES[i][1]) / (MODULES[i][4] - MODULES[i][2]) / aspect))
+        i = min(free, key=lambda i: (err(i), i))
+        if not peek: self.used.add(i)
+        return i, err(i)
+
+    def window(self, i, aspect):
+        """Crop window: the whole module plus a margin of its own panel steel. Never
+        widened, so no sliver of a neighbouring instrument enters the cell."""
+        name, a, b, c, d = MODULES[i]
+        W, H = self.src(name)[0].size
+        ww, wh = min((c - a) * 1.12, W), min((d - b) * 1.12, H)
+        x = min(max((a + c) / 2 - ww / 2, 0), W - ww); y = min(max((b + d) / 2 - wh / 2, 0), H - wh)
+        return tuple(round(v) for v in (x, y, x + ww, y + wh))
+
+    def region(self, w, h):
+        """Compose a w x h px region (square px in world); returns RGB, glow, recess mask."""
+        rgb = Image.new('RGB', (w, h), tuple(round(c * 255) for c in RECESS))
+        glow, recess = Image.new('L', (w, h)), np.ones((h, w), bool)
+        rows = max(1, round(h / (ROW * PPM)))
+        m = max(2, round(.0025 * PPM))
+        for r in range(rows):
+            y0, y1 = round(h * r / rows), round(h * (r + 1) / rows)
+            ra = w / (y1 - y0)
+            n = min((1, 2, 3), key=lambda n: self.pick(ra / n, True)[1] - (.25 if n == 2 else 0) + (9 if ra / n < .3 else 0))
+            for c in range(n):
+                x0, x1 = round(w * c / n), round(w * (c + 1) / n)
+                cw, ch = x1 - x0 - 2 * m, y1 - y0 - 2 * m
+                i, _ = self.pick(cw / ch)
+                win = self.window(i, cw / ch)
+                s = min(cw / (win[2] - win[0]), ch / (win[3] - win[1]))
+                tw, th = max(1, round((win[2] - win[0]) * s)), max(1, round((win[3] - win[1]) * s))
+                px, py = x0 + m + (cw - tw) // 2, y0 + m + (ch - th) // 2
+                bg, _ = self.src(STEEL[0])
+                rgb.paste(cover(bg.crop(STEEL[1:]), cw, ch), (x0 + m, y0 + m))
+                recess[y0 + m:y1 - m, x0 + m:x1 - m] = False
+                im, mk = self.src(MODULES[i][0])
+                rgb.paste(im.crop(win).resize((tw, th), Image.LANCZOS), (px, py))
+                if mk is not None: glow.paste(mk.crop(win).resize((tw, th), Image.LANCZOS), (px, py))
+                recess[py:py + th, px:px + tw] = False
+        return rgb, glow, recess
+
+
 def compose():
-    masters = json.loads((SRC / 'provenance.json').read_text())['masters']
-    cache, masks = {}, {}
-    atlas = Image.new('RGB', (SIZE, SIZE))
+    pk = Packer(json.loads((SRC / 'provenance.json').read_text())['masters'])
+    atlas = Image.new('RGB', (SIZE, SIZE), tuple(round(c * 255) for c in RECESS))
     glow = Image.new('L', (SIZE, SIZE))
-    seam = np.zeros((SIZE, SIZE), bool)
-    for box, (name, x0, y0, x1, y1, flip) in LAYOUT:
-        if name not in cache:
-            cache[name] = Image.open(SRC / masters[name]['file']).convert('RGB')
-            if name in GLOW: masks[name] = glow_mask(name, cache[name].size)
+    seam = np.ones((SIZE, SIZE), bool)
+
+    def put(box, world=None):
+        b = [round(v * K) for v in box]; bw, bh = b[2] - b[0], b[3] - b[1]
+        w, h = world or ((box[2] - box[0]) / STOCK_PPM, (box[3] - box[1]) / STOCK_PPM)
+        rgb, g, rec = pk.region(round(w * PPM), round(h * PPM))
+        atlas.paste(rgb.resize((bw, bh), Image.LANCZOS), b[:2])
+        glow.paste(g.resize((bw, bh), Image.LANCZOS), b[:2])
+        seam[b[1]:b[3], b[0]:b[2]] = np.asarray(Image.fromarray(rec).resize((bw, bh), Image.NEAREST))
+
+    def plain(box, crop):
         b = [round(v * K) for v in box]
-        for src, dst in ((cache[name], atlas), (masks.get(name), glow)):
-            if src is None: continue
-            tile = cover(src.crop((x0, y0, x1, y1)), b[2] - b[0], b[3] - b[1])
-            if flip == 'v': tile = tile.transpose(Image.FLIP_TOP_BOTTOM)
-            if flip == 'h': tile = tile.transpose(Image.FLIP_LEFT_RIGHT)
-            dst.paste(tile, b[:2])
-        seam[b[1]:b[3], b[0]:b[0] + SEAM] = seam[b[1]:b[3], b[2] - SEAM:b[2]] = True
-        seam[b[1]:b[1] + SEAM, b[0]:b[2]] = seam[b[3] - SEAM:b[3], b[0]:b[2]] = True
+        im, _ = pk.src(crop[0])
+        atlas.paste(cover(im.crop(crop[1:]), b[2] - b[0], b[3] - b[1]), b[:2])
+        seam[b[1]:b[3], b[0]:b[2]] = False
+
+    plain(*HAZARD)
+    for box in BOXES: put(box)
+    for box, world in SVTANK: put(box, world)
+    plain(*ARMOR)
     d = np.asarray(atlas, np.float32) / 255
-    d[seam] *= .25
+    d[seam] = RECESS
     g = np.asarray(glow, np.float32) / 255
     g[seam] = 0
     return d, seam, g
