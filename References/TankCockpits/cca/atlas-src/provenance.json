@@ -1,0 +1,63 @@
+{
+ "generator": "Google Gemini (owner-generated 2026-11-13, delivered as Gemini_Generated_Image_xjxgzsxjxgzsxjxg.zip)",
+ "size": "2752x1536 JPEG each; the generator ignored per-tile aspect ratios, so Tools/Build-CCACockpitAtlas.py crops each hero module",
+ "prompt_base": "Orthographic flat front view of a single Soviet-style 1980s armoured vehicle interior panel. Even diffuse lighting, no perspective, no shadows cast from outside, no text or Cyrillic lettering, no logos. Worn grey-blue enamel steel with chipped edges and darker grime in recesses. Bolted rectangular bezel frame with countersunk screws. Hard-surface industrial and utilitarian, not sci-fi. Muted palette: grey-blue, gunmetal, cream/beige labels, signal red accents, dull olive. Small warning stripes only where stated. Photographic texture-reference quality, seamless edges inside the frame.",
+ "tile_prompts": {
+  "keypad": "numeric keypad, 3x4 rubberised buttons, worn cream legends, red cancel key",
+  "switches": "toggle switches with chrome bats, amber/green indicator domes, red guarded covers",
+  "lamps": "four round glass warning lamps red/amber/green/blue in knurled bezels, unlit",
+  "dial": "one large analogue gauge, cream face, black needle, red sector",
+  "racks": "tall vertical electronics racks, vent slots, cable conduits, rotary knobs, stencil plates",
+  "plate": "heavy plate, one diagonal signal-red stripe, weld seams, rivets",
+  "circuit": "black access panel, exposed white wiring traces, terminal blocks",
+  "pod": "compact rack, two small dials, handle",
+  "hazard": "alternating olive-green and beige diagonal hazard stripes, worn"
+ },
+ "masters": {
+  "keypad": {
+   "file": "keypad.jpg",
+   "generator_file": "Gemini_Generated_Image_3dofr53dofr53dof.jpg",
+   "sha256": "569d68639cdb70ba34a6ad9bc8898248bc894866c8fd4e331688e4b748350ac2"
+  },
+  "dial": {
+   "file": "dial.jpg",
+   "generator_file": "Gemini_Generated_Image_4bbjrg4bbjrg4bbj.jpg",
+   "sha256": "a110b4e4192f5bc7e1c74f23f1b5aebbcc3f0fb64837292c1a019eaaad152e9e"
+  },
+  "pod": {
+   "file": "pod.jpg",
+   "generator_file": "Gemini_Generated_Image_7ryok7ryok7ryok7.jpg",
+   "sha256": "e8aa6d137b076d9fbe3e86ebf85f36773080356449fa340e6de06a1d12bdcb16"
+  },
+  "plate": {
+   "file": "plate.jpg",
+   "generator_file": "Gemini_Generated_Image_cib3hwcib3hwcib3.jpg",
+   "sha256": "49d1beb55d0abbb52b74a77b3a05e36c45faa5b318717d32e5f12f0094ec9f19"
+  },
+  "lamps": {
+   "file": "lamps.jpg",
+   "generator_file": "Gemini_Generated_Image_cyiz2wcyiz2wcyiz.jpg",
+   "sha256": "653e0a0b76c5e8f3262af0546488863fc825411e0e8a19b890e89430aea99381"
+  },
+  "circuit": {
+   "file": "circuit.jpg",
+   "generator_file": "Gemini_Generated_Image_fkejbdfkejbdfkej.jpg",
+   "sha256": "9cbc063a3f26f761add3c29d0822c2a7e3793eba1a8804abc843cca69e03f8d3"
+  },
+  "racks": {
+   "file": "racks.jpg",
+   "generator_file": "Gemini_Generated_Image_ruj0upruj0upruj0.jpg",
+   "sha256": "1ac6200ae9bc652f3adc79afc3a770a4abf6a762b64087f042bb62a01cbc79bc"
+  },
+  "hazard": {
+   "file": "hazard.jpg",
+   "generator_file": "Gemini_Generated_Image_xjxgzsxjxgzsxjxg.jpg",
+   "sha256": "8f6802e35758274ec0b11a42065b511cd794d5d9ed68b45fb18878230225b6e2"
+  },
+  "switches": {
+   "file": "switches.jpg",
+   "generator_file": "Gemini_Generated_Image_xl64fhxl64fhxl64.jpg",
+   "sha256": "8c6ed50a0d59190f0a2c57245b975d3191713d69331010f59ea5dfe83b5068e2"
+  }
+ }
+}

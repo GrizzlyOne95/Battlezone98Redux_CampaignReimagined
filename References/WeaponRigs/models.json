@@ -1,7 +1,7 @@
 {
   "source_revision": "f09fec92f1d6da20facde0d095c45f19a913c866",
   "stage_revisions": {
-    "Assets/Models/svtank_cockpit.mesh": "0b0da4a3321939eaa1205624647f0029aa5ef5c9",
+    "Assets/Models/svtank_cockpit.mesh": "b004a17a391798edc119be858ae9dabd648d307f",
     "Assets/Models/svhraz_cockpit.mesh": "0282c78c97f7398abf545b392f2f4bea1a2726a6",
     "Assets/Models/avltnk_cockpit.mesh": "0282c78c97f7398abf545b392f2f4bea1a2726a6",
     "Assets/Models/bvltnk_cockpit.mesh": "0282c78c97f7398abf545b392f2f4bea1a2726a6",
@@ -1584,18 +1584,18 @@
           ],
           "cockpit_lo": [
             -0.4343609938621521,
-            2.226535963058472,
-            0.12361700290441513
+            2.050453113058472,
+            2.8067419029044154
           ],
           "cockpit_hi": [
             -0.06609100306034088,
-            2.541631055831909,
-            1.803309989929199
+            2.3655482058319093,
+            4.4864348899292
           ],
           "cockpit_pivot": [
             -0.2409680048045556,
-            2.376874492841986,
-            1.4966981938534787
+            2.2007916428419856,
+            4.179823093853479
           ]
         }
       ]

@@ -13,7 +13,7 @@ not generic science-fiction avionics. No full-body/cockpit merge.
 | --- | --- | --- |
 | `avtank` NSDF | Wide window, raised warning horns, stepped control pods and service bridge | Petrol-painted cassettes, cyan button lenses, recessed bezels, caps and slotted fasteners; original-painted glacis |
 | `bvtank` Black Dog | Same stock structural lineage, its own substantially lower eye and shell positions | Charcoal/red hardware, red lamps, original warning horns, new low liner and glacis |
-| `svtank` CCA | Cream enamel, red seams, dark equipment, domed mechanical controls and overhead cannon | Rebuilt low, solid consoles and substantial window frames, practical side stations, closed charcoal liner |
+| `svtank` CCA | Real exterior deck nose (red/blue paint) and the real cannon overhead; a small deck hatch with a thin trim coaming | Deck-nose hatch (owner review, Total Command layout idea, no assets): eye at vehicle (0.12, 1.62, 3.10), 15 cm above the deck just behind the muzzle; `svtank` hull and barrel unmoved. The opening is clipped out of the real deck; the barrel runs overhead to the VDF hardpoint and the deck nose frames the bottom of the view. The sunk tub walls are a mosaic of distinct atlas modules (no repeats); an open hatch lid behind the head closes rear and roof. |
 | `cvtank` -> `cvtnk` CRA | Small split control banks, open center aisle, yellow braces, original ceiling | Oxblood instrument cassettes and guarded controls, fitted hull surface, original barrel underside just below the roof |
 
 The NSDF, Black Dog and CRA original cockpit surface positions, triangles and
@@ -67,7 +67,14 @@ reuse accepted modular art:
   `crvchcp_d/e.dds`; only the small mechanical pilot/ordnance charts, not its
   large terrain screen.
 - CCA: original `soviet_units_cockpit_d/n/S/e.dds`, deliberately re-UV'd onto
-  new physical hardware. The shared liner borrows only the quiet charcoal
+  new physical hardware. `svtank01` instead uses `crcca_cockpit_d/n/s/e.dds`,
+  a 2048 repaint in the stock layout (same UVs) built by
+  `Tools/Build-CCACockpitAtlas.py` from the owner-generated masters in
+  `cca/atlas-src/` (prompts in `provenance.json`); other CCA units opt in by
+  repointing their `*01` material. Its deck nose (`CRV/svtankTankHull`) has its
+  own owner-generated livery, `crcca_svhood_d/n/s/e.dds` from `cca/hood-src/` via
+  `Tools/Build-CCAHoodTexture.py`, mapped top-down (`CONFIG['cca']['hood']`) at
+  ~540 px/m instead of the exterior map's ~140. The shared liner borrows only the quiet charcoal
   chart in `crvascp_d/e.dds`; no NSDF paint, lamps or emblems appear on it.
 - Stock warning marks, original equipment and selected exterior surfaces keep
   their existing faction maps. Existing stock functional lamp colors remain.

@@ -5,18 +5,18 @@
     "skeletonSha256": "e687e51928b6b9126c01881690e6122562844942ae3ddd4d94c13c6288558e50"
   },
   "outputs": {
-    "Assets/Models/svtank_cockpit.mesh": "161616325e6c85150abed3e64d8736ccb3b816f28ebb6a3bd18529ee29616c29",
-    "Assets/Models/svtank_cockpit.skeleton": "e687e51928b6b9126c01881690e6122562844942ae3ddd4d94c13c6288558e50",
-    "Materials/CR_svtank_cockpit.material": "b79f956dc2ef9bfc69f35795088a59d02db82c9d93b6407d4034dc82aeefa1d7"
+    "Assets/Models/svtank_cockpit.mesh": "fbda0015e70171015d28085049a5a80ec1ae1cee6cb97c659a153d873fa7e6b0",
+    "Assets/Models/svtank_cockpit.skeleton": "deb805bcb8e9a2af7b601c958583e2fc28ddfede0221225cdf8749ef076cb6d4",
+    "Materials/CR_svtank_cockpit.material": "904b39d7550b20a9fe96a78c0f9913f0c3352d676bc2e8b5604df2f236c56482"
   },
   "alignment": {
     "faction": "cca",
     "base": "svtank",
     "pov": "SCZ11POV",
     "povPosition": [
-      0.27610001154243946,
-      1.9194999933242798,
-      0.3680000305175781
+      0.12000000663101673,
+      1.6200000047683716,
+      3.0999999046325684
     ],
     "povBasis": [
       [
@@ -37,143 +37,13 @@
     ],
     "shell": "scz21bda",
     "shellHandle": 15,
-    "panels": [
-      {
-        "points": [
-          [
-            -0.12,
-            -0.35,
-            1.05
-          ],
-          [
-            -0.61,
-            -0.3,
-            1.03
-          ],
-          [
-            -0.59,
-            -0.6,
-            0.79
-          ],
-          [
-            -0.12,
-            -0.61,
-            0.79
-          ]
-        ],
-        "chart": "console",
-        "depth": 0.019
-      },
-      {
-        "points": [
-          [
-            -0.58,
-            -0.38,
-            0.83
-          ],
-          [
-            -0.71,
-            -0.25,
-            0.55
-          ],
-          [
-            -0.71,
-            -0.55,
-            0.2
-          ],
-          [
-            -0.56,
-            -0.66,
-            0.48
-          ]
-        ],
-        "chart": "switch",
-        "depth": 0.016
-      },
-      {
-        "points": [
-          [
-            0.12,
-            -0.35,
-            1.05
-          ],
-          [
-            0.61,
-            -0.3,
-            1.03
-          ],
-          [
-            0.59,
-            -0.6,
-            0.79
-          ],
-          [
-            0.12,
-            -0.61,
-            0.79
-          ]
-        ],
-        "chart": "console",
-        "depth": 0.019
-      },
-      {
-        "points": [
-          [
-            0.58,
-            -0.38,
-            0.83
-          ],
-          [
-            0.71,
-            -0.25,
-            0.55
-          ],
-          [
-            0.71,
-            -0.55,
-            0.2
-          ],
-          [
-            0.56,
-            -0.66,
-            0.48
-          ]
-        ],
-        "chart": "switch",
-        "depth": 0.016
-      },
-      {
-        "points": [
-          [
-            -0.105,
-            -0.4,
-            1.01
-          ],
-          [
-            0.105,
-            -0.4,
-            1.01
-          ],
-          [
-            0.105,
-            -0.59,
-            0.81
-          ],
-          [
-            -0.105,
-            -0.59,
-            0.81
-          ]
-        ],
-        "chart": "switch",
-        "depth": 0.018
-      }
-    ],
+    "panels": [],
     "stockCockpitRetained": false,
+    "stockReplacedTriangles": [],
     "stockTriangles": 124,
     "gunBones": [
-      18,
-      19
+      2,
+      3
     ],
     "gunOffset": [
       0.0,
@@ -181,45 +51,128 @@
       0.0
     ],
     "apronSourceIndices": [
+      537,
+      538,
+      562,
+      563,
+      572,
+      607,
+      608,
+      625,
+      794,
+      795,
+      796,
+      797,
+      798,
+      799,
+      840,
+      841,
+      842,
+      843,
+      883,
+      884,
+      891,
+      892,
+      893,
+      894,
+      895,
+      896,
+      897,
+      898,
+      901,
+      902,
+      903,
+      904,
+      905,
+      906,
+      907,
+      927,
+      938,
+      939,
+      963,
+      964,
+      973,
+      1004,
+      1005,
+      1021,
+      1194,
+      1195,
+      1196,
+      1197,
+      1198,
+      1199,
+      1239,
+      1240,
+      1241,
+      1242,
+      1282,
+      1283,
+      1290,
+      1291,
+      1292,
+      1293,
+      1294,
+      1295,
+      1296,
+      1297,
+      1300,
+      1301,
+      1302,
+      1303,
+      1304,
+      1305,
+      1306,
+      1325,
       1387,
+      1417,
+      1418,
+      1419,
+      1420,
+      1421,
+      1422,
+      1423,
+      1424,
+      1455,
+      1456,
+      1457,
+      1458,
+      1459,
+      1460,
+      1461,
+      1462,
       1465,
       1466
     ],
     "apronOffset": [
       0.0,
-      0.40123698234558103,
+      0.0,
       0.0
     ],
-    "apronTriangles": 3,
-    "innerShell": {
-      "triangles": 32,
-      "boundaryEdges": 10,
-      "boundaryLoops": 1
-    },
+    "apronTriangles": 107,
+    "innerShell": null,
     "window": {
       "width": 0.76,
       "lip": -0.44,
       "front": 1.1,
       "roof": 0.62
     },
-    "nativeVdfSha256": "32137e1d59ff3f00fc42d1fa95ab3bf1e81eba80f3fa94d01f416b3b2e46df84",
-    "gunWeightSha256": "154a0d7baddf9746c7f7f498d35cf11852837ef634e571673442283094dc6c15"
+    "nativeVdfSha256": "40735b4d2323b7e11a2a062aac3c20c6eab3dcac6a06a16e1c624a717a812921",
+    "gunWeightSha256": "39b475f4f5d578a75dbd77db30d254d0fe9b95381310d0f275ef999946ade9cc"
   },
   "glass": {
-    "openFraction": 0.39522246122495186,
+    "openFraction": 0.5136420242273293,
     "depth": [
-      0.6218025955305537,
-      1.4979451660726264
+      0.3533423339430779,
+      1.6437580654750275
     ],
     "bone": "scz21bda",
-    "vertices": 564,
-    "triangles": 998
+    "vertices": 634,
+    "triangles": 1150
   },
   "triangles": {
-    "svtank01": 604,
-    "CRV/SharedCockpitLiner": 782,
-    "CRV/svtankTankGuns": 332,
-    "CRV/svtankTankHull": 3
+    "svtank01": 182,
+    "CRV/svtankTankGuns": 396,
+    "CRV/svtankTankHull": 107
   },
   "atlasPolicy": "Reuse original and accepted faction atlases; no duplicate DDS"
 }

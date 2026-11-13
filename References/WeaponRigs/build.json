@@ -11788,9 +11788,9 @@
         ],
         "SCZ11POV": [
           [
-            0.27610001154243946,
-            1.9194999933242798,
-            0.3680000305175781
+            0.12000000663101673,
+            1.6200000047683716,
+            3.0999999046325684
           ],
           [
             -0.7071066498756409,
@@ -11970,23 +11970,23 @@
           "GC1",
           "GC2"
         ],
-        "triangles": 332,
-        "cap_triangles": 12,
+        "triangles": 372,
+        "cap_triangles": 20,
         "cockpit": true,
         "helpers": [
           {
-            "bone": "crgun_1_18",
-            "parent": "SCZ21BGB"
+            "bone": "crgun_1_2",
+            "parent": "SCZ11BGA"
           },
           {
-            "bone": "crgun_1_19",
-            "parent": "SCZ21bga"
+            "bone": "crgun_1_3",
+            "parent": "SCZ11BGB"
           }
         ]
       }
     ],
     "cockpit_source": {
-      "mesh": "161616325e6c85150abed3e64d8736ccb3b816f28ebb6a3bd18529ee29616c29",
+      "mesh": "fbda0015e70171015d28085049a5a80ec1ae1cee6cb97c659a153d873fa7e6b0",
       "skeleton": "e687e51928b6b9126c01881690e6122562844942ae3ddd4d94c13c6288558e50",
       "bind_poses": {
         "svtank": [
@@ -12173,9 +12173,9 @@
         ],
         "SCZ11POV": [
           [
-            0.27610001154243946,
-            1.9194999933242798,
-            0.3680000305175781
+            0.12000000663101673,
+            1.6200000047683716,
+            3.0999999046325684
           ],
           [
             -0.7071066498756409,
@@ -12420,10 +12420,10 @@
       }
     },
     "outputs": {
-      "Assets/Models/svtank_recoil.skeleton": "b0b5e0c699a2f2aa0f4abfbd3d986408e7d5ef7b634c8cc4ba695853a2d27f75",
+      "Assets/Models/svtank_recoil.skeleton": "73d7a6ae5e194d52b7b96a133e94cd33948d639b1acf0f6052ba0af60bacb852",
       "Assets/ModelFixes/svtank.mesh": "a18c05e67eb727af1b5050ec66c746eb09c94ed3c1122a39c31d0e5b66191b87",
-      "Assets/Models/svtank_cockpit.mesh": "35873345f7c4d7e49153f3f930bc87d77ab02c2811052bd96f3d71001a78a2f9",
-      "Assets/Models/svtank_cockpit_recoil.skeleton": "01f9415be04f60bfb7d5c8418ffb0822ee3879c964d0160335d1038a877619c2"
+      "Assets/Models/svtank_cockpit.mesh": "a2adffa974f02b67bc12a3b6ff3ad5171a73d3626c453f0b830a93cee4a4c28d",
+      "Assets/Models/svtank_cockpit_recoil.skeleton": "b6be098fcd593acaa3110dbe5a4c83d4f8134e38ce79c20980911d255f7ce848"
     },
     "hardpoints": {
       "SCZ11GC1": {

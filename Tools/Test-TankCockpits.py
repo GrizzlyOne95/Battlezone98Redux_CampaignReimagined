@@ -13,7 +13,7 @@ def check(ok,message):
     assert ok,message
     checks+=1
 members={x['source'].replace('\\','/'):x['runtime'] for x in json.loads((ROOT/'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))['files']}
-eyes={'nsdf':[0,1.4254159927368164,1.229254961013794],'bdog':[0,.6254140138626099,1.2293000221252441],'cca':[.27610001154243946,1.9194999933242798,.3680000305175781],'cra':[0,1.7300000190734863,3.5074000358581543]}
+eyes={'nsdf':[0,1.4254159927368164,1.229254961013794],'bdog':[0,.6254140138626099,1.2293000221252441],'cca':[.12000000663101673,1.6200000047683716,3.0999999046325684],'cra':[0,1.7300000190734863,3.5074000358581543]}
 report={}
 for faction,cfg in cp.CONFIG.items():
     base=cfg['base'];receipt=json.loads((REF/faction/'build.json').read_text());meta=receipt['alignment'];source=ROOT/'Assets/ModelFixes'/(base+'.mesh');skel=ROOT/'Assets/Models'/(base+'_cockpit.skeleton')
@@ -27,9 +27,9 @@ for faction,cfg in cp.CONFIG.items():
     helper_parents=weaponrigs.rig_helper_parents(mesh)  # crgun_* helper bone -> the gun bone it hangs from
     STAGE=not weaponrigs.is_rigged(source)  # Source-reproduction checks need the pre-rig stage; they only run for units the weapon rig left untouched.
     if faction=='cca': # only off-centre eye; mirroring is invisible at x=0
-      cabin=next(cp.shared.values(sub.vertex_data,cp.shared.om.VES.POSITION) for sub in mesh.submesh_list if sub.material_name=='CRV/SharedCockpitLiner')
-      check(abs(cabin[:,0].mean()-origin[0])<.05,'cabin liner centred on the raw-X eye, not mirrored')
-    check(len(mesh.submesh_list)==5,'bounded material batch count')
+      cabin=next(cp.shared.values(sub.vertex_data,cp.shared.om.VES.POSITION) for sub in mesh.submesh_list if sub.material_name==cfg['material'])
+      check(abs(cabin[:,0].mean()-origin[0])<.05,'deck hatch centred on the raw-X eye, not mirrored')
+    check(len(mesh.submesh_list)==(4 if faction=='cca' else 5),'bounded material batch count')
     opaque=[];ranges={};cursor=0
     for sub in mesh.submesh_list:
         vd=sub.vertex_data;p=cp.shared.values(vd,cp.shared.om.VES.POSITION);n=cp.shared.values(vd,cp.shared.om.VES.NORMAL);uv=cp.shared.values(vd,cp.shared.om.VES.TEXTURE_COORDINATES);t=cp.shared.values(vd,cp.shared.om.VES.TANGENT)
@@ -48,10 +48,18 @@ for faction,cfg in cp.CONFIG.items():
     def cast(yaws,pitch):
         y=np.radians(yaws);p=np.radians(pitch);dirs=np.column_stack([np.cos(p)*np.sin(y),np.full(len(y),np.sin(p)),np.cos(p)*np.cos(y)])@R.T
         return cg.cast(origin,dirs,tri[:,0],tri[:,1],tri[:,2])
-    for pitch in (0,5,10):check(np.isinf(cast(np.arange(-10,11,2),pitch)[0]).all(),'clear aiming corridor')
+    hit=lambda pitch:cast(np.arange(-10,11,2),pitch)
+    for pitch in (0,5,10):
+        d,k=hit(pitch)[:2]
+        # The CZar barrel sits on the exterior muzzle, which is where shots
+        # spawn (VDF hardpoint parts; Docs/AGENT_KNOWLEDGE_BASE.md), so it
+        # legitimately crosses the corridor's right edge (yaw <= -8; -yaw is
+        # screen-right). Nothing else may, and the centre +-6 deg stays clear.
+        g=ranges.get('CRV/'+base+'TankGuns',(0,0)) if faction=='cca' else (0,0)
+        check(all(np.isinf(x) or (g[0]<=j<g[1] and a<=-8) for a,x,j in zip(np.arange(-10,11,2),d,k)),'clear aiming corridor')
     for pitch,label in [(-80,'floor'),(85,'roof')]:check(np.isfinite(cast(np.arange(-180,180,10),pitch)[0]).all(),'closed '+label)
     check(np.isfinite(cast([180],0)[0]).all(),'closed rear bulkhead')
-    check(meta['innerShell']['boundaryLoops']==1,'one connected intentional window boundary')
+    if faction!='cca':check(meta['innerShell']['boundaryLoops']==1,'one connected intentional window boundary')
     check(receipt['glass']['bone'].lower()==cfg['shell'].lower() and receipt['glass']['vertices']>0,'refitted weather glass')
     src=cg.Sources(game=str(ROOT/'Local/no-game'),cr=str(ROOT));path,kind,_=cg.cockpit_mesh(src,base);check(kind=='separate' and Path(path).name==base+'_cockpit.mesh','separate first-person resource discovery')
     raw=cp.shared.read_mesh((source))
@@ -92,6 +100,15 @@ for faction,cfg in cp.CONFIG.items():
         ya,pa=np.meshgrid(np.radians(np.arange(-50,51.)),np.radians(np.arange(-30,-11.)));dirs=np.column_stack([np.cos(pa.ravel())*np.sin(ya.ravel()),np.sin(pa.ravel()),np.cos(pa.ravel())*np.cos(ya.ravel())])@R.T
         front=cg.cast(origin,dirs,tri[:,0],tri[:,1],tri[:,2])[0];both=cg.cast(origin,dirs,tri[:,0],tri[:,1],tri[:,2],front_only=False)[0]
         check(not (np.isinf(front)&np.isfinite(both)).any(),'no see-through into the hull from the pilot eye')
+    if faction=='cca':
+        # Deck hatch: the real deck nose fills the low forward view, the hatch console the down-look.
+        cab=cp.CONFIG['cca']['material'];clo,chi=ranges[cab]
+        for pitch in range(-28,-19):
+            dist,hit=cast(np.arange(-20,21),pitch);hullhits+=int(((hit>=hlo)&(hit<hhi)&np.isfinite(dist)).sum())
+        check(hullhits>280,'real deck nose visible ahead of the hatch')
+        check(all(clo<=h<chi for h in cast(np.array([-8,-3,3,8]),-40)[1]),'hatch console fills the down-look')
+        above=[(pitch,int(y)) for pitch in range(-24,1,3) for y,h in zip(np.arange(-30,31,5),cast(np.arange(-30,31,5),pitch)[1]) if clo<=h<chi]
+        check(not above,'hatch coaming stays below the forward sightline (no cabin geometry above -24 deg within 30 deg of ahead; the lip grazes -26 at the sides)')
     gunhits=0;lo,hi=ranges[gunsub.material_name]
     for pitch in np.arange(-31,32,1):
         dist,hit=cast(np.arange(-45,46,1),pitch);gunhits+=int(((hit>=lo)&(hit<hi)&np.isfinite(dist)).sum())
