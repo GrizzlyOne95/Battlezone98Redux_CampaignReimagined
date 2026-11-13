@@ -8,6 +8,7 @@ local LogPaths = require("LogPaths")
 local OpenShimInstaller = require("OpenShimInstaller")
 local CRParticleTemplates = require("CRParticleTemplates")
 local PersistentConfigData = require("PersistentConfigData")
+local HudLayout = require("CRHudLayout")
 
 local PersistentConfig = {}
 PersistentConfig.D = require("PersistentConfigD")
@@ -6064,6 +6065,10 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     PersistentConfig.CoopPda.UpdatePage(InputState)
     PersistentConfig.CoopPingHud.Update()
     PersistentConfig.CoopTeamStrip.Update(uiInteractionSuppressed)
+    -- CRHudLayout polls at most once a second; CRLockBadge re-places itself when its generation changes.
+    pcall(HudLayout.Refresh, GetTime(), exu)
+    local okBadge, LockBadge = pcall(require, "CRLockBadge")
+    if okBadge and type(LockBadge) == "table" and LockBadge.Update then pcall(LockBadge.Update, exu) end
 
     InputState.SubtitlesPaused = uiInteractionSuppressed
     local scriptSubtitles = GetScriptSubtitles()
@@ -6799,6 +6804,7 @@ function PersistentConfig.Initialize()
     PersistentConfig.CoopPda.Reset()
     PersistentConfig.CoopPingHud.Destroy()
     PersistentConfig.CoopTeamStrip.Destroy()
+    pcall(HudLayout.Reset, exu)
     InputState.missionEnded = false
     InputState.missionEndCleanupDone = false
     PersistentConfig.ExperimentalOverlayUseCustomFont = true
@@ -6910,6 +6916,7 @@ function PersistentConfig.Initialize()
         InputState.missionEndCleanupDone = true
         PersistentConfig.CoopPingHud.Destroy()
         PersistentConfig.CoopTeamStrip.Destroy()
+        pcall(HudLayout.Reset, exu)
         InputState.pdaOverlayRefreshPending = false
         InputState.nextPdaOverlayRefresh = 0.0
         PersistentConfig._DestroyAllPdaOverlays()
