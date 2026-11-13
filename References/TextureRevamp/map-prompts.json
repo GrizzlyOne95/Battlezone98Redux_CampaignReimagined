@@ -66,6 +66,26 @@
       "id": "olscreen",
       "file": "olscreen.png",
       "prompt": "Use case: stylized-concept. Asset type: emissive game display texture for ancient Olympian relic interiors in Battlezone Campaign Reimagined. Three equal square display cells side by side in one 3:1 landscape image, filling the image edge to edge, no surrounding monitor casing. Each cell has the same narrow inset rounded angular ancient bronze line frame on near-black green charcoal glass. Delicate restrained amber and muted gray-green luminous linework: left cell abstract cargo/biometal inventory nodes, center cell vertical interlocking process indicators, right cell sparse navigation constellation/route plot. Nonhuman curved geometric notation, NOT readable letters, numbers or English text. Tiny precise illuminated markings with lots of dark negative space, no intense bloom, no reflections, no cast shadows, no eye, no skull, no pictorial scene, no rendered room, no labels, no watermark, no modern human UI. Straight-on orthographic flat texture data. Consistent dark bronze/amber ancient-machine identity, subtle rather than neon. Cells must occupy exactly the left, middle and right thirds. Texture only."
+    },
+    {
+      "id": "frock",
+      "file": "raw/cr17_frock_gen.jpg",
+      "prompt": "Owner-generated 2026-11-13; processed by Tools/Prep-Misn17GenTextures.py. seamless tileable texture of weathered grey granite boulder surface with patches of dark green moss and lichen, cold wet forest, overcast flat lighting, no shadows, top-down, photoreal, 2048x2048"
+    },
+    {
+      "id": "water",
+      "file": "raw/cr17_water_gen.jpg",
+      "prompt": "Owner-generated 2026-11-13; processed by Tools/Prep-Misn17GenTextures.py. seamless tileable texture of dark cold clear river water surface, subtle ripples, deep blue-green with faint sky reflection, top-down, flat lighting, no objects, 1024x1024"
+    },
+    {
+      "id": "fbranch1",
+      "file": "raw/cr17_fbranch1_gen.jpg",
+      "prompt": "Owner-generated 2026-11-13; processed by Tools/Prep-Misn17GenTextures.py. top-down orthographic texture atlas of spruce/fir branch sprigs on pure white background, dense dark blue-green needles with lighter new-growth tips, thin brown twigs, flat even lighting, no shadows, no background, game foliage card, photoreal, 2048x2048. Negative: leaves, snow, ground, sky, perspective, cast shadow, blur"
+    },
+    {
+      "id": "fbranch2",
+      "file": "raw/cr17_fbranch2_gen.jpg",
+      "prompt": "Owner-generated 2026-11-13; processed by Tools/Prep-Misn17GenTextures.py. texture atlas of autumn birch branches on pure white background, small rounded golden-ochre and amber leaves, thin dark twigs, flat even lighting, no shadows, game foliage card, photoreal, 2048x2048"
     }
   ]
 }

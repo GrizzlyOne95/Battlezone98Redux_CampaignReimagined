@@ -11,6 +11,8 @@ debris matches the model.
   pdkelp and pdbark, under cr17 names.
 - Firs (c17frst1-3, cr17_fbranch1 + cr17_ftrunk1): a needle sprig and fir bark.
 - Birch (c17frst4, cr17_fbranch2 + cr17_ftrunk2): a gold-leaf sprig and birch bark.
+  The sprigs come from the generated sheets the branch atlases were built from
+  (Tools/Prep-Misn17GenTextures.py), toned to the atlas.
 
 Writes 128x128 DXT5 sprites to Assets/Textures and the six zero-damage
 explosion ODFs (xc17?hit = ordnance hit, xc17?die = death) to ODF/.
@@ -63,6 +65,30 @@ def atlas_cut(atlas: Image.Image, box, layout: int | None = None) -> Image.Image
     return fit(Image.fromarray(a))
 
 
+def sheet_sprig(sheet: str, atlas: Image.Image, pick: int) -> Image.Image:
+    """One whole sprig from the owner-generated sprig sheet the branch atlas was
+    built from (References/TextureRevamp/raw), keyed off white and toned to the
+    atlas's mean brightness. pick: index into the sprigs sorted small to large."""
+    from scipy import ndimage
+    rgb = np.asarray(Image.open(ROOT / "References/TextureRevamp/raw" / sheet).convert("RGB"), np.float32)
+    alpha = np.clip((255 - rgb.min(-1) - 30) / 45, 0, 1)
+    _, (iy, ix) = ndimage.distance_transform_edt(alpha < 0.95, return_indices=True)
+    colour = rgb[iy, ix]
+    lab, n = ndimage.label(ndimage.binary_closing(alpha > 0.3, iterations=3))
+    sizes = ndimage.sum(alpha > 0.5, lab, range(1, n + 1))
+    order = [i + 1 for i in np.argsort(sizes) if sizes[i] >= 2000]
+    k = order[pick]
+    sl = ndimage.find_objects(lab)[k - 1]
+    a = np.array(atlas).astype(np.float32)
+    lum = np.array([.299, .587, .114], np.float32)
+    target = (a[..., :3][a[..., 3] > 128] @ lum).mean()
+    piece = colour[sl]
+    solid = (lab[sl] == k) & (alpha[sl] > 0.5)
+    piece = piece * min(1.0, target / (piece[solid] @ lum).mean())
+    rgba = np.concatenate([np.clip(piece, 0, 255), (alpha[sl] * (lab[sl] == k) * 255)[..., None]], -1)
+    return fit(Image.fromarray(rgba.round().astype(np.uint8), "RGBA"))
+
+
 def chip(src: Image.Image, box, seed: int, points: int = 8, roundness: float = 0.35,
          elongate: float = 1.0, rim: float = 0.45) -> Image.Image:
     """A jagged chip of an opaque texture, with a darkened rim."""
@@ -95,11 +121,11 @@ def sprites() -> dict[str, Image.Image]:
         "cr17_dleaf": atlas_cut(foliage, (370, 395, 440, 490)),
         "cr17_dkelp": atlas_cut(foliage, (300, 815, 512, 892)),
         "cr17_dbark": chip(bark, (300, 300, 560, 560), seed=11, points=7, elongate=1.5, roundness=0.45),
-        # fir: one small needle sprig (lower-left card), fir bark
-        "cr17_dneedl": atlas_cut(needles, (10, 250, 160, 345), layout=512),
+        # fir: the smallest whole sprig from the generated sheet, fir bark
+        "cr17_dneedl": sheet_sprig("cr17_fbranch1_gen.jpg", needles, 0),
         "cr17_dfbark": chip(fir, (380, 900, 640, 1160), seed=21, points=7, elongate=1.6, roundness=0.45),
-        # birch: one gold-leaf sprig (top-right card tip), birch bark
-        "cr17_dgleaf": atlas_cut(gold, (420, 30, 505, 100), layout=512),
+        # birch: the smallest whole sprig from the generated sheet, birch bark
+        "cr17_dgleaf": sheet_sprig("cr17_fbranch2_gen.jpg", gold, 0),
         "cr17_dbbark": chip(birch, (130, 900, 390, 1160), seed=22, points=7, elongate=1.6, roundness=0.45),
     }
 

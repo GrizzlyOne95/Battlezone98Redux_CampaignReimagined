@@ -18,6 +18,10 @@ TEX=ROOT/'Assets/Textures'
 COLOURS={
  'bark1':('cr17_ftrunk1.dds',(1024,2048)),
  'bark2':('cr17_ftrunk2.dds',(512,2048)),
+ 'frock':('cr17_frock.dds',(2048,2048)),
+ 'frock_normal':('cr17_frock_n.dds',(2048,2048)),
+ 'frock_spec':('cr17_frock_s.dds',(1024,1024)),
+ 'water':('cr17_water.dds',(1024,1024)),
  'storage':('abstor_d.dds',(1256,1256)),
  'cockpit':('avapc_cockpit_D.dds',(1256,1256)),
  'repair':('crvpkup_d.dds',(1024,1024)),
@@ -35,6 +39,17 @@ HEIGHTS={
  'oltrim_height':('crvioltrim_n.dds',(1024,1024),1.1),
  **{f'cr16{x}_height':(f'cr16{x}_n.dds',(1024,1024),.65) for x in ('cmd','hng','pwr','tow')},
  **{f'{x}_height':(f'crv{x}_n.dds',(1024,1024),.8) for x in ('obdata00','oblemb00','obcycl00','obpowr00')},
+}
+# Subsets re-applied by the misn17 builders after they rebuild from source packs
+# (Prep-Misn17GenTextures.py makes the frock/water masters from owner art).
+# Alpha-cutout masters (BC3 keeps the card silhouettes the materials clip on).
+CUTOUTS={
+ 'fbranch1':('cr17_fbranch1.dds',(2048,2048)),
+ 'fbranch2':('cr17_fbranch2.dds',(2048,2048)),
+}
+GROUPS={
+ 'foliage':{'bark1','bark2','bark1_height','bark2_height','frock','frock_normal','frock_spec','fbranch1','fbranch2'},
+ 'water':{'water'},
 }
 
 def normal_from_height(image,strength):
@@ -65,23 +80,30 @@ def panel_height(size,kind):
         d.rectangle(box,fill=131,outline=120,width=max(1,size[0]//512))
     return image.filter(ImageFilter.GaussianBlur(1.2))
 
-def build(foliage_only=False):
+def build(foliage_only=False,group=None):
+    if foliage_only:group='foliage'
+    only=GROUPS[group] if group else None
     written={}
     def put(name,image,fmt='BC1_UNORM'):
         save_bc(image,TEX/name,fmt)
         written[name]=dict(size=list(image.size),format=fmt,sha256=hashlib.sha256((TEX/name).read_bytes()).hexdigest())
     for key,(name,size) in COLOURS.items():
-        if foliage_only and key not in ('bark1','bark2'):continue
+        if only is not None and key not in only:continue
         with Image.open(REF/(key+'.png')) as image:
             put(name,image.convert('RGB').resize(size,Image.Resampling.LANCZOS))
+    for key,(name,size) in CUTOUTS.items():
+        if only is not None and key not in only:continue
+        with Image.open(REF/(key+'.png')) as image:
+            put(name,image.convert('RGBA').resize(size,Image.Resampling.LANCZOS),'BC3_UNORM')
     for key,(name,size,strength) in HEIGHTS.items():
-        if foliage_only and key not in ('bark1_height','bark2_height'):continue
+        if only is not None and key not in only:continue
         with Image.open(REF/(key+'.png')) as image:
             put(name,normal_from_height(image.resize(size,Image.Resampling.LANCZOS),strength))
-    for key in ('bark1','bark2'):
-        name,size=COLOURS[key]
-        put(name.replace('.dds','_s.dds'),Image.new('RGB',(4,4),(22,22,22)))
-    if foliage_only:return written
+    if only is None or 'bark1' in only:
+        for key in ('bark1','bark2'):
+            name,size=COLOURS[key]
+            put(name.replace('.dds','_s.dds'),Image.new('RGB',(4,4),(22,22,22)))
+    if only is not None:return written
     for name,size,kind in [('crvstor_n.dds',(1024,1024),'storage'),('crvpkup_n.dds',(1024,1024),'pickup')]:
         put(name,normal_from_height(panel_height(size,kind),.9))
     for key in ('olwall','olfloor','oltrim'):
@@ -117,7 +139,7 @@ def build(foliage_only=False):
     if forest.exists():
         data=json.loads(forest.read_text())
         for name,record in written.items():
-            if name.startswith('cr17_ftrunk'):data['textures'][name]=record['sha256']
+            if name.startswith(('cr17_ftrunk','cr17_frock','cr17_fbranch')):data['textures'][name]=record['sha256']
         data['trunk_art']='TextureRevamp: generated colour/height masters; original tree geometry and attribution retained.'
         forest.write_text(json.dumps(data,indent=2)+'\n')
     print(f'Compiled {len(written)} DDS resources with full offline mip chains.')
@@ -125,5 +147,7 @@ def build(foliage_only=False):
 if __name__=='__main__':
     import argparse
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--foliage-only',action='store_true',help='Compile only the six bark maps for the forest builder')
-    build(foliage_only=parser.parse_args().foliage_only)
+    parser.add_argument('--foliage-only',action='store_true',help='Compile only the forest bark and rock maps (group foliage)')
+    parser.add_argument('--group',choices=sorted(GROUPS),help='Compile only one misn17 group')
+    args=parser.parse_args()
+    build(foliage_only=args.foliage_only,group=args.group)

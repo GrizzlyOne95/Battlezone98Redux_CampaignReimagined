@@ -40,7 +40,7 @@ material CR17/ForestBranch1Wind : CR17/CutoutWind
 	set_texture_alias NormalMap cr17_flat.dds
 	set_texture_alias SpecularMap cr17_black.dds
 	set_texture_alias EmissiveMap cr17_black.dds
-	set $cutoutParams "0.45 0.5 0.6 512"
+	set $cutoutParams "0.45 0.5 0.6 2048"
 	set $diffuse "0.86 0.94 0.96"
 	set $specular "0.08 0.08 0.08"
 	set $shininess "16"
@@ -82,7 +82,7 @@ material CR17/ForestBranch2Wind : CR17/CutoutWind
 	set_texture_alias NormalMap cr17_flat.dds
 	set_texture_alias SpecularMap cr17_black.dds
 	set_texture_alias EmissiveMap cr17_black.dds
-	set $cutoutParams "0.45 0.5 0.6 512"
+	set $cutoutParams "0.45 0.5 0.6 2048"
 	set $diffuse "0.86 0.94 0.96"
 	set $specular "0.08 0.08 0.08"
 	set $shininess "16"
