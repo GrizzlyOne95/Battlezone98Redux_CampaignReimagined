@@ -11,10 +11,19 @@ local MAX_LINES, PERIOD = 4, 0.25
 local PIXELS = 1 -- exu.OVERLAY_METRICS.PIXELS
 local NORMAL, CRITICAL = { 0.75, 0.92, 1.0, 0.95 }, { 1.0, 0.35, 0.25, 1.0 }
 
+local LAYOUT_ID = "CR/TeamStrip"
+
+-- CRHudLayout keeps the strip clear of native HUD rects (dock left_mid); nil when it is unavailable.
+local function layoutModule()
+    local ok, L = pcall(require, "CRHudLayout")
+    return ok and type(L) == "table" and L or nil
+end
+
 local function name(p) return tostring(p and p.name or "Player"):gsub("[%c]", " "):sub(1, 16) end
 
 function M.Create(d)
     local strip, built, nextUpdate, shown, hidden = {}, false, 0, {}, false
+    local seenGeneration
     local function call(fn, ...)
         local exu = d.exu
         if type(exu) ~= "table" or type(exu[fn]) ~= "function" then return false end
@@ -49,7 +58,16 @@ function M.Create(d)
             and call("SetOverlayZOrder", P .. "Overlay", 504)
             and call("SetOverlayMetricsMode", P .. "Root", px)
         if ok then
-            call("SetOverlayPosition", P .. "Root", w * 0.012, h * 0.38)
+            local x, y = w * 0.012, h * 0.38
+            local L = layoutModule()
+            if L then
+                local okR, rx, ry = pcall(L.Reserve, LAYOUT_ID, "left_mid", math.ceil(w * 0.3),
+                    math.ceil(size * 1.45 * MAX_LINES))
+                if okR and rx then x, y = rx, ry end
+                local okG, gen = pcall(L.GetGeneration)
+                seenGeneration = okG and gen or nil
+            end
+            call("SetOverlayPosition", P .. "Root", x, y)
             call("SetOverlayDimensions", P .. "Root", w * 0.3, size * 1.45 * MAX_LINES)
             for i = 1, MAX_LINES do
                 local t = textId(i)
@@ -77,6 +95,9 @@ function M.Create(d)
     function strip.Destroy()
         destroy()
         built, shown, nextUpdate, hidden = false, {}, 0, false
+        seenGeneration = nil
+        local L = layoutModule()
+        if L then pcall(L.Release, LAYOUT_ID) end
     end
     -- Teammates as the PDA lists them: other human-team players that are not late joiners.
     function strip.Lines()
@@ -113,6 +134,13 @@ function M.Create(d)
         if #lines == 0 then
             if built then strip.Destroy() end
             return
+        end
+        if built then
+            -- Resolution, UI scale or a HUD rect changed: rebuild at the new size and position.
+            local L = layoutModule()
+            local okG, gen = false, nil
+            if L then okG, gen = pcall(L.GetGeneration) end
+            if okG and gen ~= seenGeneration then strip.Destroy() end
         end
         if not built and not build() then return end
         for i = 1, MAX_LINES do
