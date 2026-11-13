@@ -53,9 +53,10 @@ for faction,cfg in cp.CONFIG.items():
         d,k=hit(pitch)[:2]
         # The CZar barrel sits on the exterior muzzle, which is where shots
         # spawn (VDF hardpoint parts; Docs/AGENT_KNOWLEDGE_BASE.md), so it
-        # legitimately crosses the corridor 7 deg right of centre. Nothing else may.
+        # legitimately crosses the corridor's right edge (yaw <= -8; -yaw is
+        # screen-right). Nothing else may, and the centre +-6 deg stays clear.
         g=ranges.get('CRV/'+base+'TankGuns',(0,0)) if faction=='cca' else (0,0)
-        check(all(np.isinf(x) or g[0]<=j<g[1] for x,j in zip(d,k)),'clear aiming corridor')
+        check(all(np.isinf(x) or (g[0]<=j<g[1] and a<=-8) for a,x,j in zip(np.arange(-10,11,2),d,k)),'clear aiming corridor')
     for pitch,label in [(-80,'floor'),(85,'roof')]:check(np.isfinite(cast(np.arange(-180,180,10),pitch)[0]).all(),'closed '+label)
     check(np.isfinite(cast([180],0)[0]).all(),'closed rear bulkhead')
     check(meta['innerShell']['boundaryLoops']==1,'one connected intentional window boundary')
