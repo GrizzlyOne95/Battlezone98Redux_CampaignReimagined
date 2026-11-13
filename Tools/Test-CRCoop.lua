@@ -200,4 +200,22 @@ Coop.Initialize({ getLocalPlayerId = function() return localId end })
 Coop.Update()
 assert(laser.mode==1 and laser.writes==2,"new mission did not re-enable the laser sight")
 package.loaded.exu=nil
+
+-- Rally points: opt in once per co-op mission, never in solo.
+local rally = { allowed = false, writes = 0 }
+local rx = { AllowRallyPoints = function(a) rally.allowed=a; rally.writes=rally.writes+1; return true end }
+netGame = false
+Coop.Initialize({ getLocalPlayerId = function() return localId end })
+package.loaded.exu = rx
+Coop.Update()
+assert(rally.writes==0,"solo allowed rally points")
+netGame = true
+Coop.Initialize({ getLocalPlayerId = function() return localId end })
+Coop.Update(); Coop.Update()
+assert(rally.allowed==true and rally.writes==1,"co-op did not allow rally points once")
+rally.allowed=false -- native reset on mission exit
+Coop.Initialize({ getLocalPlayerId = function() return localId end })
+Coop.Update()
+assert(rally.allowed==true and rally.writes==2,"new mission did not re-allow rally points")
+package.loaded.exu=nil
 print("CRCoop presentation defaults: solo, late-load, toggle and restart checks passed")
