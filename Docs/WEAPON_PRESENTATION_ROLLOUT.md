@@ -25,7 +25,7 @@ utilities eject none. These are initial cosmetic art choices for review.
 Lengths are 0.12/0.24/0.40 using the native generated casing mesh scale.
 The existing per-weapon casing mesh override remains available.
 
-`Tools/Build-WeaponCasings.py` owns only its marked casing block. All 100
+`Tools/Weapons/Build-WeaponCasings.py` owns only its marked casing block. All 100
 complete ODFs are checked against parsed gameplay baselines; 21 additional
 stock overrides are listed in the shipping lock with no removals. Both
 generators are independently repeatable. Inventory JSON/CSV includes casing
@@ -69,7 +69,7 @@ supply weapons but do not fire them. `References/WeaponPresentation/inventory.js
 `weapons.csv` and `recoil.csv` contain the complete inventory. Re-run with:
 
 ```powershell
-python Tools/Inventory-WeaponPresentation.py --stock '<game>/StockODFFiles' --output '<report directory>'
+python Tools/Weapons/Inventory-WeaponPresentation.py --stock '<game>/StockODFFiles' --output '<report directory>'
 ```
 
 **74 weapon ODFs now select authored flashes**, with 20 separate mesh/material
@@ -139,13 +139,13 @@ Craft ODFs carry the correction instead, using OpenShim's
 |v| <= 20), which replaces the weapon's offset for that craft's slot only.
 `References/WeaponPresentation/craft-flash-offsets.json` records, for every CR
 craft slot whose `weaponName<N>` selects a weapon with `flashMesh`, either a
-measured offset or the reason it has none. `Tools/Build-WeaponFlashes.py` writes
+measured offset or the reason it has none. `Tools/Weapons/Build-WeaponFlashes.py` writes
 the keys inside a `// CR CRAFT FLASH OFFSET BEGIN/END` block directly under
-`[CraftClass]`; `--check` (also run by `Tools/Test-WeaponPresentation.py` and CI)
+`[CraftClass]`; `--check` (also run by `Tools/Weapons/Test-WeaponPresentation.py` and CI)
 fails if a craft or slot is missing from the data, a weapon selection changed
 without re-measuring, or the ODF block differs.
 
-Measurement (`python Tools/Build-WeaponFlashes.py --measure`, needs the installed
+Measurement (`python Tools/Weapons/Build-WeaponFlashes.py --measure`, needs the installed
 game's Ogre meshes and skeletons via `BZR_GAME_DIR`; shipped `Assets/ModelFixes`
 meshes win): the hardpoint's parent must be a dedicated barrel node (`*BG?`);
 the barrel is every vertex weighted at least 0.5 to that bone. The sim hardpoint
@@ -198,7 +198,7 @@ gsatstab and ga7stab plus every other CANN weapon the armory could swap into tho
 slots (stabber variants, blast, bolt, flash, MAG, sniper, plasma rifles and the
 Fury/Olympian arcs). Machineguns and miniguns get no kick. The block is generated
 between `// CR WEAPON RECOIL BEGIN` and `// CR WEAPON RECOIL END` by
-`Tools/Build-WeaponFlashes.py`; `--check` and `Tools/Test-WeaponPresentation.py`
+`Tools/Weapons/Build-WeaponFlashes.py`; `--check` and `Tools/Weapons/Test-WeaponPresentation.py`
 fail on drift, on a recoil slot whose default weapon has no kick, and on any
 machinegun with a kick. Muzzle flashes are separate: a craft shows a mesh flash
 only for slots with a `flashOffset<N>` key (see the flash offsets section).

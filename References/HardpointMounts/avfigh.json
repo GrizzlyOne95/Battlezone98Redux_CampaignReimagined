@@ -1,5 +1,5 @@
 {
-  "note": "Hardpoint mount (Tools/Build-HardpointMounts.py). Ogre mesh space in the VDF pose (VDF x = -x), metres. The hardpoint sits INSET x scale inside the muzzle, on the fire axis.",
+  "note": "Hardpoint mount (Tools/CockpitsAndRigs/Build-HardpointMounts.py). Ogre mesh space in the VDF pose (VDF x = -x), metres. The hardpoint sits INSET x scale inside the muzzle, on the fire axis.",
   "unit": "avfigh",
   "piece": "rocket",
   "part": "ARA11Gr1",

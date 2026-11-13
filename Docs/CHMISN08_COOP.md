@@ -12,10 +12,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/ch08cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch08.lua` (`Tools/Test-Chmisn08CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the co-op fixes. |
+| `Scripts/ch08cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch08.lua` (`Tools/CoopCampaignTests/Test-Chmisn08CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the co-op fixes. |
 | `Scripts/CREuropaWeather.lua`, `Scripts/CRGanymedeSitesCH08.lua` | The Europa-family weather director (reused for Ganymede, `misn01`'s planet) and the generated sites for this map. The generated vent list is **not empty** (18 geysers), unlike chmisn07's Europa map. |
 | `Missions/ch08cr.{bzn,vxt}`, `chmisn08.{hg2,lgt,mat,trn}` | Map and companions (not part of this change). The enemy team 2 was moved to team 5; guests are teams 2-4 at the `coop_spawn1`..`coop_spawn4` buoys; every co-op player starts in the convoy tank `cvtnk`. |
-| `Tools/Chmisn08Fixture.lua`, `Test-Chmisn08Coop.lua`, `Test-Chmisn08Presentation.lua`, `Test-Chmisn08CoopSourceParity.py`, `Test-Chmisn08CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Chinese08.lua` still covers the faithful port, unchanged. |
+| `Tools/CoopCampaignTests/Chmisn08Fixture.lua`, `Test-Chmisn08Coop.lua`, `Test-Chmisn08Presentation.lua`, `Test-Chmisn08CoopSourceParity.py`, `Test-Chmisn08CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Chinese08.lua` still covers the faithful port, unchanged. |
 
 ## Teams and ownership
 
@@ -144,7 +144,7 @@ Authored content the script never touches (documented, not wired, nothing invent
   `svscav` Hunts — never by live code.
 - The `magpull_1`..`magpull_6`, `west_mag_1`..`west_mag_4`, `east_mag_1`..`east_mag_4` and `sniper_1`..`sniper_26`
   families are all reached through loop-concatenated `GetHandle` calls (`"magpull_" .. (i + 1)`, etc.), not a literal
-  string per label; `Tools/Test-Chmisn08CoopContract.py` verifies every generated label exists on the map.
+  string per label; `Tools/CoopCampaignTests/Test-Chmisn08CoopContract.py` verifies every generated label exists on the map.
 
 Unused voice lines [owner decision 2026-11-01]: **none.** `ch08001`..`ch08009` is the whole shipped catalogue of the
 mission (`Config/durations.csv`, `Text/`), and the body plays all nine (`Docs/CH08_LUA_PORT.md`).
@@ -172,9 +172,9 @@ mission (`Config/durations.csv`, `Text/`), and the body plays all nine (`Docs/CH
   wrapper functions (created after the restore) land in the real global table exactly like every other mission's.
   Verified with a standalone Lua 5.1 script that loads the actual file (stubbed natives) and asserts from *outside*
   the chunk that `_G.Start`, `_G.Update`, `_G.Save`, `_G.Load`, `_G.AddObject`, `_G.CreatePlayer`, `_G.AddPlayer`,
-  `_G.DeletePlayer` and `_G.Receive` are all real functions in the real global table; `Tools/Chmisn08Fixture.lua`'s
+  `_G.DeletePlayer` and `_G.Receive` are all real functions in the real global table; `Tools/CoopCampaignTests/Chmisn08Fixture.lua`'s
   `makePeer` re-exercises the same load order against the **real** `CRCCARuntime.lua`/`CRCoop.lua` (not stubs) for
-  every test in `Tools/Test-Chmisn08Coop.lua`, which calls every one of those entry points through `p.env.*` and
+  every test in `Tools/CoopCampaignTests/Test-Chmisn08Coop.lua`, which calls every one of those entry points through `p.env.*` and
   would error immediately on a nil call if any were trapped in the sandbox instead.
 - Orders aimed at a dead or replaced single player handle: `Attack` falls back to the nearest human when no sticky
   driver has been found yet (see "Humans as the player").
@@ -182,7 +182,7 @@ mission (`Config/durations.csv`, `Text/`), and the body plays all nine (`Docs/CH
   own "Save/Load" note); `ResetObjectives()` is called once after a co-op load to rebuild the objective panel from
   `missionState` alone, since the body only issues objectives at its own events.
 - Objective rebuilds are coalesced by the runtime (a rebuild identical to the last published list is dropped).
-- Audio: every line the body names has a subtitle in `Text/` (`Tools/Test-Chmisn08CoopContract.py`).
+- Audio: every line the body names has a subtitle in `Text/` (`Tools/CoopCampaignTests/Test-Chmisn08CoopContract.py`).
 - The ticket-replay gap for `Goto` on a still-pending wave unit: see "Scaling and concealed arrivals".
 
 ## Weather: Ganymede
@@ -201,11 +201,11 @@ damages.
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Chmisn08Coop.lua            # offline == faithful, 1-4 peers, sticky driver, scaling, convoy fails, cockpit timer, out-of-lives, saves, weather
-lua5.1 Tools/Test-Chmisn08Presentation.lua    # E/A/C protocol and this mission's five per-handle ops on a guest
-python Tools/Test-Chmisn08CoopSourceParity.py # ch08cr.lua minus CR regions == ch08.lua
-python Tools/Test-Chmisn08CoopContract.py     # labels/paths/teams/start file in ch08cr.bzn (skips with a message if the map is absent)
-lua5.1 Tools/Test-Chinese08.lua               # the faithful port, unchanged
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn08Coop.lua            # offline == faithful, 1-4 peers, sticky driver, scaling, convoy fails, cockpit timer, out-of-lives, saves, weather
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn08Presentation.lua    # E/A/C protocol and this mission's five per-handle ops on a guest
+python Tools/CoopCampaignTests/Test-Chmisn08CoopSourceParity.py # ch08cr.lua minus CR regions == ch08.lua
+python Tools/CoopCampaignTests/Test-Chmisn08CoopContract.py     # labels/paths/teams/start file in ch08cr.bzn (skips with a message if the map is absent)
+lua5.1 Tools/CoopCampaignTests/Test-Chinese08.lua               # the faithful port, unchanged
 ```
 
 The contract test checks `Missions/ch08cr.vxt` and `Config/ch08cr.ini` only when they are present.

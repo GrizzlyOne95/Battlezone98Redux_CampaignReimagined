@@ -12,10 +12,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/ch01cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch01.lua` (`Tools/Test-Chmisn01CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the co-op state, the restorations and the Ganymede weather. |
+| `Scripts/ch01cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch01.lua` (`Tools/CoopCampaignTests/Test-Chmisn01CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the co-op state, the restorations and the Ganymede weather. |
 | `Scripts/CRGanymedeSitesCH01.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather: the generated sites for this map (seven geysers) and the shared icy-moon director (no new module). |
 | `Missions/ch01cr.{bzn,vxt}`, `chmisn01.{hg2,lgt,mat,trn}`, `Config/ch01cr.ini` | Map and companions (not part of this change). The CCA base and its guards are authored on team 5; the Chinese side is only the on-foot player; everything else is built by Lua. |
-| `Tools/Chmisn01Fixture.lua`, `Test-Chmisn01Coop.lua`, `Test-Chmisn01Presentation.lua`, `Test-Chmisn01CoopSourceParity.py`, `Test-Chmisn01CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Chinese01.lua` still covers the faithful port, unchanged. |
+| `Tools/CoopCampaignTests/Chmisn01Fixture.lua`, `Test-Chmisn01Coop.lua`, `Test-Chmisn01Presentation.lua`, `Test-Chmisn01CoopSourceParity.py`, `Test-Chmisn01CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Chinese01.lua` still covers the faithful port, unchanged. |
 
 The CR regions, in file order:
 
@@ -221,17 +221,17 @@ lands near the `recycler` path point, opens its bow ramp and the Recycler drives
 | Replication | `DropShip` / `DropGo` are runtime presentation ops (as bd01); the host builds and moves, guests only mirror the plan (no crew, so they pin nothing). A departed host, late joiner or bad team takes the drop down (`DropStandby`). |
 | Fallbacks | No module, missing ship art or a failing start: the Recycler stays on the path as stock. An old save (Recycler already exists) never starts a drop; a save mid-drop resolves on load to the end state (ship gone, Recycler set down on its spot). |
 
-Test: `lua5.1 Tools/Test-Chmisn01DropIn.lua`. The `cvdrop` numbers marked "CR guess" in `CRDropIn.lua` (hold slot, lane, landing distance) and the landing site on this map need a live tune.
+Test: `lua5.1 Tools/CoopCampaignTests/Test-Chmisn01DropIn.lua`. The `cvdrop` numbers marked "CR guess" in `CRDropIn.lua` (hold slot, lane, landing distance) and the landing site on this map need a live tune.
 
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Chmisn01Coop.lua            # offline == faithful (6 outcomes), 1-4 peers, scaling, 460 m, fallback, cover, cameras, results, loads, weather
-lua5.1 Tools/Test-Chmisn01Presentation.lua    # E/A/C protocol on a guest, the mission's local ops
-python Tools/Test-Chmisn01CoopSourceParity.py # ch01cr.lua minus CR regions == ch01.lua
-python Tools/Test-Chmisn01CoopContract.py     # labels/paths/teams/vents/subtitles in ch01cr.bzn (skips with a message if the map is absent; ini/vxt/mpdes only when present)
-lua5.1 Tools/Test-Chmisn01DropIn.lua         # the Recycler's dropship delivery: trigger, stored handle, wave 1, fallbacks, co-op, save/load
-lua5.1 Tools/Test-Chinese01.lua               # the faithful port, unchanged
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn01Coop.lua            # offline == faithful (6 outcomes), 1-4 peers, scaling, 460 m, fallback, cover, cameras, results, loads, weather
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn01Presentation.lua    # E/A/C protocol on a guest, the mission's local ops
+python Tools/CoopCampaignTests/Test-Chmisn01CoopSourceParity.py # ch01cr.lua minus CR regions == ch01.lua
+python Tools/CoopCampaignTests/Test-Chmisn01CoopContract.py     # labels/paths/teams/vents/subtitles in ch01cr.bzn (skips with a message if the map is absent; ini/vxt/mpdes only when present)
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn01DropIn.lua         # the Recycler's dropship delivery: trigger, stored handle, wave 1, fallbacks, co-op, save/load
+lua5.1 Tools/CoopCampaignTests/Test-Chinese01.lua               # the faithful port, unchanged
 ```
 
 ## Inferences and open questions

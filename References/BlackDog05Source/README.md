@@ -13,5 +13,5 @@ logical locations. The seven-offensive-unit gate and 40-minute cockpit timer
 remain disabled, as does the debug shortcut. The commented portal construction
 line remains disabled; the portal comes from the original map.
 
-Run `python Tools/Test-BlackDog05SourceParity.py` to verify the snapshot hash and
+Run `python Tools/CoopCampaignTests/Test-BlackDog05SourceParity.py` to verify the snapshot hash and
 mission data against the Lua port.

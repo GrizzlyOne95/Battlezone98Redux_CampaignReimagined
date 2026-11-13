@@ -50,7 +50,7 @@ Both are documented at the affected Lua statements:
 
 ## Validation
 
-Run from repository root: `lua5.1 Tools/Test-Chinese07.lua`.
+Run from repository root: `lua5.1 Tools/CoopCampaignTests/Test-Chinese07.lua`.
 Executed with Lupa's Lua 5.1 runtime: syntax and mission regression checks pass.
 Coverage includes all six route/relic combinations, strict timer boundaries,
 three convoy entries and their escort/pilot classes, all 81 ambush units,

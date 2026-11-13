@@ -22,7 +22,7 @@ Star positions, magnitudes and spectral types: the Yale Bright Star Catalogue, 5
 edition (Hoffleit and Warren, 1991), binary distribution from the Harvard/Smithsonian
 Telescope Data Center, <http://tdc-www.harvard.edu/catalogs/bsc5.html>.
 
-- Used as: `Assets/Textures/crsky_stars.png`, a star index baked by `Tools/Build-CatalogSky.py --bsc5`
+- Used as: `Assets/Textures/crsky_stars.png`, a star index baked by `Tools/TexturesAndSky/Build-CatalogSky.py --bsc5`
   (9096 stars to magnitude 8, B-V estimated from the spectral class) and drawn by
   `Shaders/CR_catalogsky*.hlsl`/`.glsl` through `Materials/cr_catalogsky.material`.
 
@@ -34,14 +34,14 @@ Gaia DR2: ESA/Gaia/DPAC.
   <https://svs.gsfc.nasa.gov/4851>. Credit given as the page requests.
 - Used as: `Assets/Textures/crsky_milkyway.dds`: 8192x4096 BC1 with a full mip chain,
   sRGB-encoded at exposure 4 (the 8k EXR is two stops darker than the 4k one) by
-  `Tools/Build-CatalogSky.py --milkyway` after converting the EXR to a float
+  `Tools/TexturesAndSky/Build-CatalogSky.py --milkyway` after converting the EXR to a float
   `.npy` (Blender's bundled Python reads EXR). The material's `milkyParams` (-1, 0.5) encode
   the map's RA direction and origin.
 - Neither source file is stored in the repository.
 
 ## Mars sky (CRSKYMA.MAP)
 
-- `Assets/Textures/crsky_mars_clouds.png` is original, procedural art: `Tools/Build-MarsSkyClouds.py`
+- `Assets/Textures/crsky_mars_clouds.png` is original, procedural art: `Tools/TexturesAndSky/Build-MarsSkyClouds.py`
   synthesises it from seeded spectral noise (R water-ice cirrus, G dust veils, B breakup), so it
   tiles exactly and can be rebaked at any size. No third-party source.
 - `Shaders/CR_marssky.hlsl` draws the dome from it, coloured from the composed fog: a darker
@@ -53,7 +53,7 @@ Gaia DR2: ESA/Gaia/DPAC.
 
 ## Venus sky (CRSKYVE.MAP)
 
-- `Assets/Textures/crsky_venus_clouds.png` is original, procedural art: `Tools/Build-VenusSkyClouds.py`
+- `Assets/Textures/crsky_venus_clouds.png` is original, procedural art: `Tools/TexturesAndSky/Build-VenusSkyClouds.py`
   synthesises it from seeded spectral noise (R long warped cloud bands, G billowed convective
   cells, B breakup), so it tiles exactly and can be rebaked at any size. No third-party source.
 - `Shaders/CR_venussky.hlsl` draws the underside of the cloud deck from it, coloured from the
@@ -66,7 +66,7 @@ Gaia DR2: ESA/Gaia/DPAC.
 ## Titan sky and Saturn (CRSKYTI.MAP)
 
 - `Assets/Textures/crsky_titan_haze.png`, `crsky_saturn.png` and `crsky_saturn_rings.png` are original,
-  procedural art from `Tools/Build-TitanSky.py`. Nothing is downloaded and there is no third-party source.
+  procedural art from `Tools/TexturesAndSky/Build-TitanSky.py`. Nothing is downloaded and there is no third-party source.
   - Haze: seeded spectral noise. R holds broad zonal bands, G billowing banks and B rare methane
     streaks. It tiles exactly.
   - Saturn: a latitude table of zones and belts, modelled on the Cassini-era true-colour views,
@@ -84,7 +84,7 @@ Gaia DR2: ESA/Gaia/DPAC.
 ## Achilles sky and Uranus (CRSKYAC.MAP)
 
 - `Assets/Textures/crsky_achilles_clouds.png`, `crsky_uranus.png` and `crsky_uranus_rings.png` are original,
-  procedural art from `Tools/Build-AchillesSky.py` (seed 17). Nothing is downloaded and there is no
+  procedural art from `Tools/TexturesAndSky/Build-AchillesSky.py` (seed 17). Nothing is downloaded and there is no
   third-party source.
   - Clouds: seeded spectral noise. R holds billowing cumulus, rank-normalised so a threshold reads as a
     cover share; G fine detail that frays the edges; B rain curtains stretched down the sky. It tiles exactly.
@@ -112,7 +112,7 @@ credit is given as the pages request.
   <https://earthobservatory.nasa.gov/images/144898>.
 - Used as: `Assets/Textures/crsky_earth.png` (2048x1024; RGB the surface, A the clouds) and
   `Assets/Textures/crsky_earth_night.png` (1024x512; R city lights picked out of Black Marble
-  by warmth, G an ocean mask from Blue Marble's sea colour), baked by `Tools/Build-EarthSky.py`.
+  by warmth, G an ocean mask from Blue Marble's sea colour), baked by `Tools/TexturesAndSky/Build-EarthSky.py`.
   `Shaders/CR_earth.hlsl` draws them as a sphere on the TRN's `[Stars]` Earth quad, lit from the
   TRN sun (`Scripts/CRWorldArt.lua`) so the phase is the one seen from the Moon.
   OpenGL keeps the stock `earth.dds` (technique 1).
@@ -136,7 +136,7 @@ not copyrighted (public domain); credit is given as the pages request.
   <https://astrogeology.usgs.gov/search/map/callisto_galileo_voyager_global_mosaic_1km>.
 - Used as: `Assets/Textures/crsky_jupiter.png` (2048x1024, warmed and a little more saturated,
   closer to Jupiter as the eye sees it) and `crsky_io.png`, `crsky_europa.png`, `crsky_ganymede.png`,
-  `crsky_callisto.png` (512x256), baked by `Tools/Build-JupiterSky.py`. Io's mosaic is false colour
+  `crsky_callisto.png` (512x256), baked by `Tools/TexturesAndSky/Build-JupiterSky.py`. Io's mosaic is false colour
   from violet, green and near-infrared filters, so it is graded toward Io's pale yellow and ochre. Europa and Callisto have
   no public-domain colour mosaic, so their greyscale mosaics are tinted (Europa's ice white with
   rust-brown terrain, Callisto a dusky grey-brown); missing-data areas are filled from the row.
@@ -153,7 +153,7 @@ not copyrighted (public domain); credit is given as the pages request.
 
 ## Elysium sky (CRSKYEL.MAP)
 
-- `Assets/Textures/crsky_elysium_clouds.png` is original, procedural art: `Tools/Build-ElysiumSky.py`
+- `Assets/Textures/crsky_elysium_clouds.png` is original, procedural art: `Tools/TexturesAndSky/Build-ElysiumSky.py`
   synthesises it from seeded spectral noise (R torn high cloud, G dust and ash veils, B breakup), so it
   tiles exactly and can be rebaked at any size. No third-party source.
 - `Shaders/CR_elysiumsky.hlsl` draws the dome from it, coloured from the composed fog: a bruised

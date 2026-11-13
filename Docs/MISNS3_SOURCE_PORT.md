@@ -50,8 +50,8 @@ reset deadlines, or recreate waves, patrols, escorts, or mines.
 Validation commands, run from the repository root:
 
 ```text
-lua5.1 Tools/Test-Misns3.lua
-python3 Tools/Test-Misns3SourceParity.py
+lua5.1 Tools/MissionTests/Test-Misns3.lua
+python3 Tools/MissionTests/Test-Misns3SourceParity.py
 ```
 
 The Lua mock host verifies boundaries, composition, command order, interactions,

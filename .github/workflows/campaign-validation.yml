@@ -58,22 +58,22 @@ jobs:
 
       - name: Validate authored weapon flashes and gameplay preservation
         run: |
-          python Tools/Test-WeaponPresentation.py
-          python Tools/Test-CombatPresentation.py
-          python Tools/Test-WeaponRigs.py
-          python Tools/Test-ConstructorBuildMenu.py
+          python Tools/Weapons/Test-WeaponPresentation.py
+          python Tools/Weapons/Test-CombatPresentation.py
+          python Tools/CockpitsAndRigs/Test-WeaponRigs.py
+          python Tools/UnitsAndBuildings/Test-ConstructorBuildMenu.py
 
       - name: Validate HD terrain bundles and normal contracts
         run: |
-          python Tools/Test-MoonHdTerrain.py
-          python Tools/Test-MarsHdTileSources.py
-          python Tools/Test-VenusHdTerrain.py
-          python Tools/Test-HdTerrainPacks.py
-          python Tools/Test-MoonCraterDisplacement.py
-          python Tools/Test-MoonRegolith.py
-          python Tools/Test-TerrainArtTuning.py
-          python Tools/Test-MoonPolyHaven.py
-          python Tools/Test-WorldSurfaceArt.py
+          python Tools/Terrain/Test-MoonHdTerrain.py
+          python Tools/Terrain/Test-MarsHdTileSources.py
+          python Tools/Terrain/Test-VenusHdTerrain.py
+          python Tools/Terrain/Test-HdTerrainPacks.py
+          python Tools/Terrain/Test-MoonCraterDisplacement.py
+          python Tools/Terrain/Test-MoonRegolith.py
+          python Tools/Terrain/Test-TerrainArtTuning.py
+          python Tools/Terrain/Test-MoonPolyHaven.py
+          python Tools/Terrain/Test-WorldSurfaceArt.py
 
       - name: Install Lua 5.1 compiler
         shell: bash
@@ -86,64 +86,64 @@ jobs:
         run: python Tools/Validate-CampaignRepository.py
 
       - name: Check shipped scripts only reference shipped repo files
-        run: python Tools/Test-LockedReferences.py
+        run: python Tools/Release/Test-LockedReferences.py
 
       - name: Test optional SAV fixture
-        run: lua5.1 Tools/Test-SAVPrototype.lua
+        run: lua5.1 Tools/UnitsAndBuildings/Test-SAVPrototype.lua
 
       - name: Test selected content deployment
         shell: pwsh
-        run: ./Tools/Test-SelectedContentDeploy.ps1
+        run: ./Tools/Release/Test-SelectedContentDeploy.ps1
 
       - name: Validate hangar door assets
-        run: python Tools/Test-HangarAssets.py
+        run: python Tools/UnitsAndBuildings/Test-HangarAssets.py
 
       - name: Validate L-Power fin spin and lightning shader
-        run: python Tools/Test-LightningPlants.py
+        run: python Tools/UnitsAndBuildings/Test-LightningPlants.py
 
       - name: Validate building spin and armory launch animations
-        run: python Tools/Test-BuildingAnimations.py
+        run: python Tools/UnitsAndBuildings/Test-BuildingAnimations.py
 
       - name: Validate unit animation slot fixes
-        run: python Tools/Test-UnitAnimSlots.py
+        run: python Tools/CockpitsAndRigs/Test-UnitAnimSlots.py
 
       - name: Validate hardpoint mounts
-        run: python Tools/Test-HardpointMounts.py
+        run: python Tools/CockpitsAndRigs/Test-HardpointMounts.py
 
       - name: Test emissive pulse reaches live surface clones
-        run: lua5.1 Tools/Test-EmissivePulse.lua
+        run: lua5.1 Tools/TexturesAndSky/Test-EmissivePulse.lua
 
       - name: Validate combat cockpits
-        run: python Tools/Test-CombatCockpits.py
+        run: python Tools/CockpitsAndRigs/Test-CombatCockpits.py
 
       - name: Validate texture revamp and Olympian interior contracts
         run: |
-          python Tools/Test-TextureRevamp.py
-          python Tools/Test-BuildingDetailPass.py
-          python Tools/Test-FactionStorage.py
-          python Tools/Test-FactionNavPickups.py
-          python Tools/Test-FactionDeathExplosions.py
-          python Tools/Test-BulletHitFx.py
-          python Tools/Test-WeaponHitFx.py
-          python Tools/Test-TrailDensity.py
-          python Tools/Test-OrdnanceModels.py
-          python Tools/Test-FactionPickupIntegration.py
-          python Tools/Test-PodUVPrototype.py
+          python Tools/TexturesAndSky/Test-TextureRevamp.py
+          python Tools/UnitsAndBuildings/Test-BuildingDetailPass.py
+          python Tools/UnitsAndBuildings/Test-FactionStorage.py
+          python Tools/UnitsAndBuildings/Test-FactionNavPickups.py
+          python Tools/UnitsAndBuildings/Test-FactionDeathExplosions.py
+          python Tools/Weapons/Test-BulletHitFx.py
+          python Tools/Weapons/Test-WeaponHitFx.py
+          python Tools/Weapons/Test-TrailDensity.py
+          python Tools/Weapons/Test-OrdnanceModels.py
+          python Tools/UnitsAndBuildings/Test-FactionPickupIntegration.py
+          python Tools/UnitsAndBuildings/Test-PodUVPrototype.py
 
       - name: Validate cockpit revamps and Red Devil legacy skin
         run: |
           python Tools/ogrelayout.py --check
-          python Tools/Test-RedDevilLegacy.py
-          python Tools/Test-RedDevilCockpit.py
-          python Tools/Test-CVFighterCockpit.py
-          python Tools/Test-AVRocketCockpit.py
-          python Tools/Test-CVBomberCockpit.py
-          python Tools/Test-ScoutCockpits.py
-          python Tools/Test-WalkerCockpits.py
-          python Tools/Test-CVHeavyCockpit.py
-          python Tools/Test-BomberRocketCockpits.py
-          python Tools/Test-LightWalkerCockpits.py
-          python Tools/Test-CockpitSections.py
+          python Tools/UnitsAndBuildings/Test-RedDevilLegacy.py
+          python Tools/CockpitsAndRigs/Test-RedDevilCockpit.py
+          python Tools/CockpitsAndRigs/Test-CVFighterCockpit.py
+          python Tools/CockpitsAndRigs/Test-AVRocketCockpit.py
+          python Tools/CockpitsAndRigs/Test-CVBomberCockpit.py
+          python Tools/CockpitsAndRigs/Test-ScoutCockpits.py
+          python Tools/CockpitsAndRigs/Test-WalkerCockpits.py
+          python Tools/CockpitsAndRigs/Test-CVHeavyCockpit.py
+          python Tools/CockpitsAndRigs/Test-BomberRocketCockpits.py
+          python Tools/CockpitsAndRigs/Test-LightWalkerCockpits.py
+          python Tools/CockpitsAndRigs/Test-CockpitSections.py
 
       - name: Audit looping model animations
         # bvwalk.vdf is an older walker fix whose cycles still seam (reported, not owned here).
@@ -151,25 +151,25 @@ jobs:
         # in-cycle twitch keys, and the audit reports the same 56 findings on the stock VDFs.
         # hvwalk (Fury Walker) has no seam or skipframe; its only findings are seamvel on the left leg,
         # because its cycle starts at the left foot's touchdown, a velocity corner every step has.
-        run: python Tools/Audit-SdfLoops.py Assets/ModelFixes --strict --exclude bvwalk --exclude svwalk --exclude cvwalk --exclude hvwalk
+        run: python Tools/CockpitsAndRigs/Audit-SdfLoops.py Assets/ModelFixes --strict --exclude bvwalk --exclude svwalk --exclude cvwalk --exclude hvwalk
 
       - name: Test BlackDog09 source port
         run: |
-          lua5.1 Tools/Test-BlackDog09.lua
-          python Tools/Test-BlackDog09SourceParity.py
+          lua5.1 Tools/CoopCampaignTests/Test-BlackDog09.lua
+          python Tools/CoopCampaignTests/Test-BlackDog09SourceParity.py
 
       - name: Test Chinese08 source port
         run: |
-          lua5.1 Tools/Test-Chinese08.lua
-          python Tools/Test-Chinese08SourceParity.py
+          lua5.1 Tools/CoopCampaignTests/Test-Chinese08.lua
+          python Tools/CoopCampaignTests/Test-Chinese08SourceParity.py
 
       - name: Test misn12 source port and Lua comment scanning
         run: |
-          lua5.1 Tools/Test-Misn12.lua
-          python Tools/Test-LuaCommentScan.py
+          lua5.1 Tools/MissionTests/Test-Misn12.lua
+          python Tools/Release/Test-LuaCommentScan.py
 
       - name: Check generated GoombaBZ transcripts
-        run: python Tools/Import-GoombaTranscripts.py --check
+        run: python Tools/Release/Import-GoombaTranscripts.py --check
 
       - name: Report legacy Lua 5.1 compatibility debt
         shell: bash
@@ -198,116 +198,116 @@ jobs:
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-OpenShimInstallerDiagnostics.lua
+          "$LUA" Tools/Release/Test-OpenShimInstallerDiagnostics.lua
 
       - name: Test CR co-op helpers
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-CRCoop.lua
-          "$LUA" Tools/Test-CRTeamSkins.lua
-          "$LUA" Tools/Test-CRWire.lua
-          "$LUA" Tools/Test-CRCoopComms.lua
-          "$LUA" Tools/Test-CRCoopAssist.lua
-          "$LUA" Tools/Test-CRCoopPda.lua
-          "$LUA" Tools/Test-CRCoopTeamStrip.lua
-          "$LUA" Tools/Test-CRCoopPartnerBars.lua
-          "$LUA" Tools/Test-CRCoopDiagnostics.lua
-          "$LUA" Tools/Test-CRHudLayout.lua
-          "$LUA" Tools/Test-CoopNetworkInput.lua
-          "$LUA" Tools/Test-SubtitleReplacement.lua
+          "$LUA" Tools/RuntimeTests/Test-CRCoop.lua
+          "$LUA" Tools/RuntimeTests/Test-CRTeamSkins.lua
+          "$LUA" Tools/RuntimeTests/Test-CRWire.lua
+          "$LUA" Tools/RuntimeTests/Test-CRCoopComms.lua
+          "$LUA" Tools/RuntimeTests/Test-CRCoopAssist.lua
+          "$LUA" Tools/RuntimeTests/Test-CRCoopPda.lua
+          "$LUA" Tools/RuntimeTests/Test-CRCoopTeamStrip.lua
+          "$LUA" Tools/RuntimeTests/Test-CRCoopPartnerBars.lua
+          "$LUA" Tools/RuntimeTests/Test-CRCoopDiagnostics.lua
+          "$LUA" Tools/RuntimeTests/Test-CRHudLayout.lua
+          "$LUA" Tools/RuntimeTests/Test-CoopNetworkInput.lua
+          "$LUA" Tools/Release/Test-SubtitleReplacement.lua
 
       - name: Test world lighting and sky ownership
-        run: lua5.1 Tools/Test-CRWorldArt.lua
+        run: lua5.1 Tools/TexturesAndSky/Test-CRWorldArt.lua
 
       - name: Test misn02b co-op map and shipping contract
-        run: python Tools/Test-Misn02bCoopContract.py
+        run: python Tools/MissionTests/Test-Misn02bCoopContract.py
 
       - name: Test misn02b co-op execution and peer transport model
         run: |
-          lua5.1 Tools/Test-BZRPeerTransport.lua
-          lua5.1 Tools/Test-Misn02bCoop.lua
+          lua5.1 Tools/RuntimeTests/Test-BZRPeerTransport.lua
+          lua5.1 Tools/MissionTests/Test-Misn02bCoop.lua
 
       - name: Test misn03 co-op team contract
-        run: python Tools/Test-Misn03CoopContract.py
+        run: python Tools/MissionTests/Test-Misn03CoopContract.py
 
       - name: Test misn03 offline and co-op mission execution
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-Misn03Coop.lua
+          "$LUA" Tools/MissionTests/Test-Misn03Coop.lua
 
       - name: Test misn03 NSDF rocket launch (film, exhaust, presentation, assets)
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-Misn03LaunchFX.lua
-          "$LUA" Tools/Test-Misn03LaunchFilm.lua
-          "$LUA" Tools/Test-Misn03Launch.lua
-          python Tools/Test-Misn03RocketAssets.py
+          "$LUA" Tools/MissionTests/Test-Misn03LaunchFX.lua
+          "$LUA" Tools/MissionTests/Test-Misn03LaunchFilm.lua
+          "$LUA" Tools/MissionTests/Test-Misn03Launch.lua
+          python Tools/MissionTests/Test-Misn03RocketAssets.py
 
       - name: Test misn04 co-op scaffold and complete mission
         run: |
-          python Tools/Test-Misn04CoopContract.py
-          lua5.1 Tools/Test-Misn04Coop.lua
-          lua5.1 Tools/Test-CR04Drop.lua
-          lua5.1 Tools/Test-CRDropIn.lua
-          lua5.1 Tools/Test-CRDropFX.lua
+          python Tools/MissionTests/Test-Misn04CoopContract.py
+          lua5.1 Tools/MissionTests/Test-Misn04Coop.lua
+          lua5.1 Tools/MissionTests/Test-CR04Drop.lua
+          lua5.1 Tools/RuntimeTests/Test-CRDropIn.lua
+          lua5.1 Tools/RuntimeTests/Test-CRDropFX.lua
 
       - name: Test misn10 source-faithful port
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-Misn10.lua
-          python Tools/Test-Misn10SourceParity.py
+          "$LUA" Tools/MissionTests/Test-Misn10.lua
+          python Tools/MissionTests/Test-Misn10SourceParity.py
 
       - name: Test misn11 source port, co-op layer and presentation
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-Misn11.lua
-          "$LUA" Tools/Test-Misn11Coop.lua
-          "$LUA" Tools/Test-Misn11Presentation.lua
-          python Tools/Test-Misn11SourceParity.py
-          python Tools/Test-Misn11CoopContract.py
-          python Tools/Test-CoopAuthoredLabels.py
+          "$LUA" Tools/MissionTests/Test-Misn11.lua
+          "$LUA" Tools/MissionTests/Test-Misn11Coop.lua
+          "$LUA" Tools/MissionTests/Test-Misn11Presentation.lua
+          python Tools/MissionTests/Test-Misn11SourceParity.py
+          python Tools/MissionTests/Test-Misn11CoopContract.py
+          python Tools/MissionTests/Test-CoopAuthoredLabels.py
 
       - name: Test Mars rocket film and exhaust lifecycle
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-Misn06.lua
-          "$LUA" Tools/Test-Misn06Presentation.lua
-          "$LUA" Tools/Test-Misn06LaunchFilm.lua
-          "$LUA" Tools/Test-Misn06LaunchFX.lua
-          python Tools/Test-Misn06RocketAssets.py
-          python Tools/Test-Misn06SourceParity.py
-          python Tools/Test-Misn06CoopContract.py
+          "$LUA" Tools/MissionTests/Test-Misn06.lua
+          "$LUA" Tools/MissionTests/Test-Misn06Presentation.lua
+          "$LUA" Tools/MissionTests/Test-Misn06LaunchFilm.lua
+          "$LUA" Tools/MissionTests/Test-Misn06LaunchFX.lua
+          python Tools/MissionTests/Test-Misn06RocketAssets.py
+          python Tools/MissionTests/Test-Misn06SourceParity.py
+          python Tools/MissionTests/Test-Misn06CoopContract.py
 
       - name: Test per-world geyser effects
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-CRGeysers.lua Scripts
+          "$LUA" Tools/TexturesAndSky/Test-CRGeysers.lua Scripts
 
       - name: Test misn12 source port, co-op layer, presentation and Europa weather
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-Misn12.lua
-          "$LUA" Tools/Test-Misn12Coop.lua
-          "$LUA" Tools/Test-Misn12Presentation.lua
-          "$LUA" Tools/Test-CREuropaWeather.lua
-          python Tools/Test-Misn12SourceParity.py
-          python Tools/Test-Misn12CoopContract.py
+          "$LUA" Tools/MissionTests/Test-Misn12.lua
+          "$LUA" Tools/MissionTests/Test-Misn12Coop.lua
+          "$LUA" Tools/MissionTests/Test-Misn12Presentation.lua
+          "$LUA" Tools/TexturesAndSky/Test-CREuropaWeather.lua
+          python Tools/MissionTests/Test-Misn12SourceParity.py
+          python Tools/MissionTests/Test-Misn12CoopContract.py
 
       # CR Moon weather >>
       - name: Test Moon weather director (misn02b / misn03)
@@ -315,10 +315,10 @@ jobs:
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-CRMoonWeather.lua Scripts
+          "$LUA" Tools/TexturesAndSky/Test-CRMoonWeather.lua Scripts
           # The generated map data must match what the generator produces from the shipped terrain.
-          python -I Tools/Build-MoonSites.py misn02b --out "$RUNNER_TEMP/CRMoonSites02b.lua"
-          python -I Tools/Build-MoonSites.py misn03 --depth-full 30 --out "$RUNNER_TEMP/CRMoonSites03.lua"
+          python -I Tools/Terrain/Build-MoonSites.py misn02b --out "$RUNNER_TEMP/CRMoonSites02b.lua"
+          python -I Tools/Terrain/Build-MoonSites.py misn03 --depth-full 30 --out "$RUNNER_TEMP/CRMoonSites03.lua"
           diff <(tr -d '\r' < Scripts/CRMoonSites02b.lua) <(tr -d '\r' < "$RUNNER_TEMP/CRMoonSites02b.lua")
           diff <(tr -d '\r' < Scripts/CRMoonSites03.lua) <(tr -d '\r' < "$RUNNER_TEMP/CRMoonSites03.lua")
       # CR Moon weather <<
@@ -328,39 +328,39 @@ jobs:
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-VehicleWakes.lua Scripts
+          "$LUA" Tools/TexturesAndSky/Test-VehicleWakes.lua Scripts
 
       - name: Test aiCore singleton producer recovery
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-AiCoreSingletonProducer.lua
+          "$LUA" Tools/RuntimeTests/Test-AiCoreSingletonProducer.lua
 
       - name: Test aiCore state management
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-AiCoreStateManagement.lua
+          "$LUA" Tools/RuntimeTests/Test-AiCoreStateManagement.lua
 
       - name: Test aiCore correctness fixes
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-AiCoreFixes.lua
+          "$LUA" Tools/RuntimeTests/Test-AiCoreFixes.lua
 
       - name: Test aiCore human-team handling
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-AiCoreHumanTeams.lua
-          "$LUA" Tools/Test-AiCoreObjectCache.lua
-          python Tools/Test-AiCoreMissionContracts.py
-          "$LUA" Tools/Test-PlayerPilotMode.lua
-          python Tools/Test-Misn05CoopContract.py
+          "$LUA" Tools/RuntimeTests/Test-AiCoreHumanTeams.lua
+          "$LUA" Tools/RuntimeTests/Test-AiCoreObjectCache.lua
+          python Tools/MissionTests/Test-AiCoreMissionContracts.py
+          "$LUA" Tools/UnitsAndBuildings/Test-PlayerPilotMode.lua
+          python Tools/MissionTests/Test-Misn05CoopContract.py
 
       - name: Test weather
         shell: bash
@@ -369,155 +369,155 @@ jobs:
           LUA="$(command -v lua5.1 || command -v lua)"
           # These suites existed but were never wired in, so a weather
           # regression could reach a release with CI green.
-          "$LUA" Tools/Test-CRWeatherFogHorizon.lua
-          "$LUA" Tools/Test-AtmosphereIntegration.lua
-          "$LUA" Tools/Test-WeatherSensors.lua
-          "$LUA" Tools/Test-CRWeatherParameters.lua
-          "$LUA" Tools/Test-CRVenusDenseAtmosphere.lua Scripts
-          "$LUA" Tools/Test-CRElysiumWeather.lua Scripts
-          "$LUA" Tools/Test-CRMarsWeather.lua
-          "$LUA" Tools/Test-CRWetGlassWeather.lua Scripts
-          "$LUA" Tools/Test-CRMarsHaboob.lua
-          "$LUA" Tools/Test-CRMarsVolcano.lua
-          "$LUA" Tools/Test-CRTitanWeather.lua Scripts
-          "$LUA" Tools/Test-CRFoliageWind.lua Scripts
-            "$LUA" Tools/Test-CRFloraDamage.lua
-            "$LUA" Tools/Test-CRFloraAdapters.lua
-            "$LUA" Tools/Test-CRFloraDamageStress.lua
-          "$LUA" Tools/Test-CRShieldTowerFX.lua Scripts
+          "$LUA" Tools/TexturesAndSky/Test-CRWeatherFogHorizon.lua
+          "$LUA" Tools/TexturesAndSky/Test-AtmosphereIntegration.lua
+          "$LUA" Tools/TexturesAndSky/Test-WeatherSensors.lua
+          "$LUA" Tools/TexturesAndSky/Test-CRWeatherParameters.lua
+          "$LUA" Tools/TexturesAndSky/Test-CRVenusDenseAtmosphere.lua Scripts
+          "$LUA" Tools/TexturesAndSky/Test-CRElysiumWeather.lua Scripts
+          "$LUA" Tools/TexturesAndSky/Test-CRMarsWeather.lua
+          "$LUA" Tools/TexturesAndSky/Test-CRWetGlassWeather.lua Scripts
+          "$LUA" Tools/TexturesAndSky/Test-CRMarsHaboob.lua
+          "$LUA" Tools/TexturesAndSky/Test-CRMarsVolcano.lua
+          "$LUA" Tools/TexturesAndSky/Test-CRTitanWeather.lua Scripts
+          "$LUA" Tools/TexturesAndSky/Test-CRFoliageWind.lua Scripts
+            "$LUA" Tools/TexturesAndSky/Test-CRFloraDamage.lua
+            "$LUA" Tools/TexturesAndSky/Test-CRFloraAdapters.lua
+            "$LUA" Tools/TexturesAndSky/Test-CRFloraDamageStress.lua
+          "$LUA" Tools/Weapons/Test-CRShieldTowerFX.lua Scripts
           # Mission 18 storm: director, tornado, ground, replication, payload lint.
-          "$LUA" Tools/Test-CRStorm18.lua
-          "$LUA" Tools/Test-CRStorm18Fissures.lua
-          "$LUA" Tools/Test-CRStorm18Trees.lua
-          python Tools/Build-Misn18Trees.py --check
-          python -I Tools/Build-Misn18Storm.py --check
-          python -I Tools/Build-Misn18Water.py --check
+          "$LUA" Tools/RuntimeTests/Test-CRStorm18.lua
+          "$LUA" Tools/RuntimeTests/Test-CRStorm18Fissures.lua
+          "$LUA" Tools/RuntimeTests/Test-CRStorm18Trees.lua
+          python Tools/MissionBuild/Build-Misn18Trees.py --check
+          python -I Tools/MissionBuild/Build-Misn18Storm.py --check
+          python -I Tools/MissionBuild/Build-Misn18Water.py --check
           # The wind foliage material is generated from cr17_surface.material.
-          python -I Tools/Build-FoliageWindMaterial.py --check
+          python -I Tools/TexturesAndSky/Build-FoliageWindMaterial.py --check
           # The methane surface mesh, ripple map and wet masks match their generator.
-          python -I Tools/Build-MethaneSurface.py --check
+          python -I Tools/Terrain/Build-MethaneSurface.py --check
 
       - name: Test deterministic terrain clutter
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-TerrainClutter.lua Scripts
+          "$LUA" Tools/Terrain/Test-TerrainClutter.lua Scripts
 
       - name: Test setup mission shell
-        run: python Tools/Test-SetupMissionShell.py
+        run: python Tools/MissionTests/Test-SetupMissionShell.py
 
       - name: Test native campaign co-op vehicle lists
-        run: python Tools/Test-CoopVehicleLists.py
+        run: python Tools/MissionTests/Test-CoopVehicleLists.py
 
       - name: Shipped cut voice-over
-        run: python Tools/Test-ShippedCutVo.py
+        run: python Tools/Release/Test-ShippedCutVo.py
 
       - name: Test misn09 source port
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-Misn09.lua
-          python Tools/Test-Misn09SourceParity.py
+          "$LUA" Tools/MissionTests/Test-Misn09.lua
+          python Tools/MissionTests/Test-Misn09SourceParity.py
 
       - name: Test early mission source audit
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-EarlyMissionFlow.lua
-          python Tools/Test-EarlyMissionSourceAudit.py
+          "$LUA" Tools/MissionTests/Test-EarlyMissionFlow.lua
+          python Tools/MissionTests/Test-EarlyMissionSourceAudit.py
 
       - name: Check misn13 DLL source parity
-        run: python Tools/Test-Misn13SourceParity.py
+        run: python Tools/MissionTests/Test-Misn13SourceParity.py
 
       - name: Test misn13 mission transitions, co-op layer and presentation
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-Misn13.lua
-          "$LUA" Tools/Test-Misn13Coop.lua
-          "$LUA" Tools/Test-Misn13Presentation.lua
-          python Tools/Test-Misn13CoopContract.py
-          python Tools/Test-CoopAuthoredLabels.py
+          "$LUA" Tools/MissionTests/Test-Misn13.lua
+          "$LUA" Tools/MissionTests/Test-Misn13Coop.lua
+          "$LUA" Tools/MissionTests/Test-Misn13Presentation.lua
+          python Tools/MissionTests/Test-Misn13CoopContract.py
+          python Tools/MissionTests/Test-CoopAuthoredLabels.py
 
       - name: Test misn14 Concept C rework, co-op layer, presentation and DLL parity
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-Misn14.lua
-          "$LUA" Tools/Test-Misn14Coop.lua
-          "$LUA" Tools/Test-Misn14Presentation.lua
-          python Tools/Test-Misn14SourceParity.py
-          python Tools/Test-Misn14CoopContract.py
+          "$LUA" Tools/MissionTests/Test-Misn14.lua
+          "$LUA" Tools/MissionTests/Test-Misn14Coop.lua
+          "$LUA" Tools/MissionTests/Test-Misn14Presentation.lua
+          python Tools/MissionTests/Test-Misn14SourceParity.py
+          python Tools/MissionTests/Test-Misn14CoopContract.py
 
       - name: Test Mission 15 campaign co-op and methane map contract
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-Misn15.lua
-          "$LUA" Tools/Test-Misn15Coop.lua
-          python Tools/Test-Misn15SourceParity.py
-          python Tools/Test-Misn15CoopContract.py
+          "$LUA" Tools/MissionTests/Test-Misn15.lua
+          "$LUA" Tools/MissionTests/Test-Misn15Coop.lua
+          python Tools/MissionTests/Test-Misn15SourceParity.py
+          python Tools/MissionTests/Test-Misn15CoopContract.py
 
       - name: Test Mission 16 evacuation and shared mission
         shell: bash
         run: |
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
-          "$LUA" Tools/Test-Misn16.lua
-          "$LUA" Tools/Test-Misn16Scene.lua
-          "$LUA" Tools/Test-Misn16LaunchFX.lua
-          python Tools/Test-Misn16SourceParity.py
-          python Tools/Test-Misn16SceneMap.py
+          "$LUA" Tools/MissionTests/Test-Misn16.lua
+          "$LUA" Tools/MissionTests/Test-Misn16Scene.lua
+          "$LUA" Tools/MissionTests/Test-Misn16LaunchFX.lua
+          python Tools/MissionTests/Test-Misn16SourceParity.py
+          python Tools/MissionTests/Test-Misn16SceneMap.py
 
       - name: Test BlackDog08 source port
         run: |
-          lua5.1 Tools/Test-BlackDog08.lua
-          python Tools/Test-BlackDog08SourceParity.py
+          lua5.1 Tools/CoopCampaignTests/Test-BlackDog08.lua
+          python Tools/CoopCampaignTests/Test-BlackDog08SourceParity.py
       - name: Test BlackDog07 source port
         run: |
-          lua5.1 Tools/Test-BlackDog07.lua
-          python Tools/Test-BlackDog07SourceParity.py
+          lua5.1 Tools/CoopCampaignTests/Test-BlackDog07.lua
+          python Tools/CoopCampaignTests/Test-BlackDog07SourceParity.py
       - name: Test BlackDog01 DLL source port
         run: |
-          lua5.1 Tools/Test-BlackDog01.lua
-          python Tools/Test-BlackDog01SourceParity.py
+          lua5.1 Tools/CoopCampaignTests/Test-BlackDog01.lua
+          python Tools/CoopCampaignTests/Test-BlackDog01SourceParity.py
       - name: Test misns8 DLL source port
         run: |
-          python Tools/Test-Misns8SourceParity.py
-          lua5.1 Tools/Test-Misns8.lua
+          python Tools/MissionTests/Test-Misns8SourceParity.py
+          lua5.1 Tools/MissionTests/Test-Misns8.lua
       - name: Test misns7 source port
         run: |
-          lua5.1 Tools/Test-Misns7.lua
-          python Tools/Test-Misns7SourceParity.py
+          lua5.1 Tools/MissionTests/Test-Misns7.lua
+          python Tools/MissionTests/Test-Misns7SourceParity.py
       - name: Test misns5 DLL source port
         run: |
-          lua5.1 Tools/Test-Misns5.lua
-          python Tools/Test-Misns5SourceParity.py
+          lua5.1 Tools/MissionTests/Test-Misns5.lua
+          python Tools/MissionTests/Test-Misns5SourceParity.py
       - name: Test misn17 faithful port and co-op prototype
         run: |
-          lua5.1 Tools/Test-Misn17.lua
-          lua5.1 Tools/Test-Misn17Coop.lua
-          lua5.1 Tools/Test-Misn17Jungle.lua
-          lua5.1 Tools/Test-Misn17Crystals.lua
-          python Tools/Test-Misn17SourceParity.py
+          lua5.1 Tools/MissionTests/Test-Misn17.lua
+          lua5.1 Tools/MissionTests/Test-Misn17Coop.lua
+          lua5.1 Tools/MissionTests/Test-Misn17Jungle.lua
+          lua5.1 Tools/MissionTests/Test-Misn17Crystals.lua
+          python Tools/MissionTests/Test-Misn17SourceParity.py
       - name: Test misn18 faithful port, co-op layer and map contract
         run: |
-          lua5.1 Tools/Test-Misn18.lua
-          lua5.1 Tools/Test-Misn18Coop.lua
-          python Tools/Test-Misn18SourceParity.py
-          python Tools/Test-Misn18CoopContract.py
+          lua5.1 Tools/MissionTests/Test-Misn18.lua
+          lua5.1 Tools/MissionTests/Test-Misn18Coop.lua
+          python Tools/MissionTests/Test-Misn18SourceParity.py
+          python Tools/MissionTests/Test-Misn18CoopContract.py
 
       - name: Test restored Fury fighter assets and mission roster
         run: |
-          python Tools/Test-FuryFighterAssets.py
-          python Tools/Test-BoltMines.py
-          lua5.1 Tools/Test-FuryRoster.lua
+          python Tools/UnitsAndBuildings/Test-FuryFighterAssets.py
+          python Tools/Weapons/Test-BoltMines.py
+          lua5.1 Tools/UnitsAndBuildings/Test-FuryRoster.lua
 
       - name: Strictly validate changed Lua 5.1 files
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
@@ -554,194 +554,194 @@ jobs:
 
       - name: Test misns1 DLL-source port
         run: |
-          lua5.1 Tools/Test-Misns1.lua
-          python Tools/Test-Misns1SourceParity.py
+          lua5.1 Tools/MissionTests/Test-Misns1.lua
+          python Tools/MissionTests/Test-Misns1SourceParity.py
       - name: Test misns1 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Misns1Coop.lua
-          lua5.1 Tools/Test-Misns1Presentation.lua
-          lua5.1 Tools/Test-Misns1DropIn.lua
-          python Tools/Test-Misns1CoopSourceParity.py
-          python Tools/Test-Misns1CoopContract.py
+          lua5.1 Tools/MissionTests/Test-Misns1Coop.lua
+          lua5.1 Tools/MissionTests/Test-Misns1Presentation.lua
+          lua5.1 Tools/MissionTests/Test-Misns1DropIn.lua
+          python Tools/MissionTests/Test-Misns1CoopSourceParity.py
+          python Tools/MissionTests/Test-Misns1CoopContract.py
       - name: Test misns2 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Misns2Coop.lua
-          lua5.1 Tools/Test-Misns2Presentation.lua
-          python Tools/Test-Misns2CoopSourceParity.py
-          python Tools/Test-Misns2CoopContract.py
+          lua5.1 Tools/MissionTests/Test-Misns2Coop.lua
+          lua5.1 Tools/MissionTests/Test-Misns2Presentation.lua
+          python Tools/MissionTests/Test-Misns2CoopSourceParity.py
+          python Tools/MissionTests/Test-Misns2CoopContract.py
       - name: Test misns8 co-op layer and map contract
         run: |
-          lua5.1 Tools/Test-Misns8Coop.lua
-          python Tools/Test-Misns8CoopSourceParity.py
-          python Tools/Test-Misns8CoopContract.py
-          python Tools/Test-SavFuryAssets.py
+          lua5.1 Tools/MissionTests/Test-Misns8Coop.lua
+          python Tools/MissionTests/Test-Misns8CoopSourceParity.py
+          python Tools/MissionTests/Test-Misns8CoopContract.py
+          python Tools/UnitsAndBuildings/Test-SavFuryAssets.py
       - name: Test misns7 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Misns7Coop.lua
-          lua5.1 Tools/Test-Misns7Presentation.lua
-          python Tools/Test-Misns7CoopSourceParity.py
-          python Tools/Test-Misns7CoopContract.py
+          lua5.1 Tools/MissionTests/Test-Misns7Coop.lua
+          lua5.1 Tools/MissionTests/Test-Misns7Presentation.lua
+          python Tools/MissionTests/Test-Misns7CoopSourceParity.py
+          python Tools/MissionTests/Test-Misns7CoopContract.py
       - name: Test misns6 co-op layer and map contract
         run: |
-          lua5.1 Tools/Test-Misns6Coop.lua
-          python Tools/Test-Misns6CoopSourceParity.py
-          python Tools/Test-Misns6CoopContract.py
+          lua5.1 Tools/MissionTests/Test-Misns6Coop.lua
+          python Tools/MissionTests/Test-Misns6CoopSourceParity.py
+          python Tools/MissionTests/Test-Misns6CoopContract.py
       - name: Test misns4 co-op layer and map contract
         run: |
-          lua5.1 Tools/Test-Misns4Coop.lua
-          python Tools/Test-Misns4CoopSourceParity.py
-          python Tools/Test-Misns4CoopContract.py
+          lua5.1 Tools/MissionTests/Test-Misns4Coop.lua
+          python Tools/MissionTests/Test-Misns4CoopSourceParity.py
+          python Tools/MissionTests/Test-Misns4CoopContract.py
       - name: Test misns3 co-op layer and map contract
         run: |
-          lua5.1 Tools/Test-Misns3Coop.lua
-          python Tools/Test-Misns3CoopSourceParity.py
-          python Tools/Test-Misns3CoopContract.py
+          lua5.1 Tools/MissionTests/Test-Misns3Coop.lua
+          python Tools/MissionTests/Test-Misns3CoopSourceParity.py
+          python Tools/MissionTests/Test-Misns3CoopContract.py
       - name: Test misns5 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Misns5Coop.lua
-          lua5.1 Tools/Test-Misns5Presentation.lua
-          python Tools/Test-Misns5CoopSourceParity.py
-          python Tools/Test-Misns5CoopContract.py
+          lua5.1 Tools/MissionTests/Test-Misns5Coop.lua
+          lua5.1 Tools/MissionTests/Test-Misns5Presentation.lua
+          python Tools/MissionTests/Test-Misns5CoopSourceParity.py
+          python Tools/MissionTests/Test-Misns5CoopContract.py
       - name: Test bdmisn01 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Bdmisn01Coop.lua
-          lua5.1 Tools/Test-Bdmisn01Presentation.lua
-          lua5.1 Tools/Test-Bdmisn01DropIn.lua
-          python Tools/Test-Bdmisn01CoopSourceParity.py
-          python Tools/Test-Bdmisn01CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn01Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn01Presentation.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn01DropIn.lua
+          python Tools/CoopCampaignTests/Test-Bdmisn01CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Bdmisn01CoopContract.py
       - name: Test bdmisn02 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Bdmisn02Coop.lua
-          lua5.1 Tools/Test-Bdmisn02Presentation.lua
-          python Tools/Test-Bdmisn02CoopSourceParity.py
-          python Tools/Test-Bdmisn02CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn02Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn02Presentation.lua
+          python Tools/CoopCampaignTests/Test-Bdmisn02CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Bdmisn02CoopContract.py
       - name: Test bdmisn03 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Bdmisn03Coop.lua
-          lua5.1 Tools/Test-Bdmisn03Presentation.lua
-          python Tools/Test-Bdmisn03CoopSourceParity.py
-          python Tools/Test-Bdmisn03CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn03Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn03Presentation.lua
+          python Tools/CoopCampaignTests/Test-Bdmisn03CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Bdmisn03CoopContract.py
       - name: Test bdmisn05 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Bdmisn05Coop.lua
-          lua5.1 Tools/Test-Bdmisn05Presentation.lua
-          python Tools/Test-Bdmisn05CoopSourceParity.py
-          python Tools/Test-Bdmisn05CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn05Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn05Presentation.lua
+          python Tools/CoopCampaignTests/Test-Bdmisn05CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Bdmisn05CoopContract.py
       - name: Test bdmisn04 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Bdmisn04Coop.lua
-          lua5.1 Tools/Test-Bdmisn04Presentation.lua
-          python Tools/Test-Bdmisn04CoopSourceParity.py
-          python Tools/Test-Bdmisn04CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn04Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn04Presentation.lua
+          python Tools/CoopCampaignTests/Test-Bdmisn04CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Bdmisn04CoopContract.py
       - name: Test bdmisn07 co-op layer, and map contract
         run: |
-          lua5.1 Tools/Test-Bdmisn07Coop.lua
-          python Tools/Test-Bdmisn07CoopSourceParity.py
-          python Tools/Test-Bdmisn07CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn07Coop.lua
+          python Tools/CoopCampaignTests/Test-Bdmisn07CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Bdmisn07CoopContract.py
       - name: Test bdmisn08 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Bdmisn08Coop.lua
-          lua5.1 Tools/Test-Bdmisn08Presentation.lua
-          python Tools/Test-Bdmisn08CoopSourceParity.py
-          python Tools/Test-Bdmisn08CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn08Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn08Presentation.lua
+          python Tools/CoopCampaignTests/Test-Bdmisn08CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Bdmisn08CoopContract.py
       - name: Test bdmisn06 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Bdmisn06Coop.lua
-          lua5.1 Tools/Test-Bdmisn06Presentation.lua
-          python Tools/Test-Bdmisn06CoopSourceParity.py
-          python Tools/Test-Bdmisn06CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn06Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn06Presentation.lua
+          python Tools/CoopCampaignTests/Test-Bdmisn06CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Bdmisn06CoopContract.py
       - name: Test bdmisn10 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Bdmisn10Coop.lua
-          lua5.1 Tools/Test-Bdmisn10Presentation.lua
-          python Tools/Test-Bdmisn10CoopSourceParity.py
-          python Tools/Test-Bdmisn10CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn10Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn10Presentation.lua
+          python Tools/CoopCampaignTests/Test-Bdmisn10CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Bdmisn10CoopContract.py
       - name: Test bdmisn09 co-op layer, and map contract
         run: |
-          lua5.1 Tools/Test-Bdmisn09Coop.lua
-          python Tools/Test-Bdmisn09CoopSourceParity.py
-          python Tools/Test-Bdmisn09CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn09Coop.lua
+          python Tools/CoopCampaignTests/Test-Bdmisn09CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Bdmisn09CoopContract.py
       - name: Test bdmisn12 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Bdmisn12Coop.lua
-          lua5.1 Tools/Test-Bdmisn12Presentation.lua
-          python Tools/Test-Bdmisn12CoopSourceParity.py
-          python Tools/Test-Bdmisn12CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn12Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn12Presentation.lua
+          python Tools/CoopCampaignTests/Test-Bdmisn12CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Bdmisn12CoopContract.py
       - name: Test bdmisn11 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Bdmisn11Coop.lua
-          lua5.1 Tools/Test-Bdmisn11Presentation.lua
-          python Tools/Test-Bdmisn11CoopSourceParity.py
-          python Tools/Test-Bdmisn11CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn11Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn11Presentation.lua
+          python Tools/CoopCampaignTests/Test-Bdmisn11CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Bdmisn11CoopContract.py
       - name: Test bdmisn13 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Bdmisn13Coop.lua
-          lua5.1 Tools/Test-Bdmisn13Presentation.lua
-          python Tools/Test-Bdmisn13CoopSourceParity.py
-          python Tools/Test-Bdmisn13CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn13Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn13Presentation.lua
+          python Tools/CoopCampaignTests/Test-Bdmisn13CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Bdmisn13CoopContract.py
       - name: Test bdmisn14 co-op layer, and map contract
         run: |
-          lua5.1 Tools/Test-Bdmisn14Coop.lua
-          python Tools/Test-Bdmisn14CoopSourceParity.py
-          python Tools/Test-Bdmisn14CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn14Coop.lua
+          python Tools/CoopCampaignTests/Test-Bdmisn14CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Bdmisn14CoopContract.py
       - name: Test bdmisn15 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Bdmisn15Coop.lua
-          lua5.1 Tools/Test-Bdmisn15Presentation.lua
-          python Tools/Test-Bdmisn15CoopSourceParity.py
-          python Tools/Test-Bdmisn15CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn15Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Bdmisn15Presentation.lua
+          python Tools/CoopCampaignTests/Test-Bdmisn15CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Bdmisn15CoopContract.py
       - name: Test chmisn01 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Chmisn01Coop.lua
-          lua5.1 Tools/Test-Chmisn01Presentation.lua
-          lua5.1 Tools/Test-Chmisn01DropIn.lua
-          python Tools/Test-Chmisn01CoopSourceParity.py
-          python Tools/Test-Chmisn01CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn01Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn01Presentation.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn01DropIn.lua
+          python Tools/CoopCampaignTests/Test-Chmisn01CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Chmisn01CoopContract.py
       - name: Test chmisn02 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Chmisn02Coop.lua
-          lua5.1 Tools/Test-Chmisn02Presentation.lua
-          python Tools/Test-Chmisn02CoopSourceParity.py
-          python Tools/Test-Chmisn02CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn02Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn02Presentation.lua
+          python Tools/CoopCampaignTests/Test-Chmisn02CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Chmisn02CoopContract.py
       - name: Test chmisn03 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Chmisn03Coop.lua
-          lua5.1 Tools/Test-Chmisn03Presentation.lua
-          python Tools/Test-Chmisn03CoopSourceParity.py
-          python Tools/Test-Chmisn03CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn03Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn03Presentation.lua
+          python Tools/CoopCampaignTests/Test-Chmisn03CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Chmisn03CoopContract.py
       - name: Test chmisn04 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Chmisn04Coop.lua
-          lua5.1 Tools/Test-Chmisn04Presentation.lua
-          python Tools/Test-Chmisn04CoopSourceParity.py
-          python Tools/Test-Chmisn04CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn04Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn04Presentation.lua
+          python Tools/CoopCampaignTests/Test-Chmisn04CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Chmisn04CoopContract.py
       - name: Test chmisn05 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Chmisn05Coop.lua
-          lua5.1 Tools/Test-Chmisn05Presentation.lua
-          python Tools/Test-Chmisn05CoopSourceParity.py
-          python Tools/Test-Chmisn05CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn05Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn05Presentation.lua
+          python Tools/CoopCampaignTests/Test-Chmisn05CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Chmisn05CoopContract.py
       - name: Test chmisn06 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Chmisn06Coop.lua
-          lua5.1 Tools/Test-Chmisn06Presentation.lua
-          python Tools/Test-Chmisn06CoopSourceParity.py
-          python Tools/Test-Chmisn06CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn06Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn06Presentation.lua
+          python Tools/CoopCampaignTests/Test-Chmisn06CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Chmisn06CoopContract.py
       - name: Test chmisn07 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Chmisn07Coop.lua
-          lua5.1 Tools/Test-Chmisn07Presentation.lua
-          python Tools/Test-Chmisn07CoopSourceParity.py
-          python Tools/Test-Chmisn07CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn07Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn07Presentation.lua
+          python Tools/CoopCampaignTests/Test-Chmisn07CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Chmisn07CoopContract.py
       - name: Test chmisn08 co-op layer, presentation and map contract
         run: |
-          lua5.1 Tools/Test-Chmisn08Coop.lua
-          lua5.1 Tools/Test-Chmisn08Presentation.lua
-          python Tools/Test-Chmisn08CoopSourceParity.py
-          python Tools/Test-Chmisn08CoopContract.py
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn08Coop.lua
+          lua5.1 Tools/CoopCampaignTests/Test-Chmisn08Presentation.lua
+          python Tools/CoopCampaignTests/Test-Chmisn08CoopSourceParity.py
+          python Tools/CoopCampaignTests/Test-Chmisn08CoopContract.py
       - name: Test evolve DLL-source port and co-op layer, and map contract
         run: |
-          lua5.1 Tools/Test-Evolve.lua
-          lua5.1 Tools/Test-EvolveCoop.lua
-          python Tools/Test-EvolveCoopSourceParity.py
-          python Tools/Test-EvolveCoopContract.py
+          lua5.1 Tools/MissionTests/Test-Evolve.lua
+          lua5.1 Tools/MissionTests/Test-EvolveCoop.lua
+          python Tools/MissionTests/Test-EvolveCoopSourceParity.py
+          python Tools/MissionTests/Test-EvolveCoopContract.py

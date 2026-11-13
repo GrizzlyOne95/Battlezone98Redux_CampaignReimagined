@@ -17,4 +17,4 @@ serialization, and handle conversion remain here for reference; LuaMission's
 `Save`/`Load` replace them in the port.
 
 See `Docs/MISNS3_SOURCE_PORT.md` for fidelity decisions and validation. Run
-`python3 Tools/Test-Misns3SourceParity.py` to verify the original source hashes.
+`python3 Tools/MissionTests/Test-Misns3SourceParity.py` to verify the original source hashes.

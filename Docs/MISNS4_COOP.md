@@ -11,12 +11,12 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/misns4cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns4.lua` (`Tools/Test-Misns4CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restorations and the Io weather beats. |
+| `Scripts/misns4cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns4.lua` (`Tools/MissionTests/Test-Misns4CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restorations and the Io weather beats. |
 | `Scripts/CRCCARuntime.lua` | Shared co-op runtime, including the CCA mission's NSDF-to-Black-Dog ODF remap. |
 | `Scripts/CRIoWeather.lua`, `Scripts/CRIoSitesS4.lua` | Io weather and the generated lava pools (338) and vent sites for this map. |
 | `Missions/misns4cr.bzn` | Map roster; authored NSDF vehicles are switched to Black Dog ODFs while their labels stay intact. |
 | `Missions/misns4cr.vxt`, `misns4.{hg2,lgt,mat,trn}` | Terrain and map companions. |
-| `Tools/Misns4Fixture.lua`, `Test-Misns4Coop.lua`, `Test-Misns4CoopSourceParity.py`, `Test-Misns4CoopContract.py` | Multi-peer fixture and tests. `Test-Misns4.lua` / `Test-Misns4SourceParity.py` still cover the faithful port, unchanged. |
+| `Tools/MissionTests/Misns4Fixture.lua`, `Test-Misns4Coop.lua`, `Test-Misns4CoopSourceParity.py`, `Test-Misns4CoopContract.py` | Multi-peer fixture and tests. `Test-Misns4.lua` / `Test-Misns4SourceParity.py` still cover the faithful port, unchanged. |
 
 No cameras exist in this mission, so there is no presentation test.
 

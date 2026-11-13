@@ -94,8 +94,8 @@ comments as live Lua and falsely rejected its commented word `goto`.
 Run from the repository root:
 
 ```sh
-lua5.1 Tools/Test-Misn10.lua
-python Tools/Test-Misn10SourceParity.py
+lua5.1 Tools/MissionTests/Test-Misn10.lua
+python Tools/MissionTests/Test-Misn10SourceParity.py
 python Tools/Validate-CampaignRepository.py
 ```
 

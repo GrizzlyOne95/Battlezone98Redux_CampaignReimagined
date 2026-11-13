@@ -9,7 +9,7 @@ Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.m
 
 ## Map
 
-`Tools/Build-CoopMap.py --mission misn07` rebuilds `Missions/misn07.bzn` from
+`Tools/MissionBuild/Build-CoopMap.py --mission misn07` rebuilds `Missions/misn07.bzn` from
 the Battlezone 1.5 original (`stockfiles2\misn07.bzn`, binary version 1032,
 class `Misn07Mission`) exactly as for misn06 (see `MISN06_COOP.md`):
 `TerrainName = misn07`, class `MultSTMission`, the 48 authored CCA objects
@@ -56,7 +56,7 @@ guests WAIT for the real object (PR #186; there is no fallback aim):
 
 * An authored map object (`cam3`, the radar array, the `svpatrol*` fighters, the `pturret*`
   turrets) travels as `"@handle@label"`; the label is the primary key because every peer loads
-  the same BZN. `Tools/Test-CoopAuthoredLabels.py` checks each such label exists exactly once in
+  the same BZN. `Tools/MissionTests/Test-CoopAuthoredLabels.py` checks each such label exists exactly once in
   `Missions/misn07.bzn`.
 * A spawned object (the convoy tanks, the navs, Razor One and his vehicle, nav4/nav5 and the
   beacons, the test tank/turret, mines, prototypes, the Utah for the respawn rally) that has no
@@ -291,12 +291,12 @@ CR ships.
 ## Focused checks
 
 ```sh
-lua5.1 Tools/Test-Misn07.lua
-lua5.1 Tools/Test-Misn07Coop.lua
-lua5.1 Tools/Test-Misn07Presentation.lua
-python Tools/Test-Misn07SourceParity.py
-python Tools/Test-Misn07CoopContract.py
-python Tools/Test-SetupMissionShell.py
+lua5.1 Tools/MissionTests/Test-Misn07.lua
+lua5.1 Tools/MissionTests/Test-Misn07Coop.lua
+lua5.1 Tools/MissionTests/Test-Misn07Presentation.lua
+python Tools/MissionTests/Test-Misn07SourceParity.py
+python Tools/MissionTests/Test-Misn07CoopContract.py
+python Tools/MissionTests/Test-SetupMissionShell.py
 python Tools/Validate-CampaignRepository.py
 ```
 

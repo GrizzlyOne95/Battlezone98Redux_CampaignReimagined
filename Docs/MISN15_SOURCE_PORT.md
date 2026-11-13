@@ -86,8 +86,8 @@ the earlier relic-warning sketch, and the old briefing/proximity/spawn intervals
 Run from the repository root:
 
 ```sh
-lua5.1 Tools/Test-Misn15.lua
-python3 Tools/Test-Misn15SourceParity.py
+lua5.1 Tools/MissionTests/Test-Misn15.lua
+python3 Tools/MissionTests/Test-Misn15SourceParity.py
 ```
 
 The Lua 5.1 mock host passes **85 checks** covering startup/callback order, strict

@@ -11,6 +11,6 @@
     "trim": {"source": [813, 758, 1241, 1242], "target": [656, 656, 1016, 1016]}
   },
   "amberGlassRegions": [[55, 220, 100, 330], [382, 302, 413, 452], [220, 510, 248, 574], [454, 510, 486, 574], [745, 430, 795, 580], [825, 350, 880, 390], [900, 350, 930, 390]],
-  "geometry": "Tools/reddevilcockpit.py; authored in the captured POV frame",
+  "geometry": "Tools/CockpitsAndRigs/reddevilcockpit.py; authored in the captured POV frame",
   "selection": "bvrdev_cockpit.mesh via the engine's separate-cockpit lookup"
 }

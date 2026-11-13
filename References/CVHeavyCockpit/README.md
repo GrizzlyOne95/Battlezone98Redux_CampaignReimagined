@@ -48,10 +48,10 @@ uses 64-degree vertical FOV, 16:9 and actual exported/reloaded resources.
 ## Build, review and limits
 
 ```powershell
-python Tools/Build-CVHeavyCockpit.py
-python Tools/Test-CVHeavyCockpit.py
-python Tools/Test-CockpitSections.py
-python Tools/Test-CVFighterCockpit.py
+python Tools/CockpitsAndRigs/Build-CVHeavyCockpit.py
+python Tools/CockpitsAndRigs/Test-CVHeavyCockpit.py
+python Tools/CockpitsAndRigs/Test-CockpitSections.py
+python Tools/CockpitsAndRigs/Test-CVFighterCockpit.py
 python Tools/Validate-CampaignRepository.py
 ```
 

@@ -36,8 +36,8 @@ Native `activatePortal(portal, true)` and `isTouching` map to stock Redux
 Validation from the repository root:
 
 ```sh
-lua5.1 Tools/Test-BlackDog09.lua
-python3 Tools/Test-BlackDog09SourceParity.py
+lua5.1 Tools/CoopCampaignTests/Test-BlackDog09.lua
+python3 Tools/CoopCampaignTests/Test-BlackDog09SourceParity.py
 python3 Tools/Validate-CampaignRepository.py
 ```
 

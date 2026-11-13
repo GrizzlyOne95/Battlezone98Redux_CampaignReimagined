@@ -46,7 +46,7 @@ to each patch's emission, and LinearForce follows the live wind.
 
 ## Live lcbench controls
 
-Deploy `Tools/lcbench-venus.lua` as `addon/lcbench/lcbench.lua`. It initializes
+Deploy `Tools/UnitsAndBuildings/lcbench-venus.lua` as `addon/lcbench/lcbench.lua`. It initializes
 `Environment` before `CRWeather`, preserving Environment as the only renderer
 atmosphere writer.
 
@@ -66,7 +66,7 @@ average/max weight, center depth, and center slope.
 
 ## Smallest in-game check
 
-1. Deploy Campaign Reimagined to GOG and copy `Tools/lcbench-venus.lua` over
+1. Deploy Campaign Reimagined to GOG and copy `Tools/UnitsAndBuildings/lcbench-venus.lua` over
    `addon/lcbench/lcbench.lua`.
 2. Launch `battlezone98redux.exe lcbench.bzn`. Confirm the map's original
    distance fog remains while olive cards stay close to sampled ground.
@@ -75,4 +75,4 @@ average/max weight, center depth, and center slope.
    wait one second, and confirm haze is destroyed without any fog or lighting
    change.
 
-Host regression coverage is in `Tools/Test-CRVenusDenseAtmosphere.lua`.
+Host regression coverage is in `Tools/TexturesAndSky/Test-CRVenusDenseAtmosphere.lua`.

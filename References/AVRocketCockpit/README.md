@@ -56,10 +56,10 @@ avrckt D/N/S/E for the lower nose. No duplicated exterior texture set is shipped
 ## Rebuild and checks
 
 ```text
-python Tools/Build-AVRocketCockpit.py --game <BZR root>
-python Tools/Test-AVRocketCockpit.py
-python Tools/Test-CVFighterCockpit.py
-python Tools/Test-RedDevilCockpit.py
+python Tools/CockpitsAndRigs/Build-AVRocketCockpit.py --game <BZR root>
+python Tools/CockpitsAndRigs/Test-AVRocketCockpit.py
+python Tools/CockpitsAndRigs/Test-CVFighterCockpit.py
+python Tools/CockpitsAndRigs/Test-RedDevilCockpit.py
 python Tools/Validate-CampaignRepository.py
 ```
 

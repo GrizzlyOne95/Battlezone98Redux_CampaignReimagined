@@ -7,7 +7,7 @@ Forest Tree Pack** by **99.Miles**.
 - Source: <https://sketchfab.com/3d-models/low-poly-forest-tree-pack-5ff5a51e74324845a4e4905f182dfb2b>
 - Licence: **Creative Commons Attribution 4.0 International** (CC-BY-4.0),
   <http://creativecommons.org/licenses/by/4.0/>. The licence and author are also
-  recorded in the GLB's own `asset.extras`, which `Tools/Build-Misn17Forest.py`
+  recorded in the GLB's own `asset.extras`, which `Tools/MissionBuild/Build-Misn17Forest.py`
   checks before it builds anything.
 - Source file: `low_poly_forest_tree_pack.glb`, SHA-256
   `0e45ebd11053f28561201ccfcc6d0771e2dd1a60c38ae47942fadbd0cf09915b`.
@@ -18,7 +18,7 @@ derivatives to use the same licence; CR's adaptations keep this attribution.
 
 ## Changes made
 
-`Tools/Build-Misn17Forest.py` produces every derived file from the GLB. The
+`Tools/MissionBuild/Build-Misn17Forest.py` produces every derived file from the GLB. The
 changes are:
 
 - **Split.** Four trees and the rock set were taken out of the single pack scene
@@ -28,7 +28,7 @@ changes are:
   a target height of 58, 46, 52 or 40 m. Rocks are scaled per placement.
 - **Engine data added.** Each tree gained a one-bone skeleton, an SDF, a trunk
   prism collision GEO (written through the shared toolbox and toolkit), and a
-  wind-sway vertex stream from `Tools/Bake-FoliageSway.py`.
+  wind-sway vertex stream from `Tools/MissionBuild/Bake-FoliageSway.py`.
 - **Textures re-encoded.** Base colour was re-encoded to DXT1 or DXT5 with mips.
   Rock normals were halved to 512 px.
 - **Normals converted.** The glTF normal maps (OpenGL, +Y) had their green
@@ -54,7 +54,7 @@ consumed and every texture written.
 The tree geometry, UVs, branch cards and attribution above are unchanged. The
 two trunk sets now use built-in ImageGen colour/height masters in
 `References/TextureRevamp`, authored against the original bark species/palettes.
-`Tools/Build-TextureRevamp.py` compiles their DDS, derives restrained DirectX RGB
+`Tools/TexturesAndSky/Build-TextureRevamp.py` compiles their DDS, derives restrained DirectX RGB
 normals from the separate height masters and uses a quiet non-metallic specular
 response. The forest builder reapplies those six reviewed maps after rebuilding
 the original pack assets, so regeneration does not discard the art pass.
@@ -72,7 +72,7 @@ written as an unskinned mesh with the material `CR17/Ice`. Its UVs, triangles an
 the textures are unchanged.
 
 The trees' zero-damage hit and death explosions (`ODF/xc17{j,f,b}{hit,die}.odf`)
-follow ISDFC's `xpltrhit` / `xpltree`, written by `Tools/Build-C17TreeDebris.py`.
+follow ISDFC's `xpltrhit` / `xpltree`, written by `Tools/UnitsAndBuildings/Build-C17TreeDebris.py`.
 Their debris sprites are cut the ISDFC way from the textures each tree wears:
 `cr17_dleaf`, `cr17_dkelp` and `cr17_dbark` reproduce ISDFC's `pdleafr`, `pdkelp`
 and `pdbark` pixel for pixel (the jungle trees wear the same atlas and bark);
@@ -87,7 +87,7 @@ copy. ISDFC was read only, never modified.
 ## Achilles flowers, ferns and grasses (botanical plates)
 
 The `cr17_fl_*` cards are cut out of public-domain botanical plates and one CC0
-texture by `Tools/Build-Misn17Flowers.py`. Each licence was read from the Wikimedia
+texture by `Tools/MissionBuild/Build-Misn17Flowers.py`. Each licence was read from the Wikimedia
 Commons file page (`LicenseShortName`) or from ambientCG before the file was used.
 The raw plates are not in the repository. The build script pins each plate's
 SHA-256 and refuses to run on a different file.
@@ -135,8 +135,8 @@ rectangles and the mesh hashes.
 
 The project owner generated four images with an image model (prompts in
 `References/TextureRevamp/map-prompts.json`, originals in
-`References/TextureRevamp/raw/*_gen.jpg`). `Tools/Prep-Misn17GenTextures.py`
-turns them into TextureRevamp masters; `Tools/Build-TextureRevamp.py` compiles
+`References/TextureRevamp/raw/*_gen.jpg`). `Tools/TexturesAndSky/Prep-Misn17GenTextures.py`
+turns them into TextureRevamp masters; `Tools/TexturesAndSky/Build-TextureRevamp.py` compiles
 them. Meshes and UVs are unchanged.
 
 - **Rock (`cr17_frock*`, 2048^2).** The rock image is made seamless and

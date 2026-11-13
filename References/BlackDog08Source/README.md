@@ -31,8 +31,8 @@ two original fifteen-second timers. It does not change shipped gameplay.
 Run from the repository root:
 
 ```sh
-lua5.1 Tools/Test-BlackDog08.lua
-python Tools/Test-BlackDog08SourceParity.py
+lua5.1 Tools/CoopCampaignTests/Test-BlackDog08.lua
+python Tools/CoopCampaignTests/Test-BlackDog08SourceParity.py
 ```
 
 This change supplies a reviewable source port. Mission map bindings, shipping

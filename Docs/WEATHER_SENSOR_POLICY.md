@@ -70,7 +70,7 @@ The policy covers every currently weather-enabled mission, 02b through 14.
 
 ## Validation and remaining checks
 
-Tools/Test-WeatherSensors.lua executes the real Environment with the real planet
+Tools/TexturesAndSky/Test-WeatherSensors.lua executes the real Environment with the real planet
 severity/glow getters. It checks clear/half/full severity, player and AI ownership,
 co-op replica isolation, quality independence, disabled/shutdown/fault recovery,
 noncompounding baselines, night composition and sweep restoration. The existing

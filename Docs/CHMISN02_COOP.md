@@ -12,10 +12,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/ch02cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch02.lua` (`Tools/Test-Chmisn02CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the co-op fixes, the restorations and the Ganymede weather. The body is not edited at all. |
+| `Scripts/ch02cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch02.lua` (`Tools/CoopCampaignTests/Test-Chmisn02CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the co-op fixes, the restorations and the Ganymede weather. The body is not edited at all. |
 | `Scripts/CRGanymedeSitesCH02.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather: the generated sites for this map (seven vents, the first beside the armoury) and the shared icy-moon director (no new module). |
 | `Missions/ch02cr.{bzn,vxt}`, `chmisn02.{hg2,lgt,mat,trn}`, `Config/ch02cr.ini`, `Config/crch.ini` | Map and companions (not part of this change). The enemy was moved from team 2 to team 5 on the map; the guests start at the `coop_spawn1..4` buoys on teams 1-4. |
-| `Tools/Chmisn02Fixture.lua`, `Test-Chmisn02Coop.lua`, `Test-Chmisn02Presentation.lua`, `Test-Chmisn02CoopSourceParity.py`, `Test-Chmisn02CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/test_ch02.py` still covers the faithful port, unchanged. |
+| `Tools/CoopCampaignTests/Chmisn02Fixture.lua`, `Test-Chmisn02Coop.lua`, `Test-Chmisn02Presentation.lua`, `Test-Chmisn02CoopSourceParity.py`, `Test-Chmisn02CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/CoopCampaignTests/test_ch02.py` still covers the faithful port, unchanged. |
 
 The CR regions, in file order:
 
@@ -199,11 +199,11 @@ Beats (host/offline only, each once, tied to the story; a site list with fewer v
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Chmisn02Coop.lua            # offline == faithful, 1-4 peers, scaling, 300 m, fallback, cameras, results, restorations, weather
-lua5.1 Tools/Test-Chmisn02Presentation.lua    # E/A/C protocol on a guest
-python Tools/Test-Chmisn02CoopSourceParity.py # ch02cr.lua minus CR regions == ch02.lua
-python Tools/Test-Chmisn02CoopContract.py     # labels/paths/teams/flight time in ch02cr.bzn (skips with a message if the map is absent; ini/vxt/mpdes only when present)
-python Tools/test_ch02.py                     # the faithful port, unchanged (needs lupa)
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn02Coop.lua            # offline == faithful, 1-4 peers, scaling, 300 m, fallback, cameras, results, restorations, weather
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn02Presentation.lua    # E/A/C protocol on a guest
+python Tools/CoopCampaignTests/Test-Chmisn02CoopSourceParity.py # ch02cr.lua minus CR regions == ch02.lua
+python Tools/CoopCampaignTests/Test-Chmisn02CoopContract.py     # labels/paths/teams/flight time in ch02cr.bzn (skips with a message if the map is absent; ini/vxt/mpdes only when present)
+python Tools/CoopCampaignTests/test_ch02.py                     # the faithful port, unchanged (needs lupa)
 ```
 
 ## Inferences and open questions

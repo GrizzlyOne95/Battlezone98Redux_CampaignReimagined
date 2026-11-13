@@ -1,0 +1,482 @@
+-- The real co-op registry loads shared Lua helpers through require().
+package.path = "Scripts/?.lua;" .. package.path
+-- Execute the complete mission with separate Lua 5.1 environments and the real
+-- CRCoop registry. Engine/network mocks verify script decisions, not Redux
+-- native map loading, physics, pathfinding, Lua wire serialization, or EXU hooks.
+-- Peer replicas and the BZRNet envelope are separate: missing object handles
+-- cannot become valid merely because a mission message reached a client.
+local PeerTransport = dofile("Tools/RuntimeTests/BZRPeerTransportSim.lua")
+local transport, reliableSend = nil, false
+local births = {}
+local function copy(object)
+    local result = {}; for k, v in pairs(object) do result[k] = v end; return result
+end
+local checks = 0
+local function check(value, message)
+    assert(value, message)
+    checks = checks + 1
+end
+local now, objects, peers, packets, nextObject = 0, {}, {}, {}, 0
+local labels = { "fake_player", "avland0_wingman", "sscr_171_scrap", "abcomm1_i76building",
+    "avrecy-1_recycler", "apscrap-1_camerapod", "sscr_176_scrap", "apbase-1_camerapod", "asuser0_person" }
+local distances = {}
+local function reset()
+    now, objects, peers, packets, nextObject = 0, {}, {}, {}, 0
+    distances, births = {}, {}
+    transport = PeerTransport.New(function(packet)
+        if peers[packet.to] then
+            peers[packet.to].env.Receive(packet.from, packet.kind, unpack(packet.args))
+        end
+    end)
+    for _, label in ipairs(labels) do
+        objects[label] = { alive = true, team = label:find("^sv") and 5 or 1,
+            odf = label, health = 1000, maxHealth = 1000, deployed = false }
+    end
+end
+local function count(peer, name)
+    local n = 0
+    for _, c in ipairs(peer.calls) do if c[1] == name then n = n + 1 end end
+    return n
+end
+local function last(peer, name)
+    for i = #peer.calls, 1, -1 do if peer.calls[i][1] == name then return peer.calls[i] end end
+end
+local function makePeer(id, team, network)
+    local p = { id = id, team = team, net = network, hosting = team == 1,
+        calls = {}, difficulty = team == 1 and 3 or 0, player = "player" .. id }
+    peers[id] = p
+    objects[p.player] = { alive = true, team = team, odf = "avtank", health = 1000, maxHealth = 1000 }
+    p.view = (not network or team == 1) and objects or {}
+    for _, other in pairs(peers) do
+        for h, object in pairs(objects) do other.view[h] = copy(object) end
+    end
+    local view = p.view
+    local function record(name, ...)
+        p.calls[#p.calls + 1] = { name, ... }
+    end
+    local e = setmetatable({}, { __index = _G })
+    e._G = e
+    p.printed = {}
+    e.print = function(...) p.printed[#p.printed + 1] = table.concat({ ... }, " ") end
+    e.IsNetGame = function() return p.net end
+    e.IsHosting = function() return p.hosting end
+    e.GetTime = function() return now end
+    e.GetPlayerHandle = function(remote)
+        check(remote == nil, "remote GetPlayerHandle(team) must never be used")
+        return p.player
+    end
+    e.SetLabel = function(h, l) record("SetLabel", h, l) end
+    e.GetHandle = function(label) return view[label] and label end
+    e.IsValid = function(h) return view[h] ~= nil and view[h].alive end
+    e.IsAlive = e.IsValid
+    e.IsCraft = function(h) return e.IsValid(h) and not tostring(h):find("solar") end
+    e.IsLocal = function(h) return view[h] and (view[h].team == team or (team == 1 and view[h].team >= 5)) end
+    e.IsPerson = function(h) return view[h] and view[h].odf == "aspilo" end
+    e.IsAudioMessageDone = function() return p.audioDone == true end
+    e.GetLastEnemyShot = function() return p.shot or 0 end
+    e.GetOdf = function(h) return view[h] and view[h].odf end
+    e.SetTeamNum = function(h, t) record("SetTeamNum", h, t); view[h].team = t end
+    e.IsOdf = function(h, odf) return view[h] and view[h].odf == odf end
+    e.GetTeamNum = function(h) return view[h] and view[h].team or 0 end
+    e.GetHealth = function(h) return view[h].health / view[h].maxHealth end
+    e.GetMaxHealth = function(h) return view[h].maxHealth end
+    e.SetMaxHealth = function(h, value) record("SetMaxHealth", h, value); view[h].maxHealth = value end
+    e.SetCurHealth = function(h, value) record("SetCurHealth", h, value); view[h].health = value end
+    e.IsDeployed = function(h) return view[h] and view[h].deployed end
+    e.GetDistance = function(a, b)
+        if tostring(a):find("player") and b == "launch_pad" then
+            for _, human in pairs(peers) do
+                if human.player == a then return human.nearLaunch and 20 or 1000 end
+            end
+        end
+        if tostring(a):find("built") and b == "launch_pad" then return 20 end
+        return distances[tostring(a) .. ":" .. tostring(b)] or 1000
+    end
+    e.GetPosition = function(h) return { x = 0, y = 0, z = 0 } end
+    e.GetPositionNear = function(pos) return pos end
+    e.GetVelocity = function() return { x = 0, y = 0, z = 0 } end
+    e.CountUnitsNearObject = function(target, distance, objectTeam, odf)
+        local n = 0
+        for h, object in pairs(view) do
+            if object.alive and object.team == objectTeam and object.odf == odf and
+                e.GetDistance(h, target) < distance then n = n + 1 end
+        end
+        return n
+    end
+    local function iterator()
+        local key
+        return function()
+            key = next(view, key)
+            while key and not view[key].alive do key = next(view, key) end
+            return key
+        end
+    end
+    e.AllCraft, e.AllObjects = iterator, iterator
+    e.BuildObject = function(odf, objectTeam, pos)
+        nextObject = nextObject + 1
+        local h = "built" .. nextObject
+        view[h] = { alive = true, team = objectTeam, odf = odf, health = 1000, maxHealth = 1000 }
+        births[h] = now + 0.8
+        record("BuildObject", h, odf, objectTeam)
+        e.AddObject(h)
+        return h
+    end
+    e.RemoveObject = function(h) record("RemoveObject", h); if view[h] then view[h].alive = false end end
+    e.CameraCancelled = function() return p.skip == true end
+    e.CameraReady = function() record("CameraReady"); p.skip = false end
+    e.CameraFinish = function() record("CameraFinish") end
+    e.Send = function(to, kind, ...)
+        for i = 1, select("#", ...) do local v = select(i, ...); assert(type(v) ~= "string" or #v <= 127, "Send string over 127 bytes on " .. tostring(kind)) end
+        local args = { ... }
+        -- Conservative payload estimate: doubles plus per-field type tags;
+        -- strings include terminators. Actual handle encoding is smaller.
+        local bytes = 4
+        for _, value in ipairs(args) do bytes = bytes + (type(value) == "string" and #value + 2 or 9) end
+        check(bytes < 244, "mission packet exceeds stock payload budget: " .. kind)
+        for target, peer in pairs(peers) do
+            if target ~= id and (to == 0 or to == nil or target == to) then
+                transport:Send(id, target, kind, args, reliableSend)
+            end
+        end
+    end
+    for _, name in ipairs({ "Attack", "Goto", "Hunt", "Retreat", "Follow", "Defend", "Defend2", "Patrol",
+        "AddHealth", "Damage", "SetCommand", "SetCritical", "SetPathLoop", "SetVelocity",
+        "SetPosition", "SetLabel", "SetIndependence", "SetAIP", "SetAIControl", "MakeExplosion", "SetWeaponMask", "SetScrap", "SetPilot", "SetObjectiveName", "SetObjectiveOn",
+        "SetObjectiveOff", "SetUserTarget", "ClearObjectives", "AddObjective", "UpdateObjective",
+        "CameraPath", "StartSound", "DisplayMessage", "Ally", "UnAlly", "FailMission", "SucceedMission" }) do
+        local n = name
+        e[n] = function(...)
+            if n == "SetObjectiveOn" or n == "SetObjectiveName" or n == "SetUserTarget" then
+                check(e.IsValid((...)), "presentation used a not-yet-replicated handle")
+            end
+            record(n, ...)
+        end
+    end
+    e.AiCommand = { NONE = 0, UNDEPLOY = 21 }
+    e.GetCurrentCommand = function() return e.AiCommand.NONE end
+    local function noop() end
+    local aiTeam = { SetConfig = noop }
+    local ai = { ResetObjectCacheTracking = noop, TrackWorldObject = noop, RefreshObjectCache = noop,
+        AddObject = function(h)
+            check(e.IsLocal(h) and not p.coop.IsHumanCraft(h), "aiCore registered remote/human craft")
+            record("aiAdd", h)
+        end, Factions = { NSDF = 1, CCA = 2 }, Bootstrap = noop,
+        AddSpecialObject = function(h) record("AddSpecialObject", h) end,
+        Update = function() record("aiUpdate") end, Save = function() return {} end, Load = noop }
+    local pilot = { Initialize = function(options) p.pilotOptions = options end,
+        AddObject = function(h) record("PilotAdd", h) end, Save = function() return {} end,
+        Update = function() record("pilotUpdate") end }
+    local subtitles = { Play = function(file) record("Play", file); return file end,
+        Queue = function(file) record("Queue", file) end, Stop = function() record("Stop") end,
+        Update = function() record("subtitlesUpdate") end, Initialize = noop }
+    -- CR Moon weather: the real director has its own suite (Test-CRMoonWeather.lua); this records the wiring.
+    p.moon = {updates = 0, announces = 0, shutdowns = 0, events = {}}
+    local moonModules = {
+        CRMoonWeather = {
+            Init = function(options) p.moon.init = options end,
+            Update = function() p.moon.updates = p.moon.updates + 1 end,
+            Shutdown = function() p.moon.shutdowns = p.moon.shutdowns + 1 end, OnObjectCreated = noop,
+            Save = function() return {saved = true} end, Load = function(state) p.moon.loaded = state end,
+            AnnounceState = function() p.moon.announces = p.moon.announces + 1 end,
+            ApplyNetEvent = function(op, ...) p.moon.events[#p.moon.events + 1] = {op, ...}; return true end,
+            Seed = 4242,
+        },
+        CRMoonSites02b = {mission = "misn02b"},
+    }
+    local modules = {
+        Environment = { Init = function(options) p.environmentOptions = options end,
+            BindWeatherSensors = function(name, director) p.weatherSensors = {name, director} end,
+            InvalidateRenderer = function() record("environmentInvalidate") end,
+            Update = function() record("environmentUpdate") end },
+        RequireFix = { Initialize = noop }, exu = {
+            GetMyNetID = function() return id end, GetDifficulty = function() return p.difficulty end,
+            SetDifficulty = function(d) p.difficulty = d end,
+            DisableStartingRecycler = function() record("DisableStartingRecycler") end,
+            SetLives = function(lives) record("SetLives", lives) end,
+        }, aiCore = ai, PlayerPilotMode = pilot, ScriptSubtitles = subtitles,
+        TerrainClutter = { BuildLayer = function() record("clutter") end },
+        DiffUtils = { SetupTeams = function() return aiTeam, aiTeam end,
+            Get = function() return { res = 1, index = p.difficulty } end, ScaleEnemy = function(n) return n end, ScaleRes = function(n) return n end,
+            ScaleTimer = function(n) return n end },
+        PersistentConfig = { Settings = {}, Initialize = noop, UpdateInputs = noop,
+            UpdateHeadlights = noop },
+    }
+    for k, v in pairs(moonModules) do modules[k] = v end
+    modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.CRWire = assert(loadfile("Scripts/CRWire.lua"))()
+    modules.CRCoopRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
+    e.package = setmetatable({loaded={exu=modules.exu}}, {__index=package})
+    modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
+    e.require = function(name) return assert(modules[name], name) end
+    setfenv(assert(loadfile("Scripts/misn2bcr.lua")), e)()
+    p.env, p.coop = e, modules.CRCoop
+    p.env.Start()
+    p.state = p.env.Save()
+    return p
+end
+local function replicate()
+    for _, peer in pairs(peers) do
+        if peer.view ~= objects then
+            for h, object in pairs(objects) do
+                if not births[h] or now >= births[h] then peer.view[h] = copy(object) end
+            end
+        end
+    end
+end
+local function tick(seconds, reverse, drop)
+    now = now + seconds
+    replicate()
+    for _, p in pairs(peers) do p.env.Update() end
+    transport:Step(now, reverse, drop)
+end
+local function settle()
+    for i = 1, 30 do tick(0.1) end
+end
+local function registerAll()
+    for _, p in pairs(peers) do
+        for id, other in pairs(peers) do p.env.CreatePlayer(id, "P" .. id, other.team) end
+    end
+end
+
+-- Four peers: only the leader simulates; ordered HUD/audio survives loss.
+for _, mode in ipairs({ false, true }) do
+reliableSend = mode
+reset()
+local host = makePeer(10, 1, true)
+local clients = { makePeer(20, 2, true), makePeer(30, 3, true), makePeer(40, 4, true) }
+registerAll()
+for i = 1, 30 do tick(0.1, not mode or i < 8, function(packet) return i < 8 and (packet.kind == "E" or packet.kind == "A") end) end
+settle()
+check(host.state.start_done and host.state.camera1, "leader opening did not run")
+-- CR Moon weather: the leader runs the director on the map data, guests follow the ordered stream.
+check(host.moon.init.authority and host.moon.init.sites.mission == "misn02b", "the leader runs the Moon weather director on the misn02b sites")
+check(host.environmentOptions.lightingMode == "subtle" and host.environmentOptions.nativeBaseline,
+    "Moon lighting uses bounded native-baseline TOD")
+check(host.weatherSensors and host.weatherSensors[1] == "Moon" and host.weatherSensors[2].Seed == 4242,
+    "Moon weather director is bound to Environment sensors")
+check(count(host, "environmentUpdate") > 0, "Moon updates Environment alongside weather")
+for _, c in ipairs(clients) do
+    check(not c.moon.init.authority and c.moon.init.seed == nil, "guests run the director from the host's events")
+    check(c.moon.updates > 0, "guests update the Moon weather every frame")
+end
+check(host.moon.announces == 1 and host.moon.init.send ~= nil and host.moon.updates > 0, "the leader announces the weather state once the session is ready")
+host.moon.init.send("MoonGlow", 1, 0.8, 60.0)
+tick(0.1); settle()
+for _, c in ipairs(clients) do
+    local glows, state = 0, 0
+    for _, e in ipairs(c.moon.events) do
+        if e[1] == "MoonGlow" and e[2] == 1 and e[3] == 0.8 and e[4] == 60.0 then glows = glows + 1 end
+        if e[1] == "MoonState" then state = state + 1 end
+    end
+    check(glows == 1, "a scripted glow reaches each guest exactly once")
+    check(state <= 1, "a MoonState rides the same ordered stream without duplicating")
+end
+check(#host.moon.events == 0, "the leader never applies its own weather events twice")
+for _, c in ipairs(clients) do
+    check(not c.state.start_done and count(c, "BuildObject") == 0 and count(c, "aiUpdate") == 0, "client ran simulation")
+    check(count(c, "Play") == 1 and c.difficulty == 3, "opening/difficulty lost or duplicated")
+    check(last(c, "SetScrap")[2] == c.team and count(c, "SetScrap") == 1, "resources not owner-local")
+    check(count(c, "CameraPath") > 0 and count(c, "clutter") == 1, "client presentation missing")
+    check(count(c, "DisableStartingRecycler") == 1 and last(c, "SetLives")[2] == 999, "native co-op hooks absent")
+end
+check(not host.pilotOptions.shouldManageHandle(clients[1].player), "pilot mode claimed human")
+clients[1].skip = true; host.skip = true; tick(0.1); settle()
+check(host.state.camera1 and count(clients[1], "CameraFinish") > 0, "local skip advanced shared intro")
+host.audioDone = true; tick(0.1); settle()
+check(not host.state.camera3, "shared intro gate stuck")
+for _, c in ipairs(clients) do check(count(c, "Play") == 2 and count(c, "AddObjective") >= 1 and count(c, "UpdateObjective") == 0, "post-intro HUD/audio missing, or the objective turned green before the scavenger (stock never does)") end
+
+-- Build the first scavenger, activate the staged enemy, retreat and rescue.
+local scav = host.env.BuildObject("avscav", 1, "start")
+distances["sscr_171_scrap:" .. scav] = 50
+host.audioDone = false; tick(0.1); settle()
+check(host.state.patrol1 and host.state.found2, "staged fighter did not activate")
+check(objects[host.state.bscout].team == 6, "enemy occupies a human team")
+tick(2.5); settle()
+check(last(host, "Hunt") and last(host, "Hunt")[2] == host.state.bscout, "first fighter does not hunt once patrol1 is done")
+distances[scav .. ":sscr_176_scrap"] = 100
+host.shot = 1; tick(0.1); settle()
+check(host.state.message2, "retreat did not trigger")
+distances["abcomm1_i76building:" .. scav] = 100
+tick(0.1); settle()
+check(host.state.message3 and host.state.scav2, "rescue did not spawn scavenger")
+for _, c in ipairs(clients) do check(last(c, "SetObjectiveOn")[2] == host.state.scav2, "rescued marker not replicated") end
+
+-- A leader death follows native respawn instead of losing the convoy.
+objects[host.player].alive = false
+host.player = "respawn10"
+objects[host.player] = { alive = true, team = 1, odf = "aspilo", health = 1000, maxHealth = 1000 }
+settle(); check(not host.state.mission_lost, "respawn lost the mission")
+check(host.coop.IsHumanCraft(host.player), "respawn handle not refreshed")
+-- The returned convoy wins, preserving the authored debrief on every peer.
+distances["abcomm1_i76building:" .. host.state.scav2] = 100
+host.audioDone = true; tick(0.1)
+for i = 1, 70 do tick(0.1, not mode or i < 4, function(packet) return i < 4 and packet.kind == "E" end) end
+check(count(host, "SucceedMission") == 1, "leader success missing/duplicated")
+for _, c in ipairs(clients) do check(count(c, "SucceedMission") == 1 and last(c, "SucceedMission")[3] == "misn02w1.des", "peer success debrief missing") end
+
+check(host.view ~= clients[1].view, "peers share native world tables")
+check(transport.delivered > 0, "peer transport unused")
+if reliableSend then check(transport.rejected > 0 and transport.retries > 0, "reliable ordering/loss not exercised") end
+end
+reliableSend = false
+
+-- Loss and terminal latch: base destruction can't become rescue/victory.
+reset(); local host = makePeer(10, 1, true); local client = makePeer(20, 2, true)
+registerAll(); settle(); host.audioDone = true
+objects["avrecy-1_recycler"].alive = false
+tick(0.1); settle(); settle()
+check(count(host, "FailMission") == 1 and count(client, "FailMission") == 1, "replicated loss missing")
+check(last(client, "FailMission")[3] == "misn02l1.des" and count(client, "SucceedMission") == 0, "loss became win")
+
+-- Offline retains positioning, intro skips, save/load and player-death failure.
+reset(); local solo = makePeer(10, 1, false)
+tick(0.1)
+check(solo.state.camera1 and count(solo, "SetPosition") == 1, "offline startup changed")
+check(count(solo, "DisableStartingRecycler") == 0 and #packets == 0, "offline used network")
+solo.skip = true; tick(0.1)
+check(not solo.state.camera3 and solo.state.intro_skipped, "offline skip changed")
+local saved = solo.env.Save(); local savedWeather = saved.moonWeatherState
+solo.env.Load(saved, {}, {}); now = now + 3; solo.env.Update()
+-- CR Moon weather offline: the host path with nothing sent, and its state survives Save.
+check(solo.moon.init.authority and solo.moon.init.send == nil and solo.moon.announces == 0
+    and solo.moon.init.sites.mission == "misn02b", "offline Moon weather is the host path with nothing sent")
+check(solo.moon.updates > 0 and savedWeather and solo.moon.loaded == savedWeather,
+    "Moon weather state is restored through the deferred init path")
+check(count(solo,"environmentInvalidate")>0,"load invalidates cached renderer writes")
+check(solo.state.loading_done and count(solo, "clutter") == 2, "offline load did not rehydrate")
+solo.env.BuildObject("avscav", 1, "start"); objects[solo.player].alive = false
+solo.audioDone = true; tick(0.1)
+check(solo.state.mission_lost and last(solo, "FailMission")[3] == "misn02l1.des", "offline player death changed")
+
+-- Guest departure releases readiness; leader migration ends the mission.
+reset(); host = makePeer(10, 1, true); client = makePeer(20, 2, true)
+registerAll(); settle(); host.env.DeletePlayer(20, "Guest", 2); peers[20] = nil
+check(host.coop.IsSessionReady(), "departed guest blocked readiness")
+reset(); host = makePeer(10, 1, true); client = makePeer(20, 2, true)
+registerAll(); settle(); client.env.DeletePlayer(10, "Host", 1); client.hosting = true; client.env.Update()
+check(not client.coop.IsAuthority() and count(client, "FailMission") == 1, "host migration inherited simulation")
+
+-- Late join halts progression rather than running an unreconciled world.
+reset(); host = makePeer(10, 1, true); client = makePeer(20, 2, true)
+registerAll(); settle(); local builds = count(host, "BuildObject")
+local late = makePeer(30, 3, true)
+for _, p in pairs(peers) do p.env.CreatePlayer(30, "Late", 3) end
+late.env.CreatePlayer(10, "Host", 1); late.env.CreatePlayer(20, "Guest", 2)
+settle(); check(count(host, "BuildObject") == builds and count(host, "DisplayMessage") == 1, "late join progressed")
+-- A map object the engine cannot carry as a handle goes by "@label" and resolves via the
+-- guest's GetHandle. The wait is relative to the guest's own clock (no leader-clock
+-- comparison), a late-resolving label still lands in order, and one that never resolves
+-- drops after the guest's own ttl without blocking the stream.
+reset(); host = makePeer(10, 1, true); client = makePeer(20, 2, true)
+registerAll()
+local labelSeq = 1 -- fresh guest, nothing ticked: the stream starts at 1
+local markers, clears = count(client, "SetObjectiveOn"), count(client, "ClearObjectives")
+now = now + 1000 -- guest clock nowhere near any leader deadline
+client.env.Receive(10, "E", labelSeq, "SetObjectiveOn", 5, "@900@late_geyser")
+client.env.Receive(10, "E", labelSeq + 1, "ClearObjectives", 5)
+check(count(client, "SetObjectiveOn") == markers and count(client, "ClearObjectives") == clears,
+    "an unresolved label must hold the ordered stream")
+now = now + 3
+client.view.late_geyser = { alive = true, team = 0, odf = "eggeizr1", health = 1, maxHealth = 1 }
+client.env.Receive(10, "E", labelSeq, "SetObjectiveOn", 5, "@900@late_geyser")
+client.env.Receive(10, "E", labelSeq + 1, "ClearObjectives", 5)
+check(count(client, "SetObjectiveOn") == markers + 1 and last(client, "SetObjectiveOn")[2] == "late_geyser" and
+    count(client, "ClearObjectives") == clears + 1, "a late-resolving label marker must land, then the next event")
+client.env.Receive(10, "E", labelSeq + 2, "SetObjectiveOn", 5, "@901@never_exists")
+client.env.Receive(10, "E", labelSeq + 3, "ClearObjectives", 5)
+now = now + 5.5
+client.env.Receive(10, "E", labelSeq + 2, "SetObjectiveOn", 5, "@901@never_exists")
+client.env.Receive(10, "E", labelSeq + 3, "ClearObjectives", 5)
+check(count(client, "SetObjectiveOn") == markers + 1 and count(client, "ClearObjectives") == clears + 2,
+    "a label that never resolves must drop after the guest's own wait without blocking")
+-- A label only the leader knows (SetLabel on a spawned, replicated object) falls back to
+-- the replicated handle carried in the same argument.
+client.view[902] = { alive = true, team = 1, odf = "avscav", health = 1, maxHealth = 1 }
+client.env.Receive(10, "E", labelSeq + 4, "SetObjectiveOn", 5, "@902@leader_only_label")
+check(count(client, "SetObjectiveOn") == markers + 2 and last(client, "SetObjectiveOn")[2] == 902,
+    "a leader-only label must fall back to the replicated handle")
+-- Label events replicate a leader-side SetLabel; a gone flag skips cleanly; only the long
+-- never-hang guard ends a wait, loudly (log + counter for the harness probe).
+local baseSeq = labelSeq + 5
+local labelsSet, setClears = count(client, "SetLabel"), count(client, "ClearObjectives")
+client.env.Receive(10, "E", baseSeq, "Label", 15, "@907@spawned_label", "spawned_label")
+client.env.Receive(10, "E", baseSeq + 1, "SetObjectiveOn", 15, "@907@spawned_label")
+check(count(client, "SetLabel") == labelsSet, "a Label for a spawn that has not replicated holds the stream")
+client.view[907] = { alive = true, team = 1, odf = "avscav", health = 1, maxHealth = 1 }
+client.env.Receive(10, "E", baseSeq, "Label", 15, "@907@spawned_label", "spawned_label")
+client.env.Receive(10, "E", baseSeq + 1, "SetObjectiveOn", 15, "@907@spawned_label")
+check(count(client, "SetLabel") == labelsSet + 1 and last(client, "SetLabel")[2] == 907 and
+    last(client, "SetLabel")[3] == "spawned_label", "the guest labels its replicated handle")
+check(last(client, "SetObjectiveOn")[2] == 907, "the following marker resolves the real object")
+local ons = count(client, "SetObjectiveOn")
+client.env.Receive(10, "E", baseSeq + 2, "SetObjectiveOn", 15, "!")
+client.env.Receive(10, "E", baseSeq + 3, "ClearObjectives", 15)
+check(count(client, "SetObjectiveOn") == ons and count(client, "ClearObjectives") == setClears + 1,
+    "a marker the leader reports gone is skipped without holding the stream")
+local unresolvedBefore = client.env.Save().coopUnresolved or 0
+client.env.Receive(10, "E", baseSeq + 4, "SetObjectiveOn", 15, "@908@never_label")
+client.env.Receive(10, "E", baseSeq + 5, "ClearObjectives", 15)
+now = now + 14
+client.env.Receive(10, "E", baseSeq + 4, "SetObjectiveOn", 15, "@908@never_label")
+check(count(client, "ClearObjectives") == setClears + 1, "a marker waits through the old 5 s window")
+now = now + 2
+client.env.Receive(10, "E", baseSeq + 4, "SetObjectiveOn", 15, "@908@never_label")
+client.env.Receive(10, "E", baseSeq + 5, "ClearObjectives", 15)
+check(count(client, "ClearObjectives") == setClears + 2 and count(client, "SetObjectiveOn") == ons,
+    "the never-hang guard drops only the stale marker")
+check((client.env.Save().coopUnresolved or 0) == unresolvedBefore + 1, "the timeout is counted for the probe")
+local loud = false
+for _, line in ipairs(client.printed) do loud = loud or line:find("%[coop%] unresolved never_label") ~= nil end
+check(loud, "the timeout logs a loud [coop] unresolved line")
+
+-- Camera snapshots are label-aware and WAIT for the real object; there is no fallback aim.
+local camSerial = 5000
+local function camFrame(generation, target)
+    client.env.Receive(10, "C", camSerial, generation, "camera_path", 175, 850, target)
+    camSerial = camSerial + 1
+    client.env.Update()
+end
+local function endFilm()
+    client.env.Receive(10, "C", camSerial, 1, "", 0, 0); camSerial = camSerial + 1; client.env.Update()
+end
+local casts = count(client, "CameraPath")
+camFrame(1, "@903@late_cam_target")
+check(count(client, "CameraPath") == casts, "an unresolved camera target waits for the replica")
+now = now + 10; camFrame(1, "@903@late_cam_target")
+check(count(client, "CameraPath") == casts, "the camera keeps waiting for the real object, however long")
+client.view.late_cam_target = { alive = true, team = 0, odf = "eggeizr1", health = 1, maxHealth = 1 }
+camFrame(1, "@903@late_cam_target")
+check(count(client, "CameraPath") == casts + 1 and last(client, "CameraPath")[5] == "late_cam_target",
+    "a late-resolving label target is the one the film aims at")
+endFilm()
+-- A spawned object the leader labelled: its label is replicated by a Label event, and the
+-- camera resolves through the replicated handle while the label is not yet known.
+casts = count(client, "CameraPath")
+camFrame(2, "@905@leader_spawn_label")
+check(count(client, "CameraPath") == casts, "a spawned target that has not replicated yet holds the film")
+client.view[905] = { alive = true, team = 1, odf = "avscav", health = 1, maxHealth = 1 }
+camFrame(2, "@905@leader_spawn_label")
+check(count(client, "CameraPath") == casts + 1 and last(client, "CameraPath")[5] == 905,
+    "the film aims at the real replicated spawn, not a stand-in")
+endFilm()
+-- The leader reports the target gone: play with what remains valid, without waiting.
+casts = count(client, "CameraPath")
+camFrame(3, "!")
+check(count(client, "CameraPath") == casts + 1 and last(client, "CameraPath")[5] == nil,
+    "a target the leader reports gone must not hold the film")
+endFilm()
+-- Never-hang guard: logged loudly, counted for the harness, then the film plays.
+casts = count(client, "CameraPath")
+local unresolved = client.env.Save().coopUnresolved or 0
+camFrame(4, "@906@never_exists_cam")
+check(count(client, "CameraPath") == casts, "an unresolvable target waits")
+now = now + 14; camFrame(4, "@906@never_exists_cam")
+check(count(client, "CameraPath") == casts, "still waiting inside the safety window")
+now = now + 2; camFrame(4, "@906@never_exists_cam")
+check(count(client, "CameraPath") == casts + 1, "the never-hang guard lets the film play")
+check((client.env.Save().coopUnresolved or 0) == unresolved + 1, "the timeout is counted for the probe")
+local logged = false
+for _, line in ipairs(client.printed) do logged = logged or line:find("%[coop%] unresolved") ~= nil end
+check(logged, "the timeout logs a loud [coop] unresolved line")
+print("misn02b co-op: " .. checks .. " complete-script Lua 5.1 checks passed")

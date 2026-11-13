@@ -185,18 +185,18 @@ bounded guest waits) and the C camera snapshot (the misn12 transport). The base 
 ## Focused checks
 
 ```sh
-lua5.1 Tools/Test-Misn14.lua
-lua5.1 Tools/Test-Misn14Coop.lua
-lua5.1 Tools/Test-Misn14Presentation.lua
-python Tools/Test-Misn14SourceParity.py
-python Tools/Test-Misn14CoopContract.py
-python Tools/Test-CoopAuthoredLabels.py
-python Tools/Test-SetupMissionShell.py
+lua5.1 Tools/MissionTests/Test-Misn14.lua
+lua5.1 Tools/MissionTests/Test-Misn14Coop.lua
+lua5.1 Tools/MissionTests/Test-Misn14Presentation.lua
+python Tools/MissionTests/Test-Misn14SourceParity.py
+python Tools/MissionTests/Test-Misn14CoopContract.py
+python Tools/MissionTests/Test-CoopAuthoredLabels.py
+python Tools/MissionTests/Test-SetupMissionShell.py
 python Tools/Validate-CampaignRepository.py
-python Tools/Build-CoopMap.py --mission misn14   # reproduces Missions/misn14.bzn
+python Tools/MissionBuild/Build-CoopMap.py --mission misn14   # reproduces Missions/misn14.bzn
 ```
 
-`Tools/Misn14Fixture.lua` is the shared mock world (authored coordinates). `Test-Misn14SourceParity.py` strips
+`Tools/MissionTests/Misn14Fixture.lua` is the shared mock world (authored coordinates). `Test-Misn14SourceParity.py` strips
 every `-- CR ... >>` / `<<` region and asserts each substitution outside them.
 
 ## Inferences and tuning guesses

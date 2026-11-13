@@ -5,7 +5,7 @@ to find and destroy a large Soviet (CCA) base; "allied" reinforcements arrive on
 Soviets in disguise; Soviet raiders harass the Chinese base for as long as the Soviet long-range power towers stand;
 the mission ends when every Soviet object is dead. One `Missions/ch06cr.bzn` and one `Scripts/ch06cr.lua`
 serve both modes. Companion to the faithful DLL port underneath (`Scripts/ch06.lua`, notes in
-`References/Chinese06Source/README.md`, tested by `Tools/test_ch06.py`) and
+`References/Chinese06Source/README.md`, tested by `Tools/CoopCampaignTests/test_ch06.py`) and
 [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern: [`BDMISN07_COOP.md`](BDMISN07_COOP.md).
 Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
 
@@ -13,10 +13,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/ch06cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch06.lua` (`Tools/Test-Chmisn06CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the weather beats and the restorations. |
+| `Scripts/ch06cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch06.lua` (`Tools/CoopCampaignTests/Test-Chmisn06CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the weather beats and the restorations. |
 | `Scripts/CRElysiumSitesCH06.lua`, `Scripts/CRElysiumWeather.lua` | Elysium weather (the Venus engine in its Earth-like storm dress) and the generated sites for this map (ten geysers, the playable bounds; Elysium switches vents and sulphur off, so only the bounds are used). |
 | `Missions/ch06cr.{bzn,vxt}`, `chmisn06.{hg2,lgt,mat,trn}`, `Config/ch06cr.ini`, `Config/crch.ini` (MISSION6) | Map and companions (not part of this change). The Soviets are on team 5, the guests start at `coop_spawn1..4` (teams 1-4). |
-| `Tools/Chmisn06Fixture.lua`, `Test-Chmisn06Coop.lua`, `Test-Chmisn06Presentation.lua`, `Test-Chmisn06CoopSourceParity.py`, `Test-Chmisn06CoopContract.py` | Multi-peer fixture and tests (real map coordinates). |
+| `Tools/CoopCampaignTests/Chmisn06Fixture.lua`, `Test-Chmisn06Coop.lua`, `Test-Chmisn06Presentation.lua`, `Test-Chmisn06CoopSourceParity.py`, `Test-Chmisn06CoopContract.py` | Multi-peer fixture and tests (real map coordinates). |
 
 The CR regions, in file order:
 
@@ -202,11 +202,11 @@ The severe rung (5) is not used: its visibility and radar penalty would last the
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Chmisn06Coop.lua            # offline == faithful, 1-4 peers, convoy and betrayal, wave and raid scaling, 460 m, fallback, idle attackers, restorations, results, weather
-lua5.1 Tools/Test-Chmisn06Presentation.lua    # E/A/C protocol on a guest
-python Tools/Test-Chmisn06CoopSourceParity.py # ch06cr.lua minus CR regions == ch06.lua
-python Tools/Test-Chmisn06CoopContract.py     # labels/paths/teams/entries in ch06cr.bzn (map checks skip with a message if the map is absent)
-python Tools/test_ch06.py                     # the faithful port, unchanged
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn06Coop.lua            # offline == faithful, 1-4 peers, convoy and betrayal, wave and raid scaling, 460 m, fallback, idle attackers, restorations, results, weather
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn06Presentation.lua    # E/A/C protocol on a guest
+python Tools/CoopCampaignTests/Test-Chmisn06CoopSourceParity.py # ch06cr.lua minus CR regions == ch06.lua
+python Tools/CoopCampaignTests/Test-Chmisn06CoopContract.py     # labels/paths/teams/entries in ch06cr.bzn (map checks skip with a message if the map is absent)
+python Tools/CoopCampaignTests/test_ch06.py                     # the faithful port, unchanged
 ```
 
 ## Inferences and open questions

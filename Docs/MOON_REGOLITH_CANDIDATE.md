@@ -59,14 +59,14 @@ loading and transitions use the existing saved recipe; DDS, mip generation and
 portable DNSE packaging use the shared Toolbox, not a new image codec.
 
 ```powershell
-python Tools/Build-MoonRegolith.py `
+python Tools/Terrain/Build-MoonRegolith.py `
   --source-build '<saved HD source build>' `
   --toolbox '../Battlezone98_Modding_Toolbox-hd-terrain-authoring' `
   --openshim '../BZR-OpenShim-terrain-world-controls' `
   --output Local/TerrainHD/CraterVariety02 `
   --compare-detail '<game>/BZ_ASSETS/pc/textures/TerrainTextures/Detail/mn_detail.dds'
 
-./Tools/Test-MarsHdTerrainLive.ps1 `
+./Tools/Terrain/Test-MarsHdTerrainLive.ps1 `
   -OpenShimRepo ../BZR-OpenShim-terrain-world-controls `
   -TileDirectory Local/TerrainHD/CraterVariety02/bundle -World moon `
   -Hd -MicroRelief -GroundView -SettingsOnly -MeasureMemory `

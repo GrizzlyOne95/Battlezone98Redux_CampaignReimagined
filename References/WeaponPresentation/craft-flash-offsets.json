@@ -1,5 +1,5 @@
 {
-  "method": "Tools/Build-WeaponFlashes.py --measure: forward = barrel tip along hardpoint +Z; right/up = centre of the front 0.25 m of the barrel's weighted vertices",
+  "method": "Tools/Weapons/Build-WeaponFlashes.py --measure: forward = barrel tip along hardpoint +Z; right/up = centre of the front 0.25 m of the barrel's weighted vertices",
   "crafts": {
     "abtowe": {
       "model": "abtowe",

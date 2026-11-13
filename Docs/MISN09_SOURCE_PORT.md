@@ -89,8 +89,8 @@ Lua translation and verification of the original map/assets.
 Run from the repository root:
 
 ```sh
-lua5.1 Tools/Test-Misn09.lua
-python Tools/Test-Misn09SourceParity.py
+lua5.1 Tools/MissionTests/Test-Misn09.lua
+python Tools/MissionTests/Test-Misn09SourceParity.py
 ```
 
 Validated with Lua 5.1.5: 110 mock-host behavior checks and 202 source-preservation

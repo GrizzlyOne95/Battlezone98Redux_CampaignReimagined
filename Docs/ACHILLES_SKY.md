@@ -10,9 +10,9 @@ quad) and is otherwise free to be cinematic.
 - `Materials/crart_achilles.material`: technique 0 is `CR_AchillesSky` (DX11 and DX9); technique 1 keeps the
   stock `achilles.tga` dome through `CR_SkyDome` for OpenGL.
 - `Shaders/CR_achillessky.hlsl` and `.program`: one HLSL source for SM4 and SM3. The program names are
-  versioned by `Tools/Update-WorldSkyProgramVersions.py`.
+  versioned by `Tools/Shaders/Update-WorldSkyProgramVersions.py`.
 - `Assets/Textures/crsky_achilles_clouds.png`, `crsky_uranus.png`, `crsky_uranus_rings.png`: baked by
-  `Tools/Build-AchillesSky.py` (see `Docs/SKY_ART_CREDITS.md`).
+  `Tools/TexturesAndSky/Build-AchillesSky.py` (see `Docs/SKY_ART_CREDITS.md`).
 - `Scripts/CRWorldArt.lua`: `Art.SkyFrames.achilles`, a weather and body dome, writes the frame every update:
   specular = (Enhanced flag, sun direction), emissive = (night, clarity, storm, rain),
   diffuse = (lightning direction, flash), ambient = (direction toward Uranus, 1).
@@ -75,8 +75,8 @@ and calls `Environment.SetArtSkyVisible(false)` to give the stock sprites back, 
 
 ## Tests
 
-- `Tools/Test-CRWorldArt.lua`: the Achilles frame (storm, rain, flash, Uranus direction), the hide and restore
+- `Tools/TexturesAndSky/Test-CRWorldArt.lua`: the Achilles frame (storm, rain, flash, Uranus direction), the hide and restore
   lists, and Uranus's night light.
-- `Tools/Test-Misn17Jungle.lua`: the deck skip, `J.SkyState` easing and the shared bolt bearing.
-- `Tools/Test-CRStorm18.lua`: the dome phases, the dome's lightning, the core1 hand-over and `Stop`.
-- `Tools/Test-Misn18Coop.lua`: every peer opens misn18 at night with day sensors.
+- `Tools/MissionTests/Test-Misn17Jungle.lua`: the deck skip, `J.SkyState` easing and the shared bolt bearing.
+- `Tools/RuntimeTests/Test-CRStorm18.lua`: the dome phases, the dome's lightning, the core1 hand-over and `Stop`.
+- `Tools/MissionTests/Test-Misn18Coop.lua`: every peer opens misn18 at night with day sensors.

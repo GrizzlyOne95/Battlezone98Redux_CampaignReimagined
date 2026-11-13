@@ -1,5 +1,5 @@
 {
-  "note": "Hardpoint alignment (Tools/Build-UnitAnimSlots.py apply_hardpoints). owner = the VDF part that carries the weapon geometry; parent must equal it (Tools/Test-UnitAnimSlots.py).",
+  "note": "Hardpoint alignment (Tools/CockpitsAndRigs/Build-UnitAnimSlots.py apply_hardpoints). owner = the VDF part that carries the weapon geometry; parent must equal it (Tools/CockpitsAndRigs/Test-UnitAnimSlots.py).",
   "model": "avhraz",
   "base": "stock",
   "parts": [

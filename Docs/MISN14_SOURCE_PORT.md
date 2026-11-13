@@ -2,7 +2,7 @@
 
 > **Status (2026-10-14): superseded in play by the Concept C rework.** `Scripts/misn14.lua` is now the shared
 > offline/co-op Concept C mission (`Docs/MISN14_COOP.md`). The DLL port below survives outside the
-> `-- CR ... >>` / `<<` regions and `Tools/Test-Misn14SourceParity.py` still proves it; the behaviour that
+> `-- CR ... >>` / `<<` regions and `Tools/MissionTests/Test-Misn14SourceParity.py` still proves it; the behaviour that
 > changed is:
 >
 > - Teams: CCA 2 -> 5, Furies 3 -> 6, rescued pilots and the surrendered base/towers -> 7 (the DLL gave the
@@ -18,7 +18,7 @@
 > - Any human (or a human piloting an `avapc`) satisfies the single-player triggers; the DLL's `misn1402`
 >   intro line stays disabled where it was (it now opens the activation scene).
 > - The Lua tests are now `Test-Misn14.lua` (offline), `Test-Misn14Coop.lua`, `Test-Misn14Presentation.lua` and
->   `Test-Misn14CoopContract.py` over `Tools/Misn14Fixture.lua`.
+>   `Test-Misn14CoopContract.py` over `Tools/MissionTests/Misn14Fixture.lua`.
 
 `Scripts/misn14.lua` ports `BZ1/from_bz2_dll_src/Misn14Mission.cpp` from
 [Battlezone_Source at e7c4105](https://github.com/GrizzlyOne95/Battlezone_Source/blob/e7c410573ffedc9e118dd90f402af6d5585955cc/BZ1/from_bz2_dll_src/Misn14Mission.cpp)
@@ -88,8 +88,8 @@ alias available across Redux versions. `IsOdfBase` accepts bare and `.odf` names
 From the repository root:
 
 ```sh
-lua5.1 Tools/Test-Misn14.lua
-python3 Tools/Test-Misn14SourceParity.py
+lua5.1 Tools/MissionTests/Test-Misn14.lua
+python3 Tools/MissionTests/Test-Misn14SourceParity.py
 ```
 
 The Lua host checks intro timing/cancellation, resources/names, all three rescue

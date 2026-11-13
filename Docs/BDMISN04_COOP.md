@@ -12,10 +12,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bd04cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd04.lua` (`Tools/Test-Bdmisn04CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the restorations. |
+| `Scripts/bd04cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd04.lua` (`Tools/CoopCampaignTests/Test-Bdmisn04CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the restorations. |
 | `Scripts/CREuropaWeather.lua`, `Scripts/CRGanymedeSitesBD04.lua` | The Ganymede weather (the Europa director, no new module) and the generated sites for this map. The generated vent list is **empty** (no `eggeizr1` geysers in `bdmisn04`). |
 | `Missions/bd04cr.{bzn,vxt}`, `bdmisn04.{hg2,lgt,mat,trn}` | Map and companions (not part of this change). Every co-op player starts as the on-foot pilot `bsuser` (the `.vxt` is `bsuser ,`; the map start `asuser1_person` is the same). The Chinese side is team 5, the map's own enemy team 2 having been moved. |
-| `Tools/Bdmisn04Fixture.lua`, `Test-Bdmisn04Coop.lua`, `Test-Bdmisn04Presentation.lua`, `Test-Bdmisn04CoopSourceParity.py`, `Test-Bdmisn04CoopContract.py` | Multi-peer fixture and tests (real map coordinates, the real `base_limit` polygon). `Test-BlackDog04.lua` / `Test-BlackDog04SourceParity.py` still cover the faithful port, unchanged. |
+| `Tools/CoopCampaignTests/Bdmisn04Fixture.lua`, `Test-Bdmisn04Coop.lua`, `Test-Bdmisn04Presentation.lua`, `Test-Bdmisn04CoopSourceParity.py`, `Test-Bdmisn04CoopContract.py` | Multi-peer fixture and tests (real map coordinates, the real `base_limit` polygon). `Test-BlackDog04.lua` / `Test-BlackDog04SourceParity.py` still cover the faithful port, unchanged. |
 
 ## Teams and ownership
 
@@ -177,11 +177,11 @@ stronger quake; the strike (bombers, Drop Zone, Chinese fleet) -> level 4, quake
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Bdmisn04Coop.lua            # offline == faithful, 1-4 peers, disguise, focus, relay, timer, scaling, 460 m, saves, weather
-lua5.1 Tools/Test-Bdmisn04Presentation.lua    # E/A/C protocol and this mission's four ops on a guest
-python Tools/Test-Bdmisn04CoopSourceParity.py # bd04cr.lua minus CR regions == bd04.lua
-python Tools/Test-Bdmisn04CoopContract.py     # labels/paths/teams/start file in bd04cr.bzn (skips with a message if the map is absent)
-lua5.1 Tools/Test-BlackDog04.lua && python Tools/Test-BlackDog04SourceParity.py   # the faithful port, unchanged
+lua5.1 Tools/CoopCampaignTests/Test-Bdmisn04Coop.lua            # offline == faithful, 1-4 peers, disguise, focus, relay, timer, scaling, 460 m, saves, weather
+lua5.1 Tools/CoopCampaignTests/Test-Bdmisn04Presentation.lua    # E/A/C protocol and this mission's four ops on a guest
+python Tools/CoopCampaignTests/Test-Bdmisn04CoopSourceParity.py # bd04cr.lua minus CR regions == bd04.lua
+python Tools/CoopCampaignTests/Test-Bdmisn04CoopContract.py     # labels/paths/teams/start file in bd04cr.bzn (skips with a message if the map is absent)
+lua5.1 Tools/CoopCampaignTests/Test-BlackDog04.lua && python Tools/CoopCampaignTests/Test-BlackDog04SourceParity.py   # the faithful port, unchanged
 ```
 
 The contract test checks `Missions/bd04cr.vxt` and the `.mpdes` only when they are present.

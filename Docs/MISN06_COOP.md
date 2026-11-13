@@ -18,7 +18,7 @@ Late join/rejoin requires a restart. Host departure ends the mission.
 
 ## Map
 
-`Tools/Build-Misn06CoopMap.py` rebuilds `Missions/misn06.bzn` from the
+`Tools/MissionBuild/Build-Misn06CoopMap.py` rebuilds `Missions/misn06.bzn` from the
 Battlezone 1.5 original (`stockfiles2\misn06.bzn`, binary version 1032,
 class `Misn06Mission`). It re-saves the map as Redux ASCII 2016 through the
 Battlezone98_Modding_Toolbox converter (`BZ_MODDING_TOOLBOX` overrides the
@@ -99,11 +99,11 @@ is the 0600 retrospective.
 ## Focused checks
 
 ```sh
-lua5.1 Tools/Test-Misn06.lua
-lua5.1 Tools/Test-Misn06Presentation.lua
-python Tools/Test-Misn06SourceParity.py
-python Tools/Test-Misn06CoopContract.py
-python Tools/Test-SetupMissionShell.py
+lua5.1 Tools/MissionTests/Test-Misn06.lua
+lua5.1 Tools/MissionTests/Test-Misn06Presentation.lua
+python Tools/MissionTests/Test-Misn06SourceParity.py
+python Tools/MissionTests/Test-Misn06CoopContract.py
+python Tools/MissionTests/Test-SetupMissionShell.py
 python Tools/Validate-CampaignRepository.py
 ```
 

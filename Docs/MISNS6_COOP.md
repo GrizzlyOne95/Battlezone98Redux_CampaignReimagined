@@ -12,13 +12,13 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/misns6cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns6.lua` (`Tools/Test-Misns6CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the weather beats. |
+| `Scripts/misns6cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns6.lua` (`Tools/MissionTests/Test-Misns6CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the weather beats. |
 | `Scripts/CRCCARuntime.lua` | Shared co-op runtime, including the CCA mission's NSDF-to-Black-Dog ODF remap. |
 | `Scripts/CRTitanSitesS6.lua`, `Scripts/CRTitanWeather.lua` | Titan weather director and the generated methane-pool sites for this map (160 anchors). |
 | `ODF/crns6.aip` | The Black Dog version of stock `misns6.aip`; all opposing unit entries use Black Dog ODFs. |
 | `Missions/misns6cr.bzn` | Map roster; authored NSDF vehicles are switched to Black Dog ODFs while their labels stay intact. |
 | `Missions/misns6cr.vxt`, `misns6.{hg2,lgt,mat,trn}` | Terrain and map companions. |
-| `Tools/Misns6Fixture.lua`, `Test-Misns6Coop.lua`, `Test-Misns6CoopSourceParity.py`, `Test-Misns6CoopContract.py` | Multi-peer fixture and tests. `Test-Misns6.lua` / `Test-Misns6SourceParity.py` still cover the faithful port, unchanged. No presentation test: the mission has no cameras and no cutscene. |
+| `Tools/MissionTests/Misns6Fixture.lua`, `Test-Misns6Coop.lua`, `Test-Misns6CoopSourceParity.py`, `Test-Misns6CoopContract.py` | Multi-peer fixture and tests. `Test-Misns6.lua` / `Test-Misns6SourceParity.py` still cover the faithful port, unchanged. No presentation test: the mission has no cameras and no cutscene. |
 
 ## Teams and ownership
 

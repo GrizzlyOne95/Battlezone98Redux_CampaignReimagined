@@ -13,14 +13,14 @@ The earlier straight-cylinder / dorsal-housing reconstruction is superseded.
 
 - Editable source: `References/Misn06Rocket/CCA-Mars-Transport.blend`, with relative
   texture paths and authored procedural materials.
-- Geometry/material authoring: `Tools/Author-Misn06Rocket.py`.
-- Build/export: `python Tools/Build-Misn06Rocket.py --blender <blender.exe> --render`.
+- Geometry/material authoring: `Tools/MissionBuild/Author-Misn06Rocket.py`.
+- Build/export: `python Tools/MissionBuild/Build-Misn06Rocket.py --blender <blender.exe> --render`.
   Requires Blender 4.5+ and Pillow. `--textures-only` reconverts existing baked
   maps and regenerates the bell layout and particle emitter blocks.
 - Baked PNG sources, neutral views, bounds, nozzle anchors and game-file hashes
   are retained under `References/Misn06Rocket`.
 - The old Resurgence extraction remains available as
-  `Tools/Extract-Misn06RocketLegacy.py`; it is the previous prototype, not an input
+  `Tools/MissionBuild/Extract-Misn06RocketLegacy.py`; it is the previous prototype, not an input
   to this rebuilt model. Original Battlezone concept-art credit remains with
   the original creators.
 
@@ -44,7 +44,7 @@ flight, pad and recon contract remain intact.
 ## Checkpoint
 
 Geometry, normal winding, native bounds, atlas formats and eight nozzle anchors
-pass `Tools/Test-Misn06RocketAssets.py`. The expanded FX suite passes 322 checks,
+pass `Tools/MissionTests/Test-Misn06RocketAssets.py`. The expanded FX suite passes 322 checks,
 including all bell rates, rotated fixtures, light cleanup and older-runtime
 fallback. Mission 6's 1,063 host checks, four-peer presentation tests and source
 parity pass. The shipping list admits exactly one additional runtime file,

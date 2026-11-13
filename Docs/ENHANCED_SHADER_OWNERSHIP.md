@@ -28,9 +28,9 @@ is the only thing that updates it from the OpenShim repo.
 Edit it in the OpenShim repository. Then, from CR:
 
 ```
-./Tools/Test-ProgramReferences.ps1
-./Tools/Validate-DX11Shaders.ps1
-./Tools/Test-DX11ShaderValidator.ps1
+./Tools/Shaders/Test-ProgramReferences.ps1
+./Tools/Shaders/Validate-DX11Shaders.ps1
+./Tools/Shaders/Test-DX11ShaderValidator.ps1
 ```
 
 All three resolve the payload through `BZR_OPENSHIM_REPO`, falling back to a
@@ -38,7 +38,7 @@ sibling `BZR-OpenShim` checkout, and refuse to run if they cannot find it. A
 validator that silently skips its subject passes exactly as loudly as one that
 checked it, so the failure is deliberate.
 
-`Tools/Test-ProgramReferences.ps1` is the one that specifically guards this
+`Tools/Shaders/Test-ProgramReferences.ps1` is the one that specifically guards this
 split: it resolves every `*_program_ref` and unified `delegate` in CR's
 materials and program scripts against the union of what CR declares and what
 the payload declares. That check matters because the failure it catches is
@@ -51,6 +51,6 @@ the two copies were identical before CR's was removed.
 
 ## Setting the PSSM version
 
-`Tools/Set-EnhancedPssmVersion.ps1` now covers only what CR still owns: its
+`Tools/Shaders/Set-EnhancedPssmVersion.ps1` now covers only what CR still owns: its
 static-IBL wrapper, and which pass the materials select. The base and terrain
 Enhanced programs are switched in the OpenShim repository.

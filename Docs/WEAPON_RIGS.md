@@ -79,11 +79,11 @@ All ballistic slots on the requested model families have fitted casing offsets/d
 The immutable source revision is recorded in `References/WeaponRigs/models.json`. Builders read pre-rig tracked inputs from that Git revision; keep repository history available. Stock fallbacks require the local retail assets. Region bounds and cockpit fitting overrides are authoring data, not runtime heuristics.
 
 ```powershell
-python Tools/Build-WeaponRigs.py
-python Tools/Build-WeaponRigs.py --sync
-python Tools/Build-WeaponFlashes.py --measure
-python Tools/Build-CombatPresentation.py
-python Tools/Test-WeaponRigs.py
+python Tools/CockpitsAndRigs/Build-WeaponRigs.py
+python Tools/CockpitsAndRigs/Build-WeaponRigs.py --sync
+python Tools/Weapons/Build-WeaponFlashes.py --measure
+python Tools/Weapons/Build-CombatPresentation.py
+python Tools/CockpitsAndRigs/Test-WeaponRigs.py
 ```
 
-`--init` is one-time configuration creation and refuses to overwrite reviewed regions. For previews, run `Tools/Render-WeaponRigs.py` through background Blender. The renderer preserves eye position and uses the native VDF local POV basis, a 64 degree vertical FOV and 16:9 aspect; the down view pitches 25 degrees from that basis.
+`--init` is one-time configuration creation and refuses to overwrite reviewed regions. For previews, run `Tools/CockpitsAndRigs/Render-WeaponRigs.py` through background Blender. The renderer preserves eye position and uses the native VDF local POV basis, a 64 degree vertical FOV and 16:9 aspect; the down view pitches 25 degrees from that basis.

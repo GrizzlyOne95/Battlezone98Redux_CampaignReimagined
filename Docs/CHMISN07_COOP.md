@@ -12,10 +12,10 @@ other disguise mission). Status: **host-tested only**; nothing here has run in t
 
 | File | Role |
 | --- | --- |
-| `Scripts/ch07cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch07.lua` (`Tools/Test-Chmisn07CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the co-op fixes. |
+| `Scripts/ch07cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch07.lua` (`Tools/CoopCampaignTests/Test-Chmisn07CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the co-op fixes. |
 | `Scripts/CREuropaWeather.lua`, `Scripts/CREuropaSitesCH07.lua` | The Europa weather and the generated sites for this map. The generated vent list is **empty** (no geysers in `chmisn07`). |
 | `Missions/ch07cr.{bzn,vxt}`, `chmisn07.{hg2,lgt,mat,trn}` | Map and companions (not part of this change). The enemy team 2 was moved to team 5; guests are teams 2-4 at the `coop_spawn1`..`coop_spawn4` buoys; every co-op player starts as the on-foot sniper `ssuserb`. |
-| `Tools/Chmisn07Fixture.lua`, `Test-Chmisn07Coop.lua`, `Test-Chmisn07Presentation.lua`, `Test-Chmisn07CoopSourceParity.py`, `Test-Chmisn07CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Chinese07.lua` still covers the faithful port, unchanged. |
+| `Tools/CoopCampaignTests/Chmisn07Fixture.lua`, `Test-Chmisn07Coop.lua`, `Test-Chmisn07Presentation.lua`, `Test-Chmisn07CoopSourceParity.py`, `Test-Chmisn07CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Chinese07.lua` still covers the faithful port, unchanged. |
 
 ## Teams and ownership
 
@@ -153,11 +153,11 @@ The director never damages.
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Chmisn07Coop.lua            # offline == faithful, 1-4 peers, disguise (team 5), scaling, 460 m, pickups, convoy, win/loss, saves, weather
-lua5.1 Tools/Test-Chmisn07Presentation.lua    # E/A/C protocol and this mission's five ops on a guest
-python Tools/Test-Chmisn07CoopSourceParity.py # ch07cr.lua minus CR regions == ch07.lua
-python Tools/Test-Chmisn07CoopContract.py     # labels/paths/teams/start file in ch07cr.bzn (skips with a message if the map is absent)
-lua5.1 Tools/Test-Chinese07.lua               # the faithful port, unchanged
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn07Coop.lua            # offline == faithful, 1-4 peers, disguise (team 5), scaling, 460 m, pickups, convoy, win/loss, saves, weather
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn07Presentation.lua    # E/A/C protocol and this mission's five ops on a guest
+python Tools/CoopCampaignTests/Test-Chmisn07CoopSourceParity.py # ch07cr.lua minus CR regions == ch07.lua
+python Tools/CoopCampaignTests/Test-Chmisn07CoopContract.py     # labels/paths/teams/start file in ch07cr.bzn (skips with a message if the map is absent)
+lua5.1 Tools/CoopCampaignTests/Test-Chinese07.lua               # the faithful port, unchanged
 ```
 
 The contract test checks `Missions/ch07cr.vxt` and `Config/ch07cr.ini` only when they are present.

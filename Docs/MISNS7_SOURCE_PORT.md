@@ -63,12 +63,12 @@ timing and the supply route retain their source-specific behavior.
 
 ## Validation and integration status
 
-`Tools/Test-Misns7SourceParity.py` verifies both exact Git blobs, all 210 fields,
+`Tools/MissionTests/Test-Misns7SourceParity.py` verifies both exact Git blobs, all 210 fields,
 every gameplay comment, stock API usage, disabled expansion, and all 497 active
 assignments/calls in their original per-method order. It does not substitute for
 condition/engine testing.
 
-`Tools/Test-Misns7.lua` uses a strict Lua 5.1 mock host to exercise startup,
+`Tools/MissionTests/Test-Misns7.lua` uses a strict Lua 5.1 mock host to exercise startup,
 strict deadlines, escalation, all survivor permutations, boarding, both delivery
 orders, camera skipping, reduced payloads, resources, supply spawns, enemy AIPs,
 walker retargeting, construction/rebuilds, terminal ordering, and save/load during

@@ -71,7 +71,7 @@ Nothing in the hardware path performs either conversion. Any linear-light experi
 4. Normal maps are data. They are sampled and numerically remapped from `[0,1]` to `[-1,1]`; applying an sRGB transfer function to them would corrupt the normal vectors.
 5. Shadow maps/depth are data and are used as numerical comparison/depth inputs.
 6. The BRDF LUT is numerical split-sum data and must remain linear.
-7. The current generated static IBL bootstrap assets are generated from numerical lighting values by `Tools/Generate-StaticIBL.py`. The generator does not sRGB-encode the integrated irradiance, GGX prefilter values, or BRDF terms before writing the DDS payload. Therefore those generated values are **linear numerical data stored in LDR containers**, not display-authored sRGB color that should be decoded in the shader.
+7. The current generated static IBL bootstrap assets are generated from numerical lighting values by `Tools/Shaders/Generate-StaticIBL.py`. The generator does not sRGB-encode the integrated irradiance, GGX prefilter values, or BRDF terms before writing the DDS payload. Therefore those generated values are **linear numerical data stored in LDR containers**, not display-authored sRGB color that should be decoded in the shader.
 8. Current legacy specular maps are semantically hybrid in the CR shaders: RGB affects tint/F0 while luminance is also used as a numerical strength/mask and weak roughness cue. They cannot safely be classified as pure sRGB color or pure scalar data from shader source alone.
 9. Ogre 1.10 exposes independent hardware-gamma state for textures and render targets. Texture hardware gamma performs gamma/sRGB-to-linear conversion while sampling; render-target hardware gamma performs the opposite conversion while writing.
 10. In upstream Ogre 1.10 D3D11, `D3D11Texture::_chooseD3DFormat()` converts supported ordinary formats to `_SRGB` when `Texture::isHardwareGammaEnabled()` is true. The normal 2D path then creates its SRV with the same `DXGI_FORMAT` as the resource. This is an implementation reference, not proof that the BZR binary is identical.
@@ -593,7 +593,7 @@ Prefer a compact calibration block shared conceptually between base and terrain 
 
 ## Automated validation
 
-`Tools/Validate-DX11Shaders.ps1` retains the existing compile matrix for:
+`Tools/Shaders/Validate-DX11Shaders.ps1` retains the existing compile matrix for:
 
 - object/base Enhanced;
 - object/base Enhanced shadow;
@@ -642,13 +642,13 @@ This is stronger than compiling: it proves the transfer functions appear in exac
 
 ### Guard fixtures
 
-`Tools/Test-DX11ShaderValidator.ps1` exists because a guard with a typo'd pattern passes exactly as loudly as a working one. It copies the shader tree, introduces one specific regression at a time, and asserts the validator rejects it **for the stated reason** — matching on the message, so a fixture that fails for an unrelated reason does not count as a pass. Each fixture also asserts its own mutation changed something, so it cannot silently become a no-op edit.
+`Tools/Shaders/Test-DX11ShaderValidator.ps1` exists because a guard with a typo'd pattern passes exactly as loudly as a working one. It copies the shader tree, introduces one specific regression at a time, and asserts the validator rejects it **for the stated reason** — matching on the message, so a fixture that fails for an unrelated reason does not count as a pass. Each fixture also asserts its own mutation changed something, so it cannot silently become a no-op edit.
 
 Fourteen fixtures currently run, including the `vertexTint`-into-base copy-paste, a normal-data decode smuggled into a declaration initializer, unsafe packed-terrain-normal reconstruction, renewed Enhanced normal amplification, Stage A leaking onto a Retro SM4 program, and an activation condition that stops excluding Retro.
 
 ### Bit-identity of the legacy renderer
 
-`Tools/Compare-DX11ShaderBinaries.ps1` answers the question the source guards cannot: not "is the source still inside its boundary" but "did the shipped output actually move". It derives the permutation matrix from the `.program` declarations — so it is exactly what ships, and an added or re-defined variant surfaces rather than escaping — compiles all 113 DX11 SM4 permutations from two revisions, and compares DXBC.
+`Tools/Shaders/Compare-DX11ShaderBinaries.ps1` answers the question the source guards cannot: not "is the source still inside its boundary" but "did the shipped output actually move". It derives the permutation matrix from the `.program` declarations — so it is exactly what ships, and an added or re-defined variant surfaces rather than escaping — compiles all 113 DX11 SM4 permutations from two revisions, and compares DXBC.
 
 Results for the Stage A activation (`CR_LINEAR_LIGHT=1` on the Enhanced programs plus the `vertexTint` decode), measured against both the pre-activation revision and the revision before Stage A existed at all:
 
@@ -877,7 +877,7 @@ The active terrain program does not define `VERTEX_TANGENTS`, so this mission ta
 
 ## Current diagnostic implementation
 
-Normal rendering still defaults to the stock full-RGB convention and safe post-TBN normalization. Compile-time diagnostics can select RGB, RG-reconstructed, or AG-reconstructed unpacking; independently flip green; select stock, per-axis-normalized, orthonormalized, geometry-only, or TBN-bypassed basis behavior; and display sampled/unpacked/final normals, T/B axes, basis quality, normal deviation, or first-light `NdotL`. All diagnostic defaults are zero, so normal production rendering is unchanged unless a runtime test copy is explicitly selected with `Tools/Set-TerrainNormalDiagnostic.ps1`. The reproducible test sequence and interpretation matrix are in `Docs/TERRAIN_NORMAL_DIAGNOSTICS.md`.
+Normal rendering still defaults to the stock full-RGB convention and safe post-TBN normalization. Compile-time diagnostics can select RGB, RG-reconstructed, or AG-reconstructed unpacking; independently flip green; select stock, per-axis-normalized, orthonormalized, geometry-only, or TBN-bypassed basis behavior; and display sampled/unpacked/final normals, T/B axes, basis quality, normal deviation, or first-light `NdotL`. All diagnostic defaults are zero, so normal production rendering is unchanged unless a runtime test copy is explicitly selected with `Tools/Terrain/Set-TerrainNormalDiagnostic.ps1`. The reproducible test sequence and interpretation matrix are in `Docs/TERRAIN_NORMAL_DIAGNOSTICS.md`.
 
 ## Mathematical and compatibility audit
 
@@ -952,8 +952,8 @@ Repository-local:
 - `openshim/renderer/enhanced/openshim_enhanced_terrain-sm4.hlsl`
 - `openshim/renderer/enhanced/openshim_enhanced_base-sm3.hlsl`
 - `Docs/DX11_STATIC_IBL.md`
-- `Tools/Generate-StaticIBL.py`
-- `Tools/Validate-DX11Shaders.ps1`
+- `Tools/Shaders/Generate-StaticIBL.py`
+- `Tools/Shaders/Validate-DX11Shaders.ps1`
 - ExtraUtilities `src/Ogre/Ogre.h`
 - ExtraUtilities bundled Ogre 1.10 `OgreTexture.h`, `OgreTextureManager.h`, `OgreRenderTarget.h`, `OgreRenderSystem.h`, and related headers
 - OpenShim `d3d_startup_hooks.cpp`, `ogre_shader_cache.cpp`, hook engine, patcher, startup/config code.

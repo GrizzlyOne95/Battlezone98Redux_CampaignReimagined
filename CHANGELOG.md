@@ -39,7 +39,7 @@
 - OpenShim 1.0.0.75: Options > Banned Players lists everyone you banned and unbans them live; optional No Damage Slowdown (single player, off by default) stops low health slowing your craft; HD terrain packs for the Soviet missions, chmisn07 and sammy__1, with liquid on stock terrain programs (mult01 HD no longer declines); the staged-update notice sits in a framed box. A live terrain-paint prototype ships off by default.
 - HD terrain paint on the remaining unpainted CR missions: Soviet misns1cr-misns3cr and misns5cr-misns8cr (Venus, Io, Titan; CR and stock terrain), the Chinese ch07cr (Europa) and Evolve co-op (evolvecr, Elysium). These maps had no paint map, so OpenShim kept the stock atlas.
 - OpenShim 1.0.0.74: Steam players can host from their own PC with no port forwarding (Multiplayer > Local host tools > Steam list: On > Start host, over Steam's relay); friends join from a Steam invite or Join Game; opt-in public Steam listing; invites to passworded private lobbies no longer stall; host bans (`/ban`, optional lobby Ban button) persist in `bans.cfg`; Lives: Infinite in MP setup; the TRO main-menu banner plays odyssey.ogv; the Options description box shows its whole text; Options > Graphic Options > Resolution opens a list of resolutions; the Menu Colors page names the failed requirement (usually DirectX 11 not active); switching between DX9 and DX11 keeps the resolution and fullscreen setting (DX11 no longer starts at 1024x768); the installer warns when the x86 VC++ 2015-2022 runtime is missing. Player guide: OpenShim `Docs/PLAYER_CONNECTION_GUIDE.md`.
-- HD mission-briefing planet videos (1440x1080, previously 320x240) for all nine stock worlds: Moon, Mars, Venus, Io, Europa, Ganymede, Titan, Achilles and Elysium. Each plays its approach once with the stock briefing sound, then spins seamlessly. CR missions now use custom planets (`cr<world>.ogv` with a `.pvi` timing sidecar), which needs OpenShim's Custom Planet Video Playback patch; the bundled catalog now enables it on Steam as well as GOG. Rebuild with `Tools/Build-HdPlanetIntros.ps1`.
+- HD mission-briefing planet videos (1440x1080, previously 320x240) for all nine stock worlds: Moon, Mars, Venus, Io, Europa, Ganymede, Titan, Achilles and Elysium. Each plays its approach once with the stock briefing sound, then spins seamlessly. CR missions now use custom planets (`cr<world>.ogv` with a `.pvi` timing sidecar), which needs OpenShim's Custom Planet Video Playback patch; the bundled catalog now enables it on Steam as well as GOG. Rebuild with `Tools/Terrain/Build-HdPlanetIntros.ps1`.
 - The briefing planet panel shows each world's facts again (it read "NO DESCRIPTION" on the HD custom planets), with the stock figures corrected against NASA fact sheets: Titan and Ganymede gravity, Mars temperature and distance, Venus and Jupiter-moon distances, the Moon's minimum distance, and diameters. Achilles and Elysium keep their lore values.
 - Campaign listings renamed to one pattern: "CR: NSDF" (was "Campaign Reimagined"), "CR: Soviet (CCA)", "CR: Black Dog" and "CR: Chinese (CRA)". The four campaign blurbs share one template (missions, worlds, co-op, first-time setup), co-op `.mpdes` blurbs point at the new names, and Black Dog gets its own `campaignID`.
 - EXU 1.3.2: camera and overlay features use the main viewport instead of the last-drawn one.
@@ -175,10 +175,10 @@
   Replaces the per-particle column photograph that read as a dark smoke plume.
 - Place muzzle flashes at the visible barrel tip on dedicated-barrel craft with per-slot
   `[CraftClass] flashOffset<N>` keys (needs the OpenShim build that reads them; older builds ignore the keys). The
-  offsets are generated from each craft's barrel mesh by `Tools/Build-WeaponFlashes.py` (`--measure`, `--check`):
+  offsets are generated from each craft's barrel mesh by `Tools/Weapons/Build-WeaponFlashes.py` (`--measure`, `--check`):
   NSDF/Black Dog tanks `0.20 0.10 2.41`, CCA tanks `0.00 0.00 3.42`, howitzers, gun towers and Soviet towers.
   Hull-mounted hardpoints keep the weapon's zero offset.
-- Make OpenShim mesh recoil opt-in on the weapon too: every cannon-category (CANN, non-machinegun) weapon ODF gets a generated `[WeaponClass] recoilKick = 1.0` block, so the slot-1 barrel slide on the tank crafts (distance = `recoilDistance1` x kick) happens only for weapons with a kick; machineguns and miniguns get none and a craft can override per slot with `recoilKick<N>`. Needs the OpenShim build that reads `recoilKick`; generated and checked by `Tools/Build-WeaponFlashes.py`.
+- Make OpenShim mesh recoil opt-in on the weapon too: every cannon-category (CANN, non-machinegun) weapon ODF gets a generated `[WeaponClass] recoilKick = 1.0` block, so the slot-1 barrel slide on the tank crafts (distance = `recoilDistance1` x kick) happens only for weapons with a kick; machineguns and miniguns get none and a craft can override per slot with `recoilKick<N>`. Needs the OpenShim build that reads `recoilKick`; generated and checked by `Tools/Weapons/Build-WeaponFlashes.py`.
 - Enable OpenShim mesh recoil (slot 1 cannon barrel slide) on the NSDF, Black Dog and CCA tank ODFs:
   avtank/avtamp/avdemo (AGR11BGA), bvtank/bvtanka (bGR11BGA) and svtank/svtanka/svtas8/svtk13/svtnk7
   (SCZ11BGB). Takes effect only with Settings > Video > Muzzle Recoil on (single-player, exact GOG).
@@ -221,14 +221,14 @@
   drives the `CRWetGlass` rain layers, drawn in faint yellow-green instead of the Earth-like blue-grey, and long exposure
   builds a very faint pitted etch haze that clears slowly after the rain. Render only, local to each peer, and can be
   switched off (`AllowGlassAcid` / `glassAcid`, `AllowAcidRain`, `CRWeather.Quality` 0). New `CRWetGlass.Weather("acid", level)`,
-  `crwx_acidbeads/acidrivulet/acidstreak.png` and `crwx_winetch.png` (`Tools/Generate-GlassWeatherAssets.py`). Stacks on the
+  `crwx_acidbeads/acidrivulet/acidstreak.png` and `crwx_winetch.png` (`Tools/Shaders/Generate-GlassWeatherAssets.py`). Stacks on the
   cockpit-glass snow/grit work (#256) and the pool effects (#255). See `Docs/VENUS_WEATHER.md` and `Docs/CR_STORMFX_PORT.md`.
 
 - Cockpit-glass weather: a few soft-white snow flakes land on and melt off the glass on Europa (misn12, misn13; scaled to the
   Europa activity ladder), and fine dust grit builds on the glass in Mars storms (misn04, misn05, misn06; builds with the
   severity, clears slowly, with a few small splats at the upper rungs). Both ride the existing CRWetGlass layers
   (`CRWetGlass.Weather`), are render only, local to each peer, and can be switched off (`AllowGlassSnow`, `AllowGlassGrit`,
-  `CRWeather.Quality` 0). New `crwx_winsnow.png` and `crwx_wingrit.png` (`Tools/Generate-GlassWeatherAssets.py`; the large
+  `CRWeather.Quality` 0). New `crwx_winsnow.png` and `crwx_wingrit.png` (`Tools/Shaders/Generate-GlassWeatherAssets.py`; the large
   crystals are ISDF Chronicles' `snowflak.dds` sprite) and `crwx_glassweather.material`. See `Docs/CR_STORMFX_PORT.md`.
 
 - Mission 18 gains water and landscaping: four standing pools in closed basins, six streams that run downhill into and out
@@ -308,8 +308,8 @@
   the low Titan sun, the wind ripples it and drizzle rings it. The haze ladder drives drizzle rings,
   glare, wetness and chop through `exu.SetMaterialPassColors`; the pale pool-sheen cards drop to 30 %
   while the surface is up. Without StaticGeometry, the material, or on OpenGL the particle-only look
-  stays. New `Tools/Build-MethaneSurface.py` (mesh, ripple map, wet masks; `--check` in CI) and
-  `Tools/Test-MethaneShader.ps1` (fxc compile of every delegate, in the DX11 shader workflow)
+  stays. New `Tools/Terrain/Build-MethaneSurface.py` (mesh, ripple map, wet masks; `--check` in CI) and
+  `Tools/Shaders/Test-MethaneShader.ps1` (fxc compile of every delegate, in the DX11 shader workflow)
   (`Docs/TITAN_WEATHER.md` section 5).
 - Venus weather: add rare dense-fog moments ("fog banks") matching the concept art: 30-75 s of
   sulphur green-yellow pea-soup fog with a bright sun and a glowing ochre ground-haze sheet, smooth
@@ -733,7 +733,7 @@ in-game effect yet.
 - A preset displaced part way through a transition no longer strands its particle
   systems in the scene. The sweep only ever matched a single `Previous`, so those
   systems stayed for the rest of the mission at zero weight.
-- `Tools/Test-CRMarsWeather.lua` asserts atmosphere continuity across a preset
+- `Tools/TexturesAndSky/Test-CRMarsWeather.lua` asserts atmosphere continuity across a preset
   change and across an interrupted transition, and that no particle system
   outlives the preset that owns it.
 

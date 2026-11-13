@@ -131,12 +131,12 @@ in `CRMarsWeather`.
 
 ## Tests
 
-`Tools/Test-CRWeatherFogHorizon.lua` covers the clamp and, just as importantly,
+`Tools/TexturesAndSky/Test-CRWeatherFogHorizon.lua` covers the clamp and, just as importantly,
 the regression running the other way: that base Environment fog survives
 untouched with no weather active and at zero weight. Verified to fail when the
 clamp is disabled, so it is not passing vacuously.
 
-`Tools/Test-AtmosphereIntegration.lua` additionally executes the real Environment
+`Tools/TexturesAndSky/Test-AtmosphereIntegration.lua` additionally executes the real Environment
 and CRWeather together, including the final cap, subtle TOD and single-writer
 contract. The weather suites had originally not been wired into CI. They are now, in
 `campaign-validation.yml` — a weather regression could previously reach a

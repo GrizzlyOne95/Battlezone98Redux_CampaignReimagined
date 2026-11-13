@@ -91,8 +91,8 @@ future camera reconstruction.
 Run from the repository root:
 
 ```sh
-lua5.1 Tools/Test-Misns1.lua
-python3 Tools/Test-Misns1SourceParity.py
+lua5.1 Tools/MissionTests/Test-Misns1.lua
+python3 Tools/MissionTests/Test-Misns1SourceParity.py
 ```
 
 The Lua mock-host suite passes 164 checks, including all convoy/cavalry choices,

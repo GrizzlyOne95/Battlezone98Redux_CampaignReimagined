@@ -1,6 +1,6 @@
 # Achilles flower placement (applied)
 
-`python Tools/Build-Misn17Flowers.py --place` writes the flowers into
+`python Tools/MissionBuild/Build-Misn17Flowers.py --place` writes the flowers into
 `Scripts/CRJungle17Sites.lua` as render-only StaticGeometry layers:
 `{mesh="cr17_fl_x.mesh", distance=150|220, instances={{x,y,z,yaw,scale},...}}`.
 It needs no plates, uses a fixed seed and is idempotent: it removes any

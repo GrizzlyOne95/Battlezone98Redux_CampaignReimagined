@@ -56,17 +56,17 @@ game), identical offline and in co-op because the leader runs them:
 ## Focused checks
 
 ```sh
-lua5.1 Tools/Test-EarlyMissionFlow.lua
-lua5.1 Tools/Test-Misn05Presentation.lua
-lua5.1 Tools/Test-PhysicsImpactOwnership.lua
-lua5.1 Tools/Test-CRCoop.lua
-lua5.1 Tools/Test-CRCoopRally.lua
+lua5.1 Tools/MissionTests/Test-EarlyMissionFlow.lua
+lua5.1 Tools/MissionTests/Test-Misn05Presentation.lua
+lua5.1 Tools/Weapons/Test-PhysicsImpactOwnership.lua
+lua5.1 Tools/RuntimeTests/Test-CRCoop.lua
+lua5.1 Tools/RuntimeTests/Test-CRCoopRally.lua
 lua5.1 Tests/test_coop_respawn.lua
-lua5.1 Tools/Test-CRMarsWeather.lua
-python Tools/Test-Misn05CoopContract.py
-python Tools/Test-EarlyMissionSourceAudit.py
+lua5.1 Tools/TexturesAndSky/Test-CRMarsWeather.lua
+python Tools/MissionTests/Test-Misn05CoopContract.py
+python Tools/MissionTests/Test-EarlyMissionSourceAudit.py
 python Tools/Validate-CampaignRepository.py
-lua5.1 Tools/Test-SubtitleReplacement.lua
+lua5.1 Tools/Release/Test-SubtitleReplacement.lua
 ```
 
 The Lua 5.1 flow suite passes 117 checks, the presentation adapter passes 22

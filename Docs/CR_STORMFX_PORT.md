@@ -93,11 +93,11 @@ the frame wins), `CRStormFX.Shutdown` calls `CRWetGlass.Stop()`.
 | `wetglass.lua` (module `wetglass`) | `Scripts/CRWetGlass.lua` (module `CRWetGlass`, overlay `crwx_wetglass`, EXU found as `package.loaded["exu"]` / `require("exu")`, `isStub` rejected) |
 | `isdfc_wetglass.material` (`ISDFC_Wet*_A1..16`, `ISDFC_Wind*_A1..16`) | `Materials/crwx_wetglass.material` (`CRWX_WetBeads/WetStreak/WetRivulet/WindCrack/WindDirt_A<n>`) |
 | `isdfc_wetglass.program`, `isdfc_wetglass.hlsl` | `Shaders/crwx_wetglass.program` (`CRWX_WetGlass_{vertex,fragment}_{SM3,SM4}`), `Shaders/crwx_wetglass.hlsl` |
-| `isdfc_cockpitglass.material` | `Materials/crwx_cockpitglass.material` (`CRWX_CockpitGlass`, `CRWX_CockpitGlass_W<a>C<b>`), written by `Tools/cockpitglass.py --materials` |
+| `isdfc_cockpitglass.material` | `Materials/crwx_cockpitglass.material` (`CRWX_CockpitGlass`, `CRWX_CockpitGlass_W<a>C<b>`), written by `Tools/CockpitsAndRigs/cockpitglass.py --materials` |
 | `ISDFC_FF_{Lit1,Unlit1}_vertex`, `ISDFC_FF_Mod_NoFog_fragment` | added to `Shaders/crwx_fixedfunc.program` as `CRWX_FF_*` (the existing `-sm4.hlsl` already had every variant) |
 | `isdfc_wet{beads,rivulet,streak}.png`, `isdfc_wind{crack,dirt}.png`, `isdfc_wetmask_open.png` | `Assets/Textures/crwx_*.png` |
 | `isdfc_wetmask_ivmsl2.png` (ISDFC unit only) | not shipped; `MASKS` in CRWetGlass.lua is empty, so every craft uses the open mask |
-| `tools/cockpitglass.py`, `tools/ogrebin.py` | `Tools/cockpitglass.py`, `Tools/ogrebin.py` (authoring only, `Tools/` is not shipped) |
+| `tools/cockpitglass.py`, `tools/ogrebin.py` | `Tools/CockpitsAndRigs/cockpitglass.py`, `Tools/ogrebin.py` (authoring only, `Tools/` is not shipped) |
 | `tools/wetglassgen.py`, `wetmaskgen.py`, `windshieldgen.py` | not ported: the generated textures and the generated material were copied. `wetmaskgen.py` needs OgreXMLConverter and a submesh named "Cockpit" per craft, so no stock-craft masks were made |
 
 ### API (CRWetGlass)
@@ -145,18 +145,18 @@ pass budget: the weather layers are the last wrap layers.
 | `grit` (`CRWX_WinGrit`, two layers) | `crwx_wingrit.png`; `CRWX_WinGrit_A1..16`; standard glass tint | Fine tan-brown specks, a few clumps, a faint dust film. Fixed position (no motion); layer 1 follows the level over 0..0.5, layer 2 over 0.45..1.0; peak 0.5 each. The caller shapes the build and clear. | `CRMarsWeather` (misn04, 05, 06) |
 | `acid` (`CRWX_AcidBeads`, `CRWX_AcidRivulet`, `CRWX_AcidStreak`; `CRWX_WinEtch`) | `crwx_acidbeads/acidrivulet/acidstreak.png` (the rain textures' alpha, tinted yellow-green), `crwx_winetch.png`; `CRWX_Acid*_A1..16`, `CRWX_WinEtch_A1..16`; etch pass tint 0.70 | While the level is above 0.02 the rain layers use the acid textures (chosen when a layer is not showing, so no drop recolours); the level also builds an etch exposure (level x 1/180 per s up, 1/720 per s down) that fades in one very faint pitted film, opacity up to 0.30 x smoothstep(0.08, 1, exposure), fixed position, last wrap layer. `Weather("acid", rain)` + `Update(rain)`: the rain layers themselves are driven by the `Update` intensity as for any rain. On the screen overlay the four acid textures are loaded once at the start by showing each panel alone for two frames at its faintest step (`warmUp`; see the live-check lesson in `Docs/AGENT_KNOWLEDGE_BASE.md`). | `CRVenusWeather` (misn07, 08, 09) |
 
-`Tools/Generate-GlassWeatherAssets.py` writes the frost, ice, snow, grit, acid-rain and etch textures and the material (deterministic; `--check` compares). The
+`Tools/Shaders/Generate-GlassWeatherAssets.py` writes the frost, ice, snow, grit, acid-rain and etch textures and the material (deterministic; `--check` compares). The
 large snow crystals are the ISDF Chronicles snowflake sprite `snowflak.dds` (the texture its `giplume.odf` uses; ISDFC has
 no dedicated snow-on-glass texture), converted from luminance to alpha, scattered at random sizes and angles over a
 tileable 1024 square with specks; the generator reads it from the ISDFC addon folder only when it rewrites the snow
-texture. Host test: `Tools/Test-CRWetGlassWeather.lua` (overlay and cockpit-glass modes, fade rates, opacity caps, and that
+texture. Host test: `Tools/TexturesAndSky/Test-CRWetGlassWeather.lua` (overlay and cockpit-glass modes, fade rates, opacity caps, and that
 every overlay material and texture ships).
 
 ### Regenerating the cockpit glass
 
-    python Tools/cockpitglass.py                       # every craft ODF -> Assets/ModelFixes, writes Tools/cockpitglass_report.txt
-    python Tools/cockpitglass.py avtank svfigh --dry-run --render <dir>   # fit + preview PNGs, no files written
-    python Tools/cockpitglass.py --materials           # rewrite Materials/crwx_cockpitglass.material
+    python Tools/CockpitsAndRigs/cockpitglass.py                       # every craft ODF -> Assets/ModelFixes, writes Tools/CockpitsAndRigs/cockpitglass_report.txt
+    python Tools/CockpitsAndRigs/cockpitglass.py avtank svfigh --dry-run --render <dir>   # fit + preview PNGs, no files written
+    python Tools/CockpitsAndRigs/cockpitglass.py --materials           # rewrite Materials/crwx_cockpitglass.material
     .\Manage-CampaignFiles.ps1 -bless                # then add the new meshes to the shipping lock
 
 Inputs: meshes and skeletons from `Assets/**` (so the `Assets/ModelFixes` copies win) over

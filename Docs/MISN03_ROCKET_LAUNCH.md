@@ -16,7 +16,7 @@ BC1 DDS with full offline mips (`cr03rok_{d,n,s,e}.dds`); compressed textures
 without mips render black in native DX11. The material is `cr03rok00` so it cannot clash with the Resurgence
 addon's `abtrans_BZBase_abtrans`.
 
-`python Tools/Build-Misn03Rocket.py [SOURCE_DIR]` regenerates, deterministically,
+`python Tools/MissionBuild/Build-Misn03Rocket.py [SOURCE_DIR]` regenerates, deterministically,
 `Assets/ModelFixes/cr03rok.{mesh,geo,sdf}`, the textures, `Materials/cr03rok.material`,
 `ODF/cr03rok.odf`, `Scripts/CR03RocketLayout.lua` and `References/Misn03Rocket/build.json`
 (file hashes). The source directory defaults to the author's `ROTBDv2` folder
@@ -30,7 +30,7 @@ the abtrans frame), so the model spans Y +/-46.0047 and the nozzle plane is at
 
 ## Fixture
 
-`Tools/Add-Misn03Rocket.py` clones the `launch_pad` block of `Missions/misn03.bzn`
+`Tools/MissionBuild/Add-Misn03Rocket.py` clones the `launch_pad` block of `Missions/misn03.bzn`
 into a `cr03rok` fixture labelled `cr03_rocket` (team 0, health 0, no AI, no
 damage). Misn03's BZN is not produced by `Build-CoopMap.py`, so the step edits the
 committed file and is idempotent. The world transform comes from the pad's basis:
@@ -79,10 +79,10 @@ Flow and co-op:
 ## Checks
 
 ```
-lua5.1 Tools/Test-Misn03LaunchFX.lua
-lua5.1 Tools/Test-Misn03LaunchFilm.lua
-lua5.1 Tools/Test-Misn03Launch.lua      # complete misn03 script, 3-4 peers and offline
-python Tools/Test-Misn03RocketAssets.py
+lua5.1 Tools/MissionTests/Test-Misn03LaunchFX.lua
+lua5.1 Tools/MissionTests/Test-Misn03LaunchFilm.lua
+lua5.1 Tools/MissionTests/Test-Misn03Launch.lua      # complete misn03 script, 3-4 peers and offline
+python Tools/MissionTests/Test-Misn03RocketAssets.py
 ```
 
 `Test-Misn03Launch.lua` reuses the engine/network harness of `Test-Misn03Coop.lua`.

@@ -17,21 +17,21 @@ state it writes is render state: a CRWeather preset (fog and light go through CR
 through `Environment.lua` when the mission loads it and owns the renderer when it does not), particle
 systems, and one render-only StaticGeometry sheet for the liquid surface (not a game object: no collision,
 radar, AI path or targeting). Reading craft positions is the only thing it asks of the simulation.
-`Tools/Test-CRTitanWeather.lua` audits this by wrapping every stubbed BZ and exu function.
+`Tools/TexturesAndSky/Test-CRTitanWeather.lua` audits this by wrapping every stubbed BZ and exu function.
 
 | File | Role |
 | --- | --- |
 | `Scripts/CRTitanWeather.lua` | The director. Tunables are at the top of the file. |
 | `Scripts/CRVenusMap.lua` | Shared pure half (seeded rng, ladder). Reused as is. |
 | `Scripts/CRTitanSites14.lua` | Generated map data for misn14 (wet mask, 160 pool anchors, bounds). |
-| `Tools/Build-TitanSites.py` | Regenerates a `CRTitanSites<NN>.lua` from a mission's `.trn`, `.mat`, `.hg2`, `.bzn`. |
+| `Tools/Terrain/Build-TitanSites.py` | Regenerates a `CRTitanSites<NN>.lua` from a mission's `.trn`, `.mat`, `.hg2`, `.bzn`. |
 | `Materials/cr_titan.particle.payload` | Six particle templates on existing `CR_FX/*` materials, loaded through `CRParticleTemplates.EnsureExtra("cr_titan")`. |
 | `Shaders/cr_methane.hlsl`, `Shaders/cr_methane.program`, `Materials/cr_methane.material` | The liquid-methane surface shader (SM4 / SM3) and its per-map materials (section 5). |
-| `Tools/Build-MethaneSurface.py` | Writes the surface sheet mesh, the ripple normal map and each map's wet-mask texture (`--check` in CI). |
+| `Tools/Terrain/Build-MethaneSurface.py` | Writes the surface sheet mesh, the ripple normal map and each map's wet-mask texture (`--check` in CI). |
 | `Assets/ModelFixes/cr_methane_plane.mesh`, `Assets/Textures/cr_methane_ripple.png`, `Assets/Textures/cr_titan14_wet.png` | Its generated assets. |
-| `Tools/Test-MethaneShader.ps1` | Compiles every shader delegate with fxc and cross-checks the program and material parameters. |
+| `Tools/Shaders/Test-MethaneShader.ps1` | Compiles every shader delegate with fxc and cross-checks the program and material parameters. |
 | `Scripts/Environment.lua` | Now detects Titan and has a `titan` world preset (below). |
-| `Tools/Test-CRTitanWeather.lua` | Isolated-peer tests against an exu / BZ mock (934 assertions). |
+| `Tools/TexturesAndSky/Test-CRTitanWeather.lua` | Isolated-peer tests against an exu / BZ mock (934 assertions). |
 
 ## 1. The Environment fix
 
@@ -186,7 +186,7 @@ Europa / Misn11 tools already use (Base in the high nibble; height = low 13 bits
 
 So the MAT painting does mark the liquid, in combination: **a wet cell is a pure Methane Ocean cell (Base and
 Next nibble both type 0, so a methane-to-rock shore tile is never wet) whose four HG2 samples lie on the sea
-floor** (within 0.3 units of the most common type-0 height). That is exactly what `Tools/Build-TitanSites.py`
+floor** (within 0.3 units of the most common type-0 height). That is exactly what `Tools/Terrain/Build-TitanSites.py`
 writes into `CRTitanSites14.lua`: the wet mask as run-length rows for the rows near the playable box
 (26,509 cells), and 160 pool anchors on wet ground inside the box, scored by the wet fraction of their 5x5
 neighbourhood and by closeness to a shore (lakes weighted x1.35), greedy best-first at least 80 units apart.
@@ -343,7 +343,7 @@ misn15 and misns5-8 can use the director the same way once their sites file is g
 
 ## 10. Tests
 
-`lua5.1 Tools/Test-CRTitanWeather.lua Scripts` (in `campaign-validation.yml`, "Test weather"):
+`lua5.1 Tools/TexturesAndSky/Test-CRTitanWeather.lua Scripts` (in `campaign-validation.yml`, "Test weather"):
 
 1. misn14 data: labels, sea level 5, 58,956 methane cells, wet < methane, lakes exist, every anchor wet and
    inside the box, sorted, at least 80 apart.
@@ -378,11 +378,11 @@ misn15 and misns5-8 can use the director the same way once their sites file is g
     techniques (liquid, glow, fallback), mesh / textures / shader present, every `param_named` declared in the
     shader, every file in the shipping lock.
 
-`powershell -File Tools/Test-MethaneShader.ps1` (in `dx11-shader-validation.yml`) compiles every delegate with
+`powershell -File Tools/Shaders/Test-MethaneShader.ps1` (in `dx11-shader-validation.yml`) compiles every delegate with
 fxc (`vs_4_0`/`ps_4_0` with `SM4=1`, `vs_3_0`/`ps_3_0`, warnings as errors) and fails when a default param
 names a constant a delegate strips, when a kept constant has no default and no material value, or when the
 material sets an undeclared parameter (checked against a deliberately broken program and material).
-`python -I Tools/Build-MethaneSurface.py --check` (in "Test weather") regenerates the mesh, ripple map and
+`python -I Tools/Terrain/Build-MethaneSurface.py --check` (in "Test weather") regenerates the mesh, ripple map and
 wet mask in memory and compares them (PNG pixels, not bytes).
 
 Mutation checks run while writing it: an always-true `IsWet`, a missing clearance test, a removed host echo
@@ -392,8 +392,8 @@ Regenerate / check the data (needs the toolbox and a Redux `bzone.zfs`; not run 
 files are not in the repository):
 
 ```text
-python -I Tools/Build-TitanSites.py misn14 --zfs "<Redux>\bzone.zfs"
-python -I Tools/Build-TitanSites.py misn14 --zfs "<Redux>\bzone.zfs" --check
+python -I Tools/Terrain/Build-TitanSites.py misn14 --zfs "<Redux>\bzone.zfs"
+python -I Tools/Terrain/Build-TitanSites.py misn14 --zfs "<Redux>\bzone.zfs" --check
 ```
 
 ## 11. Live validation

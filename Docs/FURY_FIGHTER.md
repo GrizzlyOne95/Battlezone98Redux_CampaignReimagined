@@ -29,11 +29,11 @@ generate mips for compressed textures). Stock
 Fury specular/emissive maps and a flat normal map are reused. The initial image
 experiment using ISDFC's red atlas was discarded and is not part of this feature.
 
-Rebuild with `python Tools/Build-FuryFighter.py`. The default source is the
+Rebuild with `python Tools/UnitsAndBuildings/Build-FuryFighter.py`. The default source is the
 preserved standalone port, so rebuilding does not depend on Google Drive.
 
 Since 10 November 2026, GC1 and GC2 sit on visible wing-top cannon mounts
-(`Tools/Build-HardpointMounts.py`, receipts under `References/HardpointMounts` and
+(`Tools/CockpitsAndRigs/Build-HardpointMounts.py`, receipts under `References/HardpointMounts` and
 `References/Hardpoints`). Before, they sat inside the wing slab, firing through its
 leading edge. The mounts use the `sleek_cannon` piece: a low swept blade fairing
 that flows out of the wing into one slim barrel, in hull paint with a cyan muzzle
@@ -46,8 +46,8 @@ tree. To re-apply:
    `crfraz` CONFIG `base` in `Build-HardpointMounts.py`, `"base"` in
    `References/Hardpoints/crfraz.json`, and the `crfraz.skeleton` SKELETONS entry in
    `Build-UnitAnimSlots.py`.
-1. `python Tools/Build-HardpointMounts.py --units crfraz --ship`
-2. `python Tools/Build-UnitAnimSlots.py --stock-dir <StockODFFiles> crfraz.vdf crfraz.skeleton`
+1. `python Tools/CockpitsAndRigs/Build-HardpointMounts.py --units crfraz --ship`
+2. `python Tools/CockpitsAndRigs/Build-UnitAnimSlots.py --stock-dir <StockODFFiles> crfraz.vdf crfraz.skeleton`
 
 ## Initial balance
 

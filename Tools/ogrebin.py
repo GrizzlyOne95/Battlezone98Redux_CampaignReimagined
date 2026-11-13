@@ -1,6 +1,6 @@
 """Minimal Ogre 1.10 binary .mesh / .skeleton reader and submesh appender.
 
-Used by Tools/cockpitglass.py. Reads what the cockpit-glass tool needs (submesh
+Used by Tools/CockpitsAndRigs/cockpitglass.py. Reads what the cockpit-glass tool needs (submesh
 materials, positions, triangles, bone assignments; bones and their bind pose)
 and rewrites a mesh with one extra submesh appended, copying every other chunk
 byte for byte. Only [MeshSerializer_v1.100] meshes (every stock BZR and ISDFC mesh; the odd v1.8 file is refused) and
@@ -9,7 +9,7 @@ byte for byte. Only [MeshSerializer_v1.100] meshes (every stock BZR and ISDFC me
 Chunk layout (OgreMeshSerializerImpl.cpp, Ogre 1.10): u16 id, u32 length
 (including the 6-byte header); strings end in '\n'.
 """
-# TODO(toolkit gap): remaining hand-rolled .mesh/.skeleton parsing, kept only because Tools/cockpitglass.py
+# TODO(toolkit gap): remaining hand-rolled .mesh/.skeleton parsing, kept only because Tools/CockpitsAndRigs/cockpitglass.py
 # (owned by branch agent/cockpit-fixes) still imports ogrebin.Mesh/Skeleton. The serializer limits that blocked
 # a port (bone assignments re-sorted, LOD levels/poses/animations dropped) are fixed upstream in BZ98RBlenderToolKit
 # PR #19 (preserve_bone_assignment_order, raw_chunks); replace this module with ogremesh/ogreskeleton when

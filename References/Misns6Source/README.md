@@ -68,8 +68,8 @@ work. It expects the original map labels and paths.
 
 ## Validation
 
-Run `lua5.1 Tools/Test-Misns6.lua` and
-`python Tools/Test-Misns6SourceParity.py` from the repository root.
+Run `lua5.1 Tools/MissionTests/Test-Misns6.lua` and
+`python Tools/MissionTests/Test-Misns6SourceParity.py` from the repository root.
 The mock host covers mission decisions, source timer boundaries, callback
 delivery, idle/active mining, waves, absent objects, endings, and reloads.
 The source audit checks exact Git blob hashes plus mission assets and state.

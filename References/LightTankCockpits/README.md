@@ -65,8 +65,8 @@ draw-time or performance qualification.
 ## Rebuild and checks
 
 ```powershell
-python Tools/Build-LightTankCockpits.py
-python Tools/Test-LightTankCockpits.py
+python Tools/CockpitsAndRigs/Build-LightTankCockpits.py
+python Tools/CockpitsAndRigs/Test-LightTankCockpits.py
 python Tools/Validate-CampaignRepository.py
 ```
 

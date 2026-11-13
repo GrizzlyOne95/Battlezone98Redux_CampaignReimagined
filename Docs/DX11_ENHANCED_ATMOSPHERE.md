@@ -76,9 +76,9 @@ Gated identically to Stage A — `defined(ENHANCED_MODE) && !defined(VERTEX_LIGH
 
 ### Validation
 
-- `Tools/Compare-DX11ShaderBinaries.ps1` compiles all 113 shipped DX11 SM4 permutations from both this tree and a baseline revision and compares DXBC. With the source added but the `.program` files untouched, **all 113 were bit-identical** — the feature is a provable no-op at its default. With the 12 Enhanced programs opted in, exactly those 12 changed and the other 101 stayed bit-identical.
+- `Tools/Shaders/Compare-DX11ShaderBinaries.ps1` compiles all 113 shipped DX11 SM4 permutations from both this tree and a baseline revision and compares DXBC. With the source added but the `.program` files untouched, **all 113 were bit-identical** — the feature is a provable no-op at its default. With the 12 Enhanced programs opted in, exactly those 12 changed and the other 101 stayed bit-identical.
 - `Validate-DX11Shaders.ps1` sweeps the full `CR_LINEAR_LIGHT` × `CR_RADIAL_FOG` cross product (108 permutations) and asserts that the two fog models never both appear, that non-Enhanced permutations contain no atmosphere fog helpers at all, and that the legacy depth fog survives everywhere it should.
-- `Tools/Test-DX11ShaderValidator.ps1` proves the guards themselves work, including a fixture that feeds `vDepth` to the radial factor and one that tunes the shared helper in a single file.
+- `Tools/Shaders/Test-DX11ShaderValidator.ps1` proves the guards themselves work, including a fixture that feeds `vDepth` to the radial factor and one that tunes the shared helper in a single file.
 
 ## Calibration constants
 

@@ -133,7 +133,7 @@ The obvious alternative — read the incoming preset at `Blend`, and restart
 baseline for a frame and then ramps the new preset in over the next 18-30
 seconds. Adding a single "previous" slot does not rescue it either: a change part
 way through a transition displaces a preset that was itself still fading, and
-that residue is lost. `Tools/Test-CRMarsWeather.lua` asserts both cases directly,
+that residue is lost. `Tools/TexturesAndSky/Test-CRMarsWeather.lua` asserts both cases directly,
 measuring the largest single-channel move across a preset change; on the
 single-slot model they step by 0.38 and 0.17 respectively.
 

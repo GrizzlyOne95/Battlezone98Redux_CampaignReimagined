@@ -81,7 +81,7 @@ Although the prompt requested 2048 square, the returned master is 1254 square.
 Runtime D/E are 1024-square, full-mip legacy BC1: this is not a claim of newly
 authored 2K detail. Master pixels are not procedurally repainted.
 
-`Tools/cvfighcockpit.py` records inset UV allocations for the main console,
+`Tools/CockpitsAndRigs/cvfighcockpit.py` records inset UV allocations for the main console,
 switches, engine controls, ochre armor, quiet red frame strip and charcoal trim.
 Green CRT traces/bars and saved amber indicator ROIs drive E; structural paint,
 red toggles, armor and frames stay dark. `optical-mask.png` preserves the source
@@ -92,9 +92,9 @@ cvfigh D/N/S/E; no duplicate exterior atlas is shipped.
 ## Build / validation
 
 ```text
-python Tools/Build-CVFighterCockpit.py --game <BZR game root>
-python Tools/Test-CVFighterCockpit.py
-python Tools/Test-RedDevilCockpit.py
+python Tools/CockpitsAndRigs/Build-CVFighterCockpit.py --game <BZR game root>
+python Tools/CockpitsAndRigs/Test-CVFighterCockpit.py
+python Tools/CockpitsAndRigs/Test-RedDevilCockpit.py
 python Tools/Validate-CampaignRepository.py
 ```
 

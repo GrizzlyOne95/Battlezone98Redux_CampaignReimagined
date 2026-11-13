@@ -30,7 +30,7 @@ provenance plus palette/morphology adjustments and reference hashes.
 
 The exact reviewed local set is
 `Campaign-Reimagined-world-surface-lighting/Local/WorldArt/Revision01`.
-Import another explicitly accepted set with `Tools/Promote-WorldArt.py
+Import another explicitly accepted set with `Tools/Terrain/Promote-WorldArt.py
 --candidate-root <set>` and the pinned Toolbox library, review all diffs, then
 run `Manage-CampaignFiles.ps1 -bless`. Import validates all nine bundles before
 writing and preserves CR's runtime tuning. PNG masters, downloaded sources,

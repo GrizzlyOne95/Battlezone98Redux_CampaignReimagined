@@ -109,12 +109,12 @@ Battlezone_Source commit `e7c410573ffedc9e118dd90f402af6d5585955cc`:
 Focused checks:
 
 ```sh
-lua5.1 Tools/Test-Misn03Coop.lua
-lua5.1 Tools/Test-CRCoop.lua
-lua5.1 Tools/Test-EarlyMissionFlow.lua
-python Tools/Test-Misn03CoopContract.py
-python Tools/Test-SetupMissionShell.py
-python Tools/Test-EarlyMissionSourceAudit.py
+lua5.1 Tools/MissionTests/Test-Misn03Coop.lua
+lua5.1 Tools/RuntimeTests/Test-CRCoop.lua
+lua5.1 Tools/MissionTests/Test-EarlyMissionFlow.lua
+python Tools/MissionTests/Test-Misn03CoopContract.py
+python Tools/MissionTests/Test-SetupMissionShell.py
+python Tools/MissionTests/Test-EarlyMissionSourceAudit.py
 python Tools/Validate-CampaignRepository.py
 ```
 

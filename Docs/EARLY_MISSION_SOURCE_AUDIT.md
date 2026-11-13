@@ -103,9 +103,9 @@ These Git blob hashes are pinned by the automated source checks:
 Run from the repository root:
 
 ```sh
-lua5.1 Tools/Test-EarlyMissionFlow.lua
-python Tools/Test-EarlyMissionSourceAudit.py
-python Tools/Test-Misn03CoopContract.py
+lua5.1 Tools/MissionTests/Test-EarlyMissionFlow.lua
+python Tools/MissionTests/Test-EarlyMissionSourceAudit.py
+python Tools/MissionTests/Test-Misn03CoopContract.py
 ```
 
 Lua 5.1.5 passes **117 focused flow checks** using actual script blocks and

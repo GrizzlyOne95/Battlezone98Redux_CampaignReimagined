@@ -11,7 +11,7 @@ Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.m
 
 ## Map
 
-`Tools/Build-CoopMap.py --mission misn10` rebuilt `Missions/misn10.bzn` from the Battlezone 1.5
+`Tools/MissionBuild/Build-CoopMap.py --mission misn10` rebuilt `Missions/misn10.bzn` from the Battlezone 1.5
 original: class `MultSTMission`, the eight authored CCA objects (`svrecy`, `svmuf`, two `sbbarr`,
 `svcnst`, `sbsilo`, two `svartl`) moved from team 2 to team 5, four zero-motion `pspwn_1` team
 starts (`coop_spawn1`-`4`), no authored object on teams 2-4, the `[AiMission]` block kept. Utah
@@ -70,14 +70,14 @@ carrier is within 500 m of its destination; calm on the win.
 ## Focused checks
 
 ```sh
-lua5.1 Tools/Test-Misn10.lua
-lua5.1 Tools/Test-Misn10Coop.lua
-lua5.1 Tools/Test-Misn10Presentation.lua
-lua5.1 Tools/Test-CRIoWeather.lua Scripts
-python Tools/Test-Misn10SourceParity.py
-python Tools/Test-Misn10CoopContract.py
-python Tools/Test-CoopAuthoredLabels.py
-python Tools/Test-SetupMissionShell.py
+lua5.1 Tools/MissionTests/Test-Misn10.lua
+lua5.1 Tools/MissionTests/Test-Misn10Coop.lua
+lua5.1 Tools/MissionTests/Test-Misn10Presentation.lua
+lua5.1 Tools/TexturesAndSky/Test-CRIoWeather.lua Scripts
+python Tools/MissionTests/Test-Misn10SourceParity.py
+python Tools/MissionTests/Test-Misn10CoopContract.py
+python Tools/MissionTests/Test-CoopAuthoredLabels.py
+python Tools/MissionTests/Test-SetupMissionShell.py
 python Tools/Validate-CampaignRepository.py
 ```
 

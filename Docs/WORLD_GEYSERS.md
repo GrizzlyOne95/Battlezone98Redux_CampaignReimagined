@@ -78,7 +78,7 @@ go through the BGRA sprite swizzle and draw red and blue swapped on DX11.
 
 ## Unverified
 
-Host tests only (`Tools/Test-CRGeysers.lua`, plus occupancy scenarios in
+Host tests only (`Tools/TexturesAndSky/Test-CRGeysers.lua`, plus occupancy scenarios in
 `Test-CREuropaWeather.lua` and `Test-CRIoWeather.lua`). Not yet seen in game:
 
 - the look values (sizes, speeds, colours, rates) are first guesses and need a tuning pass;

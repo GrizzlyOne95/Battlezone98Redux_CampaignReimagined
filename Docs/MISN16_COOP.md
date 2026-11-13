@@ -132,7 +132,7 @@ Pilot Mode remain outside this prototype.
 - Scene/ordered transport: 58 checks pass with the real co-op registry in a
   mocked four-peer world, including local skip, loss tie, optional ship loss,
   stranded actors, save/load resumption and watched ingress deferral.
-- `Tools/Test-Misn16Live.ps1` is the bounded native boarding/launch/result
+- `Tools/MissionTests/Test-Misn16Live.ps1` is the bounded native boarding/launch/result
   scenario. Its explicit assists destroy the facilities, clear combat
   Furies so the optional safe camera can play, and heal human craft;
   it does not certify natural combat balance.

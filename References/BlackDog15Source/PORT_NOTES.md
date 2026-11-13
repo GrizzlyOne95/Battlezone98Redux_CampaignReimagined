@@ -64,7 +64,7 @@ distance gate and bd15013.wav call remain comments beside their ported code.
 
 ## Validation and remaining runtime checks
 
-Run `python Tools/test_bdmisn15.py` with `lupa.lua51` installed. The tests
+Run `python Tools/CoopCampaignTests/test_bdmisn15.py` with `lupa.lua51` installed. The tests
 execute actual Lua 5.1, compare all ordered enemy spawns with the C++ source,
 verify the exact source blob, strict time/radius boundaries, defeat exclusivity,
 audio gates, save/load continuation, camera target reuse and one-shot finale.

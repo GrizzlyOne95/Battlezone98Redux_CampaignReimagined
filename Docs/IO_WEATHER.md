@@ -21,10 +21,10 @@ keeps throwing ash columns, a steady fall of ash, and ground that shakes.
 | `Scripts/CRVenusMap.lua` | Shared pure half (seeded rng, severity ladder, terrain scan and basins, run expansion, vent merge, weighted pick). Reused as is; no copy. |
 | `Scripts/CRIoSites11.lua` | Generated map data for misn11 (painted lava, one vent; see `MISN11_COOP.md`). |
 | `Scripts/CRIoSites10.lua` | Generated map data for misn10 (playable box, lava cells, 322 lava fog anchors, 21 vents). |
-| `Tools/Build-IoSites.py` | Regenerates a `CRIoSites<NN>.lua` from a mission's `.trn`, `.mat` and `.bzn`, read straight out of Redux's `bzone.zfs`. |
+| `Tools/Terrain/Build-IoSites.py` | Regenerates a `CRIoSites<NN>.lua` from a mission's `.trn`, `.mat` and `.bzn`, read straight out of Redux's `bzone.zfs`. |
 | `Materials/cr_io.particle.payload` | Six particle templates on the `CRIo/*` materials. Loaded through `CRParticleTemplates.EnsureExtra("cr_io")`. |
 | `Materials/crart_io.material` | The `CRIo/*` particle materials: existing `CR_FX` art on the RGBA-order `CRWX_FX` vertex program plus `CR_Effect_fragment`, so DX11 draws the pass natively. On the `CR_FX/*` originals DX11 swapped red and blue, so the warm haze drew as a blue band along the horizon. |
-| `Tools/Test-CRIoWeather.lua` | Isolated-peer tests against an exu / BZ mock. |
+| `Tools/TexturesAndSky/Test-CRIoWeather.lua` | Isolated-peer tests against an exu / BZ mock. |
 
 The five `Io*` presets are registered into `CRWeatherPresets.Presets` by the director at
 `Init` (idempotently), so `CRWeatherPresets.lua` is untouched. The haze, grit and ash
@@ -111,7 +111,7 @@ the load frame. The deterministic greedy pass scores each molten cell by the lav
 of its 7x7 neighbourhood, takes the densest first, keeps a candidate only if it is 110
 units from every pool already kept and at least 0.55 dense, and keeps pools 40 units inside
 the playable box. Result for misn10: 322 pools, every one on a molten tile, none closer
-than 110 units, and 99.9 % of the 11,636 molten cells inside the playable box within 130 units of one (the rest of the 18,944 lie on the unreachable apron). `Tools/Test-CRIoWeather.lua`
+than 110 units, and 99.9 % of the 11,636 molten cells inside the playable box within 130 units of one (the rest of the 18,944 lie on the unreachable apron). `Tools/TexturesAndSky/Test-CRIoWeather.lua`
 asserts all of that against the shipped data.
 
 At run time (`StreamSites`, the Venus streamer) at most `MaxLiveLava` (6) `CR/Io/LavaFog`
@@ -336,16 +336,16 @@ in the same mission, and do not call the stock earthquake natives alongside the 
 ## Shipping and admin notes (for the main session)
 
 - New files only: `Scripts/CRIoWeather.lua`, `Scripts/CRIoSites10.lua`,
-  `Materials/cr_io.particle.payload`, `Tools/Build-IoSites.py`, `Tools/Test-CRIoWeather.lua`,
+  `Materials/cr_io.particle.payload`, `Tools/Terrain/Build-IoSites.py`, `Tools/TexturesAndSky/Test-CRIoWeather.lua`,
   `Docs/IO_WEATHER.md`. `Shipping/shipping.lock.json` needs the normal `-bless` at merge
   time (the lock was not touched, nothing was blessed, deployed or published). The payload
   is a shipped file like `cr_venus.particle.payload`, so it needs its lock entry too.
 - The payload is loaded through `EnsureExtra("cr_io")`, not added to the base list, so a
   build without it degrades (presets, ash and quakes still work) instead of breaking weather.
-- Regenerate the data: `python -I Tools/Build-IoSites.py misn10` (reads Redux's
+- Regenerate the data: `python -I Tools/Terrain/Build-IoSites.py misn10` (reads Redux's
   `bzone.zfs` through the Modding Toolbox's `ZFSArchive`; `--source-dir` takes extracted
   files instead). The output is byte-reproducible.
-- `lua5.1 Tools/Test-CRIoWeather.lua Scripts` passes, and so do the Venus, Mars, haboob,
+- `lua5.1 Tools/TexturesAndSky/Test-CRIoWeather.lua Scripts` passes, and so do the Venus, Mars, haboob,
   volcano, Venus-dense, fog-horizon and parameter tests and
   `python Tools/Validate-CampaignRepository.py`.
 

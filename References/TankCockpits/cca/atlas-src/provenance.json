@@ -1,6 +1,6 @@
 {
  "generator": "Google Gemini (owner-generated 2026-11-13, delivered as Gemini_Generated_Image_xjxgzsxjxgzsxjxg.zip)",
- "size": "2752x1536 JPEG each; the generator ignored per-tile aspect ratios, so Tools/Build-CCACockpitAtlas.py crops each hero module",
+ "size": "2752x1536 JPEG each; the generator ignored per-tile aspect ratios, so Tools/CockpitsAndRigs/Build-CCACockpitAtlas.py crops each hero module",
  "prompt_base": "Orthographic flat front view of a single Soviet-style 1980s armoured vehicle interior panel. Even diffuse lighting, no perspective, no shadows cast from outside, no text or Cyrillic lettering, no logos. Worn grey-blue enamel steel with chipped edges and darker grime in recesses. Bolted rectangular bezel frame with countersunk screws. Hard-surface industrial and utilitarian, not sci-fi. Muted palette: grey-blue, gunmetal, cream/beige labels, signal red accents, dull olive. Small warning stripes only where stated. Photographic texture-reference quality, seamless edges inside the frame.",
  "tile_prompts": {
   "keypad": "numeric keypad, 3x4 rubberised buttons, worn cream legends, red cancel key",

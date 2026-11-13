@@ -12,10 +12,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bd02cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd02.lua` (`Tools/Test-Bdmisn02CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restoration and the co-op fixes. |
+| `Scripts/bd02cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd02.lua` (`Tools/CoopCampaignTests/Test-Bdmisn02CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restoration and the co-op fixes. |
 | `Scripts/CRGanymedeSitesBD02.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather: the Jovian-moon director (it was written for Europa and is shared) and the generated sites for this map: **two** geyser vents (`eggeizr10_geyser`, `eggeizr11_geyser`), frost clusters and bounds. No new weather module. |
 | `Missions/bd02cr.{bzn,vxt}`, `bdmisn02.{hg2,lgt,mat,trn}`, `Config/bd02cr.ini` | Map and companions (not part of this change). The map carries the recycler, two Bobcats, a scavenger and the four cloaked turrets (already on team 5); Lua spawns every other enemy. |
-| `Tools/Bdmisn02Fixture.lua`, `Test-Bdmisn02Coop.lua`, `Test-Bdmisn02Presentation.lua`, `Test-Bdmisn02CoopSourceParity.py`, `Test-Bdmisn02CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Bd02.lua` / `Test-Bd02SourceParity.py` still cover the faithful port, unchanged. |
+| `Tools/CoopCampaignTests/Bdmisn02Fixture.lua`, `Test-Bdmisn02Coop.lua`, `Test-Bdmisn02Presentation.lua`, `Test-Bdmisn02CoopSourceParity.py`, `Test-Bdmisn02CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Bd02.lua` / `Test-Bd02SourceParity.py` still cover the faithful port, unchanged. |
 
 ## Teams and ownership
 
@@ -184,12 +184,12 @@ The director never damages.
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Bdmisn02Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, fallback, cameras, results, saves, weather
-lua5.1 Tools/Test-Bdmisn02Presentation.lua    # E/A/C protocol on a guest, the leader's full stream
-python Tools/Test-Bdmisn02CoopSourceParity.py # bd02cr.lua minus CR regions == bd02.lua
-python Tools/Test-Bdmisn02CoopContract.py     # labels/paths/teams in bd02cr.bzn (skips with a message if the map is absent;
+lua5.1 Tools/CoopCampaignTests/Test-Bdmisn02Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, fallback, cameras, results, saves, weather
+lua5.1 Tools/CoopCampaignTests/Test-Bdmisn02Presentation.lua    # E/A/C protocol on a guest, the leader's full stream
+python Tools/CoopCampaignTests/Test-Bdmisn02CoopSourceParity.py # bd02cr.lua minus CR regions == bd02.lua
+python Tools/CoopCampaignTests/Test-Bdmisn02CoopContract.py     # labels/paths/teams in bd02cr.bzn (skips with a message if the map is absent;
                                               # vxt / Config ini / crbd.ini checked only when present)
-lua5.1 Tools/Test-Bd02.lua && python Tools/Test-Bd02SourceParity.py          # the faithful port, unchanged
+lua5.1 Tools/CoopCampaignTests/Test-Bd02.lua && python Tools/CoopCampaignTests/Test-Bd02SourceParity.py          # the faithful port, unchanged
 ```
 
 The workflow `.github/workflows/campaign-validation.yml` runs all four co-op tests (the CI lines are listed in the

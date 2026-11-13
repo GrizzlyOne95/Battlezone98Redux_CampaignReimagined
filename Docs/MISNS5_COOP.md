@@ -1,8 +1,8 @@
 # CCA 05 "Controlling the High Ground": co-op and weather (misns5cr)
 
-`Scripts/misns5cr.lua` is `Scripts/misns5.lua` (the faithful DLL port, `Tools/Test-Misns5.lua`) plus marked
+`Scripts/misns5cr.lua` is `Scripts/misns5.lua` (the faithful DLL port, `Tools/MissionTests/Test-Misns5.lua`) plus marked
 `-- CR ... >>` / `<<` regions. Outside the regions the file is the faithful port byte for byte
-(`Tools/Test-Misns5CoopSourceParity.py`). The runtime contract is `Docs/CCA_COOP_RUNTIME.md`; the template is
+(`Tools/MissionTests/Test-Misns5CoopSourceParity.py`). The runtime contract is `Docs/CCA_COOP_RUNTIME.md`; the template is
 `Docs/MISNS1_COOP.md`. The map is `Missions/misns5cr.bzn` (terrain `misns5`); weather is Titan
 (`CRTitanWeather`, sites `Scripts/CRTitanSitesS5.lua`, 25 pool anchors, generated).
 The authored NSDF turret in the map now uses the matching Black Dog ODF; its map label is preserved.
@@ -73,7 +73,7 @@ terrain in game.
 The opening is one audio-driven `CameraPath("campath", ..., sbhang0_repairdepot)` shot. In a network game it is
 shared and unskippable (`CameraCancelled` is false; a skip releases only the skipper's own camera); offline it is
 skippable as in the faithful port. No camera is held (`holdCamera` off): the body re-issues the path every frame.
-There are no other cameras, so `Tools/Test-Misns5Presentation.lua` covers the shared opening stream.
+There are no other cameras, so `Tools/MissionTests/Test-Misns5Presentation.lua` covers the shared opening stream.
 
 ## Restored content
 

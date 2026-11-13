@@ -61,9 +61,9 @@ detail. The compiler does not draw panels or generate artwork from code.
 ## Build / evidence
 
 ```text
-python Tools/Build-BuildingDetailPass.py
-python Tools/Test-BuildingDetailPass.py
-python Tools/Test-TextureRevamp.py
+python Tools/UnitsAndBuildings/Build-BuildingDetailPass.py
+python Tools/UnitsAndBuildings/Test-BuildingDetailPass.py
+python Tools/TexturesAndSky/Test-TextureRevamp.py
 python Tools/Validate-CampaignRepository.py
 ```
 

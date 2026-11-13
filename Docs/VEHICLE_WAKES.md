@@ -46,7 +46,7 @@ sites module is named `CRGanymedeSites*` (or the mission's `weather.wakeSurface`
   launch speed capped so the apex stays under 0.6 m (`sqrt(2 g 0.6)`). The local player's pilot ranks first for the
   system cap. A pooled system is only reused for the same template and mode.
 - Known limits (Ogre 1.10): one particle size per system (dust and chips share it) and one `Rotator` per system.
-- Sprites are CR's own art (cr_kick_regolith / ice / clod / puff, 256 px DXT5) converted by `Tools/Build-KickupTextures.py`; the clod art is already brown with grass blades, so mud and grass tint it near neutral.
+- Sprites are CR's own art (cr_kick_regolith / ice / clod / puff, 256 px DXT5) converted by `Tools/TexturesAndSky/Build-KickupTextures.py`; the clod art is already brown with grass blades, so mud and grass tint it near neutral.
 
 ## Load budget
 
@@ -76,8 +76,8 @@ ground-cover instances (`layers`) in the 3x3 12 m cells around the craft (0.4 on
 The mask is the 5 m heightmap grid (x = col * 5, z = row * 5 + 97280) as run-length rows
 (`rows[i]` = grid row `firstRow + i - 1`, `{startCol, length, ...}`), 30,339 cells in about 24.8 KB. Pool
 cells are as baked into `cr17_pools.mesh`; stream cells are those whose centre lies within the drawn half-width
-plus half a cell of a stream point, so the mask covers the strip that is drawn. `Tools/Build-Misn17Jungle.py`
-emits it with the rest of the sites; `Tools/Export-Misn17WaterMask.py` regenerates only the mask (no ISDFC
+plus half a cell of a stream point, so the mask covers the strip that is drawn. `Tools/MissionBuild/Build-Misn17Jungle.py`
+emits it with the rest of the sites; `Tools/MissionBuild/Export-Misn17WaterMask.py` regenerates only the mask (no ISDFC
 checkout needed) by executing the builder's WATER-MODEL slice on the original heightmap, and refuses to write
 unless it reproduces the pool cell, stream path and stream point counts of `source-assets.json`.
 `--check` verifies the file is current. The lift for mask water is a compromise (stream surface is 0.6 m above
@@ -86,14 +86,14 @@ the carved bed; pools sit up to 2 m above it).
 ## Mission 18 surface test (mud)
 
 `CRStorm18Water.WakeSurface(x, z)`: `water` (lift 0.5 m) on a cell of the generated misn18 water mask
-(`CRStorm18Sites.watermask`, same format as above, built by `Tools/Build-Misn18Water.py`), otherwise `mud`, at
+(`CRStorm18Sites.watermask`, same format as above, built by `Tools/MissionBuild/Build-Misn18Water.py`), otherwise `mud`, at
 a rate of 0.6 + 0.4 x the storm's mud amount. `CRWake/MudClods` is two emitters of `CR_FX/KickClod`: dark wet dirt and
 heavier clods (gravity -9.81), quota 56, a four-stage ColourInterpolator, silent until driven.
 See `MISN18_STORM.md` (Water and landscaping).
 
 ## Validation
 
-`lua5.1 Tools/Test-VehicleWakes.lua Scripts` (stubbed engine), plus the director tests. Owed live: an
+`lua5.1 Tools/TexturesAndSky/Test-VehicleWakes.lua Scripts` (stubbed engine), plus the director tests. Owed live: an
 lcbench particle smoke that the `cr_wake` templates parse in Ogre (Ogre skips malformed templates
 silently) and an in-game look at each surface.
 

@@ -72,8 +72,8 @@ Inline `PORT FIX` comments explain the changed conditions and their effects.
 ## Validation and integration
 
 ```sh
-lua5.1 Tools/Test-BlackDog06.lua
-python Tools/Test-BlackDog06SourceParity.py
+lua5.1 Tools/CoopCampaignTests/Test-BlackDog06.lua
+python Tools/CoopCampaignTests/Test-BlackDog06SourceParity.py
 ```
 
 The Lua 5.1 stub harness covers the full mission, strict boundaries, waves,

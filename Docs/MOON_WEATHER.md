@@ -21,9 +21,9 @@ host-authoritative and peer-identical like the other directors.
 | `Scripts/CRMoonWeather.lua` | The director. Every tunable is at the top of the file. |
 | `Scripts/CRVenusMap.lua` | Shared pure half (seeded rng, `DeriveSeed`, `SmoothStep`). Reused as is, not edited. |
 | `Scripts/CRMoonSites02b.lua`, `Scripts/CRMoonSites03.lua` | Generated map data (mist anchors in low ground, playable bounds). |
-| `Tools/Build-MoonSites.py` | Regenerates a `CRMoonSites<NN>.lua` from a mission's `.hg2`, `.trn` and `.bzn`. Pure Python, byte-reproducible. |
+| `Tools/Terrain/Build-MoonSites.py` | Regenerates a `CRMoonSites<NN>.lua` from a mission's `.hg2`, `.trn` and `.bzn`. Pure Python, byte-reproducible. |
 | `Materials/cr_moon.particle.payload` | Four particle templates, all on existing `CR_FX/*` materials. Loaded through `CRParticleTemplates.EnsureExtra("cr_moon")`. |
-| `Tools/Test-CRMoonWeather.lua` | Isolated-peer tests against an exu / BZ mock, including the no-gameplay audit. |
+| `Tools/TexturesAndSky/Test-CRMoonWeather.lua` | Isolated-peer tests against an exu / BZ mock, including the no-gameplay audit. |
 
 The shared files are untouched except for appended, marked regions: `.github/workflows/campaign-validation.yml`
 (one step, `# CR Moon weather >>`), `CHANGELOG.md` (one bullet), `Shipping/shipping.lock.json` (four entries,
@@ -198,7 +198,7 @@ Both missions follow the misn12 / Europa recipe, in marked `-- CR Moon weather >
 ```lua
 -- any other Moon mission
 local CRMoonWeather = require("CRMoonWeather")
-local MoonSites = require("CRMoonSites<NN>")     -- python -I Tools/Build-MoonSites.py misn<NN>
+local MoonSites = require("CRMoonSites<NN>")     -- python -I Tools/Terrain/Build-MoonSites.py misn<NN>
 CRMoonWeather.Init{ authority = (not net) or CRCoop.IsAuthority(), seed = M.moonSeed, sites = MoonSites,
                     send = net and function(op, ...) --[[ queue on the presentation stream ]] end or nil }
 -- ready (host): CRMoonWeather.AnnounceState()
@@ -291,7 +291,7 @@ rate / affector-parameter functions, and read-only BZ queries (`GetTime`, `GetPl
 `GetPosition`, `GetVelocity`, `AllCraft`, `GetTerrainHeightAndNormal`, `SetVector`). It assigns `exu.BulletHit`
 (chained, restored on `Shutdown`).
 
-`Tools/Test-CRMoonWeather.lua` audits this by wrapping every stubbed BZ and exu function:
+`Tools/TexturesAndSky/Test-CRMoonWeather.lua` audits this by wrapping every stubbed BZ and exu function:
 
 - every global called is in an allowlist of read-only queries; every exu call is in an allowlist of particle calls;
 - 59 forbidden BZ names (damage, teams, perception, objectives, sound, earthquake, mission end ...) are stubbed to
@@ -320,15 +320,15 @@ rate / affector-parameter functions, and read-only BZ queries (`GetTime`, `GetPl
 `Shipping/shipping.lock.json` has the four new entries, inserted in place with `count` bumped (2339 to 2343); the
 normal `-bless` at merge time is still the authority. The payload is loaded through `EnsureExtra("cr_moon")`, not
 added to the base list, so a build without it degrades (no mist, no dust, a log line) instead of breaking the
-mission. `lua5.1 Tools/Test-CRMoonWeather.lua Scripts` and a generated-data drift check are one step in
-`campaign-validation.yml`; `Tools/Test-Misn02bCoop.lua` / `Test-Misn03Coop.lua` pin the mission wiring (guests are
+mission. `lua5.1 Tools/TexturesAndSky/Test-CRMoonWeather.lua Scripts` and a generated-data drift check are one step in
+`campaign-validation.yml`; `Tools/MissionTests/Test-Misn02bCoop.lua` / `Test-Misn03Coop.lua` pin the mission wiring (guests are
 not authoritative, the host announces once, a glow reaches each guest exactly once, the state is saved).
 
 Regenerate the data (the converted `.bzn` / `.hg2` / `.trn` are read from `Missions/`):
 
 ```text
-python -I Tools/Build-MoonSites.py misn02b
-python -I Tools/Build-MoonSites.py misn03 --depth-full 30     # misn03's craters are deep; the default 16 saturates
+python -I Tools/Terrain/Build-MoonSites.py misn02b
+python -I Tools/Terrain/Build-MoonSites.py misn03 --depth-full 30     # misn03's craters are deep; the default 16 saturates
 ```
 
 How the anchors are chosen (see the generator's docstring): average the heightfield into 20-unit cells; depth =
@@ -344,8 +344,8 @@ Scripts/CRMoonWeather.lua
 Scripts/CRMoonSites02b.lua
 Scripts/CRMoonSites03.lua
 Materials/cr_moon.particle.payload
-Tools/Build-MoonSites.py
-Tools/Test-CRMoonWeather.lua
+Tools/Terrain/Build-MoonSites.py
+Tools/TexturesAndSky/Test-CRMoonWeather.lua
 Docs/MOON_WEATHER.md
 ```
 

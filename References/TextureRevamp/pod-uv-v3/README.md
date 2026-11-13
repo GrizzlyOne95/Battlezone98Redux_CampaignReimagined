@@ -41,7 +41,7 @@ Surface paint bands can therefore cross adjacent faces coherently.
 art to those guides, avoiding the rejected vent-panel collage. The 1254px PNG
 masters are compiled to 1024px legacy BC1 DDS with full mips. The compiler only
 resizes, compresses and extrudes existing edge pixels into unused UV gutters.
-`Tools/poduv.py` is shared by this reference builder and the runtime compiler.
+`Tools/UnitsAndBuildings/poduv.py` is shared by this reference builder and the runtime compiler.
 Normals stay flat; old tangent streams are not suitable for newly authored
 non-flat tangent-space relief until rebuilt against the new UV basis.
 
@@ -67,10 +67,10 @@ finish their native companions or substitute them for the selected stock pods.
 ## Rebuild / review
 
 ```text
-python Tools/Build-PodUVPrototype.py --textures
-python Tools/Build-FactionNavPickups.py
-python Tools/Test-FactionNavPickups.py
-python Tools/Test-PodUVPrototype.py
+python Tools/UnitsAndBuildings/Build-PodUVPrototype.py --textures
+python Tools/UnitsAndBuildings/Build-FactionNavPickups.py
+python Tools/UnitsAndBuildings/Test-FactionNavPickups.py
+python Tools/UnitsAndBuildings/Test-PodUVPrototype.py
 ```
 
 All serialization uses the shared codecs via `bzmodellibs` / `bzstaticmodel`.

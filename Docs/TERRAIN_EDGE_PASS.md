@@ -29,7 +29,7 @@ authored and is not mistaken for the engine boundary.
 
 ## Authoring and preservation
 
-`Tools/Build-TerrainEdgePass.py` builds from immutable CR baseline
+`Tools/Terrain/Build-TerrainEdgePass.py` builds from immutable CR baseline
 `20692052db9b0a234604cfcad25272d0300d5987`. Terrain absent at that revision is
 restored from CR's unsmoothed heightmap history (`ce18e89`); missing companions
 come from the owner's stock `bzone.zfs`. This avoids smoothing the authored
@@ -69,9 +69,9 @@ Modding Toolbox checkout. The resulting game assets have no new runtime
 dependency and use the existing Windows/Steam/GOG/Wine terrain formats.
 
 ```powershell
-python Tools/Build-TerrainEdgePass.py --game-root '<game folder>'
-python Tools/Test-TerrainEdgePass.py
-python Tools/Render-TerrainEdgePass.py --game-root '<game folder>'
+python Tools/Terrain/Build-TerrainEdgePass.py --game-root '<game folder>'
+python Tools/Terrain/Test-TerrainEdgePass.py
+python Tools/Terrain/Render-TerrainEdgePass.py --game-root '<game folder>'
 ```
 
 Use `--maps misn12 misn13` for a subset and `--toolbox <path>` when the Toolbox

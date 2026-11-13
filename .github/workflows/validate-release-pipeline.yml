@@ -9,9 +9,9 @@ on:
       - .github/scripts/Invoke-ModDbHandoff.ps1
       - .github/scripts/Open-ModDbHandoff.cmd
       - Manage-CampaignFiles.ps1
-      - Tools/Prepare-CampaignUpdate.ps1
-      - Tools/Prepare-ReleaseCandidate.ps1
-      - Tools/Test-UpdatePreparation.ps1
+      - Tools/Release/Prepare-CampaignUpdate.ps1
+      - Tools/Release/Prepare-ReleaseCandidate.ps1
+      - Tools/Release/Test-UpdatePreparation.ps1
   workflow_dispatch:
 
 permissions:
@@ -46,7 +46,7 @@ jobs:
 
       - name: Validate local preparation command contracts
         shell: pwsh
-        run: ./Tools/Test-UpdatePreparation.ps1
+        run: ./Tools/Release/Test-UpdatePreparation.ps1
 
       - name: Exercise synthetic release packaging
         shell: pwsh

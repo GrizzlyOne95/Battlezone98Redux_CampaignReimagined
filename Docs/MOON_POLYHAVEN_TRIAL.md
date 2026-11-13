@@ -60,14 +60,14 @@ Requires Python with NumPy, Pillow and SciPy, the saved independent HD source
 recipe/cache, and the Toolbox checkout containing `battlezone/terrain/hd_tiles.py`.
 
 ```powershell
-python Tools/Build-MoonPolyHaven.py --download `
+python Tools/Terrain/Build-MoonPolyHaven.py --download `
   --source-build '<saved HD source build>' `
   --toolbox ../Battlezone98_Modding_Toolbox-hd-terrain-authoring `
   --openshim ../BZR-OpenShim-terrain-world-controls `
   --output Local/TerrainHD/PolyHaven01
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File Tools/Test-MarsHdTerrainLive.ps1 `
+  -File Tools/Terrain/Test-MarsHdTerrainLive.ps1 `
   -OpenShimRepo ../BZR-OpenShim-terrain-world-controls `
   -TileDirectory Local/TerrainHD/PolyHaven01/terrain/bundle -World moon `
   -Hd -MicroRelief -GroundView -SettingsOnly -MeasureMemory `

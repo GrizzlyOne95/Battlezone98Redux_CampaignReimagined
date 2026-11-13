@@ -6,7 +6,7 @@ Lua 5.1. The port itself uses no EXU, OpenShim or strategic-AI replacement; the 
 
 > **Co-op.** The script now also hosts 2-4 player co-op, a per-human layer and the Razor One arc;
 > see `Docs/MISN12_COOP.md`. Everything below describes the faithful single-player port, which is
-> unchanged for one human (`Tools/Test-Misn12.lua`).
+> unchanged for one human (`Tools/MissionTests/Test-Misn12.lua`).
 
 ## Source and preservation
 
@@ -75,8 +75,8 @@ overload. Valid-object distances and all thresholds remain unchanged.
 Run from the repository root:
 
 ```sh
-lua5.1 Tools/Test-Misn12.lua
-python Tools/Test-LuaCommentScan.py
+lua5.1 Tools/MissionTests/Test-Misn12.lua
+python Tools/Release/Test-LuaCommentScan.py
 ```
 
 118 scenario checks pass under an actual Lua 5.1 runtime. They cover strict

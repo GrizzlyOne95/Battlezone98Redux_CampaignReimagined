@@ -12,10 +12,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/ch03cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch03.lua` (`Tools/Test-Chmisn03CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the per-howitzer seat, the restored content and the Ganymede weather. |
+| `Scripts/ch03cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch03.lua` (`Tools/CoopCampaignTests/Test-Chmisn03CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the per-howitzer seat, the restored content and the Ganymede weather. |
 | `Scripts/CRGanymedeSitesCH03.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather: the generated sites for this map (the four geysers around the starting base) and the shared icy-moon director (no new module). |
 | `Missions/ch03cr.{bzn,vxt}`, `chmisn03.{hg2,lgt,mat,trn}`, `Config/ch03cr.ini`, `Config/crch.ini` | Map and companions (not part of this change). Enemy team 2 was moved to team 5; guests are teams 2-4 at `coop_spawn1..4`. |
-| `Tools/Chmisn03Fixture.lua`, `Test-Chmisn03Coop.lua`, `Test-Chmisn03Presentation.lua`, `Test-Chmisn03CoopSourceParity.py`, `Test-Chmisn03CoopContract.py` | Multi-peer fixture and tests (real map coordinates). |
+| `Tools/CoopCampaignTests/Chmisn03Fixture.lua`, `Test-Chmisn03Coop.lua`, `Test-Chmisn03Presentation.lua`, `Test-Chmisn03CoopSourceParity.py`, `Test-Chmisn03CoopContract.py` | Multi-peer fixture and tests (real map coordinates). |
 
 The CR regions, in file order:
 
@@ -181,10 +181,10 @@ Beats (host/offline only, each once, tied to the story; a site list without vent
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Chmisn03Coop.lua            # offline == faithful, 1-4 peers, seats, timer, scaling, 250 m, fallback, restored content, results, weather
-lua5.1 Tools/Test-Chmisn03Presentation.lua    # E/A/C protocol on a guest, the timer and the gas explosion op
-python Tools/Test-Chmisn03CoopSourceParity.py # ch03cr.lua minus CR regions == ch03.lua
-python Tools/Test-Chmisn03CoopContract.py     # labels/paths/teams/vents/audio in ch03cr.bzn (skips with a message if the map is absent; ini/vxt only when present)
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn03Coop.lua            # offline == faithful, 1-4 peers, seats, timer, scaling, 250 m, fallback, restored content, results, weather
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn03Presentation.lua    # E/A/C protocol on a guest, the timer and the gas explosion op
+python Tools/CoopCampaignTests/Test-Chmisn03CoopSourceParity.py # ch03cr.lua minus CR regions == ch03.lua
+python Tools/CoopCampaignTests/Test-Chmisn03CoopContract.py     # labels/paths/teams/vents/audio in ch03cr.bzn (skips with a message if the map is absent; ini/vxt only when present)
 ```
 
 ## Inferences and open questions

@@ -136,9 +136,9 @@ made. Unsupported builds return nil.
 
 ## Verification
 
-Run `Tools/Test-CRCoopComms.lua`, `Tools/Test-CRCoopAssist.lua`, `Tools/Test-CRCoopPda.lua` and the existing
+Run `Tools/RuntimeTests/Test-CRCoopComms.lua`, `Tools/RuntimeTests/Test-CRCoopAssist.lua`, `Tools/RuntimeTests/Test-CRCoopPda.lua` and the existing
 `Test-CRCoop` / three complete co-op mission tests with Lua 5.1.
-`Tools/Test-CoopCommsLive.ps1` is a scenario for OpenShim's
+`Tools/RuntimeTests/Test-CoopCommsLive.ps1` is a scenario for OpenShim's
 `Run-BZRCoopMission.ps1`, using two disposable clients and its loopback server.
 Provide the changed Lua modules and a freshly built `exu.dll` through
 `-ContentOverride`. Neither this scenario nor this checkpoint deploys files to

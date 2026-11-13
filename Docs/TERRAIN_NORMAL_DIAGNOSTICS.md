@@ -10,7 +10,7 @@ Workshop cache paths.
 Close Battlezone before changing a mode. From PowerShell at the repository root:
 
 ```powershell
-$tool = Join-Path $PWD 'Tools\Set-TerrainNormalDiagnostic.ps1'
+$tool = Join-Path $PWD 'Tools\Terrain\Set-TerrainNormalDiagnostic.ps1'
 $game = 'C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux'
 
 & $tool -Unpack RGB -Basis Stock -View None

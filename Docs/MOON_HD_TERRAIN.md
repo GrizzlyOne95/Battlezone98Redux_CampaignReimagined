@@ -60,7 +60,7 @@ Edit the new bundle's `sources/` and recipe, then rebuild into another new
 folder. For full generation from the saved independent HD source recipe:
 
 ```powershell
-python Tools/Build-MoonHdTerrain.py --toolbox <Toolbox-checkout> `
+python Tools/Terrain/Build-MoonHdTerrain.py --toolbox <Toolbox-checkout> `
   --source-build <stock_world_texture_survey_20261014> --install-source-assets
 ```
 
@@ -92,7 +92,7 @@ Diffuse brightness, ambient occlusion and roughness are **not** used as height
 evidence. Paving has no supplied independent height map, so its absolute relief
 polarity is explicitly **unverified**, rather than claimed from integrability.
 
-`Tools/Validate-MoonHdNormals.py` also checks:
+`Tools/Terrain/Validate-MoonHdNormals.py` also checks:
 
 - The actual Enhanced HLSL's RGB unpack, cross-product order and row-vector
   tangent transform. HD specialization must use local tile UVs for both normal
@@ -116,7 +116,7 @@ final lit normal. The source-height proof applies to the authored base normals.
 Regenerate the checked-in numerical report:
 
 ```powershell
-python Tools/Validate-MoonHdNormals.py --source-build <saved-source-build> `
+python Tools/Terrain/Validate-MoonHdNormals.py --source-build <saved-source-build> `
   --images Local/TerrainHD/MoonHeightMatched1024 `
   --bundle Local/TerrainHD/MoonBundle1024 --openshim <OpenShim-checkout> `
   --toolbox <Toolbox-checkout> --out Tools/TerrainHD/Moon/normal_validation.json
@@ -127,7 +127,7 @@ python Tools/Validate-MoonHdNormals.py --source-build <saved-source-build> `
 Run the existing serialized, reversible preview with the Moon bundle:
 
 ```powershell
-powershell.exe -NoProfile -File Tools/Test-MarsHdTerrainLive.ps1 -World moon `
+powershell.exe -NoProfile -File Tools/Terrain/Test-MarsHdTerrainLive.ps1 -World moon `
   -OpenShimRepo <OpenShim-HD-checkout> -HarnessRepo <OpenShim-harness-checkout> `
   -TileDirectory Local/TerrainHD/MoonBundle1024 -Hd -WideView -MeasureMemory
 ```
@@ -169,7 +169,7 @@ The accepted corrected-normal screenshot is `run-20261020-141542/trial.png`.
 old ground/rock XY reversal. Both packs have identical diffuse and specular DDS
 bytes; only their normals differ. The control is not the shipped pack.
 
-`Tools/Test-MoonHdTerrain.py` rebuilds the checked-in recipe through the shared
+`Tools/Terrain/Test-MoonHdTerrain.py` rebuilds the checked-in recipe through the shared
 Toolbox, verifies all 33 DDS hashes and runtime mapping, checks material/mission
 guards, regression-tests normal-basis cases and confirms shipping membership.
 CI pins the Toolbox commit supplying that implementation. Runtime screenshots,

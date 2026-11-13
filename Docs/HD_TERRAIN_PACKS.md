@@ -30,7 +30,7 @@ DX11 Enhanced, and the selected pack must successfully load. The scale does
 not enable either option. It scales the existing procedural geometric relief;
 the D/N/S/E packs still do not supply texture-authored geometry height maps.
 Collision and gameplay heights are unchanged. A live preview can opt in with
-`Tools/Test-MarsHdTerrainLive.ps1 -MicroRelief` alongside the existing HD args.
+`Tools/Terrain/Test-MarsHdTerrainLive.ps1 -MicroRelief` alongside the existing HD args.
 
 An opt-in [Moon crater prototype](MOON_CRATER_DISPLACEMENT.md) now substitutes
 an explicit height texture for that noise in a local preview bundle. Its recipe
@@ -59,7 +59,7 @@ baseline; their live visual tuning and Steam/Proton/Wine remain unverified.
 | Elysium | EL_DETAIL_ATLAS | 20 | 80 |
 
 The table is the DDS form. Moon, Mars, Ganymede, Elysium, Venus, Io, Europa, Titan and Achilles now
-ship OpenShim paint bindings instead (`Tools/Merge-TerrainPaintPacks.py`, packs
+ship OpenShim paint bindings instead (`Tools/Terrain/Merge-TerrainPaintPacks.py`, packs
 from OpenShim `scripts/terrain-packs/build-world-packs.sh`), and their crhd tile
 DDS files are retired. Mars switched on 2026-10-25 (misn04-06, CR and stock
 maps); Ganymede (evolve_3, evolve_4, bdmisn01-06, 08, 12-15, chmisn01-04, 08) and Elysium
@@ -117,7 +117,7 @@ behind `addon/stock_terrain_hd` and build all worlds:
 
 ```powershell
 $env:BZ_TOOLBOX_DIR = '<Toolbox checkout with HD terrain tooling>'
-python Tools/Build-AllHdTerrain.py --source-build <saved-source-build> `
+python Tools/Terrain/Build-AllHdTerrain.py --source-build <saved-source-build> `
   --install-source-assets
 ```
 
@@ -160,8 +160,8 @@ with its independent height. This correction is applied to the source before
 variants and blends, and is recorded separately from historical overrides.
 
 ```powershell
-python Tools/Validate-HdTerrainPacks.py --source-build <saved-source-build>
-python Tools/Test-HdTerrainPacks.py
+python Tools/Terrain/Validate-HdTerrainPacks.py --source-build <saved-source-build>
+python Tools/Terrain/Test-HdTerrainPacks.py
 ```
 
 Each world's `pack_validation.json` records runtime DDS hashes, source-height
@@ -179,7 +179,7 @@ resource counts and memory values do not qualify a newly added E channel.
 ## Reversible previews
 
 ```powershell
-powershell.exe -NoProfile -File Tools/Test-MarsHdTerrainLive.ps1 -World venus `
+powershell.exe -NoProfile -File Tools/Terrain/Test-MarsHdTerrainLive.ps1 -World venus `
   -OpenShimRepo <OpenShim-HD-checkout> -HarnessRepo <OpenShim-harness-checkout> `
   -TileDirectory Local/TerrainHD/VenusHd1024 -Hd -WideView -BaseView -MeasureMemory
 ```

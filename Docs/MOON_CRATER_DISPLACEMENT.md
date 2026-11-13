@@ -19,7 +19,7 @@ remain independent tile arrays. This does not crop or rebuild their atlases.
 From this checkout, using an already built local Moon bundle:
 
 ```powershell
-python Tools/Build-MoonCraterDisplacement.py `
+python Tools/Terrain/Build-MoonCraterDisplacement.py `
   --bundle Local/TerrainHD/MoonRelief25 --openshim ../BZR-OpenShim-moon-relief-depth
 ```
 
@@ -39,7 +39,7 @@ recipe, omit `--height-image`. Depth remains adjustable separately in
 Preview with the companion OpenShim texture-height branch:
 
 ```powershell
-./Tools/Test-MarsHdTerrainLive.ps1 -OpenShimRepo ../BZR-OpenShim-moon-relief-depth `
+./Tools/Terrain/Test-MarsHdTerrainLive.ps1 -OpenShimRepo ../BZR-OpenShim-moon-relief-depth `
   -TileDirectory Local/TerrainHD/MoonRelief25 -World moon -Hd -MicroRelief -GroundView
 ```
 

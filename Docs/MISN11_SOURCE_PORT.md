@@ -9,7 +9,7 @@ in `References/Misn11Source/`, including all declaration and serialization comme
 The script targets Battlezone 98 Redux, Lua 5.1. Since the co-op port it also runs the shared
 2-4 player layer (EXU, OpenShim, `CRCoop`, `CRIoWeather`): everything the campaign adds sits between
 `-- CR ... >>` / `-- CR ... <<` markers and every substitution outside them is an explicit delta in
-`Tools/Test-Misn11SourceParity.py`. See `MISN11_COOP.md`. The statements below describe the DLL port
+`Tools/MissionTests/Test-Misn11SourceParity.py`. See `MISN11_COOP.md`. The statements below describe the DLL port
 itself; the co-op deltas are: the CCA is team 5, the full-matching-fighter scans retask only CCA
 fighters, triggers that tested the one player test every human, and the win needs every human at pad 2.
 
@@ -89,7 +89,7 @@ handle is refreshed on every Update, as in the source.
 Run from the repository root:
 
 ```sh
-lua5.1 Tools/Test-Misn11.lua
+lua5.1 Tools/MissionTests/Test-Misn11.lua
 ```
 
 88 mock-host behavior checks passed under an actual Lua 5.1 interpreter.

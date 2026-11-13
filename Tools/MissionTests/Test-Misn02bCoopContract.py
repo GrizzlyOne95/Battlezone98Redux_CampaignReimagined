@@ -1,0 +1,118 @@
+from pathlib import Path
+import configparser
+import json
+import re
+import struct
+
+root = Path(__file__).resolve().parents[2]
+bzn = (root / "Missions" / "misn2bcr.bzn").read_text(encoding="utf-8")
+lua = (root / "Scripts" / "misn2bcr.lua").read_text(encoding="utf-8")
+# The source audit retains inactive C++ with original Team-2 orders. Check
+# active Lua only, including equals-delimited long comments, so reconstruction
+# evidence cannot be mistaken for a live co-op team-contract regression.
+lua = re.sub(r"--\[(=*)\[.*?\]\1\]", "", lua, flags=re.DOTALL)
+lua = re.sub(r"--[^\r\n]*", "", lua)
+
+# Teams 1-4 are reserved for human players in the co-op contract. Mission 02B
+# must not ship preplaced Team-2 enemies that can collide with Player 2.
+assert "name = MultSTMission\n" in bzn, "offline/online map must use MultSTMission"
+assert b"\r\n" in (root / "Missions" / "misn2bcr.bzn").read_bytes(), "native BZN needs CRLF"
+
+blocks = bzn.split("[GameObject]")[1:]
+labels = [m.group(1) for block in blocks if (m := re.search(r'^label = (.+)$', block, re.M))]
+assert len(labels) == len(set(labels)), 'authored labels must resolve the same object on every peer'
+enemy_blocks = []
+spawn_teams = []
+for block in blocks:
+    team = re.search(r"team \[1\] =\s*\n(\d+)", block)
+    odf = re.search(r"PrjID \[1\] =\s*\n([^\n]+)", block).group(1)
+    if odf == "pspwn_1":
+        spawn_teams.append(int(team.group(1)))
+    elif team:
+        assert team.group(1) not in ("2", "3", "4"), "mission object occupies a guest team"
+    if team and team.group(1) == "6":
+        enemy_blocks.append(block)
+        perceived = re.search(r"perceivedTeam \[1\] =\s*\n(\d+)", block)
+        assert perceived and perceived.group(1) == "6", "Team-6 object has mismatched perceivedTeam"
+
+# Enemies begin as neutral staged fighters and become team 6 in Lua.
+# Preplaced defensive turrets and the authored dummy belong to friendly team 7.
+friendly = [block for block in blocks if re.search(r"team \[1\] =\s*\n7\b", block)]
+assert len(friendly) == 8
+for block in friendly:
+    assert re.search(r"perceivedTeam \[1\] =\s*\n7\b", block)
+assert sorted(spawn_teams) == [1, 2, 3, 4], "native Init requires one spawn per human team"
+header_size = int(re.search(r"size \[1\] =\n(\d+)\n\[GameObject\]", bzn).group(1))
+assert header_size == len(blocks), "native object count does not match serialized objects"
+seq_count = int(re.search(r"seq_count \[1\] =\n(\d+)", bzn).group(1))
+assert seq_count > max(int(re.search(r"seqno \[1\] =\n(\d+)", b).group(1)) for b in blocks)
+
+assert "local ENEMY_TEAM = 6" in lua, "misn2bcr.lua enemy-team contract changed"
+assert "local LEADER_TEAM = 1" in lua, "misn2bcr.lua leader-team contract changed"
+
+for pattern, message in [
+    (r"BuildObject\([^\n]*,\s*2\s*,", "dynamic enemy spawn still uses Team 2"),
+    (r"CountUnitsNearObject\([^\n]*,\s*2\s*,\s*\"sv", "enemy count still queries Team 2"),
+    (r"GetTeamNum\([^\n]*\)\s*==\s*2\b", "enemy classification still uses Team 2"),
+    (r"SetScrap\(\s*2\s*,", "enemy resources still use Team 2"),
+]:
+    assert not re.search(pattern, lua), message
+
+print(f"misn02b co-op team contract passed ({len(enemy_blocks)} preplaced Team-6 enemies)")
+
+
+assert "local FRIENDLY_TEAM = 7" in lua
+assert "exu.DisableStartingRecycler()" in lua
+assert "IsLocal(h) and not CRCoop.IsHumanCraft(h)" in lua
+assert 'SetAIP("misn02.aip", ENEMY_TEAM)' in lua
+# Chunk-root only: the map uses MultSTMission so team 5 is never flagged, and SetAIP silently skips without
+# SetAIControl. Start runs after DR_AI_Init, so a late call flags team 5 without an AI team record and the
+# first team-5 AI_UnitRemove dereferences null (host crash at load, seen live in misn08).
+_ai_src = (root / 'Scripts' / 'misn2bcr.lua').read_text(encoding='utf-8')
+_ai_active = re.sub(r'--[^\n]*', '', re.sub(r'--\[(=*)\[.*?\]\1\]', '', _ai_src, flags=re.S))
+assert len(re.findall(r'SetAIControl\(', _ai_active)) == 1 and re.search(r'^SetAIControl\(ENEMY_TEAM, true\)\r?$', _ai_src, flags=re.M), \
+    'SetAIControl must be a single chunk-root call, never inside Start/Update'
+assert _ai_src.index('SetAIControl(ENEMY_TEAM, true)') < _ai_src.index('function Start()')
+
+# Separate native mode INIs must resolve the one shared BZN/script by stem.
+mp = configparser.ConfigParser()
+mp.read(root / "Config" / "misn2bcr.ini", encoding="utf-8")
+assert mp["DESCRIPTION"]["missionName"] == '"CR 01: Red Arrival Coop"'
+assert mp["WORKSHOP"]["mapType"] == '"multiplayer"'
+assert dict(mp["MULTIPLAYER"]) == {
+    "minplayers": '"2"', "maxplayers": '"4"', "gametype": '"S"',
+}
+campaign = configparser.ConfigParser()
+campaign.read(root / "Config" / "crcampgn.ini", encoding="utf-8")
+assert campaign["MISSION1"]["missionBZN"] == '"misn2bcr.bzn"'
+assert campaign["WORKSHOP"]["mapType"] == '"campaign"'
+
+# Matches the offline start: everyone begins on foot beside the empty craft.
+# Stock vxt form "odf des<TAB>movie name"; the short "asuser ," form leaves
+# staging at "Vehicle not selected".
+vxt = [line for line in (root / "Missions" / "misn2bcr.vxt").read_text().splitlines() if line.strip()]
+assert len(vxt) == 1 and vxt[0].split()[0] == "asuser", "MP start must be the pilot only"
+assert vxt[0].split()[1] == "aspilo.des" and "\t" in vxt[0], "pilot line must use the stock vxt form"
+
+description = (root / "Missions/Descriptions/misn2bcr.mpdes").read_text().strip()
+assert len(description) <= 300 and "\n" not in description
+assert "team 1" in description and "teams 2-4" in description
+bitmap = (root / "Assets" / "Graphics" / "misn2bcr.bmp").read_bytes()
+assert bitmap[:2] == b"BM" and struct.unpack_from("<I", bitmap, 14)[0] == 40
+width, height, planes, depth, compression = struct.unpack_from("<iiHHI", bitmap, 18)
+assert width > 0 and height > 0 and planes == 1 and depth == 24 and compression == 0
+assert struct.unpack_from("<I", bitmap, 2)[0] == len(bitmap)
+
+lock = json.loads((root / "Shipping" / "shipping.lock.json").read_text(encoding="utf-8-sig"))
+entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
+assert lock["count"] == len(lock["files"])
+manager = (root / "Manage-CampaignFiles.ps1").read_text(encoding="utf-8-sig")
+for source in (r"Config\misn2bcr.ini", r"Assets\Graphics\misn2bcr.bmp",
+               r"Missions\Descriptions\misn2bcr.mpdes", r"Missions\misn2bcr.vxt",
+               r"Missions\misn2bcr.bzn", r"Scripts\misn2bcr.lua"):
+    runtime = source.split("\\")[-1]
+    assert entries.get(source) == runtime, f"missing shipping entry: {source}"
+    assert f'"{runtime}"' in manager, f"missing staging requirement: {runtime}"
+    assert len(runtime) <= 16
+
+print("misn02b campaign/MP scaffold and shipping checks passed")
