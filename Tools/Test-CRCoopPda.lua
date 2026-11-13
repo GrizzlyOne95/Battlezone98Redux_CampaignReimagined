@@ -38,15 +38,15 @@ local ui = Pda.Create({ coop = coop, pages = Data.PdaPages, feedback = error,
     exu = { GetReticleHit = function() return aimed[1], aimed[2], aimed[3] end },
     time = function() return now end, selected = function() return selection end })
 local state = { pdaPage = 1 }
-check(#ui.PageOrder() == 8, "eight solo pages")
-check(ui.CyclePage(8, 1) == 1, "solo wrap skips co-op")
+check(#ui.PageOrder() == 5, "five solo pages")
+check(ui.CyclePage(5, 1) == 1, "solo wrap skips co-op")
 active = true; ui.UpdatePage(state)
-check(state.pdaPage == 9 and ui.PageNumber(9) == 1, "co-op opens first")
+check(state.pdaPage == 6 and ui.PageNumber(6) == 1, "co-op opens first")
 state.pdaPage = 3; ui.UpdatePage(state)
 check(state.pdaPage == 3, "notifications do not force page")
-check(ui.CyclePage(9, 1) == 10 and ui.CyclePage(10, 1) == 1 and ui.CyclePage(1, -1) == 10,
+check(ui.CyclePage(6, 1) == 7 and ui.CyclePage(7, 1) == 1 and ui.CyclePage(1, -1) == 7,
     "diagnostics is the second co-op page")
-check(ui.PageNumber(10) == 2 and #ui.PageOrder() == 10, "diagnostics page number")
+check(ui.PageNumber(7) == 2 and #ui.PageOrder() == 7, "diagnostics page number")
 local function render()
     return ui.BuildText(function() return "==COOP==" end, function(lines, ...)
         for _, line in ipairs({ ... }) do lines[#lines + 1] = line end
@@ -120,9 +120,9 @@ ok, why = ui.HelpKey()
 check(not ok and why == "Select one of your vehicles first.", "host V needs a selected vehicle")
 me, host, onFoot, requests = 30, false, { [30] = true }, {}
 active = false; ui.UpdatePage(state)
-state.pdaPage = 9; ui.UpdatePage(state)
+state.pdaPage = 6; ui.UpdatePage(state)
 check(state.pdaPage == 1, "solo clears co-op page")
-state.pdaPage = 10; ui.UpdatePage(state)
+state.pdaPage = 7; ui.UpdatePage(state)
 check(state.pdaPage == 1, "solo clears diagnostics page")
 -- Object pings use the stock objective marker; existing objectives only flash.
 do
