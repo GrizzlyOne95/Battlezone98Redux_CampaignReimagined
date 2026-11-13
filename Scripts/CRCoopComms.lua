@@ -50,6 +50,8 @@ function M.Create(d)
     local enabled, markers = false, false
     -- Guests can keep just the host's craft marked (PDA HOST MARKER row).
     local hostMarker = false
+    -- Always-on team status strip (PDA TEAM STRIP row); on by default, display only.
+    local teamStrip = true
     local function now() return d.time() end
     local function changed() revision = revision + 1 end
     local function valid(h)
@@ -274,6 +276,8 @@ function M.Create(d)
     function service.GetDispatches() return dispatches end
     function service.MarkersOn() return markers end
     function service.SetMarkers(on) markers = on == true; nextMarkers = 0; changed() end
+    function service.TeamStripOn() return teamStrip end
+    function service.SetTeamStrip(on) teamStrip = on == true; changed() end
     function service.HostMarkerOn() return hostMarker end
     function service.SetHostMarker(on) hostMarker = on == true; nextMarkers = 0; changed() end
     -- Short status word for the PDA team list and the HUD markers.
