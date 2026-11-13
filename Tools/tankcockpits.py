@@ -9,7 +9,7 @@ from bzmodellibs import legacy, legacy_port
 CONFIG={
  'nsdf':dict(base='avtank',shell='agr21bda',batch=2,body=0,bodyBone=2,gun=[18],material='CRV/avtankTankPanels',atlas='crvatkp',stock='avtank01',exterior='avtank00',charts=tankpanelatlas.CHARTS,width=.98,lip=-.49,front=.91,roof=.62,cut=2.02),
  'bdog':dict(base='bvtank',shell='bgr21bda',batch=0,body=1,bodyBone=2,gun=[1],material='CRV/bvtankTankPanels',atlas='crvbtkp',stock='bvtank01',exterior='bvtank00',charts=tankpanelatlas.CHARTS,width=.98,lip=-.35,front=.80,roof=.85,cut=2.02),
- 'cca':dict(base='svtank',shell='scz21bda',batch=2,body=0,bodyBone=1,gun=[18,19],material='svtank01',stock='svtank01',exterior='svtank00',charts={'console':(.370,.158,.553,.297),'switch':(.207,.006,.350,.298),'service':(.770,.008,.986,.190),'armor':(.635,.06,.739,.23),'frame':(.635,.06,.739,.23),'trim':(.745,.35,.757,.56)},width=.76,lip=-.44,front=1.10,roof=.62,cut=3.9),
+ 'cca':dict(base='svtank',shell='scz21bda',batch=2,body=0,bodyBone=1,gun=[2,3],gunSource={26:3},material='svtank01',stock='svtank01',exterior='svtank00',charts={'console':(.370,.158,.553,.297),'switch':(.207,.006,.350,.298),'service':(.770,.008,.986,.190),'armor':(.635,.06,.739,.23),'frame':(.635,.06,.739,.23),'trim':(.745,.35,.757,.56)},width=.76,lip=-.44,front=1.10,roof=.62,cut=3.9),
  'cra':dict(base='cvtnk',shell='CYE21BDA',batch=1,body=0,bodyBone=0,gun=[11],material='CRV/CVBomberCockpit',stock='cvtnk01',exterior='cvtnk',charts={**cvhrazcockpit.CHARTS,'switch':cvhrazcockpit.CHARTS['pilot'],'service':cvhrazcockpit.CHARTS['ordnance']},width=.34,lip=-.43,front=.69,roof=.30,cut=4.39)}
 
 def native_eye(world,eye,game,base,root):
@@ -87,6 +87,25 @@ def geometry(source,skelpath,faction,game,root):
         ring=[[p+u*x*width+v*y*width for x,y in section] for p in (a,b)];c=(a+b)/2
         for i in range(8):j=(i+1)%8;q=[ring[0][i],ring[1][i],ring[1][j],ring[0][j]];face(q,chart,np.mean(q,0)-c)
         face(ring[0],'trim',-axis);face(ring[1],'trim',axis)
+    def sweep(points,width=.05,chart='frame'):
+        """One continuous octagonal frame member along a polyline. Interior
+        corners are mitred (rings on the bisector plane, frame carried by minimal
+        rotation), so joints are closed with no crossing end caps."""
+        P=[np.array(q,float) for q in points];axes=[(b-a)/np.linalg.norm(b-a) for a,b in zip(P,P[1:])]
+        section=[(-.3,-.5),(.3,-.5),(.5,-.3),(.5,.3),(.3,.5),(-.3,.5),(-.5,.3),(-.5,-.3)]
+        a=axes[0];u=np.cross(a,[0,1,0] if abs(a[1])<.9 else [1,0,0]);u/=np.linalg.norm(u);v=np.cross(a,u)
+        rings=[[P[0]+u*x*width+v*y*width for x,y in section]]
+        for k in range(1,len(P)):
+            a=axes[k-1];m=a if k==len(P)-1 else a+axes[k];m/=np.linalg.norm(m)
+            rings.append([q+a*np.dot(P[k]-q,m)/np.dot(a,m) for q in (P[k]+u*x*width+v*y*width for x,y in section)])
+            if k<len(P)-1:
+                b=axes[k];c=np.cross(a,b);sn=np.linalg.norm(c);cs=np.dot(a,b)
+                if sn>1e-9:
+                    c/=sn;rot=lambda w:w*cs+np.cross(c,w)*sn+c*np.dot(c,w)*(1-cs);u,v=rot(u),rot(v)
+        for k in range(len(P)-1):
+            mid=(np.mean(rings[k],0)+np.mean(rings[k+1],0))/2
+            for i in range(8):j=(i+1)%8;q=[rings[k][i],rings[k+1][i],rings[k+1][j],rings[k][j]];face(q,chart,np.mean(q,0)-mid)
+        face(rings[0],'trim',-axes[0]);face(rings[-1],'trim',axes[-1])
     def panel(p,chart='switch',rect=None,depth=.012,hole=None):
         p=np.array(p,float);c=p.mean(0);n=np.cross(p[1]-p[0],p[2]-p[0]);n/=np.linalg.norm(n)
         if np.dot(n,-c)<0:n=-n
@@ -166,10 +185,9 @@ def geometry(source,skelpath,faction,game,root):
         for sign in (-1,1):
             panel([(sign*.12,-.35,1.05),(sign*.61,-.30,1.03),(sign*.59,-.60,.79),(sign*.12,-.61,.79)],'console',depth=.019)
             panel([(sign*.58,-.38,.83),(sign*.71,-.25,.55),(sign*.71,-.55,.20),(sign*.56,-.66,.48)],'switch',depth=.016)
-            beam((sign*.73,-.29,.93),(sign*.73,.29,.62),.050)
-            beam((sign*.73,.29,.62),(sign*.48,.57,.37),.050)
-            beam((sign*.48,.57,.37),(sign*.73,.60,-.40),.044)
-            beam((sign*.73,-.29,.93),(sign*.77,-.30,-.40),.045)
+            # Sill, A-pillar, canopy rail and rear post as one mitred member:
+            # separate capped beams crossed each other at the pillar foot.
+            sweep([(sign*.77,-.30,-.40),(sign*.73,-.29,.93),(sign*.73,.29,.62),(sign*.48,.57,.37),(sign*.73,.60,-.40)],.048)
         beam((-.48,.57,.37),(.48,.57,.37),.052)
         panel([(-.105,-.40,1.01),(.105,-.40,1.01),(.105,-.59,.81),(-.105,-.59,.81)],'switch',depth=.018)
     # Continuous inner tub behind instruments, with a rear bulkhead and roof.
@@ -208,7 +226,9 @@ def geometry(source,skelpath,faction,game,root):
         deck=[(-width,lip,front),(width,lip,front),(width*taper,lip-drop*(rear-front)/(1.85-front),rear),(-width*taper,lip-drop*(rear-front)/(1.85-front),rear)]
     else:deck=[(-width,lip,front),(width,lip,front),(width*.90,lip-.075,front+.35),(-width*.90,lip-.075,front+.35)]
     (tiled(deck,'plate',hint=[0,1,0]) if faction in ('nsdf','bdog') else face(deck,'armor',hint=[0,1,0]));bottom=np.array(deck)-[0,.07,0];face(bottom,hint=[0,-1,0])
-    for i in range(4):j=(i+1)%4;face([deck[i],deck[j],bottom[j],bottom[i]],'frame')
+    # CCA's front deck wall would lie exactly on the tub's front bulkhead cap
+    # (z-fighting strips beside the consoles); the bulkhead already closes it.
+    for i in range(1 if faction=='cca' else 0,4):j=(i+1)%4;face([deck[i],deck[j],bottom[j],bottom[i]],'frame')
     if faction=='cca':
         for material,mask in [(cfg['material'],~np.array(liner)),('CRV/SharedCockpitLiner',np.array(liner))]:
             used,remap=np.unique(np.array(ix).reshape(-1,3)[mask],return_inverse=True)
@@ -217,20 +237,14 @@ def geometry(source,skelpath,faction,game,root):
     body=mesh.submesh_list[cfg['body']];p=shared.values(body.vertex_data,shared.om.VES.POSITION);n=shared.values(body.vertex_data,shared.om.VES.NORMAL);tri=body.index_array.reshape(-1,3)
     weight=np.zeros(len(p))
     for a in body.bone_assignments():
-        if a.bone_index in cfg['gun']:weight[a.vertex_index]+=a.weight
+        if cfg.get('gunSource',{}).get(a.bone_index,a.bone_index) in cfg['gun']:weight[a.vertex_index]+=a.weight
     gun=(weight[tri]>.99).all(1);gunpart,gunix,used=source_part(body,gun);gunweights=[];remap={int(old):i for i,old in enumerate(used)}
     for a in body.bone_assignments():
-        if a.vertex_index in remap:gunweights.append((remap[a.vertex_index],a.bone_index,a.weight))
+        if a.vertex_index in remap:gunweights.append((remap[a.vertex_index],cfg.get('gunSource',{}).get(a.bone_index,a.bone_index),a.weight))
     # The stock CRA first-person barrel sits behind CYE11POV. Bring that same
     # complete part forward as one rigid piece: just its distal underside peeks
     # below the roof, without touching the aiming corridor or replacing the rig.
     gunoffset=np.array([0.,.02,4.30]) if faction=='cra' else np.zeros(3)
-    # The stock CZar first-person stub (SCZ21BGB/bga) is an exact copy of the
-    # exterior SCZ11BGB barrel tip, 2.68 m back and 0.18 m up. GC1/GC2 sit on
-    # the exterior muzzle in both skeletons, so shots left 13 deg away from the
-    # visible tip. Move the stub rigidly onto the exterior barrel (raw mesh
-    # space, converted to the eye frame the offset is applied in).
-    if faction=='cca':gunoffset=R.T@np.array([0.,-.17608285,2.6831249])
     gunpart[:,:3]+=(R@gunoffset).astype('<f4')
     parts['CRV/'+cfg['base']+'TankGuns']=(gunpart,gunix)
     # Original-painted front glacis, not the whole exterior. Keep triangle
@@ -277,11 +291,11 @@ def geometry(source,skelpath,faction,game,root):
     return parts,s,w,eye,shell,meta
 
 def compile_mesh(parts,s,w,eye,shell,base,meta):
-    # Fit the weather glass to the cabin with the barrel at its source position:
-    # a barrel moved out to the exterior muzzle must not stretch the glass.
-    key='CRV/'+base+'TankGuns';gunpart,gunix=parts[key];source=gunpart.copy()
-    source[:,:3]-=(np.array(meta['povBasis'])@np.array(meta['gunOffset'])).astype('<f4')
-    raw,glass=shared.mesh_bytes(parts,s,w,eye,shell,skeleton_name=base+'_cockpit.skeleton',glass_parts={**parts,key:(source,gunix)})
+    # CCA shows the real exterior gun running out to the muzzle (where shots
+    # spawn); fit the weather glass to the cabin alone so it is not stretched.
+    key='CRV/'+base+'TankGuns'
+    glass_parts={k:v for k,v in parts.items() if k!=key} if meta['faction']=='cca' else None
+    raw,glass=shared.mesh_bytes(parts,s,w,eye,shell,skeleton_name=base+'_cockpit.skeleton',glass_parts=glass_parts)
     mesh=shared.oms.MeshSerializer(io.BytesIO(raw)).read()
     guns=next(sub for sub in mesh.submesh_list if sub.material_name=='CRV/'+base+'TankGuns');guns.clear_bone_assignments()
     for v,b,weight in meta['gunWeights']:guns.create_bone_assignment(v,b,weight)

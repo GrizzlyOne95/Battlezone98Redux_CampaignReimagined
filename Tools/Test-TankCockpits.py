@@ -48,7 +48,14 @@ for faction,cfg in cp.CONFIG.items():
     def cast(yaws,pitch):
         y=np.radians(yaws);p=np.radians(pitch);dirs=np.column_stack([np.cos(p)*np.sin(y),np.full(len(y),np.sin(p)),np.cos(p)*np.cos(y)])@R.T
         return cg.cast(origin,dirs,tri[:,0],tri[:,1],tri[:,2])
-    for pitch in (0,5,10):check(np.isinf(cast(np.arange(-10,11,2),pitch)[0]).all(),'clear aiming corridor')
+    hit=lambda pitch:cast(np.arange(-10,11,2),pitch)
+    for pitch in (0,5,10):
+        d,k=hit(pitch)[:2]
+        # The CZar barrel sits on the exterior muzzle, which is where shots
+        # spawn (VDF hardpoint parts; Docs/AGENT_KNOWLEDGE_BASE.md), so it
+        # legitimately crosses the corridor 7 deg right of centre. Nothing else may.
+        g=ranges.get('CRV/'+base+'TankGuns',(0,0)) if faction=='cca' else (0,0)
+        check(all(np.isinf(x) or g[0]<=j<g[1] for x,j in zip(d,k)),'clear aiming corridor')
     for pitch,label in [(-80,'floor'),(85,'roof')]:check(np.isfinite(cast(np.arange(-180,180,10),pitch)[0]).all(),'closed '+label)
     check(np.isfinite(cast([180],0)[0]).all(),'closed rear bulkhead')
     check(meta['innerShell']['boundaryLoops']==1,'one connected intentional window boundary')
