@@ -75,7 +75,7 @@ assert vehicles == ['avtank', 'avfimp', 'avltnk'], "MP selection must match the 
 for odf in vehicles:
     assert (root / "ODF" / (odf + ".odf")).is_file()
 
-description = (root / "misn04cr.mpdes").read_text().strip()
+description = (root / "Missions/Descriptions/misn04cr.mpdes").read_text().strip()
 assert len(description) <= 300 and "\n" not in description
 assert "team 1" in description and "teams 2-4" in description
 bitmap = (root / "Assets" / "Graphics" / "misn04cr.bmp").read_bytes()
@@ -89,7 +89,7 @@ entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
 assert lock["count"] == len(lock["files"])
 manager = (root / "Manage-CampaignFiles.ps1").read_text(encoding="utf-8-sig")
 for source in (r"Config\misn04cr.ini", r"Assets\Graphics\misn04cr.bmp",
-               "misn04cr.mpdes", r"Missions\misn04cr.vxt",
+               r"Missions\Descriptions\misn04cr.mpdes", r"Missions\misn04cr.vxt",
                r"Missions\misn04cr.bzn", r"Scripts\misn04cr.lua"):
     runtime = source.split("\\")[-1]
     assert entries.get(source) == runtime, f"missing shipping entry: {source}"

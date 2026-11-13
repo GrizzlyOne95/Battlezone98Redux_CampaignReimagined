@@ -163,7 +163,7 @@ if vxt.is_file():
     vxt_text = vxt.read_text(encoding="utf-8")
     assert re.search(r"\bcvtnk\b", vxt_text) and re.search(r"\bcvfigh\b", vxt_text), "the vehicle list offers the Tank and the Fighter"
     print("  Missions/ch02cr.vxt checked")
-mpdes = ROOT / "ch02cr.mpdes"
+mpdes = ROOT / "Missions/Descriptions/ch02cr.mpdes"
 if mpdes.is_file():
     assert "Protection" in mpdes.read_text(encoding="utf-8")
     print("  ch02cr.mpdes checked")

@@ -84,7 +84,7 @@ if ini.is_file():
     print("  Config/evolvecr.ini checked")
 else:
     print("  Config/evolvecr.ini not present: skipped")
-mpdes = ROOT / "evolvecr.mpdes"
+mpdes = ROOT / "Missions/Descriptions/evolvecr.mpdes"
 if mpdes.is_file():
     assert mpdes.read_bytes().strip(), "the lobby blurb is not empty"
     print("  evolvecr.mpdes checked")

@@ -10,7 +10,7 @@ Keep the different Steam surfaces separate:
 
 | Surface | Canonical source |
 |---|---|
-| Workshop item description | `docs/workshop_description.bbcode` in Campaign Reimagined |
+| Workshop item description | `Docs/workshop_description.bbcode` in Campaign Reimagined |
 | Workshop update/change note | `change_note` supplied to the publish workflow |
 | Project changelog | `CHANGELOG.md` in Campaign Reimagined |
 | Roadmap discussion | `Docs/STEAM_ROADMAP_PLAYER_BBCODE.txt` in `GrizzlyOne95/Battlezone98Redux_Shim` (player-facing; it links to the technical `Docs/STEAM_ROADMAP_BBCODE.txt`, which is posted nowhere) |
@@ -156,14 +156,14 @@ without the other.
    and `Bin\`. Only a hotfix may skip it, with `-hotfix "<reason>"` (recorded in the change
    note). See `Docs/RELEASE_STRESS_TEST.md`.
 2. Update `CHANGELOG.md` for player-facing changes included in the candidate.
-3. Review `docs/workshop_description.bbcode` against the live Steam
+3. Review `Docs/workshop_description.bbcode` against the live Steam
    description. The default upload never sends the description: it is edited
    by hand on Steam between releases, and a content push must not revert those
    edits. To replace it, set `PublishDescription: true` in
    `workshop.config.json` for that run (both the Steam-client and `-steamcmd`
    paths honour it; the dry run says whether it will be sent). Rebuild the file
    from the live text first so hand edits survive, see
-   `docs/workshop_description.published-*.bbcode`. Steam rejects a description
+   `Docs/workshop_description.published-*.bbcode`. Steam rejects a description
    over 8000 characters.
 4. Review all OpenShim, EXU, bzfile, and CR changes entering the upload against
    `Battlezone98Redux_Shim/Docs/STEAM_ROADMAP_BBCODE.txt`.

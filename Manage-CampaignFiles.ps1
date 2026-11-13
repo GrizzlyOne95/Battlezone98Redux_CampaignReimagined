@@ -133,7 +133,7 @@ $SourceExcludedRelativePaths = @(
     "Assets\chunkMeshes_capped",
     # Repository branding (the GitHub repo icon), not runtime mod content.
     "branding",
-    "docs",
+    "Docs",
     "Local",
     "References",
     "Shipping",

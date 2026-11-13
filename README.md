@@ -69,8 +69,8 @@ pwsh -File .\Manage-CampaignFiles.ps1 -prepare-update "Describe the fix"
 
 Use `-reuse-native` for content-only changes when the existing qualified native builds are appropriate. Preparation does **not** publish anything. Workshop publication is a separate local maintainer action, not the GitHub Actions release-artifact workflow.
 
-- [Update preparation](Docs/UPDATE_PREPARATION.md) and [Workshop publication checklist](docs/STEAM_PUBLISH_CHECKLIST.md)
-- [Changelog](CHANGELOG.md) and [Workshop description source](docs/workshop_description.bbcode)
+- [Update preparation](Docs/UPDATE_PREPARATION.md) and [Workshop publication checklist](Docs/STEAM_PUBLISH_CHECKLIST.md)
+- [Changelog](CHANGELOG.md) and [Workshop description source](Docs/workshop_description.bbcode)
 - [Agent knowledge base](Docs/AGENT_KNOWLEDGE_BASE.md) and [repository working rules](AGENTS.md)
 
 ## Reporting problems

@@ -95,7 +95,7 @@ ini.read(root / 'Config/misn13cr.ini')
 assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
 assert (root / 'Assets/Graphics/misn13cr.bmp').read_bytes()[:2] == b'BM'
-des = (root / 'misn13cr.mpdes').read_text()
+des = (root / 'Missions/Descriptions/misn13cr.mpdes').read_text()
 assert len(des.strip()) <= 300
 assert 'Unit Factory' in des and 'hangar' in des and 'silos' in des, 'the briefing must state the real win'
 campaign = (root / 'Config/crcampgn.ini').read_text().replace('\r\n', '\n')
@@ -172,7 +172,7 @@ assert (root / 'Docs/MISN13_COOP.md').is_file()
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn13cr.ini', 'Missions/misn13cr.vxt', 'Assets/Graphics/misn13cr.bmp', 'misn13cr.mpdes',
+for source in ['Config/misn13cr.ini', 'Missions/misn13cr.vxt', 'Assets/Graphics/misn13cr.bmp', 'Missions/Descriptions/misn13cr.mpdes',
                'Missions/misn13cr.bzn', 'Missions/misn13.hg2', 'Missions/misn13.trn', 'Missions/misn13.mat',
                'Missions/misn13.lgt', 'Scripts/misn13cr.lua', 'Scripts/CREuropaSites13.lua', 'ODF/b_misn13.odf']:
     assert members.get(source) == Path(source).name, 'Map/lobby file must be admitted by the shipping manager: ' + source

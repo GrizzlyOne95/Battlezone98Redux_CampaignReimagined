@@ -62,7 +62,7 @@ local and is not part of the public source changes.
 ## Frozen packages and reproduction
 
 For future fixes, use the configured command in
-[UPDATE_PREPARATION.md](UPDATE_PREPARATION.md). On this workstation the ignored
+[UPDATE_PREPARATION.md](../UPDATE_PREPARATION.md). On this workstation the ignored
 `Local/release.config.json` selects the isolated candidate native checkouts,
 so inherited prototype environment settings cannot displace them.
 
@@ -135,7 +135,7 @@ campaign ZIPs against the manifest.
    Linux host CTest is not a Proton or Wine gameplay test. This workstation
    does not have a Wine runtime available for those lanes.
 3. Obtain explicit authorization for public tags/releases and Workshop
-   publication. Use [the publication checklist](../docs/STEAM_PUBLISH_CHECKLIST.md),
+   publication. Use [the publication checklist](../STEAM_PUBLISH_CHECKLIST.md),
    preserve the live item description unless replacement is deliberately
    requested, and use the reviewed change note.
 4. After upload, synchronize the Steam Roadmap discussion with OpenShim's

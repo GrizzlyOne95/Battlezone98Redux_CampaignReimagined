@@ -223,7 +223,7 @@ jobs:
 
           Copy-Item -LiteralPath "Local\Workshop\content" -Destination (Join-Path $bundle "content") -Recurse -Force
           Copy-Item -LiteralPath "Local\Workshop\content_manifest.sha256" -Destination (Join-Path $bundle "content_manifest.sha256") -Force
-          Copy-Item -LiteralPath "docs\workshop_description.bbcode" -Destination (Join-Path $bundle "workshop_description.bbcode") -Force
+          Copy-Item -LiteralPath "Docs\workshop_description.bbcode" -Destination (Join-Path $bundle "workshop_description.bbcode") -Force
           Copy-Item -LiteralPath "CHANGELOG.md" -Destination (Join-Path $bundle "CHANGELOG.md") -Force
 
           # WHAT: Record immutable OpenShim provenance in publish_metadata

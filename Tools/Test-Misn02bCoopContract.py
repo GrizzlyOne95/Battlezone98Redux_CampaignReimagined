@@ -94,7 +94,7 @@ vxt = [line for line in (root / "Missions" / "misn2bcr.vxt").read_text().splitli
 assert len(vxt) == 1 and vxt[0].split()[0] == "asuser", "MP start must be the pilot only"
 assert vxt[0].split()[1] == "aspilo.des" and "\t" in vxt[0], "pilot line must use the stock vxt form"
 
-description = (root / "misn2bcr.mpdes").read_text().strip()
+description = (root / "Missions/Descriptions/misn2bcr.mpdes").read_text().strip()
 assert len(description) <= 300 and "\n" not in description
 assert "team 1" in description and "teams 2-4" in description
 bitmap = (root / "Assets" / "Graphics" / "misn2bcr.bmp").read_bytes()
@@ -108,7 +108,7 @@ entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
 assert lock["count"] == len(lock["files"])
 manager = (root / "Manage-CampaignFiles.ps1").read_text(encoding="utf-8-sig")
 for source in (r"Config\misn2bcr.ini", r"Assets\Graphics\misn2bcr.bmp",
-               "misn2bcr.mpdes", r"Missions\misn2bcr.vxt",
+               r"Missions\Descriptions\misn2bcr.mpdes", r"Missions\misn2bcr.vxt",
                r"Missions\misn2bcr.bzn", r"Scripts\misn2bcr.lua"):
     runtime = source.split("\\")[-1]
     assert entries.get(source) == runtime, f"missing shipping entry: {source}"

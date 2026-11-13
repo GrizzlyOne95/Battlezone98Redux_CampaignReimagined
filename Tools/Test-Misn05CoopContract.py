@@ -41,7 +41,7 @@ assert ini['WORKSHOP']['mapType'] == '"multiplayer"'
 assert dict(ini['MULTIPLAYER']) == {'minplayers': '"2"', 'maxplayers': '"4"', 'gametype': '"S"'}
 assert (root / 'Missions/misn05cr.vxt').read_text(encoding='utf-8').splitlines() == ['avtank ,', 'avfimp ,', 'avltnk ,']
 assert (root / 'Assets/Graphics/misn05cr.bmp').read_bytes()[:2] == b'BM'
-assert len((root / 'misn05cr.mpdes').read_text().strip()) <= 300
+assert len((root / 'Missions/Descriptions/misn05cr.mpdes').read_text().strip()) <= 300
 
 lua = (root / 'Scripts/misn05cr.lua').read_text()
 lua = re.sub(r'--\[(=*)\[.*?\]\1\]', '', lua, flags=re.S)
@@ -69,6 +69,6 @@ assert 'CRCoop.AnyPlayerSatisfies' in lua
 
 lock = json.loads((root / 'Shipping/shipping.lock.json').read_text(encoding='utf-8-sig'))
 members = {entry['source'].replace('\\', '/'): entry['runtime'] for entry in lock['files']}
-for source in ['Config/misn05cr.ini', 'Missions/misn05cr.vxt', 'Assets/Graphics/misn05cr.bmp', 'misn05cr.mpdes']:
+for source in ['Config/misn05cr.ini', 'Missions/misn05cr.vxt', 'Assets/Graphics/misn05cr.bmp', 'Missions/Descriptions/misn05cr.mpdes']:
     assert members.get(source) == Path(source).name, 'New lobby asset must be admitted by the shipping manager: ' + source
 print('misn05 co-op native map, team isolation, authority and lobby contract passed')

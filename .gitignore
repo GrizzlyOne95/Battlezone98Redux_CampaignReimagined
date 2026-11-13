@@ -4,8 +4,6 @@
 # Allow GitHub automation and documentation
 !/.github/
 !/.github/**
-!/docs/
-!/docs/**
 !/Docs/
 !/Docs/**
 
@@ -65,104 +63,6 @@
 !/workshop.config.example.json
 !/install/
 !/install/install_windows.ps1
-!/install.des
-!/update.des
-!/staged.des
-!/nocopy.des
-!/misn03cr.mpdes
-!/misn04cr.mpdes
-!/misn05cr.mpdes
-!/misn06cr.mpdes
-!/misn07cr.mpdes
-!/misn08cr.mpdes
-!/misn09cr.mpdes
-!/misn10cr.mpdes
-!/misn11cr.mpdes
-!/misn12cr.mpdes
-!/misn13cr.mpdes
-!/misn14cr.mpdes
-!/misn2bcr.mpdes
-!/misns1cr.mpdes
-!/misns2cr.mpdes
-!/misns3cr.mpdes
-!/misns4cr.mpdes
-!/misns5cr.mpdes
-!/misns6cr.mpdes
-!/misns7cr.mpdes
-!/misns8cr.mpdes
-!/crcca.des
-!/bd01cr.mpdes
-!/bd02cr.mpdes
-!/bd03cr.mpdes
-!/bd04cr.mpdes
-!/bd05cr.mpdes
-!/bd06cr.mpdes
-!/bd07cr.mpdes
-!/bd08cr.mpdes
-!/bd09cr.mpdes
-!/bd10cr.mpdes
-!/bd11cr.mpdes
-!/bd12cr.mpdes
-!/bd13cr.mpdes
-!/bd14cr.mpdes
-!/bd15cr.mpdes
-!/crbd.des
-!/ch01cr.mpdes
-!/ch02cr.mpdes
-!/ch03cr.mpdes
-!/ch04cr.mpdes
-!/ch05cr.mpdes
-!/ch06cr.mpdes
-!/ch07cr.mpdes
-!/ch08cr.mpdes
-!/crch.des
-!/evolvecr.mpdes
-!/misn2bcr.des
-!/misn03cr.des
-!/misn04cr.des
-!/misn05cr.des
-!/misn06cr.des
-!/misn07cr.des
-!/misn08cr.des
-!/misn09cr.des
-!/misn10cr.des
-!/misn11cr.des
-!/misn12cr.des
-!/misn13cr.des
-!/misn14cr.des
-!/misn17cr.des
-!/misn18cr.des
-!/misns1cr.des
-!/misns2cr.des
-!/misns3cr.des
-!/misns4cr.des
-!/misns5cr.des
-!/misns6cr.des
-!/misns7cr.des
-!/misns8cr.des
-!/ch01cr.des
-!/ch02cr.des
-!/ch03cr.des
-!/ch04cr.des
-!/ch05cr.des
-!/ch06cr.des
-!/ch07cr.des
-!/ch08cr.des
-!/bd01cr.des
-!/bd02cr.des
-!/bd03cr.des
-!/bd04cr.des
-!/bd05cr.des
-!/bd06cr.des
-!/bd07cr.des
-!/bd08cr.des
-!/bd09cr.des
-!/bd10cr.des
-!/bd11cr.des
-!/bd12cr.des
-!/bd13cr.des
-!/bd14cr.des
-!/bd15cr.des
 
 # Local machine/generated artifacts live under Local and stay ignored
 /Local/
@@ -184,10 +84,6 @@ desktop.ini
 # generates them at runtime from the stock models. Assets/chunkMeshes*
 # is excluded from the shipping set in Manage-CampaignFiles.ps1.
 
-!misn15.mpdes
 
-!misn16.mpdes
 
-!misn17cr.mpdes
 
-!misn18cr.mpdes

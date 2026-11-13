@@ -5,7 +5,7 @@
   "SteamCmdPath": null,
   "SteamUser": "",
   "PreviewFile": null,
-  "DescriptionFile": "docs\\workshop_description.bbcode",
+  "DescriptionFile": "Docs\\workshop_description.bbcode",
   "Description": null,
   "_comment_PublishDescription": "Leave false. The live Steam description is edited by hand between releases; a content push must not revert those edits. Set true only for a run that deliberately replaces the published description.",
   "PublishDescription": false,

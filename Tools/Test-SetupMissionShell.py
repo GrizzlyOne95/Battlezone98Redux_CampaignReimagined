@@ -7,20 +7,20 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 ini_path = ROOT / "Config" / "crsetup.ini"
-des_path = ROOT / "crsetup.des"
+des_path = ROOT / "Text" / "Shell" / "crsetup.des"
 bzn_path = ROOT / "Missions" / "crsetup.bzn"
 lua_path = ROOT / "Scripts" / "crsetup.lua"
 # Redux truncates menu resource names to 16 characters ("campaignReimagined.des"
 # was looked up as "campaignreimagin"), so the campaign ini stem stays short.
 mod_ini_path = ROOT / "Config" / "crcampgn.ini"
-mod_des_path = ROOT / "crcampgn.des"
+mod_des_path = ROOT / "Missions" / "Descriptions" / "crcampgn.des"
 lock_path = ROOT / "Shipping" / "shipping.lock.json"
 manager_path = ROOT / "Manage-CampaignFiles.ps1"
 
 result_des_paths = [
-    ROOT / "crsetok.des",
-    ROOT / "crsetrr.des",
-    ROOT / "crsetfl.des",
+    ROOT / "Text" / "Shell" / "crsetok.des",
+    ROOT / "Text" / "Shell" / "crsetrr.des",
+    ROOT / "Text" / "Shell" / "crsetfl.des",
 ]
 
 for path in (ini_path, des_path, bzn_path, lua_path, mod_ini_path, mod_des_path, lock_path, manager_path, *result_des_paths):
@@ -164,15 +164,15 @@ lock = json.loads(lock_path.read_text(encoding="utf-8-sig"))
 entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
 expected = {
     r"Config\crcampgn.ini": "crcampgn.ini",
-    "crcampgn.des": "crcampgn.des",
+    r"Missions\Descriptions\crcampgn.des": "crcampgn.des",
     r"Assets\Graphics\crcampgn.bmp": "crcampgn.bmp",
     r"Assets\Graphics\crsetup.bmp": "crsetup.bmp",
     r"InstallerPayload\OpenShimAssets.ini.payload": "OpenShimAssets.ini.payload",
     r"Config\crsetup.ini": "crsetup.ini",
-    "crsetup.des": "crsetup.des",
-    "crsetok.des": "crsetok.des",
-    "crsetrr.des": "crsetrr.des",
-    "crsetfl.des": "crsetfl.des",
+    r"Text\Shell\crsetup.des": "crsetup.des",
+    r"Text\Shell\crsetok.des": "crsetok.des",
+    r"Text\Shell\crsetrr.des": "crsetrr.des",
+    r"Text\Shell\crsetfl.des": "crsetfl.des",
     r"Missions\crsetup.bzn": "crsetup.bzn",
     r"Missions\crsetup.trn": "crsetup.trn",
     r"Missions\crsetup.hg2": "crsetup.hg2",
@@ -199,7 +199,7 @@ for runtime in expected.values():
 # Soviet (CCA) campaign listing: a second campaign ini beside crcampgn.ini. The stem stays within
 # the 16-character menu resource limit and the mission planets drive the weather director.
 cca_ini_path = ROOT / "Config" / "crcca.ini"
-cca_des_path = ROOT / "crcca.des"
+cca_des_path = ROOT / "Missions" / "Descriptions" / "crcca.des"
 cca_parser = configparser.ConfigParser()
 cca_parser.optionxform = str
 cca_parser.read(cca_ini_path, encoding="utf-8")
@@ -231,7 +231,7 @@ for index, planet in enumerate(cca_planets, start=1):
     mp.read(ROOT / "Config" / f"{stem}.ini", encoding="utf-8")
     assert mp["WORKSHOP"]["mapType"] == '"multiplayer"'
     assert (mp["MULTIPLAYER"]["minPlayers"], mp["MULTIPLAYER"]["maxPlayers"], mp["MULTIPLAYER"]["gameType"]) == ('"2"', '"4"', '"S"')
-    blurb = (ROOT / f"{stem}.mpdes").read_bytes()
+    blurb = (ROOT / "Missions" / "Descriptions" / f"{stem}.mpdes").read_bytes()
     assert len(blurb) <= 300 and b"\r\n" in blurb, f"{stem}.mpdes must be <= 300 bytes with CRLF"
     site_prefix = {"venus": "CRVenusSites", "io": "CRIoSites", "titan": "CRTitanSites"}[cca_planets[index - 1]]
     assert (ROOT / "Scripts" / f"{site_prefix}S{index}.lua").is_file(), f"weather sites for misns{index}"
@@ -246,7 +246,7 @@ if all((ROOT / "Scripts" / f"misns{i}cr.lua").is_file() for i in range(1, 9)):
         lua_name = str(Path(filename).with_suffix(".lua"))
         assert entries.get("Scripts\\" + lua_name) == lua_name, f"lock missing {lua_name}"
     assert entries.get(r"Config\crcca.ini") == "crcca.ini"
-    assert entries.get("crcca.des") == "crcca.des"
+    assert entries.get(r"Missions\Descriptions\crcca.des") == "crcca.des"
     assert entries.get(r"Assets\Graphics\crcca.bmp") == "crcca.bmp"
     for runtime in ("crcca.ini", "crcca.des", "crcca.bmp"):
         assert f'"{runtime}"' in manager, f"Workshop required-files list missing {runtime!r}"
@@ -254,7 +254,7 @@ if all((ROOT / "Scripts" / f"misns{i}cr.lua").is_file() for i in range(1, 9)):
 # Black Dog (Red Odyssey) campaign listing: the third campaign ini. Terrain keeps the bdmisnNN stem
 # named by the BZN. Ganymede weather sites are authored per mission; Elysium weather is separate.
 bd_ini_path = ROOT / "Config" / "crbd.ini"
-bd_des_path = ROOT / "crbd.des"
+bd_des_path = ROOT / "Missions" / "Descriptions" / "crbd.des"
 bd_parser = configparser.ConfigParser()
 bd_parser.optionxform = str
 bd_parser.read(bd_ini_path, encoding="utf-8")
@@ -293,7 +293,7 @@ for index in range(1, 16):
     mp.read(ROOT / "Config" / f"{stem}.ini", encoding="utf-8")
     assert mp["WORKSHOP"]["mapType"] == '"multiplayer"'
     assert (mp["MULTIPLAYER"]["minPlayers"], mp["MULTIPLAYER"]["maxPlayers"], mp["MULTIPLAYER"]["gameType"]) == ('"2"', '"4"', '"S"')
-    blurb = (ROOT / f"{stem}.mpdes").read_bytes()
+    blurb = (ROOT / "Missions" / "Descriptions" / f"{stem}.mpdes").read_bytes()
     assert len(blurb) <= 300 and b"\r\n" in blurb, f"{stem}.mpdes must be <= 300 bytes with CRLF"
     if planet == "ganymede" and index != 7:
         assert (ROOT / "Scripts" / f"CRGanymedeSitesBD{index:02d}.lua").is_file(), f"weather sites for {stem}"
@@ -307,7 +307,7 @@ if all((ROOT / "Scripts" / f"bd{i:02d}cr.lua").is_file() for i in range(1, 16)):
         lua_name = str(Path(filename).with_suffix(".lua"))
         assert entries.get("Scripts\\" + lua_name) == lua_name, f"lock missing {lua_name}"
     assert entries.get(r"Config\crbd.ini") == "crbd.ini"
-    assert entries.get("crbd.des") == "crbd.des"
+    assert entries.get(r"Missions\Descriptions\crbd.des") == "crbd.des"
     assert entries.get(r"Assets\Graphics\crbd.bmp") == "crbd.bmp"
     for runtime in ("crbd.ini", "crbd.des", "crbd.bmp"):
         assert f'"{runtime}"' in manager, f"Workshop required-files list missing {runtime!r}"
@@ -315,7 +315,7 @@ if all((ROOT / "Scripts" / f"bd{i:02d}cr.lua").is_file() for i in range(1, 16)):
 # CRA (Chinese) campaign listing: the fourth campaign ini. Terrain keeps the chmisnNN stem named by the BZN.
 # Ganymede weather sites are authored per mission; chmisn05/06 (Elysium) and chmisn07 (Europa) use their own.
 ch_ini_path = ROOT / "Config" / "crch.ini"
-ch_des_path = ROOT / "crch.des"
+ch_des_path = ROOT / "Missions" / "Descriptions" / "crch.des"
 ch_parser = configparser.ConfigParser()
 ch_parser.optionxform = str
 ch_parser.read(ch_ini_path, encoding="utf-8")
@@ -356,7 +356,7 @@ for index in range(1, 9):
     mp.read(ROOT / "Config" / f"{stem}.ini", encoding="utf-8")
     assert mp["WORKSHOP"]["mapType"] == '"multiplayer"'
     assert (mp["MULTIPLAYER"]["minPlayers"], mp["MULTIPLAYER"]["maxPlayers"], mp["MULTIPLAYER"]["gameType"]) == ('"2"', '"4"', '"S"')
-    blurb = (ROOT / f"{stem}.mpdes").read_bytes()
+    blurb = (ROOT / "Missions" / "Descriptions" / f"{stem}.mpdes").read_bytes()
     assert len(blurb) <= 300 and b"\r\n" in blurb, f"{stem}.mpdes must be <= 300 bytes with CRLF"
     assert (ROOT / "Scripts" / f"{ch_sites[index]}.lua").is_file(), f"weather sites for {stem}"
 assert_fits_menu_box(ch_des_path)
@@ -369,7 +369,7 @@ if all((ROOT / "Scripts" / f"ch{i:02d}cr.lua").is_file() for i in range(1, 9)):
         lua_name = str(Path(filename).with_suffix(".lua"))
         assert entries.get("Scripts\\" + lua_name) == lua_name, f"lock missing {lua_name}"
     assert entries.get(r"Config\crch.ini") == "crch.ini"
-    assert entries.get("crch.des") == "crch.des"
+    assert entries.get(r"Missions\Descriptions\crch.des") == "crch.des"
     assert entries.get(r"Assets\Graphics\crch.bmp") == "crch.bmp"
     for runtime in ("crch.ini", "crch.des", "crch.bmp"):
         assert f'"{runtime}"' in manager, f"Workshop required-files list missing {runtime!r}"
