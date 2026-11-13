@@ -2450,7 +2450,7 @@
       "model": "hvturr",
       "slots": {
         "1": {
-          "weapon": "gbolt",
+          "weapon": "gflance",
           "offset": [
             0.0,
             0.0,
@@ -2460,7 +2460,7 @@
           "anchor": "hardpoint (parent hvt11tx1 is not a barrel node)"
         },
         "2": {
-          "weapon": "gbolt",
+          "weapon": "gflance",
           "offset": [
             0.0,
             0.0,

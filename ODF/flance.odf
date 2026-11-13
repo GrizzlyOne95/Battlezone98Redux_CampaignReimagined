@@ -1,0 +1,138 @@
+// Fury Plasma Lance orb (hvturr): slow blue plasma ball, splash on impact.
+// Render pattern follows plasma.odf (emitted twirls + light); blue only, with a trail.
+[OrdnanceClass]
+classLabel = "rocket"
+
+shotGeometry = NULL
+xplGround = "xflance"
+xplVehicle = "xflance"
+xplBuilding = "xflance"
+
+renderName = "flance.render"
+
+ammoCost = 0
+lifeSpan = 2.9
+shotSpeed = 70.0
+damageBallistic = 220
+damageConcussion = 0
+damageFlame = 0
+damageImpact = 0
+
+[RocketClass]
+flareRadius = 0.0
+flareTexture = "plasma.0"
+flareFrames = 4
+
+[Render]
+renderBase = "draw_multi"
+renderCount = 5
+renderName1 = "flance.shell"
+renderName2 = "flance.core"
+renderName3 = "flance.shell2"
+renderName4 = "flance.light"
+renderName5 = "flance.trail"
+
+[Shell]
+simulateBase = "sim_smoke"
+lifeTime = 0.2
+renderBase = "draw_emit"
+emitName = "flance.shellemit"
+emitDelay = 0.2
+emitVelocity = "0.0 0.0 0.0"
+emitVariance = "0.0 0.0 0.0"
+emitInherit = "1.0 1.0 1.0"
+
+[Shellemit]
+simulateBase = "sim_smoke"
+lifeTime = 0.05
+renderBase = "draw_twirl"
+textureName = "cr_fx_plasma.dds"
+textureBlend = "one one modulate"
+startColor = "90 170 255 255"
+finishColor = "90 170 255 255"
+startRadius = 2.6
+finishRadius = 2.6
+animateTime = 0.05
+rotationRate = 4.0
+
+[Shell2]
+StartDelay = 0.1
+simulateBase = "sim_smoke"
+lifeTime = 0.2
+renderBase = "draw_emit"
+emitName = "flance.shell2emit"
+emitDelay = 0.2
+emitVelocity = "0.0 0.0 0.0"
+emitVariance = "0.0 0.0 0.0"
+emitInherit = "1.0 1.0 1.0"
+
+[Shell2emit]
+simulateBase = "sim_smoke"
+lifeTime = 0.05
+renderBase = "draw_twirl"
+textureName = "cr_fx_plasma.dds"
+textureBlend = "one one modulate"
+startColor = "40 110 255 255"
+finishColor = "40 110 255 255"
+startRadius = 3.0
+finishRadius = 3.0
+animateTime = 0.05
+rotationRate = -3.0
+
+[Core]
+StartDelay = 0.05
+simulateBase = "sim_smoke"
+lifeTime = 0.2
+renderBase = "draw_emit"
+emitName = "flance.coreemit"
+emitDelay = 0.2
+emitVelocity = "0.0 0.0 0.0"
+emitVariance = "0.0 0.0 0.0"
+emitInherit = "1.0 1.0 1.0"
+
+[Coreemit]
+simulateBase = "sim_smoke"
+lifeTime = 0.05
+renderBase = "draw_twirl"
+textureName = "plasma_1.tga"
+textureBlend = "one one modulate"
+startColor = "200 240 255 255"
+finishColor = "200 240 255 255"
+startRadius = 1.2
+finishRadius = 1.2
+animateTime = 0.05
+rotationRate = 7.0
+
+[Light]
+simulateBase = "sim_smoke"
+lifeTime = 0.2
+renderBase = "draw_emit"
+emitName = "flance.lightemit"
+emitDelay = 0.2
+emitDelayVar = 0.0
+emitVelocity = "0.0 0.0 0.0"
+emitVariance = "0.0 0.0 0.0"
+emitInherit = "1.0 1.0 1.0"
+
+[Lightemit]
+simulateBase = "sim_smoke"
+lifeTime = 0.05
+renderBase = "draw_light"
+startColor = "30 120 255 255"
+finishColor = "30 120 255 255"
+startRadius = 30
+finishRadius = 30
+animateTime = 0.05
+attenuateConstant = 1.0
+attenuateLinear = 0.0
+attenuateQuadratic = 0.0
+
+[Trail]
+renderBase = "draw_trail"
+textureName = "trail2.tga"
+startColor = "60 150 255 160"
+finishColor = "0 60 255 0"
+startRadius = 0.9
+finishRadius = 0.0
+segmentTime = 0.12
+textureRate = 0.25

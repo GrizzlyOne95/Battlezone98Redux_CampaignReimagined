@@ -16,9 +16,9 @@ heatSignature = 0.1
 imageSignature = 2.0
 radarSignature = 0.1
 weaponHard1 = "GC1"
-weaponName1 = "gbolt"
+weaponName1 = "gflance"
 weaponHard2 = "GC2"
-weaponName2 = "gbolt"
+weaponName2 = "gflance"
 // CR DEATH FX BEGIN
 // CCA initial death blast (ODF/xdccai)
 explosionName = "xdccai"

@@ -1,0 +1,130 @@
+// Plasma Lance (flance) impact, all surfaces: blue plasma burst, shock ring, sparks, scorch.
+// Splash: concussion 120 over 14 m (betblow-style), on top of the orb's 220 direct ballistic.
+// Hand-written: flance is a CR weapon, so Tools/Build-WeaponHitFx.py (stock ordnance only) does not own it.
+[ExplosionClass]
+classLabel = "explosion"
+explSound = "xmv1.wav"
+damageRadius = 14.0
+damageBallistic = 0
+damageConcussion = 120
+damageFlame = 0
+damageImpact = 0
+
+particleTypes = 7
+
+particleClass1 = "xflance.Flash"
+particleCount1 = 1
+particleVeloc1 = "0.00 0.00 0.00"
+
+particleClass2 = "xflance.PlasmaA"
+particleCount2 = 1
+particleVeloc2 = "0.00 0.00 0.00"
+
+particleClass3 = "xflance.PlasmaB"
+particleCount3 = 1
+particleVeloc3 = "0.00 0.00 0.00"
+
+particleClass4 = "xflance.Ring"
+particleCount4 = 1
+particleVeloc4 = "0.00 0.00 0.00"
+
+particleClass5 = "xflance.Spark"
+particleCount5 = 4
+particleVeloc5 = "9.00 7.00 9.00"
+particleBias5 = "0.00 1.50 0.00"
+
+particleClass6 = "xflance.Scorch"
+particleCount6 = 1
+particleVeloc6 = "0.00 0.00 0.00"
+
+particleClass7 = "xflance.Light"
+particleCount7 = 1
+particleVeloc7 = "0.00 0.00 0.00"
+
+[Flash]
+simulateBase = "sim_null"
+lifeTime = 0.22
+renderBase = "draw_sprite"
+textureName = "cr_xpl_core.dds"
+textureBlend = "one one modulate"
+startColor = "215 235 255 255"
+finishColor = "40 100 255 0"
+startRadius = 1.00
+finishRadius = 4.00
+animateTime = 0.22
+
+[PlasmaA]
+simulateBase = "sim_smoke"
+lifeTime = 0.50
+renderBase = "draw_twirl"
+textureName = "cr_fx_plasma.dds"
+textureBlend = "one one modulate"
+startColor = "120 190 255 255"
+finishColor = "20 60 255 0"
+startRadius = 1.20
+finishRadius = 5.00
+animateTime = 0.50
+rotationRate = 4.00
+
+[PlasmaB]
+simulateBase = "sim_smoke"
+lifeTime = 0.40
+renderBase = "draw_twirl"
+textureName = "cr_fx_plasma.dds"
+textureBlend = "one one modulate"
+startColor = "160 240 255 255"
+finishColor = "60 200 255 0"
+startRadius = 0.80
+finishRadius = 3.40
+animateTime = 0.40
+rotationRate = -5.00
+
+[Ring]
+simulateBase = "sim_null"
+lifeTime = 0.40
+renderBase = "draw_sprite"
+textureName = "cr_xpl_ring.dds"
+textureBlend = "one one modulate"
+startColor = "120 190 255 255"
+finishColor = "30 80 255 0"
+startRadius = 1.00
+finishRadius = 14.00
+animateTime = 0.40
+
+[Spark]
+simulateBase = "sim_ember"
+lifeTime = 0.40
+renderBase = "draw_twirl"
+textureName = "cr_xpl_spark.dds"
+textureBlend = "one one modulate"
+startColor = "190 230 255 255"
+finishColor = "40 110 255 0"
+startRadius = 0.16
+finishRadius = 0.04
+animateTime = 0.40
+rotationRate = 10.00
+
+[Scorch]
+simulateBase = "sim_null"
+lifeTime = 6.00
+renderBase = "draw_planar"
+textureName = "cr_fx_scorch.dds"
+textureBlend = "srcalpha invsrcalpha modulatealpha"
+startColor = "20 30 60 190"
+finishColor = "20 30 60 0"
+startRadius = 3.50
+finishRadius = 3.50
+animateTime = 6.00
+
+[Light]
+simulateBase = "sim_null"
+lifeTime = 0.40
+renderBase = "draw_light"
+startColor = "60 140 255 255"
+finishColor = "0 40 255 0"
+startRadius = 30.00
+finishRadius = 8.00
+animateTime = 0.40
+attenuateConstant = 1.0
+attenuateLinear = 0.0
+attenuateQuadratic = 0.0

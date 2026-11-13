@@ -673,6 +673,12 @@
       "casing_type": "none",
       "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
     },
+    "gflance": {
+      "profile": "plasmablue",
+      "decision": "authored flash",
+      "casing_type": "none",
+      "casing_decision": "Energy, launcher, explosive or utility: no ejected brass."
+    },
     "gflare": {
       "profile": null,
       "decision": "countermeasure deployment",
