@@ -4772,6 +4772,11 @@ PersistentConfig.CoopPda = require("CRCoopPda").Create({
         return list
     end,
 })
+PersistentConfig.CoopTeamStrip = require("CRCoopTeamStrip").Create({
+    exu = exu, coop = require("CRCoop"),
+    comms = function() return require("CRCoop").GetComms() end,
+    time = function() return GetTime() end,
+})
 PersistentConfig.CoopPingHud = require("CRCoopPingHud").Create({
     comms = function() return require("CRCoop").GetComms() end,
     time = function() return GetTime() end,
@@ -6058,6 +6063,7 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     local uiInteractionSuppressed = pauseMenuOpen or escapePressed or cinematicActive == true
     PersistentConfig.CoopPda.UpdatePage(InputState)
     PersistentConfig.CoopPingHud.Update()
+    PersistentConfig.CoopTeamStrip.Update(uiInteractionSuppressed)
 
     InputState.SubtitlesPaused = uiInteractionSuppressed
     local scriptSubtitles = GetScriptSubtitles()
@@ -6792,6 +6798,7 @@ end
 function PersistentConfig.Initialize()
     PersistentConfig.CoopPda.Reset()
     PersistentConfig.CoopPingHud.Destroy()
+    PersistentConfig.CoopTeamStrip.Destroy()
     InputState.missionEnded = false
     InputState.missionEndCleanupDone = false
     PersistentConfig.ExperimentalOverlayUseCustomFont = true
@@ -6902,6 +6909,7 @@ function PersistentConfig.Initialize()
 
         InputState.missionEndCleanupDone = true
         PersistentConfig.CoopPingHud.Destroy()
+        PersistentConfig.CoopTeamStrip.Destroy()
         InputState.pdaOverlayRefreshPending = false
         InputState.nextPdaOverlayRefresh = 0.0
         PersistentConfig._DestroyAllPdaOverlays()

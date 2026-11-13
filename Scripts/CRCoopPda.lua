@@ -199,6 +199,10 @@ function M.Create(d)
         end
         add({ key = "markers", text = "MARKERS " .. (c.MarkersOn() and "ON" or "OFF"),
             run = function() c.SetMarkers(not c.MarkersOn()); return true end })
+        if c.SetTeamStrip then
+            add({ key = "strip", text = "TEAM STRIP " .. (c.TeamStripOn() and "ON" or "OFF"),
+                run = function() c.SetTeamStrip(not c.TeamStripOn()); return true end })
+        end
         return list
     end
     local function current(list)
