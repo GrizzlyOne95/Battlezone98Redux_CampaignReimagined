@@ -13,7 +13,7 @@ not generic science-fiction avionics. No full-body/cockpit merge.
 | --- | --- | --- |
 | `avtank` NSDF | Wide window, raised warning horns, stepped control pods and service bridge | Petrol-painted cassettes, cyan button lenses, recessed bezels, caps and slotted fasteners; original-painted glacis |
 | `bvtank` Black Dog | Same stock structural lineage, its own substantially lower eye and shell positions | Charcoal/red hardware, red lamps, original warning horns, new low liner and glacis |
-| `svtank` CCA | Cream enamel, red seams, dark equipment, domed mechanical controls and overhead cannon | Eye moved behind the exterior cannon (shots leave the VDF hardpoint); Total Command-style sloped dash with five recessed instrument bays, hazard band, knee wall with hatches, side-wall stations and floor; gun-side rail tucked under the housing |
+| `svtank` CCA | Cream enamel, red seams, dark equipment, domed mechanical controls and overhead cannon | Eye moved behind the exterior cannon (shots leave the VDF hardpoint), then eye and tub 0.5 m forward and 0.15 m lower so only the muzzle end shows (about 8° up, 6° right of the reticle); Total Command-style sloped dash with five recessed instrument bays, hazard band, knee wall with hatches, side-wall stations and floor; gun-side rail tucked under the housing |
 | `cvtank` -> `cvtnk` CRA | Small split control banks, open center aisle, yellow braces, original ceiling | Oxblood instrument cassettes and guarded controls, fitted hull surface, original barrel underside just below the roof |
 
 The NSDF, Black Dog and CRA original cockpit surface positions, triangles and
