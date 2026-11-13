@@ -30,7 +30,7 @@ local P = "CR/TeamStrip/Text"
 local FULL = 6 -- overlay + root + four text lines
 
 -- Fake co-op session: me = 30 (Ann). Describe/IsCritical report what CRCoopComms would.
-local active, stripOn, clock = true, true, 0
+local active, stripOn, barsOn, clock = true, true, true, 0
 local me = 30
 local players = { [20] = { name = "Ian", team = 1 }, [30] = { name = "Ann", team = 2 },
     [40] = { name = "Bo of a very long name indeed", team = 3 }, [50] = { name = "Cy", team = 4, lateJoin = true },
@@ -152,15 +152,19 @@ local pdaComms = { IsActive = function() return true end, GetPings = function() 
     MarkersOn = function() return true end, SetMarkers = function() end,
     HostMarkerOn = function() return false end, SetHostMarker = function() end,
     TeamStripOn = function() return stripOn end, SetTeamStrip = function(on) stripOn = on end,
+    PartnerBarsOn = function() return barsOn end, SetPartnerBars = function(on) barsOn = on end,
     CallForHelp = function() return true end, CancelRescue = function() return true end }
 local ui = Pda.Create({ coop = { GetComms = function() return pdaComms end, IsAuthority = function() return false end,
     GetLocalPlayerId = function() return 30 end, GetPlayers = function() return {} end,
     IsHumanTeam = function() return true end, IsSessionReady = function() return true end },
     pages = Data.PdaPages, feedback = error, time = function() return 0 end, selected = function() return {} end })
-stripOn = true
+stripOn, barsOn = true, true
 local function render() return ui.BuildText(function() return "==COOP==" end, function() end) end
 check(render():find("TEAM STRIP ON", 1, true), "PDA shows TEAM STRIP ON")
 for _, a in ipairs(ui.Actions()) do if a.key == "strip" then a.run() end end
 check(stripOn == false and render():find("TEAM STRIP OFF", 1, true), "PDA row toggles the strip")
+check(render():find("PARTNER BARS ON", 1, true), "PDA shows PARTNER BARS ON")
+for _, a in ipairs(ui.Actions()) do if a.key == "bars" then a.run() end end
+check(barsOn == false and render():find("PARTNER BARS OFF", 1, true), "PDA row toggles partner bars")
 
 print("CRCoopTeamStrip: " .. checks .. " checks passed")
