@@ -40,9 +40,9 @@ changes are:
 
 | CR file | From |
 |---|---|
-| `cr17_fbranch1.dds`, `cr17_fbranch2.dds` | pack branch base colour |
+| `cr17_fbranch1.dds`, `cr17_fbranch2.dds` | owner-generated sprig art refit onto the pack's branch-card layout; see below |
 | `cr17_ftrunk1*.dds`, `cr17_ftrunk2*.dds` | TextureRevamp colour/height masters, based on the pack's original trunk references; see below |
-| `cr17_frock.dds`, `cr17_frock_n.dds`, `cr17_frock_s.dds` | pack rock base colour, normal, roughness |
+| `cr17_frock.dds`, `cr17_frock_n.dds`, `cr17_frock_s.dds` | owner-generated rock surface baked onto the pack rock atlas, pack form shading and normal kept; see below |
 | `c17frst1`-`4` `.mesh/.skeleton/.sdf/.geo` | pack tree meshes |
 | `cr17_frock1`-`9.mesh` | pack rock meshes |
 
@@ -130,3 +130,23 @@ Two more plates were downloaded and checked but are **not used**:
 
 `References/Misn17Flowers/source-assets.json` records the plates, the atlas
 rectangles and the mesh hashes.
+
+### Owner-generated art pass (2026-11-13)
+
+The project owner generated four images with an image model (prompts in
+`References/TextureRevamp/map-prompts.json`, originals in
+`References/TextureRevamp/raw/*_gen.jpg`). `Tools/Prep-Misn17GenTextures.py`
+turns them into TextureRevamp masters; `Tools/Build-TextureRevamp.py` compiles
+them. Meshes and UVs are unchanged.
+
+- **Rock (`cr17_frock*`, 2048^2).** The rock image is made seamless and
+  projected triplanar onto each of the nine shipped rock meshes in object space,
+  written into that rock's own atlas islands. The pack atlas's blurred shading
+  is kept, and the pack normal map gets the new surface detail blended in.
+- **Branch cards (`cr17_fbranch1/2`, 2048^2 RGBA).** Sprigs keyed from the
+  generated sheets are scattered over each pack card's silhouette (sized to the
+  card, pointing out from its spine) above a darkened copy of the pack card, then
+  clipped to the card shape. The bare fir twig card keeps the pack art.
+- **Water (`cr17_water.dds`, 1024^2).** Grey ripple map: the source's lighting
+  gradient is removed and the level matched to the old ISDFC `water256` copy.
+  The Jungle builder now writes it after copying `water256`; misn18 shares it.

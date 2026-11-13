@@ -339,7 +339,7 @@ BRANCHES = '''material CR17/%s : CR17/CutoutWind
 	set_texture_alias NormalMap cr17_flat.dds
 	set_texture_alias SpecularMap cr17_black.dds
 	set_texture_alias EmissiveMap cr17_black.dds
-	set $cutoutParams "0.45 0.5 0.6 512"
+	set $cutoutParams "0.45 0.5 0.6 2048"
 	set $diffuse "%s"
 	set $specular "0.08 0.08 0.08"
 	set $shininess "16"
@@ -447,7 +447,7 @@ def build(pack, isdfc):
             return image(g, blob, m['normalTexture']['index'])
         return image(g, blob, m['pbrMetallicRoughness'][key]['index'])
 
-    # Textures: branch cards keep their 512 size, trunks theirs, rock normals halve to 512.
+    # Textures: pack sizes here; Build-TextureRevamp then replaces branch cards (2048 RGBA), trunks and rock.
     written = {}
     def put(name, img, fmt, size=None):
         dds(textures / name, img, fmt, size); written[name] = check_not_blank(textures / name)
