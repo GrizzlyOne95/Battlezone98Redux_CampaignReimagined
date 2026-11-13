@@ -5,9 +5,9 @@
     "skeletonSha256": "e687e51928b6b9126c01881690e6122562844942ae3ddd4d94c13c6288558e50"
   },
   "outputs": {
-    "Assets/Models/svtank_cockpit.mesh": "8a39a03349c08f2f5619b1819f01a805368560c19a6699ec9ab1d0ae02184198",
+    "Assets/Models/svtank_cockpit.mesh": "fbda0015e70171015d28085049a5a80ec1ae1cee6cb97c659a153d873fa7e6b0",
     "Assets/Models/svtank_cockpit.skeleton": "deb805bcb8e9a2af7b601c958583e2fc28ddfede0221225cdf8749ef076cb6d4",
-    "Materials/CR_svtank_cockpit.material": "9c48a1df84b14c88c217520a4cc41b4d1756ecc17020e6496632f5ded79cd264"
+    "Materials/CR_svtank_cockpit.material": "904b39d7550b20a9fe96a78c0f9913f0c3352d676bc2e8b5604df2f236c56482"
   },
   "alignment": {
     "faction": "cca",

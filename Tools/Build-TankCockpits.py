@@ -21,7 +21,9 @@ def build(game,factions=()):
         block=re.search(r'material '+re.escape(cfg['exterior'])+r'\s*:[^{]+\{(.*?)\}',original,re.S)[1];aliases=re.findall(r'set_texture_alias\s+(\S+)\s+(\S+)',block)
         material='import * from "CR_BZBase.material"\n\n'
         for role in ('Guns','Hull'):
-            material+='material CRV/'+base+'Tank'+role+' : CR_BZBaseCockpit\n{\n'+''.join('    set_texture_alias '+a+' '+b+'\n' for a,b in aliases)+'}\n\n'
+            own=aliases
+            if role=='Hull' and 'hood' in cfg:own=[(a,cfg['hood']['tex']+'_'+k+'.dds') for a,k in (('DiffuseMap','d'),('NormalMap','n'),('SpecularMap','s'),('EmissiveMap','e'))]
+            material+='material CRV/'+base+'Tank'+role+' : CR_BZBaseCockpit\n{\n'+''.join('    set_texture_alias '+a+' '+b+'\n' for a,b in own)+'}\n\n'
         if 'atlas' in cfg:
             # Per-unit generated panel atlas (tread plate, armour, hazard sills, pod scopes).
             for channel,im in zip(('d','e','N'),tankpanelatlas.images(faction)):

@@ -6263,6 +6263,22 @@
       "runtime": "crcca_cockpit_s.dds"
     },
     {
+      "source": "Assets\\Textures\\crcca_svhood_d.dds",
+      "runtime": "crcca_svhood_d.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crcca_svhood_e.dds",
+      "runtime": "crcca_svhood_e.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crcca_svhood_n.dds",
+      "runtime": "crcca_svhood_n.dds"
+    },
+    {
+      "source": "Assets\\Textures\\crcca_svhood_s.dds",
+      "runtime": "crcca_svhood_s.dds"
+    },
+    {
       "source": "Assets\\Textures\\crdvhull_D.dds",
       "runtime": "crdvhull_D.dds"
     },

@@ -9,7 +9,7 @@ from bzmodellibs import legacy, legacy_port
 CONFIG={
  'nsdf':dict(base='avtank',shell='agr21bda',batch=2,body=0,bodyBone=2,gun=[18],material='CRV/avtankTankPanels',atlas='crvatkp',stock='avtank01',exterior='avtank00',charts=tankpanelatlas.CHARTS,width=.98,lip=-.49,front=.91,roof=.62,cut=2.02),
  'bdog':dict(base='bvtank',shell='bgr21bda',batch=0,body=1,bodyBone=2,gun=[1],material='CRV/bvtankTankPanels',atlas='crvbtkp',stock='bvtank01',exterior='bvtank00',charts=tankpanelatlas.CHARTS,width=.98,lip=-.35,front=.80,roof=.85,cut=2.02),
- 'cca':dict(base='svtank',shell='scz21bda',batch=2,body=0,bodyBone=1,gun=[2,3],gunSource={26:3},material='svtank01',stock='svtank01',exterior='svtank00',charts={'console':(.370,.158,.553,.297),'switch':(.207,.006,.350,.298),'service':(.770,.008,.986,.190),'armor':(.635,.06,.739,.23),'frame':(.635,.06,.739,.23),'trim':(.745,.35,.757,.56),'plate':(.640,.585,.770,.705)},width=.76,lip=-.44,front=1.10,roof=.62,cut=1.62),
+ 'cca':dict(base='svtank',shell='scz21bda',batch=2,body=0,bodyBone=1,gun=[2,3],gunSource={26:3},material='svtank01',stock='svtank01',exterior='svtank00',charts={'console':(.370,.158,.553,.297),'switch':(.207,.006,.350,.298),'service':(.770,.008,.986,.190),'armor':(.635,.06,.739,.23),'frame':(.635,.06,.739,.23),'trim':(.745,.35,.757,.56),'plate':(.640,.585,.770,.705)},hood=dict(tex='crcca_svhood',x=(-1.9,1.9),z=(3.29,4.82)),width=.76,lip=-.44,front=1.10,roof=.62,cut=1.62),
  'cra':dict(base='cvtnk',shell='CYE21BDA',batch=1,body=0,bodyBone=0,gun=[11],material='CRV/CVBomberCockpit',stock='cvtnk01',exterior='cvtnk',charts={**cvhrazcockpit.CHARTS,'switch':cvhrazcockpit.CHARTS['pilot'],'service':cvhrazcockpit.CHARTS['ordnance']},width=.34,lip=-.43,front=.69,roof=.30,cut=4.39)}
 
 def native_eye(world,eye,game,base,root):
@@ -287,6 +287,15 @@ def geometry(source,skelpath,faction,game,root):
                 for i in range(1,len(q)-1):cut_ix.extend([start,start+i,start+i+1])
         apron=np.array(cut_rows,dtype=float);apron[:,3:6]/=np.linalg.norm(apron[:,3:6],axis=1)[:,None]
         apron[:,8:11]-=apron[:,3:6]*(apron[:,8:11]*apron[:,3:6]).sum(1)[:,None];apron[:,8:11]/=np.linalg.norm(apron[:,8:11],axis=1)[:,None]
+        if 'hood' in cfg:
+            # Owner review: the deck nose was blurry at the exterior livery's ~140 px/m. Its own
+            # hood texture is mapped top-down in vehicle space: image top = nose, the cream
+            # star rows just ahead of the hatch; x spans the full deck (1.24x wider than tall).
+            # Tangent = dP/du = -x and cross(n,t) = -dP/dv, the stock hull's convention.
+            (hx0,hx1),(hz0,hz1)=cfg['hood']['x'],cfg['hood']['z']
+            apron[:,6]=(hx1-apron[:,0])/(hx1-hx0);apron[:,7]=np.minimum((hz1-apron[:,2])/(hz1-hz0),1)
+            apron[:,8:11]=[-1,0,0];apron[:,8:11]-=apron[:,3:6]*(apron[:,8:11]*apron[:,3:6]).sum(1)[:,None]
+            apron[:,8:11]/=np.linalg.norm(apron[:,8:11],axis=1)[:,None]
         apron=apron.astype('<f4');apronix=np.array(cut_ix,dtype='<u2');parts['CRV/'+cfg['base']+'TankHull']=(apron,apronix)
         # Opening perimeter (front-right, front-left, rear-left, rear-right), sampled so the
         # coaming follows the real deck; one continuous trim strip runs round it (no repeats).

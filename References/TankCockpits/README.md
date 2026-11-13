@@ -71,7 +71,10 @@ reuse accepted modular art:
   a 2048 repaint in the stock layout (same UVs) built by
   `Tools/Build-CCACockpitAtlas.py` from the owner-generated masters in
   `cca/atlas-src/` (prompts in `provenance.json`); other CCA units opt in by
-  repointing their `*01` material. The shared liner borrows only the quiet charcoal
+  repointing their `*01` material. Its deck nose (`CRV/svtankTankHull`) has its
+  own owner-generated livery, `crcca_svhood_d/n/s/e.dds` from `cca/hood-src/` via
+  `Tools/Build-CCAHoodTexture.py`, mapped top-down (`CONFIG['cca']['hood']`) at
+  ~540 px/m instead of the exterior map's ~140. The shared liner borrows only the quiet charcoal
   chart in `crvascp_d/e.dds`; no NSDF paint, lamps or emblems appear on it.
 - Stock warning marks, original equipment and selected exterior surfaces keep
   their existing faction maps. Existing stock functional lamp colors remain.
