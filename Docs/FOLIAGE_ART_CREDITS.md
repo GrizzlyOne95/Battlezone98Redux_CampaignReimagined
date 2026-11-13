@@ -62,7 +62,7 @@ Prompts and source/build receipts are retained. These are authored relief
 approximations, not measured bark scans. See `Docs/TEXTURE_REVAMP.md` for visual
 acceptance and runtime-validation limits.
 
-## Ice slabs and the xplnxpl puff (not from the pack)
+## Ice slabs, tree explosions and their debris (not from the pack)
 
 The shore-ice slabs `cr17_islab1`-`6` are built from the owner's **ISDF
 Chronicles** mod (`GrizzlyOne95/ISDF_Chronicles`): the bergs `baneice2`, `baneice4`,
@@ -71,9 +71,18 @@ Each berg is centred, scaled to a unit half-width and squashed to 15% of it, the
 written as an unskinned mesh with the material `CR17/Ice`. Its UVs, triangles and
 the textures are unchanged.
 
-`ODF/xplnxpl.odf` (the trees' zero-damage explosion) and `Assets/Textures/smoke.dds`
-are unchanged ISDFC copies. `Materials/smokeb.material` is ISDFC's, alpha-blended to
-match the ODF. `amb_wind.wav` is stock. ISDFC was read only, never modified.
+The trees' zero-damage hit and death explosions (`ODF/xc17{j,f,b}{hit,die}.odf`)
+follow ISDFC's `xpltrhit` / `xpltree`, written by `Tools/Build-C17TreeDebris.py`.
+Their debris sprites are cut the ISDFC way from the textures each tree wears:
+`cr17_dleaf`, `cr17_dkelp` and `cr17_dbark` reproduce ISDFC's `pdleafr`, `pdkelp`
+and `pdbark` pixel for pixel (the jungle trees wear the same atlas and bark);
+`cr17_dneedl`/`cr17_dfbark` come from the fir textures and `cr17_dgleaf`/`cr17_dbbark`
+from the birch's, so those carry the pack's CC-BY-4.0 credit above.
+`Assets/Sounds/c17crack.wav` and `c17fell.wav` are ISDFC's `crckt01.wav` and
+`xcollapse.wav`. `Assets/Textures/smoke.dds` (the `smokeb.tga` puff) is an
+unchanged ISDFC copy, and `Materials/smokeb.material` is ISDFC's, alpha-blended to
+match. `ODF/xplnxpl.odf`, the trees' earlier explosion, is still an unchanged ISDFC
+copy. ISDFC was read only, never modified.
 
 ## Achilles flowers, ferns and grasses (botanical plates)
 

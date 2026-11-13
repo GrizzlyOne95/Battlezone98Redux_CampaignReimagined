@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6231,
+  "count": 6246,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -4591,8 +4591,16 @@
       "runtime": "atlas.wav"
     },
     {
+      "source": "Assets\\Sounds\\c17crack.wav",
+      "runtime": "c17crack.wav"
+    },
+    {
       "source": "Assets\\Sounds\\c17falls.wav",
       "runtime": "c17falls.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\c17fell.wav",
+      "runtime": "c17fell.wav"
     },
     {
       "source": "Assets\\Sounds\\erain01.wav",
@@ -5921,6 +5929,34 @@
     {
       "source": "Assets\\Textures\\cr17_black.dds",
       "runtime": "cr17_black.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_dbark.dds",
+      "runtime": "cr17_dbark.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_dbbark.dds",
+      "runtime": "cr17_dbbark.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_dfbark.dds",
+      "runtime": "cr17_dfbark.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_dgleaf.dds",
+      "runtime": "cr17_dgleaf.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_dkelp.dds",
+      "runtime": "cr17_dkelp.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_dleaf.dds",
+      "runtime": "cr17_dleaf.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr17_dneedl.dds",
+      "runtime": "cr17_dneedl.dds"
     },
     {
       "source": "Assets\\Textures\\cr17_fbranch1.dds",
@@ -19761,6 +19797,30 @@
     {
       "source": "ODF\\xbulgnd.odf",
       "runtime": "xbulgnd.odf"
+    },
+    {
+      "source": "ODF\\xc17bdie.odf",
+      "runtime": "xc17bdie.odf"
+    },
+    {
+      "source": "ODF\\xc17bhit.odf",
+      "runtime": "xc17bhit.odf"
+    },
+    {
+      "source": "ODF\\xc17fdie.odf",
+      "runtime": "xc17fdie.odf"
+    },
+    {
+      "source": "ODF\\xc17fhit.odf",
+      "runtime": "xc17fhit.odf"
+    },
+    {
+      "source": "ODF\\xc17jdie.odf",
+      "runtime": "xc17jdie.odf"
+    },
+    {
+      "source": "ODF\\xc17jhit.odf",
+      "runtime": "xc17jhit.odf"
     },
     {
       "source": "ODF\\xcarxpl.odf",

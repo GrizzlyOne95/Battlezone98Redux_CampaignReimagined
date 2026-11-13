@@ -196,9 +196,10 @@ maxHealth = 2500
 maxAmmo = 0
 unitName = "Jungle Tree"
 collisionRadius = 5
-explosionName = "xplnxpl"
+explosionName = "xc17jdie"
 [PlantClass]
 isPlant = 1
+hitExplosion = "xc17jhit"
 dropScrap = 0
 '''%target)
             tree_assets[n]=target
