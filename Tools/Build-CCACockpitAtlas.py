@@ -114,9 +114,18 @@ class Packer:
         widened, so no sliver of a neighbouring instrument enters the cell."""
         name, a, b, c, d = MODULES[i]
         W, H = self.src(name)[0].size
-        ww, wh = min((c - a) * 1.12, W), min((d - b) * 1.12, H)
-        x = min(max((a + c) / 2 - ww / 2, 0), W - ww); y = min(max((b + d) / 2 - wh / 2, 0), H - wh)
-        return tuple(round(v) for v in (x, y, x + ww, y + wh))
+        mx, my = (c - a) * .06, (d - b) * .06
+        side = [mx, my, mx, my]                     # left, top, right, bottom
+        for o in MODULES:                           # stop short of same-master neighbours
+            if o[0] != name or o[1:] == (a, b, c, d): continue
+            if o[2] < d and o[4] > b:               # overlaps vertically: limits left/right
+                if o[3] <= a: side[0] = min(side[0], a - o[3])
+                if o[1] >= c: side[2] = min(side[2], o[1] - c)
+            if o[1] < c and o[3] > a:               # overlaps horizontally: limits top/bottom
+                if o[4] <= b: side[1] = min(side[1], b - o[4])
+                if o[2] >= d: side[3] = min(side[3], o[2] - d)
+        return tuple(round(v) for v in (max(0, a - side[0]), max(0, b - side[1]),
+                                         min(W, c + side[2]), min(H, d + side[3])))
 
     def region(self, w, h):
         """Compose a w x h px region (square px in world); returns RGB, glow, recess mask."""
