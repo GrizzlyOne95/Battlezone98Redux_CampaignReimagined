@@ -1027,6 +1027,13 @@ Each bullet: the pitfall, the one-line why, and where to read more.
   `Tools/eyeoverrides.py`. Animated cockpits take two stages: build and push the pre-rig mesh, pin it in
   `References/WeaponRigs/models.json` `stage_revisions`, then re-rig. That file's `cockpit_lo`/`cockpit_hi`
   boxes are hand-maintained; when a re-rig reports 0 cockpit recoil triangles, those boxes are stale.
+- Shots spawn at the VDF hardpoint part, not at any Ogre mesh or cockpit bone (BZR GOG ghidrecomp corpus,
+  `Battlezone_Source/BZ1/Redux/openshim_re_corpus/bzr_gog_best_effort/ghidrecomp/.../decomps/`): the GameObject
+  constructor `FUN_004da0b0.c:205` calls `FUN_004d9ca0`, which matches the 3-char hardpoint name against the VDF
+  part tree, and the weapon is built on that part (`FUN_006121c0`, line 212). So a first-person barrel must sit
+  where the exterior barrel is; move the eye (`eyeoverrides.py`), never the gun. The CZar (svtank) eye is 0.35 m
+  lower and 0.15 m away from the cannon so the real exterior barrel runs from the top-right corner to its muzzle;
+  `Test-TankCockpits.py` allows only gun triangles in its aim corridor.
 - VDF classes 66/67/68 (rotor, nacelle, fin) are engine-posed gimbals (`HoverCraft::UpdateGimbals`,
   `BZ1/1.5/all_decompiled.c:193563`), so they move with no clip track. Skin cockpit copies of them to their own
   bone; cull faces turned away from the eye only on parts rigid with it. Ogre culls clockwise, so visible faces have
