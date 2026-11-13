@@ -302,16 +302,28 @@ def geometry(source,skelpath,faction,game,root):
             va,vb=ty0+(ty1-ty0)*i/n,ty0+(ty1-ty0)*(i+1)/n;mid=np.array([(ax+bx)/2,0,(az+bz)/2])
             face([(oax,base[i],oaz),(obx,base[j],obz),(obx,lipy[j],obz),(oax,lipy[i],oaz)],'trim',hint=mid*[1,0,1],uvs=[(tx0,va),(tx0,vb),(tx0+(tx1-tx0)*.4,vb),(tx0+(tx1-tx0)*.4,va)])
             face([(oax,lipy[i],oaz),(obx,lipy[j],obz),(bx,lipy[j],bz),(ax,lipy[i],az)],'trim',hint=[0,1,0],uvs=[(tx0+(tx1-tx0)*.4,va),(tx0+(tx1-tx0)*.4,vb),(tx1,vb),(tx1,va)])
-        # Tub walls: one chart per wall, each mapped once (console ahead, switch/service at the
-        # sides, plate behind); the console leans back toward the pilot.
+        # Tub walls: a mosaic of distinct bordered modules from the 1024 atlas, each module on its
+        # own cell at ~450-650 px/m (one module stretched over a whole wall was ~300 px/m and
+        # read as blurry); no module repeats. Cells are (s0,s1,t0,t1) along the wall / down it,
+        # rects in atlas pixels. The console leans back toward the pilot; the rear is behind the head.
         inset=.10
         def lower(x,z):return (x,bottom,z-inset if z>z1-1e-9 else z)
-        for side,chart in enumerate(('console','service','plate','switch')):
-            idx=[side*K+k for k in range(K+1)];cx0,cy0,cx1,cy1=cfg['charts'][chart]
+        MOSAIC=(
+            [((0,.5,0,.5),(378,2,566,152)),((.5,1,0,.5),(379,162,566,305)),((0,.5,.5,1),(378,312,566,436)),((.5,1,.5,1),(378,440,566,652))],
+            [((0,.5,0,1),(210,4,362,306)),((.5,1,0,1),(210,318,366,704))],
+            [((0,1,0,1),tuple(c*1024 for c in cfg['charts']['plate']))],
+            [((0,.5,0,1),(210,708,366,1016)),((.5,1,0,1),(778,640,928,1016))])
+        for side,cells in enumerate(MOSAIC):
+            idx=[side*K+k for k in range(K+1)]
             for k in range(K):
-                i,j=idx[k],idx[k+1]%n;(ax,az),(bx,bz)=loop[i],loop[j];la,lb=lower(ax,az),lower(bx,bz)
-                ua,ub=cx0+(cx1-cx0)*k/K,cx0+(cx1-cx0)*(k+1)/K
-                face([(ax,lipy[i],az),(bx,lipy[j],bz),lb,la],chart,hint=[-(ax+bx)/2,0,-(az+bz)/2],uvs=[(ua,cy0),(ub,cy0),(ub,cy1),(ua,cy1)])
+                i,j=idx[k],idx[k+1]%n;(ax,az),(bx,bz)=loop[i],loop[j];la,lb=np.array(lower(ax,az)),np.array(lower(bx,bz))
+                ta,tb=np.array([ax,lipy[i],az]),np.array([bx,lipy[j],bz]);sa,sb=k/K,(k+1)/K
+                for (c0,c1,r0,r1),(px0,py0,px1,py1) in cells:
+                    if sb<=c0+1e-9 or sa>=c1-1e-9:continue
+                    def at(s,t):f=(s-sa)/(sb-sa);top=ta+(tb-ta)*f;return top+((la+(lb-la)*f)-top)*t
+                    def uv(s,t):return ((px0+(px1-px0)*(s-c0)/(c1-c0))/1024,(py0+(py1-py0)*(t-r0)/(r1-r0))/1024)
+                    q=[(sa,r0),(sb,r0),(sb,r1),(sa,r1)]
+                    face([at(*p) for p in q],'plate',hint=[-(ax+bx)/2,0,-(az+bz)/2],uvs=[uv(*p) for p in q])
         face([lower(*c) for c in corners],'plate',hint=[0,1,0])
         # Open hatch lid hinged on the rear coaming: its rear plate is the bulkhead behind the
         # head and its top leaf the roof, front edge ~75 deg up (outside the forward view).
