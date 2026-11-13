@@ -61,7 +61,7 @@ function M.Create(d)
         local active = ui.IsActive()
         if active and not ui.wasActive then state.pdaPage = d.pages.COOP end
         if not active and (state.pdaPage == d.pages.COOP or state.pdaPage == d.pages.COOP_DIAGNOSTICS) then
-            state.pdaPage = d.pages.VEHICLE
+            state.pdaPage = d.pages.CRAFT
         end
         ui.wasActive = active
     end

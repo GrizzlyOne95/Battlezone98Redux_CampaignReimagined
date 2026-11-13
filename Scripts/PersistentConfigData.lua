@@ -4,17 +4,14 @@
 local ODF_ROOT_SECTION = false
 
 local PdaPages = {
-    VEHICLE = 1,
-    WEAPONS = 2,
-    TARGET = 3,
-    COMMAND = 4,
-    QUEUE = 5,
-    PRESETS = 6,
-    CAREER = 7,
-    SETTINGS = 8,
-    COOP = 9,
-    COOP_DIAGNOSTICS = 10,
-    COUNT = 10,
+    CRAFT = 1,
+    TARGET = 2,
+    BASE = 3,
+    PRESETS = 4,
+    SETTINGS = 5,
+    COOP = 6,
+    COOP_DIAGNOSTICS = 7,
+    COUNT = 7,
 }
 
 return {
@@ -22,29 +19,21 @@ return {
     PdaPages = PdaPages,
 
     -- Page order follows the player's normal decision flow: inspect combat
-    -- state, review records, manage production, then adjust the system.
+    -- state, manage the base and production, then adjust the system.
     PdaNavigationGroups = {
         { label = "TEAM", pages = { { page = PdaPages.COOP, label = "==COOP==" },
             { page = PdaPages.COOP_DIAGNOSTICS, label = "Coop Diagnostics" } } },
         {
             label = "COMBAT",
             pages = {
-                { page = PdaPages.VEHICLE, label = "VEHICLE" },
-                { page = PdaPages.WEAPONS, label = "WEAPONS" },
+                { page = PdaPages.CRAFT, label = "CRAFT" },
                 { page = PdaPages.TARGET, label = "TARGET" },
-            },
-        },
-        {
-            label = "RECORDS",
-            pages = {
-                { page = PdaPages.CAREER, label = "CAREER" },
             },
         },
         {
             label = "LOGISTICS",
             pages = {
-                { page = PdaPages.COMMAND, label = "BASE" },
-                { page = PdaPages.QUEUE, label = "QUEUE" },
+                { page = PdaPages.BASE, label = "BASE" },
                 { page = PdaPages.PRESETS, label = "LOADOUT" },
             },
         },

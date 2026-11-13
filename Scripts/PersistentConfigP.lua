@@ -23,7 +23,6 @@ function M.Create(deps)
     local GetHorizontalDistanceBetweenPositions = deps.GetHorizontalDistanceBetweenPositions
     local GetInstalledWeaponMask = deps.GetInstalledWeaponMask
     local GetPlayerSpeedMeters = deps.GetPlayerSpeedMeters
-    local CareerStatsModule = deps.CareerStatsModule
     local GetPresetPageContext = deps.GetPresetPageContext
     local GetPresetSlotOption = deps.GetPresetSlotOption
     local GetPresetSurchargeForEntry = deps.GetPresetSurchargeForEntry
@@ -365,10 +364,6 @@ function M.Create(deps)
         return "TARGET"
     end
 
-    local function FormatSummaryRatio(lhs, rhs)
-        return tostring(lhs or 0) .. "/" .. tostring(rhs or 0)
-    end
-
     local function GetHeadingDegrees(handle)
         if type(GetFront) ~= "function" then return nil end
         local front = GetFront(handle)
@@ -384,8 +379,9 @@ function M.Create(deps)
         return math.floor(((math.deg(radians) % 360.0) + 0.5)) % 360
     end
 
-    local function BuildVehiclePageText(player)
-        local lines = { BuildPdaHeader(PdaPages.VEHICLE) }
+    -- CRAFT: the player's craft state, then its hardpoints (Up/Down inspects one).
+    local function BuildCraftPageText(player, mask)
+        local lines = { BuildPdaHeader(PdaPages.CRAFT) }
         local speed = math.floor(GetPlayerSpeedMeters(player) + 0.5)
         local unitName = GetVehicleDisplayName(player) or "Unknown"
         local playerHealth = (type(GetHealth) == "function") and (GetHealth(player) or 0.0) or 0.0
@@ -401,56 +397,15 @@ function M.Create(deps)
             (heading and (tostring(heading) .. " deg") or "--"))
         table.insert(lines, BuildMeterBar("HULL", playerHealth, curHealth, maxHealth))
         table.insert(lines, BuildMeterBar("AMMO", playerAmmo, curAmmo, maxAmmo))
-        AppendPdaNavHints(lines)
-        return table.concat(lines, "\n")
-    end
+        table.insert(lines, "")
 
-    local function BuildWeaponsPageText(player, mask)
-        local lines = { BuildPdaHeader(PdaPages.WEAPONS) }
         local installedMask = GetInstalledWeaponMask(player)
-
         table.insert(lines, "HARDPOINTS  (* firing group)")
         local hardpointCount = AppendWeaponStatsLines(lines, player, installedMask, mask)
         if hardpointCount > 0 then
             table.insert(lines, "Total " .. tostring(hardpointCount))
         end
         AppendPdaFooter(lines, "--------------------------------", "[ / ] Page  X Close", "Up/Down Inspect Weapon")
-        return table.concat(lines, "\n")
-    end
-
-    local function BuildCareerPageText(player)
-        local lines = { BuildPdaHeader(PdaPages.CAREER) }
-        local summary = (CareerStatsModule and CareerStatsModule.GetSummary and CareerStatsModule.GetSummary()) or nil
-        local career = summary and summary.career or {}
-        local mission = summary and summary.mission or {}
-
-        table.insert(lines, "CURRENT MISSION")
-        table.insert(lines, string.format("ID %s", summary and summary.missionKey or "unknown_mission"))
-        table.insert(lines, string.format("Kills %d  Deaths %d", mission.kills or 0, mission.deaths or 0))
-        table.insert(lines, string.format("Targets  V %d  P %d  B %d",
-            mission.vehicleKills or 0, mission.pilotKills or 0, mission.buildingKills or 0))
-        table.insert(lines, string.format("Snipes %d  Sniper Kills %d",
-            mission.snipes or 0, mission.sniperKills or 0))
-
-        table.insert(lines, "")
-        table.insert(lines, "CAREER TOTALS")
-        table.insert(lines, string.format("Missions %d  W %d  L %d",
-            career.missionsPlayed or 0, career.missionsWon or 0, career.missionsLost or 0))
-        table.insert(lines, string.format("Kills %d  Deaths %d", career.totalKills or 0, career.totalDeaths or 0))
-        table.insert(lines, string.format("SP/MP  K %s  D %s",
-            FormatSummaryRatio(career.spKills or 0, career.mpKills or 0),
-            FormatSummaryRatio(career.spDeaths or 0, career.mpDeaths or 0)))
-        table.insert(lines, string.format("Targets  V %d  P %d  B %d",
-            career.vehicleKills or 0, career.pilotKills or 0, career.buildingKills or 0))
-        table.insert(lines, string.format("Snipes %d  Sniper Kills %d",
-            career.snipes or 0, career.sniperKills or 0))
-
-        local profile = tostring(summary and summary.profileKey or "offline")
-        local craft = IsValid(player) and (GetVehicleDisplayName(player) or "Unknown") or "No craft"
-        table.insert(lines, "")
-        table.insert(lines, "PROFILE " .. profile .. "  |  CRAFT " .. craft)
-
-        AppendPdaNavHints(lines)
         return table.concat(lines, "\n")
     end
 
@@ -664,12 +619,28 @@ function M.Create(deps)
         return table.concat(lines, "\n")
     end
 
-    local function BuildQueuePageText()
-        local lines = { BuildPdaHeader(PdaPages.QUEUE) }
-        local context = GetQueuePageContext()
+    -- BASE: structure counts and power warnings, then the producer queue
+    -- editor (Up/Down select, Left/Right change, Enter lock/unlock).
+    local function BuildBasePageText()
+        local lines = { BuildPdaHeader(PdaPages.BASE) }
+        local overview = InputState.commanderOverview
+        if not overview or not overview.initialized then
+            table.insert(lines, "Scanning structures...")
+        else
+            local stats = overview.stats or {}
+            local counts = stats.counts or {}
+            table.insert(lines, "STRUCTURES")
+            table.insert(lines, string.format("Hangars %d  |  Supply %d", counts.hangar or 0, counts.supply or 0))
+            table.insert(lines, string.format("Comm %d     |  Silos %d", counts.comm or 0, counts.silo or 0))
+            table.insert(lines, string.format("Barracks %d |  Towers %d", counts.barracks or 0, counts.turret or 0))
+            table.insert(lines, string.format("Unpowered: Towers %d  Comm %d",
+                stats.unpoweredTurrets or 0, stats.unpoweredComm or 0))
+        end
+        table.insert(lines, "")
+        table.insert(lines, "PRODUCTION QUEUE")
 
+        local context = GetQueuePageContext()
         if not context.available then
-            table.insert(lines, "")
             table.insert(lines, "Undeployed")
             AppendPdaNavHints(lines)
             return table.concat(lines, "\n")
@@ -698,45 +669,16 @@ function M.Create(deps)
         return table.concat(lines, "\n")
     end
 
-    local function BuildCommandPageText()
-        local lines = { BuildPdaHeader(PdaPages.COMMAND) }
-        local overview = InputState.commanderOverview
-        if not overview or not overview.initialized then
-            table.insert(lines, "Commander Overview")
-            table.insert(lines, "Scanning structures...")
-            AppendPdaNavHints(lines)
-            return table.concat(lines, "\n")
-        end
-
-        local stats = overview.stats or {}
-        local counts = stats.counts or {}
-        table.insert(lines, "STRUCTURES")
-        table.insert(lines, string.format("Hangars %d  |  Supply %d", counts.hangar or 0, counts.supply or 0))
-        table.insert(lines, string.format("Comm %d     |  Silos %d", counts.comm or 0, counts.silo or 0))
-        table.insert(lines, string.format("Barracks %d |  Towers %d", counts.barracks or 0, counts.turret or 0))
-        table.insert(lines, "")
-        table.insert(lines, "POWER WARNINGS")
-        table.insert(lines, string.format("Towers %d  |  Comm %d", stats.unpoweredTurrets or 0, stats.unpoweredComm or 0))
-        AppendPdaNavHints(lines)
-        return table.concat(lines, "\n")
-    end
-
     local function BuildWeaponStatsText(player, mask)
-        local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.VEHICLE)
+        local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.CRAFT)
         if page == PdaPages.COOP then
             return PersistentConfig.CoopPda.BuildText(BuildPdaHeader, AppendPdaFooter)
         end
         if page == PdaPages.COOP_DIAGNOSTICS then
             return PersistentConfig.CoopPda.BuildDiagnosticsText(BuildPdaHeader, AppendPdaFooter)
         end
-        if page == PdaPages.CAREER then
-            return BuildCareerPageText(player)
-        end
         if page == PdaPages.TARGET then
             return BuildTargetPageText(player, mask)
-        end
-        if page == PdaPages.WEAPONS then
-            return BuildWeaponsPageText(player, mask)
         end
         if page == PdaPages.SETTINGS then
             return BuildSettingsPageText()
@@ -744,13 +686,10 @@ function M.Create(deps)
         if page == PdaPages.PRESETS then
             return BuildPresetPageText()
         end
-        if page == PdaPages.QUEUE then
-            return BuildQueuePageText()
+        if page == PdaPages.BASE then
+            return BuildBasePageText()
         end
-        if page == PdaPages.COMMAND then
-            return BuildCommandPageText()
-        end
-        return BuildVehiclePageText(player)
+        return BuildCraftPageText(player, mask)
     end
 
     return {

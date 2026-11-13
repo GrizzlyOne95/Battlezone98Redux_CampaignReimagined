@@ -79,6 +79,12 @@ local function IsMultiplayer()
 end
 PlayerPilotMode.IsMultiplayer = IsMultiplayer
 
+-- True only after a mission script wired its pilot-mode adapter (a verified
+-- pilot path). Missions without one keep the PDA option disabled.
+function PlayerPilotMode.IsAvailable()
+    return state.initialized and state.mission ~= nil
+end
+
 local function GetDesiredEnabled()
     if IsMultiplayer() then return false end
     return not not (PersistentConfig and PersistentConfig.Settings and PersistentConfig.Settings.PilotModeEnabled)

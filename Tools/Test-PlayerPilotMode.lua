@@ -79,6 +79,7 @@ objects.player, objects.wingman, objects.target = player, wingman, target
 worldObjects[1], worldObjects[2], worldObjects[3] = player, wingman, target
 
 local PilotMode = assert(loadfile(source))()
+assert(PilotMode.IsAvailable() == false, "available before a mission wired a pilot path")
 local objectiveCalls = 0
 local adapter = {
     profile = { autoManage = true, manageBase = true },
@@ -90,6 +91,7 @@ local adapter = {
 }
 
 PilotMode.Initialize(adapter)
+assert(PilotMode.IsAvailable() == true, "mission adapter did not make pilot mode available")
 local originalTeam = aiStub.ActiveTeams[1]
 PersistentConfig.Settings.PilotModeEnabled = true
 PilotMode.Update()
@@ -137,6 +139,7 @@ do
     team.Config.autoManage, team.Config.manageBase = false, false
     PersistentConfig.Settings.PilotModeEnabled = true
     PilotMode.Initialize(adapter, { enabled = true, baselineConfig = { autoManage = true }, transitionSerial = 3 })
+    assert(PilotMode.IsAvailable() == false, "pilot mode offered in MP")
     PilotMode.Update()
     assert(PilotMode.IsEnabled() == false, "pilot mode enabled in a network game")
     assert(team.Config.autoManage == false and team.Config.manageBase == false, "MP applied the team-1 pilot profile")

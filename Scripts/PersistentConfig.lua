@@ -3,7 +3,6 @@
 local bzfile = require("bzfile")
 local exu = require("exu")
 local RuntimeEnhancements = require("RuntimeEnhancements")
-local CareerStats = require("CareerStats")
 local LogPaths = require("LogPaths")
 local OpenShimInstaller = require("OpenShimInstaller")
 local CRParticleTemplates = require("CRParticleTemplates")
@@ -12,7 +11,6 @@ local HudLayout = require("CRHudLayout")
 
 local PersistentConfig = {}
 PersistentConfig.D = require("PersistentConfigD")
-PersistentConfig.CareerStatsModule = CareerStats
 PersistentConfig.Channels = {
     WeaponStats = 1,
     PdaFeedback = 2,
@@ -697,8 +695,8 @@ end
 
 local function GetPdaLayoutMetrics(page)
     local width, height, uiScale = PersistentConfig._GetUiResolutionMetrics()
-    local activePage = ClampIndex(page or (InputState and InputState.pdaPage) or PdaPages.VEHICLE, 1, PdaPages.COUNT,
-        PdaPages.VEHICLE)
+    local activePage = ClampIndex(page or (InputState and InputState.pdaPage) or PdaPages.CRAFT, 1, PdaPages.COUNT,
+        PdaPages.CRAFT)
     local fontScale = GetPdaFontScale()
 
     local aspect = width / math.max(height, 1)
@@ -1681,7 +1679,7 @@ end
 
 local function ShowWeaponStats(msg, duration)
     if PersistentConfig._ShowPdaOverlay("stats", msg, duration or 86400.0, nil, nil, nil,
-            InputState and InputState.pdaPage or PdaPages.VEHICLE) then
+            InputState and InputState.pdaPage or PdaPages.CRAFT) then
         return
     end
 
@@ -2015,7 +2013,7 @@ InputState = {
     stockScrapPilotHudUnsupported = false,
     missionEnded = false,
     missionEndCleanupDone = false,
-    pdaPage = PdaPages.VEHICLE,
+    pdaPage = PdaPages.CRAFT,
     pdaStatsSlot = 0,
     pdaSettingsIndex = 1,
     presetProducerIndex = 1,
@@ -4831,7 +4829,6 @@ PersistentConfig.P = require("PersistentConfigP").Create({
     GetHorizontalDistanceBetweenPositions = GetHorizontalDistanceBetweenPositions,
     GetInstalledWeaponMask = GetInstalledWeaponMask,
     GetPlayerSpeedMeters = GetPlayerSpeedMeters,
-    CareerStatsModule = PersistentConfig.CareerStatsModule,
     GetPresetPageContext = GetPresetPageContext,
     GetPresetSlotOption = GetPresetSlotOption,
     GetPresetSurchargeForEntry = GetPresetSurchargeForEntry,
@@ -4879,9 +4876,9 @@ local function UpdateWeaponStatsDisplay(player)
     if now < (InputState.nextWeaponHudCheck or 0.0) then return end
     InputState.nextWeaponHudCheck = now + 0.10
 
-    local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.VEHICLE)
+    local page = ClampIndex(InputState.pdaPage, 1, PdaPages.COUNT, PdaPages.CRAFT)
     local mask = GetCurrentWeaponMask(player)
-    if page == PdaPages.TARGET or page == PdaPages.WEAPONS then
+    if page == PdaPages.TARGET or page == PdaPages.CRAFT then
         -- These pages report the weapon the player is actually firing, so they
         -- need the live selection rather than the installed hardpoint mask.
         local selectedMask = ResolveLiveSelectedWeaponMask(player, mask)
@@ -5326,8 +5323,14 @@ function PersistentConfig._IsPilotModeLocked()
     return false
 end
 
+-- Pilot Mode is offered only where the mission wired a pilot path.
+function PersistentConfig._IsPilotModeAvailable()
+    local ppm = package.loaded["PlayerPilotMode"]
+    return type(ppm) == "table" and type(ppm.IsAvailable) == "function" and ppm.IsAvailable() == true
+end
+
 function PersistentConfig._SetPilotModeEnabled(enabled)
-    if PersistentConfig._IsPilotModeLocked() then
+    if PersistentConfig._IsPilotModeLocked() or not PersistentConfig._IsPilotModeAvailable() then
         return false
     end
     local value = not not enabled
@@ -5455,6 +5458,7 @@ GetSettingsPageEntries = function()
         {
             label = "Pilot Mode",
             value = PersistentConfig._IsPilotModeLocked() and "Off (multiplayer)"
+                or (not PersistentConfig._IsPilotModeAvailable() and "N/A (mission)")
                 or (PersistentConfig.Settings.PilotModeEnabled and "On" or "Off"),
             adjust = function(delta)
                 return PersistentConfig._SetPilotModeEnabled(DirectionEnabled(delta))
@@ -6040,7 +6044,6 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     end
 
     RuntimeEnhancements.Update()
-    PersistentConfig.CareerStatsModule.Update()
 
     -- Detect player craft change and reapply headlight settings
     local currentPlayerHandle = GetPlayerHandle()
@@ -6280,7 +6283,7 @@ function PersistentConfig.UpdateInputs(cinematicActive)
         PersistentConfig.CoopPda.HandleInput(pda_up_key, pda_down_key, pda_left_key, pda_right_key,
             doAction and IsValid(currentPlayerHandle))
         if pda_up_key or pda_down_key or pda_left_key or pda_right_key or doAction or coopAction or helpAction or giveAction then RefreshPdaOverlay() end
-    elseif InputState.pdaPage == PdaPages.WEAPONS then
+    elseif InputState.pdaPage == PdaPages.CRAFT then
         local installedSlots = {}
         if IsValid(currentPlayerHandle) then
             local installedMask = GetInstalledWeaponMask(currentPlayerHandle)
@@ -6372,7 +6375,7 @@ function PersistentConfig.UpdateInputs(cinematicActive)
             end
             RefreshPdaOverlay()
         end
-    elseif InputState.pdaPage == PdaPages.QUEUE then
+    elseif InputState.pdaPage == PdaPages.BASE then
         local context = GetQueuePageContext()
         local rowCount = math.max(#(context.rows or {}), 1)
 
@@ -6862,29 +6865,6 @@ function PersistentConfig.Initialize()
     -- Keep EXU overlay/font initialization lazy so startup does not touch the
     -- custom Ogre font path before the UI runtime is fully ready.
     PersistentConfig._InstallPlayerChargeTrackingHook()
-    PersistentConfig.CareerStatsModule.Initialize({
-        log = Log,
-        registerHitCallback = function(fn)
-            if aiCore and type(aiCore.RegisterExuCallback) == "function" then
-                return aiCore.RegisterExuCallback("BulletHit", fn)
-            end
-            return false
-        end,
-        resolveProfileKey = function()
-            local steamID = exu and exu.GetSteam64 and exu.GetSteam64() or nil
-            steamID = CleanString(steamID or "")
-            if steamID ~= "" and steamID ~= "0" then
-                return steamID
-            end
-
-            local logID = ParseBzLogger()
-            if logID then
-                return tostring(logID)
-            end
-
-            return "offline"
-        end,
-    })
     MarkOtherHeadlightsDirty()
 
     -- Show help reminder on every mission start
@@ -6988,7 +6968,6 @@ function PersistentConfig.Initialize()
         if SucceedMission then
             local oldSucceed = SucceedMission
             SucceedMission = function(...)
-                PersistentConfig.CareerStatsModule.OnMissionEnd(true)
                 EnterMissionEndedState()
                 oldSucceed(...)
             end
@@ -6996,7 +6975,6 @@ function PersistentConfig.Initialize()
         if FailMission then
             local oldFail = FailMission
             FailMission = function(...)
-                PersistentConfig.CareerStatsModule.OnMissionEnd(false)
                 EnterMissionEndedState()
                 oldFail(...)
             end
