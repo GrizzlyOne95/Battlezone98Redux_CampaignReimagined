@@ -48,8 +48,8 @@ Documented fixes in the port:
 Checks:
 
 ```sh
-python3 Tools/Test-Misns8SourceParity.py
-lua5.1 Tools/Test-Misns8.lua
+python3 Tools/MissionTests/Test-Misns8SourceParity.py
+lua5.1 Tools/MissionTests/Test-Misns8.lua
 ```
 
 The mock suite exercises startup, base/center construction, convoy warning and

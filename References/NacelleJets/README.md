@@ -1,7 +1,7 @@
 # Thruster housings ("flame nacelle emitters")
 
 Hover craft draw their engine flame from a point under each nacelle, but most stock wings
-have no engine there, so the flame comes out of bare wing. `Tools/Build-NacelleJets.py`
+have no engine there, so the flame comes out of bare wing. `Tools/CockpitsAndRigs/Build-NacelleJets.py`
 adds a small faction-coloured thruster housing at each emit point so the flame leaves a
 nozzle. First unit: the NSDF scout (`avfigh`). Total Command wing engines were looked at
 for proportion only; no Total Command asset is used.
@@ -33,7 +33,7 @@ For `avfigh` in Ogre mesh space (Ogre X = -VDF X, +Z forward) the emit points ar
 
 ## What the tool builds
 
-- One closed solid per nacelle (`Tools/nacellejet_blender.py`): a faceted fairing pod with
+- One closed solid per nacelle (`Tools/CockpitsAndRigs/nacellejet_blender.py`): a faceted fairing pod with
   its roof buried in the wing, the nozzle bell unioned in, then the bore, a bell groove
   and side vents cut as recesses. Each boolean is EXACT, applied alone, and must change
   the solid and leave it manifold. Faces left wholly inside the wing are dropped.
@@ -48,8 +48,8 @@ only shows above 10% throttle. Under co-op team colours only the hull paint is r
 
 ## Running it
 
-    python Tools/Build-NacelleJets.py --units avfigh              # preview + review renders
-    python Tools/Build-NacelleJets.py --units avfigh --ship       # install as the pre-rig stage
+    python Tools/CockpitsAndRigs/Build-NacelleJets.py --units avfigh              # preview + review renders
+    python Tools/CockpitsAndRigs/Build-NacelleJets.py --units avfigh --ship       # install as the pre-rig stage
 
 The tool always starts from the unit's pre-rig mesh at `source_revision` in
 `References/WeaponRigs/models.json`, so it can be re-run at any time. Preview output goes
@@ -64,26 +64,26 @@ Shipping a unit, in order:
    the material block and the receipt. Push. `--ship` replaces the rigged shipped mesh
    with the unrigged stage, so do not stop before step 2. A `housing=False` unit writes
    only the receipt (its mesh is unchanged).
-2. If the receipt has `vdfParts`: `python Tools/Build-UnitAnimSlots.py --stock-dir
+2. If the receipt has `vdfParts`: `python Tools/CockpitsAndRigs/Build-UnitAnimSlots.py --stock-dir
    "<Redux>/StockODFFiles" <unit>.vdf`. Then put the step 1 commit in `models.json`
    `stage_revisions` for the mesh (rigged units only), and run
-   `python Tools/Build-WeaponRigs.py --models <unit>` for every rigged unit whose mesh or
+   `python Tools/CockpitsAndRigs/Build-WeaponRigs.py --models <unit>` for every rigged unit whose mesh or
    VDF changed (the rig reads the shipped VDF).
-3. `python Tools/Build-TeamSkins.py --write` (adds `<unit>_nacjet_tm` and its mask).
+3. `python Tools/TexturesAndSky/Build-TeamSkins.py --write` (adds `<unit>_nacjet_tm` and its mask).
 4. If the unit has a generated cockpit (the scouts do), its receipt hashes the pre-rig
-   exterior: run `python Tools/Build-ScoutCockpits.py`, then re-run step 2 for every unit
+   exterior: run `python Tools/CockpitsAndRigs/Build-ScoutCockpits.py`, then re-run step 2 for every unit
    that builder rewrote, so the rigged cockpit meshes come back. Only
    `exteriorSha256` in the receipt should end up changed.
 5. `Manage-CampaignFiles.ps1 -bless` and keep only this unit's new lock entries.
-6. Run `Tools/Test-WeaponRigs.py`, `Tools/Test-ScoutCockpits.py`,
-   `Tools/Test-CombatPresentation.py`, `Tools/Test-UnitAnimSlots.py`.
+6. Run `Tools/CockpitsAndRigs/Test-WeaponRigs.py`, `Tools/CockpitsAndRigs/Test-ScoutCockpits.py`,
+   `Tools/Weapons/Test-CombatPresentation.py`, `Tools/CockpitsAndRigs/Test-UnitAnimSlots.py`.
 
 The pinned stage commit must stay reachable from `main`: merge the pull request with a
 merge commit, not a squash.
 
 ## Adding a unit
 
-Add an entry to `CONFIG` in `Tools/Build-NacelleJets.py`: `unit(faction, scale, length,
+Add an entry to `CONFIG` in `Tools/CockpitsAndRigs/Build-NacelleJets.py`: `unit(faction, scale, length,
 also=..., offset=...)`. `scale` sizes the whole shape family (the engine draws every unit's
 flame the same size, so 0.8-1.5 covers the fleet); `length` stretches the pod along the
 chord; `offset=(dx, dz)` moves the pod body off the emit point to reach solid skin (the
@@ -126,9 +126,9 @@ suppresses every automatic under-nacelle emitter (BZ 1.5 decompile `all_decompil
 The emit points are always read from the VDF at `source_revision` (or the stock VDF), never
 from the shipped VDF that already carries these parts, so re-runs give the same answer.
 
-`Tools/Build-UnitAnimSlots.py` is the one VDF writer: it reads each shipped `build.json` and
+`Tools/CockpitsAndRigs/Build-UnitAnimSlots.py` is the one VDF writer: it reads each shipped `build.json` and
 adds its `vdfParts` to the stock VDF (and makes any `nacelles` it lists class 67), writing
-`Assets/ModelFixes/<unit>.vdf`. `Tools/Test-UnitAnimSlots.py` checks every recorded part is
+`Assets/ModelFixes/<unit>.vdf`. `Tools/CockpitsAndRigs/Test-UnitAnimSlots.py` checks every recorded part is
 there and that no class 67 nacelle in a file with class 75 parts is left without its own.
 `svtank/build.json` is hand-recorded (no CONFIG entry, no mesh change): its stock wing pods
 become nacelles, each with a flame at its rear glow panel, and `ODF/svtank.odf` sets the pod

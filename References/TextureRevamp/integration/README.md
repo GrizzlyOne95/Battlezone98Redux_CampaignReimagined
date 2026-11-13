@@ -21,11 +21,11 @@ them. `build.json` records every current runtime output hash.
 Rebuild order:
 
 ```text
-python Tools/Build-FactionStorage.py
-python Tools/Build-FactionNavPickups.py
-python Tools/Build-FactionPickupIntegration.py
-python Tools/Test-FactionNavPickups.py
-python Tools/Test-FactionPickupIntegration.py
+python Tools/UnitsAndBuildings/Build-FactionStorage.py
+python Tools/UnitsAndBuildings/Build-FactionNavPickups.py
+python Tools/UnitsAndBuildings/Build-FactionPickupIntegration.py
+python Tools/UnitsAndBuildings/Test-FactionNavPickups.py
+python Tools/UnitsAndBuildings/Test-FactionPickupIntegration.py
 ```
 
 The integration builder must run last because the art builder first regenerates

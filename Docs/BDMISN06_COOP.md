@@ -4,7 +4,7 @@ Shared offline / 2-4 player co-op port of the Black Dog mission `bd06` (a divers
 Chinese outpost beside the Pegasus portal is razed within 11 minutes, a Recycler arrives to build an APC, and the APC
 reprograms the portal while the Chinese counter-attack through it). One `Missions/bd06cr.bzn` and one
 `Scripts/bd06cr.lua` serve both modes. Companion to the faithful DLL port underneath (`Scripts/bd06.lua`, see
-[`BD06_LUA_PORT.md`](BD06_LUA_PORT.md), tested by `Tools/Test-BlackDog06.lua`) and
+[`BD06_LUA_PORT.md`](BD06_LUA_PORT.md), tested by `Tools/CoopCampaignTests/Test-BlackDog06.lua`) and
 [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern: [`MISNS2_COOP.md`](MISNS2_COOP.md).
 Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
 
@@ -12,10 +12,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bd06cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd06.lua` (`Tools/Test-Bdmisn06CoopSourceParity.py`); the body is never edited, the callbacks are wrapped in the last region. Holds the runtime CONFIG, the native shadows, the restorations and the weather beats. |
+| `Scripts/bd06cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd06.lua` (`Tools/CoopCampaignTests/Test-Bdmisn06CoopSourceParity.py`); the body is never edited, the callbacks are wrapped in the last region. Holds the runtime CONFIG, the native shadows, the restorations and the weather beats. |
 | `Scripts/CRGanymedeSitesBD06.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather (the Europa director with the generated sites for this map: four cryovolcanic vents). |
 | `Missions/bd06cr.{bzn,vxt}`, `bdmisn06.{hg2,lgt,mat,trn}`, `Config/bd06cr.ini` | Map, vehicle list and multiplayer listing (not part of this change). The map carries the whole Chinese outpost and the ten diversion fighters; everything else the Chinese have is spawned by Lua. |
-| `Tools/Bdmisn06Fixture.lua`, `Test-Bdmisn06Coop.lua`, `Test-Bdmisn06Presentation.lua`, `Test-Bdmisn06CoopSourceParity.py`, `Test-Bdmisn06CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/Test-BlackDog06.lua` still covers the faithful port, unchanged. |
+| `Tools/CoopCampaignTests/Bdmisn06Fixture.lua`, `Test-Bdmisn06Coop.lua`, `Test-Bdmisn06Presentation.lua`, `Test-Bdmisn06CoopSourceParity.py`, `Test-Bdmisn06CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/CoopCampaignTests/Test-BlackDog06.lua` still covers the faithful port, unchanged. |
 
 ## Teams and ownership
 
@@ -180,11 +180,11 @@ Beats (host/offline only, each once, tied to the mission's own moments; the dire
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Bdmisn06Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, fallback, portal, films, timer, results, weather
-lua5.1 Tools/Test-Bdmisn06Presentation.lua    # E/A/C protocol on a guest
-python Tools/Test-Bdmisn06CoopSourceParity.py # bd06cr.lua minus CR regions == bd06.lua
-python Tools/Test-Bdmisn06CoopContract.py     # labels/paths/teams in bd06cr.bzn (skips with a message if the map is absent)
-lua5.1 Tools/Test-BlackDog06.lua              # the faithful port, unchanged
+lua5.1 Tools/CoopCampaignTests/Test-Bdmisn06Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, fallback, portal, films, timer, results, weather
+lua5.1 Tools/CoopCampaignTests/Test-Bdmisn06Presentation.lua    # E/A/C protocol on a guest
+python Tools/CoopCampaignTests/Test-Bdmisn06CoopSourceParity.py # bd06cr.lua minus CR regions == bd06.lua
+python Tools/CoopCampaignTests/Test-Bdmisn06CoopContract.py     # labels/paths/teams in bd06cr.bzn (skips with a message if the map is absent)
+lua5.1 Tools/CoopCampaignTests/Test-BlackDog06.lua              # the faithful port, unchanged
 ```
 
 The workflow `.github/workflows/campaign-validation.yml` is not edited by this change; the four co-op commands above are the

@@ -19,15 +19,15 @@ It is updated as each lane is run.
 ## Host/static results
 
 - `python Tools/Validate-CampaignRepository.py`: passed.
-- `lua Tools/Test-TerrainClutter.lua Scripts`: passed deterministic placement,
+- `lua Tools/Terrain/Test-TerrainClutter.lua Scripts`: passed deterministic placement,
   exclusion filtering, graceful failures, missing/zero weather wind, explicit
   destroy-before-recreate, BZR-style missing `os` timing fallback, shutdown,
   and 32/128/512-instance stress cases.
 - Changed Lua parsed under the local Lua 5.4 compiler and executed successfully
   in BZR's shipped Lua 5.1 runtime. CI performs the additional stock Lua 5.1
   compiler gate.
-- `Tools/Test-ProgramReferences.ps1`: all owned program references resolve.
-- `Tools/Test-DX11ShaderValidator.ps1`: source guards and all 17 mutation
+- `Tools/Shaders/Test-ProgramReferences.ps1`: all owned program references resolve.
+- `Tools/Shaders/Test-DX11ShaderValidator.ps1`: source guards and all 17 mutation
   fixtures passed.
 - EXU `Release|x86`: built with `/W4 /WX`, 0 warnings and 0 errors.
 - EXU hardening smoke, parameter-value, render-space, API-parity, version-parity,

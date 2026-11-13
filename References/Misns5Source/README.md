@@ -26,8 +26,8 @@ The active recycler objective marker is retained despite the source's
 Validation from the repository root:
 
 ```sh
-lua5.1 Tools/Test-Misns5.lua
-python Tools/Test-Misns5SourceParity.py
+lua5.1 Tools/MissionTests/Test-Misns5.lua
+python Tools/MissionTests/Test-Misns5SourceParity.py
 python Tools/Validate-CampaignRepository.py
 ```
 

@@ -96,8 +96,8 @@ This also resolves its existing false `goto` report in misn07.
 Run from the repository root:
 
 ```sh
-python Tools/Test-Misn13SourceParity.py
-lua5.1 Tools/Test-Misn13.lua
+python Tools/MissionTests/Test-Misn13SourceParity.py
+lua5.1 Tools/MissionTests/Test-Misn13.lua
 luac5.1 -p Scripts/misn13.lua
 python Tools/Validate-CampaignRepository.py
 ```
@@ -111,7 +111,7 @@ artillery, damaged/destroyed objects, callback timing, save/load, and outcomes.
 Both suites are wired into campaign CI. Host checks do not run native AI,
 pathfinding, audio, or engine serialization.
 
-The co-op map (`Missions/misn13.bzn`, built by `Tools/Build-CoopMap.py --mission misn13`)
+The co-op map (`Missions/misn13.bzn`, built by `Tools/MissionBuild/Build-CoopMap.py --mission misn13`)
 keeps every original map label, path, ODF, AIP, voice file and debriefing from the
 matching stock content; see MISN13_COOP.md for what the co-op layer changes (the CCA on
 team 5, the whole-base win, the restored waves 2-4, the unused misn1301 line).

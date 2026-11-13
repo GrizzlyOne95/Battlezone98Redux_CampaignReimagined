@@ -57,8 +57,8 @@ and it spawns no scrap (`scrap_1`/`scrap_2` are never used). The Lua follows TRO
 From the repository root:
 
 ```sh
-lua5.1 Tools/Test-BlackDog12.lua
-python Tools/Test-BlackDog12SourceParity.py
+lua5.1 Tools/CoopCampaignTests/Test-BlackDog12.lua
+python Tools/CoopCampaignTests/Test-BlackDog12SourceParity.py
 ```
 
 The behavior suite passes 148 checks on Lua 5.1, using strict engine mocks

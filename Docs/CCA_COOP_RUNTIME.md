@@ -74,7 +74,7 @@ on the enemy team gets `enemy - 1` extras on average (Hard 0.5, randomly rounded
 co-op extras; like those, they receive only the orders queued while the ticket is pending. `SetScrap` gives the leader
 `DiffUtils.ScaleRes(amount)` clamped to capacity (a fill to capacity stays a fill) and the enemy
 `max(amount, DiffUtils.ScaleEnemy(amount))`, so a body's "at least N" top-up still holds on easier settings. Easier
-settings never remove units (the body tracks their handles) and timers are not scaled. `Tools/Test-CRCCARuntimeDifficulty.lua`
+settings never remove units (the body tracks their handles) and timers are not scaled. `Tools/RuntimeTests/Test-CRCCARuntimeDifficulty.lua`
 covers it; fixtures that do not provide `DiffUtils` run unscaled.
 
 State: everything the runtime saves lives in `M.crcca` (tickets, live list, weather seed/state). `M.coopResult`,
@@ -87,5 +87,5 @@ State: everything the runtime saves lives in `M.crcca` (tickets, live list, weat
 - `Update` only runs the body on the authority; guests call `Update` for presentation and weather only.
 - Objective lists are coalesced: a rebuild identical to the last published one is dropped.
 - Lua packet strings of 128-255 bytes crash peers: the runtime sends everything through `CRWire`.
-- The test fixture for a new mission copies `Tools/Misns1Fixture.lua` (labels, paths, module stubs).
+- The test fixture for a new mission copies `Tools/MissionTests/Misns1Fixture.lua` (labels, paths, module stubs).
 - Not carried over from `CRMisn18`: storm, extraction ending, left-behind camera, Fury roster, phases.

@@ -51,7 +51,7 @@ meshes and existing materials are unchanged.
 ## Atlas reuse and provenance
 
 NSDF and Black Dog use a generated per-unit panel atlas from
-`Tools/tankpanelatlas.py` (armour plate, faction hazard sill bands, recessed pod
+`Tools/CockpitsAndRigs/tankpanelatlas.py` (armour plate, faction hazard sill bands, recessed pod
 scopes, service grille). The pod, console and switch charts are copied from
 the accepted scout atlas (`crvascp`/`crvbscp`) so the instrument faces keep
 their earlier art; painted dials and toggles were rejected in review:
@@ -69,11 +69,11 @@ reuse accepted modular art:
 - CCA: original `soviet_units_cockpit_d/n/S/e.dds`, deliberately re-UV'd onto
   new physical hardware. `svtank01` instead uses `crcca_cockpit_d/n/s/e.dds`,
   a 2048 repaint in the stock layout (same UVs) built by
-  `Tools/Build-CCACockpitAtlas.py` from the owner-generated masters in
+  `Tools/CockpitsAndRigs/Build-CCACockpitAtlas.py` from the owner-generated masters in
   `cca/atlas-src/` (prompts in `provenance.json`); other CCA units opt in by
   repointing their `*01` material. Its deck nose (`CRV/svtankTankHull`) has its
   own owner-generated livery, `crcca_svhood_d/n/s/e.dds` from `cca/hood-src/` via
-  `Tools/Build-CCAHoodTexture.py`, mapped top-down (`CONFIG['cca']['hood']`) at
+  `Tools/CockpitsAndRigs/Build-CCAHoodTexture.py`, mapped top-down (`CONFIG['cca']['hood']`) at
   ~540 px/m instead of the exterior map's ~140. The shared liner borrows only the quiet charcoal
   chart in `crvascp_d/e.dds`; no NSDF paint, lamps or emblems appear on it.
 - Stock warning marks, original equipment and selected exterior surfaces keep
@@ -84,12 +84,12 @@ prompts and physical-lens masks remain beside them. New CCA/CRA atlas generation
 was attempted but failed; no rejected image or CLI fallback was used. Keeping
 the existing artwork also avoids redundant faction texture resources.
 
-`Tools/Build-TankCockpits.py` uses shared model codecs via `bzmodellibs.py`.
+`Tools/CockpitsAndRigs/Build-TankCockpits.py` uses shared model codecs via `bzmodellibs.py`.
 It needs a stock GOG asset source (or `--game` alternative); tests do not.
 
 ```powershell
-C:/Python314/python.exe Tools/Build-TankCockpits.py
-C:/Python314/python.exe Tools/Test-TankCockpits.py
+C:/Python314/python.exe Tools/CockpitsAndRigs/Build-TankCockpits.py
+C:/Python314/python.exe Tools/CockpitsAndRigs/Test-TankCockpits.py
 C:/Python314/python.exe Tools/Validate-CampaignRepository.py
 ```
 

@@ -35,7 +35,7 @@ This does not imply a measured RAM-overhead A/B.
 ## Authoring surfaces without losing HD textures
 
 Moon's `surfaceBlend.recipe` selects the existing local crater/dust generator:
-`Tools/Build-MoonRegolith.py`. Its coverage multiplier softens only the masked
+`Tools/Terrain/Build-MoonRegolith.py`. Its coverage multiplier softens only the masked
 crater floors, raised rims and sparse patches. Set coverage to 0 to keep the original HD
 surface everywhere while retaining crater geometry. This is separate from
 `floorDustStrength` and `patchDustStrength` in `Moon/regolith.json`, which shape

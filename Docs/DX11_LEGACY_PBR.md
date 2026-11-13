@@ -112,7 +112,7 @@ Visual calibration should start with these constants rather than changing BRDF e
 
 ## Validation
 
-`Tools/Validate-DX11Shaders.ps1` compiles representative SM4 variants with Windows `fxc.exe` when a Windows SDK is installed. It covers:
+`Tools/Shaders/Validate-DX11Shaders.ps1` compiles representative SM4 variants with Windows `fxc.exe` when a Windows SDK is installed. It covers:
 
 - base and terrain vertex entry points
 - Enhanced no-shadow

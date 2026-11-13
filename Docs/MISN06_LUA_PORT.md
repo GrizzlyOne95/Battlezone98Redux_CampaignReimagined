@@ -67,9 +67,9 @@ not replace strategic AI with a community implementation.
 Run from the repository root:
 
 ```sh
-luac5.1 -p Scripts/misn06.lua Tools/Test-Misn06.lua
-lua5.1 Tools/Test-Misn06.lua
-python3 Tools/Test-Misn06SourceParity.py
+luac5.1 -p Scripts/misn06.lua Tools/MissionTests/Test-Misn06.lua
+lua5.1 Tools/MissionTests/Test-Misn06.lua
+python3 Tools/MissionTests/Test-Misn06SourceParity.py
 ```
 
 Host tests cover startup, cancellation, all random patrol/extraction choices,

@@ -12,10 +12,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bd01cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd01.lua` (`Tools/Test-Bdmisn01CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the co-op fixes and the Ganymede weather. |
+| `Scripts/bd01cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd01.lua` (`Tools/CoopCampaignTests/Test-Bdmisn01CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the co-op fixes and the Ganymede weather. |
 | `Scripts/CRGanymedeSitesBD01.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather: the generated sites for this map (one vent, the base geyser) and the shared icy-moon director (no new module). |
 | `Missions/bd01cr.{bzn,vxt}`, `bdmisn01.{hg2,lgt,mat,trn}`, `Config/bd01cr.ini` | Map and companions (not part of this change). The map has **no authored enemies**: Lua spawns all of them. |
-| `Tools/Bdmisn01Fixture.lua`, `Test-Bdmisn01Coop.lua`, `Test-Bdmisn01Presentation.lua`, `Test-Bdmisn01CoopSourceParity.py`, `Test-Bdmisn01CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-BlackDog01.lua` / `Test-BlackDog01SourceParity.py` still cover the faithful port, unchanged. |
+| `Tools/CoopCampaignTests/Bdmisn01Fixture.lua`, `Test-Bdmisn01Coop.lua`, `Test-Bdmisn01Presentation.lua`, `Test-Bdmisn01CoopSourceParity.py`, `Test-Bdmisn01CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-BlackDog01.lua` / `Test-BlackDog01SourceParity.py` still cover the faithful port, unchanged. |
 
 The CR regions, in file order:
 
@@ -212,12 +212,12 @@ tune, and so does the landing site on this map.
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Bdmisn01Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, fallback, cameras, results, weather
-lua5.1 Tools/Test-Bdmisn01Presentation.lua    # E/A/C protocol on a guest
-python Tools/Test-Bdmisn01CoopSourceParity.py # bd01cr.lua minus CR regions == bd01.lua
-python Tools/Test-Bdmisn01CoopContract.py
-lua5.1 Tools/Test-Bdmisn01DropIn.lua      # the dropship opening: hold gate, nothing before the landing, co-op, save/load     # labels/paths/teams/flight times in bd01cr.bzn (skips with a message if the map is absent; ini/vxt/mpdes only when present)
-lua5.1 Tools/Test-BlackDog01.lua && python Tools/Test-BlackDog01SourceParity.py   # the faithful port, unchanged
+lua5.1 Tools/CoopCampaignTests/Test-Bdmisn01Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, fallback, cameras, results, weather
+lua5.1 Tools/CoopCampaignTests/Test-Bdmisn01Presentation.lua    # E/A/C protocol on a guest
+python Tools/CoopCampaignTests/Test-Bdmisn01CoopSourceParity.py # bd01cr.lua minus CR regions == bd01.lua
+python Tools/CoopCampaignTests/Test-Bdmisn01CoopContract.py
+lua5.1 Tools/CoopCampaignTests/Test-Bdmisn01DropIn.lua      # the dropship opening: hold gate, nothing before the landing, co-op, save/load     # labels/paths/teams/flight times in bd01cr.bzn (skips with a message if the map is absent; ini/vxt/mpdes only when present)
+lua5.1 Tools/CoopCampaignTests/Test-BlackDog01.lua && python Tools/CoopCampaignTests/Test-BlackDog01SourceParity.py   # the faithful port, unchanged
 ```
 
 ## Inferences and open questions

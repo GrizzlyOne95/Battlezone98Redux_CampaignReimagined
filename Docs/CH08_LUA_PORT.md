@@ -147,7 +147,7 @@ Checklist (with a LuaMission BZN bound to the script):
 
 ## Validation
 
-`lua5.1 Tools/Test-Chinese08.lua` (mission logic with stock API doubles) and
-`python Tools/Test-Chinese08SourceParity.py` (source blob, asset/ODF/path names,
+`lua5.1 Tools/CoopCampaignTests/Test-Chinese08.lua` (mission logic with stock API doubles) and
+`python Tools/CoopCampaignTests/Test-Chinese08SourceParity.py` (source blob, asset/ODF/path names,
 37 MS_ constants, timers, cut content absent from active Lua). Both run in
 `.github/workflows/campaign-validation.yml`.

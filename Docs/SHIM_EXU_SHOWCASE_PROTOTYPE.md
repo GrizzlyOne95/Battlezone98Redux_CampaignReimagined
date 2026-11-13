@@ -168,9 +168,9 @@ The files will not be installed by lock-based deployment until blessed there.
 Do not bless a partial source tree or hand-edit the lock.
 
 ```powershell
-python Tools/Build-SXShowcaseMap.py
-lua Tools/Test-SXShowcase.lua Scripts
-python Tools/Test-SXShowcaseAssets.py
+python Tools/UnitsAndBuildings/Build-SXShowcaseMap.py
+lua Tools/UnitsAndBuildings/Test-SXShowcase.lua Scripts
+python Tools/UnitsAndBuildings/Test-SXShowcaseAssets.py
 .\Manage-CampaignFiles.ps1 -bless
 git diff -- Shipping/shipping.lock.json
 python Tools/Validate-CampaignRepository.py

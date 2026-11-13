@@ -48,8 +48,8 @@ This is a selected lower hull assembly, never the complete vehicle merged in.
 ## Rebuild and review
 
 ```powershell
-python Tools/Build-BomberRocketCockpits.py --game <BZR root>
-python Tools/Test-BomberRocketCockpits.py
+python Tools/CockpitsAndRigs/Build-BomberRocketCockpits.py --game <BZR root>
+python Tools/CockpitsAndRigs/Test-BomberRocketCockpits.py
 ```
 
 Shared model codecs own binary I/O; the existing section helper interpolates

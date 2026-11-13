@@ -83,7 +83,7 @@ head at branch creation `476390ed`. Canonical main stays untouched.
 Owner direction: Achilles must stop reading like BZ2's Mire. It should be an
 Earth-like cold temperate forest, close to freezing but still wet.
 
-- `Tools/Build-Misn17Forest.py` replaces the Mire trees and props. It runs after
+- `Tools/MissionBuild/Build-Misn17Forest.py` replaces the Mire trees and props. It runs after
   `Build-Misn17Jungle.py` and is deterministic (seed 17117).
 - **Trees.** Four fir/pine trees from "Low Poly Forest Tree Pack" by 99.Miles
   (CC-BY-4.0, `Docs/FOLIAGE_ART_CREDITS.md`): `c17frst1`-`4`, 58/46/52/40 m.
@@ -134,7 +134,7 @@ Earth-like cold temperate forest, close to freezing but still wet.
     sun's PSSM in the `high-pssm` scheme.
   - Techniques: high-pssm (SM4/SM3), default (SM4/SM3), glow (draws nothing), and
     a last-resort opaque lit ice through `cr17_surface` for OpenGL or a failed
-    compile. `Tools/Test-IceShader.ps1` compiles all eight delegates with fxc.
+    compile. `Tools/Shaders/Test-IceShader.ps1` compiles all eight delegates with fxc.
   - Live (2026-10-19), slab commit vs shader, calm (level 0) and storm (level 4)
     weather, views A/B and a low grazing view:
     `C:/BZRCoop/runs/achilles-flora/misn17-ice-shader-before-after.png`.
@@ -204,7 +204,7 @@ Earth-like cold temperate forest, close to freezing but still wet.
   never bound and those materials silently drew nothing. Ogre logged no error for this.
   The fix declares GLSL, HLSL4 and HLSL first and then the unified program, the
   order ISDFC and `cr_methane` use. Evidence from the leaf bisect scenario
-  (`Tools/Test-Misn17LeafDiagLive.ps1`): `misn17-leafdiag-4` shot 03 shows
+  (`Tools/MissionTests/Test-Misn17LeafDiagLive.ps1`): `misn17-leafdiag-4` shot 03 shows
   bare trunks. In `misn17-leaf-reorder-1` shot 03 the canopies and underbrush draw,
   and forcing the leaf submesh to `CR17/Cutout` draws panels.
 - `misn17-forest-reorder-1` (story scenario, first run with jungle and crystal
@@ -235,7 +235,7 @@ Earth-like cold temperate forest, close to freezing but still wet.
   client 1 in `forest-reorder-1` and `story-jungle-2` now passes (54-mine
   collapse at 58.0 s), followed by all factory shells, `SucceedMission` on both
   peers, 47 matching presentation ops and no Lua errors.
-- `misn17-jungle-hd-1` (jungle scenario, `Tools/Test-Misn17JungleLive.ps1`):
+- `misn17-jungle-hd-1` (jungle scenario, `Tools/MissionTests/Test-Misn17JungleLive.ps1`):
   **PASS, 7 steps / 23 checks**, both clients. Bounded foliage batches,
   river/mist, a solid native plant seen by each peer, heavy rain then a shared
   storm, waterfall, plant destruction replicated without touching mission
@@ -302,9 +302,9 @@ Use this worktree; do not edit canonical main or ISDFC. ISDFC source is
 `GrizzlyOne95/ISDF_Chronicles`, main `63a3645c` when inspected. It has unrelated
 owner edits; leave them alone.
 
-Build pipeline: `Tools/Build-Misn17CoopMap.py` (original stock 1.5 map), then
-`Tools/Build-Misn17Crystals.py --game <GOG game>`, then
-`Tools/Build-Misn17Jungle.py --isdfc <ISDFC root>`. All asset builders write only CR.
+Build pipeline: `Tools/MissionBuild/Build-Misn17CoopMap.py` (original stock 1.5 map), then
+`Tools/MissionBuild/Build-Misn17Crystals.py --game <GOG game>`, then
+`Tools/MissionBuild/Build-Misn17Jungle.py --isdfc <ISDFC root>`. All asset builders write only CR.
 
 Native runner: ignored `Local/misn17/run.ps1`, Windows PowerShell 5.1, wraps
 OpenShim `reverse_engineering/Run-BZRCoopMission.ps1` with isolated prepared

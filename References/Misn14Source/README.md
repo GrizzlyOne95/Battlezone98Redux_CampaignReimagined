@@ -16,6 +16,6 @@ array serialization and native `ConvertHandle` pass; the original implementation
 remains available here. Disabled gameplay statements and mission comments also
 remain inline in the Lua file so cut content can be found beside its trigger.
 
-Run `python3 Tools/Test-Misn14SourceParity.py` to audit these exact source bytes,
+Run `python3 Tools/MissionTests/Test-Misn14SourceParity.py` to audit these exact source bytes,
 state-field coverage, mission identifiers, and preservation of every Execute
 comment. See `Docs/MISN14_SOURCE_PORT.md` for fidelity decisions and validation.

@@ -40,9 +40,9 @@ progression and requires restarting with all players present.
 
 ## Validation and limits
 
-Run `python Tools/Test-Misn02bCoopContract.py`,
-`lua5.1 Tools/Test-Misn02bCoop.lua`, and
-`lua5.1 Tools/Test-BZRPeerTransport.lua`.
+Run `python Tools/MissionTests/Test-Misn02bCoopContract.py`,
+`lua5.1 Tools/MissionTests/Test-Misn02bCoop.lua`, and
+`lua5.1 Tools/RuntimeTests/Test-BZRPeerTransport.lua`.
 The complete mission runs in four isolated Lua 5.1 environments with the real
 CRCoop registry, separate object replicas and delayed dynamic creation. Both
 unreliable delivery and reliable delivery with initial loss/reordering exercise

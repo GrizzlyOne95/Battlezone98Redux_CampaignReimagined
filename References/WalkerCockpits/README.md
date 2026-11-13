@@ -79,8 +79,8 @@ call this shot-aligned in gameplay before a live firing/turning/walking test.
 ## Rebuild and checks
 
 ```powershell
-python Tools/Build-WalkerCockpits.py
-python Tools/Test-WalkerCockpits.py
+python Tools/CockpitsAndRigs/Build-WalkerCockpits.py
+python Tools/CockpitsAndRigs/Test-WalkerCockpits.py
 python Tools/Validate-CampaignRepository.py
 ```
 

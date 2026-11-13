@@ -4,7 +4,7 @@ Shared offline / 2-4 player co-op port of the Black Dog mission `bd09`, a disgui
 Chinese APCs, one human takes the first of five Chinese tracked tanks, the convoy drives to three nav beacons while the
 party stays inside it, and everyone must reach the Chinese portal. One `Missions/bd09cr.bzn` and one
 `Scripts/bd09cr.lua` serve both modes. Companion to the faithful port underneath (`Scripts/bdmisn09.lua`, tested by
-`Tools/Test-BlackDog09.lua`) and [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern:
+`Tools/CoopCampaignTests/Test-BlackDog09.lua`) and [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern:
 [`MISNS2_COOP.md`](MISNS2_COOP.md), closest sibling [`BDMISN02_COOP.md`](BDMISN02_COOP.md).
 Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
 
@@ -12,10 +12,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bd09cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bdmisn09.lua` (`Tools/Test-Bdmisn09CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
+| `Scripts/bd09cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bdmisn09.lua` (`Tools/CoopCampaignTests/Test-Bdmisn09CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
 | `Scripts/CRElysiumSitesBD09.lua`, `Scripts/CRElysiumWeather.lua` | Elysium weather (the Venus director re-dressed as a blue-grey storm world, generated sites for this map: two geysers, no sulphur). Written separately; not part of this change. |
 | `Missions/bd09cr.{bzn,vxt}`, `bdmisn09.{hg2,lgt,mat,trn}`, `Config/bd09cr.ini` | Map, vehicle list (`cvapc` only) and multiplayer listing. Not part of this change. |
-| `Tools/Bdmisn09Fixture.lua`, `Test-Bdmisn09Coop.lua`, `Test-Bdmisn09CoopSourceParity.py`, `Test-Bdmisn09CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/Test-BlackDog09.lua` still covers the faithful port, unchanged. There is no Presentation test: the mission has no camera. |
+| `Tools/CoopCampaignTests/Bdmisn09Fixture.lua`, `Test-Bdmisn09Coop.lua`, `Test-Bdmisn09CoopSourceParity.py`, `Test-Bdmisn09CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/CoopCampaignTests/Test-BlackDog09.lua` still covers the faithful port, unchanged. There is no Presentation test: the mission has no camera. |
 
 ## Teams and ownership
 
@@ -157,10 +157,10 @@ Beats (host/offline only, each once, tied to the mission's own moments):
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Bdmisn09Coop.lua            # offline == faithful, 1-4 peers, disguise, capture, scaling, 460 m, portal, results, load, weather
-python Tools/Test-Bdmisn09CoopSourceParity.py # bd09cr.lua minus CR regions == bdmisn09.lua
-python Tools/Test-Bdmisn09CoopContract.py     # labels/paths/teams in bd09cr.bzn (skips with a message if the map is absent)
-lua5.1 Tools/Test-BlackDog09.lua              # the faithful port, unchanged
+lua5.1 Tools/CoopCampaignTests/Test-Bdmisn09Coop.lua            # offline == faithful, 1-4 peers, disguise, capture, scaling, 460 m, portal, results, load, weather
+python Tools/CoopCampaignTests/Test-Bdmisn09CoopSourceParity.py # bd09cr.lua minus CR regions == bdmisn09.lua
+python Tools/CoopCampaignTests/Test-Bdmisn09CoopContract.py     # labels/paths/teams in bd09cr.bzn (skips with a message if the map is absent)
+lua5.1 Tools/CoopCampaignTests/Test-BlackDog09.lua              # the faithful port, unchanged
 ```
 
 The workflow `.github/workflows/campaign-validation.yml` is not edited by this change. The contract test checks

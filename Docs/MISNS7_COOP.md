@@ -11,12 +11,12 @@ in the game (see "Live checklist").
 
 | File | Role |
 | --- | --- |
-| `Scripts/misns7cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns7.lua` (`Tools/Test-Misns7CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restorations and the Titan beats. |
+| `Scripts/misns7cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns7.lua` (`Tools/MissionTests/Test-Misns7CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restorations and the Titan beats. |
 | `Scripts/CRCCARuntime.lua` | Shared co-op runtime, including the CCA mission's NSDF-to-Black-Dog ODF remap. |
 | `Scripts/CRTitanWeather.lua`, `Scripts/CRTitanSitesS7.lua` | Titan weather director and the generated sites for this map. The S7 sites tables are EMPTY (no methane pools, no wet mask); the weather still runs (sky and haze ladder, rolls). |
 | `Missions/misns7cr.bzn` | Map roster; the authored construction rig uses the Black Dog ODF while its label stays intact. |
 | `Missions/misns7cr.vxt`, `misns7.{hg2,lgt,mat,trn}` | Terrain and map companions. |
-| `Tools/Misns7Fixture.lua`, `Test-Misns7Coop.lua`, `Test-Misns7Presentation.lua`, `Test-Misns7CoopSourceParity.py`, `Test-Misns7CoopContract.py` | Multi-peer fixture and tests. `Test-Misns7.lua` / `Test-Misns7SourceParity.py` still cover the faithful port, unchanged. |
+| `Tools/MissionTests/Misns7Fixture.lua`, `Test-Misns7Coop.lua`, `Test-Misns7Presentation.lua`, `Test-Misns7CoopSourceParity.py`, `Test-Misns7CoopContract.py` | Multi-peer fixture and tests. `Test-Misns7.lua` / `Test-Misns7SourceParity.py` still cover the faithful port, unchanged. |
 
 One deliberate difference from `misns1cr.lua`: the body's own `AddObject` does real work (it fills the Black Dog unit
 slots), so the wrapper does NOT define a second `AddObject` at the end of the file. The CR layer forwards to the
@@ -205,11 +205,11 @@ authored scenery/defences the script does not touch.
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Misns7Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, cameras, audio, results, restorations, weather
-lua5.1 Tools/Test-Misns7Presentation.lua    # E/A/C protocol on a guest (object cameras, Titan ops)
-python Tools/Test-Misns7CoopSourceParity.py # misns7cr.lua minus CR regions == misns7.lua
-python Tools/Test-Misns7CoopContract.py     # labels/paths/teams/ODFs/subtitles in misns7cr.bzn, Titan config and sites
-lua5.1 Tools/Test-Misns7.lua && python Tools/Test-Misns7SourceParity.py   # the faithful port, unchanged
+lua5.1 Tools/MissionTests/Test-Misns7Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, cameras, audio, results, restorations, weather
+lua5.1 Tools/MissionTests/Test-Misns7Presentation.lua    # E/A/C protocol on a guest (object cameras, Titan ops)
+python Tools/MissionTests/Test-Misns7CoopSourceParity.py # misns7cr.lua minus CR regions == misns7.lua
+python Tools/MissionTests/Test-Misns7CoopContract.py     # labels/paths/teams/ODFs/subtitles in misns7cr.bzn, Titan config and sites
+lua5.1 Tools/MissionTests/Test-Misns7.lua && python Tools/MissionTests/Test-Misns7SourceParity.py   # the faithful port, unchanged
 ```
 
 

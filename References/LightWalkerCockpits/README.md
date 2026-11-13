@@ -62,8 +62,8 @@ pass. This work does not claim forward cannon peeks or shot/flash alignment.
 ## Build and evidence
 
 ```powershell
-python Tools/Build-LightWalkerCockpits.py --game <BZR root>
-python Tools/Test-LightWalkerCockpits.py
+python Tools/CockpitsAndRigs/Build-LightWalkerCockpits.py --game <BZR root>
+python Tools/CockpitsAndRigs/Test-LightWalkerCockpits.py
 ```
 
 Shared model codecs own every mesh/skeleton/VDF read and write. Reuse existing

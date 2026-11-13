@@ -52,7 +52,7 @@ dispensers and unrelated maps therefore keep their existing behavior.
 
 ## Validation
 
-`Tools/Test-BoltMines.py` checks model preservation, the independent weapon and
+`Tools/Weapons/Test-BoltMines.py` checks model preservation, the independent weapon and
 texture chains, damage/range, BZN swaps and shipping admission. Mission 05's
 contract/presentation checks and Mission 15/16/17 regression suites cover the
 integration. `Test-BoltMinesLive.ps1` is a private native fixture: it uses an

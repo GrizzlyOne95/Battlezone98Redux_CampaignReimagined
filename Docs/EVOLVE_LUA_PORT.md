@@ -60,7 +60,7 @@ There is no strategic AI, project helper dependency, or multiplayer support.
 
 ## Validation
 
-`Tools/Test-Evolve.lua` runs with Lua 5.1 and checks partial/all wave clears,
+`Tools/MissionTests/Test-Evolve.lua` runs with Lua 5.1 and checks partial/all wave clears,
 one-time scoring, exact timer boundaries, handle-change gating, wave ordering,
 cover unlock/respawn, save/load, all vehicle repetitions through the spawn cap,
 retargeting, scrap filtering, early death, revival, and single ending dispatch.

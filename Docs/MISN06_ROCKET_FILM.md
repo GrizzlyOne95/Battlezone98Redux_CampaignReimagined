@@ -48,11 +48,11 @@ artwork reconstruction.
 The previous prototype used **Battlezone: Resurgence** by GrizzlyOne95 and
 contributors. Its author's [asset-pack description](https://steamcommunity.com/sharedfiles/filedetails/?id=3536800125)
 permits reuse with credit. That extraction is retained in
-`Tools/Extract-Misn06RocketLegacy.py`; it is not a dependency of the current art.
+`Tools/MissionBuild/Extract-Misn06RocketLegacy.py`; it is not a dependency of the current art.
 
-`Tools/Build-Misn06Rocket.py --blender <blender.exe> --render` reproduces the
+`Tools/MissionBuild/Build-Misn06Rocket.py --blender <blender.exe> --render` reproduces the
 editable source, mesh, native SDF/GEO, baked textures and nozzle layout.
-`Tools/Add-Misn06Rocket.py` adds the fixture without rewriting authored blocks;
+`Tools/MissionBuild/Add-Misn06Rocket.py` adds the fixture without rewriting authored blocks;
 `Build-CoopMap.py --mission misn06` also calls this step automatically.
 The stock Redux raised deck is measured explicitly. The fixture's nozzle plane
 is centred 25 cm above that deck; the inherited wrong local X sign is corrected.
@@ -121,7 +121,7 @@ been performed. Keep the draft worktree while that review is pending.
 Checkpoint `91d710d3` contains the initial implementation. The isolated manager-staged content
 is `C:/BZRCoop/mars-launch-20261018/content`; the regular GOG mod is untouched.
 Run OpenShim's `Run-BZRCoopMission.ps1` with `-Mission misn06`, this content,
-`-Scenario <this checkout>/Tools/Test-Misn06LaunchLive.ps1`, and two clients.
+`-Scenario <this checkout>/Tools/MissionTests/Test-Misn06LaunchLive.ps1`, and two clients.
 The scenario advances only the original launch timer, verifies the actual radio
 cue, preplaced rocket, camera and all four particle systems on both peers,
 then waits for departure and cleanup. Inspect its screenshots before marking

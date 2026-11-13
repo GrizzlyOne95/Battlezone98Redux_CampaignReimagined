@@ -14,15 +14,15 @@ that is the point of the setting.
 | `Scripts/CRVenusWeather.lua` | The director. Tunables are at the top of the file. |
 | `Scripts/CRVenusMap.lua` | The pure half: seeded rng and severity ladder, basin detection, sulfur clustering, weighted picks. No engine calls. |
 | `Scripts/CRVenusSites07.lua` | Generated map data for misn07 (playable box, sulfur cells, vents). |
-| `Scripts/CRVenusSites08.lua` | Generated map data for misn08 (`python Tools/Build-VenusSites.py misn08 --types 1`). |
-| `Scripts/CRVenusSites09.lua` | Generated map data for misn09 (`python Tools/Build-VenusSites.py misn09 --types 1`). |
-| `Tools/Build-VenusSites.py` | Regenerates a `CRVenusSites<NN>.lua` from a mission's `.trn`, `.mat` and `.bzn`. |
+| `Scripts/CRVenusSites08.lua` | Generated map data for misn08 (`python Tools/Terrain/Build-VenusSites.py misn08 --types 1`). |
+| `Scripts/CRVenusSites09.lua` | Generated map data for misn09 (`python Tools/Terrain/Build-VenusSites.py misn09 --types 1`). |
+| `Tools/Terrain/Build-VenusSites.py` | Regenerates a `CRVenusSites<NN>.lua` from a mission's `.trn`, `.mat` and `.bzn`. |
 | `Scripts/CRWeatherPresets.lua` | Adds the five ladder presets `VenusCalm` .. `VenusSevere` (fog, light, haze, grit; no lightning, no rain). |
 | `Materials/cr_venus.particle.payload` | Eight particle templates on the `CRVenus/*` materials. |
 | `Materials/crart_venus.material` | The `CRVenus/*` particle materials: existing `CR_FX` art on the RGBA-order `CRWX_FX` vertex program plus `CR_Effect_fragment`, so DX11 draws the pass natively. On the `CR_FX/*` originals DX11 swapped red and blue, which made the fog bank's ochre haze draw teal (see Fog banks). |
 | `Scripts/CRParticleTemplates.lua` | New `EnsureExtra(name)` loads an opt-in payload without risking the base set. |
 | `Scripts/Environment.lua` | New `SetObjectScramble` / `ClearObjectScramble` / `GetObjectScramble`: a per-craft, self-expiring sensor scale. |
-| `Tools/Test-CRVenusWeather.lua` | Isolated-peer tests against an exu / BZ mock. |
+| `Tools/TexturesAndSky/Test-CRVenusWeather.lua` | Isolated-peer tests against an exu / BZ mock. |
 
 ## Ownership rules (same as Mars)
 
@@ -102,7 +102,7 @@ and the colour moves `PoolFogTint` (0.30) toward sulphur. The factor is smoothed
 Weather fog is clamped to the terrain horizon, so "clearer on the ridges" can only return
 to the preset value, never exceed it.
 
-**misn07 measurements** (from `Tools/Test-CRVenusWeather.lua`, real HG2): median ground
+**misn07 measurements** (from `Tools/TexturesAndSky/Test-CRVenusWeather.lua`, real HG2): median ground
 30.4 m, lowest 5.9 m, ridge (85th percentile) 71.5 m, **map pool level 20.5 m** (the
 enclosed lowland floor sits at about 18-21 m), 21 enclosed basins, 24 anchors, 9 of them in
 the central play area (x 1500-3700, z 98500-100500).
@@ -156,7 +156,7 @@ strikes.
 ## 4. Sulfur
 
 The terrain material under a point cannot be queried at run time, so
-`Tools/Build-VenusSites.py` reads the `.mat` once (64x64 tiles per zone, zones row-major,
+`Tools/Terrain/Build-VenusSites.py` reads the `.mat` once (64x64 tiles per zone, zones row-major,
 south first; base material bits 15-12, next material bits 11-8) and writes run-length
 cells to `CRVenusSites07.lua`. The orientation was verified by correlating the zoned HG2
 against BZN object elevations (r = 0.997 with `x = col*20`, `z = 97280 + row*20`).
@@ -536,7 +536,7 @@ Sulphur Deposits (48,365 base cells), 3 Hardened Sulphur (16,977), 1 Liquid Sulp
 x 1113.6-3246.9, z 98656-101461. There are no Lightning Power generators on the stock map,
 so strikes fall on exposed structures and random ground near players. Beats: calm level 2,
 3 when the walker attacks begin, `ForceLevel(5, 60, 10)` for the Colorado massacre, steady 3
-while the CCA builds `svwalk`. `Tools/Build-VenusSites.py misn07 --types 1` still reproduces
+while the CCA builds `svwalk`. `Tools/Terrain/Build-VenusSites.py misn07 --types 1` still reproduces
 `CRVenusSites07.lua` byte for byte.
 
 ## misn09
@@ -549,7 +549,7 @@ Venus terrain size and texture set, but the map is small and quiet: 179 liquid-s
 (the intercept point at Nav 1) and `convoy_geyser` (the convoy's spawn). None is named
 `volcano*`, so there is no major vent, and the stock map has no Lightning Power generators, so
 strikes fall on exposed structures and random ground near players. The playable box from
-`edge_path` is x 1440-3530.67, z 98389.3-101909. `Tools/Build-VenusSites.py misn09 --types 1`
+`edge_path` is x 1440-3530.67, z 98389.3-101909. `Tools/Terrain/Build-VenusSites.py misn09 --types 1`
 reproduces `CRVenusSites09.lua`; the generator reads the converted text BZN in `Missions/`, so it
 needs the co-op map, not the stock binary one.
 
@@ -599,7 +599,7 @@ Checked against `ExtraUtilities/Definitions/ExtraUtils.lua`:
 - The payload is loaded through `CRParticleTemplates.EnsureExtra("cr_venus")`, not added to
   the base list, so a build without it degrades (presets, flash, thunder, shove and
   scramble all still work) instead of breaking every weather mission.
-- `python Tools/Validate-CampaignRepository.py` and `lua5.1 Tools/Test-CRVenusWeather.lua
+- `python Tools/Validate-CampaignRepository.py` and `lua5.1 Tools/TexturesAndSky/Test-CRVenusWeather.lua
   Scripts` pass; the Mars, haboob, volcano, Venus-dense, fog-horizon and parameter tests
   still pass.
 

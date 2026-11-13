@@ -42,9 +42,9 @@ gated on fragment pickup, portal-camera cancellation does not cancel scheduled
 portal fighters, and portal loss is evaluated after the source victory check.
 No new portal-loss precedence or strategic-AI behavior is introduced.
 
-Validation: `lua5.1 Tools/Test-BlackDog04.lua` runs a strict mock host covering
+Validation: `lua5.1 Tools/CoopCampaignTests/Test-BlackDog04.lua` runs a strict mock host covering
 cinematics, cancellation, portal timing, disguise/base-entry branches, timeout
 audio progression, inspection, extraction waves, route ambushes, terminal
-outcomes, and save/load. `python Tools/Test-BlackDog04SourceParity.py` compares
+outcomes, and save/load. `python Tools/CoopCampaignTests/Test-BlackDog04SourceParity.py` compares
 source assets and disabled code. Engine path geometry, portal physics, map
 labels/assets, and live savegame behavior still require in-game testing.

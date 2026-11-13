@@ -11,12 +11,12 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/misns3cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns3.lua` (`Tools/Test-Misns3CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the stock fixes. |
+| `Scripts/misns3cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns3.lua` (`Tools/MissionTests/Test-Misns3CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the stock fixes. |
 | `Scripts/CRCCARuntime.lua` | Shared co-op runtime, including the CCA mission's NSDF-to-Black-Dog ODF remap. |
 | `Scripts/CRIoWeather.lua`, `Scripts/CRIoSitesS3.lua` | Io weather and the generated lava-pool / vent sites for this map (341 pools, the two geysers). |
 | `Missions/misns3cr.bzn` | Map roster; authored NSDF vehicles are switched to Black Dog ODFs while their labels stay intact. |
 | `Missions/misns3cr.vxt`, `misns3.{hg2,lgt,mat,trn}` | Terrain and map companions. |
-| `Tools/Misns3Fixture.lua`, `Test-Misns3Coop.lua`, `Test-Misns3CoopSourceParity.py`, `Test-Misns3CoopContract.py` | Multi-peer fixture and tests. `Test-Misns3.lua` / `Test-Misns3SourceParity.py` still cover the faithful port, unchanged. |
+| `Tools/MissionTests/Misns3Fixture.lua`, `Test-Misns3Coop.lua`, `Test-Misns3CoopSourceParity.py`, `Test-Misns3CoopContract.py` | Multi-peer fixture and tests. `Test-Misns3.lua` / `Test-Misns3SourceParity.py` still cover the faithful port, unchanged. |
 
 No cameras: this mission has no cutscene, so there is no `Test-Misns3Presentation.lua` and `holdCamera` is off.
 
@@ -142,10 +142,10 @@ turrets, `svhraz4_wingman` and the geysers are authored scenery or defences the 
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Misns3Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, nearest/farthest, results, weather
-python Tools/Test-Misns3CoopSourceParity.py # misns3cr.lua minus CR regions == misns3.lua
-python Tools/Test-Misns3CoopContract.py     # labels/paths/teams in misns3cr.bzn, Io sites present
-lua5.1 Tools/Test-Misns3.lua && python Tools/Test-Misns3SourceParity.py   # the faithful port, unchanged
+lua5.1 Tools/MissionTests/Test-Misns3Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, nearest/farthest, results, weather
+python Tools/MissionTests/Test-Misns3CoopSourceParity.py # misns3cr.lua minus CR regions == misns3.lua
+python Tools/MissionTests/Test-Misns3CoopContract.py     # labels/paths/teams in misns3cr.bzn, Io sites present
+lua5.1 Tools/MissionTests/Test-Misns3.lua && python Tools/MissionTests/Test-Misns3SourceParity.py   # the faithful port, unchanged
 ```
 
 The fixture names objects with strings, which the runtime reads as paths; the escort test steps the human away after

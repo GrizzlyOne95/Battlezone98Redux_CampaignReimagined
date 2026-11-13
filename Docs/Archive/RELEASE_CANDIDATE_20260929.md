@@ -114,7 +114,7 @@ $env:BZR_OPENSHIM_REPO = "$env:USERPROFILE\Documents\GIT\BZR-OpenShim-cr-suite-r
 $env:BZR_BZFILE_REPO = "$env:USERPROFILE\Documents\GIT\bzfile-cr-suite-release"
 $env:BZR_EXU_REPO = "$env:USERPROFILE\Documents\GIT\ExtraUtilities"
 .\Manage-CampaignFiles.ps1 -workshop-build "Complete native suite, verified setup and rollback, EXU audit fixes, and DX11 compatibility updates."
-.\Tools\Prepare-ReleaseCandidate.ps1 -OutputDir '<new output directory>' `
+.\Tools\Release\Prepare-ReleaseCandidate.ps1 -OutputDir '<new output directory>' `
   -Version '2026.09.29-rc1' -ChangeNote '<reviewed change note>' `
   -OpenShimRepo $env:BZR_OPENSHIM_REPO -BzfileRepo $env:BZR_BZFILE_REPO `
   -ExuRepo $env:BZR_EXU_REPO

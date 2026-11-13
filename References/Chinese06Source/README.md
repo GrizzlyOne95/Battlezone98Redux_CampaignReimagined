@@ -29,7 +29,7 @@ Documented changes:
   `SetName`, and `AllObjects` for the full native object-list victory scan.
   No broken stock `ObjectiveObjects` iterator is used.
 
-Run `python Tools/test_ch06.py` (requires `lupa.lua51`) for mocked Lua 5.1
+Run `python Tools/CoopCampaignTests/test_ch06.py` (requires `lupa.lua51`) for mocked Lua 5.1
 regression checks. These do not replace BZR gameplay testing. Original map labels,
 paths, ODFs, audio, objectives, debriefs and `chmisn06.aip` must be supplied by
 mission integration; this change does not edit TRN/map files or enable the port.

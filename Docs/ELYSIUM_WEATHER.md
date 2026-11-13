@@ -28,5 +28,5 @@ wind, dust and ash, dry-lightning fronts and ground mist in the ruins. There is 
   its cloud, darkens and lights the flash round the strike.
 
 Sensors, damage and net ops are the Venus ones, unchanged: visual only, with the radar and veloc-jam scales of
-`LEVEL_FIELDS` through Environment. Tests: `lua5.1 Tools/Test-CRElysiumWeather.lua Scripts`,
-`Tools/Test-AtmosphereIntegration.lua` (dome feed) and `Tools/Test-CRWorldArt.lua`.
+`LEVEL_FIELDS` through Environment. Tests: `lua5.1 Tools/TexturesAndSky/Test-CRElysiumWeather.lua Scripts`,
+`Tools/TexturesAndSky/Test-AtmosphereIntegration.lua` (dome feed) and `Tools/TexturesAndSky/Test-CRWorldArt.lua`.

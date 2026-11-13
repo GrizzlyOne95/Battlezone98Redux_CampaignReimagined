@@ -1,6 +1,6 @@
 {
   "source": "Stock Redux svsav (StockODFFiles/svsav.vdf and ssv11*.geo, BZ_ASSETS/common/models/svsav.skeleton and DIFF/EMIS svsav_D/E.dds); the mesh is the CR-shipped Assets/ModelFixes/svsav.mesh (hard-edged normals).",
-  "derivative": "savfury: part-name prefix ssv11 -> csf11 in the VDF, skeleton and GEOs; mesh material/skeleton links renamed; fresh diffuse/emission painted in the svsav UV layout by Tools/Build-SavFury.py. Geometry, UVs, skinning, collision and animation are unchanged.",
+  "derivative": "savfury: part-name prefix ssv11 -> csf11 in the VDF, skeleton and GEOs; mesh material/skeleton links renamed; fresh diffuse/emission painted in the svsav UV layout by Tools/UnitsAndBuildings/Build-SavFury.py. Geometry, UVs, skinning, collision and animation are unchanged.",
   "original_sha256": {
     "ssv11bda.geo": "c99c57d686799d96a21f4e0c0082074ffdd3bcb2bcbffd379fb0bbb3053f9a8f",
     "ssv11gc1.geo": "67d7c84e44c94f604027e62e958511b2eebe16f021b8a20fb776feee72d3721e",

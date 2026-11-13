@@ -55,7 +55,7 @@ Upstream: `GrizzlyOne95/Battlezone_Source/BZ1/from_bz2_dll_src/Chinese01Mission.
 Run from the repository root:
 
 ```sh
-lua5.1 Tools/Test-Chinese01.lua
+lua5.1 Tools/CoopCampaignTests/Test-Chinese01.lua
 ```
 
 The stock-API mock checks full success, all wave counts/order/timers, airborne

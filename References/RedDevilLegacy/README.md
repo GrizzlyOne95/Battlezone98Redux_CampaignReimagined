@@ -85,10 +85,10 @@ from `CR_BZBaseCockpit`; the foredeck reuses the exterior's existing D/N/S/E.
 ## Build and evidence
 
 ```text
-python Tools/Build-RedDevilLegacy.py
-python Tools/Build-RedDevilCockpit.py
-python Tools/Test-RedDevilLegacy.py
-python Tools/Test-RedDevilCockpit.py
+python Tools/UnitsAndBuildings/Build-RedDevilLegacy.py
+python Tools/CockpitsAndRigs/Build-RedDevilCockpit.py
+python Tools/UnitsAndBuildings/Test-RedDevilLegacy.py
+python Tools/CockpitsAndRigs/Test-RedDevilCockpit.py
 ```
 
 `sources.json`, `original/`, `build.json` and `cockpit-build.json` retain exact

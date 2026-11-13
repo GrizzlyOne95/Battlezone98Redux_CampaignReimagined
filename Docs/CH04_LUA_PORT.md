@@ -51,8 +51,8 @@ The native snapshot retains all of these verbatim for reconstruction.
 Run from the repository root:
 
 ```sh
-lua5.1 Tools/Test-Chinese04.lua
-python Tools/Test-Chinese04SourceParity.py
+lua5.1 Tools/CoopCampaignTests/Test-Chinese04.lua
+python Tools/CoopCampaignTests/Test-Chinese04SourceParity.py
 ```
 
 The decision harness covers stealth/exposed routes, startup/alarm fall-through,

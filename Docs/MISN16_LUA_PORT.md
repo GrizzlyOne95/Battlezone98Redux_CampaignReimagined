@@ -95,8 +95,8 @@ Run from the repository root:
 
 ```sh
 lua5.1 -e 'assert(loadfile("Scripts/misn16.lua"))'
-lua5.1 Tools/Test-Misn16.lua
-python3 Tools/Test-Misn16SourceParity.py
+lua5.1 Tools/MissionTests/Test-Misn16.lua
+python3 Tools/MissionTests/Test-Misn16SourceParity.py
 ```
 
 Validation completed: **411 Lua 5.1 host checks** and **99 source checks**. Host

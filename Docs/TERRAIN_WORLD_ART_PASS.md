@@ -40,7 +40,7 @@ All existing E channels remain untouched by this pass; the shared base accent
 authoring then runs as before. New natural emission is not generated.
 
 ```powershell
-python Tools/Build-WorldArtCandidates.py `
+python Tools/Terrain/Build-WorldArtCandidates.py `
   --source-build '<saved independent HD recipe/cache>' `
   --toolbox ../Battlezone98_Modding_Toolbox-hd-terrain-authoring `
   --moon-bundle ../Campaign-Reimagined-moon-polyhaven/Local/TerrainHD/PolyHaven01/terrain/bundle `
@@ -57,7 +57,7 @@ detail/depth values. Source files and stock-atlas fallback remain available.
 Generate the original/previous/candidate palette comparison with:
 
 ```powershell
-python Tools/Build-WorldArtReview.py --source-build '<saved HD recipe/cache>' `
+python Tools/Terrain/Build-WorldArtReview.py --source-build '<saved HD recipe/cache>' `
   --candidate-root Local/WorldArt/Revision01
 ```
 
@@ -97,7 +97,7 @@ space domes retain their original appearance.
 elevation sine and strength (`w` is reserved). Cloud/dome defaults live in
 their `.program` files. The dome reconstructs the world view direction from its
 projected draw; generated face-local Y is not assumed to be world-up. Run
-`Tools/Update-WorldSkyProgramVersions.py` after shader edits: Ogre caches bytecode
+`Tools/Shaders/Update-WorldSkyProgramVersions.py` after shader edits: Ogre caches bytecode
 by program name, so source hashes version the delegates. SM4, SM3 and GLSL share
 the contract. No OpenShim renderer fork is introduced.
 
@@ -112,7 +112,7 @@ flag when Enhanced/Redux/Retro changes. SM3/GLSL retain native fog colour.
 ## Review and validation
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File Tools/Test-WorldArtLive.ps1 `
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File Tools/Terrain/Test-WorldArtLive.ps1 `
   -OpenShimRepo ../BZR-OpenShim-terrain-world-controls `
   -CandidateRoot Local/WorldArt/Revision01
 ```

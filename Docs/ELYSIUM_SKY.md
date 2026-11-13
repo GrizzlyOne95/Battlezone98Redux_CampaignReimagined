@@ -10,8 +10,8 @@ match, so the look follows the TRNs and the stock `elysium.tga` dome and is othe
 - `Materials/crart_elysium.material`: technique 0 is `CR_ElysiumSky` (DX11 and DX9); technique 1 keeps the
   stock `elysium.tga` dome through `CR_SkyDome` for OpenGL.
 - `Shaders/CR_elysiumsky.hlsl` and `.program`: one HLSL source for SM4 and SM3. The program names are
-  versioned by `Tools/Update-WorldSkyProgramVersions.py`.
-- `Assets/Textures/crsky_elysium_clouds.png`: baked by `Tools/Build-ElysiumSky.py` (R torn high cloud, rank
+  versioned by `Tools/Shaders/Update-WorldSkyProgramVersions.py`.
+- `Assets/Textures/crsky_elysium_clouds.png`: baked by `Tools/TexturesAndSky/Build-ElysiumSky.py` (R torn high cloud, rank
   normalised; G dust and ash veils; B fine breakup, sampled twice, the second tap 11.3x finer so cloud edges fray below one
   texel). Every channel is rolled off well above texel scale, or the threshold shows stair steps where the
   dome magnifies the map overhead. Procedural, no third-party source

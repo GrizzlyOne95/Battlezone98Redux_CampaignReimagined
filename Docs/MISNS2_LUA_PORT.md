@@ -64,8 +64,8 @@ needs an in-game test.
 Run from the repository root:
 
 ```text
-lua5.1 Tools/Test-Misns2.lua
-python Tools/Test-Misns2Source.py
+lua5.1 Tools/MissionTests/Test-Misns2.lua
+python Tools/MissionTests/Test-Misns2Source.py
 ```
 
 The Lua checks cover startup, strict timer/distance boundaries, normal/skipped

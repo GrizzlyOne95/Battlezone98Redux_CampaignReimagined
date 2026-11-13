@@ -34,7 +34,7 @@ The original RGBA alpha is preserved. `CR18/FissureMouth` uses alpha blending
 so the dark lip survives; rays use CR's existing soft streak, embers its credited
 `cr_ember.dds`. No shader changes. The inherited CRWX particle path keeps RGBA.
 
-`Tools/Test-CRStorm18Fissures.lua` executes placement, phase cadence, seeded
+`Tools/RuntimeTests/Test-CRStorm18Fissures.lua` executes placement, phase cadence, seeded
 repeatability, native vector/RGB shapes, bounded light power/resource counts,
 stop/quality/distance cleanup, rejected terrain and refused capabilities. It is
 wired into CI; `Test-CRStorm18.lua` also lints the new payload/material/texture.
@@ -150,9 +150,9 @@ everything is local. Set `ENABLED = false` for a purely visual storm.
 ## Water and landscaping
 
 Pools, streams and one cascade on the Achilles terrain, modelled on misn17's water
-(`Tools/Build-Misn17Jungle.py`: priority-flood pools, D8 stream routing on a blurred
+(`Tools/MissionBuild/Build-Misn17Jungle.py`: priority-flood pools, D8 stream routing on a blurred
 surface, the same ribbon and pool-quad bakes; its `water_mask` is imported, not copied)
-by `Tools/Build-Misn18Water.py`, which `Build-Misn18Storm.py` runs last. It reads
+by `Tools/MissionBuild/Build-Misn18Water.py`, which `Build-Misn18Storm.py` runs last. It reads
 `Missions/misn18.hg2` (5 m grid) and **never writes it: nothing is carved**. Misn17 cuts
 its channel beds; here every pool fills an existing closed basin and every stream follows
 the existing gradient, so a stream's ribbon floats 0.15 m over the ground and its banks
@@ -187,7 +187,7 @@ Generated outputs: `Assets/Models/cr18_pools.mesh` (70 KB), `cr18_streams.mesh` 
 `cr18_cascade.mesh` (0.6 KB), and in `CRStorm18Sites.lua` the `watermask` (same run-length
 format as `CRJungle17Sites`; 1,242 cells), `water` (mesh, position and material per sheet,
 `pools_info`) and `cascade` (`x, y, z` at the foot, `drop`, `top`). Deterministic;
-`python -I Tools/Build-Misn18Water.py --check` is the CI check, `--report [--preview png]`
+`python -I Tools/MissionBuild/Build-Misn18Water.py --check` is the CI check, `--report [--preview png]`
 prints the selection and writes a review image.
 
 ### Materials and shader
@@ -314,7 +314,7 @@ guarded EXU writes are throttled to 4-20 Hz.
 
 ## Regenerating assets
 
-`python Tools/Build-Misn18Storm.py --stock <Battlezone_Source>/BZ1/1.5/Battlezone_Install/stock`
+`python Tools/MissionBuild/Build-Misn18Storm.py --stock <Battlezone_Source>/BZ1/1.5/Battlezone_Install/stock`
 rewrites `Scripts/CRStorm18Sites.lua` (water keys included, see Water), the three `cr18_*.mesh` water meshes, `Assets/Textures/cr18_foliage.dds` (DXT5 with mips,
 colour-bled; Pillow's DXT1 encoder speckles cutout atlases), `cr18_crack_a/b.png` and
 `References/Misn18Storm/source-assets.json`. CI runs `--check` (outputs match the manifest).
@@ -323,7 +323,7 @@ microcode cache keys on the program name).
 
 ## Tests
 
-`lua5.1 Tools/Test-CRStorm18.lua` (1,165 checks): payload/material/program lint (every
+`lua5.1 Tools/RuntimeTests/Test-CRStorm18.lua` (1,165 checks): payload/material/program lint (every
 template parses, materials and textures exist, ColourInterpolator has all six stages, no
 name clashes, program references and delegates in order, shaders agree on their uniforms);
 rng determinism; preset escalation and template indices; phase ladder (events per phase,

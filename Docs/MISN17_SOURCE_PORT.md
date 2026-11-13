@@ -62,8 +62,8 @@ See [the complete evidence tiers, guide provenance, restoration backlog and test
 Run from the repository root:
 
 ```sh
-lua5.1 Tools/Test-Misn17.lua
-python3 Tools/Test-Misn17SourceParity.py
+lua5.1 Tools/MissionTests/Test-Misn17.lua
+python3 Tools/MissionTests/Test-Misn17SourceParity.py
 ```
 
 Validated with Lua 5.1.5: **141 simulated-host checks** and **241 source-preservation/coverage checks**. The latter verify exact archive Git hashes, every inline source comment in the ported methods, all native state declarations, gameplay call counts and string arguments, both complete ordered minefields, and specific bug corrections. They check structural coverage; the host scenarios check event behavior.

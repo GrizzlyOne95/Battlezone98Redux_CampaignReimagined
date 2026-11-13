@@ -87,7 +87,7 @@ charred layer and omit the arcs. EXU Ogre particles are reserved for sparks that
 should fly freely: their attachments follow the camera, vehicle or a bone, not
 an individual cockpit submesh.
 Impact dirt on the glass and saving the crack spot are not ported.
-`Tools/Test-CockpitGlassDamage.lua` covers the Lua crack and brownout path; the
+`Tools/CockpitsAndRigs/Test-CockpitGlassDamage.lua` covers the Lua crack and brownout path; the
 charred layer, surface arcs and emissive visuals still need native visual
 qualification.
 
@@ -105,7 +105,7 @@ owned clones (towers, hit units) all receive the same swept value, which moves
 at most 0.03 per completed sweep. A few hundred materials therefore wet or dry
 together in small steps (about eight seconds from dry to soaked at 300
 materials) instead of each one jumping when the round robin reaches it. Clones
-no longer wait for their record's slower update. `Tools/Test-SurfaceWetSweep.lua`
+no longer wait for their record's slower update. `Tools/TexturesAndSky/Test-SurfaceWetSweep.lua`
 covers this.
 
 Heat glows where the muzzle flash is drawn: the native mount plus the same
@@ -117,7 +117,7 @@ frame with the shot's direction (so turrets and pitched barrels work), stored in
 hull axes and re-applied to the live mount every update, so the anchor rides
 the hull. A turret that swings after its last shot keeps the last direction
 until it fires again. Lookups are cached per ODF key (at most 512).
-`Tools/Test-SurfaceHeatAnchor.lua` covers this.
+`Tools/TexturesAndSky/Test-SurfaceHeatAnchor.lua` covers this.
 Shared material lookup uses Autodetect; unsupported uniforms retry with a
 two-second backoff and are never recorded as successfully updated.
 
@@ -154,7 +154,7 @@ map exposure is 1 and dust uses up-facing faces only.
 
 ## Terrain shape masks
 
-`Tools/Build-TerrainShape.py` bakes each weather map's HG2 into hollows (R)
+`Tools/Terrain/Build-TerrainShape.py` bakes each weather map's HG2 into hollows (R)
 and ridges (G) at 10 m per texel: height minus 30 m and 90 m Gaussian blurs,
 mixed and smoothstepped. The maps of one terrain atlas sit side by side in
 `<atlas>_shape.dds` (row 0 = min Z), which the atlas material binds through the
@@ -193,7 +193,7 @@ darkening only. Thruster wash only runs on snow or dust worlds.
 
 Achilles (`AC_DETAIL_ATLAS`: misn17, misn18) has shape masks in
 `ac_detail_atlas_shape.dds`; build with
-`Tools/Build-TerrainShape.py --atlas eu_detail_atlas,ma_detail_atlas,ac_detail_atlas`
+`Tools/Terrain/Build-TerrainShape.py --atlas eu_detail_atlas,ma_detail_atlas,ac_detail_atlas`
 (the default atlas list does not include it).
 
 ## Water and compatibility

@@ -11,12 +11,12 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/misns1cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns1.lua` (`Tools/Test-Misns1CoopSourceParity.py`). Holds the mission's runtime CONFIG, the native shadows and the restorations. |
+| `Scripts/misns1cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns1.lua` (`Tools/MissionTests/Test-Misns1CoopSourceParity.py`). Holds the mission's runtime CONFIG, the native shadows and the restorations. |
 | `Scripts/CRCCARuntime.lua` | Shared co-op runtime for all eight CCA missions (the generic parts of `CRMisn18.lua`, which is untouched). |
 | `Scripts/CRVenusSitesS1.lua`, `Scripts/CRVenusWeather.lua` | Venus weather and the generated sulphur/vent sites for this map. |
 | `Missions/misns1cr.bzn` | Map roster; authored NSDF vehicles are switched to Black Dog ODFs while their labels stay intact. |
 | `Missions/misns1cr.vxt`, `misns1.{hg2,lgt,mat,trn}` | Terrain and map companions. |
-| `Tools/Misns1Fixture.lua`, `Test-Misns1Coop.lua`, `Test-Misns1Presentation.lua`, `Test-Misns1CoopSourceParity.py`, `Test-Misns1CoopContract.py` | Multi-peer fixture and tests. `Test-Misns1.lua` / `Test-Misns1SourceParity.py` still cover the faithful port, unchanged. |
+| `Tools/MissionTests/Misns1Fixture.lua`, `Test-Misns1Coop.lua`, `Test-Misns1Presentation.lua`, `Test-Misns1CoopSourceParity.py`, `Test-Misns1CoopContract.py` | Multi-peer fixture and tests. `Test-Misns1.lua` / `Test-Misns1SourceParity.py` still cover the faithful port, unchanged. |
 
 ## Teams and ownership
 
@@ -165,12 +165,12 @@ and so does the landing site on this map (flatness is only read from the terrain
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Misns1Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, cameras, audio, results, weather
-lua5.1 Tools/Test-Misns1Presentation.lua    # E/A/C protocol on a guest
-python Tools/Test-Misns1CoopSourceParity.py # misns1cr.lua minus CR regions == misns1.lua
-python Tools/Test-Misns1CoopContract.py     # labels/paths/teams in misns1cr.bzn (skips with a message if the map is absent)
-lua5.1 Tools/Test-Misns1DropIn.lua          # the dropship opening: hold gate, nothing enemy before the landing, clocks, co-op, save/load
-lua5.1 Tools/Test-Misns1.lua && python Tools/Test-Misns1SourceParity.py   # the faithful port, unchanged
+lua5.1 Tools/MissionTests/Test-Misns1Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, cameras, audio, results, weather
+lua5.1 Tools/MissionTests/Test-Misns1Presentation.lua    # E/A/C protocol on a guest
+python Tools/MissionTests/Test-Misns1CoopSourceParity.py # misns1cr.lua minus CR regions == misns1.lua
+python Tools/MissionTests/Test-Misns1CoopContract.py     # labels/paths/teams in misns1cr.bzn (skips with a message if the map is absent)
+lua5.1 Tools/MissionTests/Test-Misns1DropIn.lua          # the dropship opening: hold gate, nothing enemy before the landing, clocks, co-op, save/load
+lua5.1 Tools/MissionTests/Test-Misns1.lua && python Tools/MissionTests/Test-Misns1SourceParity.py   # the faithful port, unchanged
 ```
 
 The workflow `.github/workflows/campaign-validation.yml` is not yet wired to run the four new tests (shared file).

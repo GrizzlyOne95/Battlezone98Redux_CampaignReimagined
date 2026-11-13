@@ -172,7 +172,7 @@ reference already differed from its committed pin; the mismatch was not caused
 by this mission fix. The synchronized guidance fixes that stale baseline too.
 CR `AGENTS.md` requires this report for Livewire/cinematic fixture setup.
 
-`Tools/Test-SXShowcase.lua` fails on any non-craft independence call even if a
+`Tools/UnitsAndBuildings/Test-SXShowcase.lua` fails on any non-craft independence call even if a
 caller catches the mock error with `pcall`; it also requires all ten intended
 craft to hold position. Keep both checks: dropping all AI commands would hide
 the crash while losing the exhibit's staging behavior. Continue native feature

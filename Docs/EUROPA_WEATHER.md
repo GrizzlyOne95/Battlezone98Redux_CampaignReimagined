@@ -13,7 +13,7 @@ events, generated map data). It is reusable by any Europa mission; the first use
 removes, retargets or re-teams anything. It does not touch radar, velocity jam, AI perception,
 cloaks, stealth or objectives, and registers no Environment gameplay modifier. The only state it
 writes is render state (a CRWeather preset, an Environment fog / light modifier, particle
-systems), local 2D sounds, and the engine's earthquake shake. `Tools/Test-CREuropaWeather.lua`
+systems), local 2D sounds, and the engine's earthquake shake. `Tools/TexturesAndSky/Test-CREuropaWeather.lua`
 audits this by wrapping every stubbed BZ and exu function and asserting the called set is a
 subset of an allowlist (details under "Gameplay-effect statement").
 
@@ -22,11 +22,11 @@ subset of an allowlist (details under "Gameplay-effect statement").
 | `Scripts/CREuropaWeather.lua` | The director. Tunables are at the top of the file. |
 | `Scripts/CRVenusMap.lua` | Shared pure half (seeded rng, ladder, vent merge, weighted pick). Reused as is. |
 | `Scripts/CREuropaSites12.lua` | Generated map data for misn12 (16 geysers, 120 frost-haze anchors, bounds). |
-| `Tools/Build-EuropaSites.py` | Regenerates a `CREuropaSites<NN>.lua` from a mission's `.trn`, `.mat`, `.bzn` (and optionally the map worker's geysers JSON). |
+| `Tools/Terrain/Build-EuropaSites.py` | Regenerates a `CREuropaSites<NN>.lua` from a mission's `.trn`, `.mat`, `.bzn` (and optionally the map worker's geysers JSON). |
 | `Materials/cr_europa.particle.payload` | Five particle templates on the `CREuropa/*` materials. Loaded through `CRParticleTemplates.EnsureExtra("cr_europa")`. |
 | `Materials/crart_europa.material` | The `CREuropa/*` particle materials: existing `CR_FX` art on the RGBA-order `CRWX_FX` vertex program plus `CR_Effect_fragment`, so DX11 draws the pass natively. On the `CR_FX/*` originals DX11 swapped red and blue, so the cold blue-white plumes, ice and frost drew a warm peach. |
 | `Materials/cr_weather.particle.payload` | `CR/Europa/Glitter`, the presets' ice glitter: `CR/Weather/SnowLight` on `CREuropa/Snow`. It lives in the base payload so the presets work without the opt-in `cr_europa` one. |
-| `Tools/Test-CREuropaWeather.lua` | Isolated-peer tests against an exu / BZ mock. |
+| `Tools/TexturesAndSky/Test-CREuropaWeather.lua` | Isolated-peer tests against an exu / BZ mock. |
 
 No shared file was edited for the feature. The five `Europa*` presets are registered into
 `CRWeatherPresets.Presets` by the director at `Init` (idempotently), so `CRWeatherPresets.lua`
@@ -154,7 +154,7 @@ overlay, not the sensor path.
 ### 4. Frost haze (local, from map data)
 
 `CR/Europa/FrostHaze`: a low pale sheet (90 x 90 units, 2 above the ground) streamed in at up to 6
-anchors within 360 units of the player. Anchors come from `Tools/Build-EuropaSites.py`: stock misn12
+anchors within 360 units of the player. Anchors come from `Tools/Terrain/Build-EuropaSites.py`: stock misn12
 labels `0 Thin Ice, 1 Frozen Tundra, 2 Snowy Rock, 3 Glacial, 4 Base`. **Frozen Tundra (type 1)** is the
 default because it is only 3 % of the map (1,916 cells of 65,536) and 12 of the 16 geysers stand on it, i.e.
 it is the frost the vents deposit; Snowy Rock is 89 % of the map and cannot mark a place. Anchors are the
@@ -329,9 +329,9 @@ New files only (see the list below); nothing shared was edited except an additiv
 time (not touched here). The payload is a shipped file like `cr_io.particle.payload`, so it needs its
 lock entry. It is loaded through `EnsureExtra("cr_europa")`, not added to the base list, so a build without it
 degrades (presets, glitter and quakes still work) instead of breaking weather. Add
-`lua5.1 Tools/Test-CREuropaWeather.lua Scripts` to `campaign-validation.yml` next to the other weather suites.
+`lua5.1 Tools/TexturesAndSky/Test-CREuropaWeather.lua Scripts` to `campaign-validation.yml` next to the other weather suites.
 
-Regenerate the data: `python -I Tools/Build-EuropaSites.py misn12 --source-dir Missions` (the converted map's
+Regenerate the data: `python -I Tools/Terrain/Build-EuropaSites.py misn12 --source-dir Missions` (the converted map's
 `.bzn` is used when present; the stock `.trn` / `.mat` come from Redux's `bzone.zfs` for any file missing in
 the folder). `--geysers-json FILE` replaces the vents with a `[{label,x,y,z,odf}]` list. The output is
 byte-reproducible; with the co-op map worker's `misn12.bzn` and its geysers JSON the output is identical
@@ -343,8 +343,8 @@ New files:
 Scripts/CREuropaWeather.lua
 Scripts/CREuropaSites12.lua
 Materials/cr_europa.particle.payload
-Tools/Build-EuropaSites.py
-Tools/Test-CREuropaWeather.lua
+Tools/Terrain/Build-EuropaSites.py
+Tools/TexturesAndSky/Test-CREuropaWeather.lua
 Docs/EUROPA_WEATHER.md
 ```
 

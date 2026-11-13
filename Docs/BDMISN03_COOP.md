@@ -11,10 +11,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bd03cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd03.lua` (`Tools/Test-Bdmisn03CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
+| `Scripts/bd03cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bd03.lua` (`Tools/CoopCampaignTests/Test-Bdmisn03CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
 | `Scripts/CRGanymedeSitesBD03.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather (the Europa director with the generated sites for this map: two cryovolcanic vents, the geysers `geyser1` and `eggeizr11_geyser`). |
 | `Missions/bd03cr.{bzn,vxt}`, `bdmisn03.{hg2,lgt,mat,trn}`, `Config/bd03cr.ini` | Map, vehicle list and multiplayer listing (not part of this change). The map has **no enemy base**; the Chinese side is a handful of authored cloaked guards plus everything Lua spawns. |
-| `Tools/Bdmisn03Fixture.lua`, `Test-Bdmisn03Coop.lua`, `Test-Bdmisn03Presentation.lua`, `Test-Bdmisn03CoopSourceParity.py`, `Test-Bdmisn03CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tests/test_bd03.lua` still covers the faithful port, unchanged. |
+| `Tools/CoopCampaignTests/Bdmisn03Fixture.lua`, `Test-Bdmisn03Coop.lua`, `Test-Bdmisn03Presentation.lua`, `Test-Bdmisn03CoopSourceParity.py`, `Test-Bdmisn03CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tests/test_bd03.lua` still covers the faithful port, unchanged. |
 
 ## Teams and ownership
 
@@ -170,10 +170,10 @@ Beats (host/offline only, each once, tied to the mission's own moments; the dire
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Bdmisn03Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, fallback, films, results, weather
-lua5.1 Tools/Test-Bdmisn03Presentation.lua    # E/A/C protocol on a guest
-python Tools/Test-Bdmisn03CoopSourceParity.py # bd03cr.lua minus CR regions == bd03.lua
-python Tools/Test-Bdmisn03CoopContract.py     # labels/paths/teams in bd03cr.bzn (skips with a message if the map is absent)
+lua5.1 Tools/CoopCampaignTests/Test-Bdmisn03Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, fallback, films, results, weather
+lua5.1 Tools/CoopCampaignTests/Test-Bdmisn03Presentation.lua    # E/A/C protocol on a guest
+python Tools/CoopCampaignTests/Test-Bdmisn03CoopSourceParity.py # bd03cr.lua minus CR regions == bd03.lua
+python Tools/CoopCampaignTests/Test-Bdmisn03CoopContract.py     # labels/paths/teams in bd03cr.bzn (skips with a message if the map is absent)
 lua5.1 Tests/test_bd03.lua                    # the faithful port, unchanged
 ```
 

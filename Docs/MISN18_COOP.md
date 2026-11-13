@@ -10,12 +10,12 @@ Quake"). One `Missions/misn18.bzn` and one `Scripts/misn18.lua` serve both modes
 
 | File | Role |
 | --- | --- |
-| `Scripts/misn18.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly the DLL source (`Tools/Test-Misn18SourceParity.py`). |
+| `Scripts/misn18.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly the DLL source (`Tools/MissionTests/Test-Misn18SourceParity.py`). |
 | `Scripts/CRMisn18.lua` | Co-op runtime: ownership, concealed Fury arrivals, presentation transport, storm hook, extraction ending. Adapted from `CRMisn17.lua`. |
 | `Scripts/CRDrop18.lua` | The extraction ending's dropship choreography (pure functions of the plan and the clock). |
-| `Missions/misn18.{bzn,hg2,lgt,mat,trn,vxt}` | Map and companions, built by `Tools/Build-Misn18CoopMap.py`. |
+| `Missions/misn18.{bzn,hg2,lgt,mat,trn,vxt}` | Map and companions, built by `Tools/MissionBuild/Build-Misn18CoopMap.py`. |
 | `Config/misn18.ini`, `misn18.mpdes`, `Assets/Graphics/misn18.bmp`, `Config/crcampgn.ini` `[MISSION17]` | Lobby listing and campaign entry (voice `misn1800.wav`, planet `titan`: the menu has no Achilles icon). |
-| `Tools/Misn18Fixture.lua`, `Misn18RealStorm.lua`, `Test-Misn18Coop.lua`, `Test-Misn18CoopContract.py` | Four-peer fixture (with the real storm loader) and contract tests. |
+| `Tools/MissionTests/Misn18Fixture.lua`, `Misn18RealStorm.lua`, `Test-Misn18Coop.lua`, `Test-Misn18CoopContract.py` | Four-peer fixture (with the real storm loader) and contract tests. |
 
 The map is the 1.5 original (22 objects, 46 named paths), converted to Redux 2016 text, class `MultSTMission`,
 four `pspwn_1` start buoys (teams 1-4, 25 m apart). Heightmap: the unsmoothed 1.5 `.hg2` from commit `ce18e89`;
@@ -161,7 +161,7 @@ referenced anywhere in the DLL. It is an alternate take of the active `misn1804`
 back to the Texas. You have three minutes.") for the same moment, wrongly calling the Texas "the transport" after
 the player has just destroyed the Fury one; playing both would be redundant and misleading, and it is absent
 from every Redux language archive except English and Russian. The objective file `misn1803.otf` ("Return To Your
-Recycler For Immediate Evacuation") is a different, active asset. `Tools/Test-Misn18CoopContract.py` asserts the
+Recycler For Immediate Evacuation") is a different, active asset. `Tools/MissionTests/Test-Misn18CoopContract.py` asserts the
 wav is not referenced.
 
 ## Map content the script never uses
@@ -246,10 +246,10 @@ derived from flags):
 | `won` | The extraction has finished (held back until then). |
 | `lost` | Any failure latched (not found, recycler destroyed, left behind, out of lives). |
 
-`Tools/Test-Misn18Coop.lua` verifies the mission with the module absent, with a recording stand-in in both
+`Tools/MissionTests/Test-Misn18Coop.lua` verifies the mission with the module absent, with a recording stand-in in both
 module shapes (phase order, leader-only calls, event delivery to guests, save/load, `Stop`), with a module
 that cannot be built or throws, and with the **real** `Scripts/CRStorm18.lua` on four peers
-(`Tools/Misn18RealStorm.lua`: real director, CRWeather, presets and foliage wind over a stubbed EXU): a full win
+(`Tools/MissionTests/Misn18RealStorm.lua`: real director, CRWeather, presets and foliage wind over a stubbed EXU): a full win
 and a lost path, phases in order and leader-only, guests rendering the same phase, seed, strikes and funnel from
 events, the quake routed into the storm (no peer calls the natives, the pulse is preserved, one native owner),
 the tornado pulling only owned craft, no storm errors, calm on `Stop`, and a mid-storm save/load. The extraction
@@ -260,11 +260,11 @@ dead Factory, with a load mid-ending, and without the choreography module.
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Misn18.lua                  # faithful port, 163 checks (CR layer off)
-lua5.1 Tools/Test-Misn18Coop.lua              # four-peer co-op layer, 2988 checks
-python Tools/Test-Misn18SourceParity.py       # strips CR regions, proves the DLL port underneath
-python Tools/Test-Misn18CoopContract.py       # map, teams, paths, listing, campaign entry, shipping
-lua5.1 Tools/Test-FuryRoster.lua              # shared roster
+lua5.1 Tools/MissionTests/Test-Misn18.lua                  # faithful port, 163 checks (CR layer off)
+lua5.1 Tools/MissionTests/Test-Misn18Coop.lua              # four-peer co-op layer, 2988 checks
+python Tools/MissionTests/Test-Misn18SourceParity.py       # strips CR regions, proves the DLL port underneath
+python Tools/MissionTests/Test-Misn18CoopContract.py       # map, teams, paths, listing, campaign entry, shipping
+lua5.1 Tools/UnitsAndBuildings/Test-FuryRoster.lua              # shared roster
 ```
 
 `Test-FuryRoster.lua` no longer loads `misn18.lua` through a stub (the production spawner is `CRMisn18.Spawn`);
@@ -301,7 +301,7 @@ pulled by the tornado.
 
 ## Live results 2026-10-19
 
-First live runs, OpenShim co-op harness (`Tools/Run-Misn18Live.ps1`, scenarios `Tools/Test-Misn18Live.ps1`), GOG
+First live runs, OpenShim co-op harness (`Tools/MissionTests/Run-Misn18Live.ps1`, scenarios `Tools/MissionTests/Test-Misn18Live.ps1`), GOG
 build, DX11, windowed, no audio endpoint, no focus or input. One-peer runs are a one-client network game (the harness
 lobby needs a patched copy for one peer; true offline play cannot be started without a menu click, so the offline
 code path is **not** covered). Evidence: `C:\BZRCoop\misn18-20261019\` and `C:\BZRCoop\runs\<run>\`.

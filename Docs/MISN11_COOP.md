@@ -10,7 +10,7 @@ Starting choices follow [the co-op production progression](COOP_STARTING_UNITS.m
 
 ## Map
 
-`Tools/Build-CoopMap.py --mission misn11` rebuilt `Missions/misn11.bzn` from the Battlezone 1.5
+`Tools/MissionBuild/Build-CoopMap.py --mission misn11` rebuilt `Missions/misn11.bzn` from the Battlezone 1.5
 original: class `MultSTMission`, the eight authored CCA objects (five `svturr`, two `svartl`, one
 `svwalk`) moved from team 2 to team 5, four zero-motion `pspwn_1` team starts (`coop_spawn1`-`4`), no
 authored object on teams 2-4. The three haulers, the three wingmen, the armory, the bases and the nav
@@ -90,7 +90,7 @@ Missions` from the painted lava.
 ## Lava
 
 Stock misn11 never paints the molten tile and its `.trn` has no `Lava=` key, so the engine treated no
-ground as lava. `Tools/Build-Misn11Lava.py` (reproducible, deterministic, from Redux's originals) repaints
+ground as lava. `Tools/MissionBuild/Build-Misn11Lava.py` (reproducible, deterministic, from Redux's originals) repaints
 `Missions/misn11.mat` and sets `Lava=1` in `Missions/misn11.trn` (TextureType 1, "Lava Pool"). Engine
 behaviour (decompiled BZ 1.5): craft over a lava tile take heat damage scaled by the surrounding lava tiles
 and by hover height, so lava damages (roughly 100-140 hp/s for a hovering tank), it does not block; AI
@@ -118,16 +118,16 @@ Preview: `Docs/MISN11_LAVA_PREVIEW.png` (heightmap shading, lava, shoreline tile
 ## Focused checks
 
 ```sh
-lua5.1 Tools/Test-Misn11.lua
-lua5.1 Tools/Test-Misn11Coop.lua
-lua5.1 Tools/Test-Misn11Presentation.lua
-lua5.1 Tools/Test-CRIoWeather.lua Scripts
-python Tools/Test-Misn11SourceParity.py
-python Tools/Test-Misn11CoopContract.py
-python Tools/Test-CoopAuthoredLabels.py
-python Tools/Test-SetupMissionShell.py
+lua5.1 Tools/MissionTests/Test-Misn11.lua
+lua5.1 Tools/MissionTests/Test-Misn11Coop.lua
+lua5.1 Tools/MissionTests/Test-Misn11Presentation.lua
+lua5.1 Tools/TexturesAndSky/Test-CRIoWeather.lua Scripts
+python Tools/MissionTests/Test-Misn11SourceParity.py
+python Tools/MissionTests/Test-Misn11CoopContract.py
+python Tools/MissionTests/Test-CoopAuthoredLabels.py
+python Tools/MissionTests/Test-SetupMissionShell.py
 python Tools/Validate-CampaignRepository.py
-python Tools/Build-Misn11Lava.py --dry-run     # lava plan + reachability assertions
+python Tools/MissionBuild/Build-Misn11Lava.py --dry-run     # lava plan + reachability assertions
 ```
 
 ## Not yet verified

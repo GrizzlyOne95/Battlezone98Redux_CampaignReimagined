@@ -52,7 +52,7 @@ arrival. No EXU/OpenShim/helper dependency is introduced.
 
 ## Validation and integration
 
-Run `python Tools/test_ch02.py` with `lupa` installed (uses `lupa.lua51`).
+Run `python Tools/CoopCampaignTests/test_ch02.py` with `lupa` installed (uses `lupa.lua51`).
 The mocked engine tests cover the cinematic, strict timer boundaries, full
 wave timeline, escort orders, disabled ambush, walker escape/recycle and loss,
 convoy damage/ambushes, all mission results, wreck/null handling, base/live APC

@@ -71,7 +71,7 @@ These are **the guide's account**, sometimes framed there as tentative NSDF inte
 3. Decide how crystal handling coexists with the seven power-tower/minefield phase and the three factory-part victory gates, including simultaneous alternative completion.
 4. Keep the faithful Lua/native port and its source-parity baseline traceable; add CR-only marked extensions rather than presenting authored behavior as recovered native code.
 5. Account for save/load persistence, lost/destroyed crystal handles, sound sequencing/subtitles, 2-4-player leader authority and client replication, co-op and offline success/failure precedence.
-6. Verify WAV availability per supported language, `Tools/Test-ShippedCutVo.py`, `Tools/Import-GoombaTranscripts.py --check`, package lock requirements and real GOG/Steam play before shipping.
+6. Verify WAV availability per supported language, `Tools/Release/Test-ShippedCutVo.py`, `Tools/Release/Import-GoombaTranscripts.py --check`, package lock requirements and real GOG/Steam play before shipping.
 
 ## Other recorded-VO restoration queue (status at audit)
 
@@ -116,4 +116,4 @@ The CSV contains **778 campaign/training entries**, **51** of which have an expl
 - Transcript corpus: `Tools/TranscriptSources/GoombaBZ/campaigns.csv`, `Tools/TranscriptSources/GoombaBZ/README.md`
 - Intro/guide claims: owner's `texttranscript.txt`, SHA-256 above, especially OCR lines ~4630-4651, 5490-5535, 5675-5690, 5832-5844, 6388-6409, 6520-6536, 6661-6674, 6816-6851
 - Port/source comparisons: `References/Misn15Source/`, `References/Misn16Source/`, `References/Misn17Source/`, `References/Misn18Source/` and `Docs/MISN*_SOURCE_PORT.md` or `Docs/MISN16_LUA_PORT.md`
-- Restored VO/package checks: `Tools/Test-ShippedCutVo.py`, `Tools/Import-GoombaTranscripts.py`, `Shipping/shipping.lock.json`
+- Restored VO/package checks: `Tools/Release/Test-ShippedCutVo.py`, `Tools/Release/Import-GoombaTranscripts.py`, `Shipping/shipping.lock.json`

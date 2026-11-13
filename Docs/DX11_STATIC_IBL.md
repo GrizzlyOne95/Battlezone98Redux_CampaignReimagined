@@ -55,7 +55,7 @@ CR ships no loadable copy of its own. The materials bind these by bare filename 
 
 The shim's `ValidateDeployedResourceSetAt` requires all three to be present and non-empty in that directory, so deleting them there disables the Enhanced profile outright, not just IBL.
 
-`Tools/Generate-StaticIBL.py` regenerates the reference set using real cosine-weighted irradiance integration, GGX importance-sampled prefiltering, and BRDF integration. Its default output directory is `Local/IBL` so generation is staged rather than promoted. Its default prefiltered cube is 128x128 with eight mips, so replacing the compact bootstrap cube with the generated 128px version requires no shader-layout change.
+`Tools/Shaders/Generate-StaticIBL.py` regenerates the reference set using real cosine-weighted irradiance integration, GGX importance-sampled prefiltering, and BRDF integration. Its default output directory is `Local/IBL` so generation is staged rather than promoted. Its default prefiltered cube is 128x128 with eight mips, so replacing the compact bootstrap cube with the generated 128px version requires no shader-layout change.
 
 Promoting a generated set means copying it into the OpenShim repo's `resources/renderer/enhanced/` and bumping `resources.version` there, so a stale DLL can never pair with new resources.
 
@@ -126,7 +126,7 @@ IBL is expected to expose poor legacy F0/roughness calibration more aggressively
 Run the SM4 compiler matrix on Windows:
 
 ```powershell
-.\Tools\Validate-DX11Shaders.ps1
+.\Tools\Shaders\Validate-DX11Shaders.ps1
 ```
 
 The validator includes no-shadow, single-shadow, and PSSM IBL variants for both base and terrain shaders in addition to the Phase-1 compatibility cases.

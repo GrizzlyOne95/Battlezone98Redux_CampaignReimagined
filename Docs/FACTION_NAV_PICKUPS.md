@@ -82,7 +82,7 @@ source payloads rather than substituting NSDF definitions under a new skin.
   repair triangles receive unique bounded UVs. Continuous concave perimeter
   wraps match U/V physical density; planar upper/underside and cone charts
   replace rejected per-facet emblem/vent stamps. No collapsed/overlapping UV
-  triangles or stock-UV remainder. Shared `Tools/poduv.py` is used by runtime
+  triangles or stock-UV remainder. Shared `Tools/UnitsAndBuildings/poduv.py` is used by runtime
   and historical NSDF prototype builders. One material plus 1024px D/E per pod.
 - **Weapons:** guarded emblem placement and the existing triangle partition stay.
   At most one whole centered emblem fits a checked triangle footprint; fins and
@@ -153,11 +153,11 @@ References live under `References/TextureRevamp/`:
 - `nav-pickups/`: original source/native/ODF snapshots, menu routes and receipts.
 
 ```text
-python Tools/Build-FactionNavPickups.py
-python Tools/Build-FactionPickupIntegration.py
-python Tools/Test-FactionNavPickups.py
-python Tools/Test-FactionPickupIntegration.py
-python Tools/Test-PodUVPrototype.py
+python Tools/UnitsAndBuildings/Build-FactionNavPickups.py
+python Tools/UnitsAndBuildings/Build-FactionPickupIntegration.py
+python Tools/UnitsAndBuildings/Test-FactionNavPickups.py
+python Tools/UnitsAndBuildings/Test-FactionPickupIntegration.py
+python Tools/UnitsAndBuildings/Test-PodUVPrototype.py
 ```
 
 Targeted tests cover source/master/current-output hashes, exact geometry/native

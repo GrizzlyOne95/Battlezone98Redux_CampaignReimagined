@@ -16,15 +16,15 @@ physical boarding, a separate-PC network, Steam, Proton or Wine.
 
 | Map | Scenario | Required result |
 | --- | --- | --- |
-| misn15 | `Tools/Test-Misn15Live.ps1` | both rescues; methane binding; replicated Tartarus response/mines; fourth-human extraction gate; shared win |
-| misn13 | `Tools/Test-Misn13Live.ps1` | CCA AIP; four-human reinforcement sizes; factory/hangar/all-silo win gate; shared win |
-| misn14 | `Tools/Test-Misn14Live.ps1` | eight Furies, commandability on each human, rogue team replication, three rescues, surrender and scientists' return |
-| misn12 | `Tools/Test-Misn12Live.ps1` | per-human checkpoint state; guest uplink/range break; all-human extraction; shared win |
-| misn02b | `Tools/Test-Misn02bLive.ps1` | on-foot start; fourth-human film skip; scavenger chain; shared win and clean labels |
-| misn03 | `Tools/Test-Misn03Live.ps1` | defense/evacuation chain; fourth-human film skip; every human reaches extraction; shared win |
-| misn04 | `Tools/Test-Misn04Live.ps1` | relic/base objectives and films; fourth-human film skip; shared win |
-| misn07 | `Tools/Test-Misn07Live.ps1` | guest rendezvous, array destruction, Utah arrival and shared core-objective victory |
-| misn08 | `Tools/Test-Misn08Live.ps1` | base destruction alone cannot win; fourth human discovers relic; shared win |
+| misn15 | `Tools/MissionTests/Test-Misn15Live.ps1` | both rescues; methane binding; replicated Tartarus response/mines; fourth-human extraction gate; shared win |
+| misn13 | `Tools/MissionTests/Test-Misn13Live.ps1` | CCA AIP; four-human reinforcement sizes; factory/hangar/all-silo win gate; shared win |
+| misn14 | `Tools/MissionTests/Test-Misn14Live.ps1` | eight Furies, commandability on each human, rogue team replication, three rescues, surrender and scientists' return |
+| misn12 | `Tools/MissionTests/Test-Misn12Live.ps1` | per-human checkpoint state; guest uplink/range break; all-human extraction; shared win |
+| misn02b | `Tools/MissionTests/Test-Misn02bLive.ps1` | on-foot start; fourth-human film skip; scavenger chain; shared win and clean labels |
+| misn03 | `Tools/MissionTests/Test-Misn03Live.ps1` | defense/evacuation chain; fourth-human film skip; every human reaches extraction; shared win |
+| misn04 | `Tools/MissionTests/Test-Misn04Live.ps1` | relic/base objectives and films; fourth-human film skip; shared win |
+| misn07 | `Tools/MissionTests/Test-Misn07Live.ps1` | guest rendezvous, array destruction, Utah arrival and shared core-objective victory |
+| misn08 | `Tools/MissionTests/Test-Misn08Live.ps1` | base destruction alone cannot win; fourth human discovers relic; shared win |
 
 Mission 12's scenario explicitly supplies replicated, owner-local key ships
 and assumes them through EXU. This tests the mission capture adapter and later
@@ -51,7 +51,7 @@ Run OpenShim's `reverse_engineering/coopflow/Test-CRFlowMissionParsing.ps1
 probe under Lua 5.1; checking the probe alone misses the main chunk's local limit.
 
 ```powershell
-.\Tools\Run-CoopFourQualification.ps1 `
+.\Tools\MissionTests\Run-CoopFourQualification.ps1 `
   -HarnessRepo <selected-OpenShim-checkout> `
   -CampaignContent <frozen-content-directory> `
   -BZRCoopRoot <prepared-private-runtime-root>
@@ -94,7 +94,7 @@ during the run). A PASS that left any dump is reported as `PASS-WITH-DUMPS`.
    listing sorts first on this install.
 
    ```powershell
-   .\Tools\Run-CoopFourQualification.ps1 -SmokeFallback -Missions bd01cr `
+   .\Tools\MissionTests\Run-CoopFourQualification.ps1 -SmokeFallback -Missions bd01cr `
      -HarnessRepo <HarnessRepo> -CampaignContent <CR-checkout>\Local\Workshop\content `
      -BZRCoopRoot <runtime-root>
    ```
@@ -104,7 +104,7 @@ during the run). A PASS that left any dump is reported as `PASS-WITH-DUMPS`.
 
    ```powershell
    $m = @(1..8 | % { "misns${_}cr" }) + @(1..15 | % { 'bd{0:d2}cr' -f $_ }) + @(1..8 | % { 'ch{0:d2}cr' -f $_ })
-   .\Tools\Run-CoopFourQualification.ps1 -SmokeFallback -Missions $m `
+   .\Tools\MissionTests\Run-CoopFourQualification.ps1 -SmokeFallback -Missions $m `
      -HarnessRepo <HarnessRepo> -CampaignContent <CR-checkout>\Local\Workshop\content `
      -BZRCoopRoot <runtime-root>
    ```

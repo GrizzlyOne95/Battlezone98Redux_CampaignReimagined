@@ -37,7 +37,7 @@ Source blob: `ac9bdec108f18a8d5ad933353ebd612fc156da34`.
 
 ## Validation and integration
 
-Run `python Tools/test_bdmisn13.py` with `lupa` installed. It explicitly uses
+Run `python Tools/CoopCampaignTests/test_bdmisn13.py` with `lupa` installed. It explicitly uses
 `lupa.lua51`, derives wave/defender compositions from the archived C++ source,
 and checks strict timer boundaries, command targets, camera/audio gates,
 nonzero-distance semantics, team-1 recycling, all four losses, victory, and

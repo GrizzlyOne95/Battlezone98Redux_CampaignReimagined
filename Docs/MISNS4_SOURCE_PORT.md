@@ -74,8 +74,8 @@ implemented cinematic.
 From repository root:
 
 ```sh
-lua5.1 Tools/Test-Misns4.lua
-python Tools/Test-Misns4SourceParity.py
+lua5.1 Tools/MissionTests/Test-Misns4.lua
+python Tools/MissionTests/Test-Misns4SourceParity.py
 ```
 
 The mock host checks timing boundaries, forces, synchronous/deferred callbacks,

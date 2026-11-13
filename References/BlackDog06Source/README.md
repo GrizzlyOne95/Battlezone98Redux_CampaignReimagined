@@ -12,5 +12,5 @@ The gameplay cut blocks also remain inert beside their corresponding states
 in `Scripts/bd06.lua`. The optional cockpit timer, friendly damage check and
 alternate `bd06008.wav` / `bd06005.wav` victory remain disabled.
 
-Run `python Tools/Test-BlackDog06SourceParity.py` to check the archive hash,
+Run `python Tools/CoopCampaignTests/Test-BlackDog06SourceParity.py` to check the archive hash,
 source state numbers, mission assets, waves and disabled content.

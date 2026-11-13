@@ -96,7 +96,7 @@ Foliage sways on the GPU; Lua writes one float4 per material when the wind
 changes, never per instance or per frame.
 
 - **Weights.** StaticGeometry bakes vertices into region space, so the shader
-  cannot recover a vertex's height above its own root. `Tools/Bake-FoliageSway.py`
+  cannot recover a vertex's height above its own root. `Tools/MissionBuild/Bake-FoliageSway.py`
   instead adds a TEXCOORD1 stream of (bend, flutter) weights in 0..1 to each
   foliage submesh, on its own vertex buffer, and renames the submesh to the
   wind material. A wind material on an unbaked mesh fails the D3D11 vertex
@@ -138,7 +138,7 @@ ground-cover placement). A TerrainClutter profile opts in with
 `wind = { slot = "specular", litter = {...} }` and the `CR/GrassWind` material;
 misn02b keeps `CR/GrassPrototype`, because the Moon has no wind.
 
-Regenerating: `Tools/Build-FoliageWindMaterial.py` writes
+Regenerating: `Tools/TexturesAndSky/Build-FoliageWindMaterial.py` writes
 `cr17_wind.material` from `cr17_surface.material` (CI runs `--check`). Rerun
 `Bake-FoliageSway.py` after re-exporting any foliage mesh, including
 `crgrass.mesh` from `Tools/Assets/crgrass.mesh.xml`, or the stream is lost.

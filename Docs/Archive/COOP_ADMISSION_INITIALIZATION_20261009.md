@@ -40,7 +40,7 @@ A reused module remains initialized between missions until its next Initialize
 begins; arbitrary messages in that interval require separate lifecycle/epoch
 evidence and are not qualified by this fix.
 
-`Tools/Test-CRCoopAdmission.lua` reproduces the early acknowledgement failure on
+`Tools/RuntimeTests/Test-CRCoopAdmission.lua` reproduces the early acknowledgement failure on
 the original source and passes on the fix. It also checks early K/P, guest retry
 and acknowledgement cessation, reinitialization, wrong version/non-leader ack
 and single-player readiness. Existing CRCoop tests pass. Complete-script Lua

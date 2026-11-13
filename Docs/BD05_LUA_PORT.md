@@ -58,8 +58,8 @@ Each behavioral fix is explained at its point of use in the Lua script.
 Run from the repository root:
 
 ```sh
-lua5.1 Tools/Test-BlackDog05.lua
-python Tools/Test-BlackDog05SourceParity.py
+lua5.1 Tools/CoopCampaignTests/Test-BlackDog05.lua
+python Tools/CoopCampaignTests/Test-BlackDog05SourceParity.py
 ```
 
 The stub harness covers startup, cancellation, strict wave boundaries, every

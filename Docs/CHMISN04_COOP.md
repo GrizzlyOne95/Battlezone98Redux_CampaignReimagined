@@ -12,10 +12,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/ch04cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch04.lua` (`Tools/Test-Chmisn04CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the restorations. |
+| `Scripts/ch04cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch04.lua` (`Tools/CoopCampaignTests/Test-Chmisn04CoopSourceParity.py`): the body is **not edited at all**, the runtime's per-frame calls wrap its callbacks at the end of the file. Holds the runtime CONFIG, the native shadows and the restorations. |
 | `Scripts/CREuropaWeather.lua`, `Scripts/CRGanymedeSitesCH04.lua` | The Ganymede weather (the Europa director, no new module) and the generated sites for this map (two vents: the base geyser beside the portal and the Soviet geyser beside their factory). |
 | `Missions/ch04cr.{bzn,vxt}`, `chmisn04.{hg2,lgt,mat,trn}` | Map and companions (not part of this change). The start file offers the upgraded fighter `cvfighe` and the tank `cvtnk` ([`COOP_STARTING_UNITS.md`](COOP_STARTING_UNITS.md)); the map start is the host's `cvfighe` (`player`). The Soviet side is team 5, the map's own enemy team 2 having been moved. |
-| `Tools/Chmisn04Fixture.lua`, `Test-Chmisn04Coop.lua`, `Test-Chmisn04Presentation.lua`, `Test-Chmisn04CoopSourceParity.py`, `Test-Chmisn04CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Chinese04.lua` / `Test-Chinese04SourceParity.py` still cover the faithful port, unchanged. |
+| `Tools/CoopCampaignTests/Chmisn04Fixture.lua`, `Test-Chmisn04Coop.lua`, `Test-Chmisn04Presentation.lua`, `Test-Chmisn04CoopSourceParity.py`, `Test-Chmisn04CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Chinese04.lua` / `Test-Chinese04SourceParity.py` still cover the faithful port, unchanged. |
 
 ## Teams and ownership
 
@@ -172,11 +172,11 @@ The director never damages.
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Chmisn04Coop.lua            # offline == faithful, 1-4 peers, stealth rules, relay, timer, scaling, 460 m, retreat, end film, saves, weather
-lua5.1 Tools/Test-Chmisn04Presentation.lua    # E/A/C protocol and this mission's four ops on a guest
-python Tools/Test-Chmisn04CoopSourceParity.py # ch04cr.lua minus CR regions == ch04.lua
-python Tools/Test-Chmisn04CoopContract.py     # labels/paths/teams/start file in ch04cr.bzn (skips with a message if the map is absent)
-lua5.1 Tools/Test-Chinese04.lua && python Tools/Test-Chinese04SourceParity.py   # the faithful port, unchanged
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn04Coop.lua            # offline == faithful, 1-4 peers, stealth rules, relay, timer, scaling, 460 m, retreat, end film, saves, weather
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn04Presentation.lua    # E/A/C protocol and this mission's four ops on a guest
+python Tools/CoopCampaignTests/Test-Chmisn04CoopSourceParity.py # ch04cr.lua minus CR regions == ch04.lua
+python Tools/CoopCampaignTests/Test-Chmisn04CoopContract.py     # labels/paths/teams/start file in ch04cr.bzn (skips with a message if the map is absent)
+lua5.1 Tools/CoopCampaignTests/Test-Chinese04.lua && python Tools/CoopCampaignTests/Test-Chinese04SourceParity.py   # the faithful port, unchanged
 ```
 
 The contract test checks `Missions/ch04cr.vxt`, `Config/ch04cr.ini`, `Config/crch.ini` and the `.mpdes` only when they are present.

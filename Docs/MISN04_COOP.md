@@ -86,14 +86,14 @@ missing ship art does the same. The leader validates the plan (anchors, delays, 
 ## Focused validation
 
 ```sh
-lua5.1 Tools/Test-CRDropIn.lua
-lua5.1 Tools/Test-Misn04Coop.lua
-lua5.1 Tools/Test-BZRPeerTransport.lua
-lua5.1 Tools/Test-CRCoop.lua
-lua5.1 Tools/Test-CRMarsWeather.lua
-python Tools/Test-Misn04CoopContract.py
-python Tools/Test-SetupMissionShell.py
-python Tools/Test-EarlyMissionSourceAudit.py
+lua5.1 Tools/RuntimeTests/Test-CRDropIn.lua
+lua5.1 Tools/MissionTests/Test-Misn04Coop.lua
+lua5.1 Tools/RuntimeTests/Test-BZRPeerTransport.lua
+lua5.1 Tools/RuntimeTests/Test-CRCoop.lua
+lua5.1 Tools/TexturesAndSky/Test-CRMarsWeather.lua
+python Tools/MissionTests/Test-Misn04CoopContract.py
+python Tools/MissionTests/Test-SetupMissionShell.py
+python Tools/MissionTests/Test-EarlyMissionSourceAudit.py
 python Tools/Validate-CampaignRepository.py
 ```
 

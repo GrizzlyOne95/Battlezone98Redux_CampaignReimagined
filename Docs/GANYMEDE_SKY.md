@@ -13,7 +13,7 @@ further out.
   `Shaders/CR_jovian.hlsl`) on TRN `[Stars]` quads at `Radius = 1000`: `crjovian.map`, then `crio.map`,
   `creuropa.map` and `crcallis.map`. The textures are the ones Io and Europa already use
   (`crsky_jupiter.png`, `crsky_io.png`, `crsky_europa.png`, `crsky_callisto.png`, baked by
-  `Tools/Build-JupiterSky.py`; nothing new is generated, see `Docs/SKY_ART_CREDITS.md`).
+  `Tools/TexturesAndSky/Build-JupiterSky.py`; nothing new is generated, see `Docs/SKY_ART_CREDITS.md`).
 - The TRNs: `bdmisn01` to `06`, `08`, `12` to `15` and `chmisn01` to `04`, `08`. The Elysium and Europa maps
   are not touched.
 - The light is Environment's `orbit` mode, which the Ganymede missions already select

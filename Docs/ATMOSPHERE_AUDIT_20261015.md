@@ -89,7 +89,7 @@ CRStormFX is only used by the separate exhibition. Neither is newly activated.
 
 ## Validation and limits
 
-Tools/Test-AtmosphereIntegration.lua executes the real Environment and CRWeather
+Tools/TexturesAndSky/Test-AtmosphereIntegration.lua executes the real Environment and CRWeather
 against a mocked renderer: native baseline, RGB imports, bounded sun/light motion,
 frame-rate independence/time rewind, full weather weight, cycle lock, manual fog,
 100/130/250/700 horizons, standalone TRN limit, sensor opt-out and particle reuse.

@@ -113,11 +113,11 @@ The old algorithm remains behind the compile-time flag, and its ordinary-sampler
 material passes remain intact. Switch both halves safely with:
 
 ```powershell
-.\Tools\Set-EnhancedPssmVersion.ps1 -Version V1
-.\Tools\Validate-DX11Shaders.ps1
+.\Tools\Shaders\Set-EnhancedPssmVersion.ps1 -Version V1
+.\Tools\Shaders\Validate-DX11Shaders.ps1
 
-.\Tools\Set-EnhancedPssmVersion.ps1 -Version V2
-.\Tools\Validate-DX11Shaders.ps1
+.\Tools\Shaders\Set-EnhancedPssmVersion.ps1 -Version V2
+.\Tools\Shaders\Validate-DX11Shaders.ps1
 ```
 
 The selector updates only the six Enhanced PSSM HLSL4 program definitions and
@@ -129,8 +129,8 @@ shader sampler type paired. The branch is left in V2 state.
 Run:
 
 ```powershell
-.\Tools\Test-EnhancedPssmV2.ps1
-.\Tools\Validate-DX11Shaders.ps1
+.\Tools\Shaders\Test-EnhancedPssmV2.ps1
+.\Tools\Shaders\Validate-DX11Shaders.ps1
 ```
 
 The focused test validates:

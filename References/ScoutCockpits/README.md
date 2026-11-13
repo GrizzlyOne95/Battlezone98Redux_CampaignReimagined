@@ -70,7 +70,7 @@ palette. References are not edit targets. Exact prompts, roles and mode are
 saved in `nsdf/prompt.json` and `bdog/prompt.json`. Both requested 2048 square,
 both returned 1254 square; this does not claim newly authored 2K detail.
 
-The sheets return different chart boundaries. `Tools/Build-ScoutCockpits.py`
+The sheets return different chart boundaries. `Tools/CockpitsAndRigs/Build-ScoutCockpits.py`
 repackages explicit source rectangles into padded shared UV allocations,
 rather than stamping an entire atlas on every panel. Runtime D/E are 1024
 square legacy BC1 with full mip chains. Each saved physical lens ROI is gated
@@ -83,12 +83,12 @@ All buttons/dials/status lights are static artwork, not live telemetry or
 interactive controls.
 
 ```text
-python Tools/Build-ScoutCockpits.py --game <BZR root>
-python Tools/Test-ScoutCockpits.py
-python Tools/Test-CVBomberCockpit.py
-python Tools/Test-AVRocketCockpit.py
-python Tools/Test-CVFighterCockpit.py
-python Tools/Test-RedDevilCockpit.py
+python Tools/CockpitsAndRigs/Build-ScoutCockpits.py --game <BZR root>
+python Tools/CockpitsAndRigs/Test-ScoutCockpits.py
+python Tools/CockpitsAndRigs/Test-CVBomberCockpit.py
+python Tools/CockpitsAndRigs/Test-AVRocketCockpit.py
+python Tools/CockpitsAndRigs/Test-CVFighterCockpit.py
+python Tools/CockpitsAndRigs/Test-RedDevilCockpit.py
 python Tools/Validate-CampaignRepository.py
 ```
 

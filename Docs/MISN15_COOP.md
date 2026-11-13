@@ -162,9 +162,9 @@ remains daylight-locked. No additional damage or wind handling is introduced.
 Reproduction:
 
 ```powershell
-python Tools/Build-Misn15CoopMap.py --source <stockfiles>/misn15b.bzn
-python Tools/Build-TitanSites.py misn15 --source-dir Missions --sea-level 38.1 --zfs <GOG>/bzone.zfs
-python Tools/Build-MethaneSurface.py
+python Tools/MissionBuild/Build-Misn15CoopMap.py --source <stockfiles>/misn15b.bzn
+python Tools/Terrain/Build-TitanSites.py misn15 --source-dir Missions --sea-level 38.1 --zfs <GOG>/bzone.zfs
+python Tools/Terrain/Build-MethaneSurface.py
 ```
 
 ## Validation
@@ -177,7 +177,7 @@ finish, optional-loss handling, postponed spawns, Tartarus grace/damage behavior
 and save/load preventing duplicated rewards/responses. Mocks do not establish
 native ownership, navigation, rendering or natural mission difficulty.
 
-`Tools/Test-Misn15Live.ps1` is a two-client native harness scenario. It explicitly
+`Tools/MissionTests/Test-Misn15Live.ps1` is a two-client native harness scenario. It explicitly
 assists NPC/player positions and reserve/storage. Its result establishes only
 the exercised progression and replication; it does not establish natural
 harvesting, physical shooting, balanced combat, four-PC play, Steam or Proton.

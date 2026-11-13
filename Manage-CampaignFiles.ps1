@@ -2517,7 +2517,7 @@ function Invoke-BlessShipping {
 
     # Written by hand, not ConvertTo-Json: its layout differs between PowerShell
     # 5.1 and 7, and each switch rewrote every line of the lock. This matches
-    # json.dumps(indent=2), which Tools/Apply-ActMaps.py and Build-TerrainShape.py use.
+    # json.dumps(indent=2), which Tools/Terrain/Apply-ActMaps.py and Build-TerrainShape.py use.
     $jsonString = { param($value) '"' + $value.Replace('\', '\\').Replace('"', '\"') + '"' }
     $comment = "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless."
     $fileBlocks = @($ordered | ForEach-Object {
@@ -2666,7 +2666,7 @@ function Initialize-ReleaseConfig {
         return
     }
     [IO.Directory]::CreateDirectory((Split-Path -Parent $target)) | Out-Null
-    Copy-Item -LiteralPath (Join-Path $RepoRoot 'Tools\release.config.example.json') -Destination $target
+    Copy-Item -LiteralPath (Join-Path $RepoRoot 'Tools\Release\release.config.example.json') -Destination $target
     Write-Host "Created $target. Explicit paths select preparation sources; blank paths use BZR_*_REPO overrides or the usual sibling checkouts."
 }
 
@@ -2696,7 +2696,7 @@ function Invoke-PrepareUpdateAction {
     if (-not $note) { throw 'Use -prepare-update "<change note>". Add -reuse-native for a Lua/content-only fix.' }
     $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
     if (-not $pwsh) { throw 'Update preparation requires PowerShell 7 (pwsh).' }
-    $helperArguments = @('-NoProfile','-File',(Join-Path $RepoRoot 'Tools\Prepare-CampaignUpdate.ps1'),'-ChangeNote',$note) + $forward.ToArray()
+    $helperArguments = @('-NoProfile','-File',(Join-Path $RepoRoot 'Tools\Release\Prepare-CampaignUpdate.ps1'),'-ChangeNote',$note) + $forward.ToArray()
     & $pwsh.Source @helperArguments
     if ($LASTEXITCODE -ne 0) { throw "Update preparation failed (exit $LASTEXITCODE). See the preparation receipt/logs if a run directory was created." }
 }

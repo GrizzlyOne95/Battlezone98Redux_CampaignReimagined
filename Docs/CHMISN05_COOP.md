@@ -4,7 +4,7 @@ Shared offline / 2-4 player co-op port of the Chinese mission `ch05`, a disguise
 Chinese scavengers disguised as Soviets, collects scrap, trails a Soviet convoy to learn where the Chinese base went, then
 defends the relocated base against seven Soviet waves, a raid every four minutes, paratroopers and an artillery battery.
 One `Missions/ch05cr.bzn` and one `Scripts/ch05cr.lua` serve both modes. Companion to the faithful port underneath
-(`Scripts/ch05.lua`, tested by `Tools/Test-Chinese05Port.py`) and [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared
+(`Scripts/ch05.lua`, tested by `Tools/CoopCampaignTests/Test-Chinese05Port.py`) and [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared
 runtime). Pattern: [`BDMISN09_COOP.md`](BDMISN09_COOP.md) (a disguise mission with a shared "player"), closest in shape
 [`BDMISN07_COOP.md`](BDMISN07_COOP.md) (Elysium weather, waves, a defended base).
 Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
@@ -13,10 +13,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/ch05cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch05.lua` (`Tools/Test-Chmisn05CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restorations and the callback wrappers. |
+| `Scripts/ch05cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `ch05.lua` (`Tools/CoopCampaignTests/Test-Chmisn05CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restorations and the callback wrappers. |
 | `Scripts/CRElysiumSitesCH05.lua`, `Scripts/CRElysiumWeather.lua` | Elysium weather (the Venus director re-dressed as a blue-grey storm world, generated sites for this map: three geysers, no sulphur). Written separately; not part of this change. |
 | `Missions/ch05cr.{bzn,vxt}`, `chmisn05.{hg2,lgt,mat,trn}`, `Config/ch05cr.ini` | Map, vehicle list (`cvscav`, `cvtnk`) and multiplayer listing. Not part of this change. |
-| `Tools/Chmisn05Fixture.lua`, `Test-Chmisn05Coop.lua`, `Test-Chmisn05Presentation.lua`, `Test-Chmisn05CoopSourceParity.py`, `Test-Chmisn05CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/Test-Chinese05Port.py` still covers the faithful port, unchanged. |
+| `Tools/CoopCampaignTests/Chmisn05Fixture.lua`, `Test-Chmisn05Coop.lua`, `Test-Chmisn05Presentation.lua`, `Test-Chmisn05CoopSourceParity.py`, `Test-Chmisn05CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/CoopCampaignTests/Test-Chinese05Port.py` still covers the faithful port, unchanged. |
 
 ## Teams and ownership
 
@@ -174,14 +174,14 @@ Beats (host/offline only, each once, tied to the mission's own moments):
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Chmisn05Coop.lua            # offline == faithful, 1-4 peers, disguise, scrap gate, film, scaling, 460 m, victory line, results, load, weather
-lua5.1 Tools/Test-Chmisn05Presentation.lua    # the E/A/C protocol through a real guest, then the leader's own stream
-python Tools/Test-Chmisn05CoopSourceParity.py # ch05cr.lua minus CR regions == ch05.lua
-python Tools/Test-Chmisn05CoopContract.py     # labels/paths/teams in ch05cr.bzn (skips with a message if the map is absent)
-python Tools/Test-Chinese05Port.py            # the faithful port, unchanged
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn05Coop.lua            # offline == faithful, 1-4 peers, disguise, scrap gate, film, scaling, 460 m, victory line, results, load, weather
+lua5.1 Tools/CoopCampaignTests/Test-Chmisn05Presentation.lua    # the E/A/C protocol through a real guest, then the leader's own stream
+python Tools/CoopCampaignTests/Test-Chmisn05CoopSourceParity.py # ch05cr.lua minus CR regions == ch05.lua
+python Tools/CoopCampaignTests/Test-Chmisn05CoopContract.py     # labels/paths/teams in ch05cr.bzn (skips with a message if the map is absent)
+python Tools/CoopCampaignTests/Test-Chinese05Port.py            # the faithful port, unchanged
 ```
 
-The workflow `.github/workflows/campaign-validation.yml` and `Tools/Test-CoopAuthoredLabels.py` are not edited by this change.
+The workflow `.github/workflows/campaign-validation.yml` and `Tools/MissionTests/Test-CoopAuthoredLabels.py` are not edited by this change.
 The labels the script presents to guests by `GetHandle` are `silo` and `recycler`; every other object it marks or names is
 built at run time and travels under the runtime's `crcca_N` label.
 

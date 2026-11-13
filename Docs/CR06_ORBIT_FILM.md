@@ -18,7 +18,7 @@ Stacked on `agent/mars-rocket` (CR #228), which owns the launch film and the `cr
 | `Materials/cr06_orbit.material`, `cr06_orbit.particle.payload` | Starfield dome, bolt/exhaust materials, gunfire, blast, burn and vent particles. |
 | `Assets/Textures/cr06star.dds`, `cr06void.dds` | Starfield; 4x4 transparent black used to blank stock sky layers. |
 | `Tools/CR06CapitalShips/` | Blender generators (`build_nsdf.py`, `build_cca.py`, `shipkit.py`, `texgen.py`) and `export_cr.py`, which re-exports a built ship under its CR name with native GEO/SDF. |
-| `Tools/Test-Misn06OrbitLive.ps1` | Co-op harness scenario (see below). |
+| `Tools/MissionTests/Test-Misn06OrbitLive.ps1` | Co-op harness scenario (see below). |
 
 ## How the shot works
 
@@ -53,7 +53,7 @@ Never on the live GOG folder: stage an isolated content folder with
 
 ```
 Run-BZRCoopMission.ps1 -Mission misn06 -CampaignContent <folder> -Clients 2 -MapListY 207 -MuteClients `
-    -Scenario Tools\Test-Misn06OrbitLive.ps1 -RunName <name>
+    -Scenario Tools\MissionTests\Test-Misn06OrbitLive.ps1 -RunName <name>
 ```
 
 The scenario pulls the launch and Mayday timers forward, waits for the real vob4 cue to start the film,

@@ -57,8 +57,8 @@ Lua `Save`/`Load` persist the mission state table without replaying initializati
 Run from the repository root:
 
 ```sh
-lua5.1 Tools/Test-Misn18.lua
-python Tools/Test-Misn18SourceParity.py
+lua5.1 Tools/MissionTests/Test-Misn18.lua
+python Tools/MissionTests/Test-Misn18SourceParity.py
 ```
 
 The Lua 5.1 host suite passes 163 checks covering trigger routes, strict timer

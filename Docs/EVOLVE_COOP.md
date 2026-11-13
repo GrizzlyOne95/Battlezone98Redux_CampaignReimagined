@@ -11,11 +11,11 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/evolvecr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `evolve.lua` (`Tools/Test-EvolveCoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the per-human invehicle/retarget tracking and the scaled-wave extras. |
+| `Scripts/evolvecr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `evolve.lua` (`Tools/MissionTests/Test-EvolveCoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the per-human invehicle/retarget tracking and the scaled-wave extras. |
 | `Scripts/CRCCARuntime.lua` | Shared co-op runtime (misns1..8, bdmisn08, now evolvecr); extended for this mission (see "Runtime changes"). |
 | `Missions/evolvecr.{bzn,vxt?}`, `Missions/sammy__1.{hg2,trn,mat,lgt}`, `Config/evolvecr.ini`, `evolvecr.mpdes` | Map and multiplayer listing (see "Map packaging"; there is no `.vxt`, no vehicle depot on this map). |
-| `Tools/Build-EvolveCoopMap.py` | One-off converter: the stock BZ1 1.5 `sammy__1.bzn` (archived in Redux's `tro_cam.zfs` alongside the Black Dog/Chinese maps) to `Missions/evolvecr.bzn`. |
-| `Tools/Test-EvolveCoop.lua`, `Test-EvolveCoopSourceParity.py`, `Test-EvolveCoopContract.py` | Co-op tests (real `CRCoop`/`CRCCARuntime`, single-environment authority harness; see "Tests"). `Tools/Test-Evolve.lua` still covers the faithful port, unchanged. |
+| `Tools/MissionBuild/Build-EvolveCoopMap.py` | One-off converter: the stock BZ1 1.5 `sammy__1.bzn` (archived in Redux's `tro_cam.zfs` alongside the Black Dog/Chinese maps) to `Missions/evolvecr.bzn`. |
+| `Tools/MissionTests/Test-EvolveCoop.lua`, `Test-EvolveCoopSourceParity.py`, `Test-EvolveCoopContract.py` | Co-op tests (real `CRCoop`/`CRCCARuntime`, single-environment authority harness; see "Tests"). `Tools/MissionTests/Test-Evolve.lua` still covers the faithful port, unchanged. |
 
 ## Map packaging [owner finding, 2026-11-02]
 
@@ -28,7 +28,7 @@ player starts and `apammo_30_N`-style item labels, none of `evolve.lua`'s expect
 etc.) — unrelated to this mission despite sharing the word "evolve".
 
 The real stock map **does** exist, in the classic BZ1 1.5 `tro_cam.zfs` archive bundled with Redux (the same
-archive `Tools/Build-CoopMap.py` already reads for the Black Dog/Chinese maps): `sammy__1.{bzn,lgt,mat,trn}`
+archive `Tools/MissionBuild/Build-CoopMap.py` already reads for the Black Dog/Chinese maps): `sammy__1.{bzn,lgt,mat,trn}`
 (no `.hg2`). Its mission class is `EvolveMission` and **every path and label `evolve.lua` names matches it
 exactly**: `pilot_1..3`, `sold_1..3`, `sniper_1..3`, `spawn_1..3`, `repair`, `ammo`, `apmini_1/2`,
 `apstab_1/2`, `apsstb_1/2`, `apflsh_1/2`, `aptagg_1/2`, `cover_1..4` (`Test-EvolveCoopContract.py`). The
@@ -38,7 +38,7 @@ etc.), not map content; there is nothing by those names to check.
 Unlike `misn06..misn18`/`misns1..misns8` (terrain stem == mission stem == C++ class, all handled by one
 `--mission` argument to `Build-CoopMap.py`) this mission's three names disagree: terrain `sammy__1`, class
 `EvolveMission`, CR stem `evolve`. Rather than forcing a second naming scheme into the shared, heavily-reused
-`Build-CoopMap.py`, `Tools/Build-EvolveCoopMap.py` is a small standalone script that borrows its proven
+`Build-CoopMap.py`, `Tools/MissionBuild/Build-EvolveCoopMap.py` is a small standalone script that borrows its proven
 primitives (the toolbox converter, the buoy template, the stock-field reader) for this one case.
 
 **The heightmap comes from The Red Odyssey.** Redux's `tro_cam.zfs` copy of the map has no height data
@@ -145,14 +145,14 @@ coop test in the repo still passes):
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-EvolveCoop.lua            # 1-4 humans scaling, nearest-human targeting, invehicle latch,
+lua5.1 Tools/MissionTests/Test-EvolveCoop.lua            # 1-4 humans scaling, nearest-human targeting, invehicle latch,
                                              # co-op lives, single ending, save/load, host-only body
-python Tools/Test-EvolveCoopSourceParity.py  # evolvecr.lua minus CR regions == evolve.lua
-python Tools/Test-EvolveCoopContract.py      # labels/paths/teams in evolvecr.bzn (skips if the map is absent)
-lua5.1 Tools/Test-Evolve.lua                 # the faithful port, unchanged
+python Tools/MissionTests/Test-EvolveCoopSourceParity.py  # evolvecr.lua minus CR regions == evolve.lua
+python Tools/MissionTests/Test-EvolveCoopContract.py      # labels/paths/teams in evolvecr.bzn (skips if the map is absent)
+lua5.1 Tools/MissionTests/Test-Evolve.lua                 # the faithful port, unchanged
 ```
 
-`Tools/Test-EvolveCoop.lua` drives a single Lua 5.1 process as the authority (or, for the "host-only body"
+`Tools/MissionTests/Test-EvolveCoop.lua` drives a single Lua 5.1 process as the authority (or, for the "host-only body"
 check, a guest) over the *real* `Scripts/CRCCARuntime.lua` and `Scripts/CRCoop.lua` — only the native engine
 and the `exu`/`RequireFix`/`ScriptSubtitles`/`Environment`/`PersistentConfig` modules are mocked (the last
 four as inert stubs, same as every other CRCCARuntime mission's own peer fixture). Remote humans are
@@ -173,7 +173,7 @@ evolve commands above plus the faithful-port source-parity check in one new step
   "this human's current craft" signal across an eject/respawn; this is the same assumption every other CR
   co-op mission's nearest-human wrapper already makes, just applied here to a *second* purpose (the latch)
   as well as targeting.
-- The out-of-lives path in `Tools/Test-EvolveCoop.lua` uses one connected human (`CRCoop.ReportOutOfLives()`
+- The out-of-lives path in `Tools/MissionTests/Test-EvolveCoop.lua` uses one connected human (`CRCoop.ReportOutOfLives()`
   dispatches without needing a second peer's event acknowledgements, which `CRCCARuntime`'s 3.5 s
   result-publish delay otherwise waits on); a true multi-peer "all four run out together" sequence is
   untested, matching every other CR co-op mission's own host-only test coverage of this path.
@@ -181,7 +181,7 @@ evolve commands above plus the faithful-port source-parity check in one new step
 ## Live checklist (unrun)
 
 1. Load: the map renders (bowl, tail channel, carved "evolve"), every co-op start drops onto the floor.
-2. Solo: the opening pilot wave (round 0) matches `Tools/Test-Evolve.lua`'s own native-baseline checks
+2. Solo: the opening pilot wave (round 0) matches `Tools/MissionTests/Test-Evolve.lua`'s own native-baseline checks
    (3 pilots total, one per spawn point); scrap/pilot/cockpit-timer HUD all start normally.
 3. 2-4 players (guests on teams 2-4, every HUD showing the same score): wave sizes scale per the table above; every attacker and cover item
    retargets correctly as players eject, respawn or swap craft.

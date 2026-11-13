@@ -55,11 +55,11 @@ a claim of authored 2K detail. The center keel rotates the landscape chart to
 its portrait axis so round status lamps do not become stretched ovals.
 
 ```text
-python Tools/Build-CVBomberCockpit.py --game <BZR root>
-python Tools/Test-CVBomberCockpit.py
-python Tools/Test-AVRocketCockpit.py
-python Tools/Test-CVFighterCockpit.py
-python Tools/Test-RedDevilCockpit.py
+python Tools/CockpitsAndRigs/Build-CVBomberCockpit.py --game <BZR root>
+python Tools/CockpitsAndRigs/Test-CVBomberCockpit.py
+python Tools/CockpitsAndRigs/Test-AVRocketCockpit.py
+python Tools/CockpitsAndRigs/Test-CVFighterCockpit.py
+python Tools/CockpitsAndRigs/Test-RedDevilCockpit.py
 python Tools/Validate-CampaignRepository.py
 ```
 

@@ -6,20 +6,20 @@ convoy, then (plan C) pack the Recycler and run for the escape route. The humans
 Romeski joins late with the Furies, the SAVs the humans build turn on him, and the mission is won when the Black Dog
 Recycler dies. One `Missions/misns8cr.bzn` and one `Scripts/misns8cr.lua` serve both modes. Companion to
 [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime) and [`MISNS1_COOP.md`](MISNS1_COOP.md) (the template);
-the faithful port underneath is `Scripts/misns8.lua` (`Tools/Test-Misns8.lua`, `Tools/Test-Misns8SourceParity.py`).
+the faithful port underneath is `Scripts/misns8.lua` (`Tools/MissionTests/Test-Misns8.lua`, `Tools/MissionTests/Test-Misns8SourceParity.py`).
 Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
 
 ## Layout
 
 | File | Role |
 | --- | --- |
-| `Scripts/misns8cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns8.lua` (`Tools/Test-Misns8CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restoration and the Titan weather beats. |
+| `Scripts/misns8cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns8.lua` (`Tools/MissionTests/Test-Misns8CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows, the restoration and the Titan weather beats. |
 | `Scripts/CRCCARuntime.lua` | Shared co-op runtime, including the CCA mission's NSDF-to-Black-Dog ODF remap. |
 | `ODF/crns8.aip` | Black Dog variant of stock `misns8.aip`; its constructor build slot uses `bvcnst`. |
 | `Scripts/CRTitanWeather.lua`, `Scripts/CRTitanSitesS8.lua` | Titan weather and the generated sites for this map (the sites table has no pools and an empty wet mask; the weather runs without them). |
-| `Missions/misns8cr.{bzn,vxt}`, `misns8.{hg2,lgt,mat,trn}` | Map and companions (built by `Tools/Build-CoopMap.py`, not part of this change). |
-| `Tools/Misns8Fixture.lua`, `Tools/Test-Misns8Coop.lua`, `Tools/Test-Misns8CoopSourceParity.py`, `Tools/Test-Misns8CoopContract.py` | Multi-peer fixture and tests. The one camera (the betrayal cutscene, below) is covered by `Test-Misns8Coop.lua` through the real presentation transport; there is no separate presentation test. |
-| `ODF/savfury.odf`, `Assets/ModelFixes/savfury.*` and `csf11*.geo`, `Assets/Textures/savfury_{d,e}.dds`, `Materials/savfury.material`, `Tools/Build-SavFury.py`, `Tools/Test-SavFuryAssets.py` | The infected Fury-blue SAV the betrayal swap builds (see "Betrayal cutscene"). |
+| `Missions/misns8cr.{bzn,vxt}`, `misns8.{hg2,lgt,mat,trn}` | Map and companions (built by `Tools/MissionBuild/Build-CoopMap.py`, not part of this change). |
+| `Tools/MissionTests/Misns8Fixture.lua`, `Tools/MissionTests/Test-Misns8Coop.lua`, `Tools/MissionTests/Test-Misns8CoopSourceParity.py`, `Tools/MissionTests/Test-Misns8CoopContract.py` | Multi-peer fixture and tests. The one camera (the betrayal cutscene, below) is covered by `Test-Misns8Coop.lua` through the real presentation transport; there is no separate presentation test. |
+| `ODF/savfury.odf`, `Assets/ModelFixes/savfury.*` and `csf11*.geo`, `Assets/Textures/savfury_{d,e}.dds`, `Materials/savfury.material`, `Tools/UnitsAndBuildings/Build-SavFury.py`, `Tools/UnitsAndBuildings/Test-SavFuryAssets.py` | The infected Fury-blue SAV the betrayal swap builds (see "Betrayal cutscene"). |
 
 ## Teams and ownership
 
@@ -143,11 +143,11 @@ six faithful `BuildObject("savs8", 2, ...)` lines stay byte for byte. `savfury.o
 CR craft with `gbolt`/`gwasp`, it is registered in `References/WeaponPresentation` the way `svsav` is (clone rows in
 `inventory.json`, `recoil.csv`, `combat-models.json`, `craft-flash-offsets.json` with the same "hull hardpoint, no
 flash" skip, `craft-gameplay-baselines.json`; `combat-coverage.json` and `Docs/COMBAT_WEAPON_EFFECTS.md` come from
-`Tools/Build-CombatPresentation.py`). The weapons keep their stock presentation and the model has no weapon rig.
+`Tools/Weapons/Build-CombatPresentation.py`). The weapons keep their stock presentation and the model has no weapon rig.
 
 ### savfury art
 
-`Tools/Build-SavFury.py` builds it from stock `svsav` (sources and hashes under `References/SavFury`). Like `crfraz`
+`Tools/UnitsAndBuildings/Build-SavFury.py` builds it from stock `svsav` (sources and hashes under `References/SavFury`). Like `crfraz`
 (`Docs/FURY_FIGHTER.md`) and the Fury mine (`Docs/BOLT_MINE_VARIANTS.md`): the VDF, skeleton and seven GEO companions
 change only the part prefix `ssv11` -> `csf11`; the mesh changes only its material and skeleton links (`savfury`,
 `savfury.skeleton`), so geometry, UVs, skinning, collision and animation stay stock. The textures are fresh 1024 BC1
@@ -156,7 +156,7 @@ maps reused. The diffuse keeps the stock plate and vent luminance in dark Fury b
 become cyan. Panel seams, bevels and contour ribs come from the mesh's own edges (crease, boundary and UV-island
 borders rasterised in UV space); the veins are ridged noise in an island-local frame (the island's own UV axes scaled
 to its world size), never a world-space projection, and branch out of the seams. Tiny islands (pipes, muzzles) get
-fewer veins and no glowing seams. `Tools/Render-SavFuryPreview.py` renders a Blender comparison against stock `svsav`
+fewer veins and no glowing seams. `Tools/UnitsAndBuildings/Render-SavFuryPreview.py` renders a Blender comparison against stock `svsav`
 (an offline Cycles approximation, not the game's shader). Native rendering of `savfury` is unverified.
 
 ## APC retarget (CR addition, not cut content)
@@ -230,11 +230,11 @@ turrets or rigs: they are produced by the humans and the AIP.
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Misns8Coop.lua            # offline outcome and final voice line match the faithful port, 1-4 peers, team remap, player token, scaling, 460 m, SAV swap, betrayal cutscene (once, swap at +3 s, hard cap, music on every peer / without EXU, save/load, skip), beacon, weather
-python Tools/Test-Misns8CoopSourceParity.py # misns8cr.lua minus CR regions == misns8.lua; every body native is shadowed
-python Tools/Test-Misns8CoopContract.py     # labels/paths/teams in misns8cr.bzn, Titan sites, weather API, cutscene wiring (skips if the map is absent)
-python Tools/Test-SavFuryAssets.py          # savfury: toolkit load, unchanged geometry, textures, ODF stats, shipping
-lua5.1 Tools/Test-Misns8.lua && python Tools/Test-Misns8SourceParity.py   # the faithful port, unchanged
+lua5.1 Tools/MissionTests/Test-Misns8Coop.lua            # offline outcome and final voice line match the faithful port, 1-4 peers, team remap, player token, scaling, 460 m, SAV swap, betrayal cutscene (once, swap at +3 s, hard cap, music on every peer / without EXU, save/load, skip), beacon, weather
+python Tools/MissionTests/Test-Misns8CoopSourceParity.py # misns8cr.lua minus CR regions == misns8.lua; every body native is shadowed
+python Tools/MissionTests/Test-Misns8CoopContract.py     # labels/paths/teams in misns8cr.bzn, Titan sites, weather API, cutscene wiring (skips if the map is absent)
+python Tools/UnitsAndBuildings/Test-SavFuryAssets.py          # savfury: toolkit load, unchanged geometry, textures, ODF stats, shipping
+lua5.1 Tools/MissionTests/Test-Misns8.lua && python Tools/MissionTests/Test-Misns8SourceParity.py   # the faithful port, unchanged
 ```
 
 ## Inferences and open questions

@@ -15,6 +15,6 @@ fields remain represented, including unused fields. Every disabled gameplay
 statement and source comment remains inline near its original trigger. Lua
 Save/Load replace the native binary arrays and ConvertHandle pass.
 
-Run `lua5.1 Tools/Test-Misns7.lua` and
-`python Tools/Test-Misns7SourceParity.py` from the repository root.
+Run `lua5.1 Tools/MissionTests/Test-Misns7.lua` and
+`python Tools/MissionTests/Test-Misns7SourceParity.py` from the repository root.
 See `Docs/MISNS7_SOURCE_PORT.md` for fidelity decisions and runtime limits.

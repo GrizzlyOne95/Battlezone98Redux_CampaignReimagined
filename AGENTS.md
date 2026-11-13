@@ -9,7 +9,7 @@ This is the authoritative Campaign Reimagined source tree for campaign content, 
 - Campaign content, Lua consumers, assets, materials, packaging, and integration belong here. Route low-level hooks to **OpenShim**, reusable Lua/native runtime APIs to **EXU**, and file/update primitives to **bzfile**.
 - Sibling repositories normally live under `%USERPROFILE%\Documents\GIT`. Verify `origin` and branch before treating a sibling as evidence, and read its `AGENTS.md` before editing it.
 
-The DX11 Enhanced base and terrain shaders are the exception to CR ownership: they live in OpenShim as `resources/renderer/enhanced/openshim_enhanced_*`. CR owns the selecting materials, texture aliases, static-IBL wrappers, and other shaders. Before editing `Materials/CR_BZBase.material`, `Materials/CR_BZTerrainBase.material`, or `Shaders/CR_static_ibl.program`, read `Docs/ENHANCED_SHADER_OWNERSHIP.md` and then run `Tools/Test-ProgramReferences.ps1`.
+The DX11 Enhanced base and terrain shaders are the exception to CR ownership: they live in OpenShim as `resources/renderer/enhanced/openshim_enhanced_*`. CR owns the selecting materials, texture aliases, static-IBL wrappers, and other shaders. Before editing `Materials/CR_BZBase.material`, `Materials/CR_BZTerrainBase.material`, or `Shaders/CR_static_ibl.program`, read `Docs/ENHANCED_SHADER_OWNERSHIP.md` and then run `Tools/Shaders/Test-ProgramReferences.ps1`.
 
 ## Load only when relevant
 

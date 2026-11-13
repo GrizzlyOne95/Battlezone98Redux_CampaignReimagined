@@ -113,8 +113,8 @@ No shared base material/shader changes. New resources are case-correct.
 ## Reproduce and review
 
 ```powershell
-C:/Python314/python.exe Tools/Build-CombatCockpits.py
-C:/Python314/python.exe Tools/Test-CombatCockpits.py
+C:/Python314/python.exe Tools/CockpitsAndRigs/Build-CombatCockpits.py
+C:/Python314/python.exe Tools/CockpitsAndRigs/Test-CombatCockpits.py
 C:/Python314/python.exe Tools/Validate-CampaignRepository.py
 ```
 

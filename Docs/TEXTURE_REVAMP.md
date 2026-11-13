@@ -69,12 +69,12 @@ outdated-art candidates and remain untouched.
 ## Rebuild and validation
 
 ```text
-python Tools/Build-TextureRevamp.py
-python Tools/Bind-TextureRevamp.py
-python Tools/Build-BuildingTexturePatches.py
-python Tools/Build-FactionStorage.py
-python Tools/Test-TextureRevamp.py
-python Tools/Test-FactionStorage.py
+python Tools/TexturesAndSky/Build-TextureRevamp.py
+python Tools/TexturesAndSky/Bind-TextureRevamp.py
+python Tools/TexturesAndSky/Build-BuildingTexturePatches.py
+python Tools/UnitsAndBuildings/Build-FactionStorage.py
+python Tools/TexturesAndSky/Test-TextureRevamp.py
+python Tools/UnitsAndBuildings/Test-FactionStorage.py
 ```
 
 The build uses checked-in masters, with no generation/network calls. The forest
@@ -87,7 +87,7 @@ texture compiler. `Bind-TextureRevamp.py` is idempotent.
 ### Faction storage additions
 
 The owner's follow-up requests faction-appropriate crates with independent
-models/ODFs. `Tools/Build-FactionStorage.py` clones the stock `abstor` render
+models/ODFs. `Tools/UnitsAndBuildings/Build-FactionStorage.py` clones the stock `abstor` render
 resource for `crstns`, `crstbd`, `crstcc`, `crstcr`, retaining every vertex,
 index, UV, tangent and skin weight. Each has its own SDF/skeleton filename;
 those native bytes remain stock and reference the existing stock geometry
@@ -114,13 +114,13 @@ destruction behavior are introduced. NSDF/CCA/CRA retain ordinary storage's
 the NSDF surface via `abstor` as before. No new build menus are added.
 
 The four render previews exit cleanly in isolated Blender processes.
-`Tools/Test-FactionStorage.py` adds 126 checks for independent resource chains,
+`Tools/UnitsAndBuildings/Test-FactionStorage.py` adds 126 checks for independent resource chains,
 stock geometry/native bytes, unique art, complete DDS mips, material selectors
 and shipping membership. General art checks now total 808. This is still a
 source/offline art checkpoint: native-game load, damage and owner art review
 remain unrun. `review/faction-storage.jpg` shows the four variants together.
 
-`Tools/Audit-BuildingTexelDensity.py` resolves the actual material diffuse alias,
+`Tools/UnitsAndBuildings/Audit-BuildingTexelDensity.py` resolves the actual material diffuse alias,
 not an inferred `*00.dds` name. `building-audit.json` records the 49-model stock
 texture baseline with existing CR ModelFixes geometry where present. It does
 not claim that the original stock art overrides CR's newer storage texture or

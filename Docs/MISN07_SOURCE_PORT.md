@@ -57,20 +57,20 @@ Unused mission state and zero-based arrays are retained for future reconstructio
 
 ## Validation and integration status
 
-`Tools/Test-Misn07.lua` passes 31 mock-host behavior checks under Lua 5.1, covering
+`Tools/MissionTests/Test-Misn07.lua` passes 31 mock-host behavior checks under Lua 5.1, covering
 startup, zero-based paths, strict timing, rendezvous, rookie ejection, both alarm
 branches, stolen-vehicle detection, runner escape, tank patrol replacement,
 radar destruction, producer/AIP handoff, deployment, save/load state, victory,
 failure precedence, and disabled content remaining inactive.
 
-Run from the repository root: `lua5.1 Tools/Test-Misn07.lua`.
+Run from the repository root: `lua5.1 Tools/MissionTests/Test-Misn07.lua`.
 
 The co-op layer, the per-player alarm rules, the rendezvous convoy, Razor One's
 infiltration and the restored test-range arc are documented in
 [MISN07_COOP.md](MISN07_COOP.md). Those additions live in marked regions
 (`-- CR restored VO >>`, `-- CR Razor One infiltration >>`,
 `-- CR rendezvous convoy >>`) and the co-op substitutions are explicit deltas in
-`Tools/Test-Misn07SourceParity.py`, so the active DLL logic above stays pinned.
+`Tools/MissionTests/Test-Misn07SourceParity.py`, so the active DLL logic above stays pinned.
 The cut content listed above stays disabled in comments except where
 MISN07_COOP.md says it was restored. The map bundle now exists
 (`Missions/misn07.*`); an in-game qualification run does not (the AIP is the stock `bzone.zfs` file).

@@ -76,8 +76,8 @@ Each correction is also explained at its implementation site in Lua.
 Run from the repository root:
 
 ```sh
-lua5.1 Tools/Test-BlackDog01.lua
-python Tools/Test-BlackDog01SourceParity.py
+lua5.1 Tools/CoopCampaignTests/Test-BlackDog01.lua
+python Tools/CoopCampaignTests/Test-BlackDog01SourceParity.py
 ```
 
 The Lua host checks the public callbacks and recorded engine operations across

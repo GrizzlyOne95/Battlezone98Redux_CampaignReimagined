@@ -11,10 +11,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/misns2cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns2.lua` (`Tools/Test-Misns2CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restorations. |
+| `Scripts/misns2cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `misns2.lua` (`Tools/MissionTests/Test-Misns2CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restorations. |
 | `Scripts/CRVenusSitesS2.lua`, `Scripts/CRVenusWeather.lua` | Venus weather and the generated sites for this map. The generated site tables are **empty** (no sulphur runs, no vents); the weather runs without site effects. |
 | `Missions/misns2cr.{bzn,vxt}`, `misns2.{hg2,lgt,mat,trn}` | Map and companions (not part of this change). The map has **no authored enemies**: Lua spawns all of them. |
-| `Tools/Misns2Fixture.lua`, `Test-Misns2Coop.lua`, `Test-Misns2Presentation.lua`, `Test-Misns2CoopSourceParity.py`, `Test-Misns2CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Misns2.lua` / `Test-Misns2Source.py` still cover the faithful port, unchanged. |
+| `Tools/MissionTests/Misns2Fixture.lua`, `Test-Misns2Coop.lua`, `Test-Misns2Presentation.lua`, `Test-Misns2CoopSourceParity.py`, `Test-Misns2CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Test-Misns2.lua` / `Test-Misns2Source.py` still cover the faithful port, unchanged. |
 
 ## Teams and ownership
 
@@ -107,7 +107,7 @@ the top of the runtime region of `misns2cr.lua`). Each is gated on what `misns2c
 | Wave-1 raiders (`RESTORED_WAVE1_RAZ`) | `//bd3 = BuildObject ("bvraz", 2, "bdsp1"); //bd4 ...; //Attack (bd3, t3, 1); //Attack (bd4, t3, 1); //SetIndependence (bd3, 1); //SetIndependence (bd4, 1);` | Two more `bvraz` at `bdsp1` attacking APC 3, built in the frame of wave 1. Wave 1's end test still looks only at `bd1`/`bd2`. They retreat through the body's own `bd3`/`bd4` entries. |
 | Cutoff raiders (`RESTORED_CUTOFF`) | `//bdcutoff1..3 = BuildObject("bvraz", 2, "nav5"); //Attack(bdcutoff1, t1); //Attack(bdcutoff2, t2); //Attack(bdcut0ff2, t3);` inside the nav3 (artillery + mines) branch | Three `bvraz` at path `nav5`, built in the frame that branch arms `alerttime` (the only branch that does). The cut third order named the variable `bdcut0ff2` (a typo that never existed); the third raider attacks APC 3. |
 | Wave-5 tanks (`RESTORED_WAVE5_TANKS`) | `//bd25 = BuildObject ("bvtank", 2, "bdsp5"); //bd26 = ...` | Two `bvtank` at `bdsp5`, no orders (as cut), built beside the three raiders. They retreat through the body's `bd25`/`bd26` entries. |
-| Wave-5 warning (`RESTORED_WAVE5_VOICE`) | none: unused shipped line `misns211` ("Commandant, we're picking up some American units on the hill.") [owner decision 2026-11-11] | Plays once (`AudioMessage`, replicated to co-op guests) when wave 5 spawns at `bdsp5`; latched in the runtime state, so Save/Load does not replay it. Redux ships the wav only in `bzone_en/ru.zfs`, so the stock English take ships byte-exact as `Assets/Audio/misns211.wav` (guarded by `Tools/Test-ShippedCutVo.py`). |
+| Wave-5 warning (`RESTORED_WAVE5_VOICE`) | none: unused shipped line `misns211` ("Commandant, we're picking up some American units on the hill.") [owner decision 2026-11-11] | Plays once (`AudioMessage`, replicated to co-op guests) when wave 5 spawns at `bdsp5`; latched in the runtime state, so Save/Load does not replay it. Redux ships the wav only in `bzone_en/ru.zfs`, so the stock English take ships byte-exact as `Assets/Audio/misns211.wav` (guarded by `Tools/Release/Test-ShippedCutVo.py`). |
 | First camera net (`RESTORED_NET1`) | the commented `nav1 = BuildObject ("apcamr", 2, "bdnet1"); ... nav6 ... "bdnet6"` in the `bdnet4` ambush block | Six enemy `apcamr` pods at `bdnet1`..`bdnet6` in the frame of the ambush, stored in the body's `nav1..nav6` fields. Nothing reads them, so each is built only when no human is within 460 m of its post. |
 
 Skipped, with the reason:
@@ -158,11 +158,11 @@ when wave 3 springs (the artillery pass), back to level 2 on victory. The direct
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Misns2Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, fallback, cameras, results, weather
-lua5.1 Tools/Test-Misns2Presentation.lua    # E/A/C protocol on a guest
-python Tools/Test-Misns2CoopSourceParity.py # misns2cr.lua minus CR regions == misns2.lua
-python Tools/Test-Misns2CoopContract.py     # labels/paths/teams in misns2cr.bzn (skips with a message if the map is absent)
-lua5.1 Tools/Test-Misns2.lua && python Tools/Test-Misns2Source.py          # the faithful port, unchanged
+lua5.1 Tools/MissionTests/Test-Misns2Coop.lua            # offline == faithful, 1-4 peers, scaling, 460 m, fallback, cameras, results, weather
+lua5.1 Tools/MissionTests/Test-Misns2Presentation.lua    # E/A/C protocol on a guest
+python Tools/MissionTests/Test-Misns2CoopSourceParity.py # misns2cr.lua minus CR regions == misns2.lua
+python Tools/MissionTests/Test-Misns2CoopContract.py     # labels/paths/teams in misns2cr.bzn (skips with a message if the map is absent)
+lua5.1 Tools/MissionTests/Test-Misns2.lua && python Tools/MissionTests/Test-Misns2Source.py          # the faithful port, unchanged
 ```
 
 The workflow `.github/workflows/campaign-validation.yml` runs all four tests.

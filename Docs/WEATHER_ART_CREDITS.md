@@ -40,7 +40,7 @@ not from editing the art.
 | `cr_smokethin.dds` | `smoke_trans1.dds` | alpha 0-246, wispy; the only alpha-carrying thin smoke in the set |
 | `cr_smokeheavy.dds` | `Mist_Cloud.dds` | alpha 0-254, dense core; reads as SmokeThin getting worse |
 | `cr_arc.dds` | `Lightning_Bolt2.dds` | bright bolt, additive by design |
-| `cr_kick_regolith.dds`, `cr_kick_ice.dds`, `cr_kick_clod.dds`, `cr_kick_puff.dds` | Image-generated sprite art supplied by the project author (cut to alpha from black, converted by `Tools/Build-KickupTextures.py`) | ground-kickup sprites (CRWake), not Kenshi art |
+| `cr_kick_regolith.dds`, `cr_kick_ice.dds`, `cr_kick_clod.dds`, `cr_kick_puff.dds` | Image-generated sprite art supplied by the project author (cut to alpha from black, converted by `Tools/TexturesAndSky/Build-KickupTextures.py`) | ground-kickup sprites (CRWake), not Kenshi art |
 
 ## Why some are additive
 

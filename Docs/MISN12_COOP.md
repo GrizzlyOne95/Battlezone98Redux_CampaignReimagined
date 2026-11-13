@@ -12,7 +12,7 @@ everyone** (single player keeps the DLL's rules exactly).
 
 ## Map
 
-`Tools/Build-CoopMap.py --mission misn12` rebuilt `Missions/misn12.bzn` from the Battlezone 1.5
+`Tools/MissionBuild/Build-CoopMap.py --mission misn12` rebuilt `Missions/misn12.bzn` from the Battlezone 1.5
 original: class `MultSTMission`, the 49 authored CCA objects (buildings, 10 fighters, 4 tanks, 7
 turrets, 4 howitzers, 4 scavengers, the muf, an apc) moved from team 2 to team 5, the six authored
 `apcamr5-10_camerapod` nav pods moved from team 3 (a guest slot) to the support team 7 (perceived 7),
@@ -125,7 +125,7 @@ other idle CCA units stay passive.
 out of here. Follow me.") is never played by the DLL, and nothing in the DLL, the header, the
 transcripts or the map mentions him. The map does carry a long, thin, hand-sculpted route that nothing
 references. Evidence and the design below are in `Docs/MISN12_ROUTE_PREVIEW.png`
-(`python Tools/Preview-Misn12Map.py`).
+(`python Tools/MissionBuild/Preview-Misn12Map.py`).
 
 **Evidence (measured, from the unsmoothed heightmap).** From the checkpoint-2 compound a 20-35 m wide
 channel runs east and south for about 1 km; it climbs onto a flat 66.4 m shelf (377 cells at exactly
@@ -173,7 +173,7 @@ not a shortcut: ground pursuers cannot follow over the gap.
 6. He ends at the Drop Zone nav. The humans may follow him or take the normal route.
 
 `misn1224.wav` exists only in the English and Russian Redux archives, so it ships in `Assets/Audio`
-byte-exact from `bzone_en.zfs` (`Tools/Test-ShippedCutVo.py`). Skipped, as decided: 1225 (silos: it
+byte-exact from `bzone_en.zfs` (`Tools/Release/Test-ShippedCutVo.py`). Skipped, as decided: 1225 (silos: it
 describes an earlier layout), 1226 (a duplicate of 1216), 1231/1232 (ambient). 1227 is the campaign
 retrospective voice.
 
@@ -185,7 +185,7 @@ Jupiter radiation surges (visual only) and a frost haze. It has no gameplay effe
 perception, sensors or objectives (its own suite audits that). Every peer inits and updates it; the
 leader decides. Beats: level 2 when a ship is stolen, level 3 with a plume, a brief quake and a surge
 when the uplink completes, level 4 if cover is blown, calm on the win. The generated map data is
-`Scripts/CREuropaSites12.lua` (`Tools/Build-EuropaSites.py`).
+`Scripts/CREuropaSites12.lua` (`Tools/Terrain/Build-EuropaSites.py`).
 
 ## Briefing
 
@@ -195,17 +195,17 @@ The stock briefing said the data tap works within 50 m and needs one minute. The
 ## Focused checks
 
 ```sh
-lua5.1 Tools/Test-Misn12.lua
-lua5.1 Tools/Test-Misn12Coop.lua
-lua5.1 Tools/Test-Misn12Presentation.lua
-lua5.1 Tools/Test-CREuropaWeather.lua
-python Tools/Test-Misn12SourceParity.py
-python Tools/Test-Misn12CoopContract.py
-python Tools/Test-CoopAuthoredLabels.py
-python Tools/Test-ShippedCutVo.py
-python Tools/Test-SetupMissionShell.py
+lua5.1 Tools/MissionTests/Test-Misn12.lua
+lua5.1 Tools/MissionTests/Test-Misn12Coop.lua
+lua5.1 Tools/MissionTests/Test-Misn12Presentation.lua
+lua5.1 Tools/TexturesAndSky/Test-CREuropaWeather.lua
+python Tools/MissionTests/Test-Misn12SourceParity.py
+python Tools/MissionTests/Test-Misn12CoopContract.py
+python Tools/MissionTests/Test-CoopAuthoredLabels.py
+python Tools/Release/Test-ShippedCutVo.py
+python Tools/MissionTests/Test-SetupMissionShell.py
 python Tools/Validate-CampaignRepository.py
-python Tools/Preview-Misn12Map.py          # regenerates the route preview and prints the numbers
+python Tools/MissionBuild/Preview-Misn12Map.py          # regenerates the route preview and prints the numbers
 ```
 
 ## Not yet verified

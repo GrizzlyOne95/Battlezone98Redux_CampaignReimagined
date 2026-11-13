@@ -52,7 +52,7 @@ yet exist their invalid Attack orders are omitted, without inventing a target.
 
 ## Validation
 
-Run `python Tools/test_ch03.py` with `lupa.lua51` installed. The tests execute
+Run `python Tools/CoopCampaignTests/test_ch03.py` with `lupa.lua51` installed. The tests execute
 Lua 5.1 against strict engine mocks and cover the timeline, all six random slots,
 repair bounds, route explosions, capture/ambush/delivery, losses, invalid handles,
 final howitzer handoff, save/load, and source asset/disabled-code preservation.

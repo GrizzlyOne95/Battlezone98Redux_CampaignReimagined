@@ -6,14 +6,14 @@ on:
       - 'Shaders/**'
       - 'Materials/**'
       - 'openshim/renderer/enhanced/**'
-      - 'Tools/Validate-DX11Shaders.ps1'
-      - 'Tools/Test-DX11ShaderValidator.ps1'
-      - 'Tools/Test-OverlayPanelInputs.ps1'
-      - 'Tools/Test-MethaneShader.ps1'
-      - 'Tools/Test-EnhancedPssmV2.ps1'
-      - 'Tools/Test-EnhancedLightBudget.ps1'
-      - 'Tools/Set-EnhancedPssmVersion.ps1'
-      - 'Tools/Compare-DX11ShaderBinaries.ps1'
+      - 'Tools/Shaders/Validate-DX11Shaders.ps1'
+      - 'Tools/Shaders/Test-DX11ShaderValidator.ps1'
+      - 'Tools/Shaders/Test-OverlayPanelInputs.ps1'
+      - 'Tools/Shaders/Test-MethaneShader.ps1'
+      - 'Tools/Shaders/Test-EnhancedPssmV2.ps1'
+      - 'Tools/Shaders/Test-EnhancedLightBudget.ps1'
+      - 'Tools/Shaders/Set-EnhancedPssmVersion.ps1'
+      - 'Tools/Shaders/Compare-DX11ShaderBinaries.ps1'
       - 'Docs/DX11_COLOR_SPACE_AUDIT.md'
       - 'Docs/DX11_ENHANCED_ATMOSPHERE.md'
       - 'Docs/DX11_ENHANCED_PSSM_V2.md'
@@ -50,39 +50,39 @@ jobs:
 
       - name: Compile representative DX11 SM4 variants
         shell: powershell
-        run: .\Tools\Validate-DX11Shaders.ps1
+        run: .\Tools\Shaders\Validate-DX11Shaders.ps1
 
       # A guard that only ever passes proves nothing. This asserts the guards
       # actually reject the regressions they claim to.
       - name: Verify the validator rejects known regressions
         shell: powershell
-        run: .\Tools\Test-DX11ShaderValidator.ps1
+        run: .\Tools\Shaders\Test-DX11ShaderValidator.ps1
 
       - name: Match overlay vertex inputs to native panel geometry
         shell: powershell
-        run: .\Tools\Test-OverlayPanelInputs.ps1 -VerifyRegression
+        run: .\Tools\Shaders\Test-OverlayPanelInputs.ps1 -VerifyRegression
 
       # Titan liquid-methane surface (CR-owned, not an Enhanced shader): every SM4 and
       # SM3 delegate compiles and every default/material param is a kept constant.
       - name: Compile the Titan methane surface shader
         shell: powershell
-        run: .\Tools\Test-MethaneShader.ps1
+        run: .\Tools\Shaders\Test-MethaneShader.ps1
 
       - name: Validate Enhanced PSSM v2 math, isolation, and cost
         shell: powershell
-        run: .\Tools\Test-EnhancedPssmV2.ps1
+        run: .\Tools\Shaders\Test-EnhancedPssmV2.ps1
 
       # The 24-light Enhanced High budget is carried by which programs the
       # materials select, so a material edit can silently drop it to 8.
       - name: Validate the Enhanced High 24-light budget
         shell: powershell
-        run: .\Tools\Test-EnhancedLightBudget.ps1
+        run: .\Tools\Shaders\Test-EnhancedLightBudget.ps1
 
       # Enhanced-only work must leave Default and Retro bytecode untouched.
       # Bit-identical DXBC is a stronger statement than any visual check.
       - name: Assert Default/Retro DXBC is unchanged
         shell: powershell
         run: |
-          .\Tools\Compare-DX11ShaderBinaries.ps1 `
+          .\Tools\Shaders\Compare-DX11ShaderBinaries.ps1 `
             -BaselineRef "origin/${{ github.base_ref }}" `
             -RequireLegacyIdentical

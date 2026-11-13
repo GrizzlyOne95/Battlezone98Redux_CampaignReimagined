@@ -4,7 +4,7 @@ Shared offline / 2-4 player co-op port of the Black Dog mission `bd13` (the Chin
 Pegasus portal; the Black Dogs must recycle all six Chinese scrap silos with a construction rig inside 45 minutes without
 destroying one or touching the Chinese base, then destroy the Chinese recycler). One `Missions/bd13cr.bzn` and one
 `Scripts/bd13cr.lua` serve both modes. Companion to the faithful DLL port underneath (`Scripts/bdmisn13.lua`, tested by
-`Tools/test_bdmisn13.py`) and [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern:
+`Tools/CoopCampaignTests/test_bdmisn13.py`) and [`CCA_COOP_RUNTIME.md`](CCA_COOP_RUNTIME.md) (the shared runtime). Pattern:
 [`MISNS2_COOP.md`](MISNS2_COOP.md), [`BDMISN05_COOP.md`](BDMISN05_COOP.md) and [`BDMISN08_COOP.md`](BDMISN08_COOP.md).
 Status: **host-tested only**; nothing here has run in the game (see "Live checklist").
 
@@ -12,10 +12,10 @@ Status: **host-tested only**; nothing here has run in the game (see "Live checkl
 
 | File | Role |
 | --- | --- |
-| `Scripts/bd13cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bdmisn13.lua` (`Tools/Test-Bdmisn13CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
+| `Scripts/bd13cr.lua` | The faithful port plus marked `-- CR ... >>` / `<<` regions. Outside them it is exactly `bdmisn13.lua` (`Tools/CoopCampaignTests/Test-Bdmisn13CoopSourceParity.py`). Holds the runtime CONFIG, the native shadows and the restoration. |
 | `Scripts/CRGanymedeSitesBD13.lua`, `Scripts/CREuropaWeather.lua` | Ganymede weather (the Europa director with the generated sites for this map: fifteen cryovolcanic vents, the geysers of the Black Dog base, the Chinese base and the scrap fields). |
 | `Missions/bd13cr.{bzn,vxt}`, `bdmisn13.{hg2,lgt,mat,trn}`, `Config/bd13cr.ini` | Map, vehicle list and multiplayer listing (not part of this change). The map has the whole Chinese base on team 5 (recycler, six silos, towers, turrets, walkers, scavengers, mines) and the Black Dog base on team 1 (recycler, construction rig, silos, wingmen). |
-| `Tools/Bdmisn13Fixture.lua`, `Test-Bdmisn13Coop.lua`, `Test-Bdmisn13Presentation.lua`, `Test-Bdmisn13CoopSourceParity.py`, `Test-Bdmisn13CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/test_bdmisn13.py` still covers the faithful port, unchanged. |
+| `Tools/CoopCampaignTests/Bdmisn13Fixture.lua`, `Test-Bdmisn13Coop.lua`, `Test-Bdmisn13Presentation.lua`, `Test-Bdmisn13CoopSourceParity.py`, `Test-Bdmisn13CoopContract.py` | Multi-peer fixture and tests (real map coordinates). `Tools/CoopCampaignTests/test_bdmisn13.py` still covers the faithful port, unchanged. |
 
 ## Teams and ownership
 
@@ -193,11 +193,11 @@ Beats (host/offline only, each once, tied to the mission's own moments; the dire
 ## Tests
 
 ```sh
-lua5.1 Tools/Test-Bdmisn13Coop.lua            # offline == faithful, 1-4 peers, scaling, intro, recycling, timer, results, voice lines, loads, weather
-lua5.1 Tools/Test-Bdmisn13Presentation.lua    # E/A/C protocol on a guest
-python Tools/Test-Bdmisn13CoopSourceParity.py # bd13cr.lua minus CR regions == bdmisn13.lua
-python Tools/Test-Bdmisn13CoopContract.py     # labels/paths/teams in bd13cr.bzn (skips with a message if the map is absent)
-python Tools/test_bdmisn13.py                 # the faithful port (needs lupa), unchanged
+lua5.1 Tools/CoopCampaignTests/Test-Bdmisn13Coop.lua            # offline == faithful, 1-4 peers, scaling, intro, recycling, timer, results, voice lines, loads, weather
+lua5.1 Tools/CoopCampaignTests/Test-Bdmisn13Presentation.lua    # E/A/C protocol on a guest
+python Tools/CoopCampaignTests/Test-Bdmisn13CoopSourceParity.py # bd13cr.lua minus CR regions == bdmisn13.lua
+python Tools/CoopCampaignTests/Test-Bdmisn13CoopContract.py     # labels/paths/teams in bd13cr.bzn (skips with a message if the map is absent)
+python Tools/CoopCampaignTests/test_bdmisn13.py                 # the faithful port (needs lupa), unchanged
 ```
 
 The workflow `.github/workflows/campaign-validation.yml` is not edited by this change; the four co-op commands above are the

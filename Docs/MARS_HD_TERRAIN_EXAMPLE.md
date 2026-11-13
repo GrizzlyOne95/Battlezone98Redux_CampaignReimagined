@@ -14,7 +14,7 @@ From this CR worktree, in **Windows PowerShell 5.1**:
 ```powershell
 $os = "$HOME\Documents\GIT\BZR-OpenShim-hd-terrain-example"
 $harness = "$HOME\Documents\GIT\BZR-OpenShim"
-powershell.exe -NoProfile -File Tools/New-MarsHdTerrainExample.ps1 `
+powershell.exe -NoProfile -File Tools/Terrain/New-MarsHdTerrainExample.ps1 `
   -OpenShimRepo $os -HarnessRepo $harness -TileSize 1024 -Preview -MeasureMemory
 ```
 
@@ -73,7 +73,7 @@ this gravel correction does not reauthor those sources.
 Recheck a generated pack with the independent source height files:
 
 ```powershell
-python Tools/Validate-MarsHdNormals.py --source-build <saved-source-build> `
+python Tools/Terrain/Validate-MarsHdNormals.py --source-build <saved-source-build> `
   --export Local/TerrainHD/MarsHeightMatched1024 `
   --out Local/TerrainHD/mars-normal-validation.json
 ```
