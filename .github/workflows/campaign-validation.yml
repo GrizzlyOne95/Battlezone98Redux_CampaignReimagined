@@ -95,6 +95,10 @@ jobs:
         shell: pwsh
         run: ./Tools/Release/Test-SelectedContentDeploy.ps1
 
+      - name: Test overnight soak parsers
+        shell: pwsh
+        run: ./Tools/Soak/Test-OvernightSoak.ps1
+
       - name: Validate hangar door assets
         run: python Tools/UnitsAndBuildings/Test-HangarAssets.py
 
