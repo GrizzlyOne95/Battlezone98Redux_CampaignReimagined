@@ -1,0 +1,16 @@
+import * from "CR_BZBase.material"
+
+// First-person left glove + forearm for the sniper clips (cockpit pass, like the rifle).
+
+material fa_aspilo_arm_fp : CR_BZBaseCockpit
+{
+	set_texture_alias DiffuseMap aspilo_D.dds
+	set_texture_alias NormalMap aspilo_N.dds
+	set_texture_alias SpecularMap aspilo_S.dds
+	set_texture_alias EmissiveMap aspilo_E.dds
+
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+}

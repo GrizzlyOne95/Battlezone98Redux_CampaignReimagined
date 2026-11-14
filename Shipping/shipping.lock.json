@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6254,
+  "count": 6259,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -639,6 +639,10 @@
       "runtime": "aspilo_fp.mesh"
     },
     {
+      "source": "Assets\\ModelFixes\\aspilo_fp.skeleton",
+      "runtime": "aspilo_fp.skeleton"
+    },
+    {
       "source": "Assets\\ModelFixes\\avapc.mesh",
       "runtime": "avapc.mesh"
     },
@@ -921,6 +925,10 @@
     {
       "source": "Assets\\ModelFixes\\bspilo_fp.mesh",
       "runtime": "bspilo_fp.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\bspilo_fp.skeleton",
+      "runtime": "bspilo_fp.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\bvapc.mesh",
@@ -2389,6 +2397,10 @@
     {
       "source": "Assets\\ModelFixes\\sspilo_fp.mesh",
       "runtime": "sspilo_fp.mesh"
+    },
+    {
+      "source": "Assets\\ModelFixes\\sspilo_fp.skeleton",
+      "runtime": "sspilo_fp.skeleton"
     },
     {
       "source": "Assets\\ModelFixes\\svapc.mesh",
@@ -8099,6 +8111,10 @@
       "runtime": "exu_hud_status_plate.png"
     },
     {
+      "source": "Assets\\Textures\\fa_bspilo_laser.png",
+      "runtime": "fa_bspilo_laser.png"
+    },
+    {
       "source": "Assets\\Textures\\gflame.png",
       "runtime": "gflame.png"
     },
@@ -12037,6 +12053,10 @@
     {
       "source": "Materials\\aspilo.material",
       "runtime": "aspilo.material"
+    },
+    {
+      "source": "Materials\\aspilo_fp.material",
+      "runtime": "aspilo_fp.material"
     },
     {
       "source": "Materials\\avapc.material",

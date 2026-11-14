@@ -1,4 +1,173 @@
 import * from "CR_BZBase.material"
 
+// First-person left glove + forearm for the sniper clips (cockpit pass, like the rifle).
 
+material fa_bspilo_arm_fp : CR_BZBaseCockpit
+{
+	set_texture_alias DiffuseMap bdspilo_D.dds
+	set_texture_alias NormalMap bdspilo_N.dds
+	set_texture_alias SpecularMap bdspilo_S.dds
+	set_texture_alias EmissiveMap bdspilo_E.dds
 
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular ".7 .7 .7"
+	set $shininess "127"
+}
+
+// Laser beam (sniper mode). Same cockpit shader path as the rifle and glove: black diffuse, no specular, red
+// emissive gradient (fa_bspilo_laser.png, u = distance along the 25 m beam, v 0.25 core / 0.75 glow), added onto
+// the scene. It MUST write depth: in-game test posts (2026-09-27) showed the first-person view drops every pass
+// with depth_write off (additive or alpha blend alike), while additive with depth write draws as a see-through
+// red. The glow technique adds it to the bloom pass.
+
+material fa_bspilo_laser
+{
+	receive_shadows off
+
+	set $shininess "1"
+	set $ambient "0 0 0"
+	set $diffuse "0 0 0"
+	set $specular "0 0 0"
+	set $bias "0"
+	set $glow "1 1 1"
+
+	set_texture_alias DiffuseMap black.png
+	set_texture_alias NormalMap flat_n.png
+	set_texture_alias SpecularMap black.png
+	set_texture_alias EmissiveMap fa_bspilo_laser.png
+
+	technique
+	{
+		scheme high-pssm
+		pass : BZPassSchemeHighNoShadow
+		{
+			scene_blend add
+		}
+	}
+
+	technique
+	{
+		scheme high
+		pass : BZPassSchemeHighNoShadow
+		{
+			scene_blend add
+		}
+	}
+
+	technique
+	{
+		scheme high-noshadow
+		pass : BZPassSchemeHighNoShadow
+		{
+			scene_blend add
+		}
+	}
+
+	technique
+	{
+		scheme medium-pssm
+		pass : BZPassSchemeMediumNoShadow
+		{
+			scene_blend add
+		}
+	}
+
+	technique
+	{
+		scheme medium
+		pass : BZPassSchemeMediumNoShadow
+		{
+			scene_blend add
+		}
+	}
+
+	technique
+	{
+		scheme medium-noshadow
+		pass : BZPassSchemeMediumNoShadow
+		{
+			scene_blend add
+		}
+	}
+
+	technique
+	{
+		scheme low-pssm
+		pass : BZPassSchemeLowNoShadow
+		{
+			scene_blend add
+		}
+	}
+
+	technique
+	{
+		scheme low
+		pass : BZPassSchemeLowNoShadow
+		{
+			scene_blend add
+		}
+	}
+
+	technique
+	{
+		scheme low-noshadow
+		pass : BZPassSchemeLowNoShadow
+		{
+			scene_blend add
+		}
+	}
+
+	technique
+	{
+		scheme lowest-pssm
+		pass : BZPassSchemeLowestNoShadow
+		{
+			scene_blend add
+		}
+	}
+
+	technique
+	{
+		scheme lowest
+		pass : BZPassSchemeLowestNoShadow
+		{
+			scene_blend add
+		}
+	}
+
+	technique
+	{
+		scheme lowest-noshadow
+		pass : BZPassSchemeLowestNoShadow
+		{
+			scene_blend add
+		}
+	}
+
+	technique
+	{
+		scheme glow
+		pass
+		{
+			ambient $glow
+			diffuse $glow
+			depth_bias $bias
+			scene_blend add
+
+			vertex_program_ref Textured_vertex
+			{
+			}
+			fragment_program_ref Textured_fragment
+			{
+				param_named fogColour float3 0 0 0
+			}
+
+			texture_unit emissiveMap
+			{
+				texture_alias EmissiveMap
+				texture fa_bspilo_laser.png
+			}
+		}
+	}
+}
