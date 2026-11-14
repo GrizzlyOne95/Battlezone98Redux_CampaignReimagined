@@ -128,6 +128,8 @@ function Get-SoakPolicy([hashtable]$ConsecutiveByMission, [int]$FailedLaunches, 
 # flat ~19 fps in the background). Mixing those into the fps numbers hides real in-mission slowdowns.
 $script:RunStateMission = '5'
 $script:LoadEndFps = 5          # first in-mission heartbeat at or above this ends the load
+$script:HeartbeatS = 5          # OpenShim heartbeat period (heartbeatMs=5000)
+$script:LoadHoldFps = 20        # only a beat below this, followed by a main-loop stall, stays in the load
 $script:SlowFraction = 0.5      # a heartbeat below half the in-mission median is "slow"
 $script:SlowContextS = 10       # telemetry this many seconds either side of a slow stretch is its context
 $script:MaxSlowStretches = 10
@@ -155,10 +157,15 @@ function Get-HeartbeatPhases([object[]]$Events) {
     $hb = @($Events | Where-Object { $_.Kind -eq 'Heartbeat' } | ForEach-Object {
         [pscustomobject]@{ Time = (Get-SoakLineTime $_.Line); Fps = [double]::Parse($_.fps, $inv); Run = $_.run }
     })
+    # The load's last freeze can follow a heartbeat that already shows a few frames (misns1cr 2026-11-14:
+    # "fps=6.0", then "main-loop stalled" 0.5 s later), so a beat with a main-loop stall starting within one
+    # heartbeat period after it still belongs to the load.
+    $stalls = @($Events | Where-Object { $_.Kind -eq 'LoopStall' } | ForEach-Object { Get-SoakLineTime $_.Line } | Where-Object { $_ })
     $load = @(); $mission = @(); $after = @(); $seen = $false
     foreach ($h in $hb) {
         # The run state is already 5 while the world loads (fps 0-1, frame 0): the load lasts until frames flow.
-        if ($h.Run -eq $script:RunStateMission -and ($seen -or $h.Fps -ge $script:LoadEndFps)) { $seen = $true; $mission += $h }
+        $starts = $seen -or ($h.Fps -ge $script:LoadEndFps -and -not ($h.Fps -lt $script:LoadHoldFps -and $h.Time -and @($stalls | Where-Object { $_ -gt $h.Time -and $_ -le $h.Time.AddSeconds($script:HeartbeatS) }).Count))
+        if ($h.Run -eq $script:RunStateMission -and $starts) { $seen = $true; $mission += $h }
         elseif ($seen) { $after += $h } else { $load += $h }
     }
     $ms = Get-FpsStats @($mission | ForEach-Object { $_.Fps })

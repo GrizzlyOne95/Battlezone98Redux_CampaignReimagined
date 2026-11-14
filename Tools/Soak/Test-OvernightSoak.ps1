@@ -67,6 +67,22 @@ Assert-Equal ($null -ne $ph.MissionStopped) $true 'phase: mission stop time reco
 Assert-Equal $ph.SlowTotal 1 'phase: one slow stretch'
 Assert-Equal @($ph.Slow[0].context).Count 1 'phase: slow stretch carries the lighting line'
 Assert-Equal ($ph.Slow[0].context[0] -like 'Lighting: *field=ambient*') $true 'phase: context is labelled by kind'
+# the load's last freeze after a beat that already shows frames (2026-11-14 misns1cr live run)
+$phLate = Get-HeartbeatPhases @(Get-SoakTelemetry (@(
+    (HB 0 0 '5'), (HB 5 1 '5'), (HB 10 6 '5'),
+    '[2026-11-14T13:40:10.500Z] [pid:1 tid:2] [WARN] [soak] [SOAK] main-loop stalled ms=2016 lastFrame=36',
+    '[2026-11-14T13:40:12.700Z] [pid:1 tid:2] [INFO] [soak] [SOAK] main-loop resumed after ms=4219',
+    (HB 15 230 '5'), (HB 20 222 '5'), (HB 25 227 '5'), (HB 30 163 '5')
+) -join "`n"))
+Assert-Equal $phLate.LoadSeconds 15 'phase: a beat followed by a load freeze stays in the load'
+Assert-Equal $phLate.Mission.MinFps 163 'phase: load freeze beat not in mission min'
+Assert-Equal $phLate.SlowTotal 0 'phase: load freeze beat is not a slow stretch'
+$phHitch = Get-HeartbeatPhases @(Get-SoakTelemetry (@(
+    (HB 0 0 '5'), (HB 5 230 '5'),
+    '[2026-11-14T13:40:06.000Z] [pid:1 tid:2] [WARN] [soak] [SOAK] main-loop stalled ms=2016 lastFrame=900',
+    (HB 10 225 '5'), (HB 15 228 '5')
+) -join "`n"))
+Assert-Equal $phHitch.LoadSeconds 5 'phase: a healthy beat before an in-mission hitch stays in the mission'
 $phNone = Get-HeartbeatPhases @()
 Assert-Equal $phNone.Mission.Count 0 'phase: no heartbeats'
 Assert-Equal $phNone.SlowTotal 0 'phase: no heartbeats, no slow stretches'
