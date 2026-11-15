@@ -17,15 +17,19 @@ across tanks, light tanks, bombers, walkers and other combat units.
 
 ## Inventory and delivered content
 
-The casing follow-up assigns all 100 weapons an explicit `[WeaponClass]`
-`casingType`: 11 small, four medium, ten large, and 75 none. Miniguns,
+The casing follow-up assigns all 113 weapons an explicit `[WeaponClass]`
+`casingType`: 19 small, five medium, 13 large, and 76 none. Miniguns,
 chainguns and the sniper get small brass; AT-Stabbers medium; SP/CP-Stabbers
 and howitzers large. Plasma/arc/energy weapons, launchers, grenades, mines and
 utilities eject none. These are initial cosmetic art choices for review.
 Lengths are 0.12/0.24/0.40 using the native generated casing mesh scale.
-The existing per-weapon casing mesh override remains available.
+Every ejecting weapon also sets `casingMesh`: medium/large use
+`cr_casing_cannon.mesh` (rimmed, tapered; after the 105 mm M68 tank case) and
+small use `cr_casing_bullet.mesh` (rimless bottleneck; after the .50 BMG).
+`Tools/Weapons/Build-CasingMeshes.py` generates both meshes, their textures and
+`Materials/cr_casings.material`; its `--check` runs in CI.
 
-`Tools/Weapons/Build-WeaponCasings.py` owns only its marked casing block. All 100
+`Tools/Weapons/Build-WeaponCasings.py` owns only its marked casing block. All 113
 complete ODFs are checked against parsed gameplay baselines; 21 additional
 stock overrides are listed in the shipping lock with no removals. Both
 generators are independently repeatable. Inventory JSON/CSV includes casing
