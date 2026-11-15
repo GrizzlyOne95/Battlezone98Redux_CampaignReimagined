@@ -19,6 +19,11 @@
 -- sprite), pool reuse by template + mode, the player's pilot ranking first,
 -- Ganymede's surface, and the vacuum / air template contracts.
 --
+-- Companion chip systems (Ganymede / Europa): a vehicle owns its main dust system plus four
+-- single-shard chip systems, created, moved, faded and destroyed together; the chip emission sums to
+-- the old emitter-1 share; profiles without companions are untouched; the shipped payload,
+-- materials and textures for every variant exist.
+--
 -- Prints VEHICLE WAKES OK on success; prints each failed expectation and exits
 -- 1 otherwise.
 
@@ -868,24 +873,37 @@ do
         -- Walking.
         w.objects.pilot.vx = 5.0
         w.Run(1.0)
-        check(w.Live() == 1 and #w.Emitting() == 1, name .. ": a walking pilot emits")
-        local s = only(w)
+        local nSys = 1 + (profile.chips and #profile.chips or 0)
+        check(w.Live() == nSys and #w.Emitting() == nSys, name .. ": a walking pilot emits (main + " .. (nSys - 1) .. " companions)")
+        local s = w.systems[next(w.systems)]
+        for _, sy in pairs(w.systems) do if sy.template == profile.template then s = sy end end
         check(s.dims ~= nil and s.dims[1] >= 0.25 and s.dims[1] <= 0.35, name .. ": a pilot's sprite is 0.25-0.35 m")
         check(s.params.width and s.params.width <= 0.6 and s.angle and s.angle <= 25, name .. ": a pilot's emitter is tight")
         local rateMax = 0
-        for _, r in pairs(s.rates) do rateMax = math.max(rateMax, r) end
+        for _, sy in pairs(w.systems) do
+            for _, r in pairs(sy.rates) do rateMax = math.max(rateMax, r) end
+            check(sy.dims ~= nil and sy.dims[1] >= 0.25 and sy.dims[1] <= 0.35, name .. ": every pilot system has the small sprite")
+        end
         check(rateMax > 0 and rateMax <= profile.rate * 0.12 + 1e-9, name .. ": pilot rate is 12 % of the profile (" .. rateMax .. ")")
         -- Apex of the fastest grain of each emitter never exceeds 0.6 m.
         local g = expectedFall(profile)
-        for i = 0, 1 do
-            local d, v = s.dirs[i], s.vel[i]
+        local emitters = {}
+        for i = 0, #profile.shares - 1 do emitters[#emitters + 1] = { sy = s, i = i } end
+        for _, sy in pairs(w.systems) do
+            if sy ~= s then emitters[#emitters + 1] = { sy = sy, i = 0 } end
+        end
+        check(#emitters == #profile.shares + (profile.chips and #profile.chips or 0), name .. ": every emitter is accounted for")
+        for n, e in ipairs(emitters) do
+            local i = n - 1
+            local d, v = e.sy.dirs[e.i], e.sy.vel[e.i]
             check(d ~= nil and v ~= nil, name .. ": pilot emitter " .. i .. " is aimed")
             if d and v then
                 local vy = v[2] * d.y
                 check(vy * vy / (2.0 * g) <= 0.6 + 1e-9, string.format("%s: apex cap on emitter %d (%.3f m)", name, i, vy * vy / (2.0 * g)))
                 check(d.x < 0, name .. ": pilot spray trails behind")
             end
-            if s.ttl[i] then check(s.ttl[i][1] >= 0.6 * 0.8 - 1e-9 and s.ttl[i][2] <= 4.0 * 1.2 + 1e-9, name .. ": pilot TTL is clamped") end
+            local ttl = e.sy.ttl[e.i]
+            if ttl then check(ttl[1] >= 0.6 * 0.8 - 1e-9 and ttl[2] <= 4.0 * 1.2 + 1e-9, name .. ": pilot TTL is clamped") end
         end
         check(s.ttl[0] ~= nil, name .. ": pilot TTL is ballistic on every world")
         -- Airborne (above FootMaxHeight) emits nothing.
@@ -967,10 +985,11 @@ do
     w.Add("c", 30.0, 0.0, 12.0, 0.0)
     w.Run(1.0)
     check(w.Live("CRWake/GanymedeSpray") == 1 and w.Live("CRWake/IceSpray") == 0, "Ganymede uses its own template")
-    local s = only(w)
-    check(s.ttl[0] ~= nil, "Ganymede is a vacuum: ballistic TTL")
+    local s
+    for _, sy in pairs(w.systems) do if sy.template == "CRWake/GanymedeSpray" then s = sy end end
+    check(s ~= nil and s.ttl[0] ~= nil, "Ganymede is a vacuum: ballistic TTL")
     local sin0 = 0.35 / math.sqrt(1.0 + 0.35 * 0.35)
-    check(s.ttl[0] and math.abs(s.ttl[0][1] - 0.8 * (2.0 * 6.2 * sin0 / 1.43)) < 1e-6, "using g = 1.43")
+    check(s and s.ttl[0] and math.abs(s.ttl[0][1] - 0.8 * (2.0 * 6.2 * sin0 / 1.43)) < 1e-6, "using g = 1.43")
 
     local function readAll(path)
         local f = io.open(path, "rb")
@@ -992,7 +1011,7 @@ do
     for name, body in wake:gmatch("particle_system%s+([^%s{]+)%s*(%b{})") do bodies[name] = body end
     bodies["CR/Moon/HoverDust"] = moon:match("particle_system%s+CR/Moon/HoverDust%s*(%b{})")
 
-    local kickMaterial = { regolith = "CR_FX/KickRegolith", ganymede = "CR_FX/KickIce", ice = "CR_FX/KickIce",
+    local kickMaterial = { regolith = "CR_FX/KickRegolith", ganymede = "CR_FX/KickPuff", ice = "CR_FX/KickPuff",
                            sulfur = "CR_FX/KickRegolith", mars = "CR_FX/KickPuff", ash = "CR_FX/KickPuff", grass = "CR_FX/KickClod",
                            mud = "CR_FX/KickClod" }
     for name, profile in pairs(w.Wake.Profiles) do
@@ -1016,22 +1035,63 @@ do
             end
         end
     end
-    for _, m in ipairs({ "CR_FX/KickRegolith", "CR_FX/KickIce", "CR_FX/KickClod", "CR_FX/KickPuff" }) do
+    for _, m in ipairs({ "CR_FX/KickRegolith", "CR_FX/KickIce", "CR_FX/KickClod", "CR_FX/KickPuff",
+                         "CR_FX/KickIceA", "CR_FX/KickIceB", "CR_FX/KickIceC", "CR_FX/KickIceD" }) do
         check(reactive:find("material%s+" .. m .. "%s*:%s*BZSprite/AlphaBlend") ~= nil, m .. " is an AlphaBlend sprite material")
     end
-    for _, tex in ipairs({ "cr_kick_regolith.dds", "cr_kick_ice.dds", "cr_kick_clod.dds", "cr_kick_puff.dds" }) do
+    for _, tex in ipairs({ "cr_kick_regolith.dds", "cr_kick_ice.dds", "cr_kick_clod.dds", "cr_kick_puff.dds",
+                           "cr_kick_ice_a.dds", "cr_kick_ice_b.dds", "cr_kick_ice_c.dds", "cr_kick_ice_d.dds" }) do
         check(reactive:find(tex, 1, true) ~= nil, tex .. " is named by a material")
         local f = io.open(scriptDir .. "/../Assets/Textures/" .. tex, "rb")
         check(f ~= nil, tex .. " ships in Assets/Textures")
         if f then f:close() end
     end
-    -- Ganymede: dark dirty dust (emitter 0) and bright ice (emitter 1).
+    for _, v in ipairs({ "A", "B", "C", "D" }) do
+        local mbody = reactive:match("material%s+CR_FX/KickIce" .. v .. "%s*:%s*BZSprite/AlphaBlend%s*(%b{})")
+        check(mbody ~= nil and mbody:find("cr_kick_ice_" .. v:lower() .. ".dds", 1, true) ~= nil,
+            "CR_FX/KickIce" .. v .. " is one texture, cr_kick_ice_" .. v:lower() .. ".dds")
+    end
+    -- Companion chip templates: one emitter each, on their own variant material, identical apart from it.
+    for name, profile in pairs(w.Wake.Profiles) do
+        if profile.chips then
+            local reference
+            for n, tpl in ipairs(profile.chips) do
+                local cb = bodies[tpl]
+                check(cb ~= nil, name .. " companion " .. tpl .. " exists")
+                if cb then
+                    local _, emitters = cb:gsub("emitter%s+%a+", "")
+                    check(emitters == 1, tpl .. " has exactly one emitter")
+                    check(cb:match("material%s+(%S+)") == "CR_FX/KickIce" .. string.char(64 + n), tpl .. " uses its own variant material")
+                    check(cb:find("emission_rate%s+0") ~= nil and cb:find("affector%s+ColourFader2") ~= nil
+                        and cb:find("affector%s+Rotator") ~= nil and cb:find("affector%s+LinearForce") ~= nil, tpl .. " keeps the fader, Rotator and gravity")
+                    local fy = tonumber(cb:match("force_vector%s+%S+%s+(%S+)"))
+                    check(fy and math.abs(fy + profile.g) < 1e-9, tpl .. " gravity matches the profile")
+                    local size = tonumber(cb:match("particle_width%s+(%S+)"))
+                    check(size and size >= 0.15 and size <= 0.4, tpl .. " is a small single-shard quad (" .. tostring(size) .. " m)")
+                    local quota = tonumber(cb:match("quota%s+(%d+)"))
+                    check(quota and quota <= 32, tpl .. " has a small quota")
+                    local neutral = cb:gsub("material%s+%S+", "material X")
+                    reference = reference or neutral
+                    check(neutral == reference, tpl .. " is identical to its siblings apart from the material")
+                    local first = cb:match("colour_range_start%s+(%S+)%s+%S+%s+%S+")
+                    check(tonumber(first) and tonumber(first) > 0.6, tpl .. " is bright")
+                end
+            end
+        end
+    end
+    -- Ganymede: dark dirty dust in the main system (one emitter), bright ice in the companions.
     local gb = bodies["CRWake/GanymedeSpray"]
     if gb then
         local first = gb:match("colour_range_start%s+(%S+)%s+%S+%s+%S+")
-        local second = gb:match("emitter.-emitter.-colour_range_start%s+(%S+)%s+%S+%s+%S+")
+        local _, emitters = gb:gsub("emitter%s+%a+", "")
         check(tonumber(first) and tonumber(first) < 0.4, "Ganymede emitter 0 is dark grey-brown")
-        check(tonumber(second) and tonumber(second) > 0.6, "Ganymede emitter 1 is bright blue-white")
+        check(emitters == 1, "Ganymede's main system holds only the dust sheet")
+    end
+    -- Europa's main system is the powder sheet only.
+    local ib = bodies["CRWake/IceSpray"]
+    if ib then
+        local _, emitters = ib:gsub("emitter%s+%a+", "")
+        check(emitters == 1, "Europa's main system holds only the powder sheet")
     end
     -- Moon mist stays below an on-foot eye: top of every layer <= 0.6 m.
     local moonWeather = readAll(scriptDir .. "/CRMoonWeather.lua") or ""
@@ -1044,6 +1104,179 @@ do
     end
     check(mistHeight and maxThickness > 0 and mistHeight + maxThickness / 2.0 <= 0.6 + 1e-9,
         "the Moon's mist top stays at or below 0.6 m (" .. tostring(mistHeight) .. " + " .. maxThickness .. "/2)")
+end
+
+-- =============================================================================
+-- 15. Companion chip systems (Ganymede, Europa); other worlds unchanged
+-- =============================================================================
+
+do
+    local OLD_CHIP_SHARE = { ganymede = 0.45, ice = 0.40 }
+    for _, world in ipairs({ "ganymede", "ice" }) do
+        local profile = NewWorld().Wake.Profiles[world]
+        check(profile.chips ~= nil and #profile.chips == 4, world .. " lists four companion templates")
+        check(#profile.shares == 1, world .. "'s main system keeps only the dust emitter")
+        check(math.abs(profile.chipShare - OLD_CHIP_SHARE[world]) < 1e-9, world .. " keeps the old chip share")
+
+        local w = NewWorld()
+        w.Wake.Init({ surface = world })
+        w.Add("a", 30.0, 0.0, 15.0, 0.0)
+        w.Add("b", 50.0, 0.0, 15.0, 0.0)
+        w.Run(1.5)
+        -- Two vehicles: two mains, eight companions; MaxSystems counts mains.
+        check(w.Live(profile.template) == 2, world .. ": one main per vehicle")
+        for _, tpl in ipairs(profile.chips) do check(w.Live(tpl) == 2, world .. ": each vehicle owns a " .. tpl) end
+        check(w.Live() == 10 and w.created == 10, world .. ": 2 x (1 + 4) systems (" .. w.Live() .. ")")
+        for _, sy in pairs(w.systems) do
+            check(sy.local_ == false, world .. ": every system keeps its particles in world space")
+        end
+
+        -- Emission: the companions sum to the old emitter-1 share of the main's emitter-0 rate.
+        local mainRate, chipSum, chipCount = 0.0, 0.0, 0
+        for _, sy in pairs(w.systems) do
+            if math.abs(sy.position.x - 30.0) < 6.0 then
+                if sy.template == profile.template then
+                    mainRate = sy.rates[0] or 0
+                else
+                    chipSum = chipSum + (sy.rates[0] or 0)
+                    chipCount = chipCount + 1
+                end
+            end
+        end
+        check(mainRate > 0 and chipCount == 4, world .. ": the main and its four companions all emit")
+        check(math.abs(chipSum - mainRate * OLD_CHIP_SHARE[world]) < 1e-6,
+            string.format("%s: companions sum to the old chip share (%.4f vs %.4f)", world, chipSum, mainRate * OLD_CHIP_SHARE[world]))
+
+        -- Companions are aimed like chips (up and behind), the dust sheet flat.
+        for _, sy in pairs(w.systems) do
+            if sy.template ~= profile.template then
+                check(sy.dirs[0] ~= nil and sy.dirs[0].y > 0.6 and sy.dirs[0].x < 0, world .. ": a companion is aimed like a chip emitter")
+                check(sy.ttl[0] ~= nil, world .. ": a companion gets the ballistic TTL")
+            else
+                check(sy.dirs[0] ~= nil and sy.dirs[0].y < 0.5, world .. ": the main dust sheet stays flat")
+            end
+        end
+
+        -- All five systems of a vehicle move with it.
+        w.objects.a.x = 40.0
+        w.Run(1.0)
+        local at40 = 0
+        for _, sy in pairs(w.systems) do if math.abs(sy.position.x - 40.0) < 3.0 then at40 = at40 + 1 end end
+        check(at40 == 5, world .. ": all five systems of a vehicle move with it (" .. at40 .. ")")
+
+        -- Quality scales the companions with the main.
+        w.Wake.SetQuality(0.5)
+        w.objects.a.vx = 20.0
+        w.Run(1.0)
+        local sum2, main2 = 0.0, 0.0
+        for _, sy in pairs(w.systems) do
+            if math.abs(sy.position.x - w.objects.a.x) < 3.0 then
+                if sy.template == profile.template then main2 = sy.rates[0] or 0 else sum2 = sum2 + (sy.rates[0] or 0) end
+            end
+        end
+        check(main2 > 0 and math.abs(sum2 - main2 * OLD_CHIP_SHARE[world]) < 1e-6, world .. ": the split holds at Quality 0.5")
+        w.Wake.SetQuality(1.0)
+
+        -- The vehicles stop: everything they own falls silent, lingers, and is destroyed together.
+        w.Remove("b")
+        w.objects.a.y = GROUND + 60.0     -- lifted clear of the ground: rate 0, systems linger
+        w.Run(2.0)
+        local silent = true
+        for _, sy in pairs(w.systems) do
+            for _, r in pairs(sy.rates) do if r > 0 then silent = false end end
+        end
+        check(silent, world .. ": an idle vehicle's main and companions fall silent")
+        w.Run(10.0)
+        check(w.Live() == 0 and w.created == w.destroyed, world .. ": main and companions are destroyed together (" .. w.Live() .. " live)")
+        w.Wake.Stop()
+    end
+
+    -- A vehicle that dies, a Stop, a Reset, a disable, a world change and leaving range each leave no companion behind.
+    local function fresh(world)
+        local w = NewWorld()
+        w.Wake.Init({ surface = world })
+        w.Add("a", 30.0, 0.0, 15.0, 0.0)
+        w.Run(1.0)
+        return w
+    end
+    local w = fresh("ice")
+    check(w.Live() == 5, "ice vehicle: main plus four companions")
+    w.Remove("a")
+    w.Run(7.0)
+    check(w.Live() == 0 and w.created == w.destroyed, "a destroyed vehicle leaves no companions")
+
+    w = fresh("ganymede")
+    w.Wake.Stop()
+    check(w.Live() == 0 and w.created == w.destroyed, "Stop destroys the companions")
+
+    w = fresh("ganymede")
+    w.Wake.Reset()
+    check(w.Live() == 0 and w.created == w.destroyed, "Reset (a save load) destroys the companions")
+
+    w = fresh("ganymede")
+    w.Wake.SetEnabled(false)
+    check(w.Live() == 0 and w.created == w.destroyed, "SetEnabled(false) destroys the companions")
+
+    w = fresh("ganymede")
+    w.Wake.Init({ surface = "ice" })
+    w.Run(1.0)
+    check(w.Live("CRWake/GanymedeChips_A") == 0 and w.Live("CRWake/IceChips_A") == 1 and w.Live() == 5,
+        "a world change (Init over a running module) leaves only the new world's companions")
+
+    w = fresh("ice")
+    w.objects.a.x = 400.0
+    w.Run(7.0)
+    check(w.Live() == 0 and w.created == w.destroyed, "a vehicle out of range releases its companions")
+
+    -- A surface change swaps the whole set (ice -> mars): the old companions are not kept.
+    w = NewWorld()
+    local which = "ice"
+    w.Wake.Init({ surface = function() return which, 1.0, 0.0 end, surfaces = { "ice", "mars" } })
+    w.Add("a", 30.0, 0.0, 15.0, 0.0)
+    w.Run(1.0)
+    which = "mars"
+    w.Run(7.0)
+    check(w.Live("CRWake/MarsDust") == 1 and w.Live("CRWake/IceChips_A") == 0 and w.Live() == 1,
+        "driving from ice onto mars drops the companions and gains none")
+
+    -- Pooled reuse: a pooled main keeps its companions for the same template.
+    w = fresh("ice")
+    local createdBefore = w.created
+    w.objects.a.vx = 0.0
+    w.Run(1.0)
+    w.objects.a.vx = 15.0
+    w.Run(1.0)
+    check(w.created == createdBefore, "resuming reuses the pooled main and its companions (no churn)")
+
+    -- A companion template that cannot be created does not take the main down.
+    w = NewWorld()
+    w.Wake.Init({ surface = "ice" })
+    local exu = w.env.require("exu")
+    local realCreate = exu.CreateParticleSystem
+    exu.CreateParticleSystem = function(name, template, position)
+        if template == "CRWake/IceChips_B" then return false end
+        return realCreate(name, template, position)
+    end
+    w.Add("a", 30.0, 0.0, 15.0, 0.0)
+    w.Run(1.0)
+    check(w.Live("CRWake/IceSpray") == 1 and w.Live("CRWake/IceChips_A") == 1 and w.Live("CRWake/IceChips_B") == 0
+        and w.Live() == 4, "a failing companion template is skipped; the rest still run")
+
+    -- Profiles without companions are unchanged: one system per vehicle, two emitter shares.
+    for _, world in ipairs({ "regolith", "sulfur", "mars", "ash", "water", "mud", "grass" }) do
+        local profile = NewWorld().Wake.Profiles[world]
+        check(profile.chips == nil and profile.chipShare == nil, world .. " has no companions")
+        check(#profile.shares == 2 and profile.shares[1] == 1.0, world .. " keeps its two emitter shares")
+        local wd = NewWorld()
+        wd.Wake.Init({ surface = world })
+        wd.Add("a", 30.0, 0.0, 15.0, 0.0)
+        wd.Run(1.0)
+        local expected = (world == "water") and 2 or 1
+        check(wd.Live() == expected, world .. ": one system per vehicle, as before (" .. wd.Live() .. ")")
+        local main
+        for _, sy in pairs(wd.systems) do if sy.template == profile.template then main = sy end end
+        check(main ~= nil and main.rates[1] ~= nil and main.rates[1] > 0, world .. ": emitter 1 still emits")
+    end
 end
 
 -- =============================================================================

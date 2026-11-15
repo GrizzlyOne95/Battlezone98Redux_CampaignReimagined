@@ -69,6 +69,28 @@ material CR_FX/KickIce : BZSprite/AlphaBlend
 	set_texture_alias DiffuseMap cr_kick_ice.dds
 }
 
+// Single ice shards cut from the cr_kick_ice sheet (Tools/TexturesAndSky/Build-KickupTextures.py --cut-ice):
+// one per CRWake/*Chips_A..D system, so a chip particle draws one shard, not the whole ring.
+material CR_FX/KickIceA : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap cr_kick_ice_a.dds
+}
+
+material CR_FX/KickIceB : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap cr_kick_ice_b.dds
+}
+
+material CR_FX/KickIceC : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap cr_kick_ice_c.dds
+}
+
+material CR_FX/KickIceD : BZSprite/AlphaBlend
+{
+	set_texture_alias DiffuseMap cr_kick_ice_d.dds
+}
+
 material CR_FX/KickClod : BZSprite/AlphaBlend
 {
 	set_texture_alias DiffuseMap cr_kick_clod.dds

@@ -17,7 +17,7 @@
 // LinearForce equal to CRWake.V.Profiles[...].g (or its `fall` where a template
 // is deliberately softer): the pilot apex cap and the vacuum TTL use them.
 //
-// Materials: CR_FX/KickRegolith, KickIce, KickClod and KickPuff (sprite art converted by
+// Materials: CR_FX/KickRegolith, KickIce (+ KickIceA..D single shards), KickClod and KickPuff (sprite art converted by
 // Tools/Build-KickupTextures.py; KickPuff is the soft dust puff for the air worlds) plus
 // CRWX_FX/*. KickClod is already coloured (brown with grass blades): the mud and grass
 // templates tint it near neutral instead of brown-on-brown. Every kickup template carries a Rotator so a sprite never reads
@@ -27,9 +27,15 @@
 // alive at once and only near the viewer.
 //
 // Emitter ORDER MATTERS: CRWake sets the rate and aim of emitter 0 (the body)
-// and emitter 1 (the chips) by index. Vacuum affectors: 0 ColourFader2,
+// and emitter 1 (the chips; Ganymede and Europa have no emitter 1, see below) by index. Vacuum affectors: 0 ColourFader2,
 // 1 Rotator, 2 LinearForce. Air affectors: 0 ColourInterpolator, 1 Scaler,
 // 2 LinearForce, 3 Rotator.
+//
+// Ganymede and Europa: the bright chips are NOT an emitter of the main system. Ogre particles cannot
+// pick a sheet cell, so each world has four one-emitter systems (GanymedeChips_A..D, IceChips_A..D),
+// each on its own single-shard material (CR_FX/KickIceA..D), that CRWake creates and drives alongside
+// the main (dust-only) system. Keep the four of a world identical apart from the material.
+// Quads are 0.35 m: a shard fills ~1/3 of its 128 px canvas (~0.12 m, as on the old 0.7 m sheet).
 
 // =============================================================================
 // Mars -- red-ochre dust and rock chips (thin air: a little billow)
@@ -116,11 +122,10 @@ particle_system CRWake/MarsDust
 // Europa -- ice powder and chips (vacuum)
 // =============================================================================
 
-//   emitter 0  Box: powder sheet
-//   emitter 1  Box: bright chips
+//   emitter 0  Box: powder sheet (KickPuff); the chips are IceChips_A..D below
 particle_system CRWake/IceSpray
 {
-    material            CR_FX/KickIce
+    material            CR_FX/KickPuff
     particle_width      0.7
     particle_height     0.7
     quota               100
@@ -144,6 +149,210 @@ particle_system CRWake/IceSpray
         height              0.3
         depth               3
     }
+
+    affector ColourFader2
+    {
+        red1 0
+        green1 0
+        blue1 0
+        alpha1 0
+        state_change 0.35
+        red2 0
+        green2 0
+        blue2 0
+        alpha2 -1.6
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -40
+        rotation_speed_range_end    40
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -1.31 0
+        force_application   add
+    }
+}
+
+particle_system CRWake/IceChips_A
+{
+    material            CR_FX/KickIceA
+    particle_width      0.35
+    particle_height     0.35
+    quota               24
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               20
+        emission_rate       0
+        time_to_live_min    1.0
+        time_to_live_max    1.8
+        direction           0.6 1 0
+        velocity_min        2.5
+        velocity_max        8
+        colour_range_start  1.00 1.00 1.00 0.90
+        colour_range_end    0.92 0.97 1.00 0.85
+        width               2
+        height              0.2
+        depth               2
+    }
+
+    affector ColourFader2
+    {
+        red1 0
+        green1 0
+        blue1 0
+        alpha1 0
+        state_change 0.35
+        red2 0
+        green2 0
+        blue2 0
+        alpha2 -1.6
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -40
+        rotation_speed_range_end    40
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -1.31 0
+        force_application   add
+    }
+}
+
+particle_system CRWake/IceChips_B
+{
+    material            CR_FX/KickIceB
+    particle_width      0.35
+    particle_height     0.35
+    quota               24
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               20
+        emission_rate       0
+        time_to_live_min    1.0
+        time_to_live_max    1.8
+        direction           0.6 1 0
+        velocity_min        2.5
+        velocity_max        8
+        colour_range_start  1.00 1.00 1.00 0.90
+        colour_range_end    0.92 0.97 1.00 0.85
+        width               2
+        height              0.2
+        depth               2
+    }
+
+    affector ColourFader2
+    {
+        red1 0
+        green1 0
+        blue1 0
+        alpha1 0
+        state_change 0.35
+        red2 0
+        green2 0
+        blue2 0
+        alpha2 -1.6
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -40
+        rotation_speed_range_end    40
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -1.31 0
+        force_application   add
+    }
+}
+
+particle_system CRWake/IceChips_C
+{
+    material            CR_FX/KickIceC
+    particle_width      0.35
+    particle_height     0.35
+    quota               24
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               20
+        emission_rate       0
+        time_to_live_min    1.0
+        time_to_live_max    1.8
+        direction           0.6 1 0
+        velocity_min        2.5
+        velocity_max        8
+        colour_range_start  1.00 1.00 1.00 0.90
+        colour_range_end    0.92 0.97 1.00 0.85
+        width               2
+        height              0.2
+        depth               2
+    }
+
+    affector ColourFader2
+    {
+        red1 0
+        green1 0
+        blue1 0
+        alpha1 0
+        state_change 0.35
+        red2 0
+        green2 0
+        blue2 0
+        alpha2 -1.6
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -40
+        rotation_speed_range_end    40
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -1.31 0
+        force_application   add
+    }
+}
+
+particle_system CRWake/IceChips_D
+{
+    material            CR_FX/KickIceD
+    particle_width      0.35
+    particle_height     0.35
+    quota               24
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
 
     emitter Box
     {
@@ -194,12 +403,12 @@ particle_system CRWake/IceSpray
 // =============================================================================
 
 // Ganymede's surface is dark, dusty ice: emitter 0 is the dirty grey-brown dust sheet,
-// emitter 1 the bright blue-white ice chips. KickIce for both; the colours do the rest.
+// emitter 1 the bright blue-white ice chips. The dust sheet is KickPuff; the chips are the
+// separate GanymedeChips_A..D systems (one single-shard KickIceA..D sprite each).
 //   emitter 0  Box: dirty dust sheet
-//   emitter 1  Box: ice glints
 particle_system CRWake/GanymedeSpray
 {
-    material            CR_FX/KickIce
+    material            CR_FX/KickPuff
     particle_width      0.7
     particle_height     0.7
     quota               100
@@ -223,6 +432,210 @@ particle_system CRWake/GanymedeSpray
         height              0.3
         depth               3
     }
+
+    affector ColourFader2
+    {
+        red1 0
+        green1 0
+        blue1 0
+        alpha1 0
+        state_change 0.35
+        red2 0
+        green2 0
+        blue2 0
+        alpha2 -1.6
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -40
+        rotation_speed_range_end    40
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -1.43 0
+        force_application   add
+    }
+}
+
+particle_system CRWake/GanymedeChips_A
+{
+    material            CR_FX/KickIceA
+    particle_width      0.35
+    particle_height     0.35
+    quota               24
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               20
+        emission_rate       0
+        time_to_live_min    1.0
+        time_to_live_max    1.8
+        direction           0.6 1 0
+        velocity_min        2.5
+        velocity_max        8
+        colour_range_start  0.80 0.90 1.00 0.90
+        colour_range_end    0.70 0.84 1.00 0.85
+        width               2
+        height              0.2
+        depth               2
+    }
+
+    affector ColourFader2
+    {
+        red1 0
+        green1 0
+        blue1 0
+        alpha1 0
+        state_change 0.35
+        red2 0
+        green2 0
+        blue2 0
+        alpha2 -1.6
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -40
+        rotation_speed_range_end    40
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -1.43 0
+        force_application   add
+    }
+}
+
+particle_system CRWake/GanymedeChips_B
+{
+    material            CR_FX/KickIceB
+    particle_width      0.35
+    particle_height     0.35
+    quota               24
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               20
+        emission_rate       0
+        time_to_live_min    1.0
+        time_to_live_max    1.8
+        direction           0.6 1 0
+        velocity_min        2.5
+        velocity_max        8
+        colour_range_start  0.80 0.90 1.00 0.90
+        colour_range_end    0.70 0.84 1.00 0.85
+        width               2
+        height              0.2
+        depth               2
+    }
+
+    affector ColourFader2
+    {
+        red1 0
+        green1 0
+        blue1 0
+        alpha1 0
+        state_change 0.35
+        red2 0
+        green2 0
+        blue2 0
+        alpha2 -1.6
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -40
+        rotation_speed_range_end    40
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -1.43 0
+        force_application   add
+    }
+}
+
+particle_system CRWake/GanymedeChips_C
+{
+    material            CR_FX/KickIceC
+    particle_width      0.35
+    particle_height     0.35
+    quota               24
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
+
+    emitter Box
+    {
+        angle               20
+        emission_rate       0
+        time_to_live_min    1.0
+        time_to_live_max    1.8
+        direction           0.6 1 0
+        velocity_min        2.5
+        velocity_max        8
+        colour_range_start  0.80 0.90 1.00 0.90
+        colour_range_end    0.70 0.84 1.00 0.85
+        width               2
+        height              0.2
+        depth               2
+    }
+
+    affector ColourFader2
+    {
+        red1 0
+        green1 0
+        blue1 0
+        alpha1 0
+        state_change 0.35
+        red2 0
+        green2 0
+        blue2 0
+        alpha2 -1.6
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -40
+        rotation_speed_range_end    40
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 -1.43 0
+        force_application   add
+    }
+}
+
+particle_system CRWake/GanymedeChips_D
+{
+    material            CR_FX/KickIceD
+    particle_width      0.35
+    particle_height     0.35
+    quota               24
+    cull_each           true
+    sorted              false
+    local_space         false
+    billboard_type      point
 
     emitter Box
     {
