@@ -483,18 +483,7 @@ function Invoke-Quit([string]$Tag) {
 # ------------------------------------------------------------------- logs ----
 function Copy-RunLogs([string]$Tag) {
     $dest = Join-Path "$RunDir\logs" $Tag
-    $null = New-Item -ItemType Directory -Force -Path $dest
-    $dirs = @($GameDir, $LogsDir, (Join-Path $GameDir 'exu'), (Join-Path $GameDir 'openshim'), $ModDir)
-    foreach ($d in $dirs) {
-        if (-not (Test-Path -LiteralPath $d)) { continue }
-        foreach ($f in @(Get-ChildItem -LiteralPath $d -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in '.log', '.txt', '.dmp' -and $_.LastWriteTimeUtc -ge $RunStartUtc -and $_.Name -ne 'uiperf_trigger.txt' })) {
-            $rel = $f.FullName.Substring($GameDir.Length).TrimStart('\') -replace '[\\/]', '__'
-            try {
-                $fs = [IO.File]::Open($f.FullName, 'Open', 'Read', 'ReadWrite,Delete')
-                try { $out = [IO.File]::Create((Join-Path $dest $rel)); try { $fs.CopyTo($out) } finally { $out.Dispose() } } finally { $fs.Dispose() }
-            } catch { Write-Warning "copy $($f.Name): $_" }
-        }
-    }
+    Copy-LogsSince $GameDir @($GameDir, $LogsDir, (Join-Path $GameDir 'exu'), (Join-Path $GameDir 'openshim'), $ModDir) $RunStartUtc $dest
 }
 
 $KnownRules = @()

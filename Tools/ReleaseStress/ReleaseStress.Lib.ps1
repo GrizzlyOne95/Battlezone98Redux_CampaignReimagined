@@ -173,3 +173,19 @@ function Save-Stacks([int]$ProcessId, [string]$OutFile, [string]$CdbPath) {
         -RedirectStandardOutput $OutFile -RedirectStandardError "$OutFile.err" -NoNewWindow -PassThru
     if (-not $p.WaitForExit(90000)) { try { $p.Kill() } catch {} ; Add-Content $OutFile "`n[cdb timed out after 90 s]" }
 }
+
+function Copy-LogsSince([string]$GameDir, [string[]]$Dirs, [datetime]$SinceUtc, [string]$Dest) {
+    # Copies every .log/.txt/.dmp in $Dirs (top level) modified since $SinceUtc into $Dest, reading with
+    # share-delete so a log the game still holds open is copied. Names are flattened (dir__file).
+    $null = New-Item -ItemType Directory -Force -Path $Dest
+    foreach ($d in $Dirs) {
+        if (-not (Test-Path -LiteralPath $d)) { continue }
+        foreach ($f in @(Get-ChildItem -LiteralPath $d -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in '.log', '.txt', '.dmp' -and $_.LastWriteTimeUtc -ge $SinceUtc -and $_.Name -ne 'uiperf_trigger.txt' })) {
+            $rel = $f.FullName.Substring($GameDir.Length).TrimStart('\') -replace '[\\/]', '__'
+            try {
+                $fs = [IO.File]::Open($f.FullName, 'Open', 'Read', 'ReadWrite,Delete')
+                try { $out = [IO.File]::Create((Join-Path $Dest $rel)); try { $fs.CopyTo($out) } finally { $out.Dispose() } } finally { $fs.Dispose() }
+            } catch { Write-Warning "copy $($f.Name): $_" }
+        }
+    }
+}
