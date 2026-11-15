@@ -222,4 +222,56 @@ assert(cockpitAnchor, "cockpit muzzle anchor written")
 near(cockpitAnchor[1], 102.41, "cockpit anchor at the flash offset")
 E.GetCameraView = function() return 0 end
 
-print("SurfaceHeatAnchor: craft offset, hull follow, turret shot, weapon fallback, invalid value, mount, no API, cache, smoothness, slow fire, damage scale, cockpit, barrel PASS")
+-- 11. The player's own shots flash one reused point light ahead of the muzzle.
+local lights, lightCalls = {}, {}
+local function lightCall(name) lightCalls[#lightCalls + 1] = name end
+E.HasPointLight = function(name) return lights[name] ~= nil end
+E.CreatePointLight = function(name, at, colour, range)
+    lightCall("create"); lights[name] = {at = at, colour = colour, range = range, visible = true, power = 1}; return true
+end
+E.SetPointLightPosition = function(name, at) lightCall("move"); if not lights[name] then return false end; lights[name].at = at; return true end
+E.SetPointLightRange = function(name, r) if not lights[name] then return false end; lights[name].range = r; return true end
+E.SetPointLightVisible = function(name, v) if not lights[name] then return false end; lights[name].visible = v; return true end
+E.SetPointLightPowerScale = function(name, p) if not lights[name] then return false end; lights[name].power = p; return true end
+E.DestroyPointLight = function(name) lightCall("destroy"); lights[name] = nil; return true end
+local function fire(odf, shooter)
+    local m = matrix(hull)
+    m.posit_x, m.posit_y, m.posit_z = 100, 1, 0
+    E.BulletInit(odf or "bullet", shooter or 1, m)
+end
+S = load()
+local name = S.MuzzleLightName
+fire(); S.Update(0.01)
+local l = lights[name]
+assert(l and l.visible, "player shot shows the muzzle light")
+near(l.at.x, 100 + S.MuzzleLightAhead, "light sits ahead of the muzzle"); near(l.at.y, 1, "light height"); near(l.range, S.MuzzleLightRange, "base range")
+S.Update(0.05)
+assert(l.power < 1 and l.power > 0, "light fades")
+S.Update(0.1)
+assert(not l.visible, "light hides after its life")
+lightCalls = {}
+fire("rocket3"); S.Update(0.01)
+assert(lightCalls[1] == "move" and #lightCalls == 1, "light is reused, not recreated")
+assert(l.visible and l.power > 0.9, "a new shot relights at full power")
+near(l.range, S.MuzzleLightRange + S.MuzzleLightRangePerScale * (2.875 - 1), "heavy rounds light further")
+S.Update(0.2)
+lightCalls = {}
+fire("bullet", 2); S.Update(0.01)
+assert(#lightCalls == 0 and not l.visible, "other shooters do not flash the player light")
+fire("pop"); S.Update(0.01)
+assert(not l.visible, "zero-damage rounds do not flash")
+lights[name] = nil
+fire(); S.Update(0.01)
+assert(lights[name] and lights[name].visible, "a light lost elsewhere is recreated")
+S.ResetScene()
+assert(lights[name] == nil, "scene reset destroys the light")
+lights = {}
+S = load()
+E.CreatePointLight = function() lightCall("create"); return false end
+lightCalls = {}
+fire(); S.Update(0.01); fire(); S.Update(0.01)
+assert(#lightCalls == 1, "a refused create backs off instead of retrying every shot")
+for _, k in ipairs({"HasPointLight", "CreatePointLight", "SetPointLightPosition", "SetPointLightRange",
+    "SetPointLightVisible", "SetPointLightPowerScale", "DestroyPointLight"}) do E[k] = nil end
+
+print("SurfaceHeatAnchor: craft offset, hull follow, turret shot, weapon fallback, invalid value, mount, no API, cache, smoothness, slow fire, damage scale, cockpit, barrel, player muzzle light PASS")

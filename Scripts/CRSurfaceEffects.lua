@@ -27,6 +27,16 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     -- dummies) adds none. No ordnance data (charge guns, dispensers): 1x.
     HeatPerShot = 0.06, HeatMax = 1.0, HeatCool = 0.15, HeatFloor = 0.02, HeatRadius = 0.6,
     HeatRefDamage = 80, HeatScaleMin = 1, HeatScaleMax = 3,
+    -- Player muzzle light: each of the local player's own shots flashes one
+    -- reused EXU point light just ahead of the muzzle, in cockpit and chase
+    -- view (BZ2's plasma cannon pairs its flash with a draw_light, radius
+    -- 75 -> 35 over 0.25 s). Our flash mesh is drawn in F1 but sits under the
+    -- round's own glow for 2-3 frames; lit cockpit and ground read through
+    -- that. Range grows with the heat damage scale; zero-damage rounds skip.
+    MuzzleLightName = "cr_player_muzzle_light", MuzzleLightLife = 0.12,
+    MuzzleLightRange = 30, MuzzleLightRangePerScale = 15, MuzzleLightAhead = 1.5,
+    MuzzleLightColour = { r = 3.0, g = 2.1, b = 1.1 }, MuzzleLightRetry = 5,
+    mlightMade = false, mlightOn = false, mlightAt = 0, mlightRetryAt = 0,
     -- The glow wraps the barrel within BarrelRadius, from the flash point back
     -- toward the mount for at most BarrelLength, fading out along the way.
     BarrelRadius = 0.35, BarrelLength = 0.8,
@@ -516,7 +526,13 @@ local function enqueue(queue, h, transform, odf)
 end
 
 function S.NotifyHit(odf, _, hit, transform) enqueue(S.hits, hit, transform, odf) end
-function S.NotifyShot(odf, shooter, transform) enqueue(S.shots, shooter, transform, odf) end
+function S.NotifyShot(odf, shooter, transform)
+    enqueue(S.shots, shooter, transform, odf)
+    if shooter ~= nil and shooter == call(GetPlayerHandle) then
+        local p = point(transform)
+        if p then S.playerShot = {position = p, front = axis(transform, "front"), odf = odf} end
+    end
+end
 
 local glassModule
 local glass
@@ -531,16 +547,15 @@ end
 local damageLabels = { "damageBallistic", "damageConcussion", "damageFlame", "damageImpact" }
 -- Heat multiplier for the weapon in this slot, from its ordnance damage. Cached
 -- per weapon in the bounded flash cache; any missing piece gives 1.
-local function heatScale(h, slot)
-    local weapon = call(GetWeaponClass, h, slot)
-    if type(weapon) ~= "string" or weapon == "" then return 1 end
-    local key = "d:" .. string.lower(weapon)
+-- Ordnance damage over HeatRefDamage, clamped; 0 for zero-damage ordnance,
+-- false when the ordnance has no damage data. Cached by ordnance name.
+local function ordnanceScale(ord)
+    if type(ord) ~= "string" or ord == "" then return false end
+    local key = "o:" .. string.lower(ord)
     local value = S.flashCache[key]
     if value == nil then
         value = false
-        local wodf = call(OpenODF, weapon)
-        local ord = wodf ~= nil and call(GetODFString, wodf, "WeaponClass", "ordName", "")
-        local oodf = type(ord) == "string" and ord ~= "" and call(OpenODF, ord) or nil
+        local oodf = call(OpenODF, ord)
         if oodf ~= nil and GetODFFloat then
             local damage, found = 0, false
             for _, label in ipairs(damageLabels) do
@@ -549,14 +564,29 @@ local function heatScale(h, slot)
             end
             if damage > 0 then
                 value = math.max(S.HeatScaleMin, math.min(S.HeatScaleMax, damage / S.HeatRefDamage))
-            elseif found then
-                value = 0
-            end
+            elseif found then value = 0 end
         end
         if S.flashCacheCount < S.MaxFlashCache then
             S.flashCache[key] = value; S.flashCacheCount = S.flashCacheCount + 1
         end
     end
+    return value
+end
+
+local function heatScale(h, slot)
+    local weapon = call(GetWeaponClass, h, slot)
+    if type(weapon) ~= "string" or weapon == "" then return 1 end
+    local key = "d:" .. string.lower(weapon)
+    local ord = S.flashCache[key]
+    if ord == nil then
+        local wodf = call(OpenODF, weapon)
+        ord = wodf ~= nil and call(GetODFString, wodf, "WeaponClass", "ordName", "") or false
+        if type(ord) ~= "string" or ord == "" then ord = false end
+        if S.flashCacheCount < S.MaxFlashCache then
+            S.flashCache[key] = ord; S.flashCacheCount = S.flashCacheCount + 1
+        end
+    end
+    local value = ordnanceScale(ord)
     if value == false then return 1 end
     return value
 end
@@ -848,6 +878,47 @@ local function wrapCallbacks()
     if S.BulletInitWrapper == nil or exu.BulletInit ~= S.BulletInitWrapper then wrapCallback("BulletInit", S.NotifyShot, "shotBusy") end
 end
 
+local function destroyMuzzleLight()
+    if S.mlightMade then call(exu.DestroyPointLight, S.MuzzleLightName) end
+    S.mlightMade, S.mlightOn, S.playerShot = false, false, nil
+end
+
+-- Every frame: show the light for the newest player shot, fade it over
+-- MuzzleLightLife, then hide it. One light, created once and moved after.
+local function muzzleLight()
+    local shot = S.playerShot; S.playerShot = nil
+    if type(exu.CreatePointLight) ~= "function" then shot = nil end
+    local scale = shot and ordnanceScale(shot.odf)
+    if scale == false then scale = 1 end
+    if shot and scale > 0 then
+        local p, f, ahead = shot.position, shot.front, S.MuzzleLightAhead
+        local at = f and vector(p.x + f.x*ahead, p.y + f.y*ahead, p.z + f.z*ahead) or vector(p.x, p.y, p.z)
+        local range = S.MuzzleLightRange + S.MuzzleLightRangePerScale * (scale - 1)
+        local ok = false
+        if S.mlightMade then
+            ok = call(exu.SetPointLightPosition, S.MuzzleLightName, at) == true
+                and call(exu.SetPointLightRange, S.MuzzleLightName, range) == true
+                and call(exu.SetPointLightVisible, S.MuzzleLightName, true) == true
+            if not ok then S.mlightMade = false end
+        end
+        if not S.mlightMade and S.Clock >= S.mlightRetryAt then
+            if call(exu.HasPointLight, S.MuzzleLightName) == true then call(exu.DestroyPointLight, S.MuzzleLightName) end
+            ok = call(exu.CreatePointLight, S.MuzzleLightName, at, S.MuzzleLightColour, range) == true
+            S.mlightMade = ok
+            if not ok then S.mlightRetryAt = S.Clock + S.MuzzleLightRetry end
+        end
+        if ok then S.mlightOn, S.mlightAt = true, S.Clock end
+    end
+    if S.mlightOn then
+        local t = (S.Clock - S.mlightAt) / S.MuzzleLightLife
+        if t >= 1 then
+            call(exu.SetPointLightVisible, S.MuzzleLightName, false); S.mlightOn = false
+        else
+            call(exu.SetPointLightPowerScale, S.MuzzleLightName, 1 - t)
+        end
+    end
+end
+
 function S.Start()
     if S.started or not ready() then return end
     S.started = true
@@ -866,6 +937,7 @@ function S.Update(dt)
     wrapCallbacks()
     dt = clamp(dt,0,0.25); if dt <= 0 then return end
     S.Clock = S.Clock+dt
+    muzzleLight()
     followCamera(); wash(dt)
     local weather = package.loaded.CRWeather
     local rain = weather and call(weather.GetSurfaceWetness) or 0
@@ -977,6 +1049,7 @@ function S.ResetScene()
     end
     S.records,S.order,S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{},{},{}
     S.hits,S.shots,S.clones,S.live = {},{},{},{}
+    destroyMuzzleLight()
     S.cockpit=nil;S.cursor=1;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
     clearPilotBlood()
     setCrack(0);S.crackSpots,S.crackSpotCount={},0
@@ -1009,6 +1082,7 @@ function S.Suspend()
     S.materials,S.materialOrder,S.active,S.activeSet = {},{},{},{}
     S.hits,S.shots,S.clones,S.live = {},{},{},{}
     S.cockpit=nil;S.materialCursor=1;S.activeCursor=1;S.bindCursor=1;S.Wetness=0;S.timer=0
+    destroyMuzzleLight()
     clearPilotBlood()
     clearWash();S.shapeMaterial=nil;S.cameraMaterial=nil;S.cameraAt=nil
     setCrack(0)
