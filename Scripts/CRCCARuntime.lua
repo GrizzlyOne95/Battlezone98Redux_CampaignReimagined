@@ -361,10 +361,12 @@ local function CameraPath(path, height, speed, target)
         localCameraActive = false
     end
     if not cameraSkipped then return native.CameraPath(path, height, speed, target) end
+    -- A latched offline skip counts as arrived, or the shot never ends; a network game keeps its ETA/hold logic.
+    if not CRCoop.IsNetworkGame() then return true end
 end
 local function CameraObject(subject, x, y, z, target)
     cameraFrame = { "O", subject, x, y, z, target }
-    if cameraSkipped then return end
+    if cameraSkipped then return not CRCoop.IsNetworkGame() or nil end
     local done = native.CameraObject(subject, x, y, z, target)
     SkipCheck()
     return done

@@ -52,7 +52,7 @@ end
 
 function F.reset()
     W = {now = 0, objects = {}, peers = {}, nextObject = 0, missing = {}, audioBusy = false, busy = {}, net = false,
-        cancel = false, cameraDone = {}, timer = nil}
+        cancel = false, cancelOnce = false, cameraDone = {}, timer = nil}
     W.pathPos = {}
     for name, p in pairs(F.PATHS) do W.pathPos[name] = vec(p) end
     -- Authored objects exist from the start (AllCraft sees them whether or not the script asked for them).
@@ -303,7 +303,11 @@ function F.makePeer(id, team, network, options)
         assert(e.IsValid(subject) and e.IsValid(target), "invalid object camera")
         record("CameraObject", subject, x, y, z, target)
     end
-    e.CameraCancelled = function() return W.cancel end
+    -- cancelOnce: a skip the engine reports to the first caller only (the runtime consumes it before the mission body)
+    e.CameraCancelled = function()
+        if W.cancelOnce then W.cancelOnce = false; return true end
+        return W.cancel
+    end
     e.AudioMessage = function(file) record("AudioMessage", file); return "audio:" .. file end
     e.SetMaxHealth = function(h, v) record("SetMaxHealth", h, v) end
     e.AddHealth = function(h, v) record("AddHealth", h, v) end
