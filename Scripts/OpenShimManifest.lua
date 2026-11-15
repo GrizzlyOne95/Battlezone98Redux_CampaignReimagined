@@ -3,13 +3,13 @@
 return {
     formatVersion = 3,
     version = "1.0.0.75",
-    sha256 = "d72d0bc7f45851de3b0df7e3e18cfed443692d86223fe12cc46ba170a03f1ba2",
+    sha256 = "7e4f20d8e0d14f365096233658ec4975bb18e8063fe43d284cf746c4f650b9b0",
     size = 134656,
     architecture = "x86",
     payloads = {
-        winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "d72d0bc7f45851de3b0df7e3e18cfed443692d86223fe12cc46ba170a03f1ba2", size = 134656, version = "1.0.0.75", architecture = "x86" },
-        loader = { source = "bzloader.dll", destination = "bzloader.dll", sha256 = "0643fea8d592a0923d175e7a1f9758e83b7e5fdd41419364036e70988580e046", size = 46080, version = "1.0.0.75", architecture = "x86" },
-        plugin = { source = "openshim.dll", destination = "plugins\\openshim.dll", sha256 = "ba0319d6f5ecdda7a6fee24f6d1dd1d9aee476fd1fc45ca8ac8bd561365fda4f", size = 5636608, version = "1.0.0.75", architecture = "x86" },
+        winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "7e4f20d8e0d14f365096233658ec4975bb18e8063fe43d284cf746c4f650b9b0", size = 134656, version = "1.0.0.75", architecture = "x86" },
+        loader = { source = "bzloader.dll", destination = "bzloader.dll", sha256 = "18b8b8ee0124cb09cf809cf1ee85a6348fd3f1959596481201443508e62024ce", size = 46080, version = "1.0.0.75", architecture = "x86" },
+        plugin = { source = "openshim.dll", destination = "plugins\\openshim.dll", sha256 = "bd2be35c8fd5e7823517d51c0502f43057cefeac39224eec348783c14f4d4894", size = 6352384, version = "1.0.0.75", architecture = "x86" },
         network = { source = "openshim_net.ini.payload", destination = "net.ini", sha256 = "a527e8229fe90431dd7d78d739365ebdf37257ef43b402e514967962594feed6", size = 14684 },
         patches = { source = "openshim_patches.json.payload", destination = "scripts\\patches.json", sha256 = "28c475074d9bc661b79e58f44cb091f33600262c1dec47c6c661866cbb0b765a", size = 456204 },
         playerConfig = { source = "openshim.ini.payload", destination = "openshim.ini", sha256 = "f326e900a73772611d975a90d8010b4acb89fc7abd83451224cdf199e0f9eb75", size = 51559, overwrite = false },
