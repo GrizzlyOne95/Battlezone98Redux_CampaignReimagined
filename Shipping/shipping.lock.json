@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6259,
+  "count": 6263,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -6157,6 +6157,22 @@
     {
       "source": "Assets\\Textures\\cr_kick_ice.dds",
       "runtime": "cr_kick_ice.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_kick_ice_a.dds",
+      "runtime": "cr_kick_ice_a.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_kick_ice_b.dds",
+      "runtime": "cr_kick_ice_b.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_kick_ice_c.dds",
+      "runtime": "cr_kick_ice_c.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_kick_ice_d.dds",
+      "runtime": "cr_kick_ice_d.dds"
     },
     {
       "source": "Assets\\Textures\\cr_kick_puff.dds",

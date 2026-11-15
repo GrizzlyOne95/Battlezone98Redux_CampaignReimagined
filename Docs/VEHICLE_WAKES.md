@@ -26,8 +26,8 @@ sites module is named `CRGanymedeSites*` (or the mission's `weather.wakeSurface`
 | Surface | g (m/s^2) | Vacuum | Sprite | TTL |
 | --- | --- | --- | --- | --- |
 | `regolith` (Moon) | 1.62 | yes | `CR_FX/KickRegolith` 0.8 m | ballistic |
-| `ganymede` | 1.43 | yes | `CR_FX/KickIce` 0.7 m (dirty dust sheet + bright ice chips) | ballistic |
-| `ice` (Europa) | 1.31 | yes | `CR_FX/KickIce` 0.7 m (whiter) | ballistic |
+| `ganymede` | 1.43 | yes | `CR_FX/KickPuff` 0.7 m dust sheet (dirty) + 4 `CR_FX/KickIceA..D` chip systems 0.35 m | ballistic |
+| `ice` (Europa) | 1.31 | yes | `CR_FX/KickPuff` 0.7 m dust sheet (whiter) + 4 `CR_FX/KickIceA..D` chip systems 0.35 m | ballistic |
 | `sulfur` (Io) | 1.80 | yes | `CR_FX/KickRegolith` 0.8 m | ballistic |
 | `mars` | 3.71 | no (thin air, modest billow) | `CR_FX/KickPuff` 0.9 m | template |
 | `ash` (Venus) | 8.87 | no (dense air, drag-softened fall 2.4) | `CR_FX/KickPuff` 1.0 m | template |
@@ -45,8 +45,17 @@ sites module is named `CRGanymedeSites*` (or the mission's `weather.wakeSurface`
   and within 1.2 m of the terrain (pilot origin height), no idle emission, 12 % of the profile rate, 0.3 m sprites, a 0.5 m emitter, and a
   launch speed capped so the apex stays under 0.6 m (`sqrt(2 g 0.6)`). The local player's pilot ranks first for the
   system cap. A pooled system is only reused for the same template and mode.
-- Known limits (Ogre 1.10): one particle size per system (dust and chips share it) and one `Rotator` per system.
-- Sprites are CR's own art (cr_kick_regolith / ice / clod / puff, 256 px DXT5) converted by `Tools/TexturesAndSky/Build-KickupTextures.py`; the clod art is already brown with grass blades, so mud and grass tint it near neutral.
+- Known limits (Ogre 1.10): one particle size per system (dust and chips share it), one `Rotator` per system, and no
+  per-particle sheet cell.
+- Companion chip systems: the old `cr_kick_ice.dds` sheet (about 15 shards in a ring) made every ice particle draw the whole
+  ring. Ganymede and Europa now keep only the dust sheet (`KickPuff`) in the main system; the chips are four one-emitter
+  systems per world (`CRWake/GanymedeChips_A..D`, `CRWake/IceChips_A..D`), each on its own single-shard material
+  (`CR_FX/KickIceA..D`, `cr_kick_ice_a..d.dds`, 128 px, cut from the sheet by
+  `Build-KickupTextures.py --cut-ice`). A profile lists them as `chips = { templates }` with `chipShare` (0.45 / 0.40, the
+  old emitter-1 share) split evenly. The companions belong to their main system: created, positioned, aimed (as chips),
+  rate-scaled (Quality, distance fade) and destroyed with it, and pooled with it. They do not count against `MaxSystems`
+  (the cap counts vehicles; an ice vehicle is 5 engine systems). A companion that fails to create is skipped.
+- Sprites are CR's own art (cr_kick_regolith / ice / clod / puff, 256 px DXT5; ice_a..d are single-shard cuts of ice) converted by `Tools/TexturesAndSky/Build-KickupTextures.py`; the clod art is already brown with grass blades, so mud and grass tint it near neutral.
 
 ## Load budget
 
