@@ -222,6 +222,17 @@ do -- the survivor retreats cloaked, as in the body
     check(F.count(p[1], "Cloak", survivor) == 2, "...and cloaks again")
 end
 
+do -- offline: a skip the runtime consumed (carried over from the drop-in) still ends the shot
+    local w, p, m = setup(1, {})
+    w.cancelOnce = true; F.run(1)
+    check(m.cameraComplete[0] and p[1].camera == 0, "a latched offline skip counts as arrived and ends the opening")
+end
+do -- network: the same latched skip is not an arrival; the shot ends by its flight time
+    local w, p, m = setup(3, {})
+    w.cancelOnce = true; F.run(1)
+    check(not m.cameraComplete[0], "a skip never ends the shared opening in a network game (consumed skip)")
+end
+
 -- ------------------------------------------------------------------ wave 1: the camera pair, wave 1a, wave 2 (scaling, no pop-in)
 for n = 1, 4 do
     local e = extrasFor(n)
