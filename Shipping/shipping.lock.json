@@ -6175,6 +6175,22 @@
       "runtime": "cr_kick_ice.dds"
     },
     {
+      "source": "Assets\\Textures\\cr_kick_ice_a.dds",
+      "runtime": "cr_kick_ice_a.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_kick_ice_b.dds",
+      "runtime": "cr_kick_ice_b.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_kick_ice_c.dds",
+      "runtime": "cr_kick_ice_c.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_kick_ice_d.dds",
+      "runtime": "cr_kick_ice_d.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr_kick_puff.dds",
       "runtime": "cr_kick_puff.dds"
     },

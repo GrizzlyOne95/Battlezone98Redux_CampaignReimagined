@@ -112,7 +112,11 @@ V.FootAngle       = 20.0     -- spread, degrees
 -- Surface profiles. `shares` are the per-emitter shares of the rate (emitter
 -- index = position - 1). `accent` is an optional flat second system, created
 -- only when a slot is spare. `payload` is the extra payload to load (nil = the
--- director already loaded it).
+-- director already loaded it). `chips` optionally lists companion templates (one
+-- emitter each, aimed like a chip emitter): the main system's `shares` then covers
+-- only its own emitters, and `chipShare` of the rate is split evenly across the
+-- companions. A companion is created, positioned, aimed, faded and destroyed with its
+-- main system and does not count against MaxSystems (cap = vehicles, not systems).
 --
 -- `g` is the world's real surface gravity (m/s^2) and `vacuum` is true where
 -- there is no air to billow or hang the dust. `fall` (default g) is the downward
@@ -121,10 +125,12 @@ V.FootAngle       = 20.0     -- spread, degrees
 -- LinearForce. `aim = false` leaves a template's own emitters alone (water).
 V.Profiles = {
     regolith = { template = "CR/Moon/HoverDust", shares = { 1.0, 0.35 }, rate = 30.0, g = 1.62, vacuum = true },
-    ganymede = { template = "CRWake/GanymedeSpray", payload = "cr_wake", shares = { 1.0, 0.45 }, rate = 28.0,
-                 g = 1.43, vacuum = true },
-    ice      = { template = "CRWake/IceSpray", payload = "cr_wake", shares = { 1.0, 0.40 }, rate = 28.0,
-                 g = 1.31, vacuum = true },
+    ganymede = { template = "CRWake/GanymedeSpray", payload = "cr_wake", shares = { 1.0 }, rate = 28.0,
+                 chips = { "CRWake/GanymedeChips_A", "CRWake/GanymedeChips_B", "CRWake/GanymedeChips_C",
+                           "CRWake/GanymedeChips_D" }, chipShare = 0.45, g = 1.43, vacuum = true },
+    ice      = { template = "CRWake/IceSpray", payload = "cr_wake", shares = { 1.0 }, rate = 28.0,
+                 chips = { "CRWake/IceChips_A", "CRWake/IceChips_B", "CRWake/IceChips_C", "CRWake/IceChips_D" },
+                 chipShare = 0.40, g = 1.31, vacuum = true },
     sulfur   = { template = "CRWake/SulfurDust", payload = "cr_wake", shares = { 1.0, 0.40 }, rate = 28.0,
                  g = 1.80, vacuum = true },
     mars     = { template = "CRWake/MarsDust", payload = "cr_wake", shares = { 1.0, 0.45 }, rate = 50.0,
@@ -154,7 +160,7 @@ V.NextScan    = 0.0
 V.ScanId      = 0
 V.Serial      = 0
 V.Count       = 0         -- live particle systems
-V.Sys         = {}        -- name -> { name, template, kind, mode, profile, owner, rate, shares, idleSince, stamp, aim state }
+V.Sys         = {}        -- name -> { name, template, kind, mode, profile, owner, rate, shares, idleSince, stamp, aim state, chips = { {name, template, rate} } }
 V.Craft       = {}        -- handle -> { main = sys, accent = sys }
 V.Moved       = {}        -- handle -> last time it moved faster than MinSpeed
 V.Player      = nil       -- the local player's handle (set by ReadViewpoint)
@@ -280,6 +286,10 @@ end
 local function Destroy(s)
     if s == nil or V.Sys[s.name] ~= s then return end
     Call("DestroyParticleSystem", s.name)
+    if s.chips ~= nil then
+        for i = 1, #s.chips do Call("DestroyParticleSystem", s.chips[i].name) end
+        s.chips = nil
+    end
     V.Sys[s.name] = nil
     V.Count = V.Count - 1
     V.Stats.destroyed = V.Stats.destroyed + 1
@@ -293,7 +303,7 @@ local function Destroy(s)
     end
 end
 
-local function Create(template, kind, shares, mode, x, y, z)
+local function Create(template, kind, shares, mode, x, y, z, chipTemplates)
     if (V.Failures[template] or 0) >= V.MaxFailuresPerTemplate then return nil end
     V.Serial = V.Serial + 1
     local name = "cr_wake_" .. tostring(V.Serial)
@@ -322,6 +332,34 @@ local function Create(template, kind, shares, mode, x, y, z)
             Call("SetParticleEmitterAngle", name, i, V.FootAngle)
         end
     end
+    if chipTemplates ~= nil then
+        s.chips = {}
+        for _, chipTemplate in ipairs(chipTemplates) do
+            if (V.Failures[chipTemplate] or 0) < V.MaxFailuresPerTemplate then
+                V.Serial = V.Serial + 1
+                local chipName = "cr_wake_" .. tostring(V.Serial)
+                if Call("CreateParticleSystem", chipName, chipTemplate, Vec(x, y, z)) == true then
+                    V.Failures[chipTemplate] = 0
+                    Call("SetParticleSystemKeepLocalSpace", chipName, false)
+                    Call("SetParticleSystemNonVisibleUpdateTimeout", chipName, 3.0)
+                    if mode == "foot" then
+                        Call("SetParticleSystemDefaultDimensions", chipName, V.FootSize, V.FootSize)
+                        Call("SetParticleEmitterParameter", chipName, 0, "width", V.FootBox)
+                        Call("SetParticleEmitterParameter", chipName, 0, "height", 0.1)
+                        Call("SetParticleEmitterParameter", chipName, 0, "depth", V.FootBox)
+                        Call("SetParticleEmitterAngle", chipName, 0, V.FootAngle)
+                    end
+                    s.chips[#s.chips + 1] = { name = chipName, template = chipTemplate, rate = 0.0 }
+                else
+                    V.Failures[chipTemplate] = (V.Failures[chipTemplate] or 0) + 1
+                    if V.Failures[chipTemplate] >= V.MaxFailuresPerTemplate then
+                        print("CRWake: " .. chipTemplate .. " disabled after " .. tostring(V.Failures[chipTemplate]) ..
+                            " failed particle creates (template unavailable)")
+                    end
+                end
+            end
+        end
+    end
     V.Sys[name] = s
     V.Count = V.Count + 1
     V.Stats.created = V.Stats.created + 1
@@ -332,7 +370,7 @@ end
 -- reused before anything is created, and any of them is sacrificed when the
 -- cap is reached. "Stale" systems (not refreshed by this scan) count as silent:
 -- their craft was not selected. A main system may also take an accent's slot.
-local function Acquire(template, kind, shares, mode, x, y, z)
+local function Acquire(template, kind, shares, mode, x, y, z, chipTemplates)
     local best = nil
     for _, s in pairs(V.Sys) do
         if (s.idleSince ~= nil or s.stamp ~= V.ScanId) and s.template == template and s.mode == mode then
@@ -340,7 +378,7 @@ local function Acquire(template, kind, shares, mode, x, y, z)
         end
     end
     if best ~= nil then return best end
-    if V.Count < V.MaxSystems then return Create(template, kind, shares, mode, x, y, z) end
+    if V.Count < V.MaxSystems then return Create(template, kind, shares, mode, x, y, z, chipTemplates) end
 
     local idle, stale, accent = nil, nil, nil
     for _, s in pairs(V.Sys) do
@@ -355,7 +393,7 @@ local function Acquire(template, kind, shares, mode, x, y, z)
     local victim = idle or stale or accent
     if victim == nil then return nil end
     Destroy(victim)
-    return Create(template, kind, shares, mode, x, y, z)
+    return Create(template, kind, shares, mode, x, y, z, chipTemplates)
 end
 
 local function SetRate(s, rate)
@@ -369,6 +407,24 @@ local function SetRate(s, rate)
     local shares = s.shares
     for i = 1, #shares do
         Call("SetParticleEmitterEmissionRate", s.name, i - 1, rate * shares[i])
+    end
+    local chips = s.chips
+    if chips ~= nil and s.profile ~= nil and #chips > 0 then
+        -- Total chip emission = rate * chipShare, split evenly over the companion
+        -- templates the profile lists (a failed create does not redistribute).
+        local each = rate * (s.profile.chipShare or 0.0) / #s.profile.chips
+        for i = 1, #chips do
+            chips[i].rate = each
+            Call("SetParticleEmitterEmissionRate", chips[i].name, 0, each)
+        end
+    end
+end
+
+local function SetPosition(s, x, y, z)
+    local p = Vec(x, y, z)
+    Call("SetParticleSystemPosition", s.name, p)
+    if s.chips ~= nil then
+        for i = 1, #s.chips do Call("SetParticleSystemPosition", s.chips[i].name, p) end
     end
 end
 
@@ -412,8 +468,13 @@ local function Aim(s, c)
 
     local gTtl = foot and (profile.fall or profile.g) or profile.g
     local ballistic = foot or profile.vacuum
-    for i = 0, #s.shares - 1 do
+    local nMain = #s.shares
+    local nChips = s.chips ~= nil and #s.chips or 0
+    for i = 0, nMain + nChips - 1 do
+        -- Emitters past the main system's own belong to the companion chip systems.
         local sheet = (i == 0) and not foot
+        local target, ei = s.name, i
+        if i >= nMain then target, ei, sheet = s.chips[i - nMain + 1].name, 0, false end
         local k, up, v
         if sheet then
             k, up = 1.0, V.SheetUp
@@ -428,11 +489,11 @@ local function Aim(s, c)
             v = math.min(v, vmax / (1.0 + V.VelocitySpread))
         end
         local len = math.sqrt((k * k) + (up * up))
-        Call("SetParticleEmitterDirection", s.name, i, Vec(s.bx * k / len, up / len, s.bz * k / len))
-        Call("SetParticleEmitterVelocity", s.name, i, v * (1.0 - V.VelocitySpread), v * (1.0 + V.VelocitySpread))
+        Call("SetParticleEmitterDirection", target, ei, Vec(s.bx * k / len, up / len, s.bz * k / len))
+        Call("SetParticleEmitterVelocity", target, ei, v * (1.0 - V.VelocitySpread), v * (1.0 + V.VelocitySpread))
         if ballistic then
             local t = Clamp(2.0 * v * (up / len) / gTtl, V.MinTTL, V.MaxTTL)
-            Call("SetParticleEmitterTimeToLive", s.name, i, t * 0.8, t * 1.2)
+            Call("SetParticleEmitterTimeToLive", target, ei, t * 0.8, t * 1.2)
         end
     end
 end
@@ -615,7 +676,7 @@ local function Scan()
             s = nil
         end
         if s == nil then
-            s = Acquire(profile.template, "main", profile.shares, c.mode, c.x, c.ground + 0.2, c.z)
+            s = Acquire(profile.template, "main", profile.shares, c.mode, c.x, c.ground + 0.2, c.z, profile.chips)
             if s ~= nil then
                 if V.Craft[c.h] == nil then V.Craft[c.h] = {} end
                 s.profile = profile
@@ -629,7 +690,7 @@ local function Scan()
             s.idleSince = nil
         end
         if s ~= nil then
-            Call("SetParticleSystemPosition", s.name, Vec(c.x, c.ground + 0.2, c.z))
+            SetPosition(s, c.x, c.ground + 0.2, c.z)
             Aim(s, c)
             SetRate(s, c.rate)
         end
