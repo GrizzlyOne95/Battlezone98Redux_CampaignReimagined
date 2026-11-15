@@ -150,3 +150,10 @@ them. Meshes and UVs are unchanged.
 - **Water (`cr17_water.dds`, 1024^2).** Grey ripple map: the source's lighting
   gradient is removed and the level matched to the old ISDFC `water256` copy.
   The Jungle builder now writes it after copying `water256`; misn18 shares it.
+
+## Dropship sounds
+
+`Assets/Sounds/crdidle.wav`, `crddesc.wav`, `crddoor.wav` and `crdleav.wav` are Battlezone II's own dropship sounds,
+copied unchanged and renamed to the engine's 8-character limit: `sdrop01.wav` (the engine loop BZ2 sets as `soundAmbient` on
+every dropship ODF), `dropfall.wav` (descent), `dropdoor.wav` (ramps open and close) and `dropleav.wav` (take-off). They
+are played by `Scripts/CRDropIn.lua`, `CR04Drop.lua` and `CRMisn18.lua` (see `Docs/MISN04_COOP.md`, "Dropship opening").

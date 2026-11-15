@@ -507,6 +507,35 @@ do -- choreography: pure, deterministic, inside the tornado keep-clear zone
     check(u0>300 and u1<1 and u2==0,"the ship descends to the ground and stays")
     check(Drop.Delay(5)+Drop.FLY_T+Drop.OPEN_T+Drop.LOAD_T+Drop.CLOSE_T<Drop.SHOT1,"the last ramps are closed before shot 1 ends")
 end
+do -- dropship sounds: every peer cues each ship's descent, doors and take-off once, from the same plan and clock
+    for _,n in ipairs({1,2}) do
+        local w2,p2,m2=toWin(n,{sounds=true})
+        F.runUntil(function() return m2.missionwon end,60)
+        F.run(Drop.Total()+5)
+        local ships=n+1
+        for i,q in ipairs(p2) do
+            local by={}
+            for _,c in ipairs(F.callsOf(q,"StartSound")) do by[c[2]]=by[c[2]] or {};table.insert(by[c[2]],c) end
+            local desc,door,leave=by[Drop.SOUNDS.descend] or {},by[Drop.SOUNDS.door] or {},by[Drop.SOUNDS.leave] or {}
+            check(#desc==ships and #door==2*ships and #leave==ships,"peer "..i.." hears descend x"..ships..", door x"..2*ships..", leave x"..ships.." (n="..n..", got "..#desc.."/"..#door.."/"..#leave..")")
+            for k=1,ships do
+                check(math.abs(desc[k].t-desc[1].t-(k-1)*Drop.STAGGER)<0.6,"peer "..i.." descent roars are staggered like the ships")
+                check(door[k].t>desc[k].t and leave[k].t>door[ships+k].t,"peer "..i.." cues come in order for ship "..k)
+                check(math.abs(leave[k].t-door[ships+k].t-Drop.CLOSE_T)<0.6,"peer "..i.." the take-off roar follows the closing door")
+            end
+            for _,c in ipairs(F.callsOf(q,"StartSound")) do
+                if i==1 then
+                    local o=F.world().objects[c[3]]
+                    check(type(c[3])=="string" and o~=nil,"the leader's cue sits on a ship handle: "..tostring(c[3]))
+                    local want=(c[2]==Drop.SOUNDS.descend) and "avdropc" or ((c[2]==Drop.SOUNDS.leave) and "avdropx" or nil)
+                    check(want==nil or o.odf==want,"the leader's "..c[2].." sits on "..tostring(want))
+                else
+                    check(type(c[3])=="table","a guest plays at the plan's pose: "..tostring(c[3]))
+                end
+            end
+        end
+    end
+end
 for _,n in ipairs({1,4}) do
     local w2,p2,m2=toWin(n)
     local mark=#p2[1].calls

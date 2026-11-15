@@ -188,4 +188,56 @@ do
     check(M.cr04drop.phase == "done" and not locked() and camera.ready == 0, "stock opening untouched")
 end
 
+-- 6. Dropship sounds: the descent roar, the door (open and close) and the take-off roar, each once per ship, on the ship
+--    handle that exists after the swap. Nothing is played, and nothing breaks, when StartSound is absent.
+local function runWithSounds(withStub, skipAt)
+    local Drop = reset()
+    local M = {}
+    local cues = {}
+    _G.StartSound = withStub and function(file, h)
+        cues[#cues + 1] = { file = file, odf = objects[h] and objects[h].odf, h = h, t = now }
+    end or nil
+    Drop.Update(M)
+    if skipAt then
+        for _ = 1, 30 * skipAt do step(Drop, M, 1 / 30) end
+        camera.cancel = true
+    end
+    for _ = 1, 30 * 200 do
+        step(Drop, M, 1 / 30, function() objects[3].pos = V(objects[3].pos.x, 20, objects[3].pos.z + 0.5) end)
+        if M.cr04drop.phase == "done" then break end
+    end
+    _G.StartSound = nil
+    check(M.cr04drop.phase == "done", "the sound run finishes the opening")
+    return cues
+end
+do
+    local cues = runWithSounds(true)
+    local by = {}
+    for _, c in ipairs(cues) do
+        by[c.file] = by[c.file] or {}
+        table.insert(by[c.file], c)
+    end
+    check(#cues == 8, "two ships, four cues each, got " .. #cues)
+    check(#by["crddesc.wav"] == 2 and #by["crddoor.wav"] == 4 and #by["crdleav.wav"] == 2, "descend x2, door x4, leave x2")
+    for i = 1, 2 do
+        local d = by["crddesc.wav"][i]
+        check(d.odf == "avdropc" and math.abs(d.t - ((i - 1) * 2.5 + 16 - 12.28)) < 0.1,
+            "the descent roar starts on the flying ship so that it ends at touchdown (ship " .. i .. ")")
+        check(by["crddoor.wav"][i].odf == "avdropo" and math.abs(by["crddoor.wav"][i].t - ((i - 1) * 2.5 + 16)) < 0.1,
+            "the opening door sounds on the landed hull at touchdown (ship " .. i .. ")")
+        check(by["crddoor.wav"][2 + i].odf == "avdropx", "the closing door sounds on the closing hull (ship " .. i .. ")")
+        local l = by["crdleav.wav"][i]
+        check(l.odf == "avdropx" and math.abs(l.t - by["crddoor.wav"][2 + i].t - 2.4) < 0.1,
+            "the take-off roar follows the closing door by CLOSE_T (ship " .. i .. ")")
+    end
+    check(cues[1].file == "crddesc.wav" and cues[2].file == "crddesc.wav" and cues[3].file == "crddoor.wav"
+        and cues[4].file == "crddoor.wav", "descend, descend, then the opening doors, in that order")
+    for i = 2, #cues do check(cues[i - 1].t <= cues[i].t, "cues are time ordered") end
+    check(#runWithSounds(false) == 0, "no StartSound, no cues and no error")
+    local skipped = runWithSounds(true, 3)
+    local n = 0
+    for _, c in ipairs(skipped) do if c.file == "crddesc.wav" then n = n + 1 end end
+    check(n == 0 and #skipped == 6, "a skipped descent plays no roar; doors and take-off still sound, got " .. #skipped)
+end
+
 print(string.format("CR04Drop: %d checks passed", checks))

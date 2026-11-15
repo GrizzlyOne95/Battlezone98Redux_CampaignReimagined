@@ -725,4 +725,132 @@ do
     check(dist2(objects[1].pos, V(1933, 0, 100685)) < 1, "the recycler is set down on its spot")
 end
 
+-- 4p. Dropship sounds: descend, door open, door close and take-off roar, once per ship per drop, on every peer.
+--     The engine loop is the ODFs' soundAmbient (checked by Validate-CampaignRepository's file rules, not here).
+local function recorder(cues)
+    return function(file, where)
+        cues[#cues + 1] = { file = file, t = now, odf = type(where) == "number" and objects[where] and objects[where].odf or nil,
+            vector = type(where) == "table" and where or nil }
+    end
+end
+local function ofFile(cues, file)
+    local out = {}
+    for _, c in ipairs(cues) do if c.file == file then out[#out + 1] = c end end
+    return out
+end
+-- 4p-1. The leader (offline here; a co-op leader runs the same code): the cues sit on the hull that exists after the swap.
+do
+    local D, s = reset()
+    local cues = {}
+    _G.StartSound = recorder(cues)
+    D.Begin(s, spec())
+    for _ = 1, 30 * 200 do
+        step(D, s, 1 / 30, function() objects[3].pos = V(objects[3].pos.x, 20, objects[3].pos.z + 0.5) end)
+        if s.phase == "done" then break end
+    end
+    _G.StartSound = nil
+    local S = Drop.SOUNDS
+    local desc, door, leave = ofFile(cues, S.descend), ofFile(cues, S.door), ofFile(cues, S.leave)
+    check(#cues == 8 and #desc == 2 and #door == 4 and #leave == 2, "leader: descend x2, door x4, leave x2, got " .. #cues)
+    for i = 1, 2 do
+        local td = Drop.Touchdown(s.ships[i])
+        check(desc[i].odf == "avdropc" and near(desc[i].t, td - Drop.DESCEND_LEN, 0.1), "leader: descent roar ends at touchdown, on the flying hull")
+        check(door[i].odf == "avdropo" and near(door[i].t, td, 0.1), "leader: the opening door sounds at touchdown on the landed hull")
+        check(door[2 + i].odf == "avdropx", "leader: the closing door sounds on the closing hull")
+        check(leave[i].odf == "avdropx" and near(leave[i].t - door[2 + i].t, Drop.CLOSE_T, 0.1), "leader: the take-off roar follows the ramps by CLOSE_T")
+    end
+    for i = 2, #cues do check(cues[i - 1].t <= cues[i].t, "leader: cues are in time order") end
+    check(D.Update(s) == false and #cues == 8, "no cue repeats once the drop is done")
+    -- offline skip: the descent is never heard, the doors and take-off still are
+    local D2, s2 = reset()
+    local c2 = {}
+    _G.StartSound = recorder(c2)
+    D2.Begin(s2, spec())
+    for _ = 1, 30 * 3 do step(D2, s2, 1 / 30) end
+    camera.cancel = true
+    for _ = 1, 30 * 200 do
+        step(D2, s2, 1 / 30, function() objects[3].pos = V(objects[3].pos.x, 20, objects[3].pos.z + 0.5) end)
+        if s2.phase == "done" then break end
+    end
+    _G.StartSound = nil
+    check(#ofFile(c2, S.descend) == 0 and #ofFile(c2, S.door) == 4 and #ofFile(c2, S.leave) == 2, "a skipped descent plays no roar")
+    -- no StartSound: nothing is played and nothing breaks
+    local D3, s3 = reset()
+    D3.Begin(s3, spec())
+    for _ = 1, 30 * 200 do
+        step(D3, s3, 1 / 30, function() objects[3].pos = V(objects[3].pos.x, 20, objects[3].pos.z + 0.5) end)
+        if s3.phase == "done" then break end
+    end
+    check(s3.phase == "done", "no StartSound: the drop still runs")
+    -- a failing StartSound is contained
+    local D4, s4 = reset()
+    _G.StartSound = function() error("no audio") end
+    D4.Begin(s4, spec())
+    for _ = 1, 30 * 200 do
+        step(D4, s4, 1 / 30, function() objects[3].pos = V(objects[3].pos.x, 20, objects[3].pos.z + 0.5) end)
+        if s4.phase == "done" then break end
+    end
+    _G.StartSound = nil
+    check(s4.phase == "done", "a failing StartSound does not break the drop")
+end
+-- 4p-2. A guest cues from its own clock and the replicated hulls (it builds nothing itself).
+local function guestRun(replicate)
+    local D, s = reset({ network = true, leader = false, team = 2, player = 5 })
+    owned[5] = true
+    for _, e in ipairs({
+        { "DropShip", 1, 2, 1900, 100600, 20, 0, -1, 1, 0, 0 }, { "DropShip", 2, 2, 1910, 100700, 20, 0, -1, 1, 0, 2.5 },
+        { "DropCrew", 2, 2, 6, 7 }, { "DropGo" } }) do D.Apply(s, unpack(e)) end
+    local cues, hulls = {}, {}
+    _G.StartSound = recorder(cues)
+    local closeAt = 30
+    for _ = 1, 30 * 200 do
+        step(D, s, 1 / 30, replicate and function()
+            for i = 1, s.n do
+                local ship, t = s.ships[i], now - s.t0
+                local want = t < Drop.Touchdown(ship) and "avdropc" or (now < closeAt and "avdropo" or "avdropx")
+                local x, y, z = Drop.HullPos(ship, math.min(t, Drop.Touchdown(ship)))
+                if not hulls[i] or hulls[i].odf ~= want then
+                    if hulls[i] then objects[hulls[i].h] = nil end
+                    nextId = nextId + 1
+                    objects[nextId] = { odf = want, pos = V(x, y, z), vel = V(0, 0, 0) }
+                    hulls[i] = { h = nextId, odf = want }
+                else
+                    objects[hulls[i].h].pos = V(x, y, z)
+                end
+            end
+        end)
+        if s.phase == "done" then break end
+    end
+    _G.StartSound = nil
+    return cues, s, D
+end
+do
+    local S = Drop.SOUNDS
+    local cues, s = guestRun(true)
+    local desc, door, leave = ofFile(cues, S.descend), ofFile(cues, S.door), ofFile(cues, S.leave)
+    check(#cues == 8 and #desc == 2 and #door == 4 and #leave == 2, "guest: descend x2, door x4, leave x2, got " .. #cues)
+    for i = 1, 2 do
+        local td = Drop.Touchdown(s.ships[i])
+        check(desc[i].odf == "avdropc" and near(desc[i].t, td - Drop.DESCEND_LEN, 0.1), "guest: descent roar on the replicated flying hull")
+        check(door[i].odf == "avdropo" and near(door[i].t, td, 0.1), "guest: the opening door at touchdown on the landed hull")
+        check(door[2 + i].odf == "avdropx" and door[2 + i].t >= 30 and door[2 + i].t < 30 + Drop.SOUND_SCAN_T + 0.1,
+            "guest: the closing door sounds when the closing hull appears")
+        check(leave[i].odf == "avdropx" and near(leave[i].t - door[2 + i].t, Drop.CLOSE_T, 0.1), "guest: take-off roar CLOSE_T after the close")
+    end
+    check(s.phase == "done" and s.released, "the guest finishes once the take-off cue has played")
+    -- without replicated hulls: the descent and the opening door sound at the plan's pose, the rest cannot be known
+    local c2, s2 = guestRun(false)
+    check(#c2 == 4 and #ofFile(c2, S.descend) == 2 and #ofFile(c2, S.door) == 2 and #ofFile(c2, S.leave) == 0,
+        "guest without hulls: descend x2 and open door x2 at the plan's pose, got " .. #c2)
+    for _, c in ipairs(c2) do check(c.vector and c.vector.x and not c.odf, "guest without hulls: a vector, not a handle") end
+    check(s2.phase == "done", "the guest does not wait forever for a take-off it cannot see")
+    -- no StartSound: the guest is done at release as before
+    local D3, s3 = reset({ network = true, leader = false, team = 2, player = 5 })
+    owned[5] = true
+    for _, e in ipairs({ { "DropShip", 1, 1, 1900, 100600, 20, 0, -1, 1, 0, 0 }, { "DropCrew", 2, 1, 6, 7 }, { "DropGo" } }) do D3.Apply(s3, unpack(e)) end
+    for _ = 1, 30 * 30 do step(D3, s3, 1 / 30) end
+    check(s3.phase == "done" and s3.released, "no StartSound: the guest finishes at release")
+    check(not _G.StartSound, "the test restored StartSound")
+end
+
 print(string.format("CRDropIn: %d checks passed", checks))

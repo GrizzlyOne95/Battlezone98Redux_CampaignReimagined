@@ -30,6 +30,10 @@ Drop.MAX_SHIPS = 5
 Drop.SHOT1 = 27.0         -- s from the start to the end of the extraction shot (the last ramps are closed)
 Drop.SHOT2 = 12.0         -- s of the ascent shot after it                                            CR18 guess
 
+-- BZ2's dropship sounds (Docs/FOLIAGE_ART_CREDITS.md). The engine loop is `soundAmbient` in the ODFs, not Lua.
+Drop.SOUNDS = { descend = "crddesc.wav", door = "crddoor.wav", leave = "crdleav.wav" }
+Drop.DESCEND_LEN = 12.28  -- s, crddesc.wav: it starts so that it ends at touchdown, but not before the ship starts (FLY_T 9 < 12.28: at once)
+
 local sqrt, cos, sin, floor, max, min = math.sqrt, math.cos, math.sin, math.floor, math.max, math.min
 
 local function lerp(a, b, t) return a + (b - a) * t end
@@ -54,6 +58,19 @@ function Drop.Stage(i, t)
     a = a - Drop.LOAD_T
     if a < Drop.CLOSE_T then return "close", a end
     return "lift", a - Drop.CLOSE_T
+end
+
+-- Seconds since the start of ship i's one-shot cues (pure: every peer computes the same times) and the stage whose
+-- object the cue sits on: descend (fly), door opening (open), door closing (close), take-off roar (lift).
+function Drop.CueTimes(i)
+    local a = Drop.Delay(i)
+    local close = a + Drop.FLY_T + Drop.OPEN_T + Drop.LOAD_T
+    return {
+        { key = "descend", file = Drop.SOUNDS.descend, t = a + max(0, Drop.FLY_T - Drop.DESCEND_LEN), stage = "fly" },
+        { key = "open", file = Drop.SOUNDS.door, t = a + Drop.FLY_T, stage = "open" },
+        { key = "close", file = Drop.SOUNDS.door, t = close, stage = "close" },
+        { key = "leave", file = Drop.SOUNDS.leave, t = close + Drop.CLOSE_T, stage = "lift" },
+    }
 end
 
 -- Which object the leader keeps for a stage.
