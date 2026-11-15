@@ -12,8 +12,9 @@ flashEndScale = 0.65
 flashOffset = "0 0 0"
 // CR WEAPON FLASH END
 // CR WEAPON CASING BEGIN
-// Ballistic large brass; local cosmetic only.
+// Ballistic large cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.
 casingType = "large"
+casingMesh = "cr_casing_cannon.mesh"
 // CR WEAPON CASING END
 // CR WEAPON RECOIL BEGIN
 // Opt-in recoil: the craft supplies the node/distance/return, this weapon supplies the kick.
