@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6267,
+  "count": 6274,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -3355,6 +3355,14 @@
       "runtime": "cr18_streams.mesh"
     },
     {
+      "source": "Assets\\Models\\cr_casing_bullet.mesh",
+      "runtime": "cr_casing_bullet.mesh"
+    },
+    {
+      "source": "Assets\\Models\\cr_casing_cannon.mesh",
+      "runtime": "cr_casing_cannon.mesh"
+    },
+    {
       "source": "Assets\\Models\\crambd.mesh",
       "runtime": "crambd.mesh"
     },
@@ -6093,6 +6101,22 @@
     {
       "source": "Assets\\Textures\\cr_bloom.dds",
       "runtime": "cr_bloom.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_casing_bullet_d.png",
+      "runtime": "cr_casing_bullet_d.png"
+    },
+    {
+      "source": "Assets\\Textures\\cr_casing_bullet_s.png",
+      "runtime": "cr_casing_bullet_s.png"
+    },
+    {
+      "source": "Assets\\Textures\\cr_casing_cannon_d.png",
+      "runtime": "cr_casing_cannon_d.png"
+    },
+    {
+      "source": "Assets\\Textures\\cr_casing_cannon_s.png",
+      "runtime": "cr_casing_cannon_s.png"
     },
     {
       "source": "Assets\\Textures\\cr_cockpit_charred.png",
@@ -12593,6 +12617,10 @@
     {
       "source": "Materials\\CR_BZTerrainBase.material",
       "runtime": "CR_BZTerrainBase.material"
+    },
+    {
+      "source": "Materials\\cr_casings.material",
+      "runtime": "cr_casings.material"
     },
     {
       "source": "Materials\\cr_catalogsky.material",

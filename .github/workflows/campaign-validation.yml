@@ -59,6 +59,7 @@ jobs:
       - name: Validate authored weapon flashes and gameplay preservation
         run: |
           python Tools/Weapons/Test-WeaponPresentation.py
+          python Tools/Weapons/Build-CasingMeshes.py --check
           python Tools/Weapons/Test-CombatPresentation.py
           python Tools/CockpitsAndRigs/Test-WeaponRigs.py
           python Tools/UnitsAndBuildings/Test-ConstructorBuildMenu.py

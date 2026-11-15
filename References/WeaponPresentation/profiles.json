@@ -539,7 +539,8 @@
       "profile": "atstab",
       "decision": "authored flash",
       "casing_type": "medium",
-      "casing_decision": "Ballistic medium brass; local cosmetic only."
+      "casing_decision": "Ballistic medium cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gammo": {
       "profile": null,
@@ -557,25 +558,29 @@
       "profile": "atstab",
       "decision": "authored flash",
       "casing_type": "medium",
-      "casing_decision": "Ballistic medium brass; local cosmetic only."
+      "casing_decision": "Ballistic medium cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gatstab": {
       "profile": "atstab",
       "decision": "authored flash",
       "casing_type": "medium",
-      "casing_decision": "Ballistic medium brass; local cosmetic only."
+      "casing_decision": "Ballistic medium cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gatstaba": {
       "profile": "atstab",
       "decision": "authored flash",
       "casing_type": "medium",
-      "casing_decision": "Ballistic medium brass; local cosmetic only."
+      "casing_decision": "Ballistic medium cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gatstabh": {
       "profile": "atstab",
       "decision": "authored flash",
       "casing_type": "medium",
-      "casing_decision": "Ballistic medium brass; local cosmetic only."
+      "casing_decision": "Ballistic medium cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gbetmin": {
       "profile": null,
@@ -653,7 +658,8 @@
       "profile": "spstab",
       "decision": "authored flash",
       "casing_type": "large",
-      "casing_decision": "Ballistic large brass; local cosmetic only."
+      "casing_decision": "Ballistic large cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gcomet": {
       "profile": "rocket",
@@ -713,19 +719,22 @@
       "profile": "mortar",
       "decision": "authored flash",
       "casing_type": "large",
-      "casing_decision": "Ballistic large brass; local cosmetic only."
+      "casing_decision": "Ballistic large cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "ghartill": {
       "profile": "mortar",
       "decision": "authored flash",
       "casing_type": "large",
-      "casing_decision": "Ballistic large brass; local cosmetic only."
+      "casing_decision": "Ballistic large cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "ghartmp": {
       "profile": "mortar",
       "decision": "authored flash",
       "casing_type": "large",
-      "casing_decision": "Ballistic large brass; local cosmetic only."
+      "casing_decision": "Ballistic large cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "ghornet": {
       "profile": "rocket",
@@ -791,13 +800,14 @@
       "profile": "minigun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gmgnbv4": {
       "profile": "minigun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only.",
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
       "casing_notes": [
         "Optional custom ejected-brass mesh (OpenShim exact-GOG ODF scope; ShellCasings ON):",
         "casingMesh = \"mymod_brass.mesh\"",
@@ -808,43 +818,49 @@
         "An explicit missing/invalid casingMesh suppresses the casing; names are case-sensitive.",
         "Existing per-weapon mesh materials are used; this does not change flashMesh.",
         "For CR regeneration, set this weapon casing_mesh in References/WeaponPresentation/profiles.json."
-      ]
+      ],
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gmgrcv1": {
       "profile": "minigun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gminigna": {
       "profile": "minigun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gminignb": {
       "profile": "minigun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gminignc": {
       "profile": "minigun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gminigrn": {
       "profile": "minigun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gminigun": {
       "profile": "minigun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only.",
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
       "casing_notes": [
         "Optional custom ejected-brass mesh (OpenShim exact-GOG ODF scope; ShellCasings ON):",
         "casingMesh = \"mymod_brass.mesh\"",
@@ -855,13 +871,15 @@
         "An explicit missing/invalid casingMesh suppresses the casing; names are case-sensitive.",
         "Existing per-weapon mesh materials are used; this does not change flashMesh.",
         "For CR regeneration, set this weapon casing_mesh in References/WeaponPresentation/profiles.json."
-      ]
+      ],
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gminisov": {
       "profile": "chaingun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gmitsmin": {
       "profile": null,
@@ -975,19 +993,22 @@
       "profile": "sniper",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gspbcv2": {
       "profile": "spstab",
       "decision": "authored flash",
       "casing_type": "large",
-      "casing_decision": "Ballistic large brass; local cosmetic only."
+      "casing_decision": "Ballistic large cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gspccv4": {
       "profile": "spstab",
       "decision": "authored flash",
       "casing_type": "large",
-      "casing_decision": "Ballistic large brass; local cosmetic only."
+      "casing_decision": "Ballistic large cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gsplint": {
       "profile": "mortar",
@@ -1017,43 +1038,50 @@
       "profile": "spstab",
       "decision": "authored flash",
       "casing_type": "large",
-      "casing_decision": "Ballistic large brass; local cosmetic only."
+      "casing_decision": "Ballistic large cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gspstab": {
       "profile": "spstab",
       "decision": "authored flash",
       "casing_type": "large",
-      "casing_decision": "Ballistic large brass; local cosmetic only."
+      "casing_decision": "Ballistic large cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gspstaba": {
       "profile": "spstab",
       "decision": "authored flash",
       "casing_type": "large",
-      "casing_decision": "Ballistic large brass; local cosmetic only."
+      "casing_decision": "Ballistic large cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gspstabb": {
       "profile": "spstab",
       "decision": "authored flash",
       "casing_type": "large",
-      "casing_decision": "Ballistic large brass; local cosmetic only."
+      "casing_decision": "Ballistic large cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gspstabc": {
       "profile": "spstab",
       "decision": "authored flash",
       "casing_type": "large",
-      "casing_decision": "Ballistic large brass; local cosmetic only."
+      "casing_decision": "Ballistic large cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gspstabd": {
       "profile": "spstab",
       "decision": "authored flash",
       "casing_type": "large",
-      "casing_decision": "Ballistic large brass; local cosmetic only."
+      "casing_decision": "Ballistic large cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gspstabn": {
       "profile": "spstab",
       "decision": "authored flash",
       "casing_type": "large",
-      "casing_decision": "Ballistic large brass; local cosmetic only."
+      "casing_decision": "Ballistic large cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",
+      "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gsrkbomb": {
       "profile": "rocket",
@@ -1083,55 +1111,64 @@
       "profile": "minigun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gtmgav4": {
       "profile": "minigun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gtmgbv4": {
       "profile": "minigun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gtminig": {
       "profile": "minigun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gtminis": {
       "profile": "chaingun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gtminis2": {
       "profile": "chaingun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gtminisa": {
       "profile": "chaingun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gtmssv15": {
       "profile": "chaingun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gtmssv3": {
       "profile": "chaingun",
       "decision": "authored flash",
       "casing_type": "small",
-      "casing_decision": "Ballistic small brass; local cosmetic only."
+      "casing_decision": "Ballistic small rifle case (rimless, bottlenecked; after the .50 BMG); local cosmetic only.",
+      "casing_mesh": "cr_casing_bullet.mesh"
     },
     "gtsmoke": {
       "profile": null,
