@@ -118,6 +118,11 @@ jobs:
       - name: Test emissive pulse reaches live surface clones
         run: lua5.1 Tools/TexturesAndSky/Test-EmissivePulse.lua
 
+      - name: Test surface effects and muzzle heat
+        run: |
+          lua5.1 Tools/TexturesAndSky/Test-SurfaceEffects.lua
+          lua5.1 Tools/TexturesAndSky/Test-SurfaceHeatAnchor.lua
+
       - name: Validate combat cockpits
         run: python Tools/CockpitsAndRigs/Test-CombatCockpits.py
 

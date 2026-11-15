@@ -20,7 +20,13 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     -- itself (HeatCool per second) plus a small HeatFloor, so steady fire
     -- settles at a warm level instead of draining: ~0.27 at 1 shot/s,
     -- ~0.47 at 1.5, full from about 3 shots/s. A lone shot fades away.
+    -- Heavy rounds add more per shot: ordnance damage over HeatRefDamage (the
+    -- AT-Stabber's 80), clamped to HeatScaleMin..HeatScaleMax, so the slow
+    -- 230-damage SP-Stabber heats like the AT-Stabber instead of half as much.
+    -- Lighter rounds keep the base heat. Zero-damage ordnance (poppers,
+    -- dummies) adds none. No ordnance data (charge guns, dispensers): 1x.
     HeatPerShot = 0.06, HeatMax = 1.0, HeatCool = 0.15, HeatFloor = 0.02, HeatRadius = 0.6,
+    HeatRefDamage = 80, HeatScaleMin = 1, HeatScaleMax = 3,
     -- The glow wraps the barrel within BarrelRadius, from the flash point back
     -- toward the mount for at most BarrelLength, fading out along the way.
     BarrelRadius = 0.35, BarrelLength = 0.8,
@@ -522,6 +528,39 @@ local function pilotBloodSpot(position)
     return x, y, seed % 2 == 1
 end
 
+local damageLabels = { "damageBallistic", "damageConcussion", "damageFlame", "damageImpact" }
+-- Heat multiplier for the weapon in this slot, from its ordnance damage. Cached
+-- per weapon in the bounded flash cache; any missing piece gives 1.
+local function heatScale(h, slot)
+    local weapon = call(GetWeaponClass, h, slot)
+    if type(weapon) ~= "string" or weapon == "" then return 1 end
+    local key = "d:" .. string.lower(weapon)
+    local value = S.flashCache[key]
+    if value == nil then
+        value = false
+        local wodf = call(OpenODF, weapon)
+        local ord = wodf ~= nil and call(GetODFString, wodf, "WeaponClass", "ordName", "")
+        local oodf = type(ord) == "string" and ord ~= "" and call(OpenODF, ord) or nil
+        if oodf ~= nil and GetODFFloat then
+            local damage, found = 0, false
+            for _, label in ipairs(damageLabels) do
+                local v, has = call(GetODFFloat, oodf, "OrdnanceClass", label, 0)
+                if has and finite(v) then found = true; if v > 0 then damage = damage + v end end
+            end
+            if damage > 0 then
+                value = math.max(S.HeatScaleMin, math.min(S.HeatScaleMax, damage / S.HeatRefDamage))
+            elseif found then
+                value = 0
+            end
+        end
+        if S.flashCacheCount < S.MaxFlashCache then
+            S.flashCache[key] = value; S.flashCacheCount = S.flashCacheCount + 1
+        end
+    end
+    if value == false then return 1 end
+    return value
+end
+
 local function drain(queue, shot)
     for _ = 1, math.min(2, #queue) do
         local event = table.remove(queue, 1)
@@ -558,9 +597,10 @@ local function drain(queue, shot)
                         local heat = r.heat[best] or {energy = 0, display = 0}
                         local mounts=0; for _ in pairs(r.heat) do mounts=mounts+1 end
                         local offset = flashOffset(event.handle, best)
+                        local scale = heatScale(event.handle, best)
                         offset = offset and hullOffset(event.handle, offset, event.front) or nil
                         if (next(r.heat) or heated<S.MaxHeated) and (r.heat[best] or mounts<2) then
-                            heat.energy = math.min(S.HeatMax, heat.energy + S.HeatPerShot)
+                            heat.energy = math.min(S.HeatMax, heat.energy + S.HeatPerShot * scale)
                             heat.offset = offset
                             r.heat[best] = heat; activate(r); r.touched=S.Clock
                         end
@@ -571,7 +611,7 @@ local function drain(queue, shot)
                             local ch = c.heat[best] or {energy = 0, display = 0}
                             local cm=0; for _ in pairs(c.heat) do cm=cm+1 end
                             if c.heat[best] or cm<2 then
-                                ch.energy = math.min(S.HeatMax, ch.energy + S.HeatPerShot)
+                                ch.energy = math.min(S.HeatMax, ch.energy + S.HeatPerShot * scale)
                                 ch.offset = offset; c.heat[best] = ch
                             end
                         end
