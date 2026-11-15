@@ -4,7 +4,8 @@ local E, uniforms, odfReads = {}, {}, 0
 local hull = { right = {0,0,-1}, up = {0,1,0}, front = {1,0,0}, posit = {100,0,0} }
 local craftOdf, weaponOdf = "avtank", "gatstab"
 local odfs = {
-    avtank = { CraftClass = { flashOffset1 = '"0.20 0.10 2.41"' } },
+    avtank = { CraftClass = { flashOffset1 = '"0.20 0.10 2.41"', cockpitFlashOffset1 = '"-0.6 -0.2 1.0"' } },
+    plaintank = { CraftClass = { flashOffset1 = '"0.20 0.10 2.41"' } },
     badtank = { CraftClass = { flashOffset1 = '"21 0 0"' } },
     gatstab = { WeaponClass = { flashOffset = '"0 0 1"', ordName = "rocket" } },
     gspstab = { WeaponClass = { ordName = "rocket3" } },
@@ -222,4 +223,86 @@ assert(cockpitAnchor, "cockpit muzzle anchor written")
 near(cockpitAnchor[1], 102.41, "cockpit anchor at the flash offset")
 E.GetCameraView = function() return 0 end
 
-print("SurfaceHeatAnchor: craft offset, hull follow, turret shot, weapon fallback, invalid value, mount, no API, cache, smoothness, slow fire, damage scale, cockpit, barrel PASS")
+-- 11. The player's own shots flash one reused point light ahead of the muzzle.
+local lights, lightCalls = {}, {}
+local function lightCall(name) lightCalls[#lightCalls + 1] = name end
+E.HasPointLight = function(name) return lights[name] ~= nil end
+E.CreatePointLight = function(name, at, colour, range)
+    lightCall("create"); lights[name] = {at = at, colour = colour, range = range, visible = true, power = 1}; return true
+end
+E.SetPointLightPosition = function(name, at) lightCall("move"); if not lights[name] then return false end; lights[name].at = at; return true end
+E.SetPointLightRange = function(name, r) if not lights[name] then return false end; lights[name].range = r; return true end
+E.SetPointLightVisible = function(name, v) if not lights[name] then return false end; lights[name].visible = v; return true end
+E.SetPointLightPowerScale = function(name, p) if not lights[name] then return false end; lights[name].power = p; return true end
+E.DestroyPointLight = function(name) lightCall("destroy"); lights[name] = nil; return true end
+local function fire(odf, shooter)
+    local m = matrix(hull)
+    m.posit_x, m.posit_y, m.posit_z = 100, 1, 0
+    E.BulletInit(odf or "bullet", shooter or 1, m)
+end
+S = load()
+local name = S.MuzzleLightName
+fire(); S.Update(0.01)
+local l = lights[name]
+assert(l and l.visible, "player shot shows the muzzle light")
+near(l.at.x, 100 + S.MuzzleLightAhead, "light sits ahead of the muzzle"); near(l.at.y, 1, "light height"); near(l.range, S.MuzzleLightRange, "base range")
+S.Update(0.05)
+assert(l.power < 1 and l.power > 0, "light fades")
+S.Update(0.1)
+assert(not l.visible, "light hides after its life")
+lightCalls = {}
+fire("rocket3"); S.Update(0.01)
+assert(lightCalls[1] == "move" and #lightCalls == 1, "light is reused, not recreated")
+assert(l.visible and l.power > 0.9, "a new shot relights at full power")
+near(l.range, S.MuzzleLightRange + S.MuzzleLightRangePerScale * (2.875 - 1), "heavy rounds light further")
+S.Update(0.2)
+lightCalls = {}
+fire("bullet", 2); S.Update(0.01)
+assert(#lightCalls == 0 and not l.visible, "other shooters do not flash the player light")
+fire("pop"); S.Update(0.01)
+assert(not l.visible, "zero-damage rounds do not flash")
+-- Cockpit view puts the light at the cockpit barrel tip (cockpitFlashOffset<N>, in the shot's
+-- right/up/front frame: here right = -z, up = +y, front = +x), still ahead by MuzzleLightAhead.
+E.GetCameraView = function() return 1 end
+fire(); S.Update(0.01)
+assert(l.visible, "cockpit shot shows the light")
+near(l.at.x, 100 + 1.0 + S.MuzzleLightAhead, "cockpit light: forward offset plus the ahead nudge")
+near(l.at.y, 1 - 0.2, "cockpit light: up offset"); near(l.at.z, 0.6, "cockpit light: right offset")
+craftOdf = "plaintank"
+fire(); S.Update(0.01)
+near(l.at.x, 100 + S.MuzzleLightAhead, "cockpit view without the key keeps the shot position")
+near(l.at.y, 1, "no key: height"); near(l.at.z, 0, "no key: lateral")
+craftOdf = "avtank"
+E.GetCameraView = function() return 0 end
+fire(); S.Update(0.01)
+near(l.at.x, 100 + S.MuzzleLightAhead, "chase view ignores cockpitFlashOffset")
+near(l.at.y, 1, "chase view height"); near(l.at.z, 0, "chase view lateral")
+S.Update(0.2)
+lights[name] = nil
+fire(); S.Update(0.01)
+assert(lights[name] and lights[name].visible, "a light lost elsewhere is recreated")
+-- A move refused while the light is still live keeps it (no destroy/create).
+local move = E.SetPointLightPosition
+E.SetPointLightPosition = function() lightCall("move"); return false end
+lightCalls = {}
+fire(); S.Update(0.01)
+for _, c in ipairs(lightCalls) do assert(c ~= "create" and c ~= "destroy", "live light is not recreated") end
+assert(S.mlightMade, "live light stays owned")
+E.SetPointLightPosition = move
+S.ResetScene()
+assert(lights[name] == nil, "scene reset destroys the light")
+fire(); S.Update(0.01)
+assert(lights[name], "light back after reset")
+S.mlightMade = false
+S.Suspend()
+assert(lights[name] == nil, "suspend destroys a light even when not marked owned")
+lights = {}
+S = load()
+E.CreatePointLight = function() lightCall("create"); return false end
+lightCalls = {}
+fire(); S.Update(0.01); fire(); S.Update(0.01)
+assert(#lightCalls == 1, "a refused create backs off instead of retrying every shot")
+for _, k in ipairs({"HasPointLight", "CreatePointLight", "SetPointLightPosition", "SetPointLightRange",
+    "SetPointLightVisible", "SetPointLightPowerScale", "DestroyPointLight"}) do E[k] = nil end
+
+print("SurfaceHeatAnchor: craft offset, hull follow, turret shot, weapon fallback, invalid value, mount, no API, cache, smoothness, slow fire, damage scale, cockpit, barrel, player muzzle light PASS")

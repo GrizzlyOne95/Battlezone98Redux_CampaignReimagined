@@ -33,6 +33,12 @@ explosionName = "xdbdogi"
 // Regenerate: Tools/Build-WeaponFlashes.py --measure
 flashOffset1 = "0.04 0.00 0.00"
 // CR CRAFT FLASH OFFSET END
+// CR COCKPIT FLASH OFFSET BEGIN
+// Player muzzle flash in cockpit view: cockpit barrel tip, relative to the hull hardpoint
+// (right up forward, metres); replaces flashOffset<N> there. Regenerate:
+// Tools/Weapons/Measure-CockpitFlashOffsets.py --write
+cockpitFlashOffset1 = "-0.63 -0.52 0.29"
+// CR COCKPIT FLASH OFFSET END
 // OpenShim mesh recoil (slot 1 cannon barrel; needs Settings > Video > Muzzle Recoil).
 // Node bGR11BGA is the dedicated barrel under the turret (per VDF); metres, m/s.
 // Opt-in is two-sided: this craft supplies the node, distance and return; the weapon

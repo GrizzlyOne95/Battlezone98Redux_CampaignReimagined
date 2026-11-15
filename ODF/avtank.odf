@@ -33,6 +33,12 @@ explosionName = "xdnsdfi"
 // Regenerate: Tools/Build-WeaponFlashes.py --measure
 flashOffset1 = "0.04 0.00 0.00"
 // CR CRAFT FLASH OFFSET END
+// CR COCKPIT FLASH OFFSET BEGIN
+// Player muzzle flash in cockpit view: cockpit barrel tip, relative to the hull hardpoint
+// (right up forward, metres); replaces flashOffset<N> there. Regenerate:
+// Tools/Weapons/Measure-CockpitFlashOffsets.py --write
+cockpitFlashOffset1 = "-0.59 -0.19 -0.05"
+// CR COCKPIT FLASH OFFSET END
 // OpenShim muzzle presentation authoring reference (examples stay commented).
 // Experimental exact-GOG 2.2.301 / single-player cannon path, not MP support.
 // Settings > Video > Muzzle Recoil is the master switch: ON by default from

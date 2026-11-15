@@ -53,7 +53,7 @@ def armed_units(docs):
 def gameplay_digest(parsed):
     parsed = {section: dict(values) for section, values in parsed.items()}
     for k in list(parsed.get('craftclass', {})):
-        if k.startswith(('recoil', 'flashoffset','casingoffset','casingdirection','damageeffect','xplsnipe','xplsecondary','xpldetonate')):
+        if k.startswith(('recoil', 'flashoffset','cockpitflashoffset','casingoffset','casingdirection','damageeffect','xplsnipe','xplsecondary','xpldetonate')):
             del parsed['craftclass'][k]
     # Per-faction death explosions (CR DEATH FX) are presentation; explosionName sits in [GameObjectClass].
     parsed.get('gameobjectclass', {}).pop('explosionname', None)
