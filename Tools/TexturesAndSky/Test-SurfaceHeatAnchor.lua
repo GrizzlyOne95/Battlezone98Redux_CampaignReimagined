@@ -6,7 +6,19 @@ local craftOdf, weaponOdf = "avtank", "gatstab"
 local odfs = {
     avtank = { CraftClass = { flashOffset1 = '"0.20 0.10 2.41"' } },
     badtank = { CraftClass = { flashOffset1 = '"21 0 0"' } },
-    gatstab = { WeaponClass = { flashOffset = '"0 0 1"' } },
+    gatstab = { WeaponClass = { flashOffset = '"0 0 1"', ordName = "rocket" } },
+    gspstab = { WeaponClass = { ordName = "rocket3" } },
+    gpea = { WeaponClass = { ordName = "pea" } },
+    gnoord = { WeaponClass = {} },
+    rocket = { OrdnanceClass = { damageBallistic = 80 } },
+    rocket3 = { OrdnanceClass = { damageBallistic = 180, damageConcussion = 50 } },
+    pea = { OrdnanceClass = { damageBallistic = 20 } },
+    gheavy = { WeaponClass = { ordName = "heavy" } },
+    heavy = { OrdnanceClass = { damageBallistic = 900 } },
+    gpop = { WeaponClass = { ordName = "pop" } },
+    pop = { OrdnanceClass = { damageBallistic = 0 } },
+    gnodmg = { WeaponClass = { ordName = "nodmg" } },
+    nodmg = { OrdnanceClass = { lifeSpan = 2 } },
 }
 local function matrix(m)
     return { right_x = m.right[1], right_y = m.right[2], right_z = m.right[3],
@@ -27,6 +39,11 @@ function GetTransform() return matrix(hull) end
 function GetOdf() return craftOdf end
 function GetWeaponClass(_, slot) return slot <= 1 and weaponOdf or "" end
 function OpenODF(name) odfReads = odfReads + 1; return odfs[name] and name end
+function GetODFFloat(odf, section, label, default)
+    local s = odfs[odf] and odfs[odf][section]
+    if s and type(s[label]) == "number" then return s[label], true end
+    return default, false
+end
 function GetODFString(odf, section, label, default)
     local s = odfs[odf] and odfs[odf][section]
     if s and s[label] then return s[label], true end
@@ -133,7 +150,8 @@ OpenODF = open
 S = load()
 odfReads = 0
 for _ = 1, 20 do shot(0); ticks(S, 1) end
-assert(odfReads <= 1, "flash offsets must be cached, read " .. odfReads)
+-- One craft read for the offset, then the weapon and its ordnance for the heat scale.
+assert(odfReads <= 3, "flash offsets and heat scale must be cached, read " .. odfReads)
 S.MaxFlashCache = 2
 for i = 1, 10 do craftOdf = "tank" .. i; shot(0); ticks(S, 1) end
 assert(S.flashCacheCount <= 2, "flash offset cache is bounded")
@@ -165,6 +183,29 @@ local warmEnergy = warm.energy
 ticks(S, 200)
 assert((S.records[1].heat[0] and S.records[1].heat[0].energy or 0) < warmEnergy * 0.5, "heat fades after firing stops")
 
+local function approx(a, b, label)
+    assert(math.abs(a - b) < 0.01, label .. ": got " .. a .. " want ~" .. b)
+end
+-- 9c. Heat per shot scales with ordnance damage over 80, clamped 1..3:
+-- rocket3 (230) adds 2.875x, a 20-damage round 1x, 900 damage caps at 3x,
+-- zero-damage ordnance adds no heat, no ordnance data 1x.
+local function firstShot(weapon)
+    weaponOdf = weapon
+    local S = load(); S.HeatCool, S.HeatFloor = 0, 0
+    shot(0); ticks(S, 1)
+    local e = S.records[1].heat[0] and S.records[1].heat[0].energy or 0
+    weaponOdf = "gatstab"
+    return e
+end
+local base = firstShot("gatstab")
+approx(firstShot("gspstab") / base, 2.875, "heavy ordnance heats more per shot")
+approx(firstShot("gpea") / base, 1, "light ordnance keeps the base heat")
+approx(firstShot("gheavy") / base, 3, "very heavy ordnance caps at 3x")
+approx(firstShot("gpop"), 0, "zero-damage ordnance adds no heat")
+approx(firstShot("gnoord") / base, 1, "no ordnance damage: base heat")
+approx(firstShot("gnodmg") / base, 1, "ordnance without damage keys: base heat")
+approx(base / (1 * 0.06), 1, "AT-Stabber reference round adds the base heat")
+
 -- 10. In F1 the player's cockpit model heats too, anchored in its own space.
 E.GetCameraView = function() return 1 end
 S = load()
@@ -181,4 +222,4 @@ assert(cockpitAnchor, "cockpit muzzle anchor written")
 near(cockpitAnchor[1], 102.41, "cockpit anchor at the flash offset")
 E.GetCameraView = function() return 0 end
 
-print("SurfaceHeatAnchor: craft offset, hull follow, turret shot, weapon fallback, invalid value, mount, no API, cache, smoothness, slow fire, cockpit, barrel PASS")
+print("SurfaceHeatAnchor: craft offset, hull follow, turret shot, weapon fallback, invalid value, mount, no API, cache, smoothness, slow fire, damage scale, cockpit, barrel PASS")
