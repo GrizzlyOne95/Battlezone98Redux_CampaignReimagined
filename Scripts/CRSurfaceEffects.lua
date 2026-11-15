@@ -15,7 +15,7 @@ local S = { Enabled = true, Wetness = 0, Clock = 0, MaxEvents = 64,
     crackSpots = {}, crackSpotCount = 0, crackLevel = 0, glassOn = false, bloodOn = false,
     SweepWet = 0, MaxWetStep = 0.03, MaxMaterialBudget = 64, CloneWetBudget = 32,
     sweepLeft = 0, cloneLeft = 0, wetCursor = 1, sweepMoving = false,
-    flashCache = {}, flashCacheCount = 0, MaxFlashCache = 512,
+    flashCache = {}, flashCacheCount = 0, MaxFlashCache = 1024,
     -- Muzzle heat: each shot adds HeatPerShot. Heat cools in proportion to
     -- itself (HeatCool per second) plus a small HeatFloor, so steady fire
     -- settles at a warm level instead of draining: ~0.27 at 1 shot/s,
@@ -879,7 +879,7 @@ local function wrapCallbacks()
 end
 
 local function destroyMuzzleLight()
-    if S.mlightMade then call(exu.DestroyPointLight, S.MuzzleLightName) end
+    if call(exu.HasPointLight, S.MuzzleLightName) == true then call(exu.DestroyPointLight, S.MuzzleLightName) end
     S.mlightMade, S.mlightOn, S.playerShot = false, false, nil
 end
 
@@ -899,10 +899,11 @@ local function muzzleLight()
             ok = call(exu.SetPointLightPosition, S.MuzzleLightName, at) == true
                 and call(exu.SetPointLightRange, S.MuzzleLightName, range) == true
                 and call(exu.SetPointLightVisible, S.MuzzleLightName, true) == true
-            if not ok then S.mlightMade = false end
+            -- A live light that refused this move (render origin not ready)
+            -- is kept; only a light gone from the scene is made again.
+            if not ok and call(exu.HasPointLight, S.MuzzleLightName) ~= true then S.mlightMade = false end
         end
         if not S.mlightMade and S.Clock >= S.mlightRetryAt then
-            if call(exu.HasPointLight, S.MuzzleLightName) == true then call(exu.DestroyPointLight, S.MuzzleLightName) end
             ok = call(exu.CreatePointLight, S.MuzzleLightName, at, S.MuzzleLightColour, range) == true
             S.mlightMade = ok
             if not ok then S.mlightRetryAt = S.Clock + S.MuzzleLightRetry end
@@ -928,7 +929,10 @@ end
 
 function S.Update(dt)
     driveGlass()
-    if not S.Enabled or not ready() then return end
+    if not S.Enabled or not ready() then
+        if S.mlightOn then call(exu.SetPointLightVisible, S.MuzzleLightName, false); S.mlightOn = false end
+        return
+    end
     if not enhanced() then
         if S.started then S.Suspend() end
         return

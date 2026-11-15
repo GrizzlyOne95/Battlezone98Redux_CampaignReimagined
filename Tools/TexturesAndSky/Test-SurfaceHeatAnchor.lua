@@ -263,8 +263,21 @@ assert(not l.visible, "zero-damage rounds do not flash")
 lights[name] = nil
 fire(); S.Update(0.01)
 assert(lights[name] and lights[name].visible, "a light lost elsewhere is recreated")
+-- A move refused while the light is still live keeps it (no destroy/create).
+local move = E.SetPointLightPosition
+E.SetPointLightPosition = function() lightCall("move"); return false end
+lightCalls = {}
+fire(); S.Update(0.01)
+for _, c in ipairs(lightCalls) do assert(c ~= "create" and c ~= "destroy", "live light is not recreated") end
+assert(S.mlightMade, "live light stays owned")
+E.SetPointLightPosition = move
 S.ResetScene()
 assert(lights[name] == nil, "scene reset destroys the light")
+fire(); S.Update(0.01)
+assert(lights[name], "light back after reset")
+S.mlightMade = false
+S.Suspend()
+assert(lights[name] == nil, "suspend destroys a light even when not marked owned")
 lights = {}
 S = load()
 E.CreatePointLight = function() lightCall("create"); return false end
