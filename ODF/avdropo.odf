@@ -13,6 +13,7 @@ imageSignature = 20.0
 radarSignature = 2.0
 
 [BuildingClass]
+soundAmbient = "crdidle.wav"
 
 [RepairDepotClass]
 repairRange = 0.0

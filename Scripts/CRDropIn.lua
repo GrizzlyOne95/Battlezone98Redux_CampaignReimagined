@@ -20,6 +20,10 @@
 --   * Units cannot path into the ship's footprint, so cargo is pinned with SetTransform while carried and pushed
 --     down the ramp lanes with SetVelocity once released.
 -- Numbers marked "CR guess" are inferences that need a live tune; the rest are CR04Drop's measured ones.
+--
+-- Sound (BZ2's own dropship set, Assets/Sounds/crd*.wav): the engine loop is not Lua, it is `soundAmbient` on
+-- every <ship>c/o/x ODF. The one-shots (descend, door open, door close, take-off roar) are fired by EVERY peer from
+-- its own clock and sit on the ship (they follow it); each fires at most once per drop (s.sfx, reset by DropGo).
 local Drop = {}
 
 Drop.FLYING, Drop.LANDED, Drop.CLOSING, Drop.POD = "avdropc", "avdropo", "avdropx", "apcamr"
@@ -49,6 +53,13 @@ Drop.DRIVE_MAX = 40.0      -- s after release an AI unit still pushing down its 
 Drop.MAX_SHIPS = 2
 Drop.AIM_POD_T = 1.0       -- s the camera looks at the pod after the focus hull is swapped
 Drop.MAX_LATE = 5.0        -- s a guest's DropGo delay is trusted up to (peers share no clock)
+-- Sound files (all BZ2 dropship sounds, see Docs/FOLIAGE_ART_CREDITS.md). idle is played by the ODFs' soundAmbient, not by Lua.
+Drop.SOUNDS = { idle = "crdidle.wav", descend = "crddesc.wav", door = "crddoor.wav",
+    leave = "crdleav.wav" }
+Drop.DESCEND_LEN = 12.28   -- s, crddesc.wav: it starts so that it ends at touchdown (FLY_T 16 leaves 3.7 s of idle first)
+Drop.SOUND_SCAN_T = 0.25   -- s between a guest's looks for the replicated ship (AllObjects)
+Drop.SOUND_SNAP = 30.0     -- m a replicated ship may be from where the plan puts it (under half the closest
+                           -- ship spacing, svdrop ~66 m, so a guest never takes its neighbour's hull)
 -- Hold lanes. The hold is 35 m wide; each side lane takes 6 tanks nose to tail. Row 1 is CR04Drop's measured
 -- player/wingman spot (6 m back, 7 m out); the further rows are 8 m apart.                         CR guess (rows 2-6)
 Drop.LANES = { -7, 7 }
@@ -375,6 +386,7 @@ function Drop.Apply(s, op, ...)
         local late = 0
         if isNum(sentAt) and not leading() then late = min(Drop.MAX_LATE, max(0, GetTime() - sentAt)) end
         s.go, s.t0, s.phase = true, GetTime() - late, "drop"
+        s.sfx = {}   -- one-shot sound latches, per ship, for this drop
         lock(true)
         if FX then FX.Watch() end
     end
@@ -676,6 +688,100 @@ local function lead(s, t, rel)
     end
 end
 
+-- Sound cues (every peer; presentation only) ---------------------------------------------------------------------
+local function soundOn() return type(StartSound) == "function" end
+
+-- Seconds after DropGo that the descent roar starts: it ends at touchdown (never before the ship's own start).
+function Drop.DescendAt(ship)
+    return (ship.delay or 0) + max(0, Drop.FLY_T - Drop.DESCEND_LEN)
+end
+
+-- The replicated ship of an ODF nearest the plan's pose (a guest owns no ship handle), or nil.
+local function findHull(odf, x, y, z)
+    if type(AllObjects) ~= "function" or type(IsOdf) ~= "function" then return nil end
+    local ok, best = pcall(function()
+        local found, bd = nil, Drop.SOUND_SNAP * Drop.SOUND_SNAP
+        for h in AllObjects() do
+            if IsOdf(h, odf) then
+                local p = GetPosition(h)
+                local d = (p.x - x) ^ 2 + (p.y - y) ^ 2 + (p.z - z) ^ 2
+                if d < bd then found, bd = h, d end
+            end
+        end
+        return found
+    end)
+    return ok and best or nil
+end
+
+-- Play on the ship (it follows the handle), else at the vector where the plan puts the ship.
+local function play(file, h, x, y, z)
+    if alive(h) and pcall(StartSound, file, h) then return end
+    pcall(StartSound, file, V(x, y, z))
+end
+
+-- t is seconds since DropGo. The leader's handles are its own hulls (lead() has already swapped them this frame);
+-- a guest looks the replicated ship up. Ramp close and take-off are decided by the leader's clear() check, which a
+-- guest cannot compute, so a guest takes them from the closing model (avdropx) appearing: close now, take-off
+-- CLOSE_T later, as the leader's lead() does.
+local function cues(s, t, isLead)
+    local files = Drop.SOUNDS
+    s.sfx = s.sfx or {}
+    for i = 1, s.n do
+        local ship = s.ships[i]
+        local prof = Drop.Profile(ship)
+        local f = s.sfx[i] or {}
+        s.sfx[i] = f
+        local hull = isLead and s.lead.hulls[i] or nil
+        local sx, sy, sz = Drop.HullPos(ship, Drop.Touchdown(ship))   -- the landing spot
+        local function handle(odf, x, y, z)
+            if hull then return hull.odf == odf and hull.h or nil end
+            return findHull(odf, x, y, z)
+        end
+        if not f.descend and t >= Drop.DescendAt(ship) then
+            f.descend = true
+            if t < Drop.Touchdown(ship) then   -- a skipped drop (touch down at once) has no descent to hear
+                local x, y, z = Drop.HullPos(ship, t)
+                play(files.descend, handle(prof.flying, x, y, z), x, y, z)
+            end
+        end
+        if not f.open and t >= Drop.Touchdown(ship) then
+            f.open = true
+            play(files.door, handle(prof.landed, sx, sy, sz), sx, sy, sz)
+        end
+        if f.open and not f.close then
+            local h
+            if hull then
+                if hull.closeAt then h = hull.h end
+            elseif GetTime() >= (f.nextScan or 0) then
+                f.nextScan = GetTime() + Drop.SOUND_SCAN_T
+                h = findHull(prof.closing, sx, sy, sz)
+            end
+            if h or (hull and hull.closeAt) then
+                f.close, f.closeAt = true, GetTime()
+                play(files.door, h, sx, sy, sz)
+            end
+        end
+        if f.close and not f.leave then
+            local go
+            if hull then go = hull.liftAt ~= nil else go = GetTime() - f.closeAt >= Drop.CLOSE_T end
+            if go then
+                f.leave = true
+                play(files.leave, handle(prof.closing, sx, sy, sz), sx, sy, sz)
+            end
+        end
+    end
+end
+
+-- A guest keeps updating until the take-off roar has been cued (capped by the caller).
+local function cuesPending(s)
+    if not soundOn() or not s.sfx then return false end
+    for i = 1, s.n or 0 do
+        local f = s.sfx[i]
+        if not (f and f.leave) then return true end
+    end
+    return false
+end
+
 -- A save taken mid-drop: the cameras and the control mask did not survive it and the ship handles cannot be
 -- trusted. Go straight to the end state: ships and pod gone, AI cargo on its spot, this peer's craft (if it was
 -- still carried) set down past the ramp on its lane.
@@ -734,8 +840,11 @@ function Drop.Update(s)
     elseif not s.released then
         release(s)
     end
-    if isLead then lead(s, t, rel)
-    elseif s.released and (not (FX and FX.Busy()) or t > rel + GUEST_FX_T) then s.phase = "done" end   -- a guest keeps updating the jets through lift-off, capped
+    if isLead then lead(s, t, rel) end
+    if soundOn() then pcall(cues, s, t, isLead) end   -- after lead(): the leader's hulls are this frame's
+    if not isLead and s.released and ((not (FX and FX.Busy()) and not cuesPending(s)) or t > rel + GUEST_FX_T) then
+        s.phase = "done"   -- a guest keeps updating the jets and the take-off cue through lift-off, capped
+    end
     return t < rel
 end
 

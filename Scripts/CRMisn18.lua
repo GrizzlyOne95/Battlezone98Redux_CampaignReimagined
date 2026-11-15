@@ -931,7 +931,7 @@ end
 function ExtractGoEvent()
     if X.go or not Drop then return end
     for i = 1, X.n or 0 do if not X.ships[i] then return end end -- incomplete plan: do nothing
-    X.go, X.t0, X.cargo = true, GetTime(), {}
+    X.go, X.t0, X.cargo, X.sfx = true, GetTime(), {}, {}
     if DropFX then DropFX.Watch() end
     local team = MyTeam()
     for i = 1, X.n do
@@ -982,6 +982,32 @@ local function DriveHulls(t)
             X.hulls[i] = { odf = odf, h = h }
         else
             pcall(SetTransform, hull.h, matrix)
+        end
+    end
+end
+
+-- Dropship one-shot sounds (every peer, presentation only). Each cue fires once, from the same clock as the pose; the
+-- leader puts it on the ship it drives (after DriveHulls has swapped the object for the cue's stage), a guest has no
+-- ship handle and plays it at the ship's pose, where the plan puts it.
+local function CueExtraction()
+    if type(StartSound) ~= "function" or not (X.go and Drop and Drop.CueTimes and X.sfx and not M.coopResult) then return end
+    local t = GetTime() - X.t0
+    for i = 1, X.n or 0 do
+        local ship = X.ships[i]
+        for _, cue in ipairs(Drop.CueTimes(i)) do
+            local key = i .. cue.key
+            if not X.sfx[key] and t >= cue.t then
+                X.sfx[key] = true
+                if Drop.Stage(i, t) == cue.stage then   -- a cue whose stage has already passed is skipped, not replayed late
+                    local hull = X.hulls[i]
+                    local h = hull and hull.odf == Drop.Odf(cue.stage) and Valid(hull.h) and hull.h or nil
+                    local ok = h and pcall(StartSound, cue.file, h)
+                    if not ok then
+                        local px, py, pz = Drop.HullPos(ship, i, t)
+                        pcall(StartSound, cue.file, SetVector(px, py, pz))
+                    end
+                end
+            end
         end
     end
 end
@@ -1180,10 +1206,11 @@ function R.Update(dt)
         M.cr18Storm=StormCall("Describe")
     end
     if X.go and Drop and not M.coopResult then PinCargo(GetTime()-X.t0) end
-    if not CRCoop.IsAuthority() or M.coopResult then return false end
+    if not CRCoop.IsAuthority() or M.coopResult then CueExtraction(); return false end
     if not s.phase then Phases() end -- "opening" before the body's first frame
     Shot()
     Extraction()
+    CueExtraction()
     Arrivals()
     return true
 end

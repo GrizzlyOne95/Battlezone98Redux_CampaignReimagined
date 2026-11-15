@@ -392,6 +392,8 @@ function F.makePeer(id, team, network, options)
     e.GetWhoShotMe = function() return nil end
     e.Damage = function(h,amount) assert(e.IsValid(h));record("Damage",h,amount);W.objects[h].alive=false end
     e.IsAudioMessageDone = function() return not W.audioBusy end
+    -- options.sounds: StartSound is present and records (file, handle-or-vector); absent otherwise, as in an old engine.
+    if options.sounds then e.StartSound = function(...) record("StartSound", ...) end end
     e.AiCommand = {NONE=0,ATTACK=3,DEFEND=16}
     e.GetCurrentWho = function(h) return W.objects[h] and W.objects[h].target end
     local function noop() end

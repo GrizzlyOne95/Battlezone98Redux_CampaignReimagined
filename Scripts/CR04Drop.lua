@@ -23,6 +23,9 @@ local SPEED = 7.0
 local LIFT_AFTER = 6.0      -- a ship may leave this long after release, once nobody is within CLEAR_R
 local CLEAR_R = 45.0         -- past the ramp lips (40.3 m); stock spots sit 55-75 m out
 local SHIP_GAP = 12.0       -- each ship moves this far out from its anchor, sideways (77 m wide hulls)
+-- BZ2's dropship sounds (Docs/FOLIAGE_ART_CREDITS.md). The engine loop is `soundAmbient` in the ODFs, not Lua.
+local SOUNDS = { descend = "crddesc.wav", door = "crddoor.wav", leave = "crdleav.wav" }
+local DESCEND_LEN = 12.28   -- s, crddesc.wav: it starts so that it ends at touchdown (FLY_T 16 leaves 3.7 s of idle first)
 
 local api = {}
 local function V(x, y, z) return SetVector(x, y, z) end
@@ -32,6 +35,10 @@ local function len(d) return math.sqrt(d.x * d.x + d.z * d.z) end
 local function unit(d) local n = len(d); if n < 1e-3 then return V(1, 0, 0) end; return V(d.x / n, 0, d.z / n) end
 local function log(fmt, ...) if api.log then api.log(string.format("[CR04Drop] " .. fmt, ...)) end end
 local function alive(h) return h ~= nil and IsValid(h) end
+-- One-shot cue on the ship (it follows the handle); absent or failing StartSound is silence, never an error.
+local function play(file, h)
+    if type(StartSound) == "function" and alive(h) then pcall(StartSound, file, h) end
+end
 
 -- point on a ship's frame: S = stern (exit) direction, L = sideways; metres
 local function at(ship, along, lat, up)
@@ -164,6 +171,7 @@ local function landShip(s, ship)
     if alive(ship.h) then RemoveObject(ship.h) end
     ship.h = BuildObject(LANDED, 1, shipMatrix(ship.frame, 0, 0))
     ship.landedAt = GetTime()
+    play(SOUNDS.door, ship.h)   -- ramps open
     for _, c in ipairs(ship.cargo) do
         pin(ship.frame, c, HOLD_UP)
         if alive(c.h) and not c.player then Stop(c.h, 1) end
@@ -272,6 +280,10 @@ local function fly(s, now)
     for _, ship in ipairs(s.ships) do
         local u = math.min(1, math.max(0, (now - s.t0 - ship.delay) / FLY_T))
         local k = 1 - u
+        if not ship.sfxDescend and u < 1 and now - s.t0 - ship.delay >= FLY_T - DESCEND_LEN then
+            ship.sfxDescend = true
+            play(SOUNDS.descend, ship.h)
+        end
         if ship.landedAt then
             landed = landed + 1
             -- keep holding the cargo: the new hull's collision otherwise shoves it up while the
@@ -350,10 +362,12 @@ function Drop.Update(M)
             ship.h = BuildObject(CLOSING, 1, m)
             if not alive(ship.h) then ship.h = BuildObject(FLYING, 1, m) end
             ship.closeAt = now
+            play(SOUNDS.door, ship.h)   -- ramps fold shut
             log("ship closing odf=%s", tostring(alive(ship.h) and GetOdf(ship.h)))
         end
         if ship.closeAt and not ship.liftAt and now - ship.closeAt >= CLOSE_T then
             ship.liftAt = now
+            play(SOUNDS.leave, ship.h)
             log("ship lifting")
         end
         if ship.liftAt and alive(ship.h) then
