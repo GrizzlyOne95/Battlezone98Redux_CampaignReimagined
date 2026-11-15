@@ -40,6 +40,12 @@ recoilCockpit1 = true
 casingOffset1 = "0.4756 0.1865 -0.2713"
 casingDirection1 = "0.9345 0.3271 -0.1402"
 // CR CRAFT RECOIL END
+// CR COCKPIT FLASH OFFSET BEGIN
+// Player muzzle flash in cockpit view: cockpit barrel tip, relative to the hull hardpoint
+// (right up forward, metres); replaces flashOffset<N> there. Regenerate:
+// Tools/Weapons/Measure-CockpitFlashOffsets.py --write
+cockpitFlashOffset1 = "0.01 0.35 1.54"
+// CR COCKPIT FLASH OFFSET END
 rangeScan = 360.0
 periodScan = 5.0f
 velocJam = 2.5f

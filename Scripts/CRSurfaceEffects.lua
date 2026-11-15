@@ -530,7 +530,10 @@ function S.NotifyShot(odf, shooter, transform)
     enqueue(S.shots, shooter, transform, odf)
     if shooter ~= nil and shooter == call(GetPlayerHandle) then
         local p = point(transform)
-        if p then S.playerShot = {position = p, front = axis(transform, "front"), odf = odf} end
+        if p then
+            S.playerShot = {position = p, front = axis(transform, "front"), right = axis(transform, "right"),
+                up = axis(transform, "up"), odf = odf}
+        end
     end
 end
 
@@ -883,6 +886,34 @@ local function destroyMuzzleLight()
     S.mlightMade, S.mlightOn, S.playerShot = false, false, nil
 end
 
+-- Cockpit view draws the cockpit model's gun, whose barrel end is not the hull
+-- hardpoint plus flashOffset<N>. The craft's cockpitFlashOffset<N> (same frame and
+-- format as flashOffset<N>, measured by Tools/Weapons/Measure-CockpitFlashOffsets.py)
+-- gives the barrel end; the slot is the native mount nearest the shot, as drain does.
+-- nil outside cockpit view or without the key: the caller keeps the shot position.
+local function cockpitMuzzle(shot)
+    local player = call(GetPlayerHandle)
+    local right, up, front = shot.right and unit(shot.right), shot.up and unit(shot.up), shot.front and unit(shot.front)
+    if not (right and up and front) or call(exu.GetCameraView) ~= 1 then return nil end
+    local craft = call(GetOdf, player)
+    if type(craft) ~= "string" or craft == "" then return nil end
+    local best, bestDistance
+    for slot = 0, 4 do
+        local muzzle = call(exu.GetWeaponMuzzlePosition, player, slot)
+        if muzzle then
+            local dx, dy, dz = muzzle.x-shot.position.x, muzzle.y-shot.position.y, muzzle.z-shot.position.z
+            local d = dx*dx + dy*dy + dz*dz
+            if not bestDistance or d < bestDistance then best, bestDistance = slot, d end
+        end
+    end
+    if not best or bestDistance > 16 then return nil end
+    local o = cachedOffset("k:" .. string.lower(craft) .. ":" .. best, craft, "CraftClass", "cockpitFlashOffset" .. (best + 1))
+    if not o then return nil end
+    local p = shot.position
+    return { x = p.x + right.x*o.x + up.x*o.y + front.x*o.z, y = p.y + right.y*o.x + up.y*o.y + front.y*o.z,
+             z = p.z + right.z*o.x + up.z*o.y + front.z*o.z }
+end
+
 -- Every frame: show the light for the newest player shot, fade it over
 -- MuzzleLightLife, then hide it. One light, created once and moved after.
 local function muzzleLight()
@@ -891,7 +922,7 @@ local function muzzleLight()
     local scale = shot and ordnanceScale(shot.odf)
     if scale == false then scale = 1 end
     if shot and scale > 0 then
-        local p, f, ahead = shot.position, shot.front, S.MuzzleLightAhead
+        local p, f, ahead = cockpitMuzzle(shot) or shot.position, shot.front, S.MuzzleLightAhead
         local at = f and vector(p.x + f.x*ahead, p.y + f.y*ahead, p.z + f.z*ahead) or vector(p.x, p.y, p.z)
         local range = S.MuzzleLightRange + S.MuzzleLightRangePerScale * (scale - 1)
         local ok = false

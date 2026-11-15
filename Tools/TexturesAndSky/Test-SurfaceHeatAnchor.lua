@@ -4,7 +4,8 @@ local E, uniforms, odfReads = {}, {}, 0
 local hull = { right = {0,0,-1}, up = {0,1,0}, front = {1,0,0}, posit = {100,0,0} }
 local craftOdf, weaponOdf = "avtank", "gatstab"
 local odfs = {
-    avtank = { CraftClass = { flashOffset1 = '"0.20 0.10 2.41"' } },
+    avtank = { CraftClass = { flashOffset1 = '"0.20 0.10 2.41"', cockpitFlashOffset1 = '"-0.6 -0.2 1.0"' } },
+    plaintank = { CraftClass = { flashOffset1 = '"0.20 0.10 2.41"' } },
     badtank = { CraftClass = { flashOffset1 = '"21 0 0"' } },
     gatstab = { WeaponClass = { flashOffset = '"0 0 1"', ordName = "rocket" } },
     gspstab = { WeaponClass = { ordName = "rocket3" } },
@@ -260,6 +261,23 @@ fire("bullet", 2); S.Update(0.01)
 assert(#lightCalls == 0 and not l.visible, "other shooters do not flash the player light")
 fire("pop"); S.Update(0.01)
 assert(not l.visible, "zero-damage rounds do not flash")
+-- Cockpit view puts the light at the cockpit barrel tip (cockpitFlashOffset<N>, in the shot's
+-- right/up/front frame: here right = -z, up = +y, front = +x), still ahead by MuzzleLightAhead.
+E.GetCameraView = function() return 1 end
+fire(); S.Update(0.01)
+assert(l.visible, "cockpit shot shows the light")
+near(l.at.x, 100 + 1.0 + S.MuzzleLightAhead, "cockpit light: forward offset plus the ahead nudge")
+near(l.at.y, 1 - 0.2, "cockpit light: up offset"); near(l.at.z, 0.6, "cockpit light: right offset")
+craftOdf = "plaintank"
+fire(); S.Update(0.01)
+near(l.at.x, 100 + S.MuzzleLightAhead, "cockpit view without the key keeps the shot position")
+near(l.at.y, 1, "no key: height"); near(l.at.z, 0, "no key: lateral")
+craftOdf = "avtank"
+E.GetCameraView = function() return 0 end
+fire(); S.Update(0.01)
+near(l.at.x, 100 + S.MuzzleLightAhead, "chase view ignores cockpitFlashOffset")
+near(l.at.y, 1, "chase view height"); near(l.at.z, 0, "chase view lateral")
+S.Update(0.2)
 lights[name] = nil
 fire(); S.Update(0.01)
 assert(lights[name] and lights[name].visible, "a light lost elsewhere is recreated")
