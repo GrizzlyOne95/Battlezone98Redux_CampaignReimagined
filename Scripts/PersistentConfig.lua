@@ -76,8 +76,7 @@ PersistentConfig.DefaultSettings = {
     HeadlightVisible = true,
     SubtitlesEnabled = true,
     OtherHeadlightsDisabled = true, -- AI Lights Off by default
-    EmptyCraftLightsEnabled = false, -- Empty craft emissive/running lights off by default
-    EmissivePulseEnabled = false,   -- Gradual occupied-craft emissive pulse
+    DynamicEmissivesEnabled = false, -- Empty-craft glow + occupied-craft emissive pulse (PDA: Dynamic Emissives)
     StarTwinkleEnabled = false,     -- Ogre shader star brightness animation
     SurfaceEffects = true,          -- Local reactive surface materials (damage, heat, wetness, tower power)
     AutoRepairWingmen = true,       -- Auto-repair wingmen on by default
@@ -2131,7 +2130,7 @@ end
 
 local function ReadOpenShimCampaignVisualSettings()
     local settings = {
-        EmptyCraftLights = false,
+        EmptyCraftLights = false, -- one-time migration seed only (see LoadConfig)
         EmissivePulse = false,
         StarTwinkle = false,
         SkyEvents = true, -- shooting stars and satellites; ships on
@@ -2203,22 +2202,14 @@ function PersistentConfig._SyncOpenShimCampaignVisualSettings(force)
     end
 
     local settings, found, sourcePath = ReadOpenShimCampaignVisualSettings()
-    local signature = table.concat({
-        settings.EmptyCraftLights and "1" or "0",
-        settings.EmissivePulse and "1" or "0",
-        settings.StarTwinkle and "1" or "0",
-        settings.SkyEvents and "1" or "0",
-    }, ":")
+    -- Empty-craft lights, emissive pulse and star twinkle are CR PDA settings
+    -- now; only SkyEvents is still inherited from OpenShim.
+    local signature = settings.SkyEvents and "1" or "0"
 
     if not force and PersistentConfig._OpenShimCampaignVisualSignature == signature then
         return false
     end
 
-    -- RuntimeEnhancements' historical flag means "switch empty craft to the
-    -- dark/empty material", hence the intentional inversion here.
-    RuntimeEnhancements.SetPilotVisualsEnabled(not settings.EmptyCraftLights)
-    RuntimeEnhancements.SetEmissivePulseEnabled(settings.EmissivePulse)
-    RuntimeEnhancements.SetStarTwinkleEnabled(settings.StarTwinkle)
     RuntimeEnhancements.SetSkyEventsEnabled(settings.SkyEvents)
 
     PersistentConfig._OpenShimCampaignVisualSignature = signature
@@ -5019,8 +5010,7 @@ function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
     local needsApplySettings = options and (
         options.applySettings or
         options.applyHeadlights or
-        options.applyPilotVisuals or
-        options.applyEmissivePulse or
+        options.applyDynamicEmissives or
         options.applyStarTwinkle or
         options.applySurfaceEffects or
         options.applyTeamColors or
@@ -5202,6 +5192,30 @@ function PersistentConfig._SettingsActions.SetSurfaceEffectsEnabled(enabled)
     PersistentConfig.Settings.SurfaceEffects = value
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ applySurfaceEffects = true })
     ShowSettingsFeedback("Surface Effects: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    return true
+end
+
+function PersistentConfig._SettingsActions.SetDynamicEmissivesEnabled(enabled)
+    local value = not not enabled
+    if PersistentConfig.Settings.DynamicEmissivesEnabled == value then
+        return false
+    end
+
+    PersistentConfig.Settings.DynamicEmissivesEnabled = value
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyDynamicEmissives = true })
+    ShowSettingsFeedback("Dynamic Emissives: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
+    return true
+end
+
+function PersistentConfig._SettingsActions.SetStarTwinkleEnabled(enabled)
+    local value = not not enabled
+    if PersistentConfig.Settings.StarTwinkleEnabled == value then
+        return false
+    end
+
+    PersistentConfig.Settings.StarTwinkleEnabled = value
+    PersistentConfig._SettingsActions.CommitPdaSettingChange({ applyStarTwinkle = true })
+    ShowSettingsFeedback("Star Twinkle: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5404,7 +5418,21 @@ GetSettingsPageEntries = function()
                 return PersistentConfig._SettingsActions.SetSurfaceEffectsEnabled(DirectionEnabled(delta))
             end,
         },
-        Section("Audio & Alerts"),
+        {
+            label = "Dynamic Emissives",
+            value = PersistentConfig.Settings.DynamicEmissivesEnabled and "On" or "Off",
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.SetDynamicEmissivesEnabled(DirectionEnabled(delta))
+            end,
+        },
+        {
+            label = "Star Twinkle",
+            value = PersistentConfig.Settings.StarTwinkleEnabled and "On" or "Off",
+            adjust = function(delta)
+                return PersistentConfig._SettingsActions.SetStarTwinkleEnabled(DirectionEnabled(delta))
+            end,
+        },
+        Section("Audio & Assistance"),
         {
             label = "Subtitles",
             value = PersistentConfig.Settings.SubtitlesEnabled and "On" or "Off",
@@ -5433,7 +5461,6 @@ GetSettingsPageEntries = function()
                 return true
             end,
         },
-        Section("Assistance"),
         {
             label = "Wingman Repair",
             value = PersistentConfig.Settings.AutoRepairWingmen and "On" or "Off",
@@ -5464,7 +5491,6 @@ GetSettingsPageEntries = function()
                 return PersistentConfig._SetPilotModeEnabled(DirectionEnabled(delta))
             end,
         },
-        Section("System"),
         {
             label = "Reset Config",
             value = "Right to reset",
@@ -5561,6 +5587,7 @@ function PersistentConfig.LoadConfig()
     local legacyPdaTextPreset
     local loadedLightingMode
     local legacyRetroLighting
+    local sawDynamicEmissives, sawStarTwinkle
     local status, resultOrError = pcall(function()
         local f = bzfile.Open(PersistentConfig.ConfigPath, "r")
         if not f then
@@ -5595,12 +5622,20 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.UnitVerbosity = tonumber(val) or 1
                 elseif key == "OtherHeadlightsDisabled" then
                     PersistentConfig.Settings.OtherHeadlightsDisabled = (val == "true")
-                elseif key == "EmptyCraftLightsEnabled" then
-                    PersistentConfig.Settings.EmptyCraftLightsEnabled = (val == "true")
-                elseif key == "EmissivePulseEnabled" then
-                    PersistentConfig.Settings.EmissivePulseEnabled = (val == "true")
+                elseif key == "DynamicEmissivesEnabled" then
+                    PersistentConfig.Settings.DynamicEmissivesEnabled = (val == "true")
+                    sawDynamicEmissives = "new"
+                elseif key == "EmptyCraftLightsEnabled" or key == "EmissivePulseEnabled" then
+                    -- Pre-merge CR keys: either one on turns Dynamic Emissives on,
+                    -- unless the new key is also present.
+                    if sawDynamicEmissives ~= "new" then
+                        PersistentConfig.Settings.DynamicEmissivesEnabled =
+                            (sawDynamicEmissives and PersistentConfig.Settings.DynamicEmissivesEnabled) or (val == "true")
+                        sawDynamicEmissives = "legacy"
+                    end
                 elseif key == "StarTwinkleEnabled" then
                     PersistentConfig.Settings.StarTwinkleEnabled = (val == "true")
+                    sawStarTwinkle = true
                 elseif key == "SurfaceEffects" then
                     PersistentConfig.Settings.SurfaceEffects = (val == "true")
                 elseif key == "AutoRepairWingmen" then
@@ -5689,6 +5724,7 @@ function PersistentConfig.LoadConfig()
             legacyPdaTextPreset = nil
             loadedLightingMode = nil
             legacyRetroLighting = nil
+            sawDynamicEmissives, sawStarTwinkle = true, true
             print("PersistentConfig: Error loading config: " .. tostring(resultOrError))
         end
     else
@@ -5744,6 +5780,21 @@ function PersistentConfig.LoadConfig()
         #ScrapPilotHudLayouts, 2)
     PersistentConfig.Settings.RadarSizeScale = GetRadarSizeScaleSetting()
     PersistentConfig._SetLightingModeIndex(PersistentConfig.Settings.LightingMode)
+
+    -- One-time migration: these used to be OpenShim [Display] keys. Until CR has
+    -- saved its own value, seed from openshim.ini; after that the PDA wins.
+    if not sawDynamicEmissives or not sawStarTwinkle then
+        local legacy, found = ReadOpenShimCampaignVisualSettings()
+        if found then
+            if not sawDynamicEmissives then
+                PersistentConfig.Settings.DynamicEmissivesEnabled = legacy.EmptyCraftLights or legacy.EmissivePulse
+            end
+            if not sawStarTwinkle then
+                PersistentConfig.Settings.StarTwinkleEnabled = legacy.StarTwinkle
+            end
+        end
+        PersistentConfig.SaveConfig()
+    end
     return loadResult
 end
 
@@ -5774,8 +5825,7 @@ function PersistentConfig.SaveConfig()
         f:Writeln("SubtitlesEnabled=" .. tostring(PersistentConfig.Settings.SubtitlesEnabled))
         f:Writeln("UnitVerbosity=" .. tostring(PersistentConfig.Settings.UnitVerbosity))
         f:Writeln("OtherHeadlightsDisabled=" .. tostring(PersistentConfig.Settings.OtherHeadlightsDisabled))
-        f:Writeln("EmptyCraftLightsEnabled=" .. tostring(PersistentConfig.Settings.EmptyCraftLightsEnabled))
-        f:Writeln("EmissivePulseEnabled=" .. tostring(PersistentConfig.Settings.EmissivePulseEnabled))
+        f:Writeln("DynamicEmissivesEnabled=" .. tostring(PersistentConfig.Settings.DynamicEmissivesEnabled))
         f:Writeln("StarTwinkleEnabled=" .. tostring(PersistentConfig.Settings.StarTwinkleEnabled))
         f:Writeln("SurfaceEffects=" .. tostring(PersistentConfig.Settings.SurfaceEffects))
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
@@ -5842,21 +5892,18 @@ function PersistentConfig.ApplySettings(options)
     local applyAll = not options
     local openShimOwnsPersistentSettings = PersistentConfig._OpenShimOwnsPersistentSettings()
 
-    if openShimOwnsPersistentSettings then
-        if applyAll or (options and
-            (options.applyPilotVisuals or options.applyEmissivePulse or options.applyStarTwinkle)) then
-            PersistentConfig._SyncOpenShimCampaignVisualSettings(true)
-        end
-    else
-        if applyAll or (options and options.applyPilotVisuals) then
-            RuntimeEnhancements.SetPilotVisualsEnabled(not PersistentConfig.Settings.EmptyCraftLightsEnabled)
-        end
-        if applyAll or (options and options.applyEmissivePulse) then
-            RuntimeEnhancements.SetEmissivePulseEnabled(PersistentConfig.Settings.EmissivePulseEnabled)
-        end
-        if applyAll or (options and options.applyStarTwinkle) then
-            RuntimeEnhancements.SetStarTwinkleEnabled(PersistentConfig.Settings.StarTwinkleEnabled)
-        end
+    if openShimOwnsPersistentSettings and applyAll then
+        PersistentConfig._SyncOpenShimCampaignVisualSettings(true)
+    end
+    if applyAll or (options and options.applyDynamicEmissives) then
+        -- RuntimeEnhancements' historical pilot-visuals flag means "switch empty
+        -- craft to the dark/empty material", hence the inversion.
+        local on = PersistentConfig.Settings.DynamicEmissivesEnabled and true or false
+        RuntimeEnhancements.SetPilotVisualsEnabled(not on)
+        RuntimeEnhancements.SetEmissivePulseEnabled(on)
+    end
+    if applyAll or (options and options.applyStarTwinkle) then
+        RuntimeEnhancements.SetStarTwinkleEnabled(PersistentConfig.Settings.StarTwinkleEnabled)
     end
 
     if applyAll or (options and options.applySurfaceEffects) then
