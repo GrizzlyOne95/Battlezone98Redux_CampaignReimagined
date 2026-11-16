@@ -121,3 +121,24 @@ animateTime = 0.8
 attenuateConstant = 0.0
 attenuateLinear = 1.0
 attenuateQuadratic = 0.0
+
+// Kept for stock explosions that borrow xmslgnd.sphere; xmslgnd itself spawns only particles 1-6.
+[Sphere]
+simulateBase = "sim_null"
+lifeTime = 0.2
+renderBase = "draw_sphere"
+textureName = "vsmoke.tga"
+//textureBlend = "one one modulate"
+startColor = "255 255 255 31"
+finishColor = "31 31 31 0"
+startRadius = 1.0
+finishRadius = 4.0
+animateTime = 0.2
+latitudeBands = 16
+longitudeSegments = 32
+InitialPitch = 0.0
+InitialYaw = 0.0
+InitialRoll = 0.0
+AddPitch = 10.0
+AddYaw = 10.0
+AddRoll = 10.0
