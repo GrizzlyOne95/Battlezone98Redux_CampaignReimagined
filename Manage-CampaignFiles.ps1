@@ -175,7 +175,9 @@ function Is-PreservedRuntimeRelativePath($relativePath) {
         return $true
     }
 
-    if ($leafName.Equals("winmm.dll.pending", [System.StringComparison]::OrdinalIgnoreCase) -or
+    # bzloader.log: written into the Steam Workshop copy when bzfile_replace_helper.exe runs from there.
+    if ($normalized.Equals("bzloader.log", [System.StringComparison]::OrdinalIgnoreCase) -or
+        $leafName.Equals("winmm.dll.pending", [System.StringComparison]::OrdinalIgnoreCase) -or
         $leafName.EndsWith("_replace.log", [System.StringComparison]::OrdinalIgnoreCase)) {
         return $true
     }

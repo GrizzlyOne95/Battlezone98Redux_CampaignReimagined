@@ -47,6 +47,18 @@ it can never qualify. If a run was killed hard, the next run (or `-Restore`) fir
 from `Local\ReleaseStress\pending-restore.json`. Do not touch the game or move the mouse while it runs;
 it never takes focus (`OPENSHIM_NEVER_ACTIVATE`, `NEVER_CAPTURE_MOUSE`).
 
+### Steam copy (after a Workshop upload)
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools\ReleaseStress\Invoke-ReleaseStress.ps1 -GameDir 'C:\Program Files (x86)\Steam\steamapps\common\Battlezone 98 Redux'
+```
+
+`-ModDir` defaults to `<GameDir>\mods\3686673790`, else the Workshop copy at
+`steamapps\workshop\content\301650\3686673790`; pass it to test another folder. The Steam exe writes
+`BZLogger.txt` to the game root instead of `logs\`; the harness reads whichever copy the current launch
+wrote. A custom `-GameDir` or `-ModDir` marks the run PARTIAL: the GOG run stays the release gate, and the
+Steam run is evidence that the downloaded copy works.
+
 ## Reading the result
 
 `Local\ReleaseStress\<timestamp>\report.md` starts with PASS or FAIL, then candidate identity, anomalies
