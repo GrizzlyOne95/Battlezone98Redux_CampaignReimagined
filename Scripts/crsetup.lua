@@ -137,7 +137,7 @@ local function RenderReport(logPath, logError)
         AddLine(
             "crsetup_next",
             "green",
-            "Setup complete. Play via Single Player > Custom Campaign > CR: NSDF.")
+            "Setup complete. Play via Single Player > Custom Campaign > Campaign Reimagined: NSDF.")
     else
         AddLine(
             "crsetup_next",

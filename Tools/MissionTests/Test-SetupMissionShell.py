@@ -55,7 +55,7 @@ for clip in CR_PLANET_VIDEO.values():
 mod_parser = configparser.ConfigParser()
 mod_parser.optionxform = str
 mod_parser.read(mod_ini_path, encoding="utf-8")
-assert mod_parser["DESCRIPTION"]["missionName"] == '"CR: NSDF"'
+assert mod_parser["DESCRIPTION"]["missionName"] == '"Campaign Reimagined: NSDF"'
 assert mod_parser["WORKSHOP"]["mapType"] == '"campaign"'
 
 # Campaign progression must use the shipped Lua-backed rewrites, with setup
@@ -204,7 +204,7 @@ cca_parser = configparser.ConfigParser()
 cca_parser.optionxform = str
 cca_parser.read(cca_ini_path, encoding="utf-8")
 assert len(cca_ini_path.stem) <= 16 and len(cca_des_path.stem) <= 16
-assert cca_parser["DESCRIPTION"]["missionName"] == '"CR: Soviet (CCA)"'
+assert cca_parser["DESCRIPTION"]["missionName"] == '"Campaign Reimagined: Soviet (CCA)"'
 assert cca_parser["WORKSHOP"]["mapType"] == '"campaign"'
 assert [s for s in cca_parser.sections() if s.startswith("MISSION")] == [f"MISSION{i}" for i in range(1, 9)]
 cca_planets = ["venus", "venus", "io", "io", "titan", "titan", "titan", "titan"]
@@ -259,7 +259,7 @@ bd_parser = configparser.ConfigParser()
 bd_parser.optionxform = str
 bd_parser.read(bd_ini_path, encoding="utf-8")
 assert len(bd_ini_path.stem) <= 16 and len(bd_des_path.stem) <= 16
-assert bd_parser["DESCRIPTION"]["missionName"] == '"CR: Black Dog"'
+assert bd_parser["DESCRIPTION"]["missionName"] == '"Campaign Reimagined: Black Dog"'
 assert bd_parser["WORKSHOP"]["mapType"] == '"campaign"'
 assert [s for s in bd_parser.sections() if s.startswith("MISSION")] == [f"MISSION{i}" for i in range(1, 16)]
 bd_maps = []
@@ -320,7 +320,7 @@ ch_parser = configparser.ConfigParser()
 ch_parser.optionxform = str
 ch_parser.read(ch_ini_path, encoding="utf-8")
 assert len(ch_ini_path.stem) <= 16 and len(ch_des_path.stem) <= 16
-assert ch_parser["DESCRIPTION"]["missionName"] == '"CR: Chinese (CRA)"'
+assert ch_parser["DESCRIPTION"]["missionName"] == '"Campaign Reimagined: Chinese (CRA)"'
 assert ch_parser["WORKSHOP"]["mapType"] == '"campaign"'
 assert [s for s in ch_parser.sections() if s.startswith("MISSION")] == [f"MISSION{i}" for i in range(1, 9)]
 ch_planets = {1: "ganymede", 2: "ganymede", 3: "ganymede", 4: "ganymede", 5: "elysium", 6: "elysium", 7: "europa", 8: "ganymede"}
