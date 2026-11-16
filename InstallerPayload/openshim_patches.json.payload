@@ -3002,6 +3002,84 @@
       "identity": "Code guard, never patched or called: the GameObjectClass constructor FUN_004e0450 line 89 reads ODF key \"unitName\" (hash 0x45A8BC04 in section 0xD3DD9CEC, the same pair BZ 1.5's GameObjectClass ctor passes ParameterDB::Get for this->unitName, 1.5 all_decompiled.c line 189463) through FUN_004cbc10, which calls FUN_00589a10 with size 0x20. These bytes are `mov edx,[ebp-0x74]` (the new class), `add edx,0x64`, `push edx`, `push 0x45A8BC04`, `push 0xD3DD9CEC`, so unitName is char[0x20] at GameObjectClass +0x64 (the next key, 0x98D7239C, goes to +0x84). The group strip (group_strip.cpp) reads that field read-only and stays down when these bytes do not match."
     },
     {
+      "name": "ProducerModeListFirstEmptySlotCall",
+      "address": "0x005AE90C",
+      "expected": "8B 45 F4 8B 4D F0 8B 14 81 8B 82 3C 01 00 00 89 45 DC 8B 4D F4 8B 55 F0 8B 04 8A 8B 88 40 01 00 00 89 4D E0 8B 4D F8 E8 98 3A EC FF 0F B6 D0 85 D2 75 56 8B 45 F8 8B 88 7C 01 00 00 E8 63 27 03 00 39 45 D0 7F 43 8B 4D F8 8B 89 7C 01 00 00 E8 C0 28 03 00 39 45 CC 7F 30 83 7D DC FF 74 21 83 7D E0 FF 74 1B 8B 55 E0 52 8B 45 DC 50 8B 4D F8 8B 89 7C 01 00 00 E8 09 26 03 00 83 F8 FF 74 09",
+      "identity": "Producer::UpdateModeList 0x005AE660, the state-2 build-entry gate (FUN_005ae660.c lines 69-74): class = [[ebp-0x10] + [ebp-0xC]*4] (the producer class's build list at +0x608, line 59), min = class+0x13C to [ebp-0x24], max = class+0x140 to [ebp-0x20], the scrap/power checks, then `push max; push min; mov ecx,[producer+0x17C]` (the team) and `call 0x005E0F90` (TeamFirstEmptySlot) at +0x76 = 0x005AE982; `cmp eax,-1` enables the entry. This is the function's only FirstEmptySlot call. OffenseOverflow (ExtendedUnitCap) redirects that call (REL32) to a thunk that reads the class from the same frame slots and returns a slot for a full user offense range only when auto-group has a keyed group for the class's ODF. Exact GOG Redux 2.2.301 (SHA256 8D71F56C...3377413), bytes read from the shipped image 2026-11-16."
+    },
+    {
+      "name": "TeamFirstEmptySlot",
+      "address": "0x005E0F90",
+      "expected": "55 8B EC 83 EC 08 89 4D F8 8B 45 08 89 45 FC EB 09 8B 4D FC 83 C1 01 89 4D FC 8B 55 FC 3B 55 0C",
+      "identity": "Team::FirstEmptySlot(min, max), thiscall ret 8 (0x005E0FCB): the first i in min..max with team[i] == 0, else -1 (FUN_005e0f90.c). Called by OffenseOverflow's build-gate thunk for the stock answer; the redirected call at 0x005AE982 must target it. Exact GOG Redux 2.2.301 (SHA256 8D71F56C...3377413), bytes read from the shipped image 2026-11-16."
+    },
+    {
+      "name": "TeamGetSlot",
+      "address": "0x005E0F70",
+      "expected": "55 8B EC 51 89 4D FC 8B 45 08 8B 4D FC 8B 04 81 8B E5 5D C2 04 00",
+      "identity": "Team::GetSlot(slot), thiscall ret 4: returns [this + slot*4], so the team slot array starts at Team +0. Code guard only: OffenseOverflow (GroupMemberMenu) swaps team slots 5-14 around the ControlPanel render with that layout and puts them back after. Exact GOG Redux 2.2.301 (SHA256 8D71F56C...3377413), bytes read from the shipped image 2026-11-16."
+    },
+    {
+      "name": "TeamHasFreeSlot",
+      "address": "0x00464140",
+      "expected": "55 8B EC E8 28 E2 FF FF 3B 45 08 74 04 B0 01 EB 5F 8B 4D 0C E8 37 E4 FF FF 3B 45 08 75 11 8B 4D",
+      "identity": "TeamHasFreeSlot(Team* team, GameObject* obj), cdecl, bool in AL (callers `add esp,8; movzx ecx,al`). Not the user team (FUN_00462370) -> true; obj already slotted on that team -> true; else FirstEmptySlot over obj's class +0x13C/+0x140 != -1 (FUN_00464140.c lines 9-23). OffenseOverflow calls it as the original from its two redirected call sites. Exact GOG Redux 2.2.301 (SHA256 8D71F56C...3377413), bytes read from the shipped image 2026-11-16."
+    },
+    {
+      "name": "TeamHasFreeSlotGetEmptyVehicleCall",
+      "address": "0x00464310",
+      "expected": "8B 45 D4 50 8B 4D 08 E8 74 E2 FF FF 50 E8 1E FE FF FF 83 C4 08 0F B6 C8 85 C9 75 05",
+      "identity": "Caller 1 of TeamHasFreeSlot, inside FUN_004641C0 (GetEmptyVehicle): push obj [ebp-0x2C], team = FUN_00462590(ecx=[ebp+8]), `call 0x00464140` at +0xD = 0x0046431D, add esp,8, movzx ecx,al. OffenseOverflow (ExtendedUnitCap) redirects that call (REL32): a false answer becomes true for a craft of the user team that sits in a ControlPanel group. Exact GOG Redux 2.2.301 (SHA256 8D71F56C...3377413), bytes read from the shipped image 2026-11-16."
+    },
+    {
+      "name": "TeamHasFreeSlotCountCall",
+      "address": "0x00479B22",
+      "expected": "8B 4D D0 51 8B 55 D4 8B 82 7C 01 00 00 50 E8 0B A6 FE FF 83 C4 08 0F B6 C8 85 C9 74",
+      "identity": "Caller 2 of TeamHasFreeSlot, inside FUN_004798D0: push obj [ebp-0x30], push [[ebp-0x2C]+0x17C] (the team), `call 0x00464140` at +0xE = 0x00479B30, add esp,8, movzx ecx,al. Redirected (REL32) by OffenseOverflow like TeamHasFreeSlotGetEmptyVehicleCall. These are the only two E8 calls to 0x00464140 in the image. Exact GOG Redux 2.2.301 (SHA256 8D71F56C...3377413), bytes read from the shipped image 2026-11-16."
+    },
+    {
+      "name": "ControlPanelSelectType",
+      "address": "0x004A6A50",
+      "expected": "55 8B EC 83 EC 10 89 4D F8 8B 4D F8 E8 EF 02 00 00 E8 0A B9 FB FF 89 45 F0 6B 45 08 0C 8B 88 94 79 8E 00 89 4D F4 EB 09 8B 55 F4 83",
+      "identity": "ControlPanel::SelectType(int item), thiscall ret 4 (0x004A6AF5): SelectNone, then for slot = MENU_ITEM[item].min..max (0x008E7994/0x008E7998) GetSlot on the user team, vtable +0x38 (no arguments) as the selectable test, SetSelected(1) 0x0049F3C0 and the handle (0x00462380) appended to selectList [this+0x1C+4*selectNum], selectNum +0x188 (FUN_004a6a50.c lines 10-23). OffenseOverflow calls it as the original from the redirected ControlPanelSelectTypeCall. Exact GOG Redux 2.2.301 (SHA256 8D71F56C...3377413), bytes read from the shipped image 2026-11-16."
+    },
+    {
+      "name": "ControlPanelSelectTypeCall",
+      "address": "0x004A637B",
+      "expected": "8B 95 B8 FD FF FF 52 8B 8D BC FD FF FF E8 C3 06 00 00",
+      "identity": "ControlPanel::Render 0x004A08E0, category menu with cmd_multi held (FUN_004a08e0.c line 1551): push item [ebp-0x248], ecx = this [ebp-0x244], `call 0x004A6A50` at +0xD = 0x004A6388, the only call to SelectType. OffenseOverflow (GroupMemberMenu + ExtendedUnitCap) redirects it (REL32): after the stock call, Ctrl+Offense also selects the user's grouped offense craft that hold no team slot. Exact GOG Redux 2.2.301 (SHA256 8D71F56C...3377413), bytes read from the shipped image 2026-11-16."
+    },
+    {
+      "name": "ControlPanelSelectNone",
+      "address": "0x004A6D50",
+      "expected": "55 8B EC 83 EC 0C 89 4D FC C7 45 F8 00 00 00 00 EB 09 8B 45 F8 83 C0 01 89 45 F8 8B 4D FC 8B 55",
+      "identity": "ControlPanel::SelectNone(), thiscall, plain ret (0x004A6DC5): SetSelected(0) on every selected object, selectNum = 0, currentItem +0x117C = -1 (0x004A6DAB), itemSelected +0x1188 = 0 (0x004A6DB8). Called by OffenseOverflow when a second F-key press opens a group's member list. Exact GOG Redux 2.2.301 (SHA256 8D71F56C...3377413), bytes read from the shipped image 2026-11-16."
+    },
+    {
+      "name": "GameObjectSetSelected",
+      "address": "0x0049F3C0",
+      "expected": "55 8B EC 51 89 4D FC 0F B6 45 08 85 C0 74 1D 8B 4D FC 0F B6 91 8A 01 00 00 85 D2 75 0F 8B 45 FC",
+      "identity": "GameObject::SetSelected(bool), thiscall ret 4 (0x0049F41E): flips the selected byte at +0x18A and calls the object's select/deselect virtuals (0x0049F3E8, 0x0049F40D). SelectType calls it with 1 before appending a handle (0x004A6AB9); OffenseOverflow does the same for the overflow craft it appends. Exact GOG Redux 2.2.301 (SHA256 8D71F56C...3377413), bytes read from the shipped image 2026-11-16."
+    },
+    {
+      "name": "ControlPanelCategoryLabelLocalizeCall",
+      "address": "0x004A6976",
+      "expected": "6B 95 B8 FD FF FF 0C 8B 82 90 79 8E 00 50 68 6C 73 87 00 E8 B2 61 37 00 83 C4 08",
+      "identity": "ControlPanel::Render 0x004A08E0, category menu label (FUN_004a08e0.c line 1653): `imul edx,[ebp-0x248],0xC` (item), push MENU_ITEM[item].name (0x008E7990), push \"names\" (0x0087736C), `call 0x0081CB40` (UiLocalize) at +0x13 = 0x004A6989, add esp,8; the result is measured and drawn (lines 1654-1657). The unit-list title (line 1667) is a different call. OffenseOverflow (GroupMemberMenu) redirects this call (REL32) so that with cmd_multi held and nothing selected Offense/Defense/Utility read \"All ...\". Exact GOG Redux 2.2.301 (SHA256 8D71F56C...3377413), bytes read from the shipped image 2026-11-16."
+    },
+    {
+      "name": "ControlPanelMenuItems",
+      "address": "0x008E7990",
+      "expected": "74 80 87 00 05 00 00 00 0E 00 00 00 6C 80 87 00 0F 00 00 00 18 00 00 00 40 80 87 00 19 00 00 00 22 00 00 00 34 80 87 00 23 00 00 00 2C 00 00 00",
+      "identity": "MENU_ITEM table, 9 x {const char* name, int minSlot, int maxSlot}: Offense (0x00878074) 5-14, Defense 15-24, Utility 25-34, Nav Beacons 35-44 (the four checked here), then single slots 1-4 and an empty item (FUN_004a08e0.c lines 1538-1539, FUN_004a6a50.c lines 10-11). Guard only: OffenseOverflow relies on item 0 being slots 5-14. Exact GOG Redux 2.2.301 (SHA256 8D71F56C...3377413), bytes read from the shipped image 2026-11-16."
+    },
+    {
+      "name": "ControlPanelGroupKeyLoop",
+      "address": "0x004A1D03",
+      "expected": "0F BE 91 90 98 91 00 85 D2 74 59 0F BE 05 75 98 91 00 85 C0 74 27",
+      "identity": "ControlPanel::Render 0x004A08E0, the F-key loop (FUN_004a08e0.c lines 528-540): `movsx edx,byte [ecx+0x919890]` (group_select_0..9) then `movsx eax,byte [0x919875]` (cmd_multi): SelectGroup 0x004A6DD0 without it, BindGroup 0x004A6F00 with it, first set byte only. Guard only: OffenseOverflow (GroupMemberMenu) reads those bytes before the render and clears the one press it turns into the member list; this loop is their only code reader. Exact GOG Redux 2.2.301 (SHA256 8D71F56C...3377413), bytes read from the shipped image 2026-11-16."
+    },
+    {
       "name": "InputEditModeFlag",
       "address": "0x009181B8",
       "kind": "data",
@@ -4279,6 +4357,24 @@
       "identity": "preset view record written by the satellite view setter (0x0061BD20): +0 Update_Camera, +4 previous view, +8 Current_View"
     },
     {
+      "name": "HudDisplayInterfaceFlag",
+      "address": "0x008EAAB0",
+      "kind": "data",
+      "identity": "Released GOG 2.2.301 stock show-HUD switch (useDisplayInterface, int). NO_HUD_VIEW (action 3) view setter 0x0061AB00 writes 0 at 0x0061AB78; the cockpit/no-cockpit view setters write 1; the Options mHudOnOffChecklist callback 0x007AF390 stores the box value at 0x007AF3A5. Read by the HUD pass 0x00617600 (HudDisplayInterfaceGate) and by Reticle 0x005BC170, TargetCam 0x005DDE00, SniperInterface 0x005D6530 render. Not written to any config file. hud_visibility.cpp holds it at 0 while Ctrl+= has the HUD hidden."
+    },
+    {
+      "name": "HudDisplayInterfaceGate",
+      "address": "0x00617635",
+      "expected": "83 3D B0 AA 8E 00 00 74 05",
+      "identity": "Released GOG 2.2.301 HUD pass 0x00617600: cmp dword [0x008EAAB0],0; je over the call to 0x004B6F10, which draws the HUD element list (each element's vtable slot 6: ScrapGauge, CockpitRadar, MapRadar, ControlPanel...). Read-only guard proving HudDisplayInterfaceFlag's address in this build."
+    },
+    {
+      "name": "LegacyTextEditorFocusLookup",
+      "address": "0x00823CE0",
+      "expected": "55 8B EC 83 EC 08 A1 40 1B CC 02",
+      "identity": "Released GOG 2.2.301 cdecl void* (void): walks the legacy text-editor list at 0x02CC1B40 and returns the first node whose editor flags (+0x120) hold the 0x100 focus bit, else null. No side effects. The stock WndProc 0x00619340 calls it at 0x0061964E to route keys to a focused in-mission chat or ally prompt (reverse_engineering/coopflow/TEXT_ENTRY_STATE.md)."
+    },
+    {
       "name": "RadarAttackAlertCompare",
       "address": "0x00494D35",
       "expected": "0F 2F 05 D0 73 91 00 76 2B 6A 00 6A 00",
@@ -4805,6 +4901,24 @@
       "address": "0x0048F87B",
       "expected": "C7 41 0C 4E 4E 41 43 8B 55 FC",
       "identity": "CannonClass::CannonClass 0x0048F860 (FUN_0048f860.c:6-13): weapon class+0x0C = 'CANN' 0x43414E4E, label \"cannon\"; shotVariance +0x8C and shotPitch +0x90 default 0. LaserSight applies shotPitch for it."
+    },
+    {
+      "name": "LaserSightFilterCarrierHardpoint",
+      "address": "0x0047242D",
+      "expected": "8B 55 0C 89 54 81 04 83 7D 0C 00 74 15 8B 45 0C 83 B8 84 00 00 00 4A",
+      "identity": "Carrier::SetHardpoint 0x00472420 (FUN_00472420-00472420.c:5-6; 1.5 PDB Carrier::SetHardpoint 0x0047e875): carrier+0x04+4*slot = the slot's hardpoint obj76, then [hardpoint+0x84] == 0x4A (CLASS_ID_SPECIAL_HARDPOINT). LaserSight reads the selected slot's hardpoint class id there (Docs/LASER_SIGHT.md, \"Weapon filter\")."
+    },
+    {
+      "name": "LaserSightFilterHardpointCategories",
+      "address": "0x00611D16",
+      "expected": "8B 4D C4 C7 41 74 47 00 00 00 EB 76 6A 04 68 2C A2 88 00 8D 55 E8 52 FF 15 C8 94 86 00 83 C4 0C 85 C0 75 0C 8B 45 C4 C7 40 74 48 00 00 00 EB 52 6A 04 68 34 A2 88 00 8D 4D E8 51 FF 15 C8 94 86 00 83 C4 0C 85 C0 75 0C 8B 55 C4 C7 42 74 49 00 00 00 EB 2E 6A 04 68 0C A2 88 00 8D 45 E8 50 FF 15 C8 94 86 00 83 C4 0C 85 C0 75 0C 8B 4D C4 C7 41 74 4A 00 00 00 EB 0A 8B 55 C4 C7 42 74 46 00 00 00",
+      "identity": "WeaponClass ODF load 0x00611AA0 (FUN_00611aa0-00611aa0.c:86-106): wpnCategory \"CANN\"/\"ROCK\"/\"MORT\"/\"SPEC\" (strings 0x0088A244/0x0088A22C/0x0088A234/0x0088A20C) -> class+0x74 = 0x47/0x48/0x49/0x4A, else 0x46 (fits any hardpoint). WeaponPowerup slot pick 0x006130A0 (FUN_006130a0-006130a0.c:27-29) matches it against the hardpoint's +0x84. LaserSight draws only for hardpoint class 0x47/0x48/0x49."
+    },
+    {
+      "name": "LaserSightFilterDispenserSig",
+      "address": "0x004B592B",
+      "expected": "C7 41 0C 50 53 49 44 8B 55 FC",
+      "identity": "DispenserClass::DispenserClass 0x004B5910 (FUN_004b5910-004b5910.c:6-8): weapon class+0x0C = 0x44495350, label \"dispenser\" (mine layers). LaserSight draws no beam for it."
     },
     {
       "name": "MultiplayerCreateVtable",
@@ -6454,6 +6568,102 @@
       "address": "0x007CB540",
       "expected": "55 8B EC 51 56 89 4D FC 8B 4D FC 81 C1 68 01 00 00 E8 FA FB E9 FF 8B F0 8B 4D FC 81 C1 5C 01 00",
       "identity": "Released GOG 2.2.301 cUI_Selectlist scroll down thiscall(this): increments +0x150 while below item count (vector +0x168, 0x1C-byte elements) minus visible rows (vector +0x15C), then calls the refresh 0x007CB400."
+    },
+    {
+      "name": "SimLoopRunning",
+      "address": "0x009183DC",
+      "kind": "data",
+      "identity": "uint32 1 while the mission sim loop runs: FUN_006185f0 stores 1 just before its frame loop (0x0061894B, guarded by ModeStressSimLoopSet) and teardown FUN_00618970 stores 0. Read by the mode stress driver as its mission 'ready' signal."
+    },
+    {
+      "name": "MissionStatus",
+      "address": "0x0091830C",
+      "kind": "data",
+      "identity": "uint32 nMissionStatus (saved under that name by FUN_004fd7e0): do_smain FUN_005d42e0 opens the result or campaign screens when it is non-zero and the main menu when it is 0. The failure screen sets 1 and the success screen 2; the in-game abort button FUN_00788fa0 clears it (guarded by ModeStressAbortButton)."
+    },
+    {
+      "name": "MainScreenExitButton",
+      "address": "0x0078C850",
+      "expected": "55 8B EC 51 89 4D FC 68 E0 DE 89 00 E8 5F 18 09 00 83 C4 04 6A 09 E8 05 79 CA FF 83 C4 04 C7 05 28 83 91 00 00 00 00 00 6A 01 8B 45 FC 8B 88 38 01 00 00 E8 E8 C8 03 00 8B E5 5D C3",
+      "identity": "Main menu exit button handler FUN_0078c850, void __thiscall(mainMenuScreen): logs 'Exiting Game from main screen exit button', SetShellState(9 EXITED) 0x00434170, clears the screen type 0x00918328 and calls End(1) 0x007C9170 on the screen's wrapper at +0x138. Whole body, GOG 2.2.301; the mode stress driver calls it to close the game after its plan."
+    },
+    {
+      "name": "ModeStressSimLoopSet",
+      "address": "0x0061894B",
+      "expected": "C7 05 DC 83 91 00 01 00 00 00",
+      "identity": "Guard for SimLoopRunning: the mov dword [0x009183DC],1 FUN_006185f0 executes just before the mission frame loop of the main loop FUN_00618a40. Not patched."
+    },
+    {
+      "name": "ModeStressAbortButton",
+      "address": "0x00788FA0",
+      "expected": "55 8B EC 51 89 4D FC 6A 00 8B 45 FC 8B 88 38 01 00 00 E8 B9 01 04 00 68 3C D9 89 00 E8 FF 50 09 00 83 C4 04 6A 02 E8 A5 B1 CA FF 83 C4 04 C7 05 28 83 91 00 00 00 00 00 C7 05 0C 83 91 00 00 00 00 00 8B E5 5D C3",
+      "identity": "Guard: the in-game abort button FUN_00788fa0 (logs 'Game stopped due to abort button'): End(0) on screen+0x138, SetShellState(2 QUIT), screen type 0x00918328 = 0, nMissionStatus 0x0091830C = 0. The mode stress driver replays this sequence to leave a mission. Whole body; not patched."
+    },
+    {
+      "name": "ModeStressIaLaunchSequence",
+      "address": "0x00789BCA",
+      "expected": "6A 05 E8 9F A5 CA FF 83 C4 04 C7 05 28 83 91 00 00 00 00 00 6A 00 8B 4D CC 8B 89 38 01 00 00 E8 82 F5 03 00 E8 0D 1F 00 00 6A 17",
+      "identity": "Guard: the tail of the Instant Action launch FUN_00789b00 after the map name is copied to 0x00915540 and 0x00482860 sets 'instant_action': SetShellState(5), screen type 0x00918328 = 0, End(0) 0x007C9170 on screen+0x138, LoadScreenPrep 0x0078BB00, then push 0x17 for Request 0x007C7930. The mode stress driver replays it. Not patched."
+    },
+    {
+      "name": "ModeStressCampaignLaunch",
+      "address": "0x00790C60",
+      "expected": "55 8B EC 83 EC 24 89 4D F4 C7 05 14 83 91 00 01 00 00 00",
+      "identity": "Guard: custom campaign launch FUN_00790c60 opens with mov dword [0x00918314],1 (OldMissionMode), then copies the campaign mission name to 0x00915540 and runs the same SetShellState(5) / End(0) / LoadScreenPrep / Request(0x17) tail. The mode stress driver's mission step replays it. Not patched."
+    },
+    {
+      "name": "ModeStressLobbyScreenSlot",
+      "address": "0x00945564",
+      "kind": "data",
+      "identity": "Pointer to the live multiplayer lobby screen (stock shell screen 0xE): its constructor FUN_0079ea90 stores this (line 114), its destructor FUN_007a0fb0 clears it (line 16); every lobby button callback loads its 'this' from here (ModeStressLobbyBackButton). Read by the mode stress driver's mp_host step."
+    },
+    {
+      "name": "ModeStressLobbyState",
+      "address": "0x006CC050",
+      "expected": "55 8B EC 51 89 4D FC 8B 45 FC 8B 40 50 8B E5 5D",
+      "identity": "Guard: lobby connection state getter FUN_006cc050, int __thiscall(lobby) returning lobby+0x50 (4 = in a chat room; the lobby Create button acts only then). The mode stress driver reads +0x50 of the lobby screen's lobby object (screen+0x1C4). Not patched."
+    },
+    {
+      "name": "ModeStressLobbyCreateButton",
+      "address": "0x0079E4F0",
+      "expected": "55 8B EC 83 EC 10 89 4D FC 8B 45 FC 8B 88 C4 01 00 00 E8 49 DB F2 FF 83 F8 04 0F 85 1B 01 00 00 8B 4D FC C6 81 FC 01 00 00 01 8B 55 FC C6 82 FD 01 00 00 01 6A 01 8B 45 FC 8B 88 C0 01 00 00 E8 8C 20 03 00 E8 67 5F C9 FF 83 F8 02 75 49 8B 4D FC 8B 89 C4 01 00 00 E8 C4 D7 F9 FF 89 45 F8 83 7D F8 00 74 2D 8B 55 FC 8B 8A C0 01 00 00 E8 FD 1E 03 00 8B 45 F8 83 C0 2C 83 EC 18 8B CC 89 65 F4 50 E8 E9 10 C8 FF 89 45 F0 8B 4D FC E8 2E F5 FF FF",
+      "identity": "Guard: lobby Create Game button handler FUN_0079e4f0 (__thiscall lobby screen) up to its direct-create call: lobby state (screen+0x1C4, FUN_006cc050) must be 4, sets screen+0x1FC and +0x1FD, popup (screen+0x1C0) FUN_007d05c0(1), then on the no-name-prompt branch popup FUN_007d0460 and FUN_0079dab0(name by value). The mode stress driver replays that branch with its own game name. Not patched."
+    },
+    {
+      "name": "ModeStressLobbyCreateGame",
+      "address": "0x0079DAB0",
+      "expected": "55 8B EC 6A FF 68 B0 FB 85 00 64 A1 00 00 00 00 50 83 EC 20 A1 00 70 8E 00 33 C5 89 45 F0 50 8D",
+      "identity": "FUN_0079dab0, void __thiscall(lobbyScreen, std::string name by value; ret 0x18): with screen+0x1FD set and the popup password box clear it leaves the chat room, marks the create pending (+0x1FF, FUN_0079e920(1)) and stores the game name at +0x200. Called by the mode stress driver as FUN_0079e4f0 calls it."
+    },
+    {
+      "name": "ModeStressPopupEnable",
+      "address": "0x007D05C0",
+      "expected": "55 8B EC 51 89 4D FC 0F B6 45 08 50 8B 4D FC 8B 91 54 01 00",
+      "identity": "FUN_007d05c0, void __thiscall(popup, bool): calls SetEnabled-style slot +0x24 on the popup's child at +0x154. The lobby Create button calls it with 1 before creating; the mode stress driver does the same."
+    },
+    {
+      "name": "ModeStressPopupReset",
+      "address": "0x007D0460",
+      "expected": "55 8B EC 51 89 4D FC 8B 45 FC 8B 88 50 01 00 00",
+      "identity": "FUN_007d0460, void __thiscall(popup): resets the lobby popup (FUN_007cf9f0, list +0x150 selection -1, FUN_007c3c10(0) clears the password box). FUN_0079e4f0 calls it before FUN_0079dab0; so does the mode stress driver."
+    },
+    {
+      "name": "ModeStressRoomLaunchButton",
+      "address": "0x00795C10",
+      "expected": "55 8B EC 83 3D 5C 55 94 00 00 74 0B 8B 0D 5C 55 94 00 E8 79 3E 00 00 5D C3",
+      "identity": "Game room (create screen) launch/ready button callback FUN_00795c10: if MultiCreateScreenSlot is set, FUN_00799aa0(screen) publishes the host's 'ready' metadata; the room refresh then launches when CanLaunchGame FUN_00573d00 returns 4. Whole body; called by the mode stress driver."
+    },
+    {
+      "name": "ModeStressRoomBackButton",
+      "address": "0x00795BF0",
+      "expected": "55 8B EC 83 3D 5C 55 94 00 00 74 0B 8B 0D 5C 55 94 00 E8 29 3E 00 00 5D C3",
+      "identity": "Game room Back button callback FUN_00795bf0: if MultiCreateScreenSlot is set, FUN_00799a30(screen) ('Exiting Create Because Back button is pressed'). Whole body; called by the mode stress driver to leave the room."
+    },
+    {
+      "name": "ModeStressLobbyBackButton",
+      "address": "0x0079D670",
+      "expected": "55 8B EC 8B 0D 64 55 94 00 E8 E2 06 00 00 5D C3",
+      "identity": "Lobby Back button callback FUN_0079d670: FUN_0079dd60 with ecx = ModeStressLobbyScreenSlot (pops the shell history; re-seeds [main, lobby] when it is the last entry). Whole body; called by the mode stress driver to return to the main menu."
     }
   ],
   "module_addresses": [
