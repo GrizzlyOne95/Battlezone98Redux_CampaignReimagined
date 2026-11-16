@@ -181,7 +181,9 @@ function Copy-LogsSince([string]$GameDir, [string[]]$Dirs, [datetime]$SinceUtc, 
     foreach ($d in $Dirs) {
         if (-not (Test-Path -LiteralPath $d)) { continue }
         foreach ($f in @(Get-ChildItem -LiteralPath $d -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in '.log', '.txt', '.dmp' -and $_.LastWriteTimeUtc -ge $SinceUtc -and $_.Name -ne 'uiperf_trigger.txt' })) {
-            $rel = $f.FullName.Substring($GameDir.Length).TrimStart('\') -replace '[\\/]', '__'
+            # A dir outside GameDir (the Steam Workshop mod copy) is named by its leaf folder.
+            $rel = if ($f.FullName.StartsWith($GameDir.TrimEnd('\') + '\', [StringComparison]::OrdinalIgnoreCase)) { $f.FullName.Substring($GameDir.TrimEnd('\').Length + 1) } else { (Split-Path $d -Leaf) + '\' + $f.Name }
+            $rel = $rel -replace '[\\/]', '__'
             try {
                 $fs = [IO.File]::Open($f.FullName, 'Open', 'Read', 'ReadWrite,Delete')
                 try { $out = [IO.File]::Create((Join-Path $Dest $rel)); try { $fs.CopyTo($out) } finally { $out.Dispose() } } finally { $fs.Dispose() }

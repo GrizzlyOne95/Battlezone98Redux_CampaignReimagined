@@ -9,6 +9,8 @@
     openshim.ini and Ogre.cfg are backed up byte-exact and always restored + SHA-verified.
 .PARAMETER Plan        Step file (default plan.psd1 beside this script).
 .PARAMETER GameDir     Battlezone 98 Redux install (default: the GOG path).
+.PARAMETER ModDir      Installed CR mod folder (default: GameDir\mods\3686673790, else the Steam Workshop copy
+                       steamapps\workshop\content\301650\3686673790 when GameDir is a Steam install).
 .PARAMETER SkipCold    Skip the cold shader-cache start (debugging only; the run cannot qualify).
 .PARAMETER OnlyPhases  Run only these plan phases (debugging only; the run cannot qualify).
 .PARAMETER MissionSeconds  Override per-mission play time.
@@ -18,6 +20,7 @@
 param(
     [string]$Plan = '',
     [string]$GameDir = 'C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux',
+    [string]$ModDir = '',
     [string]$CdbPath = 'C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2606.22001.0_x64__8wekyb3d8bbwe\x86\cdb.exe',
     [switch]$SkipCold,
     [string[]]$OnlyPhases,
@@ -39,7 +42,18 @@ $LogsDir    = Join-Path $GameDir 'logs'
 $TriggerFile = Join-Path $GameDir 'uiperf_trigger.txt'
 $CacheDir   = Join-Path $GameDir 'shader_cache'
 $PendingFile = Join-Path $LocalRoot 'pending-restore.json'
-$ModDir     = Join-Path $GameDir 'mods\3686673790'
+if (-not $ModDir) {
+    # GOG (and a locally deployed Steam copy) use GameDir\mods; a Steam Workshop subscription lives in
+    # steamapps\workshop\content\301650 beside steamapps\common\<game>.
+    $ModDir = Join-Path $GameDir 'mods\3686673790'
+    if (-not (Test-Path -LiteralPath $ModDir)) {
+        $steamApps = Split-Path (Split-Path $GameDir.TrimEnd('\'))
+        if ($steamApps) {
+            $steamMod = Join-Path $steamApps 'workshop\content\301650\3686673790'
+            if (Test-Path -LiteralPath $steamMod) { $ModDir = $steamMod }
+        }
+    }
+}
 
 # ------------------------------------------------------------------ recovery --
 function Restore-Settings([object]$P) {
@@ -69,6 +83,7 @@ if (Test-Path -LiteralPath $PendingFile) {
     Remove-Item -LiteralPath $PendingFile -Force
 }
 if ($Restore) { Write-Host 'Restore complete.'; return }
+if (-not (Test-Path -LiteralPath $ModDir)) { throw "CR mod folder not found: $ModDir (pass -ModDir)" }
 
 # ----------------------------------------------------------------- preflight --
 # Only a copy running from this install blocks the run; another install (e.g. Steam) may run alongside.
@@ -114,14 +129,28 @@ function Save-Shot([string]$Label) {
 }
 
 # -------------------------------------------------------------- game / logs --
+function Get-BzLoggerPath {
+    # OpenShim redirects BZLogger.txt into logs\, but on the Steam exe the game still writes it to the
+    # game root. Use the copy this launch wrote most recently; fall back to logs\.
+    $logs = Join-Path $LogsDir 'BZLogger.txt'
+    $best = $null
+    foreach ($p in $logs, (Join-Path $GameDir 'BZLogger.txt')) {
+        if (-not (Test-Path -LiteralPath $p)) { continue }
+        $i = Get-Item -LiteralPath $p
+        if ($i.LastWriteTimeUtc -ge $script:LaunchUtc -and (-not $best -or $i.LastWriteTimeUtc -gt $best.LastWriteTimeUtc)) { $best = $i }
+    }
+    if ($best) { $best.FullName } else { $logs }
+}
+
 function Get-NewLog([string]$Name) {
     # New text of logs\<Name> since the last call; ignores the file until the game has rewritten it this launch.
-    $path = Join-Path $LogsDir $Name
+    $path = if ($Name -eq 'BZLogger.txt') { Get-BzLoggerPath } else { Join-Path $LogsDir $Name }
     if (-not (Test-Path -LiteralPath $path)) { return '' }
     if ((Get-Item -LiteralPath $path).LastWriteTimeUtc -lt $script:LaunchUtc) { return '' }
-    $off = 0L; if ($script:Offsets.ContainsKey($Name)) { $off = $script:Offsets[$Name] }
+    # keyed by path: the BZLogger copy can change mid-launch
+    $off = 0L; if ($script:Offsets.ContainsKey($path)) { $off = $script:Offsets[$path] }
     $r = Read-LogFrom $path $off
-    $script:Offsets[$Name] = $r.Length
+    $script:Offsets[$path] = $r.Length
     $r.Text
 }
 
@@ -291,7 +320,7 @@ function Sleep-Ticking([double]$Seconds) {
 # ------------------------------------------------------------ main-menu gate --
 function Get-ScreenType {
     # last "Creating screen of type N" in BZLogger of this launch
-    $path = Join-Path $LogsDir 'BZLogger.txt'
+    $path = Get-BzLoggerPath
     $r = Read-LogFrom $path 0
     $m = [regex]::Matches($r.Text, 'Creating screen of type (\d+)')
     if ($m.Count) { [int]$m[$m.Count - 1].Groups[1].Value } else { -1 }
@@ -623,11 +652,13 @@ try {
     $script:Phase = 'preflight'; $script:StepName = 'candidate'
     foreach ($n in $BinHashes.Keys) {
         $k = "mods\...\$n"
-        if ($DllSet.Contains($k) -and $DllBefore[$k] -ne $BinHashes[$n]) { Add-Anom 'CANDIDATE' "installed $k differs from this checkout's Bin\$n (installed $($DllBefore[$k].Substring(0,12)), Bin $($BinHashes[$n].Substring(0,12)))" }
+        if ($DllSet.Contains($k) -and $DllBefore[$k] -ne $BinHashes[$n]) { Add-Anom 'CANDIDATE' "installed $k differs from this checkout's Bin\$n (installed $($DllBefore[$k].Substring(0, [math]::Min(12, $DllBefore[$k].Length))), Bin $($BinHashes[$n].Substring(0, [math]::Min(12, $BinHashes[$n].Length))))" }
     }
     if ($DllBefore['plugins\openshim.dll'] -ne $BinHashes['openshim.dll']) { Add-Anom 'CANDIDATE' 'plugins\openshim.dll differs from Bin\openshim.dll' }
-    $ver = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $RepoRoot 'Manage-CampaignFiles.ps1') -verify 2>&1 | Out-String
-    $verOk = ($LASTEXITCODE -eq 0)
+    # verify the folder this run tests (the Steam Workshop copy on a Steam run), not the GOG default
+    $prevRuntime = $env:BZR_CAMPAIGN_RUNTIME_DIR; $env:BZR_CAMPAIGN_RUNTIME_DIR = $ModDir
+    try { $ver = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $RepoRoot 'Manage-CampaignFiles.ps1') -verify 2>&1 | Out-String; $verOk = ($LASTEXITCODE -eq 0) }
+    finally { $env:BZR_CAMPAIGN_RUNTIME_DIR = $prevRuntime }
     Set-Content -LiteralPath (Join-Path $RunDir 'install-verify.txt') -Value $ver
     if (-not $verOk) { Add-Anom 'CANDIDATE' 'Manage-CampaignFiles.ps1 -verify: installed mod does not match the shipping lock (see install-verify.txt)' }
     Write-Host "Install verify: $(if ($verOk) { 'matches shipping lock' } else { 'MISMATCH' })"
@@ -711,7 +742,7 @@ $DllChanged = @($DllSet.Keys | Where-Object { $DllBefore[$_] -ne $DllAfter[$_] }
 if ($DllChanged.Count) { Add-Anom 'DLLCHANGED' "installed DLL hashes changed during the run: $($DllChanged -join ', ')" }
 if (-not $SettingsOk) { Add-Anom 'SETTINGS' 'openshim.ini / Ogre.cfg were NOT restored byte-exact' }
 if ($FatalError) { Add-Anom 'ABORT' $FatalError }
-if ($CustomPlan -or $PSBoundParameters.ContainsKey('GameDir')) { Add-Anom 'PARTIAL' 'custom -Plan or -GameDir: this run cannot qualify a release' }
+if ($CustomPlan -or $PSBoundParameters.ContainsKey('GameDir') -or $PSBoundParameters.ContainsKey('ModDir')) { Add-Anom 'PARTIAL' 'custom -Plan, -GameDir or -ModDir: this run cannot qualify a release' }
 if ($SkipCold -or $OnlyPhases.Count -or $MissionSeconds -gt 0) { Add-Anom 'PARTIAL' 'debug switches used (-SkipCold / -OnlyPhases / -MissionSeconds): this run cannot qualify a release' }
 foreach ($u in $LogUnknown) { Add-Anom 'LOG' ("{0}: {1} x {2}" -f $u.Log, $u.Count, $u.Sample.Substring(0, [math]::Min(200, $u.Sample.Length))) '' }
 $growth = Test-Growth
