@@ -1875,6 +1875,7 @@ function aiCore.ReapplyNativeTactics()
     if not aiNative then return end
     aiNative.ClearAll()
     aiCore._nativeSyncChecked = {}
+    aiCore._nativeSyncFails = {}
     ResetNativeScoreCache(GetTime())
     for h in AllCraft() do
         -- team may be nil: player/unmanaged teams use DefaultNativeConfig.
@@ -3134,7 +3135,14 @@ function producer.ProcessQueues(teamObj)
     local reservedUnaffordable = false
     local activeBuild = teamObj.constructorMgr and teamObj.constructorMgr.activeJob or nil
     if activeBuild and (activeBuild.buildAttempts or 0) == 0 then
-        reserve = reserve + (producer.GetOdfCosts(activeBuild.odf))
+        -- Reserve only once the constructor is at the site (about to build), not while it
+        -- travels or the job is deferred.
+        local cHandle = teamObj.constructorMgr.handle
+        local sitePos = ResolveJobPosition(activeBuild.path)
+        if IsValid(cHandle) and sitePos and type(sitePos) ~= "string"
+            and GetDistance(cHandle, sitePos) <= aiCore.Constants.BUILDING_DETECTION_RANGE then
+            reserve = reserve + (producer.GetOdfCosts(activeBuild.odf))
+        end
     end
 
     for i, job in ipairs(queue) do
@@ -3639,8 +3647,10 @@ function aiCore.ResetCombatStateAfterLoad()
     for _, team in pairs(aiCore.ActiveTeams or aiCore.EmptyList) do
         team.attackCloseAt, team.unstickAt = 0.0, 0.0
         -- Pilot weapon swaps, claims and pursuit timers are absolute-time/handle state: start clean.
-        team.pilotOrigWeapon, team.pilotStealTarget, team.pilotPursuit = {}, {}, {}
+        -- pilotOrigWeapon is kept: handles persist across a load and it is pruned per tick.
+        team.pilotStealTarget, team.pilotPursuit = {}, {}
         team.pilotBlacklist, team.sniperRolled, team.sniperEquipTime = {}, {}, {}
+        team.bannedPlanningSites = nil
         local states = team.attackCloseState
         if states then
             for u, st in pairs(states) do
@@ -4641,6 +4651,9 @@ local function UpdateTimedUsers(self, users, rate, period, duration, enemyReach)
                     user.holdUntil = now + duration
                     SetWeaponMask(h, user.mask)
                 end
+            else
+                -- No enemy close: do not scan GetNearestEnemy every frame.
+                user.nextRollAt = now + 1.0
             end
         end
     end
@@ -5147,7 +5160,7 @@ function aiCore.HowitzerManager:ChooseStandoff(target, squad, range, enemyTeam)
         if type(threat) ~= "number" then threat = 0.0 end
         if threat < bestThreat then best, bestThreat = point, threat end
     end
-    return best
+    return best or HowitzerStandoffPoint(targetPos, fromPos, distance, 0.0)
 end
 
 -- forced = immediate re-evaluation of idle/targetless squads (skips the difficulty roll).
@@ -5208,7 +5221,7 @@ function aiCore.HowitzerManager:UpdateSquadOrders(forced)
                 state.standoffFor = target
             end
 
-            for _, h in ipairs(squad) do
+            for memberIdx, h in ipairs(squad) do
                 if IsValid(h) and IsAlive(h) and not aiCore.IsHumanCraft(h) and not self:TryHowitzerRepair(h) then
                     local hRange = HowitzerWeaponRange(h)
                     local dist = GetDistance(h, target)
@@ -5228,7 +5241,18 @@ function aiCore.HowitzerManager:UpdateSquadOrders(forced)
                         end
                     elseif state.standoff and (GetCurrentCommand(h) ~= Cmd.GO or state.goFor[h] ~= target) then
                         -- A GO order also undeploys the howitzer, so no explicit UNDEPLOY is needed.
-                        if aiCore.TrySetCommand(h, Cmd.GO, GetUncommandablePriority(), nil, state.standoff, nil, nil,
+                        -- Spread members laterally (~15 m apart) so they do not stack on one point.
+                        local goPos = state.standoff
+                        local tp = GetPosition(target)
+                        local sdx, sdz = goPos.x - tp.x, goPos.z - tp.z
+                        local slen = math.sqrt(sdx * sdx + sdz * sdz)
+                        if slen > 0.001 and #squad > 1 then
+                            local lateral = ((memberIdx - 1) - (#squad - 1) * 0.5) * 15.0
+                            local gx = goPos.x + (-sdz / slen) * lateral
+                            local gz = goPos.z + (sdx / slen) * lateral
+                            goPos = SetVector(gx, GetTerrainHeight(gx, gz), gz)
+                        end
+                        if aiCore.TrySetCommand(h, Cmd.GO, GetUncommandablePriority(), nil, goPos, nil, nil,
                                 { minInterval = 0.9 }) then
                             state.goFor[h] = target
                         end
@@ -11594,13 +11618,18 @@ function aiCore.Team:BanPlanningSite(pos)
     local resolved = ResolveBuildingPosition(pos)
     if not resolved then return end
     self.bannedPlanningSites = self.bannedPlanningSites or {}
-    table.insert(self.bannedPlanningSites, { x = resolved.x, z = resolved.z })
+    table.insert(self.bannedPlanningSites, { x = resolved.x, z = resolved.z, expiresAt = GetTime() + 120.0 })
 end
 
 function aiCore.Team:IsPlanningSiteBanned(pos, radius)
     local resolved = ResolveBuildingPosition(pos)
     if not resolved or not self.bannedPlanningSites then return false end
-    for _, site in ipairs(self.bannedPlanningSites) do
+    local now = GetTime()
+    local sites = self.bannedPlanningSites
+    for i = #sites, 1, -1 do
+        if sites[i].expiresAt and sites[i].expiresAt <= now then table.remove(sites, i) end
+    end
+    for _, site in ipairs(sites) do
         if FlatDistance(site, resolved) <= (radius or 15.0) then return true end
     end
     return false
@@ -13026,10 +13055,16 @@ function aiCore.Team:UpdatePilots()
 
     -- True once a pilot has failed to close on its target for PURSUIT_TIMEOUT; the target is then
     -- blacklisted for this pilot. `arrived` counts as progress (a sniper already in position).
-    local function PursuitStalled(p, target, dist, arrived)
-        local st = self.pilotPursuit[p]
+    local function PursuitStalled(p, target, dist, arrived, kind)
+        kind = kind or "snipe"
+        local byKind = self.pilotPursuit[p]
+        if not byKind then
+            byKind = {}
+            self.pilotPursuit[p] = byKind
+        end
+        local st = byKind[kind]
         if not st or st.target ~= target then
-            self.pilotPursuit[p] = { target = target, best = dist, at = now }
+            byKind[kind] = { target = target, best = dist, at = now }
             return false
         end
         if arrived or dist < st.best - 5.0 then
@@ -13046,7 +13081,7 @@ function aiCore.Team:UpdatePilots()
             if untilTime <= now then bl[h] = nil end
         end
         bl[target] = now + BLACKLIST_TIME
-        self.pilotPursuit[p] = nil
+        byKind[kind] = nil
         return true
     end
 
@@ -13116,8 +13151,8 @@ function aiCore.Team:UpdatePilots()
                     IsValid(sniperCandidate) and GetDistance(p, sniperCandidate) < sniperRange and not IsCloaked(sniperCandidate) then
                     -- Roll the attack chance once per candidate, not on every tick.
                     local rolled = self.sniperRolled[p]
-                    if not rolled or rolled.target ~= sniperCandidate then
-                        rolled = { target = sniperCandidate, pass = math.random(100) <= sniperAttackChance }
+                    if not rolled or rolled.target ~= sniperCandidate or now - (rolled.at or 0) >= 10.0 then
+                        rolled = { target = sniperCandidate, at = now, pass = math.random(100) <= sniperAttackChance }
                         self.sniperRolled[p] = rolled
                     end
                     if rolled.pass then
@@ -13127,7 +13162,7 @@ function aiCore.Team:UpdatePilots()
                 end
                 local targetDist = IsValid(sniperTarget) and GetDistance(p, sniperTarget) or 9999
                 if IsValid(sniperTarget)
-                    and PursuitStalled(p, sniperTarget, targetDist, targetDist <= sniperRange * 0.6) then
+                    and PursuitStalled(p, sniperTarget, targetDist, targetDist <= sniperRange * 0.6, "snipe") then
                     self.sniperAttackTarget[p] = nil
                     self.sniperRetryAt[p] = now + (self.Config.sniperTimeout or 8.0)
                     if cmd == utility.AiCommand.ATTACK then
@@ -13245,7 +13280,7 @@ function aiCore.Team:UpdatePilots()
                                 self.pilotActionTimer[p] = now + 1.5
                                 if aiCore.Debug then print("Team " .. self.teamNum .. " pilot stealing craft: " .. GetOdf(target)) end
                             end
-                        elseif PursuitStalled(p, target, GetDistance(p, target), false) then
+                        elseif PursuitStalled(p, target, GetDistance(p, target), false, "steal") then
                             -- Could not get closer for too long: give this craft up for a while.
                             if claimed[target] == p then claimed[target] = nil end
                             self.pilotStealTarget[p] = nil
@@ -13681,9 +13716,11 @@ function aiCore.Team:HasUnbuiltBasePlanNear(center, radius, exceptPriority)
     local now = GetTime()
     for p, item in pairs(self.buildingList or aiCore.EmptyList) do
         if p ~= exceptPriority and not IsValid(item.handle)
-            and not (item.blockedUntil and now < item.blockedUntil) then
+            and not (item.blockedUntil and now < item.blockedUntil)
+            and not (item.rebuildAfter and now < item.rebuildAfter)
+            and (not self.CanQueueBuildingByRules or self:CanQueueBuildingByRules(item.odf)) then
             local pos = ResolvePlanPosition(item.path)
-            if pos and FlatDistance(pos, center) <= radius then return true end
+            if pos and type(pos) ~= "string" and FlatDistance(pos, center) <= radius then return true end
         end
     end
     return false
@@ -13698,7 +13735,12 @@ function aiCore.Team:GetBuildJobDeferReason(job)
     local center = self:GetBaseCenter()
     if center and FlatDistance(pos, center) > aiCore.Constants.BUILD_REMOTE_DISTANCE
         and self:HasUnbuiltBasePlanNear(center, aiCore.Constants.BUILD_REMOTE_DISTANCE, job.priority) then
-        return "base_plans_first"
+        -- Cap the remote-site deferral so a stuck base plan cannot starve the site forever.
+        local now = GetTime()
+        job.firstDeferredAt = job.firstDeferredAt or now
+        if now - job.firstDeferredAt <= (aiCore.Constants.BUILD_REMOTE_DEFER_MAX or 90.0) then
+            return "base_plans_first"
+        end
     end
     return nil
 end

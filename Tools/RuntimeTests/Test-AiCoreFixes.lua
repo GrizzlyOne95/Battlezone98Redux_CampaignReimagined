@@ -1402,7 +1402,7 @@ H.try("building 5", function()
     H.costs.rsvtowe, H.costs.rsvscav, H.costs.rsvtank, H.costs.rsvbig = 80, 30, 60, 150
 
     -- Constructor reserve.
-    t.constructorMgr.activeJob = { odf = "rsvtowe", priority = 1, buildAttempts = 0 }
+    t.constructorMgr.activeJob = { odf = "rsvtowe", priority = 1, buildAttempts = 0, path = H.vec(0, 0, 0) }
     producer.QueueJob("rsvscav", 2, nil, nil, { priority = 1, type = "unit", producer = "recycler" })
     producer.ProcessQueues(t)
     check("building 5: scrap held for the constructor's building is not spent by a lower job", #H.builds == 0)
@@ -1619,6 +1619,180 @@ H.try("building 11", function()
     check("building 16: BuildAt was issued repeatedly", #H.buildAts >= 2)
     check("building 16: the construction spend is recorded once", spends == 1)
     resetBuildingWorld()
+end)
+
+-- ===== Review fixes (items 1-9) =====
+local function reviewTeam()
+    H.objects, H.nearestEnemy = {}, nil
+    H.reset()
+    H.now = 2000.0
+    return newTeam(2, 2)
+end
+
+-- Review 1: only buildable base plans defer a remote site, and the deferral expires after 90 s.
+H.try("review 1", function()
+    local t = buildingTeam()
+    H.now = 2000.0
+    local far = aiCore.Constants.BUILD_REMOTE_DISTANCE + 200
+    t.buildingList[1] = { odf = "svbld1", priority = 1, path = H.vec(20, 0, 0) }
+    local job = { odf = "svsilo", priority = 2, path = H.vec(far, 0, 0) }
+    check("review 1: an unbuilt buildable base plan defers the remote site",
+        t:GetBuildJobDeferReason(job) == "base_plans_first")
+    t.CanQueueBuildingByRules = function() return false, "cap" end
+    check("review 1: a capped (unbuildable) base plan does not defer",
+        t:GetBuildJobDeferReason({ odf = "svsilo", priority = 2, path = H.vec(far, 0, 0) }) == nil)
+    t.CanQueueBuildingByRules = nil
+    H.now = H.now + 91.0
+    check("review 1: the remote-site deferral stops after 90 s", t:GetBuildJobDeferReason(job) == nil)
+    resetBuildingWorld()
+end)
+
+-- Review 2: the sniper attack roll is redone after 10 s for the same candidate.
+H.try("review 2", function()
+    local realRandom = math.random
+    GiveWeapon = function(h, w, slot) h.weapons = h.weapons or {}; h.weapons[slot] = w end
+    IsAliveAndPilot = function(h) return IsAlive(h) and h.occupied == true end
+    SetTarget = function(h, target) h.aimedAt = target end
+    local t = reviewTeam()
+    local p = H.addObject { team = 2, odf = "sspilo", class = "person", person = true, weapons = { [0] = "sprifle" } }
+    t.pilots = { p }
+    t.sniperState = { [p] = true }
+    local enemy = H.addObject { team = 1, odf = "avtank", class = "wingman", craft = true, occupied = true,
+        pos = { x = 0, y = 0, z = 100 } }
+    aiCore.ResetObjectCacheTracking()
+    for _, o in ipairs(H.objects) do aiCore.TrackWorldObject(o) end
+    aiCore.RefreshObjectCache(true)
+    H.nearestEnemy = enemy
+    local function tick(n)
+        for _ = 1, n do H.now = H.now + 1.0; t.pilotUpdateAt = 0.0; t:UpdatePilots() end
+    end
+    math.random = function() return 100 end
+    tick(3)
+    check("review 2: a failed roll means no attack", p.command ~= AiCommand.ATTACK)
+    math.random = function() return 1 end
+    tick(3)
+    check("review 2: the failed roll holds within 10 s", p.command ~= AiCommand.ATTACK)
+    tick(10)
+    check("review 2: the roll is redone after 10 s", p.command == AiCommand.ATTACK and p.target == enemy)
+    math.random = realRandom
+    H.nearestEnemy = nil
+    aiCore.ActiveTeams = {}
+end)
+
+-- Review 3/4: load keeps pilotOrigWeapon; planning-site bans expire and reset on load.
+H.try("review 3/4", function()
+    local t = reviewTeam()
+    local p = handle { team = 2, odf = "sspilo", class = "person", person = true }
+    t.pilotOrigWeapon = { [p] = "aprifle" }
+    t:BanPlanningSite(H.vec(500, 0, 500))
+    check("review 4: a banned site is reported", t:IsPlanningSiteBanned(H.vec(500, 0, 500)) == true)
+    H.now = H.now + 121.0
+    check("review 4: the ban expires after 120 s",
+        t:IsPlanningSiteBanned(H.vec(500, 0, 500)) == false and #t.bannedPlanningSites == 0)
+    t:BanPlanningSite(H.vec(500, 0, 500))
+    local prev = aiCore.ActiveTeams
+    aiCore.ActiveTeams = { [2] = t }
+    aiCore.ResetCombatStateAfterLoad()
+    aiCore.ActiveTeams = prev
+    check("review 3: a load keeps pilotOrigWeapon", t.pilotOrigWeapon[p] == "aprifle")
+    check("review 4: a load clears planning-site bans", t.bannedPlanningSites == nil)
+    aiCore.ActiveTeams = {}
+end)
+
+-- Review 5: the constructor's cost is reserved only once it is at the site.
+H.try("review 5", function()
+    H.reset()
+    local realGetScrap = GetScrap
+    GetScrap = function() return 100 end
+    local t = buildingTeam()
+    local fac = handle { team = 2, odf = "svmuf", class = "factory", craft = true, deployed = true }
+    H.core.factory[2] = fac
+    t.factoryMgr.handle = fac
+    H.costs.rsvtowe, H.costs.rsvscav = 80, 30
+    t.constructorMgr.activeJob = { odf = "rsvtowe", priority = 1, buildAttempts = 0,
+        path = H.vec(aiCore.Constants.BUILDING_DETECTION_RANGE + 500, 0, 0) }
+    producer.QueueJob("rsvscav", 2, nil, nil, { priority = 1, type = "unit", producer = "recycler" })
+    producer.ProcessQueues(t)
+    check("review 5: no reserve while the constructor is still travelling", #H.builds == 1)
+    t.constructorMgr.activeJob = nil
+    GetScrap = realGetScrap
+    resetBuildingWorld()
+end)
+
+-- Review 6: snipe and steal pursuit state do not reset each other.
+H.try("review 6", function()
+    GiveWeapon = function(h, w, slot) h.weapons = h.weapons or {}; h.weapons[slot] = w end
+    local t = reviewTeam()
+    local p = H.addObject { team = 2, odf = "sspilo", class = "person", person = true, weapons = { [0] = "sprifle" } }
+    t.pilots = { p }
+    t.sniperState = { [p] = false }
+    H.addObject { team = 0, odf = "avtank", class = "wingman", craft = true,
+        weapons = { [0] = "gcannon" }, pos = { x = 100, y = 0, z = 0 } }
+    aiCore.ResetObjectCacheTracking()
+    for _, o in ipairs(H.objects) do aiCore.TrackWorldObject(o) end
+    aiCore.RefreshObjectCache(true)
+    H.now = H.now + 1.0; t.pilotUpdateAt = 0.0; t:UpdatePilots()
+    local st = t.pilotPursuit[p]
+    check("review 6: steal pursuit is keyed by kind", st ~= nil and st.steal ~= nil and st.snipe == nil)
+    st.snipe = { target = p, best = 1, at = H.now }
+    H.now = H.now + 1.0; t.pilotUpdateAt = 0.0; t:UpdatePilots()
+    check("review 6: a steal tick leaves the snipe entry alone",
+        t.pilotPursuit[p].snipe ~= nil and t.pilotPursuit[p].snipe.target == p)
+    aiCore.ActiveTeams = {}
+end)
+
+-- Review 7: with no enemy near, a mine layer does not scan GetNearestEnemy every frame.
+H.try("review 7", function()
+    local t = reviewTeam()
+    local mgr = t.weaponMgr
+    local u = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [3] = "gproxmin2" }, mask = 1 }
+    local user = { handle = u, mask = 8 }
+    mgr.mineUsers = { user }
+    H.nearestEnemy = nil
+    H.now = H.now + 0.1
+    local t0 = H.now
+    mgr:UpdateMines(0.1)
+    check("review 7: with no enemy near the next scan is pushed ~1 s out",
+        user.nextRollAt ~= nil and math.abs(user.nextRollAt - (t0 + 1.0)) < 0.001)
+end)
+
+-- Review 8: howitzer members get spread GO points; a threat-everywhere map still gets a stand-off.
+H.try("review 8", function()
+    local t = reviewTeam()
+    t.Config.howitzerChance = 100
+    local mgr = t.howitzerMgr
+    local h1 = H.addObject { team = 2, odf = "svartl", class = "howitzer", craft = true, pos = { x = 0, y = 0, z = 0 } }
+    local h2 = H.addObject { team = 2, odf = "svartl", class = "howitzer", craft = true, pos = { x = 0, y = 0, z = 10 } }
+    local recy = H.addObject { team = 1, odf = "avrecy", class = "recycler", building = true,
+        pos = { x = 1000, y = 0, z = 0 } }
+    H.core.recycler[1] = recy
+    aiCore.ResetObjectCacheTracking()
+    for _, o in ipairs(H.objects) do aiCore.TrackWorldObject(o) end
+    aiCore.RefreshObjectCache(true)
+    mgr.howitzers = { h1, h2 }
+    mgr:Update(100.0)
+    local gos = {}
+    for _, c in ipairs(H.commands) do
+        if c.command == AiCommand.GO and c.position then gos[#gos + 1] = c.position end
+    end
+    check("review 8: both members got a GO", #gos == 2)
+    check("review 8: the two GO points are about 15 m apart",
+        #gos == 2 and math.abs(math.sqrt((gos[1].x - gos[2].x) ^ 2 + (gos[1].z - gos[2].z) ^ 2) - 15.0) < 1.0)
+    t.GetRelaxedThreatAtPosition = function() return math.huge end
+    local p = mgr:ChooseStandoff(recy, { h1 }, 250, 1)
+    check("review 8: all-infinite threat falls back to the direct 0.8 x range point",
+        p ~= nil and math.abs((1000 - p.x) - 200) < 1.0)
+    aiCore.ActiveTeams = {}
+end)
+
+-- Review 9: re-applying native tactics also resets the sync-failure table.
+H.try("review 9", function()
+    aiCore._nativeSyncFails = { [1] = 5 }
+    aiCore._nativeSyncChecked = { [1] = true }
+    aiCore.ReapplyNativeTactics()
+    check("review 9: _nativeSyncFails is reset with _nativeSyncChecked",
+        next(aiCore._nativeSyncFails or {}) == nil)
 end)
 
 H.finish("aiCore fix")
