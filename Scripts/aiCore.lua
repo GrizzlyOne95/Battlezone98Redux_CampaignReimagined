@@ -211,7 +211,7 @@ end
 
 local function NormalizeScriptPriority(h, priority)
     if not IsValid(h) then return priority end
-    if GetTeamNum(h) == 1 then
+    if aiCore.IsHumanTeam(GetTeamNum(h)) then
         return COMMAND_PRIORITY_COMMANDABLE
     end
     if priority == nil then
@@ -1255,12 +1255,12 @@ function aiCore.TrySetTurbo(h, enabled)
     local setTurbo = exu.SetUnitTurbo
     if not setTurbo then return false end
     local teamNum = GetTeamNum(h)
-    if teamNum == 1 then
+    if aiCore.IsHumanTeam(teamNum) then
         enabled = true
     else
-        local team = aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[teamNum] or nil
-        local difficulty = (team and team.Config and team.Config.difficulty) or 2
-        if difficulty < 4 then
+        -- Same source as the other difficulty scaling (DiffUtils copies exu.GetDifficulty into
+        -- Team.Config.difficulty, but unconfigured teams kept the constructor default of 1).
+        if aiCore.GetDifficultyLevel() < 4 then
             enabled = false
         end
     end
@@ -1517,7 +1517,7 @@ function aiCore.ApplyNativeTactics(h, team)
     if policy.engageRange or policy.weaponRangeMin or policy.retargetPeriod
         or policy.kiteDesiredRange then
         local applied = aiNative.ApplyUnitPolicy(h, policy)
-        if policy.engageRange then
+        if policy.engageRange and (aiCore.Debug or aiNative.Debug) then
             print(string.format(
                 "aiCore: native tactics odf=%s team=%d applied=%s engage=%.1f standoff=%.1f kite=%.1f/%.1f/%.1f",
                 odf, GetTeamNum(h), tostring(applied), policy.engageRange,
@@ -1526,7 +1526,7 @@ function aiCore.ApplyNativeTactics(h, team)
         end
         return applied
     end
-    return false
+    return nil -- no policy for this unit (callers only retry a push that returned false)
 end
 
 -- Merge per-mission native-tactics overrides into a team's config, or into
@@ -1599,7 +1599,19 @@ function aiCore.SetNativeUnitProfile(teamNum, key, profile)
     return true
 end
 
-local function GetNativeSquadTarget(team, unit)
+-- Per-candidate scoring runs many times per scan, so squad targets (per unit, ~0.25 s) and
+-- class bonuses (per config + candidate odf, ~5 s or until the native config is reapplied)
+-- are cached. Entries are rebuilt wholesale on a timer, which also bounds their size.
+local kNativeSquadCacheTtl = 0.25
+local kNativeCacheResetInterval = 5.0
+local nativeScoreCache = { squad = {}, bonus = {}, resetAt = 0.0 }
+
+local function ResetNativeScoreCache(now)
+    nativeScoreCache.squad, nativeScoreCache.bonus = {}, {}
+    nativeScoreCache.resetAt = now + kNativeCacheResetInterval
+end
+
+local function GetNativeSquadTargetUncached(team, unit)
     if not team or not team.squads then return nil end
     for _, squad in ipairs(team.squads) do
         local isMember = squad.leader == unit
@@ -1618,7 +1630,20 @@ local function GetNativeSquadTarget(team, unit)
     return nil
 end
 
-local function GetNativeClassBonus(config, candidate)
+local function GetNativeSquadTarget(team, unit)
+    local now = GetTime()
+    -- now < resetAt - interval covers a clock that went backwards (restart / load).
+    if now >= nativeScoreCache.resetAt or now < nativeScoreCache.resetAt - kNativeCacheResetInterval then
+        ResetNativeScoreCache(now)
+    end
+    local entry = nativeScoreCache.squad[unit]
+    if entry and now >= entry.at and now - entry.at < kNativeSquadCacheTtl then return entry.target end
+    local target = GetNativeSquadTargetUncached(team, unit)
+    nativeScoreCache.squad[unit] = { at = now, target = target }
+    return target
+end
+
+local function GetNativeClassBonusUncached(config, candidate)
     local bonuses = config and config.nativeTargetClassBonuses
     if type(bonuses) ~= "table" then return 0.0 end
     local cls = string.lower(utility.CleanString(GetClassLabel(candidate)))
@@ -1636,6 +1661,22 @@ local function GetNativeClassBonus(config, candidate)
         end
     end
     return bestBonus
+end
+
+local function GetNativeClassBonus(config, candidate)
+    if type(config) ~= "table" then return 0.0 end
+    local odf = string.lower(utility.CleanString(GetOdf(candidate) or ""))
+    local perConfig = nativeScoreCache.bonus[config]
+    if not perConfig then
+        perConfig = {}
+        nativeScoreCache.bonus[config] = perConfig
+    end
+    local bonus = perConfig[odf]
+    if bonus == nil then
+        bonus = GetNativeClassBonusUncached(config, candidate)
+        perConfig[odf] = bonus
+    end
+    return bonus
 end
 
 -- Line-of-fire cache: friendly/allied craft handles + positions per team, rebuilt at most
@@ -1705,7 +1746,7 @@ function aiCore.InstallNativeTargetScoring()
     if aiCore._nativeTargetScoringInstalled then return true end
     if not aiNative or not aiNative.SetTargetScoreHandler then return false end
 
-    local installed = aiNative.SetTargetScoreHandler(function(unit, candidate, baseDistance, stockLane)
+    local function score_candidate(unit, candidate, baseDistance, stockLane)
         if not IsValid(unit) or not IsValid(candidate) then return nil end
         local team = aiCore.ActiveTeams[GetTeamNum(unit)]
         local config = ResolveNativeConfig(team)
@@ -1760,6 +1801,19 @@ function aiCore.InstallNativeTargetScoring()
             score = score + blockedPenalty
         end
         return math.max(0.0, score)
+    end
+
+    -- A Lua error must not propagate into the engine hook: nil keeps the stock score.
+    local installed = aiNative.SetTargetScoreHandler(function(unit, candidate, baseDistance, stockLane)
+        local ok, result = pcall(score_candidate, unit, candidate, baseDistance, stockLane)
+        if not ok then
+            if not aiCore._nativeScoreErrorLogged then
+                aiCore._nativeScoreErrorLogged = true
+                print("aiCore: native target score error: " .. tostring(result))
+            end
+            return nil
+        end
+        return result
     end)
 
     aiCore._nativeTargetScoringInstalled = installed and true or false
@@ -1770,6 +1824,7 @@ function aiCore.ReapplyNativeTactics()
     if not aiNative then return end
     aiNative.ClearAll()
     aiCore._nativeSyncChecked = {}
+    ResetNativeScoreCache(GetTime())
     for h in AllCraft() do
         -- team may be nil: player/unmanaged teams use DefaultNativeConfig.
         aiCore.ApplyNativeTactics(h, aiCore.ActiveTeams[GetTeamNum(h)])
@@ -1789,7 +1844,8 @@ function aiCore.SyncNativeTactics()
     aiCore._nextNativeTacticsSync = now + 1.0
 
     -- Craft that already got an (empty/skipped) policy attempt are not re-probed every
-    -- second; only a low-health band change re-evaluates them.
+    -- second; only a low-health band change re-evaluates them. checked[h] is the time after
+    -- which a probe may repeat: math.huge for a settled unit, now + 10 s for a failed push.
     local checked = aiCore._nativeSyncChecked
     if not checked then
         checked = {}
@@ -1798,6 +1854,7 @@ function aiCore.SyncNativeTactics()
     for h in pairs(checked) do
         if not IsValid(h) then checked[h] = nil end
     end
+    if aiNative.PruneInvalid then aiNative.PruneInvalid() end
 
     for h in AllCraft() do
         local existing = aiNative.GetUnitPolicy(h)
@@ -1809,9 +1866,9 @@ function aiCore.SyncNativeTactics()
             local band = healthFraction <= existing.healthThreshold and "low" or "normal"
             healthBandChanged = band ~= existing.healthBand
         end
-        if healthBandChanged or (not existing and not checked[h]) then
-            checked[h] = true
-            aiCore.ApplyNativeTactics(h, aiCore.ActiveTeams[GetTeamNum(h)])
+        if healthBandChanged or (not existing and (not checked[h] or now >= checked[h])) then
+            local result = aiCore.ApplyNativeTactics(h, aiCore.ActiveTeams[GetTeamNum(h)])
+            checked[h] = (result == false) and (now + 10.0) or math.huge
         end
     end
 end
@@ -2285,8 +2342,9 @@ function aiCore.SetupOrdnanceHooks()
     aiCore._ordnanceHooksInstalled = (initInstalled or hitInstalled) and true or false
 end
 
--- Path Utilities
-paths = {}
+-- Path Utilities (no longer a global: the generic name collided with mission locals/globals)
+local paths = {}
+aiCore.paths = paths
 function paths.GetPosition(p, pt)
     if type(p) ~= "string" then
         if IsValid(p) then return GetPosition(p) end -- Native GetPosition for handles
@@ -2778,6 +2836,9 @@ producer = {
     Queue = {}, -- table<TeamNum, list<Job>>
     Orders = {} -- table<Handle, Job>
 }
+-- Also reachable as aiCore.producer. The bare global stays as a compatibility alias: the
+-- Tools/RuntimeTests suites read it directly.
+aiCore.producer = producer
 
 function producer.IsSameJob(a, b)
     if a == b then return true end
@@ -3257,11 +3318,14 @@ function aiCore.StripCircular(data, seen)
     return res
 end
 
+-- Not saved on purpose: DefaultNativeConfig and PendingNativeOps (missions re-apply them on
+-- load) and all per-unit native policies (rebuilt after load by FinishPostLoad).
 function aiCore.Save()
     local data = {
         teams = aiCore.ActiveTeams,
         globalDepot = aiCore.GlobalDepotManagers,
         globalOffense = aiCore.GlobalOffenseManagers,
+        humanTeamOverrides = aiCore.HumanTeamOverrides,
         producer = producer and producer.ExportState() or {}
     }
     return aiCore.StripCircular(data)
@@ -3374,6 +3438,10 @@ function aiCore.Load(data)
         aiCore.ActiveTeams = data.teams
         aiCore.GlobalDepotManagers = data.globalDepot or {}
         aiCore.GlobalOffenseManagers = data.globalOffense or {}
+        -- Older saves have no overrides: keep whatever the mission set up this session.
+        if type(data.humanTeamOverrides) == "table" then
+            aiCore.HumanTeamOverrides = data.humanTeamOverrides
+        end
         if producer then producer.ImportState(data.producer) end
     else
         aiCore.ActiveTeams = data
@@ -3843,6 +3911,7 @@ aiCore.WeaponManager.__index = aiCore.WeaponManager
 function aiCore.WeaponManager.new(teamNum)
     local self = setmetatable({}, aiCore.WeaponManager)
     self.teamNum = teamNum
+    self.lastUpdate = GetTime()
 
     -- Thumper users (pulse weapon)
     self.thumperUsers = {}
@@ -4015,8 +4084,11 @@ function aiCore.WeaponManager:AddObject(h)
 end
 
 function aiCore.WeaponManager:Update()
-    local dt = GetTime() - (self.lastUpdate or 0)
-    self.lastUpdate = GetTime()
+    -- First call used to see the whole game time as dt; clamp covers load/clock jumps too.
+    local now = GetTime()
+    local dt = now - (self.lastUpdate or now)
+    self.lastUpdate = now
+    if dt < 0 then dt = 0 elseif dt > 5.0 then dt = 5.0 end
 
     -- Owners below must never see (and keep as "base") a range-gated mask.
     self:ReleaseOwnedRangeGates()
@@ -4544,24 +4616,28 @@ function aiCore.CloakingManager:Update(dt)
             table.remove(self.cloakers, i)
         elseif not aiCore.IsHumanCraft(h) then
             -- Human-piloted craft are never cloaked/decloaked by the AI.
-            local health = GetCurHealth(h) / GetMaxHealth(h)
+            local maxHealth = GetMaxHealth(h) or 0.0
+            local health = maxHealth > 0.0 and (GetCurHealth(h) / maxHealth) or 1.0
             local cmd = GetCurrentCommand(h)
             local inCombat = (cmd == AiCommand.ATTACK)
             local isCloaked = IsCloaked(h)
+            local isCowering = self.cowardMode and health < self.cloakHealthThreshold
 
             -- Coward mode: cloak when damaged
-            if self.cowardMode and health < self.cloakHealthThreshold and not isCloaked then
+            if isCowering and not isCloaked then
                 SetCloaked(h)
+                isCloaked = true -- keep the local state in step so the rules below see it
                 if aiCore.Debug then print("Team " .. self.teamNum .. " cloaking damaged unit: " .. GetOdf(h)) end
             end
 
             -- Auto-cloak when not in combat
             if not inCombat and not isCloaked and health > self.cloakHealthThreshold then
                 SetCloaked(h)
+                isCloaked = true
             end
 
-            -- Uncloak when in combat (let AI handle it)
-            if inCombat and isCloaked then
+            -- Uncloak when in combat (let AI handle it), except a damaged coward that just hid
+            if inCombat and isCloaked and not isCowering then
                 SetDecloaked(h)
             end
         end
@@ -5072,6 +5148,7 @@ function aiCore.APCManager:Update(dt)
     self.updateTimer = self.updateTimer + (dt or GetTimeStep())
     if self.updateTimer < self.updatePeriod then return end
     self.updateTimer = 0.0
+    if #self.apcs == 0 then return end -- skip the AllCraft sweep
 
     local attackTargets = {}
     for target in AllCraft() do
@@ -5297,6 +5374,39 @@ end
 -- OFFENSE RETALIATION MANAGER
 -- For teams not registered with aiCore.AddTeam: wingman/walker retaliation logic
 ----------------------------------------------------------------------------------
+-- One retaliation tick for one unit, shared by the global manager and Team:UpdateOffensiveRetaliation.
+-- Human teams only answer fire while idle; AI teams also need to have lost health.
+function aiCore.StepOffensiveRetaliation(u, teamNum, state, now, retaliationCooldown, cmdPriority)
+    local curAmmo = GetCurAmmo(u)
+    local curHealth = GetCurHealth(u)
+    local cmd = GetCurrentCommand(u)
+    local currentTarget = GetCurrentWho(u)
+    local attacker = GetWhoShotMe(u)
+    local justShot = (now - GetLastEnemyShot(u)) < 5.0
+    local takingDamage = curHealth < (state.lastHealth - 0.01)
+    local canRetaliate = aiCore.CanRetaliateToAttacker(u, teamNum, cmd, currentTarget, attacker)
+
+    if justShot and takingDamage and IsValid(attacker) and aiCore.IsMissileThreat(attacker) then
+        aiCore.TryDeployDecoy(u, 8.0)
+    end
+
+    local shouldRetaliate
+    if aiCore.IsHumanTeam(teamNum) then
+        shouldRetaliate = canRetaliate and justShot and aiCore.IsIdleRetaliationCommand(cmd)
+    else
+        shouldRetaliate = canRetaliate and justShot and takingDamage
+    end
+
+    if now >= (state.nextRetaliateTime or 0.0) and shouldRetaliate then
+        if aiCore.TryAttack(u, attacker, cmdPriority, { minInterval = 0.4 }) then
+            state.nextRetaliateTime = now + retaliationCooldown
+        end
+    end
+
+    state.lastAmmo = curAmmo
+    state.lastHealth = curHealth
+end
+
 aiCore.OffenseRetaliationManager = {}
 aiCore.OffenseRetaliationManager.__index = aiCore.OffenseRetaliationManager
 
@@ -5336,37 +5446,11 @@ function aiCore.OffenseRetaliationManager:Update()
     local retaliationCooldown = aiCore.GetRetaliationCooldown()
     local cmdPriority = GetCommandableAttackPriority()
     for u, state in pairs(self.units) do
-        if not IsValid(u) or not IsAlive(u) then
+        -- A craft that changed team (stolen/captured) leaves this manager.
+        if not IsValid(u) or not IsAlive(u) or GetTeamNum(u) ~= self.teamNum then
             self.units[u] = nil
         else
-            local curAmmo = GetCurAmmo(u)
-            local curHealth = GetCurHealth(u)
-            local cmd = GetCurrentCommand(u)
-            local currentTarget = GetCurrentWho(u)
-            local attacker = GetWhoShotMe(u)
-            local justShot = (now - GetLastEnemyShot(u)) < 5.0
-            local takingDamage = curHealth < (state.lastHealth - 0.01)
-            local canRetaliate = aiCore.CanRetaliateToAttacker(u, self.teamNum, cmd, currentTarget, attacker)
-
-            if justShot and takingDamage and IsValid(attacker) and aiCore.IsMissileThreat(attacker) then
-                aiCore.TryDeployDecoy(u, 8.0)
-            end
-
-            local shouldRetaliate = false
-            if aiCore.IsHumanTeam(self.teamNum) then
-                shouldRetaliate = canRetaliate and justShot and aiCore.IsIdleRetaliationCommand(cmd)
-            else
-                shouldRetaliate = canRetaliate and justShot and takingDamage
-            end
-
-            if now >= (state.nextRetaliateTime or 0.0) and shouldRetaliate then
-                if aiCore.TryAttack(u, attacker, cmdPriority, { minInterval = 0.4 }) then
-                    state.nextRetaliateTime = now + retaliationCooldown
-                end
-            end
-
-            state.lastAmmo = curAmmo
-            state.lastHealth = curHealth
+            aiCore.StepOffensiveRetaliation(u, self.teamNum, state, now, retaliationCooldown, cmdPriority)
         end
     end
 end
@@ -5810,6 +5894,16 @@ function aiCore.UpdatePlayerRushAggression()
     }
 
     local state = aiCore.PlayerRushState
+    -- Cleanup runs before the early returns below so entries expire even when no one shoots.
+    if now >= (state.cleanupTime or 0.0) then
+        state.cleanupTime = now + 30.0
+        for h, t in pairs(state.shooterCooldown) do
+            if (not IsValid(h)) or now > (t + 30.0) then
+                state.shooterCooldown[h] = nil
+            end
+        end
+    end
+
     if now < (state.nextCheck or 0.0) then return end
     state.nextCheck = now + 0.25
 
@@ -5844,15 +5938,6 @@ function aiCore.UpdatePlayerRushAggression()
         end
     else
         state.shooterCooldown[shooter] = now + 2.5
-    end
-
-    if now >= (state.cleanupTime or 0.0) then
-        state.cleanupTime = now + 30.0
-        for h, t in pairs(state.shooterCooldown) do
-            if (not IsValid(h)) or now > (t + 30.0) then
-                state.shooterCooldown[h] = nil
-            end
-        end
     end
 end
 
@@ -6751,9 +6836,10 @@ function aiCore.WingmanManager:Update()
     self.updateTimer = 0.0
 
     for h, entry in pairs(self.wingmen) do
-        if not IsValid(h) or not IsAlive(h) or aiCore.IsHumanCraft(h) then
+        if not IsValid(h) or not IsAlive(h) or GetTeamNum(h) ~= self.teamNum then
             self.wingmen[h] = nil
-        else
+        elseif not aiCore.IsHumanCraft(h) then
+            -- A player hopping in briefly must not unregister the wingman: skip this tick.
             self:UpdateWingman(entry)
         end
     end
@@ -7906,6 +7992,7 @@ function aiCore.Team:UpdateOffensiveRetaliation()
 
     local now = GetTime()
     local retaliationCooldown = aiCore.GetRetaliationCooldown()
+    local cmdPriority = GetCommandableAttackPriority()
     for _, u in ipairs(self.combatUnits) do
         if IsValid(u) and IsAlive(u) then
             local cls = string.lower(utility.CleanString(GetClassLabel(u)))
@@ -7920,35 +8007,7 @@ function aiCore.Team:UpdateOffensiveRetaliation()
                     self.offensiveRetaliation[u] = state
                 end
 
-                local curAmmo = GetCurAmmo(u)
-                local curHealth = GetCurHealth(u)
-                local cmd = GetCurrentCommand(u)
-                local currentTarget = GetCurrentWho(u)
-                local attacker = GetWhoShotMe(u)
-                local justShot = (now - GetLastEnemyShot(u)) < 5.0
-                local takingDamage = curHealth < (state.lastHealth - 0.01)
-                local cmdPriority = GetCommandableAttackPriority()
-                local canRetaliate = aiCore.CanRetaliateToAttacker(u, self.teamNum, cmd, currentTarget, attacker)
-
-                if justShot and takingDamage and IsValid(attacker) and aiCore.IsMissileThreat(attacker) then
-                    aiCore.TryDeployDecoy(u, 8.0)
-                end
-
-                local shouldRetaliate = false
-                if self.teamNum == 1 then
-                    shouldRetaliate = canRetaliate and justShot and aiCore.IsIdleRetaliationCommand(cmd)
-                else
-                    shouldRetaliate = canRetaliate and justShot and takingDamage
-                end
-
-                if now >= (state.nextRetaliateTime or 0.0) and shouldRetaliate then
-                    if aiCore.TryAttack(u, attacker, cmdPriority, { minInterval = 0.4 }) then
-                        state.nextRetaliateTime = now + retaliationCooldown
-                    end
-                end
-
-                state.lastAmmo = curAmmo
-                state.lastHealth = curHealth
+                aiCore.StepOffensiveRetaliation(u, self.teamNum, state, now, retaliationCooldown, cmdPriority)
             end
         end
     end
@@ -8848,6 +8907,19 @@ function aiCore.Team:UpdateRaiders()
     if GetTime() < self.raiderTimer then return end
     self.raiderTimer = GetTime() + 15.0
 
+    -- Raiders return to the pool once the raid is over (target gone or the order replaced).
+    self.activeRaiders = self.activeRaiders or {}
+    for i = #self.activeRaiders, 1, -1 do
+        local r = self.activeRaiders[i]
+        local u = r.unit
+        if not IsValid(u) or not IsAlive(u) or GetTeamNum(u) ~= self.teamNum then
+            table.remove(self.activeRaiders, i)
+        elseif not (IsValid(r.target) and IsAlive(r.target) and GetCurrentCommand(u) == AiCommand.ATTACK) then
+            UniqueInsert(self.pool, u)
+            table.remove(self.activeRaiders, i)
+        end
+    end
+
     local enemyTeam = self:GetPrimaryEnemyTeam()
     if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
 
@@ -8891,11 +8963,17 @@ function aiCore.Team:UpdateRaiders()
 
         if raider and IsValid(raider) then
             local target = denyTargets[math.random(#denyTargets)]
+            local sent = false
             if GetCurrentCommand(raider) ~= AiCommand.ATTACK or GetCurrentWho(raider) ~= target then
-                aiCore.TryAttack(raider, target, GetCommandableAttackPriority(), { minInterval = 0.75 })
-                if aiCore.Debug then
+                sent = aiCore.TryAttack(raider, target, GetCommandableAttackPriority(), { minInterval = 0.75 })
+                if sent and aiCore.Debug then
                     print("Team " .. self.teamNum .. " dispatching raider against scrap denial target.")
                 end
+            end
+            if sent then
+                self.activeRaiders[#self.activeRaiders + 1] = { unit = raider, target = target }
+            else
+                UniqueInsert(self.pool, raider) -- the order failed: the unit stays available
             end
         end
     end
@@ -8907,29 +8985,60 @@ function aiCore.Team:UpdateRetreat()
     if GetTime() < self.retreatTimer then return end
     self.retreatTimer = GetTime() + 2.0
 
-    -- Find a repair source
-    local depot = nil
+    -- Collect friendly repair depots (the nearest one is picked per unit below).
+    local depots = {}
     if self.depotMgr then
         for h, data in pairs(self.depotMgr.depots) do
             if IsValid(h) and IsAlive(h) and GetTeamNum(h) == self.teamNum and data.type == "repair" then
-                depot = h
-                break
+                depots[#depots + 1] = h
             end
         end
     end
 
-    if not depot then return end -- No repair depot, no retreat logic
-
+    self.retreatState = self.retreatState or {}
+    local state = self.retreatState
+    local wm = self.wingmanMgr
+    local wingmanHandled = wm and self.Config.autoRepairWingmen
     for _, u in ipairs(self.combatUnits) do
         if IsValid(u) and IsAlive(u) and not IsBuilding(u) then
-            local health = GetHealth(u)
-            local cmd = GetCurrentCommand(u)
-            -- Retreat if critical and not already getting help
-            if health < 0.25 and cmd ~= AiCommand.GET_REPAIR and cmd ~= AiCommand.GET_RELOAD then
-                aiCore.TrySetCommand(u, AiCommand.GET_REPAIR, 1, depot, nil, nil, nil,
-                    { minInterval = 0.7, overrideProtected = true })
+            local cls = string.lower(utility.CleanString(GetClassLabel(u)))
+            -- Artillery, minelayers and turrets do not drive to a depot; WingmanManager owns
+            -- the craft it registered (it saves/restores their command itself).
+            if not (string.find(cls, "howitzer", 1, true) or string.find(cls, "minelayer", 1, true)
+                    or string.find(cls, "turret", 1, true)
+                    or (wingmanHandled and wm.wingmen[u])) then
+                local health = GetHealth(u)
+                local cmd = GetCurrentCommand(u)
+                local entry = state[u]
+                -- Resume the interrupted order once repaired (or the trip ended).
+                if entry and wm and wm:ShouldRestoreCommand(u, cmd, health, 1.0, entry) then
+                    wm:RestorePreviousCommand(entry)
+                    state[u] = nil
+                elseif entry and cmd ~= AiCommand.GET_REPAIR and cmd ~= AiCommand.NONE then
+                    state[u] = nil -- something else took over; never fight it
+                end
+                -- Retreat if critical and not already getting help
+                if health < 0.25 and cmd ~= AiCommand.GET_REPAIR and cmd ~= AiCommand.GET_RELOAD and #depots > 0 then
+                    local depot, best = nil, math.huge
+                    for _, d in ipairs(depots) do
+                        local dist = GetDistance(u, d)
+                        if dist < best then depot, best = d, dist end
+                    end
+                    local prevCmd, prevTarget = cmd, GetCurrentWho(u)
+                    if depot and aiCore.TrySetCommand(u, AiCommand.GET_REPAIR, 1, depot, nil, nil, nil,
+                            { minInterval = 0.7, overrideProtected = true }) then
+                        if wm and prevCmd ~= AiCommand.NONE then
+                            local e = { unit = u }
+                            wm:SavePreviousCommand(e, prevCmd, prevTarget)
+                            state[u] = e
+                        end
+                    end
+                end
             end
         end
+    end
+    for h in pairs(state) do
+        if not IsValid(h) or not IsAlive(h) then state[h] = nil end
     end
 end
 
@@ -9032,7 +9141,8 @@ function aiCore.Team:Update()
     if manageTacticalOrders and aiCore.IsHumanTeam(self.teamNum) then self:UpdateStickToPlayer() end
     if manageBase and self.Config.autoBuild then self:UpdateAutoBase() end
     if self.Config.autoManage then self:UpdateRetreat() end
-    if manageTacticalOrders then self:UpdateOffensiveRetaliation() end
+    -- Human teams have manageTacticalOrders off but still answer fire (their wingmen).
+    if manageTacticalOrders or aiCore.IsHumanTeam(self.teamNum) then self:UpdateOffensiveRetaliation() end
 
     -- Legacy Proximity/Maintenance
     if manageTacticalOrders and self.Config.dynamicMinefields then self:UpdateDynamicMinefields() end
@@ -9102,6 +9212,20 @@ function aiCore.Team:PruneForeignUnits()
         end
     end
     if self.cloakMgr then prune(self.cloakMgr.cloakers) end
+    -- Manager-owned lists (GuardManager already drops foreign guards itself).
+    if self.howitzerMgr then
+        prune(self.howitzerMgr.howitzers)
+    end
+    if self.apcMgr then prune(self.apcMgr.apcs) end
+    if self.minelayerMgr then prune(self.minelayerMgr.minelayers) end
+    if self.wingmanMgr then
+        for h in pairs(self.wingmanMgr.wingmen) do
+            if foreign(h) then self.wingmanMgr.wingmen[h] = nil end
+        end
+    end
+    for h in pairs(self.offensiveRetaliation or aiCore.EmptyList) do
+        if foreign(h) then self.offensiveRetaliation[h] = nil end
+    end
 end
 
 -- Live combat craft this team's per-unit helpers may act on: combatUnits and pool plus
@@ -11246,8 +11370,7 @@ function aiCore.Team:AssignScavengersToHotspots()
 
                 if busyOnThisHotspot then
                     assigned = assigned + 1
-                elseif currentCmd == AiCommand.NONE or currentCmd == AiCommand.SCAVENGE or currentCmd == AiCommand.GO
-                    or (currentCmd == AiCommand.SCAVENGE and not IsValid(currentWho)) then
+                elseif currentCmd == AiCommand.NONE or currentCmd == AiCommand.SCAVENGE or currentCmd == AiCommand.GO then
                     local bestScrap = self:GetBestAvailableHotspotScrap(hotspot, scav, claimed)
                     if IsValid(bestScrap) then
                         if aiCore.TryScavenge(scav, bestScrap, GetUncommandablePriority(),
@@ -11511,14 +11634,18 @@ end
 
 function aiCore.Team:UpdateRegen()
     -- Consolidated Regen: Recycler/Factory (High Rate) + Combat Units (Low Rate)
-    local recycler = self.recyclerMgr.handle
-    if IsValid(recycler) then
-        AddHealth(recycler, (self.Config.regenRate or 0.0) * 0.05)
-    end
-
-    local factory = self.factoryMgr.handle
-    if IsValid(factory) then
-        AddHealth(factory, (self.Config.regenRate or 0.0) * 0.05)
+    -- regenRate is health per second (the old per-frame 0.05 factor assumed ~20 Hz).
+    local now = GetTime()
+    local elapsed = now - (self.regenLastAt or now)
+    self.regenLastAt = now
+    if elapsed < 0 then elapsed = 0 elseif elapsed > 1.0 then elapsed = 1.0 end
+    local regenAmount = (self.Config.regenRate or 0.0) * elapsed
+    if regenAmount > 0 then
+        for _, core in ipairs({ self.recyclerMgr.handle, self.factoryMgr.handle }) do
+            if IsValid(core) and GetCurHealth(core) < GetMaxHealth(core) then
+                AddHealth(core, regenAmount)
+            end
+        end
     end
 
     if self.Config.passiveRegen then
@@ -11526,7 +11653,7 @@ function aiCore.Team:UpdateRegen()
             self.regenTimer = GetTime() + 1.0
             aiCore.RemoveDead(self.combatUnits)
             for _, u in ipairs(self.combatUnits) do
-                if IsAlive(u) and GetHealth(u) < GetMaxHealth(u) then
+                if IsAlive(u) and GetCurHealth(u) < GetMaxHealth(u) then
                     AddHealth(u, 5) -- Small flat regen for all combat units
                 end
             end
@@ -11540,6 +11667,8 @@ function aiCore.Team:UpdateDynamicMinefields()
     if GetTime() < (self.dynamicMinefieldAt or 0.0) then return end
     self.dynamicMinefieldAt = GetTime() + 0.75
 
+    local mineOdf = (aiCore.Units[self.faction] or {}).mine or "proxmine"
+
     for _, zone in ipairs(self.Config.minefields) do
         -- zone can be a path name or {x,y,z}
         local pos = zone
@@ -11550,15 +11679,13 @@ function aiCore.Team:UpdateDynamicMinefields()
             -- Spawn a mine if not too many nearby
             local mines = 0
             for obj in ObjectsInRange(40, pos) do
-                if IsOdf(obj, "proxmine") or IsOdf(obj, "svmine") then
+                if IsOdf(obj, mineOdf) then
                     mines = mines + 1
                 end
             end
 
             if mines < 3 then
-                local odf = aiCore.Units[self.faction].minelayer .. "m" -- Guessing mine ODF
-                if self.faction == 2 then odf = "svmine" end            -- CCA specific
-                BuildObject(odf, self.teamNum, pos)
+                BuildObject(mineOdf, self.teamNum, pos)
             end
         end
     end
@@ -11674,7 +11801,7 @@ function aiCore.Team:UpdateParatroopers()
         pos.y = pos.y + 400.0 -- 400M in the sky
 
         local count = math.random(3, 8)
-        local soldierOdf = aiCore.Units[self.faction].soldier or "aspilo" -- Fallback
+        local soldierOdf = (aiCore.Units[self.faction] or {}).soldier or "aspilo" -- Fallback
 
         if aiCore.Debug then
             print("Team " ..
@@ -11962,7 +12089,7 @@ function aiCore.Team:UpdatePilotResources()
         self.pilotResTimer = GetTime() + aiCore.Constants.PILOT_RESOURCE_INTERVAL
         aiCore.RemoveDead(self.pilots)
         if #self.pilots < (self.Config.pilotTopoff or 4) then
-            local pilotOdf = aiCore.Units[self.faction].pilot
+            local pilotOdf = (aiCore.Units[self.faction] or {}).pilot
             if pilotOdf then self.recyclerMgr:addUnit(pilotOdf, 0) end
         end
     end
@@ -13075,8 +13202,8 @@ local function IsSupportRoleClass(cls)
 end
 
 function aiCore.Team:AddObject(h)
-    -- A human-piloted craft is never registered with AI management, on any team.
-    if aiCore.IsHumanCraft(h) and IsCraft(h) then return end
+    -- A human-piloted craft or person (player on foot) is never registered with AI management.
+    if aiCore.IsHumanCraft(h) and (IsCraft(h) or IsPerson(h)) then return end
     -- A script may intentionally opt this handle into only aiSpecial behavior.
     if self.specialTrackedSet and self.specialTrackedSet[h] then return end
 
@@ -13213,7 +13340,7 @@ function aiCore.Team:AddObject(h)
         UniqueInsert(self.turrets, h)
     elseif string.find(cls, utility.ClassLabel.TUG) or string.find(cls, "haul") then
         UniqueInsert(self.tugHandles, h)
-    elseif IsPerson(h) and odf == string.lower(aiCore.Units[self.faction].soldier or "") then
+    elseif IsPerson(h) and odf == string.lower((aiCore.Units[self.faction] or {}).soldier or "") then
         UniqueInsert(self.soldiers, h)
     end
 
@@ -13485,9 +13612,21 @@ aiCore.UpdateErrors = aiCore.UpdateErrors or {}
 -- Drop per-unit combat-helper state (stuck detection) of handles that no longer exist. The
 -- attack-close and range-gate tables live on their team/weapon manager and prune themselves.
 function aiCore.PruneCombatState()
-    for h in pairs(aiCore.UnstickState) do
-        if not IsValid(h) then aiCore.UnstickState[h] = nil end
+    for _, state in ipairs({ aiCore.UnstickState, aiCore.CommandState, aiCore.CountermeasureState,
+                             aiCore.DecoyState }) do
+        for h in pairs(state) do
+            if not IsValid(h) then state[h] = nil end
+        end
     end
+    for _, team in pairs(aiCore.ActiveTeams or aiCore.EmptyList) do
+        for _, state in ipairs({ team.producerDeployState or aiCore.EmptyList,
+                                 team.scrapOrderState or aiCore.EmptyList }) do
+            for h in pairs(state) do
+                if not IsValid(h) then state[h] = nil end
+            end
+        end
+    end
+    if aiNative and aiNative.PruneInvalid then aiNative.PruneInvalid() end
 end
 
 function aiCore.SafeStep(label, fn, ...)
@@ -13526,16 +13665,6 @@ function aiCore.Update()
 
     if now >= (aiCore._commandStateCleanupTimer or 0.0) then
         aiCore._commandStateCleanupTimer = now + 60.0
-        for h, _ in pairs(aiCore.CommandState) do
-            if not IsValid(h) then
-                aiCore.CommandState[h] = nil
-            end
-        end
-        for h, _ in pairs(aiCore.CountermeasureState or {}) do
-            if not IsValid(h) then
-                aiCore.CountermeasureState[h] = nil
-            end
-        end
         aiCore.PruneCombatState()
     end
 
@@ -13714,16 +13843,6 @@ function aiCore.UpdateCombatOnly()
     local now = GetTime()
     if now >= (aiCore._commandStateCleanupTimer or 0.0) then
         aiCore._commandStateCleanupTimer = now + 60.0
-        for h, _ in pairs(aiCore.CommandState) do
-            if not IsValid(h) then
-                aiCore.CommandState[h] = nil
-            end
-        end
-        for h, _ in pairs(aiCore.CountermeasureState or {}) do
-            if not IsValid(h) then
-                aiCore.CountermeasureState[h] = nil
-            end
-        end
         aiCore.PruneCombatState()
     end
 
@@ -13757,6 +13876,7 @@ function aiCore.DeleteObject(h)
         if team.weaponMgr and team.weaponMgr.rangeGateState then team.weaponMgr.rangeGateState[h] = nil end
     end
     aiCore.UnstickState[h] = nil
+    aiCore.DecoyState[h] = nil
     if aiNative then
         aiNative.ClearUnit(h)
     end

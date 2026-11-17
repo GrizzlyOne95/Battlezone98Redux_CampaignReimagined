@@ -491,4 +491,341 @@ H.try("turbo", function()
     check("TrySetTurbo does not fall back to a lowercase name", ok == false and H.lowerTurboCalls == 0)
 end)
 
+-- Bug 31: dynamic minefields used a non-existent "<minelayer>m" ODF and counted the wrong mine.
+H.try("bug 31", function()
+    aiCore.Units[4] = { minelayer = "cvmine", mine = "cvmineo", recycler = "cvrecy" }
+    local t = newTeam(2, 4)
+    local pos = { x = 0, y = 0, z = 0 }
+    t.Config.minefields = { pos }
+    local enemy = handle { team = 1, odf = "avtank", class = "wingman", craft = true, pos = { x = 10, y = 0, z = 0 } }
+    H.nearestEnemy = enemy
+    H.reset()
+    t.dynamicMinefieldAt = 0
+    t:UpdateDynamicMinefields()
+    check("bug 31: the faction's mine ODF is laid (not the minelayer vehicle + 'm')",
+        #H.built == 1 and H.built[1].odf == "cvmineo")
+    for i = 1, 3 do H.addObject { team = 2, odf = "cvmineo", pos = { x = i, y = 0, z = 0 } } end
+    H.reset()
+    t.dynamicMinefieldAt = 0
+    t:UpdateDynamicMinefields()
+    check("bug 31: existing mines of that ODF are counted", #H.built == 0)
+    H.nearestEnemy = nil
+    H.objects = {}
+end)
+
+-- Bug 32: regen compared a 0..1 fraction with absolute HP and ran per frame without dt.
+H.try("bug 32", function()
+    local t = newTeam(2, 2)
+    t.Config.passiveRegen, t.Config.regenRate = true, 10.0
+    H.maxHealth = 1000
+    local rec = handle { team = 2, odf = "svrecy", class = "recycler", craft = true, hp = 500 }
+    local full = handle { team = 2, odf = "svmuf", class = "factory", craft = true, hp = 1000 }
+    t.recyclerMgr.handle, t.factoryMgr.handle = rec, full
+    H.reset()
+    H.now = 200.0
+    t:UpdateRegen()                    -- seeds the clock
+    H.now = 200.5
+    t:UpdateRegen()
+    check("bug 32: regen is rate * elapsed seconds", math.abs((H.healed[rec] or 0) - 5.0) < 1e-6)
+    check("bug 32: a unit at max health is not healed", H.healed[full] == nil)
+    H.now = 260.0
+    t:UpdateRegen()
+    check("bug 32: a long gap is clamped to one second", math.abs((H.healed[rec] or 0) - 15.0) < 1e-6)
+    H.maxHealth = nil
+end)
+
+-- Bug 33: DecoyState and friends were never pruned.
+H.try("bug 33", function()
+    local t = newTeam(2, 2)
+    aiCore.ActiveTeams[2] = t
+    local dead = handle { team = 2, odf = "svtank", craft = true }
+    local live = handle { team = 2, odf = "svtank", craft = true }
+    aiCore.DecoyState[dead], aiCore.DecoyState[live] = { nextTime = 1 }, { nextTime = 1 }
+    aiCore.CommandState[dead] = { time = 0 }
+    aiCore.CountermeasureState[dead] = {}
+    t.producerDeployState[dead] = {}
+    t.scrapOrderState[dead] = {}
+    dead.valid = false
+    aiCore._commandStateCleanupTimer = 0
+    aiCore.UpdateCombatOnly()
+    check("bug 33: the shared 60 s cleanup drops dead handles from every state table",
+        aiCore.DecoyState[dead] == nil and aiCore.CommandState[dead] == nil
+        and aiCore.CountermeasureState[dead] == nil and t.producerDeployState[dead] == nil
+        and t.scrapOrderState[dead] == nil and aiCore.DecoyState[live] ~= nil)
+    aiCore.DeleteObject(live)
+    check("bug 33: DeleteObject clears the decoy state", aiCore.DecoyState[live] == nil)
+    aiCore.ActiveTeams[2] = nil
+end)
+
+-- Bug 34: team 1 was hard-coded as the human team (command priority, turbo, difficulty source).
+H.try("bug 34", function()
+    aiCore.SetHumanTeam(3, true)
+    local u = handle { team = 3, odf = "avtank", class = "wingman", craft = true }
+    H.reset()
+    aiCore.TrySetCommand(u, AiCommand.GO, 1, nil, { x = 1, y = 0, z = 1 })
+    check("bug 34: a configured human team gets commandable priority", H.commands[#H.commands].priority == 0)
+    H.turbo[u] = nil
+    aiCore.TrySetTurbo(u, false)
+    check("bug 34: a configured human team keeps turbo", H.turbo[u] == true)
+    aiCore.SetHumanTeam(3, nil)
+    local ai = handle { team = 3, odf = "avtank", class = "wingman", craft = true }
+    local savedExu = exu.GetDifficulty
+    exu.GetDifficulty = function() return 4 end
+    aiCore.TrySetTurbo(ai, true)
+    check("bug 34: AI turbo follows exu.GetDifficulty (very hard)", H.turbo[ai] == true)
+    exu.GetDifficulty = function() return 1 end
+    aiCore.TrySetTurbo(ai, true)
+    check("bug 34: AI turbo is off below very hard", H.turbo[ai] == false)
+    exu.GetDifficulty = savedExu
+end)
+
+-- Bug 35: units that change team stayed in manager lists.
+H.try("bug 35", function()
+    local t = newTeam(2, 2)
+    local u = handle { team = 2, odf = "svhowi", class = "howitzer", craft = true }
+    t.howitzerMgr.howitzers[1] = u
+    t.apcMgr.apcs[1] = u
+    t.minelayerMgr.minelayers[1] = u
+    t.wingmanMgr.wingmen[u] = { unit = u }
+    t.offensiveRetaliation[u] = { lastHealth = 1 }
+    u.team = 1
+    t:PruneForeignUnits()
+    check("bug 35: howitzer/apc/minelayer/wingman/retaliation entries drop a captured unit",
+        #t.howitzerMgr.howitzers == 0 and #t.apcMgr.apcs == 0 and #t.minelayerMgr.minelayers == 0
+        and t.wingmanMgr.wingmen[u] == nil and t.offensiveRetaliation[u] == nil)
+    local mgr = aiCore.OffenseRetaliationManager.new(5)
+    local v = handle { team = 5, odf = "avtank", class = "wingman", craft = true }
+    mgr:AddObject(v)
+    v.team = 1
+    mgr.updateTimer = 10
+    mgr:Update()
+    check("bug 35: the global offense manager drops a unit that changed team", mgr.units[v] == nil)
+end)
+
+-- Bug 36: human teams never ran offensive retaliation; the Team copy used teamNum == 1.
+H.try("bug 36", function()
+    aiCore.SetHumanTeam(4, true)
+    local t = aiCore.Team:new(4, 1)
+    check("bug 36: human defaults switch tactical orders off", t.Config.manageTacticalOrders == false)
+    local w = handle { team = 4, odf = "avtank", class = "wingman", craft = true, command = AiCommand.NONE }
+    local enemy = handle { team = 2, odf = "svtank", class = "wingman", craft = true }
+    t.combatUnits = { w }
+    w.shotBy, w.lastShot = enemy, H.now
+    H.reset()
+    t.offensiveRetaliationTimer = 10
+    t:UpdateOffensiveRetaliation()
+    check("bug 36: an idle human-team wingman retaliates (non-1 human team)",
+        #H.commands == 1 and H.commands[1].command == AiCommand.ATTACK and H.commands[1].target == enemy)
+    local called = false
+    t.UpdateOffensiveRetaliation = function() called = true end
+    pcall(t.Update, t)
+    check("bug 36: Team:Update still dispatches it for a human team", called)
+    aiCore.SetHumanTeam(4, nil)
+end)
+
+-- Bug 37: retreat picked the first depot, pulled artillery and never restored the order.
+H.try("bug 37", function()
+    local t = newTeam(2, 2)
+    local far = handle { team = 2, odf = "sbrepair", class = "repairdepot", building = true, pos = { x = 500, y = 0, z = 0 } }
+    local near = handle { team = 2, odf = "sbrepair", class = "repairdepot", building = true, pos = { x = 40, y = 0, z = 0 } }
+    t.depotMgr.depots = { [far] = { type = "repair" }, [near] = { type = "repair" } }
+    local target = handle { team = 1, odf = "avtank", class = "wingman", craft = true }
+    local walker = handle { team = 2, odf = "svwalk", class = "walker", craft = true, health = 0.1,
+        command = AiCommand.ATTACK, target = target }
+    local howi = handle { team = 2, odf = "svhowi", class = "howitzer", craft = true, health = 0.1 }
+    t.combatUnits = { walker, howi }
+    H.reset()
+    H.now = H.now + 10
+    t.retreatTimer = 0
+    t:UpdateRetreat()
+    check("bug 37: the nearest repair depot is chosen", walker.command == AiCommand.GET_REPAIR and walker.target == near)
+    check("bug 37: artillery is left alone", howi.command ~= AiCommand.GET_REPAIR)
+    walker.health, walker.command, walker.target = 1.0, AiCommand.NONE, nil
+    H.now = H.now + 3
+    t:UpdateRetreat()
+    check("bug 37: the interrupted order is restored after repair",
+        walker.command == AiCommand.ATTACK and walker.target == target)
+end)
+
+-- Bug 38: stale isCloaked made a damaged cloaker flip-flop in combat; max health could be 0.
+H.try("bug 38", function()
+    local t = newTeam(2, 2)
+    local u = handle { team = 2, odf = "cvtnk", class = "wingman", craft = true, health = 0.2, command = AiCommand.ATTACK }
+    t.cloakMgr.cloakers = { u }
+    H.reset()
+    for _ = 1, 3 do
+        t.cloakMgr.pulseTimer = 10
+        t.cloakMgr:Update(0)
+    end
+    local decloaks = 0
+    for _, c in ipairs(H.cloaks) do if not c.cloak then decloaks = decloaks + 1 end end
+    check("bug 38: a damaged cloaker stays cloaked in combat", u.cloaked == true and decloaks == 0)
+    H.maxHealth = 0
+    t.cloakMgr.pulseTimer = 10
+    local ok = pcall(t.cloakMgr.Update, t.cloakMgr, 0)
+    H.maxHealth = nil
+    check("bug 38: zero max health does not divide by zero", ok)
+end)
+
+-- Bug 39: the first WeaponManager:Update saw dt = whole game time.
+H.try("bug 39", function()
+    H.now = 5000.0
+    local mgr = aiCore.WeaponManager.new(2)
+    local seen
+    mgr.UpdateThumpers = function(_, dt) seen = dt end
+    mgr:Update()
+    check("bug 39: the first update has dt 0", seen == 0)
+    mgr.lastUpdate = 1.0
+    mgr:Update()
+    check("bug 39: dt is clamped to 5 s", seen == 5.0)
+end)
+
+-- Bug 40: failed native pushes were never retried; policies of dead handles lingered.
+H.try("bug 40", function()
+    local aiNative = require("aiNative")
+    local savedFloat, savedString = GetODFFloat, GetODFString
+    GetODFFloat = function(odf, _, key, default)
+        if key == "maxRange" and type(odf) == "table" and odf.odf == "cpgun2" then return 120.0 end
+        return default
+    end
+    GetODFString = function(odf, _, key, default)
+        if type(odf) == "table" and odf.odf == "avtank" and key == "aiName" then return "RocketTankFriend" end
+        return default
+    end
+    local u = H.addObject { team = 2, odf = "avtank", class = "wingman", craft = true, weapons = { [0] = "cpgun2" } }
+    aiNative.ClearUnit(u)
+    aiCore._nativeSyncChecked, aiCore._nextNativeTacticsSync = {}, 0
+    H.nativeAttempts, H.nativeFail = 0, true
+    H.now = H.now + 100
+    aiCore.SyncNativeTactics()
+    check("bug 40: the first sweep tries the push", H.nativeAttempts == 1)
+    H.now = H.now + 1.5
+    aiCore.SyncNativeTactics()
+    check("bug 40: a failed push is not retried every second", H.nativeAttempts == 1)
+    H.nativeFail = false
+    H.now = H.now + 11
+    aiCore.SyncNativeTactics()
+    check("bug 40: a failed push is retried after 10 s", H.nativeAttempts == 2 and aiNative.GetUnitPolicy(u) ~= nil)
+    H.objects = {}
+    GetODFFloat, GetODFString = savedFloat, savedString
+
+    local real = loadfile("Scripts/aiNative.lua")()
+    local dead = { valid = false }
+    real.policies[dead] = { engageRange = 1 }
+    real.PruneInvalid()
+    check("bug 40: aiNative.PruneInvalid drops invalid handles", real.policies[dead] == nil)
+end)
+
+-- Bug 41: a Lua error in the native target-score handler must not reach the engine.
+H.try("bug 41", function()
+    local t = newTeam(2, 2)
+    aiCore.ActiveTeams[2] = t
+    aiCore._nativeTargetScoringInstalled = false
+    aiCore.InstallNativeTargetScoring()
+    local unit = handle { team = 2, odf = "avtank", class = "wingman", craft = true, weapons = { [0] = "cpgun2" } }
+    local cand = handle { team = 1, odf = "svtank", class = "wingman", craft = true, pos = { x = 100, y = 0, z = 0 } }
+    local base = H.scoreHandler(unit, cand, 100.0, 0)
+    check("bug 41: the handler scores a normal candidate", type(base) == "number")
+    local savedTarget = GetTarget
+    GetTarget = function() error("boom") end
+    local okCall, result = pcall(H.scoreHandler, unit, cand, 100.0, 0)
+    GetTarget = savedTarget
+    check("bug 41: a Lua error returns nil (stock score) instead of propagating", okCall and result == nil)
+    t.squads = { { leader = unit, members = {}, currentTarget = cand } }
+    t.Config.nativeFocusFire = true
+    aiCore.LaneCache = {}
+    H.now = H.now + 10
+    local focused = H.scoreHandler(unit, cand, 100.0, 0)
+    t.squads[1].currentTarget = nil
+    local cached = H.scoreHandler(unit, cand, 100.0, 0)
+    H.now = H.now + 0.5
+    local fresh = H.scoreHandler(unit, cand, 100.0, 0)
+    check("bug 41: the squad target is cached for ~0.25 s, then refreshed", cached == focused and fresh > focused)
+    aiCore.ActiveTeams[2] = nil
+end)
+
+-- Bug 42: raiders left the pool even when the attack order failed, and never came back.
+H.try("bug 42", function()
+    local t = newTeam(2, 2)
+    local victim = handle { team = 1, odf = "avscav", class = "scavenger", craft = true }
+    t.scrapHotspots = { { denyTarget = victim } }
+    local r = handle { team = 2, odf = "svtank", class = "wingman", craft = true, command = AiCommand.NONE }
+    t.pool = { r }
+    H.now = H.now + 100
+    aiCore.CommandState[r] = { time = H.now, cmd = AiCommand.FOLLOW }   -- throttled: TryAttack fails
+    t.raiderTimer = 0
+    t:UpdateRaiders()
+    check("bug 42: a failed raid order leaves the unit in the pool", #t.pool == 1)
+    aiCore.CommandState[r] = nil
+    H.now = H.now + 20
+    t:UpdateRaiders()
+    check("bug 42: a dispatched raider leaves the pool", #t.pool == 0 and r.command == AiCommand.ATTACK)
+    victim.alive = false
+    H.now = H.now + 20
+    t:UpdateRaiders()
+    check("bug 42: the raider returns to the pool when its target is dead", #t.pool == 1)
+end)
+
+-- Bug 43: a player briefly in a wingman craft must not unregister it; players on foot are not soldiers.
+H.try("bug 43", function()
+    local t = newTeam(1, 1)
+    local w = handle { team = 1, odf = "avfigh", class = "wingman", craft = true }
+    t.wingmanMgr:AddObject(w)
+    H.playerHandle = w
+    t.wingmanMgr.updateTimer = 100
+    t.wingmanMgr:Update()
+    check("bug 43: a human hop-in only skips the tick", t.wingmanMgr.wingmen[w] ~= nil)
+    H.playerHandle = nil
+    w.team = 3
+    t.wingmanMgr.updateTimer = 100
+    t.wingmanMgr:Update()
+    check("bug 43: a foreign-team craft is removed", t.wingmanMgr.wingmen[w] == nil)
+
+    local onFoot = handle { team = 1, odf = "aspilo", class = "person", person = true }
+    H.playerHandle = onFoot
+    t:AddObject(onFoot)
+    H.playerHandle = nil
+    check("bug 43: a human on foot is not registered", not t.trackedSet[onFoot])
+end)
+
+-- Misc: APC sweep skip, PlayerRush cleanup, faction guard.
+H.try("bug 44", function()
+    local t = newTeam(2, 2)
+    H.allCraftCalls = 0
+    t.apcMgr.updateTimer = 100
+    t.apcMgr:Update(0)
+    check("bug 44: an APC manager without APCs skips the AllCraft sweep", H.allCraftCalls == 0)
+
+    local savedExu = exu.GetDifficulty
+    exu.GetDifficulty = function() return 3 end
+    local stale = handle { team = 2, odf = "svtank", craft = true }
+    aiCore.PlayerRushState = { nextCheck = 1e9, cleanupTime = 0, shooterCooldown = { [stale] = 1.0 } }
+    stale.valid = false
+    aiCore.UpdatePlayerRushAggression()
+    exu.GetDifficulty = savedExu
+    check("bug 44: shooter cooldown cleanup runs before the early returns",
+        aiCore.PlayerRushState.shooterCooldown[stale] == nil)
+
+    local noUnits = aiCore.Team:new(2, 9)
+    local person = handle { team = 2, odf = "sspilo", class = "person", person = true }
+    check("bug 44: a team with an unknown faction registers a person without error",
+        pcall(noUnits.AddObject, noUnits, person))
+end)
+
+-- Save/load keeps SetHumanTeam overrides; older saves without them still load.
+H.try("bug 45", function()
+    aiCore.SetHumanTeam(7, true)
+    local data = aiCore.Save()
+    aiCore.SetHumanTeam(7, nil)
+    check("bug 45: override cleared before load", aiCore.IsHumanTeam(7) == false)
+    aiCore.Load(data)
+    check("bug 45: human team overrides survive a save/load", aiCore.IsHumanTeam(7) == true)
+    local older = aiCore.Save()
+    older.humanTeamOverrides = nil
+    aiCore.Load(older)
+    check("bug 45: saves without overrides still load", aiCore.IsHumanTeam(7) == true)
+    aiCore.SetHumanTeam(7, nil)
+end)
+
+
 H.finish("aiCore fix")

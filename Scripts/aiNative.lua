@@ -100,6 +100,13 @@ function aiNative.ApplyUnitPolicy(h, policy)
     return applied
 end
 
+-- Drop mirrored policies of handles that no longer exist.
+function aiNative.PruneInvalid()
+    for h in pairs(aiNative.policies) do
+        if not IsValid(h) then aiNative.policies[h] = nil end
+    end
+end
+
 function aiNative.GetUnitPolicy(h)
     return aiNative.policies[h]
 end
