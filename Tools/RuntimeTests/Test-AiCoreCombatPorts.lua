@@ -303,9 +303,9 @@ H.try("range gating", function()
     tick()
     check("range gate: backs off during a retaliation hold", u.mask == 3)
     mgr.retaliationState[u] = nil
-    mgr.thumperUsers = { { handle = u } }
+    mgr.thumperUsers = { { handle = u, active = true } }
     tick()
-    check("range gate: backs off for a thumper/field/mortar/mine user", u.mask == 3)
+    check("range gate: backs off for an active thumper/field/mortar/mine user", u.mask == 3)
     mgr.thumperUsers = {}
     tick()
     check("range gate: gates once no other owner is active", u.mask == 2)
@@ -328,7 +328,7 @@ H.try("range gating", function()
     u, t = setup(mixed, 3, 300)
     tick()
     check("range gate: gated before an owner takes over", u.mask == 2)
-    mgr.thumperUsers = { { handle = u } }
+    mgr.thumperUsers = { { handle = u, active = true } }
     mgr:ReleaseOwnedRangeGates()
     check("range gate: owner takeover releases the gate (base mask back, state dropped)",
         u.mask == 3 and mgr.rangeGateState[u] == nil)
