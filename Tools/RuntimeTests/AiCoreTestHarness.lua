@@ -110,11 +110,12 @@ GetPositionNear = function(p) return p end
 SetVector = function(x, y, z) return { x = x or 0, y = y or 0, z = z or 0 } end
 SetCommand = function(h, command, priority, who, where, param, odf)
     h.command, h.target = command, who
-    table.insert(H.commands, { handle = h, command = command, target = who, position = where, odf = odf })
+    table.insert(H.commands, { handle = h, command = command, target = who, position = where, odf = odf,
+        priority = priority })
 end
-Attack = function(h, target)
+Attack = function(h, target, priority)
     h.command, h.target = AiCommand.ATTACK, target
-    table.insert(H.commands, { handle = h, command = AiCommand.ATTACK, target = target })
+    table.insert(H.commands, { handle = h, command = AiCommand.ATTACK, target = target, priority = priority })
 end
 Build = function(h, odf) table.insert(H.builds, { builder = h, odf = odf }) end
 BuildAt = function(h, odf, where) table.insert(H.buildAts, { builder = h, odf = odf, where = where }) end

@@ -13,6 +13,7 @@ local odfStrings = {
     avwalk = { aiName = "GechFriend", aiName2 = "GechEnemy" },
     avturr2 = { aiName = "TurretTankFriend", aiName2 = "TurretTankEnemy" },
     avbomb = { aiName = "BomberFriend", aiName2 = "BomberEnemy" },
+    avscout = { aiName = "ScoutFriend", aiName2 = "ScoutEnemy" },
 }
 local weaponRange = { cpgun = 100.0, cprkt = 400.0, cpgun2 = 120.0, cpmid = 150.0 }
 GetODFString = function(odf, _, key, default)
@@ -203,6 +204,15 @@ H.try("attack close", function()
     u, t = setup({ class = "apc" })
     tick()
     check("attack close: APCs are skipped", u.command == ATTACK)
+    u, t = setup({ odf = "avtank" })
+    tick()
+    check("attack close: RocketTank-AI gun tanks (kiting role) are skipped", u.command == ATTACK)
+    u, t = setup({ odf = "avscout" })
+    tick()
+    check("attack close: scouts (kiting role) are skipped", u.command == ATTACK)
+    u, t = setup({ odf = "avwalk" })
+    tick()
+    check("attack close: Gech-AI walkers are skipped by role", u.command == ATTACK)
     u, t = setup(nil, { pos = pos(0, 12, 200) })
     tick()
     check("attack close: targets beyond 125 m do not start it", u.command == ATTACK)
@@ -230,8 +240,25 @@ H.try("attack close", function()
     team.combatUnits = {}
     team.specialTrackedSet = { [u] = true }
     tick()
-    check("attack close: special (combat-only) objects are covered", u.command == FORMATION)
+    check("attack close: special (mission-scripted) objects are never touched", u.command == ATTACK)
     team.specialTrackedSet = {}
+
+    -- A wingman saving its command mid attack-close must save ATTACK, not the drive-in FORMATION.
+    u, t = setup()
+    tick()
+    check("attack close: started for the wingman save", u.command == FORMATION)
+    local entry = { unit = u }
+    aiCore.WingmanManager.SavePreviousCommand(nil, entry, nil, nil)
+    check("wingman: FORMATION on an enemy is saved as ATTACK",
+        entry.previousCommand == ATTACK and entry.previousTarget == t)
+    u.command = GO
+    H.now = H.now + 5.0
+    aiCore.WingmanManager.RestorePreviousCommand(nil, entry)
+    check("wingman: the restored command is ATTACK on the target", u.command == ATTACK and u.target == t)
+    local ally = craft { team = 2, odf = "svfigh", pos = pos(0, 0, 20) }
+    local entry2 = { unit = u }
+    aiCore.WingmanManager.SavePreviousCommand(nil, entry2, FORMATION, ally)
+    check("wingman: FORMATION on an allied target stays FORMATION", entry2.previousCommand == FORMATION)
     aiCore.ActiveTeams = {}
 end)
 
@@ -296,6 +323,44 @@ H.try("range gating", function()
     local masksBefore = #H.weaponMasks
     tick()
     check("range gate: an unchanged mask is not rewritten every tick", #H.weaponMasks == masksBefore)
+
+    -- An owner taking over a gated unit gets the real base mask back before it runs.
+    u, t = setup(mixed, 3, 300)
+    tick()
+    check("range gate: gated before an owner takes over", u.mask == 2)
+    mgr.thumperUsers = { { handle = u } }
+    mgr:ReleaseOwnedRangeGates()
+    check("range gate: owner takeover releases the gate (base mask back, state dropped)",
+        u.mask == 3 and mgr.rangeGateState[u] == nil)
+    mgr.thumperUsers = {}
+    tick()
+    mgr.retaliationState[u] = { at = H.now, prior = 3 }
+    tick()
+    check("range gate: a retaliation owner also releases a live gate", u.mask == 3 and mgr.rangeGateState[u] == nil)
+    mgr.retaliationState[u] = nil
+
+    -- A gated unit leaving the collected craft set is released.
+    u, t = setup(mixed, 3, 300)
+    tick()
+    check("range gate: gated before leaving the set", u.mask == 2)
+    team.combatUnits = {}
+    tick()
+    check("range gate: a unit no longer collected gets its mask back", u.mask == 3 and mgr.rangeGateState[u] == nil)
+
+    -- Hysteresis: an enabled slot stays on until the target is 10% past its range.
+    u, t = setup({ [0] = "cpgun", [1] = "cprkt", [2] = "cpmid" }, 7, 140)
+    tick()
+    check("range gate: hysteresis setup gates the short gun", u.mask == 6)
+    t.pos = pos(0, 0, 155)              -- cpmid range 150, but 150*1.1 = 165
+    local writes = #H.weaponMasks
+    tick()
+    check("range gate: a slot just past its range stays enabled (no flicker)", u.mask == 6 and #H.weaponMasks == writes)
+    t.pos = pos(0, 0, 170)
+    tick()
+    check("range gate: the slot drops once beyond range * 1.1", u.mask == 2)
+    t.pos = pos(0, 0, 108)              -- the gun was off: no hysteresis for a disabled slot
+    tick()
+    check("range gate: a disabled slot needs the strict range to come back", u.mask == 6)
 
     -- Retaliation switching while gated must remember the base mask, not the gated one.
     u, t = setup({ [0] = "cpgun", [1] = "cprkt", [2] = "gpopgun" }, 7, 300)
@@ -377,6 +442,48 @@ H.try("unstick", function()
     for _ = 1, 8 do tick() end
     check("unstick: idle units are skipped", #H.commands == 0)
 
+    -- Mission-scripted (special tracked) objects are never unstuck.
+    H.reset()
+    u = setup()
+    team.combatUnits, team.specialTrackedSet = {}, { [u] = true }
+    for _ = 1, 8 do tick() end
+    check("unstick: special tracked objects are excluded", #H.commands == 0 and u.pos.x == 0)
+    team.specialTrackedSet = {}
+
+    -- The re-issue keeps the priority the order was issued with.
+    H.reset()
+    local leader
+    u, leader = setup()
+    aiCore.CommandState = {}
+    aiCore.TrySetCommand(u, FOLLOW, 7, leader)
+    H.reset()
+    for _ = 1, 3 do tick() end
+    check("unstick: the re-issue keeps the recorded priority", count(FOLLOW) == 1 and H.commands[1].priority == 7)
+
+    -- Nudges keep the height above ground and are capped at 3 per goal.
+    local realTerrain = GetTerrainHeightAndNormal
+    GetTerrainHeightAndNormal = function(p) return (p.x or 0) * 0.1, { x = 0, y = 1, z = 0 } end
+    H.reset()
+    u, leader = setup()
+    u.pos = pos(0, 5, 0)
+    for _ = 1, 9 do tick() end
+    check("unstick: a nudge preserves height above the terrain", math.abs(u.pos.y - (5 - 0.15)) < 1e-6)
+    GetTerrainHeightAndNormal = realTerrain
+
+    H.reset()
+    u, leader = setup()
+    for _ = 1, 150 do tick() end
+    check("unstick: three nudges, then it gives up on that goal", aiCore.UnstickState[u].nudges == 3
+        and math.abs(u.pos.x - (-4.5)) < 1e-6)
+    local cmdsAtCap = #H.commands
+    for _ = 1, 60 do tick() end
+    check("unstick: no more commands or nudges after the cap", #H.commands == cmdsAtCap
+        and math.abs(u.pos.x - (-4.5)) < 1e-6)
+    local leader2 = craft { team = 2, odf = "svfigh", pos = pos(0, 0, 300) }
+    u.target = leader2
+    for _ = 1, 9 do tick() end
+    check("unstick: a new target resets the nudge budget", aiCore.UnstickState[u].nudges == 1)
+
     -- GO to a remembered position (no target handle) uses the position aiCore recorded.
     u = setup()
     u.target = nil
@@ -440,6 +547,48 @@ H.try("profiles", function()
     check("profiles: turret tanks are not matched by the tank profile", turret == nil)
     local scout = aiCore.DefaultNativeConfig.nativeUnitProfiles
     check("profiles: scout and bomber profiles are untouched", scout.scout.kiteStrafe == 0.55 and scout.bomber.engageRange == 300.0)
+end)
+
+-- 6. Save/load -----------------------------------------------------------------------------
+H.try("load", function()
+    H.objects, H.playerHandle = {}, nil
+    aiCore.CommandState, aiCore.UnstickState = {}, {}
+    local team, custom = newTeam(2), newTeam(3)
+    local defaults = aiCore.DefaultNativeConfig.nativeUnitProfiles
+    team.Config.nativeUnitProfiles.rockettank, team.Config.nativeUnitProfiles.walker = nil, nil
+    team.Config.nativeUnitProfiles.scout.kiteStrafe = 0.9
+    custom.Config.nativeUnitProfiles.rockettank = { standoff = true }
+    aiCore.Load({ teams = { [2] = team, [3] = custom } })
+    local p = team.Config.nativeUnitProfiles
+    check("load: missing rockettank/walker profiles are filled from the defaults",
+        p.rockettank and p.rockettank.kiteStrafe == 0.40 and p.walker and p.walker.retargetPeriod == 2.0)
+    check("load: backfilled profiles are copies, not the shared default tables",
+        p.rockettank ~= defaults.rockettank and p.walker ~= defaults.walker)
+    check("load: existing profiles are not overwritten",
+        p.scout.kiteStrafe == 0.9 and custom.Config.nativeUnitProfiles.rockettank.standoff == true
+        and custom.Config.nativeUnitProfiles.rockettank.kiteStrafe == nil)
+
+    -- Absolute-time combat state resets after a load.
+    H.now = 50.0
+    local u = craft { team = 2, odf = "svfigh", pos = pos(0, 0, 0) }
+    local t = craft { team = 1, odf = "avfigh", pos = pos(0, 12, 80) }
+    u.command, u.target = FORMATION, t
+    local gated = craft { team = 2, odf = "svfigh", weapons = { [0] = "cpgun", [1] = "cprkt" }, mask = 2 }
+    team.attackCloseState = { [u] = { target = t, started = 9999.0 } }
+    team.attackCloseAt, team.unstickAt = 9999.0, 9999.0
+    team.weaponMgr.rangeGateAt = 9999.0
+    team.weaponMgr.rangeGateState = { [gated] = { base = 3, applied = 2 } }
+    aiCore.UnstickState = { [u] = { stuck = 2.0, lastAt = 9999.0 } }
+    aiCore.LaneCache = { [2] = { at = 9999.0, list = {} } }
+    aiCore.FinishPostLoad()
+    check("load: an active attack-close unit goes back to ATTACK on its target", u.command == ATTACK and u.target == t)
+    check("load: attack-close state is cleared", next(team.attackCloseState) == nil)
+    check("load: throttle timestamps are reset",
+        team.attackCloseAt == 0.0 and team.unstickAt == 0.0 and team.weaponMgr.rangeGateAt == 0.0)
+    check("load: range-gate state is released (base mask back)", gated.mask == 3
+        and next(team.weaponMgr.rangeGateState) == nil)
+    check("load: unstick and lane caches are cleared", next(aiCore.UnstickState) == nil and aiCore.LaneCache[2] == nil)
+    aiCore.ActiveTeams = {}
 end)
 
 H.finish("aiCore combat-port")
