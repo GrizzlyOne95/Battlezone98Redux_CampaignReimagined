@@ -1854,7 +1854,14 @@ function aiCore.SyncNativeTactics()
     for h in pairs(checked) do
         if not IsValid(h) then checked[h] = nil end
     end
-    if aiNative.PruneInvalid then aiNative.PruneInvalid() end
+    local fails = aiCore._nativeSyncFails
+    if not fails then
+        fails = {}
+        aiCore._nativeSyncFails = fails
+    end
+    for h in pairs(fails) do
+        if not IsValid(h) then fails[h] = nil end
+    end
 
     for h in AllCraft() do
         local existing = aiNative.GetUnitPolicy(h)
@@ -1868,7 +1875,14 @@ function aiCore.SyncNativeTactics()
         end
         if healthBandChanged or (not existing and (not checked[h] or now >= checked[h])) then
             local result = aiCore.ApplyNativeTactics(h, aiCore.ActiveTeams[GetTeamNum(h)])
-            checked[h] = (result == false) and (now + 10.0) or math.huge
+            -- A failed push retries every 10 s, at most 3 times per unit.
+            if result == false then
+                fails[h] = (fails[h] or 0) + 1
+                checked[h] = (fails[h] < 3) and (now + 10.0) or math.huge
+            else
+                fails[h] = nil
+                checked[h] = math.huge
+            end
         end
     end
 end
@@ -8979,6 +8993,10 @@ function aiCore.Team:UpdateRaiders()
     end
 end
 
+local RetreatRestorableCommands = {
+    [AiCommand.ATTACK] = true, [AiCommand.FOLLOW] = true, [AiCommand.DEFEND] = true,
+}
+
 function aiCore.Team:UpdateRetreat()
     -- Check combat units for low health
     if not self.retreatTimer then self.retreatTimer = 0 end
@@ -9010,10 +9028,12 @@ function aiCore.Team:UpdateRetreat()
                 local health = GetHealth(u)
                 local cmd = GetCurrentCommand(u)
                 local entry = state[u]
-                -- Resume the interrupted order once repaired (or the trip ended).
-                if entry and wm and wm:ShouldRestoreCommand(u, cmd, health, 1.0, entry) then
+                -- Resume the interrupted order once repaired (or the trip ended). Never while
+                -- still critical: the retreat check below would re-send it and lose the order.
+                if entry and wm and health >= 0.25 and wm:ShouldRestoreCommand(u, cmd, health, 1.0, entry) then
                     wm:RestorePreviousCommand(entry)
                     state[u] = nil
+                    cmd = GetCurrentCommand(u)
                 elseif entry and cmd ~= AiCommand.GET_REPAIR and cmd ~= AiCommand.NONE then
                     state[u] = nil -- something else took over; never fight it
                 end
@@ -9027,7 +9047,8 @@ function aiCore.Team:UpdateRetreat()
                     local prevCmd, prevTarget = cmd, GetCurrentWho(u)
                     if depot and aiCore.TrySetCommand(u, AiCommand.GET_REPAIR, 1, depot, nil, nil, nil,
                             { minInterval = 0.7, overrideProtected = true }) then
-                        if wm and prevCmd ~= AiCommand.NONE then
+                        -- Only target-based orders survive a save/restore (GO/PATROL lose their path).
+                        if wm and RetreatRestorableCommands[prevCmd] and IsValid(prevTarget) then
                             local e = { unit = u }
                             wm:SavePreviousCommand(e, prevCmd, prevTarget)
                             state[u] = e
