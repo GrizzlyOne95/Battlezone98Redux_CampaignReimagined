@@ -991,18 +991,6 @@ local function ApplyDifficultyObjectives()
 end
 
 local function ApplyQOL()
-    if exu then
-        if exu.SetReticleRange then
-            exu.SetReticleRange(600)
-        end
-        if exu.SetOrdnanceVelocInheritance then
-            exu.SetOrdnanceVelocInheritance(true)
-        end
-        if exu.SetGlobalTurbo then
-            exu.SetGlobalTurbo(true)
-        end
-    end
-
     if PersistentConfig and PersistentConfig.Initialize and not M.persistentConfigInitialized then
         M.persistentConfigInitialized = true
         PersistentConfig.Initialize()

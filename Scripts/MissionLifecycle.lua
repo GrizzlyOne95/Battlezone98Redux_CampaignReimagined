@@ -19,30 +19,6 @@ end
 
 function MissionLifecycle:ApplyQOL()
     local cfg = self.cfg
-    local exu = cfg.exu
-
-    -- EXU-only quality-of-life patches are optional.  Do not let a missing
-    -- native EXU module suppress unrelated Lua initialization below.
-    local exuQol = exu
-    if cfg.requireExuForQOL ~= false and exu and exu.isStub then
-        exuQol = nil
-    end
-
-    if exuQol then
-        if cfg.shotConvergence ~= false and exuQol.SetShotConvergence then
-            exuQol.SetShotConvergence(true)
-        end
-        if cfg.reticleRange and exuQol.SetReticleRange then
-            exuQol.SetReticleRange(cfg.reticleRange)
-        end
-        if cfg.ordnanceVelocityInheritance and exuQol.SetOrdnanceVelocInheritance then
-            exuQol.SetOrdnanceVelocInheritance(true)
-        end
-        if cfg.globalTurbo ~= nil and exuQol.SetGlobalTurbo then
-            exuQol.SetGlobalTurbo(cfg.globalTurbo)
-        end
-    end
-
     Call(cfg.PersistentConfig, "Initialize")
     Call(cfg.Environment, "Init")
 

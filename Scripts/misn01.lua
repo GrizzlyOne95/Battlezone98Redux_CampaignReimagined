@@ -70,12 +70,6 @@ function Start()
     -- Setup teams
     DiffUtils.SetupTeams(1, 2, 0) 
     
-    -- QOL Improvements
-    if exu then
-        if exu.SetShotConvergence then exu.SetShotConvergence(true) end
-        if exu.SetReticleRange then exu.SetReticleRange(500) end
-    end
-    
     -- Dynamic Difficulty
     local diff_idx = DiffUtils.Get().index -- 0 to 4
     -- Forgiveness: E(60), N(50), H(40), VH(30)
