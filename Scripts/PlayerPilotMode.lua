@@ -112,7 +112,6 @@ local function GetProfile()
         autoRescue = true,
         autoTugs = false,
         stickToPlayer = true,
-        scavengerAssist = true,
         manageFactories = true,
         autoBuild = true,
         dynamicMinefields = false,
@@ -191,7 +190,6 @@ local function ApplyTeamConfig(team, enabled)
 
     local profile = GetProfile()
     team:SetConfig("autoRepairWingmen", GetPersistentSetting("AutoRepairWingmen", team.Config.autoRepairWingmen))
-    team:SetConfig("scavengerAssist", GetPersistentSetting("ScavengerAssistEnabled", team.Config.scavengerAssist))
 
     if enabled then
         for key, value in pairs(profile) do

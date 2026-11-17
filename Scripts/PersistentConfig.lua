@@ -81,7 +81,6 @@ PersistentConfig.DefaultSettings = {
     SurfaceEffects = true,          -- Local reactive surface materials (damage, heat, wetness, tower power)
     AutoRepairWingmen = true,       -- Auto-repair wingmen on by default
     RainbowMode = false,            -- Special color effect
-    ScavengerAssistEnabled = false, -- Auto-scavenge for player scavengers
     AutoRepairBuildings = false,    -- Toggle to auto-repair buildings near power
     LightingMode = 1,               -- 1=Default 2=Enhanced 3=Retro
     RetroLighting = false,          -- Legacy compatibility mirror for LightingMode=Retro
@@ -5045,9 +5044,6 @@ function PersistentConfig._SettingsActions.CommitPdaSettingChange(options)
     if options and options.syncAutoRepairWingmen and aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
         aiCore.ActiveTeams[1]:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
     end
-    if options and options.syncScavengerAssist and aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
-        aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", PersistentConfig.Settings.ScavengerAssistEnabled)
-    end
 
     if options and options.rebuildOverlay then
         RebuildPdaOverlay()
@@ -5253,18 +5249,6 @@ function PersistentConfig._SettingsActions.SetAutoRepairWingmenEnabled(enabled)
     PersistentConfig.Settings.AutoRepairWingmen = value
     PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncAutoRepairWingmen = true })
     ShowSettingsFeedback("Wingman Auto-Repair: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
-    return true
-end
-
-function PersistentConfig._SettingsActions.SetScavengerAssistEnabled(enabled)
-    local value = not not enabled
-    if PersistentConfig.Settings.ScavengerAssistEnabled == value then
-        return false
-    end
-
-    PersistentConfig.Settings.ScavengerAssistEnabled = value
-    PersistentConfig._SettingsActions.CommitPdaSettingChange({ syncScavengerAssist = true })
-    ShowSettingsFeedback("Scavenger Assist: " .. (value and "ON" or "OFF"), 0.8, 1.0, 0.8)
     return true
 end
 
@@ -5476,13 +5460,6 @@ GetSettingsPageEntries = function()
             end,
         },
         {
-            label = "Scavenger Assist",
-            value = PersistentConfig.Settings.ScavengerAssistEnabled and "On" or "Off",
-            adjust = function(delta)
-                return PersistentConfig._SettingsActions.SetScavengerAssistEnabled(DirectionEnabled(delta))
-            end,
-        },
-        {
             label = "Pilot Mode",
             value = PersistentConfig._IsPilotModeLocked() and "Off (multiplayer)"
                 or (not PersistentConfig._IsPilotModeAvailable() and "N/A (mission)")
@@ -5642,10 +5619,10 @@ function PersistentConfig.LoadConfig()
                     PersistentConfig.Settings.AutoRepairWingmen = (val == "true")
                 elseif key == "RainbowMode" then
                     PersistentConfig.Settings.RainbowMode = (val == "true")
-                elseif key == "ScavengerAssistEnabled" then
-                    PersistentConfig.Settings.ScavengerAssistEnabled = (val == "true")
-                elseif key == "AutoSaveSlot" or key == "AutoSaveEnabled" or key == "AutoSaveInterval" then
-                    -- Legacy autosave keys (OpenShim owns autosave now). Ignore them.
+                elseif key == "AutoSaveSlot" or key == "AutoSaveEnabled" or key == "AutoSaveInterval"
+                    or key == "ScavengerAssistEnabled" then
+                    -- Legacy keys: autosave (OpenShim owns it now) and the removed
+                    -- Scavenger Assist option. Ignore them.
                 elseif key == "AutoRepairBuildings" then
                     PersistentConfig.Settings.AutoRepairBuildings = (val == "true")
                 elseif key == "LightingMode" then
@@ -5830,7 +5807,6 @@ function PersistentConfig.SaveConfig()
         f:Writeln("SurfaceEffects=" .. tostring(PersistentConfig.Settings.SurfaceEffects))
         f:Writeln("AutoRepairWingmen=" .. tostring(PersistentConfig.Settings.AutoRepairWingmen))
         f:Writeln("RainbowMode=" .. tostring(PersistentConfig.Settings.RainbowMode))
-        f:Writeln("ScavengerAssistEnabled=" .. tostring(PersistentConfig.Settings.ScavengerAssistEnabled))
         f:Writeln("AutoRepairBuildings=" .. tostring(PersistentConfig.Settings.AutoRepairBuildings))
         f:Writeln("LightingMode=" .. tostring(PersistentConfig.Settings.LightingMode))
         f:Writeln("RetroLighting=" .. tostring(PersistentConfig.Settings.RetroLighting))

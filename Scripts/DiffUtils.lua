@@ -89,7 +89,6 @@ function DiffUtils.Get()
         paratrooperInterval = ({ 0, 0, 600, 400, 300 })[d + 1] or 600,
 
         -- Player QOL (Low Difficulty)
-        scavengerAssist = (d <= 1),
         stickToPlayer = (d <= 1),
         autoRescue = (d == 0),
         passiveRegen = (d <= 1),
@@ -170,7 +169,6 @@ function DiffUtils.ApplyAiCoreDifficulty(team, role, teamNum)
 
     if resolvedRole == "player" then
         SetTeamConfig(team, "pilotZeal", 1.0)
-        SetTeamConfig(team, "scavengerAssist", m.scavengerAssist)
         SetTeamConfig(team, "stickToPlayer", m.stickToPlayer)
         SetTeamConfig(team, "autoRescue", m.autoRescue)
         SetTeamConfig(team, "passiveRegen", m.passiveRegen)
