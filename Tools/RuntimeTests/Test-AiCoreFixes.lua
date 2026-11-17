@@ -828,4 +828,265 @@ H.try("bug 45", function()
 end)
 
 
+-- Bugs 46-51: special-weapon switching (thumper/field/mine/retaliation) is context driven.
+-- Weapon ranges the mock engine reports for the names below (fresh names: ranges are cached).
+local specialRange = { gquake2 = 100.0, gpopgun2 = 150.0, gmortar2 = 400.0, gthrower2 = 60.0,
+    cpgun2 = 100.0, cprkt2 = 400.0 }
+local priorGetODFFloat = GetODFFloat
+GetODFFloat = function(odf, section, key, default)
+    if key == "maxRange" and type(odf) == "table" and specialRange[odf.odf] then return specialRange[odf.odf] end
+    return priorGetODFFloat(odf, section, key, default)
+end
+
+local function maskWrites(u)
+    local n = 0
+    for _, w in ipairs(H.weaponMasks) do if w.handle == u then n = n + 1 end end
+    return n
+end
+local function selections(u, mask)
+    local n = 0
+    for _, w in ipairs(H.weaponMasks) do if w.handle == u and w.mask == mask then n = n + 1 end end
+    return n
+end
+
+-- Bug 46: an idle thumper user reset its mask every frame, wiping the double-weapon pick.
+H.try("bug 46", function()
+    local t = newTeam(2, 2)
+    local mgr = t.weaponMgr
+    H.now, H.nearestEnemy = 500.0, nil
+    local u = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [1] = "gchain", [2] = "gcannon", [3] = "gquake2" }, mask = 7 }
+    mgr.thumperUsers = { { handle = u, mask = 8 } }
+    H.weaponMasks = {}
+    for _ = 1, 150 do
+        H.now = H.now + 0.1
+        mgr:UpdateThumpers(0.1)
+    end
+    check("bug 46: an idle thumper user never writes the mask", maskWrites(u) == 0)
+    check("bug 46: the double-weapon mask survives", u.mask == 7)
+    check("bug 46: an idle thumper user is not a mask owner", next(mgr.thumperUsers[1]) ~= nil
+        and not mgr.thumperUsers[1].active)
+end)
+
+-- Bug 47: the thumper fires at a walker in reach, ignores one out of reach, and switches off
+-- after the walker is gone for 3 s.
+H.try("bug 47", function()
+
+    local t = newTeam(2, 2)
+    local mgr = t.weaponMgr
+    H.now = 600.0
+    local walker = handle { team = 1, odf = "avwalk", class = "walker", craft = true, pos = { x = 0, y = 0, z = 500 } }
+    local u = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [1] = "gchain", [3] = "gquake2" }, mask = 3 }
+    local user = { handle = u, mask = 8 }
+    mgr.thumperUsers = { user }
+    H.nearestEnemy = walker
+    H.weaponMasks = {}
+    u.target = walker                       -- targeted walker at 500 m: out of the 100 m reach
+    for _ = 1, 20 do H.now = H.now + 0.1; mgr:UpdateThumpers(0.1) end
+    check("bug 47: a walker at 500 m draws no thumper", not user.active and maskWrites(u) == 0 and u.mask == 3)
+
+    walker.pos = { x = 0, y = 0, z = 80 }
+    H.now = H.now + 0.1
+    mgr:UpdateThumpers(0.1)
+    check("bug 47: a walker in reach switches the thumper on", user.active and u.mask == 8 and maskWrites(u) == 1)
+    H.now = H.now + 0.1
+    mgr:UpdateThumpers(0.1)
+    check("bug 47: it stays on without rewriting the mask", user.active and maskWrites(u) == 1)
+
+    walker.pos = { x = 0, y = 0, z = 500 }
+    H.now = H.now + 2.0
+    mgr:UpdateThumpers(0.1)
+    check("bug 47: it stays on for the 3 s hold", user.active)
+    H.now = H.now + 1.5
+    mgr:UpdateThumpers(0.1)
+    check("bug 47: it switches off once, restoring the mask", not user.active and u.mask == 3 and maskWrites(u) == 2)
+    for _ = 1, 20 do H.now = H.now + 0.1; mgr:UpdateThumpers(0.1) end
+    check("bug 47: no further mask writes while idle", maskWrites(u) == 2)
+
+    -- Unknown weapon range falls back to the 60 m constant; a human-piloted craft is never touched.
+    local u2 = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [3] = "gthumper9" }, mask = 1 }
+    local user2 = { handle = u2, mask = 8 }
+    mgr.thumperUsers = { user2 }
+    walker.pos = { x = 0, y = 0, z = 80 }
+    H.weaponMasks = {}
+    mgr:UpdateThumpers(0.1)
+    check("bug 47: unknown range uses the 60 m fallback", not user2.active)
+    walker.pos = { x = 0, y = 0, z = 50 }
+    mgr:UpdateThumpers(0.1)
+    check("bug 47: a walker inside the fallback reach is thumped", user2.active)
+    H.playerHandle = u2
+    mgr:UpdateThumpers(0.1)
+    H.playerHandle = nil
+    check("bug 47: a human-piloted craft is released without touching its mask", not user2.active and u2.mask == 8)
+    H.nearestEnemy = nil
+end)
+
+-- Bug 48: the random thumper trigger rolled every frame; it rolls once per period.
+H.try("bug 48", function()
+    local t = newTeam(2, 2)
+    local mgr = t.weaponMgr
+    H.now = 700.0
+    local tank = handle { team = 1, odf = "avtank", class = "wingman", craft = true, pos = { x = 0, y = 0, z = 30 } }
+    local u = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [1] = "gchain", [3] = "gquake2" }, mask = 3 }
+    local user = { handle = u, mask = 8 }
+    mgr.thumperUsers = { user }
+    H.nearestEnemy = tank
+    local rolls, roll = 0, 99
+    local realRandom = math.random
+    math.random = function() rolls = rolls + 1; return roll end
+    for _ = 1, 100 do H.now = H.now + 0.1; mgr:UpdateThumpers(0.1) end
+    check("bug 48: one failed roll in 10 s, no thump", rolls == 1 and not user.active and u.mask == 3)
+    H.now = H.now + 6.0
+    roll = 1
+    mgr:UpdateThumpers(0.1)
+    check("bug 48: the next period rolls again and a success switches the thumper on", rolls == 2 and user.active)
+    H.now = H.now + 0.6
+    mgr:UpdateThumpers(0.1)
+    check("bug 48: the burst ends after thumperDuration", not user.active and u.mask == 3 and rolls == 2)
+    math.random = realRandom
+    H.nearestEnemy = nil
+end)
+
+-- Bug 49: an inactive thumper user is range gated; an active one is left alone.
+H.try("bug 49", function()
+    local t = newTeam(2, 2)
+    local mgr = t.weaponMgr
+    H.now = 800.0
+    local foe = handle { team = 1, odf = "avfigh", class = "wingman", craft = true, pos = { x = 0, y = 0, z = 300 } }
+    local u = handle { team = 2, odf = "svfigh", class = "wingman", craft = true,
+        weapons = { [0] = "cpgun2", [1] = "cprkt2", [3] = "gthumper9" }, mask = 11,
+        command = AiCommand.ATTACK, target = foe }
+    t.combatUnits = { u }
+    local user = { handle = u, mask = 8 }
+    mgr.thumperUsers, mgr.retaliationState, mgr.rangeGateState = { user }, {}, {}
+    mgr.rangeGateAt = 0.0
+    mgr:UpdateRangeGating()
+    check("bug 49: an inactive thumper user is range gated", u.mask == 10)
+    u.mask, mgr.rangeGateState, mgr.rangeGateAt, user.active = 11, {}, 0.0, true
+    mgr:UpdateRangeGating()
+    check("bug 49: an active thumper user keeps its mask", u.mask == 11)
+end)
+
+-- Bug 50: person retaliation respects weapon range, the mortar minimum and aiming.
+H.try("bug 50", function()
+    local t = newTeam(2, 2)
+    local mgr = t.weaponMgr
+    H.now = 900.0
+    local function shotBy(u, sniper)
+        u.shotBy, u.lastShot = sniper, H.now
+        mgr.retaliationUpdateAt = 0
+        mgr:UpdateRetaliation(0.1)
+    end
+    local function sniperAt(z)
+        return handle { team = 1, odf = "aspilo", class = "person", person = true, pos = { x = 0, y = 0, z = z } }
+    end
+    local function unit(weapons, mask)
+        local u = handle { team = 2, odf = "svfigh", class = "wingman", craft = true, weapons = weapons, mask = mask }
+        t.combatUnits = { u }
+        mgr.retaliationState = {}
+        return u
+    end
+
+    H.weaponMasks = {}
+    local u = unit({ [0] = "gchain", [1] = "gpopgun2", [2] = "gproxmin2" }, 1)
+    shotBy(u, sniperAt(250))
+    check("bug 50: a sniper at 250 m draws neither popgun nor mine", u.mask == 1 and maskWrites(u) == 0
+        and mgr.retaliationState[u] == nil)
+
+    -- Popgun in range: selected once and held, not rewritten every tick.
+    u = unit({ [0] = "gchain", [1] = "gpopgun2" }, 1)
+    local s = sniperAt(100)
+    H.weaponMasks = {}
+    shotBy(u, s)
+    check("bug 50: the popgun is selected at 100 m", u.mask == 2)
+    H.now = H.now + 0.25
+    shotBy(u, s)
+    check("bug 50: the selection is not rewritten every tick", maskWrites(u) == 1)
+
+    -- Person at 15 m: the mortar's minimum range rules it out, the mine is considered.
+    u = unit({ [0] = "gchain", [1] = "gmortar2", [2] = "gproxmin2" }, 1)
+    H.weaponMasks = {}
+    s = sniperAt(15)
+    shotBy(u, s)
+    check("bug 50: at 15 m the mortar is skipped and the mine is selected", u.mask == 4)
+    H.now = H.now + 0.25
+    shotBy(u, s)
+    check("bug 50: the mine mask is a short burst, then the prior mask returns", u.mask == 1)
+    for _ = 1, 7 do H.now = H.now + 0.25; shotBy(u, s) end
+    check("bug 50: no second mine within 3 s", selections(u, 4) == 1 and u.mask == 1)
+    H.now = H.now + 1.5
+    shotBy(u, s)
+    check("bug 50: a second mine after 3 s", selections(u, 4) == 2)
+
+    -- Same mortar at 100 m is fine.
+    u = unit({ [0] = "gchain", [1] = "gmortar2" }, 1)
+    shotBy(u, sniperAt(100))
+    check("bug 50: the mortar is used outside its minimum range", u.mask == 2)
+
+    -- Walker: the thumper needs the walker inside its reach.
+    u = unit({ [0] = "gchain", [1] = "gquake2" }, 1)
+    local walker = handle { team = 1, odf = "avwalk", class = "walker", craft = true, pos = { x = 0, y = 0, z = 500 } }
+    shotBy(u, walker)
+    check("bug 50: a far walker draws no retaliation thumper", u.mask == 1)
+    walker.pos = { x = 0, y = 0, z = 50 }
+    shotBy(u, walker)
+    check("bug 50: a walker in reach does", u.mask == 2)
+end)
+
+-- Bug 51: field/mine users roll once per period, mines need an enemy close by, and absolute
+-- timestamps are cleared when a game is loaded.
+H.try("bug 51", function()
+    local t = newTeam(2, 2)
+    local mgr = t.weaponMgr
+    H.now = 1000.0
+    local foe = handle { team = 1, odf = "avtank", class = "wingman", craft = true, pos = { x = 0, y = 0, z = 100 } }
+    local u = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [3] = "gproxmin2" }, mask = 1 }
+    mgr.mineUsers = { { handle = u, mask = 8 } }
+    H.nearestEnemy = foe
+    local rolls = 0
+    local realRandom = math.random
+    math.random = function() rolls = rolls + 1; return 1 end
+    H.weaponMasks = {}
+    for _ = 1, 50 do H.now = H.now + 0.1; mgr:UpdateMines(0.1) end
+    check("bug 51: no mine with the enemy 100 m away", rolls == 0 and maskWrites(u) == 0)
+    foe.pos = { x = 0, y = 0, z = 30 }
+    for _ = 1, 50 do H.now = H.now + 0.1; mgr:UpdateMines(0.1) end
+    check("bug 51: one roll and one mine burst in 5 s with the enemy near",
+        rolls == 1 and selections(u, 8) == 1 and maskWrites(u) == 2 and u.mask == 1)
+    math.random = realRandom
+
+    local f = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [3] = "gphantom" }, mask = 1 }
+    local fuser = { handle = f, mask = 8 }
+    mgr.fieldUsers = { fuser }
+    math.random = function() rolls = rolls + 1; return 1 end
+    rolls = 0
+    for _ = 1, 150 do H.now = H.now + 0.1; mgr:UpdateFields(0.1) end   -- 15 s
+    check("bug 51: a field rolls once per 40 s period", rolls == 1)
+    math.random = realRandom
+    check("bug 51: the field burst is over: one switch on, one reset", not fuser.active and f.mask == 1
+        and maskWrites(f) == 2)
+
+    -- Load: stale timestamps and active flags are dropped.
+    local th = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [1] = "gchain", [3] = "gquake2" }, mask = 8 }
+    local tuser = { handle = th, mask = 8, active = true, holdUntil = 99999.0, nextRollAt = 99999.0 }
+    mgr.thumperUsers = { tuser }
+    fuser.nextRollAt, fuser.holdUntil = 99999.0, 99999.0
+    mgr.retaliationUpdateAt = 99999.0
+    local prevTeams = aiCore.ActiveTeams
+    aiCore.ActiveTeams = { [2] = t }
+    aiCore.ResetCombatStateAfterLoad()
+    aiCore.ActiveTeams = prevTeams
+    check("bug 51: a load clears thumper state and restores the mask",
+        not tuser.active and tuser.holdUntil == nil and tuser.nextRollAt == nil and th.mask == 3)
+    check("bug 51: a load clears field and retaliation timestamps", fuser.nextRollAt == nil
+        and fuser.holdUntil == nil and mgr.retaliationUpdateAt == 0.0)
+    H.nearestEnemy = nil
+end)
+
 H.finish("aiCore fix")

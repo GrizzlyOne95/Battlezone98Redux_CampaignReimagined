@@ -3576,6 +3576,21 @@ function aiCore.ResetCombatStateAfterLoad()
                 end
             end
             wm.rangeGateState = {}
+            -- Absolute timestamps on the special-weapon users and retaliation do not survive a load.
+            wm.retaliationUpdateAt = 0.0
+            for u, st in pairs(wm.retaliationState or aiCore.EmptyList) do
+                if IsValid(u) and st.prior and st.prior > 0 then SetWeaponMask(u, st.prior) end
+            end
+            wm.retaliationState = {}
+            for _, key in ipairs({ "thumperUsers", "fieldUsers", "mineUsers" }) do
+                for _, user in ipairs(wm[key] or aiCore.EmptyList) do
+                    if user.active and IsValid(user.handle)
+                        and GetCurrentWeaponMaskValue(user.handle) == user.mask then
+                        team:ResetWeaponMask(user.handle)
+                    end
+                    user.active, user.holdUntil, user.nextRollAt = false, nil, nil
+                end
+            end
         end
     end
 end
@@ -3996,7 +4011,7 @@ function aiCore.WeaponManager:AddObject(h)
     -- Check for thumper weapons
     local thumperMask = aiCore.GetWeaponMask(h, self.thumperWeapons)
     if thumperMask > 0 then
-        table.insert(self.thumperUsers, { handle = h, mask = thumperMask, timer = 0.0 })
+        table.insert(self.thumperUsers, { handle = h, mask = thumperMask })
         if aiCore.Debug then print("Team " .. self.teamNum .. " added thumper user: " .. GetOdf(h)) end
     end
 
@@ -4004,7 +4019,7 @@ function aiCore.WeaponManager:AddObject(h)
     for _, weapon in ipairs(self.fieldWeapons) do
         local mask = aiCore.GetWeaponMask(h, weapon)
         if mask > 0 then
-            table.insert(self.fieldUsers, { handle = h, mask = mask, timer = 0.0 })
+            table.insert(self.fieldUsers, { handle = h, mask = mask })
             if aiCore.Debug then print("Team " .. self.teamNum .. " added field user: " .. GetOdf(h)) end
             break
         end
@@ -4024,7 +4039,7 @@ function aiCore.WeaponManager:AddObject(h)
     for _, weapon in ipairs(self.mineWeapons) do
         local mask = aiCore.GetWeaponMask(h, weapon)
         if mask > 0 then
-            table.insert(self.mineUsers, { handle = h, mask = mask, timer = 0.0 })
+            table.insert(self.mineUsers, { handle = h, mask = mask })
             if aiCore.Debug then print("Team " .. self.teamNum .. " added mine user: " .. GetOdf(h)) end
             break
         end
@@ -4132,8 +4147,36 @@ function aiCore.WeaponManager:Update()
     aiCore.SafeStep("RangeGating", self.UpdateRangeGating, self)
 end
 
+local function IsWalkerHandle(h)
+    return string.find(string.lower(utility.CleanString(GetClassLabel(h))), utility.ClassLabel.WALKER) ~= nil
+end
+
+-- Weapon ODF name in the slot a single-bit mask selects ("" if none).
+local function WeaponNameForMask(h, mask)
+    for slot = 0, 4 do
+        if 2 ^ slot == mask then return utility.CleanString(GetWeaponClass(h, slot)) end
+    end
+    return ""
+end
+
+-- A seismic weapon's reach: its ODF range when known. The thumper ordnance ODFs are not in this
+-- repo (stock Redux data), so fall back to a constant when the range cannot be read.
+aiCore.WeaponManager.kThumperReach = 60.0
+aiCore.WeaponManager.kThumperHold = 3.0   -- stays on this long after the last walker in reach
+aiCore.WeaponManager.kMineReach = 40.0    -- laying mines is only worth it with an enemy this close
+aiCore.WeaponManager.kMineLayGap = 3.0    -- retaliation lays at most one mine per unit per this long
+
+function aiCore.WeaponManager:GetThumperReach(h, mask)
+    local range = GetWeaponRangeMeters(WeaponNameForMask(h, mask))
+    if range and range > 0 then return range end
+    return self.kThumperReach
+end
+
 -- How long after the last hit from an attacker the retaliation weapon stays selected.
 local kRetaliationHold = 5.5
+
+-- Closest range at which an arcing mortar shot is worth taking.
+local kMortarMinRange = 20.0
 
 function aiCore.WeaponManager:UpdateRetaliation(dt)
     if not self.teamObj or not self.teamObj.combatUnits then return end
@@ -4160,8 +4203,16 @@ function aiCore.WeaponManager:UpdateRetaliation(dt)
             self.retaliationState[u] = st
         end
         st.at = now
-        SetWeaponMask(u, mask)
-        FireWeaponMask(u, mask)
+        if GetCurrentWeaponMaskValue(u) ~= mask then SetWeaponMask(u, mask) end
+        return st
+    end
+
+    -- Weapon in reach of the shooter? Unknown ranges pass; minRange keeps arcing shots off
+    -- targets in the shooter's face.
+    local function InReach(u, mask, dist, minRange)
+        if minRange and dist < minRange then return false end
+        local range = GetWeaponRangeMeters(WeaponNameForMask(u, mask))
+        return not (range and range > 0 and dist > range)
     end
 
     -- Check for attackers and switch weapons reactively
@@ -4179,23 +4230,43 @@ function aiCore.WeaponManager:UpdateRetaliation(dt)
 
                 -- Person -> Mortar
                 if cls == utility.ClassLabel.PERSON then
+                    local dist = GetDistance(u, attacker)
+                    local pick, minePick = 0, 0
                     local popgunMask = aiCore.GetWeaponMask(u, { "popgun" })
-                    -- mdmgun is deliberately absent: it is the inert "detonator" weapon (see mortarWeapons).
-                    local blastMask = aiCore.GetWeaponMask(u, { "mortar", "splint", "acidcl", "thrower", "arblst", "rktbomb" })
-                    local mineMask = aiCore.GetWeaponMask(u, { "proxmin", "mitsmin", "mcurmin" })
-                    if popgunMask > 0 then
-                        SelectRetaliationMask(u, popgunMask)
-                        if aiCore.Debug then
-                            print("WeaponManager: Using popgun against infantry/sniper (" .. GetOdf(u) .. ")")
+                    if popgunMask > 0 and InReach(u, popgunMask, dist) then
+                        pick = popgunMask
+                    else
+                        -- mdmgun is deliberately absent: it is the inert "detonator" weapon (see mortarWeapons).
+                        for _, name in ipairs({ "mortar", "splint", "acidcl", "thrower", "arblst", "rktbomb" }) do
+                            local mask = aiCore.GetWeaponMask(u, { name })
+                            local arcing = name == "mortar" or name == "splint"
+                            if mask > 0 and InReach(u, mask, dist, arcing and kMortarMinRange or nil) then
+                                pick = mask
+                                break
+                            end
                         end
-                    elseif blastMask > 0 then
-                        SelectRetaliationMask(u, blastMask)
+                    end
+                    if pick <= 0 and dist <= self.kMineReach then
+                        minePick = aiCore.GetWeaponMask(u, { "proxmin", "mitsmin", "mcurmin" })
+                    end
+                    if pick > 0 then
+                        SelectRetaliationMask(u, pick)
                         if aiCore.Debug then
-                            print("WeaponManager: Retaliating against Person with explosive weapon (" ..
-                                GetOdf(u) .. ")")
+                            print("WeaponManager: Retaliating against Person with " .. WeaponNameForMask(u, pick) ..
+                                " (" .. GetOdf(u) .. ")")
                         end
-                    elseif mineMask > 0 then
-                        SelectRetaliationMask(u, mineMask)
+                    elseif minePick > 0 then
+                        -- Mines drop at the unit's own spot: only with the shooter close, and the mine
+                        -- mask is held for one tick per kMineLayGap (the engine lays while it is on).
+                        local st = self.retaliationState[u]
+                        if not st or now >= (st.mineAt or 0.0) then
+                            st = SelectRetaliationMask(u, minePick)
+                            st.mineAt = now + self.kMineLayGap
+                            st.mineOffAt = now + (self.retaliationUpdatePeriod or 0.25)
+                        elseif now >= (st.mineOffAt or 0.0) and GetCurrentWeaponMaskValue(u) == minePick then
+                            SetWeaponMask(u, st.prior)
+                        end
+                        st.at = now
                         if aiCore.Debug then
                             print("WeaponManager: Retaliating against Person with mine fallback (" .. GetOdf(u) .. ")")
                         end
@@ -4204,7 +4275,7 @@ function aiCore.WeaponManager:UpdateRetaliation(dt)
                     -- Walker -> Thumper
                 elseif cls == utility.ClassLabel.WALKER then
                     local thumperMask = aiCore.GetWeaponMask(u, self.thumperWeapons)
-                    if thumperMask > 0 then
+                    if thumperMask > 0 and GetDistance(u, attacker) <= self:GetThumperReach(u, thumperMask) then
                         SelectRetaliationMask(u, thumperMask)
                         if aiCore.Debug then
                             print("WeaponManager: Disorienting Walker with Thumper (" ..
@@ -4270,12 +4341,19 @@ function aiCore.GetRangeGateInfo(h)
     return info or nil
 end
 
--- Units whose mask is cycled by another owner (thumper/field/mortar/mine/missile users,
--- retaliation). Range gating backs off from them.
+-- Units whose mask is cycled by another owner (active thumper/field/mortar users, missile
+-- users, retaliation). Range gating backs off from them.
 local function CollectMaskOwners(self)
     local owners = {}
-    for _, key in ipairs({ "thumperUsers", "fieldUsers", "mortarUsers", "mineUsers", "missileUsers" }) do
-        for _, user in ipairs(self[key] or aiCore.EmptyList) do owners[user.handle] = true end
+    -- Missile users clamp their mask continuously; the rest only own it while actively switched on.
+    for _, user in ipairs(self.missileUsers or aiCore.EmptyList) do owners[user.handle] = true end
+    for _, key in ipairs({ "thumperUsers", "fieldUsers", "mineUsers" }) do
+        for _, user in ipairs(self[key] or aiCore.EmptyList) do
+            if user.active then owners[user.handle] = true end
+        end
+    end
+    for _, user in ipairs(self.mortarUsers or aiCore.EmptyList) do
+        if user.usingMortar then owners[user.handle] = true end
     end
     for u in pairs(self.retaliationState or aiCore.EmptyList) do owners[u] = true end
     return owners
@@ -4386,46 +4464,96 @@ function aiCore.WeaponManager:UpdateRangeGating()
     end
 end
 
+-- Thumper users are a state machine, like UpdateMortars: the mask is only written when the
+-- unit switches ON and put back once when it switches OFF (and only if it is still ours), so
+-- the double-weapon pick, the range gate and retaliation keep working in between.
+-- An active user is a mask owner (see CollectMaskOwners).
+-- Switch a special-weapon user off: its mask goes back to the default selection, but only if
+-- it is still the mask we set (anyone else's choice stays).
+-- aiCore's FireWeaponMask is just SetWeaponMask: "firing" a special weapon means selecting it,
+-- and the engine AI fires it while it attacks. So the mask write is the whole ON switch.
+local function SwitchSpecialOff(self, user)
+    user.active = false
+    if self.teamObj and IsValid(user.handle) and GetCurrentWeaponMaskValue(user.handle) == user.mask then
+        self.teamObj:ResetWeaponMask(user.handle)
+    end
+end
+
 function aiCore.WeaponManager:UpdateThumpers(dt)
     local thumperRate = self.thumperRate
     if self.teamObj and self.teamObj.Config and self.teamObj.Config.thumperChance ~= nil then
         thumperRate = self.teamObj.Config.thumperChance
     end
+    local now = GetTime()
     for i = #self.thumperUsers, 1, -1 do
         local user = self.thumperUsers[i]
-        if not IsValid(user.handle) then
+        local h = user.handle
+        if not IsValid(h) then
             table.remove(self.thumperUsers, i)
+        elseif aiCore.IsHumanCraft(h) then
+            -- The player picks their own weapon: never touch the mask of a human-piloted craft.
+            user.active = false
         else
-            user.timer = user.timer + dt
-            local isPlayerHandle = aiCore.IsHumanCraft(user.handle)
-            local shouldPulse = false
-            local target = GetCurrentWho(user.handle)
-            if IsValid(target) and IsAlive(target) then
-                local targetCls = string.lower(utility.CleanString(GetClassLabel(target)))
-                if string.find(targetCls, utility.ClassLabel.WALKER) then
-                    shouldPulse = true
-                end
+            local reach = self:GetThumperReach(h, user.mask)
+            local nearest = GetNearestEnemy(h)
+            local nearestValid = IsValid(nearest) and IsAlive(nearest)
+
+            local walkerNear = false
+            local target = GetCurrentWho(h)
+            if IsValid(target) and IsAlive(target) and not IsAlly(h, target)
+                and IsWalkerHandle(target) and GetDistance(h, target) <= reach then
+                walkerNear = true
+            elseif nearestValid and IsWalkerHandle(nearest) and GetDistance(h, nearest) <= reach then
+                walkerNear = true
             end
-            if not shouldPulse then
-                local nearest = GetNearestEnemy(user.handle)
-                if IsValid(nearest) and GetDistance(user.handle, nearest) <= 200.0 then
-                    local nearestCls = string.lower(utility.CleanString(GetClassLabel(nearest)))
-                    shouldPulse = string.find(nearestCls, utility.ClassLabel.WALKER) ~= nil or math.random(100) < thumperRate
+
+            if walkerNear then
+                user.holdUntil = now + self.kThumperHold
+            elseif not user.active and now >= (user.nextRollAt or 0.0)
+                and nearestValid and IsCraft(nearest) and GetDistance(h, nearest) <= reach then
+                -- Ground craft in reach: one roll per period, not one per frame.
+                user.nextRollAt = now + self.thumperPeriod
+                if math.random(100) < thumperRate then
+                    user.holdUntil = now + self.thumperDuration
                 end
             end
 
-            -- Pulse cycle: fire for duration, wait for period
-            local cycleTime = user.timer % self.thumperPeriod
-            if cycleTime < self.thumperDuration then
-                -- Fire thumper
-                if not isPlayerHandle and shouldPulse then
-                    SetWeaponMask(user.handle, user.mask)
-                    FireWeaponMask(user.handle, user.mask)
-                end
-            else
-                -- Reset mask when outside firing window (never on a human-piloted craft)
-                if self.teamObj and not isPlayerHandle then
-                    self.teamObj:ResetWeaponMask(user.handle)
+            local want = now < (user.holdUntil or 0.0)
+            if want and not user.active then
+                user.active = true
+                SetWeaponMask(h, user.mask)
+            elseif not want and user.active then
+                SwitchSpecialOff(self, user)
+            end
+        end
+    end
+end
+
+-- Field projectors and mine layers: the same ON/OFF state machine, switched on by a roll once per
+-- period (not once per frame) for a fixed duration. Mines also need a live enemy close by.
+local function UpdateTimedUsers(self, users, rate, period, duration, enemyReach)
+    local now = GetTime()
+    for i = #users, 1, -1 do
+        local user = users[i]
+        local h = user.handle
+        if not IsValid(h) then
+            table.remove(users, i)
+        elseif aiCore.IsHumanCraft(h) then
+            user.active = false
+        elseif user.active then
+            if now >= (user.holdUntil or 0.0) then SwitchSpecialOff(self, user) end
+        elseif now >= (user.nextRollAt or 0.0) then
+            local near = true
+            if enemyReach then
+                local nearest = GetNearestEnemy(h)
+                near = IsValid(nearest) and IsAlive(nearest) and GetDistance(h, nearest) <= enemyReach
+            end
+            if near then
+                user.nextRollAt = now + period
+                if math.random(100) < rate then
+                    user.active = true
+                    user.holdUntil = now + duration
+                    SetWeaponMask(h, user.mask)
                 end
             end
         end
@@ -4437,32 +4565,8 @@ function aiCore.WeaponManager:UpdateFields(dt)
     if self.teamObj and self.teamObj.Config and self.teamObj.Config.fieldChance ~= nil then
         fieldRate = self.teamObj.Config.fieldChance
     end
-    for i = #self.fieldUsers, 1, -1 do
-        local user = self.fieldUsers[i]
-        if not IsValid(user.handle) then
-            table.remove(self.fieldUsers, i)
-        else
-            user.timer = user.timer + dt
-
-            -- Field deployment: deploy for duration, wait for period
-            local cycleTime = user.timer % self.fieldPeriod
-            local isHuman = aiCore.IsHumanCraft(user.handle)
-            if cycleTime < self.fieldDuration then
-                if not isHuman and math.random(100) < fieldRate then
-                    FireWeaponMask(user.handle, user.mask)
-                end
-            else
-                -- Reset mask when outside firing window (never on a human-piloted craft)
-                if self.teamObj and not isHuman then
-                    self.teamObj:ResetWeaponMask(user.handle)
-                end
-            end
-        end
-    end
+    UpdateTimedUsers(self, self.fieldUsers, fieldRate, self.fieldPeriod, self.fieldDuration, nil)
 end
-
--- Closest range at which an arcing mortar shot is worth taking.
-local kMortarMinRange = 20.0
 
 function aiCore.WeaponManager:UpdateMortars(dt)
     for i = #self.mortarUsers, 1, -1 do
@@ -4511,28 +4615,7 @@ function aiCore.WeaponManager:UpdateMortars(dt)
 end
 
 function aiCore.WeaponManager:UpdateMines(dt)
-    for i = #self.mineUsers, 1, -1 do
-        local user = self.mineUsers[i]
-        if not IsValid(user.handle) then
-            table.remove(self.mineUsers, i)
-        else
-            user.timer = user.timer + dt
-
-            -- Mine deployment: deploy for duration, wait for period
-            local cycleTime = user.timer % self.minePeriod
-            local isHuman = aiCore.IsHumanCraft(user.handle)
-            if cycleTime < self.mineDuration then
-                if not isHuman and math.random(100) < self.mineRate then
-                    FireWeaponMask(user.handle, user.mask)
-                end
-            else
-                -- Reset mask when outside firing window (never on a human-piloted craft)
-                if self.teamObj and not isHuman then
-                    self.teamObj:ResetWeaponMask(user.handle)
-                end
-            end
-        end
-    end
+    UpdateTimedUsers(self, self.mineUsers, self.mineRate, self.minePeriod, self.mineDuration, self.kMineReach)
 end
 
 function aiCore.WeaponManager:UpdateDoubleWeapons(dt)
