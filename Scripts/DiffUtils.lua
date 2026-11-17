@@ -277,11 +277,6 @@ function DiffUtils.SetupTeams(playerFaction, enemyFaction, enemyTeamNum)
     -- Co-op guests (teams 2-4) get wingman/rescue/depot support too.
     if core.EnsureHumanTeams then core.EnsureHumanTeams() end
 
-    -- Global Environment
-    if exu then
-        if exu.SetGlobalTurbo then exu.SetGlobalTurbo(true) end
-    end
-
     return playerTeam, enemyTeam
 end
 

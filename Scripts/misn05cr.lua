@@ -748,11 +748,6 @@ local function ApplyTurboToAll()
 end
 
 function ApplyQOL()
-    if exu then
-        if exu.SetShotConvergence then exu.SetShotConvergence(true) end
-        if exu.SetReticleRange then exu.SetReticleRange(600) end
-        if exu.SetOrdnanceVelocInheritance then exu.SetOrdnanceVelocInheritance(true) end
-    end
     PersistentConfig.Initialize()
     Environment.Init()
 
