@@ -308,6 +308,11 @@ H.try("live 557 stale build", function()
     mgr.pulseTimer = 0
     mgr:update()
     check("live 557: a fresh BuildAt is not repeated inside the grace window", #H.buildAts == 1)
+    -- Past the grace window an idle BUILD is stale again: BuildAt is retried.
+    H.now = H.now + aiCore.Constants.CONSTRUCTOR_BUILD_GRACE + 1.0
+    mgr.pulseTimer = 0
+    mgr:update()
+    check("live 557: an idle BUILD past the grace window gets a retry", #H.buildAts == 2)
     mgr.activeJob, mgr.queue = nil, {}
 end)
 
