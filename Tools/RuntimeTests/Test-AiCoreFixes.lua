@@ -276,6 +276,41 @@ H.try("bug 14", function()
     check("bug 14: BuildAt retries are capped", attempts <= 6 * 3)
 end)
 
+-- Live 557: an idle constructor left holding a stale BUILD command must still travel and build.
+H.try("live 557 stale build", function()
+    H.buildAts, H.commands = {}, {}
+    local t = newTeam(2, 2)
+    local con = handle { team = 2, odf = "svcnst", class = "constructionrig", craft = true, canBuild = true,
+        command = AiCommand.BUILD, busy = false }
+    H.core.constructor[2] = con
+    t.constructorMgr.handle = con
+    t.CanIssueBuildingByRules = function() return true end
+    t.ValidateBuildingPlacement = function() return true end
+    local mgr = t.constructorMgr
+    mgr.queue = { { odf = "svtowe", path = H.vec(300, 0, 0), priority = 1 } }
+    H.costs.svtowe = 10
+    H.now = H.now + 1.0
+    mgr.pulseTimer = 0
+    mgr:update()
+    local go = false
+    for _, c in ipairs(H.commands) do if c.handle == con and c.command == AiCommand.GO then go = true end end
+    check("live 557: a stale BUILD does not stop the GO to a far site", go)
+    -- At the site, still holding the stale BUILD: BuildAt is issued.
+    con.command = AiCommand.BUILD
+    mgr.activeJob.path = H.vec(0, 0, 0)
+    mgr.activeJob.placementValidUntil = nil
+    H.now = H.now + 1.0
+    mgr.pulseTimer = 0
+    mgr:update()
+    check("live 557: a stale BUILD at the site still gets a BuildAt", #H.buildAts == 1)
+    -- Right after our own BuildAt the BUILD is fresh: no second BuildAt inside the grace window.
+    H.now = H.now + 1.0
+    mgr.pulseTimer = 0
+    mgr:update()
+    check("live 557: a fresh BuildAt is not repeated inside the grace window", #H.buildAts == 1)
+    mgr.activeJob, mgr.queue = nil, {}
+end)
+
 -- Bug 15: SetStrategy must not requeue a composition that is already in the producer.
 H.try("bug 15", function()
     H.reset()

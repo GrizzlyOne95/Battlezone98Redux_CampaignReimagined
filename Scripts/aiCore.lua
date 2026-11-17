@@ -6205,6 +6205,7 @@ aiCore.Constants = {
     BUILD_REMOTE_DISTANCE = 350,       -- Sites farther than this from the base wait for nearer base plans
     UNAFFORDABLE_RESERVE_DELAY = 20.0, -- Seconds a head unit job may be unaffordable before its scrap is reserved
     REBUILD_COOLDOWN = 25.0,           -- Seconds before a destroyed planned building is queued again
+    CONSTRUCTOR_BUILD_GRACE = 5.0,     -- Seconds a fresh BuildAt may sit as BUILD-but-not-busy
     CONSTRUCTOR_STUCK_SECONDS = 20.0,  -- Travelling without closing this much distance fails the job
     CONSTRUCTOR_STUCK_DISTANCE = 5.0,
     CONSTRUCTOR_COMPLETION_INTERVAL = 0.5, -- Throttle for the job-completion scan
@@ -6837,15 +6838,21 @@ function aiCore.ConstructorManager:update()
         end
 
         local cmd = GetCurrentCommand(constructor)
-        if cmd == AiCommand.BUILD then
+        -- A BUILD we issued moments ago is still being taken up. An older one on an idle
+        -- (not busy) constructor is stale: the engine leaves it behind after a build ends or
+        -- is refused, and waiting on it would block every later job forever.
+        if cmd == AiCommand.BUILD and self.activeJob.buildIssuedAt
+            and GetTime() - self.activeJob.buildIssuedAt < aiCore.Constants.CONSTRUCTOR_BUILD_GRACE then
             return
         end
         local travelling = cmd == AiCommand.GO or cmd == AiCommand.GO_TO_GEYSER
 
         if not travelling and GetDistance(constructor, posVec) > siteRadius then
             -- Move to site
+            -- overrideProtected: a stale BUILD (protected) must not veto the move; we only get
+            -- here when the constructor is not busy.
             aiCore.TrySetCommand(constructor, AiCommand.GO, GetUncommandablePriority(), nil, posVec, nil, nil,
-                { minInterval = 1.0 })
+                { minInterval = 1.0, overrideProtected = true })
             if aiCore.Debug then print("Constructor GOTO " .. self.activeJob.odf .. " site.") end
         elseif GetDistance(constructor, posVec) <= siteRadius then
             -- At site, try to build
@@ -6877,6 +6884,7 @@ function aiCore.ConstructorManager:update()
                         -- Issue BuildAt command
                         if aiCore.Debug then print("Constructor issuing BuildAt for " .. self.activeJob.odf) end
                         BuildAt(constructor, self.activeJob.odf, buildPos)
+                        self.activeJob.buildIssuedAt = GetTime()
                         self.activeJob.buildAttempts = (self.activeJob.buildAttempts or 0) + 1
                         if not self.activeJob.spendRecorded then
                             self.activeJob.spendRecorded = true -- once per job, not per retry
