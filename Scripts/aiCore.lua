@@ -1157,6 +1157,7 @@ AiCommand = utility.AiCommand
 
 -- Lightweight command arbitration/throttling shared by managers.
 aiCore.CommandState = aiCore.CommandState or {}
+aiCore.UnstickState = aiCore.UnstickState or {}
 aiCore.CommandConfig = aiCore.CommandConfig or {
     minInterval = 0.6
 }
@@ -1197,12 +1198,16 @@ function aiCore.CanIssueCommand(h, newCmd, opts)
     return true
 end
 
-function aiCore.RecordCommand(h, cmd, target)
+function aiCore.RecordCommand(h, cmd, target, where, priority)
     aiCore.CommandState[h] = aiCore.CommandState[h] or {}
     local state = aiCore.CommandState[h]
     state.time = GetTime()
     state.cmd = cmd
     state.target = target
+    -- The engine has no "get command position" call; keep the last one aiCore issued so
+    -- stuck detection can tell how far a GO order still has to travel.
+    state.where = where
+    state.priority = priority
 end
 
 function aiCore.TryAttack(h, target, priority, opts)
@@ -1212,7 +1217,7 @@ function aiCore.TryAttack(h, target, priority, opts)
     if not opts.forceIssue and GetCurrentCommand(h) == AiCommand.ATTACK and GetCurrentWho(h) == target then return false end
     priority = NormalizeScriptPriority(h, priority)
     Attack(h, target, priority)
-    aiCore.RecordCommand(h, AiCommand.ATTACK, target)
+    aiCore.RecordCommand(h, AiCommand.ATTACK, target, nil, priority)
     return true
 end
 
@@ -1241,7 +1246,7 @@ function aiCore.TrySetCommand(h, command, priority, who, where, when, param, opt
     if not aiCore.CanIssueCommand(h, command, opts) then return false end
     priority = NormalizeScriptPriority(h, priority)
     SetCommand(h, command, priority, who, where, when, param)
-    aiCore.RecordCommand(h, command, who)
+    aiCore.RecordCommand(h, command, who, where, priority)
     return true
 end
 
@@ -1281,6 +1286,13 @@ aiCore.DefaultNativeConfig = aiCore.DefaultNativeConfig or {
     nativeTargetThreatBonus = 35.0,
     nativeTargetFinishBonus = 40.0,
     nativeScoutBuildingPenalty = 45.0,
+    -- Penalty (0 disables) when a friendly/allied craft stands in the lane to the candidate.
+    nativeTargetBlockedPenalty = 120.0,
+    -- Per-unit combat helpers run by Team:Update / WeaponManager (see UpdateAttackClose,
+    -- UpdateRangeGating, UpdateUnstick). Missing keys (old saves) count as enabled.
+    attackClose = true,
+    rangeGatedWeapons = true,
+    unstickUnits = true,
     nativeTargetClassBonuses = {
         howitzer = 90.0,
         constructor = 70.0,
@@ -1312,6 +1324,26 @@ aiCore.DefaultNativeConfig = aiCore.DefaultNativeConfig or {
             kiteExitRange = 260.0,
             kitePreserveLos = true,
         },
+        -- Gun tanks: no standoff (it made gun craft retreat instead of shoot);
+        -- light lateral kiting only when something is already close.
+        -- Keyed "rockettank" (the engine's RocketTankFriend/Enemy AI, shared by avtank,
+        -- avltnk, svtank, ...) so the longest-substring fallback cannot also match
+        -- turret tanks (class "turrettank").
+        rockettank = {
+            standoff = false,
+            kiteEnterFraction = 0.30,
+            kiteDesiredFraction = 0.40,
+            kiteExitFraction = 0.50,
+            kitePreserveLos = true,
+            kiteStrafe = 0.40,
+            kiteSwitchPeriod = 3.0,
+            retargetPeriod = 2.0,
+        },
+        -- Walkers (GechFriend/GechEnemy): no standoff, no kiting.
+        walker = {
+            standoff = false,
+            retargetPeriod = 2.0,
+        },
     },
 }
 
@@ -1328,6 +1360,10 @@ local NativeAiRoleByName = {
     scoutenemy = "scout",
     bomberfriend = "bomber",
     bomberenemy = "bomber",
+    rockettankfriend = "rockettank",
+    rockettankenemy = "rockettank",
+    gechfriend = "walker",
+    gechenemy = "walker",
 }
 
 function aiCore.GetNativeAiRole(meta)
@@ -1602,6 +1638,65 @@ local function GetNativeClassBonus(config, candidate)
     return bestBonus
 end
 
+-- Line-of-fire cache: friendly/allied craft handles + positions per team, rebuilt at most
+-- every kLaneCacheInterval seconds from the object cache (no AllCraft scan per candidate).
+local kLaneCacheInterval = 0.5
+aiCore.LaneCache = aiCore.LaneCache or {}
+
+local function GetLaneCache(teamNum)
+    local now = GetTime()
+    local cache = aiCore.LaneCache[teamNum]
+    -- now < cache.at covers a clock that went backwards (restart / load).
+    if cache and now >= cache.at and now - cache.at < kLaneCacheInterval then return cache end
+    cache = cache or {}
+    cache.at = now
+    cache.builds = (cache.builds or 0) + 1
+    local list, n = {}, 0
+    for otherTeam, craft in pairs(aiCore.ObjectCache.teamCraft) do
+        if otherTeam == teamNum or IsTeamAllied(teamNum, otherTeam) then
+            for _, h in ipairs(craft) do
+                if IsValid(h) and IsAlive(h) then
+                    local p = GetPosition(h)
+                    n = n + 1
+                    list[n] = { h = h, x = p.x, y = p.y, z = p.z }
+                end
+            end
+        end
+    end
+    cache.list = list
+    aiCore.LaneCache[teamNum] = cache
+    return cache
+end
+
+-- True when a friendly/allied craft sits between unit and candidate: nearer to the unit than
+-- the candidate, farther than 5 m, within ~8.5 degrees of the firing line (cosine > 0.989)
+-- AND within 12 m of the line (the angle alone makes the cone huge at long range).
+-- Positions may be up to kLaneCacheInterval old.
+function aiCore.IsFireLaneBlocked(unit, candidate)
+    local up, cp = GetPosition(unit), GetPosition(candidate)
+    local ux, uy, uz = up.x, up.y, up.z
+    local tx, ty, tz = cp.x - ux, cp.y - uy, cp.z - uz
+    local tl2 = tx * tx + ty * ty + tz * tz
+    if tl2 <= 25.0 then return false end
+    local tl = math.sqrt(tl2)
+    local list = GetLaneCache(GetTeamNum(unit)).list
+    for i = 1, #list do
+        local e = list[i]
+        if e.h ~= unit and e.h ~= candidate then
+            local ax, ay, az = e.x - ux, e.y - uy, e.z - uz
+            local al2 = ax * ax + ay * ay + az * az
+            if al2 > 25.0 and al2 < tl2 then
+                local al = math.sqrt(al2)
+                local cosine = (ax * tx + ay * ty + az * tz) / (al * tl)
+                if cosine > 0.989 and al * math.sqrt(math.max(0.0, 1.0 - cosine * cosine)) < 12.0 then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
 -- Candidate scoring runs inside the stock ChooseAttackTarget search. The
 -- engine still decides eligibility, visibility, category precedence, range,
 -- and final task assignment; Lua only adjusts the distance-like comparison
@@ -1655,6 +1750,14 @@ function aiCore.InstallNativeTargetScoring()
             -- Scouts still may attack a building when it is the native search's
             -- best available lane, but prefer mobile threats and mine clearing.
             score = score + (tonumber(config.nativeScoutBuildingPenalty) or 45.0)
+        end
+
+        -- Prefer targets with a clear lane (a friendly in the way eats the shots).
+        -- BZP rejected such targets outright; here it is only a score penalty.
+        local blockedPenalty = tonumber(config.nativeTargetBlockedPenalty)
+        if blockedPenalty == nil then blockedPenalty = 120.0 end
+        if blockedPenalty > 0.0 and aiCore.IsFireLaneBlocked(unit, candidate) then
+            score = score + blockedPenalty
         end
         return math.max(0.0, score)
     end)
@@ -3326,6 +3429,18 @@ function aiCore.Load(data)
             setmetatable(team.depotMgr, aiCore.DepotManager); team.depotMgr.teamObj = team
         end
 
+        -- Older saves lack the nested native profiles added later; fill them in without
+        -- touching any profile the save already has.
+        if type(team.Config) == "table" then
+            local defaults = aiCore.DefaultNativeConfig.nativeUnitProfiles
+            if type(team.Config.nativeUnitProfiles) ~= "table" then team.Config.nativeUnitProfiles = {} end
+            for _, key in ipairs({ "rockettank", "walker" }) do
+                if team.Config.nativeUnitProfiles[key] == nil and defaults[key] ~= nil then
+                    team.Config.nativeUnitProfiles[key] = DeepCopyValue(defaults[key])
+                end
+            end
+        end
+
         -- Restore Squad Metatables
         if team.squads then
             for _, squad in ipairs(team.squads) do
@@ -3351,7 +3466,40 @@ function aiCore.Load(data)
     aiCore._postLoadPending = true
 end
 
+-- Combat-helper timers are absolute GetTime() values that mean nothing after a load: reset
+-- the throttles, undo any in-flight attack-close and drop transient stuck/gate/lane state.
+function aiCore.ResetCombatStateAfterLoad()
+    aiCore.UnstickState = {}
+    aiCore.LaneCache = {}
+    for _, team in pairs(aiCore.ActiveTeams or aiCore.EmptyList) do
+        team.attackCloseAt, team.unstickAt = 0.0, 0.0
+        local states = team.attackCloseState
+        if states then
+            for u, st in pairs(states) do
+                local target = st.target
+                if IsValid(u) and IsAlive(u) and target ~= nil and IsValid(target) and IsAlive(target)
+                    and GetCurrentCommand(u) == AiCommand.FORMATION and GetCurrentWho(u) == target then
+                    aiCore.TryAttack(u, target, GetCommandableAttackPriority(),
+                        { forceIssue = true, ignoreThrottle = true })
+                end
+            end
+            team.attackCloseState = {}
+        end
+        local wm = team.weaponMgr
+        if wm then
+            wm.rangeGateAt = 0.0
+            if wm.rangeGateState then
+                for u, st in pairs(wm.rangeGateState) do
+                    if IsValid(u) and GetCurrentWeaponMaskValue(u) == st.applied then SetWeaponMask(u, st.base) end
+                end
+            end
+            wm.rangeGateState = {}
+        end
+    end
+end
+
 function aiCore.FinishPostLoad()
+    aiCore.ResetCombatStateAfterLoad()
     -- The object cache is not saved: rebuild it from the live world so the GetCached*
     -- getters work (this is the only full rebuild; afterwards it is incremental).
     aiCore.ResetObjectCacheTracking()
@@ -3870,6 +4018,9 @@ function aiCore.WeaponManager:Update()
     local dt = GetTime() - (self.lastUpdate or 0)
     self.lastUpdate = GetTime()
 
+    -- Owners below must never see (and keep as "base") a range-gated mask.
+    self:ReleaseOwnedRangeGates()
+
     -- Update thumper users
     self:UpdateThumpers(dt)
 
@@ -3890,6 +4041,9 @@ function aiCore.WeaponManager:Update()
 
     -- Targeted Retaliation (New)
     self:UpdateRetaliation(dt)
+
+    -- Range-gated masks run last so every other mask owner has already had its say.
+    aiCore.SafeStep("RangeGating", self.UpdateRangeGating, self)
 end
 
 -- How long after the last hit from an attacker the retaliation weapon stays selected.
@@ -3909,6 +4063,12 @@ function aiCore.WeaponManager:UpdateRetaliation(dt)
         local st = self.retaliationState[u]
         if not st then
             local prior = GetCurrentWeaponMaskValue(u)
+            -- A range-gated mask is not the unit's real mask: hand back its base instead.
+            local gate = self.rangeGateState and self.rangeGateState[u]
+            if gate and gate.applied == prior then
+                prior = gate.base
+                self.rangeGateState[u] = nil
+            end
             if prior <= 0 then prior = GetDefaultWeaponMask(u) end
             st = { prior = prior }
             self.retaliationState[u] = st
@@ -3980,6 +4140,163 @@ function aiCore.WeaponManager:UpdateRetaliation(dt)
             end
             self.retaliationState[u] = nil
         end
+    end
+end
+
+----------------------------------------------------------------------------------
+-- Range-gated weapon masks. The engine fires every enabled weapon once any of them is
+-- in range, so a unit mixing short guns with long rockets wastes the guns' ammo and
+-- spread at long range (BZP masked bomber guns off until the target was in their range).
+-- While a unit attacks a target at distance D we enable only the slots (of its current
+-- base mask) whose weapon range reaches D, and put the base mask back otherwise.
+----------------------------------------------------------------------------------
+
+aiCore.RangeGateInfo = aiCore.RangeGateInfo or {}
+
+-- Per-slot weapon ranges for the unit's current loadout, cached by weapon names. Returns nil
+-- unless at least two gateable slots exist and their ranges differ by >= 1.5x. Special (gs*)
+-- slots and slots with unknown range are never gated.
+function aiCore.GetRangeGateInfo(h)
+    local names, key = {}, ""
+    for slot = 0, 4 do
+        names[slot] = utility.CleanString(GetWeaponClass(h, slot))
+        key = key .. string.lower(names[slot]) .. "|"
+    end
+    local cache = aiCore.RangeGateInfo
+    local info = cache[key]
+    if info == nil then
+        info = false
+        local slots, lo, hi, count = {}, nil, nil, 0
+        for slot = 0, 4 do
+            if names[slot] ~= "" and string.sub(GetWeaponHardpointCode(h, slot) or "", 1, 2) ~= "gs" then
+                local range = GetWeaponRangeMeters(names[slot])
+                if range and range > 0 then
+                    slots[slot] = range
+                    count = count + 1
+                    lo = (lo and lo < range) and lo or range
+                    hi = (hi and hi > range) and hi or range
+                end
+            end
+        end
+        if count >= 2 and hi / lo >= 1.5 then info = { slots = slots } end
+        cache[key] = info
+    end
+    return info or nil
+end
+
+-- Units whose mask is cycled by another owner (thumper/field/mortar/mine/missile users,
+-- retaliation). Range gating backs off from them.
+local function CollectMaskOwners(self)
+    local owners = {}
+    for _, key in ipairs({ "thumperUsers", "fieldUsers", "mortarUsers", "mineUsers", "missileUsers" }) do
+        for _, user in ipairs(self[key] or aiCore.EmptyList) do owners[user.handle] = true end
+    end
+    for u in pairs(self.retaliationState or aiCore.EmptyList) do owners[u] = true end
+    return owners
+end
+
+-- Put the base mask back, but only if the mask is still the one we set.
+local function ReleaseRangeGate(states, u, st)
+    if IsValid(u) and GetCurrentWeaponMaskValue(u) == st.applied then
+        SetWeaponMask(u, st.base)
+    end
+    states[u] = nil
+end
+
+-- Runs at the start of every WeaponManager:Update (unthrottled) so owners that take over a
+-- gated unit read its real mask.
+function aiCore.WeaponManager:ReleaseOwnedRangeGates()
+    local states = self.rangeGateState
+    if not states or next(states) == nil then return end
+    local owners = CollectMaskOwners(self)
+    for u, st in pairs(states) do
+        if owners[u] then ReleaseRangeGate(states, u, st) end
+    end
+end
+
+-- A slot already enabled by the gate stays enabled until the target is this much past its range.
+local kRangeGateHysteresis = 1.1
+
+function aiCore.WeaponManager:UpdateRangeGating()
+    local team = self.teamObj
+    if not team then return end
+    local now = GetTime()
+    if now < (self.rangeGateAt or 0.0) then return end
+    self.rangeGateAt = now + 0.5
+
+    local states = self.rangeGateState
+    if not states then
+        states = {}
+        self.rangeGateState = states
+    end
+    local enabled = team.Config.rangeGatedWeapons ~= false and not aiCore.IsHumanTeam(self.teamNum)
+
+    local function Release(u, st) ReleaseRangeGate(states, u, st) end
+
+    for u, st in pairs(states) do
+        if not IsValid(u) or not IsAlive(u) then
+            states[u] = nil
+        elseif not enabled then
+            Release(u, st)
+        end
+    end
+    if not enabled then return end
+
+    -- Units owned by another mask cycle are left alone; a gate still on them is released.
+    local owners = CollectMaskOwners(self)
+    local seen = {}
+
+    for _, u in ipairs(team:CollectCombatCraft()) do
+        if IsValid(u) and IsAlive(u) and IsCraft(u) and not aiCore.IsHumanCraft(u) then
+            seen[u] = true
+            local st = states[u]
+            if owners[u] then
+                if st then Release(u, st) end
+            else
+                local target = nil
+                if GetCurrentCommand(u) == AiCommand.ATTACK then
+                    local who = GetCurrentWho(u)
+                    if IsValid(who) and IsAlive(who) and not IsAlly(u, who) then target = who end
+                end
+                local info = target and aiCore.GetRangeGateInfo(u) or nil
+                if not info then
+                    if st then Release(u, st) end
+                else
+                    local cur = GetCurrentWeaponMaskValue(u)
+                    if st and cur ~= st.applied then
+                        -- Someone else changed the mask: their value is the new base.
+                        states[u] = nil
+                        st = nil
+                    end
+                    local base = st and st.base or cur
+                    if base <= 0 then base = GetDefaultWeaponMask(u) end
+                    local dist = GetDistance(u, target)
+                    local want = 0
+                    for slot = 0, 4 do
+                        if IsMaskBitSet(base, slot) then
+                            local range = info.slots[slot]
+                            if range == nil or range >= dist
+                                or (st and IsMaskBitSet(st.applied, slot) and range * kRangeGateHysteresis >= dist) then
+                                want = want + 2 ^ slot
+                            end
+                        end
+                    end
+                    if want > 0 and want ~= base then
+                        if not st or st.applied ~= want then
+                            SetWeaponMask(u, want)
+                            states[u] = { base = base, applied = want }
+                        end
+                    elseif st then
+                        Release(u, st)
+                    end
+                end
+            end
+        end
+    end
+
+    -- A gated unit that left the collected set (or became human-piloted) gets its mask back.
+    for u, st in pairs(states) do
+        if not seen[u] then Release(u, st) end
     end
 end
 
@@ -6598,6 +6915,11 @@ end
 function aiCore.WingmanManager:SavePreviousCommand(entry, cmd, target)
     if cmd == nil then cmd = GetCurrentCommand(entry.unit) end
     if target == nil then target = GetCurrentWho(entry.unit) end
+    -- FORMATION on an enemy is attack-close's temporary drive-in order: save the real ATTACK.
+    if cmd == AiCommand.FORMATION and IsValid(target)
+        and not IsTeamAllied(GetTeamNum(entry.unit), GetTeamNum(target)) then
+        cmd = AiCommand.ATTACK
+    end
     entry.previousCommand = cmd
     entry.previousTarget = target
     entry.restorePriority = aiCore.IsHumanTeam(GetTeamNum(entry.unit)) and GetCommandableAttackPriority() or GetUncommandablePriority()
@@ -6940,6 +7262,26 @@ function aiCore.Team:new(teamNum, faction)
                 lowHealthThreshold = 0.35,
                 kiteLowHealthScale = 1.04,
             },
+            -- Gun tanks: no standoff (it made gun craft retreat instead of shoot);
+            -- light lateral kiting only when something is already close.
+            -- Keyed "rockettank" (the engine's RocketTankFriend/Enemy AI, shared by avtank,
+            -- avltnk, svtank, ...) so the longest-substring fallback cannot also match
+            -- turret tanks (class "turrettank").
+            rockettank = {
+                standoff = false,
+                kiteEnterFraction = 0.30,
+                kiteDesiredFraction = 0.40,
+                kiteExitFraction = 0.50,
+                kitePreserveLos = true,
+                kiteStrafe = 0.40,
+                kiteSwitchPeriod = 3.0,
+                retargetPeriod = 2.0,
+            },
+            -- Walkers (GechFriend/GechEnemy): no standoff, no kiting.
+            walker = {
+                standoff = false,
+                retargetPeriod = 2.0,
+            },
         },
         -- Candidate scoring inside the native ChooseAttackTarget search. Focus
         -- fire is a score bonus rather than a forced ATTACK replacement.
@@ -6952,6 +7294,13 @@ function aiCore.Team:new(teamNum, faction)
         nativeTargetThreatBonus = 35.0,
         nativeTargetFinishBonus = 40.0,
         nativeScoutBuildingPenalty = 45.0,
+        -- Penalty (0 disables) when a friendly/allied craft stands in the lane to the candidate.
+        nativeTargetBlockedPenalty = 120.0,
+        -- Per-unit combat helpers (see Team:UpdateAttackClose, WeaponManager:UpdateRangeGating,
+        -- Team:UpdateUnstick). Set false to disable each.
+        attackClose = true,
+        rangeGatedWeapons = true,
+        unstickUnits = true,
         nativeTargetClassBonuses = {
             howitzer = 90.0,
             constructor = 70.0,
@@ -8660,6 +9009,16 @@ function aiCore.Team:Update()
         end
     end
 
+    -- Per-unit combat helpers (each throttles itself; phases spread the cost). Isolated so a
+    -- failure cannot abort the rest of the team update.
+    if manageSpecialCombat then
+        if phase == 2 then
+            aiCore.SafeStep("AttackClose", self.UpdateAttackClose, self)
+        elseif phase == 3 then
+            aiCore.SafeStep("Unstick", self.UpdateUnstick, self)
+        end
+    end
+
     if self.wingmanMgr and self.Config.autoRepairWingmen then self.wingmanMgr:Update() end
     -- DepotManager (area service of every unit in range) is intentional on every team,
     -- including human teams whose tactical management is off.
@@ -8743,6 +9102,278 @@ function aiCore.Team:PruneForeignUnits()
         end
     end
     if self.cloakMgr then prune(self.cloakMgr.cloakers) end
+end
+
+-- Live combat craft this team's per-unit helpers may act on: combatUnits and pool plus
+-- special (mission-scripted) objects, so combat-only teams are covered. Not filtered.
+function aiCore.Team:CollectCombatCraft()
+    local out, seen = {}, {}
+    local function add(h)
+        if not seen[h] then
+            seen[h] = true
+            out[#out + 1] = h
+        end
+    end
+    for _, h in ipairs(self.combatUnits or aiCore.EmptyList) do add(h) end
+    for _, h in ipairs(self.pool or aiCore.EmptyList) do add(h) end
+    for h in pairs(self.specialTrackedSet or aiCore.EmptyList) do add(h) end
+    return out
+end
+
+-- Attack-close: an AI unit attacking an elevated or human-piloted target from just inside
+-- weapon range tends to sit under a hill at max range. Switch it to FORMATION on the
+-- target (BZP's trick) so it drives in, then put ATTACK back once close, after
+-- kAttackCloseMaxTime, or when the target dies. State lives on the team: {target, started}
+-- while active, {cooldownUntil} afterwards. If anything else changed the command, our state
+-- is dropped without issuing anything (never fight mission scripts).
+local kAttackCloseStartRange = 125.0
+local kAttackCloseDoneRange = 40.0
+local kAttackCloseMaxTime = 6.0
+local kAttackCloseCooldown = 8.0
+
+local AttackCloseExcludedRoles = { bomber = true, scout = true, rockettank = true, walker = true }
+
+-- Gun craft only: not bombers, rocket tanks, walkers, APCs or other support/artillery classes.
+function aiCore.CanAttackClose(u)
+    local cls = string.lower(utility.CleanString(GetClassLabel(u)))
+    if not string.find(cls, "wingman", 1, true) then return false end
+    local odf = string.lower(utility.CleanString(GetOdf(u) or ""))
+    if string.find(odf, "rckt", 1, true) or string.find(cls, "rckt", 1, true) then return false end
+    -- Kiting/standoff roles would fight the drive-in: bombers, scouts, gun tanks, walkers.
+    return not AttackCloseExcludedRoles[aiCore.GetNativeAiRole(aiCore.GetOdfMeta(odf))]
+end
+
+function aiCore.Team:UpdateAttackClose()
+    local now = GetTime()
+    if now < (self.attackCloseAt or 0.0) then return end
+    self.attackCloseAt = now + 0.5
+    if aiCore.IsHumanTeam(self.teamNum) then return end
+    local states = self.attackCloseState
+    if not states then
+        states = {}
+        self.attackCloseState = states
+    end
+
+    for u, st in pairs(states) do
+        local target = st.target
+        if not IsValid(u) then
+            states[u] = nil
+        elseif target ~= nil then
+            if not IsAlive(u) or aiCore.IsHumanCraft(u) or GetCurrentCommand(u) ~= AiCommand.FORMATION
+                or GetCurrentWho(u) ~= target or not IsValid(target) or not IsAlive(target) then
+                st.target, st.cooldownUntil = nil, now + kAttackCloseCooldown
+            elseif GetDistance(u, target) < kAttackCloseDoneRange or now - st.started >= kAttackCloseMaxTime then
+                -- A throttled revert retries on the next tick; give up if it never clears.
+                if aiCore.TryAttack(u, target, GetCommandableAttackPriority(), { minInterval = 0.4 })
+                    or now - st.started > 3 * kAttackCloseMaxTime then
+                    st.target, st.cooldownUntil = nil, now + kAttackCloseCooldown
+                end
+            end
+        elseif now >= (st.cooldownUntil or 0.0) then
+            states[u] = nil
+        end
+    end
+
+    if self.Config.attackClose == false or aiCore.GetDifficultyLevel() <= 0 then return end
+
+    -- Mission-scripted objects keep their own orders (they stay in range gating only).
+    local special = self.specialTrackedSet or aiCore.EmptyList
+    for _, u in ipairs(self:CollectCombatCraft()) do
+        if not states[u] and not special[u] and IsValid(u) and IsAlive(u) and IsCraft(u) and not IsDeployed(u)
+            and not aiCore.IsHumanCraft(u) and GetCurrentCommand(u) == AiCommand.ATTACK then
+            local target = GetCurrentWho(u)
+            if IsValid(target) and IsAlive(target) and IsCraft(target) and not IsAlly(u, target)
+                and aiCore.CanAttackClose(u) then
+                local dist = GetDistance(u, target)
+                if dist < kAttackCloseStartRange and dist > kAttackCloseDoneRange
+                    and (aiCore.IsHumanCraft(target) or GetPosition(target).y - GetPosition(u).y > 5.0)
+                    and GetTarget(target) ~= u
+                    and aiCore.TrySetCommand(u, AiCommand.FORMATION, GetCommandableAttackPriority(),
+                        target, nil, nil, nil) then
+                    states[u] = { target = target, started = now }
+                end
+            end
+        end
+    end
+end
+
+-- Stuck detection. A unit is "stuck" while it crawls (< 5 m/s), is still far from where its
+-- command wants it (35 m; 150 m for FOLLOW/FORMATION/ATTACK/DEFEND, and for ATTACK only
+-- beyond its weapon range) and a building or deployed craft is within 50 m. After 3 s we
+-- re-issue the same command; stuck again within 20 s we nudge the unit 1.5 m away from
+-- the nearest blocker (BZP SBPAi stuck timer), then back off for 15 s.
+local kUnstickInterval = 1.0
+local kUnstickSeconds = 3.0
+local kUnstickSpeed = 5.0
+local kUnstickBlockerRadius = 50.0
+local kUnstickNudgeWindow = 20.0
+local kUnstickNudgeDistance = 1.5
+local kUnstickCooldown = 15.0
+local kUnstickMaxNudges = 3
+
+local UnstickSkipCommands = nil
+local function IsUnstickSkipCommand(cmd)
+    if not UnstickSkipCommands then
+        UnstickSkipCommands = {}
+        for _, name in ipairs({ "NONE", "SELECT", "STOP", "SCAVENGE", "BUILD", "RECYCLE", "PICKUP",
+            "DROPOFF", "GET_IN", "LAY_MINES", "CLOAK", "DECLOAK", "GO_TO_GEYSER" }) do
+            if AiCommand[name] ~= nil then UnstickSkipCommands[AiCommand[name]] = true end
+        end
+    end
+    return UnstickSkipCommands[cmd] == true
+end
+
+-- Where the unit's current command wants it, and how far away counts as "still travelling".
+function aiCore.GetUnstickGoal(u, cmd)
+    local far = 35.0
+    if cmd == AiCommand.FOLLOW or cmd == AiCommand.FORMATION or cmd == AiCommand.ATTACK
+        or cmd == AiCommand.DEFEND then
+        far = 150.0
+    end
+    local who = GetCurrentWho(u)
+    if IsValid(who) then
+        if cmd == AiCommand.ATTACK then
+            local range = GetCurrentWeaponRangeMeters(u)
+            if range and range + 20.0 > far then far = range + 20.0 end
+        end
+        return GetPosition(who), far
+    end
+    -- No "get command position" in the engine API: use the last GO-style order aiCore issued.
+    local cs = aiCore.CommandState[u]
+    if cs and cs.cmd == cmd and cs.where ~= nil then
+        local ok, x, y, z = pcall(function() return cs.where.x, cs.where.y, cs.where.z end)
+        if ok and type(x) == "number" and type(z) == "number" then
+            return { x = x, y = y or 0.0, z = z }, far
+        end
+    end
+    return nil, far
+end
+
+-- Nearest building or deployed craft within radius of u (handle, distance), or nil.
+function aiCore.FindNearbyBlocker(u, radius)
+    local best, bestDist = nil, radius
+    for o in ObjectsInRange(radius, u) do
+        if o ~= u and IsValid(o) and (IsBuilding(o) or (IsCraft(o) and IsDeployed(o))) then
+            local d = GetDistance(u, o)
+            if d <= bestDist then best, bestDist = o, d end
+        end
+    end
+    return best, bestDist
+end
+
+-- First attempt re-issues the current command; a repeat within kUnstickNudgeWindow nudges.
+function aiCore.Unstick(u, cmd, st, now)
+    local odf = string.lower(utility.CleanString(GetOdf(u) or ""))
+    if st.reissuedAt and now - st.reissuedAt <= kUnstickNudgeWindow then
+        if rawget(_G, "IsLocal") and not IsLocal(u) then return end
+        local p = GetPosition(u)
+        local blocker = aiCore.FindNearbyBlocker(u, kUnstickBlockerRadius)
+        local dx, dz = 0.0, 0.0
+        if blocker then
+            local bp = GetPosition(blocker)
+            dx, dz = p.x - bp.x, p.z - bp.z
+        end
+        local len = math.sqrt(dx * dx + dz * dz)
+        if len < 0.01 then
+            dx, dz, len = 1.0, 0.0, 1.0
+        end
+        local nx, nz = p.x + dx / len * kUnstickNudgeDistance, p.z + dz / len * kUnstickNudgeDistance
+        -- Keep the unit's height above the terrain it stands on (it may be airborne or on a bridge).
+        local above = math.max(0.0, p.y - (GetTerrainHeightAndNormal(p)))
+        local ground = GetTerrainHeightAndNormal(SetVector(nx, 0.0, nz))
+        SetPosition(u, SetVector(nx, ground + above, nz))
+        SetVelocity(u, SetVector(0.0, 0.0, 0.0))
+        st.nudges = (st.nudges or 0) + 1
+        st.stuck, st.reissuedAt, st.cooldownUntil = 0.0, nil, now + kUnstickCooldown
+        print("aiCore: unstick odf=" .. odf .. " action=nudge")
+        return
+    end
+
+    local who = GetCurrentWho(u)
+    local ok
+    local cs = aiCore.CommandState[u]
+    -- Keep the priority the order was issued with when aiCore recorded it.
+    local recorded = (cs and cs.cmd == cmd) and cs.priority or nil
+    if IsValid(who) and cmd == AiCommand.ATTACK then
+        ok = aiCore.TryAttack(u, who, recorded or GetCommandableAttackPriority(), { forceIssue = true })
+    else
+        local where = (not IsValid(who) and cs and cs.cmd == cmd) and cs.where or nil
+        ok = aiCore.TrySetCommand(u, cmd, recorded or GetUncommandablePriority(), IsValid(who) and who or nil, where)
+    end
+    -- A throttled re-issue keeps the timer at its threshold and retries next tick.
+    if ok then
+        st.stuck, st.reissuedAt = 0.0, now
+        print("aiCore: unstick odf=" .. odf .. " action=reissue")
+    end
+end
+
+function aiCore.Team:UpdateUnstick()
+    local now = GetTime()
+    if now < (self.unstickAt or 0.0) then return end
+    self.unstickAt = now + kUnstickInterval
+    if aiCore.IsHumanTeam(self.teamNum) or self.Config.unstickUnits == false then return end
+    local states = aiCore.UnstickState
+    local special = self.specialTrackedSet or aiCore.EmptyList
+
+    for _, u in ipairs(self:CollectCombatCraft()) do
+        local cmd = IsValid(u) and IsAlive(u) and IsCraft(u) and not special[u] and GetCurrentCommand(u) or nil
+        local cls = cmd and string.lower(utility.CleanString(GetClassLabel(u))) or ""
+        if not cmd or IsBuilding(u) or IsDeployed(u) or aiCore.IsHumanCraft(u) or IsUnstickSkipCommand(cmd)
+            or string.find(cls, "turret", 1, true) or string.find(cls, "howitzer", 1, true)
+            or string.find(cls, "recycler", 1, true) or string.find(cls, "factory", 1, true)
+            or string.find(cls, "armory", 1, true) or string.find(cls, "constructionrig", 1, true)
+            or string.find(cls, "scavenger", 1, true) then
+            states[u] = nil
+        else
+            local st = states[u]
+            if st then
+                -- A new command/target/goal wipes the nudge budget of the old one.
+                local cs = aiCore.CommandState[u]
+                local who, where = GetCurrentWho(u), cs and cs.where or nil
+                if st.cmd ~= cmd or st.who ~= who or st.where ~= where then
+                    st.cmd, st.who, st.where = cmd, who, where
+                    st.stuck, st.reissuedAt, st.cooldownUntil, st.nudges = 0.0, nil, nil, 0
+                end
+            end
+            local dt = st and math.min(math.max(now - st.lastAt, 0.0), 2.0) or kUnstickInterval
+            if st and ((st.nudges or 0) >= kUnstickMaxNudges or now < (st.cooldownUntil or 0.0)) then
+                st.lastAt = now
+            else
+                local stuckNow = false
+                local v = GetVelocity(u)
+                if math.sqrt(v.x * v.x + v.z * v.z) < kUnstickSpeed then
+                    local goal, far = aiCore.GetUnstickGoal(u, cmd)
+                    if goal then
+                        local p = GetPosition(u)
+                        local dx, dy, dz = goal.x - p.x, (goal.y or p.y) - p.y, goal.z - p.z
+                        if math.sqrt(dx * dx + dy * dy + dz * dz) > far
+                            and aiCore.FindNearbyBlocker(u, kUnstickBlockerRadius) then
+                            stuckNow = true
+                        end
+                    end
+                end
+                if stuckNow and not st then
+                    local cs = aiCore.CommandState[u]
+                    st = { stuck = 0.0, nudges = 0, cmd = cmd, who = GetCurrentWho(u), where = cs and cs.where or nil }
+                    states[u] = st
+                end
+                if st then
+                    st.lastAt = now
+                    if st.reissuedAt and now - st.reissuedAt > kUnstickNudgeWindow then st.reissuedAt = nil end
+                    if stuckNow then
+                        st.stuck = st.stuck + dt
+                    else
+                        st.stuck = math.max(0.0, st.stuck - dt)
+                    end
+                    if st.stuck >= kUnstickSeconds then
+                        aiCore.Unstick(u, cmd, st, now)
+                    elseif st.stuck <= 0.0 and not st.reissuedAt and (st.nudges or 0) == 0 then
+                        states[u] = nil
+                    end
+                end
+            end
+        end
+    end
 end
 
 function aiCore.Team:UpdateStickToPlayer()
@@ -9092,7 +9723,11 @@ local BackfilledConfigKeys = {
     buildingPlacementMaxHeightDelta = true,
     buildingPlacementMaxFloorSeparation = true,
     buildingPlacementRetryDelay = true,
-    buildingPlacementRelocationRadius = true
+    buildingPlacementRelocationRadius = true,
+    nativeTargetBlockedPenalty = true,
+    attackClose = true,
+    rangeGatedWeapons = true,
+    unstickUnits = true
 }
 
 -- Setter for Difficulty Tweaking
@@ -12847,6 +13482,14 @@ end
 -- Run one update step under pcall. A runtime error in one manager/team must not stop every
 -- other team or the global managers; each distinct message is logged once.
 aiCore.UpdateErrors = aiCore.UpdateErrors or {}
+-- Drop per-unit combat-helper state (stuck detection) of handles that no longer exist. The
+-- attack-close and range-gate tables live on their team/weapon manager and prune themselves.
+function aiCore.PruneCombatState()
+    for h in pairs(aiCore.UnstickState) do
+        if not IsValid(h) then aiCore.UnstickState[h] = nil end
+    end
+end
+
 function aiCore.SafeStep(label, fn, ...)
     local ok, err = pcall(fn, ...)
     if not ok then
@@ -12893,6 +13536,7 @@ function aiCore.Update()
                 aiCore.CountermeasureState[h] = nil
             end
         end
+        aiCore.PruneCombatState()
     end
 
     if now >= (aiCore._pilotSyncTimer or 0.0) then
@@ -13051,8 +13695,9 @@ function aiCore.BootstrapCombatOnly(teamNum)
     aiCore.RefreshObjectCache(true)
 end
 
--- Per-frame tick for missions that use combat-only teams. Runs only the combat layer: no human-team
--- registration, rush aggression, pilot tracking, native tactics/scoring sync, or global managers.
+-- Per-frame tick for missions that use combat-only teams. Runs only the combat layer plus native
+-- tactics discovery/target scoring: no human-team registration, rush aggression, pilot tracking, or
+-- global managers.
 -- Pilot specials (sniping, craft stealing) stay on, so pilot persons can be retasked by them.
 function aiCore.UpdateCombatOnly()
     local Step = aiCore.SafeStep
@@ -13061,6 +13706,7 @@ function aiCore.UpdateCombatOnly()
         Step("FinishPostLoad", aiCore.FinishPostLoad)
     end
     Step("SetupOrdnanceHooks", aiCore.SetupOrdnanceHooks)
+    Step("SyncNativeTactics", aiCore.SyncNativeTactics)
     Step("RefreshObjectCache", aiCore.RefreshObjectCache, false)
     Step("UpdateTrackedOrdnanceThreats", aiCore.UpdateTrackedOrdnanceThreats)
     Step("UpdateTrackedMissileAllocations", aiCore.UpdateTrackedMissileAllocations)
@@ -13078,6 +13724,11 @@ function aiCore.UpdateCombatOnly()
                 aiCore.CountermeasureState[h] = nil
             end
         end
+        aiCore.PruneCombatState()
+    end
+
+    if aiNative and not aiCore._nativeTargetScoringInstalled then
+        Step("InstallNativeTargetScoring", aiCore.InstallNativeTargetScoring)
     end
 
     for teamNum, team in pairs(aiCore.ActiveTeams) do
@@ -13102,7 +13753,10 @@ function aiCore.DeleteObject(h)
         if team.wingmanMgr and team.wingmanMgr.RemoveObject then
             team.wingmanMgr:RemoveObject(h)
         end
+        if team.attackCloseState then team.attackCloseState[h] = nil end
+        if team.weaponMgr and team.weaponMgr.rangeGateState then team.weaponMgr.rangeGateState[h] = nil end
     end
+    aiCore.UnstickState[h] = nil
     if aiNative then
         aiNative.ClearUnit(h)
     end

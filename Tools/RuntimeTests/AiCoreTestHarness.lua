@@ -95,6 +95,10 @@ SetWeaponMask = function(h, mask)
     table.insert(H.weaponMasks, { handle = h, mask = mask })
 end
 FireWeaponMask = function() end
+GetTarget = function(h) return valid(h) and h.aimedAt or nil end   -- what h is currently aiming at
+GetVelocity = function(h) return valid(h) and h.vel or { x = 0, y = 0, z = 0 } end
+SetPosition = function(h, p) h.pos = { x = p.x, y = p.y, z = p.z } end
+SetVelocity = function(h, v) h.vel = { x = v.x, y = v.y, z = v.z } end
 GetWhoShotMe = function(h) return valid(h) and h.shotBy or nil end
 GetLastEnemyShot = function(h) return valid(h) and h.lastShot or -999 end
 GetCurrentWeapon = function() return 0 end
@@ -106,11 +110,12 @@ GetPositionNear = function(p) return p end
 SetVector = function(x, y, z) return { x = x or 0, y = y or 0, z = z or 0 } end
 SetCommand = function(h, command, priority, who, where, param, odf)
     h.command, h.target = command, who
-    table.insert(H.commands, { handle = h, command = command, target = who, position = where, odf = odf })
+    table.insert(H.commands, { handle = h, command = command, target = who, position = where, odf = odf,
+        priority = priority })
 end
-Attack = function(h, target)
+Attack = function(h, target, priority)
     h.command, h.target = AiCommand.ATTACK, target
-    table.insert(H.commands, { handle = h, command = AiCommand.ATTACK, target = target })
+    table.insert(H.commands, { handle = h, command = AiCommand.ATTACK, target = target, priority = priority })
 end
 Build = function(h, odf) table.insert(H.builds, { builder = h, odf = odf }) end
 BuildAt = function(h, odf, where) table.insert(H.buildAts, { builder = h, odf = odf, where = where }) end
@@ -119,7 +124,8 @@ SetCloaked = function(h) table.insert(H.cloaks, { handle = h, cloak = true }) en
 SetDecloaked = function(h) table.insert(H.cloaks, { handle = h, cloak = false }) end
 IsCloaked = function() return false end
 IsOdf = function(h, odf) return string.lower(GetOdf(h)) == string.lower(tostring(odf)) end
-IsTeamAllied = function(a, b) return a == b end
+H.allied = {}         -- ["a:b"] = true makes teams a and b allies (symmetric)
+IsTeamAllied = function(a, b) return a == b or H.allied[a .. ":" .. b] == true or H.allied[b .. ":" .. a] == true end
 IsAlly = function(a, b) return GetTeamNum(a) == GetTeamNum(b) end
 CanBuild = function(h) return valid(h) and h.canBuild ~= false end
 OpenODF = function(odf)
@@ -186,6 +192,7 @@ package.preload.aiNative = function()
         end,
         ClearAll = function() policies = {} end,
         ClearUnit = function(h) policies[h] = nil end,
+        SetTargetScoreHandler = function(fn) H.scoreHandler = fn; return true end,
         UnwatchTaskState = function() end,
         Update = function() end,
     }
