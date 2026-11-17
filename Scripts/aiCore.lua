@@ -6721,6 +6721,7 @@ function aiCore.ConstructorManager:update()
                 self.activeJob.deferUntil = nil
                 self.activeJob.bestSiteDist, self.activeJob.bestSiteDistAt = nil, nil
                 self.activeJob.placementValidUntil = nil
+                self.activeJob.buildIssuedAt = nil
                 self.activeJob.progressAt = now
                 self.sentToRecycler = false
                 if aiCore.Debug then print("Constructor starts job: " .. self.activeJob.odf) end
