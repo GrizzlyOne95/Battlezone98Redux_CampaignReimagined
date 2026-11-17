@@ -360,6 +360,7 @@ jobs:
           set -euo pipefail
           LUA="$(command -v lua5.1 || command -v lua)"
           "$LUA" Tools/RuntimeTests/Test-AiCoreFixes.lua
+          "$LUA" Tools/RuntimeTests/Test-AiCoreCombatPorts.lua
 
       - name: Test aiCore human-team handling
         shell: bash
