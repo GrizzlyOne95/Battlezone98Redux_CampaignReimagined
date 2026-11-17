@@ -1286,4 +1286,339 @@ H.try("howitzer squads", function()
     aiCore.ActiveTeams = {}
 end)
 
+-- ===== Base building / constructor audit =====
+-- Positions are userdata here (H.vec / H.mat), exactly like the engine's VECTOR_3D / MAT_3D, so a
+-- `type(v) == "table"` check anywhere in the building path fails these cases.
+local function buildingTeam()
+    local t = newTeam(2, 2)
+    local rec = handle { team = 2, odf = "svrecy", class = "recycler", craft = true, deployed = true,
+        pos = { x = 0, y = 0, z = 0 } }
+    local con = handle { team = 2, odf = "svcnst", class = "constructionrig", craft = true, canBuild = true,
+        pos = { x = 0, y = 0, z = 0 } }
+    H.core.recycler[2], H.core.constructor[2] = rec, con
+    t.recyclerMgr.handle, t.constructorMgr.handle = rec, con
+    return t, rec, con
+end
+local function resetBuildingWorld()
+    H.objects, H.commands, H.buildAts, H.builds = {}, {}, {}, {}
+    H.core = { recycler = {}, factory = {}, constructor = {}, armory = {} }
+    aiCore.ActiveTeams = {}
+end
+
+-- Item 1: userdata vectors and matrices through the real placement path; facing survives relocation.
+H.try("building 1", function()
+    local t = buildingTeam()
+    check("building 1: the vector is userdata (mock sanity)", type(H.vec(1, 2, 3)) == "userdata")
+    local okVec = t:AddBuilding("svbld1", H.vec(300, 0, 300), 1)
+    check("building 1: AddBuilding accepts a userdata vector", okVec == true and t.buildingList[1] ~= nil)
+    local okMat = t:AddBuilding("svbld1", H.mat(600, 0, 600, 1, 0), 2)
+    check("building 1: AddBuilding accepts a userdata matrix", okMat == true)
+    local reason = select(2, t:ValidateBuildingPlacement("svbld1", H.mat(300, 0, 300, 0, 1)))
+    check("building 1: a userdata matrix on a planned site is an obstruction (position resolved)",
+        reason == "planned-obstruction")
+    local ok, why = t:ValidateBuildingPlacement("svbld1", H.vec(900, 0, 900))
+    check("building 1: a free userdata vector validates", ok == true and why == nil)
+
+    -- Relocation: the matrix facing (+x) is kept and the site moved.
+    local added = t:AddBuilding("svbld1", H.mat(600, 0, 600, 1, 0), 3)
+    local plan = t.buildingList[3]
+    check("building 1: the blocked matrix is relocated and accepted", added == true and plan ~= nil)
+    check("building 1: the relocated site is a matrix whose facing is preserved",
+        plan and plan.path.posit_x ~= nil and math.abs(plan.path.front_x - 1) < 0.01
+        and math.abs(plan.path.front_z) < 0.01
+        and (plan.path.posit_x ~= 600 or plan.path.posit_z ~= 600))
+    resetBuildingWorld()
+end)
+
+-- Item 2: a nil priority goes after everything already planned.
+H.try("building 2", function()
+    local t = buildingTeam()
+    t.buildingList[5] = { odf = "svbld1", priority = 5, path = H.vec(2000, 0, 2000) }
+    t.buildingList[12] = { odf = "svbld1", priority = 12, path = H.vec(2500, 0, 2500) }
+    t:AddBuilding("svbld1", H.vec(300, 0, 300))
+    check("building 2: nil priority is appended after the highest existing priority",
+        t.buildingList[13] ~= nil and t.buildingList[13].odf == "svbld1")
+    local empty = buildingTeam()
+    empty:AddBuilding("svbld1", H.vec(300, 0, 300))
+    check("building 2: an empty list starts at priority 1", empty.buildingList[1] ~= nil)
+    resetBuildingWorld()
+end)
+
+-- Item 3: a plan whose building exists is counted once.
+H.try("building 3", function()
+    local t = buildingTeam()
+    local tower = handle { team = 2, odf = "svtowe", class = "turret", building = true, pos = { x = 50, y = 0, z = 0 } }
+    t.buildingList[1] = { odf = "svtowe", priority = 1, path = H.vec(50, 0, 0), handle = tower }
+    t.buildingList[2] = { odf = "svtowe", priority = 2, path = H.vec(60, 0, 0) }
+    local realTargets = aiCore.GetCachedTeamTargets
+    aiCore.GetCachedTeamTargets = function() return { tower } end
+    local count = t:CountExistingOrPlannedBuildingsNear(H.vec(0, 0, 0), 100,
+        function(odf) return odf == "svtowe" end)
+    aiCore.GetCachedTeamTargets = realTargets
+    check("building 3: built plan + live object + one unbuilt plan = 2, not 3", count == 2)
+    resetBuildingWorld()
+end)
+
+-- Item 4: a rejected hotspot silo/outpost is banned so the next candidate is tried.
+H.try("building 4", function()
+    local t = buildingTeam()
+    aiCore.Units[2].silo = "svsilo"
+    local attempts = {}
+    t.AddBuilding = function(_, odf, pos) attempts[#attempts + 1] = { odf = odf, pos = pos }; return false end
+    t.scrapHotspots = { { position = H.vec(800, 0, 0), totalValue = 40, dropoffDist = 500 } }
+    t:PlanHotspotSilo()
+    t:PlanHotspotSilo()
+    check("building 4: both silo attempts happened", #attempts == 2)
+    local a, b = attempts[1] and attempts[1].pos, attempts[2] and attempts[2].pos
+    check("building 4: the rejected silo site is not proposed again",
+        a ~= nil and b ~= nil and (a.x ~= b.x or a.z ~= b.z))
+
+    attempts = {}
+    local hotspot = { position = H.vec(800, 0, 0), totalValue = 40, dropoffDist = 500 }
+    t.scrapHotspots = { hotspot }
+    t.bannedPlanningSites = nil
+    H.now = H.now + 100
+    t.scrapOutpostTimer = 0
+    t:PlanHotspotOutpost()
+    check("building 4: a rejected outpost silo clears the cached anchor", #attempts == 1 and hotspot.outpostAnchor == nil)
+    H.now = H.now + 100
+    t:PlanHotspotOutpost()
+    local c, d = attempts[1] and attempts[1].pos, attempts[2] and attempts[2].pos
+    check("building 4: the next outpost pass uses a different anchor",
+        c ~= nil and d ~= nil and (c.posit_x ~= d.posit_x or c.posit_z ~= d.posit_z))
+    resetBuildingWorld()
+end)
+
+-- Item 5: scrap reservation, local scrap decrement and ODF cost caching.
+H.try("building 5", function()
+    H.reset()
+    local realGetScrap = GetScrap
+    local scrapNow = 100
+    GetScrap = function() return scrapNow end
+    local t, rec = buildingTeam()
+    local fac = handle { team = 2, odf = "svmuf", class = "factory", craft = true, deployed = true }
+    H.core.factory[2] = fac
+    t.factoryMgr.handle = fac
+    H.costs.rsvtowe, H.costs.rsvscav, H.costs.rsvtank, H.costs.rsvbig = 80, 30, 60, 150
+
+    -- Constructor reserve.
+    t.constructorMgr.activeJob = { odf = "rsvtowe", priority = 1, buildAttempts = 0 }
+    producer.QueueJob("rsvscav", 2, nil, nil, { priority = 1, type = "unit", producer = "recycler" })
+    producer.ProcessQueues(t)
+    check("building 5: scrap held for the constructor's building is not spent by a lower job", #H.builds == 0)
+    t.constructorMgr.activeJob.buildAttempts = 1
+    producer.ProcessQueues(t)
+    check("building 5: once the building order is issued the reserve is released", #H.builds == 1)
+    t.constructorMgr.activeJob = nil
+
+    -- Local scrap decrement: two producers, 100 scrap, 60 + 60.
+    H.reset()
+    H.builds = {}
+    H.costs.rsvscav2 = 60
+    producer.QueueJob("rsvscav2", 2, nil, nil, { priority = 1, type = "unit", producer = "recycler" })
+    producer.QueueJob("rsvtank", 2, nil, nil, { priority = 2, type = "unit", producer = "factory" })
+    producer.ProcessQueues(t)
+    check("building 5: scrap is decremented per issued Build in the same pass", #H.builds == 1)
+
+    -- Unaffordable head reserve (after it has waited).
+    H.reset()
+    H.builds = {}
+    producer.QueueJob("rsvbig", 2, nil, nil, { priority = 1, type = "unit", producer = "recycler" })
+    producer.QueueJob("rsvscav", 2, nil, nil, { priority = 2, type = "unit", producer = "recycler" })
+    producer.ProcessQueues(t)
+    check("building 5: a fresh unaffordable head does not stall cheaper work", #H.builds == 1)
+    producer.Orders = {}
+    H.builds = {}
+    H.now = H.now + 30.0
+    producer.QueueJob("rsvscav", 2, nil, nil, { priority = 3, type = "unit", producer = "recycler" })
+    producer.ProcessQueues(t)
+    check("building 5: a long-unaffordable head reserves its cost against lower jobs", #H.builds == 0)
+
+    local calls = H.openOdfCalls.rsvbig or 0
+    producer.ProcessQueues(t)
+    producer.ProcessQueues(t)
+    check("building 5: further passes do not re-open the ODF", (H.openOdfCalls.rsvbig or 0) == calls)
+    GetScrap = realGetScrap
+    H.reset()
+    resetBuildingWorld()
+end)
+
+-- Item 6/9: threat gate, remote-site ordering, rebuild cooldown.
+H.try("building 6/9", function()
+    local t, rec, con = buildingTeam()
+    t.CanIssueBuildingByRules = function() return true end
+    t.ValidateBuildingPlacement = function() return true end
+    local mgr = t.constructorMgr
+    H.addObject { team = 1, odf = "avtank", class = "wingman", craft = true, pos = { x = 400, y = 0, z = 0 } }
+    mgr.queue = { { odf = "svtowe", path = H.vec(500, 0, 0), priority = 1 } }
+    H.now = H.now + 10
+    mgr:update()
+    check("building 6: a job whose site has an enemy within 150 m is deferred", mgr.activeJob == nil and #mgr.queue == 1)
+    H.objects = {}
+    H.now = H.now + 3
+    mgr:update()
+    check("building 6: it runs once the enemy is gone", mgr.activeJob ~= nil and mgr.activeJob.odf == "svtowe")
+
+    -- Remote site waits for unbuilt base plans.
+    mgr.activeJob = nil
+    mgr.queue = { { odf = "svsilo", path = H.vec(800, 0, 0), priority = 11 } }
+    t.buildingList = { [2] = { odf = "svpowr", priority = 2, path = H.vec(100, 0, 0) },
+        [11] = { odf = "svsilo", priority = 11, path = H.vec(800, 0, 0) } }
+    H.now = H.now + 10
+    mgr:update()
+    check("building 6: a remote job waits while a nearer base plan is unbuilt", mgr.activeJob == nil)
+    t.buildingList[2].handle = handle { team = 2, odf = "svpowr", building = true }
+    H.now = H.now + 3
+    mgr:update()
+    check("building 6: the remote job runs once the base plans are built", mgr.activeJob ~= nil)
+
+    -- Item 9: rebuild cooldown after the building dies.
+    local t2 = buildingTeam()
+    local tower = handle { team = 2, odf = "svtowe", class = "turret", building = true }
+    t2.buildingList[1] = { odf = "svtowe", priority = 1, path = H.vec(50, 0, 0), handle = tower }
+    t2:CheckConstruction()
+    check("building 9: a live building is not queued", #t2.constructorMgr.queue == 0)
+    tower.valid = false
+    H.now = H.now + 1
+    t2:CheckConstruction()
+    check("building 9: a destroyed building is not rebuilt during the cooldown", #t2.constructorMgr.queue == 0)
+    H.now = H.now + 26
+    t2:CheckConstruction()
+    check("building 9: it is queued after the cooldown", #t2.constructorMgr.queue == 1)
+    resetBuildingWorld()
+end)
+
+-- Item 7: placement failures count toward the give-up; a given-up site is relocated next time.
+H.try("building 7", function()
+    local t, rec, con = buildingTeam()
+    t.CanIssueBuildingByRules = function() return true end
+    t.Config.buildingPlacementRetryDelay = 1
+    local validations = 0
+    t.ValidateBuildingPlacement = function() validations = validations + 1; return false, "object-obstruction" end
+    t.FindAlternateBuildingPlacement = function() return nil end
+    t.buildingList[1] = { odf = "svtowe", priority = 1, path = H.vec(10, 0, 0) }
+    local mgr = t.constructorMgr
+    mgr.queue = { { odf = "svtowe", path = H.vec(10, 0, 0), priority = 1 } }
+    for _ = 1, 60 do
+        H.now = H.now + 2.0
+        mgr:update()
+        if mgr.activeJob == nil and #mgr.queue == 0 then break end
+    end
+    check("building 7: repeated placement failures end in a give-up", mgr.activeJob == nil and #mgr.queue == 0)
+    check("building 7: the give-up bans the plan's site and starts a cooldown",
+        t.buildingList[1].siteBanned == true and (t.buildingList[1].blockedUntil or 0) > H.now)
+
+    -- The banned site is relocated (not retried) on the next attempt.
+    local newSite = H.vec(200, 0, 0)
+    t.ValidateBuildingPlacement = function() return true, nil end
+    local relocations = 0
+    t.FindAlternateBuildingPlacement = function() relocations = relocations + 1; return newSite end
+    mgr.queue = { { odf = "svtowe", path = H.vec(10, 0, 0), priority = 1 } }
+    H.now = H.now + 2.0
+    mgr:update()
+    H.now = H.now + 2.0
+    mgr:update()
+    check("building 7: a banned site is relocated", relocations == 1 and t.buildingList[1].path == newSite
+        and t.buildingList[1].siteBanned == nil)
+
+    -- Validation is throttled to the retry timer.
+    validations = 0
+    t.ValidateBuildingPlacement = function() validations = validations + 1; return true, nil end
+    mgr.activeJob = { odf = "svtowe", path = H.vec(10, 0, 0), priority = 1 }
+    for _ = 1, 20 do H.now = H.now + 0.1; mgr.pulseTimer = H.now + 100; mgr:update() end
+    check("building 7: placement is re-validated at most once per retry delay", validations <= 3)
+    resetBuildingWorld()
+end)
+
+-- Item 8: a power the planner rejected is not counted; the search starts toward the enemy.
+H.try("building 8", function()
+    local t, rec = buildingTeam()
+    aiCore.Units[2].sPower, aiCore.Units[2].gunTower = "svpowr", "svtowe"
+    local realKey = aiCore.WorldPowerKey
+    aiCore.WorldPowerKey = "sPower"
+    H.core.recycler[1] = handle { team = 1, odf = "avrecy", class = "recycler", craft = true, pos = { x = 0, y = 0, z = 1000 } }
+    local powerTries = {}
+    t.AddBuilding = function(_, odf, pos)
+        if odf == "svpowr" then powerTries[#powerTries + 1] = pos end
+        return false
+    end
+    t:PlanDefensivePerimeter(2, 1)
+    check("building 8: rejected powers are not counted as found (search continues)", #powerTries > 2)
+    check("building 8: the last angle of the circle is tried too", #powerTries >= 8)
+    local first = powerTries[1]
+    check("building 8: the first candidate faces the enemy base (+z)",
+        first and first.posit_z > 50 and math.abs(first.posit_x) < 50)
+    aiCore.WorldPowerKey = realKey
+    resetBuildingWorld()
+end)
+
+-- Item 10: remote buildings do not drag the base centre.
+H.try("building 10", function()
+    local t, rec = buildingTeam()
+    local near = handle { team = 2, odf = "svpowr", class = "powerplant", building = true, pos = { x = 100, y = 0, z = 0 } }
+    local far = handle { team = 2, odf = "svsilo", class = "scrapsilo", building = true, pos = { x = 1500, y = 0, z = 0 } }
+    local realBuildings = aiCore.GetCachedBuildings
+    aiCore.GetCachedBuildings = function() return { near, far } end
+    local center = t:UpdateBaseCenter(true)
+    aiCore.GetCachedBuildings = realBuildings
+    check("building 10: a silo 1500 m away does not move the base centre", center and center.x < 40)
+    resetBuildingWorld()
+end)
+
+-- Item 11/16: distance-progress stuck detection, throttled completion scan, one spend record per job.
+H.try("building 11", function()
+    local t, rec, con = buildingTeam()
+    t.CanIssueBuildingByRules = function() return true end
+    t.ValidateBuildingPlacement = function() return true, nil end
+    t.Config.buildingPlacementRetryDelay = 1
+    con.busy = true           -- a wedged constructor reports busy forever
+    con.command = AiCommand.GO
+    local mgr = t.constructorMgr
+    mgr.queue = { { odf = "svtowe", path = H.vec(900, 0, 0), priority = 1 } }
+    local failedAt = nil
+    for i = 1, 40 do
+        H.now = H.now + 1.0
+        mgr:update()
+        if mgr.activeJob == nil and failedAt == nil then failedAt = i end
+    end
+    check("building 11: a busy constructor that stops closing distance fails the job within ~25 s",
+        failedAt ~= nil and failedAt <= 26)
+
+    -- Progress keeps it alive.
+    mgr.queue, mgr.activeJob = { { odf = "svtowe", path = H.vec(900, 0, 0), priority = 1 } }, nil
+    con.pos = { x = 0, y = 0, z = 0 }
+    local stillActive = true
+    for _ = 1, 40 do
+        H.now = H.now + 1.0
+        con.pos.x = con.pos.x + 10
+        mgr:update()
+        if mgr.activeJob == nil then stillActive = false end
+    end
+    check("building 11: a constructor making progress is not failed", stillActive)
+
+    -- Completion scan throttle.
+    local realRange, rangeCalls = ObjectsInRange, 0
+    ObjectsInRange = function(...) rangeCalls = rangeCalls + 1; return realRange(...) end
+    con.pos = { x = 0, y = 0, z = 0 }
+    mgr.activeJob = { odf = "svtowe", path = H.vec(900, 0, 0), priority = 1, bestSiteDist = 900, bestSiteDistAt = H.now }
+    for _ = 1, 20 do H.now = H.now + 0.1; mgr:update() end
+    ObjectsInRange = realRange
+    check("building 11: the completion scan runs at most every 0.5 s", rangeCalls <= 5)
+
+    -- Item 16: spend recorded once per job even with several BuildAt attempts.
+    local spends = 0
+    t.RecordBuildAccountSpend = function() spends = spends + 1 end
+    con.busy, con.command, con.pos = false, AiCommand.NONE, { x = 0, y = 0, z = 0 }
+    H.costs.svtowe = 10
+    mgr.activeJob = { odf = "svtowe", path = H.vec(10, 0, 0), priority = 1, account = "defense" }
+    for _ = 1, 3 do
+        H.now = H.now + 1.0
+        mgr.pulseTimer = 0
+        mgr:update()
+    end
+    check("building 16: BuildAt was issued repeatedly", #H.buildAts >= 2)
+    check("building 16: the construction spend is recorded once", spends == 1)
+    resetBuildingWorld()
+end)
+
 H.finish("aiCore fix")

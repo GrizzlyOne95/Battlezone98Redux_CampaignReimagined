@@ -754,9 +754,42 @@ local function DotProduct(a, b)
     return (a.x * b.x) + (a.y * b.y) + (a.z * b.z)
 end
 
+-- Engine positions are VECTOR_3D userdata and transforms are MAT_3D userdata (handles are
+-- lightuserdata), so `type(v) == "table"` would silently discard them. Probe fields instead.
+local function SafeField(v, key)
+    local kind = type(v)
+    if kind ~= "table" and kind ~= "userdata" then return nil end
+    local ok, value = pcall(function() return v[key] end)
+    if ok then return value end
+    return nil
+end
+
+local function IsMatrixLike(v)
+    return SafeField(v, "posit_x") ~= nil
+end
+
+local function IsVectorLike(v)
+    return SafeField(v, "x") ~= nil
+end
+
 local function MatrixToPosition(m)
     if not m then return nil end
     return SetVector(m.posit_x, m.posit_y, m.posit_z)
+end
+
+-- Horizontal distance between two vector-likes (tables or userdata); huge when either is missing.
+local function FlatDistance(a, b)
+    local ax, az, bx, bz = SafeField(a, "x"), SafeField(a, "z"), SafeField(b, "x"), SafeField(b, "z")
+    if not ax or not az or not bx or not bz then return 999999 end
+    local dx, dz = ax - bx, az - bz
+    return math.sqrt(dx * dx + dz * dz)
+end
+
+-- Position of a build-plan path: path name, matrix (table or userdata) or vector.
+local function ResolveJobPosition(path)
+    if type(path) == "string" then return aiCore.GetPathPosition(path) end
+    if IsMatrixLike(path) then return MatrixToPosition(path) end
+    return path
 end
 
 local function DeepCopyValue(value)
@@ -2393,6 +2426,10 @@ function paths.GetPathPointCount(p)
     return GetPathPointCount(p) or 0
 end
 
+function aiCore.GetPathPosition(name)
+    return paths.GetPosition(name, 0)
+end
+
 local function ResolveReferencePosition(ref)
     if ref == nil then return nil end
     if type(ref) == "string" then
@@ -2415,6 +2452,8 @@ local function ResolveReferencePosition(ref)
         if ok and x ~= nil and y ~= nil and z ~= nil then
             return SetVector(x, y, z)
         end
+    elseif type(ref) == "table" and IsMatrixLike(ref) then
+        return MatrixToPosition(ref)
     end
     return ref
 end
@@ -2997,6 +3036,22 @@ function producer.QueueJob(odf, team, location, builder, data)
     producer.SortQueue(team)
 end
 
+-- ODF costs never change at runtime: read each ODF once instead of twice per job every pass.
+producer.CostCache = producer.CostCache or {}
+function producer.GetOdfCosts(odf)
+    local key = string.lower(tostring(odf))
+    local cached = producer.CostCache[key]
+    if cached then return cached.scrap, cached.pilot end
+    local h = OpenODF(odf)
+    if not h then return 0, 0 end
+    cached = {
+        scrap = GetODFInt(h, "GameObjectClass", "scrapCost", 0) or 0,
+        pilot = GetODFInt(h, "GameObjectClass", "pilotCost", 0) or 0
+    }
+    producer.CostCache[key] = cached
+    return cached.scrap, cached.pilot
+end
+
 function producer.ProcessQueues(teamObj)
     if teamObj.Config and not teamObj.Config.manageFactories then return end
     local team = teamObj.teamNum
@@ -3072,15 +3127,14 @@ function producer.ProcessQueues(teamObj)
 
     local removals = {}
 
-    local function GetScrapCost(odf)
-        local h = OpenODF(odf)
-        if not h then return 0 end
-        return GetODFInt(h, "GameObjectClass", "scrapCost", 0)
-    end
-    local function GetPilotCost(odf)
-        local h = OpenODF(odf)
-        if not h then return 0 end
-        return GetODFInt(h, "GameObjectClass", "pilotCost", 0)
+    -- Scrap reserved for work that outranks the job being considered: the constructor's pending
+    -- building and the highest-priority unit we cannot afford yet. Lower-priority jobs only
+    -- spend what is left above the reserve, so cheap spam cannot starve them forever.
+    local reserve = 0
+    local reservedUnaffordable = false
+    local activeBuild = teamObj.constructorMgr and teamObj.constructorMgr.activeJob or nil
+    if activeBuild and (activeBuild.buildAttempts or 0) == 0 then
+        reserve = reserve + (producer.GetOdfCosts(activeBuild.odf))
     end
 
     for i, job in ipairs(queue) do
@@ -3089,8 +3143,7 @@ function producer.ProcessQueues(teamObj)
         if not isBuildingJob and teamObj.CanIssueUnitByRules then
             ruleAllowed = teamObj:CanIssueUnitByRules(job)
         end
-        local cost = GetScrapCost(job.odf)
-        local pilotCost = GetPilotCost(job.odf)
+        local cost, pilotCost = producer.GetOdfCosts(job.odf)
         local factionUnits = aiCore.Units and aiCore.Units[teamObj.faction] or nil
         local constructorOdf = factionUnits and factionUnits.constructor or nil
         local scavengerOdf = factionUnits and factionUnits.scavenger or nil
@@ -3114,7 +3167,7 @@ function producer.ProcessQueues(teamObj)
 
         if ruleAllowed and not shouldDeferForConstructor and not shouldDeferForScavengers
             and cost <= maxScrap and pilotCost <= pilotCharge then
-            if cost <= scrap then
+            if cost <= scrap - reserve then
                 local foundProducer = nil
                 for _, h in ipairs(producers) do
                     local procSig = utility.CleanString(GetClassLabel(h))
@@ -3148,6 +3201,8 @@ function producer.ProcessQueues(teamObj)
                     if teamObj.RecordBuildAccountSpend then
                         teamObj:RecordBuildAccountSpend((job.data and job.data.account) or nil, cost + (pilotCost * 4))
                     end
+                    scrap = scrap - cost
+                    pilotCharge = pilotCharge - pilotCost
                     producer.Orders[foundProducer] = { job = job, issuedAt = GetTime(), team = team,
                         baseCount = producer.CountNearbyOdf(foundProducer, job.odf, team) }
                     table.insert(removals, i)
@@ -3157,8 +3212,15 @@ function producer.ProcessQueues(teamObj)
                         end
                     end
                 end
-            else
-                -- Skip jobs we cannot currently afford and continue scanning the queue.
+            elseif not reservedUnaffordable then
+                -- Highest-priority job we cannot afford: once it has waited a while, hold its cost
+                -- back from later jobs. (Immediately reserving would stall all cheap work behind a
+                -- head item that is merely a few seconds of income away.)
+                reservedUnaffordable = true
+                job.unaffordableSince = job.unaffordableSince or GetTime()
+                if GetTime() - job.unaffordableSince >= aiCore.Constants.UNAFFORDABLE_RESERVE_DELAY then
+                    reserve = reserve + cost
+                end
             end
         end
         if #producers == 0 then break end
@@ -6114,7 +6176,14 @@ end
 aiCore.Constants = {
     CONSTRUCTOR_IDLE_DISTANCE = 100,   -- Distance to recycler before returning when idle
     CONSTRUCTOR_TRAVEL_THRESHOLD = 60, -- Distance before traveling to build site
-    BUILDING_DETECTION_RANGE = 40,     -- Range to check for existing buildings
+    BUILDING_DETECTION_RANGE = 60,     -- Range to check for existing buildings (completion == adoption radius)
+    BUILD_THREAT_RADIUS = 150,         -- Defer a build job whose site has an enemy this close
+    BUILD_REMOTE_DISTANCE = 350,       -- Sites farther than this from the base wait for nearer base plans
+    UNAFFORDABLE_RESERVE_DELAY = 20.0, -- Seconds a head unit job may be unaffordable before its scrap is reserved
+    REBUILD_COOLDOWN = 25.0,           -- Seconds before a destroyed planned building is queued again
+    CONSTRUCTOR_STUCK_SECONDS = 20.0,  -- Travelling without closing this much distance fails the job
+    CONSTRUCTOR_STUCK_DISTANCE = 5.0,
+    CONSTRUCTOR_COMPLETION_INTERVAL = 0.5, -- Throttle for the job-completion scan
     BUILDING_SPACING = 50,             -- Spacing between buildings
     STRATEGY_ROTATION_INTERVAL = 180,  -- Seconds between strategy changes (3 minutes)
     SHADOW_QUEUE_STALE_SECONDS = 240.0, -- Unit shadow-queue entries older than this (and unbacked) are dropped
@@ -6503,6 +6572,20 @@ function aiCore.ConstructorManager:new(team)
     return cm
 end
 
+-- A job is deferred (not failed) while its site is dangerous or a nearer base plan should go first.
+function aiCore.ConstructorManager:ShouldDeferJob(job, now)
+    if job.deferUntil and now < job.deferUntil then return true end
+    local team = self.teamObj
+    if not team or not team.GetBuildJobDeferReason then return false end
+    local reason = team:GetBuildJobDeferReason(job)
+    if reason then
+        job.deferUntil = now + 2.0
+        job.blockedReason = reason
+        return true
+    end
+    return false
+end
+
 function aiCore.ConstructorManager:RequeueActiveJob(reason)
     local job = self.activeJob
     if not job then return end
@@ -6537,10 +6620,14 @@ function aiCore.ConstructorManager:FailActiveJob(reason)
     job.failures = (job.failures or 0) + 1
     job.buildAttempts = 0
     job.progressAt = nil
+    job.bestSiteDist, job.bestSiteDistAt = nil, nil
+    job.placementValidUntil = nil
     if job.failures >= (cfg.constructorJobMaxFailures or 3) then
         local item = self.teamObj and self.teamObj.buildingList and self.teamObj.buildingList[job.priority]
         if item and item.odf == job.odf then
             item.blockedUntil = GetTime() + (cfg.constructorJobGiveUpCooldown or 120.0)
+            -- The site itself is what failed: the next attempt must relocate instead of retrying it.
+            item.siteBanned = true
         end
         self.activeJob = nil
         self.jobState = nil
@@ -6565,19 +6652,13 @@ function aiCore.ConstructorManager:update()
     if self.teamObj and self.teamObj.Config and not self.teamObj.Config.manageConstructor then return end
 
     -- Check if the active job has been completed
-    if self.activeJob then
-        local pos = self.activeJob.path
-        local posVec = nil
-        if type(pos) == "string" then
-            posVec = paths.GetPosition(pos, 0)
-        elseif type(pos) == "table" and pos.posit_x ~= nil then
-            posVec = MatrixToPosition(pos)
-        else
-            posVec = pos
-        end
+    local siteRadius = aiCore.Constants.BUILDING_DETECTION_RANGE
+    if self.activeJob and GetTime() >= (self.activeJob.completionCheckAt or 0.0) then
+        self.activeJob.completionCheckAt = GetTime() + aiCore.Constants.CONSTRUCTOR_COMPLETION_INTERVAL
+        local posVec = ResolveJobPosition(self.activeJob.path)
         local building_exists = false
         if posVec then -- Check if pos is valid
-            for obj in ObjectsInRange(40, posVec) do
+            for obj in ObjectsInRange(siteRadius, posVec) do
                 if IsOdf(obj, self.activeJob.odf) and GetTeamNum(obj) == self.team
                     and not (self.teamObj and self.teamObj.IsObjectClaimedByOtherPlan
                         and self.teamObj:IsObjectClaimedByOtherPlan(obj, self.activeJob.priority, self.activeJob.odf, posVec)) then
@@ -6609,9 +6690,12 @@ function aiCore.ConstructorManager:update()
         end)
         local now = GetTime()
         for index, queuedJob in ipairs(self.queue) do
-            if not queuedJob.retryAt or queuedJob.retryAt <= now then
+            if (not queuedJob.retryAt or queuedJob.retryAt <= now) and not self:ShouldDeferJob(queuedJob, now) then
                 self.activeJob = table.remove(self.queue, index)
                 self.activeJob.retryAt = nil
+                self.activeJob.deferUntil = nil
+                self.activeJob.bestSiteDist, self.activeJob.bestSiteDistAt = nil, nil
+                self.activeJob.placementValidUntil = nil
                 self.activeJob.progressAt = now
                 self.sentToRecycler = false
                 if aiCore.Debug then print("Constructor starts job: " .. self.activeJob.odf) end
@@ -6631,7 +6715,27 @@ function aiCore.ConstructorManager:update()
             local now = GetTime()
             local cfg = (self.teamObj and self.teamObj.Config) or aiCore.EmptyList
             job.progressAt = job.progressAt or now
-            if IsBusy(constructor) then job.progressAt = now end
+            local jobPos = ResolveJobPosition(job.path)
+            local siteDist = jobPos and GetDistance(constructor, jobPos) or nil
+            local travelling = siteDist ~= nil and siteDist > aiCore.Constants.CONSTRUCTOR_TRAVEL_THRESHOLD
+            -- Busy at the site means it is building. Busy while travelling proves nothing (a
+            -- wedged unit stays "busy"), so travel is judged by the distance actually closed.
+            if IsBusy(constructor) and not travelling then job.progressAt = now end
+            if travelling then
+                if CanBuild(constructor) then
+                    if not job.bestSiteDist
+                        or siteDist < job.bestSiteDist - aiCore.Constants.CONSTRUCTOR_STUCK_DISTANCE then
+                        job.bestSiteDist = siteDist
+                        job.bestSiteDistAt = now
+                        job.progressAt = now
+                    elseif (now - (job.bestSiteDistAt or now)) > aiCore.Constants.CONSTRUCTOR_STUCK_SECONDS then
+                        self:FailActiveJob("constructor_stuck")
+                        return
+                    end
+                end
+            else
+                job.bestSiteDist, job.bestSiteDistAt = nil, nil
+            end
             if (job.buildAttempts or 0) >= (cfg.constructorJobMaxAttempts or 6)
                 or (now - job.progressAt) > (cfg.constructorJobTimeout or 120.0) then
                 self:FailActiveJob((job.buildAttempts or 0) >= (cfg.constructorJobMaxAttempts or 6)
@@ -6647,17 +6751,9 @@ function aiCore.ConstructorManager:update()
 
         -- If we are here, the constructor is IDLE and ABLE to take a command.
         local pos = self.activeJob.path
-        local posVec = nil
+        local posVec = ResolveJobPosition(pos)
         local buildPos = pos
-        if type(pos) == "string" then
-            posVec = paths.GetPosition(pos, 0)
-            buildPos = posVec
-        elseif type(pos) == "table" and pos.posit_x ~= nil then
-            posVec = MatrixToPosition(pos)
-        else
-            posVec = pos
-            buildPos = pos
-        end
+        if type(pos) == "string" then buildPos = posVec end
 
         if not posVec then
             self:RequeueActiveJob("invalid_path")
@@ -6672,32 +6768,47 @@ function aiCore.ConstructorManager:update()
                 return
             end
 
-            local placementOptions = {
-                ignorePriority = self.activeJob.priority,
-                ignoreObject = constructor,
-                includePlannedPower = false
-            }
-            local placementOk, placementReason = self.teamObj:ValidateBuildingPlacement(
-                self.activeJob.odf, buildPos, placementOptions)
-            if not placementOk and placementReason ~= "power" then
-                local relocated = self.teamObj:FindAlternateBuildingPlacement(
+            -- Re-validate only once per retry interval (the scan is expensive and the
+            -- constructor updates every frame); a relocation or failure resets the window.
+            local nowTime = GetTime()
+            local planned = self.teamObj.buildingList and self.teamObj.buildingList[self.activeJob.priority]
+            if planned and planned.odf ~= self.activeJob.odf then planned = nil end
+            local forceRelocate = planned and planned.siteBanned
+            if forceRelocate or nowTime >= (self.activeJob.placementValidUntil or 0.0) then
+                local placementOptions = {
+                    ignorePriority = self.activeJob.priority,
+                    ignoreObject = constructor,
+                    includePlannedPower = false
+                }
+                local placementOk, placementReason = self.teamObj:ValidateBuildingPlacement(
                     self.activeJob.odf, buildPos, placementOptions)
-                if relocated then
-                    self.activeJob.path = relocated
-                    local planned = self.teamObj.buildingList[self.activeJob.priority]
-                    if planned and planned.odf == self.activeJob.odf then
-                        planned.path = relocated
+                if ((not placementOk and placementReason ~= "power") or forceRelocate)
+                    and self.teamObj.FindAlternateBuildingPlacement then
+                    local relocated = self.teamObj:FindAlternateBuildingPlacement(
+                        self.activeJob.odf, buildPos, placementOptions)
+                    if planned then planned.siteBanned = nil end
+                    if relocated then
+                        self.activeJob.path = relocated
+                        self.activeJob.placementValidUntil = nil
+                        self.activeJob.bestSiteDist, self.activeJob.bestSiteDistAt = nil, nil
+                        if planned then planned.path = relocated end
+                        if aiCore.Debug then
+                            print("aiCore: relocated " .. tostring(self.activeJob.odf)
+                                .. " after placement check " .. tostring(placementReason))
+                        end
+                        return
                     end
-                    if aiCore.Debug then
-                        print("aiCore: relocated " .. tostring(self.activeJob.odf)
-                            .. " after placement check " .. tostring(placementReason))
+                end
+                if not placementOk then
+                    if placementReason == "power" then
+                        self:RequeueActiveJob(placementReason) -- waiting for power is not a failure
+                    else
+                        self:FailActiveJob(placementReason)    -- counts toward the give-up limit
                     end
                     return
                 end
-            end
-            if not placementOk then
-                self:RequeueActiveJob(placementReason)
-                return
+                local retryDelay = (self.teamObj.Config and self.teamObj.Config.buildingPlacementRetryDelay) or 4.0
+                self.activeJob.placementValidUntil = nowTime + math.max(1.0, retryDelay)
             end
         end
 
@@ -6705,21 +6816,21 @@ function aiCore.ConstructorManager:update()
         if cmd == AiCommand.BUILD then
             return
         end
-        local cmdName = AiCommand[cmd] or ""
+        local travelling = cmd == AiCommand.GO or cmd == AiCommand.GO_TO_GEYSER
 
-        if not string.match(cmdName, "GO") and GetDistance(constructor, posVec) > 60.0 then
+        if not travelling and GetDistance(constructor, posVec) > siteRadius then
             -- Move to site
             aiCore.TrySetCommand(constructor, AiCommand.GO, GetUncommandablePriority(), nil, posVec, nil, nil,
                 { minInterval = 1.0 })
             if aiCore.Debug then print("Constructor GOTO " .. self.activeJob.odf .. " site.") end
-        elseif GetDistance(constructor, posVec) <= 60.0 then
+        elseif GetDistance(constructor, posVec) <= siteRadius then
             -- At site, try to build
             -- Pre-build checks
-            local scrapCost = GetODFInt(OpenODF(self.activeJob.odf), "GameObjectClass", "scrapCost")
+            local scrapCost = producer.GetOdfCosts(self.activeJob.odf)
             if GetScrap(self.team) >= scrapCost then
                 -- Check for existing building
                 local existingBuilding = nil
-                for obj in ObjectsInRange(40, posVec) do
+                for obj in ObjectsInRange(siteRadius, posVec) do
                     if IsOdf(obj, self.activeJob.odf) and GetTeamNum(obj) == self.team
                         and not (self.teamObj and self.teamObj.IsObjectClaimedByOtherPlan
                             and self.teamObj:IsObjectClaimedByOtherPlan(obj, self.activeJob.priority, self.activeJob.odf, posVec)) then
@@ -6743,6 +6854,12 @@ function aiCore.ConstructorManager:update()
                         if aiCore.Debug then print("Constructor issuing BuildAt for " .. self.activeJob.odf) end
                         BuildAt(constructor, self.activeJob.odf, buildPos)
                         self.activeJob.buildAttempts = (self.activeJob.buildAttempts or 0) + 1
+                        if not self.activeJob.spendRecorded then
+                            self.activeJob.spendRecorded = true -- once per job, not per retry
+                            if self.teamObj and self.teamObj.RecordBuildAccountSpend then
+                                self.teamObj:RecordBuildAccountSpend(self.activeJob.account, scrapCost)
+                            end
+                        end
                         self.pulseTimer = self.pulsePeriod + math.random((0 * self.pulsePeriod), self.pulsePeriod) +
                             GetTime()
                     end
@@ -8033,7 +8150,7 @@ function aiCore.Team:RefreshPlannedBaseStructures(previousCenter, newCenter)
     local function ShiftPath(path)
         if type(path) == "string" or not path then return path end
 
-        local isMatrixLike = path.posit_x ~= nil and path.posit_y ~= nil and path.posit_z ~= nil
+        local isMatrixLike = IsMatrixLike(path)
         local pathPos = isMatrixLike and MatrixToPosition(path) or path
         if not pathPos then return path end
         if DistanceBetweenRefs(pathPos, previousCenter) > localRadius then return path end
@@ -8213,8 +8330,15 @@ function aiCore.Team:UpdateBaseCenter(force)
     AddRef(factory, IsValid(factory) and (IsDeployed(factory) and 4.5 or 3.0) or 0.0)
     AddRef(armory, 2.0)
 
+    -- Remote silos/outposts must not drag the centre: only buildings near the recycler count
+    -- (or near the current centre while there is no recycler).
+    local anchorPos = nil
+    if IsValid(recycler) then anchorPos = GetPosition(recycler) else anchorPos = self.baseCenter end
+    local maxCenterDist = self.Config.baseCenterBuildingRadius or 250.0
+
     for _, obj in ipairs(aiCore.GetCachedBuildings(self.teamNum)) do
-        if IsValid(obj) and IsAlive(obj) and IsBuilding(obj) then
+        if IsValid(obj) and IsAlive(obj) and IsBuilding(obj)
+            and (not anchorPos or GetDistance(obj, anchorPos) <= maxCenterDist) then
             local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
             local weight = 1.0
             if cls == utility.ClassLabel.POWERPLANT or cls == utility.ClassLabel.SCRAP_SILO then
@@ -8475,18 +8599,19 @@ function aiCore.Team:AddBuilding(odf, path, priority)
     end
 
     if priority == nil then
-        -- Default to lowest priority so explicit scripted priorities remain dominant.
+        -- Default to the lowest priority (built after everything already planned) so explicit
+        -- scripted priorities remain dominant. Lower numbers are built first.
         local hasPriority = false
-        local lowestPriority = 1
+        local highestPriority = 1
         for p, _ in pairs(self.buildingList) do
             if type(p) == "number" then
-                if not hasPriority or p < lowestPriority then
-                    lowestPriority = p
+                if not hasPriority or p > highestPriority then
+                    highestPriority = p
                 end
                 hasPriority = true
             end
         end
-        priority = hasPriority and (lowestPriority - 1) or 1
+        priority = hasPriority and (highestPriority + 1) or 1
     else
         while self.buildingList[priority] do
             priority = priority + 1
@@ -8542,13 +8667,14 @@ function aiCore.IsAreaFlat(centerPos, radius, checkPoints, flatThreshold, flatPe
 end
 
 local function ResolveBuildingPosition(reference)
+    if reference == nil then return nil end
     if type(reference) == "string" then
         return paths.GetPosition(reference, 0)
     end
-    if type(reference) == "table" and reference.posit_x ~= nil then
+    if IsMatrixLike(reference) then
         return MatrixToPosition(reference)
     end
-    if type(reference) == "table" and reference.x ~= nil then
+    if IsVectorLike(reference) then
         return reference
     end
     if IsValid(reference) then
@@ -8558,8 +8684,8 @@ local function ResolveBuildingPosition(reference)
 end
 
 local function BuildRelocatedReference(reference, position)
-    if type(reference) == "table" and reference.posit_x ~= nil then
-        local facing = SetVector(reference.front_x or 0.0, 0.0, reference.front_z or 1.0)
+    if IsMatrixLike(reference) then
+        local facing = SetVector(SafeField(reference, "front_x") or 0.0, 0.0, SafeField(reference, "front_z") or 1.0)
         if math.abs(facing.x) + math.abs(facing.z) < 0.001 then
             facing = aiCore.VecFacing.N
         end
@@ -8950,11 +9076,18 @@ function aiCore.Team:PlanCommTower(priority)
     local range = self:GetPowerRange(powerOdf)
 
     -- 1. Find existing power
+    -- Nearest power plant to the base centre, not whichever the cache lists first.
     local powerPlant = nil
+    local bestPowerDist = math.huge
+    local baseCenter = self:GetBaseCenter()
     for _, obj in ipairs(aiCore.GetCachedBuildings(self.teamNum)) do
-        if string.lower(utility.CleanString(GetClassLabel(obj))) == "powerplant" or IsOdf(obj, powerOdf) then
-            powerPlant = obj
-            break
+        if IsValid(obj) and IsAlive(obj)
+            and (string.lower(utility.CleanString(GetClassLabel(obj))) == "powerplant" or IsOdf(obj, powerOdf)) then
+            local d = baseCenter and DistanceBetweenRefs(obj, baseCenter) or 0.0
+            if not powerPlant or d < bestPowerDist then
+                powerPlant = obj
+                bestPowerDist = d
+            end
         end
     end
 
@@ -11396,7 +11529,9 @@ function aiCore.Team:CountExistingOrPlannedBuildingsNear(pos, radius, matcher)
 
     local count = 0
     for _, building in pairs(self.buildingList) do
-        if DistanceBetweenRefs(building.path, pos) <= radius and matcher(building.odf, nil, true) then
+        -- A plan whose building exists is counted by the live-object loop below.
+        local built = IsValid(building.handle) and IsAlive(building.handle)
+        if not built and DistanceBetweenRefs(building.path, pos) <= radius and matcher(building.odf, nil, true) then
             count = count + 1
         end
     end
@@ -11412,9 +11547,24 @@ function aiCore.Team:CountExistingOrPlannedBuildingsNear(pos, radius, matcher)
     return count
 end
 
-function aiCore.Team:GetNearestEnemyProducerDistance(pos)
+-- Enemy team for building/outpost helpers. When GetPrimaryEnemyTeam finds none, fall back to a
+-- team on the other side of the human/AI divide that is not allied; -1 when there is no enemy
+-- (never a hard-coded team 1/2 guess, which can name an ally).
+function aiCore.Team:GetBuildingEnemyTeam()
     local enemyTeam = self:GetPrimaryEnemyTeam()
-    if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
+    if enemyTeam >= 0 then return enemyTeam end
+    local selfHuman = aiCore.IsHumanTeam(self.teamNum)
+    for team = 1, 15 do
+        if team ~= self.teamNum and not self:IsFriendlyTeam(team) and aiCore.IsHumanTeam(team) ~= selfHuman then
+            return team
+        end
+    end
+    return -1
+end
+
+function aiCore.Team:GetNearestEnemyProducerDistance(pos)
+    local enemyTeam = self:GetBuildingEnemyTeam()
+    if enemyTeam < 0 then return 999999 end
 
     local best = 999999
     local recycler = GetRecyclerHandle(enemyTeam)
@@ -11438,6 +11588,24 @@ function aiCore.Team:GetNearestEnemyProducerDistance(pos)
     return best
 end
 
+-- Sites AddBuilding refused are remembered so the planners move on to another candidate
+-- instead of proposing (and failing on) the same spot every pass.
+function aiCore.Team:BanPlanningSite(pos)
+    local resolved = ResolveBuildingPosition(pos)
+    if not resolved then return end
+    self.bannedPlanningSites = self.bannedPlanningSites or {}
+    table.insert(self.bannedPlanningSites, { x = resolved.x, z = resolved.z })
+end
+
+function aiCore.Team:IsPlanningSiteBanned(pos, radius)
+    local resolved = ResolveBuildingPosition(pos)
+    if not resolved or not self.bannedPlanningSites then return false end
+    for _, site in ipairs(self.bannedPlanningSites) do
+        if FlatDistance(site, resolved) <= (radius or 15.0) then return true end
+    end
+    return false
+end
+
 function aiCore.Team:FindOutpostStructureLocation(anchorPos, focusPos, odf, minDist, maxDist)
     if not anchorPos or not odf then return nil end
 
@@ -11454,7 +11622,8 @@ function aiCore.Team:FindOutpostStructureLocation(anchorPos, focusPos, odf, minD
                 anchorPos.z + math.sin(rad) * dist
             )
             testPos.y = GetTerrainHeight(testPos.x, testPos.z)
-            if aiCore.IsAreaFlat(testPos, 12, 6, 0.92, 0.65) and self:CheckBuildingSpacing(odf, testPos, 45) then
+            if aiCore.IsAreaFlat(testPos, 12, 6, 0.92, 0.65) and self:CheckBuildingSpacing(odf, testPos, 45)
+                and not self:IsPlanningSiteBanned(testPos) then
                 return aiCore.BuildDirectionalMatrix(testPos, Normalize(facingBase - testPos))
             end
         end
@@ -11479,7 +11648,7 @@ function aiCore.Team:FindSiloLocationNearHotspot(centerPos)
             local isFlat = aiCore.IsAreaFlat(testPos, 14, 6, 0.94, 0.68)
             if isFlat then
                 local ok = self:CheckBuildingSpacing(aiCore.Units[self.faction].silo, testPos, 65)
-                if ok then
+                if ok and not self:IsPlanningSiteBanned(testPos) then
                     return testPos
                 end
             end
@@ -11490,8 +11659,8 @@ function aiCore.Team:FindSiloLocationNearHotspot(centerPos)
 end
 
 function aiCore.Team:GetEnemyScrapDenyTarget(centerPos, radius)
-    local enemyTeam = self:GetPrimaryEnemyTeam()
-    if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
+    local enemyTeam = self:GetBuildingEnemyTeam()
+    if enemyTeam < 0 then return nil, -999999 end
 
     local best = nil
     local bestScore = -999999
@@ -11697,7 +11866,7 @@ function aiCore.Team:PlanHotspotOutpost()
         local remoteEnough = (hotspot.dropoffDist or 0.0) >= (self.Config.scrapHotspotOutpostDropoffDistance or 330.0)
         local safeEnough = producerDist >= (self.Config.scrapHotspotOutpostEnemyProducerRadius or 600.0)
 
-        if richEnough and remoteEnough and (safeEnough or hotspot.contested) then
+        if richEnough and remoteEnough and safeEnough then
             local anchor = hotspot.outpostAnchor
             if not anchor then
                 anchor = self:FindSiloLocationNearHotspot(hotspot.position)
@@ -11707,7 +11876,13 @@ function aiCore.Team:PlanHotspotOutpost()
             if anchor then
                 local needSilo = not self:HasPlannedSiloNear(anchor, supportRadius)
                 if needSilo and siloOdf then
-                    self:AddBuilding(siloOdf, aiCore.BuildDirectionalMatrix(anchor, Normalize(hotspot.position - anchor)))
+                    local added = self:AddBuilding(siloOdf,
+                        aiCore.BuildDirectionalMatrix(anchor, Normalize(hotspot.position - anchor)))
+                    if not added then
+                        -- Rejected: drop the cached anchor and ban it so the next pass picks another.
+                        self:BanPlanningSite(anchor)
+                        hotspot.outpostAnchor = nil
+                    end
                     self.scrapOutpostTimer = GetTime() + (self.Config.scrapHotspotOutpostCooldown or 10.0)
                     return
                 end
@@ -11721,7 +11896,7 @@ function aiCore.Team:PlanHotspotOutpost()
                     if powerCount == 0 then
                         local powerPos = self:FindOutpostStructureLocation(anchor, hotspot.position, powerOdf, 30.0, 70.0)
                         if powerPos then
-                            self:AddBuilding(powerOdf, powerPos)
+                            if not self:AddBuilding(powerOdf, powerPos) then self:BanPlanningSite(powerPos) end
                             self.scrapOutpostTimer = GetTime() + (self.Config.scrapHotspotOutpostCooldown or 10.0)
                             return
                         end
@@ -11737,7 +11912,7 @@ function aiCore.Team:PlanHotspotOutpost()
                     if repairCount == 0 then
                         local repairPos = self:FindOutpostStructureLocation(anchor, hotspot.position, repairOdf, 34.0, 78.0)
                         if repairPos then
-                            self:AddBuilding(repairOdf, repairPos)
+                            if not self:AddBuilding(repairOdf, repairPos) then self:BanPlanningSite(repairPos) end
                             self.scrapOutpostTimer = GetTime() + (self.Config.scrapHotspotOutpostCooldown or 10.0)
                             return
                         end
@@ -11753,7 +11928,7 @@ function aiCore.Team:PlanHotspotOutpost()
                     if supplyCount == 0 then
                         local supplyPos = self:FindOutpostStructureLocation(anchor, hotspot.position, supplyOdf, 40.0, 84.0)
                         if supplyPos then
-                            self:AddBuilding(supplyOdf, supplyPos)
+                            if not self:AddBuilding(supplyOdf, supplyPos) then self:BanPlanningSite(supplyPos) end
                             self.scrapOutpostTimer = GetTime() + (self.Config.scrapHotspotOutpostCooldown or 10.0)
                             return
                         end
@@ -11770,7 +11945,7 @@ function aiCore.Team:PlanHotspotOutpost()
                     if towerCount < desiredTowers then
                         local towerPos = self:FindOutpostStructureLocation(anchor, hotspot.position, towerOdf, 44.0, 92.0)
                         if towerPos then
-                            self:AddBuilding(towerOdf, towerPos)
+                            if not self:AddBuilding(towerOdf, towerPos) then self:BanPlanningSite(towerPos) end
                             self.scrapOutpostTimer = GetTime() + (self.Config.scrapHotspotOutpostCooldown or 10.0)
                             return
                         end
@@ -11794,11 +11969,14 @@ function aiCore.Team:PlanHotspotSilo()
             and not self:HasPlannedSiloNear(hotspot.position, 130.0) then
             local siloPos = self:FindSiloLocationNearHotspot(hotspot.position)
             if siloPos then
-                self:AddBuilding(aiCore.Units[self.faction].silo, siloPos, 11)
-                if aiCore.Debug then
-                    print("Team " .. self.teamNum .. " planning silo near contested scrap field.")
+                if self:AddBuilding(aiCore.Units[self.faction].silo, siloPos, 11) then
+                    if aiCore.Debug then
+                        print("Team " .. self.teamNum .. " planning silo near contested scrap field.")
+                    end
+                    return
                 end
-                return
+                -- Rejected: ban the candidate and try the next hotspot (this one finds another next pass).
+                self:BanPlanningSite(siloPos)
             end
         end
     end
@@ -13475,8 +13653,54 @@ end
 
 local function ResolvePlanPosition(path)
     if type(path) == "string" then return paths.GetPosition(path, 0) end
-    if type(path) == "table" and path.posit_x ~= nil then return MatrixToPosition(path) end
+    if IsMatrixLike(path) then return MatrixToPosition(path) end
     return path
+end
+
+-- True when a hostile craft, person or turret is within `radius` of `pos`.
+function aiCore.Team:IsBuildSiteThreatened(pos, radius)
+    if not pos then return false end
+    radius = radius or aiCore.Constants.BUILD_THREAT_RADIUS
+    for obj in ObjectsInRange(radius, pos) do
+        if IsValid(obj) and IsAlive(obj) then
+            local team = GetTeamNum(obj)
+            if team ~= 0 and not self:IsFriendlyTeam(team) then
+                local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+                if IsCraft(obj) or IsPerson(obj) or cls == utility.ClassLabel.TURRET then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
+-- True while an unbuilt, not-cooling-down plan other than `exceptPriority` lies within `radius`
+-- of `center`.
+function aiCore.Team:HasUnbuiltBasePlanNear(center, radius, exceptPriority)
+    local now = GetTime()
+    for p, item in pairs(self.buildingList or aiCore.EmptyList) do
+        if p ~= exceptPriority and not IsValid(item.handle)
+            and not (item.blockedUntil and now < item.blockedUntil) then
+            local pos = ResolvePlanPosition(item.path)
+            if pos and FlatDistance(pos, center) <= radius then return true end
+        end
+    end
+    return false
+end
+
+-- Why the constructor should skip `job` for now, or nil. Threatened sites wait for the enemy to
+-- leave; remote sites (silo/outposts) wait until the nearby base plans are done.
+function aiCore.Team:GetBuildJobDeferReason(job)
+    local pos = ResolvePlanPosition(job.path)
+    if not pos or type(pos) == "string" then return nil end
+    if self:IsBuildSiteThreatened(pos, aiCore.Constants.BUILD_THREAT_RADIUS) then return "site_threat" end
+    local center = self:GetBaseCenter()
+    if center and FlatDistance(pos, center) > aiCore.Constants.BUILD_REMOTE_DISTANCE
+        and self:HasUnbuiltBasePlanNear(center, aiCore.Constants.BUILD_REMOTE_DISTANCE, job.priority) then
+        return "base_plans_first"
+    end
+    return nil
 end
 
 -- True if `obj` belongs to a different same-odf building plan than `priority`: either that
@@ -13503,13 +13727,18 @@ function aiCore.Team:CheckConstruction()
 
     for _, p in ipairs(priorities) do
         local item = self.buildingList[p]
+        -- A building we owned is gone: wait out a short cooldown before rebuilding it so the
+        -- constructor does not walk straight back into the force that just destroyed it.
+        if item.handle ~= nil and (not IsValid(item.handle) or not IsAlive(item.handle)) then
+            item.handle = nil
+            item.rebuildAfter = GetTime() + aiCore.Constants.REBUILD_COOLDOWN
+        end
         if not IsValid(item.handle) then
-            local pos = item.path
-            if type(pos) == "string" then pos = paths.GetPosition(pos, 0) end
+            local pos = ResolvePlanPosition(item.path)
 
             local found = nil
             if pos then
-                for obj in ObjectsInRange(60, pos) do
+                for obj in ObjectsInRange(aiCore.Constants.BUILDING_DETECTION_RANGE, pos) do
                     -- Never adopt a building another same-type plan already owns/is nearest to,
                     -- or neighbouring towers alias to one building and the rest never get built.
                     if IsOdf(obj, item.odf) and GetTeamNum(obj) == self.teamNum
@@ -13522,6 +13751,7 @@ function aiCore.Team:CheckConstruction()
 
             if found then
                 item.handle = found
+                item.rebuildAfter = nil
             else
                 local activeJob = self.constructorMgr.activeJob
                 local inQueue = activeJob ~= nil and activeJob.priority == p
@@ -13533,6 +13763,9 @@ function aiCore.Team:CheckConstruction()
                 end
                 if item.blockedUntil and GetTime() < item.blockedUntil then
                     inQueue = true -- constructor gave up on this plan; cool-down before retrying
+                end
+                if item.rebuildAfter and GetTime() < item.rebuildAfter then
+                    inQueue = true -- destroyed recently; cool-down before rebuilding
                 end
                 if not inQueue then
                     local allowed, ruleReason = self:CanQueueBuildingByRules(item.odf)
@@ -13666,7 +13899,7 @@ function aiCore.Team:AddObject(h)
 
     -- Constructor linking checks path distance
     for i, qItem in ipairs(self.constructorMgr.queue) do
-        if qItem.odf == odf and GetDistance(h, qItem.path) < 60 then
+        if qItem.odf == odf and GetDistance(h, qItem.path) < aiCore.Constants.BUILDING_DETECTION_RANGE then
             if self.buildingList[qItem.priority] then
                 self.buildingList[qItem.priority].handle = h
             end
@@ -13678,7 +13911,7 @@ function aiCore.Team:AddObject(h)
     local activeConstruction = self.constructorMgr and self.constructorMgr.activeJob or nil
     if activeConstruction and activeConstruction.path
         and string.lower(utility.CleanString(activeConstruction.odf)) == odf
-        and GetDistance(h, activeConstruction.path) < 60 then
+        and GetDistance(h, activeConstruction.path) < aiCore.Constants.BUILDING_DETECTION_RANGE then
         producedNaturally = true
     end
     if producedNaturally or linked then
@@ -13861,38 +14094,60 @@ function aiCore.Team:PlanDefensivePerimeter(powerCount, towersPerPower)
 
     -- Use math.pi / 4 (45 degrees) for 8 points, or more if powerCount is high
     local step = (powerCount > 8) and (2 * math.pi / powerCount) or (math.pi / 4)
+    local angleCount = math.max(1, math.floor((2 * math.pi) / step + 0.5))
 
-    for angle = 0, 2 * math.pi, step do
+    -- Start with the side facing the nearest human/enemy base (fallback: angle 0, as before).
+    local startAngle = 0.0
+    local enemyTeam = self:GetBuildingEnemyTeam()
+    if enemyTeam >= 0 then
+        local enemyRef = GetRecyclerHandle(enemyTeam)
+        if not IsValid(enemyRef) then enemyRef = GetFactoryHandle(enemyTeam) end
+        if IsValid(enemyRef) then
+            local ep = GetPosition(enemyRef)
+            local ex, ez = SafeField(ep, "x"), SafeField(ep, "z")
+            if ex and ez and (math.abs(ex - recyclerPos.x) + math.abs(ez - recyclerPos.z)) > 1.0 then
+                startAngle = math.atan2(ez - recyclerPos.z, ex - recyclerPos.x)
+            end
+        end
+    end
+
+    local rings = { 100.0, 120.0, 140.0 }
+    for i = 0, angleCount - 1 do
         if foundPowers >= powerCount then break end
+        local angle = startAngle + i * step
 
-        local dist = 120.0
-        local x = recyclerPos.x + dist * math.cos(angle)
-        local z = recyclerPos.z + dist * math.sin(angle)
-        local pPos = SetVector(x, GetTerrainHeight(x, z), z)
+        for _, dist in ipairs(rings) do
+            local x = recyclerPos.x + dist * math.cos(angle)
+            local z = recyclerPos.z + dist * math.sin(angle)
+            local pPos = SetVector(x, GetTerrainHeight(x, z), z)
 
-        if aiCore.IsAreaFlat(pPos, 12, 8, 0.96, 0.7) and self:CheckBuildingSpacing(powerOdf, pPos, 60) then
-            -- Found spot for power
-            local pMat = BuildDirectionalMatrix(pPos, Normalize(pPos - recyclerPos))
-            foundPowers = foundPowers + 1
+            if aiCore.IsAreaFlat(pPos, 12, 8, 0.96, 0.7) and self:CheckBuildingSpacing(powerOdf, pPos, 60) then
+                -- Found spot for power: it only counts once the planner actually accepted it.
+                local pMat = BuildDirectionalMatrix(pPos, Normalize(pPos - recyclerPos))
+                -- Interleaved Priority: One Power then its Towers
+                -- Power gets 10, 20, 30... Towers get 11, 12, 21, 22...
+                local pPrio = startPriority + ((foundPowers + 1) * 10)
+                if self:AddBuilding(powerOdf, pMat, pPrio) then
+                    foundPowers = foundPowers + 1
 
-            -- Interleaved Priority: One Power then its Towers
-            -- Power gets 10, 20, 30... Towers get 11, 12, 21, 22...
-            local pPrio = startPriority + (foundPowers * 10)
-            self:AddBuilding(powerOdf, pMat, pPrio)
+                    -- Find spots for towers nearby
+                    local foundTowers = 0
+                    for k = 0, 5 do
+                        if foundTowers >= towersPerPower then break end
+                        local tAngle = angle - 0.5 + k * 0.2
 
-            -- Find spots for towers nearby
-            local foundTowers = 0
-            for tAngle = angle - 0.5, angle + 0.5, 0.2 do
-                if foundTowers >= towersPerPower then break end
+                        local tX = pPos.x + 40.0 * math.cos(tAngle)
+                        local tZ = pPos.z + 40.0 * math.sin(tAngle)
+                        local tPos = SetVector(tX, GetTerrainHeight(tX, tZ), tZ)
 
-                local tX = pPos.x + 40.0 * math.cos(tAngle)
-                local tZ = pPos.z + 40.0 * math.sin(tAngle)
-                local tPos = SetVector(tX, GetTerrainHeight(tX, tZ), tZ)
-
-                if aiCore.IsAreaFlat(tPos, 8, 4, 0.92, 0.5) and self:CheckBuildingSpacing(towerOdf, tPos, 35) then
-                    local tMat = BuildDirectionalMatrix(tPos, Normalize(tPos - recyclerPos))
-                    foundTowers = foundTowers + 1
-                    self:AddBuilding(towerOdf, tMat, pPrio + foundTowers)
+                        if aiCore.IsAreaFlat(tPos, 8, 4, 0.92, 0.5) and self:CheckBuildingSpacing(towerOdf, tPos, 35) then
+                            local tMat = BuildDirectionalMatrix(tPos, Normalize(tPos - recyclerPos))
+                            if self:AddBuilding(towerOdf, tMat, pPrio + foundTowers + 1) then
+                                foundTowers = foundTowers + 1
+                            end
+                        end
+                    end
+                    break -- one power per angle
                 end
             end
         end

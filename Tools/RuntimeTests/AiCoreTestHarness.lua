@@ -18,9 +18,53 @@ H.lowerTurboCalls = 0
 
 local function valid(h) return type(h) == "table" and h.valid ~= false end
 local function alive(h) return valid(h) and h.alive ~= false end
-local function position(ref)
-    if type(ref) ~= "table" then return { x = 0, y = 0, z = 0 } end
-    return ref.pos or ref
+-- Engine vectors (GetPosition/SetVector) are VECTOR_3D userdata and transforms are MAT_3D
+-- userdata: a `type(v) == "table"` check in aiCore would silently discard them, so the mocks
+-- return userdata too (docs/AGENT_KNOWLEDGE_BASE.md). H.vec(x,y,z) / H.mat(x,y,z,fx,fz).
+local newVec, position
+newVec = function(x, y, z)
+    local u = newproxy(true)
+    local d = { x = x or 0, y = y or 0, z = z or 0 }
+    local mt = getmetatable(u)
+    mt.__index = function(_, k) return d[k] end
+    mt.__newindex = function(_, k, v) d[k] = v end
+    -- Operands may be vectors or mock handles (tables with a pos): normalise through position().
+    mt.__add = function(a, b)
+        local pa, pb = position(a), position(b)
+        return newVec(pa.x + pb.x, pa.y + pb.y, pa.z + pb.z)
+    end
+    mt.__sub = function(a, b)
+        local pa, pb = position(a), position(b)
+        return newVec(pa.x - pb.x, pa.y - pb.y, pa.z - pb.z)
+    end
+    mt.__mul = function(a, b)
+        if type(a) == "number" then return newVec(a * b.x, a * b.y, a * b.z) end
+        if type(b) == "number" then return newVec(a.x * b, a.y * b, a.z * b) end
+        return newVec(a.x * b.x, a.y * b.y, a.z * b.z)
+    end
+    mt.__div = function(a, b) return newVec(a.x / b, a.y / b, a.z / b) end
+    mt.__unm = function(a) return newVec(-a.x, -a.y, -a.z) end
+    return u
+end
+local function newMat(px, py, pz, fx, fz)
+    local u = newproxy(true)
+    local d = { posit_x = px or 0, posit_y = py or 0, posit_z = pz or 0, front_x = fx or 0, front_z = fz or 1 }
+    getmetatable(u).__index = function(_, k) return d[k] end
+    return u
+end
+H.vec, H.mat = newVec, newMat
+position = function(ref)
+    local kind = type(ref)
+    if kind == "userdata" then
+        local px = ref.posit_x
+        if px ~= nil then return { x = px, y = ref.posit_y, z = ref.posit_z } end
+        return ref
+    end
+    if kind ~= "table" then return { x = 0, y = 0, z = 0 } end
+    if ref.posit_x ~= nil then return { x = ref.posit_x, y = ref.posit_y, z = ref.posit_z } end
+    local p = ref.pos
+    if type(p) == "userdata" then return position(p) end
+    return p or ref
 end
 local function distance(a, b)
     local ap, bp = position(a), position(b)
@@ -71,7 +115,13 @@ GetClassLabel = function(h) return valid(h) and (h.class or "wingman") or "" end
 GetClassSig = function() return "" end
 GetLabel = function() return "" end
 GetDistance = distance
-GetPosition = position
+GetPosition = function(ref)
+    local p = position(ref)
+    return newVec(p.x, p.y, p.z)
+end
+BuildDirectionalMatrix = function(pos, facing)
+    return newMat(pos.x, pos.y, pos.z, facing and facing.x or 0, facing and facing.z or 1)
+end
 GetCurrentCommand = function(h) return valid(h) and (h.command or AiCommand.NONE) or AiCommand.NONE end
 GetCurrentWho = function(h) return valid(h) and h.target or nil end
 GetHealth = function(h) return valid(h) and (h.health or 1.0) or 0 end
@@ -110,7 +160,7 @@ GetTerrainHeightAndNormal = function() return 0, { x = 0, y = 1, z = 0 } end
 GetCommandableAttackPriority = function() return 1 end
 GetUncommandablePriority = function() return 1 end
 GetPositionNear = function(p) return p end
-SetVector = function(x, y, z) return { x = x or 0, y = y or 0, z = z or 0 } end
+SetVector = function(x, y, z) return newVec(x, y, z) end
 SetCommand = function(h, command, priority, who, where, param, odf)
     h.command, h.target = command, who
     table.insert(H.commands, { handle = h, command = command, target = who, position = where, odf = odf,
@@ -269,7 +319,12 @@ function H.handle(fields)
     fields.valid = fields.valid ~= false
     fields.alive = fields.alive ~= false
     fields.pos = fields.pos or { x = 0, y = 0, z = 0 }
-    return fields
+    -- Handles are lightuserdata in the engine, so aiCore resolves them through GetPosition; the
+    -- mock only needs to survive a stray `handle - vector` from the distance helpers.
+    return setmetatable(fields, { __sub = function(a, b)
+        local pa, pb = position(a), position(b)
+        return newVec(pa.x - pb.x, pa.y - pb.y, pa.z - pb.z)
+    end })
 end
 
 function H.addObject(fields)
