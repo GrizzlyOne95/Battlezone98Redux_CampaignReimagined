@@ -1089,4 +1089,201 @@ H.try("bug 51", function()
     H.nearestEnemy = nil
 end)
 
+-- Pilot/sniper audit (A1, A2, A5): any non-rifle slot-0 weapon is the sidearm, allies are never
+-- sniped or stolen from, and an unreachable target is blacklisted after a timeout.
+H.try("pilot sniper audit", function()
+    local realRandom = math.random
+    GiveWeapon = function(h, w, slot) h.weapons = h.weapons or {}; h.weapons[slot] = w end
+    GetIn = function(h, target) h.gotIn = target end
+    IsAliveAndPilot = function(h) return IsAlive(h) and h.occupied == true end
+    SetTarget = function(h, target) h.aimedAt = target end
+
+    local function refresh()
+        aiCore.ResetObjectCacheTracking()
+        for _, o in ipairs(H.objects) do aiCore.TrackWorldObject(o) end
+        aiCore.RefreshObjectCache(true)
+    end
+    local function setup(pilotWeapon, sniper)
+        H.objects, H.nearestEnemy = {}, nil
+        H.reset()
+        local t = newTeam(2, 2)
+        local p = H.addObject { team = 2, odf = "sspilo", class = "person", person = true,
+            weapons = { [0] = pilotWeapon } }
+        t.pilots = { p }
+        t.sniperState = { [p] = sniper }
+        return t, p
+    end
+    local function tick(t, n)
+        for _ = 1, n or 1 do H.now = H.now + 1.0; t.pilotUpdateAt = 0.0; t:UpdatePilots() end
+    end
+    local function gos(target)
+        local n = 0
+        for _, c in ipairs(H.commands) do
+            if c.command == AiCommand.GO and c.target == target then n = n + 1 end
+        end
+        return n
+    end
+
+    -- A1: an aprifle pilot arms gsnipe, and the saved rifle comes back (not "handgun").
+    H.now = 500.0
+    math.random = function() return 1 end
+    local t, p = setup("aprifle", true)
+    local enemy = H.addObject { team = 1, odf = "avtank", class = "wingman", craft = true, occupied = true,
+        pos = { x = 0, y = 0, z = 100 } }
+    refresh()
+    H.nearestEnemy = enemy
+    tick(t, 2)
+    check("A1: the pilot is ordered to attack the occupied enemy craft", p.command == AiCommand.ATTACK and p.target == enemy)
+    tick(t, 2)
+    check("A1: an aprifle pilot equips gsnipe", p.weapons[0] == "gsnipe" and t.pilotOrigWeapon[p] == "aprifle")
+    enemy.alive = false
+    tick(t, 2)
+    check("A1: the original sidearm is restored, not handgun", p.weapons[0] == "aprifle")
+
+    -- A2: never snipe an allied or own-team occupied craft.
+    H.allied["2:3"] = true
+    t, p = setup("sprifle", true)
+    local allyCraft = H.addObject { team = 3, odf = "avtank", class = "wingman", craft = true, occupied = true,
+        pos = { x = 0, y = 0, z = 100 } }
+    local ownCraft = H.addObject { team = 2, odf = "svtank", class = "wingman", craft = true, occupied = true,
+        pos = { x = 0, y = 0, z = 90 } }
+    refresh()
+    for _, cand in ipairs({ allyCraft, ownCraft }) do
+        H.nearestEnemy = cand
+        tick(t, 4)
+    end
+    check("A2: allied/own occupied craft are not sniped", p.weapons[0] == "sprifle" and p.command ~= AiCommand.ATTACK)
+
+    -- A2/A3/A6: steal the nearest empty, armed craft that is not an ally's; two pilots never share one.
+    t, p = setup("sprifle", false)
+    local allyEmpty = H.addObject { team = 3, odf = "avtank", class = "wingman", craft = true,
+        weapons = { [0] = "gcannon" }, pos = { x = 30, y = 0, z = 0 } }
+    local farEmpty = H.addObject { team = 0, odf = "avtank", class = "wingman", craft = true,
+        weapons = { [0] = "gcannon" }, pos = { x = 120, y = 0, z = 0 } }
+    local nearEmpty = H.addObject { team = 0, odf = "avtank", class = "wingman", craft = true,
+        weapons = { [0] = "gcannon" }, pos = { x = 60, y = 0, z = 0 } }
+    local unarmed = H.addObject { team = 0, odf = "avscav", class = "scavenger", craft = true,
+        pos = { x = 20, y = 0, z = 0 } }
+    refresh()
+    tick(t, 1)
+    check("A2/A3: the nearest armed, non-allied empty craft is chosen",
+        t.pilotStealTarget[p] == nearEmpty and gos(nearEmpty) == 1 and gos(allyEmpty) == 0 and gos(unarmed) == 0)
+    local p2 = H.addObject { team = 2, odf = "sspilo", class = "person", person = true, weapons = { [0] = "sprifle" } }
+    t.pilots = { p, p2 }
+    t.sniperState[p2] = false
+    tick(t, 2)
+    check("A6: a second pilot takes a different craft",
+        t.pilotStealTarget[p2] == farEmpty and t.pilotStealTarget[p] == nearEmpty)
+
+    -- A5: no progress for 20 s blacklists the target for this pilot for ~60 s.
+    t, p = setup("sprifle", false)
+    local stuck = H.addObject { team = 0, odf = "avtank", class = "wingman", craft = true,
+        weapons = { [0] = "gcannon" }, pos = { x = 100, y = 0, z = 0 } }
+    refresh()
+    tick(t, 12)
+    check("A5: still pursuing before the timeout", t.pilotStealTarget[p] == stuck)
+    tick(t, 12)
+    check("A5: the unreachable craft is dropped and blacklisted",
+        t.pilotStealTarget[p] == nil and (t.pilotBlacklist[p][stuck] or 0) > H.now)
+    tick(t, 30)
+    check("A5: it is not picked again during the blacklist", t.pilotStealTarget[p] == nil)
+    tick(t, 40)
+    check("A5: it is eligible again once the blacklist expires", t.pilotStealTarget[p] == stuck)
+
+    math.random = realRandom
+    H.nearestEnemy = nil
+    H.allied = {}
+    H.objects = {}
+    local human = aiCore.AddTeam(1, 1)
+    check("A4: human teams default to no pilot specials/stealing",
+        human.Config.managePilotSpecials == false and human.Config.sniperSteal == false)
+    aiCore.ActiveTeams = {}
+end)
+
+-- Howitzer squads (B1-B4): persistent target, range-based stand-off, once-per-target player assist.
+H.try("howitzer squads", function()
+    local realRandom = math.random
+    local function refresh()
+        aiCore.ResetObjectCacheTracking()
+        for _, o in ipairs(H.objects) do aiCore.TrackWorldObject(o) end
+        aiCore.RefreshObjectCache(true)
+    end
+    H.objects, H.nearestEnemy = {}, nil
+    H.reset()
+    H.now = 1000.0
+    local t = newTeam(2, 2)
+    t.Config.howitzerChance = 100
+    local mgr = t.howitzerMgr
+    local how = H.addObject { team = 2, odf = "svartl", class = "howitzer", craft = true, pos = { x = 0, y = 0, z = 0 } }
+    local recy = H.addObject { team = 1, odf = "avrecy", class = "recycler", building = true,
+        pos = { x = 1000, y = 0, z = 0 } }
+    H.core.recycler[1] = recy
+    refresh()
+    mgr.howitzers = { how }
+
+    -- B2: out of range (250 m fallback) -> GO to a stand-off point at 0.8 x range from the target.
+    mgr:Update(100.0)
+    local go = H.commands[1]
+    check("B2: an out-of-range target draws a GO, not an attack", go and go.command == AiCommand.GO and #H.commands == 1)
+    local sx = go and go.position and go.position.x or 0
+    check("B2: the stand-off point is 0.8 x range from the target", math.abs((1000 - sx) - 200) < 1.0)
+    local state = mgr.squadState[how]
+    check("B1: the squad has a persistent target", state and state.target == recy)
+
+    -- B3: idle at the stand-off point -> immediate attack without waiting for the 30 s cycle.
+    how.pos = { x = 800, y = 0, z = 0 }
+    how.command = AiCommand.NONE
+    H.commands = {}
+    H.now = H.now + 3.0
+    mgr:Update(0.1)
+    check("B3/B2: an idle howitzer in range is ordered to attack at once",
+        #H.commands == 1 and H.commands[1].command == AiCommand.ATTACK and H.commands[1].target == recy)
+
+    -- Hysteresis: between 0.9 x and 1.0 x range it keeps attacking (no new GO).
+    how.pos = { x = 760, y = 0, z = 0 }   -- 240 m
+    H.commands = {}
+    H.now = H.now + 3.0
+    mgr:UpdateSquadOrders(true)
+    check("B2: an attacking howitzer keeps attacking until past full range", #H.commands == 0)
+
+    -- B1: a higher-priority target appearing does not steal the squad's target.
+    H.addObject { team = 1, odf = "avslf", class = "supplydepot", building = true, pos = { x = 500, y = 0, z = 0 } }
+    refresh()
+    for _ = 1, 3 do H.now = H.now + 31.0; mgr:Update(100.0) end
+    check("B1: the target persists across evaluations", mgr.squadState[how].target == recy)
+    recy.alive = false
+    H.now = H.now + 3.0
+    mgr:Update(0.1)
+    local depot = mgr.squadState[how] and mgr.squadState[how].target
+    check("B1: a dead target is replaced at once", depot ~= nil and depot ~= recy and depot.class == "supplydepot")
+
+    -- B6: a howitzer is registered once.
+    mgr.howitzers = {}
+    mgr:AddObject(how)
+    mgr:AddObject(how)
+    check("B6: AddObject does not duplicate a howitzer", #mgr.howitzers == 1)
+
+    -- B4: the player-team assist sends one stand-off GO per target and never overrides a player GO.
+    H.objects, H.commands = {}, {}
+    local human = aiCore.AddTeam(1, 1)
+    local pm = human.howitzerMgr
+    local ph = H.addObject { team = 1, odf = "avartl", class = "howitzer", craft = true, pos = { x = 0, y = 0, z = 0 } }
+    local far = H.addObject { team = 2, odf = "svrecy", class = "recycler", building = true,
+        pos = { x = 3000, y = 0, z = 0 } }
+    pm.howitzers = { ph }
+    ph.command, ph.target = AiCommand.ATTACK, far
+    for _ = 1, 4 do H.now = H.now + 1.0; pm:UpdatePlayerHowitzerOrders() end
+    local goCount = 0
+    for _, c in ipairs(H.commands) do if c.command == AiCommand.GO then goCount = goCount + 1 end end
+    check("B4: the stand-off GO is issued once per target", goCount == 1)
+    ph.command, ph.target = AiCommand.GO, nil          -- the player now gives their own GO
+    H.commands = {}
+    for _ = 1, 3 do H.now = H.now + 1.0; pm:UpdatePlayerHowitzerOrders() end
+    check("B4: a GO the player gave is never overridden", #H.commands == 0)
+
+    math.random = realRandom
+    H.objects = {}
+    aiCore.ActiveTeams = {}
+end)
+
 H.finish("aiCore fix")
