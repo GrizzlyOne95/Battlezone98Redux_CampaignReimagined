@@ -782,9 +782,8 @@ local function SetupAI(preserveExisting)
 
     DiffUtils.SetupTeams(aiCore.Factions.NSDF, aiCore.Factions.CCA, ENEMY_TEAM)
 
-    -- Configure Player Team (1) for Scavenger Assist
+    -- Configure Player Team (1)
     if aiCore.ActiveTeams and aiCore.ActiveTeams[1] then
-        aiCore.ActiveTeams[1]:SetConfig("scavengerAssist", PersistentConfig.Settings.ScavengerAssistEnabled)
         aiCore.ActiveTeams[1]:SetConfig("manageFactories", false)
         aiCore.ActiveTeams[1]:SetConfig("autoRepairWingmen", PersistentConfig.Settings.AutoRepairWingmen)
     end

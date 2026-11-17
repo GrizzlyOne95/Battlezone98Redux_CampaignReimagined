@@ -1272,7 +1272,6 @@ function Update()
         -- playerTeam:SetConfig("autoTugs", false)
         -- playerTeam:SetConfig("stickToPlayer", false)    -- [Diff] (Player Only)
         -- playerTeam:SetConfig("dynamicMinefields", false)
-        -- playerTeam:SetConfig("scavengerAssist", false) -- [Diff] (Player Only)
 
         -- Minefield positions
         -- playerTeam:SetConfig("minefields", {}) -- List of positions for minelayers

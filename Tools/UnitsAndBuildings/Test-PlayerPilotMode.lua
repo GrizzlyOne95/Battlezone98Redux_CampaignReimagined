@@ -68,7 +68,7 @@ end
 
 package.preload.aiCore = function() return aiStub end
 package.preload.PersistentConfig = function()
-    return { Settings = { PilotModeEnabled = false, AutoRepairWingmen = false, ScavengerAssistEnabled = false } }
+    return { Settings = { PilotModeEnabled = false, AutoRepairWingmen = false } }
 end
 PersistentConfig = require("PersistentConfig")
 

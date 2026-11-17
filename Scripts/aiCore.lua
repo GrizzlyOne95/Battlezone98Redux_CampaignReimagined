@@ -6751,7 +6751,6 @@ end
 ---@field strategyTimer number
 ---@field weaponTimer number
 ---@field resourceBoostTimer number
----@field scavAssistTimer number
 ---@field techTimer number
 ---@field pilotResTimer number
 ---@field rescueTimer number
@@ -6979,7 +6978,6 @@ function aiCore.Team:new(teamNum, faction)
         allowProducerRelocation = true,
         stickToPlayer = false,
         dynamicMinefields = false,
-        scavengerAssist = false,
 
         -- Minefield positions
         minefields = {}, -- List of positions for minelayers
@@ -7163,7 +7161,6 @@ function aiCore.Team:new(teamNum, faction)
     t.strategyTimer = GetTime() + aiCore.Constants.STRATEGY_ROTATION_INTERVAL
     t.weaponTimer = GetTime() + 1.0
     t.resourceBoostTimer = GetTime() + 10.0
-    t.scavAssistTimer = 0
     t.techTimer = 0
     t.pilotResTimer = 0
     t.rescueTimer = 0
@@ -8692,9 +8689,6 @@ function aiCore.Team:Update()
     if manageBase then self:UpdateParatroopers() end
     if manageTacticalOrders then self:UpdateSoldiers() end
 
-    -- Scavenger Assist (Player QOL)
-    if manageBase and self.Config.scavengerAssist then self:UpdateScavengerAssist() end
-
     -- Tracked Set Cleanup (O(1) lookup maintenance)
     if now >= (self.trackedCleanupAt or 0.0) then
         self.trackedCleanupAt = now + 10.0
@@ -8937,71 +8931,6 @@ function aiCore.Team:UpdateResourceBoosting()
                 " scrap, +" .. pilotBoost .. " pilots (Next in " .. math.floor(interval) .. "s)")
         end
     end
-end
-
-function aiCore.Team:UpdateScavengerAssist()
-    -- Initialize state table for multi-frame workaround
-    if not self.scavengerResetState then self.scavengerResetState = {} end
-
-    -- Process pending resets (Staggered over frames)
-    for h, step in pairs(self.scavengerResetState) do
-        if not IsValid(h) then
-            self.scavengerResetState[h] = nil
-        else
-            if step == 1 then
-                self.scavengerResetState[h] = nil
-            end
-        end
-    end
-
-    -- Check if it's time to issue new scavenge commands
-    if (self.scavAssistTimer or 0) > GetTime() then return end
-    self.scavAssistTimer = GetTime() + 15.0 -- Refresh every 5s
-
-    if not self.scavengers then self.scavengers = {} end
-
-    -- Clean dead
-    aiCore.RemoveDead(self.scavengers)
-
-    for _, h in ipairs(self.scavengers) do
-        -- Only assist if not selected, not processing a reset, and valid
-        if IsValid(h) and not IsSelected(h) and not self.scavengerResetState[h] then
-            local cmd = GetCurrentCommand(h)
-
-            if self.teamNum == 1 and SetIndependence then
-                SetIndependence(h, 0)
-            end
-
-            if cmd == AiCommand.NONE or cmd == AiCommand.SCAVENGE then
-                SetCommand(h, AiCommand.SCAVENGE, 0, nil, nil, nil, nil)
-                aiCore.RecordCommand(h, AiCommand.SCAVENGE, nil)
-                if self.teamNum == 1 and SetIndependence then
-                    SetIndependence(h, 0)
-                end
-                self.scavengerResetState[h] = 1 -- One-frame guard to prevent double-trigger
-            end
-        end
-    end
-end
-
-function aiCore.Team:RegisterScavenger(h)
-    if not self.scavengers then self.scavengers = {} end
-    UniqueInsert(self.scavengers, h)
-
-    if not self.Config.scavengerAssist or not IsValid(h) then return end
-    if self.teamNum == 1 and SetIndependence then
-        SetIndependence(h, 0)
-    end
-
-    SetCommand(h, AiCommand.SCAVENGE, 0, nil, nil, nil, nil)
-    aiCore.RecordCommand(h, AiCommand.SCAVENGE, nil)
-
-    if self.teamNum == 1 and SetIndependence then
-        SetIndependence(h, 0)
-    end
-
-    self.scavengerResetState = self.scavengerResetState or {}
-    self.scavengerResetState[h] = 1
 end
 
 function aiCore.Team:IsSingletonProducerOdf(odf)
@@ -12627,9 +12556,9 @@ function aiCore.Team:AddObject(h)
         end
     end
 
-    -- Scavenger Assist (Auto-Registration)
     if cls == utility.ClassLabel.SCAVENGER then
-        self:RegisterScavenger(h)
+        if not self.scavengers then self.scavengers = {} end
+        UniqueInsert(self.scavengers, h)
     end
 
     -- Add to tactical lists
