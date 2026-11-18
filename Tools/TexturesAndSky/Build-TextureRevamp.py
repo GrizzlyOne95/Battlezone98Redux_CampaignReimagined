@@ -29,7 +29,7 @@ COLOURS={
  'olwall':('crviolwall_d.dds',(1024,1024)),
  'olfloor':('crviolfloor_d.dds',(1024,1024)),
  'oltrim':('crvioltrim_d.dds',(1024,1024)),
- 'olscreen':('crviolscreen_d.dds',(1536,512)),
+ 'olscreen':('crviolscreen_d.dds',(1024,512)),
 }
 HEIGHTS={
  'bark1_height':('cr17_ftrunk1_n.dds',(1024,2048),1.8),
@@ -110,7 +110,7 @@ def build(foliage_only=False,group=None):
         name,size=COLOURS[key]
         put(name.replace('_d.dds','_s.dds'),Image.new('RGB',(4,4),(42,42,42)))
     with Image.open(REF/'olscreen.png') as image:
-        put('crviolscreen_e.dds',image.convert('RGB').resize((1536,512),Image.Resampling.LANCZOS))
+        put('crviolscreen_e.dds',image.convert('RGB').resize((1024,512),Image.Resampling.LANCZOS))
     # Keep approved captured-base diffuse artwork byte-for-byte. New auxiliary
     # maps select its actual cyan nodes, never stock human lamp locations.
     for suffix in ('cmd','hng','pwr','tow'):
