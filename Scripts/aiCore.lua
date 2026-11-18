@@ -149,7 +149,7 @@ local function SetMass(h, m)
 end
 
 -- Evaluate whether a given target can be sniped
-function utility.CanSnipe(h)
+local function CanSnipeUncached(h)
     if not IsValid(h) then return false end
     local cls = string.lower(utility.CleanString(GetClassLabel(h)))
     local isTurret = string.find(cls, "turret", 1, true) ~= nil
@@ -169,6 +169,22 @@ function utility.CanSnipe(h)
         return true
     end
     return false
+end
+
+-- Cached per target for one second: every pilot of every team asks about the same craft each tick.
+local canSnipeCache = { stamp = nil, map = {} }
+function utility.CanSnipe(h)
+    if not IsValid(h) then return false end
+    local stamp = math.floor(GetTime())
+    if canSnipeCache.stamp ~= stamp then
+        canSnipeCache.stamp, canSnipeCache.map = stamp, {}
+    end
+    local cached = canSnipeCache.map[h]
+    if cached == nil then
+        cached = CanSnipeUncached(h)
+        canSnipeCache.map[h] = cached
+    end
+    return cached
 end
 
 -- Stock pilot identity is based on the stock pilot ODF family and its
@@ -211,7 +227,7 @@ end
 
 local function NormalizeScriptPriority(h, priority)
     if not IsValid(h) then return priority end
-    if GetTeamNum(h) == 1 then
+    if aiCore.IsHumanTeam(GetTeamNum(h)) then
         return COMMAND_PRIORITY_COMMANDABLE
     end
     if priority == nil then
@@ -738,9 +754,42 @@ local function DotProduct(a, b)
     return (a.x * b.x) + (a.y * b.y) + (a.z * b.z)
 end
 
+-- Engine positions are VECTOR_3D userdata and transforms are MAT_3D userdata (handles are
+-- lightuserdata), so `type(v) == "table"` would silently discard them. Probe fields instead.
+local function SafeField(v, key)
+    local kind = type(v)
+    if kind ~= "table" and kind ~= "userdata" then return nil end
+    local ok, value = pcall(function() return v[key] end)
+    if ok then return value end
+    return nil
+end
+
+local function IsMatrixLike(v)
+    return SafeField(v, "posit_x") ~= nil
+end
+
+local function IsVectorLike(v)
+    return SafeField(v, "x") ~= nil
+end
+
 local function MatrixToPosition(m)
     if not m then return nil end
     return SetVector(m.posit_x, m.posit_y, m.posit_z)
+end
+
+-- Horizontal distance between two vector-likes (tables or userdata); huge when either is missing.
+local function FlatDistance(a, b)
+    local ax, az, bx, bz = SafeField(a, "x"), SafeField(a, "z"), SafeField(b, "x"), SafeField(b, "z")
+    if not ax or not az or not bx or not bz then return 999999 end
+    local dx, dz = ax - bx, az - bz
+    return math.sqrt(dx * dx + dz * dz)
+end
+
+-- Position of a build-plan path: path name, matrix (table or userdata) or vector.
+local function ResolveJobPosition(path)
+    if type(path) == "string" then return aiCore.GetPathPosition(path) end
+    if IsMatrixLike(path) then return MatrixToPosition(path) end
+    return path
 end
 
 local function DeepCopyValue(value)
@@ -891,6 +940,8 @@ aiCore.HumanTeamDefaults = {
     manageFactories = false,
     manageTacticalOrders = false,
     manageSpecialCombat = false,
+    managePilotSpecials = false,
+    sniperSteal = false,
 }
 
 function aiCore.ApplyHumanTeamDefaults(team)
@@ -1255,12 +1306,12 @@ function aiCore.TrySetTurbo(h, enabled)
     local setTurbo = exu.SetUnitTurbo
     if not setTurbo then return false end
     local teamNum = GetTeamNum(h)
-    if teamNum == 1 then
+    if aiCore.IsHumanTeam(teamNum) then
         enabled = true
     else
-        local team = aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[teamNum] or nil
-        local difficulty = (team and team.Config and team.Config.difficulty) or 2
-        if difficulty < 4 then
+        -- Same source as the other difficulty scaling (DiffUtils copies exu.GetDifficulty into
+        -- Team.Config.difficulty, but unconfigured teams kept the constructor default of 1).
+        if aiCore.GetDifficultyLevel() < 4 then
             enabled = false
         end
     end
@@ -1517,7 +1568,7 @@ function aiCore.ApplyNativeTactics(h, team)
     if policy.engageRange or policy.weaponRangeMin or policy.retargetPeriod
         or policy.kiteDesiredRange then
         local applied = aiNative.ApplyUnitPolicy(h, policy)
-        if policy.engageRange then
+        if policy.engageRange and (aiCore.Debug or aiNative.Debug) then
             print(string.format(
                 "aiCore: native tactics odf=%s team=%d applied=%s engage=%.1f standoff=%.1f kite=%.1f/%.1f/%.1f",
                 odf, GetTeamNum(h), tostring(applied), policy.engageRange,
@@ -1526,7 +1577,7 @@ function aiCore.ApplyNativeTactics(h, team)
         end
         return applied
     end
-    return false
+    return nil -- no policy for this unit (callers only retry a push that returned false)
 end
 
 -- Merge per-mission native-tactics overrides into a team's config, or into
@@ -1599,7 +1650,19 @@ function aiCore.SetNativeUnitProfile(teamNum, key, profile)
     return true
 end
 
-local function GetNativeSquadTarget(team, unit)
+-- Per-candidate scoring runs many times per scan, so squad targets (per unit, ~0.25 s) and
+-- class bonuses (per config + candidate odf, ~5 s or until the native config is reapplied)
+-- are cached. Entries are rebuilt wholesale on a timer, which also bounds their size.
+local kNativeSquadCacheTtl = 0.25
+local kNativeCacheResetInterval = 5.0
+local nativeScoreCache = { squad = {}, bonus = {}, resetAt = 0.0 }
+
+local function ResetNativeScoreCache(now)
+    nativeScoreCache.squad, nativeScoreCache.bonus = {}, {}
+    nativeScoreCache.resetAt = now + kNativeCacheResetInterval
+end
+
+local function GetNativeSquadTargetUncached(team, unit)
     if not team or not team.squads then return nil end
     for _, squad in ipairs(team.squads) do
         local isMember = squad.leader == unit
@@ -1618,7 +1681,20 @@ local function GetNativeSquadTarget(team, unit)
     return nil
 end
 
-local function GetNativeClassBonus(config, candidate)
+local function GetNativeSquadTarget(team, unit)
+    local now = GetTime()
+    -- now < resetAt - interval covers a clock that went backwards (restart / load).
+    if now >= nativeScoreCache.resetAt or now < nativeScoreCache.resetAt - kNativeCacheResetInterval then
+        ResetNativeScoreCache(now)
+    end
+    local entry = nativeScoreCache.squad[unit]
+    if entry and now >= entry.at and now - entry.at < kNativeSquadCacheTtl then return entry.target end
+    local target = GetNativeSquadTargetUncached(team, unit)
+    nativeScoreCache.squad[unit] = { at = now, target = target }
+    return target
+end
+
+local function GetNativeClassBonusUncached(config, candidate)
     local bonuses = config and config.nativeTargetClassBonuses
     if type(bonuses) ~= "table" then return 0.0 end
     local cls = string.lower(utility.CleanString(GetClassLabel(candidate)))
@@ -1636,6 +1712,22 @@ local function GetNativeClassBonus(config, candidate)
         end
     end
     return bestBonus
+end
+
+local function GetNativeClassBonus(config, candidate)
+    if type(config) ~= "table" then return 0.0 end
+    local odf = string.lower(utility.CleanString(GetOdf(candidate) or ""))
+    local perConfig = nativeScoreCache.bonus[config]
+    if not perConfig then
+        perConfig = {}
+        nativeScoreCache.bonus[config] = perConfig
+    end
+    local bonus = perConfig[odf]
+    if bonus == nil then
+        bonus = GetNativeClassBonusUncached(config, candidate)
+        perConfig[odf] = bonus
+    end
+    return bonus
 end
 
 -- Line-of-fire cache: friendly/allied craft handles + positions per team, rebuilt at most
@@ -1705,7 +1797,7 @@ function aiCore.InstallNativeTargetScoring()
     if aiCore._nativeTargetScoringInstalled then return true end
     if not aiNative or not aiNative.SetTargetScoreHandler then return false end
 
-    local installed = aiNative.SetTargetScoreHandler(function(unit, candidate, baseDistance, stockLane)
+    local function score_candidate(unit, candidate, baseDistance, stockLane)
         if not IsValid(unit) or not IsValid(candidate) then return nil end
         local team = aiCore.ActiveTeams[GetTeamNum(unit)]
         local config = ResolveNativeConfig(team)
@@ -1760,6 +1852,19 @@ function aiCore.InstallNativeTargetScoring()
             score = score + blockedPenalty
         end
         return math.max(0.0, score)
+    end
+
+    -- A Lua error must not propagate into the engine hook: nil keeps the stock score.
+    local installed = aiNative.SetTargetScoreHandler(function(unit, candidate, baseDistance, stockLane)
+        local ok, result = pcall(score_candidate, unit, candidate, baseDistance, stockLane)
+        if not ok then
+            if not aiCore._nativeScoreErrorLogged then
+                aiCore._nativeScoreErrorLogged = true
+                print("aiCore: native target score error: " .. tostring(result))
+            end
+            return nil
+        end
+        return result
     end)
 
     aiCore._nativeTargetScoringInstalled = installed and true or false
@@ -1770,6 +1875,8 @@ function aiCore.ReapplyNativeTactics()
     if not aiNative then return end
     aiNative.ClearAll()
     aiCore._nativeSyncChecked = {}
+    aiCore._nativeSyncFails = {}
+    ResetNativeScoreCache(GetTime())
     for h in AllCraft() do
         -- team may be nil: player/unmanaged teams use DefaultNativeConfig.
         aiCore.ApplyNativeTactics(h, aiCore.ActiveTeams[GetTeamNum(h)])
@@ -1789,7 +1896,8 @@ function aiCore.SyncNativeTactics()
     aiCore._nextNativeTacticsSync = now + 1.0
 
     -- Craft that already got an (empty/skipped) policy attempt are not re-probed every
-    -- second; only a low-health band change re-evaluates them.
+    -- second; only a low-health band change re-evaluates them. checked[h] is the time after
+    -- which a probe may repeat: math.huge for a settled unit, now + 10 s for a failed push.
     local checked = aiCore._nativeSyncChecked
     if not checked then
         checked = {}
@@ -1797,6 +1905,14 @@ function aiCore.SyncNativeTactics()
     end
     for h in pairs(checked) do
         if not IsValid(h) then checked[h] = nil end
+    end
+    local fails = aiCore._nativeSyncFails
+    if not fails then
+        fails = {}
+        aiCore._nativeSyncFails = fails
+    end
+    for h in pairs(fails) do
+        if not IsValid(h) then fails[h] = nil end
     end
 
     for h in AllCraft() do
@@ -1809,9 +1925,16 @@ function aiCore.SyncNativeTactics()
             local band = healthFraction <= existing.healthThreshold and "low" or "normal"
             healthBandChanged = band ~= existing.healthBand
         end
-        if healthBandChanged or (not existing and not checked[h]) then
-            checked[h] = true
-            aiCore.ApplyNativeTactics(h, aiCore.ActiveTeams[GetTeamNum(h)])
+        if healthBandChanged or (not existing and (not checked[h] or now >= checked[h])) then
+            local result = aiCore.ApplyNativeTactics(h, aiCore.ActiveTeams[GetTeamNum(h)])
+            -- A failed push retries every 10 s, at most 3 times per unit.
+            if result == false then
+                fails[h] = (fails[h] or 0) + 1
+                checked[h] = (fails[h] < 3) and (now + 10.0) or math.huge
+            else
+                fails[h] = nil
+                checked[h] = math.huge
+            end
         end
     end
 end
@@ -2285,8 +2408,9 @@ function aiCore.SetupOrdnanceHooks()
     aiCore._ordnanceHooksInstalled = (initInstalled or hitInstalled) and true or false
 end
 
--- Path Utilities
-paths = {}
+-- Path Utilities (no longer a global: the generic name collided with mission locals/globals)
+local paths = {}
+aiCore.paths = paths
 function paths.GetPosition(p, pt)
     if type(p) ~= "string" then
         if IsValid(p) then return GetPosition(p) end -- Native GetPosition for handles
@@ -2301,6 +2425,10 @@ end
 function paths.GetPathPointCount(p)
     if type(p) ~= "string" then return 0 end
     return GetPathPointCount(p) or 0
+end
+
+function aiCore.GetPathPosition(name)
+    return paths.GetPosition(name, 0)
 end
 
 local function ResolveReferencePosition(ref)
@@ -2325,6 +2453,8 @@ local function ResolveReferencePosition(ref)
         if ok and x ~= nil and y ~= nil and z ~= nil then
             return SetVector(x, y, z)
         end
+    elseif type(ref) == "table" and IsMatrixLike(ref) then
+        return MatrixToPosition(ref)
     end
     return ref
 end
@@ -2729,7 +2859,8 @@ end
 -- Find an occupied, snipable enemy craft without calling ObjectsInRange.
 -- The object cache is refreshed at most once per second, so this remains a
 -- bounded list walk even when several pilot teams are active.
-function aiCore.FindNearestSniperTarget(shooter, maxRange, preferredTeam)
+-- `excluded` is an optional handle -> expiry-time table of targets this shooter must skip.
+function aiCore.FindNearestSniperTarget(shooter, maxRange, preferredTeam, excluded)
     if not IsValid(shooter) or not IsAlive(shooter) or not IsPerson(shooter) then
         return nil
     end
@@ -2739,6 +2870,7 @@ function aiCore.FindNearestSniperTarget(shooter, maxRange, preferredTeam)
     local best = nil
     local bestDistance = range
     local checkedTeam = {}
+    local now = GetTime()
 
     local function CheckTeam(teamNum)
         if teamNum == nil or checkedTeam[teamNum] or teamNum == shooterTeam then return end
@@ -2747,6 +2879,7 @@ function aiCore.FindNearestSniperTarget(shooter, maxRange, preferredTeam)
         for _, candidate in ipairs(aiCore.GetCachedTeamCraft(teamNum)) do
             if IsValid(candidate) and IsAlive(candidate) and candidate ~= shooter
                 and not IsAlly(shooter, candidate)
+                and not (excluded and (excluded[candidate] or 0.0) > now)
                 and utility.CanSnipe(candidate)
                 and IsAliveAndPilot(candidate)
                 and not IsCloaked(candidate) then
@@ -2765,7 +2898,7 @@ function aiCore.FindNearestSniperTarget(shooter, maxRange, preferredTeam)
     -- A mission can have more than one hostile team. The preferred team is
     -- normally enough; this fallback preserves the old nearest-enemy behavior
     -- when the primary team has no eligible craft.
-    for teamNum = 0, 15 do
+    for teamNum = 1, 15 do
         CheckTeam(teamNum)
     end
 
@@ -2778,6 +2911,9 @@ producer = {
     Queue = {}, -- table<TeamNum, list<Job>>
     Orders = {} -- table<Handle, Job>
 }
+-- Also reachable as aiCore.producer. The bare global stays as a compatibility alias: the
+-- Tools/RuntimeTests suites read it directly.
+aiCore.producer = producer
 
 function producer.IsSameJob(a, b)
     if a == b then return true end
@@ -2901,6 +3037,22 @@ function producer.QueueJob(odf, team, location, builder, data)
     producer.SortQueue(team)
 end
 
+-- ODF costs never change at runtime: read each ODF once instead of twice per job every pass.
+producer.CostCache = producer.CostCache or {}
+function producer.GetOdfCosts(odf)
+    local key = string.lower(tostring(odf))
+    local cached = producer.CostCache[key]
+    if cached then return cached.scrap, cached.pilot end
+    local h = OpenODF(odf)
+    if not h then return 0, 0 end
+    cached = {
+        scrap = GetODFInt(h, "GameObjectClass", "scrapCost", 0) or 0,
+        pilot = GetODFInt(h, "GameObjectClass", "pilotCost", 0) or 0
+    }
+    producer.CostCache[key] = cached
+    return cached.scrap, cached.pilot
+end
+
 function producer.ProcessQueues(teamObj)
     if teamObj.Config and not teamObj.Config.manageFactories then return end
     local team = teamObj.teamNum
@@ -2976,15 +3128,21 @@ function producer.ProcessQueues(teamObj)
 
     local removals = {}
 
-    local function GetScrapCost(odf)
-        local h = OpenODF(odf)
-        if not h then return 0 end
-        return GetODFInt(h, "GameObjectClass", "scrapCost", 0)
-    end
-    local function GetPilotCost(odf)
-        local h = OpenODF(odf)
-        if not h then return 0 end
-        return GetODFInt(h, "GameObjectClass", "pilotCost", 0)
+    -- Scrap reserved for work that outranks the job being considered: the constructor's pending
+    -- building and the highest-priority unit we cannot afford yet. Lower-priority jobs only
+    -- spend what is left above the reserve, so cheap spam cannot starve them forever.
+    local reserve = 0
+    local reservedUnaffordable = false
+    local activeBuild = teamObj.constructorMgr and teamObj.constructorMgr.activeJob or nil
+    if activeBuild and (activeBuild.buildAttempts or 0) == 0 then
+        -- Reserve only once the constructor is at the site (about to build), not while it
+        -- travels or the job is deferred.
+        local cHandle = teamObj.constructorMgr.handle
+        local sitePos = ResolveJobPosition(activeBuild.path)
+        if IsValid(cHandle) and sitePos and type(sitePos) ~= "string"
+            and GetDistance(cHandle, sitePos) <= aiCore.Constants.BUILDING_DETECTION_RANGE then
+            reserve = reserve + (producer.GetOdfCosts(activeBuild.odf))
+        end
     end
 
     for i, job in ipairs(queue) do
@@ -2993,8 +3151,7 @@ function producer.ProcessQueues(teamObj)
         if not isBuildingJob and teamObj.CanIssueUnitByRules then
             ruleAllowed = teamObj:CanIssueUnitByRules(job)
         end
-        local cost = GetScrapCost(job.odf)
-        local pilotCost = GetPilotCost(job.odf)
+        local cost, pilotCost = producer.GetOdfCosts(job.odf)
         local factionUnits = aiCore.Units and aiCore.Units[teamObj.faction] or nil
         local constructorOdf = factionUnits and factionUnits.constructor or nil
         local scavengerOdf = factionUnits and factionUnits.scavenger or nil
@@ -3018,7 +3175,7 @@ function producer.ProcessQueues(teamObj)
 
         if ruleAllowed and not shouldDeferForConstructor and not shouldDeferForScavengers
             and cost <= maxScrap and pilotCost <= pilotCharge then
-            if cost <= scrap then
+            if cost <= scrap - reserve then
                 local foundProducer = nil
                 for _, h in ipairs(producers) do
                     local procSig = utility.CleanString(GetClassLabel(h))
@@ -3052,6 +3209,8 @@ function producer.ProcessQueues(teamObj)
                     if teamObj.RecordBuildAccountSpend then
                         teamObj:RecordBuildAccountSpend((job.data and job.data.account) or nil, cost + (pilotCost * 4))
                     end
+                    scrap = scrap - cost
+                    pilotCharge = pilotCharge - pilotCost
                     producer.Orders[foundProducer] = { job = job, issuedAt = GetTime(), team = team,
                         baseCount = producer.CountNearbyOdf(foundProducer, job.odf, team) }
                     table.insert(removals, i)
@@ -3061,8 +3220,15 @@ function producer.ProcessQueues(teamObj)
                         end
                     end
                 end
-            else
-                -- Skip jobs we cannot currently afford and continue scanning the queue.
+            elseif not reservedUnaffordable then
+                -- Highest-priority job we cannot afford: once it has waited a while, hold its cost
+                -- back from later jobs. (Immediately reserving would stall all cheap work behind a
+                -- head item that is merely a few seconds of income away.)
+                reservedUnaffordable = true
+                job.unaffordableSince = job.unaffordableSince or GetTime()
+                if GetTime() - job.unaffordableSince >= aiCore.Constants.UNAFFORDABLE_RESERVE_DELAY then
+                    reserve = reserve + cost
+                end
             end
         end
         if #producers == 0 then break end
@@ -3257,11 +3423,14 @@ function aiCore.StripCircular(data, seen)
     return res
 end
 
+-- Not saved on purpose: DefaultNativeConfig and PendingNativeOps (missions re-apply them on
+-- load) and all per-unit native policies (rebuilt after load by FinishPostLoad).
 function aiCore.Save()
     local data = {
         teams = aiCore.ActiveTeams,
         globalDepot = aiCore.GlobalDepotManagers,
         globalOffense = aiCore.GlobalOffenseManagers,
+        humanTeamOverrides = aiCore.HumanTeamOverrides,
         producer = producer and producer.ExportState() or {}
     }
     return aiCore.StripCircular(data)
@@ -3374,6 +3543,10 @@ function aiCore.Load(data)
         aiCore.ActiveTeams = data.teams
         aiCore.GlobalDepotManagers = data.globalDepot or {}
         aiCore.GlobalOffenseManagers = data.globalOffense or {}
+        -- Older saves have no overrides: keep whatever the mission set up this session.
+        if type(data.humanTeamOverrides) == "table" then
+            aiCore.HumanTeamOverrides = data.humanTeamOverrides
+        end
         if producer then producer.ImportState(data.producer) end
     else
         aiCore.ActiveTeams = data
@@ -3473,6 +3646,11 @@ function aiCore.ResetCombatStateAfterLoad()
     aiCore.LaneCache = {}
     for _, team in pairs(aiCore.ActiveTeams or aiCore.EmptyList) do
         team.attackCloseAt, team.unstickAt = 0.0, 0.0
+        -- Pilot weapon swaps, claims and pursuit timers are absolute-time/handle state: start clean.
+        -- pilotOrigWeapon is kept: handles persist across a load and it is pruned per tick.
+        team.pilotStealTarget, team.pilotPursuit = {}, {}
+        team.pilotBlacklist, team.sniperRolled, team.sniperEquipTime = {}, {}, {}
+        team.bannedPlanningSites = nil
         local states = team.attackCloseState
         if states then
             for u, st in pairs(states) do
@@ -3494,6 +3672,21 @@ function aiCore.ResetCombatStateAfterLoad()
                 end
             end
             wm.rangeGateState = {}
+            -- Absolute timestamps on the special-weapon users and retaliation do not survive a load.
+            wm.retaliationUpdateAt = 0.0
+            for u, st in pairs(wm.retaliationState or aiCore.EmptyList) do
+                if IsValid(u) and st.prior and st.prior > 0 then SetWeaponMask(u, st.prior) end
+            end
+            wm.retaliationState = {}
+            for _, key in ipairs({ "thumperUsers", "fieldUsers", "mineUsers" }) do
+                for _, user in ipairs(wm[key] or aiCore.EmptyList) do
+                    if user.active and IsValid(user.handle)
+                        and GetCurrentWeaponMaskValue(user.handle) == user.mask then
+                        team:ResetWeaponMask(user.handle)
+                    end
+                    user.active, user.holdUntil, user.nextRollAt = false, nil, nil
+                end
+            end
         end
     end
 end
@@ -3843,6 +4036,7 @@ aiCore.WeaponManager.__index = aiCore.WeaponManager
 function aiCore.WeaponManager.new(teamNum)
     local self = setmetatable({}, aiCore.WeaponManager)
     self.teamNum = teamNum
+    self.lastUpdate = GetTime()
 
     -- Thumper users (pulse weapon)
     self.thumperUsers = {}
@@ -3913,7 +4107,7 @@ function aiCore.WeaponManager:AddObject(h)
     -- Check for thumper weapons
     local thumperMask = aiCore.GetWeaponMask(h, self.thumperWeapons)
     if thumperMask > 0 then
-        table.insert(self.thumperUsers, { handle = h, mask = thumperMask, timer = 0.0 })
+        table.insert(self.thumperUsers, { handle = h, mask = thumperMask })
         if aiCore.Debug then print("Team " .. self.teamNum .. " added thumper user: " .. GetOdf(h)) end
     end
 
@@ -3921,7 +4115,7 @@ function aiCore.WeaponManager:AddObject(h)
     for _, weapon in ipairs(self.fieldWeapons) do
         local mask = aiCore.GetWeaponMask(h, weapon)
         if mask > 0 then
-            table.insert(self.fieldUsers, { handle = h, mask = mask, timer = 0.0 })
+            table.insert(self.fieldUsers, { handle = h, mask = mask })
             if aiCore.Debug then print("Team " .. self.teamNum .. " added field user: " .. GetOdf(h)) end
             break
         end
@@ -3941,7 +4135,7 @@ function aiCore.WeaponManager:AddObject(h)
     for _, weapon in ipairs(self.mineWeapons) do
         local mask = aiCore.GetWeaponMask(h, weapon)
         if mask > 0 then
-            table.insert(self.mineUsers, { handle = h, mask = mask, timer = 0.0 })
+            table.insert(self.mineUsers, { handle = h, mask = mask })
             if aiCore.Debug then print("Team " .. self.teamNum .. " added mine user: " .. GetOdf(h)) end
             break
         end
@@ -4015,8 +4209,11 @@ function aiCore.WeaponManager:AddObject(h)
 end
 
 function aiCore.WeaponManager:Update()
-    local dt = GetTime() - (self.lastUpdate or 0)
-    self.lastUpdate = GetTime()
+    -- First call used to see the whole game time as dt; clamp covers load/clock jumps too.
+    local now = GetTime()
+    local dt = now - (self.lastUpdate or now)
+    self.lastUpdate = now
+    if dt < 0 then dt = 0 elseif dt > 5.0 then dt = 5.0 end
 
     -- Owners below must never see (and keep as "base") a range-gated mask.
     self:ReleaseOwnedRangeGates()
@@ -4046,8 +4243,36 @@ function aiCore.WeaponManager:Update()
     aiCore.SafeStep("RangeGating", self.UpdateRangeGating, self)
 end
 
+local function IsWalkerHandle(h)
+    return string.find(string.lower(utility.CleanString(GetClassLabel(h))), utility.ClassLabel.WALKER) ~= nil
+end
+
+-- Weapon ODF name in the slot a single-bit mask selects ("" if none).
+local function WeaponNameForMask(h, mask)
+    for slot = 0, 4 do
+        if 2 ^ slot == mask then return utility.CleanString(GetWeaponClass(h, slot)) end
+    end
+    return ""
+end
+
+-- A seismic weapon's reach: its ODF range when known. The thumper ordnance ODFs are not in this
+-- repo (stock Redux data), so fall back to a constant when the range cannot be read.
+aiCore.WeaponManager.kThumperReach = 60.0
+aiCore.WeaponManager.kThumperHold = 3.0   -- stays on this long after the last walker in reach
+aiCore.WeaponManager.kMineReach = 40.0    -- laying mines is only worth it with an enemy this close
+aiCore.WeaponManager.kMineLayGap = 3.0    -- retaliation lays at most one mine per unit per this long
+
+function aiCore.WeaponManager:GetThumperReach(h, mask)
+    local range = GetWeaponRangeMeters(WeaponNameForMask(h, mask))
+    if range and range > 0 then return range end
+    return self.kThumperReach
+end
+
 -- How long after the last hit from an attacker the retaliation weapon stays selected.
 local kRetaliationHold = 5.5
+
+-- Closest range at which an arcing mortar shot is worth taking.
+local kMortarMinRange = 20.0
 
 function aiCore.WeaponManager:UpdateRetaliation(dt)
     if not self.teamObj or not self.teamObj.combatUnits then return end
@@ -4074,8 +4299,16 @@ function aiCore.WeaponManager:UpdateRetaliation(dt)
             self.retaliationState[u] = st
         end
         st.at = now
-        SetWeaponMask(u, mask)
-        FireWeaponMask(u, mask)
+        if GetCurrentWeaponMaskValue(u) ~= mask then SetWeaponMask(u, mask) end
+        return st
+    end
+
+    -- Weapon in reach of the shooter? Unknown ranges pass; minRange keeps arcing shots off
+    -- targets in the shooter's face.
+    local function InReach(u, mask, dist, minRange)
+        if minRange and dist < minRange then return false end
+        local range = GetWeaponRangeMeters(WeaponNameForMask(u, mask))
+        return not (range and range > 0 and dist > range)
     end
 
     -- Check for attackers and switch weapons reactively
@@ -4093,23 +4326,43 @@ function aiCore.WeaponManager:UpdateRetaliation(dt)
 
                 -- Person -> Mortar
                 if cls == utility.ClassLabel.PERSON then
+                    local dist = GetDistance(u, attacker)
+                    local pick, minePick = 0, 0
                     local popgunMask = aiCore.GetWeaponMask(u, { "popgun" })
-                    -- mdmgun is deliberately absent: it is the inert "detonator" weapon (see mortarWeapons).
-                    local blastMask = aiCore.GetWeaponMask(u, { "mortar", "splint", "acidcl", "thrower", "arblst", "rktbomb" })
-                    local mineMask = aiCore.GetWeaponMask(u, { "proxmin", "mitsmin", "mcurmin" })
-                    if popgunMask > 0 then
-                        SelectRetaliationMask(u, popgunMask)
-                        if aiCore.Debug then
-                            print("WeaponManager: Using popgun against infantry/sniper (" .. GetOdf(u) .. ")")
+                    if popgunMask > 0 and InReach(u, popgunMask, dist) then
+                        pick = popgunMask
+                    else
+                        -- mdmgun is deliberately absent: it is the inert "detonator" weapon (see mortarWeapons).
+                        for _, name in ipairs({ "mortar", "splint", "acidcl", "thrower", "arblst", "rktbomb" }) do
+                            local mask = aiCore.GetWeaponMask(u, { name })
+                            local arcing = name == "mortar" or name == "splint"
+                            if mask > 0 and InReach(u, mask, dist, arcing and kMortarMinRange or nil) then
+                                pick = mask
+                                break
+                            end
                         end
-                    elseif blastMask > 0 then
-                        SelectRetaliationMask(u, blastMask)
+                    end
+                    if pick <= 0 and dist <= self.kMineReach then
+                        minePick = aiCore.GetWeaponMask(u, { "proxmin", "mitsmin", "mcurmin" })
+                    end
+                    if pick > 0 then
+                        SelectRetaliationMask(u, pick)
                         if aiCore.Debug then
-                            print("WeaponManager: Retaliating against Person with explosive weapon (" ..
-                                GetOdf(u) .. ")")
+                            print("WeaponManager: Retaliating against Person with " .. WeaponNameForMask(u, pick) ..
+                                " (" .. GetOdf(u) .. ")")
                         end
-                    elseif mineMask > 0 then
-                        SelectRetaliationMask(u, mineMask)
+                    elseif minePick > 0 then
+                        -- Mines drop at the unit's own spot: only with the shooter close, and the mine
+                        -- mask is held for one tick per kMineLayGap (the engine lays while it is on).
+                        local st = self.retaliationState[u]
+                        if not st or now >= (st.mineAt or 0.0) then
+                            st = SelectRetaliationMask(u, minePick)
+                            st.mineAt = now + self.kMineLayGap
+                            st.mineOffAt = now + (self.retaliationUpdatePeriod or 0.25)
+                        elseif now >= (st.mineOffAt or 0.0) and GetCurrentWeaponMaskValue(u) == minePick then
+                            SetWeaponMask(u, st.prior)
+                        end
+                        st.at = now
                         if aiCore.Debug then
                             print("WeaponManager: Retaliating against Person with mine fallback (" .. GetOdf(u) .. ")")
                         end
@@ -4118,7 +4371,7 @@ function aiCore.WeaponManager:UpdateRetaliation(dt)
                     -- Walker -> Thumper
                 elseif cls == utility.ClassLabel.WALKER then
                     local thumperMask = aiCore.GetWeaponMask(u, self.thumperWeapons)
-                    if thumperMask > 0 then
+                    if thumperMask > 0 and GetDistance(u, attacker) <= self:GetThumperReach(u, thumperMask) then
                         SelectRetaliationMask(u, thumperMask)
                         if aiCore.Debug then
                             print("WeaponManager: Disorienting Walker with Thumper (" ..
@@ -4184,12 +4437,19 @@ function aiCore.GetRangeGateInfo(h)
     return info or nil
 end
 
--- Units whose mask is cycled by another owner (thumper/field/mortar/mine/missile users,
--- retaliation). Range gating backs off from them.
+-- Units whose mask is cycled by another owner (active thumper/field/mortar users, missile
+-- users, retaliation). Range gating backs off from them.
 local function CollectMaskOwners(self)
     local owners = {}
-    for _, key in ipairs({ "thumperUsers", "fieldUsers", "mortarUsers", "mineUsers", "missileUsers" }) do
-        for _, user in ipairs(self[key] or aiCore.EmptyList) do owners[user.handle] = true end
+    -- Missile users clamp their mask continuously; the rest only own it while actively switched on.
+    for _, user in ipairs(self.missileUsers or aiCore.EmptyList) do owners[user.handle] = true end
+    for _, key in ipairs({ "thumperUsers", "fieldUsers", "mineUsers" }) do
+        for _, user in ipairs(self[key] or aiCore.EmptyList) do
+            if user.active then owners[user.handle] = true end
+        end
+    end
+    for _, user in ipairs(self.mortarUsers or aiCore.EmptyList) do
+        if user.usingMortar then owners[user.handle] = true end
     end
     for u in pairs(self.retaliationState or aiCore.EmptyList) do owners[u] = true end
     return owners
@@ -4300,47 +4560,100 @@ function aiCore.WeaponManager:UpdateRangeGating()
     end
 end
 
+-- Thumper users are a state machine, like UpdateMortars: the mask is only written when the
+-- unit switches ON and put back once when it switches OFF (and only if it is still ours), so
+-- the double-weapon pick, the range gate and retaliation keep working in between.
+-- An active user is a mask owner (see CollectMaskOwners).
+-- Switch a special-weapon user off: its mask goes back to the default selection, but only if
+-- it is still the mask we set (anyone else's choice stays).
+-- aiCore's FireWeaponMask is just SetWeaponMask: "firing" a special weapon means selecting it,
+-- and the engine AI fires it while it attacks. So the mask write is the whole ON switch.
+local function SwitchSpecialOff(self, user)
+    user.active = false
+    if self.teamObj and IsValid(user.handle) and GetCurrentWeaponMaskValue(user.handle) == user.mask then
+        self.teamObj:ResetWeaponMask(user.handle)
+    end
+end
+
 function aiCore.WeaponManager:UpdateThumpers(dt)
     local thumperRate = self.thumperRate
     if self.teamObj and self.teamObj.Config and self.teamObj.Config.thumperChance ~= nil then
         thumperRate = self.teamObj.Config.thumperChance
     end
+    local now = GetTime()
     for i = #self.thumperUsers, 1, -1 do
         local user = self.thumperUsers[i]
-        if not IsValid(user.handle) then
+        local h = user.handle
+        if not IsValid(h) then
             table.remove(self.thumperUsers, i)
+        elseif aiCore.IsHumanCraft(h) then
+            -- The player picks their own weapon: never touch the mask of a human-piloted craft.
+            user.active = false
         else
-            user.timer = user.timer + dt
-            local isPlayerHandle = aiCore.IsHumanCraft(user.handle)
-            local shouldPulse = false
-            local target = GetCurrentWho(user.handle)
-            if IsValid(target) and IsAlive(target) then
-                local targetCls = string.lower(utility.CleanString(GetClassLabel(target)))
-                if string.find(targetCls, utility.ClassLabel.WALKER) then
-                    shouldPulse = true
-                end
+            local reach = self:GetThumperReach(h, user.mask)
+            local nearest = GetNearestEnemy(h)
+            local nearestValid = IsValid(nearest) and IsAlive(nearest)
+
+            local walkerNear = false
+            local target = GetCurrentWho(h)
+            if IsValid(target) and IsAlive(target) and not IsAlly(h, target)
+                and IsWalkerHandle(target) and GetDistance(h, target) <= reach then
+                walkerNear = true
+            elseif nearestValid and IsWalkerHandle(nearest) and GetDistance(h, nearest) <= reach then
+                walkerNear = true
             end
-            if not shouldPulse then
-                local nearest = GetNearestEnemy(user.handle)
-                if IsValid(nearest) and GetDistance(user.handle, nearest) <= 200.0 then
-                    local nearestCls = string.lower(utility.CleanString(GetClassLabel(nearest)))
-                    shouldPulse = string.find(nearestCls, utility.ClassLabel.WALKER) ~= nil or math.random(100) < thumperRate
+
+            if walkerNear then
+                user.holdUntil = now + self.kThumperHold
+            elseif not user.active and now >= (user.nextRollAt or 0.0)
+                and nearestValid and IsCraft(nearest) and GetDistance(h, nearest) <= reach then
+                -- Ground craft in reach: one roll per period, not one per frame.
+                user.nextRollAt = now + self.thumperPeriod
+                if math.random(100) < thumperRate then
+                    user.holdUntil = now + self.thumperDuration
                 end
             end
 
-            -- Pulse cycle: fire for duration, wait for period
-            local cycleTime = user.timer % self.thumperPeriod
-            if cycleTime < self.thumperDuration then
-                -- Fire thumper
-                if not isPlayerHandle and shouldPulse then
-                    SetWeaponMask(user.handle, user.mask)
-                    FireWeaponMask(user.handle, user.mask)
+            local want = now < (user.holdUntil or 0.0)
+            if want and not user.active then
+                user.active = true
+                SetWeaponMask(h, user.mask)
+            elseif not want and user.active then
+                SwitchSpecialOff(self, user)
+            end
+        end
+    end
+end
+
+-- Field projectors and mine layers: the same ON/OFF state machine, switched on by a roll once per
+-- period (not once per frame) for a fixed duration. Mines also need a live enemy close by.
+local function UpdateTimedUsers(self, users, rate, period, duration, enemyReach)
+    local now = GetTime()
+    for i = #users, 1, -1 do
+        local user = users[i]
+        local h = user.handle
+        if not IsValid(h) then
+            table.remove(users, i)
+        elseif aiCore.IsHumanCraft(h) then
+            user.active = false
+        elseif user.active then
+            if now >= (user.holdUntil or 0.0) then SwitchSpecialOff(self, user) end
+        elseif now >= (user.nextRollAt or 0.0) then
+            local near = true
+            if enemyReach then
+                local nearest = GetNearestEnemy(h)
+                near = IsValid(nearest) and IsAlive(nearest) and GetDistance(h, nearest) <= enemyReach
+            end
+            if near then
+                user.nextRollAt = now + period
+                if math.random(100) < rate then
+                    user.active = true
+                    user.holdUntil = now + duration
+                    SetWeaponMask(h, user.mask)
                 end
             else
-                -- Reset mask when outside firing window (never on a human-piloted craft)
-                if self.teamObj and not isPlayerHandle then
-                    self.teamObj:ResetWeaponMask(user.handle)
-                end
+                -- No enemy close: do not scan GetNearestEnemy every frame.
+                user.nextRollAt = now + 1.0
             end
         end
     end
@@ -4351,32 +4664,8 @@ function aiCore.WeaponManager:UpdateFields(dt)
     if self.teamObj and self.teamObj.Config and self.teamObj.Config.fieldChance ~= nil then
         fieldRate = self.teamObj.Config.fieldChance
     end
-    for i = #self.fieldUsers, 1, -1 do
-        local user = self.fieldUsers[i]
-        if not IsValid(user.handle) then
-            table.remove(self.fieldUsers, i)
-        else
-            user.timer = user.timer + dt
-
-            -- Field deployment: deploy for duration, wait for period
-            local cycleTime = user.timer % self.fieldPeriod
-            local isHuman = aiCore.IsHumanCraft(user.handle)
-            if cycleTime < self.fieldDuration then
-                if not isHuman and math.random(100) < fieldRate then
-                    FireWeaponMask(user.handle, user.mask)
-                end
-            else
-                -- Reset mask when outside firing window (never on a human-piloted craft)
-                if self.teamObj and not isHuman then
-                    self.teamObj:ResetWeaponMask(user.handle)
-                end
-            end
-        end
-    end
+    UpdateTimedUsers(self, self.fieldUsers, fieldRate, self.fieldPeriod, self.fieldDuration, nil)
 end
-
--- Closest range at which an arcing mortar shot is worth taking.
-local kMortarMinRange = 20.0
 
 function aiCore.WeaponManager:UpdateMortars(dt)
     for i = #self.mortarUsers, 1, -1 do
@@ -4425,28 +4714,7 @@ function aiCore.WeaponManager:UpdateMortars(dt)
 end
 
 function aiCore.WeaponManager:UpdateMines(dt)
-    for i = #self.mineUsers, 1, -1 do
-        local user = self.mineUsers[i]
-        if not IsValid(user.handle) then
-            table.remove(self.mineUsers, i)
-        else
-            user.timer = user.timer + dt
-
-            -- Mine deployment: deploy for duration, wait for period
-            local cycleTime = user.timer % self.minePeriod
-            local isHuman = aiCore.IsHumanCraft(user.handle)
-            if cycleTime < self.mineDuration then
-                if not isHuman and math.random(100) < self.mineRate then
-                    FireWeaponMask(user.handle, user.mask)
-                end
-            else
-                -- Reset mask when outside firing window (never on a human-piloted craft)
-                if self.teamObj and not isHuman then
-                    self.teamObj:ResetWeaponMask(user.handle)
-                end
-            end
-        end
-    end
+    UpdateTimedUsers(self, self.mineUsers, self.mineRate, self.minePeriod, self.mineDuration, self.kMineReach)
 end
 
 function aiCore.WeaponManager:UpdateDoubleWeapons(dt)
@@ -4544,24 +4812,28 @@ function aiCore.CloakingManager:Update(dt)
             table.remove(self.cloakers, i)
         elseif not aiCore.IsHumanCraft(h) then
             -- Human-piloted craft are never cloaked/decloaked by the AI.
-            local health = GetCurHealth(h) / GetMaxHealth(h)
+            local maxHealth = GetMaxHealth(h) or 0.0
+            local health = maxHealth > 0.0 and (GetCurHealth(h) / maxHealth) or 1.0
             local cmd = GetCurrentCommand(h)
             local inCombat = (cmd == AiCommand.ATTACK)
             local isCloaked = IsCloaked(h)
+            local isCowering = self.cowardMode and health < self.cloakHealthThreshold
 
             -- Coward mode: cloak when damaged
-            if self.cowardMode and health < self.cloakHealthThreshold and not isCloaked then
+            if isCowering and not isCloaked then
                 SetCloaked(h)
+                isCloaked = true -- keep the local state in step so the rules below see it
                 if aiCore.Debug then print("Team " .. self.teamNum .. " cloaking damaged unit: " .. GetOdf(h)) end
             end
 
             -- Auto-cloak when not in combat
             if not inCombat and not isCloaked and health > self.cloakHealthThreshold then
                 SetCloaked(h)
+                isCloaked = true
             end
 
-            -- Uncloak when in combat (let AI handle it)
-            if inCombat and isCloaked then
+            -- Uncloak when in combat (let AI handle it), except a damaged coward that just hid
+            if inCombat and isCloaked and not isCowering then
                 SetDecloaked(h)
             end
         end
@@ -4576,14 +4848,53 @@ end
 aiCore.HowitzerManager = {}
 aiCore.HowitzerManager.__index = aiCore.HowitzerManager
 
+-- A point `distance` from targetPos along the line toward fromPos, rotated by angleDeg, snapped
+-- to terrain height. Plain component math so it never depends on vector operators.
+local function HowitzerStandoffPoint(targetPos, fromPos, distance, angleDeg)
+    local dx, dz = fromPos.x - targetPos.x, fromPos.z - targetPos.z
+    local len = math.sqrt(dx * dx + dz * dz)
+    if len < 0.001 then
+        dx, dz, len = 1.0, 0.0, 1.0
+    end
+    dx, dz = dx / len, dz / len
+    local a = math.rad(angleDeg or 0.0)
+    local c, s = math.cos(a), math.sin(a)
+    local x = targetPos.x + (dx * c - dz * s) * distance
+    local z = targetPos.z + (dx * s + dz * c) * distance
+    return SetVector(x, GetTerrainHeight(x, z), z)
+end
+
+-- Longest weapon range the howitzer carries (its shell), 250 m when no ODF range is readable.
+local function HowitzerWeaponRange(h)
+    local best = nil
+    for slot = 0, 4 do
+        local weapon = utility.CleanString(GetWeaponClass(h, slot))
+        if weapon ~= "" then
+            local range = GetWeaponRangeMeters(weapon)
+            if range and range > 0 and (not best or range > best) then best = range end
+        end
+    end
+    return best or 250.0
+end
+
+-- Class labels that are not worth an artillery fire mission (props, walls, lights, pylons).
+local function IsTrivialHowitzerTarget(cls)
+    return cls == utility.ClassLabel.BUILDING_RADAR_SAFE or cls == utility.ClassLabel.SIGN
+        or cls == utility.ClassLabel.CAMERA_POD or cls == utility.ClassLabel.SPRAYBOMB
+        or string.find(cls, "wall", 1, true) ~= nil or string.find(cls, "light", 1, true) ~= nil
+        or string.find(cls, "lamp", 1, true) ~= nil or string.find(cls, "beacon", 1, true) ~= nil
+end
+
 function aiCore.HowitzerManager.new(teamNum)
     local self = setmetatable({}, aiCore.HowitzerManager)
     self.teamNum = teamNum
     self.howitzers = {}
     self.squads = {} -- Organized squads
+    self.squadState = {} -- leader handle -> { target, standoff, standoffFor, attacking = {h=true}, goFor = {h=target} }
     self.squadSize = 3
     self.orderPeriod = 30.0
     self.orderTimer = 0.0
+    self.reevalAt = 0.0
     self.playerAttackRange = 480.0
     self.playerStandoffRange = 450.0
     self.playerOrderState = {}
@@ -4595,7 +4906,7 @@ function aiCore.HowitzerManager:AddObject(h)
 
     local cls = aiCore.NilToString(GetClassLabel(h))
     if string.find(cls, utility.ClassLabel.HOWITZER) or string.find(cls, "artillery") then
-        table.insert(self.howitzers, h)
+        if not UniqueInsert(self.howitzers, h) then return end
         if aiCore.Debug then print("Team " .. self.teamNum .. " added howitzer: " .. GetOdf(h)) end
     end
 end
@@ -4619,13 +4930,22 @@ function aiCore.HowitzerManager:Update(dt)
         self:OrganizeSquads()
     elseif next(self.squads) ~= nil then
         self.squads = {}
+        self.squadState = {}
     end
 
-    -- Update squad orders periodically
+    if #self.squads == 0 then return end
+
+    -- Periodic cycle: the full re-evaluation. In between, a squad whose target died or that has an
+    -- idle howitzer is re-evaluated at once instead of waiting out the cycle.
     self.orderTimer = self.orderTimer + (dt or GetTimeStep())
+    local now = GetTime()
     if self.orderTimer >= self.orderPeriod then
         self.orderTimer = 0.0
-        self:UpdateSquadOrders()
+        self.reevalAt = now + 2.0
+        self:UpdateSquadOrders(false)
+    elseif now >= self.reevalAt and self:SquadsNeedOrders() then
+        self.reevalAt = now + 2.0
+        self:UpdateSquadOrders(true)
     end
 end
 
@@ -4639,39 +4959,44 @@ function aiCore.HowitzerManager:UpdatePlayerHowitzerOrders()
             local currentTarget = GetCurrentWho(h)
 
             if cmd == AiCommand.ATTACK and IsValid(currentTarget) and IsAlive(currentTarget) and not IsAlly(h, currentTarget) then
+                -- A fresh attack order from the player: the stand-off GO may be issued once for it.
                 state.target = currentTarget
+                state.goTarget = nil
             elseif cmd == AiCommand.NONE then
                 local movePos = state.movePos
-                if not movePos or Length(GetPosition(h) - movePos) > 60.0 then
+                if not movePos or GetDistance(h, movePos) > 60.0 then
                     state.target = nil
                     state.movePos = nil
+                    state.goTarget = nil
                 end
             elseif cmd ~= AiCommand.GO then
                 state.target = nil
                 state.movePos = nil
+                state.goTarget = nil
             end
 
             local target = state.target
             if IsValid(target) and IsAlive(target) and not IsAlly(h, target) then
                 local dist = GetDistance(h, target)
                 if dist > range then
-                    local targetPos = GetPosition(target)
-                    local unitPos = GetPosition(h)
-                    local dir = Normalize(unitPos - targetPos)
-                    if dir.x == 0 and dir.y == 0 and dir.z == 0 then
-                        dir = SetVector(1, 0, 0)
+                    if state.goTarget ~= target then
+                        local movePos = HowitzerStandoffPoint(GetPosition(target), GetPosition(h), standoff, 0.0)
+                        state.target = target
+                        state.movePos = movePos
+                        self.playerOrderState[h] = state
+
+                        -- Once per target: a GO the player gives afterwards is never overridden.
+                        if aiCore.TrySetCommand(h, AiCommand.GO, GetCommandableAttackPriority(), nil, movePos, nil, nil,
+                                { minInterval = 0.35 }) then
+                            state.goTarget = target
+                        end
+                    elseif cmd == AiCommand.NONE then
+                        -- Arrived at the stand-off point and still out of range: give the order up.
+                        state.target, state.movePos, state.goTarget = nil, nil, nil
+                        self.playerOrderState[h] = state
+                    else
+                        self.playerOrderState[h] = state
                     end
-
-                    local movePos = targetPos + (dir * standoff)
-                    local groundY = GetTerrainHeight(movePos.x, movePos.z)
-                    movePos.y = math.max(groundY + 2.0, movePos.y)
-
-                    state.target = target
-                    state.movePos = movePos
-                    self.playerOrderState[h] = state
-
-                    aiCore.TrySetCommand(h, AiCommand.GO, GetCommandableAttackPriority(), nil, movePos, nil, nil,
-                        { minInterval = 0.35 })
                 else
                     if cmd ~= AiCommand.ATTACK or currentTarget ~= target then
                         aiCore.TryAttack(h, target, GetCommandableAttackPriority(),
@@ -4679,6 +5004,7 @@ function aiCore.HowitzerManager:UpdatePlayerHowitzerOrders()
                     end
                     state.target = nil
                     state.movePos = nil
+                    state.goTarget = nil
                     self.playerOrderState[h] = state
                 end
             else
@@ -4708,37 +5034,50 @@ function aiCore.HowitzerManager:OrganizeSquads()
     if #currentSquad > 0 then
         self.squads[squadIndex] = currentSquad
     end
+
+    -- Squad state is keyed by the leader (first member); drop state of squads that no longer exist.
+    local leaders = {}
+    for _, squad in ipairs(self.squads) do leaders[squad[1]] = true end
+    for leader, state in pairs(self.squadState) do
+        if not leaders[leader] then
+            self.squadState[leader] = nil
+        else
+            for h in pairs(state.attacking) do
+                if not IsValid(h) then state.attacking[h] = nil end
+            end
+            for h in pairs(state.goFor) do
+                if not IsValid(h) then state.goFor[h] = nil end
+            end
+        end
+    end
 end
 
-function aiCore.HowitzerManager:UpdateSquadOrders()
-    local Cmd = utility.AiCommand
-
-    -- Difficulty profiles expose howitzerChance as the chance that an AI
-    -- squad re-evaluates a fire mission. Keep player howitzers fully manual: human teams
-    -- never get AI squad fire missions (UpdatePlayerHowitzerOrders is their only assist).
-    if aiCore.IsHumanTeam(self.teamNum) then return end
-    if self.teamObj and self.teamObj.Config
-        and self.teamObj.Config.howitzerChance ~= nil
-        and math.random(100) > self.teamObj.Config.howitzerChance then
-        return
+-- True when any squad has no live target or has an idle (order-less) howitzer.
+function aiCore.HowitzerManager:SquadsNeedOrders()
+    if aiCore.IsHumanTeam(self.teamNum) then return false end
+    for _, squad in ipairs(self.squads) do
+        local state = self.squadState[squad[1]]
+        local target = state and state.target
+        if not (IsValid(target) and IsAlive(target)) then return true end
+        for _, h in ipairs(squad) do
+            if IsValid(h) and not aiCore.IsHumanCraft(h) and GetCurrentCommand(h) == AiCommand.NONE then
+                return true
+            end
+        end
     end
+    return false
+end
 
-    -- Prioritize support infrastructure and constructors before core production.
+-- Targets in priority order: sustainment, defences, core production, then other buildings.
+function aiCore.HowitzerManager:BuildTargetList(enemyTeam)
     local targets = {}
     local seenTargets = {}
     local function AddTarget(h)
-        if IsValid(h) and IsAlive(h) and not seenTargets[h] then
+        if IsValid(h) and IsAlive(h) and not seenTargets[h]
+            and not IsTeamAllied(self.teamNum, GetTeamNum(h)) then
             seenTargets[h] = true
             table.insert(targets, h)
         end
-    end
-
-    local enemyTeam = -1
-    if self.teamObj and self.teamObj.GetPrimaryEnemyTeam then
-        enemyTeam = self.teamObj:GetPrimaryEnemyTeam()
-    end
-    if enemyTeam < 0 then
-        enemyTeam = (self.teamNum == 1) and 2 or 1
     end
 
     -- Tier 1: Sustainment and field support.
@@ -4753,8 +5092,7 @@ function aiCore.HowitzerManager:UpdateSquadOrders()
         end
     end
 
-    local con = GetConstructorHandle(enemyTeam)
-    AddTarget(con)
+    AddTarget(GetConstructorHandle(enemyTeam))
 
     -- Tier 2: Defensive network and other high-value battlefield assets.
     for _, obj in ipairs(aiCore.GetCachedTeamTargets(enemyTeam)) do
@@ -4768,46 +5106,155 @@ function aiCore.HowitzerManager:UpdateSquadOrders()
         end
     end
 
-    -- Tier 3: Core production and command buildings.
+    -- Tier 3: Core production and command buildings, then other non-trivial buildings.
     AddTarget(GetRecyclerHandle(enemyTeam))
     AddTarget(GetFactoryHandle(enemyTeam))
     AddTarget(GetArmoryHandle(enemyTeam))
 
     for _, obj in ipairs(aiCore.GetCachedTeamTargets(enemyTeam)) do
         if IsValid(obj) and IsAlive(obj) and IsBuilding(obj) then
-            AddTarget(obj)
+            local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+            if not IsTrivialHowitzerTarget(cls) then
+                AddTarget(obj)
+            end
         end
     end
 
-    if #targets == 0 then return end
+    return targets
+end
 
-    -- Assign targets to squads in round-robin order to maximize map coverage.
-    local targetCursor = self.targetCursor or 1
-    for squadNum, squad in ipairs(self.squads) do
-        if #squad > 0 then
-            local targetIndex = ((targetCursor + squadNum - 2) % #targets) + 1
-            local target = targets[targetIndex]
+-- Sends a badly damaged howitzer to a repair depot (same GET_REPAIR order the retreat code uses).
+-- Returns true while the howitzer is repairing and must not receive fire-mission orders.
+function aiCore.HowitzerManager:TryHowitzerRepair(h)
+    local health = GetHealth(h)
+    local cmd = GetCurrentCommand(h)
+    if cmd == AiCommand.GET_REPAIR then
+        return health < 0.95
+    end
+    if health >= 0.35 then return false end
 
-            for _, h in ipairs(squad) do
-                if IsValid(h) and IsValid(target) and not aiCore.IsHumanCraft(h) then
+    local depotMgr = self.teamObj and self.teamObj.depotMgr
+    if not depotMgr or not depotMgr.depots then return false end
+    local depot, best = nil, math.huge
+    for d, data in pairs(depotMgr.depots) do
+        if IsValid(d) and IsAlive(d) and GetTeamNum(d) == self.teamNum and data.type == "repair" then
+            local dist = GetDistance(h, d)
+            if dist < best then depot, best = d, dist end
+        end
+    end
+    if not depot then return false end
+    return aiCore.TrySetCommand(h, AiCommand.GET_REPAIR, GetUncommandablePriority(), depot, nil, nil, nil,
+        { minInterval = 0.7, overrideProtected = true }) and true or false
+end
+
+-- Lowest-threat stand-off point among a few angles around the direct approach line.
+function aiCore.HowitzerManager:ChooseStandoff(target, squad, range, enemyTeam)
+    local targetPos, fromPos = GetPosition(target), GetPosition(squad[1])
+    local distance = range * 0.8
+    local threatFn = self.teamObj and self.teamObj.GetRelaxedThreatAtPosition
+    local best, bestThreat = nil, math.huge
+    for _, angle in ipairs({ 0.0, -15.0, 15.0, -30.0, 30.0 }) do
+        local point = HowitzerStandoffPoint(targetPos, fromPos, distance, angle)
+        if type(threatFn) ~= "function" then return point end
+        local threat = threatFn(self.teamObj, point, enemyTeam)
+        if type(threat) ~= "number" then threat = 0.0 end
+        if threat < bestThreat then best, bestThreat = point, threat end
+    end
+    return best or HowitzerStandoffPoint(targetPos, fromPos, distance, 0.0)
+end
+
+-- forced = immediate re-evaluation of idle/targetless squads (skips the difficulty roll).
+function aiCore.HowitzerManager:UpdateSquadOrders(forced)
+    local Cmd = utility.AiCommand
+
+    -- Difficulty profiles expose howitzerChance as the chance that an AI
+    -- squad re-evaluates a fire mission. Keep player howitzers fully manual: human teams
+    -- never get AI squad fire missions (UpdatePlayerHowitzerOrders is their only assist).
+    if aiCore.IsHumanTeam(self.teamNum) then return end
+    if #self.squads == 0 then return end
+    if not forced and self.teamObj and self.teamObj.Config
+        and self.teamObj.Config.howitzerChance ~= nil
+        and math.random(100) > self.teamObj.Config.howitzerChance then
+        return
+    end
+
+    local enemyTeam = -1
+    if self.teamObj and self.teamObj.GetPrimaryEnemyTeam then
+        enemyTeam = self.teamObj:GetPrimaryEnemyTeam()
+    end
+    if enemyTeam < 0 then return end
+
+    local targets = nil -- built lazily: only a squad that needs a new target pays for it
+    for _, squad in ipairs(self.squads) do
+        local leader = squad[1]
+        local state = self.squadState[leader]
+        if not state then
+            state = { attacking = {}, goFor = {} }
+            self.squadState[leader] = state
+        end
+
+        -- The squad keeps its target until it dies or becomes invalid.
+        local target = state.target
+        if not (IsValid(target) and IsAlive(target) and not IsTeamAllied(self.teamNum, GetTeamNum(target))) then
+            target = nil
+            state.target, state.standoff, state.standoffFor = nil, nil, nil
+            state.attacking, state.goFor = {}, {}
+            targets = targets or self:BuildTargetList(enemyTeam)
+            local taken = {}
+            for otherLeader, otherState in pairs(self.squadState) do
+                if otherLeader ~= leader and otherState.target then taken[otherState.target] = true end
+            end
+            for _, candidate in ipairs(targets) do
+                if not taken[candidate] then
+                    target = candidate
+                    break
+                end
+            end
+            target = target or targets[1]
+            state.target = target
+        end
+
+        if target then
+            local range = HowitzerWeaponRange(leader)
+            if state.standoffFor ~= target then
+                state.standoff = self:ChooseStandoff(target, squad, range, enemyTeam)
+                state.standoffFor = target
+            end
+
+            for memberIdx, h in ipairs(squad) do
+                if IsValid(h) and IsAlive(h) and not aiCore.IsHumanCraft(h) and not self:TryHowitzerRepair(h) then
+                    local hRange = HowitzerWeaponRange(h)
                     local dist = GetDistance(h, target)
-                    if dist > 500 then
-                        -- Move to engagement range (approx 450m)
-                        -- Calculate approach vector
-                        local tPos = GetPosition(target)
-                        local hPos = GetPosition(h)
-                        local dir = Normalize(hPos - tPos)
-                        local movePos = tPos + dir * 450
-
-                        -- Use pathfinding safe-move
-                        if GetCurrentCommand(h) ~= Cmd.GO or GetDistance(h, movePos) > 20 then
-                            aiCore.TrySetCommand(h, Cmd.GO, GetUncommandablePriority(), nil, movePos, nil, nil,
-                                { minInterval = 0.9 })
-                        end
+                    -- Hysteresis: begin attacking inside 0.9 x range, keep going until past full range.
+                    local attacking
+                    if state.attacking[h] then
+                        attacking = dist <= hRange
                     else
-                        -- In range, clear to engage
+                        attacking = dist <= hRange * 0.9
+                    end
+                    state.attacking[h] = attacking or nil
+
+                    if attacking then
+                        state.goFor[h] = nil
                         if GetCurrentCommand(h) ~= Cmd.ATTACK or GetCurrentWho(h) ~= target then
                             aiCore.TryAttack(h, target, GetCommandableAttackPriority(), { minInterval = 0.8 })
+                        end
+                    elseif state.standoff and (GetCurrentCommand(h) ~= Cmd.GO or state.goFor[h] ~= target) then
+                        -- A GO order also undeploys the howitzer, so no explicit UNDEPLOY is needed.
+                        -- Spread members laterally (~15 m apart) so they do not stack on one point.
+                        local goPos = state.standoff
+                        local tp = GetPosition(target)
+                        local sdx, sdz = goPos.x - tp.x, goPos.z - tp.z
+                        local slen = math.sqrt(sdx * sdx + sdz * sdz)
+                        if slen > 0.001 and #squad > 1 then
+                            local lateral = ((memberIdx - 1) - (#squad - 1) * 0.5) * 15.0
+                            local gx = goPos.x + (-sdz / slen) * lateral
+                            local gz = goPos.z + (sdx / slen) * lateral
+                            goPos = SetVector(gx, GetTerrainHeight(gx, gz), gz)
+                        end
+                        if aiCore.TrySetCommand(h, Cmd.GO, GetUncommandablePriority(), nil, goPos, nil, nil,
+                                { minInterval = 0.9 }) then
+                            state.goFor[h] = target
                         end
                     end
                 end
@@ -4815,7 +5262,8 @@ function aiCore.HowitzerManager:UpdateSquadOrders()
         end
     end
 
-    self.targetCursor = ((targetCursor + #self.squads - 1) % #targets) + 1
+    -- Nothing left to shoot at: do not rebuild the list every two seconds.
+    if targets and #targets == 0 then self.reevalAt = GetTime() + 10.0 end
 end
 
 ----------------------------------------------------------------------------------
@@ -5072,6 +5520,7 @@ function aiCore.APCManager:Update(dt)
     self.updateTimer = self.updateTimer + (dt or GetTimeStep())
     if self.updateTimer < self.updatePeriod then return end
     self.updateTimer = 0.0
+    if #self.apcs == 0 then return end -- skip the AllCraft sweep
 
     local attackTargets = {}
     for target in AllCraft() do
@@ -5297,6 +5746,39 @@ end
 -- OFFENSE RETALIATION MANAGER
 -- For teams not registered with aiCore.AddTeam: wingman/walker retaliation logic
 ----------------------------------------------------------------------------------
+-- One retaliation tick for one unit, shared by the global manager and Team:UpdateOffensiveRetaliation.
+-- Human teams only answer fire while idle; AI teams also need to have lost health.
+function aiCore.StepOffensiveRetaliation(u, teamNum, state, now, retaliationCooldown, cmdPriority)
+    local curAmmo = GetCurAmmo(u)
+    local curHealth = GetCurHealth(u)
+    local cmd = GetCurrentCommand(u)
+    local currentTarget = GetCurrentWho(u)
+    local attacker = GetWhoShotMe(u)
+    local justShot = (now - GetLastEnemyShot(u)) < 5.0
+    local takingDamage = curHealth < (state.lastHealth - 0.01)
+    local canRetaliate = aiCore.CanRetaliateToAttacker(u, teamNum, cmd, currentTarget, attacker)
+
+    if justShot and takingDamage and IsValid(attacker) and aiCore.IsMissileThreat(attacker) then
+        aiCore.TryDeployDecoy(u, 8.0)
+    end
+
+    local shouldRetaliate
+    if aiCore.IsHumanTeam(teamNum) then
+        shouldRetaliate = canRetaliate and justShot and aiCore.IsIdleRetaliationCommand(cmd)
+    else
+        shouldRetaliate = canRetaliate and justShot and takingDamage
+    end
+
+    if now >= (state.nextRetaliateTime or 0.0) and shouldRetaliate then
+        if aiCore.TryAttack(u, attacker, cmdPriority, { minInterval = 0.4 }) then
+            state.nextRetaliateTime = now + retaliationCooldown
+        end
+    end
+
+    state.lastAmmo = curAmmo
+    state.lastHealth = curHealth
+end
+
 aiCore.OffenseRetaliationManager = {}
 aiCore.OffenseRetaliationManager.__index = aiCore.OffenseRetaliationManager
 
@@ -5336,37 +5818,11 @@ function aiCore.OffenseRetaliationManager:Update()
     local retaliationCooldown = aiCore.GetRetaliationCooldown()
     local cmdPriority = GetCommandableAttackPriority()
     for u, state in pairs(self.units) do
-        if not IsValid(u) or not IsAlive(u) then
+        -- A craft that changed team (stolen/captured) leaves this manager.
+        if not IsValid(u) or not IsAlive(u) or GetTeamNum(u) ~= self.teamNum then
             self.units[u] = nil
         else
-            local curAmmo = GetCurAmmo(u)
-            local curHealth = GetCurHealth(u)
-            local cmd = GetCurrentCommand(u)
-            local currentTarget = GetCurrentWho(u)
-            local attacker = GetWhoShotMe(u)
-            local justShot = (now - GetLastEnemyShot(u)) < 5.0
-            local takingDamage = curHealth < (state.lastHealth - 0.01)
-            local canRetaliate = aiCore.CanRetaliateToAttacker(u, self.teamNum, cmd, currentTarget, attacker)
-
-            if justShot and takingDamage and IsValid(attacker) and aiCore.IsMissileThreat(attacker) then
-                aiCore.TryDeployDecoy(u, 8.0)
-            end
-
-            local shouldRetaliate = false
-            if aiCore.IsHumanTeam(self.teamNum) then
-                shouldRetaliate = canRetaliate and justShot and aiCore.IsIdleRetaliationCommand(cmd)
-            else
-                shouldRetaliate = canRetaliate and justShot and takingDamage
-            end
-
-            if now >= (state.nextRetaliateTime or 0.0) and shouldRetaliate then
-                if aiCore.TryAttack(u, attacker, cmdPriority, { minInterval = 0.4 }) then
-                    state.nextRetaliateTime = now + retaliationCooldown
-                end
-            end
-
-            state.lastAmmo = curAmmo
-            state.lastHealth = curHealth
+            aiCore.StepOffensiveRetaliation(u, self.teamNum, state, now, retaliationCooldown, cmdPriority)
         end
     end
 end
@@ -5744,7 +6200,15 @@ end
 aiCore.Constants = {
     CONSTRUCTOR_IDLE_DISTANCE = 100,   -- Distance to recycler before returning when idle
     CONSTRUCTOR_TRAVEL_THRESHOLD = 60, -- Distance before traveling to build site
-    BUILDING_DETECTION_RANGE = 40,     -- Range to check for existing buildings
+    BUILDING_DETECTION_RANGE = 60,     -- Range to check for existing buildings (completion == adoption radius)
+    BUILD_THREAT_RADIUS = 150,         -- Defer a build job whose site has an enemy this close
+    BUILD_REMOTE_DISTANCE = 350,       -- Sites farther than this from the base wait for nearer base plans
+    UNAFFORDABLE_RESERVE_DELAY = 20.0, -- Seconds a head unit job may be unaffordable before its scrap is reserved
+    REBUILD_COOLDOWN = 25.0,           -- Seconds before a destroyed planned building is queued again
+    CONSTRUCTOR_BUILD_GRACE = 5.0,     -- Seconds a fresh BuildAt may sit as BUILD-but-not-busy
+    CONSTRUCTOR_STUCK_SECONDS = 20.0,  -- Travelling without closing this much distance fails the job
+    CONSTRUCTOR_STUCK_DISTANCE = 5.0,
+    CONSTRUCTOR_COMPLETION_INTERVAL = 0.5, -- Throttle for the job-completion scan
     BUILDING_SPACING = 50,             -- Spacing between buildings
     STRATEGY_ROTATION_INTERVAL = 180,  -- Seconds between strategy changes (3 minutes)
     SHADOW_QUEUE_STALE_SECONDS = 240.0, -- Unit shadow-queue entries older than this (and unbacked) are dropped
@@ -5810,6 +6274,16 @@ function aiCore.UpdatePlayerRushAggression()
     }
 
     local state = aiCore.PlayerRushState
+    -- Cleanup runs before the early returns below so entries expire even when no one shoots.
+    if now >= (state.cleanupTime or 0.0) then
+        state.cleanupTime = now + 30.0
+        for h, t in pairs(state.shooterCooldown) do
+            if (not IsValid(h)) or now > (t + 30.0) then
+                state.shooterCooldown[h] = nil
+            end
+        end
+    end
+
     if now < (state.nextCheck or 0.0) then return end
     state.nextCheck = now + 0.25
 
@@ -5844,15 +6318,6 @@ function aiCore.UpdatePlayerRushAggression()
         end
     else
         state.shooterCooldown[shooter] = now + 2.5
-    end
-
-    if now >= (state.cleanupTime or 0.0) then
-        state.cleanupTime = now + 30.0
-        for h, t in pairs(state.shooterCooldown) do
-            if (not IsValid(h)) or now > (t + 30.0) then
-                state.shooterCooldown[h] = nil
-            end
-        end
     end
 end
 
@@ -6132,6 +6597,20 @@ function aiCore.ConstructorManager:new(team)
     return cm
 end
 
+-- A job is deferred (not failed) while its site is dangerous or a nearer base plan should go first.
+function aiCore.ConstructorManager:ShouldDeferJob(job, now)
+    if job.deferUntil and now < job.deferUntil then return true end
+    local team = self.teamObj
+    if not team or not team.GetBuildJobDeferReason then return false end
+    local reason = team:GetBuildJobDeferReason(job)
+    if reason then
+        job.deferUntil = now + 2.0
+        job.blockedReason = reason
+        return true
+    end
+    return false
+end
+
 function aiCore.ConstructorManager:RequeueActiveJob(reason)
     local job = self.activeJob
     if not job then return end
@@ -6166,10 +6645,14 @@ function aiCore.ConstructorManager:FailActiveJob(reason)
     job.failures = (job.failures or 0) + 1
     job.buildAttempts = 0
     job.progressAt = nil
+    job.bestSiteDist, job.bestSiteDistAt = nil, nil
+    job.placementValidUntil = nil
     if job.failures >= (cfg.constructorJobMaxFailures or 3) then
         local item = self.teamObj and self.teamObj.buildingList and self.teamObj.buildingList[job.priority]
         if item and item.odf == job.odf then
             item.blockedUntil = GetTime() + (cfg.constructorJobGiveUpCooldown or 120.0)
+            -- The site itself is what failed: the next attempt must relocate instead of retrying it.
+            item.siteBanned = true
         end
         self.activeJob = nil
         self.jobState = nil
@@ -6194,19 +6677,13 @@ function aiCore.ConstructorManager:update()
     if self.teamObj and self.teamObj.Config and not self.teamObj.Config.manageConstructor then return end
 
     -- Check if the active job has been completed
-    if self.activeJob then
-        local pos = self.activeJob.path
-        local posVec = nil
-        if type(pos) == "string" then
-            posVec = paths.GetPosition(pos, 0)
-        elseif type(pos) == "table" and pos.posit_x ~= nil then
-            posVec = MatrixToPosition(pos)
-        else
-            posVec = pos
-        end
+    local siteRadius = aiCore.Constants.BUILDING_DETECTION_RANGE
+    if self.activeJob and GetTime() >= (self.activeJob.completionCheckAt or 0.0) then
+        self.activeJob.completionCheckAt = GetTime() + aiCore.Constants.CONSTRUCTOR_COMPLETION_INTERVAL
+        local posVec = ResolveJobPosition(self.activeJob.path)
         local building_exists = false
         if posVec then -- Check if pos is valid
-            for obj in ObjectsInRange(40, posVec) do
+            for obj in ObjectsInRange(siteRadius, posVec) do
                 if IsOdf(obj, self.activeJob.odf) and GetTeamNum(obj) == self.team
                     and not (self.teamObj and self.teamObj.IsObjectClaimedByOtherPlan
                         and self.teamObj:IsObjectClaimedByOtherPlan(obj, self.activeJob.priority, self.activeJob.odf, posVec)) then
@@ -6238,9 +6715,13 @@ function aiCore.ConstructorManager:update()
         end)
         local now = GetTime()
         for index, queuedJob in ipairs(self.queue) do
-            if not queuedJob.retryAt or queuedJob.retryAt <= now then
+            if (not queuedJob.retryAt or queuedJob.retryAt <= now) and not self:ShouldDeferJob(queuedJob, now) then
                 self.activeJob = table.remove(self.queue, index)
                 self.activeJob.retryAt = nil
+                self.activeJob.deferUntil = nil
+                self.activeJob.bestSiteDist, self.activeJob.bestSiteDistAt = nil, nil
+                self.activeJob.placementValidUntil = nil
+                self.activeJob.buildIssuedAt = nil
                 self.activeJob.progressAt = now
                 self.sentToRecycler = false
                 if aiCore.Debug then print("Constructor starts job: " .. self.activeJob.odf) end
@@ -6260,7 +6741,27 @@ function aiCore.ConstructorManager:update()
             local now = GetTime()
             local cfg = (self.teamObj and self.teamObj.Config) or aiCore.EmptyList
             job.progressAt = job.progressAt or now
-            if IsBusy(constructor) then job.progressAt = now end
+            local jobPos = ResolveJobPosition(job.path)
+            local siteDist = jobPos and GetDistance(constructor, jobPos) or nil
+            local travelling = siteDist ~= nil and siteDist > aiCore.Constants.CONSTRUCTOR_TRAVEL_THRESHOLD
+            -- Busy at the site means it is building. Busy while travelling proves nothing (a
+            -- wedged unit stays "busy"), so travel is judged by the distance actually closed.
+            if IsBusy(constructor) and not travelling then job.progressAt = now end
+            if travelling then
+                if CanBuild(constructor) then
+                    if not job.bestSiteDist
+                        or siteDist < job.bestSiteDist - aiCore.Constants.CONSTRUCTOR_STUCK_DISTANCE then
+                        job.bestSiteDist = siteDist
+                        job.bestSiteDistAt = now
+                        job.progressAt = now
+                    elseif (now - (job.bestSiteDistAt or now)) > aiCore.Constants.CONSTRUCTOR_STUCK_SECONDS then
+                        self:FailActiveJob("constructor_stuck")
+                        return
+                    end
+                end
+            else
+                job.bestSiteDist, job.bestSiteDistAt = nil, nil
+            end
             if (job.buildAttempts or 0) >= (cfg.constructorJobMaxAttempts or 6)
                 or (now - job.progressAt) > (cfg.constructorJobTimeout or 120.0) then
                 self:FailActiveJob((job.buildAttempts or 0) >= (cfg.constructorJobMaxAttempts or 6)
@@ -6276,17 +6777,9 @@ function aiCore.ConstructorManager:update()
 
         -- If we are here, the constructor is IDLE and ABLE to take a command.
         local pos = self.activeJob.path
-        local posVec = nil
+        local posVec = ResolveJobPosition(pos)
         local buildPos = pos
-        if type(pos) == "string" then
-            posVec = paths.GetPosition(pos, 0)
-            buildPos = posVec
-        elseif type(pos) == "table" and pos.posit_x ~= nil then
-            posVec = MatrixToPosition(pos)
-        else
-            posVec = pos
-            buildPos = pos
-        end
+        if type(pos) == "string" then buildPos = posVec end
 
         if not posVec then
             self:RequeueActiveJob("invalid_path")
@@ -6301,54 +6794,75 @@ function aiCore.ConstructorManager:update()
                 return
             end
 
-            local placementOptions = {
-                ignorePriority = self.activeJob.priority,
-                ignoreObject = constructor,
-                includePlannedPower = false
-            }
-            local placementOk, placementReason = self.teamObj:ValidateBuildingPlacement(
-                self.activeJob.odf, buildPos, placementOptions)
-            if not placementOk and placementReason ~= "power" then
-                local relocated = self.teamObj:FindAlternateBuildingPlacement(
+            -- Re-validate only once per retry interval (the scan is expensive and the
+            -- constructor updates every frame); a relocation or failure resets the window.
+            local nowTime = GetTime()
+            local planned = self.teamObj.buildingList and self.teamObj.buildingList[self.activeJob.priority]
+            if planned and planned.odf ~= self.activeJob.odf then planned = nil end
+            local forceRelocate = planned and planned.siteBanned
+            if forceRelocate or nowTime >= (self.activeJob.placementValidUntil or 0.0) then
+                local placementOptions = {
+                    ignorePriority = self.activeJob.priority,
+                    ignoreObject = constructor,
+                    includePlannedPower = false
+                }
+                local placementOk, placementReason = self.teamObj:ValidateBuildingPlacement(
                     self.activeJob.odf, buildPos, placementOptions)
-                if relocated then
-                    self.activeJob.path = relocated
-                    local planned = self.teamObj.buildingList[self.activeJob.priority]
-                    if planned and planned.odf == self.activeJob.odf then
-                        planned.path = relocated
+                if ((not placementOk and placementReason ~= "power") or forceRelocate)
+                    and self.teamObj.FindAlternateBuildingPlacement then
+                    local relocated = self.teamObj:FindAlternateBuildingPlacement(
+                        self.activeJob.odf, buildPos, placementOptions)
+                    if planned then planned.siteBanned = nil end
+                    if relocated then
+                        self.activeJob.path = relocated
+                        self.activeJob.placementValidUntil = nil
+                        self.activeJob.bestSiteDist, self.activeJob.bestSiteDistAt = nil, nil
+                        if planned then planned.path = relocated end
+                        if aiCore.Debug then
+                            print("aiCore: relocated " .. tostring(self.activeJob.odf)
+                                .. " after placement check " .. tostring(placementReason))
+                        end
+                        return
                     end
-                    if aiCore.Debug then
-                        print("aiCore: relocated " .. tostring(self.activeJob.odf)
-                            .. " after placement check " .. tostring(placementReason))
+                end
+                if not placementOk then
+                    if placementReason == "power" then
+                        self:RequeueActiveJob(placementReason) -- waiting for power is not a failure
+                    else
+                        self:FailActiveJob(placementReason)    -- counts toward the give-up limit
                     end
                     return
                 end
-            end
-            if not placementOk then
-                self:RequeueActiveJob(placementReason)
-                return
+                local retryDelay = (self.teamObj.Config and self.teamObj.Config.buildingPlacementRetryDelay) or 4.0
+                self.activeJob.placementValidUntil = nowTime + math.max(1.0, retryDelay)
             end
         end
 
         local cmd = GetCurrentCommand(constructor)
-        if cmd == AiCommand.BUILD then
+        -- A BUILD we issued moments ago is still being taken up. An older one on an idle
+        -- (not busy) constructor is stale: the engine leaves it behind after a build ends or
+        -- is refused, and waiting on it would block every later job forever.
+        if cmd == AiCommand.BUILD and self.activeJob.buildIssuedAt
+            and GetTime() - self.activeJob.buildIssuedAt < aiCore.Constants.CONSTRUCTOR_BUILD_GRACE then
             return
         end
-        local cmdName = AiCommand[cmd] or ""
+        local travelling = cmd == AiCommand.GO or cmd == AiCommand.GO_TO_GEYSER
 
-        if not string.match(cmdName, "GO") and GetDistance(constructor, posVec) > 60.0 then
+        if not travelling and GetDistance(constructor, posVec) > siteRadius then
             -- Move to site
+            -- overrideProtected: a stale BUILD (protected) must not veto the move; we only get
+            -- here when the constructor is not busy.
             aiCore.TrySetCommand(constructor, AiCommand.GO, GetUncommandablePriority(), nil, posVec, nil, nil,
-                { minInterval = 1.0 })
+                { minInterval = 1.0, overrideProtected = true })
             if aiCore.Debug then print("Constructor GOTO " .. self.activeJob.odf .. " site.") end
-        elseif GetDistance(constructor, posVec) <= 60.0 then
+        elseif GetDistance(constructor, posVec) <= siteRadius then
             -- At site, try to build
             -- Pre-build checks
-            local scrapCost = GetODFInt(OpenODF(self.activeJob.odf), "GameObjectClass", "scrapCost")
+            local scrapCost = producer.GetOdfCosts(self.activeJob.odf)
             if GetScrap(self.team) >= scrapCost then
                 -- Check for existing building
                 local existingBuilding = nil
-                for obj in ObjectsInRange(40, posVec) do
+                for obj in ObjectsInRange(siteRadius, posVec) do
                     if IsOdf(obj, self.activeJob.odf) and GetTeamNum(obj) == self.team
                         and not (self.teamObj and self.teamObj.IsObjectClaimedByOtherPlan
                             and self.teamObj:IsObjectClaimedByOtherPlan(obj, self.activeJob.priority, self.activeJob.odf, posVec)) then
@@ -6371,7 +6885,14 @@ function aiCore.ConstructorManager:update()
                         -- Issue BuildAt command
                         if aiCore.Debug then print("Constructor issuing BuildAt for " .. self.activeJob.odf) end
                         BuildAt(constructor, self.activeJob.odf, buildPos)
+                        self.activeJob.buildIssuedAt = GetTime()
                         self.activeJob.buildAttempts = (self.activeJob.buildAttempts or 0) + 1
+                        if not self.activeJob.spendRecorded then
+                            self.activeJob.spendRecorded = true -- once per job, not per retry
+                            if self.teamObj and self.teamObj.RecordBuildAccountSpend then
+                                self.teamObj:RecordBuildAccountSpend(self.activeJob.account, scrapCost)
+                            end
+                        end
                         self.pulseTimer = self.pulsePeriod + math.random((0 * self.pulsePeriod), self.pulsePeriod) +
                             GetTime()
                     end
@@ -6751,9 +7272,10 @@ function aiCore.WingmanManager:Update()
     self.updateTimer = 0.0
 
     for h, entry in pairs(self.wingmen) do
-        if not IsValid(h) or not IsAlive(h) or aiCore.IsHumanCraft(h) then
+        if not IsValid(h) or not IsAlive(h) or GetTeamNum(h) ~= self.teamNum then
             self.wingmen[h] = nil
-        else
+        elseif not aiCore.IsHumanCraft(h) then
+            -- A player hopping in briefly must not unregister the wingman: skip this tick.
             self:UpdateWingman(entry)
         end
     end
@@ -7045,7 +7567,6 @@ end
 ---@field combatUnits any
 ---@field scavengers any
 ---@field howitzers any
----@field howitzerGuards any
 ---@field apcs any
 ---@field minelayers any
 ---@field pilots any
@@ -7103,7 +7624,6 @@ aiCore.Team = {
     combatUnits = {},
     scavengers = {},
     howitzers = {},
-    howitzerGuards = {},
     apcs = {},
     minelayers = {},
     pilots = {},   -- technicians/snipers
@@ -7161,7 +7681,6 @@ aiCore.Team = {
     Config = nil,
 
     -- Tactical State
-    howitzerState = {}, -- {attacking=bool, outbound=bool, target=handle}
     wreckerTimer = 0,
     upgradeTimer = 0,
     strategyTimer = 0, -- For rotation
@@ -7458,7 +7977,6 @@ function aiCore.Team:new(teamNum, faction)
     -- Tactical Lists
     t.scavengers = {}
     t.howitzers = {}
-    t.howitzerGuards = {}
     t.apcs = {}
     t.minelayers = {}
     t.cloakers = {}
@@ -7504,7 +8022,6 @@ function aiCore.Team:new(teamNum, faction)
     t.baseStrategy = "Balanced"
 
     -- Tactical State
-    t.howitzerState = {}
     t.wreckerTimer = GetTime() + (t.Config.wreckerInterval or 600)
     t.upgradeTimer = GetTime() + (t.Config.upgradeInterval or 240)
     t.strategyTimer = GetTime() + aiCore.Constants.STRATEGY_ROTATION_INTERVAL
@@ -7666,7 +8183,7 @@ function aiCore.Team:RefreshPlannedBaseStructures(previousCenter, newCenter)
     local function ShiftPath(path)
         if type(path) == "string" or not path then return path end
 
-        local isMatrixLike = path.posit_x ~= nil and path.posit_y ~= nil and path.posit_z ~= nil
+        local isMatrixLike = IsMatrixLike(path)
         local pathPos = isMatrixLike and MatrixToPosition(path) or path
         if not pathPos then return path end
         if DistanceBetweenRefs(pathPos, previousCenter) > localRadius then return path end
@@ -7846,8 +8363,15 @@ function aiCore.Team:UpdateBaseCenter(force)
     AddRef(factory, IsValid(factory) and (IsDeployed(factory) and 4.5 or 3.0) or 0.0)
     AddRef(armory, 2.0)
 
+    -- Remote silos/outposts must not drag the centre: only buildings near the recycler count
+    -- (or near the current centre while there is no recycler).
+    local anchorPos = nil
+    if IsValid(recycler) then anchorPos = GetPosition(recycler) else anchorPos = self.baseCenter end
+    local maxCenterDist = self.Config.baseCenterBuildingRadius or 250.0
+
     for _, obj in ipairs(aiCore.GetCachedBuildings(self.teamNum)) do
-        if IsValid(obj) and IsAlive(obj) and IsBuilding(obj) then
+        if IsValid(obj) and IsAlive(obj) and IsBuilding(obj)
+            and (not anchorPos or GetDistance(obj, anchorPos) <= maxCenterDist) then
             local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
             local weight = 1.0
             if cls == utility.ClassLabel.POWERPLANT or cls == utility.ClassLabel.SCRAP_SILO then
@@ -7906,6 +8430,7 @@ function aiCore.Team:UpdateOffensiveRetaliation()
 
     local now = GetTime()
     local retaliationCooldown = aiCore.GetRetaliationCooldown()
+    local cmdPriority = GetCommandableAttackPriority()
     for _, u in ipairs(self.combatUnits) do
         if IsValid(u) and IsAlive(u) then
             local cls = string.lower(utility.CleanString(GetClassLabel(u)))
@@ -7920,35 +8445,7 @@ function aiCore.Team:UpdateOffensiveRetaliation()
                     self.offensiveRetaliation[u] = state
                 end
 
-                local curAmmo = GetCurAmmo(u)
-                local curHealth = GetCurHealth(u)
-                local cmd = GetCurrentCommand(u)
-                local currentTarget = GetCurrentWho(u)
-                local attacker = GetWhoShotMe(u)
-                local justShot = (now - GetLastEnemyShot(u)) < 5.0
-                local takingDamage = curHealth < (state.lastHealth - 0.01)
-                local cmdPriority = GetCommandableAttackPriority()
-                local canRetaliate = aiCore.CanRetaliateToAttacker(u, self.teamNum, cmd, currentTarget, attacker)
-
-                if justShot and takingDamage and IsValid(attacker) and aiCore.IsMissileThreat(attacker) then
-                    aiCore.TryDeployDecoy(u, 8.0)
-                end
-
-                local shouldRetaliate = false
-                if self.teamNum == 1 then
-                    shouldRetaliate = canRetaliate and justShot and aiCore.IsIdleRetaliationCommand(cmd)
-                else
-                    shouldRetaliate = canRetaliate and justShot and takingDamage
-                end
-
-                if now >= (state.nextRetaliateTime or 0.0) and shouldRetaliate then
-                    if aiCore.TryAttack(u, attacker, cmdPriority, { minInterval = 0.4 }) then
-                        state.nextRetaliateTime = now + retaliationCooldown
-                    end
-                end
-
-                state.lastAmmo = curAmmo
-                state.lastHealth = curHealth
+                aiCore.StepOffensiveRetaliation(u, self.teamNum, state, now, retaliationCooldown, cmdPriority)
             end
         end
     end
@@ -8135,18 +8632,19 @@ function aiCore.Team:AddBuilding(odf, path, priority)
     end
 
     if priority == nil then
-        -- Default to lowest priority so explicit scripted priorities remain dominant.
+        -- Default to the lowest priority (built after everything already planned) so explicit
+        -- scripted priorities remain dominant. Lower numbers are built first.
         local hasPriority = false
-        local lowestPriority = 1
+        local highestPriority = 1
         for p, _ in pairs(self.buildingList) do
             if type(p) == "number" then
-                if not hasPriority or p < lowestPriority then
-                    lowestPriority = p
+                if not hasPriority or p > highestPriority then
+                    highestPriority = p
                 end
                 hasPriority = true
             end
         end
-        priority = hasPriority and (lowestPriority - 1) or 1
+        priority = hasPriority and (highestPriority + 1) or 1
     else
         while self.buildingList[priority] do
             priority = priority + 1
@@ -8202,13 +8700,14 @@ function aiCore.IsAreaFlat(centerPos, radius, checkPoints, flatThreshold, flatPe
 end
 
 local function ResolveBuildingPosition(reference)
+    if reference == nil then return nil end
     if type(reference) == "string" then
         return paths.GetPosition(reference, 0)
     end
-    if type(reference) == "table" and reference.posit_x ~= nil then
+    if IsMatrixLike(reference) then
         return MatrixToPosition(reference)
     end
-    if type(reference) == "table" and reference.x ~= nil then
+    if IsVectorLike(reference) then
         return reference
     end
     if IsValid(reference) then
@@ -8218,8 +8717,8 @@ local function ResolveBuildingPosition(reference)
 end
 
 local function BuildRelocatedReference(reference, position)
-    if type(reference) == "table" and reference.posit_x ~= nil then
-        local facing = SetVector(reference.front_x or 0.0, 0.0, reference.front_z or 1.0)
+    if IsMatrixLike(reference) then
+        local facing = SetVector(SafeField(reference, "front_x") or 0.0, 0.0, SafeField(reference, "front_z") or 1.0)
         if math.abs(facing.x) + math.abs(facing.z) < 0.001 then
             facing = aiCore.VecFacing.N
         end
@@ -8610,11 +9109,18 @@ function aiCore.Team:PlanCommTower(priority)
     local range = self:GetPowerRange(powerOdf)
 
     -- 1. Find existing power
+    -- Nearest power plant to the base centre, not whichever the cache lists first.
     local powerPlant = nil
+    local bestPowerDist = math.huge
+    local baseCenter = self:GetBaseCenter()
     for _, obj in ipairs(aiCore.GetCachedBuildings(self.teamNum)) do
-        if string.lower(utility.CleanString(GetClassLabel(obj))) == "powerplant" or IsOdf(obj, powerOdf) then
-            powerPlant = obj
-            break
+        if IsValid(obj) and IsAlive(obj)
+            and (string.lower(utility.CleanString(GetClassLabel(obj))) == "powerplant" or IsOdf(obj, powerOdf)) then
+            local d = baseCenter and DistanceBetweenRefs(obj, baseCenter) or 0.0
+            if not powerPlant or d < bestPowerDist then
+                powerPlant = obj
+                bestPowerDist = d
+            end
         end
     end
 
@@ -8848,6 +9354,19 @@ function aiCore.Team:UpdateRaiders()
     if GetTime() < self.raiderTimer then return end
     self.raiderTimer = GetTime() + 15.0
 
+    -- Raiders return to the pool once the raid is over (target gone or the order replaced).
+    self.activeRaiders = self.activeRaiders or {}
+    for i = #self.activeRaiders, 1, -1 do
+        local r = self.activeRaiders[i]
+        local u = r.unit
+        if not IsValid(u) or not IsAlive(u) or GetTeamNum(u) ~= self.teamNum then
+            table.remove(self.activeRaiders, i)
+        elseif not (IsValid(r.target) and IsAlive(r.target) and GetCurrentCommand(u) == AiCommand.ATTACK) then
+            UniqueInsert(self.pool, u)
+            table.remove(self.activeRaiders, i)
+        end
+    end
+
     local enemyTeam = self:GetPrimaryEnemyTeam()
     if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
 
@@ -8891,15 +9410,25 @@ function aiCore.Team:UpdateRaiders()
 
         if raider and IsValid(raider) then
             local target = denyTargets[math.random(#denyTargets)]
+            local sent = false
             if GetCurrentCommand(raider) ~= AiCommand.ATTACK or GetCurrentWho(raider) ~= target then
-                aiCore.TryAttack(raider, target, GetCommandableAttackPriority(), { minInterval = 0.75 })
-                if aiCore.Debug then
+                sent = aiCore.TryAttack(raider, target, GetCommandableAttackPriority(), { minInterval = 0.75 })
+                if sent and aiCore.Debug then
                     print("Team " .. self.teamNum .. " dispatching raider against scrap denial target.")
                 end
+            end
+            if sent then
+                self.activeRaiders[#self.activeRaiders + 1] = { unit = raider, target = target }
+            else
+                UniqueInsert(self.pool, raider) -- the order failed: the unit stays available
             end
         end
     end
 end
+
+local RetreatRestorableCommands = {
+    [AiCommand.ATTACK] = true, [AiCommand.FOLLOW] = true, [AiCommand.DEFEND] = true,
+}
 
 function aiCore.Team:UpdateRetreat()
     -- Check combat units for low health
@@ -8907,29 +9436,63 @@ function aiCore.Team:UpdateRetreat()
     if GetTime() < self.retreatTimer then return end
     self.retreatTimer = GetTime() + 2.0
 
-    -- Find a repair source
-    local depot = nil
+    -- Collect friendly repair depots (the nearest one is picked per unit below).
+    local depots = {}
     if self.depotMgr then
         for h, data in pairs(self.depotMgr.depots) do
             if IsValid(h) and IsAlive(h) and GetTeamNum(h) == self.teamNum and data.type == "repair" then
-                depot = h
-                break
+                depots[#depots + 1] = h
             end
         end
     end
 
-    if not depot then return end -- No repair depot, no retreat logic
-
+    self.retreatState = self.retreatState or {}
+    local state = self.retreatState
+    local wm = self.wingmanMgr
+    local wingmanHandled = wm and self.Config.autoRepairWingmen
     for _, u in ipairs(self.combatUnits) do
         if IsValid(u) and IsAlive(u) and not IsBuilding(u) then
-            local health = GetHealth(u)
-            local cmd = GetCurrentCommand(u)
-            -- Retreat if critical and not already getting help
-            if health < 0.25 and cmd ~= AiCommand.GET_REPAIR and cmd ~= AiCommand.GET_RELOAD then
-                aiCore.TrySetCommand(u, AiCommand.GET_REPAIR, 1, depot, nil, nil, nil,
-                    { minInterval = 0.7, overrideProtected = true })
+            local cls = string.lower(utility.CleanString(GetClassLabel(u)))
+            -- Artillery, minelayers and turrets do not drive to a depot; WingmanManager owns
+            -- the craft it registered (it saves/restores their command itself).
+            if not (string.find(cls, "howitzer", 1, true) or string.find(cls, "minelayer", 1, true)
+                    or string.find(cls, "turret", 1, true)
+                    or (wingmanHandled and wm.wingmen[u])) then
+                local health = GetHealth(u)
+                local cmd = GetCurrentCommand(u)
+                local entry = state[u]
+                -- Resume the interrupted order once repaired (or the trip ended). Never while
+                -- still critical: the retreat check below would re-send it and lose the order.
+                if entry and wm and health >= 0.25 and wm:ShouldRestoreCommand(u, cmd, health, 1.0, entry) then
+                    wm:RestorePreviousCommand(entry)
+                    state[u] = nil
+                    cmd = GetCurrentCommand(u)
+                elseif entry and cmd ~= AiCommand.GET_REPAIR and cmd ~= AiCommand.NONE then
+                    state[u] = nil -- something else took over; never fight it
+                end
+                -- Retreat if critical and not already getting help
+                if health < 0.25 and cmd ~= AiCommand.GET_REPAIR and cmd ~= AiCommand.GET_RELOAD and #depots > 0 then
+                    local depot, best = nil, math.huge
+                    for _, d in ipairs(depots) do
+                        local dist = GetDistance(u, d)
+                        if dist < best then depot, best = d, dist end
+                    end
+                    local prevCmd, prevTarget = cmd, GetCurrentWho(u)
+                    if depot and aiCore.TrySetCommand(u, AiCommand.GET_REPAIR, 1, depot, nil, nil, nil,
+                            { minInterval = 0.7, overrideProtected = true }) then
+                        -- Only target-based orders survive a save/restore (GO/PATROL lose their path).
+                        if wm and RetreatRestorableCommands[prevCmd] and IsValid(prevTarget) then
+                            local e = { unit = u }
+                            wm:SavePreviousCommand(e, prevCmd, prevTarget)
+                            state[u] = e
+                        end
+                    end
+                end
             end
         end
+    end
+    for h in pairs(state) do
+        if not IsValid(h) or not IsAlive(h) then state[h] = nil end
     end
 end
 
@@ -9032,7 +9595,8 @@ function aiCore.Team:Update()
     if manageTacticalOrders and aiCore.IsHumanTeam(self.teamNum) then self:UpdateStickToPlayer() end
     if manageBase and self.Config.autoBuild then self:UpdateAutoBase() end
     if self.Config.autoManage then self:UpdateRetreat() end
-    if manageTacticalOrders then self:UpdateOffensiveRetaliation() end
+    -- Human teams have manageTacticalOrders off but still answer fire (their wingmen).
+    if manageTacticalOrders or aiCore.IsHumanTeam(self.teamNum) then self:UpdateOffensiveRetaliation() end
 
     -- Legacy Proximity/Maintenance
     if manageTacticalOrders and self.Config.dynamicMinefields then self:UpdateDynamicMinefields() end
@@ -9102,6 +9666,20 @@ function aiCore.Team:PruneForeignUnits()
         end
     end
     if self.cloakMgr then prune(self.cloakMgr.cloakers) end
+    -- Manager-owned lists (GuardManager already drops foreign guards itself).
+    if self.howitzerMgr then
+        prune(self.howitzerMgr.howitzers)
+    end
+    if self.apcMgr then prune(self.apcMgr.apcs) end
+    if self.minelayerMgr then prune(self.minelayerMgr.minelayers) end
+    if self.wingmanMgr then
+        for h in pairs(self.wingmanMgr.wingmen) do
+            if foreign(h) then self.wingmanMgr.wingmen[h] = nil end
+        end
+    end
+    for h in pairs(self.offensiveRetaliation or aiCore.EmptyList) do
+        if foreign(h) then self.offensiveRetaliation[h] = nil end
+    end
 end
 
 -- Live combat craft this team's per-unit helpers may act on: combatUnits and pool plus
@@ -10984,7 +11562,9 @@ function aiCore.Team:CountExistingOrPlannedBuildingsNear(pos, radius, matcher)
 
     local count = 0
     for _, building in pairs(self.buildingList) do
-        if DistanceBetweenRefs(building.path, pos) <= radius and matcher(building.odf, nil, true) then
+        -- A plan whose building exists is counted by the live-object loop below.
+        local built = IsValid(building.handle) and IsAlive(building.handle)
+        if not built and DistanceBetweenRefs(building.path, pos) <= radius and matcher(building.odf, nil, true) then
             count = count + 1
         end
     end
@@ -11000,9 +11580,24 @@ function aiCore.Team:CountExistingOrPlannedBuildingsNear(pos, radius, matcher)
     return count
 end
 
-function aiCore.Team:GetNearestEnemyProducerDistance(pos)
+-- Enemy team for building/outpost helpers. When GetPrimaryEnemyTeam finds none, fall back to a
+-- team on the other side of the human/AI divide that is not allied; -1 when there is no enemy
+-- (never a hard-coded team 1/2 guess, which can name an ally).
+function aiCore.Team:GetBuildingEnemyTeam()
     local enemyTeam = self:GetPrimaryEnemyTeam()
-    if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
+    if enemyTeam >= 0 then return enemyTeam end
+    local selfHuman = aiCore.IsHumanTeam(self.teamNum)
+    for team = 1, 15 do
+        if team ~= self.teamNum and not self:IsFriendlyTeam(team) and aiCore.IsHumanTeam(team) ~= selfHuman then
+            return team
+        end
+    end
+    return -1
+end
+
+function aiCore.Team:GetNearestEnemyProducerDistance(pos)
+    local enemyTeam = self:GetBuildingEnemyTeam()
+    if enemyTeam < 0 then return 999999 end
 
     local best = 999999
     local recycler = GetRecyclerHandle(enemyTeam)
@@ -11026,6 +11621,29 @@ function aiCore.Team:GetNearestEnemyProducerDistance(pos)
     return best
 end
 
+-- Sites AddBuilding refused are remembered so the planners move on to another candidate
+-- instead of proposing (and failing on) the same spot every pass.
+function aiCore.Team:BanPlanningSite(pos)
+    local resolved = ResolveBuildingPosition(pos)
+    if not resolved then return end
+    self.bannedPlanningSites = self.bannedPlanningSites or {}
+    table.insert(self.bannedPlanningSites, { x = resolved.x, z = resolved.z, expiresAt = GetTime() + 120.0 })
+end
+
+function aiCore.Team:IsPlanningSiteBanned(pos, radius)
+    local resolved = ResolveBuildingPosition(pos)
+    if not resolved or not self.bannedPlanningSites then return false end
+    local now = GetTime()
+    local sites = self.bannedPlanningSites
+    for i = #sites, 1, -1 do
+        if sites[i].expiresAt and sites[i].expiresAt <= now then table.remove(sites, i) end
+    end
+    for _, site in ipairs(sites) do
+        if FlatDistance(site, resolved) <= (radius or 15.0) then return true end
+    end
+    return false
+end
+
 function aiCore.Team:FindOutpostStructureLocation(anchorPos, focusPos, odf, minDist, maxDist)
     if not anchorPos or not odf then return nil end
 
@@ -11042,7 +11660,8 @@ function aiCore.Team:FindOutpostStructureLocation(anchorPos, focusPos, odf, minD
                 anchorPos.z + math.sin(rad) * dist
             )
             testPos.y = GetTerrainHeight(testPos.x, testPos.z)
-            if aiCore.IsAreaFlat(testPos, 12, 6, 0.92, 0.65) and self:CheckBuildingSpacing(odf, testPos, 45) then
+            if aiCore.IsAreaFlat(testPos, 12, 6, 0.92, 0.65) and self:CheckBuildingSpacing(odf, testPos, 45)
+                and not self:IsPlanningSiteBanned(testPos) then
                 return aiCore.BuildDirectionalMatrix(testPos, Normalize(facingBase - testPos))
             end
         end
@@ -11067,7 +11686,7 @@ function aiCore.Team:FindSiloLocationNearHotspot(centerPos)
             local isFlat = aiCore.IsAreaFlat(testPos, 14, 6, 0.94, 0.68)
             if isFlat then
                 local ok = self:CheckBuildingSpacing(aiCore.Units[self.faction].silo, testPos, 65)
-                if ok then
+                if ok and not self:IsPlanningSiteBanned(testPos) then
                     return testPos
                 end
             end
@@ -11078,8 +11697,8 @@ function aiCore.Team:FindSiloLocationNearHotspot(centerPos)
 end
 
 function aiCore.Team:GetEnemyScrapDenyTarget(centerPos, radius)
-    local enemyTeam = self:GetPrimaryEnemyTeam()
-    if enemyTeam < 0 then enemyTeam = (self.teamNum == 1) and 2 or 1 end
+    local enemyTeam = self:GetBuildingEnemyTeam()
+    if enemyTeam < 0 then return nil, -999999 end
 
     local best = nil
     local bestScore = -999999
@@ -11246,8 +11865,7 @@ function aiCore.Team:AssignScavengersToHotspots()
 
                 if busyOnThisHotspot then
                     assigned = assigned + 1
-                elseif currentCmd == AiCommand.NONE or currentCmd == AiCommand.SCAVENGE or currentCmd == AiCommand.GO
-                    or (currentCmd == AiCommand.SCAVENGE and not IsValid(currentWho)) then
+                elseif currentCmd == AiCommand.NONE or currentCmd == AiCommand.SCAVENGE or currentCmd == AiCommand.GO then
                     local bestScrap = self:GetBestAvailableHotspotScrap(hotspot, scav, claimed)
                     if IsValid(bestScrap) then
                         if aiCore.TryScavenge(scav, bestScrap, GetUncommandablePriority(),
@@ -11286,7 +11904,7 @@ function aiCore.Team:PlanHotspotOutpost()
         local remoteEnough = (hotspot.dropoffDist or 0.0) >= (self.Config.scrapHotspotOutpostDropoffDistance or 330.0)
         local safeEnough = producerDist >= (self.Config.scrapHotspotOutpostEnemyProducerRadius or 600.0)
 
-        if richEnough and remoteEnough and (safeEnough or hotspot.contested) then
+        if richEnough and remoteEnough and safeEnough then
             local anchor = hotspot.outpostAnchor
             if not anchor then
                 anchor = self:FindSiloLocationNearHotspot(hotspot.position)
@@ -11296,7 +11914,13 @@ function aiCore.Team:PlanHotspotOutpost()
             if anchor then
                 local needSilo = not self:HasPlannedSiloNear(anchor, supportRadius)
                 if needSilo and siloOdf then
-                    self:AddBuilding(siloOdf, aiCore.BuildDirectionalMatrix(anchor, Normalize(hotspot.position - anchor)))
+                    local added = self:AddBuilding(siloOdf,
+                        aiCore.BuildDirectionalMatrix(anchor, Normalize(hotspot.position - anchor)))
+                    if not added then
+                        -- Rejected: drop the cached anchor and ban it so the next pass picks another.
+                        self:BanPlanningSite(anchor)
+                        hotspot.outpostAnchor = nil
+                    end
                     self.scrapOutpostTimer = GetTime() + (self.Config.scrapHotspotOutpostCooldown or 10.0)
                     return
                 end
@@ -11310,7 +11934,7 @@ function aiCore.Team:PlanHotspotOutpost()
                     if powerCount == 0 then
                         local powerPos = self:FindOutpostStructureLocation(anchor, hotspot.position, powerOdf, 30.0, 70.0)
                         if powerPos then
-                            self:AddBuilding(powerOdf, powerPos)
+                            if not self:AddBuilding(powerOdf, powerPos) then self:BanPlanningSite(powerPos) end
                             self.scrapOutpostTimer = GetTime() + (self.Config.scrapHotspotOutpostCooldown or 10.0)
                             return
                         end
@@ -11326,7 +11950,7 @@ function aiCore.Team:PlanHotspotOutpost()
                     if repairCount == 0 then
                         local repairPos = self:FindOutpostStructureLocation(anchor, hotspot.position, repairOdf, 34.0, 78.0)
                         if repairPos then
-                            self:AddBuilding(repairOdf, repairPos)
+                            if not self:AddBuilding(repairOdf, repairPos) then self:BanPlanningSite(repairPos) end
                             self.scrapOutpostTimer = GetTime() + (self.Config.scrapHotspotOutpostCooldown or 10.0)
                             return
                         end
@@ -11342,7 +11966,7 @@ function aiCore.Team:PlanHotspotOutpost()
                     if supplyCount == 0 then
                         local supplyPos = self:FindOutpostStructureLocation(anchor, hotspot.position, supplyOdf, 40.0, 84.0)
                         if supplyPos then
-                            self:AddBuilding(supplyOdf, supplyPos)
+                            if not self:AddBuilding(supplyOdf, supplyPos) then self:BanPlanningSite(supplyPos) end
                             self.scrapOutpostTimer = GetTime() + (self.Config.scrapHotspotOutpostCooldown or 10.0)
                             return
                         end
@@ -11359,7 +11983,7 @@ function aiCore.Team:PlanHotspotOutpost()
                     if towerCount < desiredTowers then
                         local towerPos = self:FindOutpostStructureLocation(anchor, hotspot.position, towerOdf, 44.0, 92.0)
                         if towerPos then
-                            self:AddBuilding(towerOdf, towerPos)
+                            if not self:AddBuilding(towerOdf, towerPos) then self:BanPlanningSite(towerPos) end
                             self.scrapOutpostTimer = GetTime() + (self.Config.scrapHotspotOutpostCooldown or 10.0)
                             return
                         end
@@ -11383,11 +12007,14 @@ function aiCore.Team:PlanHotspotSilo()
             and not self:HasPlannedSiloNear(hotspot.position, 130.0) then
             local siloPos = self:FindSiloLocationNearHotspot(hotspot.position)
             if siloPos then
-                self:AddBuilding(aiCore.Units[self.faction].silo, siloPos, 11)
-                if aiCore.Debug then
-                    print("Team " .. self.teamNum .. " planning silo near contested scrap field.")
+                if self:AddBuilding(aiCore.Units[self.faction].silo, siloPos, 11) then
+                    if aiCore.Debug then
+                        print("Team " .. self.teamNum .. " planning silo near contested scrap field.")
+                    end
+                    return
                 end
-                return
+                -- Rejected: ban the candidate and try the next hotspot (this one finds another next pass).
+                self:BanPlanningSite(siloPos)
             end
         end
     end
@@ -11511,14 +12138,18 @@ end
 
 function aiCore.Team:UpdateRegen()
     -- Consolidated Regen: Recycler/Factory (High Rate) + Combat Units (Low Rate)
-    local recycler = self.recyclerMgr.handle
-    if IsValid(recycler) then
-        AddHealth(recycler, (self.Config.regenRate or 0.0) * 0.05)
-    end
-
-    local factory = self.factoryMgr.handle
-    if IsValid(factory) then
-        AddHealth(factory, (self.Config.regenRate or 0.0) * 0.05)
+    -- regenRate is health per second (the old per-frame 0.05 factor assumed ~20 Hz).
+    local now = GetTime()
+    local elapsed = now - (self.regenLastAt or now)
+    self.regenLastAt = now
+    if elapsed < 0 then elapsed = 0 elseif elapsed > 1.0 then elapsed = 1.0 end
+    local regenAmount = (self.Config.regenRate or 0.0) * elapsed
+    if regenAmount > 0 then
+        for _, core in ipairs({ self.recyclerMgr.handle, self.factoryMgr.handle }) do
+            if IsValid(core) and GetCurHealth(core) < GetMaxHealth(core) then
+                AddHealth(core, regenAmount)
+            end
+        end
     end
 
     if self.Config.passiveRegen then
@@ -11526,7 +12157,7 @@ function aiCore.Team:UpdateRegen()
             self.regenTimer = GetTime() + 1.0
             aiCore.RemoveDead(self.combatUnits)
             for _, u in ipairs(self.combatUnits) do
-                if IsAlive(u) and GetHealth(u) < GetMaxHealth(u) then
+                if IsAlive(u) and GetCurHealth(u) < GetMaxHealth(u) then
                     AddHealth(u, 5) -- Small flat regen for all combat units
                 end
             end
@@ -11540,6 +12171,8 @@ function aiCore.Team:UpdateDynamicMinefields()
     if GetTime() < (self.dynamicMinefieldAt or 0.0) then return end
     self.dynamicMinefieldAt = GetTime() + 0.75
 
+    local mineOdf = (aiCore.Units[self.faction] or {}).mine or "proxmine"
+
     for _, zone in ipairs(self.Config.minefields) do
         -- zone can be a path name or {x,y,z}
         local pos = zone
@@ -11550,15 +12183,13 @@ function aiCore.Team:UpdateDynamicMinefields()
             -- Spawn a mine if not too many nearby
             local mines = 0
             for obj in ObjectsInRange(40, pos) do
-                if IsOdf(obj, "proxmine") or IsOdf(obj, "svmine") then
+                if IsOdf(obj, mineOdf) then
                     mines = mines + 1
                 end
             end
 
             if mines < 3 then
-                local odf = aiCore.Units[self.faction].minelayer .. "m" -- Guessing mine ODF
-                if self.faction == 2 then odf = "svmine" end            -- CCA specific
-                BuildObject(odf, self.teamNum, pos)
+                BuildObject(mineOdf, self.teamNum, pos)
             end
         end
     end
@@ -11674,7 +12305,7 @@ function aiCore.Team:UpdateParatroopers()
         pos.y = pos.y + 400.0 -- 400M in the sky
 
         local count = math.random(3, 8)
-        local soldierOdf = aiCore.Units[self.faction].soldier or "aspilo" -- Fallback
+        local soldierOdf = (aiCore.Units[self.faction] or {}).soldier or "aspilo" -- Fallback
 
         if aiCore.Debug then
             print("Team " ..
@@ -11962,7 +12593,7 @@ function aiCore.Team:UpdatePilotResources()
         self.pilotResTimer = GetTime() + aiCore.Constants.PILOT_RESOURCE_INTERVAL
         aiCore.RemoveDead(self.pilots)
         if #self.pilots < (self.Config.pilotTopoff or 4) then
-            local pilotOdf = aiCore.Units[self.faction].pilot
+            local pilotOdf = (aiCore.Units[self.faction] or {}).pilot
             if pilotOdf then self.recyclerMgr:addUnit(pilotOdf, 0) end
         end
     end
@@ -12253,6 +12884,14 @@ end
 function aiCore.Team:UpdateTugs()
 end
 
+-- Gives the pilot back the slot-0 weapon saved when the sniper rifle was equipped
+-- (aprifle/bprifle/cprifle/sprifle...); "handgun" only when nothing was saved. Returns the weapon.
+function aiCore.Team:RestorePilotSidearm(p)
+    local weapon = self.pilotOrigWeapon and self.pilotOrigWeapon[p] or "handgun"
+    GiveWeapon(p, weapon, 0)
+    return weapon
+end
+
 function aiCore.Team:UpdatePilots()
     local now = GetTime()
     if now < (self.pilotUpdateAt or 0.0) then return end
@@ -12260,51 +12899,21 @@ function aiCore.Team:UpdatePilots()
 
     -- Consolidated Pilot Management: technician spawning + sniper logic + craft stealing
     aiCore.RemoveDead(self.pilots)
-    if not self.pilotActionTimer then self.pilotActionTimer = {} end
-    if not self.sniperEquipTime then self.sniperEquipTime = {} end
-    if not self.sniperState then self.sniperState = {} end
-    if not self.sniperAttackTarget then self.sniperAttackTarget = {} end
-    if not self.sniperRetryAt then self.sniperRetryAt = {} end
-    if not self.pilotStealScanAt then self.pilotStealScanAt = {} end
-    if not self.pilotPatrolTimer then self.pilotPatrolTimer = {} end
     local sniperRoleChance = aiCore.GetSniperRoleChancePercent(self)
     local sniperAttackChance = aiCore.GetSniperAttackChancePercent(self)
     local sniperRange = self.Config.sniperRange or 200
     local sniperEnemyTeam = self:GetPrimaryEnemyTeam()
-    -- Clean stale pilot action cooldown entries.
-    for h, _ in pairs(self.pilotActionTimer) do
-        if not IsValid(h) then
-            self.pilotActionTimer[h] = nil
+    -- Clean stale per-pilot entries (and create the tables on first use).
+    for _, key in ipairs({ "pilotActionTimer", "sniperEquipTime", "sniperState", "sniperAttackTarget",
+        "sniperRetryAt", "pilotStealScanAt", "pilotPatrolTimer", "pilotOrigWeapon", "pilotStealTarget",
+        "pilotPursuit", "pilotBlacklist", "sniperRolled" }) do
+        local tbl = self[key]
+        if not tbl then
+            tbl = {}
+            self[key] = tbl
         end
-    end
-    for h, _ in pairs(self.sniperEquipTime) do
-        if not IsValid(h) then
-            self.sniperEquipTime[h] = nil
-        end
-    end
-    for h, _ in pairs(self.sniperState) do
-        if not IsValid(h) then
-            self.sniperState[h] = nil
-        end
-    end
-    for h, _ in pairs(self.sniperAttackTarget) do
-        if not IsValid(h) then
-            self.sniperAttackTarget[h] = nil
-        end
-    end
-    for h, _ in pairs(self.sniperRetryAt) do
-        if not IsValid(h) then
-            self.sniperRetryAt[h] = nil
-        end
-    end
-    for h, _ in pairs(self.pilotStealScanAt) do
-        if not IsValid(h) then
-            self.pilotStealScanAt[h] = nil
-        end
-    end
-    for h, _ in pairs(self.pilotPatrolTimer) do
-        if not IsValid(h) then
-            self.pilotPatrolTimer[h] = nil
+        for h in pairs(tbl) do
+            if not IsValid(h) then tbl[h] = nil end
         end
     end
 
@@ -12363,6 +12972,9 @@ function aiCore.Team:UpdatePilots()
                 end
                 self.techTimer = now + (self.Config.techInterval or 60) + math.random(10)
             end
+        else
+            -- At the cap: a stale timer would fire instantly the moment a pilot dies.
+            self.techTimer = nil
         end
 
         -- B. Orbital Reinforcements (from aiSpecial.lua)
@@ -12405,22 +13017,101 @@ function aiCore.Team:UpdatePilots()
     end
 
     -- 2. Individual Pilot Logic
-    if self.Config.managePilotSpecials ~= false then
-    for _, p in ipairs(self.pilots) do
+    if self.Config.managePilotSpecials ~= false and #self.pilots > 0 then
+    local PURSUIT_TIMEOUT = 20.0   -- seconds without closing distance before a target is given up
+    local BLACKLIST_TIME = 60.0
+    local MAX_PILOTS_PER_TICK = 8
+
+    -- Hostile human players, shared by every pilot this tick.
+    local humanTargets = {}
+    for _, hp in ipairs(aiCore.GetHumanPlayers()) do
+        local ht = GetTeamNum(hp)
+        if ht ~= self.teamNum and not IsTeamAllied(self.teamNum, ht) and utility.CanSnipe(hp) then
+            humanTargets[#humanTargets + 1] = hp
+        end
+    end
+
+    -- Craft already chosen as a steal target; two pilots never take the same one.
+    local claimed = {}
+    for other, tgt in pairs(self.pilotStealTarget) do
+        if IsValid(other) and IsValid(tgt) then claimed[tgt] = other end
+    end
+
+    local function IsOccupiedSniperTarget(target)
+        if not (IsValid(target) and utility.CanSnipe(target) and IsAliveAndPilot(target)) then return false end
+        local targetTeam = GetTeamNum(target)
+        return targetTeam ~= self.teamNum and not IsTeamAllied(self.teamNum, targetTeam)
+    end
+
+    local function IsBlacklisted(p, target)
+        local bl = self.pilotBlacklist[p]
+        return bl ~= nil and (bl[target] or 0.0) > now
+    end
+
+    -- An empty craft a pilot may take: never an ally's (only neutral/own team), never locked,
+    -- and it must carry a weapon.
+    local function CanStealCraft(c)
+        if not (IsCraft(c) and IsAlive(c)) or IsIndependenceLocked(c) then return false end
+        local craftTeam = GetTeamNum(c)
+        if craftTeam ~= 0 and craftTeam ~= self.teamNum and IsTeamAllied(self.teamNum, craftTeam) then
+            return false
+        end
+        for slot = 0, 4 do
+            if utility.CleanString(GetWeaponClass(c, slot)) ~= "" then return true end
+        end
+        return false
+    end
+
+    -- True once a pilot has failed to close on its target for PURSUIT_TIMEOUT; the target is then
+    -- blacklisted for this pilot. `arrived` counts as progress (a sniper already in position).
+    local function PursuitStalled(p, target, dist, arrived, kind)
+        kind = kind or "snipe"
+        local byKind = self.pilotPursuit[p]
+        if not byKind then
+            byKind = {}
+            self.pilotPursuit[p] = byKind
+        end
+        local st = byKind[kind]
+        if not st or st.target ~= target then
+            byKind[kind] = { target = target, best = dist, at = now }
+            return false
+        end
+        if arrived or dist < st.best - 5.0 then
+            st.best, st.at = math.min(st.best, dist), now
+            return false
+        end
+        if now - st.at < PURSUIT_TIMEOUT then return false end
+        local bl = self.pilotBlacklist[p]
+        if not bl then
+            bl = {}
+            self.pilotBlacklist[p] = bl
+        end
+        for h, untilTime in pairs(bl) do
+            if untilTime <= now then bl[h] = nil end
+        end
+        bl[target] = now + BLACKLIST_TIME
+        byKind[kind] = nil
+        return true
+    end
+
+    -- Time-slice large pilot groups: a rotating window of pilots per tick.
+    local total = #self.pilots
+    local handled = math.min(total, MAX_PILOTS_PER_TICK)
+    local cursor = (self.pilotCursor or 0) % total
+    self.pilotCursor = (cursor + handled) % total
+    for n = 1, handled do
+        local p = self.pilots[((cursor + n - 1) % total) + 1]
         if IsAlive(p) and IsPerson(p) then
             if not aiCore.IsHumanCraft(p) and not IsOdf(p, "aspiloh") then
                 local weapon0 = utility.CleanString(GetWeaponClass(p, 0))
                 local cmd = GetCurrentCommand(p)
                 local enemy = GetNearestEnemy(p)
                 local dist = IsValid(enemy) and GetDistance(p, enemy) or 9999
-                for _, hp in ipairs(aiCore.GetHumanPlayers()) do
-                    local ht = GetTeamNum(hp)
-                    if ht ~= self.teamNum and not IsTeamAllied(self.teamNum, ht) and utility.CanSnipe(hp) then
-                        local playerDist = GetDistance(p, hp)
-                        if playerDist <= (sniperRange + 120) and (not IsValid(enemy) or playerDist < dist) then
-                            enemy = hp
-                            dist = playerDist
-                        end
+                for _, hp in ipairs(humanTargets) do
+                    local playerDist = GetDistance(p, hp)
+                    if playerDist <= (sniperRange + 120) and (not IsValid(enemy) or playerDist < dist) then
+                        enemy = hp
+                        dist = playerDist
                     end
                 end
                 local ammo = GetAmmo(p)
@@ -12444,19 +13135,17 @@ function aiCore.Team:UpdatePilots()
                     end
                 end
                 local currentTarget = GetTarget(p)
-                local function IsOccupiedSniperTarget(target)
-                    return IsValid(target) and utility.CanSnipe(target) and IsAliveAndPilot(target)
-                end
                 local sniperCandidate = nil
-                if IsOccupiedSniperTarget(currentTarget) then
+                if IsOccupiedSniperTarget(currentTarget) and not IsBlacklisted(p, currentTarget) then
                     sniperCandidate = currentTarget
-                elseif IsOccupiedSniperTarget(attackTarget) then
+                elseif IsOccupiedSniperTarget(attackTarget) and not IsBlacklisted(p, attackTarget) then
                     sniperCandidate = attackTarget
-                elseif IsOccupiedSniperTarget(enemy) and dist < sniperRange then
+                elseif IsOccupiedSniperTarget(enemy) and dist < sniperRange and not IsBlacklisted(p, enemy) then
                     sniperCandidate = enemy
                 end
                 if not sniperCandidate and isSniper then
-                    sniperCandidate = aiCore.FindNearestSniperTarget(p, sniperRange, sniperEnemyTeam)
+                    sniperCandidate = aiCore.FindNearestSniperTarget(p, sniperRange, sniperEnemyTeam,
+                        self.pilotBlacklist[p])
                 end
                 local sniperTarget = self.sniperAttackTarget[p]
                 if not IsOccupiedSniperTarget(sniperTarget) then
@@ -12468,21 +13157,38 @@ function aiCore.Team:UpdatePilots()
                 end
                 if not IsValid(sniperTarget) and isSniper and actionReady and grounded and ammo >= 0.3 and
                     now >= (self.sniperRetryAt[p] or 0.0) and
-                    IsValid(sniperCandidate) and GetDistance(p, sniperCandidate) < sniperRange and not IsCloaked(sniperCandidate) and
-                    math.random(100) <= sniperAttackChance then
-                    self.sniperAttackTarget[p] = sniperCandidate
-                    sniperTarget = sniperCandidate
+                    IsValid(sniperCandidate) and GetDistance(p, sniperCandidate) < sniperRange and not IsCloaked(sniperCandidate) then
+                    -- Roll the attack chance once per candidate, not on every tick.
+                    local rolled = self.sniperRolled[p]
+                    if not rolled or rolled.target ~= sniperCandidate or now - (rolled.at or 0) >= 10.0 then
+                        rolled = { target = sniperCandidate, at = now, pass = math.random(100) <= sniperAttackChance }
+                        self.sniperRolled[p] = rolled
+                    end
+                    if rolled.pass then
+                        self.sniperAttackTarget[p] = sniperCandidate
+                        sniperTarget = sniperCandidate
+                    end
                 end
                 local targetDist = IsValid(sniperTarget) and GetDistance(p, sniperTarget) or 9999
+                if IsValid(sniperTarget)
+                    and PursuitStalled(p, sniperTarget, targetDist, targetDist <= sniperRange * 0.6, "snipe") then
+                    self.sniperAttackTarget[p] = nil
+                    self.sniperRetryAt[p] = now + (self.Config.sniperTimeout or 8.0)
+                    if cmd == utility.AiCommand.ATTACK then
+                        Stop(p)
+                    end
+                    sniperTarget = nil
+                    targetDist = 9999
+                end
                 local targetCloaked = IsValid(sniperTarget) and IsCloaked(sniperTarget)
                 local canStartSniperAttack = isSniper and IsOccupiedSniperTarget(sniperTarget) and grounded and
                     not targetCloaked and targetDist < sniperRange and ammo >= 0.3
                 local canMaintainSniperCombat = canStartSniperAttack
 
                 -- Sniper behavior: first commit to a specific snipe target, then arm the rifle once attacking it.
-                local isPilotSidearm = weapon0 ~= "" and (
-                    string.find(weapon0, "handgun", 1, true))
+                -- Any slot-0 weapon other than the rifle is the pilot's sidearm (aprifle, bprifle, handgun...).
                 local isPilotSniper = weapon0 ~= "" and string.find(weapon0, "gsnipe", 1, true)
+                local isPilotSidearm = weapon0 ~= "" and not isPilotSniper
                 if isPilotSidearm then
                     self.sniperEquipTime[p] = nil
                     if canStartSniperAttack then
@@ -12493,6 +13199,7 @@ function aiCore.Team:UpdatePilots()
                             aiCore.TryAttack(p, sniperTarget, GetCommandableAttackPriority(), { minInterval = 0.5 })
                             self.pilotActionTimer[p] = now + 0.6
                         elseif actionReady then
+                            self.pilotOrigWeapon[p] = weapon0
                             GiveWeapon(p, "gsnipe", 0)
                             self.sniperEquipTime[p] = now
                             self.pilotActionTimer[p] = now + 0.4
@@ -12508,8 +13215,7 @@ function aiCore.Team:UpdatePilots()
                     -- Legacy handoff: if the marked target is now empty craft, commandeer it.
                     if emptyCraftTarget then
                         self.sniperAttackTarget[p] = nil
-                        GiveWeapon(p, "handgun", 0)
-                        weapon0 = "handgun"
+                        weapon0 = self:RestorePilotSidearm(p)
                         self.sniperEquipTime[p] = nil
                         if actionReady and cmd ~= utility.AiCommand.GET_IN then
                             GetIn(p, target)
@@ -12517,8 +13223,7 @@ function aiCore.Team:UpdatePilots()
                         end
                     elseif ammo <= 0.3 then
                         self.sniperAttackTarget[p] = nil
-                        GiveWeapon(p, "handgun", 0)
-                        weapon0 = "handgun"
+                        weapon0 = self:RestorePilotSidearm(p)
                         self.sniperEquipTime[p] = nil
                         if math.random(100) <= stealthRoll then
                             Stop(p)
@@ -12526,8 +13231,7 @@ function aiCore.Team:UpdatePilots()
                     elseif not canMaintainSniperCombat then
                         self.sniperAttackTarget[p] = nil
                         self.sniperRetryAt[p] = now + (self.Config.sniperTimeout or 8.0)
-                        GiveWeapon(p, "handgun", 0)
-                        weapon0 = "handgun"
+                        weapon0 = self:RestorePilotSidearm(p)
                         self.sniperEquipTime[p] = nil
                         if cmd == utility.AiCommand.ATTACK then
                             Stop(p)
@@ -12535,31 +13239,46 @@ function aiCore.Team:UpdatePilots()
                     end
                 end
 
-                -- Craft Stealing (Refined: Any unoccupied vehicle)
+                -- Craft Stealing: the nearest live, armed, unlocked, unclaimed empty vehicle.
                 local focusingSniperCombat = isSniper and IsValid(sniperTarget) and targetDist < (sniperRange + 40) and grounded and not targetCloaked
                 if self.Config.sniperSteal and not focusingSniperCombat then
-                    local target = GetTarget(p)
-                    -- If they have no target or current target is not stealable, look for nearby empty craft
-                    if not IsValid(target) or not IsCraft(target) or IsAliveAndPilot(target) then
+                    local target = self.pilotStealTarget[p]
+                    local function StealTargetValid(c)
+                        return IsValid(c) and IsCraft(c) and IsAlive(c) and not IsAliveAndPilot(c)
+                            and not IsBlacklisted(p, c) and (claimed[c] == nil or claimed[c] == p)
+                    end
+                    if not StealTargetValid(target) then
+                        if target ~= nil then
+                            if claimed[target] == p then claimed[target] = nil end
+                            self.pilotStealTarget[p] = nil
+                            target = nil
+                        end
                         if now >= (self.pilotStealScanAt[p] or 0.0) then
                             self.pilotStealScanAt[p] = now + 1.25
+                            local best, bestDist = nil, 150.0
                             for obj in ObjectsInRange(150, p) do
-                                if IsCraft(obj) and not IsAliveAndPilot(obj) then
-                                    target = obj
-                                    SetTarget(p, obj) -- Record finding
-                                    break
+                                if IsCraft(obj) and claimed[obj] == nil then
+                                    -- Cheap distance test first; the costlier checks only run on a nearer craft.
+                                    local d = GetDistance(p, obj)
+                                    if d <= bestDist and not IsAliveAndPilot(obj) and not IsBlacklisted(p, obj)
+                                        and CanStealCraft(obj) then
+                                        best, bestDist = obj, d
+                                    end
                                 end
                             end
+                            if best then
+                                self.pilotStealTarget[p] = best
+                                claimed[best] = p
+                                target = best
+                            end
                         end
-                        target = GetTarget(p)
                     end
 
-                    if IsValid(target) and IsCraft(target) and not IsAliveAndPilot(target) then
+                    if target ~= nil then
                         -- A pilot cannot move with a sniper rifle equipped.
                         if weapon0 ~= "" and string.find(weapon0, "gsnipe") then
                             self.sniperAttackTarget[p] = nil
-                            GiveWeapon(p, "handgun", 0)
-                            weapon0 = "handgun"
+                            weapon0 = self:RestorePilotSidearm(p)
                             self.sniperEquipTime[p] = nil
                             if actionReady then
                                 self.pilotActionTimer[p] = now + 0.6
@@ -12570,10 +13289,15 @@ function aiCore.Team:UpdatePilots()
                                 self.pilotActionTimer[p] = now + 1.5
                                 if aiCore.Debug then print("Team " .. self.teamNum .. " pilot stealing craft: " .. GetOdf(target)) end
                             end
+                        elseif PursuitStalled(p, target, GetDistance(p, target), false, "steal") then
+                            -- Could not get closer for too long: give this craft up for a while.
+                            if claimed[target] == p then claimed[target] = nil end
+                            self.pilotStealTarget[p] = nil
                         else
+                            -- Not overrideProtected: a mission script's own order for the pilot wins.
                             if actionReady and (GetCurrentCommand(p) ~= utility.AiCommand.GO or GetCurrentWho(p) ~= target) then
                                 aiCore.TrySetCommand(p, utility.AiCommand.GO, GetCommandableAttackPriority(), target, nil, nil, nil,
-                                    { minInterval = 0.8, overrideProtected = true }) -- High priority move to craft
+                                    { minInterval = 0.8 })
                                 self.pilotActionTimer[p] = now + 1.0
                             end
                         end
@@ -12973,8 +13697,61 @@ end
 
 local function ResolvePlanPosition(path)
     if type(path) == "string" then return paths.GetPosition(path, 0) end
-    if type(path) == "table" and path.posit_x ~= nil then return MatrixToPosition(path) end
+    if IsMatrixLike(path) then return MatrixToPosition(path) end
     return path
+end
+
+-- True when a hostile craft, person or turret is within `radius` of `pos`.
+function aiCore.Team:IsBuildSiteThreatened(pos, radius)
+    if not pos then return false end
+    radius = radius or aiCore.Constants.BUILD_THREAT_RADIUS
+    for obj in ObjectsInRange(radius, pos) do
+        if IsValid(obj) and IsAlive(obj) then
+            local team = GetTeamNum(obj)
+            if team ~= 0 and not self:IsFriendlyTeam(team) then
+                local cls = string.lower(utility.CleanString(GetClassLabel(obj)))
+                if IsCraft(obj) or IsPerson(obj) or cls == utility.ClassLabel.TURRET then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
+-- True while an unbuilt, not-cooling-down plan other than `exceptPriority` lies within `radius`
+-- of `center`.
+function aiCore.Team:HasUnbuiltBasePlanNear(center, radius, exceptPriority)
+    local now = GetTime()
+    for p, item in pairs(self.buildingList or aiCore.EmptyList) do
+        if p ~= exceptPriority and not IsValid(item.handle)
+            and not (item.blockedUntil and now < item.blockedUntil)
+            and not (item.rebuildAfter and now < item.rebuildAfter)
+            and (not self.CanQueueBuildingByRules or self:CanQueueBuildingByRules(item.odf)) then
+            local pos = ResolvePlanPosition(item.path)
+            if pos and type(pos) ~= "string" and FlatDistance(pos, center) <= radius then return true end
+        end
+    end
+    return false
+end
+
+-- Why the constructor should skip `job` for now, or nil. Threatened sites wait for the enemy to
+-- leave; remote sites (silo/outposts) wait until the nearby base plans are done.
+function aiCore.Team:GetBuildJobDeferReason(job)
+    local pos = ResolvePlanPosition(job.path)
+    if not pos or type(pos) == "string" then return nil end
+    if self:IsBuildSiteThreatened(pos, aiCore.Constants.BUILD_THREAT_RADIUS) then return "site_threat" end
+    local center = self:GetBaseCenter()
+    if center and FlatDistance(pos, center) > aiCore.Constants.BUILD_REMOTE_DISTANCE
+        and self:HasUnbuiltBasePlanNear(center, aiCore.Constants.BUILD_REMOTE_DISTANCE, job.priority) then
+        -- Cap the remote-site deferral so a stuck base plan cannot starve the site forever.
+        local now = GetTime()
+        job.firstDeferredAt = job.firstDeferredAt or now
+        if now - job.firstDeferredAt <= (aiCore.Constants.BUILD_REMOTE_DEFER_MAX or 90.0) then
+            return "base_plans_first"
+        end
+    end
+    return nil
 end
 
 -- True if `obj` belongs to a different same-odf building plan than `priority`: either that
@@ -13001,13 +13778,18 @@ function aiCore.Team:CheckConstruction()
 
     for _, p in ipairs(priorities) do
         local item = self.buildingList[p]
+        -- A building we owned is gone: wait out a short cooldown before rebuilding it so the
+        -- constructor does not walk straight back into the force that just destroyed it.
+        if item.handle ~= nil and (not IsValid(item.handle) or not IsAlive(item.handle)) then
+            item.handle = nil
+            item.rebuildAfter = GetTime() + aiCore.Constants.REBUILD_COOLDOWN
+        end
         if not IsValid(item.handle) then
-            local pos = item.path
-            if type(pos) == "string" then pos = paths.GetPosition(pos, 0) end
+            local pos = ResolvePlanPosition(item.path)
 
             local found = nil
             if pos then
-                for obj in ObjectsInRange(60, pos) do
+                for obj in ObjectsInRange(aiCore.Constants.BUILDING_DETECTION_RANGE, pos) do
                     -- Never adopt a building another same-type plan already owns/is nearest to,
                     -- or neighbouring towers alias to one building and the rest never get built.
                     if IsOdf(obj, item.odf) and GetTeamNum(obj) == self.teamNum
@@ -13020,6 +13802,7 @@ function aiCore.Team:CheckConstruction()
 
             if found then
                 item.handle = found
+                item.rebuildAfter = nil
             else
                 local activeJob = self.constructorMgr.activeJob
                 local inQueue = activeJob ~= nil and activeJob.priority == p
@@ -13031,6 +13814,9 @@ function aiCore.Team:CheckConstruction()
                 end
                 if item.blockedUntil and GetTime() < item.blockedUntil then
                     inQueue = true -- constructor gave up on this plan; cool-down before retrying
+                end
+                if item.rebuildAfter and GetTime() < item.rebuildAfter then
+                    inQueue = true -- destroyed recently; cool-down before rebuilding
                 end
                 if not inQueue then
                     local allowed, ruleReason = self:CanQueueBuildingByRules(item.odf)
@@ -13075,8 +13861,8 @@ local function IsSupportRoleClass(cls)
 end
 
 function aiCore.Team:AddObject(h)
-    -- A human-piloted craft is never registered with AI management, on any team.
-    if aiCore.IsHumanCraft(h) and IsCraft(h) then return end
+    -- A human-piloted craft or person (player on foot) is never registered with AI management.
+    if aiCore.IsHumanCraft(h) and (IsCraft(h) or IsPerson(h)) then return end
     -- A script may intentionally opt this handle into only aiSpecial behavior.
     if self.specialTrackedSet and self.specialTrackedSet[h] then return end
 
@@ -13164,7 +13950,7 @@ function aiCore.Team:AddObject(h)
 
     -- Constructor linking checks path distance
     for i, qItem in ipairs(self.constructorMgr.queue) do
-        if qItem.odf == odf and GetDistance(h, qItem.path) < 60 then
+        if qItem.odf == odf and GetDistance(h, qItem.path) < aiCore.Constants.BUILDING_DETECTION_RANGE then
             if self.buildingList[qItem.priority] then
                 self.buildingList[qItem.priority].handle = h
             end
@@ -13176,7 +13962,7 @@ function aiCore.Team:AddObject(h)
     local activeConstruction = self.constructorMgr and self.constructorMgr.activeJob or nil
     if activeConstruction and activeConstruction.path
         and string.lower(utility.CleanString(activeConstruction.odf)) == odf
-        and GetDistance(h, activeConstruction.path) < 60 then
+        and GetDistance(h, activeConstruction.path) < aiCore.Constants.BUILDING_DETECTION_RANGE then
         producedNaturally = true
     end
     if producedNaturally or linked then
@@ -13213,7 +13999,7 @@ function aiCore.Team:AddObject(h)
         UniqueInsert(self.turrets, h)
     elseif string.find(cls, utility.ClassLabel.TUG) or string.find(cls, "haul") then
         UniqueInsert(self.tugHandles, h)
-    elseif IsPerson(h) and odf == string.lower(aiCore.Units[self.faction].soldier or "") then
+    elseif IsPerson(h) and odf == string.lower((aiCore.Units[self.faction] or {}).soldier or "") then
         UniqueInsert(self.soldiers, h)
     end
 
@@ -13359,38 +14145,60 @@ function aiCore.Team:PlanDefensivePerimeter(powerCount, towersPerPower)
 
     -- Use math.pi / 4 (45 degrees) for 8 points, or more if powerCount is high
     local step = (powerCount > 8) and (2 * math.pi / powerCount) or (math.pi / 4)
+    local angleCount = math.max(1, math.floor((2 * math.pi) / step + 0.5))
 
-    for angle = 0, 2 * math.pi, step do
+    -- Start with the side facing the nearest human/enemy base (fallback: angle 0, as before).
+    local startAngle = 0.0
+    local enemyTeam = self:GetBuildingEnemyTeam()
+    if enemyTeam >= 0 then
+        local enemyRef = GetRecyclerHandle(enemyTeam)
+        if not IsValid(enemyRef) then enemyRef = GetFactoryHandle(enemyTeam) end
+        if IsValid(enemyRef) then
+            local ep = GetPosition(enemyRef)
+            local ex, ez = SafeField(ep, "x"), SafeField(ep, "z")
+            if ex and ez and (math.abs(ex - recyclerPos.x) + math.abs(ez - recyclerPos.z)) > 1.0 then
+                startAngle = math.atan2(ez - recyclerPos.z, ex - recyclerPos.x)
+            end
+        end
+    end
+
+    local rings = { 100.0, 120.0, 140.0 }
+    for i = 0, angleCount - 1 do
         if foundPowers >= powerCount then break end
+        local angle = startAngle + i * step
 
-        local dist = 120.0
-        local x = recyclerPos.x + dist * math.cos(angle)
-        local z = recyclerPos.z + dist * math.sin(angle)
-        local pPos = SetVector(x, GetTerrainHeight(x, z), z)
+        for _, dist in ipairs(rings) do
+            local x = recyclerPos.x + dist * math.cos(angle)
+            local z = recyclerPos.z + dist * math.sin(angle)
+            local pPos = SetVector(x, GetTerrainHeight(x, z), z)
 
-        if aiCore.IsAreaFlat(pPos, 12, 8, 0.96, 0.7) and self:CheckBuildingSpacing(powerOdf, pPos, 60) then
-            -- Found spot for power
-            local pMat = BuildDirectionalMatrix(pPos, Normalize(pPos - recyclerPos))
-            foundPowers = foundPowers + 1
+            if aiCore.IsAreaFlat(pPos, 12, 8, 0.96, 0.7) and self:CheckBuildingSpacing(powerOdf, pPos, 60) then
+                -- Found spot for power: it only counts once the planner actually accepted it.
+                local pMat = BuildDirectionalMatrix(pPos, Normalize(pPos - recyclerPos))
+                -- Interleaved Priority: One Power then its Towers
+                -- Power gets 10, 20, 30... Towers get 11, 12, 21, 22...
+                local pPrio = startPriority + ((foundPowers + 1) * 10)
+                if self:AddBuilding(powerOdf, pMat, pPrio) then
+                    foundPowers = foundPowers + 1
 
-            -- Interleaved Priority: One Power then its Towers
-            -- Power gets 10, 20, 30... Towers get 11, 12, 21, 22...
-            local pPrio = startPriority + (foundPowers * 10)
-            self:AddBuilding(powerOdf, pMat, pPrio)
+                    -- Find spots for towers nearby
+                    local foundTowers = 0
+                    for k = 0, 5 do
+                        if foundTowers >= towersPerPower then break end
+                        local tAngle = angle - 0.5 + k * 0.2
 
-            -- Find spots for towers nearby
-            local foundTowers = 0
-            for tAngle = angle - 0.5, angle + 0.5, 0.2 do
-                if foundTowers >= towersPerPower then break end
+                        local tX = pPos.x + 40.0 * math.cos(tAngle)
+                        local tZ = pPos.z + 40.0 * math.sin(tAngle)
+                        local tPos = SetVector(tX, GetTerrainHeight(tX, tZ), tZ)
 
-                local tX = pPos.x + 40.0 * math.cos(tAngle)
-                local tZ = pPos.z + 40.0 * math.sin(tAngle)
-                local tPos = SetVector(tX, GetTerrainHeight(tX, tZ), tZ)
-
-                if aiCore.IsAreaFlat(tPos, 8, 4, 0.92, 0.5) and self:CheckBuildingSpacing(towerOdf, tPos, 35) then
-                    local tMat = BuildDirectionalMatrix(tPos, Normalize(tPos - recyclerPos))
-                    foundTowers = foundTowers + 1
-                    self:AddBuilding(towerOdf, tMat, pPrio + foundTowers)
+                        if aiCore.IsAreaFlat(tPos, 8, 4, 0.92, 0.5) and self:CheckBuildingSpacing(towerOdf, tPos, 35) then
+                            local tMat = BuildDirectionalMatrix(tPos, Normalize(tPos - recyclerPos))
+                            if self:AddBuilding(towerOdf, tMat, pPrio + foundTowers + 1) then
+                                foundTowers = foundTowers + 1
+                            end
+                        end
+                    end
+                    break -- one power per angle
                 end
             end
         end
@@ -13485,9 +14293,21 @@ aiCore.UpdateErrors = aiCore.UpdateErrors or {}
 -- Drop per-unit combat-helper state (stuck detection) of handles that no longer exist. The
 -- attack-close and range-gate tables live on their team/weapon manager and prune themselves.
 function aiCore.PruneCombatState()
-    for h in pairs(aiCore.UnstickState) do
-        if not IsValid(h) then aiCore.UnstickState[h] = nil end
+    for _, state in ipairs({ aiCore.UnstickState, aiCore.CommandState, aiCore.CountermeasureState,
+                             aiCore.DecoyState }) do
+        for h in pairs(state) do
+            if not IsValid(h) then state[h] = nil end
+        end
     end
+    for _, team in pairs(aiCore.ActiveTeams or aiCore.EmptyList) do
+        for _, state in ipairs({ team.producerDeployState or aiCore.EmptyList,
+                                 team.scrapOrderState or aiCore.EmptyList }) do
+            for h in pairs(state) do
+                if not IsValid(h) then state[h] = nil end
+            end
+        end
+    end
+    if aiNative and aiNative.PruneInvalid then aiNative.PruneInvalid() end
 end
 
 function aiCore.SafeStep(label, fn, ...)
@@ -13526,16 +14346,6 @@ function aiCore.Update()
 
     if now >= (aiCore._commandStateCleanupTimer or 0.0) then
         aiCore._commandStateCleanupTimer = now + 60.0
-        for h, _ in pairs(aiCore.CommandState) do
-            if not IsValid(h) then
-                aiCore.CommandState[h] = nil
-            end
-        end
-        for h, _ in pairs(aiCore.CountermeasureState or {}) do
-            if not IsValid(h) then
-                aiCore.CountermeasureState[h] = nil
-            end
-        end
         aiCore.PruneCombatState()
     end
 
@@ -13714,16 +14524,6 @@ function aiCore.UpdateCombatOnly()
     local now = GetTime()
     if now >= (aiCore._commandStateCleanupTimer or 0.0) then
         aiCore._commandStateCleanupTimer = now + 60.0
-        for h, _ in pairs(aiCore.CommandState) do
-            if not IsValid(h) then
-                aiCore.CommandState[h] = nil
-            end
-        end
-        for h, _ in pairs(aiCore.CountermeasureState or {}) do
-            if not IsValid(h) then
-                aiCore.CountermeasureState[h] = nil
-            end
-        end
         aiCore.PruneCombatState()
     end
 
@@ -13757,6 +14557,7 @@ function aiCore.DeleteObject(h)
         if team.weaponMgr and team.weaponMgr.rangeGateState then team.weaponMgr.rangeGateState[h] = nil end
     end
     aiCore.UnstickState[h] = nil
+    aiCore.DecoyState[h] = nil
     if aiNative then
         aiNative.ClearUnit(h)
     end

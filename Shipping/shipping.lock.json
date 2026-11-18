@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6275,
+  "count": 6252,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -8351,10 +8351,6 @@
       "runtime": "lme_src_ACT.dds"
     },
     {
-      "source": "Assets\\Textures\\LoadingScreenBlank.png",
-      "runtime": "LoadingScreenBlank.png"
-    },
-    {
       "source": "Assets\\Textures\\ma_detail_atlas_shape.dds",
       "runtime": "ma_detail_atlas_shape.dds"
     },
@@ -8735,10 +8731,6 @@
       "runtime": "openshim_europa_auto_layer3.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer3_n.png",
-      "runtime": "openshim_europa_auto_layer3_n.png"
-    },
-    {
       "source": "Assets\\Textures\\openshim_europa_auto_layer4.png",
       "runtime": "openshim_europa_auto_layer4.png"
     },
@@ -8757,10 +8749,6 @@
     {
       "source": "Assets\\Textures\\openshim_europa_auto_layer6.png",
       "runtime": "openshim_europa_auto_layer6.png"
-    },
-    {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer6_n.png",
-      "runtime": "openshim_europa_auto_layer6_n.png"
     },
     {
       "source": "Assets\\Textures\\openshim_europa_auto_layer7.png",
@@ -8951,24 +8939,12 @@
       "runtime": "openshim_ganymede_auto_layer0.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer0_n.png",
-      "runtime": "openshim_ganymede_auto_layer0_n.png"
-    },
-    {
       "source": "Assets\\Textures\\openshim_ganymede_auto_layer1.png",
       "runtime": "openshim_ganymede_auto_layer1.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer1_n.png",
-      "runtime": "openshim_ganymede_auto_layer1_n.png"
-    },
-    {
       "source": "Assets\\Textures\\openshim_ganymede_auto_layer2.png",
       "runtime": "openshim_ganymede_auto_layer2.png"
-    },
-    {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer2_n.png",
-      "runtime": "openshim_ganymede_auto_layer2_n.png"
     },
     {
       "source": "Assets\\Textures\\openshim_ganymede_auto_layer3.png",
@@ -8991,32 +8967,16 @@
       "runtime": "openshim_ganymede_auto_layer5.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer5_n.png",
-      "runtime": "openshim_ganymede_auto_layer5_n.png"
-    },
-    {
       "source": "Assets\\Textures\\openshim_ganymede_auto_layer6.png",
       "runtime": "openshim_ganymede_auto_layer6.png"
-    },
-    {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer6_n.png",
-      "runtime": "openshim_ganymede_auto_layer6_n.png"
     },
     {
       "source": "Assets\\Textures\\openshim_ganymede_auto_layer7.png",
       "runtime": "openshim_ganymede_auto_layer7.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer7_n.png",
-      "runtime": "openshim_ganymede_auto_layer7_n.png"
-    },
-    {
       "source": "Assets\\Textures\\openshim_io_auto_layer0.png",
       "runtime": "openshim_io_auto_layer0.png"
-    },
-    {
-      "source": "Assets\\Textures\\openshim_io_auto_layer0_n.png",
-      "runtime": "openshim_io_auto_layer0_n.png"
     },
     {
       "source": "Assets\\Textures\\openshim_io_auto_layer1.png",
@@ -9039,10 +8999,6 @@
       "runtime": "openshim_io_auto_layer3.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_io_auto_layer3_n.png",
-      "runtime": "openshim_io_auto_layer3_n.png"
-    },
-    {
       "source": "Assets\\Textures\\openshim_io_auto_layer4.png",
       "runtime": "openshim_io_auto_layer4.png"
     },
@@ -9055,10 +9011,6 @@
       "runtime": "openshim_io_auto_layer5.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_io_auto_layer5_n.png",
-      "runtime": "openshim_io_auto_layer5_n.png"
-    },
-    {
       "source": "Assets\\Textures\\openshim_io_auto_layer6.png",
       "runtime": "openshim_io_auto_layer6.png"
     },
@@ -9069,10 +9021,6 @@
     {
       "source": "Assets\\Textures\\openshim_io_auto_layer7.png",
       "runtime": "openshim_io_auto_layer7.png"
-    },
-    {
-      "source": "Assets\\Textures\\openshim_io_auto_layer7_n.png",
-      "runtime": "openshim_io_auto_layer7_n.png"
     },
     {
       "source": "Assets\\Textures\\openshim_io_auto_misn10_control.png",
@@ -9159,16 +9107,8 @@
       "runtime": "openshim_mars_auto_layer2.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_mars_auto_layer2_n.png",
-      "runtime": "openshim_mars_auto_layer2_n.png"
-    },
-    {
       "source": "Assets\\Textures\\openshim_mars_auto_layer3.png",
       "runtime": "openshim_mars_auto_layer3.png"
-    },
-    {
-      "source": "Assets\\Textures\\openshim_mars_auto_layer3_n.png",
-      "runtime": "openshim_mars_auto_layer3_n.png"
     },
     {
       "source": "Assets\\Textures\\openshim_mars_auto_misn04_control.png",
@@ -9215,10 +9155,6 @@
       "runtime": "openshim_moon_auto_layer1.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer1_n.png",
-      "runtime": "openshim_moon_auto_layer1_n.png"
-    },
-    {
       "source": "Assets\\Textures\\openshim_moon_auto_layer2.png",
       "runtime": "openshim_moon_auto_layer2.png"
     },
@@ -9261,10 +9197,6 @@
     {
       "source": "Assets\\Textures\\openshim_moon_auto_layer7.png",
       "runtime": "openshim_moon_auto_layer7.png"
-    },
-    {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer7_n.png",
-      "runtime": "openshim_moon_auto_layer7_n.png"
     },
     {
       "source": "Assets\\Textures\\openshim_moon_auto_misn01_control.png",
@@ -9359,10 +9291,6 @@
       "runtime": "openshim_titan_auto_layer3.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer3_n.png",
-      "runtime": "openshim_titan_auto_layer3_n.png"
-    },
-    {
       "source": "Assets\\Textures\\openshim_titan_auto_layer4.png",
       "runtime": "openshim_titan_auto_layer4.png"
     },
@@ -9389,10 +9317,6 @@
     {
       "source": "Assets\\Textures\\openshim_titan_auto_layer7.png",
       "runtime": "openshim_titan_auto_layer7.png"
-    },
-    {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer7_n.png",
-      "runtime": "openshim_titan_auto_layer7_n.png"
     },
     {
       "source": "Assets\\Textures\\openshim_titan_auto_misn14_control.png",
@@ -9551,10 +9475,6 @@
       "runtime": "openshim_venus_auto_layer2.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer2_n.png",
-      "runtime": "openshim_venus_auto_layer2_n.png"
-    },
-    {
       "source": "Assets\\Textures\\openshim_venus_auto_layer3.png",
       "runtime": "openshim_venus_auto_layer3.png"
     },
@@ -9575,24 +9495,12 @@
       "runtime": "openshim_venus_auto_layer5.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer5_n.png",
-      "runtime": "openshim_venus_auto_layer5_n.png"
-    },
-    {
       "source": "Assets\\Textures\\openshim_venus_auto_layer6.png",
       "runtime": "openshim_venus_auto_layer6.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer6_n.png",
-      "runtime": "openshim_venus_auto_layer6_n.png"
-    },
-    {
       "source": "Assets\\Textures\\openshim_venus_auto_layer7.png",
       "runtime": "openshim_venus_auto_layer7.png"
-    },
-    {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer7_n.png",
-      "runtime": "openshim_venus_auto_layer7_n.png"
     },
     {
       "source": "Assets\\Textures\\openshim_venus_auto_misn07_control.png",
