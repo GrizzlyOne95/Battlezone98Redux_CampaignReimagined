@@ -276,6 +276,46 @@ H.try("bug 14", function()
     check("bug 14: BuildAt retries are capped", attempts <= 6 * 3)
 end)
 
+-- Live 557: an idle constructor left holding a stale BUILD command must still travel and build.
+H.try("live 557 stale build", function()
+    H.buildAts, H.commands = {}, {}
+    local t = newTeam(2, 2)
+    local con = handle { team = 2, odf = "svcnst", class = "constructionrig", craft = true, canBuild = true,
+        command = AiCommand.BUILD, busy = false }
+    H.core.constructor[2] = con
+    t.constructorMgr.handle = con
+    t.CanIssueBuildingByRules = function() return true end
+    t.ValidateBuildingPlacement = function() return true end
+    local mgr = t.constructorMgr
+    mgr.queue = { { odf = "svtowe", path = H.vec(300, 0, 0), priority = 1 } }
+    H.costs.svtowe = 10
+    H.now = H.now + 1.0
+    mgr.pulseTimer = 0
+    mgr:update()
+    local go = false
+    for _, c in ipairs(H.commands) do if c.handle == con and c.command == AiCommand.GO then go = true end end
+    check("live 557: a stale BUILD does not stop the GO to a far site", go)
+    -- At the site, still holding the stale BUILD: BuildAt is issued.
+    con.command = AiCommand.BUILD
+    mgr.activeJob.path = H.vec(0, 0, 0)
+    mgr.activeJob.placementValidUntil = nil
+    H.now = H.now + 1.0
+    mgr.pulseTimer = 0
+    mgr:update()
+    check("live 557: a stale BUILD at the site still gets a BuildAt", #H.buildAts == 1)
+    -- Right after our own BuildAt the BUILD is fresh: no second BuildAt inside the grace window.
+    H.now = H.now + 1.0
+    mgr.pulseTimer = 0
+    mgr:update()
+    check("live 557: a fresh BuildAt is not repeated inside the grace window", #H.buildAts == 1)
+    -- Past the grace window an idle BUILD is stale again: BuildAt is retried.
+    H.now = H.now + aiCore.Constants.CONSTRUCTOR_BUILD_GRACE + 1.0
+    mgr.pulseTimer = 0
+    mgr:update()
+    check("live 557: an idle BUILD past the grace window gets a retry", #H.buildAts == 2)
+    mgr.activeJob, mgr.queue = nil, {}
+end)
+
 -- Bug 15: SetStrategy must not requeue a composition that is already in the producer.
 H.try("bug 15", function()
     H.reset()
@@ -489,6 +529,1310 @@ H.try("turbo", function()
     local ok = aiCore.TrySetTurbo(u, true)
     exu.SetUnitTurbo = saved
     check("TrySetTurbo does not fall back to a lowercase name", ok == false and H.lowerTurboCalls == 0)
+end)
+
+-- Bug 31: dynamic minefields used a non-existent "<minelayer>m" ODF and counted the wrong mine.
+H.try("bug 31", function()
+    aiCore.Units[4] = { minelayer = "cvmine", mine = "cvmineo", recycler = "cvrecy" }
+    local t = newTeam(2, 4)
+    local pos = { x = 0, y = 0, z = 0 }
+    t.Config.minefields = { pos }
+    local enemy = handle { team = 1, odf = "avtank", class = "wingman", craft = true, pos = { x = 10, y = 0, z = 0 } }
+    H.nearestEnemy = enemy
+    H.reset()
+    t.dynamicMinefieldAt = 0
+    t:UpdateDynamicMinefields()
+    check("bug 31: the faction's mine ODF is laid (not the minelayer vehicle + 'm')",
+        #H.built == 1 and H.built[1].odf == "cvmineo")
+    for i = 1, 3 do H.addObject { team = 2, odf = "cvmineo", pos = { x = i, y = 0, z = 0 } } end
+    H.reset()
+    t.dynamicMinefieldAt = 0
+    t:UpdateDynamicMinefields()
+    check("bug 31: existing mines of that ODF are counted", #H.built == 0)
+    H.nearestEnemy = nil
+    H.objects = {}
+end)
+
+-- Bug 32: regen compared a 0..1 fraction with absolute HP and ran per frame without dt.
+H.try("bug 32", function()
+    local t = newTeam(2, 2)
+    t.Config.passiveRegen, t.Config.regenRate = true, 10.0
+    H.maxHealth = 1000
+    local rec = handle { team = 2, odf = "svrecy", class = "recycler", craft = true, hp = 500 }
+    local full = handle { team = 2, odf = "svmuf", class = "factory", craft = true, hp = 1000 }
+    t.recyclerMgr.handle, t.factoryMgr.handle = rec, full
+    H.reset()
+    H.now = 200.0
+    t:UpdateRegen()                    -- seeds the clock
+    H.now = 200.5
+    t:UpdateRegen()
+    check("bug 32: regen is rate * elapsed seconds", math.abs((H.healed[rec] or 0) - 5.0) < 1e-6)
+    check("bug 32: a unit at max health is not healed", H.healed[full] == nil)
+    H.now = 260.0
+    t:UpdateRegen()
+    check("bug 32: a long gap is clamped to one second", math.abs((H.healed[rec] or 0) - 15.0) < 1e-6)
+    H.maxHealth = nil
+end)
+
+-- Bug 33: DecoyState and friends were never pruned.
+H.try("bug 33", function()
+    local t = newTeam(2, 2)
+    aiCore.ActiveTeams[2] = t
+    local dead = handle { team = 2, odf = "svtank", craft = true }
+    local live = handle { team = 2, odf = "svtank", craft = true }
+    aiCore.DecoyState[dead], aiCore.DecoyState[live] = { nextTime = 1 }, { nextTime = 1 }
+    aiCore.CommandState[dead] = { time = 0 }
+    aiCore.CountermeasureState[dead] = {}
+    t.producerDeployState[dead] = {}
+    t.scrapOrderState[dead] = {}
+    dead.valid = false
+    aiCore._commandStateCleanupTimer = 0
+    aiCore.UpdateCombatOnly()
+    check("bug 33: the shared 60 s cleanup drops dead handles from every state table",
+        aiCore.DecoyState[dead] == nil and aiCore.CommandState[dead] == nil
+        and aiCore.CountermeasureState[dead] == nil and t.producerDeployState[dead] == nil
+        and t.scrapOrderState[dead] == nil and aiCore.DecoyState[live] ~= nil)
+    aiCore.DeleteObject(live)
+    check("bug 33: DeleteObject clears the decoy state", aiCore.DecoyState[live] == nil)
+    aiCore.ActiveTeams[2] = nil
+end)
+
+-- Bug 34: team 1 was hard-coded as the human team (command priority, turbo, difficulty source).
+H.try("bug 34", function()
+    aiCore.SetHumanTeam(3, true)
+    local u = handle { team = 3, odf = "avtank", class = "wingman", craft = true }
+    H.reset()
+    aiCore.TrySetCommand(u, AiCommand.GO, 1, nil, { x = 1, y = 0, z = 1 })
+    check("bug 34: a configured human team gets commandable priority", H.commands[#H.commands].priority == 0)
+    H.turbo[u] = nil
+    aiCore.TrySetTurbo(u, false)
+    check("bug 34: a configured human team keeps turbo", H.turbo[u] == true)
+    aiCore.SetHumanTeam(3, nil)
+    local ai = handle { team = 3, odf = "avtank", class = "wingman", craft = true }
+    local savedExu = exu.GetDifficulty
+    exu.GetDifficulty = function() return 4 end
+    aiCore.TrySetTurbo(ai, true)
+    check("bug 34: AI turbo follows exu.GetDifficulty (very hard)", H.turbo[ai] == true)
+    exu.GetDifficulty = function() return 1 end
+    aiCore.TrySetTurbo(ai, true)
+    check("bug 34: AI turbo is off below very hard", H.turbo[ai] == false)
+    exu.GetDifficulty = savedExu
+end)
+
+-- Bug 35: units that change team stayed in manager lists.
+H.try("bug 35", function()
+    local t = newTeam(2, 2)
+    local u = handle { team = 2, odf = "svhowi", class = "howitzer", craft = true }
+    t.howitzerMgr.howitzers[1] = u
+    t.apcMgr.apcs[1] = u
+    t.minelayerMgr.minelayers[1] = u
+    t.wingmanMgr.wingmen[u] = { unit = u }
+    t.offensiveRetaliation[u] = { lastHealth = 1 }
+    u.team = 1
+    t:PruneForeignUnits()
+    check("bug 35: howitzer/apc/minelayer/wingman/retaliation entries drop a captured unit",
+        #t.howitzerMgr.howitzers == 0 and #t.apcMgr.apcs == 0 and #t.minelayerMgr.minelayers == 0
+        and t.wingmanMgr.wingmen[u] == nil and t.offensiveRetaliation[u] == nil)
+    local mgr = aiCore.OffenseRetaliationManager.new(5)
+    local v = handle { team = 5, odf = "avtank", class = "wingman", craft = true }
+    mgr:AddObject(v)
+    v.team = 1
+    mgr.updateTimer = 10
+    mgr:Update()
+    check("bug 35: the global offense manager drops a unit that changed team", mgr.units[v] == nil)
+end)
+
+-- Bug 36: human teams never ran offensive retaliation; the Team copy used teamNum == 1.
+H.try("bug 36", function()
+    aiCore.SetHumanTeam(4, true)
+    local t = aiCore.Team:new(4, 1)
+    check("bug 36: human defaults switch tactical orders off", t.Config.manageTacticalOrders == false)
+    local w = handle { team = 4, odf = "avtank", class = "wingman", craft = true, command = AiCommand.NONE }
+    local enemy = handle { team = 2, odf = "svtank", class = "wingman", craft = true }
+    t.combatUnits = { w }
+    w.shotBy, w.lastShot = enemy, H.now
+    H.reset()
+    t.offensiveRetaliationTimer = 10
+    t:UpdateOffensiveRetaliation()
+    check("bug 36: an idle human-team wingman retaliates (non-1 human team)",
+        #H.commands == 1 and H.commands[1].command == AiCommand.ATTACK and H.commands[1].target == enemy)
+    local called = false
+    t.UpdateOffensiveRetaliation = function() called = true end
+    pcall(t.Update, t)
+    check("bug 36: Team:Update still dispatches it for a human team", called)
+    aiCore.SetHumanTeam(4, nil)
+end)
+
+-- Bug 37: retreat picked the first depot, pulled artillery and never restored the order.
+H.try("bug 37", function()
+    local t = newTeam(2, 2)
+    local far = handle { team = 2, odf = "sbrepair", class = "repairdepot", building = true, pos = { x = 500, y = 0, z = 0 } }
+    local near = handle { team = 2, odf = "sbrepair", class = "repairdepot", building = true, pos = { x = 40, y = 0, z = 0 } }
+    t.depotMgr.depots = { [far] = { type = "repair" }, [near] = { type = "repair" } }
+    local target = handle { team = 1, odf = "avtank", class = "wingman", craft = true }
+    local walker = handle { team = 2, odf = "svwalk", class = "walker", craft = true, health = 0.1,
+        command = AiCommand.ATTACK, target = target }
+    local howi = handle { team = 2, odf = "svhowi", class = "howitzer", craft = true, health = 0.1 }
+    t.combatUnits = { walker, howi }
+    H.reset()
+    H.now = H.now + 10
+    t.retreatTimer = 0
+    t:UpdateRetreat()
+    check("bug 37: the nearest repair depot is chosen", walker.command == AiCommand.GET_REPAIR and walker.target == near)
+    check("bug 37: artillery is left alone", howi.command ~= AiCommand.GET_REPAIR)
+    walker.health, walker.command, walker.target = 1.0, AiCommand.NONE, nil
+    H.now = H.now + 3
+    t:UpdateRetreat()
+    check("bug 37: the interrupted order is restored after repair",
+        walker.command == AiCommand.ATTACK and walker.target == target)
+end)
+
+-- Bug 38: stale isCloaked made a damaged cloaker flip-flop in combat; max health could be 0.
+H.try("bug 38", function()
+    local t = newTeam(2, 2)
+    local u = handle { team = 2, odf = "cvtnk", class = "wingman", craft = true, health = 0.2, command = AiCommand.ATTACK }
+    t.cloakMgr.cloakers = { u }
+    H.reset()
+    for _ = 1, 3 do
+        t.cloakMgr.pulseTimer = 10
+        t.cloakMgr:Update(0)
+    end
+    local decloaks = 0
+    for _, c in ipairs(H.cloaks) do if not c.cloak then decloaks = decloaks + 1 end end
+    check("bug 38: a damaged cloaker stays cloaked in combat", u.cloaked == true and decloaks == 0)
+    H.maxHealth = 0
+    t.cloakMgr.pulseTimer = 10
+    local ok = pcall(t.cloakMgr.Update, t.cloakMgr, 0)
+    H.maxHealth = nil
+    check("bug 38: zero max health does not divide by zero", ok)
+end)
+
+-- Bug 39: the first WeaponManager:Update saw dt = whole game time.
+H.try("bug 39", function()
+    H.now = 5000.0
+    local mgr = aiCore.WeaponManager.new(2)
+    local seen
+    mgr.UpdateThumpers = function(_, dt) seen = dt end
+    mgr:Update()
+    check("bug 39: the first update has dt 0", seen == 0)
+    mgr.lastUpdate = 1.0
+    mgr:Update()
+    check("bug 39: dt is clamped to 5 s", seen == 5.0)
+end)
+
+-- Bug 40: failed native pushes were never retried; policies of dead handles lingered.
+H.try("bug 40", function()
+    local aiNative = require("aiNative")
+    local savedFloat, savedString = GetODFFloat, GetODFString
+    GetODFFloat = function(odf, _, key, default)
+        if key == "maxRange" and type(odf) == "table" and odf.odf == "cpgun2" then return 120.0 end
+        return default
+    end
+    GetODFString = function(odf, _, key, default)
+        if type(odf) == "table" and odf.odf == "avtank" and key == "aiName" then return "RocketTankFriend" end
+        return default
+    end
+    local u = H.addObject { team = 2, odf = "avtank", class = "wingman", craft = true, weapons = { [0] = "cpgun2" } }
+    aiNative.ClearUnit(u)
+    aiCore._nativeSyncChecked, aiCore._nextNativeTacticsSync = {}, 0
+    H.nativeAttempts, H.nativeFail = 0, true
+    H.now = H.now + 100
+    aiCore.SyncNativeTactics()
+    check("bug 40: the first sweep tries the push", H.nativeAttempts == 1)
+    H.now = H.now + 1.5
+    aiCore.SyncNativeTactics()
+    check("bug 40: a failed push is not retried every second", H.nativeAttempts == 1)
+    H.nativeFail = false
+    H.now = H.now + 11
+    aiCore.SyncNativeTactics()
+    check("bug 40: a failed push is retried after 10 s", H.nativeAttempts == 2 and aiNative.GetUnitPolicy(u) ~= nil)
+    H.objects = {}
+    GetODFFloat, GetODFString = savedFloat, savedString
+
+    local real = loadfile("Scripts/aiNative.lua")()
+    local dead = { valid = false }
+    real.policies[dead] = { engageRange = 1 }
+    real.PruneInvalid()
+    check("bug 40: aiNative.PruneInvalid drops invalid handles", real.policies[dead] == nil)
+end)
+
+-- Bug 41: a Lua error in the native target-score handler must not reach the engine.
+H.try("bug 41", function()
+    local t = newTeam(2, 2)
+    aiCore.ActiveTeams[2] = t
+    aiCore._nativeTargetScoringInstalled = false
+    aiCore.InstallNativeTargetScoring()
+    local unit = handle { team = 2, odf = "avtank", class = "wingman", craft = true, weapons = { [0] = "cpgun2" } }
+    local cand = handle { team = 1, odf = "svtank", class = "wingman", craft = true, pos = { x = 100, y = 0, z = 0 } }
+    local base = H.scoreHandler(unit, cand, 100.0, 0)
+    check("bug 41: the handler scores a normal candidate", type(base) == "number")
+    local savedTarget = GetTarget
+    GetTarget = function() error("boom") end
+    local okCall, result = pcall(H.scoreHandler, unit, cand, 100.0, 0)
+    GetTarget = savedTarget
+    check("bug 41: a Lua error returns nil (stock score) instead of propagating", okCall and result == nil)
+    t.squads = { { leader = unit, members = {}, currentTarget = cand } }
+    t.Config.nativeFocusFire = true
+    aiCore.LaneCache = {}
+    H.now = H.now + 10
+    local focused = H.scoreHandler(unit, cand, 100.0, 0)
+    t.squads[1].currentTarget = nil
+    local cached = H.scoreHandler(unit, cand, 100.0, 0)
+    H.now = H.now + 0.5
+    local fresh = H.scoreHandler(unit, cand, 100.0, 0)
+    check("bug 41: the squad target is cached for ~0.25 s, then refreshed", cached == focused and fresh > focused)
+    aiCore.ActiveTeams[2] = nil
+end)
+
+-- Bug 42: raiders left the pool even when the attack order failed, and never came back.
+H.try("bug 42", function()
+    local t = newTeam(2, 2)
+    local victim = handle { team = 1, odf = "avscav", class = "scavenger", craft = true }
+    t.scrapHotspots = { { denyTarget = victim } }
+    local r = handle { team = 2, odf = "svtank", class = "wingman", craft = true, command = AiCommand.NONE }
+    t.pool = { r }
+    H.now = H.now + 100
+    aiCore.CommandState[r] = { time = H.now, cmd = AiCommand.FOLLOW }   -- throttled: TryAttack fails
+    t.raiderTimer = 0
+    t:UpdateRaiders()
+    check("bug 42: a failed raid order leaves the unit in the pool", #t.pool == 1)
+    aiCore.CommandState[r] = nil
+    H.now = H.now + 20
+    t:UpdateRaiders()
+    check("bug 42: a dispatched raider leaves the pool", #t.pool == 0 and r.command == AiCommand.ATTACK)
+    victim.alive = false
+    H.now = H.now + 20
+    t:UpdateRaiders()
+    check("bug 42: the raider returns to the pool when its target is dead", #t.pool == 1)
+end)
+
+-- Bug 43: a player briefly in a wingman craft must not unregister it; players on foot are not soldiers.
+H.try("bug 43", function()
+    local t = newTeam(1, 1)
+    local w = handle { team = 1, odf = "avfigh", class = "wingman", craft = true }
+    t.wingmanMgr:AddObject(w)
+    H.playerHandle = w
+    t.wingmanMgr.updateTimer = 100
+    t.wingmanMgr:Update()
+    check("bug 43: a human hop-in only skips the tick", t.wingmanMgr.wingmen[w] ~= nil)
+    H.playerHandle = nil
+    w.team = 3
+    t.wingmanMgr.updateTimer = 100
+    t.wingmanMgr:Update()
+    check("bug 43: a foreign-team craft is removed", t.wingmanMgr.wingmen[w] == nil)
+
+    local onFoot = handle { team = 1, odf = "aspilo", class = "person", person = true }
+    H.playerHandle = onFoot
+    t:AddObject(onFoot)
+    H.playerHandle = nil
+    check("bug 43: a human on foot is not registered", not t.trackedSet[onFoot])
+end)
+
+-- Misc: APC sweep skip, PlayerRush cleanup, faction guard.
+H.try("bug 44", function()
+    local t = newTeam(2, 2)
+    H.allCraftCalls = 0
+    t.apcMgr.updateTimer = 100
+    t.apcMgr:Update(0)
+    check("bug 44: an APC manager without APCs skips the AllCraft sweep", H.allCraftCalls == 0)
+
+    local savedExu = exu.GetDifficulty
+    exu.GetDifficulty = function() return 3 end
+    local stale = handle { team = 2, odf = "svtank", craft = true }
+    aiCore.PlayerRushState = { nextCheck = 1e9, cleanupTime = 0, shooterCooldown = { [stale] = 1.0 } }
+    stale.valid = false
+    aiCore.UpdatePlayerRushAggression()
+    exu.GetDifficulty = savedExu
+    check("bug 44: shooter cooldown cleanup runs before the early returns",
+        aiCore.PlayerRushState.shooterCooldown[stale] == nil)
+
+    local noUnits = aiCore.Team:new(2, 9)
+    local person = handle { team = 2, odf = "sspilo", class = "person", person = true }
+    check("bug 44: a team with an unknown faction registers a person without error",
+        pcall(noUnits.AddObject, noUnits, person))
+end)
+
+-- Save/load keeps SetHumanTeam overrides; older saves without them still load.
+H.try("bug 45", function()
+    aiCore.SetHumanTeam(7, true)
+    local data = aiCore.Save()
+    aiCore.SetHumanTeam(7, nil)
+    check("bug 45: override cleared before load", aiCore.IsHumanTeam(7) == false)
+    aiCore.Load(data)
+    check("bug 45: human team overrides survive a save/load", aiCore.IsHumanTeam(7) == true)
+    local older = aiCore.Save()
+    older.humanTeamOverrides = nil
+    aiCore.Load(older)
+    check("bug 45: saves without overrides still load", aiCore.IsHumanTeam(7) == true)
+    aiCore.SetHumanTeam(7, nil)
+end)
+
+
+-- Bugs 46-51: special-weapon switching (thumper/field/mine/retaliation) is context driven.
+-- Weapon ranges the mock engine reports for the names below (fresh names: ranges are cached).
+local specialRange = { gquake2 = 100.0, gpopgun2 = 150.0, gmortar2 = 400.0, gthrower2 = 60.0,
+    cpgun2 = 100.0, cprkt2 = 400.0 }
+local priorGetODFFloat = GetODFFloat
+GetODFFloat = function(odf, section, key, default)
+    if key == "maxRange" and type(odf) == "table" and specialRange[odf.odf] then return specialRange[odf.odf] end
+    return priorGetODFFloat(odf, section, key, default)
+end
+
+local function maskWrites(u)
+    local n = 0
+    for _, w in ipairs(H.weaponMasks) do if w.handle == u then n = n + 1 end end
+    return n
+end
+local function selections(u, mask)
+    local n = 0
+    for _, w in ipairs(H.weaponMasks) do if w.handle == u and w.mask == mask then n = n + 1 end end
+    return n
+end
+
+-- Bug 46: an idle thumper user reset its mask every frame, wiping the double-weapon pick.
+H.try("bug 46", function()
+    local t = newTeam(2, 2)
+    local mgr = t.weaponMgr
+    H.now, H.nearestEnemy = 500.0, nil
+    local u = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [1] = "gchain", [2] = "gcannon", [3] = "gquake2" }, mask = 7 }
+    mgr.thumperUsers = { { handle = u, mask = 8 } }
+    H.weaponMasks = {}
+    for _ = 1, 150 do
+        H.now = H.now + 0.1
+        mgr:UpdateThumpers(0.1)
+    end
+    check("bug 46: an idle thumper user never writes the mask", maskWrites(u) == 0)
+    check("bug 46: the double-weapon mask survives", u.mask == 7)
+    check("bug 46: an idle thumper user is not a mask owner", next(mgr.thumperUsers[1]) ~= nil
+        and not mgr.thumperUsers[1].active)
+end)
+
+-- Bug 47: the thumper fires at a walker in reach, ignores one out of reach, and switches off
+-- after the walker is gone for 3 s.
+H.try("bug 47", function()
+
+    local t = newTeam(2, 2)
+    local mgr = t.weaponMgr
+    H.now = 600.0
+    local walker = handle { team = 1, odf = "avwalk", class = "walker", craft = true, pos = { x = 0, y = 0, z = 500 } }
+    local u = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [1] = "gchain", [3] = "gquake2" }, mask = 3 }
+    local user = { handle = u, mask = 8 }
+    mgr.thumperUsers = { user }
+    H.nearestEnemy = walker
+    H.weaponMasks = {}
+    u.target = walker                       -- targeted walker at 500 m: out of the 100 m reach
+    for _ = 1, 20 do H.now = H.now + 0.1; mgr:UpdateThumpers(0.1) end
+    check("bug 47: a walker at 500 m draws no thumper", not user.active and maskWrites(u) == 0 and u.mask == 3)
+
+    walker.pos = { x = 0, y = 0, z = 80 }
+    H.now = H.now + 0.1
+    mgr:UpdateThumpers(0.1)
+    check("bug 47: a walker in reach switches the thumper on", user.active and u.mask == 8 and maskWrites(u) == 1)
+    H.now = H.now + 0.1
+    mgr:UpdateThumpers(0.1)
+    check("bug 47: it stays on without rewriting the mask", user.active and maskWrites(u) == 1)
+
+    walker.pos = { x = 0, y = 0, z = 500 }
+    H.now = H.now + 2.0
+    mgr:UpdateThumpers(0.1)
+    check("bug 47: it stays on for the 3 s hold", user.active)
+    H.now = H.now + 1.5
+    mgr:UpdateThumpers(0.1)
+    check("bug 47: it switches off once, restoring the mask", not user.active and u.mask == 3 and maskWrites(u) == 2)
+    for _ = 1, 20 do H.now = H.now + 0.1; mgr:UpdateThumpers(0.1) end
+    check("bug 47: no further mask writes while idle", maskWrites(u) == 2)
+
+    -- Unknown weapon range falls back to the 60 m constant; a human-piloted craft is never touched.
+    local u2 = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [3] = "gthumper9" }, mask = 1 }
+    local user2 = { handle = u2, mask = 8 }
+    mgr.thumperUsers = { user2 }
+    walker.pos = { x = 0, y = 0, z = 80 }
+    H.weaponMasks = {}
+    mgr:UpdateThumpers(0.1)
+    check("bug 47: unknown range uses the 60 m fallback", not user2.active)
+    walker.pos = { x = 0, y = 0, z = 50 }
+    mgr:UpdateThumpers(0.1)
+    check("bug 47: a walker inside the fallback reach is thumped", user2.active)
+    H.playerHandle = u2
+    mgr:UpdateThumpers(0.1)
+    H.playerHandle = nil
+    check("bug 47: a human-piloted craft is released without touching its mask", not user2.active and u2.mask == 8)
+    H.nearestEnemy = nil
+end)
+
+-- Bug 48: the random thumper trigger rolled every frame; it rolls once per period.
+H.try("bug 48", function()
+    local t = newTeam(2, 2)
+    local mgr = t.weaponMgr
+    H.now = 700.0
+    local tank = handle { team = 1, odf = "avtank", class = "wingman", craft = true, pos = { x = 0, y = 0, z = 30 } }
+    local u = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [1] = "gchain", [3] = "gquake2" }, mask = 3 }
+    local user = { handle = u, mask = 8 }
+    mgr.thumperUsers = { user }
+    H.nearestEnemy = tank
+    local rolls, roll = 0, 99
+    local realRandom = math.random
+    math.random = function() rolls = rolls + 1; return roll end
+    for _ = 1, 100 do H.now = H.now + 0.1; mgr:UpdateThumpers(0.1) end
+    check("bug 48: one failed roll in 10 s, no thump", rolls == 1 and not user.active and u.mask == 3)
+    H.now = H.now + 6.0
+    roll = 1
+    mgr:UpdateThumpers(0.1)
+    check("bug 48: the next period rolls again and a success switches the thumper on", rolls == 2 and user.active)
+    H.now = H.now + 0.6
+    mgr:UpdateThumpers(0.1)
+    check("bug 48: the burst ends after thumperDuration", not user.active and u.mask == 3 and rolls == 2)
+    math.random = realRandom
+    H.nearestEnemy = nil
+end)
+
+-- Bug 49: an inactive thumper user is range gated; an active one is left alone.
+H.try("bug 49", function()
+    local t = newTeam(2, 2)
+    local mgr = t.weaponMgr
+    H.now = 800.0
+    local foe = handle { team = 1, odf = "avfigh", class = "wingman", craft = true, pos = { x = 0, y = 0, z = 300 } }
+    local u = handle { team = 2, odf = "svfigh", class = "wingman", craft = true,
+        weapons = { [0] = "cpgun2", [1] = "cprkt2", [3] = "gthumper9" }, mask = 11,
+        command = AiCommand.ATTACK, target = foe }
+    t.combatUnits = { u }
+    local user = { handle = u, mask = 8 }
+    mgr.thumperUsers, mgr.retaliationState, mgr.rangeGateState = { user }, {}, {}
+    mgr.rangeGateAt = 0.0
+    mgr:UpdateRangeGating()
+    check("bug 49: an inactive thumper user is range gated", u.mask == 10)
+    u.mask, mgr.rangeGateState, mgr.rangeGateAt, user.active = 11, {}, 0.0, true
+    mgr:UpdateRangeGating()
+    check("bug 49: an active thumper user keeps its mask", u.mask == 11)
+end)
+
+-- Bug 50: person retaliation respects weapon range, the mortar minimum and aiming.
+H.try("bug 50", function()
+    local t = newTeam(2, 2)
+    local mgr = t.weaponMgr
+    H.now = 900.0
+    local function shotBy(u, sniper)
+        u.shotBy, u.lastShot = sniper, H.now
+        mgr.retaliationUpdateAt = 0
+        mgr:UpdateRetaliation(0.1)
+    end
+    local function sniperAt(z)
+        return handle { team = 1, odf = "aspilo", class = "person", person = true, pos = { x = 0, y = 0, z = z } }
+    end
+    local function unit(weapons, mask)
+        local u = handle { team = 2, odf = "svfigh", class = "wingman", craft = true, weapons = weapons, mask = mask }
+        t.combatUnits = { u }
+        mgr.retaliationState = {}
+        return u
+    end
+
+    H.weaponMasks = {}
+    local u = unit({ [0] = "gchain", [1] = "gpopgun2", [2] = "gproxmin2" }, 1)
+    shotBy(u, sniperAt(250))
+    check("bug 50: a sniper at 250 m draws neither popgun nor mine", u.mask == 1 and maskWrites(u) == 0
+        and mgr.retaliationState[u] == nil)
+
+    -- Popgun in range: selected once and held, not rewritten every tick.
+    u = unit({ [0] = "gchain", [1] = "gpopgun2" }, 1)
+    local s = sniperAt(100)
+    H.weaponMasks = {}
+    shotBy(u, s)
+    check("bug 50: the popgun is selected at 100 m", u.mask == 2)
+    H.now = H.now + 0.25
+    shotBy(u, s)
+    check("bug 50: the selection is not rewritten every tick", maskWrites(u) == 1)
+
+    -- Person at 15 m: the mortar's minimum range rules it out, the mine is considered.
+    u = unit({ [0] = "gchain", [1] = "gmortar2", [2] = "gproxmin2" }, 1)
+    H.weaponMasks = {}
+    s = sniperAt(15)
+    shotBy(u, s)
+    check("bug 50: at 15 m the mortar is skipped and the mine is selected", u.mask == 4)
+    H.now = H.now + 0.25
+    shotBy(u, s)
+    check("bug 50: the mine mask is a short burst, then the prior mask returns", u.mask == 1)
+    for _ = 1, 7 do H.now = H.now + 0.25; shotBy(u, s) end
+    check("bug 50: no second mine within 3 s", selections(u, 4) == 1 and u.mask == 1)
+    H.now = H.now + 1.5
+    shotBy(u, s)
+    check("bug 50: a second mine after 3 s", selections(u, 4) == 2)
+
+    -- Same mortar at 100 m is fine.
+    u = unit({ [0] = "gchain", [1] = "gmortar2" }, 1)
+    shotBy(u, sniperAt(100))
+    check("bug 50: the mortar is used outside its minimum range", u.mask == 2)
+
+    -- Walker: the thumper needs the walker inside its reach.
+    u = unit({ [0] = "gchain", [1] = "gquake2" }, 1)
+    local walker = handle { team = 1, odf = "avwalk", class = "walker", craft = true, pos = { x = 0, y = 0, z = 500 } }
+    shotBy(u, walker)
+    check("bug 50: a far walker draws no retaliation thumper", u.mask == 1)
+    walker.pos = { x = 0, y = 0, z = 50 }
+    shotBy(u, walker)
+    check("bug 50: a walker in reach does", u.mask == 2)
+end)
+
+-- Bug 51: field/mine users roll once per period, mines need an enemy close by, and absolute
+-- timestamps are cleared when a game is loaded.
+H.try("bug 51", function()
+    local t = newTeam(2, 2)
+    local mgr = t.weaponMgr
+    H.now = 1000.0
+    local foe = handle { team = 1, odf = "avtank", class = "wingman", craft = true, pos = { x = 0, y = 0, z = 100 } }
+    local u = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [3] = "gproxmin2" }, mask = 1 }
+    mgr.mineUsers = { { handle = u, mask = 8 } }
+    H.nearestEnemy = foe
+    local rolls = 0
+    local realRandom = math.random
+    math.random = function() rolls = rolls + 1; return 1 end
+    H.weaponMasks = {}
+    for _ = 1, 50 do H.now = H.now + 0.1; mgr:UpdateMines(0.1) end
+    check("bug 51: no mine with the enemy 100 m away", rolls == 0 and maskWrites(u) == 0)
+    foe.pos = { x = 0, y = 0, z = 30 }
+    for _ = 1, 50 do H.now = H.now + 0.1; mgr:UpdateMines(0.1) end
+    check("bug 51: one roll and one mine burst in 5 s with the enemy near",
+        rolls == 1 and selections(u, 8) == 1 and maskWrites(u) == 2 and u.mask == 1)
+    math.random = realRandom
+
+    local f = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [3] = "gphantom" }, mask = 1 }
+    local fuser = { handle = f, mask = 8 }
+    mgr.fieldUsers = { fuser }
+    math.random = function() rolls = rolls + 1; return 1 end
+    rolls = 0
+    for _ = 1, 150 do H.now = H.now + 0.1; mgr:UpdateFields(0.1) end   -- 15 s
+    check("bug 51: a field rolls once per 40 s period", rolls == 1)
+    math.random = realRandom
+    check("bug 51: the field burst is over: one switch on, one reset", not fuser.active and f.mask == 1
+        and maskWrites(f) == 2)
+
+    -- Load: stale timestamps and active flags are dropped.
+    local th = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [1] = "gchain", [3] = "gquake2" }, mask = 8 }
+    local tuser = { handle = th, mask = 8, active = true, holdUntil = 99999.0, nextRollAt = 99999.0 }
+    mgr.thumperUsers = { tuser }
+    fuser.nextRollAt, fuser.holdUntil = 99999.0, 99999.0
+    mgr.retaliationUpdateAt = 99999.0
+    local prevTeams = aiCore.ActiveTeams
+    aiCore.ActiveTeams = { [2] = t }
+    aiCore.ResetCombatStateAfterLoad()
+    aiCore.ActiveTeams = prevTeams
+    check("bug 51: a load clears thumper state and restores the mask",
+        not tuser.active and tuser.holdUntil == nil and tuser.nextRollAt == nil and th.mask == 3)
+    check("bug 51: a load clears field and retaliation timestamps", fuser.nextRollAt == nil
+        and fuser.holdUntil == nil and mgr.retaliationUpdateAt == 0.0)
+    H.nearestEnemy = nil
+end)
+
+-- Pilot/sniper audit (A1, A2, A5): any non-rifle slot-0 weapon is the sidearm, allies are never
+-- sniped or stolen from, and an unreachable target is blacklisted after a timeout.
+H.try("pilot sniper audit", function()
+    local realRandom = math.random
+    GiveWeapon = function(h, w, slot) h.weapons = h.weapons or {}; h.weapons[slot] = w end
+    GetIn = function(h, target) h.gotIn = target end
+    IsAliveAndPilot = function(h) return IsAlive(h) and h.occupied == true end
+    SetTarget = function(h, target) h.aimedAt = target end
+
+    local function refresh()
+        aiCore.ResetObjectCacheTracking()
+        for _, o in ipairs(H.objects) do aiCore.TrackWorldObject(o) end
+        aiCore.RefreshObjectCache(true)
+    end
+    local function setup(pilotWeapon, sniper)
+        H.objects, H.nearestEnemy = {}, nil
+        H.reset()
+        local t = newTeam(2, 2)
+        local p = H.addObject { team = 2, odf = "sspilo", class = "person", person = true,
+            weapons = { [0] = pilotWeapon } }
+        t.pilots = { p }
+        t.sniperState = { [p] = sniper }
+        return t, p
+    end
+    local function tick(t, n)
+        for _ = 1, n or 1 do H.now = H.now + 1.0; t.pilotUpdateAt = 0.0; t:UpdatePilots() end
+    end
+    local function gos(target)
+        local n = 0
+        for _, c in ipairs(H.commands) do
+            if c.command == AiCommand.GO and c.target == target then n = n + 1 end
+        end
+        return n
+    end
+
+    -- A1: an aprifle pilot arms gsnipe, and the saved rifle comes back (not "handgun").
+    H.now = 500.0
+    math.random = function() return 1 end
+    local t, p = setup("aprifle", true)
+    local enemy = H.addObject { team = 1, odf = "avtank", class = "wingman", craft = true, occupied = true,
+        pos = { x = 0, y = 0, z = 100 } }
+    refresh()
+    H.nearestEnemy = enemy
+    tick(t, 2)
+    check("A1: the pilot is ordered to attack the occupied enemy craft", p.command == AiCommand.ATTACK and p.target == enemy)
+    tick(t, 2)
+    check("A1: an aprifle pilot equips gsnipe", p.weapons[0] == "gsnipe" and t.pilotOrigWeapon[p] == "aprifle")
+    enemy.alive = false
+    tick(t, 2)
+    check("A1: the original sidearm is restored, not handgun", p.weapons[0] == "aprifle")
+
+    -- A2: never snipe an allied or own-team occupied craft.
+    H.allied["2:3"] = true
+    t, p = setup("sprifle", true)
+    local allyCraft = H.addObject { team = 3, odf = "avtank", class = "wingman", craft = true, occupied = true,
+        pos = { x = 0, y = 0, z = 100 } }
+    local ownCraft = H.addObject { team = 2, odf = "svtank", class = "wingman", craft = true, occupied = true,
+        pos = { x = 0, y = 0, z = 90 } }
+    refresh()
+    for _, cand in ipairs({ allyCraft, ownCraft }) do
+        H.nearestEnemy = cand
+        tick(t, 4)
+    end
+    check("A2: allied/own occupied craft are not sniped", p.weapons[0] == "sprifle" and p.command ~= AiCommand.ATTACK)
+
+    -- A2/A3/A6: steal the nearest empty, armed craft that is not an ally's; two pilots never share one.
+    t, p = setup("sprifle", false)
+    local allyEmpty = H.addObject { team = 3, odf = "avtank", class = "wingman", craft = true,
+        weapons = { [0] = "gcannon" }, pos = { x = 30, y = 0, z = 0 } }
+    local farEmpty = H.addObject { team = 0, odf = "avtank", class = "wingman", craft = true,
+        weapons = { [0] = "gcannon" }, pos = { x = 120, y = 0, z = 0 } }
+    local nearEmpty = H.addObject { team = 0, odf = "avtank", class = "wingman", craft = true,
+        weapons = { [0] = "gcannon" }, pos = { x = 60, y = 0, z = 0 } }
+    local unarmed = H.addObject { team = 0, odf = "avscav", class = "scavenger", craft = true,
+        pos = { x = 20, y = 0, z = 0 } }
+    refresh()
+    tick(t, 1)
+    check("A2/A3: the nearest armed, non-allied empty craft is chosen",
+        t.pilotStealTarget[p] == nearEmpty and gos(nearEmpty) == 1 and gos(allyEmpty) == 0 and gos(unarmed) == 0)
+    local p2 = H.addObject { team = 2, odf = "sspilo", class = "person", person = true, weapons = { [0] = "sprifle" } }
+    t.pilots = { p, p2 }
+    t.sniperState[p2] = false
+    tick(t, 2)
+    check("A6: a second pilot takes a different craft",
+        t.pilotStealTarget[p2] == farEmpty and t.pilotStealTarget[p] == nearEmpty)
+
+    -- A5: no progress for 20 s blacklists the target for this pilot for ~60 s.
+    t, p = setup("sprifle", false)
+    local stuck = H.addObject { team = 0, odf = "avtank", class = "wingman", craft = true,
+        weapons = { [0] = "gcannon" }, pos = { x = 100, y = 0, z = 0 } }
+    refresh()
+    tick(t, 12)
+    check("A5: still pursuing before the timeout", t.pilotStealTarget[p] == stuck)
+    tick(t, 12)
+    check("A5: the unreachable craft is dropped and blacklisted",
+        t.pilotStealTarget[p] == nil and (t.pilotBlacklist[p][stuck] or 0) > H.now)
+    tick(t, 30)
+    check("A5: it is not picked again during the blacklist", t.pilotStealTarget[p] == nil)
+    tick(t, 40)
+    check("A5: it is eligible again once the blacklist expires", t.pilotStealTarget[p] == stuck)
+
+    math.random = realRandom
+    H.nearestEnemy = nil
+    H.allied = {}
+    H.objects = {}
+    local human = aiCore.AddTeam(1, 1)
+    check("A4: human teams default to no pilot specials/stealing",
+        human.Config.managePilotSpecials == false and human.Config.sniperSteal == false)
+    aiCore.ActiveTeams = {}
+end)
+
+-- Howitzer squads (B1-B4): persistent target, range-based stand-off, once-per-target player assist.
+H.try("howitzer squads", function()
+    local realRandom = math.random
+    local function refresh()
+        aiCore.ResetObjectCacheTracking()
+        for _, o in ipairs(H.objects) do aiCore.TrackWorldObject(o) end
+        aiCore.RefreshObjectCache(true)
+    end
+    H.objects, H.nearestEnemy = {}, nil
+    H.reset()
+    H.now = 1000.0
+    local t = newTeam(2, 2)
+    t.Config.howitzerChance = 100
+    local mgr = t.howitzerMgr
+    local how = H.addObject { team = 2, odf = "svartl", class = "howitzer", craft = true, pos = { x = 0, y = 0, z = 0 } }
+    local recy = H.addObject { team = 1, odf = "avrecy", class = "recycler", building = true,
+        pos = { x = 1000, y = 0, z = 0 } }
+    H.core.recycler[1] = recy
+    refresh()
+    mgr.howitzers = { how }
+
+    -- B2: out of range (250 m fallback) -> GO to a stand-off point at 0.8 x range from the target.
+    mgr:Update(100.0)
+    local go = H.commands[1]
+    check("B2: an out-of-range target draws a GO, not an attack", go and go.command == AiCommand.GO and #H.commands == 1)
+    local sx = go and go.position and go.position.x or 0
+    check("B2: the stand-off point is 0.8 x range from the target", math.abs((1000 - sx) - 200) < 1.0)
+    local state = mgr.squadState[how]
+    check("B1: the squad has a persistent target", state and state.target == recy)
+
+    -- B3: idle at the stand-off point -> immediate attack without waiting for the 30 s cycle.
+    how.pos = { x = 800, y = 0, z = 0 }
+    how.command = AiCommand.NONE
+    H.commands = {}
+    H.now = H.now + 3.0
+    mgr:Update(0.1)
+    check("B3/B2: an idle howitzer in range is ordered to attack at once",
+        #H.commands == 1 and H.commands[1].command == AiCommand.ATTACK and H.commands[1].target == recy)
+
+    -- Hysteresis: between 0.9 x and 1.0 x range it keeps attacking (no new GO).
+    how.pos = { x = 760, y = 0, z = 0 }   -- 240 m
+    H.commands = {}
+    H.now = H.now + 3.0
+    mgr:UpdateSquadOrders(true)
+    check("B2: an attacking howitzer keeps attacking until past full range", #H.commands == 0)
+
+    -- B1: a higher-priority target appearing does not steal the squad's target.
+    H.addObject { team = 1, odf = "avslf", class = "supplydepot", building = true, pos = { x = 500, y = 0, z = 0 } }
+    refresh()
+    for _ = 1, 3 do H.now = H.now + 31.0; mgr:Update(100.0) end
+    check("B1: the target persists across evaluations", mgr.squadState[how].target == recy)
+    recy.alive = false
+    H.now = H.now + 3.0
+    mgr:Update(0.1)
+    local depot = mgr.squadState[how] and mgr.squadState[how].target
+    check("B1: a dead target is replaced at once", depot ~= nil and depot ~= recy and depot.class == "supplydepot")
+
+    -- B6: a howitzer is registered once.
+    mgr.howitzers = {}
+    mgr:AddObject(how)
+    mgr:AddObject(how)
+    check("B6: AddObject does not duplicate a howitzer", #mgr.howitzers == 1)
+
+    -- B4: the player-team assist sends one stand-off GO per target and never overrides a player GO.
+    H.objects, H.commands = {}, {}
+    local human = aiCore.AddTeam(1, 1)
+    local pm = human.howitzerMgr
+    local ph = H.addObject { team = 1, odf = "avartl", class = "howitzer", craft = true, pos = { x = 0, y = 0, z = 0 } }
+    local far = H.addObject { team = 2, odf = "svrecy", class = "recycler", building = true,
+        pos = { x = 3000, y = 0, z = 0 } }
+    pm.howitzers = { ph }
+    ph.command, ph.target = AiCommand.ATTACK, far
+    for _ = 1, 4 do H.now = H.now + 1.0; pm:UpdatePlayerHowitzerOrders() end
+    local goCount = 0
+    for _, c in ipairs(H.commands) do if c.command == AiCommand.GO then goCount = goCount + 1 end end
+    check("B4: the stand-off GO is issued once per target", goCount == 1)
+    ph.command, ph.target = AiCommand.GO, nil          -- the player now gives their own GO
+    H.commands = {}
+    for _ = 1, 3 do H.now = H.now + 1.0; pm:UpdatePlayerHowitzerOrders() end
+    check("B4: a GO the player gave is never overridden", #H.commands == 0)
+
+    math.random = realRandom
+    H.objects = {}
+    aiCore.ActiveTeams = {}
+end)
+
+-- ===== Base building / constructor audit =====
+-- Positions are userdata here (H.vec / H.mat), exactly like the engine's VECTOR_3D / MAT_3D, so a
+-- `type(v) == "table"` check anywhere in the building path fails these cases.
+local function buildingTeam()
+    local t = newTeam(2, 2)
+    local rec = handle { team = 2, odf = "svrecy", class = "recycler", craft = true, deployed = true,
+        pos = { x = 0, y = 0, z = 0 } }
+    local con = handle { team = 2, odf = "svcnst", class = "constructionrig", craft = true, canBuild = true,
+        pos = { x = 0, y = 0, z = 0 } }
+    H.core.recycler[2], H.core.constructor[2] = rec, con
+    t.recyclerMgr.handle, t.constructorMgr.handle = rec, con
+    return t, rec, con
+end
+local function resetBuildingWorld()
+    H.objects, H.commands, H.buildAts, H.builds = {}, {}, {}, {}
+    H.core = { recycler = {}, factory = {}, constructor = {}, armory = {} }
+    aiCore.ActiveTeams = {}
+end
+
+-- Item 1: userdata vectors and matrices through the real placement path; facing survives relocation.
+H.try("building 1", function()
+    local t = buildingTeam()
+    check("building 1: the vector is userdata (mock sanity)", type(H.vec(1, 2, 3)) == "userdata")
+    local okVec = t:AddBuilding("svbld1", H.vec(300, 0, 300), 1)
+    check("building 1: AddBuilding accepts a userdata vector", okVec == true and t.buildingList[1] ~= nil)
+    local okMat = t:AddBuilding("svbld1", H.mat(600, 0, 600, 1, 0), 2)
+    check("building 1: AddBuilding accepts a userdata matrix", okMat == true)
+    local reason = select(2, t:ValidateBuildingPlacement("svbld1", H.mat(300, 0, 300, 0, 1)))
+    check("building 1: a userdata matrix on a planned site is an obstruction (position resolved)",
+        reason == "planned-obstruction")
+    local ok, why = t:ValidateBuildingPlacement("svbld1", H.vec(900, 0, 900))
+    check("building 1: a free userdata vector validates", ok == true and why == nil)
+
+    -- Relocation: the matrix facing (+x) is kept and the site moved.
+    local added = t:AddBuilding("svbld1", H.mat(600, 0, 600, 1, 0), 3)
+    local plan = t.buildingList[3]
+    check("building 1: the blocked matrix is relocated and accepted", added == true and plan ~= nil)
+    check("building 1: the relocated site is a matrix whose facing is preserved",
+        plan and plan.path.posit_x ~= nil and math.abs(plan.path.front_x - 1) < 0.01
+        and math.abs(plan.path.front_z) < 0.01
+        and (plan.path.posit_x ~= 600 or plan.path.posit_z ~= 600))
+    resetBuildingWorld()
+end)
+
+-- Item 2: a nil priority goes after everything already planned.
+H.try("building 2", function()
+    local t = buildingTeam()
+    t.buildingList[5] = { odf = "svbld1", priority = 5, path = H.vec(2000, 0, 2000) }
+    t.buildingList[12] = { odf = "svbld1", priority = 12, path = H.vec(2500, 0, 2500) }
+    t:AddBuilding("svbld1", H.vec(300, 0, 300))
+    check("building 2: nil priority is appended after the highest existing priority",
+        t.buildingList[13] ~= nil and t.buildingList[13].odf == "svbld1")
+    local empty = buildingTeam()
+    empty:AddBuilding("svbld1", H.vec(300, 0, 300))
+    check("building 2: an empty list starts at priority 1", empty.buildingList[1] ~= nil)
+    resetBuildingWorld()
+end)
+
+-- Item 3: a plan whose building exists is counted once.
+H.try("building 3", function()
+    local t = buildingTeam()
+    local tower = handle { team = 2, odf = "svtowe", class = "turret", building = true, pos = { x = 50, y = 0, z = 0 } }
+    t.buildingList[1] = { odf = "svtowe", priority = 1, path = H.vec(50, 0, 0), handle = tower }
+    t.buildingList[2] = { odf = "svtowe", priority = 2, path = H.vec(60, 0, 0) }
+    local realTargets = aiCore.GetCachedTeamTargets
+    aiCore.GetCachedTeamTargets = function() return { tower } end
+    local count = t:CountExistingOrPlannedBuildingsNear(H.vec(0, 0, 0), 100,
+        function(odf) return odf == "svtowe" end)
+    aiCore.GetCachedTeamTargets = realTargets
+    check("building 3: built plan + live object + one unbuilt plan = 2, not 3", count == 2)
+    resetBuildingWorld()
+end)
+
+-- Item 4: a rejected hotspot silo/outpost is banned so the next candidate is tried.
+H.try("building 4", function()
+    local t = buildingTeam()
+    aiCore.Units[2].silo = "svsilo"
+    local attempts = {}
+    t.AddBuilding = function(_, odf, pos) attempts[#attempts + 1] = { odf = odf, pos = pos }; return false end
+    t.scrapHotspots = { { position = H.vec(800, 0, 0), totalValue = 40, dropoffDist = 500 } }
+    t:PlanHotspotSilo()
+    t:PlanHotspotSilo()
+    check("building 4: both silo attempts happened", #attempts == 2)
+    local a, b = attempts[1] and attempts[1].pos, attempts[2] and attempts[2].pos
+    check("building 4: the rejected silo site is not proposed again",
+        a ~= nil and b ~= nil and (a.x ~= b.x or a.z ~= b.z))
+
+    attempts = {}
+    local hotspot = { position = H.vec(800, 0, 0), totalValue = 40, dropoffDist = 500 }
+    t.scrapHotspots = { hotspot }
+    t.bannedPlanningSites = nil
+    H.now = H.now + 100
+    t.scrapOutpostTimer = 0
+    t:PlanHotspotOutpost()
+    check("building 4: a rejected outpost silo clears the cached anchor", #attempts == 1 and hotspot.outpostAnchor == nil)
+    H.now = H.now + 100
+    t:PlanHotspotOutpost()
+    local c, d = attempts[1] and attempts[1].pos, attempts[2] and attempts[2].pos
+    check("building 4: the next outpost pass uses a different anchor",
+        c ~= nil and d ~= nil and (c.posit_x ~= d.posit_x or c.posit_z ~= d.posit_z))
+    resetBuildingWorld()
+end)
+
+-- Item 5: scrap reservation, local scrap decrement and ODF cost caching.
+H.try("building 5", function()
+    H.reset()
+    local realGetScrap = GetScrap
+    local scrapNow = 100
+    GetScrap = function() return scrapNow end
+    local t, rec = buildingTeam()
+    local fac = handle { team = 2, odf = "svmuf", class = "factory", craft = true, deployed = true }
+    H.core.factory[2] = fac
+    t.factoryMgr.handle = fac
+    H.costs.rsvtowe, H.costs.rsvscav, H.costs.rsvtank, H.costs.rsvbig = 80, 30, 60, 150
+
+    -- Constructor reserve.
+    t.constructorMgr.activeJob = { odf = "rsvtowe", priority = 1, buildAttempts = 0, path = H.vec(0, 0, 0) }
+    producer.QueueJob("rsvscav", 2, nil, nil, { priority = 1, type = "unit", producer = "recycler" })
+    producer.ProcessQueues(t)
+    check("building 5: scrap held for the constructor's building is not spent by a lower job", #H.builds == 0)
+    t.constructorMgr.activeJob.buildAttempts = 1
+    producer.ProcessQueues(t)
+    check("building 5: once the building order is issued the reserve is released", #H.builds == 1)
+    t.constructorMgr.activeJob = nil
+
+    -- Local scrap decrement: two producers, 100 scrap, 60 + 60.
+    H.reset()
+    H.builds = {}
+    H.costs.rsvscav2 = 60
+    producer.QueueJob("rsvscav2", 2, nil, nil, { priority = 1, type = "unit", producer = "recycler" })
+    producer.QueueJob("rsvtank", 2, nil, nil, { priority = 2, type = "unit", producer = "factory" })
+    producer.ProcessQueues(t)
+    check("building 5: scrap is decremented per issued Build in the same pass", #H.builds == 1)
+
+    -- Unaffordable head reserve (after it has waited).
+    H.reset()
+    H.builds = {}
+    producer.QueueJob("rsvbig", 2, nil, nil, { priority = 1, type = "unit", producer = "recycler" })
+    producer.QueueJob("rsvscav", 2, nil, nil, { priority = 2, type = "unit", producer = "recycler" })
+    producer.ProcessQueues(t)
+    check("building 5: a fresh unaffordable head does not stall cheaper work", #H.builds == 1)
+    producer.Orders = {}
+    H.builds = {}
+    H.now = H.now + 30.0
+    producer.QueueJob("rsvscav", 2, nil, nil, { priority = 3, type = "unit", producer = "recycler" })
+    producer.ProcessQueues(t)
+    check("building 5: a long-unaffordable head reserves its cost against lower jobs", #H.builds == 0)
+
+    local calls = H.openOdfCalls.rsvbig or 0
+    producer.ProcessQueues(t)
+    producer.ProcessQueues(t)
+    check("building 5: further passes do not re-open the ODF", (H.openOdfCalls.rsvbig or 0) == calls)
+    GetScrap = realGetScrap
+    H.reset()
+    resetBuildingWorld()
+end)
+
+-- Item 6/9: threat gate, remote-site ordering, rebuild cooldown.
+H.try("building 6/9", function()
+    local t, rec, con = buildingTeam()
+    t.CanIssueBuildingByRules = function() return true end
+    t.ValidateBuildingPlacement = function() return true end
+    local mgr = t.constructorMgr
+    H.addObject { team = 1, odf = "avtank", class = "wingman", craft = true, pos = { x = 400, y = 0, z = 0 } }
+    mgr.queue = { { odf = "svtowe", path = H.vec(500, 0, 0), priority = 1 } }
+    H.now = H.now + 10
+    mgr:update()
+    check("building 6: a job whose site has an enemy within 150 m is deferred", mgr.activeJob == nil and #mgr.queue == 1)
+    H.objects = {}
+    H.now = H.now + 3
+    mgr:update()
+    check("building 6: it runs once the enemy is gone", mgr.activeJob ~= nil and mgr.activeJob.odf == "svtowe")
+
+    -- Remote site waits for unbuilt base plans.
+    mgr.activeJob = nil
+    mgr.queue = { { odf = "svsilo", path = H.vec(800, 0, 0), priority = 11 } }
+    t.buildingList = { [2] = { odf = "svpowr", priority = 2, path = H.vec(100, 0, 0) },
+        [11] = { odf = "svsilo", priority = 11, path = H.vec(800, 0, 0) } }
+    H.now = H.now + 10
+    mgr:update()
+    check("building 6: a remote job waits while a nearer base plan is unbuilt", mgr.activeJob == nil)
+    t.buildingList[2].handle = handle { team = 2, odf = "svpowr", building = true }
+    H.now = H.now + 3
+    mgr:update()
+    check("building 6: the remote job runs once the base plans are built", mgr.activeJob ~= nil)
+
+    -- Item 9: rebuild cooldown after the building dies.
+    local t2 = buildingTeam()
+    local tower = handle { team = 2, odf = "svtowe", class = "turret", building = true }
+    t2.buildingList[1] = { odf = "svtowe", priority = 1, path = H.vec(50, 0, 0), handle = tower }
+    t2:CheckConstruction()
+    check("building 9: a live building is not queued", #t2.constructorMgr.queue == 0)
+    tower.valid = false
+    H.now = H.now + 1
+    t2:CheckConstruction()
+    check("building 9: a destroyed building is not rebuilt during the cooldown", #t2.constructorMgr.queue == 0)
+    H.now = H.now + 26
+    t2:CheckConstruction()
+    check("building 9: it is queued after the cooldown", #t2.constructorMgr.queue == 1)
+    resetBuildingWorld()
+end)
+
+-- Item 7: placement failures count toward the give-up; a given-up site is relocated next time.
+H.try("building 7", function()
+    local t, rec, con = buildingTeam()
+    t.CanIssueBuildingByRules = function() return true end
+    t.Config.buildingPlacementRetryDelay = 1
+    local validations = 0
+    t.ValidateBuildingPlacement = function() validations = validations + 1; return false, "object-obstruction" end
+    t.FindAlternateBuildingPlacement = function() return nil end
+    t.buildingList[1] = { odf = "svtowe", priority = 1, path = H.vec(10, 0, 0) }
+    local mgr = t.constructorMgr
+    mgr.queue = { { odf = "svtowe", path = H.vec(10, 0, 0), priority = 1 } }
+    for _ = 1, 60 do
+        H.now = H.now + 2.0
+        mgr:update()
+        if mgr.activeJob == nil and #mgr.queue == 0 then break end
+    end
+    check("building 7: repeated placement failures end in a give-up", mgr.activeJob == nil and #mgr.queue == 0)
+    check("building 7: the give-up bans the plan's site and starts a cooldown",
+        t.buildingList[1].siteBanned == true and (t.buildingList[1].blockedUntil or 0) > H.now)
+
+    -- The banned site is relocated (not retried) on the next attempt.
+    local newSite = H.vec(200, 0, 0)
+    t.ValidateBuildingPlacement = function() return true, nil end
+    local relocations = 0
+    t.FindAlternateBuildingPlacement = function() relocations = relocations + 1; return newSite end
+    mgr.queue = { { odf = "svtowe", path = H.vec(10, 0, 0), priority = 1 } }
+    H.now = H.now + 2.0
+    mgr:update()
+    H.now = H.now + 2.0
+    mgr:update()
+    check("building 7: a banned site is relocated", relocations == 1 and t.buildingList[1].path == newSite
+        and t.buildingList[1].siteBanned == nil)
+
+    -- Validation is throttled to the retry timer.
+    validations = 0
+    t.ValidateBuildingPlacement = function() validations = validations + 1; return true, nil end
+    mgr.activeJob = { odf = "svtowe", path = H.vec(10, 0, 0), priority = 1 }
+    for _ = 1, 20 do H.now = H.now + 0.1; mgr.pulseTimer = H.now + 100; mgr:update() end
+    check("building 7: placement is re-validated at most once per retry delay", validations <= 3)
+    resetBuildingWorld()
+end)
+
+-- Item 8: a power the planner rejected is not counted; the search starts toward the enemy.
+H.try("building 8", function()
+    local t, rec = buildingTeam()
+    aiCore.Units[2].sPower, aiCore.Units[2].gunTower = "svpowr", "svtowe"
+    local realKey = aiCore.WorldPowerKey
+    aiCore.WorldPowerKey = "sPower"
+    H.core.recycler[1] = handle { team = 1, odf = "avrecy", class = "recycler", craft = true, pos = { x = 0, y = 0, z = 1000 } }
+    local powerTries = {}
+    t.AddBuilding = function(_, odf, pos)
+        if odf == "svpowr" then powerTries[#powerTries + 1] = pos end
+        return false
+    end
+    t:PlanDefensivePerimeter(2, 1)
+    check("building 8: rejected powers are not counted as found (search continues)", #powerTries > 2)
+    check("building 8: the last angle of the circle is tried too", #powerTries >= 8)
+    local first = powerTries[1]
+    check("building 8: the first candidate faces the enemy base (+z)",
+        first and first.posit_z > 50 and math.abs(first.posit_x) < 50)
+    aiCore.WorldPowerKey = realKey
+    resetBuildingWorld()
+end)
+
+-- Item 10: remote buildings do not drag the base centre.
+H.try("building 10", function()
+    local t, rec = buildingTeam()
+    local near = handle { team = 2, odf = "svpowr", class = "powerplant", building = true, pos = { x = 100, y = 0, z = 0 } }
+    local far = handle { team = 2, odf = "svsilo", class = "scrapsilo", building = true, pos = { x = 1500, y = 0, z = 0 } }
+    local realBuildings = aiCore.GetCachedBuildings
+    aiCore.GetCachedBuildings = function() return { near, far } end
+    local center = t:UpdateBaseCenter(true)
+    aiCore.GetCachedBuildings = realBuildings
+    check("building 10: a silo 1500 m away does not move the base centre", center and center.x < 40)
+    resetBuildingWorld()
+end)
+
+-- Item 11/16: distance-progress stuck detection, throttled completion scan, one spend record per job.
+H.try("building 11", function()
+    local t, rec, con = buildingTeam()
+    t.CanIssueBuildingByRules = function() return true end
+    t.ValidateBuildingPlacement = function() return true, nil end
+    t.Config.buildingPlacementRetryDelay = 1
+    con.busy = true           -- a wedged constructor reports busy forever
+    con.command = AiCommand.GO
+    local mgr = t.constructorMgr
+    mgr.queue = { { odf = "svtowe", path = H.vec(900, 0, 0), priority = 1 } }
+    local failedAt = nil
+    for i = 1, 40 do
+        H.now = H.now + 1.0
+        mgr:update()
+        if mgr.activeJob == nil and failedAt == nil then failedAt = i end
+    end
+    check("building 11: a busy constructor that stops closing distance fails the job within ~25 s",
+        failedAt ~= nil and failedAt <= 26)
+
+    -- Progress keeps it alive.
+    mgr.queue, mgr.activeJob = { { odf = "svtowe", path = H.vec(900, 0, 0), priority = 1 } }, nil
+    con.pos = { x = 0, y = 0, z = 0 }
+    local stillActive = true
+    for _ = 1, 40 do
+        H.now = H.now + 1.0
+        con.pos.x = con.pos.x + 10
+        mgr:update()
+        if mgr.activeJob == nil then stillActive = false end
+    end
+    check("building 11: a constructor making progress is not failed", stillActive)
+
+    -- Completion scan throttle.
+    local realRange, rangeCalls = ObjectsInRange, 0
+    ObjectsInRange = function(...) rangeCalls = rangeCalls + 1; return realRange(...) end
+    con.pos = { x = 0, y = 0, z = 0 }
+    mgr.activeJob = { odf = "svtowe", path = H.vec(900, 0, 0), priority = 1, bestSiteDist = 900, bestSiteDistAt = H.now }
+    for _ = 1, 20 do H.now = H.now + 0.1; mgr:update() end
+    ObjectsInRange = realRange
+    check("building 11: the completion scan runs at most every 0.5 s", rangeCalls <= 5)
+
+    -- Item 16: spend recorded once per job even with several BuildAt attempts.
+    local spends = 0
+    t.RecordBuildAccountSpend = function() spends = spends + 1 end
+    con.busy, con.command, con.pos = false, AiCommand.NONE, { x = 0, y = 0, z = 0 }
+    H.costs.svtowe = 10
+    mgr.activeJob = { odf = "svtowe", path = H.vec(10, 0, 0), priority = 1, account = "defense" }
+    for _ = 1, 3 do
+        H.now = H.now + 1.0
+        mgr.pulseTimer = 0
+        mgr:update()
+    end
+    check("building 16: BuildAt was issued repeatedly", #H.buildAts >= 2)
+    check("building 16: the construction spend is recorded once", spends == 1)
+    resetBuildingWorld()
+end)
+
+-- ===== Review fixes (items 1-9) =====
+local function reviewTeam()
+    H.objects, H.nearestEnemy = {}, nil
+    H.reset()
+    H.now = 2000.0
+    return newTeam(2, 2)
+end
+
+-- Review 1: only buildable base plans defer a remote site, and the deferral expires after 90 s.
+H.try("review 1", function()
+    local t = buildingTeam()
+    H.now = 2000.0
+    local far = aiCore.Constants.BUILD_REMOTE_DISTANCE + 200
+    t.buildingList[1] = { odf = "svbld1", priority = 1, path = H.vec(20, 0, 0) }
+    local job = { odf = "svsilo", priority = 2, path = H.vec(far, 0, 0) }
+    check("review 1: an unbuilt buildable base plan defers the remote site",
+        t:GetBuildJobDeferReason(job) == "base_plans_first")
+    t.CanQueueBuildingByRules = function() return false, "cap" end
+    check("review 1: a capped (unbuildable) base plan does not defer",
+        t:GetBuildJobDeferReason({ odf = "svsilo", priority = 2, path = H.vec(far, 0, 0) }) == nil)
+    t.CanQueueBuildingByRules = nil
+    H.now = H.now + 91.0
+    check("review 1: the remote-site deferral stops after 90 s", t:GetBuildJobDeferReason(job) == nil)
+    resetBuildingWorld()
+end)
+
+-- Review 2: the sniper attack roll is redone after 10 s for the same candidate.
+H.try("review 2", function()
+    local realRandom = math.random
+    GiveWeapon = function(h, w, slot) h.weapons = h.weapons or {}; h.weapons[slot] = w end
+    IsAliveAndPilot = function(h) return IsAlive(h) and h.occupied == true end
+    SetTarget = function(h, target) h.aimedAt = target end
+    local t = reviewTeam()
+    local p = H.addObject { team = 2, odf = "sspilo", class = "person", person = true, weapons = { [0] = "sprifle" } }
+    t.pilots = { p }
+    t.sniperState = { [p] = true }
+    local enemy = H.addObject { team = 1, odf = "avtank", class = "wingman", craft = true, occupied = true,
+        pos = { x = 0, y = 0, z = 100 } }
+    aiCore.ResetObjectCacheTracking()
+    for _, o in ipairs(H.objects) do aiCore.TrackWorldObject(o) end
+    aiCore.RefreshObjectCache(true)
+    H.nearestEnemy = enemy
+    local function tick(n)
+        for _ = 1, n do H.now = H.now + 1.0; t.pilotUpdateAt = 0.0; t:UpdatePilots() end
+    end
+    math.random = function() return 100 end
+    tick(3)
+    check("review 2: a failed roll means no attack", p.command ~= AiCommand.ATTACK)
+    math.random = function() return 1 end
+    tick(3)
+    check("review 2: the failed roll holds within 10 s", p.command ~= AiCommand.ATTACK)
+    tick(10)
+    check("review 2: the roll is redone after 10 s", p.command == AiCommand.ATTACK and p.target == enemy)
+    math.random = realRandom
+    H.nearestEnemy = nil
+    aiCore.ActiveTeams = {}
+end)
+
+-- Review 3/4: load keeps pilotOrigWeapon; planning-site bans expire and reset on load.
+H.try("review 3/4", function()
+    local t = reviewTeam()
+    local p = handle { team = 2, odf = "sspilo", class = "person", person = true }
+    t.pilotOrigWeapon = { [p] = "aprifle" }
+    t:BanPlanningSite(H.vec(500, 0, 500))
+    check("review 4: a banned site is reported", t:IsPlanningSiteBanned(H.vec(500, 0, 500)) == true)
+    H.now = H.now + 121.0
+    check("review 4: the ban expires after 120 s",
+        t:IsPlanningSiteBanned(H.vec(500, 0, 500)) == false and #t.bannedPlanningSites == 0)
+    t:BanPlanningSite(H.vec(500, 0, 500))
+    local prev = aiCore.ActiveTeams
+    aiCore.ActiveTeams = { [2] = t }
+    aiCore.ResetCombatStateAfterLoad()
+    aiCore.ActiveTeams = prev
+    check("review 3: a load keeps pilotOrigWeapon", t.pilotOrigWeapon[p] == "aprifle")
+    check("review 4: a load clears planning-site bans", t.bannedPlanningSites == nil)
+    aiCore.ActiveTeams = {}
+end)
+
+-- Review 5: the constructor's cost is reserved only once it is at the site.
+H.try("review 5", function()
+    H.reset()
+    local realGetScrap = GetScrap
+    GetScrap = function() return 100 end
+    local t = buildingTeam()
+    local fac = handle { team = 2, odf = "svmuf", class = "factory", craft = true, deployed = true }
+    H.core.factory[2] = fac
+    t.factoryMgr.handle = fac
+    H.costs.rsvtowe, H.costs.rsvscav = 80, 30
+    t.constructorMgr.activeJob = { odf = "rsvtowe", priority = 1, buildAttempts = 0,
+        path = H.vec(aiCore.Constants.BUILDING_DETECTION_RANGE + 500, 0, 0) }
+    producer.QueueJob("rsvscav", 2, nil, nil, { priority = 1, type = "unit", producer = "recycler" })
+    producer.ProcessQueues(t)
+    check("review 5: no reserve while the constructor is still travelling", #H.builds == 1)
+    t.constructorMgr.activeJob = nil
+    GetScrap = realGetScrap
+    resetBuildingWorld()
+end)
+
+-- Review 6: snipe and steal pursuit state do not reset each other.
+H.try("review 6", function()
+    GiveWeapon = function(h, w, slot) h.weapons = h.weapons or {}; h.weapons[slot] = w end
+    local t = reviewTeam()
+    local p = H.addObject { team = 2, odf = "sspilo", class = "person", person = true, weapons = { [0] = "sprifle" } }
+    t.pilots = { p }
+    t.sniperState = { [p] = false }
+    H.addObject { team = 0, odf = "avtank", class = "wingman", craft = true,
+        weapons = { [0] = "gcannon" }, pos = { x = 100, y = 0, z = 0 } }
+    aiCore.ResetObjectCacheTracking()
+    for _, o in ipairs(H.objects) do aiCore.TrackWorldObject(o) end
+    aiCore.RefreshObjectCache(true)
+    H.now = H.now + 1.0; t.pilotUpdateAt = 0.0; t:UpdatePilots()
+    local st = t.pilotPursuit[p]
+    check("review 6: steal pursuit is keyed by kind", st ~= nil and st.steal ~= nil and st.snipe == nil)
+    st.snipe = { target = p, best = 1, at = H.now }
+    H.now = H.now + 1.0; t.pilotUpdateAt = 0.0; t:UpdatePilots()
+    check("review 6: a steal tick leaves the snipe entry alone",
+        t.pilotPursuit[p].snipe ~= nil and t.pilotPursuit[p].snipe.target == p)
+    aiCore.ActiveTeams = {}
+end)
+
+-- Review 7: with no enemy near, a mine layer does not scan GetNearestEnemy every frame.
+H.try("review 7", function()
+    local t = reviewTeam()
+    local mgr = t.weaponMgr
+    local u = handle { team = 2, odf = "svtank", class = "wingman", craft = true,
+        weapons = { [0] = "gchain", [3] = "gproxmin2" }, mask = 1 }
+    local user = { handle = u, mask = 8 }
+    mgr.mineUsers = { user }
+    H.nearestEnemy = nil
+    H.now = H.now + 0.1
+    local t0 = H.now
+    mgr:UpdateMines(0.1)
+    check("review 7: with no enemy near the next scan is pushed ~1 s out",
+        user.nextRollAt ~= nil and math.abs(user.nextRollAt - (t0 + 1.0)) < 0.001)
+end)
+
+-- Review 8: howitzer members get spread GO points; a threat-everywhere map still gets a stand-off.
+H.try("review 8", function()
+    local t = reviewTeam()
+    t.Config.howitzerChance = 100
+    local mgr = t.howitzerMgr
+    local h1 = H.addObject { team = 2, odf = "svartl", class = "howitzer", craft = true, pos = { x = 0, y = 0, z = 0 } }
+    local h2 = H.addObject { team = 2, odf = "svartl", class = "howitzer", craft = true, pos = { x = 0, y = 0, z = 10 } }
+    local recy = H.addObject { team = 1, odf = "avrecy", class = "recycler", building = true,
+        pos = { x = 1000, y = 0, z = 0 } }
+    H.core.recycler[1] = recy
+    aiCore.ResetObjectCacheTracking()
+    for _, o in ipairs(H.objects) do aiCore.TrackWorldObject(o) end
+    aiCore.RefreshObjectCache(true)
+    mgr.howitzers = { h1, h2 }
+    mgr:Update(100.0)
+    local gos = {}
+    for _, c in ipairs(H.commands) do
+        if c.command == AiCommand.GO and c.position then gos[#gos + 1] = c.position end
+    end
+    check("review 8: both members got a GO", #gos == 2)
+    check("review 8: the two GO points are about 15 m apart",
+        #gos == 2 and math.abs(math.sqrt((gos[1].x - gos[2].x) ^ 2 + (gos[1].z - gos[2].z) ^ 2) - 15.0) < 1.0)
+    t.GetRelaxedThreatAtPosition = function() return math.huge end
+    local p = mgr:ChooseStandoff(recy, { h1 }, 250, 1)
+    check("review 8: all-infinite threat falls back to the direct 0.8 x range point",
+        p ~= nil and math.abs((1000 - p.x) - 200) < 1.0)
+    aiCore.ActiveTeams = {}
+end)
+
+-- Review 9: re-applying native tactics also resets the sync-failure table.
+H.try("review 9", function()
+    aiCore._nativeSyncFails = { [1] = 5 }
+    aiCore._nativeSyncChecked = { [1] = true }
+    aiCore.ReapplyNativeTactics()
+    check("review 9: _nativeSyncFails is reset with _nativeSyncChecked",
+        next(aiCore._nativeSyncFails or {}) == nil)
 end)
 
 H.finish("aiCore fix")

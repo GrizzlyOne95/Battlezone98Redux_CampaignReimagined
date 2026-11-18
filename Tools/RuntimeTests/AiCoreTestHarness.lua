@@ -18,9 +18,53 @@ H.lowerTurboCalls = 0
 
 local function valid(h) return type(h) == "table" and h.valid ~= false end
 local function alive(h) return valid(h) and h.alive ~= false end
-local function position(ref)
-    if type(ref) ~= "table" then return { x = 0, y = 0, z = 0 } end
-    return ref.pos or ref
+-- Engine vectors (GetPosition/SetVector) are VECTOR_3D userdata and transforms are MAT_3D
+-- userdata: a `type(v) == "table"` check in aiCore would silently discard them, so the mocks
+-- return userdata too (docs/AGENT_KNOWLEDGE_BASE.md). H.vec(x,y,z) / H.mat(x,y,z,fx,fz).
+local newVec, position
+newVec = function(x, y, z)
+    local u = newproxy(true)
+    local d = { x = x or 0, y = y or 0, z = z or 0 }
+    local mt = getmetatable(u)
+    mt.__index = function(_, k) return d[k] end
+    mt.__newindex = function(_, k, v) d[k] = v end
+    -- Operands may be vectors or mock handles (tables with a pos): normalise through position().
+    mt.__add = function(a, b)
+        local pa, pb = position(a), position(b)
+        return newVec(pa.x + pb.x, pa.y + pb.y, pa.z + pb.z)
+    end
+    mt.__sub = function(a, b)
+        local pa, pb = position(a), position(b)
+        return newVec(pa.x - pb.x, pa.y - pb.y, pa.z - pb.z)
+    end
+    mt.__mul = function(a, b)
+        if type(a) == "number" then return newVec(a * b.x, a * b.y, a * b.z) end
+        if type(b) == "number" then return newVec(a.x * b, a.y * b, a.z * b) end
+        return newVec(a.x * b.x, a.y * b.y, a.z * b.z)
+    end
+    mt.__div = function(a, b) return newVec(a.x / b, a.y / b, a.z / b) end
+    mt.__unm = function(a) return newVec(-a.x, -a.y, -a.z) end
+    return u
+end
+local function newMat(px, py, pz, fx, fz)
+    local u = newproxy(true)
+    local d = { posit_x = px or 0, posit_y = py or 0, posit_z = pz or 0, front_x = fx or 0, front_z = fz or 1 }
+    getmetatable(u).__index = function(_, k) return d[k] end
+    return u
+end
+H.vec, H.mat = newVec, newMat
+position = function(ref)
+    local kind = type(ref)
+    if kind == "userdata" then
+        local px = ref.posit_x
+        if px ~= nil then return { x = px, y = ref.posit_y, z = ref.posit_z } end
+        return ref
+    end
+    if kind ~= "table" then return { x = 0, y = 0, z = 0 } end
+    if ref.posit_x ~= nil then return { x = ref.posit_x, y = ref.posit_y, z = ref.posit_z } end
+    local p = ref.pos
+    if type(p) == "userdata" then return position(p) end
+    return p or ref
 end
 local function distance(a, b)
     local ap, bp = position(a), position(b)
@@ -71,12 +115,20 @@ GetClassLabel = function(h) return valid(h) and (h.class or "wingman") or "" end
 GetClassSig = function() return "" end
 GetLabel = function() return "" end
 GetDistance = distance
-GetPosition = position
+GetPosition = function(ref)
+    local p = position(ref)
+    return newVec(p.x, p.y, p.z)
+end
+BuildDirectionalMatrix = function(pos, facing)
+    return newMat(pos.x, pos.y, pos.z, facing and facing.x or 0, facing and facing.z or 1)
+end
 GetCurrentCommand = function(h) return valid(h) and (h.command or AiCommand.NONE) or AiCommand.NONE end
 GetCurrentWho = function(h) return valid(h) and h.target or nil end
 GetHealth = function(h) return valid(h) and (h.health or 1.0) or 0 end
-GetMaxHealth = function() return 1.0 end
-GetCurHealth = GetHealth
+-- aiCore localizes these at load time, so tests steer them through H fields, not by replacing them.
+H.maxHealth = nil     -- when set, GetMaxHealth returns it (absolute HP); GetCurHealth reads h.hp
+GetMaxHealth = function() return H.maxHealth or 1.0 end
+GetCurHealth = function(h) return valid(h) and (h.hp or h.health or 1.0) or 0 end
 GetCurAmmo = function(h) return valid(h) and (h.ammo or 1.0) or 0 end
 GetMaxAmmo = function() return 1.0 end
 GetAmmo = GetCurAmmo
@@ -85,7 +137,8 @@ GetScrap = function() return 100 end
 GetMaxScrap = function() return 200 end
 GetPilot = function() return 20 end
 GetPlayerHandle = function() return H.playerHandle end
-GetNearestEnemy = function() return nil end
+H.nearestEnemy = nil
+GetNearestEnemy = function() return H.nearestEnemy end
 GetNearestBuilding = function() return nil end
 GetNearestObject = function() return nil end
 GetWeaponClass = function(h, slot) return valid(h) and h.weapons and h.weapons[slot] or "" end
@@ -107,7 +160,7 @@ GetTerrainHeightAndNormal = function() return 0, { x = 0, y = 1, z = 0 } end
 GetCommandableAttackPriority = function() return 1 end
 GetUncommandablePriority = function() return 1 end
 GetPositionNear = function(p) return p end
-SetVector = function(x, y, z) return { x = x or 0, y = y or 0, z = z or 0 } end
+SetVector = function(x, y, z) return newVec(x, y, z) end
 SetCommand = function(h, command, priority, who, where, param, odf)
     h.command, h.target = command, who
     table.insert(H.commands, { handle = h, command = command, target = who, position = where, odf = odf,
@@ -120,9 +173,17 @@ end
 Build = function(h, odf) table.insert(H.builds, { builder = h, odf = odf }) end
 BuildAt = function(h, odf, where) table.insert(H.buildAts, { builder = h, odf = odf, where = where }) end
 Stop = function(h) h.command = AiCommand.NONE end
-SetCloaked = function(h) table.insert(H.cloaks, { handle = h, cloak = true }) end
-SetDecloaked = function(h) table.insert(H.cloaks, { handle = h, cloak = false }) end
-IsCloaked = function() return false end
+SetCloaked = function(h) h.cloaked = true; table.insert(H.cloaks, { handle = h, cloak = true }) end
+SetDecloaked = function(h) h.cloaked = false; table.insert(H.cloaks, { handle = h, cloak = false }) end
+IsCloaked = function(h) return valid(h) and h.cloaked == true end
+H.built = {}          -- BuildObject calls: { odf, team }
+BuildObject = function(odf, team, where)
+    local h = { valid = true, alive = true, odf = odf, team = team, pos = position(where) }
+    table.insert(H.built, { odf = odf, team = team, handle = h })
+    return h
+end
+H.healed = {}         -- handle -> total health added through AddHealth
+AddHealth = function(h, amount) H.healed[h] = (H.healed[h] or 0) + amount end
 IsOdf = function(h, odf) return string.lower(GetOdf(h)) == string.lower(tostring(odf)) end
 H.allied = {}         -- ["a:b"] = true makes teams a and b allies (symmetric)
 IsTeamAllied = function(a, b) return a == b or H.allied[a .. ":" .. b] == true or H.allied[b .. ":" .. a] == true end
@@ -152,7 +213,9 @@ AllObjects = function()
     H.allObjectsCalls = H.allObjectsCalls + 1
     return iterate(H.objects)
 end
+H.allCraftCalls = 0
 AllCraft = function()
+    H.allCraftCalls = H.allCraftCalls + 1
     local out = {}
     for _, o in ipairs(H.objects) do
         if valid(o) and o.craft then out[#out + 1] = o end
@@ -180,12 +243,21 @@ GetArmoryHandle = function(team) return H.core.armory[team] end
 
 -- Minimal stand-in for the native-tactics bridge so cache behaviour can be observed.
 H.nativeApplied = 0
+H.nativeAttempts = 0
+H.nativeFail = false  -- make ApplyUnitPolicy report a failed push
 package.preload.aiNative = function()
     local policies = {}
     return {
+        PruneInvalid = function()
+            for h in pairs(policies) do
+                if not valid(h) then policies[h] = nil end
+            end
+        end,
         IsAvailable = function() return true end,
         GetUnitPolicy = function(h) return policies[h] end,
         ApplyUnitPolicy = function(h, policy)
+            H.nativeAttempts = H.nativeAttempts + 1
+            if H.nativeFail then return false end
             H.nativeApplied = H.nativeApplied + 1
             policies[h] = policy
             return true
@@ -247,7 +319,12 @@ function H.handle(fields)
     fields.valid = fields.valid ~= false
     fields.alive = fields.alive ~= false
     fields.pos = fields.pos or { x = 0, y = 0, z = 0 }
-    return fields
+    -- Handles are lightuserdata in the engine, so aiCore resolves them through GetPosition; the
+    -- mock only needs to survive a stray `handle - vector` from the distance helpers.
+    return setmetatable(fields, { __sub = function(a, b)
+        local pa, pb = position(a), position(b)
+        return newVec(pa.x - pb.x, pa.y - pb.y, pa.z - pb.z)
+    end })
 end
 
 function H.addObject(fields)
@@ -258,6 +335,7 @@ end
 
 function H.reset()
     H.builds, H.buildAts, H.commands, H.weaponMasks, H.cloaks = {}, {}, {}, {}, {}
+    H.built, H.healed = {}, {}
     if producer then producer.Queue, producer.Orders = {}, {} end
 end
 
