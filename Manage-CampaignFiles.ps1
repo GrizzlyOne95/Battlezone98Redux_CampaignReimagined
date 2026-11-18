@@ -1645,6 +1645,7 @@ function Build-WorkshopContent {
         "crsetrr.des",
         "crsetfl.des",
         "RequireFix.lua",
+        "crreqfix.lua",
         "ScriptSubtitles.lua",
         "OpenShimInstaller.lua",
         "OpenShimManifest.lua",

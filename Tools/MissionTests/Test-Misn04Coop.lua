@@ -190,7 +190,7 @@ local function makePeer(id, team, network, options)
         Queue = function(file) record("Queue", file) end, Stop = function() record("Stop") end,
         Update = function() record("subtitlesUpdate") end, Initialize = noop }
     local modules = {
-        RequireFix = { Initialize = noop }, exu = {
+        crreqfix = { Initialize = noop }, exu = {
             GetMyNetID = function() return id end, GetDifficulty = function() return p.difficulty end,
             SetDifficulty = function(d) p.difficulty = d end,
             DisableStartingRecycler = function() record("DisableStartingRecycler") end,

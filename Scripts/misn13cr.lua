@@ -185,7 +185,7 @@ end
 
 -- CR co-op layer >>
 -- EXU Initialization (the co-op layer needs the bundled multiplayer hooks).
-local RequireFix = require("RequireFix")
+local RequireFix = require("crreqfix")
 RequireFix.Initialize({"campaignReimagined", "3686673790"})
 local exu = require("exu")
 -- Native MultST Init precedes Start. The authored base is the Texas Recycler (avrecycle, team 1),

@@ -136,7 +136,7 @@ local function NewMission()
         CR06RocketLayout = assert(loadfile("Scripts/CR06RocketLayout.lua"))(),
         CRParticleTemplates = { Ensure = noop, EnsureExtra = function() return true end },
         CRWeather = { LiveSystems = {} },
-        RequireFix = { Initialize = noop }, exu = {},
+        crreqfix = { Initialize = noop }, exu = {},
         Environment = { Init = function(options) w.environmentOptions=options; Record("environmentInit") end,
             Update = function() Record("environmentUpdate") end, OnObjectCreated = noop },
         CRMarsWeather = {

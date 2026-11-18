@@ -35,7 +35,7 @@ local RESTORED_VOICE_LINES = true -- unused shipped lines misns606/607/610/611/6
 local HOWITZER_MARKERS = true -- CR addition: mark a howitzer once a human is within 300 m (Docs/MISNS6_COOP.md)
 local ARTILLERY_BYPASS_PUNISH = true -- CR addition: Black Dogs strike the Recycler if the goal is reached with a howitzer alive
 local Restored = {}
-if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
+if not CR_TEST_FAITHFUL then require("crreqfix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "misns6", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2, blackDogUnits = true,
     rallyPoints = { [0] = "svrecy0_recycler" },

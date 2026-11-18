@@ -336,7 +336,7 @@ function F.makePeer(id, team, network, options)
             Update = function() record("EnvironmentUpdate") end,
             OnObjectCreated = noop, InvalidateRenderer = noop,
         },
-        RequireFix = {Initialize = noop},
+        crreqfix = {Initialize = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end,
             -- The dropship opening locks its own player through the EXU control mask.

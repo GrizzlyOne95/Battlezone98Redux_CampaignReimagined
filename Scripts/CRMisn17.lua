@@ -4,7 +4,7 @@ local Runtime = {}
 function Runtime.Create(getState)
 local M = getState()
 local LEADER_TEAM = 1
-local RequireFix = require("RequireFix")
+local RequireFix = require("crreqfix")
 RequireFix.Initialize({"campaignReimagined", "3686673790"})
 local exu = require("exu")
 if type(IsNetGame)=="function" and IsNetGame() then

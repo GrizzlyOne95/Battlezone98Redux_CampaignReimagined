@@ -132,7 +132,7 @@ def main():
     for dependency in ("Missions/crsetup.trn", "Missions/crsetup.hg2", "Missions/crsetup.mat",
                        "Missions/crsetup.lgt", "ODF/avfigh.odf", "ODF/avtank.odf", "ODF/abbarr.odf",
                        *(f"ODF/{name}.odf" for name in re.findall(r'(?:brk|gib)_\w+ = \{ odf = "(\w+)"', scene_source) if name != "sxanchor"),
-                       "ODF/abspow.odf", "ODF/apcamr.odf", "Scripts/RequireFix.lua",
+                       "ODF/abspow.odf", "ODF/apcamr.odf", "Scripts/RequireFix.lua", "Scripts/crreqfix.lua",
                        "Scripts/CRWeather.lua", "Scripts/CRWeatherPresets.lua", "Scripts/CRParticleTemplates.lua",
                        "Materials/cr_weather.particle.payload", "OverlayFont/CRBZoneOverlay.fontdef", "OverlayFont/BZONE.ttf"):
         check(norm(dependency) in sources, "dependency absent from existing shipping lock: " + dependency)

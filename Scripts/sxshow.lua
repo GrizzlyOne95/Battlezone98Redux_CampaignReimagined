@@ -1,5 +1,5 @@
 -- Operation Livewire: full single-player cinematic and repeatable native exhibit bays.
-local RequireFix = require("RequireFix")
+local RequireFix = require("crreqfix")
 RequireFix.Initialize({ "campaignReimagined", "3686673790" })
 local exuOk, exu = pcall(require, "exu")
 if not exuOk then exu = nil end

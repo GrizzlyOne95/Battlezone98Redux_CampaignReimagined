@@ -47,7 +47,7 @@ local SCALED_ODFS = { svfigh = true, svtank = true, svltnk = true, svhraz = true
 local INFO_ODFS = { sbhanga = true }
 local remoteInfo = {}
 local CONVOY_RADIUS = 100 -- every human must stay this close to the escorted one to share its cover
-if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
+if not CR_TEST_FAITHFUL then require("crreqfix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 -- The Recycler's dropship delivery (Scripts/CRDropIn.lua, Docs/CHMISN01_COOP.md "Dropship delivery"), offline and co-op:
 -- when the comm array falls the body builds the Recycler at the path "recycler"; the BuildObject shadow below builds it
 -- the same way, rides it in the hold of a CRA cvdrop and lets it drive out, and the body keeps running (the stock

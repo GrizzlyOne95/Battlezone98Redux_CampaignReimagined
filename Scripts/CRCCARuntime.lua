@@ -73,7 +73,7 @@ local FAIL_DES = config.failDes
 local hooks = config.hooks or {}
 local PLAYERS = "crcca_players"
 
-local RequireFix = require("RequireFix")
+local RequireFix = require("crreqfix")
 RequireFix.Initialize(config.requireFix or { "campaignReimagined", "3686673790" })
 local exu = require("exu")
 if type(IsNetGame) == "function" and IsNetGame() then

@@ -77,7 +77,7 @@ local function reset()
     -- mission's own peer fixture, e.g. Tools/MissionTests/Misns1Fixture.lua): this harness verifies evolvecr's own
     -- decisions, not PersistentConfig's HUD rendering or ScriptSubtitles' durations.csv parsing.
     package.loaded.exu = { GetMyNetID = function() return netId end, DisableStartingRecycler = function() end }
-    package.loaded.RequireFix = { Initialize = function() end }
+    package.loaded.crreqfix = { Initialize = function() end }
     package.loaded.ScriptSubtitles = { Play = function() end, Queue = function() end, Stop = function() end,
         Update = function() end, Initialize = function() end }
     package.loaded.Environment = { Init = function() end, BindWeatherSensors = function() end,

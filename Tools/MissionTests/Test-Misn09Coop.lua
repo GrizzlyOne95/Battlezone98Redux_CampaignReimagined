@@ -348,7 +348,7 @@ local function makePeer(id, team, network)
     end
     local function noop() end
     local modules = {
-        RequireFix = {Initialize = noop},
+        crreqfix = {Initialize = noop},
         -- The real director has its own suite (Test-CRVenusWeather.lua); this records the
         -- mission's wiring: what it was initialised with, the beats, and the events it received.
         CRVenusWeather = {

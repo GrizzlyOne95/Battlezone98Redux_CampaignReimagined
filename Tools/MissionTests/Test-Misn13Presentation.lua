@@ -456,7 +456,7 @@ local function makePeer(id, team)
     e.SetCommand = function() end
     local function noop() end
     local modules = {
-        RequireFix = {Initialize = noop},
+        crreqfix = {Initialize = noop},
         -- The real director has its own suite (Test-CREuropaWeather.lua); this records the mission's wiring.
         -- Quake/Surge/AnnounceState behave like the authority director: they queue their event onto the
         -- mission's ordered stream through the send hook.

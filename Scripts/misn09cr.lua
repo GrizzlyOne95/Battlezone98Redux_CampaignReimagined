@@ -157,7 +157,7 @@ end
 local M = NewState()
 
 -- EXU Initialization
-local RequireFix = require("RequireFix")
+local RequireFix = require("crreqfix")
 RequireFix.Initialize({"campaignReimagined", "3686673790"})
 local exu = require("exu")
 -- Native MultST Init precedes Start. The authored base is the team-1 Unit Factory (avmuf) and

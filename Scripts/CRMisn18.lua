@@ -7,7 +7,7 @@ local M = getState()
 local LEADER_TEAM, FURY_TEAM = 1, 6
 local LIVE_CAP = 12          -- live scripted Furies; only the co-op extras are ever dropped for it
 local SAFE_RADIUS = 460      -- nothing is built this close to any human (fog is typically 250 m)
-local RequireFix = require("RequireFix")
+local RequireFix = require("crreqfix")
 RequireFix.Initialize({"campaignReimagined", "3686673790"})
 local exu = require("exu")
 if type(IsNetGame)=="function" and IsNetGame() then

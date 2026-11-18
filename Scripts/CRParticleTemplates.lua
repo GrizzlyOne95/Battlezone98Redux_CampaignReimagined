@@ -43,8 +43,8 @@ end
 -- EnsureExtra so the two cannot disagree about where CR content lives.
 local function ResolveRoot()
     bzfile = bzfile or require("bzfile")
-    local RequireFix = require("RequireFix")
-    local root = RequireFix.getActiveModRoot()
+    local RequireFix = require("crreqfix")
+    local root = type(RequireFix.getActiveModRoot) == "function" and RequireFix.getActiveModRoot() or nil
     if not root then
         -- Native bzfile is loaded from this same CR item after RequireFix has
         -- resolved it, including the engine's source-less mission chunks.

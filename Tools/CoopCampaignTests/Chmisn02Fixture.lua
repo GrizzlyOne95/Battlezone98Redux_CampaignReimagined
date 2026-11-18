@@ -345,7 +345,7 @@ function F.makePeer(id, team, network, options)
     e.AiCommand = {NONE=0,ATTACK=3,DEFEND=16,RECYCLE=18}
     local function noop() end
     local modules = {
-        RequireFix = {Initialize = noop},
+        crreqfix = {Initialize = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end},
         ScriptSubtitles = {

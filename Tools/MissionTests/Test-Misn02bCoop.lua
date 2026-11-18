@@ -188,7 +188,7 @@ local function makePeer(id, team, network)
             BindWeatherSensors = function(name, director) p.weatherSensors = {name, director} end,
             InvalidateRenderer = function() record("environmentInvalidate") end,
             Update = function() record("environmentUpdate") end },
-        RequireFix = { Initialize = noop }, exu = {
+        crreqfix = { Initialize = noop }, exu = {
             GetMyNetID = function() return id end, GetDifficulty = function() return p.difficulty end,
             SetDifficulty = function(d) p.difficulty = d end,
             DisableStartingRecycler = function() record("DisableStartingRecycler") end,

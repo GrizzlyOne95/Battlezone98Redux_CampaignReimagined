@@ -88,7 +88,7 @@ local modules = {
         UpdateInputs = function() pda.UpdateInputs = pda.UpdateInputs + 1 end,
         UpdateHeadlights = function() pda.UpdateHeadlights = pda.UpdateHeadlights + 1 end,
         OnObjectCreated = function() pda.OnObjectCreated = pda.OnObjectCreated + 1 end},
-    RequireFix = {Initialize = noop}, exu = {},
+    crreqfix = {Initialize = noop}, exu = {},
     ScriptSubtitles = {Play = function(file) AudioMessage(file); return 1 end,
         Queue = function(file) AudioMessage(file); return 1 end, Stop = noop, Update = noop, Initialize = noop},
     Environment = {Init = noop, BindWeatherSensors = noop, Update = noop, OnObjectCreated = noop},

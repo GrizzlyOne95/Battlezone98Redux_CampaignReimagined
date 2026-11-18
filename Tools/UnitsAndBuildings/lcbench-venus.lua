@@ -8,7 +8,7 @@
 -- same native-module bootstrap they do before requiring Environment/CRWeather.
 -- RequireFix adds the enabled CR mod to package.path/package.cpath and exposes
 -- the shipped EXU DLL as the `exu` Lua module.
-local RequireFix = require("RequireFix")
+local RequireFix = require("crreqfix")
 RequireFix.Initialize({ "campaignReimagined", "3686673790" })
 local exu = require("exu")
 local Environment = require("Environment")
