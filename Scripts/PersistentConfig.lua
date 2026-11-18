@@ -1170,6 +1170,7 @@ end
 function PersistentConfig._DestroyAllPdaOverlays()
     PersistentConfig._DestroyPdaOverlay("feedback")
     PersistentConfig._DestroyPdaOverlay("stats")
+    if PersistentConfig.Intel then PersistentConfig.Intel.Destroy() end
 end
 
 function PersistentConfig._ResetPdaOverlayState()
@@ -4751,6 +4752,7 @@ RemoveCommanderHandle = PersistentConfig.R.RemoveCommanderHandle
 
 PersistentConfig.CoopPda = require("CRCoopPda").Create({
     coop = require("CRCoop"), exu = exu, pages = PdaPages,
+    intel = function() return PersistentConfig.Intel ~= nil and PersistentConfig.Intel.HasIntel() end,
     feedback = function(text) DisplayMessage("[CO-OP] " .. text) end,
     time = function() return GetTime() end,
     selected = function()
@@ -4760,6 +4762,36 @@ PersistentConfig.CoopPda = require("CRCoopPda").Create({
         end
         return list
     end,
+})
+-- PDA INTEL page: the mission's briefing pages, with an expanded reader.
+PersistentConfig.Intel = require("CRIntel").Create({
+    exu = exu,
+    useItem = function(name) return UseItem(name) end,
+    missionFile = function() return GetMissionFilename() end,
+    screen = function()
+        local width, height = PersistentConfig._GetUiResolutionMetrics()
+        return width, height
+    end,
+    theme = function()
+        local preset = GetPdaColorPreset()
+        local family = PersistentConfig._GetPdaOverlayMaterialFamily(preset.r, preset.g, preset.b)
+        return {
+            fontScale = GetPdaFontScale(),
+            font = PersistentConfig.PdaOverlay.font,
+            useCustomFont = PersistentConfig.PdaOverlay.useCustomFont,
+            metrics = PersistentConfig._GetPdaOverlayMetricsMode(),
+            colors = PersistentConfig._GetPdaOverlayColorSet(preset.r, preset.g, preset.b),
+            -- Fully opaque variants: the reader ignores the PDA opacity setting.
+            header = string.format("CRPdaHeader_%s_A20", family.key),
+            border = string.format("CRPdaBorder_%s_A20", family.key),
+            spaceWidth = PersistentConfig._GetPdaOverlaySpaceWidth,
+        }
+    end,
+    wrap = function(text, widthPx, charHeight)
+        return PersistentConfig._WrapOverlayTextToPixels(text, widthPx, charHeight, 0.68, 0)
+    end,
+    log = function(text) Log(text) end,
+    sound = function(name) PlayPdaSound(name) end,
 })
 PersistentConfig.CoopTeamStrip = require("CRCoopTeamStrip").Create({
     exu = exu, coop = require("CRCoop"),
@@ -6250,6 +6282,10 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     -- (_UpdateEnterChat). Backspace stays the stock satellite view.
     local enterPressed = PersistentConfig.R.ConsumePendingGameKeyMatch({ "ENTER", "RETURN", "NUMPADENTER", "KPENTER", "KP_ENTER" })
     local doAction = enterPressed
+    -- The expanded INTEL reader lives only while the PDA is open on INTEL and
+    -- nothing covers it; a page switch, X, Escape or a cinematic closes it.
+    PersistentConfig.Intel.Sync(not uiInteractionSuppressed and PersistentConfig.Settings.WeaponStatsHud == true
+        and InputState.pdaPage == PdaPages.INTEL, typing)
     if uiInteractionSuppressed then return end
     if typing then
         -- Keep the X edge current so an X typed in chat does not toggle later.
@@ -6305,7 +6341,14 @@ function PersistentConfig.UpdateInputs(cinematicActive)
     local pda_left_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "LEFT", "LEFTARROW" })
     local pda_right_key = PersistentConfig.R.ConsumePendingGameKeyMatch({ "RIGHT", "RIGHTARROW" })
 
-    if InputState.pdaPage == PdaPages.COOP_DIAGNOSTICS then
+    if InputState.pdaPage == PdaPages.INTEL then
+        -- Enter expands/collapses; Left/Right turn briefing pages; Up/Down
+        -- scroll the expanded reader (Tab and PgUp/PgDn are polled in Sync).
+        if PersistentConfig.Intel.HandlePdaInput({ enter = enterPressed, left = pda_left_key, right = pda_right_key,
+            up = pda_up_key, down = pda_down_key }) then
+            RefreshPdaOverlay()
+        end
+    elseif InputState.pdaPage == PdaPages.COOP_DIAGNOSTICS then
         PersistentConfig.CoopPda.HandleDiagnosticsInput(pda_up_key, pda_down_key)
         if pda_up_key or pda_down_key then RefreshPdaOverlay() end
     elseif InputState.pdaPage == PdaPages.COOP then
@@ -6845,6 +6888,7 @@ end
 
 function PersistentConfig.Initialize()
     PersistentConfig.CoopPda.Reset()
+    PersistentConfig.Intel.Reset()
     PersistentConfig.CoopPingHud.Destroy()
     PersistentConfig.CoopTeamStrip.Destroy()
     pcall(HudLayout.Reset, exu)
