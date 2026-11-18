@@ -31,7 +31,7 @@ end
 local M = NewState()
 -- CR co-op layer >>
 -- EXU Initialization (the co-op layer needs the bundled multiplayer hooks).
-local RequireFix = require("RequireFix")
+local RequireFix = require("crreqfix")
 RequireFix.Initialize({"campaignReimagined", "3686673790"})
 local exu = require("exu")
 -- Native MultST Init precedes Start. The authored base is the convoy and its escorts, so no human

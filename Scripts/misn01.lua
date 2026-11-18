@@ -6,7 +6,7 @@
 SetLabel = SetLabel or SetLabel
 
 -- Libraries
-local RequireFix = require("RequireFix")
+local RequireFix = require("crreqfix")
 RequireFix.Initialize({"campaignReimagined", "3686673790"})
 local exu = require("exu")
 local DiffUtils = require("DiffUtils")

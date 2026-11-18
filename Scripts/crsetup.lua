@@ -2,7 +2,7 @@
 -- Open Community Patch setup/repair utility mission.
 ---@diagnostic disable: lowercase-global, undefined-global
 
-local RequireFix = require("RequireFix")
+local RequireFix = require("crreqfix")
 RequireFix.Initialize({"campaignReimagined", "3686673790"})
 
 local Installer = require("OpenShimInstaller")

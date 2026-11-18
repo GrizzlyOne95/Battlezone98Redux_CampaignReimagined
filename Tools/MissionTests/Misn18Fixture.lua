@@ -398,7 +398,7 @@ function F.makePeer(id, team, network, options)
     e.GetCurrentWho = function(h) return W.objects[h] and W.objects[h].target end
     local function noop() end
     local modules = {
-        RequireFix = {Initialize = noop},
+        crreqfix = {Initialize = noop},
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end},
         ScriptSubtitles = {

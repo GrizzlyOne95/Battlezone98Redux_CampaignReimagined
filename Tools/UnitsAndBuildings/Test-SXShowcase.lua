@@ -324,7 +324,7 @@ x.sky = { enabled = false, material = nil }
 function x.GetSkyDomeEnabled() return x.sky.enabled end
 function x.SetSkyDome(material) x.sky.enabled, x.sky.material = true, material; return true end
 function x.SetSkyDomeEnabled(on) x.sky.enabled = on end
-package.preload.RequireFix = function() return { Initialize = function() end } end
+package.preload.crreqfix = function() return { Initialize = function() end } end
 
 local nextHandle, cameraCalls, readyCalls, finishCalls = 0, 0, 0, 0
 -- Engine camera stack: a push while up or a pop while empty is the native

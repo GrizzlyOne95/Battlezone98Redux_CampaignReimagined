@@ -485,7 +485,7 @@ function F.makePeer(id, team, network, options)
     e.GetCurrentWho = function(h) return W.objects[h] and W.objects[h].target end
     local function noop() end
     local modules = {
-        RequireFix = {Initialize = noop},
+        crreqfix = {Initialize = noop},
         CRCrystals17={Create=function() return {Reset=noop,Poll=noop,Update=noop,Report=noop,AddCargo=noop} end},
         CRJungleTrees17={Create=function() return {Update=noop} end},
         CRJungle17 = {Create=function() return {Reset=noop,Update=noop,Apply=noop,Stop=noop,

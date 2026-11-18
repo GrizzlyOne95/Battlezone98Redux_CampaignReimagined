@@ -11,7 +11,7 @@ local fakeExu = {
     end,
 }
 package.loaded.exu = fakeExu
-package.loaded.RequireFix = {getActiveModRoot = function() return "workshop/item" end}
+package.loaded.crreqfix = {getActiveModRoot = function() return "workshop/item" end}
 package.loaded.bzfile = {Open = function(path, mode)
     assert(mode == "r")
     assert(path:match("^workshop/item/"))

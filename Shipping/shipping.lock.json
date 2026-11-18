@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6252,
+  "count": 6253,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -21169,6 +21169,10 @@
     {
       "source": "Scripts\\RequireFix.lua",
       "runtime": "RequireFix.lua"
+    },
+    {
+      "source": "Scripts\\crreqfix.lua",
+      "runtime": "crreqfix.lua"
     },
     {
       "source": "Scripts\\RuntimeEnhancements.lua",

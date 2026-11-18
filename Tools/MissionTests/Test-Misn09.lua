@@ -65,7 +65,7 @@ local modules = {
         UpdateInputs = function() pda.UpdateInputs = pda.UpdateInputs + 1 end,
         UpdateHeadlights = function() pda.UpdateHeadlights = pda.UpdateHeadlights + 1 end,
         OnObjectCreated = function() pda.OnObjectCreated = pda.OnObjectCreated + 1 end},
-    RequireFix = {Initialize = noop}, exu = {},
+    crreqfix = {Initialize = noop}, exu = {},
     CRVenusWeather = {Init = noop, Update = noop, Shutdown = noop, OnObjectCreated = noop, Save = function() return {} end,
         Load = noop, AnnounceState = noop, ApplyNetEvent = noop, Seed = 1,
         SetTargetLevel = function(level) record("VenusTarget", level) end,

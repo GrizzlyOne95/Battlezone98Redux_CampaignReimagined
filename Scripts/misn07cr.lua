@@ -7,7 +7,7 @@
 local M
 
 -- EXU Initialization
-local RequireFix = require("RequireFix")
+local RequireFix = require("crreqfix")
 RequireFix.Initialize({"campaignReimagined", "3686673790"})
 local exu = require("exu")
 -- Native MultST Init precedes Start; the authored Utah arrives later by script.

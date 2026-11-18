@@ -1,7 +1,7 @@
 -- Run from repository root: lua5.1 Tests/requirefix_gamedir_spec.lua
 -- RequireFix game-directory detection across install layouts, fed Redux's
 -- stock Lua 5.1 search paths (built from the executable directory).
-local file = arg[1] or "Scripts/RequireFix.lua"
+local file = arg[1] or "Scripts/crreqfix.lua"
 local BS = string.char(92)
 local cases = {
   { "C:" .. BS .. "BZRCoop" .. BS .. "instances" .. BS .. "Instance0", "non-standard folder (test instance)" },

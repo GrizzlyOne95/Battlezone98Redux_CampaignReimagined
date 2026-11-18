@@ -171,7 +171,7 @@ M = NewState()
 -- Each RESTORED_* flag switches one cut-content restoration off (Docs/MISNS1_COOP.md, "Restored content").
 local RESTORED_CINEMATIC, RESTORED_ESCORTS, RESTORED_CAVALRY, RESTORED_DISPATCH = true, true, true, true
 local Restored
-if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
+if not CR_TEST_FAITHFUL then require("crreqfix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 -- The dropship opening (Scripts/CRDropIn.lua, Docs/MISNS1_COOP.md "Dropship opening"), offline and co-op: one CCA svdrop
 -- lands the Soviet recycler and every human's craft at the stock start, and the stock body waits for it (Update returns
 -- before the body, so the briefing, the AIP, every timer and the opening film start at the landing). A missing module or

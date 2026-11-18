@@ -4,7 +4,7 @@
 SetLabel = SetLabel or SetLabel
 
 -- EXU Initialization
-local RequireFix = require("RequireFix")
+local RequireFix = require("crreqfix")
 RequireFix.Initialize({"campaignReimagined", "3686673790"})
 local exu = require("exu")
 -- MultST native Init runs before Start. Keep Montana as the only recycler.

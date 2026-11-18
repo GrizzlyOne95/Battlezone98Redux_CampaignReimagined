@@ -361,7 +361,7 @@ local function makePeer(id, team, network)
     e.SetCommand = function(h, cmd, prio, who) record("SetCommand", h, cmd, prio, who) end
     local function noop() end
     local modules = {
-        RequireFix = {Initialize = noop},
+        crreqfix = {Initialize = noop},
         -- The real director has its own suite (Test-CREuropaWeather.lua); this records the mission's wiring:
         -- what it was initialised with, the beats, and the events it received. Plume/Quake/Surge behave like
         -- the authority director: they queue their event onto the mission's ordered stream.

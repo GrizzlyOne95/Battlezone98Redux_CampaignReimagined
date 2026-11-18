@@ -53,7 +53,7 @@ local Restored = {}
 -- The attack waves become concealed, head-count-scaled tickets. The cloaked ambush pair and the first wave-1
 -- pair (the attack camera's subject) are built directly, see BuildObject below.
 local SCALED_ODFS = { cvfigh = true, cvltnk = true }
-if not CR_TEST_FAITHFUL then require("RequireFix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
+if not CR_TEST_FAITHFUL then require("crreqfix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
 -- The dropship opening (Scripts/CRDropIn.lua, Docs/BDMISN01_COOP.md "Dropship opening"), offline and co-op: two Black Dog
 -- dropships (bvdrop) land the Recycler with the two Bobcats and every human's craft at the stock start, and the stock body
 -- waits for it (Update returns before the body, so the Recycler's start path, the briefing and every timer start at the

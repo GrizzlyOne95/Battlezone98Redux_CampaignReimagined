@@ -104,7 +104,7 @@ def check_mission_require_length(files) -> list[str]:
                 or relative.stem.casefold() not in missions):
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
-        found = re.search(r'RequireFix"?\)?\s*\.\s*Initialize', text)
+        found = re.search(r'(?:RequireFix|crreqfix)"?\)?\s*\.\s*Initialize', text)
         fix = found.start() if found else -1
         for match in re.finditer(r"""^[^-\r\n]*?\brequire\s*\(?\s*["']([\w.]+)["']""", text, re.MULTILINE):
             name = match.group(1)
@@ -114,6 +114,21 @@ def check_mission_require_length(files) -> list[str]:
                     f"RequireFix.Initialize: {relative}"
                 )
                 break
+    return errors
+
+
+def check_requirefix_unique_name(files) -> list[str]:
+    """Other mods ship their own RequireFix.lua and Redux resolves a bare require by name across every enabled
+    mod, so CR must require its own copy as "crreqfix"; only the Scripts/RequireFix.lua shim may use the old name."""
+    errors: list[str] = []
+    for path, relative in files:
+        if relative.suffix.casefold() != ".lua" or relative.as_posix().casefold() == "scripts/requirefix.lua":
+            continue
+        if relative.parts[:1] not in (("Scripts",), ("Missions",)):
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if re.search(r"""\brequire\s*\(?\s*["']RequireFix["']""", text):
+            errors.append(f'requires "RequireFix" (a foreign copy can load instead); use "crreqfix": {relative}')
     return errors
 
 
@@ -396,6 +411,7 @@ def main() -> int:
     errors.extend(check_engine_filenames(files))
     errors.extend(check_mission_stem_length(files))
     errors.extend(check_mission_require_length(files))
+    errors.extend(check_requirefix_unique_name(files))
     lua_errors, warnings = check_lua(files)
     errors.extend(lua_errors)
     errors.extend(check_shipping_lock_resolves())
