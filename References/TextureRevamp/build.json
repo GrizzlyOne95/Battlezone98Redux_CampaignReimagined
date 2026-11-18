@@ -107,11 +107,11 @@
     },
     "crviolscreen_d.dds": {
       "size": [
-        1536,
+        1024,
         512
       ],
       "format": "BC1_UNORM",
-      "sha256": "ef87bbc7d8170f712c723ce2bb4604f7191b8b01d759d9381b51f01200220ede"
+      "sha256": "d633bed0e18ad30f009a96d08bbb71d5759aa431d9674e772cb751d110623593"
     },
     "cr17_fbranch1.dds": {
       "size": [
@@ -291,11 +291,11 @@
     },
     "crviolscreen_e.dds": {
       "size": [
-        1536,
+        1024,
         512
       ],
       "format": "BC1_UNORM",
-      "sha256": "ef87bbc7d8170f712c723ce2bb4604f7191b8b01d759d9381b51f01200220ede"
+      "sha256": "d633bed0e18ad30f009a96d08bbb71d5759aa431d9674e772cb751d110623593"
     },
     "cr16cmd_e.dds": {
       "size": [

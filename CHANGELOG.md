@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- misn06: the Hephaestus (and the Hercules relics) were invisible but still targetable under DirectX 11, which rejected their 1536x512 and 1024x341 screen textures and so dropped the whole mesh. `crviolscreen_d/_e/_N.dds` are now 1024x512 BC1 with full mips. Verified in game.
 - Black Dog Recycler (bvrecy): the dog logo on the right-hand wall panel was upside down once the recycler deployed (the deploy clip swings that panel, which turned the painted logo 180 degrees). The logo in `bvrecy_D.dds` is now rotated 180 degrees in place (`Tools/UnitsAndBuildings/Fix-BvrecyLogo.py`); the other two logos, the mesh and the UVs are unchanged. Verified offline by rendering the shipped mesh in its deployed pose; not yet seen in game.
 - PDA Options: removed Scavenger Assist (and its default-on at the two easiest difficulties). Its periodic re-order never ran for the player's team, and scavenger behaviour is moving into OpenShim's Smarter Scavengers (start scavenging as soon as built, switch to clearly closer scrap mid-trip). Until that ships, player scavengers behave as in stock. An old `ScavengerAssistEnabled=` line in the CR config is ignored.
 - Re-pinned OpenShim to release v1.0.0.77 (5106dd7a3): OpenShim UI translated into six languages, smarter HUD fade and Ctrl+= HUD toggle, laser sight limited to cannon/rocket/mortar hardpoints, Options tidy-up, opt-in extended unit cap and group member list (single player), GPU-skinning scan and no-sign-in LAN readiness fixes. Version now reads 1.0.0.77. EXU and bzfile unchanged.
