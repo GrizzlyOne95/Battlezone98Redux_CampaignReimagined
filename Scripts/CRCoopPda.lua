@@ -36,8 +36,15 @@ function M.Create(d)
         local c = comms()
         return c and c.IsActive() or false
     end
+    -- INTEL is listed only when the mission ships briefing text (d.intel).
+    local function hasIntel()
+        if not (d.pages.INTEL and type(d.intel) == "function") then return false end
+        local ok, has = pcall(d.intel)
+        return ok and has == true
+    end
     function ui.PageOrder()
         local pages = ui.IsActive() and { d.pages.COOP, d.pages.COOP_DIAGNOSTICS } or {}
+        if hasIntel() then pages[#pages + 1] = d.pages.INTEL end
         for page = 1, d.pages.SETTINGS do pages[#pages + 1] = page end
         return pages
     end
@@ -63,6 +70,7 @@ function M.Create(d)
         if not active and (state.pdaPage == d.pages.COOP or state.pdaPage == d.pages.COOP_DIAGNOSTICS) then
             state.pdaPage = d.pages.CRAFT
         end
+        if state.pdaPage == d.pages.INTEL and d.pages.INTEL and not hasIntel() then state.pdaPage = d.pages.CRAFT end
         ui.wasActive = active
     end
     local function selected()

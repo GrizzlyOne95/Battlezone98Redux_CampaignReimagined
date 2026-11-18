@@ -11,7 +11,9 @@ local PdaPages = {
     SETTINGS = 5,
     COOP = 6,
     COOP_DIAGNOSTICS = 7,
-    COUNT = 7,
+    -- Listed only when the mission ships briefing text (CRIntel.lua).
+    INTEL = 8,
+    COUNT = 8,
 }
 
 return {
@@ -23,6 +25,7 @@ return {
     PdaNavigationGroups = {
         { label = "TEAM", pages = { { page = PdaPages.COOP, label = "==COOP==" },
             { page = PdaPages.COOP_DIAGNOSTICS, label = "Coop Diagnostics" } } },
+        { label = "MISSION", pages = { { page = PdaPages.INTEL, label = "INTEL" } } },
         {
             label = "COMBAT",
             pages = {

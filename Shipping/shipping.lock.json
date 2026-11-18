@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6255,
+  "count": 6257,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -12639,6 +12639,10 @@
       "runtime": "CR_glow.material"
     },
     {
+      "source": "Materials\\cr_intel.material",
+      "runtime": "cr_intel.material"
+    },
+    {
       "source": "Materials\\cr_io.particle.payload",
       "runtime": "cr_io.particle.payload"
     },
@@ -20709,6 +20713,10 @@
     {
       "source": "Scripts\\CRHudLayout.lua",
       "runtime": "CRHudLayout.lua"
+    },
+    {
+      "source": "Scripts\\CRIntel.lua",
+      "runtime": "CRIntel.lua"
     },
     {
       "source": "Scripts\\CRIoSites10.lua",

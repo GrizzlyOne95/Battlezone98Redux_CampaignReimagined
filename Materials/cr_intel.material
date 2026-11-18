@@ -1,0 +1,111 @@
+// Campaign Reimagined - PDA INTEL expanded reader (Scripts/CRIntel.lua).
+// D3D11 uses the first programmable technique; DX9/GL fall back to the second.
+
+// Base for briefing-page images. CRIntel clones it per page
+// (CRIntel_<stem>_<n>) and swaps white.png for <stem>_<n>.png in texture
+// unit 0 of both techniques. overlayColor is white, so the image is untinted.
+material CRIntelImage
+{
+    technique
+    {
+        pass
+        {
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
+            {
+            }
+            fragment_program_ref CR_OverlayTint_fragmentHLSL4
+            {
+                param_named overlayColor float4 1.0 1.0 1.0 1.0
+            }
+
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+
+            texture_unit diffuseMap
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering linear linear none
+            }
+        }
+    }
+
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering linear linear none
+                colour_op replace
+            }
+        }
+    }
+}
+
+// Reading backdrop: darker and more opaque than the PDA's (whose maximum is
+// 0.60 alpha) so long text stays legible over bright terrain.
+material CRIntelBackdrop
+{
+    technique
+    {
+        pass
+        {
+            vertex_program_ref CR_OverlayPanel_vertexHLSL4
+            {
+            }
+            fragment_program_ref CR_OverlayTint_fragmentHLSL4
+            {
+                param_named overlayColor float4 0.0100 0.0140 0.0100 0.8800
+            }
+
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+
+            texture_unit diffuseMap
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+            }
+        }
+    }
+
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            texture_unit
+            {
+                texture white.png
+                tex_address_mode clamp
+                filtering none none none
+                colour_op_ex source1 src_manual src_current 0.0100 0.0140 0.0100
+                alpha_op_ex source1 src_manual src_current 0.8800
+            }
+        }
+    }
+}

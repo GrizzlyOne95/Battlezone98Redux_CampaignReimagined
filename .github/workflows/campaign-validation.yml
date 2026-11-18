@@ -221,6 +221,7 @@ jobs:
           "$LUA" Tools/RuntimeTests/Test-CRCoopComms.lua
           "$LUA" Tools/RuntimeTests/Test-CRCoopAssist.lua
           "$LUA" Tools/RuntimeTests/Test-CRCoopPda.lua
+          "$LUA" Tools/RuntimeTests/Test-CRIntel.lua
           "$LUA" Tools/RuntimeTests/Test-CRCoopTeamStrip.lua
           "$LUA" Tools/RuntimeTests/Test-CRCoopPartnerBars.lua
           "$LUA" Tools/RuntimeTests/Test-CRCoopDiagnostics.lua
