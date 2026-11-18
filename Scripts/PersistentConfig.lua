@@ -6023,13 +6023,19 @@ end
 function PersistentConfig._PollNetworkGameKeys(typing)
     if not IsNetworkGame() then
         InputState.netKeysDown = nil
+        InputState.netWasTyping = nil
         return
     end
     local down = InputState.netKeysDown or {}
     InputState.netKeysDown = down
+    -- The Enter that closes chat reaches us the frame after the editor stops
+    -- reporting focus; without this it toggled the PDA row it was not meant for
+    -- (HOST MARKER flashed ON, then OFF).
+    local settling = InputState.netWasTyping == true
+    InputState.netWasTyping = typing == true
     for _, entry in ipairs(NetworkPolledGameKeys) do
         local now = RawKeyDown(entry.raw)
-        local edge = now and not down[entry.raw] and not typing
+        local edge = now and not down[entry.raw] and not typing and not (settling and entry.raw == "ENTER")
         down[entry.raw] = now
         -- Quick actions are drained every frame, with or without the PDA.
         -- Navigation stays gated so it cannot replay when the PDA opens.
