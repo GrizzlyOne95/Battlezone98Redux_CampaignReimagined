@@ -28,6 +28,11 @@ for _,key in ipairs({"J","V","Z","ENTER"})do
  check(#queued==0,key.." suppressed in chat")
  config._PollNetworkGameKeys(false);check(#queued==0,key.." held leaving chat does not replay")
 end
+-- Enter pressed on the frame chat closes (editor already unfocused) must not act.
+release();config._PollNetworkGameKeys(true);keys.ENTER=true;config.Settings.WeaponStatsHud=true
+config._PollNetworkGameKeys(false);check(#queued==0,"Enter closing chat does not toggle a PDA row")
+keys={};config._PollNetworkGameKeys(false);keys.ENTER=true;config._PollNetworkGameKeys(false)
+check(#queued==1,"Enter works again one frame after chat");config.Settings.WeaponStatsHud=false
 release();network=false;keys.V=true;config._PollNetworkGameKeys(false)
 check(#queued==0,"offline keys remain owned by GameKey")
 -- Enter chat: unbound online every frame, restored offline and at mission end.
