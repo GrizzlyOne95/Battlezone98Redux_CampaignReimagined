@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6253,
+  "count": 6255,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -14431,6 +14431,14 @@
       "runtime": "misn2bcr.mpdes"
     },
     {
+      "source": "Missions\\Descriptions\\misn2bcr_2.des",
+      "runtime": "misn2bcr_2.des"
+    },
+    {
+      "source": "Missions\\Descriptions\\misn2bcr_2.png",
+      "runtime": "misn2bcr_2.png"
+    },
+    {
       "source": "Missions\\Descriptions\\misns1cr.des",
       "runtime": "misns1cr.des"
     },
@@ -20795,6 +20803,10 @@
       "runtime": "CRReactiveProfiles.lua"
     },
     {
+      "source": "Scripts\\crreqfix.lua",
+      "runtime": "crreqfix.lua"
+    },
+    {
       "source": "Scripts\\CRSAVTest.lua",
       "runtime": "CRSAVTest.lua"
     },
@@ -21169,10 +21181,6 @@
     {
       "source": "Scripts\\RequireFix.lua",
       "runtime": "RequireFix.lua"
-    },
-    {
-      "source": "Scripts\\crreqfix.lua",
-      "runtime": "crreqfix.lua"
     },
     {
       "source": "Scripts\\RuntimeEnhancements.lua",

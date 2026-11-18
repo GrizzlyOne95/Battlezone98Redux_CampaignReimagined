@@ -613,7 +613,6 @@ local function NewMissionState()
         last_wave_time = 99999.0,
         cam_time = 0.0,
         NextSecond = 99999.0,
-        bio_timer = 0,
         bscav = nil,
         bscout = nil,
         scav2 = nil,
@@ -1203,17 +1202,6 @@ function Update()
     PlayerPilotMode.Update()
     aiCore.Update()
     PressPathFighters()
-
-    -- Holographic Bio Logic
-    if (M.camera1 or M.camera2 or M.camera3) and GetTime() >= M.bio_timer then
-        --if IsAlive(player) then
-        -- Spawns the holographic bio above the player
-        local pos = GetPosition(player)
-        pos.y = pos.y + 10.0
-        MakeExplosion("xbio", pos)
-        -- end
-        M.bio_timer = GetTime() + 10.0
-    end
 
     if not M.start_done then
         if not CRCoop.IsNetworkGame() and IsAlive(player) then

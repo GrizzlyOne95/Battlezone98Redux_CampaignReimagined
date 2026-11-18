@@ -49,6 +49,7 @@ assert seq_count > max(int(re.search(r"seqno \[1\] =\n(\d+)", b).group(1)) for b
 
 assert "local ENEMY_TEAM = 6" in lua, "misn2bcr.lua enemy-team contract changed"
 assert "local LEADER_TEAM = 1" in lua, "misn2bcr.lua leader-team contract changed"
+assert not re.search(r'MakeExplosion\(\s*["\']xbio["\']', lua), "bio image should be shown in the briefing, not spawned in-mission"
 
 for pattern, message in [
     (r"BuildObject\([^\n]*,\s*2\s*,", "dynamic enemy spawn still uses Team 2"),
@@ -97,6 +98,10 @@ assert vxt[0].split()[1] == "aspilo.des" and "\t" in vxt[0], "pilot line must us
 description = (root / "Missions/Descriptions/misn2bcr.mpdes").read_text().strip()
 assert len(description) <= 300 and "\n" not in description
 assert "team 1" in description and "teams 2-4" in description
+bio_briefing = (root / "Missions/Descriptions/misn2bcr_2.des").read_text(encoding="utf-8")
+assert "bio-metal" in bio_briefing.lower() and "Scavengers" in bio_briefing
+assert (root / "Missions/Descriptions/misn2bcr_2.png").read_bytes() == \
+    (root / "Assets/Graphics/bio.png").read_bytes(), "briefing image must match the in-mission bio texture"
 bitmap = (root / "Assets" / "Graphics" / "misn2bcr.bmp").read_bytes()
 assert bitmap[:2] == b"BM" and struct.unpack_from("<I", bitmap, 14)[0] == 40
 width, height, planes, depth, compression = struct.unpack_from("<iiHHI", bitmap, 18)
@@ -107,12 +112,16 @@ lock = json.loads((root / "Shipping" / "shipping.lock.json").read_text(encoding=
 entries = {entry["source"]: entry["runtime"] for entry in lock["files"]}
 assert lock["count"] == len(lock["files"])
 manager = (root / "Manage-CampaignFiles.ps1").read_text(encoding="utf-8-sig")
-for source in (r"Config\misn2bcr.ini", r"Assets\Graphics\misn2bcr.bmp",
-               r"Missions\Descriptions\misn2bcr.mpdes", r"Missions\misn2bcr.vxt",
-               r"Missions\misn2bcr.bzn", r"Scripts\misn2bcr.lua"):
+staged_sources = (r"Config\misn2bcr.ini", r"Assets\Graphics\misn2bcr.bmp",
+                  r"Missions\Descriptions\misn2bcr.mpdes", r"Missions\misn2bcr.vxt",
+                  r"Missions\misn2bcr.bzn", r"Scripts\misn2bcr.lua")
+for source in (*staged_sources, r"Missions\Descriptions\misn2bcr_2.des",
+               r"Missions\Descriptions\misn2bcr_2.png"):
     runtime = source.split("\\")[-1]
     assert entries.get(source) == runtime, f"missing shipping entry: {source}"
-    assert f'"{runtime}"' in manager, f"missing staging requirement: {runtime}"
     assert len(runtime) <= 16
+for source in staged_sources:
+    runtime = source.split("\\")[-1]
+    assert f'"{runtime}"' in manager, f"missing staging requirement: {runtime}"
 
 print("misn02b campaign/MP scaffold and shipping checks passed")
