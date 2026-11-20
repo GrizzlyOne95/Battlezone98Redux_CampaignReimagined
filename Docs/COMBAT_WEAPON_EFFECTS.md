@@ -2,7 +2,7 @@
 
 Weapon-rig update, 2026-11-04. Generated from CR source, reviewed model policy and fitted flash data. See [the model-edit report](WEAPON_RIGS.md) for the requested 27-model pass and exported previews.
 
-**136 armed ODFs / 53 models / 305 equipped slots.** Authored recoil: 225 slots; fitted flash offsets: 221 slots; ballistic casing selections: 145 slots.
+**136 armed ODFs / 53 models / 305 equipped slots.** Authored recoil: 225 slots; fitted flash offsets: 221 slots; ballistic casing selections: 146 slots.
 
 Scope: CR vehicle/building definitions, including mission variants and utility carriers. People retain per-weapon effects; armories supply weapons. This source-only count excludes stock-only aliases from the earlier 139-definition/52-model audit.
 
@@ -152,7 +152,7 @@ Scope: CR vehicle/building definitions, including mission variants and utility c
 | `avwamp` | 1: `gmaggun` | `animation:cr_fire_1` | 0.12 0.07 0.84 | none | native firing producer pending |
 | `avwamp` | 2: `gmaggun` | `animation:cr_fire_2` | -0.10 0.12 0.81 | none | native firing producer pending |
 | `avwamp` | 3: `gsplint` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent age11ty1 is not a barrel node and the hardpoint is 0.49 m behind its front geometry |
-| `bbtowe` | 1: `gblastb` | `agn11bgb` | -0.06 0.02 0.23 | none | accepted-shot path; live validation pending |
+| `bbtowe` | 1: `gspstabn` | `agn11bgb` | -0.06 0.02 0.23 | large | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
 | `bv0002` | 2: `grktbomb` | `bhr11bga` | 0.03 -0.01 1.32 | none | accepted-shot path; live validation pending |
 | `bv0002` | 3: `grktbomb` | `bhr11bgb` | -0.01 -0.01 1.32 | none | accepted-shot path; live validation pending |
 | `bvartl` | 1: `ghartill` | `bar11bgd` | 0.04 -0.07 0.71 | large | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |

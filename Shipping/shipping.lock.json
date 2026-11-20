@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6257,
+  "count": 6258,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -3533,6 +3533,10 @@
     {
       "source": "Assets\\Models\\crmf_spstab.mesh",
       "runtime": "crmf_spstab.mesh"
+    },
+    {
+      "source": "Assets\\Models\\crmf_spstabn.mesh",
+      "runtime": "crmf_spstabn.mesh"
     },
     {
       "source": "Assets\\Models\\crmf_sunarc.mesh",

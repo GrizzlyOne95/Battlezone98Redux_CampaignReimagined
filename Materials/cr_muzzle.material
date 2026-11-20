@@ -184,6 +184,41 @@ material CR/Muzzle/spstab : CR/Muzzle/Base
         }
     }
 }
+material CR/Muzzle/spstabn : CR/Muzzle/Base
+{
+    technique DX11
+    {
+        pass Emission
+        {
+            vertex_program_ref CR_Muzzle_v1_VS
+            {
+                param_named flashAnimation float4 6.28 0.12 0.22 1.2
+            }
+            fragment_program_ref CR_Muzzle_v1_PS
+            {
+                param_named flashCoolColour float3 0.1 0.4 1
+                param_named flashHotColour float3 0.8 0.92 1
+                param_named flashAnimation float4 6.28 0.12 0.22 1.2
+            }
+        }
+    }
+    technique DX9
+    {
+        pass Emission
+        {
+            vertex_program_ref CR_Muzzle_v1_VS9
+            {
+                param_named flashAnimation float4 6.28 0.12 0.22 1.2
+            }
+            fragment_program_ref CR_Muzzle_v1_PS9
+            {
+                param_named flashCoolColour float3 0.1 0.4 1
+                param_named flashHotColour float3 0.8 0.92 1
+                param_named flashAnimation float4 6.28 0.12 0.22 1.2
+            }
+        }
+    }
+}
 material CR/Muzzle/pulse : CR/Muzzle/Base
 {
     technique DX11

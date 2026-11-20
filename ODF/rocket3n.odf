@@ -9,7 +9,7 @@ xplGround = "xmslgnd"
 xplVehicle = "xmslcar"
 xplBuilding = "xmslbld"
 
-renderName = "rocket3a.render"
+renderName = "rocket3n.render"
 
 ammoCost = 100
 lifeSpan = 2.0
@@ -30,20 +30,20 @@ smokeFrames = 16
 [Render]
 renderBase = "draw_multi"
 renderCount = 2
-renderName1 = "rocket3a.flare"
-renderName2 = "rocket3a.light"
+renderName1 = "rocket3n.flare"
+renderName2 = "rocket3n.light"
 
 [Flare]
 renderBase = "draw_sprite"
 textureName = "cr_fx_flare.dds"
-startColor = "255 255 255 127"
-finishColor = "255 255 255 127"
+startColor = "200 230 255 127"
+finishColor = "200 230 255 127"
 startRadius = 5.0
 finishRadius = 5.0
 
 [Light]
 renderBase = "draw_light"
-startColor = "150 255 50 255"
-finishColor = "150 255 50 255"
+startColor = "150 200 255 255"
+finishColor = "150 200 255 255"
 startRadius = 20
 finishRadius = 20
