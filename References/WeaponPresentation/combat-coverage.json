@@ -3,7 +3,7 @@
     "slots": 305,
     "recoil_slots": 225,
     "flash_slots": 221,
-    "casing_slots": 145
+    "casing_slots": 146
   },
   "units": {
     "abtowe": {
@@ -1141,7 +1141,7 @@
       "model": "bbtowe",
       "slots": {
         "1": {
-          "weapon": "gblastb",
+          "weapon": "gspstabn",
           "hardpoint": "GC1",
           "recoil_node": "agn11bgb",
           "recoil_distance": 0.12,
@@ -1152,8 +1152,8 @@
             0.23
           ],
           "flash_status": "fitted; live validation pending",
-          "casing_type": "none",
-          "casing_status": "no brass by weapon design",
+          "casing_type": "large",
+          "casing_status": "estimated native breech; model port fitting pending",
           "runtime": "accepted-shot path; live validation pending"
         }
       },

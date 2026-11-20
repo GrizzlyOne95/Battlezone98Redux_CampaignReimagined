@@ -93,6 +93,29 @@
         1.2
       ]
     },
+    "spstabn": {
+      "length": 2.5,
+      "radius": 0.67,
+      "petals": 6,
+      "duration": 0.095,
+      "cool": [
+        0.1,
+        0.4,
+        1
+      ],
+      "hot": [
+        0.8,
+        0.92,
+        1
+      ],
+      "shape": "crown",
+      "animation": [
+        6.28,
+        0.12,
+        0.22,
+        1.2
+      ]
+    },
     "pulse": {
       "length": 1.4,
       "radius": 0.4,
@@ -1077,7 +1100,7 @@
       "casing_mesh": "cr_casing_cannon.mesh"
     },
     "gspstabn": {
-      "profile": "spstab",
+      "profile": "spstabn",
       "decision": "authored flash",
       "casing_type": "large",
       "casing_decision": "Ballistic large cannon case (rimmed, tapered; after the 105 mm M68 brass case); local cosmetic only.",

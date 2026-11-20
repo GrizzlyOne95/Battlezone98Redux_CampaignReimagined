@@ -13,7 +13,7 @@ heatSignature = 0.5599999999999999
 imageSignature = 5.6
 radarSignature = 0.7
 weaponHard1 = "GC1"
-weaponName1 = "gblastb"
+weaponName1 = "gspstabn"
 
 [CraftClass]
 // CR CRAFT FLASH OFFSET BEGIN
