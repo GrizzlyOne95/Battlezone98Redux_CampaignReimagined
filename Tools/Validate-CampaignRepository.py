@@ -372,8 +372,14 @@ def check_openshim_manifest_assets() -> list[str]:
         if info["files"] != len(entries):
             errors.append(f"OpenShimManifest.lua '{name}' declares {info['files']} files "
                           f"but lists {len(entries)}.")
-        if info["source"] != info["destination"]:
-            errors.append(f"OpenShimManifest.lua '{name}' source and destination differ.")
+        # The widget art is staged under OpenShimPayload\ui (outside every content
+        # folder) and installed by OpenShim into <game>\openshim\ui.
+        expected_source, expected_destination = {
+            "customWidgets": ("OpenShimPayload\\ui", "openshim\\ui"),
+        }.get(name, (info["source"], info["source"]))
+        if info["source"] != expected_source or info["destination"] != expected_destination:
+            errors.append(f"OpenShimManifest.lua '{name}' source/destination must be "
+                          f"'{expected_source}' -> '{expected_destination}'.")
 
         root = ROOT / info["source"].replace("\\", "/")
         if not root.is_dir():

@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6258,
+  "count": 6330,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -10295,102 +10295,6 @@
       "runtime": "winmm.dll"
     },
     {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\odyssey.ogv",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\odyssey.ogv"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_bans_center.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_bans_center.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_career_center.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_career_center.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_category_center.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_category_center.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_hub_center.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_hub_center.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_ck.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_ck.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_hv.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_key_hv.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_keys_center.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_keys_center.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_lan_center.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_lan_center.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_menu_theme_center.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_menu_theme_center.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_options_center.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_options_center.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_prelobby_center.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_prelobby_center.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_preview_white.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_preview_white.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_reticle_center.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_reticle_center.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_ck.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_ck.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_hv.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tile_hv.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_ck.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_ck.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_hv.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_tool_hv.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_ck.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_ck.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_hv.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\osh_value_hv.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uibtn.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uibtn.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uibtnhv.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uibtnhv.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uiline.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uiline.png"
-    },
-    {
-      "source": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uiplate.png",
-      "runtime": "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\uiplate.png"
-    },
-    {
       "source": "Config\\ac_detail_atlas.csv",
       "runtime": "ac_detail_atlas.csv"
     },
@@ -20243,6 +20147,286 @@
       "runtime": "openshim\\renderer\\enhanced\\openshim_menu_theme.program.payload"
     },
     {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avapc.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avapc.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avartl.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avartl.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avcnst.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avcnst.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avfigh.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avfigh.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avhaul.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avhaul.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avhraz.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avhraz.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avland.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avland.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avltnk.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avltnk.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avmine.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avmine.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avmuf.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avmuf.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avrckt.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avrckt.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avrecy.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avrecy.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avscav.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avscav.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avslf.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avslf.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avtank.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avtank.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avtest.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avtest.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avturr.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avturr.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_avwalk.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_avwalk.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvapc.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvapc.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvartl.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvartl.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvcnst.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvcnst.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvhaul.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvhaul.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvhraz.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvhraz.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvltnk.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvltnk.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvmine.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvmine.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvmru.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvmru.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvmuf.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvmuf.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvraz.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvraz.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvrckt.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvrckt.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvrdev.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvrdev.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvrecy.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvrecy.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvscav.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvscav.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvslf.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvslf.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvtank.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvtank.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvturr.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvturr.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_bvwalk.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_bvwalk.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvapc.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvapc.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvartl.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvartl.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvcnst.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvcnst.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvfigh.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvfigh.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvhaul.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvhaul.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvhraz.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvhraz.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvhtnk.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvhtnk.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvltnk.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvltnk.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvmine.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvmine.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvmuf.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvmuf.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvrckt.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvrckt.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvrecy.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvrecy.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvscav.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvscav.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvslf.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvslf.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvtnk.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvtnk.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvturr.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvturr.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_cvwalk.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_cvwalk.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svapc.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svapc.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svartl.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svartl.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svcnst.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svcnst.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svfigh.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svfigh.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svhaul.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svhaul.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svhraz.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svhraz.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svltnk.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svltnk.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svmine.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svmine.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svmuf.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svmuf.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svrckt.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svrckt.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svrecy.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svrecy.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svsav.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svsav.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svscav.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svscav.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svslf.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svslf.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svtank.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svtank.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svturr.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svturr.dds.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_paint_svwalk.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_paint_svwalk.dds.payload"
+    },
+    {
       "source": "openshim\\renderer\\enhanced\\openshim_reticle_fx.hlsl.payload",
       "runtime": "openshim\\renderer\\enhanced\\openshim_reticle_fx.hlsl.payload"
     },
@@ -20261,6 +20445,10 @@
     {
       "source": "openshim\\renderer\\enhanced\\openshim_surface_reactions.hlsl.payload",
       "runtime": "openshim\\renderer\\enhanced\\openshim_surface_reactions.hlsl.payload"
+    },
+    {
+      "source": "openshim\\renderer\\enhanced\\openshim_team_off.dds.payload",
+      "runtime": "openshim\\renderer\\enhanced\\openshim_team_off.dds.payload"
     },
     {
       "source": "openshim\\renderer\\enhanced\\openshim_terrain_tessellation_test.hlsl.payload",
@@ -20285,6 +20473,106 @@
     {
       "source": "openshim\\support\\README.txt",
       "runtime": "openshim\\support\\README.txt"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\odyssey.ogv",
+      "runtime": "OpenShimPayload\\ui\\odyssey.ogv"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_bans_center.png",
+      "runtime": "OpenShimPayload\\ui\\osh_bans_center.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_career_center.png",
+      "runtime": "OpenShimPayload\\ui\\osh_career_center.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_category_center.png",
+      "runtime": "OpenShimPayload\\ui\\osh_category_center.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_database_center.png",
+      "runtime": "OpenShimPayload\\ui\\osh_database_center.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_hub_center.png",
+      "runtime": "OpenShimPayload\\ui\\osh_hub_center.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_key_ck.png",
+      "runtime": "OpenShimPayload\\ui\\osh_key_ck.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_key_hv.png",
+      "runtime": "OpenShimPayload\\ui\\osh_key_hv.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_keys_center.png",
+      "runtime": "OpenShimPayload\\ui\\osh_keys_center.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_lan_center.png",
+      "runtime": "OpenShimPayload\\ui\\osh_lan_center.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_menu_theme_center.png",
+      "runtime": "OpenShimPayload\\ui\\osh_menu_theme_center.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_options_center.png",
+      "runtime": "OpenShimPayload\\ui\\osh_options_center.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_prelobby_center.png",
+      "runtime": "OpenShimPayload\\ui\\osh_prelobby_center.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_preview_white.png",
+      "runtime": "OpenShimPayload\\ui\\osh_preview_white.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_reticle_center.png",
+      "runtime": "OpenShimPayload\\ui\\osh_reticle_center.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_tile_ck.png",
+      "runtime": "OpenShimPayload\\ui\\osh_tile_ck.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_tile_hv.png",
+      "runtime": "OpenShimPayload\\ui\\osh_tile_hv.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_tool_ck.png",
+      "runtime": "OpenShimPayload\\ui\\osh_tool_ck.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_tool_hv.png",
+      "runtime": "OpenShimPayload\\ui\\osh_tool_hv.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_value_ck.png",
+      "runtime": "OpenShimPayload\\ui\\osh_value_ck.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\osh_value_hv.png",
+      "runtime": "OpenShimPayload\\ui\\osh_value_hv.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\uibtn.png",
+      "runtime": "OpenShimPayload\\ui\\uibtn.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\uibtnhv.png",
+      "runtime": "OpenShimPayload\\ui\\uibtnhv.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\uiline.png",
+      "runtime": "OpenShimPayload\\ui\\uiline.png"
+    },
+    {
+      "source": "OpenShimPayload\\ui\\uiplate.png",
+      "runtime": "OpenShimPayload\\ui\\uiplate.png"
     },
     {
       "source": "OverlayFont\\arial.ttf",
