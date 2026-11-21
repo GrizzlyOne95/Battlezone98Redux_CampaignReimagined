@@ -113,7 +113,7 @@ try {
  $ogre=Set-BZROgreWindowed -GameRoot $game -VideoMode '1280 x 720 @ 32-bit colour'
  foreach($name in @('winmm.dll','bzloader.dll','plugins\openshim.dll','scripts\patches.json','openshim\OpenShimAssets.ini','openshim.ini','career_stats.cfg')){Save-File "$game\$name"}
  foreach($item in Get-ChildItem "$repo\resources\renderer\enhanced" -File){Save-File "$game\openshim\renderer\enhanced\$($item.Name)"}
- foreach($item in Get-ChildItem "$repo\resources\ui\custom_widgets" -Filter '*.png' -File){Save-File "$game\BZ_ASSETS_CORE\common\ui\CustomWidgets\$($item.Name)"}
+ foreach($item in Get-ChildItem "$repo\resources\ui\custom_widgets" -Filter '*.png' -File){Save-File "$game\openshim\ui\$($item.Name)"; Save-File "$game\BZ_ASSETS_CORE\common\ui\CustomWidgets\$($item.Name)"}
  # A newer installed script can invalidate this branch's exact payload probe.
  # Preserve it, isolate the complete test payload, then restore it after exit.
  foreach($item in Get-ChildItem "$game\openshim\renderer\enhanced" -File){

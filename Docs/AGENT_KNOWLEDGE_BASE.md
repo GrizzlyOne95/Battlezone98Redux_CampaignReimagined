@@ -328,7 +328,7 @@ Pick the unused retrospective line; for example misn13 uses `misn1305`, misn12 `
 - A bless on a branch whose base lags `main` can also add already-tracked files its lock missed (a stacked branch added
   `Shaders\CR_cockpit_damage-sm4.hlsl`): read the diff, and keep only your change's entries (remove the others at their
   sorted position and fix the count) so the PR shows one change.
-- If a bless was done with zero-byte stand-in files, delete them afterwards (`find BZ_ASSETS_CORE openshim
+- If a bless was done with zero-byte stand-in files, delete them afterwards (`find OpenShimPayload openshim
   -size 0`); they are gitignored so `git status` looks clean while Validate reports hash mismatches.
 
 ---
@@ -787,7 +787,7 @@ Never by focus or `SendInput` unless the owner says the PC is free. The scenario
    four plus every pin in one workstream.
 2. **Never run `Manage-CampaignFiles.ps1 -deploy`** (or `-fromsource`/`-release`/no-arg) unless the
    owner asks in-session; it self-elevates and returns no stdout/exit code. `-deploy`, `-release` and
-   Workshop staging install/ship the **committed** `Bin/`, `InstallerPayload/`, `openshim/`, CustomWidgets
+   Workshop staging install/ship the **committed** `Bin/`, `InstallerPayload/`, `openshim/`, OpenShimPayload/ui/
    and `Scripts/OpenShimManifest.lua` bytes (pinned to `openshim/OPENSHIM_PIN.txt`); they never touch the
    sibling repos. Only `-refresh-natives` rewrites those files (from `BZR_OPENSHIM_REPO`/`BZR_EXU_REPO`/
    `BZR_BZFILE_REPO` builds, and re-pins `OPENSHIM_PIN.txt`); review and commit its result together.

@@ -115,7 +115,8 @@ $StructuredRuntimeDirs = @(
     "OverlayFont",
     "chunkMeshes",
     "openshim",
-    "BZ_ASSETS_CORE"
+    "BZ_ASSETS_CORE",
+    "OpenShimPayload"
 )
 # Authoring-only trees. These are development inputs -- CI definitions, the
 # scripts that generate assets, and the shipping lock itself -- not mod content.
@@ -124,7 +125,7 @@ $SourceExcludedRelativePaths = @(
     ".github",
     # Local agent notes and settings; never mod content.
     ".claude",
-    # Legacy byte-identical copies; BZ_ASSETS_CORE is the runtime source.
+    # Legacy byte-identical copies; OpenShimPayload\ui is the runtime source.
     "Assets\CustomWidgets",
     # Chunk meshes are generated at runtime by OpenShim from the stock models;
     # the pack ships none. "chunkMeshes" stays in $StructuredRuntimeDirs so
@@ -859,7 +860,7 @@ function Update-OpenShimManifest {
     # exists; setup copies this sentinel there because the bundle ships every asset.
     $assetManifestPayloadPath = Join-Path $payloadDir "OpenShimAssets.ini.payload"
     $rendererPayloadDir = Join-Path $SourceDir "openshim\renderer\enhanced"
-    $uiPayloadDir = Join-Path $SourceDir "BZ_ASSETS_CORE\common\ui\CustomWidgets"
+    $uiPayloadDir = Join-Path $SourceDir "OpenShimPayload\ui"
     $manifestPath = Join-Path $SourceDir "Scripts\OpenShimManifest.lua"
     # The UI image list follows the OpenShim repo (new screens add new osh_*
     # images), so a hard-coded list can never silently omit one.
@@ -993,7 +994,7 @@ function Update-OpenShimManifest {
         "    },"
         "    assetSets = {"
         "        renderer = { source = `"openshim\\renderer\\enhanced`", destination = `"openshim\\renderer\\enhanced`", sha256 = `"$($rendererSet.Sha256)`", files = $($rendererSet.Files.Count) },"
-        "        customWidgets = { source = `"BZ_ASSETS_CORE\\common\\ui\\CustomWidgets`", destination = `"BZ_ASSETS_CORE\\common\\ui\\CustomWidgets`", sha256 = `"$($widgetSet.Sha256)`", files = $($widgetSet.Files.Count) },"
+        "        customWidgets = { source = `"OpenShimPayload\\ui`", destination = `"openshim\\ui`", sha256 = `"$($widgetSet.Sha256)`", files = $($widgetSet.Files.Count) },"
         "    },"
         "    assetFiles = {"
         $assetFileLines
@@ -1018,7 +1019,7 @@ function Invoke-RefreshNatives {
     }
     [System.IO.File]::WriteAllText((Join-Path $SourceDir "openshim\OPENSHIM_PIN.txt"), "$head`n", [System.Text.UTF8Encoding]::new($false))
     Write-Host "Pinned openshim\OPENSHIM_PIN.txt to OpenShim $head" -ForegroundColor Cyan
-    Write-Host "Review 'git status' / 'git diff --stat' and commit Bin\, InstallerPayload\, openshim\, CustomWidgets and Scripts/OpenShimManifest.lua together." -ForegroundColor Yellow
+    Write-Host "Review 'git status' / 'git diff --stat' and commit Bin\, InstallerPayload\, openshim\, OpenShimPayload\ and Scripts/OpenShimManifest.lua together." -ForegroundColor Yellow
 }
 
 function Sync-ToSource {
@@ -1614,11 +1615,11 @@ function Build-WorkshopContent {
         "openshim\support\openshim_wrap.bat",
         "openshim\support\openshim_wrap.sh",
         "openshim\support\README.txt",
-        "BZ_ASSETS_CORE\common\ui\CustomWidgets\uiline.png",
-        "BZ_ASSETS_CORE\common\ui\CustomWidgets\uiplate.png",
-        "BZ_ASSETS_CORE\common\ui\CustomWidgets\uibtn.png",
-        "BZ_ASSETS_CORE\common\ui\CustomWidgets\uibtnhv.png",
-        "BZ_ASSETS_CORE\common\ui\CustomWidgets\odyssey.ogv",
+        "OpenShimPayload\ui\uiline.png",
+        "OpenShimPayload\ui\uiplate.png",
+        "OpenShimPayload\ui\uibtn.png",
+        "OpenShimPayload\ui\uibtnhv.png",
+        "OpenShimPayload\ui\odyssey.ogv",
         "crcampgn.ini",
         "crcampgn.des",
         "campaignReimagined.jpg",
@@ -1682,7 +1683,7 @@ function Build-WorkshopContent {
     $stagedManifest = Get-Content -Raw -LiteralPath (Join-Path $contentFolder "OpenShimManifest.lua")
     $assetSetRoots = @{
         renderer = "openshim\renderer\enhanced"
-        customWidgets = "BZ_ASSETS_CORE\common\ui\CustomWidgets"
+        customWidgets = "OpenShimPayload\ui"
     }
     # Renderer files are staged as "<name>.payload" (see Update-OpenShimManifest)
     # but listed in the manifest, and installed by OpenShim, under their plain name.

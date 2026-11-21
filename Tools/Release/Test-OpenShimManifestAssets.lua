@@ -58,8 +58,8 @@ local function WithAssets(manifest)
     manifest.assetSets = {
         renderer = { source = "openshim\\renderer\\enhanced", destination = "openshim\\renderer\\enhanced",
             sha256 = Hex("e"), files = 2 },
-        customWidgets = { source = "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets",
-            destination = "BZ_ASSETS_CORE\\common\\ui\\CustomWidgets", sha256 = Hex("f"), files = 1 },
+        customWidgets = { source = "OpenShimPayload\\ui",
+            destination = "openshim\\ui", sha256 = Hex("f"), files = 1 },
     }
     manifest.assetFiles = {
         { set = "renderer", path = "resources.version", sha256 = Hex("5"), size = 2 },
@@ -92,7 +92,7 @@ assert(report.assets.renderer.files == 2)
 assert(report.assets.customWidgets.expectedSha256 == Hex("f"))
 
 markers[working .. "\\openshim\\renderer\\enhanced\\openshim_set.sha256"] = Hex("e") .. "\n"
-markers[working .. "\\BZ_ASSETS_CORE\\common\\ui\\CustomWidgets\\openshim_widgets.sha256"] = Hex("0") .. "\n"
+markers[working .. "\\openshim\\ui\\openshim_widgets.sha256"] = Hex("0") .. "\n"
 local installer
 report, installer = Inspect(WithAssets(BaseManifest()))
 assert(report.assets.renderer.state == "CURRENT", report.assets.renderer.state)
