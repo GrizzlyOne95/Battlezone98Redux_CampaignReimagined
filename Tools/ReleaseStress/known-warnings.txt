@@ -30,6 +30,8 @@
 *crc32host.log ::: ^(gmsslmin|netveh1)\.odf not found ::: the engine's MP CRC table lists two stock ODF names that no stock or CR archive ships
 # --- BZLogger.txt ---
 *BZLogger.txt ::: Couldn't find file "call2arm\.des" ::: third-party Legacy Instant Action map call2arm ships no .des; not a CR file
+*BZLogger.txt ::: Ordnance "clusmin3\.odf" could not add geometry "proxmine\.mesh" ::: stock ordnance geometry-add miss: the same engine line appears for stock-only ordnance (betsplnt/bettymin, shell/ghartl02, popper/gatst01, ...) at every mission load; clusmin3.odf is stock and the CR proxmine.mesh copy loads fine (132 of 132 vertices weighted)
+*BZLogger.txt ::: Couldn\'t find file "[a-z0-9]+_[2-9]\.des" ::: CRIntel (Scripts/CRIntel.lua Load) reads briefing pages <stem>.des, <stem>_2.des ... until one is missing, so every mission logs one miss for page N+1 (misn2bcr ships pages 1-2, so _3); the stock UseItem has no quiet existence check
 *BZLogger.txt ::: Game stopped due to abort button ::: the harness leaves every mission through ESC > Abort Mission
 *BZLogger.txt ::: WARNING: unknown mapType 'NONE' in '.*[\\/]addon[\\/][^']*\.ini' ::: stock map scanner reads stray *.ini files (desktop.ini etc.) inside addon folders on this machine; not a CR file
 *BZLogger.txt ::: cGogInterface::preinitGoGInterface.*GalaxyRuntimeError ::: GOG Galaxy is not running/signed in on this PC (environmental)
@@ -39,8 +41,10 @@
 # --- BZOgreLogfile.log ---
 *BZOgreLogfile.log ::: WARNING: (native/v4/[0-9a-f]+/cgt11\w+\.mesh|sbsilo\.mesh|casings/v1/openshim_casing\.mesh|fracture/v1/[0-9a-f]+/frac_\d+\.mesh|lasersight/v1/openshim_lasersight\.mesh) is an older format \(\[MeshSerializer_v1\.8\]\) ::: OpenShim chunk cache writes v1.8 by design (native_chunk_mesh.cpp); stock sbsilo is v1.8; the fracture-piece and laser-sight caches use the same v1.8 writer
 *BZOgreLogfile.log ::: WARNING: the mesh 'cblpad\.mesh' includes vertices without bone assignments ::: 4 of ~4000 vertices unweighted in the stock TRO mesh and the CR copy alike
+*BZOgreLogfile.log ::: WARNING: the mesh 'sspilo_fp\.mesh' includes vertices without bone assignments ::: shipped Assets/ModelFixes/sspilo_fp.mesh is fully weighted (4931 of 4931 vertices, weights sum to 1; checked with the toolkit reader), so this is not a CR content defect; Ogre prints it on a later reload only (first load is silent), same as stock pylon.mesh. Follow-up: find which runtime copy trips it
 *BZOgreLogfile.log ::: Invalid target for D3D11 shader '.*' - '(vs|ps)_[23]_0' ::: legacy SM3 HLSL programs are retargeted by OpenShim's DX11 path; the stock Ogre message appears once per program on every start
 *BZOgreLogfile.log ::: Information Queue Exceptions Bottom Level = No information queue exceptions ::: Ogre option echo, not an exception
 *openshim*.log ::: \[OgreProfile\] deferred Mesh::softwareVertexBlend entry observer target=0x[0-9A-F]+ suspendReady=no error=5 blockingThread=0 blockingEip=0x0+ bytesStillMatch=yes ::: thread-suspend race (ERROR_ACCESS_DENIED on a starting/exiting thread); bytes untouched, retry flag set and the observer installs on the next pass (patch_scopes.inl:233). Downgrade to Info in the next shim release
 # --- exu.log ---
 *exu.log ::: \[EXU::Overlay\] native font group reset font=CRBZoneOverlayFont group=EXUOverlayFontRuntime reason=current-manager-missing-font ::: recoverable: font script is re-parsed right after (hasFont=1)
+*exu.log ::: \[EXU::Overlay\] native font group reset not needed font=CRBZoneOverlayFont group=EXUOverlayFontRuntime reason=missing ::: EXU's own 'not needed' notice: the font resource group does not exist yet at first use, so there is nothing to reset; CRBZoneOverlay.fontdef is valid and the font is created right after. WARN level is EXU's choice (follow-up: log at Info)
