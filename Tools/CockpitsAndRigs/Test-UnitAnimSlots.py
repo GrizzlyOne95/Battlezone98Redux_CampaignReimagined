@@ -16,7 +16,8 @@ For every shipped file:
     untouched, bvrecy names match the skeleton's case.
 Tugs (svhaul, avhaul, bvhaul, cvhaul): no blank track; elements 0/1 keep their stock one-shot
 spans (cvhaul, which has no stock ANIM, uses av/bv's) and 1 replays 0 in reverse; the pickup
-moves only the gs1 cargo hardpoint, 4.375 m toward the hull (-Z for the front carriers, +Z for
+moves only the gs1 cargo hardpoint toward the hull (svhaul/cvhaul 4.375 m, avhaul/bvhaul 1.25 m so
+the cargo stops in front of the cockpit) (-Z for the front carriers, +Z for
 cvhaul, which carries behind), keyed on every frame (svhaul keeps its stock keys). With the game
 files, each tug's skeleton has the gs1 bone at the hardpoint's rest position under the VDF
 part's parent (cvhaul's comes from Assets/ModelFixes/cvhaul.skeleton).
@@ -69,13 +70,13 @@ FILES = {
     "svcnst.vdf": (0, {"scv11twr"}),
     "cvslf.vdf": (1, {"CAM11ARM"}),
 }
-# Tugs: (cargo hardpoint, stock element 0, stock element 1). Tug::Simulate plays 0 on pickup
+# Tugs: (cargo hardpoint, stock element 0, stock element 1, direction, travel m). Tug::Simulate plays 0 on pickup
 # and 1 on dropoff and waits for each, so both stay one-shot and 1 mirrors 0.
 TUGS = {
-    "svhaul.vdf": ("sha11gs1", (1, 11), (11, -11), -1),
-    "avhaul.vdf": ("aha11gs1", (0, 121), (120, -121), -1),
-    "bvhaul.vdf": ("bha11gs1", (0, 121), (120, -121), -1),
-    "cvhaul.vdf": ("COX11GS1", (0, 121), (120, -121), 1),   # no stock ANIM; av/bv elements
+    "svhaul.vdf": ("sha11gs1", (1, 11), (11, -11), -1, 4.375),
+    "avhaul.vdf": ("aha11gs1", (0, 121), (120, -121), -1, 1.25),   # 4.375 m clipped into the cockpit
+    "bvhaul.vdf": ("bha11gs1", (0, 121), (120, -121), -1, 1.25),
+    "cvhaul.vdf": ("COX11GS1", (0, 121), (120, -121), 1, 4.375),   # no stock ANIM; av/bv elements
 }
 EPS_DEG, EPS_M = 1e-3, 1e-5
 
@@ -314,7 +315,7 @@ def main():
             elif p["name"] in moving and counts[p["name"]] == 0 and not hardpoint:
                 err(name, "moving track %r drives a bone with no vertices" % p["name"])
 
-    for name, (gs1, el0, el1, direction) in TUGS.items():
+    for name, (gs1, el0, el1, direction, want) in TUGS.items():
         path = os.path.join(FIXES, name)
         if not os.path.exists(path):
             err(name, "missing from Assets/ModelFixes")
@@ -349,9 +350,9 @@ def main():
                 err(name, "%s: no key on frames %s" % (gs1, gaps[:5]))
             p0, p1 = A.sample(g["pos"], f0[0], False), A.sample(g["pos"], f0[-1], False)
             travel = math.dist(p0, p1)
-            if abs(travel - 4.375) > 0.01:
-                err(name, "%s travels %.3f m, expected 4.375" % (gs1, travel))
-            if (p1[2] - p0[2]) * direction < 4.37:
+            if abs(travel - want) > 0.01:
+                err(name, "%s travels %.3f m, expected %.3f" % (gs1, travel, want))
+            if (p1[2] - p0[2]) * direction < want - 0.005:
                 err(name, "%s should travel along %sZ, moves %s -> %s" % (gs1, "+" if direction > 0 else "-", p0, p1))
             if have_game:
                 skel = read_skeleton(args.game, name[:-4])
