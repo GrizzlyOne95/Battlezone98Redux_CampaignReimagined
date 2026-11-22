@@ -9,11 +9,19 @@
 #             Budget = name of an entry in Budgets (default Transition). Expect='none' = no transition expected.
 #   back      T = Back button name, or omitted for the shell back (__BACK__). Budget defaults to BackOut.
 #   UnrespS   per-step override of UnresponsiveSeconds; justify it in a comment on the step.
-#   clickxy   X,Y in the 1280x720 client area. Only for list boxes the harness cannot address.
+#   clickxy   X,Y in the 1280x720 client area. Only for list boxes the harness cannot address, and never
+#             to pick content: rows shift whenever an addon is installed.
+#   pickcampaign  Campaign = exact missionName in the Custom Campaign list. The row comes from this launch's
+#             own campaign INIs (BZLogger "MOD FOUND" lines, ordinal sort), clicked at X (427), Y0 (179) +
+#             RowH (12) * row. Missing, duplicated or past MaxRows (20) = FIXTURE.
 #   text      Text = characters typed into the focused field.   key  VK = virtual key code.
 #   wait      Seconds.   snapshot  Label.
 #   mission   T = launch button (default Launch), PlayS = seconds of play (default MissionPlaySeconds),
 #             LoadBudgetS. Waits for load, plays, ESC > Abort Mission, waits for the main menu, snapshots.
+#             ExpectSource = 'cr' (the .bzn came from the CR mod folder; ExpectBzn = its file name) or 'stock'
+#             (no addon/mod .bzn), read from openshim.log "[BZN] Loose map source". A mismatch skips the play,
+#             records a FIXTURE step (not a product FAIL) and reruns the group once; a second miss is a
+#             FIXTURE anomaly and the run cannot qualify.
 #
 # Budgets are wall seconds from sending the trigger to the last shell "transition end" line.
 @{
@@ -124,7 +132,7 @@
         @{ Group = 'singleplayer'; Name = 'sp_load_back'; Do = 'back'; T = 'Back' }
         # Custom Campaign list > Campaign Reimagined: NSDF > enter, then back out twice (23 s back-out regression guard)
         @{ Group = 'singleplayer'; Name = 'sp_campaigns'; Do = 'click'; T = 'CampaignLaunch'; Budget = 'Heavy' }
-        @{ Group = 'singleplayer'; Name = 'sp_camp_pick_cr'; Do = 'clickxy'; X = 427; Y = 263; SettleS = 1.5 }
+        @{ Group = 'singleplayer'; Name = 'sp_camp_pick_cr'; Do = 'pickcampaign'; Campaign = 'Campaign Reimagined: NSDF'; SettleS = 1.5 }
         @{ Group = 'singleplayer'; Name = 'sp_camp_enter_cr'; Do = 'click'; T = 'Launch'; Budget = 'Heavy' }
         # Back-out from the CR campaign rebuilds the stock campaign list (~17k FindFirst file scan, ~5.5 s, 2026-11-07). Known, not new.
         @{ Group = 'singleplayer'; Name = 'sp_camp_enter_back'; Do = 'back'; T = 'Back'; Budget = 'Heavy'; UnrespS = 10 }
@@ -135,26 +143,27 @@
         # 1. stock campaign (NSDF mission 1)
         @{ Group = 'mission_stock'; Name = 'ms_sp';     Do = 'click'; T = 'SinglePlayer_MainScreen' }
         @{ Group = 'mission_stock'; Name = 'ms_usa';    Do = 'click'; T = 'USAMission_SinglePlayer' }
-        @{ Group = 'mission_stock'; Name = 'mission_stock'; Do = 'mission'; T = 'Launch' }
+        @{ Group = 'mission_stock'; Name = 'mission_stock'; Do = 'mission'; T = 'Launch'; ExpectSource = 'stock' }
         # 2. CR campaign, first mission
         @{ Group = 'mission_cr1'; Name = 'mc1_sp';      Do = 'click'; T = 'SinglePlayer_MainScreen' }
         @{ Group = 'mission_cr1'; Name = 'mc1_list';    Do = 'click'; T = 'CampaignLaunch'; Budget = 'Heavy' }
-        @{ Group = 'mission_cr1'; Name = 'mc1_pick';    Do = 'clickxy'; X = 427; Y = 263; SettleS = 1.5 }
+        @{ Group = 'mission_cr1'; Name = 'mc1_pick';    Do = 'pickcampaign'; Campaign = 'Campaign Reimagined: NSDF'; SettleS = 1.5 }
         @{ Group = 'mission_cr1'; Name = 'mc1_enter';   Do = 'click'; T = 'Launch'; Budget = 'Heavy' }
-        @{ Group = 'mission_cr1'; Name = 'mission_cr1'; Do = 'mission'; T = 'Launch' }
-        # 3. CR campaign, second mission (MissionpageDn)
+        @{ Group = 'mission_cr1'; Name = 'mission_cr1'; Do = 'mission'; T = 'Launch'; ExpectSource = 'cr'; ExpectBzn = 'misn2bcr.bzn' }
+        # 3. A second, different CR map: the Soviet (CCA) campaign's first mission. NSDF mission 2 is not
+        #    reachable: it stays locked without campaign progress, and MissionpageDn relaunched mission 1
+        #    (misn2bcr, 2026-11-22); the harness must not edit the player's cpProgress.def.
         @{ Group = 'mission_cr2'; Name = 'mc2_sp';      Do = 'click'; T = 'SinglePlayer_MainScreen' }
         @{ Group = 'mission_cr2'; Name = 'mc2_list';    Do = 'click'; T = 'CampaignLaunch'; Budget = 'Heavy' }
-        @{ Group = 'mission_cr2'; Name = 'mc2_pick';    Do = 'clickxy'; X = 427; Y = 263; SettleS = 1.5 }
+        @{ Group = 'mission_cr2'; Name = 'mc2_pick';    Do = 'pickcampaign'; Campaign = 'Campaign Reimagined: Soviet (CCA)'; SettleS = 1.5 }
         @{ Group = 'mission_cr2'; Name = 'mc2_enter';   Do = 'click'; T = 'Launch'; Budget = 'Heavy' }
-        @{ Group = 'mission_cr2'; Name = 'mc2_next';    Do = 'click'; T = 'MissionpageDn'; Expect = 'none'; SettleS = 1.5 }
-        @{ Group = 'mission_cr2'; Name = 'mission_cr2'; Do = 'mission'; T = 'Launch' }
+        @{ Group = 'mission_cr2'; Name = 'mission_cr2'; Do = 'mission'; T = 'Launch'; ExpectSource = 'cr'; ExpectBzn = 'misns1cr.bzn' }
         # 4. Campaign Reimagined: Black Dog campaign (its missions are the co-op-capable ports, played solo)
         @{ Group = 'mission_crbd'; Name = 'mb_sp';      Do = 'click'; T = 'SinglePlayer_MainScreen' }
         @{ Group = 'mission_crbd'; Name = 'mb_list';    Do = 'click'; T = 'CampaignLaunch'; Budget = 'Heavy' }
-        @{ Group = 'mission_crbd'; Name = 'mb_pick';    Do = 'clickxy'; X = 427; Y = 240; SettleS = 1.5 }
+        @{ Group = 'mission_crbd'; Name = 'mb_pick';    Do = 'pickcampaign'; Campaign = 'Campaign Reimagined: Black Dog'; SettleS = 1.5 }
         @{ Group = 'mission_crbd'; Name = 'mb_enter';   Do = 'click'; T = 'Launch'; Budget = 'Heavy' }
-        @{ Group = 'mission_crbd'; Name = 'mission_crbd'; Do = 'mission'; T = 'Launch' }
+        @{ Group = 'mission_crbd'; Name = 'mission_crbd'; Do = 'mission'; T = 'Launch'; ExpectSource = 'cr'; ExpectBzn = 'bd01cr.bzn' }
         # 5. Instant Action
         @{ Group = 'mission_instant'; Name = 'mi_sp';   Do = 'click'; T = 'SinglePlayer_MainScreen' }
         @{ Group = 'mission_instant'; Name = 'mi_instant'; Do = 'click'; T = 'Instant'; Budget = 'Heavy' }

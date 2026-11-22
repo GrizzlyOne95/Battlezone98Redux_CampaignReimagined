@@ -164,6 +164,59 @@ function Read-LogFrom([string]$Path, [long]$Offset) {
     } finally { $fs.Dispose() }
 }
 
+# ------------------------------------------------------ content preconditions --
+function Get-CampaignList([string]$BzLoggerText) {
+    # The shell's Custom Campaign list, rebuilt from the game's own data: every INI this launch logged as
+    # "MOD FOUND <ini> at <dir>" whose mapType is campaign, sorted ordinally by missionName. Checked
+    # against the on-screen list on 2026-11-22 (9 entries; ordinal: 'BZ64...' sorts before 'Battlezone...').
+    $names = New-Object System.Collections.Generic.List[string]
+    $inis = New-Object System.Collections.Generic.List[string]
+    foreach ($m in [regex]::Matches($BzLoggerText, '(?m)MOD FOUND (\S+\.ini) at (.+?)\s*$')) {
+        $ini = Join-Path $m.Groups[2].Value $m.Groups[1].Value
+        try { $t = [IO.File]::ReadAllText($ini, $script:Latin1) } catch { continue }
+        if ($t -notmatch '(?im)^\s*mapType\s*=\s*"?campaign"?\s*$') { continue }
+        $n = if ($t -match '(?im)^\s*missionName\s*=\s*"?([^"\r\n]*)') { $Matches[1].Trim() } else { '' }
+        $names.Add($n); $inis.Add($ini)
+    }
+    $k = $names.ToArray(); $v = $inis.ToArray()
+    [Array]::Sort($k, $v, [StringComparer]::Ordinal)
+    for ($i = 0; $i -lt $k.Count; $i++) { [pscustomobject]@{ Name = $k[$i]; Ini = $v[$i] } }
+}
+
+function Test-MissionSource([string]$LoadText, [string]$SessionText, [string]$Expect, [string]$ModDir, [string]$ExpectBzn = '') {
+    # Which mission file did the load just read? $LoadText = openshim.log lines of this load, $SessionText =
+    # the whole openshim.log of this launch. OpenShim logs "[BZNLOAD] open <name>.bzn" on every loose-BZN
+    # load but "[BZN] Loose map source path=<file>" only the first time it resolves that file in a launch,
+    # so the path comes from the session. Packed stock maps log neither. Returns @{ Ok; Path; Why }.
+    #   Expect 'cr'    : the .bzn came from $ModDir (and is $ExpectBzn when given).
+    #   Expect 'stock' : no .bzn from an addon/mod/Workshop folder.
+    $opened = @([regex]::Matches($LoadText, '\[BZNLOAD\] open (\S+?\.bzn)\b') | ForEach-Object { $_.Groups[1].Value })
+    $path = $null
+    if ($opened.Count) {
+        $bzn = $opened[0]
+        $src = @([regex]::Matches($SessionText, '\[BZN\] Loose map source path=(.+?\.bzn) ambiguous=') | ForEach-Object { $_.Groups[1].Value } |
+                 Where-Object { (Split-Path $_ -Leaf) -eq $bzn })
+        $path = if ($src.Count) { $src[-1] } else { "$bzn (no source path logged)" }
+    }
+    if ($Expect -eq 'stock') {
+        if ($path -and $path -match '\\(mods|addon|packaged_mods|workshop)\\') { return @{ Ok = $false; Path = $path; Why = "expected a stock mission, loaded $path" } }
+        return @{ Ok = $true; Path = $(if ($path) { $path } else { '(packed stock map)' }); Why = '' }
+    }
+    if ($Expect -ne 'cr') { throw "unknown ExpectSource '$Expect'" }
+    # Product = the right mission was picked but did not load from CR (e.g. the loose-BZN override broke and
+    # the packed stock map loaded instead). Fixture = a different mission was picked.
+    $root = [IO.Path]::GetFullPath($ModDir).TrimEnd('\') + '\'
+    $shipped = $ExpectBzn -and (Test-Path -LiteralPath (Join-Path $root $ExpectBzn))
+    if (-not $path) {
+        if ($shipped) { return @{ Ok = $false; Product = $true; Path = ''; Why = "$ExpectBzn ships in $root but the load opened no loose .bzn (packed map loaded instead)" } }
+        return @{ Ok = $false; Product = $false; Path = ''; Why = 'no [BZNLOAD] open line: a packed (stock) map loaded, not CR' }
+    }
+    $leafOk = -not $ExpectBzn -or ((Split-Path $path -Leaf) -eq $ExpectBzn) -or ($path -like "$ExpectBzn *")
+    if (-not $leafOk) { return @{ Ok = $false; Product = $false; Path = $path; Why = "expected $ExpectBzn, loaded $path" } }
+    if (-not $path.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)) { return @{ Ok = $false; Product = [bool]$shipped; Path = $path; Why = "expected CR ($root), loaded $path" } }
+    @{ Ok = $true; Product = $false; Path = $path; Why = '' }
+}
+
 # ---------------------------------------------------------------- cdb stacks --
 function Save-Stacks([int]$ProcessId, [string]$OutFile, [string]$CdbPath) {
     if (-not (Test-Path -LiteralPath $CdbPath)) { Set-Content $OutFile "cdb not found at $CdbPath"; return }
