@@ -45,6 +45,15 @@ Edits:
                  av/bv elements 0 (0, 121) and 1 (120, -121) at 15 fps pulls COX11GS1 the same
                  4.375 m toward the hull (+Z here; the others carry in front and pull -Z) to
                  z -2.125, seating the cargo between the booms against the hull's rear face.
+  tug pickup start  all four tugs start element 0 with gs1 on the ground where the relic
+                 was. Live Redux pickups (16, obdata relic, flat ground) found the engine snaps
+                 the cargo 9.4-12 m onto gs1 at attach; on the frame before it the relic sat
+                 13.41 m ahead of avhaul/bvhaul, 13.18 m ahead of svhaul and 4.60 m ahead of
+                 cvhaul (which drives over it), the tugs settling 1.53 / 3.08 / 3.08 m above
+                 the ground. Element 0 now carries gs1 from that spot (tug_lift's `start`) to
+                 its carry pose on a quadratic Bezier: the front carriers lift first, then pull
+                 in; cvhaul slides it back under its belly, then raises it into the bay.
+                 Element 1 replays it, so a dropoff lowers the relic back to the ground.
   cvhaul.skeleton  stock Redux skeleton (TRO/cvhaul.skeleton) plus bone COX11GS1 (handle 9,
                  child of COX11BDA, at the VDF part's rest position), so the animated part
                  names a bone like every other tug's gs1. Written by the toolkit's skeleton
@@ -493,29 +502,45 @@ AV_TUG_TRAVEL = 1.25  # avhaul/bvhaul: stops the cargo in front of the cockpit (
 SV_TUG_TRAVEL = 0.6  # svhaul: its stock 4.375 m also ends inside the cockpit (see docstring)
 
 
+# Where the relic sits when the tug attaches it, in gs1's parent frame (all parents have
+# identity rotation): live Redux pickups measured the relic's origin this far ahead of the
+# tug origin, at the tug's settled hover height below it, plus the parent's offset from the
+# tug origin. Element 0 starts the cargo there, on the ground, so the engine's snap onto gs1
+# at attach no longer jumps it into the arms (see docstring).
+AV_TUG_START = (0.0, -1.53 - 1.588, 13.41 + 0.983)  # aha11bda/bha11bda at (0, 1.588, -0.983)
+SV_TUG_START = (0.0, -3.08 - 1.272, 13.18)  # sha11bda at (0, 1.272, 0)
+CV_TUG_START = (0.0, -3.08, 4.60)  # COX11BDA at the origin; cvhaul drives over its cargo
+
+
 def build_svhaul(m):
-    """Name svhaul's blank cargo track sha11gs1 and scale its stock pull-in to SV_TUG_TRAVEL,
-    keeping the stock key frames."""
+    """Name svhaul's blank cargo track sha11gs1, stretch its stock pickup/dropoff elements
+    (1, 11)/(11, -11) at 10 fps (1.1 s) to (1, 121)/(121, -121) at 15 fps (8 s, as av/bv), then
+    key its ground-to-arms path. Live, the stock 1.1 s swung the relic its 11 m from the ground
+    at up to 50 m/s."""
     m.rename_track(next(n for n in m.order if not n.strip()), "sha11gs1")
-    rest = m.bind("sha11gs1")[1]
-    k = SV_TUG_TRAVEL / TUG_TRAVEL
-    tr = m.tracks["sha11gs1"]
-    tr["pos"] = [(f, (v[0], v[1], rest[2] + (v[2] - rest[2]) * k)) for f, v in tr["pos"]]
+    m.set_element(0, 1, 121, 1)
+    m.set_element(1, 121, -121, 1)
+    tug_lift(m, "sha11gs1", start=SV_TUG_START, travel=SV_TUG_TRAVEL, stock_moves=True)
+    m.hold_all(121)
 TUG_ELEMENTS = ((0, 0, 121), (1, 120, -121))  # avhaul/bvhaul stock pickup/dropoff, 15 fps
 
 
-def tug_lift(m, gs1, direction=-1.0, travel=TUG_TRAVEL):
-    """Pull the cargo hardpoint `travel` metres toward the hull along its parent's Z
-    (direction -1: cargo carried in front, as on av/bv/sv; +1: carried behind, as on cvhaul)
-    across element 0, one key per frame with a smoothstep ease; element 1 plays the same
-    frames in reverse. A VDF with neither tug element gets the av/bv elements, and a missing
-    gs1 track is added (position keys only, as on av/bv)."""
+def tug_lift(m, gs1, start, direction=-1.0, travel=TUG_TRAVEL, stock_moves=False):
+    """Carry the cargo hardpoint from `start` (the ground pickup spot, parent frame) to its
+    rest pose pulled `travel` metres toward the hull along its parent's Z (direction -1:
+    cargo carried in front, as on av/bv/sv; +1: carried under and behind, as on cvhaul)
+    across element 0, one key per frame on a quadratic Bezier with a smoothstep ease. Front
+    carriers lift first, then pull in; cvhaul slides the cargo back under its belly, then
+    raises it. Frames before element 0 hold `start`; element 1 plays the same frames in
+    reverse, lowering the cargo back to the ground. A VDF with neither tug element gets the
+    av/bv elements, and a missing gs1 track is added (position keys only, as on av/bv).
+    `stock_moves` allows a stock track that already animates (svhaul), which is replaced."""
     if m.element(0) is None and m.element(1) is None:
         if gs1 not in m.tracks:
             m.add_track(gs1, TUG_ELEMENTS[0][2] - 1)
             m.tracks[gs1]["rot"] = []
-        for index, start, length in TUG_ELEMENTS:
-            e = m.set_element(index, start, length, 1)
+        for index, frame, length in TUG_ELEMENTS:
+            e = m.set_element(index, frame, length, 1)
             e.mesh_index_list = [1] * len(m.order) + [0] * (32 - len(m.order))
     e0, e1 = m.element(0), m.element(1)
     first, last = e0.start, e0.start + e0.length - 1
@@ -523,13 +548,19 @@ def tug_lift(m, gs1, direction=-1.0, travel=TUG_TRAVEL):
         raise ValueError("%s: element 1 does not mirror element 0" % m.path)
     rest = m.bind(gs1)[1]
     tr = m.tracks[gs1]
-    if any(math.dist(v, rest) > 1e-4 for _, v in tr["pos"]):
+    if not stock_moves and any(math.dist(v, rest) > 1e-4 for _, v in tr["pos"]):
         raise ValueError("%s: %s is not a static hold in stock" % (m.path, gs1))
-    keys = []
+    end = (rest[0], rest[1], rest[2] + direction * travel)
+    if direction < 0:
+        ctrl = (start[0], end[1], start[2])  # lift in front, then pull in
+    else:
+        ctrl = (start[0], start[1], end[2])  # slide back under the hull, then rise
+    keys = [(f, start) for f in range(0, first)]
     for f in range(first, last + 1):
         t = (f - first) / (last - first)
-        e = t * t * (3 - 2 * t)
-        keys.append((f, (rest[0], rest[1], rest[2] + direction * travel * e)))
+        u = t * t * (3 - 2 * t)
+        keys.append((f, tuple((1 - u) ** 2 * s + 2 * u * (1 - u) * c + u * u * e
+                              for s, c, e in zip(start, ctrl, end))))
     tr["pos"] = keys
 
 
@@ -583,9 +614,9 @@ BUILDS = {
     "avrecy.vdf": lambda m: recy_ab(m, "aRE11"),
     "bvrecy.vdf": lambda m: (fix_bvrecy_case(m), recy_ab(m, "bRE11")),
     "svhaul.vdf": build_svhaul,
-    "avhaul.vdf": lambda m: tug_lift(m, "aha11gs1", travel=AV_TUG_TRAVEL),
-    "bvhaul.vdf": lambda m: tug_lift(m, "bha11gs1", travel=AV_TUG_TRAVEL),
-    "cvhaul.vdf": lambda m: tug_lift(m, "COX11GS1", direction=1.0),
+    "avhaul.vdf": lambda m: tug_lift(m, "aha11gs1", AV_TUG_START, travel=AV_TUG_TRAVEL),
+    "bvhaul.vdf": lambda m: tug_lift(m, "bha11gs1", AV_TUG_START, travel=AV_TUG_TRAVEL),
+    "cvhaul.vdf": lambda m: tug_lift(m, "COX11GS1", CV_TUG_START, direction=1.0),
     "svrecy.vdf": lambda m: idle(m, 89, {"SRE11RAD": Y(15, 1, R(5, harmonic=2)), "SRE11AR1": R(), "SRE11AR2": R(5)}),
     "cvrecy.vdf": lambda m: idle(m, 74, {"CRE11AMR": R(), "CRE11ARL": R()}),
     "svmuf.vdf": lambda m: idle(m, 59, {"smu11bsh": R(metres=0.25, harmonic=2), "smu11drl": R(), "smu11drr": R()}),

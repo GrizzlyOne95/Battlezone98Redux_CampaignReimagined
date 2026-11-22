@@ -15,12 +15,13 @@ For every shipped file:
   * file-specific fixes: avmuf/bvmuf arm swing is a sine on every frame with deploy elements
     untouched, bvrecy names match the skeleton's case.
 Tugs (svhaul, avhaul, bvhaul, cvhaul): no blank track; elements 0/1 keep their stock one-shot
-spans (cvhaul, which has no stock ANIM, uses av/bv's) and 1 replays 0 in reverse; the pickup
-moves only the gs1 cargo hardpoint toward the hull (cvhaul 4.375 m; avhaul/bvhaul 1.25 m and
-svhaul 0.6 m so the cargo stops in front of the cockpit) (-Z for the front carriers, +Z for
-cvhaul, which carries behind), keyed on every frame (svhaul keeps its stock keys). With the game
-files, each tug's skeleton has the gs1 bone at the hardpoint's rest position under the VDF
-part's parent (cvhaul's comes from Assets/ModelFixes/cvhaul.skeleton).
+spans (cvhaul, which has no stock ANIM, uses av/bv's; svhaul's 1.1 s is stretched to their 8 s)
+and 1 replays 0 in reverse; the pickup
+moves only the gs1 cargo hardpoint, keyed on every frame, from the ground pickup spot (well below
+its end) to its carry pose (rest pulled toward the hull: cvhaul 4.375 m; avhaul/bvhaul 1.25 m and
+svhaul 0.6 m so the cargo stops in front of the cockpit). With the game files, each tug's
+skeleton has the gs1 bone at the hardpoint's VDF rest position under the VDF part's parent
+(cvhaul's comes from Assets/ModelFixes/cvhaul.skeleton).
 When the Redux models (mesh + skeleton) are available (--game, default the GOG install), every
 moving part must name a skeleton bone, with vertices unless it is a hardpoint (gs*/hp*). Static
 stock tracks without a bone (svrecy's gs1/gs2, the tugs' _COL) are only noted. Without the game
@@ -70,13 +71,14 @@ FILES = {
     "svcnst.vdf": (0, {"scv11twr"}),
     "cvslf.vdf": (1, {"CAM11ARM"}),
 }
-# Tugs: (cargo hardpoint, stock element 0, stock element 1, direction, travel m). Tug::Simulate plays 0 on pickup
-# and 1 on dropoff and waits for each, so both stay one-shot and 1 mirrors 0.
+# Tugs: (cargo hardpoint, stock element 0, stock element 1, start pose, carry pose), poses in gs1's parent frame.
+# Tug::Simulate plays 0 on pickup and 1 on dropoff and waits for each, so both stay one-shot and 1 mirrors 0.
+# Starts are the measured attach spots on the ground; carry poses are rest minus 1.25 m / 0.6 m / plus 4.375 m Z.
 TUGS = {
-    "svhaul.vdf": ("sha11gs1", (1, 11), (11, -11), -1, 0.6),   # stock 4.375 m, scaled
-    "avhaul.vdf": ("aha11gs1", (0, 121), (120, -121), -1, 1.25),   # 4.375 m clipped into the cockpit
-    "bvhaul.vdf": ("bha11gs1", (0, 121), (120, -121), -1, 1.25),
-    "cvhaul.vdf": ("COX11GS1", (0, 121), (120, -121), 1, 4.375),   # no stock ANIM; av/bv elements
+    "svhaul.vdf": ("sha11gs1", (1, 121), (121, -121), (0, -4.352, 13.18), (0, 0.070, 2.986)),
+    "avhaul.vdf": ("aha11gs1", (0, 121), (120, -121), (0, -3.118, 14.393), (0, 0.074, 3.723)),
+    "bvhaul.vdf": ("bha11gs1", (0, 121), (120, -121), (0, -3.118, 14.393), (0, 0.074, 3.723)),
+    "cvhaul.vdf": ("COX11GS1", (0, 121), (120, -121), (0, -3.08, 4.60), (0, 0.5, -2.125)),  # no stock ANIM
 }
 EPS_DEG, EPS_M = 1e-3, 1e-5
 
@@ -315,7 +317,7 @@ def main():
             elif p["name"] in moving and counts[p["name"]] == 0 and not hardpoint:
                 err(name, "moving track %r drives a bone with no vertices" % p["name"])
 
-    for name, (gs1, el0, el1, direction, want) in TUGS.items():
+    for name, (gs1, el0, el1, start, carry) in TUGS.items():
         path = os.path.join(FIXES, name)
         if not os.path.exists(path):
             err(name, "missing from Assets/ModelFixes")
@@ -325,7 +327,7 @@ def main():
         if any(not p["name"].strip() for p in parts):
             err(name, "blank-named track still present")
         if (el[0]["start"], el[0]["length"], el[0]["loop"]) != el0 + (1,) or                 (el[1]["start"], el[1]["length"], el[1]["loop"]) != el1 + (1,):
-            err(name, "tug elements 0/1 changed from stock %s %s" % (el0, el1))
+            err(name, "tug elements 0/1 are not %s %s" % (el0, el1))
         f0 = A.element_frames(el[0])
         if A.element_frames(el[1]) != f0[::-1]:
             err(name, "element 1 does not replay element 0 in reverse")
@@ -344,16 +346,14 @@ def main():
         g = next((p for p in parts if p["name"] == gs1), None)
         if g is not None:
             keys = {k[0]: k[1] for k in g["pos"]}
-            span = range(f0[0] + 1, f0[-1]) if name != "svhaul.vdf" else ()
-            gaps = [f for f in span if f not in keys]
+            gaps = [f for f in range(f0[0], f0[-1] + 1) if f not in keys]
             if gaps:
                 err(name, "%s: no key on frames %s" % (gs1, gaps[:5]))
             p0, p1 = A.sample(g["pos"], f0[0], False), A.sample(g["pos"], f0[-1], False)
-            travel = math.dist(p0, p1)
-            if abs(travel - want) > 0.01:
-                err(name, "%s travels %.3f m, expected %.3f" % (gs1, travel, want))
-            if (p1[2] - p0[2]) * direction < want - 0.005:
-                err(name, "%s should travel along %sZ, moves %s -> %s" % (gs1, "+" if direction > 0 else "-", p0, p1))
+            if math.dist(p0, start) > 0.01:
+                err(name, "%s starts at %s, expected the ground pickup spot %s" % (gs1, p0, start))
+            if math.dist(p1, carry) > 0.01:
+                err(name, "%s ends at %s, expected the carry pose %s" % (gs1, p1, carry))
             if have_game:
                 skel = read_skeleton(args.game, name[:-4])
                 bone = skel.get_bone_by_name(gs1) if skel is not None and skel.bone_name_exists(gs1) else None
@@ -363,8 +363,10 @@ def main():
                     err(name, "skeleton has no %s bone" % gs1)
                 else:
                     at = (bone.position.x, bone.position.y, bone.position.z)
-                    if math.dist(at, p0) > EPS_M * 10:
-                        err(name, "%s bone at %s, hardpoint rests at %s" % (gs1, at, p0))
+                    t = part.transform
+                    rest = (t.px, t.py, t.pz)
+                    if math.dist(at, rest) > EPS_M * 10:
+                        err(name, "%s bone at %s, hardpoint rests at %s" % (gs1, at, rest))
                     if bone.parent is None or bone.parent.name != part.parent:
                         err(name, "%s bone parent %s, VDF parent %s" % (gs1, bone.parent and bone.parent.name, part.parent))
         check_bones(name, parts, moving)
