@@ -110,6 +110,7 @@ $script:LastTick = [DateTime]::MinValue; $script:UnrespSince = $null; $script:Ma
 $script:LastSample = $null; $script:CpuHist = New-Object System.Collections.Generic.List[object]
 $script:Offsets = @{}; $script:LaunchUtc = [DateTime]::MinValue
 $script:Aborted = $false; $script:HangCount = 0; $script:GroupFixture = $null
+$script:FixtureRetries = New-Object System.Collections.Generic.List[string]
 $script:LastSnapshot = $null; $script:ExitCode = $null
 $Pending = [ordered]@{ files = @(); cacheAside = $null; cacheDir = $CacheDir }
 $SavedEnv = @{}
@@ -397,6 +398,7 @@ function Invoke-Mission($S) {
         $session = (Read-LogFrom (Join-Path $LogsDir 'openshim.log') 0).Text
         $src = Test-MissionSource $script:osAll $session ([string]$S.ExpectSource) $ModDir ([string]$S.ExpectBzn)
         if ($src.Ok) { Add-Step "$name.source" 'precondition' $S.ExpectSource 0 0 0 PASS $src.Path }
+        elseif ($src.Product) { $fail = $true; Add-Step "$name.source" 'mission-source' $S.ExpectSource 0 0 0 FAIL $src.Why; Add-Anom 'SOURCE' "${name}: $($src.Why)" (Save-Shot "$name-wrongsource") }
         else { $fixture = $true; Add-Fixture "$name.source" 'precondition' $src.Why; [void](Save-Shot "$name-wrongmission") }
     }
     if ($loadS -gt $loadBudget) { $fail = $true; $note += ("load {0:N1}s > budget {1}s" -f $loadS, $loadBudget) }
@@ -747,6 +749,7 @@ try {
             $script:Phase = $g; $script:StepName = "$g-end"
             if (-not (Test-AtMainMenu)) { Add-Anom 'STATE' "group $g did not end on the main menu"; if (-not (Invoke-Recover)) { throw "group $g left the game off the main menu" } }
             if (-not $script:GroupFixture) { break }
+            if ($attempt -eq 1) { $script:FixtureRetries.Add("$g ($script:GroupFixture)") }
             if ($attempt -eq 2) { Add-Anom 'FIXTURE' "group $g never reached its content (2 attempts): $script:GroupFixture" }
         }
         Add-Snapshot "end $g"
@@ -805,6 +808,7 @@ W; W '## Candidate'; W
 foreach ($k in $Identity.Keys) { W "- $k`: $($Identity[$k])" }
 W "- Settings restored byte-exact: $SettingsOk"; W "- Game exit code (main run): $script:ExitCode"
 W "- Game window found minimized and restored (not a failure): $script:Restores time(s)"
+W "- Groups rerun after a fixture failure (content pick flaky if this recurs): $(if ($script:FixtureRetries.Count) { $script:FixtureRetries -join '; ' } else { 'none' })"
 W; W '| Installed binary | sha256 (12) | Bin\ in checkout |'; W '|---|---|---|'
 foreach ($k in $DllSet.Keys) { $leaf = Split-Path $DllSet[$k] -Leaf; $bn = if ($BinHashes.Contains($leaf)) { $BinHashes[$leaf].Substring(0, 12) } else { '' }; W "| $k | $($DllAfter[$k].Substring(0,[math]::Min(12,$DllAfter[$k].Length))) | $bn |" }
 W; W '## Anomalies'; W

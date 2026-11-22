@@ -203,11 +203,18 @@ function Test-MissionSource([string]$LoadText, [string]$SessionText, [string]$Ex
         return @{ Ok = $true; Path = $(if ($path) { $path } else { '(packed stock map)' }); Why = '' }
     }
     if ($Expect -ne 'cr') { throw "unknown ExpectSource '$Expect'" }
-    if (-not $path) { return @{ Ok = $false; Path = ''; Why = 'no [BZNLOAD] open line: a packed (stock) map loaded, not CR' } }
+    # Product = the right mission was picked but did not load from CR (e.g. the loose-BZN override broke and
+    # the packed stock map loaded instead). Fixture = a different mission was picked.
     $root = [IO.Path]::GetFullPath($ModDir).TrimEnd('\') + '\'
-    if (-not $path.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)) { return @{ Ok = $false; Path = $path; Why = "expected CR ($root), loaded $path" } }
-    if ($ExpectBzn -and ((Split-Path $path -Leaf) -ne $ExpectBzn)) { return @{ Ok = $false; Path = $path; Why = "expected $ExpectBzn, loaded $path" } }
-    @{ Ok = $true; Path = $path; Why = '' }
+    $shipped = $ExpectBzn -and (Test-Path -LiteralPath (Join-Path $root $ExpectBzn))
+    if (-not $path) {
+        if ($shipped) { return @{ Ok = $false; Product = $true; Path = ''; Why = "$ExpectBzn ships in $root but the load opened no loose .bzn (packed map loaded instead)" } }
+        return @{ Ok = $false; Product = $false; Path = ''; Why = 'no [BZNLOAD] open line: a packed (stock) map loaded, not CR' }
+    }
+    $leafOk = -not $ExpectBzn -or ((Split-Path $path -Leaf) -eq $ExpectBzn) -or ($path -like "$ExpectBzn *")
+    if (-not $leafOk) { return @{ Ok = $false; Product = $false; Path = $path; Why = "expected $ExpectBzn, loaded $path" } }
+    if (-not $path.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)) { return @{ Ok = $false; Product = [bool]$shipped; Path = $path; Why = "expected CR ($root), loaded $path" } }
+    @{ Ok = $true; Product = $false; Path = $path; Why = '' }
 }
 
 # ---------------------------------------------------------------- cdb stacks --

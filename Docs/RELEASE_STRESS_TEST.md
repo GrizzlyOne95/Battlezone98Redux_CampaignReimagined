@@ -70,7 +70,9 @@ scanned log), `stacks\` (cdb all-thread stacks of any hang), `shots\`, `install-
 FIXTURE means no product failure was found, but the run did not reach some content it meant to test: a
 campaign missing from the list, or a mission that loaded from the wrong place (each mission step checks the
 `[BZN] Loose map source` path in `openshim.log` against its `ExpectSource`). The group is retried once
-first. A FIXTURE run does not qualify a release; fix the setup and rerun.
+first. A FIXTURE run does not qualify a release; fix the setup and rerun. When the right CR mission was
+picked but its `.bzn` did not load from the CR folder although it ships there, that is a product FAIL
+(`SOURCE` anomaly), not a fixture.
 
 A PASS writes `Local\ReleaseStress\last-pass.json` (`cr_head`, `openshim_pin`, `bin_hashes`,
 installed hashes, timestamp, report). `Local\` is gitignored.
