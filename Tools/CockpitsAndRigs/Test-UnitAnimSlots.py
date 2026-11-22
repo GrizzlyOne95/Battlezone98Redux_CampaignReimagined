@@ -16,8 +16,8 @@ For every shipped file:
     untouched, bvrecy names match the skeleton's case.
 Tugs (svhaul, avhaul, bvhaul, cvhaul): no blank track; elements 0/1 keep their stock one-shot
 spans (cvhaul, which has no stock ANIM, uses av/bv's) and 1 replays 0 in reverse; the pickup
-moves only the gs1 cargo hardpoint toward the hull (svhaul/cvhaul 4.375 m, avhaul/bvhaul 1.25 m so
-the cargo stops in front of the cockpit) (-Z for the front carriers, +Z for
+moves only the gs1 cargo hardpoint toward the hull (cvhaul 4.375 m; avhaul/bvhaul 1.25 m and
+svhaul 0.6 m so the cargo stops in front of the cockpit) (-Z for the front carriers, +Z for
 cvhaul, which carries behind), keyed on every frame (svhaul keeps its stock keys). With the game
 files, each tug's skeleton has the gs1 bone at the hardpoint's rest position under the VDF
 part's parent (cvhaul's comes from Assets/ModelFixes/cvhaul.skeleton).
@@ -73,7 +73,7 @@ FILES = {
 # Tugs: (cargo hardpoint, stock element 0, stock element 1, direction, travel m). Tug::Simulate plays 0 on pickup
 # and 1 on dropoff and waits for each, so both stay one-shot and 1 mirrors 0.
 TUGS = {
-    "svhaul.vdf": ("sha11gs1", (1, 11), (11, -11), -1, 4.375),
+    "svhaul.vdf": ("sha11gs1", (1, 11), (11, -11), -1, 0.6),   # stock 4.375 m, scaled
     "avhaul.vdf": ("aha11gs1", (0, 121), (120, -121), -1, 1.25),   # 4.375 m clipped into the cockpit
     "bvhaul.vdf": ("bha11gs1", (0, 121), (120, -121), -1, 1.25),
     "cvhaul.vdf": ("COX11GS1", (0, 121), (120, -121), 1, 4.375),   # no stock ANIM; av/bv elements
