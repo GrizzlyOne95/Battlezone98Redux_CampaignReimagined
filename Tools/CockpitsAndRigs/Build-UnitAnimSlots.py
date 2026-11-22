@@ -23,11 +23,21 @@ Edits:
                  POV) renamed to the skeleton's bRE11 spelling, in VGEO and ANIM; plus idle.
   svhaul         blank-named ANIM track renamed to sha11gs1: it is that hardpoint's motion
                  (starts on its VGEO rest position, 0.07/3.586, and pulls the cargo 4.375 m in
-                 over frames 1-10) but with no name it binds to no part.
-  avhaul, bvhaul gs1 hardpoint pulled in the same 4.375 m along -Z during the stock one-shot
+                 over frames 1-10) but with no name it binds to no part. CR scales that travel
+                 to 0.6 m: gs1 rests at world z 3.59 and the shipped hull's front reaches z 1.83
+                 at cockpit height (y 2.5-2.75), so obdata (the relic's own vertices against the
+                 hull, binned 0.2 m) fits only up to 0.74 m before it enters the cockpit.
+  avhaul, bvhaul gs1 hardpoint pulled in 1.25 m along -Z during the stock one-shot
                  elements 0 (0, 121) and 1 (120, -121), keyed on every frame (smoothstep);
                  Tug::Simulate (0x005ECA60) plays 0 on pickup and 1 on dropoff and waits for
-                 each, so lengths and loop counts stay stock and 1 mirrors 0.
+                 each, so lengths and loop counts stay stock and 1 mirrors 0. Tug::Simulate
+                 (BZ 1.5 all_decompiled.c, Tug::Simulate 004b371d) sets the cargo's matrix to
+                 the gs1 hitch's world matrix (the cargo's own hitch is always null,
+                 GameObject init line 187200), so the cargo's origin sits on gs1. gs1 rests at
+                 world z 3.99; the hull's centre front (|x| < 1.6, y >= 1.6, where the forks
+                 at |x| >= 1.87 leave the bay open) is at z 1.12, and obdata's own vertices
+                 against the hull fit up to 1.50 m of travel, so 1.25 m leaves it clear. svhaul's
+                 4.375 m put the cargo origin at z -0.39, behind the pilot's eye (POV z -0.09).
   cvhaul         stock has no ANIM chunk at all. The Tug ctor (0x005EC220) carries cargo on
                  the first node of the hardpoint type in the VDF tree: COX11GS1 at (0, 0.5,
                  -6.5), behind the tail, where the two engine booms (z -5.5 .. 1.4, x +-2.2)
@@ -479,11 +489,23 @@ def build_cvslf(m):
 
 
 TUG_TRAVEL = 4.375  # svhaul's stock hardpoint travel (3.586 -> -0.789 along Z)
+AV_TUG_TRAVEL = 1.25  # avhaul/bvhaul: stops the cargo in front of the cockpit (see docstring)
+SV_TUG_TRAVEL = 0.6  # svhaul: its stock 4.375 m also ends inside the cockpit (see docstring)
+
+
+def build_svhaul(m):
+    """Name svhaul's blank cargo track sha11gs1 and scale its stock pull-in to SV_TUG_TRAVEL,
+    keeping the stock key frames."""
+    m.rename_track(next(n for n in m.order if not n.strip()), "sha11gs1")
+    rest = m.bind("sha11gs1")[1]
+    k = SV_TUG_TRAVEL / TUG_TRAVEL
+    tr = m.tracks["sha11gs1"]
+    tr["pos"] = [(f, (v[0], v[1], rest[2] + (v[2] - rest[2]) * k)) for f, v in tr["pos"]]
 TUG_ELEMENTS = ((0, 0, 121), (1, 120, -121))  # avhaul/bvhaul stock pickup/dropoff, 15 fps
 
 
-def tug_lift(m, gs1, direction=-1.0):
-    """Pull the cargo hardpoint TUG_TRAVEL metres toward the hull along its parent's Z
+def tug_lift(m, gs1, direction=-1.0, travel=TUG_TRAVEL):
+    """Pull the cargo hardpoint `travel` metres toward the hull along its parent's Z
     (direction -1: cargo carried in front, as on av/bv/sv; +1: carried behind, as on cvhaul)
     across element 0, one key per frame with a smoothstep ease; element 1 plays the same
     frames in reverse. A VDF with neither tug element gets the av/bv elements, and a missing
@@ -507,7 +529,7 @@ def tug_lift(m, gs1, direction=-1.0):
     for f in range(first, last + 1):
         t = (f - first) / (last - first)
         e = t * t * (3 - 2 * t)
-        keys.append((f, (rest[0], rest[1], rest[2] + direction * TUG_TRAVEL * e)))
+        keys.append((f, (rest[0], rest[1], rest[2] + direction * travel * e)))
     tr["pos"] = keys
 
 
@@ -560,9 +582,9 @@ BUILDS = {
     "bvmuf.vdf": lambda m: fix_muf(m, "BMU11"),
     "avrecy.vdf": lambda m: recy_ab(m, "aRE11"),
     "bvrecy.vdf": lambda m: (fix_bvrecy_case(m), recy_ab(m, "bRE11")),
-    "svhaul.vdf": lambda m: m.rename_track(next(n for n in m.order if not n.strip()), "sha11gs1"),
-    "avhaul.vdf": lambda m: tug_lift(m, "aha11gs1"),
-    "bvhaul.vdf": lambda m: tug_lift(m, "bha11gs1"),
+    "svhaul.vdf": build_svhaul,
+    "avhaul.vdf": lambda m: tug_lift(m, "aha11gs1", travel=AV_TUG_TRAVEL),
+    "bvhaul.vdf": lambda m: tug_lift(m, "bha11gs1", travel=AV_TUG_TRAVEL),
     "cvhaul.vdf": lambda m: tug_lift(m, "COX11GS1", direction=1.0),
     "svrecy.vdf": lambda m: idle(m, 89, {"SRE11RAD": Y(15, 1, R(5, harmonic=2)), "SRE11AR1": R(), "SRE11AR2": R(5)}),
     "cvrecy.vdf": lambda m: idle(m, 74, {"CRE11AMR": R(), "CRE11ARL": R()}),
