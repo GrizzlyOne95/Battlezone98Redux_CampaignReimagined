@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6330,
+  "count": 6343,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -137,6 +137,10 @@
     {
       "source": "Assets\\Audio\\misn1224.wav",
       "runtime": "misn1224.wav"
+    },
+    {
+      "source": "Assets\\Audio\\misn1231.wav",
+      "runtime": "misn1231.wav"
     },
     {
       "source": "Assets\\Audio\\misn1506.wav",
@@ -4611,8 +4615,28 @@
       "runtime": "crvenus.pvi"
     },
     {
+      "source": "Assets\\Sounds\\a_turbo.wav",
+      "runtime": "a_turbo.wav"
+    },
+    {
       "source": "Assets\\Sounds\\atlas.wav",
       "runtime": "atlas.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\avhraze0.wav",
+      "runtime": "avhraze0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\avwalke0.wav",
+      "runtime": "avwalke0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\b_eng.wav",
+      "runtime": "b_eng.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\b_turbo.wav",
+      "runtime": "b_turbo.wav"
     },
     {
       "source": "Assets\\Sounds\\c17crack.wav",
@@ -4643,6 +4667,10 @@
       "runtime": "crdleav.wav"
     },
     {
+      "source": "Assets\\Sounds\\cvtanke0.wav",
+      "runtime": "cvtanke0.wav"
+    },
+    {
       "source": "Assets\\Sounds\\erain01.wav",
       "runtime": "erain01.wav"
     },
@@ -4651,12 +4679,36 @@
       "runtime": "erain02.wav"
     },
     {
+      "source": "Assets\\Sounds\\gmdmg00.wav",
+      "runtime": "gmdmg00.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\gtagg00.wav",
+      "runtime": "gtagg00.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\r_exp3.wav",
+      "runtime": "r_exp3.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\svtanke0.wav",
+      "runtime": "svtanke0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\svwalke0.wav",
+      "runtime": "svwalke0.wav"
+    },
+    {
       "source": "Assets\\Sounds\\thund02.wav",
       "runtime": "thund02.wav"
     },
     {
       "source": "Assets\\Sounds\\thunder.wav",
       "runtime": "thunder.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\waspmsl.wav",
+      "runtime": "waspmsl.wav"
     },
     {
       "source": "Assets\\Sounds\\xlitblt1.wav",
