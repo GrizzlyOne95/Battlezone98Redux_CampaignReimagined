@@ -10,6 +10,9 @@
 --   <stem>_2.des .. _9    later pages (OpenShim's multi-page briefing names)
 --   <stem>_N.png          optional image for page N (N >= 2)
 -- Pages stop at the first missing <stem>_N.des, as on the briefing screen.
+-- With exu.FileExists (EXU after 1.3.3) a missing file is skipped without the
+-- engine's 'Couldn't find file' line in BZLogger.txt; older EXU builds fall
+-- back to reading until a read fails.
 --
 -- The PDA shows a short preview. Enter opens an expanded reader in the
 -- centre of the screen; Enter or Tab closes it, and so does anything that
@@ -207,7 +210,7 @@ local TEXT_IDS = { IDS.title, IDS.text, IDS.footer }
 local CHILD_IDS = { IDS.frame, IDS.backdrop, IDS.header, IDS.image, IDS.title, IDS.text, IDS.footer }
 
 --- deps:
---   exu            EXU module (overlay, material and key calls), may be nil
+--   exu            EXU module (overlay, material, key and FileExists calls), may be nil
 --   useItem(name)  returns a game file's contents or nil (stock UseItem)
 --   missionFile()  current mission filename (stock GetMissionFilename)
 --   screen()       width, height in pixels
@@ -238,6 +241,19 @@ function M.Create(deps)
         return nil
     end
 
+    -- exu.FileExists runs the engine's own lookup without the log line a
+    -- missed UseItem writes. false skips the read; nil (an older bundled
+    -- EXU without it, or an unknown answer) reads and lets the read decide.
+    local function readIfPresent(name)
+        local e = exu()
+        local fileExists = e and e.FileExists
+        if type(fileExists) == "function" then
+            local ok, present = pcall(fileExists, name)
+            if ok and present == false then return nil end
+        end
+        return read(name)
+    end
+
     local function currentStem()
         if type(deps.missionFile) ~= "function" then return "" end
         local ok, name = pcall(deps.missionFile)
@@ -253,12 +269,12 @@ function M.Create(deps)
         if stem == "" then return ui.pages end
         for n = 1, M.MAX_PAGES do
             local base = (n == 1) and stem or string.format("%s_%d", stem, n)
-            local text = M.NormalizeText(read(base .. ".des"))
+            local text = M.NormalizeText(readIfPresent(base .. ".des"))
             if text == "" then break end
             local page = { text = text }
             if n >= 2 then
                 local png = base .. ".png"
-                local width, height = M.PngSize(read(png))
+                local width, height = M.PngSize(readIfPresent(png))
                 if width then page.image = { file = png, width = width, height = height } end
             end
             ui.pages[#ui.pages + 1] = page
