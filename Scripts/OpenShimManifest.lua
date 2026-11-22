@@ -14,7 +14,7 @@ return {
         patches = { source = "openshim_patches.json.payload", destination = "scripts\\patches.json", sha256 = "e9128871ea3f23d874e51c156711e46770479f0f4b591f95673f39134434d3e6", size = 594286 },
         playerConfig = { source = "openshim.ini.payload", destination = "openshim.ini", sha256 = "3ba5819c2e9f71888dc9a93ea23f3b55b2c2b549d37e7c208f971bec64e32507", size = 63602, overwrite = false },
         assetManifest = { source = "OpenShimAssets.ini.payload", destination = "openshim\\OpenShimAssets.ini", sha256 = "f60b0e8d8be42ad7a157588f165b19d0c9634c14f58e660a28a816a0628aff75", size = 1278 },
-        helper = { source = "bzfile_replace_helper.exe", sha256 = "9270fbf238425e00d65ea51d5631e321bb7d31a2f73c989ad484c14b10110443", size = 271360 },
+        helper = { source = "bzfile_replace_helper.exe", sha256 = "03a57fc4c0c835c7b020ffe117298cca08fab79304481d87f41af5b9540916f3", size = 271360 },
     },
     assetSets = {
         renderer = { source = "openshim\\renderer\\enhanced", destination = "openshim\\renderer\\enhanced", sha256 = "3afb717a471dbf20ee2cdc48533d66ae79b05f43094eb835109cca305a00d67a", files = 118 },
