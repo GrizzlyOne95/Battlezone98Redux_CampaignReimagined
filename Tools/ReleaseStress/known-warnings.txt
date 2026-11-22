@@ -23,6 +23,9 @@
 *openshim.log ::: \[DX11COMPAT\] material=\S+ unsupported custom programs vs=(CR\w*|CRWX_\w+|OpenShim/TerrainNativeHD/[0-9a-f]+) ps=\S+ action=skip ::: the DX11 legacy guard reports a material whose own CR/OpenShim HLSL programs it leaves unchanged; once per material, 44-80 per mission in every run since 2026-10-14 (BZRCoop logs), these render
 *openshim.log ::: \[odf\] remap gsplint\.odf:\d+ \[SprayBomb\] -> \[SprayBombClass\] ::: OpenShim's ODF loader fixes the stock gsplint class name; the WARN is its own fix notice
 *openshim.log ::: \[GPUSKIN\] \d+ surface-variant change\(s\) expired unapplied \(entity never converted\) ::: a skin change for an entity that stayed CPU-skinned or died before conversion; no visible effect
+*openshim.log ::: \[geometrycontact\] global handle=[0-9A-F]{8} unsupported; stock contact retained ::: opt-in VehicleGeometryContact (off by default) declines a part it cannot cache and keeps stock collision for it; no gameplay change
+*openshim.log ::: \[geometrycontact\] part=\w+ rejected: source vertices=\d+ limit=16384 ::: same opt-in feature: parts over the 16384-vertex qualification limit keep stock collision
+*openshim.log ::: \[RENDER\] \[DX11DRAWGUARD\] skipped shaderless draw material=pylon_BZBase_pylon2 \S+ technique=0 scheme=Default pass=0 missing=vs\+ps ::: addon\Resurgence pylon.mesh material has no DX11 programs; the draw guard (OpenShim cb125eb34) skips that pass instead of throwing. Addon content, not CR
 # --- crc32host.log ---
 *crc32host.log ::: ^(gmsslmin|netveh1)\.odf not found ::: the engine's MP CRC table lists two stock ODF names that no stock or CR archive ships
 # --- BZLogger.txt ---
