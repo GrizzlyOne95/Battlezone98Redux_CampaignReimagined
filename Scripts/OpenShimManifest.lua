@@ -3,11 +3,11 @@
 return {
     formatVersion = 3,
     version = "1.0.0.78",
-    sha256 = "eab10c76de5c0a7450f10abd15924a52ff5d5925aaf2615c807db649e26e7a7e",
-    size = 134656,
+    sha256 = "e5eebf0982fab10a51cc3e79a1525f8576312f8fc172b40758621b50d84c01f8",
+    size = 136192,
     architecture = "x86",
     payloads = {
-        winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "eab10c76de5c0a7450f10abd15924a52ff5d5925aaf2615c807db649e26e7a7e", size = 134656, version = "1.0.0.78", architecture = "x86" },
+        winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "e5eebf0982fab10a51cc3e79a1525f8576312f8fc172b40758621b50d84c01f8", size = 136192, version = "1.0.0.78", architecture = "x86" },
         loader = { source = "bzloader.dll", destination = "bzloader.dll", sha256 = "4ceec6e75d2edfa7e180b30c4037f84057c697471481deed464f73d3548e5462", size = 46080, version = "1.0.0.78", architecture = "x86" },
         plugin = { source = "openshim.dll", destination = "plugins\\openshim.dll", sha256 = "15719b9cdcb4af0859f0d339a6262514d4fad399d966190fb4941c80c3cb630c", size = 7456768, version = "1.0.0.78", architecture = "x86" },
         network = { source = "openshim_net.ini.payload", destination = "net.ini", sha256 = "a527e8229fe90431dd7d78d739365ebdf37257ef43b402e514967962594feed6", size = 14684 },
