@@ -231,6 +231,27 @@ local bare = Intel.Create({ useItem = useItem, missionFile = function() return "
 check(bare.HasIntel(), "content loads without EXU")
 check(bare.Expand() == false and not bare.IsExpanded(), "reader needs EXU overlays")
 
+-- exu.FileExists: a missing page is never read (no engine log line); nil or
+-- an error from it falls back to reading until a read fails.
+local reads = {}
+local function countingUseItem(name)
+    reads[string.lower(name)] = (reads[string.lower(name)] or 0) + 1
+    return useItem(name)
+end
+local function withExists(fileExists)
+    reads = {}
+    local quiet = setmetatable({ FileExists = fileExists }, { __index = exu })
+    return Intel.Create({ exu = quiet, useItem = countingUseItem, missionFile = function() return "misn2bcr.bzn" end })
+end
+local quietUi = withExists(function(name) return files[string.lower(name)] ~= nil end)
+check(quietUi.Count() == 2 and quietUi.pages[2].image ~= nil, "FileExists: same pages and image")
+check(reads["misn2bcr_3.des"] == nil, "FileExists false: missing page not read")
+check(reads["misn2bcr.des"] == 1 and reads["misn2bcr_2.des"] == 1, "FileExists true: present pages read once")
+local unknownUi = withExists(function() return nil end)
+check(unknownUi.Count() == 2 and reads["misn2bcr_3.des"] == 1, "FileExists nil: falls back to the read")
+local brokenUi = withExists(function() error("boom") end)
+check(brokenUi.Count() == 2 and reads["misn2bcr_3.des"] == 1, "FileExists error: falls back to the read")
+
 -- PDA page order: INTEL listed only when the mission has intel ---------------
 local hasIntel = true
 local active = false
