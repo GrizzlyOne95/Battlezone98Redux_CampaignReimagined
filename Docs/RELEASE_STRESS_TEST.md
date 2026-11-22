@@ -61,11 +61,16 @@ Steam run is evidence that the downloaded copy works.
 
 ## Reading the result
 
-`Local\ReleaseStress\<timestamp>\report.md` starts with PASS or FAIL, then candidate identity, anomalies
+`Local\ReleaseStress\<timestamp>\report.md` starts with PASS, FAIL or FIXTURE, then candidate identity, anomalies
 (kind, step, detail, screenshot), the per-step table (budget, actual wall seconds, engine ms from the
 `[UIPERF] transition end` line, max unresponsive stretch), resources at each menu return, and per-log
 anomaly counts. Also: `steps.csv`, `monitor.csv`, `snapshots.csv`, `logs\<phase>\` (a copy of every
 scanned log), `stacks\` (cdb all-thread stacks of any hang), `shots\`, `install-verify.txt`.
+
+FIXTURE means no product failure was found, but the run did not reach some content it meant to test: a
+campaign missing from the list, or a mission that loaded from the wrong place (each mission step checks the
+`[BZN] Loose map source` path in `openshim.log` against its `ExpectSource`). The group is retried once
+first. A FIXTURE run does not qualify a release; fix the setup and rerun.
 
 A PASS writes `Local\ReleaseStress\last-pass.json` (`cr_head`, `openshim_pin`, `bin_hashes`,
 installed hashes, timestamp, report). `Local\` is gitignored.
@@ -94,8 +99,10 @@ run, with the count per log in the report.
 
 * **Steps:** `Tools\ReleaseStress\plan.psd1`, plain data. Find a button name by writing `__ENUMERATE__` to
   `uiperf_trigger.txt` with `UiPerformanceLogging=true` and reading the `ui depth=` lines in
-  `logs\openshim.log`. Add a hashtable with `Group`, `Name`, `Do` (`click`, `back`, `clickxy`, `text`, `key`,
-  `wait`, `snapshot`, `mission`) and its keys. Each group must start and end on the main menu.
+  `logs\openshim.log`. Add a hashtable with `Group`, `Name`, `Do` (`click`, `back`, `clickxy`, `pickcampaign`,
+  `text`, `key`, `wait`, `snapshot`, `mission`) and its keys. Each group must start and end on the main menu.
+  Pick a campaign by name with `pickcampaign`, never by a `clickxy` row: other installed campaigns shift
+  the list. Give each campaign `mission` step an `ExpectSource` (`cr` plus `ExpectBzn`, or `stock`).
 * **Budgets and growth limits:** the `Budgets` table in the same file. Do not loosen a budget to make a
   run pass: a breach is a finding.
 * **Known warnings:** `Tools\ReleaseStress\known-warnings.txt`, one entry per line:

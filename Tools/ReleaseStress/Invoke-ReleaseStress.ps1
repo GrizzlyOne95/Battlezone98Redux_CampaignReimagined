@@ -109,7 +109,7 @@ $script:Phase = 'init'; $script:StepName = ''
 $script:LastTick = [DateTime]::MinValue; $script:UnrespSince = $null; $script:MaxUnresp = 0.0; $script:MaxPing = 0
 $script:LastSample = $null; $script:CpuHist = New-Object System.Collections.Generic.List[object]
 $script:Offsets = @{}; $script:LaunchUtc = [DateTime]::MinValue
-$script:Aborted = $false; $script:HangCount = 0
+$script:Aborted = $false; $script:HangCount = 0; $script:GroupFixture = $null
 $script:LastSnapshot = $null; $script:ExitCode = $null
 $Pending = [ordered]@{ files = @(); cacheAside = $null; cacheDir = $CacheDir }
 $SavedEnv = @{}
@@ -360,6 +360,12 @@ function Add-Step([string]$Name, [string]$Do, [string]$Target, [double]$Budget, 
     $c = if ($Result -eq 'PASS') { 'Green' } else { 'Red' }
     Write-Host ("  [{0}] {1,-28} {2,7:N2}s (budget {3}) {4}" -f $Result, $Name, $Actual, $Budget, $Note) -ForegroundColor $c
 }
+function Add-Fixture([string]$Name, [string]$Do, [string]$Text) {
+    # A failed precondition: the run did not reach the content the step means to test. Not a product FAIL;
+    # the group loop retries the group once, then records a FIXTURE anomaly (the run cannot qualify).
+    Add-Step $Name $Do '' 0 0 0 'FIXTURE' $Text
+    if (-not $script:GroupFixture) { $script:GroupFixture = "${Name}: $Text" }
+}
 
 # ------------------------------------------------------------- mission step --
 function Invoke-Mission($S) {
@@ -385,19 +391,29 @@ function Invoke-Mission($S) {
     $loadUnresp = $script:MaxUnresp
     $loadMs = if ($script:bzAll -match 'Post Load after (\d+) ms') { [int]$Matches[1] } else { -1 }
     if ($w2 -lt 0) { Add-Anom 'TIMEOUT' "${name}: main loop never resumed after load"; Add-Step $name 'mission' '' $loadBudget -1 0 'FAIL' 'load never finished'; return $false }
+    # Precondition: the mission that loaded is the one this step means to test (path from openshim.log).
+    $fixture = $false
+    if ($S.ExpectSource) {
+        $session = (Read-LogFrom (Join-Path $LogsDir 'openshim.log') 0).Text
+        $src = Test-MissionSource $script:osAll $session ([string]$S.ExpectSource) $ModDir ([string]$S.ExpectBzn)
+        if ($src.Ok) { Add-Step "$name.source" 'precondition' $S.ExpectSource 0 0 0 PASS $src.Path }
+        else { $fixture = $true; Add-Fixture "$name.source" 'precondition' $src.Why; [void](Save-Shot "$name-wrongmission") }
+    }
     if ($loadS -gt $loadBudget) { $fail = $true; $note += ("load {0:N1}s > budget {1}s" -f $loadS, $loadBudget) }
     Add-Step "$name.load" 'mission-load' '' $loadBudget ([math]::Round($loadS, 2)) $loadMs $(if ($loadS -gt $loadBudget) { 'FAIL' } else { 'PASS' }) ("sim 'Post Load after' {0} ms; max unresponsive {1:N1}s" -f $loadMs, $loadUnresp)
-    # Play
-    $script:MaxUnresp = 0.0; $script:MaxPing = 0
-    $pc0 = $script:LastSample
-    Sleep-Ticking $play
-    $playUnresp = $script:MaxUnresp
-    $shot = Save-Shot "$name-play"
-    Tick -Force
-    $fps = [regex]::Matches($script:bzAll + (Get-NewLog 'BZLogger.txt'), 'Max FPS ([\d.]+), Min FPS ([\d.]+)')
-    $unrespBad = $playUnresp -gt [double]$B.UnresponsiveSeconds
-    Add-Step "$name.play" 'mission-play' '' $play $play 0 $(if ($unrespBad) { 'FAIL' } else { 'PASS' }) ("max unresponsive {0:N1}s; ping max {1} ms; private {2} MB" -f $playUnresp, $script:MaxPing, $script:LastSample.private)
-    if ($unrespBad) { Add-Anom 'UNRESPONSIVE' "$name play: window unresponsive $([math]::Round($playUnresp,1)) s" $shot; $fail = $true }
+    # Play (skipped on the wrong mission: its numbers would be filed under content it did not test)
+    $fps = @()
+    if (-not $fixture) {
+        $script:MaxUnresp = 0.0; $script:MaxPing = 0
+        Sleep-Ticking $play
+        $playUnresp = $script:MaxUnresp
+        $shot = Save-Shot "$name-play"
+        Tick -Force
+        $fps = [regex]::Matches($script:bzAll + (Get-NewLog 'BZLogger.txt'), 'Max FPS ([\d.]+), Min FPS ([\d.]+)')
+        $unrespBad = $playUnresp -gt [double]$B.UnresponsiveSeconds
+        Add-Step "$name.play" 'mission-play' '' $play $play 0 $(if ($unrespBad) { 'FAIL' } else { 'PASS' }) ("max unresponsive {0:N1}s; ping max {1} ms; private {2} MB" -f $playUnresp, $script:MaxPing, $script:LastSample.private)
+        if ($unrespBad) { Add-Anom 'UNRESPONSIVE' "$name play: window unresponsive $([math]::Round($playUnresp,1)) s" $shot; $fail = $true }
+    }
     # Leave: ESC -> pause screen -> Abort
     $ok = $false
     for ($try = 1; $try -le 3 -and -not $ok; $try++) {
@@ -419,9 +435,10 @@ function Invoke-Mission($S) {
     Add-Step "$name.exit" 'mission-exit' '' $B.MissionExit ([math]::Round($unloadS, 2)) $unload.EngineMs $res ("max unresponsive {0:N1}s" -f $script:MaxUnresp)
     if ($w4 -lt 0) { Add-Anom 'STUCK' "${name}: did not return to the main menu" (Save-Shot "$name-nomenu"); return $false }
     Sleep-Ticking 2
-    Add-Snapshot "after $name"
+    # the growth check compares 'after *' snapshots: label a wrong-mission return so it stays out of it
+    Add-Snapshot $(if ($fixture) { "fixture $name" } else { "after $name" })
     $fps | ForEach-Object { if ([double]$_.Groups[2].Value -lt [double]$B.MinFps) { Add-Anom 'FPS' "${name}: $($_.Value)" '' } }
-    -not $fail
+    -not ($fail -or $fixture)
 }
 
 # --------------------------------------------------------- plan interpreter --
@@ -450,6 +467,22 @@ function Invoke-PlanStep($S) {
             return $true
         }
         'clickxy' { Send-Click ([int]$S.X) ([int]$S.Y); Sleep-Ticking $(if ($S.SettleS) { [double]$S.SettleS } else { 1.0 }); Add-Step $name 'clickxy' "$($S.X),$($S.Y)" 0 0 0 PASS ''; return $true }
+        'pickcampaign' {
+            # Row of $S.Campaign in the Custom Campaign list, from this launch's own campaign INIs (never a
+            # fixed row: installed addons shift the list). Unlisted, duplicated or off-page = FIXTURE.
+            $rows = @(Get-CampaignList (Read-LogFrom (Get-BzLoggerPath) 0).Text)
+            $idx = @(for ($i = 0; $i -lt $rows.Count; $i++) { if ($rows[$i].Name -ceq $S.Campaign) { $i } })
+            $maxRows = if ($S.MaxRows) { [int]$S.MaxRows } else { 20 }
+            $why = if ($idx.Count -eq 0) { "'$($S.Campaign)' is not in this launch's campaign list ($($rows.Count) entries)" }
+                   elseif ($idx.Count -gt 1) { "'$($S.Campaign)' is listed $($idx.Count) times: $(($idx | ForEach-Object { $rows[$_].Ini }) -join ', ')" }
+                   elseif ($idx[0] -ge $maxRows) { "'$($S.Campaign)' is row $($idx[0] + 1), past the $maxRows visible rows (list paging not supported)" }
+            if ($why) { Add-Fixture $name 'pickcampaign' $why; return $false }
+            $x = if ($S.X) { [int]$S.X } else { 427 }
+            $y = $(if ($S.Y0) { [int]$S.Y0 } else { 179 }) + $(if ($S.RowH) { [int]$S.RowH } else { 12 }) * $idx[0]
+            Send-Click $x $y; Sleep-Ticking $(if ($S.SettleS) { [double]$S.SettleS } else { 1.0 })
+            Add-Step $name 'pickcampaign' $S.Campaign 0 0 0 PASS ("row {0} of {1} at {2},{3}: {4}" -f ($idx[0] + 1), $rows.Count, $x, $y, $rows[$idx[0]].Ini)
+            return $true
+        }
         'text'    { Send-Text $S.Text; Sleep-Ticking 0.5; Add-Step $name 'text' $S.Text 0 0 0 PASS ''; return $true }
         'key'     { [RS.Native]::Key($script:Hwnd, [int]$S.VK, 60); Sleep-Ticking $(if ($S.SettleS) { [double]$S.SettleS } else { 1.0 }); Add-Step $name 'key' "$($S.VK)" 0 0 0 PASS ''; return $true }
         'wait'    { Sleep-Ticking ([double]$S.Seconds); Add-Step $name 'wait' "$($S.Seconds)" 0 $S.Seconds 0 PASS ''; return $true }
@@ -695,22 +728,27 @@ try {
     foreach ($s in $PlanData.Steps) { if (-not $groups.Contains($s.Group)) { $groups[$s.Group] = @() }; $groups[$s.Group] += , $s }
     foreach ($g in $groups.Keys) {
         if ($OnlyPhases.Count -and ($OnlyPhases -notcontains $g)) { continue }
-        Write-Host "== group $g" -ForegroundColor Cyan
-        $failed = $false
-        foreach ($s in $groups[$g]) {
-            $script:Phase = $g
-            if ($failed) { Add-Step $s.Name $s.Do $s.T 0 0 0 'SKIP' 'skipped: earlier step in this group failed'; continue }
-            $ok = $false
-            try { $ok = Invoke-PlanStep $s } catch { if ($script:Aborted) { throw }; Add-Anom 'STEP' "$($s.Name): $($_.Exception.Message)" (Save-Shot $s.Name); $ok = $false }
-            if (-not $ok) {
-                $failed = $true
-                Write-Host '  recovering to the main menu...' -ForegroundColor Yellow
-                if (-not (Invoke-Recover)) { Add-Anom 'STUCK' "could not get back to the main menu after $($s.Name)" (Save-Shot 'stuck'); throw "stuck after $($s.Name)" }
+        # A fixture failure (wrong content picked or loaded) reruns the group once; a second one is recorded.
+        for ($attempt = 1; $attempt -le 2; $attempt++) {
+            Write-Host "== group $g$(if ($attempt -gt 1) { " (retry $attempt after a fixture failure)" })" -ForegroundColor Cyan
+            $failed = $false; $script:GroupFixture = $null
+            foreach ($s in $groups[$g]) {
+                $script:Phase = $g
+                if ($failed) { Add-Step $s.Name $s.Do $s.T 0 0 0 'SKIP' 'skipped: earlier step in this group failed'; continue }
+                $ok = $false
+                try { $ok = Invoke-PlanStep $s } catch { if ($script:Aborted) { throw }; Add-Anom 'STEP' "$($s.Name): $($_.Exception.Message)" (Save-Shot $s.Name); $ok = $false }
+                if (-not $ok) {
+                    $failed = $true
+                    Write-Host '  recovering to the main menu...' -ForegroundColor Yellow
+                    if (-not (Invoke-Recover)) { Add-Anom 'STUCK' "could not get back to the main menu after $($s.Name)" (Save-Shot 'stuck'); throw "stuck after $($s.Name)" }
+                }
             }
+            # every group must end on the main menu
+            $script:Phase = $g; $script:StepName = "$g-end"
+            if (-not (Test-AtMainMenu)) { Add-Anom 'STATE' "group $g did not end on the main menu"; if (-not (Invoke-Recover)) { throw "group $g left the game off the main menu" } }
+            if (-not $script:GroupFixture) { break }
+            if ($attempt -eq 2) { Add-Anom 'FIXTURE' "group $g never reached its content (2 attempts): $script:GroupFixture" }
         }
-        # every group must end on the main menu
-        $script:Phase = $g; $script:StepName = "$g-end"
-        if (-not (Test-AtMainMenu)) { Add-Anom 'STATE' "group $g did not end on the main menu"; if (-not (Invoke-Recover)) { throw "group $g left the game off the main menu" } }
         Add-Snapshot "end $g"
     }
     $script:Phase = 'quit'
@@ -748,7 +786,11 @@ foreach ($u in $LogUnknown) { Add-Anom 'LOG' ("{0}: {1} x {2}" -f $u.Log, $u.Cou
 $growth = Test-Growth
 foreach ($f in $growth.Failures) { Add-Anom 'LEAK' $f '' }
 $stepFails = @($Steps | Where-Object { $_.Result -eq 'FAIL' })
-$verdict = if ($Anoms.Count -eq 0 -and $stepFails.Count -eq 0) { 'PASS' } else { 'FAIL' }
+# FIXTURE: no product failure, but the harness did not reach some content (wrong campaign/mission). Not a pass.
+$productAnoms = @($Anoms | Where-Object { $_.Kind -notin 'FIXTURE', 'PARTIAL' })
+$verdict = if ($Anoms.Count -eq 0 -and $stepFails.Count -eq 0) { 'PASS' }
+           elseif ($productAnoms.Count -eq 0 -and $stepFails.Count -eq 0 -and @($Anoms | Where-Object Kind -eq 'FIXTURE').Count) { 'FIXTURE' }
+           else { 'FAIL' }
 $Steps | Export-Csv -NoTypeInformation -LiteralPath (Join-Path $RunDir 'steps.csv')
 $Snaps | Export-Csv -NoTypeInformation -LiteralPath (Join-Path $RunDir 'snapshots.csv')
 
