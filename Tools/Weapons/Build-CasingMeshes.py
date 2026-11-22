@@ -226,7 +226,11 @@ def main():
             else:
                 data.save(path, optimize=True)
         elif args.check:
-            assert path.read_bytes() == data, f'{path.name} differs; regenerate'
+            have = path.read_bytes()
+            if path.suffix == '.material':
+                # Text: a core.autocrlf checkout has CRLF; meshes stay exact.
+                have = have.replace(b'\r\n', b'\n')
+            assert have == data, f'{path.name} differs; regenerate'
         else:
             path.write_bytes(data)
     print(f'Casing meshes: {len(CASES)} cases {"checked" if args.check else "written"}')
