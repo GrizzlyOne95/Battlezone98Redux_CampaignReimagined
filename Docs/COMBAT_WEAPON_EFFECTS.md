@@ -2,7 +2,7 @@
 
 Weapon-rig update, 2026-11-04. Generated from CR source, reviewed model policy and fitted flash data. See [the model-edit report](WEAPON_RIGS.md) for the requested 27-model pass and exported previews.
 
-**136 armed ODFs / 53 models / 305 equipped slots.** Authored recoil: 225 slots; fitted flash offsets: 221 slots; ballistic casing selections: 146 slots.
+**136 armed ODFs / 53 models / 305 equipped slots.** Authored recoil: 225 slots; fitted flash offsets: 224 slots; ballistic casing selections: 146 slots.
 
 Scope: CR vehicle/building definitions, including mission variants and utility carriers. People retain per-weapon effects; armories supply weapons. This source-only count excludes stock-only aliases from the earlier 139-definition/52-model audit.
 
@@ -94,7 +94,7 @@ Scope: CR vehicle/building definitions, including mission variants and utility c
 | `avartl` | 4: `ghartill` | `aar11bga` | -0.01 -0.08 0.72 | large | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
 | `avartla` | 1: `gpopguna` | `` | pending / omitted | unresolved | weapon definition missing; weapon definition missing |
 | `avdemo` | 1: `gatstab` | `AGR11BGA` | 0.04 0.00 0.00 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
-| `avdemo` | 2: `gminigun` | `` | pending / omitted | small | accepted-shot path; live validation pending; visible tip is -0.00 m from the hardpoint (under 0.1 m); estimated native breech; model port fitting pending |
+| `avdemo` | 2: `gminigun` | `` | -0.04 0.00 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
 | `avdemo` | 3: `gquake` | `` | pending / omitted | none | accepted-shot path; live validation pending; ground-contact seismic emitter |
 | `avdemo` | 4: `gmdmgun` | `` | pending / omitted | none | native firing producer pending; parent AGR11BDA is not a barrel node and has no geometry around the hardpoint |
 | `avfigh` | 1: `gminigun` | `animation:cr_fire_1` | -0.03 0.08 0.05 | small | accepted-shot path; live validation pending; fitted outboard port; companion native runtime required |
@@ -124,10 +124,10 @@ Scope: CR vehicle/building definitions, including mission variants and utility c
 | `avsav` | 2: `gwasp` | `` | pending / omitted | none | native firing producer pending; mine deployment |
 | `avsav14` | 1: `gbolt` | `` | pending / omitted | none | accepted-shot path; live validation pending; parent polymsh is not a barrel node and the hardpoint is 2.27 m behind its front geometry |
 | `avtamp` | 1: `gatstab` | `AGR11BGA` | 0.04 0.00 0.00 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
-| `avtamp` | 2: `gmaggun` | `` | pending / omitted | none | native firing producer pending; visible tip is -0.00 m from the hardpoint (under 0.1 m) |
+| `avtamp` | 2: `gmaggun` | `` | -0.04 0.00 0.00 | none | native firing producer pending |
 | `avtamp` | 3: `gredfld` | `` | pending / omitted | none | native firing producer pending; radar device |
 | `avtank` | 1: `gatstab` | `AGR11BGA` | 0.04 0.00 0.00 | medium | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
-| `avtank` | 2: `gminigun` | `` | pending / omitted | small | accepted-shot path; live validation pending; visible tip is -0.00 m from the hardpoint (under 0.1 m); estimated native breech; model port fitting pending |
+| `avtank` | 2: `gminigun` | `` | -0.04 0.00 0.00 | small | accepted-shot path; live validation pending; estimated native breech; model port fitting pending |
 | `avtank` | 3: `gquake` | `` | pending / omitted | none | accepted-shot path; live validation pending; ground-contact seismic emitter |
 | `avtank` | 4: `gmdmgun` | `` | pending / omitted | none | native firing producer pending; parent AGR11BDA is not a barrel node and has no geometry around the hardpoint |
 | `avtest` | 1: `gdummy` | `animation:cr_fire_1` | pending / omitted | none | accepted-shot path; live validation pending; paintball/debug effect |

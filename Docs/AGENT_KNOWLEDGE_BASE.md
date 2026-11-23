@@ -2116,3 +2116,15 @@ to the ordinary GOG development mod.
 - `Tools/Validate-CampaignRepository.py` is Python, not a .ps1.
 - `Test-UnitAnimSlots.py` now also asserts 300-1500 housing triangles per flame and that
   every carrier flame points rearward (-z) in the composed VDF pose.
+
+- Tower variants `abtowe02`, `abtowe03`, `abtowe2` ship with no `weaponName` in stock too
+  (`Program Files (x86)\Battlezone\stockfiles2/`): they are unarmed scenery. A CR ODF
+  replaces the stock one whole, so they do not inherit `abtowe`'s weapon. Check the stock
+  ODF before assuming a weaponless variant "gets" a weapon; arming one is a gameplay change.
+- `Measure-CockpitFlashOffsets.py` read raw Ogre mesh vertices against skeleton bones. Mesh X is
+  mirrored against bones (the toolbox `read_mesh` un-mirrors; the raw serializer does not), so
+  cockpit offsets came out left/right-flipped (avtank `-0.59`, should be about `0.05`) and it
+  accepted a barrel 0.62-0.82 m off the hardpoint line. X is now mirrored and `MAX_LATERAL` is
+  0.6. The cockpit offset stays relative to the HULL hardpoint; the cockpit skeleton's own GC1
+  bone is not that frame. When a measured offset lands a barrel far off its hardpoint line,
+  suspect the frame, not the model. Live check pending.

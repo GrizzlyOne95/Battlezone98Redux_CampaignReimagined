@@ -43,7 +43,7 @@ GENERATED_ENDS = ("// CR CRAFT FLASH OFFSET END", "// CR CRAFT RECOIL END")
 TIP_SLAB = 0.25     # m: front slice of the barrel that centres the flash on right/up
 FACE = 0.05          # m: vertices this close to the furthest-forward plane form the muzzle face
 MARGIN = 0.05        # m: flash starts just outside the barrel
-MAX_LATERAL = 1.5    # m: barrel face centre must be this close to the hardpoint line
+MAX_LATERAL = 0.6    # m: barrel face centre must be this close to the hardpoint line (the X-mirror bug read 0.62-0.82 here)
 MIN_BARREL_VERTS = 24
 MAX_BEHIND = 0.3     # m: a muzzle further behind the hull hardpoint than this is not that slot's barrel
 MAX_BARREL_WIDTH = 0.7  # m: a piece wider than this is a gun pod, not a barrel
@@ -108,7 +108,7 @@ def skeleton(path):
 
 
 def gun_vertices(path):
-    """Positions of every vertex of the cockpit gun/barrel submeshes (material name has gun or barrel)."""
+    """Positions (bone frame) of every vertex of the cockpit gun/barrel submeshes (material name has gun or barrel)."""
     mesh = oms.MeshSerializer(io.BytesIO(path.read_bytes())).read()
     out = []
     for sm in mesh.submesh_list:
@@ -119,7 +119,12 @@ def gun_vertices(path):
         b = vd.get_vertex_buffer(e.source)
         out.append(np.ndarray((vd.vertex_count, 3), "<f4", buffer=b.buffer, offset=e.offset,
                               strides=(b.vertex_size, 4)).astype(float))
-    return np.vstack(out) if out else np.zeros((0, 3))
+    pts = np.vstack(out) if out else np.zeros((0, 3))
+    # Ogre mesh vertices are X-mirrored against skeleton bones (the toolbox's read_mesh
+    # un-mirrors them for Build-WeaponFlashes.py; the raw serializer used here does not).
+    # Hardpoint bones and "right" are in the bone frame, so mirror X before measuring.
+    pts[:, 0] *= -1
+    return pts
 
 
 def clusters(xy, eps=GAP):

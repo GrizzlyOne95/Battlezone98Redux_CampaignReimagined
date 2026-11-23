@@ -357,6 +357,13 @@
           "distance": 0.3,
           "return": 2.5,
           "kick_without_weapon": 1.0
+        },
+        "GC2": {
+          "node": "AGR11BGA",
+          "distance": 0.3,
+          "return": 2.5,
+          "kick_without_weapon": 1.0,
+          "presentation_only": true
         }
       }
     },

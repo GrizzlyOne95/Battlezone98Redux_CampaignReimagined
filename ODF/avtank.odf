@@ -32,12 +32,14 @@ explosionName = "xdnsdfi"
 // a muzzle-face hardpoint); replaces the weapon's flashOffset for this craft.
 // Regenerate: Tools/Build-WeaponFlashes.py --measure
 flashOffset1 = "0.04 0.00 0.00"
+flashOffset2 = "-0.04 0.00 0.00"
 // CR CRAFT FLASH OFFSET END
 // CR COCKPIT FLASH OFFSET BEGIN
 // Player muzzle flash in cockpit view: cockpit barrel tip, relative to the hull hardpoint
 // (right up forward, metres); replaces flashOffset<N> there. Regenerate:
 // Tools/Weapons/Measure-CockpitFlashOffsets.py --write
-cockpitFlashOffset1 = "-0.59 -0.19 -0.05"
+cockpitFlashOffset1 = "0.05 0.05 -0.19"
+cockpitFlashOffset2 = "-0.05 0.05 -0.19"
 // CR COCKPIT FLASH OFFSET END
 // OpenShim muzzle presentation authoring reference (examples stay commented).
 // Experimental exact-GOG 2.2.301 / single-player cannon path, not MP support.

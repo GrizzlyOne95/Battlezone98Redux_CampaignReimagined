@@ -158,7 +158,15 @@
         },
         "2": {
           "weapon": "gminigun",
-          "skip": "visible tip is -0.00 m from the hardpoint (under 0.1 m)"
+          "offset": [
+            -0.04,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "AGR11Gc2",
+          "barrel": "AGR11BGA",
+          "vertices": 113,
+          "reviewed_barrel": true
         },
         "4": {
           "weapon": "gmdmgun",
@@ -421,7 +429,15 @@
         },
         "2": {
           "weapon": "gmaggun",
-          "skip": "visible tip is -0.00 m from the hardpoint (under 0.1 m)"
+          "offset": [
+            -0.04,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "AGR11Gc2",
+          "barrel": "AGR11BGA",
+          "vertices": 113,
+          "reviewed_barrel": true
         }
       }
     },
@@ -442,7 +458,15 @@
         },
         "2": {
           "weapon": "gminigun",
-          "skip": "visible tip is -0.00 m from the hardpoint (under 0.1 m)"
+          "offset": [
+            -0.04,
+            0.0,
+            0.0
+          ],
+          "hardpoint": "AGR11Gc2",
+          "barrel": "AGR11BGA",
+          "vertices": 113,
+          "reviewed_barrel": true
         },
         "4": {
           "weapon": "gmdmgun",
