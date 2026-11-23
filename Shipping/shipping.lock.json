@@ -8567,36 +8567,36 @@
       "runtime": "ohp_src_s.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_achilles_auto_layer0.png",
-      "runtime": "openshim_achilles_auto_layer0.png"
+      "source": "Assets\\Textures\\openshim_achilles_auto_layer0.dds",
+      "runtime": "openshim_achilles_auto_layer0.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_achilles_auto_layer0_n.png",
-      "runtime": "openshim_achilles_auto_layer0_n.png"
+      "source": "Assets\\Textures\\openshim_achilles_auto_layer0_n.dds",
+      "runtime": "openshim_achilles_auto_layer0_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_achilles_auto_layer1.png",
-      "runtime": "openshim_achilles_auto_layer1.png"
+      "source": "Assets\\Textures\\openshim_achilles_auto_layer1.dds",
+      "runtime": "openshim_achilles_auto_layer1.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_achilles_auto_layer1_n.png",
-      "runtime": "openshim_achilles_auto_layer1_n.png"
+      "source": "Assets\\Textures\\openshim_achilles_auto_layer1_n.dds",
+      "runtime": "openshim_achilles_auto_layer1_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_achilles_auto_layer2.png",
-      "runtime": "openshim_achilles_auto_layer2.png"
+      "source": "Assets\\Textures\\openshim_achilles_auto_layer2.dds",
+      "runtime": "openshim_achilles_auto_layer2.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_achilles_auto_layer2_n.png",
-      "runtime": "openshim_achilles_auto_layer2_n.png"
+      "source": "Assets\\Textures\\openshim_achilles_auto_layer2_n.dds",
+      "runtime": "openshim_achilles_auto_layer2_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_achilles_auto_layer3.png",
-      "runtime": "openshim_achilles_auto_layer3.png"
+      "source": "Assets\\Textures\\openshim_achilles_auto_layer3.dds",
+      "runtime": "openshim_achilles_auto_layer3.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_achilles_auto_layer3_n.png",
-      "runtime": "openshim_achilles_auto_layer3_n.png"
+      "source": "Assets\\Textures\\openshim_achilles_auto_layer3_n.dds",
+      "runtime": "openshim_achilles_auto_layer3_n.dds"
     },
     {
       "source": "Assets\\Textures\\openshim_achilles_auto_misn17_control.png",
@@ -8679,68 +8679,68 @@
       "runtime": "openshim_elysium_auto_evolve_5_stock_control2.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer0.png",
-      "runtime": "openshim_elysium_auto_layer0.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer0.dds",
+      "runtime": "openshim_elysium_auto_layer0.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer0_n.png",
-      "runtime": "openshim_elysium_auto_layer0_n.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer0_n.dds",
+      "runtime": "openshim_elysium_auto_layer0_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer1.png",
-      "runtime": "openshim_elysium_auto_layer1.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer1.dds",
+      "runtime": "openshim_elysium_auto_layer1.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer1_n.png",
-      "runtime": "openshim_elysium_auto_layer1_n.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer1_n.dds",
+      "runtime": "openshim_elysium_auto_layer1_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer2.png",
-      "runtime": "openshim_elysium_auto_layer2.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer2.dds",
+      "runtime": "openshim_elysium_auto_layer2.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer2_n.png",
-      "runtime": "openshim_elysium_auto_layer2_n.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer2_n.dds",
+      "runtime": "openshim_elysium_auto_layer2_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer3.png",
-      "runtime": "openshim_elysium_auto_layer3.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer3.dds",
+      "runtime": "openshim_elysium_auto_layer3.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer3_n.png",
-      "runtime": "openshim_elysium_auto_layer3_n.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer3_n.dds",
+      "runtime": "openshim_elysium_auto_layer3_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer4.png",
-      "runtime": "openshim_elysium_auto_layer4.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer4.dds",
+      "runtime": "openshim_elysium_auto_layer4.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer4_n.png",
-      "runtime": "openshim_elysium_auto_layer4_n.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer4_n.dds",
+      "runtime": "openshim_elysium_auto_layer4_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer5.png",
-      "runtime": "openshim_elysium_auto_layer5.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer5.dds",
+      "runtime": "openshim_elysium_auto_layer5.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer5_n.png",
-      "runtime": "openshim_elysium_auto_layer5_n.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer5_n.dds",
+      "runtime": "openshim_elysium_auto_layer5_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer6.png",
-      "runtime": "openshim_elysium_auto_layer6.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer6.dds",
+      "runtime": "openshim_elysium_auto_layer6.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer6_n.png",
-      "runtime": "openshim_elysium_auto_layer6_n.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer6_n.dds",
+      "runtime": "openshim_elysium_auto_layer6_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer7.png",
-      "runtime": "openshim_elysium_auto_layer7.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer7.dds",
+      "runtime": "openshim_elysium_auto_layer7.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_elysium_auto_layer7_n.png",
-      "runtime": "openshim_elysium_auto_layer7_n.png"
+      "source": "Assets\\Textures\\openshim_elysium_auto_layer7_n.dds",
+      "runtime": "openshim_elysium_auto_layer7_n.dds"
     },
     {
       "source": "Assets\\Textures\\openshim_elysium_auto_sammy__1_control.png",
@@ -8759,60 +8759,60 @@
       "runtime": "openshim_europa_auto_chmisn07_control2.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer0.png",
-      "runtime": "openshim_europa_auto_layer0.png"
+      "source": "Assets\\Textures\\openshim_europa_auto_layer0.dds",
+      "runtime": "openshim_europa_auto_layer0.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer0_n.png",
-      "runtime": "openshim_europa_auto_layer0_n.png"
+      "source": "Assets\\Textures\\openshim_europa_auto_layer0_n.dds",
+      "runtime": "openshim_europa_auto_layer0_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer1.png",
-      "runtime": "openshim_europa_auto_layer1.png"
+      "source": "Assets\\Textures\\openshim_europa_auto_layer1.dds",
+      "runtime": "openshim_europa_auto_layer1.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer1_n.png",
-      "runtime": "openshim_europa_auto_layer1_n.png"
+      "source": "Assets\\Textures\\openshim_europa_auto_layer1_n.dds",
+      "runtime": "openshim_europa_auto_layer1_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer2.png",
-      "runtime": "openshim_europa_auto_layer2.png"
+      "source": "Assets\\Textures\\openshim_europa_auto_layer2.dds",
+      "runtime": "openshim_europa_auto_layer2.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer2_n.png",
-      "runtime": "openshim_europa_auto_layer2_n.png"
+      "source": "Assets\\Textures\\openshim_europa_auto_layer2_n.dds",
+      "runtime": "openshim_europa_auto_layer2_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer3.png",
-      "runtime": "openshim_europa_auto_layer3.png"
+      "source": "Assets\\Textures\\openshim_europa_auto_layer3.dds",
+      "runtime": "openshim_europa_auto_layer3.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer4.png",
-      "runtime": "openshim_europa_auto_layer4.png"
+      "source": "Assets\\Textures\\openshim_europa_auto_layer4.dds",
+      "runtime": "openshim_europa_auto_layer4.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer4_n.png",
-      "runtime": "openshim_europa_auto_layer4_n.png"
+      "source": "Assets\\Textures\\openshim_europa_auto_layer4_n.dds",
+      "runtime": "openshim_europa_auto_layer4_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer5.png",
-      "runtime": "openshim_europa_auto_layer5.png"
+      "source": "Assets\\Textures\\openshim_europa_auto_layer5.dds",
+      "runtime": "openshim_europa_auto_layer5.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer5_n.png",
-      "runtime": "openshim_europa_auto_layer5_n.png"
+      "source": "Assets\\Textures\\openshim_europa_auto_layer5_n.dds",
+      "runtime": "openshim_europa_auto_layer5_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer6.png",
-      "runtime": "openshim_europa_auto_layer6.png"
+      "source": "Assets\\Textures\\openshim_europa_auto_layer6.dds",
+      "runtime": "openshim_europa_auto_layer6.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer7.png",
-      "runtime": "openshim_europa_auto_layer7.png"
+      "source": "Assets\\Textures\\openshim_europa_auto_layer7.dds",
+      "runtime": "openshim_europa_auto_layer7.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_europa_auto_layer7_n.png",
-      "runtime": "openshim_europa_auto_layer7_n.png"
+      "source": "Assets\\Textures\\openshim_europa_auto_layer7_n.dds",
+      "runtime": "openshim_europa_auto_layer7_n.dds"
     },
     {
       "source": "Assets\\Textures\\openshim_europa_auto_misn12_control.png",
@@ -8991,92 +8991,92 @@
       "runtime": "openshim_ganymede_auto_evolve_4_stock_control2.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer0.png",
-      "runtime": "openshim_ganymede_auto_layer0.png"
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer0.dds",
+      "runtime": "openshim_ganymede_auto_layer0.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer1.png",
-      "runtime": "openshim_ganymede_auto_layer1.png"
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer1.dds",
+      "runtime": "openshim_ganymede_auto_layer1.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer2.png",
-      "runtime": "openshim_ganymede_auto_layer2.png"
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer2.dds",
+      "runtime": "openshim_ganymede_auto_layer2.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer3.png",
-      "runtime": "openshim_ganymede_auto_layer3.png"
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer3.dds",
+      "runtime": "openshim_ganymede_auto_layer3.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer3_n.png",
-      "runtime": "openshim_ganymede_auto_layer3_n.png"
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer3_n.dds",
+      "runtime": "openshim_ganymede_auto_layer3_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer4.png",
-      "runtime": "openshim_ganymede_auto_layer4.png"
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer4.dds",
+      "runtime": "openshim_ganymede_auto_layer4.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer4_n.png",
-      "runtime": "openshim_ganymede_auto_layer4_n.png"
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer4_n.dds",
+      "runtime": "openshim_ganymede_auto_layer4_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer5.png",
-      "runtime": "openshim_ganymede_auto_layer5.png"
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer5.dds",
+      "runtime": "openshim_ganymede_auto_layer5.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer6.png",
-      "runtime": "openshim_ganymede_auto_layer6.png"
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer6.dds",
+      "runtime": "openshim_ganymede_auto_layer6.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_ganymede_auto_layer7.png",
-      "runtime": "openshim_ganymede_auto_layer7.png"
+      "source": "Assets\\Textures\\openshim_ganymede_auto_layer7.dds",
+      "runtime": "openshim_ganymede_auto_layer7.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_io_auto_layer0.png",
-      "runtime": "openshim_io_auto_layer0.png"
+      "source": "Assets\\Textures\\openshim_io_auto_layer0.dds",
+      "runtime": "openshim_io_auto_layer0.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_io_auto_layer1.png",
-      "runtime": "openshim_io_auto_layer1.png"
+      "source": "Assets\\Textures\\openshim_io_auto_layer1.dds",
+      "runtime": "openshim_io_auto_layer1.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_io_auto_layer1_n.png",
-      "runtime": "openshim_io_auto_layer1_n.png"
+      "source": "Assets\\Textures\\openshim_io_auto_layer1_n.dds",
+      "runtime": "openshim_io_auto_layer1_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_io_auto_layer2.png",
-      "runtime": "openshim_io_auto_layer2.png"
+      "source": "Assets\\Textures\\openshim_io_auto_layer2.dds",
+      "runtime": "openshim_io_auto_layer2.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_io_auto_layer2_n.png",
-      "runtime": "openshim_io_auto_layer2_n.png"
+      "source": "Assets\\Textures\\openshim_io_auto_layer2_n.dds",
+      "runtime": "openshim_io_auto_layer2_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_io_auto_layer3.png",
-      "runtime": "openshim_io_auto_layer3.png"
+      "source": "Assets\\Textures\\openshim_io_auto_layer3.dds",
+      "runtime": "openshim_io_auto_layer3.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_io_auto_layer4.png",
-      "runtime": "openshim_io_auto_layer4.png"
+      "source": "Assets\\Textures\\openshim_io_auto_layer4.dds",
+      "runtime": "openshim_io_auto_layer4.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_io_auto_layer4_n.png",
-      "runtime": "openshim_io_auto_layer4_n.png"
+      "source": "Assets\\Textures\\openshim_io_auto_layer4_n.dds",
+      "runtime": "openshim_io_auto_layer4_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_io_auto_layer5.png",
-      "runtime": "openshim_io_auto_layer5.png"
+      "source": "Assets\\Textures\\openshim_io_auto_layer5.dds",
+      "runtime": "openshim_io_auto_layer5.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_io_auto_layer6.png",
-      "runtime": "openshim_io_auto_layer6.png"
+      "source": "Assets\\Textures\\openshim_io_auto_layer6.dds",
+      "runtime": "openshim_io_auto_layer6.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_io_auto_layer6_n.png",
-      "runtime": "openshim_io_auto_layer6_n.png"
+      "source": "Assets\\Textures\\openshim_io_auto_layer6_n.dds",
+      "runtime": "openshim_io_auto_layer6_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_io_auto_layer7.png",
-      "runtime": "openshim_io_auto_layer7.png"
+      "source": "Assets\\Textures\\openshim_io_auto_layer7.dds",
+      "runtime": "openshim_io_auto_layer7.dds"
     },
     {
       "source": "Assets\\Textures\\openshim_io_auto_misn10_control.png",
@@ -9143,28 +9143,28 @@
       "runtime": "openshim_io_auto_misns4_stock_control2.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_mars_auto_layer0.png",
-      "runtime": "openshim_mars_auto_layer0.png"
+      "source": "Assets\\Textures\\openshim_mars_auto_layer0.dds",
+      "runtime": "openshim_mars_auto_layer0.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_mars_auto_layer0_n.png",
-      "runtime": "openshim_mars_auto_layer0_n.png"
+      "source": "Assets\\Textures\\openshim_mars_auto_layer0_n.dds",
+      "runtime": "openshim_mars_auto_layer0_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_mars_auto_layer1.png",
-      "runtime": "openshim_mars_auto_layer1.png"
+      "source": "Assets\\Textures\\openshim_mars_auto_layer1.dds",
+      "runtime": "openshim_mars_auto_layer1.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_mars_auto_layer1_n.png",
-      "runtime": "openshim_mars_auto_layer1_n.png"
+      "source": "Assets\\Textures\\openshim_mars_auto_layer1_n.dds",
+      "runtime": "openshim_mars_auto_layer1_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_mars_auto_layer2.png",
-      "runtime": "openshim_mars_auto_layer2.png"
+      "source": "Assets\\Textures\\openshim_mars_auto_layer2.dds",
+      "runtime": "openshim_mars_auto_layer2.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_mars_auto_layer3.png",
-      "runtime": "openshim_mars_auto_layer3.png"
+      "source": "Assets\\Textures\\openshim_mars_auto_layer3.dds",
+      "runtime": "openshim_mars_auto_layer3.dds"
     },
     {
       "source": "Assets\\Textures\\openshim_mars_auto_misn04_control.png",
@@ -9199,60 +9199,60 @@
       "runtime": "openshim_moon_auto_crsetup_control2.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer0.png",
-      "runtime": "openshim_moon_auto_layer0.png"
+      "source": "Assets\\Textures\\openshim_moon_auto_layer0.dds",
+      "runtime": "openshim_moon_auto_layer0.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer0_n.png",
-      "runtime": "openshim_moon_auto_layer0_n.png"
+      "source": "Assets\\Textures\\openshim_moon_auto_layer0_n.dds",
+      "runtime": "openshim_moon_auto_layer0_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer1.png",
-      "runtime": "openshim_moon_auto_layer1.png"
+      "source": "Assets\\Textures\\openshim_moon_auto_layer1.dds",
+      "runtime": "openshim_moon_auto_layer1.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer2.png",
-      "runtime": "openshim_moon_auto_layer2.png"
+      "source": "Assets\\Textures\\openshim_moon_auto_layer2.dds",
+      "runtime": "openshim_moon_auto_layer2.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer2_n.png",
-      "runtime": "openshim_moon_auto_layer2_n.png"
+      "source": "Assets\\Textures\\openshim_moon_auto_layer2_n.dds",
+      "runtime": "openshim_moon_auto_layer2_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer3.png",
-      "runtime": "openshim_moon_auto_layer3.png"
+      "source": "Assets\\Textures\\openshim_moon_auto_layer3.dds",
+      "runtime": "openshim_moon_auto_layer3.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer3_n.png",
-      "runtime": "openshim_moon_auto_layer3_n.png"
+      "source": "Assets\\Textures\\openshim_moon_auto_layer3_n.dds",
+      "runtime": "openshim_moon_auto_layer3_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer4.png",
-      "runtime": "openshim_moon_auto_layer4.png"
+      "source": "Assets\\Textures\\openshim_moon_auto_layer4.dds",
+      "runtime": "openshim_moon_auto_layer4.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer4_n.png",
-      "runtime": "openshim_moon_auto_layer4_n.png"
+      "source": "Assets\\Textures\\openshim_moon_auto_layer4_n.dds",
+      "runtime": "openshim_moon_auto_layer4_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer5.png",
-      "runtime": "openshim_moon_auto_layer5.png"
+      "source": "Assets\\Textures\\openshim_moon_auto_layer5.dds",
+      "runtime": "openshim_moon_auto_layer5.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer5_n.png",
-      "runtime": "openshim_moon_auto_layer5_n.png"
+      "source": "Assets\\Textures\\openshim_moon_auto_layer5_n.dds",
+      "runtime": "openshim_moon_auto_layer5_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer6.png",
-      "runtime": "openshim_moon_auto_layer6.png"
+      "source": "Assets\\Textures\\openshim_moon_auto_layer6.dds",
+      "runtime": "openshim_moon_auto_layer6.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer6_n.png",
-      "runtime": "openshim_moon_auto_layer6_n.png"
+      "source": "Assets\\Textures\\openshim_moon_auto_layer6_n.dds",
+      "runtime": "openshim_moon_auto_layer6_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_moon_auto_layer7.png",
-      "runtime": "openshim_moon_auto_layer7.png"
+      "source": "Assets\\Textures\\openshim_moon_auto_layer7.dds",
+      "runtime": "openshim_moon_auto_layer7.dds"
     },
     {
       "source": "Assets\\Textures\\openshim_moon_auto_misn01_control.png",
@@ -9319,60 +9319,60 @@
       "runtime": "openshim_moon_auto_misn03_stock_control2.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer0.png",
-      "runtime": "openshim_titan_auto_layer0.png"
+      "source": "Assets\\Textures\\openshim_titan_auto_layer0.dds",
+      "runtime": "openshim_titan_auto_layer0.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer0_n.png",
-      "runtime": "openshim_titan_auto_layer0_n.png"
+      "source": "Assets\\Textures\\openshim_titan_auto_layer0_n.dds",
+      "runtime": "openshim_titan_auto_layer0_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer1.png",
-      "runtime": "openshim_titan_auto_layer1.png"
+      "source": "Assets\\Textures\\openshim_titan_auto_layer1.dds",
+      "runtime": "openshim_titan_auto_layer1.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer1_n.png",
-      "runtime": "openshim_titan_auto_layer1_n.png"
+      "source": "Assets\\Textures\\openshim_titan_auto_layer1_n.dds",
+      "runtime": "openshim_titan_auto_layer1_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer2.png",
-      "runtime": "openshim_titan_auto_layer2.png"
+      "source": "Assets\\Textures\\openshim_titan_auto_layer2.dds",
+      "runtime": "openshim_titan_auto_layer2.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer2_n.png",
-      "runtime": "openshim_titan_auto_layer2_n.png"
+      "source": "Assets\\Textures\\openshim_titan_auto_layer2_n.dds",
+      "runtime": "openshim_titan_auto_layer2_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer3.png",
-      "runtime": "openshim_titan_auto_layer3.png"
+      "source": "Assets\\Textures\\openshim_titan_auto_layer3.dds",
+      "runtime": "openshim_titan_auto_layer3.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer4.png",
-      "runtime": "openshim_titan_auto_layer4.png"
+      "source": "Assets\\Textures\\openshim_titan_auto_layer4.dds",
+      "runtime": "openshim_titan_auto_layer4.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer4_n.png",
-      "runtime": "openshim_titan_auto_layer4_n.png"
+      "source": "Assets\\Textures\\openshim_titan_auto_layer4_n.dds",
+      "runtime": "openshim_titan_auto_layer4_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer5.png",
-      "runtime": "openshim_titan_auto_layer5.png"
+      "source": "Assets\\Textures\\openshim_titan_auto_layer5.dds",
+      "runtime": "openshim_titan_auto_layer5.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer5_n.png",
-      "runtime": "openshim_titan_auto_layer5_n.png"
+      "source": "Assets\\Textures\\openshim_titan_auto_layer5_n.dds",
+      "runtime": "openshim_titan_auto_layer5_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer6.png",
-      "runtime": "openshim_titan_auto_layer6.png"
+      "source": "Assets\\Textures\\openshim_titan_auto_layer6.dds",
+      "runtime": "openshim_titan_auto_layer6.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer6_n.png",
-      "runtime": "openshim_titan_auto_layer6_n.png"
+      "source": "Assets\\Textures\\openshim_titan_auto_layer6_n.dds",
+      "runtime": "openshim_titan_auto_layer6_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_titan_auto_layer7.png",
-      "runtime": "openshim_titan_auto_layer7.png"
+      "source": "Assets\\Textures\\openshim_titan_auto_layer7.dds",
+      "runtime": "openshim_titan_auto_layer7.dds"
     },
     {
       "source": "Assets\\Textures\\openshim_titan_auto_misn14_control.png",
@@ -9511,52 +9511,52 @@
       "runtime": "openshim_titan_auto_misns8_stock_control2.png"
     },
     {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer0.png",
-      "runtime": "openshim_venus_auto_layer0.png"
+      "source": "Assets\\Textures\\openshim_venus_auto_layer0.dds",
+      "runtime": "openshim_venus_auto_layer0.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer0_n.png",
-      "runtime": "openshim_venus_auto_layer0_n.png"
+      "source": "Assets\\Textures\\openshim_venus_auto_layer0_n.dds",
+      "runtime": "openshim_venus_auto_layer0_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer1.png",
-      "runtime": "openshim_venus_auto_layer1.png"
+      "source": "Assets\\Textures\\openshim_venus_auto_layer1.dds",
+      "runtime": "openshim_venus_auto_layer1.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer1_n.png",
-      "runtime": "openshim_venus_auto_layer1_n.png"
+      "source": "Assets\\Textures\\openshim_venus_auto_layer1_n.dds",
+      "runtime": "openshim_venus_auto_layer1_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer2.png",
-      "runtime": "openshim_venus_auto_layer2.png"
+      "source": "Assets\\Textures\\openshim_venus_auto_layer2.dds",
+      "runtime": "openshim_venus_auto_layer2.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer3.png",
-      "runtime": "openshim_venus_auto_layer3.png"
+      "source": "Assets\\Textures\\openshim_venus_auto_layer3.dds",
+      "runtime": "openshim_venus_auto_layer3.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer3_n.png",
-      "runtime": "openshim_venus_auto_layer3_n.png"
+      "source": "Assets\\Textures\\openshim_venus_auto_layer3_n.dds",
+      "runtime": "openshim_venus_auto_layer3_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer4.png",
-      "runtime": "openshim_venus_auto_layer4.png"
+      "source": "Assets\\Textures\\openshim_venus_auto_layer4.dds",
+      "runtime": "openshim_venus_auto_layer4.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer4_n.png",
-      "runtime": "openshim_venus_auto_layer4_n.png"
+      "source": "Assets\\Textures\\openshim_venus_auto_layer4_n.dds",
+      "runtime": "openshim_venus_auto_layer4_n.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer5.png",
-      "runtime": "openshim_venus_auto_layer5.png"
+      "source": "Assets\\Textures\\openshim_venus_auto_layer5.dds",
+      "runtime": "openshim_venus_auto_layer5.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer6.png",
-      "runtime": "openshim_venus_auto_layer6.png"
+      "source": "Assets\\Textures\\openshim_venus_auto_layer6.dds",
+      "runtime": "openshim_venus_auto_layer6.dds"
     },
     {
-      "source": "Assets\\Textures\\openshim_venus_auto_layer7.png",
-      "runtime": "openshim_venus_auto_layer7.png"
+      "source": "Assets\\Textures\\openshim_venus_auto_layer7.dds",
+      "runtime": "openshim_venus_auto_layer7.dds"
     },
     {
       "source": "Assets\\Textures\\openshim_venus_auto_misn07_control.png",
