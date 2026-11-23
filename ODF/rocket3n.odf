@@ -24,7 +24,7 @@ flameLength = 0.4
 smokeRadius = 0.8
 smokeDelay = 0.015
 smokePause = 0.005
-smokeTexture = "gpuff.0"
+smokeTexture = "bpuff.0"
 smokeFrames = 16
 
 [Render]

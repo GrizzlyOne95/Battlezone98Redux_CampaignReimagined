@@ -2,7 +2,7 @@
   "totals": {
     "slots": 305,
     "recoil_slots": 225,
-    "flash_slots": 221,
+    "flash_slots": 224,
     "casing_slots": 146
   },
   "units": {
@@ -168,8 +168,12 @@
           "recoil_node": "",
           "recoil_distance": null,
           "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "visible tip is -0.00 m from the hardpoint (under 0.1 m)",
+          "flash_offset": [
+            -0.04,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "small",
           "casing_status": "estimated native breech; model port fitting pending",
           "runtime": "accepted-shot path; live validation pending"
@@ -686,8 +690,12 @@
           "recoil_node": "",
           "recoil_distance": null,
           "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "visible tip is -0.00 m from the hardpoint (under 0.1 m)",
+          "flash_offset": [
+            -0.04,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "none",
           "casing_status": "no brass by weapon design",
           "runtime": "native firing producer pending"
@@ -733,8 +741,12 @@
           "recoil_node": "",
           "recoil_distance": null,
           "recoil_effective_kick": null,
-          "flash_offset": null,
-          "flash_status": "visible tip is -0.00 m from the hardpoint (under 0.1 m)",
+          "flash_offset": [
+            -0.04,
+            0.0,
+            0.0
+          ],
+          "flash_status": "fitted; live validation pending",
           "casing_type": "small",
           "casing_status": "estimated native breech; model port fitting pending",
           "runtime": "accepted-shot path; live validation pending"
