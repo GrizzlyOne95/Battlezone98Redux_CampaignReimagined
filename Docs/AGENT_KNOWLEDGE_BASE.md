@@ -2121,10 +2121,29 @@ to the ordinary GOG development mod.
   (`Program Files (x86)\Battlezone\stockfiles2/`): they are unarmed scenery. A CR ODF
   replaces the stock one whole, so they do not inherit `abtowe`'s weapon. Check the stock
   ODF before assuming a weaponless variant "gets" a weapon; arming one is a gameplay change.
-- `Measure-CockpitFlashOffsets.py` read raw Ogre mesh vertices against skeleton bones. Mesh X is
-  mirrored against bones (the toolbox `read_mesh` un-mirrors; the raw serializer does not), so
-  cockpit offsets came out left/right-flipped (avtank `-0.59`, should be about `0.05`) and it
-  accepted a barrel 0.62-0.82 m off the hardpoint line. X is now mirrored and `MAX_LATERAL` is
-  0.6. The cockpit offset stays relative to the HULL hardpoint; the cockpit skeleton's own GC1
-  bone is not that frame. When a measured offset lands a barrel far off its hardpoint line,
-  suspect the frame, not the model. Live check pending.
+
+### Cockpit muzzle flash fit (2026-11-22)
+
+- `cockpitFlashOffset<N>` is relative to the HULL hardpoint (the VDF part the shot spawns
+  from), in right/up/forward metres. The cockpit skeleton's own GC bones are not that frame.
+  Cockpit mesh vertex X is mirrored against the skeleton and VDF (`x_bz = -x_mesh`). The raw
+  serializer does not un-mirror it, so mirror it before measuring.
+- The flash point must be visible from the hull skeleton's POV bone. The avtank/bvtank
+  cockpit guns are 2x2 barrel stacks. The shorter upper pair sits behind the lower pair from
+  the eye, so "nearest barrel to the hardpoint line" picked an upper muzzle and hid the flash
+  (#582: avtank `0.05 0.05 -0.19`). The tool now ray-tests each muzzle from the POV, ignoring
+  glass and the barrel's own triangles (webbing triangles bridge barrels). It picks the lower
+  barrel: avtank `0.09 -0.19 -0.05`, bvtank `0.09 -0.76 0.43`. The pre-#582 avtank
+  `-0.59 -0.19 -0.05` was that lower barrel with X unmirrored, hence "left and below".
+- Art-fit cockpit guns can sit 0.8 m off the hardpoint line (bvtank's gun is lowered with
+  its eye), so `MAX_LATERAL` is 1.5.
+- Live check: the avtank flash moved from (596,244), a 14x37 px blob, to (732,248), a
+  37x45 px blob at 1280x720, on the gun's lower-right barrel. That matches the projection
+  of the measured point at a focal length of about 420 px.
+- Probe lessons:
+  - Stock `SetWeaponMask` does not change the player's selected weapon.
+  - `SetPosition` with `BuildDirectionalMatrix` does not turn the craft.
+  - `exu.GetWeaponMuzzlePosition(player, 0)` returns nil.
+  - At `OPENSHIM_FRAME_CAPTURE_STEP_MS=50` the capture index is about 20*T+40 (T = mission
+    seconds).
+  - Newly built gun towers take up to about 20 s to start firing.

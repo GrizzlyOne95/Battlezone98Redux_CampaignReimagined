@@ -10,9 +10,18 @@ hardpoint's frame (the frame of its barrel node, as Build-WeaponFlashes.py).
 Value = centre of the cockpit barrel's muzzle face (centroid of the vertices
 within FACE m of the barrel's furthest-forward plane) minus the hull hardpoint,
 plus MARGIN m forward. A barrel is a connected piece of a cockpit gun/barrel
-submesh (material name containing "gun" or "barrel"). Slots with no such barrel
-near the hardpoint line, and mortar/mine/special hardpoints (GM*, GS*), are
+submesh (material name containing "gun" or "barrel"). Only a barrel whose flash
+point the pilot can see counts: the line from the hull skeleton's POV bone (the
+Redux cockpit camera) to that point must not cross other cockpit geometry (glass,
+and triangles touching that barrel, excluded). Each slot takes its nearest visible barrel.
+Slots with no such barrel, and mortar/mine/special hardpoints (GM*, GS*), are
 skipped and listed with the reason.
+
+Frames: the cockpit mesh is drawn in the hull frame, its Ogre vertex X mirrored
+against the skeleton and VDF (x_bz = -x_mesh); the skeleton hardpoint bones match
+the VDF parts the shots spawn from. The avtank/bvtank cockpit guns are 2x2 barrel
+stacks whose shorter upper pair sits behind the lower pair as seen from the eye:
+nearest-to-the-hardpoint alone picked an upper muzzle and hid the flash.
 
 Meshes and skeletons are read only through the toolkit serializers
 (bzmodellibs). Usage:
@@ -43,13 +52,15 @@ GENERATED_ENDS = ("// CR CRAFT FLASH OFFSET END", "// CR CRAFT RECOIL END")
 TIP_SLAB = 0.25     # m: front slice of the barrel that centres the flash on right/up
 FACE = 0.05          # m: vertices this close to the furthest-forward plane form the muzzle face
 MARGIN = 0.05        # m: flash starts just outside the barrel
-MAX_LATERAL = 0.6    # m: barrel face centre must be this close to the hardpoint line (the X-mirror bug read 0.62-0.82 here)
+MAX_LATERAL = 1.5    # m: barrel face centre must be this close to the hardpoint line (art-fit cockpit
+                     # guns sit up to 0.8 m off it: bvtank's gun is lowered with its eye)
 MIN_BARREL_VERTS = 24
 MAX_BEHIND = 0.3     # m: a muzzle further behind the hull hardpoint than this is not that slot's barrel
 MAX_BARREL_WIDTH = 0.7  # m: a piece wider than this is a gun pod, not a barrel
 GAP = 0.12           # m: vertices closer than this (right/up) belong to one barrel
 MIN_DIFF = 0.1       # m: only write a key that moves the flash by more than this on some axis
 GUN_MATERIAL = re.compile(r"gun|barrel", re.I)
+GLASS_MATERIAL = re.compile(r"glass", re.I)  # see-through: never hides a flash
 MAX_FORWARD = 2.0       # m: a farther muzzle means the hull node is not on this barrel
 SKIP_HARDPOINT = {"GM": "mortar/mine launcher: no barrel", "GS": "special/mine launcher: no barrel"}
 
@@ -107,24 +118,53 @@ def skeleton(path):
     return sk, world
 
 
-def gun_vertices(path):
-    """Positions (bone frame) of every vertex of the cockpit gun/barrel submeshes (material name has gun or barrel)."""
+def cockpit_geometry(path):
+    """(gun points, gun triangles as indices into them, other triangles as n x 3 x 3), bone frame.
+
+    Gun points are the vertices of the gun/barrel submeshes (material name has gun or
+    barrel). The other triangles are the rest of the cockpit except glass.
+    """
     mesh = oms.MeshSerializer(io.BytesIO(path.read_bytes())).read()
-    out = []
+    guns, gun_tris, other, base = [], [], [], 0
     for sm in mesh.submesh_list:
-        if not GUN_MATERIAL.search(sm.material_name or "") or sm.use_shared_vertices:
-            continue
-        vd = sm.vertex_data
+        vd = mesh.shared_vertex_data if sm.use_shared_vertices else sm.vertex_data
         e = vd.vertex_declaration.find_by_semantic(om.VES.POSITION)
         b = vd.get_vertex_buffer(e.source)
-        out.append(np.ndarray((vd.vertex_count, 3), "<f4", buffer=b.buffer, offset=e.offset,
-                              strides=(b.vertex_size, 4)).astype(float))
-    pts = np.vstack(out) if out else np.zeros((0, 3))
-    # Ogre mesh vertices are X-mirrored against skeleton bones (the toolbox's read_mesh
-    # un-mirrors them for Build-WeaponFlashes.py; the raw serializer used here does not).
-    # Hardpoint bones and "right" are in the bone frame, so mirror X before measuring.
-    pts[:, 0] *= -1
-    return pts
+        pts = np.ndarray((vd.vertex_count, 3), "<f4", buffer=b.buffer, offset=e.offset,
+                         strides=(b.vertex_size, 4)).astype(float)
+        # Ogre mesh X is mirrored against the skeleton bones and the VDF (live frames put
+        # the avtank gun upper right, where mirrored X puts it). Hardpoints and "right"
+        # are in the bone frame, so mirror X before measuring.
+        pts[:, 0] *= -1
+        tris = np.asarray(sm.get_index_array(), dtype=np.int64).reshape(-1, 3)
+        material = sm.material_name or ""
+        if GUN_MATERIAL.search(material) and not sm.use_shared_vertices:
+            guns.append(pts)
+            gun_tris.append(tris + base)
+            base += len(pts)
+        elif not GLASS_MATERIAL.search(material):
+            other.append(pts[tris])
+    return (np.vstack(guns) if guns else np.zeros((0, 3)),
+            np.vstack(gun_tris) if gun_tris else np.zeros((0, 3), np.int64),
+            np.vstack(other) if other else np.zeros((0, 3, 3)))
+
+
+def hidden(eye, point, tris):
+    """Whether the segment eye -> point crosses any of tris (n x 3 x 3; Moller-Trumbore)."""
+    if not len(tris):
+        return False
+    d = point - eye
+    v0, e1, e2 = tris[:, 0], tris[:, 1] - tris[:, 0], tris[:, 2] - tris[:, 0]
+    h = np.cross(d, e2)
+    a = (e1 * h).sum(1)
+    ok = np.abs(a) > 1e-12
+    f = np.where(ok, 1.0 / np.where(ok, a, 1.0), 0.0)
+    s = eye - v0
+    u = f * (s * h).sum(1)
+    q = np.cross(s, e1)
+    v = f * (q @ d)
+    t = f * (e2 * q).sum(1)
+    return bool((ok & (u >= 0) & (v >= 0) & (u + v <= 1) & (t > 1e-4) & (t < 1 - 1e-4)).any())
 
 
 def clusters(xy, eps=GAP):
@@ -137,7 +177,7 @@ def clusters(xy, eps=GAP):
 
 
 def barrels(points, hp, frame):
-    """Barrel candidates in the hardpoint frame: [(muzzle centre right/up/forward, vertex count)].
+    """Barrel candidates in the hardpoint frame: [(muzzle centre right/up/forward, vertex indices)].
 
     Barrels are parallel to the hardpoint's forward axis, so vertices chain into one
     barrel by their right/up position. Forward is the centroid of the vertices within
@@ -158,7 +198,7 @@ def barrels(points, hp, frame):
         centre = (slab[:, :2].min(0) + slab[:, :2].max(0)) / 2
         muzzle = np.array([centre[0], centre[1], pts[pts[:, 2] >= top - FACE][:, 2].mean()])
         if muzzle[2] >= -MAX_BEHIND:
-            out.append((muzzle, len(pts)))
+            out.append((muzzle, idx))
     return out
 
 
@@ -170,8 +210,11 @@ def measure(name):
     if not hull_skel or not cockpit_mesh.exists():
         return [], "hull skeleton or cockpit mesh missing"
     sk, world = skeleton(hull_skel)
-    points = gun_vertices(cockpit_mesh)
-    rows, claims = [], []
+    points, gun_tris, other = cockpit_geometry(cockpit_mesh)
+    pov = next((world[b.handle][0] for b in sk.bones() if b.name[-3:].upper() == "POV"), None)
+    if pov is None:
+        return [], "hull skeleton has no POV bone (the cockpit camera)"
+    rows, claims, unseen = [], [], {}
     for n in range(1, 6):
         hard = odf.get(("gameobjectclass", f"weaponhard{n}"))
         weapon = odf.get(("gameobjectclass", f"weaponname{n}"))
@@ -196,9 +239,15 @@ def measure(name):
             # verified in game (svtank); an offset in the wrong frame would point away.
             row["skip"] = "rotated barrel node: in-game offset frame unverified"
             continue
-        found = barrels(points, hp, frame)
-        for face, count in found:
-            claims.append((float(np.linalg.norm(face[:2])), n, tuple(np.round(hp + frame @ face, 1)), face, count))
+        for face, idx in barrels(points, hp, frame):
+            # The pilot must see the flash point. Ignore every triangle touching this barrel
+            # (its lip and the webs joining it to its neighbours cross the line at the face).
+            own = np.isin(gun_tris, idx).any(1)
+            blockers = np.concatenate([other, points[gun_tris[~own]]])
+            if hidden(pov, hp + frame @ (face + np.array([0, 0, MARGIN])), blockers):
+                unseen[n] = unseen.get(n, 0) + 1
+                continue
+            claims.append((float(np.linalg.norm(face[:2])), n, tuple(np.round(hp + frame @ face, 1)), face, len(idx)))
     # Each cockpit barrel serves one slot. Lower slots choose first (slot 1 is the main gun),
     # each taking its nearest barrel that is still free.
     owner = {}
@@ -207,7 +256,8 @@ def measure(name):
             continue
         mine = sorted((c for c in claims if c[1] == row["slot"]), key=lambda c: c[0])
         if not mine:
-            row["skip"] = "no barrel-sized muzzle in the cockpit gun mesh (merged gun pod)"
+            row["skip"] = (f"all {unseen[row['slot']]} cockpit barrel muzzles are hidden from the POV"
+                           if unseen.get(row["slot"]) else "no barrel-sized muzzle in the cockpit gun mesh (merged gun pod)")
             continue
         lateral, n, where, face, count = mine[0]
         if lateral > MAX_LATERAL:
