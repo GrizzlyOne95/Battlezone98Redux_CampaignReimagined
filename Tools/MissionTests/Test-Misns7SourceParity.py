@@ -15,14 +15,14 @@ for name, expected in {
     actual = hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
     assert actual == expected, (name, actual)
 
-source = (ARCHIVE / "Misns7Mission.cpp").read_text()
+source = (ARCHIVE / "Misns7Mission.cpp").read_text(encoding="utf-8")
 # TRO LUA-Patch 2327051278: these perceived-team re-asserts kept the powered gun
 # towers dormant, so the port drops them (Setup and the final one stay).
 TRO_DROPPED = {n for start in (557, 574, 593, 605, 612, 992) for n in range(start, start + 3)}
 cpp_lines = source.splitlines()
 assert all(cpp_lines[n - 1].strip().startswith("SetPerceivedTeam(") for n in TRO_DROPPED)
 source = chr(10).join("" if i + 1 in TRO_DROPPED else line for i, line in enumerate(cpp_lines))
-lua = (ROOT / "Scripts/misns7.lua").read_text()
+lua = (ROOT / "Scripts/misns7.lua").read_text(encoding="utf-8")
 gameplay = source.split("void Misns7Mission::Setup(void)", 1)[1].split("IMPLEMENT_RTIME", 1)[0]
 normalize = lambda s: " ".join(s.split())
 blocks = Counter(normalize(s) for s in re.findall(r"/\*(.*?)\*/", gameplay, re.S))
@@ -77,7 +77,7 @@ assert "GameObjectHandle" not in active and "Get_Time" not in active
 assert not re.search(r"\bObjectiveObjects\s*\(|\bgoto\b|::|\brequire\b", active)
 assert '"power2_spot"' not in active and '"tower3_spot"' not in active, "cut base expansion activated"
 assert '"geyser3"' in active and not re.search(r"Goto\s*\(M\.avmuf\s*,\s*M\.geyser3", active), "cut factory retreat activated"
-reference = (ROOT / "Docs/BZR_LUA_AGENT_REFERENCE.md").read_text()
+reference = (ROOT / "Docs/BZR_LUA_AGENT_REFERENCE.md").read_text(encoding="utf-8")
 helpers = set(re.findall(r"local function\s+(\w+)", active))
 for api in set(re.findall(r"\b([A-Z]\w*)\s*\(", active)) - helpers - {"Start", "AddObject", "Update", "Save", "Load"}:
     assert re.search(r"\b" + api + r"\s*\(", reference), f"non-stock API: {api}"
