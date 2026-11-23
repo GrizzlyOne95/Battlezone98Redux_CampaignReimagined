@@ -2,14 +2,14 @@
 -- Do not edit payload metadata by hand.
 return {
     formatVersion = 3,
-    version = "1.0.0.79",
-    sha256 = "eff1b799e3375a4e2520732a62a0508fdf9c0e1cc4c870e36d4d88adeefab54b",
+    version = "1.0.0.80",
+    sha256 = "b36ad5d59daa93c6d7b17c90d2216092138167c95c6395e5ddcd08ab647dfdda",
     size = 136192,
     architecture = "x86",
     payloads = {
-        winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "eff1b799e3375a4e2520732a62a0508fdf9c0e1cc4c870e36d4d88adeefab54b", size = 136192, version = "1.0.0.79", architecture = "x86" },
-        loader = { source = "bzloader.dll", destination = "bzloader.dll", sha256 = "6faade169338779bb1c4538906dc66695fd76591f007aee87199718666913bfd", size = 46080, version = "1.0.0.79", architecture = "x86" },
-        plugin = { source = "openshim.dll", destination = "plugins\\openshim.dll", sha256 = "0b62e4dfbfc61dd259512fa277e7de86420fbf0d19ce1ed1d0b0a5b895a85ac0", size = 7461376, version = "1.0.0.79", architecture = "x86" },
+        winmm = { source = "winmm.dll", destination = "winmm.dll", sha256 = "b36ad5d59daa93c6d7b17c90d2216092138167c95c6395e5ddcd08ab647dfdda", size = 136192, version = "1.0.0.80", architecture = "x86" },
+        loader = { source = "bzloader.dll", destination = "bzloader.dll", sha256 = "8f4f24662419bb2f332d9bd686deaa7377372b091b7c239a87f89caa3ec70a98", size = 46080, version = "1.0.0.80", architecture = "x86" },
+        plugin = { source = "openshim.dll", destination = "plugins\\openshim.dll", sha256 = "d7db3f25357cca582135b1aca186fed60da131ce9394e843ca0863609010ef1f", size = 7465984, version = "1.0.0.80", architecture = "x86" },
         network = { source = "openshim_net.ini.payload", destination = "net.ini", sha256 = "a527e8229fe90431dd7d78d739365ebdf37257ef43b402e514967962594feed6", size = 14684 },
         patches = { source = "openshim_patches.json.payload", destination = "scripts\\patches.json", sha256 = "bd2fe75b2e3826941c34a0f237e4e93a3eabbf23cd140fe20cd4268ec3f67d3b", size = 596142 },
         playerConfig = { source = "openshim.ini.payload", destination = "openshim.ini", sha256 = "8fad9bc7d746fabe1b5ffaa0e075b98aef83e4b0635b66aefbe668895157d8db", size = 63602, overwrite = false },
