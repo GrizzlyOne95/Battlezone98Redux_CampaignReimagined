@@ -36,16 +36,8 @@ if (-not $Plan) { $Plan = Join-Path $PSScriptRoot 'plan.psd1' }
 $RepoRoot   = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $LocalRoot  = Join-Path $RepoRoot 'Local\ReleaseStress'
 $Exe        = Join-Path $GameDir 'battlezone98redux.exe'
+# OpenShim reads <exe dir>\openshim.ini only (EnvConfig::GetModuleDirectory); an openshim\openshim.ini is never read.
 $IniPath    = Join-Path $GameDir 'openshim.ini'
-# OpenShim 1.0.0.81+ keeps the player config in <GameDir>\openshim\openshim.ini and only falls back to the root file.
-$SubIniPath = Join-Path $GameDir 'openshim\openshim.ini'
-if (Test-Path -LiteralPath $SubIniPath) {
-    # With both present the harness cannot tell which one the game reads, so its temporary settings might not apply.
-    if ((Test-Path -LiteralPath $IniPath) -and (Get-FileHash -LiteralPath $IniPath).Hash -ne (Get-FileHash -LiteralPath $SubIniPath).Hash) {
-        throw "Both $IniPath and $SubIniPath exist with different contents; remove the stale one before a stress run."
-    }
-    $IniPath = $SubIniPath
-}
 $OgrePath   = Join-Path $GameDir 'Ogre.cfg'
 $LogsDir    = Join-Path $GameDir 'logs'
 $TriggerFile = Join-Path $GameDir 'uiperf_trigger.txt'
