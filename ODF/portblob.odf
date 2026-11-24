@@ -1,0 +1,5 @@
+[PortalBlob]
+blobInTexture = "cr_fx_portal_r.0"
+blobOutTexture = "cr_fx_portal_b.0"
+blobFrames = 14
+blobVariance = 3

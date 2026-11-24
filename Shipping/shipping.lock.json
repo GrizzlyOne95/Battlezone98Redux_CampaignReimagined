@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6343,
+  "count": 6348,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -6215,12 +6215,24 @@
       "runtime": "cr_fx_dirt.dds"
     },
     {
+      "source": "Assets\\Textures\\cr_fx_dust.dds",
+      "runtime": "cr_fx_dust.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr_fx_flare.dds",
       "runtime": "cr_fx_flare.dds"
     },
     {
       "source": "Assets\\Textures\\cr_fx_plasma.dds",
       "runtime": "cr_fx_plasma.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_fx_portal_b.dds",
+      "runtime": "cr_fx_portal_b.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_fx_portal_r.dds",
+      "runtime": "cr_fx_portal_r.dds"
     },
     {
       "source": "Assets\\Textures\\cr_fx_scorch.dds",
@@ -17471,6 +17483,10 @@
       "runtime": "dummy.odf"
     },
     {
+      "source": "ODF\\dust.odf",
+      "runtime": "dust.odf"
+    },
+    {
       "source": "ODF\\engsplsh.odf",
       "runtime": "engsplsh.odf"
     },
@@ -18589,6 +18605,10 @@
     {
       "source": "ODF\\poproc.odf",
       "runtime": "poproc.odf"
+    },
+    {
+      "source": "ODF\\portblob.odf",
+      "runtime": "portblob.odf"
     },
     {
       "source": "ODF\\repamina.odf",

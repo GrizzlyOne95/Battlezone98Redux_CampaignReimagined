@@ -1,0 +1,7 @@
+[DustEffect]
+
+dustTexture = "cr_fx_dust.0"
+dustFrames = 32
+dustLifespan = 1.2
+dustRadius = .7
+dustScale = 8.0
