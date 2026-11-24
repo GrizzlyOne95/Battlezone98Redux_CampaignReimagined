@@ -253,7 +253,7 @@ NACELLE_PITCH={('[hovercraftclass]','pitch%snacelle%s'%(a,b)) for a in ('throt',
 # CR's own engine loops (Tools/Assets/Build-EngineLoops.py): exactly these ODF remaps are allowed, nothing else
 ENGINE_REMAPS={'svrecy.odf':{'soundthrust':('avrecye6.wav','cr_snd_sov_recy_e0.wav')},'svrecy8.odf':{'soundthrust':('avrecye6.wav','cr_snd_sov_recy_e0.wav')},'svremp.odf':{'soundthrust':('avrecye6.wav','cr_snd_sov_recy_e0.wav')},
 'svslf.odf':{'soundthrust':('avslfe6.wav','cr_snd_sov_slf_e0.wav')},'svhaul.odf':{'soundthrust':('avhaule3.wav','cr_snd_sov_haul_e0.wav')},'svartl.odf':{'soundthrust':('avartle1.wav','cr_snd_sov_artl_e0.wav')},'svsav.odf':{'soundthrust':('avsave0.wav','cr_snd_sov_sav_e0.wav')},
-'svmine.odf':{'soundthrust':('avminee0.wav','cr_snd_mine_e0.wav'),'soundturbo':('avminee3.wav','cr_snd_mine_e1.wav')},'cvmine.odf':{'soundthrust':('avminee0.wav','cr_snd_mine_e0.wav'),'soundturbo':('avminee3.wav','cr_snd_mine_e1.wav')},
+'svmine.odf':{'soundthrust':('avminee0.wav','cr_snd_mine_e0.wav'),'soundturbo':('avminee3.wav','cr_snd_mine_e1.wav')},'cvmine.odf':{'soundthrust':('avminee0.wav','cr_snd_cra_mine_e0.wav'),'soundturbo':('avminee3.wav','cr_snd_cra_mine_e1.wav')},'cvremp.odf':{'soundthrust':('avrecye6.wav','cr_snd_cra_recy_e0.wav')},
 'cvrecy.odf':{'soundthrust':('avrecye6.wav','cr_snd_cra_recy_e0.wav')},'cvrecya.odf':{'soundthrust':('avrecye6.wav','cr_snd_cra_recy_e0.wav')},'cvrecyd.odf':{'soundthrust':('avrecye6.wav','cr_snd_cra_recy_e0.wav')},'cvrecye.odf':{'soundthrust':('avrecye6.wav','cr_snd_cra_recy_e0.wav')}}
 RECYCLER_RADIUS=('[gameobjectclass]','collisionradius')
 # bvrecy* reverse/strafe speeds raised 10 -> 15 to match avrecy (CHANGELOG).
