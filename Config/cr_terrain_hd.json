@@ -196,7 +196,353 @@
           0.0,
           0.0,
           0.0
-        ]
+        ],
+        "live": {
+          "schema": "bzr-openshim-terrain-autopaint-v1",
+          "material": "MN_DETAIL_ATLAS",
+          "diffuseResource": "moon_atlas_d.dds",
+          "typeNames": {
+            "0": [
+              "",
+              "moon dune"
+            ],
+            "3": [
+              "",
+              "moon rock"
+            ],
+            "4": [
+              "",
+              "base"
+            ],
+            "5": [
+              "",
+              "base"
+            ],
+            "6": [
+              "",
+              "base"
+            ]
+          },
+          "typeWeights": {
+            "0": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "3": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "4": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ],
+            "5": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ],
+            "6": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ]
+          },
+          "transition": {
+            "cap": 0.3,
+            "diagonal": 0.5
+          },
+          "weightSize": 2048,
+          "blurMeters": 14,
+          "outsideWeights": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "variation": [
+            {
+              "meters": 220,
+              "amount": 0.7,
+              "types": {
+                "0": [
+                  0,
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "3": [
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 90,
+              "amount": 0.6,
+              "types": {
+                "0": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 130,
+              "amount": 0.6,
+              "types": {
+                "3": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 60,
+              "amount": 0.5,
+              "types": {
+                "3": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              }
+            }
+          ],
+          "shape": [
+            {
+              "radiusMeters": 400,
+              "rangeMeters": 6,
+              "amount": 0.9,
+              "ridge": [
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "from": [
+                0
+              ]
+            }
+          ],
+          "erosion": {
+            "talus": {
+              "weights": [
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0
+              ],
+              "amount": 0.5,
+              "coverage": 0.05,
+              "types": [
+                0
+              ]
+            }
+          },
+          "slope": {
+            "weights": [
+              0,
+              0,
+              0,
+              0.7,
+              0,
+              0,
+              0,
+              0.3
+            ],
+            "startDegrees": 24,
+            "fullDegrees": 38
+          },
+          "layers": [
+            {
+              "name": "Dust",
+              "repeatMeters": 24,
+              "file": "moon_03_diff_4k.jpg",
+              "matchMean": "crhd_moon_mn00sa0_d.dds",
+              "gain": [
+                0.9,
+                1.0,
+                1.09
+              ],
+              "heightMeters": 0.6,
+              "heightShade": 2,
+              "specularScale": 0.6,
+              "detile": true,
+              "proceduralCraters": 0.6
+            },
+            {
+              "name": "Blue rock",
+              "detile": true,
+              "repeatMeters": 16,
+              "archive": "icelandic_rocky_ground_vglndb0g_8k.zip",
+              "member": "Icelandic_Rocky_Ground_vglndb0g_8K_BaseColor.jpg",
+              "matchMean": "crhd_moon_mn33sa0_d.dds",
+              "heightMeters": 1.2
+            },
+            {
+              "name": "Cratered dust",
+              "repeatMeters": 40,
+              "file": "moon_meteor_01_diff_4k.jpg",
+              "matchMean": "crhd_moon_mn00sa0_d.dds",
+              "gain": [
+                0.9,
+                1.0,
+                1.09
+              ],
+              "heightMeters": 1.0,
+              "heightShade": 3,
+              "specularScale": 0.6,
+              "detile": true,
+              "proceduralCraters": 1
+            },
+            {
+              "name": "Blue rock wide",
+              "detile": true,
+              "repeatMeters": 40,
+              "file": "Icelandic_Jagged_Slate_Rock_shfsaida_4K_BaseColor.jpg",
+              "saturation": 0.15,
+              "matchMean": "crhd_moon_mn33sa0_d.dds",
+              "heightMeters": 1.6
+            },
+            {
+              "name": "Base pad",
+              "repeatMeters": 20,
+              "cellAligned": true,
+              "file": "crhd_moon_mn44sa0_d.dds",
+              "normal": "crhd_moon_mn44sa0_n.dds",
+              "heightMeters": 0.1,
+              "edge": {
+                "meters": 8,
+                "ragged": 0.12,
+                "raggedMeters": 12
+              }
+            },
+            {
+              "name": "Regolith",
+              "detile": true,
+              "repeatMeters": 30,
+              "file": "moon_dusted_01_diff_2k.png",
+              "matchMean": "crhd_moon_mn00sa0_d.dds",
+              "gain": [
+                1.06,
+                1.06,
+                1.06
+              ],
+              "contrast": 1.4,
+              "heightMeters": 0.5
+            },
+            {
+              "name": "Meteor rubble",
+              "detile": true,
+              "repeatMeters": 22,
+              "file": "moon_meteor_02_diff_2k.png",
+              "matchMean": "crhd_moon_mn33sa0_d.dds",
+              "contrast": 1.5,
+              "heightMeters": 0.9
+            },
+            {
+              "name": "Dark basalt",
+              "detile": true,
+              "repeatMeters": 14,
+              "archive": "dark_rock_02_8k.zip",
+              "member": "dark_rock_02_diff_8k.jpg",
+              "saturation": 0.2,
+              "matchMean": "crhd_moon_mn33sa0_d.dds",
+              "gain": [
+                0.78,
+                0.78,
+                0.8
+              ],
+              "contrast": 1.3,
+              "heightMeters": 1.0
+            }
+          ],
+          "heightBlend": 0.5,
+          "far": {
+            "scale": 5,
+            "startMeters": 40,
+            "endMeters": 250,
+            "amount": 0.6
+          },
+          "macro": {
+            "meters": 260,
+            "brightness": 0.12,
+            "saturation": 0.15
+          },
+          "craters": {
+            "cellMeters": 8,
+            "depth": 0.2,
+            "coverage": 0.35,
+            "octaves": 3
+          }
+        }
       }
     },
     "VE_DETAIL_ATLAS": {
@@ -426,7 +772,341 @@
           50,
           2.5,
           0.2
-        ]
+        ],
+        "live": {
+          "schema": "bzr-openshim-terrain-autopaint-v1",
+          "material": "VE_DETAIL_ATLAS",
+          "diffuseResource": "venus_atlas_d.dds",
+          "typeNames": {
+            "0": "Sulphur Deposits",
+            "1": "Liquid Sulphur",
+            "2": "Base",
+            "3": "Hardened Sulphur",
+            "4": "Geyser"
+          },
+          "typeWeights": {
+            "0": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "1": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "2": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ],
+            "3": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "4": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "transition": {
+            "cap": 0.3,
+            "diagonal": 0.5
+          },
+          "weightSize": 2048,
+          "blurMeters": 14,
+          "outsideWeights": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "variation": [
+            {
+              "meters": 200,
+              "amount": 0.45,
+              "types": {
+                "0": [
+                  0,
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "3": [
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 90,
+              "amount": 0.6,
+              "types": {
+                "0": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 130,
+              "amount": 0.6,
+              "types": {
+                "3": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 60,
+              "amount": 0.5,
+              "types": {
+                "3": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              }
+            }
+          ],
+          "shape": [
+            {
+              "radiusMeters": 400,
+              "rangeMeters": 8,
+              "amount": 0.9,
+              "ridge": [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "from": [
+                0
+              ]
+            }
+          ],
+          "erosion": {
+            "talus": {
+              "weights": [
+                0,
+                0,
+                0.5,
+                0.5,
+                0,
+                0,
+                0,
+                0
+              ],
+              "amount": 0.5,
+              "coverage": 0.05,
+              "types": [
+                0,
+                3,
+                4
+              ]
+            }
+          },
+          "slope": {
+            "weights": [
+              0,
+              0,
+              0,
+              0.7,
+              0,
+              0,
+              0,
+              0.3
+            ],
+            "startDegrees": 24,
+            "fullDegrees": 38
+          },
+          "layers": [
+            {
+              "name": "Sulphur deposits",
+              "detile": true,
+              "repeatMeters": 18,
+              "archive": "rock_boulder_cracked_8k.zip",
+              "member": "rock_boulder_cracked_diff_8k.jpg",
+              "matchMean": "crhd_venus_ve00sa0_d.dds",
+              "heightMeters": 1.2,
+              "proceduralDetail": 0.6
+            },
+            {
+              "name": "Liquid sulphur",
+              "detile": true,
+              "repeatMeters": 16,
+              "file": "crhd_venus_ve11sa0_d.dds",
+              "heightMeters": 0.15
+            },
+            {
+              "name": "Hardened sulphur",
+              "detile": true,
+              "repeatMeters": 20,
+              "archive": "muddy_rock_ubkmfang_8k.zip",
+              "member": "Muddy_Rock_ubkmfang_8K_BaseColor.jpg",
+              "matchMean": "crhd_venus_ve33sa0_d.dds",
+              "heightMeters": 1.0,
+              "proceduralDetail": 0.8
+            },
+            {
+              "name": "Crag",
+              "detile": true,
+              "repeatMeters": 40,
+              "archive": "rock_06_8k.zip",
+              "member": "rock_06_diff_8k.jpg",
+              "matchMean": "crhd_venus_ve33sa0_d.dds",
+              "heightMeters": 2.6,
+              "proceduralDetail": 1
+            },
+            {
+              "name": "Base pad",
+              "repeatMeters": 20,
+              "cellAligned": true,
+              "file": "crhd_venus_ve22sa0_d.dds",
+              "normal": "crhd_venus_ve22sa0_n.dds",
+              "heightMeters": 0.1,
+              "edge": {
+                "meters": 8,
+                "ragged": 0.12,
+                "raggedMeters": 12
+              }
+            },
+            {
+              "name": "Ochre sulphur",
+              "detile": true,
+              "repeatMeters": 14,
+              "archive": "sulphur_rock_vmijee1g_8k.zip",
+              "member": "Sulphur_Rock_vmijee1g_8K_BaseColor.jpg",
+              "matchMean": "crhd_venus_ve00sa0_d.dds",
+              "gain": [
+                1.1,
+                1.0,
+                0.85
+              ],
+              "contrast": 1.4,
+              "heightMeters": 0.5,
+              "proceduralDetail": 0.4
+            },
+            {
+              "name": "Dark crust",
+              "detile": true,
+              "repeatMeters": 16,
+              "archive": "rocks_ground_09_8k.zip",
+              "member": "rocks_ground_09_diff_8k.jpg",
+              "matchMean": "crhd_venus_ve33sa0_d.dds",
+              "gain": [
+                0.8,
+                0.76,
+                0.7
+              ],
+              "contrast": 1.4,
+              "heightMeters": 0.8,
+              "proceduralDetail": 0.6
+            },
+            {
+              "name": "Dark scree",
+              "detile": true,
+              "repeatMeters": 10,
+              "archive": "icelandic_rocky_ground_ve2kbizn_8k.zip",
+              "member": "Icelandic_Rocky_Ground_ve2kbizn_8K_BaseColor.jpg",
+              "matchMean": "crhd_venus_ve33sa0_d.dds",
+              "gain": [
+                0.78,
+                0.74,
+                0.68
+              ],
+              "contrast": 1.2,
+              "heightMeters": 0.6,
+              "proceduralDetail": 0.5
+            }
+          ],
+          "heightBlend": 0.5,
+          "far": {
+            "scale": 5,
+            "startMeters": 40,
+            "endMeters": 250,
+            "amount": 0.6
+          },
+          "macro": {
+            "meters": 260,
+            "brightness": 0.12,
+            "saturation": 0.15
+          },
+          "detail": {
+            "waveMeters": 60,
+            "heightMeters": 1.5,
+            "octaves": 4,
+            "damping": 1
+          },
+          "parallax": {
+            "scale": 1,
+            "fadeMeters": 30,
+            "steps": 12
+          }
+        }
       }
     },
     "MA_DETAIL_ATLAS": {
@@ -555,7 +1235,242 @@
           1,
           30,
           12
-        ]
+        ],
+        "live": {
+          "schema": "bzr-openshim-terrain-autopaint-v1",
+          "material": "MA_DETAIL_ATLAS",
+          "diffuseResource": "mars_atlas_d.dds",
+          "typeNames": {
+            "0": "Sandy",
+            "1": "Rocky",
+            "2": "Geyser",
+            "3": "Rock mountain",
+            "4": "Base"
+          },
+          "typeWeights": {
+            "0": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "1": [
+              0,
+              1,
+              0,
+              0
+            ],
+            "2": [
+              0,
+              0,
+              1,
+              0
+            ],
+            "3": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "4": [
+              0,
+              0,
+              1,
+              0
+            ]
+          },
+          "transition": {
+            "cap": 0.3,
+            "diagonal": 0.5
+          },
+          "blurMeters": 14,
+          "outsideWeights": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "variation": {
+            "meters": 200,
+            "amount": 0.4,
+            "types": {
+              "0": [
+                0,
+                1,
+                0,
+                0
+              ],
+              "1": [
+                1,
+                0,
+                0,
+                0
+              ]
+            }
+          },
+          "shape": [
+            {
+              "radiusMeters": 400,
+              "rangeMeters": 8,
+              "amount": 0.8,
+              "hollow": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "ridge": [
+                0,
+                1,
+                0,
+                0
+              ],
+              "from": [
+                0,
+                1
+              ]
+            },
+            {
+              "radiusMeters": 40,
+              "rangeMeters": 3,
+              "amount": 0.5,
+              "hollow": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "ridge": [
+                0,
+                0,
+                1,
+                0
+              ],
+              "from": [
+                0,
+                1
+              ]
+            }
+          ],
+          "erosion": {
+            "talus": {
+              "weights": [
+                0,
+                0.4,
+                0.6,
+                0
+              ],
+              "amount": 0.6,
+              "coverage": 0.06,
+              "types": [
+                0,
+                1,
+                3
+              ]
+            },
+            "deposit": {
+              "weights": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "amount": 0.5,
+              "coverage": 0.08,
+              "types": [
+                1
+              ]
+            },
+            "scour": {
+              "weights": [
+                0,
+                0,
+                1,
+                0
+              ],
+              "amount": 0.35,
+              "coverage": 0.06,
+              "types": [
+                0,
+                1
+              ]
+            }
+          },
+          "slope": {
+            "weights": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "startDegrees": 24,
+            "fullDegrees": 38
+          },
+          "layers": [
+            {
+              "name": "Dune sand",
+              "detile": true,
+              "repeatMeters": 20,
+              "archive": "desert_western_ground_sand_fine_01_xgmpdek_8k.zip",
+              "member": "Desert_Western_Ground_Sand_Fine_01_xgmpdek_8K_BaseColor.jpg",
+              "matchMean": "crhd_mars_ma00sa0_d.dds",
+              "heightMeters": 0.4,
+              "proceduralDetail": 0.4
+            },
+            {
+              "name": "Rocky soil",
+              "detile": true,
+              "repeatMeters": 16,
+              "archive": "desert_western_detail_sand_coarse_01_xgindh1_8k.zip",
+              "member": "Desert_Western_Detail_Sand_Coarse_01_xgindh1_8K_BaseColor.jpg",
+              "matchMean": "crhd_mars_ma11sa0_d.dds",
+              "heightMeters": 0.8,
+              "proceduralDetail": 0.6
+            },
+            {
+              "name": "Gravel",
+              "detile": true,
+              "repeatMeters": 12,
+              "archive": "arid_gravel_ground_wikdaikbw_8k.zip",
+              "member": "Arid_Gravel_Ground_wikdaikbw_8K_BaseColor.jpg",
+              "matchMean": "crhd_mars_ma11sa0_d.dds",
+              "heightMeters": 0.5,
+              "proceduralDetail": 0.5
+            },
+            {
+              "name": "Cracked rock",
+              "detile": true,
+              "repeatMeters": 24,
+              "file": "rock_boulder_cracked_diff_8k.jpg",
+              "matchMean": "crhd_mars_ma33sa0_d.dds",
+              "heightMeters": 2.0,
+              "proceduralDetail": 1
+            }
+          ],
+          "heightBlend": 0.5,
+          "far": {
+            "scale": 5,
+            "startMeters": 40,
+            "endMeters": 250,
+            "amount": 0.6
+          },
+          "macro": {
+            "meters": 260,
+            "brightness": 0.12,
+            "saturation": 0.15
+          },
+          "detail": {
+            "waveMeters": 60,
+            "heightMeters": 1.5,
+            "octaves": 4,
+            "damping": 1
+          },
+          "parallax": {
+            "scale": 1,
+            "fadeMeters": 30,
+            "steps": 12
+          }
+        }
       }
     },
     "IO_DETAIL_ATLAS": {
@@ -742,7 +1657,363 @@
           40,
           3,
           0.35
-        ]
+        ],
+        "live": {
+          "schema": "bzr-openshim-terrain-autopaint-v1",
+          "material": "IO_DETAIL_ATLAS",
+          "diffuseResource": "io_atlas_d.dds",
+          "typeNames": {
+            "0": "Lava",
+            "1": "Lava Pool",
+            "2": "NA",
+            "3": "Sulphur Deposits",
+            "4": "Hardened Lava",
+            "5": "Base"
+          },
+          "typeWeights": {
+            "0": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "1": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "2": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "3": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "4": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ],
+            "5": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ]
+          },
+          "transition": {
+            "cap": 0.3,
+            "diagonal": 0.5
+          },
+          "weightSize": 2048,
+          "blurMeters": 14,
+          "outsideWeights": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "variation": [
+            {
+              "meters": 200,
+              "amount": 0.4,
+              "types": {
+                "0": [
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "1": [
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 90,
+              "amount": 0.6,
+              "types": {
+                "0": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 130,
+              "amount": 0.6,
+              "types": {
+                "3": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 60,
+              "amount": 0.5,
+              "types": {
+                "4": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              }
+            }
+          ],
+          "shape": [
+            {
+              "radiusMeters": 400,
+              "rangeMeters": 6,
+              "amount": 0.9,
+              "ridge": [
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0
+              ],
+              "from": [
+                0
+              ]
+            },
+            {
+              "radiusMeters": 200,
+              "rangeMeters": 3,
+              "amount": 0.8,
+              "hollow": [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "from": [
+                0
+              ]
+            }
+          ],
+          "erosion": {
+            "talus": {
+              "weights": [
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0
+              ],
+              "amount": 0.5,
+              "coverage": 0.05,
+              "types": [
+                0,
+                2,
+                3,
+                4
+              ]
+            }
+          },
+          "slope": {
+            "weights": [
+              0,
+              0,
+              0,
+              0.7,
+              0,
+              0,
+              0,
+              0.3
+            ],
+            "startDegrees": 24,
+            "fullDegrees": 38
+          },
+          "layers": [
+            {
+              "name": "Lava field",
+              "detile": true,
+              "repeatMeters": 20,
+              "archive": "lava_stone_ripple_tbhofjmr_8k.zip",
+              "member": "Lava_Stone_Ripple_tbhofjmr_8K_BaseColor.jpg",
+              "matchMean": "crhd_io_io00sa0_d.dds",
+              "heightMeters": 0.8
+            },
+            {
+              "name": "Lava pool",
+              "detile": true,
+              "repeatMeters": 18,
+              "file": "crhd_io_io11sa0_d.dds",
+              "heightMeters": 0.15
+            },
+            {
+              "name": "Sulphur deposits",
+              "detile": true,
+              "repeatMeters": 18,
+              "archive": "sulphur_rock_vmijee1g_8k.zip",
+              "member": "Sulphur_Rock_vmijee1g_8K_BaseColor.jpg",
+              "matchMean": "crhd_io_io33sa0_d.dds",
+              "heightMeters": 0.8
+            },
+            {
+              "name": "Hardened lava",
+              "detile": true,
+              "repeatMeters": 20,
+              "archive": "icelandic_rocky_ground_ve2kbizn_8k.zip",
+              "member": "Icelandic_Rocky_Ground_ve2kbizn_8K_BaseColor.jpg",
+              "matchMean": "crhd_io_io44sa0_d.dds",
+              "heightMeters": 1.0
+            },
+            {
+              "name": "Base pad",
+              "repeatMeters": 20,
+              "cellAligned": true,
+              "file": "freepbr_futuristic_panels1_basecolor.png",
+              "normal": "freepbr_futuristic_panels1_normal-dx.png",
+              "height": "freepbr_futuristic_panels1_height.png",
+              "saturation": 0.3,
+              "gain": [
+                0.32,
+                0.31,
+                0.3
+              ],
+              "contrast": 1.3,
+              "heightMeters": 0.1,
+              "edge": {
+                "meters": 8,
+                "ragged": 0.12,
+                "raggedMeters": 12
+              }
+            },
+            {
+              "name": "Dark lava rock",
+              "detile": true,
+              "repeatMeters": 16,
+              "archive": "dark_rock_02_8k.zip",
+              "member": "dark_rock_02_diff_8k.jpg",
+              "matchMean": "crhd_io_io44sa0_d.dds",
+              "gain": [
+                0.85,
+                0.82,
+                0.8
+              ],
+              "contrast": 1.4,
+              "heightMeters": 0.9
+            },
+            {
+              "name": "Pale sulphur crust",
+              "detile": true,
+              "repeatMeters": 14,
+              "archive": "rock_boulder_cracked_8k.zip",
+              "member": "rock_boulder_cracked_diff_8k.jpg",
+              "saturation": 0.5,
+              "matchMean": "crhd_io_io33sa0_d.dds",
+              "gain": [
+                1.2,
+                1.15,
+                0.85
+              ],
+              "contrast": 1.4,
+              "heightMeters": 1.0
+            },
+            {
+              "name": "Ash scree",
+              "detile": true,
+              "repeatMeters": 10,
+              "archive": "rocks_ground_09_8k.zip",
+              "member": "rocks_ground_09_diff_8k.jpg",
+              "matchMean": "crhd_io_io44sa0_d.dds",
+              "gain": [
+                0.8,
+                0.78,
+                0.75
+              ],
+              "contrast": 1.2,
+              "heightMeters": 0.6
+            }
+          ],
+          "heightBlend": 0.5,
+          "far": {
+            "scale": 5,
+            "startMeters": 40,
+            "endMeters": 250,
+            "amount": 0.6
+          },
+          "macro": {
+            "meters": 260,
+            "brightness": 0.12,
+            "saturation": 0.15
+          }
+        }
       }
     },
     "EU_DETAIL_ATLAS": {
@@ -880,7 +2151,349 @@
           0.4,
           1.0,
           0.7
-        ]
+        ],
+        "live": {
+          "schema": "bzr-openshim-terrain-autopaint-v1",
+          "material": "EU_DETAIL_ATLAS",
+          "diffuseResource": "europa_atlas_d.dds",
+          "typeNames": {
+            "0": "Thin Ice",
+            "1": "Frozen Tundra",
+            "2": "Snowy Rock",
+            "3": "Glacial",
+            "4": "Base"
+          },
+          "typeWeights": {
+            "0": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "1": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "2": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "3": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ],
+            "4": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ]
+          },
+          "transition": {
+            "cap": 0.3,
+            "diagonal": 0.5
+          },
+          "weightSize": 2048,
+          "blurMeters": 14,
+          "outsideWeights": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "variation": [
+            {
+              "meters": 200,
+              "amount": 0.4,
+              "types": {
+                "2": [
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "3": [
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 90,
+              "amount": 0.6,
+              "types": {
+                "0": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 130,
+              "amount": 0.6,
+              "types": {
+                "2": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                "3": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 60,
+              "amount": 0.5,
+              "types": {
+                "2": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              }
+            }
+          ],
+          "shape": [
+            {
+              "radiusMeters": 300,
+              "rangeMeters": 5,
+              "amount": 0.6,
+              "hollow": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "from": [
+                1,
+                2
+              ]
+            },
+            {
+              "radiusMeters": 400,
+              "rangeMeters": 24,
+              "amount": 0.5,
+              "ridge": [
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0
+              ],
+              "from": [
+                1,
+                2
+              ]
+            }
+          ],
+          "erosion": {
+            "talus": {
+              "weights": [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "amount": 0.5,
+              "coverage": 0.05,
+              "types": [
+                0,
+                1,
+                3
+              ]
+            }
+          },
+          "slope": {
+            "weights": [
+              0,
+              0,
+              0.7,
+              0,
+              0,
+              0,
+              0,
+              0.3
+            ],
+            "startDegrees": 24,
+            "fullDegrees": 38
+          },
+          "layers": [
+            {
+              "name": "Thin ice",
+              "detile": true,
+              "repeatMeters": 24,
+              "archive": "icelandic_glacier_vf0nbbtn_8k.zip",
+              "member": "Icelandic_Glacier_vf0nbbtn_8K_BaseColor.jpg",
+              "matchMean": "crhd_europa_eu00sa0_d.dds",
+              "heightMeters": 0.4
+            },
+            {
+              "name": "Frozen tundra",
+              "detile": true,
+              "repeatMeters": 16,
+              "archive": "icelandic_sand_with_pebbles_tbklac1n_8k.zip",
+              "member": "Icelandic_Sand_With_Pebbles_tbklac1n_8K_BaseColor.jpg",
+              "matchMean": "crhd_europa_eu11sa0_d.dds",
+              "heightMeters": 0.3
+            },
+            {
+              "name": "Snowy rock",
+              "detile": true,
+              "repeatMeters": 16,
+              "archive": "icelandic_rocky_ground_vglndb0g_8k.zip",
+              "member": "Icelandic_Rocky_Ground_vglndb0g_8K_BaseColor.jpg",
+              "matchMean": "crhd_europa_eu22sa0_d.dds",
+              "heightMeters": 1.0
+            },
+            {
+              "name": "Glacial",
+              "detile": true,
+              "repeatMeters": 48,
+              "archive": "icelandic_glacier_vf0nbbtn_8k.zip",
+              "member": "Icelandic_Glacier_vf0nbbtn_8K_BaseColor.jpg",
+              "matchMean": "crhd_europa_eu33sa0_d.dds",
+              "heightMeters": 1.2
+            },
+            {
+              "name": "Base pad",
+              "repeatMeters": 20,
+              "cellAligned": true,
+              "file": "crhd_europa_eu44sa0_d.dds",
+              "normal": "crhd_europa_eu44sa0_n.dds",
+              "heightMeters": 0.1,
+              "edge": {
+                "meters": 8,
+                "ragged": 0.12,
+                "raggedMeters": 12
+              }
+            },
+            {
+              "name": "Frost crust",
+              "detile": true,
+              "repeatMeters": 18,
+              "archive": "marble_rock_02_8k.zip",
+              "member": "marble_rock_02_diff_8k.jpg",
+              "saturation": 0.4,
+              "matchMean": "crhd_europa_eu00sa0_d.dds",
+              "contrast": 1.3,
+              "heightMeters": 0.4
+            },
+            {
+              "name": "Dark ice rock",
+              "detile": true,
+              "repeatMeters": 16,
+              "archive": "dark_rock_02_8k.zip",
+              "member": "dark_rock_02_diff_8k.jpg",
+              "saturation": 0.4,
+              "matchMean": "crhd_europa_eu22sa0_d.dds",
+              "gain": [
+                0.85,
+                0.88,
+                0.95
+              ],
+              "contrast": 1.4,
+              "heightMeters": 1.0
+            },
+            {
+              "name": "Icy scree",
+              "detile": true,
+              "repeatMeters": 10,
+              "archive": "icelandic_jagged_rock_ucumbgedy_8k.zip",
+              "member": "Icelandic_Jagged_Rock_ucumbgedy_8K_BaseColor.jpg",
+              "saturation": 0.5,
+              "matchMean": "crhd_europa_eu33sa0_d.dds",
+              "contrast": 1.2,
+              "heightMeters": 0.7
+            }
+          ],
+          "heightBlend": 0.5,
+          "far": {
+            "scale": 5,
+            "startMeters": 40,
+            "endMeters": 250,
+            "amount": 0.6
+          },
+          "macro": {
+            "meters": 260,
+            "brightness": 0.12,
+            "saturation": 0.15
+          }
+        }
       }
     },
     "TI_DETAIL_ATLAS": {
@@ -1150,7 +2763,322 @@
           0.5,
           1.0,
           0.7
-        ]
+        ],
+        "live": {
+          "schema": "bzr-openshim-terrain-autopaint-v1",
+          "material": "TI_DETAIL_ATLAS",
+          "diffuseResource": "titan_atlas_d.dds",
+          "typeNames": {
+            "0": [
+              "Methane Ocean",
+              ""
+            ],
+            "1": [
+              "Base",
+              ""
+            ],
+            "3": [
+              "Rock",
+              ""
+            ]
+          },
+          "typeWeights": {
+            "0": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "1": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ],
+            "3": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "transition": {
+            "cap": 0.3,
+            "diagonal": 0.5
+          },
+          "weightSize": 2048,
+          "blurMeters": 14,
+          "outsideWeights": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "variation": [
+            {
+              "meters": 220,
+              "amount": 0.6,
+              "types": {
+                "0": [
+                  0,
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "3": [
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 90,
+              "amount": 0.6,
+              "types": {
+                "0": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 130,
+              "amount": 0.6,
+              "types": {
+                "3": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 60,
+              "amount": 0.5,
+              "types": {
+                "3": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              }
+            }
+          ],
+          "shape": [
+            {
+              "radiusMeters": 400,
+              "rangeMeters": 6,
+              "amount": 0.9,
+              "ridge": [
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "from": [
+                0
+              ]
+            }
+          ],
+          "erosion": {
+            "talus": {
+              "weights": [
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0
+              ],
+              "amount": 0.5,
+              "coverage": 0.05
+            },
+            "channel": {
+              "weights": [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "amount": 0.5,
+              "startHectares": 3,
+              "fullHectares": 30,
+              "types": [
+                3
+              ]
+            }
+          },
+          "slope": {
+            "weights": [
+              0,
+              0.7,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0.3
+            ],
+            "startDegrees": 24,
+            "fullDegrees": 38
+          },
+          "layers": [
+            {
+              "name": "Methane shore",
+              "detile": true,
+              "repeatMeters": 20,
+              "archive": "beach_gravel_with_pebbles_uifndiulw_8k.zip",
+              "member": "Beach_Gravel_With_Pebbles_uifndiulw_8K_BaseColor.jpg",
+              "matchMean": "crhd_titan_ti00sa0_d.dds",
+              "heightMeters": 0.35
+            },
+            {
+              "name": "Rock",
+              "detile": true,
+              "repeatMeters": 20,
+              "archive": "rock_face_03_8k.zip",
+              "member": "rock_face_03_diff_8k.jpg",
+              "matchMean": "crhd_titan_ti33sa0_d.dds",
+              "heightMeters": 1.4
+            },
+            {
+              "name": "Shore wide",
+              "detile": true,
+              "repeatMeters": 40,
+              "archive": "sandy_beach_rock_udrkajbn_8k.zip",
+              "member": "Sandy_Beach_Rock_udrkajbn_8K_BaseColor.jpg",
+              "matchMean": "crhd_titan_ti00sb0_d.dds",
+              "heightMeters": 0.8
+            },
+            {
+              "name": "Rock wide",
+              "detile": true,
+              "repeatMeters": 36,
+              "archive": "icelandic_rocky_ground_ve2kbizn_8k.zip",
+              "member": "Icelandic_Rocky_Ground_ve2kbizn_8K_BaseColor.jpg",
+              "matchMean": "crhd_titan_ti33sb0_d.dds",
+              "heightMeters": 1.2
+            },
+            {
+              "name": "Base pad",
+              "repeatMeters": 20,
+              "cellAligned": true,
+              "file": "crhd_titan_ti11sa0_d.dds",
+              "normal": "crhd_titan_ti11sa0_n.dds",
+              "heightMeters": 0.1,
+              "edge": {
+                "meters": 8,
+                "ragged": 0.12,
+                "raggedMeters": 12
+              }
+            },
+            {
+              "name": "Dark shore mud",
+              "detile": true,
+              "repeatMeters": 18,
+              "archive": "muddy_rock_ubkmfang_8k.zip",
+              "member": "Muddy_Rock_ubkmfang_8K_BaseColor.jpg",
+              "saturation": 0.5,
+              "matchMean": "crhd_titan_ti00sa0_d.dds",
+              "gain": [
+                0.85,
+                0.85,
+                0.85
+              ],
+              "contrast": 1.3,
+              "heightMeters": 0.5
+            },
+            {
+              "name": "Dark basalt",
+              "detile": true,
+              "repeatMeters": 14,
+              "archive": "dark_rock_detail_texture_sexhdi0f0_4k.zip",
+              "member": "Dark_Rock_Detail_Texture_sexhdi0f0_4K_BaseColor.jpg",
+              "matchMean": "crhd_titan_ti33sa0_d.dds",
+              "contrast": 1.3,
+              "heightMeters": 1.0
+            },
+            {
+              "name": "Rock rubble",
+              "detile": true,
+              "repeatMeters": 10,
+              "archive": "rocks_ground_09_8k.zip",
+              "member": "rocks_ground_09_diff_8k.jpg",
+              "matchMean": "crhd_titan_ti33sa0_d.dds",
+              "gain": [
+                0.9,
+                0.88,
+                0.85
+              ],
+              "contrast": 1.2,
+              "heightMeters": 0.7
+            }
+          ],
+          "heightBlend": 0.5,
+          "far": {
+            "scale": 5,
+            "startMeters": 40,
+            "endMeters": 250,
+            "amount": 0.6
+          },
+          "macro": {
+            "meters": 260,
+            "brightness": 0.12,
+            "saturation": 0.15
+          }
+        }
       }
     },
     "AC_DETAIL_ATLAS": {
@@ -1243,7 +3171,262 @@
           0.4,
           1.2,
           0.4
-        ]
+        ],
+        "live": {
+          "schema": "bzr-openshim-terrain-autopaint-v1",
+          "material": "AC_DETAIL_ATLAS",
+          "diffuseResource": "achilles_atlas_d.dds",
+          "typeNames": {
+            "0": "grass",
+            "1": "trees",
+            "2": "rocky rock",
+            "3": "river",
+            "4": "waterfall",
+            "5": "Base"
+          },
+          "typeWeights": {
+            "0": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "1": [
+              0,
+              1,
+              0,
+              0
+            ],
+            "2": [
+              0,
+              0,
+              1,
+              0
+            ],
+            "3": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "4": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "5": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "transition": {
+            "cap": 0.3,
+            "diagonal": 0.5
+          },
+          "blurMeters": 14,
+          "undefinedTypeWeights": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "outsideWeights": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "variation": {
+            "meters": 110,
+            "amount": 0.6,
+            "types": {
+              "0": [
+                0,
+                0.7,
+                0,
+                0.3
+              ],
+              "1": [
+                1,
+                0,
+                0,
+                0
+              ]
+            }
+          },
+          "shape": [
+            {
+              "radiusMeters": 120,
+              "rangeMeters": 6,
+              "amount": 0.5,
+              "types": [
+                0
+              ],
+              "hollow": [
+                1,
+                0,
+                0,
+                0
+              ],
+              "ridge": [
+                0.5,
+                0,
+                0.1,
+                0.4
+              ]
+            },
+            {
+              "radiusMeters": 40,
+              "rangeMeters": 2.5,
+              "amount": 0.3,
+              "types": [
+                0,
+                1
+              ],
+              "hollow": [
+                0,
+                1,
+                0,
+                0
+              ],
+              "ridge": [
+                0.5,
+                0,
+                0.2,
+                0.3
+              ]
+            },
+            {
+              "radiusMeters": 250,
+              "rangeMeters": 4,
+              "amount": 0.9,
+              "ridge": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "from": [
+                0
+              ]
+            }
+          ],
+          "erosion": {
+            "talus": {
+              "weights": [
+                0,
+                0,
+                0.7,
+                0.3
+              ],
+              "amount": 0.6,
+              "coverage": 0.06,
+              "radiusMeters": 60
+            },
+            "deposit": {
+              "weights": [
+                0,
+                1,
+                0,
+                0
+              ],
+              "amount": 0.45,
+              "coverage": 0.08,
+              "types": [
+                0
+              ]
+            },
+            "channel": {
+              "weights": [
+                0,
+                0,
+                0.3,
+                0.7
+              ],
+              "amount": 0.6,
+              "startHectares": 3,
+              "fullHectares": 30
+            },
+            "scour": {
+              "weights": [
+                0.3,
+                0,
+                0.1,
+                0.6
+              ],
+              "amount": 0.35,
+              "coverage": 0.06,
+              "types": [
+                0
+              ]
+            }
+          },
+          "slope": {
+            "weights": [
+              0,
+              0,
+              0.85,
+              0.15
+            ],
+            "startDegrees": 22,
+            "fullDegrees": 38
+          },
+          "layers": [
+            {
+              "name": "Grass",
+              "detile": true,
+              "repeatMeters": 16,
+              "archive": "clover_patches_on_grass_sgmkajak_8k.zip",
+              "member": "Clover_Patches_on_Grass_sgmkajak_8K_BaseColor.jpg",
+              "matchMean": "crhd_achilles_ac00sa0_d.dds",
+              "heightMeters": 0.6
+            },
+            {
+              "name": "Forest floor",
+              "detile": true,
+              "repeatMeters": 16,
+              "archive": "forest_floor_sfjmafua_8k.zip",
+              "member": "Forest_Floor_sfjmafua_8K_BaseColor.jpg",
+              "matchMean": "crhd_achilles_ac11sa0_d.dds",
+              "heightMeters": 0.4
+            },
+            {
+              "name": "Mossy rock",
+              "detile": true,
+              "repeatMeters": 12,
+              "archive": "mossy_rocky_ground_vewmeehlw_8k.zip",
+              "member": "Mossy_Rocky_Ground_vewmeehlw_8K_BaseColor.jpg",
+              "matchMean": "crhd_achilles_ac22sa0_d.dds",
+              "heightMeters": 1.2
+            },
+            {
+              "name": "Bare earth",
+              "detile": true,
+              "repeatMeters": 18,
+              "archive": "military_trenches_ground_dirt_fine_04_ydyjcgrs_8k.zip",
+              "member": "ydyjcgrs_8K_Basecolor.jpg",
+              "matchMean": "crhd_achilles_ac55sa0_d.dds",
+              "heightMeters": 0.4,
+              "derivedReliefMeters": 0.4
+            }
+          ],
+          "heightBlend": 0.5,
+          "far": {
+            "scale": 5,
+            "startMeters": 40,
+            "endMeters": 250,
+            "amount": 0.6
+          },
+          "macro": {
+            "meters": 260,
+            "brightness": 0.12,
+            "saturation": 0.15,
+            "hue": 0.35
+          }
+        }
       }
     },
     "GA_DETAIL_ATLAS": {
@@ -1545,7 +3728,427 @@
           1,
           30,
           12
-        ]
+        ],
+        "live": {
+          "schema": "bzr-openshim-terrain-autopaint-v1",
+          "material": "GA_DETAIL_ATLAS",
+          "diffuseResource": "GANYMEDE_ATLAS_D.dds",
+          "typeNames": {
+            "0": "Dark rock",
+            "1": "light rock",
+            "2": "Ice  ( cream coloured texture )",
+            "3": "Geyser",
+            "4": "Base"
+          },
+          "typeWeights": {
+            "0": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "1": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "2": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "3": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ],
+            "4": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ]
+          },
+          "transition": {
+            "cap": 0.3,
+            "diagonal": 0.5
+          },
+          "weightSize": 2048,
+          "blurMeters": 14,
+          "outsideWeights": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "variation": [
+            {
+              "meters": 200,
+              "amount": 0.4,
+              "types": {
+                "0": [
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "1": [
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 90,
+              "amount": 0.6,
+              "types": {
+                "0": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 130,
+              "amount": 0.6,
+              "types": {
+                "1": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                "2": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 60,
+              "amount": 0.5,
+              "types": {
+                "3": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              }
+            }
+          ],
+          "shape": [
+            {
+              "radiusMeters": 400,
+              "rangeMeters": 8,
+              "amount": 0.8,
+              "hollow": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "ridge": [
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "from": [
+                0,
+                1
+              ]
+            },
+            {
+              "radiusMeters": 40,
+              "rangeMeters": 3,
+              "amount": 0.5,
+              "hollow": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "ridge": [
+                0,
+                0,
+                0.5,
+                0,
+                0,
+                0.5,
+                0,
+                0
+              ],
+              "from": [
+                0,
+                1
+              ]
+            }
+          ],
+          "erosion": {
+            "talus": {
+              "weights": [
+                0,
+                0.2,
+                0.3,
+                0,
+                0,
+                0,
+                0,
+                0.5
+              ],
+              "amount": 0.6,
+              "coverage": 0.06,
+              "types": [
+                0,
+                1,
+                2
+              ]
+            },
+            "deposit": {
+              "weights": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "amount": 0.5,
+              "coverage": 0.08,
+              "types": [
+                1
+              ]
+            },
+            "scour": {
+              "weights": [
+                0,
+                0,
+                0.5,
+                0,
+                0,
+                0,
+                0.5,
+                0
+              ],
+              "amount": 0.35,
+              "coverage": 0.06,
+              "types": [
+                0,
+                1
+              ]
+            }
+          },
+          "slope": {
+            "weights": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0.7,
+              0,
+              0.3
+            ],
+            "startDegrees": 24,
+            "fullDegrees": 38
+          },
+          "layers": [
+            {
+              "name": "Dark rock dust",
+              "detile": true,
+              "repeatMeters": 20,
+              "archive": "icelandic_sand_with_pebbles_tbklac1n_8k.zip",
+              "member": "Icelandic_Sand_With_Pebbles_tbklac1n_8K_BaseColor.jpg",
+              "matchMean": "crhd_ganymede_ga00sa0_d.dds",
+              "contrast": 2.0,
+              "heightMeters": 0.4,
+              "proceduralDetail": 0.4
+            },
+            {
+              "name": "Light rock soil",
+              "detile": true,
+              "repeatMeters": 16,
+              "archive": "icelandic_rocky_ground_vglndb0g_8k.zip",
+              "member": "Icelandic_Rocky_Ground_vglndb0g_8K_BaseColor.jpg",
+              "matchMean": "crhd_ganymede_ga11sa0_d.dds",
+              "contrast": 1.8,
+              "heightMeters": 0.8,
+              "proceduralDetail": 0.6
+            },
+            {
+              "name": "Ice",
+              "detile": true,
+              "repeatMeters": 18,
+              "archive": "icelandic_glacier_vf0nbbtn_8k.zip",
+              "member": "Icelandic_Glacier_vf0nbbtn_8K_BaseColor.jpg",
+              "matchMean": "crhd_ganymede_ga22sa0_d.dds",
+              "contrast": 1.3,
+              "heightMeters": 0.5,
+              "proceduralDetail": 0.5
+            },
+            {
+              "name": "Geyser floor",
+              "detile": true,
+              "repeatMeters": 12,
+              "archive": "icelandic_rocky_ground_ve2kbizn_8k.zip",
+              "member": "Icelandic_Rocky_Ground_ve2kbizn_8K_BaseColor.jpg",
+              "matchMean": "crhd_ganymede_ga33sa0_d.dds",
+              "contrast": 1.4,
+              "heightMeters": 0.5,
+              "proceduralDetail": 0.5
+            },
+            {
+              "name": "Base pad",
+              "repeatMeters": 20,
+              "cellAligned": true,
+              "file": "crhd_ganymede_ga44sa0_d.dds",
+              "heightMeters": 0.1,
+              "edge": {
+                "meters": 8,
+                "ragged": 0.12,
+                "raggedMeters": 12
+              }
+            },
+            {
+              "name": "Jagged rock",
+              "detile": true,
+              "repeatMeters": 24,
+              "archive": "marble_rock_02_8k.zip",
+              "member": "marble_rock_02_diff_8k.jpg",
+              "matchMean": "crhd_ganymede_ga22sa0_d.dds",
+              "contrast": 1.5,
+              "heightMeters": 2.0,
+              "proceduralDetail": 1
+            },
+            {
+              "name": "Dust drift",
+              "detile": true,
+              "repeatMeters": 14,
+              "archive": "icelandic_sand_with_pebbles_tbklac1n_8k.zip",
+              "member": "Icelandic_Sand_With_Pebbles_tbklac1n_8K_BaseColor.jpg",
+              "matchMean": "crhd_ganymede_ga11sa0_d.dds",
+              "contrast": 1.3,
+              "heightMeters": 0.3,
+              "proceduralDetail": 0.4,
+              "gain": [
+                1.05,
+                1.0,
+                0.95
+              ]
+            },
+            {
+              "name": "Rubble",
+              "detile": true,
+              "repeatMeters": 10,
+              "archive": "icelandic_rocky_ground_ve2kbizn_8k.zip",
+              "member": "Icelandic_Rocky_Ground_ve2kbizn_8K_BaseColor.jpg",
+              "matchMean": "crhd_ganymede_ga00sa0_d.dds",
+              "contrast": 1.2,
+              "heightMeters": 0.6,
+              "proceduralDetail": 0.5,
+              "gain": [
+                0.85,
+                0.82,
+                0.8
+              ]
+            }
+          ],
+          "heightBlend": 0.5,
+          "far": {
+            "scale": 5,
+            "startMeters": 40,
+            "endMeters": 250,
+            "amount": 0.6
+          },
+          "macro": {
+            "meters": 260,
+            "brightness": 0.12,
+            "saturation": 0.15
+          },
+          "detail": {
+            "waveMeters": 60,
+            "heightMeters": 1.5,
+            "octaves": 4,
+            "damping": 1
+          },
+          "parallax": {
+            "scale": 1,
+            "fadeMeters": 30,
+            "steps": 12
+          }
+        }
       }
     },
     "EL_DETAIL_ATLAS": {
@@ -1748,7 +4351,434 @@
           1,
           30,
           12
-        ]
+        ],
+        "live": {
+          "schema": "bzr-openshim-terrain-autopaint-v1",
+          "material": "EL_DETAIL_ATLAS",
+          "diffuseResource": "ELYSIUM_ATLAS_D.dds",
+          "typeNames": {
+            "0": "Packed Dirt",
+            "1": "Rocky Sand",
+            "2": "Weathered Rock",
+            "3": "Geyser",
+            "4": "Base Grid-iron"
+          },
+          "typeWeights": {
+            "0": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "1": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "2": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "3": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ],
+            "4": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ]
+          },
+          "transition": {
+            "cap": 0.3,
+            "diagonal": 0.5
+          },
+          "weightSize": 2048,
+          "blurMeters": 14,
+          "outsideWeights": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "variation": [
+            {
+              "meters": 200,
+              "amount": 0.4,
+              "types": {
+                "0": [
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "1": [
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 90,
+              "amount": 0.6,
+              "types": {
+                "0": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 130,
+              "amount": 0.6,
+              "types": {
+                "1": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                "2": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "meters": 60,
+              "amount": 0.5,
+              "types": {
+                "3": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              }
+            }
+          ],
+          "shape": [
+            {
+              "radiusMeters": 400,
+              "rangeMeters": 8,
+              "amount": 0.8,
+              "hollow": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "ridge": [
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "from": [
+                0,
+                1
+              ]
+            },
+            {
+              "radiusMeters": 40,
+              "rangeMeters": 3,
+              "amount": 0.5,
+              "hollow": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "ridge": [
+                0,
+                0,
+                0.5,
+                0,
+                0,
+                0,
+                0.5,
+                0
+              ],
+              "from": [
+                0,
+                1
+              ]
+            }
+          ],
+          "erosion": {
+            "talus": {
+              "weights": [
+                0,
+                0.2,
+                0.3,
+                0,
+                0,
+                0,
+                0,
+                0.5
+              ],
+              "amount": 0.6,
+              "coverage": 0.06,
+              "types": [
+                0,
+                1,
+                2
+              ]
+            },
+            "deposit": {
+              "weights": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "amount": 0.5,
+              "coverage": 0.08,
+              "types": [
+                1
+              ]
+            },
+            "scour": {
+              "weights": [
+                0,
+                0,
+                0.5,
+                0,
+                0,
+                0,
+                0.5,
+                0
+              ],
+              "amount": 0.35,
+              "coverage": 0.06,
+              "types": [
+                0,
+                1
+              ]
+            }
+          },
+          "slope": {
+            "weights": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0.7,
+              0,
+              0.3
+            ],
+            "startDegrees": 24,
+            "fullDegrees": 38
+          },
+          "layers": [
+            {
+              "name": "Regolith",
+              "detile": true,
+              "repeatMeters": 20,
+              "archive": "military_trenches_ground_dirt_fine_03_yd0jchk_8k.zip",
+              "member": "yd0jchk_8K_Basecolor.jpg",
+              "matchMean": "crhd_elysium_el00sa0_d.dds",
+              "contrast": 1.4,
+              "saturation": 0.6,
+              "heightMeters": 0.4,
+              "proceduralDetail": 0.4
+            },
+            {
+              "name": "Dark gravel",
+              "detile": true,
+              "repeatMeters": 12,
+              "archive": "arid_gravel_ground_wikdaikbw_8k.zip",
+              "member": "Arid_Gravel_Ground_wikdaikbw_8K_BaseColor.jpg",
+              "matchMean": "crhd_elysium_el11sa0_d.dds",
+              "contrast": 1.4,
+              "heightMeters": 0.5,
+              "proceduralDetail": 0.5
+            },
+            {
+              "name": "Slab rock",
+              "detile": true,
+              "repeatMeters": 24,
+              "archive": "rock_boulder_cracked_8k.zip",
+              "member": "rock_boulder_cracked_diff_8k.jpg",
+              "matchMean": "crhd_elysium_el22sa0_d.dds",
+              "contrast": 1.6,
+              "heightMeters": 2.0,
+              "proceduralDetail": 1
+            },
+            {
+              "name": "Cratered regolith",
+              "detile": true,
+              "repeatMeters": 16,
+              "archive": "rocks_ground_09_8k.zip",
+              "member": "rocks_ground_09_diff_8k.jpg",
+              "matchMean": "crhd_elysium_el33sa0_d.dds",
+              "contrast": 1.6,
+              "heightMeters": 0.8,
+              "proceduralDetail": 0.6
+            },
+            {
+              "name": "Base pad",
+              "repeatMeters": 20,
+              "cellAligned": true,
+              "file": "crhd_elysium_el04sa0_d.dds",
+              "heightMeters": 0.1,
+              "edge": {
+                "meters": 8,
+                "ragged": 0.12,
+                "raggedMeters": 12
+              }
+            },
+            {
+              "name": "Dark streaks",
+              "detile": true,
+              "repeatMeters": 18,
+              "archive": "dark_rock_02_8k.zip",
+              "member": "dark_rock_02_diff_8k.jpg",
+              "matchMean": "crhd_elysium_el11sa0_d.dds",
+              "contrast": 1.6,
+              "heightMeters": 0.8,
+              "proceduralDetail": 0.6,
+              "gain": [
+                0.85,
+                0.83,
+                0.82
+              ]
+            },
+            {
+              "name": "Pale crust",
+              "detile": true,
+              "repeatMeters": 14,
+              "archive": "lava_stone_ripple_tbhofjmr_8k.zip",
+              "member": "Lava_Stone_Ripple_tbhofjmr_8K_BaseColor.jpg",
+              "matchMean": "crhd_elysium_el00sa0_d.dds",
+              "contrast": 1.3,
+              "heightMeters": 0.3,
+              "proceduralDetail": 0.4,
+              "saturation": 0.4,
+              "gain": [
+                1.15,
+                1.1,
+                1.0
+              ]
+            },
+            {
+              "name": "Scree",
+              "detile": true,
+              "repeatMeters": 10,
+              "archive": "rock_ground_8k.zip",
+              "member": "rock_ground_diff_8k.jpg",
+              "matchMean": "crhd_elysium_el11sa0_d.dds",
+              "contrast": 1.2,
+              "heightMeters": 0.6,
+              "proceduralDetail": 0.5,
+              "gain": [
+                0.75,
+                0.73,
+                0.7
+              ]
+            }
+          ],
+          "heightBlend": 0.5,
+          "far": {
+            "scale": 5,
+            "startMeters": 40,
+            "endMeters": 250,
+            "amount": 0.6
+          },
+          "macro": {
+            "meters": 260,
+            "brightness": 0.12,
+            "saturation": 0.15
+          },
+          "detail": {
+            "waveMeters": 60,
+            "heightMeters": 1.5,
+            "octaves": 4,
+            "damping": 1
+          },
+          "parallax": {
+            "scale": 1,
+            "fadeMeters": 30,
+            "steps": 12
+          }
+        }
       }
     }
   }
