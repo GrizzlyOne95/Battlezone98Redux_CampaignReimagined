@@ -2,7 +2,7 @@
 classLabel = "planarexpl"
 
 explRadius = 3.0
-explSound = "lhit.wav"
+explSound = "cr_snd_lhit.wav"
 damageRadius = 0.0
 damageBallistic = 0
 damageConcussion = 0
