@@ -8,7 +8,7 @@ Frame layout and timing follow the stock sheets (measured from BZ_ASSETS dust.pn
   dust.0..31      4 cols x 8 rows, alpha-blended, one puff growing then dissipating over dustLifespan
   rpuff/bpuff.0..15  4 x 4, additive, bright at frame 0 and decaying; PortalBlob indexes base + variance + frame
 The per-frame mean alpha and extent below are those stock measurements, so the effect keeps the stock
-length and density; only the shape and the colour treatment change.
+length; dust is about 2x stock density (DUST_OPACITY), and the shape and colour treatment change.
 """
 import argparse
 import sys
