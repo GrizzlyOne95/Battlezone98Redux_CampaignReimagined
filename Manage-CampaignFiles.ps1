@@ -127,9 +127,9 @@ $SourceExcludedRelativePaths = @(
     ".claude",
     # Legacy byte-identical copies; OpenShimPayload\ui is the runtime source.
     "Assets\CustomWidgets",
-    # Chunk meshes are generated at runtime by OpenShim from the stock models;
-    # the pack ships none. "chunkMeshes" stays in $StructuredRuntimeDirs so
-    # deploy still sweeps the folder older releases installed.
+    # OpenShim generates most chunk meshes at runtime, but CR ships its own chunklet
+    # payload (top-level chunkMeshes\, built by Tools\Assets\Build-ChunkVariations.py).
+    # The old Assets\chunkMeshes trees stay excluded so they are never shipped.
     "Assets\chunkMeshes",
     "Assets\chunkMeshes_capped",
     # Repository branding (the GitHub repo icon), not runtime mod content.
@@ -1061,13 +1061,6 @@ function Sync-ToSource {
         # Runtime-only artifacts (deploy backups, pending swaps) never belong
         # in the source tree.
         if ($file.Name -match '(?i)\.bak(?:[._-]|$)|\.pending(?:\.|$)|\.previous$') {
-            $skipped++
-            continue
-        }
-
-        # Chunk meshes are generated at runtime by OpenShim and are no longer
-        # part of the pack; never pull them back into the source tree.
-        if ($runtimeRelativePath -match '(?i)^chunkMeshes(\\|$)') {
             $skipped++
             continue
         }

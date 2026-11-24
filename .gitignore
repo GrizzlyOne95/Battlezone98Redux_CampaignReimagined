@@ -14,6 +14,7 @@
 !/Assets/
 !/Bin/
 !/Config/
+!/chunkMeshes/
 !/InstallerPayload/
 !/InstallerPayload/**
 !/flags/
