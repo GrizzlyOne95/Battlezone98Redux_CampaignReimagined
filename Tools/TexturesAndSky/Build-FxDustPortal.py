@@ -30,7 +30,10 @@ DUST_MEAN = [1.5, 3.2, 5.5, 8.4, 16.1, 13.9, 12.4, 11.3, 7.3, 7.0, 3.1, 3.5, 2.4
              3.0, 2.2, 1.9, 1.7, 1.6, 1.4, 1.2, 1.2, 1.3, 1.2, 1.0, 0.9, 1.3, 1.1, 0.9, 0.7]
 DUST_EXT = [32, 40, 43, 49, 55, 57, 54, 56, 55, 57, 56, 53, 57, 57, 52, 51]
 DUST_OPACITY = 0.7        # source clouds are near opaque; stock peak alpha is 0.29
-DUST_RGB = np.array([190.0, 180.0, 164.0])   # warm neutral; stock is an untinted grey
+# Stock dust.png RGB is pure white: the engine tints each puff by the terrain colour under it (GOG exe
+# FUN_004c0930 AddDust stores (c*7>>3)+0x20 per channel from the terrain colour map; FUN_004c0680 Submit
+# draws with sprite mode 5, whose vertex colour FUN_0068f030 takes from that value). Any hue here doubles up.
+DUST_RGB = np.array([255.0, 255.0, 255.0])
 
 PORTAL_GAIN = 1.0
 SRC_DIR = Path('C:/Users/iestu/Documents/CR_fx_gen')
@@ -123,8 +126,9 @@ def build_dust(src, cell=128, frames=32, cols=4):
         a = (soft[i0] * (1 - w) + soft[i1] * w) * DUST_OPACITY
         r, c = divmod(j, cols)
         sl = (slice(r * cell, (r + 1) * cell), slice(c * cell, (c + 1) * cell))
-        big[sl][..., :3] = DUST_RGB * (0.82 + 0.18 * soft[i0][..., None])
+        big[sl][..., :3] = DUST_RGB
         big[sl][..., 3] = a * 255.0
+    assert (big[..., :3] == 255.0).all(), "dust RGB must stay neutral white like stock dust.png"
     return big
 
 
