@@ -437,6 +437,11 @@ TerrainSemanticFrameCaptureMinCoverage = 0.005
 ; Native full-resolution diffuse tile replacement (DX11). Requires a texture
 ; pack manifest; existing tile placement, orientation and gameplay stay intact.
 TerrainHdEnabled = 1
+; Live Terrain Paint: fills HD terrain paint for maps with no pre-built paint entry,
+; generated at load from the map. Needs HD Terrain Tiles and a pack with live recipes.
+; DX11 Enhanced only; visual only. Off by default. Restart required.
+; OPENSHIM_TERRAIN_PAINT_LIVE, when set, overrides this key.
+TerrainPaintLive = 0
 ; "auto" finds the separately installed HD terrain pack (terrain_hd_tiles.json or
 ; cr_terrain_hd.json in the game folder, mods\, addon\, packaged_mods\ or a
 ; Workshop item) and mounts its textures. An explicit path overrides discovery.
@@ -482,6 +487,13 @@ EmberSeconds = 6
 ; moved, so this applies in single player only and stands down in network games.
 ; GOG only. Restart required. Default OFF.
 MeshAccurateImpacts = 0
+; Per-faction construction blobs. A build in progress draws the render effect
+; (file.section, like muzzleRender) named by blobRenderA/S/C/B, or blobRender for
+; every faction, in cnstblob.odf [ConstructionBlob], for the faction being built
+; (first letter of its ODF), instead of the stock puff sprite. A faction without
+; a key, or with a name that is not a render, keeps the stock puff. Display only.
+; Restart required. Default OFF (stock).
+FactionConstructionBlobs = 0
 ; Optional contextual HUD fading; groups brighten on relevant value changes.
 ; Each group: idle opacity 0-100%, delay 0-30000 ms, smooth fade 0-5000 ms.
 WeaponListFade = 0
@@ -589,7 +601,12 @@ ScrapPilotHud = Stock
 ; re-anchored to the backdrop at any scale so the radar mesh and its underlay
 ; stay concentric. Local HUD geometry, so this applies in network games too.
 RadarSizeScale = 1.0
-JetFlames = 0
+; Faction-Specific VFX: one switch for faction-colored engine flames and
+; per-faction construction and portal blobs. The options menu writes this key.
+; If it is absent, the features are on when either legacy key (JetFlames, or
+; FactionConstructionBlobs, documented above) is on. Flames apply live; blobs
+; install at startup, so they need a restart. Default OFF. Display only.
+FactionVfx = 0
 ; Campaign shader controls. These are owned by OpenShim's settings page; when
 ; Campaign Reimagined is active its RuntimeEnhancements layer consumes the
 ; values from this file and applies them live.
