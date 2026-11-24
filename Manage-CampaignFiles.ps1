@@ -1249,7 +1249,7 @@ function Deploy-SelectedContent {
     if (-not $runtimeDir) { throw 'No development runtime is available.' }
     $sourcePrefix = [IO.Path]::GetFullPath($SourceDir).TrimEnd([char[]]'\/') + [IO.Path]::DirectorySeparatorChar
     $runtimePrefix = [IO.Path]::GetFullPath($runtimeDir).TrimEnd([char[]]'\/') + [IO.Path]::DirectorySeparatorChar
-    $allowed = @('.act', '.lum', '.odf', '.mesh', '.skeleton', '.vdf', '.sdf', '.geo', '.material', '.dds', '.png', '.lua')
+    $allowed = @('.act', '.lum', '.odf', '.mesh', '.skeleton', '.vdf', '.sdf', '.geo', '.material', '.dds', '.png', '.bmp', '.lua')
     $plan = @()
     # Preflight every request before writing anything. This path never refreshes
     # native binaries/manifests, removes runtime files, or restages other content.
