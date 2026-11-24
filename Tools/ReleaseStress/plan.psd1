@@ -144,12 +144,12 @@
         @{ Group = 'mission_stock'; Name = 'ms_sp';     Do = 'click'; T = 'SinglePlayer_MainScreen' }
         @{ Group = 'mission_stock'; Name = 'ms_usa';    Do = 'click'; T = 'USAMission_SinglePlayer' }
         @{ Group = 'mission_stock'; Name = 'mission_stock'; Do = 'mission'; T = 'Launch'; ExpectSource = 'stock' }
-        # 2. CR campaign, first mission
+        # 2. CR campaign, the NSDF mission the player's progress opens (any misn<digit>*cr.bzn; not misns*, the CCA ones)
         @{ Group = 'mission_cr1'; Name = 'mc1_sp';      Do = 'click'; T = 'SinglePlayer_MainScreen' }
         @{ Group = 'mission_cr1'; Name = 'mc1_list';    Do = 'click'; T = 'CampaignLaunch'; Budget = 'Heavy' }
         @{ Group = 'mission_cr1'; Name = 'mc1_pick';    Do = 'pickcampaign'; Campaign = 'Campaign Reimagined: NSDF'; SettleS = 1.5 }
         @{ Group = 'mission_cr1'; Name = 'mc1_enter';   Do = 'click'; T = 'Launch'; Budget = 'Heavy' }
-        @{ Group = 'mission_cr1'; Name = 'mission_cr1'; Do = 'mission'; T = 'Launch'; ExpectSource = 'cr'; ExpectBzn = 'misn2bcr.bzn' }
+        @{ Group = 'mission_cr1'; Name = 'mission_cr1'; Do = 'mission'; T = 'Launch'; ExpectSource = 'cr'; ExpectBzn = 'misn[0-9]*cr.bzn' }
         # 3. A second, different CR map: the Soviet (CCA) campaign's first mission. NSDF mission 2 is not
         #    reachable: it stays locked without campaign progress, and MissionpageDn relaunched mission 1
         #    (misn2bcr, 2026-11-22); the harness must not edit the player's cpProgress.def.

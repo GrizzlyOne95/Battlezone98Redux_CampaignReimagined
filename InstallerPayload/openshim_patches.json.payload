@@ -119,9 +119,6 @@
     },
     {
       "name": "GameObject Handle Stale Slot Guard",
-      "platforms": [
-        "gog"
-      ],
       "pattern": "55 8B EC 51 8B 45 08 50 E8 ?? ?? ?? ?? 83 C4 04 89 45 FC 83 7D FC 00 75 04 33 C0 EB 16 8B 4D FC E8 ?? ?? ?? ?? 25 00 02 00 00 74 04 33 C0 EB 03 8B 45 FC 8B E5 5D C3",
       "offset": 0,
       "expected_size": 5,
@@ -253,9 +250,6 @@
     },
     {
       "name": "LensFlare MaterialManager Guard 1/2",
-      "platforms": [
-        "gog"
-      ],
       "pattern": "FF 15 C0 9E 86 00 89 45 B4 8D 4D D8 51 8B 55 B4 8B 02 8B 4D B4 8B 50 38 FF D2 C6 45 FC 02 8D 4D D8",
       "offset": 13,
       "expected_size": 5,
@@ -265,9 +259,6 @@
     },
     {
       "name": "LensFlare MaterialManager Guard 2/2",
-      "platforms": [
-        "gog"
-      ],
       "pattern": "FF 15 C0 9E 86 00 89 45 B0 8D 4D C0 51 8B 55 B0 8B 02 8B 4D B0 8B 50 38 FF D2 C6 45 FC 02 8D 4D C0",
       "offset": 13,
       "expected_size": 5,
@@ -277,9 +268,6 @@
     },
     {
       "name": "LensFlare Exit Destructor Skip",
-      "platforms": [
-        "gog"
-      ],
       "pattern": "55 8B EC B9 28 7C 9B 00 E8 ?? ?? ?? ?? 5D C3",
       "offset": 8,
       "expected_size": 5,
@@ -298,9 +286,6 @@
     },
     {
       "name": "Scavenger Process Scrap Position Guard",
-      "platforms": [
-        "gog"
-      ],
       "pattern": "8B 4D DC E8 ?? ?? ?? ?? 8B 10 89 55 F0 8B 48 04 89 4D F4 8B 50 08 89 55 F8",
       "offset": 4,
       "expected_size": 4,
@@ -564,10 +549,25 @@
       "identity": "Player-left call (E8 at 0x0073F13F, cdecl(member NetId*, kicked||banned), add esp 8) in CNetGameLobby::OnLobbyChatUpdate 0x0073EEB0 for a member-left lobby update on GOG Redux 2.2.301. Stock target Net::PlayerLeft 0x00578640 drops that player from the running game. Redirected only by [Network] LobbyDropKeepsMatch after the call target matches the resolve; signature unique in the shipped image."
     },
     {
+      "name": "Lobby Drop Keeps Match Ping",
+      "pattern": "8B 45 B0 8B 4D AC 89 88 28 04 00 00 0F B7 15 D4 80 91 00 85 D2 74 05 E8 ?? ?? ?? ??",
+      "offset": 24,
+      "expected_size": 4,
+      "fallback": "0x005718C8",
+      "require_unique": true,
+      "identity": "Ping-check call (E8 at 0x005718C7, `if (local id != 0) call 0x00576B70`) in Net::Execute 0x005715D0 on GOG Redux 2.2.301. It runs on every peer once per NetManager+0x430 ms ping interval, not only on the host. Redirected only by [Network] LobbyDropKeepsMatch after the call target matches Net::PingCheck; the wrapper re-checks players whose lobby leave was held back and drops those that stopped answering pings, then runs the stock ping check."
+    },
+    {
+      "name": "Ally Lock Survives UI Rebuild",
+      "pattern": "83 7D FC 02 74 22 E8 ?? ?? ?? ?? 85 C0 74 14 E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ??",
+      "offset": 31,
+      "expected_size": 4,
+      "fallback": "0x00681E2B",
+      "require_unique": true,
+      "identity": "Ally-editor init call (E8 at 0x00681E2A, last of 0x006246D0, 0x0046CE20 free-editor, 0x00624210, 0x0046CC80) in the UI rebuild 0x00681DF0, which runs `if (state != 9 && state != 2 && FUN_00572A70() /*net game*/)` on GOG Redux 2.2.301. Its callers include sim startup 0x006185F0 (call at 0x00618955, after mission load and Lua Start()). Stock target AllyEditor::Init 0x0046CC80 (void __cdecl(void)) recreates the editor in 0x0260D184 and writes the Lua LockAllies gate 0x0260D5EC = 0 (write at 0x0046CCED), so LockAllies(true) from Start() is lost. Redirected only by [Network] AllyLockSurvivesStart after the call target matches AllyEditor::Init; the wrapper saves the gate, runs the stock init and restores it. The network-startup reset (call at 0x00570170) is left stock. Signature unique in the shipped image."
+    },
+    {
       "name": "TRO Banner Mode Refresh 1/2",
-      "platforms": [
-        "gog"
-      ],
       "pattern": "E8 92 01 00 00 5D C3 55 8B EC 8B 0D E0 55 94 00 E8 A2 01 00 00 5D C3",
       "offset": 17,
       "expected_size": 4,
@@ -577,9 +577,6 @@
     },
     {
       "name": "TRO Banner Mode Refresh 2/2",
-      "platforms": [
-        "gog"
-      ],
       "pattern": "85 D2 74 0D 8B 8D EC FB FF FF E8 ?? ?? ?? ?? EB 17 6A 00 6A 1D 6A 00",
       "offset": 11,
       "expected_size": 4,
@@ -931,9 +928,6 @@
     },
     {
       "name": "CollisionTest::GetProperties",
-      "platforms": [
-        "gog"
-      ],
       "pattern": "55 8B EC 81 EC 98 00 00 00 A1 00 70 8E 00 33 C5 89 45 FC 56 57 8B 45 0C 8B 88 84 00 00 00 51 E8 CC FE FF FF 83 C4 04 89 45 B0 6B 55 B0 34 83 BA",
       "mode": "address",
       "offset": 0,
@@ -943,9 +937,6 @@
     },
     {
       "name": "CollisionTest::CarEntityCheck",
-      "platforms": [
-        "gog"
-      ],
       "pattern": "55 8B EC 83 EC 08 C7 45 FC 00 00 00 00 8B 45 0C 8B 48 24 89 4D F8 83 7D F8 01 74 0E 83 7D F8 02 74 30 83 7D F8 03 74 52 EB 78 8B 55 18 52 8B 45",
       "mode": "address",
       "offset": 0,
@@ -955,9 +946,6 @@
     },
     {
       "name": "CollisionTest::CarHierarchyCheck",
-      "platforms": [
-        "gog"
-      ],
       "pattern": "55 8B EC 81 EC AC 00 00 00 A1 00 70 8E 00 33 C5 89 45 FC 56 57 8B 45 08 50 8D 8D 54 FF FF FF 51 E8 6B 42 00 00 83 C4 08 8B 10 89 55 84 8B 48 04",
       "mode": "address",
       "offset": 0,
@@ -967,9 +955,6 @@
     },
     {
       "name": "CollisionTest::CgeomCreate",
-      "platforms": [
-        "gog"
-      ],
       "pattern": "55 8B EC 83 EC 48 A1 00 70 8E 00 33 C5 89 45 FC 56 8B 45 08 8B 48 64 89 4D DC 8B 55 DC 6B 42 04 0C E8 5A 01 40 00 89 65 C4 8B 45 C4 89 45 D4 8B",
       "mode": "address",
       "offset": 0,
@@ -979,9 +964,6 @@
     },
     {
       "name": "CollisionTest::CgeomDelete",
-      "platforms": [
-        "gog"
-      ],
       "pattern": "55 8B EC 51 8B 45 08 83 B8 9C 00 00 00 00 75 02 EB 26 8B 4D 08 8B 91 9C 00 00 00 89 55 FC 8B 45 FC 50 FF 15 A8 94 86 00 83 C4 04 8B 4D 08 C7 81",
       "mode": "address",
       "offset": 0,
@@ -991,9 +973,6 @@
     },
     {
       "name": "CollisionTest::SelectLOD",
-      "platforms": [
-        "gog"
-      ],
       "pattern": "55 8B EC 83 EC 14 8B 45 08 83 C0 68 89 45 FC 8D 4D EC 51 8D 55 F8 52 8B 45 FC 8B 48 08 51 E8 DD FB FF FF 83 C4 0C 8B 55 0C 52 8B 45 F8 50 E8 BD",
       "mode": "address",
       "offset": 0,
@@ -1658,7 +1637,6 @@
     },
     {
       "name": "Craft::EffectiveDamageResistanceSite",
-      "platforms": ["gog"],
       "pattern": "D9 9D 04 FF FF FF F3 0F 10 05 98 24 8A 00 0F 2F 85 04 FF FF FF 72 07 32 C0 E9 D1 07 00 00",
       "offset": 6,
       "mode": "address",
@@ -2231,6 +2209,36 @@
       "prefer": "scan",
       "require_unique": true,
       "identity": "Player-left 0x00578640, void __cdecl(const NetId*, bool kicked): FindPlayer, then for the local player (+0x8E) Net state 5, else player_left/host_autokicked and removal (GOG Redux 2.2.301.) Used by [Network] LobbyDropKeepsMatch."
+    },
+    {
+      "name": "Net::PingCheck",
+      "pattern": "55 8B EC 6A FF 68 8B B9 84 00 64 A1 00 00 00 00 50 81 EC 8C 01 00 00",
+      "offset": 0,
+      "mode": "address",
+      "fallback": "0x00576B70",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "Ping check 0x00576B70, void __cdecl(void): lagging/auto-kick pass, then pings every remote player (0x00576480 shifts Player+0x1B0 left per ping; the reply handler sets bit 0). Only caller is Net::Execute at 0x005718C7 (GOG Redux 2.2.301.) Used by [Network] LobbyDropKeepsMatch."
+    },
+    {
+      "name": "AllyLock::Gate",
+      "pattern": "55 8B EC 8B 45 08 A3 ?? ?? ?? ?? 5D C3 CC CC CC 55 8B EC A1 ?? ?? ?? ?? 50 E8",
+      "offset": 7,
+      "mode": "abs32_operand",
+      "fallback": "0x0260D5EC",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "LockAllies gate dword on GOG Redux 2.2.301: the operand of `mov [gate], eax` (A3 at 0x0046CE16) in the setter 0x0046CE10 (`push ebp; mov ebp,esp; mov eax,[ebp+8]; mov [gate],eax`), reached from Lua LockAllies handler 0x00501CB0 via 0x005C9450. Read by the getter 0x0046CE40 and the Y/U ally handler 0x0046CD10 (does nothing when nonzero); zeroed by AllyEditor::Init at 0x0046CCED. Unique whole-image match 2026-11-23. Used by [Network] AllyLockSurvivesStart."
+    },
+    {
+      "name": "AllyEditor::Init",
+      "pattern": "55 8B EC 83 EC 4C A1 ?? ?? ?? ?? 33 C5 89 45 FC C7 45 B4 0A 00 00 00 C7 45 B8 2C 01 00 00",
+      "offset": 0,
+      "mode": "address",
+      "fallback": "0x0046CC80",
+      "prefer": "scan",
+      "require_unique": true,
+      "identity": "Ally-editor initializer 0x0046CC80, void __cdecl(void), on GOG Redux 2.2.301: creates the editor in 0x0260D184 and writes the LockAllies gate 0x0260D5EC = 0 (0x0046CCED). Called by network startup 0x0056FD20 (0x00570170) and by the UI rebuild 0x00681DF0 (0x00681E2A). Unique whole-image match 2026-11-23. Used by [Network] AllyLockSurvivesStart."
     },
     {
       "name": "Net::ManagerSlot",
@@ -4719,6 +4727,12 @@
       "address": "0x0087AD70",
       "kind": "data",
       "identity": "RTTI .?AVHowitzer@@ primary vtable; slot 38 inherits TurretTank::UpdateWeaponAim"
+    },
+    {
+      "name": "GotoTaskVtable",
+      "address": "0x0087A61C",
+      "kind": "data",
+      "identity": "RTTI .?AVGotoTask@@ vtable (the task UnitProcess::InitGoto 0x005FB500 builds); slot 6 done 0x004714B0, slot 7 execute 0x006002A0"
     },
     {
       "name": "TurretTankVtable",
@@ -7491,6 +7505,24 @@
       "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) Shared AiProcess DoAttack (slot 26 of the TurretTankProcess/Friend/Enemy vtables and of every other unit process vtable), thiscall no args: runs the task at this+0x38; on a kill clears CMD_ATTACK and sets state [this+0x20] = 3. OpenShim wraps slot 26 of the three TurretTank process vtables only. See Docs/TURRET_ATTACK_ORDERS.md."
     },
     {
+      "name": "ArtilleryProcessDoAttack",
+      "address": "0x00475B30",
+      "expected": "55 8B EC 81 EC 38 04 00 00 A1 00 70 8E 00 33 C5",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) ArtilleryProcess::DoAttack (slot 26 of the ArtilleryProcess/Friend/Enemy vtables), thiscall no args: picks the first weapon, runs the ballistic reach test (0x0056B1C0) for a MORT weapon and on a miss says 0x13 (out of range) and sets state [this+0x20] = 3. OpenShim wraps slot 26 of the ArtilleryFriend vtable only. See Docs/HOWITZER_ATTACK_APPROACH.md."
+    },
+    {
+      "name": "UnitProcessInitGoto",
+      "address": "0x005FB500",
+      "expected": "55 8B EC 6A FF 68 10 D1 84 00 64 A1 00 00 00 00",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) UnitProcess::InitGoto (slot 15 base, called by ArtilleryProcess::InitGoto 0x00475A30), thiscall no args: zeroes the steer controls and stores a new GotoTask to the live target [this+0x3C] (or to the path [this+0x10]) at [this+0x38] without deleting the old one. See Docs/HOWITZER_ATTACK_APPROACH.md."
+    },
+    {
+      "name": "WeaponBallisticReach",
+      "address": "0x0056AF20",
+      "expected": "55 8B EC 83 EC 7C A1 00 70 8E 00 33 C5 89 45 FC",
+      "identity": "Released GOG 2.2.301 (SHA256 8D71F56C...3377413) Weapon ballistic reach test, thiscall(ECX = weapon)(float* outTime, const VECTOR3* target, char highArc), ret 0xC: shot speed from [[this+0xC]+0x54], muzzle from the matrix at this+0x28; AL = 1 when the arc's discriminant is >= 0. See Docs/HOWITZER_ATTACK_APPROACH.md."
+    },
+    {
       "name": "AiFollowRangeConstantSite",
       "address": "0x005833CA",
       "expected": "F3 0F 10 05 20 2E 8A 00 F3 0F 11 41 6C",
@@ -8280,9 +8312,6 @@
     },
     {
       "name": "TRO Banner Movie Name",
-      "platforms": [
-        "gog"
-      ],
       "pattern": "89 91 5C 01 00 00 6A 00 68 ?? ?? ?? ?? 8B 45 F0 8B 88 5C 01 00 00 E8",
       "offset": 9,
       "expected_size": 4,

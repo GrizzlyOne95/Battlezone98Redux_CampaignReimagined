@@ -206,12 +206,14 @@ function Test-MissionSource([string]$LoadText, [string]$SessionText, [string]$Ex
     # Product = the right mission was picked but did not load from CR (e.g. the loose-BZN override broke and
     # the packed stock map loaded instead). Fixture = a different mission was picked.
     $root = [IO.Path]::GetFullPath($ModDir).TrimEnd('\') + '\'
-    $shipped = $ExpectBzn -and (Test-Path -LiteralPath (Join-Path $root $ExpectBzn))
+    # $ExpectBzn may be a -like pattern (e.g. 'misn[0-9]*cr.bzn'): which mission of a campaign opens depends
+    # on the player's cpProgress.def, which the harness must not edit.
+    $shipped = $ExpectBzn -and @(Get-ChildItem -LiteralPath $root -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -like $ExpectBzn }).Count -gt 0
     if (-not $path) {
         if ($shipped) { return @{ Ok = $false; Product = $true; Path = ''; Why = "$ExpectBzn ships in $root but the load opened no loose .bzn (packed map loaded instead)" } }
         return @{ Ok = $false; Product = $false; Path = ''; Why = 'no [BZNLOAD] open line: a packed (stock) map loaded, not CR' }
     }
-    $leafOk = -not $ExpectBzn -or ((Split-Path $path -Leaf) -eq $ExpectBzn) -or ($path -like "$ExpectBzn *")
+    $leafOk = -not $ExpectBzn -or ((Split-Path $path -Leaf) -like $ExpectBzn) -or ($path -like "$ExpectBzn *")
     if (-not $leafOk) { return @{ Ok = $false; Product = $false; Path = $path; Why = "expected $ExpectBzn, loaded $path" } }
     if (-not $path.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)) { return @{ Ok = $false; Product = [bool]$shipped; Path = $path; Why = "expected CR ($root), loaded $path" } }
     @{ Ok = $true; Product = $false; Path = $path; Why = '' }
