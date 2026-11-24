@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import io
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -43,14 +44,15 @@ MATERIAL = "cr_chunklet_interior"
 TEX = "cr_chunklet_interior"
 TILE_M = 0.6  # metres of surface per 256 px texture tile (about 430 px/m)
 
-# Stock chunk1/chunk2 GEO bounding boxes (metres) are 0.12x0.20x0.08 and 0.17x0.23x0.18, so the stock
-# mean longest side is ~0.215 m. Each shape is uniformly scaled so its longest bounding-box side hits
+# Redux stock chunk1/chunk2 GEO bounding boxes (metres, read from bzone.zfs) are 0.12x0.20x0.08 and
+# 0.17x0.23x0.18, so the stock mean longest side is ~0.215 m. Each shape is uniformly scaled so its longest bounding-box side hits
 # its target here (variety kept, mean on stock). UVs use metres/TILE_M, so texel density is unchanged.
 TARGET_LONGEST_M = [0.20, 0.23, 0.25, 0.21, 0.18, 0.22]  # chunk1..6, mean 0.215
-STOCK_LONGEST_M = (0.20, 0.23)  # fallback when the stock GEOs are not on disk
+STOCK_LONGEST_M = (0.198, 0.232)  # Redux values; used only when bzone.zfs cannot be read
 STOCK_MEAN_TOL_M = (0.20, 0.23)
 CHUNK_BOUNDS_M = (0.16, 0.28)
-STOCK_GEO_DIR = ROOT.parent / "Battlezone_Source" / "BZ1" / "1.5" / "Battlezone_Install" / "stock"
+REDUX_ZFS = (Path(os.environ.get("BZR_GAME_ROOT", r"C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux"))
+             / "bzone.zfs")
 
 
 # ---------------------------------------------------------------- geometry
@@ -352,24 +354,67 @@ def downsample_textures(src_dir, out_chunks):
         save_bc(im, out_chunks / f"{TEX}_{suffix}.dds")
 
 
-def _geo_longest(src):
-    with open(src, "rb") as f:
-        g = geo_serializer.GeoSerializer(f).read()
-    p = np.asarray(g.vertex_pos_buffer.tolist(), dtype=float)
+def _longest_of(positions):
+    p = np.asarray(positions, dtype=float).reshape(-1, 3)
     return float((p.max(0) - p.min(0)).max())
 
 
-def assert_stock_scale(longest):
-    """Fail if the six chunklets drift from stock size (mean and per-chunk bounds)."""
-    stock = list(STOCK_LONGEST_M)
-    geos = [STOCK_GEO_DIR / "chunk1.geo", STOCK_GEO_DIR / "chunk2.geo"]
-    if all(g.is_file() for g in geos):
-        stock = [_geo_longest(g) for g in geos]
+def _geo_longest(geo):
+    return _longest_of(geo.vertex_pos_buffer.tolist())
+
+
+def _mesh_longest(path):
+    """Longest bounding-box side of the positions actually stored in a written .mesh."""
+    from bzmodellibs import ogremesh_serializer as oms
+    with open(path, "rb") as f:
+        mesh = oms.MeshSerializer(f).read()
+    if len(mesh.submesh_list) != 1:
+        raise SystemExit(f"{path.name}: expected 1 submesh, found {len(mesh.submesh_list)}")
+    vd = mesh.submesh_list[0].vertex_data
+    elem = vd.vertex_declaration.get_position_vertex_element()
+    buf = vd.get_vertex_buffer(elem.source)
+    raw = np.frombuffer(bytes(buf.buffer), dtype=np.uint8).reshape(vd.vertex_count, buf.vertex_size)
+    pos = raw[:, elem.offset:elem.offset + 12].copy().view("<f4").reshape(-1, 3)
+    return _longest_of(pos)
+
+
+def stock_longest():
+    """Longest side of Redux stock chunk1/chunk2 (bzone.zfs), or the constants with a warning."""
+    try:
+        import bzmodellibs
+        bzmodellibs.legacy  # puts the toolbox on sys.path
+        from battlezone.archives.zfs import ZFSArchive
+        arch = ZFSArchive(REDUX_ZFS)
+        found = {}
+        for entry in arch:
+            if entry.name.lower() in ("chunk1.geo", "chunk2.geo"):
+                found[entry.name.lower()] = _geo_longest(geo_serializer.GeoSerializer(io.BytesIO(arch.read(entry))).read())
+        if len(found) == 2:
+            return [found["chunk1.geo"], found["chunk2.geo"]]
+        reason = "chunk1/chunk2.geo not in the archive"
+    except Exception as exc:  # missing install, toolbox or unreadable archive
+        reason = f"{type(exc).__name__}: {exc}"
+    print(f"WARNING: could not read Redux stock chunks from {REDUX_ZFS} ({reason}); "
+          f"using the hardcoded stock sizes {STOCK_LONGEST_M} m", file=sys.stderr)
+    return list(STOCK_LONGEST_M)
+
+
+def assert_stock_scale(out_models, out_chunks):
+    """Fail if the written chunklets drift from stock size. Measures the files on disk."""
+    stock = stock_longest()
     stock_mean = sum(stock) / len(stock)
+    longest, problems = [], []
+    for idx in range(1, len(SHAPES) + 1):
+        name = f"chunk{idx}"
+        with open(out_models / f"{name}.geo", "rb") as f:
+            g = _geo_longest(geo_serializer.GeoSerializer(f).read())
+        m = _mesh_longest(out_chunks / name / f"{name}.mesh")
+        if abs(g - m) > 0.002:
+            problems.append(f"{name} GEO longest {g:.3f} m but .mesh {m:.3f} m")
+        longest.append(g)
     mean = sum(longest) / len(longest)
     lo, hi = CHUNK_BOUNDS_M
     tlo, thi = STOCK_MEAN_TOL_M
-    problems = []
     if not (tlo <= mean <= thi) or abs(mean - stock_mean) > 0.015:
         problems.append(f"mean longest {mean:.3f} m vs stock {stock_mean:.3f} m (allowed {tlo}-{thi})")
     for i, v in enumerate(longest, start=1):
@@ -377,7 +422,7 @@ def assert_stock_scale(longest):
             problems.append(f"chunk{i} longest {v:.3f} m outside {lo}-{hi}")
     if problems:
         raise SystemExit("chunklet size regression: " + "; ".join(problems))
-    print(f"size check ok: mean longest {mean:.3f} m (stock {stock_mean:.3f})")
+    print(f"size check ok (from written files): mean longest {mean:.3f} m (stock {stock_mean:.3f})")
 
 
 def main():
@@ -393,7 +438,6 @@ def main():
         if not (out_chunks / f"{TEX}_{suffix}.dds").is_file():
             raise SystemExit(f"missing {TEX}_{suffix}.dds (copy OpenShim's fracture-interior DDS set)")
     (out_chunks / "cr_chunklet.material").write_text(MATERIAL_TEXT.format(mat=MATERIAL, tex=TEX), newline="\r\n")
-    longest = []
     for idx, fn in enumerate(SHAPES, start=1):
         polys = fn()
         rows, indices = build_mesh(polys, seed=100 + idx, target_longest=TARGET_LONGEST_M[idx - 1])
@@ -407,9 +451,8 @@ def main():
         (out_models / f"{name}.geo").write_bytes(buf.getvalue())
         pts = np.array([r[:3] for r in rows])
         ext = pts.max(0) - pts.min(0)
-        longest.append(float(ext.max()))
         print(name, "tris", len(indices) // 3, "geo verts", geo.vert_count, "extent m", [round(float(e), 2) for e in ext])
-    assert_stock_scale(longest)
+    assert_stock_scale(out_models, out_chunks)
 
 
 if __name__ == "__main__":
