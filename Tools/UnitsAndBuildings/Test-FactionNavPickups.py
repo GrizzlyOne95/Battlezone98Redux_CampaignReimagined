@@ -250,6 +250,11 @@ routes=json.loads((REF/'routes.json').read_text())
 NACELLE_PITCH={('[hovercraftclass]','pitch%snacelle%s'%(a,b)) for a in ('throt','steer') for b in ('run','jump')}
 # bvrecy* set collisionRadius like avrecy so the goto arrival radius doesn't fall back to the
 # mesh sphere and loop the geyser deploy (CHANGELOG); only that exact value is tolerated.
+# CR's own engine loops (Tools/Assets/Build-EngineLoops.py): exactly these ODF remaps are allowed, nothing else
+ENGINE_REMAPS={'svrecy.odf':{'soundthrust':('avrecye6.wav','cr_snd_sov_recy_e0.wav')},'svrecy8.odf':{'soundthrust':('avrecye6.wav','cr_snd_sov_recy_e0.wav')},'svremp.odf':{'soundthrust':('avrecye6.wav','cr_snd_sov_recy_e0.wav')},
+'svslf.odf':{'soundthrust':('avslfe6.wav','cr_snd_sov_slf_e0.wav')},'svhaul.odf':{'soundthrust':('avhaule3.wav','cr_snd_sov_haul_e0.wav')},'svartl.odf':{'soundthrust':('avartle1.wav','cr_snd_sov_artl_e0.wav')},'svsav.odf':{'soundthrust':('avsave0.wav','cr_snd_sov_sav_e0.wav')},
+'svmine.odf':{'soundthrust':('avminee0.wav','cr_snd_mine_e0.wav'),'soundturbo':('avminee3.wav','cr_snd_mine_e1.wav')},'cvmine.odf':{'soundthrust':('avminee0.wav','cr_snd_mine_e0.wav'),'soundturbo':('avminee3.wav','cr_snd_mine_e1.wav')},
+'cvrecy.odf':{'soundthrust':('avrecye6.wav','cr_snd_cra_recy_e0.wav')},'cvrecya.odf':{'soundthrust':('avrecye6.wav','cr_snd_cra_recy_e0.wav')},'cvrecyd.odf':{'soundthrust':('avrecye6.wav','cr_snd_cra_recy_e0.wav')},'cvrecye.odf':{'soundthrust':('avrecye6.wav','cr_snd_cra_recy_e0.wav')}}
 RECYCLER_RADIUS=('[gameobjectclass]','collisionradius')
 # bvrecy* reverse/strafe speeds raised 10 -> 15 to match avrecy (CHANGELOG).
 RECYCLER_SPEEDS=(('[hovercraftclass]','velocreverse'),('[hovercraftclass]','velocstrafe'))
@@ -260,6 +265,8 @@ for route in routes:
     # NacelleJets flame housings (pinned in craft-gameplay-baselines.json), not the build menu
     # damageEffect slots are faction damage smoke and xpl*/explosionName are faction death explosions (presentation), set on every craft
     old,new=({k:v for k,v in settings(f.read_text()).items() if not k[1].endswith('msg') and not k[1].startswith(('damageeffect','xplsnipe','xplsecondary','xpldetonate','explosionname')) and k not in NACELLE_PITCH} for f in (baseline,path))
+    for skey,(sold,snew) in ENGINE_REMAPS.get(path.name.lower(),{}).items():
+        check(new.pop(('[hovercraftclass]',skey),None)==snew and old.pop(('[hovercraftclass]',skey),None)==sold,'CR engine loop remap is exactly '+sold+' -> '+snew+': '+path.name)
     if path.name.lower().startswith('bvrecy'):
         check(new.pop(RECYCLER_RADIUS,None)=='10.0' and RECYCLER_RADIUS not in old,'bvrecy geyser-deploy collisionRadius fix present: '+path.name)
         for key in RECYCLER_SPEEDS:

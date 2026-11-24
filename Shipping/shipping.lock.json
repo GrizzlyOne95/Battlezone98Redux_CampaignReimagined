@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6362,
+  "count": 6375,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -4675,8 +4675,60 @@
       "runtime": "c17fell.wav"
     },
     {
+      "source": "Assets\\Sounds\\cr_snd_cra_htnk_e0.wav",
+      "runtime": "cr_snd_cra_htnk_e0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_cra_htnk_e1.wav",
+      "runtime": "cr_snd_cra_htnk_e1.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_cra_muf_e0.wav",
+      "runtime": "cr_snd_cra_muf_e0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_cra_rckt_e0.wav",
+      "runtime": "cr_snd_cra_rckt_e0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_cra_rckt_e1.wav",
+      "runtime": "cr_snd_cra_rckt_e1.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_cra_recy_e0.wav",
+      "runtime": "cr_snd_cra_recy_e0.wav"
+    },
+    {
       "source": "Assets\\Sounds\\cr_snd_lhit.wav",
       "runtime": "cr_snd_lhit.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_mine_e0.wav",
+      "runtime": "cr_snd_mine_e0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_mine_e1.wav",
+      "runtime": "cr_snd_mine_e1.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_sov_artl_e0.wav",
+      "runtime": "cr_snd_sov_artl_e0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_sov_haul_e0.wav",
+      "runtime": "cr_snd_sov_haul_e0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_sov_recy_e0.wav",
+      "runtime": "cr_snd_sov_recy_e0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_sov_sav_e0.wav",
+      "runtime": "cr_snd_sov_sav_e0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_sov_slf_e0.wav",
+      "runtime": "cr_snd_sov_slf_e0.wav"
     },
     {
       "source": "Assets\\Sounds\\crddesc.wav",
