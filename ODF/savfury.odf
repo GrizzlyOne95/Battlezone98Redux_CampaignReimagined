@@ -49,4 +49,4 @@ accelJump = 400.0
 
 soundDeploy = "avsave5.wav"
 soundUndeploy = "avsave6.wav"
-soundThrust = "avsave0.wav"
+soundThrust = "cr_snd_fury_sav_e0.wav"

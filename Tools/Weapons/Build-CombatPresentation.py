@@ -58,7 +58,9 @@ ENGINE_LOOPS = {('soundthrust','cr_snd_sov_recy_e0.wav'): 'avrecye6.wav', ('soun
     ('soundthrust','cr_snd_mine_e0.wav'): 'avminee0.wav', ('soundturbo','cr_snd_mine_e1.wav'): 'avminee3.wav',
     ('soundthrust','cr_snd_cra_htnk_e0.wav'): 'avtanke0.wav', ('soundturbo','cr_snd_cra_htnk_e1.wav'): 'avtanke3.wav',
     ('soundthrust','cr_snd_cra_rckt_e0.wav'): 'avrckte0.wav', ('soundturbo','cr_snd_cra_rckt_e1.wav'): 'avrckte1.wav',
-    ('soundthrust','cr_snd_cra_muf_e0.wav'): 'avmufe2.wav'}
+    ('soundthrust','cr_snd_cra_muf_e0.wav'): 'avmufe2.wav',
+    ('soundthrust','cr_snd_fury_raz_e0.wav'): 'avsave0.wav', ('soundturbo','cr_snd_fury_raz_e1.wav'): 'avsave6.wav',
+    ('soundthrust','cr_snd_fury_sav_e0.wav'): 'avsave0.wav'}
 
 
 def gameplay_digest(parsed):
