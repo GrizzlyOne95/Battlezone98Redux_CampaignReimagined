@@ -50,3 +50,39 @@ material cr_fx_port_b : BZSprite/Additive
 {
     set_texture_alias DiffuseMap cr_fx_port_b.dds
 }
+
+// Remastered smoke: one 4x4 white-grey atlas shared by the lsmoke/msmoke/dsmoke/bsmoke replacements (tint comes from the sprite flags).
+material cr_fx_smoke : BZSprite/AlphaBlend
+{
+    set_texture_alias DiffuseMap cr_fx_smoke.dds
+}
+
+// Remastered fireball: 4x8 atlas, 32 frames (stock xsecx layout); spritea.st rows cr_fx_fire.N.
+material cr_fx_fire : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_fx_fire.dds
+}
+
+// Construction blob puff for faction a (cnstbla.odf).
+material cr_fx_cbl_a.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_fx_cbl_a.dds
+}
+
+// Construction blob puff for faction s (cnstbls.odf).
+material cr_fx_cbl_s.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_fx_cbl_s.dds
+}
+
+// Construction blob puff for faction c (cnstblc.odf).
+material cr_fx_cbl_c.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_fx_cbl_c.dds
+}
+
+// Construction blob puff for faction b (cnstblb.odf).
+material cr_fx_cbl_b.dds : BZSprite/Additive
+{
+    set_texture_alias DiffuseMap cr_fx_cbl_b.dds
+}

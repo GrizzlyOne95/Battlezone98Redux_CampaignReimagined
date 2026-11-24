@@ -1,0 +1,8 @@
+[ConstructionBlob]
+blobTexture = "bpuff.0"
+blobFrames = 14
+blobVariance = 3
+blobRenderA = "cnstbla.render"
+blobRenderS = "cnstbls.render"
+blobRenderC = "cnstblc.render"
+blobRenderB = "cnstblb.render"

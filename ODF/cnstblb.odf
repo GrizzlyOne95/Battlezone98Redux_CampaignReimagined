@@ -1,0 +1,29 @@
+// CR construction blob, blood red (Black Dogs). Used through cnstblob.odf blobRenderB (OpenShim [Display] FactionConstructionBlobs).
+[Render]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "cnstblb.mist"
+renderName2 = "cnstblb.light"
+
+[Mist]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.05
+emitVelocity = "0.0 1.5 0.0"
+emitVariance = "2.0 1.5 2.0"
+emitLife = 1.1
+textureName = "cr_fx_cbl_b.dds"
+startColor = "255 255 255 200"
+finishColor = "255 255 255 0"
+startRadius = 1.6
+finishRadius = 4.2
+animateTime = 1.1
+rotationRate = 1.5
+
+[Light]
+renderBase = "draw_light"
+startColor = "230 25 40 255"
+finishColor = "230 25 40 255"
+startRadius = 14.0
+finishRadius = 14.0
+attenuateQuadratic = 1.0
+lensFlare = false

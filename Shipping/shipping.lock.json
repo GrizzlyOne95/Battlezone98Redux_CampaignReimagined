@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6380,
+  "count": 6393,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -6291,12 +6291,32 @@
       "runtime": "cr_fx_beam.dds"
     },
     {
+      "source": "Assets\\Textures\\cr_fx_cbl_a.dds",
+      "runtime": "cr_fx_cbl_a.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_fx_cbl_b.dds",
+      "runtime": "cr_fx_cbl_b.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_fx_cbl_c.dds",
+      "runtime": "cr_fx_cbl_c.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_fx_cbl_s.dds",
+      "runtime": "cr_fx_cbl_s.dds"
+    },
+    {
       "source": "Assets\\Textures\\cr_fx_dirt.dds",
       "runtime": "cr_fx_dirt.dds"
     },
     {
       "source": "Assets\\Textures\\cr_fx_dust.dds",
       "runtime": "cr_fx_dust.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_fx_fire.dds",
+      "runtime": "cr_fx_fire.dds"
     },
     {
       "source": "Assets\\Textures\\cr_fx_flare.dds",
@@ -6317,6 +6337,10 @@
     {
       "source": "Assets\\Textures\\cr_fx_scorch.dds",
       "runtime": "cr_fx_scorch.dds"
+    },
+    {
+      "source": "Assets\\Textures\\cr_fx_smoke.dds",
+      "runtime": "cr_fx_smoke.dds"
     },
     {
       "source": "Assets\\Textures\\cr_fx_splash.dds",
@@ -16947,6 +16971,26 @@
       "runtime": "chunk.odf"
     },
     {
+      "source": "ODF\\cnstbla.odf",
+      "runtime": "cnstbla.odf"
+    },
+    {
+      "source": "ODF\\cnstblb.odf",
+      "runtime": "cnstblb.odf"
+    },
+    {
+      "source": "ODF\\cnstblc.odf",
+      "runtime": "cnstblc.odf"
+    },
+    {
+      "source": "ODF\\cnstblob.odf",
+      "runtime": "cnstblob.odf"
+    },
+    {
+      "source": "ODF\\cnstbls.odf",
+      "runtime": "cnstbls.odf"
+    },
+    {
       "source": "ODF\\cpcamr.odf",
       "runtime": "cpcamr.odf"
     },
@@ -17617,6 +17661,10 @@
     {
       "source": "ODF\\engsplsh.odf",
       "runtime": "engsplsh.odf"
+    },
+    {
+      "source": "ODF\\fireball.odf",
+      "runtime": "fireball.odf"
     },
     {
       "source": "ODF\\flance.odf",
@@ -19173,6 +19221,10 @@
     {
       "source": "ODF\\shunter.odf",
       "runtime": "shunter.odf"
+    },
+    {
+      "source": "ODF\\smoke.odf",
+      "runtime": "smoke.odf"
     },
     {
       "source": "ODF\\snipe.odf",
