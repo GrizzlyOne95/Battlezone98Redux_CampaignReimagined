@@ -29,7 +29,8 @@ STOCK_DIR = Path(r"C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux\B
 DUST_MEAN = [1.5, 3.2, 5.5, 8.4, 16.1, 13.9, 12.4, 11.3, 7.3, 7.0, 3.1, 3.5, 2.4, 1.8, 1.5, 1.1,
              3.0, 2.2, 1.9, 1.7, 1.6, 1.4, 1.2, 1.2, 1.3, 1.2, 1.0, 0.9, 1.3, 1.1, 0.9, 0.7]
 DUST_EXT = [32, 40, 43, 49, 55, 57, 54, 56, 55, 57, 56, 53, 57, 57, 52, 51]
-DUST_OPACITY = 0.7        # source clouds are near opaque; stock peak alpha is 0.29
+DUST_OPACITY = 0.233      # about 2x stock dust.png mean alpha (chosen density)
+STOCK_DUST_MEAN_ALPHA = 0.0150   # measured over the whole stock dust.png atlas
 # Stock dust.png RGB is pure white: the engine tints each puff by the terrain colour under it (GOG exe
 # FUN_004c0930 AddDust stores (c*7>>3)+0x20 per channel from the terrain colour map; FUN_004c0680 Submit
 # draws with sprite mode 5, whose vertex colour FUN_0068f030 takes from that value). Any hue here doubles up.
@@ -129,6 +130,8 @@ def build_dust(src, cell=128, frames=32, cols=4):
         big[sl][..., :3] = DUST_RGB
         big[sl][..., 3] = a * 255.0
     assert (big[..., :3] == 255.0).all(), "dust RGB must stay neutral white like stock dust.png"
+    ratio = big[..., 3].mean() / 255.0 / STOCK_DUST_MEAN_ALPHA
+    assert 1.8 <= ratio <= 2.2, f"dust mean alpha is {ratio:.2f}x stock; expected about 2x"
     return big
 
 
