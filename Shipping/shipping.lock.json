@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6343,
+  "count": 6361,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -1293,6 +1293,30 @@
     {
       "source": "Assets\\ModelFixes\\cfr11ror.geo",
       "runtime": "cfr11ror.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\chunk1.geo",
+      "runtime": "chunk1.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\chunk2.geo",
+      "runtime": "chunk2.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\chunk3.geo",
+      "runtime": "chunk3.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\chunk4.geo",
+      "runtime": "chunk4.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\chunk5.geo",
+      "runtime": "chunk5.geo"
+    },
+    {
+      "source": "Assets\\ModelFixes\\chunk6.geo",
+      "runtime": "chunk6.geo"
     },
     {
       "source": "Assets\\ModelFixes\\cmf11nac.geo",
@@ -10347,6 +10371,50 @@
       "runtime": "winmm.dll"
     },
     {
+      "source": "chunkMeshes\\chunk1\\chunk1.mesh",
+      "runtime": "chunkMeshes\\chunk1\\chunk1.mesh"
+    },
+    {
+      "source": "chunkMeshes\\chunk2\\chunk2.mesh",
+      "runtime": "chunkMeshes\\chunk2\\chunk2.mesh"
+    },
+    {
+      "source": "chunkMeshes\\chunk3\\chunk3.mesh",
+      "runtime": "chunkMeshes\\chunk3\\chunk3.mesh"
+    },
+    {
+      "source": "chunkMeshes\\chunk4\\chunk4.mesh",
+      "runtime": "chunkMeshes\\chunk4\\chunk4.mesh"
+    },
+    {
+      "source": "chunkMeshes\\chunk5\\chunk5.mesh",
+      "runtime": "chunkMeshes\\chunk5\\chunk5.mesh"
+    },
+    {
+      "source": "chunkMeshes\\chunk6\\chunk6.mesh",
+      "runtime": "chunkMeshes\\chunk6\\chunk6.mesh"
+    },
+    {
+      "source": "chunkMeshes\\cr_chunklet.material",
+      "runtime": "chunkMeshes\\cr_chunklet.material"
+    },
+    {
+      "source": "chunkMeshes\\cr_chunklet_interior_d.dds",
+      "runtime": "chunkMeshes\\cr_chunklet_interior_d.dds"
+    },
+    {
+      "source": "chunkMeshes\\cr_chunklet_interior_e.dds",
+      "runtime": "chunkMeshes\\cr_chunklet_interior_e.dds"
+    },
+    {
+      "source": "chunkMeshes\\cr_chunklet_interior_n.dds",
+      "runtime": "chunkMeshes\\cr_chunklet_interior_n.dds"
+    },
+    {
+      "source": "chunkMeshes\\cr_chunklet_interior_s.dds",
+      "runtime": "chunkMeshes\\cr_chunklet_interior_s.dds"
+    },
+    {
       "source": "Config\\ac_detail_atlas.csv",
       "runtime": "ac_detail_atlas.csv"
     },
@@ -16805,6 +16873,10 @@
     {
       "source": "ODF\\charge6.odf",
       "runtime": "charge6.odf"
+    },
+    {
+      "source": "ODF\\chunk.odf",
+      "runtime": "chunk.odf"
     },
     {
       "source": "ODF\\cpcamr.odf",

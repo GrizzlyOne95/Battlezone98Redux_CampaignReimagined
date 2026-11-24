@@ -1,0 +1,18 @@
+// Shared material for CR's destruction chunklet meshes (chunkN/chunkN.mesh).
+// Mirrors OpenShim's openshim_fracture_interior (burnt machinery, ember cracks) under CR-unique
+// names. Inherits the stock BZBase, as OpenShim's own payload materials do, never a CR-only base.
+import * from "BZBase.material"
+
+material cr_chunklet_interior : BZBase
+{
+	set_texture_alias DiffuseMap cr_chunklet_interior_d.dds
+	set_texture_alias NormalMap cr_chunklet_interior_n.dds
+	set_texture_alias SpecularMap cr_chunklet_interior_s.dds
+	set_texture_alias EmissiveMap cr_chunklet_interior_e.dds
+
+	set $diffuse "1 1 1"
+	set $ambient "1 1 1"
+	set $specular "0.30 0.28 0.26"
+	set $shininess "40"
+	set $bias "0"
+}
