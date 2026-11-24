@@ -250,6 +250,9 @@ routes=json.loads((REF/'routes.json').read_text())
 NACELLE_PITCH={('[hovercraftclass]','pitch%snacelle%s'%(a,b)) for a in ('throt','steer') for b in ('run','jump')}
 # bvrecy* set collisionRadius like avrecy so the goto arrival radius doesn't fall back to the
 # mesh sphere and loop the geyser deploy (CHANGELOG); only that exact value is tolerated.
+SOUND_THRUST=('[hovercraftclass]','soundthrust')
+SOVIET_ENGINE_REMAP={'svrecy.odf','svrecy8.odf','svremp.odf'}
+SOVIET_ENGINE_WAV='cr_snd_sov_recy_e0.wav'
 RECYCLER_RADIUS=('[gameobjectclass]','collisionradius')
 # bvrecy* reverse/strafe speeds raised 10 -> 15 to match avrecy (CHANGELOG).
 RECYCLER_SPEEDS=(('[hovercraftclass]','velocreverse'),('[hovercraftclass]','velocstrafe'))
@@ -260,6 +263,9 @@ for route in routes:
     # NacelleJets flame housings (pinned in craft-gameplay-baselines.json), not the build menu
     # damageEffect slots are faction damage smoke and xpl*/explosionName are faction death explosions (presentation), set on every craft
     old,new=({k:v for k,v in settings(f.read_text()).items() if not k[1].endswith('msg') and not k[1].startswith(('damageeffect','xplsnipe','xplsecondary','xpldetonate','explosionname')) and k not in NACELLE_PITCH} for f in (baseline,path))
+    # Soviet recyclers use CR's own engine-thrust loop (Tools/Assets/Build-EngineLoops.py); allow exactly that remap
+    if path.name.lower() in SOVIET_ENGINE_REMAP:
+        check(new.pop(SOUND_THRUST,None)==SOVIET_ENGINE_WAV and old.pop(SOUND_THRUST,None)=='avrecye6.wav','svrecy soundThrust is the CR Soviet engine loop: '+path.name)
     if path.name.lower().startswith('bvrecy'):
         check(new.pop(RECYCLER_RADIUS,None)=='10.0' and RECYCLER_RADIUS not in old,'bvrecy geyser-deploy collisionRadius fix present: '+path.name)
         for key in RECYCLER_SPEEDS:

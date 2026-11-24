@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6361,
+  "count": 6363,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -4673,6 +4673,14 @@
     {
       "source": "Assets\\Sounds\\c17fell.wav",
       "runtime": "c17fell.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_eng_b_e0.wav",
+      "runtime": "cr_snd_eng_b_e0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_sov_recy_e0.wav",
+      "runtime": "cr_snd_sov_recy_e0.wav"
     },
     {
       "source": "Assets\\Sounds\\crddesc.wav",
