@@ -44,5 +44,5 @@ omegaSpin = 3.0
 omegaTurn = 2.25
 alphaSteer = 6.0
 accelJump = 12.0
-soundThrust = "avsave0.wav"
-soundTurbo = "avsave6.wav"
+soundThrust = "cr_snd_fury_raz_e0.wav"
+soundTurbo = "cr_snd_fury_raz_e1.wav"

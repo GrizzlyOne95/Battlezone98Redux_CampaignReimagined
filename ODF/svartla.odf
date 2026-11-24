@@ -91,6 +91,6 @@ omegaSpin = 2.8000000000000003
 omegaTurn = 1.2000000000000002
 alphaSteer = 4.0
 accelJump = 15.0
-soundThrust = "avartle1.wav"
+soundThrust = "cr_snd_sov_artl_e0.wav"
 soundSteer = "avartle6.wav"
 
