@@ -2149,10 +2149,14 @@ local function ReadOpenShimCampaignVisualSettings()
         local ok, workingDirectory = pcall(bzfile.GetWorkingDirectory)
         if ok and type(workingDirectory) == "string" and workingDirectory ~= "" then
             workingDirectory = workingDirectory:gsub("[\\/]+$", "")
+            -- OpenShim 1.0.0.81 moved openshim.ini under <game>\openshim\.
+            AddCandidate(workingDirectory .. "\\openshim\\openshim.ini")
+            AddCandidate(workingDirectory .. "/openshim/openshim.ini")
             AddCandidate(workingDirectory .. "\\openshim.ini")
             AddCandidate(workingDirectory .. "/openshim.ini")
         end
     end
+    AddCandidate("openshim\\openshim.ini")
     AddCandidate("openshim.ini")
 
     local f, sourcePath
