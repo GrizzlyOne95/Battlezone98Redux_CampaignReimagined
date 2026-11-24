@@ -13,6 +13,9 @@ Assets/Sounds files.
 Usage:
   python Tools/Assets/Build-EngineLoops.py --manifest Tools/Assets/engine_loops.json       --input-root <folder holding eng_in/ and eng_in2/> [--repo-out <dir>] [--listen-out <dir>]
   (or ad hoc: --take cr_snd_cra_muf_e0=<take.wav> ...)
+A manifest value is a path, or {"src": path, "pitch": playback-speed factor, "lowpass": Hz} to
+derive a loop from an existing sound (the hvturr loops use stock avsave0/avsave6.wav extracted
+from bzone.zfs into <input-root>/stock/; pitch relabels the sample rate before the 11025 Hz resample).
 --repo-out defaults to this repository's Assets/Sounds, wherever it is run from.
 Inputs longer than 2.5 s are first cut to their steadiest 2 s window (smallest
 range of the 20 ms RMS envelope).
@@ -25,7 +28,7 @@ from fractions import Fraction
 from pathlib import Path
 
 import numpy as np
-from scipy.signal import resample_poly
+from scipy.signal import butter, resample_poly, sosfiltfilt
 
 RATE = 11025
 FADE_MS = 40.0
@@ -161,8 +164,12 @@ def main():
         a.repo_out = str(Path(__file__).resolve().parents[2] / "Assets" / "Sounds")
     ok = True
     specs = list(a.take)
+    derive = {}
     if a.manifest:
         for name, rel in json.load(open(a.manifest)).items():
+            if isinstance(rel, dict):
+                derive[name] = rel
+                rel = rel["src"]
             specs.append(f"{name}={Path(a.input_root) / rel}")
     if not specs:
         ap.error("no takes")
@@ -170,6 +177,11 @@ def main():
         name, _, path = spec.partition("=")
         x48, sr = read_wav(path)
         note = ""
+        d = derive.get(name, {})
+        if d.get("pitch"):
+            sr = int(round(sr * d["pitch"]))
+        if d.get("lowpass"):
+            x48 = sosfiltfilt(butter(4, d["lowpass"], "low", fs=sr, output="sos"), x48)
         if len(x48) > 2.5 * sr:
             s0, n, rng = steadiest_window(x48, sr)
             x48 = x48[s0:s0 + n]

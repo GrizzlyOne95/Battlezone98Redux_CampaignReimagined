@@ -682,6 +682,24 @@
 "splash.14"                        splash             128   192    64    64   256   256 0x00000000
 "splash.15"                        splash             192   192    64    64   256   256 0x00000000
 
+# CR Exhaust Splash (engsplsh.odf splashTexture = cr_fx_splash.0, 14 frames used)
+"cr_fx_splash.0"                   cr_fx_splash         0     0    64    64   256   256 0x00000000
+"cr_fx_splash.1"                   cr_fx_splash        64     0    64    64   256   256 0x00000000
+"cr_fx_splash.2"                   cr_fx_splash       128     0    64    64   256   256 0x00000000
+"cr_fx_splash.3"                   cr_fx_splash       192     0    64    64   256   256 0x00000000
+"cr_fx_splash.4"                   cr_fx_splash         0    64    64    64   256   256 0x00000000
+"cr_fx_splash.5"                   cr_fx_splash        64    64    64    64   256   256 0x00000000
+"cr_fx_splash.6"                   cr_fx_splash       128    64    64    64   256   256 0x00000000
+"cr_fx_splash.7"                   cr_fx_splash       192    64    64    64   256   256 0x00000000
+"cr_fx_splash.8"                   cr_fx_splash         0   128    64    64   256   256 0x00000000
+"cr_fx_splash.9"                   cr_fx_splash        64   128    64    64   256   256 0x00000000
+"cr_fx_splash.10"                  cr_fx_splash       128   128    64    64   256   256 0x00000000
+"cr_fx_splash.11"                  cr_fx_splash       192   128    64    64   256   256 0x00000000
+"cr_fx_splash.12"                  cr_fx_splash         0   192    64    64   256   256 0x00000000
+"cr_fx_splash.13"                  cr_fx_splash        64   192    64    64   256   256 0x00000000
+"cr_fx_splash.14"                  cr_fx_splash       128   192    64    64   256   256 0x00000000
+"cr_fx_splash.15"                  cr_fx_splash       192   192    64    64   256   256 0x00000000
+
 # Red Exhaust Flame
 "exhaust_r.0"                      rflame               0     0   128    23   128   128 0x00000010
 "exhaust_r.1"                      rflame               0    23   128    23   128   128 0x00000010

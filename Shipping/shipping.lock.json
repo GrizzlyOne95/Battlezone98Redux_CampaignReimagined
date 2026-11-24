@@ -1,6 +1,6 @@
 {
   "comment": "Explicit list of what Campaign Reimagined installs. Membership only, no hashes: editing a shipped file is free, adding or removing one is a reviewable diff. Regenerate with Manage-CampaignFiles.ps1 -bless.",
-  "count": 6393,
+  "count": 6400,
   "files": [
     {
       "source": "Assets\\ACT\\achilles.act",
@@ -4683,6 +4683,14 @@
       "runtime": "cr_snd_cra_htnk_e1.wav"
     },
     {
+      "source": "Assets\\Sounds\\cr_snd_cra_mine_e0.wav",
+      "runtime": "cr_snd_cra_mine_e0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_cra_mine_e1.wav",
+      "runtime": "cr_snd_cra_mine_e1.wav"
+    },
+    {
       "source": "Assets\\Sounds\\cr_snd_cra_muf_e0.wav",
       "runtime": "cr_snd_cra_muf_e0.wav"
     },
@@ -4697,6 +4705,26 @@
     {
       "source": "Assets\\Sounds\\cr_snd_cra_recy_e0.wav",
       "runtime": "cr_snd_cra_recy_e0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_fury_raz_e0.wav",
+      "runtime": "cr_snd_fury_raz_e0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_fury_raz_e1.wav",
+      "runtime": "cr_snd_fury_raz_e1.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_fury_sav_e0.wav",
+      "runtime": "cr_snd_fury_sav_e0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_fury_turr_e0.wav",
+      "runtime": "cr_snd_fury_turr_e0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\cr_snd_fury_turr_e1.wav",
+      "runtime": "cr_snd_fury_turr_e1.wav"
     },
     {
       "source": "Assets\\Sounds\\cr_snd_lhit.wav",
