@@ -106,7 +106,7 @@ run, with the count per log in the report.
   `logs\openshim.log`. Add a hashtable with `Group`, `Name`, `Do` (`click`, `back`, `clickxy`, `pickcampaign`,
   `text`, `key`, `wait`, `snapshot`, `mission`) and its keys. Each group must start and end on the main menu.
   Pick a campaign by name with `pickcampaign`, never by a `clickxy` row: other installed campaigns shift
-  the list. Give each campaign `mission` step an `ExpectSource` (`cr` plus `ExpectBzn`, or `stock`). `ExpectBzn` may be a `-like` pattern (`misn[0-9]*cr.bzn` for NSDF), since the mission a campaign opens follows the player's progress, which the harness never edits. The log scan skips lines stamped before the run started (and the unstamped lines after them), so old sessions in append-only logs such as `openshim_update.log` do not count.
+  the list. Give each campaign `mission` step an `ExpectSource` (`cr` plus `ExpectBzn`, or `stock`). `ExpectBzn` may be a `-like` pattern (`misn[0-9]*cr.bzn` for NSDF), since the mission a campaign opens follows the player's progress, which the harness never edits. The log scan skips lines stamped before the run started (and the unstamped lines after them), so routine lines from old sessions in append-only logs such as `openshim_update.log` do not count. Strong signals (crash, exception, assert, `[ERROR]`, `[FATAL]`) are never skipped, even when stale.
 * **Budgets and growth limits:** the `Budgets` table in the same file. Do not loosen a budget to make a
   run pass: a breach is a finding.
 * **Known warnings:** `Tools\ReleaseStress\known-warnings.txt`, one entry per line:
