@@ -535,7 +535,7 @@ ReticleSize = 100
 ReticleThickness = 2
 ReticleOpacity = 100
 ReticleOutline = 0
-; Reaction and confirmed weapon hits are single-player only.
+; Reaction and confirmed weapon hits; both also run in network games.
 ReactiveReticle = 0
 HitMarkers = 0
 HitMarkerDuration = 120
@@ -547,7 +547,7 @@ HitMarkerOpacity = 100
 ; ReactiveReticle and ripples its own art outward on hits. 0 draws stock art
 ; with sprite-only tinted ghost rings instead. Other backends always use those.
 StockReticleShader = 1
-; Incoming weapon damage: arcs toward the firing source at impact. Single player.
+; Incoming weapon damage: arcs toward the firing source at impact. Also runs in network games.
 ; Independent of reticle/hit markers; follows native HUD scale. Applies live.
 DamageIndicators = 0
 ; Red/Amber/White/Cyan/Magenta/Green/Blue/Yellow or #RRGGBB / 0xAARRGGBB (RGB only).
@@ -811,12 +811,21 @@ EarlyNakReorderMs = 0
 ; local lobby leave is skipped, and a remote player whose lobby session ended
 ; is kept while their P2P is live (kicks and bans still drop). A real P2P
 ; loss still ends the session through the stock ping check and host
-; auto-kick.
+; auto-kick. A kept player is re-checked at each ping and dropped once they
+; have answered none of the last 10 pings, so a player who quits is still
+; removed (10 ping intervals: 6 s at 600 ms, up to 30 s at the 3000 ms cap).
+; One still answering after max(10 s, 15 ping intervals) stays.
 ; Accepted: boolean. Default: ON (stock behaviour is a defect; inert unless
 ; the websocket drops mid-match). Restart required.
 ; Kill switch: OPENSHIM_DISABLE_LOBBY_DROP_KEEPS_MATCH (or BZR_ prefix).
-; Sites: GOG 2.2.301 0x006BF11B, 0x0073F13F; a signature mismatch keeps stock.
+; Sites: GOG 2.2.301 0x006BF11B, 0x0073F13F, 0x005718C7; a signature mismatch keeps stock.
 LobbyDropKeepsMatch = 1
+; Keeps a Lua LockAllies(true) made in Start() (multiplayer/co-op). Stock rebuilds the
+; ally editor after Start() and zeroes the lock, so Y/U could still ally; 1.5 kept it.
+; Accepted: boolean. Default: ON (stock bug fix). Restart required.
+; Kill switch: OPENSHIM_DISABLE_ALLY_LOCK_SURVIVES_START (or BZR_ prefix).
+; Site: GOG 2.2.301 0x00681E2A; a signature mismatch keeps stock.
+AllyLockSurvivesStart = 1
 RoutePreference = Stock
 UdpPort = 0
 ; Blank = use the Steam/GOG account name.
@@ -1099,6 +1108,10 @@ AttackRevealPerceivedTeam = 0
 ; slot) and pack up to close in on a target out of range. Player team only;
 ; hard-disabled in network games. See openshim.ini.example.
 TurretAttackOrders = 1
+; A howitzer you order to attack a target out of reach packs up, drives into
+; reach, deploys and fires. Player team only; single player only; off by
+; default. See openshim.ini.example.
+HowitzerAttackApproach = 0
 ; AI attacks and dodges an enemy Daywrecker in flight or Comet it can see.
 ; Single player only; off by default. See openshim.ini.example.
 DaywreckerDefence = 0
