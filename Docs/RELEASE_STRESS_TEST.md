@@ -14,7 +14,9 @@ OpenShim's UI trigger harness (`[Diagnostics] UiPerformanceLogging=true`: it pol
 clicks. The only pixel clicks are the campaign/map list boxes and the game-name field, which the
 harness cannot address.
 
-1. **Preflight.** Refuses if the game is running. Backs up `openshim.ini` and `Ogre.cfg` byte-exact,
+1. **Preflight.** Refuses if the game is running. Backs up `openshim.ini` (the one the game reads:
+   `openshim\openshim.ini` on 1.0.0.81+, else the root file, which the game then moves there; restore follows
+   the move) and `Ogre.cfg` byte-exact,
    applies temporary settings (UiPerformanceLogging, windowed 1280x720 for the active render system,
    RunInBackground, RawMouseInput=0, NoAuthLan) and records versions, hashes, CR HEAD and
    `OPENSHIM_PIN`. The installed natives and mod must equal this checkout's `Bin\` and the shipping lock

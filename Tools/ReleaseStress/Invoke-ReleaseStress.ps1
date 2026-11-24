@@ -36,8 +36,11 @@ if (-not $Plan) { $Plan = Join-Path $PSScriptRoot 'plan.psd1' }
 $RepoRoot   = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $LocalRoot  = Join-Path $RepoRoot 'Local\ReleaseStress'
 $Exe        = Join-Path $GameDir 'battlezone98redux.exe'
-# OpenShim reads <exe dir>\openshim.ini only (EnvConfig::GetModuleDirectory); an openshim\openshim.ini is never read.
-$IniPath    = Join-Path $GameDir 'openshim.ini'
+# OpenShim 1.0.0.81+ reads openshim\openshim.ini (Layout::OpenShimIniPath). A root openshim.ini is moved there on
+# launch when the new file is absent, and ignored (with a [LAYOUT] WARNING) when both exist. Edit the file the game reads.
+$RootIniPath = Join-Path $GameDir 'openshim.ini'
+$SubIniPath  = Join-Path $GameDir 'openshim\openshim.ini'
+$IniPath     = if (Test-Path -LiteralPath $SubIniPath) { $SubIniPath } else { $RootIniPath }
 $OgrePath   = Join-Path $GameDir 'Ogre.cfg'
 $LogsDir    = Join-Path $GameDir 'logs'
 $TriggerFile = Join-Path $GameDir 'uiperf_trigger.txt'
@@ -61,8 +64,11 @@ function Restore-Settings([object]$P) {
     $ok = $true
     foreach ($f in $P.files) {
         if (-not (Test-Path -LiteralPath $f.backup)) { Write-Warning "backup missing: $($f.backup)"; $ok = $false; continue }
-        Copy-Item -LiteralPath $f.backup -Destination $f.target -Force
-        $now = Get-Sha256 $f.target
+        $target = $f.target
+        # The game moved a root openshim.ini into openshim\ during the run: restore it there, as the player would have it.
+        if ($f.movedTo -and -not (Test-Path -LiteralPath $target) -and (Test-Path -LiteralPath $f.movedTo)) { $target = $f.movedTo }
+        Copy-Item -LiteralPath $f.backup -Destination $target -Force
+        $now = Get-Sha256 $target
         if ($now -ne $f.sha256) { Write-Warning "RESTORE MISMATCH $($f.target): $now != $($f.sha256)"; $ok = $false }
     }
     if ($P.cacheAside -and (Test-Path -LiteralPath $P.cacheAside)) {
@@ -685,7 +691,9 @@ try {
         Copy-Item -LiteralPath $pair[0] -Destination $bk -Force
         $sha = Get-Sha256 $pair[0]
         if ((Get-Sha256 $bk) -ne $sha) { throw "backup of $($pair[1]) is not byte-identical" }
-        $Pending.files += [ordered]@{ target = $pair[0]; backup = $bk; sha256 = $sha }
+        $entry = [ordered]@{ target = $pair[0]; backup = $bk; sha256 = $sha }
+        if ($pair[0] -eq $RootIniPath) { $entry.movedTo = $SubIniPath }
+        $Pending.files += $entry
     }
     $Pending | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $PendingFile
     $ini = $script:Latin1.GetString([IO.File]::ReadAllBytes($IniPath))
