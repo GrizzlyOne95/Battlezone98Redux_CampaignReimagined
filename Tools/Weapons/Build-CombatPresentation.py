@@ -52,17 +52,17 @@ def armed_units(docs):
 
 # CR's own engine loops (Tools/Assets/Build-EngineLoops.py) replace borrowed stock sounds; digest them as the
 # stock value so only these exact remaps are exempt, and any other sound change still fails.
-ENGINE_LOOPS = {('soundthrust','cr_snd_sov_recy_e0.wav'): 'avrecye6.wav', ('soundthrust','cr_snd_cra_recy_e0.wav'): 'avrecye6.wav',
-    ('soundthrust','cr_snd_sov_slf_e0.wav'): 'avslfe6.wav', ('soundthrust','cr_snd_sov_haul_e0.wav'): 'avhaule3.wav',
-    ('soundthrust','cr_snd_sov_artl_e0.wav'): 'avartle1.wav', ('soundthrust','cr_snd_sov_sav_e0.wav'): 'avsave0.wav',
-    ('soundthrust','cr_snd_mine_e0.wav'): 'avminee0.wav', ('soundturbo','cr_snd_mine_e1.wav'): 'avminee3.wav',
-    ('soundthrust','cr_snd_cra_htnk_e0.wav'): 'avtanke0.wav', ('soundturbo','cr_snd_cra_htnk_e1.wav'): 'avtanke3.wav',
-    ('soundthrust','cr_snd_cra_rckt_e0.wav'): 'avrckte0.wav', ('soundturbo','cr_snd_cra_rckt_e1.wav'): 'avrckte1.wav',
-    ('soundthrust','cr_snd_cra_muf_e0.wav'): 'avmufe2.wav',
-    ('soundthrust','cr_snd_fury_raz_e0.wav'): 'avsave0.wav', ('soundturbo','cr_snd_fury_raz_e1.wav'): 'avsave6.wav',
-    ('soundthrust','cr_snd_fury_sav_e0.wav'): 'avsave0.wav',
-    ('soundthrust','cr_snd_cra_mine_e0.wav'): 'avminee0.wav', ('soundturbo','cr_snd_cra_mine_e1.wav'): 'avminee3.wav',
-    ('soundthrust','cr_snd_fury_turr_e0.wav'): 'svturre6.wav', ('soundturbo','cr_snd_fury_turr_e1.wav'): 'svturre8.wav'}
+ENGINE_LOOPS = {('soundthrust','crsrecy0.wav'): 'avrecye6.wav', ('soundthrust','crcrecy0.wav'): 'avrecye6.wav',
+    ('soundthrust','crsslf0.wav'): 'avslfe6.wav', ('soundthrust','crshaul0.wav'): 'avhaule3.wav',
+    ('soundthrust','crsartl0.wav'): 'avartle1.wav', ('soundthrust','crssav0.wav'): 'avsave0.wav',
+    ('soundthrust','crsmine0.wav'): 'avminee0.wav', ('soundturbo','crsmine1.wav'): 'avminee3.wav',
+    ('soundthrust','crchtnk0.wav'): 'avtanke0.wav', ('soundturbo','crchtnk1.wav'): 'avtanke3.wav',
+    ('soundthrust','crcrckt0.wav'): 'avrckte0.wav', ('soundturbo','crcrckt1.wav'): 'avrckte1.wav',
+    ('soundthrust','crcmuf0.wav'): 'avmufe2.wav',
+    ('soundthrust','crfraz0.wav'): 'avsave0.wav', ('soundturbo','crfraz1.wav'): 'avsave6.wav',
+    ('soundthrust','crfsav0.wav'): 'avsave0.wav',
+    ('soundthrust','crcmine0.wav'): 'avminee0.wav', ('soundturbo','crcmine1.wav'): 'avminee3.wav',
+    ('soundthrust','crfturr0.wav'): 'svturre6.wav', ('soundturbo','crfturr1.wav'): 'svturre8.wav'}
 
 
 def gameplay_digest(parsed):

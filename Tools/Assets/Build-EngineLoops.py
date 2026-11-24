@@ -12,7 +12,7 @@ Assets/Sounds files.
 
 Usage:
   python Tools/Assets/Build-EngineLoops.py --manifest Tools/Assets/engine_loops.json       --input-root <folder holding eng_in/ and eng_in2/> [--repo-out <dir>] [--listen-out <dir>]
-  (or ad hoc: --take cr_snd_cra_muf_e0=<take.wav> ...)
+  (or ad hoc: --take crcmuf0=<take.wav> ...)
 A manifest value is a path, or {"src": path, "pitch": playback-speed factor, "lowpass": Hz} to
 derive a loop from an existing sound (the hvturr loops use stock avsave0/avsave6.wav extracted
 from bzone.zfs into <input-root>/stock/; pitch relabels the sample rate before the 11025 Hz resample).

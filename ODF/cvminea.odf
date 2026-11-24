@@ -72,8 +72,8 @@ omegaSpin = 4.375
 omegaTurn = 1.875
 alphaSteer = 6.25
 accelJump = 15.0
-soundThrust = "cr_snd_cra_mine_e0.wav"
-soundTurbo = "cr_snd_cra_mine_e1.wav"
+soundThrust = "crcmine0.wav"
+soundTurbo = "crcmine1.wav"
 
 [MineLayerClass]
 mineRad = 100
