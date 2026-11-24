@@ -81,8 +81,8 @@ omegaSpin = 2.8
 omegaTurn = 1.2
 alphaSteer = 4.0
 accelJump = 0.0
-soundThrust = "svturre6.wav"
-soundTurbo = "svturre8.wav"
+soundThrust = "cr_snd_fury_turr_e0.wav"
+soundTurbo = "cr_snd_fury_turr_e1.wav"
 
 [TurretTankClass]
 omegaTurret = 2.0
