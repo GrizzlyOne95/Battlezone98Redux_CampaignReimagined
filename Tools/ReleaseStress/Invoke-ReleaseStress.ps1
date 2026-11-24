@@ -38,7 +38,14 @@ $LocalRoot  = Join-Path $RepoRoot 'Local\ReleaseStress'
 $Exe        = Join-Path $GameDir 'battlezone98redux.exe'
 $IniPath    = Join-Path $GameDir 'openshim.ini'
 # OpenShim 1.0.0.81+ keeps the player config in <GameDir>\openshim\openshim.ini and only falls back to the root file.
-if (Test-Path -LiteralPath (Join-Path $GameDir 'openshim\openshim.ini')) { $IniPath = Join-Path $GameDir 'openshim\openshim.ini' }
+$SubIniPath = Join-Path $GameDir 'openshim\openshim.ini'
+if (Test-Path -LiteralPath $SubIniPath) {
+    # With both present the harness cannot tell which one the game reads, so its temporary settings might not apply.
+    if ((Test-Path -LiteralPath $IniPath) -and (Get-FileHash -LiteralPath $IniPath).Hash -ne (Get-FileHash -LiteralPath $SubIniPath).Hash) {
+        throw "Both $IniPath and $SubIniPath exist with different contents; remove the stale one before a stress run."
+    }
+    $IniPath = $SubIniPath
+}
 $OgrePath   = Join-Path $GameDir 'Ogre.cfg'
 $LogsDir    = Join-Path $GameDir 'logs'
 $TriggerFile = Join-Path $GameDir 'uiperf_trigger.txt'
@@ -590,16 +597,21 @@ function Invoke-LogScan([string]$Tag) {
         $n = 0
         # Append-only logs (openshim_update.log and the like) keep lines from earlier sessions. A line stamped
         # before this run started, and the unstamped lines that follow it, belong to an older session.
+        # Strong signals (crash text, [ERROR]/[FATAL]) are never skipped. A file written during this run whose
+        # stamped lines all look older than the run (e.g. a UTC clock) is an anomaly rather than a silent pass.
         $stale = $false
         $cutoff = $RunStart.AddSeconds(-5)
+        $stamped = 0; $stampedFresh = 0; $skipped = 0
         foreach ($line in $lines) {
             $n++
             $ts = $TimestampRe.Match($line)
             if ($ts.Success) {
                 $when = [datetime]::MinValue
+                $stamped++
                 $stale = [datetime]::TryParseExact($ts.Groups[1].Value, 'yyyy-MM-dd HH:mm:ss', [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::None, [ref]$when) -and $when -lt $cutoff
+                if (-not $stale) { $stampedFresh++ }
             }
-            if ($stale) { continue }
+            if ($stale -and -not $StrongRe.IsMatch($line) -and $line -notmatch '\[(ERROR|FATAL)\]') { $skipped++; continue }
             if ($line.Length -eq 0 -or $line.Contains('ui depth=')) { continue }
             if ($line.Contains('[UIPERF][HARNESS]') -and $line -notmatch 'not found|ignored') { continue }
             $lvl = $LevelRe.Match($line)
@@ -614,7 +626,10 @@ function Invoke-LogScan([string]$Tag) {
             $sig = Get-Sig $line
             if ($groups.ContainsKey($sig)) { $groups[$sig].Count++ } else { $groups[$sig] = [pscustomobject]@{ Log = $f.Name; Tag = $Tag; Sig = $sig; Count = 1; Line = $n; Sample = $line.Substring(0, [math]::Min(300, $line.Length)) } }
         }
-        $LogStats.Add([pscustomobject]@{ Tag = $Tag; Log = $f.Name; Lines = $lines.Count; Matches = $total; Known = $known; Unknown = ($total - $known); Signatures = $groups.Count })
+        if ($stamped -gt 0 -and $stampedFresh -eq 0 -and $f.LastWriteTime -ge $cutoff) {
+            Add-Anom 'LOG' "$Tag/$($f.Name) was written during this run but every timestamp predates it (clock or format mismatch?)" $f.Name
+        }
+        $LogStats.Add([pscustomobject]@{ Tag = $Tag; Log = $f.Name; Lines = $lines.Count; PreRunSkipped = $skipped; Matches = $total; Known = $known; Unknown = ($total - $known); Signatures = $groups.Count })
         foreach ($g in $groups.Values) { $LogUnknown.Add($g) }
     }
 }
@@ -832,8 +847,8 @@ W; W '## Resources at each main-menu return'; W; W '| Label | Private MB | WS MB
 foreach ($s in $Snaps) { W "| $($s.Label) | $($s.Private) | $($s.WS) | $($s.Handles) | $($s.Gdi) | $($s.User) | $($s.Threads) |" }
 W; W "Growth check (first mission return = warm-up, vs last): $(if ($growth.Evaluated) { if ($growth.Failures.Count) { 'FAIL' } else { 'ok' } } else { $growth.Note })"
 W "Limits: private +$($B.GrowthPrivateMB) MB, handles +$($B.GrowthHandles), GDI +$($B.GrowthGdi), USER +$($B.GrowthUser), threads +$($B.GrowthThreads); fails only when growth exceeds the limit AND is monotonic."
-W; W '## Log scan (every *.log/*.txt modified during the run)'; W; W '| Phase | Log | Lines | Matches | Baselined | Unexplained | Signatures |'; W '|---|---|---|---|---|---|---|'
-foreach ($l in $LogStats) { W "| $($l.Tag) | $($l.Log) | $($l.Lines) | $($l.Matches) | $($l.Known) | $($l.Unknown) | $($l.Signatures) |" }
+W; W '## Log scan (every *.log/*.txt modified during the run)'; W; W '| Phase | Log | Lines | Pre-run skipped | Matches | Baselined | Unexplained | Signatures |'; W '|---|---|---|---|---|---|---|---|'
+foreach ($l in $LogStats) { W "| $($l.Tag) | $($l.Log) | $($l.Lines) | $($l.PreRunSkipped) | $($l.Matches) | $($l.Known) | $($l.Unknown) | $($l.Signatures) |" }
 W; W '### Baseline hits'; W
 foreach ($k in $KnownRules) { W "- ($($k.Hits)) $($k.Glob) ::: $($k.Re) -- $($k.Reason)" }
 W; W 'Artifacts: monitor.csv, steps.csv, snapshots.csv, logs\<phase>\ (every scanned log), stacks\, shots\, install-verify.txt.'
