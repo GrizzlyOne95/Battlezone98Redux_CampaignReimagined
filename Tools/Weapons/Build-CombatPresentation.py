@@ -50,6 +50,17 @@ def armed_units(docs):
     return units
 
 
+# CR's own engine loops (Tools/Assets/Build-EngineLoops.py) replace borrowed stock sounds; digest them as the
+# stock value so only these exact remaps are exempt, and any other sound change still fails.
+ENGINE_LOOPS = {('soundthrust','cr_snd_sov_recy_e0.wav'): 'avrecye6.wav', ('soundthrust','cr_snd_cra_recy_e0.wav'): 'avrecye6.wav',
+    ('soundthrust','cr_snd_sov_slf_e0.wav'): 'avslfe6.wav', ('soundthrust','cr_snd_sov_haul_e0.wav'): 'avhaule3.wav',
+    ('soundthrust','cr_snd_sov_artl_e0.wav'): 'avartle1.wav', ('soundthrust','cr_snd_sov_sav_e0.wav'): 'avsave0.wav',
+    ('soundthrust','cr_snd_mine_e0.wav'): 'avminee0.wav', ('soundturbo','cr_snd_mine_e1.wav'): 'avminee3.wav',
+    ('soundthrust','cr_snd_cra_htnk_e0.wav'): 'avtanke0.wav', ('soundturbo','cr_snd_cra_htnk_e1.wav'): 'avtanke3.wav',
+    ('soundthrust','cr_snd_cra_rckt_e0.wav'): 'avrckte0.wav', ('soundturbo','cr_snd_cra_rckt_e1.wav'): 'avrckte1.wav',
+    ('soundthrust','cr_snd_cra_muf_e0.wav'): 'avmufe2.wav'}
+
+
 def gameplay_digest(parsed):
     parsed = {section: dict(values) for section, values in parsed.items()}
     for k in list(parsed.get('craftclass', {})):
@@ -61,6 +72,10 @@ def gameplay_digest(parsed):
     for values in parsed.values():
         for k in [k for k in values if k.lower().endswith('msg')]:
             del values[k]
+    for values in parsed.values():
+        for k in list(values):
+            if (k, values[k]) in ENGINE_LOOPS:
+                values[k] = ENGINE_LOOPS[(k, values[k])]
     return hashlib.sha256(json.dumps(parsed, sort_keys=True).encode()).hexdigest()
 
 
