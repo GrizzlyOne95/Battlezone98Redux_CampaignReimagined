@@ -1,0 +1,29 @@
+// CR construction blob, green (CRA/Chinese). Used through cnstblob.odf blobRenderC (OpenShim [Display] FactionConstructionBlobs).
+[Render]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "cnstblc.mist"
+renderName2 = "cnstblc.light"
+
+[Mist]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.05
+emitVelocity = "0.0 1.5 0.0"
+emitVariance = "2.0 1.5 2.0"
+emitLife = 1.1
+textureName = "cr_fx_cbl_c.dds"
+startColor = "255 255 255 200"
+finishColor = "255 255 255 0"
+startRadius = 1.6
+finishRadius = 4.2
+animateTime = 1.1
+rotationRate = 1.5
+
+[Light]
+renderBase = "draw_light"
+startColor = "90 255 110 255"
+finishColor = "90 255 110 255"
+startRadius = 14.0
+finishRadius = 14.0
+attenuateQuadratic = 1.0
+lensFlare = false

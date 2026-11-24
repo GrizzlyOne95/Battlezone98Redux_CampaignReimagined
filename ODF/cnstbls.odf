@@ -1,0 +1,29 @@
+// CR construction blob, burnt orange (CCA/Soviet). Used through cnstblob.odf blobRenderS (OpenShim [Display] FactionConstructionBlobs).
+[Render]
+renderBase = "draw_multi"
+renderCount = 2
+renderName1 = "cnstbls.mist"
+renderName2 = "cnstbls.light"
+
+[Mist]
+renderBase = "draw_twirl_trail"
+emitDelay = 0.05
+emitVelocity = "0.0 1.5 0.0"
+emitVariance = "2.0 1.5 2.0"
+emitLife = 1.1
+textureName = "cr_fx_cbl_s.dds"
+startColor = "255 255 255 200"
+finishColor = "255 255 255 0"
+startRadius = 1.6
+finishRadius = 4.2
+animateTime = 1.1
+rotationRate = 1.5
+
+[Light]
+renderBase = "draw_light"
+startColor = "255 120 30 255"
+finishColor = "255 120 30 255"
+startRadius = 14.0
+finishRadius = 14.0
+attenuateQuadratic = 1.0
+lensFlare = false

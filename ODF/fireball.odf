@@ -1,0 +1,16 @@
+[FireballEffect]
+
+fireballTexture = "cr_fx_fire.0"
+fireballFrames = 32
+fireballRate = 10.0
+fireballRadius = 2.0
+fireballScale = 1.0
+
+smokeTexture = "cr_fx_fire.0"
+smokeFrames = 32
+smokeLifespan = 0.5
+smokePause = 0.05
+smokeRadius = 1.0
+smokeScale = 1.0
+smokeVariance = 5.0
+smokeInherit = 0.6

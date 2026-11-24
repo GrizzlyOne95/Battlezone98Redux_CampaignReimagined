@@ -1,0 +1,22 @@
+[SmokeEffect]
+
+smokeFrames = 16
+smokeLifetime = 1.6
+smokeRadius = 1.5
+smokeScale = 1.0
+smokeWhite = "cr_fx_sml.0"
+smokeTan = "cr_fx_smm.0"
+smokeBrown = "cr_fx_smd.0"
+smokeBlack = "cr_fx_smb.0"
+
+steamFrames = 16
+steamLifetime = 1.6
+steamRadius = 2.0
+steamScale = 1.0
+steamTexture = "cr_fx_sml.0"
+
+sprayFrames = 16
+sprayLifetime = 1.6
+sprayRadius = 2.0
+sprayScale = 1.0
+sprayTexture = "cr_fx_sml.0"
