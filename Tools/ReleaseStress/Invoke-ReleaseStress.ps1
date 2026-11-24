@@ -569,6 +569,7 @@ $ExtraRe = @{
 }
 # Logs with a [LEVEL] token (openshim.log, exu.log): INFO/DEBUG lines are not anomalies unless they say something strong.
 $LevelRe = [regex]::new('\[(INFO|DEBUG|TRACE|WARN|WARNING|ERROR|FATAL)\]')
+$TimestampRe = [regex]::new('^\[?(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)')   # local time, as the game and updater write it
 $StrongRe = [regex]::new('(?i)unhandled|access violation|fatal|deadlock|not responding|stack overflow|std::terminate')
 function Get-LogKind([string]$n) { if ($n -match 'BZLogger') { 'bzlogger' } elseif ($n -match 'Ogre') { 'ogre' } else { 'other' } }
 function Get-Sig([string]$line) {
@@ -587,8 +588,18 @@ function Invoke-LogScan([string]$Tag) {
         $total = 0; $known = 0; $groups = @{}
         $lines = $script:Latin1.GetString([IO.File]::ReadAllBytes($f.FullName)) -split "`r?`n"
         $n = 0
+        # Append-only logs (openshim_update.log and the like) keep lines from earlier sessions. A line stamped
+        # before this run started, and the unstamped lines that follow it, belong to an older session.
+        $stale = $false
+        $cutoff = $RunStart.AddSeconds(-5)
         foreach ($line in $lines) {
             $n++
+            $ts = $TimestampRe.Match($line)
+            if ($ts.Success) {
+                $when = [datetime]::MinValue
+                $stale = [datetime]::TryParseExact($ts.Groups[1].Value, 'yyyy-MM-dd HH:mm:ss', [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::None, [ref]$when) -and $when -lt $cutoff
+            }
+            if ($stale) { continue }
             if ($line.Length -eq 0 -or $line.Contains('ui depth=')) { continue }
             if ($line.Contains('[UIPERF][HARNESS]') -and $line -notmatch 'not found|ignored') { continue }
             $lvl = $LevelRe.Match($line)
