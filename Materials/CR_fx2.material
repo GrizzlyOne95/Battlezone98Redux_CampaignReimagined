@@ -40,13 +40,13 @@ material cr_fx_dust : BZSprite/AlphaBlend
     set_texture_alias DiffuseMap cr_fx_dust.dds
 }
 
-// Remastered portal blob: 4x4 atlases, 16 frames each (stock rpuff/bpuff layout); spritea.st rows cr_fx_portal_r/b.N.
-material cr_fx_portal_r : BZSprite/Additive
+// Remastered portal blob: 4x4 atlases, 16 frames each (stock rpuff/bpuff layout); spritea.st rows cr_fx_port_r/b.N.
+material cr_fx_port_r : BZSprite/Additive
 {
-    set_texture_alias DiffuseMap cr_fx_portal_r.dds
+    set_texture_alias DiffuseMap cr_fx_port_r.dds
 }
 
-material cr_fx_portal_b : BZSprite/Additive
+material cr_fx_port_b : BZSprite/Additive
 {
-    set_texture_alias DiffuseMap cr_fx_portal_b.dds
+    set_texture_alias DiffuseMap cr_fx_port_b.dds
 }

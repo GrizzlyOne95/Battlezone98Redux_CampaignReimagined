@@ -1,6 +1,7 @@
-"""Build CR's ground-dust and portal-blob sprite sheets (procedural, no third-party art).
+"""Build CR's ground-dust and portal-blob sprite sheets from the project author's generated source frames
+(dust_src.jpg, portal_src.jpg: 4x4 grids on black; pass --src-dir). No third-party art.
 
-Writes Assets/Textures/cr_fx_dust.dds, cr_fx_portal_r.dds and cr_fx_portal_b.dds (BC3, full mips) and,
+Writes Assets/Textures/cr_fx_dust.dds, cr_fx_port_r.dds and cr_fx_port_b.dds (BC3, full mips) and,
 with --contact-sheet, a stock-versus-CR comparison PNG.
 
 Frame layout and timing follow the stock sheets (measured from BZ_ASSETS dust.png / rpuff.png / bpuff.png):
@@ -28,8 +29,11 @@ STOCK_DIR = Path(r"C:\Program Files (x86)\GOG Galaxy\Games\Battlezone 98 Redux\B
 DUST_MEAN = [1.5, 3.2, 5.5, 8.4, 16.1, 13.9, 12.4, 11.3, 7.3, 7.0, 3.1, 3.5, 2.4, 1.8, 1.5, 1.1,
              3.0, 2.2, 1.9, 1.7, 1.6, 1.4, 1.2, 1.2, 1.3, 1.2, 1.0, 0.9, 1.3, 1.1, 0.9, 0.7]
 DUST_EXT = [32, 40, 43, 49, 55, 57, 54, 56, 55, 57, 56, 53, 57, 57, 52, 51]
-DUST_GAIN = 1.7          # a little denser than stock so the new soft edges still read
-DUST_RGB = np.array([196.0, 184.0, 166.0])   # warm neutral; stock is an untinted grey
+DUST_OPACITY = 0.7        # source clouds are near opaque; stock peak alpha is 0.29
+DUST_RGB = np.array([190.0, 180.0, 164.0])   # warm neutral; stock is an untinted grey
+
+PORTAL_GAIN = 1.0
+SRC_DIR = Path('C:/Users/iestu/Documents/CR_fx_gen')
 
 # Stock rpuff.png (128x128, 32 px cells): per-frame mean alpha and max alpha, measured.
 PUFF_MEAN = [71.2, 60.2, 50.7, 42.5, 35.4, 29.4, 24.3, 19.9, 16.2, 13.0, 10.4, 8.2, 6.4, 4.9, 3.6, 3.6]
@@ -51,27 +55,75 @@ def noise3(shape, sigmas, seed):
     return n / n.std()
 
 
-def build_dust(cell=128, frames=32, cols=4):
-    rows = frames // cols
-    big = np.zeros((rows * cell, cols * cell, 4), np.float32)
-    big[..., :3] = DUST_RGB
-    n1 = noise3((cell, cell, frames), (cell / 7, cell / 7, 3.0), 101)
-    n2 = noise3((cell, cell, frames), (cell / 16, cell / 16, 2.0), 102)
-    n3 = noise3((cell, cell, frames), (cell / 40, cell / 40, 1.5), 103)
-    Y, X = (np.mgrid[0:cell, 0:cell] + 0.5) / cell - 0.5
-    for i in range(frames):
-        R = (DUST_EXT[i] / 64.0 / 2.0) if i < len(DUST_EXT) else 0.40 * max(0.25, 1 - (i - 16) / 24.0)
-        warp = 0.07 * n1[..., i] + 0.03 * n2[..., i]
-        d = np.hypot(X, Y) / max(R, 0.05) + warp
-        body = smoothstep(1.0, 0.15, d)
-        lumps = np.clip(0.62 + 0.28 * n2[..., i] + 0.12 * n3[..., i], 0.15, 1.2)
-        a = body * lumps
-        a *= DUST_MEAN[i] * DUST_GAIN / max(a.mean() * 255.0, 1e-6)
-        a = np.clip(a, 0, 0.47)   # stock peak alpha is 73/255; keep the puff translucent
-        shade = 1.0 + 0.10 * n1[..., i] * body       # volume: lumps slightly lighter / darker
-        r, c = divmod(i, cols)
+def load_cells(path, grid=4):
+    """Cut the 4x4 source into per-cell luminance arrays (0..1) with a small black point (JPG noise)."""
+    L = np.array(Image.open(path).convert("L"), np.float32)
+    L = np.clip((L - 6.0) / (255.0 - 6.0), 0, 1)
+    n = L.shape[0] // grid
+    return [L[(i // grid) * n:(i // grid + 1) * n, (i % grid) * n:(i % grid + 1) * n] for i in range(grid * grid)]
+
+
+def blob_bbox(v, thr=0.05):
+    """Bounding box of the blob (not the fixed cell): where the lightly blurred cell exceeds thr."""
+    m = gaussian_filter(v, 3) > thr
+    ys, xs = np.nonzero(m)
+    if len(ys) == 0:
+        return None
+    return ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
+
+
+def recentre(cells, cell, fill=0.94, ystretch=1.0, grow=1.0):
+    """Centre every blob on its bounding box and resample. grow=1 keeps the source growth (one common scale);
+    grow<1 compresses it (size ~ span**grow) so small early frames still read; ystretch makes wide clouds taller."""
+    boxes = [blob_bbox(v) for v in cells]
+    spans = [max((b[1] - b[0]) * ystretch, b[3] - b[2]) if b else 0 for b in boxes]
+    top = max(spans)
+    sizes = [top * (sp / top) ** grow if sp else 0 for sp in spans]
+    k_all = cell * fill / top
+    out = []
+    for v, b, sp, sz in zip(cells, boxes, spans, sizes):
+        canvas = np.zeros((cell, cell), np.float32)
+        if b:
+            k = k_all * sz / sp
+            crop = v[b[0]:b[1], b[2]:b[3]]
+            h, w = max(1, round(crop.shape[0] * k * ystretch)), max(1, round(crop.shape[1] * k))
+            im = np.array(Image.fromarray((crop * 255).astype(np.uint8)).resize((w, h), Image.LANCZOS), np.float32) / 255.0
+            y0, x0 = (cell - h) // 2, (cell - w) // 2
+            ys, xs = max(0, y0), max(0, x0)
+            ye, xe = min(cell, y0 + h), min(cell, x0 + w)
+            canvas[ys:ye, xs:xe] = im[ys - y0:ye - y0, xs - x0:xe - x0]
+        out.append(canvas)
+    return out
+
+
+def build_dust(src, cell=128, frames=32, cols=4):
+    """Source clouds -> soft alpha puffs: recentred, contrast lowered, silhouette broken up by noise, flat
+    bottom feathered, opacity reduced. The 16 source frames are cross-faded to the stock 32."""
+    f16 = recentre(load_cells(src), cell, ystretch=1.5, grow=0.45)
+    nz = noise3((cell, cell, 16), (cell / 9, cell / 9, 2.0), 401)
+    nz2 = noise3((cell, cell, 16), (cell / 20, cell / 20, 1.5), 402)
+    soft = []
+    for i, v in enumerate(f16):
+        v = 0.55 * v + 0.45 * gaussian_filter(v, cell * 0.025)
+        edge = 1.0 - smoothstep(0.35, 0.85, v)
+        v = v * np.clip(1.0 + (0.55 * nz[..., i] + 0.25 * nz2[..., i]) * (0.35 + 0.65 * edge), 0.2, 1.4)
+        m = v > 0.02
+        if m.any():
+            rows = np.nonzero(m.any(1))[0]
+            top, bot = rows.min(), rows.max()
+            t = (np.arange(cell) - top) / max(1, bot - top)
+            v = v * (1.0 - 0.7 * smoothstep(0.78, 1.02, t))[:, None]
+        soft.append(np.clip(v, 0, 1))
+    big = np.zeros((frames // cols * cell, cols * cell, 4), np.float32)
+    for j in range(frames):
+        u = min(15.0, j * 15 / 22)   # stock dust is visible over roughly its first 22 frames
+        i0 = int(u)
+        i1 = min(15, i0 + 1)
+        w = u - i0
+        a = (soft[i0] * (1 - w) + soft[i1] * w) * DUST_OPACITY
+        r, c = divmod(j, cols)
         sl = (slice(r * cell, (r + 1) * cell), slice(c * cell, (c + 1) * cell))
-        big[sl][..., :3] = np.clip(DUST_RGB * shade[..., None], 0, 255)
+        big[sl][..., :3] = DUST_RGB * (0.82 + 0.18 * soft[i0][..., None])
         big[sl][..., 3] = a * 255.0
     return big
 
@@ -79,34 +131,15 @@ def build_dust(cell=128, frames=32, cols=4):
 def ramp(a, blue):
     g = np.interp(a, RAMP_A, RAMP_G)
     full = np.full_like(a, 255.0)
-    return (g, g * 0 + g, full) if blue else (full, g, g)
+    return (g, g, full) if blue else (full, g, g)
 
 
-def build_portal(blue, cell=128, frames=16, cols=4):
-    rows = frames // cols
-    big = np.zeros((rows * cell, cols * cell, 4), np.float32)
-    seed = 202 if blue else 201
-    # Both colours share the structure so a portal pair looks like one phenomenon.
-    n1 = noise3((cell, cell, frames), (cell / 9, cell / 9, 2.5), 301)
-    n2 = noise3((cell, cell, frames), (cell / 22, cell / 22, 1.5), 302)
-    Y, X = (np.mgrid[0:cell, 0:cell] + 0.5) / cell - 0.5
-    rr = np.hypot(X, Y)
-    th = np.arctan2(Y, X)
-    for i in range(frames):
-        R = float(np.sqrt(PUFF_COV[i] / np.pi)) * 1.15           # stock coverage -> disc radius (cell units)
-        d = rr / R
-        glow = np.exp(-2.2 * d * d)                        # soft body
-        core = np.exp(-(d / 0.28) ** 2)                    # hot core
-        # Counter-rotating spiral arms: angle advances per frame, twist grows with radius.
-        phase = 0.55 * i
-        arms = 0.5 + 0.5 * np.cos(3 * th - 7.0 * d + phase + 0.9 * n2[..., i])
-        arms2 = 0.5 + 0.5 * np.cos(5 * th + 5.0 * d - 0.8 * phase + n1[..., i])
-        swirl = 0.15 + 0.75 * arms ** 1.5 + 0.35 * arms2 * smoothstep(1.1, 0.3, d)
-        turb = np.clip(1.0 + 0.30 * n1[..., i], 0.4, 1.6)
-        a = (0.9 * glow * swirl * turb + 0.25 * core) * smoothstep(1.3, 0.8, d)
-        # Match the stock energy: mean alpha and a peak ceiling per frame.
-        a *= PUFF_MEAN[i] / max(a.mean() * 255.0, 1e-6)
-        a = np.clip(a * 255.0, 0, PUFF_MAX[i])
+def build_portal(src, blue, cell=128, frames=16, cols=4):
+    """Grey swirl frames -> additive tinted sheet: alpha = luminance, colour from the stock red/blue puff ramp."""
+    f = recentre(load_cells(src), cell, fill=1.0)
+    big = np.zeros((frames // cols * cell, cols * cell, 4), np.float32)
+    for i, v in enumerate(f):
+        a = np.clip(v * PORTAL_GAIN * 255.0, 0, 255)
         rch, gch, bch = ramp(a, blue)
         r, c = divmod(i, cols)
         sl = (slice(r * cell, (r + 1) * cell), slice(c * cell, (c + 1) * cell))
@@ -151,13 +184,14 @@ def contact_sheet(dest, sheets):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--contact-sheet", type=Path)
+    ap.add_argument("--src-dir", type=Path, default=SRC_DIR)
     ap.add_argument("--no-dds", action="store_true")
     args = ap.parse_args()
-    dust = to_image(build_dust())
-    pr = to_image(build_portal(False))
-    pb = to_image(build_portal(True))
+    dust = to_image(build_dust(args.src_dir / "dust_src.jpg"))
+    pr = to_image(build_portal(args.src_dir / "portal_src.jpg", False))
+    pb = to_image(build_portal(args.src_dir / "portal_src.jpg", True))
     if not args.no_dds:
-        for name, im in (("cr_fx_dust", dust), ("cr_fx_portal_r", pr), ("cr_fx_portal_b", pb)):
+        for name, im in (("cr_fx_dust", dust), ("cr_fx_port_r", pr), ("cr_fx_port_b", pb)):
             save_bc(im, TEX / f"{name}.dds", "BC3_UNORM")
             print("wrote", TEX / f"{name}.dds", im.size)
     if args.contact_sheet:
