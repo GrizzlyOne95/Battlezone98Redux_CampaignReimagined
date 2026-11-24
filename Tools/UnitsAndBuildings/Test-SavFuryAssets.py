@@ -90,7 +90,7 @@ stock = {'classlabel': 'sav', 'scrapvalue': '2', 'scrapcost': '8', 'maxhealth': 
          'velocjam': '5.0f', 'diedmsg': 'sbetty3.wav', 'setaltitude': '5.0', 'velocforward': '200.0',
          'velocreverse': '20.0', 'velocstrafe': '20.0', 'accelthrust': '200.0', 'accelbrake': '25.0', 'omegaspin': '2.0',
          'omegaturn': '1.0', 'acceldragstop': '3.5', 'alphasteer': '5.0', 'acceljump': '400.0', 'sounddeploy': 'avsave5.wav',
-         'soundundeploy': 'avsave6.wav', 'soundthrust': 'cr_snd_fury_sav_e0.wav'}
+         'soundundeploy': 'avsave6.wav', 'soundthrust': 'crfsav0.wav'}
 for key, value in stock.items():
     check(fury.get(key) == value, f'savfury keeps the stock savs8 {key}')
 check(fury['basename'] == 'savfury' and fury['unitname'] == 'Infected Fury', 'own model and display name')

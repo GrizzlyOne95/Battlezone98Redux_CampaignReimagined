@@ -67,7 +67,7 @@ omegaSpin = 1.6
 omegaTurn = 0.8
 alphaSteer = 4.0
 accelJump = 0.0
-soundThrust = "cr_snd_sov_haul_e0.wav"
+soundThrust = "crshaul0.wav"
 soundSteer = "avhaule5.wav"
 
 [TugClass]

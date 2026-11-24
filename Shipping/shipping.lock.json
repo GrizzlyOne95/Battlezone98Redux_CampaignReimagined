@@ -4675,88 +4675,40 @@
       "runtime": "c17fell.wav"
     },
     {
-      "source": "Assets\\Sounds\\cr_snd_cra_htnk_e0.wav",
-      "runtime": "cr_snd_cra_htnk_e0.wav"
-    },
-    {
-      "source": "Assets\\Sounds\\cr_snd_cra_htnk_e1.wav",
-      "runtime": "cr_snd_cra_htnk_e1.wav"
-    },
-    {
-      "source": "Assets\\Sounds\\cr_snd_cra_mine_e0.wav",
-      "runtime": "cr_snd_cra_mine_e0.wav"
-    },
-    {
-      "source": "Assets\\Sounds\\cr_snd_cra_mine_e1.wav",
-      "runtime": "cr_snd_cra_mine_e1.wav"
-    },
-    {
-      "source": "Assets\\Sounds\\cr_snd_cra_muf_e0.wav",
-      "runtime": "cr_snd_cra_muf_e0.wav"
-    },
-    {
-      "source": "Assets\\Sounds\\cr_snd_cra_rckt_e0.wav",
-      "runtime": "cr_snd_cra_rckt_e0.wav"
-    },
-    {
-      "source": "Assets\\Sounds\\cr_snd_cra_rckt_e1.wav",
-      "runtime": "cr_snd_cra_rckt_e1.wav"
-    },
-    {
-      "source": "Assets\\Sounds\\cr_snd_cra_recy_e0.wav",
-      "runtime": "cr_snd_cra_recy_e0.wav"
-    },
-    {
-      "source": "Assets\\Sounds\\cr_snd_fury_raz_e0.wav",
-      "runtime": "cr_snd_fury_raz_e0.wav"
-    },
-    {
-      "source": "Assets\\Sounds\\cr_snd_fury_raz_e1.wav",
-      "runtime": "cr_snd_fury_raz_e1.wav"
-    },
-    {
-      "source": "Assets\\Sounds\\cr_snd_fury_sav_e0.wav",
-      "runtime": "cr_snd_fury_sav_e0.wav"
-    },
-    {
-      "source": "Assets\\Sounds\\cr_snd_fury_turr_e0.wav",
-      "runtime": "cr_snd_fury_turr_e0.wav"
-    },
-    {
-      "source": "Assets\\Sounds\\cr_snd_fury_turr_e1.wav",
-      "runtime": "cr_snd_fury_turr_e1.wav"
-    },
-    {
       "source": "Assets\\Sounds\\cr_snd_lhit.wav",
       "runtime": "cr_snd_lhit.wav"
     },
     {
-      "source": "Assets\\Sounds\\cr_snd_mine_e0.wav",
-      "runtime": "cr_snd_mine_e0.wav"
+      "source": "Assets\\Sounds\\crchtnk0.wav",
+      "runtime": "crchtnk0.wav"
     },
     {
-      "source": "Assets\\Sounds\\cr_snd_mine_e1.wav",
-      "runtime": "cr_snd_mine_e1.wav"
+      "source": "Assets\\Sounds\\crchtnk1.wav",
+      "runtime": "crchtnk1.wav"
     },
     {
-      "source": "Assets\\Sounds\\cr_snd_sov_artl_e0.wav",
-      "runtime": "cr_snd_sov_artl_e0.wav"
+      "source": "Assets\\Sounds\\crcmine0.wav",
+      "runtime": "crcmine0.wav"
     },
     {
-      "source": "Assets\\Sounds\\cr_snd_sov_haul_e0.wav",
-      "runtime": "cr_snd_sov_haul_e0.wav"
+      "source": "Assets\\Sounds\\crcmine1.wav",
+      "runtime": "crcmine1.wav"
     },
     {
-      "source": "Assets\\Sounds\\cr_snd_sov_recy_e0.wav",
-      "runtime": "cr_snd_sov_recy_e0.wav"
+      "source": "Assets\\Sounds\\crcmuf0.wav",
+      "runtime": "crcmuf0.wav"
     },
     {
-      "source": "Assets\\Sounds\\cr_snd_sov_sav_e0.wav",
-      "runtime": "cr_snd_sov_sav_e0.wav"
+      "source": "Assets\\Sounds\\crcrckt0.wav",
+      "runtime": "crcrckt0.wav"
     },
     {
-      "source": "Assets\\Sounds\\cr_snd_sov_slf_e0.wav",
-      "runtime": "cr_snd_sov_slf_e0.wav"
+      "source": "Assets\\Sounds\\crcrckt1.wav",
+      "runtime": "crcrckt1.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\crcrecy0.wav",
+      "runtime": "crcrecy0.wav"
     },
     {
       "source": "Assets\\Sounds\\crddesc.wav",
@@ -4773,6 +4725,54 @@
     {
       "source": "Assets\\Sounds\\crdleav.wav",
       "runtime": "crdleav.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\crfraz0.wav",
+      "runtime": "crfraz0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\crfraz1.wav",
+      "runtime": "crfraz1.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\crfsav0.wav",
+      "runtime": "crfsav0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\crfturr0.wav",
+      "runtime": "crfturr0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\crfturr1.wav",
+      "runtime": "crfturr1.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\crsartl0.wav",
+      "runtime": "crsartl0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\crshaul0.wav",
+      "runtime": "crshaul0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\crsmine0.wav",
+      "runtime": "crsmine0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\crsmine1.wav",
+      "runtime": "crsmine1.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\crsrecy0.wav",
+      "runtime": "crsrecy0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\crssav0.wav",
+      "runtime": "crssav0.wav"
+    },
+    {
+      "source": "Assets\\Sounds\\crsslf0.wav",
+      "runtime": "crsslf0.wav"
     },
     {
       "source": "Assets\\Sounds\\cvtanke0.wav",

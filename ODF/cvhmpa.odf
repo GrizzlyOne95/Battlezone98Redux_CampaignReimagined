@@ -100,8 +100,8 @@ omegaSpin = 1.875
 omegaTurn = 1.875
 alphaSteer = 3.75
 accelJump = 0.0
-soundThrust = "cr_snd_cra_htnk_e0.wav"
-soundTurbo = "cr_snd_cra_htnk_e1.wav"
+soundThrust = "crchtnk0.wav"
+soundTurbo = "crchtnk1.wav"
 // wing pods CEM11WGL/WGR are class 67 nacelles (cvhtnk.vdf) carrying BDA-parented hardpoints: zero gain keeps them flat
 pitchThrotNacelleRun = 0
 pitchThrotNacelleJump = 0

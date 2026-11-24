@@ -18,6 +18,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 EXCLUDED_PARTS = {".git", "Local", "References", "_deps"}
 STRICT_ENGINE_EXTENSIONS = {".odf", ".wav", ".trn", ".bzn"}
+# HoverCraftClass sound-name buffers are char[16] (15 characters plus NUL).
+HOVER_SOUND_MAX = 15
+HOVER_SOUND_RE = re.compile(
+    r'^\s*(?P<key>soundThrust|soundTurbo|soundFly)\s*=\s*"?(?P<value>[^"\r\n;/]*)',
+    re.IGNORECASE | re.MULTILINE,
+)
 EXTERNAL_LUA_MODULES = {"bzfile", "exu"}
 STOCK_API_DEFINITION_FILES = {"scripts/scriptutils.lua"}
 # Shared with ExtraUtilities, BZR-OpenShim and bzfile. SHA-256 of the file
@@ -74,6 +80,25 @@ def check_engine_filenames(files) -> list[str]:
             errors.append(
                 f"ODF filename exceeds the engine 8-character basename limit: {relative}"
             )
+    return errors
+
+
+def check_hover_sound_name_length(files) -> list[str]:
+    """HoverCraftClass keeps soundThrust/soundTurbo/soundFly in char[16] buffers
+    (BZR-OpenShim src/patches/tracked_vehicle_class.cpp), so a value over 15
+    characters, ".wav" included, is truncated and the loop goes silent."""
+    errors: list[str] = []
+    for path, relative in files:
+        if relative.suffix.casefold() != ".odf":
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for match in HOVER_SOUND_RE.finditer(text):
+            value = match.group("value").strip()
+            if len(value) > HOVER_SOUND_MAX:
+                errors.append(
+                    f"{relative}: {match.group('key')} '{value}' is {len(value)} characters; "
+                    f"the engine buffer holds {HOVER_SOUND_MAX}"
+                )
     return errors
 
 
@@ -415,6 +440,7 @@ def main() -> int:
     errors.extend(check_openshim_manifest_assets())
     errors.extend(check_case_collisions(files))
     errors.extend(check_engine_filenames(files))
+    errors.extend(check_hover_sound_name_length(files))
     errors.extend(check_mission_stem_length(files))
     errors.extend(check_mission_require_length(files))
     errors.extend(check_requirefix_unique_name(files))
