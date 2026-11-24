@@ -1,0 +1,18 @@
+[ChunkEffect]
+
+smokeTexture = "bsmoke.0"
+smokeFrames = 16
+smokeLifespan = 1.6
+smokePause = 0.1
+smokeRadius = 1.0
+smokeVariance = 1.5
+smokeInherit = 0.5
+
+// CR: six chunklet shapes (chunk1..6.geo, drawn from chunkMeshes/chunkN/chunkN.mesh by OpenShim).
+chunkletCount = 6
+chunkletGeom1 = "chunk1.geo"
+chunkletGeom2 = "chunk2.geo"
+chunkletGeom3 = "chunk3.geo"
+chunkletGeom4 = "chunk4.geo"
+chunkletGeom5 = "chunk5.geo"
+chunkletGeom6 = "chunk6.geo"
