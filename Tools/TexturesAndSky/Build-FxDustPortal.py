@@ -134,9 +134,23 @@ def ramp(a, blue):
     return (g, g, full) if blue else (full, g, g)
 
 
+def bright_coverage(v, thr=0.25):
+    """Fraction of the cell brighter than thr (0..1 luminance/alpha)."""
+    return float((v > thr).mean())
+
+
 def build_portal(src, blue, cell=128, frames=16, cols=4):
     """Grey swirl frames -> additive tinted sheet: alpha = luminance, colour from the stock red/blue puff ramp."""
-    f = recentre(load_cells(src), cell, fill=1.0)
+    src_frames = recentre(load_cells(src), cell, fill=1.0)
+    # The source swirl grows to a peak then dissipates; stock puffs are brightest at frame 0 and decay
+    # (the PortalOut flash shows the first frames). Play the growth backwards from the peak, so the sheet
+    # opens at full size and collapses on a curve close to stock's; unused trailing frames stay empty.
+    cov = [bright_coverage(v * PORTAL_GAIN) for v in src_frames]
+    peak = int(np.argmax(cov))
+    f = [src_frames[i] for i in range(peak, -1, -1)][:frames]
+    f += [np.zeros((cell, cell), np.float32)] * (frames - len(f))
+    out_cov = [bright_coverage(v * PORTAL_GAIN) for v in f]
+    assert all(out_cov[0] >= c for c in out_cov[1:]), f"portal frame 0 must be the brightest: {out_cov}"
     big = np.zeros((frames // cols * cell, cols * cell, 4), np.float32)
     for i, v in enumerate(f):
         a = np.clip(v * PORTAL_GAIN * 255.0, 0, 255)
