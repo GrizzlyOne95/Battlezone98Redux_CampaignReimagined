@@ -72,8 +72,15 @@ def gameplay(sec):
     return {k: v for k, v in sec["explosionclass"].items() if not k.startswith("particle")}
 
 
+# The baseline keeps the stock explSound; CR remaps this one stock sound to its own file.
+REMAP_SOUND = {"lhit.wav": "cr_snd_lhit.wav"}
+
+
 def original_gameplay(name):
-    return BASE["explosions"].get(name)
+    ref = BASE["explosions"].get(name)
+    if ref and ref.get("explsound") in REMAP_SOUND:
+        ref = {**ref, "explsound": REMAP_SOUND[ref["explsound"]]}
+    return ref
 
 
 materials = set()
