@@ -37,6 +37,8 @@ $RepoRoot   = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $LocalRoot  = Join-Path $RepoRoot 'Local\ReleaseStress'
 $Exe        = Join-Path $GameDir 'battlezone98redux.exe'
 $IniPath    = Join-Path $GameDir 'openshim.ini'
+# OpenShim 1.0.0.81+ keeps the player config in <GameDir>\openshim\openshim.ini and only falls back to the root file.
+if (Test-Path -LiteralPath (Join-Path $GameDir 'openshim\openshim.ini')) { $IniPath = Join-Path $GameDir 'openshim\openshim.ini' }
 $OgrePath   = Join-Path $GameDir 'Ogre.cfg'
 $LogsDir    = Join-Path $GameDir 'logs'
 $TriggerFile = Join-Path $GameDir 'uiperf_trigger.txt'
