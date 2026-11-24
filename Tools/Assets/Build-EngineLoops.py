@@ -16,6 +16,7 @@ Usage:
       [--repo-out Assets/Sounds] [--listen-out <dir>] [--listen-only NAME ...]
 """
 import argparse
+import json
 import sys
 import wave
 from fractions import Fraction
@@ -45,6 +46,30 @@ def stats(x):
 def seam(x):
     rms = float(np.sqrt(np.mean(x ** 2)))
     return abs(float(x[0] - x[-1])) / rms
+
+
+def centroid(x, sr=RATE):
+    spec = np.abs(np.fft.rfft(x * np.hanning(len(x))))
+    f = np.fft.rfftfreq(len(x), 1 / sr)
+    return float((f * spec).sum() / spec.sum())
+
+
+def steadiest_window(x, sr, win_s=2.0, hop_s=0.1, frame_s=0.02):
+    """Start index of the win_s window whose 20 ms RMS envelope has the least range."""
+    fr = int(sr * frame_s)
+    nfr = len(x) // fr
+    env = 20 * np.log10(np.sqrt(np.mean(x[:nfr * fr].reshape(nfr, fr) ** 2, axis=1)) + 1e-9)
+    w = int(win_s / frame_s)
+    best, best_i = None, 0
+    for s in range(0, int(round((len(x) / sr - win_s) / hop_s)) + 1):
+        f0 = int(round(s * hop_s / frame_s))
+        seg = env[f0:f0 + w]
+        if len(seg) < w:
+            break
+        r = seg.max() - seg.min()
+        if best is None or r < best:
+            best, best_i = r, int(s * hop_s * sr)
+    return best_i, int(win_s * sr), best
 
 
 def read_wav(path):
@@ -122,17 +147,31 @@ def process(x48, sr):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--take", action="append", required=True, metavar="NAME=PATH")
+    ap.add_argument("--take", action="append", default=[], metavar="NAME=PATH")
+    ap.add_argument("--manifest", help="JSON {name: path relative to --input-root}")
+    ap.add_argument("--input-root", default=".")
     ap.add_argument("--repo-out", default="Assets/Sounds")
     ap.add_argument("--listen-out")
     ap.add_argument("--listen-only", nargs="*", default=[],
                     help="takes written only to --listen-out, not to the repo")
     a = ap.parse_args()
     ok = True
-    for spec in a.take:
+    specs = list(a.take)
+    if a.manifest:
+        for name, rel in json.load(open(a.manifest)).items():
+            specs.append(f"{name}={Path(a.input_root) / rel}")
+    if not specs:
+        ap.error("no takes")
+    for spec in specs:
         name, _, path = spec.partition("=")
         x48, sr = read_wav(path)
+        note = ""
+        if len(x48) > 2.5 * sr:
+            s0, n, rng = steadiest_window(x48, sr)
+            x48 = x48[s0:s0 + n]
+            note = f" [cut {s0/sr:.1f}-{(s0+n)/sr:.1f}s, env range {rng:.1f} dB]"
         r0, p0 = stats(x48)
+        y48m = resample_poly(x48, RATE, sr) if sr != RATE else x48
         y = process(x48, sr)
         out_dirs = []
         if name not in a.listen_only:
@@ -148,9 +187,9 @@ def main():
             write_u8(Path(a.listen_out) / f"{name}_preview10s.wav", np.tile(q, PREVIEW_REPEATS))
         r1, p1 = stats(q)
         s = seam(q)
-        print(f"{name}: in {len(x48)/sr:.2f}s {sr} Hz  RMS {db(r0):.1f} dB peak {db(p0):.1f} dB"
+        print(f"{name}{note}: in {len(x48)/sr:.2f}s {sr} Hz  RMS {db(r0):.1f} dB peak {db(p0):.1f} dB"
               f"  ->  out {len(q)/RATE:.3f}s {RATE} Hz u8  RMS {db(r1):.1f} dB peak {db(p1):.1f} dB"
-              f"  seam {s:.4f}")
+              f"  seam {s:.4f}  centroid {centroid(y48m):.0f}->{centroid(q):.0f} Hz")
         if s > SEAM_MAX or p1 > 10 ** (PEAK_CEIL_DB / 20) + 1e-6:
             print(f"  FAIL: seam {s:.4f} or peak {db(p1):.2f} dB out of range")
             ok = False
