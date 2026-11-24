@@ -55,7 +55,9 @@ local onOutOfLives = nil
 local outOfLivesLocal = false     -- this player has no lives left
 local outOfLivesHandled = false   -- host: the mission failure was requested
 local nextOutOfLivesSend = 0.0
--- LockAllies sets a per-client engine gate; Redux ignores it from Start().
+-- LockAllies sets a per-client engine gate. Stock Redux clears it after Start();
+-- OpenShim 1.0.0.81+ keeps it ([Network] AllyLockSurvivesStart). The periodic
+-- re-assert below is then redundant but still needed on stock Redux or older shims.
 local ALLY_LOCK_INTERVAL = 5.0
 local nextAllyLock = 0.0
 
