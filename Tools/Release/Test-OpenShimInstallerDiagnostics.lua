@@ -103,6 +103,8 @@ local function ResetInstalledCurrent()
     Put(working .. "\\scripts\\patches.json", hashes.patches)
     Put(working .. "\\openshim.ini", hashes.customConfig)
     Put(working .. "\\openshim\\OpenShimAssets.ini", hashes.assetManifest)
+    Remove(working .. "\\openshim\\openshim.ini")
+    Remove(working .. "\\openshim\\patches.json")
     statusContent = nil
 end
 
@@ -229,6 +231,70 @@ assert(result.restartRequired == false)
 assert(result.after.state == Installer.States.CURRENT, result.after.state)
 assert(stageCalls == 0)
 assert(copyCalls == 1)
+
+-- OpenShim 1.0.0.81 layout: openshim.ini and patches.json live under openshim\.
+local function MigratedLayout()
+    ResetInstalledCurrent()
+    Remove(working .. "\\openshim.ini")
+    Remove(working .. "\\scripts\\patches.json")
+    Put(working .. "\\openshim\\openshim.ini", hashes.customConfig)
+    Put(working .. "\\openshim\\patches.json", hashes.patches)
+end
+
+-- (a) Migrated layout is CURRENT with no copy or stage.
+MigratedLayout()
+local copiesBeforeLayout = copyCalls
+local stagesBeforeLayout = stageCalls
+report = Installer.Inspect()
+assert(report.state == Installer.States.CURRENT, report.state)
+assert(report.installed.patches.path == working .. "\\openshim\\patches.json", report.installed.patches.path)
+assert(report.installed.playerConfig.path == working .. "\\openshim\\openshim.ini", report.installed.playerConfig.path)
+assert(copyCalls == copiesBeforeLayout and stageCalls == stagesBeforeLayout)
+
+-- (b) Legacy layout stays CURRENT.
+ResetInstalledCurrent()
+report = Installer.Inspect()
+assert(report.state == Installer.States.CURRENT, report.state)
+assert(report.installed.playerConfig.path == working .. "\\openshim.ini", report.installed.playerConfig.path)
+
+-- (c) Fresh install: config is written to openshim\openshim.ini only.
+MigratedLayout()
+Remove(working .. "\\openshim\\openshim.ini")
+report = Installer.Inspect()
+assert(report.installed.playerConfig.path == working .. "\\openshim\\openshim.ini")
+result = Installer.Apply(report)
+assert(result.success == true, tostring(result.detail))
+assert(result.playerConfigAction == "installed", tostring(result.playerConfigAction))
+assert(exists[working .. "\\openshim\\openshim.ini"] == true)
+assert(exists[working .. "\\openshim.ini"] ~= true)
+
+-- (d) Both ini files exist: the new one wins and nothing is copied or overwritten.
+MigratedLayout()
+Put(working .. "\\openshim.ini", string.rep("6", 64))
+copiesBeforeLayout = copyCalls
+report = Installer.Inspect()
+assert(report.installed.playerConfig.path == working .. "\\openshim\\openshim.ini")
+assert(report.state == Installer.States.CURRENT, report.state)
+Installer.Apply(report)
+assert(copyCalls == copiesBeforeLayout)
+assert(fileHashes[working .. "\\openshim\\openshim.ini"] == hashes.customConfig)
+assert(fileHashes[working .. "\\openshim.ini"] == string.rep("6", 64))
+
+-- (e) The helper wrote a new scripts\patches.json that OpenShim has not moved yet:
+-- the stale openshim\patches.json must not make the install look out of date.
+MigratedLayout()
+Put(working .. "\\openshim\\patches.json", string.rep("7", 64))
+Put(working .. "\\scripts\\patches.json", hashes.patches)
+report = Installer.Inspect()
+assert(report.state == Installer.States.CURRENT, report.state)
+assert(report.installed.patches.path == working .. "\\scripts\\patches.json", report.installed.patches.path)
+
+-- (f) Both patches copies stale: still out of date.
+MigratedLayout()
+Put(working .. "\\openshim\\patches.json", string.rep("7", 64))
+Put(working .. "\\scripts\\patches.json", string.rep("8", 64))
+report = Installer.Inspect()
+assert(report.state ~= Installer.States.CURRENT, report.state)
 
 -- Missing asset-pack sentinel (a Workshop install from before this payload
 -- existed): copy it into <game>\openshim without staging or a restart, and

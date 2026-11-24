@@ -189,6 +189,22 @@ local function BzFileExists(path)
     return false
 end
 
+-- OpenShim 1.0.0.81 moved openshim.ini and patches.json under <game>\openshim\.
+-- Prefer the new location, fall back to the legacy one, and default a fresh
+-- install's file to the new or the legacy location as asked.
+local function ResolveInstalledPath(newPath, legacyPath, defaultToNew)
+    if BzFileExists(newPath) then return newPath end
+    if BzFileExists(legacyPath) then return legacyPath end
+    return defaultToNew and newPath or legacyPath
+end
+
+local function ResolvePlayerConfigPath(workingDirectory)
+    return ResolveInstalledPath(
+        workingDirectory .. "\\openshim\\openshim.ini",
+        workingDirectory .. "\\openshim.ini",
+        true)
+end
+
 local function GetBzFileHash(path)
     if not path or path == "" then
         return nil
@@ -674,8 +690,11 @@ function OpenShimInstaller.Inspect()
         loader = workingDirectory .. "\\bzloader.dll",
         plugin = workingDirectory .. "\\plugins\\openshim.dll",
         network = workingDirectory .. "\\net.ini",
-        patches = workingDirectory .. "\\scripts\\patches.json",
-        playerConfig = workingDirectory .. "\\openshim.ini",
+        patches = ResolveInstalledPath(
+            workingDirectory .. "\\openshim\\patches.json",
+            workingDirectory .. "\\scripts\\patches.json",
+            false),
+        playerConfig = ResolvePlayerConfigPath(workingDirectory),
         assetManifest = workingDirectory .. "\\openshim\\OpenShimAssets.ini",
     }
 
@@ -702,6 +721,18 @@ function OpenShimInstaller.Inspect()
             destinationPaths[definition.name],
             definition.payload,
             definition.versioned)
+    end
+
+    -- The suite helper still writes scripts\patches.json; OpenShim moves it under
+    -- openshim\ on its next start. Until then either copy matching the payload is current.
+    local legacyPatchesPath = workingDirectory .. "\\scripts\\patches.json"
+    if report.installed.patches and report.installed.patches.state ~= "CURRENT" and
+        destinationPaths.patches ~= legacyPatchesPath and BzFileExists(legacyPatchesPath) then
+        local legacyPatches = NewInstalledDiagnostic(
+            "patches", legacyPatchesPath, manifest.payloads.patches, false)
+        if legacyPatches.state == "CURRENT" then
+            report.installed.patches = legacyPatches
+        end
     end
     report.sourceRoot = sourceRoot
     report.helper = {
@@ -955,6 +986,14 @@ local function CopyPlayerConfigIfNeeded(report, manifest)
     end
 
     local destinationPath = entry.path
+    local directory = GetPathDirectory(destinationPath)
+    if directory and type(bzfile.MakeDirectory) == "function" then
+        local dirOk, dirCreated, dirError = pcall(bzfile.MakeDirectory, directory)
+        if not dirOk or not dirCreated then
+            return false, "could not create the openshim.ini folder: " ..
+                tostring(dirOk and dirError or dirCreated)
+        end
+    end
     if configExists and overwritePlayerConfig then
         local backupOk, backupCopied, backupError = pcall(
             bzfile.CopyFile,
@@ -1223,7 +1262,7 @@ end
 -- Returns false only when the player's openshim.ini has [Updater] AutoStage set
 -- to 0/false/no/off. A missing file, section, or key means the default (true).
 local function IsAutoStageEnabled()
-    local text = ReadTextFile(getWorkingDirectory() .. "\\openshim.ini")
+    local text = ReadTextFile(ResolvePlayerConfigPath(getWorkingDirectory()))
     if type(text) ~= "string" then
         return true
     end
