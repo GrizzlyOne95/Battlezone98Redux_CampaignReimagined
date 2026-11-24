@@ -1,7 +1,7 @@
 // Short faction-colored arc contact; no additional damage or large stock bubble.
 [ExplosionClass]
 classLabel = "explosion"
-explSound = "lhit.wav"
+explSound = "cr_snd_lhit.wav"
 damageRadius = 0.0
 damageBallistic = 0
 damageConcussion = 0

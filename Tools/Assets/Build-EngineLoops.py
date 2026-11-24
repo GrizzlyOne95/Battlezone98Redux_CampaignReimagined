@@ -11,9 +11,11 @@ and gain search to the target RMS -> 8-bit unsigned PCM, like the other
 Assets/Sounds files.
 
 Usage:
-  python Tools/Assets/Build-EngineLoops.py \
-      --take cr_snd_sov_recy_e0=<takeA.wav> --take cr_snd_eng_b_e0=<takeB.wav> \
-      [--repo-out Assets/Sounds] [--listen-out <dir>] [--listen-only NAME ...]
+  python Tools/Assets/Build-EngineLoops.py --manifest Tools/Assets/engine_loops.json       --input-root <folder holding eng_in/ and eng_in2/> [--repo-out <dir>] [--listen-out <dir>]
+  (or ad hoc: --take cr_snd_cra_muf_e0=<take.wav> ...)
+--repo-out defaults to this repository's Assets/Sounds, wherever it is run from.
+Inputs longer than 2.5 s are first cut to their steadiest 2 s window (smallest
+range of the 20 ms RMS envelope).
 """
 import argparse
 import json
@@ -150,11 +152,13 @@ def main():
     ap.add_argument("--take", action="append", default=[], metavar="NAME=PATH")
     ap.add_argument("--manifest", help="JSON {name: path relative to --input-root}")
     ap.add_argument("--input-root", default=".")
-    ap.add_argument("--repo-out", default="Assets/Sounds")
+    ap.add_argument("--repo-out", default=None)
     ap.add_argument("--listen-out")
     ap.add_argument("--listen-only", nargs="*", default=[],
                     help="takes written only to --listen-out, not to the repo")
     a = ap.parse_args()
+    if a.repo_out is None:
+        a.repo_out = str(Path(__file__).resolve().parents[2] / "Assets" / "Sounds")
     ok = True
     specs = list(a.take)
     if a.manifest:
