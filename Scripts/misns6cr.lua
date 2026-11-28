@@ -26,6 +26,74 @@ local function NewState()
 end
 
 local M = NewState()
+-- CR pilot mode >>
+-- N64 Pilot Mode branch (Battlezone 64 table 22, byte g_800B93D5), behind the PDA Pilot Mode toggle; single
+-- player only (the runtime owns PlayerPilotMode, Scripts/CRCCARuntime.lua, config.pilotMode). Port of
+-- Battlezone_Z64Tools redux_lua/n64ms6.lua, which follows m22_misns6.c (C line numbers below). N64 labels map to
+-- this BZN by position (Docs/PILOT_MODE_N64_LABELS.md, "m22_misns6"): 7 = svrecy0_recycler, 29-31 =
+-- svwalk0-2_walker, 32 = abcafe8_i76building (the field HQ, M.goal).
+-- Adaptations: the recycler is sent to a geyser with PilotBranch.Resend (Goto). The N64 geyser is a map-placed path
+-- command; the nearest geyser to the CR recycler, eggeizr13_geyser (46 m), is used (judgement call).
+-- Not ported: the armory (label 33, svslfn1 hull-only supply stand) and its repair/ammo pods (C 84-194, 506-524,
+-- 557-575): the CR map has no armory, so there is no producer to port the supply requests onto. Also not ported:
+-- voice/text/debrief swaps and SetAIP(27) (a no-op on the cart).
+local Pilot = { module = "CRPilotBranch" }
+
+function Pilot.Branch() return require(Pilot.module) end -- lazy: the mod's require paths exist after RequireFix
+
+function Pilot.State()
+    local P = M.pilot
+    if not P then
+        P = Pilot.Branch().NewState()
+        P.walkers = {}
+        for _, label in ipairs({ "svwalk0_walker", "svwalk1_walker", "svwalk2_walker" }) do
+            local w = GetHandle(label) -- a lost walker must not hide the rest from ipairs
+            if w ~= nil then P.walkers[#P.walkers + 1] = w end
+        end
+        M.pilot = P
+    end
+    return P
+end
+
+-- C 35-399, run by PlayerPilotMode.Update while the toggle is on.
+function Pilot.Update()
+    local Branch = Pilot.Branch()
+    local alive = Branch.alive
+    local player = GetPlayerHandle()
+    if not alive(player) or not M.start_done then return end
+    local P = Pilot.State()
+    local now = GetTime()
+    Branch.Lock(P, now)
+
+    if not P.started then -- C 77-82
+        P.started = true
+        if not M.last_objective then
+            for _, w in ipairs(P.walkers) do
+                if alive(w) then Follow(w, player, 1) end
+            end
+        end
+    end
+    -- C 111-148: an idle recycler is sent to its geyser again.
+    Branch.Resend(P, "rec", M.recy, GetHandle("eggeizr13_geyser"), now)
+    if M.last_objective then
+        -- C 362-372: once the field HQ is highlighted the walkers attack it.
+        if not P.attacked then
+            P.attacked = true
+            if alive(M.goal) then
+                for _, w in ipairs(P.walkers) do
+                    if alive(w) then Attack(w, M.goal, 1) end
+                end
+            end
+        end
+    else
+        -- C 197-224: the walkers re-follow on a craft change and every 30 s until the beacon objective.
+        Branch.FollowPlayer(P, P.walkers, player, now, 30)
+    end
+end
+
+function Pilot.Enable() Pilot.State() end
+function Pilot.Disable() Pilot.Branch().Release(Pilot.State()) end
+-- CR pilot mode <<
 -- CR co-op runtime >>
 -- Offline and co-op share this adapter (Scripts/CRCCARuntime.lua); the faithful tests set CR_TEST_FAITHFUL.
 -- Lexical wrappers affect this mission only. Docs/MISNS6_COOP.md lists every wrapped call. No cut content is
@@ -39,6 +107,7 @@ if not CR_TEST_FAITHFUL then require("crreqfix").Initialize({"campaignReimagined
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "misns6", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2, blackDogUnits = true,
     rallyPoints = { [0] = "svrecy0_recycler" },
+    pilotMode = { update = Pilot.Update, enable = Pilot.Enable, disable = Pilot.Disable },
     -- The two Black Dog raiders and the silo counter-attack are the scaled spawns; the mines never are.
     scaledOdfs = { bvraz = true, bvltnk = true, bvtank = true, bvrckt = true },
     fallbackEntries = { "counter3", "counter4", "counter2", "counter5" },

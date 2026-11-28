@@ -986,6 +986,29 @@ local function Hook(name, ...)
     return result
 end
 
+-- ---------------------------------------------------------------- N64 Pilot Mode
+-- config.pilotMode = { update = fn, addObject = fn(h), enable = fn, disable = fn }: the mission's scripted
+-- PlayerPilotMode adapter (PDA toggle, off by default). Single player only: in a network game nothing loads.
+-- The runtime owns Initialize/Update/Save/Load so the mission's Save/Load stay as they are; the state is kept
+-- in the runtime's saved table (crcca.pilotModeState).
+local pilotConfig = type(config.pilotMode) == "table" and config.pilotMode or nil
+local PilotMode
+local function StartPilotMode()
+    PilotMode = nil
+    if not pilotConfig or CRCoop.IsNetworkGame() then return end
+    local ok, module = pcall(require, "PlayerPilotMode")
+    if not ok or type(module) ~= "table" then Log(ID, "PlayerPilotMode unavailable: " .. tostring(module)); return end
+    local adapter = { scripted = true, update = pilotConfig.update, enable = pilotConfig.enable, disable = pilotConfig.disable }
+    local started, err = pcall(module.Initialize, adapter, State().pilotModeState)
+    if started then PilotMode = module else Log(ID, "PlayerPilotMode start failed: " .. tostring(err)) end
+end
+local function PilotCall(name, ...)
+    if not PilotMode then return nil end
+    local ok, result = pcall(PilotMode[name], ...)
+    if not ok then Log(ID, "PlayerPilotMode." .. name .. " failed: " .. tostring(result)); return nil end
+    return result
+end
+
 -- ---------------------------------------------------------------- engine callbacks
 function R.Start()
     State().started = nil
@@ -1005,12 +1028,17 @@ function R.Start()
     if not Weather and type(config.environment) == "table" then
         envStarted = pcall(Environment.Init, config.environment)
     end
+    StartPilotMode()
     Hook("start")
 end
 function R.AddObject(h)
     if Valid(h) then
         pcall(Environment.OnObjectCreated, h)
         if Weather then WeatherCall("OnObjectCreated", h) end
+        if PilotMode and pilotConfig.addObject and PilotCall("IsEnabled") then
+            local ok, err = pcall(pilotConfig.addObject, h)
+            if not ok then Log(ID, "pilot addObject failed: " .. tostring(err)) end
+        end
     end
     Hook("addObject", h)
 end
@@ -1046,6 +1074,7 @@ function R.Update(dt)
     if not CRCoop.IsAuthority() or M.coopResult then return false end
     HoldCamera()
     Arrivals()
+    PilotCall("Update")
     return true
 end
 function R.AfterUpdate()
@@ -1058,6 +1087,7 @@ function R.Save()
     if weatherStarted and ((not CRCoop.IsNetworkGame()) or CRCoop.IsAuthority()) then
         s.weatherState = WeatherCall("Save")
     end
+    if PilotMode then s.pilotModeState = PilotCall("Save") end
     Hook("save", s)
 end
 function R.Load()

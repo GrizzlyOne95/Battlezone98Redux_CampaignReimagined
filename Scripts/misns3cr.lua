@@ -60,11 +60,73 @@ local function NewState()
 end
 
 local M = NewState()
+-- CR pilot mode >>
+-- N64 Pilot Mode branch (Battlezone 64 table 19, byte g_800B93D5), behind the PDA Pilot Mode toggle; single
+-- player only (the CCA runtime owns PlayerPilotMode: Pilot.Mode is its config.pilotMode). Port of
+-- Battlezone_Z64Tools redux_lua/n64ms3.lua (decompile m19_misns3.c, C line numbers below). N64 labels map to
+-- this BZN by position (Docs/PILOT_MODE_N64_LABELS.md, "m19_misns3"): labels 20/18/21/19 = bomb1..bomb4 (svhraz),
+-- 17 = the Black Dog outpost nav "avrecy", 34 = basenav. This region sits before the co-op runtime region so its
+-- natives are the engine's, not the runtime's shadows. Not ported: nothing; the mission's AddObject is empty
+-- (C 581-631), so only the update hook and the enable/disable hooks exist.
+local Pilot = {}
+Pilot.Branch = nil -- CRPilotBranch, set once crreqfix has added the mod paths (CR co-op runtime region)
+
+function Pilot.Valid(h) return h ~= nil and IsValid(h) end
+
+function Pilot.State()
+    local P = M.pilot
+    if not P then
+        P = Pilot.Branch.NewState()
+        M.pilot = P
+    end
+    return P
+end
+
+-- C 130-177, run by PlayerPilotMode.Update while the toggle is on.
+function Pilot.Update()
+    local PB = Pilot.Branch
+    local alive = PB.alive
+    local player = GetPlayerHandle()
+    if not M.missionstart or not alive(player) then return end -- the body's first frame has not run yet
+    local P = Pilot.State()
+    local now = GetTime()
+    PB.Lock(P, now)
+
+    local bombers = {}
+    for _, key in ipairs({ "bomb1", "bomb2", "bomb3", "bomb4" }) do
+        if M[key] ~= nil then bombers[#bombers + 1] = M[key] end
+    end
+    if not P.started then -- C 130-136: the four bombers follow the player
+        P.started = true
+        for _, bomber in ipairs(bombers) do
+            if alive(bomber) then Follow(bomber, player, 1) end
+        end
+    end
+    -- C 140-168: and again on a craft change or every 30 s.
+    PB.FollowPlayer(P, bombers, player, now, 30)
+
+    -- C 130-136 / 172-177: the outpost nav is the user target; once the recycler dies it is the base nav.
+    local want = M.recyclerdestroyed and "basenav" or "avrecy"
+    if P.target ~= want then
+        P.target = want
+        local nav = M.recyclerdestroyed and M.cam1 or M.cam2
+        if Pilot.Valid(nav) then SetUserTarget(nav) end
+    end
+end
+
+Pilot.Mode = {
+    update = function() return Pilot.Update() end,
+    -- A re-enabled mode re-follows at once (the player could command the bombers while it was off).
+    enable = function() Pilot.State().followAt = 0 end,
+    disable = function() Pilot.Branch.Release(Pilot.State()) end,
+}
+-- CR pilot mode <<
 -- CR co-op runtime >>
 -- Offline and co-op share this adapter (Scripts/CRCCARuntime.lua); the faithful tests set CR_TEST_FAITHFUL.
 -- Lexical wrappers affect this mission only. Docs/MISNS3_COOP.md lists every wrapped call and stock fix.
 local Restored
 if not CR_TEST_FAITHFUL then require("crreqfix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
+Pilot.Branch = not CR_TEST_FAITHFUL and require("CRPilotBranch") or nil -- after the asset searcher is fixed
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "misns3", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2, blackDogUnits = true,
     rallyPoints = { [0] = "basenav" },
@@ -72,6 +134,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     -- Mines are static hazards that appear on approach by design: they pass straight through.
     scaledOdfs = { avtank = true, avfigh = true, bvraz = true },
     failDes = "misns3l1.des",
+    pilotMode = Pilot.Mode,
     wonFlags = { "missionwon" },
     endedFlags = { "missionwon", "missionfail", "warn2" },
     -- "Get everyone home" is a reach gate: the farthest human decides. Every other trigger is the nearest human.

@@ -19,7 +19,7 @@ local relic = obj("relic", "obdata", 0)
 local env = setmetatable({}, { __index = _G })
 env.M = { start_done = true, nsdfmuf = fact, nsdfrig = cnst, nsdfslf = slf, nav1 = "cam1", cut_off_geyser = "geyser",
     avscav1 = scav[1], avscav2 = scav[2], avscav3 = scav[3], relic = relic }
-env.AiCommand = { NONE = 0, GO = 3, RECYCLE = 12 }
+env.AiCommand = { NONE = 0, GO = 3, RECYCLE = 12, SCAVENGE = 8 }
 env.GetTime = function() return now end
 env.GetPlayerHandle = function() return player end
 env.IsAlive = function(h) return objs[h] ~= nil and objs[h].alive end
@@ -120,37 +120,40 @@ check(count("go_to") == gotos + 1, "undeployed factory re-sent to the geyser")
 objs[fact].deployed = true
 now = 10; api.update()
 check(built[1] == "absilo" and built[2] == "avtank", "silo ordered, then the first avtank: " .. table.concat(built, ","))
+-- CR adaptation: deployed factory releases the three scavengers once.
+check(count("cmd") == 3 and count("cmd", scav[1]) == 1 and count("cmd", scav[3]) == 1 and lastOrder("cmd")[3] == 8, "scavengers released to scavenge once the factory deploys")
 check(M.pilot.dropPending == true, "silo drop-off pending")
 now = 11; api.update()
 check(lastOrder("dropoff")[2] == cnst and lastOrder("dropoff")[3].x == 2836 and lastOrder("dropoff")[3].z == 99811
     and lastOrder("dropoff")[3].y == 7, "rig drops off at the N64 silo spot")
-check(#built == 2, "busy factory and rig order nothing new")
+check(#built == 2 and count("cmd") == 3, "busy factory and rig order nothing new; scavengers released only once")
 
 -- The silo appears: it is not consumed (the mission tracks it) but arms recycle and silo-fail.
 check(spawn("silo", "absilo") == false and M.pilot.recycleArmed and M.pilot.siloFailArmed, "silo arms recycle and silo-fail")
 M.avsilo = "silo"
 objs[cnst].busy = true
 now = 12; api.update()
-check(count("cmd") == 0, "no recycle while the rig is busy")
+check(count("cmd", cnst) == 0, "no recycle while the rig is busy")
 objs[cnst].busy = false
 now = 13; api.update()
 check(lastOrder("cmd")[2] == cnst and lastOrder("cmd")[3] == 12 and lastOrder("cmd")[4] == cnst, "rig recycled")
 check(M.pilot.cnstFailArmed == false and M.pilot.recycleArmed == false, "recycle disarms the rig-loss fail")
 
--- Queue: three avtanks (following the factory), then the avhaul, then the avwalk.
+-- CR adaptation: queue is tank, tank, tug, tank, then the avwalk.
 local tanks = 1
 check(spawn("t1", "avtank") == true and lastOrder("follow")[2] == "t1" and lastOrder("follow")[3] == fact, "tank 1 follows the factory")
 objs[fact].busy = false
-for i = 2, 3 do
-    now = now + 1; api.update()
-    check(built[#built] == "avtank", "queue item avtank " .. i)
-    check(spawn("t" .. i, "avtank") == true, "tank " .. i .. " consumed"); objs[fact].busy = false
-end
 now = now + 1; api.update()
-check(built[#built] == "avhaul" and #built == 5, "fourth item is the avhaul: " .. table.concat(built, ","))
+check(built[#built] == "avtank" and #built == 3, "queue item avtank 2")
+check(spawn("t2", "avtank") == true, "tank 2 consumed"); objs[fact].busy = false
+now = now + 1; api.update()
+check(built[#built] == "avhaul" and #built == 4, "third item is the avhaul: " .. table.concat(built, ","))
 check(M.pilot.siloFailArmed == false, "avhaul order disarms the silo-fail")
 check(spawn("tug", "avhaul") == true and M.pilot.plHaul == "tug" and M.pilot.tugFailArmed, "tug recorded, tug-fail armed")
 objs[fact].busy = false
+now = now + 1; api.update()
+check(built[#built] == "avtank" and #built == 5, "fourth item is the third avtank")
+check(spawn("t3", "avtank") == true and M.pilot.ptank[3] == "t3", "tank 3 consumed as ptank[3]"); objs[fact].busy = false
 now = now + 1; api.update()
 check(built[#built] == "avwalk" and #built == 6, "fifth item is the avwalk")
 check(spawn("walk", "avwalk") == true and lastOrder("follow")[2] == "walk" and M.nsdfgech1 == nil, "walker follows the factory, not tracked")

@@ -46,6 +46,10 @@ env.AddPilot = function(_, n) pilots = pilots + n end
 env.GetHealth = function() return health end
 env.GetAmmo = function() return ammo end
 env.GetCurrentCommand = function(h) return objs[h].cmd end
+env.GetDistance = function(a, b)
+    local dx, dz = objs[a].x - objs[b].x, objs[a].z - objs[b].z
+    return math.sqrt(dx * dx + dz * dz)
+end
 env.GetCurrentWho = function() return nil end
 env.AllCraft = function() return function() return nil end end
 env.AllObjects = function()
@@ -199,7 +203,17 @@ step(1)
 check(count("go_to", rec, cam5) == 1 and count("target", cam5) == 1, "withdraw sends the recycler to the Supply beacon")
 objs[rec].deployed = false; objs[rec].cmd = 0
 step(1); step(10)
-check(count("go_to", rec, cam5) == 1 and count("go_to", rec, geyser) == 2, "no geyser re-send after withdraw")
+-- CR adaptation: the withdraw order is re-sent after 10 s (idle and far), so cam5 now has two orders.
+check(count("go_to", rec, cam5) == 2 and count("go_to", rec, geyser) == 2, "no geyser re-send after withdraw; withdraw re-sent once")
+-- Not while GO, not inside 10 s, not when within 200 m.
+objs[rec].cmd = 3; step(10)
+check(count("go_to", rec, cam5) == 2, "no withdraw resend while the recycler is on its way (GO)")
+objs[rec].cmd = 0; step(5)
+check(count("go_to", rec, cam5) == 2, "no withdraw resend inside 10 s")
+step(5)
+check(count("go_to", rec, cam5) == 3, "withdraw re-sent when idle and far")
+objs[rec].cmd = 0; objs[rec].x, objs[rec].z = objs[cam5].x + 150, objs[cam5].z; step(10)
+check(count("go_to", rec, cam5) == 3, "no withdraw resend within 200 m")
 
 -- Disable/enable cycles issue no duplicate placement orders.
 check(adapter and adapter.enable and adapter.disable, "adapter has enable/disable hooks")

@@ -28,6 +28,173 @@ end
 
 -- Initialize before map AddObject callbacks; Start must not erase discovery.
 local M = NewState()
+-- CR pilot mode >>
+-- N64 Pilot Mode branch (Battlezone 64 table 21, byte g_800B93D5), behind the PDA Pilot Mode toggle; single
+-- player only (the runtime owns PlayerPilotMode, Scripts/CRCCARuntime.lua, config.pilotMode). Port of
+-- Battlezone_Z64Tools redux_lua/n64ms5.lua, which follows m21_misns5.c (C line numbers below). N64 labels map to
+-- this BZN by position (Docs/PILOT_MODE_N64_LABELS.md, "m21_misns5"): 5 = svrecy0_recycler, 23 = svmuf0_factory,
+-- 3/4 = eggeizr11/12_geyser, 25/26 = svscav1/2_scavenger, 27/13 = svltnk0/svtank59_wingman, 20-22 = the power
+-- plants sblpow2-4, 17-19 = the towers sbtowe0-2. The N64 constructor n64p377 is the stock svcnst (8) and its
+-- scavenger svscvn1 is svscav. This region sits before the co-op runtime shadows, so every name below is the real
+-- native.
+-- Adaptations: the ammo pod is a BuildAt on the player; the constructor's drop-off (C 274-283) is a Dropoff order;
+-- the recycler/factory re-send uses PilotBranch.Resend (Goto the geyser). Not ported: voice/text/debrief swaps (the
+-- constructor-lost fail uses misns5l1.des instead of debrief 410), the FailMission on g_8006A201 (C 192-195), and
+-- the engine countdown globals g_801BFABC.. (C 753-758).
+local Pilot = { module = "CRPilotBranch" }
+local PILOT_REBUILD = { -- C 346-479: power plants then towers: odf, scrap (base slots 1-6)
+    { "sbspow", 4 }, { "sbspow", 4 }, { "sbspow", 4 },
+    { "sbtowe", 6 }, { "sbtowe", 6 }, { "sbtowe", 6 },
+}
+
+function Pilot.Branch() return require(Pilot.module) end -- lazy: the mod's require paths exist after RequireFix
+
+function Pilot.State()
+    local P = M.pilot
+    if not P then
+        P = Pilot.Branch().NewState()
+        -- C 38-83: cached slots (tanks 27/13, scavengers 25/26, six base objects).
+        P.tank = { GetHandle("svltnk0_wingman"), GetHandle("svtank59_wingman") }
+        P.scav = { GetHandle("svscav1_scavenger"), GetHandle("svscav2_scavenger") }
+        P.base = { GetHandle("sblpow2_powerplant"), GetHandle("sblpow3_powerplant"), GetHandle("sblpow4_powerplant"),
+                   GetHandle("sbtowe0_turret"), GetHandle("sbtowe1_turret"), GetHandle("sbtowe2_turret") }
+        P.pos = {}
+        P.wantAmmo, P.ammoArmed, P.buildSlot = 0, true, 0
+        P.skip = { GetHandle("svtank2_wingman") } -- label 1 is not an N64 tank slot
+        M.pilot = P
+    end
+    return P
+end
+
+function Pilot.InSlots(list, h)
+    for i = 1, 4 do
+        if list[i] == h then return true end
+    end
+    return false
+end
+
+-- C 86-187: player-team units built in Pilot Mode fill the N64 slots.
+function Pilot.AddObject(h)
+    if GetTeamNum(h) ~= 1 then return end
+    local P = Pilot.State()
+    local Branch = Pilot.Branch()
+    if not Branch.Claim(P, h) then return end
+    local alive = Branch.alive
+    if IsOdf(h, "svscav") then -- C 103-109
+        if Pilot.InSlots(P.scav, h) then return end
+        if not alive(P.scav[1]) then P.scav[1] = h
+        elseif not alive(P.scav[2]) then P.scav[2] = h end
+    elseif IsOdf(h, "svtank") then -- C 111-127 (svltnk is not re-slotted)
+        if Pilot.InSlots(P.tank, h) or Pilot.InSlots(P.skip, h) then return end
+        for i = 1, 4 do
+            if not alive(P.tank[i]) then P.tank[i] = h; break end
+        end
+        local player = GetPlayerHandle()
+        if alive(player) then Follow(h, player, 1) end
+    elseif IsOdf(h, "svcnst") then -- C 129-134
+        P.cnst = h
+        P.buildSlot = 0
+        P.dropPending = false
+    elseif IsOdf(h, "sbspow") then -- C 136-154
+        if P.buildSlot >= 1 and P.buildSlot <= 3 then P.base[P.buildSlot] = h; P.buildSlot = 0 end
+    elseif IsOdf(h, "sbtowe") then -- C 156-176
+        if P.buildSlot >= 4 and P.buildSlot <= 6 then P.base[P.buildSlot] = h; P.buildSlot = 0 end
+    elseif IsOdf(h, "sspammo") then -- C 178-183
+        if not alive(P.ammo) then P.ammo = h; P.ammoArmed = true end
+    end
+end
+
+-- C 190-633, run by PlayerPilotMode.Update while the toggle is on.
+function Pilot.Update()
+    local Branch = Pilot.Branch()
+    local alive = Branch.alive
+    local player = GetPlayerHandle()
+    if not alive(player) or not M.start_done then return end
+    local P = Pilot.State()
+    local now = GetTime()
+    local rec, muf = M.recy, M.muf
+    Branch.Lock(P, now)
+
+    -- C 243-270, at the end of the intro: the two starting tanks follow and the base positions are cached.
+    if not M.camera1 and not P.started then
+        P.started = true
+        for i = 1, 2 do
+            if alive(P.tank[i]) then Follow(P.tank[i], player, 1) end
+        end
+        for i = 1, 6 do
+            if alive(P.base[i]) then
+                local p = GetPosition(P.base[i])
+                P.pos[i] = { x = p.x, y = p.y, z = p.z }
+            end
+        end
+    end
+
+    -- C 285-297: an ammo pickup is requested when the player is low and none stands.
+    if GetAmmo(player) < 0.75 and not alive(P.ammo) and P.ammoArmed then P.wantAmmo = 1 end
+    -- C 299-335: an idle recycler/factory is sent to its geyser again.
+    Branch.Resend(P, "rec", rec, M.geyser1, now)
+    Branch.Resend(P, "muf", muf, M.geyser2, now)
+
+    -- C 337-344: the constructor is the extra fail condition. Armed only once it was seen alive with the mode on,
+    -- so a mid-mission toggle after it fell does not fail the mission at once.
+    if alive(P.cnst) then P.cnstSeen = true end
+    if P.cnstSeen and not alive(P.cnst) and not P.ending and not M.won and not M.lost then
+        P.ending = true
+        M.lost = true
+        FailMission(now + 10.0, "misns5l1.des")
+        return
+    end
+
+    -- C 274-283: the constructor takes its building to the cached position.
+    if P.dropPending and alive(P.cnst) then
+        local pos = P.pos[P.buildSlot]
+        if pos then Dropoff(P.cnst, SetVector(pos.x, pos.y, pos.z), 1) end
+        P.dropPending = false
+    end
+    -- C 346-479: the constructor rebuilds each destroyed plant or tower at its recorded position.
+    if alive(P.cnst) and not P.dropPending and P.buildSlot == 0 and not IsBusy(P.cnst) then
+        for i, r in ipairs(PILOT_REBUILD) do
+            if not alive(P.base[i]) and P.pos[i] and GetScrap(1) >= r[2] then
+                Build(P.cnst, r[1], 1)
+                P.buildSlot, P.dropPending = i, true
+                break
+            end
+        end
+    end
+
+    -- C 481-507: the four tank slots re-follow on a craft change and every 30 s (not the scavengers).
+    local tanks = {}
+    for i = 1, 4 do
+        if P.tank[i] ~= nil then tanks[#tanks + 1] = P.tank[i] end
+    end
+    Branch.FollowPlayer(P, tanks, player, now, 30)
+
+    -- C 508-632: one blocking chain; the first step whose need holds wins the frame.
+    local recAlive = alive(rec)
+    if recAlive and (not alive(P.scav[1]) or not alive(P.scav[2])) then -- C 509-537, with the scrap/pilot top-up
+        if Branch.Ready(rec) then
+            if GetScrap(1) < 4 then AddScrap(1, 4) end
+            if GetPilot(1) == 0 then AddPilot(1, 1) end
+            if GetScrap(1) >= 4 and GetPilot(1) > 0 then Build(rec, "svscav", 1) end
+        end
+    elseif P.wantAmmo > 0 and recAlive then -- C 541-558
+        if Branch.Ready(rec) and GetScrap(1) > 0 then
+            BuildAt(rec, "sspammo", player, 1)
+            P.ammoArmed = false
+            P.wantAmmo = P.wantAmmo - 1
+        end
+    elseif alive(muf) and (not alive(P.tank[1]) or not alive(P.tank[2])) then -- C 561-576
+        if Branch.Ready(muf) and GetScrap(1) >= 8 and GetPilot(1) > 0 then Build(muf, "svtank", 1) end
+    elseif alive(muf) and M.last_phase and (not alive(P.tank[3]) or not alive(P.tank[4])) then -- C 577-605
+        if Branch.Ready(muf) and GetScrap(1) >= 8 and GetPilot(1) > 0 then Build(muf, "svtank", 1) end
+    elseif recAlive and not alive(P.cnst) and Branch.Ready(rec) and GetScrap(1) >= 8 and GetPilot(1) > 0 then -- C 609-627
+        Build(rec, "svcnst", 1)
+    end
+end
+
+function Pilot.Enable() Pilot.Branch().Adopt(Pilot.State(), Pilot.AddObject) end
+function Pilot.Disable() Pilot.Branch().Release(Pilot.State()) end
+-- CR pilot mode <<
 -- CR co-op runtime >>
 -- Offline and co-op share this adapter (Scripts/CRCCARuntime.lua); the faithful tests set CR_TEST_FAITHFUL.
 -- Lexical wrappers affect this mission only. Docs/MISNS5_COOP.md lists every wrapped call and restoration.
@@ -39,6 +206,7 @@ if not CR_TEST_FAITHFUL then require("crreqfix").Initialize({"campaignReimagined
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "misns5", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2, blackDogUnits = true,
     rallyPoints = { [0] = "svrecy0_recycler" },
+    pilotMode = { update = Pilot.Update, addObject = Pilot.AddObject, enable = Pilot.Enable, disable = Pilot.Disable },
     -- The chaff fighters, the APC strike and the factory waves are the scaled spawns; the artillery, the
     -- commander walker, the enemy recycler with its guards and the scavengers are not.
     scaledOdfs = { avfigh = true, avapc = true, bvltnk = true, bvhraz = true },

@@ -1093,6 +1093,17 @@ local function PilotUpdate()
             SetUserTarget(M.cam5)
             if Alive(rec) then Goto(rec, M.cam5, 1) end
         end
+        P.withdrawAt = now + 10
+    end
+    -- CR adaptation: the win needs the recycler within 200 m of cam5, so a stalled or interrupted
+    -- withdraw Goto is re-sent every 10 s while the recycler is idle and still far. Not
+    -- PilotBranch.Resend, which skips deployed units.
+    if P.withdrawn and now >= P.withdrawAt then
+        P.withdrawAt = now + 10
+        if Alive(rec) and Alive(M.cam5) and GetDistance(rec, M.cam5) > 200
+           and GetCurrentCommand(rec) ~= AiCommand.GO then
+            Goto(rec, M.cam5, 1)
+        end
     end
     if P.rescued and not P.withdrawn then
         PilotBranch.Resend(P, "rec", rec, geyser, now) -- C 268-314

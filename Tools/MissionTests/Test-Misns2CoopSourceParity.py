@@ -16,7 +16,8 @@ region = r"(?ms)^-- CR [^\n]* >>\n.*?^-- CR [^\n]* <<\n?"
 opened = re.findall(r"(?m)^-- CR ([^\n]*) >>$", coop)
 closed = re.findall(r"(?m)^-- CR ([^\n]*) <<$", coop)
 assert opened == closed and opened, "every CR region opens and closes in order"
-assert set(opened) == {"co-op layer", "co-op runtime", "restored content", "co-op callback", "co-op callbacks"}, opened
+assert set(opened) == {"co-op layer", "co-op runtime", "restored content", "co-op callback", "co-op callbacks",
+                       "pilot mode"}, opened
 assert "-- CR" not in re.sub(region, "", coop), "CR marker outside a region"
 stripped = re.sub(region, "", coop)
 assert stripped == faithful_text, "misns2cr.lua outside the CR regions is not the faithful misns2.lua"

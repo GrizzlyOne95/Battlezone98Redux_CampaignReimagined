@@ -145,6 +145,18 @@ check(orders[#orders - 1][1] == "target" and orders[#orders - 1][2] == "dust", "
 check(gotoTo(#orders) == "dust", "recycler goes on to the dust-off beacon")
 n = #orders; now = now + 1; api.update()
 check(#orders == n, "convoy finished")
+-- CR adaptation: dust-off resend every 10 s while idle and far; not while GO or near.
+n = #orders; now = now + 11; api.update()
+check(#orders == n, "no dust-off resend while the recycler is on its way (GO)")
+objs[rec].cmd = 0; now = now + 10; api.update()
+check(#orders == n + 1 and gotoTo(#orders) == "dust", "dust-off re-sent 10 s on when idle and far")
+objs[rec].cmd = 0; now = now + 5; api.update()
+check(#orders == n + 1, "no dust-off resend inside 10 s")
+objs[rec].cmd = 0; now = now + 6; api.update()
+check(#orders == n + 2, "dust-off re-sent again after another 10 s")
+objs[rec].cmd = 0; objs[rec].x, objs[rec].z = 3380, 99483; objs["dust"].x, objs["dust"].z = 3400, 99483
+now = now + 11; api.update()
+check(#orders == n + 2, "no dust-off resend when within 100 m")
 
 -- Adoption: a fighter that exists before the mode is on follows the recycler
 -- once the adapter's enable runs, and only once.

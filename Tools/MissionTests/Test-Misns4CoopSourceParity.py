@@ -17,7 +17,7 @@ opened = re.findall(r"(?m)^-- CR ([^\n]*) >>$", coop)
 closed = re.findall(r"(?m)^-- CR ([^\n]*) <<$", coop)
 assert opened == closed and opened, "every CR region opens and closes in order"
 assert set(opened) == {"co-op layer", "co-op runtime", "restored content", "co-op callback",
-                       "co-op scaling", "co-op callbacks"}, opened
+                       "co-op scaling", "co-op callbacks", "pilot mode"}, opened
 assert "-- CR" not in re.sub(region, "", coop), "CR marker outside a region"
 stripped = re.sub(region, "", coop)
 # A region at the very end of the file eats the trailing newline of the faithful text only when it is the last line.

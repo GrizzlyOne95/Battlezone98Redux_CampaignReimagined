@@ -165,6 +165,194 @@ local function NewState()
 end
 M = NewState()
 
+-- CR pilot mode >>
+-- N64 Pilot Mode branch (Battlezone 64 table 17, byte g_800B93D5), behind the PDA Pilot Mode toggle; single
+-- player only (the CCA runtime owns PlayerPilotMode: Pilot.Mode is its config.pilotMode). Port of
+-- Battlezone_Z64Tools redux_lua/n64ms1.lua, which follows mission_scripts m17_misns1.c (C line numbers below).
+-- N64 labels map to this BZN by position (Docs/PILOT_MODE_N64_LABELS.md, "m17_misns1"): label 4 = Colorado
+-- (avrecy1_recycler), 18 = svrecy2_recycler, 23/26 = the towers abtowe0_turret/abtowe3_turret, 13 = walkcam1,
+-- 14/12/10 = hidcamupper/hidcammiddle/hidcamlower. This region sits before the co-op runtime region so its
+-- natives are the engine's, not the runtime's shadows.
+-- Adaptations: the recycler builds the CR Soviet pods (ssprepa/sspammo, its own build items; N64 sprepa/spammo);
+-- the howitzer drives to the last point of N64 path 26 (the route's waypoints are not in the CR map); the
+-- howitzer-lost debrief reuses misns1l2.des (N64 text 395). Not ported: the intro voice 553, the 554 voice, the
+-- objective-text swaps (OBJ500 hold, OBJ502) and the 434/435 debrief swaps.
+local Pilot = {}
+Pilot.Branch = nil -- CRPilotBranch, set once crreqfix has added the mod paths (CR co-op runtime region)
+Pilot.FIGHTERS = 6
+Pilot.FIGHTER_SPOTS = { -- C 314-318: paths 27-31 (the CR map has no paths for them), labels-doc coordinates
+    { 1933, 98543 }, { 1917, 98547 }, { 1951, 98541 }, { 1917, 98525 }, { 1933, 98523 },
+}
+Pilot.HOWITZER_START = { 2817, 101123 } -- C 419: path 25
+Pilot.HOWITZER_GOAL = { 3815, 100219 }  -- C 420: path 26 ends here (it starts at 2827, 101084)
+
+function Pilot.Valid(h) return h ~= nil and IsValid(h) end
+
+function Pilot.Spot(x, z)
+    return SetVector(x, GetTerrainHeightAndNormal(SetVector(x, 0, z)), z)
+end
+
+function Pilot.State()
+    local P = M.pilot
+    if not P then
+        P = Pilot.Branch.NewState()
+        M.pilot = P
+    end
+    return P
+end
+
+-- C 219-271: player-team units built in Pilot Mode fill the N64 slots.
+function Pilot.AddObject(h)
+    if GetTeamNum(h) ~= 1 then return end
+    local PB = Pilot.Branch
+    local P = Pilot.State()
+    if not PB.Claim(P, h) then return end
+    local alive = PB.alive
+    local player = GetPlayerHandle()
+    if IsOdf(h, "svscav") then -- C 222-229
+        if not alive(P.scav1) then P.scav1 = h
+        elseif not alive(P.scav2) then P.scav2 = h end
+    elseif IsOdf(h, "svfigh") then -- C 230-255
+        for i = 1, Pilot.FIGHTERS do
+            if not alive(P["f" .. i]) then P["f" .. i] = h; break end
+        end
+        if alive(player) then Follow(h, player, 1) end
+    elseif IsOdf(h, "svtank") then -- C 311-312, 356-363: the two start tanks follow the player
+        for _, key in ipairs({ "t1", "t2" }) do
+            if not alive(P[key]) then
+                P[key] = h
+                if alive(player) then Follow(h, player, 1) end
+                break
+            end
+        end
+    else -- C 256-267: the pods the recycler builds re-arm the supply request
+        PB.NoteSupply(P, h, "ssprepa", "sspammo")
+        PB.NoteSupply(P, h, "sprepa", "spammo")
+    end
+end
+
+-- C 275-1205, run by PlayerPilotMode.Update while the toggle is on.
+function Pilot.Update()
+    local PB = Pilot.Branch
+    local alive = PB.alive
+    local player = GetPlayerHandle()
+    if not M.missionstart or not alive(player) then return end -- the stock opening (dropship) has not landed yet
+    local P = Pilot.State()
+    local now = GetTime()
+    local rec, col = M.svrec, M.colorado
+
+    if not P.started then -- C 310-366
+        P.started = true
+        P.tower1, P.tower2 = GetHandle("abtowe0_turret"), GetHandle("abtowe3_turret") -- C 364-365
+        -- The body builds two svtank and one svfigh; Pilot Mode adds fighters up to six. A toggle mid-mission
+        -- tops up what is missing at the same start spots.
+        local have = 0
+        for i = 1, Pilot.FIGHTERS do
+            if alive(P["f" .. i]) then have = have + 1 end
+        end
+        for i = 1, Pilot.FIGHTERS - have do
+            local spot = Pilot.FIGHTER_SPOTS[i]
+            if not spot then break end
+            local h = BuildObject("svfigh", 1, Pilot.Spot(spot[1], spot[2]))
+            if h then Pilot.AddObject(h) end
+        end
+        if not M.pickpath then M.startconvoy = M.startconvoy - 150 end -- C 326-331: first attack +30 s, not +180 s
+    end
+    PB.Lock(P, now)
+    PB.WatchSupply(P, player) -- C 375-395
+
+    -- C 398-406: the howitzer lost after it was called in fails the mission. Armed only once seen alive.
+    if alive(P.how) then P.howSeen = true end
+    if P.howArmed and P.howSeen and not P.howFailed and not alive(P.how) then
+        P.howFailed = true
+        if not (M.missionwon or M.success_called or M.escape_failure_called or M.recycler_failure_called) then
+            FailMission(now + 5, "misns1l2.des")
+        end
+    end
+
+    -- C 408-465: Colorado dead -> a howitzer shells the two towers, then the way is clear.
+    if not alive(col) then P.recLost = true end
+    if not alive(P.tower1) then P.hit1 = false end
+    if not alive(P.tower2) then P.hit2 = false end
+    if P.recLost and not P.howBuilt and not P.howFailed then -- C 416-424 (m_140 latch)
+        P.howBuilt = true
+        local from, goal = Pilot.HOWITZER_START, Pilot.HOWITZER_GOAL
+        P.how = BuildObject("svartl", 1, Pilot.Spot(from[1], from[2]))
+        if P.how then
+            Goto(P.how, Pilot.Spot(goal[1], goal[2]), 1)
+            SetObjectiveOn(P.how) -- C 674-692
+            P.howArmed, P.howSeen = true, alive(P.how)
+        end
+    end
+    if alive(P.how) and not P.howDone then -- C 425-465
+        if not P.hit1 and not P.hit2 then
+            local deployed = IsDeployed(P.how)
+            if alive(P.tower1) then
+                if deployed then P.hit1 = true; Attack(P.how, P.tower1, 1) end
+            elseif alive(P.tower2) then
+                if deployed then P.hit2 = true; Attack(P.how, P.tower2, 1) end
+            end
+        end
+        if not alive(P.tower1) and not alive(P.tower2) then
+            P.howArmed, P.howDone = false, true
+            SetObjectiveOff(P.how)
+        end
+    end
+
+    -- C 467-505: the wingmen follow on a craft change and every 30 s.
+    local wingmen = {}
+    for i = 1, Pilot.FIGHTERS do
+        if P["f" .. i] ~= nil then wingmen[#wingmen + 1] = P["f" .. i] end
+    end
+    for _, key in ipairs({ "t1", "t2" }) do
+        if P[key] ~= nil then wingmen[#wingmen + 1] = P[key] end
+    end
+    PB.FollowPlayer(P, wingmen, player, now, 30)
+
+    -- C 507-598: the Soviet recycler queue. Scavengers first (topped up), then pods, then fighters.
+    if alive(rec) then
+        if not alive(P.scav1) or not alive(P.scav2) then -- C 508-535
+            if PB.Ready(rec) then
+                if GetScrap(1) < 4 then AddScrap(1, 4) end
+                if GetPilot(1) == 0 then AddPilot(1, 1) end
+                if GetScrap(1) >= 4 and GetPilot(1) > 0 then Build(rec, "svscav", 1) end
+            end
+        elseif PB.BuildSupply(P, rec, "ssprepa", "sspammo") then -- C 536-559: a pod request holds the queue
+        else -- C 571-598: rebuild into an empty fighter slot
+            local missing = false
+            for i = 1, Pilot.FIGHTERS do
+                if not alive(P["f" .. i]) then missing = true; break end
+            end
+            if missing and PB.Ready(rec) and GetScrap(1) >= 6 and GetPilot(1) > 0 then
+                Build(rec, "svfigh", 1)
+            end
+        end
+    end
+
+    -- C 801-805: contact with the enemy turns the three route navs off.
+    if M.retreat and not P.navsOff then
+        P.navsOff = true
+        for _, key in ipairs({ "hidcam1", "hidcam2", "hidcam3" }) do
+            if Pilot.Valid(M[key]) then SetObjectiveOff(M[key]) end
+        end
+    end
+    -- C 1097-1123: the convoy reaches the first nav; the route's exit nav is marked and the walker joins it.
+    if not P.arrived and alive(col) and Pilot.Valid(M.walkcam1) and GetDistance(col, M.walkcam1) < 70 then
+        P.arrived = true
+        local nav = M.hidcam3
+        if M.path == 0 then nav = M.hidcam1 elseif M.path == 1 then nav = M.hidcam2 end
+        if Pilot.Valid(nav) then SetObjectiveOn(nav) end
+        if alive(M.walker1) then Goto(M.walker1, M.walkcam1, 1) end
+    end
+end
+
+Pilot.Mode = {
+    update = function() return Pilot.Update() end,
+    addObject = function(h) return Pilot.AddObject(h) end,
+    enable = function() Pilot.Branch.Adopt(Pilot.State(), Pilot.AddObject) end,
+    disable = function() Pilot.Branch.Release(Pilot.State()) end,
+}
+-- CR pilot mode <<
 -- CR co-op runtime >>
 -- Offline and co-op share this adapter (Scripts/CRCCARuntime.lua); the faithful tests set CR_TEST_FAITHFUL.
 -- Lexical wrappers affect this mission only. Docs/MISNS1_COOP.md lists every wrapped call and restoration.
@@ -172,6 +360,7 @@ M = NewState()
 local RESTORED_CINEMATIC, RESTORED_ESCORTS, RESTORED_CAVALRY, RESTORED_DISPATCH = true, true, true, true
 local Restored
 if not CR_TEST_FAITHFUL then require("crreqfix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
+Pilot.Branch = not CR_TEST_FAITHFUL and require("CRPilotBranch") or nil -- after the asset searcher is fixed
 -- The dropship opening (Scripts/CRDropIn.lua, Docs/MISNS1_COOP.md "Dropship opening"), offline and co-op: one CCA svdrop
 -- lands the Soviet recycler and every human's craft at the stock start, and the stock body waits for it (Update returns
 -- before the body, so the briefing, the AIP, every timer and the opening film start at the landing). A missing module or
@@ -264,6 +453,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     scaledOdfs = { avfigh = true, avtank = true },
     fallbackEntries = { "cavpath1", "cavpath2" },
     failDes = "misns1l2.des",
+    pilotMode = Pilot.Mode,
     wonFlags = { "missionwon" },
     endedFlags = { "success_called", "escape_failure_called", "recycler_failure_called" },
     holdCamera = true, -- the loss shot is one CameraObject call; hold it for every peer
