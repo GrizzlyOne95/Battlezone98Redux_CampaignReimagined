@@ -388,6 +388,8 @@ function F.makePeer(id, team, network, options)
     end}
     e.package = setmetatable({loaded = {exu = modules.exu}}, {__index = package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
+    modules.PlayerPilotMode = {Initialize = function() end, Update = function() end, Save = function() return {} end, IsEnabled = function() return false end}
+    modules.CRPilotBranch = assert(loadfile("Scripts/CRPilotBranch.lua"))()
     e.require = function(name)
         local m = modules[name]
         if m == nil then error("module '" .. name .. "' not found") end

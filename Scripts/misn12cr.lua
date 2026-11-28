@@ -796,6 +796,82 @@ end
 
 -- Presentation adapter ends.
 
+-- CR PDA >>
+-- N64 Pilot Mode branch (Battlezone 64 table 10, byte g_800B93D5), behind the PDA Pilot Mode
+-- toggle; single player only (PlayerPilotMode is off in network games). Port of
+-- Battlezone_Z64Tools redux_lua/n64m12.lua, which follows mission_scripts m10_misn12.c (C line
+-- numbers below). N64 labels map to this BZN by position (Docs/PILOT_MODE_N64_LABELS.md):
+-- 54 = center (sbhqt2) with the hangar cameras start_cam/check2_cam..goal_cam, 48 = checktower1
+-- (sbhqt1) with center_cam. The branch is markers only: while the mission has a camera group
+-- switched to team 1 (player within 100 m of its HQ) each camera is an objective, and the
+-- markers go off again when the mission switches the group back (player past 300 m, C 1833-1881).
+-- The N64 pilot.Update() command lock runs too (CRPilotBranch.Lock). No AI changes, no
+-- AddObject hook, no unit orders. The main chunk is at Lua 5.1's 200-local limit, so the
+-- branch lives in the existing missionPda table instead of a new local.
+missionPda.pilot = { mode = require("PlayerPilotMode"), branch = require("CRPilotBranch") }
+
+function missionPda.pilot.State()
+    local P = M.pilot
+    if not P then
+        P = missionPda.pilot.branch.NewState()
+        P.hangarOn, P.checkOn = false, false
+        M.pilot = P
+    end
+    return P
+end
+
+function missionPda.pilot.Group(P, key, active, cams)
+    local alive = missionPda.pilot.branch.alive
+    if active and not P[key] then
+        P[key] = true
+        for _, cam in ipairs(cams) do
+            if alive(cam) then SetObjectiveOn(cam) end
+        end
+    elseif not active and P[key] then
+        P[key] = false
+        for _, cam in ipairs(cams) do
+            if alive(cam) then SetObjectiveOff(cam) end
+        end
+    end
+end
+
+function missionPda.pilot.Cameras()
+    return { M.start_cam, M.check2_cam, M.check3_cam, M.check4_cam, M.goal_cam }, { M.center_cam }
+end
+
+-- C 1748-1776 / 1800 (cameras to team 1, objective on) and 1833-1881 (off).
+function missionPda.pilot.Update()
+    local P = missionPda.pilot.State()
+    missionPda.pilot.branch.Lock(P, GetTime())
+    local hangar, check = missionPda.pilot.Cameras()
+    missionPda.pilot.Group(P, "hangarOn", M.camera_swap1 and true or false, hangar)
+    missionPda.pilot.Group(P, "checkOn", M.camera_swap2 and true or false, check)
+end
+
+function missionPda.pilot.Init()
+    if missionPda.pilot.mode and missionPda.pilot.branch and not CRCoop.IsNetworkGame() then
+        missionPda.pilot.mode.Initialize({ scripted = true, update = missionPda.pilot.Update,
+            disable = function()
+                local P = missionPda.pilot.State()
+                local hangar, check = missionPda.pilot.Cameras()
+                missionPda.pilot.Group(P, "hangarOn", false, hangar)
+                missionPda.pilot.Group(P, "checkOn", false, check)
+                missionPda.pilot.branch.Release(P)
+            end }, M.playerPilotModeState)
+    end
+end
+
+function missionPda.pilot.Tick()
+    if missionPda.pilot.mode and missionPda.pilot.branch then missionPda.pilot.mode.Update() end
+end
+
+function missionPda.pilot.Save()
+    if missionPda.pilot.mode then M.playerPilotModeState = missionPda.pilot.mode.Save() end
+    return M.playerPilotModeState
+end
+-- N64 Pilot Mode branch end
+-- CR PDA <<
+
 -- The DLL's AudioMessage(file) is the shared radio line: the leader plays it and every peer hears
 -- it with its subtitle (Play returns the native audio handle on the leader, nil offline-safe).
 local function AudioMessage(file) return subtit.Play(file) end
@@ -1599,6 +1675,9 @@ function Start()
     InitializeCoop()
 -- CR co-op layer <<
     M = NewState()
+-- CR PDA >>
+    missionPda.pilot.Init()
+-- CR PDA <<
 -- CR co-op layer >>
     InitializeCoopState()
     subtit.Initialize()
@@ -3079,6 +3158,9 @@ function Update(dt)
         if IsValid(offlinePlayer) and not CRCoop.IsHumanCraft(offlinePlayer) then RemoveObject(offlinePlayer) end
     end
 -- CR co-op layer <<
+-- CR PDA >>
+    missionPda.pilot.Tick()
+-- CR PDA <<
     -- START OF SCRIPT
     M.user = GetPlayerHandle()
     --assigns the player a handle every frame
@@ -3122,13 +3204,20 @@ function Save()
         M.weatherState = CREuropaWeather.Save()
     end
 -- CR Europa weather <<
-    return M
+-- CR PDA >>
+    local pilotModeState = missionPda.pilot.Save()
+-- CR PDA <<
+    return M, pilotModeState
 end
 
-function Load(state)
+function Load(state, pilotModeData)
 -- CR Europa weather >>
     ShutdownEuropaWeather()
     if Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
 -- CR Europa weather <<
     M = state
+-- CR PDA >>
+    M.playerPilotModeState = pilotModeData or M.playerPilotModeState
+    missionPda.pilot.Init()
+-- CR PDA <<
 end

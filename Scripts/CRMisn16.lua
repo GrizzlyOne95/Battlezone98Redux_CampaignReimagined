@@ -26,6 +26,8 @@ end
 local subtit = require("ScriptSubtitles")
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
+local PlayerPilotMode = require("PlayerPilotMode")
+local PilotBranch = require("CRPilotBranch")
 -- Native strategic AI startup configuration, before Start; human teams never get AI.
 SetAIControl(FURY_TEAM, true)
 -- CR co-op layer <<
@@ -914,6 +916,156 @@ local function UpdateStory()
     end
     UpdateArrivals()
 end
+-- CR pilot mode >>
+-- N64 Pilot Mode branch (Battlezone 64 table 14 "misn16b", byte g_800B93D5),
+-- behind the PDA Pilot Mode toggle; single player only. Port of
+-- Battlezone_Z64Tools redux_lua/n64m16b.lua (decompile m14_misn16b.c; line
+-- numbers below are that C file). N64 labels map to this BZN by position
+-- (Docs/PILOT_MODE_N64_LABELS.md, m14_misn16b): 13/12 = Recycler Texas and the
+-- factory (avrecy0_recycler / avmuf26_factory; the label-13/12 N64 units sit on
+-- the geysers, CR's start 330 m north), 14/15 = geysers eggeizr112/eggeizr113,
+-- 17 = apcamr11 (alien HQ nav), 31 = avslf0_armory, 30 constructor =
+-- avcnst0_constructionrig (no same-position match; the starting rig).
+-- Adaptations: the replacement constructor is the CR avcnst (N64 avcnsn5); the
+-- armory is removed only when Pilot Mode is on at the start of the mission
+-- (a mid-mission toggle leaves it standing). N64 draws its starting NSDF base
+-- with ungated BuildObject calls (C 280-290); this BZN has none, so the
+-- constructor builds the whole rebuild table from scratch. Not ported: voice/
+-- text, the N64 Soviet-craft AddObject orders (CR UpdateArrivals already
+-- sends them), SetAIP and the N64 debrief text.
+local PILOT_FACILITIES = { -- C 460-653 (scrap includes the 4 reserve; 5th: unaffordable ends the chain)
+    { "abhang", 3001, 99204, 11 }, { "absupp", 2886, 99286, 9 },
+    { "abspow", 2867, 99090, 8, true }, { "abtowe", 2903, 99059, 10 },
+    { "abtowe", 2836, 99037, 10 }, { "abspow", 2894, 99213, 8, true },
+    { "abtowe", 2962, 99211, 10 }, { "abtowe", 2833, 99225, 10 },
+    { "abspow", 2954, 99341, 8, true }, { "abtowe", 3000, 99330, 10 },
+    { "abtowe", 2938, 99389, 10, true },
+}
+local PILOT_SLOTS = { abspow = { 3, 6, 9 }, abtowe = { 4, 5, 7, 8, 10, 11 }, abhang = { 1 }, absupp = { 2 } }
+
+local function PilotSpot(x, z)
+    return SetVector(x, GetTerrainHeightAndNormal(SetVector(x, 0, z)), z)
+end
+
+local function PilotState()
+    State()
+    local P = M.pilot
+    if not P then
+        P = PilotBranch.NewState()
+        P.scav, P.tank, P.rebuilt, P.buildSlot = {}, {}, {}, 0
+        M.pilot = P
+    end
+    return P
+end
+
+-- C 129-211: scavengers, the replacement constructor, rebuilt buildings, tanks.
+local function PilotAddObject(h)
+    if not PlayerPilotMode.IsEnabled() or not Valid(h) or GetTeamNum(h) ~= 1 then return end
+    local P = PilotState()
+    if not PilotBranch.Claim(P, h) then return end
+    if IsOdfBase(h, "avscav") then -- C 130-136
+        for i = 1, 2 do
+            if not Alive(P.scav[i]) then P.scav[i] = h; return end
+        end
+    elseif IsOdfBase(h, "avcnst") then -- C 138-144
+        P.cnst, P.buildSlot, P.dropPending = h, 0, false
+    elseif IsOdfBase(h, "avtank") then -- C 194-211
+        for i = 1, 4 do
+            if not Alive(P.tank[i]) then P.tank[i] = h; break end
+        end
+        local player = GetPlayerHandle()
+        if Alive(player) then Follow(h, player, 1) end
+    else
+        for odf, slots in pairs(PILOT_SLOTS) do
+            if IsOdfBase(h, odf) then -- C 146-192
+                if P.buildSlot > 0 then
+                    P.rebuilt[P.buildSlot] = h
+                else
+                    for _, i in ipairs(slots) do
+                        if not Alive(P.rebuilt[i]) then P.rebuilt[i] = h; break end
+                    end
+                end
+                P.buildSlot, P.dropPending = 0, false
+                return
+            end
+        end
+    end
+end
+
+-- C 219-663, run by PlayerPilotMode.Update while the toggle is on.
+local function PilotUpdate()
+    local player = GetPlayerHandle()
+    if not Alive(player) or not M.start_done or M.lost or M.won then return end
+    local s, P, now = State(), PilotState(), GetTime()
+    local rec, fac = M.recy, M.muf
+    local recGeyser, facGeyser = GetHandle("eggeizr112_geyser"), GetHandle("eggeizr113_geyser")
+
+    if not P.started then -- C 272-278
+        P.started = true
+        P.cnst = Alive(P.cnst) and P.cnst or GetHandle("avcnst0_constructionrig")
+        local cam = GetHandle("apcamr11_camerapod")
+        if Alive(cam) then SetUserTarget(cam) end
+        if Alive(rec) and not IsDeployed(rec) then Goto(rec, recGeyser, 1) end
+        if Alive(fac) and not IsDeployed(fac) then Goto(fac, facGeyser, 1) end
+        P.followAt = now + 30
+        local armory = GetHandle("avslf0_armory")
+        if Alive(armory) and now - (s.started or now) < 5 then RemoveObject(armory) end
+    end
+    PilotBranch.Lock(P, now)
+
+    if P.dropPending and Alive(P.cnst) then -- C 292-301: Build, then Dropoff next update
+        Dropoff(P.cnst, P.dropPos, 1)
+        P.dropPending = false
+    end
+
+    PilotBranch.Resend(P, "rec", rec, recGeyser, now) -- C 303-340
+    PilotBranch.Resend(P, "fac", fac, facGeyser, now)
+    -- Armed once the factory was seen alive with the mode on (mid-mission toggle).
+    if Alive(fac) then P.facSeen = true end
+    if P.facSeen and not P.facLost and not Alive(fac) and not s.victory then -- C 342-347
+        P.facLost = true
+        Failure()
+        return
+    end
+    PilotBranch.FollowPlayer(P, P.tank, player, now, 30) -- C 349-375
+
+    if not Alive(rec) then return end
+    local cnst = P.cnst
+    -- C 377-661: one blocking chain; the first unmet item wins the frame.
+    if not Alive(P.scav[1]) or not Alive(P.scav[2]) then -- C 384-409
+        if PilotBranch.Ready(rec) then
+            if GetScrap(1) < 4 then AddScrap(1, 4) end
+            if GetPilot(1) == 0 then AddPilot(1, 1) end
+            if GetScrap(1) >= 4 and GetPilot(1) > 0 then Build(rec, "avscav", 1) end
+        end
+    elseif not Alive(cnst) then -- C 411-432
+        if PilotBranch.Ready(rec) and GetScrap(1) >= 12 and GetPilot(1) > 0 then Build(rec, "avcnst", 1) end
+    elseif not Alive(fac) then
+        -- C 433: no factory ends the chain
+    elseif not (Alive(P.tank[1]) and Alive(P.tank[2]) and Alive(P.tank[3]) and Alive(P.tank[4])) then -- C 434-455
+        if PilotBranch.Ready(fac) and GetScrap(1) >= 12 and GetPilot(1) > 0 then Build(fac, "avtank", 1) end
+    elseif not P.dropPending and P.buildSlot == 0 then -- C 456-661: constructor only has to be idle
+        for i, f in ipairs(PILOT_FACILITIES) do
+            if not Alive(P.rebuilt[i]) then
+                local enough = GetScrap(1) >= f[4]
+                if enough or f[5] then
+                    if enough and not IsBusy(cnst) then
+                        Build(cnst, f[1], 1)
+                        P.buildSlot, P.dropPos, P.dropPending = i, PilotSpot(f[2], f[3]), true
+                    end
+                    break
+                end
+            end
+        end
+    end
+end
+
+local function InitializePilotMode()
+    PlayerPilotMode.Initialize({ scripted = true, update = PilotUpdate,
+        enable = function() PilotBranch.Adopt(PilotState(), PilotAddObject) end,
+        disable = function() PilotBranch.Release(PilotState()) end }, M.playerPilotModeState)
+end
+-- CR pilot mode <<
 function R.Start()
     State()
     LaunchFX.Reset()
@@ -921,11 +1073,12 @@ function R.Start()
     CRCoop.Initialize({getLocalPlayerId=function() return exu.GetMyNetID and exu.GetMyNetID() end,
         leaderTeam=1,humanTeamMin=1,humanTeamMax=4,rallyPoints={[0]="avrecy0_recycler"},
         onOutOfLives=Failure})
+    if CRCoop.IsAuthority() then InitializePilotMode() end
     ConfigureAlliances();ResetPresentation();lastAudio=nil
     if startedWeather then TitanHook("shutdown") end
     startedWeather=false;pda.Initialize();subtit.Initialize()
 end
-function R.AddObject(h) if Valid(h) then TitanHook("object",h) end end
+function R.AddObject(h) if Valid(h) then TitanHook("object",h);PilotAddObject(h) end end
 function R.CreatePlayer(id,name,team) CRCoop.CreatePlayer(id,name,team);ConfigureAlliances() end
 function R.AddPlayer(id,name,team) CRCoop.AddPlayer(id,name,team);ConfigureAlliances() end
 function R.DeletePlayer(id) CRCoop.DeletePlayer(id) end
@@ -960,10 +1113,12 @@ function R.Update(dt)
     TitanHook("update",dt)
     if not CRCoop.IsAuthority() or M.coopResult or M.coopPendingResult or M.lost or M.won then return end
     if not M.start_done then Bootstrap() end
+    PlayerPilotMode.Update()
     UpdateStory()
 end
 function R.Save()
     State();if startedWeather and CRCoop.IsAuthority() then M.titanWeather=TitanHook("save") end
+    M.playerPilotModeState=PlayerPilotMode.Save()
 end
 function R.Load()
     State();if startedWeather then TitanHook("shutdown") end

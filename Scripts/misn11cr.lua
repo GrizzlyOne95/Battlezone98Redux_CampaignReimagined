@@ -62,6 +62,96 @@ end
 -- CR PDA <<
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
+-- CR PDA >>
+-- N64 Pilot Mode branch (Battlezone 64 table 9, byte g_800B93D5), behind the PDA Pilot Mode
+-- toggle; single player only (PlayerPilotMode is off in network games). Port of
+-- Battlezone_Z64Tools redux_lua/n64m11.lua, which follows mission_scripts m09_misn11.c (C line
+-- numbers below). N64 labels map to this BZN by position (Docs/PILOT_MODE_N64_LABELS.md):
+-- 13 = armory (avslf0_armory), 18/19/20 = the three wingman tanks (avltnk0_wingman and two
+-- avtank0_wingman, which share one BZN label, so they are found by ODF), path(9) = "check2".
+-- Adaptations: the N64 reload/repair path commands (the armory "fires" pods) are BuildAt pods on
+-- the player (apammo / aprepa); the Z64 target position is the player's. Not ported (N64-only
+-- text): the pilot-only objective 409 "Protect the three transports." replacing 406. The branch
+-- never touches aiCore.
+local Pilot = { mode = require("PlayerPilotMode"), branch = require("CRPilotBranch") }
+
+function Pilot.State()
+    local P = M.pilot
+    if not P then
+        P = Pilot.branch.NewState()
+        P.escorts, P.armed, P.started = {}, false, false
+        P.reloadLeft, P.repairLeft, P.supplyAt = 0, 0, 0
+        M.pilot = P
+    end
+    return P
+end
+
+-- C 84-100 / 518-598: the three friendly tanks follow the player.
+function Pilot.AddObject(h)
+    local mode, B = Pilot.mode, Pilot.branch
+    if not (mode and B) or not mode.IsEnabled() or GetTeamNum(h) ~= 1 then return end
+    local P = Pilot.State()
+    if not B.Claim(P, h) then return end
+    if (IsOdf(h, "avtank") or IsOdf(h, "avltnk")) and #P.escorts < 3 then
+        P.escorts[#P.escorts + 1] = h
+        local player = GetPlayerHandle()
+        if B.alive(player) then Follow(h, player, 1) end
+    end
+end
+
+-- C 84-177 and 291-294, run by PlayerPilotMode.Update while the toggle is on.
+function Pilot.Update()
+    local B = Pilot.branch
+    local player = GetPlayerHandle()
+    if not B.alive(player) then return end
+    local P = Pilot.State()
+    local now = GetTime()
+
+    if not P.started then -- C 92-100
+        P.started = true
+        for _, h in ipairs(P.escorts) do
+            if B.alive(h) then Follow(h, player, 1) end
+        end
+        P.supplyAt = now
+    end
+    B.Lock(P, now)
+    B.FollowPlayer(P, P.escorts, player, now, 30) -- C 102-125
+
+    if M.check2 and not P.armed then -- C 291-294: the first transport reached path(9)
+        P.armed = true
+        P.reloadLeft, P.repairLeft = 3, 3
+    end
+
+    -- C 127-177: three ammo pods, then three repair pods, one every 3 s.
+    local slf = GetHandle("avslf0_armory")
+    if P.supplyAt < now and B.alive(slf) then
+        local odf = (P.reloadLeft > 0 and "apammo") or (P.repairLeft > 0 and "aprepa") or nil
+        if odf and B.Ready(slf) and GetScrap(1) > 0 then
+            BuildAt(slf, odf, player, 1)
+            if odf == "apammo" then P.reloadLeft = P.reloadLeft - 1 else P.repairLeft = P.repairLeft - 1 end
+            P.supplyAt = now + 3
+        end
+    end
+end
+
+function Pilot.Init()
+    if Pilot.mode and Pilot.branch and not CRCoop.IsNetworkGame() then
+        Pilot.mode.Initialize({ scripted = true, update = Pilot.Update,
+            enable = function() Pilot.branch.Adopt(Pilot.State(), Pilot.AddObject) end,
+            disable = function() Pilot.branch.Release(Pilot.State()) end }, M.playerPilotModeState)
+    end
+end
+
+function Pilot.Tick()
+    if Pilot.mode and Pilot.branch then Pilot.mode.Update() end
+end
+
+function Pilot.Save()
+    if Pilot.mode then M.playerPilotModeState = Pilot.mode.Save() end
+    return M.playerPilotModeState
+end
+-- N64 Pilot Mode branch end
+-- CR PDA <<
 -- The DLL's CCA is team 2 (a guest slot in co-op): every CCA object and spawn is team 5. The mission
 -- has no AIP and no strategic AI: every CCA unit is driven by the script below.
 local LEADER_TEAM, ENEMY_TEAM = 1, 5
@@ -746,6 +836,9 @@ function Start()
     -- The source initializes every member before Setup. Keep unused members
     -- (escape_path, camera_time, recy, cam4, audmsg) for cut-content work.
     M = NewState()
+-- CR PDA >>
+    Pilot.Init()
+-- CR PDA <<
 -- CR co-op layer >>
     InitializeCoopState()
     subtit.Initialize()
@@ -757,6 +850,9 @@ end
 function AddObject(h)
     missionPda.Object(h)
     if not IsValid(h) then return end
+-- CR PDA >>
+    Pilot.AddObject(h)
+-- CR PDA <<
     Environment.OnObjectCreated(h)
     CRIoWeather.OnObjectCreated(h)
 end
@@ -829,6 +925,9 @@ function Update(timestep)
         if IsValid(offlinePlayer) and not CRCoop.IsHumanCraft(offlinePlayer) then RemoveObject(offlinePlayer) end
     end
 -- CR co-op layer <<
+-- CR PDA >>
+    Pilot.Tick()
+-- CR PDA <<
     if not M.start_done then
         --[[
             -paths
@@ -1106,10 +1205,13 @@ function Save()
         M.weatherState = CRIoWeather.Save()
     end
 -- CR Io weather <<
-    return M
+-- CR PDA >>
+    local pilotModeState = Pilot.Save()
+-- CR PDA <<
+    return M, pilotModeState
 end
 
-function Load(state)
+function Load(state, pilotModeData)
 -- CR Io weather >>
     ShutdownIoWeather()
     if Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
@@ -1117,4 +1219,8 @@ function Load(state)
     -- LuaMission restores serialized game handles. Do not call Start / replay
     -- initialization here; the source's native ConvertHandle loop is unnecessary.
     M = state
+-- CR PDA >>
+    M.playerPilotModeState = pilotModeData or M.playerPilotModeState
+    Pilot.Init()
+-- CR PDA <<
 end

@@ -154,6 +154,8 @@ local modules = {
         Quake = function(strength, duration) record("IoQuake", strength, duration) end},
 }
 modules.CRDifficulty = assert(loadfile("Scripts/CRDifficulty.lua"))()
+modules.PlayerPilotMode = {Initialize = function() end, Update = function() end, Save = function() return {} end, IsEnabled = function() return false end}
+modules.CRPilotBranch = assert(loadfile("Scripts/CRPilotBranch.lua"))()
 function require(name) return assert(modules[name], name) end
 local function clear() calls = {} end
 local function near(h, target, distance, point)

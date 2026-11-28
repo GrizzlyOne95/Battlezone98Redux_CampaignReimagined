@@ -53,7 +53,7 @@ every human team is disabled) and the host builds. Respawns rally at the Texas u
 | `AudioMessage`, `ClearObjectives`, `AddObjective`, `SetObjectiveName`, `RemoveObject`, `SucceedMission`, `FailMission` | through the CR presentation adapter |
 | `M.user = GetPlayerHandle()` | kept (it is the host's own handle and nothing reads it) |
 
-Pilot Mode never runs here and aiCore is not loaded: no script manages a human team.
+aiCore is not loaded and no script manages a human team; Pilot Mode, when toggled on in single player, runs only the scripted N64 branch.
 
 ## The CCA strategic AI
 

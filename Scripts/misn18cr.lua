@@ -5,6 +5,12 @@
 -- are preserved in References/Misn18Source/. Everything between `-- CR ... >>` and `<<` is the
 -- Campaign Reimagined co-op/restoration layer (Docs/MISN18_COOP.md); outside it the port is stock-only.
 local M
+-- CR pilot mode >>
+local RequireFix = require("crreqfix")
+RequireFix.Initialize({"campaignReimagined", "3686673790"})
+local PlayerPilotMode = require("PlayerPilotMode")
+local PilotBranch = require("CRPilotBranch")
+-- CR pilot mode <<
 
 local function NewState()
     local state = {}
@@ -185,11 +191,155 @@ local Damage = campaignRuntime and campaignRuntime.Damage or Damage
 if campaignRuntime then Distance = campaignRuntime.WrapDistance(Distance) end
 -- CR co-op runtime <<
 
+-- CR pilot mode >>
+-- N64 Pilot Mode branch (Battlezone 64 table 16, byte g_800B93D5), behind the
+-- PDA Pilot Mode toggle; single player only (PlayerPilotMode is off in MP).
+-- Port of Battlezone_Z64Tools redux_lua/n64m18.lua, which follows
+-- mission_scripts m16_misn18.c (C line numbers are the sub_801FD51C /
+-- Execute offsets in that file). N64 labels map to this BZN by position
+-- (Docs/PILOT_MODE_N64_LABELS.md, "m16_misn18"): label 4 = recycler
+-- (M.avrec), 6/7 = avtank0/1_wingman, 12 = transport (M.transport), 13-16 =
+-- the four thrusters (M.thrusterone..four). N64 paths 44-47 have no CR path
+-- (47 is 20 m off opencam1), so the four free avturr use their positions.
+-- Not ported: the armory (label 18 avslf) that launches repair/ammo pods
+-- (C 323-396): this BZN has no armory, only a sfield at that spot; the
+-- objective 436 text swap; the Pilot end-state overrides (C 1201-1210).
+local PILOT_TURRET_SPOTS = { -- paths 44-47 (z already includes the +96000)
+    { 1824, 98036 }, { 1916, 98010 }, { 1931, 98060 }, { 2019, 98044 },
+}
+
+local function PilotAuthority()
+    return not campaignRuntime or campaignRuntime.Coop.IsAuthority()
+end
+
+local function PilotSpot(x, z)
+    return SetVector(x, GetTerrainHeightAndNormal(SetVector(x, 0, z)), z)
+end
+
+local function PilotState()
+    local P = M.pilot
+    if not P then
+        P = PilotBranch.NewState()
+        P.fighters = {}
+        P.fighterCount = 0
+        P.scavBuilt = false
+        P.turretsSpawned = false
+        M.pilot = P
+    end
+    return P
+end
+
+local function PilotThrusters()
+    return { M.thrusterone, M.thrustertwo, M.thrusterthree, M.thrusterfour }
+end
+
+local function PilotFirstThruster()
+    for _, t in ipairs(PilotThrusters()) do
+        if PilotBranch.alive(t) then return t end
+    end
+end
+
+-- C 195-258 (sub_801FD51C): a new avfigh takes a slot and gets its order.
+local function PilotAddObject(h)
+    if not IsValid(h) or not PlayerPilotMode.IsEnabled() or GetTeamNum(h) ~= 1 then return end
+    if not IsOdf(h, "avfigh") then return end
+    local P = PilotState()
+    if not PilotBranch.Claim(P, h) then return end
+    P.fighterCount = P.fighterCount + 1
+    for i = 1, 8 do
+        if not PilotBranch.alive(P.fighters[i]) then P.fighters[i] = h; break end
+    end
+    local player = GetPlayerHandle()
+    if P.near then
+        local target = PilotFirstThruster()
+        if target then Attack(h, target, 1) end
+    elseif PilotBranch.alive(player) then
+        Follow(h, player, 1)
+    end
+end
+
+-- C 718-1080 (Execute), run by PlayerPilotMode.Update while the toggle is on.
+local function PilotUpdate()
+    local player = GetPlayerHandle()
+    local alive = PilotBranch.alive
+    if not alive(player) or not M.missionstart then return end
+    local P = PilotState()
+    local now = GetTime()
+    local tanks = { GetHandle("avtank0_wingman"), GetHandle("avtank1_wingman") }
+
+    if not P.started then -- C 311-322
+        P.started = true
+        for _, t in ipairs(tanks) do
+            if alive(t) then Follow(t, player, 1) end
+        end
+        P.fighterAt = now + 10
+        -- One-shot per mission: the saved flag keeps a toggle or a save/load
+        -- from placing the four free turrets twice.
+        if not P.turretsSpawned then
+            P.turretsSpawned = true
+            for _, spot in ipairs(PILOT_TURRET_SPOTS) do
+                BuildObject("avturr", 1, PilotSpot(spot[1], spot[2]))
+            end
+        end
+    end
+    PilotBranch.Lock(P, now)
+
+    -- C 398-440: near the transport (150 m) the fighters go for the thrusters.
+    P.near = alive(M.transport) and Distance(player, M.transport) < 150.0
+
+    -- C 441-620: every 10 s the fighters attack the first standing thruster
+    -- (near the transport) or follow the player; the tanks always follow.
+    if P.fighterAt and P.fighterAt < now then
+        P.fighterAt = now + 10
+        local target = P.near and PilotFirstThruster() or nil
+        for _, f in ipairs(P.fighters) do
+            if alive(f) then
+                if target then Attack(f, target, 1)
+                elseif not P.near then Follow(f, player, 1) end
+            end
+        end
+        for _, t in ipairs(tanks) do
+            if alive(t) then Follow(t, player, 1) end
+        end
+    end
+
+    -- C 621-690: one scavenger, then rebuild a fighter whenever a slot is empty.
+    local rec = M.avrec
+    if alive(rec) and PilotBranch.Ready(rec) then
+        if not P.scavBuilt then
+            if GetScrap(1) < 4 then AddScrap(1, 4) end
+            if GetPilot(1) == 0 then AddPilot(1, 1) end
+            if GetScrap(1) >= 4 and GetPilot(1) > 0 then
+                Build(rec, "avscav", 1)
+                P.scavBuilt = true
+            end
+        else
+            local needFighter = false
+            for i = 1, 8 do
+                if not alive(P.fighters[i]) then needFighter = true; break end
+            end
+            if needFighter and GetScrap(1) >= 6 and GetPilot(1) > 0 then
+                Build(rec, "avfigh", 1)
+            end
+        end
+    end
+end
+
+local function InitializePilotMode()
+    PlayerPilotMode.Initialize({ scripted = true, update = PilotUpdate,
+        enable = function() PilotBranch.Adopt(PilotState(), PilotAddObject) end,
+        disable = function() PilotBranch.Release(PilotState()) end }, M.playerPilotModeState)
+end
+-- CR pilot mode <<
+
 function Start()
     M = NewState()
 -- CR co-op callback >>
     if campaignRuntime then campaignRuntime.Start() end
 -- CR co-op callback <<
+-- CR pilot mode >>
+    if PilotAuthority() then InitializePilotMode() end
+-- CR pilot mode <<
     --[==[/*
 	Here's where you
 	set the values
@@ -328,6 +478,9 @@ function Update(dt)
 -- CR co-op callback >>
     if campaignRuntime and not campaignRuntime.Update(dt) then return end
 -- CR co-op callback <<
+-- CR pilot mode >>
+    PlayerPilotMode.Update()
+-- CR pilot mode <<
     --[==[/*
 		Here is where you 
 		put what happens 
@@ -797,18 +950,28 @@ function Save()
 -- CR co-op callback >>
     if campaignRuntime then campaignRuntime.Save() end
 -- CR co-op callback <<
-    return M
+-- CR pilot mode >>
+    M.playerPilotModeState = PlayerPilotMode.Save()
+-- CR pilot mode <<
+    return M, M.playerPilotModeState
 end
 
-function Load(state)
+function Load(state, pilotModeData)
     M = state
+-- CR pilot mode >>
+    M.playerPilotModeState = pilotModeData or M.playerPilotModeState
+    if PilotAuthority() then InitializePilotMode() end
+-- CR pilot mode <<
 -- CR co-op callback >>
     if campaignRuntime then campaignRuntime.Load() end
 -- CR co-op callback <<
 end
 
 -- CR co-op callbacks >>
-function AddObject(h) if campaignRuntime then return campaignRuntime.AddObject(h) end end
+function AddObject(h)
+    PilotAddObject(h)
+    if campaignRuntime then return campaignRuntime.AddObject(h) end
+end
 function CreatePlayer(id,name,team) if campaignRuntime then return campaignRuntime.CreatePlayer(id,name,team) end end
 function AddPlayer(id,name,team) if campaignRuntime then return campaignRuntime.AddPlayer(id,name,team) end end
 function DeletePlayer(id) if campaignRuntime then return campaignRuntime.DeletePlayer(id) end end

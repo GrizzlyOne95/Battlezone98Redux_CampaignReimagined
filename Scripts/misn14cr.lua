@@ -88,6 +88,171 @@ end
 -- CR PDA <<
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
+-- CR PDA >>
+-- N64 Pilot Mode branch (Battlezone 64 table 12, byte g_800B93D5), behind the PDA Pilot Mode
+-- toggle; single player only (PlayerPilotMode is off in network games). Port of
+-- Battlezone_Z64Tools redux_lua/n64m14.lua, which follows mission_scripts m12_misn14.c (C line
+-- numbers below). N64 labels map to this BZN by position (Docs/PILOT_MODE_N64_LABELS.md):
+-- 12 = avrecy-1_recycler (M.recy); n64p087 (10 scrap factory) is avmuf. The branch never touches aiCore.
+-- Adaptations: Z64 gates AddObject on the toggle alone; CR also requires team 1. Orders use priority 1
+-- (the Lock order). The recycler and factory geysers are not named by the label map, so the recycler
+-- (when it starts undeployed) takes the nearest base geyser and the factory the nearest one the recycler
+-- is not sitting on (UNVERIFIED choice); the stall counters (C 279-315) become CRPilotBranch.Resend.
+-- The rescue-beacon follow (C 770-772, 906-908, 1026-1028) fires when a beacon's rescue_finish timer
+-- ends (edge-detected from M.rescueN / M.rescue_finishN).
+-- Not ported (N64-only text/voice/engine): objective 421->423 and the 424/425 swaps, the factory-lost
+-- and APC-lost fails (TXT 323/324, C 343-359, no CR text), SetAIP(21) and Obj_ClearPathCommand.
+local Pilot = { mode = require("PlayerPilotMode"), branch = require("CRPilotBranch"),
+    turretSpots = { { 2489, 99475 }, { 2686, 99509 } },
+    geysers = { "eggeizr116_geyser", "eggeizr117_geyser", "eggeizr118_geyser", "eggeizr119_geyser",
+        "eggeizr120_geyser", "eggeizr121_geyser", "eggeizr122_geyser", "eggeizr123_geyser",
+        "eggeizr124_geyser", "eggeizr125_geyser", "eggeizr165_geyser", "eggeizr166_geyser",
+        "eggeizr1-1_geyser" } }
+
+function Pilot.State()
+    local P = M.pilot
+    if not P then
+        P = Pilot.branch.NewState()
+        P.turrets, P.turretsBuilt, P.factoryQueued, P.started = 0, 0, false, false
+        P.t, P.scav, P.rescuing = {}, {}, {}
+        M.pilot = P
+    end
+    return P
+end
+
+-- Fill the first free slot of a unit list (the N64 h_scav1/2, h_tank1/2 handles).
+local function pilotSlot(list, h)
+    for i = 1, 2 do if list[i] == h then return false end end
+    for i = 1, 2 do
+        if not Pilot.branch.alive(list[i]) then list[i] = h; return true end
+    end
+    return false
+end
+
+-- C 126-210 (sub_801FD430): player-team units built in Pilot Mode get their N64 orders.
+function Pilot.AddObject(h)
+    local mode, B = Pilot.mode, Pilot.branch
+    if not (mode and B) or not mode.IsEnabled() or not IsValid(h) or GetTeamNum(h) ~= 1 then return end
+    local P = Pilot.State()
+    if not B.Claim(P, h) then return end
+    local player = GetPlayerHandle()
+    if IsOdf(h, "avscav") then -- C 137-144
+        pilotSlot(P.scav, h)
+    elseif IsOdf(h, "avapc") then -- C 146-159
+        if not B.alive(P.apc) then
+            P.apc = h
+            if B.alive(player) then Follow(h, player, 1) end
+        end
+    elseif IsOdf(h, "avmuf") then -- C 160-169: n64p087
+        P.factory, P.factoryQueued = h, true
+    elseif IsOdf(h, "avtank") then -- C 171-181
+        if pilotSlot(P.t, h) and B.alive(player) then Follow(h, player, 1) end
+    elseif IsOdf(h, "avturr") then -- C 182-195
+        P.turrets = P.turrets + 1
+        P.turretsBuilt = math.max(P.turretsBuilt, P.turrets)
+        local spot = Pilot.turretSpots[P.turrets == 1 and 1 or 2]
+        local x, z = spot[1], spot[2]
+        Goto(h, SetVector(x, GetTerrainHeightAndNormal(SetVector(x, 0, z)), z), 1)
+    else -- C 196-207
+        B.NoteSupply(P, h, "naprepa", "napammo")
+    end
+end
+
+-- The nearest base geyser to the recycler, skipping one it sits on when `free` is set.
+function Pilot.Geyser(free)
+    local rec, best, bestDistance = M.recy, nil, nil
+    if not Pilot.branch.alive(rec) then return nil end
+    for _, label in ipairs(Pilot.geysers) do
+        local geyser = GetHandle(label)
+        if geyser ~= nil then
+            local d = GetDistance(rec, geyser)
+            if (not free or d > 20) and (bestDistance == nil or d < bestDistance) then best, bestDistance = geyser, d end
+        end
+    end
+    return best
+end
+
+-- C 277-537, run by PlayerPilotMode.Update while the toggle is on.
+function Pilot.Update()
+    local B = Pilot.branch
+    local player = GetPlayerHandle()
+    if not B.alive(player) then return end
+    local P = Pilot.State()
+    local now = GetTime()
+    local rec, factory = M.recy, P.factory
+    local recGeyser, factoryGeyser = Pilot.Geyser(false), Pilot.Geyser(true)
+
+    if not P.started then -- C 259-263: the recycler goes to its geyser, the regroup timer starts
+        P.started = true
+        if B.alive(rec) and not IsDeployed(rec) and recGeyser ~= nil then Goto(rec, recGeyser, 1) end
+        P.followAt = now + 30
+    end
+    B.Lock(P, now)
+    B.Resend(P, "rec", rec, recGeyser, now) -- C 279-297
+    B.Resend(P, "factory", factory, factoryGeyser, now) -- C 299-315
+    B.WatchSupply(P, player) -- C 317-341
+
+    -- C 361-384, 770-772, 906-908, 1026-1028: the APC and tanks follow the player every 30 s, on a
+    -- craft change, and the APC again at each rescue-beacon event.
+    local units = {}
+    for _, h in ipairs({ P.apc, P.t[1], P.t[2] }) do
+        if B.alive(h) then units[#units + 1] = h end
+    end
+    B.FollowPlayer(P, units, player, now, 30)
+    for i = 1, 3 do
+        local finishAt = M["rescue_finish" .. i]
+        if M["rescue" .. i] and finishAt ~= nil and finishAt < NEVER then
+            P.rescuing[i] = true
+        elseif P.rescuing[i] then
+            P.rescuing[i] = false
+            if B.alive(P.apc) then Follow(P.apc, player, 1) end
+        end
+    end
+
+    if not B.alive(rec) then return end
+    -- C 386-536: one blocking chain; the first unmet item wins the frame.
+    if not B.alive(P.scav[1]) or not B.alive(P.scav[2]) then -- C 386-415: scavengers up to two
+        if B.Ready(rec) then
+            if GetScrap(1) < 4 then AddScrap(1, 4) end
+            if GetPilot(1) == 0 then AddPilot(1, 1) end
+            if GetScrap(1) >= 4 and GetPilot(1) > 0 then Build(rec, "avscav", 1) end
+        end
+    elseif B.BuildSupply(P, rec, "naprepa", "napammo") then -- C 416-449: pods hold the queue
+    elseif not P.factoryQueued then -- C 450-465
+        if B.Ready(rec) and GetScrap(1) >= 10 then
+            Build(rec, "avmuf", 1)
+            P.factoryQueued = true
+        end
+    elseif P.turretsBuilt < 2 then -- C 466-485
+        if B.Ready(rec) and GetScrap(1) >= 6 and GetPilot(1) > 0 then
+            Build(rec, "avturr", 1)
+            P.turretsBuilt = P.turretsBuilt + 1
+        end
+    elseif not B.alive(P.apc) and B.alive(factory) then -- C 486-509
+        if B.Ready(factory) and GetScrap(1) >= 6 and GetPilot(1) > 0 then Build(factory, "avapc", 1) end
+    elseif (not B.alive(P.t[1]) or not B.alive(P.t[2])) and B.alive(factory) then -- C 510-536
+        if B.Ready(factory) and GetScrap(1) >= 8 and GetPilot(1) > 0 then Build(factory, "avtank", 1) end
+    end
+end
+
+function Pilot.Init()
+    if Pilot.mode and Pilot.branch and not CRCoop.IsNetworkGame() then
+        Pilot.mode.Initialize({ scripted = true, update = Pilot.Update,
+            enable = function() Pilot.branch.Adopt(Pilot.State(), Pilot.AddObject) end,
+            disable = function() Pilot.branch.Release(Pilot.State()) end }, M.pilotModeSaved)
+    end
+end
+
+function Pilot.Tick()
+    if Pilot.mode and Pilot.branch then Pilot.mode.Update() end
+end
+
+function Pilot.Save()
+    if Pilot.mode then M.pilotModeSaved = Pilot.mode.Save() end
+    return M.pilotModeSaved
+end
+-- N64 Pilot Mode branch end
+-- CR PDA <<
 -- The dropship opening (CRDropIn, "CR dropship" below). The ops are listed here, not read from the module,
 -- so a guest's stream never stalls on one when the module failed to load (it acknowledges and drops them).
 local CRDrop = { ops = { DropShip = true, DropCrew = true, DropGo = true } }
@@ -1326,6 +1491,9 @@ function Start()
 -- CR co-op layer >>
     -- (The DLL port called SetAIControl here; it is a chunk-root call now, see CR team map.)
     InitializeCoop()
+-- CR PDA >>
+    Pilot.Init()
+-- CR PDA <<
     CRDrop.Configure()
     if CRDrop.module then CRDrop.module.Reset() end
     subtit.Initialize()
@@ -1336,6 +1504,7 @@ end
 function AddObject(h)
 -- CR PDA >>
     missionPda.Object(h)
+    Pilot.AddObject(h)
 -- CR PDA <<
 -- CR Titan weather hook >>
     if IsValid(h) then TitanHook("object", h) end
@@ -1413,6 +1582,9 @@ function Update(dt)
     M.cr14dropHold = CRDrop.module ~= nil and CRDrop.Update()
     if M.cr14dropHold then return end
 -- CR co-op layer <<
+-- CR PDA >>
+    Pilot.Tick()
+-- CR PDA <<
     -- Original disabled native pointer declaration:
     --GameObject *fcycler,*ecycler;
     M.player = GetPlayerHandle()
@@ -1866,11 +2038,18 @@ function Save()
 -- CR Titan weather hook <<
     -- BZR serializes the state table and supported game values. Native b/f/h/i
     -- arrays and object-handle conversion are engine-managed in LuaMission.
-    return M
+-- CR PDA >>
+    local pilotModeState = Pilot.Save()
+-- CR PDA <<
+    return M, pilotModeState
 end
 
-function Load(state)
+function Load(state, pilotModeData)
     M = state
+-- CR PDA >>
+    M.pilotModeSaved = pilotModeData or M.pilotModeSaved
+    Pilot.Init()
+-- CR PDA <<
 -- CR dropship >>
     -- A load drops every camera: never pop one that is gone. A drop in flight resolves to its end state.
     cameraFrame, localCameraActive, cameraSkipped = nil, false, false

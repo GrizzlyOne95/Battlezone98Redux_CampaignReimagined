@@ -337,6 +337,9 @@ function F.makePeer(id, team, network, options)
             OnObjectCreated = noop, InvalidateRenderer = noop,
         },
         crreqfix = {Initialize = noop},
+        PlayerPilotMode = {Initialize = noop, Update = noop, Save = function() return {} end,
+            IsEnabled = function() return false end},
+        CRPilotBranch = assert(loadfile("Scripts/CRPilotBranch.lua"))(),
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end,
             -- The dropship opening locks its own player through the EXU control mask.

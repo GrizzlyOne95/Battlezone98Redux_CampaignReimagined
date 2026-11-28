@@ -117,8 +117,13 @@ assert all(re.search(r'SetAIP\("misn13[ac]?\.aip", ENEMY_TEAM\)', call) for call
 assert len(re.findall(r'\bSetAIP\(', lua)) == 3 and 'GetAIP(' not in lua
 assert 'CRCoop.ApplyCoopAlliances(ENEMY_TEAM)' in lua
 assert 'SetScrap(1, 40)' in lua and 'SetPilot(1, 10)' in lua and 'SetPilot(ENEMY_TEAM, 40)' in lua
-# Pilot Mode / aiCore never manage human teams here.
-assert 'PlayerPilotMode' not in lua and 'aiCore' not in lua, 'neither Pilot Mode nor aiCore belongs in misn13'
+# Pilot Mode / aiCore never manage human teams here: aiCore is not loaded, and the only Pilot Mode allowed is the
+# scripted N64 adapter (PDA toggle, single player).
+assert 'aiCore' not in lua, 'aiCore never manages a human team'
+if 'PlayerPilotMode' in lua:
+    inits = re.findall(r'(?:PlayerPilotMode|\bmode)\.Initialize\(', lua)
+    adapters = re.findall(r'(?:PlayerPilotMode|\bmode)\.Initialize\(\{\s*scripted = true\b', lua)
+    assert inits and len(adapters) == len(inits), 'only the scripted Pilot Mode adapter may run here; aiCore never manages a human team'
 assert not re.search(r'\bFormation\(', lua), 'stock Lua Formation() is broken; use SetCommand FORMATION'
 assert 'exu.DisableStartingRecycler()' in lua and 'rallyPoints = { [0] = "avrecycle" }' in lua
 assert 'respawn.SetRallyPoints({})' in lua, 'the rally point is dropped when the Recycler dies'
