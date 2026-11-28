@@ -1097,8 +1097,14 @@ local function UpdateRecyclerEvacuation()
 
     local command = GetCurrentCommand(M.avrecycler)
     if IsDeployed(M.avrecycler) then
-        if command ~= AiCommand.UNDEPLOY then
-            SetCommand(M.avrecycler, AiCommand.UNDEPLOY, 1)
+        -- There is no engine UNDEPLOY command (aiCore's AiCommand.UNDEPLOY = 30
+        -- is a placeholder the engine ignores, so the Recycler sat deployed).
+        -- Deploy(h) sets the craft's deploy control, which on a deployed craft
+        -- is the pack-up key (1.5 Craft::Packup/Deploy share control.deploy).
+        -- It toggles, so retry only after the pack animation had time to run.
+        if now >= (M.recycler_undeploy_retry or 0) then
+            Deploy(M.avrecycler)
+            M.recycler_undeploy_retry = now + 12.0
         end
         -- Restart the wait on every deployed poll, so it always runs from the
         -- last time the Recycler was seen deployed, however long packing takes.
@@ -2069,6 +2075,7 @@ if ((!help_spawn) && (support_time < Get_Time()))
         M.recycler_follow_launch_issued = false
         M.recycler_next_order_time = 0.0
         M.recycler_pack_wait_until = 0.0
+        M.recycler_undeploy_retry = 0.0
 
         UpdateRecyclerEvacuation()
 
@@ -2255,6 +2262,7 @@ if ((!help_spawn) && (support_time < Get_Time()))
         M.recycler_follow_launch_issued = false
         M.recycler_next_order_time = 0.0
         M.recycler_pack_wait_until = 0.0
+        M.recycler_undeploy_retry = 0.0
 
         UpdateRecyclerEvacuation()
 

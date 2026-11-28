@@ -84,7 +84,6 @@ The CSV contains **778 campaign/training entries**, **51** of which have an expl
 | **High** | `misn1817`, `misn1818`; Mission 18 | Fury attack on Texas and dedicated Texas-loss line. **[SOURCE]** Actual loss branch still plays `misn1704.wav`, not `misn1818.wav` (`Scripts/misn18.lua` and archived C++). | Check stock 1.5 behavior; consider replacing the cross-mission audio in a clearly marked CR-only enhancement. |
 | **Medium** | `misn0825`; Mission 8 | Collins responds to destruction of **Colorado** and orders continuing against the CCA base. **[CR]** Source-parity test explicitly requires this line remain unused. | Reconsider intentionally with owner; confirm no overlapping existing destruction dialogue or gameplay fallout. |
 | **Medium** | `misns120` / `misns121`; Soviet Golem Ambush | Alternative American reinforcement approach warnings. **[SOURCE]** The original C++ branch remains inside disabled comments in `Scripts/misns1.lua`, with concrete approach-distance tests. | Validate paths/labels on original BZN, then consider a faithful optional reactivation. |
-| **Medium** | `misn0435`; Mission 4 | Alternative Mars/bio-metal retrospective not referenced by current Mission 4 script or campaign INI. | Compare with `misn0426` (already restored) before choosing; likely alternate, not additive, narration. |
 | **Low / defer** | `misn1225`; Mission 12 | Soviet scrap-silo sabotage line. `Docs/MISN12_COOP.md` deliberately leaves it out because it describes an earlier map arrangement. | Do not enable without map/layout evidence. |
 | **Low / defer** | `misn1803` (`misn1517` restored after the Tartarus warning [owner decision 2026-11-11]) | Redundant return line for 18 (`1804` is active). | No need to force every unused voice into the final design. |
 | **Research** | `misns211` / `minss213`; Soviet Precious Cargo | Alternate American-on-hill warning and Black Dog retreat line; filename `minss213` is distinct from the active `misns213`. | Audit Soviet Mission 2 source and compare alternate takes, not assume new phases. |
@@ -92,7 +91,7 @@ The CSV contains **778 campaign/training entries**, **51** of which have an expl
 
 ### Already restored or explicitly accounted for in CR: don't duplicate
 
-- **Mission 4:** `misn0426.wav` is already the retrospective in `Config/crcampgn.ini`; `misn0407.wav` (wingman sees relic) and `misn0428.wav` (relic destruction rebuke) have CR logic in `Scripts/misn04.lua`.
+- **Mission 4:** `misn0435.wav` is the loading-screen retrospective again, as in stock (`Config/crcampgn.ini`); the unused `misn0426.wav` (the relic "spewing out" Latin, the Olympians of Icarus) narrates the end-of-mission orbit of the Face in `Scripts/misn04cr.lua`; `misn0407.wav` (wingman sees relic) and `misn0428.wav` (relic destruction rebuke) have CR logic in `Scripts/misn04.lua`.
 - **Mission 5:** `misn0515.wav` already identifies **Lemnos** as the original bio-metal production facility in `Scripts/misn05.lua`.
 - **Mission 6:** `misn0615-0627.wav` and other naval/blockade radio already have restored cut-VO scheduling in `Scripts/misn06.lua`. The intended Lincoln/Roosevelt naval sequence is already tracked; see `CHANGELOG.md`.
 - **Mission 7:** `misn0703/0704` test range and minefield and `misn0717` alternative overlook take are implemented in `Scripts/misn07.lua`; see `Docs/MISN07_COOP.md`.

@@ -276,7 +276,17 @@ do
         end
         prev = p
     end
-    check(Presets.Presets.MarsDustStorm ~= nil and Presets.Presets.Misn18Storm9 == nil, "shared presets untouched, eight storm rungs")
+    check(Presets.Presets.MarsDustStorm ~= nil and Presets.Presets.Misn18Storm10 == nil, "shared presets untouched, eight storm rungs plus the extraction preset")
+    local final, cin = Presets.Presets.Misn18Storm8, Presets.Presets.Misn18Storm9
+    check(cin ~= nil and cin.name == "Misn18Storm9", "the extraction cinematic has its own preset")
+    if cin then
+        check(cin.fog.fogStart > final.fog.fogStart and cin.fog.fogEnd > final.fog.fogEnd and cin.fog.fogEnd <= 250,
+            "extraction fog opens out to the 250 m horizon so the shots show the ships")
+        check(cin.precipitation[1].emitters[0].rate < final.precipitation[1].emitters[0].rate * 0.5, "extraction dust is thinned")
+        check(final.precipitation[1].emitters[0].rate > cin.precipitation[1].emitters[0].rate and final.precipitation[1].emitters[0] ~= cin.precipitation[1].emitters[0],
+            "thinning copies the emitter instead of editing the final preset")
+        check(cin.windSpeed == final.windSpeed and cin.lightning == nil, "the extraction keeps the final gale and leader-only bolts")
+    end
 end
 do
     local prevLevel = -1
