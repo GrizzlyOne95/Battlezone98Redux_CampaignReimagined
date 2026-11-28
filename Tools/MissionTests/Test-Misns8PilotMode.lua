@@ -141,13 +141,14 @@ objs.b2.alive = false; scrap = 5
 local nb = #built; step(1)
 check(#built == nb, "unaffordable power plant blocks the queue")
 
--- Factory sav: base complete -> one svsav, once.
+-- Factory sav: base complete -> one savtnk (the savmf's build item; CR adaptation), once.
 objs.b2.alive = true; scrap = 100
 step(1)
-check(builds("svsav@" .. fac) == 1, "factory builds one svsav once the base is complete")
+check(builds("savtnk@" .. fac) == 1 and builds("svsav@" .. fac) == 0, "factory (savmf) builds one savtnk once the base is complete")
 objs[fac].busy = false
-spawn("sav", "svsav"); step(1)
-check(builds("svsav@" .. fac) == 1, "no second factory svsav while one stands")
+spawn("sav", "savtnk"); step(1)
+check(builds("savtnk@" .. fac) == 1, "no second factory savtnk while one stands")
+check(env.M.pilot.sav == "sav", "the savtnk fills the pilot sav slot")
 
 -- Fury event: one svsav built at last_geyser while the factory stands, once.
 check(builds("svsav!") == 0, "no event sav before the Fury event")

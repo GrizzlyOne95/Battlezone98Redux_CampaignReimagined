@@ -24,7 +24,7 @@ env.require = function(name)
                  Initialize = function(adapter, state) env.adapter, env.initState = adapter, state end,
                  Update = function() env.ticked = true end, Save = function() return { saved = true } end }
     elseif name == "CRPilotBranch" then
-        local B = assert(loadfile("Scripts/CRPilotBranch.lua"))()
+        local B = setfenv(assert(loadfile("Scripts/CRPilotBranch.lua")), env)()
         for _, f in pairs(B) do if type(f) == "function" then setfenv(f, env) end end
         return B
     end
@@ -58,6 +58,19 @@ env.SetCommand = function() end
 env.SetVector = function(x, y, z) return { x = x, y = y, z = z } end
 env.GetTerrainHeightAndNormal = function() return 20 end
 env.SetObjectiveOn = function(h) orders[#orders + 1] = { "objective", h } end
+-- Spot orders (PilotBranch.KeepSpots/KeepGoto) measure the distance to a vector: from the object's x/z when it has them, else far away.
+do
+    local baseDistance = env.GetDistance
+    env.GetDistance = function(a, b)
+        if type(b) == "table" then
+            local o = objs[a]
+            if o and o.x and o.z then return math.sqrt((o.x - b.x) ^ 2 + (o.z - b.z) ^ 2) end
+            return 1e9
+        end
+        if baseDistance then return baseDistance(a, b) end
+        return 1e9
+    end
+end
 env.Goto = function(h, t) orders[#orders + 1] = { "go_to", h, t }; objs[h].cmd = 3 end
 env.Follow = function(h, t) orders[#orders + 1] = { "follow", h, t } end
 env.Build = function(h, odf) built[#built + 1] = { odf, h }; objs[h].busy = true end

@@ -26,7 +26,7 @@ env.require = function(name)
                  Initialize = function(adapter, state) env.adapter, env.initState = adapter, state end,
                  Update = function() env.ticked = true end, Save = function() return { saved = true } end }
     elseif name == "CRPilotBranch" then
-        local B = assert(loadfile("Scripts/CRPilotBranch.lua"))()
+        local B = setfenv(assert(loadfile("Scripts/CRPilotBranch.lua")), env)()
         for _, f in pairs(B) do if type(f) == "function" then setfenv(f, env) end end
         return B
     end

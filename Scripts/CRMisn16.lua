@@ -974,7 +974,7 @@ local function PilotAddObject(h)
             if not Alive(P.tank[i]) then P.tank[i] = h; break end
         end
         local player = GetPlayerHandle()
-        if Alive(player) then Follow(h, player, 1) end
+        if Alive(player) then Follow(h, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
     else
         for odf, slots in pairs(PILOT_SLOTS) do
             if IsOdfBase(h, odf) then -- C 146-192
@@ -1005,8 +1005,9 @@ local function PilotUpdate()
         P.cnst = Alive(P.cnst) and P.cnst or GetHandle("avcnst0_constructionrig")
         local cam = GetHandle("apcamr11_camerapod")
         if Alive(cam) then SetUserTarget(cam) end
-        if Alive(rec) and not IsDeployed(rec) then Goto(rec, recGeyser, 1) end
-        if Alive(fac) and not IsDeployed(fac) then Goto(fac, facGeyser, 1) end
+        -- CR adaptation: skip the order when the geyser handle is nil (PilotBranch.Resend re-sends it later).
+        if recGeyser ~= nil and Alive(rec) and not IsDeployed(rec) then Goto(rec, recGeyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
+        if facGeyser ~= nil and Alive(fac) and not IsDeployed(fac) then Goto(fac, facGeyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
         P.followAt = now + 30
         local armory = GetHandle("avslf0_armory")
         if Alive(armory) and now - (s.started or now) < 5 then RemoveObject(armory) end
@@ -1014,7 +1015,7 @@ local function PilotUpdate()
     PilotBranch.Lock(P, now)
 
     if P.dropPending and Alive(P.cnst) then -- C 292-301: Build, then Dropoff next update
-        Dropoff(P.cnst, P.dropPos, 1)
+        Dropoff(P.cnst, P.dropPos, 1) -- pilot-order: once, base-building extra, not win-critical (judged, per-mission check pending)
         P.dropPending = false
     end
 

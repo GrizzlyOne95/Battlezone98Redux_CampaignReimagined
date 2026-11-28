@@ -199,11 +199,10 @@ function Pilot.AddObject(h)
     elseif IsOdf(h, "avmuf") then -- C 255-259: n64p085
         P.factory, P.factoryBuilt = h, true
     elseif IsOdf(h, "avturr") then -- C 261-273: path(3)
-        Goto(h, "main_return_path", 1)
+        Goto(h, "main_return_path", 1) -- pilot-order: once, defensive turret spot is not win-critical
     elseif IsOdf(h, "avhaul") then -- C 275-283: the tug follows the player
         P.tug = h
-        local player = GetPlayerHandle()
-        if B.alive(player) then Follow(h, player, 1) end
+        -- CR adaptation: the first Follow(player) (C 275-283) is sent by the tug block in Pilot.Update, which re-sends it.
         SetObjectiveOn(h)
     end
 end
@@ -242,17 +241,26 @@ function Pilot.Update()
     end
 
     -- C 505-528: the tug picks the relic up within 100 m, then follows the player home.
+    -- CR adaptation: the N64 sends the tug's Follow and Pickup orders once; they are re-sent every 10 s
+    -- (B.Keep) while the tug is not already obeying them, so a dropped order cannot stall the relic run.
     if B.alive(tug) and M.sav_free then
-        if B.alive(M.sav) and GetDistance(tug, M.sav) < 100 and not P.pickedUp then
-            Pickup(tug, M.sav, 1)
+        if B.alive(M.sav) and GetDistance(tug, M.sav) < 100 and GetTug(M.sav) ~= tug then
+            B.Keep(P, "pickup", tug, now, 10, function(u) return GetCurrentCommand(u) ~= AiCommand.PICKUP end,
+                function(u) Pickup(u, M.sav, 1) end)
             P.pickedUp = true
         end
     else
         P.pickedUp = false
     end
-    if B.alive(tug) and M.sav_secure and not P.followPlayer then
+    if B.alive(tug) and not M.sav_secure and not (B.alive(M.sav) and GetTug(M.sav) == tug) then
+        B.Keep(P, "follow", tug, now, 10, function(u)
+            return GetCurrentCommand(u) ~= AiCommand.FOLLOW and GetCurrentCommand(u) ~= AiCommand.PICKUP
+        end, function(u) Follow(u, player, 1) end)
+    end
+    if B.alive(tug) and M.sav_secure then
         P.followPlayer = true
-        Follow(tug, player, 1)
+        B.Keep(P, "home", tug, now, 10, function(u) return GetCurrentCommand(u) ~= AiCommand.FOLLOW end,
+            function(u) Follow(u, player, 1) end)
     end
 
     if not B.alive(rec) then return end

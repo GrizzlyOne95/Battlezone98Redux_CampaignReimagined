@@ -409,7 +409,7 @@ local function PilotUpdate()
         if beacon[7] then SetUserTarget(beacon[7]) end
         for _, pair in ipairs({ { M.e2a, M.t1 }, { M.lu, M.t1 }, { M.e1b, M.t2 }, { M.e1a, M.t2 },
                                 { M.e3b, M.t3 }, { M.e2b, M.t3 }, { M.e3a, M.t3 } }) do
-            if B.alive(pair[1]) and B.alive(pair[2]) then Follow(pair[1], pair[2], 1) end
+            if B.alive(pair[1]) and B.alive(pair[2]) then Follow(pair[1], pair[2], 1) end -- pilot-order: once, escort order is not win-critical
         end
     end
     B.Lock(P, now)
@@ -457,7 +457,7 @@ local function PilotUpdate()
             end
         end
         if k and beacon[k + 1] then
-            PilotEach(function(t) Goto(t, beacon[k + 1], 1) end)
+            PilotEach(function(t) Goto(t, beacon[k + 1], 1) end) -- pilot-order: once, re-sent every 10 s by the stall resend block (P.target)
             P.sent[k] = true
             P.target, P.resendAt = beacon[k + 1], now + 10 -- CR adaptation: remembered for the stall resend
         elseif not k and not P.nudged and not next(P.nav) and not next(P.sent) then
@@ -475,7 +475,7 @@ local function PilotUpdate()
             end
             if best then
                 P.nudged = true
-                PilotEach(function(t) Goto(t, best, 1) end)
+                PilotEach(function(t) Goto(t, best, 1) end) -- pilot-order: once, re-sent every 10 s by the stall resend block (P.target)
                 P.target, P.resendAt = best, now + 10
             end
         end
@@ -500,7 +500,7 @@ local function PilotUpdate()
         elseif P.ambushWait then
             P.ambushSent = true
             if beacon[1] then
-                PilotEach(function(t) Goto(t, beacon[1], 1) end)
+                PilotEach(function(t) Goto(t, beacon[1], 1) end) -- pilot-order: once, re-sent every 10 s by the stall resend block (P.target)
                 P.target, P.resendAt = beacon[1], now + 10 -- CR adaptation: the return order replaces the old target
             end
         end

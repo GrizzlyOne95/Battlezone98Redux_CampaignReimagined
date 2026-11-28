@@ -141,18 +141,17 @@ function Pilot.AddObject(h)
     elseif IsOdf(h, "avapc") then -- C 146-159
         if not B.alive(P.apc) then
             P.apc = h
-            if B.alive(player) then Follow(h, player, 1) end
+            if B.alive(player) then Follow(h, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
         end
     elseif IsOdf(h, "avmuf") then -- C 160-169: n64p087
         P.factory, P.factoryQueued = h, true
     elseif IsOdf(h, "avtank") then -- C 171-181
-        if pilotSlot(P.t, h) and B.alive(player) then Follow(h, player, 1) end
+        if pilotSlot(P.t, h) and B.alive(player) then Follow(h, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
     elseif IsOdf(h, "avturr") then -- C 182-195
         P.turrets = P.turrets + 1
         P.turretsBuilt = math.max(P.turretsBuilt, P.turrets)
         local spot = Pilot.turretSpots[P.turrets == 1 and 1 or 2]
-        local x, z = spot[1], spot[2]
-        Goto(h, SetVector(x, GetTerrainHeightAndNormal(SetVector(x, 0, z)), z), 1)
+        B.AssignSpot(P, h, { spot[1], spot[2] }) -- CR adaptation: the spot Goto is re-sent by KeepSpots until the turret arrives
     else -- C 196-207
         B.NoteSupply(P, h, "naprepa", "napammo")
     end
@@ -184,10 +183,11 @@ function Pilot.Update()
 
     if not P.started then -- C 259-263: the recycler goes to its geyser, the regroup timer starts
         P.started = true
-        if B.alive(rec) and not IsDeployed(rec) and recGeyser ~= nil then Goto(rec, recGeyser, 1) end
+        if B.alive(rec) and not IsDeployed(rec) and recGeyser ~= nil then Goto(rec, recGeyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
         P.followAt = now + 30
     end
     B.Lock(P, now)
+    B.KeepSpots(P, now) -- CR adaptation: re-send turret spot orders
     B.Resend(P, "rec", rec, recGeyser, now) -- C 279-297
     B.Resend(P, "factory", factory, factoryGeyser, now) -- C 299-315
     B.WatchSupply(P, player) -- C 317-341
@@ -205,7 +205,7 @@ function Pilot.Update()
             P.rescuing[i] = true
         elseif P.rescuing[i] then
             P.rescuing[i] = false
-            if B.alive(P.apc) then Follow(P.apc, player, 1) end
+            if B.alive(P.apc) then Follow(P.apc, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
         end
     end
 

@@ -1554,7 +1554,8 @@ end
 -- for the N64 avrecn8/avmufn5, M.nsdfrecycle/M.nsdfmuf); path 10/14/15 =
 -- recycle_cam_spawn (M.nav6) / cam1_spawn (M.nav1) / recy_cam_spawn (M.nav7).
 -- Adaptations:
---  * Armory pods are BuildAt(armory, "aprepa"/"apammo", player, 1); the N64
+--  * Armory pods are BuildAt(armory, "naprepa"/"napammo", player, 1) (the CR
+--    armory's build list; N64 aprepa/apammo); the N64
 --    used reload/repair path commands (10/11) at C 592/609.
 --  * The geyser commands (Obj_*PathCommand 16 at C 505-515, 2088-2092, 616-653)
 --    are Goto(<geyser>): the armory takes eggeizr1238_geyser (nearest, 83 m),
@@ -1612,14 +1613,15 @@ local function PilotAddObject(h)
         elseif not alive(P.scav2) then P.scav2 = h end
     elseif IsOdf(h, "avturr") then -- 370-404
         if P.turrets < #PILOT_TURRET_SPOTS then
-            Goto(h, PilotSpot(PILOT_TURRET_SPOTS[P.turrets + 1]), 0)
+            -- CR adaptation: spot Gotos are re-sent by KeepSpots (PilotUpdate) until the unit arrives or deploys.
+            PilotBranch.AssignSpot(P, h, PILOT_TURRET_SPOTS[P.turrets + 1])
         end
         P.turrets = P.turrets + 1
     elseif IsOdf(h, "avartl") then -- 405-420
         SetObjectiveOn(h)
         if not alive(P.howitzer1) then
             P.howitzer1 = h
-            if not P.supplyLost then Goto(h, PilotSpot(PILOT_HOWITZER1_SPOT), 0) end
+            if not P.supplyLost then PilotBranch.AssignSpot(P, h, PILOT_HOWITZER1_SPOT) end
         elseif not alive(P.howitzer2) then
             P.howitzer2 = h
         end
@@ -1628,20 +1630,20 @@ local function PilotAddObject(h)
         if P.lightTank ~= nil then return end -- C 422: any earlier handle
         P.lightTank = h
         if alive(P.howitzer2) then
-            Follow(h, P.howitzer2, 1)
-            Goto(P.howitzer2, PilotSpot(PILOT_HOWITZER2_ROUTE), 1)
+            Follow(h, P.howitzer2, 1) -- pilot-order: once, escort order is not win-critical
+            PilotBranch.AssignSpot(P, P.howitzer2, PILOT_HOWITZER2_ROUTE)
             if IsDeployed(P.howitzer2) then P.lightTankTeam = GetTeamNum(h) end
         end
         if alive(P.howitzer1) then
-            Goto(P.howitzer1, PilotSpot(PILOT_HOWITZER1_ROUTE), 1)
+            PilotBranch.AssignSpot(P, P.howitzer1, PILOT_HOWITZER1_ROUTE)
             if IsDeployed(P.howitzer1) then P.lightTankTeam = 1 end
         end
         P.howitzerOrder = true
-    elseif IsOdf(h, "apammo") then -- 440-453
+    elseif IsOdf(h, "napammo") then -- 440-453 (CR adaptation: the NSDF armory lists naprepa/napammo)
         if not alive(P.ammoPod1) then P.ammoPod1 = h; SetObjectiveOn(h)
         elseif not alive(P.ammoPod2) then P.ammoPod2 = h; SetObjectiveOn(h) end
         P.ammoOutstanding = math.max(0, P.ammoOutstanding - 1)
-    elseif IsOdf(h, "aprepa") then -- 454-467
+    elseif IsOdf(h, "naprepa") then -- 454-467
         if not alive(P.repairPod1) then P.repairPod1 = h; SetObjectiveOn(h)
         elseif not alive(P.repairPod2) then P.repairPod2 = h; SetObjectiveOn(h) end
         P.repairOutstanding = math.max(0, P.repairOutstanding - 1)
@@ -1661,11 +1663,12 @@ local function PilotUpdate()
     if not P.started then -- C 505-515
         P.started = true
         P.introAt = now + 9.0 -- f_9D4
-        if alive(slf) and not IsDeployed(slf) and slfGeyser ~= nil then Goto(slf, slfGeyser, 1) end
-        if alive(M.wingturret1) then Goto(M.wingturret1, PilotSpot(PILOT_WING_SPOTS[1]), 0) end
-        if alive(M.wingturret2) then Goto(M.wingturret2, PilotSpot(PILOT_WING_SPOTS[2]), 0) end
+        if alive(slf) and not IsDeployed(slf) and slfGeyser ~= nil then Goto(slf, slfGeyser, 1) end -- pilot-order: once, the armory only builds supply pods, not win-critical
+        if alive(M.wingturret1) then PilotBranch.AssignSpot(P, M.wingturret1, PILOT_WING_SPOTS[1]) end
+        if alive(M.wingturret2) then PilotBranch.AssignSpot(P, M.wingturret2, PILOT_WING_SPOTS[2]) end
     end
     PilotBranch.Lock(P, now)
+    PilotBranch.KeepSpots(P, now) -- CR adaptation: re-send turret and howitzer spot orders
     PilotBranch.Resend(P, "slf", slf, slfGeyser, now) -- C 560-574
 
     if not P.introDone and now >= P.introAt then -- C 846-848
@@ -1677,16 +1680,16 @@ local function PilotUpdate()
         P.rendezvous = true
         P.camAt = now + 10.0 -- f_9C8
         if alive(M.nav1) then SetUserTarget(M.nav1) end
-        if alive(M.new_tank1) then Follow(M.new_tank1, player, 1) end
-        if alive(M.new_tank2) then Follow(M.new_tank2, player, 1) end
+        if alive(M.new_tank1) then Follow(M.new_tank1, player, 1) end -- pilot-order: once, escort order is not win-critical
+        if alive(M.new_tank2) then Follow(M.new_tank2, player, 1) end -- pilot-order: once, escort order is not win-critical
     end
     if P.rendezvous and not P.camReached and now >= P.camAt then -- C 947-970
         P.camAt = now + 4.0
         if alive(M.nav1) and GetDistance(player, M.nav1) < 90.0 then
             P.camReached = true
             if alive(slf) then
-                if alive(M.new_tank1) then Follow(M.new_tank1, slf, 1) end
-                if alive(M.new_tank2) then Follow(M.new_tank2, slf, 1) end
+                if alive(M.new_tank1) then Follow(M.new_tank1, slf, 1) end -- pilot-order: once, escort order is not win-critical
+                if alive(M.new_tank2) then Follow(M.new_tank2, slf, 1) end -- pilot-order: once, escort order is not win-critical
             end
         end
     end
@@ -1703,13 +1706,13 @@ local function PilotUpdate()
         if P.supplyAt < now then -- 577-612: f_A24 advances only after a pod order
             if P.ammoWanted > 0 then
                 if PilotBranch.Ready(slf) and GetScrap(1) > 0 then
-                    BuildAt(slf, "apammo", player, 1)
+                    BuildAt(slf, "napammo", player, 1)
                     P.ammoWanted = P.ammoWanted - 1
                     P.supplyAt = now + 3.0
                 end
             elseif P.repairWanted > 0 then
                 if PilotBranch.Ready(slf) and GetScrap(1) > 0 then
-                    BuildAt(slf, "aprepa", player, 1)
+                    BuildAt(slf, "naprepa", player, 1)
                     P.repairWanted = P.repairWanted - 1
                     P.supplyAt = now + 3.0
                 end
@@ -1722,8 +1725,8 @@ local function PilotUpdate()
     if not P.baseStarted then -- C 2088-2092
         P.baseStarted = true
         if alive(M.nav6) then SetUserTarget(M.nav6) end
-        if alive(rec) and not IsDeployed(rec) and recGeyser ~= nil then Goto(rec, recGeyser, 1) end
-        if alive(fac) and not IsDeployed(fac) and facGeyser ~= nil then Goto(fac, facGeyser, 1) end
+        if alive(rec) and not IsDeployed(rec) and recGeyser ~= nil then Goto(rec, recGeyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
+        if alive(fac) and not IsDeployed(fac) and facGeyser ~= nil then Goto(fac, facGeyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
     end
     if not P.recCam and alive(rec) and IsDeployed(rec) and GetDistance(player, rec) < 100.0 then -- C 2101-2117
         P.recCam = true
@@ -1755,7 +1758,7 @@ local function PilotUpdate()
     elseif alive(P.howitzer1) and not P.powerAttack then -- 790-796
         if IsDeployed(P.howitzer1) then
             P.powerAttack = true
-            Attack(P.howitzer1, power, 1)
+            Attack(P.howitzer1, power, 1) -- pilot-order: once, Attack on a fixed target persists until it dies
         end
     end
     if P.supplyLost and not P.howitzerAttack and P.howitzerOrder then -- 798-840
@@ -1769,8 +1772,8 @@ local function PilotUpdate()
             local d2 = alive(h2) and IsDeployed(h2) or not alive(h2)
             if d1 and d2 then
                 P.howitzerAttack = true
-                if alive(h1) and alive(M.ccarecycle) then Attack(h1, M.ccarecycle, 1) end -- 830
-                if alive(h2) and alive(M.ccarecycle) then Attack(h2, M.ccarecycle, 1) end -- 833
+                if alive(h1) and alive(M.ccarecycle) then Attack(h1, M.ccarecycle, 1) end -- 830 -- pilot-order: once, Attack on a fixed target persists until it dies
+                if alive(h2) and alive(M.ccarecycle) then Attack(h2, M.ccarecycle, 1) end -- 833 -- pilot-order: once, Attack on a fixed target persists until it dies
             end
         end
     end

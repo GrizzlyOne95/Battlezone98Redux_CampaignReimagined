@@ -216,12 +216,12 @@ function Pilot.AddObject(h)
         for i = 1, Pilot.FIGHTERS do
             if not alive(P["f" .. i]) then P["f" .. i] = h; break end
         end
-        if alive(player) then Follow(h, player, 1) end
+        if alive(player) then Follow(h, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
     elseif IsOdf(h, "svtank") then -- C 311-312, 356-363: the two start tanks follow the player
         for _, key in ipairs({ "t1", "t2" }) do
             if not alive(P[key]) then
                 P[key] = h
-                if alive(player) then Follow(h, player, 1) end
+                if alive(player) then Follow(h, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
                 break
             end
         end
@@ -259,6 +259,7 @@ function Pilot.Update()
         if not M.pickpath then M.startconvoy = M.startconvoy - 150 end -- C 326-331: first attack +30 s, not +180 s
     end
     PB.Lock(P, now)
+    PB.KeepSpots(P, now) -- CR adaptation: re-send the howitzer's Goto
     PB.WatchSupply(P, player) -- C 375-395
 
     -- C 398-406: the howitzer lost after it was called in fails the mission. Armed only once seen alive.
@@ -279,7 +280,7 @@ function Pilot.Update()
         local from, goal = Pilot.HOWITZER_START, Pilot.HOWITZER_GOAL
         P.how = BuildObject("svartl", 1, Pilot.Spot(from[1], from[2]))
         if P.how then
-            Goto(P.how, Pilot.Spot(goal[1], goal[2]), 1)
+            PB.AssignSpot(P, P.how, { goal[1], goal[2] }) -- CR adaptation: the Goto is re-sent by KeepSpots until it arrives or deploys
             SetObjectiveOn(P.how) -- C 674-692
             P.howArmed, P.howSeen = true, alive(P.how)
         end
@@ -288,9 +289,9 @@ function Pilot.Update()
         if not P.hit1 and not P.hit2 then
             local deployed = IsDeployed(P.how)
             if alive(P.tower1) then
-                if deployed then P.hit1 = true; Attack(P.how, P.tower1, 1) end
+                if deployed then P.hit1 = true; Attack(P.how, P.tower1, 1) end -- pilot-order: once, Attack on a fixed target persists until it dies
             elseif alive(P.tower2) then
-                if deployed then P.hit2 = true; Attack(P.how, P.tower2, 1) end
+                if deployed then P.hit2 = true; Attack(P.how, P.tower2, 1) end -- pilot-order: once, Attack on a fixed target persists until it dies
             end
         end
         if not alive(P.tower1) and not alive(P.tower2) then
@@ -342,8 +343,9 @@ function Pilot.Update()
         local nav = M.hidcam3
         if M.path == 0 then nav = M.hidcam1 elseif M.path == 1 then nav = M.hidcam2 end
         if Pilot.Valid(nav) then SetObjectiveOn(nav) end
-        if alive(M.walker1) then Goto(M.walker1, M.walkcam1, 1) end
     end
+    -- CR adaptation: the walker's Goto to the cut-off nav (sent once on the cart) is re-sent every 10 s until it is there.
+    if P.arrived and Pilot.Valid(M.walkcam1) then PB.KeepGoto(P, "walker1", M.walker1, M.walkcam1, now, 40) end -- inside the trapset trigger (< 50 m)
 end
 
 Pilot.Mode = {

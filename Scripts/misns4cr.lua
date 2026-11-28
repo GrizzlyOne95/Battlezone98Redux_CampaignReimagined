@@ -81,7 +81,7 @@ local function PilotAddObject(h)
     if IsOdf(h, "svslf") then
         P.armory, P.builtArmory = h, true
         local geyser = PilotGeyser(h)
-        if geyser then Goto(h, geyser, 1) end
+        if geyser then Goto(h, geyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
     elseif IsOdf(h, "svscav") then
         P.builtScav = true
     elseif IsOdf(h, "svfigh") then
@@ -89,7 +89,7 @@ local function PilotAddObject(h)
             if not B.alive(P.escorts[i]) then P.escorts[i] = h break end
         end
         local player = GetPlayerHandle()
-        if B.alive(player) then Follow(h, player, 1) end
+        if B.alive(player) then Follow(h, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
     end
 end
 

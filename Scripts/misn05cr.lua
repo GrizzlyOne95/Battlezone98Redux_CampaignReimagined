@@ -488,19 +488,20 @@ local function PilotAddObject(h)
     if IsOdf(h, "avturr") and P.turrets < #PILOT_TURRET_SPOTS then
         P.turrets = P.turrets + 1
         local spot = PILOT_TURRET_SPOTS[P.turrets]
-        Goto(h, PilotSpot(spot[1], spot[2]), 1)
+        -- CR adaptation: the spot Goto is re-sent by KeepSpots (PilotUpdate) until the turret arrives.
+        PilotBranch.AssignSpot(P, h, { spot[1], spot[2] })
     elseif IsOdf(h, "avscav") then
         P.scavengers = P.scavengers + 1
     elseif IsOdf(h, "avfigh") then
         P.fighters = P.fighters + 1
         local player = GetPlayerHandle()
-        if PilotBranch.alive(player) then Follow(h, player, 1) end
+        if PilotBranch.alive(player) then Follow(h, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
         if not PilotBranch.alive(P.esc1) then P.esc1 = h
         elseif not PilotBranch.alive(P.esc2) then P.esc2 = h end
-    elseif IsOdf(h, "apammo") then
+    elseif IsOdf(h, "napammo") then -- CR adaptation: the NSDF armory (avslf5) lists naprepa/napammo
         P.pods[#P.pods + 1] = h
         if P.ammoArmed > 0 then P.ammoArmed = P.ammoArmed - 1 end
-    elseif IsOdf(h, "aprepa") then
+    elseif IsOdf(h, "naprepa") then
         P.pods[#P.pods + 1] = h
         if P.repairArmed > 0 then P.repairArmed = P.repairArmed - 1 end
     end
@@ -526,21 +527,23 @@ local function PilotUpdate()
     if not P.started then -- C 367-383
         P.started = true
         if M.cam1 then SetUserTarget(M.cam1) end
-        if PilotBranch.alive(slf) and not IsDeployed(slf) then Goto(slf, slfGeyser, 1) end
-        if PilotBranch.alive(rec) and not IsDeployed(rec) then Goto(rec, recGeyser, 1) end
+        -- CR adaptation: skip the order when the geyser handle is nil (PilotBranch.Resend re-sends it later).
+        if slfGeyser ~= nil and PilotBranch.alive(slf) and not IsDeployed(slf) then Goto(slf, slfGeyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
+        if recGeyser ~= nil and PilotBranch.alive(rec) and not IsDeployed(rec) then Goto(rec, recGeyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
         P.followAt = now + 30
     end
     PilotBranch.Lock(P, now)
+    PilotBranch.KeepSpots(P, now) -- CR adaptation: re-send turret spot orders
     PilotBranch.Resend(P, "rec", rec, recGeyser, now) -- C 389-424
     PilotBranch.Resend(P, "slf", slf, slfGeyser, now)
 
     -- C 426-457: up to two repair and two ammo pods when the player is hurt/dry.
     if GetHealth(player) < 0.75 and P.repairArmed == 0 then
-        local want = 2 - PilotPodsAlive("aprepa")
+        local want = 2 - PilotPodsAlive("naprepa")
         P.repairWant, P.repairArmed = P.repairWant + want, P.repairArmed + want
     end
     if GetAmmo(player) < 0.75 and P.ammoArmed == 0 then
-        local want = 2 - PilotPodsAlive("apammo")
+        local want = 2 - PilotPodsAlive("napammo")
         P.ammoWant, P.ammoArmed = P.ammoWant + want, P.ammoArmed + want
     end
 
@@ -550,7 +553,7 @@ local function PilotUpdate()
     -- C 478-596: one blocking chain; the first unmet item wins the frame.
     if P.turrets <= 0 then return PilotBranch.TryBuild(rec, "avturr", 6) end
     if P.turrets == 1 and P.scavengers < 2 then return PilotBranch.TryBuild(rec, "avscav", 4) end
-    for _, want in ipairs({ { "ammoWant", "apammo" }, { "repairWant", "aprepa" } }) do -- C 511-555
+    for _, want in ipairs({ { "ammoWant", "napammo" }, { "repairWant", "naprepa" } }) do -- C 511-555
         if P[want[1]] > 0 and PilotBranch.alive(slf) then
             if P.supplyAt < now and PilotBranch.Ready(slf) and GetScrap(1) > 0 then
                 BuildAt(slf, want[2], player, 1)

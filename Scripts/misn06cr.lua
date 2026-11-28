@@ -1137,11 +1137,16 @@ local function PilotDriveRoute(P, rec, now)
         if not r.sentAt or (r.name == "p38" and now >= r.sentAt + 10) then
             Goto(rec, PilotSpot(pt[1], pt[2]), 1)
             r.sentAt = now
+        elseif r.name ~= "p38" then
+            -- CR adaptation: paths 35/36 are one-shot on the cart; after the first send of a leg, re-send it
+            -- every 10 s while the recycler is far from the point and not driving, so a dropped order cannot
+            -- stall the route.
+            PilotBranch.KeepGoto(P, "route", rec, PilotSpot(pt[1], pt[2]), now, 60, 10)
         end
     elseif r.name ~= "p38" then
         P.route = nil
     elseif PilotBranch.alive(M.dustoffcam) then
-        Goto(rec, M.dustoffcam, 1)
+        Goto(rec, M.dustoffcam, 1) -- pilot-order: once, re-sent every 10 s by PilotDustoffResend
         P.route = nil
         P.dustoff, P.dustAt = true, GetTime() + 10 -- CR adaptation: arm the dust-off resend
     end
@@ -1162,7 +1167,7 @@ end
 local function PilotAddObject(h)
     if not PlayerPilotMode.IsEnabled() or GetTeamNum(h) ~= 1 then return end
     if not PilotBranch.Claim(PilotState(), h) then return end
-    if IsOdf(h, "avfigh") and PilotBranch.alive(M.avrec) then Follow(h, M.avrec, 1) end
+    if IsOdf(h, "avfigh") and PilotBranch.alive(M.avrec) then Follow(h, M.avrec, 1) end -- pilot-order: once, escort order is not win-critical
 end
 
 -- C 393-542, run by PlayerPilotMode.Update while the toggle is on.
@@ -1191,7 +1196,7 @@ local function PilotUpdate()
         if PilotBranch.alive(rec) then
             for _, name in ipairs({ "avtank0_wingman", "avtank1_wingman" }) do
                 local escort = GetHandle(name)
-                if PilotBranch.alive(escort) then Follow(escort, rec, 1) end
+                if PilotBranch.alive(escort) then Follow(escort, rec, 1) end -- pilot-order: once, escort order is not win-critical
             end
             PilotStartRoute(P, "p35")
         end
@@ -1207,7 +1212,7 @@ local function PilotUpdate()
     -- while it is not deployed or on its way).
     if M.starportreconed and not P.spSent and not P.convoy then
         P.spSent, P.route = true, nil
-        if M.rendezvous and not IsDeployed(rec) then Goto(rec, M.rendezvous, 1) end
+        if M.rendezvous and not IsDeployed(rec) then Goto(rec, M.rendezvous, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
     end
     if P.spSent and not P.convoy and not P.route then
         PilotBranch.Resend(P, "rec", rec, M.rendezvous, now)

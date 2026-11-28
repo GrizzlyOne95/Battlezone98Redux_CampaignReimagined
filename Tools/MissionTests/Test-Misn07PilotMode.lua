@@ -64,7 +64,20 @@ env.Build = function(h, odf) built[#built + 1] = odf; objs[h].busy = true end
 env.BuildAt = function(h, odf, t) built[#built + 1] = odf .. "@" .. t end
 local adapter
 env.PlayerPilotMode = { IsEnabled = function() return enabled end, Initialize = function(a) adapter = a end }
-env.PilotBranch = assert(loadfile("Scripts/CRPilotBranch.lua"))()
+-- Spot orders (PilotBranch.KeepSpots/KeepGoto) measure the distance to a vector: from the object's x/z when it has them, else far away.
+do
+    local baseDistance = env.GetDistance
+    env.GetDistance = function(a, b)
+        if type(b) == "table" then
+            local o = objs[a]
+            if o and o.x and o.z then return math.sqrt((o.x - b.x) ^ 2 + (o.z - b.z) ^ 2) end
+            return 1e9
+        end
+        if baseDistance then return baseDistance(a, b) end
+        return 1e9
+    end
+end
+env.PilotBranch = setfenv(assert(loadfile("Scripts/CRPilotBranch.lua")), env)()
 for _, fn in ipairs({ "Lock", "Ready", "Resend", "FollowPlayer", "TryBuild", "alive", "Adopt" }) do setfenv(env.PilotBranch[fn], env) end
 local chunk = assert(loadstring("local M, PlayerPilotMode, PilotBranch = M, PlayerPilotMode, PilotBranch\n" .. block ..
     "\nreturn { update = PilotUpdate, add = PilotAddObject, init = InitializePilotMode }"))
@@ -81,14 +94,14 @@ local function count(kind, h)
     return n
 end
 
--- Start: armory to its geyser, wing turrets to their spots (priority 0).
+-- Start: armory to its geyser, wing turrets to their spots (CR: priority 1, re-sent by KeepSpots).
 api.update()
 local o = find("go_to", slf)
 check(o and o[3] == geyserSlf and o[4] == 1, "armory sent to eggeizr1238_geyser")
 o = find("go_to", t1)
-check(o and o[3].x == 2033 and o[3].z == 97882 and o[3].y == 7 and o[4] == 0, "wing turret 1 spot")
+check(o and o[3].x == 2033 and o[3].z == 97882 and o[3].y == 7 and o[4] == 1, "wing turret 1 spot")
 o = find("go_to", t2)
-check(o and o[3].x == 2015 and o[3].z == 97837 and o[4] == 0, "wing turret 2 spot")
+check(o and o[3].x == 2015 and o[3].z == 97837 and o[4] == 1, "wing turret 2 spot")
 check(count("target") == 0, "no user target before the 9 s intro")
 now = 10; api.update()
 check(find("target", nav3), "intro target is the rendezvous cam")
@@ -140,7 +153,7 @@ for i = 1, 4 do
     check(built[#built] == "avturr" and #built == 2 + i, "turret " .. i)
     spawn("u" .. i, "avturr"); objs[rec].busy = false
     o = find("go_to", "u" .. i)
-    check(o[3].x == spots[i][1] and o[3].z == spots[i][2] and o[4] == 0, "turret " .. i .. " spot")
+    check(o[3].x == spots[i][1] and o[3].z == spots[i][2] and o[4] == 1, "turret " .. i .. " spot")
 end
 before = #built
 now = now + 1; api.update()
@@ -148,7 +161,7 @@ check(built[#built] == "avartl" and #built == 7, "first howitzer from the factor
 check(find("go_to", "u4") and count("go_to", "u4") == 1, "no fifth turret order")
 spawn("how1", "avartl"); objs[fac].busy = false
 o = find("go_to", "how1")
-check(o[3].x == 2466 and o[3].z == 99919 and o[4] == 0, "howitzer 1 to its spot")
+check(o[3].x == 2466 and o[3].z == 99919 and o[4] == 1, "howitzer 1 to its spot")
 check(find("objective", "how1"), "howitzer marked")
 before = #built; now = now + 1; api.update()
 check(#built == before, "queue idles while the power plant stands")
@@ -187,14 +200,14 @@ check(a1 and a2, "both howitzers attack the Soviet recycler once deployed")
 -- Supply: hurt and dry player gets pods from the armory, 3 s apart, ammo first.
 objs[player].health, objs[player].ammo = 0.5, 0.5
 now = now + 1; api.update()
-check(built[#built] == "apammo@player", "ammo pod via armory BuildAt")
+check(built[#built] == "napammo@player", "ammo pod via armory BuildAt")
 before = #built; now = now + 1; api.update()
 check(#built == before, "3 s cooldown between pods")
 for _ = 1, 3 do now = now + 3.5; api.update() end
 local pods = {}
 for i = before, #built do pods[#pods + 1] = built[i] end
-check(table.concat(pods, ",") == "apammo@player,apammo@player,aprepa@player,aprepa@player", "two ammo then two repair pods: " .. table.concat(pods, ","))
-spawn("a1", "apammo"); spawn("a2", "apammo"); spawn("r1", "aprepa"); spawn("r2", "aprepa")
+check(table.concat(pods, ",") == "napammo@player,napammo@player,naprepa@player,naprepa@player", "two ammo then two repair pods: " .. table.concat(pods, ","))
+spawn("a1", "napammo"); spawn("a2", "napammo"); spawn("r1", "naprepa"); spawn("r2", "naprepa")
 check(find("objective", "a1") and find("objective", "r2"), "pods marked")
 before = #built; now = now + 10; api.update()
 check(#built == before, "four live pods: no more requested")

@@ -17,7 +17,8 @@ for label in pairs(geysers) do obj(label, "eggeizr1", 0) end
 local dist = { }
 local env = setmetatable({}, { __index = _G })
 env.M = { nsdfrecycle = rec, nav1 = "cam1", nav3 = "cam3", sav = "relic", sav_free = true, sav_secure = false }
-env.AiCommand = { NONE = 0, GO = 3 }
+env.AiCommand = { NONE = 0, GO = 3, FOLLOW = 5, PICKUP = 7 }
+env.GetTug = function(h) return objs[h] and objs[h].tug end
 env.CRCoop = { IsNetworkGame = function() return false end }
 env.pcall = pcall
 env.require = function(name)
@@ -61,8 +62,8 @@ env.IsValid = function(h) return objs[h] ~= nil and objs[h].alive end
 env.SetCommand = function() end
 env.SetObjectiveOn = function(h) orders[#orders + 1] = { "objective", h } end
 env.Goto = function(h, t) orders[#orders + 1] = { "go_to", h, t }; objs[h].cmd = 3 end
-env.Follow = function(h, t) orders[#orders + 1] = { "follow", h, t } end
-env.Pickup = function(h, t) orders[#orders + 1] = { "pickup", h, t } end
+env.Follow = function(h, t) orders[#orders + 1] = { "follow", h, t }; objs[h].cmd = 5 end
+env.Pickup = function(h, t) orders[#orders + 1] = { "pickup", h, t }; objs[h].cmd = 7 end
 env.Build = function(h, odf) built[#built + 1] = odf; objs[h].busy = true end
 local chunk = assert(loadstring("local M = M\n" .. block .. "\nreturn Pilot"))
 setfenv(chunk, env)
@@ -118,13 +119,21 @@ objs.fac.busy = false; now = now + 1; Pilot.Update()
 check(#built == before + 1, "the tug is only built once")
 
 -- Tug: follows the player when built, picks the relic up within 100 m, follows home once secured.
+-- CR adaptation: the Follow(player) is sent by Pilot.Update (re-sent every 10 s), not by AddObject.
 spawn("tug", "avhaul")
-check(orders[#orders - 1][1] == "follow" and orders[#orders - 1][2] == "tug" and orders[#orders - 1][3] == player, "tug follows the player")
 check(orders[#orders][1] == "objective" and orders[#orders][2] == "tug", "tug marked")
+Pilot.Update()
+check(orders[#orders][1] == "follow" and orders[#orders][2] == "tug" and orders[#orders][3] == player, "tug follows the player")
 n = #orders; Pilot.Update(); check(#orders == n, "tug far from the relic: no pickup")
+objs.tug.cmd = 0; now = now + 5; Pilot.Update(); check(#orders == n, "a dropped Follow is not re-sent before 10 s")
+now = now + 6; Pilot.Update(); check(orders[#orders][1] == "follow" and #orders == n + 1, "a dropped Follow is re-sent after 10 s")
 dist["tug>relic"] = 60
 Pilot.Update(); check(orders[#orders][1] == "pickup" and orders[#orders][2] == "tug" and orders[#orders][3] == "relic", "pickup within 100 m")
-n = #orders; Pilot.Update(); check(#orders == n, "pickup once")
+n = #orders; Pilot.Update(); check(#orders == n, "pickup once while the tug obeys it")
+objs.tug.cmd = 0; now = now + 11; Pilot.Update()
+check(orders[#orders][1] == "pickup" and #orders == n + 1, "a dropped Pickup is re-sent after 10 s")
+objs.relic.tug = "tug"; objs.tug.cmd = 0; n = #orders
+now = now + 11; Pilot.Update(); check(#orders == n, "no more Pickups once the tug holds the relic")
 env.M.sav_free, env.M.sav_secure = false, true
 Pilot.Update(); check(orders[#orders][1] == "follow" and orders[#orders][3] == player, "tug follows the player once secured")
 

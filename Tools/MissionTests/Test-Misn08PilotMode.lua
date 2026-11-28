@@ -71,7 +71,20 @@ env.Attack = function(h, t) orders[#orders + 1] = { "attack", h, t } end
 env.Build = function(h, odf) built[#built + 1] = odf .. "@" .. h; objs[h].busy = true end
 local adapter
 env.PlayerPilotMode = { IsEnabled = function() return enabled end, Initialize = function(a) adapter = a end }
-env.PilotBranch = assert(loadfile("Scripts/CRPilotBranch.lua"))()
+-- Spot orders (PilotBranch.KeepSpots/KeepGoto) measure the distance to a vector: from the object's x/z when it has them, else far away.
+do
+    local baseDistance = env.GetDistance
+    env.GetDistance = function(a, b)
+        if type(b) == "table" then
+            local o = objs[a]
+            if o and o.x and o.z then return math.sqrt((o.x - b.x) ^ 2 + (o.z - b.z) ^ 2) end
+            return 1e9
+        end
+        if baseDistance then return baseDistance(a, b) end
+        return 1e9
+    end
+end
+env.PilotBranch = setfenv(assert(loadfile("Scripts/CRPilotBranch.lua")), env)()
 for _, fn in ipairs({ "Lock", "Ready", "Resend", "FollowPlayer", "TryBuild", "alive", "Adopt" }) do
     setfenv(env.PilotBranch[fn], env)
 end

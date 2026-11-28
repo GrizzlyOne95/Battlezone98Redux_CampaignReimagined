@@ -1287,7 +1287,7 @@ local function PilotAddObject(h)
     if IsOdf(h, "avmu8") and not alive(P.muf) then -- C 227-235
         P.muf = h
         P.mufGeyser = PilotGeyser(h, M.nsdfrecycle)
-        if P.mufGeyser then Goto(h, P.mufGeyser, 1) end
+        if P.mufGeyser then Goto(h, P.mufGeyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
         P.mufBuilt = false
         return
     end
@@ -1300,7 +1300,7 @@ local function PilotAddObject(h)
         for i = 1, 2 do
             if not alive(P.tank[i]) then
                 P.tank[i] = h
-                Follow(h, player, 1)
+                Follow(h, player, 1) -- pilot-order: once, re-sent by FollowPlayer every 30 s
                 return
             end
         end
@@ -1309,7 +1309,7 @@ local function PilotAddObject(h)
         for i = 1, 8 do
             if not alive(P.fighter[i]) then
                 P.fighter[i] = h
-                Follow(h, player, 1)
+                Follow(h, player, 1) -- pilot-order: once, re-sent by FollowPlayer every 30 s
                 return
             end
         end
@@ -1318,7 +1318,7 @@ local function PilotAddObject(h)
         for i = 1, #PILOT_TURRET_SPOTS do
             if not alive(P.turret[i]) then
                 P.turret[i] = h
-                Goto(h, PilotSpot(PILOT_TURRET_SPOTS[i]), 1)
+                Goto(h, PilotSpot(PILOT_TURRET_SPOTS[i]), 1) -- pilot-order: once, defensive turret spot is not win-critical
                 return
             end
         end
@@ -1326,7 +1326,7 @@ local function PilotAddObject(h)
     if IsOdf(h, "avartl") and not alive(P.howitzer) then -- C 440-459
         P.howitzer = h
         P.howitzerActive = true
-        Goto(h, PilotSpot(PILOT_HOWITZER_SPOT), 1)
+        PilotBranch.AssignSpot(P, h, PILOT_HOWITZER_SPOT) -- CR adaptation: the spot Goto is re-sent by KeepSpots until it arrives or deploys
         SetObjectiveOn(h)
         return
     end
@@ -1356,10 +1356,11 @@ local function PilotUpdate()
         if M.nav4 then SetUserTarget(M.nav4) end -- C 645, label 25
         if alive(rec) then
             P.recGeyser = PilotGeyser(rec)
-            if not IsDeployed(rec) and P.recGeyser then Goto(rec, P.recGeyser, 1) end -- C 647
+            if not IsDeployed(rec) and P.recGeyser then Goto(rec, P.recGeyser, 1) end -- C 647 -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
         end
     end
     PilotBranch.Lock(P, now)
+    PilotBranch.KeepSpots(P, now) -- CR adaptation: re-send the howitzer spot order
 
     if P.howitzerActive and not alive(P.howitzer) and not P.howitzerFailDone then -- C 482-490
         P.howitzerFailDone = true
@@ -1380,7 +1381,7 @@ local function PilotUpdate()
         for _, i in ipairs({ 3, 2, 1 }) do
             if P.found[i] and not P.hit[i] then
                 P.hit[i] = true
-                if alive(P.plant[i]) then Attack(how, P.plant[i], 1) end
+                if alive(P.plant[i]) then Attack(how, P.plant[i], 1) end -- pilot-order: once, Attack on a fixed target persists until it dies
                 break
             end
         end
