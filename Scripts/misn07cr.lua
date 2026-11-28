@@ -37,6 +37,8 @@ end
 -- CR PDA <<
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
+local PlayerPilotMode = require("PlayerPilotMode")
+local PilotBranch = require("CRPilotBranch")
 local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
 -- CR difficulty >>
 -- Single-player difficulty (Scripts/CRDifficulty.lua): lexical wrappers for scrap/pilots and extra hostile combat units;
@@ -1540,6 +1542,247 @@ local function RestoredPrototypeTanks()
 end
 -- CR restored VO <<
 
+-- CR Pilot Mode >>
+-- N64 Pilot Mode branch (Battlezone 64 table 5, byte g_800B93D5), behind the
+-- PDA Pilot Mode toggle; single player only (PlayerPilotMode is off in MP).
+-- Port of Battlezone_Z64Tools redux_lua/n64m07.lua, which follows
+-- mission_scripts/m05_misn07.c (C line numbers below). N64 labels map to this
+-- BZN by position (Docs/PILOT_MODE_N64_LABELS.md): label 74 = armory (avslf,
+-- M.nsdfarmory), 7/8 = wing turrets (avturret1/2), 21 = cam3 (M.nav3),
+-- 44 = power1 (M.powrplnt1), 13 = svrecycler (M.ccarecycle); path 9/12 =
+-- recycle_spawn/muf_spawn (the Utah recycler avrec7 and factory avmu7 stand in
+-- for the N64 avrecn8/avmufn5, M.nsdfrecycle/M.nsdfmuf); path 10/14/15 =
+-- recycle_cam_spawn (M.nav6) / cam1_spawn (M.nav1) / recy_cam_spawn (M.nav7).
+-- Adaptations:
+--  * Armory pods are BuildAt(armory, "aprepa"/"apammo", player, 1); the N64
+--    used reload/repair path commands (10/11) at C 592/609.
+--  * The geyser commands (Obj_*PathCommand 16 at C 505-515, 2088-2092, 616-653)
+--    are Goto(<geyser>): the armory takes eggeizr1238_geyser (nearest, 83 m),
+--    the recycler recycle_spawn_geyz (M.spawn_point, the geyser at the end of
+--    recycle_path) and the factory show_geyser (M.show_geyser, the free geyser
+--    beside its spawn); stalls are re-sent through PilotBranch.Resend.
+--  * The fixed turret/howitzer vectors (C 371-413, g_801FD168..1B8) are the
+--    values decoded in Z64Tools PILOT_MODE_CAMPAIGN.md (z offset restored,
+--    UNVERIFIED), not the Lua file's path(13..16) placeholders. N64 paths 16
+--    and 18 have no CR path; the howitzers Goto the last point of each.
+--  * N64-only text is not ported: voice 549/550, the 285/286 howitzer-lost and
+--    factory-lost fails, the 430/431 debriefs and objectives 391/392.
+--  * Skipped, no CR object: the rookie camera user target (C 991-993; CR has
+--    no jump_cam) and the radar-defence pilot branch (C 1111-1141) of the N64
+--    sspilo/sssold wave, which CR does not run.
+local PILOT_WING_SPOTS = { -- C 505-515, g_801FD1A4/1B0
+    { 2033, 97882 }, { 2015, 97837 },
+}
+local PILOT_TURRET_SPOTS = { -- C 371-404, g_801FD168..194
+    { 2232, 100262 }, { 2228, 100211 }, { 2252, 100081 }, { 2306, 100083 },
+}
+local PILOT_HOWITZER1_SPOT = { 2466, 99919 } -- C 410-413, g_801FD198
+local PILOT_HOWITZER1_ROUTE = { 3156, 99639 } -- end of N64 path 16
+local PILOT_HOWITZER2_ROUTE = { 3159, 99653 } -- end of N64 path 18
+
+local function PilotSpot(spot)
+    local x, z = spot[1], spot[2]
+    return SetVector(x, GetTerrainHeightAndNormal(SetVector(x, 0, z)), z)
+end
+
+local function PilotState()
+    local P = M.pilot
+    if not P then
+        P = PilotBranch.NewState()
+        P.turrets, P.howitzers = 0, 0                    -- m_1498, m_149C
+        P.repairWanted, P.ammoWanted = 0, 0              -- m_14AC, m_14B0
+        P.repairOutstanding, P.ammoOutstanding = 0, 0    -- m_14B4, m_14B8
+        P.supplyAt = 0                                   -- f_A24
+        P.lightTankTeam = 0                              -- i_4E8
+        M.pilot = P
+    end
+    return P
+end
+
+-- C 359-472: player-team units built in Pilot Mode get their N64 orders.
+local function PilotAddObject(h)
+    if not PlayerPilotMode.IsEnabled() or GetTeamNum(h) ~= 1 then return end
+    local P = PilotState()
+    if not PilotBranch.Claim(P, h) then return end
+    -- The map's wing turrets get their own spots in PilotUpdate (C 505-515).
+    if h == M.wingturret1 or h == M.wingturret2 then return end
+    local alive = PilotBranch.alive
+    if IsOdf(h, "avscav") then -- 362-369
+        if not alive(P.scav1) then P.scav1 = h
+        elseif not alive(P.scav2) then P.scav2 = h end
+    elseif IsOdf(h, "avturr") then -- 370-404
+        if P.turrets < #PILOT_TURRET_SPOTS then
+            Goto(h, PilotSpot(PILOT_TURRET_SPOTS[P.turrets + 1]), 0)
+        end
+        P.turrets = P.turrets + 1
+    elseif IsOdf(h, "avartl") then -- 405-420
+        SetObjectiveOn(h)
+        if not alive(P.howitzer1) then
+            P.howitzer1 = h
+            if not P.supplyLost then Goto(h, PilotSpot(PILOT_HOWITZER1_SPOT), 0) end
+        elseif not alive(P.howitzer2) then
+            P.howitzer2 = h
+        end
+        P.howitzers = P.howitzers + 1
+    elseif IsOdf(h, "avltnk") then -- 421-439
+        if P.lightTank ~= nil then return end -- C 422: any earlier handle
+        P.lightTank = h
+        if alive(P.howitzer2) then
+            Follow(h, P.howitzer2, 1)
+            Goto(P.howitzer2, PilotSpot(PILOT_HOWITZER2_ROUTE), 1)
+            if IsDeployed(P.howitzer2) then P.lightTankTeam = GetTeamNum(h) end
+        end
+        if alive(P.howitzer1) then
+            Goto(P.howitzer1, PilotSpot(PILOT_HOWITZER1_ROUTE), 1)
+            if IsDeployed(P.howitzer1) then P.lightTankTeam = 1 end
+        end
+        P.howitzerOrder = true
+    elseif IsOdf(h, "apammo") then -- 440-453
+        if not alive(P.ammoPod1) then P.ammoPod1 = h; SetObjectiveOn(h)
+        elseif not alive(P.ammoPod2) then P.ammoPod2 = h; SetObjectiveOn(h) end
+        P.ammoOutstanding = math.max(0, P.ammoOutstanding - 1)
+    elseif IsOdf(h, "aprepa") then -- 454-467
+        if not alive(P.repairPod1) then P.repairPod1 = h; SetObjectiveOn(h)
+        elseif not alive(P.repairPod2) then P.repairPod2 = h; SetObjectiveOn(h) end
+        P.repairOutstanding = math.max(0, P.repairOutstanding - 1)
+    end
+end
+
+-- C 475-841 (pilot parts), run by PlayerPilotMode.Update while the toggle is on.
+local function PilotUpdate()
+    local alive = PilotBranch.alive
+    local player = GetPlayerHandle()
+    if not alive(player) then return end
+    local P = PilotState()
+    local now = GetTime()
+    local slf, rec, fac = M.nsdfarmory, M.nsdfrecycle, M.nsdfmuf
+    local slfGeyser = GetHandle("eggeizr1238_geyser")
+
+    if not P.started then -- C 505-515
+        P.started = true
+        P.introAt = now + 9.0 -- f_9D4
+        if alive(slf) and not IsDeployed(slf) and slfGeyser ~= nil then Goto(slf, slfGeyser, 1) end
+        if alive(M.wingturret1) then Goto(M.wingturret1, PilotSpot(PILOT_WING_SPOTS[1]), 0) end
+        if alive(M.wingturret2) then Goto(M.wingturret2, PilotSpot(PILOT_WING_SPOTS[2]), 0) end
+    end
+    PilotBranch.Lock(P, now)
+    PilotBranch.Resend(P, "slf", slf, slfGeyser, now) -- C 560-574
+
+    if not P.introDone and now >= P.introAt then -- C 846-848
+        P.introDone = true
+        if alive(M.nav3) then SetUserTarget(M.nav3) end
+    end
+
+    if M.rendezvous and not P.rendezvous then -- C 924-928
+        P.rendezvous = true
+        P.camAt = now + 10.0 -- f_9C8
+        if alive(M.nav1) then SetUserTarget(M.nav1) end
+        if alive(M.new_tank1) then Follow(M.new_tank1, player, 1) end
+        if alive(M.new_tank2) then Follow(M.new_tank2, player, 1) end
+    end
+    if P.rendezvous and not P.camReached and now >= P.camAt then -- C 947-970
+        P.camAt = now + 4.0
+        if alive(M.nav1) and GetDistance(player, M.nav1) < 90.0 then
+            P.camReached = true
+            if alive(slf) then
+                if alive(M.new_tank1) then Follow(M.new_tank1, slf, 1) end
+                if alive(M.new_tank2) then Follow(M.new_tank2, slf, 1) end
+            end
+        end
+    end
+
+    if alive(slf) then -- C 520-613: supply requests
+        if GetHealth(player) < 0.75 and P.repairOutstanding == 0 then -- 533-544
+            if not alive(P.repairPod1) then P.repairWanted = P.repairWanted + 1; P.repairOutstanding = P.repairOutstanding + 1 end
+            if not alive(P.repairPod2) then P.repairWanted = P.repairWanted + 1; P.repairOutstanding = P.repairOutstanding + 1 end
+        end
+        if GetAmmo(player) < 0.75 and P.ammoOutstanding == 0 then -- 547-558
+            if not alive(P.ammoPod1) then P.ammoWanted = P.ammoWanted + 1; P.ammoOutstanding = P.ammoOutstanding + 1 end
+            if not alive(P.ammoPod2) then P.ammoWanted = P.ammoWanted + 1; P.ammoOutstanding = P.ammoOutstanding + 1 end
+        end
+        if P.supplyAt < now then -- 577-612: f_A24 advances only after a pod order
+            if P.ammoWanted > 0 then
+                if PilotBranch.Ready(slf) and GetScrap(1) > 0 then
+                    BuildAt(slf, "apammo", player, 1)
+                    P.ammoWanted = P.ammoWanted - 1
+                    P.supplyAt = now + 3.0
+                end
+            elseif P.repairWanted > 0 then
+                if PilotBranch.Ready(slf) and GetScrap(1) > 0 then
+                    BuildAt(slf, "aprepa", player, 1)
+                    P.repairWanted = P.repairWanted - 1
+                    P.supplyAt = now + 3.0
+                end
+            end
+        end
+    end
+
+    if not M.next_mission then return end -- C 615: supplyStage, the Utah has arrived
+    local recGeyser, facGeyser = M.spawn_point, M.show_geyser
+    if not P.baseStarted then -- C 2088-2092
+        P.baseStarted = true
+        if alive(M.nav6) then SetUserTarget(M.nav6) end
+        if alive(rec) and not IsDeployed(rec) and recGeyser ~= nil then Goto(rec, recGeyser, 1) end
+        if alive(fac) and not IsDeployed(fac) and facGeyser ~= nil then Goto(fac, facGeyser, 1) end
+    end
+    if not P.recCam and alive(rec) and IsDeployed(rec) and GetDistance(player, rec) < 100.0 then -- C 2101-2117
+        P.recCam = true
+        if alive(M.nav7) then SetUserTarget(M.nav7) end
+    end
+    PilotBranch.Resend(P, "rec", rec, recGeyser, now) -- C 616-634
+    PilotBranch.Resend(P, "fac", fac, facGeyser, now) -- C 636-653
+
+    local power = M.powrplnt1
+    if alive(rec) then -- C 674-782: one blocking chain
+        if not alive(P.scav1) or not alive(P.scav2) then -- 675-705
+            if PilotBranch.Ready(rec) then
+                if GetScrap(1) < 4 then AddScrap(1, 4) end
+                if GetPilot(1) == 0 then AddPilot(1, 1) end
+                if GetScrap(1) >= 4 and GetPilot(1) > 0 then Build(rec, "avscav", 1) end
+            end
+        elseif P.turrets < 4 then -- 706-720
+            PilotBranch.TryBuild(rec, "avturr", 6)
+        elseif P.howitzers <= 0 and alive(fac) then -- 722-742
+            PilotBranch.TryBuild(fac, "avartl", 8)
+        elseif P.howitzers < 2 and P.supplyLost and alive(fac) then -- 744-761
+            PilotBranch.TryBuild(fac, "avartl", 8)
+        elseif P.supplyLost and not alive(P.lightTank) and alive(fac) then -- 763-780
+            PilotBranch.TryBuild(fac, "avltnk", 6)
+        end
+    end
+    if not alive(power) then -- 784-787
+        P.supplyLost = true
+    elseif alive(P.howitzer1) and not P.powerAttack then -- 790-796
+        if IsDeployed(P.howitzer1) then
+            P.powerAttack = true
+            Attack(P.howitzer1, power, 1)
+        end
+    end
+    if P.supplyLost and not P.howitzerAttack and P.howitzerOrder then -- 798-840
+        local h1, h2 = P.howitzer1, P.howitzer2
+        if P.lightTankTeam ~= 0 then
+            if alive(h1) and not IsDeployed(h1) and alive(h2) and not IsDeployed(h2) then
+                P.lightTankTeam = 0
+            end
+        else
+            local d1 = alive(h1) and IsDeployed(h1) or not alive(h1)
+            local d2 = alive(h2) and IsDeployed(h2) or not alive(h2)
+            if d1 and d2 then
+                P.howitzerAttack = true
+                if alive(h1) and alive(M.ccarecycle) then Attack(h1, M.ccarecycle, 1) end -- 830
+                if alive(h2) and alive(M.ccarecycle) then Attack(h2, M.ccarecycle, 1) end -- 833
+            end
+        end
+    end
+end
+
+local function InitializePilotMode()
+    PlayerPilotMode.Initialize({ scripted = true, update = PilotUpdate,
+        enable = function() PilotBranch.Adopt(PilotState(), PilotAddObject) end,
+        disable = function() PilotBranch.Release(PilotState()) end }, M.playerPilotModeState)
+end
+-- CR Pilot Mode <<
+
 local function InitializeCoop()
     CRCoop.Initialize({
         getLocalPlayerId = function() return exu.GetMyNetID and exu.GetMyNetID() end,
@@ -1554,6 +1797,10 @@ local function InitializeCoop()
 -- CR Venus weather >>
     ShutdownVenusWeather()
 -- CR Venus weather <<
+-- CR Pilot Mode >>
+    -- Start calls this first, on a fresh M; Load calls InitializePilotMode itself.
+    if CRCoop.IsAuthority() then InitializePilotMode() end
+-- CR Pilot Mode <<
 end
 
 -- The native AiMission supplies the CCA strategic AI. LuaMission must enable it at chunk load,
@@ -1785,6 +2032,9 @@ function AddObject(h)
     Environment.OnObjectCreated(h)
     CRVenusWeather.OnObjectCreated(h)
 -- CR Venus weather <<
+-- CR Pilot Mode >>
+    PilotAddObject(h)
+-- CR Pilot Mode <<
 end
 
 function CreatePlayer(id, name, team)
@@ -1840,6 +2090,9 @@ function Update(dt)
         local offlinePlayer = GetHandle("player-1_hover")
         if IsValid(offlinePlayer) and not CRCoop.IsHumanCraft(offlinePlayer) then RemoveObject(offlinePlayer) end
     end
+-- CR Pilot Mode >>
+    PlayerPilotMode.Update()
+-- CR Pilot Mode <<
     -- Misn07Mission::Execute body (DLL order preserved below).
     -- START OF SCRIPT
     -- Here is where you put what happens  every frame.  
@@ -2991,13 +3244,20 @@ function Save()
         M.weatherState = CRVenusWeather.Save()
     end
 -- CR Venus weather <<
-    return M
+-- CR Pilot Mode >>
+    M.playerPilotModeState = PlayerPilotMode.Save()
+-- CR Pilot Mode <<
+    return M, M.playerPilotModeState
 end
 
-function Load(state)
+function Load(state, pilotModeData)
 -- CR Venus weather >>
     ShutdownVenusWeather()
     if Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
 -- CR Venus weather <<
     M = state
+-- CR Pilot Mode >>
+    M.playerPilotModeState = pilotModeData or M.playerPilotModeState
+    if CRCoop.IsAuthority() then InitializePilotMode() end
+-- CR Pilot Mode <<
 end

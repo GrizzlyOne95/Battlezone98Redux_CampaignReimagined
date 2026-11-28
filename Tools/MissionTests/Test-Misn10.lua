@@ -111,6 +111,9 @@ local modules = {
         UpdateHeadlights = function() pda.UpdateHeadlights = pda.UpdateHeadlights + 1 end,
         OnObjectCreated = function() pda.OnObjectCreated = pda.OnObjectCreated + 1 end},
     crreqfix = {Initialize = noop}, exu = {},
+    PlayerPilotMode = {Initialize = noop, Update = noop, Save = function() return {} end,
+        IsEnabled = function() return false end},
+    CRPilotBranch = assert(loadfile("Scripts/CRPilotBranch.lua"))(),
     Environment = {Init = noop, BindWeatherSensors = noop, Update = noop, OnObjectCreated = noop},
     -- The real module plays through AudioMessage and returns its handle.
     ScriptSubtitles = {Play = function(file) return AudioMessage(file) end,

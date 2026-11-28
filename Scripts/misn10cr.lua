@@ -159,6 +159,145 @@ end
 -- CR PDA <<
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
+-- CR PDA >>
+-- N64 Pilot Mode branch (Battlezone 64 table 8, byte g_800B93D5), behind the PDA Pilot Mode
+-- toggle; single player only (PlayerPilotMode is off in network games). Port of
+-- Battlezone_Z64Tools redux_lua/n64m10.lua, which follows mission_scripts m08_misn10.c (C line
+-- numbers below). N64 labels map to this BZN by position (Docs/PILOT_MODE_N64_LABELS.md):
+-- 31 = avrecycler (Utah, NSDF recycler), 59 = relic, 2/32 = cam1/cam3, path(3) = main_return_path;
+-- n64p085 (10 scrap factory) is avmuf. The branch never touches aiCore.
+-- Adaptations: Z64 gates AddObject on the toggle alone; CR also requires team 1. The turret Goto
+-- uses priority 1 (the Lock order). The recycler/factory stall watchdogs (C 448-486, path-command
+-- resets) become CRPilotBranch.Resend for the built factory only (Utah starts deployed); the Z64
+-- gives no geyser, so the factory goes to the nearest free base geyser (UNVERIFIED choice).
+-- Not ported (N64-only text/voice): voice 530->537/534->538, objectives 403-405, the factory and
+-- tug loss fails (TXT_307/308, C 487-503). The branch has no supply pods or wingmen.
+local Pilot = { mode = require("PlayerPilotMode"), branch = require("CRPilotBranch"), geysers = {
+    "eggeizr136_geyser", "eggeizr144_geyser", "eggeizr152_geyser", "eggeizr160_geyser" } }
+
+function Pilot.State()
+    local P = M.pilot
+    if not P then
+        P = Pilot.branch.NewState()
+        P.turretsBuilt, P.factoryBuilt, P.tugBuilt = 0, false, false
+        P.pickedUp, P.followPlayer, P.started = false, false, false
+        M.pilot = P
+    end
+    return P
+end
+
+-- C 233-283 (sub_801FD67C): player-team units built in Pilot Mode get their N64 orders.
+function Pilot.AddObject(h)
+    local mode, B = Pilot.mode, Pilot.branch
+    if not (mode and B) or not mode.IsEnabled() or GetTeamNum(h) ~= 1 then return end
+    local P = Pilot.State()
+    if not B.Claim(P, h) then return end
+    if IsOdf(h, "avscav") then -- C 237-253: scavenger slots (the replacement top-up reads them)
+        if h == P.scav1 or h == P.scav2 then return end
+        if not B.alive(P.scav1) then P.scav1 = h
+        elseif not B.alive(P.scav2) then P.scav2 = h end
+    elseif IsOdf(h, "avmuf") then -- C 255-259: n64p085
+        P.factory, P.factoryBuilt = h, true
+    elseif IsOdf(h, "avturr") then -- C 261-273: path(3)
+        Goto(h, "main_return_path", 1)
+    elseif IsOdf(h, "avhaul") then -- C 275-283: the tug follows the player
+        P.tug = h
+        local player = GetPlayerHandle()
+        if B.alive(player) then Follow(h, player, 1) end
+        SetObjectiveOn(h)
+    end
+end
+
+-- The nearest base geyser to Utah that Utah is not sitting on.
+function Pilot.FactoryGeyser()
+    local rec, best, bestDistance = M.nsdfrecycle, nil, nil
+    if not Pilot.branch.alive(rec) then return nil end
+    for _, label in ipairs(Pilot.geysers) do
+        local geyser = GetHandle(label)
+        if geyser ~= nil then
+            local d = GetDistance(rec, geyser)
+            if d > 20 and (bestDistance == nil or d < bestDistance) then best, bestDistance = geyser, d end
+        end
+    end
+    return best
+end
+
+-- C 448-625, run by PlayerPilotMode.Update while the toggle is on.
+function Pilot.Update()
+    local B = Pilot.branch
+    local player = GetPlayerHandle()
+    if not B.alive(player) then return end
+    local P = Pilot.State()
+    local now = GetTime()
+    local rec, factory, tug = M.nsdfrecycle, P.factory, P.tug
+
+    if not P.started then -- C 974-977: navcams 2 and 32 are objectives
+        P.started = true
+        if B.alive(M.nav1) then SetObjectiveOn(M.nav1) end
+        if B.alive(M.nav3) then SetObjectiveOn(M.nav3) end
+    end
+    B.Lock(P, now)
+    if B.alive(factory) and not IsDeployed(factory) then -- C 468-485
+        B.Resend(P, "factory", factory, Pilot.FactoryGeyser(), now)
+    end
+
+    -- C 505-528: the tug picks the relic up within 100 m, then follows the player home.
+    if B.alive(tug) and M.sav_free then
+        if B.alive(M.sav) and GetDistance(tug, M.sav) < 100 and not P.pickedUp then
+            Pickup(tug, M.sav, 1)
+            P.pickedUp = true
+        end
+    else
+        P.pickedUp = false
+    end
+    if B.alive(tug) and M.sav_secure and not P.followPlayer then
+        P.followPlayer = true
+        Follow(tug, player, 1)
+    end
+
+    if not B.alive(rec) then return end
+    -- C 532-625: one blocking chain; the first unmet item wins the frame.
+    if not B.alive(P.scav1) or not B.alive(P.scav2) then -- 532-566: scavengers up to two
+        if B.Ready(rec) then
+            if GetScrap(1) < 4 then AddScrap(1, 4) end
+            if GetPilot(1) == 0 then AddPilot(1, 1) end
+            if GetScrap(1) >= 4 and GetPilot(1) > 0 then Build(rec, "avscav", 1) end
+        end
+    elseif not P.factoryBuilt then -- 569-583
+        if B.Ready(rec) and GetScrap(1) >= 10 then
+            Build(rec, "avmuf", 1)
+            P.factoryBuilt = true
+        end
+    elseif P.turretsBuilt < 2 then -- 585-603
+        if B.Ready(rec) and GetScrap(1) >= 6 and GetPilot(1) > 0 then
+            Build(rec, "avturr", 1)
+            P.turretsBuilt = P.turretsBuilt + 1
+        end
+    elseif not P.tugBuilt and B.alive(factory) then -- 605-625
+        if B.Ready(factory) and GetScrap(1) >= 6 and GetPilot(1) > 0 then
+            Build(factory, "avhaul", 1)
+            P.tugBuilt = true
+        end
+    end
+end
+function Pilot.Init()
+    if Pilot.mode and Pilot.branch and not CRCoop.IsNetworkGame() then
+        Pilot.mode.Initialize({ scripted = true, update = Pilot.Update,
+            enable = function() Pilot.branch.Adopt(Pilot.State(), Pilot.AddObject) end,
+            disable = function() Pilot.branch.Release(Pilot.State()) end }, M.playerPilotModeState)
+    end
+end
+
+function Pilot.Tick()
+    if Pilot.mode and Pilot.branch then Pilot.mode.Update() end
+end
+
+function Pilot.Save()
+    if Pilot.mode then M.playerPilotModeState = Pilot.mode.Save() end
+    return M.playerPilotModeState
+end
+-- N64 Pilot Mode branch end
+-- CR PDA <<
 -- The DLL's CCA is team 2 (a guest slot in co-op): every CCA object, spawn, resource and AIP is team 5.
 -- The relic (hvsrb, label "relic") is authored on team 0 (neutral) and stays there: a tug carries cargo
 -- of any team (GetTug and the seized/secured test read the *tug's* team).
@@ -784,6 +923,9 @@ function Start()
     InitializeCoop()
 -- CR co-op layer <<
     M = NewState()
+-- CR PDA >>
+    Pilot.Init()
+-- CR PDA <<
     --[==[/*
 Here's where you set the values at the start.  
 */]==]
@@ -914,6 +1056,9 @@ function AddObject(h)
     missionPda.Object(h)
 -- CR PDA <<
     if not IsValid(h) then return end
+-- CR PDA >>
+    Pilot.AddObject(h)
+-- CR PDA <<
 -- CR Io weather >>
     Environment.OnObjectCreated(h)
     CRIoWeather.OnObjectCreated(h)
@@ -1011,6 +1156,9 @@ function Update(dt)
         if IsValid(offlinePlayer) and not CRCoop.IsHumanCraft(offlinePlayer) then RemoveObject(offlinePlayer) end
     end
 -- CR co-op layer <<
+-- CR PDA >>
+    Pilot.Tick()
+-- CR PDA <<
     --[==[/*
 Here is where you put what happens every frame.  
 */]==]
@@ -1884,13 +2032,20 @@ function Save()
         M.weatherState = CRIoWeather.Save()
     end
 -- CR Io weather <<
-    return M
+-- CR PDA >>
+    local pilotModeState = Pilot.Save()
+-- CR PDA <<
+    return M, pilotModeState
 end
 
-function Load(state)
+function Load(state, pilotModeData)
 -- CR Io weather >>
     ShutdownIoWeather()
     if Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
 -- CR Io weather <<
     M = state
+-- CR PDA >>
+    M.playerPilotModeState = pilotModeData or M.playerPilotModeState
+    Pilot.Init()
+-- CR PDA <<
 end

@@ -160,4 +160,40 @@ do
     IsNetGame = nil
 end
 
+-- Scripted adapter (the N64 Pilot branches): no aiCore team needed, the
+-- adapter's update runs while enabled, and aiCore is never touched.
+do
+    local addCalls, updates, enables, disables, config = 0, 0, 0, 0, team.Config.autoManage
+    aiStub.AddObject = function() addCalls = addCalls + 1 end
+    aiStub.ActiveTeams[1] = nil
+    PersistentConfig.Settings.PilotModeEnabled = false
+    PilotMode.Initialize({ scripted = true, update = function() updates = updates + 1 end,
+        enable = function() enables = enables + 1 end, disable = function() disables = disables + 1 end })
+    assert(PilotMode.IsAvailable() == true, "scripted adapter not available")
+    PilotMode.Update()
+    assert(updates == 0, "scripted update ran while off")
+    PersistentConfig.Settings.PilotModeEnabled = true
+    PilotMode.Update()
+    assert(PilotMode.IsEnabled() == true, "scripted adapter did not enable without an aiCore team")
+    assert(updates == 1, "scripted update did not run")
+    assert(enables == 1, "scripted enable hook did not run on the false->true transition")
+    PilotMode.Update()
+    assert(enables == 1, "scripted enable hook ran again while the mode stayed enabled")
+    assert(PilotMode.AddObject(wingman) == false and addCalls == 0, "scripted AddObject reached aiCore")
+    -- Rapid PDA toggling: one hook call per transition, none while unchanged.
+    for _ = 1, 100 do
+        PersistentConfig.Settings.PilotModeEnabled = false; PilotMode.Update(); PilotMode.Update()
+        PersistentConfig.Settings.PilotModeEnabled = true; PilotMode.Update()
+    end
+    assert(enables == 101 and disables == 100, "toggle hooks ran " .. enables .. "/" .. disables .. ", want 101/100")
+    assert(updates == 102, "scripted update ran while off during toggling")
+    PilotMode.Initialize({ scripted = true, update = function() error("boom") end })
+    PilotMode.Update(); PilotMode.Update()
+    PersistentConfig.Settings.PilotModeEnabled = false
+    PilotMode.Update()
+    assert(PilotMode.IsEnabled() == false, "scripted adapter did not disable")
+    assert(team.Config.autoManage == config, "scripted mode changed the team config")
+    aiStub.ActiveTeams[1] = team
+end
+
 io.write("PlayerPilotMode checks passed\n")

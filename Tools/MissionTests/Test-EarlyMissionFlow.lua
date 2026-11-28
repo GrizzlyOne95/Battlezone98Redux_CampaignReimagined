@@ -299,7 +299,7 @@ attack(m, context())
 check(#m.razorAttackers == 2 and count("Attack") == 1 and m.attackcmd, "old save seeds named survivors, skipping dead units")
 
 -- Actual Load body migrates old latches while preserving new saved progress.
-local loadBody = assert(sources["05"]:match("function Load%(missionData, _%)\n(.-)\nend"))
+local loadBody = assert(sources["05"]:match("function Load%(missionData, _, pilotModeData%)\n(.-)\nend"))
 local loadMission = compile(loadBody)
 reset()
 m = { attacktimeset = true, aw1 = "deadR1", go = true, attackcmd = true }

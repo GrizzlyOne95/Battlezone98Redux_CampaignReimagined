@@ -188,6 +188,8 @@ end
 -- CR PDA <<
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
+local PlayerPilotMode = require("PlayerPilotMode")
+local PilotBranch = require("CRPilotBranch")
 local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
 -- CR difficulty >>
 -- Single-player difficulty (Scripts/CRDifficulty.lua): lexical wrappers for scrap/pilots and extra hostile combat units;
@@ -1508,6 +1510,228 @@ local trackedObjects = {
     {"scav1", "svscav"}, {"scav2", "svscav"}, {"scav3", "svscav"},
     {"nsdfgech1", "avwalk"}, {"ccatug", "svhaul"}, {"avsilo", "absilo"},
 }
+-- CR pilot mode >>
+-- N64 Pilot Mode branch (Battlezone 64 table 7, byte g_800B93D5), behind the
+-- PDA Pilot Mode toggle; single player only (PlayerPilotMode is off in MP).
+-- Port of Battlezone_Z64Tools redux_lua/n64m09.lua, which follows
+-- mission_scripts m07_misn09.c (C line numbers below). N64 labels map to this
+-- BZN by position (Docs/PILOT_MODE_N64_LABELS.md, "m07_misn09"): label 18 =
+-- rig (M.nsdfrig, avcns9), 19-21 = scav1-3, 35 = avslf (M.nsdfslf), 44 = avmuf
+-- (M.nsdfmuf, the factory), 6 = cam1 (M.nav1), 13 = cut_off_geyser. N64
+-- path(16), the 33-point route from the player start to geyser 13, has no CR
+-- path: the factory is sent to cut_off_geyser itself (the route's last point,
+-- 2886, 99661; a Goto on a geyser deploys on arrival).
+-- Adaptations: the armory's N64 reload/repair path commands (C 687, 706) are
+-- BuildAt pods on the player. Not ported: the N64-only voice/text variants
+-- (549/550, us09o399-402 objectives, us09t299-301 debriefs), the shorter
+-- wave/deadline timers (C 562-576: CR runs its own 700/1000/1300 s warnings)
+-- and the armory ClearPathCommand (C 589, 655-667; it has no CR path command).
+-- N64 voice 542 (navpoint 6) maps to CR's recon message (M.recon_artil).
+local function PilotState()
+    local P = M.pilot
+    if not P then
+        P = PilotBranch.NewState()
+        P.tanksOrdered, P.walkOrdered = 0, 0
+        P.ptank = {}
+        P.ammoOrders, P.repairOrders, P.ammoPending, P.repairPending = 0, 0, 0, 0
+        P.supplyAt = 0
+        P.recycleArmed, P.siloFailArmed, P.tugFailArmed = false, false, false
+        P.cnstFailArmed = true
+        M.pilot = P
+    end
+    return P
+end
+
+local function PilotSpot(x, z)
+    return SetVector(x, GetTerrainHeightAndNormal(SetVector(x, 0, z)), z)
+end
+
+local function PilotDist(a, b)
+    if not (PilotBranch.alive(a) and PilotBranch.alive(b)) then return 1e9 end
+    return GetDistance(a, b)
+end
+
+-- C 294-367 / 474-482: player-team units built in Pilot Mode get their orders.
+-- Returns true when the object was consumed (the N64 branch returns early).
+local function PilotAddObject(h)
+    if not PlayerPilotMode.IsEnabled() or GetTeamNum(h) ~= 1 then return false end
+    local P = PilotState()
+    if not PilotBranch.Claim(P, h) then return false end
+    local alive = PilotBranch.alive
+    if IsOdfBase(h, "avtank") then
+        if P.tanksOrdered >= 1 and P.tanksOrdered <= 3 then
+            Follow(h, M.nsdfmuf, 1)
+            P.ptank[P.tanksOrdered] = h
+        end
+        return true
+    elseif not alive(P.plHaul) and IsOdfBase(h, "avhaul") then
+        P.plHaul = h
+        P.plHaulPickup = false
+        P.tugFailArmed = true
+        return true
+    elseif IsOdfBase(h, "avwalk") then
+        Follow(h, M.nsdfmuf, 1)
+        P.pwalk = h
+        return true
+    elseif IsOdfBase(h, "apammo") or IsOdfBase(h, "aprepa") then -- C 332-366
+        local assigned = false
+        if IsOdfBase(h, "apammo") then
+            if not alive(P.ammo1) then P.ammo1 = h; assigned = true
+            elseif not alive(P.ammo2) then P.ammo2 = h; assigned = true end
+            P.ammoPending = math.max(0, P.ammoPending - 1)
+        else
+            if not alive(P.repair1) then P.repair1 = h; assigned = true
+            elseif not alive(P.repair2) then P.repair2 = h; assigned = true end
+            P.repairPending = math.max(0, P.repairPending - 1)
+        end
+        if assigned then SetObjectiveOn(h) end
+        return true
+    elseif M.avsilo == nil and IsOdfBase(h, "absilo") then -- C 474-482; tracked as M.avsilo after this
+        P.recycleArmed = true
+        P.siloFailArmed = true
+    end
+    return false
+end
+
+local function PilotFail()
+    M.game_over = true
+    FailMission(GetTime() + 5.0)
+end
+
+-- C 608-936, run by PlayerPilotMode.Update while the toggle is on.
+local function PilotUpdate()
+    if not M.start_done or M.game_over then return end
+    local player = GetPlayerHandle()
+    if not PilotBranch.alive(player) then return end
+    local P = PilotState()
+    local alive = PilotBranch.alive
+    local now = GetTime()
+    local fact, cnst, slf = M.nsdfmuf, M.nsdfrig, M.nsdfslf
+    local geyser = M.cut_off_geyser
+    PilotBranch.Lock(P, now)
+
+    if M.recon_artil and not P.navSet then -- C 1101-1103 (voice 542)
+        P.navSet = true
+        if alive(M.nav1) then SetUserTarget(M.nav1) end
+    end
+
+    -- C 608-651: up to two repair and two ammo orders when the player is hurt/dry.
+    if GetHealth(player) < 0.75 and P.repairPending == 0 then
+        if not alive(P.repair1) then P.repairOrders = P.repairOrders + 1; P.repairPending = P.repairPending + 1 end
+        if not alive(P.repair2) then P.repairOrders = P.repairOrders + 1; P.repairPending = P.repairPending + 1 end
+    end
+    if GetAmmo(player) < 0.75 and P.ammoPending == 0 then
+        if not alive(P.ammo1) then P.ammoOrders = P.ammoOrders + 1; P.ammoPending = P.ammoPending + 1 end
+        if not alive(P.ammo2) then P.ammoOrders = P.ammoOrders + 1; P.ammoPending = P.ammoPending + 1 end
+    end
+    -- C 671-711: ammo first, one order per 3 s window.
+    if alive(slf) and now >= P.supplyAt and PilotBranch.Ready(slf) and GetScrap(1) > 0 then
+        if P.ammoOrders > 0 then
+            BuildAt(slf, "apammo", player, 1)
+            P.ammoOrders = P.ammoOrders - 1
+            P.supplyAt = now + 3
+        elseif P.repairOrders > 0 then
+            BuildAt(slf, "aprepa", player, 1)
+            P.repairOrders = P.repairOrders - 1
+            P.supplyAt = now + 3
+        end
+    end
+
+    -- C 1203-1263 (artillery cleared): factory to geyser 13, rig and scavengers follow.
+    if M.objective1 and not P.artSent then
+        P.artSent = true
+        if alive(M.nav1) then SetUserTarget(M.nav1) end
+        if alive(fact) then
+            Goto(fact, geyser, 1)
+            P.siloArmed = true
+            if alive(cnst) then Follow(cnst, fact, 1) end
+            for _, scav in ipairs({ M.avscav1, M.avscav2, M.avscav3 }) do
+                if alive(scav) then Follow(scav, fact, 1) end
+            end
+        end
+    end
+    if M.objective1 then PilotBranch.Resend(P, "fact", fact, geyser, now) end -- C 714-733
+
+    -- C 735-760: the silo, constructor and player tug must live.
+    if P.siloFailArmed and not alive(M.avsilo) then return PilotFail() end
+    if P.cnstFailArmed and not alive(cnst) then return PilotFail() end
+    if P.tugFailArmed and not alive(P.plHaul) then return PilotFail() end
+
+    local relic = M.relic
+    if alive(P.plHaul) then -- C 762-784
+        if M.relic_free and not M.relic_secure and not M.relic_seized
+           and not P.plHaulPickup and not alive(M.ccatug) and alive(relic) then
+            Pickup(P.plHaul, relic, 1)
+            P.plHaulPickup = true
+            P.plHaulFollow = false
+        elseif M.relic_secure and not P.plHaulFollow then
+            P.plHaulFollow = true
+            if alive(fact) then Follow(P.plHaul, fact, 1) end
+        end
+    end
+    if alive(fact) then -- C 787-831: escorts attack the Soviet tug near the relic
+        local escorts = { P.ptank[1], P.ptank[2], P.pwalk, P.ptank[3] }
+        if PilotDist(fact, relic) < 300.0 and not P.escortAttack then
+            P.escortAttack = true
+            local holder = alive(relic) and GetTug(relic) or nil
+            if alive(holder) and GetTeamNum(holder) ~= 1 then
+                for _, u in ipairs(escorts) do
+                    if alive(u) then Attack(u, holder, 1) end
+                end
+            end
+        end
+        if P.escortAttack and not P.escortFollow and M.relic_free
+           and not M.relic_secure and not M.relic_seized and alive(relic) then
+            for _, u in ipairs(escorts) do
+                if alive(u) then Follow(u, relic, 1) end
+            end
+            P.escortFollow = true
+        end
+    end
+    if P.dropPending and alive(cnst) then -- C 594-606
+        Dropoff(cnst, PilotSpot(2836, 99811), 1)
+        P.dropPending = false
+    end
+    if P.recycleArmed and alive(cnst) and not IsBusy(cnst) then -- C 833-848
+        SetCommand(cnst, AiCommand.RECYCLE, 1, cnst)
+        P.recycleArmed = false
+        P.cnstFailArmed = false
+    end
+    if alive(cnst) and alive(fact) and IsDeployed(fact) and P.siloArmed then -- C 850-868
+        SetUserTarget(nil)
+        if not P.siloOrdered then
+            Build(cnst, "absilo", 1)
+            P.dropPending = true
+            P.siloOrdered = true
+        end
+    end
+    if alive(fact) then -- C 870-935: factory queue, first unmet item wins
+        if P.tanksOrdered < 3 then
+            if PilotBranch.Ready(fact) and GetScrap(1) >= 8 and GetPilot(1) > 0 then
+                Build(fact, "avtank", 1)
+                P.tanksOrdered = P.tanksOrdered + 1
+            end
+        elseif not alive(P.plHaul) then
+            if PilotBranch.Ready(fact) and GetScrap(1) >= 6 and GetPilot(1) > 0 then
+                Build(fact, "avhaul", 1)
+                P.siloFailArmed = false
+            end
+        elseif P.walkOrdered <= 0 then
+            if PilotBranch.Ready(fact) and GetScrap(1) >= 12 and GetPilot(1) > 0 then
+                Build(fact, "avwalk", 1)
+                P.walkOrdered = P.walkOrdered + 1
+            end
+        end
+    end
+end
+
+local function InitializePilotMode()
+    PlayerPilotMode.Initialize({ scripted = true, update = PilotUpdate,
+        enable = function() PilotBranch.Adopt(PilotState(), PilotAddObject) end,
+        disable = function() PilotBranch.Release(PilotState()) end }, M.playerPilotModeState)
+end
+-- CR pilot mode <<
+
 function AddObject(h)
 -- CR PDA >>
     missionPda.Object(h)
@@ -1523,6 +1747,9 @@ function AddObject(h)
 -- CR cut VO >>
     NoteBuiltUnit(h)
 -- CR cut VO <<
+-- CR pilot mode >>
+    if PilotAddObject(h) then return end
+-- CR pilot mode <<
     for _, entry in ipairs(trackedObjects) do
         if M[entry[1]] == nil and IsOdfBase(h, entry[2]) then
             M[entry[1]] = h
@@ -1559,6 +1786,9 @@ SetAIControl(ENEMY_TEAM, true)
 function Start()
     InitializeCoop()
     Setup()
+-- CR pilot mode >>
+    if CRCoop.IsAuthority() then InitializePilotMode() end
+-- CR pilot mode <<
     -- C++ Setup precedes AiMission::Load and its AddObject notifications.
     -- Redux may create map objects before Start; recover the tracked slots
     -- after Setup so those earlier notifications cannot be discarded.
@@ -1634,6 +1864,9 @@ function Update(dt)
         local offlinePlayer = GetHandle("player0_hover")
         if IsValid(offlinePlayer) and not CRCoop.IsHumanCraft(offlinePlayer) then RemoveObject(offlinePlayer) end
     end
+-- CR pilot mode >>
+    PlayerPilotMode.Update()
+-- CR pilot mode <<
     -- Misn09Mission::Execute body (DLL order preserved below).
     --[==[ Original C++ comment (inactive):
 /*
@@ -2353,12 +2586,19 @@ function Save()
         M.weatherState = CRVenusWeather.Save()
     end
 -- CR Venus weather <<
-    return M
+-- CR pilot mode >>
+    M.playerPilotModeState = PlayerPilotMode.Save()
+    return M, M.playerPilotModeState
+-- CR pilot mode <<
 end
-function Load(state)
+function Load(state, pilotModeData)
 -- CR Venus weather >>
     ShutdownVenusWeather()
     if Environment.InvalidateRenderer then Environment.InvalidateRenderer() end
 -- CR Venus weather <<
     if state ~= nil then M = state end
+-- CR pilot mode >>
+    M.playerPilotModeState = pilotModeData or M.playerPilotModeState
+    InitializePilotMode()
+-- CR pilot mode <<
 end

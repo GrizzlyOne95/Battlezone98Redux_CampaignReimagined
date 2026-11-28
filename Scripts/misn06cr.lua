@@ -41,6 +41,8 @@ local CRWire = require("CRWire")
 -- CR atmosphere >>
 local Environment = require("Environment")
 local CRMarsWeather = require("CRMarsWeather")
+local PlayerPilotMode = require("PlayerPilotMode")
+local PilotBranch = require("CRPilotBranch")
 local InitAtmosphere, weatherStarted, nextWeatherSync = nil, false, 0
 -- CR atmosphere <<
 local LEADER_TEAM, ENEMY_TEAM, SUPPORT_TEAM = 1, 5, 7
@@ -1073,18 +1075,176 @@ local function UpdateAtmosphere(dt)
 end
 -- CR atmosphere <<
 
+-- CR pilot mode >>
+-- N64 Pilot Mode branch (Battlezone 64 table 4, byte g_800B93D5), behind the
+-- PDA Pilot Mode toggle; single player only (PlayerPilotMode is off in MP).
+-- Port of Battlezone_Z64Tools redux_lua/n64m06.lua, which follows
+-- mission_scripts m04_misn06.c (C line numbers below). N64 labels map to this
+-- BZN by position (Docs/PILOT_MODE_N64_LABELS.md): label 9 = Wyoming
+-- (avrecy-1_recycler = M.avrec), 2/3 = escort tanks avtank0_wingman and
+-- avtank1_wingman, 34 = geyser eggeizr1-1_geyser (M.rendezvous).
+-- N64 paths 35, 36 and 38 have no CR path; their points are inlined below and
+-- driven as a waypoint chain (Goto to each point in turn).
+-- The N64 flow flags map onto the DLL port's: intro camera end = opencamdone
+-- cleared, spNavReady = hephikey, spDone = starportreconed, dustOff =
+-- launchpadreconed, nav beacons = starportcam / dustoffcam (SetUserTarget).
+-- Adaptations: the recycler builds the naprepa/napammo pods its ODF lists
+-- (N64 apammo/aprepa); the N64 convoy leg ends at bugout1, so once path 38 is
+-- driven the recycler also goes to the random dustoffcam; the N64-only voice
+-- and text variants (428/429/387/573-576) are not ported. The N64 obheph
+-- unstuck counter (C 411-430, UNVERIFIED) is PilotBranch.Resend's 6 s re-send.
+local PILOT_ROUTES = {
+    p35 = { { 866, 100026 }, { 888, 99868 }, { 844, 99673 }, { 841, 99509 }, { 960, 99498 }, { 1851, 99550 } },
+    p36 = { { 1835, 99490 }, { 1938, 99420 }, { 2371, 99259 }, { 2719, 99145 }, { 2861, 99215 } },
+    p38 = { { 2780, 99160 }, { 2800, 99345 }, { 3228, 99350 }, { 3380, 99483 } },
+}
+
+local function PilotState()
+    local P = M.pilot
+    if not P then
+        P = PilotBranch.NewState()
+        P.scav, P.turr = false, false
+        P.ammo, P.repa, P.figh = 0, 0, 0
+        M.pilot = P
+    end
+    return P
+end
+
+local function PilotSpot(x, z)
+    return SetVector(x, GetTerrainHeightAndNormal(SetVector(x, 0, z)), z)
+end
+
+local function PilotStartRoute(P, name)
+    P.route = { name = name, i = 1 }
+end
+
+-- Waypoint chain for an N64 path command. Path 38 is re-sent every 10 s
+-- (C 403-409) and ends on the dust-off beacon.
+local function PilotDriveRoute(P, rec, now)
+    local r = P.route
+    if not r or not PilotBranch.alive(rec) then return end
+    local pts = PILOT_ROUTES[r.name]
+    local pt = pts[r.i]
+    if pt then
+        local pos = GetPosition(rec)
+        local dx, dz = pos.x - pt[1], pos.z - pt[2]
+        if dx * dx + dz * dz < 60 * 60 then
+            r.i, r.sentAt = r.i + 1, nil
+            pt = pts[r.i]
+        end
+    end
+    if pt then
+        if not r.sentAt or (r.name == "p38" and now >= r.sentAt + 10) then
+            Goto(rec, PilotSpot(pt[1], pt[2]), 1)
+            r.sentAt = now
+        end
+    elseif r.name ~= "p38" then
+        P.route = nil
+    elseif PilotBranch.alive(M.dustoffcam) then
+        Goto(rec, M.dustoffcam, 1)
+        P.route = nil
+    end
+end
+
+-- C 2078-2097: player-team fighters built in Pilot Mode follow the recycler.
+local function PilotAddObject(h)
+    if not PlayerPilotMode.IsEnabled() or GetTeamNum(h) ~= 1 then return end
+    if not PilotBranch.Claim(PilotState(), h) then return end
+    if IsOdf(h, "avfigh") and PilotBranch.alive(M.avrec) then Follow(h, M.avrec, 1) end
+end
+
+-- C 393-542, run by PlayerPilotMode.Update while the toggle is on.
+local function PilotUpdate()
+    local player = GetPlayerHandle()
+    if not PilotBranch.alive(player) then return end
+    local P = PilotState()
+    local now = GetTime()
+    local rec = M.avrec
+    PilotBranch.Lock(P, now)
+
+    -- C 1074-1076, 1794-1796: new nav beacons become the user target.
+    if PilotBranch.alive(M.starportcam) and P.camSeen ~= M.starportcam then
+        P.camSeen = M.starportcam
+        SetUserTarget(M.starportcam)
+    end
+    if PilotBranch.alive(M.dustoffcam) and P.dustSeen ~= M.dustoffcam then
+        P.dustSeen = M.dustoffcam
+        SetUserTarget(M.dustoffcam)
+    end
+
+    -- C 852-856: when the intro camera ends the escorts follow the recycler,
+    -- which heads down path 35.
+    if not P.introDone and M.missionstart == false and not M.opencamdone then
+        P.introDone = true
+        if PilotBranch.alive(rec) then
+            for _, name in ipairs({ "avtank0_wingman", "avtank1_wingman" }) do
+                local escort = GetHandle(name)
+                if PilotBranch.alive(escort) then Follow(escort, rec, 1) end
+            end
+            PilotStartRoute(P, "p35")
+        end
+    end
+    if not PilotBranch.alive(rec) then return end
+
+    -- C 923-928: object inspected, recycler on to path 36.
+    if M.hephikey and not P.hephSent and not M.starportreconed and not P.convoy then
+        P.hephSent = true
+        PilotStartRoute(P, "p36")
+    end
+    -- C 905-912, 411-430: starport inspected, recycler to its geyser (re-sent
+    -- while it is not deployed or on its way).
+    if M.starportreconed and not P.spSent and not P.convoy then
+        P.spSent, P.route = true, nil
+        if M.rendezvous and not IsDeployed(rec) then Goto(rec, M.rendezvous, 1) end
+    end
+    if P.spSent and not P.convoy and not P.route then
+        PilotBranch.Resend(P, "rec", rec, M.rendezvous, now)
+    end
+    -- C 519-540: launch pad inspected and the player near, convoy down path 38.
+    if not P.convoy and M.launchpadreconed and GetDistance(rec, player) < 100 and not IsBusy(rec) then
+        P.convoy = true
+        PilotStartRoute(P, "p38")
+    end
+    PilotDriveRoute(P, rec, now)
+
+    -- C 432-517: build queue when deployed and idle; the first unmet item
+    -- holds the rest (avscav, ammo x2, repair x2, avturr, avfigh x8).
+    if not PilotBranch.Ready(rec) then return end
+    local scrap = GetScrap(1)
+    if not P.scav then
+        if scrap >= 4 then Build(rec, "avscav", 1); P.scav = true end
+    elseif P.ammo < 2 then
+        if scrap > 0 then Build(rec, "napammo", 1); P.ammo = P.ammo + 1 end
+    elseif P.repa < 2 then
+        if scrap > 0 then Build(rec, "naprepa", 1); P.repa = P.repa + 1 end
+    elseif not P.turr then
+        if scrap >= 6 then Build(rec, "avturr", 1); P.turr = true end
+    elseif P.figh < 8 then
+        if scrap >= 6 and GetPilot(1) > 0 then Build(rec, "avfigh", 1); P.figh = P.figh + 1 end
+    end
+end
+
+local function InitializePilotMode()
+    PlayerPilotMode.Initialize({ scripted = true, update = PilotUpdate,
+        enable = function() PilotBranch.Adopt(PilotState(), PilotAddObject) end,
+        disable = function() PilotBranch.Release(PilotState()) end }, M.playerPilotModeState)
+end
+-- CR pilot mode <<
+
 function Save()
 -- CR atmosphere >>
     if weatherStarted then M.weatherState = CRMarsWeather.Save() end
 -- CR atmosphere <<
-    return M
+    M.playerPilotModeState = PlayerPilotMode.Save()
+    return M, M.playerPilotModeState
 end
 
-function Load(state)
+function Load(state, pilotModeData)
 -- CR launch film >>
     if M.launchFilm and M.launchFilm.camera and localCameraActive then CameraFinish() end
 -- CR launch film <<
     if state ~= nil then M = state end
+    M.playerPilotModeState = pilotModeData or M.playerPilotModeState
 -- CR launch film >>
     CR06LaunchFilm.Load(M)
     launchFX.Reset()
@@ -1094,6 +1254,9 @@ function Load(state)
     if weatherStarted then CRMarsWeather.Shutdown() end
     weatherStarted, nextWeatherSync = false, 0
 -- CR atmosphere <<
+-- CR pilot mode >>
+    if CRCoop.IsAuthority() then InitializePilotMode() end
+-- CR pilot mode <<
 end
 
 function Start()
@@ -1168,6 +1331,9 @@ function Start()
 -- CR PDA >>
     missionPda.Init()
 -- CR PDA <<
+-- CR pilot mode >>
+    if CRCoop.IsAuthority() then InitializePilotMode() end
+-- CR pilot mode <<
 end
 
 function AddObject(h)
@@ -1179,6 +1345,9 @@ function AddObject(h)
     Environment.OnObjectCreated(h)
     CRMarsWeather.OnObjectCreated(h)
 -- CR atmosphere <<
+-- CR pilot mode >>
+    PilotAddObject(h)
+-- CR pilot mode <<
 end
 
 function CreatePlayer(id, name, team)
@@ -1243,6 +1412,9 @@ function Update(dt)
     if not CR06OrbitFilm.Active(M) then UpdateAtmosphere(tonumber(dt) or (1.0 / 20.0)) end
 -- CR atmosphere <<
     if not CRCoop.IsAuthority() then return end
+-- CR pilot mode >>
+    PlayerPilotMode.Update()
+-- CR pilot mode <<
     if CRCoop.IsNetworkGame() and not M.coopBootstrapped then
         M.coopBootstrapped = true
         -- The authored offline placeholder must not remain beside the humans.
