@@ -374,6 +374,15 @@ jobs:
           "$LUA" Tools/UnitsAndBuildings/Test-PlayerPilotMode.lua
           python Tools/MissionTests/Test-Misn05CoopContract.py
 
+      - name: Test N64 Pilot Mode branches (misn05-10)
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          for n in 05 06 07 08 09 10; do
+            "$LUA" "Tools/MissionTests/Test-Misn${n}PilotMode.lua"
+          done
+
       - name: Test weather
         shell: bash
         run: |

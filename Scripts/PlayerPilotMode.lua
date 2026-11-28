@@ -1,5 +1,10 @@
 ---@diagnostic disable: lowercase-global, undefined-global
-local aiCore = require("aiCore")
+-- aiCore loads on first use, so scripted adapters (adapter.scripted = true:
+-- the mission drives its own units, as the N64 Pilot branches do) never pull
+-- it into a mission that has no aiCore team.
+local aiCore = setmetatable({}, {
+    __index = function(_, key) return require("aiCore")[key] end,
+})
 local PersistentConfig = require("PersistentConfig")
 
 local PlayerPilotMode = {
@@ -90,7 +95,12 @@ local function GetDesiredEnabled()
     return not not (PersistentConfig and PersistentConfig.Settings and PersistentConfig.Settings.PilotModeEnabled)
 end
 
+local function IsScripted()
+    return state.mission ~= nil and state.mission.scripted == true
+end
+
 local function GetPlayerTeam()
+    if IsScripted() then return nil end
     return aiCore and aiCore.ActiveTeams and aiCore.ActiveTeams[state.teamNum] or nil
 end
 
@@ -203,6 +213,13 @@ local function ApplyTeamConfig(team, enabled)
 end
 
 local function RecalculateCoreValues(enabled)
+    if IsScripted() then
+        state.lastTeamRef = nil
+        state.lastPlayerHandle = GetPlayerHandle()
+        state.lastAppliedEnabled = enabled and true or false
+        return true
+    end
+
     local team = GetPlayerTeam()
     if not team then
         return false
@@ -452,6 +469,10 @@ local function ReconcileTeamState()
         return
     end
 
+    if IsScripted() then
+        return
+    end
+
     if desired then
         ApplyTeamConfig(team, true)
     else
@@ -575,12 +596,24 @@ function PlayerPilotMode.Enable()
     state.enabled = true
     state.transitionSerial = (state.transitionSerial or 0) + 1
     Log("enabled")
+    -- Scripted adapters adopt units that already exist (map-placed, built
+    -- while the toggle was off, or present before the first Update).
+    local mission = state.mission
+    if IsScripted() and mission.enable then
+        local ok, err = pcall(mission.enable, PlayerPilotMode)
+        if not ok then Log("mission enable failed: " .. tostring(err)) end
+    end
     return true
 end
 
 function PlayerPilotMode.Disable()
     if state.enabled then
         ClearManagedCommands()
+        local mission = state.mission
+        if IsScripted() and mission.disable then
+            local ok, err = pcall(mission.disable, PlayerPilotMode)
+            if not ok then Log("mission disable failed: " .. tostring(err)) end
+        end
     end
 
     if not RecalculateCoreValues(false) then
@@ -610,7 +643,7 @@ function PlayerPilotMode.AddObject(h)
         return false
     end
 
-    if GetTeamNum(h) ~= state.teamNum or IsProtectedHandle(h) then
+    if IsScripted() or GetTeamNum(h) ~= state.teamNum or IsProtectedHandle(h) then
         return false
     end
 
@@ -645,7 +678,12 @@ function PlayerPilotMode.Update()
 
     local mission = state.mission
     if mission and mission.update then
-        pcall(mission.update, PlayerPilotMode)
+        local ok, err = pcall(mission.update, PlayerPilotMode)
+        local failure = not ok and tostring(err) or nil
+        if failure ~= state.lastUpdateError then
+            state.lastUpdateError = failure
+            if failure then Log("mission update failed: " .. failure) end
+        end
     end
 
     UpdateObjectiveContext()

@@ -137,6 +137,9 @@ local function NewMission()
         CRParticleTemplates = { Ensure = noop, EnsureExtra = function() return true end },
         CRWeather = { LiveSystems = {} },
         crreqfix = { Initialize = noop }, exu = {},
+        PlayerPilotMode = { Initialize = noop, Update = noop, Save = function() return {} end,
+            IsEnabled = function() return false end },
+        CRPilotBranch = assert(loadfile("Scripts/CRPilotBranch.lua"))(),
         Environment = { Init = function(options) w.environmentOptions=options; Record("environmentInit") end,
             Update = function() Record("environmentUpdate") end, OnObjectCreated = noop },
         CRMarsWeather = {

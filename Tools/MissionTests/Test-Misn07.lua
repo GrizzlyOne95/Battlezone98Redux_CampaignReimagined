@@ -56,6 +56,8 @@ local modules = {
         Queue = function(file) return AudioMessage(file) end, Stop = noop, Update = noop, Initialize = noop},
 }
 modules.CRDifficulty = assert(loadfile("Scripts/CRDifficulty.lua"))()
+modules.PlayerPilotMode = {Initialize = function() end, Update = function() end, Save = function() return {} end, IsEnabled = function() return false end}
+modules.CRPilotBranch = assert(loadfile("Scripts/CRPilotBranch.lua"))()
 function require(name) return assert(modules[name], name) end
 function GetPlayerHandle() return GetHandle("player") end
 function GetTime() return now end

@@ -22,6 +22,8 @@ local CRMarsWeather = require("CRMarsWeather")
 local PhysicsImpact = require("PhysicsImpact")
 local CRCoop = require("CRCoop")
 local CRWire = require("CRWire")
+local PlayerPilotMode = require("PlayerPilotMode")
+local PilotBranch = require("CRPilotBranch")
 local LEADER_TEAM, ENEMY_TEAM, MINE_TEAM, SUPPORT_TEAM = 1, 5, 6, 7
 local stockWeatherWindPush = CRMarsWeather.AllowWindPush
 local M
@@ -447,6 +449,130 @@ function ReceivePresentationDecoded(from, kind, ...)
 end
 
 
+-- N64 Pilot Mode branch (Battlezone 64 table 3, byte g_800B93D5), behind the
+-- PDA Pilot Mode toggle; single player only (PlayerPilotMode is off in MP).
+-- Port of Battlezone_Z64Tools redux_lua/n64m05.lua, which follows
+-- mission_scripts m03_misn05.c (C line numbers below). N64 labels map to this
+-- BZN by position (Docs/PILOT_MODE_N64_LABELS.md): label 10 = Montana
+-- (avrecy-1_recycler), 19 = armory (avslf0_armory), 2/3 = geysers
+-- eggeizr118/eggeizr132, 15 = cam1.
+-- Adaptations: the armory's N64 reload/repair path commands are BuildAt
+-- pods on the player; the N64-only voice variants (547/548) are not ported.
+local PILOT_TURRET_SPOTS = { -- g_801FD168..1AC, +96000 z
+    { 2214, 100216 }, { 2256, 100292 }, { 2219, 100284 },
+    { 1591, 100610 }, { 1525, 100610 }, { 1535, 100777 },
+}
+
+local function PilotSpot(x, z)
+    return SetVector(x, GetTerrainHeightAndNormal(SetVector(x, 0, z)), z)
+end
+
+local function PilotState()
+    local P = M.pilot
+    if not P then
+        P = PilotBranch.NewState()
+        P.turrets, P.scavengers, P.fighters = 0, 0, 0
+        P.repairWant, P.ammoWant, P.repairArmed, P.ammoArmed = 0, 0, 0, 0
+        P.supplyAt = 0
+        P.pods = {}
+        M.pilot = P
+    end
+    return P
+end
+
+-- C 221-322: player-team units built in Pilot Mode get their N64 orders.
+local function PilotAddObject(h)
+    if not PlayerPilotMode.IsEnabled() or GetTeamNum(h) ~= 1 then return end
+    local P = PilotState()
+    if not PilotBranch.Claim(P, h) then return end
+    if IsOdf(h, "avturr") and P.turrets < #PILOT_TURRET_SPOTS then
+        P.turrets = P.turrets + 1
+        local spot = PILOT_TURRET_SPOTS[P.turrets]
+        Goto(h, PilotSpot(spot[1], spot[2]), 1)
+    elseif IsOdf(h, "avscav") then
+        P.scavengers = P.scavengers + 1
+    elseif IsOdf(h, "avfigh") then
+        P.fighters = P.fighters + 1
+        local player = GetPlayerHandle()
+        if PilotBranch.alive(player) then Follow(h, player, 1) end
+        if not PilotBranch.alive(P.esc1) then P.esc1 = h
+        elseif not PilotBranch.alive(P.esc2) then P.esc2 = h end
+    elseif IsOdf(h, "apammo") then
+        P.pods[#P.pods + 1] = h
+        if P.ammoArmed > 0 then P.ammoArmed = P.ammoArmed - 1 end
+    elseif IsOdf(h, "aprepa") then
+        P.pods[#P.pods + 1] = h
+        if P.repairArmed > 0 then P.repairArmed = P.repairArmed - 1 end
+    end
+end
+
+local function PilotPodsAlive(odf)
+    local n = 0
+    for _, pod in ipairs(PilotState().pods) do
+        if PilotBranch.alive(pod) and IsOdf(pod, odf) then n = n + 1 end
+    end
+    return n
+end
+
+-- C 367-596, run by PlayerPilotMode.Update while the toggle is on.
+local function PilotUpdate()
+    local player = GetPlayerHandle()
+    if not PilotBranch.alive(player) then return end
+    local P = PilotState()
+    local now = GetTime()
+    local rec, slf = M.avrec, GetHandle("avslf0_armory")
+    local recGeyser, slfGeyser = GetHandle("eggeizr118_geyser"), GetHandle("eggeizr132_geyser")
+
+    if not P.started then -- C 367-383
+        P.started = true
+        if M.cam1 then SetUserTarget(M.cam1) end
+        if PilotBranch.alive(slf) and not IsDeployed(slf) then Goto(slf, slfGeyser, 1) end
+        if PilotBranch.alive(rec) and not IsDeployed(rec) then Goto(rec, recGeyser, 1) end
+        P.followAt = now + 30
+    end
+    PilotBranch.Lock(P, now)
+    PilotBranch.Resend(P, "rec", rec, recGeyser, now) -- C 389-424
+    PilotBranch.Resend(P, "slf", slf, slfGeyser, now)
+
+    -- C 426-457: up to two repair and two ammo pods when the player is hurt/dry.
+    if GetHealth(player) < 0.75 and P.repairArmed == 0 then
+        local want = 2 - PilotPodsAlive("aprepa")
+        P.repairWant, P.repairArmed = P.repairWant + want, P.repairArmed + want
+    end
+    if GetAmmo(player) < 0.75 and P.ammoArmed == 0 then
+        local want = 2 - PilotPodsAlive("apammo")
+        P.ammoWant, P.ammoArmed = P.ammoWant + want, P.ammoArmed + want
+    end
+
+    PilotBranch.FollowPlayer(P, { P.esc1, P.esc2 }, player, now, 30) -- C 460-480
+
+    if not PilotBranch.alive(rec) then return end
+    -- C 478-596: one blocking chain; the first unmet item wins the frame.
+    if P.turrets <= 0 then return PilotBranch.TryBuild(rec, "avturr", 6) end
+    if P.turrets == 1 and P.scavengers < 2 then return PilotBranch.TryBuild(rec, "avscav", 4) end
+    for _, want in ipairs({ { "ammoWant", "apammo" }, { "repairWant", "aprepa" } }) do -- C 511-555
+        if P[want[1]] > 0 and PilotBranch.alive(slf) then
+            if P.supplyAt < now and PilotBranch.Ready(slf) and GetScrap(1) > 0 then
+                BuildAt(slf, want[2], player, 1)
+                P[want[1]] = P[want[1]] - 1
+                P.supplyAt = now + 3
+            end
+            return
+        end
+    end
+    if P.scavengers >= 2 and P.turrets < 3 then return PilotBranch.TryBuild(rec, "avturr", 6) end
+    if M.neworders and not M.missionwon then -- C 560-595
+        if P.fighters < 2 then return PilotBranch.TryBuild(rec, "avfigh", 6) end
+        if P.turrets < 6 then return PilotBranch.TryBuild(rec, "avturr", 6) end
+    end
+end
+
+local function InitializePilotMode()
+    PlayerPilotMode.Initialize({ scripted = true, update = PilotUpdate,
+        enable = function() PilotBranch.Adopt(PilotState(), PilotAddObject) end,
+        disable = function() PilotBranch.Release(PilotState()) end }, M.playerPilotModeState)
+end
+
 -- BuildObject invokes AddObject synchronously. This guard lets explicit mission
 -- spawns bypass aiCore while leaving aiCore-produced CCA units managed normally.
 local spawningScriptedEnemy = false
@@ -836,6 +962,7 @@ local function RehydrateMissionRuntime()
         SetupAI()
         BootstrapWithoutScriptedEnemies()
         aiCore.SetStrategyFromAip("misn05.aip", ENEMY_TEAM)
+        InitializePilotMode()
     end
     subtit.Initialize()
     ApplyTurboToAll()
@@ -873,6 +1000,7 @@ function Start()
     if CRCoop.IsAuthority() then
         SetupAI()
         if not CRCoop.IsNetworkGame() then aiCore.Bootstrap() end
+        InitializePilotMode()
         -- Preserve the clearable field; reserve separate hostile and support teams.
         -- The map authors 24 mine points; the DLL armed only path_1..path_23.
         -- CR also arms path_24, in the eastern field 384 m from path_4.
@@ -947,6 +1075,7 @@ function AddObject(h)
         end
     elseif team == 1 then
         aiCore.AddObject(h)
+        PilotAddObject(h)
     end
 end
 
@@ -1081,6 +1210,7 @@ function Update()
         M.coopBootstrapped = true
     end
     aiCore.Update()
+    PlayerPilotMode.Update()
 
     -- Game Start / Initial Setup
     if not M.game_start then
@@ -1683,11 +1813,13 @@ function Save()
     if CRMarsWeather and CRMarsWeather.Save then
         M.weatherState = CRMarsWeather.Save()
     end
-    return M, aiCore.Save()
+    M.playerPilotModeState = PlayerPilotMode.Save()
+    return M, aiCore.Save(), M.playerPilotModeState
 end
 
-function Load(missionData, _)
+function Load(missionData, _, pilotModeData)
     M = missionData or M
+    M.playerPilotModeState = pilotModeData or M.playerPilotModeState
 
     M.TPS = M.TPS or 20
     M.scriptedEnemies = M.scriptedEnemies or {}
