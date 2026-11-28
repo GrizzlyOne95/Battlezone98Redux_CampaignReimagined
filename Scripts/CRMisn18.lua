@@ -595,11 +595,15 @@ end
 -- The DLL really names misn1704.wav for the Texas loss; Redux ships the dedicated misn1818.wav ("the Texas has
 -- been destroyed"), restored here by substituting the file (the faithful body keeps the original line).
 local AUDIO_SUBSTITUTE = { ["misn1704.wav"] = "misn1818.wav" }
+-- The win line starts the extraction cinematic on the same frame: queued behind a
+-- long radio line it played after the shot (or not at all), so it cuts in instead.
+local AUDIO_PRIORITY = { ["misn1808.wav"] = true }
 local lastAudio
 local function AudioMessage(file)
     file = AUDIO_SUBSTITUTE[file] or file
     if M.missionwon and file == "misn1818.wav" then return nil end -- nothing may report a loss after the win
-    local busy = lastAudio ~= nil and type(IsAudioMessageDone) == "function" and not IsAudioMessageDone(lastAudio)
+    local busy = not AUDIO_PRIORITY[file] and lastAudio ~= nil and type(IsAudioMessageDone) == "function"
+        and not IsAudioMessageDone(lastAudio)
     local handle = busy and subtit.Queue(file) or subtit.Play(file)
     if handle ~= nil then lastAudio = handle end
     return handle
@@ -1056,9 +1060,11 @@ function BeginExtraction(when, description)
         Present("ExtractShip", i, count, human and 1 or 0, human and human.team or 0, ship.x, ship.z, ship.y, ship.sx, ship.sz)
     end
     Present("ExtractGo")
-    -- The camera pod stands outside the ring in a gap between two ships, looking at the Texas.
+    -- The camera pod stands just outside the ring (sites 150-210 m) in a gap between two ships,
+    -- looking at the Texas. It must stay inside the storm's fog range (fogEnd <= 250 m, the TRN
+    -- visibility cap): from the old 330 m the shot was nothing but fog.
     local phi = math.atan2(sites[1].z - center.z, sites[1].x - center.x) + math.pi / count
-    local px, pz = center.x + math.cos(phi) * 330, center.z + math.sin(phi) * 330
+    local px, pz = center.x + math.cos(phi) * 235, center.z + math.sin(phi) * 235
     X.pod = BuildObject(Drop.POD, 0, SetVector(px, Ground(px, pz), pz))
     CameraReady()
     s.phase = "extract"

@@ -103,10 +103,10 @@ follows. Offline it is the same ending with one player. All numbers below are CR
 
 | Step | What happens |
 | --- | --- |
-| Win | The leader stops the countdown on every peer (`StopCockpitTimer` / `HideCockpitTimer`), drops the Fury arrivals, removes every team-6 craft, and plans the fleet. The storm is told `extract`. `misn1808` still plays at the win. |
+| Win | The leader stops the countdown on every peer (`StopCockpitTimer` / `HideCockpitTimer`), drops the Fury arrivals, removes every team-6 craft, and plans the fleet. The storm is told `extract`. `misn1808` plays at the win straight away, skipping the audio queue (it used to queue behind a line still talking and miss the shot). |
 | Fleet | One NSDF dropship per human ship plus one for the Recycler and Factory (when either lives; at the win the Texas is alive by definition, so a normal win always has the base ship), at most **5**. Sites are on a ring of 150, 180 or 210 m around the Texas (the flattest wins), sterns toward it and at least 120 m apart, so they sit inside the tornado's 300 m keep-clear circle. A dead Factory is simply not loaded. |
 | Replication | The plan goes out as numbers, one `ExtractShip` event per ship and then `ExtractGo`, on the ordered stream. No pose is ever sent: it is a pure function of the plan and the seconds since `ExtractGo`, which every peer starts when it applies the event, so a guest can trail the leader by the stream latency. The LEADER builds and moves the dropship objects and the Recycler and Factory it owns; EVERY peer pins its OWN ship aboard. |
-| Shot 1 (0-27 s) | The camera pod stands 330 m out in a gap of the ring and films the Texas (`CameraObject(pod, 0, 4000, 0, texas)`). Each ship (staggered 1.2 s) flies in as `avdropc` (9 s), is swapped for `avdropo` (ramps swing open, 2.6 s), takes its cargo up the ramp (6 s, 60% to the lip, then into the hold), is swapped for `avdropx` (ramps fold shut, 2.4 s) and lifts at 1.5 m/s^2. |
+| Shot 1 (0-27 s) | The camera pod stands 235 m out (just past the 150-210 m ring, inside the 250 m fog range) in a gap of the ring and films the Texas (`CameraObject(pod, 0, 4000, 0, texas)`). Each ship (staggered 1.2 s) flies in as `avdropc` (9 s), is swapped for `avdropo` (ramps swing open, 2.6 s), takes its cargo up the ramp (6 s, 60% to the lip, then into the hold), is swapped for `avdropx` (ramps fold shut, 2.4 s) and lifts at 1.5 m/s^2. |
 | Shot 2 (27-39 s) | The camera follows the lead ship (`CameraObject(ship, 4000, -1000, 7000, ship)`, the offsets are guesses) as it climbs through the storm. The storm is told `ascent`: strikes every 0.2-0.5 s, hard shake, a 1.7x gale, the red swirl overhead. |
 | End | The leader removes the pod, releases the camera and succeeds the mission 2 s later (the usual result flush follows). The storm settles into `won`. |
 
@@ -241,7 +241,7 @@ derived from flags):
 | `core1`, `core2`, `core3` | One, two, three thrusters destroyed. Simultaneous losses emit every phase between. |
 | `collapse` | All four thrusters destroyed: the transport-destroyed cinematic **begins** (the transition into full apocalypse weather). The 180 s countdown starts when it ends, about 8 s later. |
 | `final` | Countdown running and at 30 s or less (never before the countdown has started). |
-| `extract` | Victory latched: the dropships land and load (shot 1). Harmless to craft. |
+| `extract` | Victory latched: the dropships land and load (shot 1). Harmless to craft. `extract`, `ascent` and `won` use `Misn18Storm9`, the final preset with fog opened to 140-250 m and dust, haze, debris and streaks thinned, so the shots show the ships. |
 | `ascent` | Shot 2: the dropship climbs through the storm. Harmless to craft. |
 | `won` | The extraction has finished (held back until then). |
 | `lost` | Any failure latched (not found, recycler destroyed, left behind, out of lives). |

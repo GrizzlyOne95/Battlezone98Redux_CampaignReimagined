@@ -47,6 +47,7 @@ function BuildObject(odf, team, pos)
     return h
 end
 function AudioDone() return world.audioDone == true end
+function StopAudio() record("StopAudio") end
 function IsAudioMessageDone() return world.audioDone == true end
 function GetHealth(h) return world.health[h] or 1 end
 function CameraCancelled() return false end
@@ -442,7 +443,7 @@ reconFail(m, context())
 check(count("FailMission") == 1 and last("FailMission")[3] == "misn04l4.des", "04 recon failure resolves after audio")
 
 -- CR restored VO: misn04 success plays 0424 after the end cinematic and before the result.
-local endCin = compile(between("04", "        if GetTime() > M.startendcin or CameraCancelled() then",
+local endCin = compile(between("04", "        if GetTime() > M.startendcin or (M.aud26",
     "    end\n\n    if M.endmission and not M.endsucceeded"))
 local endResult = compile(between("04", "    if M.endmission and not M.endsucceeded", "    if not M.missionwon and not IsAlive(M.avrec) and not M.missionfail then"))
 reset(); m = { startendcin = 0 }; world.audioDone = false
