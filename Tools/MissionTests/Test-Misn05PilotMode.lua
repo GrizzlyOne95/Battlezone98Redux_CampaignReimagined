@@ -47,7 +47,20 @@ env.Build = function(h, odf) built[#built + 1] = odf; objs[h].busy = true end
 env.BuildAt = function(h, odf, t) built[#built + 1] = odf .. "@" .. t end
 local adapter
 env.PlayerPilotMode = { IsEnabled = function() return enabled end, Initialize = function(a) adapter = a end }
-env.PilotBranch = assert(loadfile("Scripts/CRPilotBranch.lua"))()
+-- Spot orders (PilotBranch.KeepSpots/KeepGoto) measure the distance to a vector: from the object's x/z when it has them, else far away.
+do
+    local baseDistance = env.GetDistance
+    env.GetDistance = function(a, b)
+        if type(b) == "table" then
+            local o = objs[a]
+            if o and o.x and o.z then return math.sqrt((o.x - b.x) ^ 2 + (o.z - b.z) ^ 2) end
+            return 1e9
+        end
+        if baseDistance then return baseDistance(a, b) end
+        return 1e9
+    end
+end
+env.PilotBranch = setfenv(assert(loadfile("Scripts/CRPilotBranch.lua")), env)()
 setfenv(env.PilotBranch.Lock, env); setfenv(env.PilotBranch.Ready, env); setfenv(env.PilotBranch.Resend, env)
 setfenv(env.PilotBranch.FollowPlayer, env); setfenv(env.PilotBranch.TryBuild, env); setfenv(env.PilotBranch.alive, env); setfenv(env.PilotBranch.Adopt, env)
 local chunk = assert(loadstring("local M, PlayerPilotMode, PilotBranch = M, PlayerPilotMode, PilotBranch\n" .. block ..
@@ -102,12 +115,12 @@ check(#built == before, "no seventh turret")
 -- Supply: player under 75% gets two repair pods from the armory, 3 s apart.
 objs[player].health = 0.5
 now = now + 1; api.update()
-check(built[#built] == "aprepa@player", "repair pod via armory BuildAt")
+check(built[#built] == "naprepa@player", "repair pod via armory BuildAt")
 before = #built; now = now + 1; api.update()
 check(#built == before, "3 s cooldown between pods")
 now = now + 3; api.update()
-check(built[#built] == "aprepa@player" and #built == before + 1, "second repair pod")
-spawn("p1", "aprepa"); spawn("p2", "aprepa")
+check(built[#built] == "naprepa@player" and #built == before + 1, "second repair pod")
+spawn("p1", "naprepa"); spawn("p2", "naprepa")
 before = #built; now = now + 5; api.update()
 check(#built == before, "two live pods: no more requested")
 

@@ -232,7 +232,9 @@ local function PilotAddObject(h)
             P.dropPending = false
             P.facilityPending = false
         end
-    elseif IsOdf(h, "svsav") then -- C 643-645
+    elseif IsOdf(h, "svsav") or IsOdf(h, "savtnk") then -- C 643-645
+        -- CR adaptation: the factory here is a savmf (Fury factory) whose build list has savtnk, not svsav, so
+        -- both are claimed. A player-built Fury also fills the mission's sav1..6 betrayal slots, as stock does.
         if not alive(P.sav) then P.sav = h end
     else
         local slots
@@ -261,8 +263,8 @@ local function PilotUpdate()
 
     if not P.started then -- C 709-715
         P.started = true
-        if alive(rec) and not IsDeployed(rec) and recGeyser then Goto(rec, recGeyser, 1) end
-        if alive(fac) and not IsDeployed(fac) and facGeyser then Goto(fac, facGeyser, 1) end
+        if alive(rec) and not IsDeployed(rec) and recGeyser then Goto(rec, recGeyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
+        if alive(fac) and not IsDeployed(fac) and facGeyser then Goto(fac, facGeyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
     end
     PilotBranch.Lock(P, now)
     -- C 739-798: an idle producer is re-sent to its geyser.
@@ -279,7 +281,7 @@ local function PilotUpdate()
 
     -- C 800-963: the constructor takes its next facility to the drop point.
     if P.dropPending and alive(P.cnst) then
-        Dropoff(P.cnst, PilotSpot(P.dropX, P.dropZ), 1)
+        Dropoff(P.cnst, PilotSpot(P.dropX, P.dropZ), 1) -- pilot-order: once, base-building extra, not win-critical (judged, per-mission check pending)
         P.dropPending = false
     end
 
@@ -315,7 +317,7 @@ local function PilotUpdate()
     if alive(fac) and not alive(P.sav) and alive(P.cnst) and PilotBranch.Ready(fac)
        and alive(P.pow1) and alive(P.pow2) and alive(P.pow3)
        and alive(P.tow1) and alive(P.tow2) and alive(P.tow3) then
-        PilotBranch.TryBuild(fac, "svsav", PILOT_RESERVE + 8)
+        PilotBranch.TryBuild(fac, "savtnk", PILOT_RESERVE + 15) -- CR adaptation: savmf builds savtnk (scrapCost 15), not svsav (8)
     end
 end
 -- CR pilot mode <<

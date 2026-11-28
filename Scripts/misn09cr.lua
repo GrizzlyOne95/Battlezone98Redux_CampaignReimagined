@@ -1560,7 +1560,7 @@ local function PilotAddObject(h)
     local alive = PilotBranch.alive
     if IsOdfBase(h, "avtank") then
         if P.tanksOrdered >= 1 and P.tanksOrdered <= 3 then
-            Follow(h, M.nsdfmuf, 1)
+            Follow(h, M.nsdfmuf, 1) -- pilot-order: once, escort order is not win-critical
             P.ptank[P.tanksOrdered] = h
         end
         return true
@@ -1570,12 +1570,13 @@ local function PilotAddObject(h)
         P.tugFailArmed = true
         return true
     elseif IsOdfBase(h, "avwalk") then
-        Follow(h, M.nsdfmuf, 1)
+        Follow(h, M.nsdfmuf, 1) -- pilot-order: once, escort order is not win-critical
         P.pwalk = h
         return true
-    elseif IsOdfBase(h, "apammo") or IsOdfBase(h, "aprepa") then -- C 332-366
+    elseif IsOdfBase(h, "apammo") or IsOdfBase(h, "aprepa") or IsOdfBase(h, "napammo") or IsOdfBase(h, "naprepa") then -- C 332-366
+        -- CR adaptation: the NSDF armory (avslf) lists naprepa/napammo, not the N64 aprepa/apammo.
         local assigned = false
-        if IsOdfBase(h, "apammo") then
+        if IsOdfBase(h, "apammo") or IsOdfBase(h, "napammo") then
             if not alive(P.ammo1) then P.ammo1 = h; assigned = true
             elseif not alive(P.ammo2) then P.ammo2 = h; assigned = true end
             P.ammoPending = math.max(0, P.ammoPending - 1)
@@ -1627,11 +1628,11 @@ local function PilotUpdate()
     -- C 671-711: ammo first, one order per 3 s window.
     if alive(slf) and now >= P.supplyAt and PilotBranch.Ready(slf) and GetScrap(1) > 0 then
         if P.ammoOrders > 0 then
-            BuildAt(slf, "apammo", player, 1)
+            BuildAt(slf, "napammo", player, 1)
             P.ammoOrders = P.ammoOrders - 1
             P.supplyAt = now + 3
         elseif P.repairOrders > 0 then
-            BuildAt(slf, "aprepa", player, 1)
+            BuildAt(slf, "naprepa", player, 1)
             P.repairOrders = P.repairOrders - 1
             P.supplyAt = now + 3
         end
@@ -1642,11 +1643,11 @@ local function PilotUpdate()
         P.artSent = true
         if alive(M.nav1) then SetUserTarget(M.nav1) end
         if alive(fact) then
-            Goto(fact, geyser, 1)
+            Goto(fact, geyser, 1) -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
             P.siloArmed = true
-            if alive(cnst) then Follow(cnst, fact, 1) end
+            if alive(cnst) then Follow(cnst, fact, 1) end -- pilot-order: once, escort order is not win-critical
             for _, scav in ipairs({ M.avscav1, M.avscav2, M.avscav3 }) do
-                if alive(scav) then Follow(scav, fact, 1) end
+                if alive(scav) then Follow(scav, fact, 1) end -- pilot-order: once, escort order is not win-critical
             end
         end
     end
@@ -1660,13 +1661,16 @@ local function PilotUpdate()
     local relic = M.relic
     if alive(P.plHaul) then -- C 762-784
         if M.relic_free and not M.relic_secure and not M.relic_seized
-           and not P.plHaulPickup and not alive(M.ccatug) and alive(relic) then
-            Pickup(P.plHaul, relic, 1)
+           and not alive(M.ccatug) and alive(relic) then
+            -- CR adaptation: the N64 sends the Pickup once; re-send every 10 s until the tug holds the relic.
+            PilotBranch.Keep(P, "haul", P.plHaul, now, 10, function(u)
+                return GetTug(relic) ~= u and GetCurrentCommand(u) ~= AiCommand.PICKUP
+            end, function(u) Pickup(u, relic, 1) end)
             P.plHaulPickup = true
             P.plHaulFollow = false
         elseif M.relic_secure and not P.plHaulFollow then
             P.plHaulFollow = true
-            if alive(fact) then Follow(P.plHaul, fact, 1) end
+            if alive(fact) then Follow(P.plHaul, fact, 1) end -- pilot-order: once, Follow persists until the factory dies; the relic is already secure
         end
     end
     if alive(fact) then -- C 787-831: escorts attack the Soviet tug near the relic
@@ -1676,24 +1680,24 @@ local function PilotUpdate()
             local holder = alive(relic) and GetTug(relic) or nil
             if alive(holder) and GetTeamNum(holder) ~= 1 then
                 for _, u in ipairs(escorts) do
-                    if alive(u) then Attack(u, holder, 1) end
+                    if alive(u) then Attack(u, holder, 1) end -- pilot-order: once, escort order is not win-critical
                 end
             end
         end
         if P.escortAttack and not P.escortFollow and M.relic_free
            and not M.relic_secure and not M.relic_seized and alive(relic) then
             for _, u in ipairs(escorts) do
-                if alive(u) then Follow(u, relic, 1) end
+                if alive(u) then Follow(u, relic, 1) end -- pilot-order: once, escort order is not win-critical
             end
             P.escortFollow = true
         end
     end
     if P.dropPending and alive(cnst) then -- C 594-606
-        Dropoff(cnst, PilotSpot(2836, 99811), 1)
+        Dropoff(cnst, PilotSpot(2836, 99811), 1) -- pilot-order: once, base-building extra, not win-critical (judged, per-mission check pending)
         P.dropPending = false
     end
     if P.recycleArmed and alive(cnst) and not IsBusy(cnst) then -- C 833-848
-        SetCommand(cnst, AiCommand.RECYCLE, 1, cnst)
+        SetCommand(cnst, AiCommand.RECYCLE, 1, cnst) -- pilot-order: once, recycling a spare unit is cleanup, not win-critical
         P.recycleArmed = false
         P.cnstFailArmed = false
     end
@@ -1710,7 +1714,7 @@ local function PilotUpdate()
     if alive(fact) and IsDeployed(fact) and not P.scavFreed then
         P.scavFreed = true
         for _, scav in ipairs({ M.avscav1, M.avscav2, M.avscav3 }) do
-            if alive(scav) then SetCommand(scav, AiCommand.SCAVENGE, 0) end
+            if alive(scav) then SetCommand(scav, AiCommand.SCAVENGE, 0) end -- pilot-order: once, SCAVENGE persists until the scavenger dies
         end
     end
     if alive(fact) then -- C 870-935: factory queue, first unmet item wins

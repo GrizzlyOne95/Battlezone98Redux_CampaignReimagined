@@ -20,7 +20,7 @@ local hq = obj("abcafe8_i76building", "bbmbld", 2)
 
 local env = setmetatable({}, { __index = _G })
 env.M = { start_done = false, recy = rec, goal = hq }
-env.AiCommand = { NONE = 0, GO = 3 }
+env.AiCommand = { NONE = 0, GO = 3, ATTACK = 4 }
 env.GetTime = function() return now end
 env.GetPlayerHandle = function() return player end
 env.GetHandle = function(l) return objs[l] and objs[l].alive and l or nil end
@@ -34,7 +34,7 @@ env.AllCraft = function() return function() return nil end end
 env.SetCommand = function() end
 env.Goto = function(h, t) orders[#orders + 1] = { "go_to", h, t }; objs[h].cmd = 3 end
 env.Follow = function(h, t) orders[#orders + 1] = { "follow", h, t } end
-env.Attack = function(h, t) orders[#orders + 1] = { "attack", h, t } end
+env.Attack = function(h, t) orders[#orders + 1] = { "attack", h, t }; objs[h].cmd = 4 end
 local branchChunk = assert(loadfile("Scripts/CRPilotBranch.lua"))
 setfenv(branchChunk, env)
 local Branch = branchChunk()
@@ -84,13 +84,23 @@ objs[walkers[2]].alive = false
 now = 80; Pilot.Update()
 check(count("follow") == 11, "dead walker is not ordered")
 
--- Beacon stage: the walkers attack the field HQ once and stop re-following.
+-- Beacon stage: the walkers attack the field HQ and stop re-following.
 env.M.last_objective = true
 now = 81; Pilot.Update()
 check(count("attack", walkers[1], hq) == 1 and count("attack", walkers[3], hq) == 1 and count("attack") == 2,
     "walkers attack the field HQ")
 now = 120; Pilot.Update()
-check(count("attack") == 2 and count("follow") == 11, "one attack, no more follow orders")
+check(count("attack") == 2 and count("follow") == 11, "one attack while they obey it, no more follow orders")
+-- CR adaptation: a walker whose Attack was dropped is re-sent it every 10 s while the HQ stands.
+objs[walkers[1]].cmd = 0; now = 125; Pilot.Update()
+check(count("attack") == 3 and count("attack", walkers[1], hq) == 2 and count("attack", walkers[3], hq) == 1, "a dropped Attack is re-sent")
+objs[walkers[1]].cmd = 0; now = 130; Pilot.Update()
+check(count("attack") == 3, "but not twice within 10 s")
+now = 136; Pilot.Update()
+check(count("attack") == 4, "and again after 10 s")
+objs[hq].alive = false; objs[walkers[3]].cmd = 0; now = 150; Pilot.Update()
+check(count("attack") == 4, "no Attack once the HQ is dead")
+objs[hq].alive = true; objs[walkers[1]].cmd, objs[walkers[3]].cmd = 4, 4
 
 -- Off/on cycles issue no duplicate orders.
 local n0 = #orders
@@ -103,6 +113,7 @@ check(env.M.pilot.nextSweep ~= nil, "state survives the toggles")
 
 -- Mid-mission toggle after the beacon stage: no follow, a single attack.
 env.M.pilot = nil; orders = {}
+for _, w in ipairs(walkers) do objs[w].cmd = 0 end
 Pilot.Enable()
 now = now + 1; Pilot.Update(); now = now + 40; Pilot.Update()
 check(count("follow") == 0 and count("attack") == 2, "late toggle attacks once, never follows")

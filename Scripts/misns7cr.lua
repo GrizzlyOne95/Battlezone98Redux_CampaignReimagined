@@ -266,7 +266,7 @@ function Pilot.Add(h)
     if not B.alive(P[slot .. "1"]) then P[slot .. "1"] = h
     elseif not B.alive(P[slot .. "2"]) then P[slot .. "2"] = h end
     local player = GetPlayerHandle()
-    if B.alive(player) then Follow(h, player, 1) end -- C 144
+    if B.alive(player) then Follow(h, player, 1) end -- C 144 -- pilot-order: once, re-sent by FollowPlayer every 30 s
 end
 
 function Pilot.Dist(a, b)
@@ -279,7 +279,7 @@ end
 function Pilot.NextEngineer(after)
     for j = after + 1, 3 do
         local e = M["con" .. j]
-        if not M["con" .. j .. "_safe"] and not M["con" .. j .. "_in_apc"] and Pilot.B.alive(e) then return e end
+        if not M["con" .. j .. "_safe"] and not M["con" .. j .. "_in_apc"] and Pilot.B.alive(e) then return e, j end
     end
 end
 
@@ -297,7 +297,7 @@ function Pilot.Update()
 
     if not P.started then -- C 317-320: the APC follows the player from the start
         P.started = true
-        if B.alive(apc) then Follow(apc, player, 1) end
+        if B.alive(apc) then Follow(apc, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
     end
     B.Lock(P, now)
 
@@ -308,8 +308,10 @@ function Pilot.Update()
             if M["con" .. i .. "_safe"] then P.picked[i] = true end
         end
         P.apcArrived = true
-        local e = Pilot.NextEngineer(0)
-        if e and B.alive(apc) then Goto(apc, e, 1) end
+        -- CR adaptation: the APC's Goto to an engineer is re-sent by the Keep block below while it is idle.
+        local e, j = Pilot.NextEngineer(0)
+        P.apcIdx = j
+        if e and B.alive(apc) then Goto(apc, e, 1) end -- pilot-order: once, re-sent by the Keep block below while the APC is idle
     end
     if P.pickup then
         for i = 1, 3 do
@@ -317,8 +319,11 @@ function Pilot.Update()
             if B.alive(e) then P.engSeen[i] = true end
             if M["con" .. i .. "_safe"] and not P.picked[i] then -- C 908/945/982
                 P.picked[i] = true
-                local nxt = Pilot.NextEngineer(i)
-                if nxt and B.alive(apc) then Goto(apc, nxt, 1) end
+                local nxt, j = Pilot.NextEngineer(i)
+                if j then -- no next engineer leaves the current target as the N64 does
+                    P.apcIdx = j
+                    if B.alive(apc) then Goto(apc, nxt, 1) end -- pilot-order: once, re-sent by the Keep block below while the APC is idle
+                end
             end
             -- C 839/852/865: losing any engineer fails (Pilot only), armed once it was seen alive.
             if P.engSeen[i] and not B.alive(e) and not M["con" .. i .. "_safe"]
@@ -328,18 +333,28 @@ function Pilot.Update()
             end
         end
     end
+    if P.pickup and P.apcIdx then
+        local k = "con" .. P.apcIdx
+        if not B.alive(M[k]) or M[k .. "_safe"] or M[k .. "_in_apc"] then P.apcIdx = nil end
+    end
+    if P.pickup and P.apcIdx then
+        local e = M["con" .. P.apcIdx]
+        B.Keep(P, "apc", apc, now, 10, function(u) return GetCurrentCommand(u) ~= AiCommand.GO end,
+            function(u) Goto(u, e, 1) end)
+    end
     -- C 1004/1049/1086: with every engineer settled the APC follows the player again.
     if M.first_message_done and not P.rescued then
         P.rescued = true
+        P.apcIdx = nil
         P.apcArrived = false
-        if B.alive(apc) then Follow(apc, player, 1) end
+        if B.alive(apc) then Follow(apc, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
     end
 
     -- C 1337-1348: the restored recycler follows the player, or drives to the outpost once it stands.
     if recUp and not P.recEvt then
         P.recEvt = true
-        if P.outpost and recGeyser then Goto(rec, recGeyser, 1) elseif not P.outpost then Follow(rec, player, 1) end
-        if B.alive(apc) then Follow(apc, player, 1) end
+        if P.outpost and recGeyser then Goto(rec, recGeyser, 1) elseif not P.outpost then Follow(rec, player, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed; the Follow is re-sent by FollowPlayer
+        if B.alive(apc) then Follow(apc, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
     end
     -- C 1516-1531: the restored factory raises a three-frame follow request for the APC and the factory.
     if mufUp and not P.mufEvt then
@@ -348,17 +363,17 @@ function Pilot.Update()
     end
     if P.followMode and P.followMode > 0 then
         if P.followMode == 1 then
-            if B.alive(apc) then Follow(apc, player, 1) end
-            if mufUp then Follow(muf, player, 1) end
+            if B.alive(apc) then Follow(apc, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
+            if mufUp then Follow(muf, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
         end
         P.followMode = P.followMode - 1
     end
     -- C 1697-1721: the supply cache stands; the restored producers go to the geysers by the hangar.
     if M.supplies_spawned and not P.outpost then
         P.outpost = true
-        if B.alive(apc) then Follow(apc, player, 1) end
-        if mufUp and mufGeyser and Pilot.Dist(muf, hut) >= 70 then Goto(muf, mufGeyser, 1) end
-        if recUp and recGeyser and Pilot.Dist(rec, hut) >= 70 then Goto(rec, recGeyser, 1) end
+        if B.alive(apc) then Follow(apc, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
+        if mufUp and mufGeyser and Pilot.Dist(muf, hut) >= 70 then Goto(muf, mufGeyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
+        if recUp and recGeyser and Pilot.Dist(rec, hut) >= 70 then Goto(rec, recGeyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
     end
     if P.outpost then
         B.Resend(P, "muf", mufUp and muf or nil, mufGeyser, now) -- C 320-417

@@ -1038,13 +1038,13 @@ local function PilotAddObject(h)
     elseif IsOdfBase(h, "avscav") then -- C 120-148: each tank guards a scavenger
         if not Alive(P.escort1) then
             P.escort1 = h
-            if Alive(tank1) then Follow(tank1, h, 1) end
+            if Alive(tank1) then Follow(tank1, h, 1) end -- pilot-order: once, escort order is not win-critical
         elseif not Alive(P.escort2) then
             P.escort2 = h
-            if Alive(tank2) then Follow(tank2, h, 1) end
+            if Alive(tank2) then Follow(tank2, h, 1) end -- pilot-order: once, escort order is not win-critical
         end
     else
-        PilotBranch.NoteSupply(P, h)
+        PilotBranch.NoteSupply(P, h, "naprepa", "napammo") -- CR adaptation: the CR recycler (avrecy) lists naprepa/napammo
     end
 end
 
@@ -1060,14 +1060,14 @@ local function PilotUpdate()
     if not P.started then -- C 244-254
         P.started = true
         if Alive(M.cam6) then SetUserTarget(M.cam6) end
-        if Alive(rec) then Follow(rec, player, 1) end
-        if Alive(cons) then Follow(cons, player, 1) end
+        if Alive(rec) then Follow(rec, player, 1) end -- pilot-order: once, start-of-mission follow, superseded by the rescue Goto (re-sent by Resend)
+        if Alive(cons) then Follow(cons, player, 1) end -- pilot-order: once, start-of-mission follow, the constructor is re-ordered by the silo blocks
         P.followAt = now + 30
     end
     PilotBranch.Lock(P, now)
 
     if P.dropPending and Alive(cons) then -- C 257-266: Build, then Dropoff next update
-        Dropoff(cons, PilotSpot(P.dropX, P.dropZ), 1)
+        Dropoff(cons, PilotSpot(P.dropX, P.dropZ), 1) -- pilot-order: once, base-building extra, not win-critical (judged, per-mission check pending)
         P.dropPending = false
     end
 
@@ -1075,23 +1075,23 @@ local function PilotUpdate()
         P.joined = true
         if Alive(M.cam2) then SetUserTarget(M.cam2) end
         for _, u in ipairs({ tank1, tank2, apc }) do
-            if Alive(u) then Follow(u, player, 1) end
+            if Alive(u) then Follow(u, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
         end
     end
     if s.nw and not P.rescued then -- C 633-654: the rescue
         P.rescued = true
-        if Alive(rec) then Goto(rec, geyser, 1) end
+        if geyser ~= nil and Alive(rec) then Goto(rec, geyser, 1) end -- CR adaptation: nil geyser skipped. pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
         local scav = GetHandle("cr15_nw_scav")
         if Alive(scav) then
             P.escort1 = scav
-            if Alive(tank1) then Follow(tank1, scav, 1) end
+            if Alive(tank1) then Follow(tank1, scav, 1) end -- pilot-order: once, escort order is not win-critical
         end
     end
     if P.rescued and s.withdraw and not P.withdrawn then -- CR withdraw phase (see header)
         P.withdrawn = true
         if Alive(M.cam5) then
             SetUserTarget(M.cam5)
-            if Alive(rec) then Goto(rec, M.cam5, 1) end
+            if Alive(rec) then Goto(rec, M.cam5, 1) end -- pilot-order: once, re-sent every 10 s by the withdraw block below
         end
         P.withdrawAt = now + 10
     end
@@ -1136,24 +1136,29 @@ local function PilotUpdate()
             if GetPilot(1) == 0 then AddPilot(1, 1) end
             if GetScrap(1) >= 4 and GetPilot(1) > 0 then Build(rec, "avscav", 1) end
         end
-    elseif Alive(rec) and PilotBranch.BuildSupply(P, rec) then -- C 443-481
+    elseif Alive(rec) and PilotBranch.BuildSupply(P, rec, "naprepa", "napammo") then -- C 443-481
         -- repair/ammo pod request holds the recycler
-    elseif Alive(cons) and P.rescued and P.silos < 2 and P.siloReady
+    elseif Alive(cons) and P.rescued and P.silos < 3 and P.siloReady
            and not IsBusy(cons) and GetScrap(1) >= 4 then -- C 483-521
+        -- CR adaptation: the win needs 75 stored scrap but the recycler holds 30 and a silo 20 (avrecy.odf
+        -- scrapHold 30, absilo.odf 20; Docs/MISN15_COOP.md), so two silos give 70. A third silo makes 90. Its
+        -- drop point (4110, 100223), between the other two, is UNVERIFIED (not checked against the terrain).
         Build(cons, "absilo", 1)
         P.dropPending, P.siloReady = true, false
-        if P.silos == 0 then P.dropX, P.dropZ = 4066, 100266 else P.dropX, P.dropZ = 4057, 100180 end
+        if P.silos == 0 then P.dropX, P.dropZ = 4066, 100266
+        elseif P.silos == 1 then P.dropX, P.dropZ = 4057, 100180
+        else P.dropX, P.dropZ = 4110, 100223 end
     end
 
     -- C 524-553: the APCs recycle themselves once the recycler stands.
     if Alive(rec) and IsDeployed(rec) then
         local apc2 = GetHandle("cr15_nw_apc")
         if P.rescued and Alive(apc2) and not P.recycleApc then
-            SetCommand(apc2, AiCommand.RECYCLE, 1, apc2)
+            SetCommand(apc2, AiCommand.RECYCLE, 1, apc2) -- pilot-order: once, recycling a spare unit is cleanup, not win-critical
             P.recycleApc = true
         end
         if P.joined and Alive(apc) and not P.recycleSvat then
-            SetCommand(apc, AiCommand.RECYCLE, 1, apc)
+            SetCommand(apc, AiCommand.RECYCLE, 1, apc) -- pilot-order: once, recycling a spare unit is cleanup, not win-critical
             P.recycleSvat = true
         end
     end

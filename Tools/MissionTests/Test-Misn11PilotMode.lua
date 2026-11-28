@@ -86,17 +86,17 @@ now = 32; Pilot.Update(); check(count("follow") == 12 and orders[#orders][3] == 
 -- check2 arms three ammo then three repair pods, one every 3 s, via the armory.
 env.M.check2 = true
 now = 40; Pilot.Update()
-check(#built == 1 and built[1] == "apammo" and orders[#orders][2] == "avslf0_armory" and orders[#orders][4] == "player2", "first pod is ammo, aimed at the player")
+check(#built == 1 and built[1] == "napammo" and orders[#orders][2] == "avslf0_armory" and orders[#orders][4] == "player2", "first pod is ammo, aimed at the player")
 objs[slf].busy = false
 now = 41; Pilot.Update(); check(#built == 1, "3 s gap between pods")
 for t = 44, 60, 4 do objs[slf].busy = false; now = t; Pilot.Update() end
 check(#built == 6, "six pods in all")
-check(built[1] == "apammo" and built[2] == "apammo" and built[3] == "apammo" and built[4] == "aprepa" and built[6] == "aprepa", "ammo first, then repair")
+check(built[1] == "napammo" and built[2] == "napammo" and built[3] == "napammo" and built[4] == "naprepa" and built[6] == "naprepa", "ammo first, then repair")
 objs[slf].busy = false; now = 80; Pilot.Update(); check(#built == 6, "no pods beyond three of each")
 -- Busy armory or no scrap holds the next pod.
 env.M.pilot.reloadLeft = 1; scrap = 0; now = 90; Pilot.Update(); check(#built == 6, "no scrap, no pod")
 scrap = 100; objs[slf].busy = true; Pilot.Update(); check(#built == 6, "busy armory waits")
-objs[slf].busy = false; Pilot.Update(); check(#built == 7 and built[7] == "apammo", "pod once ready")
+objs[slf].busy = false; Pilot.Update(); check(#built == 7 and built[7] == "napammo", "pod once ready")
 
 -- Adoption: wingmen that exist before the mode is on (fresh state, as after a load) are adopted on
 -- enable; a second enable or AddObject does not register or order them twice.

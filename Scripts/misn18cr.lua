@@ -252,9 +252,9 @@ local function PilotAddObject(h)
     local player = GetPlayerHandle()
     if P.near then
         local target = PilotFirstThruster()
-        if target then Attack(h, target, 1) end
+        if target then Attack(h, target, 1) end -- pilot-order: once, fighters are re-ordered every 10 s by the fighter block
     elseif PilotBranch.alive(player) then
-        Follow(h, player, 1)
+        Follow(h, player, 1) -- pilot-order: once, fighters are re-ordered every 10 s by the fighter block
     end
 end
 
@@ -270,7 +270,7 @@ local function PilotUpdate()
     if not P.started then -- C 311-322
         P.started = true
         for _, t in ipairs(tanks) do
-            if alive(t) then Follow(t, player, 1) end
+            if alive(t) then Follow(t, player, 1) end -- pilot-order: once, tanks are re-sent Follow by the periodic tank block below
         end
         P.fighterAt = now + 10
         -- One-shot per mission: the saved flag keeps a toggle or a save/load

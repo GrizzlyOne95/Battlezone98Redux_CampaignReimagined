@@ -155,14 +155,14 @@ check(count("follow", rec, player) == 3, "no more regroup follows after the resc
 objs[rec].deployed = true; objs[rec].cmd = 0; objs[rec].busy = false
 health = 0.5
 step(1)
-check(builds("aprepa@" .. rec) == 1, "repair pod built when health is below 75 percent")
+check(builds("naprepa@" .. rec) == 1, "repair pod built when health is below 75 percent")
 objs[rec].busy = false; step(1)
-check(builds("aprepa@" .. rec) == 1, "no second pod while the first is requested")
-spawn("pod1", "aprepa", 1)
+check(builds("naprepa@" .. rec) == 1, "no second pod while the first is requested")
+spawn("pod1", "naprepa", 1)
 health = 1; ammo = 0.5; objs[rec].busy = false
 step(1)
-check(builds("apammo@" .. rec) == 1, "ammo pod built when ammo is below 75 percent")
-spawn("pod2", "apammo", 1); ammo = 1; objs[rec].busy = false
+check(builds("napammo@" .. rec) == 1, "ammo pod built when ammo is below 75 percent")
+spawn("pod2", "napammo", 1); ammo = 1; objs[rec].busy = false
 
 -- Silos: constructor builds two, dropped at the N64 spots (the first silo was
 -- queued as soon as the pod requests were served).
@@ -183,7 +183,13 @@ d = orders[#orders]
 check(d[1] == "dropoff" and d[3].x == 4057 and d[3].z == 100180, "second silo dropped at (4057, 100180)")
 spawn("silo2", "absilo", 1); objs[cons].busy = false
 step(1); step(1)
-check(builds("absilo@" .. cons) == 2, "no third silo")
+-- CR adaptation: a third silo (recycler 30 + 3 x 20 = 90 >= the 75 scrap the win needs; two silos give 70).
+check(builds("absilo@" .. cons) == 3, "third silo built once the second stands")
+d = orders[#orders]
+check(d[1] == "dropoff" and d[3].x == 4110 and d[3].z == 100223, "third silo dropped at (4110, 100223)")
+spawn("silo3", "absilo", 1); objs[cons].busy = false
+step(1); step(1)
+check(builds("absilo@" .. cons) == 3, "no fourth silo")
 
 -- RECYCLE: the rescued APC and the CCA APC recycle themselves, once each.
 check(count("cmd", nwApc, 18) == 1 and count("cmd", apc, 18) == 1, "both APCs ordered to RECYCLE once")

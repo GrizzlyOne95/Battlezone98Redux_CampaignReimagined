@@ -1,0 +1,22 @@
+{
+  "savmf": {
+    "buildItems": [
+      "svtank",
+      "svltnk",
+      "svartl",
+      "svmine",
+      "svrckt",
+      "svapc",
+      "svhraz",
+      "svwalk",
+      "savtnk"
+    ],
+    "classLabel": "factory",
+    "scrapCost": 12
+  },
+  "savtnk": {
+    "buildItems": [],
+    "classLabel": "wingman",
+    "scrapCost": 15
+  }
+}

@@ -137,6 +137,85 @@ function P.Resend(S, key, h, target, now, delay)
     end
 end
 
+-- CR adaptation: generic re-send for win-critical one-shot orders. While
+-- `h` is alive and needFn(h) says the order is still needed, sendFn(h) runs
+-- at most every `period` s (default 10). The N64 sends these once; a dropped
+-- or interrupted order would stall the win path. Returns true when it sent.
+function P.Keep(S, key, h, now, period, needFn, sendFn)
+    if not alive(h) or not needFn(h) then return false end
+    S.keep = S.keep or {}
+    local due = S.keep[key]
+    if due and now < due then return false end
+    S.keep[key] = now + (period or 10)
+    sendFn(h)
+    return true
+end
+
+-- Keep wrapper for Goto-to-spot: re-send while the unit is more than
+-- `radius` (default 50) from `target`, not deployed and not already on a GO.
+function P.KeepGoto(S, key, h, target, now, radius, period)
+    if target == nil then return false end
+    return P.Keep(S, key, h, now, period, function(u)
+        return not IsDeployed(u) and GetCurrentCommand(u) ~= AiCommand.GO
+            and GetDistance(u, target) > (radius or 50)
+    end, function(u) Goto(u, target, 1) end)
+end
+
+-- CR adaptation: spot orders for units built mid-mission (turret and howitzer
+-- spots). AssignSpot sends the first Goto (priority 1) and records the spot
+-- ({x, z} is put on the terrain, a path name or handle is used as is);
+-- KeepSpots, called every update, re-sends it at once and then at most every
+-- `period` s (default 10) while the unit is not on a GO, also when it deployed
+-- short of the spot (a howitzer that lost its order deploys where it stands;
+-- the Goto undeploys it). It forgets the unit once it is within `radius`
+-- (default 12), deployed within 25 m, dead, or after 6 re-sends (a blocked
+-- spot must not thrash).
+local function spotTarget(t)
+    if type(t) == "table" then
+        return SetVector(t[1], GetTerrainHeightAndNormal(SetVector(t[1], 0, t[2])), t[2])
+    end
+    return t
+end
+
+function P.AssignSpot(S, h, target)
+    S.spots = S.spots or {}
+    local e
+    for _, o in ipairs(S.spots) do
+        if o.h == h then e = o end -- a newer spot replaces the unit's old one
+    end
+    if not e then e = { h = h }; S.spots[#S.spots + 1] = e end
+    e.t, e.tries = target, 0
+    if S.keep then S.keep["spot" .. tostring(h)] = nil end -- re-arm the timer for the new spot
+    if alive(h) then Goto(h, spotTarget(target), 1) end
+end
+
+function P.KeepSpots(S, now, radius, period)
+    local spots = S.spots
+    if not spots then return end
+    radius = radius or 12
+    for i = #spots, 1, -1 do
+        local e = spots[i]
+        local t = spotTarget(e.t)
+        local d = alive(e.h) and GetDistance(e.h, t)
+        local cmd = d and GetCurrentCommand(e.h)
+        -- Any order other than idle or GO means the mission re-tasked the unit
+        -- (e.g. a howitzer's Attack): forget the spot, never override it.
+        if not d or d <= radius or (IsDeployed(e.h) and d <= 25)
+            or (e.tries or 0) >= 6
+            or (cmd ~= AiCommand.NONE and cmd ~= AiCommand.GO) then
+            table.remove(spots, i)
+        elseif cmd == AiCommand.NONE then
+            local key = "spot" .. tostring(e.h)
+            S.keep = S.keep or {}
+            if S.keep[key] == nil or now >= S.keep[key] then
+                S.keep[key] = now + (period or 10)
+                e.tries = (e.tries or 0) + 1
+                Goto(e.h, t, 1)
+            end
+        end
+    end
+end
+
 -- Wingmen follow: on a craft change and every `period` s (30 on the cart).
 function P.FollowPlayer(S, units, player, now, period)
     if not alive(player) then return end

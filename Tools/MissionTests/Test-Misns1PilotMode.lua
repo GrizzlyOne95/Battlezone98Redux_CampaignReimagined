@@ -49,7 +49,7 @@ env.GetCurrentCommand = function(h) return objs[h].cmd end
 env.GetCurrentWho = function() return nil end
 env.SetCommand = function(h, c, p) orders[#orders + 1] = { "setcommand", h, c, p } end
 env.GetDistance = function(a, b)
-    local pa, pb = objs[a], objs[b]
+    local pa, pb = objs[a], objs[b] or (type(b) == "table" and b)
     return math.sqrt((pa.x - pb.x) ^ 2 + (pa.z - pb.z) ^ 2)
 end
 env.AllCraft = function()

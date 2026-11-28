@@ -69,7 +69,7 @@ function Pilot.Update()
         P.started = true
         if not M.last_objective then
             for _, w in ipairs(P.walkers) do
-                if alive(w) then Follow(w, player, 1) end
+                if alive(w) then Follow(w, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
             end
         end
     end
@@ -77,12 +77,13 @@ function Pilot.Update()
     Branch.Resend(P, "rec", M.recy, GetHandle("eggeizr13_geyser"), now)
     if M.last_objective then
         -- C 362-372: once the field HQ is highlighted the walkers attack it.
-        if not P.attacked then
-            P.attacked = true
-            if alive(M.goal) then
-                for _, w in ipairs(P.walkers) do
-                    if alive(w) then Attack(w, M.goal, 1) end
-                end
+        -- CR adaptation: the N64 sends the Attack once (P.attacked latch); it is re-sent every 10 s while the
+        -- HQ stands and the walker is not attacking, so a dropped order cannot stall the win.
+        P.attacked = true
+        if alive(M.goal) then
+            for i, w in ipairs(P.walkers) do
+                Branch.Keep(P, "atk" .. i, w, now, 10, function(u) return GetCurrentCommand(u) ~= AiCommand.ATTACK end,
+                    function(u) Attack(u, M.goal, 1) end)
             end
         end
     else

@@ -70,7 +70,8 @@ local CRWire = require("CRWire")
 -- 13 = armory (avslf0_armory), 18/19/20 = the three wingman tanks (avltnk0_wingman and two
 -- avtank0_wingman, which share one BZN label, so they are found by ODF), path(9) = "check2".
 -- Adaptations: the N64 reload/repair path commands (the armory "fires" pods) are BuildAt pods on
--- the player (apammo / aprepa); the Z64 target position is the player's. Not ported (N64-only
+-- the player (napammo / naprepa, the pods the CR armory avslf lists; N64 apammo / aprepa);
+-- the Z64 target position is the player's. Not ported (N64-only
 -- text): the pilot-only objective 409 "Protect the three transports." replacing 406. The branch
 -- never touches aiCore.
 local Pilot = { mode = require("PlayerPilotMode"), branch = require("CRPilotBranch") }
@@ -95,7 +96,7 @@ function Pilot.AddObject(h)
     if (IsOdf(h, "avtank") or IsOdf(h, "avltnk")) and #P.escorts < 3 then
         P.escorts[#P.escorts + 1] = h
         local player = GetPlayerHandle()
-        if B.alive(player) then Follow(h, player, 1) end
+        if B.alive(player) then Follow(h, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
     end
 end
 
@@ -110,7 +111,7 @@ function Pilot.Update()
     if not P.started then -- C 92-100
         P.started = true
         for _, h in ipairs(P.escorts) do
-            if B.alive(h) then Follow(h, player, 1) end
+            if B.alive(h) then Follow(h, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
         end
         P.supplyAt = now
     end
@@ -125,10 +126,10 @@ function Pilot.Update()
     -- C 127-177: three ammo pods, then three repair pods, one every 3 s.
     local slf = GetHandle("avslf0_armory")
     if P.supplyAt < now and B.alive(slf) then
-        local odf = (P.reloadLeft > 0 and "apammo") or (P.repairLeft > 0 and "aprepa") or nil
+        local odf = (P.reloadLeft > 0 and "napammo") or (P.repairLeft > 0 and "naprepa") or nil -- CR adaptation: avslf lists naprepa/napammo
         if odf and B.Ready(slf) and GetScrap(1) > 0 then
             BuildAt(slf, odf, player, 1)
-            if odf == "apammo" then P.reloadLeft = P.reloadLeft - 1 else P.repairLeft = P.repairLeft - 1 end
+            if odf == "napammo" then P.reloadLeft = P.reloadLeft - 1 else P.repairLeft = P.repairLeft - 1 end
             P.supplyAt = now + 3
         end
     end

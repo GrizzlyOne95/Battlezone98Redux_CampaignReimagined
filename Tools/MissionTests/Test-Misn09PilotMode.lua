@@ -168,6 +168,14 @@ pilots = 0
 M.relic_free = true
 now = now + 1; api.update()
 check(lastOrder("pickup")[2] == "tug" and lastOrder("pickup")[3] == relic, "tug picks up the free relic")
+-- CR adaptation: the Pickup is re-sent every 10 s until the tug holds the relic.
+local function countOrders(kind) local n = 0; for _, o in ipairs(orders) do if o[1] == kind then n = n + 1 end end; return n end
+local pickups = countOrders("pickup")
+now = now + 5; api.update(); check(countOrders("pickup") == pickups, "no Pickup re-send within 10 s")
+now = now + 6; api.update(); check(countOrders("pickup") == pickups + 1, "an unfinished Pickup is re-sent after 10 s")
+objs[relic].tug = "tug"
+now = now + 11; api.update(); check(countOrders("pickup") == pickups + 1, "no Pickup once the tug holds the relic")
+objs[relic].tug = nil
 M.relic_free, M.relic_secure = false, true
 now = now + 1; api.update()
 check(lastOrder("follow")[2] == "tug" and lastOrder("follow")[3] == fact, "tug follows the factory with the relic")
@@ -193,16 +201,16 @@ M.relic_free = false
 objs[slf].deployed = true; scrap = 50
 objs[player].health, objs[player].ammo = 0.5, 0.5
 now = now + 5; api.update()
-check(built[#built] == "apammo@player", "ammo pod first: " .. table.concat(built, ","))
+check(built[#built] == "napammo@player", "ammo pod first: " .. table.concat(built, ","))
 before = #built; now = now + 1; api.update()
 check(#built == before, "3 s cooldown between pods")
 now = now + 3; api.update()
-check(built[#built] == "apammo@player" and #built == before + 1, "second ammo pod")
+check(built[#built] == "napammo@player" and #built == before + 1, "second ammo pod")
 now = now + 3; api.update()
-check(built[#built] == "aprepa@player", "then the repair pods")
+check(built[#built] == "naprepa@player", "then the repair pods")
 now = now + 3; api.update()
-check(built[#built] == "aprepa@player" and #built == before + 3, "second repair pod")
-check(spawn("a1", "apammo") == true and spawn("r1", "aprepa") == true and lastOrder("objon")[2] == "r1", "pods consumed and highlighted")
+check(built[#built] == "naprepa@player" and #built == before + 3, "second repair pod")
+check(spawn("a1", "napammo") == true and spawn("r1", "naprepa") == true and lastOrder("objon")[2] == "r1", "pods consumed and highlighted")
 check(M.pilot.ammoPending == 1 and M.pilot.repairPending == 1, "pending counts drop per delivered pod")
 
 -- Losing the player tug fails the mission (once).
@@ -225,7 +233,7 @@ do
     local adapter = initArgs.adapter
     check(adapter and adapter.enable, "adapter has an enable hook")
     enabled = false
-    check(spawn("pw", "avwalk") == false and spawn("pa", "apammo") == false, "not consumed while off")
+    check(spawn("pw", "avwalk") == false and spawn("pa", "napammo") == false, "not consumed while off")
     enabled = true
     M.pilot = nil
     adapter.enable()

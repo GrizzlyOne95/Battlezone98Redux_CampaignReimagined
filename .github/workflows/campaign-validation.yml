@@ -393,6 +393,18 @@ jobs:
             "$LUA" "Tools/MissionTests/Test-Misns${n}PilotMode.lua"
           done
 
+      - name: Audit Pilot Mode win paths (static audit and win-path sims)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python Tools/MissionTests/Audit-PilotMode.py
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/MissionTests/Test-CRPilotBranch.lua
+          for f in Tools/MissionTests/Test-*PilotSim.lua; do
+            echo "== $f"
+            "$LUA" "$f"
+          done
+
       - name: Test weather
         shell: bash
         run: |

@@ -99,7 +99,7 @@ function Pilot.Update()
     if not P.started then -- C 130-136: the four bombers follow the player
         P.started = true
         for _, bomber in ipairs(bombers) do
-            if alive(bomber) then Follow(bomber, player, 1) end
+            if alive(bomber) then Follow(bomber, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
         end
     end
     -- C 140-168: and again on a craft change or every 30 s.

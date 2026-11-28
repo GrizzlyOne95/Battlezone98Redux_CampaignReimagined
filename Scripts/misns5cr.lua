@@ -90,7 +90,7 @@ function Pilot.AddObject(h)
             if not alive(P.tank[i]) then P.tank[i] = h; break end
         end
         local player = GetPlayerHandle()
-        if alive(player) then Follow(h, player, 1) end
+        if alive(player) then Follow(h, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
     elseif IsOdf(h, "svcnst") then -- C 129-134
         P.cnst = h
         P.buildSlot = 0
@@ -119,7 +119,7 @@ function Pilot.Update()
     if not M.camera1 and not P.started then
         P.started = true
         for i = 1, 2 do
-            if alive(P.tank[i]) then Follow(P.tank[i], player, 1) end
+            if alive(P.tank[i]) then Follow(P.tank[i], player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
         end
         for i = 1, 6 do
             if alive(P.base[i]) then
@@ -148,7 +148,7 @@ function Pilot.Update()
     -- C 274-283: the constructor takes its building to the cached position.
     if P.dropPending and alive(P.cnst) then
         local pos = P.pos[P.buildSlot]
-        if pos then Dropoff(P.cnst, SetVector(pos.x, pos.y, pos.z), 1) end
+        if pos then Dropoff(P.cnst, SetVector(pos.x, pos.y, pos.z), 1) end -- pilot-order: once, base-building extra, not win-critical (judged, per-mission check pending)
         P.dropPending = false
     end
     -- C 346-479: the constructor rebuilds each destroyed plant or tower at its recorded position.

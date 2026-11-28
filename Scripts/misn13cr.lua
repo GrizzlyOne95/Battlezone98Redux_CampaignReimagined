@@ -275,18 +275,17 @@ function Pilot.AddObject(h)
         P.turrets = P.turrets + 1
         P.turretsBuilt = math.max(P.turretsBuilt, P.turrets)
         local spot = Pilot.turretSpots[P.turrets == 1 and 1 or 2]
-        local x, z = spot[1], spot[2]
-        Goto(h, SetVector(x, GetTerrainHeightAndNormal(SetVector(x, 0, z)), z), 1)
+        B.AssignSpot(P, h, { spot[1], spot[2] }) -- CR adaptation: the spot Goto is re-sent by KeepSpots until the turret arrives
     elseif IsOdf(h, "avfigh") then -- C 251-288
-        if pilotSlot(P.f, 6, h) and B.alive(player) then Follow(h, player, 1) end
+        if pilotSlot(P.f, 6, h) and B.alive(player) then Follow(h, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
     elseif IsOdf(h, "avtank") then -- C 290-303
-        if pilotSlot(P.t, 2, h) and B.alive(player) then Follow(h, player, 1) end
+        if pilotSlot(P.t, 2, h) and B.alive(player) then Follow(h, player, 1) end -- pilot-order: once, re-sent by FollowPlayer every 30 s
     elseif IsOdf(h, "naprepa") or IsOdf(h, "napammo") then -- C 305-321
         B.NoteSupply(P, h, "naprepa", "napammo")
     elseif IsOdf(h, "avmuf") and not B.alive(P.factory) then -- C 391-401: n64p086 to the rally geyser
         P.factory, P.factoryQueued = h, true
         local geyser = GetHandle(Pilot.factoryGeyser)
-        if geyser ~= nil and not IsDeployed(h) then Goto(h, geyser, 1) end
+        if geyser ~= nil and not IsDeployed(h) then Goto(h, geyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
     elseif IsOdf(h, "avscav") then -- the scavenger top-up reads these slots
         pilotSlot(P.scav, 2, h)
     end
@@ -305,10 +304,11 @@ function Pilot.Update()
     if not P.started then -- C 189-191, 502-505: nav marked, the recycler goes to its geyser
         P.started = true
         if B.alive(M.nav1) then SetObjectiveOn(M.nav1) end
-        if B.alive(rec) and not IsDeployed(rec) and recGeyser ~= nil then Goto(rec, recGeyser, 1) end
+        if B.alive(rec) and not IsDeployed(rec) and recGeyser ~= nil then Goto(rec, recGeyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
         P.followAt = now + 30
     end
     B.Lock(P, now)
+    B.KeepSpots(P, now) -- CR adaptation: re-send turret spot orders
     B.Resend(P, "rec", rec, recGeyser, now) -- C 521-538
     B.Resend(P, "factory", factory, factoryGeyser, now) -- C 540-557
     B.WatchSupply(P, player) -- C 559-582

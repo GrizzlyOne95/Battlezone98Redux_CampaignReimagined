@@ -536,7 +536,7 @@ local function PilotAddObject(h)
         if not alive(P.tank1) then P.tank1 = h
         elseif not alive(P.tank2) then P.tank2 = h end
         local player = GetPlayerHandle()
-        if alive(player) then Follow(h, player, 1) end
+        if alive(player) then Follow(h, player, 1) end -- pilot-order: once, re-sent by the 20 s escort block
     else
         local slots
         if IsOdf(h, "abhang") then slots = { "hangar" }
@@ -573,12 +573,12 @@ local function PilotUpdate()
         if not alive(P.tank1) then P.tank1 = GetHandle("avtank134_wingman") end
         if not alive(P.tank2) then P.tank2 = GetHandle("avltnk134_wingman") end
         if IsValid(M.factorynav) then SetUserTarget(M.factorynav) end
-        if alive(rec) and not IsDeployed(rec) and recGeyser then Goto(rec, recGeyser, 1) end
+        if alive(rec) and not IsDeployed(rec) and recGeyser then Goto(rec, recGeyser, 1) end -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
         if alive(P.factory) and not IsDeployed(P.factory) and factoryGeyser then
-            Goto(P.factory, factoryGeyser, 1)
+            Goto(P.factory, factoryGeyser, 1) -- pilot-order: once, re-sent by PilotBranch.Resend while the unit is undeployed
         end
         for _, e in ipairs(P.escort) do
-            if alive(e) then Follow(e, player, 1) end
+            if alive(e) then Follow(e, player, 1) end -- pilot-order: once, re-sent by the 20 s escort block
         end
         P.escortAt = now + 20
     end
@@ -620,7 +620,7 @@ local function PilotUpdate()
 
     -- C 427-435: the constructor takes its next facility to the drop point.
     if P.dropPending and alive(P.cnst) then
-        Dropoff(P.cnst, PilotSpot(P.dropX, P.dropZ), 1)
+        Dropoff(P.cnst, PilotSpot(P.dropX, P.dropZ), 1) -- pilot-order: once, base-building extra, not win-critical (judged, per-mission check pending)
         P.dropPending = false
     end
 
