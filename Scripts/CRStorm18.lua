@@ -34,7 +34,8 @@ local Storm = {}
 Storm.PHASES = { "opening", "search", "found", "core1", "core2", "core3", "collapse", "final", "extract", "ascent", "won", "lost" }
 local INDEX = {}
 for i, name in ipairs(Storm.PHASES) do INDEX[name] = i end
-local FINAL = 8   -- the last rung with its own weather preset (extract and ascent reuse it)
+local FINAL = 8   -- the last rung built from a PROFILE row's level
+local CINEMA = 9  -- extract, ascent and won: the final storm, thinned so the extraction shots read
 local LAST = 10   -- the last rung with a profile row; won and lost (11, 12) hold it
 
 -- One row per phase (won and lost hold the final look).
@@ -176,6 +177,28 @@ function Storm.BuildPresets(Presets)
         }
         table_[p.name] = p
     end
+    -- The extraction cinematic: the final preset with clearer air. Full-weight fog and
+    -- particles filled the camera with cloud, so the ships and the Texas never showed.
+    local final = table_["Misn18Storm" .. FINAL]
+    local cinema = {}
+    for k, v in pairs(final) do cinema[k] = v end
+    cinema.name = "Misn18Storm" .. CINEMA
+    cinema.fog = { r = final.fog.r, g = final.fog.g, b = final.fog.b, fogStart = 140, fogEnd = 250 }
+    local thin = { cr18_wx_dust = 0.30, cr18_wx_haze = 0.35, cr18_wx_debris = 0.40, cr18_wx_streak = 0.60 }
+    cinema.precipitation = {}
+    for i, sys in ipairs(final.precipitation) do
+        local copy = {}
+        for k, v in pairs(sys) do copy[k] = v end
+        local scale = thin[sys.system]
+        if scale then
+            local e0 = {}
+            for k, v in pairs(sys.emitters[0]) do e0[k] = v end
+            e0.rate = e0.rate * scale
+            copy.emitters = { [0] = e0 }
+        end
+        cinema.precipitation[i] = copy
+    end
+    table_[cinema.name] = cinema
 end
 
 -- Director ------------------------------------------------------------------------
@@ -517,7 +540,10 @@ function Storm.Create(api)
     end
 
     -- Presentation ---------------------------------------------------------------------
-    local function presetFor(idx) return "Misn18Storm" .. clamp(idx, 1, FINAL) end
+    local function presetFor(idx)
+        if idx >= INDEX.extract and idx <= INDEX.won then return "Misn18Storm" .. CINEMA end
+        return "Misn18Storm" .. clamp(idx, 1, FINAL)
+    end
 
     local function enter(idx)
         if idx >= 7 and applied ~= nil and applied < 7 then burstEnd = clock + profile(7).burst end

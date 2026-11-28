@@ -399,6 +399,9 @@ function F.makePeer(id, team, network, options)
     local function noop() end
     local modules = {
         crreqfix = {Initialize = noop},
+        PlayerPilotMode = {Initialize = noop, Update = noop, Save = function() return {} end,
+            IsEnabled = function() return false end},
+        CRPilotBranch = assert(loadfile("Scripts/CRPilotBranch.lua"))(),
         exu = {GetMyNetID = function() return id end, DisableStartingRecycler = function() record("DisableStartingRecycler") end,
             SetLives = function(n) record("SetLives", n) end},
         ScriptSubtitles = {

@@ -7,6 +7,12 @@
 -- References/Misn17Source/. See Docs/MISN17_SOURCE_PORT.md for parity and fixes.
 -- Single player, stock BZR API only; no EXU/OpenShim dependency.
 local M
+-- CR pilot mode >>
+local RequireFix = require("crreqfix")
+RequireFix.Initialize({"campaignReimagined", "3686673790"})
+local PlayerPilotMode = require("PlayerPilotMode")
+local PilotBranch = require("CRPilotBranch")
+-- CR pilot mode <<
 
 
 
@@ -467,15 +473,209 @@ local function TargetCameraObject(base, right, up, forward, target)
     return false
 end
 
+-- CR pilot mode >>
+-- N64 Pilot Mode branch (Battlezone 64 table 15, byte g_800B93D5), behind the
+-- PDA Pilot Mode toggle; single player only (PlayerPilotMode is off in MP).
+-- Port of Battlezone_Z64Tools redux_lua/n64m17.lua, which follows
+-- mission_scripts m15_misn17.c (C line numbers below). N64 labels map to this
+-- BZN by position (Docs/PILOT_MODE_N64_LABELS.md, "m15_misn17"): label 2 =
+-- recycler (M.avrec), 10 = avmuf0_factory, 11/12 = eggeizr1132/1133_geyser,
+-- 3/4/15/16 = the four wingmen, 18 = factorynav. The seven Fury power towers
+-- are the mission's own M.tower1..7. The N64 transport n64p070 (C 289-295) is
+-- the stock constructor avcnst (cost 8, builds abspow/abtowe/absupp/abhang).
+-- Adaptations: the facility delivery (Obj_SetPathCommand 8, C 427-435) is a
+-- Dropoff order. Not ported: the us17t338 fail text, voice/text lines, the stricter
+-- watch conditions of C 1175-1224/1697-1721 and the crystal intercepts
+-- (C 438-822 targets; the CR crystals are not Pilot Mode targets).
+local PILOT_RESERVE = 4 -- S3
+local PILOT_FACILITIES = { -- C 923-1073: odf, slot, scrap, x, z (+96000 added)
+    { "abhang", "hangar", 7, 1818, 99499 },
+    { "absupp", "supp", 5, 1769, 99349 },
+    { "abspow", "pow1", 4, 1808, 99330 },
+    { "abtowe", "tow1", 6, 1836, 99288 },
+    { "abtowe", "tow2", 6, 1852, 99372 },
+    { "abspow", "pow2", 4, 1830, 99565 },
+    { "abtowe", "tow3", 6, 1766, 99539 },
+    { "abtowe", "tow4", 6, 1875, 99530 },
+}
+
+local function PilotAuthority()
+    return not CRCoop or CRCoop.IsAuthority()
+end
+
+local function PilotSpot(x, z)
+    return SetVector(x, GetTerrainHeightAndNormal(SetVector(x, 0, z)), z)
+end
+
+local function PilotState()
+    local P = M.pilot
+    if not P then
+        P = PilotBranch.NewState()
+        P.escort = {}
+        M.pilot = P
+    end
+    return P
+end
+
+-- C 280-342: player-team units built in Pilot Mode fill the N64 slots.
+local function PilotAddObject(h)
+    if not IsValid(h) or not PlayerPilotMode.IsEnabled() or GetTeamNum(h) ~= 1 then return end
+    local P = PilotState()
+    if not PilotBranch.Claim(P, h) then return end
+    local alive = PilotBranch.alive
+    if IsOdf(h, "avscav") then -- C 281-288
+        if not alive(P.scav1) then P.scav1 = h
+        elseif not alive(P.scav2) then P.scav2 = h end
+    elseif IsOdf(h, "avcnst") then -- C 289-295
+        if not alive(P.cnst) then
+            P.cnst = h
+            P.dropPending = false
+            P.facilityPending = false
+        end
+    elseif IsOdf(h, "avtank") then -- C 333-341
+        if not alive(P.tank1) then P.tank1 = h
+        elseif not alive(P.tank2) then P.tank2 = h end
+        local player = GetPlayerHandle()
+        if alive(player) then Follow(h, player, 1) end
+    else
+        local slots
+        if IsOdf(h, "abhang") then slots = { "hangar" }
+        elseif IsOdf(h, "absupp") then slots = { "supp" }
+        elseif IsOdf(h, "abspow") then slots = { "pow1", "pow2" }
+        elseif IsOdf(h, "abtowe") then slots = { "tow1", "tow2", "tow3", "tow4" } end
+        if slots then -- C 297-332
+            for _, slot in ipairs(slots) do
+                if not alive(P[slot]) then P[slot] = h; break end
+            end
+            P.facilityPending = false
+        end
+    end
+end
+
+-- C 355-1107, run by PlayerPilotMode.Update while the toggle is on.
+local function PilotUpdate()
+    local player = GetPlayerHandle()
+    local alive = PilotBranch.alive
+    if not alive(player) or not M.missionstart then return end
+    local P = PilotState()
+    local now = GetTime()
+    local rec = M.avrec
+    local recGeyser, factoryGeyser = GetHandle("eggeizr1133_geyser"), GetHandle("eggeizr1132_geyser")
+
+    if not P.started then -- C 414-424
+        P.started = true
+        P.factory = GetHandle("avmuf0_factory")
+        P.escort = {}
+        for _, label in ipairs({ "avtank134_wingman", "avltnk134_wingman", "avfigh18_wingman", "avfigh19_wingman" }) do
+            local e = GetHandle(label) -- a lost wingman must not hide the rest from ipairs
+            if e then P.escort[#P.escort + 1] = e end
+        end
+        if not alive(P.tank1) then P.tank1 = GetHandle("avtank134_wingman") end
+        if not alive(P.tank2) then P.tank2 = GetHandle("avltnk134_wingman") end
+        if IsValid(M.factorynav) then SetUserTarget(M.factorynav) end
+        if alive(rec) and not IsDeployed(rec) and recGeyser then Goto(rec, recGeyser, 1) end
+        if alive(P.factory) and not IsDeployed(P.factory) and factoryGeyser then
+            Goto(P.factory, factoryGeyser, 1)
+        end
+        for _, e in ipairs(P.escort) do
+            if alive(e) then Follow(e, player, 1) end
+        end
+        P.escortAt = now + 20
+    end
+    local factory = P.factory
+    PilotBranch.Lock(P, now)
+
+    -- C 438-822: every 20 s the wingmen attack any enemy within 120 m of the
+    -- player, else the first standing Fury power tower, else follow.
+    if P.escortAt and now >= P.escortAt then
+        P.escortAt = now + 20
+        local target = NearestEnemy(player)
+        if not (target and alive(target) and Distance(player, target) < 120.0) then
+            target = nil
+            for i = 1, 7 do
+                local tower = M["tower" .. i]
+                if alive(tower) then target = tower; break end
+            end
+        end
+        for _, e in ipairs(P.escort) do
+            if alive(e) then
+                if target then Attack(e, target, 1) else Follow(e, player, 1) end
+            end
+        end
+    end
+
+    -- C 823-859: an idle producer is re-sent to its geyser.
+    PilotBranch.Resend(P, "rec", rec, recGeyser, now)
+    PilotBranch.Resend(P, "factory", factory, factoryGeyser, now)
+
+    -- C 861-866: the mobile unit factory is the Pilot Mode fail condition.
+    -- Armed only once the factory was seen alive with the mode on, so a
+    -- mid-mission toggle after it fell does not fail the mission at once.
+    if alive(factory) then P.factorySeen = true end
+    if P.factorySeen and not alive(factory) and not M.missionfail and not M.missionwon then
+        M.missionfail = true
+        FailMission(now + 10.0)
+        return
+    end
+
+    -- C 427-435: the constructor takes its next facility to the drop point.
+    if P.dropPending and alive(P.cnst) then
+        Dropoff(P.cnst, PilotSpot(P.dropX, P.dropZ), 1)
+        P.dropPending = false
+    end
+
+    if not alive(rec) then return end
+    -- C 867-1107: one blocking chain; the first unmet item wins the frame.
+    if not alive(P.scav1) or not alive(P.scav2) then
+        if PilotBranch.Ready(rec) then -- C 875-905: the top-up keeps the queue from stalling
+            if GetScrap(1) < PILOT_RESERVE then AddScrap(1, PILOT_RESERVE) end
+            if GetPilot(1) == 0 then AddPilot(1, 1) end
+            if GetScrap(1) >= PILOT_RESERVE and GetPilot(1) > 0 then Build(rec, "avscav", 1) end
+        end
+        return
+    elseif not alive(P.cnst) then
+        return PilotBranch.TryBuild(rec, "avcnst", PILOT_RESERVE + 8)
+    end
+    local built = false
+    if not P.dropPending and not P.facilityPending and not IsBusy(P.cnst) then
+        for _, f in ipairs(PILOT_FACILITIES) do
+            if not alive(P[f[2]]) and GetScrap(1) >= PILOT_RESERVE + f[3] then
+                Build(P.cnst, f[1], 1)
+                P.facilityPending, P.dropPending = true, true
+                P.dropX, P.dropZ = f[4], f[5]
+                built = true
+                break
+            end
+        end
+    end
+    if not built and not P.dropPending and not P.facilityPending
+       and (not alive(P.tank1) or not alive(P.tank2)) and alive(factory) then
+        return PilotBranch.TryBuild(factory, "avtank", PILOT_RESERVE + 8)
+    end
+end
+
+local function InitializePilotMode()
+    PlayerPilotMode.Initialize({ scripted = true, update = PilotUpdate,
+        enable = function() PilotBranch.Adopt(PilotState(), PilotAddObject) end,
+        disable = function() PilotBranch.Release(PilotState()) end }, M.playerPilotModeState)
+end
+-- CR pilot mode <<
+
 function Start()
 -- CR co-op callback >>
     if campaignRuntime then campaignRuntime.Start() end
 -- CR co-op callback <<
+-- CR pilot mode >>
+    if PilotAuthority() then InitializePilotMode() end
+-- CR pilot mode <<
     -- State is initialized when the chunk loads, before any AddObject calls.
     -- Do not reset artillery registered before Start; first Update does setup.
 end
 
 function AddObject(h)
+-- CR pilot mode >>
+    PilotAddObject(h)
+-- CR pilot mode <<
 -- CR co-op callback >>
     if campaignRuntime and not campaignRuntime.TrackArtillery(h) then return end
 -- CR co-op callback <<
@@ -505,6 +705,9 @@ function Update(dt)
 -- CR co-op callback >>
     if campaignRuntime and not campaignRuntime.Update(dt) then return end
 -- CR co-op callback <<
+-- CR pilot mode >>
+    PlayerPilotMode.Update()
+-- CR pilot mode <<
     --[==[/*
 	   Event loop.
 	*/]==]
@@ -1137,13 +1340,20 @@ function Save()
 -- CR co-op callback >>
     if campaignRuntime then campaignRuntime.Save() end
 -- CR co-op callback <<
-    return M
+-- CR pilot mode >>
+    M.playerPilotModeState = PlayerPilotMode.Save()
+-- CR pilot mode <<
+    return M, M.playerPilotModeState
 end
 
-function Load(state)
+function Load(state, pilotModeData)
     -- BZR serializes/remaps handles and audio messages, including nested tables.
     -- Restore without replaying startup, spawning units, or restarting timers.
     M = state
+-- CR pilot mode >>
+    M.playerPilotModeState = pilotModeData or M.playerPilotModeState
+    if PilotAuthority() then InitializePilotMode() end
+-- CR pilot mode <<
 -- CR co-op callback >>
     if campaignRuntime then campaignRuntime.Load() end
 -- CR co-op callback <<

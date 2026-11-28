@@ -362,6 +362,9 @@ local function makePeer(id, team, network)
     local function noop() end
     local modules = {
         crreqfix = {Initialize = noop},
+        PlayerPilotMode = {Initialize = noop, Update = noop, Save = function() return {} end,
+            IsEnabled = function() return false end},
+        CRPilotBranch = assert(loadfile("Scripts/CRPilotBranch.lua"))(),
         -- The real director has its own suite (Test-CREuropaWeather.lua); this records the mission's wiring:
         -- what it was initialised with, the beats, and the events it received. Plume/Quake/Surge behave like
         -- the authority director: they queue their event onto the mission's ordered stream.

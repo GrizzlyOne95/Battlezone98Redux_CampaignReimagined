@@ -796,7 +796,12 @@ local function SetupAI(preserveExisting)
                 "scavenger", "scavenger", "scavenger", "scavenger",
                 "constructor",
             },
-            Factory = { "tank", "tank", "lighttank", "apc", "turret", "turret", "turret", "turret", "turret", "turret" }
+            -- aiCore launches its own attack and flank squads only from 3+ pool combat
+            -- units strong enough for the threat at the target (UpdateSquads /
+            -- BuildSquadFromPoolForGoal). The old list kept 3 combat units then six
+            -- turrets, so the CCA never fielded a squad and only the scripted waves came.
+            -- Keep six combat units up first, then the turrets.
+            Factory = { "tank", "scout", "tank", "lighttank", "scout", "tank", "apc", "turret", "turret", "turret", "turret" }
         }, true)
 
         -- Fully Automate Base and Units
@@ -805,7 +810,7 @@ local function SetupAI(preserveExisting)
         cca.Config.manageFactories = true
         cca.Config.manageConstructor = true
         cca.Config.resourceBoost = true
-        cca.resourceBoostTimer = GetTime() + DiffUtils.ScaleTimer(300.0)
+        cca.resourceBoostTimer = GetTime() + DiffUtils.ScaleTimer(150.0)
         cca.Config.allowProducerRelocation = false
         cca.Config.minScavengers = 4
         cca.Config.requireConstructorFirst = true
@@ -3836,7 +3841,7 @@ function Update()
     -- PORT FIX: secure latches survive destruction and pending failure audio.
     -- Do not start a win on the same frame as recycler/relic loss, or override
     -- an already-triggered warning/theft failure. Healthy success follows the
-    -- same secure gates, audio completion and twenty-second cinematic.
+    -- same secure gates, audio completion and the misn0426 end cinematic.
     if M.relicsecure and M.basesecure and not M.missionfail and not M.missionfail2
         and IsAlive(M.avrec) and IsAlive(M.relic) then
         M.missionwon = true
@@ -3846,15 +3851,19 @@ function Update()
         if not M.cin_started then
             -- endcin spirals ~1.8 km around the mesa (the Face) centred at
             -- (3225, 101199), ground ~149 m. Look at a camera pod on its
-            -- summit from 80 m above the path at 90 m/s, so the 20 s shot
-            -- covers the whole orbit. Height/speed are cm and cm/s: the old
-            -- 100/200 sat 1 m off the slope and barely moved.
+            -- summit from 80 m above the path. Height/speed are cm and cm/s:
+            -- the old 100/200 sat 1 m off the slope and barely moved.
+            -- CR restored VO: misn0426.wav (53 s "we were not the first"
+            -- retrospective) narrates the Face orbit. Stock plays misn0435 on
+            -- the loading screen, so 0426 lives here. The orbit runs at 34 m/s
+            -- so the whole path takes about as long as the line.
             local summit = GetTerrainHeightAndNormal(SetVector(3225, 0, 101199))
             M.endcamTarget = BuildObject("apcamr", 0, SetVector(3225, summit, 101199))
             CameraReady()
             M.cin_started = true
             M.endcinfinish = true
-            M.startendcin = GetTime() + 20.0
+            M.aud26 = subtit.Play("misn0426.wav")
+            M.startendcin = GetTime() + 56.0
         end
 
         -- Two deviations from the idiom every other cutscene in this campaign
@@ -3870,11 +3879,14 @@ function Update()
         --   path, so it has to run every frame the camera is up; every other
         --   site calls it from a latched branch rather than latching the call.
         if M.endcinfinish then
-            CameraPath("endcin", 8000, 9000, M.endcamTarget or M.avrec)
+            CameraPath("endcin", 8000, 3400, M.endcamTarget or M.avrec)
         end
 
-        if GetTime() > M.startendcin or CameraCancelled() then
+        if GetTime() > M.startendcin or (M.aud26 and AudioDone(M.aud26) and GetTime() > M.startendcin - 50.0)
+            or CameraCancelled() then
             CameraFinish()
+            StopAudio(M.aud26)
+            M.aud26 = nil
             -- Host-built, so its removal replicates; no presentation event needed.
             if IsValid(M.endcamTarget) then native.RemoveObject(M.endcamTarget) end
             M.endmission = true

@@ -1,6 +1,12 @@
 -- Run from the repository root: lua5.1 Tools/MissionTests/Test-Misn17.lua
 -- Simulates BZR callbacks; verifies source-defined events and strict boundaries.
 CR_TEST_FAITHFUL = true -- The restored roster is covered by Test-FuryRoster.lua.
+package.preload.crreqfix = function() return {Initialize = function() end} end
+package.preload.PlayerPilotMode = function()
+    return {Initialize = function() end, Update = function() end, Save = function() return {} end,
+        IsEnabled = function() return false end}
+end
+package.preload.CRPilotBranch = function() return assert(loadfile("Scripts/CRPilotBranch.lua"))() end
 local now, objects, labels, calls, distances, nearest, audio, pathdone, cancelled
 local serial, messages, checks = 0, 0, 0
 AiCommand = {NONE = 0, ATTACK = 3, DEFEND = 16}

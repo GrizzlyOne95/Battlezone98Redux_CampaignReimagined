@@ -20,7 +20,8 @@ opened = re.findall(r"(?m)^-- CR ([^\n]*) >>$", lua_full)
 closed = re.findall(r"(?m)^-- CR ([^\n]*) <<$", lua_full)
 assert opened == closed and opened, "every CR region opens and closes in order"
 assert set(opened) == {"co-op runtime", "co-op callback", "co-op callbacks", "Fury scaling",
-                       "restored earthquake pulse", "restored voice", "restored return units"}, opened
+                       "restored earthquake pulse", "restored voice", "restored return units",
+                       "pilot mode"}, opened
 lua = re.sub(region, "", lua_full)
 assert "CRMisn18" not in lua and "campaignRuntime" not in lua and "RESTORED" not in lua, "CR code outside a region"
 cpp_comment = r"//[^\n]*|/\*.*?\*/"

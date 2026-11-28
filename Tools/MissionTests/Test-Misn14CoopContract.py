@@ -88,7 +88,13 @@ assert not re.search(r'\b(SetScrap|AddPilot|SetPilot|AddScrap)\(\s*[234]\s*[,)]'
 assert len(re.findall(r'\bSetAIControl\(', lua)) == 1 and re.search(r'(?m)^SetAIControl\(ENEMY_TEAM, true\)$', lua)
 assert lua.index('SetAIControl(ENEMY_TEAM, true)') < lua.index('function Start()')
 assert re.findall(r'SetAIP\([^)]*\)', lua) == ['SetAIP("misn14.aip", ENEMY_TEAM)']
-assert 'PlayerPilotMode' not in lua and 'aiCore' not in lua, 'neither Pilot Mode nor aiCore belongs in misn14'
+# Pilot Mode / aiCore never manage human teams here: aiCore is not loaded, and the only Pilot Mode allowed is the
+# scripted N64 adapter (PDA toggle, single player).
+assert 'aiCore' not in lua, 'aiCore never manages a human team'
+if 'PlayerPilotMode' in lua:
+    inits = re.findall(r'(?:PlayerPilotMode|\bmode)\.Initialize\(', lua)
+    adapters = re.findall(r'(?:PlayerPilotMode|\bmode)\.Initialize\(\{\s*scripted = true\b', lua)
+    assert inits and len(adapters) == len(inits), 'only the scripted Pilot Mode adapter may run here; aiCore never manages a human team'
 assert not re.search(r'(?<![.\w])Formation\(', lua), 'stock Lua Formation() is broken; use SetCommand FORMATION'
 assert 'exu.DisableStartingRecycler()' in lua and 'rallyPoints = { [0] = "avrecy-1_recycler" }' in lua
 assert 'respawn.SetRallyPoints({})' in lua

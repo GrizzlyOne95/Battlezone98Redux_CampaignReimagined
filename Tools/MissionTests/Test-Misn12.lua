@@ -132,6 +132,8 @@ local modules = {
         Surge = function(seconds, strength) record("EuropaSurge", seconds, strength) end},
 }
 modules.CRDifficulty = assert(loadfile("Scripts/CRDifficulty.lua"))()
+modules.PlayerPilotMode = {Initialize = function() end, Update = function() end, Save = function() return {} end, IsEnabled = function() return false end}
+modules.CRPilotBranch = assert(loadfile("Scripts/CRPilotBranch.lua"))()
 function require(name) return assert(modules[name], name) end
 local function reset()
     now, serial, cancelled = 0, 0, false

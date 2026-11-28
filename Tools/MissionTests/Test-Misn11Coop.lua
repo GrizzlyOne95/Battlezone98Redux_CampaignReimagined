@@ -297,6 +297,8 @@ local function makePeer(id, team, network)
     e.package = setmetatable({loaded = {exu = modules.exu}}, {__index = package})
     modules.CRCoop = setfenv(assert(loadfile("Scripts/CRCoop.lua")), e)()
     modules.CRDifficulty = assert(loadfile("Scripts/CRDifficulty.lua"))()
+    modules.PlayerPilotMode = {Initialize = function() end, Update = function() end, Save = function() return {} end, IsEnabled = function() return false end}
+    modules.CRPilotBranch = assert(loadfile("Scripts/CRPilotBranch.lua"))()
     e.require = function(name) return assert(modules[name], name) end
     setfenv(assert(loadfile("Scripts/misn11cr.lua")), e)()
     p.chunkCalls = #p.calls -- everything recorded so far ran at chunk load, before Start

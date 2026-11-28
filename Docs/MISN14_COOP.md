@@ -63,8 +63,8 @@ script with no `cam_path` opening.
 | 1 (rescued pilots), 1 (surrendered base/towers) | **7** | survivors and the surrendered barracks, four towers and both power plants; allied with every human, never with 5 or 6 |
 
 Every DLL team-2/3 literal is gone (the source-parity test asserts it). The surrender `AllCraft` loop flips only
-team 5 craft, so a guest's team-2 craft is never neutralised. Pilot Mode never runs here and aiCore is not
-loaded: no script manages a human team.
+team 5 craft, so a guest's team-2 craft is never neutralised. aiCore is not
+loaded and no script manages a human team; Pilot Mode, when toggled on in single player, runs only the scripted N64 branch.
 
 ## The NSDF Fury squad
 

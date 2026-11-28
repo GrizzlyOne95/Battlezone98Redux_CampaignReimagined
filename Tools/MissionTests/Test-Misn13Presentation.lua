@@ -457,6 +457,9 @@ local function makePeer(id, team)
     local function noop() end
     local modules = {
         crreqfix = {Initialize = noop},
+        PlayerPilotMode = {Initialize = noop, Update = noop, Save = function() return {} end,
+            IsEnabled = function() return false end},
+        CRPilotBranch = assert(loadfile("Scripts/CRPilotBranch.lua"))(),
         -- The real director has its own suite (Test-CREuropaWeather.lua); this records the mission's wiring.
         -- Quake/Surge/AnnounceState behave like the authority director: they queue their event onto the
         -- mission's ordered stream through the send hook.
