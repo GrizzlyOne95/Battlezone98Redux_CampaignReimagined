@@ -229,6 +229,172 @@ local function NewState()
     }
 end
 local M = NewState()
+-- CR pilot mode >>
+-- N64 Pilot Mode branch (Battlezone 64 m23_misns7, byte g_800B93D5), behind the PDA Pilot Mode toggle; single
+-- player only. Port of Battlezone_Z64Tools redux_lua/n64ms7.lua (C line numbers below, m23_misns7.c). N64 labels map
+-- to this BZN by position (Docs/PILOT_MODE_N64_LABELS.md): 34 = svapc, 64 = svrecycle, 65 = svmuf, 15 = supply
+-- (sbhang), 4 = con_geyser. It sits before the co-op runtime region so it calls the real natives, not the shadows.
+-- Adaptations: the CR recycler and factory are neutral until an engineer restores them, so they are ordered only
+-- once restored (camera_off_recycle / camera_off_muf); the N64 outpost is the supply cache (supplies_spawned);
+-- the geysers (eggeizr13_geyser for the recycler, con_geyser for the factory, both within 45 m of the hangar) are
+-- picked by judgement. Not ported: the voice 530 -> 558 swap, the paired rescue voices, objective-text swaps,
+-- the engineer/"unstick" counters (901-1085) and the pilot-only APC-loss gate (2120-2129).
+local Pilot = {}
+Pilot.REC_GEYSER, Pilot.MUF_GEYSER = "eggeizr13_geyser", "con_geyser"
+
+function Pilot.State()
+    local P = M.pilot
+    if not P then
+        P = Pilot.B.NewState()
+        P.picked, P.engSeen = {}, {}
+        P.tanks, P.fighters = 0, 0
+        M.pilot = P
+    end
+    return P
+end
+
+-- C 117-145: player-team tanks and fighters take the add-on slots and follow the player.
+function Pilot.Add(h)
+    if GetTeamNum(h) ~= 1 then return end
+    local B = Pilot.B
+    local P = Pilot.State()
+    if not B.Claim(P, h) then return end
+    local slot
+    if IsOdf(h, "svtank") then slot = "tank"
+    elseif IsOdf(h, "svfigh") then slot = "fighter" end
+    if not slot then return end
+    if not B.alive(P[slot .. "1"]) then P[slot .. "1"] = h
+    elseif not B.alive(P[slot .. "2"]) then P[slot .. "2"] = h end
+    local player = GetPlayerHandle()
+    if B.alive(player) then Follow(h, player, 1) end -- C 144
+end
+
+function Pilot.Dist(a, b)
+    local B = Pilot.B
+    if not (B.alive(a) and B.alive(b)) then return math.huge end
+    return GetDistance(a, b)
+end
+
+-- The next rescued engineer after index `after` that still needs picking up.
+function Pilot.NextEngineer(after)
+    for j = after + 1, 3 do
+        local e = M["con" .. j]
+        if not M["con" .. j .. "_safe"] and not M["con" .. j .. "_in_apc"] and Pilot.B.alive(e) then return e end
+    end
+end
+
+-- Run by PlayerPilotMode.Update while the toggle is on.
+function Pilot.Update()
+    local B = Pilot.B
+    local player = GetPlayerHandle()
+    if not B.alive(player) or not M.start_done then return end
+    local P = Pilot.State()
+    local now = GetTime()
+    local apc, rec, muf, hut = M.apc, M.svrecycle, M.svmuf, M.supply
+    local recUp = M.camera_off_recycle and B.alive(rec)
+    local mufUp = M.camera_off_muf and B.alive(muf)
+    local recGeyser, mufGeyser = GetHandle(Pilot.REC_GEYSER), GetHandle(Pilot.MUF_GEYSER)
+
+    if not P.started then -- C 317-320: the APC follows the player from the start
+        P.started = true
+        if B.alive(apc) then Follow(apc, player, 1) end
+    end
+    B.Lock(P, now)
+
+    -- C 679-680: once the jail is down the APC drives to each engineer in turn.
+    if M.jail_unit_spawn and not P.pickup then
+        P.pickup = true
+        for i = 1, 3 do
+            if M["con" .. i .. "_safe"] then P.picked[i] = true end
+        end
+        P.apcArrived = true
+        local e = Pilot.NextEngineer(0)
+        if e and B.alive(apc) then Goto(apc, e, 1) end
+    end
+    if P.pickup then
+        for i = 1, 3 do
+            local e = M["con" .. i]
+            if B.alive(e) then P.engSeen[i] = true end
+            if M["con" .. i .. "_safe"] and not P.picked[i] then -- C 908/945/982
+                P.picked[i] = true
+                local nxt = Pilot.NextEngineer(i)
+                if nxt and B.alive(apc) then Goto(apc, nxt, 1) end
+            end
+            -- C 839/852/865: losing any engineer fails (Pilot only), armed once it was seen alive.
+            if P.engSeen[i] and not B.alive(e) and not M["con" .. i .. "_safe"]
+                and not M["con" .. i .. "_in_apc"] and not M.game_over then
+                M.game_over = true
+                FailMission(GetTime() + 3.0, "misns7f1.des")
+            end
+        end
+    end
+    -- C 1004/1049/1086: with every engineer settled the APC follows the player again.
+    if M.first_message_done and not P.rescued then
+        P.rescued = true
+        P.apcArrived = false
+        if B.alive(apc) then Follow(apc, player, 1) end
+    end
+
+    -- C 1337-1348: the restored recycler follows the player, or drives to the outpost once it stands.
+    if recUp and not P.recEvt then
+        P.recEvt = true
+        if P.outpost and recGeyser then Goto(rec, recGeyser, 1) elseif not P.outpost then Follow(rec, player, 1) end
+        if B.alive(apc) then Follow(apc, player, 1) end
+    end
+    -- C 1516-1531: the restored factory raises a three-frame follow request for the APC and the factory.
+    if mufUp and not P.mufEvt then
+        P.mufEvt = true
+        P.followMode = 3
+    end
+    if P.followMode and P.followMode > 0 then
+        if P.followMode == 1 then
+            if B.alive(apc) then Follow(apc, player, 1) end
+            if mufUp then Follow(muf, player, 1) end
+        end
+        P.followMode = P.followMode - 1
+    end
+    -- C 1697-1721: the supply cache stands; the restored producers go to the geysers by the hangar.
+    if M.supplies_spawned and not P.outpost then
+        P.outpost = true
+        if B.alive(apc) then Follow(apc, player, 1) end
+        if mufUp and mufGeyser and Pilot.Dist(muf, hut) >= 70 then Goto(muf, mufGeyser, 1) end
+        if recUp and recGeyser and Pilot.Dist(rec, hut) >= 70 then Goto(rec, recGeyser, 1) end
+    end
+    if P.outpost then
+        B.Resend(P, "muf", mufUp and muf or nil, mufGeyser, now) -- C 320-417
+        B.Resend(P, "rec", recUp and rec or nil, recGeyser, now)
+    end
+
+    -- C 367-417: re-follow on a craft change and every 30 s; producers keep their geyser orders once sent.
+    local units = {}
+    if B.alive(apc) and not P.apcArrived then units[#units + 1] = apc end
+    if mufUp and not P.outpost then units[#units + 1] = muf end
+    if recUp and not P.outpost then units[#units + 1] = rec end
+    for _, key in ipairs({ "tank1", "tank2", "fighter1", "fighter2" }) do
+        if P[key] ~= nil then units[#units + 1] = P[key] end
+    end
+    B.FollowPlayer(P, units, player, now, 30)
+
+    -- C 453-497: the restored factory builds two tanks, else the restored recycler two fighters.
+    if P.outpost then
+        if mufUp and P.tanks < 2 then
+            if B.Ready(muf) and GetScrap(1) >= 8 and GetPilot(1) > 0 then
+                Build(muf, "svtank", 1)
+                P.tanks = P.tanks + 1
+            end
+        elseif recUp and P.fighters < 2 and B.Ready(rec) and GetScrap(1) >= 6 and GetPilot(1) > 0 then
+            Build(rec, "svfigh", 1)
+            P.fighters = P.fighters + 1
+        end
+    end
+end
+
+local PilotAdapter = {
+    update = Pilot.Update, addObject = Pilot.Add,
+    enable = function() Pilot.B.Adopt(Pilot.State(), Pilot.Add) end,
+    disable = function() Pilot.B.Release(Pilot.State()) end,
+}
+-- CR pilot mode <<
 -- CR co-op runtime >>
 -- Offline and co-op share this adapter (Scripts/CRCCARuntime.lua); the faithful tests set CR_TEST_FAITHFUL.
 -- Lexical wrappers affect this mission only. Docs/MISNS7_COOP.md lists every wrapped call and restoration.
@@ -240,6 +406,7 @@ local ENGINEER_GUARD = 75.0     -- seconds after which a dead or missing enginee
 local ENGINEER_STUCK = 180.0    -- seconds after which even a living (stuck) engineer's cutscene is completed
 local Restored
 if not CR_TEST_FAITHFUL then require("crreqfix").Initialize({"campaignReimagined", "3686673790"}) end -- the asset searcher cuts module names to 11 chars
+if not CR_TEST_FAITHFUL then Pilot.B = require("CRPilotBranch") end -- after RequireFix: the name is over 11 chars
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "misns7", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2, blackDogUnits = true,
     rallyPoints = { [0] = "svapc" },
@@ -249,6 +416,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     -- muf_point sits 100 m from the prison where the players are; the muf's own site and the far edge are the
     -- authored approaches tried when a human is within 460 m of it.
     fallbackEntries = { "muf_spawn", "escape" },
+    pilotMode = PilotAdapter, -- the N64 Pilot Mode branch (PDA toggle, single player only)
     failDes = "misns7f1.des",
     wonFlags = { "cr_won" },
     endedFlags = { "game_over" },

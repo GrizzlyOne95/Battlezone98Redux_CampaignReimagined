@@ -352,6 +352,165 @@ end
 
 M = NewState()
 Setup()
+-- CR pilot mode >>
+-- N64 Pilot Mode branch (Battlezone 64 table 18, byte g_800B93D5), behind the PDA Pilot Mode toggle; single
+-- player only (PlayerPilotMode is off in MP). Port of Battlezone_Z64Tools redux_lua/n64ms2.lua, which follows
+-- mission_scripts m18_misns2.c (C line numbers below). N64 labels map to this BZN by position
+-- (Docs/PILOT_MODE_N64_LABELS.md, "m18_misns2"): labels 11-16 = apcamr4..9_camerapod, 17 = cam1.
+-- This region sits ahead of the co-op runtime region on purpose: the runtime shadows Goto, GetHandle and the
+-- rest with token-based versions, and the pilot code needs the real natives.
+-- Skipped: voice 550 at the minefield (C 432) and the other voice or text swaps.
+local PILOT_BEACONS = { "apcamr4_camerapod", "apcamr5_camerapod", "apcamr6_camerapod", "apcamr7_camerapod",
+    "apcamr8_camerapod", "apcamr9_camerapod", "cam1" } -- labels 11..17 = h_384..h_398, h_2F8
+local PILOT_RADIUS = { 70, 70, 70, 70, 100, 70 } -- C 324, 345, 365, 385, 403, 444
+local PILOT_MINES = { "mine6", "mine8", "mine10", "mine11", "mine12" } -- PATH_35/37/39/40/41 = h_39C..h_3AC
+
+-- The shared helper loads on use, after the runtime region has set up the mod's require paths.
+local PILOT_MODULE = "CRPilotBranch"
+local function PilotLib() return require(PILOT_MODULE) end
+
+local function PilotState()
+    local P = M.pilot
+    if not P then
+        P = PilotLib().NewState()
+        P.nav, P.sent, P.mines = {}, {}, {}
+        M.pilot = P
+    end
+    return P
+end
+
+-- The three svap2 transports (labels 23/24/25 = h_204/h_208/h_20C).
+local function PilotEach(fn)
+    for i = 1, 3 do
+        local t = M["t" .. i]
+        if t and IsAlive(t) then fn(t) end
+    end
+end
+
+local function PilotNear(target, radius)
+    if not target then return false end
+    local near = false
+    PilotEach(function(t) if GetDistance(t, target) < radius then near = true end end)
+    return near
+end
+
+-- C 268-749, run by PlayerPilotMode.Update while the toggle is on.
+local function PilotUpdate()
+    if not M.missionstart then return end
+    local B = PilotLib()
+    local player = GetPlayerHandle()
+    if not B.alive(player) then return end
+    local P, now = PilotState(), GetTime()
+    local beacon = {}
+    for i, name in ipairs(PILOT_BEACONS) do beacon[i] = GetHandle(name) end
+
+    if not P.started then -- C 268-277: user target = the launch pad nav, escorts follow their transport
+        P.started = true
+        if beacon[7] then SetUserTarget(beacon[7]) end
+        for _, pair in ipairs({ { M.e2a, M.t1 }, { M.lu, M.t1 }, { M.e1b, M.t2 }, { M.e1a, M.t2 },
+                                { M.e3b, M.t3 }, { M.e2b, M.t3 }, { M.e3a, M.t3 } }) do
+            if B.alive(pair[1]) and B.alive(pair[2]) then Follow(pair[1], pair[2], 1) end
+        end
+    end
+    B.Lock(P, now)
+
+    -- C 299-319: after the minefield nav, the five tracked mines all dead clears the way.
+    if P.minefield and not P.minesClear then
+        P.minesClear = true
+        for _, mine in ipairs(P.mines) do
+            if B.alive(mine) then P.minesClear = false end
+        end
+    end
+
+    -- C 320-459: a nav latches when any transport comes within range (70 m, 100 m at the minefield nav).
+    for k = 1, 6 do
+        if not P.nav[k] and PilotNear(beacon[k], PILOT_RADIUS[k]) then
+            P.nav[k] = true
+            if k == 5 then -- C 420-438: halt at the minefield and mark the mines
+                PilotEach(function(t) Stop(t, 1) end)
+                P.target = nil -- CR adaptation: this stop is intentional, so the stall resend must not undo it
+                P.minefield = true
+                for _, path in ipairs(PILOT_MINES) do
+                    for h in AllObjects() do
+                        if IsOdf(h, "proxmine") and GetDistance(h, path) < 5 then
+                            P.mines[#P.mines + 1] = h
+                            break
+                        end
+                    end
+                end
+                for _, mine in ipairs(P.mines) do SetObjectiveOn(mine) end
+            end
+        end
+    end
+
+    -- C 461-572: with the player within 100 m of a transport, all three go to the next nav. The newest
+    -- latched nav without an order wins; the minefield nav also needs its mines gone.
+    local escorted = false
+    PilotEach(function(t) if GetDistance(player, t) < 100 then escorted = true end end)
+    if escorted then
+        local k
+        if P.nav[6] and not P.sent[6] then k = 6
+        elseif P.nav[5] and not P.sent[5] and P.minesClear then k = 5
+        else
+            for j = 4, 1, -1 do
+                if P.nav[j] and not P.sent[j] then k = j break end
+            end
+        end
+        if k and beacon[k + 1] then
+            PilotEach(function(t) Goto(t, beacon[k + 1], 1) end)
+            P.sent[k] = true
+            P.target, P.resendAt = beacon[k + 1], now + 10 -- CR adaptation: remembered for the stall resend
+        elseif not k and not P.nudged and not next(P.nav) and not next(P.sent) then
+            -- CR adaptation: the transports start ~500 m from the first nav and nothing orders them, so
+            -- nav 1 would never latch. Send them once to the nearest unlatched nav (nav 1 at mission start;
+            -- a mid-mission toggle with the convoy between navs picks the next one).
+            local lead
+            PilotEach(function(t) lead = lead or t end)
+            local best, bestDist
+            for j = 1, 6 do
+                if beacon[j] and not P.nav[j] and lead then
+                    local d = GetDistance(lead, beacon[j])
+                    if not bestDist or d < bestDist then best, bestDist = beacon[j], d end
+                end
+            end
+            if best then
+                P.nudged = true
+                PilotEach(function(t) Goto(t, best, 1) end)
+                P.target, P.resendAt = best, now + 10
+            end
+        end
+    end
+
+    -- CR adaptation: a transport that stopped short (blocked, or its order cleared) is re-sent to the
+    -- last ordered nav every 10 s. P.target is nil after the intentional minefield stop.
+    if P.target and IsAlive(P.target) and now >= (P.resendAt or 0) then
+        P.resendAt = now + 10
+        PilotEach(function(t)
+            if GetCurrentCommand(t) ~= AiCommand.GO and GetDistance(t, P.target) > 70 then
+                Goto(t, P.target, 1)
+            end
+        end)
+    end
+
+    -- C 739-749: once the ambush film ends, all three go back to the first nav. Only if the film was seen
+    -- running with the mode on, so a toggle after it does not turn the convoy around.
+    if not P.ambushSent then
+        if not M.bdcindone then
+            P.ambushWait = true
+        elseif P.ambushWait then
+            P.ambushSent = true
+            if beacon[1] then
+                PilotEach(function(t) Goto(t, beacon[1], 1) end)
+                P.target, P.resendAt = beacon[1], now + 10 -- CR adaptation: the return order replaces the old target
+            end
+        end
+    end
+end
+
+-- This mission builds and claims no team-1 units, so the adapter has no AddObject or enable hook.
+local PilotAdapter = { update = PilotUpdate,
+    disable = function() PilotLib().Release(PilotState()) end }
+-- CR pilot mode <<
 -- CR co-op runtime >>
 -- Offline and co-op share this adapter (Scripts/CRCCARuntime.lua); the faithful tests set CR_TEST_FAITHFUL.
 -- Lexical wrappers affect this mission only. Docs/MISNS2_COOP.md lists every wrapped call and restoration.
@@ -367,6 +526,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     id = "misns2", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2, blackDogUnits = true,
     rallyPoints = { [0] = "svapc0_apc" }, -- no base in this mission: respawn with the convoy
     scaledOdfs = SCALED_ODFS,
+    pilotMode = PilotAdapter, -- N64 Pilot Mode branch (the CR pilot mode region above)
     -- A wave whose entry has a human within 460 m comes from the next hidden enemy staging point instead.
     liveCap = 16, -- the nav3 pass springs three groups at once (waves 3 and 4 and the cutoff raiders)
     fallbackEntries = { "bdspmain", "bdsp5", "bdsp4", "bdsp3", "bdsp2", "bdsp1" },

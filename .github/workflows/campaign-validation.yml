@@ -383,6 +383,16 @@ jobs:
             "$LUA" "Tools/MissionTests/Test-Misn${n}PilotMode.lua"
           done
 
+      - name: Test N64 Pilot Mode branches (misns1-8)
+        shell: bash
+        run: |
+          set -euo pipefail
+          LUA="$(command -v lua5.1 || command -v lua)"
+          "$LUA" Tools/MissionTests/Test-CCARuntimePilotMode.lua
+          for n in 1 2 3 4 5 6 7 8; do
+            "$LUA" "Tools/MissionTests/Test-Misns${n}PilotMode.lua"
+          done
+
       - name: Test weather
         shell: bash
         run: |

@@ -177,6 +177,148 @@ local function NewState()
 end
 
 local M = NewState()
+-- CR pilot mode >>
+-- N64 Pilot Mode branch (Battlezone 64 table 24, byte g_800B93D5), behind the PDA Pilot Mode toggle; single
+-- player only (the CCA runtime owns PlayerPilotMode: config.pilotMode below). Port of Battlezone_Z64Tools
+-- redux_lua/n64ms8.lua, which follows m24_misns8.c (C line numbers below). N64 labels map to this BZN by
+-- position (Docs/PILOT_MODE_N64_LABELS.md, "m24_misns8"): label 20 = svrecycle, 21 = svmuf, 55 / 54 =
+-- eggeizr13_geyser / eggeizr12_geyser, 9 = last_geyser. These natives are the real ones: the runtime shadows
+-- (below) are not in scope here.
+-- Adaptations: the constructor n64p437 is svcnst, the scavenger svscvn1 is svscav; the facility delivery
+-- (Obj_SetPathCommand 8, C 734) is a Dropoff order; the scav top-up keeps the queue from stalling.
+-- Not ported: the voice/text/objective swaps (C 544/545/536/534/547/548), the Pilot debriefs and the NSDF-side
+-- Romeski/recycler relocation changes the CR mission handles itself.
+local PILOT_RESERVE = 4 -- S3
+local PILOT_FACILITIES = { -- C 800-963: odf, slot, scrap, x, z (+96000 added)
+    { "sbhang", "hangar", 7, 1964, 100363 },
+    { "sbsupp", "supp", 5, 1897, 100315 },
+    { "sbspow", "pow1", 4, 1829, 100314 },
+    { "sbtowe", "tow1", 6, 1836, 100351 },
+    { "sbspow", "pow2", 4, 1841, 100215 },
+    { "sbtowe", "tow2", 6, 1877, 100180 },
+    { "sbspow", "pow3", 4, 2025, 100356 },
+    { "sbtowe", "tow3", 6, 2063, 100349 },
+}
+-- CRPilotBranch is required on first use, after RequireFix.Initialize (the faithful tests run without it).
+local PilotBranch = setmetatable({}, { __index = function(_, k) return require("CRPilotBranch")[k] end })
+
+local function PilotSpot(x, z)
+    return SetVector(x, GetTerrainHeightAndNormal(SetVector(x, 0, z)), z)
+end
+
+local function PilotState()
+    local P = M.pilot
+    if not P then
+        P = PilotBranch.NewState()
+        P.scavs = {}
+        M.pilot = P
+    end
+    return P
+end
+
+-- C 590-642: player-team units built in Pilot Mode fill the N64 slots.
+local function PilotAddObject(h)
+    if not IsValid(h) or GetTeamNum(h) ~= 1 then return end
+    local P = PilotState()
+    if not PilotBranch.Claim(P, h) then return end
+    local alive = PilotBranch.alive
+    if IsOdf(h, "svscav") then -- C 590-598
+        for i = 1, 2 do
+            if not alive(P.scavs[i]) then P.scavs[i] = h; break end
+        end
+    elseif IsOdf(h, "svcnst") then -- C 599-605
+        if not alive(P.cnst) then
+            P.cnst = h
+            P.dropPending = false
+            P.facilityPending = false
+        end
+    elseif IsOdf(h, "svsav") then -- C 643-645
+        if not alive(P.sav) then P.sav = h end
+    else
+        local slots
+        if IsOdf(h, "sbhang") then slots = { "hangar" }
+        elseif IsOdf(h, "sbsupp") then slots = { "supp" }
+        elseif IsOdf(h, "sbspow") then slots = { "pow1", "pow2", "pow3" }
+        elseif IsOdf(h, "sbtowe") then slots = { "tow1", "tow2", "tow3" } end
+        if slots then -- C 607-642
+            for _, slot in ipairs(slots) do
+                if not alive(P[slot]) then P[slot] = h; break end
+            end
+            P.facilityPending = false
+        end
+    end
+end
+
+-- C 653-1144, run by PlayerPilotMode.Update while the toggle is on.
+local function PilotUpdate()
+    local player = GetPlayerHandle()
+    local alive = PilotBranch.alive
+    if not alive(player) then return end
+    local P = PilotState()
+    local now = GetTime()
+    local rec, fac = GetHandle("svrecycle"), GetHandle("svmuf")
+    local recGeyser, facGeyser = GetHandle("eggeizr13_geyser"), GetHandle("eggeizr12_geyser")
+
+    if not P.started then -- C 709-715
+        P.started = true
+        if alive(rec) and not IsDeployed(rec) and recGeyser then Goto(rec, recGeyser, 1) end
+        if alive(fac) and not IsDeployed(fac) and facGeyser then Goto(fac, facGeyser, 1) end
+    end
+    PilotBranch.Lock(P, now)
+    -- C 739-798: an idle producer is re-sent to its geyser.
+    PilotBranch.Resend(P, "rec", rec, recGeyser, now)
+    PilotBranch.Resend(P, "fac", fac, facGeyser, now)
+
+    -- C 1120-1144: at the Fury event one svsav is built at last_geyser while the factory stands. Armed only
+    -- after the event was seen not yet happened with the mode on, so a late toggle does not build one.
+    if not M.general_spawn then P.preFury = true end
+    if M.general_spawn and P.preFury and not P.furyDone then
+        P.furyDone = true
+        if alive(fac) then BuildObject("svsav", 1, GetHandle("last_geyser")) end
+    end
+
+    -- C 800-963: the constructor takes its next facility to the drop point.
+    if P.dropPending and alive(P.cnst) then
+        Dropoff(P.cnst, PilotSpot(P.dropX, P.dropZ), 1)
+        P.dropPending = false
+    end
+
+    -- C 739-798: the recycler tops up two scavengers, then one constructor whenever none is alive.
+    if alive(rec) and PilotBranch.Ready(rec) then
+        if not alive(P.scavs[1]) or not alive(P.scavs[2]) then
+            if GetScrap(1) < PILOT_RESERVE then AddScrap(1, PILOT_RESERVE) end
+            if GetPilot(1) == 0 then AddPilot(1, 1) end
+            if GetScrap(1) >= PILOT_RESERVE and GetPilot(1) > 0 then Build(rec, "svscav", 1) end
+        elseif not alive(P.cnst) then
+            PilotBranch.TryBuild(rec, "svcnst", PILOT_RESERVE + 8)
+        end
+    end
+
+    -- C 800-963: the constructor fills missing base slots in C order; a missing power plant that cannot be
+    -- afforded blocks the rest.
+    if alive(P.cnst) and not P.dropPending and not P.facilityPending and not IsBusy(P.cnst) then
+        for _, f in ipairs(PILOT_FACILITIES) do
+            if not alive(P[f[2]]) then
+                if GetScrap(1) >= PILOT_RESERVE + f[3] then
+                    Build(P.cnst, f[1], 1)
+                    P.facilityPending, P.dropPending = true, true
+                    P.dropX, P.dropZ = f[4], f[5]
+                    break
+                elseif f[1] == "sbspow" then
+                    break
+                end
+            end
+        end
+    end
+
+    -- C 966-1027: once the base is complete the factory builds one independent svsav, if none stands.
+    if alive(fac) and not alive(P.sav) and alive(P.cnst) and PilotBranch.Ready(fac)
+       and alive(P.pow1) and alive(P.pow2) and alive(P.pow3)
+       and alive(P.tow1) and alive(P.tow2) and alive(P.tow3) then
+        PilotBranch.TryBuild(fac, "svsav", PILOT_RESERVE + 8)
+    end
+end
+-- CR pilot mode <<
 -- CR co-op runtime >>
 -- Offline and co-op share this adapter (Scripts/CRCCARuntime.lua); the faithful tests set CR_TEST_FAITHFUL.
 -- Lexical wrappers affect this mission only. Docs/MISNS8_COOP.md lists every wrapped call and restoration.
@@ -199,6 +341,9 @@ if not CR_TEST_FAITHFUL then require("crreqfix").Initialize({"campaignReimagined
 local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(function() return M end, {
     id = "misns8", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2, blackDogUnits = true,
     rallyPoints = { [0] = "svrecycle" },
+    pilotMode = { update = function() PilotUpdate() end, addObject = function(h) PilotAddObject(h) end,
+        enable = function() PilotBranch.Adopt(PilotState(), PilotAddObject) end,
+        disable = function() PilotBranch.Release(PilotState()) end },
     -- The scripted Black Dog units are scaled/concealed; the replacement factory (it is the AI's producer,
     -- queried through IsDeployed/Pickup), Romeski, the nav beacons and the SAV swaps are built directly.
     scaledOdfs = { bvtank = true, avart8 = true, bvsca8 = true, bvra8 = true, bvhraz = true, bvltnk = true, bvwalk = true },

@@ -392,6 +392,8 @@ function F.makePeer(id, team, network, options)
         if options.weather.sites then modules.CRTitanSitesS7 = options.weather.sites end
     end
     modules.CRCoopComms = assert(loadfile("Scripts/CRCoopComms.lua"))()
+    modules.PlayerPilotMode = {Initialize = noop, Update = noop, Save = function() return {} end, IsEnabled = function() return false end}
+    modules.CRPilotBranch = assert(loadfile("Scripts/CRPilotBranch.lua"))()
     local realRespawn = assert(loadfile("Scripts/CRCoopRespawn.lua"))()
     modules.CRCoopRespawn = {Create = function(d)
         local service = realRespawn.Create(d)

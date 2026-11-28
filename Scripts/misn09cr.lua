@@ -1705,8 +1705,17 @@ local function PilotUpdate()
             P.siloOrdered = true
         end
     end
+    -- CR adaptation: the scavengers only Follow the factory, so they earn no scrap and the tug is never
+    -- built. Once the factory is deployed they are released once to scavenge (UNVERIFIED in game).
+    if alive(fact) and IsDeployed(fact) and not P.scavFreed then
+        P.scavFreed = true
+        for _, scav in ipairs({ M.avscav1, M.avscav2, M.avscav3 }) do
+            if alive(scav) then SetCommand(scav, AiCommand.SCAVENGE, 0) end
+        end
+    end
     if alive(fact) then -- C 870-935: factory queue, first unmet item wins
-        if P.tanksOrdered < 3 then
+        -- CR adaptation: order is tank, tank, tug, tank (the tug is the win-path unit; N64 built three tanks first).
+        if P.tanksOrdered < 2 then
             if PilotBranch.Ready(fact) and GetScrap(1) >= 8 and GetPilot(1) > 0 then
                 Build(fact, "avtank", 1)
                 P.tanksOrdered = P.tanksOrdered + 1
@@ -1715,6 +1724,11 @@ local function PilotUpdate()
             if PilotBranch.Ready(fact) and GetScrap(1) >= 6 and GetPilot(1) > 0 then
                 Build(fact, "avhaul", 1)
                 P.siloFailArmed = false
+            end
+        elseif P.tanksOrdered < 3 then
+            if PilotBranch.Ready(fact) and GetScrap(1) >= 8 and GetPilot(1) > 0 then
+                Build(fact, "avtank", 1)
+                P.tanksOrdered = P.tanksOrdered + 1
             end
         elseif P.walkOrdered <= 0 then
             if PilotBranch.Ready(fact) and GetScrap(1) >= 12 and GetPilot(1) > 0 then

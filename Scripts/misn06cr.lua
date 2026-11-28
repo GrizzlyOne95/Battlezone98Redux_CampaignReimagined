@@ -1143,6 +1143,18 @@ local function PilotDriveRoute(P, rec, now)
     elseif PilotBranch.alive(M.dustoffcam) then
         Goto(rec, M.dustoffcam, 1)
         P.route = nil
+        P.dustoff, P.dustAt = true, GetTime() + 10 -- CR adaptation: arm the dust-off resend
+    end
+end
+
+-- CR adaptation: the win needs the recycler within 100 m of dustoffcam, so a stalled or interrupted
+-- Goto is re-sent every 10 s while the recycler is idle and still far (the beacon can be rebuilt).
+local function PilotDustoffResend(P, rec, now)
+    if not P.dustoff or now < P.dustAt then return end
+    if not PilotBranch.alive(rec) or not PilotBranch.alive(M.dustoffcam) then return end
+    P.dustAt = now + 10
+    if GetDistance(rec, M.dustoffcam) > 100 and GetCurrentCommand(rec) ~= AiCommand.GO then
+        Goto(rec, M.dustoffcam, 1)
     end
 end
 
@@ -1206,6 +1218,7 @@ local function PilotUpdate()
         PilotStartRoute(P, "p38")
     end
     PilotDriveRoute(P, rec, now)
+    PilotDustoffResend(P, rec, now) -- CR adaptation
 
     -- C 432-517: build queue when deployed and idle; the first unmet item
     -- holds the rest (avscav, ammo x2, repair x2, avturr, avfigh x8).

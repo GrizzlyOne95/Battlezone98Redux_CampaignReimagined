@@ -54,6 +54,7 @@ cutscenes are shared and unskippable in a network game; every optional subsystem
 | `presentationOps` | `{}` | `{Name=function(...)}` ops run on every peer through the ordered stream (`Present("Name", ...)`). |
 | `environment` | nil | `Environment.Init` options when there is no weather. |
 | `weather` | nil | `{module="CRVenusWeather", sites="CRVenusSitesS1", environment=..., startLevel, targetLevel, ops={...}, beats=function(module, M, state)}`. Missing/failing modules disable weather, never the mission. `beats` runs on the authority each frame. |
+| `pilotMode` | nil | `{update, addObject(h), enable, disable}`: the mission's scripted N64 Pilot Mode adapter (PDA toggle, off by default). Single player only. The runtime owns `PlayerPilotMode` Initialize/Update/Save/Load; `addObject` runs only while the mode is on; the state is saved in `crcca.pilotModeState`. See Docs/PILOT_MODE_CAMPAIGN.md. |
 | `hooks` | `{}` | `start(R)`, `load(R)`, `update(R, dt, authority)` (every peer), `afterUpdate(R)`, `save(R, state)`, `addObject(R, h)`, `chooseOdf(R, odf, M)`, `heldArrivals(R, M)`, `built(R, handle, request, id)` (a ticket was built; `request.extra`, `.where`, `.odf`, `.team`), `outOfLives()` (every human out of lives; overrides the default `Failure()`/`FailMission(failDes)` for a mission whose own ending is not a plain failure, e.g. `evolvecr`'s score-chosen `SucceedMission`). |
 
 ## API (`R`)

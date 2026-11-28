@@ -31,6 +31,118 @@ end
 
 -- Initialize before map AddObject callbacks; Start must not erase map haulers.
 local M = NewState()
+-- CR pilot mode >>
+-- N64 Pilot Mode branch (Battlezone 64 table 20, byte g_800B93D5), behind the PDA Pilot Mode toggle; single
+-- player only (PlayerPilotMode is off in MP). Port of Battlezone_Z64Tools redux_lua/n64ms4.lua, which follows
+-- mission_scripts m20_misns4.c (C line numbers below). N64 labels map to this BZN by position
+-- (Docs/PILOT_MODE_N64_LABELS.md, "m20_misns4"): label 2 = svrecy0_recycler, 3-9 = eggeizr12..18_geyser,
+-- path 9 = warn1. This region sits ahead of the co-op runtime region on purpose: the runtime shadows Goto,
+-- GetHandle and the rest with token-based versions, and the pilot code needs the real natives.
+-- Adaptations: the N64-only ODFs svslf_n64_ammo_hull_only and svscav_n64_1 are svslf and svscav; the armory's
+-- reload and repair path commands (C 231-255) are BuildAt pods (sspammo, ssprepa: the svslf build items) at the
+-- same fixed spot; the armory's geyser (the N64 sends it with Obj_ClearPathCommand(.., 16)) is the nearest of
+-- the seven map geysers. Skipped: the xF8 nav name and the voice or text swaps.
+local PILOT_WHERE = { 2474, 99038 } -- g_801FD15C..64, z + 96000
+local PILOT_GEYSERS = { "eggeizr12_geyser", "eggeizr13_geyser", "eggeizr14_geyser", "eggeizr15_geyser",
+    "eggeizr16_geyser", "eggeizr17_geyser", "eggeizr18_geyser" } -- labels 3..9
+
+-- The shared helper loads on use, after the runtime region has set up the mod's require paths.
+local PILOT_MODULE = "CRPilotBranch"
+local function PilotLib() return require(PILOT_MODULE) end
+
+local function PilotState()
+    local P = M.pilot
+    if not P then
+        P = PilotLib().NewState()
+        P.escorts = {}
+        P.fightersBuilt, P.reloadOrders, P.repairOrders = 0, 0, 0
+        M.pilot = P
+    end
+    return P
+end
+
+local function PilotGeyser(h)
+    local best, bestDistance
+    for _, name in ipairs(PILOT_GEYSERS) do
+        local geyser = GetHandle(name)
+        if geyser then
+            local distance = GetDistance(h, geyser)
+            if not bestDistance or distance < bestDistance then best, bestDistance = geyser, distance end
+        end
+    end
+    return best
+end
+
+-- C 447-469: the armory and fighters the recycler builds get their orders.
+local function PilotAddObject(h)
+    if GetTeamNum(h) ~= 1 then return end
+    local B, P = PilotLib(), PilotState()
+    if not B.Claim(P, h) then return end
+    if IsOdf(h, "svslf") then
+        P.armory, P.builtArmory = h, true
+        local geyser = PilotGeyser(h)
+        if geyser then Goto(h, geyser, 1) end
+    elseif IsOdf(h, "svscav") then
+        P.builtScav = true
+    elseif IsOdf(h, "svfigh") then
+        for i = 1, 4 do
+            if not B.alive(P.escorts[i]) then P.escorts[i] = h break end
+        end
+        local player = GetPlayerHandle()
+        if B.alive(player) then Follow(h, player, 1) end
+    end
+end
+
+-- C 110-260, run by PlayerPilotMode.Update while the toggle is on.
+local function PilotUpdate()
+    if not M.start_done then return end
+    local B = PilotLib()
+    local player = GetPlayerHandle()
+    if not B.alive(player) then return end
+    local P, now = PilotState(), GetTime()
+
+    if not P.started then -- C 110-112
+        P.started = true
+        if B.alive(M.cam1) then SetUserTarget(M.cam1) end
+    end
+    B.Lock(P, now)
+    local armory = P.armory
+    if B.alive(armory) then B.Resend(P, "armory", armory, PilotGeyser(armory), now) end -- C 116-134
+    B.FollowPlayer(P, P.escorts, player, now, 30) -- C 135-162
+    if M.warning then P.bridge = true end -- C 349: reaching warn1 arms the supply pods
+
+    local rec = GetHandle("svrecy0_recycler")
+    if not B.alive(rec) then return end
+    -- C 164-257: one blocking chain; the first unmet item wins the frame.
+    if not P.builtArmory then
+        if B.Ready(rec) and GetScrap(1) >= 7 then
+            Build(rec, "svslf", 1)
+            P.builtArmory = true
+        end
+    elseif not P.builtScav then
+        if B.Ready(rec) and GetScrap(1) >= 5 then
+            Build(rec, "svscav", 1)
+            P.builtScav = true
+        end
+    elseif P.fightersBuilt < 4 then
+        if B.Ready(rec) and GetScrap(1) >= 7 and GetPilot(1) > 0 then
+            Build(rec, "svfigh", 1)
+            P.fightersBuilt = P.fightersBuilt + 1
+        end
+    elseif P.bridge and B.alive(armory) then
+        local odf = P.reloadOrders < 3 and "sspammo" or (P.repairOrders < 3 and "ssprepa" or nil)
+        if odf and B.Ready(armory) and GetScrap(1) > 0 then
+            local x, z = PILOT_WHERE[1], PILOT_WHERE[2]
+            BuildAt(armory, odf, SetVector(x, GetTerrainHeightAndNormal(SetVector(x, 0, z)), z), 1)
+            if odf == "sspammo" then P.reloadOrders = P.reloadOrders + 1 else P.repairOrders = P.repairOrders + 1 end
+        end
+    end
+end
+
+local PilotAdapter = { update = PilotUpdate, addObject = PilotAddObject,
+    enable = function() PilotLib().Adopt(PilotState(), PilotAddObject) end,
+    disable = function() PilotLib().Release(PilotState()) end }
+-- CR pilot mode <<
 -- CR co-op runtime >>
 -- Offline and co-op share this adapter (Scripts/CRCCARuntime.lua); the faithful tests set CR_TEST_FAITHFUL.
 -- Lexical wrappers affect this mission only. Docs/MISNS4_COOP.md lists every wrapped call and restoration.
@@ -44,6 +156,7 @@ local campaignRuntime = not CR_TEST_FAITHFUL and require("CRCCARuntime").Create(
     id = "misns4", leaderTeam = 1, enemyTeam = 5, mapEnemyTeam = 2, blackDogUnits = true,
     rallyPoints = { [0] = "svrecy0_recycler" },
     scrapPerGuest = SCRAP_PER_GUEST,
+    pilotMode = PilotAdapter, -- N64 Pilot Mode branch (the CR pilot mode region above)
     -- Every enemy unit the body builds (raiders, bridge guard, north force, counterattack rockets) is a scaled
     -- ticket: concealed from the humans, mirrored by extras, orders replayed. Towers, power plants, the
     -- howitzer and all Soviet-side builds (pod, constructor, haulers) are built straight away.
