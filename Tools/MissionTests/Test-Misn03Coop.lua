@@ -131,7 +131,7 @@ local function makePeer(id, team, network)
         "AddHealth", "Damage", "SetCommand", "SetCritical", "SetPathLoop", "SetVelocity",
         "SetWeaponMask", "SetScrap", "SetPilot", "SetObjectiveName", "SetObjectiveOn",
         "SetObjectiveOff", "SetUserTarget", "ClearObjectives", "AddObjective", "UpdateObjective",
-        "CameraPath", "StartSound", "DisplayMessage", "Ally", "UnAlly", "FailMission", "SucceedMission" }) do
+        "CameraPath", "StartSound", "DisplayMessage", "Ally", "UnAlly", "FailMission", "SucceedMission", "Deploy" }) do
         local n = name
         e[n] = function(...) record(n, ...) end
     end
@@ -579,14 +579,21 @@ local recycler = "avrec3-1_recycler"
 objects[recycler].deployed = true
 garrison.state.recycler_follow_launch = true
 tick(0.1)
-check(last(garrison, "SetCommand")[2] == recycler and last(garrison, "SetCommand")[3] == garrison.env.AiCommand.UNDEPLOY,
-    "a deployed Recycler is told to pack first")
+check(last(garrison, "Deploy") and last(garrison, "Deploy")[2] == recycler,
+    "a deployed Recycler is told to pack first (Deploy toggles its deploy control)")
+for _, c in ipairs(garrison.calls) do
+    check(not (c[1] == "SetCommand" and c[2] == recycler), "no fake UNDEPLOY SetCommand is sent to the Recycler")
+end
 check(ordered("Follow", recycler, "launch_pad") == 0, "Follow must not cancel the pack order")
-local packs = count(garrison, "SetCommand")
+local packs = count(garrison, "Deploy")
 -- Stay deployed ~3.5 s: a wait measured from the first pack order would nearly
 -- have expired, so Follow would fire as soon as the Recycler finished packing.
 for i = 1, 34 do tick(0.1) end
-check(count(garrison, "SetCommand") == packs, "the pack order is not repeated while it is still current")
+check(count(garrison, "Deploy") == packs, "the pack toggle is not repeated while the pack can still be running")
+for i = 1, 66 do tick(0.1) end
+check(count(garrison, "Deploy") == packs, "no second toggle inside 12 s, so a slow pack is never undone")
+for i = 1, 30 do tick(0.1) end
+check(count(garrison, "Deploy") == packs + 1, "a Recycler still deployed after 12 s gets one more pack toggle")
 objects[recycler].deployed = false
 for i = 1, 15 do tick(0.1) end
 check(ordered("Follow", recycler, "launch_pad") == 0, "Follow waits for the pack transition to finish")
